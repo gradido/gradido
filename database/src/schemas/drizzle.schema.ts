@@ -10,7 +10,6 @@ import {
   longtext,
   mysqlTable,
   text,
-  timestamp,
   tinyint,
   unique,
   uniqueIndex,
@@ -99,11 +98,17 @@ export const creachatThreadsTable = mysqlTable(
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),
+    // Maintained by dbUpdateCreachatThreadMessages, not by an ON UPDATE clause: drizzle
+    // cannot express one on a datetime column, and a column half-owned by the DDL and
+    // half by the query is the kind of thing nobody can answer a question about later.
     updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),
   },
-  (table) => [index('idx_creachat_threads_user_id').on(table.userId)],
+  (table) => [
+    index('idx_creachat_threads_user_id').on(table.userId),
+    index('idx_creachat_threads_updated_at').on(table.updatedAt),
+  ],
 )
 
 export type CreachatThreadSelect = typeof creachatThreadsTable.$inferSelect

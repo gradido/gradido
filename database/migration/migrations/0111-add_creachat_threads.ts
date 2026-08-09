@@ -7,6 +7,13 @@
 // is exactly the shape every read and every write needs: we always load the complete
 // thread, always append a pair, and never query a single message.
 //
+// Two indices, one per read: user_id finds a moderator's own thread, updated_at
+// carries the retention sweep, which runs across all moderators and would otherwise
+// scan the table on every chat open.
+//
+// updated_at has no ON UPDATE clause on purpose. It decides when a thread is swept, so
+// it wants one owner, and the query layer is the one drizzle can also express.
+//
 // Part 2 drops openai_threads. It only ever held OpenAI thread ids, which stop
 // resolving when the Assistants API is switched off — there is nothing in it worth
 // keeping. Running chats are lost, which is the intended trade (decided 06.08.).
@@ -18,9 +25,10 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       user_id int(10) unsigned NOT NULL,
       messages longtext NOT NULL,
       created_at datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-      updated_at datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+      updated_at datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
       PRIMARY KEY (id),
-      KEY idx_creachat_threads_user_id (user_id)
+      KEY idx_creachat_threads_user_id (user_id),
+      KEY idx_creachat_threads_updated_at (updated_at)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`)
 
   await queryFn('DROP TABLE IF EXISTS openai_threads;')

@@ -37,6 +37,13 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.anthropic.AnthropicC
 const FAST_MODE_BETA = 'fast-mode-2026-02-01'
 
 /**
+ * Crea's answer was cut off at max_tokens. It gets its own class so a caller can tell
+ * the moderator the one thing that helps — paste less at a time — instead of passing on
+ * the message below, which is written in a language the backend did not get to choose.
+ */
+export class CreaTruncatedError extends Error {}
+
+/**
  * True when the API refused specifically because of fast mode: either the model does
  * not support it (400 naming speed/fast) or the separate fast-mode rate limit is
  * exhausted (429). Any other error is a real failure and must not trigger a silent
@@ -461,7 +468,7 @@ export class AnthropicClient {
       logger.error(
         `crea output truncated at max_tokens=${maxTokens} (output=${message.usage.output_tokens})`,
       )
-      throw new Error('Crea returned an incomplete result (output too long)')
+      throw new CreaTruncatedError('Crea returned an incomplete result (output too long)')
     }
   }
 

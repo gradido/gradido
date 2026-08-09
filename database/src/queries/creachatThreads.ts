@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { and, desc, eq, lt } from 'drizzle-orm'
+import { and, desc, eq, gte, lt } from 'drizzle-orm'
 import { Result, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { DBInsertFailed, DBNotFoundError } from '../errorTypes'
@@ -28,17 +28,34 @@ export async function dbInsertCreachatThread(
 }
 
 /**
- * All threads of one moderator, newest first. An empty list is a legitimate answer, not
- * a failure — a moderator who has never opened the chat simply has none.
+ * The moderator's most recently used thread, provided it was used at or after
+ * `usedSince`. Ordered and filtered by `updated_at`, because that is what "the chat he
+ * is in" means — ordering by `created_at` would let a thread he opened later but never
+ * used win over the one he actually works in. Not finding one is an expected outcome:
+ * a moderator who has never opened the chat has none.
  */
-export async function dbSelectCreachatThreadsByUserId(
+export async function dbSelectNewestLiveCreachatThread(
   userId: number,
-): Promise<CreachatThreadSelect[]> {
-  return drizzleDb()
+  usedSince: Date,
+): Promise<Result<CreachatThreadSelect, DBNotFoundError>> {
+  const result = await drizzleDb()
     .select()
     .from(creachatThreadsTable)
-    .where(eq(creachatThreadsTable.userId, userId))
-    .orderBy(desc(creachatThreadsTable.createdAt))
+    .where(
+      and(eq(creachatThreadsTable.userId, userId), gte(creachatThreadsTable.updatedAt, usedSince)),
+    )
+    .orderBy(desc(creachatThreadsTable.updatedAt))
+    .limit(1)
+
+  const thread = result.at(0)
+  return thread
+    ? { success: true, value: thread }
+    : {
+        success: false,
+        error: CreachatThreadNotFound(
+          `userId = ${userId} and updatedAt >= ${usedSince.toISOString()}`,
+        ),
+      }
 }
 
 /**
@@ -61,21 +78,26 @@ export async function dbSelectCreachatThreadByIdAndUserId(
     : { success: false, error: CreachatThreadNotFound(`id = ${id} and userId = ${userId}`) }
 }
 
-/** Replaces the stored transcript and marks the thread as used. */
+/**
+ * Replaces the stored transcript and marks the thread as used. Scoped to its owner for
+ * the same reason the reads are: a thread id is an identifier, not an authorisation —
+ * and a write is the one where getting that wrong overwrites someone else's conversation.
+ */
 export async function dbUpdateCreachatThreadMessages(
   id: string,
+  userId: number,
   messages: string,
 ): Promise<VoidResult<DBNotFoundError>> {
   const result = await drizzleDb()
     .update(creachatThreadsTable)
     .set({ messages, updatedAt: new Date() })
-    .where(eq(creachatThreadsTable.id, id))
+    .where(and(eq(creachatThreadsTable.id, id), eq(creachatThreadsTable.userId, userId)))
 
   const firstRow = result[0]
   if (firstRow && firstRow.affectedRows === 1) {
     return { success: true }
   }
-  return { success: false, error: CreachatThreadNotFound(`id = ${id}`) }
+  return { success: false, error: CreachatThreadNotFound(`id = ${id} and userId = ${userId}`) }
 }
 
 /** Deletes the moderator's own thread. Not finding one is an expected outcome. */
@@ -98,18 +120,19 @@ export async function dbDeleteCreachatThreadByIdAndUserId(
 }
 
 /**
- * Deletes every thread of this moderator last used before `usedBefore`, and answers how
- * many that was. The cutoff is a parameter rather than a constant here: how long a chat
- * may lie idle is a rule about Crea, not about the table.
+ * Deletes every thread last used before `usedBefore`, and answers how many that was.
+ *
+ * Deliberately not scoped to one moderator. Scoped, the retention rule would only ever
+ * reach the moderator who happens to open the chat — a moderator who leaves the team
+ * would keep his transcripts forever, and the promise "gone after 60 days" would be
+ * false for exactly the case it exists for. `updated_at` is indexed for it.
+ *
+ * The cutoff is a parameter rather than a constant here: how long a chat may lie idle
+ * is a rule about Crea, not about the table.
  */
-export async function dbDeleteCreachatThreadsUnusedSince(
-  userId: number,
-  usedBefore: Date,
-): Promise<number> {
+export async function dbDeleteCreachatThreadsUnusedSince(usedBefore: Date): Promise<number> {
   const result = await drizzleDb()
     .delete(creachatThreadsTable)
-    .where(
-      and(eq(creachatThreadsTable.userId, userId), lt(creachatThreadsTable.updatedAt, usedBefore)),
-    )
+    .where(lt(creachatThreadsTable.updatedAt, usedBefore))
   return result[0]?.affectedRows ?? 0
 }

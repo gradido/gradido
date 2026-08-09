@@ -1,8 +1,9 @@
 // AI-GENERATED — not an architecture reference
 import { CreaChatInput } from '@input/CreaChatInput'
 import { CreaChatMessage } from '@model/CreaChatMessage'
+import { getLogger } from 'log4js'
 import { Arg, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
-import { AnthropicClient } from '@/apis/anthropic/AnthropicClient'
+import { AnthropicClient, CreaTruncatedError } from '@/apis/anthropic/AnthropicClient'
 import {
   appendTurns,
   type CreaChatTurn,
@@ -13,7 +14,10 @@ import {
   historyForRequest,
 } from '@/apis/anthropic/crea/chatThreads'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { Context } from '@/server/context'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { Context, getUser } from '@/server/context'
+
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.CreaChatResolver`)
 
 /**
  * CreaChat — the moderator's running exchange with Crea in the admin chat window.
@@ -35,10 +39,7 @@ export class CreaChatResolver {
     if (!AnthropicClient.getInstance()) {
       return [CreaChatMessage.error('api_inactive')]
     }
-    if (!context.user) {
-      return [CreaChatMessage.error('user_not_found')]
-    }
-    const thread = await findActiveThread(context.user.id)
+    const thread = await findActiveThread(getUser(context).id)
     if (!thread) {
       return []
     }
@@ -49,10 +50,7 @@ export class CreaChatResolver {
   @Authorized([RIGHTS.AI_SEND_MESSAGE])
   @Mutation(() => Boolean)
   async deleteThread(@Arg('threadId') threadId: string, @Ctx() context: Context): Promise<boolean> {
-    if (!context.user) {
-      return false
-    }
-    return deleteOwnThread(threadId, context.user.id)
+    return deleteOwnThread(threadId, getUser(context).id)
   }
 
   /**
@@ -70,26 +68,46 @@ export class CreaChatResolver {
     if (!client) {
       return CreaChatMessage.error('api_inactive')
     }
-    if (!context.user) {
-      return CreaChatMessage.error('user_not_found')
-    }
+    const user = getUser(context)
 
     let turns: CreaChatTurn[] = []
-    let activeThreadId: string
+    let ownThreadId: string | undefined
     if (threadId?.length) {
       // Scoped to the owner: a thread id is an identifier, not a permission.
-      const thread = await findOwnThread(threadId, context.user.id)
+      const thread = await findOwnThread(threadId, user.id)
       if (!thread) {
         return CreaChatMessage.error('thread_not_found')
       }
-      activeThreadId = thread.id
+      ownThreadId = thread.id
       turns = thread.turns
-    } else {
-      activeThreadId = await createThread(context.user.id)
     }
 
-    const answer = await client.chatWithCrea(historyForRequest(turns), message)
-    await appendTurns(activeThreadId, context.user.id, [
+    let answer: string
+    try {
+      answer = await client.chatWithCrea(historyForRequest(turns), message)
+    } catch (error) {
+      logger.error('creachat: the call to Crea failed', error)
+      return CreaChatMessage.error(
+        error instanceof CreaTruncatedError ? 'output_too_long' : 'send_failed',
+      )
+    }
+    // An empty answer would be stored and replayed on every later turn, and the API
+    // rejects an empty content block - so one empty answer would wedge the thread for
+    // good. Treat it as a failed call instead and leave the transcript as it was.
+    if (!answer.trim()) {
+      logger.error('creachat: Crea answered with empty text')
+      return CreaChatMessage.error('send_failed')
+    }
+
+    // The thread is opened only now that there is something to put in it. Opened before
+    // the call, every failed attempt would leave an empty row behind, and the next
+    // resume would hand the moderator that orphan instead of the chat he was in.
+    const activeThreadId = ownThreadId ?? (await createThread(user.id))
+    if (!activeThreadId) {
+      return CreaChatMessage.error('send_failed')
+    }
+
+    await appendTurns(activeThreadId, user.id, [
       { role: 'user', content: message },
       { role: 'assistant', content: answer },
     ])

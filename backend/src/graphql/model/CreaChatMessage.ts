@@ -6,9 +6,10 @@ import { Field, ObjectType } from 'type-graphql'
  *
  * `errorCode` carries the trouble instead of a ready-made sentence: the backend has no
  * business deciding which language the moderator reads. When it is set, `content` is
- * empty and the admin renders the matching `ai.error.*` text. Known codes:
- * `api_inactive` (Crea is switched off), `user_not_found` (no user on the request),
- * `thread_not_found` (the thread is gone or belongs to someone else).
+ * empty and the admin renders the matching `ai.error-*` text. Known codes:
+ * `api_inactive` (Crea is switched off), `thread_not_found` (the thread is gone or
+ * belongs to someone else), `output_too_long` (the answer was cut off - paste less at
+ * a time), `send_failed` (anything else the call ran into; the cause is in the log).
  */
 @ObjectType()
 export class CreaChatMessage {

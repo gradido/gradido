@@ -5,10 +5,11 @@ import {
   dbDeleteCreachatThreadsUnusedSince,
   dbInsertCreachatThread,
   dbSelectCreachatThreadByIdAndUserId,
-  dbSelectCreachatThreadsByUserId,
+  dbSelectNewestLiveCreachatThread,
   dbUpdateCreachatThreadMessages,
 } from 'database'
 import { getLogger } from 'log4js'
+import { Duration } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
@@ -29,6 +30,16 @@ const THREAD_TIMEOUT_DAYS = 60
  */
 const MAX_HISTORY_TURNS = 60
 
+/**
+ * The same cap measured in characters, because turns are not all the same size. Crea's
+ * chat rules invite the moderator to paste several contributions at once, so 60 turns
+ * can be a handful of lines or far more than any model will take. Without this a long
+ * thread wedges for good: the request exceeds the context window, the call fails, and
+ * every retry sends the same stored history again. Roughly 50k tokens, well inside every
+ * model the admin can pick.
+ */
+const MAX_HISTORY_CHARS = 200_000
+
 export interface CreaChatTurn {
   role: 'user' | 'assistant'
   content: string
@@ -40,11 +51,16 @@ export interface CreaChatThreadState {
 }
 
 function idleCutoff(): Date {
-  return new Date(Date.now() - THREAD_TIMEOUT_DAYS * 24 * 60 * 60 * 1000)
+  return Duration.days(THREAD_TIMEOUT_DAYS).subtractFromDate(new Date())
 }
 
-/** Reads the stored transcript, tolerating a row that somehow holds unusable JSON. */
-function parseTurns(thread: CreachatThreadSelect): CreaChatTurn[] {
+/**
+ * Reads the stored transcript. Undefined when the row holds something that is not a
+ * usable transcript — the caller decides what that means, and the two callers want
+ * opposite things: reading may start empty, writing must not, or the append would
+ * replace an unreadable conversation with a two-turn one and lose it for good.
+ */
+function parseTurns(thread: CreachatThreadSelect): CreaChatTurn[] | undefined {
   try {
     const parsed: unknown = JSON.parse(thread.messages)
     if (!Array.isArray(parsed)) {
@@ -52,32 +68,39 @@ function parseTurns(thread: CreachatThreadSelect): CreaChatTurn[] {
     }
     return parsed as CreaChatTurn[]
   } catch (error) {
-    logger.error(`unreadable transcript in creachat thread ${thread.id}, starting empty`, error)
-    return []
+    logger.error(`unreadable transcript in creachat thread ${thread.id}`, error)
+    return undefined
   }
 }
 
 /**
- * The moderator's newest live thread, or undefined when there is none to resume.
+ * The moderator's live thread, or undefined when there is none to resume.
  *
- * Expired threads are swept here — all of them, not just the newest. A moderator can end
- * up with more than one (two admin tabs both opening a chat, say), and only ever checking
- * the newest would leave the rest lying around forever. The sweep only runs when there is
- * actually something to sweep, so the ordinary case stays a single read.
+ * The sweep runs first and across every moderator, not only this one: scoped to the
+ * caller it would never reach a moderator who stops opening the chat, and "gone after
+ * 60 days" would be false for exactly the transcripts it is meant to reach. It is a
+ * single indexed DELETE that usually matches nothing.
+ *
+ * Which thread is "the live one" is then a question for the database, not for a filter
+ * in here: newest by `updated_at`, within the cutoff. A moderator can end up with more
+ * than one row — two admin tabs both opening a chat, say — and the one he is working in
+ * is the one he last wrote to.
  */
 export async function findActiveThread(userId: number): Promise<CreaChatThreadState | undefined> {
-  const threads = await dbSelectCreachatThreadsByUserId(userId)
   const cutoff = idleCutoff()
 
-  if (threads.some((thread) => thread.updatedAt < cutoff)) {
-    const deleted = await dbDeleteCreachatThreadsUnusedSince(userId, cutoff)
+  const deleted = await dbDeleteCreachatThreadsUnusedSince(cutoff)
+  if (deleted > 0) {
     logger.info(
       `deleted ${deleted} creachat thread(s) untouched for more than ${THREAD_TIMEOUT_DAYS} days`,
     )
   }
 
-  const active = threads.find((thread) => thread.updatedAt >= cutoff)
-  return active ? { id: active.id, turns: parseTurns(active) } : undefined
+  const active = await dbSelectNewestLiveCreachatThread(userId, cutoff)
+  if (!active.success) {
+    return undefined
+  }
+  return { id: active.value.id, turns: parseTurns(active.value) ?? [] }
 }
 
 /** Loads one thread, scoped to its owner. Undefined when this moderator has no such thread. */
@@ -89,20 +112,21 @@ export async function findOwnThread(
   if (!result.success) {
     return undefined
   }
-  return { id: result.value.id, turns: parseTurns(result.value) }
+  return { id: result.value.id, turns: parseTurns(result.value) ?? [] }
 }
 
 /**
- * Opens a thread for this moderator and returns its id. A rejected insert on a freshly
- * drawn uuid leaves nothing to fall back on — there is no conversation to carry — so it
- * is thrown rather than returned; the resolver is the edge that turns it into a response.
+ * Opens a thread for this moderator and returns its id, or undefined when the insert
+ * was rejected. Returned rather than thrown: a rejected insert is an expected runtime
+ * outcome, and the resolver has an error code for it that reaches the moderator in his
+ * own language.
  */
-export async function createThread(userId: number): Promise<string> {
+export async function createThread(userId: number): Promise<string | undefined> {
   const id = uuidv4()
   const result = await dbInsertCreachatThread({ id, userId, messages: '[]' })
   if (!result.success) {
     logger.error(`could not open a creachat thread for user ${userId}`, result.error)
-    throw result.error
+    return undefined
   }
   logger.info(`opened creachat thread ${id}`)
   return id
@@ -115,6 +139,8 @@ export async function createThread(userId: number): Promise<string> {
  *
  * A thread that vanished mid-request (cleared in another tab) is logged and shrugged off:
  * Crea's answer already exists and is worth more to the moderator than the bookkeeping.
+ * An unreadable transcript is the one case where we do nothing at all — writing over it
+ * would turn "we cannot read your conversation" into "your conversation is gone".
  */
 export async function appendTurns(
   threadId: string,
@@ -126,9 +152,15 @@ export async function appendTurns(
     logger.warn(`cannot append to missing creachat thread ${threadId}`, stored.error)
     return
   }
+  const previous = parseTurns(stored.value)
+  if (!previous) {
+    logger.error(`refusing to append over the unreadable transcript of creachat thread ${threadId}`)
+    return
+  }
   const result = await dbUpdateCreachatThreadMessages(
     threadId,
-    JSON.stringify([...parseTurns(stored.value), ...turns]),
+    userId,
+    JSON.stringify([...previous, ...turns]),
   )
   if (!result.success) {
     logger.warn(`could not append to creachat thread ${threadId}`, result.error)
@@ -146,20 +178,34 @@ export async function deleteOwnThread(threadId: string, userId: number): Promise
   return false
 }
 
-/** The tail of the conversation that is sent along to the API. */
+/**
+ * The tail of the conversation that is sent along to the API.
+ *
+ * Trimming the head is safe because nothing durable lives there: the signature is a
+ * placeholder the browser fills, and the language follows the pasted contribution. If a
+ * per-thread fact is ever added, it belongs in the system prompt or a column — not in
+ * turn 1, where the cut would eat it.
+ */
 export function historyForRequest(turns: CreaChatTurn[]): CreaChatTurn[] {
-  if (turns.length <= MAX_HISTORY_TURNS) {
-    return turns
-  }
-  logger.info(
-    `creachat history of ${turns.length} turns trimmed to the last ${MAX_HISTORY_TURNS} for the request`,
-  )
   const trimmed = turns.slice(-MAX_HISTORY_TURNS)
+
+  let characters = trimmed.reduce((sum, turn) => sum + turn.content.length, 0)
+  while (trimmed.length && characters > MAX_HISTORY_CHARS) {
+    characters -= trimmed[0].content.length
+    trimmed.shift()
+  }
+
   // The API rejects a conversation that opens on an assistant turn. Turns are written in
-  // pairs so the cut lands on a user turn today, but a history that ever gets an odd
-  // number of entries must not turn into a 400.
+  // pairs so the turn cut lands on a user turn, but the size cut above drops one at a
+  // time and a history that ends up starting on an assistant turn must not become a 400.
   while (trimmed.length && trimmed[0].role !== 'user') {
     trimmed.shift()
+  }
+
+  if (trimmed.length < turns.length) {
+    logger.info(
+      `creachat history of ${turns.length} turns trimmed to ${trimmed.length} for the request`,
+    )
   }
   return trimmed
 }
