@@ -27,6 +27,7 @@
                 variant="light"
                 class="copy-clipboard-button"
                 :title="$t('copy-to-clipboard')"
+                :aria-label="$t('copy-to-clipboard')"
                 @click="copyToClipboard(message)"
               >
                 <IBiCopy></IBiCopy>
@@ -61,7 +62,12 @@
         </b-button>
       </div>
       <div class="d-flex justify-content-start">
-        <b-button variant="light" class="chat-clear-button" @click="clearChat">
+        <b-button
+          variant="light"
+          class="chat-clear-button"
+          :disabled="loading || clearing"
+          @click="clearChat"
+        >
           {{ $t('ai.chat-clear') }}
         </b-button>
       </div>
@@ -93,6 +99,7 @@ const newMessage = ref('')
 const threadId = ref('')
 const messages = ref([])
 const loading = ref(false)
+const clearing = ref(false)
 const hasBeenOpened = ref(false)
 const buttonText = computed(() => t('send') + (loading.value ? '...' : ''))
 const textareaPlaceholder = computed(() =>
@@ -142,11 +149,15 @@ function errorText(code) {
 // What the moderator reads, and what the copy button copies: the same string, so he
 // never mails a placeholder he could not see. Rendered as text, not markup - Crea
 // writes plain prose and the line breaks are handled by `white-space: pre-wrap`.
+//
+// Only Crea's own messages are substituted. The placeholder is her convention, and what
+// the moderator pasted is someone else's words - rewriting those would put his signature
+// into a participant's sentence.
 function messageText(message) {
   if (message.errorCode) {
     return errorText(message.errorCode)
   }
-  return moderatorSignature.value
+  return moderatorSignature.value && message.role === 'assistant'
     ? message.content.split(SIGNATURE_PLACEHOLDER).join(moderatorSignature.value)
     : message.content
 }
@@ -157,7 +168,9 @@ function messageText(message) {
 const signatureMissing = computed(
   () =>
     !moderatorSignature.value &&
-    messages.value.some((message) => message.content?.includes(SIGNATURE_PLACEHOLDER)),
+    messages.value.some(
+      (message) => message.role === 'assistant' && message.content?.includes(SIGNATURE_PLACEHOLDER),
+    ),
 )
 
 function copyToClipboard(message) {
@@ -189,6 +202,13 @@ function restartChat() {
 }
 
 function clearChat() {
+  // The button is disabled while either of these runs, so this only catches the double
+  // click that lands before Vue repaints. It matters most before the first answer: with
+  // no thread yet, clearing goes straight to `restartChat`, and two of those send two
+  // `/start` messages whose answers then open two threads for one moderator.
+  if (loading.value || clearing.value) {
+    return
+  }
   // No stored thread — either nothing has been sent yet, or an error reply left us
   // without an id. The button still has to give the fresh start it promises; the
   // thread_not_found text sends the moderator here for exactly that.
@@ -196,6 +216,7 @@ function clearChat() {
     restartChat()
     return
   }
+  clearing.value = true
   deleteResponse
     .mutate({ threadId: threadId.value })
     .then(({ data }) => {
@@ -210,6 +231,9 @@ function clearChat() {
       // The delete failed, so we do not know what is stored. Leave the window as it is
       // rather than showing an empty chat over a thread that still exists.
       toastError(t('ai.error-chat-thread-deleted', { error }))
+    })
+    .finally(() => {
+      clearing.value = false
     })
 }
 
