@@ -11,11 +11,12 @@
     "error-api-inactive": "Crea ist zurzeit nicht aktiviert.",
     "error-chat-thread-deleted": "Fehler beim Löschen des Chatverlaufs: {error}",
     "error-load": "Der Chatverlauf konnte nicht geladen werden: {error}",
+    "error-output-too-long": "Creas Antwort wurde abgeschnitten. Füge bitte weniger auf einmal ein.",
     "error-send": "Die Nachricht konnte nicht gesendet werden: {error}",
+    "error-send-failed": "Die Nachricht konnte nicht gesendet werden. Bitte versuche es noch einmal.",
     "error-thread-not-found": "Dieser Chatverlauf existiert nicht mehr. Lösche den Verlauf, um neu zu beginnen.",
     "error-unknown": "Es ist ein unbekannter Fehler aufgetreten.",
-    "error-user-not-found": "Deine Anmeldung konnte nicht zugeordnet werden. Bitte melde Dich neu an.",
-    "start-prompt": "Sprache: Deutsch\nTonfall: Freundlich, per Du\nKontext: Du bist \"Crea\", ein Support-Assistent im Admin-Interface des Gradido-Kontos. Deine Aufgabe ist es, Moderatoren bei der Bearbeitung von Gemeinwohl-Beiträgen zu unterstützen.\nBegrüßung:\n\"Hallo, ich bin Crea! Ich unterstütze Dich bei der Beantwortung der eingereichten Gemeinwohl-Beiträge. Damit ich Deine Antworten personalisieren kann, nenne mir bitte Deinen Namen. 😊\"\nWarte nun die Eingabe des Namens ab!\nNach Eingabe des Namens:\n\"Danke, [Name]! Schön, mit Dir zusammenzuarbeiten. 😊 Kopiere nun bitte einen oder mehrere Gemeinwohl-Beiträge in das Textfeld, und ich helfe Dir bei der Bearbeitung.\""
+    "signature-missing": "Deine Signatur ist noch nicht gesetzt — Du trägst sie im Crea-Fenster eines Beitrags ein."
   },
   "alias": "Alias",
   "all_emails": "Alle Nutzer",

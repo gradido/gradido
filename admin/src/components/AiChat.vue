@@ -18,16 +18,16 @@
           <div
             v-for="(message, index) in messages"
             :key="index"
-            :class="['message', message.role, { 'message-error': message.errorCode }]"
+            :class="['message', message.role, { error: message.errorCode }]"
           >
             <div class="message-content position-relative inner-container">
-              <span v-html="formatMessage(message)"></span>
+              <span>{{ messageText(message) }}</span>
               <b-button
                 v-if="message.role === 'assistant' && !message.errorCode"
                 variant="light"
                 class="copy-clipboard-button"
                 :title="$t('copy-to-clipboard')"
-                @click="copyToClipboard(message.content)"
+                @click="copyToClipboard(message)"
               >
                 <IBiCopy></IBiCopy>
               </b-button>
@@ -35,6 +35,9 @@
           </div>
         </TransitionGroup>
       </div>
+      <p v-if="signatureMissing" class="signature-hint mb-0 px-2 pt-1 text-muted">
+        {{ $t('ai.signature-missing') }}
+      </p>
       <!--<div class="d-flex justify-content-end position-absolute top-0 start-0">
         <b-button variant="light" class="chat-close-button mt-1 ms-1 btn-sm" @click="closeChat">
           <IIcBaselineClose />
@@ -96,6 +99,27 @@ const textareaPlaceholder = computed(() =>
   loading.value ? t('ai.chat-placeholder-loading') : t('ai.chat-placeholder'),
 )
 
+// The one message the interface sends rather than the moderator: it opens a fresh chat
+// and Crea answers it with her greeting. A fixed, untranslated marker on purpose - the
+// greeting itself lives in the chat ruleset in the backend, so it is written once, and
+// hiding this turn cannot break when the moderator switches the admin language.
+const BOOTSTRAP_COMMAND = '/start'
+
+// The moderator's signature lives only in the browser (E-014), exactly as in the
+// contribution window: Crea closes with the placeholder and it is filled in here, so
+// the moderator's own name never reaches the API.
+const SIGNATURE_STORAGE_KEY = 'crea.moderatorSignature'
+const SIGNATURE_PLACEHOLDER = '[SIGNATUR]'
+
+const loadSignature = () => {
+  try {
+    return localStorage.getItem(SIGNATURE_STORAGE_KEY) ?? ''
+  } catch {
+    return ''
+  }
+}
+const moderatorSignature = ref(loadSignature())
+
 // An error reaches us as a code, not as a sentence — the backend has no business
 // picking the moderator's language. Spelled out one by one so an unknown code falls
 // back to a real sentence instead of showing a raw key.
@@ -103,37 +127,48 @@ function errorText(code) {
   if (code === 'api_inactive') {
     return t('ai.error-api-inactive')
   }
-  if (code === 'user_not_found') {
-    return t('ai.error-user-not-found')
-  }
   if (code === 'thread_not_found') {
     return t('ai.error-thread-not-found')
+  }
+  if (code === 'output_too_long') {
+    return t('ai.error-output-too-long')
+  }
+  if (code === 'send_failed') {
+    return t('ai.error-send-failed')
   }
   return t('ai.error-unknown')
 }
 
-// Crea writes plain text — her rules say so — so anything resembling markup came in
-// through a pasted contribution and has no business being handed to v-html.
-function escapeHtml(text) {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
+// What the moderator reads, and what the copy button copies: the same string, so he
+// never mails a placeholder he could not see. Rendered as text, not markup - Crea
+// writes plain prose and the line breaks are handled by `white-space: pre-wrap`.
+function messageText(message) {
+  if (message.errorCode) {
+    return errorText(message.errorCode)
+  }
+  return moderatorSignature.value
+    ? message.content.split(SIGNATURE_PLACEHOLDER).join(moderatorSignature.value)
+    : message.content
 }
 
-function formatMessage(message) {
-  const text = message.errorCode ? errorText(message.errorCode) : message.content
-  return escapeHtml(text).replace(/\n/g, '<br>')
-}
+// The placeholder is only left standing when there is no signature to put in its place.
+// Saying so is better than quietly dropping it: the moderator is about to copy this text
+// into a mail, and the field that fixes it sits in the Crea window of any contribution.
+const signatureMissing = computed(
+  () =>
+    !moderatorSignature.value &&
+    messages.value.some((message) => message.content?.includes(SIGNATURE_PLACEHOLDER)),
+)
 
-function copyToClipboard(content) {
-  navigator.clipboard.writeText(content)
+function copyToClipboard(message) {
+  navigator.clipboard.writeText(messageText(message))
   toastSuccess(t('copied-to-clipboard'))
 }
 
 function openChat() {
   isChatOpen.value = true
+  // The signature may have been changed in the contribution window since we loaded it.
+  moderatorSignature.value = loadSignature()
   if (messages.value.length > 0) {
     scrollDown()
   }
@@ -144,25 +179,38 @@ function closeChat() {
   isChatOpen.value = false
 }
 
-// clear
+// Empties the window and lets Crea greet again. Separate from clearChat because the
+// button has to do this whether or not there was a stored thread to delete.
+function restartChat() {
+  threadId.value = ''
+  messages.value = []
+  newMessage.value = BOOTSTRAP_COMMAND
+  sendMessage()
+}
+
 function clearChat() {
-  if (threadId.value && threadId.value.length > 0) {
-    // delete thread on closing chat
-    deleteResponse
-      .mutate({ threadId: threadId.value })
-      .then((result) => {
-        threadId.value = ''
-        messages.value = []
-        if (result.data.deleteThread) {
-          toastSuccess(t('ai.chat-thread-deleted'))
-          newMessage.value = t('ai.start-prompt')
-          sendMessage()
-        }
-      })
-      .catch((error) => {
-        toastError(t('ai.error-chat-thread-deleted', { error }))
-      })
+  // No stored thread — either nothing has been sent yet, or an error reply left us
+  // without an id. The button still has to give the fresh start it promises; the
+  // thread_not_found text sends the moderator here for exactly that.
+  if (!threadId.value) {
+    restartChat()
+    return
   }
+  deleteResponse
+    .mutate({ threadId: threadId.value })
+    .then(({ data }) => {
+      // `false` means the row was already gone (swept, or cleared in another tab).
+      // Nothing to report, but the window still starts over.
+      if (data?.deleteThread) {
+        toastSuccess(t('ai.chat-thread-deleted'))
+      }
+      restartChat()
+    })
+    .catch((error) => {
+      // The delete failed, so we do not know what is stored. Leave the window as it is
+      // rather than showing an empty chat over a thread that still exists.
+      toastError(t('ai.error-chat-thread-deleted', { error }))
+    })
 }
 
 function scrollDown() {
@@ -177,66 +225,71 @@ function scrollDown() {
 
 const sendMessage = () => {
   if (newMessage.value.trim()) {
-    // Erst den Fokus vom Feld nehmen, dann leeren — sonst kommt der Text zurück.
-    // Grund: `loading` schaltet das Feld gleich auf `disabled`, ein deaktiviertes Feld
-    // verliert den Fokus, und der Browser feuert dabei `change` mit dem DOM-Wert. Der ist
-    // dann noch der alte Text, weil Vue das Leeren erst im nächsten Durchlauf schreibt —
-    // und bootstrap-vue-next schreibt in seinem `change`-Behandler jeden Wert ins Modell
-    // zurück, der davon abweicht. Blurrt man vorher, sind Modell und Feld beim `change`
-    // noch gleich und es wird nichts zurückgeschrieben. Genau deshalb war der Absende-Knopf
-    // nie betroffen: ein Klick nimmt den Fokus ohnehin vorher weg.
+    // Take the focus off the field before clearing it, or the text comes back.
+    // Why: `loading` puts the field on `disabled` right away, a disabled field loses the
+    // focus, and the browser fires `change` with the DOM value while it does. That value
+    // is still the old text, because Vue only writes the clearing on the next tick — and
+    // bootstrap-vue-next's `change` handler writes back into the model any value that
+    // differs from it. Blur first and model and field still agree at `change`, so nothing
+    // is written back. This is exactly why the send button was never affected: a click
+    // takes the focus away by itself.
     chatInput.value?.element?.blur()
     loading.value = true
-    if (newMessage.value !== t('ai.start-prompt')) {
+    if (newMessage.value !== BOOTSTRAP_COMMAND) {
       messages.value.push({ content: newMessage.value, role: 'user' })
       scrollDown()
     }
     response
       .mutate({ input: { message: newMessage.value, threadId: threadId.value } })
       .then(({ data }) => {
-        if (data && data.sendMessage) {
-          threadId.value = data.sendMessage.threadId
-          messages.value.push(data.sendMessage)
+        const reply = data?.sendMessage
+        if (reply) {
+          // An error reply carries no thread id. Taking it would cut us loose from the
+          // running thread — and with it disable the very button the error text asks the
+          // moderator to press.
+          if (reply.threadId) {
+            threadId.value = reply.threadId
+          }
+          messages.value.push(reply)
         }
-        loading.value = false
         scrollDown()
       })
       .catch((error) => {
-        loading.value = false
         toastError(t('ai.error-send', { error: error.message }))
+      })
+      .finally(() => {
+        loading.value = false
       })
     newMessage.value = ''
   }
 }
 
 onMounted(async () => {
-  if (messages.value.length === 0) {
-    loading.value = true
-    try {
-      await resumeChatRefetch()
-    } catch (error) {
-      if (error.graphQLErrors && error.graphQLErrors.length > 0) {
-        toastError(t('ai.error-load', { error: error.graphQLErrors[0].message }))
-        return
-      } else {
-        // eslint-disable-next-line no-console
-        console.log(JSON.stringify(error, null, 2))
-        toastError(t('ai.error-load', { error }))
-      }
-    }
-    // A refetch can fail without throwing, which used to blow up on the next line.
-    const messagesFromServer = resumeChatResult.value?.resumeChat
-    if (messagesFromServer && messagesFromServer.length > 0) {
-      threadId.value = messagesFromServer[0].threadId
-      messages.value = messagesFromServer.filter(
-        (message) => message.content !== t('ai.start-prompt'),
-      )
-      scrollDown()
-      loading.value = false
-    } else {
-      newMessage.value = t('ai.start-prompt')
-      sendMessage()
-    }
+  if (messages.value.length > 0) {
+    return
+  }
+  loading.value = true
+  try {
+    await resumeChatRefetch()
+  } catch (error) {
+    // Every failure ends here, including one without graphQLErrors. Falling through
+    // would open a second thread over a conversation we simply could not load.
+    toastError(t('ai.error-load', { error: error.graphQLErrors?.[0]?.message ?? error }))
+    loading.value = false
+    return
+  }
+  // A refetch can fail without throwing, which used to blow up on the next line.
+  const messagesFromServer = resumeChatResult.value?.resumeChat
+  if (messagesFromServer && messagesFromServer.length > 0) {
+    // An error reply carries no thread id either; an empty one means the next message
+    // opens a fresh thread instead of writing into one we could not read.
+    threadId.value = messagesFromServer[0].threadId ?? ''
+    messages.value = messagesFromServer.filter((message) => message.content !== BOOTSTRAP_COMMAND)
+    scrollDown()
+    loading.value = false
+  } else {
+    newMessage.value = BOOTSTRAP_COMMAND
+    sendMessage()
   }
 })
 </script>
@@ -311,6 +364,13 @@ onMounted(async () => {
   border-radius: 8px;
   max-width: 80%;
   word-wrap: break-word;
+
+  /* Crea's line breaks come through as text, so the message needs no markup at all. */
+  white-space: pre-wrap;
+}
+
+.signature-hint {
+  font-size: 11px;
 }
 
 .message.user {
