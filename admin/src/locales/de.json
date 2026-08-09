@@ -118,6 +118,8 @@
     "previewBanner": "Vorschau ohne KI-Verbindung – ein Beispiel-Ergebnis. Optik, Datenbank und Anrede/Signatur sind echt.",
     "reasoning": "Begründung",
     "response": "Antwortvorschlag",
+    "resubmission": "Wiedervorlage",
+    "resubmissionDue": "Wiedervorlage fällig",
     "rewrite": "Für meine Entscheidung schreiben",
     "salutation": "Anrede",
     "salutationHint": "So wird dieser Mensch angesprochen. Änderst Du sie hier, zieht der Textvorschlag sofort mit. Mit „Anrede speichern“ steht sie beim nächsten Beitrag schon da.",

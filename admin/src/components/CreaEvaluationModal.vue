@@ -49,25 +49,32 @@
         </span>
       </div>
 
-      <!-- Batch mode (E-020): the participant's open contributions as a checklist, all
-           preselected; unchecking one leaves it out. Nothing runs until "Bewerten". -->
+      <!-- Batch mode (E-020): the participant's open contributions as a checklist, split
+           by resubmission (E-026). Untouched ones come preselected, anything put off
+           starts unticked; ticking is free either way. Nothing runs until "Bewerten". -->
       <template v-if="isBatch">
         <p class="mb-2 text-muted small">{{ $t('crea.selectHint') }}</p>
-        <div v-for="c in contributions" :key="c.id" class="form-check mb-2">
-          <input
-            :id="`crea-pick-${c.id}`"
-            v-model="selectedIds"
-            :value="c.id"
-            type="checkbox"
-            class="form-check-input"
-          />
-          <label :for="`crea-pick-${c.id}`" class="form-check-label d-block">
-            <span v-if="contributionMetaOf(c)" class="text-muted small d-block">
-              {{ contributionMetaOf(c) }}
-            </span>
-            <span class="text-break crea-original">{{ c.memo }}</span>
-          </label>
-        </div>
+        <template v-for="(section, index) in contributionSections" :key="section.key">
+          <hr v-if="index > 0" class="crea-section-rule" />
+          <p v-if="section.heading" class="crea-section-heading mb-2 fw-bold small">
+            {{ section.heading }}
+          </p>
+          <div v-for="c in section.items" :key="c.id" class="form-check mb-2">
+            <input
+              :id="`crea-pick-${c.id}`"
+              v-model="selectedIds"
+              :value="c.id"
+              type="checkbox"
+              class="form-check-input"
+            />
+            <label :for="`crea-pick-${c.id}`" class="form-check-label d-block">
+              <span v-if="contributionMetaOf(c)" class="text-muted small d-block">
+                {{ contributionMetaOf(c) }}
+              </span>
+              <span class="text-break crea-original">{{ c.memo }}</span>
+            </label>
+          </div>
+        </template>
       </template>
 
       <!-- Single mode: the one contribution verbatim, as before. -->
@@ -381,10 +388,48 @@ const supplementText = ref('')
 
 // Batch mode (E-020): the participant's open contributions, loaded when the modal
 // opens. Two or more -> batch mode (checklist + "Bewerten"); fewer -> the single
-// contribution path as before. selectedIds holds the ticked ones (all preselected).
+// contribution path as before. selectedIds holds the ticked ones.
 const contributions = ref([])
 const selectedIds = ref([])
 const isBatch = computed(() => contributions.value.length >= 2)
+
+// The clock the checklist is built against, taken once when the window opens. Grouping
+// and preselection have to agree on one instant, otherwise a contribution could count
+// as due in the list and as still pending for the tick.
+const openedAt = ref(new Date())
+
+// The checklist splits by resubmission (E-026). "Put off" means the same thing here as
+// behind the modal, where the list's "Wiedervorlage verbergen" hides exactly those whose
+// date still lies ahead (findContributions.ts): a date that has passed puts the
+// contribution back on the table. Three groups, in the order the moderator works them:
+//   open  - never put off
+//   due   - was put off, the date has arrived
+//   later - put off, the date is still ahead
+const groupedContributions = computed(() => {
+  const groups = { open: [], due: [], later: [] }
+  for (const c of contributions.value) {
+    if (!c.resubmissionAt) {
+      groups.open.push(c)
+      continue
+    }
+    // An unreadable date still means the contribution was handled once, so it counts as
+    // put off rather than falling back into the untouched group.
+    const at = new Date(c.resubmissionAt)
+    groups[at > openedAt.value ? 'later' : 'due'].push(c)
+  }
+  return groups
+})
+
+// Empty groups drop out entirely, so a participant with nothing put off sees the plain
+// list as before - no rule, no heading.
+const contributionSections = computed(() => {
+  const { open, due, later } = groupedContributions.value
+  return [
+    { key: 'open', heading: '', items: open },
+    { key: 'due', heading: t('crea.resubmissionDue'), items: due },
+    { key: 'later', heading: t('crea.resubmission'), items: later },
+  ].filter((section) => section.items.length > 0)
+})
 // "Crea liest den Beitrag" (one) vs "... die Beiträge" (several) while evaluating.
 const loadingText = computed(() => {
   const count = isBatch.value ? selectedIds.value.length : 1
@@ -756,6 +801,9 @@ const rewriteForDecision = async () => {
 // session (or after a re-login) never showed up without a full page reload.
 const onShown = async () => {
   moderatorSignature.value = loadSignature()
+  // Before the query, not after it: a slow connection must not move a contribution from
+  // one group to another, and the moderator asked for this list when they opened it.
+  openedAt.value = new Date()
   // Load the participant's open contributions: two or more -> batch checklist (no
   // auto-evaluate; the moderator prunes then presses "Bewerten"). Otherwise the single
   // contribution is evaluated right away, as before. Fall back to single on any error.
@@ -774,7 +822,15 @@ const onShown = async () => {
   }
   if (siblings.length >= 2) {
     contributions.value = siblings
-    selectedIds.value = siblings.map((c) => c.id)
+    // Preselect what was never put off (E-026). Anything with a resubmission date has
+    // been handled once already and starts unticked - also when the date has arrived,
+    // because "seen before" is what decides, not "due today". The contribution whose
+    // button was clicked stays ticked wherever it sits: the moderator asked for it.
+    const preselected = new Set(groupedContributions.value.open.map((c) => c.id))
+    if (props.contribution?.id != null) {
+      preselected.add(props.contribution.id)
+    }
+    selectedIds.value = siblings.filter((c) => preselected.has(c.id)).map((c) => c.id)
   } else {
     contributions.value = []
     runEvaluation()
@@ -833,6 +889,12 @@ const copyResponse = async () => {
 <style scoped>
 .crea-original {
   white-space: pre-line;
+}
+
+/* Separates the checklist's resubmission groups (E-026). Tighter above than a stock
+   <hr> so the rule reads as belonging to the heading below it, not floating between. */
+.crea-section-rule {
+  margin: 1rem 0 0.5rem;
 }
 
 .crea-title-logo {
