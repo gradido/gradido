@@ -38,8 +38,13 @@ WORKDIR /app
 
 ARG BRANCH_NAME=master
 ENV BRANCH_NAME=$BRANCH_NAME
+# The repository to clone. It is an argument for the same reason BRANCH_NAME is: on a fork,
+# the branch under test exists only in that fork, and cloning gradido/gradido would fail
+# before a single line of start.sh has run. The default keeps a manual `docker build`
+# behaving as it always has.
+ARG REPO_URL=https://github.com/gradido/gradido.git
 # COPY . .
-RUN git clone https://github.com/gradido/gradido.git --branch $BRANCH_NAME 
+RUN git clone $REPO_URL --branch $BRANCH_NAME
 RUN cp /app/gradido/deployment/bare_metal/.env.dist /app/gradido/deployment/bare_metal/.env
 RUN sed -i 's/^URL_PROTOCOL=https$/URL_PROTOCOL=http/' /app/gradido/deployment/bare_metal/.env
 RUN sed -i 's/^COMMUNITY_HOST=gddhost.tld$/COMMUNITY_HOST=localhost/' /app/gradido/deployment/bare_metal/.env
