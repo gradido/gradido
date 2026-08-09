@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import Anthropic from '@anthropic-ai/sdk'
 import { getLogger } from 'log4js'
+import { DomainError } from 'shared'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import type { CreaBatchInput } from '@/graphql/input/CreaBatchInput'
@@ -40,8 +41,19 @@ const FAST_MODE_BETA = 'fast-mode-2026-02-01'
  * Crea's answer was cut off at max_tokens. It gets its own class so a caller can tell
  * the moderator the one thing that helps — paste less at a time — instead of passing on
  * the message below, which is written in a language the backend did not get to choose.
+ *
+ * The two token counts are kept as fields rather than folded into a string: the message
+ * is for the log, the numbers are what a caller would act on if it ever wants to raise
+ * the limit instead of asking the moderator to paste less.
  */
-export class CreaTruncatedError extends Error {}
+export class CreaTruncatedError extends DomainError {
+  constructor(
+    public readonly maxTokens: number,
+    public readonly outputTokens: number,
+  ) {
+    super(`crea output truncated at max_tokens=${maxTokens} (output=${outputTokens})`)
+  }
+}
 
 /**
  * True when the API refused specifically because of fast mode: either the model does
@@ -465,10 +477,9 @@ export class AnthropicClient {
   // gets a clear message rather than a JSON crash.
   private assertNotTruncated(message: Anthropic.Message, maxTokens: number): void {
     if (message.stop_reason === 'max_tokens') {
-      logger.error(
-        `crea output truncated at max_tokens=${maxTokens} (output=${message.usage.output_tokens})`,
-      )
-      throw new CreaTruncatedError('Crea returned an incomplete result (output too long)')
+      const error = new CreaTruncatedError(maxTokens, message.usage.output_tokens)
+      logger.error(error.message)
+      throw error
     }
   }
 
