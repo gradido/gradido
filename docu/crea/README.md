@@ -39,7 +39,7 @@ short references like `E-019` or `DO-3`. This folder resolves them:
 
 | Notation | Meaning |
 |---|---|
-| `E-001` … `E-029` | A recorded **design decision** — the *why* behind a choice. See [decisions.md](decisions.md). |
+| `E-001` … `E-030` | A recorded **design decision** — the *why* behind a choice. See [decisions.md](decisions.md). |
 | `DO-1` … `DO-5` | A **build step** of the original rollout (see below). |
 | "Layer 3" | The deterministic code layer — see the three layers below. |
 

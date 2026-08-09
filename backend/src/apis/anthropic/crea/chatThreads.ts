@@ -149,7 +149,15 @@ export async function createThread(userId: number): Promise<string | undefined> 
 /**
  * Appends turns to the moderator's own thread. The transcript is re-read first rather
  * than reused from the request, so an exchange another tab wrote while Crea was thinking
- * survives instead of being overwritten.
+ * is usually picked up instead of being overwritten.
+ *
+ * Usually, not always: this is a read-modify-write without a lock, so two sends whose
+ * answers arrive within the same few milliseconds can both read the same transcript and
+ * the second write wins. The re-read narrows that window to the database round trip; it
+ * does not close it. Closing it would mean a transaction with SELECT ... FOR UPDATE
+ * around every append — a row lock in the request path, bought against a case that needs
+ * two tabs on one thread answering at once, and that costs the losing side a log entry,
+ * never the reply the moderator is reading.
  *
  * A thread that vanished mid-request (cleared in another tab) is logged and shrugged off:
  * Crea's answer already exists and is worth more to the moderator than the bookkeeping.
