@@ -27,12 +27,20 @@
         </BFormCheckbox>
         <small class="text-muted d-block mt-1">{{ $t('crea.settings.fastModeHint') }}</small>
       </BFormGroup>
-      <BButton variant="primary" :disabled="saving" @click="save">
+      <BButton variant="primary" :disabled="saving || !settingsLoaded" @click="save">
         {{ $t('save') }}
       </BButton>
-      <BButton variant="secondary" class="ms-2" :disabled="testing" @click="test">
+      <BButton
+        variant="secondary"
+        class="ms-2"
+        :disabled="testing || !settingsLoaded"
+        @click="test"
+      >
         {{ $t('crea.settings.testModel') }}
       </BButton>
+      <small v-if="!settingsLoaded" class="text-muted d-block mt-2">
+        {{ $t('crea.settings.unavailable') }}
+      </small>
     </div>
     <div v-else>{{ $t('crea.settings.adminOnly') }}</div>
   </div>
@@ -56,8 +64,15 @@ const { toastSuccess, toastError } = useAppToast()
 
 const isAdmin = computed(() => store.state.moderator.roles.includes('ADMIN'))
 
+// The form holds display defaults until the query answers, never the server's values, and
+// setCreaSettings overwrites all three settings at once. So nothing here may be submitted
+// before settingsLoaded turns true - otherwise one click clears the configured model and
+// drops the effort level for the whole instance, confirmed by a success toast. That is not
+// only a race: a query that failed leaves the defaults standing for as long as the page is
+// open, because the error watcher below only raises a toast.
 const form = ref({ model: '', effort: 'disabled', fastMode: false })
 const defaultModel = ref('')
+const settingsLoaded = ref(false)
 const saving = ref(false)
 const testing = ref(false)
 
@@ -96,6 +111,7 @@ watch(
         fastMode: settings.fastMode ?? false,
       }
       defaultModel.value = settings.defaultModel
+      settingsLoaded.value = true
     }
   },
   { immediate: true },
