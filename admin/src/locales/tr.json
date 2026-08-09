@@ -118,6 +118,8 @@
     "previewBanner": "Preview without AI connection – a sample result. Layout, database and salutation/signature are real.",
     "reasoning": "Reasoning",
     "response": "Suggested reply",
+    "resubmission": "Hatırlatma",
+    "resubmissionDue": "Hatırlatma zamanı geldi",
     "rewrite": "Write for my decision",
     "salutation": "Salutation",
     "salutationHint": "How this person is addressed. Change it here and the draft follows at once. Use Save salutation and next time it is already filled in.",

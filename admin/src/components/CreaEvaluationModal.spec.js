@@ -145,3 +145,140 @@ describe('CreaEvaluationModal — salutation', () => {
     expect(RAW_REPLY).toContain('[ANREDE]')
   })
 })
+
+// The batch checklist splits by resubmission (E-026): untouched contributions on top and
+// preselected, everything already put off below and unticked. "Put off" means here what it
+// means behind the modal - a date still ahead - so a date that has passed moves the
+// contribution back up into its own group instead of hiding among the pending ones.
+describe('CreaEvaluationModal — resubmission grouping', () => {
+  const HOUR = 60 * 60 * 1000
+  const past = () => new Date(Date.now() - 24 * HOUR).toISOString()
+  const future = () => new Date(Date.now() + 24 * HOUR).toISOString()
+
+  // One participant, one of each kind, deliberately NOT in group order: the component has
+  // to sort them, and a list that arrives pre-sorted could not tell us whether it does.
+  const siblings = () => [
+    contribution({ id: 1, memo: 'Nie zurueckgestellt' }),
+    contribution({ id: 2, memo: 'Wiedervorlage erreicht', resubmissionAt: past() }),
+    contribution({ id: 3, memo: 'Liegt in Wiedervorlage', resubmissionAt: future() }),
+    contribution({ id: 4, memo: 'Auch nie zurueckgestellt' }),
+  ]
+
+  const mountBatch = (clicked = 1) =>
+    mount(CreaEvaluationModal, {
+      props: { contribution: siblings().find((c) => c.id === clicked) },
+      global: { stubs, mocks: { $t: (key) => key } },
+    })
+
+  const open = async (wrapper) => {
+    wrapper.findComponent({ name: 'BModal' }).vm.$emit('shown')
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    await nextTick()
+  }
+
+  // The ids of the checkboxes in the order they are rendered, which is what the moderator
+  // reads top to bottom.
+  const renderedIds = (wrapper) =>
+    wrapper.findAll('input[id^="crea-pick-"]').map((input) => input.attributes('id'))
+
+  const mockSiblings = (list) => {
+    useApolloClient.mockReturnValue({
+      resolveClient: () => ({
+        query: vi.fn(async () => ({
+          data: { adminListContributions: { contributionList: list } },
+        })),
+      }),
+    })
+  }
+
+  beforeEach(() => {
+    useMutation.mockReturnValue({ mutate: vi.fn() })
+    mockSiblings(siblings())
+  })
+
+  it('orders the checklist untouched, due, then put off', async () => {
+    const wrapper = mountBatch()
+    await open(wrapper)
+    expect(renderedIds(wrapper)).toEqual([
+      'crea-pick-1',
+      'crea-pick-4',
+      'crea-pick-2',
+      'crea-pick-3',
+    ])
+  })
+
+  // Read the headings as elements, not as substrings of the rendered text: the due key
+  // has the other one as its prefix, so a text search cannot tell them apart.
+  const headings = (wrapper) =>
+    wrapper.findAll('p.crea-section-heading').map((heading) => heading.text())
+
+  it('heads the two resubmission groups and rules them off', async () => {
+    const wrapper = mountBatch()
+    await open(wrapper)
+    expect(headings(wrapper)).toEqual(['crea.resubmissionDue', 'crea.resubmission'])
+    expect(wrapper.findAll('hr.crea-section-rule')).toHaveLength(2)
+  })
+
+  it('preselects only what was never put off', async () => {
+    const wrapper = mountBatch()
+    await open(wrapper)
+    expect(wrapper.vm.selectedIds).toEqual([1, 4])
+  })
+
+  // Bernd's call, and the reason the middle group exists at all: a due contribution has
+  // been handled once before, so it does not come back preselected either.
+  it('leaves a due resubmission unticked', async () => {
+    const wrapper = mountBatch()
+    await open(wrapper)
+    expect(wrapper.vm.selectedIds).not.toContain(2)
+    expect(wrapper.vm.groupedContributions.due.map((c) => c.id)).toEqual([2])
+  })
+
+  // Whichever button was pressed, that contribution is the one the moderator asked about.
+  it('keeps the clicked contribution ticked inside the put-off group', async () => {
+    const wrapper = mountBatch(3)
+    await open(wrapper)
+    expect(wrapper.vm.selectedIds).toEqual([1, 3, 4])
+    expect(renderedIds(wrapper).at(-1)).toBe('crea-pick-3')
+  })
+
+  it('ticks nothing but the clicked one when everything is put off', async () => {
+    mockSiblings([
+      contribution({ id: 7, resubmissionAt: future() }),
+      contribution({ id: 8, resubmissionAt: future() }),
+    ])
+    const wrapper = mount(CreaEvaluationModal, {
+      props: { contribution: contribution({ id: 8, resubmissionAt: future() }) },
+      global: { stubs, mocks: { $t: (key) => key } },
+    })
+    await open(wrapper)
+    expect(wrapper.vm.selectedIds).toEqual([8])
+  })
+
+  // Nothing put off means nothing to separate: the participant whose contributions were
+  // never touched sees the plain preselected list the modal always showed.
+  it('shows no heading and no rule when nothing was put off', async () => {
+    mockSiblings([contribution({ id: 5 }), contribution({ id: 6 })])
+    const wrapper = mountBatch()
+    await open(wrapper)
+    expect(headings(wrapper)).toEqual([])
+    expect(wrapper.findAll('hr.crea-section-rule')).toHaveLength(0)
+    expect(wrapper.vm.selectedIds).toEqual([5, 6])
+  })
+
+  // A null date must not read as 1970 and drop the contribution into the due group -
+  // new Date(null) is the epoch, so the empty case has to be caught before parsing.
+  it('treats a missing date as never put off', async () => {
+    mockSiblings([
+      contribution({ id: 9, resubmissionAt: null }),
+      contribution({ id: 10, resubmissionAt: past() }),
+    ])
+    const wrapper = mount(CreaEvaluationModal, {
+      props: { contribution: contribution({ id: 9 }) },
+      global: { stubs, mocks: { $t: (key) => key } },
+    })
+    await open(wrapper)
+    expect(wrapper.vm.groupedContributions.open.map((c) => c.id)).toEqual([9])
+    expect(wrapper.vm.selectedIds).toEqual([9])
+  })
+})
