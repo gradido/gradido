@@ -44,7 +44,9 @@ ENV BRANCH_NAME=$BRANCH_NAME
 # behaving as it always has.
 ARG REPO_URL=https://github.com/gradido/gradido.git
 # COPY . .
-RUN git clone $REPO_URL --branch $BRANCH_NAME
+# The destination is spelled out because every step below works in /app/gradido. git would
+# otherwise derive it from the URL, which was safe only while that URL was fixed.
+RUN git clone --branch "$BRANCH_NAME" "$REPO_URL" /app/gradido
 RUN cp /app/gradido/deployment/bare_metal/.env.dist /app/gradido/deployment/bare_metal/.env
 RUN sed -i 's/^URL_PROTOCOL=https$/URL_PROTOCOL=http/' /app/gradido/deployment/bare_metal/.env
 RUN sed -i 's/^COMMUNITY_HOST=gddhost.tld$/COMMUNITY_HOST=localhost/' /app/gradido/deployment/bare_metal/.env
