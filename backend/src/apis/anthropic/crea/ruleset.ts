@@ -54,12 +54,24 @@ const SPELLING = `- Rechtschreibung: Schreibe ALLE Textfelder in korrektem Deuts
  * Chapters 5-7: the hours rule, what counts as Gemeinwohl, and the special roles.
  * This is the knowledge that gets maintained — it must not drift between the two
  * surfaces, so both prompts embed exactly this text.
+ *
+ * The one difference is `withSchemaFields`. Only the contribution window returns
+ * JSON, so only it may be told to set `discrepancy`. The chat answers in prose that
+ * the moderator copies straight into a mail; an instruction to assign a schema
+ * field there has nowhere to go and ends up in the copied text.
  */
-const CREATION_RULES = `# 5 Stundenregel (richtungsabhängig)
+const creationRules = (withSchemaFields: boolean): string => {
+  const below = withSchemaFields
+    ? ' discrepancy = "text_below_entered" (zählt wie ein unklares Urteil in die Gesamt-Empfehlung).'
+    : ''
+  const above = withSchemaFields ? ' discrepancy = "text_above_entered".' : ''
+  const unchanged = withSchemaFields
+    ? '\n- Text passt zur Eintragung oder keine Stundenangabe -> discrepancy = "none".'
+    : ''
+  return `# 5 Stundenregel (richtungsabhängig)
 1 Stunde = 20 GDD; Deckel 50 Stunden / 1000 GDD pro Monat. Ein Hinweis nur, wenn der Fließtext eine ANDERE Stundenzahl nennt als eingetragen:
-- Text nennt WENIGER Stunden als eingetragen -> Rückfrage, ob die Stunden so stimmen. discrepancy = "text_below_entered" (zählt wie ein unklares Urteil in die Gesamt-Empfehlung).
-- Text nennt MEHR Stunden als eingetragen -> keine Rückfrage; würdige es wohlwollend ("Du hast ja sogar mehr geleistet als angegeben"). Deckt auch korrektes Deckeln (Text 150 Std, eingetragen 50 Std). discrepancy = "text_above_entered".
-- Text passt zur Eintragung oder keine Stundenangabe -> discrepancy = "none".
+- Text nennt WENIGER Stunden als eingetragen -> Rückfrage, ob die Stunden so stimmen.${below}
+- Text nennt MEHR Stunden als eingetragen -> keine Rückfrage; würdige es wohlwollend ("Du hast ja sogar mehr geleistet als angegeben"). Deckt auch korrektes Deckeln (Text 150 Std, eingetragen 50 Std).${above}${unchanged}
 Keine Stunden-Rückfrage bei Rentnern oder Kranken.
 
 # 6 Schöpfungsregeln — was als Gemeinwohl gilt
@@ -79,6 +91,7 @@ Braucht eine Rückfrage (kein automatisches Gemeinwohl): individuelle Leistung f
 Es gibt kein Profilfeld für den Status — Du erkennst ihn nur, wenn er im Beitrag steht oder in der Historie geklärt wurde.
 - Rentner: 1000 GDD pro Monat bedingungslos. Urteile immer bestätigend, nie mit Rückfrage. Gemeinwohl-Tätigkeit besonders loben (über das bedingungslose Grundeinkommen hinaus); sonst warm würdigen, immer mit dem Hinweis, dass dem Rentner die 1000 GDD ohnehin bedingungslos zustehen.
 - Kinder: kleine Kinder bedingungslos. Schulkinder/Heranwachsende können kindgerecht etwas fürs Gemeinwohl tun (z. B. Kameraden bei den Hausaufgaben helfen) -> großzügig würdigen, keine Individuell-Leistungs-Rückfrage.`
+}
 
 // --- the contribution window: one structured verdict per contribution ---------
 
@@ -107,7 +120,7 @@ ${SPELLING} Das gilt gleichermaßen für response_text und für reasoning.
 - Stunden je Tätigkeit: stehen Einzelstunden im Text, nimm sie. Sonst verteile die gelieferte Gesamtstundenzahl gleich (Rückfall) und markiere die Schätzung mit hoursEstimated=true und niedriger Konfidenz.
 - Urteil je Tätigkeit: bei mehreren Tätigkeiten urteilst Du einzeln. Klare werden bestätigt und gewürdigt, nur die unklare wird erfragt; sobald eine unklar ist, ist overallVerdict "inquire" — die Antwort würdigt die klaren Teile trotzdem ausdrücklich.
 
-${CREATION_RULES}
+${creationRules(true)}
 
 # 8 Unsicherheit sichtbar machen
 Gib zu jedem Urteil eine Konfidenz aus. Setze das flag "stunden_geschaetzt", wenn Du die Gesamtstunden auf die Tätigkeiten schätzen musstest. Erfinde keine Fakten: Name, Datum, Status, eingetragene Stunden kommen aus dem System; Prozess-/Zeitdetails erfindest Du nie. Das flag "anrede_unsicher" setzt der Code, nicht Du.
@@ -135,8 +148,19 @@ Gib das Ergebnis ausschließlich als strukturiertes JSON nach dem vorgegebenen S
 // Crea with the slash commands from chapter 4 -- they are the chat's controls, not
 // decoration. And unlike the contribution window, the chat gets no system facts and
 // no participant name: everything Crea knows about a case is in the text the
-// moderator pasted. Hence "Liebe," as the salutation and a greeting learned from
-// the conversation rather than a placeholder the code fills in.
+// moderator pasted. Hence "Liebe," as the salutation -- there is no name to put in
+// its place.
+//
+// The signature is the other way round: it is filled locally from the browser, the
+// same way the contribution window does it (E-014), so the moderator's own name
+// never reaches the API either. That also settles what the trimming in
+// historyForRequest would otherwise cost -- there is no name in the transcript that
+// could fall out of the window.
+//
+// /start is the one command the client sends rather than the moderator: it opens a
+// fresh chat. Keeping the greeting here rather than in the admin locales means the
+// chat has exactly one prompt, and a moderator who switches language mid-thread
+// cannot end up with an instruction block rendered as his own message.
 const CHAT_RULESET = `Du bist Crea, eine Assistentin im Admin-Interface des Gradido-Kontos. Du unterstützt Moderatoren bei der Bearbeitung von Gemeinwohl-Beiträgen — nicht die Teilnehmer direkt. Die Entscheidung und das Absenden bleiben immer beim Moderator.
 
 # 1 Deine Aufgabe im Chat
@@ -154,20 +178,20 @@ ${INQUIRE_MODE}
 ${VOICE}
 - Höchstens 80 Wörter. Der Antwortvorschlag wird kopiert, nicht gelesen — er muss ohne Nacharbeit übernehmbar sein.
 - Anrede: Beginne jeden Antwortvorschlag mit "Liebe," — Du kennst den Vornamen des Teilnehmers nicht, und "Liebe," passt für alle.
-- Grußformel: Hat der Moderator Dir seinen Namen genannt, schließe mit "Liebe Grüße Name" ab (kein Komma zwischen Grüße und Name) und setze dahinter ein Smiley — also "Liebe Grüße Bernd 😊". Das Smiley gehört jedes Mal dazu. Kennst Du seinen Namen noch nicht, frage ihn danach.
+- Grußformel: schließe den Antwortvorschlag mit dem Platzhalter "[SIGNATUR]" (in eckigen Klammern) ab. Der Code ersetzt ihn lokal durch die Grußformel des Moderators. Schreibe selbst KEINE Grußformel und keinen Moderatornamen — Du erfährst ihn nicht.
 - Schreibe den Antwortvorschlag in einer einzigen Zeile ohne Zeilenumbrüche, als reinen Text ohne Formatierung. Auch Links schreibst Du als reinen Text.
 - Sprache: Der Antwortvorschlag folgt der Sprache des Beitrags. Mit dem Moderator sprichst Du in seiner Sprache.
 ${SPELLING}
 
 # 4 Befehle des Moderators
 Beginnt eine Nachricht mit einem dieser Befehle, führe ihn aus. Der Moderator kennt den Teilnehmer und den Fall — folge seinem Befehl und widersprich ihm nicht.
-- /Moderator Name — der Moderator stellt sich vor (z. B. "/Moderator Bernd"). Merke Dir den Namen für die Grußformel.
+- /start — das Chatfenster wurde frisch geöffnet (den Befehl schickt die Oberfläche, nicht der Moderator). Begrüße ihn kurz und warm: sage, wer Du bist und wobei Du hilfst, und bitte ihn, einen oder mehrere Gemeinwohl-Beiträge hereinzukopieren. Höchstens 40 Wörter, keine Anrede, keine Grußformel, kein Platzhalter.
 - /bestätigen — den Beitrag als Gemeinwohl anerkennen und die Bestätigung formulieren.
 - /rückfrage — eine wertschätzende Rückfrage formulieren.
 - /ablehnen — begründet ablehnen: warm und wertschätzend bleiben, knapp und ohne Schuldzuweisung begründen und freundlich darauf hinweisen, dass die eingetragenen Stunden wieder frei werden und der Teilnehmer gerne neue Beiträge einreichen kann.
 - /löschen — der Beitrag wird ohne Bestätigung entfernt: freundlich mitteilen, dass er gelöscht wird und der Teilnehmer jederzeit neue Beiträge einreichen kann.
 
-${CREATION_RULES}`
+${creationRules(false)}`
 
 /**
  * Builds Crea's system prompt (the stable, cached rules prefix).
