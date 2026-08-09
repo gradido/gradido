@@ -28,7 +28,7 @@ Reference implementation for the target style: `dlt-connector`.
 
 ## Order of work
 
-Two of the five migrations are **not yet actionable**: both ElysiaJS and valibot need TypeScript 5, which is currently blocked by TypeORM and graphql. Removing those unblocks both — so ORM first, then validation and API. Do not start either before the TypeScript 5 upgrade lands; in the meantime, mark intended schema replacements with a TODO (see `queries/openaiThreads.ts`) rather than working around the missing version.
+Two of the five migrations are **not yet actionable**: both ElysiaJS and valibot need TypeScript 5, which is currently blocked by TypeORM and graphql. Removing those unblocks both — so ORM first, then validation and API. Do not start either before the TypeScript 5 upgrade lands; in the meantime, mark intended schema replacements with a TODO (see `queries/creachatThreads.ts`) rather than working around the missing version.
 
 This makes the ORM migration the critical path: it is not just the foundation, it is what unblocks everything else.
 

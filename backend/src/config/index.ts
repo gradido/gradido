@@ -109,12 +109,6 @@ const humhub = {
   HUMHUB_JWT_KEY: process.env.HUMHUB_JWT_KEY ?? '',
 }
 
-const openai = {
-  OPENAI_ACTIVE: process.env.OPENAI_ACTIVE === 'true' || false,
-  OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? '',
-  OPENAI_ASSISTANT_ID: process.env.OPENAI_ASSISTANT_ID ?? '',
-}
-
 const anthropic = {
   ANTHROPIC_ACTIVE: process.env.ANTHROPIC_ACTIVE === 'true' || false,
   ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '',
@@ -137,7 +131,6 @@ export const CONFIG = {
   ...federation,
   ...gms,
   ...humhub,
-  ...openai,
   ...anthropic,
 }
 validate(schema, CONFIG)

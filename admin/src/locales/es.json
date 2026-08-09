@@ -8,8 +8,15 @@
     "chat-placeholder": "Escribe un mensaje...",
     "chat-placeholder-loading": "Espera, estoy pensando...",
     "chat-thread-deleted": "Historial del chat borrado",
+    "error-api-inactive": "Crea no está activada en este momento.",
     "error-chat-thread-deleted": "Error al borrar el historial del chat: {error}",
-    "start-prompt": "Idioma: Español\nTono de voz: Amistoso, de tú\nContexto: Eres «Crea», un asistente de soporte en la interfaz de administración de la cuenta Gradido. Tu tarea es ayudar a los moderadores a editar las contribuciones al bien común.\nSaludo:\n«¡Hola, soy Crea! Te ayudo a responder a las contribuciones al bien común enviadas. Para poder personalizar tus respuestas, dime tu nombre, por favor. 😊»\n¡Ahora espera a que se introduzca el nombre!\nDespués de introducir el nombre:\n«¡Gracias, [nombre]! Es un placer trabajar contigo. 😊 Ahora copia una o varias contribuciones al bien común en el campo de texto y te ayudaré a editarlas.»"
+    "error-load": "No se ha podido cargar el historial de chat: {error}",
+    "error-output-too-long": "La respuesta de Crea se ha cortado. Pega menos texto cada vez.",
+    "error-send": "No se ha podido enviar el mensaje: {error}",
+    "error-send-failed": "No se ha podido enviar el mensaje. Inténtalo de nuevo.",
+    "error-thread-not-found": "Este historial de chat ya no existe. Borra el historial para empezar de nuevo.",
+    "error-unknown": "Se ha producido un error desconocido.",
+    "signature-missing": "Aún no has definido tu firma: la introduces en la ventana de Crea de cualquier contribución."
   },
   "alias": "Alias",
   "all_emails": "Todos los usuarios",

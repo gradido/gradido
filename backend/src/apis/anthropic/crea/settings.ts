@@ -68,6 +68,12 @@ export interface CreaModelParams {
  * Anthropic call. effort 'disabled' keeps thinking off (the lean single-JSON default,
  * fastest); any level switches on adaptive thinking at that effort and raises
  * max_tokens to leave room for the reasoning before the JSON.
+ *
+ * On the 8192: Crea's structured JSON output is usually small, but a contribution with
+ * many activities (e.g. a long, semicolon-separated list) yields a longer activities
+ * array plus reasoning and reply. At 2048 such a case was truncated mid-JSON and
+ * reached the moderator as a parse error. This is only a ceiling — normal calls stop
+ * well before it, so the generous limit costs nothing.
  */
 export async function resolveCreaModelParams(): Promise<CreaModelParams> {
   const { model, effort, fastMode } = await readCreaSettings()

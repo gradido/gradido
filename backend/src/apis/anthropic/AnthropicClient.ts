@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import Anthropic from '@anthropic-ai/sdk'
 import { getLogger } from 'log4js'
+import { DomainError } from 'shared'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import type { CreaBatchInput } from '@/graphql/input/CreaBatchInput'
@@ -8,6 +9,7 @@ import type { CreaContributionInput } from '@/graphql/input/CreaContributionInpu
 import type { CreaBatchEvaluation } from '@/graphql/model/CreaBatchEvaluation'
 import type { CreaEvaluation } from '@/graphql/model/CreaEvaluation'
 import type { CreaRewriteResult } from '@/graphql/model/CreaRewriteResult'
+import type { CreaChatTurn } from './crea/chatThreads'
 import {
   buildSalutation,
   defaultSalutationFor,
@@ -19,17 +21,14 @@ import {
 } from './crea/deterministics'
 import { CREA_BATCH_SCHEMA, CREA_OUTPUT_SCHEMA, CREA_REWRITE_SCHEMA } from './crea/outputSchema'
 import { applyCreaDeterministics } from './crea/postprocess'
-import { buildCreaSystemPrompt, moderatorDecisionLabel } from './crea/ruleset'
+import {
+  buildCreaChatSystemPrompt,
+  buildCreaSystemPrompt,
+  moderatorDecisionLabel,
+} from './crea/ruleset'
 import { type CreaEffort, resolveCreaModelParams } from './crea/settings'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.anthropic.AnthropicClient`)
-
-// Crea's structured JSON output is usually small, but a contribution with many
-// activities (e.g. a long, semicolon-separated list) yields a longer activities array
-// plus reasoning and reply. Give generous room: at 2048 such a case was truncated
-// mid-JSON, which reached the moderator as a JSON parse error. This is only a ceiling -
-// normal evaluations stop well before it, so a higher limit costs nothing.
-const CREA_MAX_TOKENS = 8192
 
 // Fast mode runs the same model with faster output at premium pricing. It rides the
 // beta messages endpoint and is only available on some models (Opus tier), so a
@@ -37,6 +36,24 @@ const CREA_MAX_TOKENS = 8192
 // code - the admin model field is deliberately free text so new models work without a
 // release - we ask for fast mode and fall back to a normal call when the API says no.
 const FAST_MODE_BETA = 'fast-mode-2026-02-01'
+
+/**
+ * Crea's answer was cut off at max_tokens. It gets its own class so a caller can tell
+ * the moderator the one thing that helps — paste less at a time — instead of passing on
+ * the message below, which is written in a language the backend did not get to choose.
+ *
+ * The two token counts are kept as fields rather than folded into a string: the message
+ * is for the log, the numbers are what a caller would act on if it ever wants to raise
+ * the limit instead of asking the moderator to paste less.
+ */
+export class CreaTruncatedError extends DomainError {
+  constructor(
+    public readonly maxTokens: number,
+    public readonly outputTokens: number,
+  ) {
+    super(`crea output truncated at max_tokens=${maxTokens} (output=${outputTokens})`)
+  }
+}
 
 /**
  * True when the API refused specifically because of fast mode: either the model does
@@ -70,8 +87,8 @@ function fastModeRefusalCode(error: unknown): 'rate_limited' | 'refused' {
 
 /**
  * Singleton client for the Anthropic (Claude) API, used by the Crea moderation
- * assistant. Mirrors the OpenaiClient shape: disabled unless the API is active
- * and a key is configured.
+ * assistant — both when judging a single contribution and in CreaChat. Stays
+ * disabled unless the API is active and a key is configured.
  */
 export class AnthropicClient {
   private static instance: AnthropicClient
@@ -129,7 +146,7 @@ export class AnthropicClient {
       `crea usage: input=${message.usage.input_tokens} cacheRead=${message.usage.cache_read_input_tokens} cacheWrite=${message.usage.cache_creation_input_tokens} output=${message.usage.output_tokens}`,
     )
 
-    this.assertNotTruncated(message)
+    this.assertNotTruncated(message, params.maxTokens)
     const evaluation = JSON.parse(this.firstTextBlock(message)) as CreaEvaluation
     // Layer-3 post-processing (authoritative discrepancy + the locally resolved
     // salutation) is shared with the stub preview so both paths behave identically
@@ -173,7 +190,7 @@ export class AnthropicClient {
       `crea rewrite usage: input=${message.usage.input_tokens} cacheRead=${message.usage.cache_read_input_tokens} output=${message.usage.output_tokens}`,
     )
 
-    this.assertNotTruncated(message)
+    this.assertNotTruncated(message, params.maxTokens)
     const parsed = JSON.parse(this.firstTextBlock(message)) as {
       responseText: string
       memoSupplement?: string | null
@@ -224,7 +241,7 @@ export class AnthropicClient {
       `crea batch usage: input=${message.usage.input_tokens} cacheRead=${message.usage.cache_read_input_tokens} output=${message.usage.output_tokens}`,
     )
 
-    this.assertNotTruncated(message)
+    this.assertNotTruncated(message, params.maxTokens)
     const parsed = JSON.parse(this.firstTextBlock(message)) as Omit<CreaBatchEvaluation, 'flags'>
     // Work the salutation out locally (PII stays local); [ANREDE] and [SIGNATUR] stay
     // for the client to fill reactively (E-013 / E-014). No discrepancy recompute:
@@ -272,7 +289,7 @@ export class AnthropicClient {
       `crea batch rewrite usage: input=${message.usage.input_tokens} cacheRead=${message.usage.cache_read_input_tokens} output=${message.usage.output_tokens}`,
     )
 
-    this.assertNotTruncated(message)
+    this.assertNotTruncated(message, params.maxTokens)
     const parsed = JSON.parse(this.firstTextBlock(message)) as {
       responseText: string
       memoSupplement?: string | null
@@ -285,6 +302,50 @@ export class AnthropicClient {
       responseText: parsed.responseText,
       memoSupplement: parsed.memoSupplement?.trim() || null,
     }
+  }
+
+  /**
+   * CreaChat: one turn of the moderator's running exchange in the admin chat window.
+   *
+   * Unlike the evaluation calls this returns plain text, not JSON — the moderator
+   * copies the answer straight into his reply to the participant. The Messages API is
+   * stateless, so the caller passes the whole conversation so far and it travels with
+   * the request; only the rules prefix is cached, which is the part that repeats
+   * unchanged. Model, effort and fast mode come from the same admin settings as every
+   * other Crea call.
+   */
+  public async chatWithCrea(history: CreaChatTurn[], userMessage: string): Promise<string> {
+    const params = await resolveCreaModelParams()
+    const message = await this.createMessage(
+      {
+        model: params.model,
+        max_tokens: params.maxTokens,
+        thinking: params.thinking,
+        system: [
+          {
+            type: 'text',
+            text: buildCreaChatSystemPrompt(),
+            cache_control: { type: 'ephemeral' },
+          },
+        ],
+        messages: [
+          ...history.map((turn) => ({ role: turn.role, content: turn.content })),
+          { role: 'user' as const, content: userMessage },
+        ],
+        // No output_config.format here: a chat answer is prose, not a schema.
+        ...(params.effort ? { output_config: { effort: params.effort } } : {}),
+      },
+      params.fastMode,
+    )
+
+    logger.info(
+      `creachat usage: turns=${history.length} input=${message.usage.input_tokens} cacheRead=${message.usage.cache_read_input_tokens} cacheWrite=${message.usage.cache_creation_input_tokens} output=${message.usage.output_tokens}`,
+    )
+
+    // A cut-off answer would be copied into a mail to a participant mid-sentence, so
+    // treat it as a failure rather than handing the moderator half a reply.
+    this.assertNotTruncated(message, params.maxTokens)
+    return this.firstTextBlock(message)
   }
 
   /**
@@ -414,12 +475,11 @@ export class AnthropicClient {
   // A truncated response (max_tokens hit) leaves incomplete JSON, which would fail as a
   // cryptic parse error. Catch it explicitly so the log names the cause and the moderator
   // gets a clear message rather than a JSON crash.
-  private assertNotTruncated(message: Anthropic.Message): void {
+  private assertNotTruncated(message: Anthropic.Message, maxTokens: number): void {
     if (message.stop_reason === 'max_tokens') {
-      logger.error(
-        `crea output truncated at max_tokens=${CREA_MAX_TOKENS} (output=${message.usage.output_tokens}); the contribution likely lists many activities`,
-      )
-      throw new Error('Crea returned an incomplete result (output too long)')
+      const error = new CreaTruncatedError(maxTokens, message.usage.output_tokens)
+      logger.error(error.message)
+      throw error
     }
   }
 

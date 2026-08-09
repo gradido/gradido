@@ -169,9 +169,11 @@ export const LOGIN_SERVER_KEY = Joi.string()
   )
   .required()
 
-export const OPENAI_ACTIVE = Joi.boolean()
+// Shared by backend and admin: the backend wakes Crea on it, the admin shows the
+// Crea chat window on it. One switch, so the assistant and its chat are never half on.
+export const ANTHROPIC_ACTIVE = Joi.boolean()
   .default(false)
-  .description('Flag to enable or disable OpenAI API')
+  .description('Flag to enable or disable the Anthropic (Claude) API used by Crea')
   .required()
 
 export const APP_VERSION = Joi.string()
