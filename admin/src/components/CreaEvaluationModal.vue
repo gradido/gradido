@@ -801,6 +801,9 @@ const rewriteForDecision = async () => {
 // session (or after a re-login) never showed up without a full page reload.
 const onShown = async () => {
   moderatorSignature.value = loadSignature()
+  // Before the query, not after it: a slow connection must not move a contribution from
+  // one group to another, and the moderator asked for this list when they opened it.
+  openedAt.value = new Date()
   // Load the participant's open contributions: two or more -> batch checklist (no
   // auto-evaluate; the moderator prunes then presses "Bewerten"). Otherwise the single
   // contribution is evaluated right away, as before. Fall back to single on any error.
@@ -818,7 +821,6 @@ const onShown = async () => {
     loadedSalutation.value = siblings[0].user?.salutation ?? null
   }
   if (siblings.length >= 2) {
-    openedAt.value = new Date()
     contributions.value = siblings
     // Preselect what was never put off (E-026). Anything with a resubmission date has
     // been handled once already and starts unticked - also when the date has arrived,
