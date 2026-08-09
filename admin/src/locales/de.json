@@ -150,7 +150,8 @@
       "testModel": "Modell testen",
       "testNoText": "(kein Text in der Antwort)",
       "testOk": "Modell antwortet: {message}",
-      "title": "Crea-Einstellungen"
+      "title": "Crea-Einstellungen",
+      "unavailable": "Die Einstellungen sind noch nicht geladen. Speichern und Testen bleiben gesperrt, bis der Stand vom Server bekannt ist."
     },
     "signature": "Deine Signatur",
     "signatureHint": "Wird in Deinem Browser gespeichert und automatisch ans Ende des Vorschlags gesetzt.",
