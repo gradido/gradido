@@ -402,3 +402,40 @@ catches typos before they would break Crea for everyone.
 
 A model self-report label was **rejected**: models do not reliably know their own
 identifier, and a line that merely echoes our own setting would be circular.
+
+<a id="e-029"></a>
+## E-029 — CreaChat: a second surface, the same knowledge, the same privacy line
+
+The chat window was the half of Crea the contribution window cannot do by construction:
+a correspondence rather than a single verdict. Moving it off the OpenAI Assistants API
+(sunset 26.08.2026) onto the stateless Messages API forced four choices.
+
+**The knowledge is written once.** Chapters 5–7, the never-reject invariant, the voice
+and the umlaut rule live in shared constants that both prompts embed. The evaluation
+prompt comes out character-identical to before, so the production path and its prompt
+cache are untouched. The one deliberate difference: only the contribution window is told
+to set `discrepancy`, because only it returns JSON. Handing that instruction to the chat
+put a schema field name into prose the moderator copies into a mail.
+
+**The transcript lives with us.** The Messages API keeps no state, so the whole exchange
+travels with every call and is stored in `creachat_threads` — one row, the turns as a
+JSON array, because every read wants the complete thread and every write appends a pair.
+A thread untouched for 60 days is deleted. That sweep runs across **all** moderators, not
+only the one opening the chat: scoped to the caller it would never reach a moderator who
+leaves the team, and the retention promise would be false for exactly the transcripts it
+exists for.
+
+**A thread is opened only once there is something to put in it.** Created before the
+model call, every failed first message left an empty row behind, and "the moderator's
+current thread" would then resolve to that orphan. For the same reason that lookup asks
+for the thread last *used*, not the one last *created*.
+
+**The privacy line of E-013/E-014 holds here too.** CreaChat is told no member name — the
+moderator's paste leaves it out — so it opens with the neutral `Liebe,` rather than
+guessing a gendered form, which is the same reasoning that made `Hallo` the uncertain
+default in the contribution window. The signature is the mirror image: Crea closes with
+`[SIGNATUR]` and the admin fills it from `localStorage`, so the moderator's own name
+reaches neither the API nor the stored transcript. An earlier draft had Crea learn the
+name from the conversation via a `/Moderator Name` command; it was **rejected** — it put
+the name into the transcript, contradicted E-014, and it would have fallen out of the
+request window as soon as the history was trimmed.

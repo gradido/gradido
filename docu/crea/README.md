@@ -6,8 +6,29 @@ member. It is **advisory only**: confirming, denying and sending always stay wit
 moderator.
 
 Crea runs on the Claude API. It is **dormant** unless `ANTHROPIC_ACTIVE=true` and an
-`ANTHROPIC_API_KEY` are configured — without them the resolver reports "not enabled" and
-the admin UI shows a calm hint instead of an error.
+`ANTHROPIC_API_KEY` are configured — without them the resolvers answer with the error
+code `api_inactive` and the admin UI shows a calm hint instead of an error.
+
+## Two surfaces
+
+Crea speaks in two places, and the difference matters when reading the code:
+
+| Surface | What it does | Entry point |
+|---|---|---|
+| **Contribution window** | One structured verdict per contribution: recommendation, reasoning, drafted reply. Returns JSON against a schema. | `CreaResolver.ts` |
+| **CreaChat** | A running exchange in the chat window — the moderator pastes a contribution, copies the draft to the member, pastes the answer back, Crea reformulates. Returns prose. | `CreaChatResolver.ts` |
+
+The **manners** differ (the chat answers in one line of at most 80 words and is steered
+by slash commands instead of buttons); the **knowledge** does not. Chapters 5–7 of the
+rules, the never-reject invariant, the voice and the umlaut rule are held once in
+`ruleset.ts` and embedded by both prompts. Only the contribution window is additionally
+told to fill the `discrepancy` field — it is the only one with a schema to put it in
+(decision **E-029**).
+
+Because the Messages API is stateless, CreaChat stores its own transcript in
+`creachat_threads`, one row per thread, the exchange as a JSON array. A thread untouched
+for 60 days is swept — across all moderators, not only the one who happens to open the
+chat, or the rule would never reach the transcripts it exists for.
 
 ## Why this document exists
 
@@ -16,7 +37,7 @@ short references like `E-019` or `DO-3`. This folder resolves them:
 
 | Notation | Meaning |
 |---|---|
-| `E-001` … `E-028` | A recorded **design decision** — the *why* behind a choice. See [decisions.md](decisions.md). |
+| `E-001` … `E-029` | A recorded **design decision** — the *why* behind a choice. See [decisions.md](decisions.md). |
 | `DO-1` … `DO-5` | A **build step** of the original rollout (see below). |
 | "Layer 3" | The deterministic code layer — see the three layers below. |
 
@@ -43,6 +64,12 @@ placeholders `[ANREDE]` (salutation) and `[SIGNATUR]` (signature); the code fill
 locally, in the browser or the backend, after the API call returns. Persisted evaluation
 records are pseudonymous — community readable, person a pseudonym, no name
 (decisions **E-005**, **E-010**, **E-013**, **E-014**).
+
+This holds on **both** surfaces. CreaChat knows no member at all — the moderator pastes
+the text, and the copy deliberately leaves the name out — so it opens with the neutral
+`Liebe,` instead of a salutation it would have to guess. Its signature works exactly as
+in the contribution window: Crea closes with `[SIGNATUR]` and the admin fills it from the
+browser, so the moderator's own name does not reach the API either (decision **E-029**).
 
 > The placeholder tokens and a few flag names are German for historical reasons.
 > New code should use English identifiers throughout.
@@ -76,8 +103,12 @@ does Crea draft the rejection text.
 | Evaluation records | `backend/src/apis/anthropic/crea/records.ts`, `database/src/entity/CreaRecord.ts` |
 | Runtime settings (model, effort) | `backend/src/apis/anthropic/crea/settings.ts`, `database/src/entity/CreaSetting.ts` |
 | Preview without an API key | `backend/src/apis/anthropic/crea/stub.ts` (opt-in via `CREA_STUB`) |
-| GraphQL entry point | `backend/src/graphql/resolver/CreaResolver.ts` |
+| GraphQL entry point (contribution window) | `backend/src/graphql/resolver/CreaResolver.ts` |
+| GraphQL entry point (CreaChat) | `backend/src/graphql/resolver/CreaChatResolver.ts` |
+| CreaChat thread rules (idle timeout, history budget, transcript encoding) | `backend/src/apis/anthropic/crea/chatThreads.ts` |
+| CreaChat persistence | `database/src/queries/creachatThreads.ts`, table `creachat_threads` |
 | Admin modal and settings page | `admin/src/components/CreaEvaluationModal.vue`, `admin/src/pages/CreaSettings.vue` |
+| Admin chat window | `admin/src/components/AiChat.vue` |
 
 ## Build steps referenced in comments
 
