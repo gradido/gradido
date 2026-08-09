@@ -27,8 +27,10 @@ told to fill the `discrepancy` field — it is the only one with a schema to put
 
 Because the Messages API is stateless, CreaChat stores its own transcript in
 `creachat_threads`, one row per thread, the exchange as a JSON array. A thread untouched
-for 60 days is swept — across all moderators, not only the one who happens to open the
-chat, or the rule would never reach the transcripts it exists for.
+for **four hours** is swept, so opening the chat after a break starts a fresh one — across
+all moderators, not only the one who happens to open the chat, or the rule would never
+reach the transcripts it exists for. The short window is a quality rule first and a
+retention rule second (decision **E-030**).
 
 ## Why this document exists
 

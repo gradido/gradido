@@ -19,14 +19,28 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.anthropic.crea.chatThreads`)
 
-/** A thread untouched for this long is thrown away, as the OpenAI threads were. */
-const THREAD_TIMEOUT_DAYS = 60
+/**
+ * A thread untouched for this long is thrown away, so opening the chat after a break
+ * starts a fresh one.
+ *
+ * Short on purpose. A moderator works a handful of contributions in one sitting, and the
+ * next sitting is usually a different participant — carrying the old pile along makes
+ * Crea blend cases she should be judging one at a time, and the moderator cannot see that
+ * happening. Starting over is the visible failure of the two: an empty window is noticed
+ * at once, and nothing is lost, because the contribution text sits in the list beside the
+ * chat. Four hours survives a lunch break, a call and a long meeting, and never survives
+ * a night.
+ *
+ * It doubles as the retention rule: pasted participant text is gone within hours rather
+ * than lying around for weeks.
+ */
+const THREAD_IDLE_HOURS = 4
 
 /**
  * How many turns travel to the API. Everything stays stored — the moderator keeps his
  * full window — but a very long chat would otherwise resend more and more context on
- * every message. 60 turns are roughly 30 exchanges, far past the point where Bernd
- * advises clearing the chat anyway.
+ * every message. A backstop rather than a working limit: 60 turns are roughly 30
+ * exchanges, far more than one sitting produces before the idle window above ends it.
  */
 const MAX_HISTORY_TURNS = 60
 
@@ -51,7 +65,7 @@ export interface CreaChatThreadState {
 }
 
 function idleCutoff(): Date {
-  return Duration.days(THREAD_TIMEOUT_DAYS).subtractFromDate(new Date())
+  return Duration.hours(THREAD_IDLE_HOURS).subtractFromDate(new Date())
 }
 
 /**
@@ -77,9 +91,9 @@ function parseTurns(thread: CreachatThreadSelect): CreaChatTurn[] | undefined {
  * The moderator's live thread, or undefined when there is none to resume.
  *
  * The sweep runs first and across every moderator, not only this one: scoped to the
- * caller it would never reach a moderator who stops opening the chat, and "gone after
- * 60 days" would be false for exactly the transcripts it is meant to reach. It is a
- * single indexed DELETE that usually matches nothing.
+ * caller it would never reach a moderator who stops opening the chat, and the retention
+ * promise would be false for exactly the transcripts it is meant to reach. It is a
+ * single indexed DELETE.
  *
  * Which thread is "the live one" is then a question for the database, not for a filter
  * in here: newest by `updated_at`, within the cutoff. A moderator can end up with more
@@ -92,7 +106,7 @@ export async function findActiveThread(userId: number): Promise<CreaChatThreadSt
   const deleted = await dbDeleteCreachatThreadsUnusedSince(cutoff)
   if (deleted > 0) {
     logger.info(
-      `deleted ${deleted} creachat thread(s) untouched for more than ${THREAD_TIMEOUT_DAYS} days`,
+      `deleted ${deleted} creachat thread(s) untouched for more than ${THREAD_IDLE_HOURS} hours`,
     )
   }
 

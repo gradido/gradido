@@ -124,8 +124,8 @@ export async function dbDeleteCreachatThreadByIdAndUserId(
  *
  * Deliberately not scoped to one moderator. Scoped, the retention rule would only ever
  * reach the moderator who happens to open the chat — a moderator who leaves the team
- * would keep his transcripts forever, and the promise "gone after 60 days" would be
- * false for exactly the case it exists for. `updated_at` is indexed for it.
+ * would keep his transcripts forever, which is exactly the case the rule exists for.
+ * `updated_at` is indexed for it.
  *
  * The cutoff is a parameter rather than a constant here: how long a chat may lie idle
  * is a rule about Crea, not about the table.

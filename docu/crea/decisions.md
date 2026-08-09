@@ -34,6 +34,8 @@ completeness. See [README.md](README.md) for the architecture overview.
 | [E-026](#e-026) | Three UI refinements (quieter copy, member search, usage hint) |
 | [E-027](#e-027) | Search icon in its own column; bulk resubmission reminder |
 | [E-028](#e-028) | Model/effort switch stored in the database, admin-only |
+| [E-029](#e-029) ★ | CreaChat: a second surface, the same knowledge, the same privacy line |
+| [E-030](#e-030) ★ | CreaChat starts over after four idle hours |
 
 ---
 
@@ -420,10 +422,10 @@ put a schema field name into prose the moderator copies into a mail.
 **The transcript lives with us.** The Messages API keeps no state, so the whole exchange
 travels with every call and is stored in `creachat_threads` — one row, the turns as a
 JSON array, because every read wants the complete thread and every write appends a pair.
-A thread untouched for 60 days is deleted. That sweep runs across **all** moderators, not
-only the one opening the chat: scoped to the caller it would never reach a moderator who
-leaves the team, and the retention promise would be false for exactly the transcripts it
-exists for.
+A thread untouched for a while is deleted (see E-030 for how long, and why). That sweep
+runs across **all** moderators, not only the one opening the chat: scoped to the caller it
+would never reach a moderator who leaves the team, and the retention promise would be
+false for exactly the transcripts it exists for.
 
 **A thread is opened only once there is something to put in it.** Created before the
 model call, every failed first message left an empty row behind, and "the moderator's
@@ -439,3 +441,37 @@ reaches neither the API nor the stored transcript. An earlier draft had Crea lea
 name from the conversation via a `/Moderator Name` command; it was **rejected** — it put
 the name into the transcript, contradicted E-014, and it would have fallen out of the
 request window as soon as the history was trimmed.
+
+<a id="e-030"></a>
+## E-030 — CreaChat starts over after four idle hours
+
+A CreaChat thread lives until it has been untouched for **four hours**; opening the chat
+after a longer break starts a fresh one. The rule is enforced where the thread is looked
+up, so there is no scheduled job — the sweep runs whenever any moderator opens the chat.
+
+**It is a quality rule before it is a cost rule.** A moderator works a handful of
+contributions in one sitting, and the next sitting is usually a different participant.
+Carried along, the old pile makes Crea blend cases she is supposed to judge one at a time
+— and nothing about that is visible in her answer. Starting over is the better of the two
+failures: an empty window is noticed immediately, and nothing is lost, because the
+contribution text sits in the list right beside the chat. Four hours survives a lunch
+break, a call and a long meeting, and never survives a night.
+
+**Cost was measured and is not the reason.** Without a cache breakpoint the whole stored
+transcript is re-sent at full price on every turn. Measured against the real chat prompt:
+at twenty exchanges a settled turn costs 7.4x what it would with a breakpoint on the
+history — but at the three-to-five exchanges of an actual sitting the saving is under a
+cent per conversation, because the transcript is still small and the cache-write premium
+eats most of it. The rules prefix, which is the large part at 4,119 tokens, is already
+cached and is read back within the five-minute window that a sitting comfortably fits in.
+So no breakpoint was added; the idle window keeps the transcript short instead, which
+addresses the same cost from the other side.
+
+⚠️ If a breakpoint on the history is ever added, it belongs on the **last turn of the
+stored transcript**, not on the message being sent. Marking the new message was measured
+at 1.24x the current cost: that block differs on every request, so the prefix never
+matches and every turn writes the whole transcript instead of reading it.
+
+**Retention follows from the same constant.** Pasted participant text is gone within
+hours rather than sitting in the table for weeks, so the shorter window replaced a
+separate retention decision rather than needing one.
