@@ -243,7 +243,11 @@ const route = useRoute()
 const router = useRouter()
 const { toastError } = useAppToast()
 
-const radioSelected = ref(props.selected)
+// A link may name the send type it wants (?art=email), so a button elsewhere can
+// land straight in e-mail mode — the matching profile's two buttons do exactly
+// this. Only 'email' switches; anything else keeps the default. The route still
+// carries only the recipient; this is the "how", read once at open.
+const radioSelected = ref(route.query.art === 'email' ? SEND_TYPES.email : props.selected)
 const userName = ref('')
 
 const userIdentifier = computed(() => {
@@ -539,7 +543,8 @@ label {
     justify-content: center;
     text-decoration: none;
     font-size: 14px;
-    text-wrap: nowrap;
+    text-align: center;
+    line-height: 1.15;
     color: black !important;
     border-radius: 25px;
   }

@@ -37,15 +37,27 @@
               <span class="ms-2">{{ $t('creation') }}</span>
             </div>
           </BNavItem>
+          <BNavItem
+            v-if="matchingActive"
+            ref="matchingLink"
+            to="/matching"
+            class="mb-3"
+            active-class="active-route"
+          >
+            <div class="sidebar-menu-item-wrapper">
+              <i-tabler-heart-handshake class="svg-icon" />
+              <span class="ms-2">Matching</span>
+            </div>
+          </BNavItem>
+        </BNav>
+        <hr class="m-3" />
+        <BNav vertical class="w-100">
           <BNavItem to="/information" class="mb-3" active-class="active-route">
             <div class="sidebar-menu-item-wrapper">
               <i-mdi-information class="svg-icon" />
               <span class="ms-2">{{ $t('info') }}</span>
             </div>
           </BNavItem>
-        </BNav>
-        <hr class="m-3" />
-        <BNav vertical class="w-100">
           <BNavItem
             to="/settings"
             class="mb-3 d-block"
@@ -89,20 +101,38 @@
         </BNav>
       </div>
     </div>
+
+    <!-- The logo lives in the navbar. A route that hides the navbar would take
+         the logo down with it, so the menu takes it in — below the items, where
+         it does not compete with the first thing you read. -->
+    <router-link v-if="showLogo" to="/overview" class="sidebar-logo d-none d-lg-block">
+      <BImg :src="logo" width="144" alt="Logo" />
+    </router-link>
   </div>
 </template>
 <script setup>
 import { useRoute } from 'vue-router'
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
+import CONFIG from '@/config'
+
+// Read once: the flag is baked in at build time, it cannot change while the app runs.
+const matchingActive = CONFIG.MATCHING_ACTIVE
 
 const props = defineProps({
   shadow: { type: Boolean, default: true },
+  // Set by routes that hide the navbar — see DashboardLayout's bareChrome.
+  showLogo: { type: Boolean, default: false },
 })
+
+// Same asset the navbar uses, well under its 200px: down here it is a mark, not
+// a masthead.
+const logo = '/img/brand/gradido-logo.png'
 
 const emit = defineEmits(['closeSidebar'])
 
 const route = useRoute()
 const contributionsLink = ref(null)
+const matchingLink = ref(null)
 
 const transactionClass = computed(() => {
   if (route.path === '/gdt') {
@@ -111,22 +141,40 @@ const transactionClass = computed(() => {
   return 'mb-3'
 })
 
+// BNavItem lights active-route only on an exact route match. Two items span more
+// than one route — contributions its sub-pages, matching its tabs and the map
+// (/matching redirects to /matching/entries, the map is /matching/karte) — so their
+// own link element is lit by hand from the path, on a route change and on first
+// mount alike (a fresh load has no change to react to).
+function setLinkActive(navRef, on) {
+  const link = navRef.value?.$el?.children?.[0]
+  if (!link) return
+  link.classList.toggle('active-route', on)
+  link.classList.toggle('router-link-exact-active', on)
+}
+
+function syncNavActive() {
+  setLinkActive(contributionsLink, route.path.includes('contributions'))
+  setLinkActive(matchingLink, route.path.startsWith('/matching'))
+}
+
 watch(
   () => route.path,
   () => {
-    const link = [...contributionsLink.value.$el.children][0]
-    if (route.path.includes('contributions')) {
-      link.classList.add('active-route')
-      link.classList.add('router-link-exact-active')
-    } else {
-      link.classList.remove('active-route')
-      link.classList.remove('router-link-exact-active')
-    }
+    syncNavActive()
     emit('closeSidebar')
   },
 )
+
+onMounted(syncNavActive)
 </script>
 <style scoped>
+.sidebar-logo {
+  display: block;
+  margin-top: 1.5rem;
+  padding-left: 0.5rem;
+}
+
 :deep(.nav-item > a) {
   color: rgb(56 56 56) !important;
   border-left: 4px transparent solid;

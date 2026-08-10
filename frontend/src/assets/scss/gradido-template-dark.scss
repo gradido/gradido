@@ -403,16 +403,24 @@ html:has(body.dark-mode) {
   --bs-btn-active-color: var(--bg);
 }
 
-// Unchecked form controls share .form-check-input: the toggle switches (Settings,
-// Matching position) and the theme-mode radios (Settings appearance). The OFF state
-// is a white track/box with a dark thumb -> dark fill + light thumb, plus a
-// light-grey outline so the control stays visible against the dark surface
-// (var(--border) sat too close to it). The ON state (Bootstrap blue) is fine and
-// left alone.
+// Unchecked form controls share .form-check-input: toggle switches (Settings +
+// Matching position), the plain checkbox (Matching "remote"), and the theme-mode
+// radios (Settings appearance). The OFF state is a white track/box with a dark
+// thumb -> dark fill + light thumb, plus a light-grey outline so the control stays
+// visible against the dark surface (var(--border) sat too close to it). The ON
+// state (Bootstrap blue) is fine and left alone.
 .dark-mode .form-check-input:not(:checked) {
   --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%239a9b9e'/%3e%3c/svg%3e");
 
   background-color: var(--surface-muted);
+  border-color: var(--text-muted);
+}
+
+// The list's two top fields (sort, address search) — var(--border) sits too close
+// to the dark surface for a field edge, so lift them to a visible outline like the
+// switch above.
+.dark-mode .sort-select,
+.dark-mode .search-input {
   border-color: var(--text-muted);
 }
 
