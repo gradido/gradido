@@ -356,6 +356,193 @@
   "link-load": "den letzten Link nachladen | die letzten {n} Links nachladen",
   "link-load-more": "weitere {n} Links nachladen",
   "login": "Anmelden",
+  "matching": {
+    "about": {
+      "counter": "{count} / ~1000 Zeichen",
+      "label": "Wer Du bist — in Deinen eigenen Worten",
+      "placeholder": "Erzähl, wer Du bist, was Dich bewegt, was Du teilst — das schafft Vertrauen, bevor jemand Dich anschreibt.",
+      "saved": "Dein Profil wurde gespeichert"
+    },
+    "cluster": {
+      "close": "Liste schließen",
+      "title": "{n} Menschen an diesem Ort"
+    },
+    "entries": {
+      "activate": "Aktivieren",
+      "count": "{total} Einträge · {live} live · {paused} pausiert",
+      "delete": "Löschen",
+      "deleteConfirm": "Soll der Eintrag wirklich gelöscht werden?",
+      "details": "Details",
+      "edit": "Bearbeiten",
+      "emptyText": "Biete etwas an, suche etwas, oder teile ein Interesse — und werde gefunden.",
+      "emptyTitle": "Noch keine Einträge.",
+      "new": "Neuer Eintrag",
+      "noDetails": "(keine Details)",
+      "pause": "Pausieren",
+      "pausedBadge": "Pausiert · nicht in der Suche",
+      "remote": "Überregional"
+    },
+    "find": {
+      "gateText": "Sobald Du Deine Position gesetzt und Dich auf der Karte sichtbar gemacht hast, kannst Du auch andere in Deiner Nähe finden.",
+      "gateTitle": "Zeig Dich zuerst auf der Karte",
+      "later": "Später",
+      "subtitle": "Entdecke, wer zu Dir passt",
+      "title": "Auf der Karte finden",
+      "titleList": "In der Liste finden",
+      "toPosition": "Zur Position",
+      "understood": "Verstanden"
+    },
+    "info": {
+      "about": {
+        "heading": "Wer Du bist",
+        "p1": "Ein paar warme, ehrliche Sätze über Dich schaffen Vertrauen, bevor Dich jemand anschreibt.",
+        "p2": "Dieser Text erscheint in Deiner Profilkarte auf der Suchkarte."
+      },
+      "entries": {
+        "heading": "So funktioniert Matching",
+        "paused": "Pausierte Einträge bleiben gespeichert — sie erscheinen nur nicht in der Suche.",
+        "text": "Leg an, was Du liebst, bietest oder suchst — jeder aktive Eintrag lässt Dich in den passenden Suchen anderer auftauchen."
+      },
+      "position": {
+        "heading": "Deine Privatsphäre",
+        "p1": "Du entscheidest, wie genau Du erscheinst. „Ungefähr“ zeigt Dich im Umkreis — nie auf der Haustür.",
+        "p2": "Ohne Position bist Du nicht auf der Karte. Der Schalter nimmt Dich jederzeit wieder heraus."
+      }
+    },
+    "list": {
+      "centeredOn": "Umkreis um {place}",
+      "controlsHeading": "Suche und Sortierung",
+      "dir": {
+        "e": "östlich",
+        "n": "nördlich",
+        "ne": "nordöstlich",
+        "nw": "nordwestlich",
+        "s": "südlich",
+        "se": "südöstlich",
+        "sw": "südwestlich",
+        "w": "westlich"
+      },
+      "empty": "Hier ist gerade niemand. Vergrößere den Radius oder such einen anderen Ort.",
+      "heading": "Menschen in Deiner Nähe",
+      "kmEtwa": "etwa {n} km",
+      "kmExact": "{n} km",
+      "lensBy": "Entfernung von",
+      "lensHome": "Zuhause",
+      "lensSearch": "Suchpunkt",
+      "line": {
+        "angebot": "bietet {thing} — das suchst Du",
+        "gesuch": "sucht {thing} — das bietest Du",
+        "interesse": "teilt Dein Interesse an {thing}"
+      },
+      "matchesHeading": "Deine Treffer",
+      "meets": "trifft {n} Deiner Einträge",
+      "near": "im Nahbereich",
+      "othersHeading": "Weitere Menschen in Deiner Nähe",
+      "sortBreite": "wer auf das meiste passt",
+      "sortBy": "Sortieren nach",
+      "sortNaehe": "Nähe",
+      "sortPassung": "Passung"
+    },
+    "map": {
+      "amplifier": "Verstärker",
+      "back": "Zurück",
+      "breite": "Wer mehrfach passt",
+      "breiteHint": "Hebt Menschen hervor, die mehrere Deiner Einträge beantworten.",
+      "channels": {
+        "andere": "alle anderen",
+        "andereMit": "andere mit Angaben",
+        "andereOhne": "andere ohne Angaben",
+        "angebot": "Angebote",
+        "gesuch": "Gesuche",
+        "interesse": "Interessen"
+      },
+      "found": "{n} Menschen gefunden",
+      "home": "Zur Heimat",
+      "km": "km",
+      "look": {
+        "dunkel": "dunkel",
+        "hell": "hell",
+        "karte": "Karte",
+        "label": "Erscheinungsbild",
+        "liste": "Liste",
+        "normal": "normal"
+      },
+      "radius": "Radius",
+      "radiusLabel": "In welchem Umkreis suchst Du? (km)",
+      "radiusTitle": "Suchradius",
+      "search": "Ort oder Adresse suchen",
+      "searchHere": "Hier suchen"
+    },
+    "new": {
+      "cancel": "Abbrechen",
+      "completeSentence": "Vervollständige diesen Satz:",
+      "detailsHeading": "Details — damit die Richtigen Dich finden:",
+      "remote": "Auch überregional / online verfügbar"
+    },
+    "position": {
+      "accuracyApprox": "Eine leicht veränderte Position wird angezeigt",
+      "accuracyExact": "Die genaue Position wird angezeigt",
+      "cancel": "Abbrechen",
+      "findable": "Bin ich auffindbar?",
+      "findableHint": "Schaltet Deine Karten-Präsenz an/aus",
+      "findableOff": "Du bist nicht mehr auf der Karte auffindbar",
+      "findableOn": "Du bist jetzt auf der Karte auffindbar",
+      "intro": "Verorte Dich auf der Karte, um beim Matching dabei zu sein — Du erscheinst erst, wenn Du das tust.",
+      "saveText": "Möchtest Du Deine Positionseinstellungen jetzt speichern?",
+      "saveTitle": "Position speichern",
+      "unsaved": "Noch nicht gespeichert"
+    },
+    "profile": {
+      "aria": "Profil von {name}",
+      "more": "{n} weitere",
+      "sendEmail": "E-Mail senden",
+      "sendGradido": "Gradido senden"
+    },
+    "query": {
+      "all": "Alle meine Einträge",
+      "clear": "Suche zurücksetzen",
+      "details": "Näheres zu Deiner Suche",
+      "detailsPlaceholder": "gebraucht, 28 Zoll",
+      "keep": "Als Eintrag behalten",
+      "keepAsk": "Soll Dich künftig finden, wer zu „{text}“ passt?",
+      "keepNo": "Nein, danke",
+      "label": "Ich suche gerade nach",
+      "open": "Suche wählen",
+      "other": "Etwas anderes suchen …",
+      "pick": "Wähle, wie Du es meinst — damit wird gesucht.",
+      "placeholder": "Fahrrad",
+      "untouched": "Deine Einträge bleiben unberührt."
+    },
+    "save": "Speichern",
+    "tabs": {
+      "about": "Über mich",
+      "entries": "Einträge",
+      "position": "Zuhause"
+    },
+    "type": {
+      "angebot": {
+        "desc": "was Du gibst",
+        "detailsPlaceholder": "Alte und neue Räder, auch E-Bikes — ich komme vorbei",
+        "placeholder": "Fahrradreparatur",
+        "prefix": "Ich biete",
+        "word": "Angebot"
+      },
+      "gesuch": {
+        "desc": "was Du suchst",
+        "detailsPlaceholder": "Haustür klemmt, alter Schließzylinder",
+        "placeholder": "einen Schlosser",
+        "prefix": "Ich suche",
+        "word": "Gesuch"
+      },
+      "interesse": {
+        "desc": "was Du liebst",
+        "detailsPlaceholder": "im eigenen Selbstversorgungsgarten",
+        "placeholder": "Permakultur",
+        "prefix": "Ich liebe",
+        "word": "Interesse"
+      }
+    }
+  },
   "math": {
     "asterisk": "*",
     "equal": "=",
@@ -392,6 +579,7 @@
     "contributions": "Gradido schöpfen",
     "gdt": "Deine GDT Transaktionen",
     "information": "{community}",
+    "matching": "Matching",
     "overview": "Willkommen {name}",
     "send": "Gradido und E-Mail senden",
     "settings": "Einstellungen",
@@ -399,7 +587,7 @@
     "usersearch": "Geografische Mitgliedssuche (beta)"
   },
   "qrCode": "QR Code",
-  "send_email": "E-Mail senden",
+  "send_email": "E‑Mail senden",
   "send_gdd": "GDD senden",
   "send_per_link": "GDD Link erzeugen",
   "session": {
@@ -420,12 +608,12 @@
       },
       "location-format": "Position auf Karte anzeigen:",
       "map": {
-        "communityCoords": "Ihr Gemeinschafts-Standort: Breitengrad {lat}, Längengrad {lng}",
-        "communityLocationLabel": "Ihr Gemeinschafts-Standort",
+        "communityCoords": "Dein Gemeinschafts-Standort: Breitengrad {lat}, Längengrad {lng}",
+        "communityLocationLabel": "Dein Gemeinschafts-Standort",
         "headline": "Geografische Standorterfassung des Benutzers",
         "search": "Nach einem Standort suchen",
-        "userCoords": "Ihr Standort: Breitengrad {lat}, Längengrad {lng}",
-        "userLocationLabel": "Ihr Standort"
+        "userCoords": "Dein Standort: Breitengrad {lat}, Längengrad {lng}",
+        "userLocationLabel": "Dein Standort"
       },
       "naming-format": "Namen anzeigen:",
       "publish-location": {

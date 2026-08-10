@@ -356,6 +356,99 @@
   "link-load": "Carregar o último link | Carregar os últimos {n} links",
   "link-load-more": "Carregar mais {n} links",
   "login": "Iniciar sessão",
+  "matching": {
+    "about": {
+      "counter": "{count} / ~1000 caracteres",
+      "label": "Quem és, nas tuas próprias palavras",
+      "placeholder": "Conta quem és, o que te move, o que partilhas: isso cria confiança antes de alguém te escrever.",
+      "saved": "O teu perfil foi guardado"
+    },
+    "entries": {
+      "activate": "Ativar",
+      "count": "{total} entradas · {live} ativas · {paused} em pausa",
+      "delete": "Eliminar",
+      "deleteConfirm": "Eliminar esta entrada?",
+      "details": "Detalhes",
+      "edit": "Editar",
+      "emptyText": "Oferece algo, procura algo ou partilha um interesse, e deixa que te encontrem.",
+      "emptyTitle": "Ainda não há entradas.",
+      "new": "Nova entrada",
+      "noDetails": "(sem detalhes)",
+      "pause": "Pausar",
+      "pausedBadge": "Em pausa · não aparece na pesquisa",
+      "remote": "Supra-regional"
+    },
+    "find": {
+      "gateText": "Assim que definires a tua posição e te tornares visível no mapa, também podes encontrar outras pessoas perto de ti.",
+      "gateTitle": "Mostra-te primeiro no mapa",
+      "later": "Mais tarde",
+      "subtitle": "Descobre quem combina contigo",
+      "title": "Encontrar no mapa",
+      "toPosition": "Ir para Posição",
+      "understood": "Percebido"
+    },
+    "info": {
+      "about": {
+        "heading": "Quem és",
+        "p1": "Umas poucas frases calorosas e sinceras sobre ti criam confiança antes de alguém te escrever.",
+        "p2": "Este texto aparece no teu cartão de perfil no mapa de pesquisa."
+      },
+      "entries": {
+        "heading": "Como funciona o matching",
+        "paused": "As entradas em pausa continuam guardadas; apenas não aparecem na pesquisa.",
+        "text": "Indica o que adoras, ofereces ou procuras: cada entrada ativa faz-te aparecer nas pesquisas de outras pessoas."
+      },
+      "position": {
+        "heading": "A tua privacidade",
+        "p1": "És tu que decides com que precisão apareces. «Aproximada» mostra-te numa área, nunca à tua porta.",
+        "p2": "Sem posição não estás no mapa. O interruptor remove-te novamente a qualquer momento."
+      }
+    },
+    "new": {
+      "cancel": "Cancelar",
+      "completeSentence": "Completa esta frase:",
+      "detailsHeading": "Detalhes — para que as pessoas certas te encontrem:",
+      "remote": "Também disponível a nível supra-regional / online"
+    },
+    "position": {
+      "accuracyApprox": "É apresentada uma localização ligeiramente alterada",
+      "accuracyExact": "É apresentada a tua localização exata",
+      "findable": "Sou localizável?",
+      "findableHint": "Ativa ou desativa a tua presença no mapa",
+      "findableOff": "Já não podes ser encontrado no mapa",
+      "findableOn": "Agora podes ser encontrado no mapa",
+      "intro": "Coloca-te no mapa para participar no matching: só apareces quando o fazes."
+    },
+    "save": "Guardar",
+    "tabs": {
+      "about": "Sobre mim",
+      "entries": "Entradas",
+      "position": "Posição"
+    },
+    "type": {
+      "angebot": {
+        "desc": "o que dás",
+        "detailsPlaceholder": "Bicicletas velhas e novas, também e-bikes — eu vou ter contigo",
+        "placeholder": "reparação de bicicletas",
+        "prefix": "Ofereço",
+        "word": "Oferta"
+      },
+      "gesuch": {
+        "desc": "o que procuras",
+        "detailsPlaceholder": "A porta de entrada emperra, cilindro antigo",
+        "placeholder": "um chaveiro",
+        "prefix": "Procuro",
+        "word": "Pedido"
+      },
+      "interesse": {
+        "desc": "o que adoras",
+        "detailsPlaceholder": "na minha própria horta de autossuficiência",
+        "placeholder": "permacultura",
+        "prefix": "Adoro",
+        "word": "Interesse"
+      }
+    }
+  },
   "math": {
     "asterisk": "*",
     "equal": "=",
@@ -392,6 +485,7 @@
     "contributions": "Criar Gradido",
     "gdt": "As tuas transações GDT",
     "information": "{community}",
+    "matching": "Matching",
     "overview": "Bem-vindo {name}",
     "send": "Enviar Gradido e e-mail",
     "settings": "Definições",
@@ -399,7 +493,7 @@
     "usersearch": "Pesquisa geográfica de membros (beta)"
   },
   "qrCode": "Código QR",
-  "send_email": "Enviar e-mail",
+  "send_email": "Enviar e‑mail",
   "send_gdd": "Enviar GDD",
   "send_per_link": "criar link GDD",
   "session": {

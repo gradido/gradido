@@ -356,6 +356,99 @@
   "link-load": "recargar el último enlace | recargar los últimos {n} enlaces",
   "link-load-more": "descargar más {n} enlaces",
   "login": "iniciar sesión",
+  "matching": {
+    "about": {
+      "counter": "{count} / ~1000 caracteres",
+      "label": "Quién eres, con tus propias palabras",
+      "placeholder": "Cuenta quién eres, qué te mueve, qué compartes: eso genera confianza antes de que alguien te escriba.",
+      "saved": "Tu perfil se ha guardado"
+    },
+    "entries": {
+      "activate": "Activar",
+      "count": "{total} entradas · {live} activas · {paused} en pausa",
+      "delete": "Eliminar",
+      "deleteConfirm": "¿Eliminar esta entrada?",
+      "details": "Detalles",
+      "edit": "Editar",
+      "emptyText": "Ofrece algo, busca algo o comparte un interés, y deja que te encuentren.",
+      "emptyTitle": "Aún no hay entradas.",
+      "new": "Nueva entrada",
+      "noDetails": "(sin detalles)",
+      "pause": "Pausar",
+      "pausedBadge": "En pausa · no aparece en la búsqueda",
+      "remote": "Suprarregional"
+    },
+    "find": {
+      "gateText": "Una vez que hayas fijado tu posición y te hayas hecho visible en el mapa, también podrás encontrar a otros cerca de ti.",
+      "gateTitle": "Primero muéstrate en el mapa",
+      "later": "Más tarde",
+      "subtitle": "Descubre quién encaja contigo",
+      "title": "Buscar en el mapa",
+      "toPosition": "Ir a Posición",
+      "understood": "Entendido"
+    },
+    "info": {
+      "about": {
+        "heading": "Quién eres",
+        "p1": "Unas pocas frases cálidas y sinceras sobre ti generan confianza antes de que alguien te escriba.",
+        "p2": "Este texto aparece en tu tarjeta de perfil en el mapa de búsqueda."
+      },
+      "entries": {
+        "heading": "Cómo funciona el matching",
+        "paused": "Las entradas en pausa se guardan; solo no aparecen en la búsqueda.",
+        "text": "Indica lo que te encanta, ofreces o buscas: cada entrada activa hace que aparezcas en las búsquedas de otras personas."
+      },
+      "position": {
+        "heading": "Tu privacidad",
+        "p1": "Tú decides con qué precisión apareces. «Aproximada» te muestra dentro de un área, nunca en tu puerta.",
+        "p2": "Sin posición no estás en el mapa. El interruptor te quita de nuevo en cualquier momento."
+      }
+    },
+    "new": {
+      "cancel": "Cancelar",
+      "completeSentence": "Completa esta frase:",
+      "detailsHeading": "Detalles — para que las personas adecuadas te encuentren:",
+      "remote": "También disponible de forma suprarregional / en línea"
+    },
+    "position": {
+      "accuracyApprox": "Se muestra una ubicación ligeramente modificada",
+      "accuracyExact": "Se muestra tu ubicación exacta",
+      "findable": "¿Soy localizable?",
+      "findableHint": "Activa o desactiva tu presencia en el mapa",
+      "findableOff": "Ya no se te puede encontrar en el mapa",
+      "findableOn": "Ahora se te puede encontrar en el mapa",
+      "intro": "Ubícate en el mapa para participar en el matching: solo apareces cuando lo haces."
+    },
+    "save": "Guardar",
+    "tabs": {
+      "about": "Sobre mí",
+      "entries": "Entradas",
+      "position": "Posición"
+    },
+    "type": {
+      "angebot": {
+        "desc": "lo que das",
+        "detailsPlaceholder": "Bicicletas viejas y nuevas, también e-bikes — voy a domicilio",
+        "placeholder": "reparación de bicicletas",
+        "prefix": "Ofrezco",
+        "word": "Oferta"
+      },
+      "gesuch": {
+        "desc": "lo que buscas",
+        "detailsPlaceholder": "La puerta de entrada se atasca, cilindro viejo",
+        "placeholder": "un cerrajero",
+        "prefix": "Busco",
+        "word": "Petición"
+      },
+      "interesse": {
+        "desc": "lo que te encanta",
+        "detailsPlaceholder": "en mi propio huerto de autoconsumo",
+        "placeholder": "la permacultura",
+        "prefix": "Me encanta",
+        "word": "Interés"
+      }
+    }
+  },
   "math": {
     "asterisk": "*",
     "equal": "=",
@@ -392,6 +485,7 @@
     "contributions": "Cuchara Gradido",
     "gdt": "Tu GDT Transacciones",
     "information": "{community}",
+    "matching": "Matching",
     "overview": "Welcome {name}",
     "send": "Enviar Gradido y correo electrónico",
     "settings": "Soporte",
