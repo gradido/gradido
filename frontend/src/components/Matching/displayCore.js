@@ -115,6 +115,10 @@ export const DEFAULTS = {
 /** Score → step 0..4. Step 0 means "below the cut": no glow. */
 export function scoreToStage(score, cfg = DEFAULTS) {
   const [t1, t2, t3] = cfg.thresholds
+  // Every comparison below is false for NaN or a non-number, which would fall
+  // through to the brightest step - a malformed strength would then read as a
+  // perfect match. Unreadable means no glow, which is the honest direction.
+  if (typeof score !== 'number' || Number.isNaN(score)) return 0
   if (score < cfg.cut) return 0
   if (score < t1) return 1
   if (score < t2) return 2

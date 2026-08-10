@@ -33,6 +33,16 @@ describe('displayCore', () => {
       expect(scoreToStage(0.17, DEFAULTS)).toBe(1)
     })
 
+    // Every comparison in here is false for a non-number, so an unguarded score
+    // falls through to the brightest step: a malformed strength would read as a
+    // perfect match, which is the worst direction to be wrong in.
+    it('treats an unreadable score as dark, not as a perfect match', () => {
+      expect(scoreToStage(Number.NaN, DEFAULTS)).toBe(0)
+      expect(scoreToStage(undefined, DEFAULTS)).toBe(0)
+      expect(scoreToStage(null, DEFAULTS)).toBe(0)
+      expect(scoreToStage('0.9', DEFAULTS)).toBe(0)
+    })
+
     it('splits the four steps at 0.40 / 0.52 / 0.62', () => {
       expect(scoreToStage(0.399, DEFAULTS)).toBe(1)
       expect(scoreToStage(0.4, DEFAULTS)).toBe(2)
