@@ -4,7 +4,10 @@
     <!-- Jump-off to the find map. Shown on every tab. Access needs an active map
          presence (position set AND visible); otherwise the click guides to Position. -->
     <div class="matching-header d-flex justify-content-end mx-lg-5 mb-3">
-      <button type="button" class="find-btn" @click="openFind">
+      <!-- Disabled until the location query has answered: until then hasPosition is
+           still false for everyone, and the panel behind this button would tell a
+           member who does have a pin that they have none. -->
+      <button type="button" class="find-btn" :disabled="!userLocationLoaded" @click="openFind">
         <i-bi-list-ul v-if="findList" class="find-btn-icon" />
         <i-bi-map v-else class="find-btn-icon" />
         <span class="find-btn-text">
@@ -253,9 +256,13 @@
         </label>
         <div class="entry-sentence d-flex align-items-center gap-2">
           <span class="entry-prefix">{{ $t(`matching.type.${newType}.prefix`) }}</span>
+          <!-- The column behind this is varchar(160) and the resolver passes the
+               value straight through, so a longer sentence would either come back
+               as a raw driver error or be cut off without anyone saying so. -->
           <input
             v-model="newSummary"
             class="form-control"
+            maxlength="160"
             :placeholder="$t(`matching.type.${newType}.placeholder`)"
           />
         </div>
@@ -691,6 +698,10 @@ function readMapMode() {
 const findList = readMapMode() === 'liste'
 const findHasAccess = computed(() => Boolean(store.state.gmsAllowed) && hasPosition.value)
 function openFind() {
+  // The button is disabled until then; this is the second lock, for anything that
+  // reaches the handler another way. We cannot say "you have no position" while we
+  // do not know.
+  if (!userLocationLoaded.value) return
   if (findHasAccess.value) {
     router.push('/matching/karte')
     return

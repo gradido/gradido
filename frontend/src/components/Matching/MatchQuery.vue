@@ -57,11 +57,16 @@
     <div v-if="typing" class="query-typed">
       <div class="typed-row">
         <i-bi-search class="query-icon" />
+        <!-- 160, the same as an entry's summary column - taking the keep-offer
+             hands this very text over as the summary, and maxlength does not reach
+             a value the code fills in. Capping it here is the only place that
+             holds for both roads. A one-line search wants no more anyway. -->
         <input
           ref="textInput"
           v-model="text"
           type="text"
           class="typed-input"
+          maxlength="160"
           :placeholder="$t('matching.query.placeholder')"
           :aria-label="$t('matching.query.label')"
           @input="onText"

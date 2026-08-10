@@ -81,7 +81,10 @@ const entry = (uuid, summary, details) => ({
 
 let wrapper = null
 
-const mountPage = (tab = 'entries') => {
+// BModal is stubbed away by default - it teleports, and its content would show up
+// in page.text() for every test whether the dialog is open or not. A test that
+// needs to look inside one passes its own stub.
+const mountPage = (tab = 'entries', extraStubs = {}) => {
   currentTab = tab
   wrapper = mount(Matching, {
     global: {
@@ -93,11 +96,14 @@ const mountPage = (tab = 'entries') => {
         UserSettingsSwitch: true,
         BModal: true,
         TransitionGroup: false,
+        ...extraStubs,
       },
     },
   })
   return wrapper
 }
+
+const openModals = { BModal: { template: '<div class="modal-stub"><slot /></div>' } }
 
 beforeEach(() => {
   handlers.clear()
@@ -142,6 +148,43 @@ describe('Matching', () => {
       await page.vm.$nextTick()
 
       expect(page.text()).not.toContain('Am liebsten samstags')
+    })
+  })
+
+  describe('the find button', () => {
+    const findButton = (page) => page.find('.find-btn')
+
+    // hasPosition is false for everyone until the location query answers, and the
+    // panel behind this button says "you have no position yet" - a sentence we
+    // cannot honestly say before we know.
+    it('waits until the location is known', async () => {
+      const page = mountPage('entries')
+
+      expect(findButton(page).attributes('disabled')).toBeDefined()
+    })
+
+    it('opens once the location has answered', async () => {
+      const page = mountPage('entries')
+      fire(userLocationQuery, {
+        userLocation: {
+          userLocation: { latitude: 48.2, longitude: 11.6 },
+          communityLocation: { latitude: 48.1, longitude: 11.5 },
+        },
+      })
+      await page.vm.$nextTick()
+
+      expect(findButton(page).attributes('disabled')).toBeUndefined()
+    })
+  })
+
+  describe('the entry form', () => {
+    // The column behind the summary is varchar(160) and the resolver passes the
+    // value through untouched.
+    it('stops the summary at the length its column can hold', () => {
+      const page = mountPage('entries', openModals)
+      const summary = page.findAll('input').find((i) => i.attributes('maxlength'))
+
+      expect(summary.attributes('maxlength')).toBe('160')
     })
   })
 
