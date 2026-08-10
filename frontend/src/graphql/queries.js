@@ -22,6 +22,21 @@ export const verifyLogin = gql`
       roles
       hideAmountGDD
       hideAmountGDT
+      aboutMe
+    }
+  }
+`
+
+export const listMatchingEntries = gql`
+  query {
+    listMatchingEntries {
+      uuid
+      matchingType
+      summary
+      details
+      remote
+      active
+      createdAt
     }
   }
 `

@@ -3,6 +3,17 @@ import router from './router'
 import routes from './routes'
 import NotFound from '@/pages/NotFoundPage'
 
+// This file checks the full route table, matching included, so it needs the flag
+// on — routes.js reads it when the module loads, which is why this has to be a
+// hoisted vi.mock rather than an assignment. The flag's own behaviour (on and
+// off) is covered in routes.test.js.
+vi.mock('@/config', async () => {
+  const actual = await vi.importActual('@/config')
+  return {
+    default: { ...actual.default, MATCHING_ACTIVE: true },
+  }
+})
+
 vi.mock('vue', async () => {
   const actual = await vi.importActual('vue')
   return {
@@ -70,8 +81,8 @@ describe('router', () => {
       expect(defaultRoute.redirect()).toEqual({ path: '/login' })
     })
 
-    it('has 20 routes defined', () => {
-      expect(routes).toHaveLength(20)
+    it('has 23 routes defined', () => {
+      expect(routes).toHaveLength(23)
     })
 
     const testRoute = (path, expectedName, requiresAuth = true) => {
@@ -115,6 +126,8 @@ describe('router', () => {
     testRoute('/reset-password/:optin', 'ResetPassword', false)
     testRoute('/checkEmail/:optin/:code?', 'ResetPassword', false)
     testRoute('/redeem/:code', 'TransactionLink', false)
+    // Declared ahead of /matching/:tab, so this must not fall through to Matching.
+    testRoute('/matching/karte', 'MatchingMap')
 
     describe('contributions without tab parameter', () => {
       it('redirects to contribute tab', () => {
