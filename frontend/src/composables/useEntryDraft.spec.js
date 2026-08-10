@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useEntryDraft } from './useEntryDraft'
+import { useEntryDraft, clearEntryDraft } from './useEntryDraft'
 
 describe('useEntryDraft', () => {
   beforeEach(() => {
@@ -43,5 +43,17 @@ describe('useEntryDraft', () => {
     draft.put({ summary: 'Lastenrad', matchingType: 'angebot' })
 
     expect(draft.take()).toEqual({ summary: 'Lastenrad', matchingType: 'angebot' })
+  })
+
+  // Logging out clears the store and the persisted blob but does not reload the
+  // page, so this module lives on. Without clearing, a sentence typed by one
+  // member could open in the entry form of the next one to sign in on the same
+  // browser - and the words here can be as private as words get.
+  it('is emptied when a session ends', () => {
+    useEntryDraft().put({ summary: 'Hilfe bei Depression', matchingType: 'gesuch' })
+
+    clearEntryDraft()
+
+    expect(useEntryDraft().take()).toBeNull()
   })
 })

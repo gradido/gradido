@@ -17,6 +17,18 @@ import { ref } from 'vue'
  */
 const draft = ref(null)
 
+/**
+ * Drop anything held, because the session it belonged to has ended.
+ *
+ * Logging out clears the store and the persisted blob but does not reload the page,
+ * so this module keeps living. Without this a search typed by one member could be
+ * read back by the next one to sign in on the same browser - and by the reasoning
+ * above, that is exactly the sentence that must not travel.
+ */
+export function clearEntryDraft() {
+  draft.value = null
+}
+
 export function useEntryDraft() {
   return {
     /** @param {{summary: string, details: string, matchingType: string}} next */
