@@ -20,7 +20,11 @@ export class GmsUser {
     this.uuid = user.gradidoID
     // this.communityUuid = user.communityUuid
     this.language = user.language
-    this.aboutMe = user.aboutMe
+    // Everything a member writes about themselves only goes over there while they take
+    // part - like the email, the phone and the name below. `null` rather than leaving it
+    // out, because leaving it out lets the GMS keep what it has: a text written while
+    // consent was on has to go when it is switched off.
+    this.aboutMe = user.gmsAllowed ? user.aboutMe : null
     if (entries) {
       this.matchingEntries = entries.map((entry) => new GmsMatchingEntry(entry))
     }
