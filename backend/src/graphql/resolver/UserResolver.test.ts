@@ -2858,6 +2858,70 @@ describe('UserResolver', () => {
     })
   })
 
+  // A member who does not take part has no business being over there at all. The GMS
+  // knows nothing of consent - it has no such column, and neither its name search nor
+  // its map filters on one - so whether a member is findable is decided here and
+  // nowhere else.
+  describe('gms publishing for a member who does not take part', () => {
+    const upsertMock = upsertGmsUsers as jest.Mock
+    const deleteMock = deleteGmsUser as jest.Mock
+    let member: User
+
+    beforeAll(async () => {
+      await cleanDB()
+      const homeCom = await writeHomeCommunityEntry()
+      homeCom.gmsApiKey = 'gms-test-key'
+      await DbCommunity.save(homeCom)
+
+      member = await userFactory(testEnv, bibiBloxberg)
+      await User.update({ id: member.id }, { gmsAllowed: false, gmsRegistered: false })
+
+      CONFIG.GMS_ACTIVE = true
+      upsertMock.mockResolvedValue(true)
+      deleteMock.mockResolvedValue(true)
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+    })
+
+    afterAll(async () => {
+      CONFIG.GMS_ACTIVE = false
+      await cleanDB()
+    })
+
+    beforeEach(() => {
+      upsertMock.mockClear()
+      deleteMock.mockClear()
+    })
+
+    it('sends nothing when they edit their name', async () => {
+      await mutate({ mutation: updateUserInfos, variables: { firstName: 'Benjamin' } })
+
+      // The edit itself has to have gone through, otherwise both expectations below
+      // would hold for a reason that has nothing to do with the gate. That the GMS is
+      // reachable at all in this describe is what the next test proves - it expects a
+      // call rather than the absence of one, on the same fixture.
+      const stored = await User.findOneOrFail({ where: { id: member.id } })
+      expect(stored.firstName).toBe('Benjamin')
+      expect(upsertMock).not.toHaveBeenCalled()
+      expect(deleteMock).not.toHaveBeenCalled()
+    })
+
+    it('removes a copy the GMS should never have been given', async () => {
+      // What an upsert before the gate left behind: taking part switched off, yet
+      // marked as published over there.
+      await User.update({ id: member.id }, { gmsRegistered: true, gmsRegisteredAt: new Date() })
+
+      await mutate({ mutation: updateUserInfos, variables: { firstName: 'Boris' } })
+
+      expect(deleteMock).toHaveBeenCalledWith('gms-test-key', member.gradidoID)
+      expect(upsertMock).not.toHaveBeenCalled()
+      const stored = await User.findOneOrFail({ where: { id: member.id } })
+      expect(stored.gmsRegistered).toBe(false)
+    })
+  })
+
   describe('check username', () => {
     describe('reserved alias', () => {
       it('returns false', async () => {

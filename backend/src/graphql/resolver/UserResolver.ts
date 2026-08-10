@@ -740,7 +740,9 @@ export class UserResolver {
     // Read before the update overwrites it: gmsAllowed going true -> false is the
     // member leaving the GMS. compareGmsRelevantUserSettings only reports the way
     // in (it checks `updateUserInfosArgs.gmsAllowed &&`), which is precisely why
-    // leaving never reached the GMS.
+    // leaving never reached the GMS. Kept next to the gmsRegistered check below
+    // rather than replaced by it: a member whose publish failed on the way in is
+    // not marked as registered, and their copy may still have landed over there.
     const gmsConsentWithdrawn = user.gmsAllowed && updateUserInfosArgs.gmsAllowed === false
     const publishNameLogic = new PublishNameLogic(user)
     const oldHumhubUsername = publishNameLogic.getUserIdentifier(
@@ -819,13 +821,14 @@ export class UserResolver {
 
     // validate if user settings are changed with relevance to update gms-user
     try {
-      if (CONFIG.GMS_ACTIVE && gmsConsentWithdrawn) {
-        // Leaving the GMS has to actually remove the copy over there. Until now,
-        // switching it off sent nothing at all: the member disappeared from their
-        // own settings, but stayed on the map and in everyone's search results.
-        logger.debug(`gms consent withdrawn, delete user in gms...`)
+      if (CONFIG.GMS_ACTIVE && !user.gmsAllowed && (gmsConsentWithdrawn || user.gmsRegistered)) {
+        // The member does not take part, and the GMS may hold them anyway: they just
+        // left, or a copy was made of them that never should have been. Deleting over
+        // there is idempotent, so doing it once too often costs one request, while
+        // doing it once too rarely leaves them findable by name and on the map.
+        logger.debug(`member does not take part in the gms, delete user in gms...`)
         await removeUserFromGms(user)
-      } else if (CONFIG.GMS_ACTIVE && updateUserInGMS) {
+      } else if (CONFIG.GMS_ACTIVE && updateUserInGMS && user.gmsAllowed) {
         logger.debug(`changed user-settings relevant for gms-user update...`)
         const homeCom = await getHomeCommunity()
         if (!homeCom) {
