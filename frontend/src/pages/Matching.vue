@@ -408,6 +408,12 @@ const {
 } = useQuery(listMatchingEntries, null, { fetchPolicy: 'cache-and-network', enabled })
 onEntries(({ data }) => {
   if (!data?.listMatchingEntries) return
+  // open is client-only: it holds which entry the member is reading right now.
+  // Saving, pausing or deleting any entry refetches the whole list, so rebuilding
+  // it blind would close an entry nobody touched, under their finger. Carry the
+  // state over per entry instead; undefined means the entry is new to us, which
+  // is the only case that starts closed.
+  const openBefore = new Map(entries.value.map((e) => [e.uuid, e.open]))
   entries.value = data.listMatchingEntries.map((e) => ({
     uuid: e.uuid,
     type: displayType(e.matchingType),
@@ -415,7 +421,7 @@ onEntries(({ data }) => {
     details: e.details || '',
     active: e.active,
     remote: e.remote,
-    open: false,
+    open: openBefore.get(e.uuid) ?? false,
     date: formatDate(e.createdAt),
   }))
 })
@@ -521,13 +527,30 @@ const { onResult: onUser } = useQuery(verifyLogin, null, {
   fetchPolicy: 'cache-and-network',
   enabled,
 })
+// This ref is two things at once: what the server holds, and what the member is
+// typing right now. cache-and-network answers twice — the cache at once, the
+// network a moment later — and any further verifyLogin refetch answers again.
+// Taking every answer would wipe out whatever was written in between. So the
+// server is only believed while the box still holds exactly what it last said;
+// after the first keystroke the text belongs to the member. Filling once instead
+// would be the other error: a cache answering with a stale value would then
+// stand, and the fresh one behind it could never correct it.
+let aboutMeFromServer = null
 onUser(({ data }) => {
-  if (data?.verifyLogin) aboutMe.value = data.verifyLogin.aboutMe || ''
+  if (!data?.verifyLogin) return
+  const fromServer = data.verifyLogin.aboutMe || ''
+  if (aboutMeFromServer === null || aboutMe.value === aboutMeFromServer) {
+    aboutMe.value = fromServer
+  }
+  aboutMeFromServer = fromServer
 })
 const { mutate: saveUserInfos } = useMutation(updateUserInfos)
 async function saveAbout() {
   try {
     await saveUserInfos({ aboutMe: aboutMe.value })
+    // What was sent is now what the server holds, so a later answer saying the
+    // same thing must not read as a change the member has not seen.
+    aboutMeFromServer = aboutMe.value
     toastSuccess(t('matching.about.saved'))
   } catch (error) {
     toastError(error.message)
@@ -562,8 +585,6 @@ onUserLocation(({ data }) => {
 })
 onUserLocationError((error) => toastError(error.message))
 
-// The pin auto-saves on move (consistent with the other self-saving controls).
-// The map echoes its current position on load/remount, so skip saves that match
 // --- Position tab: nothing here saves itself ---
 //
 // A map is easy to touch by accident — on a phone you land on this tab and brush
@@ -585,6 +606,14 @@ const positionDirty = computed(
 function onPickPosition(coords) {
   const cur = userLocation.value
   if (cur && Math.abs(coords.lat - cur.lat) < 1e-7 && Math.abs(coords.lng - cur.lng) < 1e-7) {
+    // Standing on the saved place is a clean state, not a change being held. That
+    // covers the map's echo on mount, where the draft was empty anyway, and the
+    // case this guard used to get wrong: moving the pin away and coming back, most
+    // easily by searching your own address again, which returns the very same
+    // coordinates. Leaving the draft standing there would show the pin here and
+    // save the other place. The accuracy and findable pickers below already answer
+    // a return this way.
+    draftPosition.value = null
     return
   }
   draftPosition.value = { lat: coords.lat, lng: coords.lng }
