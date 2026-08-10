@@ -56,8 +56,10 @@ import {
   queryOptIn,
   searchAdminUsers,
   searchUsers,
+  userAboutMe,
   user as userQuery,
   verifyLogin,
+  verifyLoginAboutMe,
 } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
@@ -173,6 +175,7 @@ describe('UserResolver', () => {
               emailId: expect.any(Number),
               firstName: 'Peter',
               lastName: 'Lustig',
+              aboutMe: null,
               gender: null,
               salutation: null,
               creaSignature: null,
@@ -2703,6 +2706,61 @@ describe('UserResolver', () => {
         )
         expect(logErrorLogger.error).toBeCalledWith('401 Unauthorized')
       })
+    })
+  })
+
+  // aboutMe is a member's own words. The User ObjectType is shared, and `user()` hands
+  // out any member by alias to anyone logged in — so without the field resolver the text
+  // of members who never allowed the GMS would be readable by everyone.
+  describe('aboutMe visibility', () => {
+    let homeCom: DbCommunity
+    let author: User
+
+    beforeAll(async () => {
+      await cleanDB()
+      homeCom = await writeHomeCommunityEntry()
+      author = await userFactory(testEnv, bibiBloxberg)
+      await userFactory(testEnv, bobBaumeister)
+
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+      await mutate({
+        mutation: updateUserInfos,
+        variables: { aboutMe: 'Ich fliege gern und helfe beim Zaubern.' },
+      })
+    })
+
+    afterAll(async () => {
+      await cleanDB()
+    })
+
+    it('shows a member their own text', async () => {
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+      const res: any = await query({ query: verifyLoginAboutMe })
+      expect(res.data.verifyLogin.aboutMe).toBe('Ich fliege gern und helfe beim Zaubern.')
+    })
+
+    it('hides the text from another logged-in member', async () => {
+      await mutate({
+        mutation: login,
+        variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
+      })
+      const res: any = await query({
+        query: userAboutMe,
+        variables: {
+          identifier: author.gradidoID,
+          communityIdentifier: homeCom.communityUuid,
+        },
+      })
+      // The user is found - only the field is withheld, so this is the resolver at work
+      // and not a lookup that failed.
+      expect(res.data.user.gradidoID).toBe(author.gradidoID)
+      expect(res.data.user.aboutMe).toBeNull()
     })
   })
 

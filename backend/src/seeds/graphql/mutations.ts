@@ -402,3 +402,44 @@ export const updateHomeCommunityQuery = gql`
     }
   }
 `
+
+export const createMatchingEntry = gql`
+  mutation ($input: MatchingEntryInput!) {
+    createMatchingEntry(input: $input) {
+      uuid
+      matchingType
+      summary
+      details
+      remote
+      active
+    }
+  }
+`
+
+export const updateMatchingEntry = gql`
+  mutation ($uuid: String!, $input: MatchingEntryInput!) {
+    updateMatchingEntry(uuid: $uuid, input: $input) {
+      uuid
+      matchingType
+      summary
+      details
+      remote
+      active
+    }
+  }
+`
+
+export const setMatchingEntryActive = gql`
+  mutation ($uuid: String!, $active: Boolean!) {
+    setMatchingEntryActive(uuid: $uuid, active: $active) {
+      uuid
+      active
+    }
+  }
+`
+
+export const deleteMatchingEntry = gql`
+  mutation ($uuid: String!) {
+    deleteMatchingEntry(uuid: $uuid)
+  }
+`
