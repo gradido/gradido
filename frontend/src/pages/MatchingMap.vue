@@ -481,6 +481,8 @@ let inClusterZoom = false
 let clusterZoomBase = 0
 
 let map = null
+// Held so unmounting can call it off; initMap runs a quarter second after mount.
+let initTimer = null
 let matchLayer = null
 let presenceLayer = null
 let ownLayer = null
@@ -775,12 +777,19 @@ function setCenterLabel(label) {
   writePref('centerLabel', centerLabel.value)
 }
 
+let labelRequest = 0
+
 async function resolveCenterLabel(next) {
   if (next.label) {
     setCenterLabel(next.label)
     return
   }
-  setCenterLabel(await reverseGeocode(next.lat, next.lng))
+  // Two centre changes in quick succession start two lookups, and the first one
+  // may well answer last. Only the newest may write, or the bar would name a place
+  // the search has already left.
+  const mine = ++labelRequest
+  const label = await reverseGeocode(next.lat, next.lng)
+  if (mine === labelRequest) setCenterLabel(label)
 }
 
 /**
@@ -1332,19 +1341,33 @@ onMounted(() => {
     return
   }
   // Leaflet needs its container to have a size before it measures itself.
-  setTimeout(initMap, 250)
+  initTimer = setTimeout(initMap, 250)
   window.addEventListener('resize', handleResize)
 })
 
 onUnmounted(() => {
+  // Tidiness, not a fix: initMap already returns when mapContainer.value is empty,
+  // and Vue empties it on unmount, so a timer left running finds nothing to do.
+  // This just spares the wakeup and lets the closure go a quarter second earlier.
+  clearTimeout(initTimer)
   if (map) map.remove()
   map = null
   window.removeEventListener('resize', handleResize)
 })
 
 watch([matches, presence], redraw, { deep: true })
-watch(matches, syncProfile)
-watch(matches, syncCluster)
+// Restoring what was open last time belongs to arriving, not to every later
+// search: these read a saved uuid and reopen it wherever it turns up, so a match
+// that happens to appear in a new result set would swing the profile open unbidden -
+// which is exactly what syncProfile's own note says must not happen. One shot, on
+// the first results that actually carry something.
+let restoreDone = false
+watch(matches, () => {
+  if (restoreDone || !matches.value.length) return
+  restoreDone = true
+  syncProfile()
+  syncCluster()
+})
 watch(breite, drawMatches)
 watch(breite, (value) => writePref('breite', value))
 watch(visible, redraw, { deep: true })

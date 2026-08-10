@@ -38,11 +38,15 @@ vi.mock('@vue/apollo-composable', () => ({
 }))
 
 const load = vi.fn()
+// Held out here so a test can hand the page a result set directly - load() is a
+// spy and never fills anything in by itself.
+const matches = ref([])
+const presence = ref([])
 vi.mock('@/composables/useMatches', async () => {
   const actual = await vi.importActual('@/composables/useMatches')
   return {
     ...actual,
-    useMatches: () => ({ matches: ref([]), presence: ref([]), load }),
+    useMatches: () => ({ matches, presence, load }),
   }
 })
 
@@ -104,6 +108,8 @@ beforeEach(() => {
   replace.mockClear()
   push.mockClear()
   load.mockClear()
+  matches.value = []
+  presence.value = []
   window.localStorage.clear()
 })
 
@@ -160,6 +166,47 @@ describe('MatchingMap', () => {
       await page.vm.$nextTick()
 
       expect(load).toHaveBeenCalledTimes(asked)
+    })
+  })
+
+  describe('restoring what was open last time', () => {
+    const person = (uuid) => ({
+      uuid,
+      name: 'Anna',
+      position: { lat: 48.2, lng: 11.6 },
+      community: { name: 'Muenchen' },
+      aboutMe: '',
+      channels: [],
+      scores: {},
+      precision: 'genau',
+    })
+    const profileOpen = (page) => page.findComponent({ name: 'MatchProfile' }).props('modelValue')
+
+    it('opens the saved profile when it is in the first results', async () => {
+      window.localStorage.setItem('pref.gms.map.profile', JSON.stringify('u-1'))
+      const page = mountMap()
+
+      matches.value = [person('u-1')]
+      await page.vm.$nextTick()
+
+      expect(profileOpen(page)).toBe(true)
+    })
+
+    // Restoring belongs to arriving. Left on every result set, a saved uuid that
+    // happens to turn up in a later search would swing the window open unbidden -
+    // which syncProfile's own note says must never happen.
+    it('does not open it again on a later search', async () => {
+      window.localStorage.setItem('pref.gms.map.profile', JSON.stringify('u-1'))
+      const page = mountMap()
+
+      matches.value = [person('u-2')]
+      await page.vm.$nextTick()
+      expect(profileOpen(page)).toBe(false)
+
+      matches.value = [person('u-1')]
+      await page.vm.$nextTick()
+
+      expect(profileOpen(page)).toBe(false)
     })
   })
 
