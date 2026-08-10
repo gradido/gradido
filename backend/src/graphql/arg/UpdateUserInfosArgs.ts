@@ -70,7 +70,9 @@ export class UpdateUserInfosArgs {
   @IsEnum(GmsPublishLocationType)
   gmsPublishLocation?: GmsPublishLocationType | null
 
-  @Field({ nullable: true })
+  // Explicit type, because reflection cannot infer one from a union - the neighbours
+  // above pass theirs for the same reason.
+  @Field(() => String, { nullable: true })
   @IsString()
   @MaxLength(ABOUT_ME_MAX_CHARS)
   aboutMe?: string | null
