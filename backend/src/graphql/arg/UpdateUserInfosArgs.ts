@@ -73,5 +73,5 @@ export class UpdateUserInfosArgs {
   @Field({ nullable: true })
   @IsString()
   @MaxLength(ABOUT_ME_MAX_CHARS)
-  aboutMe?: string
+  aboutMe?: string | null
 }

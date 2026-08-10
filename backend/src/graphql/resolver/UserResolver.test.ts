@@ -2858,6 +2858,71 @@ describe('UserResolver', () => {
     })
   })
 
+  // What a member writes about themselves is published, so changing it has to travel
+  // too. Deleting it is the case that matters: the text is gone from the wallet, and
+  // the GMS would go on showing it next to their entries.
+  describe('gms publishing when a member edits what they wrote about themselves', () => {
+    const upsertMock = upsertGmsUsers as jest.Mock
+    let member: User
+
+    beforeAll(async () => {
+      await cleanDB()
+      const homeCom = await writeHomeCommunityEntry()
+      homeCom.gmsApiKey = 'gms-test-key'
+      await DbCommunity.save(homeCom)
+
+      member = await userFactory(testEnv, bibiBloxberg)
+      await User.update(
+        { id: member.id },
+        {
+          gmsAllowed: true,
+          gmsRegistered: true,
+          gmsRegisteredAt: new Date(),
+          aboutMe: 'Ich baue Moebel aus Altholz.',
+        },
+      )
+
+      CONFIG.GMS_ACTIVE = true
+      upsertMock.mockResolvedValue(true)
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+    })
+
+    afterAll(async () => {
+      CONFIG.GMS_ACTIVE = false
+      await cleanDB()
+    })
+
+    beforeEach(() => {
+      upsertMock.mockClear()
+    })
+
+    it('sends the new text when they change it', async () => {
+      await mutate({
+        mutation: updateUserInfos,
+        variables: { aboutMe: 'Ich repariere Fahrraeder.' },
+      })
+
+      expect(upsertMock).toHaveBeenCalledTimes(1)
+      const [, gmsUsers] = upsertMock.mock.calls[0]
+      expect(gmsUsers[0].aboutMe).toBe('Ich repariere Fahrraeder.')
+    })
+
+    it('sends the empty text when they delete it', async () => {
+      await mutate({ mutation: updateUserInfos, variables: { aboutMe: null } })
+
+      // The local row has to be cleared as well, otherwise the payload below could be
+      // right for a reason that has nothing to do with the comparison being fixed.
+      const stored = await User.findOneOrFail({ where: { id: member.id } })
+      expect(stored.aboutMe).toBeNull()
+      expect(upsertMock).toHaveBeenCalledTimes(1)
+      const [, gmsUsers] = upsertMock.mock.calls[0]
+      expect(gmsUsers[0].aboutMe).toBeNull()
+    })
+  })
+
   // A member who does not take part has no business being over there at all. The GMS
   // knows nothing of consent - it has no such column, and neither its name search nor
   // its map filters on one - so whether a member is findable is decided here and

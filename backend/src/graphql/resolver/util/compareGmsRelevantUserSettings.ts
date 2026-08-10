@@ -62,6 +62,16 @@ export function compareGmsRelevantUserSettings(
   if (updateUserInfosArgs.language && orgUser.language !== updateUserInfosArgs.language) {
     return true
   }
+  // Checked against undefined rather than for a value: clearing the text arrives as
+  // null or as an empty string, and both are changes that have to reach the GMS.
+  // Deleting what one wrote about oneself is the case that matters here - anything
+  // else would leave the old text published while it is gone locally.
+  if (
+    updateUserInfosArgs.aboutMe !== undefined &&
+    orgUser.aboutMe !== updateUserInfosArgs.aboutMe
+  ) {
+    return true
+  }
   if (
     updateUserInfosArgs.gmsLocation &&
     orgUser.location === null &&
