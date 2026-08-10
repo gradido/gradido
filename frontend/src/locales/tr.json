@@ -515,8 +515,8 @@
       },
       "location-format": "Konumu haritada göster:",
       "map": {
-        "communityCoords": "Topluluk Konumun: Enlem {lat}, Boylam {lng}",
-        "communityLocationLabel": "Topluluk Konumun",
+        "communityCoords": "Topluluk konumu: Enlem {lat}, Boylam {lng}",
+        "communityLocationLabel": "Topluluk konumu",
         "headline": "Kullanıcının Coğrafi Konum Tespiti",
         "search": "Konum ara",
         "userCoords": "Konumun: Enlem {lat}, Boylam {lng}",
