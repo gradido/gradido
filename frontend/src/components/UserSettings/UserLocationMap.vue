@@ -170,8 +170,11 @@ function initMap() {
         closeOnClick: false,
         closeButton: false,
         // In home mode the label rides low and lets clicks through, so it never
-        // stands between you and dropping your location there.
-        pane: homeIcon ? 'communityLabel' : undefined,
+        // stands between you and dropping your location there. Everywhere else it
+        // has to name Leaflet's own popup pane by hand: the key is always present
+        // here, and Util.setOptions copies it over the class default, so passing
+        // undefined would leave the popup with no pane to attach to at all.
+        pane: homeIcon ? 'communityLabel' : 'popupPane',
         className: homeIcon ? 'community-through' : '',
       })
       .openPopup()
