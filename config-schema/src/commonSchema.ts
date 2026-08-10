@@ -102,6 +102,15 @@ export const GMS_ACTIVE = Joi.boolean()
   .default(false)
   .required()
 
+// Deliberately separate from GMS_ACTIVE: that one switches the older GMS
+// integration (the overview card and the position export), and it is on in
+// production. Hanging the new matching off it would publish unfinished work the
+// moment an instance enables the old service.
+export const MATCHING_ACTIVE = Joi.boolean()
+  .description('Flag to indicate if the new matching (entries, map, list) is offered to members.')
+  .default(false)
+  .required()
+
 export const GDT_ACTIVE = Joi.boolean()
   .description('Flag to indicate if the GDT (Gradido Transform) service is used.')
   .default(false)
