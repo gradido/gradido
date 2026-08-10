@@ -38,6 +38,7 @@ export const updateUserInfos = gql`
     $gmsPublishName: PublishNameType
     $gmsLocation: Location
     $gmsPublishLocation: GmsPublishLocationType
+    $aboutMe: String
   ) {
     updateUserInfos(
       firstName: $firstName
@@ -52,6 +53,7 @@ export const updateUserInfos = gql`
       gmsPublishName: $gmsPublishName
       gmsLocation: $gmsLocation
       gmsPublishLocation: $gmsPublishLocation
+      aboutMe: $aboutMe
     )
   }
 `
@@ -400,5 +402,46 @@ export const updateHomeCommunityQuery = gql`
       authenticatedAt
       gmsApiKey
     }
+  }
+`
+
+export const createMatchingEntry = gql`
+  mutation ($input: MatchingEntryInput!) {
+    createMatchingEntry(input: $input) {
+      uuid
+      matchingType
+      summary
+      details
+      remote
+      active
+    }
+  }
+`
+
+export const updateMatchingEntry = gql`
+  mutation ($uuid: String!, $input: MatchingEntryInput!) {
+    updateMatchingEntry(uuid: $uuid, input: $input) {
+      uuid
+      matchingType
+      summary
+      details
+      remote
+      active
+    }
+  }
+`
+
+export const setMatchingEntryActive = gql`
+  mutation ($uuid: String!, $active: Boolean!) {
+    setMatchingEntryActive(uuid: $uuid, active: $active) {
+      uuid
+      active
+    }
+  }
+`
+
+export const deleteMatchingEntry = gql`
+  mutation ($uuid: String!) {
+    deleteMatchingEntry(uuid: $uuid)
   }
 `

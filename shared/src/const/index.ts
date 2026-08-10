@@ -37,6 +37,13 @@ export const MEMO_MIN_CHARS = 5
 // so it can be roomier than a memo. A short reply like "Yes" has to pass as well.
 export const MESSAGE_MAX_CHARS = 2000
 export const MESSAGE_MIN_CHARS = 1
+// matching: what a member writes about themselves, and the long form of a single
+// entry. Both are `text` columns, so the database bound is 65535 BYTES — under
+// utf8mb4 an emoji costs four of them, and hitting that bound surfaces as a raw
+// driver error. These caps keep the failure a validation message instead, and they
+// also cap what is forwarded to the GMS.
+export const ABOUT_ME_MAX_CHARS = 2000
+export const MATCHING_ENTRY_DETAILS_MAX_CHARS = 2000
 
 // authentication
 // 10 minutes

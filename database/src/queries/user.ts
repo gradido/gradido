@@ -1,7 +1,11 @@
+import { eq } from 'drizzle-orm'
 import { getLogger } from 'log4js'
-import { aliasSchema, emailSchema, uuidv4Schema } from 'shared'
+import { aliasSchema, emailSchema, uuidv4Schema, VoidResult } from 'shared'
 import { In, Raw } from 'typeorm'
+import { drizzleDb } from '../AppDatabase'
 import { User as DbUser, UserContact as DbUserContact } from '../entity'
+import { DBNotFoundError } from '../errorTypes'
+import { usersTable } from '../schemas/drizzle.schema'
 import { findWithCommunityIdentifier, LOG4JS_QUERIES_CATEGORY_NAME } from './index'
 
 export async function aliasExists(alias: string): Promise<boolean> {
@@ -91,6 +95,27 @@ export async function findUserByUuids(
     where: { foreign, communityUuid, gradidoID },
     relations: ['emailContact'],
   })
+}
+
+/**
+ * Forget that the GMS holds a copy of this member - because it has just been removed.
+ *
+ * Nothing else ever clears this flag: it is only ever set, by the run that publishes a
+ * member. A member who withdrew their consent would therefore keep counting as
+ * registered, and the paths that re-register a member before publishing anything of
+ * theirs would skip that step and write against a member the GMS no longer knows.
+ */
+export async function dbClearGmsRegistration(userId: number): Promise<VoidResult<DBNotFoundError>> {
+  const result = await drizzleDb()
+    .update(usersTable)
+    .set({ gmsRegistered: 0, gmsRegisteredAt: null })
+    .where(eq(usersTable.id, userId))
+
+  const firstRow = result[0]
+  if (firstRow && firstRow.affectedRows === 1) {
+    return { success: true }
+  }
+  return { success: false, error: new DBNotFoundError('users', `id = ${userId}`) }
 }
 
 export async function findUserNamesByIds(userIds: number[]): Promise<Map<number, string>> {

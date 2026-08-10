@@ -31,6 +31,12 @@ export const USER_RIGHTS = [
   RIGHTS.OPEN_CREATIONS,
   RIGHTS.USER,
   RIGHTS.GMS_USER_PLAYGROUND,
+  // Every member gets these four with the resolver. What they reach is their own
+  // entries and nothing else: each call filters on the caller's user id.
+  RIGHTS.CREATE_MATCHING_ENTRY,
+  RIGHTS.UPDATE_MATCHING_ENTRY,
+  RIGHTS.DELETE_MATCHING_ENTRY,
+  RIGHTS.LIST_MATCHING_ENTRY,
   RIGHTS.HUMHUB_AUTO_LOGIN,
   RIGHTS.PROJECT_BRANDING_VIEW,
   RIGHTS.LIST_HUMHUB_SPACES,

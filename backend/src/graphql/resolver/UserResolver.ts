@@ -104,6 +104,7 @@ import { describeModeratorCreationGroups } from './util/moderatorCreationGroupSc
 import { deleteUserRole, setUserRole } from './util/modifyUserRole'
 import { sendUsersToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
+import { removeUserFromGms } from './util/syncMatchingEntryToGms'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl', 'it', 'tr', 'ru', 'pt', 'el']
 const DEFAULT_LANGUAGE = 'de'
@@ -711,6 +712,7 @@ export class UserResolver {
       humhubPublishName,
       gmsLocation,
       gmsPublishLocation,
+      aboutMe,
     } = updateUserInfosArgs
     const user = getUser(context)
     const logger = createLogger()
@@ -731,9 +733,17 @@ export class UserResolver {
       humhubPublishName: humhubPublishName !== undefined,
       gmsLocation: gmsLocation !== undefined,
       gmsPublishLocation: gmsPublishLocation !== undefined,
+      aboutMe: aboutMe !== undefined,
     })
 
     const updateUserInGMS = compareGmsRelevantUserSettings(user, updateUserInfosArgs)
+    // Read before the update overwrites it: gmsAllowed going true -> false is the
+    // member leaving the GMS. compareGmsRelevantUserSettings only reports the way
+    // in (it checks `updateUserInfosArgs.gmsAllowed &&`), which is precisely why
+    // leaving never reached the GMS. Kept next to the gmsRegistered check below
+    // rather than replaced by it: a member whose publish failed on the way in is
+    // not marked as registered, and their copy may still have landed over there.
+    const gmsConsentWithdrawn = user.gmsAllowed && updateUserInfosArgs.gmsAllowed === false
     const publishNameLogic = new PublishNameLogic(user)
     const oldHumhubUsername = publishNameLogic.getUserIdentifier(
       user.humhubPublishName as PublishNameType,
@@ -749,6 +759,7 @@ export class UserResolver {
       gmsPublishName: gmsPublishName?.valueOf(),
       humhubPublishName: humhubPublishName?.valueOf(),
       gmsPublishLocation: gmsPublishLocation?.valueOf(),
+      aboutMe,
     })
 
     // currently alias can only be set, not updated
@@ -810,7 +821,14 @@ export class UserResolver {
 
     // validate if user settings are changed with relevance to update gms-user
     try {
-      if (CONFIG.GMS_ACTIVE && updateUserInGMS) {
+      if (CONFIG.GMS_ACTIVE && !user.gmsAllowed && (gmsConsentWithdrawn || user.gmsRegistered)) {
+        // The member does not take part, and the GMS may hold them anyway: they just
+        // left, or a copy was made of them that never should have been. Deleting over
+        // there is idempotent, so doing it once too often costs one request, while
+        // doing it once too rarely leaves them findable by name and on the map.
+        logger.debug(`member does not take part in the gms, delete user in gms...`)
+        await removeUserFromGms(user)
+      } else if (CONFIG.GMS_ACTIVE && updateUserInGMS && user.gmsAllowed) {
         logger.debug(`changed user-settings relevant for gms-user update...`)
         const homeCom = await getHomeCommunity()
         if (!homeCom) {
@@ -821,7 +839,12 @@ export class UserResolver {
         }
         if (homeCom.gmsApiKey !== null) {
           logger.debug(`send User to Gms...`)
-          await sendUsersToGms([user], homeCom)
+          // A member the GMS does not hold is built there from scratch, so their live
+          // entries have to travel with them - withdrawing consent removes the member
+          // and everything of theirs, and this is what brings the entries back when
+          // they join again. For a member the GMS already holds, sending the settings
+          // alone is enough and leaves their entries untouched.
+          await sendUsersToGms([user], homeCom, !user.gmsRegistered)
           logger.debug(`sendUserToGms successfully.`)
         }
       }
@@ -1204,6 +1227,28 @@ export class UserResolver {
       return null
     }
     return user.salutation ?? null
+  }
+
+  /**
+   * A member's own words about themselves. Guarded for the same reason as salutation:
+   * this ObjectType is shared, and `user()` hands out any member by alias to anyone
+   * logged in, while `queryTransactionLink { senderUser }` needs no token at all.
+   *
+   * Own text only. Nobody else needs it from here — the wallet reads it through
+   * `verifyLogin` to fill the member's own form, and the text of OTHER people arrives
+   * with a match, from the GMS, which only holds it for members who allowed it
+   * (`gmsAllowed`). Handing it out here would publish the text of members who
+   * deliberately did not.
+   *
+   * Returns null rather than throwing, like salutation: a caller without the right
+   * should see nothing, not lose the whole enclosing user.
+   */
+  @FieldResolver(() => String, { nullable: true })
+  aboutMe(@Root() user: User, @Ctx() context: Context): string | null {
+    if (context.user?.id !== user.id) {
+      return null
+    }
+    return user.aboutMe ?? null
   }
 }
 

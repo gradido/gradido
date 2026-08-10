@@ -19,6 +19,7 @@ import {
   AppDatabase,
   Community as DbCommunity,
   Event as DbEvent,
+  dbInsertMatchingEntry,
   TransactionLink,
   User,
   UserContact,
@@ -26,6 +27,7 @@ import {
 } from 'database'
 import { GraphQLError } from 'graphql'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
+import { deleteGmsUser, upsertGmsUsers } from '@/apis/gms/GmsClient'
 import { subscribe } from '@/apis/KlicktippController'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -56,8 +58,10 @@ import {
   queryOptIn,
   searchAdminUsers,
   searchUsers,
+  userAboutMe,
   user as userQuery,
   verifyLogin,
+  verifyLoginAboutMe,
 } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
@@ -69,6 +73,18 @@ import { Location2Point } from './util/Location2Point'
 
 jest.mock('@/apis/humhub/HumHubClient')
 jest.mock('@/password/EncryptorUtils')
+
+// Only the two calls the consent tests watch; everything else in the client stays real,
+// and GMS_ACTIVE is false for the rest of this file, so nothing else reaches it.
+jest.mock('@/apis/gms/GmsClient', () => {
+  const originalModule = jest.requireActual('@/apis/gms/GmsClient')
+  return {
+    __esModule: true,
+    ...originalModule,
+    upsertGmsUsers: jest.fn(),
+    deleteGmsUser: jest.fn(),
+  }
+})
 
 jest.mock('core', () => {
   const originalModule = jest.requireActual('core')
@@ -173,6 +189,7 @@ describe('UserResolver', () => {
               emailId: expect.any(Number),
               firstName: 'Peter',
               lastName: 'Lustig',
+              aboutMe: null,
               gender: null,
               salutation: null,
               creaSignature: null,
@@ -2703,6 +2720,270 @@ describe('UserResolver', () => {
         )
         expect(logErrorLogger.error).toBeCalledWith('401 Unauthorized')
       })
+    })
+  })
+
+  // aboutMe is a member's own words. The User ObjectType is shared, and `user()` hands
+  // out any member by alias to anyone logged in — so without the field resolver the text
+  // of members who never allowed the GMS would be readable by everyone.
+  describe('aboutMe visibility', () => {
+    const ABOUT_ME_TEXT = 'Ich fliege gern und helfe beim Zaubern.'
+    let homeCom: DbCommunity
+    let author: User
+
+    beforeAll(async () => {
+      await cleanDB()
+      homeCom = await writeHomeCommunityEntry()
+      author = await userFactory(testEnv, bibiBloxberg)
+      await userFactory(testEnv, bobBaumeister)
+
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+      const written: any = await mutate({
+        mutation: updateUserInfos,
+        variables: { aboutMe: ABOUT_ME_TEXT },
+      })
+      // The fixture has to prove itself. A variable the mutation does not declare is
+      // dropped without a word, and every assertion below would then pass or fail for
+      // a reason that has nothing to do with the field resolver.
+      if (written.errors || written.data?.updateUserInfos !== true) {
+        throw new Error(`could not store aboutMe: ${JSON.stringify(written.errors)}`)
+      }
+      const stored = await User.findOneOrFail({ where: { id: author.id } })
+      if (stored.aboutMe !== ABOUT_ME_TEXT) {
+        throw new Error(`aboutMe was not persisted, found: ${stored.aboutMe}`)
+      }
+    })
+
+    afterAll(async () => {
+      await cleanDB()
+    })
+
+    it('shows a member their own text', async () => {
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+      const res: any = await query({ query: verifyLoginAboutMe })
+      expect(res.data.verifyLogin.aboutMe).toBe(ABOUT_ME_TEXT)
+    })
+
+    it('hides the text from another logged-in member', async () => {
+      await mutate({
+        mutation: login,
+        variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
+      })
+      const res: any = await query({
+        query: userAboutMe,
+        variables: {
+          identifier: author.gradidoID,
+          communityIdentifier: homeCom.communityUuid,
+        },
+      })
+      // The user is found - only the field is withheld, so this is the resolver at work
+      // and not a lookup that failed.
+      expect(res.data.user.gradidoID).toBe(author.gradidoID)
+      expect(res.data.user.aboutMe).toBeNull()
+    })
+  })
+
+  // Leaving the GMS removes the member and everything of theirs over there. Joining again
+  // therefore has to hand the GMS a whole member, entries included - the two mutations
+  // below are one story and run in order.
+  describe('gms consent withdrawn and given again', () => {
+    const ENTRY_UUID = 'b6f0c1d2-3e4a-4b5c-8d9e-0f1a2b3c4d5e'
+    const upsertMock = upsertGmsUsers as jest.Mock
+    const deleteMock = deleteGmsUser as jest.Mock
+    let member: User
+
+    beforeAll(async () => {
+      await cleanDB()
+      const homeCom = await writeHomeCommunityEntry()
+      homeCom.gmsApiKey = 'gms-test-key'
+      await DbCommunity.save(homeCom)
+
+      member = await userFactory(testEnv, bibiBloxberg)
+      // The member is already published over there, and has one live entry with them.
+      await User.update({ id: member.id }, { gmsRegistered: true, gmsRegisteredAt: new Date() })
+      const inserted = await dbInsertMatchingEntry({
+        uuid: ENTRY_UUID,
+        userId: member.id,
+        matchingType: 'offer',
+        summary: 'Lastenrad zum Ausleihen',
+        details: null,
+        remote: false,
+        active: true,
+      })
+      if (!inserted.success) {
+        throw new Error('could not create the matching entry the assertions rely on')
+      }
+
+      CONFIG.GMS_ACTIVE = true
+      upsertMock.mockResolvedValue(true)
+      deleteMock.mockResolvedValue(true)
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+    })
+
+    afterAll(async () => {
+      CONFIG.GMS_ACTIVE = false
+      await cleanDB()
+    })
+
+    it('deletes the member in the GMS and stops counting them as registered', async () => {
+      await mutate({ mutation: updateUserInfos, variables: { gmsAllowed: false } })
+
+      expect(deleteMock).toHaveBeenCalledWith('gms-test-key', member.gradidoID)
+      const stored = await User.findOneOrFail({ where: { id: member.id } })
+      expect(stored.gmsRegistered).toBe(false)
+      expect(stored.gmsRegisteredAt).toBeNull()
+    })
+
+    it('sends the member back with their live entries when they join again', async () => {
+      upsertMock.mockClear()
+
+      await mutate({ mutation: updateUserInfos, variables: { gmsAllowed: true } })
+
+      expect(upsertMock).toHaveBeenCalledTimes(1)
+      const [, gmsUsers] = upsertMock.mock.calls[0]
+      // Without the entries the GMS keeps what it has - and after the delete above that
+      // is nothing, so the member's offer would be gone from every search.
+      expect(gmsUsers[0].matchingEntries).toEqual([
+        expect.objectContaining({ uuid: ENTRY_UUID, summary: 'Lastenrad zum Ausleihen' }),
+      ])
+    })
+  })
+
+  // What a member writes about themselves is published, so changing it has to travel
+  // too. Deleting it is the case that matters: the text is gone from the wallet, and
+  // the GMS would go on showing it next to their entries.
+  describe('gms publishing when a member edits what they wrote about themselves', () => {
+    const upsertMock = upsertGmsUsers as jest.Mock
+    let member: User
+
+    beforeAll(async () => {
+      await cleanDB()
+      const homeCom = await writeHomeCommunityEntry()
+      homeCom.gmsApiKey = 'gms-test-key'
+      await DbCommunity.save(homeCom)
+
+      member = await userFactory(testEnv, bibiBloxberg)
+      await User.update(
+        { id: member.id },
+        {
+          gmsAllowed: true,
+          gmsRegistered: true,
+          gmsRegisteredAt: new Date(),
+          aboutMe: 'Ich baue Moebel aus Altholz.',
+        },
+      )
+
+      CONFIG.GMS_ACTIVE = true
+      upsertMock.mockResolvedValue(true)
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+    })
+
+    afterAll(async () => {
+      CONFIG.GMS_ACTIVE = false
+      await cleanDB()
+    })
+
+    beforeEach(() => {
+      upsertMock.mockClear()
+    })
+
+    it('sends the new text when they change it', async () => {
+      await mutate({
+        mutation: updateUserInfos,
+        variables: { aboutMe: 'Ich repariere Fahrraeder.' },
+      })
+
+      expect(upsertMock).toHaveBeenCalledTimes(1)
+      const [, gmsUsers] = upsertMock.mock.calls[0]
+      expect(gmsUsers[0].aboutMe).toBe('Ich repariere Fahrraeder.')
+    })
+
+    it('sends the empty text when they delete it', async () => {
+      await mutate({ mutation: updateUserInfos, variables: { aboutMe: null } })
+
+      // The local row has to be cleared as well, otherwise the payload below could be
+      // right for a reason that has nothing to do with the comparison being fixed.
+      const stored = await User.findOneOrFail({ where: { id: member.id } })
+      expect(stored.aboutMe).toBeNull()
+      expect(upsertMock).toHaveBeenCalledTimes(1)
+      const [, gmsUsers] = upsertMock.mock.calls[0]
+      expect(gmsUsers[0].aboutMe).toBeNull()
+    })
+  })
+
+  // A member who does not take part has no business being over there at all. The GMS
+  // knows nothing of consent - it has no such column, and neither its name search nor
+  // its map filters on one - so whether a member is findable is decided here and
+  // nowhere else.
+  describe('gms publishing for a member who does not take part', () => {
+    const upsertMock = upsertGmsUsers as jest.Mock
+    const deleteMock = deleteGmsUser as jest.Mock
+    let member: User
+
+    beforeAll(async () => {
+      await cleanDB()
+      const homeCom = await writeHomeCommunityEntry()
+      homeCom.gmsApiKey = 'gms-test-key'
+      await DbCommunity.save(homeCom)
+
+      member = await userFactory(testEnv, bibiBloxberg)
+      await User.update({ id: member.id }, { gmsAllowed: false, gmsRegistered: false })
+
+      CONFIG.GMS_ACTIVE = true
+      upsertMock.mockResolvedValue(true)
+      deleteMock.mockResolvedValue(true)
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+    })
+
+    afterAll(async () => {
+      CONFIG.GMS_ACTIVE = false
+      await cleanDB()
+    })
+
+    beforeEach(() => {
+      upsertMock.mockClear()
+      deleteMock.mockClear()
+    })
+
+    it('sends nothing when they edit their name', async () => {
+      await mutate({ mutation: updateUserInfos, variables: { firstName: 'Benjamin' } })
+
+      // The edit itself has to have gone through, otherwise both expectations below
+      // would hold for a reason that has nothing to do with the gate. That the GMS is
+      // reachable at all in this describe is what the next test proves - it expects a
+      // call rather than the absence of one, on the same fixture.
+      const stored = await User.findOneOrFail({ where: { id: member.id } })
+      expect(stored.firstName).toBe('Benjamin')
+      expect(upsertMock).not.toHaveBeenCalled()
+      expect(deleteMock).not.toHaveBeenCalled()
+    })
+
+    it('removes a copy the GMS should never have been given', async () => {
+      // What an upsert before the gate left behind: taking part switched off, yet
+      // marked as published over there.
+      await User.update({ id: member.id }, { gmsRegistered: true, gmsRegisteredAt: new Date() })
+
+      await mutate({ mutation: updateUserInfos, variables: { firstName: 'Boris' } })
+
+      expect(deleteMock).toHaveBeenCalledWith('gms-test-key', member.gradidoID)
+      expect(upsertMock).not.toHaveBeenCalled()
+      const stored = await User.findOneOrFail({ where: { id: member.id } })
+      expect(stored.gmsRegistered).toBe(false)
     })
   })
 

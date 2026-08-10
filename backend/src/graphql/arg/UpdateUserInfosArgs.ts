@@ -1,7 +1,8 @@
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
 import { PublishNameType } from '@enum/PublishNameType'
 import { Location } from '@model/Location'
-import { IsBoolean, IsEnum, IsInt, IsString } from 'class-validator'
+import { IsBoolean, IsEnum, IsInt, IsString, MaxLength } from 'class-validator'
+import { ABOUT_ME_MAX_CHARS } from 'shared'
 import { ArgsType, Field, InputType, Int } from 'type-graphql'
 
 import { isValidLocation } from '@/graphql/validator/Location'
@@ -68,4 +69,11 @@ export class UpdateUserInfosArgs {
   @Field(() => GmsPublishLocationType, { nullable: true })
   @IsEnum(GmsPublishLocationType)
   gmsPublishLocation?: GmsPublishLocationType | null
+
+  // Explicit type, because reflection cannot infer one from a union - the neighbours
+  // above pass theirs for the same reason.
+  @Field(() => String, { nullable: true })
+  @IsString()
+  @MaxLength(ABOUT_ME_MAX_CHARS)
+  aboutMe?: string | null
 }

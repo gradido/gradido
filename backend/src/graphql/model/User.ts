@@ -50,6 +50,7 @@ export class User {
       this.gmsPublishName = dbUser.gmsPublishName
       this.humhubPublishName = dbUser.humhubPublishName
       this.gmsPublishLocation = dbUser.gmsPublishLocation
+      this.aboutMe = dbUser.aboutMe
       this.userLocation = dbUser.location ? Point2Location(dbUser.location as Point) : null
       // Unrestricted by default; verifyLogin fills in a scoped moderator's real groups.
       this.visibleCreationGroups = []
@@ -131,6 +132,9 @@ export class User {
 
   @Field(() => GmsPublishLocationType, { nullable: true })
   gmsPublishLocation: GmsPublishLocationType | null
+
+  @Field(() => String, { nullable: true })
+  aboutMe: string | null
 
   // This is not the users publisherId, but the one of the users who recommend him
   @Field(() => Int, { nullable: true })

@@ -7,6 +7,7 @@ import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'
 
+import { GmsUserMatchingEntry } from './model/GmsMatchingEntry'
 import { GmsUser } from './model/GmsUser'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.gms.GmsClient`)
@@ -122,13 +123,7 @@ export async function upsertGmsUsers(apiKey: string, users: GmsUser[]): Promise<
     const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_API_URL)
     const service = 'community-users'
     const config = {
-      headers: {
-        accept: 'application/json',
-        'Content-Type': 'application/json',
-        language: 'en',
-        timezone: 'UTC',
-        authorization: `Bearer ${apiKey}`,
-      },
+      headers: gmsHeaders(apiKey),
       httpAgent,
       httpsAgent,
     }
@@ -157,6 +152,100 @@ export async function upsertGmsUsers(apiKey: string, users: GmsUser[]): Promise<
   } else {
     logger.info('GMS-Communication disabled per ConfigKey GMS_ACTIVE=false!')
     return false
+  }
+}
+
+/**
+ * Write one matching entry. Idempotent on the entry's uuid, so a retry after a
+ * lost response is harmless.
+ */
+export async function putGmsMatchingEntry(
+  apiKey: string,
+  entry: GmsUserMatchingEntry,
+): Promise<boolean> {
+  if (!CONFIG.GMS_ACTIVE) {
+    logger.info('GMS-Communication disabled per ConfigKey GMS_ACTIVE=false!')
+    return false
+  }
+  const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_API_URL)
+  const result = await axios.put(baseUrl.concat('community-user/matching-entry'), entry, {
+    headers: gmsHeaders(apiKey),
+    httpAgent,
+    httpsAgent,
+  })
+  if (result.status !== 200) {
+    throw new LogError(
+      'HTTP Status Error in put community-user/matching-entry:',
+      result.status,
+      result.statusText,
+    )
+  }
+  return true
+}
+
+/**
+ * Remove one matching entry - because the member deleted it, or paused it: a
+ * paused entry must not show up in anyone's search.
+ */
+export async function deleteGmsMatchingEntry(apiKey: string, uuid: string): Promise<boolean> {
+  if (!CONFIG.GMS_ACTIVE) {
+    logger.info('GMS-Communication disabled per ConfigKey GMS_ACTIVE=false!')
+    return false
+  }
+  const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_API_URL)
+  const result = await axios.delete(baseUrl.concat(`community-user/matching-entry/${uuid}`), {
+    headers: gmsHeaders(apiKey),
+    httpAgent,
+    httpsAgent,
+  })
+  if (result.status !== 200) {
+    throw new LogError(
+      'HTTP Status Error in delete community-user/matching-entry:',
+      result.status,
+      result.statusText,
+    )
+  }
+  return true
+}
+
+/**
+ * Remove a user and everything of theirs from the GMS. Sent when a member does not
+ * take part - until now, nothing was sent at all in that case, and their copy simply
+ * stayed in the GMS.
+ *
+ * Deleting an account does not reach this yet: `UserResolver.deleteUser` soft-removes
+ * the member and leaves their copy over there. Wiring it up needs an answer for
+ * `unDeleteUser` first, which would otherwise bring a member back who is no longer
+ * findable.
+ */
+export async function deleteGmsUser(apiKey: string, userUuid: string): Promise<boolean> {
+  if (!CONFIG.GMS_ACTIVE) {
+    logger.info('GMS-Communication disabled per ConfigKey GMS_ACTIVE=false!')
+    return false
+  }
+  const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_API_URL)
+  const result = await axios.delete(baseUrl.concat(`community-user/${userUuid}`), {
+    headers: gmsHeaders(apiKey),
+    httpAgent,
+    httpsAgent,
+  })
+  if (result.status !== 200) {
+    throw new LogError(
+      'HTTP Status Error in delete community-user:',
+      result.status,
+      result.statusText,
+    )
+  }
+  return true
+}
+
+function gmsHeaders(apiKey: string) {
+  return {
+    accept: 'application/json',
+    'Content-Type': 'application/json',
+    language: 'en',
+    timezone: 'UTC',
+    authorization: `Bearer ${apiKey}`,
   }
 }
 

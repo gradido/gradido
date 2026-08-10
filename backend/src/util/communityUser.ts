@@ -15,6 +15,7 @@ const communityDbUser: dbUser = {
   emailId: -1,
   firstName: 'Gradido',
   lastName: 'Akademie',
+  aboutMe: null,
   gender: null,
   salutation: null,
   creaSignature: null,
