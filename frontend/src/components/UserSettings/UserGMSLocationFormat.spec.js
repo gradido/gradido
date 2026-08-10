@@ -82,6 +82,30 @@ describe('UserGMSLocationFormat', () => {
     expect(wrapper.emitted('gmsPublishLocation')[0]).toEqual(['GMS_LOCATION_TYPE_APPROXIMATE'])
   })
 
+  // The matching page owns the save there: the accuracy travels with the pin and
+  // the whole set only reaches the server when someone presses save. If this
+  // regresses, a stray touch on that page silently changes where you live.
+  describe('when deferring', () => {
+    beforeEach(() => {
+      wrapper = mount(UserGMSLocationFormat, { props: { defer: true } })
+    })
+
+    it('reports the choice without saving it', async () => {
+      await wrapper.findAll('.dropdown-item').at(0).trigger('click')
+
+      expect(mockMutate).not.toHaveBeenCalled()
+      expect(mockStore.commit).not.toHaveBeenCalled()
+      expect(mockToastSuccess).not.toHaveBeenCalled()
+      expect(wrapper.emitted('gmsPublishLocation')[0]).toEqual(['GMS_LOCATION_TYPE_EXACT'])
+    })
+
+    it('still shows the choice it is holding back', async () => {
+      await wrapper.findAll('.dropdown-item').at(0).trigger('click')
+
+      expect(wrapper.text()).toContain('settings.GMS.publish-location.exact')
+    })
+  })
+
   it('does not update when clicking on already selected option', async () => {
     const dropdownItem = wrapper.findAll('.dropdown-item').at(1) // Click the second item (which is already selected)
     await dropdownItem.trigger('click')

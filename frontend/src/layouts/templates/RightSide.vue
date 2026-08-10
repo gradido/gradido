@@ -15,6 +15,8 @@ export default {
           return 'empty'
         case 'contributions':
           return 'contributions'
+        case 'matching':
+          return 'matching'
         default:
           return 'transactions'
       }

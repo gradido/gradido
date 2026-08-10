@@ -5,7 +5,7 @@
     </div>
     <div v-else class="mx-lg-0">
       <!-- navbar -->
-      <BRow>
+      <BRow :class="chromeHidden">
         <BCol>
           <navbar class="main-navbar" :balance="balance"></navbar>
         </BCol>
@@ -13,22 +13,30 @@
       <mobile-sidebar @admin="admin" @logout="logoutUser" />
 
       <!-- Breadcrumb -->
-      <BRow class="breadcrumb">
+      <BRow class="breadcrumb" :class="chromeHidden">
         <BCol cols="10" offset-lg="2">
           <breadcrumb />
         </BCol>
       </BRow>
 
-      <BRow fluid class="d-flex">
+      <!-- With the navbar and the heading gone there is nothing left to sit under,
+           so the air goes here — on the row, where the menu and the content get it
+           together and stay level. The phone gets none: there the map takes the edge. -->
+      <BRow fluid class="d-flex" :class="bareTopSpace">
         <!-- Sidebar left -->
         <BCol cols="2" class="d-none d-lg-block">
-          <sidebar class="main-sidebar" @admin="admin" @logout="logoutUser" />
+          <sidebar
+            class="main-sidebar"
+            :show-logo="bareChrome"
+            @admin="admin"
+            @logout="logoutUser"
+          />
         </BCol>
         <!-- ContentHeader && Content -->
         <BCol>
           <BRow class="px-lg-3">
             <BCol cols="12">
-              <BRow class="d-lg-flex" cols="12">
+              <BRow class="d-lg-flex" cols="12" :class="chromeHidden">
                 <!-- ContentHeader -->
                 <BCol>
                   <content-header
@@ -119,7 +127,7 @@
               </BRow>
             </BCol>
             <!-- Right Side Mobil -->
-            <BCol class="d-block d-lg-none">
+            <BCol :class="bareChrome ? 'd-none' : 'd-block d-lg-none'">
               <right-side>
                 <template #transactions>
                   <last-transactions
@@ -130,6 +138,9 @@
                 </template>
                 <template #contributions>
                   <contributions-template />
+                </template>
+                <template #matching>
+                  <matching-template />
                 </template>
                 <template #empty />
               </right-side>
@@ -167,10 +178,13 @@
             <template #contributions>
               <contributions-template />
             </template>
+            <template #matching>
+              <matching-template />
+            </template>
           </right-side>
         </BCol>
       </BRow>
-      <BRow>
+      <BRow :class="mobileHidden">
         <!-- footer -->
         <BCol>
           <content-footer v-if="!$route.meta.hideFooter" />
@@ -182,12 +196,13 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useStore } from 'vuex'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useQuery, useMutation } from '@vue/apollo-composable'
 import ContentHeader from '@/layouts/templates/ContentHeader'
 import ContributionsTemplate from '@/layouts/templates/ContributionsTemplate'
+import MatchingTemplate from '@/layouts/templates/MatchingTemplate'
 import Breadcrumb from '@/components/Breadcrumb/breadcrumb'
 import RightSide from '@/layouts/templates/RightSide'
 import SkeletonOverview from '@/components/skeleton/Overview'
@@ -206,6 +221,17 @@ import CONFIG from '@/config'
 import { useAppToast } from '@/composables/useToast'
 
 const store = useStore()
+const route = useRoute()
+
+// A route may bring its own head — the map does. Then the navbar, the page
+// heading and the content header are just distance between you and what you came
+// for, at every size. On a phone the map takes the whole screen, so the footer
+// goes too; on desktop it stays, and the menu keeps the logo the navbar took with
+// it. Every other route leaves these empty and is untouched.
+const bareChrome = computed(() => Boolean(route.meta.bareChrome))
+const chromeHidden = computed(() => (bareChrome.value ? 'd-none' : ''))
+const mobileHidden = computed(() => (bareChrome.value ? 'd-none d-lg-block' : ''))
+const bareTopSpace = computed(() => (bareChrome.value ? 'pt-lg-4' : ''))
 const router = useRouter()
 const {
   refetch: useRefetchTransactionsQuery,

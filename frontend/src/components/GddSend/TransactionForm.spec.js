@@ -100,6 +100,20 @@ describe('TransactionForm', () => {
     expect(wrapper.find('div.transaction-form').exists()).toBe(true)
   })
 
+  describe('send type from the route', () => {
+    it('opens in e-mail mode when ?art=email', () => {
+      useRoute.mockReturnValueOnce({ params: {}, query: { art: 'email' } })
+      const w = createWrapper({ balance: 100 })
+      expect(w.vm.radioSelected).toBe(SEND_TYPES.email)
+    })
+
+    it('keeps the default for any other art value', () => {
+      useRoute.mockReturnValueOnce({ params: {}, query: { art: 'nonsense' } })
+      const w = createWrapper({ balance: 100 })
+      expect(w.vm.radioSelected).toBe(SEND_TYPES.send)
+    })
+  })
+
   describe('with balance <= 0.00 GDD the form is disabled', () => {
     it('has a disabled input field of type text', () => {
       expect(wrapper.find('#identifier').attributes('disabled')).toBe('true')

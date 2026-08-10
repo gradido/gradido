@@ -356,6 +356,193 @@
   "link-load": "Load the last link | Load the last {n} links",
   "link-load-more": "Load more {n} links",
   "login": "Sign in",
+  "matching": {
+    "about": {
+      "counter": "{count} / ~1000 characters",
+      "label": "Who you are — in your own words",
+      "placeholder": "Tell others who you are, what moves you, what you share — it builds trust before someone writes to you.",
+      "saved": "Your profile has been saved"
+    },
+    "cluster": {
+      "close": "Close list",
+      "title": "{n} people at this spot"
+    },
+    "entries": {
+      "activate": "Activate",
+      "count": "{total} entries · {live} live · {paused} paused",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this entry?",
+      "details": "Details",
+      "edit": "Edit",
+      "emptyText": "Offer something, look for something, or share an interest — and get found.",
+      "emptyTitle": "No entries yet.",
+      "new": "New entry",
+      "noDetails": "(no details)",
+      "pause": "Pause",
+      "pausedBadge": "Paused · not in search",
+      "remote": "Nationwide"
+    },
+    "find": {
+      "gateText": "Once you have set your position and made yourself visible on the map, you can also find others near you.",
+      "gateTitle": "First show yourself on the map",
+      "later": "Later",
+      "subtitle": "Discover who fits you",
+      "title": "Find on the map",
+      "titleList": "Find in the list",
+      "toPosition": "Go to Position",
+      "understood": "Got it"
+    },
+    "info": {
+      "about": {
+        "heading": "Who you are",
+        "p1": "A few warm, honest sentences about you build trust before someone writes to you.",
+        "p2": "This text appears on your profile card on the search map."
+      },
+      "entries": {
+        "heading": "How matching works",
+        "paused": "Paused entries stay saved — they just do not appear in search.",
+        "text": "List what you love, offer or look for — every active entry makes you appear in other people's matching searches."
+      },
+      "position": {
+        "heading": "Your privacy",
+        "p1": "You decide how precisely you appear. \"Approximate\" shows you within an area — never at your front door.",
+        "p2": "Without a position you are not on the map. The switch takes you out again at any time."
+      }
+    },
+    "list": {
+      "centeredOn": "Centred on {place}",
+      "controlsHeading": "Search and sort",
+      "dir": {
+        "e": "east",
+        "n": "north",
+        "ne": "north-east",
+        "nw": "north-west",
+        "s": "south",
+        "se": "south-east",
+        "sw": "south-west",
+        "w": "west"
+      },
+      "empty": "No one here right now. Widen the radius or search another place.",
+      "heading": "People near you",
+      "kmEtwa": "about {n} km",
+      "kmExact": "{n} km",
+      "lensBy": "Distance from",
+      "lensHome": "Home",
+      "lensSearch": "Search point",
+      "line": {
+        "angebot": "offers {thing} — you're looking for that",
+        "gesuch": "seeks {thing} — you offer that",
+        "interesse": "shares your interest in {thing}"
+      },
+      "matchesHeading": "Your matches",
+      "meets": "matches {n} of your entries",
+      "near": "nearby",
+      "othersHeading": "More people near you",
+      "sortBreite": "who fits the most",
+      "sortBy": "Sort by",
+      "sortNaehe": "Proximity",
+      "sortPassung": "Fit"
+    },
+    "map": {
+      "amplifier": "Amplifier",
+      "back": "Back",
+      "breite": "Who fits more than once",
+      "breiteHint": "Highlights people who answer several of your entries.",
+      "channels": {
+        "andere": "everyone else",
+        "andereMit": "others with entries",
+        "andereOhne": "others without entries",
+        "angebot": "Offers",
+        "gesuch": "Needs",
+        "interesse": "Interests"
+      },
+      "found": "{n} people found",
+      "home": "Home",
+      "km": "km",
+      "look": {
+        "dunkel": "dark",
+        "hell": "light",
+        "karte": "Map",
+        "label": "Appearance",
+        "liste": "List",
+        "normal": "normal"
+      },
+      "radius": "Radius",
+      "radiusLabel": "How far out do you want to search? (km)",
+      "radiusTitle": "Search radius",
+      "search": "Search for a place or address",
+      "searchHere": "Search here"
+    },
+    "new": {
+      "cancel": "Cancel",
+      "completeSentence": "Complete this sentence:",
+      "detailsHeading": "Details — so the right people find you:",
+      "remote": "Also available nationwide / online"
+    },
+    "position": {
+      "accuracyApprox": "A slightly shifted location is shown",
+      "accuracyExact": "Your exact location is shown",
+      "cancel": "Cancel",
+      "findable": "Am I findable?",
+      "findableHint": "Turns your map presence on/off",
+      "findableOff": "You are no longer findable on the map",
+      "findableOn": "You are now findable on the map",
+      "intro": "Place yourself on the map to take part in matching — you only appear once you do.",
+      "saveText": "Do you want to save your position settings now?",
+      "saveTitle": "Save position",
+      "unsaved": "Not saved yet"
+    },
+    "profile": {
+      "aria": "Profile of {name}",
+      "more": "{n} more",
+      "sendEmail": "Send e-mail",
+      "sendGradido": "Send Gradido"
+    },
+    "query": {
+      "all": "All my entries",
+      "clear": "Clear the search",
+      "details": "More about your search",
+      "detailsPlaceholder": "second-hand, 28 inch",
+      "keep": "Keep as an entry",
+      "keepAsk": "Shall people who fit “{text}” find you from now on?",
+      "keepNo": "No, thanks",
+      "label": "Currently searching for",
+      "open": "Choose a search",
+      "other": "Search for something else …",
+      "pick": "Pick how you mean it — that runs the search.",
+      "placeholder": "a bicycle",
+      "untouched": "Your entries stay untouched."
+    },
+    "save": "Save",
+    "tabs": {
+      "about": "About me",
+      "entries": "Entries",
+      "position": "Home"
+    },
+    "type": {
+      "angebot": {
+        "desc": "what you give",
+        "detailsPlaceholder": "Old and new bikes, e-bikes too — I'll come to you",
+        "placeholder": "bicycle repair",
+        "prefix": "I offer",
+        "word": "Offer"
+      },
+      "gesuch": {
+        "desc": "what you look for",
+        "detailsPlaceholder": "Front door sticks, old lock cylinder",
+        "placeholder": "a locksmith",
+        "prefix": "I am looking for",
+        "word": "Request"
+      },
+      "interesse": {
+        "desc": "what you love",
+        "detailsPlaceholder": "in my own self-sufficiency garden",
+        "placeholder": "permaculture",
+        "prefix": "I love",
+        "word": "Interest"
+      }
+    }
+  },
   "math": {
     "asterisk": "*",
     "equal": "=",
@@ -380,6 +567,7 @@
     "admin_area": "Admin Area",
     "community": "Community",
     "logout": "Logout",
+    "matching": "Matching",
     "overview": "Overview",
     "send": "Send",
     "settings": "Settings",
@@ -392,6 +580,7 @@
     "contributions": "Create Gradido",
     "gdt": "Your GDT transactions",
     "information": "{community}",
+    "matching": "Matching",
     "overview": "Welcome {name}",
     "send": "Send Gradido and email",
     "settings": "Settings",

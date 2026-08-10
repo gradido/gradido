@@ -356,6 +356,99 @@
   "link-load": "ricarica l'ultimo link | ricarica gli ultimi {n} link",
   "link-load-more": "ricarica altri {n} link",
   "login": "Accedi",
+  "matching": {
+    "about": {
+      "counter": "{count} / ~1000 caratteri",
+      "label": "Chi sei, con parole tue",
+      "placeholder": "Racconta chi sei, cosa ti muove, cosa condividi: crea fiducia prima che qualcuno ti scriva.",
+      "saved": "Il tuo profilo è stato salvato"
+    },
+    "entries": {
+      "activate": "Attiva",
+      "count": "{total} voci · {live} attive · {paused} in pausa",
+      "delete": "Elimina",
+      "deleteConfirm": "Eliminare questa voce?",
+      "details": "Dettagli",
+      "edit": "Modifica",
+      "emptyText": "Offri qualcosa, cerca qualcosa o condividi un interesse, e fatti trovare.",
+      "emptyTitle": "Ancora nessuna voce.",
+      "new": "Nuova voce",
+      "noDetails": "(nessun dettaglio)",
+      "pause": "Metti in pausa",
+      "pausedBadge": "In pausa · non nella ricerca",
+      "remote": "Sovraregionale"
+    },
+    "find": {
+      "gateText": "Una volta impostata la tua posizione e resa visibile sulla mappa, potrai trovare anche altre persone vicino a te.",
+      "gateTitle": "Mostrati prima sulla mappa",
+      "later": "Più tardi",
+      "subtitle": "Scopri chi è in sintonia con te",
+      "title": "Trova sulla mappa",
+      "toPosition": "Vai a Posizione",
+      "understood": "Capito"
+    },
+    "info": {
+      "about": {
+        "heading": "Chi sei",
+        "p1": "Poche frasi calorose e sincere su di te creano fiducia prima che qualcuno ti scriva.",
+        "p2": "Questo testo appare sulla tua scheda profilo sulla mappa di ricerca."
+      },
+      "entries": {
+        "heading": "Come funziona il matching",
+        "paused": "Le voci in pausa restano salvate; semplicemente non appaiono nella ricerca.",
+        "text": "Indica ciò che ami, offri o cerchi: ogni voce attiva ti fa apparire nelle ricerche degli altri."
+      },
+      "position": {
+        "heading": "La tua privacy",
+        "p1": "Decidi tu con quanta precisione appari. «Approssimativa» ti mostra in un'area, mai davanti alla porta di casa.",
+        "p2": "Senza posizione non sei sulla mappa. L'interruttore ti rimuove di nuovo in qualsiasi momento."
+      }
+    },
+    "new": {
+      "cancel": "Annulla",
+      "completeSentence": "Completa questa frase:",
+      "detailsHeading": "Dettagli — così le persone giuste ti trovano:",
+      "remote": "Disponibile anche a livello sovraregionale / online"
+    },
+    "position": {
+      "accuracyApprox": "Viene mostrata una posizione leggermente modificata",
+      "accuracyExact": "Viene mostrata la tua posizione esatta",
+      "findable": "Sono rintracciabile?",
+      "findableHint": "Attiva o disattiva la tua presenza sulla mappa",
+      "findableOff": "Non sei più rintracciabile sulla mappa",
+      "findableOn": "Ora sei rintracciabile sulla mappa",
+      "intro": "Posizionati sulla mappa per partecipare al matching: appari solo quando lo fai."
+    },
+    "save": "Salva",
+    "tabs": {
+      "about": "Su di me",
+      "entries": "Voci",
+      "position": "Posizione"
+    },
+    "type": {
+      "angebot": {
+        "desc": "ciò che dai",
+        "detailsPlaceholder": "Bici vecchie e nuove, anche e-bike — vengo io",
+        "placeholder": "riparazione di biciclette",
+        "prefix": "Offro",
+        "word": "Offerta"
+      },
+      "gesuch": {
+        "desc": "ciò che cerchi",
+        "detailsPlaceholder": "La porta d'ingresso si blocca, vecchio cilindro",
+        "placeholder": "un fabbro",
+        "prefix": "Cerco",
+        "word": "Richiesta"
+      },
+      "interesse": {
+        "desc": "ciò che ami",
+        "detailsPlaceholder": "nel mio orto di autosufficienza",
+        "placeholder": "la permacultura",
+        "prefix": "Amo",
+        "word": "Interesse"
+      }
+    }
+  },
   "math": {
     "asterisk": "*",
     "equal": "=",
@@ -380,6 +473,7 @@
     "admin_area": "Area amministrazione",
     "community": "Comunità",
     "logout": "Esci",
+    "matching": "Matching",
     "overview": "Panoramica",
     "send": "Invia",
     "settings": "Impostazioni",
@@ -392,6 +486,7 @@
     "contributions": "Creare Gradido",
     "gdt": "Le tue transazioni GDT",
     "information": "{community}",
+    "matching": "Matching",
     "overview": "Benvenuto {name}",
     "send": "Invia Gradido ed e-mail",
     "settings": "Impostazioni",
@@ -399,7 +494,7 @@
     "usersearch": "Ricerca geografica dei membri (beta)"
   },
   "qrCode": "Codice QR",
-  "send_email": "Invia e-mail",
+  "send_email": "Invia e‑mail",
   "send_gdd": "Invia GDD",
   "send_per_link": "Crea un link GDD",
   "session": {

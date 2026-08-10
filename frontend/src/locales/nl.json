@@ -356,6 +356,99 @@
   "link-load": "de laatste link herladen | de laatste {n} links herladen",
   "link-load-more": "verdere {n} links herladen",
   "login": "Aanmelding",
+  "matching": {
+    "about": {
+      "counter": "{count} / ~1000 tekens",
+      "label": "Wie je bent, in je eigen woorden",
+      "placeholder": "Vertel wie je bent, wat je beweegt, wat je deelt: dat schept vertrouwen voordat iemand je aanschrijft.",
+      "saved": "Je profiel is opgeslagen"
+    },
+    "entries": {
+      "activate": "Activeren",
+      "count": "{total} vermeldingen · {live} live · {paused} gepauzeerd",
+      "delete": "Verwijderen",
+      "deleteConfirm": "Deze vermelding verwijderen?",
+      "details": "Details",
+      "edit": "Bewerken",
+      "emptyText": "Bied iets aan, zoek iets of deel een interesse, en laat je vinden.",
+      "emptyTitle": "Nog geen vermeldingen.",
+      "new": "Nieuwe vermelding",
+      "noDetails": "(geen details)",
+      "pause": "Pauzeren",
+      "pausedBadge": "Gepauzeerd · niet in de zoekopdracht",
+      "remote": "Bovenregionaal"
+    },
+    "find": {
+      "gateText": "Zodra je je positie hebt ingesteld en jezelf zichtbaar hebt gemaakt op de kaart, kun je ook anderen bij jou in de buurt vinden.",
+      "gateTitle": "Laat jezelf eerst op de kaart zien",
+      "later": "Later",
+      "subtitle": "Ontdek wie bij je past",
+      "title": "Vinden op de kaart",
+      "toPosition": "Naar Positie",
+      "understood": "Begrepen"
+    },
+    "info": {
+      "about": {
+        "heading": "Wie je bent",
+        "p1": "Een paar warme, eerlijke zinnen over jou scheppen vertrouwen voordat iemand je aanschrijft.",
+        "p2": "Deze tekst verschijnt op je profielkaart op de zoekkaart."
+      },
+      "entries": {
+        "heading": "Zo werkt matching",
+        "paused": "Gepauzeerde vermeldingen blijven bewaard; ze verschijnen alleen niet in de zoekopdracht.",
+        "text": "Geef aan wat je liefhebt, aanbiedt of zoekt: elke actieve vermelding laat je verschijnen in de zoekopdrachten van anderen."
+      },
+      "position": {
+        "heading": "Je privacy",
+        "p1": "Jij bepaalt hoe precies je verschijnt. 'Ongeveer' toont je binnen een omgeving, nooit aan je voordeur.",
+        "p2": "Zonder positie sta je niet op de kaart. De schakelaar haalt je op elk moment weer weg."
+      }
+    },
+    "new": {
+      "cancel": "Annuleren",
+      "completeSentence": "Maak deze zin af:",
+      "detailsHeading": "Details — zodat de juiste mensen je vinden:",
+      "remote": "Ook bovenregionaal / online beschikbaar"
+    },
+    "position": {
+      "accuracyApprox": "Een iets gewijzigde locatie wordt getoond",
+      "accuracyExact": "Je exacte locatie wordt getoond",
+      "findable": "Ben ik vindbaar?",
+      "findableHint": "Schakelt je aanwezigheid op de kaart in/uit",
+      "findableOff": "Je bent niet meer vindbaar op de kaart",
+      "findableOn": "Je bent nu vindbaar op de kaart",
+      "intro": "Plaats jezelf op de kaart om aan matching mee te doen: je verschijnt pas als je dat doet."
+    },
+    "save": "Opslaan",
+    "tabs": {
+      "about": "Over mij",
+      "entries": "Vermeldingen",
+      "position": "Positie"
+    },
+    "type": {
+      "angebot": {
+        "desc": "wat je geeft",
+        "detailsPlaceholder": "Oude en nieuwe fietsen, ook e-bikes — ik kom langs",
+        "placeholder": "fietsreparatie",
+        "prefix": "Ik bied",
+        "word": "Aanbod"
+      },
+      "gesuch": {
+        "desc": "wat je zoekt",
+        "detailsPlaceholder": "Voordeur klemt, oude cilinder",
+        "placeholder": "een slotenmaker",
+        "prefix": "Ik zoek",
+        "word": "Verzoek"
+      },
+      "interesse": {
+        "desc": "waar je van houdt",
+        "detailsPlaceholder": "in mijn eigen zelfvoorzieningstuin",
+        "placeholder": "permacultuur",
+        "prefix": "Ik hou van",
+        "word": "Interesse"
+      }
+    }
+  },
   "math": {
     "asterisk": "*",
     "equal": "=",
@@ -380,6 +473,7 @@
     "admin_area": "Beheerder",
     "community": "Gemeenschap",
     "logout": "Afmelden",
+    "matching": "Matching",
     "overview": "Overzicht",
     "send": "Sturen",
     "settings": "Instellingen",
@@ -392,6 +486,7 @@
     "contributions": "Gradido scoop",
     "gdt": "Your GDT transactions",
     "information": "{community}",
+    "matching": "Matching",
     "overview": "Welcome {name}",
     "send": "Gradido en e-mail versturen",
     "settings": "Settings",
@@ -399,7 +494,7 @@
     "usersearch": "Geografisch leden zoeken (bèta)"
   },
   "qrCode": "QR Code",
-  "send_email": "E-mail versturen",
+  "send_email": "E‑mail versturen",
   "send_gdd": "GDD sturen",
   "send_per_link": "GDD per link versturen",
   "session": {

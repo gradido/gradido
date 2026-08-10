@@ -356,6 +356,99 @@
   "link-load": "Son linki yükle| Son {n} linki yükle",
   "link-load-more": "{n} link daha yükle",
   "login": "Giriş",
+  "matching": {
+    "about": {
+      "counter": "{count} / ~1000 karakter",
+      "label": "Kendi sözlerinle kim olduğun",
+      "placeholder": "Kim olduğunu, seni neyin harekete geçirdiğini, neyi paylaştığını anlat: biri sana yazmadan önce güven oluşturur.",
+      "saved": "Profilin kaydedildi"
+    },
+    "entries": {
+      "activate": "Etkinleştir",
+      "count": "{total} giriş · {live} aktif · {paused} duraklatıldı",
+      "delete": "Sil",
+      "deleteConfirm": "Bu giriş silinsin mi?",
+      "details": "Ayrıntılar",
+      "edit": "Düzenle",
+      "emptyText": "Bir şey sun, bir şey ara ya da bir ilgi alanı paylaş ve bulunmanı sağla.",
+      "emptyTitle": "Henüz giriş yok.",
+      "new": "Yeni giriş",
+      "noDetails": "(ayrıntı yok)",
+      "pause": "Duraklat",
+      "pausedBadge": "Duraklatıldı · aramada değil",
+      "remote": "Bölge üstü"
+    },
+    "find": {
+      "gateText": "Konumunu ayarlayıp haritada görünür olduğunda, yakınındaki diğer kişileri de bulabilirsin.",
+      "gateTitle": "Önce haritada kendini göster",
+      "later": "Daha sonra",
+      "subtitle": "Sana uyanları keşfet",
+      "title": "Haritada bul",
+      "toPosition": "Konuma git",
+      "understood": "Anlaşıldı"
+    },
+    "info": {
+      "about": {
+        "heading": "Kim olduğun",
+        "p1": "Hakkında birkaç sıcak, içten cümle, biri sana yazmadan önce güven oluşturur.",
+        "p2": "Bu metin, arama haritasındaki profil kartında görünür."
+      },
+      "entries": {
+        "heading": "Eşleşme nasıl çalışır",
+        "paused": "Duraklatılan girişler kayıtlı kalır; yalnızca aramada görünmezler.",
+        "text": "Sevdiğin, sunduğun ya da aradığın şeyi belirt: her aktif giriş, başkalarının aramalarında görünmeni sağlar."
+      },
+      "position": {
+        "heading": "Gizliliğin",
+        "p1": "Ne kadar hassas görüneceğine sen karar verirsin. «Yaklaşık» seni bir alan içinde gösterir, asla kapının önünde değil.",
+        "p2": "Konum olmadan haritada değilsin. Anahtar seni istediğin zaman yeniden çıkarır."
+      }
+    },
+    "new": {
+      "cancel": "İptal",
+      "completeSentence": "Bu cümleyi tamamla:",
+      "detailsHeading": "Ayrıntılar — doğru kişiler seni bulsun:",
+      "remote": "Bölge üstü / çevrimiçi de mevcut"
+    },
+    "position": {
+      "accuracyApprox": "Biraz değiştirilmiş bir konum gösteriliyor",
+      "accuracyExact": "Tam konumun gösteriliyor",
+      "findable": "Bulunabilir miyim?",
+      "findableHint": "Haritadaki varlığını açar/kapatır",
+      "findableOff": "Artık haritada bulunamıyorsun",
+      "findableOn": "Artık haritada bulunabilirsin",
+      "intro": "Eşleşmeye katılmak için kendini haritaya yerleştir: yalnızca bunu yaptığında görünürsün."
+    },
+    "save": "Kaydet",
+    "tabs": {
+      "about": "Hakkımda",
+      "entries": "Girişler",
+      "position": "Konum"
+    },
+    "type": {
+      "angebot": {
+        "desc": "verdiğin şey",
+        "detailsPlaceholder": "Eski ve yeni bisikletler, e-bisikletler de — ben gelirim",
+        "placeholder": "bisiklet tamiri",
+        "prefix": "Sunuyorum",
+        "word": "Teklif"
+      },
+      "gesuch": {
+        "desc": "aradığın şey",
+        "detailsPlaceholder": "Giriş kapısı sıkışıyor, eski kilit göbeği",
+        "placeholder": "bir çilingir",
+        "prefix": "Arıyorum",
+        "word": "Talep"
+      },
+      "interesse": {
+        "desc": "sevdiğin şey",
+        "detailsPlaceholder": "kendi kendine yeten bahçemde",
+        "placeholder": "permakültür",
+        "prefix": "Seviyorum",
+        "word": "İlgi"
+      }
+    }
+  },
   "math": {
     "asterisk": "*",
     "equal": "=",
@@ -380,6 +473,7 @@
     "admin_area": "Yönetici Alanı",
     "community": "Topluluk",
     "logout": "Çıkış",
+    "matching": "Matching",
     "overview": "Toplu Bakış",
     "send": "Gönder",
     "settings": "Ayarlar",
@@ -392,6 +486,7 @@
     "contributions": "Gradido yarat",
     "gdt": "GDT işlemlerin",
     "information": "{community}",
+    "matching": "Matching",
     "overview": "Hoş geldin {name}",
     "send": "Gradido ve e-posta gönder",
     "settings": "Ayarlar",
@@ -399,7 +494,7 @@
     "usersearch": "Coğrafi üye arama (beta)"
   },
   "qrCode": "QR Kodu",
-  "send_email": "E-posta gönder",
+  "send_email": "E‑posta gönder",
   "send_gdd": "GDD gönder",
   "send_per_link": "Link yoluyla GDD send gönder",
   "session": {
@@ -420,12 +515,12 @@
       },
       "location-format": "Konumu haritada göster:",
       "map": {
-        "communityCoords": "Topluluk Konumunuz: Enlem {lat}, Boylam {lng}",
-        "communityLocationLabel": "Topluluk Konumunuz",
+        "communityCoords": "Topluluk konumu: Enlem {lat}, Boylam {lng}",
+        "communityLocationLabel": "Topluluk konumu",
         "headline": "Kullanıcının Coğrafi Konum Tespiti",
         "search": "Konum ara",
-        "userCoords": "Konumunuz: Enlem {lat}, Boylam {lng}",
-        "userLocationLabel": "Konumunuz"
+        "userCoords": "Konumun: Enlem {lat}, Boylam {lng}",
+        "userLocationLabel": "Konumun"
       },
       "naming-format": "İsmi göster:",
       "publish-location": {
