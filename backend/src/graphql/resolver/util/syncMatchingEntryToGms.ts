@@ -2,6 +2,7 @@
 import {
   Community as DbCommunity,
   User as DbUser,
+  dbClearGmsRegistration,
   getHomeCommunity,
   MatchingEntrySelect,
 } from 'database'
@@ -131,4 +132,24 @@ export async function removeUserFromGms(user: DbUser): Promise<void> {
     logger.warn(`could not delete user from the GMS: ${e}`)
     retryInBackground('deleting user from the GMS', () => deleteGmsUser(gms.apiKey, user.gradidoID))
   }
+  await forgetGmsRegistration(user)
+}
+
+/**
+ * From here on the member counts as no longer being in the GMS - also when the delete
+ * just failed and is still being retried. The flag decides whether a later publish
+ * registers them again first, and getting that wrong is one-sided: a needless upsert
+ * costs one request, while a skipped one writes an entry that belongs to nobody.
+ */
+async function forgetGmsRegistration(user: DbUser): Promise<void> {
+  const cleared = await dbClearGmsRegistration(user.id)
+  if (!cleared.success) {
+    logger.error(
+      `could not clear the gms registration of user ${user.id}: ${cleared.error.message}`,
+    )
+    return
+  }
+  // The caller goes on working with this object, so it must not keep saying "registered".
+  user.gmsRegistered = false
+  user.gmsRegisteredAt = null
 }

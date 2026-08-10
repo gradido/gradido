@@ -836,7 +836,12 @@ export class UserResolver {
         }
         if (homeCom.gmsApiKey !== null) {
           logger.debug(`send User to Gms...`)
-          await sendUsersToGms([user], homeCom)
+          // A member the GMS does not hold is built there from scratch, so their live
+          // entries have to travel with them - withdrawing consent removes the member
+          // and everything of theirs, and this is what brings the entries back when
+          // they join again. For a member the GMS already holds, sending the settings
+          // alone is enough and leaves their entries untouched.
+          await sendUsersToGms([user], homeCom, !user.gmsRegistered)
           logger.debug(`sendUserToGms successfully.`)
         }
       }

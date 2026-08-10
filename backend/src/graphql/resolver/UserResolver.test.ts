@@ -19,6 +19,7 @@ import {
   AppDatabase,
   Community as DbCommunity,
   Event as DbEvent,
+  dbInsertMatchingEntry,
   TransactionLink,
   User,
   UserContact,
@@ -26,6 +27,7 @@ import {
 } from 'database'
 import { GraphQLError } from 'graphql'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
+import { deleteGmsUser, upsertGmsUsers } from '@/apis/gms/GmsClient'
 import { subscribe } from '@/apis/KlicktippController'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -71,6 +73,18 @@ import { Location2Point } from './util/Location2Point'
 
 jest.mock('@/apis/humhub/HumHubClient')
 jest.mock('@/password/EncryptorUtils')
+
+// Only the two calls the consent tests watch; everything else in the client stays real,
+// and GMS_ACTIVE is false for the rest of this file, so nothing else reaches it.
+jest.mock('@/apis/gms/GmsClient', () => {
+  const originalModule = jest.requireActual('@/apis/gms/GmsClient')
+  return {
+    __esModule: true,
+    ...originalModule,
+    upsertGmsUsers: jest.fn(),
+    deleteGmsUser: jest.fn(),
+  }
+})
 
 jest.mock('core', () => {
   const originalModule = jest.requireActual('core')
@@ -2772,6 +2786,75 @@ describe('UserResolver', () => {
       // and not a lookup that failed.
       expect(res.data.user.gradidoID).toBe(author.gradidoID)
       expect(res.data.user.aboutMe).toBeNull()
+    })
+  })
+
+  // Leaving the GMS removes the member and everything of theirs over there. Joining again
+  // therefore has to hand the GMS a whole member, entries included - the two mutations
+  // below are one story and run in order.
+  describe('gms consent withdrawn and given again', () => {
+    const ENTRY_UUID = 'b6f0c1d2-3e4a-4b5c-8d9e-0f1a2b3c4d5e'
+    const upsertMock = upsertGmsUsers as jest.Mock
+    const deleteMock = deleteGmsUser as jest.Mock
+    let member: User
+
+    beforeAll(async () => {
+      await cleanDB()
+      const homeCom = await writeHomeCommunityEntry()
+      homeCom.gmsApiKey = 'gms-test-key'
+      await DbCommunity.save(homeCom)
+
+      member = await userFactory(testEnv, bibiBloxberg)
+      // The member is already published over there, and has one live entry with them.
+      await User.update({ id: member.id }, { gmsRegistered: true, gmsRegisteredAt: new Date() })
+      const inserted = await dbInsertMatchingEntry({
+        uuid: ENTRY_UUID,
+        userId: member.id,
+        matchingType: 'offer',
+        summary: 'Lastenrad zum Ausleihen',
+        details: null,
+        remote: false,
+        active: true,
+      })
+      if (!inserted.success) {
+        throw new Error('could not create the matching entry the assertions rely on')
+      }
+
+      CONFIG.GMS_ACTIVE = true
+      upsertMock.mockResolvedValue(true)
+      deleteMock.mockResolvedValue(true)
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+    })
+
+    afterAll(async () => {
+      CONFIG.GMS_ACTIVE = false
+      await cleanDB()
+    })
+
+    it('deletes the member in the GMS and stops counting them as registered', async () => {
+      await mutate({ mutation: updateUserInfos, variables: { gmsAllowed: false } })
+
+      expect(deleteMock).toHaveBeenCalledWith('gms-test-key', member.gradidoID)
+      const stored = await User.findOneOrFail({ where: { id: member.id } })
+      expect(stored.gmsRegistered).toBe(false)
+      expect(stored.gmsRegisteredAt).toBeNull()
+    })
+
+    it('sends the member back with their live entries when they join again', async () => {
+      upsertMock.mockClear()
+
+      await mutate({ mutation: updateUserInfos, variables: { gmsAllowed: true } })
+
+      expect(upsertMock).toHaveBeenCalledTimes(1)
+      const [, gmsUsers] = upsertMock.mock.calls[0]
+      // Without the entries the GMS keeps what it has - and after the delete above that
+      // is nothing, so the member's offer would be gone from every search.
+      expect(gmsUsers[0].matchingEntries).toEqual([
+        expect.objectContaining({ uuid: ENTRY_UUID, summary: 'Lastenrad zum Ausleihen' }),
+      ])
     })
   })
 
