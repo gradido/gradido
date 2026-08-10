@@ -30,6 +30,8 @@ const communityMarker = ref(null)
 const userPosition = ref({ lat: 0, lng: 0 })
 const communityPosition = ref({ lat: 0, lng: 0 })
 const defaultZoom = 13
+// Held so unmounting can call it off; initMap runs a quarter second after mount.
+let initTimer = null
 
 const emit = defineEmits(['update:userPosition'])
 
@@ -54,11 +56,15 @@ onMounted(async () => {
   if (props.communityMarkerCoords) {
     communityPosition.value = props.communityMarkerCoords
   }
-  setTimeout(() => initMap(), 250)
+  initTimer = setTimeout(() => initMap(), 250)
   window.addEventListener('resize', handleResize)
 })
 
 onUnmounted(() => {
+  // Tidiness, not a fix: initMap already returns when mapContainer.value is empty,
+  // and Vue empties it on unmount, so a timer left running finds nothing to do.
+  // This just spares the wakeup and lets the closure go a quarter second earlier.
+  clearTimeout(initTimer)
   if (map.value) {
     map.value.remove()
   }
@@ -116,9 +122,14 @@ function initMap() {
           shadowSize: [41, 41],
         })
 
+    // Interactive, because draggable alone is not enough: Marker._initInteraction
+    // returns before it builds MarkerDrag when interactive is false, so the marker
+    // had `draggable: true` and no way to be dragged, and the dragend handler below
+    // could never run. Setting the position by clicking the map still worked, which
+    // is why it read as a working map. The community marker stays non-interactive -
+    // it is a label, not a control.
     userMarker.value = L.marker([userPosition.value.lat, userPosition.value.lng], {
       draggable: true,
-      interactive: false,
       icon: userIconDef,
     }).addTo(map.value)
 

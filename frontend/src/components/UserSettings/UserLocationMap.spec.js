@@ -87,4 +87,24 @@ describe('UserLocationMap', () => {
       expect(searchControlAdded).toBe(1)
     })
   })
+
+  // Leaflet builds MarkerDrag inside _initInteraction, which returns early when
+  // interactive is false - so `draggable: true` beside it is a promise the marker
+  // cannot keep, and the dragend handler can never run. Clicking the map still
+  // moved the pin, which is why this read as a working map for so long.
+  describe('the pin', () => {
+    const markers = () => document.querySelectorAll('.leaflet-marker-draggable')
+
+    it('can actually be dragged on the settings page', async () => {
+      await mountAndSettle({})
+
+      expect(markers()).toHaveLength(1)
+    })
+
+    it('can actually be dragged on the matching page', async () => {
+      await mountAndSettle({ userIcon: 'home' })
+
+      expect(markers()).toHaveLength(1)
+    })
+  })
 })
