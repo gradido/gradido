@@ -152,8 +152,8 @@ export const matchingEntriesTable = mysqlTable(
     // MySQL, but boolean() maps 1/0 to true/false on the way out. These two values are
     // forwarded to the GMS as JSON, where a 1 instead of a true would be a changed
     // payload — this keeps the conversion in one place instead of at every call site.
-    remote: boolean().default(false).notNull(),
-    active: boolean().default(true).notNull(),
+    remote: tinyint().default(0).notNull(),
+    active: tinyint().default(1).notNull(),
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),

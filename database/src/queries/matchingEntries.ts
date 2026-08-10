@@ -106,7 +106,7 @@ export async function dbUpdateMatchingEntry(
 ): Promise<VoidResult<DBNotFoundError>> {
   const result = await drizzleDb()
     .update(matchingEntriesTable)
-    .set({ ...content, updatedAt: new Date() })
+    .set({ ...content })
     .where(eq(matchingEntriesTable.uuid, uuid))
 
   const firstRow = result[0]
@@ -126,7 +126,7 @@ export async function dbSetMatchingEntryActive(
 ): Promise<VoidResult<DBNotFoundError>> {
   const result = await drizzleDb()
     .update(matchingEntriesTable)
-    .set({ active, updatedAt: new Date() })
+    .set({ active })
     .where(eq(matchingEntriesTable.uuid, uuid))
 
   const firstRow = result[0]
