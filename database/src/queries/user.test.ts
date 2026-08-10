@@ -7,7 +7,7 @@ import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import { LOG4JS_QUERIES_CATEGORY_NAME } from '.'
-import { aliasExists, findUserByIdentifier } from './user'
+import { aliasExists, dbClearGmsRegistration, findUserByIdentifier } from './user'
 
 const db = AppDatabase.getInstance()
 const userIdentifierLoggerName = `${LOG4JS_QUERIES_CATEGORY_NAME}.user.findUserByIdentifier`
@@ -135,6 +135,44 @@ describe('user.queries', () => {
         )
         expect(user).toBeNull()
       })
+    })
+  })
+
+  describe('dbClearGmsRegistration', () => {
+    let registered: DbUser
+
+    beforeAll(async () => {
+      await DbUser.clear()
+      await DbUserContact.clear()
+
+      registered = await userFactory(bibiBloxberg)
+      await DbUser.update(
+        { id: registered.id },
+        { gmsRegistered: true, gmsRegisteredAt: new Date() },
+      )
+    })
+
+    it('forgets that the GMS holds the member', async () => {
+      const result = await dbClearGmsRegistration(registered.id)
+
+      expect(result.success).toBe(true)
+      const stored = await DbUser.findOneByOrFail({ id: registered.id })
+      expect(stored.gmsRegistered).toBe(false)
+      expect(stored.gmsRegisteredAt).toBeNull()
+    })
+
+    it('succeeds when the member already counted as not registered', async () => {
+      await dbClearGmsRegistration(registered.id)
+
+      // Writing the value that is already there still matches the row, and matching is
+      // what the result reports - mysql2 connects with FOUND_ROWS.
+      await expect(dbClearGmsRegistration(registered.id)).resolves.toEqual({ success: true })
+    })
+
+    it('reports a member that does not exist', async () => {
+      const result = await dbClearGmsRegistration(registered.id + 1000)
+
+      expect(result.success).toBe(false)
     })
   })
 })
