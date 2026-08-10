@@ -38,6 +38,7 @@ export const updateUserInfos = gql`
     $gmsPublishName: PublishNameType
     $gmsLocation: Location
     $gmsPublishLocation: GmsPublishLocationType
+    $aboutMe: String
   ) {
     updateUserInfos(
       firstName: $firstName
@@ -52,6 +53,7 @@ export const updateUserInfos = gql`
       gmsPublishName: $gmsPublishName
       gmsLocation: $gmsLocation
       gmsPublishLocation: $gmsPublishLocation
+      aboutMe: $aboutMe
     )
   }
 `

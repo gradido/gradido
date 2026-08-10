@@ -2713,6 +2713,7 @@ describe('UserResolver', () => {
   // out any member by alias to anyone logged in — so without the field resolver the text
   // of members who never allowed the GMS would be readable by everyone.
   describe('aboutMe visibility', () => {
+    const ABOUT_ME_TEXT = 'Ich fliege gern und helfe beim Zaubern.'
     let homeCom: DbCommunity
     let author: User
 
@@ -2726,10 +2727,20 @@ describe('UserResolver', () => {
         mutation: login,
         variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
       })
-      await mutate({
+      const written: any = await mutate({
         mutation: updateUserInfos,
-        variables: { aboutMe: 'Ich fliege gern und helfe beim Zaubern.' },
+        variables: { aboutMe: ABOUT_ME_TEXT },
       })
+      // The fixture has to prove itself. A variable the mutation does not declare is
+      // dropped without a word, and every assertion below would then pass or fail for
+      // a reason that has nothing to do with the field resolver.
+      if (written.errors || written.data?.updateUserInfos !== true) {
+        throw new Error(`could not store aboutMe: ${JSON.stringify(written.errors)}`)
+      }
+      const stored = await User.findOneOrFail({ where: { id: author.id } })
+      if (stored.aboutMe !== ABOUT_ME_TEXT) {
+        throw new Error(`aboutMe was not persisted, found: ${stored.aboutMe}`)
+      }
     })
 
     afterAll(async () => {
@@ -2742,7 +2753,7 @@ describe('UserResolver', () => {
         variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
       })
       const res: any = await query({ query: verifyLoginAboutMe })
-      expect(res.data.verifyLogin.aboutMe).toBe('Ich fliege gern und helfe beim Zaubern.')
+      expect(res.data.verifyLogin.aboutMe).toBe(ABOUT_ME_TEXT)
     })
 
     it('hides the text from another logged-in member', async () => {
