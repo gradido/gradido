@@ -123,13 +123,7 @@ export async function upsertGmsUsers(apiKey: string, users: GmsUser[]): Promise<
     const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_API_URL)
     const service = 'community-users'
     const config = {
-      headers: {
-        accept: 'application/json',
-        'Content-Type': 'application/json',
-        language: 'en',
-        timezone: 'UTC',
-        authorization: `Bearer ${apiKey}`,
-      },
+      headers: gmsHeaders(apiKey),
       httpAgent,
       httpsAgent,
     }
