@@ -354,8 +354,8 @@ describe('MatchingEntryResolver', () => {
       })
 
       // Saving an unchanged entry is the commonest edit of all, and it is the one that
-      // touches no column: without the query layer stamping updated_at, MySQL would
-      // report zero affected rows and the member would be told their entry is gone.
+      // touches no column. It has to come back as a success rather than as "no such
+      // entry" - the query layer's own test pins down why it does.
       it('reports success when nothing was actually changed', async () => {
         const res: any = await mutate({
           mutation: updateMatchingEntry,
@@ -460,8 +460,7 @@ describe('MatchingEntryResolver', () => {
       expect(dbEntry.active).toBe(true)
     })
 
-    // Same reasoning as the unchanged save above: pausing an entry that is already
-    // paused writes no new value, and only the stamped updated_at keeps it a success.
+    // Same reasoning as the unchanged save above.
     it('reports success when pausing an entry that is already paused', async () => {
       await mutate({ mutation: setMatchingEntryActive, variables: { uuid, active: false } })
       const res: any = await mutate({

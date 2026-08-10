@@ -156,9 +156,10 @@ describe('matchingEntries query test', () => {
     })
   })
 
-  // MySQL fires ON UPDATE only when a value really changes, so re-saving an unchanged
-  // entry would affect zero rows and read as "no such entry". Setting updatedAt in the
-  // query is what keeps the commonest case — saving without editing — a success.
+  // Saving without editing is the commonest write there is. mysql2 connects with
+  // FOUND_ROWS, so the row is reported as affected even though no value changed — this
+  // pins that down, because the success check is written against `affectedRows === 1`
+  // and would turn the whole case into "no such entry" if the flag ever went away.
   it('should report success when the member saves without changing anything', async () => {
     const before = await rowOf('uuid-offer')
     const unchanged = {
@@ -170,9 +171,29 @@ describe('matchingEntries query test', () => {
 
     const result = await dbUpdateMatchingEntry('uuid-offer', unchanged)
     expect(result.success).toBe(true)
+  })
+
+  // What the stamp in the query is actually for. MySQL's ON UPDATE clause fires only
+  // when some value changes, so on an unchanged save the column would stand still and
+  // the entry would keep its old place in a list ordered by it. Backdated first,
+  // because two writes in the same millisecond would prove nothing.
+  it('should move an unchanged save up in the list order', async () => {
+    const backdated = new Date('2024-01-01T00:00:00.000Z')
+    await db
+      .update(matchingEntriesTable)
+      .set({ updatedAt: backdated })
+      .where(eq(matchingEntriesTable.uuid, 'uuid-offer'))
+
+    const before = await rowOf('uuid-offer')
+    await dbUpdateMatchingEntry('uuid-offer', {
+      matchingType: before!.matchingType,
+      summary: before!.summary,
+      details: before!.details,
+      remote: before!.remote,
+    })
 
     const after = await rowOf('uuid-offer')
-    expect(after!.updatedAt.getTime()).toBeGreaterThanOrEqual(before!.updatedAt.getTime())
+    expect(after!.updatedAt.getTime()).toBeGreaterThan(backdated.getTime())
   })
 
   it('should report a missing entry when updating one that is not there', async () => {
@@ -193,8 +214,7 @@ describe('matchingEntries query test', () => {
     expect((await rowOf('uuid-offer'))?.active).toBe(true)
   })
 
-  // Same reasoning as the unchanged save: pausing an already paused entry changes no
-  // value, and without updatedAt it would come back as a failure.
+  // Same reasoning as the unchanged save above.
   it('should report success when pausing an entry that is already paused', async () => {
     await dbSetMatchingEntryActive('uuid-offer', false)
     const result = await dbSetMatchingEntryActive('uuid-offer', false)

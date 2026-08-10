@@ -95,10 +95,18 @@ export async function dbSelectActiveMatchingEntriesByUserIds(
 }
 
 /**
- * Overwrites what the member wrote. `updatedAt` is set here rather than left to the
- * column's ON UPDATE clause, which MySQL only fires when a value actually changes —
- * re-saving an unchanged entry would otherwise keep its old position in the list and
- * report zero affected rows, which reads as a failure.
+ * Overwrites what the member wrote.
+ *
+ * `updatedAt` is set here rather than left to the column's ON UPDATE clause, which MySQL
+ * only fires when a value actually changes: saving without editing anything would
+ * otherwise leave the entry where it was in the member's list, and this column is what
+ * orders that list. TypeORM's UpdateDateColumn did the same thing before this moved to
+ * drizzle, so the behaviour is unchanged.
+ *
+ * It has no bearing on the success check below. mysql2 connects with FOUND_ROWS, so
+ * `affectedRows` counts the rows the WHERE clause matched, not the ones that changed —
+ * an update that writes the same values still reports 1. (Measured, after the opposite
+ * was assumed here: removing the stamp fails no test.)
  */
 export async function dbUpdateMatchingEntry(
   uuid: string,
@@ -117,8 +125,8 @@ export async function dbUpdateMatchingEntry(
 }
 
 /**
- * Pauses or resumes an entry. Same reasoning on `updatedAt` as the update above: without
- * it, pausing an already paused entry would change nothing and look like a missing row.
+ * Pauses or resumes an entry. Same reasoning on `updatedAt` as the update above: it keeps
+ * the list order honest when the value written is the one already there.
  */
 export async function dbSetMatchingEntryActive(
   uuid: string,
