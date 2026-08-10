@@ -180,6 +180,9 @@ export class User extends BaseEntity {
   })
   gmsPublishLocation: number
 
+  @Column({ name: 'about_me', type: 'text', nullable: true, default: null })
+  aboutMe: string | null
+
   // Crea salutation/signature fields (E-013), moderator-curated; null = not set.
   @Column({
     name: 'gender',

@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm'
 import {
   bigint,
   binary,
+  boolean,
   char,
   datetime,
   decimal,
@@ -138,6 +139,37 @@ export const dltTransactionsTable = mysqlTable(
 export type DltTransactionSelect = typeof dltTransactionsTable.$inferSelect
 export type DltTransactionInsert = typeof dltTransactionsTable.$inferInsert
 
+export const matchingEntriesTable = mysqlTable(
+  'matching_entries',
+  {
+    id: int().autoincrement().notNull(),
+    uuid: char({ length: 36 }).notNull(),
+    userId: int('user_id').notNull(),
+    matchingType: varchar('matching_type', { length: 12 }).notNull(),
+    summary: varchar({ length: 160 }).notNull(),
+    details: text().default(sql`NULL`),
+    // boolean() rather than tinyint() as the neighbours use: both are tinyint(1) in
+    // MySQL, but boolean() maps 1/0 to true/false on the way out. These two values are
+    // forwarded to the GMS as JSON, where a 1 instead of a true would be a changed
+    // payload — this keeps the conversion in one place instead of at every call site.
+    remote: boolean().default(false).notNull(),
+    active: boolean().default(true).notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [
+    unique('uniq_matching_entries_uuid').on(table.uuid),
+    index('idx_matching_entries_user_id').on(table.userId),
+  ],
+)
+
+export type MatchingEntrySelect = typeof matchingEntriesTable.$inferSelect
+export type MatchingEntryInsert = typeof matchingEntriesTable.$inferInsert
+
 export const projectBrandingsTable = mysqlTable(
   'project_brandings',
   {
@@ -235,6 +267,7 @@ export const usersTable = mysqlTable(
     // Warning: Can't parse geometry from database
     // geometryType: geometry("location"),
     gmsPublishLocation: int('gms_publish_location').default(2).notNull(),
+    aboutMe: text('about_me').default(sql`NULL`),
     gmsRegistered: tinyint('gms_registered').default(0).notNull(),
     gmsRegisteredAt: datetime('gms_registered_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     humhubAllowed: tinyint('humhub_allowed').default(0).notNull(),
