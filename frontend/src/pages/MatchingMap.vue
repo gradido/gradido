@@ -376,7 +376,14 @@ const myEntries = ref([])
 const { onResult: onEntries } = useQuery(listMatchingEntries, null, {
   fetchPolicy: 'cache-and-network',
 })
+const entryKey = (entries) =>
+  entries
+    .map((entry) => entry.uuid)
+    .sort()
+    .join()
+
 onEntries((result) => {
+  const keyBefore = entryKey(myEntries.value)
   myEntries.value = (result.data?.listMatchingEntries ?? []).filter((entry) => entry.active)
   // A remembered choice can outlive what it points at: the entry may have been
   // deleted or paused since. Left standing it would show as "all my entries" in the
@@ -387,7 +394,16 @@ onEntries((result) => {
     !myEntries.value.some((e) => e.uuid === selection.value.uuid)
   ) {
     onSelection({ kind: 'all' })
+    // onSelection searches on its own; asking twice would be the same question.
+    return
   }
+  // This list and the location race each other on a cold load. When the location
+  // wins, the first search goes out carrying none of my uuids — so nothing comes
+  // back tagged as answering one of my entries, and looking through a single entry
+  // then keeps nothing at all: a blank map with a search bar that says otherwise.
+  // Ask again once the list has actually changed. Before a centre exists runSearch
+  // returns without asking, so the other race order costs nothing.
+  if (entryKey(myEntries.value) !== keyBefore) runSearch()
 })
 
 /**
@@ -1306,6 +1322,15 @@ function handleResize() {
 }
 
 onMounted(() => {
+  // Findability off means there is nothing of mine to place, and it also switches
+  // the location query below off — so that query's own "no pin yet" redirect can
+  // never fire. Without this the address, a bookmark or the back button would open
+  // a map centred on nothing, with no home, no circle and no matches. The position
+  // tab is where both answers are given, so both roads lead there.
+  if (!enabled.value) {
+    router.replace('/matching/position')
+    return
+  }
   // Leaflet needs its container to have a size before it measures itself.
   setTimeout(initMap, 250)
   window.addEventListener('resize', handleResize)
