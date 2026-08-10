@@ -1236,7 +1236,10 @@ export class UserResolver {
    * should see nothing, not lose the whole enclosing user.
    */
   @FieldResolver(() => String, { nullable: true })
-  aboutMe(@Root() user: User, @Ctx() _context: Context): string | null {
+  aboutMe(@Root() user: User, @Ctx() context: Context): string | null {
+    if (context.user?.id !== user.id) {
+      return null
+    }
     return user.aboutMe ?? null
   }
 }
