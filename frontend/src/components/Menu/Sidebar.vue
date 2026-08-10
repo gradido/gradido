@@ -46,7 +46,7 @@
           >
             <div class="sidebar-menu-item-wrapper">
               <i-tabler-heart-handshake class="svg-icon" />
-              <span class="ms-2">Matching</span>
+              <span class="ms-2">{{ $t('navigation.matching') }}</span>
             </div>
           </BNavItem>
         </BNav>

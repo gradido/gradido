@@ -29,6 +29,7 @@ const i18n = createI18n({
         overview: 'Overview',
         send: 'Send',
         transactions: 'Transactions',
+        matching: 'Matching',
         circles: 'Circles',
         usersearch: 'User Search',
         settings: 'Settings',

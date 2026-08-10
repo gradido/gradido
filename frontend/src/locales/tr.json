@@ -473,6 +473,7 @@
     "admin_area": "Yönetici Alanı",
     "community": "Topluluk",
     "logout": "Çıkış",
+    "matching": "Matching",
     "overview": "Toplu Bakış",
     "send": "Gönder",
     "settings": "Ayarlar",
@@ -493,7 +494,7 @@
     "usersearch": "Coğrafi üye arama (beta)"
   },
   "qrCode": "QR Kodu",
-  "send_email": "E-posta gönder",
+  "send_email": "E‑posta gönder",
   "send_gdd": "GDD gönder",
   "send_per_link": "Link yoluyla GDD send gönder",
   "session": {

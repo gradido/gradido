@@ -473,6 +473,7 @@
     "admin_area": "Area amministrazione",
     "community": "Comunità",
     "logout": "Esci",
+    "matching": "Matching",
     "overview": "Panoramica",
     "send": "Invia",
     "settings": "Impostazioni",
@@ -493,7 +494,7 @@
     "usersearch": "Ricerca geografica dei membri (beta)"
   },
   "qrCode": "Codice QR",
-  "send_email": "Invia e-mail",
+  "send_email": "Invia e‑mail",
   "send_gdd": "Invia GDD",
   "send_per_link": "Crea un link GDD",
   "session": {
