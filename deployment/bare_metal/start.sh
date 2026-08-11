@@ -88,7 +88,7 @@ fi
 # dotenv-expand into endless recursion and fails the build. Defaulting it here
 # makes the name always present; a server that sets its own value keeps it,
 # because := only fills what is unset or empty.
-: ${MATCHING_ACTIVE:=false}
+: "${MATCHING_ACTIVE:=false}"
 
 # export env variables
 export NGINX_SSL_CERTIFICATE
