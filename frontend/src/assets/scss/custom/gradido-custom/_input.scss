@@ -14,6 +14,7 @@ $input-border-radius: $border-radius ;
 $input-border-radius-xl: $border-radius-xl ;
 $input-border-radius-lg: $border-radius-lg ;
 $input-border-radius-sm: $border-radius-sm ;
+
 // Bootstrap's own default is var(--bs-secondary-bg), which follows the colour mode;
 // pinning it to the $gray-200 literal here compiled .form-control:disabled to a fixed
 // #e9ecef that no variable can reach, so a disabled text field stayed light on the dark
