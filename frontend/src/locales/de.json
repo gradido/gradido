@@ -389,7 +389,7 @@
       "subtitle": "Entdecke, wer zu Dir passt",
       "title": "Auf der Karte finden",
       "titleList": "In der Liste finden",
-      "toPosition": "Zur Position",
+      "toPosition": "Zu meinem Zuhause",
       "understood": "Verstanden"
     },
     "info": {
@@ -457,7 +457,7 @@
         "interesse": "Interessen"
       },
       "found": "{n} Menschen gefunden",
-      "home": "Zur Heimat",
+      "home": "Zu meinem Zuhause",
       "km": "km",
       "look": {
         "dunkel": "dunkel",

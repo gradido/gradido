@@ -363,6 +363,10 @@
       "placeholder": "Vertel wie je bent, wat je beweegt, wat je deelt: dat schept vertrouwen voordat iemand je aanschrijft.",
       "saved": "Je profiel is opgeslagen"
     },
+    "cluster": {
+      "close": "Lijst sluiten",
+      "title": "{n} mensen op deze plek"
+    },
     "entries": {
       "activate": "Activeren",
       "count": "{total} vermeldingen · {live} live · {paused} gepauzeerd",
@@ -384,7 +388,8 @@
       "later": "Later",
       "subtitle": "Ontdek wie bij je past",
       "title": "Vinden op de kaart",
-      "toPosition": "Naar Positie",
+      "titleList": "In de lijst vinden",
+      "toPosition": "Naar Thuis",
       "understood": "Begrepen"
     },
     "info": {
@@ -404,6 +409,70 @@
         "p2": "Zonder positie sta je niet op de kaart. De schakelaar haalt je op elk moment weer weg."
       }
     },
+    "list": {
+      "centeredOn": "Rondom {place}",
+      "controlsHeading": "Zoeken en sorteren",
+      "dir": {
+        "e": "ten oosten",
+        "n": "ten noorden",
+        "ne": "ten noordoosten",
+        "nw": "ten noordwesten",
+        "s": "ten zuiden",
+        "se": "ten zuidoosten",
+        "sw": "ten zuidwesten",
+        "w": "ten westen"
+      },
+      "empty": "Hier is op dit moment niemand. Vergroot de straal of zoek een andere plek.",
+      "heading": "Mensen bij jou in de buurt",
+      "kmEtwa": "ongeveer {n} km",
+      "kmExact": "{n} km",
+      "lensBy": "Afstand vanaf",
+      "lensHome": "Thuis",
+      "lensSearch": "Zoekpunt",
+      "line": {
+        "angebot": "biedt {thing} — dat zoek jij",
+        "gesuch": "zoekt {thing} — dat bied jij",
+        "interesse": "deelt jouw interesse in {thing}"
+      },
+      "matchesHeading": "Jouw matches",
+      "meets": "past bij {n} van jouw vermeldingen",
+      "near": "vlakbij",
+      "othersHeading": "Meer mensen bij jou in de buurt",
+      "sortBreite": "wie op het meeste past",
+      "sortBy": "Sorteren op",
+      "sortNaehe": "Nabijheid",
+      "sortPassung": "Match"
+    },
+    "map": {
+      "amplifier": "Versterker",
+      "back": "Terug",
+      "breite": "Wie meerdere keren past",
+      "breiteHint": "Licht mensen uit die op meerdere van jouw vermeldingen antwoorden.",
+      "channels": {
+        "andere": "alle anderen",
+        "andereMit": "anderen met vermeldingen",
+        "andereOhne": "anderen zonder vermeldingen",
+        "angebot": "Aanbod",
+        "gesuch": "Verzoeken",
+        "interesse": "Interesses"
+      },
+      "found": "Gevonden mensen: {n}",
+      "home": "Terug naar huis",
+      "km": "km",
+      "look": {
+        "dunkel": "donker",
+        "hell": "licht",
+        "karte": "Kaart",
+        "label": "Weergave",
+        "liste": "Lijst",
+        "normal": "normaal"
+      },
+      "radius": "Straal",
+      "radiusLabel": "Binnen welke straal wil je zoeken? (km)",
+      "radiusTitle": "Zoekstraal",
+      "search": "Zoek een plaats of adres",
+      "searchHere": "Hier zoeken"
+    },
     "new": {
       "cancel": "Annuleren",
       "completeSentence": "Maak deze zin af:",
@@ -413,17 +482,42 @@
     "position": {
       "accuracyApprox": "Een iets gewijzigde locatie wordt getoond",
       "accuracyExact": "Je exacte locatie wordt getoond",
+      "cancel": "Annuleren",
       "findable": "Ben ik vindbaar?",
       "findableHint": "Schakelt je aanwezigheid op de kaart in/uit",
       "findableOff": "Je bent niet meer vindbaar op de kaart",
       "findableOn": "Je bent nu vindbaar op de kaart",
-      "intro": "Plaats jezelf op de kaart om aan matching mee te doen: je verschijnt pas als je dat doet."
+      "intro": "Plaats jezelf op de kaart om aan matching mee te doen: je verschijnt pas als je dat doet.",
+      "saveText": "Wil je je positie-instellingen nu opslaan?",
+      "saveTitle": "Positie opslaan",
+      "unsaved": "Nog niet opgeslagen"
+    },
+    "profile": {
+      "aria": "Profiel van {name}",
+      "more": "nog {n}",
+      "sendEmail": "E-mail versturen",
+      "sendGradido": "Gradido versturen"
+    },
+    "query": {
+      "all": "Al mijn vermeldingen",
+      "clear": "Zoekopdracht wissen",
+      "details": "Meer over je zoekopdracht",
+      "detailsPlaceholder": "tweedehands, 28 inch",
+      "keep": "Als vermelding bewaren",
+      "keepAsk": "Wil je dat je voortaan gevonden wordt door wie bij ‘{text}’ past?",
+      "keepNo": "Nee, bedankt",
+      "label": "Ik zoek op dit moment",
+      "open": "Kies een zoekopdracht",
+      "other": "Iets anders zoeken …",
+      "pick": "Kies hoe je het bedoelt — daarmee wordt gezocht.",
+      "placeholder": "fiets",
+      "untouched": "Je vermeldingen blijven onaangeroerd."
     },
     "save": "Opslaan",
     "tabs": {
       "about": "Over mij",
       "entries": "Vermeldingen",
-      "position": "Positie"
+      "position": "Thuis"
     },
     "type": {
       "angebot": {
