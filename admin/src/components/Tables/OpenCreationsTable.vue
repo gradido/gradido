@@ -22,12 +22,19 @@
           style="background-color: #dc3545; color: white"
         />
       </template>
+      <!-- The action buttons of a row carry an icon and nothing else, so title and aria-label
+           are the only thing that names them: a tooltip for the moderator, an accessible name
+           for a screen reader. Both reuse the key the column header already uses, so a button
+           is called what the column above it is called. The filter button further down has
+           carried this since it was written; the rest of the row had not. -->
       <template #cell(bookmark)="row">
         <div v-if="!myself(row.item)">
           <BButton
             variant="danger"
             size="md"
             class="me-2"
+            :title="$t('delete')"
+            :aria-label="$t('delete')"
             @click="$emit('show-overlay', row.item, 'delete')"
           >
             <IBiTrash />
@@ -105,7 +112,11 @@
            these was invisible. See the row-details slot for the other half of that split. -->
       <template #cell(editCreation)="row">
         <div v-if="!myself(row.item)">
-          <BButton @click="rowToggleDetails(row, 0)">
+          <BButton
+            :title="$t('details')"
+            :aria-label="$t('details')"
+            @click="rowToggleDetails(row, 0)"
+          >
             <IBiChatDots />
             <IBiExclamationCircleFill
               v-if="row.item.contributionStatus === 'PENDING' && row.item.messagesCount > 0"
@@ -121,7 +132,12 @@
         </div>
       </template>
       <template #cell(chatCreation)="row">
-        <BButton v-if="row.item.messagesCount > 0" @click="rowToggleDetails(row, 0)">
+        <BButton
+          v-if="row.item.messagesCount > 0"
+          :title="$t('details')"
+          :aria-label="$t('details')"
+          @click="rowToggleDetails(row, 0)"
+        >
           <IBiChatDots />
         </BButton>
         <collapse-icon v-else :visible="row.detailsShowing" @click="rowToggleDetails(row, 0)" />
@@ -132,6 +148,8 @@
             variant="warning"
             size="md"
             class="me-2"
+            :title="$t('deny')"
+            :aria-label="$t('deny')"
             @click="$emit('show-overlay', row.item, 'deny')"
           >
             <IBiX />
@@ -144,6 +162,8 @@
             variant="success"
             size="md"
             class="me-2"
+            :title="$t('save')"
+            :aria-label="$t('save')"
             @click="$emit('show-overlay', row.item, 'confirm')"
           >
             <IBiCheck />
