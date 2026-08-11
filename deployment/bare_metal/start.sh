@@ -81,10 +81,19 @@ fi
 # set env variables dynamic if not already set in .env or .env.dist
 : ${NGINX_SSL_CERTIFICATE:=/etc/letsencrypt/live/$COMMUNITY_HOST/fullchain.pem}
 : ${NGINX_SSL_CERTIFICATE_KEY:=/etc/letsencrypt/live/$COMMUNITY_HOST/privkey.pem}
+# A server that has its own .env never reads .env.dist, so a flag added there
+# after that .env was written is simply unknown here. The substitution below
+# lists only the names it finds in the environment, so an unknown one is left in
+# the generated .env verbatim - as NAME=$NAME, a self-reference that sends
+# dotenv-expand into endless recursion and fails the build. Defaulting it here
+# makes the name always present; a server that sets its own value keeps it,
+# because := only fills what is unset or empty.
+: "${MATCHING_ACTIVE:=false}"
 
 # export env variables
 export NGINX_SSL_CERTIFICATE
 export NGINX_SSL_CERTIFICATE_KEY
+export MATCHING_ACTIVE
 
 # lock start
 if [ -f $LOCK_FILE ] ; then
