@@ -323,6 +323,17 @@ describe('OpenCreationsTable', () => {
     it('carries the unanswered-message badge like any other', () => {
       expect(wrapper.findAllComponents({ name: 'IBiExclamationCircleFill' })).toHaveLength(2)
     })
+
+    // The button holds an icon and nothing else, so without these a screen reader can only
+    // announce "button", and hovering tells a moderator nothing either.
+    it('is named for screen readers and as a tooltip', () => {
+      const buttons = wrapper.findAll('button')
+      expect(buttons).toHaveLength(2)
+      buttons.forEach((button) => {
+        expect(button.attributes('aria-label')).toBe('details')
+        expect(button.attributes('title')).toBe('details')
+      })
+    })
   })
 
   it('gets correct status icon', () => {
