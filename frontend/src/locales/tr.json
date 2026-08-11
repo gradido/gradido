@@ -456,7 +456,7 @@
         "gesuch": "Talepler",
         "interesse": "İlgi alanları"
       },
-      "found": "Bulunan kişi: {n}",
+      "found": "Bulunan kişi sayısı: {n}",
       "home": "Evime dön",
       "km": "km",
       "look": {
