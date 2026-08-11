@@ -389,7 +389,7 @@
       "subtitle": "Discover who fits you",
       "title": "Find on the map",
       "titleList": "Find in the list",
-      "toPosition": "Go to Position",
+      "toPosition": "Go to my home",
       "understood": "Got it"
     },
     "info": {
@@ -457,7 +457,7 @@
         "interesse": "Interests"
       },
       "found": "{n} people found",
-      "home": "Home",
+      "home": "To my home",
       "km": "km",
       "look": {
         "dunkel": "dark",

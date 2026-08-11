@@ -363,6 +363,10 @@
       "placeholder": "Kim olduğunu, seni neyin harekete geçirdiğini, neyi paylaştığını anlat: biri sana yazmadan önce güven oluşturur.",
       "saved": "Profilin kaydedildi"
     },
+    "cluster": {
+      "close": "Listeyi kapat",
+      "title": "Bu noktada {n} kişi"
+    },
     "entries": {
       "activate": "Etkinleştir",
       "count": "{total} giriş · {live} aktif · {paused} duraklatıldı",
@@ -384,7 +388,8 @@
       "later": "Daha sonra",
       "subtitle": "Sana uyanları keşfet",
       "title": "Haritada bul",
-      "toPosition": "Konuma git",
+      "titleList": "Listede bul",
+      "toPosition": "Evime git",
       "understood": "Anlaşıldı"
     },
     "info": {
@@ -404,6 +409,70 @@
         "p2": "Konum olmadan haritada değilsin. Anahtar seni istediğin zaman yeniden çıkarır."
       }
     },
+    "list": {
+      "centeredOn": "{place} çevresinde",
+      "controlsHeading": "Arama ve sıralama",
+      "dir": {
+        "e": "doğuda",
+        "n": "kuzeyde",
+        "ne": "kuzeydoğuda",
+        "nw": "kuzeybatıda",
+        "s": "güneyde",
+        "se": "güneydoğuda",
+        "sw": "güneybatıda",
+        "w": "batıda"
+      },
+      "empty": "Şu anda burada kimse yok. Yarıçapı büyüt ya da başka bir yer ara.",
+      "heading": "Yakınındaki insanlar",
+      "kmEtwa": "yaklaşık {n} km",
+      "kmExact": "{n} km",
+      "lensBy": "Şuradan uzaklık",
+      "lensHome": "Ev",
+      "lensSearch": "Arama noktası",
+      "line": {
+        "angebot": "{thing} sunuyor — sen bunu arıyorsun",
+        "gesuch": "{thing} arıyor — sen bunu sunuyorsun",
+        "interesse": "{thing} konusunda ilgini paylaşıyor"
+      },
+      "matchesHeading": "Eşleşmelerin",
+      "meets": "girişlerinden {n} tanesiyle örtüşüyor",
+      "near": "hemen yakında",
+      "othersHeading": "Yakınındaki diğer insanlar",
+      "sortBreite": "en çok şeye uyan",
+      "sortBy": "Sıralama ölçütü",
+      "sortNaehe": "Yakınlık",
+      "sortPassung": "Uyum"
+    },
+    "map": {
+      "amplifier": "Yükseltici",
+      "back": "Geri",
+      "breite": "Birden çok kez uyanlar",
+      "breiteHint": "Girişlerinden birkaçına birden yanıt veren insanları öne çıkarır.",
+      "channels": {
+        "andere": "diğer herkes",
+        "andereMit": "girişi olan diğerleri",
+        "andereOhne": "girişi olmayan diğerleri",
+        "angebot": "Teklifler",
+        "gesuch": "Talepler",
+        "interesse": "İlgi alanları"
+      },
+      "found": "Bulunan kişi: {n}",
+      "home": "Evime dön",
+      "km": "km",
+      "look": {
+        "dunkel": "koyu",
+        "hell": "açık",
+        "karte": "Harita",
+        "label": "Görünüm",
+        "liste": "Liste",
+        "normal": "normal"
+      },
+      "radius": "Yarıçap",
+      "radiusLabel": "Hangi yarıçapta aramak istiyorsun? (km)",
+      "radiusTitle": "Arama yarıçapı",
+      "search": "Bir yer ya da adres ara",
+      "searchHere": "Burada ara"
+    },
     "new": {
       "cancel": "İptal",
       "completeSentence": "Bu cümleyi tamamla:",
@@ -413,17 +482,42 @@
     "position": {
       "accuracyApprox": "Biraz değiştirilmiş bir konum gösteriliyor",
       "accuracyExact": "Tam konumun gösteriliyor",
+      "cancel": "İptal",
       "findable": "Bulunabilir miyim?",
       "findableHint": "Haritadaki varlığını açar/kapatır",
       "findableOff": "Artık haritada bulunamıyorsun",
       "findableOn": "Artık haritada bulunabilirsin",
-      "intro": "Eşleşmeye katılmak için kendini haritaya yerleştir: yalnızca bunu yaptığında görünürsün."
+      "intro": "Eşleşmeye katılmak için kendini haritaya yerleştir: yalnızca bunu yaptığında görünürsün.",
+      "saveText": "Konum ayarlarını şimdi kaydetmek ister misin?",
+      "saveTitle": "Konumu kaydet",
+      "unsaved": "Henüz kaydedilmedi"
+    },
+    "profile": {
+      "aria": "{name} profili",
+      "more": "{n} tane daha",
+      "sendEmail": "E-posta gönder",
+      "sendGradido": "Gradido gönder"
+    },
+    "query": {
+      "all": "Tüm girişlerim",
+      "clear": "Aramayı sıfırla",
+      "details": "Aramanla ilgili ayrıntılar",
+      "detailsPlaceholder": "ikinci el, 28 inç",
+      "keep": "Giriş olarak sakla",
+      "keepAsk": "Bundan böyle “{text}” ile eşleşenler seni bulsun mu?",
+      "keepNo": "Hayır, teşekkürler",
+      "label": "Şu anda aradığım",
+      "open": "Bir arama seç",
+      "other": "Başka bir şey ara …",
+      "pick": "Nasıl kastettiğini seç — arama böyle başlar.",
+      "placeholder": "bisiklet",
+      "untouched": "Girişlerin olduğu gibi kalır."
     },
     "save": "Kaydet",
     "tabs": {
       "about": "Hakkımda",
       "entries": "Girişler",
-      "position": "Konum"
+      "position": "Ev"
     },
     "type": {
       "angebot": {

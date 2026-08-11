@@ -363,6 +363,10 @@
       "placeholder": "Racconta chi sei, cosa ti muove, cosa condividi: crea fiducia prima che qualcuno ti scriva.",
       "saved": "Il tuo profilo è stato salvato"
     },
+    "cluster": {
+      "close": "Chiudi la lista",
+      "title": "{n} persone in questo punto"
+    },
     "entries": {
       "activate": "Attiva",
       "count": "{total} voci · {live} attive · {paused} in pausa",
@@ -384,7 +388,8 @@
       "later": "Più tardi",
       "subtitle": "Scopri chi è in sintonia con te",
       "title": "Trova sulla mappa",
-      "toPosition": "Vai a Posizione",
+      "titleList": "Trova nella lista",
+      "toPosition": "Vai a casa mia",
       "understood": "Capito"
     },
     "info": {
@@ -404,6 +409,70 @@
         "p2": "Senza posizione non sei sulla mappa. L'interruttore ti rimuove di nuovo in qualsiasi momento."
       }
     },
+    "list": {
+      "centeredOn": "Intorno a {place}",
+      "controlsHeading": "Ricerca e ordinamento",
+      "dir": {
+        "e": "a est",
+        "n": "a nord",
+        "ne": "a nord-est",
+        "nw": "a nord-ovest",
+        "s": "a sud",
+        "se": "a sud-est",
+        "sw": "a sud-ovest",
+        "w": "a ovest"
+      },
+      "empty": "Qui al momento non c'è nessuno. Allarga il raggio o cerca in un altro posto.",
+      "heading": "Persone vicino a te",
+      "kmEtwa": "circa {n} km",
+      "kmExact": "{n} km",
+      "lensBy": "Distanza da",
+      "lensHome": "Casa",
+      "lensSearch": "Punto di ricerca",
+      "line": {
+        "angebot": "offre {thing} — è quello che cerchi",
+        "gesuch": "cerca {thing} — è quello che offri",
+        "interesse": "condivide il tuo interesse per {thing}"
+      },
+      "matchesHeading": "Le tue corrispondenze",
+      "meets": "corrisponde a {n} delle tue voci",
+      "near": "molto vicino",
+      "othersHeading": "Altre persone vicino a te",
+      "sortBreite": "chi corrisponde di più",
+      "sortBy": "Ordina per",
+      "sortNaehe": "Vicinanza",
+      "sortPassung": "Corrispondenza"
+    },
+    "map": {
+      "amplifier": "Amplificatore",
+      "back": "Indietro",
+      "breite": "Chi corrisponde più volte",
+      "breiteHint": "Mette in evidenza le persone che rispondono a più di una delle tue voci.",
+      "channels": {
+        "andere": "tutti gli altri",
+        "andereMit": "altri con voci",
+        "andereOhne": "altri senza voci",
+        "angebot": "Offerte",
+        "gesuch": "Richieste",
+        "interesse": "Interessi"
+      },
+      "found": "Persone trovate: {n}",
+      "home": "Torna a casa mia",
+      "km": "km",
+      "look": {
+        "dunkel": "scuro",
+        "hell": "chiaro",
+        "karte": "Mappa",
+        "label": "Aspetto",
+        "liste": "Lista",
+        "normal": "normale"
+      },
+      "radius": "Raggio",
+      "radiusLabel": "In quale raggio vuoi cercare? (km)",
+      "radiusTitle": "Raggio di ricerca",
+      "search": "Cerca un luogo o un indirizzo",
+      "searchHere": "Cerca qui"
+    },
     "new": {
       "cancel": "Annulla",
       "completeSentence": "Completa questa frase:",
@@ -413,17 +482,42 @@
     "position": {
       "accuracyApprox": "Viene mostrata una posizione leggermente modificata",
       "accuracyExact": "Viene mostrata la tua posizione esatta",
+      "cancel": "Annulla",
       "findable": "Sono rintracciabile?",
       "findableHint": "Attiva o disattiva la tua presenza sulla mappa",
       "findableOff": "Non sei più rintracciabile sulla mappa",
       "findableOn": "Ora sei rintracciabile sulla mappa",
-      "intro": "Posizionati sulla mappa per partecipare al matching: appari solo quando lo fai."
+      "intro": "Posizionati sulla mappa per partecipare al matching: appari solo quando lo fai.",
+      "saveText": "Vuoi salvare ora le tue impostazioni di posizione?",
+      "saveTitle": "Salva posizione",
+      "unsaved": "Non ancora salvato"
+    },
+    "profile": {
+      "aria": "Profilo di {name}",
+      "more": "{n} in più",
+      "sendEmail": "Invia e-mail",
+      "sendGradido": "Invia Gradido"
+    },
+    "query": {
+      "all": "Tutte le mie voci",
+      "clear": "Reimposta la ricerca",
+      "details": "Altro sulla tua ricerca",
+      "detailsPlaceholder": "usata, 28 pollici",
+      "keep": "Conserva come voce",
+      "keepAsk": "Vuoi che d'ora in poi ti trovi chi corrisponde a «{text}»?",
+      "keepNo": "No, grazie",
+      "label": "In questo momento cerco",
+      "open": "Scegli una ricerca",
+      "other": "Cercare qualcos'altro …",
+      "pick": "Scegli in che senso lo intendi — così parte la ricerca.",
+      "placeholder": "bicicletta",
+      "untouched": "Le tue voci restano intatte."
     },
     "save": "Salva",
     "tabs": {
       "about": "Su di me",
       "entries": "Voci",
-      "position": "Posizione"
+      "position": "Casa"
     },
     "type": {
       "angebot": {
