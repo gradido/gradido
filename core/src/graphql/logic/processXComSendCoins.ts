@@ -150,7 +150,7 @@ export async function processXComCompleteTransaction(
       }
       if (senderUser.aliasFirstUsageAt === null) {
         senderUser.aliasFirstUsageAt = new Date()
-        await dbUser.save(senderUser)
+        await dbUser.update({ id: senderUser.id }, { aliasFirstUsageAt: senderUser.aliasFirstUsageAt })
       }
       // after successful x-com-tx store the recipient as foreign user
       methodLogger.debug('store recipient as foreign user...', committingResult.recipAlias)

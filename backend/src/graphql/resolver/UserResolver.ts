@@ -707,7 +707,7 @@ export class UserResolver {
       gmsLocation,
       gmsPublishLocation,
     } = updateUserInfosArgs
-    const user = getUser(context)
+    let user = getUser(context)
     const logger = createLogger('updateUserInfos')
     logger.addContext('user', user.id)
     // log only if a value is set
@@ -733,6 +733,10 @@ export class UserResolver {
     const oldHumhubUsername = publishNameLogic.getUserIdentifier(
       user.humhubPublishName as PublishNameType,
     )
+    const queryRunner = db.getDataSource().createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction('REPEATABLE READ')
+
 
     let updated = updateAllDefinedAndChanged(user, {
       firstName,
@@ -758,12 +762,15 @@ export class UserResolver {
         updated = true
       } else if (user.aliasFirstUsageAt !== null) {
         // the current set alias is still in use and have to be historized
-        const aliasHistory = DbAliasHistory.save({
+        const aliasHistory = await queryRunner.manager.save(DbAliasHistory, {
           userId: user.id,
           alias: user.alias,
           communityUuid: user.communityUuid,
           firstUsageAt: user.aliasFirstUsageAt,
+        }).catch((error) => {
+          throw new LogError('Error while saving alias history', error)
         })
+
         user.alias = alias
         user.aliasStartUpdateAt = new Date()
         user.aliasUpdateCount += 1
@@ -797,14 +804,16 @@ export class UserResolver {
           user.aliasFirstUsageAt = aliasHistoryEntry?.firstUsageAt ?? null
           updated = true
           // and remove aliasHistory-entry with same alias if exists (comparable with: reuse previous alias again)
-          const deleteResult = await DbAliasHistory.delete({
+          const deleteAliasHistoryResult = await queryRunner.manager.delete(DbAliasHistory, {
             userId: user.id,
             alias: alias,
             communityUuid: user.communityUuid,
+          }).catch((error) => {
+            throw new LogError('Error while deleting DbAliasHistory', error)
           })
           logger.debug(
-            `remove optional existing DbAliasHistory same alias: deleteResult`,
-            deleteResult,
+            `remove optional existing DbAliasHistory same alias: deleteAliasHistoryResult`,
+            deleteAliasHistoryResult,
           )
         } else {
           logger.debug(
@@ -816,23 +825,30 @@ export class UserResolver {
           if (aliasHistoryEntry === null) {
             firstUsageAt = null
             // create new history entry
-            const aliasHistory = DbAliasHistory.create({
+            let aliasHistory = DbAliasHistory.create({
               userId: user.id,
               alias: user.alias,
               communityUuid: user.communityUuid,
               firstUsageAt: user.aliasFirstUsageAt,
             })
-            await DbAliasHistory.save(aliasHistory)
+            aliasHistory = await queryRunner.manager.save(aliasHistory).catch((error) => {
+              throw new LogError('Error while saving aliasHistory', error)
+            })
+
             logger.debug('saved new aliasHistory', aliasHistory)
           } else {
             // remember optional firstUsageAt of historyEntry
             firstUsageAt = aliasHistoryEntry.firstUsageAt
             // remove aliasHistory-entry with same alias if exists (comparable with: reuse previous alias again)
-            const deleteResult = await DbAliasHistory.delete({
-              userId: user.id,
-              alias: alias,
-              communityUuid: user.communityUuid,
-            })
+            const deleteResult = await queryRunner.manager
+              .delete(DbAliasHistory, {
+                userId: user.id,
+                alias: alias,
+                communityUuid: user.communityUuid,
+              })
+              .catch((error) => {
+                throw new LogError('Error while deleting aliasHistory', error)
+              })
             logger.debug(
               `remove existing and reused DbAliasHistory same alias: deleteResult`,
               deleteResult,
@@ -888,11 +904,18 @@ export class UserResolver {
     }
 
     try {
-      await DbUser.save(user)
-    } catch (error) {
+      user = await queryRunner.manager.save(user).catch((error) => {
+        throw new LogError('Error while saving user', error)
+      })
+      await queryRunner.commitTransaction()
+      logger.addContext('user', user.id)
+    } catch (err) {
+      await queryRunner.rollbackTransaction()
       const errorMessage = 'Error saving user'
-      logger.error(errorMessage, error)
+      logger.error(errorMessage, err)
       throw new Error(errorMessage)
+    } finally {
+      await queryRunner.release()
     }
     logger.info('updateUserInfos() successfully finished...')
     logger.debug('writing User data successful...', new UserLoggingView(user))
