@@ -14,7 +14,15 @@ $input-border-radius: $border-radius ;
 $input-border-radius-xl: $border-radius-xl ;
 $input-border-radius-lg: $border-radius-lg ;
 $input-border-radius-sm: $border-radius-sm ;
-$input-disabled-bg: $gray-200 ;
+// Bootstrap's own default is var(--bs-secondary-bg), which follows the colour mode;
+// pinning it to the $gray-200 literal here compiled .form-control:disabled to a fixed
+// #e9ecef that no variable can reach, so a disabled text field stayed light on the dark
+// canvas. Its neighbour .form-select:disabled was never affected: $form-select-disabled-bg
+// took its value from $input-disabled-bg while that was still the variable, before this
+// line ran -- which is why the send form showed a dark community select above three light
+// fields whenever the balance was zero and disabled them.
+// In light mode --bs-secondary-bg IS #e9ecef, so nothing there changes.
+$input-disabled-bg: var(--#{$prefix}secondary-bg) ;
 $input-muted-bg: #f7fafe ;
 $input-focus-muted-bg: color.adjust($input-muted-bg, $lightness: 1%) ;
 $input-alternative-box-shadow: 0 1px 3px rgb(50 50 93 / 15%), 0 1px 0 rgb(0 0 0 / 2%) ;
