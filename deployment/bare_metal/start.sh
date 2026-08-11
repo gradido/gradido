@@ -81,6 +81,15 @@ fi
 # set env variables dynamic if not already set in .env or .env.dist
 : ${NGINX_SSL_CERTIFICATE:=/etc/letsencrypt/live/$COMMUNITY_HOST/fullchain.pem}
 : ${NGINX_SSL_CERTIFICATE_KEY:=/etc/letsencrypt/live/$COMMUNITY_HOST/privkey.pem}
+# ⚠️ Whatever is added in this block takes effect one deploy LATER than it lands.
+# This script updates itself at the git pull further down, so the run that brings
+# a new default in is still the old file executing. A default here and the
+# .env.template line that depends on it must therefore NOT ship in the same
+# commit: that first run pulls the new template and processes it with the old
+# logic, leaving NAME=$NAME in the generated .env and failing the frontend build -
+# which is what took stage1 down twice. Ship the default first, and whatever it
+# protects one deploy later.
+#
 # A server that has its own .env never reads .env.dist, so a flag added there
 # after that .env was written is simply unknown here. The substitution below
 # lists only the names it finds in the environment, so an unknown one is left in
