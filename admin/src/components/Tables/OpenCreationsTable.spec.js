@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { shallowMount } from '@vue/test-utils'
 import { createStore } from 'vuex'
+import { h } from 'vue'
 import OpenCreationsTable from './OpenCreationsTable.vue'
 
 vi.mock('../RowDetails', () => ({ default: { name: 'RowDetails' } }))
-vi.mock('../EditCreationFormular', () => ({ default: { name: 'EditCreationFormular' } }))
 vi.mock('../ContributionMessages/ContributionMessagesList', () => ({
   default: { name: 'ContributionMessagesList' },
 }))
@@ -99,7 +99,6 @@ describe('OpenCreationsTable', () => {
     expect(mockRow.toggleDetails).toHaveBeenCalled()
     expect(wrapper.vm.openRow).toEqual(mockRow)
     expect(wrapper.vm.slotIndex).toBe(0)
-    expect(wrapper.vm.creationUserData).toEqual(mockItems[0])
   })
 
   it('identifies if the item belongs to the current user', () => {
@@ -242,6 +241,87 @@ describe('OpenCreationsTable', () => {
         await wrapper.setProps({ items: [...mockItems] })
         expect(wrapper.vm.displayedCreationGroup(item)).toBe('music')
       })
+    })
+  })
+
+  // A contribution a moderator entered on someone's behalf used to take a separate path: its
+  // own button in the details column, and an edit form in the details row gated on
+  // confirmedAt. The list query no longer asks for that field, so the gate never held and the
+  // panel stayed empty. These tests render the two slots the automatic stub swallows.
+  describe('a contribution a moderator entered for someone else', () => {
+    const rowScope = (item, index) => ({
+      item,
+      index,
+      detailsShowing: true,
+      toggleDetails: () => {},
+    })
+
+    // Stands in for BTableLite: the automatic stub renders none of its scoped slots, so
+    // neither the details button nor the details panel would exist to look at.
+    const slotRenderingTable = {
+      name: 'BTableLite',
+      props: { items: { type: Array, default: () => [] } },
+      render() {
+        return h(
+          'div',
+          this.items.map((item, index) =>
+            h('div', { class: 'contribution-row' }, [
+              this.$slots['cell(editCreation)']?.(rowScope(item, index)),
+              this.$slots['row-details']?.(rowScope(item, index)),
+            ]),
+          ),
+        )
+      },
+    }
+
+    // Same reason, one level down: RowDetails carries the panel in a dynamically named slot.
+    const slotRenderingRowDetails = {
+      name: 'RowDetails',
+      props: { row: Object, slotName: String, type: String, index: Number },
+      render() {
+        return h('div', this.$slots[this.slotName]?.())
+      },
+    }
+
+    // And once more for the button -- the message badges sit inside it.
+    const slotRenderingButton = {
+      name: 'BButton',
+      render() {
+        return h('button', this.$slots.default?.())
+      },
+    }
+
+    const openItems = [
+      // written by the member
+      { id: 3, contributionStatus: 'PENDING', userId: 4, moderatorId: null, messagesCount: 1 },
+      // entered by a moderator on that member's behalf
+      { id: 4, contributionStatus: 'PENDING', userId: 5, moderatorId: 1, messagesCount: 1 },
+    ]
+
+    beforeEach(() => {
+      wrapper = shallowMount(OpenCreationsTable, {
+        props: { items: openItems, fields: mockFields, hideResubmission: false },
+        global: {
+          plugins: [store],
+          mocks: { $t: (key) => key },
+          stubs: {
+            BTableLite: slotRenderingTable,
+            RowDetails: slotRenderingRowDetails,
+            BButton: slotRenderingButton,
+            IBiChatDots: true,
+            IBiExclamationCircleFill: true,
+            IBiQuestionDiamond: true,
+          },
+        },
+      })
+    })
+
+    it('opens the same message panel as one written by the member', () => {
+      expect(wrapper.findAllComponents({ name: 'ContributionMessagesList' })).toHaveLength(2)
+    })
+
+    it('carries the unanswered-message badge like any other', () => {
+      expect(wrapper.findAllComponents({ name: 'IBiExclamationCircleFill' })).toHaveLength(2)
     })
   })
 

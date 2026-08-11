@@ -99,20 +99,13 @@
           </BButton>
         </div>
       </template>
+      <!-- A contribution a moderator entered on someone's behalf is moderated like any other,
+           so it gets the same button and the same message badges. It used to get an edit
+           button of its own here, which also hid the badges -- an unanswered message on one of
+           these was invisible. See the row-details slot for the other half of that split. -->
       <template #cell(editCreation)="row">
         <div v-if="!myself(row.item)">
-          <BButton
-            v-if="row.item.moderatorId"
-            variant="info"
-            size="md"
-            :index="0"
-            class="me-2"
-            @click="rowToggleDetails(row, 0)"
-          >
-            <IBiX v-if="row.detailsShowing" />
-            <IBiPencilSquare v-else />
-          </BButton>
-          <BButton v-else @click="rowToggleDetails(row, 0)">
+          <BButton @click="rowToggleDetails(row, 0)">
             <IBiChatDots />
             <IBiExclamationCircleFill
               v-if="row.item.contributionStatus === 'PENDING' && row.item.messagesCount > 0"
@@ -165,29 +158,23 @@
           :index="0"
           @row-toggle-details="rowToggleDetails(row, 0)"
         >
+          <!-- Every contribution opens the same panel, whoever wrote it. A moderator-entered
+               one used to open an edit form instead, gated on confirmedAt -- a field the list
+               query no longer asks for, so the gate has been permanently false and the panel
+               permanently empty, on every tab. Moderating one of these means talking to the
+               member, which is what this panel is for, and the backend has allowed it all
+               along: neither writing a message nor changing the text checks who created it. -->
           <template #show-creation>
-            <div v-if="row.item.moderatorId">
-              <edit-creation-formular
-                v-if="row.item.confirmedAt === null"
-                type="singleCreation"
-                :item="row.item"
-                :row="row"
-                :creation-user-data="creationUserData"
-                @update-creation-data="$emit('update-contributions')"
-              />
-            </div>
-            <div v-else>
-              <contribution-messages-list
-                :contribution="row.item"
-                :resubmission-at="row.item.resubmissionAt"
-                :hide-resubmission="hideResubmission"
-                @update-status="updateStatus"
-                @reload-contribution="reloadContribution"
-                @update-contributions="updateContributions"
-                @search-for-email="$emit('search-for-email', $event)"
-                @resubmission-saved="$emit('resubmission-saved', $event)"
-              />
-            </div>
+            <contribution-messages-list
+              :contribution="row.item"
+              :resubmission-at="row.item.resubmissionAt"
+              :hide-resubmission="hideResubmission"
+              @update-status="updateStatus"
+              @reload-contribution="reloadContribution"
+              @update-contributions="updateContributions"
+              @search-for-email="$emit('search-for-email', $event)"
+              @resubmission-saved="$emit('resubmission-saved', $event)"
+            />
           </template>
         </row-details>
       </template>
@@ -216,7 +203,6 @@
 
 <script>
 import RowDetails from '../RowDetails'
-import EditCreationFormular from '../EditCreationFormular'
 import ContributionMessagesList from '../ContributionMessages/ContributionMessagesList'
 import { useDateFormatter } from '@/composables/useDateFormatter'
 import { creationGroupLabels, creationGroupOption } from '@/utils/creationGroupLabel'
@@ -232,7 +218,6 @@ const iconMap = {
 export default {
   name: 'OpenCreationsTable',
   components: {
-    EditCreationFormular,
     RowDetails,
     ContributionMessagesList,
   },
@@ -284,7 +269,6 @@ export default {
     return {
       slotIndex: 0,
       openRow: null,
-      creationUserData: {},
       groupChangeModal: false,
       pendingGroupChange: { contributionId: null, tag: '', fromLabel: '', toLabel: '' },
       // What the group dropdowns show, by contribution id, while a change is waiting for its
@@ -366,7 +350,6 @@ export default {
         row.toggleDetails()
         this.slotIndex = index
         this.openRow = row
-        this.creationUserData = row.item
       }
     },
     // Group functions: the group is editable while the contribution is still being worked
