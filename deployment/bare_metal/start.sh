@@ -82,13 +82,20 @@ fi
 : ${NGINX_SSL_CERTIFICATE:=/etc/letsencrypt/live/$COMMUNITY_HOST/fullchain.pem}
 : ${NGINX_SSL_CERTIFICATE_KEY:=/etc/letsencrypt/live/$COMMUNITY_HOST/privkey.pem}
 # ⚠️ Whatever is added in this block takes effect one deploy LATER than it lands.
-# This script updates itself at the git pull further down, so the run that brings
-# a new default in is still the old file executing. A default here and the
-# .env.template line that depends on it must therefore NOT ship in the same
-# commit: that first run pulls the new template and processes it with the old
-# logic, leaving NAME=$NAME in the generated .env and failing the frontend build -
-# which is what took stage1 down twice. Ship the default first, and whatever it
-# protects one deploy later.
+# This script updates itself at the git pull further down, so the run that carries
+# a change to this block into the repository is still the old file executing.
+#
+# When adding a new flag, that means two separate deploys:
+#   1. add its default here, and nothing else
+#   2. one deploy later, add the matching NAME=$NAME line to the .env.template
+#      that needs it
+#
+# Both in one commit fails: that first run pulls the new .env.template and feeds
+# it to the old logic, which has no default for the name. envsubst leaves
+# NAME=$NAME in the generated .env, dotenv-expand follows that self-reference
+# forever, and the frontend build dies with "Maximum call stack size exceeded" -
+# after the services have already been stopped. It took stage1 down on #3718 and
+# again on #3719.
 #
 # A server that has its own .env never reads .env.dist, so a flag added there
 # after that .env was written is simply unknown here. The substitution below
