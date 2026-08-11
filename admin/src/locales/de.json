@@ -108,6 +108,7 @@
       "deny": "Ablehnen",
       "inquire": "Rückfrage"
     },
+    "deselectAll": "Alle abwählen",
     "deviation": "Deine Entscheidung",
     "evaluate": "Bewerten",
     "flags": "Bitte prüfen",
@@ -133,6 +134,7 @@
     "salutationSave": "Anrede speichern",
     "salutationSaveFailed": "Die Anrede konnte nicht gespeichert werden.",
     "salutationSaved": "Anrede gespeichert.",
+    "selectAll": "Alle auswählen",
     "selectHint": "Wähle die Beiträge, die Crea zusammen bewerten soll.",
     "settings": {
       "adminOnly": "Diese Einstellungen sind nur für Administratoren sichtbar.",

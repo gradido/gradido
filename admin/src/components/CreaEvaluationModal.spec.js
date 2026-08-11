@@ -281,4 +281,36 @@ describe('CreaEvaluationModal — resubmission grouping', () => {
     expect(wrapper.vm.groupedContributions.open.map((c) => c.id)).toEqual([9])
     expect(wrapper.vm.selectedIds).toEqual([9])
   })
+
+  // A moderator's ask: with a long list, ticking the two she wants beats unticking the
+  // twenty she does not. One control for both directions, so it lives with the grouping
+  // tests -- what "all" means is exactly a question about the groups.
+  const toggleAll = (wrapper) => wrapper.find('button.crea-toggle-all')
+
+  it('clears the whole checklist in one click', async () => {
+    const wrapper = mountBatch()
+    await open(wrapper)
+    expect(wrapper.vm.selectedIds).toEqual([1, 4])
+    await toggleAll(wrapper).trigger('click')
+    expect(wrapper.vm.selectedIds).toEqual([])
+  })
+
+  // The way back takes the resubmission groups with it. They start unticked by design
+  // (E-026), but that governs the default, not what the moderator may ask for on purpose --
+  // and a control labelled "all" that quietly skipped two groups would be lying.
+  it('ticks every group on the way back, put-off ones included', async () => {
+    const wrapper = mountBatch()
+    await open(wrapper)
+    await toggleAll(wrapper).trigger('click')
+    await toggleAll(wrapper).trigger('click')
+    expect(wrapper.vm.selectedIds).toEqual([1, 4, 2, 3])
+  })
+
+  it('names the direction the next click would take', async () => {
+    const wrapper = mountBatch()
+    await open(wrapper)
+    expect(toggleAll(wrapper).text()).toBe('crea.deselectAll')
+    await toggleAll(wrapper).trigger('click')
+    expect(toggleAll(wrapper).text()).toBe('crea.selectAll')
+  })
 })

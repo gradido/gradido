@@ -53,7 +53,16 @@
            by resubmission (E-026). Untouched ones come preselected, anything put off
            starts unticked; ticking is free either way. Nothing runs until "Bewerten". -->
       <template v-if="isBatch">
-        <p class="mb-2 text-muted small">{{ $t('crea.selectHint') }}</p>
+        <div class="d-flex align-items-baseline gap-3 mb-2">
+          <p class="mb-0 text-muted small flex-grow-1">{{ $t('crea.selectHint') }}</p>
+          <button
+            type="button"
+            class="btn btn-link p-0 small text-nowrap crea-toggle-all"
+            @click="toggleAllPicks"
+          >
+            {{ selectedIds.length ? $t('crea.deselectAll') : $t('crea.selectAll') }}
+          </button>
+        </div>
         <template v-for="(section, index) in contributionSections" :key="section.key">
           <hr v-if="index > 0" class="crea-section-rule" />
           <p v-if="section.heading" class="crea-section-heading mb-2 fw-bold small">
@@ -430,6 +439,21 @@ const contributionSections = computed(() => {
     { key: 'later', heading: t('crea.resubmission'), items: later },
   ].filter((section) => section.items.length > 0)
 })
+
+// One control for both directions, read off the sections so it can never fall out of step
+// with what the checklist shows. Asked for by a moderator for the clearing half: with a
+// long list, ticking the two she wants is quicker than unticking the twenty she does not.
+//
+// Selecting all takes the resubmission groups with it. They start unticked by design
+// (E-026) -- but that governs the DEFAULT, not what the moderator may ask for on purpose;
+// ticking them by hand was free before this button existed.
+const allPickIds = computed(() =>
+  contributionSections.value.flatMap((section) => section.items.map((c) => c.id)),
+)
+
+function toggleAllPicks() {
+  selectedIds.value = selectedIds.value.length ? [] : [...allPickIds.value]
+}
 // "Crea liest den Beitrag" (one) vs "... die Beiträge" (several) while evaluating.
 const loadingText = computed(() => {
   const count = isBatch.value ? selectedIds.value.length : 1

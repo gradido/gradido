@@ -108,6 +108,7 @@
       "deny": "Reject",
       "inquire": "Inquire"
     },
+    "deselectAll": "Deseleziona tutto",
     "deviation": "Your decision",
     "evaluate": "Evaluate",
     "flags": "Please review",
@@ -133,6 +134,7 @@
     "salutationSave": "Save salutation",
     "salutationSaveFailed": "The salutation could not be saved.",
     "salutationSaved": "Salutation saved.",
+    "selectAll": "Seleziona tutto",
     "selectHint": "Select the contributions Crea should evaluate together.",
     "settings": {
       "adminOnly": "These settings are visible to administrators only.",
