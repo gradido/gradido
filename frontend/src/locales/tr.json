@@ -727,7 +727,7 @@
   "success": "Başarılı",
   "thank-you-cheque": {
     "download": "Teşekkür çekini indir",
-    "scan-qr": "Senin hesabına Gradido transferi için QR kodu tarayın!",
+    "scan-qr": "Senin hesabına Gradido transferi için QR kodu tara!",
     "starting-credit": "Başlangıç bakiyesi {amount} Gradido",
     "starting-credit-valid": "Bu başlangıç bakiyesi {from} ile {to} arasında geçerli.",
     "valid-until": "Bu teşekkür çeki {date} tarihine kadar geçerli."
