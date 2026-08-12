@@ -4,7 +4,7 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
-  OneToOne,
+  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm'
 import { User } from './User'
@@ -59,12 +59,12 @@ export class AliasHistory extends BaseEntity {
   })
   createdAt: Date
 
-  @OneToOne(
+  @ManyToOne(
     () => User,
     (user) => user.aliasHistory,
   )
   user: User
 
-  @JoinColumn({ name: 'id', referencedColumnName: 'userId' })
-  userEntity?: User | null
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
+  
 }

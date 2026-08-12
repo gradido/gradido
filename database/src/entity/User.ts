@@ -290,6 +290,5 @@ export class User extends BaseEntity {
     () => require('./AliasHistory').AliasHistory,
     (aliasHistory: AliasHistoryType) => aliasHistory.user,
   )
-  @JoinColumn({ name: 'user_id' })
   aliasHistory?: AliasHistoryType[]
 }
