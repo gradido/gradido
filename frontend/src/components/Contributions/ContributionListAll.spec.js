@@ -1,4 +1,4 @@
-import { listAllContributions } from '@/graphql/contributions.graphql'
+import { communityCreationGroups } from '@/graphql/contributions.graphql'
 import { useQuery } from '@vue/apollo-composable'
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -10,6 +10,11 @@ import { ref } from 'vue'
 const i18n = createI18n({
   legacy: false,
   locale: 'en',
+  messages: {
+    en: {
+      contribution: { communityWindow: 'Contributions from the last {months} months' },
+    },
+  },
 })
 
 const router = createRouter({
@@ -57,6 +62,7 @@ describe('ContributionListAll', () => {
   const allContributions = ref({
     listAllContributions: {
       contributionCount: 3,
+      windowMonths: 6,
       contributionList: [
         {
           id: 0,
@@ -91,9 +97,22 @@ describe('ContributionListAll', () => {
 
   const loading = ref(false)
 
+  // The list asks two different queries. Handing the same answer to both would hide which
+  // one the group dropdown actually reads — and reading the canonical list there instead of
+  // the community one is precisely the mistake this component must not make.
+  const communityGroups = ref({
+    communityCreationGroups: [
+      { id: 1, tag: 'choir', name: 'Choir' },
+      { id: 2, tag: 'fire', name: null },
+    ],
+  })
+
   describe('mount', () => {
     beforeEach(() => {
       vi.mocked(useQuery).mockImplementation((query) => {
+        if (query === communityCreationGroups) {
+          return { result: communityGroups, loading: ref(false) }
+        }
         return {
           result: allContributions,
           loading,
@@ -115,6 +134,56 @@ describe('ContributionListAll', () => {
 
     it('has a DIV .contribution-list-all', () => {
       expect(wrapper.find('div.contribution-list-all').exists()).toBe(true)
+    })
+
+    // Contributions already show "(no group)" as their label, so the filter has to offer
+    // it too -- otherwise you can see the state but never single it out. BFormSelect is
+    // registered app-wide rather than imported, so the test puts its own stand-in there to
+    // read the options off.
+    it('offers all, all groups and no group before the real groups', () => {
+      const SelectStub = {
+        name: 'ThemedSelect',
+        props: ['options', 'modelValue'],
+        template: '<select></select>',
+      }
+      const localWrapper = mount(ContributionListAll, {
+        global: { ...global, stubs: { ...global.stubs, ThemedSelect: SelectStub } },
+      })
+      const options = localWrapper.findComponent(SelectStub).props('options')
+      expect(options.slice(0, 3).map((option) => option.value)).toEqual([
+        null,
+        '*grouped',
+        '*untagged',
+      ])
+    })
+
+    // The dropdown must offer exactly what can be found behind it. It therefore reads the
+    // windowed list, not the canonical one -- a group that has been quiet longer than the
+    // window would otherwise lead into an empty result and read as "nothing going on here".
+    it('takes its groups from the windowed list, not the canonical one', () => {
+      const SelectStub = {
+        name: 'ThemedSelect',
+        props: ['options', 'modelValue'],
+        template: '<select></select>',
+      }
+      const localWrapper = mount(ContributionListAll, {
+        global: { ...global, stubs: { ...global.stubs, ThemedSelect: SelectStub } },
+      })
+      const options = localWrapper.findComponent(SelectStub).props('options')
+      // The wallet shows the group name only; a group without a name falls back to its tag.
+      expect(options.slice(3)).toEqual([
+        { value: 'choir', text: 'Choir' },
+        { value: 'fire', text: '#fire' },
+      ])
+    })
+
+    // Stated where it applies, and taken from the answer the backend gave -- a duration
+    // written down a second time in the wallet would keep claiming the old number the day
+    // the window changes.
+    it('states the window the backend actually filtered by', () => {
+      expect(wrapper.find('[data-test="community-window"]').text()).toBe(
+        'Contributions from the last 6 months',
+      )
     })
 
     describe('pagination', () => {

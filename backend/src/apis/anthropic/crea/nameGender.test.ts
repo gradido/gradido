@@ -1,3 +1,4 @@
+// AI-GENERATED — not an architecture reference
 import { guessGender, normalizeName } from './nameGender'
 
 describe('crea nameGender heuristic (dataset-backed)', () => {

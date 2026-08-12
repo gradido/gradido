@@ -1,0 +1,76 @@
+query creationGroups {
+  creationGroups {
+    id
+    tag
+    name
+    hashtagsAdoptedAt
+    hashtagsAdoptedCount
+  }
+}
+
+query userCreationGroups($userId: Int!) {
+  userCreationGroups(userId: $userId) {
+    id
+    tag
+    name
+  }
+}
+
+query moderatorCreationGroupScope($userId: Int!) {
+  moderatorCreationGroupScope(userId: $userId)
+}
+
+mutation setUserCreationGroups($userId: Int!, $tags: [String!]!) {
+  setUserCreationGroups(userId: $userId, tags: $tags) {
+    id
+    tag
+    name
+  }
+}
+
+mutation setModeratorCreationGroupScope($userId: Int!, $scope: [String!]!) {
+  setModeratorCreationGroupScope(userId: $userId, scope: $scope)
+}
+
+mutation addCreationGroup($tag: String!, $name: String) {
+  addCreationGroup(tag: $tag, name: $name) {
+    id
+    tag
+    name
+  }
+}
+
+mutation editCreationGroup($id: Int!, $tag: String, $name: String) {
+  editCreationGroup(id: $id, tag: $tag, name: $name) {
+    id
+    tag
+    name
+  }
+}
+
+# How many contributions still name this group with a hashtag in their memo. Reads memos,
+# so it is asked only when the panel is opened -- never while rendering the list.
+query legacyHashtagCounts($id: Int!) {
+  legacyHashtagCounts(id: $id) {
+    exact
+    loose
+  }
+}
+
+# Link those contributions into the group. Returns the group with its new state, so the
+# list does not have to guess what happened.
+mutation adoptLegacyHashtags($id: Int!, $includeLoose: Boolean!) {
+  adoptLegacyHashtags(id: $id, includeLoose: $includeLoose) {
+    id
+    tag
+    name
+    hashtagsAdoptedAt
+    hashtagsAdoptedCount
+  }
+}
+
+# Move a contribution to another group (or to none). Only while it is still open;
+# the backend refuses once it is confirmed, denied or deleted.
+mutation assignContributionCreationGroups($contributionId: Int!, $tags: [String!]!) {
+  assignContributionCreationGroups(contributionId: $contributionId, tags: $tags)
+}

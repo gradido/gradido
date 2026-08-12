@@ -12,6 +12,12 @@ export class UserRole extends BaseEntity {
   @Column({ type: 'varchar', length: 40, nullable: false, collation: 'utf8mb4_unicode_ci' })
   role: string
 
+  // Group functions: a moderator's visibility scope, stored as a JSON array
+  // of creation-group strings plus the reserved sentinels '*all' / '*untagged'. NULL = no
+  // restriction (backward compatible: existing moderators keep full visibility).
+  @Column({ name: 'visible_creation_groups', type: 'text', nullable: true, default: null })
+  visibleCreationGroups: string | null
+
   @Column({
     name: 'created_at',
     type: 'datetime',

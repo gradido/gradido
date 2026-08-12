@@ -20,6 +20,10 @@
   "PersonalDetails": "Informations personnelles",
   "advanced-calculation": "Calcul avancé",
   "answerNow": "→ Répondre maintenant!",
+  "appOutdated": {
+    "reload": "Recharger",
+    "text": "Une version plus récente est disponible. Merci de recharger la page."
+  },
   "asterisks": "****",
   "auth": {
     "left": {
@@ -62,9 +66,12 @@
     "community": "Communauté",
     "communityMember": "Tu es un membre actif",
     "continue-to-registration": "Continue l'inscription",
+    "groupsAndModerators": "Groupes de création et modérateurs",
     "moderator": "Modérateur",
-    "moderators": "Modérateurs",
+    "moderatorsAllGroups": "Pour tous les groupes",
+    "moderatorsUntagged": "Contributions sans groupe",
     "myContributions": "Mes contributions",
+    "noModerators": "Pas encore de modérateur",
     "submitContribution": "Contribuer"
   },
   "communityInfo": "Information communauté^^",
@@ -82,8 +89,22 @@
       "myContributionNoteList": "À tout moment tu peux éditer ou supprimer les données qui n'ont pas été confirmées.",
       "pending": "Inscription en attente de validation"
     },
-    "delete": "Supprimer la contribution ! Es-tu sûr ?",
-    "deleted": "La contribution a été supprimée! Mais elle restera visible.",
+    "communityWindow": "Contributions from the last {months} months",
+    "creationGroup": {
+      "help": "Facultatif. Cela fonctionne aussi sans groupe. Un #mot dans le texte ne définit pas de groupe — c’est le rôle de ce champ.",
+      "label": "Creation group",
+      "none": "(sans groupe)"
+    },
+    "delete": "Vraiment supprimer la contribution ? Elle ne sera alors visible que pour toi et les modérateurs, invisible pour la communauté.",
+    "deleted": "La contribution a été supprimée. Elle n'est désormais visible que pour toi et les modérateurs, invisible pour la communauté.",
+    "filter": {
+      "all": "(toutes)",
+      "byGroup": "Filtrer par groupe de création",
+      "grouped": "(tous les groupes)",
+      "noGroup": "(sans groupe)",
+      "noResults": "No contributions found.",
+      "search": "Search contributions …"
+    },
     "formText": {
       "bringYourTalentsTo": "Apporte tes talents à la communauté ! Ta participation bénévole sera récompensée de 20 GDD/heure jusqu'à un plafond de 1000 GDD/mois.",
       "describeYourCommunity": "Décris ton activité/service à la communauté en mentionnant le nombre d'heures, et calcule le montant à raison de 20 GDD/heure ! Après confirmation par l'un de nos collaborateurs, le montant sera crédité sur ton compte.",
@@ -93,6 +114,7 @@
     },
     "isEdited": "a modifié la contribution",
     "lastContribution": "Dernières contributions",
+    "memoIsPublic": "Your description appears in the community list, where it is visible to all members. It shows the contribution's number instead of your name.",
     "noContributions": {
       "allContributions": "Aucune contribution n'a encore été soumise.",
       "emptyPage": "Cette page est vide.",
@@ -103,6 +125,7 @@
       "lastMonth": "La limite de création est atteinte pour le mois sélectionné.",
       "thisMonth": "La limite de création est atteinte pour le mois en cours."
     },
+    "number": "Contribution no. {number}",
     "oldContribution": "Version précédente",
     "selectDate": "Quand a été effectuée ta contribution ?",
     "submit": "Soumettre",
@@ -113,7 +136,6 @@
   "contribution-link": {
     "thanksYouWith": "te remercie avec"
   },
-  "contributionText": "Texte de la contribution",
   "copy-to-clipboard": "Copier dans le presse-papier",
   "creation": "Création",
   "decay": {
@@ -334,6 +356,193 @@
   "link-load": "recharger le dernier lien | recharger les {n} derniers liens",
   "link-load-more": "Enregistrer plus de {n} liens",
   "login": "Connexion",
+  "matching": {
+    "about": {
+      "counter": "{count} / ~1000 caractères",
+      "label": "Qui tu es, avec tes propres mots",
+      "placeholder": "Raconte qui tu es, ce qui te motive, ce que tu partages : cela crée la confiance avant que quelqu'un t'écrive.",
+      "saved": "Ton profil a été enregistré"
+    },
+    "cluster": {
+      "close": "Fermer la liste",
+      "title": "{n} personnes à cet endroit"
+    },
+    "entries": {
+      "activate": "Activer",
+      "count": "{total} entrées · {live} actives · {paused} en pause",
+      "delete": "Supprimer",
+      "deleteConfirm": "Supprimer cette entrée ?",
+      "details": "Détails",
+      "edit": "Modifier",
+      "emptyText": "Propose quelque chose, cherche quelque chose ou partage un intérêt, et laisse-toi trouver.",
+      "emptyTitle": "Aucune entrée pour l'instant.",
+      "new": "Nouvelle entrée",
+      "noDetails": "(aucun détail)",
+      "pause": "Mettre en pause",
+      "pausedBadge": "En pause · pas dans la recherche",
+      "remote": "Suprarégional"
+    },
+    "find": {
+      "gateText": "Une fois que tu as défini ta position et que tu t'es rendu visible sur la carte, tu peux aussi trouver d'autres personnes près de toi.",
+      "gateTitle": "Montre-toi d'abord sur la carte",
+      "later": "Plus tard",
+      "subtitle": "Découvre qui te correspond",
+      "title": "Trouver sur la carte",
+      "titleList": "Trouver dans la liste",
+      "toPosition": "Aller chez moi",
+      "understood": "Compris"
+    },
+    "info": {
+      "about": {
+        "heading": "Qui tu es",
+        "p1": "Quelques phrases chaleureuses et sincères sur toi créent la confiance avant que quelqu'un t'écrive.",
+        "p2": "Ce texte apparaît sur ta carte de profil sur la carte de recherche."
+      },
+      "entries": {
+        "heading": "Comment fonctionne le matching",
+        "paused": "Les entrées en pause restent enregistrées ; elles n'apparaissent simplement pas dans la recherche.",
+        "text": "Indique ce que tu aimes, proposes ou cherches : chaque entrée active te fait apparaître dans les recherches des autres."
+      },
+      "position": {
+        "heading": "Ta vie privée",
+        "p1": "Tu décides avec quelle précision tu apparais. « Approximative » te montre dans une zone, jamais devant ta porte.",
+        "p2": "Sans position, tu n'es pas sur la carte. L'interrupteur te retire à tout moment."
+      }
+    },
+    "list": {
+      "centeredOn": "Autour de {place}",
+      "controlsHeading": "Recherche et tri",
+      "dir": {
+        "e": "à l'est",
+        "n": "au nord",
+        "ne": "au nord-est",
+        "nw": "au nord-ouest",
+        "s": "au sud",
+        "se": "au sud-est",
+        "sw": "au sud-ouest",
+        "w": "à l'ouest"
+      },
+      "empty": "Il n'y a personne ici pour le moment. Élargis le rayon ou cherche un autre endroit.",
+      "heading": "Des personnes près de toi",
+      "kmEtwa": "environ {n} km",
+      "kmExact": "{n} km",
+      "lensBy": "Distance depuis",
+      "lensHome": "Chez moi",
+      "lensSearch": "Point de recherche",
+      "line": {
+        "angebot": "propose {thing} — c'est ce que tu cherches",
+        "gesuch": "cherche {thing} — c'est ce que tu proposes",
+        "interesse": "partage ton intérêt pour {thing}"
+      },
+      "matchesHeading": "Tes correspondances",
+      "meets": "correspond à {n} de tes entrées",
+      "near": "tout près",
+      "othersHeading": "D'autres personnes près de toi",
+      "sortBreite": "qui correspond le plus",
+      "sortBy": "Trier par",
+      "sortNaehe": "Proximité",
+      "sortPassung": "Correspondance"
+    },
+    "map": {
+      "amplifier": "Amplificateur",
+      "back": "Retour",
+      "breite": "Qui correspond plusieurs fois",
+      "breiteHint": "Met en avant les personnes qui répondent à plusieurs de tes entrées.",
+      "channels": {
+        "andere": "tous les autres",
+        "andereMit": "autres avec des entrées",
+        "andereOhne": "autres sans entrées",
+        "angebot": "Offres",
+        "gesuch": "Demandes",
+        "interesse": "Intérêts"
+      },
+      "found": "Personnes trouvées : {n}",
+      "home": "Revenir chez moi",
+      "km": "km",
+      "look": {
+        "dunkel": "sombre",
+        "hell": "clair",
+        "karte": "Carte",
+        "label": "Apparence",
+        "liste": "Liste",
+        "normal": "normal"
+      },
+      "radius": "Rayon",
+      "radiusLabel": "Dans quel rayon cherches-tu ? (km)",
+      "radiusTitle": "Rayon de recherche",
+      "search": "Chercher un lieu ou une adresse",
+      "searchHere": "Chercher ici"
+    },
+    "new": {
+      "cancel": "Annuler",
+      "completeSentence": "Complète cette phrase :",
+      "detailsHeading": "Détails — pour que les bonnes personnes te trouvent :",
+      "remote": "Aussi disponible en suprarégional / en ligne"
+    },
+    "position": {
+      "accuracyApprox": "Une position légèrement modifiée est affichée",
+      "accuracyExact": "Ta position exacte est affichée",
+      "cancel": "Annuler",
+      "findable": "Suis-je trouvable ?",
+      "findableHint": "Active ou désactive ta présence sur la carte",
+      "findableOff": "Tu n'es plus visible sur la carte",
+      "findableOn": "Tu es maintenant visible sur la carte",
+      "intro": "Place-toi sur la carte pour participer au matching : tu n'apparais qu'à ce moment-là.",
+      "saveText": "Veux-tu sauvegarder maintenant tes réglages de position ?",
+      "saveTitle": "Sauvegarder la position",
+      "unsaved": "Pas encore sauvegardé"
+    },
+    "profile": {
+      "aria": "Profil de {name}",
+      "more": "{n} de plus",
+      "sendEmail": "Envoyer un e-mail",
+      "sendGradido": "Envoyer des Gradido"
+    },
+    "query": {
+      "all": "Toutes mes entrées",
+      "clear": "Réinitialiser la recherche",
+      "details": "En savoir plus sur ta recherche",
+      "detailsPlaceholder": "d'occasion, 28 pouces",
+      "keep": "Conserver comme entrée",
+      "keepAsk": "Veux-tu qu'à l'avenir te trouvent celles et ceux qui correspondent à « {text} » ?",
+      "keepNo": "Non, merci",
+      "label": "Je cherche en ce moment",
+      "open": "Choisir une recherche",
+      "other": "Chercher autre chose …",
+      "pick": "Choisis dans quel sens tu l'entends — c'est ce qui lance la recherche.",
+      "placeholder": "vélo",
+      "untouched": "Tes entrées restent inchangées."
+    },
+    "save": "Enregistrer",
+    "tabs": {
+      "about": "À propos de moi",
+      "entries": "Entrées",
+      "position": "Chez moi"
+    },
+    "type": {
+      "angebot": {
+        "desc": "ce que tu donnes",
+        "detailsPlaceholder": "Vélos anciens et neufs, e-bikes aussi — je me déplace",
+        "placeholder": "la réparation de vélos",
+        "prefix": "Je propose",
+        "word": "Offre"
+      },
+      "gesuch": {
+        "desc": "ce que tu cherches",
+        "detailsPlaceholder": "La porte d'entrée coince, vieux cylindre",
+        "placeholder": "un serrurier",
+        "prefix": "Je cherche",
+        "word": "Demande"
+      },
+      "interesse": {
+        "desc": "ce que tu aimes",
+        "detailsPlaceholder": "dans mon propre jardin en autosuffisance",
+        "placeholder": "la permaculture",
+        "prefix": "J'aime",
+        "word": "Intérêt"
+      }
+    }
+  },
   "math": {
     "asterisk": "*",
     "equal": "=",
@@ -358,6 +567,7 @@
     "admin_area": "Partie administrative",
     "community": "Communauté",
     "logout": "Déconnexion",
+    "matching": "Matching",
     "overview": "Aperçu",
     "send": "Envoyer",
     "settings": "Configuration",
@@ -370,6 +580,7 @@
     "contributions": "Ma communauté",
     "gdt": "Tes transactions GDT",
     "information": "{community}",
+    "matching": "Matching",
     "overview": "Bienvenue {name}",
     "send": "Envoyer Gradido et e-mail",
     "settings": "Configuration",
@@ -377,7 +588,7 @@
     "usersearch": "Recherche géographique de membres (bèta)"
   },
   "qrCode": "QR Code",
-  "send_email": "Envoyer un e-mail",
+  "send_email": "Envoyer un e‑mail",
   "send_gdd": "Envoyer GDD",
   "send_per_link": "Envoyer GDD via lien",
   "session": {
@@ -514,6 +725,13 @@
   "status": "Statu",
   "submitted": "Envoyé",
   "success": "Avec succès",
+  "thank-you-cheque": {
+    "download": "Télécharger le chèque de remerciement",
+    "scan-qr": "Pour l'accréditation du Gradido, scanner le code QR !",
+    "starting-credit": "Crédit de départ {amount} Gradido",
+    "starting-credit-valid": "Ce crédit de départ est valable du {from} au {to}.",
+    "valid-until": "Ce chèque de remerciement est valable jusqu'au {date}."
+  },
   "time": {
     "days": "Jours",
     "hours": "Heures",

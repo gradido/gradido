@@ -1244,6 +1244,29 @@ describe('ContributionResolver', () => {
         })
         expect(contributionListObject.contributionList).toHaveLength(7)
       })
+
+      it('returns no person, even though the query asks for one', async () => {
+        // Data protection: the community list is open to every member and shows denied
+        // contributions too, so it carries deeds without their author. The query above
+        // requests `user { firstName lastName }` on purpose — the answer must still be
+        // empty, which is what makes this a guarantee of the API and not of our own list.
+        const {
+          data: { listAllContributions: contributionListObject },
+        } = await query({
+          query: listAllContributions,
+          variables: {
+            pagination: {
+              currentPage: 1,
+              pageSize: 25,
+              order: 'DESC',
+            },
+          },
+        })
+        expect(contributionListObject.contributionList.length).toBeGreaterThan(0)
+        for (const contribution of contributionListObject.contributionList) {
+          expect(contribution.user).toBeNull()
+        }
+      })
     })
   })
 
@@ -2716,7 +2739,12 @@ describe('ContributionResolver', () => {
           })
         })
 
-        it('returns only contributions of the queried user without hashtags', async () => {
+        // Successor of the removed "hide #hashtags" switch, and deliberately not the same
+        // set: the filter asks which group a contribution belongs to, not whether its text
+        // happens to contain a '#'. "#firefighters" is submitted without a group, so it is
+        // one of the contributions no group moderator looks after -- the old switch hid it
+        // for the wrong reason, and it is counted here.
+        it('returns only contributions of the queried user that belong to no group', async () => {
           const {
             data: { adminListContributions: contributionListObject },
           } = await query({
@@ -2724,14 +2752,14 @@ describe('ContributionResolver', () => {
             variables: {
               filter: {
                 query: 'Peter',
-                noHashtag: true,
+                creationGroup: '*untagged',
               },
               paginated: { pageSize: 20 },
             },
           })
-          expect(contributionListObject.contributionList).toHaveLength(3)
+          expect(contributionListObject.contributionList).toHaveLength(4)
           expect(contributionListObject).toMatchObject({
-            contributionCount: 3,
+            contributionCount: 4,
             contributionList: expect.arrayContaining([
               expect.objectContaining({
                 amount: '400',
@@ -2812,7 +2840,9 @@ describe('ContributionResolver', () => {
           })
         })
 
-        it('returns no contributions with #firefighter and no hashtag', async () => {
+        // Same point from the other side: the text search finds "#firefighters", and the
+        // group filter keeps it because it belongs to no group.
+        it('finds "#firefighters" when it belongs to no group', async () => {
           const {
             data: { adminListContributions: contributionListObject },
           } = await query({
@@ -2820,13 +2850,13 @@ describe('ContributionResolver', () => {
             variables: {
               filter: {
                 query: '#firefighter',
-                noHashtag: true,
+                creationGroup: '*untagged',
               },
             },
           })
-          expect(contributionListObject.contributionList).toHaveLength(0)
+          expect(contributionListObject.contributionList).toHaveLength(1)
           expect(contributionListObject).toMatchObject({
-            contributionCount: 0,
+            contributionCount: 1,
           })
         })
 

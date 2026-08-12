@@ -8,11 +8,22 @@
     "chat-placeholder": "Type your message here...",
     "chat-placeholder-loading": "Wait, I think...",
     "chat-thread-deleted": "Chat thread has been deleted",
+    "error-api-inactive": "Crea is currently not enabled.",
     "error-chat-thread-deleted": "Error while deleting chat thread: {error}",
-    "start-prompt": "Language: English\nTone of voice: Friendly, on a first-name basis\nContext: You are \"Crea\", a support assistant in the admin interface of the Gradido account. Your task is to support moderators in editing contributions for the common good.\nGreeting:\n\"Hello, I'm Crea! I support you in answering the contributions for the common good. So that I can personalize your answers, please tell me your name. 😊\"\nNow wait for the name to be entered!\nAfter entering the name:\n\"Thank you, [name]! Nice to work with you. 😊 Now please copy one or more contributions for the common good into the text field and I'll help you edit them.\""
+    "error-load": "The chat could not be loaded: {error}",
+    "error-output-too-long": "Crea's answer was cut off. Please paste less at a time.",
+    "error-send": "The message could not be sent: {error}",
+    "error-send-failed": "The message could not be sent. Please try again.",
+    "error-thread-not-found": "This chat thread no longer exists. Clear the chat to start a new one.",
+    "error-unknown": "An unknown error occurred.",
+    "signature-missing": "Your signature is not set yet — you can enter it in the Crea window of any contribution."
   },
   "alias": "Alias",
   "all_emails": "All users",
+  "appOutdated": {
+    "reload": "Reload",
+    "text": "A newer version is available. Please reload the page."
+  },
   "back": "back",
   "bulkResubmission": {
     "cancel": "Do not apply",
@@ -28,10 +39,16 @@
   "change_user_role": "Change user role",
   "close": "Close",
   "contribution": {
+    "changeGroup": "Change creation group",
+    "changeGroupConfirm": "Yes, move it",
+    "changeGroupDone": "Creation group changed.",
+    "changeGroupHint": "Depending on your visible groups, the contribution may no longer appear in your list.",
+    "changeGroupQuestion": "Move this contribution from {from} to {to}?",
     "confirmedBy": "Confirmed by {name}.",
     "createdBy": "Created by {name}.",
     "deletedBy": "Deleted by {name}.",
-    "deniedBy": "Rejected by {name}."
+    "deniedBy": "Rejected by {name}.",
+    "noGroup": "(no group)"
   },
   "contributionLink": {
     "amount": "Amount",
@@ -91,6 +108,7 @@
       "deny": "Reject",
       "inquire": "Inquire"
     },
+    "deselectAll": "Deselect all",
     "deviation": "Your decision",
     "evaluate": "Evaluate",
     "flags": "Please review",
@@ -108,7 +126,15 @@
     "previewBanner": "Preview without AI connection – a sample result. Layout, database and salutation/signature are real.",
     "reasoning": "Reasoning",
     "response": "Suggested reply",
+    "resubmission": "Resubmission",
+    "resubmissionDue": "Resubmission due",
     "rewrite": "Write for my decision",
+    "salutation": "Salutation",
+    "salutationHint": "How this person is addressed. Change it here and the draft follows at once. Use Save salutation and next time it is already filled in.",
+    "salutationSave": "Save salutation",
+    "salutationSaveFailed": "The salutation could not be saved.",
+    "salutationSaved": "Salutation saved.",
+    "selectAll": "Select all",
     "selectHint": "Select the contributions Crea should evaluate together.",
     "settings": {
       "adminOnly": "These settings are visible to administrators only.",
@@ -120,15 +146,23 @@
       "effortMax": "Maximum",
       "effortMedium": "Medium",
       "effortXhigh": "Very high",
+      "fastMode": "Fast mode",
+      "fastModeActive": "(fast mode active)",
+      "fastModeBusy": "(fast mode busy right now – Crea answers at normal speed)",
+      "fastModeHint": "Same model, faster output. Only available on Opus models, and answers cost twice as much. Where it is unavailable, Crea automatically answers at normal speed.",
+      "fastModeRefused": "(fast mode refused: {detail} – Crea answers at normal speed)",
       "model": "AI model",
       "modelHint": "Leave empty = default model ({model}). You can type a new model directly.",
       "modelPlaceholder": "Default: {model}",
       "presetPlaceholder": "— choose a preset —",
       "saved": "Crea settings saved",
       "testFail": "Test failed: {message}",
+      "testInactive": "The Anthropic API is not active (no key configured).",
       "testModel": "Test model",
+      "testNoText": "(no text in the response)",
       "testOk": "Model responds: {message}",
-      "title": "Crea settings"
+      "title": "Crea settings",
+      "unavailable": "The settings are not loaded yet. Saving and testing stay disabled until the values from the server are known."
     },
     "signature": "Your signature",
     "signatureHint": "Saved in your browser and added to the end of the reply automatically.",
@@ -157,6 +191,47 @@
   "created": "Created for",
   "createdAt": "Created at",
   "creation": "Creation",
+  "creationGroupFilter": {
+    "all": "(all)",
+    "grouped": "(all groups)",
+    "label": "Creation group:",
+    "untagged": "(no group)"
+  },
+  "creationGroupsAdmin": {
+    "add": "Create",
+    "addTitle": "Create a new group",
+    "adminOnly": "Administrators only.",
+    "adoption": {
+      "adopt": "Adopt {count}",
+      "check": "Old hashtags",
+      "done": "Old hashtags adopted.",
+      "foundExact": "{count} older contributions write #{tag} in their text.",
+      "foundLoose": "Also adopt {count} contributions written as “# {tag}” (with a blank).",
+      "foundNothing": "No older contribution names this group in its text.",
+      "hint": "Only contributions that have no group at all are adopted. A word that names no existing group stays ordinary text.",
+      "markChecked": "Mark as checked",
+      "searchFailed": "The search failed. Please try again.",
+      "searching": "Searching the contributions …",
+      "stateAdopted": "checked on {date} — {count} adopted",
+      "stateNothing": "checked on {date} — nothing found",
+      "stateUnchecked": "old hashtags not checked yet",
+      "title": "Adopt old hashtags into {group}"
+    },
+    "cancel": "Cancel",
+    "created": "Group created.",
+    "edit": "Edit",
+    "empty": "No groups created yet.",
+    "existingTitle": "Existing groups",
+    "intro": "Create new groups or rename existing ones. Who belongs to a group or moderates it is assigned on the \"User role\" tab.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Volunteer Fire Brigade Springfield",
+    "save": "Save",
+    "tag": "Tag",
+    "tagHint": "A short tag without spaces — capitals and accented letters are allowed. Matching ignores upper and lower case. The name is what is shown everywhere.",
+    "tagPlaceholder": "e.g. firefighter",
+    "title": "Manage creation groups",
+    "updated": "Group updated."
+  },
   "creationList": "Creation list",
   "creation_for_month": "Creation for month",
   "creation_form": {
@@ -278,6 +353,7 @@
   "navbar": {
     "automaticContributions": "Starting balance",
     "crea": "Crea",
+    "creationGroups": "Creation groups",
     "instances": "Instances",
     "logout": "Logout",
     "my-account": "My Account",
@@ -286,8 +362,6 @@
     "statistic": "Statistic",
     "user_search": "User search"
   },
-  "no_hashtag": "Hide #hashtags",
-  "no_hashtag_tooltip": "Shows only contributions without hashtag in text",
   "not_open_creations": "No open creations",
   "notice": "Notice",
   "open": "open",
@@ -389,7 +463,20 @@
   },
   "unregistered_emails": "Only unregistered users",
   "userRole": {
+    "creationGroups": {
+      "help": "Pre-filled on submission.",
+      "label": "User's main creation group",
+      "none": "(no group)"
+    },
     "notChangeYourSelf": "As an admin/moderator, you cannot change your own role.",
+    "savedCreationGroups": "Creation groups saved.",
+    "savedScope": "Visibility saved.",
+    "scope": {
+      "all": "all groups",
+      "help": "Empty = all contributions.",
+      "label": "Visible creation groups",
+      "untagged": "no group"
+    },
     "selectLabel": "Role:",
     "selectRoles": {
       "admin": "administrator",

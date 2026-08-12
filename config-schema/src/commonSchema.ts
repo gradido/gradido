@@ -102,6 +102,15 @@ export const GMS_ACTIVE = Joi.boolean()
   .default(false)
   .required()
 
+// Deliberately separate from GMS_ACTIVE: that one switches the older GMS
+// integration (the overview card and the position export), and it is on in
+// production. Hanging the new matching off it would publish unfinished work the
+// moment an instance enables the old service.
+export const MATCHING_ACTIVE = Joi.boolean()
+  .description('Flag to indicate if the new matching (entries, map, list) is offered to members.')
+  .default(false)
+  .required()
+
 export const GDT_ACTIVE = Joi.boolean()
   .description('Flag to indicate if the GDT (Gradido Transform) service is used.')
   .default(false)
@@ -169,9 +178,11 @@ export const LOGIN_SERVER_KEY = Joi.string()
   )
   .required()
 
-export const OPENAI_ACTIVE = Joi.boolean()
+// Shared by backend and admin: the backend wakes Crea on it, the admin shows the
+// Crea chat window on it. One switch, so the assistant and its chat are never half on.
+export const ANTHROPIC_ACTIVE = Joi.boolean()
   .default(false)
-  .description('Flag to enable or disable OpenAI API')
+  .description('Flag to enable or disable the Anthropic (Claude) API used by Crea')
   .required()
 
 export const APP_VERSION = Joi.string()

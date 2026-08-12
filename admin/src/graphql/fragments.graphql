@@ -22,11 +22,11 @@ fragment ProjectBrandingCommonFields on ProjectBranding {
   logoUrl
 }
 
-fragment AiChatMessageFields on ChatGptMessage {
+fragment AiChatMessageFields on CreaChatMessage {
   content
   role
   threadId
-  isError
+  errorCode
 }
 
 fragment UserCommonFields on User {
@@ -34,4 +34,5 @@ fragment UserCommonFields on User {
   firstName
   lastName
   alias
+  salutation
 }

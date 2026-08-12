@@ -2,14 +2,15 @@ import { sql } from 'drizzle-orm'
 import {
   bigint,
   binary,
+  boolean,
   char,
   datetime,
   decimal,
   index,
   int,
+  longtext,
   mysqlTable,
   text,
-  timestamp,
   tinyint,
   unique,
   uniqueIndex,
@@ -85,6 +86,35 @@ export const contributionsTable = mysqlTable(
 export type ContributionsSelect = typeof contributionsTable.$inferSelect
 export type ContributionsInsert = typeof contributionsTable.$inferInsert
 
+// One moderator conversation with Crea in the admin chat window (CreaChat). The
+// Anthropic Messages API is stateless, so the whole exchange lives here as a JSON array
+// in `messages` — that is the shape every access needs: read the complete thread, append
+// a user/assistant pair, save. Nothing ever reads or writes a single message.
+export const creachatThreadsTable = mysqlTable(
+  'creachat_threads',
+  {
+    id: char({ length: 36 }).notNull(),
+    userId: int('user_id').notNull(),
+    messages: longtext().notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    // Maintained by dbUpdateCreachatThreadMessages, not by an ON UPDATE clause: drizzle
+    // cannot express one on a datetime column, and a column half-owned by the DDL and
+    // half by the query is the kind of thing nobody can answer a question about later.
+    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [
+    index('idx_creachat_threads_user_id').on(table.userId),
+    index('idx_creachat_threads_updated_at').on(table.updatedAt),
+  ],
+)
+
+export type CreachatThreadSelect = typeof creachatThreadsTable.$inferSelect
+export type CreachatThreadInsert = typeof creachatThreadsTable.$inferInsert
+
 export const dltTransactionsTable = mysqlTable(
   'dlt_transactions',
   {
@@ -109,12 +139,36 @@ export const dltTransactionsTable = mysqlTable(
 export type DltTransactionSelect = typeof dltTransactionsTable.$inferSelect
 export type DltTransactionInsert = typeof dltTransactionsTable.$inferInsert
 
-export const openaiThreadsTable = mysqlTable('openai_threads', {
-  id: varchar({ length: 128 }).notNull(),
-  createdAt: timestamp({ mode: 'date' }).defaultNow().notNull(),
-  updatedAt: timestamp({ mode: 'date' }).defaultNow().onUpdateNow().notNull(),
-  userId: int('user_id').notNull(),
-})
+export const matchingEntriesTable = mysqlTable(
+  'matching_entries',
+  {
+    id: int().autoincrement().notNull(),
+    uuid: char({ length: 36 }).notNull(),
+    userId: int('user_id').notNull(),
+    matchingType: varchar('matching_type', { length: 12 }).notNull(),
+    summary: varchar({ length: 160 }).notNull(),
+    details: text().default(sql`NULL`),
+    // boolean() rather than tinyint() as the neighbours use: both are tinyint(1) in
+    // MySQL, but boolean() maps 1/0 to true/false on the way out. These two values are
+    // forwarded to the GMS as JSON, where a 1 instead of a true would be a changed
+    // payload — this keeps the conversion in one place instead of at every call site.
+    remote: boolean().default(false).notNull(),
+    active: boolean().default(true).notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [
+    unique('uniq_matching_entries_uuid').on(table.uuid),
+    index('idx_matching_entries_user_id').on(table.userId),
+  ],
+)
+
+export type MatchingEntrySelect = typeof matchingEntriesTable.$inferSelect
+export type MatchingEntryInsert = typeof matchingEntriesTable.$inferInsert
 
 export const projectBrandingsTable = mysqlTable(
   'project_brandings',
@@ -213,6 +267,7 @@ export const usersTable = mysqlTable(
     // Warning: Can't parse geometry from database
     // geometryType: geometry("location"),
     gmsPublishLocation: int('gms_publish_location').default(2).notNull(),
+    aboutMe: text('about_me').default(sql`NULL`),
     gmsRegistered: tinyint('gms_registered').default(0).notNull(),
     gmsRegisteredAt: datetime('gms_registered_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     humhubAllowed: tinyint('humhub_allowed').default(0).notNull(),

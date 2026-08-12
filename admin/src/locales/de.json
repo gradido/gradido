@@ -8,11 +8,22 @@
     "chat-placeholder": "Schreibe eine Nachricht...",
     "chat-placeholder-loading": "Warte, ich denke nach...",
     "chat-thread-deleted": "Chatverlauf gelöscht",
+    "error-api-inactive": "Crea ist zurzeit nicht aktiviert.",
     "error-chat-thread-deleted": "Fehler beim Löschen des Chatverlaufs: {error}",
-    "start-prompt": "Sprache: Deutsch\nTonfall: Freundlich, per Du\nKontext: Du bist \"Crea\", ein Support-Assistent im Admin-Interface des Gradido-Kontos. Deine Aufgabe ist es, Moderatoren bei der Bearbeitung von Gemeinwohl-Beiträgen zu unterstützen.\nBegrüßung:\n\"Hallo, ich bin Crea! Ich unterstütze Dich bei der Beantwortung der eingereichten Gemeinwohl-Beiträge. Damit ich Deine Antworten personalisieren kann, nenne mir bitte Deinen Namen. 😊\"\nWarte nun die Eingabe des Namens ab!\nNach Eingabe des Namens:\n\"Danke, [Name]! Schön, mit Dir zusammenzuarbeiten. 😊 Kopiere nun bitte einen oder mehrere Gemeinwohl-Beiträge in das Textfeld, und ich helfe Dir bei der Bearbeitung.\""
+    "error-load": "Der Chatverlauf konnte nicht geladen werden: {error}",
+    "error-output-too-long": "Creas Antwort wurde abgeschnitten. Füge bitte weniger auf einmal ein.",
+    "error-send": "Die Nachricht konnte nicht gesendet werden: {error}",
+    "error-send-failed": "Die Nachricht konnte nicht gesendet werden. Bitte versuche es noch einmal.",
+    "error-thread-not-found": "Dieser Chatverlauf existiert nicht mehr. Lösche den Verlauf, um neu zu beginnen.",
+    "error-unknown": "Es ist ein unbekannter Fehler aufgetreten.",
+    "signature-missing": "Deine Signatur ist noch nicht gesetzt — Du trägst sie im Crea-Fenster eines Beitrags ein."
   },
   "alias": "Alias",
   "all_emails": "Alle Nutzer",
+  "appOutdated": {
+    "reload": "Neu laden",
+    "text": "Es gibt eine neuere Fassung. Bitte lade die Seite neu."
+  },
   "back": "zurück",
   "bulkResubmission": {
     "cancel": "Nicht übernehmen",
@@ -28,10 +39,16 @@
   "change_user_role": "Nutzerrolle ändern",
   "close": "Schließen",
   "contribution": {
+    "changeGroup": "Schöpfungsgruppe ändern",
+    "changeGroupConfirm": "Ja, verschieben",
+    "changeGroupDone": "Schöpfungsgruppe geändert.",
+    "changeGroupHint": "Je nach Deinem Sichtbereich erscheint der Beitrag danach nicht mehr in Deiner Liste.",
+    "changeGroupQuestion": "Diesen Beitrag von {from} nach {to} verschieben?",
     "confirmedBy": "Bestätigt von {name}.",
     "createdBy": "Erstellt von {name}.",
     "deletedBy": "Gelöscht von {name}.",
-    "deniedBy": "Abgelehnt von {name}."
+    "deniedBy": "Abgelehnt von {name}.",
+    "noGroup": "(ohne Gruppe)"
   },
   "contributionLink": {
     "amount": "Betrag",
@@ -91,6 +108,7 @@
       "deny": "Ablehnen",
       "inquire": "Rückfrage"
     },
+    "deselectAll": "Alle abwählen",
     "deviation": "Deine Entscheidung",
     "evaluate": "Bewerten",
     "flags": "Bitte prüfen",
@@ -108,7 +126,15 @@
     "previewBanner": "Vorschau ohne KI-Verbindung – ein Beispiel-Ergebnis. Optik, Datenbank und Anrede/Signatur sind echt.",
     "reasoning": "Begründung",
     "response": "Antwortvorschlag",
+    "resubmission": "Wiedervorlage",
+    "resubmissionDue": "Wiedervorlage fällig",
     "rewrite": "Für meine Entscheidung schreiben",
+    "salutation": "Anrede",
+    "salutationHint": "So wird dieser Mensch angesprochen. Änderst Du sie hier, zieht der Textvorschlag sofort mit. Mit „Anrede speichern“ steht sie beim nächsten Beitrag schon da.",
+    "salutationSave": "Anrede speichern",
+    "salutationSaveFailed": "Die Anrede konnte nicht gespeichert werden.",
+    "salutationSaved": "Anrede gespeichert.",
+    "selectAll": "Alle auswählen",
     "selectHint": "Wähle die Beiträge, die Crea zusammen bewerten soll.",
     "settings": {
       "adminOnly": "Diese Einstellungen sind nur für Administratoren sichtbar.",
@@ -120,15 +146,23 @@
       "effortMax": "Maximal",
       "effortMedium": "Mittel",
       "effortXhigh": "Sehr hoch",
+      "fastMode": "Schneller Modus",
+      "fastModeActive": "(schneller Modus aktiv)",
+      "fastModeBusy": "(schneller Modus gerade ausgelastet – Crea antwortet normal)",
+      "fastModeHint": "Gleiches Modell, schnellere Ausgabe. Nur bei Opus-Modellen möglich, und die Antworten kosten dabei das Doppelte. Wo es nicht geht, antwortet Crea automatisch normal.",
+      "fastModeRefused": "(schneller Modus abgelehnt: {detail} – Crea antwortet normal)",
       "model": "KI-Modell",
       "modelHint": "Leer lassen = Standardmodell ({model}). Ein neues Modell kannst Du direkt eintragen.",
       "modelPlaceholder": "Standard: {model}",
       "presetPlaceholder": "— Vorlage wählen —",
       "saved": "Crea-Einstellungen gespeichert",
       "testFail": "Test fehlgeschlagen: {message}",
+      "testInactive": "Die Anthropic-API ist nicht aktiv (kein Schlüssel gesetzt).",
       "testModel": "Modell testen",
+      "testNoText": "(kein Text in der Antwort)",
       "testOk": "Modell antwortet: {message}",
-      "title": "Crea-Einstellungen"
+      "title": "Crea-Einstellungen",
+      "unavailable": "Die Einstellungen sind noch nicht geladen. Speichern und Testen bleiben gesperrt, bis der Stand vom Server bekannt ist."
     },
     "signature": "Deine Signatur",
     "signatureHint": "Wird in Deinem Browser gespeichert und automatisch ans Ende des Vorschlags gesetzt.",
@@ -157,6 +191,47 @@
   "created": "Geschöpft",
   "createdAt": "Angelegt",
   "creation": "Schöpfung",
+  "creationGroupFilter": {
+    "all": "(alle)",
+    "grouped": "(alle Gruppen)",
+    "label": "Schöpfungsgruppe:",
+    "untagged": "(ohne Gruppe)"
+  },
+  "creationGroupsAdmin": {
+    "add": "Anlegen",
+    "addTitle": "Neue Gruppe anlegen",
+    "adminOnly": "Nur für Administratoren.",
+    "adoption": {
+      "adopt": "{count} übernehmen",
+      "check": "Alt-Hashtags",
+      "done": "Alte Hashtags übernommen.",
+      "foundExact": "{count} ältere Beiträge schreiben #{tag} im Text.",
+      "foundLoose": "Auch {count} Beiträge mit „# {tag}“ übernehmen (mit Leerzeichen geschrieben).",
+      "foundNothing": "Kein älterer Beitrag nennt diese Gruppe im Text.",
+      "hint": "Übernommen werden nur Beiträge, die noch gar keine Gruppe haben. Ein Wort, das keine angelegte Gruppe benennt, bleibt gewöhnlicher Text.",
+      "markChecked": "Als geprüft markieren",
+      "searchFailed": "Die Suche ist fehlgeschlagen. Bitte noch einmal versuchen.",
+      "searching": "Suche in den Beiträgen …",
+      "stateAdopted": "geprüft am {date} — {count} übernommen",
+      "stateNothing": "geprüft am {date} — nichts gefunden",
+      "stateUnchecked": "Alt-Hashtags noch nicht geprüft",
+      "title": "Alte Hashtags in {group} übernehmen"
+    },
+    "cancel": "Abbrechen",
+    "created": "Gruppe angelegt.",
+    "edit": "Bearbeiten",
+    "empty": "Noch keine Gruppen angelegt.",
+    "existingTitle": "Bestehende Gruppen",
+    "intro": "Lege neue Gruppen an oder benenne bestehende um. Wer zu einer Gruppe gehört oder sie moderiert, wird im Tab „Nutzer-Rolle“ zugeordnet.",
+    "name": "Name",
+    "namePlaceholder": "z. B. Freiwillige Feuerwehr Musterstadt",
+    "save": "Speichern",
+    "tag": "Kürzel",
+    "tagHint": "Kurzes Kürzel ohne Leerzeichen — Großbuchstaben und Umlaute sind erlaubt. Beim Zuordnen wird Groß-/Kleinschreibung nicht unterschieden. Angezeigt wird überall der Name.",
+    "tagPlaceholder": "z. B. feuerwehr",
+    "title": "Schöpfungsgruppen verwalten",
+    "updated": "Gruppe aktualisiert."
+  },
   "creationList": "Schöpfungsliste",
   "creation_for_month": "Schöpfung für Monat",
   "creation_form": {
@@ -278,6 +353,7 @@
   "navbar": {
     "automaticContributions": "Startguthaben",
     "crea": "Crea",
+    "creationGroups": "Schöpfungsgruppen",
     "instances": "Instanzen",
     "logout": "Abmelden",
     "my-account": "Mein Konto",
@@ -286,8 +362,6 @@
     "statistic": "Statistik",
     "user_search": "Nutzersuche"
   },
-  "no_hashtag": "#Hashtags verbergen",
-  "no_hashtag_tooltip": "Zeigt nur Beiträge ohne Hashtag im Text",
   "not_open_creations": "Keine offenen Schöpfungen",
   "notice": "Hinweis",
   "open": "offen",
@@ -389,7 +463,20 @@
   },
   "unregistered_emails": "Nur unregistrierte Nutzer",
   "userRole": {
+    "creationGroups": {
+      "help": "Wird beim Einreichen vorbelegt.",
+      "label": "Haupt-Schöpfungsgruppe des Nutzers",
+      "none": "(ohne Gruppe)"
+    },
     "notChangeYourSelf": "Als Admin/Moderator kannst du nicht selber deine Rolle ändern.",
+    "savedCreationGroups": "Schöpfungsgruppen gespeichert.",
+    "savedScope": "Sichtbarkeit gespeichert.",
+    "scope": {
+      "all": "alle Gruppen",
+      "help": "Leer = alle Beiträge.",
+      "label": "Sichtbare Schöpfungsgruppen",
+      "untagged": "ohne Gruppe"
+    },
     "selectLabel": "Rolle:",
     "selectRoles": {
       "admin": "Administrator",

@@ -25,6 +25,7 @@ import { LogError } from '@/server/LogError'
 
 import { contributionFrontendLink } from './util/contributions'
 import { findContributionMessages } from './util/findContributionMessages'
+import { assertContributionInModeratorScope } from './util/moderatorCreationGroupScope'
 
 const db = AppDatabase.getInstance()
 const createLogger = () =>
@@ -108,7 +109,9 @@ export class ContributionMessageResolver {
     @Arg('contributionId', () => Int) contributionId: number,
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+    @Ctx() context: Context,
   ): Promise<ContributionMessageListResult> {
+    await assertContributionInModeratorScope(contributionId, context.user?.userRoles?.[0])
     const [contributionMessages, count] = await findContributionMessages({
       contributionId,
       pagination: { currentPage, pageSize, order },
@@ -127,6 +130,10 @@ export class ContributionMessageResolver {
     @Args() contributionMessageArgs: ContributionMessageArgs,
     @Ctx() context: Context,
   ): Promise<ContributionMessage> {
+    await assertContributionInModeratorScope(
+      contributionMessageArgs.contributionId,
+      context.user?.userRoles?.[0],
+    )
     const logger = createLogger()
     const { contributionId, messageType } = contributionMessageArgs
     logger.addContext('contribution', contributionMessageArgs.contributionId)

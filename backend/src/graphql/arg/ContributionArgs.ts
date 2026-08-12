@@ -19,4 +19,9 @@ export class ContributionArgs {
   @Field(() => String)
   @isValidDateString()
   contributionDate: string
+
+  // Group functions: structured creation groups chosen on submission (canonical
+  // tags; unknown/invalid ones are ignored). Optional and non-blocking.
+  @Field(() => [String], { nullable: true, defaultValue: [] })
+  creationGroups?: string[] | null
 }

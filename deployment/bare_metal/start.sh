@@ -81,10 +81,35 @@ fi
 # set env variables dynamic if not already set in .env or .env.dist
 : ${NGINX_SSL_CERTIFICATE:=/etc/letsencrypt/live/$COMMUNITY_HOST/fullchain.pem}
 : ${NGINX_SSL_CERTIFICATE_KEY:=/etc/letsencrypt/live/$COMMUNITY_HOST/privkey.pem}
+# ⚠️ Whatever is added in this block takes effect one deploy LATER than it lands.
+# This script updates itself at the git pull further down, so the run that carries
+# a change to this block into the repository is still the old file executing.
+#
+# When adding a new flag, that means two separate deploys:
+#   1. add its default here, and nothing else
+#   2. one deploy later, add the matching NAME=$NAME line to the .env.template
+#      that needs it
+#
+# Both in one commit fails: that first run pulls the new .env.template and feeds
+# it to the old logic, which has no default for the name. envsubst leaves
+# NAME=$NAME in the generated .env, dotenv-expand follows that self-reference
+# forever, and the frontend build dies with "Maximum call stack size exceeded" -
+# after the services have already been stopped. It took stage1 down on #3718 and
+# again on #3719.
+#
+# A server that has its own .env never reads .env.dist, so a flag added there
+# after that .env was written is simply unknown here. The substitution below
+# lists only the names it finds in the environment, so an unknown one is left in
+# the generated .env verbatim - as NAME=$NAME, a self-reference that sends
+# dotenv-expand into endless recursion and fails the build. Defaulting it here
+# makes the name always present; a server that sets its own value keeps it,
+# because := only fills what is unset or empty.
+: "${MATCHING_ACTIVE:=false}"
 
 # export env variables
 export NGINX_SSL_CERTIFICATE
 export NGINX_SSL_CERTIFICATE_KEY
+export MATCHING_ACTIVE
 
 # lock start
 if [ -f $LOCK_FILE ] ; then

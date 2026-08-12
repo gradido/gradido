@@ -20,6 +20,10 @@
   "PersonalDetails": "Kişisel bilgiler",
   "advanced-calculation": "Önceden hesaplama",
   "answerNow": "→ Şimdi yanıtla!",
+  "appOutdated": {
+    "reload": "Yenile",
+    "text": "Daha yeni bir sürüm mevcut. Lütfen sayfayı yenileyin."
+  },
   "asterisks": "****",
   "auth": {
     "left": {
@@ -62,9 +66,12 @@
     "community": "Topluluk",
     "communityMember": "Aktif bir üyesin",
     "continue-to-registration": "Kayıt işlemine devam et",
+    "groupsAndModerators": "Yaratım grupları ve moderatörler",
     "moderator": "Moderatör",
-    "moderators": "Moderatörler",
+    "moderatorsAllGroups": "Tüm gruplar için",
+    "moderatorsUntagged": "Grubu olmayan katkılar",
     "myContributions": "Toplum yararına yaptığım hizmetler",
+    "noModerators": "Henüz moderatör yok",
     "submitContribution": "yaz"
   },
   "communityInfo": "Topluluk Bilgisi",
@@ -82,8 +89,22 @@
       "myContributionNoteList": "Bildirmiş olduğun henüz onaylanmamış olan  faaliyetleri istediğin zaman düzenleyebilir veya silebilirsin.",
       "pending": "Gönderildi ve onay bekleniyor"
     },
-    "delete": "Hizmeti sil! Emin misin?",
-    "deleted": "Hizmet silindi! Fakat hala görünüyor olacak.",
+    "communityWindow": "Contributions from the last {months} months",
+    "creationGroup": {
+      "help": "İsteğe bağlı. Grupsuz da olur. Metindeki bir #kelime grup belirlemez — bunun için bu alan var.",
+      "label": "Creation group",
+      "none": "(grupsuz)"
+    },
+    "delete": "Hizmet gerçekten silinsin mi? Bundan sonra onu yalnızca sen ve moderatörler görebilir, topluluk göremez.",
+    "deleted": "Hizmet silindi. Artık onu yalnızca sen ve moderatörler görebilir, topluluk göremez.",
+    "filter": {
+      "all": "(tümü)",
+      "byGroup": "Yaratım grubuna göre filtrele",
+      "grouped": "(tüm gruplar)",
+      "noGroup": "(grupsuz)",
+      "noResults": "No contributions found.",
+      "search": "Search contributions …"
+    },
     "formText": {
       "bringYourTalentsTo": "Yeteneklerini topluluğa sun! Gönüllü olarak sunduğun hizmetler ayda max 1,000 GDD olacak şekilde saati 20 GDD olarak ödüllendirilecektir! Bir moderatör tarafından onaylandıktan sonra bu tutar hesabına yatırılacaktır.",
       "describeYourCommunity": "Kamu yararına faaliyetini açıkla ve saat sayısını belirt! Saat başına 20 GDD tutarı otomatik olarak hesaplanır. Bir moderatör onayladıktan sonra tutar hesabına işlenir.",
@@ -93,6 +114,7 @@
     },
     "isEdited": "katkıyı düzenledi",
     "lastContribution": "Son Katkılar",
+    "memoIsPublic": "Your description appears in the community list, where it is visible to all members. It shows the contribution's number instead of your name.",
     "noContributions": {
       "allContributions": "Henüz hiç katkı gönderilmedi.",
       "emptyPage": "Bu sayfa boş.",
@@ -103,6 +125,7 @@
       "lastMonth": "Seçilen ay için yaratım limitine ulaşıldı.",
       "thisMonth": "İçinde bulunduğun ay için yaratım limitine ulaşıldı."
     },
+    "number": "Contribution no. {number}",
     "oldContribution": "Önceki sürüm",
     "selectDate": "Hizmet ne zaman verildi?",
     "submit": "Başvuru yapıldı",
@@ -113,7 +136,6 @@
   "contribution-link": {
     "thanksYouWith": "Sana gönderiyor"
   },
-  "contributionText": "Katkı Metni",
   "copy-to-clipboard": "Panoya kopyala",
   "creation": "Yarat",
   "decay": {
@@ -334,6 +356,193 @@
   "link-load": "Son linki yükle| Son {n} linki yükle",
   "link-load-more": "{n} link daha yükle",
   "login": "Giriş",
+  "matching": {
+    "about": {
+      "counter": "{count} / ~1000 karakter",
+      "label": "Kendi sözlerinle kim olduğun",
+      "placeholder": "Kim olduğunu, seni neyin harekete geçirdiğini, neyi paylaştığını anlat: biri sana yazmadan önce güven oluşturur.",
+      "saved": "Profilin kaydedildi"
+    },
+    "cluster": {
+      "close": "Listeyi kapat",
+      "title": "Bu noktada {n} kişi"
+    },
+    "entries": {
+      "activate": "Etkinleştir",
+      "count": "{total} giriş · {live} aktif · {paused} duraklatıldı",
+      "delete": "Sil",
+      "deleteConfirm": "Bu giriş silinsin mi?",
+      "details": "Ayrıntılar",
+      "edit": "Düzenle",
+      "emptyText": "Bir şey sun, bir şey ara ya da bir ilgi alanı paylaş ve bulunmanı sağla.",
+      "emptyTitle": "Henüz giriş yok.",
+      "new": "Yeni giriş",
+      "noDetails": "(ayrıntı yok)",
+      "pause": "Duraklat",
+      "pausedBadge": "Duraklatıldı · aramada değil",
+      "remote": "Bölge üstü"
+    },
+    "find": {
+      "gateText": "Konumunu ayarlayıp haritada görünür olduğunda, yakınındaki diğer kişileri de bulabilirsin.",
+      "gateTitle": "Önce haritada kendini göster",
+      "later": "Daha sonra",
+      "subtitle": "Sana uyanları keşfet",
+      "title": "Haritada bul",
+      "titleList": "Listede bul",
+      "toPosition": "Evime git",
+      "understood": "Anlaşıldı"
+    },
+    "info": {
+      "about": {
+        "heading": "Kim olduğun",
+        "p1": "Hakkında birkaç sıcak, içten cümle, biri sana yazmadan önce güven oluşturur.",
+        "p2": "Bu metin, arama haritasındaki profil kartında görünür."
+      },
+      "entries": {
+        "heading": "Eşleşme nasıl çalışır",
+        "paused": "Duraklatılan girişler kayıtlı kalır; yalnızca aramada görünmezler.",
+        "text": "Sevdiğin, sunduğun ya da aradığın şeyi belirt: her aktif giriş, başkalarının aramalarında görünmeni sağlar."
+      },
+      "position": {
+        "heading": "Gizliliğin",
+        "p1": "Ne kadar hassas görüneceğine sen karar verirsin. «Yaklaşık» seni bir alan içinde gösterir, asla kapının önünde değil.",
+        "p2": "Konum olmadan haritada değilsin. Anahtar seni istediğin zaman yeniden çıkarır."
+      }
+    },
+    "list": {
+      "centeredOn": "{place} çevresinde",
+      "controlsHeading": "Arama ve sıralama",
+      "dir": {
+        "e": "doğuda",
+        "n": "kuzeyde",
+        "ne": "kuzeydoğuda",
+        "nw": "kuzeybatıda",
+        "s": "güneyde",
+        "se": "güneydoğuda",
+        "sw": "güneybatıda",
+        "w": "batıda"
+      },
+      "empty": "Şu anda burada kimse yok. Yarıçapı büyüt ya da başka bir yer ara.",
+      "heading": "Yakınındaki insanlar",
+      "kmEtwa": "yaklaşık {n} km",
+      "kmExact": "{n} km",
+      "lensBy": "Şuradan uzaklık",
+      "lensHome": "Ev",
+      "lensSearch": "Arama noktası",
+      "line": {
+        "angebot": "{thing} sunuyor — sen bunu arıyorsun",
+        "gesuch": "{thing} arıyor — sen bunu sunuyorsun",
+        "interesse": "{thing} konusunda ilgini paylaşıyor"
+      },
+      "matchesHeading": "Eşleşmelerin",
+      "meets": "girişlerinden {n} tanesiyle örtüşüyor",
+      "near": "hemen yakında",
+      "othersHeading": "Yakınındaki diğer insanlar",
+      "sortBreite": "en çok şeye uyan",
+      "sortBy": "Sıralama ölçütü",
+      "sortNaehe": "Yakınlık",
+      "sortPassung": "Uyum"
+    },
+    "map": {
+      "amplifier": "Yükseltici",
+      "back": "Geri",
+      "breite": "Birden çok kez uyanlar",
+      "breiteHint": "Girişlerinden birkaçına birden yanıt veren insanları öne çıkarır.",
+      "channels": {
+        "andere": "diğer herkes",
+        "andereMit": "girişi olan diğerleri",
+        "andereOhne": "girişi olmayan diğerleri",
+        "angebot": "Teklifler",
+        "gesuch": "Talepler",
+        "interesse": "İlgi alanları"
+      },
+      "found": "Bulunan kişi sayısı: {n}",
+      "home": "Evime dön",
+      "km": "km",
+      "look": {
+        "dunkel": "koyu",
+        "hell": "açık",
+        "karte": "Harita",
+        "label": "Görünüm",
+        "liste": "Liste",
+        "normal": "normal"
+      },
+      "radius": "Yarıçap",
+      "radiusLabel": "Hangi yarıçapta aramak istiyorsun? (km)",
+      "radiusTitle": "Arama yarıçapı",
+      "search": "Bir yer ya da adres ara",
+      "searchHere": "Burada ara"
+    },
+    "new": {
+      "cancel": "İptal",
+      "completeSentence": "Bu cümleyi tamamla:",
+      "detailsHeading": "Ayrıntılar — doğru kişiler seni bulsun:",
+      "remote": "Bölge üstü / çevrimiçi de mevcut"
+    },
+    "position": {
+      "accuracyApprox": "Biraz değiştirilmiş bir konum gösteriliyor",
+      "accuracyExact": "Tam konumun gösteriliyor",
+      "cancel": "İptal",
+      "findable": "Bulunabilir miyim?",
+      "findableHint": "Haritadaki varlığını açar/kapatır",
+      "findableOff": "Artık haritada bulunamıyorsun",
+      "findableOn": "Artık haritada bulunabilirsin",
+      "intro": "Eşleşmeye katılmak için kendini haritaya yerleştir: yalnızca bunu yaptığında görünürsün.",
+      "saveText": "Konum ayarlarını şimdi kaydetmek ister misin?",
+      "saveTitle": "Konumu kaydet",
+      "unsaved": "Henüz kaydedilmedi"
+    },
+    "profile": {
+      "aria": "{name} profili",
+      "more": "{n} tane daha",
+      "sendEmail": "E-posta gönder",
+      "sendGradido": "Gradido gönder"
+    },
+    "query": {
+      "all": "Tüm girişlerim",
+      "clear": "Aramayı sıfırla",
+      "details": "Aramanla ilgili ayrıntılar",
+      "detailsPlaceholder": "ikinci el, 28 inç",
+      "keep": "Giriş olarak sakla",
+      "keepAsk": "Bundan böyle “{text}” ile eşleşenler seni bulsun mu?",
+      "keepNo": "Hayır, teşekkürler",
+      "label": "Şu anda aradığım",
+      "open": "Bir arama seç",
+      "other": "Başka bir şey ara …",
+      "pick": "Nasıl kastettiğini seç — arama böyle başlar.",
+      "placeholder": "bisiklet",
+      "untouched": "Girişlerin olduğu gibi kalır."
+    },
+    "save": "Kaydet",
+    "tabs": {
+      "about": "Hakkımda",
+      "entries": "Girişler",
+      "position": "Ev"
+    },
+    "type": {
+      "angebot": {
+        "desc": "verdiğin şey",
+        "detailsPlaceholder": "Eski ve yeni bisikletler, e-bisikletler de — ben gelirim",
+        "placeholder": "bisiklet tamiri",
+        "prefix": "Sunuyorum",
+        "word": "Teklif"
+      },
+      "gesuch": {
+        "desc": "aradığın şey",
+        "detailsPlaceholder": "Giriş kapısı sıkışıyor, eski kilit göbeği",
+        "placeholder": "bir çilingir",
+        "prefix": "Arıyorum",
+        "word": "Talep"
+      },
+      "interesse": {
+        "desc": "sevdiğin şey",
+        "detailsPlaceholder": "kendi kendine yeten bahçemde",
+        "placeholder": "permakültür",
+        "prefix": "Seviyorum",
+        "word": "İlgi"
+      }
+    }
+  },
   "math": {
     "asterisk": "*",
     "equal": "=",
@@ -358,6 +567,7 @@
     "admin_area": "Yönetici Alanı",
     "community": "Topluluk",
     "logout": "Çıkış",
+    "matching": "Matching",
     "overview": "Toplu Bakış",
     "send": "Gönder",
     "settings": "Ayarlar",
@@ -370,6 +580,7 @@
     "contributions": "Gradido yarat",
     "gdt": "GDT işlemlerin",
     "information": "{community}",
+    "matching": "Matching",
     "overview": "Hoş geldin {name}",
     "send": "Gradido ve e-posta gönder",
     "settings": "Ayarlar",
@@ -377,7 +588,7 @@
     "usersearch": "Coğrafi üye arama (beta)"
   },
   "qrCode": "QR Kodu",
-  "send_email": "E-posta gönder",
+  "send_email": "E‑posta gönder",
   "send_gdd": "GDD gönder",
   "send_per_link": "Link yoluyla GDD send gönder",
   "session": {
@@ -398,12 +609,12 @@
       },
       "location-format": "Konumu haritada göster:",
       "map": {
-        "communityCoords": "Topluluk Konumunuz: Enlem {lat}, Boylam {lng}",
-        "communityLocationLabel": "Topluluk Konumunuz",
+        "communityCoords": "Topluluk konumu: Enlem {lat}, Boylam {lng}",
+        "communityLocationLabel": "Topluluk konumu",
         "headline": "Kullanıcının Coğrafi Konum Tespiti",
         "search": "Konum ara",
-        "userCoords": "Konumunuz: Enlem {lat}, Boylam {lng}",
-        "userLocationLabel": "Konumunuz"
+        "userCoords": "Konumun: Enlem {lat}, Boylam {lng}",
+        "userLocationLabel": "Konumun"
       },
       "naming-format": "İsmi göster:",
       "publish-location": {
@@ -514,6 +725,13 @@
   "status": "Durum",
   "submitted": "Gönderildi",
   "success": "Başarılı",
+  "thank-you-cheque": {
+    "download": "Teşekkür çekini indir",
+    "scan-qr": "Senin hesabına Gradido transferi için QR kodu tara!",
+    "starting-credit": "Başlangıç bakiyesi {amount} Gradido",
+    "starting-credit-valid": "Bu başlangıç bakiyesi {from} ile {to} arasında geçerli.",
+    "valid-until": "Bu teşekkür çeki {date} tarihine kadar geçerli."
+  },
   "time": {
     "days": "Günler",
     "hours": "Saatler",

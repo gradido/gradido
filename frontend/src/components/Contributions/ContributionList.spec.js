@@ -1,3 +1,5 @@
+import { listContributions, myContributionCreationGroups } from '@/graphql/contributions.graphql'
+import { print } from 'graphql'
 import { useQuery } from '@vue/apollo-composable'
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -40,7 +42,12 @@ const router = createRouter({
 vi.mock('@/components/Contributions/ContributionListItem.vue', () => ({
   default: {
     name: 'ContributionListItem',
-    template: '<div></div>',
+    // ⚠️ The stub declares the group prop and prints it. That is what lets a test see the
+    // seam: the item is handed the whole row with v-bind="item", so a field of the query
+    // becomes a prop by NAME alone -- nothing imports one from the other. A stub that
+    // rendered an empty div could not tell whether the field arrived at all.
+    props: ['creationGroups'],
+    template: '<div>{{ (creationGroups ?? []).map((g) => g.name).join(", ") }}</div>',
   },
 }))
 
@@ -73,6 +80,9 @@ describe('ContributionList', () => {
           memo: 'Ich habe 10 Stunden die Elbwiesen von Müll befreit.',
           amount: '200',
           status: 'IN_PROGRESS',
+          // A real contribution carries its group. Without it the fixture could not show
+          // that the field survives the trip from the query into the item.
+          creationGroups: [{ tag: 'choir', name: 'Choir' }],
         },
         {
           id: 1,
@@ -100,11 +110,24 @@ describe('ContributionList', () => {
 
   const loading = ref(false)
 
+  const myGroups = ref({
+    myContributionCreationGroups: [
+      { id: 1, tag: 'choir', name: 'Choir' },
+      { id: 2, tag: 'fire', name: null },
+    ],
+  })
+
   describe('mount', () => {
     const mockListContributionsQuery = vi.fn()
 
     beforeEach(() => {
       vi.mocked(useQuery).mockImplementation((query) => {
+        // This tab asks two queries. Answering both the same way would hide which one the
+        // group dropdown reads -- and reading the canonical list instead of the member's
+        // own groups is precisely the mistake this component must not make.
+        if (query === myContributionCreationGroups) {
+          return { result: myGroups, loading: ref(false) }
+        }
         return {
           result: contributions,
           loading,
@@ -128,6 +151,31 @@ describe('ContributionList', () => {
 
     it('has a DIV .contribution-list', () => {
       expect(wrapper.find('div.contribution-list').exists()).toBe(true)
+    })
+
+    // Both contribution tabs carry the same group filter, so both have to offer the same
+    // three answers -- this tab was missed once, and the label it used had already been
+    // renamed. BFormSelect is registered app-wide rather than imported, so the test puts
+    // its own stand-in there to read the options off.
+    it('offers all, all groups and no group before the real groups', () => {
+      const SelectStub = {
+        name: 'ThemedSelect',
+        props: ['options', 'modelValue'],
+        template: '<select></select>',
+      }
+      const localWrapper = mount(ContributionList, {
+        global: { ...global, stubs: { ...global.stubs, ThemedSelect: SelectStub } },
+      })
+      const options = localWrapper.findComponent(SelectStub).props('options')
+      // The real groups are asserted too: the three reserved answers alone would still
+      // pass if the dropdown read the community-wide list instead of the member's own.
+      expect(options.map((option) => option.value)).toEqual([
+        null,
+        '*grouped',
+        '*untagged',
+        'choir',
+        'fire',
+      ])
     })
 
     describe('pagination', () => {
@@ -179,5 +227,21 @@ describe('ContributionList', () => {
         expect(wrapper.emitted('update-contribution-form')).toEqual([[{ item: 'item', page: 1 }]])
       })
     })
+
+    // The seam itself: the group survives the trip from the query result into the item.
+    it('hands the group down to the item', () => {
+      expect(wrapper.text()).toContain('Choir')
+    })
+  })
+
+  // ⚠️ The half a fixture cannot cover: that THIS query asks for the field under that very
+  // name. Rename it in the document alone and the assertion above stays green, because the
+  // fixture supplies the prop regardless.
+  //
+  // ⚠️ print(), not loc.source.body: the latter is the whole .graphql FILE, where four
+  // queries select this field -- so it stayed green even with listContributions renamed.
+  // print() renders just this operation.
+  it('is the field this query actually selects', () => {
+    expect(print(listContributions)).toMatch(/\bcreationGroups\s*\{/)
   })
 })

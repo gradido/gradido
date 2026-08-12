@@ -11,10 +11,20 @@
           </BAvatar>
         </BCol>
         <BCol>
+          <!-- The number identifies the contribution in the community list, where no name
+               is shown. Its author can quote it if they want to be identified there. -->
+          <div class="small text-muted" data-test="contribution-number">
+            {{ $t('contribution.number', { number: id }) }}
+          </div>
           <div class="small">
             {{ $d(new Date(contributionDate), 'short') }}
           </div>
-          <div class="mt-3 fw-bold">{{ $t('contributionText') }}</div>
+          <div class="mt-3 fw-bold">
+            <span v-if="groupLabel">{{ groupLabel }}</span>
+            <span v-else class="fw-normal fst-italic text-muted">
+              {{ $t('contribution.creationGroup.none') }}
+            </span>
+          </div>
           <div class="mb-3 text-break word-break">{{ memo }}</div>
           <div v-if="updatedBy > 0" class="mt-2 mb-2 small">
             {{ $t('moderatorChangedMemo') }}
@@ -109,6 +119,7 @@ import { useMutation } from '@vue/apollo-composable'
 import { GDD_PER_HOUR } from '../../constants'
 import { deleteContribution } from '@/graphql/contributions.graphql'
 import { useContributionStatus } from '@/composables/useContributionStatus'
+import { creationGroupLabels } from '@/utils/creationGroupLabel'
 
 const props = defineProps({
   id: {
@@ -151,7 +162,16 @@ const props = defineProps({
     required: false,
     default: false,
   },
+  creationGroups: {
+    type: Array,
+    required: false,
+    default: () => [],
+  },
 })
+
+// Group functions: the contribution's group takes the place of the old, unhelpful
+// "contribution text" heading. Several groups are listed one after another.
+const groupLabel = computed(() => creationGroupLabels(props.creationGroups))
 
 const { toastError, toastSuccess } = useAppToast()
 const { t } = useI18n()

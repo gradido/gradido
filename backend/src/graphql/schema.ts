@@ -4,19 +4,22 @@ import { GraphQLSchema } from 'graphql'
 import { Duration, GradidoUnit } from 'shared'
 import { buildSchema } from 'type-graphql'
 import { isAuthorized } from './directive/isAuthorized'
-import { AiChatResolver } from './resolver/AiChatResolver'
 import { BalanceResolver } from './resolver/BalanceResolver'
 import { CommunityResolver } from './resolver/CommunityResolver'
 import { ContributionLinkResolver } from './resolver/ContributionLinkResolver'
 import { ContributionMessageResolver } from './resolver/ContributionMessageResolver'
 import { ContributionResolver } from './resolver/ContributionResolver'
+import { CreaChatResolver } from './resolver/CreaChatResolver'
 import { CreaResolver } from './resolver/CreaResolver'
+import { CreationGroupResolver } from './resolver/CreationGroupResolver'
 import { GdtResolver } from './resolver/GdtResolver'
 import { KlicktippResolver } from './resolver/KlicktippResolver'
+import { MatchingEntryResolver } from './resolver/MatchingEntryResolver'
 import { ProjectBrandingResolver } from './resolver/ProjectBrandingResolver'
 import { StatisticsResolver } from './resolver/StatisticsResolver'
 import { TransactionLinkResolver } from './resolver/TransactionLinkResolver'
 import { TransactionResolver } from './resolver/TransactionResolver'
+import { UserCreationGroupResolver } from './resolver/UserCreationGroupResolver'
 import { UserResolver } from './resolver/UserResolver'
 import { DurationScalar } from './scalar/Duration'
 import { LocationScalar } from './scalar/Location'
@@ -24,19 +27,22 @@ import { LocationScalar } from './scalar/Location'
 export const schema = async (): Promise<GraphQLSchema> => {
   return buildSchema({
     resolvers: [
-      AiChatResolver,
       BalanceResolver,
       CommunityResolver,
       ContributionLinkResolver,
       ContributionMessageResolver,
       ContributionResolver,
+      CreaChatResolver,
       CreaResolver,
       GdtResolver,
+      CreationGroupResolver,
+      MatchingEntryResolver,
       KlicktippResolver,
       ProjectBrandingResolver,
       StatisticsResolver,
       TransactionLinkResolver,
       TransactionResolver,
+      UserCreationGroupResolver,
       UserResolver,
     ],
     authChecker: isAuthorized,

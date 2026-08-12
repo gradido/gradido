@@ -100,6 +100,20 @@ describe('TransactionForm', () => {
     expect(wrapper.find('div.transaction-form').exists()).toBe(true)
   })
 
+  describe('send type from the route', () => {
+    it('opens in e-mail mode when ?art=email', () => {
+      useRoute.mockReturnValueOnce({ params: {}, query: { art: 'email' } })
+      const w = createWrapper({ balance: 100 })
+      expect(w.vm.radioSelected).toBe(SEND_TYPES.email)
+    })
+
+    it('keeps the default for any other art value', () => {
+      useRoute.mockReturnValueOnce({ params: {}, query: { art: 'nonsense' } })
+      const w = createWrapper({ balance: 100 })
+      expect(w.vm.radioSelected).toBe(SEND_TYPES.send)
+    })
+  })
+
   describe('with balance <= 0.00 GDD the form is disabled', () => {
     it('has a disabled input field of type text', () => {
       expect(wrapper.find('#identifier').attributes('disabled')).toBe('true')
@@ -301,6 +315,41 @@ describe('TransactionForm', () => {
         identifier: 'gradido-ID',
         communityIdentifier: 'community-ID',
       })
+    })
+  })
+
+  // The same textarea serves both send types, but the two are bound by different
+  // rules: a memo travels with a transaction into a varchar(512) column, a message
+  // does not. Sending the message down the memo rules would cut a normal first
+  // contact short, sending the memo down the message rules would let it grow past
+  // the column it has to fit.
+  describe('length rules per send type', () => {
+    const longerThanAMemo = 'x'.repeat(1000)
+    const shortReply = 'Ja'
+
+    beforeEach(async () => {
+      useRoute.mockReturnValue({ params: {}, query: {} })
+      wrapper = createWrapper({ balance: 100.0 })
+      await nextTick()
+    })
+
+    it('lets a message be far longer than a memo may be', async () => {
+      wrapper.vm.radioSelected = SEND_TYPES.email
+      await nextTick()
+      expect(wrapper.vm.validationSchema.fields.memo.isValidSync(longerThanAMemo)).toBe(true)
+    })
+
+    it('lets a message be as short as a two letter reply', async () => {
+      wrapper.vm.radioSelected = SEND_TYPES.email
+      await nextTick()
+      expect(wrapper.vm.validationSchema.fields.memo.isValidSync(shortReply)).toBe(true)
+    })
+
+    it('keeps a transaction memo inside the bounds of its column', async () => {
+      wrapper.vm.radioSelected = SEND_TYPES.send
+      await nextTick()
+      expect(wrapper.vm.validationSchema.fields.memo.isValidSync(longerThanAMemo)).toBe(false)
+      expect(wrapper.vm.validationSchema.fields.memo.isValidSync(shortReply)).toBe(false)
     })
   })
 })

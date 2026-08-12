@@ -78,6 +78,13 @@
               @focus="captureCreaField"
             />
           </BTab>
+          <!-- The memo is the only part of the contribution itself a moderator edits here. The
+               amount is deliberately NOT editable -- not in this dialog and nowhere else in
+               moderation, and the same for every contribution, whether a member submitted it or
+               a moderator entered it on their behalf (confirmed 2026-08-11). A wrong amount is
+               corrected by denying or deleting the contribution and entering it again, not by
+               overwriting it. The absence of an amount field here is the decision, not a gap --
+               do not add one without revisiting it. -->
           <BTab>
             <template #title>
               <span id="memo-tab-title">{{ $t('moderator.memo') }}</span>

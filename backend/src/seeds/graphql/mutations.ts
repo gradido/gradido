@@ -38,6 +38,7 @@ export const updateUserInfos = gql`
     $gmsPublishName: PublishNameType
     $gmsLocation: Location
     $gmsPublishLocation: GmsPublishLocationType
+    $aboutMe: String
   ) {
     updateUserInfos(
       firstName: $firstName
@@ -52,6 +53,7 @@ export const updateUserInfos = gql`
       gmsPublishName: $gmsPublishName
       gmsLocation: $gmsLocation
       gmsPublishLocation: $gmsPublishLocation
+      aboutMe: $aboutMe
     )
   }
 `
@@ -139,6 +141,12 @@ export const adminCreateContribution = gql`
       memo: $memo
       creationDate: $creationDate
     )
+  }
+`
+
+export const assignContributionCreationGroups = gql`
+  mutation ($contributionId: Int!, $tags: [String!]!) {
+    assignContributionCreationGroups(contributionId: $contributionId, tags: $tags)
   }
 `
 
@@ -265,8 +273,18 @@ export const deleteContributionLink = gql`
 `
 
 export const createContribution = gql`
-  mutation ($amount: GradidoUnit!, $memo: String!, $contributionDate: String!) {
-    createContribution(amount: $amount, memo: $memo, contributionDate: $contributionDate) {
+  mutation (
+    $amount: GradidoUnit!
+    $memo: String!
+    $contributionDate: String!
+    $creationGroups: [String!]
+  ) {
+    createContribution(
+      amount: $amount
+      memo: $memo
+      contributionDate: $contributionDate
+      creationGroups: $creationGroups
+    ) {
       id
       amount
       memo
@@ -384,5 +402,46 @@ export const updateHomeCommunityQuery = gql`
       authenticatedAt
       gmsApiKey
     }
+  }
+`
+
+export const createMatchingEntry = gql`
+  mutation ($input: MatchingEntryInput!) {
+    createMatchingEntry(input: $input) {
+      uuid
+      matchingType
+      summary
+      details
+      remote
+      active
+    }
+  }
+`
+
+export const updateMatchingEntry = gql`
+  mutation ($uuid: String!, $input: MatchingEntryInput!) {
+    updateMatchingEntry(uuid: $uuid, input: $input) {
+      uuid
+      matchingType
+      summary
+      details
+      remote
+      active
+    }
+  }
+`
+
+export const setMatchingEntryActive = gql`
+  mutation ($uuid: String!, $active: Boolean!) {
+    setMatchingEntryActive(uuid: $uuid, active: $active) {
+      uuid
+      active
+    }
+  }
+`
+
+export const deleteMatchingEntry = gql`
+  mutation ($uuid: String!) {
+    deleteMatchingEntry(uuid: $uuid)
   }
 `

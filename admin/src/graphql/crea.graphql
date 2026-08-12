@@ -7,6 +7,7 @@ mutation creaEvaluateBatch($input: CreaBatchInput!) {
     confidence
     reasoning
     responseText
+    defaultSalutation
     openPoints {
       question
       options
@@ -25,6 +26,7 @@ mutation creaEvaluateContribution ($input: CreaContributionInput!) {
     confidence
     reasoning
     responseText
+    defaultSalutation
     activities {
       activity
       categoryKey
@@ -70,6 +72,7 @@ query creaSettings {
     model
     effort
     defaultModel
+    fastMode
   }
 }
 
@@ -78,12 +81,20 @@ mutation setCreaSettings ($input: CreaSettingsInput!) {
     model
     effort
     defaultModel
+    fastMode
   }
 }
 
 mutation testCreaModel($input: CreaSettingsInput!) {
   testCreaModel(input: $input) {
     ok
+    code
     message
+    fastMode
+    fastModeDetail
   }
+}
+
+mutation setCreaSalutation($userId: Int!, $salutation: String) {
+  setCreaSalutation(userId: $userId, salutation: $salutation)
 }

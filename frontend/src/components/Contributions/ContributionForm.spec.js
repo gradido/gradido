@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { ref } from 'vue'
+import { useQuery } from '@vue/apollo-composable'
+import { suggestedCreationGroup } from '@/graphql/contributions.graphql'
 import ContributionForm from './ContributionForm.vue'
 
 vi.mock('vue-i18n', () => ({
@@ -22,8 +25,12 @@ vi.mock('vee-validate', () => ({
   })),
 }))
 
+vi.mock('@vue/apollo-composable', () => ({
+  useQuery: vi.fn(() => ({ result: { value: undefined } })),
+}))
+
 const global = {
-  stubs: ['BForm', 'BFormInput', 'BRow', 'BCol', 'BButton'],
+  stubs: ['BForm', 'BFormInput', 'BFormGroup', 'BFormSelect', 'BRow', 'BCol', 'BButton'],
 }
 
 describe('ContributionForm', () => {
@@ -187,5 +194,62 @@ describe('ContributionForm', () => {
     wrapper.vm.submit()
 
     expect(wrapper.emitted('upsert-contribution')).toBeTruthy()
+  })
+
+  // The group field is pre-filled with what the member last said themselves — derived in
+  // the backend from their own history, so there is no stored "main group" to go stale.
+  describe('group pre-fill', () => {
+    const withSuggestion = (tag) => {
+      vi.mocked(useQuery).mockImplementation((query) => {
+        if (query === suggestedCreationGroup) {
+          return { result: ref(tag ? { suggestedCreationGroup: { id: 1, tag, name: null } } : {}) }
+        }
+        return { result: ref(undefined) }
+      })
+    }
+
+    const mountWith = (modelValue = {}) =>
+      mount(ContributionForm, {
+        props: { ...defaultProps, modelValue: { ...defaultProps.modelValue, ...modelValue } },
+        global,
+      })
+
+    it('pre-fills the suggested group', () => {
+      withSuggestion('feuerwehr')
+      expect(mountWith().vm.selectedCreationGroup).toBe('feuerwehr')
+    })
+
+    it('asks the server for the suggestion instead of trusting the cache', () => {
+      // Submitting swaps this form out for the success screen, so coming back mounts a
+      // fresh one. With the default cache-first policy that fresh form is handed the
+      // answer from BEFORE the submission — which is what put the old group back after
+      // someone had just switched to "no group". Only the policy can be asserted here;
+      // a component test has no Apollo cache to go stale.
+      withSuggestion('feuerwehr')
+      mountWith()
+      expect(useQuery).toHaveBeenCalledWith(
+        suggestedCreationGroup,
+        expect.anything(),
+        expect.objectContaining({ fetchPolicy: 'no-cache' }),
+      )
+    })
+
+    it('leaves the field empty when there is nothing to suggest', () => {
+      // Also the deliberate "no group" case: the backend answers with nothing, and the
+      // field must not fall back to some earlier group.
+      withSuggestion(null)
+      expect(mountWith().vm.selectedCreationGroup).toBe('')
+    })
+
+    it('does not overwrite a group that is already chosen', () => {
+      withSuggestion('feuerwehr')
+      expect(mountWith({ creationGroups: ['chor'] }).vm.selectedCreationGroup).toBe('chor')
+    })
+
+    it('does not pre-fill when an existing contribution is edited', () => {
+      // Editing must not silently move a contribution into another group.
+      withSuggestion('feuerwehr')
+      expect(mountWith({ id: '123' }).vm.selectedCreationGroup).toBe('')
+    })
   })
 })

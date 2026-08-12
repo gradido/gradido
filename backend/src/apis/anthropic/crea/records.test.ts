@@ -1,3 +1,4 @@
+// AI-GENERATED — not an architecture reference
 import type { CreaEvaluation } from '@/graphql/model/CreaEvaluation'
 import { buildCreaRecordRows, type CreaRecordMeta } from './records'
 import { CREA_BEHAVIOR_VERSION, CREA_RULESET_VERSION, CREA_TAXONOMY_VERSION } from './ruleset'
@@ -38,6 +39,7 @@ const evaluation: CreaEvaluation = {
   confidence: 'medium',
   reasoning: 'one clear, one unclear',
   responseText: '[ANREDE], danke!',
+  defaultSalutation: 'Lieber Thomas',
   openPoints: [],
   flags: [],
 }

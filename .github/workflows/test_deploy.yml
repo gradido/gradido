@@ -32,4 +32,10 @@ jobs:
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml up --detach --no-deps mariadb
 
       - name: Deploy Bare Metal | Build image
-        run: docker build --network host -f ./deployment/bare_metal/Dockerfile --build-arg BRANCH_NAME=${{ github.ref_name }} -t "gradido/deploy-bare-metal:local" .
+        # Both contexts go through the environment rather than into the script text. A branch
+        # name may contain $, backticks or semicolons, and a directly interpolated one would
+        # be expanded as shell source before the runner ever executes it.
+        env:
+          BRANCH_NAME: ${{ github.ref_name }}
+          REPO_URL: https://github.com/${{ github.repository }}.git
+        run: docker build --network host -f ./deployment/bare_metal/Dockerfile --build-arg "BRANCH_NAME=$BRANCH_NAME" --build-arg "REPO_URL=$REPO_URL" -t "gradido/deploy-bare-metal:local" .

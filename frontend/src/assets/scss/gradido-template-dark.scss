@@ -32,6 +32,14 @@ body.dark-mode {
   color: var(--text);
 }
 
+// The open <select> popup follows the ROOT element's color-scheme, not the inherited value,
+// so the dark scheme has to reach <html> too (the rule above only covers #app/body). The
+// dark-mode class sits on #app/body (App.vue sets it there); :has() carries it up to the root
+// reactively, so no extra class toggle is needed. Base is :root { color-scheme: light }.
+html:has(body.dark-mode) {
+  color-scheme: dark;
+}
+
 .dark-mode {
   .bg-white,
   .card,
@@ -395,14 +403,25 @@ body.dark-mode {
   --bs-btn-active-color: var(--bg);
 }
 
-// Toggle switches (BFormCheckbox switch, Settings + Matching position): the OFF
-// state is a white track with a dark thumb -> dark track + light thumb. The ON
+// Unchecked form controls share .form-check-input: toggle switches (Settings +
+// Matching position), the plain checkbox (Matching "remote"), and the theme-mode
+// radios (Settings appearance). The OFF state is a white track/box with a dark
+// thumb -> dark fill + light thumb, plus a light-grey outline so the control stays
+// visible against the dark surface (var(--border) sat too close to it). The ON
 // state (Bootstrap blue) is fine and left alone.
 .dark-mode .form-check-input:not(:checked) {
   --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%239a9b9e'/%3e%3c/svg%3e");
 
   background-color: var(--surface-muted);
-  border-color: var(--border);
+  border-color: var(--text-muted);
+}
+
+// The list's two top fields (sort, address search) — var(--border) sits too close
+// to the dark surface for a field edge, so lift them to a visible outline like the
+// switch above.
+.dark-mode .sort-select,
+.dark-mode .search-input {
+  border-color: var(--text-muted);
 }
 
 // Matching position "Bin ich auffindbar?" label inherits a hardcoded #383838 from

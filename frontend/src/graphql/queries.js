@@ -22,6 +22,21 @@ export const verifyLogin = gql`
       roles
       hideAmountGDD
       hideAmountGDT
+      aboutMe
+    }
+  }
+`
+
+export const listMatchingEntries = gql`
+  query {
+    listMatchingEntries {
+      uuid
+      matchingType
+      summary
+      details
+      remote
+      active
+      createdAt
     }
   }
 `
@@ -233,6 +248,9 @@ export const searchAdminUsers = gql`
         firstName
         lastName
         role
+        visibleCreationGroups
+        seesAllCreationGroups
+        seesUntagged
       }
     }
   }

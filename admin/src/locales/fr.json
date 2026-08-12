@@ -8,11 +8,22 @@
     "chat-placeholder": "Écris un message...",
     "chat-placeholder-loading": "Attends, je réfléchis...",
     "chat-thread-deleted": "Historique du chat effacé",
+    "error-api-inactive": "Crea n'est pas activée pour le moment.",
     "error-chat-thread-deleted": "Erreur lors de la suppression de l'historique du chat : {error}",
-    "start-prompt": "Langue : Français\nTon : Amical, tutoiement\nContexte : Tu es « Crea », un assistant de support dans l'interface d'administration du compte Gradido. Ta mission est d'aider les modérateurs à traiter les contributions au bien commun.\nSalutation :\n« Bonjour, je suis Crea ! Je t'aide à répondre aux contributions au bien commun soumises. Pour pouvoir personnaliser tes réponses, dis-moi ton nom, s'il te plaît. 😊 »\nAttends maintenant la saisie du nom !\nAprès la saisie du nom :\n« Merci, [nom] ! Quel plaisir de travailler avec toi. 😊 Copie maintenant une ou plusieurs contributions au bien commun dans le champ de texte et je t'aiderai à les traiter. »"
+    "error-load": "L'historique de discussion n'a pas pu être chargé : {error}",
+    "error-output-too-long": "La réponse de Crea a été coupée. Colle moins de texte à la fois.",
+    "error-send": "Le message n'a pas pu être envoyé : {error}",
+    "error-send-failed": "Le message n'a pas pu être envoyé. Essaie encore.",
+    "error-thread-not-found": "Cet historique de discussion n'existe plus. Efface l'historique pour recommencer.",
+    "error-unknown": "Une erreur inconnue est survenue.",
+    "signature-missing": "Ta signature n'est pas encore définie : tu la saisis dans la fenêtre Crea d'une contribution."
   },
   "alias": "Alias",
   "all_emails": "Tous les utilisateurs",
+  "appOutdated": {
+    "reload": "Recharger",
+    "text": "Une version plus récente est disponible. Merci de recharger la page."
+  },
   "back": "retour",
   "bulkResubmission": {
     "cancel": "Do not apply",
@@ -28,10 +39,16 @@
   "change_user_role": "Changer le rôle de l'utilisateur",
   "close": "Fermer",
   "contribution": {
+    "changeGroup": "Changer de groupe de création",
+    "changeGroupConfirm": "Oui, déplacer",
+    "changeGroupDone": "Groupe de création modifié.",
+    "changeGroupHint": "Selon vos groupes visibles, la contribution pourrait ne plus apparaître dans votre liste.",
+    "changeGroupQuestion": "Déplacer cette contribution de {from} vers {to} ?",
     "confirmedBy": "Confirmé par {name}.",
     "createdBy": "Créé par {name}.",
     "deletedBy": "Supprimé par {name}.",
-    "deniedBy": "Refusé par {name}."
+    "deniedBy": "Refusé par {name}.",
+    "noGroup": "(sans groupe)"
   },
   "contributionLink": {
     "amount": "Montant",
@@ -91,6 +108,7 @@
       "deny": "Reject",
       "inquire": "Inquire"
     },
+    "deselectAll": "Tout désélectionner",
     "deviation": "Your decision",
     "evaluate": "Evaluate",
     "flags": "Please review",
@@ -108,7 +126,15 @@
     "previewBanner": "Preview without AI connection – a sample result. Layout, database and salutation/signature are real.",
     "reasoning": "Reasoning",
     "response": "Suggested reply",
+    "resubmission": "Rappel",
+    "resubmissionDue": "Rappel échu",
     "rewrite": "Write for my decision",
+    "salutation": "Salutation",
+    "salutationHint": "How this person is addressed. Change it here and the draft follows at once. Use Save salutation and next time it is already filled in.",
+    "salutationSave": "Save salutation",
+    "salutationSaveFailed": "The salutation could not be saved.",
+    "salutationSaved": "Salutation saved.",
+    "selectAll": "Tout sélectionner",
     "selectHint": "Select the contributions Crea should evaluate together.",
     "settings": {
       "adminOnly": "These settings are visible to administrators only.",
@@ -120,15 +146,23 @@
       "effortMax": "Maximum",
       "effortMedium": "Medium",
       "effortXhigh": "Very high",
+      "fastMode": "Fast mode",
+      "fastModeActive": "(fast mode active)",
+      "fastModeBusy": "(fast mode busy right now – Crea answers at normal speed)",
+      "fastModeHint": "Same model, faster output. Only available on Opus models, and answers cost twice as much. Where it is unavailable, Crea automatically answers at normal speed.",
+      "fastModeRefused": "(fast mode refused: {detail} – Crea answers at normal speed)",
       "model": "AI model",
       "modelHint": "Leave empty = default model ({model}). You can type a new model directly.",
       "modelPlaceholder": "Default: {model}",
       "presetPlaceholder": "— choose a preset —",
       "saved": "Crea settings saved",
       "testFail": "Test failed: {message}",
+      "testInactive": "The Anthropic API is not active (no key configured).",
       "testModel": "Test model",
+      "testNoText": "(no text in the response)",
       "testOk": "Model responds: {message}",
-      "title": "Crea settings"
+      "title": "Crea settings",
+      "unavailable": "The settings are not loaded yet. Saving and testing stay disabled until the values from the server are known."
     },
     "signature": "Your signature",
     "signatureHint": "Saved in your browser (preview). Persistent storage will follow.",
@@ -157,6 +191,47 @@
   "created": "Créé",
   "createdAt": "Créé le",
   "creation": "Création",
+  "creationGroupFilter": {
+    "all": "(toutes)",
+    "grouped": "(tous les groupes)",
+    "label": "Creation group:",
+    "untagged": "(sans groupe)"
+  },
+  "creationGroupsAdmin": {
+    "add": "Create",
+    "addTitle": "Create a new group",
+    "adminOnly": "Administrators only.",
+    "adoption": {
+      "adopt": "Reprendre {count}",
+      "check": "Anciens hashtags",
+      "done": "Anciens hashtags repris.",
+      "foundExact": "{count} contributions plus anciennes écrivent #{tag} dans leur texte.",
+      "foundLoose": "Reprendre aussi {count} contributions écrites « # {tag} » (avec une espace).",
+      "foundNothing": "Aucune contribution ancienne ne nomme ce groupe dans son texte.",
+      "hint": "Seules les contributions qui n’ont encore aucun groupe sont reprises. Un mot qui ne nomme aucun groupe existant reste du texte ordinaire.",
+      "markChecked": "Marquer comme vérifié",
+      "searchFailed": "La recherche a échoué. Merci de réessayer.",
+      "searching": "Recherche dans les contributions …",
+      "stateAdopted": "vérifié le {date} — {count} reprises",
+      "stateNothing": "vérifié le {date} — rien trouvé",
+      "stateUnchecked": "anciens hashtags pas encore vérifiés",
+      "title": "Reprendre les anciens hashtags dans {group}"
+    },
+    "cancel": "Cancel",
+    "created": "Group created.",
+    "edit": "Edit",
+    "empty": "No groups created yet.",
+    "existingTitle": "Existing groups",
+    "intro": "Create new groups or rename existing ones. Who belongs to a group or moderates it is assigned on the \"User role\" tab.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Volunteer Fire Brigade Springfield",
+    "save": "Save",
+    "tag": "Tag",
+    "tagHint": "A short tag without spaces — capitals and accented letters are allowed. Matching ignores upper and lower case. The name is what is shown everywhere.",
+    "tagPlaceholder": "e.g. firefighter",
+    "title": "Manage creation groups",
+    "updated": "Group updated."
+  },
   "creationList": "Liste des créations",
   "creation_for_month": "Création pour le mois",
   "creation_form": {
@@ -278,6 +353,7 @@
   "navbar": {
     "automaticContributions": "Solde initial",
     "crea": "Crea",
+    "creationGroups": "Creation groups",
     "instances": "Instances",
     "logout": "Déconnexion",
     "my-account": "Mon compte",
@@ -286,8 +362,6 @@
     "statistic": "Statistique",
     "user_search": "Recherche d'utilisateurs"
   },
-  "no_hashtag": "Masquer les #hashtags",
-  "no_hashtag_tooltip": "Affiche uniquement les contributions sans hashtag dans le texte",
   "not_open_creations": "Aucune création ouverte",
   "notice": "Notice",
   "open": "ouverte",
@@ -389,7 +463,20 @@
   },
   "unregistered_emails": "Uniquement les utilisateurs non inscrits",
   "userRole": {
+    "creationGroups": {
+      "help": "Pre-filled on submission.",
+      "label": "User's main creation group",
+      "none": "(no group)"
+    },
     "notChangeYourSelf": "En tant qu'administrateur/modérateur, tu ne peux pas changer ton propre rôle.",
+    "savedCreationGroups": "Creation groups saved.",
+    "savedScope": "Visibility saved.",
+    "scope": {
+      "all": "all groups",
+      "help": "Empty = all contributions.",
+      "label": "Visible creation groups",
+      "untagged": "no group"
+    },
     "selectLabel": "Rôle :",
     "selectRoles": {
       "admin": "administrateur",

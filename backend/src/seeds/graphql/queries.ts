@@ -294,6 +294,11 @@ export const adminListContributions = gql`
         messagesCount
         deniedAt
         deniedBy
+        creationGroups {
+          id
+          tag
+          name
+        }
       }
     }
   }
@@ -358,6 +363,9 @@ export const searchAdminUsers = gql`
         firstName
         lastName
         role
+        visibleCreationGroups
+        seesAllCreationGroups
+        seesUntagged
       }
     }
   }
@@ -418,6 +426,40 @@ export const user = gql`
       communityUuid
       gradidoID
       alias
+    }
+  }
+`
+
+export const listMatchingEntries = gql`
+  query {
+    listMatchingEntries {
+      uuid
+      matchingType
+      summary
+      details
+      remote
+      active
+    }
+  }
+`
+
+// Two narrow queries for the aboutMe field resolver: the shared `user` and
+// `verifyLogin` queries are asserted on elsewhere, so this asks for the field on its
+// own rather than widening them.
+export const verifyLoginAboutMe = gql`
+  query {
+    verifyLogin {
+      gradidoID
+      aboutMe
+    }
+  }
+`
+
+export const userAboutMe = gql`
+  query ($identifier: String!, $communityIdentifier: String!) {
+    user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
+      gradidoID
+      aboutMe
     }
   }
 `

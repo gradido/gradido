@@ -47,6 +47,16 @@ describe('RightSide', () => {
     })
   })
 
+  describe('at /matching/entries', () => {
+    beforeEach(() => {
+      wrapper = createWrapper('/matching/entries')
+    })
+
+    it('has name set to "matching"', () => {
+      expect(wrapper.vm.name).toBe('matching')
+    })
+  })
+
   describe('at /overview', () => {
     beforeEach(() => {
       wrapper = createWrapper('/overview')

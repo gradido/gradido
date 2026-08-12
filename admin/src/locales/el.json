@@ -8,11 +8,22 @@
     "chat-placeholder": "Γράψε ένα μήνυμα...",
     "chat-placeholder-loading": "Περίμενε, σκέφτομαι...",
     "chat-thread-deleted": "Το ιστορικό συνομιλίας διαγράφηκε",
+    "error-api-inactive": "Η Crea δεν είναι ενεργοποιημένη αυτήν τη στιγμή.",
     "error-chat-thread-deleted": "Σφάλμα κατά τη διαγραφή του ιστορικού συνομιλίας: {error}",
-    "start-prompt": "Γλώσσα: Ελληνικά\nΎφος: Φιλικό, στον ενικό\nΠλαίσιο: Είσαι «Crea», ένας βοηθός υποστήριξης στη διεπαφή διαχείρισης του λογαριασμού Gradido. Η αποστολή σου είναι να βοηθάς τους συντονιστές στην επεξεργασία των συνεισφορών στο κοινό καλό.\nΧαιρετισμός:\n«Γεια σου, είμαι η Crea! Σε βοηθώ να απαντάς στις υποβληθείσες συνεισφορές στο κοινό καλό. Για να μπορώ να εξατομικεύω τις απαντήσεις σου, πες μου το όνομά σου, σε παρακαλώ. 😊»\nΤώρα περίμενε να εισαχθεί το όνομα!\nΜετά την εισαγωγή του ονόματος:\n«Ευχαριστώ, [όνομα]! Χαρά μου να συνεργάζομαι μαζί σου. 😊 Τώρα αντίγραψε μία ή περισσότερες συνεισφορές στο κοινό καλό στο πεδίο κειμένου και θα σε βοηθήσω να τις επεξεργαστείς.»"
+    "error-load": "Το ιστορικό συνομιλίας δεν μπόρεσε να φορτωθεί: {error}",
+    "error-output-too-long": "Η απάντηση της Crea κόπηκε. Επικόλλησε λιγότερα κάθε φορά.",
+    "error-send": "Το μήνυμα δεν μπόρεσε να σταλεί: {error}",
+    "error-send-failed": "Το μήνυμα δεν στάλθηκε. Δοκίμασε ξανά.",
+    "error-thread-not-found": "Αυτό το ιστορικό συνομιλίας δεν υπάρχει πλέον. Διάγραψε το ιστορικό για να ξεκινήσεις από την αρχή.",
+    "error-unknown": "Παρουσιάστηκε άγνωστο σφάλμα.",
+    "signature-missing": "Η υπογραφή σου δεν έχει οριστεί ακόμη — τη συμπληρώνεις στο παράθυρο Crea μιας συνεισφοράς."
   },
   "alias": "Ψευδώνυμο",
   "all_emails": "Όλοι οι χρήστες",
+  "appOutdated": {
+    "reload": "Ανανέωση",
+    "text": "Υπάρχει νεότερη έκδοση. Παρακαλώ ανανεώστε τη σελίδα."
+  },
   "back": "πίσω",
   "bulkResubmission": {
     "cancel": "Do not apply",
@@ -28,10 +39,16 @@
   "change_user_role": "Αλλαγή ρόλου χρήστη",
   "close": "Κλείσιμο",
   "contribution": {
+    "changeGroup": "Αλλαγή ομάδας δημιουργίας",
+    "changeGroupConfirm": "Ναι, μετακίνηση",
+    "changeGroupDone": "Η ομάδα δημιουργίας άλλαξε.",
+    "changeGroupHint": "Ανάλογα με τις ορατές ομάδες σας, η συνεισφορά μπορεί να μην εμφανίζεται πλέον στη λίστα σας.",
+    "changeGroupQuestion": "Μετακίνηση αυτής της συνεισφοράς από {from} σε {to};",
     "confirmedBy": "Επιβεβαιώθηκε από {name}.",
     "createdBy": "Δημιουργήθηκε από {name}.",
     "deletedBy": "Διαγράφηκε από {name}.",
-    "deniedBy": "Απορρίφθηκε από {name}."
+    "deniedBy": "Απορρίφθηκε από {name}.",
+    "noGroup": "(χωρίς ομάδα)"
   },
   "contributionLink": {
     "amount": "Ποσό",
@@ -91,6 +108,7 @@
       "deny": "Reject",
       "inquire": "Inquire"
     },
+    "deselectAll": "Αποεπιλογή όλων",
     "deviation": "Your decision",
     "evaluate": "Evaluate",
     "flags": "Please review",
@@ -108,7 +126,15 @@
     "previewBanner": "Preview without AI connection – a sample result. Layout, database and salutation/signature are real.",
     "reasoning": "Reasoning",
     "response": "Suggested reply",
+    "resubmission": "Υπενθύμιση",
+    "resubmissionDue": "Ληγμένη υπενθύμιση",
     "rewrite": "Write for my decision",
+    "salutation": "Salutation",
+    "salutationHint": "How this person is addressed. Change it here and the draft follows at once. Use Save salutation and next time it is already filled in.",
+    "salutationSave": "Save salutation",
+    "salutationSaveFailed": "The salutation could not be saved.",
+    "salutationSaved": "Salutation saved.",
+    "selectAll": "Επιλογή όλων",
     "selectHint": "Select the contributions Crea should evaluate together.",
     "settings": {
       "adminOnly": "These settings are visible to administrators only.",
@@ -120,15 +146,23 @@
       "effortMax": "Maximum",
       "effortMedium": "Medium",
       "effortXhigh": "Very high",
+      "fastMode": "Fast mode",
+      "fastModeActive": "(fast mode active)",
+      "fastModeBusy": "(fast mode busy right now – Crea answers at normal speed)",
+      "fastModeHint": "Same model, faster output. Only available on Opus models, and answers cost twice as much. Where it is unavailable, Crea automatically answers at normal speed.",
+      "fastModeRefused": "(fast mode refused: {detail} – Crea answers at normal speed)",
       "model": "AI model",
       "modelHint": "Leave empty = default model ({model}). You can type a new model directly.",
       "modelPlaceholder": "Default: {model}",
       "presetPlaceholder": "— choose a preset —",
       "saved": "Crea settings saved",
       "testFail": "Test failed: {message}",
+      "testInactive": "The Anthropic API is not active (no key configured).",
       "testModel": "Test model",
+      "testNoText": "(no text in the response)",
       "testOk": "Model responds: {message}",
-      "title": "Crea settings"
+      "title": "Crea settings",
+      "unavailable": "The settings are not loaded yet. Saving and testing stay disabled until the values from the server are known."
     },
     "signature": "Your signature",
     "signatureHint": "Saved in your browser (preview). Persistent storage will follow.",
@@ -157,6 +191,47 @@
   "created": "Δημιουργήθηκε",
   "createdAt": "Ημερομηνία δημιουργίας",
   "creation": "Δημιουργία",
+  "creationGroupFilter": {
+    "all": "(όλα)",
+    "grouped": "(όλες οι ομάδες)",
+    "label": "Creation group:",
+    "untagged": "(χωρίς ομάδα)"
+  },
+  "creationGroupsAdmin": {
+    "add": "Create",
+    "addTitle": "Create a new group",
+    "adminOnly": "Administrators only.",
+    "adoption": {
+      "adopt": "Ενσωμάτωση {count}",
+      "check": "Παλιά hashtags",
+      "done": "Τα παλιά hashtags ενσωματώθηκαν.",
+      "foundExact": "{count} παλαιότερες συνεισφορές γράφουν #{tag} στο κείμενό τους.",
+      "foundLoose": "Να ενσωματωθούν και {count} συνεισφορές γραμμένες ως «# {tag}» (με κενό).",
+      "foundNothing": "Καμία παλαιότερη συνεισφορά δεν αναφέρει αυτήν την ομάδα στο κείμενό της.",
+      "hint": "Ενσωματώνονται μόνο συνεισφορές που δεν έχουν καθόλου ομάδα. Μια λέξη που δεν ονομάζει υπαρκτή ομάδα παραμένει απλό κείμενο.",
+      "markChecked": "Σήμανση ως ελεγμένο",
+      "searchFailed": "Η αναζήτηση απέτυχε. Δοκιμάστε ξανά.",
+      "searching": "Αναζήτηση στις συνεισφορές …",
+      "stateAdopted": "ελέγχθηκε στις {date} — {count} ενσωματώθηκαν",
+      "stateNothing": "ελέγχθηκε στις {date} — δεν βρέθηκε τίποτα",
+      "stateUnchecked": "τα παλιά hashtags δεν έχουν ελεγχθεί ακόμη",
+      "title": "Ενσωμάτωση παλιών hashtags στην {group}"
+    },
+    "cancel": "Cancel",
+    "created": "Group created.",
+    "edit": "Edit",
+    "empty": "No groups created yet.",
+    "existingTitle": "Existing groups",
+    "intro": "Create new groups or rename existing ones. Who belongs to a group or moderates it is assigned on the \"User role\" tab.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Volunteer Fire Brigade Springfield",
+    "save": "Save",
+    "tag": "Tag",
+    "tagHint": "A short tag without spaces — capitals and accented letters are allowed. Matching ignores upper and lower case. The name is what is shown everywhere.",
+    "tagPlaceholder": "e.g. firefighter",
+    "title": "Manage creation groups",
+    "updated": "Group updated."
+  },
   "creationList": "Λίστα δημιουργιών",
   "creation_for_month": "Δημιουργία για τον μήνα",
   "creation_form": {
@@ -278,6 +353,7 @@
   "navbar": {
     "automaticContributions": "Αρχικό υπόλοιπο",
     "crea": "Crea",
+    "creationGroups": "Creation groups",
     "instances": "Στιγμιότυπα",
     "logout": "Αποσύνδεση",
     "my-account": "Ο λογαριασμός μου",
@@ -286,8 +362,6 @@
     "statistic": "Στατιστικά",
     "user_search": "Αναζήτηση χρηστών"
   },
-  "no_hashtag": "Απόκρυψη #hashtag",
-  "no_hashtag_tooltip": "Εμφανίζει μόνο τις συνεισφορές χωρίς hashtag στο κείμενο",
   "not_open_creations": "Καμία ανοιχτή δημιουργία",
   "notice": "Notice",
   "open": "ανοιχτή",
@@ -389,7 +463,20 @@
   },
   "unregistered_emails": "Μόνο μη εγγεγραμμένοι χρήστες",
   "userRole": {
+    "creationGroups": {
+      "help": "Pre-filled on submission.",
+      "label": "User's main creation group",
+      "none": "(no group)"
+    },
     "notChangeYourSelf": "Ως διαχειριστής/συντονιστής, δεν μπορείς να αλλάξεις τον δικό σου ρόλο.",
+    "savedCreationGroups": "Creation groups saved.",
+    "savedScope": "Visibility saved.",
+    "scope": {
+      "all": "all groups",
+      "help": "Empty = all contributions.",
+      "label": "Visible creation groups",
+      "untagged": "no group"
+    },
     "selectLabel": "Ρόλος:",
     "selectRoles": {
       "admin": "διαχειριστής",

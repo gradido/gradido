@@ -3,23 +3,23 @@
     <div class="contribution-list-item bg-white app-box-shadow gradido-border-radius pt-3 px-3">
       <BRow>
         <BCol cols="3" lg="2" md="2">
-          <app-avatar
-            v-if="username.username"
-            :name="username.username"
-            :initials="username.initials"
-            color="#fff"
-            class="vue3-avatar fw-bold"
-          />
+          <BAvatar rounded="lg" :variant="variant" size="4.55em">
+            <variant-icon :icon="icon" variant="white" />
+          </BAvatar>
         </BCol>
         <BCol>
-          <div v-if="username.username" class="me-3 fw-bold">
-            {{ username.username }}
-            <variant-icon :icon="icon" :variant="variant" />
+          <div class="me-3 small text-muted" data-test="contribution-number">
+            {{ $t('contribution.number', { number: id }) }}
           </div>
           <div class="small">
             {{ $d(new Date(contributionDate), 'short') }}
           </div>
-          <div class="mt-3 fw-bold">{{ $t('contributionText') }}</div>
+          <div class="mt-3 fw-bold">
+            <span v-if="groupLabel">{{ groupLabel }}</span>
+            <span v-else class="fw-normal fst-italic text-muted">
+              {{ $t('contribution.creationGroup.none') }}
+            </span>
+          </div>
           <div class="mb-3 text-break word-break">{{ memo }}</div>
           <div v-if="updatedBy > 0" class="mt-2 mb-2 small">
             {{ $t('moderatorChangedMemo') }}
@@ -33,10 +33,9 @@
             <variant-icon icon="x-circle" variant="danger" />
             {{ $t('contribution.alert.denied') }}
           </div>
-          <div v-if="contributionStatus === 'DELETED'" class="small">
-            {{ $t('contribution.deleted') }}
-          </div>
-          <div v-else class="fw-bold">{{ $filters.GDD(amount) }}</div>
+          <!-- No DELETED branch: a deleted contribution is soft-removed and never reaches
+               this list (loadAllContributions queries without withDeleted). -->
+          <div class="fw-bold">{{ $filters.GDD(amount) }}</div>
         </BCol>
         <BCol cols="12" md="1" lg="1" class="text-end align-items-center" />
       </BRow>
@@ -47,20 +46,22 @@
 
 <script setup>
 import { computed } from 'vue'
-import AppAvatar from '@/components/AppAvatar.vue'
 import { GDD_PER_HOUR } from '../../constants'
 import { useContributionStatus } from '@/composables/useContributionStatus'
+import { creationGroupLabels } from '@/utils/creationGroupLabel'
 
+// Data protection: the community list shows deeds, not people. The submitter is not even
+// loaded in the backend; each contribution is identified by its number, which only its
+// author can connect to themselves — and only if they choose to.
 const props = defineProps({
+  id: {
+    type: Number,
+  },
   amount: {
     type: String,
   },
   memo: {
     type: String,
-  },
-  user: {
-    type: Object,
-    required: false,
   },
   contributionDate: {
     type: String,
@@ -74,21 +75,20 @@ const props = defineProps({
     required: false,
     default: '',
   },
+  creationGroups: {
+    type: Array,
+    required: false,
+    default: () => [],
+  },
 })
+
+// Group functions: the contribution's group takes the place of the old, unhelpful
+// "contribution text" heading. Several groups are listed one after another.
+const groupLabel = computed(() => creationGroupLabels(props.creationGroups))
 
 const { getVariant, getIcon } = useContributionStatus()
 const variant = computed(() => getVariant(props.contributionStatus))
 const icon = computed(() => getIcon(props.contributionStatus))
-
-const username = computed(() => {
-  if (!props.user) return {}
-  return {
-    username: props.user.alias
-      ? props.user.alias
-      : `${props.user.firstName} ${props.user.lastName}`,
-    initials: `${props.user.firstName[0]}${props.user.lastName[0]}`,
-  }
-})
 
 const hours = computed(() => parseFloat((props.amount / GDD_PER_HOUR).toFixed(2)))
 </script>

@@ -5,6 +5,13 @@
 // Gold and gradients are added later, together with the button step.
 
 :root {
+  // Render native controls (select popups, date pickers, scrollbars) to match the app's
+  // light theme, not the OS. Set on the ROOT on purpose: the closed control follows the
+  // inherited value, but the open <select> popup follows the root element's color-scheme —
+  // setting it on body alone left the popup on the OS. The dark override
+  // (html:has(body.dark-mode)) lives in gradido-template-dark.scss.
+  color-scheme: light;
+
   // Surfaces
   --bg: #f5f5f5; // page background
   --surface: #fff; // cards / panels

@@ -4,6 +4,7 @@ import createPersistedState from 'vuex-persistedstate'
 
 import jwtDecode from 'jwt-decode'
 import i18n from '../i18n'
+import { clearEntryDraft } from '../composables/useEntryDraft'
 
 // Dedicated localStorage key mirroring state.themeMode. The pre-paint script in
 // index.html reads it with a single getItem, so it never has to parse the whole
@@ -147,6 +148,9 @@ export const actions = {
     commit('email', '')
     commit('userLocation', null)
     commit('redirectPath', '/overview')
+    // Held outside the store, in a module that survives this action because logging
+    // out does not reload the page.
+    clearEntryDraft()
     const themeMode = state.themeMode
     // Remove only this app's own persisted state (session + token live in this blob).
     // The wallet and admin share one origin, so localStorage.clear() would also wipe

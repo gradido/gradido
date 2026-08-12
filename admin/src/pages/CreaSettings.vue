@@ -21,12 +21,26 @@
         <BFormSelect v-model="form.effort" :options="effortOptions" />
         <small class="text-muted d-block mt-1">{{ $t('crea.settings.effortHint') }}</small>
       </BFormGroup>
-      <BButton variant="primary" :disabled="saving" @click="save">
+      <BFormGroup class="mb-3">
+        <BFormCheckbox v-model="form.fastMode">
+          {{ $t('crea.settings.fastMode') }}
+        </BFormCheckbox>
+        <small class="text-muted d-block mt-1">{{ $t('crea.settings.fastModeHint') }}</small>
+      </BFormGroup>
+      <BButton variant="primary" :disabled="saving || !settingsLoaded" @click="save">
         {{ $t('save') }}
       </BButton>
-      <BButton variant="secondary" class="ms-2" :disabled="testing" @click="test">
+      <BButton
+        variant="secondary"
+        class="ms-2"
+        :disabled="testing || !settingsLoaded"
+        @click="test"
+      >
         {{ $t('crea.settings.testModel') }}
       </BButton>
+      <small v-if="!settingsLoaded" class="text-muted d-block mt-2">
+        {{ $t('crea.settings.unavailable') }}
+      </small>
     </div>
     <div v-else>{{ $t('crea.settings.adminOnly') }}</div>
   </div>
@@ -50,18 +64,25 @@ const { toastSuccess, toastError } = useAppToast()
 
 const isAdmin = computed(() => store.state.moderator.roles.includes('ADMIN'))
 
-const form = ref({ model: '', effort: 'disabled' })
+// The form holds display defaults until the query answers, never the server's values, and
+// setCreaSettings overwrites all three settings at once. So nothing here may be submitted
+// before settingsLoaded turns true - otherwise one click clears the configured model and
+// drops the effort level for the whole instance, confirmed by a success toast. That is not
+// only a race: a query that failed leaves the defaults standing for as long as the page is
+// open, because the error watcher below only raises a toast.
+const form = ref({ model: '', effort: 'disabled', fastMode: false })
 const defaultModel = ref('')
+const settingsLoaded = ref(false)
 const saving = ref(false)
 const testing = ref(false)
 
 const modelPresetOptions = computed(() => [
   { value: '', text: t('crea.settings.presetPlaceholder') },
   { value: 'claude-sonnet-5', text: 'claude-sonnet-5' },
-  { value: 'claude-opus-4-8', text: 'claude-opus-4-8' },
+  { value: 'claude-opus-5', text: 'claude-opus-5' },
   { value: 'claude-haiku-4-5', text: 'claude-haiku-4-5' },
   { value: 'claude-fable-5', text: 'claude-fable-5' },
-  { value: 'claude-opus-4-7', text: 'claude-opus-4-7' },
+  { value: 'claude-opus-4-8', text: 'claude-opus-4-8' },
   { value: 'claude-sonnet-4-6', text: 'claude-sonnet-4-6' },
 ])
 
@@ -84,8 +105,13 @@ watch(
   () => {
     const settings = result.value?.creaSettings
     if (settings) {
-      form.value = { model: settings.model ?? '', effort: settings.effort ?? 'disabled' }
+      form.value = {
+        model: settings.model ?? '',
+        effort: settings.effort ?? 'disabled',
+        fastMode: settings.fastMode ?? false,
+      }
       defaultModel.value = settings.defaultModel
+      settingsLoaded.value = true
     }
   },
   { immediate: true },
@@ -100,7 +126,23 @@ const { mutate: testMutation } = useMutation(testCreaModel)
 
 function apiInput() {
   const model = form.value.model.trim()
-  return { model: model || null, effort: form.value.effort }
+  return { model: model || null, effort: form.value.effort, fastMode: form.value.fastMode }
+}
+
+// Turns the fast-mode outcome code into a localized note. A rate limit means "busy
+// right now", which is something quite different from "this model cannot do it" - so
+// the two never share a sentence.
+function fastModeNote(testResult) {
+  if (testResult.fastMode === 'active') {
+    return ` ${t('crea.settings.fastModeActive')}`
+  }
+  if (testResult.fastMode === 'rate_limited') {
+    return ` ${t('crea.settings.fastModeBusy')}`
+  }
+  if (testResult.fastMode === 'refused') {
+    return ` ${t('crea.settings.fastModeRefused', { detail: testResult.fastModeDetail })}`
+  }
+  return ''
 }
 
 function onPreset(value) {
@@ -112,7 +154,11 @@ async function save() {
   try {
     const { data } = await saveMutation({ input: apiInput() })
     const settings = data.setCreaSettings
-    form.value = { model: settings.model ?? '', effort: settings.effort }
+    form.value = {
+      model: settings.model ?? '',
+      effort: settings.effort,
+      fastMode: settings.fastMode ?? false,
+    }
     defaultModel.value = settings.defaultModel
     toastSuccess(t('crea.settings.saved'))
   } catch (e) {
@@ -127,8 +173,13 @@ async function test() {
   try {
     const { data } = await testMutation({ input: apiInput() })
     const testResult = data.testCreaModel
-    if (testResult.ok) {
-      toastSuccess(t('crea.settings.testOk', { message: testResult.message }))
+    if (testResult.code === 'api_inactive') {
+      toastError(t('crea.settings.testInactive'))
+    } else if (testResult.ok) {
+      // The backend hands over codes and payload only; the sentence is built here, in
+      // the moderator's language.
+      const answer = testResult.message || t('crea.settings.testNoText')
+      toastSuccess(t('crea.settings.testOk', { message: answer }) + fastModeNote(testResult))
     } else {
       toastError(t('crea.settings.testFail', { message: testResult.message }))
     }

@@ -3,7 +3,7 @@
   "description": "Administration Interface for Gradido",
   "main": "index.js",
   "author": "Gradido Academy - https://www.gradido.net",
-  "version": "2.9.0",
+  "version": "2.10.0",
   "license": "Apache-2.0",
   "scripts": {
     "dev": "vite",
@@ -91,7 +91,7 @@
   "browserslist": [
     "> 1%",
     "last 2 versions",
-    "not ie <= 10"
+    "not dead"
   ],
   "resolutions": {
     "strip-ansi": "6.0.1",

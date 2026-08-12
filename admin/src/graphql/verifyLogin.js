@@ -8,6 +8,9 @@ export const verifyLogin = gql`
       roles
       id
       language
+      visibleCreationGroups
+      seesAllCreationGroups
+      seesUntagged
     }
   }
 `

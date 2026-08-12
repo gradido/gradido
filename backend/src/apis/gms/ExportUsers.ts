@@ -46,7 +46,9 @@ async function main() {
       relations: ['emailContact'],
     })
     if (users) {
-      if (!(await sendUsersToGms(users, homeCom))) {
+      // The repair run sends the entries along, so the GMS also drops copies of
+      // entries that were paused or deleted while it could not be reached.
+      if (!(await sendUsersToGms(users, homeCom, true))) {
         // early exit on failure
         logger.warn(`##gms## publishing local users failed after ${timeUsed}...`)
         await con.destroy()

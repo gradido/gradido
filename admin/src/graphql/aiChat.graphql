@@ -1,6 +1,6 @@
 #import './fragments.graphql'
 
-mutation sendMessage($input: OpenaiMessage!) {
+mutation sendMessage($input: CreaChatInput!) {
   sendMessage(input: $input) {
     ...AiChatMessageFields
   }

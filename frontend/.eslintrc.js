@@ -78,6 +78,13 @@ module.exports = {
           'settings.password.subtitle',
           'math.asterisk',
           '/pageTitle./',
+          '/matching.type./',
+          // built as `matching.map.look.${look}` / `.channels.${channel}`
+          '/matching.map.look./',
+          '/matching.map.channels./',
+          // built as `matching.list.dir.${dir}` / `.line.${channel}`
+          '/matching.list.dir./',
+          '/matching.list.line./',
           'error.empty-transactionlist',
           'error.no-transactionlist',
           'error.session-renewal-failed',

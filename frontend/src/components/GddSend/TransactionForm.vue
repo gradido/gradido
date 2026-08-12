@@ -147,6 +147,7 @@
                   :placeholder="$t('form.message')"
                   :rules="validationSchema.fields.memo"
                   textarea="true"
+                  :max-rows="14"
                   :disabled="isFormDisabled"
                   :disable-smart-valid-state="disableSmartValidState"
                   @update:model-value="updateField"
@@ -208,6 +209,7 @@ import CommunitySwitch from '@/components/CommunitySwitch.vue'
 import ValidatedInput from '@/components/Inputs/ValidatedInput.vue'
 import {
   memo as memoSchema,
+  message as messageSchema,
   identifier as identifierSchema,
   subject as subjectSchema,
 } from '@/validationSchemas'
@@ -241,7 +243,11 @@ const route = useRoute()
 const router = useRouter()
 const { toastError } = useAppToast()
 
-const radioSelected = ref(props.selected)
+// A link may name the send type it wants (?art=email), so a button elsewhere can
+// land straight in e-mail mode — the matching profile's two buttons do exactly
+// this. Only 'email' switches; anything else keeps the default. The route still
+// carries only the recipient; this is the "how", read once at open.
+const radioSelected = ref(route.query.art === 'email' ? SEND_TYPES.email : props.selected)
 const userName = ref('')
 
 const userIdentifier = computed(() => {
@@ -314,7 +320,8 @@ const validationSchema = computed(() => {
     })
   } else if (radioSelected.value === SEND_TYPES.email) {
     return object({
-      memo: memoSchema,
+      // no amount travels with this one, so it gets the roomier message bounds
+      memo: messageSchema,
       subject: subjectSchema,
       identifier: identifierSchema.test(
         'community-is-reachable',
@@ -536,7 +543,8 @@ label {
     justify-content: center;
     text-decoration: none;
     font-size: 14px;
-    text-wrap: nowrap;
+    text-align: center;
+    line-height: 1.15;
     color: black !important;
     border-radius: 25px;
   }

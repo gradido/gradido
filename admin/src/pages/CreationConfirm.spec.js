@@ -115,7 +115,6 @@ describe('CreationConfirm', () => {
     expect(wrapper.vm.currentPage).toBe(1)
     expect(wrapper.vm.pageSize).toBe(25)
     expect(wrapper.vm.query).toBe('')
-    expect(wrapper.vm.noHashtag).toBe(null)
     expect(wrapper.vm.hideResubmissionModel).toBe(true)
   })
 
@@ -168,16 +167,168 @@ describe('CreationConfirm', () => {
       }),
     )
 
-    wrapper.vm.noHashtag = true
+    // The group filter replaced the old "hide #hashtags" switch: it asks which group a
+    // contribution belongs to, not whether its text happens to contain a '#'.
+    wrapper.vm.creationGroup = '*untagged'
     await nextTick()
 
     expect(mockRefetch).toHaveBeenCalledWith(
       expect.objectContaining({
         filter: expect.objectContaining({
-          noHashtag: true,
+          creationGroup: '*untagged',
         }),
       }),
     )
+  })
+
+  it('offers all, all groups and no group before the real groups', () => {
+    // The real groups follow behind; here the query is mocked away, so only the three
+    // fixed entries remain -- which is exactly what this asserts.
+    expect(wrapper.vm.creationGroupFilterOptions.map((option) => option.value)).toEqual([
+      '',
+      '*grouped',
+      '*untagged',
+    ])
+  })
+
+  // A scoped moderator may only work in their own groups, so the filter offers only those.
+  // The backend enforces the boundary; this keeps the dropdown from offering choices that
+  // would return nothing (no "all", no "no group", no group outside the scope).
+  describe('group filter for a scoped moderator', () => {
+    const GROUPS = [
+      { tag: 'firefighter', name: 'Feuerwehr' },
+      { tag: 'garden', name: 'Garten' },
+      { tag: 'other', name: 'Andere' },
+    ]
+
+    const mountWithModerator = (moderator) => {
+      const scopedStore = createStore({
+        state: { openCreations: 0, moderator },
+        mutations: {
+          setOpenCreations(state, count) {
+            state.openCreations = count
+          },
+          openCreationsMinus(state, count) {
+            state.openCreations -= count
+          },
+        },
+      })
+      return mount(CreationConfirm, {
+        global: {
+          plugins: [scopedStore],
+          stubs: {
+            UserQuery: true,
+            BButton: true,
+            BTabs,
+            BTab,
+            BBadge,
+            OpenCreationsTable: true,
+            BPagination,
+            Overlay: true,
+            IBiBellFill: true,
+            IBiCheck: true,
+            IBiXCircle: true,
+            IBiTrash: true,
+            IBiList: true,
+          },
+          mocks: { $t: mockT, $d: mockD },
+        },
+      })
+    }
+
+    beforeEach(() => {
+      // Both queries share the mocked useQuery; this feeds the group list to the dropdown.
+      mockResult.value = { creationGroups: GROUPS }
+    })
+
+    it('offers only "all my groups" and the moderator\'s own groups', () => {
+      const scoped = mountWithModerator({
+        roles: ['MODERATOR'],
+        seesAllCreationGroups: false,
+        visibleCreationGroups: ['firefighter', 'garden'],
+      })
+      expect(scoped.vm.creationGroupFilterOptions.map((option) => option.value)).toEqual([
+        '*grouped',
+        'firefighter',
+        'garden',
+      ])
+    })
+
+    it('defaults the selection to "all my groups"', () => {
+      const scoped = mountWithModerator({
+        roles: ['MODERATOR'],
+        seesAllCreationGroups: false,
+        visibleCreationGroups: ['firefighter', 'garden'],
+      })
+      expect(scoped.vm.creationGroup).toBe('*grouped')
+    })
+
+    // ⚠️ A session that predates the rename. The whole store is persisted to localStorage and
+    // verifyLogin only runs again at /authenticate, so a moderator who was signed in when
+    // this deploys still carries the OLD field names in their browser. Reading only the new
+    // ones leaves both undefined, and `?? true` then promotes them to the administrator's
+    // view: every group in the community offered, and the ones they do not moderate
+    // answering with an empty table. This is the test that says the fallback has to stay
+    // until no such session can exist any more.
+    it('still respects a scope stored under the pre-rename field names', () => {
+      const scoped = mountWithModerator({
+        roles: ['MODERATOR'],
+        seesAllGroups: false,
+        visibleGroupTags: ['firefighter', 'garden'],
+      })
+      expect(scoped.vm.creationGroupFilterOptions.map((option) => option.value)).toEqual([
+        '*grouped',
+        'firefighter',
+        'garden',
+      ])
+      expect(scoped.vm.creationGroup).toBe('*grouped')
+    })
+
+    it('offers only "no group" to a moderator scoped to untagged contributions', () => {
+      const scoped = mountWithModerator({
+        roles: ['MODERATOR'],
+        seesAllCreationGroups: false,
+        visibleCreationGroups: [],
+      })
+      expect(scoped.vm.creationGroupFilterOptions.map((option) => option.value)).toEqual([
+        '*untagged',
+      ])
+      expect(scoped.vm.creationGroup).toBe('*untagged')
+    })
+
+    // "No group" is not a group, so it never appears in visibleCreationGroups. Deciding from that
+    // list alone would leave this moderator with '*grouped' and their group -- and
+    // '*grouped' is the exact complement of "no group", so the ungrouped contributions they
+    // are assigned to would have no reachable filter at all.
+    it('offers "no group" too when the scope covers the ungrouped contributions', () => {
+      const scoped = mountWithModerator({
+        roles: ['MODERATOR'],
+        seesAllCreationGroups: false,
+        seesUntagged: true,
+        visibleCreationGroups: ['firefighter'],
+      })
+      expect(scoped.vm.creationGroupFilterOptions.map((option) => option.value)).toEqual([
+        '*grouped',
+        '*untagged',
+        'firefighter',
+      ])
+    })
+
+    it('leaves an administrator the full set', () => {
+      const scoped = mountWithModerator({
+        roles: ['ADMIN'],
+        seesAllCreationGroups: true,
+        visibleCreationGroups: [],
+      })
+      expect(scoped.vm.creationGroupFilterOptions.map((option) => option.value)).toEqual([
+        '',
+        '*grouped',
+        '*untagged',
+        'firefighter',
+        'garden',
+        'other',
+      ])
+    })
   })
 
   it('updates tabIndex and refetches when changing tabs', async () => {
@@ -206,6 +357,34 @@ describe('CreationConfirm', () => {
         paginated: expect.objectContaining({
           currentPage: 2,
         }),
+      }),
+    )
+  })
+
+  it('starts over at page one when the search narrows the list', async () => {
+    // A narrowed list is shorter than the one being looked at, so keeping the page
+    // asks for a page the result does not have and the table reads as empty. Both
+    // writers of `query` are covered: the search field and the magnifier in the row.
+    //
+    // The real BPagination is mounted here, and it clamps the page to what the row
+    // count allows -- with no result loaded, page 3 would silently become 0. So the
+    // list gets enough rows for three pages first.
+    await simulateQueryResult({
+      adminListContributions: { contributionCount: 75, contributionList: openItems(75, 7) },
+    })
+
+    wrapper.vm.currentPage = 3
+    await nextTick()
+    expect(wrapper.vm.currentPage).toBe(3)
+
+    wrapper.vm.query = 'someone@example.org'
+    await nextTick()
+
+    expect(wrapper.vm.currentPage).toBe(1)
+    expect(mockRefetch).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        filter: expect.objectContaining({ query: 'someone@example.org' }),
+        paginated: expect.objectContaining({ currentPage: 1 }),
       }),
     )
   })

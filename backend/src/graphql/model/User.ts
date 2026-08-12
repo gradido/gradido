@@ -35,6 +35,7 @@ export class User {
       }
       this.firstName = dbUser.firstName
       this.lastName = dbUser.lastName
+      this.salutation = dbUser.salutation
       this.deletedAt = dbUser.deletedAt
       this.createdAt = dbUser.createdAt
       this.language = dbUser.language
@@ -49,7 +50,12 @@ export class User {
       this.gmsPublishName = dbUser.gmsPublishName
       this.humhubPublishName = dbUser.humhubPublishName
       this.gmsPublishLocation = dbUser.gmsPublishLocation
+      this.aboutMe = dbUser.aboutMe
       this.userLocation = dbUser.location ? Point2Location(dbUser.location as Point) : null
+      // Unrestricted by default; verifyLogin fills in a scoped moderator's real groups.
+      this.visibleCreationGroups = []
+      this.seesAllCreationGroups = true
+      this.seesUntagged = true
     }
   }
 
@@ -82,6 +88,17 @@ export class User {
 
   @Field(() => String, { nullable: true })
   lastName: string | null
+
+  // How this participant is addressed in Crea's replies, curated by the moderation
+  // (E-013). Null = none set, so the first-name heuristic decides. Kept here rather
+  // than a gender field on purpose: what we need is the form of address, not the
+  // person's gender.
+  //
+  // This type is shared with the wallet, so the field is guarded by a FieldResolver in
+  // UserResolver: without VIEW_USER_SALUTATION it reads as null. What the moderation
+  // noted about a person is not for the person's counterparties.
+  @Field(() => String, { nullable: true })
+  salutation: string | null
 
   @Field(() => Date, { nullable: true })
   deletedAt: Date | null
@@ -116,6 +133,9 @@ export class User {
   @Field(() => GmsPublishLocationType, { nullable: true })
   gmsPublishLocation: GmsPublishLocationType | null
 
+  @Field(() => String, { nullable: true })
+  aboutMe: string | null
+
   // This is not the users publisherId, but the one of the users who recommend him
   @Field(() => Int, { nullable: true })
   publisherId: number | null
@@ -128,6 +148,22 @@ export class User {
 
   @Field(() => [String])
   roles: string[]
+
+  // Group functions: the signed-in moderator's visibility scope, so the admin
+  // interface can offer only the groups they may actually work in. Derived the same way as
+  // on the community info page (describeModeratorCreationGroups); filled in by verifyLogin. The
+  // default is unrestricted, which keeps every other User valid and matches an administrator.
+  @Field(() => [String])
+  visibleCreationGroups: string[]
+
+  @Field(() => Boolean)
+  seesAllCreationGroups: boolean
+
+  // Whether the scope covers contributions without a group. "No group" is not a group, so
+  // it cannot live in the list above, but the admin needs it to offer a filter that
+  // reaches those contributions.
+  @Field(() => Boolean)
+  seesUntagged: boolean
 
   @Field(() => UserContact, { nullable: true })
   emailContact: UserContact | null

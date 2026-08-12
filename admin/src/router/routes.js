@@ -50,6 +50,19 @@ const routes = [
     component: () => import('@/pages/CreaSettings.vue'),
   },
   {
+    path: '/creation-groups',
+    name: 'creation-groups',
+    meta: { requiresAdmin: true },
+    component: () => import('@/pages/CreationGroups.vue'),
+  },
+  // The page answered to /group-tags until the rename. Without this, an administrator's
+  // bookmark -- or a link in a team note or an older handover -- falls through to the
+  // catch-all and lands on "not found" instead of the page it always meant.
+  {
+    path: '/group-tags',
+    redirect: '/creation-groups',
+  },
+  {
     path: '/:catchAll(.*)',
     name: 'NotFound',
     component: () => import('@/components/NotFoundPage.vue'),

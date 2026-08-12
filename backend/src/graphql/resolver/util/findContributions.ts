@@ -1,7 +1,7 @@
 import { Paginated } from '@arg/Paginated'
 import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
 import { AppDatabase, Contribution as DbContribution } from 'database'
-import { Brackets, In, IsNull, LessThanOrEqual, Like, Not, SelectQueryBuilder } from 'typeorm'
+import { Brackets, In, IsNull, LessThanOrEqual, Like, SelectQueryBuilder } from 'typeorm'
 
 import { LogError } from '@/server/LogError'
 
@@ -23,12 +23,102 @@ function joinRelationsRecursive(
   }
 }
 
+// --- Group functions: creation-group filter + moderator visibility scope ---
+
+// A contribution "carries" tag T if it is linked to T. Nothing else — the memo is not
+// consulted. The inline "#tag" convention that predates the group field is no longer
+// resolved on read; that stock is adopted into real links per group, from the admin.
+//
+// Both this and UNTAGGED_SQL are served by idx_ccg_contribution_id, so they stay cheap on a
+// large table. That is the point of reading links only: the previous version compared the
+// memo against every group with a leading-wildcard LIKE, which no index can help with.
+const tagMatchSql = (key: string): string =>
+  `EXISTS (SELECT 1 FROM contribution_creation_groups cgt ` +
+  `INNER JOIN creation_groups gt ON gt.id = cgt.creation_group_id ` +
+  `WHERE cgt.contribution_id = Contribution.id AND gt.tag = :${key})`
+
+// The one token that stands for "belongs to no group". Used by the moderator scope and by
+// the group filter, so both mean exactly the same set of contributions.
+export const UNTAGGED_FILTER = '*untagged'
+
+// Its complement, offered by the group filter only: everything that does belong to some
+// group. "all" (the empty filter) plus these two cover every contribution exactly once.
+export const GROUPED_FILTER = '*grouped'
+
+// "Untagged" = no group moderator is looking after this: the contribution is linked to no
+// group. Exactly the complement of "linked to some group", so "all" plus these two cover
+// every contribution once.
+const UNTAGGED_SQL =
+  `NOT EXISTS (SELECT 1 FROM contribution_creation_groups cgt ` +
+  `WHERE cgt.contribution_id = Contribution.id)`
+
+// Parse a moderator's stored scope (JSON text on user_roles.visible_creation_groups) into a
+// string array. null (= no restriction) for empty/invalid input.
+export const parseModeratorScope = (raw: string | null | undefined): string[] | null => {
+  if (!raw) {
+    return null
+  }
+  try {
+    const parsed: unknown = JSON.parse(raw)
+    if (!Array.isArray(parsed)) {
+      return null
+    }
+    return parsed.filter((entry): entry is string => typeof entry === 'string')
+  } catch {
+    return null
+  }
+}
+
+// Build the SQL predicate for a moderator scope, or null when the scope imposes no
+// restriction ('*all', or nothing selectable at all). Shared by the contribution list and
+// the per-contribution action guard, so the two can never drift apart.
+export const buildModeratorScopePredicate = (
+  moderatorScope: string[],
+): { sql: string; params: Record<string, string> } | null => {
+  if (moderatorScope.includes('*all')) {
+    return null
+  }
+  const realTags = moderatorScope.filter((tag) => tag.length > 0 && !tag.startsWith('*'))
+  const includeUntagged = moderatorScope.includes(UNTAGGED_FILTER)
+  if (realTags.length === 0 && !includeUntagged) {
+    return null
+  }
+  const parts: string[] = []
+  const params: Record<string, string> = {}
+  realTags.forEach((tag, index) => {
+    const key = `scopeTag${index}`
+    parts.push(tagMatchSql(key))
+    params[key] = tag
+  })
+  if (includeUntagged) {
+    parts.push(UNTAGGED_SQL)
+  }
+  return { sql: `(${parts.join(' OR ')})`, params }
+}
+
+// A single group filter, as picked from the dropdown in the admin or in the wallet. Two
+// reserved tokens stand beside the real groups: '*untagged' selects the contributions no
+// group moderator is looking after, '*grouped' their complement. A real slug can never
+// collide with either: '*' is rejected when a group is created or renamed.
+export const buildCreationGroupPredicate = (
+  tag: string,
+): { sql: string; params: Record<string, string> } => {
+  if (tag === UNTAGGED_FILTER) {
+    return { sql: UNTAGGED_SQL, params: {} }
+  }
+  if (tag === GROUPED_FILTER) {
+    return { sql: `(NOT ${UNTAGGED_SQL})`, params: {} }
+  }
+  return { sql: tagMatchSql('creationGroupFilter'), params: { creationGroupFilter: tag } }
+}
+
 export const findContributions = async (
   { pageSize, currentPage, order }: Paginated,
   filter: SearchContributionsFilterArgs,
   withDeleted = false,
   relations: Relations | undefined = undefined,
   countOnly = false,
+  moderatorScope: string[] | null = null,
 ): Promise<[DbContribution[], number]> => {
   const connection = AppDatabase.getInstance()
   if (!connection.isConnected()) {
@@ -47,7 +137,6 @@ export const findContributions = async (
   queryBuilder.where({
     ...(filter.statusFilter?.length && { contributionStatus: In(filter.statusFilter) }),
     ...(filter.userId && { userId: filter.userId }),
-    ...(filter.noHashtag && { memo: Not(Like(`%#%`)) }),
   })
   if (filter.hideResubmission) {
     const now = new Date(new Date().toUTCString())
@@ -75,6 +164,21 @@ export const findContributions = async (
         }
       }),
     )
+  }
+  // Creation-group filter from the admin UI (a single selected group). Separate from the
+  // free-text `query` above, so both can be applied at the same time.
+  if (filter.creationGroup) {
+    const groupPredicate = buildCreationGroupPredicate(filter.creationGroup)
+    queryBuilder.andWhere(groupPredicate.sql, groupPredicate.params)
+  }
+  // Hard moderator visibility scope: a group moderator only sees the contributions of the
+  // tags they are authorised for. null / '*all' = no restriction (existing moderators keep
+  // full visibility); '*untagged' = contributions without any tag.
+  if (moderatorScope) {
+    const scopePredicate = buildModeratorScopePredicate(moderatorScope)
+    if (scopePredicate) {
+      queryBuilder.andWhere(scopePredicate.sql, scopePredicate.params)
+    }
   }
   if (countOnly) {
     return [[], await queryBuilder.getCount()]

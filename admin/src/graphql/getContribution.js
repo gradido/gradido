@@ -15,6 +15,11 @@ export const getContribution = gql`
       updatedAt
       updatedBy
       status
+      contributionStatus
+      creationGroups {
+        tag
+        name
+      }
       messagesCount
       deniedAt
       deniedBy

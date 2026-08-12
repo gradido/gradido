@@ -1,38 +1,26 @@
+// AI-GENERATED — not an architecture reference
 import type { CreaContributionInput } from '@/graphql/input/CreaContributionInput'
 import type { CreaEvaluation } from '@/graphql/model/CreaEvaluation'
 import {
   buildSalutation,
   computeDiscrepancy,
+  defaultSalutationFor,
   resolveEnteredHours,
-  SALUTATION_PLACEHOLDER,
+  SALUTATION_UNCERTAIN_FLAG,
   SIGNATURE_PLACEHOLDER,
   sumActivityHours,
 } from './deterministics'
 
 /**
- * Fills the [ANREDE] placeholder locally from the recipient's first name (E-012 —
- * PII stays local). Shared by the full evaluation, the rewrite call, the batch call
- * and the stub, so all paths build the salutation identically. Takes only the
- * salutation fields (not the whole input) so the batch input can reuse it. Returns
- * the filled text plus whether the salutation is uncertain (so callers can flag it,
- * E-005).
- */
-export function fillSalutation(
-  recipient: { recipientFirstName?: string | null; salutation?: string | null },
-  text: string,
-): { text: string; uncertain: boolean } {
-  const { salutation, uncertain } = buildSalutation(
-    recipient.recipientFirstName,
-    recipient.salutation,
-  )
-  return { text: text.split(SALUTATION_PLACEHOLDER).join(salutation), uncertain }
-}
-
-/**
  * Layer-3 post-processing, shared by the live Anthropic client and the stub
  * preview (design docs `G` ch. 5-6, E-009 / E-012 / E-013). The CODE owns the
- * discrepancy flag and fills the [ANREDE] / [SIGNATUR] placeholders locally, so
- * neither the recipient's nor the moderator's name ever reaches the API.
+ * discrepancy flag and the salutation heuristic, so neither the recipient's nor the
+ * moderator's name ever reaches the API.
+ *
+ * The [ANREDE] placeholder is left in the text and filled in the browser, the same
+ * reactive pattern the signature already uses: the moderator can correct the salutation
+ * and watch the draft follow immediately. What travels to the client is only what the
+ * client cannot work out for itself - the name heuristic's result.
  *
  * Mutates and returns the passed evaluation (always a freshly parsed/built
  * object, so in-place editing is safe).
@@ -52,12 +40,12 @@ export function applyCreaDeterministics(
   }
   evaluation.discrepancy = authoritative
 
-  // Fill [ANREDE] locally from the recipient's first name; flag an uncertain
-  // salutation for the moderator (E-005).
-  const { text, uncertain } = fillSalutation(input, evaluation.responseText)
-  evaluation.responseText = text
-  if (uncertain) {
-    evaluation.flags = [...(evaluation.flags ?? []), 'anrede_unsicher']
+  // Hand the client the heuristic's salutation, which it uses whenever the moderator's
+  // field is empty. An uncertain salutation is flagged for the moderator (E-005); once a
+  // salutation is stored for this participant it wins and the flag stays away.
+  evaluation.defaultSalutation = defaultSalutationFor(input.recipientFirstName)
+  if (buildSalutation(input.recipientFirstName, input.salutation).uncertain) {
+    evaluation.flags = [...(evaluation.flags ?? []), SALUTATION_UNCERTAIN_FLAG]
   }
 
   // Fill [SIGNATUR] with the moderator's own greeting (E-013). Left in place when

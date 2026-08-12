@@ -20,6 +20,10 @@
   "PersonalDetails": "Dati personali",
   "advanced-calculation": "Proiezione",
   "answerNow": "→ Rispondi ora!",
+  "appOutdated": {
+    "reload": "Ricarica",
+    "text": "È disponibile una versione più recente. Ricarica la pagina."
+  },
   "asterisks": "****",
   "auth": {
     "left": {
@@ -62,9 +66,12 @@
     "community": "Comunità",
     "communityMember": "Sei un membro attivo",
     "continue-to-registration": "Continua con la registrazione",
+    "groupsAndModerators": "Gruppi di creazione e moderatori",
     "moderator": "Moderatore",
-    "moderators": "Moderatori",
+    "moderatorsAllGroups": "Per tutti i gruppi",
+    "moderatorsUntagged": "Contributi senza gruppo",
     "myContributions": "I miei contributi",
+    "noModerators": "Ancora nessun moderatore",
     "submitContribution": "Scrivi"
   },
   "communityInfo": "Informazioni sulla comunità",
@@ -82,8 +89,22 @@
       "myContributionNoteList": "Puoi modificare o eliminare in qualsiasi momento i contributi inviati che non sono ancora stati confermati.",
       "pending": "Inviato e in attesa di conferma"
     },
-    "delete": "Eliminare il contributo! Sei sicuro?",
-    "deleted": "Il contributo è stato eliminato! Ma rimarrà visibile.",
+    "communityWindow": "Contributions from the last {months} months",
+    "creationGroup": {
+      "help": "Facoltativo. Funziona anche senza gruppo. Una #parola nel testo non imposta un gruppo — a questo serve questo campo.",
+      "label": "Creation group",
+      "none": "(senza gruppo)"
+    },
+    "delete": "Eliminare davvero il contributo? Dopo sarà visibile solo a te e ai moderatori, invisibile alla comunità.",
+    "deleted": "Il contributo è stato eliminato. Ora è visibile solo a te e ai moderatori, invisibile alla comunità.",
+    "filter": {
+      "all": "(tutte)",
+      "byGroup": "Filtra per gruppo di creazione",
+      "grouped": "(tutti i gruppi)",
+      "noGroup": "(senza gruppo)",
+      "noResults": "No contributions found.",
+      "search": "Search contributions …"
+    },
     "formText": {
       "bringYourTalentsTo": "Metti i tuoi talenti al servizio della comunità! Premiamo il tuo impegno volontario con 20 GDD all'ora, fino a un massimo di 1.000 GDD al mese.",
       "describeYourCommunity": "Descrivi la tua attività per il bene comune e indica il numero di ore! L'importo di 20 GDD all'ora viene calcolato automaticamente. Dopo la conferma da parte di un moderatore, l'importo verrà accreditato sul tuo conto.",
@@ -93,6 +114,7 @@
     },
     "isEdited": "ha modificato il contributo",
     "lastContribution": "Ultimi contributi",
+    "memoIsPublic": "Your description appears in the community list, where it is visible to all members. It shows the contribution's number instead of your name.",
     "noContributions": {
       "allContributions": "Non è ancora stato inviato alcun contributo.",
       "emptyPage": "Questa pagina è vuota.",
@@ -103,6 +125,7 @@
       "lastMonth": "Il limite di creazione è stato raggiunto per il mese selezionato.",
       "thisMonth": "Il limite di creazione è stato raggiunto per il mese corrente."
     },
+    "number": "Contribution no. {number}",
     "oldContribution": "Versione precedente",
     "selectDate": "Quando hai dato il tuo contributo?",
     "submit": "Invia",
@@ -113,7 +136,6 @@
   "contribution-link": {
     "thanksYouWith": "ti ringrazia con"
   },
-  "contributionText": "Testo del contributo",
   "copy-to-clipboard": "Copia negli appunti",
   "creation": "Creazione",
   "decay": {
@@ -334,6 +356,193 @@
   "link-load": "ricarica l'ultimo link | ricarica gli ultimi {n} link",
   "link-load-more": "ricarica altri {n} link",
   "login": "Accedi",
+  "matching": {
+    "about": {
+      "counter": "{count} / ~1000 caratteri",
+      "label": "Chi sei, con parole tue",
+      "placeholder": "Racconta chi sei, cosa ti muove, cosa condividi: crea fiducia prima che qualcuno ti scriva.",
+      "saved": "Il tuo profilo è stato salvato"
+    },
+    "cluster": {
+      "close": "Chiudi la lista",
+      "title": "{n} persone in questo punto"
+    },
+    "entries": {
+      "activate": "Attiva",
+      "count": "{total} voci · {live} attive · {paused} in pausa",
+      "delete": "Elimina",
+      "deleteConfirm": "Eliminare questa voce?",
+      "details": "Dettagli",
+      "edit": "Modifica",
+      "emptyText": "Offri qualcosa, cerca qualcosa o condividi un interesse, e fatti trovare.",
+      "emptyTitle": "Ancora nessuna voce.",
+      "new": "Nuova voce",
+      "noDetails": "(nessun dettaglio)",
+      "pause": "Metti in pausa",
+      "pausedBadge": "In pausa · non nella ricerca",
+      "remote": "Sovraregionale"
+    },
+    "find": {
+      "gateText": "Una volta impostata la tua posizione e resa visibile sulla mappa, potrai trovare anche altre persone vicino a te.",
+      "gateTitle": "Mostrati prima sulla mappa",
+      "later": "Più tardi",
+      "subtitle": "Scopri chi è in sintonia con te",
+      "title": "Trova sulla mappa",
+      "titleList": "Trova nella lista",
+      "toPosition": "Vai a casa mia",
+      "understood": "Capito"
+    },
+    "info": {
+      "about": {
+        "heading": "Chi sei",
+        "p1": "Poche frasi calorose e sincere su di te creano fiducia prima che qualcuno ti scriva.",
+        "p2": "Questo testo appare sulla tua scheda profilo sulla mappa di ricerca."
+      },
+      "entries": {
+        "heading": "Come funziona il matching",
+        "paused": "Le voci in pausa restano salvate; semplicemente non appaiono nella ricerca.",
+        "text": "Indica ciò che ami, offri o cerchi: ogni voce attiva ti fa apparire nelle ricerche degli altri."
+      },
+      "position": {
+        "heading": "La tua privacy",
+        "p1": "Decidi tu con quanta precisione appari. «Approssimativa» ti mostra in un'area, mai davanti alla porta di casa.",
+        "p2": "Senza posizione non sei sulla mappa. L'interruttore ti rimuove di nuovo in qualsiasi momento."
+      }
+    },
+    "list": {
+      "centeredOn": "Intorno a {place}",
+      "controlsHeading": "Ricerca e ordinamento",
+      "dir": {
+        "e": "a est",
+        "n": "a nord",
+        "ne": "a nord-est",
+        "nw": "a nord-ovest",
+        "s": "a sud",
+        "se": "a sud-est",
+        "sw": "a sud-ovest",
+        "w": "a ovest"
+      },
+      "empty": "Qui al momento non c'è nessuno. Allarga il raggio o cerca in un altro posto.",
+      "heading": "Persone vicino a te",
+      "kmEtwa": "circa {n} km",
+      "kmExact": "{n} km",
+      "lensBy": "Distanza da",
+      "lensHome": "Casa",
+      "lensSearch": "Punto di ricerca",
+      "line": {
+        "angebot": "offre {thing} — è quello che cerchi",
+        "gesuch": "cerca {thing} — è quello che offri",
+        "interesse": "condivide il tuo interesse per {thing}"
+      },
+      "matchesHeading": "Le tue corrispondenze",
+      "meets": "corrisponde a {n} delle tue voci",
+      "near": "molto vicino",
+      "othersHeading": "Altre persone vicino a te",
+      "sortBreite": "chi corrisponde di più",
+      "sortBy": "Ordina per",
+      "sortNaehe": "Vicinanza",
+      "sortPassung": "Corrispondenza"
+    },
+    "map": {
+      "amplifier": "Amplificatore",
+      "back": "Indietro",
+      "breite": "Chi corrisponde più volte",
+      "breiteHint": "Mette in evidenza le persone che rispondono a più di una delle tue voci.",
+      "channels": {
+        "andere": "tutti gli altri",
+        "andereMit": "altri con voci",
+        "andereOhne": "altri senza voci",
+        "angebot": "Offerte",
+        "gesuch": "Richieste",
+        "interesse": "Interessi"
+      },
+      "found": "Persone trovate: {n}",
+      "home": "Torna a casa mia",
+      "km": "km",
+      "look": {
+        "dunkel": "scuro",
+        "hell": "chiaro",
+        "karte": "Mappa",
+        "label": "Aspetto",
+        "liste": "Lista",
+        "normal": "normale"
+      },
+      "radius": "Raggio",
+      "radiusLabel": "In quale raggio vuoi cercare? (km)",
+      "radiusTitle": "Raggio di ricerca",
+      "search": "Cerca un luogo o un indirizzo",
+      "searchHere": "Cerca qui"
+    },
+    "new": {
+      "cancel": "Annulla",
+      "completeSentence": "Completa questa frase:",
+      "detailsHeading": "Dettagli — così le persone giuste ti trovano:",
+      "remote": "Disponibile anche a livello sovraregionale / online"
+    },
+    "position": {
+      "accuracyApprox": "Viene mostrata una posizione leggermente modificata",
+      "accuracyExact": "Viene mostrata la tua posizione esatta",
+      "cancel": "Annulla",
+      "findable": "Sono rintracciabile?",
+      "findableHint": "Attiva o disattiva la tua presenza sulla mappa",
+      "findableOff": "Non sei più rintracciabile sulla mappa",
+      "findableOn": "Ora sei rintracciabile sulla mappa",
+      "intro": "Posizionati sulla mappa per partecipare al matching: appari solo quando lo fai.",
+      "saveText": "Vuoi salvare ora le tue impostazioni di posizione?",
+      "saveTitle": "Salva posizione",
+      "unsaved": "Non ancora salvato"
+    },
+    "profile": {
+      "aria": "Profilo di {name}",
+      "more": "{n} in più",
+      "sendEmail": "Invia e-mail",
+      "sendGradido": "Invia Gradido"
+    },
+    "query": {
+      "all": "Tutte le mie voci",
+      "clear": "Reimposta la ricerca",
+      "details": "Altro sulla tua ricerca",
+      "detailsPlaceholder": "usata, 28 pollici",
+      "keep": "Conserva come voce",
+      "keepAsk": "Vuoi che d'ora in poi ti trovi chi corrisponde a «{text}»?",
+      "keepNo": "No, grazie",
+      "label": "In questo momento cerco",
+      "open": "Scegli una ricerca",
+      "other": "Cercare qualcos'altro …",
+      "pick": "Scegli in che senso lo intendi — così parte la ricerca.",
+      "placeholder": "bicicletta",
+      "untouched": "Le tue voci restano intatte."
+    },
+    "save": "Salva",
+    "tabs": {
+      "about": "Su di me",
+      "entries": "Voci",
+      "position": "Casa"
+    },
+    "type": {
+      "angebot": {
+        "desc": "ciò che dai",
+        "detailsPlaceholder": "Bici vecchie e nuove, anche e-bike — vengo io",
+        "placeholder": "riparazione di biciclette",
+        "prefix": "Offro",
+        "word": "Offerta"
+      },
+      "gesuch": {
+        "desc": "ciò che cerchi",
+        "detailsPlaceholder": "La porta d'ingresso si blocca, vecchio cilindro",
+        "placeholder": "un fabbro",
+        "prefix": "Cerco",
+        "word": "Richiesta"
+      },
+      "interesse": {
+        "desc": "ciò che ami",
+        "detailsPlaceholder": "nel mio orto di autosufficienza",
+        "placeholder": "la permacultura",
+        "prefix": "Amo",
+        "word": "Interesse"
+      }
+    }
+  },
   "math": {
     "asterisk": "*",
     "equal": "=",
@@ -358,6 +567,7 @@
     "admin_area": "Area amministrazione",
     "community": "Comunità",
     "logout": "Esci",
+    "matching": "Matching",
     "overview": "Panoramica",
     "send": "Invia",
     "settings": "Impostazioni",
@@ -370,6 +580,7 @@
     "contributions": "Creare Gradido",
     "gdt": "Le tue transazioni GDT",
     "information": "{community}",
+    "matching": "Matching",
     "overview": "Benvenuto {name}",
     "send": "Invia Gradido ed e-mail",
     "settings": "Impostazioni",
@@ -377,7 +588,7 @@
     "usersearch": "Ricerca geografica dei membri (beta)"
   },
   "qrCode": "Codice QR",
-  "send_email": "Invia e-mail",
+  "send_email": "Invia e‑mail",
   "send_gdd": "Invia GDD",
   "send_per_link": "Crea un link GDD",
   "session": {
@@ -514,6 +725,13 @@
   "status": "Stato",
   "submitted": "Inviato",
   "success": "Successo",
+  "thank-you-cheque": {
+    "download": "Scarica l'assegno di ringraziamento",
+    "scan-qr": "Per ricevere l'accredito dei Gradido, scansiona il codice QR!",
+    "starting-credit": "Credito iniziale {amount} Gradido",
+    "starting-credit-valid": "Questo credito iniziale è valido dal {from} al {to}.",
+    "valid-until": "Questo assegno di ringraziamento è valido fino al {date}."
+  },
   "time": {
     "days": "Giorni",
     "hours": "Ore",

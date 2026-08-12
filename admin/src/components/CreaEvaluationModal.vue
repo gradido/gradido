@@ -49,25 +49,41 @@
         </span>
       </div>
 
-      <!-- Batch mode (E-020): the participant's open contributions as a checklist, all
-           preselected; unchecking one leaves it out. Nothing runs until "Bewerten". -->
+      <!-- Batch mode (E-020): the participant's open contributions as a checklist, split
+           by resubmission (E-026). Untouched ones come preselected, anything put off
+           starts unticked; ticking is free either way. Nothing runs until "Bewerten". -->
       <template v-if="isBatch">
-        <p class="mb-2 text-muted small">{{ $t('crea.selectHint') }}</p>
-        <div v-for="c in contributions" :key="c.id" class="form-check mb-2">
-          <input
-            :id="`crea-pick-${c.id}`"
-            v-model="selectedIds"
-            :value="c.id"
-            type="checkbox"
-            class="form-check-input"
-          />
-          <label :for="`crea-pick-${c.id}`" class="form-check-label d-block">
-            <span v-if="contributionMetaOf(c)" class="text-muted small d-block">
-              {{ contributionMetaOf(c) }}
-            </span>
-            <span class="text-break crea-original">{{ c.memo }}</span>
-          </label>
+        <div class="d-flex align-items-baseline gap-3 mb-2">
+          <p class="mb-0 text-muted small flex-grow-1">{{ $t('crea.selectHint') }}</p>
+          <button
+            type="button"
+            class="btn btn-link p-0 small text-nowrap crea-toggle-all"
+            @click="toggleAllPicks"
+          >
+            {{ selectedIds.length ? $t('crea.deselectAll') : $t('crea.selectAll') }}
+          </button>
         </div>
+        <template v-for="(section, index) in contributionSections" :key="section.key">
+          <hr v-if="index > 0" class="crea-section-rule" />
+          <p v-if="section.heading" class="crea-section-heading mb-2 fw-bold small">
+            {{ section.heading }}
+          </p>
+          <div v-for="c in section.items" :key="c.id" class="form-check mb-2">
+            <input
+              :id="`crea-pick-${c.id}`"
+              v-model="selectedIds"
+              :value="c.id"
+              type="checkbox"
+              class="form-check-input"
+            />
+            <label :for="`crea-pick-${c.id}`" class="form-check-label d-block">
+              <span v-if="contributionMetaOf(c)" class="text-muted small d-block">
+                {{ contributionMetaOf(c) }}
+              </span>
+              <span class="text-break crea-original">{{ c.memo }}</span>
+            </label>
+          </div>
+        </template>
       </template>
 
       <!-- Single mode: the one contribution verbatim, as before. -->
@@ -116,7 +132,7 @@
             <template v-if="flag === 'discrepancy_recomputed'">
               {{ $t('crea.flags_map.discrepancy_recomputed') }}
             </template>
-            <template v-else-if="flag === 'anrede_unsicher'">
+            <template v-else-if="flag === SALUTATION_UNCERTAIN_FLAG">
               {{ $t('crea.flags_map.anrede_unsicher') }}
             </template>
             <template v-else>{{ flag }}</template>
@@ -196,6 +212,32 @@
         <p class="mt-1 mb-0 text-muted small">{{ $t('crea.supplementHint') }}</p>
       </div>
 
+      <div class="mb-3">
+        <label class="mb-1 d-block" for="crea-salutation">
+          <strong>{{ $t('crea.salutation') }}</strong>
+        </label>
+        <div class="d-flex align-items-start gap-2">
+          <BFormInput
+            id="crea-salutation"
+            v-model="salutation"
+            size="sm"
+            :maxlength="SALUTATION_MAX_LENGTH"
+            :placeholder="defaultSalutation"
+          />
+          <BButton
+            v-if="salutationChanged"
+            variant="primary"
+            size="sm"
+            class="flex-shrink-0"
+            :disabled="savingSalutation"
+            @click="saveSalutation"
+          >
+            {{ $t('crea.salutationSave') }}
+          </BButton>
+        </div>
+        <p class="mt-1 mb-0 text-muted small">{{ $t('crea.salutationHint') }}</p>
+      </div>
+
       <p class="mb-1">
         <strong>{{ $t('crea.response') }}</strong>
       </p>
@@ -245,6 +287,7 @@ import {
   creaEvaluateContribution,
   creaRewriteBatch,
   creaRewriteResponse,
+  setCreaSalutation,
 } from '@/graphql/crea.graphql'
 import { useBoldShortcut } from '@/composables/useBoldShortcut'
 import { useCreaClipboard } from '@/composables/useCreaClipboard'
@@ -260,6 +303,16 @@ const STUB_PREVIEW_FLAG = 'stub_preview'
 const SIGNATURE_STORAGE_KEY = 'crea.moderatorSignature'
 // The placeholder Crea closes its reply with; filled in locally with the signature.
 const SIGNATURE_PLACEHOLDER = '[SIGNATUR]'
+// The placeholder Crea opens its reply with. Unlike the signature, the salutation
+// belongs to the participant and is stored on their record (E-013), so the next
+// moderator starts from it instead of guessing again. Filled locally either way -
+// the participant's name never reaches the API.
+const SALUTATION_PLACEHOLDER = '[ANREDE]'
+// Crea flags an uncertain salutation (E-005) so the moderator checks it before sending.
+const SALUTATION_UNCERTAIN_FLAG = 'anrede_unsicher'
+// Matches the users.salutation column, so an over-long value is stopped at the field
+// instead of reaching the database and coming back as a driver error.
+const SALUTATION_MAX_LENGTH = 255
 
 // Crea's evaluation modal for a single contribution (DO-4 v1 slice). Advisory
 // only: confirm/deny/send stay the existing table buttons; Crea recommends and
@@ -290,24 +343,143 @@ const rawResponseText = ref('')
 const chosenDecision = ref(null)
 const moderatorContext = ref('')
 const rewriting = ref(false)
+// What the moderator typed. Empty means "no salutation stored" - the automatic one
+// is then used, shown as this field's hint.
+const salutation = ref('')
+// What is actually in the database for this participant (empty = none). The save
+// button compares against THIS, not against what is displayed: with nothing stored
+// the field shows the automatic salutation as a hint only, so emptying the field
+// leaves nothing to save.
+const storedSalutation = ref('')
+// What the name heuristic alone gives, e.g. "Hallo Gradido". Used whenever the field
+// is empty, so the draft never shows a bare [ANREDE] placeholder.
+const defaultSalutation = ref('')
+const savingSalutation = ref(false)
+// Set once the moderator has stored a salutation for this participant. Crea's
+// "anrede_unsicher" flag is a snapshot of the moment the evaluation arrived, and the
+// field that answers it now sits in the same window - so leaving the warning up after
+// it has been answered would tell the moderator nothing they can act on.
+const salutationSettled = ref(false)
+// What we saved during this session, per participant. The contribution list is not
+// reloaded after saving, so its copy of the participant goes stale the moment a
+// salutation is stored - reading it again would send the old value back into the next
+// evaluation. Keyed by user id; survives closing the window, unlike the fields above.
+const savedSalutations = ref({})
+// What the participant's record said when this window opened. loadSiblings re-reads the
+// contributions with fetchPolicy "no-cache", so this is current even when the list behind
+// the modal was loaded before another moderator stored a salutation. undefined = not read
+// yet (no participant, no Apollo provider, failed query), which is NOT the same as null.
+const loadedSalutation = ref(undefined)
+// The salutation to send into an evaluation, newest source first. Each step asks WHETHER
+// that source knows something, not WHAT - a cleared salutation is null, and a nullish
+// check would read that as "nothing recorded" and fall through to an older copy,
+// resurrecting the salutation the moderator just deleted.
+const salutationFor = (contribution) => {
+  const userId = contribution?.userId
+  if (userId != null && userId in savedSalutations.value) {
+    return savedSalutations.value[userId]
+  }
+  if (loadedSalutation.value !== undefined) {
+    return loadedSalutation.value
+  }
+  return contribution?.user?.salutation ?? null
+}
+
+// Something is typed that is not stored yet. Drives the save button, so an unsaved
+// change is visible instead of relying on the moderator remembering.
+const salutationChanged = computed(() => salutation.value.trim() !== storedSalutation.value.trim())
+// The salutation the draft is rendered with: what is typed, or the automatic one.
+const effectiveSalutation = computed(() => salutation.value.trim() || defaultSalutation.value)
+
 // The public note Crea drafts for the contribution memo on a confirm rewrite (E-019).
 // Editable; empty unless the moderator confirmed a deviation and Crea returned one.
 const supplementText = ref('')
 
 // Batch mode (E-020): the participant's open contributions, loaded when the modal
 // opens. Two or more -> batch mode (checklist + "Bewerten"); fewer -> the single
-// contribution path as before. selectedIds holds the ticked ones (all preselected).
+// contribution path as before. selectedIds holds the ticked ones.
 const contributions = ref([])
 const selectedIds = ref([])
 const isBatch = computed(() => contributions.value.length >= 2)
+
+// The clock the checklist is built against, taken once when the window opens. Grouping
+// and preselection have to agree on one instant, otherwise a contribution could count
+// as due in the list and as still pending for the tick.
+const openedAt = ref(new Date())
+
+// The checklist splits by resubmission (E-026). "Put off" means the same thing here as
+// behind the modal, where the list's "Wiedervorlage verbergen" hides exactly those whose
+// date still lies ahead (findContributions.ts): a date that has passed puts the
+// contribution back on the table. Three groups, in the order the moderator works them:
+//   open  - never put off
+//   due   - was put off, the date has arrived
+//   later - put off, the date is still ahead
+const groupedContributions = computed(() => {
+  const groups = { open: [], due: [], later: [] }
+  for (const c of contributions.value) {
+    if (!c.resubmissionAt) {
+      groups.open.push(c)
+      continue
+    }
+    // An unreadable date still means the contribution was handled once, so it counts as
+    // put off rather than falling back into the untouched group.
+    const at = new Date(c.resubmissionAt)
+    groups[at > openedAt.value ? 'later' : 'due'].push(c)
+  }
+  return groups
+})
+
+// Empty groups drop out entirely, so a participant with nothing put off sees the plain
+// list as before - no rule, no heading.
+const contributionSections = computed(() => {
+  const { open, due, later } = groupedContributions.value
+  return [
+    { key: 'open', heading: '', items: open },
+    { key: 'due', heading: t('crea.resubmissionDue'), items: due },
+    { key: 'later', heading: t('crea.resubmission'), items: later },
+  ].filter((section) => section.items.length > 0)
+})
+
+// One control for both directions, read off the sections so it can never fall out of step
+// with what the checklist shows. Asked for by a moderator for the clearing half: with a
+// long list, ticking the two she wants is quicker than unticking the twenty she does not.
+//
+// Selecting all takes the resubmission groups with it. They start unticked by design
+// (E-026) -- but that governs the DEFAULT, not what the moderator may ask for on purpose;
+// ticking them by hand was free before this button existed.
+const allPickIds = computed(() =>
+  contributionSections.value.flatMap((section) => section.items.map((c) => c.id)),
+)
+
+function toggleAllPicks() {
+  selectedIds.value = selectedIds.value.length ? [] : [...allPickIds.value]
+}
 // "Crea liest den Beitrag" (one) vs "... die Beiträge" (several) while evaluating.
 const loadingText = computed(() => {
   const count = isBatch.value ? selectedIds.value.length : 1
   return count === 1 ? t('crea.loading') : t('crea.loadingPlural')
 })
 
-const applySignature = (text, signature) =>
-  signature ? text.split(SIGNATURE_PLACEHOLDER).join(signature) : text
+// Fills both placeholders for display. Crea's reply arrives with [ANREDE] and
+// [SIGNATUR] intact, so either can be changed and the draft follows at once.
+const renderDraft = (text, salutationValue, signature) => {
+  const withSalutation = salutationValue
+    ? text.split(SALUTATION_PLACEHOLDER).join(salutationValue)
+    : text
+  return signature ? withSalutation.split(SIGNATURE_PLACEHOLDER).join(signature) : withSalutation
+}
+
+// The one place the draft is rendered. Every path - first evaluation, batch evaluation,
+// rewrite - goes through here, so none of them can pick a different salutation than the
+// others. Passing the typed value instead of the effective one leaves a bare [ANREDE] in
+// a reply the moderator then sends, and desyncs the watcher below for good.
+const applyDraft = () => {
+  responseText.value = renderDraft(
+    rawResponseText.value,
+    effectiveSalutation.value,
+    moderatorSignature.value,
+  )
+}
 
 // Cmd/Ctrl+B wraps the selected text in ** so the moderator gets the familiar
 // bold shortcut in the editable draft (rendered bold once the reply is sent).
@@ -347,21 +519,35 @@ const loadSignature = () => {
   }
 }
 const moderatorSignature = ref(loadSignature())
-watch(moderatorSignature, (value, previous) => {
+watch(moderatorSignature, (value) => {
   try {
     localStorage.setItem(SIGNATURE_STORAGE_KEY, value)
   } catch {
     // ignore storage failures (private mode etc.)
   }
-  // Keep the draft's signature in sync as long as the moderator hasn't hand-edited it.
-  if (evaluation.value && responseText.value === applySignature(rawResponseText.value, previous)) {
-    responseText.value = applySignature(rawResponseText.value, value)
+})
+
+// Keep the draft in step with both placeholders while the moderator types, and stop
+// following once they have edited the text by hand (then the rendering no longer
+// matches and their edit is safe). The guard renders with the PREVIOUS values, which is
+// why every other path has to render through applyDraft: render the draft any other way
+// and this comparison stops matching, so the draft never follows again.
+watch([effectiveSalutation, moderatorSignature], (_current, [prevSal, prevSig]) => {
+  if (
+    evaluation.value &&
+    responseText.value === renderDraft(rawResponseText.value, prevSal, prevSig)
+  ) {
+    applyDraft()
   }
 })
 
 const stubPreview = computed(() => evaluation.value?.flags?.includes(STUB_PREVIEW_FLAG) ?? false)
 const visibleFlags = computed(() =>
-  (evaluation.value?.flags ?? []).filter((flag) => flag !== STUB_PREVIEW_FLAG),
+  (evaluation.value?.flags ?? []).filter(
+    (flag) =>
+      flag !== STUB_PREVIEW_FLAG &&
+      !(flag === SALUTATION_UNCERTAIN_FLAG && salutationSettled.value),
+  ),
 )
 // The moderator has picked an outcome other than Crea's recommendation.
 const isDeviation = computed(
@@ -437,6 +623,7 @@ const { mutate: evaluateMutation } = useMutation(creaEvaluateContribution)
 const { mutate: rewriteMutation } = useMutation(creaRewriteResponse)
 const { mutate: evaluateBatchMutation } = useMutation(creaEvaluateBatch)
 const { mutate: rewriteBatchMutation } = useMutation(creaRewriteBatch)
+const { mutate: saveSalutationMutation } = useMutation(setCreaSalutation)
 // Not destructured: useApolloClient() is undefined when no Apollo provider is present
 // (e.g. in the CreationConfirm unit tests that mount this modal), and destructuring
 // undefined at setup would throw. loadSiblings guards on it before use.
@@ -450,6 +637,8 @@ const buildInput = (contribution) => ({
   contributionRef: String(contribution.id),
   // Local only: fills the [ANREDE] placeholder, never forwarded to the API (E-012).
   recipientFirstName: contribution.user?.firstName ?? null,
+  // A salutation stored for this participant wins over the name heuristic (E-013).
+  salutation: salutationFor(contribution),
   // Pseudonymous handle for the record — the user id, never a name (E-010).
   personPseudonym: contribution.userId != null ? String(contribution.userId) : null,
   date: contribution.contributionDate ?? null,
@@ -467,8 +656,31 @@ const resetState = () => {
   moderatorContext.value = ''
   rewriting.value = false
   supplementText.value = ''
+  salutation.value = ''
+  storedSalutation.value = ''
+  defaultSalutation.value = ''
+  salutationSettled.value = false
   contributions.value = []
   selectedIds.value = []
+}
+
+// Where an arriving evaluation lands - shared by the single and the batch path so the
+// two cannot drift apart. Seeds the salutation field from what is stored, but only when
+// the field still matches its baseline: a batch re-run must not silently throw away a
+// correction the moderator typed and has not saved yet.
+const applyEvaluation = (result) => {
+  evaluation.value = result
+  rawResponseText.value = result.responseText
+  defaultSalutation.value = result.defaultSalutation ?? ''
+  const stored = salutationFor(props.contribution) ?? ''
+  if (!salutationChanged.value) {
+    salutation.value = stored
+  }
+  storedSalutation.value = stored
+  applyDraft()
+  // Preselect Crea's own recommendation, so switching away = deviating.
+  chosenDecision.value = result.overallVerdict
+  moderatorContext.value = ''
 }
 
 const runEvaluation = async () => {
@@ -480,12 +692,7 @@ const runEvaluation = async () => {
   primeCreaSound()
   try {
     const response = await evaluateMutation({ input: buildInput(props.contribution) })
-    evaluation.value = response.data.creaEvaluateContribution
-    rawResponseText.value = evaluation.value.responseText
-    responseText.value = applySignature(rawResponseText.value, moderatorSignature.value)
-    // Preselect Crea's own recommendation, so switching away = deviating.
-    chosenDecision.value = evaluation.value.overallVerdict
-    moderatorContext.value = ''
+    applyEvaluation(response.data.creaEvaluateContribution)
     playCreaSound()
   } catch (error) {
     // Crea stays dormant on staging until the API key (DO-5) is set; the resolver
@@ -530,6 +737,7 @@ const buildBatchInput = () => ({
   // Local only: fills [ANREDE], never forwarded to the API (E-012). All contributions
   // belong to the same participant, so one first name covers them.
   recipientFirstName: props.contribution?.user?.firstName ?? null,
+  salutation: salutationFor(props.contribution),
   uiLanguage: locale.value,
 })
 
@@ -547,12 +755,7 @@ const runBatchEvaluation = async () => {
   primeCreaSound()
   try {
     const response = await evaluateBatchMutation({ input: buildBatchInput() })
-    evaluation.value = response.data.creaEvaluateBatch
-    rawResponseText.value = evaluation.value.responseText
-    responseText.value = applySignature(rawResponseText.value, moderatorSignature.value)
-    // Preselect Crea's own overall recommendation, so switching a button = deviating.
-    chosenDecision.value = evaluation.value.overallVerdict
-    moderatorContext.value = ''
+    applyEvaluation(response.data.creaEvaluateBatch)
     playCreaSound()
   } catch (error) {
     if (/not enabled/i.test(error.message)) {
@@ -588,7 +791,7 @@ const rewriteForDecision = async () => {
       })
       const result = response.data.creaRewriteBatch
       rawResponseText.value = result.responseText
-      responseText.value = applySignature(rawResponseText.value, moderatorSignature.value)
+      applyDraft()
       // A confirm deviation also carries the public memo note (E-019); surfacing it fills
       // the "Ergänzung" field and enables the "Text ergänzen" button in the reply form.
       supplementText.value = result.memoSupplement ?? ''
@@ -602,7 +805,7 @@ const rewriteForDecision = async () => {
       })
       const result = response.data.creaRewriteResponse
       rawResponseText.value = result.responseText
-      responseText.value = applySignature(rawResponseText.value, moderatorSignature.value)
+      applyDraft()
       // A confirm rewrite also carries the public memo note (E-019); inquire/deny return
       // null. Surfacing it fills the editable field above and the "Text ergänzen" button.
       supplementText.value = result.memoSupplement ?? ''
@@ -622,21 +825,68 @@ const rewriteForDecision = async () => {
 // session (or after a re-login) never showed up without a full page reload.
 const onShown = async () => {
   moderatorSignature.value = loadSignature()
+  // Before the query, not after it: a slow connection must not move a contribution from
+  // one group to another, and the moderator asked for this list when they opened it.
+  openedAt.value = new Date()
   // Load the participant's open contributions: two or more -> batch checklist (no
   // auto-evaluate; the moderator prunes then presses "Bewerten"). Otherwise the single
   // contribution is evaluated right away, as before. Fall back to single on any error.
+  loadedSalutation.value = undefined
   let siblings = []
   try {
     siblings = await loadSiblings()
   } catch {
     siblings = []
   }
+  // Those rows were just read with fetchPolicy "no-cache", so they carry the participant's
+  // current salutation - unlike the list behind the modal, which may predate another
+  // moderator storing one. All rows belong to the same participant, so the first will do.
+  if (siblings.length > 0) {
+    loadedSalutation.value = siblings[0].user?.salutation ?? null
+  }
   if (siblings.length >= 2) {
     contributions.value = siblings
-    selectedIds.value = siblings.map((c) => c.id)
+    // Preselect what was never put off (E-026). Anything with a resubmission date has
+    // been handled once already and starts unticked - also when the date has arrived,
+    // because "seen before" is what decides, not "due today". The contribution whose
+    // button was clicked stays ticked wherever it sits: the moderator asked for it.
+    const preselected = new Set(groupedContributions.value.open.map((c) => c.id))
+    if (props.contribution?.id != null) {
+      preselected.add(props.contribution.id)
+    }
+    selectedIds.value = siblings.filter((c) => preselected.has(c.id)).map((c) => c.id)
   } else {
     contributions.value = []
     runEvaluation()
+  }
+}
+
+// Storing the salutation is an explicit act with a visible confirmation. It used to
+// happen silently on closing the window, which left the moderator unable to tell
+// whether anything had been stored - and made a wrong baseline impossible to notice.
+// An emptied field clears the stored salutation and hands the decision back to the
+// name heuristic.
+const saveSalutation = async () => {
+  const userId = props.contribution?.userId
+  if (userId == null) {
+    return
+  }
+  const value = salutation.value.trim()
+  savingSalutation.value = true
+  try {
+    await saveSalutationMutation({ userId: Number(userId), salutation: value || null })
+    // New baseline, so the button disappears and a further change shows up again.
+    storedSalutation.value = value
+    savedSalutations.value = { ...savedSalutations.value, [userId]: value || null }
+    // A stored salutation answers Crea's "please check the salutation" flag. An emptied
+    // one hands the decision back to the heuristic, so the flag is apt again.
+    salutationSettled.value = value !== ''
+    toastSuccess(t('crea.salutationSaved'))
+  } catch {
+    // The backend returns a code, not a sentence: the wording belongs here.
+    toastError(t('crea.salutationSaveFailed'))
+  } finally {
+    savingSalutation.value = false
   }
 }
 
@@ -663,6 +913,12 @@ const copyResponse = async () => {
 <style scoped>
 .crea-original {
   white-space: pre-line;
+}
+
+/* Separates the checklist's resubmission groups (E-026). Tighter above than a stock
+   <hr> so the rule reads as belonging to the heading below it, not floating between. */
+.crea-section-rule {
+  margin: 1rem 0 0.5rem;
 }
 
 .crea-title-logo {

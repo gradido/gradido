@@ -9,8 +9,9 @@ import { OptInType } from '@enum/OptInType'
 import { Order } from '@enum/Order'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { PublishNameType } from '@enum/PublishNameType'
+import { RoleNames } from '@enum/RoleNames'
 import { UserContactType } from '@enum/UserContactType'
-import { SearchAdminUsersResult } from '@model/AdminUser'
+import { AdminUser, SearchAdminUsersResult } from '@model/AdminUser'
 import { GmsUserAuthenticationResult } from '@model/GmsUserAuthenticationResult'
 import { User } from '@model/User'
 import { SearchUsersResult, UserAdmin } from '@model/UserAdmin'
@@ -31,6 +32,7 @@ import {
   TransactionLink as DbTransactionLink,
   User as DbUser,
   UserContact as DbUserContact,
+  UserRole as DbUserRole,
   dbFindProjectBrandingByAlias,
   dbFindProjectSpaceId,
   findUserByIdentifier,
@@ -100,9 +102,11 @@ import { extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
 import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
 import { Location2Point, Point2Location } from './util/Location2Point'
+import { describeModeratorCreationGroups } from './util/moderatorCreationGroupScope'
 import { deleteUserRole, setUserRole } from './util/modifyUserRole'
 import { sendUsersToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
+import { removeUserFromGms } from './util/syncMatchingEntryToGms'
 
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl', 'it', 'tr', 'ru', 'pt', 'el']
 const DEFAULT_LANGUAGE = 'de'
@@ -155,6 +159,15 @@ export class UserResolver {
     const userEntity = getUser(context)
     logger.addContext('user', userEntity.id)
     const user = new User(userEntity)
+    // Group functions: hand the admin interface the moderator's visibility scope
+    // so its group filter can offer only the groups they may work in. Loaded from the role
+    // directly (like loadModeratorScope), so it does not depend on how the context happened
+    // to load the user's roles. Same derivation as the community info page.
+    const role = await DbUserRole.findOne({ where: { userId: userEntity.id } })
+    const moderatorCreationGroups = describeModeratorCreationGroups(role)
+    user.visibleCreationGroups = moderatorCreationGroups.tags
+    user.seesAllCreationGroups = moderatorCreationGroups.seesAllCreationGroups
+    user.seesUntagged = moderatorCreationGroups.seesUntagged
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage(context)
 
@@ -706,6 +719,7 @@ export class UserResolver {
       humhubPublishName,
       gmsLocation,
       gmsPublishLocation,
+      aboutMe,
     } = updateUserInfosArgs
     let user = getUser(context)
     const logger = createLogger('updateUserInfos')
@@ -726,9 +740,17 @@ export class UserResolver {
       humhubPublishName: humhubPublishName !== undefined,
       gmsLocation: gmsLocation !== undefined,
       gmsPublishLocation: gmsPublishLocation !== undefined,
+      aboutMe: aboutMe !== undefined,
     })
 
     const updateUserInGMS = compareGmsRelevantUserSettings(user, updateUserInfosArgs)
+    // Read before the update overwrites it: gmsAllowed going true -> false is the
+    // member leaving the GMS. compareGmsRelevantUserSettings only reports the way
+    // in (it checks `updateUserInfosArgs.gmsAllowed &&`), which is precisely why
+    // leaving never reached the GMS. Kept next to the gmsRegistered check below
+    // rather than replaced by it: a member whose publish failed on the way in is
+    // not marked as registered, and their copy may still have landed over there.
+    const gmsConsentWithdrawn = user.gmsAllowed && updateUserInfosArgs.gmsAllowed === false
     const publishNameLogic = new PublishNameLogic(user)
     const oldHumhubUsername = publishNameLogic.getUserIdentifier(
       user.humhubPublishName as PublishNameType,
@@ -747,6 +769,7 @@ export class UserResolver {
       gmsPublishName: gmsPublishName?.valueOf(),
       humhubPublishName: humhubPublishName?.valueOf(),
       gmsPublishLocation: gmsPublishLocation?.valueOf(),
+      aboutMe,
     })
     // in case alias is set and valid, check if it is new or update
     if (alias) {
@@ -926,7 +949,14 @@ export class UserResolver {
 
     // validate if user settings are changed with relevance to update gms-user
     try {
-      if (CONFIG.GMS_ACTIVE && updateUserInGMS) {
+      if (CONFIG.GMS_ACTIVE && !user.gmsAllowed && (gmsConsentWithdrawn || user.gmsRegistered)) {
+        // The member does not take part, and the GMS may hold them anyway: they just
+        // left, or a copy was made of them that never should have been. Deleting over
+        // there is idempotent, so doing it once too often costs one request, while
+        // doing it once too rarely leaves them findable by name and on the map.
+        logger.debug(`member does not take part in the gms, delete user in gms...`)
+        await removeUserFromGms(user)
+      } else if (CONFIG.GMS_ACTIVE && updateUserInGMS && user.gmsAllowed) {
         logger.debug(`changed user-settings relevant for gms-user update...`)
         const homeCom = await getHomeCommunity()
         if (!homeCom) {
@@ -937,7 +967,12 @@ export class UserResolver {
         }
         if (homeCom.gmsApiKey !== null) {
           logger.debug(`send User to Gms...`)
-          await sendUsersToGms([user], homeCom)
+          // A member the GMS does not hold is built there from scratch, so their live
+          // entries have to travel with them - withdrawing consent removes the member
+          // and everything of theirs, and this is what brings the entries back when
+          // they join again. For a member the GMS already holds, sending the settings
+          // alone is enough and leaves their entries untouched.
+          await sendUsersToGms([user], homeCom, !user.gmsRegistered)
           logger.debug(`sendUserToGms successfully.`)
         }
       }
@@ -1066,10 +1101,13 @@ export class UserResolver {
     @Args()
     { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
   ): Promise<SearchAdminUsersResult> {
+    // MODERATOR_AI belongs here too: a KI-Moderator is a moderator who may additionally use
+    // Crea, so leaving the role out would drop real moderators from the community info page
+    // and leave their groups without a contact.
     const [users, count] = await DbUser.findAndCount({
       relations: ['userRoles'],
       where: {
-        userRoles: { role: In(['admin', 'moderator']) },
+        userRoles: { role: In([RoleNames.ADMIN, RoleNames.MODERATOR, RoleNames.MODERATOR_AI]) },
       },
       order: {
         createdAt: order,
@@ -1079,13 +1117,7 @@ export class UserResolver {
     })
     return {
       userCount: count,
-      userList: users.map((user) => {
-        return {
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: user.userRoles ? user.userRoles[0].role : '',
-        }
-      }),
+      userList: users.map((user) => new AdminUser(user)),
     }
   }
 
@@ -1305,6 +1337,46 @@ export class UserResolver {
       userContact = await queryBuilder.getOneOrFail()
     }
     return new UserContact(userContact)
+  }
+
+  /**
+   * The salutation is what the moderation noted about a person (E-013), not the person's
+   * own data - and this ObjectType is shared with the wallet, which reaches it through
+   * `user()`, through `transactionList { linkedUser }` and, with no token at all, through
+   * `queryTransactionLink { senderUser }`. So it is guarded here, like emailContact.
+   *
+   * Returns null instead of throwing: the field is nullable by nature ("none set"), a
+   * caller without the right should simply see nothing, and an error here would null the
+   * whole enclosing user for a query that merely asked for too much.
+   */
+  @FieldResolver(() => String, { nullable: true })
+  salutation(@Root() user: User, @Ctx() context: Context): string | null {
+    if (!context.role?.hasRight(RIGHTS.VIEW_USER_SALUTATION)) {
+      return null
+    }
+    return user.salutation ?? null
+  }
+
+  /**
+   * A member's own words about themselves. Guarded for the same reason as salutation:
+   * this ObjectType is shared, and `user()` hands out any member by alias to anyone
+   * logged in, while `queryTransactionLink { senderUser }` needs no token at all.
+   *
+   * Own text only. Nobody else needs it from here — the wallet reads it through
+   * `verifyLogin` to fill the member's own form, and the text of OTHER people arrives
+   * with a match, from the GMS, which only holds it for members who allowed it
+   * (`gmsAllowed`). Handing it out here would publish the text of members who
+   * deliberately did not.
+   *
+   * Returns null rather than throwing, like salutation: a caller without the right
+   * should see nothing, not lose the whole enclosing user.
+   */
+  @FieldResolver(() => String, { nullable: true })
+  aboutMe(@Root() user: User, @Ctx() context: Context): string | null {
+    if (context.user?.id !== user.id) {
+      return null
+    }
+    return user.aboutMe ?? null
   }
 }
 

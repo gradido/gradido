@@ -2,9 +2,15 @@
 <template>
   <div class="creation-confirm">
     <user-query v-model="query" class="mb-2 mt-2" :placeholder="$t('user_memo_search')" />
-    <p class="mb-2">
-      <input v-model="noHashtag" type="checkbox" class="noHashtag" />
-      <span v-b-tooltip="$t('no_hashtag_tooltip')" class="ms-2">{{ $t('no_hashtag') }}</span>
+    <p class="mb-2 d-flex align-items-center">
+      <span class="me-2">{{ $t('creationGroupFilter.label') }}</span>
+      <ThemedSelect
+        v-model="creationGroup"
+        :options="creationGroupFilterOptions"
+        class="creation-group-filter"
+        style="max-width: 24rem"
+        data-test="creation-group-filter"
+      />
     </p>
     <p v-if="showResubmissionCheckbox" class="mb-4">
       <input v-model="hideResubmissionModel" type="checkbox" class="hideResubmission" />
@@ -55,6 +61,9 @@
       :fields="fields"
       :hide-resubmission="hideResubmission"
       :crea-open-only="creaOpenOnly"
+      :creation-groups="creationGroupsResult?.creationGroups ?? []"
+      :group-change-failures="groupChangeFailures"
+      @assign-group="assignGroup"
       @show-overlay="showOverlay"
       @update-status="updateStatus"
       @reload-contribution="reloadContribution"
@@ -73,7 +82,7 @@
       align="center"
       :hide-ellipsis="true"
     />
-    <ai-chat v-if="CONFIG.OPENAI_ACTIVE && isAiUser" />
+    <ai-chat v-if="CONFIG.ANTHROPIC_ACTIVE && isAiUser" />
     <div v-if="overlay" id="overlay" @dblclick="overlay = false">
       <Overlay :item="item" @overlay-cancel="overlay = false">
         <template #title>
@@ -111,6 +120,7 @@ import { useQuery, useMutation } from '@vue/apollo-composable'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { useModal } from 'bootstrap-vue-next'
+import { creationGroupOption } from '@/utils/creationGroupLabel'
 
 import Overlay from '../components/Overlay'
 import OpenCreationsTable from '../components/Tables/OpenCreationsTable'
@@ -118,6 +128,7 @@ import UserQuery from '../components/UserQuery'
 import AiChat from '../components/AiChat'
 import CreaEvaluationModal from '../components/CreaEvaluationModal'
 import { adminListContributions } from '../graphql/adminListContributions.graphql'
+import { creationGroups, assignContributionCreationGroups } from '../graphql/creationGroups.graphql'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
 import { adminUpdateContribution } from '../graphql/adminUpdateContribution'
 import { confirmContribution } from '../graphql/confirmContribution'
@@ -148,8 +159,9 @@ const rows = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(25)
 const query = ref('')
-const noHashtag = ref(null)
 const hideResubmissionModel = ref(true)
+// Group functions: filter the contribution list by a single creation group.
+const creationGroup = ref('')
 
 const { formatDateOrDash } = useDateFormatter()
 
@@ -201,6 +213,7 @@ const fields = computed(() => {
     [
       { key: 'bookmark', label: t('delete') },
       { key: 'deny', label: t('deny') },
+      { key: 'searchUser', label: '' },
       baseFields.name,
       baseFields.amount,
       baseFields.memo,
@@ -211,6 +224,7 @@ const fields = computed(() => {
     ],
     // confirmed contributions
     [
+      { key: 'searchUser', label: '' },
       baseFields.name,
       baseFields.amount,
       baseFields.memo,
@@ -222,6 +236,7 @@ const fields = computed(() => {
     ],
     // denied contributions
     [
+      { key: 'searchUser', label: '' },
       baseFields.name,
       baseFields.amount,
       baseFields.memo,
@@ -233,6 +248,7 @@ const fields = computed(() => {
     ],
     // deleted contributions
     [
+      { key: 'searchUser', label: '' },
       baseFields.name,
       baseFields.amount,
       baseFields.memo,
@@ -245,6 +261,7 @@ const fields = computed(() => {
     // all contributions
     [
       { key: 'contributionStatus', label: t('status') },
+      { key: 'searchUser', label: '' },
       baseFields.name,
       baseFields.amount,
       baseFields.memo,
@@ -301,14 +318,105 @@ watch(tabIndex, () => {
   items.value = []
 })
 
+// Narrowing the list has to start over at page one. Picking a group while standing on a
+// later page would otherwise ask for a page the narrowed result does not have, and the
+// empty table reads as "this group has nothing".
+watch(creationGroup, () => {
+  currentPage.value = 1
+})
+
+// The same rule for the search, which narrows the list just as hard. Watched on the
+// value rather than on one of its callers, because two things write it: the search
+// field above the table and the magnifier in the row. Guarding only the magnifier
+// would have left the typed search asking for page 3 of a two-line result.
+watch(query, () => {
+  currentPage.value = 1
+})
+
+// Group functions: canonical tag options for the filter dropdown.
+const { result: creationGroupsResult } = useQuery(creationGroups)
+
+// A scoped moderator may only work in the groups their role covers, so the filter offers
+// only those. The backend already restricts what they can load; this keeps the dropdown from
+// offering choices that would return nothing. An administrator — or an unrestricted moderator
+// — gets the full set unchanged.
+// ⚠️ Both fields are read under their old names as well, and it matters. The whole store is
+// persisted to localStorage, and verifyLogin only runs again at /authenticate -- so a
+// moderator who was signed in when this deploys still carries seesAllGroups /
+// visibleGroupTags in their browser. Reading only the new names would leave both undefined,
+// and `?? true` would then quietly promote a scoped moderator to the administrator's view of
+// the filter: every group in the community offered, the selection defaulting to "all", and a
+// group they do not moderate answering with an empty table that reads as "nothing here".
+// Nothing leaks -- the backend still enforces from the database -- but the dropdown lies
+// until they sign in again, which may be days.
+//
+// A changeover aid: it can go once no live session predates the rename. The line below does
+// the same for a field added earlier, for the same reason.
+const moderator = computed(() => store.state.moderator)
+const seesAllCreationGroups = computed(
+  () => moderator.value?.seesAllCreationGroups ?? moderator.value?.seesAllGroups ?? true,
+)
+const visibleCreationGroups = computed(
+  () => moderator.value?.visibleCreationGroups ?? moderator.value?.visibleGroupTags ?? [],
+)
+// "No group" is not a group, so it cannot appear in the list above. Without it a scope of
+// "one group plus the ungrouped ones" would look exactly like that one group, and the
+// ungrouped contributions the moderator is assigned to would have no filter that reaches
+// them. Older sessions predate the field, hence the fallback.
+const seesUntagged = computed(() => store.state.moderator?.seesUntagged ?? false)
+
+const creationGroupFilterOptions = computed(() => {
+  const allGroups = creationGroupsResult.value?.creationGroups ?? []
+  if (seesAllCreationGroups.value) {
+    // Three answers that cover the list exactly once: everything, everything some group
+    // moderator looks after, everything nobody does — plus every group. The two '*…' values
+    // are reserved tokens the backend matches; a real slug can never be '*…', so no collision.
+    return [
+      { value: '', text: t('creationGroupFilter.all') },
+      { value: '*grouped', text: t('creationGroupFilter.grouped') },
+      { value: '*untagged', text: t('creationGroupFilter.untagged') },
+      ...allGroups.map(creationGroupOption),
+    ]
+  }
+  // Scoped moderator. The store already says which groups they cover, so the shape is decided
+  // before the full group list has even loaded.
+  if (visibleCreationGroups.value.length === 0) {
+    // Scoped to untagged contributions only — the one thing this moderator can see.
+    return [{ value: '*untagged', text: t('creationGroupFilter.untagged') }]
+  }
+  // "All my groups" plus each of them, and "no group" when the scope covers it too; never
+  // "all", never a group outside the scope.
+  return [
+    { value: '*grouped', text: t('creationGroupFilter.grouped') },
+    ...(seesUntagged.value
+      ? [{ value: '*untagged', text: t('creationGroupFilter.untagged') }]
+      : []),
+    ...allGroups
+      .filter((creationGroupItem) => visibleCreationGroups.value.includes(creationGroupItem.tag))
+      .map(creationGroupOption),
+  ]
+})
+
+// Keep the chosen filter among the options actually on offer. A scoped moderator has no "all"
+// entry, so the default falls to their first option ("all my groups", or "untagged").
+watch(
+  creationGroupFilterOptions,
+  (options) => {
+    if (options.length > 0 && !options.some((option) => option.value === creationGroup.value)) {
+      creationGroup.value = options[0].value
+    }
+  },
+  { immediate: true },
+)
+
 const { onResult, onError, result, refetch } = useQuery(
   adminListContributions,
   {
     filter: {
       statusFilter: statusFilter.value,
       query: query.value,
-      noHashtag: noHashtag.value,
       hideResubmission: hideResubmission.value,
+      creationGroup: creationGroup.value,
     },
     paginated: {
       currentPage: currentPage.value,
@@ -321,13 +429,13 @@ const { onResult, onError, result, refetch } = useQuery(
   },
 )
 
-watch([statusFilter, query, noHashtag, hideResubmission, currentPage], () => {
+watch([statusFilter, query, hideResubmission, creationGroup, currentPage], () => {
   refetch({
     filter: {
       statusFilter: statusFilter.value,
       query: query.value,
-      noHashtag: noHashtag.value,
       hideResubmission: hideResubmission.value,
+      creationGroup: creationGroup.value,
     },
     paginated: {
       currentPage: currentPage.value,
@@ -346,6 +454,31 @@ onResult(() => {
   if (statusFilter.value.toString() === FILTER_TAB_MAP[0].toString()) {
     store.commit('setOpenCreations', result.value.adminListContributions.contributionCount)
   }
+})
+
+// Group functions: move a contribution to another group (or to none). The table asks for
+// confirmation first; the backend refuses once the contribution is closed.
+const {
+  mutate: assignGroupMutation,
+  onDone: onAssignGroupDone,
+  onError: onAssignGroupError,
+} = useMutation(assignContributionCreationGroups)
+
+const groupChangeFailures = ref(0)
+
+const assignGroup = ({ contributionId, tags }) => {
+  assignGroupMutation({ contributionId, tags })
+}
+
+onAssignGroupDone(() => {
+  refetch()
+  toastSuccess(t('contribution.changeGroupDone'))
+})
+
+onAssignGroupError((error) => {
+  toastError(error.message)
+  // The table still shows the group the moderator picked; tell it the change did not happen.
+  groupChangeFailures.value++
 })
 
 const {

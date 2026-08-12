@@ -1,4 +1,4 @@
-import { User as dbUser } from 'database'
+import { User as dbUser, MatchingEntrySelect } from 'database'
 
 import { PublishNameLogic } from '@/data/PublishName.logic'
 // import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
@@ -6,13 +6,28 @@ import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
 import { GmsPublishPhoneType } from '@/graphql/enum/GmsPublishPhoneType'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 
+import { GmsMatchingEntry } from './GmsMatchingEntry'
+
 export class GmsUser {
-  constructor(user: dbUser) {
+  /**
+   * @param entries when given, they state this user's FULL set of entries: the GMS
+   *   writes what is in the list and removes what is not. Leaving it out says
+   *   nothing about entries, and the GMS keeps whatever it has.
+   */
+  constructor(user: dbUser, entries?: MatchingEntrySelect[]) {
     const pnLogic = new PublishNameLogic(user)
 
     this.uuid = user.gradidoID
     // this.communityUuid = user.communityUuid
     this.language = user.language
+    // Everything a member writes about themselves only goes over there while they take
+    // part - like the email, the phone and the name below. `null` rather than leaving it
+    // out, because leaving it out lets the GMS keep what it has: a text written while
+    // consent was on has to go when it is switched off.
+    this.aboutMe = user.gmsAllowed ? user.aboutMe : null
+    if (entries) {
+      this.matchingEntries = entries.map((entry) => new GmsMatchingEntry(entry))
+    }
     this.email = this.getGmsEmail(user)
     this.countryCode = this.getGmsCountryCode(user)
     this.mobile = this.getGmsPhone(user)
@@ -55,6 +70,8 @@ export class GmsUser {
   zipCode: string | undefined
   language: string
   location: number[]
+  aboutMe: string | null
+  matchingEntries?: GmsMatchingEntry[]
 
   private getGmsAlias(user: dbUser): string | undefined {
     if (

@@ -2,10 +2,12 @@ import { AliasHistory } from './AliasHistory'
 import { Community } from './Community'
 import { CommunityHandshakeState } from './CommunityHandshakeState'
 import { Contribution } from './Contribution'
+import { ContributionCreationGroup } from './ContributionCreationGroup'
 import { ContributionLink } from './ContributionLink'
 import { ContributionMessage } from './ContributionMessage'
 import { CreaRecord } from './CreaRecord'
 import { CreaSetting } from './CreaSetting'
+import { CreationGroup } from './CreationGroup'
 import { DltTransaction } from './DltTransaction'
 import { Event } from './Event'
 import { FederatedCommunity } from './FederatedCommunity'
@@ -16,6 +18,7 @@ import { Transaction } from './Transaction'
 import { TransactionLink } from './TransactionLink'
 import { User } from './User'
 import { UserContact } from './UserContact'
+import { UserCreationGroup } from './UserCreationGroup'
 import { UserRole } from './UserRole'
 
 export {
@@ -23,6 +26,7 @@ export {
   Community,
   CommunityHandshakeState,
   Contribution,
+  ContributionCreationGroup,
   ContributionLink,
   ContributionMessage,
   CreaRecord,
@@ -30,6 +34,7 @@ export {
   DltTransaction,
   Event,
   FederatedCommunity,
+  CreationGroup,
   LoginElopageBuys,
   Migration,
   PendingTransaction,
@@ -37,6 +42,7 @@ export {
   TransactionLink,
   User,
   UserContact,
+  UserCreationGroup,
   UserRole,
 }
 
@@ -45,6 +51,7 @@ export const entities = [
   Community,
   CommunityHandshakeState,
   Contribution,
+  ContributionCreationGroup,
   ContributionLink,
   ContributionMessage,
   CreaRecord,
@@ -52,6 +59,7 @@ export const entities = [
   DltTransaction,
   Event,
   FederatedCommunity,
+  CreationGroup,
   LoginElopageBuys,
   Migration,
   PendingTransaction,
@@ -59,5 +67,6 @@ export const entities = [
   TransactionLink,
   User,
   UserContact,
+  UserCreationGroup,
   UserRole,
 ]

@@ -9,7 +9,9 @@
     ></clipboard-copy>
     <label>{{ $t('qrCode') }}</label>
     <div class="text-center">
-      <div><figure-qr-code :link="link" /></div>
+      <div>
+        <figure-qr-code :link="link" :cheque="{ kind: 'thankYou', amount, memo, validUntil }" />
+      </div>
       <div>
         <BButton variant="gradido" class="mt-4" data-test="close-btn" @click="$emit('on-back')">
           {{ $t('form.close') }}
