@@ -327,7 +327,7 @@ export async function processXComPendingSendCoins(
             if (voteResult.recipGradidoID) {
               pendingTx.linkedUserGradidoID = voteResult.recipGradidoID
             }
-            if (voteResult.recipFirstName && voteResult.recipLastName) {
+            if (voteResult.recipAlias) { //voteResult.recipFirstName && voteResult.recipLastName) {
               pendingTx.linkedUserName = voteResult.recipAlias // fullName(
               // voteResult.recipFirstName,
               // voteResult.recipLastName,

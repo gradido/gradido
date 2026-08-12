@@ -30,8 +30,8 @@ describe('validate alias', () => {
 
   describe('zod throw an validation error', () => {
     it('throws and logs an error', () => {
-      console.log(`validateAlias('Bi')=${JSON.stringify(validateAlias('Bi'))}`)
-      expect(validateAlias('Bi')).rejects.toThrowError(new Error('Given alias is too short'))
+      console.log(`validateAlias('Bi')=${JSON.stringify(await validateAlias('Bi'))}`)
+      expect(await validateAlias('Bi')).rejects.toThrowError(new Error('Given alias is too short'))
       expect(logger.warn.mock.calls[0]).toEqual([
         'invalid alias',
         'Bi',
