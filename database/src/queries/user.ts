@@ -183,7 +183,7 @@ export async function getLastAliasStorageTimeDistance(
     where: { userId },
     order: { createdAt: 'DESC' },
   })
-  logger.debug(`user=${JSON.stringify(user)}, aliasHistory=${JSON.stringify(aliasHistory)}`)
+  // logger.debug(`user=${JSON.stringify(user)}, aliasHistory=${JSON.stringify(aliasHistory)}`)
   // in case user has updated alias
   if (user !== null && user.aliasStartUpdateAt !== null) {
     logger.debug('user has updated alias')
