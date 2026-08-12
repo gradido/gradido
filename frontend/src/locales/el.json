@@ -725,6 +725,13 @@
   "status": "Κατάσταση",
   "submitted": "Υποβλήθηκε",
   "success": "Επιτυχία",
+  "thank-you-cheque": {
+    "download": "Λήψη επιταγής ευχαριστίας",
+    "scan-qr": "Για να πιστωθούν τα Gradido, σάρωσε τον κωδικό QR!",
+    "starting-credit": "Αρχικό υπόλοιπο {amount} Gradido",
+    "starting-credit-valid": "Αυτό το αρχικό υπόλοιπο ισχύει από τις {from} έως τις {to}.",
+    "valid-until": "Αυτή η επιταγή ευχαριστίας ισχύει έως τις {date}."
+  },
   "time": {
     "days": "Ημέρες",
     "hours": "Ώρες",

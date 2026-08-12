@@ -48,7 +48,13 @@
         <template #header>
           <h6 class="mb-0">{{ $t('qrCode') }}</h6>
         </template>
-        <BCardText><figure-qr-code class="text-center" :link="link" /></BCardText>
+        <BCardText>
+          <figure-qr-code
+            class="text-center"
+            :link="link"
+            :cheque="{ kind: 'thankYou', amount: String(amount), memo, validUntil }"
+          />
+        </BCardText>
         <template #footer>
           <em>{{ link }}</em>
         </template>

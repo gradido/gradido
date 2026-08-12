@@ -725,6 +725,13 @@
   "status": "Status",
   "submitted": "Eingereicht",
   "success": "Erfolg",
+  "thank-you-cheque": {
+    "download": "Dank-Scheck herunterladen",
+    "scan-qr": "Damit die Gradido gutgeschrieben werden, scanne den QR-Code!",
+    "starting-credit": "Startguthaben {amount} Gradido",
+    "starting-credit-valid": "Dieses Startguthaben ist vom {from} bis zum {to} gültig.",
+    "valid-until": "Dieser Dank-Scheck ist bis zum {date} gültig."
+  },
   "time": {
     "days": "Tage",
     "hours": "Stunden",

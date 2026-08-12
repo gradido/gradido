@@ -725,6 +725,13 @@
   "status": "Statu",
   "submitted": "Envoyé",
   "success": "Avec succès",
+  "thank-you-cheque": {
+    "download": "Télécharger le chèque de remerciement",
+    "scan-qr": "Pour l'accréditation du Gradido, scanner le code QR !",
+    "starting-credit": "Crédit de départ {amount} Gradido",
+    "starting-credit-valid": "Ce crédit de départ est valable du {from} au {to}.",
+    "valid-until": "Ce chèque de remerciement est valable jusqu'au {date}."
+  },
   "time": {
     "days": "Jours",
     "hours": "Heures",
