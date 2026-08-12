@@ -437,6 +437,12 @@
   "status": "Κατάσταση",
   "success": "Επιτυχία",
   "text": "Κείμενο",
+  "thank-you-cheque": {
+    "download": "Λήψη επιταγής αρχικού υπολοίπου",
+    "scan-qr": "Για να πιστωθούν τα Gradido, σάρωσε τον κωδικό QR!",
+    "starting-credit": "Αρχικό υπόλοιπο {amount} Gradido",
+    "starting-credit-valid": "Αυτό το αρχικό υπόλοιπο ισχύει από τις {from} έως τις {to}."
+  },
   "transactionlink": {
     "created": "Δημιουργήθηκε",
     "name": "Σύνδεσμοι συναλλαγών",

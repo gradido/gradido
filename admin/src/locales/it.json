@@ -437,6 +437,12 @@
   "status": "Stato",
   "success": "Successo",
   "text": "Testo",
+  "thank-you-cheque": {
+    "download": "Scarica l'assegno di credito iniziale",
+    "scan-qr": "Per ricevere l'accredito dei Gradido, scansiona il codice QR!",
+    "starting-credit": "Credito iniziale {amount} Gradido",
+    "starting-credit-valid": "Questo credito iniziale è valido dal {from} al {to}."
+  },
   "transactionlink": {
     "created": "Creato",
     "name": "Link di transazione",

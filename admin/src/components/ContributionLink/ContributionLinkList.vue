@@ -26,6 +26,18 @@
           <IBiEye />
         </BButton>
       </template>
+      <template #cell(cheque)="data">
+        <BButton
+          variant="secondary"
+          size="md"
+          class="me-2 test-download-cheque"
+          :title="t('thank-you-cheque.download')"
+          :aria-label="t('thank-you-cheque.download')"
+          @click="downloadCheque(data.item)"
+        >
+          <IBiDownload />
+        </BButton>
+      </template>
     </BTable>
 
     <BModal
@@ -64,8 +76,11 @@ import { deleteContributionLink } from '@/graphql/deleteContributionLink.js'
 import FigureQrCode from '../FigureQrCode'
 import { useModal } from 'bootstrap-vue-next'
 import { useI18n } from 'vue-i18n'
+import CONFIG from '@/config'
 import { useAppToast } from '@/composables/useToast'
 import { useIsAdmin } from '@/composables/useIsAdmin'
+import { renderQrCodeCanvas } from '@/utils/qrCode'
+import { drawCheque, chequeFileName } from '@/utils/thankYouCheque'
 
 const props = defineProps({
   items: {
@@ -111,6 +126,7 @@ const fields = computed(() => [
   },
   ...(isAdmin.value ? ['delete', 'edit'] : []),
   'show',
+  'cheque',
 ])
 
 const { mutate: deleteContributionLinkMutation } = useMutation(deleteContributionLink)
@@ -143,11 +159,48 @@ const showContributionLink = (row) => {
   showQrCodeModal()
 }
 
+// The sentence names both ends of the validity, so it can only be printed when both
+// dates are set. A link without them runs open ended, and a cheque that says nothing
+// about validity is closer to the truth than one that prints half a sentence.
+const validLine = ({ validFrom, validTo }) =>
+  validFrom && validTo
+    ? t('thank-you-cheque.starting-credit-valid', {
+        from: d(new Date(validFrom), 'short'),
+        to: d(new Date(validTo), 'short'),
+      })
+    : ''
+
+// Turns a contribution link into the printable starting bonus cheque. The QR code is
+// rendered off screen because this button sits in the table row, where the modal with
+// the code on it is closed.
+const downloadCheque = async (row) => {
+  try {
+    const image = await drawCheque({
+      kind: 'startingBonus',
+      community: CONFIG.COMMUNITY_NAME,
+      headline: t('thank-you-cheque.starting-credit', { amount: row.amount }),
+      memo: row.memo,
+      hintLine: t('thank-you-cheque.scan-qr'),
+      validLine: validLine(row),
+      qrCanvas: await renderQrCodeCanvas(row.link),
+    })
+    const anchor = document.createElement('a')
+    anchor.href = image
+    anchor.download = chequeFileName(row.name, row.amount)
+    anchor.click()
+  } catch (error) {
+    // The cheque is drawn on click, from pictures the wallet serves. If one of them
+    // fails to load, that must not stay silent.
+    toastError(error.message)
+  }
+}
+
 defineExpose({
   fields,
   modalData,
   deleteContributionLink,
   editContributionLink,
   showContributionLink,
+  downloadCheque,
 })
 </script>

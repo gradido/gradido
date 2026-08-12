@@ -437,6 +437,12 @@
   "status": "Status",
   "success": "Success",
   "text": "Text",
+  "thank-you-cheque": {
+    "download": "Download starting bonus cheque",
+    "scan-qr": "For the Gradido to be credited, scan the QR code!",
+    "starting-credit": "Starting bonus {amount} Gradido",
+    "starting-credit-valid": "This starting bonus is valid from {from} until {to}."
+  },
   "transactionlink": {
     "created": "Created",
     "name": "Transaction links",
