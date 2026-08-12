@@ -62,7 +62,7 @@ describe('validate alias', () => {
       it('throws and logs an error', () => {
         ;(aliasExists as jest.Mock).mockReturnValue(true)
         expect(validateAlias('b-b')).rejects.toEqual(new Error('Given alias is already in use'))
-        expect(logger.warn.mock.calls[0]).toEqual(['alias already in use', 'b-b'])
+        expect(logger.warn.mock.calls[0]).toEqual(['alias already in use: alias=b-b, userId=undefined'])
       })
     })
 
