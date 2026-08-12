@@ -689,8 +689,8 @@ export class UserResolver {
     @Arg('username') username: string,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    const user = getUser(context)
     try {
+      const user = getUser(context)
       await validateAlias(username, user?.id)
       return true
     } catch {
