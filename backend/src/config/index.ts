@@ -109,12 +109,6 @@ const humhub = {
   HUMHUB_JWT_KEY: process.env.HUMHUB_JWT_KEY ?? '',
 }
 
-const openai = {
-  OPENAI_ACTIVE: process.env.OPENAI_ACTIVE === 'true' || false,
-  OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? '',
-  OPENAI_ASSISTANT_ID: process.env.OPENAI_ASSISTANT_ID ?? '',
-}
-
 const user = {
   ALIAS_GENERAL_EDIT_TIME_LIMIT: Number(
     process.env.ALIAS_GENERAL_EDIT_TIME_LIMIT ?? 1000 * 60 * 60 * 5,
@@ -143,7 +137,6 @@ export const CONFIG = {
   ...federation,
   ...gms,
   ...humhub,
-  ...openai,
   ...user,
   ...anthropic,
 }

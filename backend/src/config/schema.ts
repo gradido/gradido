@@ -19,7 +19,6 @@ import {
   LOGIN_APP_SECRET,
   LOGIN_SERVER_KEY,
   NODE_ENV,
-  OPENAI_ACTIVE,
   PRODUCTION,
 } from 'config-schema'
 import Joi from 'joi'
@@ -45,7 +44,6 @@ export const schema = Joi.object({
   LOGIN_SERVER_KEY,
   LOG_LEVEL,
   NODE_ENV,
-  OPENAI_ACTIVE,
   PRODUCTION,
 
   COMMUNITY_REDEEM_URL: Joi.string()
@@ -201,18 +199,6 @@ export const schema = Joi.object({
   KLICKTIPP_APIKEY_EN: Joi.string()
     .default('SomeFakeKeyEN')
     .description('The API key for Klicktipp (English version)'),
-
-  OPENAI_API_KEY: Joi.string()
-    .pattern(/^sk-[A-Za-z0-9-_]{20,}$/)
-    .when('OPENAI_ACTIVE', { is: true, then: Joi.required(), otherwise: Joi.optional().allow('') })
-    .description(
-      'API key for OpenAI, must be at least 20 characters long and contain only alphanumeric characters, dashes, or underscores',
-    ),
-
-  OPENAI_ASSISTANT_ID: Joi.string()
-    .pattern(/^asst_[A-Za-z0-9-]{20,}$/)
-    .when('OPENAI_ACTIVE', { is: true, then: Joi.required(), otherwise: Joi.optional().allow('') })
-    .description('Assistant ID for OpenAI'),
 
   ALIAS_GENERAL_EDIT_TIME_LIMIT: Joi.number()
     .integer()
