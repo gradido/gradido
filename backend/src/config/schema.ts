@@ -25,7 +25,7 @@ import {
 import Joi from 'joi'
 
 export const schema = Joi.object({
-  ANTHROPIC_ACTIVE,
+  // ANTHROPIC_ACTIVE,
   COMMUNITY_NAME,
   COMMUNITY_URL,
   COMMUNITY_DESCRIPTION,

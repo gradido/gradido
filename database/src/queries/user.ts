@@ -1,15 +1,13 @@
+import { eq } from 'drizzle-orm'
 import { getLogger, Logger } from 'log4js'
 import { aliasSchema, emailSchema, uuidv4Schema, VoidResult } from 'shared'
 import { In, Not, Raw } from 'typeorm'
+import { drizzleDb } from '../AppDatabase'
 import {
-  AliasHistory,
   AliasHistory as DbAliasHistory,
   User as DbUser,
   UserContact as DbUserContact,
 } from '../entity'
-import { eq } from 'drizzle-orm'
-import { drizzleDb } from '../AppDatabase'
-import { User as DbUser, UserContact as DbUserContact } from '../entity'
 import { DBNotFoundError } from '../errorTypes'
 import { usersTable } from '../schemas/drizzle.schema'
 import { findWithCommunityIdentifier, LOG4JS_QUERIES_CATEGORY_NAME } from './index'
@@ -181,7 +179,7 @@ export async function getLastAliasStorageTimeDistance(
 ): Promise<number | null> {
   const user = await DbUser.findOne({ where: { id: userId } })
   // select separatly because of optional history
-  const aliasHistory = await AliasHistory.find({
+  const aliasHistory = await DbAliasHistory.find({
     where: { userId },
     order: { createdAt: 'DESC' },
   })
