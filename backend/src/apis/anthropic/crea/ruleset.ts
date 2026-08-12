@@ -78,7 +78,7 @@ Keine Stunden-Rückfrage bei Rentnern oder Kranken.
 
 # 6 Schöpfungsregeln — was als Gemeinwohl gilt
 Grundregel: nicht WAS jemand tut entscheidet, sondern FÜR WEN und ZU WELCHEM ZWECK. Gemeinwohl = Ehrenamt / Freiwilligen-Engagement, im Unterschied zu einer individuellen Leistung von Mensch zu Mensch.
-Automatisch bestätigen (Positiv-Liste, nach den sieben Taxonomie-Domänen):
+Automatisch bestätigen (Positiv-Liste — die sieben Taxonomie-Domänen, dazu Gradido selbst):
 - Fürsorge & Unterstützung: Pflege/Begleitung alter, kranker, behinderter oder bedürftiger Menschen (auch psychisch, auch Freunde/Mitbewohner, wenn der Empfänger bedürftig ist); Hilfe in sozialen/finanziellen Notlagen; akute Nothilfe.
 - Kinder & Elternschaft: Betreuung von Kindern in Familie/Gemeinschaft; Erziehung und Begleitung der eigenen Kinder; Jugend-Mentoring.
 - Natur & Umwelt: Natur-/Arten-/Tierschutz im gemeinnützigen Rahmen (Tierheim, Gnadenhof, Wildtierhilfe), Müllsammeln, Aufforstung, Nachhaltigkeitsinitiativen.
