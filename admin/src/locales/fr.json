@@ -437,6 +437,12 @@
   "status": "Statut",
   "success": "Succès",
   "text": "Texte",
+  "thank-you-cheque": {
+    "download": "Télécharger le chèque de crédit de départ",
+    "scan-qr": "Pour l'accréditation du Gradido, scanner le code QR !",
+    "starting-credit": "Crédit de départ {amount} Gradido",
+    "starting-credit-valid": "Ce crédit de départ est valable du {from} au {to}."
+  },
   "transactionlink": {
     "created": "Créé",
     "name": "Liens de transaction",

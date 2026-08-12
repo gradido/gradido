@@ -437,6 +437,12 @@
   "status": "Статус",
   "success": "Успех",
   "text": "Текст",
+  "thank-you-cheque": {
+    "download": "Скачать чек стартового баланса",
+    "scan-qr": "Чтобы получить начисление Gradido на счёт, отсканируйте QR-код!",
+    "starting-credit": "Стартовый баланс {amount} Gradido",
+    "starting-credit-valid": "Этот стартовый баланс действителен с {from} до {to}."
+  },
   "transactionlink": {
     "created": "Создано",
     "name": "Ссылки на транзакции",

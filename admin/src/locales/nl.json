@@ -437,6 +437,12 @@
   "status": "Status",
   "success": "Succes",
   "text": "Tekst",
+  "thank-you-cheque": {
+    "download": "Startsaldocheque downloaden",
+    "scan-qr": "Om de Gradidos bijgeschreven te krijgen, scan de QR-code!",
+    "starting-credit": "Startsaldo {amount} Gradido",
+    "starting-credit-valid": "Dit startsaldo is geldig van {from} tot {to}."
+  },
   "transactionlink": {
     "created": "Aangemaakt",
     "name": "Transactielinks",

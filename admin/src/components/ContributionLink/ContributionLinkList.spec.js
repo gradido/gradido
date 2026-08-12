@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { createStore } from 'vuex'
 import ContributionLinkList from './ContributionLinkList.vue'
 import { BButton, BCard, BCardText, BModal, BTable } from 'bootstrap-vue-next'
@@ -9,10 +9,26 @@ const createVuexStore = (roles = ['ADMIN']) => createStore({ state: { moderator:
 
 vi.mock('vue-i18n', () => ({
   useI18n: vi.fn(() => ({
-    t: (key) => key,
+    // The values are kept in the returned string so that a test can see which numbers
+    // and dates went into a sentence, not only which key was picked.
+    t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
     d: (date) => date.toISOString(),
   })),
 }))
+
+const mockDrawCheque = vi.fn(() => Promise.resolve('data:image/png;base64,AAAA'))
+vi.mock('@/utils/thankYouCheque', () => ({
+  drawCheque: (...args) => mockDrawCheque(...args),
+  chequeFileName: (occasion, amount) => `${amount} GDD - ${occasion}.png`,
+}))
+
+const mockQrCanvas = { width: 360 }
+const mockRenderQrCodeCanvas = vi.fn(() => Promise.resolve(mockQrCanvas))
+vi.mock('@/utils/qrCode', () => ({
+  renderQrCodeCanvas: (...args) => mockRenderQrCodeCanvas(...args),
+}))
+
+vi.mock('@/config', () => ({ default: { COMMUNITY_NAME: 'KI Playground' } }))
 
 vi.mock('@vue/apollo-composable', () => ({
   useMutation: vi.fn(() => ({
@@ -65,6 +81,7 @@ describe('ContributionLinkList', () => {
           IBiTrash: true,
           IBiPencil: true,
           IBiEye: true,
+          IBiDownload: true,
           FigureQrCode: true,
         },
       },
@@ -146,6 +163,82 @@ describe('ContributionLinkList', () => {
     it('offers delete and edit', () => {
       expect(wrapper.vm.fields).toContain('delete')
       expect(wrapper.vm.fields).toContain('edit')
+    })
+  })
+
+  // The starting bonus cheque. The button sits in the row next to the eye, so the code
+  // it prints is drawn off screen -- the modal that shows one is closed at that moment.
+  describe('download the starting bonus cheque', () => {
+    const link = {
+      name: 'Startguthaben Gradido-Cafe',
+      memo: 'Dein Startguthaben!',
+      amount: '20',
+      validFrom: '2026-08-01',
+      validTo: '2026-09-30',
+      link: 'https://localhost/redeem/CL-1a2345678',
+    }
+
+    let anchor
+    let createElement
+
+    beforeEach(() => {
+      anchor = { href: '', download: '', click: vi.fn() }
+      const original = document.createElement.bind(document)
+      createElement = vi
+        .spyOn(document, 'createElement')
+        .mockImplementation((tag) => (tag === 'a' ? anchor : original(tag)))
+    })
+
+    afterEach(() => {
+      createElement.mockRestore()
+    })
+
+    it('offers the button in every row, to moderators as well', () => {
+      expect(wrapper.find('.test-download-cheque').exists()).toBe(true)
+      expect(createWrapper(['MODERATOR']).vm.fields).toContain('cheque')
+    })
+
+    it('draws the code of the link that was clicked', async () => {
+      await wrapper.find('.test-download-cheque').trigger('click')
+
+      expect(mockRenderQrCodeCanvas).toHaveBeenCalledWith('https://localhost/redeem/CL-1a2345678')
+    })
+
+    it('puts the community, the amount and both dates on the cheque', async () => {
+      await wrapper.vm.downloadCheque(link)
+
+      expect(mockDrawCheque).toHaveBeenCalledWith({
+        kind: 'startingBonus',
+        community: 'KI Playground',
+        headline: 'thank-you-cheque.starting-credit {"amount":"20"}',
+        memo: 'Dein Startguthaben!',
+        hintLine: 'thank-you-cheque.scan-qr',
+        validLine:
+          'thank-you-cheque.starting-credit-valid {"from":"2026-08-01T00:00:00.000Z","to":"2026-09-30T00:00:00.000Z"}',
+        qrCanvas: mockQrCanvas,
+      })
+      expect(anchor.download).toBe('20 GDD - Startguthaben Gradido-Cafe.png')
+      expect(anchor.href).toBe('data:image/png;base64,AAAA')
+      expect(anchor.click).toHaveBeenCalled()
+    })
+
+    // A link may run without an end date. Half a sentence would read like a mistake, and
+    // a date that was never set must not be invented.
+    it('leaves the validity out when a date is missing', async () => {
+      await wrapper.vm.downloadCheque({ ...link, validTo: null })
+
+      expect(mockDrawCheque).toHaveBeenCalledWith(expect.objectContaining({ validLine: '' }))
+    })
+
+    it('says so when a picture of the cheque cannot be loaded', async () => {
+      mockDrawCheque.mockRejectedValueOnce(
+        new Error('cannot load image: /img/template/Blaetter.png'),
+      )
+
+      await wrapper.vm.downloadCheque(link)
+
+      expect(mockToastError).toHaveBeenCalledWith('cannot load image: /img/template/Blaetter.png')
+      expect(anchor.click).not.toHaveBeenCalled()
     })
   })
 })

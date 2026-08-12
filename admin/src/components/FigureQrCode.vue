@@ -7,6 +7,7 @@
 </template>
 <script>
 import { QRCanvas } from 'qrcanvas-vue'
+import { COIN_IMAGE_PATH, qrCodeOptions } from '@/utils/qrCode'
 
 export default {
   name: 'FigureQrCode',
@@ -24,17 +25,12 @@ export default {
   },
   computed: {
     qrOptions() {
-      return {
-        cellSize: 8,
-        correctLevel: 'H',
-        data: this.link,
-        logo: { image: this.image },
-      }
+      return qrCodeOptions(this.link, this.image)
     },
   },
   created() {
     const image = new Image()
-    image.src = '/img/gdd-coin.png'
+    image.src = COIN_IMAGE_PATH
     image.onload = () => {
       this.image = image
       this.showQr = true
