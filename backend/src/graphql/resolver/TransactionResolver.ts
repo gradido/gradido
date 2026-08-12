@@ -125,10 +125,12 @@ export const executeTransaction = async (
       transactionSend.memo = memo
       transactionSend.userId = sender.id
       transactionSend.userGradidoID = sender.gradidoID
+      // from now on the alias is written as userName in the transactions
       transactionSend.userName = sender.alias // fullName(sender.firstName, sender.lastName)
       transactionSend.userCommunityUuid = sender.communityUuid
       transactionSend.linkedUserId = recipient.id
       transactionSend.linkedUserGradidoID = recipient.gradidoID
+      // from now on the alias is written as userName in the transactions
       transactionSend.linkedUserName = recipient.alias // fullName(recipient.firstName, recipient.lastName)
       transactionSend.linkedUserCommunityUuid = recipient.communityUuid
       transactionSend.amount = negativeAmount
@@ -158,10 +160,12 @@ export const executeTransaction = async (
       transactionReceive.memo = memo
       transactionReceive.userId = recipient.id
       transactionReceive.userGradidoID = recipient.gradidoID
+      // from now on the alias is written as userName in the transactions
       transactionReceive.userName = recipient.alias // fullName(recipient.firstName, recipient.lastName)
       transactionReceive.userCommunityUuid = recipient.communityUuid
       transactionReceive.linkedUserId = sender.id
       transactionReceive.linkedUserGradidoID = sender.gradidoID
+      // from now on the alias is written as userName in the transactions
       transactionReceive.linkedUserName = sender.alias // fullName(sender.firstName, sender.lastName)
       transactionReceive.linkedUserCommunityUuid = sender.communityUuid
       transactionReceive.amount = amount
