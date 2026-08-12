@@ -108,6 +108,14 @@ const { toastError, toastSuccess } = useAppToast()
 
 const modalData = ref({})
 
+// The one place where a validity date of a contribution link becomes a Date. The
+// backend sends an instant (a datetime column, serialized as UTC), while a validity
+// reads like a calendar day, so a browser behind UTC shows the day before. Whether
+// that is worth changing is a question for the whole admin, not for one view - and
+// until it is answered, the table and the printed cheque must at least be wrong in
+// the same way. That is what this function is for: one line to change, one answer.
+const validityDate = (value) => new Date(value)
+
 const fields = computed(() => [
   'name',
   'memo',
@@ -117,12 +125,12 @@ const fields = computed(() => [
   {
     key: 'validFrom',
     label: t('contributionLink.validFrom'),
-    formatter: (value) => (value ? d(new Date(value)) : ''),
+    formatter: (value) => (value ? d(validityDate(value)) : ''),
   },
   {
     key: 'validTo',
     label: t('contributionLink.validTo'),
-    formatter: (value) => (value ? d(new Date(value)) : ''),
+    formatter: (value) => (value ? d(validityDate(value)) : ''),
   },
   ...(isAdmin.value ? ['delete', 'edit'] : []),
   'show',
@@ -165,8 +173,8 @@ const showContributionLink = (row) => {
 const validLine = ({ validFrom, validTo }) =>
   validFrom && validTo
     ? t('thank-you-cheque.starting-credit-valid', {
-        from: d(new Date(validFrom), 'short'),
-        to: d(new Date(validTo), 'short'),
+        from: d(validityDate(validFrom), 'short'),
+        to: d(validityDate(validTo), 'short'),
       })
     : ''
 
