@@ -725,6 +725,13 @@
   "status": "Статус",
   "submitted": "Внесено",
   "success": "Результат/Успех",
+  "thank-you-cheque": {
+    "download": "Скачать чек благодарности",
+    "scan-qr": "Чтобы получить начисление Gradido на счёт, отсканируйте QR-код!",
+    "starting-credit": "Стартовый баланс {amount} Gradido",
+    "starting-credit-valid": "Этот стартовый баланс действителен с {from} до {to}.",
+    "valid-until": "Этот чек благодарности действителен до {date}."
+  },
   "time": {
     "days": "Дни",
     "hours": "Часы",

@@ -725,6 +725,13 @@
   "status": "Status",
   "submitted": "Ingediend",
   "success": "Succes",
+  "thank-you-cheque": {
+    "download": "Bedankcheque downloaden",
+    "scan-qr": "Om de Gradidos bijgeschreven te krijgen, scan de QR-code!",
+    "starting-credit": "Startsaldo {amount} Gradido",
+    "starting-credit-valid": "Dit startsaldo is geldig van {from} tot {to}.",
+    "valid-until": "Deze bedankcheque is geldig tot {date}."
+  },
   "time": {
     "days": "Dagen",
     "hours": "Uren",

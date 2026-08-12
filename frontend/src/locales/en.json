@@ -725,6 +725,13 @@
   "status": "Status",
   "submitted": "Submitted",
   "success": "Success",
+  "thank-you-cheque": {
+    "download": "Download thank-you cheque",
+    "scan-qr": "For the Gradido to be credited, scan the QR code!",
+    "starting-credit": "Starting bonus {amount} Gradido",
+    "starting-credit-valid": "This starting bonus is valid from {from} until {to}.",
+    "valid-until": "This thank-you cheque is valid until {date}."
+  },
   "time": {
     "days": "Days",
     "hours": "Hours",

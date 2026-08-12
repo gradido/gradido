@@ -725,6 +725,13 @@
   "status": "Estado",
   "submitted": "Enviado",
   "success": "Lo lograste",
+  "thank-you-cheque": {
+    "download": "Descargar cheque de agradecimiento",
+    "scan-qr": "Para que se te acrediten los Gradidos, ¡escanea el código QR!",
+    "starting-credit": "Saldo inicial {amount} Gradido",
+    "starting-credit-valid": "Este saldo inicial es válido desde el {from} hasta el {to}.",
+    "valid-until": "Este cheque de agradecimiento es válido hasta el {date}."
+  },
   "time": {
     "days": "Días",
     "hours": "Horas",
