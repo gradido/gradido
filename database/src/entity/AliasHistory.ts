@@ -66,5 +66,5 @@ export class AliasHistory extends BaseEntity {
   user: User
 
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
-  
+  userEntity?: User | null
 }
