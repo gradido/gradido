@@ -737,7 +737,6 @@ export class UserResolver {
     await queryRunner.connect()
     await queryRunner.startTransaction('REPEATABLE READ')
 
-
     let updated = updateAllDefinedAndChanged(user, {
       firstName,
       lastName,
@@ -762,14 +761,16 @@ export class UserResolver {
         updated = true
       } else if (user.aliasFirstUsageAt !== null) {
         // the current set alias is still in use and have to be historized
-        const aliasHistory = await queryRunner.manager.save(DbAliasHistory, {
-          userId: user.id,
-          alias: user.alias,
-          communityUuid: user.communityUuid,
-          firstUsageAt: user.aliasFirstUsageAt,
-        }).catch((error) => {
-          throw new LogError('Error while saving alias history', error)
-        })
+        const aliasHistory = await queryRunner.manager
+          .save(DbAliasHistory, {
+            userId: user.id,
+            alias: user.alias,
+            communityUuid: user.communityUuid,
+            firstUsageAt: user.aliasFirstUsageAt,
+          })
+          .catch((error) => {
+            throw new LogError('Error while saving alias history', error)
+          })
 
         user.alias = alias
         user.aliasStartUpdateAt = new Date()
@@ -804,13 +805,15 @@ export class UserResolver {
           user.aliasFirstUsageAt = aliasHistoryEntry?.firstUsageAt ?? null
           updated = true
           // and remove aliasHistory-entry with same alias if exists (comparable with: reuse previous alias again)
-          const deleteAliasHistoryResult = await queryRunner.manager.delete(DbAliasHistory, {
-            userId: user.id,
-            alias: alias,
-            communityUuid: user.communityUuid,
-          }).catch((error) => {
-            throw new LogError('Error while deleting DbAliasHistory', error)
-          })
+          const deleteAliasHistoryResult = await queryRunner.manager
+            .delete(DbAliasHistory, {
+              userId: user.id,
+              alias: alias,
+              communityUuid: user.communityUuid,
+            })
+            .catch((error) => {
+              throw new LogError('Error while deleting DbAliasHistory', error)
+            })
           logger.debug(
             `remove optional existing DbAliasHistory same alias: deleteAliasHistoryResult`,
             deleteAliasHistoryResult,

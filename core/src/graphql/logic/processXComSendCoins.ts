@@ -150,7 +150,10 @@ export async function processXComCompleteTransaction(
       }
       if (senderUser.aliasFirstUsageAt === null) {
         senderUser.aliasFirstUsageAt = new Date()
-        await dbUser.update({ id: senderUser.id }, { aliasFirstUsageAt: senderUser.aliasFirstUsageAt })
+        await dbUser.update(
+          { id: senderUser.id },
+          { aliasFirstUsageAt: senderUser.aliasFirstUsageAt },
+        )
       }
       // after successful x-com-tx store the recipient as foreign user
       methodLogger.debug('store recipient as foreign user...', committingResult.recipAlias)
@@ -327,7 +330,8 @@ export async function processXComPendingSendCoins(
             if (voteResult.recipGradidoID) {
               pendingTx.linkedUserGradidoID = voteResult.recipGradidoID
             }
-            if (voteResult.recipAlias) { //voteResult.recipFirstName && voteResult.recipLastName) {
+            if (voteResult.recipAlias) {
+              //voteResult.recipFirstName && voteResult.recipLastName) {
               pendingTx.linkedUserName = voteResult.recipAlias // fullName(
               // voteResult.recipFirstName,
               // voteResult.recipLastName,

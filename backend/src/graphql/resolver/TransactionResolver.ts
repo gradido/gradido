@@ -145,7 +145,11 @@ export const executeTransaction = async (
 
       if (sender.aliasFirstUsageAt === null) {
         sender.aliasFirstUsageAt = new Date()
-        await queryRunner.manager.update(dbUser, { id: sender.id }, { aliasFirstUsageAt: sender.aliasFirstUsageAt })
+        await queryRunner.manager.update(
+          dbUser,
+          { id: sender.id },
+          { aliasFirstUsageAt: sender.aliasFirstUsageAt },
+        )
         logger.debug(`sender updated: ${sender}`)
       }
 
