@@ -663,7 +663,7 @@
     },
     "password": {
       "change-password": "Cambiar contraseña",
-      "forgot_pwd": "¿Olvidé la contraseña?",
+      "forgot_pwd": "¿Has olvidado tu contraseña?",
       "resend_subtitle": "Su enlace de activación ha caducado. Puedes solicitar uno nuevo aquí.",
       "reset": "Restablecer contraseña",
       "reset-password": {
