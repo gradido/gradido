@@ -61,7 +61,7 @@
           {{ $t('avatar.remove') }}
         </BButton>
         <BButton @click="isOpen = false">{{ $t('form.cancel') }}</BButton>
-        <BButton variant="success" :disabled="!croppedBase64" @click="onSave">
+        <BButton variant="success" :disabled="!cropped" @click="onSave">
           {{ $t('avatar.apply') }}
         </BButton>
       </template>
@@ -73,9 +73,17 @@
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppModal from '@/components/AppModal.vue'
-import { AVATAR_OUTPUT_SIZE, encodeUnderTarget, isHeicFileName } from '@/utils/avatarImage'
+import {
+  AVATAR_FULL_SIZE,
+  AVATAR_FULL_TARGET_BYTES,
+  AVATAR_SMALL_SIZE,
+  AVATAR_SMALL_TARGET_BYTES,
+  encodeUnderTarget,
+  isHeicFileName,
+} from '@/utils/avatarImage'
 
-// The preview is 280 CSS pixels; the stored square is AVATAR_OUTPUT_SIZE.
+// The preview is 280 CSS pixels; the stored squares are AVATAR_FULL_SIZE and
+// AVATAR_SMALL_SIZE, both drawn from this same frame.
 const FRAME = 280
 
 const props = defineProps({
@@ -106,7 +114,7 @@ const imageSrc = ref('')
 const loadError = ref('')
 const zoom = ref(1)
 const measure = ref('')
-const croppedBase64 = ref('')
+const cropped = ref(null)
 const confirmRemove = ref(false)
 
 let naturalWidth = 0
@@ -123,7 +131,7 @@ function reset() {
   zoom.value = 1
   previousZoom = 1
   measure.value = ''
-  croppedBase64.value = ''
+  cropped.value = null
   confirmRemove.value = false
   sourceBytes = 0
 }
@@ -156,7 +164,7 @@ function loadImage(dataUrl, fileName) {
   // browsers cannot decode the format.
   probe.onerror = () => {
     imageSrc.value = ''
-    croppedBase64.value = ''
+    cropped.value = null
     loadError.value = isHeicFileName(fileName) ? t('avatar.error-heic') : t('avatar.error-format')
   }
   probe.onload = () => {
@@ -255,25 +263,25 @@ function onWheel(event) {
 }
 
 /**
- * Draws the visible square at 512x512 and lowers JPEG quality in steps until the result
- * fits under TARGET_BYTES. The member never sets a quality; they set a picture, and the
- * size is guaranteed regardless of how detailed their photo is.
+ * Draws the visible square at the given output size.
  *
- * Drawing straight into 512x512 is also what keeps this working on iOS, where canvas
+ * Drawing straight into the target size is what keeps this working on iOS, where canvas
  * area and total memory are capped far below a desktop. The common shape of resizing
  * libraries -- paint the photo at full size first, then scale down -- runs into that cap
- * and returns a black image without complaining.
+ * and returns a black image without complaining. That is also why the small rendition is
+ * drawn from the source rather than derived from the full one: the same trap, and the
+ * source is right here anyway.
  */
-function encode() {
+function drawSquare(outputSize) {
   const canvas = document.createElement('canvas')
-  canvas.width = AVATAR_OUTPUT_SIZE
-  canvas.height = AVATAR_OUTPUT_SIZE
+  canvas.width = outputSize
+  canvas.height = outputSize
   const context = canvas.getContext('2d')
   context.fillStyle = '#ffffff'
-  context.fillRect(0, 0, AVATAR_OUTPUT_SIZE, AVATAR_OUTPUT_SIZE)
+  context.fillRect(0, 0, outputSize, outputSize)
   context.imageSmoothingQuality = 'high'
 
-  const ratio = AVATAR_OUTPUT_SIZE / FRAME
+  const ratio = outputSize / FRAME
   const scale = minScale * zoom.value
   context.drawImage(
     image.value,
@@ -282,17 +290,31 @@ function encode() {
     naturalWidth * scale * ratio,
     naturalHeight * scale * ratio,
   )
+  return canvas
+}
 
-  const encoded = encodeUnderTarget(canvas)
-  croppedBase64.value = encoded.base64
+/**
+ * Both renditions from one crop, each stepped down in quality until it fits its own
+ * budget. The member never sets a quality or picks a size; they set a picture, and both
+ * sizes are guaranteed regardless of how detailed their photo is.
+ *
+ * One crop, two encodes -- so the two can never disagree about which square the member
+ * chose.
+ */
+function encode() {
+  const full = encodeUnderTarget(drawSquare(AVATAR_FULL_SIZE), AVATAR_FULL_TARGET_BYTES)
+  const small = encodeUnderTarget(drawSquare(AVATAR_SMALL_SIZE), AVATAR_SMALL_TARGET_BYTES)
+
+  cropped.value = { small: small.base64, full: full.base64 }
+  // The sum, because that is what the upload actually costs the member.
   measure.value = t('avatar.measure', {
     source: Math.round(sourceBytes / 1024),
-    result: Math.round(encoded.bytes / 1024),
+    result: Math.round((full.bytes + small.bytes) / 1024),
   })
 }
 
 function onSave() {
-  emits('saved', croppedBase64.value)
+  emits('saved', cropped.value)
   isOpen.value = false
 }
 

@@ -73,12 +73,16 @@ const avatarSource = computed(() => (avatar.value ? `data:image/jpeg;base64,${av
 const { mutate: mutateSet } = useMutation(setUserAvatar)
 const { mutate: mutateRemove } = useMutation(removeUserAvatar)
 
-async function onSaved(image) {
+async function onSaved({ small, full }) {
   try {
-    await mutateSet({ image })
+    await mutateSet({ avatarSmall: small, avatarFull: full })
+    // Only the small rendition goes into the store: that is what every avatar on screen
+    // is drawn from. The full one is stored on the server and fetched when it is
+    // actually wanted, which is the printed card and the member's own look at it.
+    //
     // Written to the store only after the server accepted it, so the wallet never shows
     // a picture that is not stored.
-    store.commit('avatar', image)
+    store.commit('avatar', small)
     toast.toastSuccess(t('avatar.saved'))
   } catch (error) {
     toast.toastError(error.message)

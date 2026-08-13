@@ -1,12 +1,23 @@
 // AI-GENERATED — not an architecture reference
 
-// The square the wallet stores. Not taken from any screen: an avatar printed 25 mm wide
-// at 300 dpi needs about 295 pixels, and the printed member card is what sets the floor.
-export const AVATAR_OUTPUT_SIZE = 512
+// One upload, two squares.
+//
+// The full one is not taken from any screen: an avatar printed 25 mm wide at 300 dpi
+// needs about 295 pixels, and the printed member card is what sets the floor. It is
+// shown to nobody but its owner.
+export const AVATAR_FULL_SIZE = 512
 
-// Below AVATAR_MAX_BYTES in `shared`, leaving room for base64 growth and the query
-// around it inside express' 100 KB request limit.
-export const AVATAR_TARGET_BYTES = 55 * 1024
+// The small one IS taken from a screen, from the largest place it appears: the navbar
+// avatar at 61 CSS pixels, which wants 122 real ones on a 2x display. Everything else
+// that shows a picture -- lists, chat, transactions -- is smaller than that. This is the
+// rendition other people see.
+export const AVATAR_SMALL_SIZE = 128
+
+// Both below their backstops in `shared`, leaving room for base64 growth and the query
+// around them. The two travel in one mutation, so they share express' 100 KB request
+// limit; see AVATAR_FULL_MAX_BYTES there for the arithmetic.
+export const AVATAR_FULL_TARGET_BYTES = 55 * 1024
+export const AVATAR_SMALL_TARGET_BYTES = 8 * 1024
 
 export const AVATAR_QUALITY_STEPS = [0.85, 0.75, 0.65, 0.55, 0.45]
 
@@ -36,7 +47,7 @@ export function base64ByteLength(dataUrl) {
  */
 export function encodeUnderTarget(
   canvas,
-  targetBytes = AVATAR_TARGET_BYTES,
+  targetBytes = AVATAR_FULL_TARGET_BYTES,
   steps = AVATAR_QUALITY_STEPS,
 ) {
   let index = 0

@@ -287,11 +287,15 @@ export const disburseTransactionLink = gql`
   }
 `
 
-// The member's own profile picture. Base64 without a data URI prefix; the browser has
-// already cropped it to 512x512 and lowered quality until it fit under ~55 KB.
+// The member's own profile picture, both renditions from one crop. Base64 without a data
+// URI prefix; the browser has already cropped and stepped the quality down until each fit
+// its budget -- 128x128 for everyday use, 512x512 for the printed card.
+//
+// Both in one mutation on purpose: they describe the same square, and a half-applied
+// change would show the member two different pictures depending on where they look.
 export const setUserAvatar = gql`
-  mutation ($image: String!) {
-    setUserAvatar(image: $image)
+  mutation ($avatarSmall: String!, $avatarFull: String!) {
+    setUserAvatar(avatarSmall: $avatarSmall, avatarFull: $avatarFull)
   }
 `
 
