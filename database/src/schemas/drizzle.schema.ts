@@ -286,9 +286,13 @@ export type UserInsert = typeof usersTable.$inferInsert
 // because `users` is read on nearly every request and an image would weigh every one
 // of those reads down. user_id is the primary key: one member, one picture, so a
 // duplicate is impossible by shape rather than by care.
+// Two renditions from one upload. avatarSmall is what other people see and what will
+// federate; avatarFull is own-view only -- the printed card and the member's own look at
+// their picture. Never hand avatarFull to anybody but its owner.
 export const userAvatarsTable = mysqlTable('user_avatars', {
   userId: int('user_id').primaryKey().notNull(),
-  image: customMediumBlob().notNull(),
+  avatarSmall: customMediumBlob('avatar_small').notNull(),
+  avatarFull: customMediumBlob('avatar_full').notNull(),
   mimeType: varchar('mime_type', { length: 32 }).notNull(),
   updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
     .default(sql`current_timestamp(3)`)

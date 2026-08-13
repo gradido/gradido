@@ -3,35 +3,70 @@ import { eq } from 'drizzle-orm'
 import { Result, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { DBNotFoundError } from '../errorTypes'
-import { UserAvatarInsert, UserAvatarSelect, userAvatarsTable } from '../schemas/drizzle.schema'
+import { UserAvatarInsert, userAvatarsTable } from '../schemas/drizzle.schema'
 
 // TODO: replace results with valibot schema after update to typescript 5 is possible
 
 const UserAvatarNotFound = (where: string) => new DBNotFoundError('user_avatars', where)
 
 /**
- * The member's own profile picture, or a miss. Not having one is the normal state for
- * most accounts, so the miss is an expected result rather than an error.
+ * The everyday picture, 128x128. This is the one other people are shown, so it is also
+ * the one that reads on the common paths -- every wallet login asks for it.
+ *
+ * Selects the one column on purpose rather than the row: the full rendition next to it
+ * is roughly ten times the size, and a `select()` would carry it out of the database on
+ * every one of those logins only to have it thrown away.
+ *
+ * Not having a picture is the normal state for most accounts, so the miss is an expected
+ * result rather than an error.
  */
-export async function dbFindUserAvatar(
+export async function dbFindUserAvatarSmall(
   userId: number,
-): Promise<Result<UserAvatarSelect, DBNotFoundError>> {
+): Promise<Result<Buffer, DBNotFoundError>> {
   const rows = await drizzleDb()
-    .select()
+    .select({ avatarSmall: userAvatarsTable.avatarSmall })
     .from(userAvatarsTable)
     .where(eq(userAvatarsTable.userId, userId))
     .limit(1)
 
   const avatar = rows.at(0)
   return avatar
-    ? { success: true, value: avatar }
+    ? { success: true, value: avatar.avatarSmall }
     : { success: false, error: UserAvatarNotFound(`userId = ${userId}`) }
 }
 
 /**
- * Sets the picture, replacing whatever was there. Upsert rather than insert-or-update
- * from the caller, because "one member, one picture" is already expressed by the
- * primary key and a read-then-write would only reintroduce the race the key removes.
+ * The full crop, 512x512, for the printed member card and for the member looking at
+ * their own picture.
+ *
+ * ⛔ Own view only. This rendition has exactly one legitimate viewer, its owner, which
+ * is why it carries no disclosure decision. Whoever calls this has to have established
+ * that the caller IS the owner -- there is no scope where handing this to somebody else
+ * is correct. Anything shown to other people reads dbFindUserAvatarSmall above.
+ */
+export async function dbFindUserAvatarFull(
+  userId: number,
+): Promise<Result<Buffer, DBNotFoundError>> {
+  const rows = await drizzleDb()
+    .select({ avatarFull: userAvatarsTable.avatarFull })
+    .from(userAvatarsTable)
+    .where(eq(userAvatarsTable.userId, userId))
+    .limit(1)
+
+  const avatar = rows.at(0)
+  return avatar
+    ? { success: true, value: avatar.avatarFull }
+    : { success: false, error: UserAvatarNotFound(`userId = ${userId}`) }
+}
+
+/**
+ * Sets the picture, replacing whatever was there. Both renditions in one write: they
+ * come from one crop, and a state where the small one is newer than the full one would
+ * show the member two different pictures depending on where they look.
+ *
+ * Upsert rather than insert-or-update from the caller, because "one member, one picture"
+ * is already expressed by the primary key and a read-then-write would only reintroduce
+ * the race the key removes.
  *
  * No affectedRows check on purpose. MySQL answers INSERT .. ON DUPLICATE KEY UPDATE
  * with 1 for a fresh row, 2 for a changed one and 0 when the row already held exactly
@@ -44,7 +79,12 @@ export async function dbUpsertUserAvatar(row: UserAvatarInsert): Promise<VoidRes
     .insert(userAvatarsTable)
     .values(row)
     .onDuplicateKeyUpdate({
-      set: { image: row.image, mimeType: row.mimeType, updatedAt: new Date() },
+      set: {
+        avatarSmall: row.avatarSmall,
+        avatarFull: row.avatarFull,
+        mimeType: row.mimeType,
+        updatedAt: new Date(),
+      },
     })
 
   return { success: true }
