@@ -467,6 +467,15 @@ export const verifyLoginAvatar = gql`
   }
 `
 
+export const userAvatar = gql`
+  query ($identifier: String!, $communityIdentifier: String!) {
+    user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
+      gradidoID
+      avatar
+    }
+  }
+`
+
 export const userAboutMe = gql`
   query ($identifier: String!, $communityIdentifier: String!) {
     user(identifier: $identifier, communityIdentifier: $communityIdentifier) {

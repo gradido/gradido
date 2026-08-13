@@ -62,6 +62,7 @@ import {
   searchAdminUsers,
   searchUsers,
   userAboutMe,
+  userAvatar,
   user as userQuery,
   verifyLogin,
   verifyLoginAboutMe,
@@ -2801,8 +2802,14 @@ describe('UserResolver', () => {
     const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46])
     const JPEG_BASE64 = JPEG.toString('base64')
 
+    let homeCom: DbCommunity
+    let owner: User
+
     beforeAll(async () => {
-      await userFactory(testEnv, bibiBloxberg)
+      await cleanDB()
+      homeCom = await writeHomeCommunityEntry()
+      owner = await userFactory(testEnv, bibiBloxberg)
+      await userFactory(testEnv, bobBaumeister)
       await mutate({
         mutation: login,
         variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
@@ -2863,6 +2870,40 @@ describe('UserResolver', () => {
     it('stays quiet when there is nothing to remove', async () => {
       const removed: any = await mutate({ mutation: removeUserAvatar })
       expect(removed.data.removeUserAvatar).toBe(true)
+    })
+
+    // The boundary this whole delivery keeps: a face is a disclosure to third parties,
+    // and there is no switch for it yet, so there is nobody it may be shown to.
+    it('hides the picture from another logged-in member', async () => {
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+      const written: any = await mutate({
+        mutation: setUserAvatar,
+        variables: { image: JPEG_BASE64 },
+      })
+      // The fixture has to prove itself, or the assertion below passes for the wrong
+      // reason: a picture that was never stored is invisible to everyone.
+      if (written.errors || written.data?.setUserAvatar !== true) {
+        throw new Error(`could not store avatar: ${JSON.stringify(written.errors)}`)
+      }
+
+      await mutate({
+        mutation: login,
+        variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
+      })
+      const res: any = await query({
+        query: userAvatar,
+        variables: {
+          identifier: owner.gradidoID,
+          communityIdentifier: homeCom.communityUuid,
+        },
+      })
+      // The member is found - only the field is withheld, so this is the field resolver
+      // at work and not a lookup that failed.
+      expect(res.data.user.gradidoID).toBe(owner.gradidoID)
+      expect(res.data.user.avatar).toBeNull()
     })
   })
 

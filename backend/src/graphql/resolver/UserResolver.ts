@@ -1321,6 +1321,26 @@ export class UserResolver {
     }
     return user.aboutMe ?? null
   }
+
+  /**
+   * The avatar is own-view only, like aboutMe above, and for a stronger reason: showing
+   * a face to other members is a disclosure to third parties, and this house gives every
+   * such disclosure its own switch. There is no switch for this one yet, so there is no
+   * one it may be shown to.
+   *
+   * Today nothing would leak without this guard either - only verifyLogin fills the
+   * field, so `user` hands out a User whose avatar is null anyway. That is exactly why
+   * the guard is here: a property that holds only because no other code path happens to
+   * set the field is not a rule, it is an accident, and the next person to fill it
+   * somewhere else would open the door without noticing.
+   */
+  @FieldResolver(() => String, { nullable: true })
+  avatar(@Root() user: User, @Ctx() context: Context): string | null {
+    if (context.user?.id !== user.id) {
+      return null
+    }
+    return user.avatar ?? null
+  }
 }
 
 export async function findUserByEmail(email: string): Promise<DbUser> {
