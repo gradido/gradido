@@ -18,13 +18,25 @@
                 <IBiThreeDotsVertical class="link-menu-opener" />
               </template>
 
-              <BDropdownItem v-if="validLink" class="test-copy-text" @click.stop="copyLinkWithText">
+              <BDropdownItem v-if="validLink" class="test-copy-link" @click.stop="copyLink">
+                <IBiClipboard />
+                {{ $t('gdd_per_link.copy-link') }}
+              </BDropdownItem>
+              <BDropdownItem
+                v-if="validLink"
+                class="pt-3 test-copy-text"
+                @click.stop="copyLinkWithText"
+              >
                 <IBiClipboardPlus />
                 {{ $t('gdd_per_link.copy-link-with-text') }}
               </BDropdownItem>
-              <BDropdownItem v-if="validLink" class="test-copy-link pt-3" @click.stop="copyLink">
-                <IBiClipboard />
-                {{ $t('gdd_per_link.copy-link') }}
+              <BDropdownItem
+                v-if="validLink"
+                class="pt-3 test-download-cheque"
+                @click.stop="downloadThankYouCheque()"
+              >
+                <IBiDownload />
+                {{ $t('thank-you-cheque.download') }}
               </BDropdownItem>
               <BDropdownItem
                 v-if="validLink"
@@ -49,11 +61,7 @@
           <h6 class="mb-0">{{ $t('qrCode') }}</h6>
         </template>
         <BCardText>
-          <figure-qr-code
-            class="text-center"
-            :link="link"
-            :cheque="{ kind: 'thankYou', amount: String(amount), memo, validUntil }"
-          />
+          <figure-qr-code class="text-center" :link="link" />
         </BCardText>
         <template #footer>
           <em>{{ link }}</em>
@@ -82,6 +90,7 @@ import { useMutation } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
 import { useCopyLinks } from '@/composables/useCopyLinks'
+import { useThankYouCheque } from '@/composables/useThankYouCheque'
 import { deleteTransactionLink } from '@/graphql/mutations'
 import TypeIcon from '../TransactionRows/TypeIcon'
 import AmountAndNameRow from '../TransactionRows/AmountAndNameRow'
@@ -109,6 +118,14 @@ const emit = defineEmits(['reset-transaction-link-list'])
 const { t } = useI18n()
 const { toastSuccess, toastError } = useAppToast()
 const { copyLink, copyLinkWithText } = useCopyLinks({
+  amount: props.amount,
+  validUntil: props.validUntil,
+  link: props.link,
+  memo: props.memo,
+})
+// The cheque is drawn from scratch here: the window that shows the code is closed while
+// this menu is open, so there is nothing on screen to copy the code from.
+const { downloadThankYouCheque } = useThankYouCheque({
   amount: props.amount,
   validUntil: props.validUntil,
   link: props.link,
