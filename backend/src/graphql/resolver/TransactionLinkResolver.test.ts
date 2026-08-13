@@ -586,19 +586,13 @@ describe('TransactionLinkResolver', () => {
 
             describe('after one day', () => {
               beforeAll(async () => {
-                // Log in first, on the real clock. This is fixture, not measurement: what
-                // the advanced clock is for is the redeem calls below. Jest 27's fake
-                // timers replace process.nextTick and setImmediate, and mysql2 settles its
-                // promises on those, so a request that has to open a database connection
-                // inside the faked window never comes back -- it times out instead of
-                // failing an assertion, which is what that looks like from the outside.
+                jest.useFakeTimers()
+                setTimeout(jest.fn(), 1000 * 60 * 60 * 24)
+                jest.runAllTimers()
                 await mutate({
                   mutation: login,
                   variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
                 })
-                jest.useFakeTimers()
-                setTimeout(jest.fn(), 1000 * 60 * 60 * 24)
-                jest.runAllTimers()
               })
 
               afterAll(() => {
