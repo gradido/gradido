@@ -118,7 +118,7 @@ async function onRemoved() {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22%;
+  font-size: 22px;
   opacity: 0;
   transition: opacity 0.16s ease;
   pointer-events: none;
