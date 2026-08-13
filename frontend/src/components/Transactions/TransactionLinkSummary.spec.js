@@ -57,6 +57,7 @@ const propsData = {
     duration: 282381,
   },
   transactionLinkCount: 4,
+  openLinkCount: 2,
 }
 
 describe('TransactionLinkSummary', () => {
@@ -67,7 +68,8 @@ describe('TransactionLinkSummary', () => {
       global: {
         mocks: {
           ...mocks,
-          $t: (key) => key,
+          // values are kept in the string so a test can see the number that went in
+          $t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
         },
         stubs: {
           BRow,
@@ -98,10 +100,19 @@ describe('TransactionLinkSummary', () => {
     expect(amountElement.text()).toBe('Mocked GDD: 123')
   })
 
-  it('displays the correct transaction link count', () => {
+  // The line underneath names the links that can still be redeemed - two of the four the
+  // list holds. Counting all of them told members about links that had long expired.
+  it('counts only the open links, not every link in the list', () => {
     const countElement = wrapper.find('.small')
-    expect(countElement.text()).toContain('4')
-    expect(countElement.text()).toContain('gdd_per_link.links_sum')
+    expect(countElement.text()).toContain('gdd_per_link.links_open')
+    expect(countElement.text()).toContain('2')
+    expect(countElement.text()).not.toContain('4')
+  })
+
+  // What stood over the amount was the label of the send button, which describes no sum.
+  // It was wrong for months without anyone noticing, so the heading is gone for good.
+  it('puts no heading over the amount', () => {
+    expect(wrapper.text()).not.toContain('send_per_link')
   })
 
   it('has a CollapseIcon component', () => {
