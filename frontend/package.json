@@ -45,6 +45,7 @@
     "leaflet": "^1.9.4",
     "leaflet-geosearch": "^4.0.0",
     "portal-vue": "^3.0.0",
+    "qrcanvas": "^3.1.2",
     "qrcanvas-vue": "3",
     "regenerator-runtime": "^0.13.7",
     "tua-body-scroll-lock": "^1.5.1",
