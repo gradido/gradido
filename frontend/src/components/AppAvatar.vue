@@ -1,18 +1,21 @@
 <template>
   <div
     class="app-avatar d-flex justify-content-center align-items-center rounded-circle"
+    :class="{ 'app-avatar-quiet': quiet && !src }"
     :style="{
       width: `${size}px`,
       height: `${size}px`,
-      backgroundColor,
+      backgroundColor: src ? undefined : backgroundColor,
       textTransform: 'uppercase',
     }"
   >
+    <img v-if="src" class="app-avatar-image" :src="src" alt="" />
     <span
+      v-else
       :style="{
         fontSize: `${size * 0.4}px`,
         lineHeight: '1',
-        color: props.color,
+        color: quiet ? undefined : props.color,
       }"
       class="font-medium"
     >
@@ -40,6 +43,19 @@ const props = defineProps({
   initials: {
     type: String,
     default: '',
+  },
+  // A picture to show instead of the initials. Any image source works; the wallet passes
+  // a base64 data URI. Without it nothing changes for the callers that had none.
+  src: {
+    type: String,
+    default: '',
+  },
+  // The "quiet" look for an avatar that has no picture yet: a pale disc with a dashed
+  // ring instead of a solid colour, so an unfilled place looks like an unfilled place.
+  // Only meaningful where the member can act on it — their own avatar.
+  quiet: {
+    type: Boolean,
+    default: false,
   },
 })
 
@@ -133,3 +149,44 @@ const textColor = computed(() => {
   return colorPalette[colorIndex].text
 })
 </script>
+
+<style lang="scss">
+/* Comments here must be block comments: lightningcss parses SFC style blocks, and a
+   double slash is not a comment to it -- the build dies with "Invalid empty selector". */
+.app-avatar {
+  overflow: hidden;
+}
+
+.app-avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* The empty state, when the member can still fill it. A dashed ring is the commonly
+   understood notation for "something is missing here" -- it does not push, but it is
+   read, and it stops an avatar without a picture from looking like a finished thing. */
+.app-avatar-quiet {
+  background-color: #e4efef !important;
+  color: #276e6f;
+  border: 1.5px dashed #a9cccc;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.app-avatar-quiet span {
+  color: #276e6f !important;
+}
+
+/* The saturated wallet colour does not carry in the dark; these are its own values. */
+.dark-mode .app-avatar-quiet {
+  background-color: #243a3b !important;
+  border-color: #47797a;
+}
+
+.dark-mode .app-avatar-quiet span {
+  color: #8ed0d1 !important;
+}
+</style>
