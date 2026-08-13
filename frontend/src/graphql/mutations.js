@@ -219,6 +219,7 @@ export const login = gql`
       roles
       hideAmountGDD
       hideAmountGDT
+      avatar
     }
   }
 `
