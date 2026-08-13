@@ -17,7 +17,7 @@ import {
   varchar,
 } from 'drizzle-orm/mysql-core'
 
-import { customGradidoUnit } from './customTypes'
+import { customGradidoUnit, customMediumBlob } from './customTypes'
 
 export const communitiesTable = mysqlTable(
   'communities',
@@ -281,3 +281,19 @@ export const usersTable = mysqlTable(
 
 export type UserSelect = typeof usersTable.$inferSelect
 export type UserInsert = typeof usersTable.$inferInsert
+
+// The member's own profile picture. A side table rather than a column on `users`,
+// because `users` is read on nearly every request and an image would weigh every one
+// of those reads down. user_id is the primary key: one member, one picture, so a
+// duplicate is impossible by shape rather than by care.
+export const userAvatarsTable = mysqlTable('user_avatars', {
+  userId: int('user_id').primaryKey().notNull(),
+  image: customMediumBlob().notNull(),
+  mimeType: varchar('mime_type', { length: 32 }).notNull(),
+  updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
+    .default(sql`current_timestamp(3)`)
+    .notNull(),
+})
+
+export type UserAvatarSelect = typeof userAvatarsTable.$inferSelect
+export type UserAvatarInsert = typeof userAvatarsTable.$inferInsert
