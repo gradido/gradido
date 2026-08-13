@@ -286,3 +286,17 @@ export const disburseTransactionLink = gql`
     )
   }
 `
+
+// The member's own profile picture. Base64 without a data URI prefix; the browser has
+// already cropped it to 512x512 and lowered quality until it fit under ~55 KB.
+export const setUserAvatar = gql`
+  mutation ($image: String!) {
+    setUserAvatar(image: $image)
+  }
+`
+
+export const removeUserAvatar = gql`
+  mutation {
+    removeUserAvatar
+  }
+`

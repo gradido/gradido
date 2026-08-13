@@ -36,6 +36,22 @@
       "oneGratitude": "Voor elkaar, voor alle mensen, voor de natuur."
     }
   },
+  "avatar": {
+    "apply": "Toepassen",
+    "change": "Profielfoto wijzigen",
+    "choose-image": "Afbeelding kiezen",
+    "error-format": "De browser kan deze afbeelding niet openen. Kies een JPEG of PNG.",
+    "error-heic": "De browser kan deze afbeelding niet openen. Het is een HEIC, het cameraformaat van de iPhone. Zet hem om naar JPEG of kies de afbeelding rechtstreeks op de iPhone.",
+    "measure": "Bronbestand {source} KB, er wordt {result} KB verzonden",
+    "pick-hint": "Sleep een afbeelding hierheen of kies er hieronder een",
+    "remove": "Foto verwijderen",
+    "remove-confirm": "Ja, verwijderen",
+    "remove-question": "Je account toont dan weer je initialen. Je kunt op elk moment een nieuwe foto instellen.",
+    "removed": "Je profielfoto is verwijderd",
+    "saved": "Je profielfoto is opgeslagen",
+    "set": "Profielfoto instellen",
+    "size": "Grootte"
+  },
   "back": "Terug",
   "card-circles": {
     "allowed": {

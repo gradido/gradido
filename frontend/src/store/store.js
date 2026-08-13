@@ -90,6 +90,12 @@ export const mutations = {
   userLocation: (state, userLocation) => {
     state.userLocation = userLocation
   },
+  // The member's own profile picture as base64, or null. Persisted with the rest of the
+  // state, so it is there on the first paint after a reload instead of the avatar
+  // jumping from initials to picture.
+  avatar: (state, avatar) => {
+    state.avatar = avatar
+  },
   redirectPath: (state, redirectPath) => {
     state.redirectPath = redirectPath || '/overview'
   },
@@ -121,6 +127,7 @@ export const actions = {
     commit('hideAmountGDD', data.hideAmountGDD)
     commit('hideAmountGDT', data.hideAmountGDT)
     commit('userLocation', data.userLocation)
+    commit('avatar', data.avatar ?? null)
   },
   logout: ({ commit, state, dispatch }) => {
     commit('token', null)
@@ -142,6 +149,7 @@ export const actions = {
     commit('hideAmountGDT', true)
     commit('email', '')
     commit('userLocation', null)
+    commit('avatar', null)
     commit('redirectPath', '/overview')
     // Held outside the store, in a module that survives this action because logging
     // out does not reload the page.
@@ -216,6 +224,7 @@ try {
       darkMode: false,
       themeMode: 'system',
       userLocation: null,
+      avatar: null,
       redirectPath: '/overview',
       transactionToHighlightId: '',
     },

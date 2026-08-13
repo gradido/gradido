@@ -36,6 +36,22 @@
       "oneGratitude": "Per gli altri, per tutti gli esseri umani, per la natura."
     }
   },
+  "avatar": {
+    "apply": "Applica",
+    "change": "Modifica immagine del profilo",
+    "choose-image": "Scegli immagine",
+    "error-format": "Il browser non può aprire questa immagine. Scegli un JPEG o un PNG.",
+    "error-heic": "Il browser non può aprire questa immagine. È un HEIC, il formato della fotocamera dell'iPhone. Convertila in JPEG oppure scegli l'immagine direttamente sull'iPhone.",
+    "measure": "File di partenza {source} KB, verranno inviati {result} KB",
+    "pick-hint": "Trascina qui un'immagine oppure scegline una qui sotto",
+    "remove": "Rimuovi immagine",
+    "remove-confirm": "Sì, rimuovi",
+    "remove-question": "Il tuo conto mostrerà di nuovo le tue iniziali. Puoi impostare una nuova immagine in qualsiasi momento.",
+    "removed": "La tua immagine del profilo è stata rimossa",
+    "saved": "La tua immagine del profilo è stata salvata",
+    "set": "Imposta immagine del profilo",
+    "size": "Dimensione"
+  },
   "back": "Indietro",
   "card-circles": {
     "allowed": {

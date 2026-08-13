@@ -20,30 +20,33 @@
 
         <BNavbarNav class="ms-auto" right>
           <div class="">
-            <router-link to="/settings" class="d-flex flex-column align-items-end text-end">
+            <div class="d-flex flex-column align-items-end text-end">
+              <!-- The avatar opens the picture tool; the settings link moved to the name
+                   below it. That name already carried the link colouring but was not a
+                   link at all, so the move turns a decoy into a function. -->
               <div class="ms-auto">
-                <app-avatar
+                <AvatarButton
                   class="vue3-avatar"
                   :name="username.username"
                   :initials="username.initials"
-                  :border="false"
                   :color="'#fff'"
                   :size="61"
                 />
               </div>
-              <div v-if="!hasUsername">
+              <router-link v-if="!hasUsername" to="/settings" class="text-end">
                 <div class="mt-3" data-test="navbar-item-username">{{ username.username }}</div>
                 <div class="small mt-1" data-test="navbar-item-gradido-id">{{ gradidoId }}</div>
-              </div>
-            </router-link>
+              </router-link>
+            </div>
             <div class="d-flex flex-column align-items-end text-end">
-              <div
+              <router-link
                 v-if="hasUsername"
+                to="/settings"
                 class="navbar-like-link mt-3"
                 data-test="navbar-item-username"
               >
                 {{ username.username }}
-              </div>
+              </router-link>
               <div
                 v-if="hasUsername"
                 class="small navbar-like-link pointer mt-1"

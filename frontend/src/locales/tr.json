@@ -36,6 +36,22 @@
       "oneGratitude": "Birbirimiz, tüm insanlar ve doğa için."
     }
   },
+  "avatar": {
+    "apply": "Uygula",
+    "change": "Profil resmini değiştir",
+    "choose-image": "Görsel seç",
+    "error-format": "Tarayıcı bu görseli açamıyor. Lütfen bir JPEG veya PNG seç.",
+    "error-heic": "Tarayıcı bu görseli açamıyor. Bu bir HEIC, iPhone'un kamera biçimi. JPEG'e dönüştür ya da görseli doğrudan iPhone'da seç.",
+    "measure": "Kaynak dosya {source} KB, {result} KB gönderilecek",
+    "pick-hint": "Bir görseli buraya sürükle veya aşağıdan seç",
+    "remove": "Resmi kaldır",
+    "remove-confirm": "Evet, kaldır",
+    "remove-question": "Hesabın yeniden baş harflerini gösterecek. İstediğin zaman yeni bir resim ayarlayabilirsin.",
+    "removed": "Profil resmin kaldırıldı",
+    "saved": "Profil resmin kaydedildi",
+    "set": "Profil resmi ayarla",
+    "size": "Boyut"
+  },
   "back": "Geri",
   "card-circles": {
     "allowed": {

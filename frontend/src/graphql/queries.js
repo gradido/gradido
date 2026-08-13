@@ -23,6 +23,7 @@ export const verifyLogin = gql`
       hideAmountGDD
       hideAmountGDT
       aboutMe
+      avatar
     }
   }
 `

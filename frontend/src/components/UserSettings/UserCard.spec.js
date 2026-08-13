@@ -42,6 +42,15 @@ describe('UserCard', () => {
           BCol,
           AppAvatar,
         },
+        stubs: {
+          // The avatar button brings its own apollo and toast dependencies; this card
+          // only has to hand it the right name and initials.
+          AvatarButton: {
+            name: 'AvatarButton',
+            props: ['name', 'initials', 'color', 'size'],
+            template: '<div class="avatar-button-stub"></div>',
+          },
+        },
         mocks,
       },
       props: {
@@ -55,12 +64,12 @@ describe('UserCard', () => {
     expect(wrapper.find('.userdata-card').exists()).toBe(true)
   })
 
-  it('renders the DIV Element ".app-avatar"', () => {
-    expect(wrapper.find('.app-avatar').exists()).toBe(true)
+  it('renders the avatar button', () => {
+    expect(wrapper.findComponent({ name: 'AvatarButton' }).exists()).toBe(true)
   })
 
-  it('displays the first letters of the firstName and lastName', () => {
-    expect(wrapper.find('.app-avatar').text()).toBe('BB')
+  it('hands the avatar button the first letters of the firstName and lastName', () => {
+    expect(wrapper.findComponent({ name: 'AvatarButton' }).props('initials')).toBe('BB')
   })
 
   it('displays the correct balance', () => {
