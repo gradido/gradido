@@ -26,6 +26,7 @@ import {
   UserRole,
 } from 'database'
 import { GraphQLError } from 'graphql'
+import { AVATAR_MAX_BYTES } from 'shared'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 import { deleteGmsUser, upsertGmsUsers } from '@/apis/gms/GmsClient'
 import { subscribe } from '@/apis/KlicktippController'
@@ -47,8 +48,10 @@ import {
   forgotPassword,
   login,
   logout,
+  removeUserAvatar,
   sendActivationEmail,
   setPassword,
+  setUserAvatar,
   setUserRole,
   unDeleteUser,
   updateUserInfos,
@@ -62,6 +65,7 @@ import {
   user as userQuery,
   verifyLogin,
   verifyLoginAboutMe,
+  verifyLoginAvatar,
 } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
@@ -2786,6 +2790,79 @@ describe('UserResolver', () => {
       // and not a lookup that failed.
       expect(res.data.user.gradidoID).toBe(author.gradidoID)
       expect(res.data.user.aboutMe).toBeNull()
+    })
+  })
+
+  // The profile picture the member sets for their own account. Own view only: nothing
+  // hands it to anybody else, which is the boundary this delivery deliberately keeps.
+  describe('user avatar', () => {
+    // A minimal but real JPEG head. The resolver checks the magic bytes, so anything
+    // that is not one would be rejected for the right reason and prove nothing.
+    const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46])
+    const JPEG_BASE64 = JPEG.toString('base64')
+
+    beforeAll(async () => {
+      await userFactory(testEnv, bibiBloxberg)
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+    })
+
+    afterAll(async () => {
+      await cleanDB()
+    })
+
+    it('has no picture before one is set', async () => {
+      const res: any = await query({ query: verifyLoginAvatar })
+      expect(res.data.verifyLogin.avatar).toBeNull()
+    })
+
+    it('stores a picture and hands the same bytes back', async () => {
+      const written: any = await mutate({
+        mutation: setUserAvatar,
+        variables: { image: JPEG_BASE64 },
+      })
+      expect(written.data.setUserAvatar).toBe(true)
+
+      const res: any = await query({ query: verifyLoginAvatar })
+      expect(res.data.verifyLogin.avatar).toBe(JPEG_BASE64)
+    })
+
+    it('refuses something that is not a JPEG', async () => {
+      const res: any = await mutate({
+        mutation: setUserAvatar,
+        variables: { image: Buffer.from('not an image at all').toString('base64') },
+      })
+      expect(res.errors).toBeDefined()
+    })
+
+    it('refuses a picture over the size limit', async () => {
+      const tooLarge = Buffer.concat([JPEG, Buffer.alloc(AVATAR_MAX_BYTES, 0x20)])
+      const res: any = await mutate({
+        mutation: setUserAvatar,
+        variables: { image: tooLarge.toString('base64') },
+      })
+      expect(res.errors).toBeDefined()
+    })
+
+    it('leaves the stored picture untouched when a write was refused', async () => {
+      const res: any = await query({ query: verifyLoginAvatar })
+      expect(res.data.verifyLogin.avatar).toBe(JPEG_BASE64)
+    })
+
+    it('removes the picture', async () => {
+      const removed: any = await mutate({ mutation: removeUserAvatar })
+      expect(removed.data.removeUserAvatar).toBe(true)
+
+      const res: any = await query({ query: verifyLoginAvatar })
+      expect(res.data.verifyLogin.avatar).toBeNull()
+    })
+
+    // Removing a picture that is not there is what the member wanted either way.
+    it('stays quiet when there is nothing to remove', async () => {
+      const removed: any = await mutate({ mutation: removeUserAvatar })
+      expect(removed.data.removeUserAvatar).toBe(true)
     })
   })
 

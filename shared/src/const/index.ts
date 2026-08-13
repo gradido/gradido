@@ -45,6 +45,18 @@ export const MESSAGE_MIN_CHARS = 1
 export const ABOUT_ME_MAX_CHARS = 2000
 export const MATCHING_ENTRY_DETAILS_MAX_CHARS = 2000
 
+// avatar: the profile picture a member sets for their own account. The browser crops to
+// 512x512 and lowers JPEG quality in steps until the result fits under ~55 KB, so this
+// is the backstop for a client that does not — not a value anyone should reach.
+//
+// The ceiling above it is the request body limit, express's default 100 KB (see
+// createServer.ts). Base64 grows bytes by about 37%, so 60 KB of image arrives as
+// roughly 82 KB of string and still leaves room for the query around it.
+export const AVATAR_MAX_BYTES = 60 * 1024
+// A JPEG begins with these two bytes. This is not format validation; it just stops the
+// column from becoming a place to park arbitrary data.
+export const JPEG_MAGIC_BYTES = [0xff, 0xd8]
+
 // authentication
 // 10 minutes
 export const FEDERATION_AUTHENTICATION_TIMEOUT_MS = 60 * 1000 * 10

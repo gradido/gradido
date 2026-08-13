@@ -456,6 +456,17 @@ export const verifyLoginAboutMe = gql`
   }
 `
 
+// Same reasoning: the avatar rides along on verifyLogin, and asking for it on its own
+// leaves the widely asserted queries untouched.
+export const verifyLoginAvatar = gql`
+  query {
+    verifyLogin {
+      gradidoID
+      avatar
+    }
+  }
+`
+
 export const userAboutMe = gql`
   query ($identifier: String!, $communityIdentifier: String!) {
     user(identifier: $identifier, communityIdentifier: $communityIdentifier) {

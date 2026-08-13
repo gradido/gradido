@@ -32,8 +32,11 @@ import {
   User as DbUser,
   UserContact as DbUserContact,
   UserRole as DbUserRole,
+  dbDeleteUserAvatar,
   dbFindProjectBrandingByAlias,
   dbFindProjectSpaceId,
+  dbFindUserAvatar,
+  dbUpsertUserAvatar,
   findUserByIdentifier,
   getHomeCommunity,
   ProjectBrandingSelect,
@@ -42,7 +45,7 @@ import {
 import { GraphQLResolveInfo } from 'graphql'
 import { getLogger, Logger } from 'log4js'
 import random from 'random-bigint'
-import { updateAllDefinedAndChanged } from 'shared'
+import { AVATAR_MAX_BYTES, JPEG_MAGIC_BYTES, updateAllDefinedAndChanged } from 'shared'
 import { randombytes_random } from 'sodium-native'
 import {
   Arg,
@@ -167,6 +170,11 @@ export class UserResolver {
     user.seesUntagged = moderatorCreationGroups.seesUntagged
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage(context)
+
+    // The member's own profile picture. Sent along with the login so the wallet can show
+    // it immediately instead of jumping from initials to picture on every page load.
+    const avatar = await dbFindUserAvatar(userEntity.id)
+    user.avatar = avatar.success ? avatar.value.image.toString('base64') : null
 
     logger.debug(`verifyLogin... successful`)
     user.klickTipp = await getKlicktippState(userEntity.emailContact.email)
@@ -859,6 +867,69 @@ export class UserResolver {
       logger.error('error sync user with humhub', e)
     }
 
+    return true
+  }
+
+  /**
+   * Sets the member's own profile picture.
+   *
+   * Deliberately its own mutation rather than another field on updateUserInfos: that one
+   * carries fifteen settings and runs compareGmsRelevantUserSettings, which starts a GMS
+   * and HumHub sync when something relevant changed. A picture has nothing to say to
+   * either system, and every change of it would set both in motion.
+   *
+   * `image` is base64 without a data URI prefix. The browser has already cropped to
+   * 512x512 and lowered quality until it fit; the checks here are the backstop for a
+   * client that did neither.
+   */
+  @Authorized([RIGHTS.UPDATE_USER_INFOS])
+  @Mutation(() => Boolean)
+  async setUserAvatar(@Arg('image') image: string, @Ctx() context: Context): Promise<boolean> {
+    const user = getUser(context)
+    const logger = createLogger()
+    logger.addContext('user', user.id)
+
+    const bytes = Buffer.from(image, 'base64')
+    logger.info(`setUserAvatar... ${bytes.length} bytes`)
+
+    if (bytes.length === 0) {
+      throw new LogError('Avatar image is empty')
+    }
+    if (bytes.length > AVATAR_MAX_BYTES) {
+      throw new LogError('Avatar image too large', { bytes: bytes.length, max: AVATAR_MAX_BYTES })
+    }
+    // Buffer.from ignores anything it cannot decode instead of failing, so "it decoded"
+    // says nothing about what arrived. The magic bytes do.
+    if (bytes[0] !== JPEG_MAGIC_BYTES[0] || bytes[1] !== JPEG_MAGIC_BYTES[1]) {
+      throw new LogError('Avatar image is not a JPEG')
+    }
+
+    const stored = await dbUpsertUserAvatar({
+      userId: user.id,
+      image: bytes,
+      mimeType: 'image/jpeg',
+    })
+    if (!stored.success) {
+      throw new LogError('Error storing avatar image')
+    }
+
+    logger.debug('setUserAvatar... successful')
+    return true
+  }
+
+  /**
+   * Removes the member's own profile picture. Removing one that is not there is not an
+   * error worth raising — the member wanted it gone, and it is gone.
+   */
+  @Authorized([RIGHTS.UPDATE_USER_INFOS])
+  @Mutation(() => Boolean)
+  async removeUserAvatar(@Ctx() context: Context): Promise<boolean> {
+    const user = getUser(context)
+    const logger = createLogger()
+    logger.addContext('user', user.id)
+    logger.info('removeUserAvatar...')
+
+    await dbDeleteUserAvatar(user.id)
     return true
   }
 
