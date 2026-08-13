@@ -127,7 +127,6 @@ export const actions = {
     commit('hideAmountGDD', data.hideAmountGDD)
     commit('hideAmountGDT', data.hideAmountGDT)
     commit('userLocation', data.userLocation)
-    commit('avatar', data.avatar ?? null)
   },
   logout: ({ commit, state, dispatch }) => {
     commit('token', null)

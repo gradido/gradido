@@ -159,9 +159,9 @@ describe('Vuex store', () => {
         darkMode: true,
       }
 
-      it('calls nineteen commits', () => {
+      it('calls eighteen commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(19)
+        expect(commit).toHaveBeenCalledTimes(18)
       })
 
       it('uses the account language when there is no deliberate pre-login choice', () => {

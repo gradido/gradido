@@ -30,12 +30,16 @@ vi.mock('@/composables/useToast', () => ({
 }))
 
 const mockMutate = vi.fn()
+const mockQuery = vi.fn()
 vi.mock('@vue/apollo-composable', () => ({
   useMutation: () => ({
     mutate: mockMutate,
   }),
   useLazyQuery: () => ({
     load: vi.fn(),
+  }),
+  useApolloClient: () => ({
+    client: { query: mockQuery },
   }),
 }))
 
@@ -155,6 +159,11 @@ describe('Login', () => {
             login: 'token',
           },
         })
+        mockQuery.mockResolvedValue({
+          data: {
+            verifyLogin: { avatar: 'base64-picture' },
+          },
+        })
         await wrapper.find('form').trigger('submit')
         await flushPromises()
       })
@@ -176,6 +185,30 @@ describe('Login', () => {
       })
 
       it('redirects to overview page', () => {
+        expect(router.currentRoute.value.path).toBe('/overview')
+      })
+
+      // The login mutation cannot carry the picture, so without this fetch the member
+      // sees initials until some later session renewal happens to refill the store -- and
+      // on the ordinary path nothing does.
+      it('fetches the picture and commits it', () => {
+        expect(store.commit).toHaveBeenCalledWith('avatar', 'base64-picture')
+      })
+    })
+
+    // Best effort: a member who is logged in must not be thrown back over a picture.
+    describe('valid data, but the picture cannot be fetched', () => {
+      beforeEach(async () => {
+        await wrapper.find('#email-input-field').setValue('user@example.org')
+        await wrapper.find('#password-input-field').setValue('1234')
+        mockMutate.mockResolvedValue({ data: { login: 'token' } })
+        mockQuery.mockRejectedValue(new Error('network'))
+        await wrapper.find('form').trigger('submit')
+        await flushPromises()
+      })
+
+      it('logs the member in anyway', () => {
+        expect(store.dispatch).toHaveBeenCalledWith('login', 'token')
         expect(router.currentRoute.value.path).toBe('/overview')
       })
     })

@@ -6,11 +6,10 @@ import { listAllContributions } from './contributions.graphql'
 // Regression guard for BOTH ways into the wallet. The form login (pages/Login.vue) and
 // the token-handoff re-auth (routes/guards.js) feed their result into the same `login`
 // store action, and that action commits every field below. Whichever document omits one
-// makes the action overwrite the value with undefined or null on the way in -- the GMS
-// and HumHub connection dropped that way on every wallet <-> admin round-trip, and the
-// member's own avatar vanished that way on every form login while verifyLogin carried it
-// happily. Neither failure crashes anything, which is why it needs a guard and not a
-// reader: the two documents must stay in sync with the action, and so with each other.
+// makes the action overwrite the value with undefined on the way in -- that is how the
+// GMS and HumHub connection came to drop on every wallet <-> admin round-trip. It does
+// not crash, which is why it needs a guard and not a reader: the two documents must stay
+// in sync with the action, and so with each other.
 //
 // Read from the query tree, not from its printed text, for the reason spelled out at
 // listAllContributions below: a substring match is also satisfied by a longer field name
@@ -52,9 +51,20 @@ describe.each([
     'roles',
     'hideAmountGDD',
     'hideAmountGDT',
-    'avatar',
   ])('requests the "%s" field consumed by the login action', (field) => {
     expect([...fields]).toContain(field)
+  })
+})
+
+// The avatar is deliberately not on that list. The login mutation does not carry it --
+// filling it there would mean a database read on the one request path every member and
+// every test takes -- so verifyLogin is the only place the wallet can get it, and two
+// callers read it from exactly here: guards.js on the token handoff, and Login.vue right
+// after a form login. Drop the field and both of them commit null over a good picture,
+// silently, which is the failure this whole guard exists for.
+describe('verifyLogin query', () => {
+  it('requests the avatar, which is the only place the wallet can read it', () => {
+    expect([...requestedFields(verifyLogin)]).toContain('avatar')
   })
 })
 
