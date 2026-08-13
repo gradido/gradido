@@ -173,8 +173,7 @@ export class UserResolver {
 
     // The member's own profile picture. Sent along with the login so the wallet can show
     // it immediately instead of jumping from initials to picture on every page load.
-    const avatar = await dbFindUserAvatar(userEntity.id)
-    user.avatar = avatar.success ? avatar.value.image.toString('base64') : null
+    user.avatar = await this.loadAvatar(userEntity.id)
 
     logger.debug(`verifyLogin... successful`)
     user.klickTipp = await getKlicktippState(userEntity.emailContact.email)
@@ -260,6 +259,13 @@ export class UserResolver {
       key: 'token',
       value: await encode(dbUser.gradidoID),
     })
+    // From here the request belongs to this member: the password checked out and a token
+    // for them is on its way back. LOGIN is an inalienable right, so isAuthorized returns
+    // before it ever loads a user into the context -- and the avatar FieldResolver asks
+    // the context who is asking. Without this the member would be handed back their own
+    // picture as null on the very request that establishes who they are.
+    context.user = dbUser
+    user.avatar = await this.loadAvatar(dbUser.id)
 
     await EVENT_USER_LOGIN(dbUser)
     const projectBrandingSpaceId = await projectBrandingSpaceIdPromise
@@ -1323,16 +1329,29 @@ export class UserResolver {
   }
 
   /**
+   * Both ways into the wallet -- the form login and the token handoff behind verifyLogin --
+   * hand the picture over, so the member sees it from the first paint either way. It reads
+   * from one place on purpose: a picture that shows up on one path and not the other is
+   * exactly the bug this replaces, and two copies of these two lines would drift back into
+   * it without anyone noticing.
+   */
+  private async loadAvatar(userId: number): Promise<string | null> {
+    const avatar = await dbFindUserAvatar(userId)
+    return avatar.success ? avatar.value.image.toString('base64') : null
+  }
+
+  /**
    * The avatar is own-view only, like aboutMe above, and for a stronger reason: showing
    * a face to other members is a disclosure to third parties, and this house gives every
    * such disclosure its own switch. There is no switch for this one yet, so there is no
    * one it may be shown to.
    *
-   * Today nothing would leak without this guard either - only verifyLogin fills the
-   * field, so `user` hands out a User whose avatar is null anyway. That is exactly why
-   * the guard is here: a property that holds only because no other code path happens to
-   * set the field is not a rule, it is an accident, and the next person to fill it
-   * somewhere else would open the door without noticing.
+   * This guard was written while only verifyLogin filled the field, when nothing would
+   * have leaked without it -- on the grounds that a property holding merely because no
+   * other code path happens to set the field is an accident, not a rule. The second path
+   * arrived shortly after: login fills it too now. The guard held, and it is the reason
+   * that change had to state whose request it is (`context.user`) instead of quietly
+   * handing the field to whoever asked.
    */
   @FieldResolver(() => String, { nullable: true })
   avatar(@Root() user: User, @Ctx() context: Context): string | null {

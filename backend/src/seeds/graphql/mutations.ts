@@ -446,6 +446,18 @@ export const deleteMatchingEntry = gql`
   }
 `
 
+// Same reasoning as verifyLoginAvatar in the queries next door: the picture rides along on
+// the login as well, and asking for it on its own leaves the widely asserted login
+// mutation above untouched.
+export const loginAvatar = gql`
+  mutation ($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
+      gradidoID
+      avatar
+    }
+  }
+`
+
 export const setUserAvatar = gql`
   mutation ($image: String!) {
     setUserAvatar(image: $image)
