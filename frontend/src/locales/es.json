@@ -4,7 +4,7 @@
   "125": "125%",
   "(": "(",
   ")": ")",
-  "1000thanks": "1000 Gracias, por estar con nosotros!",
+  "1000thanks": "¡1000 Gracias, por estar con nosotros!",
   "Chat": "Chat",
   "GDD": "GDD",
   "GDD-long": "Gradido",
@@ -224,11 +224,11 @@
     "save": "Guardar",
     "scann_code": "<strong>QR Code Scanner</strong> - Escanea el código QR de tu pareja",
     "sendEmail": "Enviar correo electrónico",
-    "send_check": "Confirma tu transacción. Por favor revisa toda la información nuevamente!",
+    "send_check": "Confirma tu transacción. ¡Por favor revisa toda la información nuevamente!",
     "send_email_error": "¡Lamentablemente, tu correo electrónico no se ha podido enviar!",
     "send_email_success": "Tu correo electrónico se ha enviado correctamente",
     "send_now": "Enviar ahora",
-    "send_transaction_error": "Desafortunadamente, la transacción no se pudo ejecutar!",
+    "send_transaction_error": "¡Desafortunadamente, la transacción no se pudo ejecutar!",
     "send_transaction_success": "Su transacción fue ejecutada con éxito",
     "sendemailerror": {
       "failedToSendCommandToFederatedCommunity": "Al enviar tu correo electrónico se produjo un error en la comunidad de tu destinatario: ",
@@ -273,7 +273,7 @@
         "typeError": "Las horas deben ser un número entre {min} y {max} con un máximo de dos decimales."
       },
       "identifier": {
-        "communityIsReachable": "Comunidad no encontrada o no alcanzable!",
+        "communityIsReachable": "¡Comunidad no encontrada o no alcanzable!",
         "required": "El destinatario es un campo obligatorio.",
         "typeError": "El destinatario debe ser un email, un nombre de usuario o un Gradido ID."
       },
@@ -301,12 +301,12 @@
     "copy-link": "Copiar enlace",
     "copy-link-with-text": "Copiar texto y enlace",
     "created": "Se han creado el enlace, el cheque y el código QR.",
-    "credit-your-gradido": "Para que se te acrediten los Gradidos, haz clic en el enlace!",
-    "delete-the-link": "Eliminar el enlace?",
-    "deleted": "El enlace ha sido eliminado!",
+    "credit-your-gradido": "¡Para que se te acrediten los Gradidos, haz clic en el enlace!",
+    "delete-the-link": "¿Eliminar el enlace?",
+    "deleted": "¡El enlace ha sido eliminado!",
     "disbured": "¡El desembolso del saldo del enlace se ha iniciado con éxito! El abono de {n} GDD se registrará pronto en tu cuenta.",
     "expiredOn": "Vencido el:",
-    "has-account": "Ya tienes una cuenta Gradido?",
+    "has-account": "¿Ya tienes una cuenta Gradido?",
     "header": "Crear enlace, cheque y código QR",
     "isFree": "Comunitario – Descentralizado – Código abierto",
     "link-and-text-copied": "El enlace y su mensaje se han copiado en el portapapeles. Ahora puedes ponerlo en un correo electrónico o mensaje.",
@@ -318,8 +318,8 @@
     "links_count": "Enlaces activos",
     "links_open": "{n} abiertos",
     "links_sum": "Enlaces, cheques, códigos QR",
-    "no-account": "Aún no tienes una cuenta de Gradido?",
-    "no-redeem": "No puedes canjear tu propio enlace!",
+    "no-account": "¿Aún no tienes una cuenta de Gradido?",
+    "no-redeem": "¡No puedes canjear tu propio enlace!",
     "not-copied": "¡Desafortunadamente, su dispositivo no permite copiar! Copie el enlace manualmente!",
     "recipientCommunityRedirection": "Redirigir para abonar a:",
     "recipientCommunitySelection": "Seleccionar comunidad Gradido:",
@@ -555,11 +555,11 @@
     "activateEmail": "Tu cuenta aún no ha sido activada. Por favor revisa tu correo electrónico y haz clic en el enlace de activación o solicita uno nuevo enlace de activación a través de la página  restablecer contraseña.",
     "checkEmail": "Tu correo electrónico ha sido verificado con éxito. Puedes registrarte ahora.",
     "email": "Te hemos enviado un correo electrónico.",
-    "errorTitle": "Atención!",
+    "errorTitle": "¡Atención!",
     "register": "Ya estás registrado, por favor revisa tu correo electrónico y haz clic en el enlace de activación.",
     "reply": "Gracias, tu respuesta ha sido enviada.",
     "reset": "Tu contraseña ha sido cambiada.",
-    "title": "Gracias!",
+    "title": "¡Gracias!",
     "unsetPassword": "Tu contraseña aún no ha sido configurada. Por favor reinícialo."
   },
   "missingGradidoAccount": "¿Aún no tienes una cuenta de {communityName}?",
@@ -596,7 +596,7 @@
     "extend": "Permanecer en sesión iniciada",
     "lightText": "Si no has realizado ninguna acción durante más de 10 minutos, se cerrará tu sesión por razones de seguridad.",
     "logoutIn": "Cerrar sesión en ",
-    "warningText": "Aún estas?"
+    "warningText": "¿Aún estás?"
   },
   "settings": {
     "GMS": {
@@ -663,7 +663,7 @@
     },
     "password": {
       "change-password": "Cambiar contraseña",
-      "forgot_pwd": "Olvide la contraseña?",
+      "forgot_pwd": "¿Olvidé la contraseña?",
       "resend_subtitle": "Su enlace de activación ha caducado. Puedes solicitar uno nuevo aquí.",
       "reset": "Restablecer contraseña",
       "reset-password": {
