@@ -10,6 +10,7 @@ import { userFactory } from '@/seeds/factory/user'
 import { login } from '@/seeds/graphql/mutations'
 import { transactionsQuery } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
+import { peterLustig } from '@/seeds/users/peter-lustig'
 
 // The balance carries two counts of transaction links, and they answer different questions.
 //
@@ -36,6 +37,8 @@ beforeAll(async () => {
   await cleanDB()
 
   await userFactory(testEnv, bibiBloxberg)
+  // the creation is only confirmed by a moderator, and the factory looks for this one
+  await userFactory(testEnv, peterLustig)
   await creationFactory(testEnv, {
     email: 'bibi@bloxberg.de',
     amount: 1000,
