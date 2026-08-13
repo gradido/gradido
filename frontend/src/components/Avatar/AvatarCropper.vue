@@ -121,6 +121,7 @@ function reset() {
   imageSrc.value = ''
   loadError.value = ''
   zoom.value = 1
+  previousZoom = 1
   measure.value = ''
   croppedBase64.value = ''
   confirmRemove.value = false
@@ -163,6 +164,11 @@ function loadImage(dataUrl, fileName) {
     naturalHeight = probe.naturalHeight
     minScale = Math.max(FRAME / naturalWidth, FRAME / naturalHeight)
     zoom.value = 1
+    // The offsets below are centered for zoom 1, so previousZoom has to say 1 as well.
+    // It outlives the picture -- AvatarButton keeps this component mounted -- so whatever
+    // the slider stood at for the previous picture would otherwise become redraw's factor
+    // and pull these fresh offsets off center, in the stored JPEG as much as the preview.
+    previousZoom = 1
     offsetX = (FRAME - naturalWidth * minScale) / 2
     offsetY = (FRAME - naturalHeight * minScale) / 2
     loadError.value = ''
