@@ -9,34 +9,9 @@ vi.mock('qrcanvas-vue', () => ({
   },
 }))
 
-const mockToastError = vi.fn()
-vi.mock('@/composables/useToast', () => ({
-  useAppToast: () => ({
-    toastError: mockToastError,
-  }),
-}))
-
-const mockDrawCheque = vi.fn().mockResolvedValue('data:image/png;base64,cheque')
-vi.mock('@/utils/thankYouCheque', () => ({
-  drawCheque: (...args) => mockDrawCheque(...args),
-  chequeFileName: (occasion, amount) => `${amount} GDD - ${occasion}.png`,
-}))
-
-class MockImage {
-  constructor() {
-    this.src = ''
-    this.onload = null
-  }
-}
-
-global.Image = MockImage
-
-const STORE = {
-  state: { firstName: 'Bernd', lastName: 'Hückstädt', username: 'bernd', gradidoId: 'uuid-1' },
-}
-
 describe('FigureQrCode', () => {
   let wrapper
+  let mockImage
 
   const createWrapper = (props = {}) => {
     return mount(FigureQrCode, {
@@ -47,8 +22,6 @@ describe('FigureQrCode', () => {
       global: {
         mocks: {
           $t: (key) => key,
-          $d: () => '26.08.2026',
-          $store: STORE,
         },
       },
     })
@@ -56,6 +29,8 @@ describe('FigureQrCode', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    mockImage = { src: '', onload: null }
+    global.Image = vi.fn(() => mockImage)
     wrapper = createWrapper()
   })
 
@@ -63,11 +38,14 @@ describe('FigureQrCode', () => {
     wrapper.unmount()
   })
 
+  // The same settings are asserted in admin/src/utils/qrCode.spec.js. Together they are
+  // what keeps the code on screen and the code on a printed cheque the same code.
   it('has options filled', () => {
     expect(wrapper.vm.options).toEqual({
       cellSize: 8,
       correctLevel: 'H',
       data: 'https://example.com',
+      logo: { image: null },
     })
   })
 
@@ -89,13 +67,15 @@ describe('FigureQrCode', () => {
     expect(downloadLink.exists()).toBe(true)
   })
 
-  it('loads the logo image', async () => {
-    const image = new Image()
-    image.onload = async () => {
-      await wrapper.vm.$nextTick()
-      expect(wrapper.vm.options.logo).toBeDefined()
-      expect(wrapper.vm.options.logo.image).toBeInstanceOf(Image)
-    }
+  it('takes the coin from the root of the site and puts it into the code', async () => {
+    expect(mockImage.src).toBe('/img/gdd-coin.png')
+
+    mockImage.onload()
+    await wrapper.vm.$nextTick()
+
+    // toStrictEqual, not toBe: the component keeps the image in data(), so what comes back
+    // out is Vue's reactive proxy of it, not the object itself.
+    expect(wrapper.vm.options.logo.image).toStrictEqual(mockImage)
   })
 
   describe('Download QR-Code link', () => {
@@ -114,80 +94,9 @@ describe('FigureQrCode', () => {
     })
   })
 
-  describe('thank-you cheque download', () => {
-    it('is hidden without the cheque prop', () => {
-      expect(wrapper.find('.test-download-cheque').exists()).toBe(false)
-    })
-
-    describe('thank-you cheque', () => {
-      beforeEach(async () => {
-        wrapper = createWrapper({
-          cheque: {
-            kind: 'thankYou',
-            amount: '20',
-            memo: 'Gradido-Café Berlin',
-            validUntil: '2026-08-26T00:00:00Z',
-          },
-        })
-        await wrapper.find('.test-download-cheque').trigger('click')
-      })
-
-      it('shows the link', () => {
-        expect(wrapper.find('.test-download-cheque').exists()).toBe(true)
-      })
-
-      it('passes sender name, gradido address and initials', () => {
-        expect(mockDrawCheque).toHaveBeenCalledWith(
-          expect.objectContaining({
-            kind: 'thankYou',
-            name: 'Bernd Hückstädt',
-            initials: 'BH',
-            memo: 'Gradido-Café Berlin',
-          }),
-        )
-      })
-
-      it('builds the headline from the sender and the amount', () => {
-        expect(mockDrawCheque.mock.calls[0][0].headline).toContain('Bernd')
-        expect(mockDrawCheque.mock.calls[0][0].headline).toContain('20')
-      })
-    })
-
-    describe('starting credit', () => {
-      beforeEach(async () => {
-        wrapper = createWrapper({
-          cheque: {
-            kind: 'startingBonus',
-            amount: '100',
-            memo: 'Dein Startguthaben!',
-            name: 'Startguthaben Postkarte',
-            validFrom: '2026-08-12T00:00:00Z',
-            validTo: '2030-12-31T00:00:00Z',
-          },
-        })
-        await wrapper.find('.test-download-cheque').trigger('click')
-      })
-
-      it('uses the community instead of a person', () => {
-        const data = mockDrawCheque.mock.calls[0][0]
-        expect(data.kind).toBe('startingBonus')
-        expect(data.community).toBeDefined()
-        expect(data.name).toBeUndefined()
-      })
-    })
-
-    describe('when a picture cannot be loaded', () => {
-      beforeEach(async () => {
-        mockDrawCheque.mockRejectedValueOnce(new Error('cannot load image'))
-        wrapper = createWrapper({
-          cheque: { kind: 'thankYou', amount: '20', memo: 'x', validUntil: '2026-08-26T00:00:00Z' },
-        })
-        await wrapper.find('.test-download-cheque').trigger('click')
-      })
-
-      it('does not fail silently', () => {
-        expect(mockToastError).toHaveBeenCalledWith('cannot load image')
-      })
-    })
+  // The cheque is no longer offered here. It has moved to the menu of a link and to the
+  // page after a link was created, where it is reached without opening the QR window.
+  it('does not offer the cheque any more', () => {
+    expect(wrapper.find('.test-download-cheque').exists()).toBe(false)
   })
 })
