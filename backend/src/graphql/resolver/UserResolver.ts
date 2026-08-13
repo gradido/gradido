@@ -35,7 +35,8 @@ import {
   dbDeleteUserAvatar,
   dbFindProjectBrandingByAlias,
   dbFindProjectSpaceId,
-  dbFindUserAvatar,
+  dbFindUserAvatarFull,
+  dbFindUserAvatarSmall,
   dbUpsertUserAvatar,
   findUserByIdentifier,
   getHomeCommunity,
@@ -45,7 +46,12 @@ import {
 import { GraphQLResolveInfo } from 'graphql'
 import { getLogger, Logger } from 'log4js'
 import random from 'random-bigint'
-import { AVATAR_MAX_BYTES, JPEG_MAGIC_BYTES, updateAllDefinedAndChanged } from 'shared'
+import {
+  AVATAR_FULL_MAX_BYTES,
+  AVATAR_SMALL_MAX_BYTES,
+  JPEG_MAGIC_BYTES,
+  updateAllDefinedAndChanged,
+} from 'shared'
 import { randombytes_random } from 'sodium-native'
 import {
   Arg,
@@ -173,8 +179,8 @@ export class UserResolver {
 
     // The member's own profile picture. Sent along with the login so the wallet can show
     // it immediately instead of jumping from initials to picture on every page load.
-    const avatar = await dbFindUserAvatar(userEntity.id)
-    user.avatar = avatar.success ? avatar.value.image.toString('base64') : null
+    const avatar = await dbFindUserAvatarSmall(userEntity.id)
+    user.avatar = avatar.success ? avatar.value.toString('base64') : null
 
     logger.debug(`verifyLogin... successful`)
     user.klickTipp = await getKlicktippState(userEntity.emailContact.email)
@@ -878,35 +884,34 @@ export class UserResolver {
    * and HumHub sync when something relevant changed. A picture has nothing to say to
    * either system, and every change of it would set both in motion.
    *
-   * `image` is base64 without a data URI prefix. The browser has already cropped to
-   * 512x512 and lowered quality until it fit; the checks here are the backstop for a
-   * client that did neither.
+   * Both arguments are base64 without a data URI prefix, and both come from the same
+   * crop: the browser draws the visible square twice, at 128 and at 512. They arrive
+   * together because they belong together — storing one without the other would leave
+   * the member with two pictures that disagree depending on where they are looked at.
+   *
+   * The checks here are the backstop for a client that did neither the cropping nor the
+   * step-down; see AVATAR_FULL_MAX_BYTES in `shared` for why the two limits share a
+   * budget.
    */
   @Authorized([RIGHTS.UPDATE_USER_INFOS])
   @Mutation(() => Boolean)
-  async setUserAvatar(@Arg('image') image: string, @Ctx() context: Context): Promise<boolean> {
+  async setUserAvatar(
+    @Arg('avatarSmall') avatarSmall: string,
+    @Arg('avatarFull') avatarFull: string,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
     const user = getUser(context)
     const logger = createLogger()
     logger.addContext('user', user.id)
 
-    const bytes = Buffer.from(image, 'base64')
-    logger.info(`setUserAvatar... ${bytes.length} bytes`)
-
-    if (bytes.length === 0) {
-      throw new LogError('Avatar image is empty')
-    }
-    if (bytes.length > AVATAR_MAX_BYTES) {
-      throw new LogError('Avatar image too large', { bytes: bytes.length, max: AVATAR_MAX_BYTES })
-    }
-    // Buffer.from ignores anything it cannot decode instead of failing, so "it decoded"
-    // says nothing about what arrived. The magic bytes do.
-    if (bytes[0] !== JPEG_MAGIC_BYTES[0] || bytes[1] !== JPEG_MAGIC_BYTES[1]) {
-      throw new LogError('Avatar image is not a JPEG')
-    }
+    const small = this.decodeAvatar(avatarSmall, 'small', AVATAR_SMALL_MAX_BYTES)
+    const full = this.decodeAvatar(avatarFull, 'full', AVATAR_FULL_MAX_BYTES)
+    logger.info(`setUserAvatar... ${small.length} + ${full.length} bytes`)
 
     const stored = await dbUpsertUserAvatar({
       userId: user.id,
-      image: bytes,
+      avatarSmall: small,
+      avatarFull: full,
       mimeType: 'image/jpeg',
     })
     if (!stored.success) {
@@ -915,6 +920,50 @@ export class UserResolver {
 
     logger.debug('setUserAvatar... successful')
     return true
+  }
+
+  /**
+   * Decodes and checks one rendition. Named in the error so a member over budget learns
+   * WHICH picture was refused — with two of them in one request, "too large" on its own
+   * sends whoever reads it looking in the wrong place.
+   */
+  private decodeAvatar(image: string, which: string, maxBytes: number): Buffer {
+    const bytes = Buffer.from(image, 'base64')
+
+    if (bytes.length === 0) {
+      throw new LogError(`Avatar image (${which}) is empty`)
+    }
+    if (bytes.length > maxBytes) {
+      throw new LogError(`Avatar image (${which}) too large`, {
+        bytes: bytes.length,
+        max: maxBytes,
+      })
+    }
+    // Buffer.from ignores anything it cannot decode instead of failing, so "it decoded"
+    // says nothing about what arrived. The magic bytes do.
+    if (bytes[0] !== JPEG_MAGIC_BYTES[0] || bytes[1] !== JPEG_MAGIC_BYTES[1]) {
+      throw new LogError(`Avatar image (${which}) is not a JPEG`)
+    }
+
+    return bytes
+  }
+
+  /**
+   * The member's own full-size picture, on demand. Kept out of verifyLogin deliberately:
+   * it is roughly ten times the everyday rendition and is wanted at two moments only —
+   * printing the member card, and looking at one's own picture — so the common paths
+   * should not carry it.
+   *
+   * ⛔ Own view only, and structurally so: it reads the id from the context and takes no
+   * argument, so there is no user to ask about but oneself. That is a stronger guarantee
+   * than a guard on a parameter, which the next caller can get wrong.
+   */
+  @Authorized([RIGHTS.VERIFY_LOGIN])
+  @Query(() => String, { nullable: true })
+  async avatarFull(@Ctx() context: Context): Promise<string | null> {
+    const user = getUser(context)
+    const avatar = await dbFindUserAvatarFull(user.id)
+    return avatar.success ? avatar.value.toString('base64') : null
   }
 
   /**

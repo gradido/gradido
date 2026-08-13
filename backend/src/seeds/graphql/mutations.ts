@@ -447,8 +447,8 @@ export const deleteMatchingEntry = gql`
 `
 
 export const setUserAvatar = gql`
-  mutation ($image: String!) {
-    setUserAvatar(image: $image)
+  mutation ($avatarSmall: String!, $avatarFull: String!) {
+    setUserAvatar(avatarSmall: $avatarSmall, avatarFull: $avatarFull)
   }
 `
 

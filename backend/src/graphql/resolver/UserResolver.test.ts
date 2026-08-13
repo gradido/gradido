@@ -26,7 +26,7 @@ import {
   UserRole,
 } from 'database'
 import { GraphQLError } from 'graphql'
-import { AVATAR_MAX_BYTES } from 'shared'
+import { AVATAR_FULL_MAX_BYTES, AVATAR_SMALL_MAX_BYTES } from 'shared'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 import { deleteGmsUser, upsertGmsUsers } from '@/apis/gms/GmsClient'
 import { subscribe } from '@/apis/KlicktippController'
@@ -57,6 +57,7 @@ import {
   updateUserInfos,
 } from '@/seeds/graphql/mutations'
 import {
+  avatarFull,
   checkUsername,
   queryOptIn,
   searchAdminUsers,
@@ -2801,6 +2802,13 @@ describe('UserResolver', () => {
     // that is not one would be rejected for the right reason and prove nothing.
     const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46])
     const JPEG_BASE64 = JPEG.toString('base64')
+    // The full rendition has to differ from the small one, or a resolver handing back the
+    // wrong column would pass every assertion below.
+    const JPEG_FULL = Buffer.from([
+      0xff, 0xd8, 0xff, 0xe1, 0x00, 0x10, 0x45, 0x78, 0x69, 0x66, 0x2a,
+    ])
+    const JPEG_FULL_BASE64 = JPEG_FULL.toString('base64')
+    const bothPictures = { avatarSmall: JPEG_BASE64, avatarFull: JPEG_FULL_BASE64 }
 
     let homeCom: DbCommunity
     let owner: User
@@ -2828,7 +2836,7 @@ describe('UserResolver', () => {
     it('stores a picture and hands the same bytes back', async () => {
       const written: any = await mutate({
         mutation: setUserAvatar,
-        variables: { image: JPEG_BASE64 },
+        variables: bothPictures,
       })
       expect(written.data.setUserAvatar).toBe(true)
 
@@ -2839,18 +2847,44 @@ describe('UserResolver', () => {
     it('refuses something that is not a JPEG', async () => {
       const res: any = await mutate({
         mutation: setUserAvatar,
-        variables: { image: Buffer.from('not an image at all').toString('base64') },
+        variables: { ...bothPictures, avatarSmall: Buffer.from('not an image').toString('base64') },
       })
       expect(res.errors).toBeDefined()
     })
 
     it('refuses a picture over the size limit', async () => {
-      const tooLarge = Buffer.concat([JPEG, Buffer.alloc(AVATAR_MAX_BYTES, 0x20)])
+      const tooLarge = Buffer.concat([JPEG, Buffer.alloc(AVATAR_FULL_MAX_BYTES, 0x20)])
       const res: any = await mutate({
         mutation: setUserAvatar,
-        variables: { image: tooLarge.toString('base64') },
+        variables: { ...bothPictures, avatarFull: tooLarge.toString('base64') },
       })
       expect(res.errors).toBeDefined()
+    })
+
+    // The two renditions have their own budgets, and this is the case a single shared
+    // limit would wave through: a "small" picture that is far too big to be one, yet
+    // comfortably under what the full rendition may weigh. Without a limit of its own,
+    // the everyday picture -- the one that goes on every screen and will one day cross
+    // community borders -- could quietly be 60 KB.
+    it('refuses a small rendition that is only small by name', async () => {
+      const smallButNot = Buffer.concat([JPEG, Buffer.alloc(AVATAR_SMALL_MAX_BYTES, 0x20)])
+      expect(smallButNot.length).toBeLessThan(AVATAR_FULL_MAX_BYTES)
+
+      const res: any = await mutate({
+        mutation: setUserAvatar,
+        variables: { ...bothPictures, avatarSmall: smallButNot.toString('base64') },
+      })
+      expect(res.errors).toBeDefined()
+    })
+
+    // Two columns, two readers, and nothing in the types keeps them apart -- both are
+    // base64 strings. So the assertion is that each way out carries its OWN rendition.
+    it('hands the full rendition to its owner, and never in place of the small one', async () => {
+      const full: any = await query({ query: avatarFull })
+      expect(full.data.avatarFull).toBe(JPEG_FULL_BASE64)
+
+      const small: any = await query({ query: verifyLoginAvatar })
+      expect(small.data.verifyLogin.avatar).toBe(JPEG_BASE64)
     })
 
     it('leaves the stored picture untouched when a write was refused', async () => {
@@ -2881,7 +2915,7 @@ describe('UserResolver', () => {
       })
       const written: any = await mutate({
         mutation: setUserAvatar,
-        variables: { image: JPEG_BASE64 },
+        variables: bothPictures,
       })
       // The fixture has to prove itself, or the assertion below passes for the wrong
       // reason: a picture that was never stored is invisible to everyone.

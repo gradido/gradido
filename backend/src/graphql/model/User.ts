@@ -52,6 +52,7 @@ export class User {
       this.gmsPublishLocation = dbUser.gmsPublishLocation
       this.aboutMe = dbUser.aboutMe
       // Lives in its own table, so the user row cannot carry it; verifyLogin fills it.
+      // This is the small rendition -- the full one is fetched on demand, see avatarFull.
       this.avatar = null
       this.userLocation = dbUser.location ? Point2Location(dbUser.location as Point) : null
       // Unrestricted by default; verifyLogin fills in a scoped moderator's real groups.
@@ -141,6 +142,11 @@ export class User {
   // The member's own profile picture as base64, without a data URI prefix, or null when
   // they have not set one. It does not come from the user row — it lives in its own
   // table and is filled in by verifyLogin, the way hasElopage and klickTipp are.
+  //
+  // The SMALL rendition, 128x128. This is the everyday picture and the only one that is
+  // ever meant to be seen by anybody but its owner. The full 512x512 crop is not a field
+  // on this type at all: it is fetched through the avatarFull query, which takes no
+  // argument and so cannot be asked about somebody else.
   //
   // Own view only. Nothing hands this to anybody else: a face next to a booking is a
   // disclosure to third parties, and that needs its own decision and its own switch,

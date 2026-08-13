@@ -467,6 +467,13 @@ export const verifyLoginAvatar = gql`
   }
 `
 
+// Own view only, and it takes no argument -- there is nobody to ask about but oneself.
+export const avatarFull = gql`
+  query {
+    avatarFull
+  }
+`
+
 export const userAvatar = gql`
   query ($identifier: String!, $communityIdentifier: String!) {
     user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
