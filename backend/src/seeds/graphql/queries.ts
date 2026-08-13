@@ -53,6 +53,7 @@ export const transactionsQuery = gql`
         balanceGDT
         count
         linkCount
+        openLinkCount
       }
       transactions {
         id

@@ -52,6 +52,7 @@ export class BalanceResolver {
         balanceGDT,
         count: 0,
         linkCount: 0,
+        openLinkCount: 0,
       })
     }
 
@@ -62,11 +63,13 @@ export class BalanceResolver {
 
     logger.debug(`transactionCount=${count}`)
 
+    // Deliberately unfiltered by validUntil: this is the number the list of links pages
+    // against, and that list shows the expired ones as well. The count of links that can
+    // still be redeemed is openLinkCount below.
     const linkCount = await dbTransactionLink.count({
       where: {
         userId: user.id,
         redeemedAt: IsNull(),
-        // validUntil: MoreThan(new Date()),
       },
     })
     logger.debug(`linkCount=${linkCount}`)
@@ -80,10 +83,15 @@ export class BalanceResolver {
       new DecayLoggingView(calculatedDecay),
     )
 
-    // The final balance is reduced by the link amount decayed
-    const { sumHoldAvailableDecayedAmount } = context.sumHoldAvailableDecayedAmount
-      ? { sumHoldAvailableDecayedAmount: context.sumHoldAvailableDecayedAmount }
-      : await transactionLinksDecayed(user.id, now)
+    // The final balance is reduced by the link amount decayed. The same call already counts
+    // the links it sums up - those are the open ones, so openLinkCount comes for free here.
+    const { sumHoldAvailableDecayedAmount, transactionLinkCount } =
+      context.sumHoldAvailableDecayedAmount && context.linkCount !== undefined
+        ? {
+            sumHoldAvailableDecayedAmount: context.sumHoldAvailableDecayedAmount,
+            transactionLinkCount: context.linkCount,
+          }
+        : await transactionLinksDecayed(user.id, now)
 
     logger.debug(`context.sumHoldAvailableDecayedAmount=${context.sumHoldAvailableDecayedAmount}`)
     logger.debug(`sumHoldAvailableDecayedAmount=${sumHoldAvailableDecayedAmount}`)
@@ -101,6 +109,7 @@ export class BalanceResolver {
       balanceGDT,
       count,
       linkCount,
+      openLinkCount: transactionLinkCount,
     })
     logger.info(
       'new Balance',
@@ -108,6 +117,7 @@ export class BalanceResolver {
       balanceGDT?.toString(),
       count,
       linkCount,
+      transactionLinkCount,
       new BalanceLoggingView(newBalance),
     )
 

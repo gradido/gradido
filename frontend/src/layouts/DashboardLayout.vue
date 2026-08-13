@@ -156,6 +156,7 @@
                     :transactions="transactions"
                     :transaction-count="transactionCount"
                     :transaction-link-count="transactionLinkCount"
+                    :open-link-count="openLinkCount"
                     :pending="pending"
                     @update-transactions="updateTransactions"
                   ></router-view>
@@ -250,6 +251,7 @@ const GdtBalance = ref(0)
 const transactions = ref([])
 const transactionCount = ref(0)
 const transactionLinkCount = ref(0)
+const openLinkCount = ref(0)
 const pending = ref(true)
 const skeleton = ref(true)
 const totalUsers = ref(null)
@@ -286,6 +288,7 @@ onResult((value) => {
       balance.value = Number(tr.balance?.balance) || 0
       transactionCount.value = tr.balance?.count || 0
       transactionLinkCount.value = tr.balance?.linkCount || 0
+      openLinkCount.value = tr.balance?.openLinkCount || 0
     }
     if (value.data.communityStatistics) {
       totalUsers.value = value.data.communityStatistics.totalUsers || 0

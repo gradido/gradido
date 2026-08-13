@@ -13,6 +13,7 @@ export class BalanceLoggingView extends AbstractLoggingView {
       balanceGDT: this.self.balanceGDT,
       count: this.self.count,
       linkCount: this.self.linkCount,
+      openLinkCount: this.self.openLinkCount,
     }
   }
 }

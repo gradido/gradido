@@ -8,10 +8,12 @@
       </BCol>
       <BCol>
         <div>{{ $t('gdd_per_link.links_sum') }}</div>
-        <div class="small">{{ transactionLinkCount }} {{ $t('gdd_per_link.links_sum') }}</div>
+        <div class="small">{{ $t('gdd_per_link.links_open', { n: openLinkCount }) }}</div>
       </BCol>
       <BCol cols="8" lg="3" md="3" sm="8" offset="3" offset-md="0" offset-lg="0">
-        <div class="small mb-2">{{ $t('send_per_link') }}</div>
+        <!-- No heading over the amount. The one that stood here was the label of the send
+             button, which describes no sum, and it went wrong unnoticed the moment that
+             button was renamed. The amount carries its own sign and unit. -->
         <div class="fw-bold">{{ $filters.GDD(amount) }}</div>
       </BCol>
       <BCol cols="12" md="1" lg="1" class="text-end">
@@ -47,7 +49,14 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  // Every link that has not been redeemed, expired ones included - the list below shows
+  // them all, so this is what its paging counts against.
   transactionLinkCount: {
+    type: Number,
+    required: true,
+  },
+  // Only the links that can still be redeemed. Fewer, and the number worth telling.
+  openLinkCount: {
     type: Number,
     required: true,
   },

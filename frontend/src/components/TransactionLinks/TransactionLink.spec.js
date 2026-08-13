@@ -68,6 +68,14 @@ vi.mock('@/composables/useCopyLinks', () => ({
   }),
 }))
 
+const mockDownloadThankYouCheque = vi.fn()
+vi.mock('@/composables/useThankYouCheque', () => ({
+  useThankYouCheque: () => ({
+    drawThankYouCheque: vi.fn(),
+    downloadThankYouCheque: (...args) => mockDownloadThankYouCheque(...args),
+  }),
+}))
+
 const mockMutate = vi.fn().mockResolvedValue({})
 vi.mock('@vue/apollo-composable', () => ({
   useMutation: vi.fn(() => ({
@@ -99,15 +107,19 @@ describe('TransactionLink.vue', () => {
       global: {
         plugins: [i18n],
         stubs: {
-          BRow: true,
-          BCol: true,
-          BDropdown: true,
-          BDropdownItem: true,
+          // rendered rather than stubbed away, so the order of the menu can be read: a
+          // plain stub swallows its slot, and the menu sits inside a row and a column
+          BRow: { template: '<div><slot /></div>' },
+          BCol: { template: '<div><slot /></div>' },
+          BDropdown: { template: '<div class="dropdown"><slot /></div>' },
+          BDropdownItem: { template: '<div class="dropdown-item"><slot /></div>' },
           BCard: true,
           BCardText: true,
           IBiThreeDotsVertical: true,
           IBiClipboard: true,
           IBiClipboardPlus: true,
+          IBiQrCode: true,
+          IBiDownload: true,
           BImg: true,
           IBiTrash: true,
         },
@@ -172,5 +184,38 @@ describe('TransactionLink.vue', () => {
     expect(mockMutate).toHaveBeenCalledWith({ id: 1 })
     expect(mockToastError).toHaveBeenCalledWith(error.message)
     expect(wrapper.emitted('reset-transaction-link-list')).toBeFalsy()
+  })
+
+  // The cheque used to be reachable only by opening the QR window first. It is a menu
+  // entry now, and it sits between copying and the code - what you hand out on paper
+  // belongs next to what you hand out as a link.
+  describe('the menu of a valid link', () => {
+    // the default props carry an expired link, and four of the five entries are only
+    // offered while the link can still be redeemed
+    beforeEach(async () => {
+      await wrapper.setProps({ validUntil: new Date(Date.now() + 1000000).toISOString() })
+    })
+
+    const entries = () => wrapper.findAll('.dropdown-item').map((item) => item.classes())
+
+    it('offers copying, the cheque, the code and deleting, in that order', () => {
+      const order = [
+        'test-copy-link',
+        'test-copy-text',
+        'test-download-cheque',
+        'test-qr-code',
+        'test-delete-link',
+      ]
+      expect(entries().map((classes) => order.find((name) => classes.includes(name)))).toEqual(
+        order,
+      )
+    })
+
+    it('hands the cheque out on one click, without opening the code first', async () => {
+      await wrapper.find('.test-download-cheque').trigger('click')
+
+      expect(mockDownloadThankYouCheque).toHaveBeenCalled()
+      expect(wrapper.vm.showQrModal).toBe(false)
+    })
   })
 })
