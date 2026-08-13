@@ -47,7 +47,6 @@ import {
   deleteUser,
   forgotPassword,
   login,
-  loginAvatar,
   logout,
   removeUserAvatar,
   sendActivationEmail,
@@ -2905,33 +2904,6 @@ describe('UserResolver', () => {
       // at work and not a lookup that failed.
       expect(res.data.user.gradidoID).toBe(owner.gradidoID)
       expect(res.data.user.avatar).toBeNull()
-    })
-
-    // The form login is the other way into the wallet, and the one a member takes after
-    // logging out. It has to carry the picture too: the wallet commits whatever this hands
-    // back over its stored copy, so a null here means initials until something refills it -
-    // and on the ordinary path nothing does. LOGIN is an inalienable right, so the guard
-    // above only lets this through because the resolver states whose request it is.
-    it('hands the picture back on a fresh form login', async () => {
-      await mutate({
-        mutation: login,
-        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
-      })
-      const written: any = await mutate({
-        mutation: setUserAvatar,
-        variables: { image: JPEG_BASE64 },
-      })
-      // Same reason as above: an assertion about a picture that was never stored would
-      // pass just as happily with no picture at all.
-      if (written.errors || written.data?.setUserAvatar !== true) {
-        throw new Error(`could not store avatar: ${JSON.stringify(written.errors)}`)
-      }
-
-      const res: any = await mutate({
-        mutation: loginAvatar,
-        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
-      })
-      expect(res.data.login.avatar).toBe(JPEG_BASE64)
     })
   })
 

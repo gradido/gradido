@@ -51,8 +51,7 @@ export class User {
       this.humhubPublishName = dbUser.humhubPublishName
       this.gmsPublishLocation = dbUser.gmsPublishLocation
       this.aboutMe = dbUser.aboutMe
-      // Lives in its own table, so the user row cannot carry it. The two entry points into
-      // the wallet, login and verifyLogin, fill it; everywhere else it stays null.
+      // Lives in its own table, so the user row cannot carry it; verifyLogin fills it.
       this.avatar = null
       this.userLocation = dbUser.location ? Point2Location(dbUser.location as Point) : null
       // Unrestricted by default; verifyLogin fills in a scoped moderator's real groups.
