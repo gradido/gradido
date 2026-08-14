@@ -148,6 +148,21 @@ function reset() {
   sourceBytes = 0
 }
 
+/**
+ * Puts the cropper into its error state. One place, because there are three ways in --
+ * a file too large, a format the browser cannot open, and a dropped non-image -- and
+ * each of them has to forget the SAME four things. Left to the call sites, the readout
+ * of the previous picture survives next to an error about a new one.
+ */
+function showError(message) {
+  clearTimeout(redrawTimer)
+  imageSrc.value = ''
+  cropped.value = null
+  measure.value = ''
+  sourceBytes = 0
+  loadError.value = message
+}
+
 function readFile(file) {
   if (!file) {
     return
@@ -156,9 +171,7 @@ function readFile(file) {
   // decode costs several times its size again. A camera original straight off a phone is
   // the ordinary way to reach this, and on a phone it is also where it hurts.
   if (file.size > AVATAR_SOURCE_MAX_BYTES) {
-    imageSrc.value = ''
-    cropped.value = null
-    loadError.value = t('avatar.error-too-large', { limit: AVATAR_SOURCE_MAX_MB })
+    showError(t('avatar.error-too-large', { limit: AVATAR_SOURCE_MAX_MB }))
     return
   }
   sourceBytes = file.size
@@ -179,7 +192,7 @@ function onDrop(event) {
   }
   // Same reason as the HEIC branch below: dropping a PDF used to do nothing at all --
   // no picture, no word, and no way for the member to tell whether the drop even landed.
-  loadError.value = t('avatar.error-format')
+  showError(t('avatar.error-format'))
 }
 
 function loadImage(dataUrl, fileName) {
@@ -188,9 +201,7 @@ function loadImage(dataUrl, fileName) {
   // picture, and no way for the member to know why. iOS converts on pick, desktop
   // browsers cannot decode the format.
   probe.onerror = () => {
-    imageSrc.value = ''
-    cropped.value = null
-    loadError.value = isHeicFileName(fileName) ? t('avatar.error-heic') : t('avatar.error-format')
+    showError(isHeicFileName(fileName) ? t('avatar.error-heic') : t('avatar.error-format'))
   }
   probe.onload = () => {
     naturalWidth = probe.naturalWidth
