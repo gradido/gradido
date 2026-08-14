@@ -158,7 +158,11 @@ function onDrop(event) {
   const file = event.dataTransfer.files[0]
   if (file?.type.startsWith('image/')) {
     readFile(file)
+    return
   }
+  // Same reason as the HEIC branch below: dropping a PDF used to do nothing at all --
+  // no picture, no word, and no way for the member to tell whether the drop even landed.
+  loadError.value = t('avatar.error-format')
 }
 
 function loadImage(dataUrl, fileName) {
