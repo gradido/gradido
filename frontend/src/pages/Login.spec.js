@@ -211,6 +211,14 @@ describe('Login', () => {
         expect(store.dispatch).toHaveBeenCalledWith('login', 'token')
         expect(router.currentRoute.value.path).toBe('/overview')
       })
+
+      // Only half the guarantee, and the half that is observable from here: a failed
+      // fetch writes no picture. The other half -- that the previous member's picture is
+      // actively forgotten -- lives in the login store action, which is a mock in this
+      // spec, and is guarded in store.test.js instead.
+      it('writes no picture when the fetch failed', () => {
+        expect(store.commit).not.toHaveBeenCalledWith('avatar', expect.any(String))
+      })
     })
 
     describe('login fails', () => {

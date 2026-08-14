@@ -127,6 +127,13 @@ export const actions = {
     commit('hideAmountGDD', data.hideAmountGDD)
     commit('hideAmountGDT', data.hideAmountGDT)
     commit('userLocation', data.userLocation)
+    // Forget the previous member's picture. Not read from `data` -- the login mutation
+    // cannot carry it -- but cleared unconditionally, because whoever logs in here is not
+    // necessarily who was here before. A session expires after ten minutes without anyone
+    // logging out, so the persisted store routinely still holds the last member's avatar
+    // when the next one arrives. Both callers fill it back in from their own verifyLogin
+    // result; until then the wallet shows initials, which is the honest answer.
+    commit('avatar', null)
   },
   logout: ({ commit, state, dispatch }) => {
     commit('token', null)

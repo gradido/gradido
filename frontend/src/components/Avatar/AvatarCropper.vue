@@ -126,6 +126,10 @@ let sourceBytes = 0
 let redrawTimer = null
 
 function reset() {
+  // The debounced encode outlives the picture otherwise: close the modal within the 90 ms
+  // and it fires with the img element already gone, throwing inside a timer callback
+  // where nothing catches it.
+  clearTimeout(redrawTimer)
   imageSrc.value = ''
   loadError.value = ''
   zoom.value = 1
@@ -302,6 +306,11 @@ function drawSquare(outputSize) {
  * chose.
  */
 function encode() {
+  // Belt to the clearTimeout in reset(): a timer can also be in flight when the picture is
+  // swapped, and drawImage(null) throws where no caller is listening.
+  if (!image.value) {
+    return
+  }
   const full = encodeUnderTarget(drawSquare(AVATAR_FULL_SIZE), AVATAR_FULL_TARGET_BYTES)
   const small = encodeUnderTarget(drawSquare(AVATAR_SMALL_SIZE), AVATAR_SMALL_TARGET_BYTES)
 
