@@ -21,8 +21,7 @@
     "compile-scss": "bun ./scripts/scss.mjs compile",
     "watch-scss": "bun ./scripts/scss.mjs watch",
     "compile-scss-sass": "bun ./scripts/scss.mjs compile sass",
-    "watch-scss-sass": "bun ./scripts/scss.mjs watch sass",
-    "clear": "bunx rimraf@3.0.2 node_modules && bunx rimraf@3.0.2 build && bunx rimraf@3.0.2 .turbo"
+    "watch-scss-sass": "bun ./scripts/scss.mjs watch sass"
   },
   "dependencies": {
     "@morev/vue-transitions": "^3.0.2",

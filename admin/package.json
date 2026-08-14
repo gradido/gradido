@@ -19,8 +19,7 @@
     "test:debug": "cross-env TZ=UTC node --inspect-brk ./node_modules/vitest/vitest.mjs",
     "test:watch": "cross-env TZ=UTC vitest",
     "locales": "bun scripts/sortLocales.ts",
-    "locales:fix": "bun scripts/sortLocales.ts --fix",
-    "clear": "bunx rimraf@3.0.2 node_modules && bunx rimraf@3.0.2 build && bunx rimraf@3.0.2 .turbo"
+    "locales:fix": "bun scripts/sortLocales.ts --fix"
   },
   "dependencies": {
     "@iconify/json": "^2.2.228",

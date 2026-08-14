@@ -20,8 +20,7 @@
     "lint:fix": "biome check --error-on-warnings . --write",
     "lint:fix:unsafe": "biome check --fix --unsafe",
     "start": "cross-env TZ=UTC node build/index.js",
-    "typecheck": "tsc --noEmit",
-    "clear": "bunx rimraf@3.0.2 node_modules && bunx rimraf@3.0.2 build && bunx rimraf@3.0.2 .turbo"
+    "typecheck": "tsc --noEmit"
   },
   "nodemonConfig": {
     "ignore": [

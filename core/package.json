@@ -22,8 +22,7 @@
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write",
     "locales": "bun scripts/sortLocales.ts",
-    "locales:fix": "bun scripts/sortLocales.ts --fix",
-    "clear": "bunx rimraf@3.0.2 node_modules && bunx rimraf@3.0.2 build && bunx rimraf@3.0.2 .turbo"
+    "locales:fix": "bun scripts/sortLocales.ts --fix"
   },
   "dependencies": {
     "database": "*",
