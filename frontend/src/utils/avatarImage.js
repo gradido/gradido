@@ -19,6 +19,16 @@ export const AVATAR_SMALL_SIZE = 128
 export const AVATAR_FULL_TARGET_BYTES = 55 * 1024
 export const AVATAR_SMALL_TARGET_BYTES = 8 * 1024
 
+// The source file the member picks, before anything is decoded. Nothing on the server
+// ever sees this -- only the two encoded renditions travel -- so the limit is here rather
+// than in `shared`.
+//
+// It guards memory, not bandwidth: readAsDataURL pulls the whole file in, and decoding it
+// costs several times its size again. A phone photo is 3-12 MB, so 20 leaves room for a
+// camera original while staying far below what kills a mobile tab.
+export const AVATAR_SOURCE_MAX_BYTES = 20 * 1024 * 1024
+export const AVATAR_SOURCE_MAX_MB = AVATAR_SOURCE_MAX_BYTES / (1024 * 1024)
+
 export const AVATAR_QUALITY_STEPS = [0.85, 0.75, 0.65, 0.55, 0.45]
 
 /**

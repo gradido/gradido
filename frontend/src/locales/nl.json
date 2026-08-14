@@ -42,6 +42,7 @@
     "choose-image": "Afbeelding kiezen",
     "error-format": "De browser kan deze afbeelding niet openen. Kies een JPEG of PNG.",
     "error-heic": "De browser kan deze afbeelding niet openen. Het is een HEIC, het cameraformaat van de iPhone. Zet hem om naar JPEG of kies de afbeelding rechtstreeks op de iPhone.",
+    "error-too-large": "Deze afbeelding is te groot. Kies er een van minder dan {limit} MB.",
     "measure": "Bronbestand {source} KB, er wordt {result} KB verzonden",
     "pick-hint": "Sleep een afbeelding hierheen of kies er hieronder een",
     "remove": "Foto verwijderen",

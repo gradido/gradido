@@ -42,6 +42,7 @@
     "choose-image": "Görsel seç",
     "error-format": "Tarayıcı bu görseli açamıyor. Lütfen bir JPEG veya PNG seç.",
     "error-heic": "Tarayıcı bu görseli açamıyor. Bu bir HEIC, iPhone'un kamera biçimi. JPEG'e dönüştür ya da görseli doğrudan iPhone'da seç.",
+    "error-too-large": "Bu görsel çok büyük. Lütfen {limit} MB'tan küçük bir görsel seç.",
     "measure": "Kaynak dosya {source} KB, {result} KB gönderilecek",
     "pick-hint": "Bir görseli buraya sürükle veya aşağıdan seç",
     "remove": "Resmi kaldır",

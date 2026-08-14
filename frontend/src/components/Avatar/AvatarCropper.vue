@@ -79,6 +79,8 @@ import {
   AVATAR_FULL_TARGET_BYTES,
   AVATAR_SMALL_SIZE,
   AVATAR_SMALL_TARGET_BYTES,
+  AVATAR_SOURCE_MAX_BYTES,
+  AVATAR_SOURCE_MAX_MB,
   encodeUnderTarget,
   isHeicFileName,
 } from '@/utils/avatarImage'
@@ -148,6 +150,15 @@ function reset() {
 
 function readFile(file) {
   if (!file) {
+    return
+  }
+  // Before readAsDataURL, not after: that call pulls the whole file into memory and the
+  // decode costs several times its size again. A camera original straight off a phone is
+  // the ordinary way to reach this, and on a phone it is also where it hurts.
+  if (file.size > AVATAR_SOURCE_MAX_BYTES) {
+    imageSrc.value = ''
+    cropped.value = null
+    loadError.value = t('avatar.error-too-large', { limit: AVATAR_SOURCE_MAX_MB })
     return
   }
   sourceBytes = file.size

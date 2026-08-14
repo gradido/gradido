@@ -42,6 +42,7 @@
     "choose-image": "Elegir imagen",
     "error-format": "El navegador no puede abrir esta imagen. Elige un JPEG o un PNG.",
     "error-heic": "El navegador no puede abrir esta imagen. Es un HEIC, el formato de cámara del iPhone. Conviértela a JPEG o elige la imagen directamente en el iPhone.",
+    "error-too-large": "Esta imagen es demasiado grande. Elige una de menos de {limit} MB.",
     "measure": "Archivo original {source} KB, se enviarán {result} KB",
     "pick-hint": "Arrastra una imagen aquí o elige una abajo",
     "remove": "Quitar foto",
