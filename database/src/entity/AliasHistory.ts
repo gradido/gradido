@@ -62,9 +62,7 @@ export class AliasHistory extends BaseEntity {
   @ManyToOne(
     () => User,
     (user) => user.aliasHistory,
-  )
-  user: User
-
+  )  
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
-  userEntity?: User | null
+  user: User
 }
