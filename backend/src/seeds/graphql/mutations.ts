@@ -445,3 +445,15 @@ export const deleteMatchingEntry = gql`
     deleteMatchingEntry(uuid: $uuid)
   }
 `
+
+export const setUserAvatar = gql`
+  mutation ($avatarSmall: String!, $avatarFull: String!) {
+    setUserAvatar(avatarSmall: $avatarSmall, avatarFull: $avatarFull)
+  }
+`
+
+export const removeUserAvatar = gql`
+  mutation {
+    removeUserAvatar
+  }
+`

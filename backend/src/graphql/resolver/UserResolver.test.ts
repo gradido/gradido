@@ -26,6 +26,7 @@ import {
   UserRole,
 } from 'database'
 import { GraphQLError } from 'graphql'
+import { AVATAR_FULL_MAX_BYTES, AVATAR_SMALL_MAX_BYTES } from 'shared'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 import { deleteGmsUser, upsertGmsUsers } from '@/apis/gms/GmsClient'
 import { subscribe } from '@/apis/KlicktippController'
@@ -47,21 +48,26 @@ import {
   forgotPassword,
   login,
   logout,
+  removeUserAvatar,
   sendActivationEmail,
   setPassword,
+  setUserAvatar,
   setUserRole,
   unDeleteUser,
   updateUserInfos,
 } from '@/seeds/graphql/mutations'
 import {
+  avatarFull,
   checkUsername,
   queryOptIn,
   searchAdminUsers,
   searchUsers,
   userAboutMe,
+  userAvatar,
   user as userQuery,
   verifyLogin,
   verifyLoginAboutMe,
+  verifyLoginAvatar,
 } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
@@ -2786,6 +2792,173 @@ describe('UserResolver', () => {
       // and not a lookup that failed.
       expect(res.data.user.gradidoID).toBe(author.gradidoID)
       expect(res.data.user.aboutMe).toBeNull()
+    })
+  })
+
+  // The profile picture the member sets for their own account. Own view only: nothing
+  // hands it to anybody else, which is the boundary this delivery deliberately keeps.
+  describe('user avatar', () => {
+    // A minimal but real JPEG head. The resolver checks the magic bytes, so anything
+    // that is not one would be rejected for the right reason and prove nothing.
+    const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0xff, 0xd9])
+    const JPEG_BASE64 = JPEG.toString('base64')
+    // The full rendition has to differ from the small one, or a resolver handing back the
+    // wrong column would pass every assertion below.
+    const JPEG_FULL = Buffer.from([
+      0xff, 0xd8, 0xff, 0xe1, 0x00, 0x10, 0x45, 0x78, 0x69, 0xff, 0xd9,
+    ])
+    const JPEG_FULL_BASE64 = JPEG_FULL.toString('base64')
+    const bothPictures = { avatarSmall: JPEG_BASE64, avatarFull: JPEG_FULL_BASE64 }
+
+    let homeCom: DbCommunity
+    let owner: User
+
+    beforeAll(async () => {
+      await cleanDB()
+      homeCom = await writeHomeCommunityEntry()
+      owner = await userFactory(testEnv, bibiBloxberg)
+      await userFactory(testEnv, bobBaumeister)
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+    })
+
+    afterAll(async () => {
+      await cleanDB()
+    })
+
+    it('has no picture before one is set', async () => {
+      const res: any = await query({ query: verifyLoginAvatar })
+      expect(res.data.verifyLogin.avatar).toBeNull()
+    })
+
+    it('stores a picture and hands the same bytes back', async () => {
+      const written: any = await mutate({
+        mutation: setUserAvatar,
+        variables: bothPictures,
+      })
+      expect(written.data.setUserAvatar).toBe(true)
+
+      const res: any = await query({ query: verifyLoginAvatar })
+      expect(res.data.verifyLogin.avatar).toBe(JPEG_BASE64)
+    })
+
+    // The payload coderabbit found: ff d8 00 passes an opening-marker check on its own.
+    it('refuses a payload that only starts like a JPEG', async () => {
+      const res: any = await mutate({
+        mutation: setUserAvatar,
+        variables: {
+          ...bothPictures,
+          avatarSmall: Buffer.from([0xff, 0xd8, 0x00]).toString('base64'),
+        },
+      })
+      expect(res.errors).toBeDefined()
+    })
+
+    it('refuses something that is not a JPEG', async () => {
+      const res: any = await mutate({
+        mutation: setUserAvatar,
+        variables: { ...bothPictures, avatarSmall: Buffer.from('not an image').toString('base64') },
+      })
+      expect(res.errors).toBeDefined()
+    })
+
+    it('refuses a picture over the size limit', async () => {
+      const tooLarge = Buffer.concat([JPEG, Buffer.alloc(AVATAR_FULL_MAX_BYTES, 0x20), JPEG])
+      const res: any = await mutate({
+        mutation: setUserAvatar,
+        variables: { ...bothPictures, avatarFull: tooLarge.toString('base64') },
+      })
+      expect(res.errors).toBeDefined()
+    })
+
+    // The two renditions have their own budgets, and this is the case a single shared
+    // limit would wave through: a "small" picture that is far too big to be one, yet
+    // comfortably under what the full rendition may weigh. Without a limit of its own,
+    // the everyday picture -- the one that goes on every screen and will one day cross
+    // community borders -- could quietly be 60 KB.
+    it('refuses a small rendition that is only small by name', async () => {
+      const smallButNot = Buffer.concat([JPEG, Buffer.alloc(AVATAR_SMALL_MAX_BYTES, 0x20), JPEG])
+      expect(smallButNot.length).toBeLessThan(AVATAR_FULL_MAX_BYTES)
+
+      const res: any = await mutate({
+        mutation: setUserAvatar,
+        variables: { ...bothPictures, avatarSmall: smallButNot.toString('base64') },
+      })
+      expect(res.errors).toBeDefined()
+    })
+
+    // Two columns, two readers, and nothing in the types keeps them apart -- both are
+    // base64 strings. So the assertion is that each way out carries its OWN rendition.
+    it('hands the full rendition to its owner, and never in place of the small one', async () => {
+      const full: any = await query({ query: avatarFull })
+      expect(full.data.avatarFull).toBe(JPEG_FULL_BASE64)
+
+      const small: any = await query({ query: verifyLoginAvatar })
+      expect(small.data.verifyLogin.avatar).toBe(JPEG_BASE64)
+    })
+
+    // Issues its own refusal rather than reading what earlier tests left behind. Without
+    // that, the assertion passes with a name filter or after a reorder and proves nothing
+    // about rejected writes at all.
+    it('leaves the stored picture untouched when a write was refused', async () => {
+      const refused: any = await mutate({
+        mutation: setUserAvatar,
+        variables: { ...bothPictures, avatarFull: Buffer.from('rubbish').toString('base64') },
+      })
+      expect(refused.errors).toBeDefined()
+
+      const res: any = await query({ query: verifyLoginAvatar })
+      expect(res.data.verifyLogin.avatar).toBe(JPEG_BASE64)
+    })
+
+    it('removes the picture', async () => {
+      const removed: any = await mutate({ mutation: removeUserAvatar })
+      expect(removed.data.removeUserAvatar).toBe(true)
+
+      const res: any = await query({ query: verifyLoginAvatar })
+      expect(res.data.verifyLogin.avatar).toBeNull()
+    })
+
+    // Removing a picture that is not there is what the member wanted either way.
+    it('stays quiet when there is nothing to remove', async () => {
+      const removed: any = await mutate({ mutation: removeUserAvatar })
+      expect(removed.data.removeUserAvatar).toBe(true)
+    })
+
+    // The boundary this whole delivery keeps: a face is a disclosure to third parties,
+    // and there is no switch for it yet, so there is nobody it may be shown to.
+    it('hides the picture from another logged-in member', async () => {
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+      const written: any = await mutate({
+        mutation: setUserAvatar,
+        variables: bothPictures,
+      })
+      // The fixture has to prove itself, or the assertion below passes for the wrong
+      // reason: a picture that was never stored is invisible to everyone.
+      if (written.errors || written.data?.setUserAvatar !== true) {
+        throw new Error(`could not store avatar: ${JSON.stringify(written.errors)}`)
+      }
+
+      await mutate({
+        mutation: login,
+        variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
+      })
+      const res: any = await query({
+        query: userAvatar,
+        variables: {
+          identifier: owner.gradidoID,
+          communityIdentifier: homeCom.communityUuid,
+        },
+      })
+      // The member is found - only the field is withheld, so this is the field resolver
+      // at work and not a lookup that failed.
+      expect(res.data.user.gradidoID).toBe(owner.gradidoID)
+      expect(res.data.user.avatar).toBeNull()
     })
   })
 

@@ -23,7 +23,18 @@ export const verifyLogin = gql`
       hideAmountGDD
       hideAmountGDT
       aboutMe
+      avatar
     }
+  }
+`
+
+// The full 512x512 crop, on demand. Deliberately not a field on verifyLogin above: it is
+// about ten times the everyday rendition and is wanted at two moments only -- printing
+// the member card, and looking at one's own picture -- so the common paths do not carry
+// it. Takes no argument, so there is nobody to ask about but oneself.
+export const avatarFull = gql`
+  query {
+    avatarFull
   }
 `
 

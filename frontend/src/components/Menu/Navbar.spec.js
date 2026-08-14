@@ -57,6 +57,13 @@ describe('Navbar', () => {
         plugins: [store, router, i18n],
         stubs: {
           IBiClipboard: true,
+          // The avatar button brings its own apollo and toast dependencies. What matters
+          // here is what the navbar hands it; the button itself has its own spec.
+          AvatarButton: {
+            name: 'AvatarButton',
+            props: ['name', 'initials', 'color', 'size'],
+            template: '<div class="avatar-button-stub"></div>',
+          },
         },
         mocks: {
           $t: (msg) => msg,
@@ -90,18 +97,18 @@ describe('Navbar', () => {
 
   describe('.avatar element', () => {
     it('is rendered', () => {
-      expect(wrapper.findComponent({ name: 'AppAvatar' }).exists()).toBe(true)
+      expect(wrapper.findComponent({ name: 'AvatarButton' }).exists()).toBe(true)
     })
 
     it("has the user's initials", () => {
-      const avatar = wrapper.findComponent({ name: 'AppAvatar' })
+      const avatar = wrapper.findComponent({ name: 'AvatarButton' })
       expect(avatar.props('initials')).toBe('TU')
     })
   })
 
   describe('user info', () => {
     it('has the full name', () => {
-      expect(wrapper.find('div[data-test="navbar-item-username"]').text()).toBe('Testy User')
+      expect(wrapper.find('[data-test="navbar-item-username"]').text()).toBe('Testy User')
     })
 
     it('has the email address', () => {

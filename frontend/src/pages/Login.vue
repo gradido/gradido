@@ -65,12 +65,13 @@ import InputPassword from '@/components/Inputs/InputPassword'
 import InputEmail from '@/components/Inputs/InputEmail'
 import Message from '@/components/Message/Message'
 import { login, authenticateHumhubAutoLoginProject, updateUserInfos } from '@/graphql/mutations'
+import { verifyLogin } from '@/graphql/queries'
 import { ref, computed } from 'vue'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
 import { useForm } from 'vee-validate'
-import { useMutation } from '@vue/apollo-composable'
+import { useApolloClient, useMutation } from '@vue/apollo-composable'
 import { useAppToast } from '@/composables/useToast'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import CONFIG from '@/config'
@@ -81,6 +82,7 @@ const router = useRouter()
 const route = useRoute()
 const store = useStore()
 const { t } = useI18n()
+const { client } = useApolloClient()
 const { mutate } = useMutation(login)
 const { mutate: mutateHumhubAutoLogin } = useMutation(authenticateHumhubAutoLoginProject)
 const { mutate: mutateUpdateUserInfos } = useMutation(updateUserInfos)
@@ -119,6 +121,20 @@ const onSubmit = handleSubmit(async (values) => {
     // consumes it, then persist it to the account so it sticks everywhere.
     const preLoginLanguage = store.state.preLoginLanguage
     await store.dispatch('login', loginResponse)
+    // The picture does not ride on the login mutation. Reading it there would put a
+    // second connection pool into the one request path that every member and every test
+    // takes, and the wallet needs it only here. Fetched right after instead, so a member
+    // who logs out and back in sees their own face from the first screen rather than
+    // initials until some later session renewal happens to refill the store.
+    //
+    // Best effort on purpose: somebody who is logged in must not be thrown back to the
+    // login page over a profile picture.
+    try {
+      const { data } = await client.query({ query: verifyLogin, fetchPolicy: 'network-only' })
+      store.commit('avatar', data.verifyLogin.avatar ?? null)
+    } catch (error) {
+      // Initials until the next verifyLogin -- the same as before this was fetched at all.
+    }
     if (preLoginLanguage && preLoginLanguage !== loginResponse.language) {
       try {
         await mutateUpdateUserInfos({ locale: preLoginLanguage })
