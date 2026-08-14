@@ -49,6 +49,7 @@ import random from 'random-bigint'
 import {
   AVATAR_FULL_MAX_BYTES,
   AVATAR_SMALL_MAX_BYTES,
+  JPEG_END_BYTES,
   JPEG_MAGIC_BYTES,
   updateAllDefinedAndChanged,
 } from 'shared'
@@ -940,8 +941,17 @@ export class UserResolver {
       })
     }
     // Buffer.from ignores anything it cannot decode instead of failing, so "it decoded"
-    // says nothing about what arrived. The magic bytes do.
-    if (bytes[0] !== JPEG_MAGIC_BYTES[0] || bytes[1] !== JPEG_MAGIC_BYTES[1]) {
+    // says nothing about what arrived. The markers do.
+    //
+    // Both ends, not just the start: on the opening marker alone a three-byte payload of
+    // ff d8 00 passes, so the column would take arbitrary data from anyone willing to
+    // prefix it. This is still not format validation -- only a decoder could say whether
+    // what lies between is a picture -- and a decoder is what this design keeps out of
+    // the backend on purpose.
+    const startsRight = bytes[0] === JPEG_MAGIC_BYTES[0] && bytes[1] === JPEG_MAGIC_BYTES[1]
+    const endsRight =
+      bytes[bytes.length - 2] === JPEG_END_BYTES[0] && bytes[bytes.length - 1] === JPEG_END_BYTES[1]
+    if (!startsRight || !endsRight) {
       throw new LogError(`Avatar image (${which}) is not a JPEG`)
     }
 

@@ -2800,12 +2800,12 @@ describe('UserResolver', () => {
   describe('user avatar', () => {
     // A minimal but real JPEG head. The resolver checks the magic bytes, so anything
     // that is not one would be rejected for the right reason and prove nothing.
-    const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46])
+    const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0xff, 0xd9])
     const JPEG_BASE64 = JPEG.toString('base64')
     // The full rendition has to differ from the small one, or a resolver handing back the
     // wrong column would pass every assertion below.
     const JPEG_FULL = Buffer.from([
-      0xff, 0xd8, 0xff, 0xe1, 0x00, 0x10, 0x45, 0x78, 0x69, 0x66, 0x2a,
+      0xff, 0xd8, 0xff, 0xe1, 0x00, 0x10, 0x45, 0x78, 0x69, 0xff, 0xd9,
     ])
     const JPEG_FULL_BASE64 = JPEG_FULL.toString('base64')
     const bothPictures = { avatarSmall: JPEG_BASE64, avatarFull: JPEG_FULL_BASE64 }
@@ -2844,6 +2844,18 @@ describe('UserResolver', () => {
       expect(res.data.verifyLogin.avatar).toBe(JPEG_BASE64)
     })
 
+    // The payload coderabbit found: ff d8 00 passes an opening-marker check on its own.
+    it('refuses a payload that only starts like a JPEG', async () => {
+      const res: any = await mutate({
+        mutation: setUserAvatar,
+        variables: {
+          ...bothPictures,
+          avatarSmall: Buffer.from([0xff, 0xd8, 0x00]).toString('base64'),
+        },
+      })
+      expect(res.errors).toBeDefined()
+    })
+
     it('refuses something that is not a JPEG', async () => {
       const res: any = await mutate({
         mutation: setUserAvatar,
@@ -2853,7 +2865,7 @@ describe('UserResolver', () => {
     })
 
     it('refuses a picture over the size limit', async () => {
-      const tooLarge = Buffer.concat([JPEG, Buffer.alloc(AVATAR_FULL_MAX_BYTES, 0x20)])
+      const tooLarge = Buffer.concat([JPEG, Buffer.alloc(AVATAR_FULL_MAX_BYTES, 0x20), JPEG])
       const res: any = await mutate({
         mutation: setUserAvatar,
         variables: { ...bothPictures, avatarFull: tooLarge.toString('base64') },
@@ -2867,7 +2879,7 @@ describe('UserResolver', () => {
     // the everyday picture -- the one that goes on every screen and will one day cross
     // community borders -- could quietly be 60 KB.
     it('refuses a small rendition that is only small by name', async () => {
-      const smallButNot = Buffer.concat([JPEG, Buffer.alloc(AVATAR_SMALL_MAX_BYTES, 0x20)])
+      const smallButNot = Buffer.concat([JPEG, Buffer.alloc(AVATAR_SMALL_MAX_BYTES, 0x20), JPEG])
       expect(smallButNot.length).toBeLessThan(AVATAR_FULL_MAX_BYTES)
 
       const res: any = await mutate({
@@ -2887,7 +2899,16 @@ describe('UserResolver', () => {
       expect(small.data.verifyLogin.avatar).toBe(JPEG_BASE64)
     })
 
+    // Issues its own refusal rather than reading what earlier tests left behind. Without
+    // that, the assertion passes with a name filter or after a reorder and proves nothing
+    // about rejected writes at all.
     it('leaves the stored picture untouched when a write was refused', async () => {
+      const refused: any = await mutate({
+        mutation: setUserAvatar,
+        variables: { ...bothPictures, avatarFull: Buffer.from('rubbish').toString('base64') },
+      })
+      expect(refused.errors).toBeDefined()
+
       const res: any = await query({ query: verifyLoginAvatar })
       expect(res.data.verifyLogin.avatar).toBe(JPEG_BASE64)
     })
