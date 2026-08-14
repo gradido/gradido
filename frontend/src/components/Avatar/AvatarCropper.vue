@@ -71,7 +71,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppModal from '@/components/AppModal.vue'
 import {
@@ -217,7 +217,13 @@ function loadImage(dataUrl, fileName) {
     offsetY = (FRAME - naturalHeight * minScale) / 2
     loadError.value = ''
     imageSrc.value = dataUrl
-    redraw()
+    // Not redraw() straight away: imageSrc was just set, and the img element it renders
+    // does not exist until Vue flushes the DOM on the next tick. applyTransform() would
+    // find image.value null and return without sizing anything, so the picture painted at
+    // its full size in the corner of the frame -- reading as a blank surface whenever that
+    // corner happened to be sky or a light wall -- until the member moved the zoom slider
+    // and triggered a redraw that found the element.
+    nextTick(redraw)
   }
   probe.src = dataUrl
 }
@@ -229,6 +235,9 @@ function clampOffsets() {
 }
 
 function applyTransform() {
+  // Returning quietly is right -- the element is legitimately gone after a reset -- but it
+  // is also how a picture can end up unsized without anything looking wrong. Every caller
+  // has to be sure the element exists by the time it asks; see nextTick in loadImage.
   if (!image.value) {
     return
   }
