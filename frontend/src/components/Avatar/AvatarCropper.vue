@@ -6,6 +6,7 @@
         ref="frame"
         class="avatar-frame"
         :class="{ 'is-dragging': isDragging }"
+        :style="{ '--frame-size': framePx }"
         @dragover.prevent
         @drop.prevent="onDrop"
         @pointerdown="onPointerDown"
@@ -84,7 +85,12 @@ import {
 
 // The preview is 280 CSS pixels; the stored squares are AVATAR_FULL_SIZE and
 // AVATAR_SMALL_SIZE, both drawn from this same frame.
+//
+// The stylesheet takes its size from here rather than repeating the number. The crop
+// geometry is computed against FRAME, so a stylesheet that said something else would not
+// look wrong -- it would quietly crop a different square than the member sees.
 const FRAME = 280
+const framePx = `${FRAME}px`
 
 const props = defineProps({
   modelValue: Boolean,
@@ -342,8 +348,8 @@ function onRemove() {
    comment to it -- the build fails with "Invalid empty selector". */
 .avatar-frame {
   position: relative;
-  width: 280px;
-  height: 280px;
+  width: var(--frame-size);
+  height: var(--frame-size);
   margin: 0 auto 12px;
   border-radius: 14px;
   overflow: hidden;

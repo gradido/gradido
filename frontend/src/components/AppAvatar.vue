@@ -5,7 +5,7 @@
     :style="{
       width: `${size}px`,
       height: `${size}px`,
-      backgroundColor: src ? undefined : backgroundColor,
+      backgroundColor: src || quiet ? undefined : backgroundColor,
       textTransform: 'uppercase',
     }"
   >
@@ -168,7 +168,7 @@ const textColor = computed(() => {
    understood notation for "something is missing here" -- it does not push, but it is
    read, and it stops an avatar without a picture from looking like a finished thing. */
 .app-avatar-quiet {
-  background-color: #e4efef !important;
+  background-color: #e4efef;
   color: #276e6f;
   border: 1.5px dashed #a9cccc;
   transition:
@@ -182,7 +182,7 @@ const textColor = computed(() => {
 
 /* The saturated wallet colour does not carry in the dark; these are its own values. */
 .dark-mode .app-avatar-quiet {
-  background-color: #243a3b !important;
+  background-color: #243a3b;
   border-color: #47797a;
 }
 
