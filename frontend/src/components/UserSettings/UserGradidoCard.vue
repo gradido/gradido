@@ -63,15 +63,19 @@ const needsUsername = ref(false)
 /**
  * No card without a user name.
  *
- * The card carries the Gradido address, and without a user name there is none to carry: the
- * address falls back to the Gradido ID, so the printed line reads `.../u/<36 characters>`.
- * That is a working address, but not one anybody types off a card, and it crowds the line
- * that is meant to be read letter by letter.
+ * Not because the fallback is long. It is not: without a user name the address falls back to
+ * the Gradido ID, and that resolves exactly as well -- the line even fits, since the address
+ * on the card now shrinks to the width it has.
  *
- * A card is printed and given away; it cannot be corrected afterwards. So the way to a card
- * leads through choosing a name, and the message says so instead of quietly handing out a
- * worse card. The field is on this very tab, a little further up, which is why the message
- * points there rather than sending anybody somewhere else.
+ * The reason is what a card is for. It carries somebody's address out into the world, and the
+ * address is meant to show a *name*: that is the whole point of having one instead of an
+ * identifier. A card printed without a user name puts a string of digits where the name
+ * belongs, permanently -- it is given away and cannot be called back or corrected. So the way
+ * to a card leads through choosing a name, and the message says so rather than quietly
+ * handing out a card that can never become the one that was wanted.
+ *
+ * The field is on this very tab, a little further up, which is why the message points there
+ * instead of sending anybody somewhere else.
  *
  * This is for the time in between. Once the user name is compulsory the case cannot arise,
  * and the gate can go.
