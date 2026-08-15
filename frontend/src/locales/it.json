@@ -367,6 +367,12 @@
     "raise": "Aumento",
     "recruited-member": "Membro invitato"
   },
+  "gradido-card": {
+    "description": "Da stampare e distribuire: il tuo nome, la tua comunità, il tuo nome utente e il tuo codice QR su una tessera delle dimensioni di una carta bancaria. Chi la riceve può regalarti Gradido.",
+    "download": "Scarica la tessera",
+    "print-hint": "La tessera misura 85,6 × 54 mm, le dimensioni di una carta bancaria. Per stamparla, inseriscila in un documento, stampa a dimensione originale e ritagliala.",
+    "title": "La tua tessera Gradido"
+  },
   "gradidoid-copied-to-clipboard": "L'ID Gradido è stato copiato negli appunti.",
   "h": "h",
   "info": "Informazione",

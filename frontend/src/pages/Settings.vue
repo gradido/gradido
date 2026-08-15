@@ -80,6 +80,8 @@
             <user-newsletter />
           </BCol>
         </BRow>
+        <hr />
+        <user-gradido-card class="mb-5" />
       </BTab>
       <BTab
         v-if="isCommunityService"
@@ -204,6 +206,7 @@ import UserNamingFormat from '@/components/UserSettings/UserNamingFormat'
 import UserGMSLocationFormat from '@/components/UserSettings/UserGMSLocationFormat'
 import UserGmsLocationCapturing from '@/components/UserSettings/UserGmsLocationCapturing'
 import UserNewsletter from '@/components/UserSettings/UserNewsletter.vue'
+import UserGradidoCard from '@/components/UserSettings/UserGradidoCard.vue'
 import {
   BTabs,
   BTab,

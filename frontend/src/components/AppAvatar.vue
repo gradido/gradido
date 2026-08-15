@@ -26,6 +26,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { avatarPaletteEntry } from '@/utils/avatarColor'
 
 const props = defineProps({
   size: {
@@ -58,29 +59,6 @@ const props = defineProps({
     default: false,
   },
 })
-
-// Enhanced color palette with better contrast ratios
-const colorPalette = [
-  { bg: '#4A5568', text: '#FFFFFF' }, // Slate Blue
-  { bg: '#2C7A7B', text: '#FFFFFF' }, // Teal
-  { bg: '#805AD5', text: '#FFFFFF' }, // Purple
-  { bg: '#DD6B20', text: '#FFFFFF' }, // Orange
-  { bg: '#3182CE', text: '#FFFFFF' }, // Blue
-  { bg: '#38A169', text: '#FFFFFF' }, // Green
-  { bg: '#E53E3E', text: '#FFFFFF' }, // Red
-  { bg: '#6B46C1', text: '#FFFFFF' }, // Indigo
-  { bg: '#2B6CB0', text: '#FFFFFF' }, // Dark Blue
-  { bg: '#9C4221', text: '#FFFFFF' }, // Brown
-]
-
-// Generate consistent index based on string
-function stringToIndex(str) {
-  let hash = 0
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  return Math.abs(hash % colorPalette.length)
-}
 
 // Parse any color format to RGB
 function parseColor(color) {
@@ -136,17 +114,13 @@ const computedInitials = computed(() => {
     .slice(0, 2)
 })
 
-const backgroundColor = computed(() => {
-  const colorIndex = stringToIndex(computedInitials.value || props.name)
-  return colorPalette[colorIndex].bg
-})
+const backgroundColor = computed(() => avatarPaletteEntry(computedInitials.value || props.name).bg)
 
 const textColor = computed(() => {
   if (props.color) {
     return getTextColor(props.color)
   }
-  const colorIndex = stringToIndex(computedInitials.value || props.name)
-  return colorPalette[colorIndex].text
+  return avatarPaletteEntry(computedInitials.value || props.name).text
 })
 </script>
 

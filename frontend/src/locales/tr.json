@@ -367,6 +367,12 @@
     "raise": "Artış",
     "recruited-member": "Davetli üye"
   },
+  "gradido-card": {
+    "description": "Yazdırmak ve dağıtmak için: adın, topluluğun, kullanıcı adın ve QR kodun banka kartı büyüklüğünde bir kartta. Kartı alan kişi sana Gradido hediye edebilir.",
+    "download": "Kartı indir",
+    "print-hint": "Kart 85,6 × 54 mm boyutundadır, bir banka kartı büyüklüğünde. Yazdırmak için bir belgeye ekle, orijinal boyutta yazdır ve kes.",
+    "title": "Gradido kartın"
+  },
   "gradidoid-copied-to-clipboard": "Gradido ID panoya kopyalandı.",
   "h": "sa",
   "info": "Bilgi",

@@ -20,10 +20,14 @@ vi.mock('@/composables/useToast', () => ({
   useAppToast: () => ({ toastError: mockToastError }),
 }))
 
+const storeState = {
+  firstName: 'Bernd',
+  lastName: 'Hückstädt',
+  username: 'bernd',
+  gradidoID: 'uuid-1',
+}
 vi.mock('vuex', () => ({
-  useStore: () => ({
-    state: { firstName: 'Bernd', lastName: 'Hückstädt', username: 'bernd', gradidoId: 'uuid-1' },
-  }),
+  useStore: () => ({ state: storeState }),
 }))
 
 vi.mock('vue-i18n', () => ({
@@ -67,6 +71,22 @@ describe('useThankYouCheque', () => {
         qrCanvas: mockQrCanvas,
       }),
     )
+  })
+
+  // The address on the cheque used to read "Community/undefined" for anybody without a user
+  // name, because the store spells the field gradidoID and this read gradidoId. No test
+  // covered the fallback, so nothing caught it -- and it was printed on paper.
+  it('falls back to the Gradido ID when there is no user name', async () => {
+    storeState.username = ''
+    try {
+      await useThankYouCheque(LINK).drawThankYouCheque()
+    } finally {
+      storeState.username = 'bernd'
+    }
+
+    const { address } = mockDrawCheque.mock.calls[0][0]
+    expect(address).toContain('uuid-1')
+    expect(address).not.toContain('undefined')
   })
 
   it('builds the headline from the sender and the amount', async () => {

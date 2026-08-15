@@ -88,6 +88,7 @@ describe('Settings', () => {
           'user-language': true,
           'user-password': true,
           'user-newsletter': true,
+          'user-gradido-card': true,
         },
       },
     })
