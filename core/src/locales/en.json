@@ -24,6 +24,12 @@
       "title": "Message about your common good contribution",
       "toSeeAndAnswerMessage": "To reply to the message, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab."
     },
+    "contactFromProfile": {
+      "intro": "somebody wrote to you via your Gradido address. This person has no Gradido account — we have not checked who they are.",
+      "replySubject": "Re: {subject}",
+      "sender": "Sender (unverified): {senderName}",
+      "title": "A message via your Gradido address"
+    },
     "contribution": {
       "toSeeContributionsAndMessages": "To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab."
     },

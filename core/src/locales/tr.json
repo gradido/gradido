@@ -24,6 +24,12 @@
       "title": "Ortak yarara katkın hakkında mesaj",
       "toSeeAndAnswerMessage": "Mesajı yanıtlamak için Gradido hesabında “Oluştur” menüsüne git ve “Katkılarım” sekmesine tıkla."
     },
+    "contactFromProfile": {
+      "intro": "birisi sana Gradido adresin üzerinden yazdı. Bu kişinin Gradido hesabı yok — kim olduğunu doğrulamadık.",
+      "replySubject": "Re: {subject}",
+      "sender": "Gönderen (doğrulanmadı): {senderName}",
+      "title": "Gradido adresin üzerinden bir mesaj"
+    },
     "contribution": {
       "toSeeContributionsAndMessages": "Ortak yarara katkılarını ve ilgili mesajları görmek için Gradido hesabında “Oluştur” menüsüne git ve “Katkılarım” sekmesine tıkla."
     },

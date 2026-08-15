@@ -24,6 +24,12 @@
       "title": "Nachricht zu deinem Gemeinwohl-Beitrag",
       "toSeeAndAnswerMessage": "Um auf die Nachricht zu antworten, gehe in deinem Gradido-Konto ins Menü „Schöpfen“ auf den Tab „Meine Beiträge“."
     },
+    "contactFromProfile": {
+      "intro": "jemand hat Dir über Deine Gradido-Adresse geschrieben. Diese Person hat kein Gradido-Konto — wer sie ist, haben wir nicht geprüft.",
+      "replySubject": "Re: {subject}",
+      "sender": "Absender (ungeprüft): {senderName}",
+      "title": "Eine Nachricht über Deine Gradido-Adresse"
+    },
     "contribution": {
       "toSeeContributionsAndMessages": "Um deine Gemeinwohl-Beiträge und dazugehörige Nachrichten zu sehen, gehe in deinem Gradido-Konto ins Menü „Schöpfen“ auf den Tab „Meine Beiträge“."
     },

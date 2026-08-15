@@ -24,6 +24,12 @@
       "title": "Messaggio riguardo al tuo contributo al bene comune",
       "toSeeAndAnswerMessage": "Per rispondere al messaggio, vai nel menu «Crea» del tuo account Gradido e clicca sulla scheda «I miei contributi»."
     },
+    "contactFromProfile": {
+      "intro": "qualcuno ti ha scritto tramite il tuo indirizzo Gradido. Questa persona non ha un conto Gradido: non abbiamo verificato chi sia.",
+      "replySubject": "Re: {subject}",
+      "sender": "Mittente (non verificato): {senderName}",
+      "title": "Un messaggio tramite il tuo indirizzo Gradido"
+    },
     "contribution": {
       "toSeeContributionsAndMessages": "Per vedere i tuoi contributi al bene comune e i relativi messaggi, vai nel menu «Crea» del tuo account Gradido e clicca sulla scheda «I miei contributi»."
     },

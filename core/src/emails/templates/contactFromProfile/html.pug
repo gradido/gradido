@@ -1,0 +1,35 @@
+//- AI-GENERATED — not an architecture reference
+//- A message from somebody who has no Gradido account, sent through the contact form
+//- behind a Gradido address. It is deliberately not a branch of customEmail: every line
+//- of text differs. The subject must not carry the sender's name, because we have not
+//- checked it and the header would be our claim, not theirs; the frame has to say so out
+//- loud; the reply address is the only way back and has no place in the member template;
+//- and "to account" leads nowhere for somebody who has no account.
+extend ../layout.pug
+
+block content
+  mixin mailto(email, subject)
+    - var formattedSubject = encodeURIComponent(subject)
+    a(class!=attributes.class href=`mailto:${email}?subject=${formattedSubject}`)
+      block
+
+  - var replySubject = t('emails.contactFromProfile.replySubject', { subject })
+  h2= t('emails.contactFromProfile.title')
+  .text-block
+    include ../includes/salutation.pug
+    p= t('emails.contactFromProfile.intro')
+    p
+      = t('emails.contactFromProfile.sender', { senderName })
+      |  (
+      +mailto(senderEmail, replySubject)=senderEmail
+      |)
+
+  .subject-block
+    div(class="p_content")= subject
+
+  .memo-block
+    div(class="p_content")= message
+
+  +mailto(senderEmail, replySubject)(class="button-5")
+    include ../includes/chatbox-icon.pug
+    span #{t('emails.general.answerNow')}

@@ -194,6 +194,35 @@ export const sendTransactionReceivedEmail = (
   })
 }
 
+/**
+ * A message from somebody who has no Gradido account, written through the contact form
+ * behind a Gradido address.
+ *
+ * The sibling of `sendCustomEmail`, and a sibling rather than a branch of it because the
+ * two mails share no sentence: this one may not put an unchecked name in the header, has
+ * to say in the body that nobody checked it, and carries a reply address instead of a
+ * button into an account the sender does not have.
+ */
+export const sendContactFromProfileEmail = (
+  data: EmailCommonData & {
+    senderName: string
+    senderEmail: string
+    subject: string
+    message: string
+  },
+): Promise<Record<string, unknown> | boolean | null | Error> => {
+  return sendEmailTranslated({
+    receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
+    template: 'contactFromProfile',
+    locals: {
+      ...data,
+      // the layout writes this into `html lang`, and nothing else fills it in
+      locale: data.language,
+      ...getEmailCommonLocales(),
+    },
+  })
+}
+
 export const sendCustomEmail = (
   data: EmailCommonData & {
     senderFirstName: string

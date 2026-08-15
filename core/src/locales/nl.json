@@ -24,6 +24,12 @@
       "title": "Bericht over je bijdrage aan het algemeen welzijn",
       "toSeeAndAnswerMessage": "Om het bericht te beantwoorden, ga je in je Gradido-account naar het menu ‘Creëren’ en klik je op het tabblad ‘Mijn bijdragen’."
     },
+    "contactFromProfile": {
+      "intro": "iemand heeft je via jouw Gradido-adres geschreven. Deze persoon heeft geen Gradido-account — wij hebben niet gecontroleerd wie het is.",
+      "replySubject": "Re: {subject}",
+      "sender": "Afzender (niet geverifieerd): {senderName}",
+      "title": "Een bericht via jouw Gradido-adres"
+    },
     "contribution": {
       "toSeeContributionsAndMessages": "Om je bijdragen aan het algemeen welzijn en de bijbehorende berichten te zien, ga je in je Gradido-account naar het menu ‘Creëren’ en klik je op het tabblad ‘Mijn bijdragen’."
     },

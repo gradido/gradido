@@ -24,6 +24,12 @@
       "title": "Message concernant ta contribution au bien commun",
       "toSeeAndAnswerMessage": "Pour répondre au message, va dans le menu « Créer » de ton compte Gradido et clique sur l'onglet « Mes contributions »."
     },
+    "contactFromProfile": {
+      "intro": "quelqu'un t'a écrit via ton adresse Gradido. Cette personne n'a pas de compte Gradido — nous n'avons pas vérifié son identité.",
+      "replySubject": "Re : {subject}",
+      "sender": "Expéditeur (non vérifié) : {senderName}",
+      "title": "Un message via ton adresse Gradido"
+    },
     "contribution": {
       "toSeeContributionsAndMessages": "Pour voir tes contributions au bien commun et les messages associés, va dans le menu « Créer » de ton compte Gradido et clique sur l'onglet « Mes contributions »."
     },
