@@ -181,10 +181,13 @@ describe('drawGradidoCard', () => {
     expect(disc.fillStyle).toBe(avatarPaletteEntry('BH').bg)
   })
 
-  it('draws the picture instead of the initials when there is one', async () => {
+  it('draws the picture instead of the initials, clipped to a circle', async () => {
     await drawGradidoCard({ ...CARD, picture: 'data:image/jpeg;base64,portrait' })
 
     expect(textsDrawn(ctx)).not.toContain('BH')
-    expect(ctx.calls.some((call) => call.name === 'clip')).toBe(true)
+    const arc = ctx.calls.findIndex((call) => call.name === 'arc')
+    expect(arc).toBeGreaterThan(-1)
+    expect(ctx.calls[arc + 1].name).toBe('clip')
+    expect(ctx.calls[arc + 2].name).toBe('drawImage')
   })
 })

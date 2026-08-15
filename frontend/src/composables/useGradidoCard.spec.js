@@ -78,16 +78,19 @@ describe('cardAddress', () => {
 describe('useGradidoCard', () => {
   let anchor
   let createElement
+  // Captured before the spy is installed. Re-binding document.createElement afterwards
+  // would bind the spy itself, and the fallback would call into its own mock.
+  let realCreateElement
 
   beforeEach(() => {
     vi.clearAllMocks()
     mockDrawGradidoCard.mockResolvedValue('data:image/png;base64,card')
     mockQuery.mockResolvedValue({ data: { avatarFull: 'BASE64PICTURE' } })
     anchor = { href: '', download: '', click: vi.fn() }
-    const original = document.createElement.bind(document)
+    realCreateElement = document.createElement.bind(document)
     createElement = vi
       .spyOn(document, 'createElement')
-      .mockImplementation((tag) => (tag === 'a' ? anchor : original(tag)))
+      .mockImplementation((tag) => (tag === 'a' ? anchor : realCreateElement(tag)))
   })
 
   afterEach(() => {
@@ -152,6 +155,39 @@ describe('useGradidoCard', () => {
 
     expect(mockDrawGradidoCard).not.toHaveBeenCalled()
     expect(anchor.href).toBe('data:image/png;base64,drawn-earlier')
+  })
+
+  // Ten cards on A4, printed through the browser -- that is why there is no PDF library
+  // here: the browser writes PDFs already and is the only part that knows a millimetre.
+  it('lays ten cards on one page and opens the print dialogue', async () => {
+    const print = vi.fn()
+    const frames = []
+    createElement.mockImplementation((tag) => {
+      const element = tag === 'a' ? anchor : realCreateElement(tag)
+      if (tag === 'iframe') {
+        frames.push(element)
+        Object.defineProperty(element, 'contentWindow', {
+          value: { print, focus: vi.fn(), addEventListener: vi.fn(), close: vi.fn() },
+        })
+      }
+      return element
+    })
+
+    await useGradidoCard().printCardSheet()
+
+    const doc = frames[0].contentDocument
+    expect(doc.querySelectorAll('img')).toHaveLength(10)
+    expect([...doc.querySelectorAll('img')].every((i) => i.src.includes('card'))).toBe(true)
+    const style = doc.querySelector('style').textContent
+    expect(style).toContain('85.6mm')
+    // Without border-box the padding is added on top and the sheet becomes 248.8 x 324 mm,
+    // so the right column and the bottom row are cut off on A4.
+    expect(style).toContain('box-sizing: border-box')
+    expect(print).toHaveBeenCalled()
+
+    // The frame is removed on afterprint, which a stubbed listener never fires -- so the
+    // test clears it up itself. Left attached, it breaks the environment teardown.
+    frames.forEach((frame) => frame.remove())
   })
 
   it('says so when a picture of the card cannot be loaded', async () => {

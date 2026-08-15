@@ -370,7 +370,9 @@
   "gradido-card": {
     "description": "Om af te drukken en uit te delen: jouw naam, jouw gemeenschap, jouw gebruikersnaam en jouw QR-code op een kaart ter grootte van een bankpas. Wie hem krijgt, kan jou Gradido schenken.",
     "download": "Kaart downloaden",
-    "print-hint": "De kaart meet 85,6 × 54 mm, het formaat van een bankpas. Om af te drukken: in een document plaatsen, op ware grootte afdrukken en uitknippen.",
+    "download-hint": "Eén afbeelding in drukkwaliteit — voor een drukkerij of om door te geven.",
+    "sheet": "Vel met 10 kaarten",
+    "sheet-hint": "Tien kaarten op ware grootte op één A4-pagina. In het afdrukvenster kun je het ook als pdf opslaan.",
     "title": "Jouw Gradido-kaart"
   },
   "gradidoid-copied-to-clipboard": "Gradido ID gekopieerd naar klembord.",
