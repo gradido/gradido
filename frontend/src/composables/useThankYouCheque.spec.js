@@ -15,11 +15,11 @@ vi.mock('@/utils/qrCode', () => ({
   renderQrCodeCanvas: (...args) => mockRenderQrCodeCanvas(...args),
 }))
 
-vi.mock('@/composables/useGradidoCard', () => ({
-  cardAddress: (alias) => ({
-    host: 'ki-playground.gradido.net',
-    link: `https://ki-playground.gradido.net/u/${alias}`,
-  }),
+// The address builder is no longer stubbed, only the community it reads. A stub can only
+// confirm that the cheque calls something; the real builder confirms it gets the very host
+// the card prints -- which is the whole point of them sharing one.
+vi.mock('@/config', () => ({
+  default: { COMMUNITY_URL: 'https://ki-playground.gradido.net' },
 }))
 
 const mockToastError = vi.fn()

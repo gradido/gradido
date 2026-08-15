@@ -6,7 +6,7 @@ import { useStore } from 'vuex'
 import CONFIG from '@/config'
 import { useAppToast } from '@/composables/useToast'
 import { avatarFull } from '@/graphql/queries'
-import { communityHost } from '@/utils/gradidoAddress'
+import { gradidoAddress, memberAlias } from '@/utils/gradidoAddress'
 import { cardFileName, drawGradidoCard } from '@/utils/gradidoCard'
 import { renderQrCodeCanvas } from '@/utils/qrCode'
 
@@ -21,22 +21,6 @@ import { renderQrCodeCanvas } from '@/utils/qrCode'
  * The QR is rendered off screen, with the same generator the modal uses, so what gets
  * printed is the code the screen would show.
  */
-
-/**
- * The address in both shapes at once, so they can never disagree on one card.
- *
- * @param {string} alias
- * @returns {{host: string, link: string}}
- */
-export const cardAddress = (alias) => ({
-  host: communityHost(CONFIG.COMMUNITY_URL),
-  // The alias is encoded although no valid one needs it: VALID_ALIAS_REGEX allows letters,
-  // digits, hyphen and underscore only, and the fallback is a UUID. It is here because this
-  // link is printed. An unencoded '?' or '#' would silently become a query or a fragment, and
-  // a wrong link on paper cannot be corrected -- so the guarantee is worth one call that
-  // does nothing today, especially while the rules around user names are still moving.
-  link: new URL(`/u/${encodeURIComponent(alias)}`, CONFIG.COMMUNITY_URL).href,
-})
 
 // Ten cards on one A4 page, in real millimetres:
 // 2 x 85.6 = 171.2 plus 2 x 19.4 margin = 210 · 5 x 54 = 270 plus 2 x 13.5 = 297.
@@ -106,8 +90,8 @@ export const useGradidoCard = () => {
 
   const drawCard = async () => {
     const { firstName, lastName, username, gradidoID } = store.state
-    const alias = username || gradidoID
-    const { host, link } = cardAddress(alias)
+    const alias = memberAlias(username, gradidoID)
+    const { host, link } = gradidoAddress(alias)
 
     return drawGradidoCard({
       qrCanvas: await renderQrCodeCanvas(link),

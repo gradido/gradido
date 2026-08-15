@@ -1,12 +1,14 @@
 // AI-GENERATED — not an architecture reference
 
+import CONFIG from '@/config'
+
 /**
  * The Gradido address: `community-host/u/alias`.
  *
- * One place that reads it, because six places that each read it a little differently is
- * how a printed address and a typed one start to disagree -- and paper cannot be
- * corrected. The send form, the recipient validation and the community switch all ask
- * here.
+ * One place that builds it and one that reads it, because several places that each do it
+ * a little differently is how a printed address and a shown one start to disagree -- and
+ * paper cannot be corrected. Building: the card, the cheque, the navigation bar. Reading:
+ * the send form and the recipient validation.
  */
 
 // The namespace that marks a person. Groups (/g/), projects (/p/) and shops (/s/) are
@@ -37,6 +39,48 @@ export const communityHost = (url) => {
     return String(url ?? '')
       .replace(/^[a-z]+:\/\//i, '')
       .replace(/\/.*$/, '')
+  }
+}
+
+/**
+ * The alias a member's address is built on.
+ *
+ * The Gradido ID stands in for accounts from before the user name became compulsory.
+ * `findUserByIdentifier` resolves a UUID as readily as a name, so `…/u/<uuid>` is a
+ * working address rather than a placeholder -- checked against the send form.
+ *
+ * One line, and it lives here anyway: it stood written out in three places, and two of
+ * them print. If the rule ever changes, exactly one of them would have been updated.
+ *
+ * @param {string} username
+ * @param {string} gradidoID
+ * @returns {string}
+ */
+export const memberAlias = (username, gradidoID) => username || gradidoID
+
+/**
+ * The member's own address, in the two shapes that are always needed together.
+ *
+ * Shown and printed without a scheme (E-008); carried with one in links and in the
+ * clipboard, where it decides whether a phone camera offers to open the address at all.
+ * Handing both out of one call is what keeps the card, the cheque and the navigation bar
+ * from ever saying different things about the same person.
+ *
+ * @param {string} alias
+ * @returns {{host: string, display: string, link: string}}
+ */
+export const gradidoAddress = (alias) => {
+  const host = communityHost(CONFIG.COMMUNITY_URL)
+  return {
+    host,
+    // Unencoded on purpose -- this one is read by a human and never navigated to.
+    display: `${host}/${USER_NAMESPACE}/${alias}`,
+    // The alias is encoded although no valid one needs it: VALID_ALIAS_REGEX allows letters,
+    // digits, hyphen and underscore only, and the fallback is a UUID. It is here because this
+    // link is printed. An unencoded '?' or '#' would silently become a query or a fragment, and
+    // a wrong link on paper cannot be corrected -- so the guarantee is worth one call that
+    // does nothing today, especially while the rules around user names are still moving.
+    link: new URL(`/${USER_NAMESPACE}/${encodeURIComponent(alias)}`, CONFIG.COMMUNITY_URL).href,
   }
 }
 

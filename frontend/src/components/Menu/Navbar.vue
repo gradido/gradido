@@ -33,32 +33,33 @@
                   :size="61"
                 />
               </div>
-              <router-link v-if="!hasUsername" to="/settings" class="text-end">
-                <div class="mt-3" data-test="navbar-item-username">{{ username.username }}</div>
-                <div class="small mt-1" data-test="navbar-item-gradido-id">{{ gradidoId }}</div>
-              </router-link>
-            </div>
-            <div class="d-flex flex-column align-items-end text-end">
               <router-link
-                v-if="hasUsername"
                 to="/settings"
                 class="navbar-like-link mt-3"
                 data-test="navbar-item-username"
               >
                 {{ username.username }}
               </router-link>
+              <!-- One line for everybody. There used to be two blocks, and the one for
+                   members without a user name showed the address inside the settings link,
+                   with no way to copy it. That distinction is on its way out anyway -- the
+                   user name is becoming compulsory -- and until then the Gradido ID stands
+                   in, which resolves just as well. -->
               <div
-                v-if="hasUsername"
                 class="small navbar-like-link pointer mt-1"
-                data-test="navbar-item-gradido-id"
+                data-test="navbar-item-gradido-address"
               >
+                <!-- copy-clipboard-button carries no CSS rule of its own, yet it is load
+                     bearing: bootstrap resets anchors without a target only while they have
+                     no class at all (a:not([href]):not([class])). The class is what keeps
+                     the link colour and the underline on hover. Do not remove it as dead. -->
                 <a
                   class="copy-clipboard-button"
                   :title="$t('copy-to-clipboard')"
-                  @click="copyToClipboard(gradidoId)"
+                  @click="copyToClipboard(address.link)"
                 >
+                  {{ address.display }}
                   <IBiCopy></IBiCopy>
-                  {{ gradidoId }}
                 </a>
               </div>
             </div>
@@ -75,8 +76,8 @@
 </template>
 
 <script>
-import CONFIG from '@/config'
 import { useAppToast } from '@/composables/useToast'
+import { gradidoAddress, memberAlias } from '@/utils/gradidoAddress'
 
 export default {
   name: 'Navbar',
@@ -102,16 +103,11 @@ export default {
         initials: `${this.$store.state.firstName[0]}${this.$store.state.lastName[0]}`,
       }
     },
-    hasUsername() {
-      return this.$store.state.username && this.$store.state.username.length > 0
-    },
-    gradidoId() {
-      // gradidoID, not gradidoId -- the store spells it with a capital D. The other
-      // spelling showed "Community/undefined" to every member without a user name.
-      const name = this.$store.state.username
-        ? this.$store.state.username
-        : this.$store.state.gradidoID
-      return `${CONFIG.COMMUNITY_NAME}/${name}`
+    address() {
+      // gradidoID, not gradidoId -- the store spells it with a capital D, and the other
+      // spelling once put the word "undefined" in front of every member without a user
+      // name. It is worth naming at each call site; nothing catches it.
+      return gradidoAddress(memberAlias(this.$store.state.username, this.$store.state.gradidoID))
     },
   },
   methods: {

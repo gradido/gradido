@@ -7,6 +7,14 @@ import { BImg, BNavbar, BNavbarBrand, BNavbarNav } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
 import { createI18n } from 'vue-i18n'
 import CONFIG from '@/config'
+import { communityHost } from '@/utils/gradidoAddress'
+
+// The real toast needs a mounted container. Without this the copy test still passed --
+// the clipboard is written before the message is shown -- while an error flew past it.
+const mockToastSuccess = vi.fn()
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: () => ({ toastSuccess: mockToastSuccess }),
+}))
 
 // Mock vue-avatar
 vi.mock('vue-avatar', () => ({
@@ -107,14 +115,41 @@ describe('Navbar', () => {
   })
 
   describe('user info', () => {
+    const addressLine = () => wrapper.find('div[data-test="navbar-item-gradido-address"]')
+
     it('has the full name', () => {
       expect(wrapper.find('[data-test="navbar-item-username"]').text()).toBe('Testy User')
     })
 
-    it('has the email address', () => {
-      expect(wrapper.find('div[data-test="navbar-item-gradido-id"]').text()).toBe(
-        `${CONFIG.COMMUNITY_NAME}/username`,
-      )
+    it('shows the Gradido address, without a scheme', () => {
+      expect(addressLine().text()).toBe(`${communityHost(CONFIG.COMMUNITY_URL)}/u/username`)
+    })
+
+    // The line exists for everybody. It used to sit inside the settings link for members
+    // without a user name, with no way to copy it -- and the Gradido ID resolves just as
+    // well, so there was never a reason to treat them differently.
+    it('shows it for a member who has no user name yet', () => {
+      wrapper = mountComponent({ username: '' })
+      expect(addressLine().text()).toBe(`${communityHost(CONFIG.COMMUNITY_URL)}/u/current-user-id`)
+    })
+
+    // Shown without a scheme, copied with one (P-019): what lands in the clipboard has to
+    // work when it is pasted into a browser, not only when it is read.
+    it('copies the address WITH the scheme', async () => {
+      const writeText = vi.fn()
+      vi.stubGlobal('navigator', { clipboard: { writeText } })
+
+      await addressLine().find('a').trigger('click')
+
+      expect(writeText).toHaveBeenCalledWith(`${CONFIG.COMMUNITY_URL}/u/username`)
+      expect(mockToastSuccess).toHaveBeenCalledWith('gradidoid-copied-to-clipboard')
+      vi.unstubAllGlobals()
+    })
+
+    // Bernd's decision on the mockup: the icon sits behind the address, not in front of it.
+    it('puts the copy icon behind the address', () => {
+      const html = addressLine().html()
+      expect(html.indexOf('username')).toBeLessThan(html.indexOf('ibicopy'))
     })
   })
 })
