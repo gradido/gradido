@@ -618,7 +618,7 @@
   },
   "public-profile": {
     "address": "Διεύθυνση Gradido",
-    "send": "Αποστολή Gradido",
+    "send": "Αποστολή Gradido:",
     "send-hint": "Αντίγραψε τη διεύθυνση και επικόλλησέ την στον λογαριασμό σου Gradido."
   },
   "qrCode": "Κωδικός QR",

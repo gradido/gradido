@@ -619,7 +619,7 @@
   },
   "public-profile": {
     "address": "Gradido address",
-    "send": "Send Gradido",
+    "send": "Send Gradido:",
     "send-hint": "Copy the address and paste it into your Gradido account."
   },
   "qrCode": "QR Code",

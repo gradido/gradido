@@ -618,7 +618,7 @@
   },
   "public-profile": {
     "address": "Адрес Gradido",
-    "send": "Отправить Gradido",
+    "send": "Отправить Gradido:",
     "send-hint": "Скопируйте адрес и вставьте его в свой аккаунт Gradido."
   },
   "qrCode": "QR код",

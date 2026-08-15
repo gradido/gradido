@@ -7,12 +7,14 @@
       <gradido-address-copy :alias="alias" />
     </div>
 
-    <!-- The separator is a line and not a character, which is what the house does everywhere
-         (.separator-start): nothing lands in the text, so a screen reader passes over it
-         instead of announcing a punctuation mark between the label and the sentence. -->
+    <!-- A heading with its sentence underneath, not two things side by side. The first
+         attempt put them on one line with the house separator, and on screen that read as a
+         divider between equals rather than as a label for what follows. The colon lives in
+         the translation, because it is not the same mark everywhere -- French sets a space
+         before it, and that cannot be done from here. -->
     <div class="text-small mb-4">
-      <b>{{ $t('public-profile.send') }}</b>
-      <span class="separator-start ms-2 ps-2">{{ $t('public-profile.send-hint') }}</span>
+      <div class="fw-bold">{{ $t('public-profile.send') }}</div>
+      <div>{{ $t('public-profile.send-hint') }}</div>
     </div>
 
     <div class="text-small">
