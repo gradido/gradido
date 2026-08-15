@@ -219,7 +219,7 @@
     "from": "Von",
     "generate_now": "Jetzt generieren",
     "hours": "Stunden",
-    "identifier": "E-Mail, Nutzername oder Gradido ID",
+    "identifier": "E-Mail, Nutzername oder Gradido-Adresse",
     "lastname": "Nachname",
     "link_amount": "Link-Betrag",
     "link_decay_description": "Der Link-Betrag wird zusammen mit der maximalen Vergänglichkeit blockiert. Nach Einlösen, Verfallen oder Löschen des Links wird der Rest wieder freigegeben.",
@@ -291,8 +291,9 @@
       },
       "identifier": {
         "communityIsReachable": "Community nicht gefunden oder nicht erreichbar!",
+        "formatError": "Diese Empfänger-Angabe kann ich nicht lesen. Möglich sind: Nutzername, E-Mail, Gemeinschaft/Nutzername oder eine Gradido-Adresse wie gemeinschaft.net/u/Nutzername.",
         "required": "Der Empfänger ist ein Pflichtfeld.",
-        "typeError": "Der Empfänger muss eine E-Mail, ein Nutzernamen oder eine Gradido ID sein."
+        "typeError": "Der Empfänger muss eine E-Mail, ein Nutzername oder eine Gradido-Adresse sein."
       },
       "is-not": "Du kannst dir selbst keine Gradidos überweisen!",
       "memo": {

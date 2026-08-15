@@ -6,6 +6,7 @@ import { useStore } from 'vuex'
 import CONFIG from '@/config'
 import { useAppToast } from '@/composables/useToast'
 import { avatarFull } from '@/graphql/queries'
+import { communityHost } from '@/utils/gradidoAddress'
 import { cardFileName, drawGradidoCard } from '@/utils/gradidoCard'
 import { renderQrCodeCanvas } from '@/utils/qrCode'
 
@@ -20,24 +21,6 @@ import { renderQrCodeCanvas } from '@/utils/qrCode'
  * The QR is rendered off screen, with the same generator the modal uses, so what gets
  * printed is the code the screen would show.
  */
-
-/**
- * The community host, without scheme or path -- that is what gets printed (E-008). The
- * scheme goes back on for the QR, where it decides whether a phone camera offers to open
- * the link at all.
- *
- * @param {string} url
- * @returns {string}
- */
-export const communityHost = (url) => {
-  try {
-    return new URL(url).host
-  } catch {
-    return String(url ?? '')
-      .replace(/^[a-z]+:\/\//i, '')
-      .replace(/\/.*$/, '')
-  }
-}
 
 /**
  * The address in both shapes at once, so they can never disagree on one card.

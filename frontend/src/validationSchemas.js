@@ -1,5 +1,6 @@
 import { string } from 'yup'
 import { validate as validateUuid, version as versionUuid } from 'uuid'
+import { splitRecipient } from '@/utils/gradidoAddress'
 
 // Email and username regex patterns remain the same
 const EMAIL_REGEX =
@@ -46,16 +47,16 @@ export const subject = string()
 export const identifier = string()
   .required('form.validation.identifier.required')
   .test(
-    'valid-parts',
-    'form.validation.identifier.partsError',
-    (value) => (value.match(/\//g) || []).length <= 1, // allow only one or zero slash
+    'valid-shape',
+    'form.validation.identifier.formatError',
+    (value) => splitRecipient(value) !== null,
   )
   .test('valid-identifier', 'form.validation.identifier.typeError', (value) => {
-    let userPart = value
-    const parts = value.split('/')
-    if (parts.length === 2) {
-      userPart = parts[1]
-    }
+    const parts = splitRecipient(value)
+    // An unreadable shape is already reported by valid-shape; saying it twice would put
+    // whichever message yup picks first under the field, and that is the less helpful one.
+    if (!parts) return true
+    const userPart = parts.user
 
     const isEmail = !!EMAIL_REGEX.test(userPart)
     const isUsername = !!userPart.match(USERNAME_REGEX)

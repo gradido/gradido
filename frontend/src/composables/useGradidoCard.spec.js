@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cardAddress, communityHost, useGradidoCard } from './useGradidoCard'
+import { cardAddress, useGradidoCard } from './useGradidoCard'
 
 const mockDrawGradidoCard = vi.fn().mockResolvedValue('data:image/png;base64,card')
 vi.mock('@/utils/gradidoCard', () => ({
@@ -43,17 +43,8 @@ vi.mock('@/config', () => ({
   default: { COMMUNITY_NAME: 'KI Playground', COMMUNITY_URL: 'https://ki-playground.gradido.net' },
 }))
 
-describe('communityHost', () => {
-  it('prints the bare host, without scheme, port path or trailing slash', () => {
-    expect(communityHost('https://ki-playground.gradido.net/')).toBe('ki-playground.gradido.net')
-    expect(communityHost('http://localhost:3000/wallet')).toBe('localhost:3000')
-  })
-
-  it('survives a value that is not a URL at all', () => {
-    expect(communityHost('ki-playground.gradido.net')).toBe('ki-playground.gradido.net')
-    expect(communityHost('')).toBe('')
-  })
-})
+// communityHost moved to utils/gradidoAddress, where the send form reads it too; its
+// tests moved with it.
 
 describe('cardAddress', () => {
   // Printed without a scheme (E-008), carried in the QR with one -- without it many phone
