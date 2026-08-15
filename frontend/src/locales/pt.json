@@ -367,6 +367,12 @@
     "raise": "Aumento",
     "recruited-member": "Membro convidado"
   },
+  "gradido-card": {
+    "description": "Para imprimir e distribuir: o teu nome, a tua comunidade, o teu nome de utilizador e o teu código QR num cartão do tamanho de um cartão bancário. Quem o receber pode oferecer-te Gradido.",
+    "download": "Descarregar cartão",
+    "print-hint": "O cartão mede 85,6 × 54 mm, o tamanho de um cartão bancário. Para imprimir, insere-o num documento, imprime em tamanho original e recorta-o.",
+    "title": "O teu cartão Gradido"
+  },
   "gradidoid-copied-to-clipboard": "O ID Gradido foi copiado para a área de transferência.",
   "h": "h",
   "info": "Informação",

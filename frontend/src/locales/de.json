@@ -367,6 +367,12 @@
     "raise": "Erhöhung",
     "recruited-member": "Eingeladenes Mitglied"
   },
+  "gradido-card": {
+    "description": "Zum Ausdrucken und Weitergeben: Dein Name, Deine Gemeinschaft, Dein Benutzername und Dein QR-Code auf einer Karte in Scheckkartengröße. Wer sie bekommt, kann Dir Gradido schenken.",
+    "download": "Karte herunterladen",
+    "print-hint": "Die Karte misst 85,6 × 54 mm, die Größe einer Bankkarte. Zum Drucken in ein Dokument einfügen, in Originalgröße drucken und ausschneiden.",
+    "title": "Deine Gradido-Karte"
+  },
   "gradidoid-copied-to-clipboard": "Gradido ID wurde in die Zwischenablage kopiert.",
   "h": "h",
   "info": "Information",

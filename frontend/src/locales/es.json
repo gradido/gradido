@@ -367,6 +367,12 @@
     "raise": "Aumento",
     "recruited-member": "Miembro invitado"
   },
+  "gradido-card": {
+    "description": "Para imprimir y repartir: tu nombre, tu comunidad, tu nombre de usuario y tu código QR en una tarjeta del tamaño de una tarjeta bancaria. Quien la reciba podrá regalarte Gradido.",
+    "download": "Descargar tarjeta",
+    "print-hint": "La tarjeta mide 85,6 × 54 mm, el tamaño de una tarjeta bancaria. Para imprimirla, insértala en un documento, imprime a tamaño original y recórtala.",
+    "title": "Tu tarjeta Gradido"
+  },
   "gradidoid-copied-to-clipboard": "Gradido ID copiado al portapapeles.",
   "h": "h",
   "info": "Información",

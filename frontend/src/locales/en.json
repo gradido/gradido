@@ -367,6 +367,12 @@
     "raise": "Increase",
     "recruited-member": "Invited member"
   },
+  "gradido-card": {
+    "description": "To print and hand out: your name, your community, your username and your QR code on a card the size of a bank card. Whoever receives it can give you Gradido.",
+    "download": "Download card",
+    "print-hint": "The card measures 85.6 × 54 mm, the size of a bank card. To print it, place it in a document, print at original size and cut it out.",
+    "title": "Your Gradido card"
+  },
   "gradidoid-copied-to-clipboard": "Gradido ID copied to clipboard.",
   "h": "h",
   "info": "Information",
