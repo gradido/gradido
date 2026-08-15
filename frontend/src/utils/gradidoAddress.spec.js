@@ -1,7 +1,66 @@
 // AI-GENERATED — not an architecture reference
 
-import { describe, expect, it } from 'vitest'
-import { communityHost, sameHost, splitRecipient } from './gradidoAddress'
+import { describe, expect, it, vi } from 'vitest'
+import {
+  communityHost,
+  gradidoAddress,
+  memberAlias,
+  sameHost,
+  splitRecipient,
+} from './gradidoAddress'
+
+vi.mock('@/config', () => ({
+  default: { COMMUNITY_URL: 'https://ki-playground.gradido.net' },
+}))
+
+describe('memberAlias', () => {
+  it('takes the user name when there is one', () => {
+    expect(memberAlias('bernd', 'uuid-1')).toBe('bernd')
+  })
+
+  // Accounts from before the user name became compulsory. `…/u/<uuid>` resolves, so this
+  // is a working address and not a placeholder.
+  it('falls back to the Gradido ID', () => {
+    expect(memberAlias('', 'uuid-1')).toBe('uuid-1')
+    expect(memberAlias(undefined, 'uuid-1')).toBe('uuid-1')
+    expect(memberAlias(null, 'uuid-1')).toBe('uuid-1')
+  })
+})
+
+describe('gradidoAddress', () => {
+  // Shown and printed without a scheme (E-008), carried with one -- without it many phone
+  // cameras do not offer to open the address at all, and the clipboard has to hand over
+  // something that works when pasted into a browser (P-019).
+  it('hands out the shown shape and the linked shape together', () => {
+    expect(gradidoAddress('bernd')).toEqual({
+      host: 'ki-playground.gradido.net',
+      display: 'ki-playground.gradido.net/u/bernd',
+      link: 'https://ki-playground.gradido.net/u/bernd',
+    })
+  })
+
+  it('encodes the link but leaves the shown line readable', () => {
+    const address = gradidoAddress('a?b')
+    expect(address.link).toBe('https://ki-playground.gradido.net/u/a%3Fb')
+    expect(address.display).toBe('ki-playground.gradido.net/u/a?b')
+  })
+
+  // What it builds must be what the send form accepts -- the two halves of this module
+  // are only worth anything together.
+  it('builds a shown line the recipient field can read back', () => {
+    expect(splitRecipient(gradidoAddress('bernd').display)).toEqual({
+      community: 'ki-playground.gradido.net',
+      user: 'bernd',
+    })
+  })
+
+  it('builds a link the recipient field can read back', () => {
+    expect(splitRecipient(gradidoAddress('bernd').link)).toEqual({
+      community: 'ki-playground.gradido.net',
+      user: 'bernd',
+    })
+  })
+})
 
 describe('communityHost', () => {
   it('prints the bare host, without scheme, port path or trailing slash', () => {

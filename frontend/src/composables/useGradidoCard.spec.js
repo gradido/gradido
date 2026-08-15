@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cardAddress, useGradidoCard } from './useGradidoCard'
+import { useGradidoCard } from './useGradidoCard'
 
 const mockDrawGradidoCard = vi.fn().mockResolvedValue('data:image/png;base64,card')
 vi.mock('@/utils/gradidoCard', () => ({
@@ -43,28 +43,9 @@ vi.mock('@/config', () => ({
   default: { COMMUNITY_NAME: 'KI Playground', COMMUNITY_URL: 'https://ki-playground.gradido.net' },
 }))
 
-// communityHost moved to utils/gradidoAddress, where the send form reads it too; its
-// tests moved with it.
-
-describe('cardAddress', () => {
-  // Printed without a scheme (E-008), carried in the QR with one -- without it many phone
-  // cameras do not offer to open a link at all, and that is what frees the card from
-  // waiting for a scanner of our own.
-  it('prints without a scheme and links with one', () => {
-    expect(cardAddress('bernd')).toEqual({
-      host: 'ki-playground.gradido.net',
-      link: 'https://ki-playground.gradido.net/u/bernd',
-    })
-  })
-
-  // No valid alias can contain these -- VALID_ALIAS_REGEX allows letters, digits, hyphen and
-  // underscore only. The guarantee is pinned anyway, because a wrong link on printed paper
-  // cannot be corrected: unencoded, a '?' would turn the rest of the address into a query.
-  it('keeps the alias inside the path, whatever it contains', () => {
-    expect(cardAddress('a?b#c').link).toBe('https://ki-playground.gradido.net/u/a%3Fb%23c')
-    expect(cardAddress('a/b').link).toBe('https://ki-playground.gradido.net/u/a%2Fb')
-  })
-})
+// communityHost and the address builder moved to utils/gradidoAddress, where the cheque,
+// the navigation bar and the send form reach them too; their tests moved with them. What
+// stays here is that the card asks for the right one.
 
 describe('useGradidoCard', () => {
   let anchor

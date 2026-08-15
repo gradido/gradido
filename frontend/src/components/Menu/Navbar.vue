@@ -33,33 +33,36 @@
                   :size="61"
                 />
               </div>
-              <router-link v-if="!hasUsername" to="/settings" class="text-end">
-                <div class="mt-3" data-test="navbar-item-username">{{ username.username }}</div>
-                <div class="small mt-1" data-test="navbar-item-gradido-id">{{ gradidoId }}</div>
-              </router-link>
-            </div>
-            <div class="d-flex flex-column align-items-end text-end">
               <router-link
-                v-if="hasUsername"
                 to="/settings"
                 class="navbar-like-link mt-3"
                 data-test="navbar-item-username"
               >
                 {{ username.username }}
               </router-link>
+              <!-- One line for everybody. There used to be two blocks, and the one for
+                   members without a user name showed the address inside the settings link,
+                   with no way to copy it. That distinction is on its way out anyway -- the
+                   user name is becoming compulsory -- and until then the Gradido ID stands
+                   in, which resolves just as well. -->
               <div
-                v-if="hasUsername"
                 class="small navbar-like-link pointer mt-1"
-                data-test="navbar-item-gradido-id"
+                data-test="navbar-item-gradido-address"
               >
-                <a
+                <!-- A button, not an anchor: an anchor without a target is in no tab order,
+                     so the address was unreachable for anybody working without a mouse. It
+                     used to look like a link only by accident -- bootstrap resets anchors
+                     without a target just while they carry no class at all -- so the link
+                     appearance is written out below instead of being inherited by luck. -->
+                <button
+                  type="button"
                   class="copy-clipboard-button"
                   :title="$t('copy-to-clipboard')"
-                  @click="copyToClipboard(gradidoId)"
+                  @click="copyToClipboard(address.link)"
                 >
+                  {{ address.display }}
                   <IBiCopy></IBiCopy>
-                  {{ gradidoId }}
-                </a>
+                </button>
               </div>
             </div>
           </div>
@@ -75,8 +78,8 @@
 </template>
 
 <script>
-import CONFIG from '@/config'
 import { useAppToast } from '@/composables/useToast'
+import { gradidoAddress, memberAlias } from '@/utils/gradidoAddress'
 
 export default {
   name: 'Navbar',
@@ -102,16 +105,11 @@ export default {
         initials: `${this.$store.state.firstName[0]}${this.$store.state.lastName[0]}`,
       }
     },
-    hasUsername() {
-      return this.$store.state.username && this.$store.state.username.length > 0
-    },
-    gradidoId() {
-      // gradidoID, not gradidoId -- the store spells it with a capital D. The other
-      // spelling showed "Community/undefined" to every member without a user name.
-      const name = this.$store.state.username
-        ? this.$store.state.username
-        : this.$store.state.gradidoID
-      return `${CONFIG.COMMUNITY_NAME}/${name}`
+    address() {
+      // gradidoID, not gradidoId -- the store spells it with a capital D, and the other
+      // spelling once put the word "undefined" in front of every member without a user
+      // name. It is worth naming at each call site; nothing catches it.
+      return gradidoAddress(memberAlias(this.$store.state.username, this.$store.state.gradidoID))
     },
   },
   methods: {
@@ -139,6 +137,22 @@ export default {
 
 .navbar-like-link {
   color: rgba(var(--bs-link-color-rgb));
+}
+
+/* The copy control is a button so that it can be reached with the keyboard, and a button
+   brings none of the link appearance with it. Colour comes from .navbar-like-link on the
+   line around it; the underline on hover is what the house does for every link
+   ($link-hover-decoration), said here because a button is not covered by that rule. */
+.copy-clipboard-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+}
+
+.copy-clipboard-button:hover {
+  text-decoration: underline;
 }
 
 button.navbar-toggler > span.navbar-toggler-icon {
