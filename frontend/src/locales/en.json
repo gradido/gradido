@@ -377,6 +377,7 @@
     "title": "Your Gradido card"
   },
   "gradidoid-copied-to-clipboard": "Gradido address copied to clipboard.",
+  "gradidoid-not-copied": "Your device does not allow copying. Please select the address and copy it by hand.",
   "h": "h",
   "info": "Information",
   "language": "Language",
@@ -613,6 +614,11 @@
     "settings": "Settings",
     "transactions": "Your transactions",
     "usersearch": "Geographic member search (beta)"
+  },
+  "public-profile": {
+    "address": "Gradido address",
+    "send": "Send Gradido",
+    "send-hint": "Copy the address and paste it into your Gradido account."
   },
   "qrCode": "QR Code",
   "send_email": "Send email",

@@ -81,8 +81,8 @@ describe('router', () => {
       expect(defaultRoute.redirect()).toEqual({ path: '/login' })
     })
 
-    it('has 23 routes defined', () => {
-      expect(routes).toHaveLength(23)
+    it('has 24 routes defined', () => {
+      expect(routes).toHaveLength(24)
     })
 
     const testRoute = (path, expectedName, requiresAuth = true) => {
@@ -94,6 +94,14 @@ describe('router', () => {
         if (requiresAuth) {
           it('requires authorization', () => {
             expect(route.meta.requiresAuth).toBe(true)
+          })
+        } else {
+          // Passing `false` used to assert nothing at all, so a route that quietly became
+          // guarded would still have passed here. On the public ones that flag is not a
+          // detail: it decides whether somebody without an account gets through, and on
+          // /u/:alias it also decides the layout -- App.vue picks it from this one field.
+          it('does not require authorization', () => {
+            expect(route.meta?.requiresAuth).not.toBe(true)
           })
         }
 
@@ -126,6 +134,22 @@ describe('router', () => {
     testRoute('/reset-password/:optin', 'ResetPassword', false)
     testRoute('/checkEmail/:optin/:code?', 'ResetPassword', false)
     testRoute('/redeem/:code', 'TransactionLink', false)
+    // Declared ahead of the catch-all, which used to swallow it: every printed QR code on a
+    // Gradido card landed on "page not found". Public on purpose -- a phone camera opens the
+    // default browser, so most visitors arrive logged out.
+    testRoute('/u/:alias', 'PublicProfile', false)
+
+    // The order is the whole point, and `routes.find` cannot see it. This is the regression
+    // that made every printed QR code land on "page not found": the address route did not
+    // exist, so /u/... fell into the catch-all. A route declared after it would do the same,
+    // and nothing else in this file would notice.
+    it('declares the public profile ahead of the catch-all', () => {
+      const profile = routes.findIndex((r) => r.path === '/u/:alias')
+      const catchAll = routes.findIndex((r) => r.name === 'NotFound')
+
+      expect(profile).toBeGreaterThanOrEqual(0)
+      expect(profile).toBeLessThan(catchAll)
+    })
     // Declared ahead of /matching/:tab, so this must not fall through to Matching.
     testRoute('/matching/karte', 'MatchingMap')
 

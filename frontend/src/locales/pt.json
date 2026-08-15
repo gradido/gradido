@@ -376,6 +376,7 @@
     "title": "O teu cartão Gradido"
   },
   "gradidoid-copied-to-clipboard": "O ID Gradido foi copiado para a área de transferência.",
+  "gradidoid-not-copied": "O teu dispositivo não permite copiar. Seleciona o endereço e copia-o à mão.",
   "h": "h",
   "info": "Informação",
   "language": "Idioma",
@@ -612,6 +613,11 @@
     "settings": "Definições",
     "transactions": "As tuas transações",
     "usersearch": "Pesquisa geográfica de membros (beta)"
+  },
+  "public-profile": {
+    "address": "Endereço Gradido",
+    "send": "Enviar Gradido",
+    "send-hint": "Copia o endereço e cola-o na tua conta Gradido."
   },
   "qrCode": "Código QR",
   "send_email": "Enviar e‑mail",

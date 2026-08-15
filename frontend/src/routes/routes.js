@@ -203,6 +203,16 @@ const routes = [
     path: '/redeem/:code',
     component: () => import('@/pages/TransactionLink'),
   },
+  // The Gradido address, `community-host/u/alias`. Public on purpose: it is what a printed
+  // card, an e-mail signature or a QR code points at, and most people who arrive here are not
+  // logged in -- a phone camera opens the default browser, not the one the wallet was signed
+  // into. It has to stay above the catch-all, which is what used to swallow it: every printed
+  // QR code landed on "page not found".
+  {
+    name: 'PublicProfile',
+    path: '/u/:alias',
+    component: () => import('@/pages/PublicProfile'),
+  },
   {
     path: '/:catchAll(.*)',
     name: 'NotFound',

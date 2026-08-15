@@ -376,6 +376,7 @@
     "title": "Jouw Gradido-kaart"
   },
   "gradidoid-copied-to-clipboard": "Gradido ID gekopieerd naar klembord.",
+  "gradidoid-not-copied": "Je apparaat staat kopiëren niet toe. Selecteer het adres en kopieer het met de hand.",
   "h": "h",
   "info": "Informatie",
   "language": "Taal",
@@ -612,6 +613,11 @@
     "settings": "Settings",
     "transactions": "Your transactions",
     "usersearch": "Geografisch leden zoeken (bèta)"
+  },
+  "public-profile": {
+    "address": "Gradido-adres",
+    "send": "Gradido versturen",
+    "send-hint": "Kopieer het adres en plak het in je Gradido-account."
   },
   "qrCode": "QR Code",
   "send_email": "E‑mail versturen",

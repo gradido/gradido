@@ -377,6 +377,7 @@
     "title": "Deine Gradido-Karte"
   },
   "gradidoid-copied-to-clipboard": "Gradido-Adresse wurde in die Zwischenablage kopiert.",
+  "gradidoid-not-copied": "Dein Gerät lässt das Kopieren leider nicht zu. Bitte markiere die Adresse und kopiere sie von Hand.",
   "h": "h",
   "info": "Information",
   "language": "Sprache",
@@ -613,6 +614,11 @@
     "settings": "Einstellungen",
     "transactions": "Deine Transaktionen",
     "usersearch": "Geografische Mitgliedssuche (beta)"
+  },
+  "public-profile": {
+    "address": "Gradido-Adresse",
+    "send": "Gradido senden",
+    "send-hint": "Kopiere die Adresse und füge sie in Deinem Gradido-Konto ein."
   },
   "qrCode": "QR Code",
   "send_email": "E‑Mail senden",

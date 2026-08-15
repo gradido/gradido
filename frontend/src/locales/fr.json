@@ -376,6 +376,7 @@
     "title": "Ta carte Gradido"
   },
   "gradidoid-copied-to-clipboard": "Gradido ID copié dans le presse-papier.",
+  "gradidoid-not-copied": "Ton appareil n'autorise pas la copie. Sélectionne l'adresse et copie-la à la main.",
   "h": "h",
   "info": "Information",
   "language": "Langage",
@@ -612,6 +613,11 @@
     "settings": "Configuration",
     "transactions": "Tes transactions",
     "usersearch": "Recherche géographique de membres (bèta)"
+  },
+  "public-profile": {
+    "address": "Adresse Gradido",
+    "send": "Envoyer des Gradido",
+    "send-hint": "Copie l'adresse et colle-la dans ton compte Gradido."
   },
   "qrCode": "QR Code",
   "send_email": "Envoyer un e‑mail",

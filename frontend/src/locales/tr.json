@@ -376,6 +376,7 @@
     "title": "Gradido kartın"
   },
   "gradidoid-copied-to-clipboard": "Gradido ID panoya kopyalandı.",
+  "gradidoid-not-copied": "Cihazın kopyalamaya izin vermiyor. Lütfen adresi seçip elle kopyala.",
   "h": "sa",
   "info": "Bilgi",
   "language": "Dil",
@@ -612,6 +613,11 @@
     "settings": "Ayarlar",
     "transactions": "İşlemlerin",
     "usersearch": "Coğrafi üye arama (beta)"
+  },
+  "public-profile": {
+    "address": "Gradido adresi",
+    "send": "Gradido gönder",
+    "send-hint": "Adresi kopyala ve Gradido hesabına yapıştır."
   },
   "qrCode": "QR Kodu",
   "send_email": "E‑posta gönder",
