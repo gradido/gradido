@@ -10,6 +10,10 @@ export enum RIGHTS {
   QUERY_OPT_IN = 'QUERY_OPT_IN',
   CHECK_USERNAME = 'CHECK_USERNAME',
   PROJECT_BRANDING_BANNER = 'PROJECT_BRANDING_BANNER',
+  // The contact form behind a Gradido address. A right of its own rather than riding along
+  // on SEND_COINS: that one is a member's right and cannot be withdrawn separately, and
+  // this door stands open to the whole internet.
+  SEND_PUBLIC_CONTACT_MESSAGE = 'SEND_PUBLIC_CONTACT_MESSAGE',
   // User
   VERIFY_LOGIN = 'VERIFY_LOGIN',
   BALANCE = 'BALANCE',

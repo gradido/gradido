@@ -9,6 +9,9 @@ import { LogError } from './LogError'
 export interface Context {
   token: string | null
   setHeaders: { key: string; value: string }[]
+  // Only the public contact form uses this, to hold one origin to a sane number of messages.
+  // It is never stored and never logged - see PublicContactRateLimit.
+  clientIp?: string
   role?: Role
   user?: dbUser
   clientTimezoneOffset?: number
@@ -27,6 +30,8 @@ export const context = (args: ExpressContext): Context => {
   const context: Context = {
     token: null,
     setHeaders: [],
+    // `trust proxy` is set in createServer, so this is the visitor's address and not nginx's
+    clientIp: args.req.ip,
   }
   if (authorization) {
     context.token = authorization.replace(/^Bearer /, '')
