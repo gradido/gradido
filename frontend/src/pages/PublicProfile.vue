@@ -1,7 +1,7 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
   <div class="public-profile text-center">
-    <div class="text-small">{{ $t('public-profile.address') }}</div>
+    <div class="small">{{ $t('public-profile.address') }}</div>
 
     <div class="mb-2">
       <gradido-address-copy :alias="alias" />
@@ -19,12 +19,12 @@
          That the layout around it has no <h1> is true and not settled here: it writes the
          community name as `div.h1`, and that belongs to every page in the auth layout, not
          to this one. -->
-    <div class="text-small mb-4">
+    <div class="small mb-4">
       <h2 class="h6 fw-bold mb-0">{{ $t('public-profile.send') }}</h2>
       <div>{{ $t('public-profile.send-hint') }}</div>
     </div>
 
-    <div class="text-small">
+    <div class="small">
       {{ $t('missingGradidoAccount', { communityName: communityName }) }}
     </div>
     <div class="mt-1">

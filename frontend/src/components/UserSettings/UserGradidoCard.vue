@@ -2,7 +2,7 @@
 <template>
   <div class="gradido-card-section">
     <div class="h3">{{ $t('gradido-card.title') }}</div>
-    <div class="text-small mb-3">{{ $t('gradido-card.description') }}</div>
+    <div class="small mb-3">{{ $t('gradido-card.description') }}</div>
 
     <BRow>
       <BCol cols="12" md="6" class="mb-3">
@@ -15,7 +15,7 @@
           <IBiDownload class="me-1" />
           {{ $t('gradido-card.download') }}
         </BButton>
-        <div class="text-small mt-2">{{ $t('gradido-card.download-hint') }}</div>
+        <div class="small mt-2">{{ $t('gradido-card.download-hint') }}</div>
       </BCol>
       <BCol cols="12" md="6" class="mb-3">
         <BButton
@@ -27,7 +27,7 @@
           <IBiPrinter class="me-1" />
           {{ $t('gradido-card.sheet') }}
         </BButton>
-        <div class="text-small mt-2">{{ $t('gradido-card.sheet-hint') }}</div>
+        <div class="small mt-2">{{ $t('gradido-card.sheet-hint') }}</div>
       </BCol>
     </BRow>
 

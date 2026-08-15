@@ -3,7 +3,7 @@
     <BTabs :model-value="tabIndex" content-class="mt-3" @update:modelValue="tabIndex = $event">
       <BTab :title="$t('PersonalDetails')">
         <div class="h2">{{ $t('PersonalDetails') }}</div>
-        <div class="my-4 text-small">
+        <div class="my-4 small">
           {{ $t('settings.info') }}
         </div>
 
@@ -68,7 +68,7 @@
         <BRow class="mb-5">
           <BCol cols="12" md="6" lg="6">
             {{ $t('settings.newsletter.newsletter') }}
-            <div class="text-small">
+            <div class="small">
               {{
                 newsletterState
                   ? $t('settings.newsletter.newsletterTrue')

@@ -2,7 +2,7 @@
   <div class="mb-3 p-3 card-user-search">
     <BContainer class="bg-white app-box-shadow gradido-border-radius p-4 mt--3 container">
       <div class="h3">{{ $t('card-user-search.headline') }}</div>
-      <div v-if="gmsUserLocationExists" class="my-3 text-small">
+      <div v-if="gmsUserLocationExists" class="my-3 small">
         <span
           v-for="(line, lineNumber) of $t('card-user-search.allowed.text').split('\n')"
           :key="lineNumber"
@@ -11,7 +11,7 @@
           <br />
         </span>
       </div>
-      <div v-else class="my-3 text-small">
+      <div v-else class="my-3 small">
         <span
           v-for="(line, lineNumber) of $t('card-user-search.not-allowed.text').split('\n')"
           :key="lineNumber"
