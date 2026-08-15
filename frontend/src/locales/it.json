@@ -371,6 +371,8 @@
     "description": "Da stampare e distribuire: il tuo nome, la tua comunità, il tuo nome utente e il tuo codice QR su una tessera delle dimensioni di una carta bancaria. Chi la riceve può regalarti Gradido.",
     "download": "Scarica la tessera",
     "download-hint": "Una singola immagine in qualità di stampa — per una tipografia o da consegnare.",
+    "needs-username": "La tua tessera porta il tuo indirizzo Gradido, e quell'indirizzo nasce dal tuo nome utente. Scegline uno prima: il campo si trova poco più in alto in questa pagina. Poi potrai stampare la tua tessera e consegnarla.",
+    "needs-username-title": "Prima il nome utente",
     "sheet": "Foglio con 10 tessere",
     "sheet-hint": "Dieci tessere a dimensione originale su una pagina A4. Nella finestra di stampa puoi anche salvarlo come PDF.",
     "title": "La tua tessera Gradido"

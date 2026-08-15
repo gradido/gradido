@@ -3,6 +3,7 @@
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import UserGradidoCard from './UserGradidoCard.vue'
+import AppModal from '@/components/AppModal'
 
 const mockDownloadCard = vi.fn()
 const mockPrintCardSheet = vi.fn()
@@ -12,6 +13,9 @@ vi.mock('@/composables/useGradidoCard', () => ({
     printCardSheet: (...args) => mockPrintCardSheet(...args),
   }),
 }))
+
+const storeState = { username: 'bernd' }
+vi.mock('vuex', () => ({ useStore: () => ({ state: storeState }) }))
 
 const wrapperFor = () =>
   mount(UserGradidoCard, {
@@ -24,6 +28,7 @@ const wrapperFor = () =>
 describe('UserGradidoCard', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    storeState.username = 'bernd'
     mockDownloadCard.mockResolvedValue('data:image/png;base64,card')
     mockPrintCardSheet.mockResolvedValue('data:image/png;base64,card')
   })
@@ -64,6 +69,42 @@ describe('UserGradidoCard', () => {
     expect(wrapper.find('img.gradido-card-preview').attributes('src')).toBe(
       'data:image/png;base64,card',
     )
+  })
+
+  // No card without a user name: without one the address falls back to the Gradido ID and
+  // the printed line reads `.../u/<36 characters>`. A card is given away and cannot be
+  // corrected, so the way to one leads through choosing a name. Both buttons are gated,
+  // because both hand out the same card.
+  describe('without a user name', () => {
+    beforeEach(() => {
+      storeState.username = ''
+    })
+
+    it('does not draw a card from the download button', async () => {
+      const wrapper = wrapperFor()
+
+      await wrapper.find('[data-test="download-gradido-card"]').trigger('click')
+
+      expect(mockDownloadCard).not.toHaveBeenCalled()
+      expect(wrapper.findComponent(AppModal).props('modelValue')).toBe(true)
+    })
+
+    it('does not draw a sheet either', async () => {
+      const wrapper = wrapperFor()
+
+      await wrapper.find('[data-test="print-gradido-sheet"]').trigger('click')
+
+      expect(mockPrintCardSheet).not.toHaveBeenCalled()
+      expect(wrapper.findComponent(AppModal).props('modelValue')).toBe(true)
+    })
+
+    // The message only appears once somebody asks for a card. Opening the settings page
+    // should not greet a member with a warning about something they have not tried to do.
+    it('says nothing until a card is asked for', () => {
+      const wrapper = wrapperFor()
+
+      expect(wrapper.findComponent(AppModal).props('modelValue')).toBe(false)
+    })
   })
 
   it('shows no preview when the card could not be made', async () => {

@@ -17,7 +17,14 @@ const recordingContext = () => {
     textAlign: 'left',
     textBaseline: 'alphabetic',
     imageSmoothingEnabled: true,
-    measureText: (text) => ({ width: String(text).length * 10 }),
+    // The width has to follow the font size, or no test could see the address line shrink to
+    // fit: it would measure the same however small the type got, and the loop that shrinks it
+    // would look like it did nothing. Half the size per character is close enough to the real
+    // thing -- checked against a browser canvas, both land on the same size for the longest
+    // address the system can produce.
+    measureText: (text) => ({
+      width: String(text).length * 0.5 * (Number(/(\d+)px/.exec(ctx.font)?.[1]) || 20),
+    }),
   }
   const record =
     (name) =>
@@ -145,6 +152,73 @@ describe('drawGradidoCard', () => {
     const texts = textsDrawn(ctx)
     expect(texts).toContain('ki-playground.gradido.net')
     expect(texts).toContain('/u/')
+  })
+
+  // The card is 85.6 mm wide with 3.2 mm of padding, so 79.2 mm are available. Nothing about
+  // the address is ours to choose -- the host can be long, and an account from before the
+  // user name became compulsory carries a 36-character Gradido ID where a name would stand.
+  // Drawn at a fixed size it ran off the card, and a cut address is a wrong address.
+  describe('the address line fits the card', () => {
+    // The address is the last thing written on the card, in three pieces. Looking it up by
+    // its text would find the wrong one: the alias is printed twice, once in the labelled
+    // "user name" line above and once down here, and the two are drawn at different sizes.
+    const addressParts = () => ctx.calls.filter((call) => call.name === 'fillText').slice(-3)
+
+    const sizeOfAddress = () => Number(/(\d+)px/.exec(addressParts()[0].font)[1])
+
+    const widthOfAddress = () =>
+      addressParts().reduce(
+        (sum, call) =>
+          sum + String(call.args[0]).length * 0.5 * Number(/(\d+)px/.exec(call.font)[1]),
+        0,
+      )
+
+    const baselineOfAddress = () => addressParts()[0].args[2]
+
+    it('leaves an ordinary address at full size', async () => {
+      await drawGradidoCard(CARD)
+
+      expect(sizeOfAddress()).toBe(34)
+      expect(widthOfAddress()).toBeLessThanOrEqual(935)
+    })
+
+    it('shrinks a Gradido ID until it fits instead of cutting it off', async () => {
+      await drawGradidoCard({ ...CARD, alias: '8f3a1c7e-42b9-4d61-9c07-1e5a2b8d3f40' })
+
+      expect(sizeOfAddress()).toBeLessThan(34)
+      expect(widthOfAddress()).toBeLessThanOrEqual(935)
+    })
+
+    // Aliases are capped at 20 characters (VALID_ALIAS_REGEX), so this is the longest line a
+    // real community can produce -- and it still has to fit.
+    it('fits the longest address the rules allow', async () => {
+      const host = 'gradido-lieblingsstadt-oberhausen-rheinhausen.de'
+      const alias = 'MariaMagdalenaSchmid'
+
+      await drawGradidoCard({ ...CARD, host, alias })
+
+      expect(widthOfAddress()).toBeLessThanOrEqual(935)
+    })
+
+    // The floor keeps an absurd host from shrinking the line to nothing. Below it the address
+    // would be on the card but no longer readable, which helps nobody.
+    it('never shrinks below the readable floor', async () => {
+      const host = `${'x'.repeat(200)}.example.org`
+
+      await drawGradidoCard({ ...CARD, host })
+
+      expect(sizeOfAddress()).toBe(24)
+    })
+
+    it('keeps the row where it is when the line shrinks', async () => {
+      await drawGradidoCard(CARD)
+      const baselineFull = baselineOfAddress()
+
+      ctx.calls.length = 0
+      await drawGradidoCard({ ...CARD, alias: '8f3a1c7e-42b9-4d61-9c07-1e5a2b8d3f40' })
+
+      expect(baselineOfAddress()).toBe(baselineFull)
+    })
   })
 
   it('places the QR that was handed in, rather than building one', async () => {

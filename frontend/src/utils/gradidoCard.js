@@ -68,6 +68,21 @@ const ADDRESS_LINE = Math.round(ADDRESS_SIZE * 1.2)
 const ADDRESS_PADDING = mm(1.2)
 const HAIRLINE = 2
 
+// The address line is the one thing on the card that has to be readable letter by letter,
+// because it is what somebody types into their own wallet. Its length is not ours to choose:
+// the community host can be long, and an account from before the user name became compulsory
+// carries a 36-character Gradido ID where a name would stand. At a fixed size the line simply
+// ran off the card -- `ki-playground.gradido.net/u/<gradido-id>` measures 1064 px where 935
+// are available, so the last third was cut away. A cut address is a *wrong* address, and
+// paper cannot be corrected. So the line shrinks until it fits.
+//
+// The floor is not reached by anything the system can produce. Aliases are capped at 20
+// characters (VALID_ALIAS_REGEX), and measured: a 48-character host with a 20-character alias
+// fits at 2.2 mm, a 34-character host with a 36-character Gradido ID likewise. It exists so
+// that an absurd host makes the line small rather than making it vanish.
+const ADDRESS_MIN_SIZE = mm(2.0)
+const ADDRESS_WIDTH = WIDTH - 2 * PADDING
+
 const FONT = '"Open Sans", Helvetica, Arial, sans-serif'
 
 const COLOR_TEXT = 'rgb(56, 56, 56)'
@@ -149,25 +164,51 @@ const drawLabelledLine = (ctx, { label, value, valueColor, top }) => {
   ctx.fillText(value ?? '', PADDING + VALUE_OFFSET, baseline)
 }
 
+/**
+ * The width the address line takes at a given size. Measured in the three pieces it is drawn
+ * in and at the weights it is drawn with, because measuring the joined string would answer a
+ * question that is not the one being asked -- the pieces are painted by separate calls, so
+ * nothing kerns across their seams.
+ */
+const addressWidthAt = (ctx, size, host, alias) => {
+  ctx.font = `400 ${size}px ${FONT}`
+  const plain = ctx.measureText(host).width + ctx.measureText('/u/').width
+  ctx.font = `700 ${size}px ${FONT}`
+  return plain + ctx.measureText(alias).width
+}
+
+const addressSizeFor = (ctx, host, alias) => {
+  let size = ADDRESS_SIZE
+  while (size > ADDRESS_MIN_SIZE && addressWidthAt(ctx, size, host, alias) > ADDRESS_WIDTH) {
+    size -= 1
+  }
+  return size
+}
+
 const drawAddress = (ctx, { host, alias, top }) => {
   ctx.fillStyle = COLOR_HAIRLINE
   ctx.fillRect(PADDING, top, WIDTH - 2 * PADDING, HAIRLINE)
 
+  const hostText = host ?? ''
+  const aliasText = alias ?? ''
+  const size = addressSizeFor(ctx, hostText, aliasText)
+  // The baseline is computed from the full size on purpose: a line that had to shrink must
+  // fill less of its row, not move it.
   const baseline = baselineOf(top + HAIRLINE + ADDRESS_PADDING, ADDRESS_SIZE)
   let x = PADDING
 
-  ctx.font = `400 ${ADDRESS_SIZE}px ${FONT}`
+  ctx.font = `400 ${size}px ${FONT}`
   ctx.fillStyle = COLOR_HOST
-  ctx.fillText(host ?? '', x, baseline)
-  x += ctx.measureText(host ?? '').width
+  ctx.fillText(hostText, x, baseline)
+  x += ctx.measureText(hostText).width
 
   ctx.fillStyle = COLOR_LABEL
   ctx.fillText('/u/', x, baseline)
   x += ctx.measureText('/u/').width
 
-  ctx.font = `700 ${ADDRESS_SIZE}px ${FONT}`
+  ctx.font = `700 ${size}px ${FONT}`
   ctx.fillStyle = COLOR_TEXT
-  ctx.fillText(alias ?? '', x, baseline)
+  ctx.fillText(aliasText, x, baseline)
 }
 
 /**

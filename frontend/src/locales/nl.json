@@ -371,6 +371,8 @@
     "description": "Om af te drukken en uit te delen: jouw naam, jouw gemeenschap, jouw gebruikersnaam en jouw QR-code op een kaart ter grootte van een bankpas. Wie hem krijgt, kan jou Gradido schenken.",
     "download": "Kaart downloaden",
     "download-hint": "Eén afbeelding in drukkwaliteit — voor een drukkerij of om door te geven.",
+    "needs-username": "Je kaart draagt je Gradido-adres, en dat adres wordt gevormd uit je gebruikersnaam. Kies er eerst een — het veld staat iets hoger op deze pagina. Daarna kun je je kaart afdrukken en weggeven.",
+    "needs-username-title": "Eerst de gebruikersnaam",
     "sheet": "Vel met 10 kaarten",
     "sheet-hint": "Tien kaarten op ware grootte op één A4-pagina. In het afdrukvenster kun je het ook als pdf opslaan.",
     "title": "Jouw Gradido-kaart"

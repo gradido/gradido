@@ -371,6 +371,8 @@
     "description": "Para imprimir e distribuir: o teu nome, a tua comunidade, o teu nome de utilizador e o teu código QR num cartão do tamanho de um cartão bancário. Quem o receber pode oferecer-te Gradido.",
     "download": "Descarregar cartão",
     "download-hint": "Uma única imagem em qualidade de impressão — para uma gráfica ou para entregar.",
+    "needs-username": "O teu cartão leva o teu endereço Gradido, e esse endereço nasce do teu nome de utilizador. Escolhe um primeiro — o campo está um pouco mais acima nesta página. Depois podes imprimir o teu cartão e entregá-lo.",
+    "needs-username-title": "Primeiro o nome de utilizador",
     "sheet": "Folha com 10 cartões",
     "sheet-hint": "Dez cartões em tamanho original numa página A4. Na janela de impressão também podes guardá-la como PDF.",
     "title": "O teu cartão Gradido"

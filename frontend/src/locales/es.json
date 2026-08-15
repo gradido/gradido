@@ -371,6 +371,8 @@
     "description": "Para imprimir y repartir: tu nombre, tu comunidad, tu nombre de usuario y tu código QR en una tarjeta del tamaño de una tarjeta bancaria. Quien la reciba podrá regalarte Gradido.",
     "download": "Descargar tarjeta",
     "download-hint": "Una sola imagen en calidad de impresión — para una imprenta o para compartir.",
+    "needs-username": "Tu tarjeta lleva tu dirección Gradido, y esa dirección se forma con tu nombre de usuario. Elige uno primero: el campo está un poco más arriba en esta página. Después podrás imprimir tu tarjeta y entregarla.",
+    "needs-username-title": "Primero el nombre de usuario",
     "sheet": "Hoja con 10 tarjetas",
     "sheet-hint": "Diez tarjetas a tamaño original en una página A4. En el diálogo de impresión también puedes guardarla como PDF.",
     "title": "Tu tarjeta Gradido"
