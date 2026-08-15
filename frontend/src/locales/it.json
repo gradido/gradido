@@ -376,6 +376,7 @@
     "title": "La tua tessera Gradido"
   },
   "gradidoid-copied-to-clipboard": "L'ID Gradido è stato copiato negli appunti.",
+  "gradidoid-not-copied": "Il tuo dispositivo non consente di copiare. Seleziona l'indirizzo e copialo a mano.",
   "h": "h",
   "info": "Informazione",
   "language": "Lingua",

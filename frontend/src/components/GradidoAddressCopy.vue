@@ -39,9 +39,27 @@ const toast = useAppToast()
 
 const address = computed(() => gradidoAddress(props.alias))
 
-const copy = () => {
-  navigator.clipboard.writeText(address.value.link)
-  toast.toastSuccess(t('gradidoid-copied-to-clipboard'))
+/**
+ * Say "copied" only once it is copied.
+ *
+ * Two ways to fail, and only one of them is a rejected promise: where the page is not served
+ * over TLS, and in a few of the browsers built into other apps, `navigator.clipboard` is not
+ * there at all -- then the call throws on the spot and a `.catch` on the promise never runs.
+ * Both are caught here, because a QR code on paper is opened by whatever browser the phone
+ * happens to launch, and this control is the whole instruction on the public profile page:
+ * copy the address, paste it into your own account. Claiming success without it would leave
+ * the visitor pasting nothing.
+ *
+ * The address stays readable on screen either way, so the message can ask for the one thing
+ * that always works.
+ */
+const copy = async () => {
+  try {
+    await navigator.clipboard.writeText(address.value.link)
+    toast.toastSuccess(t('gradidoid-copied-to-clipboard'))
+  } catch {
+    toast.toastError(t('gradidoid-not-copied'))
+  }
 }
 </script>
 

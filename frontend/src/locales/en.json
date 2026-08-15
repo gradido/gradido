@@ -377,6 +377,7 @@
     "title": "Your Gradido card"
   },
   "gradidoid-copied-to-clipboard": "Gradido address copied to clipboard.",
+  "gradidoid-not-copied": "Your device does not allow copying. Please select the address and copy it by hand.",
   "h": "h",
   "info": "Information",
   "language": "Language",

@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import GradidoAddressCopy from './GradidoAddressCopy.vue'
@@ -10,8 +10,9 @@ vi.mock('@/config', () => ({
 }))
 
 const mockToastSuccess = vi.fn()
+const mockToastError = vi.fn()
 vi.mock('@/composables/useToast', () => ({
-  useAppToast: () => ({ toastSuccess: mockToastSuccess }),
+  useAppToast: () => ({ toastSuccess: mockToastSuccess, toastError: mockToastError }),
 }))
 
 const i18n = createI18n({ legacy: false, locale: 'en', messages: { en: {} } })
@@ -41,6 +42,35 @@ describe('GradidoAddressCopy', () => {
 
     expect(writeText).toHaveBeenCalledWith('https://ki-playground.gradido.net/u/bernd')
     expect(mockToastSuccess).toHaveBeenCalledWith('gradidoid-copied-to-clipboard')
+    expect(mockToastError).not.toHaveBeenCalled()
+  })
+
+  // On the public profile page this control is the whole instruction -- copy the address,
+  // paste it into your own account. Saying "copied" when nothing was copied would leave the
+  // visitor pasting an empty clipboard and never knowing why.
+  it('says nothing was copied when the write is refused', async () => {
+    const writeText = vi.fn().mockRejectedValue(new Error('denied'))
+    vi.stubGlobal('navigator', { clipboard: { writeText } })
+
+    await wrapperFor().find('button').trigger('click')
+    await flushPromises()
+
+    expect(mockToastSuccess).not.toHaveBeenCalled()
+    expect(mockToastError).toHaveBeenCalledWith('gradidoid-not-copied')
+  })
+
+  // The other way to fail, and it is not a rejected promise: without TLS and in some of the
+  // browsers built into other apps there is no clipboard at all, so the call throws on the
+  // spot and a `.catch` on the promise would never run. A QR code on paper is opened by
+  // whatever browser the phone happens to launch.
+  it('survives a browser without a clipboard', async () => {
+    vi.stubGlobal('navigator', {})
+
+    await wrapperFor().find('button').trigger('click')
+    await flushPromises()
+
+    expect(mockToastSuccess).not.toHaveBeenCalled()
+    expect(mockToastError).toHaveBeenCalledWith('gradidoid-not-copied')
   })
 
   // A button, not an anchor: an anchor without a target is in no tab order, so the address

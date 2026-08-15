@@ -376,6 +376,7 @@
     "title": "Ta carte Gradido"
   },
   "gradidoid-copied-to-clipboard": "Gradido ID copié dans le presse-papier.",
+  "gradidoid-not-copied": "Ton appareil n'autorise pas la copie. Sélectionne l'adresse et copie-la à la main.",
   "h": "h",
   "info": "Information",
   "language": "Langage",
