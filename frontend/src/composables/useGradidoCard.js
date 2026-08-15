@@ -65,6 +65,11 @@ const SHEET_STYLE = `
   @page { size: A4; margin: 0 }
   html, body { margin: 0; padding: 0; background: #fff }
   .sheet {
+    /* border-box, or the padding is added on top of the 210 x 297 and the page becomes
+       248.8 x 324 -- wider and taller than the paper, so the right column and the bottom
+       row are cut off. The mockup this layout came from had a global border-box reset;
+       a print frame starts with none. */
+    box-sizing: border-box;
     width: 210mm; height: 297mm; padding: 13.5mm 19.4mm; display: grid;
     grid-template-columns: repeat(2, 85.6mm); grid-template-rows: repeat(5, 54mm);
   }

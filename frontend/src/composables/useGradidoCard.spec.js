@@ -178,7 +178,11 @@ describe('useGradidoCard', () => {
     const doc = frames[0].contentDocument
     expect(doc.querySelectorAll('img')).toHaveLength(10)
     expect([...doc.querySelectorAll('img')].every((i) => i.src.includes('card'))).toBe(true)
-    expect(doc.querySelector('style').textContent).toContain('85.6mm')
+    const style = doc.querySelector('style').textContent
+    expect(style).toContain('85.6mm')
+    // Without border-box the padding is added on top and the sheet becomes 248.8 x 324 mm,
+    // so the right column and the bottom row are cut off on A4.
+    expect(style).toContain('box-sizing: border-box')
     expect(print).toHaveBeenCalled()
 
     // The frame is removed on afterprint, which a stubbed listener never fires -- so the

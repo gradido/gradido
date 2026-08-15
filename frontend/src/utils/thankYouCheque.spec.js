@@ -228,10 +228,16 @@ describe('drawCheque', () => {
     expect(disc.fillStyle).toBe(avatarPaletteEntry('BH').bg)
   })
 
-  it('draws the picture instead of the initials when there is one', async () => {
+  // Asserting "some clip happened" would prove nothing: the watermark is clipped too, with
+  // a rect. What has to hold is that the PICTURE is clipped to a circle -- arc, then clip,
+  // then the drawing, in that order and next to each other.
+  it('draws the picture instead of the initials, clipped to a circle', async () => {
     await drawCheque({ ...CHEQUE, portrait: 'data:image/jpeg;base64,portrait' })
 
     expect(texts()).not.toContain('BH')
-    expect(ctx.calls.some((c) => c.name === 'clip')).toBe(true)
+    const arc = ctx.calls.findIndex((c) => c.name === 'arc')
+    expect(arc).toBeGreaterThan(-1)
+    expect(ctx.calls[arc + 1].name).toBe('clip')
+    expect(ctx.calls[arc + 2].name).toBe('drawImage')
   })
 })
