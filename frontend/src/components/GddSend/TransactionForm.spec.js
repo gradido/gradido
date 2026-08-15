@@ -279,6 +279,105 @@ describe('TransactionForm', () => {
       })
     })
 
+    // What the Gradido card prints is `host/u/alias`; the copy button in the wallet adds
+    // the scheme. Both have to be typeable here, or the printed line is only decoration.
+    describe('a Gradido address in the recipient field', () => {
+      // url is the federation endpoint, because that is what the database stores -- the
+      // whole reason a bare host never used to find its community.
+      const home = {
+        uuid: 'uuid-home',
+        name: 'KI Playground',
+        url: 'https://ki-playground.gradido.net/api/',
+        foreign: false,
+      }
+      const other = {
+        uuid: 'uuid-other',
+        name: 'Gradido Entwicklung',
+        url: 'http://localhost/api/',
+        foreign: true,
+      }
+
+      const fillSend = (identifier) => {
+        wrapper.vm.radioSelected = SEND_TYPES.send
+        wrapper.vm.form.identifier = identifier
+        wrapper.vm.form.amount = '10,00'
+        wrapper.vm.form.memo = 'Danke Dir sehr'
+      }
+
+      beforeEach(async () => {
+        wrapper = createWrapper({ balance: 100.0 })
+        await nextTick()
+        wrapper.vm.setCommunities([home, other])
+      })
+
+      it('finds the community behind the printed host', async () => {
+        fillSend('ki-playground.gradido.net/u/Bernd')
+        await nextTick()
+        expect(wrapper.vm.formIsInvalid).toBe(false)
+      })
+
+      it('finds it with the scheme the copy button adds', async () => {
+        fillSend('https://ki-playground.gradido.net/u/Bernd')
+        await nextTick()
+        expect(wrapper.vm.formIsInvalid).toBe(false)
+      })
+
+      // Visible on screen: the community above the field switches by itself and turns
+      // into plain text. Without it the right address stands in the field and the wrong
+      // community above it.
+      it('pulls the community up into the switch', async () => {
+        fillSend('ki-playground.gradido.net/u/Bernd')
+        await nextTick()
+        expect(wrapper.vm.form.targetCommunity).toEqual(home)
+        expect(wrapper.vm.autoCommunityIdentifier).toBe('uuid-home')
+      })
+
+      it('sends on the bare user name and the community it named', async () => {
+        fillSend('https://ki-playground.gradido.net/u/Bernd')
+        await nextTick()
+        await wrapper.findComponent(BForm).trigger('submit.prevent')
+        expect(wrapper.emitted('set-transaction')[0][0]).toEqual(
+          expect.objectContaining({ identifier: 'Bernd', targetCommunity: home }),
+        )
+      })
+
+      it('refuses a community it cannot reach', async () => {
+        fillSend('irgendwo.example/u/Bernd')
+        await nextTick()
+        expect(wrapper.vm.formIsInvalid).toBe(true)
+      })
+
+      // The namespace has to mean something here too -- a group must not arrive at the
+      // send form as if it were a person.
+      it('refuses a namespace that is not a person', async () => {
+        fillSend('ki-playground.gradido.net/g/Wandergruppe')
+        await nextTick()
+        expect(wrapper.vm.formIsInvalid).toBe(true)
+      })
+
+      it('leaves the shapes that already worked alone', async () => {
+        fillSend('Gradido Entwicklung/Bernd')
+        await nextTick()
+        expect(wrapper.vm.formIsInvalid).toBe(false)
+        expect(wrapper.vm.form.targetCommunity).toEqual(other)
+      })
+
+      // The check used to stand twice, word for word. This is the test that notices if
+      // one copy comes back.
+      it('applies the same check on the e-mail tab', async () => {
+        wrapper.vm.radioSelected = SEND_TYPES.email
+        wrapper.vm.form.subject = 'Ein Gruss'
+        wrapper.vm.form.memo = 'Danke Dir sehr'
+        wrapper.vm.form.identifier = 'ki-playground.gradido.net/u/Bernd'
+        await nextTick()
+        expect(wrapper.vm.formIsInvalid).toBe(false)
+
+        wrapper.vm.form.identifier = 'irgendwo.example/u/Bernd'
+        await nextTick()
+        expect(wrapper.vm.formIsInvalid).toBe(true)
+      })
+    })
+
     describe.skip('create transaction link', () => {
       beforeEach(async () => {
         wrapper.vm.radioSelected = SEND_TYPES.link

@@ -214,6 +214,7 @@ import {
   subject as subjectSchema,
 } from '@/validationSchemas'
 import { object, number } from 'yup'
+import { sameHost, splitRecipient } from '@/utils/gradidoAddress'
 import { user } from '@/graphql/queries'
 import CONFIG from '@/config'
 import { useAppToast } from '@/composables/useToast'
@@ -276,6 +277,37 @@ function setCommunities(returnedCommunities) {
   communities.value = returnedCommunities
 }
 
+/**
+ * The community somebody named in the recipient field, or undefined.
+ *
+ * The url is compared by host, not literally: what is stored is the federation endpoint
+ * (`https://ki-playground.gradido.net/api/`), what is typed is the printed line
+ * (`ki-playground.gradido.net`). Two shapes of the same thing, which is why the url
+ * branch has been in this comparison for a long time without ever matching anything.
+ */
+const findCommunity = (communityIdentifier) =>
+  communities.value.find(
+    (community) =>
+      community.uuid === communityIdentifier ||
+      community.name === communityIdentifier ||
+      sameHost(community.url, communityIdentifier),
+  )
+
+// One check for both send types. It used to stand twice, word for word, and two copies
+// of a rule are two rules as soon as one of them learns something.
+const communityIsReachable = (value) => {
+  const parts = splitRecipient(value)
+  // Nobody named a community, so the switch above decides which one it is.
+  if (!parts?.community) return true
+  return findCommunity(parts.community) !== undefined
+}
+
+const identifierWithCommunity = identifierSchema.test(
+  'community-is-reachable',
+  'form.validation.identifier.communityIsReachable',
+  communityIsReachable,
+)
+
 const validationSchema = computed(() => {
   const amountSchema = number()
     .required()
@@ -299,47 +331,14 @@ const validationSchema = computed(() => {
     return object({
       memo: memoSchema,
       amount: amountSchema,
-      identifier: identifierSchema.test(
-        'community-is-reachable',
-        'form.validation.identifier.communityIsReachable',
-        (value) => {
-          const parts = value.split('/')
-          // early exit if no community id is in identifier string
-          if (parts.length !== 2) {
-            return true
-          }
-          return communities.value.some((community) => {
-            return (
-              community.uuid === parts[0] ||
-              community.name === parts[0] ||
-              community.url === parts[0]
-            )
-          })
-        },
-      ),
+      identifier: identifierWithCommunity,
     })
   } else if (radioSelected.value === SEND_TYPES.email) {
     return object({
       // no amount travels with this one, so it gets the roomier message bounds
       memo: messageSchema,
       subject: subjectSchema,
-      identifier: identifierSchema.test(
-        'community-is-reachable',
-        'form.validation.identifier.communityIsReachable',
-        (value) => {
-          const parts = value.split('/')
-          if (parts.length !== 2) {
-            return true
-          }
-          return communities.value.some((community) => {
-            return (
-              community.uuid === parts[0] ||
-              community.name === parts[0] ||
-              community.url === parts[0]
-            )
-          })
-        },
-      ),
+      identifier: identifierWithCommunity,
     })
   } else {
     // don't need identifier schema if it is a transaction link or identifier was set via url
@@ -391,12 +390,9 @@ watch(
   () => form.identifier,
   (value) => {
     autoCommunityIdentifier.value = ''
-    const parts = value.split('/')
-    if (parts.length === 2) {
-      const com = communities.value.find(
-        (community) =>
-          community.uuid === parts[0] || community.name === parts[0] || community.url === parts[0],
-      )
+    const parts = splitRecipient(value)
+    if (parts?.community) {
+      const com = findCommunity(parts.community)
       if (com) {
         form.targetCommunity = com
         autoCommunityIdentifier.value = com.uuid
@@ -432,12 +428,10 @@ function onSubmit() {
       userName: userName.value,
     })
   } else {
-    const parts = transformedForm.identifier.split('/')
-    if (parts.length === 2) {
-      transformedForm.identifier = parts[1]
-      transformedForm.targetCommunity = communities.value.find((com) => {
-        return com.uuid === parts[0] || com.name === parts[0] || com.url === parts[0]
-      })
+    const parts = splitRecipient(transformedForm.identifier)
+    if (parts?.community) {
+      transformedForm.identifier = parts.user
+      transformedForm.targetCommunity = findCommunity(parts.community)
     }
     /*
     console.log(

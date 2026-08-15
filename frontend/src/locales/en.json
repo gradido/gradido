@@ -219,7 +219,7 @@
     "from": "from",
     "generate_now": "Generate now",
     "hours": "Hours",
-    "identifier": "Email, username or gradido ID",
+    "identifier": "Email, username or Gradido address",
     "lastname": "Lastname",
     "link_amount": "Link amount",
     "link_decay_description": "The link amount is blocked along with the maximum decay. After the link has been redeemed, expired, or deleted, the rest is released again.",
@@ -290,9 +290,10 @@
         "typeError": "The hours should be a number between {min} and {max} with at most two digits after the decimal point."
       },
       "identifier": {
-        "communityIsReachable": "Community not found our not reachable!",
+        "communityIsReachable": "Community not found or not reachable!",
+        "formatError": "This recipient cannot be read. Possible: user name, e-mail, community/username, or a Gradido address such as community.net/u/username.",
         "required": "The recipient is a required field.",
-        "typeError": "The recipient must be an email, a username or a Gradido ID."
+        "typeError": "The recipient must be an email, a username or a Gradido address."
       },
       "is-not": "You cannot send Gradidos to yourself!",
       "memo": {
