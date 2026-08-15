@@ -32,6 +32,24 @@
       <div>{{ $t('public-profile.send-hint') }}</div>
     </div>
 
+    <!-- The third intent of a business card, after "pay me" and "join us": say hello. It is
+         the only way here that works without an account, and the only one that does
+         something rather than pointing somewhere else.
+
+         The greeting takes the alias exactly as it stands in the address -- `/u/bernd` asks
+         "Du kennst bernd?" and is not tidied up into "Bernd". The alias is the display name,
+         and the printed card carries it in that spelling; a page that beautifies it would
+         show a name that does not exist and drift away from the paper. Where an account has
+         no user name at all, the address falls back to the Gradido ID, and a greeting built
+         from that would read as nonsense -- so it is left out and the sentence stands alone. -->
+    <div class="mb-2 mt-5">
+      <h2 class="h5 fw-bold mb-0" data-test="public-profile-contact-title">{{ contactTitle }}</h2>
+      <div class="small">{{ $t('public-profile.contact.lead') }}</div>
+    </div>
+    <div class="text-start mb-4">
+      <public-contact-form :recipient-identifier="alias" />
+    </div>
+
     <div class="small">
       {{ $t('missingGradidoAccount', { communityName: communityName }) }}
     </div>
@@ -73,13 +91,24 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { BLink } from 'bootstrap-vue-next'
+import { useI18n } from 'vue-i18n'
+import { validate as validateUuid } from 'uuid'
 import GradidoAddressCopy from '@/components/GradidoAddressCopy'
+import PublicContactForm from '@/components/PublicContactForm'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import CONFIG from '@/config'
 
 const route = useRoute()
 const { routeWithParamsAndQuery } = useAuthLinks()
+const { t } = useI18n()
 
 const alias = computed(() => String(route.params.alias ?? ''))
 const communityName = CONFIG.COMMUNITY_NAME
+
+// Still not a question to anybody: this reads the visitor's own address, nothing else.
+const contactTitle = computed(() =>
+  validateUuid(alias.value)
+    ? t('public-profile.contact.title-no-name')
+    : t('public-profile.contact.title', { alias: alias.value }),
+)
 </script>

@@ -301,6 +301,15 @@
         "required": "Mesaj zorunlu bir alandır."
       },
       "requiredField": "{fieldName} alanı zorunludur",
+      "senderEmail": {
+        "invalid": "Bu bir e-posta adresine benzemiyor.",
+        "required": "E-posta adresin zorunlu bir alandır."
+      },
+      "senderName": {
+        "max": "Adın en fazla {max} karakter olmalıdır.",
+        "min": "Adın en az {min} karakter olmalıdır.",
+        "required": "Adın zorunlu bir alandır."
+      },
       "subject": {
         "max": "Konu en fazla {max} karakter olmalı.",
         "min": "Konu en az {min} karakter olmalı.",
@@ -618,6 +627,17 @@
   },
   "public-profile": {
     "address": "Gradido adresi",
+    "contact": {
+      "email": "E-posta adresin",
+      "error": "Mesajın şu anda gönderilemedi. Lütfen daha sonra tekrar dene.",
+      "lead": "Mesajın bu Gradido adresinin arkasındaki kişiye gider — sen e-posta adresini öğrenmeden.",
+      "name": "Adın",
+      "privacy": "Bilgilerini yalnızca mesajını iletmek için kullanıyoruz.",
+      "sent": "Teşekkürler, mesajın yolda.",
+      "submit": "Gönder",
+      "title": "{alias} kişisini tanıyor musun?",
+      "title-no-name": "Bir mesaj yaz"
+    },
     "send": "Gradido gönder:",
     "send-hint": "Adresi kopyala ve Gradido hesabına yapıştır."
   },

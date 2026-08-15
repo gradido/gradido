@@ -302,6 +302,15 @@
         "required": "Die Nachricht ist ein Pflichtfeld."
       },
       "requiredField": "{fieldName} ist ein Pflichtfeld",
+      "senderEmail": {
+        "invalid": "Das sieht nicht wie eine E-Mail-Adresse aus.",
+        "required": "Deine E-Mail-Adresse ist ein Pflichtfeld."
+      },
+      "senderName": {
+        "max": "Dein Name sollte höchstens {max} Zeichen lang sein.",
+        "min": "Dein Name sollte mindestens {min} Zeichen lang sein.",
+        "required": "Dein Name ist ein Pflichtfeld."
+      },
       "subject": {
         "max": "Der Betreff darf höchstens {max} Zeichen lang sein.",
         "min": "Der Betreff sollte mindestens {min} Zeichen lang sein.",
@@ -619,6 +628,17 @@
   },
   "public-profile": {
     "address": "Gradido-Adresse",
+    "contact": {
+      "email": "Deine E-Mail-Adresse",
+      "error": "Deine Nachricht konnte gerade nicht abgeschickt werden. Bitte versuche es später noch einmal.",
+      "lead": "Deine Nachricht geht an den Menschen hinter dieser Gradido-Adresse — ohne dass Du die E-Mail-Adresse erfährst.",
+      "name": "Dein Name",
+      "privacy": "Deine Angaben benutzen wir nur, um Deine Nachricht weiterzuleiten.",
+      "sent": "Danke, Deine Nachricht ist unterwegs.",
+      "submit": "Absenden",
+      "title": "Du kennst {alias}?",
+      "title-no-name": "Schreib eine Nachricht"
+    },
     "send": "Gradido senden:",
     "send-hint": "Kopiere die Adresse und füge sie in Deinem Gradido-Konto ein."
   },

@@ -301,6 +301,15 @@
         "required": "Het bericht is een verplicht veld."
       },
       "requiredField": "{fieldName} is verplicht",
+      "senderEmail": {
+        "invalid": "Dat ziet er niet uit als een e-mailadres.",
+        "required": "Jouw e-mailadres is een verplicht veld."
+      },
+      "senderName": {
+        "max": "Jouw naam mag hoogstens {max} tekens lang zijn.",
+        "min": "Jouw naam moet minstens {min} tekens lang zijn.",
+        "required": "Jouw naam is een verplicht veld."
+      },
       "subject": {
         "max": "Het onderwerp mag niet langer zijn dan {max} tekens.",
         "min": "Het onderwerp moet minstens {min} tekens lang zijn.",
@@ -618,6 +627,17 @@
   },
   "public-profile": {
     "address": "Gradido-adres",
+    "contact": {
+      "email": "Jouw e-mailadres",
+      "error": "Je bericht kon nu niet verstuurd worden. Probeer het later opnieuw.",
+      "lead": "Je bericht gaat naar de mens achter dit Gradido-adres, zonder dat jij het e-mailadres te weten komt.",
+      "name": "Jouw naam",
+      "privacy": "We gebruiken je gegevens alleen om je bericht door te sturen.",
+      "sent": "Bedankt, je bericht is onderweg.",
+      "submit": "Versturen",
+      "title": "Ken je {alias}?",
+      "title-no-name": "Schrijf een bericht"
+    },
     "send": "Gradido versturen:",
     "send-hint": "Kopieer het adres en plak het in je Gradido-account."
   },

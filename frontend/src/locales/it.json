@@ -301,6 +301,15 @@
         "required": "Il messaggio è un campo obbligatorio."
       },
       "requiredField": "{fieldName} è un campo obbligatorio",
+      "senderEmail": {
+        "invalid": "Questo non sembra un indirizzo e-mail.",
+        "required": "Il tuo indirizzo e-mail è un campo obbligatorio."
+      },
+      "senderName": {
+        "max": "Il tuo nome deve avere al massimo {max} caratteri.",
+        "min": "Il tuo nome deve avere almeno {min} caratteri.",
+        "required": "Il tuo nome è un campo obbligatorio."
+      },
       "subject": {
         "max": "L'oggetto non deve superare i {max} caratteri.",
         "min": "L'oggetto deve contenere almeno {min} caratteri.",
@@ -618,6 +627,17 @@
   },
   "public-profile": {
     "address": "Indirizzo Gradido",
+    "contact": {
+      "email": "Il tuo indirizzo e-mail",
+      "error": "Il tuo messaggio non è stato inviato al momento. Riprova più tardi.",
+      "lead": "Il tuo messaggio arriverà alla persona dietro questo indirizzo Gradido, senza che tu conosca il suo indirizzo e-mail.",
+      "name": "Il tuo nome",
+      "privacy": "Usiamo i tuoi dati solo per inoltrare il tuo messaggio.",
+      "sent": "Grazie, il tuo messaggio è in viaggio.",
+      "submit": "Invia",
+      "title": "Conosci {alias}?",
+      "title-no-name": "Scrivi un messaggio"
+    },
     "send": "Invia Gradido:",
     "send-hint": "Copia l'indirizzo e incollalo nel tuo conto Gradido."
   },

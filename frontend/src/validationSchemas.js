@@ -39,6 +39,21 @@ export const message = string()
   .min(1, ({ min }) => ({ key: 'form.validation.memo.min', values: { min } }))
   .max(2000, ({ max }) => ({ key: 'form.validation.memo.max', values: { max } }))
 
+// The address a stranger leaves so the recipient can answer. Only the shape is checked --
+// nobody verifies that it belongs to whoever typed it, and the mail says so.
+export const senderEmail = string()
+  .required('form.validation.senderEmail.required')
+  .email('form.validation.senderEmail.invalid')
+  .max(255, 'form.validation.senderEmail.invalid')
+
+// What a stranger types into the contact form as their name. It is never checked against
+// anything -- the mail that carries it says so -- so the only job here is to keep it a name
+// and not a paragraph. Keep the bounds in step with PublicContactArgs in the backend.
+export const senderName = string()
+  .required('form.validation.senderName.required')
+  .min(2, ({ min }) => ({ key: 'form.validation.senderName.min', values: { min } }))
+  .max(50, ({ max }) => ({ key: 'form.validation.senderName.max', values: { max } }))
+
 export const subject = string()
   .required('form.validation.subject.required')
   .min(5, ({ min }) => ({ key: 'form.validation.subject.min', values: { min } }))

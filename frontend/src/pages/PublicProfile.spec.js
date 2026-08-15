@@ -14,6 +14,15 @@ vi.mock('@/composables/useToast', () => ({
   useAppToast: () => ({ toastSuccess: vi.fn() }),
 }))
 
+// The form has its own spec; here only its place on the page matters.
+vi.mock('@/components/PublicContactForm', () => ({
+  default: {
+    name: 'PublicContactForm',
+    props: ['recipientIdentifier'],
+    template: '<div data-test="public-contact-form-stub" />',
+  },
+}))
+
 const i18n = createI18n({
   legacy: false,
   locale: 'en',
@@ -23,6 +32,11 @@ const i18n = createI18n({
         address: 'Gradido address',
         send: 'Send Gradido:',
         'send-hint': 'Copy the address and paste it into your Gradido account.',
+        contact: {
+          title: 'Do you know {alias}?',
+          'title-no-name': 'Write a message',
+          lead: 'Your message goes to the person behind this Gradido address.',
+        },
       },
       missingGradidoAccount: 'No {communityName} account yet?',
       signup: 'Sign up',
@@ -100,6 +114,36 @@ describe('PublicProfile', () => {
     const invented = (await wrapperFor('xyzabc')).text().replaceAll('xyzabc', 'ALIAS')
 
     expect(invented).toBe(real)
+  })
+
+  // The third way a business card is used, and the only one that works without an account.
+  it('offers the contact form, handing it the alias out of the address', async () => {
+    const wrapper = await wrapperFor('bernd')
+
+    const form = wrapper.findComponent({ name: 'PublicContactForm' })
+    expect(form.exists()).toBe(true)
+    expect(form.props('recipientIdentifier')).toBe('bernd')
+  })
+
+  // Bernd's rule: the alias is the display name, so it is greeted exactly as it stands in the
+  // address. Tidying `/u/bernd` into "Bernd" would show a name that does not exist and would
+  // drift away from the printed card, which carries the spelling the account really has.
+  it('greets the alias in the spelling of the address', async () => {
+    const wrapper = await wrapperFor('bernd')
+
+    expect(wrapper.find('[data-test="public-profile-contact-title"]').text()).toBe(
+      'Do you know bernd?',
+    )
+  })
+
+  // An account without a user name falls back to its Gradido ID, and "Do you know
+  // 3f8a-...?" reads as nonsense. Then the greeting is left out rather than made up.
+  it('leaves the name out where the address carries a Gradido ID', async () => {
+    const wrapper = await wrapperFor('550e8400-e29b-41d4-a716-446655440000')
+
+    expect(wrapper.find('[data-test="public-profile-contact-title"]').text()).toBe(
+      'Write a message',
+    )
   })
 
   it('shows no error, not even a friendly one', async () => {

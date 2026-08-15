@@ -160,6 +160,28 @@ export const sendEmail = gql`
   }
 `
 
+// The contact form behind a Gradido address. Reachable without logging in, and it answers
+// the same to everybody -- whether the address belongs to anybody is never told.
+export const sendPublicContactMessage = gql`
+  mutation (
+    $recipientIdentifier: String!
+    $senderName: String!
+    $senderEmail: String!
+    $subject: String!
+    $message: String!
+    $website: String
+  ) {
+    sendPublicContactMessage(
+      recipientIdentifier: $recipientIdentifier
+      senderName: $senderName
+      senderEmail: $senderEmail
+      subject: $subject
+      message: $message
+      website: $website
+    )
+  }
+`
+
 export const createTransactionLink = gql`
   mutation ($amount: GradidoUnit!, $memo: String!) {
     createTransactionLink(amount: $amount, memo: $memo) {
