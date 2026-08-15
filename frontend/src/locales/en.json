@@ -372,6 +372,8 @@
     "description": "To print and hand out: your name, your community, your username and your QR code on a card the size of a bank card. Whoever receives it can give you Gradido.",
     "download": "Download card",
     "download-hint": "A single image in print quality — for a print shop or to pass on.",
+    "needs-username": "Your card carries your Gradido address, and that address is built from your user name. Please choose one first — the field is a little further up on this page. Then you can print your card and give it away.",
+    "needs-username-title": "A user name first",
     "sheet": "Sheet with 10 cards",
     "sheet-hint": "Ten cards at original size on one A4 page. In the print dialogue you can also save it as a PDF.",
     "title": "Your Gradido card"

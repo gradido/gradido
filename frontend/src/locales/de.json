@@ -372,6 +372,8 @@
     "description": "Zum Ausdrucken und Weitergeben: Dein Name, Deine Gemeinschaft, Dein Benutzername und Dein QR-Code auf einer Karte in Scheckkartengröße. Wer sie bekommt, kann Dir Gradido schenken.",
     "download": "Karte herunterladen",
     "download-hint": "Ein einzelnes Bild in Druckqualität — für eine Druckerei oder zum Weitergeben.",
+    "needs-username": "Deine Karte trägt Deine Gradido-Adresse — und die entsteht aus Deinem Benutzernamen. Bitte wähle zunächst einen; das Feld dafür findest Du etwas weiter oben auf dieser Seite. Danach kannst Du Deine Karte drucken und weitergeben.",
+    "needs-username-title": "Erst der Benutzername",
     "sheet": "Bogen mit 10 Karten",
     "sheet-hint": "Zehn Karten in Originalgröße auf einer A4-Seite. Im Druckfenster kannst Du sie auch als PDF sichern.",
     "title": "Deine Gradido-Karte"

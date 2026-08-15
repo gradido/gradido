@@ -371,6 +371,8 @@
     "description": "À imprimer et à distribuer : ton nom, ta communauté, ton nom d'utilisateur et ton code QR sur une carte au format d'une carte bancaire. Celui qui la reçoit peut t'offrir des Gradido.",
     "download": "Télécharger la carte",
     "download-hint": "Une seule image en qualité d'impression — pour une imprimerie ou à transmettre.",
+    "needs-username": "Ta carte porte ton adresse Gradido, et cette adresse est formée à partir de ton nom d'utilisateur. Choisis-en un d'abord : le champ se trouve un peu plus haut sur cette page. Ensuite tu pourras imprimer ta carte et la donner.",
+    "needs-username-title": "D'abord le nom d'utilisateur",
     "sheet": "Planche de 10 cartes",
     "sheet-hint": "Dix cartes en taille réelle sur une page A4. Dans la fenêtre d'impression, tu peux aussi l'enregistrer en PDF.",
     "title": "Ta carte Gradido"

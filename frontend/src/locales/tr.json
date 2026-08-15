@@ -371,6 +371,8 @@
     "description": "Yazdırmak ve dağıtmak için: adın, topluluğun, kullanıcı adın ve QR kodun banka kartı büyüklüğünde bir kartta. Kartı alan kişi sana Gradido hediye edebilir.",
     "download": "Kartı indir",
     "download-hint": "Baskı kalitesinde tek bir görsel — bir matbaa için veya birine vermek için.",
+    "needs-username": "Kartın Gradido adresini taşır ve bu adres kullanıcı adından oluşur. Lütfen önce bir tane seç — alan bu sayfanın biraz yukarısında. Sonra kartını yazdırıp verebilirsin.",
+    "needs-username-title": "Önce kullanıcı adı",
     "sheet": "10 kartlık sayfa",
     "sheet-hint": "Bir A4 sayfasında orijinal boyutta on kart. Yazdırma penceresinde PDF olarak da kaydedebilirsin.",
     "title": "Gradido kartın"
