@@ -1,7 +1,7 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
   <div class="public-profile text-center">
-    <div class="text-small">{{ $t('public-profile.address') }}</div>
+    <div class="small">{{ $t('public-profile.address') }}</div>
 
     <div class="mb-2">
       <gradido-address-copy :alias="alias" />
@@ -14,17 +14,25 @@
          before it, and that cannot be done from here.
 
          A real heading element, not bold text: a screen reader has to be able to find it,
-         and "looks like a heading" is not something it can hear. `h6` only sets the size --
-         this page carries no heading of its own otherwise, so h2 is the level it starts at.
-         That the layout around it has no <h1> is true and not settled here: it writes the
-         community name as `div.h1`, and that belongs to every page in the auth layout, not
-         to this one. -->
-    <div class="text-small mb-4">
-      <h2 class="h6 fw-bold mb-0">{{ $t('public-profile.send') }}</h2>
+         and "looks like a heading" is not something it can hear. The class only sets the
+         size -- this page carries no heading of its own otherwise, so h2 is the level it
+         starts at. That the layout around it has no <h1> is true and not settled here: it
+         writes the community name as `div.h1`, and that belongs to every page in the auth
+         layout, not to this one.
+
+         `h5` and not `h6`, and that is worth a line because the smaller one is the tempting
+         choice for a small label. The heading scale in this wallet is unusually tight and
+         starts low: `.h6` is `.625rem`, ten pixels. The block around it is `.small`, which
+         is 80% -- 12.8px -- so `h6` would put the heading *below* the size of its own
+         sentence, and a heading smaller than the text it heads reads as a footnote. `.h5`
+         is `.8125rem`, thirteen pixels: level with the sentence, and `fw-bold` carries the
+         distinction. Size is not what makes this a heading; the element is. -->
+    <div class="small mb-4">
+      <h2 class="h5 fw-bold mb-0">{{ $t('public-profile.send') }}</h2>
       <div>{{ $t('public-profile.send-hint') }}</div>
     </div>
 
-    <div class="text-small">
+    <div class="small">
       {{ $t('missingGradidoAccount', { communityName: communityName }) }}
     </div>
     <div class="mt-1">
