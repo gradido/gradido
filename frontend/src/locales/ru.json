@@ -613,6 +613,11 @@
     "transactions": "Ваши транзакции",
     "usersearch": "Географический поиск участников (бета)"
   },
+  "public-profile": {
+    "address": "Адрес Gradido",
+    "send": "Отправить Gradido",
+    "send-hint": "Скопируйте адрес и вставьте его в свой аккаунт Gradido."
+  },
   "qrCode": "QR код",
   "send_email": "Отправить эл. письмо",
   "send_gdd": "GDD отправить",

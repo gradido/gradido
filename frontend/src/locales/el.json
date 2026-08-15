@@ -613,6 +613,11 @@
     "transactions": "Οι συναλλαγές σου",
     "usersearch": "Γεωγραφική αναζήτηση μελών (beta)"
   },
+  "public-profile": {
+    "address": "Διεύθυνση Gradido",
+    "send": "Αποστολή Gradido",
+    "send-hint": "Αντίγραψε τη διεύθυνση και επικόλλησέ την στον λογαριασμό σου Gradido."
+  },
   "qrCode": "Κωδικός QR",
   "send_email": "Αποστολή email",
   "send_gdd": "Αποστολή GDD",

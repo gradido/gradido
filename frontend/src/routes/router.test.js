@@ -81,8 +81,8 @@ describe('router', () => {
       expect(defaultRoute.redirect()).toEqual({ path: '/login' })
     })
 
-    it('has 23 routes defined', () => {
-      expect(routes).toHaveLength(23)
+    it('has 24 routes defined', () => {
+      expect(routes).toHaveLength(24)
     })
 
     const testRoute = (path, expectedName, requiresAuth = true) => {
@@ -126,6 +126,10 @@ describe('router', () => {
     testRoute('/reset-password/:optin', 'ResetPassword', false)
     testRoute('/checkEmail/:optin/:code?', 'ResetPassword', false)
     testRoute('/redeem/:code', 'TransactionLink', false)
+    // Declared ahead of the catch-all, which used to swallow it: every printed QR code on a
+    // Gradido card landed on "page not found". Public on purpose -- a phone camera opens the
+    // default browser, so most visitors arrive logged out.
+    testRoute('/u/:alias', 'PublicProfile', false)
     // Declared ahead of /matching/:tab, so this must not fall through to Matching.
     testRoute('/matching/karte', 'MatchingMap')
 

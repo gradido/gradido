@@ -613,6 +613,11 @@
     "transactions": "Le tue transazioni",
     "usersearch": "Ricerca geografica dei membri (beta)"
   },
+  "public-profile": {
+    "address": "Indirizzo Gradido",
+    "send": "Invia Gradido",
+    "send-hint": "Copia l'indirizzo e incollalo nel tuo conto Gradido."
+  },
   "qrCode": "Codice QR",
   "send_email": "Invia e‑mail",
   "send_gdd": "Invia GDD",

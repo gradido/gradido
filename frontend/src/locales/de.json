@@ -614,6 +614,11 @@
     "transactions": "Deine Transaktionen",
     "usersearch": "Geografische Mitgliedssuche (beta)"
   },
+  "public-profile": {
+    "address": "Gradido-Adresse",
+    "send": "Gradido senden",
+    "send-hint": "Kopiere die Adresse und füge sie in Deinem Gradido-Konto ein."
+  },
   "qrCode": "QR Code",
   "send_email": "E‑Mail senden",
   "send_gdd": "GDD senden",
