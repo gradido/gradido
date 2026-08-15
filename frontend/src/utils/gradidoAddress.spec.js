@@ -134,6 +134,22 @@ describe('splitRecipient', () => {
       expect(splitRecipient('https://Bernd')).toBeNull()
     })
 
+    // These resolve to exactly the same person as the https form, because the scheme is
+    // thrown away. They are refused anyway: a line that works here and in no browser is
+    // one that will be printed or pasted into a signature one day.
+    it('refuses a scheme an address is never served under', () => {
+      expect(splitRecipient('ftp://ki-playground.gradido.net/u/Bernd')).toBeNull()
+      expect(splitRecipient('javascript://ki-playground.gradido.net/u/Bernd')).toBeNull()
+      expect(splitRecipient('file://ki-playground.gradido.net/u/Bernd')).toBeNull()
+    })
+
+    it('keeps http, which is what a local community is served over', () => {
+      expect(splitRecipient('http://localhost:3000/u/Bernd')).toEqual({
+        community: 'localhost:3000',
+        user: 'Bernd',
+      })
+    })
+
     it('survives nothing at all', () => {
       expect(splitRecipient(null)).toBeNull()
       expect(splitRecipient(undefined)).toBeNull()

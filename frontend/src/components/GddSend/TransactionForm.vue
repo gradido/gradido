@@ -411,6 +411,15 @@ function onSubmit() {
   )
   */
   const transformedForm = validationSchema.value.cast(form)
+  // Both ways carry a recipient, so both need the address taken apart into the pair the
+  // mutations expect: the bare user name, and the community it belongs to. This used to
+  // sit in the else branch alone, which is why a recipient written with a community never
+  // reached anybody by e-mail -- the whole string went out as the user name.
+  const parts = splitRecipient(transformedForm.identifier)
+  if (parts?.community) {
+    transformedForm.identifier = parts.user
+    transformedForm.targetCommunity = findCommunity(parts.community)
+  }
   if (radioSelected.value === SEND_TYPES.email) {
     /*
     console.log(
@@ -428,11 +437,6 @@ function onSubmit() {
       userName: userName.value,
     })
   } else {
-    const parts = splitRecipient(transformedForm.identifier)
-    if (parts?.community) {
-      transformedForm.identifier = parts.user
-      transformedForm.targetCommunity = findCommunity(parts.community)
-    }
     /*
     console.log(
       'vor emit set-transaction: transformedForm=' +

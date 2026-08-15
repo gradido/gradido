@@ -362,6 +362,20 @@ describe('TransactionForm', () => {
         expect(wrapper.vm.form.targetCommunity).toEqual(other)
       })
 
+      // The e-mail tab used to emit the whole string as the user name, because the
+      // splitting sat in the else branch alone. Nobody was ever reached that way.
+      it('sends an e-mail on the bare user name too', async () => {
+        wrapper.vm.radioSelected = SEND_TYPES.email
+        wrapper.vm.form.subject = 'Ein Gruss'
+        wrapper.vm.form.memo = 'Danke Dir sehr'
+        wrapper.vm.form.identifier = 'ki-playground.gradido.net/u/Bernd'
+        await nextTick()
+        await wrapper.findComponent(BForm).trigger('submit.prevent')
+        expect(wrapper.emitted('send-email')[0][0]).toEqual(
+          expect.objectContaining({ identifier: 'Bernd', targetCommunity: home }),
+        )
+      })
+
       // The check used to stand twice, word for word. This is the test that notices if
       // one copy comes back.
       it('applies the same check on the e-mail tab', async () => {

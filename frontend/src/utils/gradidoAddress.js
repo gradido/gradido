@@ -14,7 +14,13 @@
 // rejected rather than read as a community/user pair.
 const USER_NAMESPACE = 'u'
 
+// Wide on purpose: this one is used to RECOGNISE a scheme, including the ones that are
+// not allowed, so that they can be turned away by name instead of falling through into
+// some other reading.
 const SCHEME = /^[a-z][a-z0-9+.-]*:\/\//i
+// And this is the one an address may carry. http is here for a local community, which is
+// served without TLS.
+const ADDRESS_SCHEME = /^https?:\/\//i
 
 /**
  * The community host, without scheme or path -- that is what gets printed (E-008). The
@@ -84,7 +90,14 @@ export const splitRecipient = (value) => {
   // through would silently make it part of the user name.
   if (!trimmed || /[?#]/.test(trimmed)) return null
 
-  const hadScheme = SCHEME.test(trimmed)
+  const scheme = trimmed.match(SCHEME)
+  // The address is served over http(s). Another scheme would resolve to exactly the same
+  // person here, because the scheme is discarded -- but it would be a line that works in
+  // the wallet and nowhere a browser can follow it, and a line like that ends up in a
+  // signature or on paper.
+  if (scheme && !ADDRESS_SCHEME.test(scheme[0])) return null
+
+  const hadScheme = scheme !== null
   const parts = trimmed.replace(SCHEME, '').split('/')
   // A single trailing slash is what a browser address bar hands over when it is copied.
   // Forgiven only on the full address, which is the only shape it can arise on -- take it
