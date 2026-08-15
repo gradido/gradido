@@ -24,11 +24,14 @@ export const useThankYouCheque = ({ link, amount, memo, validUntil }) => {
   const { toastError } = useAppToast()
 
   const drawThankYouCheque = async () => {
-    const { firstName, lastName, username, gradidoId } = store.state
+    // gradidoID, not gradidoId -- the store spells it with a capital D, and reading the
+    // other spelling put the word "undefined" on the printed cheque of every member who
+    // has no user name yet.
+    const { firstName, lastName, username, gradidoID } = store.state
     return drawCheque({
       kind: 'thankYou',
       name: `${firstName} ${lastName}`.trim(),
-      address: `${CONFIG.COMMUNITY_NAME}/${username || gradidoId}`,
+      address: `${CONFIG.COMMUNITY_NAME}/${username || gradidoID}`,
       initials: `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`,
       headline: `${firstName} ${t('transaction-link.send_you')} ${amount} Gradido.`,
       memo,

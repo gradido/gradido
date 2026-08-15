@@ -106,9 +106,11 @@ export default {
       return this.$store.state.username && this.$store.state.username.length > 0
     },
     gradidoId() {
+      // gradidoID, not gradidoId -- the store spells it with a capital D. The other
+      // spelling showed "Community/undefined" to every member without a user name.
       const name = this.$store.state.username
         ? this.$store.state.username
-        : this.$store.state.gradidoId
+        : this.$store.state.gradidoID
       return `${CONFIG.COMMUNITY_NAME}/${name}`
     },
   },
