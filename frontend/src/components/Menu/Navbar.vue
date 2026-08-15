@@ -49,20 +49,11 @@
                 class="small navbar-like-link pointer mt-1"
                 data-test="navbar-item-gradido-address"
               >
-                <!-- A button, not an anchor: an anchor without a target is in no tab order,
-                     so the address was unreachable for anybody working without a mouse. It
-                     used to look like a link only by accident -- bootstrap resets anchors
-                     without a target just while they carry no class at all -- so the link
-                     appearance is written out below instead of being inherited by luck. -->
-                <button
-                  type="button"
-                  class="copy-clipboard-button"
-                  :title="$t('copy-to-clipboard')"
-                  @click="copyToClipboard(address.link)"
-                >
-                  {{ address.display }}
-                  <IBiCopy></IBiCopy>
-                </button>
+                <!-- The control itself moved into its own component when the public profile
+                     page became the second place that shows the address. It is a button and
+                     not an anchor: an anchor without a target is in no tab order, so the
+                     address was unreachable for anybody working without a mouse. -->
+                <gradido-address-copy :alias="alias" />
               </div>
             </div>
           </div>
@@ -78,19 +69,16 @@
 </template>
 
 <script>
-import { useAppToast } from '@/composables/useToast'
-import { gradidoAddress, memberAlias } from '@/utils/gradidoAddress'
+import { memberAlias } from '@/utils/gradidoAddress'
+import GradidoAddressCopy from '@/components/GradidoAddressCopy'
 
 export default {
   name: 'Navbar',
+  components: {
+    GradidoAddressCopy,
+  },
   props: {
     balance: { type: Number, required: true },
-  },
-  setup() {
-    const toast = useAppToast()
-    return {
-      toast,
-    }
   },
   data() {
     return {
@@ -105,17 +93,11 @@ export default {
         initials: `${this.$store.state.firstName[0]}${this.$store.state.lastName[0]}`,
       }
     },
-    address() {
+    alias() {
       // gradidoID, not gradidoId -- the store spells it with a capital D, and the other
       // spelling once put the word "undefined" in front of every member without a user
       // name. It is worth naming at each call site; nothing catches it.
-      return gradidoAddress(memberAlias(this.$store.state.username, this.$store.state.gradidoID))
-    },
-  },
-  methods: {
-    copyToClipboard(content) {
-      navigator.clipboard.writeText(content)
-      this.toast.toastSuccess(this.$t('gradidoid-copied-to-clipboard'))
+      return memberAlias(this.$store.state.username, this.$store.state.gradidoID)
     },
   },
 }
@@ -137,22 +119,6 @@ export default {
 
 .navbar-like-link {
   color: rgba(var(--bs-link-color-rgb));
-}
-
-/* The copy control is a button so that it can be reached with the keyboard, and a button
-   brings none of the link appearance with it. Colour comes from .navbar-like-link on the
-   line around it; the underline on hover is what the house does for every link
-   ($link-hover-decoration), said here because a button is not covered by that rule. */
-.copy-clipboard-button {
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-}
-
-.copy-clipboard-button:hover {
-  text-decoration: underline;
 }
 
 button.navbar-toggler > span.navbar-toggler-icon {
