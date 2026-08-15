@@ -11,9 +11,16 @@
          attempt put them on one line with the house separator, and on screen that read as a
          divider between equals rather than as a label for what follows. The colon lives in
          the translation, because it is not the same mark everywhere -- French sets a space
-         before it, and that cannot be done from here. -->
+         before it, and that cannot be done from here.
+
+         A real heading element, not bold text: a screen reader has to be able to find it,
+         and "looks like a heading" is not something it can hear. `h6` only sets the size --
+         this page carries no heading of its own otherwise, so h2 is the level it starts at.
+         That the layout around it has no <h1> is true and not settled here: it writes the
+         community name as `div.h1`, and that belongs to every page in the auth layout, not
+         to this one. -->
     <div class="text-small mb-4">
-      <div class="fw-bold">{{ $t('public-profile.send') }}</div>
+      <h2 class="h6 fw-bold mb-0">{{ $t('public-profile.send') }}</h2>
       <div>{{ $t('public-profile.send-hint') }}</div>
     </div>
 

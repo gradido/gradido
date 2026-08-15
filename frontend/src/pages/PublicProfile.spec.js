@@ -70,7 +70,9 @@ describe('PublicProfile', () => {
   it('sets "send Gradido" as a heading above the sentence, not beside it', async () => {
     const wrapper = await wrapperFor('bernd')
 
-    const heading = wrapper.find('.fw-bold')
+    // The element, not the class: bold text is not a heading to anybody who cannot see it.
+    const heading = wrapper.find('h2')
+    expect(heading.exists()).toBe(true)
     expect(heading.text()).toBe('Send Gradido:')
     expect(heading.element.nextElementSibling.textContent.trim()).toBe(
       'Copy the address and paste it into your Gradido account.',
