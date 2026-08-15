@@ -139,11 +139,20 @@ describe('Navbar', () => {
       const writeText = vi.fn()
       vi.stubGlobal('navigator', { clipboard: { writeText } })
 
-      await addressLine().find('a').trigger('click')
+      await addressLine().find('button').trigger('click')
 
       expect(writeText).toHaveBeenCalledWith(`${CONFIG.COMMUNITY_URL}/u/username`)
       expect(mockToastSuccess).toHaveBeenCalledWith('gradidoid-copied-to-clipboard')
       vi.unstubAllGlobals()
+    })
+
+    // A button, not an anchor. An anchor without a target is in no tab order, so the
+    // address could not be copied by anybody working without a mouse.
+    it('offers the copy control to the keyboard', () => {
+      const control = addressLine().find('button')
+      expect(control.exists()).toBe(true)
+      expect(control.attributes('type')).toBe('button')
+      expect(addressLine().find('a').exists()).toBe(false)
     })
 
     // Bernd's decision on the mockup: the icon sits behind the address, not in front of it.

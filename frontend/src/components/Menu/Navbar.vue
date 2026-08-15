@@ -49,18 +49,20 @@
                 class="small navbar-like-link pointer mt-1"
                 data-test="navbar-item-gradido-address"
               >
-                <!-- copy-clipboard-button carries no CSS rule of its own, yet it is load
-                     bearing: bootstrap resets anchors without a target only while they have
-                     no class at all (a:not([href]):not([class])). The class is what keeps
-                     the link colour and the underline on hover. Do not remove it as dead. -->
-                <a
+                <!-- A button, not an anchor: an anchor without a target is in no tab order,
+                     so the address was unreachable for anybody working without a mouse. It
+                     used to look like a link only by accident -- bootstrap resets anchors
+                     without a target just while they carry no class at all -- so the link
+                     appearance is written out below instead of being inherited by luck. -->
+                <button
+                  type="button"
                   class="copy-clipboard-button"
                   :title="$t('copy-to-clipboard')"
                   @click="copyToClipboard(address.link)"
                 >
                   {{ address.display }}
                   <IBiCopy></IBiCopy>
-                </a>
+                </button>
               </div>
             </div>
           </div>
@@ -135,6 +137,22 @@ export default {
 
 .navbar-like-link {
   color: rgba(var(--bs-link-color-rgb));
+}
+
+/* The copy control is a button so that it can be reached with the keyboard, and a button
+   brings none of the link appearance with it. Colour comes from .navbar-like-link on the
+   line around it; the underline on hover is what the house does for every link
+   ($link-hover-decoration), said here because a button is not covered by that rule. */
+.copy-clipboard-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+}
+
+.copy-clipboard-button:hover {
+  text-decoration: underline;
 }
 
 button.navbar-toggler > span.navbar-toggler-icon {
