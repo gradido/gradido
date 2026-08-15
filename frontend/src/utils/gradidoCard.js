@@ -22,6 +22,20 @@
  *
  * The QR is not built here. It arrives as a finished canvas from utils/qrCode.js -- the
  * same generator the modal uses, so what gets printed is the code the screen would show.
+ *
+ * ## No print density in the file, on purpose
+ *
+ * The pixel dimensions are 85.6 x 54 mm at 300 dpi, but the PNG carries no `pHYs` chunk that
+ * would tell a program so, and it is not to be given one. `canvas.toDataURL()` cannot write
+ * that chunk, so adding it means hand-writing a PNG chunk into the wallet -- and it was
+ * measured on the thank-you cheque first: Word and LibreOffice honour the density, Google
+ * Docs ignores it and stretches to column width regardless. Adding it therefore does not make
+ * the size correct everywhere, it makes the same file come out at two different sizes
+ * depending on the program.
+ *
+ * Uniform behaviour beats the exact measurement, and both printed objects have to behave the
+ * same when they land in one document. The physical size is carried by the print hint next to
+ * the button instead: place it, print at original size, cut.
  */
 
 import { avatarPaletteEntry } from './avatarColor'

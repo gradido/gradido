@@ -65,6 +65,14 @@ describe('cardAddress', () => {
       link: 'https://ki-playground.gradido.net/u/bernd',
     })
   })
+
+  // No valid alias can contain these -- VALID_ALIAS_REGEX allows letters, digits, hyphen and
+  // underscore only. The guarantee is pinned anyway, because a wrong link on printed paper
+  // cannot be corrected: unencoded, a '?' would turn the rest of the address into a query.
+  it('keeps the alias inside the path, whatever it contains', () => {
+    expect(cardAddress('a?b#c').link).toBe('https://ki-playground.gradido.net/u/a%3Fb%23c')
+    expect(cardAddress('a/b').link).toBe('https://ki-playground.gradido.net/u/a%2Fb')
+  })
 })
 
 describe('useGradidoCard', () => {

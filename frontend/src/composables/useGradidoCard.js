@@ -47,7 +47,12 @@ export const communityHost = (url) => {
  */
 export const cardAddress = (alias) => ({
   host: communityHost(CONFIG.COMMUNITY_URL),
-  link: new URL(`/u/${alias}`, CONFIG.COMMUNITY_URL).href,
+  // The alias is encoded although no valid one needs it: VALID_ALIAS_REGEX allows letters,
+  // digits, hyphen and underscore only, and the fallback is a UUID. It is here because this
+  // link is printed. An unencoded '?' or '#' would silently become a query or a fragment, and
+  // a wrong link on paper cannot be corrected -- so the guarantee is worth one call that
+  // does nothing today, especially while the rules around user names are still moving.
+  link: new URL(`/u/${encodeURIComponent(alias)}`, CONFIG.COMMUNITY_URL).href,
 })
 
 export const useGradidoCard = () => {
