@@ -370,7 +370,9 @@
   "gradido-card": {
     "description": "Zum Ausdrucken und Weitergeben: Dein Name, Deine Gemeinschaft, Dein Benutzername und Dein QR-Code auf einer Karte in Scheckkartengröße. Wer sie bekommt, kann Dir Gradido schenken.",
     "download": "Karte herunterladen",
-    "print-hint": "Die Karte misst 85,6 × 54 mm, die Größe einer Bankkarte. Zum Drucken in ein Dokument einfügen, in Originalgröße drucken und ausschneiden.",
+    "download-hint": "Ein einzelnes Bild in Druckqualität — für eine Druckerei oder zum Weitergeben.",
+    "sheet": "Bogen mit 10 Karten",
+    "sheet-hint": "Zehn Karten in Originalgröße auf einer A4-Seite. Im Druckfenster kannst Du sie auch als PDF sichern.",
     "title": "Deine Gradido-Karte"
   },
   "gradidoid-copied-to-clipboard": "Gradido ID wurde in die Zwischenablage kopiert.",

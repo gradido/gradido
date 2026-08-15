@@ -2,9 +2,9 @@
 
 import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
-import CONFIG from '@/config'
 import { useAppToast } from '@/composables/useToast'
 import { renderQrCodeCanvas } from '@/utils/qrCode'
+import { cardAddress } from '@/composables/useGradidoCard'
 import { chequeFileName, drawCheque } from '@/utils/thankYouCheque'
 
 /**
@@ -27,11 +27,19 @@ export const useThankYouCheque = ({ link, amount, memo, validUntil }) => {
     // gradidoID, not gradidoId -- the store spells it with a capital D, and reading the
     // other spelling put the word "undefined" on the printed cheque of every member who
     // has no user name yet.
-    const { firstName, lastName, username, gradidoID } = store.state
+    const { firstName, lastName, username, gradidoID, avatar } = store.state
+    const alias = username || gradidoID
     return drawCheque({
       kind: 'thankYou',
       name: `${firstName} ${lastName}`.trim(),
-      address: `${CONFIG.COMMUNITY_NAME}/${username || gradidoID}`,
+      // The same address the card prints, in the same three weights. Built here rather than
+      // in the drawing, so both printed objects say the same thing about the same person.
+      ...cardAddress(alias),
+      alias,
+      // The everyday 128-pixel rendition is enough: the cheque draws the picture at 78
+      // pixels. It is already in the store, so this costs no query and no waiting -- unlike
+      // the card, which prints 24 mm and needs the large one.
+      portrait: avatar ? `data:image/jpeg;base64,${avatar}` : null,
       initials: `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`,
       headline: `${firstName} ${t('transaction-link.send_you')} ${amount} Gradido.`,
       memo,

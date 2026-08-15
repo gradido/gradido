@@ -15,6 +15,13 @@ vi.mock('@/utils/qrCode', () => ({
   renderQrCodeCanvas: (...args) => mockRenderQrCodeCanvas(...args),
 }))
 
+vi.mock('@/composables/useGradidoCard', () => ({
+  cardAddress: (alias) => ({
+    host: 'ki-playground.gradido.net',
+    link: `https://ki-playground.gradido.net/u/${alias}`,
+  }),
+}))
+
 const mockToastError = vi.fn()
 vi.mock('@/composables/useToast', () => ({
   useAppToast: () => ({ toastError: mockToastError }),
@@ -25,6 +32,7 @@ const storeState = {
   lastName: 'Hückstädt',
   username: 'bernd',
   gradidoID: 'uuid-1',
+  avatar: null,
 }
 vi.mock('vuex', () => ({
   useStore: () => ({ state: storeState }),
@@ -84,9 +92,40 @@ describe('useThankYouCheque', () => {
       storeState.username = 'bernd'
     }
 
-    const { address } = mockDrawCheque.mock.calls[0][0]
-    expect(address).toContain('uuid-1')
-    expect(address).not.toContain('undefined')
+    const { alias } = mockDrawCheque.mock.calls[0][0]
+    expect(alias).toBe('uuid-1')
+  })
+
+  // The everyday 128-pixel rendition, not the large one: the cheque draws it at 78 pixels,
+  // and it is already in the store -- so a cheque costs no extra query.
+  it('puts the picture on the cheque when the member has one', async () => {
+    storeState.avatar = 'BASE64SMALL'
+    try {
+      await useThankYouCheque(LINK).drawThankYouCheque()
+    } finally {
+      storeState.avatar = null
+    }
+
+    const { portrait } = mockDrawCheque.mock.calls[0][0]
+    expect(portrait).toBe('data:image/jpeg;base64,BASE64SMALL')
+  })
+
+  it('leaves the initials to stand in when there is no picture', async () => {
+    await useThankYouCheque(LINK).drawThankYouCheque()
+
+    const { portrait, initials } = mockDrawCheque.mock.calls[0][0]
+    expect(portrait).toBeNull()
+    expect(initials).toBe('BH')
+  })
+
+  // Card and cheque have to say the same thing about the same person, so both take the
+  // address from one place.
+  it('prints the same address the card prints', async () => {
+    await useThankYouCheque(LINK).drawThankYouCheque()
+
+    const { host, alias } = mockDrawCheque.mock.calls[0][0]
+    expect(host).toBe('ki-playground.gradido.net')
+    expect(alias).toBe('bernd')
   })
 
   it('builds the headline from the sender and the amount', async () => {

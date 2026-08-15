@@ -4,48 +4,67 @@
     <div class="h3">{{ $t('gradido-card.title') }}</div>
     <div class="text-small mb-3">{{ $t('gradido-card.description') }}</div>
 
-    <BButton
-      variant="primary"
-      :disabled="isDrawing"
-      data-test="download-gradido-card"
-      @click="onDownload"
-    >
-      <IBiDownload class="me-1" />
-      {{ $t('gradido-card.download') }}
-    </BButton>
+    <BRow>
+      <BCol cols="12" md="6" class="mb-3">
+        <BButton
+          variant="primary"
+          :disabled="isBusy"
+          data-test="download-gradido-card"
+          @click="onDownload"
+        >
+          <IBiDownload class="me-1" />
+          {{ $t('gradido-card.download') }}
+        </BButton>
+        <div class="text-small mt-2">{{ $t('gradido-card.download-hint') }}</div>
+      </BCol>
+      <BCol cols="12" md="6" class="mb-3">
+        <BButton
+          variant="gradido"
+          :disabled="isBusy"
+          data-test="print-gradido-sheet"
+          @click="onSheet"
+        >
+          <IBiPrinter class="me-1" />
+          {{ $t('gradido-card.sheet') }}
+        </BButton>
+        <div class="text-small mt-2">{{ $t('gradido-card.sheet-hint') }}</div>
+      </BCol>
+    </BRow>
 
-    <div v-if="preview" class="mt-4">
+    <div v-if="preview" class="mt-2">
       <img :src="preview" class="gradido-card-preview" :alt="$t('gradido-card.title')" />
-      <div class="text-small mt-2">{{ $t('gradido-card.print-hint') }}</div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { BButton } from 'bootstrap-vue-next'
+import { BButton, BCol, BRow } from 'bootstrap-vue-next'
 import { ref } from 'vue'
 import { useGradidoCard } from '@/composables/useGradidoCard'
 
-const { downloadCard } = useGradidoCard()
+const { downloadCard, printCardSheet } = useGradidoCard()
 
 const preview = ref('')
-const isDrawing = ref(false)
+const isBusy = ref(false)
 
 /**
  * Drawn only when somebody asks for a card, never on opening the page: it costs a query for
  * the large picture, and this section sits on the tab the settings page opens on.
  *
- * The preview shows the picture that was just handed over, not a second drawing of it -- so
- * what is on screen is what is in the download, and not merely something that looks like it.
+ * Both ways show the picture they just handed over, not a second drawing of it -- so what is
+ * on screen is what came out, and not merely something that looks like it.
  */
-const onDownload = async () => {
-  isDrawing.value = true
+const run = async (action) => {
+  isBusy.value = true
   try {
-    preview.value = (await downloadCard()) ?? ''
+    preview.value = (await action()) ?? ''
   } finally {
-    isDrawing.value = false
+    isBusy.value = false
   }
 }
+
+const onDownload = () => run(downloadCard)
+const onSheet = () => run(printCardSheet)
 </script>
 
 <style lang="scss" scoped>

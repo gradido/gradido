@@ -370,7 +370,9 @@
   "gradido-card": {
     "description": "Yazdırmak ve dağıtmak için: adın, topluluğun, kullanıcı adın ve QR kodun banka kartı büyüklüğünde bir kartta. Kartı alan kişi sana Gradido hediye edebilir.",
     "download": "Kartı indir",
-    "print-hint": "Kart 85,6 × 54 mm boyutundadır, bir banka kartı büyüklüğünde. Yazdırmak için bir belgeye ekle, orijinal boyutta yazdır ve kes.",
+    "download-hint": "Baskı kalitesinde tek bir görsel — bir matbaa için veya birine vermek için.",
+    "sheet": "10 kartlık sayfa",
+    "sheet-hint": "Bir A4 sayfasında orijinal boyutta on kart. Yazdırma penceresinde PDF olarak da kaydedebilirsin.",
     "title": "Gradido kartın"
   },
   "gradidoid-copied-to-clipboard": "Gradido ID panoya kopyalandı.",

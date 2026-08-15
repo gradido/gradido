@@ -370,7 +370,9 @@
   "gradido-card": {
     "description": "À imprimer et à distribuer : ton nom, ta communauté, ton nom d'utilisateur et ton code QR sur une carte au format d'une carte bancaire. Celui qui la reçoit peut t'offrir des Gradido.",
     "download": "Télécharger la carte",
-    "print-hint": "La carte mesure 85,6 × 54 mm, le format d'une carte bancaire. Pour l'imprimer, insère-la dans un document, imprime en taille réelle et découpe-la.",
+    "download-hint": "Une seule image en qualité d'impression — pour une imprimerie ou à transmettre.",
+    "sheet": "Planche de 10 cartes",
+    "sheet-hint": "Dix cartes en taille réelle sur une page A4. Dans la fenêtre d'impression, tu peux aussi l'enregistrer en PDF.",
     "title": "Ta carte Gradido"
   },
   "gradidoid-copied-to-clipboard": "Gradido ID copié dans le presse-papier.",
