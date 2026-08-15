@@ -21,7 +21,7 @@ const i18n = createI18n({
     en: {
       'public-profile': {
         address: 'Gradido address',
-        send: 'Send Gradido',
+        send: 'Send Gradido:',
         'send-hint': 'Copy the address and paste it into your Gradido account.',
       },
       missingGradidoAccount: 'No {communityName} account yet?',
@@ -60,8 +60,24 @@ describe('PublicProfile', () => {
   it('says how to send Gradido', async () => {
     const wrapper = await wrapperFor('bernd')
 
-    expect(wrapper.text()).toContain('Send Gradido')
+    expect(wrapper.text()).toContain('Send Gradido:')
     expect(wrapper.text()).toContain('Copy the address and paste it into your Gradido account.')
+  })
+
+  // Bernd at the live page: a heading with its sentence underneath, not two things side by
+  // side. The first attempt set them on one line with the house separator, and that read as
+  // a divider between equals instead of a label for what follows.
+  it('sets "send Gradido" as a heading above the sentence, not beside it', async () => {
+    const wrapper = await wrapperFor('bernd')
+
+    // The element, not the class: bold text is not a heading to anybody who cannot see it.
+    const heading = wrapper.find('h2')
+    expect(heading.exists()).toBe(true)
+    expect(heading.text()).toBe('Send Gradido:')
+    expect(heading.element.nextElementSibling.textContent.trim()).toBe(
+      'Copy the address and paste it into your Gradido account.',
+    )
+    expect(wrapper.find('.separator-start').exists()).toBe(false)
   })
 
   // The way onward for somebody who has no account yet. The community is named on purpose:
