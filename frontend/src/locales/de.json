@@ -625,8 +625,7 @@
   },
   "public-profile": {
     "address": "Gradido-Adresse",
-    "send": "Gradido senden:",
-    "send-hint": "Kopiere die Adresse und füge sie in Deinem Gradido-Konto ein."
+    "send": "Gradido senden"
   },
   "qrCode": "QR Code",
   "send_email": "E‑Mail senden",
