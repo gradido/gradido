@@ -86,6 +86,16 @@
       "title": "Reset password",
       "youOrSomeoneResetPassword": "You, or someone else, requested a password reset for this account."
     },
+    "thankYouCardPaid": {
+      "blockCard": "Block card",
+      "memo": "Reference: {transactionMemo}",
+      "notYou": "That was not you? Block your card right here — it stops working, your Gradido address stays.",
+      "paidWith": "Paid with: card \"{cardLabel}\"",
+      "recipient": "Recipient: {recipientName} ({recipientCommunity})",
+      "subject": "You passed on {amountGDD} GDD with your thank you card",
+      "title": "{amountGDD} GDD were passed on with your thank you card",
+      "wasPaid": "{amountGDD} GDD have just been passed on with your thank you card."
+    },
     "transactionLinkRedeemed": {
       "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) has just redeemed your link.",
       "memo": "Message: {transactionMemo}",

@@ -48,4 +48,9 @@ export const USER_RIGHTS = [
   // ⚠️ Taking a payment is NOT behind this right: there the RECIPIENT is the one who is
   // logged in, and the card is authorised by its code plus its PIN.
   RIGHTS.MANAGE_OWN_THANK_YOU_CARD,
+  // Taking a card payment is a separate right from managing one's own card, because it
+  // is the other side of the counter: here the caller is the RECIPIENT, and what
+  // authorises the payment is the card's code plus its PIN, not this right. Separate so
+  // that it can be taken away on its own.
+  RIGHTS.RECEIVE_THANK_YOU_CARD_PAYMENT,
 ]

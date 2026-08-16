@@ -55,6 +55,26 @@ export async function dbSelectThankYouCardByCode(
   return { success: true, value: row }
 }
 
+/**
+ * One card by its id. The payment path reads the card through its request rather than
+ * through a code the caller sent again, so that a swapped code cannot pay from a
+ * different card than the one that was scanned.
+ */
+export async function dbSelectThankYouCardById(
+  id: number,
+): Promise<Result<ThankYouCardSelect, DBNotFoundError>> {
+  const rows = await drizzleDb()
+    .select()
+    .from(thankYouCardsTable)
+    .where(eq(thankYouCardsTable.id, id))
+
+  const row = rows.at(0)
+  if (!row) {
+    return { success: false, error: CardNotFound(`id=${id}`) }
+  }
+  return { success: true, value: row }
+}
+
 /** Every card a member ever had, oldest first — the blocked ones included, on purpose. */
 export async function dbSelectThankYouCardsByUserId(userId: number): Promise<ThankYouCardSelect[]> {
   return drizzleDb()

@@ -17,6 +17,7 @@ import { KlicktippResolver } from './resolver/KlicktippResolver'
 import { MatchingEntryResolver } from './resolver/MatchingEntryResolver'
 import { ProjectBrandingResolver } from './resolver/ProjectBrandingResolver'
 import { StatisticsResolver } from './resolver/StatisticsResolver'
+import { ThankYouCardPaymentResolver } from './resolver/ThankYouCardPaymentResolver'
 import { ThankYouCardResolver } from './resolver/ThankYouCardResolver'
 import { TransactionLinkResolver } from './resolver/TransactionLinkResolver'
 import { TransactionResolver } from './resolver/TransactionResolver'
@@ -41,6 +42,7 @@ export const schema = async (): Promise<GraphQLSchema> => {
       KlicktippResolver,
       ProjectBrandingResolver,
       StatisticsResolver,
+      ThankYouCardPaymentResolver,
       ThankYouCardResolver,
       TransactionLinkResolver,
       TransactionResolver,
