@@ -244,18 +244,37 @@ describe('UserGradidoCard', () => {
       expect(mockPrintCardSheet).toHaveBeenCalledWith({ contact: [], heading: false })
     })
 
+    const tickBox = (wrapper) => wrapper.find('[data-test="gradido-card-print-heading"]')
+
     it('is remembered on this device, and only an explicit no turns it off', async () => {
       const wrapper = await wrapperFor()
-      await wrapper.find('[data-test="gradido-card-print-heading"]').setValue(false)
+      await tickBox(wrapper).setValue(false)
       await flushPromises()
 
       const again = await wrapperFor()
-      expect(again.find('[data-test="gradido-card-print-heading"]').element.checked).toBe(false)
+      expect(tickBox(again).element.checked).toBe(false)
 
       // A browser that remembers nothing keeps the word, rather than quietly dropping it.
       window.localStorage.clear()
       const fresh = await wrapperFor()
-      expect(fresh.find('[data-test="gradido-card-print-heading"]').element.checked).toBe(true)
+      expect(tickBox(fresh).element.checked).toBe(true)
+    })
+
+    // The same boundary the lines have: one member's decision is not the next member's, even
+    // on the same browser. Remembering and not leaking are two properties, and a test that
+    // only remounts under one identity shows the first while saying nothing about the second.
+    it("is one member's decision, not the browser's", async () => {
+      const wrapper = await wrapperFor()
+      await tickBox(wrapper).setValue(false)
+      await flushPromises()
+
+      storeState.gradidoID = 'uuid-2'
+      const other = await wrapperFor()
+      expect(tickBox(other).element.checked).toBe(true)
+
+      storeState.gradidoID = 'uuid-1'
+      const back = await wrapperFor()
+      expect(tickBox(back).element.checked).toBe(false)
     })
   })
 
