@@ -21,8 +21,7 @@ const i18n = createI18n({
     en: {
       'public-profile': {
         address: 'Gradido address',
-        send: 'Send Gradido:',
-        'send-hint': 'Copy the address and paste it into your Gradido account.',
+        send: 'Send Gradido',
       },
       missingGradidoAccount: 'No {communityName} account yet?',
       signup: 'Sign up',
@@ -35,6 +34,12 @@ const router = createRouter({
   routes: [
     { name: 'PublicProfile', path: '/u/:alias', component: PublicProfile },
     { name: 'Register', path: '/register/:code?', component: { template: '<div />' } },
+    {
+      name: 'Send',
+      path: '/send/:communityIdentifier?/:userIdentifier?',
+      component: { template: '<div />' },
+      meta: { requiresAuth: true },
+    },
   ],
 })
 
@@ -57,27 +62,54 @@ describe('PublicProfile', () => {
     expect(wrapper.text()).toContain('ki-playground.gradido.net/u/bernd')
   })
 
-  it('says how to send Gradido', async () => {
+  // The whole point of the button: it carries the recipient. A link to the bare send form
+  // would lose exactly what the visitor arrived with, and nothing on the page would say so.
+  it('offers a send button that names community and recipient', async () => {
     const wrapper = await wrapperFor('bernd')
 
-    expect(wrapper.text()).toContain('Send Gradido:')
-    expect(wrapper.text()).toContain('Copy the address and paste it into your Gradido account.')
+    const button = wrapper.find('[data-test="public-profile-send"]')
+    expect(button.exists()).toBe(true)
+    expect(button.text()).toBe('Send Gradido')
+    expect(button.attributes('href')).toBe('/send/KI%20Playground/bernd')
   })
 
-  // Bernd at the live page: a heading with its sentence underneath, not two things side by
-  // side. The first attempt set them on one line with the house separator, and that read as
-  // a divider between equals instead of a label for what follows.
-  it('sets "send Gradido" as a heading above the sentence, not beside it', async () => {
+  // The community is named, not printed. The backend resolves a community by uuid, by name
+  // or by its stored federation endpoint -- never by the host that gets printed on the card.
+  // A link built from the printed form would open the send form and leave it empty.
+  it('names the community the way the backend can resolve it', async () => {
     const wrapper = await wrapperFor('bernd')
 
-    // The element, not the class: bold text is not a heading to anybody who cannot see it.
-    const heading = wrapper.find('h2')
-    expect(heading.exists()).toBe(true)
-    expect(heading.text()).toBe('Send Gradido:')
-    expect(heading.element.nextElementSibling.textContent.trim()).toBe(
-      'Copy the address and paste it into your Gradido account.',
-    )
-    expect(wrapper.find('.separator-start').exists()).toBe(false)
+    const href = wrapper.find('[data-test="public-profile-send"]').attributes('href')
+    expect(href).not.toContain('ki-playground.gradido.net')
+  })
+
+  // The signed-out visitor is the normal case, not the exception: a phone camera opens the
+  // default browser, while the wallet session lives in whichever browser the member usually
+  // uses. The detour through the login is therefore the usual way in, and it works by the
+  // guard storing this path and pushing it again afterwards.
+  //
+  // This test covers the one link of that chain that belongs to this page: the path the
+  // button produces goes out and comes back with both parameters intact. A community name
+  // with a space in it is the part that could quietly break on the trip, and the encoding
+  // that saves it comes from the router resolving the route -- not from the guard, which
+  // stores `to.path` verbatim. A guard test built from a hand-written string could not see
+  // the difference; it would only measure the literal somebody typed into it.
+  //
+  // The other two links are held elsewhere, and they are what make this one enough:
+  // `router.test.js` asserts that the real `/send/:communityIdentifier?/:userIdentifier?`
+  // requires authentication, and `guards.test.js` asserts that the guard stores the path it
+  // turned away and sends the visitor to the login.
+  it('produces a path that survives being stored and pushed again', async () => {
+    const wrapper = await wrapperFor('bernd')
+
+    const stored = wrapper.find('[data-test="public-profile-send"]').attributes('href')
+    await router.push(stored)
+
+    expect(router.currentRoute.value.name).toBe('Send')
+    expect(router.currentRoute.value.params).toEqual({
+      communityIdentifier: 'KI Playground',
+      userIdentifier: 'bernd',
+    })
   })
 
   // The way onward for somebody who has no account yet. The community is named on purpose:
@@ -100,6 +132,18 @@ describe('PublicProfile', () => {
     const invented = (await wrapperFor('xyzabc')).text().replaceAll('xyzabc', 'ALIAS')
 
     expect(invented).toBe(real)
+  })
+
+  // The same for the button, which the comparison above cannot see because it lives in an
+  // attribute: it points at whatever was opened, without asking whether that person exists.
+  // Where the page stays silent, the send form speaks -- but only after a login, and only
+  // to a member. That is the rule (the truth falls inside), not an oversight.
+  it('points the button at a made-up address just the same', async () => {
+    const wrapper = await wrapperFor('xyzabc')
+
+    expect(wrapper.find('[data-test="public-profile-send"]').attributes('href')).toBe(
+      '/send/KI%20Playground/xyzabc',
+    )
   })
 
   it('shows no error, not even a friendly one', async () => {

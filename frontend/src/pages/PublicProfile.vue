@@ -1,38 +1,16 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
   <div class="public-profile text-center">
-    <div class="small">{{ $t('public-profile.address') }}</div>
+    <BButton class="w-100 fs-7" variant="gradido" :to="sendRoute" data-test="public-profile-send">
+      {{ $t('public-profile.send') }}
+    </BButton>
 
-    <div class="mb-2">
+    <div class="mt-4">
+      <div class="small">{{ $t('public-profile.address') }}</div>
       <gradido-address-copy :alias="alias" />
     </div>
 
-    <!-- A heading with its sentence underneath, not two things side by side. The first
-         attempt put them on one line with the house separator, and on screen that read as a
-         divider between equals rather than as a label for what follows. The colon lives in
-         the translation, because it is not the same mark everywhere -- French sets a space
-         before it, and that cannot be done from here.
-
-         A real heading element, not bold text: a screen reader has to be able to find it,
-         and "looks like a heading" is not something it can hear. The class only sets the
-         size -- this page carries no heading of its own otherwise, so h2 is the level it
-         starts at. That the layout around it has no <h1> is true and not settled here: it
-         writes the community name as `div.h1`, and that belongs to every page in the auth
-         layout, not to this one.
-
-         `h5` and not `h6`, and that is worth a line because the smaller one is the tempting
-         choice for a small label. The heading scale in this wallet is unusually tight and
-         starts low: `.h6` is `.625rem`, ten pixels. The block around it is `.small`, which
-         is 80% -- 12.8px -- so `h6` would put the heading *below* the size of its own
-         sentence, and a heading smaller than the text it heads reads as a footnote. `.h5`
-         is `.8125rem`, thirteen pixels: level with the sentence, and `fw-bold` carries the
-         distinction. Size is not what makes this a heading; the element is. -->
-    <div class="small mb-4">
-      <h2 class="h5 fw-bold mb-0">{{ $t('public-profile.send') }}</h2>
-      <div>{{ $t('public-profile.send-hint') }}</div>
-    </div>
-
-    <div class="small">
+    <div class="small mt-4">
       {{ $t('missingGradidoAccount', { communityName: communityName }) }}
     </div>
     <div class="mt-1">
@@ -60,19 +38,36 @@
  * and the face; the card is the disclosure, not this page. What the page owes the visitor is
  * a way onward, not an introduction.
  *
- * ## Why there is no "I am in another community" branch
+ * ## The send button is a link, not a decision
  *
- * Because copying covers it, and without asking. The address goes into the visitor's own
- * wallet, wherever that is -- and there it carries money, e-mail and later a chat thread.
- * A community picker would have to be built once per purpose and would only offer the
- * communities this server reached recently; the clipboard always works.
+ * It leads to `/send/<community>/<alias>` and nothing else. That route requires
+ * authentication, so the router guard already does what a hand-written check here would do:
+ * a member who is signed in lands in the send form with the recipient filled in, and one who
+ * is not is sent to the login and brought back to the same address afterwards, because the
+ * guard remembers the path it turned away.
  *
- * The same reasoning removes the need to bring anybody back here after logging in: the way
- * is copy-and-paste, not log-in-and-return, so nothing has to survive the trip.
+ * So the page asks neither whether somebody is signed in nor whether they belong here. That
+ * matters beyond saving a few lines: the card is set up on a phone and opened on shared
+ * machines, and a page that guessed membership from what the browser remembers would show
+ * the next visitor a guess about the last one. The guard asks the token instead of guessing.
+ *
+ * ## Why the community is named, not printed
+ *
+ * The address prints the community as a host (`ki-playground.gradido.net`), but the backend
+ * resolves a community by uuid, by name, or by the stored federation endpoint -- and the host
+ * is none of those, so a link built from the printed form would open the form and fail to
+ * fill it. The uuid would have to be asked for, which is exactly what this page does not do,
+ * so the name it is: `CONFIG.COMMUNITY_NAME` is how the wallet already names its own
+ * community elsewhere (the send form's default target, the redeem path's home entry).
+ *
+ * That the button only works for members of *this* community is not a shortcoming of the
+ * link but the reason the address stays below it. Whoever is at home somewhere else copies
+ * the address into their own wallet, where it carries money, e-mail and later a chat thread.
+ * The button leads; copying catches whoever the button cannot serve.
  */
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { BLink } from 'bootstrap-vue-next'
+import { BButton, BLink } from 'bootstrap-vue-next'
 import GradidoAddressCopy from '@/components/GradidoAddressCopy'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import CONFIG from '@/config'
@@ -82,4 +77,12 @@ const { routeWithParamsAndQuery } = useAuthLinks()
 
 const alias = computed(() => String(route.params.alias ?? ''))
 const communityName = CONFIG.COMMUNITY_NAME
+
+// A route object rather than a path string, so the router encodes the parts. Community names
+// may carry spaces ("KI Playground"), and the path this produces has to survive being stored
+// by the guard and pushed again after the login.
+const sendRoute = computed(() => ({
+  name: 'Send',
+  params: { communityIdentifier: communityName, userIdentifier: alias.value },
+}))
 </script>

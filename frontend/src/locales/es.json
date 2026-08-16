@@ -624,8 +624,7 @@
   },
   "public-profile": {
     "address": "Dirección Gradido",
-    "send": "Enviar Gradido:",
-    "send-hint": "Copia la dirección y pégala en tu cuenta Gradido."
+    "send": "Enviar Gradido"
   },
   "qrCode": "Código QR",
   "send_email": "Enviar correo electrónico",
