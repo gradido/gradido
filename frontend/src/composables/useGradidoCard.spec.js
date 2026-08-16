@@ -229,6 +229,27 @@ describe('useGradidoCard', () => {
       )
     })
 
+    it('leaves the heading out when it is not wanted', async () => {
+      const { drawCard } = useGradidoCard()
+
+      await drawCard({ contact: ['bernd@gradido.net'], heading: false })
+
+      expect(mockDrawGradidoCard).toHaveBeenCalledWith(
+        expect.objectContaining({ contactHeading: '' }),
+      )
+    })
+
+    it('carries the decision to the download and to the sheet', async () => {
+      const { downloadCard, printCardSheet } = useGradidoCard()
+
+      await downloadCard({ contact: ['a@b.de'], heading: false })
+      await printCardSheet({ contact: ['a@b.de'], heading: false })
+
+      for (const call of mockDrawGradidoCard.mock.calls) {
+        expect(call[0].contactHeading).toBe('')
+      }
+    })
+
     it('carries them on the download', async () => {
       const { downloadCard } = useGradidoCard()
 

@@ -372,6 +372,7 @@
     "contact-count": "{count} di {max} righe · salvato su questo dispositivo",
     "contact-hint": "Quello che scrivi qui viene stampato. Resta su questo dispositivo e non viene inviato al server: su un computer condiviso è meglio lasciarlo vuoto.",
     "contact-placeholder": "E-mail, telefono, sito web … — una voce per riga",
+    "contact-print-heading": "stampa questa parola",
     "contact-too-many": "Più di {max} righe: sulla tessera compaiono solo le prime {max}.",
     "description": "Da stampare e distribuire: il tuo nome, la tua comunità, il tuo nome utente, il tuo codice QR e le tue righe di contatto su una tessera delle dimensioni di una carta bancaria. Chi la riceve può regalarti Gradido e mettersi in contatto con te.",
     "download": "Scarica la tessera",

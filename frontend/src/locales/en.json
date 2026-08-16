@@ -373,6 +373,7 @@
     "contact-count": "{count} of {max} lines · kept on this device",
     "contact-hint": "Whatever stands here is printed along. It stays on this device and is not sent to the server — so on a shared computer, better leave it empty.",
     "contact-placeholder": "E-mail, phone, website … — one entry per line",
+    "contact-print-heading": "print this word",
     "contact-too-many": "More than {max} lines — only the first {max} are printed on the card.",
     "description": "To print and hand out: your name, your community, your username, your QR code and your contact lines on a card the size of a bank card. Whoever receives it can give you Gradido — and reach you.",
     "download": "Download card",

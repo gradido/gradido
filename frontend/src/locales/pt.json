@@ -372,6 +372,7 @@
     "contact-count": "{count} de {max} linhas · guardado neste dispositivo",
     "contact-hint": "O que escreveres aqui é impresso também. Fica neste dispositivo e não é enviado para o servidor — num computador partilhado é melhor deixar vazio.",
     "contact-placeholder": "E-mail, telefone, site … — uma indicação por linha",
+    "contact-print-heading": "imprimir esta palavra",
     "contact-too-many": "Mais de {max} linhas — no cartão aparecem apenas as primeiras {max}.",
     "description": "Para imprimir e distribuir: o teu nome, a tua comunidade, o teu nome de utilizador, o teu código QR e as tuas linhas de contacto num cartão do tamanho de um cartão bancário. Quem o receber pode oferecer-te Gradido e contactar-te.",
     "download": "Descarregar cartão",

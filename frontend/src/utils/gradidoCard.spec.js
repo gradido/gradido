@@ -294,6 +294,25 @@ describe('drawGradidoCard', () => {
       expect(texts).toContain('+49 7071 123456')
     })
 
+    // With five full lines the word is in the way rather than an invitation, so it can be
+    // left off -- and then the lines take its place instead of leaving a gap where it stood.
+    it('leaves the heading out when there is none, and moves the lines up', async () => {
+      const baselineOfFirstLine = () =>
+        ctx.calls.find((call) => call.name === 'fillText' && call.args[0] === 'first').args[2]
+
+      await drawGradidoCard({ ...CARD, contactHeading: 'Kontakt', contact: ['first', 'second'] })
+      const withHeading = baselineOfFirstLine()
+
+      ctx = recordingContext()
+      await drawGradidoCard({ ...CARD, contactHeading: '', contact: ['first', 'second'] })
+
+      expect(textsDrawn(ctx)).not.toContain('Kontakt')
+      // The block stays centred in its column, so the lines move up into the space the word
+      // had rather than leaving a gap where it stood. (Written the other way round first --
+      // the measurement was right and the expectation backwards.)
+      expect(baselineOfFirstLine()).toBeLessThan(withHeading)
+    })
+
     it('prints nothing where there is nothing, not even the heading', async () => {
       await drawGradidoCard({ ...CARD, contactHeading: 'Kontakt', contact: [] })
 
