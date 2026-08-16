@@ -203,6 +203,29 @@ describe('UserGradidoCard', () => {
     })
   })
 
+  // Cancelling a timer stops a draw that has not started. It does nothing about one that is
+  // already running -- and on a slow device the older of two draws can finish last.
+  it('lets no older draw overwrite a newer preview', async () => {
+    const wrapper = await wrapperFor()
+
+    let finishFirst
+    mockDrawCard.mockImplementationOnce(
+      () => new Promise((resolve) => (finishFirst = () => resolve('data:image/png;base64,older'))),
+    )
+    await typeContact(wrapper, 'older')
+
+    mockDrawCard.mockResolvedValueOnce('data:image/png;base64,newer')
+    await typeContact(wrapper, 'newer')
+
+    // ... and only now does the first one come back
+    finishFirst()
+    await flushPromises()
+
+    expect(wrapper.find('[data-test="gradido-card-preview"]').attributes('src')).toBe(
+      'data:image/png;base64,newer',
+    )
+  })
+
   // Kept on the device, under the member's own Gradido ID -- so a shared browser does not
   // show the previous person's telephone number to the next one.
   describe('remembering on this device', () => {
@@ -216,6 +239,21 @@ describe('UserGradidoCard', () => {
         'bernd@gradido.net',
       )
       expect(wrapper.exists()).toBe(true)
+    })
+
+    // Null is a state the wallet really passes through: before the login response arrives and
+    // again after logging out. A fallback key would be shared by everybody who ever has none,
+    // which is exactly the leak the key is here to prevent.
+    it('remembers nothing at all while there is no Gradido ID', async () => {
+      storeState.gradidoID = null
+      const wrapper = await wrapperFor()
+
+      await typeContact(wrapper, 'bernd@gradido.net')
+
+      expect(Object.keys(window.localStorage)).toHaveLength(0)
+
+      const next = await wrapperFor()
+      expect(next.find('[data-test="gradido-card-contact"]').element.value).toBe('')
     })
 
     it('shows nothing to the next member on the same browser', async () => {

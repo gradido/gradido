@@ -147,12 +147,23 @@ const tooManyLines = computed(
  * The guard is against being *seen*, not against being *looked for*: whoever uses the same
  * browser and knows where to look can read it. That is why the hint under the field says the
  * lines stay on this device rather than promising they are safe.
+ *
+ * Without an ID there is no key. A fallback name would be shared by everybody who ever has
+ * none -- and `state.gradidoID` is null before the login response arrives and again after
+ * logging out, so that is a state the wallet really passes through. A single shared key would
+ * hand one member's telephone number to the next, which is the one thing this is here to
+ * prevent. Not remembering is the safe direction.
  */
-const storageKey = () => `gradido-card-contact:${store.state.gradidoID ?? 'unknown'}`
+const storageKey = () => {
+  const { gradidoID } = store.state
+  return gradidoID ? `gradido-card-contact:${gradidoID}` : null
+}
 
 const readStored = () => {
+  const key = storageKey()
+  if (!key) return null
   try {
-    return window.localStorage.getItem(storageKey())
+    return window.localStorage.getItem(key)
   } catch {
     // A browser with storage switched off must not cost the card. The field is then simply
     // empty on the next visit, which is a smaller loss than a section that fails to load.
@@ -161,8 +172,10 @@ const readStored = () => {
 }
 
 const writeStored = (value) => {
+  const key = storageKey()
+  if (!key) return
   try {
-    window.localStorage.setItem(storageKey(), value)
+    window.localStorage.setItem(key, value)
   } catch {
     // as above: not being able to remember is no reason to fail
   }
@@ -172,21 +185,33 @@ const writeStored = (value) => {
  * Drawn while the member types, so that the field looks like its result. Held back briefly,
  * because every draw loads the logo, the leaf and the picture and paints the whole card --
  * cheap, but not once per keystroke.
+ *
+ * The counter is what the timer alone cannot do. Cancelling a timer stops a draw that has
+ * not started; it does nothing about one that is already running. On a slow device two draws
+ * can overlap, and if the older one finishes last it puts the older lines back on screen --
+ * where they would sit until the next keystroke, showing something other than what the card
+ * would carry. So each draw remembers which round it belongs to and only the current round
+ * is allowed to write.
  */
 let redrawTimer = null
+let redrawRound = 0
 
 const redraw = async () => {
+  const round = ++redrawRound
+  const isCurrent = () => round === redrawRound
+
   if (!hasUsername.value) {
     preview.value = ''
     return
   }
   try {
-    preview.value = await drawCard({ contact: lines.value, preview: true })
+    const card = await drawCard({ contact: lines.value, preview: true })
+    if (isCurrent()) preview.value = card
   } catch {
     // The preview is a convenience. If an image fails to load, the two buttons below still
     // work and report for themselves -- showing nothing here is better than showing an
     // error where a card belongs.
-    preview.value = ''
+    if (isCurrent()) preview.value = ''
   }
 }
 
@@ -241,10 +266,12 @@ const onSheet = () => run(printCardSheet)
 }
 
 /* Holds the width of the preview while there is none, so the field beside it does not jump
-   sideways the moment the first card appears. */
+   sideways the moment the first card appears. The width has to be a definite one: the column
+   is `md="auto"`, so it takes its width from its content, and `width: 100%` inside it would
+   be measured against a width that is not decided yet -- reserving nothing. */
 .gradido-card-empty {
-  width: 100%;
-  max-width: 24rem;
+  width: 24rem;
+  max-width: 100%;
   min-height: 4rem;
 }
 </style>

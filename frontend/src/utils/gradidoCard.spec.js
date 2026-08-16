@@ -64,6 +64,10 @@ const recordingContext = () => {
   return ctx
 }
 
+// The same conversion the card draws with, so a measurement here can be written in
+// millimetres instead of in pixels nobody can check.
+const mm = (value) => Math.round((value * 300) / 25.4)
+
 const textsDrawn = (ctx) =>
   ctx.calls.filter((call) => call.name === 'fillText').map((c) => c.args[0])
 
@@ -350,10 +354,25 @@ describe('drawGradidoCard', () => {
 
     // The clip is what stands between a very long line and the QR. Without it the shrinking
     // above would run out at its floor and paint over the code.
+    //
+    // Asked for by its own rectangle rather than by "somebody clipped something": the picture
+    // clips too, a round window for the photo, and a card drawn with one would let a weaker
+    // test pass even with this clip gone. This fixture has no picture -- but the next one
+    // might, and then the test would be measuring the wrong thing without saying so.
     it('clips the column so nothing can paint over the QR', async () => {
       await drawGradidoCard({ ...CARD, contact: ['anything'] })
 
-      expect(ctx.calls.some((call) => call.name === 'clip')).toBe(true)
+      const rect = ctx.calls.findIndex((call) => call.name === 'rect')
+      expect(rect).toBeGreaterThanOrEqual(0)
+
+      const clip = ctx.calls.findIndex((call, index) => index > rect && call.name === 'clip')
+      expect(clip).toBeGreaterThan(rect)
+
+      // The rectangle is the free column: it starts behind the picture and ends before the QR.
+      const [left, , width] = ctx.calls[rect].args
+      const qr = ctx.calls.find((call) => call.name === 'drawImage' && call.args[0].isTheQr)
+      expect(left).toBeGreaterThan(mm(20))
+      expect(left + width).toBeLessThanOrEqual(qr.args[1])
     })
   })
 
