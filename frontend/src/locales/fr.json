@@ -368,7 +368,12 @@
     "recruited-member": "Membre invité"
   },
   "gradido-card": {
-    "description": "À imprimer et à distribuer : ton nom, ta communauté, ton nom d'utilisateur et ton code QR sur une carte au format d'une carte bancaire. Celui qui la reçoit peut t'offrir des Gradido.",
+    "contact": "Contact",
+    "contact-count": "{count} sur {max} lignes · conservé sur cet appareil",
+    "contact-hint": "Ce qui est écrit ici est imprimé aussi. Cela reste sur cet appareil et n’est pas envoyé au serveur — sur un ordinateur partagé, mieux vaut laisser vide.",
+    "contact-placeholder": "E-mail, téléphone, site web … — une entrée par ligne",
+    "contact-too-many": "Plus de {max} lignes — seules les {max} premières figurent sur la carte.",
+    "description": "À imprimer et à distribuer : ton nom, ta communauté, ton nom d’utilisateur, ton code QR et tes lignes de contact sur une carte au format d’une carte bancaire. Celui qui la reçoit peut t’offrir des Gradido et te joindre.",
     "download": "Télécharger la carte",
     "download-hint": "Une seule image en qualité d'impression — pour une imprimerie ou à transmettre.",
     "needs-username": "Ta carte porte ton adresse Gradido, et cette adresse est formée à partir de ton nom d'utilisateur. Choisis-en un d'abord : le champ se trouve un peu plus haut sur cette page. Ensuite tu pourras imprimer ta carte et la donner.",

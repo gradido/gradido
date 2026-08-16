@@ -368,7 +368,12 @@
     "recruited-member": "Davetli üye"
   },
   "gradido-card": {
-    "description": "Yazdırmak ve dağıtmak için: adın, topluluğun, kullanıcı adın ve QR kodun banka kartı büyüklüğünde bir kartta. Kartı alan kişi sana Gradido hediye edebilir.",
+    "contact": "İletişim",
+    "contact-count": "{max} satırdan {count} tanesi · bu cihazda saklanıyor",
+    "contact-hint": "Buraya yazdığın da basılır. Bu cihazda kalır ve sunucuya gönderilmez — paylaşılan bir bilgisayarda boş bırakmak daha iyidir.",
+    "contact-placeholder": "E-posta, telefon, web sitesi … — her satıra bir bilgi",
+    "contact-too-many": "{max} satırdan fazla — kartta yalnızca ilk {max} satır yer alır.",
+    "description": "Yazdırmak ve dağıtmak için: adın, topluluğun, kullanıcı adın, QR kodun ve iletişim satırların banka kartı büyüklüğünde bir kartta. Kartı alan kişi sana Gradido hediye edebilir ve sana ulaşabilir.",
     "download": "Kartı indir",
     "download-hint": "Baskı kalitesinde tek bir görsel — bir matbaa için veya birine vermek için.",
     "needs-username": "Kartın Gradido adresini taşır ve bu adres kullanıcı adından oluşur. Lütfen önce bir tane seç — alan bu sayfanın biraz yukarısında. Sonra kartını yazdırıp verebilirsin.",

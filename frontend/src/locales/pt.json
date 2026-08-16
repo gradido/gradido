@@ -368,7 +368,12 @@
     "recruited-member": "Membro convidado"
   },
   "gradido-card": {
-    "description": "Para imprimir e distribuir: o teu nome, a tua comunidade, o teu nome de utilizador e o teu código QR num cartão do tamanho de um cartão bancário. Quem o receber pode oferecer-te Gradido.",
+    "contact": "Contacto",
+    "contact-count": "{count} de {max} linhas · guardado neste dispositivo",
+    "contact-hint": "O que escreveres aqui é impresso também. Fica neste dispositivo e não é enviado para o servidor — num computador partilhado é melhor deixar vazio.",
+    "contact-placeholder": "E-mail, telefone, site … — uma indicação por linha",
+    "contact-too-many": "Mais de {max} linhas — no cartão aparecem apenas as primeiras {max}.",
+    "description": "Para imprimir e distribuir: o teu nome, a tua comunidade, o teu nome de utilizador, o teu código QR e as tuas linhas de contacto num cartão do tamanho de um cartão bancário. Quem o receber pode oferecer-te Gradido e contactar-te.",
     "download": "Descarregar cartão",
     "download-hint": "Uma única imagem em qualidade de impressão — para uma gráfica ou para entregar.",
     "needs-username": "O teu cartão leva o teu endereço Gradido, e esse endereço nasce do teu nome de utilizador. Escolhe um primeiro — o campo está um pouco mais acima nesta página. Depois podes imprimir o teu cartão e entregá-lo.",
