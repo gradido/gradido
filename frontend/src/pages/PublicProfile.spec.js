@@ -73,18 +73,22 @@ describe('PublicProfile', () => {
     expect(button.attributes('href')).toBe('/send/KI%20Playground/bernd')
   })
 
-  // Bernd at the live page: the button spanned the whole card on a computer and read as a bar
-  // rather than a button. It keeps the full width where the thumb is the pointing device and
-  // gets narrower as the card grows -- so the classes are the behaviour here, and worth holding.
-  it('fills the width on a phone and narrows as the card grows', async () => {
+  // Bernd at the live page, twice: first the button spanned the whole card and read as a bar,
+  // then a grid fraction squeezed "Gradido senden" onto two lines just above 1025px, where the
+  // layout puts the picture back beside the card and the card gets narrower.
+  //
+  // So the width is not a fraction of anything -- the button carries its own, and the style
+  // block is where that lives. What a test can hold is that it is not put back into a grid
+  // column and not given a width utility, because either would make the label's own size stop
+  // deciding. The French wording needs 255px against the German 217px; a fraction that fits
+  // one is wrong for the other.
+  it('lets the button carry its own width instead of a grid fraction', async () => {
     const wrapper = await wrapperFor('bernd')
 
-    const column = wrapper
-      .find('[data-test="public-profile-send"]')
-      .element.closest('[class*="col"]')
-    expect(column.className).toContain('col-12')
-    expect(column.className).toContain('col-md-8')
-    expect(column.className).toContain('col-lg-6')
+    const button = wrapper.find('[data-test="public-profile-send"]')
+    expect(button.classes()).toContain('send-button')
+    expect(button.classes()).not.toContain('w-100')
+    expect(button.element.closest('[class*="col-"]')).toBe(null)
   })
 
   // The community is named, not printed. The backend resolves a community by uuid, by name
