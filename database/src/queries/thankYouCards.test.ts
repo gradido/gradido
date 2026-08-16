@@ -120,14 +120,18 @@ describe('thankYouCards query test', () => {
 
   it('keeps the moment a card died when it is blocked twice', async () => {
     const id = await insertCard('DK-twice', 13)
+    // Milliseconds zeroed here, once, rather than in the assertion: the column keeps
+    // them (datetime(3)), so an expectation that rounds them away can only ever compare
+    // a different instant than the one that was written.
     const firstMoment = new Date(Date.now() - 60 * 60 * 1000)
+    firstMoment.setMilliseconds(0)
 
     await dbBlockThankYouCard(id, firstMoment)
     const second = await dbBlockThankYouCard(id, new Date())
 
     expect(second.success).toBe(false)
     const row = await rowOf('DK-twice')
-    expect(row?.blockedAt?.getTime()).toBe(new Date(firstMoment.setMilliseconds(0)).getTime())
+    expect(row?.blockedAt?.getTime()).toBe(firstMoment.getTime())
   })
 
   it('counts wrong PINs up to the limit and reports the running total', async () => {
