@@ -85,10 +85,21 @@ describe('PublicProfile', () => {
 
   // The signed-out visitor is the normal case, not the exception: a phone camera opens the
   // default browser, while the wallet session lives in whichever browser the member usually
-  // uses. So this path has to survive being stored by the guard and pushed again after the
-  // login -- and a community name with a space in it is the part that could quietly break
-  // on that trip.
-  it("keeps community and recipient across the login's detour", async () => {
+  // uses. The detour through the login is therefore the usual way in, and it works by the
+  // guard storing this path and pushing it again afterwards.
+  //
+  // This test covers the one link of that chain that belongs to this page: the path the
+  // button produces goes out and comes back with both parameters intact. A community name
+  // with a space in it is the part that could quietly break on the trip, and the encoding
+  // that saves it comes from the router resolving the route -- not from the guard, which
+  // stores `to.path` verbatim. A guard test built from a hand-written string could not see
+  // the difference; it would only measure the literal somebody typed into it.
+  //
+  // The other two links are held elsewhere, and they are what make this one enough:
+  // `router.test.js` asserts that the real `/send/:communityIdentifier?/:userIdentifier?`
+  // requires authentication, and `guards.test.js` asserts that the guard stores the path it
+  // turned away and sends the visitor to the login.
+  it('produces a path that survives being stored and pushed again', async () => {
     const wrapper = await wrapperFor('bernd')
 
     const stored = wrapper.find('[data-test="public-profile-send"]').attributes('href')
