@@ -1,27 +1,27 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
   <div class="public-profile text-center">
-    <!-- Full width where the thumb is the pointing device, narrower as the card grows: a call
-         to action that spans a wide card stops reading as a button and starts reading as a bar.
-         The login shapes its own button the same way (`col-lg-6 col-12` around a `w-100`); this
-         one is centred, because everything on this card is, and takes the middle step because
-         the card is already wide well before the desktop layout begins.
+    <!-- Full width on a phone, where a big target is easier to hit with a thumb; as wide as
+         its own label everywhere else. Grid fractions were tried first and cannot do this:
+         the card is not widest on the widest screen -- from 1025px the layout puts the
+         picture back beside it and the card gets *narrower* -- so a fraction that reads well
+         on a large screen squeezes the label into two lines just above that breakpoint.
 
-         Measured rather than assumed: this wallet moves `lg` to 1025px (Bootstrap's default is
-         992), and that is exactly where the layout puts the picture back beside the card. So
-         the button reaches its narrowest at the same width the page changes shape. -->
-    <BRow class="justify-content-center">
-      <BCol cols="12" md="8" lg="6">
-        <BButton
-          class="w-100 fs-7"
-          variant="gradido"
-          :to="sendRoute"
-          data-test="public-profile-send"
-        >
-          {{ $t('public-profile.send') }}
-        </BButton>
-      </BCol>
-    </BRow>
+         The label is what decides, and it is not the German one: `.btn-gradido` forces 50px
+         of padding on each side, so the button needs 255px for the French wording against
+         217px for the German. A fraction wide enough for French on the narrowest card would
+         be a bar again on a wide one. Letting the button size itself is the one rule that
+         holds in all ten languages and at every step of the font-size regulator. -->
+    <div class="send-action">
+      <BButton
+        class="fs-7 send-button"
+        variant="gradido"
+        :to="sendRoute"
+        data-test="public-profile-send"
+      >
+        {{ $t('public-profile.send') }}
+      </BButton>
+    </div>
 
     <div class="mt-4">
       <div class="small">{{ $t('public-profile.address') }}</div>
@@ -85,7 +85,7 @@
  */
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { BButton, BCol, BLink, BRow } from 'bootstrap-vue-next'
+import { BButton, BLink } from 'bootstrap-vue-next'
 import GradidoAddressCopy from '@/components/GradidoAddressCopy'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import CONFIG from '@/config'
@@ -104,3 +104,23 @@ const sendRoute = computed(() => ({
   params: { communityIdentifier: communityName, userIdentifier: alias.value },
 }))
 </script>
+
+<style lang="scss" scoped>
+/* The thumb gets the whole width, the mouse gets a button the size of its label.
+
+   Through a wrapper and `:deep`, and that is not a matter of taste: a scoped rule written
+   straight onto the button does not reach it. Vue stamps its scope attribute on the root
+   element of a *direct* child component, and this button is two removed -- BButton renders a
+   router-link, which renders the anchor. The rule was there, the attribute was not, and the
+   desktop looked right anyway because `auto` is what an inline-block does by default. Only
+   the phone showed it. */
+.send-action :deep(.send-button) {
+  width: auto;
+}
+
+@media screen and (width <= 767px) {
+  .send-action :deep(.send-button) {
+    width: 100%;
+  }
+}
+</style>
