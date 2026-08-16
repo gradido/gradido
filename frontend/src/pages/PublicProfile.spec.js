@@ -73,6 +73,20 @@ describe('PublicProfile', () => {
     expect(button.attributes('href')).toBe('/send/KI%20Playground/bernd')
   })
 
+  // Bernd at the live page: the button spanned the whole card on a computer and read as a bar
+  // rather than a button. It keeps the full width where the thumb is the pointing device and
+  // gets narrower as the card grows -- so the classes are the behaviour here, and worth holding.
+  it('fills the width on a phone and narrows as the card grows', async () => {
+    const wrapper = await wrapperFor('bernd')
+
+    const column = wrapper
+      .find('[data-test="public-profile-send"]')
+      .element.closest('[class*="col"]')
+    expect(column.className).toContain('col-12')
+    expect(column.className).toContain('col-md-8')
+    expect(column.className).toContain('col-lg-6')
+  })
+
   // The community is named, not printed. The backend resolves a community by uuid, by name
   // or by its stored federation endpoint -- never by the host that gets printed on the card.
   // A link built from the printed form would open the send form and leave it empty.

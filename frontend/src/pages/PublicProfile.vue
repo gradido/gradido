@@ -1,9 +1,27 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
   <div class="public-profile text-center">
-    <BButton class="w-100 fs-7" variant="gradido" :to="sendRoute" data-test="public-profile-send">
-      {{ $t('public-profile.send') }}
-    </BButton>
+    <!-- Full width where the thumb is the pointing device, narrower as the card grows: a call
+         to action that spans a wide card stops reading as a button and starts reading as a bar.
+         The login shapes its own button the same way (`col-lg-6 col-12` around a `w-100`); this
+         one is centred, because everything on this card is, and takes the middle step because
+         the card is already wide well before the desktop layout begins.
+
+         Measured rather than assumed: this wallet moves `lg` to 1025px (Bootstrap's default is
+         992), and that is exactly where the layout puts the picture back beside the card. So
+         the button reaches its narrowest at the same width the page changes shape. -->
+    <BRow class="justify-content-center">
+      <BCol cols="12" md="8" lg="6">
+        <BButton
+          class="w-100 fs-7"
+          variant="gradido"
+          :to="sendRoute"
+          data-test="public-profile-send"
+        >
+          {{ $t('public-profile.send') }}
+        </BButton>
+      </BCol>
+    </BRow>
 
     <div class="mt-4">
       <div class="small">{{ $t('public-profile.address') }}</div>
@@ -67,7 +85,7 @@
  */
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { BButton, BLink } from 'bootstrap-vue-next'
+import { BButton, BCol, BLink, BRow } from 'bootstrap-vue-next'
 import GradidoAddressCopy from '@/components/GradidoAddressCopy'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import CONFIG from '@/config'
