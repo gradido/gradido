@@ -313,7 +313,13 @@ export const thankYouCardSettingsTable = mysqlTable('thank_you_card_settings', {
   userId: int('user_id').primaryKey().notNull(),
   // Same derivation as users.password (argon2id, then a 64 bit shorthash), but with its
   // own salt -- a leak must not let one of the two secrets say anything about the other.
-  pin: bigint({ mode: 'number' }).notNull(),
+  //
+  // ⚠️ mode 'bigint' and unsigned, both load-bearing. The derivation returns a full 64
+  // bit word, so roughly half of all values are above Number.MAX_SAFE_INTEGER and would
+  // lose precision as a JS number, and everything above 2^63 would overflow a signed
+  // column. Either one turns "correct PIN" into "wrong PIN" for a share of members,
+  // unpredictably. users.password is `bigint unsigned` in the DDL for the same reason.
+  pin: bigint({ mode: 'bigint', unsigned: true }).notNull(),
   pinSalt: varchar('pin_salt', { length: 64 }).notNull(),
   maxPerPayment: customGradidoUnit('max_per_payment_gdd4').notNull(),
   maxPerDay: customGradidoUnit('max_per_day_gdd4').notNull(),

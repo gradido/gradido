@@ -43,4 +43,9 @@ export const USER_RIGHTS = [
   RIGHTS.VIEW_USER_CONTACT,
   RIGHTS.LIST_CREATION_GROUPS,
   RIGHTS.MANAGE_OWN_CREATION_GROUPS,
+  // One right for the whole of "paying with a printed card", because every call it
+  // guards reaches the caller's own settings and the caller's own cards, nothing else.
+  // ⚠️ Taking a payment is NOT behind this right: there the RECIPIENT is the one who is
+  // logged in, and the card is authorised by its code plus its PIN.
+  RIGHTS.MANAGE_OWN_THANK_YOU_CARD,
 ]

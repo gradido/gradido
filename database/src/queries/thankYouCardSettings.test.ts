@@ -13,7 +13,7 @@ import {
 const appDB = AppDatabase.getInstance()
 let db: MySql2Database
 
-const settingsOf = (userId: number, pin = 111111) => ({
+const settingsOf = (userId: number, pin = 111111n) => ({
   userId,
   pin,
   pinSalt: `salt-${userId}`,
@@ -45,7 +45,7 @@ describe('thankYouCardSettings query test', () => {
 
     expect(result.success).toBe(true)
     if (result.success) {
-      expect(result.value.pin).toBe(111111)
+      expect(result.value.pin).toBe(111111n)
       expect(result.value.pinSalt).toBe('salt-2')
       expect(result.value.maxPerPayment.toString()).toBe(GradidoUnit.fromNumber(50).toString())
       expect(result.value.maxPerDay.toString()).toBe(GradidoUnit.fromNumber(100).toString())
@@ -55,7 +55,7 @@ describe('thankYouCardSettings query test', () => {
   it('replaces PIN and limits on a second write instead of adding a row', async () => {
     await dbUpsertThankYouCardSettings(settingsOf(3))
     await dbUpsertThankYouCardSettings({
-      ...settingsOf(3, 222222),
+      ...settingsOf(3, 222222n),
       maxPerPayment: GradidoUnit.fromNumber(20),
     })
 
@@ -63,7 +63,7 @@ describe('thankYouCardSettings query test', () => {
 
     expect(result.success).toBe(true)
     if (result.success) {
-      expect(result.value.pin).toBe(222222)
+      expect(result.value.pin).toBe(222222n)
       expect(result.value.maxPerPayment.toString()).toBe(GradidoUnit.fromNumber(20).toString())
     }
   })
@@ -89,7 +89,7 @@ describe('thankYouCardSettings query test', () => {
     expect(result.success).toBe(true)
     const read = await dbSelectThankYouCardSettings(5)
     if (read.success) {
-      expect(read.value.pin).toBe(111111)
+      expect(read.value.pin).toBe(111111n)
       expect(read.value.maxPerDay.toString()).toBe(GradidoUnit.fromNumber(15).toString())
     }
   })

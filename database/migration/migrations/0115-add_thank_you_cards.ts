@@ -44,7 +44,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(`
     CREATE TABLE thank_you_card_settings (
       user_id int(10) unsigned NOT NULL,
-      pin bigint NOT NULL,
+      pin bigint unsigned NOT NULL,
       pin_salt varchar(64) NOT NULL,
       max_per_payment_gdd4 bigint NOT NULL,
       max_per_day_gdd4 bigint NOT NULL,
