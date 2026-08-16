@@ -372,6 +372,7 @@
     "contact-count": "{count} de {max} líneas · guardado en este dispositivo",
     "contact-hint": "Lo que escribas aquí se imprime también. Permanece en este dispositivo y no se envía al servidor: en un ordenador compartido es mejor dejarlo vacío.",
     "contact-placeholder": "Correo electrónico, teléfono, sitio web … — una entrada por línea",
+    "contact-print-heading": "imprimir esta palabra",
     "contact-too-many": "Más de {max} líneas: solo las primeras {max} aparecen en la tarjeta.",
     "description": "Para imprimir y repartir: tu nombre, tu comunidad, tu nombre de usuario, tu código QR y tus líneas de contacto en una tarjeta del tamaño de una tarjeta bancaria. Quien la reciba podrá regalarte Gradido y ponerse en contacto contigo.",
     "download": "Descargar tarjeta",

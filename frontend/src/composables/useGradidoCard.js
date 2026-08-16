@@ -110,9 +110,10 @@ export const useGradidoCard = () => {
   /**
    * @param {object} [options]
    * @param {string[]} [options.contact]  the lines the member typed, at most five
+   * @param {boolean} [options.heading]   whether the word above them is printed too
    * @param {boolean} [options.preview]   true for the picture on screen, false for paper
    */
-  const drawCard = async ({ contact = [], preview = false } = {}) => {
+  const drawCard = async ({ contact = [], heading = true, preview = false } = {}) => {
     const { firstName, lastName, username, gradidoID } = store.state
     const alias = memberAlias(username, gradidoID)
     const { host, link } = gradidoAddress(alias)
@@ -131,7 +132,10 @@ export const useGradidoCard = () => {
       picture: preview ? storedPicture() : await fetchPicture(),
       // The same word stands over the field the member types into. The field looks like
       // its result, which is the whole point of drawing the card while they type.
-      contactHeading: t('gradido-card.contact'),
+      //
+      // It can be left off: with five full lines the word is in the way rather than an
+      // invitation, and that is a judgement only the person holding the card can make.
+      contactHeading: heading ? t('gradido-card.contact') : '',
       contact,
     })
   }
@@ -146,9 +150,9 @@ export const useGradidoCard = () => {
    * The images the card is made of are only loaded at this point, so one that fails to load
    * must not stay silent.
    */
-  const downloadCard = async ({ contact = [], image = null } = {}) => {
+  const downloadCard = async ({ contact = [], heading = true, image = null } = {}) => {
     try {
-      const card = image ?? (await drawCard({ contact }))
+      const card = image ?? (await drawCard({ contact, heading }))
       const anchor = document.createElement('a')
       anchor.href = card
       anchor.download = cardFileName(memberName())
@@ -168,10 +172,10 @@ export const useGradidoCard = () => {
    * The page is built in a hidden frame rather than a new window, because a new window is
    * what pop-up blockers stop.
    */
-  const printCardSheet = async ({ contact = [] } = {}) => {
+  const printCardSheet = async ({ contact = [], heading = true } = {}) => {
     let frame = null
     try {
-      const card = await drawCard({ contact })
+      const card = await drawCard({ contact, heading })
 
       frame = document.createElement('iframe')
       frame.setAttribute('aria-hidden', 'true')

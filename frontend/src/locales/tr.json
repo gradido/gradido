@@ -372,6 +372,7 @@
     "contact-count": "{max} satırdan {count} tanesi · bu cihazda saklanıyor",
     "contact-hint": "Buraya yazdığın da basılır. Bu cihazda kalır ve sunucuya gönderilmez — paylaşılan bir bilgisayarda boş bırakmak daha iyidir.",
     "contact-placeholder": "E-posta, telefon, web sitesi … — her satıra bir bilgi",
+    "contact-print-heading": "bu kelimeyi de yazdır",
     "contact-too-many": "{max} satırdan fazla — kartta yalnızca ilk {max} satır yer alır.",
     "description": "Yazdırmak ve dağıtmak için: adın, topluluğun, kullanıcı adın, QR kodun ve iletişim satırların banka kartı büyüklüğünde bir kartta. Kartı alan kişi sana Gradido hediye edebilir ve sana ulaşabilir.",
     "download": "Kartı indir",

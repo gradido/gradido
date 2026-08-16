@@ -59,7 +59,7 @@ describe('UserGradidoCard', () => {
   it('shows the card as soon as the page opens', async () => {
     const wrapper = await wrapperFor()
 
-    expect(mockDrawCard).toHaveBeenCalledWith({ contact: [], preview: true })
+    expect(mockDrawCard).toHaveBeenCalledWith({ contact: [], heading: true, preview: true })
     expect(wrapper.find('[data-test="gradido-card-preview"]').attributes('src')).toBe(
       'data:image/png;base64,preview',
     )
@@ -164,6 +164,7 @@ describe('UserGradidoCard', () => {
 
       expect(mockDrawCard).toHaveBeenLastCalledWith({
         contact: ['bernd@gradido.net', '+49 7071 123456'],
+        heading: true,
         preview: true,
       })
     })
@@ -175,8 +176,14 @@ describe('UserGradidoCard', () => {
       await wrapper.find('[data-test="download-gradido-card"]').trigger('click')
       await wrapper.find('[data-test="print-gradido-sheet"]').trigger('click')
 
-      expect(mockDownloadCard).toHaveBeenCalledWith({ contact: ['bernd@gradido.net'] })
-      expect(mockPrintCardSheet).toHaveBeenCalledWith({ contact: ['bernd@gradido.net'] })
+      expect(mockDownloadCard).toHaveBeenCalledWith({
+        contact: ['bernd@gradido.net'],
+        heading: true,
+      })
+      expect(mockPrintCardSheet).toHaveBeenCalledWith({
+        contact: ['bernd@gradido.net'],
+        heading: true,
+      })
     })
 
     it('counts what will be printed, not what was typed', async () => {
@@ -187,7 +194,11 @@ describe('UserGradidoCard', () => {
       expect(wrapper.find('[data-test="gradido-card-contact-count"]').text()).toBe(
         'gradido-card.contact-count',
       )
-      expect(mockDrawCard).toHaveBeenLastCalledWith({ contact: ['one', 'two'], preview: true })
+      expect(mockDrawCard).toHaveBeenLastCalledWith({
+        contact: ['one', 'two'],
+        heading: true,
+        preview: true,
+      })
     })
 
     // Six typed lines print five. Saying so is the whole difference between a limit and a
@@ -200,6 +211,70 @@ describe('UserGradidoCard', () => {
       const count = wrapper.find('[data-test="gradido-card-contact-count"]')
       expect(count.text()).toBe('gradido-card.contact-too-many')
       expect(count.classes()).toContain('text-warning')
+    })
+  })
+
+  // The word is an invitation to get in touch, so it is on by default -- but with five full
+  // lines it is in the way, and only the person holding the card can judge that.
+  describe('the word above the lines', () => {
+    it('is printed unless it is switched off', async () => {
+      const wrapper = await wrapperFor()
+
+      expect(mockDrawCard).toHaveBeenCalledWith({ contact: [], heading: true, preview: true })
+
+      await wrapper.find('[data-test="gradido-card-print-heading"]').setValue(false)
+      await flushPromises()
+
+      expect(mockDrawCard).toHaveBeenLastCalledWith({
+        contact: [],
+        heading: false,
+        preview: true,
+      })
+    })
+
+    it('carries the decision to the download and to the sheet', async () => {
+      const wrapper = await wrapperFor()
+      await wrapper.find('[data-test="gradido-card-print-heading"]').setValue(false)
+      await flushPromises()
+
+      await wrapper.find('[data-test="download-gradido-card"]').trigger('click')
+      await wrapper.find('[data-test="print-gradido-sheet"]').trigger('click')
+
+      expect(mockDownloadCard).toHaveBeenCalledWith({ contact: [], heading: false })
+      expect(mockPrintCardSheet).toHaveBeenCalledWith({ contact: [], heading: false })
+    })
+
+    const tickBox = (wrapper) => wrapper.find('[data-test="gradido-card-print-heading"]')
+
+    it('is remembered on this device, and only an explicit no turns it off', async () => {
+      const wrapper = await wrapperFor()
+      await tickBox(wrapper).setValue(false)
+      await flushPromises()
+
+      const again = await wrapperFor()
+      expect(tickBox(again).element.checked).toBe(false)
+
+      // A browser that remembers nothing keeps the word, rather than quietly dropping it.
+      window.localStorage.clear()
+      const fresh = await wrapperFor()
+      expect(tickBox(fresh).element.checked).toBe(true)
+    })
+
+    // The same boundary the lines have: one member's decision is not the next member's, even
+    // on the same browser. Remembering and not leaking are two properties, and a test that
+    // only remounts under one identity shows the first while saying nothing about the second.
+    it("is one member's decision, not the browser's", async () => {
+      const wrapper = await wrapperFor()
+      await tickBox(wrapper).setValue(false)
+      await flushPromises()
+
+      storeState.gradidoID = 'uuid-2'
+      const other = await wrapperFor()
+      expect(tickBox(other).element.checked).toBe(true)
+
+      storeState.gradidoID = 'uuid-1'
+      const back = await wrapperFor()
+      expect(tickBox(back).element.checked).toBe(false)
     })
   })
 
@@ -264,7 +339,7 @@ describe('UserGradidoCard', () => {
       const other = await wrapperFor()
 
       expect(other.find('[data-test="gradido-card-contact"]').element.value).toBe('')
-      expect(mockDrawCard).toHaveBeenLastCalledWith({ contact: [], preview: true })
+      expect(mockDrawCard).toHaveBeenLastCalledWith({ contact: [], heading: true, preview: true })
     })
   })
 })

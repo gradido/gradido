@@ -24,9 +24,18 @@
       </BCol>
 
       <BCol cols="12" md>
-        <label class="fw-bold mb-1" for="gradido-card-contact">
-          {{ $t('gradido-card.contact') }}
-        </label>
+        <div class="d-flex align-items-center gap-3 mb-1">
+          <label class="fw-bold mb-0" for="gradido-card-contact">
+            {{ $t('gradido-card.contact') }}
+          </label>
+          <BFormCheckbox
+            v-model="printHeading"
+            class="small"
+            data-test="gradido-card-print-heading"
+          >
+            {{ $t('gradido-card.contact-print-heading') }}
+          </BFormCheckbox>
+        </div>
         <!-- height: auto, or the template's `.form-control { height: 50px }` overrides rows
              and the field shows two lines however many it is meant to hold. -->
         <BFormTextarea
@@ -91,7 +100,7 @@
 </template>
 
 <script setup>
-import { BButton, BCol, BFormTextarea, BRow } from 'bootstrap-vue-next'
+import { BButton, BCol, BFormCheckbox, BFormTextarea, BRow } from 'bootstrap-vue-next'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import AppModal from '@/components/AppModal'
@@ -105,6 +114,9 @@ const preview = ref('')
 const isBusy = ref(false)
 const needsUsername = ref(false)
 const contactText = ref('')
+// On by default: the word reads as an invitation to get in touch rather than as a label.
+// Five full lines are the case where it is in the way, and then it can go.
+const printHeading = ref(true)
 
 /**
  * No card without a user name.
@@ -154,13 +166,13 @@ const tooManyLines = computed(
  * hand one member's telephone number to the next, which is the one thing this is here to
  * prevent. Not remembering is the safe direction.
  */
-const storageKey = () => {
+const storageKey = (name = 'contact') => {
   const { gradidoID } = store.state
-  return gradidoID ? `gradido-card-contact:${gradidoID}` : null
+  return gradidoID ? `gradido-card-${name}:${gradidoID}` : null
 }
 
-const readStored = () => {
-  const key = storageKey()
+const readStored = (name) => {
+  const key = storageKey(name)
   if (!key) return null
   try {
     return window.localStorage.getItem(key)
@@ -171,8 +183,8 @@ const readStored = () => {
   }
 }
 
-const writeStored = (value) => {
-  const key = storageKey()
+const writeStored = (name, value) => {
+  const key = storageKey(name)
   if (!key) return
   try {
     window.localStorage.setItem(key, value)
@@ -205,7 +217,11 @@ const redraw = async () => {
     return
   }
   try {
-    const card = await drawCard({ contact: lines.value, preview: true })
+    const card = await drawCard({
+      contact: lines.value,
+      heading: printHeading.value,
+      preview: true,
+    })
     if (isCurrent()) preview.value = card
   } catch {
     // The preview is a convenience. If an image fails to load, the two buttons below still
@@ -221,12 +237,21 @@ const redrawSoon = () => {
 }
 
 watch(contactText, (value) => {
-  writeStored(value)
+  writeStored('contact', value)
   redrawSoon()
 })
 
+// The tick redraws at once rather than after the pause: it is a single decision, not typing,
+// and waiting a quarter second for a checkbox looks like the box did not take.
+watch(printHeading, (value) => {
+  writeStored('contact-heading', value ? '1' : '0')
+  redraw()
+})
+
 onMounted(() => {
-  contactText.value = readStored() ?? ''
+  contactText.value = readStored('contact') ?? ''
+  // Only an explicit "0" turns it off, so a browser that remembers nothing keeps the default.
+  printHeading.value = readStored('contact-heading') !== '0'
   redraw()
 })
 
@@ -245,7 +270,8 @@ const run = async (action) => {
   }
   isBusy.value = true
   try {
-    preview.value = (await action({ contact: lines.value })) ?? preview.value
+    preview.value =
+      (await action({ contact: lines.value, heading: printHeading.value })) ?? preview.value
   } finally {
     isBusy.value = false
   }

@@ -372,6 +372,7 @@
     "contact-count": "{count} van {max} regels · bewaard op dit apparaat",
     "contact-hint": "Wat hier staat, wordt mee afgedrukt. Het blijft op dit apparaat en gaat niet naar de server — op een gedeelde computer dus beter leeg laten.",
     "contact-placeholder": "E-mail, telefoon, website … — één gegeven per regel",
+    "contact-print-heading": "woord meedrukken",
     "contact-too-many": "Meer dan {max} regels — alleen de eerste {max} staan op de kaart.",
     "description": "Om af te drukken en uit te delen: jouw naam, jouw gemeenschap, jouw gebruikersnaam, jouw QR-code en jouw contactregels op een kaart ter grootte van een bankpas. Wie hem krijgt, kan jou Gradido schenken en jou bereiken.",
     "download": "Kaart downloaden",
