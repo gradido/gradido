@@ -15,8 +15,21 @@ import { renderQrCodeCanvas } from '@/utils/qrCode'
  *
  * Everything the card shows already exists in the wallet, with one exception: the 512 x 512
  * rendition of the picture, which is deliberately not part of the login response because it
- * is about ten times the everyday one. It is fetched here, at the moment somebody actually
- * asks for a card.
+ * is about ten times the everyday one.
+ *
+ * ## Which picture, and why that decides a query per visit
+ *
+ * The card is now drawn as soon as the settings page opens, so that somebody typing their
+ * contact lines sees them appear. Fetching the large picture for that would put an extra
+ * query on every visit to the page -- the card section sits on the tab it opens with.
+ *
+ * So the two draws use different pictures, and the difference is invisible where it lands:
+ *
+ * - **The preview** takes the everyday 128 px rendition, which is in the store already
+ *   (`state.avatar`, written at login and persisted). On screen the picture is about a
+ *   tenth of a card wide, so nothing about it is visible -- and it costs no query at all.
+ * - **The download and the sheet** fetch the 512 px rendition, because those end up on
+ *   paper, where 20 mm at 300 dpi is 236 px and the everyday one would show it.
  *
  * The QR is rendered off screen, with the same generator the modal uses, so what gets
  * printed is the code the screen would show.
@@ -88,7 +101,18 @@ export const useGradidoCard = () => {
     return `${firstName ?? ''} ${lastName ?? ''}`.trim()
   }
 
-  const drawCard = async () => {
+  /**
+   * The everyday picture, as a data URI, or null. Held in the store as bare base64.
+   */
+  const storedPicture = () =>
+    store.state.avatar ? `data:image/jpeg;base64,${store.state.avatar}` : null
+
+  /**
+   * @param {object} [options]
+   * @param {string[]} [options.contact]  the lines the member typed, at most five
+   * @param {boolean} [options.preview]   true for the picture on screen, false for paper
+   */
+  const drawCard = async ({ contact = [], preview = false } = {}) => {
     const { firstName, lastName, username, gradidoID } = store.state
     const alias = memberAlias(username, gradidoID)
     const { host, link } = gradidoAddress(alias)
@@ -104,7 +128,11 @@ export const useGradidoCard = () => {
       alias,
       host,
       initials: `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`,
-      picture: await fetchPicture(),
+      picture: preview ? storedPicture() : await fetchPicture(),
+      // The same word stands over the field the member types into. The field looks like
+      // its result, which is the whole point of drawing the card while they type.
+      contactHeading: t('gradido-card.contact'),
+      contact,
     })
   }
 
@@ -112,12 +140,15 @@ export const useGradidoCard = () => {
    * Hands the card to the browser and returns the picture it handed over, so the caller can
    * show the very same one instead of drawing a second time. Null when it failed.
    *
+   * Options rather than positions, like drawCard above: a caller passing only the lines and
+   * a caller passing only a ready picture would otherwise differ by argument order alone.
+   *
    * The images the card is made of are only loaded at this point, so one that fails to load
    * must not stay silent.
    */
-  const downloadCard = async (image = null) => {
+  const downloadCard = async ({ contact = [], image = null } = {}) => {
     try {
-      const card = image ?? (await drawCard())
+      const card = image ?? (await drawCard({ contact }))
       const anchor = document.createElement('a')
       anchor.href = card
       anchor.download = cardFileName(memberName())
@@ -137,10 +168,10 @@ export const useGradidoCard = () => {
    * The page is built in a hidden frame rather than a new window, because a new window is
    * what pop-up blockers stop.
    */
-  const printCardSheet = async () => {
+  const printCardSheet = async ({ contact = [] } = {}) => {
     let frame = null
     try {
-      const card = await drawCard()
+      const card = await drawCard({ contact })
 
       frame = document.createElement('iframe')
       frame.setAttribute('aria-hidden', 'true')

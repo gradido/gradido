@@ -369,7 +369,12 @@
     "recruited-member": "Eingeladenes Mitglied"
   },
   "gradido-card": {
-    "description": "Zum Ausdrucken und Weitergeben: Dein Name, Deine Gemeinschaft, Dein Benutzername und Dein QR-Code auf einer Karte in Scheckkartengröße. Wer sie bekommt, kann Dir Gradido schenken.",
+    "contact": "Kontakt",
+    "contact-count": "{count} von {max} Zeilen · auf diesem Gerät gemerkt",
+    "contact-hint": "Was hier steht, wird mitgedruckt. Es bleibt auf diesem Gerät und geht nicht an den Server — auf einem fremden Rechner also besser leer lassen.",
+    "contact-placeholder": "E-Mail, Telefon, Netzseite … — eine Angabe je Zeile",
+    "contact-too-many": "Mehr als {max} Zeilen — nur die ersten {max} stehen auf der Karte.",
+    "description": "Zum Ausdrucken und Weitergeben: Dein Name, Deine Gemeinschaft, Dein Benutzername, Dein QR-Code und Deine Kontaktzeilen auf einer Karte in Scheckkartengröße. Wer sie bekommt, kann Dir Gradido schenken — und Dich erreichen.",
     "download": "Karte herunterladen",
     "download-hint": "Ein einzelnes Bild in Druckqualität — für eine Druckerei oder zum Weitergeben.",
     "needs-username": "Deine Karte trägt Deine Gradido-Adresse — und die entsteht aus Deinem Benutzernamen. Bitte wähle zunächst einen; das Feld dafür findest Du etwas weiter oben auf dieser Seite. Danach kannst Du Deine Karte drucken und weitergeben.",

@@ -368,7 +368,12 @@
     "recruited-member": "Membro invitato"
   },
   "gradido-card": {
-    "description": "Da stampare e distribuire: il tuo nome, la tua comunità, il tuo nome utente e il tuo codice QR su una tessera delle dimensioni di una carta bancaria. Chi la riceve può regalarti Gradido.",
+    "contact": "Contatto",
+    "contact-count": "{count} di {max} righe · salvato su questo dispositivo",
+    "contact-hint": "Quello che scrivi qui viene stampato. Resta su questo dispositivo e non viene inviato al server: su un computer condiviso è meglio lasciarlo vuoto.",
+    "contact-placeholder": "E-mail, telefono, sito web … — una voce per riga",
+    "contact-too-many": "Più di {max} righe: sulla tessera compaiono solo le prime {max}.",
+    "description": "Da stampare e distribuire: il tuo nome, la tua comunità, il tuo nome utente, il tuo codice QR e le tue righe di contatto su una tessera delle dimensioni di una carta bancaria. Chi la riceve può regalarti Gradido e mettersi in contatto con te.",
     "download": "Scarica la tessera",
     "download-hint": "Una singola immagine in qualità di stampa — per una tipografia o da consegnare.",
     "needs-username": "La tua tessera porta il tuo indirizzo Gradido, e quell'indirizzo nasce dal tuo nome utente. Scegline uno prima: il campo si trova poco più in alto in questa pagina. Poi potrai stampare la tua tessera e consegnarla.",

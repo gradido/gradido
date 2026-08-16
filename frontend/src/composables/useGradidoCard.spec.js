@@ -30,6 +30,7 @@ const storeState = {
   lastName: 'Hückstädt',
   username: 'bernd',
   gradidoID: 'uuid-1',
+  avatar: 'SMALLPICTURE',
 }
 vi.mock('vuex', () => ({
   useStore: () => ({ state: storeState }),
@@ -123,7 +124,7 @@ describe('useGradidoCard', () => {
   })
 
   it('takes a picture that was drawn before instead of drawing again', async () => {
-    await useGradidoCard().downloadCard('data:image/png;base64,drawn-earlier')
+    await useGradidoCard().downloadCard({ image: 'data:image/png;base64,drawn-earlier' })
 
     expect(mockDrawGradidoCard).not.toHaveBeenCalled()
     expect(anchor.href).toBe('data:image/png;base64,drawn-earlier')
@@ -172,5 +173,80 @@ describe('useGradidoCard', () => {
     expect(mockToastError).toHaveBeenCalledWith('cannot load image: /img/brand/gradido-logo.png')
     expect(anchor.click).not.toHaveBeenCalled()
     expect(image).toBeNull()
+  })
+
+  // Two draws, two pictures. The preview is on screen, where the card is about 24 rem wide
+  // and the picture a tenth of that -- the everyday rendition is past what any screen shows,
+  // and it is in the store already. Fetching the large one for it would put a query on every
+  // visit to the settings page, because this section sits on the tab it opens with.
+  describe('which picture is used', () => {
+    it('takes the everyday picture for the preview, and asks the server for nothing', async () => {
+      const { drawCard } = useGradidoCard()
+
+      await drawCard({ preview: true })
+
+      expect(mockQuery).not.toHaveBeenCalled()
+      expect(mockDrawGradidoCard).toHaveBeenCalledWith(
+        expect.objectContaining({ picture: 'data:image/jpeg;base64,SMALLPICTURE' }),
+      )
+    })
+
+    it('fetches the large picture for what goes on paper', async () => {
+      const { drawCard } = useGradidoCard()
+
+      await drawCard()
+
+      expect(mockQuery).toHaveBeenCalled()
+      expect(mockDrawGradidoCard).toHaveBeenCalledWith(
+        expect.objectContaining({ picture: 'data:image/jpeg;base64,BASE64PICTURE' }),
+      )
+    })
+
+    it('draws the preview without a picture when there is none', async () => {
+      storeState.avatar = null
+      const { drawCard } = useGradidoCard()
+
+      await drawCard({ preview: true })
+
+      expect(mockDrawGradidoCard).toHaveBeenCalledWith(expect.objectContaining({ picture: null }))
+      storeState.avatar = 'SMALLPICTURE'
+    })
+  })
+
+  // The lines are typed for a print run and travel from the field to the card. Both ways to
+  // a card carry them, or a member would download something other than what they saw.
+  describe('the contact lines', () => {
+    it('carries them into the card, under the heading', async () => {
+      const { drawCard } = useGradidoCard()
+
+      await drawCard({ contact: ['bernd@gradido.net'] })
+
+      expect(mockDrawGradidoCard).toHaveBeenCalledWith(
+        expect.objectContaining({
+          contact: ['bernd@gradido.net'],
+          contactHeading: 'gradido-card.contact',
+        }),
+      )
+    })
+
+    it('carries them on the download', async () => {
+      const { downloadCard } = useGradidoCard()
+
+      await downloadCard({ contact: ['bernd@gradido.net'] })
+
+      expect(mockDrawGradidoCard).toHaveBeenCalledWith(
+        expect.objectContaining({ contact: ['bernd@gradido.net'] }),
+      )
+    })
+
+    it('carries them onto the sheet', async () => {
+      const { printCardSheet } = useGradidoCard()
+
+      await printCardSheet({ contact: ['+49 7071 123456'] })
+
+      expect(mockDrawGradidoCard).toHaveBeenCalledWith(
+        expect.objectContaining({ contact: ['+49 7071 123456'] }),
+      )
+    })
   })
 })
