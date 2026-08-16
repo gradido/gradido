@@ -2,7 +2,15 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { avatarPaletteEntry } from './avatarColor'
-import { cardFileName, drawGradidoCard } from './gradidoCard'
+import {
+  CONTACT_MAX_LINES,
+  QR_SOURCE_CELL,
+  cardFileName,
+  contactLines,
+  drawGradidoCard,
+  qrSizeFor,
+} from './gradidoCard'
+import { qrCodeOptions } from './qrCode'
 
 // There is no canvas in the test environment, so one is recorded instead of drawn. Every
 // call keeps the fill colour and the font that were set when it happened -- otherwise a
@@ -43,6 +51,7 @@ const recordingContext = () => {
     'drawImage',
     'beginPath',
     'arc',
+    'rect',
     'fill',
     'clip',
     'save',
@@ -263,5 +272,126 @@ describe('drawGradidoCard', () => {
     expect(arc).toBeGreaterThan(-1)
     expect(ctx.calls[arc + 1].name).toBe('clip')
     expect(ctx.calls[arc + 2].name).toBe('drawImage')
+  })
+
+  // The lines the member types are the only thing on the card whose content we do not
+  // know. They sit in the column between the picture and the QR, under one heading.
+  describe('the contact lines', () => {
+    it('prints the heading and every line', async () => {
+      await drawGradidoCard({
+        ...CARD,
+        contactHeading: 'Kontakt',
+        contact: ['bernd@gradido.net', '+49 7071 123456'],
+      })
+
+      const texts = textsDrawn(ctx)
+      expect(texts).toContain('Kontakt')
+      expect(texts).toContain('bernd@gradido.net')
+      expect(texts).toContain('+49 7071 123456')
+    })
+
+    it('prints nothing where there is nothing, not even the heading', async () => {
+      await drawGradidoCard({ ...CARD, contactHeading: 'Kontakt', contact: [] })
+
+      expect(textsDrawn(ctx)).not.toContain('Kontakt')
+    })
+
+    // Emptiness is dropped here rather than trusted to the caller, so a stray newline at
+    // the end of the field cannot print a gap between two lines.
+    it('drops empty lines and keeps the order', async () => {
+      await drawGradidoCard({
+        ...CARD,
+        contact: ['  ', 'first', '', '  second  '],
+      })
+
+      const texts = textsDrawn(ctx)
+      expect(texts).toContain('first')
+      expect(texts).toContain('second')
+      expect(texts.indexOf('first')).toBeLessThan(texts.indexOf('second'))
+    })
+
+    // Five is what still looks calm on a card, and the field says so. Anything beyond is
+    // dropped here as well: a pasted address book must not push the block past the QR.
+    it('never prints more than the limit', async () => {
+      const many = Array.from({ length: CONTACT_MAX_LINES + 4 }, (_, i) => `line-${i}`)
+
+      await drawGradidoCard({ ...CARD, contact: many })
+
+      const printed = textsDrawn(ctx).filter((text) => String(text).startsWith('line-'))
+      expect(printed).toHaveLength(CONTACT_MAX_LINES)
+      expect(printed).not.toContain(`line-${CONTACT_MAX_LINES}`)
+    })
+
+    it('keeps the same shape when asked directly', () => {
+      expect(contactLines(['a', '', '  ', 'b'])).toEqual(['a', 'b'])
+      expect(contactLines(null)).toEqual([])
+      expect(contactLines(Array.from({ length: 20 }, () => 'x'))).toHaveLength(CONTACT_MAX_LINES)
+    })
+
+    // Same reasoning as the address line: a cut contact line is a wrong one, and paper
+    // cannot be corrected. So it shrinks instead.
+    it('shrinks a long line instead of letting it run into the QR', async () => {
+      const sizeOf = (text) =>
+        Number(
+          /(\d+)px/.exec(
+            ctx.calls.find((call) => call.name === 'fillText' && call.args[0] === text).font,
+          )[1],
+        )
+
+      await drawGradidoCard({ ...CARD, contact: ['short@x.de'] })
+      const small = sizeOf('short@x.de')
+
+      ctx = recordingContext()
+      const long = `${'x'.repeat(60)}@example.org`
+      await drawGradidoCard({ ...CARD, contact: [long] })
+
+      expect(sizeOf(long)).toBeLessThan(small)
+    })
+
+    // The clip is what stands between a very long line and the QR. Without it the shrinking
+    // above would run out at its floor and paint over the code.
+    it('clips the column so nothing can paint over the QR', async () => {
+      await drawGradidoCard({ ...CARD, contact: ['anything'] })
+
+      expect(ctx.calls.some((call) => call.name === 'clip')).toBe(true)
+    })
+  })
+
+  // What decides whether a code can be read is the edge length of one module, and the
+  // number of modules follows the address. A fixed width would therefore give one member
+  // 0.73 mm per module and another 0.49.
+  describe('the QR size follows the address', () => {
+    const qrDrawn = () =>
+      ctx.calls.find((call) => call.name === 'drawImage' && call.args[0].isTheQr)
+
+    it('draws a short address at its own size, without scaling it', async () => {
+      // 33 modules across: 33 * 8 = 264 source pixels
+      await drawGradidoCard({ ...CARD, qrCanvas: { width: 264, height: 264, isTheQr: true } })
+
+      expect(qrDrawn().args[3]).toBe(264)
+    })
+
+    it('caps the longest addresses at the width that was tested on paper', async () => {
+      // 49 modules across would want 392 pixels; 28 mm at 300 dpi are 331
+      await drawGradidoCard({ ...CARD, qrCanvas: { width: 392, height: 392, isTheQr: true } })
+
+      expect(qrDrawn().args[3]).toBe(331)
+      expect(qrSizeFor({ width: 392 })).toBeLessThan(392)
+    })
+
+    // Smoothing off is only safe because the code is not scaled up: source and destination
+    // module edges fall on each other, so nearest-neighbour has nothing to choose.
+    it('draws the code without smoothing', async () => {
+      await drawGradidoCard(CARD)
+
+      expect(qrDrawn().smoothing).toBe(false)
+    })
+
+    // qrSizeFor divides the canvas width by the generator's cell size to count the modules.
+    // If the generator ever draws with a different one, every size here is wrong -- so the
+    // number is held against the generator itself rather than copied and hoped for.
+    it('counts modules with the cell size the generator actually uses', () => {
+      expect(qrCodeOptions('https://example.org', null).cellSize).toBe(QR_SOURCE_CELL)
+    })
   })
 })

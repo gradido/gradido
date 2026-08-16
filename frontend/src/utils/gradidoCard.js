@@ -7,7 +7,8 @@
  *
  *   card 85.6 x 54 -- the size of a bank card, with a thin grey cutting line
  *   |- the name, and under it two labelled lines: community and user name
- *   |- the picture 24 (or an initials disc) on the left, the QR 28 on the right
+ *   |- the picture 20 (or an initials disc) on the left, the QR on the right, and
+ *   |  between them the contact block: a heading and up to five lines the member types
  *   `- the address line at the bottom, under a hairline
  *
  * The two labelled lines are the point of the card, not decoration. They are exactly the
@@ -22,6 +23,31 @@
  *
  * The QR is not built here. It arrives as a finished canvas from utils/qrCode.js -- the
  * same generator the modal uses, so what gets printed is the code the screen would show.
+ *
+ * ## The contact lines, and why they are free-form
+ *
+ * They are the only thing on the card whose content we do not know: an e-mail address, a
+ * phone number, a messenger handle, a website, nothing. Deciding what a way to reach
+ * somebody is would be our judgement to make, and it is not -- so the lines carry no
+ * labels of their own, only the one heading above them.
+ *
+ * They are typed for a print run rather than stored on the server. That is what makes a
+ * printed card a decision per recipient instead of a setting made in advance, and it is
+ * why nothing here needs a release switch: printing is the release.
+ *
+ * ## The QR size follows the address, it is not a fixed number
+ *
+ * What decides whether a code can be read is the edge length of one *module*, not of the
+ * whole code -- and how many modules there are depends on how long the address is. It
+ * runs from 33 across for `gradido.net/u/eva` to 49 for a long community with a long
+ * name. A code of one fixed width therefore means one member gets 0.73 mm per module and
+ * another 0.49, which is the difference between a code that reads at arm's length and one
+ * that does not. Paper cannot be corrected afterwards.
+ *
+ * So the code is drawn at its own natural size, capped at QR_MAX -- which makes its width
+ * follow the address by itself: a short address leaves a narrower code, and the room that
+ * frees goes to the contact lines beside it. Nobody falls below what was tested; the
+ * longest addresses keep the 28 mm they have today, the shorter ones gain sharpness.
  *
  * ## No print density in the file, on purpose
  *
@@ -60,8 +86,36 @@ const VALUE_OFFSET = mm(16.6) // label column plus the gap after it
 const LOGO_HEIGHT = mm(4.4)
 
 const BLOCK_GAP = mm(1.2)
-const PICTURE = mm(24)
-const QR_SIZE = mm(28)
+const PICTURE = mm(20)
+
+// The band that holds picture, contact lines and QR. It keeps its height whatever the QR
+// measures, so the rest of the card does not move when a shorter address makes the code
+// smaller.
+const MIDDLE_ROW = mm(28)
+
+// The widest the code may ever be. 28 mm is the size that was tested on paper and read;
+// P-018 in the project notes holds it there.
+const QR_MAX = mm(28)
+
+// utils/qrCode.js draws one module as an 8 x 8 block (`cellSize: 8`), so the canvas that
+// arrives here is always `modules * 8` pixels wide -- and at 300 dpi those 8 pixels are
+// 0.677 mm, comfortably above what a phone camera needs off paper. That is what makes
+// "draw it at its own size" the right default rather than a coincidence.
+// A test holds this number against the generator's own options.
+export const QR_SOURCE_CELL = 8
+
+const CONTACT_GAP = mm(1.6)
+const CONTACT_HEADING_SIZE = mm(2.1)
+const CONTACT_SIZE = mm(2.4)
+const CONTACT_LINE = Math.round(CONTACT_SIZE * 1.45)
+const CONTACT_HEADING_LINE = Math.round(CONTACT_HEADING_SIZE * 1.45)
+// Below this nothing is read at arm's length any more. A line that would need it is
+// clipped instead -- but nothing the field allows gets anywhere near.
+const CONTACT_MIN_SIZE = mm(1.7)
+// Five fit the column with room to spare; the limit is what still looks calm on a card,
+// not what fits. The field says so, and anything beyond is dropped here as well, so a
+// pasted address book cannot push the block past the QR.
+export const CONTACT_MAX_LINES = 5
 
 const ADDRESS_SIZE = mm(2.9)
 const ADDRESS_LINE = Math.round(ADDRESS_SIZE * 1.2)
@@ -165,6 +219,97 @@ const drawLabelledLine = (ctx, { label, value, valueColor, top }) => {
 }
 
 /**
+ * How wide the code is drawn, in pixels.
+ *
+ * The code is never scaled up and never drawn wider than QR_MAX. Both halves matter, and
+ * the second one is why this is not simply "as large as fits":
+ *
+ * - Not scaled up. At 300 dpi a source module of 8 pixels is 0.677 mm, and every address
+ *   short enough to stay under QR_MAX is therefore drawn 1:1 -- no resampling at all,
+ *   every module exactly as wide as its neighbours. That is sharper than what came out
+ *   before, where a 296-pixel code was stretched to 331 and its modules alternated
+ *   between 8 and 9 pixels.
+ * - Still capped. The longest addresses (a long community with a long name: 49 modules
+ *   across) would want 33 mm, and there is neither room for that nor a reason -- 28 mm
+ *   was read on paper. They keep the full 28 mm, exactly as before this change, which
+ *   leaves them at 0.57 mm per module rather than 0.68.
+ *
+ * ⚠️ The first draft of this shrank the long case to 24.9 mm to keep the modules even,
+ * and that got the trade backwards: a code fails from being too small long before it
+ * fails from a one-pixel difference in module width. Size first, evenness where it is
+ * free.
+ *
+ * @param {{width: number}} qrCanvas
+ * @returns {number}
+ */
+export const qrSizeFor = (qrCanvas) => {
+  const modules = Math.max(1, Math.round((qrCanvas?.width ?? 0) / QR_SOURCE_CELL))
+  return Math.min(QR_MAX, modules * QR_SOURCE_CELL)
+}
+
+/**
+ * The size a contact line is drawn at.
+ *
+ * The same idea as the address line below: shrink until it fits rather than cut. A cut
+ * contact line is a wrong contact line, and on paper it cannot be corrected.
+ */
+const contactSizeFor = (ctx, text, width) => {
+  let size = CONTACT_SIZE
+  ctx.font = `400 ${size}px ${FONT}`
+  while (size > CONTACT_MIN_SIZE && ctx.measureText(text).width > width) {
+    size -= 1
+    ctx.font = `400 ${size}px ${FONT}`
+  }
+  return size
+}
+
+const drawContact = (ctx, { heading, lines, left, width, top, height }) => {
+  if (!lines.length || width <= 0) return
+
+  const blockHeight = (heading ? CONTACT_HEADING_LINE : 0) + lines.length * CONTACT_LINE
+  let top_ = top + Math.round((height - blockHeight) / 2)
+
+  // The clip is the last resort behind the shrinking above: whatever a member manages to
+  // type, nothing may paint over the QR, because that would cost the code its meaning
+  // rather than a line its legibility.
+  ctx.save()
+  ctx.beginPath()
+  ctx.rect(left, top, width, height)
+  ctx.clip()
+
+  if (heading) {
+    ctx.fillStyle = COLOR_LABEL
+    ctx.font = `400 ${CONTACT_HEADING_SIZE}px ${FONT}`
+    ctx.fillText(heading, left, baselineOf(top_, CONTACT_HEADING_SIZE))
+    top_ += CONTACT_HEADING_LINE
+  }
+
+  ctx.fillStyle = COLOR_HOST
+  for (const line of lines) {
+    const size = contactSizeFor(ctx, line, width)
+    ctx.font = `400 ${size}px ${FONT}`
+    // The baseline is computed from the full size on purpose, as with the address: a line
+    // that had to shrink fills less of its row, it does not move it.
+    ctx.fillText(line, left, baselineOf(top_, CONTACT_SIZE))
+    top_ += CONTACT_LINE
+  }
+
+  ctx.restore()
+}
+
+/**
+ * The lines as they will be printed: emptiness removed, the limit applied.
+ *
+ * Done here rather than trusted to the caller, so a card can never carry more than the
+ * column holds however it was called.
+ */
+export const contactLines = (lines) =>
+  (Array.isArray(lines) ? lines : [])
+    .map((line) => String(line ?? '').trim())
+    .filter(Boolean)
+    .slice(0, CONTACT_MAX_LINES)
+
+/**
  * The width the address line takes at a given size. Measured in the three pieces it is drawn
  * in and at the weights it is drawn with, because measuring the joined string would answer a
  * question that is not the one being asked -- the pieces are painted by separate calls, so
@@ -221,7 +366,9 @@ const drawAddress = (ctx, { host, alias, top }) => {
  * @param {string} data.alias                the user name
  * @param {string} data.host                 the community host, printed without a scheme
  * @param {string} data.initials             shown when there is no picture
- * @param {string} [data.picture]            the 512x512 crop as a data URI, if there is one
+ * @param {string} [data.picture]            the crop as a data URI, if there is one
+ * @param {string} [data.contactHeading]     the word above the contact lines
+ * @param {string[]} [data.contact]          up to five lines the member typed
  * @returns {Promise<string>} the PNG as a data URL
  */
 export const drawGradidoCard = async (data) => {
@@ -279,16 +426,34 @@ export const drawGradidoCard = async (data) => {
     image: picture,
     initials: data.initials,
     x: PADDING,
-    y: middleTop + Math.round((QR_SIZE - PICTURE) / 2),
+    y: middleTop + Math.round((MIDDLE_ROW - PICTURE) / 2),
   })
 
-  // The code arrives 296 pixels wide and is drawn at 28 mm, which is 331 -- so it is scaled
-  // up by a tenth. Smoothing would blur every module edge, and a scanner reads soft edges
-  // worse than hard ones, so it is turned off for this one draw. Whether the code is 296 or
-  // 331 pixels does not matter; whether its edges are sharp does.
+  const qrSize = qrSizeFor(data.qrCanvas)
+  const qrLeft = WIDTH - PADDING - qrSize
+
+  drawContact(ctx, {
+    heading: data.contactHeading,
+    lines: contactLines(data.contact),
+    left: PADDING + PICTURE + CONTACT_GAP,
+    width: qrLeft - CONTACT_GAP - (PADDING + PICTURE + CONTACT_GAP),
+    top: middleTop,
+    height: MIDDLE_ROW,
+  })
+
+  // Smoothing off: a scanner reads hard module edges better than soft ones. It is safe to
+  // turn off here precisely because qrSizeFor draws whole source pixels per module -- the
+  // module edges of source and destination fall on each other, so nearest-neighbour has
+  // nothing to choose and every module comes out the same width.
   const smoothing = ctx.imageSmoothingEnabled
   ctx.imageSmoothingEnabled = false
-  ctx.drawImage(data.qrCanvas, WIDTH - PADDING - QR_SIZE, middleTop, QR_SIZE, QR_SIZE)
+  ctx.drawImage(
+    data.qrCanvas,
+    qrLeft,
+    middleTop + Math.round((MIDDLE_ROW - qrSize) / 2),
+    qrSize,
+    qrSize,
+  )
   ctx.imageSmoothingEnabled = smoothing
 
   drawAddress(ctx, {
