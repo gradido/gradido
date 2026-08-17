@@ -113,7 +113,7 @@
  * whoever picked the card up.
  */
 import { BButton, BFormCheckbox, BFormInput } from 'bootstrap-vue-next'
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import { useRoute } from 'vue-router'
@@ -206,15 +206,33 @@ const startPayment = async () => {
  * a wrong PIN — one of the three the card has, plus an argon2id on our server. Anything
  * that is not a digit is dropped as it arrives, so the field can only ever fill up with
  * something worth sending.
+ *
+ * ⚠️ The two awkward parts are both about dropping characters from a field somebody is
+ * typing in, and both were found by the spec rather than by reading:
+ *
+ *   1. **The detour through the raw value.** `v-model` has already put the typed text into
+ *      `pin` by the time this runs, but that has not been RENDERED yet. Assigning the
+ *      filtered text straight away is therefore not a change as far as Vue can see, and the
+ *      field keeps showing what was typed while the model holds something else — a full
+ *      field that sends nothing and cannot be corrected. Letting the raw text render first
+ *      makes the correction a real change.
+ *   2. **The `busy` guard.** Writing to `pin` makes the field report a change again, so this
+ *      runs a second time with the cleaned value — and a paste of `40-73-12` sent the PIN
+ *      TWICE. Harmless money-wise (the request can only be consumed once), but a wrong PIN
+ *      would have cost two of the three attempts for one paste.
  */
-const onPinTyped = (value) => {
+const onPinTyped = async (value) => {
   attemptsLeft.value = null
   failure.value = null
-  const digits = String(value).replace(/\D/g, '').slice(0, PIN_LENGTH)
-  if (digits !== String(value)) {
+  const typed = String(value)
+  const digits = typed.replace(/\D/g, '').slice(0, PIN_LENGTH)
+
+  if (digits !== typed) {
+    pin.value = typed
+    await nextTick()
     pin.value = digits
   }
-  if (digits.length === PIN_LENGTH) {
+  if (digits.length === PIN_LENGTH && !busy.value) {
     submitPin()
   }
 }
