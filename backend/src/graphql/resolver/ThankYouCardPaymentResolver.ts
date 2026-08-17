@@ -188,6 +188,10 @@ export class ThankYouCardPaymentResolver {
     // a failed PIN attempt against the card. A merchant who was once paid by this card
     // knows a valid payment id, and if wrong PINs still counted on it, they could replay
     // it three times and block their own customer's card for good.
+    //
+    // ⚠️ This read alone does not settle it, and cannot: the lock is keyed on the CARD, so
+    // the card has to be known before it can be taken — which means this answer is already
+    // a moment old by the time the lock is held. It is asked again inside. See below.
     const paymentResult = await dbSelectOpenThankYouCardPayment(paymentId, now)
     if (!paymentResult.success) {
       return failure(ThankYouCardPaymentStatus.REQUEST_GONE)
@@ -205,6 +209,16 @@ export class ThankYouCardPaymentResolver {
     const mutex = cardMutex(payment.cardId)
     await mutex.acquire()
     try {
+      // ⛔ Asked again, now that nothing else can be doing anything to this card. The read
+      // before the lock had to happen first — it is what names the card the lock is keyed
+      // on — and whatever it saw could have changed while we waited at the door: a second
+      // call holding the same id can have paid the request in the meantime, and then a
+      // wrong PIN arriving here would still be counted against the card. The gate belongs
+      // where the counting happens, not one step before it.
+      if (!(await dbSelectOpenThankYouCardPayment(payment.id, new Date())).success) {
+        return failure(ThankYouCardPaymentStatus.REQUEST_GONE)
+      }
+
       // Read through the request, not through a code the caller sends again: a swapped
       // code must not be able to pay from a different card than the one that was scanned.
       const cardResult = await dbSelectThankYouCardById(payment.cardId)
