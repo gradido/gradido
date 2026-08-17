@@ -26,6 +26,7 @@ import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
+  pinMatches,
   startOfDay,
   startOfNextDay,
   THANK_YOU_CARD_PAYMENT_VALID_MINUTES,
@@ -239,7 +240,7 @@ export class ThankYouCardPaymentResolver {
       // whether the PIN is right. That cost lands on OUR server, which is a second and
       // independent reason for the three-attempt block, next to protecting the account.
       const offered = await SecretKeyCryptographyCreateKey(settings.pinSalt, pin)
-      if (offered !== settings.pin) {
+      if (!pinMatches(offered, settings.pin)) {
         const counted = await dbIncrementFailedAttempts(card.id)
         if (!counted.success) {
           throw new LogError('Could not count a failed attempt', card.id)

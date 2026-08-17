@@ -3,6 +3,7 @@ import {
   createThankYouCardCode,
   createThankYouCardPinSalt,
   isValidThankYouCardPin,
+  pinMatches,
   startOfDay,
   startOfNextDay,
   THANK_YOU_CARD_CODE_PREFIX,
@@ -120,5 +121,47 @@ describe('startOfNextDay', () => {
     startOfNextDay(now)
 
     expect(now.getDate()).toBe(16)
+  })
+})
+
+/**
+ * ⛔ The one that cost a whole evening. `!==` between the stored value and the derived one
+ * looks obviously right and is obviously wrong: the two do not come from the same place —
+ * the database through Drizzle, the derivation possibly across a worker boundary — and
+ * neither end guarantees the JS type. When they disagree, EVERY PIN is wrong, for
+ * everybody, while the server counts attempts and blocks the card as if a stranger were
+ * guessing. The house has compared this derivation as strings since long before the card.
+ */
+describe('pinMatches', () => {
+  it('accepts the same value however each side spells it', () => {
+    expect(pinMatches(1234567890123456789n, 1234567890123456789n)).toBe(true)
+    expect(pinMatches(1234567890123456789n, '1234567890123456789')).toBe(true)
+    expect(pinMatches('1234567890123456789', 1234567890123456789n)).toBe(true)
+  })
+
+  // ⛔ This is the case that was broken in production: a bigint out of the database against
+  // its own decimal spelling out of the worker. A strict comparison says "wrong PIN".
+  it('is exactly what a strict comparison gets wrong', () => {
+    // Typed as unknown on purpose: this is the shape the values really arrive in, and
+    // TypeScript refuses to compare a bigint with a string at all — which is worth noting,
+    // because in the resolver both sides were typed loosely enough that it never complained.
+    const stored: unknown = 9007199254740993n
+    const offered: unknown = '9007199254740993'
+
+    expect(offered !== stored).toBe(true) // what the code used to ask
+    expect(pinMatches(offered, stored)).toBe(true) // what it means to ask
+  })
+
+  it('still says no to a different value', () => {
+    expect(pinMatches(1234567890123456789n, 1234567890123456788n)).toBe(false)
+    expect(pinMatches('1234567890123456789', '987')).toBe(false)
+  })
+
+  // Nothing may be read as "matches": a missing stored value must not let anybody in.
+  it('refuses when either side is missing', () => {
+    expect(pinMatches(undefined, undefined)).toBe(false)
+    expect(pinMatches(null, null)).toBe(false)
+    expect(pinMatches(1234n, null)).toBe(false)
+    expect(pinMatches(undefined, 1234n)).toBe(false)
   })
 })
