@@ -1030,7 +1030,7 @@ export class UserResolver {
     @Ctx() context: Context,
   ): Promise<boolean> {
     const user = getUser(context)
-    const logger = createLogger()
+    const logger = createLogger('setUserAvatar')
     logger.addContext('user', user.id)
 
     const small = this.decodeAvatar(avatarSmall, 'small', AVATAR_SMALL_MAX_BYTES)
@@ -1112,7 +1112,7 @@ export class UserResolver {
   @Mutation(() => Boolean)
   async removeUserAvatar(@Ctx() context: Context): Promise<boolean> {
     const user = getUser(context)
-    const logger = createLogger()
+    const logger = createLogger('removeUserAvatar')
     logger.addContext('user', user.id)
     logger.info('removeUserAvatar...')
 

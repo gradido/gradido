@@ -26,7 +26,6 @@ const i18n = createI18n({
   locale: 'en',
   messages: {
     en: {
-      'settings.username.no-username': 'No username set',
       'settings.username.change-success': 'Username changed successfully',
     },
   },
@@ -106,26 +105,27 @@ describe('UserName Form', () => {
       expect(wrapper.find('div#username-form').exists()).toBe(true)
     })
 
-    it('displays the no-username alert', () => {
-      expect(wrapper.find('[data-test="username-alert"]').text()).toBe('No username set')
-    })
-
     it('renders the InputUsername component', () => {
       expect(wrapper.findComponent({ name: 'InputUsername' }).exists()).toBe(true)
     })
   })
 
+  // The alias can be changed now, so there is only one field left and it is always the
+  // editable one - prefilled with what is stored. The readonly display and the
+  // "you have no username yet" alert both belonged to the set-once behaviour.
   describe('when username is set', () => {
     beforeEach(() => {
       wrapper = mountComponent({ username: 'existingUser' })
     })
 
-    it('displays the username in a readonly input', () => {
-      expect(wrapper.find('[data-test="username-input-readonly"]').exists()).toBe(true)
+    it('still renders the InputUsername component', () => {
+      expect(wrapper.findComponent({ name: 'InputUsername' }).exists()).toBe(true)
     })
 
-    it('does not render the InputUsername component', () => {
-      expect(wrapper.findComponent({ name: 'InputUsername' }).exists()).toBe(false)
+    it('hands the stored username to the input as its initial value', () => {
+      expect(
+        wrapper.findComponent({ name: 'InputUsername' }).attributes('initial-username-value'),
+      ).toBe('existingUser')
     })
   })
 

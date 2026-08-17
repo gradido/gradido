@@ -737,10 +737,8 @@
       "title": "Aspetto"
     },
     "username": {
-      "change-success": "Il tuo nome utente è stato modificato con successo.",
-      "no-username": "Inserisci un nome utente. In questo modo aiuti gli altri utenti a trovarti senza dover rivelare il tuo indirizzo e-mail."
-    },
-    "usernameInfo": "Non può più essere modificato dopo il salvataggio!"
+      "change-success": "Il tuo nome utente è stato modificato con successo."
+    }
   },
   "signin": "Accedi",
   "signup": "Registrati",

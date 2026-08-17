@@ -13,8 +13,12 @@ import { usersTable } from '../schemas/drizzle.schema'
 import { findWithCommunityIdentifier, LOG4JS_QUERIES_CATEGORY_NAME } from './index'
 
 export async function aliasExists(alias: string, userId?: number): Promise<boolean> {
+  // Only local users count. Aliases are unique per community, not globally: migration
+  // 0073 dropped the global UNIQUE on users.alias in favour of UNIQUE(alias, community_uuid).
+  // Rows with foreign = 1 are cached copies of members of other communities, so an alias
+  // held there must not block a member of this one.
   const user = await DbUser.findOne({
-    where: { alias }, // : Raw((a) => `LOWER(${a}) = LOWER(:alias)`, { alias }) },
+    where: { alias, foreign: false }, // : Raw((a) => `LOWER(${a}) = LOWER(:alias)`, { alias }) },
   })
   let aliasHistory: DbAliasHistory | null = null
   if (userId !== undefined) {

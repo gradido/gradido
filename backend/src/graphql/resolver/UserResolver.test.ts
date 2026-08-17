@@ -112,7 +112,17 @@ jest.mock('@/apis/KlicktippController', () => {
   }
 })
 
-const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserResolver`)
+// The resolver now names its logger per method (createLogger('login') etc.), so each
+// assertion has to reach for the logger of the method that actually writes the message.
+const resolverLogger = (method: string) =>
+  getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserResolver.${method}`)
+const createUserLogger = resolverLogger('createUser')
+const setPasswordLogger = resolverLogger('setPassword')
+const loginLogger = resolverLogger('login')
+const forgotPasswordLogger = resolverLogger('forgotPassword')
+const updateUserInfosLogger = resolverLogger('updateUserInfos')
+const sendActivationEmailLogger = resolverLogger('sendActivationEmail')
+const findUserByEmailLogger = resolverLogger('findUserByEmail')
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
 CONFIG.EMAIL_CODE_REQUEST_TIME = 10
@@ -305,8 +315,8 @@ describe('UserResolver', () => {
       })
 
       it('logs an info', () => {
-        expect(logger.info).toBeCalledWith('User already exists')
-        expect(logger.addContext).toBeCalledWith('user', user[0].id)
+        expect(createUserLogger.info).toBeCalledWith('User already exists')
+        expect(createUserLogger.addContext).toBeCalledWith('user', user[0].id)
       })
 
       it('sends an account multi registration email', () => {
@@ -703,7 +713,7 @@ describe('UserResolver', () => {
       })
 
       it('logs the error found', () => {
-        expect(logger.warn).toBeCalledWith('invalid emailVerificationCode=not valid')
+        expect(setPasswordLogger.warn).toBeCalledWith('invalid emailVerificationCode=not valid')
       })
     })
   })
@@ -733,7 +743,7 @@ describe('UserResolver', () => {
       })
 
       it('logs the error found', () => {
-        expect(logger.warn).toBeCalledWith(
+        expect(findUserByEmailLogger.warn).toBeCalledWith(
           `findUserByEmail failed, user with email=${variables.email} not found`,
         )
       })
@@ -817,7 +827,7 @@ describe('UserResolver', () => {
       })
 
       it('logs warning before error is thrown', () => {
-        expect(logger.warn).toBeCalledWith('login failed, wrong password')
+        expect(loginLogger.warn).toBeCalledWith('login failed, wrong password')
       })
     })
 
@@ -848,7 +858,7 @@ describe('UserResolver', () => {
       })
 
       it('logs warning before error is thrown', () => {
-        expect(logger.warn).toBeCalledWith('login failed, user was deleted')
+        expect(loginLogger.warn).toBeCalledWith('login failed, user was deleted')
       })
     })
 
@@ -877,7 +887,7 @@ describe('UserResolver', () => {
       })
 
       it('logs warning before error is thrown', () => {
-        expect(logger.warn).toBeCalledWith('login failed, user email not checked')
+        expect(loginLogger.warn).toBeCalledWith('login failed, user email not checked')
       })
     })
 
@@ -904,7 +914,7 @@ describe('UserResolver', () => {
       })
 
       it('logs warning before error is thrown', () => {
-        expect(logger.warn).toBeCalledWith('login failed, user has not set a password yet')
+        expect(loginLogger.warn).toBeCalledWith('login failed, user has not set a password yet')
       })
     })
   })
@@ -1146,7 +1156,7 @@ describe('UserResolver', () => {
         })
 
         it('logs warning before throwing error', () => {
-          expect(logger.warn).toBeCalledWith(
+          expect(forgotPasswordLogger.warn).toBeCalledWith(
             'email already sent 0 minutes ago, min wait time: 10 minutes',
           )
         })
@@ -1410,7 +1420,10 @@ describe('UserResolver', () => {
         })
 
         it('logs the error found', () => {
-          expect(logger.warn).toBeCalledWith('try to set unsupported language', 'not-valid')
+          expect(updateUserInfosLogger.warn).toBeCalledWith(
+            'try to set unsupported language',
+            'not-valid',
+          )
         })
       })
 
@@ -1434,7 +1447,7 @@ describe('UserResolver', () => {
           })
 
           it('logs if logger is in debug mode', () => {
-            expect(logger.debug).toBeCalledWith(`old password is invalid`)
+            expect(updateUserInfosLogger.debug).toBeCalledWith(`old password is invalid`)
           })
         })
 
@@ -1461,7 +1474,7 @@ describe('UserResolver', () => {
           })
 
           it('logs warning', () => {
-            expect(logger.warn).toBeCalledWith('try to set invalid password')
+            expect(updateUserInfosLogger.warn).toBeCalledWith('try to set invalid password')
           })
         })
 
@@ -1519,7 +1532,7 @@ describe('UserResolver', () => {
           })
 
           it('log warning', () => {
-            expect(logger.warn).toBeCalledWith('login failed, wrong password')
+            expect(loginLogger.warn).toBeCalledWith('login failed, wrong password')
           })
         })
       })
@@ -2244,7 +2257,7 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(logger.warn).toBeCalledWith(
+            expect(findUserByEmailLogger.warn).toBeCalledWith(
               'findUserByEmail failed, user with email=invalid not found',
             )
           })
@@ -2264,7 +2277,9 @@ describe('UserResolver', () => {
           })
 
           it('log warning', () => {
-            expect(logger.warn).toBeCalledWith('call for activation of deleted user')
+            expect(sendActivationEmailLogger.warn).toBeCalledWith(
+              'call for activation of deleted user',
+            )
           })
         })
 
@@ -3163,7 +3178,24 @@ describe('UserResolver', () => {
     })
   })
 
+  // checkUsername now has to know who is asking: a member may reclaim an alias they
+  // held before, so the query skips their own history rows. That identity only exists
+  // behind the token, which is why the right moved out of INALIENABLE_RIGHTS - and why
+  // these tests sign in first.
   describe('check username', () => {
+    beforeAll(async () => {
+      await cleanDB()
+      await userFactory(testEnv, bibiBloxberg)
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+    })
+
+    afterAll(async () => {
+      await cleanDB()
+    })
+
     describe('reserved alias', () => {
       it('returns false', async () => {
         await expect(

@@ -737,10 +737,8 @@
       "title": "Weergave"
     },
     "username": {
-      "change-success": "Je gebruikersnaam is succesvol gewijzigd.",
-      "no-username": "Voer een gebruikersnaam in. Zo help je andere gebruikers om je te vinden zonder je e-mailadres prijs te hoeven geven."
-    },
-    "usernameInfo": "Kan na het opslaan niet meer worden gewijzigd!"
+      "change-success": "Je gebruikersnaam is succesvol gewijzigd."
+    }
   },
   "signin": "Aanmelden",
   "signup": "Registreren",

@@ -737,10 +737,8 @@
       "title": "Apparence"
     },
     "username": {
-      "change-success": "Ton nom d'utilisateur a été modifié avec succès.",
-      "no-username": "Saisis un nom d'utilisateur. Tu aideras ainsi les autres utilisateurs à te trouver sans avoir à divulguer ton adresse e-mail."
-    },
-    "usernameInfo": "Ne peut plus être modifié après l'enregistrement !"
+      "change-success": "Ton nom d'utilisateur a été modifié avec succès."
+    }
   },
   "signin": "S'identifier",
   "signup": "S'inscrire",

@@ -737,10 +737,8 @@
       "title": "Apariencia"
     },
     "username": {
-      "change-success": "Tu nombre de usuario se ha cambiado correctamente.",
-      "no-username": "Por favor, introduce un nombre de usuario. Así ayudarás a otros usuarios a encontrarte sin tener que revelar tu dirección de correo electrónico."
-    },
-    "usernameInfo": "¡No se puede cambiar después de guardar!"
+      "change-success": "Tu nombre de usuario se ha cambiado correctamente."
+    }
   },
   "signin": "Iniciar sesión",
   "signup": "Registrarse",
