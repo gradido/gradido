@@ -92,12 +92,22 @@
     </div>
 
     <BModal v-model="showSetup" :title="$t('thank-you-card.settings.pin-title')" hide-footer>
-      <p class="small">{{ $t('thank-you-card.settings.pin-rules') }}</p>
+      <!--
+        The rules carry an id so the field can point at them: a screen reader then reads
+        what the PIN may be WITH the field, rather than leaving it behind as a paragraph
+        somebody has to have heard on the way past.
+      -->
+      <p id="thank-you-card-pin-rules" class="small">
+        {{ $t('thank-you-card.settings.pin-rules') }}
+      </p>
       <BFormInput
+        id="thank-you-card-new-pin"
         v-model="newPin"
         type="password"
         inputmode="numeric"
         maxlength="6"
+        :aria-label="$t('thank-you-card.settings.pin-title')"
+        aria-describedby="thank-you-card-pin-rules"
         data-test="thank-you-card-new-pin"
       />
       <BButton class="mt-3" variant="gradido" :disabled="busy" @click="savePin">
