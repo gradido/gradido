@@ -44,8 +44,16 @@
     </div>
 
     <div v-else-if="step === 'pin'" class="text-center">
-      <div class="fs-4 mb-1">{{ $t('thank-you-card.receive.pin-title') }}</div>
-      <div class="small text-muted mb-3">
+      <!--
+        Both lines carry an id so the field can point at them. What is being asked for and
+        what it costs are already written here for whoever can see them; without the two
+        references a screen reader announces a nameless password field and leaves the
+        amount behind as a sentence somebody had to have heard on the way past.
+      -->
+      <div id="tyc-pin-title" class="fs-4 mb-1">
+        {{ $t('thank-you-card.receive.pin-title') }}
+      </div>
+      <div id="tyc-pin-subtitle" class="small text-muted mb-3">
         {{ $t('thank-you-card.receive.pin-subtitle', { amount: amount }) }}
       </div>
 
@@ -56,6 +64,8 @@
         autocomplete="one-time-code"
         :maxlength="PIN_LENGTH"
         class="text-center fs-3 tyc-pin"
+        aria-labelledby="tyc-pin-title"
+        aria-describedby="tyc-pin-subtitle"
         data-test="thank-you-card-pin"
         @update:model-value="onPinTyped"
       />
