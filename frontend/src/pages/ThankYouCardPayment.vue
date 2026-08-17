@@ -173,9 +173,10 @@ const startPayment = async () => {
     if (paymentId.value === null) {
       throw new Error('no payment id')
     }
-    if (rememberMemo.value) {
-      writeRememberedMemo(memo.value)
-    }
+    // ⚠️ Written on both sides of the tick, not only when it is set. Taking the tick away
+    // is an instruction to forget, and leaving the old wording in storage would answer it
+    // with the opposite: it comes back at the next payment on this device.
+    writeRememberedMemo(rememberMemo.value ? memo.value : '')
     step.value = 'pin'
   } catch (error) {
     toastError(error.message)
