@@ -63,6 +63,7 @@ const mockSaveLimits = vi.fn()
 const mockDisable = vi.fn()
 const mockAddCard = vi.fn()
 const mockBlockCard = vi.fn()
+const mockUnblockCard = vi.fn()
 
 /**
  * ⛔ Matched in full and loud when it matches nothing. A substring rule with a fallback would
@@ -75,6 +76,7 @@ const MUTATIONS = {
   deleteThankYouCardSettings: () => mockDisable,
   createThankYouCard: () => mockAddCard,
   blockThankYouCard: () => mockBlockCard,
+  unblockThankYouCard: () => mockUnblockCard,
 }
 
 vi.mock('@vue/apollo-composable', () => ({
@@ -137,6 +139,16 @@ describe('UserThankYouCard', () => {
             props: ['modelValue'],
             template: '<div v-if="modelValue" class="modal-stub"><slot /></div>',
           },
+          // AppModal teleports to body, so its content would leave the wrapper. The stub
+          // keeps the two things the tests care about: it shows while open, and its ok
+          // button is reachable.
+          AppModal: {
+            props: ['modelValue', 'title', 'okOnly'],
+            emits: ['update:modelValue', 'on-ok'],
+            template:
+              '<div v-if="modelValue" class="app-modal-stub"><slot />' +
+              '<button data-test="app-modal-ok" @click="$emit(\'on-ok\')">ok</button></div>',
+          },
         },
       },
     })
@@ -176,6 +188,7 @@ describe('UserThankYouCard', () => {
     mockDisable.mockResolvedValue({})
     mockAddCard.mockResolvedValue({})
     mockBlockCard.mockResolvedValue({})
+    mockUnblockCard.mockResolvedValue({})
     mockRefetchSettings.mockResolvedValue({})
     mockRefetchCards.mockResolvedValue({})
     mockDrawThankYouCard.mockResolvedValue('data:image/png;base64,AAAA')
@@ -367,12 +380,42 @@ describe('UserThankYouCard', () => {
       expect(field('create').attributes('disabled')).toBeDefined()
     })
 
-    it('blocks the card that works, by its own id', async () => {
+    // ⛔ Asked first. One click used to end a printed card, and the button then disappeared
+    // into a list with nothing to press.
+    it('asks before blocking, and does nothing until the question is answered', async () => {
       await mountWith()
-      await buttonWith('thank-you-card.settings.block').trigger('click')
+      await field('block').trigger('click')
+      await flushPromises()
+
+      expect(wrapper.find('[data-test="thank-you-card-block-confirm"]').exists()).toBe(true)
+      expect(mockBlockCard).not.toHaveBeenCalled()
+    })
+
+    it('blocks the card that works, by its own id, once it is confirmed', async () => {
+      await mountWith()
+      await field('block').trigger('click')
+      await wrapper.find('[data-test="app-modal-ok"]').trigger('click')
       await flushPromises()
 
       expect(mockBlockCard).toHaveBeenCalledWith({ cardId: ACTIVE_CARD.id })
+    })
+
+    // ⛔ The way back, which did not exist: the mutation was always there, the button was not.
+    it('unblocks an earlier card when no card of theirs works', async () => {
+      await mountWith({ cards: [BLOCKED_CARD] })
+      await field(`unblock-${BLOCKED_CARD.id}`).trigger('click')
+      await flushPromises()
+
+      expect(mockUnblockCard).toHaveBeenCalledWith({ cardId: BLOCKED_CARD.id })
+    })
+
+    // The server refuses it anyway - one member, one card that pays - so the button says so
+    // by being unavailable rather than by letting somebody press it into an error.
+    it('does not offer to unblock while another card works', async () => {
+      await mountWith({ cards: [ACTIVE_CARD, BLOCKED_CARD] })
+
+      expect(field(`unblock-${BLOCKED_CARD.id}`).attributes('disabled')).toBeDefined()
+      expect(wrapper.text()).toContain('thank-you-card.settings.unblock-needs-no-active')
     })
 
     // Blocked cards are kept rather than deleted, so an old card can still say what happened
