@@ -121,7 +121,9 @@
         <BFormInput
           id="thank-you-card-new-pin"
           v-model="newPin"
-          :type="showPin ? 'text' : 'password'"
+          :type="pinInputType(showPin)"
+          :class="{ [PIN_MASK_CLASS]: !showPin }"
+          autocomplete="off"
           inputmode="numeric"
           maxlength="6"
           :aria-label="$t('thank-you-card.settings.pin-title')"
@@ -191,6 +193,7 @@ import {
   printThankYouCardSheet,
   thankYouCardFileName,
 } from '@/utils/thankYouCard'
+import { PIN_MASK_CLASS, pinInputType } from '@/utils/pinMasking'
 import CONFIG from '@/config'
 
 const { t } = useI18n()

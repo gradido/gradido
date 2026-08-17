@@ -223,16 +223,39 @@ describe('UserThankYouCard', () => {
     // chance to check — and it must not be the default, because "at home" is also a kitchen
     // table with somebody sitting across it.
     it('hides the pin until somebody asks to see it', async () => {
+      vi.stubGlobal('CSS', { supports: () => true })
+      await mountWith({ settings: null, cards: [] })
+      await field('enable').trigger('click')
+
+      expect(field('new-pin').classes()).toContain('pin-masked')
+
+      await field('pin-eye').trigger('click')
+      expect(field('new-pin').classes()).not.toContain('pin-masked')
+
+      await field('pin-eye').trigger('click')
+      expect(field('new-pin').classes()).toContain('pin-masked')
+      vi.unstubAllGlobals()
+    })
+
+    // ⛔ And it must not be a password field, or the browser fills the saved site password in
+    // and offers to overwrite it with the PIN — at the very screen where the PIN is set.
+    it('is a text field the browser has no reason to touch', async () => {
+      vi.stubGlobal('CSS', { supports: () => true })
+      await mountWith({ settings: null, cards: [] })
+      await field('enable').trigger('click')
+
+      expect(field('new-pin').attributes('type')).toBe('text')
+      expect(field('new-pin').attributes('autocomplete')).toBe('off')
+      vi.unstubAllGlobals()
+    })
+
+    it('falls back to a password field where nothing can hide a text one', async () => {
+      vi.stubGlobal('CSS', { supports: () => false })
       await mountWith({ settings: null, cards: [] })
       await field('enable').trigger('click')
 
       expect(field('new-pin').attributes('type')).toBe('password')
-
-      await field('pin-eye').trigger('click')
-      expect(field('new-pin').attributes('type')).toBe('text')
-
-      await field('pin-eye').trigger('click')
-      expect(field('new-pin').attributes('type')).toBe('password')
+      vi.unstubAllGlobals()
     })
 
     it('says which way the eye will go, for somebody who cannot see it', async () => {

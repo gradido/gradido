@@ -349,3 +349,10 @@ input.rounded-input {
   font-family: inherit !important;
   font-weight: normal !important;
 }
+
+/* Hides what is typed WITHOUT the field being a password field, so no password manager
+   fills it, offers to save it, or overwrites somebody's login with six digits.
+   See `utils/pinMasking.js`; the type falls back to `password` where this is unsupported. */
+.pin-masked {
+  -webkit-text-security: disc;
+}
