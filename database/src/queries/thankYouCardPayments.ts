@@ -53,6 +53,41 @@ export async function dbSelectThankYouCardPayment(
 }
 
 /**
+ * The request a PIN may still be checked against: open, and not yet run out.
+ *
+ * ⛔ Deliberately separate from `dbSelectThankYouCardPayment`. That one answers "does this
+ * row exist", and the confirming path must not decide on that: for a request that was
+ * already paid or has expired, NOTHING below may run — least of all counting a failed PIN
+ * attempt against the card. Otherwise a merchant who was once paid by a card can replay
+ * their own old request with wrong PINs and block that card for good, which turns the
+ * three-attempt protection into a weapon against the very account it protects.
+ */
+export async function dbSelectOpenThankYouCardPayment(
+  id: number,
+  now: Date,
+): Promise<Result<ThankYouCardPaymentSelect, DBNotFoundError>> {
+  const rows = await drizzleDb()
+    .select()
+    .from(thankYouCardPaymentsTable)
+    .where(
+      and(
+        eq(thankYouCardPaymentsTable.id, id),
+        eq(thankYouCardPaymentsTable.state, PAYMENT_STATE_OPEN),
+        gte(thankYouCardPaymentsTable.validUntil, now),
+      ),
+    )
+
+  const row = rows.at(0)
+  if (!row) {
+    return {
+      success: false,
+      error: PaymentNotFound(`id=${id} and state=${PAYMENT_STATE_OPEN} and not expired`),
+    }
+  }
+  return { success: true, value: row }
+}
+
+/**
  * Take the request off the table, and say whether this call was the one that got it.
  *
  * ⚠️ This is where the protection against a double booking sits, so it has to be ONE

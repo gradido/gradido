@@ -9,6 +9,7 @@ import {
   dbCountExpiredOpenPayments,
   dbInsertThankYouCardPayment,
   dbSelectOpenPaymentsByUserId,
+  dbSelectOpenThankYouCardPayment,
   dbSelectThankYouCardPayment,
   dbSumConsumedThankYouCardPayments,
   PAYMENT_STATE_CONSUMED,
@@ -77,6 +78,37 @@ describe('thankYouCardPayments query test', () => {
 
   it('reports a missing request instead of returning nothing', async () => {
     const result = await dbSelectThankYouCardPayment(999999)
+    expect(result.success).toBe(false)
+  })
+
+  // ⛔ These three are the gate in front of the PIN check. A request that is gone must not
+  // be readable through this door, or a wrong PIN offered against it would count against
+  // the card and three of them would block it.
+  it('hands out a request that is still open and still valid', async () => {
+    const cardId = await insertCard('DK-open-gate')
+    const id = await openPayment(cardId, 7)
+
+    const result = await dbSelectOpenThankYouCardPayment(id, new Date())
+
+    expect(result.success).toBe(true)
+  })
+
+  it('refuses a request that was already consumed', async () => {
+    const cardId = await insertCard('DK-gate-consumed')
+    const id = await openPayment(cardId, 7)
+    await dbConsumeThankYouCardPayment(id, new Date())
+
+    const result = await dbSelectOpenThankYouCardPayment(id, new Date())
+
+    expect(result.success).toBe(false)
+  })
+
+  it('refuses a request that has run out', async () => {
+    const cardId = await insertCard('DK-gate-expired')
+    const id = await openPayment(cardId, 7, anHourAgo())
+
+    const result = await dbSelectOpenThankYouCardPayment(id, new Date())
+
     expect(result.success).toBe(false)
   })
 

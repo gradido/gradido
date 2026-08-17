@@ -8,6 +8,7 @@ import {
   dbIncrementFailedAttempts,
   dbInsertThankYouCardPayment,
   dbResetFailedAttempts,
+  dbSelectOpenThankYouCardPayment,
   dbSelectThankYouCardByCode,
   dbSelectThankYouCardById,
   dbSelectThankYouCardPayment,
@@ -175,7 +176,12 @@ export class ThankYouCardPaymentResolver {
     const recipient = getUser(context)
     const now = new Date()
 
-    const paymentResult = await dbSelectThankYouCardPayment(paymentId)
+    // ⛔ The still-OPEN request, not merely the row. Everything below this line has to be
+    // out of reach for a request that was already paid or has run out — above all counting
+    // a failed PIN attempt against the card. A merchant who was once paid by this card
+    // knows a valid payment id, and if wrong PINs still counted on it, they could replay
+    // it three times and block their own customer's card for good.
+    const paymentResult = await dbSelectOpenThankYouCardPayment(paymentId, now)
     if (!paymentResult.success) {
       return failure(ThankYouCardPaymentStatus.REQUEST_GONE)
     }
