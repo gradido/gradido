@@ -201,6 +201,17 @@ const { mutate: blockCard } = useMutation(blockThankYouCard)
 const asNumber = (value) => Number(String(value).replace(',', '.'))
 
 /**
+ * ⛔ A GradidoUnit travels as a STRING, never as a number.
+ *
+ * `GradidoUnitScalar.parseValue` throws for anything that is not a string, so a number does
+ * not reach the resolver at all — the request dies during variable coercion and comes back
+ * as a bare **HTTP 400** with no GraphQL error in it to read. The rest of the wallet has
+ * always done it this way (`Send.vue` sends `amount.toString()`); this component did not,
+ * and no test could see it because a mocked Apollo accepts whatever it is handed.
+ */
+const asAmount = (value) => asNumber(value).toString()
+
+/**
  * The receipt links here with `?block=<id>`. The link only navigates -- the login is the
  * authorisation, and the router guard has already required it by the time this runs. That
  * is why no public "block" door had to be opened for a mail button.
@@ -231,8 +242,8 @@ const savePin = () =>
   run(async () => {
     await saveSettings({
       pin: newPin.value,
-      maxPerPayment: asNumber(maxPerPayment.value) || 50,
-      maxPerDay: asNumber(maxPerDay.value) || 100,
+      maxPerPayment: (asNumber(maxPerPayment.value) || 50).toString(),
+      maxPerDay: (asNumber(maxPerDay.value) || 100).toString(),
     })
     newPin.value = ''
     showSetup.value = false
@@ -242,8 +253,8 @@ const saveLimits = () =>
   run(
     () =>
       saveLimitsMutation({
-        maxPerPayment: asNumber(maxPerPayment.value),
-        maxPerDay: asNumber(maxPerDay.value),
+        maxPerPayment: asAmount(maxPerPayment.value),
+        maxPerDay: asAmount(maxPerDay.value),
       }),
     t('thank-you-card.settings.saved'),
   )

@@ -176,7 +176,9 @@ const startPayment = async () => {
   try {
     const result = await create({
       code,
-      amount: parsedAmount.value,
+      // ⛔ As a STRING. The GradidoUnit scalar refuses a number during variable coercion,
+      // which comes back as a bare HTTP 400 rather than as a GraphQL error.
+      amount: parsedAmount.value.toString(),
       memo: memo.value || t('thank-you-card.receive.default-memo'),
     })
     paymentId.value = result?.data?.createThankYouCardPayment?.id ?? null
