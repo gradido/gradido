@@ -59,10 +59,22 @@ vi.mock('@vue/apollo-composable', () => ({
   })),
 }))
 
-// One mutation mock per document, told apart by the operation name in the parsed query.
+/**
+ * One mutation mock per document, told apart by the operation name in the parsed query.
+ *
+ * ⛔ Matched in full and loud when it matches nothing. A substring rule with a fallback
+ * would send a renamed operation to the WRONG mock, and the tests would keep passing while
+ * asserting about a call the page never made.
+ */
 const mutateFor = (document) => {
   const name = document?.definitions?.[0]?.name?.value ?? ''
-  return name.includes('confirm') ? mockConfirm : mockCreate
+  if (name === 'createThankYouCardPayment') {
+    return mockCreate
+  }
+  if (name === 'confirmThankYouCardPayment') {
+    return mockConfirm
+  }
+  throw new Error(`this spec has no mutation mock for "${name}"`)
 }
 
 const PAYMENT_ID = 4711
@@ -282,6 +294,40 @@ describe('ThankYouCardPayment', () => {
       await nextTick()
 
       expect(field('amount').element.value).toBe('')
+    })
+  })
+
+  // Nothing at a counter may fail quietly. Each of these leaves the merchant on the step
+  // they were on, with a toast that says what happened, rather than on a screen that looks
+  // as if something had worked.
+  describe('when the server cannot be reached', () => {
+    it('says so and stays on the amount step when the request cannot be created', async () => {
+      mockCreate.mockRejectedValue(new Error('network'))
+      await mountUsable()
+      await fillAndStart({})
+
+      expect(mockToastError).toHaveBeenCalledWith('network')
+      expect(field('amount').exists()).toBe(true)
+    })
+
+    it('says so when the answer carries no payment id', async () => {
+      mockCreate.mockResolvedValue({ data: { createThankYouCardPayment: null } })
+      await mountUsable()
+      await fillAndStart({})
+
+      expect(mockToastError).toHaveBeenCalledWith('no payment id')
+      expect(field('amount').exists()).toBe(true)
+    })
+
+    it('says so and keeps the pin step when the confirmation cannot be sent', async () => {
+      mockConfirm.mockRejectedValue(new Error('network'))
+      await mountUsable()
+      await fillAndStart({})
+      await field('pin').setValue('407312')
+      await flushPromises()
+
+      expect(mockToastError).toHaveBeenCalledWith('network')
+      expect(field('pin').exists()).toBe(true)
     })
   })
 })
