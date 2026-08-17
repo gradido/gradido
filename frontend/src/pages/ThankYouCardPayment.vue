@@ -190,11 +190,21 @@ const startPayment = async () => {
  *
  * ⚠️ The length is fixed rather than a minimum for exactly this reason: an extra confirm
  * button at a counter is one more thing to explain to somebody who is holding a coffee.
+ *
+ * ⛔ Counted in DIGITS, not in characters. `inputmode` only picks a keyboard; a paste or a
+ * physical keyboard can put six letters in here, and six letters that leave the device are
+ * a wrong PIN — one of the three the card has, plus an argon2id on our server. Anything
+ * that is not a digit is dropped as it arrives, so the field can only ever fill up with
+ * something worth sending.
  */
 const onPinTyped = (value) => {
   attemptsLeft.value = null
   failure.value = null
-  if (String(value).length === PIN_LENGTH) {
+  const digits = String(value).replace(/\D/g, '').slice(0, PIN_LENGTH)
+  if (digits !== String(value)) {
+    pin.value = digits
+  }
+  if (digits.length === PIN_LENGTH) {
     submitPin()
   }
 }
