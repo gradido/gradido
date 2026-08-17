@@ -235,7 +235,7 @@ const saveLimits = () =>
         maxPerPayment: asNumber(maxPerPayment.value),
         maxPerDay: asNumber(maxPerDay.value),
       }),
-    'thank-you-card.settings.saved',
+    t('thank-you-card.settings.saved'),
   )
 
 const switchOff = () => run(() => disable(), t('thank-you-card.settings.disabled'))
