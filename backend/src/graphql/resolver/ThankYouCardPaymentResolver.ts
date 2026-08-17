@@ -58,6 +58,9 @@ const cardMutex = (cardId: number) =>
 const failure = (status: ThankYouCardPaymentStatus): ThankYouCardPaymentResult =>
   new ThankYouCardPaymentResult(status)
 
+/** Named from the sender rather than written out again, so the two cannot drift apart. */
+type ThankYouCardReceipt = Parameters<typeof sendThankYouCardPaidEmail>[0]
+
 /**
  * Is this card in a state where a payment could happen at all?
  *
@@ -197,6 +200,8 @@ export class ThankYouCardPaymentResolver {
       throw new LogError('Payment belongs to another recipient', paymentId, recipient.id)
     }
 
+    let paid: { result: ThankYouCardPaymentResult; receipt: ThankYouCardReceipt } | null = null
+
     const mutex = cardMutex(payment.cardId)
     await mutex.acquire()
     try {
@@ -282,15 +287,14 @@ export class ThankYouCardPaymentResolver {
       await executeTransaction(payment.amount, payment.memo, owner, recipient, logger)
       await dbResetFailedAttempts(card.id)
 
-      // The receipt, and it is part of the security model rather than a courtesy: the
-      // limits cap what one DAY can cost, and only somebody who notices and blocks turns
-      // that into a cap for good.
-      //
-      // ⚠️ Awaited but not allowed to undo anything. The money has moved and the request
-      // is consumed; a mail server having a bad minute must not turn that into an error
-      // the merchant sees, and there is nothing left to roll back anyway.
-      try {
-        await sendThankYouCardPaidEmail({
+      const success = failure(ThankYouCardPaymentStatus.SUCCESS)
+      success.payerName = `${owner.firstName} ${owner.lastName}`
+      success.amount = payment.amount
+
+      // Assembled here, where the data is, and SENT after the lock is gone. See below.
+      paid = {
+        result: success,
+        receipt: {
           firstName: owner.firstName,
           lastName: owner.lastName,
           email: owner.emailContact.email,
@@ -301,17 +305,29 @@ export class ThankYouCardPaymentResolver {
           transactionAmount: payment.amount,
           cardLabel: card.label,
           cardId: card.id,
-        })
-      } catch (error) {
-        logger.error('could not send the thank you card receipt', error)
+        },
       }
-
-      const success = failure(ThankYouCardPaymentStatus.SUCCESS)
-      success.payerName = `${owner.firstName} ${owner.lastName}`
-      success.amount = payment.amount
-      return success
     } finally {
       await mutex.release()
     }
+
+    // The receipt, and it is part of the security model rather than a courtesy: the limits
+    // cap what one DAY can cost, and only somebody who notices and blocks turns that into a
+    // cap for good.
+    //
+    // ⚠️ Sent with the card's lock already given back. Inside it, a mail server having a
+    // slow minute would hold up every further payment with the SAME card — the customer
+    // standing at the next till waits for somebody else's SMTP.
+    //
+    // ⚠️ Awaited but not allowed to undo anything. The money has moved and the request is
+    // consumed; a bad minute at the mail server must not turn that into an error the
+    // merchant sees, and there is nothing left to roll back anyway.
+    try {
+      await sendThankYouCardPaidEmail(paid.receipt)
+    } catch (error) {
+      logger.error('could not send the thank you card receipt', error)
+    }
+
+    return paid.result
   }
 }
