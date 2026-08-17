@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import {
+  AppDatabase,
   dbBlockThankYouCard,
   dbDeleteThankYouCardSettings,
   dbInsertThankYouCard,
@@ -11,6 +12,7 @@ import {
   dbUpsertThankYouCardSettings,
   ThankYouCardSelect,
 } from 'database'
+import { Mutex } from 'redis-semaphore'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
 import {
@@ -38,6 +40,24 @@ import { LogError } from '@/server/LogError'
  * numbers. Nothing is lost — a member who reaches for a card that is not theirs is not
  * making a typo, they are probing.
  */
+const db = AppDatabase.getInstance()
+
+/**
+ * One member, one card that works (PS-021).
+ *
+ * ⛔ That invariant carries more than tidiness, and this is the reason it is worth a lock:
+ * the daily limit is counted per CARD, while the limit it is checked against belongs to the
+ * MEMBER. As long as exactly one card is active the two are the same thing. Two active
+ * cards would quietly be two daily limits.
+ *
+ * ⚠️ Keyed on the OWNER, unlike the lock in the payment resolver, which is keyed on the
+ * card. What has to be serialised here is the question "does this member have an active
+ * card" against the two writes that can answer it differently a moment later — printing a
+ * new one, and bringing an old one back.
+ */
+const ownerMutex = (userId: number) =>
+  new Mutex(db.getRedisClient(), `THANK_YOU_CARD_OWNER_LOCK:${userId}`)
+
 const findOwnCard = async (cardId: number, userId: number): Promise<ThankYouCardSelect> => {
   const cards = await dbSelectThankYouCardsByUserId(userId)
   const card = cards.find((candidate) => candidate.id === cardId)
@@ -167,22 +187,31 @@ export class ThankYouCardResolver {
       throw new LogError('Card payment is not switched on', user.id)
     }
 
-    const active = await dbSelectActiveThankYouCard(user.id)
-    if (active.success) {
-      throw new LogError('There is already an active thank you card', user.id, active.value.id)
-    }
+    // ⚠️ Asking and writing under one lock. Read first and insert after, two calls arriving
+    // together both read "no active card" and both print one — and the member ends up with
+    // two cards that pay, each with its own daily limit.
+    const mutex = ownerMutex(user.id)
+    await mutex.acquire()
+    try {
+      const active = await dbSelectActiveThankYouCard(user.id)
+      if (active.success) {
+        throw new LogError('There is already an active thank you card', user.id, active.value.id)
+      }
 
-    const code = createThankYouCardCode()
-    const written = await dbInsertThankYouCard({ userId: user.id, code, label })
-    if (!written.success) {
-      throw new LogError('Could not create thank you card', user.id)
-    }
+      const code = createThankYouCardCode()
+      const written = await dbInsertThankYouCard({ userId: user.id, code, label })
+      if (!written.success) {
+        throw new LogError('Could not create thank you card', user.id)
+      }
 
-    const created = await dbSelectActiveThankYouCard(user.id)
-    if (!created.success) {
-      throw new LogError('Thank you card vanished right after it was written', user.id)
+      const created = await dbSelectActiveThankYouCard(user.id)
+      if (!created.success) {
+        throw new LogError('Thank you card vanished right after it was written', user.id)
+      }
+      return new ThankYouCard(created.value)
+    } finally {
+      await mutex.release()
     }
-    return new ThankYouCard(created.value)
   }
 
   /** Losing a card. The row stays, so an old card can still say what happened to it. */
@@ -207,6 +236,11 @@ export class ThankYouCardResolver {
    * Bringing a card back after three wrong PINs, which is the only way out of that block
    * (PS-018) — and the reason the block can be strict: undoing it needs the one thing a
    * guesser at the counter does not have, the account itself.
+   *
+   * ⛔ Refused while another card of theirs works, and that is not symmetry with printing
+   * for its own sake: block, print a replacement, unblock the old one is a path any member
+   * can walk in three ordinary steps, without a race and without anything going wrong, and
+   * it ends with two cards that pay.
    */
   @Authorized([RIGHTS.MANAGE_OWN_THANK_YOU_CARD])
   @Mutation(() => ThankYouCard)
@@ -217,9 +251,20 @@ export class ThankYouCardResolver {
     const user = getUser(context)
     const card = await findOwnCard(cardId, user.id)
 
-    const unblocked = await dbUnblockThankYouCard(card.id)
-    if (!unblocked.success) {
-      throw new LogError('Could not unblock thank you card', card.id)
+    const mutex = ownerMutex(user.id)
+    await mutex.acquire()
+    try {
+      const active = await dbSelectActiveThankYouCard(user.id)
+      if (active.success && active.value.id !== card.id) {
+        throw new LogError('There is already an active thank you card', user.id, active.value.id)
+      }
+
+      const unblocked = await dbUnblockThankYouCard(card.id)
+      if (!unblocked.success) {
+        throw new LogError('Could not unblock thank you card', card.id)
+      }
+    } finally {
+      await mutex.release()
     }
 
     return new ThankYouCard(await findOwnCard(cardId, user.id))
