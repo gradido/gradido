@@ -215,6 +215,32 @@ describe('UserThankYouCard', () => {
       expect(wrapper.find('#thank-you-card-pin-rules').exists()).toBe(true)
     })
 
+    // ⛔ Hidden first, readable on request. A PIN is set once and there is no "forgot it":
+    // a typo here is a card that cannot pay, with nothing saying why. The eye is the only
+    // chance to check — and it must not be the default, because "at home" is also a kitchen
+    // table with somebody sitting across it.
+    it('hides the pin until somebody asks to see it', async () => {
+      await mountWith({ settings: null, cards: [] })
+      await field('enable').trigger('click')
+
+      expect(field('new-pin').attributes('type')).toBe('password')
+
+      await field('pin-eye').trigger('click')
+      expect(field('new-pin').attributes('type')).toBe('text')
+
+      await field('pin-eye').trigger('click')
+      expect(field('new-pin').attributes('type')).toBe('password')
+    })
+
+    it('says which way the eye will go, for somebody who cannot see it', async () => {
+      await mountWith({ settings: null, cards: [] })
+      await field('enable').trigger('click')
+
+      expect(field('pin-eye').attributes('aria-label')).toBe('thank-you-card.settings.pin-show')
+      await field('pin-eye').trigger('click')
+      expect(field('pin-eye').attributes('aria-label')).toBe('thank-you-card.settings.pin-hide')
+    })
+
     it('saves the pin with the limits, then empties the field and closes', async () => {
       await mountWith()
       await buttonWith('thank-you-card.settings.change-pin').trigger('click')

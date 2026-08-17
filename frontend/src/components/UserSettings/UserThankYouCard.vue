@@ -100,16 +100,43 @@
       <p id="thank-you-card-pin-rules" class="small">
         {{ $t('thank-you-card.settings.pin-rules') }}
       </p>
-      <BFormInput
-        id="thank-you-card-new-pin"
-        v-model="newPin"
-        type="password"
-        inputmode="numeric"
-        maxlength="6"
-        :aria-label="$t('thank-you-card.settings.pin-title')"
-        aria-describedby="thank-you-card-pin-rules"
-        data-test="thank-you-card-new-pin"
-      />
+      <!--
+        ⚠️ Hidden by default and readable on request, which is the opposite trade to a
+        password field. A PIN is set at home, typed once, and there is no "forgot it" —
+        getting it wrong here means a card that cannot pay and nobody knowing why. So the
+        eye is not a convenience: it is the only chance to check what was typed. It stays
+        hidden by default all the same, because "at home" is also a kitchen table with
+        somebody sitting across it.
+      -->
+      <BInputGroup>
+        <BFormInput
+          id="thank-you-card-new-pin"
+          v-model="newPin"
+          :type="showPin ? 'text' : 'password'"
+          inputmode="numeric"
+          maxlength="6"
+          :aria-label="$t('thank-you-card.settings.pin-title')"
+          aria-describedby="thank-you-card-pin-rules"
+          data-test="thank-you-card-new-pin"
+        />
+        <template #append>
+          <BButton
+            variant="outline-light"
+            class="border-start-0 rounded-end"
+            tabindex="-1"
+            :aria-label="
+              showPin
+                ? $t('thank-you-card.settings.pin-hide')
+                : $t('thank-you-card.settings.pin-show')
+            "
+            data-test="thank-you-card-pin-eye"
+            @click="showPin = !showPin"
+          >
+            <IBiEye v-if="showPin" class="eye-icon" />
+            <IBiEyeSlash v-else class="eye-icon" />
+          </BButton>
+        </template>
+      </BInputGroup>
       <BButton class="mt-3" variant="gradido" :disabled="busy" @click="savePin">
         {{ $t('form.save') }}
       </BButton>
@@ -134,7 +161,7 @@
  * There is no on/off control. Enabling means setting a PIN and disabling means deleting it,
  * so the state "on but without a PIN" cannot be reached, not even by a half-finished form.
  */
-import { BButton, BFormInput, BModal } from 'bootstrap-vue-next'
+import { BButton, BFormInput, BInputGroup, BModal } from 'bootstrap-vue-next'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMutation, useQuery } from '@vue/apollo-composable'
@@ -161,6 +188,7 @@ const { toastError, toastSuccess } = useAppToast()
 const settings = ref(null)
 const cards = ref([])
 const showSetup = ref(false)
+const showPin = ref(false)
 const newPin = ref('')
 const newLabel = ref('')
 const maxPerPayment = ref('')
