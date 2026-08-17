@@ -219,6 +219,30 @@ describe('ThankYouCardPayment', () => {
       expect(wrapper.find('#tyc-pin-subtitle').exists()).toBe(true)
     })
 
+    // ⛔ NOT a password field where the browser can hide a text one. As a password field it
+    // was filled with the saved site password cut to six characters, it asked to be saved
+    // over and over, and accepting that once would have replaced somebody's Gradido password
+    // with six digits.
+    it('is a hidden text field, not a password field', async () => {
+      vi.stubGlobal('CSS', { supports: () => true })
+      await reachPinStep()
+
+      const pin = field('pin')
+      expect(pin.attributes('type')).toBe('text')
+      expect(pin.classes()).toContain('pin-masked')
+      vi.unstubAllGlobals()
+    })
+
+    // The one case where it still has to be one: no CSS masking, and a visible PIN at a
+    // counter is worse than a password manager.
+    it('falls back to a password field where nothing can hide a text one', async () => {
+      vi.stubGlobal('CSS', { supports: () => false })
+      await reachPinStep()
+
+      expect(field('pin').attributes('type')).toBe('password')
+      vi.unstubAllGlobals()
+    })
+
     it('sends the pin as soon as six digits are in the field', async () => {
       await reachPinStep()
       await field('pin').setValue('407312')

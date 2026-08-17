@@ -69,11 +69,12 @@
       -->
       <BFormInput
         v-model="pin"
-        type="password"
+        :type="pinType"
         inputmode="numeric"
         autocomplete="one-time-code"
         :maxlength="PIN_LENGTH"
         class="text-center fs-3 tyc-pin"
+        :class="PIN_MASK_CLASS"
         aria-labelledby="tyc-pin-title"
         aria-describedby="tyc-pin-subtitle"
         data-test="thank-you-card-pin"
@@ -134,8 +135,13 @@ import {
 } from '@/graphql/thankYouCard.graphql'
 import { useAppToast } from '@/composables/useToast'
 import { useThankYouCardMemo } from '@/composables/useThankYouCardMemo'
+import { PIN_MASK_CLASS, pinInputType } from '@/utils/pinMasking'
 
 const PIN_LENGTH = 6
+
+// ⛔ A text field that CSS hides, not a password field. Read once: the answer cannot change
+// while somebody stands at the counter, and asking per keystroke would be work for nothing.
+const pinType = pinInputType()
 
 const route = useRoute()
 const { t } = useI18n()
