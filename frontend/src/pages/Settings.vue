@@ -82,6 +82,8 @@
         </BRow>
         <hr />
         <user-gradido-card class="mb-5" />
+        <hr />
+        <user-thank-you-card class="mb-5" />
       </BTab>
       <BTab
         v-if="isCommunityService"
@@ -207,6 +209,7 @@ import UserGMSLocationFormat from '@/components/UserSettings/UserGMSLocationForm
 import UserGmsLocationCapturing from '@/components/UserSettings/UserGmsLocationCapturing'
 import UserNewsletter from '@/components/UserSettings/UserNewsletter.vue'
 import UserGradidoCard from '@/components/UserSettings/UserGradidoCard.vue'
+import UserThankYouCard from '@/components/UserSettings/UserThankYouCard.vue'
 import {
   BTabs,
   BTab,

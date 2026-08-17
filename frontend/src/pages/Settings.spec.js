@@ -89,6 +89,7 @@ describe('Settings', () => {
           'user-password': true,
           'user-newsletter': true,
           'user-gradido-card': true,
+          'user-thank-you-card': true,
         },
       },
     })

@@ -86,6 +86,16 @@
       "title": "Сброс пароля",
       "youOrSomeoneResetPassword": "вы или кто-то другой запросили сброс пароля для этого аккаунта."
     },
+    "thankYouCardPaid": {
+      "blockCard": "Заблокировать карту",
+      "memo": "Назначение: {transactionMemo}",
+      "notYou": "Это были не вы? Заблокируйте карту прямо здесь — она перестанет работать, ваш адрес Gradido останется.",
+      "paidWith": "Оплачено картой «{cardLabel}»",
+      "recipient": "Получатель: {recipientName} ({recipientCommunity})",
+      "subject": "Вы передали {amountGDD} GDD своей картой благодарности",
+      "title": "Картой благодарности передано {amountGDD} GDD",
+      "wasPaid": "Только что вашей картой благодарности передано {amountGDD} GDD."
+    },
     "transactionLinkRedeemed": {
       "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) только что воспользовался вашей ссылкой.",
       "memo": "Сообщение: {transactionMemo}",

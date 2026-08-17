@@ -86,6 +86,16 @@
       "title": "Reimposta la password",
       "youOrSomeoneResetPassword": "tu, o qualcun altro, hai richiesto la reimpostazione della password per questo account."
     },
+    "thankYouCardPaid": {
+      "blockCard": "Blocca la carta",
+      "memo": "Causale: {transactionMemo}",
+      "notYou": "Non sei stato tu? Blocca subito la tua carta qui: smetterà di funzionare, il tuo indirizzo Gradido resta.",
+      "paidWith": "Pagato con: carta «{cardLabel}»",
+      "recipient": "Destinatario: {recipientName} ({recipientCommunity})",
+      "subject": "Hai trasmesso {amountGDD} GDD con la tua carta di ringraziamento",
+      "title": "Sono stati trasmessi {amountGDD} GDD con la tua carta di ringraziamento",
+      "wasPaid": "Sono appena stati trasmessi {amountGDD} GDD con la tua carta di ringraziamento."
+    },
     "transactionLinkRedeemed": {
       "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) ha appena riscattato il tuo link.",
       "memo": "Messaggio: {transactionMemo}",

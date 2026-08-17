@@ -86,6 +86,16 @@
       "title": "Επαναφορά κωδικού πρόσβασης",
       "youOrSomeoneResetPassword": "εσύ, ή κάποιος άλλος, ζήτησες επαναφορά κωδικού πρόσβασης για αυτόν τον λογαριασμό."
     },
+    "thankYouCardPaid": {
+      "blockCard": "Μπλοκάρισμα κάρτας",
+      "memo": "Αιτιολογία: {transactionMemo}",
+      "notYou": "Δεν ήσασταν εσείς; Μπλοκάρετε την κάρτα σας εδώ — παύει να λειτουργεί, η διεύθυνση Gradido παραμένει.",
+      "paidWith": "Πληρωμή με: κάρτα «{cardLabel}»",
+      "recipient": "Παραλήπτης: {recipientName} ({recipientCommunity})",
+      "subject": "Μεταβιβάσατε {amountGDD} GDD με την κάρτα ευχαριστίας σας",
+      "title": "Μεταβιβάστηκαν {amountGDD} GDD με την κάρτα ευχαριστίας σας",
+      "wasPaid": "Μόλις μεταβιβάστηκαν {amountGDD} GDD με την κάρτα ευχαριστίας σας."
+    },
     "transactionLinkRedeemed": {
       "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) μόλις εξαργύρωσε τον σύνδεσμό σου.",
       "memo": "Μήνυμα: {transactionMemo}",

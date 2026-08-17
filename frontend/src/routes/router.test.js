@@ -81,8 +81,8 @@ describe('router', () => {
       expect(defaultRoute.redirect()).toEqual({ path: '/login' })
     })
 
-    it('has 24 routes defined', () => {
-      expect(routes).toHaveLength(24)
+    it('has 25 routes defined', () => {
+      expect(routes).toHaveLength(25)
     })
 
     const testRoute = (path, expectedName, requiresAuth = true) => {
@@ -138,6 +138,7 @@ describe('router', () => {
     // Gradido card landed on "page not found". Public on purpose -- a phone camera opens the
     // default browser, so most visitors arrive logged out.
     testRoute('/u/:alias', 'PublicProfile', false)
+    testRoute('/dk/:code', 'ThankYouCardPayment')
 
     // The order is the whole point, and `routes.find` cannot see it. This is the regression
     // that made every printed QR code land on "page not found": the address route did not

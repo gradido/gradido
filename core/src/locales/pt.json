@@ -86,6 +86,16 @@
       "title": "Repor a palavra-passe",
       "youOrSomeoneResetPassword": "tu, ou outra pessoa, pediste a reposição da palavra-passe desta conta."
     },
+    "thankYouCardPaid": {
+      "blockCard": "Bloquear cartão",
+      "memo": "Descrição: {transactionMemo}",
+      "notYou": "Não foi você? Bloqueie o seu cartão aqui mesmo — deixa de funcionar, o seu endereço Gradido permanece.",
+      "paidWith": "Pago com: cartão «{cardLabel}»",
+      "recipient": "Destinatário: {recipientName} ({recipientCommunity})",
+      "subject": "Passou {amountGDD} GDD com o seu cartão de agradecimento",
+      "title": "Foram passados {amountGDD} GDD com o seu cartão de agradecimento",
+      "wasPaid": "Acabaram de ser passados {amountGDD} GDD com o seu cartão de agradecimento."
+    },
     "transactionLinkRedeemed": {
       "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) acabou de resgatar o teu link.",
       "memo": "Mensagem: {transactionMemo}",

@@ -301,3 +301,96 @@ export const userAvatarsTable = mysqlTable('user_avatars', {
 
 export type UserAvatarSelect = typeof userAvatarsTable.$inferSelect
 export type UserAvatarInsert = typeof userAvatarsTable.$inferInsert
+
+// Paying with a printed card. Three tables, split along who owns what: the PIN and the
+// limits belong to the person, the code and the failure counter belong to the card, and
+// the payment request is a short-lived thing that lives between "amount entered" and
+// "money booked".
+//
+// The existence of a settings row IS the on/off switch -- enabling means setting a PIN,
+// disabling means deleting it. "Enabled but without a PIN" therefore cannot exist.
+export const thankYouCardSettingsTable = mysqlTable('thank_you_card_settings', {
+  userId: int('user_id').primaryKey().notNull(),
+  // Same derivation as users.password (argon2id, then a 64 bit shorthash), but with its
+  // own salt -- a leak must not let one of the two secrets say anything about the other.
+  //
+  // ⚠️ mode 'bigint' and unsigned, both load-bearing. The derivation returns a full 64
+  // bit word, so roughly half of all values are above Number.MAX_SAFE_INTEGER and would
+  // lose precision as a JS number, and everything above 2^63 would overflow a signed
+  // column. Either one turns "correct PIN" into "wrong PIN" for a share of members,
+  // unpredictably. users.password is `bigint unsigned` in the DDL for the same reason.
+  pin: bigint({ mode: 'bigint', unsigned: true }).notNull(),
+  pinSalt: varchar('pin_salt', { length: 64 }).notNull(),
+  maxPerPayment: customGradidoUnit('max_per_payment_gdd4').notNull(),
+  maxPerDay: customGradidoUnit('max_per_day_gdd4').notNull(),
+  createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+    .default(sql`current_timestamp(3)`)
+    .notNull(),
+  updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
+    .default(sql`current_timestamp(3)`)
+    .notNull(),
+})
+
+export type ThankYouCardSettingsSelect = typeof thankYouCardSettingsTable.$inferSelect
+export type ThankYouCardSettingsInsert = typeof thankYouCardSettingsTable.$inferInsert
+
+// One row per printed card. userId is indexed, not the primary key: blocking a card
+// creates the plural all by itself, because a blocked card is kept rather than deleted.
+//
+// ⛔ Never delete a row here. A kept row is what lets a scan of an old card say "this
+// card is blocked" instead of running into nothing, and what lets an old receipt still
+// name the card a payment was made with.
+export const thankYouCardsTable = mysqlTable(
+  'thank_you_cards',
+  {
+    id: int().autoincrement().notNull(),
+    userId: int('user_id').notNull(),
+    // "DK-" plus 32 hex characters: 16 fully random bytes, no timestamp. Length inside a
+    // QR code is free, so there is no reason to spend part of it on the creation time
+    // the way transaction links do.
+    code: varchar({ length: 40 }).notNull(),
+    label: varchar({ length: 64 }).notNull(),
+    // Counted on the card, not on the person: once more than one card may be valid,
+    // guessing at one must not block the other.
+    failedAttempts: int('failed_attempts').default(0).notNull(),
+    blockedAt: datetime('blocked_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex('thank_you_cards_code_unique').on(table.code),
+    index('thank_you_cards_user_id_idx').on(table.userId),
+  ],
+)
+
+export type ThankYouCardSelect = typeof thankYouCardsTable.$inferSelect
+export type ThankYouCardInsert = typeof thankYouCardsTable.$inferInsert
+
+// The payment request (PS-022). It exists so that the PIN is ONE way to confirm a
+// payment and a later tap on the payer's own device can be another, without touching the
+// booking path again.
+//
+// ⚠️ state is set to 'consumed' BEFORE the booking runs. A TypeORM transaction does not
+// cover Drizzle writes, so the two cannot be made atomic; consuming first means a crash
+// in between leaves "request used, no money moved" instead of "money moved, request
+// still open", and only the second of those can be booked twice.
+export const thankYouCardPaymentsTable = mysqlTable(
+  'thank_you_card_payments',
+  {
+    id: int().autoincrement().notNull(),
+    cardId: int('card_id').notNull(),
+    recipientId: int('recipient_id').notNull(),
+    amount: customGradidoUnit('amount_gdd4').notNull(),
+    memo: varchar({ length: 512 }).notNull(),
+    state: varchar({ length: 16 }).default('open').notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    validUntil: datetime('valid_until', { mode: 'date', fsp: 3 }).notNull(),
+  },
+  (table) => [index('thank_you_card_payments_card_id_idx').on(table.cardId)],
+)
+
+export type ThankYouCardPaymentSelect = typeof thankYouCardPaymentsTable.$inferSelect
+export type ThankYouCardPaymentInsert = typeof thankYouCardPaymentsTable.$inferInsert
