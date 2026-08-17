@@ -48,13 +48,22 @@
         <label class="small" for="tyc-label">{{ $t('thank-you-card.settings.label') }}</label>
         <BFormInput id="tyc-label" :model-value="activeCard.label" disabled />
         <div class="mt-3">
-          <BButton variant="gradido" :disabled="busy" @click="download">
+          <BButton
+            variant="gradido"
+            :disabled="busy"
+            data-test="thank-you-card-sheet"
+            @click="printSheet"
+          >
+            {{ $t('thank-you-card.settings.sheet') }}
+          </BButton>
+          <BButton class="ms-2" variant="secondary" :disabled="busy" @click="download">
             {{ $t('thank-you-card.settings.print') }}
           </BButton>
           <BButton class="ms-2" variant="danger" :disabled="busy" @click="block">
             {{ $t('thank-you-card.settings.block') }}
           </BButton>
         </div>
+        <div class="small text-muted mt-2">{{ $t('thank-you-card.settings.sheet-hint') }}</div>
       </div>
 
       <div v-else>
@@ -177,7 +186,11 @@ import {
   thankYouCardSettings,
 } from '@/graphql/thankYouCard.graphql'
 import { useAppToast } from '@/composables/useToast'
-import { drawThankYouCard, thankYouCardFileName } from '@/utils/thankYouCard'
+import {
+  drawThankYouCard,
+  printThankYouCardSheet,
+  thankYouCardFileName,
+} from '@/utils/thankYouCard'
 import CONFIG from '@/config'
 
 const { t } = useI18n()
@@ -299,18 +312,40 @@ const blockById = (cardId) => run(() => blockCard({ cardId }), t('thank-you-card
 
 const block = () => blockById(activeCard.value.id)
 
+/**
+ * ⚠️ The two ways out differ in WHERE the size lives, not in what is drawn. The download
+ * hands over a PNG whose physical size nothing states — deliberately, see `gradidoCard.js`
+ * — for whoever wants to place it themselves. The sheet states it, in millimetres, on a page
+ * the browser prints at exactly that size. Which is why the sheet is the first button.
+ */
+const cardOptions = () => ({
+  url: `${window.location.origin}/dk/${activeCard.value.code}`,
+  label: activeCard.value.label,
+  community: CONFIG.COMMUNITY_NAME ?? store.state.community?.name ?? '',
+  title: t('thank-you-card.name'),
+})
+
+const printSheet = async () => {
+  if (!activeCard.value) {
+    return
+  }
+  busy.value = true
+  try {
+    await printThankYouCardSheet(cardOptions())
+  } catch (error) {
+    toastError(error.message)
+  } finally {
+    busy.value = false
+  }
+}
+
 const download = async () => {
   if (!activeCard.value) {
     return
   }
   busy.value = true
   try {
-    const dataUrl = await drawThankYouCard({
-      url: `${window.location.origin}/dk/${activeCard.value.code}`,
-      label: activeCard.value.label,
-      community: CONFIG.COMMUNITY_NAME ?? store.state.community?.name ?? '',
-      title: t('thank-you-card.name'),
-    })
+    const dataUrl = await drawThankYouCard(cardOptions())
     const anchor = document.createElement('a')
     anchor.href = dataUrl
     anchor.download = thankYouCardFileName(activeCard.value.label)

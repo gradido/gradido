@@ -807,6 +807,8 @@
       "pin-title": "PIN setzen",
       "print": "Karte drucken",
       "saved": "Gespeichert",
+      "sheet": "Bogen drucken",
+      "sheet-hint": "Eine Karte in Originalgröße auf einer A4-Seite, zum Ausschneiden an der dünnen Linie. Im Druckfenster kannst Du sie auch als PDF sichern.",
       "title": "Mit Karte danken",
       "your-card": "Deine Karte"
     },

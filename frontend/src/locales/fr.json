@@ -806,6 +806,8 @@
       "pin-title": "Set a PIN",
       "print": "Print card",
       "saved": "Saved",
+      "sheet": "Print sheet",
+      "sheet-hint": "One card at its real size on an A4 page, to cut out along the thin line. The print dialogue can also save it as a PDF.",
       "title": "Give thanks by card",
       "your-card": "Your card"
     },
