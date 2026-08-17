@@ -1,0 +1,287 @@
+// AI-GENERATED — not an architecture reference
+import { mount, flushPromises } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { nextTick } from 'vue'
+import { BButton, BFormCheckbox, BFormInput } from 'bootstrap-vue-next'
+import ThankYouCardPayment from './ThankYouCardPayment.vue'
+
+/**
+ * The page a scanned card lands on, and the only place in the wallet where somebody else's
+ * money moves on this device.
+ *
+ * ⛔ Four of the fixes on this page were found by a reviewer rather than by a test, because
+ * there was no test file at all. Three of them share a shape: they are things that must NOT
+ * happen — a memo that must not survive, six letters that must not be sent, a field that
+ * must not be nameless. That kind is exactly what stays green forever once it breaks, so
+ * each of them is pinned here against the wrong behaviour, not only the right one.
+ */
+
+const mockToastError = vi.fn()
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: vi.fn(() => ({ toastError: mockToastError })),
+}))
+
+const mockReadRememberedMemo = vi.fn(() => '')
+const mockWriteRememberedMemo = vi.fn()
+vi.mock('@/composables/useThankYouCardMemo', () => ({
+  useThankYouCardMemo: vi.fn(() => ({
+    readRememberedMemo: mockReadRememberedMemo,
+    writeRememberedMemo: mockWriteRememberedMemo,
+  })),
+}))
+
+vi.mock('vue-router', () => ({
+  useRoute: vi.fn(() => ({ params: { code: 'DK-abc123' } })),
+}))
+
+vi.mock('vue-i18n', () => ({
+  useI18n: vi.fn(() => ({ t: (key) => key })),
+}))
+
+// The query hands its answer over through onResult, so the test keeps the callback and
+// plays the card's status back through it — the same way the server would.
+let onTargetResult
+let onTargetError
+const mockCreate = vi.fn()
+const mockConfirm = vi.fn()
+
+vi.mock('@vue/apollo-composable', () => ({
+  useQuery: vi.fn(() => ({
+    onResult: (callback) => {
+      onTargetResult = callback
+    },
+    onError: (callback) => {
+      onTargetError = callback
+    },
+  })),
+  useMutation: vi.fn((document) => ({
+    mutate: (variables) => mutateFor(document)(variables),
+  })),
+}))
+
+// One mutation mock per document, told apart by the operation name in the parsed query.
+const mutateFor = (document) => {
+  const name = document?.definitions?.[0]?.name?.value ?? ''
+  return name.includes('confirm') ? mockConfirm : mockCreate
+}
+
+const PAYMENT_ID = 4711
+
+describe('ThankYouCardPayment', () => {
+  let wrapper
+
+  const createWrapper = () =>
+    mount(ThankYouCardPayment, {
+      global: {
+        mocks: { $t: (key, values) => (values ? `${key}:${JSON.stringify(values)}` : key) },
+        stubs: { BButton, BFormCheckbox, BFormInput },
+      },
+    })
+
+  /** The card is usable, so the page shows the amount step. */
+  const mountUsable = async () => {
+    wrapper = createWrapper()
+    await nextTick()
+    onTargetResult({ data: { thankYouCardPaymentTarget: 'SUCCESS' } })
+    await nextTick()
+    return wrapper
+  }
+
+  const field = (name) => wrapper.find(`[data-test="thank-you-card-${name}"]`)
+
+  /** Amount, memo, tick — then the button that creates the request. */
+  const fillAndStart = async ({ amount = '12,50', memo = 'Pizzeria Napoli', remember = true }) => {
+    await field('amount').setValue(amount)
+    await field('memo').setValue(memo)
+    await field('remember').setValue(remember)
+    await field('next').trigger('click')
+    await flushPromises()
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    onTargetResult = undefined
+    onTargetError = undefined
+    mockReadRememberedMemo.mockReturnValue('')
+    mockCreate.mockResolvedValue({ data: { createThankYouCardPayment: { id: PAYMENT_ID } } })
+    mockConfirm.mockResolvedValue({
+      data: { confirmThankYouCardPayment: { status: 'SUCCESS', payerName: 'Bibi Bloxberg' } },
+    })
+  })
+
+  afterEach(() => {
+    wrapper?.unmount()
+  })
+
+  describe('what the scanned card is good for', () => {
+    it('asks for an amount once the card answers that it can pay', async () => {
+      await mountUsable()
+
+      expect(field('amount').exists()).toBe(true)
+    })
+
+    // The counterpart to the test above, and the one that matters: a blocked card must not
+    // reach a screen that asks for money.
+    it('shows the status and no amount field when the card cannot pay', async () => {
+      wrapper = createWrapper()
+      await nextTick()
+      onTargetResult({ data: { thankYouCardPaymentTarget: 'CARD_BLOCKED' } })
+      await nextTick()
+
+      expect(wrapper.text()).toContain('thank-you-card.status.CARD_BLOCKED')
+      expect(field('amount').exists()).toBe(false)
+    })
+
+    it('treats a query that fails as an unknown card rather than as a usable one', async () => {
+      wrapper = createWrapper()
+      await nextTick()
+      onTargetError(new Error('network'))
+      await nextTick()
+
+      expect(wrapper.text()).toContain('thank-you-card.status.CARD_UNKNOWN')
+      expect(field('amount').exists()).toBe(false)
+    })
+  })
+
+  describe('the reference this till remembers', () => {
+    it('starts with what the device remembered', async () => {
+      mockReadRememberedMemo.mockReturnValue('Pizzeria Napoli')
+      await mountUsable()
+
+      expect(field('memo').element.value).toBe('Pizzeria Napoli')
+    })
+
+    it('remembers the reference while the tick is set', async () => {
+      await mountUsable()
+      await fillAndStart({ memo: 'Marktstand', remember: true })
+
+      expect(mockWriteRememberedMemo).toHaveBeenCalledWith('Marktstand')
+    })
+
+    // ⛔ The regression this file was written for. Before the fix the branch simply did
+    // nothing when the tick was off, so an earlier reference stayed in storage and came
+    // back at the next payment — on a device that is standing on somebody's counter.
+    it('forgets the reference when the tick is taken away', async () => {
+      mockReadRememberedMemo.mockReturnValue('Pizzeria Napoli')
+      await mountUsable()
+      await fillAndStart({ memo: 'Pizzeria Napoli', remember: false })
+
+      expect(mockWriteRememberedMemo).toHaveBeenCalledWith('')
+    })
+
+    it('sends a default reference when the field was left empty', async () => {
+      await mountUsable()
+      await fillAndStart({ memo: '' })
+
+      expect(mockCreate).toHaveBeenCalledWith(
+        expect.objectContaining({ memo: 'thank-you-card.receive.default-memo' }),
+      )
+    })
+
+    it('passes the amount with a comma as a number', async () => {
+      await mountUsable()
+      await fillAndStart({ amount: '12,50' })
+
+      expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ amount: 12.5 }))
+    })
+  })
+
+  describe('the pin', () => {
+    const reachPinStep = async () => {
+      await mountUsable()
+      await fillAndStart({})
+    }
+
+    it('carries a name and its amount for a screen reader', async () => {
+      await reachPinStep()
+
+      const pin = field('pin')
+      expect(pin.attributes('aria-labelledby')).toBe('tyc-pin-title')
+      expect(pin.attributes('aria-describedby')).toBe('tyc-pin-subtitle')
+      expect(wrapper.find('#tyc-pin-title').exists()).toBe(true)
+      expect(wrapper.find('#tyc-pin-subtitle').exists()).toBe(true)
+    })
+
+    it('sends the pin as soon as six digits are in the field', async () => {
+      await reachPinStep()
+      await field('pin').setValue('407312')
+      await flushPromises()
+
+      expect(mockConfirm).toHaveBeenCalledWith({ paymentId: PAYMENT_ID, pin: '407312' })
+    })
+
+    // ⛔ The second regression. `inputmode` only picks a keyboard, so a paste can put six
+    // letters here — and six letters that leave the device cost one of the three attempts
+    // the card has, plus an argon2id on our server.
+    it('does not send six characters that are not digits', async () => {
+      await reachPinStep()
+      await field('pin').setValue('abcdef')
+      await flushPromises()
+
+      expect(mockConfirm).not.toHaveBeenCalled()
+      expect(field('pin').element.value).toBe('')
+    })
+
+    // ⛔ And the second half of the same fix: writing the cleaned value back makes the
+    // field report a change again, so the handler runs twice. Before the guard this paste
+    // sent the PIN TWICE — with a wrong PIN that is two of the three attempts for one
+    // paste.
+    it('sends a pasted pin with separators exactly once, cleaned', async () => {
+      await reachPinStep()
+      await field('pin').setValue('40-73-12')
+      await flushPromises()
+
+      expect(mockConfirm).toHaveBeenCalledTimes(1)
+      expect(mockConfirm).toHaveBeenCalledWith({ paymentId: PAYMENT_ID, pin: '407312' })
+    })
+  })
+
+  describe('what the server answers', () => {
+    const payWith = async (answer) => {
+      mockConfirm.mockResolvedValue({ data: { confirmThankYouCardPayment: answer } })
+      await mountUsable()
+      await fillAndStart({})
+      await field('pin').setValue('407312')
+      await flushPromises()
+    }
+
+    it('names the payer once the money has moved', async () => {
+      await payWith({ status: 'SUCCESS', payerName: 'Bibi Bloxberg' })
+
+      expect(wrapper.text()).toContain('thank-you-card.receive.thanks')
+      expect(wrapper.text()).toContain('Bibi Bloxberg')
+    })
+
+    it('says how many attempts are left after a wrong pin, and stays on the pin step', async () => {
+      await payWith({ status: 'WRONG_PIN', attemptsLeft: 2 })
+
+      expect(wrapper.text()).toContain('thank-you-card.receive.attempts-left')
+      expect(wrapper.text()).toContain('"n":2')
+      expect(field('pin').exists()).toBe(true)
+    })
+
+    // A card that was blocked by this very attempt must not be payable a second time, so
+    // the page leaves the payment flow rather than offering another try.
+    it('leaves the payment flow when the card was blocked by this attempt', async () => {
+      await payWith({ status: 'BLOCKED_NOW' })
+
+      expect(wrapper.text()).toContain('thank-you-card.status.BLOCKED_NOW')
+      expect(field('pin').exists()).toBe(false)
+    })
+
+    it('shows a limit refusal without ending the card', async () => {
+      await payWith({ status: 'LIMIT_PER_DAY_EXCEEDED' })
+
+      expect(wrapper.text()).toContain('thank-you-card.status.LIMIT_PER_DAY_EXCEEDED')
+      expect(field('pin').exists()).toBe(true)
+    })
+
+    it('starts over for the next customer', async () => {
+      await payWith({ status: 'SUCCESS', payerName: 'Bibi Bloxberg' })
+      await field('again').trigger('click')
+      await nextTick()
+
+      expect(field('amount').element.value).toBe('')
+    })
+  })
+})
