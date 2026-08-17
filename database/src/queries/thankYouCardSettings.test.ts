@@ -68,6 +68,40 @@ describe('thankYouCardSettings query test', () => {
     }
   })
 
+  /**
+   * ⛔ A REAL pin value, not a tidy one.
+   *
+   * The stored pin is the full 64 bit word `crypto_shorthash` returns, so roughly HALF of
+   * all pins land above Number.MAX_SAFE_INTEGER. The tests above use 111111n and 222222n —
+   * small enough to survive a trip through a JS number, and therefore blind to the only
+   * failure that matters here: if anything on the way to the column or back treats the
+   * value as a double, the pin comes back changed and NO pin ever matches again, for
+   * anybody, while the server counts attempts down and blocks the card.
+   *
+   * Both directions are covered: the first write (INSERT) and the second one (the
+   * ON DUPLICATE KEY UPDATE branch), because they bind their values separately.
+   */
+  it('keeps a pin above the safe integer range, on the first write and the second', async () => {
+    const huge = 18446744073709551557n // just under 2^64, far above 2^53
+    const alsoHuge = 9007199254740993n // 2^53 + 1, the first value a double cannot hold
+
+    await dbUpsertThankYouCardSettings(settingsOf(11, huge))
+    const first = await dbSelectThankYouCardSettings(11)
+
+    expect(first.success).toBe(true)
+    if (first.success) {
+      expect(first.value.pin).toBe(huge)
+    }
+
+    await dbUpsertThankYouCardSettings(settingsOf(11, alsoHuge))
+    const second = await dbSelectThankYouCardSettings(11)
+
+    expect(second.success).toBe(true)
+    if (second.success) {
+      expect(second.value.pin).toBe(alsoHuge)
+    }
+  })
+
   // ⚠️ MySQL answers an unchanged upsert with 0 affected rows. Saving the same limits
   // again is the most common case there is, so it must not be read as a failure.
   it('succeeds when the very same values are saved again', async () => {

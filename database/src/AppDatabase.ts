@@ -125,6 +125,22 @@ export class AppDatabase {
         queueLimit: 100,
         enableKeepAlive: true,
         keepAliveInitialDelay: 10000,
+        // ⛔ Both of these, and they are not tuning — without them mysql2 hands every
+        // BIGINT column back as a JS NUMBER, which cannot hold every integer above 2^53.
+        // The value is not rounded visibly or reported anywhere; it simply comes back as a
+        // different number than the one that was stored.
+        //
+        // Measured on 17.08.2026, and it cost an evening: a thank-you-card PIN is the full
+        // 64 bit word `crypto_shorthash` returns, so about HALF of all PINs land above that
+        // line. Written 18446744073709551557, read back 18446744073709551616 — rounded to
+        // a clean 2^64. Every payment with such a PIN was refused, the attempts counted
+        // down, and the card blocked, while the person at the till typed the right digits.
+        //
+        // ⚠️ Signing in was never affected: passwords are read through TypeORM, on the
+        // other connection. That is exactly why this hid for a day — the same derivation,
+        // stored the same way, works in one place and not in the other.
+        supportBigNumbers: true,
+        bigNumberStrings: true,
       })
     }
   }
