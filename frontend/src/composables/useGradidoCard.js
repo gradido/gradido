@@ -8,6 +8,7 @@ import { useAppToast } from '@/composables/useToast'
 import { avatarFull } from '@/graphql/queries'
 import { gradidoAddress, memberAlias } from '@/utils/gradidoAddress'
 import { cardFileName, drawGradidoCard } from '@/utils/gradidoCard'
+import { printSheet } from '@/utils/printSheet'
 import { renderQrCodeCanvas } from '@/utils/qrCode'
 
 /**
@@ -57,10 +58,6 @@ const SHEET_STYLE = `
 `
 
 const buildSheet = (doc, card) => {
-  const style = doc.createElement('style')
-  style.textContent = SHEET_STYLE
-  doc.head.appendChild(style)
-
   const sheet = doc.createElement('div')
   sheet.className = 'sheet'
   for (let index = 0; index < 10; index++) {
@@ -173,39 +170,14 @@ export const useGradidoCard = () => {
    * what pop-up blockers stop.
    */
   const printCardSheet = async ({ contact = [], heading = true } = {}) => {
-    let frame = null
     try {
       const card = await drawCard({ contact, heading })
-
-      frame = document.createElement('iframe')
-      frame.setAttribute('aria-hidden', 'true')
-      frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0'
-      document.body.appendChild(frame)
-
-      const doc = frame.contentDocument
-      buildSheet(doc, card)
-      // The picture has to be decoded before the dialogue opens, or the page goes to the
-      // printer empty. decode() is the only way to know; a load event has already passed.
-      // Where there is no decode(), printing still works -- a data URI needs no network --
-      // so its absence must not cost the sheet. It is missing in more places than one thinks.
-      await Promise.all(
-        [...doc.images].map((image) =>
-          typeof image.decode === 'function' ? image.decode().catch(() => {}) : null,
-        ),
-      )
-
-      // The frame must outlive the dialogue -- removing it while the browser is printing
-      // cancels the job. It goes when printing is over, and a minute later at the latest:
-      // afterprint fires on cancel too, but not everywhere, and a frame per click adds up.
-      const remove = () => frame?.remove()
-      frame.contentWindow.addEventListener('afterprint', remove)
-      setTimeout(remove, 60000)
-
-      frame.contentWindow.focus()
-      frame.contentWindow.print()
+      // ⚠️ The frame dance lives in `utils/printSheet` since the thank you card needed the
+      // same one. Everything specific to THIS sheet -- ten cards, landscape, the padding
+      // that keeps the grid inside the paper -- stays here.
+      await printSheet({ style: SHEET_STYLE, build: (doc) => buildSheet(doc, card) })
       return card
     } catch (error) {
-      frame?.remove()
       toastError(error.message)
       return null
     }

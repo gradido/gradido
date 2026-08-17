@@ -42,8 +42,10 @@ vi.mock('vuex', () => ({
 }))
 
 const mockDrawThankYouCard = vi.fn()
+const mockPrintThankYouCardSheet = vi.fn()
 vi.mock('@/utils/thankYouCard', () => ({
   drawThankYouCard: (...args) => mockDrawThankYouCard(...args),
+  printThankYouCardSheet: (...args) => mockPrintThankYouCardSheet(...args),
   thankYouCardFileName: (label) => `Dank-Karte ${label}.png`,
 }))
 
@@ -177,6 +179,7 @@ describe('UserThankYouCard', () => {
     mockRefetchSettings.mockResolvedValue({})
     mockRefetchCards.mockResolvedValue({})
     mockDrawThankYouCard.mockResolvedValue('data:image/png;base64,AAAA')
+    mockPrintThankYouCardSheet.mockResolvedValue('data:image/png;base64,AAAA')
   })
 
   afterEach(() => {
@@ -423,6 +426,31 @@ describe('UserThankYouCard', () => {
       expect(anchor.click).toHaveBeenCalled()
       createElement.mockRestore()
       expect(document.createElement('div').tagName).toBe('DIV')
+    })
+
+    // ⛔ The sheet is what carries the physical size. The PNG deliberately states none — so
+    // without this way out there is no way to get a card at 54 x 85.6 mm at all, which is
+    // exactly the hole it was built to close.
+    it('offers a sheet, and draws it from the same card', async () => {
+      await mountWith()
+      await field('sheet').trigger('click')
+      await flushPromises()
+
+      expect(mockPrintThankYouCardSheet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: `${window.location.origin}/dk/${ACTIVE_CARD.code}`,
+          label: 'Portemonnaie',
+        }),
+      )
+    })
+
+    it('says so instead of failing silently when the sheet cannot be printed', async () => {
+      mockPrintThankYouCardSheet.mockRejectedValue(new Error('no printer'))
+      await mountWith()
+      await field('sheet').trigger('click')
+      await flushPromises()
+
+      expect(mockToastError).toHaveBeenCalledWith('no printer')
     })
 
     it('says so instead of failing silently when the drawing goes wrong', async () => {
