@@ -221,7 +221,7 @@ import AppModal from '@/components/AppModal'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMutation, useQuery } from '@vue/apollo-composable'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import {
   blockThankYouCard,
@@ -244,6 +244,7 @@ import CONFIG from '@/config'
 
 const { t } = useI18n()
 const route = useRoute()
+const router = useRouter()
 const store = useStore()
 const { toastError, toastSuccess } = useAppToast()
 
@@ -312,6 +313,13 @@ onMounted(() => {
   const wanted = Number(route.query.block)
   if (Number.isFinite(wanted) && wanted > 0) {
     blockById(wanted)
+    // ⛔ And the wish is taken out of the address, at once. It is an INSTRUCTION, not a
+    // description of the page, so it must not survive being acted on: left standing, it
+    // fires again on every reload and every visit through the history — and once the card
+    // has been deliberately unblocked, a reload would silently block it a second time,
+    // with nothing on the screen connecting the two. The reload right after blocking is
+    // the harmless half: it answers with "already blocked" for something that just worked.
+    router.replace({ query: {} })
   }
 })
 
@@ -374,6 +382,13 @@ const unblockById = (cardId) =>
 
 const confirmBlock = () => {
   showBlockConfirm.value = false
+  // The dialogue can outlive the card it asks about — every action here reloads the list,
+  // and the receipt's own link can block it while this is open. Same guard `download` and
+  // `printSheet` carry: without it the click throws and the dialogue closes as if it had
+  // worked.
+  if (!activeCard.value) {
+    return
+  }
   blockById(activeCard.value.id)
 }
 

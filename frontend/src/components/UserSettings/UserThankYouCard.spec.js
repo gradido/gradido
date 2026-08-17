@@ -33,8 +33,10 @@ vi.mock('vue-i18n', () => ({
 }))
 
 let routeQuery = {}
+const mockRouterReplace = vi.fn()
 vi.mock('vue-router', () => ({
   useRoute: vi.fn(() => ({ query: routeQuery })),
+  useRouter: vi.fn(() => ({ replace: mockRouterReplace })),
 }))
 
 vi.mock('vuex', () => ({
@@ -121,10 +123,21 @@ const BLOCKED_CARD = {
 
 describe('UserThankYouCard', () => {
   let wrapper
+  /**
+   * ⚠️ Vue catches what a click handler throws and logs it, so a test that only looks at
+   * the mutations passes whether the handler worked or threw. Everything thrown lands here
+   * instead, and the tests that care can look.
+   */
+  let handlerErrors
 
   const createWrapper = () =>
     mount(UserThankYouCard, {
       global: {
+        config: {
+          errorHandler: (error) => {
+            handlerErrors.push(error)
+          },
+        },
         mocks: {
           $t: (key, values) => (values ? `${key}:${JSON.stringify(values)}` : key),
           $d: (date) => `date(${date.toISOString().slice(0, 10)})`,
@@ -180,6 +193,7 @@ describe('UserThankYouCard', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    handlerErrors = []
     routeQuery = {}
     onSettingsResult = undefined
     onCardsResult = undefined
@@ -420,6 +434,25 @@ describe('UserThankYouCard', () => {
 
     // Blocked cards are kept rather than deleted, so an old card can still say what happened
     // to it instead of turning into an unknown code.
+    // The dialogue can outlive the card it asks about: every action here reloads the list,
+    // and the receipt's own link can block it while the question is on screen. Without the
+    // guard the click throws and the dialogue closes as if it had worked.
+    it('does nothing when the card is gone by the time the question is answered', async () => {
+      await mountWith()
+      await field('block').trigger('click')
+
+      onCardsResult({ data: { thankYouCards: [BLOCKED_CARD] } })
+      await flushPromises()
+      await wrapper.find('[data-test="app-modal-ok"]').trigger('click')
+      await flushPromises()
+
+      // ⛔ Both halves. Without the guard nothing is blocked EITHER — because the handler
+      // throws on the way, which Vue swallows. Only the second assertion tells the two
+      // apart, and the first alone would have been green for the wrong reason.
+      expect(mockBlockCard).not.toHaveBeenCalled()
+      expect(handlerErrors).toHaveLength(0)
+    })
+
     it('keeps the earlier cards visible with the day they were blocked', async () => {
       await mountWith({ cards: [ACTIVE_CARD, BLOCKED_CARD] })
 
@@ -443,6 +476,24 @@ describe('UserThankYouCard', () => {
       await mountWith()
 
       expect(mockBlockCard).toHaveBeenCalledWith({ cardId: 7 })
+    })
+
+    // ⛔ An instruction, not a description of the page — so it must not survive being acted
+    // on. Left standing it fires again on every reload and every visit through the history,
+    // and after the card has been deliberately unblocked a reload would block it a second
+    // time, with nothing on the screen connecting the two.
+    it('takes the wish out of the address once it has been acted on', async () => {
+      routeQuery = { block: '7' }
+      await mountWith()
+
+      expect(mockRouterReplace).toHaveBeenCalledWith({ query: {} })
+    })
+
+    it('leaves the address alone when there was no wish in it', async () => {
+      routeQuery = {}
+      await mountWith()
+
+      expect(mockRouterReplace).not.toHaveBeenCalled()
     })
 
     it('blocks nothing when the address carries no such wish', async () => {

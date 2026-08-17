@@ -296,8 +296,12 @@ export class ThankYouCardPaymentResolver {
         return failure(ThankYouCardPaymentStatus.REQUEST_GONE)
       }
 
-      await executeTransaction(payment.amount, payment.memo, owner, recipient, logger)
+      // ⚠️ Before the booking, not after it. This counter counts WRONG PINS, and the PIN
+      // has just been proved right — whether the money then moves says nothing about that.
+      // Behind `executeTransaction` a throwing booking would leave the counter armed, and
+      // the next single mistype would block a card whose owner had just typed correctly.
       await dbResetFailedAttempts(card.id)
+      await executeTransaction(payment.amount, payment.memo, owner, recipient, logger)
 
       const success = failure(ThankYouCardPaymentStatus.SUCCESS)
       success.payerName = `${owner.firstName} ${owner.lastName}`
