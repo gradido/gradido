@@ -74,6 +74,32 @@ const isRun = (pin: string): boolean => {
 }
 
 /**
+ * Does the PIN somebody typed derive to the value that was stored?
+ *
+ * ⛔ Compared as STRINGS, and that is not sloppiness — it is what the house has always done
+ * for this exact derivation (`PasswordEncryptor.verifyPassword`:
+ * `dbUser.password.toString() === encryptedPassword.toString()`).
+ *
+ * The reason is that the two sides do not come from the same place. The stored value comes
+ * out of the database through Drizzle; the offered one comes out of
+ * `SecretKeyCryptographyCreateKey`, which — when `USE_CRYPTO_WORKER` is on — crosses a
+ * worker boundary on the way back. Neither end guarantees the JS type, and a strict `!==`
+ * between a bigint and its own decimal spelling is ALWAYS true: every PIN is wrong, for
+ * everybody, while the server dutifully counts attempts and blocks the card.
+ *
+ * That is exactly what happened on 17.08.2026, with the correct form standing one file away.
+ */
+export const pinMatches = (offered: unknown, stored: unknown): boolean => {
+  // ⛔ Nothing is not a match. Without this, `String(undefined) === String(undefined)` is
+  // the string 'undefined' twice — so a settings row that came back empty would let ANY
+  // pin through. Found by the test below, in the fix for the bug this function is.
+  if (offered === null || offered === undefined || stored === null || stored === undefined) {
+    return false
+  }
+  return String(offered) === String(stored)
+}
+
+/**
  * The start of the day a payment is counted against, in the server's timezone.
  *
  * ⚠️ "Per day" needs a boundary somewhere, and there is no good one: the card is used
