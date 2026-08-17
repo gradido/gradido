@@ -22,7 +22,7 @@ import {
 import { getLogger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
 import { GradidoUnit } from 'shared'
-import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
+import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
@@ -30,6 +30,7 @@ import {
   startOfNextDay,
   THANK_YOU_CARD_PAYMENT_VALID_MINUTES,
 } from '@/data/ThankYouCard.logic'
+import { ThankYouCardPaymentArgs } from '@/graphql/arg/ThankYouCardSettingsArgs'
 import { ThankYouCardPaymentStatus } from '@/graphql/enum/ThankYouCardPaymentStatus'
 import { ThankYouCardPayment, ThankYouCardPaymentResult } from '@/graphql/model/ThankYouCardPayment'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
@@ -129,9 +130,7 @@ export class ThankYouCardPaymentResolver {
   @Authorized([RIGHTS.RECEIVE_THANK_YOU_CARD_PAYMENT])
   @Mutation(() => ThankYouCardPayment)
   async createThankYouCardPayment(
-    @Arg('code', () => String) code: string,
-    @Arg('amount', () => GradidoUnit) amount: GradidoUnit,
-    @Arg('memo', () => String) memo: string,
+    @Args() { code, amount, memo }: ThankYouCardPaymentArgs,
     @Ctx() context: Context,
   ): Promise<ThankYouCardPayment> {
     const recipient = getUser(context)
@@ -140,9 +139,8 @@ export class ThankYouCardPaymentResolver {
     if (!checked.usable) {
       throw new LogError('Thank you card cannot be used', checked.status, code.slice(0, 6))
     }
-    if (amount.comparedTo(new GradidoUnit(0n)) <= 0) {
-      throw new LogError('Amount must be positive', amount.toString())
-    }
+    // ⚠️ The amount is no longer checked here — `@IsPositiveGradidoUnit` on the args does it
+    // now, at the edge, the same way the settings mutation has always done it.
 
     const validUntil = new Date(Date.now() + THANK_YOU_CARD_PAYMENT_VALID_MINUTES * 60 * 1000)
     const written = await dbInsertThankYouCardPayment({

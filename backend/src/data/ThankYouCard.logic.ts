@@ -13,6 +13,10 @@ const CODE_RANDOM_BYTES = 16
 export const THANK_YOU_CARD_PIN_LENGTH = 6
 export const THANK_YOU_CARD_LABEL_MAX_CHARS = 64
 
+/** As wide as the columns they land in — `memo` is varchar(512), `code` varchar(40). */
+export const THANK_YOU_CARD_MEMO_MAX_CHARS = 512
+export const THANK_YOU_CARD_CODE_MAX_CHARS = 40
+
 /** How long a request waits for its PIN before it stops working. */
 export const THANK_YOU_CARD_PAYMENT_VALID_MINUTES = 15
 
