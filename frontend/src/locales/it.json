@@ -783,6 +783,8 @@
     },
     "settings": {
       "block": "Block card",
+      "block-confirm": "It cannot pay after this. You can unblock it later, as long as no other card is active.",
+      "block-confirm-title": "Block the card?",
       "blocked": "The card is blocked.",
       "blocked-on": "blocked {date}",
       "change-pin": "Change PIN",
@@ -809,6 +811,9 @@
       "sheet": "Print sheet",
       "sheet-hint": "One card at its real size on an A4 page, to cut out along the thin line. The print dialogue can also save it as a PDF.",
       "title": "Give thanks by card",
+      "unblock": "Unblock",
+      "unblock-needs-no-active": "To unblock this one, block the active card first — only one card can pay at a time.",
+      "unblocked": "The card works again.",
       "your-card": "Your card"
     },
     "status": {

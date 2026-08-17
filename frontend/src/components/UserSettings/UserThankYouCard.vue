@@ -59,7 +59,13 @@
           <BButton class="ms-2" variant="secondary" :disabled="busy" @click="download">
             {{ $t('thank-you-card.settings.print') }}
           </BButton>
-          <BButton class="ms-2" variant="danger" :disabled="busy" @click="block">
+          <BButton
+            class="ms-2"
+            variant="danger"
+            :disabled="busy"
+            data-test="thank-you-card-block"
+            @click="showBlockConfirm = true"
+          >
             {{ $t('thank-you-card.settings.block') }}
           </BButton>
         </div>
@@ -91,14 +97,52 @@
         <div class="small text-muted text-uppercase">
           {{ $t('thank-you-card.settings.earlier-cards') }}
         </div>
-        <div v-for="card in blockedCards" :key="card.id" class="d-flex justify-content-between">
+        <div
+          v-for="card in blockedCards"
+          :key="card.id"
+          class="d-flex justify-content-between align-items-center"
+        >
           <span class="small">{{ card.label }}</span>
-          <span class="small text-muted">
-            {{ $t('thank-you-card.settings.blocked-on', { date: $d(new Date(card.blockedAt)) }) }}
+          <span class="d-flex align-items-center gap-2">
+            <span class="small text-muted">
+              {{ $t('thank-you-card.settings.blocked-on', { date: $d(new Date(card.blockedAt)) }) }}
+            </span>
+            <BButton
+              size="sm"
+              variant="secondary"
+              :disabled="busy || Boolean(activeCard)"
+              :data-test="`thank-you-card-unblock-${card.id}`"
+              @click="unblockById(card.id)"
+            >
+              {{ $t('thank-you-card.settings.unblock') }}
+            </BButton>
           </span>
+        </div>
+        <!-- A disabled button with no reason next to it is a dead end. The reason is the
+             invariant itself: one member, one card that pays. -->
+        <div v-if="activeCard" class="small text-muted mt-1">
+          {{ $t('thank-you-card.settings.unblock-needs-no-active') }}
         </div>
       </div>
     </div>
+
+    <!--
+      ⛔ Only the BUTTON asks. The link out of the receipt mail (`?block=<id>`) blocks without
+      a question and must keep doing so: it is the emergency path, pressed by somebody who has
+      just read that their card paid for something they did not buy. A dialogue there would
+      put one more click between them and stopping it.
+    -->
+    <AppModal
+      :model-value="showBlockConfirm"
+      ok-only
+      :title="$t('thank-you-card.settings.block-confirm-title')"
+      @update:model-value="showBlockConfirm = $event"
+      @on-ok="confirmBlock"
+    >
+      <p class="mb-0" data-test="thank-you-card-block-confirm">
+        {{ $t('thank-you-card.settings.block-confirm') }}
+      </p>
+    </AppModal>
 
     <BModal v-model="showSetup" :title="$t('thank-you-card.settings.pin-title')" hide-footer>
       <!--
@@ -173,6 +217,7 @@
  * so the state "on but without a PIN" cannot be reached, not even by a half-finished form.
  */
 import { BButton, BFormInput, BInputGroup, BModal } from 'bootstrap-vue-next'
+import AppModal from '@/components/AppModal'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMutation, useQuery } from '@vue/apollo-composable'
@@ -186,6 +231,7 @@ import {
   setThankYouCardSettings,
   thankYouCards,
   thankYouCardSettings,
+  unblockThankYouCard,
 } from '@/graphql/thankYouCard.graphql'
 import { useAppToast } from '@/composables/useToast'
 import {
@@ -204,6 +250,7 @@ const { toastError, toastSuccess } = useAppToast()
 const settings = ref(null)
 const cards = ref([])
 const showSetup = ref(false)
+const showBlockConfirm = ref(false)
 const showPin = ref(false)
 const newPin = ref('')
 const newLabel = ref('')
@@ -241,6 +288,7 @@ const { mutate: saveLimitsMutation } = useMutation(setThankYouCardLimits)
 const { mutate: disable } = useMutation(deleteThankYouCardSettings)
 const { mutate: addCard } = useMutation(createThankYouCard)
 const { mutate: blockCard } = useMutation(blockThankYouCard)
+const { mutate: unblockCard } = useMutation(unblockThankYouCard)
 
 const asNumber = (value) => Number(String(value).replace(',', '.'))
 
@@ -313,7 +361,21 @@ const create = () =>
 
 const blockById = (cardId) => run(() => blockCard({ cardId }), t('thank-you-card.settings.blocked'))
 
-const block = () => blockById(activeCard.value.id)
+/**
+ * ⛔ Reachable again, which it was not: blocking took one click and the card then vanished
+ * into a list with nothing to press. The backend has always had the mutation.
+ *
+ * ⚠️ Refused by the server while another card of theirs works — one member, one card that
+ * pays, and the daily limit is counted per card. The button says so by being unavailable and
+ * by the line under the list, rather than by letting somebody press it into an error.
+ */
+const unblockById = (cardId) =>
+  run(() => unblockCard({ cardId }), t('thank-you-card.settings.unblocked'))
+
+const confirmBlock = () => {
+  showBlockConfirm.value = false
+  blockById(activeCard.value.id)
+}
 
 /**
  * ⚠️ The two ways out differ in WHERE the size lives, not in what is drawn. The download
