@@ -1,0 +1,92 @@
+# AI-GENERATED — not an architecture reference
+
+fragment thankYouCardFields on ThankYouCard {
+  id
+  code
+  label
+  blockedAt
+  createdAt
+}
+
+fragment thankYouCardSettingsFields on ThankYouCardSettings {
+  maxPerPayment
+  maxPerDay
+  updatedAt
+}
+
+# Null means card payment is switched off, which is the normal state for everybody who
+# never turned it on. Not a fault -- the settings panel draws its "not set up yet" state
+# from exactly this.
+query thankYouCardSettings {
+  thankYouCardSettings {
+    ...thankYouCardSettingsFields
+  }
+}
+
+query thankYouCards {
+  thankYouCards {
+    ...thankYouCardFields
+  }
+}
+
+mutation setThankYouCardSettings(
+  $pin: String!
+  $maxPerPayment: GradidoUnit!
+  $maxPerDay: GradidoUnit!
+) {
+  setThankYouCardSettings(pin: $pin, maxPerPayment: $maxPerPayment, maxPerDay: $maxPerDay) {
+    ...thankYouCardSettingsFields
+  }
+}
+
+mutation setThankYouCardLimits($maxPerPayment: GradidoUnit!, $maxPerDay: GradidoUnit!) {
+  setThankYouCardLimits(maxPerPayment: $maxPerPayment, maxPerDay: $maxPerDay) {
+    ...thankYouCardSettingsFields
+  }
+}
+
+mutation deleteThankYouCardSettings {
+  deleteThankYouCardSettings
+}
+
+mutation createThankYouCard($label: String!) {
+  createThankYouCard(label: $label) {
+    ...thankYouCardFields
+  }
+}
+
+mutation blockThankYouCard($cardId: Int!) {
+  blockThankYouCard(cardId: $cardId) {
+    ...thankYouCardFields
+  }
+}
+
+mutation unblockThankYouCard($cardId: Int!) {
+  unblockThankYouCard(cardId: $cardId) {
+    ...thankYouCardFields
+  }
+}
+
+# --- the other side of the counter: taking a payment ---
+
+query thankYouCardPaymentTarget($code: String!) {
+  thankYouCardPaymentTarget(code: $code)
+}
+
+mutation createThankYouCardPayment($code: String!, $amount: GradidoUnit!, $memo: String!) {
+  createThankYouCardPayment(code: $code, amount: $amount, memo: $memo) {
+    id
+    amount
+    memo
+    validUntil
+  }
+}
+
+mutation confirmThankYouCardPayment($paymentId: Int!, $pin: String!) {
+  confirmThankYouCardPayment(paymentId: $paymentId, pin: $pin) {
+    status
+    attemptsLeft
+    payerName
+    amount
+  }
+}

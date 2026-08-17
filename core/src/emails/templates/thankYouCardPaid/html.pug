@@ -18,6 +18,6 @@ block content
     a.button-3(href=`${communityURL}/transactions`) #{t('emails.general.toAccount')}
 
     p= t('emails.thankYouCardPaid.notYou')
-    a.button-3(href=`${communityURL}/settings/thank-you-card?block=${cardId}`) #{t('emails.thankYouCardPaid.blockCard')}
+    a.button-3(href=`${communityURL}/settings?block=${cardId}`) #{t('emails.thankYouCardPaid.blockCard')}
 
     include ../includes/doNotReply.pug

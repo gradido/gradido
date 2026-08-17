@@ -82,6 +82,9 @@ module.exports = {
           // built as `matching.map.look.${look}` / `.channels.${channel}`
           '/matching.map.look./',
           '/matching.map.channels./',
+          // built as `thank-you-card.status.${status}` from the backend enum, so every
+          // one of them is reached without ever appearing as a literal here
+          '/thank-you-card.status./',
           // built as `matching.list.dir.${dir}` / `.line.${channel}`
           '/matching.list.dir./',
           '/matching.list.line./',

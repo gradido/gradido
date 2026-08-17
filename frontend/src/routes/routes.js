@@ -213,6 +213,23 @@ const routes = [
     path: '/u/:alias',
     component: () => import('@/pages/PublicProfile'),
   },
+  // Where a scanned thank you card lands. Its own namespace rather than a query on the
+  // Gradido address, because the card carries neither a name nor an address, only its
+  // code -- which keeps the profile page out of this entirely.
+  //
+  // ⚠️ requiresAuth, and that IS the whole login handling: the person who scans is the
+  // RECIPIENT and has an account, so the router guard sends them through the login and
+  // back here on its own. Nothing below checks whether anybody is signed in.
+  {
+    name: 'ThankYouCardPayment',
+    path: '/dk/:code',
+    component: () => import('@/pages/ThankYouCardPayment'),
+    props: true,
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'thank-you-card.receive.title',
+    },
+  },
   {
     path: '/:catchAll(.*)',
     name: 'NotFound',
