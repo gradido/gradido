@@ -190,11 +190,16 @@ describe('ThankYouCardPayment', () => {
       )
     })
 
-    it('passes the amount with a comma as a number', async () => {
+    // ⛔ A comma has to become a dot, AND the value has to leave as a STRING. The
+    // GradidoUnit scalar refuses a number during variable coercion, which comes back as a
+    // bare HTTP 400 — no GraphQL error, nothing in the response to read. Asserting the type
+    // here is the only thing in this file that a mocked Apollo cannot paper over.
+    it('passes the amount as a string, with a comma turned into a dot', async () => {
       await mountUsable()
       await fillAndStart({ amount: '12,50' })
 
-      expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ amount: 12.5 }))
+      expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ amount: '12.5' }))
+      expect(typeof mockCreate.mock.calls[0][0].amount).toBe('string')
     })
   })
 

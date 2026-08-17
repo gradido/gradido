@@ -215,6 +215,32 @@ describe('UserThankYouCard', () => {
       expect(wrapper.find('#thank-you-card-pin-rules').exists()).toBe(true)
     })
 
+    // ⛔ Hidden first, readable on request. A PIN is set once and there is no "forgot it":
+    // a typo here is a card that cannot pay, with nothing saying why. The eye is the only
+    // chance to check — and it must not be the default, because "at home" is also a kitchen
+    // table with somebody sitting across it.
+    it('hides the pin until somebody asks to see it', async () => {
+      await mountWith({ settings: null, cards: [] })
+      await field('enable').trigger('click')
+
+      expect(field('new-pin').attributes('type')).toBe('password')
+
+      await field('pin-eye').trigger('click')
+      expect(field('new-pin').attributes('type')).toBe('text')
+
+      await field('pin-eye').trigger('click')
+      expect(field('new-pin').attributes('type')).toBe('password')
+    })
+
+    it('says which way the eye will go, for somebody who cannot see it', async () => {
+      await mountWith({ settings: null, cards: [] })
+      await field('enable').trigger('click')
+
+      expect(field('pin-eye').attributes('aria-label')).toBe('thank-you-card.settings.pin-show')
+      await field('pin-eye').trigger('click')
+      expect(field('pin-eye').attributes('aria-label')).toBe('thank-you-card.settings.pin-hide')
+    })
+
     it('saves the pin with the limits, then empties the field and closes', async () => {
       await mountWith()
       await buttonWith('thank-you-card.settings.change-pin').trigger('click')
@@ -224,8 +250,8 @@ describe('UserThankYouCard', () => {
 
       expect(mockSaveSettings).toHaveBeenCalledWith({
         pin: '407312',
-        maxPerPayment: 50,
-        maxPerDay: 100,
+        maxPerPayment: '50',
+        maxPerDay: '100',
       })
       expect(wrapper.find('.modal-stub').exists()).toBe(false)
     })
@@ -241,8 +267,8 @@ describe('UserThankYouCard', () => {
 
       expect(mockSaveSettings).toHaveBeenCalledWith({
         pin: '407312',
-        maxPerPayment: 50,
-        maxPerDay: 100,
+        maxPerPayment: '50',
+        maxPerDay: '100',
       })
     })
   })
@@ -255,13 +281,20 @@ describe('UserThankYouCard', () => {
       expect(wrapper.find('#tyc-max-day').element.value).toBe('100')
     })
 
-    it('saves them as numbers, with a comma accepted', async () => {
+    // ⛔ As STRINGS. The GradidoUnit scalar refuses a number during variable coercion, and
+    // that comes back as a bare HTTP 400 with no GraphQL error in it — which is exactly how
+    // this component shipped broken: a mocked Apollo takes a number without complaining, so
+    // no test in this file could see it. The type assertion is what closes that.
+    it('saves the limits as strings, with a comma turned into a dot', async () => {
       await mountWith()
       await wrapper.find('#tyc-max-payment').setValue('12,50')
       await buttonWith('form.save').trigger('click')
       await flushPromises()
 
-      expect(mockSaveLimits).toHaveBeenCalledWith({ maxPerPayment: 12.5, maxPerDay: 100 })
+      expect(mockSaveLimits).toHaveBeenCalledWith({ maxPerPayment: '12.5', maxPerDay: '100' })
+      const sent = mockSaveLimits.mock.calls[0][0]
+      expect(typeof sent.maxPerPayment).toBe('string')
+      expect(typeof sent.maxPerDay).toBe('string')
     })
 
     // ⛔ The regression from 1e72c95c3: this one call site handed the toast a raw key while

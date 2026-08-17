@@ -100,16 +100,43 @@
       <p id="thank-you-card-pin-rules" class="small">
         {{ $t('thank-you-card.settings.pin-rules') }}
       </p>
-      <BFormInput
-        id="thank-you-card-new-pin"
-        v-model="newPin"
-        type="password"
-        inputmode="numeric"
-        maxlength="6"
-        :aria-label="$t('thank-you-card.settings.pin-title')"
-        aria-describedby="thank-you-card-pin-rules"
-        data-test="thank-you-card-new-pin"
-      />
+      <!--
+        ⚠️ Hidden by default and readable on request, which is the opposite trade to a
+        password field. A PIN is set at home, typed once, and there is no "forgot it" —
+        getting it wrong here means a card that cannot pay and nobody knowing why. So the
+        eye is not a convenience: it is the only chance to check what was typed. It stays
+        hidden by default all the same, because "at home" is also a kitchen table with
+        somebody sitting across it.
+      -->
+      <BInputGroup>
+        <BFormInput
+          id="thank-you-card-new-pin"
+          v-model="newPin"
+          :type="showPin ? 'text' : 'password'"
+          inputmode="numeric"
+          maxlength="6"
+          :aria-label="$t('thank-you-card.settings.pin-title')"
+          aria-describedby="thank-you-card-pin-rules"
+          data-test="thank-you-card-new-pin"
+        />
+        <template #append>
+          <BButton
+            variant="outline-light"
+            class="border-start-0 rounded-end"
+            tabindex="-1"
+            :aria-label="
+              showPin
+                ? $t('thank-you-card.settings.pin-hide')
+                : $t('thank-you-card.settings.pin-show')
+            "
+            data-test="thank-you-card-pin-eye"
+            @click="showPin = !showPin"
+          >
+            <IBiEye v-if="showPin" class="eye-icon" />
+            <IBiEyeSlash v-else class="eye-icon" />
+          </BButton>
+        </template>
+      </BInputGroup>
       <BButton class="mt-3" variant="gradido" :disabled="busy" @click="savePin">
         {{ $t('form.save') }}
       </BButton>
@@ -134,7 +161,7 @@
  * There is no on/off control. Enabling means setting a PIN and disabling means deleting it,
  * so the state "on but without a PIN" cannot be reached, not even by a half-finished form.
  */
-import { BButton, BFormInput, BModal } from 'bootstrap-vue-next'
+import { BButton, BFormInput, BInputGroup, BModal } from 'bootstrap-vue-next'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMutation, useQuery } from '@vue/apollo-composable'
@@ -161,6 +188,7 @@ const { toastError, toastSuccess } = useAppToast()
 const settings = ref(null)
 const cards = ref([])
 const showSetup = ref(false)
+const showPin = ref(false)
 const newPin = ref('')
 const newLabel = ref('')
 const maxPerPayment = ref('')
@@ -201,6 +229,17 @@ const { mutate: blockCard } = useMutation(blockThankYouCard)
 const asNumber = (value) => Number(String(value).replace(',', '.'))
 
 /**
+ * ⛔ A GradidoUnit travels as a STRING, never as a number.
+ *
+ * `GradidoUnitScalar.parseValue` throws for anything that is not a string, so a number does
+ * not reach the resolver at all — the request dies during variable coercion and comes back
+ * as a bare **HTTP 400** with no GraphQL error in it to read. The rest of the wallet has
+ * always done it this way (`Send.vue` sends `amount.toString()`); this component did not,
+ * and no test could see it because a mocked Apollo accepts whatever it is handed.
+ */
+const asAmount = (value) => asNumber(value).toString()
+
+/**
  * The receipt links here with `?block=<id>`. The link only navigates -- the login is the
  * authorisation, and the router guard has already required it by the time this runs. That
  * is why no public "block" door had to be opened for a mail button.
@@ -231,8 +270,8 @@ const savePin = () =>
   run(async () => {
     await saveSettings({
       pin: newPin.value,
-      maxPerPayment: asNumber(maxPerPayment.value) || 50,
-      maxPerDay: asNumber(maxPerDay.value) || 100,
+      maxPerPayment: (asNumber(maxPerPayment.value) || 50).toString(),
+      maxPerDay: (asNumber(maxPerDay.value) || 100).toString(),
     })
     newPin.value = ''
     showSetup.value = false
@@ -242,8 +281,8 @@ const saveLimits = () =>
   run(
     () =>
       saveLimitsMutation({
-        maxPerPayment: asNumber(maxPerPayment.value),
-        maxPerDay: asNumber(maxPerDay.value),
+        maxPerPayment: asAmount(maxPerPayment.value),
+        maxPerDay: asAmount(maxPerDay.value),
       }),
     t('thank-you-card.settings.saved'),
   )
