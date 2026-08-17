@@ -21,6 +21,7 @@ let db: MySql2Database
 
 const USER_ID = 4711
 const inAnHour = () => new Date(Date.now() + 60 * 60 * 1000)
+const inHalfAnHour = () => new Date(Date.now() + 30 * 60 * 1000)
 const anHourAgo = () => new Date(Date.now() - 60 * 60 * 1000)
 
 const stateOf = async (id: number) => {
@@ -37,13 +38,19 @@ const insertCard = async (code: string, userId = USER_ID) => {
   return rows[0].id
 }
 
-const openPayment = async (cardId: number, amount: number, validUntil = inAnHour()) => {
+const openPayment = async (
+  cardId: number,
+  amount: number,
+  validUntil = inAnHour(),
+  createdAt?: Date,
+) => {
   const result = await dbInsertThankYouCardPayment({
     cardId,
     recipientId: 1,
     amount: GradidoUnit.fromNumber(amount),
     memo: 'Pizzeria Napoli',
     validUntil,
+    ...(createdAt ? { createdAt } : {}),
   })
   if (!result.success) {
     throw new Error('fixture insert failed')
@@ -136,7 +143,7 @@ describe('thankYouCardPayments query test', () => {
     expect(await stateOf(id)).toBe(PAYMENT_STATE_OPEN)
   })
 
-  it('sums only the consumed requests of this card since the given moment', async () => {
+  it('sums only the consumed requests of this card inside the window', async () => {
     const cardId = await insertCard('DK-sum')
     const otherCardId = await insertCard('DK-sum-other')
 
@@ -146,14 +153,30 @@ describe('thankYouCardPayments query test', () => {
     const foreign = await openPayment(otherCardId, 1000)
     await dbConsumeThankYouCardPayment(foreign, new Date()) // other card, must not count
 
-    const sum = await dbSumConsumedThankYouCardPayments(cardId, anHourAgo())
+    const sum = await dbSumConsumedThankYouCardPayments(cardId, anHourAgo(), inAnHour())
+
+    expect(sum.toString()).toBe(GradidoUnit.fromNumber(10).toString())
+  })
+
+  // ⛔ The closed end of the window, which is what keeps a day from paying for the day
+  // before it: a request created after `until` belongs to another day, however recently it
+  // was consumed.
+  it('leaves out a consumed request that was created after the window ends', async () => {
+    const cardId = await insertCard('DK-sum-window')
+
+    const inside = await openPayment(cardId, 10)
+    await dbConsumeThankYouCardPayment(inside, new Date())
+    const outside = await openPayment(cardId, 500, inAnHour(), inAnHour())
+    await dbConsumeThankYouCardPayment(outside, new Date())
+
+    const sum = await dbSumConsumedThankYouCardPayments(cardId, anHourAgo(), inHalfAnHour())
 
     expect(sum.toString()).toBe(GradidoUnit.fromNumber(10).toString())
   })
 
   it('sums to zero when the card has spent nothing', async () => {
     const cardId = await insertCard('DK-sum-empty')
-    const sum = await dbSumConsumedThankYouCardPayments(cardId, anHourAgo())
+    const sum = await dbSumConsumedThankYouCardPayments(cardId, anHourAgo(), inAnHour())
     expect(sum.toString()).toBe(GradidoUnit.fromNumber(0).toString())
   })
 

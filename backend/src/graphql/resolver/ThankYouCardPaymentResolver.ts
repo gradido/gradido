@@ -25,7 +25,11 @@ import { GradidoUnit } from 'shared'
 import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { startOfDay, THANK_YOU_CARD_PAYMENT_VALID_MINUTES } from '@/data/ThankYouCard.logic'
+import {
+  startOfDay,
+  startOfNextDay,
+  THANK_YOU_CARD_PAYMENT_VALID_MINUTES,
+} from '@/data/ThankYouCard.logic'
 import { ThankYouCardPaymentStatus } from '@/graphql/enum/ThankYouCardPaymentStatus'
 import { ThankYouCardPayment, ThankYouCardPaymentResult } from '@/graphql/model/ThankYouCardPayment'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
@@ -239,8 +243,17 @@ export class ThankYouCardPaymentResolver {
       if (payment.amount.comparedTo(settings.maxPerPayment) > 0) {
         return failure(ThankYouCardPaymentStatus.LIMIT_PER_PAYMENT_EXCEEDED)
       }
-      const spentToday = await dbSumConsumedThankYouCardPayments(card.id, startOfDay(now))
-      if (spentToday.add(payment.amount).comparedTo(settings.maxPerDay) > 0) {
+      // ⚠️ Against the day the request was CREATED, not the day it is being confirmed.
+      // The fifteen minutes a request stays payable can cross midnight, and one created at
+      // 23:58 was still open when its own day ended — counted by the confirming day it
+      // would fall between the two and be free, which is enough to spend a whole daily
+      // limit twice within a few minutes.
+      const spentThatDay = await dbSumConsumedThankYouCardPayments(
+        card.id,
+        startOfDay(payment.createdAt),
+        startOfNextDay(payment.createdAt),
+      )
+      if (spentThatDay.add(payment.amount).comparedTo(settings.maxPerDay) > 0) {
         return failure(ThankYouCardPaymentStatus.LIMIT_PER_DAY_EXCEEDED)
       }
 

@@ -4,6 +4,7 @@ import {
   createThankYouCardPinSalt,
   isValidThankYouCardPin,
   startOfDay,
+  startOfNextDay,
   THANK_YOU_CARD_CODE_PREFIX,
 } from './ThankYouCard.logic'
 
@@ -84,5 +85,40 @@ describe('startOfDay', () => {
     startOfDay(now)
 
     expect(now.getHours()).toBe(21)
+  })
+})
+
+describe('startOfNextDay', () => {
+  it('is midnight at the end of that same day', () => {
+    const end = startOfNextDay(new Date('2026-08-16T23:58:00.000'))
+
+    expect(end.getDate()).toBe(17)
+    expect(end.getHours()).toBe(0)
+    expect(end.getMinutes()).toBe(0)
+    expect(end.getMilliseconds()).toBe(0)
+  })
+
+  it('carries over the end of a month', () => {
+    const end = startOfNextDay(new Date('2026-08-31T12:00:00.000'))
+
+    expect(end.getMonth()).toBe(8) // September, counted from zero
+    expect(end.getDate()).toBe(1)
+  })
+
+  // The pair is what the daily limit is counted over, so a request created just before
+  // midnight has to fall inside its own day and outside the next one.
+  it('bounds exactly the day the moment belongs to', () => {
+    const lateAtNight = new Date('2026-08-16T23:58:00.000')
+
+    expect(startOfDay(lateAtNight).getTime()).toBeLessThanOrEqual(lateAtNight.getTime())
+    expect(startOfNextDay(lateAtNight).getTime()).toBeGreaterThan(lateAtNight.getTime())
+    expect(startOfNextDay(lateAtNight).getDate()).toBe(startOfDay(lateAtNight).getDate() + 1)
+  })
+
+  it('leaves the moment it was given alone', () => {
+    const now = new Date('2026-08-16T21:44:31.500')
+    startOfNextDay(now)
+
+    expect(now.getDate()).toBe(16)
   })
 })

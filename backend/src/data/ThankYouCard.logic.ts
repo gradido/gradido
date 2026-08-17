@@ -82,3 +82,20 @@ export const startOfDay = (now: Date): Date => {
   start.setHours(0, 0, 0, 0)
   return start
 }
+
+/**
+ * Midnight at the end of that same day, so that the two together bound exactly one day.
+ *
+ * ⚠️ A day needs BOTH ends here, unlike in most "since when" questions. A request is
+ * counted against the day it was created, and it stays payable for fifteen minutes — so
+ * one created at 23:58 and paid at 00:02 belongs to the day before, and summing "its day
+ * and everything after" would quietly mix two days together.
+ *
+ * Built on the calendar rather than on 24 hours, so the day the clocks change is still
+ * one day.
+ */
+export const startOfNextDay = (now: Date): Date => {
+  const start = startOfDay(now)
+  start.setDate(start.getDate() + 1)
+  return start
+}

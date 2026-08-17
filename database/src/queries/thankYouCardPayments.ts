@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { and, eq, gte, sql } from 'drizzle-orm'
+import { and, eq, gte, lt, sql } from 'drizzle-orm'
 import { GradidoUnit, Result, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { DBInsertFailed, DBNotFoundError } from '../errorTypes'
@@ -125,17 +125,26 @@ export async function dbConsumeThankYouCardPayment(
 }
 
 /**
- * What this card has already spent since `since`, for the daily limit.
+ * What this card has already spent in the window `since` … `until`, for the daily limit.
  *
  * Counted from the consumed requests rather than from the transactions, for one reason:
  * the limit belongs to the card, and a transaction does not know which card it came from.
  * ⚠️ That also means a request that was consumed while its booking failed still counts
  * against the day. That is the safe direction — it can only ever let somebody spend less
  * than their limit, never more.
+ *
+ * ⛔ The window is counted on `created_at` and is CLOSED at `until`, and neither half is
+ * decoration. A request is counted against the day it was CREATED, because that is the
+ * only day it is certainly counted against at all — it may be confirmed up to fifteen
+ * minutes later, and a request created at 23:58 and paid at 00:02 was still open when its
+ * own day ended. Left open-ended, the window would sum a day and everything after it; cut
+ * at midnight of the confirming day, that request would count against no day at all and
+ * the limit could be spent twice within minutes.
  */
 export async function dbSumConsumedThankYouCardPayments(
   cardId: number,
   since: Date,
+  until: Date,
 ): Promise<GradidoUnit> {
   const rows = await drizzleDb()
     .select({ amount: thankYouCardPaymentsTable.amount })
@@ -145,6 +154,7 @@ export async function dbSumConsumedThankYouCardPayments(
         eq(thankYouCardPaymentsTable.cardId, cardId),
         eq(thankYouCardPaymentsTable.state, PAYMENT_STATE_CONSUMED),
         gte(thankYouCardPaymentsTable.createdAt, since),
+        lt(thankYouCardPaymentsTable.createdAt, until),
       ),
     )
 
