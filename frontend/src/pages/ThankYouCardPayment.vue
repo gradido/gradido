@@ -57,6 +57,16 @@
         {{ $t('thank-you-card.receive.pin-subtitle', { amount: amount }) }}
       </div>
 
+      <!--
+        ⛔ NO eye here, deliberately, and not for consistency's sake with the settings page —
+        the opposite: there the field belongs to somebody alone at home who is SETTING a PIN
+        and has to be able to check it. Here it belongs to somebody standing at a counter,
+        typing a PIN they already know, on a stranger's device, with the till operator and
+        the queue behind them in reach of the same screen. An eye at a counter is a control
+        anybody present can press, and the first person to try it shows their PIN to the
+        room. What cannot be revealed cannot be revealed by mistake.
+        (Bernd, 17.08.2026, when the eye was added to the settings field.)
+      -->
       <BFormInput
         v-model="pin"
         type="password"
