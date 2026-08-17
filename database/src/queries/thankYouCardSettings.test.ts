@@ -71,8 +71,9 @@ describe('thankYouCardSettings query test', () => {
   /**
    * ⛔ A REAL pin value, not a tidy one.
    *
-   * The stored pin is the full 64 bit word `crypto_shorthash` returns, so roughly HALF of
-   * all pins land above Number.MAX_SAFE_INTEGER. The tests above use 111111n and 222222n —
+   * The stored pin is the full 64 bit word `crypto_shorthash` returns, and only 2^53 of the
+   * 2^64 possible values fit through a JS number — one in 2048, so virtually every pin is
+   * affected. The tests above use 111111n and 222222n —
    * small enough to survive a trip through a JS number, and therefore blind to the only
    * failure that matters here: if anything on the way to the column or back treats the
    * value as a double, the pin comes back changed and NO pin ever matches again, for

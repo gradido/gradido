@@ -314,11 +314,13 @@ export const thankYouCardSettingsTable = mysqlTable('thank_you_card_settings', {
   // Same derivation as users.password (argon2id, then a 64 bit shorthash), but with its
   // own salt -- a leak must not let one of the two secrets say anything about the other.
   //
-  // ⚠️ mode 'bigint' and unsigned, both load-bearing. The derivation returns a full 64
-  // bit word, so roughly half of all values are above Number.MAX_SAFE_INTEGER and would
-  // lose precision as a JS number, and everything above 2^63 would overflow a signed
-  // column. Either one turns "correct PIN" into "wrong PIN" for a share of members,
-  // unpredictably. users.password is `bigint unsigned` in the DDL for the same reason.
+  // ⚠️ mode 'bigint' and unsigned, both load-bearing. The derivation returns a full 64 bit
+  // word, and only one value in 2048 is small enough to survive as a JS number — 2^53 out
+  // of 2^64 — so virtually every value would lose precision that way; everything above
+  // 2^63 would additionally overflow a signed column. Either one turns "correct PIN" into
+  // "wrong PIN", and it did: see the pool options in `AppDatabase.ts`, which is where the
+  // reading actually went through a double. users.password is `bigint unsigned` for the
+  // same reason.
   pin: bigint({ mode: 'bigint', unsigned: true }).notNull(),
   pinSalt: varchar('pin_salt', { length: 64 }).notNull(),
   maxPerPayment: customGradidoUnit('max_per_payment_gdd4').notNull(),

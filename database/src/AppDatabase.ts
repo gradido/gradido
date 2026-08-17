@@ -131,10 +131,12 @@ export class AppDatabase {
         // different number than the one that was stored.
         //
         // Measured on 17.08.2026, and it cost an evening: a thank-you-card PIN is the full
-        // 64 bit word `crypto_shorthash` returns, so about HALF of all PINs land above that
-        // line. Written 18446744073709551557, read back 18446744073709551616 — rounded to
-        // a clean 2^64. Every payment with such a PIN was refused, the attempts counted
-        // down, and the card blocked, while the person at the till typed the right digits.
+        // 64 bit word `crypto_shorthash` returns, and only 2^53 of the 2^64 possible values
+        // are small enough to survive — one in 2048. So it is not a coin flip, it is
+        // **99.95% of all PINs**. Written 18446744073709551557, read back
+        // 18446744073709551616 — rounded to a clean 2^64. Every payment with such a PIN was
+        // refused, the attempts counted down, and the card blocked, while the person at the
+        // till typed the right digits.
         //
         // ⚠️ Signing in was never affected: passwords are read through TypeORM, on the
         // other connection. That is exactly why this hid for a day — the same derivation,
