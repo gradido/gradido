@@ -619,6 +619,7 @@
     "overview": "Добро пожаловать, {name}",
     "send": "Отправить Gradido и e-mail",
     "settings": "Настройки",
+    "thank-you-card-receive": "Receive Gradido",
     "transactions": "Ваши транзакции",
     "usersearch": "Географический поиск участников (бета)"
   },

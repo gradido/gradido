@@ -619,6 +619,7 @@
     "overview": "Welcome {name}",
     "send": "Enviar Gradido y correo electrónico",
     "settings": "Soporte",
+    "thank-you-card-receive": "Receive Gradido",
     "transactions": "Tu Transacciones",
     "usersearch": "Búsqueda geográfica de miembros (beta)"
   },

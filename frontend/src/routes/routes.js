@@ -227,7 +227,10 @@ const routes = [
     props: true,
     meta: {
       requiresAuth: true,
-      pageTitle: 'thank-you-card.receive.title',
+      // ⚠️ A flat slug, not the key of the heading itself: the breadcrumb prefixes
+      // `pageTitle.`, and vue-i18n reads the dots as a path — so anything nested would be
+      // looked up under `pageTitle` and printed raw when it is not found there.
+      pageTitle: 'thank-you-card-receive',
     },
   },
   {

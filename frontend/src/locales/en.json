@@ -620,6 +620,7 @@
     "overview": "Welcome {name}",
     "send": "Send Gradido and email",
     "settings": "Settings",
+    "thank-you-card-receive": "Receive Gradido",
     "transactions": "Your transactions",
     "usersearch": "Geographic member search (beta)"
   },
