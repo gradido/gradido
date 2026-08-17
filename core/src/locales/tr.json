@@ -90,7 +90,7 @@
       "blockCard": "Kartı blokla",
       "memo": "Açıklama: {transactionMemo}",
       "notYou": "Bu sen değil miydin? Kartını hemen buradan blokla — kart çalışmaz olur, Gradido adresin kalır.",
-      "paidWith": "Ödeme: „{cardLabel}“ kartı",
+      "paidWith": "Ödeme: “{cardLabel}” kartı",
       "recipient": "Alıcı: {recipientName} ({recipientCommunity})",
       "subject": "Teşekkür kartınla {amountGDD} GDD aktardın",
       "title": "Teşekkür kartınla {amountGDD} GDD aktarıldı",
