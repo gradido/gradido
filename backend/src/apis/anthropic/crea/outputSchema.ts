@@ -6,7 +6,7 @@
 // supported (our schema does not use them). Keys are camelCase to map 1:1 onto
 // the GraphQL model (`CreaEvaluation`) without a translation layer.
 
-// Taxonomy category keys (design doc `D`, taxonomy_version 1). Append-only.
+// Taxonomy category keys (design doc `D`, taxonomy_version 2). Append-only.
 // `other` is a v1 pragmatic fallback for activities that do not fit a bucket
 // (e.g. an unclear contribution that still needs a category slot).
 export const CREA_CATEGORY_KEYS = [
@@ -44,6 +44,10 @@ export const CREA_CATEGORY_KEYS = [
   'cultural_events',
   'social_movement',
   'common_good_network',
+  // Spreading, building or attending Gradido itself. Kept apart from
+  // `social_movement` (engagement in OTHER movements) on purpose: only the
+  // separation shows how much of a community's effort goes into its own reach.
+  'gradido_engagement',
   // civic_and_infrastructure
   'public_space_maintenance',
   'nonprofit_support',
@@ -63,6 +67,7 @@ export const CREA_APPLIED_RULE_KEYS = [
   'confirm_retiree_beyond',
   'confirm_retiree_unconditional',
   'confirm_hours_above',
+  'confirm_gradido_engagement',
   'inquire_direct_beneficiary',
   'inquire_own_need',
   'inquire_private_pet',

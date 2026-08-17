@@ -2,7 +2,7 @@
   <div class="usersearch">
     <BContainer class="bg-white app-box-shadow gradido-border-radius p-4 mt--3">
       <div class="h3">{{ $t('usersearch.headline') }}</div>
-      <div class="my-4 text-small">
+      <div class="my-4 small">
         <span v-for="(line, lineNumber) of $t('usersearch.text').split('\n')" :key="lineNumber">
           {{ line }}
           <br />

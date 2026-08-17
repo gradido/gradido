@@ -36,6 +36,23 @@
       "oneGratitude": "For each other, for all people, for nature."
     }
   },
+  "avatar": {
+    "apply": "Apply",
+    "change": "Change profile picture",
+    "choose-image": "Choose image",
+    "error-format": "Your browser cannot open this image. Please choose a JPEG or PNG.",
+    "error-heic": "Your browser cannot open this image. It is a HEIC, the iPhone camera format. Convert it to JPEG, or choose the picture directly on your iPhone.",
+    "error-too-large": "This image is too large. Please choose one under {limit} MB.",
+    "measure": "Source file {source} KB, {result} KB will be sent",
+    "pick-hint": "Drag an image here or choose one below",
+    "remove": "Remove picture",
+    "remove-confirm": "Yes, remove",
+    "remove-question": "Your account will show your initials again. You can set a new picture at any time.",
+    "removed": "Your profile picture has been removed",
+    "saved": "Your profile picture has been saved",
+    "set": "Set profile picture",
+    "size": "Size"
+  },
   "back": "Back",
   "card-circles": {
     "allowed": {
@@ -202,7 +219,7 @@
     "from": "from",
     "generate_now": "Generate now",
     "hours": "Hours",
-    "identifier": "Email, username or gradido ID",
+    "identifier": "Email, username or Gradido address",
     "lastname": "Lastname",
     "link_amount": "Link amount",
     "link_decay_description": "The link amount is blocked along with the maximum decay. After the link has been redeemed, expired, or deleted, the rest is released again.",
@@ -273,9 +290,10 @@
         "typeError": "The hours should be a number between {min} and {max} with at most two digits after the decimal point."
       },
       "identifier": {
-        "communityIsReachable": "Community not found our not reachable!",
+        "communityIsReachable": "Community not found or not reachable!",
+        "formatError": "This recipient cannot be read. Possible: user name, e-mail, community/username, or a Gradido address such as community.net/u/username.",
         "required": "The recipient is a required field.",
-        "typeError": "The recipient must be an email, a username or a Gradido ID."
+        "typeError": "The recipient must be an email, a username or a Gradido address."
       },
       "is-not": "You cannot send Gradidos to yourself!",
       "memo": {
@@ -297,17 +315,17 @@
   },
   "gddKonto": "GDD Konto",
   "gdd_per_link": {
-    "choose-amount": "Select an amount you want to send via link and enter a message. The message is mandatory.",
+    "choose-amount": "Select an amount you want to send and enter a message. The message is mandatory.",
     "copy-link": "Copy link",
     "copy-link-with-text": "Copy link and text",
-    "created": "Link was created!",
+    "created": "Link, cheque and QR code have been created.",
     "credit-your-gradido": "For the Gradido to be credited, click on the link!",
     "delete-the-link": "Delete the link?",
     "deleted": "The link was deleted!",
     "disbured": "Disbursement of the Link-Ammount initiated! The transfer of {n} GDD into your account will be completed shortly.",
     "expiredOn": "Expired on",
     "has-account": "You already have a Gradido account?",
-    "header": "Send Gradidos via link",
+    "header": "Create link, cheque and QR code",
     "isFree": "Community-based – Decentralized – Open Source",
     "link-and-text-copied": "The link and your message have been copied to the clipboard. You can now include it in an email or message.",
     "link-copied": "Link has been copied to the clipboard. You can now paste it into an email or message.",
@@ -316,7 +334,8 @@
     "link-hint": "Attention: Anyone can redeem this link. Please be careful with it!",
     "link-overview": "Link overview",
     "links_count": "Active links",
-    "links_sum": "Open links and QR codes",
+    "links_open": "{n} open",
+    "links_sum": "Links, cheques, QR codes",
     "no-account": "You don't have a Gradido account yet?",
     "no-redeem": "You not allowed to redeem your own link!",
     "not-copied": "Unfortunately, your device does not allow copying! Please copy the link by hand!",
@@ -349,7 +368,24 @@
     "raise": "Increase",
     "recruited-member": "Invited member"
   },
-  "gradidoid-copied-to-clipboard": "Gradido ID copied to clipboard.",
+  "gradido-card": {
+    "contact": "Contact",
+    "contact-count": "{count} of {max} lines · kept on this device",
+    "contact-hint": "Whatever stands here is printed along. It stays on this device and is not sent to the server — so on a shared computer, better leave it empty.",
+    "contact-placeholder": "E-mail, phone, website … — one entry per line",
+    "contact-print-heading": "print this word",
+    "contact-too-many": "More than {max} lines — only the first {max} are printed on the card.",
+    "description": "To print and hand out: your name, your community, your username, your QR code and your contact lines on a card the size of a bank card. Whoever receives it can give you Gradido — and reach you.",
+    "download": "Download card",
+    "download-hint": "A single image in print quality — for a print shop or to pass on.",
+    "needs-username": "Your card carries your Gradido address, and that address is built from your user name. Please choose one first — the field is a little further up on this page. Then you can print your card and give it away.",
+    "needs-username-title": "A user name first",
+    "sheet": "Sheet with 10 cards",
+    "sheet-hint": "Ten cards at original size on one A4 page. In the print dialogue you can also save it as a PDF.",
+    "title": "Your Gradido card"
+  },
+  "gradidoid-copied-to-clipboard": "Gradido address copied to clipboard.",
+  "gradidoid-not-copied": "Your device does not allow copying. Please select the address and copy it by hand.",
   "h": "h",
   "info": "Information",
   "language": "Language",
@@ -584,13 +620,18 @@
     "overview": "Welcome {name}",
     "send": "Send Gradido and email",
     "settings": "Settings",
+    "thank-you-card-receive": "Receive Gradido",
     "transactions": "Your transactions",
     "usersearch": "Geographic member search (beta)"
+  },
+  "public-profile": {
+    "address": "Gradido address",
+    "send": "Send Gradido"
   },
   "qrCode": "QR Code",
   "send_email": "Send email",
   "send_gdd": "Send GDD",
-  "send_per_link": "create GDD-Link",
+  "send_per_link": "Link, cheque, QR",
   "session": {
     "extend": "Stay logged in",
     "lightText": "If you have not performed any action for more than 10 minutes, you will be logged out for security reasons.",
@@ -725,11 +766,65 @@
   "status": "Status",
   "submitted": "Submitted",
   "success": "Success",
+  "thank-you-card": {
+    "back-to-account": "Back to account",
+    "name": "Thank you card",
+    "receive": {
+      "attempts-left": "{n} tries left",
+      "default-memo": "Card payment",
+      "next": "Continue",
+      "next-payment": "Next payment",
+      "pin-subtitle": "{amount} GDD",
+      "pin-title": "Your PIN, please",
+      "received": "You received {amount} GDD from {name}.",
+      "remember-memo": "Remember this reference",
+      "subtitle": "A thank you card was scanned.",
+      "thanks": "A thousand thanks!",
+      "title": "Receive Gradido"
+    },
+    "settings": {
+      "block": "Block card",
+      "blocked": "The card is blocked.",
+      "blocked-on": "blocked {date}",
+      "change-pin": "Change PIN",
+      "create": "Create card",
+      "created": "The card has been created.",
+      "disable": "Switch card payment off",
+      "disabled": "Card payment is switched off.",
+      "earlier-cards": "Earlier cards",
+      "enable": "Set a PIN and switch on",
+      "explain": "With a thank you card you can give thanks even when you do not have your phone with you. You show the card, the other person types the amount — and you confirm with your PIN.",
+      "explain-pin": "You type your PIN on somebody else’s device. That is why you set a limit: nothing above it can ever be taken.",
+      "label": "Label",
+      "label-placeholder": "e.g. wallet",
+      "max-per-day": "Maximum per day",
+      "max-per-payment": "Maximum per payment",
+      "not-set-up": "Not set up yet.",
+      "on": "Switched on",
+      "pin-rules": "Six digits. Not the same digit six times, no run such as 123456, and no year of birth at the front.",
+      "pin-title": "Set a PIN",
+      "print": "Print card",
+      "saved": "Saved",
+      "title": "Give thanks by card",
+      "your-card": "Your card"
+    },
+    "status": {
+      "BLOCKED_NOW": "After three wrong tries the card is blocked. Its owner can release it again in their own Gradido account.",
+      "CARD_BLOCKED": "This thank you card is blocked.",
+      "CARD_NOT_SET_UP": "This card cannot be used to give thanks at the moment.",
+      "CARD_UNKNOWN": "We do not know this card.",
+      "LIMIT_PER_DAY_EXCEEDED": "This card has reached its daily limit.",
+      "LIMIT_PER_PAYMENT_EXCEEDED": "The amount is above this card’s maximum.",
+      "NOT_ENOUGH_GDD": "There is not enough balance.",
+      "OWN_CARD": "This is your own card.",
+      "REQUEST_GONE": "The request has expired. Please start again.",
+      "SUCCESS": "Ready",
+      "WRONG_PIN": "The PIN is not right."
+    }
+  },
   "thank-you-cheque": {
-    "download": "Download thank-you cheque",
+    "download": "Download cheque",
     "scan-qr": "For the Gradido to be credited, scan the QR code!",
-    "starting-credit": "Starting bonus {amount} Gradido",
-    "starting-credit-valid": "This starting bonus is valid from {from} until {to}.",
     "valid-until": "This thank-you cheque is valid until {date}."
   },
   "time": {

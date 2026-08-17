@@ -3,7 +3,7 @@
     <BTabs :model-value="tabIndex" content-class="mt-3" @update:modelValue="tabIndex = $event">
       <BTab :title="$t('PersonalDetails')">
         <div class="h2">{{ $t('PersonalDetails') }}</div>
-        <div class="my-4 text-small">
+        <div class="my-4 small">
           {{ $t('settings.info') }}
         </div>
 
@@ -68,7 +68,7 @@
         <BRow class="mb-5">
           <BCol cols="12" md="6" lg="6">
             {{ $t('settings.newsletter.newsletter') }}
-            <div class="text-small">
+            <div class="small">
               {{
                 newsletterState
                   ? $t('settings.newsletter.newsletterTrue')
@@ -80,6 +80,10 @@
             <user-newsletter />
           </BCol>
         </BRow>
+        <hr />
+        <user-gradido-card class="mb-5" />
+        <hr />
+        <user-thank-you-card class="mb-5" />
       </BTab>
       <BTab
         v-if="isCommunityService"
@@ -204,6 +208,8 @@ import UserNamingFormat from '@/components/UserSettings/UserNamingFormat'
 import UserGMSLocationFormat from '@/components/UserSettings/UserGMSLocationFormat'
 import UserGmsLocationCapturing from '@/components/UserSettings/UserGmsLocationCapturing'
 import UserNewsletter from '@/components/UserSettings/UserNewsletter.vue'
+import UserGradidoCard from '@/components/UserSettings/UserGradidoCard.vue'
+import UserThankYouCard from '@/components/UserSettings/UserThankYouCard.vue'
 import {
   BTabs,
   BTab,

@@ -154,6 +154,38 @@ export const sendResetPasswordEmail = (
   })
 }
 
+/**
+ * The receipt for somebody who paid with their printed card.
+ *
+ * ⚠️ This is not a courtesy, it is part of the security model. The limits cap what can be
+ * lost in a DAY; only a member who NOTICES and blocks the card turns that into a cap for
+ * good. Without this mail a watched PIN keeps bleeding until somebody happens to scroll
+ * through their account.
+ *
+ * That is also why it carries a block link rather than only pointing at the account: the
+ * moment the receipt is read is the moment blocking has to be one reach away.
+ */
+export const sendThankYouCardPaidEmail = (
+  data: EmailCommonData & {
+    recipientName: string
+    recipientCommunity: string
+    transactionMemo: string
+    transactionAmount: GradidoUnit
+    cardLabel: string
+    cardId: number
+  },
+): Promise<Record<string, unknown> | boolean | null | Error> => {
+  return sendEmailTranslated({
+    receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
+    template: 'thankYouCardPaid',
+    locals: {
+      ...data,
+      transactionAmount: decimalSeparatorByLanguage(data.transactionAmount, data.language),
+      ...getEmailCommonLocales(),
+    },
+  })
+}
+
 export const sendTransactionLinkRedeemedEmail = (
   data: EmailCommonData & {
     senderFirstName: string

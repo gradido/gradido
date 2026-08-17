@@ -1,0 +1,23 @@
+extend ../layout.pug
+
+block content
+  h2= t('emails.thankYouCardPaid.title', { amountGDD: transactionAmount })
+  .text-block
+    include ../includes/salutation.pug
+    p= t('emails.thankYouCardPaid.wasPaid', { amountGDD: transactionAmount, cardLabel })
+  .content
+    h2= t('emails.general.transactionDetails')
+    div(class="p_content")= t('emails.general.amountGDD', { amountGDD: transactionAmount })
+      br
+      = t('emails.thankYouCardPaid.recipient', { recipientName, recipientCommunity })
+      br
+      = t('emails.thankYouCardPaid.memo', { transactionMemo })
+      br
+      = t('emails.thankYouCardPaid.paidWith', { cardLabel })
+
+    a.button-3(href=`${communityURL}/transactions`) #{t('emails.general.toAccount')}
+
+    p= t('emails.thankYouCardPaid.notYou')
+    a.button-3(href=`${communityURL}/settings?block=${cardId}`) #{t('emails.thankYouCardPaid.blockCard')}
+
+    include ../includes/doNotReply.pug

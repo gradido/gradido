@@ -86,6 +86,16 @@
       "title": "Passwort zurücksetzen",
       "youOrSomeoneResetPassword": "du oder jemand anderes, hast für dieses Konto ein Zurücksetzen des Passworts angefordert."
     },
+    "thankYouCardPaid": {
+      "blockCard": "Karte sperren",
+      "memo": "Verwendungszweck: {transactionMemo}",
+      "notYou": "Das warst Du nicht? Dann sperre Deine Karte gleich hier — sie funktioniert danach nicht mehr, Deine Gradido-Adresse bleibt bestehen.",
+      "paidWith": "Bezahlt mit: Karte „{cardLabel}“",
+      "recipient": "Empfänger: {recipientName} ({recipientCommunity})",
+      "subject": "Du hast mit Deiner Dank-Karte {amountGDD} GDD weitergegeben",
+      "title": "Mit Deiner Dank-Karte wurden {amountGDD} GDD weitergegeben",
+      "wasPaid": "Soeben wurden mit Deiner Dank-Karte {amountGDD} GDD weitergegeben."
+    },
     "transactionLinkRedeemed": {
       "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) hat soeben deinen Link eingelöst.",
       "memo": "Nachricht: {transactionMemo}",

@@ -3,6 +3,7 @@ fragment balanceFields on Balance {
   balanceGDT
   count
   linkCount
+  openLinkCount
 }
 
 fragment transactionFields on Transaction {

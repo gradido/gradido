@@ -1,13 +1,14 @@
 <template>
   <div class="userdata-card">
-    <div class="center-per-margin">
-      <app-avatar
+    <div class="center-per-margin d-flex justify-content-center">
+      <!-- The second way in. "Profile picture" is looked for in the settings by habit,
+           and an avatar was already standing here -- same component, used twice. -->
+      <AvatarButton
         class="vue3-avatar"
         :name="username.username"
         :initials="username.initials"
         :color="'#fff'"
         :size="90"
-        :border="false"
       />
     </div>
 

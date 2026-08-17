@@ -437,6 +437,12 @@
   "status": "Status",
   "success": "Erfolg",
   "text": "Text",
+  "thank-you-cheque": {
+    "download": "Startguthaben-Scheck herunterladen",
+    "scan-qr": "Damit die Gradido gutgeschrieben werden, scanne den QR-Code!",
+    "starting-credit": "Startguthaben {amount} Gradido",
+    "starting-credit-valid": "Dieses Startguthaben ist vom {from} bis zum {to} gültig."
+  },
   "transactionlink": {
     "created": "Erstellt",
     "name": "Transaktion-Links",

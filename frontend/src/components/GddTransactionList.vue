@@ -37,6 +37,7 @@
               <transaction-link-summary
                 v-bind="transaction"
                 :transaction-link-count="transactionLinkCount"
+                :open-link-count="openLinkCount"
                 @update-transactions="updateTransactions"
               />
             </template>
@@ -83,6 +84,7 @@ export default {
     timestamp: { type: Number, default: 0 },
     transactionCount: { type: Number, default: 0 },
     transactionLinkCount: { type: Number, default: 0 },
+    openLinkCount: { type: Number, default: 0 },
     showPagination: { type: Boolean, default: false },
     pending: { type: Boolean },
   },

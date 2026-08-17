@@ -45,6 +45,36 @@ export const MESSAGE_MIN_CHARS = 1
 export const ABOUT_ME_MAX_CHARS = 2000
 export const MATCHING_ENTRY_DETAILS_MAX_CHARS = 2000
 
+// avatar: the profile picture a member sets for their own account. One upload produces
+// two JPEGs, and both travel in the same mutation — so these two limits share one
+// budget rather than each having their own.
+//
+// The budget is the request body limit: express's default 100 KB (createServer.ts calls
+// json() with no argument). Base64 grows bytes by about 37%, so the two images together
+// must stay under roughly 73 KB for the request to fit with its query text around it.
+// 60 + 10 comes to 70 KB, arriving as about 96 KB of string.
+//
+// Keeping our own limits below what express accepts is the point: a member who is over
+// budget has to get "Avatar image too large" from us, not a bare 413 from the framework
+// that says nothing about which picture or by how much.
+//
+// Both are backstops for a client that did not do its own step-down, not values anyone
+// should reach — the browser targets ~55 KB and ~8 KB respectively.
+export const AVATAR_FULL_MAX_BYTES = 60 * 1024
+export const AVATAR_SMALL_MAX_BYTES = 10 * 1024
+// A JPEG begins with these two bytes and ends with these two. Checking both ends is still
+// not format validation -- only a decoder could say whether the pixels in between are a
+// picture -- but it is what can be had without one, and a decoder is exactly what this
+// design keeps out of the backend: the browser encodes both renditions so that no image
+// library, and no CPU per request, is needed here.
+//
+// Checking the end as well as the start matters more than it looks. `FFD8` alone accepts
+// a three-byte payload, so the column would take arbitrary data from anyone who prefixes
+// it correctly. A file that also ends in `FFD9` has at least been through something that
+// produces JPEG structure.
+export const JPEG_MAGIC_BYTES = [0xff, 0xd8]
+export const JPEG_END_BYTES = [0xff, 0xd9]
+
 // authentication
 // 10 minutes
 export const FEDERATION_AUTHENTICATION_TIMEOUT_MS = 60 * 1000 * 10

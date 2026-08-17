@@ -86,6 +86,16 @@
       "title": "Wachtwoord resetten",
       "youOrSomeoneResetPassword": "jij, of iemand anders, heeft voor dit account een wachtwoordreset aangevraagd."
     },
+    "thankYouCardPaid": {
+      "blockCard": "Kaart blokkeren",
+      "memo": "Omschrijving: {transactionMemo}",
+      "notYou": "Was jij dat niet? Blokkeer je kaart hier meteen — hij werkt daarna niet meer, je Gradido-adres blijft.",
+      "paidWith": "Betaald met: kaart “{cardLabel}”",
+      "recipient": "Ontvanger: {recipientName} ({recipientCommunity})",
+      "subject": "Je hebt {amountGDD} GDD doorgegeven met je bedankkaart",
+      "title": "Er is {amountGDD} GDD doorgegeven met je bedankkaart",
+      "wasPaid": "Er is zojuist {amountGDD} GDD doorgegeven met je bedankkaart."
+    },
     "transactionLinkRedeemed": {
       "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) heeft zojuist je link ingewisseld.",
       "memo": "Bericht: {transactionMemo}",

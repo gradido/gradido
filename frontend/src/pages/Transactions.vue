@@ -13,6 +13,7 @@
         :timestamp="timestamp"
         :transaction-count="transactionCount"
         :transaction-link-count="transactionLinkCount"
+        :open-link-count="openLinkCount"
         :transactions="transactions"
         :show-pagination="true"
         :page-size="pageSize"
@@ -39,6 +40,7 @@ const props = defineProps({
   },
   transactionCount: { type: Number, default: 0 },
   transactionLinkCount: { type: Number, default: 0 },
+  openLinkCount: { type: Number, default: 0 },
 })
 
 const emit = defineEmits(['update-transactions'])

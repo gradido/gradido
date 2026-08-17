@@ -20,43 +20,40 @@
 
         <BNavbarNav class="ms-auto" right>
           <div class="">
-            <router-link to="/settings" class="d-flex flex-column align-items-end text-end">
+            <div class="d-flex flex-column align-items-end text-end">
+              <!-- The avatar opens the picture tool; the settings link moved to the name
+                   below it. That name already carried the link colouring but was not a
+                   link at all, so the move turns a decoy into a function. -->
               <div class="ms-auto">
-                <app-avatar
+                <AvatarButton
                   class="vue3-avatar"
                   :name="username.username"
                   :initials="username.initials"
-                  :border="false"
                   :color="'#fff'"
                   :size="61"
                 />
               </div>
-              <div v-if="!hasUsername">
-                <div class="mt-3" data-test="navbar-item-username">{{ username.username }}</div>
-                <div class="small mt-1" data-test="navbar-item-gradido-id">{{ gradidoId }}</div>
-              </div>
-            </router-link>
-            <div class="d-flex flex-column align-items-end text-end">
-              <div
-                v-if="hasUsername"
+              <router-link
+                to="/settings"
                 class="navbar-like-link mt-3"
                 data-test="navbar-item-username"
               >
                 {{ username.username }}
-              </div>
+              </router-link>
+              <!-- One line for everybody. There used to be two blocks, and the one for
+                   members without a user name showed the address inside the settings link,
+                   with no way to copy it. That distinction is on its way out anyway -- the
+                   user name is becoming compulsory -- and until then the Gradido ID stands
+                   in, which resolves just as well. -->
               <div
-                v-if="hasUsername"
                 class="small navbar-like-link pointer mt-1"
-                data-test="navbar-item-gradido-id"
+                data-test="navbar-item-gradido-address"
               >
-                <a
-                  class="copy-clipboard-button"
-                  :title="$t('copy-to-clipboard')"
-                  @click="copyToClipboard(gradidoId)"
-                >
-                  <IBiCopy></IBiCopy>
-                  {{ gradidoId }}
-                </a>
+                <!-- The control itself moved into its own component when the public profile
+                     page became the second place that shows the address. It is a button and
+                     not an anchor: an anchor without a target is in no tab order, so the
+                     address was unreachable for anybody working without a mouse. -->
+                <gradido-address-copy :alias="alias" />
               </div>
             </div>
           </div>
@@ -72,19 +69,16 @@
 </template>
 
 <script>
-import CONFIG from '@/config'
-import { useAppToast } from '@/composables/useToast'
+import { memberAlias } from '@/utils/gradidoAddress'
+import GradidoAddressCopy from '@/components/GradidoAddressCopy'
 
 export default {
   name: 'Navbar',
+  components: {
+    GradidoAddressCopy,
+  },
   props: {
     balance: { type: Number, required: true },
-  },
-  setup() {
-    const toast = useAppToast()
-    return {
-      toast,
-    }
   },
   data() {
     return {
@@ -99,20 +93,11 @@ export default {
         initials: `${this.$store.state.firstName[0]}${this.$store.state.lastName[0]}`,
       }
     },
-    hasUsername() {
-      return this.$store.state.username && this.$store.state.username.length > 0
-    },
-    gradidoId() {
-      const name = this.$store.state.username
-        ? this.$store.state.username
-        : this.$store.state.gradidoId
-      return `${CONFIG.COMMUNITY_NAME}/${name}`
-    },
-  },
-  methods: {
-    copyToClipboard(content) {
-      navigator.clipboard.writeText(content)
-      this.toast.toastSuccess(this.$t('gradidoid-copied-to-clipboard'))
+    alias() {
+      // gradidoID, not gradidoId -- the store spells it with a capital D, and the other
+      // spelling once put the word "undefined" in front of every member without a user
+      // name. It is worth naming at each call site; nothing catches it.
+      return memberAlias(this.$store.state.username, this.$store.state.gradidoID)
     },
   },
 }

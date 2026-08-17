@@ -57,6 +57,10 @@ const humhub = {
 
 const ANTHROPIC_ACTIVE = process.env.ANTHROPIC_ACTIVE === 'true'
 
+// Printed on the starting bonus cheque, where it tells the guest which community
+// the code belongs to. Same value and same fallback as in the wallet.
+const COMMUNITY_NAME = process.env.COMMUNITY_NAME ?? 'Gradido Entwicklung'
+
 const CONFIG = {
   ...version,
   ...environment,
@@ -65,6 +69,7 @@ const CONFIG = {
   ANTHROPIC_ACTIVE,
   ...humhub,
   ADMIN_MODULE_URL,
+  COMMUNITY_NAME,
   COMMUNITY_URL,
 }
 

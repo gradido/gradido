@@ -53,6 +53,7 @@ export const transactionsQuery = gql`
         balanceGDT
         count
         linkCount
+        openLinkCount
       }
       transactions {
         id
@@ -451,6 +452,33 @@ export const verifyLoginAboutMe = gql`
     verifyLogin {
       gradidoID
       aboutMe
+    }
+  }
+`
+
+// Same reasoning: the avatar rides along on verifyLogin, and asking for it on its own
+// leaves the widely asserted queries untouched.
+export const verifyLoginAvatar = gql`
+  query {
+    verifyLogin {
+      gradidoID
+      avatar
+    }
+  }
+`
+
+// Own view only, and it takes no argument -- there is nobody to ask about but oneself.
+export const avatarFull = gql`
+  query {
+    avatarFull
+  }
+`
+
+export const userAvatar = gql`
+  query ($identifier: String!, $communityIdentifier: String!) {
+    user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
+      gradidoID
+      avatar
     }
   }
 `

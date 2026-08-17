@@ -437,6 +437,12 @@
   "status": "Estado",
   "success": "Sucesso",
   "text": "Texto",
+  "thank-you-cheque": {
+    "download": "Descarregar cheque de saldo inicial",
+    "scan-qr": "Para que os Gradido sejam creditados, digitaliza o código QR!",
+    "starting-credit": "Saldo inicial {amount} Gradido",
+    "starting-credit-valid": "Este saldo inicial é válido de {from} até {to}."
+  },
   "transactionlink": {
     "created": "Criado",
     "name": "Links de transação",

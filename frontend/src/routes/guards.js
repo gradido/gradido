@@ -22,6 +22,11 @@ const addNavigationGuards = (router, store, apollo) => {
         })
         .then((result) => {
           store.dispatch('login', result.data.verifyLogin)
+          // The picture is not part of the login action, because the login mutation cannot
+          // carry it -- verifyLogin is the only query that hands it over. Whoever holds a
+          // verifyLogin result puts it in the store; here that is free, since the result
+          // is already in hand.
+          store.commit('avatar', result.data.verifyLogin.avatar ?? null)
           next({ path: '/overview' })
         })
         .catch(() => {

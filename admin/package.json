@@ -3,7 +3,7 @@
   "description": "Administration Interface for Gradido",
   "main": "index.js",
   "author": "Gradido Academy - https://www.gradido.net",
-  "version": "2.10.0",
+  "version": "2.10.1",
   "license": "Apache-2.0",
   "scripts": {
     "dev": "vite",
@@ -36,6 +36,7 @@
     "graphql-tag": "^2.12.6",
     "identity-obj-proxy": "^3.0.0",
     "portal-vue": "3.0.0",
+    "qrcanvas": "^3.1.2",
     "qrcanvas-vue": "3.0.0",
     "regenerator-runtime": "^0.13.9",
     "unplugin-icons": "^0.19.0",

@@ -82,6 +82,7 @@ export default defineConfig(async ({ command }) => {
         BUILD_COMMIT: CONFIG.BUILD_COMMIT ?? undefined,
         PORT: CONFIG.ADMIN_MODULE_PORT ?? null, // null,
         COMMUNITY_HOST: CONFIG.ADMIN_MODULE_HOST ?? null, // null,
+        COMMUNITY_NAME: CONFIG.COMMUNITY_NAME,
         COMMUNITY_URL: CONFIG.COMMUNITY_URL ?? null,
         URL_PROTOCOL: CONFIG.ADMIN_MODULE_PROTOCOL ?? null, // null,
         WALLET_AUTH_URL: CONFIG.WALLET_AUTH_URL ?? null,

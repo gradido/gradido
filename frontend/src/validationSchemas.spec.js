@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { memo, message } from '@/validationSchemas'
+import { identifier, memo, message } from '@/validationSchemas'
 
 // The frontend cannot import yet from the shared package, so these bounds are written
 // out twice: here and in shared/src/const/index.ts. That makes them easy to widen
@@ -57,5 +57,52 @@ describe('validationSchemas', () => {
     const longerThanAMemo = stringOfLength(1000)
     expect(memo.isValidSync(longerThanAMemo)).toBe(false)
     expect(message.isValidSync(longerThanAMemo)).toBe(true)
+  })
+
+  // The shape is split off into utils/gradidoAddress and covered there; what these check
+  // is that the field asks it, and which message comes back -- an unreadable shape and a
+  // readable one with a bad user name are two different pieces of advice.
+  describe('identifier (the recipient field)', () => {
+    const messageFor = (value) => {
+      try {
+        identifier.validateSync(value)
+        return null
+      } catch (error) {
+        return error.message
+      }
+    }
+
+    it('accepts what it always accepted', () => {
+      expect(messageFor('Bernd')).toBeNull()
+      expect(messageFor('bernd@example.org')).toBeNull()
+      expect(messageFor('3f2504e0-4f89-41d3-9a0c-0305e82c3301')).toBeNull()
+      expect(messageFor('Gradido Entwicklung/Bernd')).toBeNull()
+    })
+
+    it('accepts the line printed on the Gradido card', () => {
+      expect(messageFor('ki-playground.gradido.net/u/Bernd')).toBeNull()
+    })
+
+    it('accepts the same line with the scheme the copy button adds', () => {
+      expect(messageFor('https://ki-playground.gradido.net/u/Bernd')).toBeNull()
+    })
+
+    it('names the shape when it cannot read it, not the user name', () => {
+      expect(messageFor('ki-playground.gradido.net/g/Wandergruppe')).toBe(
+        'form.validation.identifier.formatError',
+      )
+      expect(messageFor('a/b/c/d')).toBe('form.validation.identifier.formatError')
+    })
+
+    it('names the user name when the shape was fine', () => {
+      expect(messageFor('ki-playground.gradido.net/u/x')).toBe(
+        'form.validation.identifier.typeError',
+      )
+      expect(messageFor('no')).toBe('form.validation.identifier.typeError')
+    })
+
+    it('still demands something', () => {
+      expect(messageFor('')).toBe('form.validation.identifier.required')
+    })
   })
 })

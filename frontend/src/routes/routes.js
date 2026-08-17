@@ -203,6 +203,36 @@ const routes = [
     path: '/redeem/:code',
     component: () => import('@/pages/TransactionLink'),
   },
+  // The Gradido address, `community-host/u/alias`. Public on purpose: it is what a printed
+  // card, an e-mail signature or a QR code points at, and most people who arrive here are not
+  // logged in -- a phone camera opens the default browser, not the one the wallet was signed
+  // into. It has to stay above the catch-all, which is what used to swallow it: every printed
+  // QR code landed on "page not found".
+  {
+    name: 'PublicProfile',
+    path: '/u/:alias',
+    component: () => import('@/pages/PublicProfile'),
+  },
+  // Where a scanned thank you card lands. Its own namespace rather than a query on the
+  // Gradido address, because the card carries neither a name nor an address, only its
+  // code -- which keeps the profile page out of this entirely.
+  //
+  // ⚠️ requiresAuth, and that IS the whole login handling: the person who scans is the
+  // RECIPIENT and has an account, so the router guard sends them through the login and
+  // back here on its own. Nothing below checks whether anybody is signed in.
+  {
+    name: 'ThankYouCardPayment',
+    path: '/dk/:code',
+    component: () => import('@/pages/ThankYouCardPayment'),
+    props: true,
+    meta: {
+      requiresAuth: true,
+      // ⚠️ A flat slug, not the key of the heading itself: the breadcrumb prefixes
+      // `pageTitle.`, and vue-i18n reads the dots as a path — so anything nested would be
+      // looked up under `pageTitle` and printed raw when it is not found there.
+      pageTitle: 'thank-you-card-receive',
+    },
+  },
   {
     path: '/:catchAll(.*)',
     name: 'NotFound',
