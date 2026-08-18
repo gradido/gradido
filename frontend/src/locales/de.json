@@ -786,18 +786,16 @@
     "back-to-account": "Zurück zum Konto",
     "name": "Dank-Karte",
     "receive": {
+      "amount": "{amount} GDD",
       "attempts-left": "noch {n} Versuche",
-      "card": "Karte: {label}",
       "default-memo": "Kartenzahlung",
       "next": "Weiter",
       "next-payment": "Nächste Zahlung",
-      "pin-subtitle": "{amount} GDD",
       "pin-title": "Bitte Deine PIN",
-      "received": "Du hast {amount} GDD von {name} empfangen.",
       "remember-memo": "Diesen Verwendungszweck merken",
+      "sent-from-to": "gesendet von {from} an {to}",
       "subtitle": "Eine Dank-Karte wurde gescannt.",
-      "thanks": "1000 Dank!",
-      "title": "Gradido empfangen"
+      "thanks": "Vielen Dank!"
     },
     "settings": {
       "block": "Karte sperren",

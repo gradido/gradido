@@ -34,6 +34,11 @@ vi.mock('vue-router', () => ({
   useRoute: vi.fn(() => ({ params: { code: 'DK-abc123' } })),
 }))
 
+// The merchant, i.e. whoever is signed in on this device. The closing screen names them,
+// so the store has to answer here the same way it does in the wallet.
+const state = { firstName: 'Max', lastName: 'Mustermann' }
+vi.mock('vuex', () => ({ useStore: () => ({ state }) }))
+
 vi.mock('vue-i18n', () => ({
   useI18n: vi.fn(() => ({ t: (key) => key })),
 }))
@@ -160,7 +165,7 @@ describe('ThankYouCardPayment', () => {
     it('names the card on the amount step, so the merchant sees which one was recognised', async () => {
       await mountUsable()
 
-      expect(field('label').text()).toContain(CARD_LABEL)
+      expect(field('label').text()).toBe(CARD_LABEL)
     })
 
     it('names it again on the pin step, where the owner is the one looking', async () => {
@@ -168,7 +173,7 @@ describe('ThankYouCardPayment', () => {
       await fillAndStart({})
 
       expect(field('pin').exists()).toBe(true)
-      expect(field('label').text()).toContain(CARD_LABEL)
+      expect(field('label').text()).toBe(CARD_LABEL)
     })
 
     /**
@@ -334,11 +339,28 @@ describe('ThankYouCardPayment', () => {
       await flushPromises()
     }
 
-    it('names the payer once the money has moved', async () => {
+    /**
+     * ⛔ Two people read this screen, one after the other: the payer is still holding the
+     * phone when it appears and hands it back a moment later. So it may not address either
+     * of them as "you" — it names BOTH sides, and the test pins exactly that, because a
+     * sentence that is merely true for whoever is holding the phone reads fine in review
+     * and is wrong for the other half of every payment.
+     */
+    it('names payer and merchant, so the screen fits whoever is holding the phone', async () => {
       await payWith({ status: 'SUCCESS', payerName: 'Bibi Bloxberg' })
 
       expect(wrapper.text()).toContain('thank-you-card.receive.thanks')
-      expect(wrapper.text()).toContain('Bibi Bloxberg')
+      const parties = wrapper.find('[data-test="thank-you-card-paid-parties"]')
+      expect(parties.text()).toContain('"from":"Bibi Bloxberg"')
+      expect(parties.text()).toContain('"to":"Max Mustermann"')
+    })
+
+    it('shows what was paid on the closing screen, not only on the pin step', async () => {
+      await payWith({ status: 'SUCCESS', payerName: 'Bibi Bloxberg' })
+
+      const paid = wrapper.find('[data-test="thank-you-card-paid-amount"]')
+      expect(paid.text()).toContain('thank-you-card.receive.amount')
+      expect(paid.text()).toContain('"amount":"12,50"')
     })
 
     it('says how many attempts are left after a wrong pin, and stays on the pin step', async () => {

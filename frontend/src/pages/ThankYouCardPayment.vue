@@ -9,17 +9,23 @@
     </div>
 
     <div v-else-if="step === 'amount'">
-      <div class="fs-4 mb-1">{{ $t('thank-you-card.receive.title') }}</div>
-      <div class="small text-muted" :class="cardLabel ? 'mb-1' : 'mb-3'">
+      <!-- ⚠️ No heading of its own. The wallet's own title bar already writes "Gradido
+           empfangen" above this from the route's `pageTitle`, and the page repeated it
+           word for word. -->
+      <div class="fs-5 text-muted" :class="cardLabel ? 'mb-1' : 'mb-3'">
         {{ $t('thank-you-card.receive.subtitle') }}
       </div>
       <!--
-        Which card is loaded, in the owner's own words. It is printed on the card, so it
-        gives nothing away -- and it is the answer to "is the old one still in there?" on a
-        till that scanned several cards in a row. See ThankYouCardPaymentTarget.
+        ★ The biggest thing on this screen, and deliberately so: it is what the merchant
+        checks before typing an amount, on a till that may have scanned three cards today.
+        Small grey text made that a squint. No "Card:" in front of it either -- the screen
+        is about a card, so the word only pushes the answer to the right.
+
+        It is printed on the card, so showing it gives nothing away. See
+        ThankYouCardPaymentTarget.
       -->
-      <div v-if="cardLabel" class="small mb-3" data-test="thank-you-card-label">
-        {{ $t('thank-you-card.receive.card', { label: cardLabel }) }}
+      <div v-if="cardLabel" class="fs-2 mb-3" data-test="thank-you-card-label">
+        {{ cardLabel }}
       </div>
 
       <label class="small" for="tyc-amount">{{ $t('form.amount') }}</label>
@@ -63,13 +69,16 @@
       <div id="tyc-pin-title" class="fs-4 mb-1">
         {{ $t('thank-you-card.receive.pin-title') }}
       </div>
-      <div id="tyc-pin-subtitle" class="small text-muted" :class="cardLabel ? 'mb-1' : 'mb-3'">
-        {{ $t('thank-you-card.receive.pin-subtitle', { amount: amount }) }}
+      <!-- ★ Big, because this is the number somebody is about to agree to pay on a device
+           that is not theirs. It is also the screen-reader description of the PIN field, so
+           what is said out loud and what is on screen stay the same sentence. -->
+      <div id="tyc-pin-subtitle" class="fs-2 mb-1">
+        {{ $t('thank-you-card.receive.amount', { amount: amount }) }}
       </div>
-      <!-- Shown here too: this is the step where the card's OWNER is looking at the screen,
-           and the label is how they recognise their own card. -->
-      <div v-if="cardLabel" class="small mb-3" data-test="thank-you-card-label">
-        {{ $t('thank-you-card.receive.card', { label: cardLabel }) }}
+      <!-- Readable, but below the amount: this is the step where the card's OWNER is
+           looking at the screen, and the label is how they recognise their own card. -->
+      <div v-if="cardLabel" class="fs-5 text-muted mb-3" data-test="thank-you-card-label">
+        {{ cardLabel }}
       </div>
 
       <!--
@@ -110,9 +119,22 @@
     </div>
 
     <div v-else-if="step === 'done'" class="text-center">
+      <!--
+        ★★ This screen is read by TWO people, and that is what shapes every line on it. The
+        payer is still holding the phone when it appears; a moment later they hand it back
+        and the merchant reads the same words. So nothing here may be addressed to "you" --
+        "Du hast … empfangen" was true for whoever was holding it second and wrong for the
+        person who had just paid. It names both sides instead, and then it fits both.
+
+        ⚠️ The comment lives INSIDE the branch on purpose: a comment between `v-if` and
+        `v-else-if` is a node the compiler has to step over, and this chain has four arms.
+      -->
       <div class="fs-3 mb-2">{{ $t('thank-you-card.receive.thanks') }}</div>
-      <div class="mb-3">
-        {{ $t('thank-you-card.receive.received', { amount: amount, name: payerName }) }}
+      <div class="fs-2 mb-2" data-test="thank-you-card-paid-amount">
+        {{ $t('thank-you-card.receive.amount', { amount: amount }) }}
+      </div>
+      <div class="mb-3" data-test="thank-you-card-paid-parties">
+        {{ $t('thank-you-card.receive.sent-from-to', { from: payerName, to: recipientName }) }}
       </div>
       <BButton variant="gradido" data-test="thank-you-card-again" @click="reset">
         {{ $t('thank-you-card.receive.next-payment') }}
@@ -146,6 +168,7 @@
 import { BButton, BFormCheckbox, BFormInput } from 'bootstrap-vue-next'
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useStore } from 'vuex'
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import { useRoute } from 'vue-router'
 import {
@@ -165,6 +188,7 @@ const pinType = pinInputType()
 
 const route = useRoute()
 const { t } = useI18n()
+const store = useStore()
 const { toastError } = useAppToast()
 const { readRememberedMemo, writeRememberedMemo } = useThankYouCardMemo()
 
@@ -181,6 +205,16 @@ const payerName = ref('')
 const busy = ref(false)
 const targetStatus = ref(null)
 const cardLabel = ref('')
+
+/**
+ * Whoever is signed in on this device, which on this page is always the RECIPIENT -- the
+ * merchant. Read from the store rather than asked of the server: the wallet has known it
+ * since the login, and the closing screen has to name both sides (see the comment on the
+ * done step) without a round trip at the moment the phone changes hands.
+ */
+const recipientName = computed(() =>
+  `${store.state.firstName ?? ''} ${store.state.lastName ?? ''}`.trim(),
+)
 
 const unusable = computed(() => targetStatus.value !== null && targetStatus.value !== 'SUCCESS')
 const statusKey = computed(() => targetStatus.value ?? 'CARD_UNKNOWN')
