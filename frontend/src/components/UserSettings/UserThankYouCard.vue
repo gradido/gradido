@@ -157,6 +157,17 @@
       ⚠️ `@ok.prevent`, because the dialog must NOT close itself: `savePin` closes it only
       after the server has taken the PIN. A rejected PIN has to leave the dialog standing,
       or the message lands on a screen that no longer shows the field it is about.
+
+      ⚠️ `busy`, not `ok-disabled`: the library computes both buttons from it
+      (`disableCancel = cancelDisabled || busy`, `disableOk = okDisabled || busy`), so a save
+      in flight takes Cancel out of reach too. Read in the shipped bundle, not assumed.
+
+      ⛔ And deliberately NOT `no-close-on-backdrop` / `no-close-on-esc` / `no-header-close`,
+      although a reviewer asked for them. Dismissing mid-save costs nothing: the mutation is
+      already sent, `run` still refetches and reports, and `@hide` clears the field -- the
+      worst case is a success message arriving after the box is gone. Sealing all three would
+      buy that back at the price of a request that hangs leaving somebody locked in a dialog
+      with both buttons dead and no way out at all, because `run` has no timeout. The x stays.
     -->
     <BModal
       v-model="showSetup"
@@ -164,7 +175,7 @@
       :ok-title="$t('form.save')"
       ok-variant="gradido"
       :cancel-title="$t('form.cancel')"
-      :ok-disabled="busy"
+      :busy="busy"
       @ok.prevent="savePin"
       @hide="newPin = ''"
     >

@@ -155,7 +155,19 @@ describe('UserThankYouCard', () => {
           // bare payload would throw here — and a stub that cannot take `.prevent` cannot
           // test a dialog whose whole point is that it does not close itself.
           BModal: {
-            props: ['modelValue', 'okTitle', 'cancelTitle', 'okDisabled'],
+            props: ['modelValue', 'okTitle', 'cancelTitle', 'okDisabled', 'cancelDisabled', 'busy'],
+            computed: {
+              // Exactly how the library computes them (`disableCancel = cancelDisabled ||
+              // busy`, `disableOk = okDisabled || busy`). Modelled rather than simplified:
+              // the page passes only `busy`, so a stub that read `okDisabled` alone would
+              // report both buttons live and quietly stop testing the guard.
+              disableOk() {
+                return Boolean(this.okDisabled || this.busy)
+              },
+              disableCancel() {
+                return Boolean(this.cancelDisabled || this.busy)
+              },
+            },
             emits: ['ok', 'cancel', 'hide', 'update:modelValue'],
             methods: {
               // Cancel is the whole chain the real one runs: it announces itself, announces
@@ -192,9 +204,9 @@ describe('UserThankYouCard', () => {
             },
             template:
               '<div v-if="modelValue" class="modal-stub"><slot />' +
-              '<button data-test="thank-you-card-dialog-cancel"' +
+              '<button data-test="thank-you-card-dialog-cancel" :disabled="disableCancel"' +
               ' @click="onCancel">{{ cancelTitle }}</button>' +
-              '<button data-test="thank-you-card-dialog-ok" :disabled="okDisabled"' +
+              '<button data-test="thank-you-card-dialog-ok" :disabled="disableOk"' +
               ' @click="onOk">{{ okTitle }}</button>' +
               '</div>',
           },
@@ -374,6 +386,31 @@ describe('UserThankYouCard', () => {
 
       expect(wrapper.find('.modal-stub').exists()).toBe(true)
       expect(field('new-pin').element.value).toBe('407312')
+    })
+
+    /**
+     * ⛔ While the PIN is on its way, NEITHER button may be pressed — which is why the page
+     * passes `busy` rather than `ok-disabled`: the library derives both from it. With only
+     * OK guarded, Cancel stayed live during the save, and pressing it shut the dialog on a
+     * request that was still running.
+     *
+     * (Deliberately not sealed any further: the x, Escape and the backdrop still work. A
+     * request that hangs must not leave anybody locked in a box with two dead buttons.)
+     */
+    it('takes both buttons out of reach while the pin is on its way', async () => {
+      let finish
+      mockSaveSettings.mockReturnValue(new Promise((resolve) => (finish = resolve)))
+      await mountWith()
+      await buttonWith('thank-you-card.settings.change-pin').trigger('click')
+      await field('new-pin').setValue('407312')
+      await dialogButtonWith('form.save').trigger('click')
+      await nextTick()
+
+      expect(field('dialog-ok').attributes('disabled')).toBeDefined()
+      expect(field('dialog-cancel').attributes('disabled')).toBeDefined()
+
+      finish({})
+      await flushPromises()
     })
 
     // Backing out has to leave nothing behind: until this dialog had a Cancel at all, the
