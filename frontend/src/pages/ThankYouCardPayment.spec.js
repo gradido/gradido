@@ -78,6 +78,7 @@ const mutateFor = (document) => {
 }
 
 const PAYMENT_ID = 4711
+const CARD_LABEL = 'Portemonnaie'
 
 describe('ThankYouCardPayment', () => {
   let wrapper
@@ -91,10 +92,10 @@ describe('ThankYouCardPayment', () => {
     })
 
   /** The card is usable, so the page shows the amount step. */
-  const mountUsable = async () => {
+  const mountUsable = async (cardLabel = CARD_LABEL) => {
     wrapper = createWrapper()
     await nextTick()
-    onTargetResult({ data: { thankYouCardPaymentTarget: 'SUCCESS' } })
+    onTargetResult({ data: { thankYouCardPaymentTarget: { status: 'SUCCESS', cardLabel } } })
     await nextTick()
     return wrapper
   }
@@ -137,11 +138,58 @@ describe('ThankYouCardPayment', () => {
     it('shows the status and no amount field when the card cannot pay', async () => {
       wrapper = createWrapper()
       await nextTick()
-      onTargetResult({ data: { thankYouCardPaymentTarget: 'CARD_BLOCKED' } })
+      onTargetResult({
+        data: { thankYouCardPaymentTarget: { status: 'CARD_BLOCKED', cardLabel: null } },
+      })
       await nextTick()
 
       expect(wrapper.text()).toContain('thank-you-card.status.CARD_BLOCKED')
       expect(field('amount').exists()).toBe(false)
+      // ⚠️ Belt and braces, and worth saying which: this line cannot fail from deleting the
+      // `v-if` guard — a blocked card never reaches that part of the template, which is why
+      // the guard has its own test below. What it does catch is somebody putting the label
+      // onto the dead-end screen, where a found card must stay anonymous. (coderabbit, #3760)
+      expect(field('label').exists()).toBe(false)
+    })
+
+    /**
+     * ★ The label is the only thing about the card this screen may name before the PIN, and
+     * the reason it may is that it is PRINTED ON THE CARD — whoever is asking is holding it.
+     * What it buys: a till that scanned three cards in a row shows which one is loaded.
+     */
+    it('names the card on the amount step, so the merchant sees which one was recognised', async () => {
+      await mountUsable()
+
+      expect(field('label').text()).toContain(CARD_LABEL)
+    })
+
+    it('names it again on the pin step, where the owner is the one looking', async () => {
+      await mountUsable()
+      await fillAndStart({})
+
+      expect(field('pin').exists()).toBe(true)
+      expect(field('label').text()).toContain(CARD_LABEL)
+    })
+
+    /**
+     * ⛔ The other half, and it is the one that had to be a test rather than a glance: the
+     * page must name nothing when the server sent no label.
+     *
+     * ⚠️ The obvious test — a BLOCKED card names nothing — measures nothing at all. A
+     * blocked card never reaches this part of the template, so it would stay green with the
+     * guard deleted. What the guard actually holds is THIS case: a status the page treats
+     * as usable, arriving without a label. Deleting `v-if="cardLabel"` fails exactly this
+     * one, which is what makes it worth having.
+     *
+     * That a blocked card carries no label in the first place is the server's promise, kept
+     * in `thankYouCardPaymentTarget` — naming one would tell whoever found the card that
+     * their code belongs to a real, known card.
+     */
+    it('names no card when the answer carried no label', async () => {
+      await mountUsable(null)
+
+      expect(field('amount').exists()).toBe(true)
+      expect(field('label').exists()).toBe(false)
     })
 
     it('treats a query that fails as an unknown card rather than as a usable one', async () => {

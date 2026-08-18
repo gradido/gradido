@@ -10,7 +10,17 @@
 
     <div v-else-if="step === 'amount'">
       <div class="fs-4 mb-1">{{ $t('thank-you-card.receive.title') }}</div>
-      <div class="small text-muted mb-3">{{ $t('thank-you-card.receive.subtitle') }}</div>
+      <div class="small text-muted" :class="cardLabel ? 'mb-1' : 'mb-3'">
+        {{ $t('thank-you-card.receive.subtitle') }}
+      </div>
+      <!--
+        Which card is loaded, in the owner's own words. It is printed on the card, so it
+        gives nothing away -- and it is the answer to "is the old one still in there?" on a
+        till that scanned several cards in a row. See ThankYouCardPaymentTarget.
+      -->
+      <div v-if="cardLabel" class="small mb-3" data-test="thank-you-card-label">
+        {{ $t('thank-you-card.receive.card', { label: cardLabel }) }}
+      </div>
 
       <label class="small" for="tyc-amount">{{ $t('form.amount') }}</label>
       <BFormInput
@@ -53,8 +63,13 @@
       <div id="tyc-pin-title" class="fs-4 mb-1">
         {{ $t('thank-you-card.receive.pin-title') }}
       </div>
-      <div id="tyc-pin-subtitle" class="small text-muted mb-3">
+      <div id="tyc-pin-subtitle" class="small text-muted" :class="cardLabel ? 'mb-1' : 'mb-3'">
         {{ $t('thank-you-card.receive.pin-subtitle', { amount: amount }) }}
+      </div>
+      <!-- Shown here too: this is the step where the card's OWNER is looking at the screen,
+           and the label is how they recognise their own card. -->
+      <div v-if="cardLabel" class="small mb-3" data-test="thank-you-card-label">
+        {{ $t('thank-you-card.receive.card', { label: cardLabel }) }}
       </div>
 
       <!--
@@ -119,9 +134,14 @@
  *
  * ## What it does not do
  *
- * It never shows whose card was scanned, until the payment went through. Before the PIN
+ * It never shows WHOSE card was scanned, until the payment went through. Before the PIN
  * nobody has proved anything, and a screen that named the owner would hand that out to
  * whoever picked the card up.
+ *
+ * The card's own label is the one exception, and it is not really one: it is printed on the
+ * card, so it says nothing to somebody holding it that they cannot already read. It earns
+ * its place because a till that scanned several cards in a row has no other way of showing
+ * which one it is still holding.
  */
 import { BButton, BFormCheckbox, BFormInput } from 'bootstrap-vue-next'
 import { computed, nextTick, onMounted, ref } from 'vue'
@@ -160,6 +180,7 @@ const failure = ref(null)
 const payerName = ref('')
 const busy = ref(false)
 const targetStatus = ref(null)
+const cardLabel = ref('')
 
 const unusable = computed(() => targetStatus.value !== null && targetStatus.value !== 'SUCCESS')
 const statusKey = computed(() => targetStatus.value ?? 'CARD_UNKNOWN')
@@ -174,10 +195,16 @@ const { onResult: onTarget, onError: onTargetError } = useQuery(
   { fetchPolicy: 'network-only' },
 )
 onTarget(({ data }) => {
-  targetStatus.value = data?.thankYouCardPaymentTarget ?? 'CARD_UNKNOWN'
+  const target = data?.thankYouCardPaymentTarget
+  targetStatus.value = target?.status ?? 'CARD_UNKNOWN'
+  // Empty unless the card can pay -- the server sends the label on SUCCESS only, and the
+  // template hangs on the value rather than on the status, so there is one place to be
+  // wrong instead of two.
+  cardLabel.value = target?.cardLabel ?? ''
 })
 onTargetError(() => {
   targetStatus.value = 'CARD_UNKNOWN'
+  cardLabel.value = ''
 })
 
 const { mutate: create } = useMutation(createThankYouCardPayment)

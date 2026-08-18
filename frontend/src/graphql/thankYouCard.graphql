@@ -70,7 +70,13 @@ mutation unblockThankYouCard($cardId: Int!) {
 # --- the other side of the counter: taking a payment ---
 
 query thankYouCardPaymentTarget($code: String!) {
-  thankYouCardPaymentTarget(code: $code)
+  thankYouCardPaymentTarget(code: $code) {
+    status
+    # Printed on the card itself, so showing it tells the merchant nothing they cannot
+    # read in their hand -- and it is the only sign of WHICH card the device is holding.
+    # The server sends it on SUCCESS only.
+    cardLabel
+  }
 }
 
 mutation createThankYouCardPayment($code: String!, $amount: GradidoUnit!, $memo: String!) {
