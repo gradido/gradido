@@ -13,9 +13,13 @@ vi.mock('../i18n', () => ({
   },
 }))
 
-const clearApolloCacheMock = vi.fn()
+// `vi.hoisted`, because `vi.mock` is lifted above every import and every `const` in
+// this file. The arrow below would defer the access far enough to work, which is
+// exactly what makes it a trap: shorten it to `clearApolloCache: clearApolloCacheMock`
+// and it breaks with a ReferenceError that points nowhere near the cause.
+const { clearApolloCacheMock } = vi.hoisted(() => ({ clearApolloCacheMock: vi.fn() }))
 vi.mock('../plugins/apolloCache', () => ({
-  clearApolloCache: () => clearApolloCacheMock(),
+  clearApolloCache: clearApolloCacheMock,
 }))
 
 vi.mock('jwt-decode', () => ({
