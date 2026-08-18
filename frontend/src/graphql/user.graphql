@@ -10,3 +10,10 @@ query user($identifier: String!, $communityIdentifier: String) {
     ...userFields
   }
 }
+
+query aliasQuota {
+  aliasQuota {
+    changesLeft
+    nextChangeAt
+  }
+}

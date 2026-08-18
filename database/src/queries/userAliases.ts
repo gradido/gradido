@@ -1,3 +1,4 @@
+// AI-GENERATED — not an architecture reference
 import { EntityManager, FindOptionsWhere, MoreThan, Not } from 'typeorm'
 import { ALIAS_ORIGIN_CHOSEN, AliasOrigin, UserAlias as DbUserAlias } from '../entity'
 

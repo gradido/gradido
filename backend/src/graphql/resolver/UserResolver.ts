@@ -12,6 +12,7 @@ import { PublishNameType } from '@enum/PublishNameType'
 import { RoleNames } from '@enum/RoleNames'
 import { UserContactType } from '@enum/UserContactType'
 import { AdminUser, SearchAdminUsersResult } from '@model/AdminUser'
+import { AliasQuota } from '@model/AliasQuota'
 import { GmsUserAuthenticationResult } from '@model/GmsUserAuthenticationResult'
 import { User } from '@model/User'
 import { SearchUsersResult, UserAdmin } from '@model/UserAdmin'
@@ -35,6 +36,7 @@ import {
   UserRole as DbUserRole,
   dbCountChosenAliasesSince,
   dbDeleteUserAvatar,
+  dbFindOldestChosenAliasSince,
   dbFindOwnAlias,
   dbFindProjectBrandingByAlias,
   dbFindProjectSpaceId,
@@ -1048,6 +1050,33 @@ export class UserResolver {
   }
 
   @Authorized([RIGHTS.GMS_USER_PLAYGROUND])
+  /**
+   * What the settings page needs before the member types anything: whether they may
+   * still pick a name, and from when if not. Asking here rather than answering with an
+   * error keeps the button honest - it can say "not before 3 February" instead of
+   * letting somebody type a name and then refusing it.
+   */
+  @Authorized([RIGHTS.UPDATE_USER_INFOS])
+  @Query(() => AliasQuota)
+  async aliasQuota(@Ctx() context: Context): Promise<AliasQuota> {
+    const user = getUser(context)
+    const since = new Date(Date.now() - ALIAS_QUOTA_WINDOW_MS)
+    const picked = await dbCountChosenAliasesSince(user.id, since)
+
+    const quota = new AliasQuota()
+    quota.changesLeft = Math.max(0, ALIAS_QUOTA_PER_WINDOW - picked)
+    quota.nextChangeAt = null
+    if (quota.changesLeft === 0) {
+      // The window rolls, so it is the oldest pick still inside it that frees the next
+      // slot - a year after it was made, not a year from today.
+      const oldest = await dbFindOldestChosenAliasSince(user.id, since)
+      if (oldest) {
+        quota.nextChangeAt = new Date(oldest.createdAt.getTime() + ALIAS_QUOTA_WINDOW_MS)
+      }
+    }
+    return quota
+  }
+
   @Query(() => GmsUserAuthenticationResult)
   async authenticateGmsUserSearch(@Ctx() context: Context): Promise<GmsUserAuthenticationResult> {
     const dbUser = getUser(context)

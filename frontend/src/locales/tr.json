@@ -737,7 +737,10 @@
       "title": "Görünüm"
     },
     "username": {
-      "change-success": "Kullanıcı adın başarıyla değiştirildi."
+      "change-success": "Kullanıcı adın başarıyla değiştirildi.",
+      "confirm-change": "{from} adı {to} olacak. Emin misin?",
+      "quota-blocked": "Bu yıl için ad değişikliği hakkını doldurdun. {date} tarihinden itibaren yeniden mümkün.",
+      "quota-left": "Kullanıcı adını bu yıl bir kez daha değiştirebilirsin. | Kullanıcı adını bu yıl {n} kez daha değiştirebilirsin."
     }
   },
   "signin": "Giriş yap",

@@ -737,7 +737,10 @@
       "title": "Apparence"
     },
     "username": {
-      "change-success": "Ton nom d'utilisateur a été modifié avec succès."
+      "change-success": "Ton nom d'utilisateur a été modifié avec succès.",
+      "confirm-change": "{from} devient {to}. En es-tu sûr ?",
+      "quota-blocked": "Tu as épuisé tes changements de nom pour cette année. Ce sera à nouveau possible à partir du {date}.",
+      "quota-left": "Tu peux encore changer ton nom d'utilisateur une fois cette année. | Tu peux encore changer ton nom d'utilisateur {n} fois cette année."
     }
   },
   "signin": "S'identifier",

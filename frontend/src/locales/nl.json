@@ -737,7 +737,10 @@
       "title": "Weergave"
     },
     "username": {
-      "change-success": "Je gebruikersnaam is succesvol gewijzigd."
+      "change-success": "Je gebruikersnaam is succesvol gewijzigd.",
+      "confirm-change": "{from} wordt {to}. Weet je het zeker?",
+      "quota-blocked": "Je hebt je naamswijzigingen voor dit jaar opgebruikt. Vanaf {date} kan het weer.",
+      "quota-left": "Je kunt je gebruikersnaam dit jaar nog één keer wijzigen. | Je kunt je gebruikersnaam dit jaar nog {n} keer wijzigen."
     }
   },
   "signin": "Aanmelden",

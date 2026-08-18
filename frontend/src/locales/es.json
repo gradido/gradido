@@ -737,7 +737,10 @@
       "title": "Apariencia"
     },
     "username": {
-      "change-success": "Tu nombre de usuario se ha cambiado correctamente."
+      "change-success": "Tu nombre de usuario se ha cambiado correctamente.",
+      "confirm-change": "{from} pasa a ser {to}. ¿Estás seguro?",
+      "quota-blocked": "Has agotado los cambios de nombre para este año. Podrás volver a hacerlo a partir del {date}.",
+      "quota-left": "Puedes cambiar tu nombre de usuario una vez más este año. | Puedes cambiar tu nombre de usuario {n} veces más este año."
     }
   },
   "signin": "Iniciar sesión",

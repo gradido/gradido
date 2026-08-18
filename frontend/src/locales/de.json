@@ -738,7 +738,10 @@
       "title": "Erscheinungsbild"
     },
     "username": {
-      "change-success": "Dein Nutzername wurde erfolgreich geändert."
+      "change-success": "Dein Nutzername wurde erfolgreich geändert.",
+      "confirm-change": "Aus {from} wird {to}. Bist Du sicher?",
+      "quota-blocked": "Du hast Deine Namensänderungen für dieses Jahr aufgebraucht. Ab {date} geht es wieder.",
+      "quota-left": "Du kannst Deinen Nutzernamen dieses Jahr noch einmal ändern. | Du kannst Deinen Nutzernamen dieses Jahr noch {n}-mal ändern."
     }
   },
   "signin": "Anmelden",

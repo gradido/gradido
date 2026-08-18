@@ -27,6 +27,9 @@ const i18n = createI18n({
   messages: {
     en: {
       'settings.username.change-success': 'Username changed successfully',
+      'settings.username.confirm-change': '{from} becomes {to}. Are you sure?',
+      'settings.username.quota-left': 'one more change | {n} more changes',
+      'settings.username.quota-blocked': 'used up, again from {date}',
     },
   },
 })
@@ -45,9 +48,17 @@ const createVuexStore = (initialState = {}) =>
   })
 
 const mutationMock = vi.fn()
+const refetchQuotaMock = vi.fn()
+// The settings page asks for the quota before anything is typed, so the component
+// mounts a query as well as a mutation.
+const quotaMock = ref({ aliasQuota: { changesLeft: 3, nextChangeAt: null } })
 vi.mock('@vue/apollo-composable', () => ({
   useMutation: vi.fn(() => ({
     mutate: mutationMock,
+  })),
+  useQuery: vi.fn(() => ({
+    result: quotaMock,
+    refetch: refetchQuotaMock,
   })),
 }))
 
@@ -97,6 +108,8 @@ describe('UserName Form', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     valuesMock.value.username = ''
+    quotaMock.value = { aliasQuota: { changesLeft: 3, nextChangeAt: null } }
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
     wrapper = mountComponent()
   })
 
@@ -126,6 +139,62 @@ describe('UserName Form', () => {
       expect(
         wrapper.findComponent({ name: 'InputUsername' }).attributes('initial-username-value'),
       ).toBe('existingUser')
+    })
+  })
+
+  // Four picks a year is the brake against hoarding near-misses of a popular name, so
+  // the page has to say where the member stands before they type - and name a date
+  // rather than refuse them afterwards.
+  describe('the yearly quota', () => {
+    it('says how many changes are left', () => {
+      expect(wrapper.find('[data-test="username-quota-left"]').text()).toBe('3 more changes')
+    })
+
+    it('uses the singular form for the last one', async () => {
+      quotaMock.value = { aliasQuota: { changesLeft: 1, nextChangeAt: null } }
+      wrapper = mountComponent()
+      expect(wrapper.find('[data-test="username-quota-left"]').text()).toBe('one more change')
+    })
+
+    describe('when it is used up', () => {
+      beforeEach(async () => {
+        quotaMock.value = {
+          aliasQuota: { changesLeft: 0, nextChangeAt: '2027-02-03T10:00:00.000Z' },
+        }
+        wrapper = mountComponent({ username: 'existingUser' })
+        valuesMock.value.username = 'newUser'
+        await wrapper.vm.$nextTick()
+      })
+
+      it('names the date it becomes possible again', () => {
+        expect(wrapper.find('[data-test="username-quota-blocked"]').text()).toContain('again from')
+      })
+
+      it('does not offer the save button', () => {
+        expect(
+          wrapper.find('[data-test="submit-username-button"]').attributes('disabled'),
+        ).toBeDefined()
+      })
+    })
+  })
+
+  // A dialog naming only the new name gets clicked away; the old one next to it is
+  // what makes somebody read before saving.
+  describe('the confirmation before saving', () => {
+    beforeEach(() => {
+      wrapper = mountComponent({ username: 'oldName' })
+      valuesMock.value.username = 'newName'
+    })
+
+    it('asks with both names', async () => {
+      await wrapper.find('form').trigger('submit')
+      expect(window.confirm).toHaveBeenCalledWith('oldName becomes newName. Are you sure?')
+    })
+
+    it('saves nothing when the member says no', async () => {
+      window.confirm.mockReturnValue(false)
+      await wrapper.find('form').trigger('submit')
+      expect(mutationMock).not.toHaveBeenCalled()
     })
   })
 
