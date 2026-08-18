@@ -200,15 +200,6 @@ export const schema = Joi.object({
     .default('SomeFakeKeyEN')
     .description('The API key for Klicktipp (English version)'),
 
-  ALIAS_GENERAL_EDIT_TIME_LIMIT: Joi.number()
-    .integer()
-    .min(60000)
-    .default(18000000)
-    .description(
-      'Timer interval in milliseconds for editing user alias without writing history-protocol',
-    )
-    .required(),
-
   ANTHROPIC_ACTIVE: Joi.boolean()
     .default(false)
     .description('Flag to enable or disable the Anthropic (Claude) API used by Crea')

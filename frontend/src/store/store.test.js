@@ -159,9 +159,9 @@ describe('Vuex store', () => {
         darkMode: true,
       }
 
-      it('calls twenty commits', () => {
+      it('calls nineteen commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(20)
+        expect(commit).toHaveBeenCalledTimes(19)
       })
 
       // Not read from the payload -- the login mutation cannot carry a picture -- but
@@ -200,9 +200,9 @@ describe('Vuex store', () => {
       const dispatch = vi.fn()
       const state = { themeMode: 'dark' }
 
-      it('calls twenty-three commits', () => {
+      it('calls twenty-two commits', () => {
         logout({ commit, state, dispatch })
-        expect(commit).toHaveBeenCalledTimes(23)
+        expect(commit).toHaveBeenCalledTimes(22)
       })
 
       // ... (other logout action tests remain largely the same)

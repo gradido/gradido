@@ -10,13 +10,13 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm'
-import { type AliasHistory as AliasHistoryType } from './AliasHistory'
 import { type Community as CommunityType } from './Community'
 import { type Contribution as ContributionType } from './Contribution'
 import { type ContributionMessage as ContributionMessageType } from './ContributionMessage'
 import { type DltTransaction as DltTransactionType } from './DltTransaction'
 import { type TransactionLink as TransactionLinkType } from './TransactionLink'
 import { GeometryTransformer } from './transformer/GeometryTransformer'
+import { type UserAlias as UserAliasType } from './UserAlias'
 import { type UserContact as UserContactType } from './UserContact'
 import { type UserRole as UserRoleType } from './UserRole'
 
@@ -62,27 +62,6 @@ export class User extends BaseEntity {
     collation: 'utf8mb4_unicode_ci',
   })
   alias: string
-
-  @Column({
-    name: 'alias_startupdate_at',
-    type: 'datetime',
-    precision: 3,
-    default: null,
-    nullable: true,
-  })
-  aliasStartUpdateAt: Date | null
-
-  @Column({ name: 'alias_update_count', type: 'int', unsigned: true, nullable: false, default: 0 })
-  aliasUpdateCount: number
-
-  @Column({
-    name: 'alias_first_usage_at',
-    type: 'datetime',
-    precision: 3,
-    default: null,
-    nullable: true,
-  })
-  aliasFirstUsageAt: Date | null
 
   @OneToOne(
     () => require('./UserContact').UserContact,
@@ -287,8 +266,8 @@ export class User extends BaseEntity {
   transactionLink?: TransactionLinkType | null
 
   @OneToMany(
-    () => require('./AliasHistory').AliasHistory,
-    (aliasHistory: AliasHistoryType) => aliasHistory.user,
+    () => require('./UserAlias').UserAlias,
+    (userAlias: UserAliasType) => userAlias.user,
   )
-  aliasHistory?: AliasHistoryType[]
+  aliases?: UserAliasType[]
 }

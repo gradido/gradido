@@ -1,46 +1,26 @@
 import { eq } from 'drizzle-orm'
-import { getLogger, Logger } from 'log4js'
+import { getLogger } from 'log4js'
 import { aliasSchema, emailSchema, uuidv4Schema, VoidResult } from 'shared'
-import { In, Not, Raw } from 'typeorm'
+import { In, Raw } from 'typeorm'
 import { drizzleDb } from '../AppDatabase'
-import {
-  AliasHistory as DbAliasHistory,
-  User as DbUser,
-  UserContact as DbUserContact,
-} from '../entity'
+import { User as DbUser, UserContact as DbUserContact } from '../entity'
 import { DBNotFoundError } from '../errorTypes'
 import { usersTable } from '../schemas/drizzle.schema'
 import { findWithCommunityIdentifier, LOG4JS_QUERIES_CATEGORY_NAME } from './index'
+import { dbAliasHeldByOther, dbFindAliasOwner } from './userAliases'
 
 export async function aliasExists(alias: string, userId?: number): Promise<boolean> {
   // Only local users count. Aliases are unique per community, not globally: migration
   // 0073 dropped the global UNIQUE on users.alias in favour of UNIQUE(alias, community_uuid).
   // Rows with foreign = 1 are cached copies of members of other communities, so an alias
   // held there must not block a member of this one.
-  const user = await DbUser.findOne({
-    where: { alias, foreign: false }, // : Raw((a) => `LOWER(${a}) = LOWER(:alias)`, { alias }) },
-  })
-  let aliasHistory: DbAliasHistory | null = null
-  if (userId !== undefined) {
-    // find DbAliasHistory only from different users
-    aliasHistory = await DbAliasHistory.findOne({
-      where: { alias, userId: Not(userId) },
-    })
-  } else {
-    // find DbAliasHistory from any user
-    aliasHistory = await DbAliasHistory.findOne({
-      where: { alias },
-    })
+  const user = await DbUser.findOne({ where: { alias, foreign: false } })
+  if (user !== null && (userId === undefined || user.id !== userId)) {
+    return true
   }
-  return user !== null || aliasHistory !== null
-}
-
-export async function AliasByUserId(userId: number): Promise<string | null> {
-  const aliasHistory = await DbAliasHistory.findOne({
-    where: { userId },
-    order: { createdAt: 'DESC' },
-  })
-  return aliasHistory?.alias || null
+  // A name somebody left behind stays theirs, so it stays blocked - except for its own
+  // owner, who may take it back.
+  return dbAliasHeldByOther(alias, userId)
 }
 
 export async function getUserById(
@@ -92,27 +72,23 @@ export const findUserByIdentifier = async (
     }
   } else if (aliasSchema.safeParse(identifier).success) {
     const normedAlias = Raw((a) => `LOWER(${a}) = LOWER(:alias)`, { alias: identifier })
-    let foundUser = await DbUser.findOne({
-      where: [{ alias: normedAlias, community: communityWhere }],
+    const foundUser = await DbUser.findOne({
+      where: { alias: normedAlias, community: communityWhere },
       relations: ['emailContact', 'community'],
     })
-    // console.log(`foundUser=${JSON.stringify(foundUser)}`)
-    if (foundUser === null) {
-      const foundAliasHistory = await DbAliasHistory.findOne({
-        where: [{ alias: normedAlias, communityUuid: communityIdentifier }],
-        relations: ['user'],
-      })
-      // console.log(`foundAliasHistory=${JSON.stringify(foundAliasHistory)}`)
-      if (foundAliasHistory) {
-        foundUser = await DbUser.findOne({
-          where: [{ id: foundAliasHistory.userId, community: communityWhere }],
-          relations: ['emailContact', 'community'],
-        })
-        // console.log(`foundUser by aliasHistory =${JSON.stringify(foundUser)}`)
-        return foundUser
-      }
-    } else {
+    if (foundUser !== null) {
       return foundUser
+    }
+    // Not a current name - but an earlier one still leads to its owner, which is what
+    // keeps a printed card working after a rename. Looking the row up by alias alone
+    // avoids the community identifier here: it may be a name rather than a uuid, and
+    // only local members have rows at all.
+    const owner = await dbFindAliasOwner(identifier)
+    if (owner) {
+      return DbUser.findOne({
+        where: { id: owner.userId, community: communityWhere },
+        relations: ['emailContact', 'community'],
+      })
     }
   } else {
     // should don't happen often, so we create only in the rare case a logger for it
@@ -175,38 +151,4 @@ export async function findUserNamesByIds(userIds: number[]): Promise<Map<number,
       return [user.id, `${user.firstName} ${user.lastName}`]
     }),
   )
-}
-
-export async function getLastAliasStorageTimeDistance(
-  userId: number,
-  logger: Logger,
-): Promise<number | null> {
-  const user = await DbUser.findOne({ where: { id: userId } })
-  // select separatly because of optional history
-  const aliasHistory = await DbAliasHistory.find({
-    where: { userId },
-    order: { createdAt: 'DESC' },
-  })
-  // logger.debug(`user=${JSON.stringify(user)}, aliasHistory=${JSON.stringify(aliasHistory)}`)
-  // in case user has updated alias
-  if (user !== null && user.aliasStartUpdateAt !== null) {
-    logger.debug('user has updated alias')
-    // but no aliasHistory entries yet
-    if (aliasHistory.length === 0) {
-      logger.debug('no aliasHistory entries yet')
-      return Date.now() - user.aliasStartUpdateAt.getTime()
-    } else if (aliasHistory.length > 0) {
-      logger.debug('has aliasHistory entries')
-      // check if aliasStartUpdateAt is newer than last aliasHistory entry
-      if (user.aliasStartUpdateAt.getTime() < aliasHistory[0].createdAt?.getTime()) {
-        logger.debug('aliasStartUpdateAt is newer than last aliasHistory entry')
-        return Date.now() - user.aliasStartUpdateAt.getTime()
-      } else {
-        logger.debug('aliasStartUpdateAt is older than last aliasHistory entry')
-        return aliasHistory[0].createdAt ? Date.now() - aliasHistory[0].createdAt.getTime() : null
-      }
-    }
-  }
-  logger.debug('user has no updated alias')
-  return null
 }

@@ -109,12 +109,6 @@ const humhub = {
   HUMHUB_JWT_KEY: process.env.HUMHUB_JWT_KEY ?? '',
 }
 
-const user = {
-  ALIAS_GENERAL_EDIT_TIME_LIMIT: Number(
-    process.env.ALIAS_GENERAL_EDIT_TIME_LIMIT ?? 1000 * 60 * 60 * 5,
-  ), // 5 hours editing
-}
-
 const anthropic = {
   ANTHROPIC_ACTIVE: process.env.ANTHROPIC_ACTIVE === 'true' || false,
   ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '',
@@ -137,7 +131,6 @@ export const CONFIG = {
   ...federation,
   ...gms,
   ...humhub,
-  ...user,
   ...anthropic,
 }
 validate(schema, CONFIG)

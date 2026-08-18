@@ -1,4 +1,11 @@
-import { AliasHistory } from './AliasHistory'
+import { UserAlias } from './UserAlias'
+
+export {
+  ALIAS_ORIGIN_ASSIGNED,
+  ALIAS_ORIGIN_CHOSEN,
+  type AliasOrigin,
+} from './UserAlias'
+
 import { Community } from './Community'
 import { CommunityHandshakeState } from './CommunityHandshakeState'
 import { Contribution } from './Contribution'
@@ -22,7 +29,7 @@ import { UserCreationGroup } from './UserCreationGroup'
 import { UserRole } from './UserRole'
 
 export {
-  AliasHistory,
+  UserAlias,
   Community,
   CommunityHandshakeState,
   Contribution,
@@ -47,7 +54,7 @@ export {
 }
 
 export const entities = [
-  AliasHistory,
+  UserAlias,
   Community,
   CommunityHandshakeState,
   Contribution,

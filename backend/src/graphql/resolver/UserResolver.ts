@@ -26,22 +26,24 @@ import {
   validateAlias,
 } from 'core'
 import {
+  ALIAS_ORIGIN_CHOSEN,
   AppDatabase,
-  AliasHistory as DbAliasHistory,
   ContributionLink as DbContributionLink,
   TransactionLink as DbTransactionLink,
   User as DbUser,
   UserContact as DbUserContact,
   UserRole as DbUserRole,
+  dbCountChosenAliasesSince,
   dbDeleteUserAvatar,
+  dbFindOwnAlias,
   dbFindProjectBrandingByAlias,
   dbFindProjectSpaceId,
   dbFindUserAvatarFull,
   dbFindUserAvatarSmall,
+  dbInsertUserAlias,
   dbUpsertUserAvatar,
   findUserByIdentifier,
   getHomeCommunity,
-  getLastAliasStorageTimeDistance,
   ProjectBrandingSelect,
   UserLoggingView,
 } from 'database'
@@ -49,6 +51,8 @@ import { GraphQLResolveInfo } from 'graphql'
 import { getLogger, Logger } from 'log4js'
 import random from 'random-bigint'
 import {
+  ALIAS_QUOTA_PER_WINDOW,
+  ALIAS_QUOTA_WINDOW_MS,
   AVATAR_FULL_MAX_BYTES,
   AVATAR_SMALL_MAX_BYTES,
   JPEG_END_BYTES,
@@ -786,124 +790,36 @@ export class UserResolver {
       gmsPublishLocation: gmsPublishLocation?.valueOf(),
       aboutMe,
     })
-    // in case alias is set and valid, check if it is new or update
-    if (alias) {
-      await validateAlias(alias, user.id) // true or throws an error
-      // alias can simply be set in user for the first time, but after alias-migration an impossible case
-      if (!user.alias) {
-        logger.debug(`write alias=${alias} the first time in user`)
-        user.alias = alias
-        user.aliasStartUpdateAt = new Date()
-        user.aliasUpdateCount += 1
-        user.aliasFirstUsageAt = null
-        updated = true
-      } else if (user.aliasFirstUsageAt !== null) {
-        // the current set alias is still in use and have to be historized
-        const aliasHistory = await queryRunner.manager
-          .save(DbAliasHistory, {
-            userId: user.id,
-            alias: user.alias,
-            communityUuid: user.communityUuid,
-            firstUsageAt: user.aliasFirstUsageAt,
-          })
-          .catch((error) => {
-            throw new LogError('Error while saving alias history', error)
-          })
-
-        user.alias = alias
-        user.aliasStartUpdateAt = new Date()
-        user.aliasUpdateCount += 1
-        user.aliasFirstUsageAt = null
-        updated = true
-        logger.debug(`saved still in used alias: aliasHistory=${aliasHistory}`)
-      } else {
-        logger.debug(`user.alias=${user.alias} should be updated with alias=${alias}...`)
-
-        // find existing user-specific alias entry
-        const aliasHistoryEntry = await DbAliasHistory.findOne({
-          where: {
-            userId: user.id,
-            alias: alias,
-            communityUuid: user.communityUuid,
-          },
-        })
-        logger.debug(`found aliasHistoryEntry=${aliasHistoryEntry}`)
-        // check last alias-storage time
-        const lastAliasStorageTimeDistance = await getLastAliasStorageTimeDistance(user.id, logger)
-        logger.debug(`lastAliasStorageTimeDistance=${lastAliasStorageTimeDistance}`)
-        // if no aliasHistory entry exists or it is less than ALIAS_GENERAL_EDIT_TIME_LIMIT ago
-        if (
-          lastAliasStorageTimeDistance === null ||
-          lastAliasStorageTimeDistance < CONFIG.ALIAS_GENERAL_EDIT_TIME_LIMIT
-        ) {
-          // simply update alias in user without changing aliasStartUpdateAt
-          logger.debug(`simply update user.alias=${user.alias} with alias=${alias}`)
-          user.alias = alias
-          user.aliasUpdateCount += 1
-          user.aliasFirstUsageAt = aliasHistoryEntry?.firstUsageAt ?? null
-          updated = true
-          // and remove aliasHistory-entry with same alias if exists (comparable with: reuse previous alias again)
-          const deleteAliasHistoryResult = await queryRunner.manager
-            .delete(DbAliasHistory, {
-              userId: user.id,
-              alias: alias,
-              communityUuid: user.communityUuid,
-            })
-            .catch((error) => {
-              throw new LogError('Error while deleting DbAliasHistory', error)
-            })
-          logger.debug(
-            `remove optional existing DbAliasHistory same alias: deleteAliasHistoryResult`,
-            deleteAliasHistoryResult,
-          )
-        } else {
-          logger.debug(
-            `alias edit time limit is past, so the previous used alias have to be stored in history`,
-          )
-
-          let firstUsageAt: Date | null
-          // if no history entry exists, create one with the previous user.alias
-          if (aliasHistoryEntry === null) {
-            firstUsageAt = null
-            // create new history entry
-            let aliasHistory = DbAliasHistory.create({
-              userId: user.id,
-              alias: user.alias,
-              communityUuid: user.communityUuid,
-              firstUsageAt: user.aliasFirstUsageAt,
-            })
-            aliasHistory = await queryRunner.manager.save(aliasHistory).catch((error) => {
-              throw new LogError('Error while saving aliasHistory', error)
-            })
-
-            logger.debug('saved new aliasHistory', aliasHistory)
-          } else {
-            // remember optional firstUsageAt of historyEntry
-            firstUsageAt = aliasHistoryEntry.firstUsageAt
-            // remove aliasHistory-entry with same alias if exists (comparable with: reuse previous alias again)
-            const deleteResult = await queryRunner.manager
-              .delete(DbAliasHistory, {
-                userId: user.id,
-                alias: alias,
-                communityUuid: user.communityUuid,
-              })
-              .catch((error) => {
-                throw new LogError('Error while deleting aliasHistory', error)
-              })
-            logger.debug(
-              `remove existing and reused DbAliasHistory same alias: deleteResult`,
-              deleteResult,
-            )
-          }
-          // and store captured alias in user
-          user.alias = alias
-          user.aliasStartUpdateAt = new Date()
-          user.aliasUpdateCount = 0
-          user.aliasFirstUsageAt = firstUsageAt ?? null
-          updated = true
+    // Taking a name inserts a row and moves the marker; reclaiming one the member
+    // already owns only moves the marker. Leaving a name writes nothing - its row is
+    // already there. That is why the number of picked rows in a year is exactly how
+    // often somebody chose, and why coming back to an earlier name is free.
+    if (alias && alias !== user.alias) {
+      await validateAlias(alias, user.id)
+      const communityUuid = user.communityUuid
+      const ownAlready = await dbFindOwnAlias(user.id, alias, communityUuid, queryRunner.manager)
+      if (!ownAlready) {
+        const since = new Date(Date.now() - ALIAS_QUOTA_WINDOW_MS)
+        const picked = await dbCountChosenAliasesSince(user.id, since, queryRunner.manager)
+        if (picked >= ALIAS_QUOTA_PER_WINDOW) {
+          logger.warn('alias quota exhausted', picked)
+          throw new LogError('ALIAS_QUOTA_EXHAUSTED')
         }
+        await dbInsertUserAlias(
+          user.id,
+          alias,
+          communityUuid,
+          ALIAS_ORIGIN_CHOSEN,
+          queryRunner.manager,
+        )
+        logger.debug('member took a new alias')
+      } else {
+        logger.debug('member reclaimed an alias they already owned')
       }
+      user.alias = alias
+      updated = true
     }
+
     if (language) {
       if (!isLanguage(language)) {
         logger.warn('try to set unsupported language', language)

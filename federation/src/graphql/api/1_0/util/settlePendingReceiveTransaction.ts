@@ -96,12 +96,6 @@ export async function settlePendingReceiveTransaction(
     await queryRunner.manager.insert(dbTransaction, transactionReceive)
     logger.debug(`receive Transaction inserted: ${new TransactionLoggingView(transactionReceive)}`)
 
-    if (receiverUser.aliasFirstUsageAt === null) {
-      receiverUser.aliasFirstUsageAt = new Date()
-      await queryRunner.manager.save(DbUser, receiverUser)
-      logger.debug(`receiverUser updated: ${receiverUser}`)
-    }
-
     // and mark the pendingTx in the pending_transactions table as settled
     pendingTx.state = PendingTransactionState.SETTLED
     await queryRunner.manager.save(DbPendingTransaction, pendingTx)
