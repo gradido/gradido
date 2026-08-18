@@ -743,6 +743,16 @@
       "confirm-left": "Después podrás cambiar tu nombre una vez más este año. | Después podrás cambiar tu nombre {n} veces más este año.",
       "confirm-reserved": "{name} queda reservado para ti: puedes recuperarlo cuando quieras.",
       "confirm-title": "¿Seguro que quieres cambiar tu nombre de usuario?",
+      "first-back": "Atrás",
+      "first-choose-title": "Elige un nombre",
+      "first-free": "está libre",
+      "first-hint": "Puedes conservarlo o elegir el tuyo. Más adelante son posibles cuatro cambios al año.",
+      "first-intro": "Para que otros puedan encontrarte y enviarte Gradido, te hemos propuesto un nombre:",
+      "first-keep": "Así está bien",
+      "first-other": "Elegir otro",
+      "first-rules": "De 3 a 20 caracteres · letras, cifras, - y _",
+      "first-taken": "Este nombre ya está ocupado",
+      "first-title": "Tu nombre de usuario",
       "quota-blocked": "Has agotado los cambios de nombre para este año. Podrás volver a hacerlo a partir del {date}.",
       "quota-left": "Puedes cambiar tu nombre de usuario una vez más este año. | Puedes cambiar tu nombre de usuario {n} veces más este año."
     }

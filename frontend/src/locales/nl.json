@@ -743,6 +743,16 @@
       "confirm-left": "Daarna kun je je naam dit jaar nog één keer wijzigen. | Daarna kun je je naam dit jaar nog {n} keer wijzigen.",
       "confirm-reserved": "{name} blijft voor jou gereserveerd — je kunt hem altijd terugnemen.",
       "confirm-title": "Wil je je gebruikersnaam echt wijzigen?",
+      "first-back": "Terug",
+      "first-choose-title": "Kies een naam",
+      "first-free": "is nog vrij",
+      "first-hint": "Je kunt hem houden of zelf een naam kiezen. Later zijn vier wijzigingen per jaar mogelijk.",
+      "first-intro": "Zodat anderen je kunnen vinden en je Gradido kunnen sturen, hebben we een naam voorgesteld:",
+      "first-keep": "Zo is het goed",
+      "first-other": "Andere kiezen",
+      "first-rules": "3 tot 20 tekens · letters, cijfers, - en _",
+      "first-taken": "Deze naam is al bezet",
+      "first-title": "Je gebruikersnaam",
       "quota-blocked": "Je hebt je naamswijzigingen voor dit jaar opgebruikt. Vanaf {date} kan het weer.",
       "quota-left": "Je kunt je gebruikersnaam dit jaar nog één keer wijzigen. | Je kunt je gebruikersnaam dit jaar nog {n} keer wijzigen."
     }

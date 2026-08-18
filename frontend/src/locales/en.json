@@ -744,6 +744,16 @@
       "confirm-left": "After this you can change your name once more this year. | After this you can change your name {n} more times this year.",
       "confirm-reserved": "{name} stays reserved for you — you can take it back at any time.",
       "confirm-title": "Do you really want to change your username?",
+      "first-back": "Back",
+      "first-choose-title": "Choose a name",
+      "first-free": "is still free",
+      "first-hint": "You can keep it or pick your own. Four changes a year are possible later on.",
+      "first-intro": "So that others can find you and send you Gradido, we have suggested a name for you:",
+      "first-keep": "Keep it",
+      "first-other": "Pick another",
+      "first-rules": "3 to 20 characters · letters, digits, - and _",
+      "first-taken": "This name is already taken",
+      "first-title": "Your username",
       "quota-blocked": "You have used up your name changes for this year. It works again from {date}.",
       "quota-left": "You can change your username once more this year. | You can change your username {n} more times this year."
     }
