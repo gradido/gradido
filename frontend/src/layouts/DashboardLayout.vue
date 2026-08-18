@@ -332,6 +332,12 @@ onResult((value) => {
 
 onError((error) => {
   transactionCount.value = -1
+  // ⚠️ Cleared here too, not only on the way that succeeds. `pending` is handed to the page
+  // inside the router-view, so a refetch that fails leaves that page waiting for something
+  // that is never coming. It mattered less while only a deliberate action set it; since the
+  // watch above sets it on every navigation to those two pages, one failed request would
+  // strand whatever the member opened next.
+  pending.value = false
   toastError(error.message)
 })
 

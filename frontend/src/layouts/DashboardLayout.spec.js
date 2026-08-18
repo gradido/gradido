@@ -274,6 +274,27 @@ describe('DashboardLayout', () => {
         onErrorHandler({ message: 'Ouch!' })
         expect(toastErrorSpy).toHaveBeenCalledWith('Ouch!')
       })
+
+      /**
+       * ⛔ `pending` is handed down to the page inside the router-view, so a refetch that
+       * fails must not leave it standing — that page would wait for something that is never
+       * coming. It mattered less while only a deliberate action set it; now that opening the
+       * overview or the transactions sets it, one failed request would strand whatever the
+       * member opened next. (coderabbit, #3763)
+       */
+      it('stops the page waiting when the refetch fails', async () => {
+        await router.push('/overview')
+        await nextTick()
+        // Read off the stub's rendered attributes: `RouterView: true` makes a stub that
+        // declares no props, so what the layout hands down arrives as attrs, not props.
+        const pendingNow = () => wrapper.find('router-view-stub').attributes('pending')
+        expect(pendingNow()).toBe('true')
+
+        onErrorHandler({ message: 'Ouch!' })
+        await nextTick()
+
+        expect(pendingNow()).toBe('false')
+      })
     })
 
     it('has a component Navbar', () => {
