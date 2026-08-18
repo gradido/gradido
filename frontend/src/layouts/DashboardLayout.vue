@@ -198,7 +198,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuery, useMutation } from '@vue/apollo-composable'
@@ -281,6 +281,36 @@ const updateTransactions = ({ currentPage, pageSize }) => {
   useRefetchTransactionsQuery({ currentPage, pageSize })
 }
 
+/**
+ * The two pages a member opens to check where they stand.
+ *
+ * ⛔ The balance in the header is fetched ONCE, when this layout mounts -- and the layout
+ * outlives every route change, so nothing brings it up to date on its own. Until now the
+ * only thing that refreshed it was a page saying so: `Send` emits `update-transactions`
+ * after a transfer, `Transactions` on paging. A payment made anywhere ELSE left the old
+ * number standing on every screen the member visited afterwards -- and a thank you card
+ * payment happens on its own page, at somebody else's till, and says nothing to this layout.
+ *
+ * ⚠️ Not a cache policy and not a page reload. The query already asks the server
+ * (`network-only`); it simply never ran a second time. A reload would have hidden that by
+ * throwing the whole application away, which is why it looked like an answer.
+ *
+ * ⚠️ Refetched with NO arguments: Apollo then reuses the variables the query already has,
+ * so somebody sitting on page three of their transactions is not sent back to page one.
+ */
+const PAGES_SHOWING_A_BALANCE = ['/overview', '/transactions']
+
+watch(
+  () => route.path,
+  (path) => {
+    if (!PAGES_SHOWING_A_BALANCE.includes(path)) {
+      return
+    }
+    pending.value = true
+    useRefetchTransactionsQuery()
+  },
+)
+
 onResult((value) => {
   if (value && value.data) {
     if (value.data.transactionList) {
@@ -302,6 +332,12 @@ onResult((value) => {
 
 onError((error) => {
   transactionCount.value = -1
+  // ⚠️ Cleared here too, not only on the way that succeeds. `pending` is handed to the page
+  // inside the router-view, so a refetch that fails leaves that page waiting for something
+  // that is never coming. It mattered less while only a deliberate action set it; since the
+  // watch above sets it on every navigation to those two pages, one failed request would
+  // strand whatever the member opened next.
+  pending.value = false
   toastError(error.message)
 })
 

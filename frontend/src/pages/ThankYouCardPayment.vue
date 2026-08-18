@@ -3,7 +3,14 @@
   <div class="thank-you-card-payment">
     <div v-if="unusable" class="text-center">
       <div class="fs-3 mb-3">{{ $t(`thank-you-card.status.${statusKey}`) }}</div>
-      <BButton variant="secondary" :to="{ name: 'Overview' }">
+      <!--
+        ⛔ By PATH, like every other link to the overview in this wallet. The route at
+        `/overview` carries NO name — `name: 'Overview'` in `Overview.vue` is the component's
+        name and has nothing to do with routing — so the named form here resolved to nothing
+        and vue-router throws on it. This is the screen somebody reaches after scanning a
+        blocked or unknown card, and its only way out was that button.
+      -->
+      <BButton variant="secondary" to="/overview">
         {{ $t('thank-you-card.back-to-account') }}
       </BButton>
     </div>
@@ -92,6 +99,7 @@
         (Bernd, 17.08.2026, when the eye was added to the settings field.)
       -->
       <BFormInput
+        ref="pinField"
         v-model="pin"
         :type="pinType"
         inputmode="numeric"
@@ -166,7 +174,7 @@
  * which one it is still holding.
  */
 import { BButton, BFormCheckbox, BFormInput } from 'bootstrap-vue-next'
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
 import { useMutation, useQuery } from '@vue/apollo-composable'
@@ -205,6 +213,7 @@ const payerName = ref('')
 const busy = ref(false)
 const targetStatus = ref(null)
 const cardLabel = ref('')
+const pinField = ref(null)
 
 /**
  * Whoever is signed in on this device, which on this page is always the RECIPIENT -- the
@@ -246,6 +255,23 @@ const { mutate: confirm } = useMutation(confirmThankYouCardPayment)
 
 onMounted(() => {
   memo.value = readRememberedMemo()
+})
+
+/**
+ * The cursor waits in the field, so the payer can start typing the moment the phone reaches
+ * them. At a counter that saves the one step nobody should have to be told about — the
+ * merchant hands the phone over and the keyboard is already up.
+ *
+ * `nextTick` because the step is a `v-else-if` branch: at the moment `step` changes, the
+ * field does not exist yet. And `focus` is the method BFormInput exposes for exactly this
+ * (`__expose({ blur, element: input, focus })`), so there is no reaching through `$el`.
+ */
+watch(step, async (value) => {
+  if (value !== 'pin') {
+    return
+  }
+  await nextTick()
+  pinField.value?.focus()
 })
 
 const startPayment = async () => {

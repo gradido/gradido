@@ -125,8 +125,69 @@ describe('DashboardLayout', () => {
   })
 
   afterEach(() => {
+    // ⚠️ Every test mounts a layout and none took it down again, so they piled up and each
+    // one kept listening. Harmless while nothing in here reacted to anything global — and
+    // wrong the moment something did: a route change reached FOUR live layouts and the
+    // refetch spy counted four calls for one navigation.
+    wrapper?.unmount()
     vi.clearAllMocks()
     vi.clearAllTimers()
+  })
+
+  /**
+   * The balance in the header is fetched once, when this layout mounts — and the layout
+   * outlives every route change. Until this watch existed, only a page that said so kept it
+   * current (`Send` after a transfer, `Transactions` on paging), so a payment made anywhere
+   * else left the old number standing everywhere the member went next. A thank you card
+   * payment is exactly that: its own page, at somebody else's till, saying nothing here.
+   */
+  describe('the balance in the header', () => {
+    it('asks again when the member opens the overview', async () => {
+      await router.push('/transactions')
+      mockRefetchFn.mockClear()
+
+      await router.push('/overview')
+      await nextTick()
+
+      expect(mockRefetchFn).toHaveBeenCalledTimes(1)
+    })
+
+    it('asks again when the member opens the transactions', async () => {
+      await router.push('/overview')
+      mockRefetchFn.mockClear()
+
+      await router.push('/transactions')
+      await nextTick()
+
+      expect(mockRefetchFn).toHaveBeenCalledTimes(1)
+    })
+
+    /**
+     * ⚠️ With NO arguments. `refetch(variables)` replaces them, so passing the paging ones
+     * along would send somebody sitting on page three back to page one every time they
+     * glanced at their balance. Empty means "the same question again".
+     */
+    it('asks the same question again, rather than resetting the paging', async () => {
+      await router.push('/settings')
+      mockRefetchFn.mockClear()
+
+      await router.push('/transactions')
+      await nextTick()
+
+      expect(mockRefetchFn).toHaveBeenCalledWith()
+    })
+
+    // The counterpart, and the one that keeps this from becoming "refetch on every click":
+    // it is the two pages that show a balance, not the whole wallet.
+    it('leaves other pages alone', async () => {
+      await router.push('/overview')
+      mockRefetchFn.mockClear()
+
+      await router.push('/settings')
+      await nextTick()
+
+      expect(mockRefetchFn).not.toHaveBeenCalled()
+    })
   })
 
   it('renders DIV .main-page', () => {
@@ -212,6 +273,27 @@ describe('DashboardLayout', () => {
       it('toasts the error message', () => {
         onErrorHandler({ message: 'Ouch!' })
         expect(toastErrorSpy).toHaveBeenCalledWith('Ouch!')
+      })
+
+      /**
+       * ⛔ `pending` is handed down to the page inside the router-view, so a refetch that
+       * fails must not leave it standing — that page would wait for something that is never
+       * coming. It mattered less while only a deliberate action set it; now that opening the
+       * overview or the transactions sets it, one failed request would strand whatever the
+       * member opened next. (coderabbit, #3763)
+       */
+      it('stops the page waiting when the refetch fails', async () => {
+        await router.push('/overview')
+        await nextTick()
+        // Read off the stub's rendered attributes: `RouterView: true` makes a stub that
+        // declares no props, so what the layout hands down arrives as attrs, not props.
+        const pendingNow = () => wrapper.find('router-view-stub').attributes('pending')
+        expect(pendingNow()).toBe('true')
+
+        onErrorHandler({ message: 'Ouch!' })
+        await nextTick()
+
+        expect(pendingNow()).toBe('false')
       })
     })
 

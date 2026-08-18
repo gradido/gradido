@@ -4,6 +4,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { BButton, BFormCheckbox, BFormInput } from 'bootstrap-vue-next'
 import ThankYouCardPayment from './ThankYouCardPayment.vue'
+import routes from '@/routes/routes'
 
 /**
  * The page a scanned card lands on, and the only place in the wallet where somebody else's
@@ -90,6 +91,10 @@ describe('ThankYouCardPayment', () => {
 
   const createWrapper = () =>
     mount(ThankYouCardPayment, {
+      // ⚠️ Attached to the document, and that is not decoration: `focus()` on a detached
+      // element does nothing at all, so the cursor test would have measured the mounting
+      // style rather than the page. `afterEach` unmounts, which takes it back out.
+      attachTo: document.body,
       global: {
         mocks: { $t: (key, values) => (values ? `${key}:${JSON.stringify(values)}` : key) },
         stubs: { BButton, BFormCheckbox, BFormInput },
@@ -150,6 +155,13 @@ describe('ThankYouCardPayment', () => {
 
       expect(wrapper.text()).toContain('thank-you-card.status.CARD_BLOCKED')
       expect(field('amount').exists()).toBe(false)
+      // ⛔ The only way off this screen, and it was pointing at nothing: the route at
+      // `/overview` carries no name, so the named form threw in vue-router. Held against
+      // the REAL route table rather than against a string, so it fails if either end moves.
+      const back = wrapper.findAll('a').concat(wrapper.findAll('button'))
+      const target = back.map((node) => node.attributes('to') ?? node.attributes('href'))
+      expect(target).toContain('/overview')
+      expect(routes.some((route) => route.path === '/overview')).toBe(true)
       // ⚠️ Belt and braces, and worth saying which: this line cannot fail from deleting the
       // `v-if` guard — a blocked card never reaches that part of the template, which is why
       // the guard has its own test below. What it does catch is somebody putting the label
@@ -294,6 +306,20 @@ describe('ThankYouCardPayment', () => {
 
       expect(field('pin').attributes('type')).toBe('password')
       vi.unstubAllGlobals()
+    })
+
+    /**
+     * The cursor waits in the field. At a counter the phone changes hands and the payer
+     * should be able to type at once, without being told to tap the box first.
+     *
+     * Checked against `document.activeElement`, i.e. the browser's own answer to "where
+     * would typing go" — not against a spy on a method, which would pass just as well if
+     * the element it was called on had never been attached.
+     */
+    it('waits with the cursor in the field, so the payer can just type', async () => {
+      await reachPinStep()
+
+      expect(document.activeElement).toBe(field('pin').element)
     })
 
     it('sends the pin as soon as six digits are in the field', async () => {
