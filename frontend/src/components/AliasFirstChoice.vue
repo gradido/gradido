@@ -145,20 +145,26 @@ const startChoosing = () => {
 // called and returns a bare false after that, which would read as "taken" for every
 // name after the first.
 const checkEnabled = computed(() => !!typed.value && typed.value !== currentAlias.value)
-const { result: checkResult } = useQuery(
+const { result: checkResult, loading: checking } = useQuery(
   checkUsername,
   () => ({ username: typed.value }),
   () => ({ enabled: checkEnabled.value, fetchPolicy: 'no-cache' }),
 )
-const available = computed(() =>
-  checkEnabled.value ? (checkResult.value?.checkUsername ?? null) : null,
-)
-// Checked here as well as on the server, for two reasons. It says WHY: without it
-// somebody who types two letters is told the name is taken, which is untrue and
-// unhelpful in the very first window they ever see. And it holds the button: the
-// server does refuse a malformed name, but `available` still carries the answer to the
-// PREVIOUS keystroke while the new query is in flight, so for that moment a `true` from
-// a valid name sits on an invalid one and the save goes out to fail with a bare code.
+// `null` while the answer is on its way, because the previous one is still lying in
+// `checkResult` and it belongs to a different word. Without this, typing a free name
+// and then a taken one leaves the old `true` on screen for the length of a round trip -
+// long enough to click Save and get a bare error code back.
+const available = computed(() => {
+  if (!checkEnabled.value || checking.value) {
+    return null
+  }
+  return checkResult.value?.checkUsername ?? null
+})
+// Checked here as well as on the server, to say WHY: without it somebody who types two
+// letters is told the name is taken, which is untrue and unhelpful in the very first
+// window they ever see. It also holds the button, but it is not what makes the stale
+// answer harmless - only a valid word ever reaches the server, so the guard against a
+// leftover `true` has to sit on `available` itself, above.
 const formatValid = computed(() => USERNAME_REGEX.test(typed.value))
 const fieldState = computed(() => {
   if (!checkEnabled.value) {

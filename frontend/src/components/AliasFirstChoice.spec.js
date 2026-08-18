@@ -20,6 +20,7 @@ vi.mock('bootstrap-vue-next', () => ({
 
 const statusMock = ref({ aliasStatus: { aliasSettled: false } })
 const checkMock = ref({ checkUsername: true })
+const checkLoadingMock = ref(false)
 const refetchMock = vi.fn()
 const adoptMock = vi.fn()
 const updateMock = vi.fn()
@@ -27,6 +28,7 @@ const updateMock = vi.fn()
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: vi.fn((query) => ({
     result: query === 'ALIAS_STATUS' ? statusMock : checkMock,
+    loading: query === 'ALIAS_STATUS' ? ref(false) : checkLoadingMock,
     refetch: refetchMock,
   })),
   useMutation: vi.fn((mutation) => ({
@@ -86,6 +88,7 @@ describe('AliasFirstChoice', () => {
     vi.clearAllMocks()
     statusMock.value = { aliasStatus: { aliasSettled: false } }
     checkMock.value = { checkUsername: true }
+    checkLoadingMock.value = false
     wrapper = mountComponent()
   })
 
@@ -144,6 +147,21 @@ describe('AliasFirstChoice', () => {
 
       expect(wrapper.find('[data-test="alias-first-invalid"]').exists()).toBe(true)
       expect(wrapper.find('[data-test="alias-first-taken"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="alias-first-save"]').attributes('disabled')).toBeDefined()
+    })
+
+    // The answer in hand belongs to the word typed before this one. Leaving it on
+    // screen while the next answer is on its way is how a name that turns out to be
+    // taken keeps a green Save button for the length of a round trip - and the member
+    // gets a bare error code for clicking what the window told them to click.
+    it('trusts no answer while the next one is on its way', async () => {
+      await wrapper.find('[data-test="alias-first-input"]').setValue('Bernd')
+      expect(wrapper.find('[data-test="alias-first-save"]').attributes('disabled')).toBeUndefined()
+
+      checkLoadingMock.value = true
+      await wrapper.find('[data-test="alias-first-input"]').setValue('Peter')
+
+      expect(wrapper.find('[data-test="alias-first-free"]').exists()).toBe(false)
       expect(wrapper.find('[data-test="alias-first-save"]').attributes('disabled')).toBeDefined()
     })
 

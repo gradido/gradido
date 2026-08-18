@@ -30,6 +30,7 @@ import {
 } from 'database'
 import { GraphQLError } from 'graphql'
 import { AVATAR_FULL_MAX_BYTES, AVATAR_SMALL_MAX_BYTES } from 'shared'
+import { QueryRunner } from 'typeorm'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 import { deleteGmsUser, upsertGmsUsers } from '@/apis/gms/GmsClient'
 import { subscribe } from '@/apis/KlicktippController'
@@ -3344,15 +3345,42 @@ describe('UserResolver', () => {
     })
 
     // The resolver opens a transaction before it validates anything, so every way out
-    // has to close it. The most travelled one is the call that changes nothing: it used
-    // to return without a rollback or a release, and handed back a connection that was
-    // still inside a REPEATABLE READ transaction. More rounds than the pool holds, so a
-    // leak runs it dry and this test fails on the timeout rather than on an assertion.
-    it('gives the connection back when nothing changed', async () => {
-      for (let round = 0; round < 25; round++) {
-        await expect(changeTo('BBB')).resolves.toMatchObject({ data: { updateUserInfos: true } })
+    // has to close it again. The most travelled one is the call that changes nothing: it
+    // used to return without a rollback or a release and handed back a connection that
+    // was still inside a REPEATABLE READ transaction.
+    //
+    // Watched at the runner rather than at the pool. Draining a pool only fails while
+    // the pool stays smaller than the number of rounds, which is an assumption nobody
+    // states and nobody maintains; this asserts the invariant itself - not one runner
+    // this resolver made is left unreleased.
+    const watchQueryRunners = () => {
+      const dataSource = db.getDataSource()
+      const create = dataSource.createQueryRunner.bind(dataSource)
+      const created: QueryRunner[] = []
+      const spy = jest.spyOn(dataSource, 'createQueryRunner').mockImplementation((mode) => {
+        const runner = create(mode)
+        jest.spyOn(runner, 'release')
+        created.push(runner)
+        return runner
+      })
+      return { created, stop: () => spy.mockRestore() }
+    }
+
+    it.each([
+      ['nothing changed', 'BBB'],
+      ['the name was refused', 'no'],
+    ])('gives the connection back when %s', async (_case, alias) => {
+      const watch = watchQueryRunners()
+      try {
+        await changeTo(alias)
+      } finally {
+        watch.stop()
       }
-      expect(await ownedNames()).toEqual([])
+
+      expect(watch.created.length).toBeGreaterThan(0)
+      for (const runner of watch.created) {
+        expect(runner.release).toHaveBeenCalled()
+      }
     })
 
     describe('the status query', () => {
