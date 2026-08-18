@@ -5,6 +5,7 @@ import createPersistedState from 'vuex-persistedstate'
 import jwtDecode from 'jwt-decode'
 import i18n from '../i18n'
 import { clearEntryDraft } from '../composables/useEntryDraft'
+import { clearApolloCache } from '../plugins/apolloCache'
 
 // Dedicated localStorage key mirroring state.themeMode. The pre-paint script in
 // index.html reads it with a single getItem, so it never has to parse the whole
@@ -135,7 +136,7 @@ export const actions = {
     // result; until then the wallet shows initials, which is the honest answer.
     commit('avatar', null)
   },
-  logout: ({ commit, state, dispatch }) => {
+  logout: async ({ commit, state, dispatch }) => {
     commit('token', null)
     commit('username', '')
     commit('gradidoID', null)
@@ -168,6 +169,16 @@ export const actions = {
     localStorage.removeItem('gradido-frontend')
     commit('setThemeMode', themeMode)
     dispatch('applyTheme')
+    // Last, and for the same reason as `clearEntryDraft` above: nothing here reloads the
+    // page, so every answer the previous member's queries returned is still lying in the
+    // Apollo cache. `aliasStatus` takes no variables at all, so it sits under a single
+    // key - the next member to sign in was shown their predecessor's remaining name
+    // changes, and never saw the window at first login because the cached answer said
+    // the question had been settled.
+    //
+    // Kept at the end on purpose: everything above is local clean-up and stays
+    // synchronous, so a caller that does not await still gets all of it.
+    await clearApolloCache()
   },
   // Compute the effective dark mode from the device-local themeMode
   // (system | light | dark) plus the OS preference, then set the darkMode flag

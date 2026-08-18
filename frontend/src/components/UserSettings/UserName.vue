@@ -143,7 +143,13 @@ const { handleSubmit, errors, values } = useForm()
 const { mutate: updateUserInfo } = useMutation(updateUserInfos)
 // Asked before anything is typed, so the button can name a date instead of letting
 // somebody choose a name and then refusing it.
-const { result: statusResult, refetch: refetchStatus } = useQuery(aliasStatus)
+// `cache-and-network`, because this query takes no variables and therefore lives under
+// a single cache key for everybody. The cache is emptied on logout now, which is the
+// real fix; this is the second lock, for every way a member can change without that
+// action running - and it keeps the quota honest when it was spent in another tab.
+const { result: statusResult, refetch: refetchStatus } = useQuery(aliasStatus, null, {
+  fetchPolicy: 'cache-and-network',
+})
 
 const changesLeft = computed(() => statusResult.value?.aliasStatus?.changesLeft ?? null)
 const quotaExhausted = computed(() => changesLeft.value === 0)
