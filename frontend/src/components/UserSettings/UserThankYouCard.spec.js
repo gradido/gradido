@@ -146,11 +146,69 @@ describe('UserThankYouCard', () => {
           BButton,
           BFormInput,
           // The dialog's own machinery is not what is under test here, and the real one
-          // teleports its content out of the wrapper. This stub keeps the two things the
-          // tests do care about: it shows its content only while open, and it closes.
+          // teleports its content out of the wrapper. This stub keeps what the tests do
+          // care about: it shows its content only while open, and it carries the FOOTER
+          // buttons, because that is where the save button lives.
+          //
+          // ⚠️ The emitted payload has a `preventDefault`, and that is not decoration: the
+          // page writes `@ok.prevent`, which Vue compiles into a call on this object. A
+          // bare payload would throw here — and a stub that cannot take `.prevent` cannot
+          // test a dialog whose whole point is that it does not close itself.
           BModal: {
-            props: ['modelValue'],
-            template: '<div v-if="modelValue" class="modal-stub"><slot /></div>',
+            props: ['modelValue', 'okTitle', 'cancelTitle', 'okDisabled', 'cancelDisabled', 'busy'],
+            computed: {
+              // Exactly how the library computes them (`disableCancel = cancelDisabled ||
+              // busy`, `disableOk = okDisabled || busy`). Modelled rather than simplified:
+              // the page passes only `busy`, so a stub that read `okDisabled` alone would
+              // report both buttons live and quietly stop testing the guard.
+              disableOk() {
+                return Boolean(this.okDisabled || this.busy)
+              },
+              disableCancel() {
+                return Boolean(this.cancelDisabled || this.busy)
+              },
+            },
+            emits: ['ok', 'cancel', 'hide', 'update:modelValue'],
+            methods: {
+              // Cancel is the whole chain the real one runs: it announces itself, announces
+              // that the dialog is going, and then goes. A stub that only emitted `cancel`
+              // would leave the dialog standing and quietly turn every test about closing
+              // into a test about nothing.
+              onCancel() {
+                this.$emit('cancel', { preventDefault() {} })
+                this.$emit('hide', { preventDefault() {} })
+                this.$emit('update:modelValue', false)
+              },
+              /**
+               * ⛔ OK closes UNLESS the listener prevents it, which is what the real one
+               * does — and modelling that is the whole point of this stub.
+               *
+               * A stub that simply never closed on OK looked right (the page does prevent
+               * it) and measured nothing: removing `.prevent` from the page left all
+               * thirty-six tests green. The behaviour under test is a CONDITION, so the
+               * stub has to carry the condition, not the outcome the page happens to pick.
+               */
+              onOk() {
+                const event = {
+                  defaultPrevented: false,
+                  preventDefault() {
+                    this.defaultPrevented = true
+                  },
+                }
+                this.$emit('ok', event)
+                if (!event.defaultPrevented) {
+                  this.$emit('hide', { preventDefault() {} })
+                  this.$emit('update:modelValue', false)
+                }
+              },
+            },
+            template:
+              '<div v-if="modelValue" class="modal-stub"><slot />' +
+              '<button data-test="thank-you-card-dialog-cancel" :disabled="disableCancel"' +
+              ' @click="onCancel">{{ cancelTitle }}</button>' +
+              '<button data-test="thank-you-card-dialog-ok" :disabled="disableOk"' +
+              ' @click="onOk">{{ okTitle }}</button>' +
+              '</div>',
           },
           // AppModal teleports to body, so its content would leave the wrapper. The stub
           // keeps the two things the tests care about: it shows while open, and its ok
@@ -307,6 +365,65 @@ describe('UserThankYouCard', () => {
         maxPerDay: '100',
       })
       expect(wrapper.find('.modal-stub').exists()).toBe(false)
+    })
+
+    /**
+     * ⛔ The half the dialog's own footer would get wrong on its own. A BModal closes when
+     * its OK is pressed; here it must not, because the PIN may come back refused and the
+     * message about it would land on a screen that no longer shows the field it is about --
+     * with the six digits gone, so there is nothing to correct either.
+     *
+     * That is what `@ok.prevent` buys, and it is one dropped modifier away from being lost
+     * silently: the happy path above stays green either way.
+     */
+    it('keeps the dialog standing when the server refuses the pin', async () => {
+      mockSaveSettings.mockRejectedValue(new Error('pin too easy'))
+      await mountWith()
+      await buttonWith('thank-you-card.settings.change-pin').trigger('click')
+      await field('new-pin').setValue('407312')
+      await dialogButtonWith('form.save').trigger('click')
+      await flushPromises()
+
+      expect(wrapper.find('.modal-stub').exists()).toBe(true)
+      expect(field('new-pin').element.value).toBe('407312')
+    })
+
+    /**
+     * ⛔ While the PIN is on its way, NEITHER button may be pressed — which is why the page
+     * passes `busy` rather than `ok-disabled`: the library derives both from it. With only
+     * OK guarded, Cancel stayed live during the save, and pressing it shut the dialog on a
+     * request that was still running.
+     *
+     * (Deliberately not sealed any further: the x, Escape and the backdrop still work. A
+     * request that hangs must not leave anybody locked in a box with two dead buttons.)
+     */
+    it('takes both buttons out of reach while the pin is on its way', async () => {
+      let finish
+      mockSaveSettings.mockReturnValue(new Promise((resolve) => (finish = resolve)))
+      await mountWith()
+      await buttonWith('thank-you-card.settings.change-pin').trigger('click')
+      await field('new-pin').setValue('407312')
+      await dialogButtonWith('form.save').trigger('click')
+      await nextTick()
+
+      expect(field('dialog-ok').attributes('disabled')).toBeDefined()
+      expect(field('dialog-cancel').attributes('disabled')).toBeDefined()
+
+      finish({})
+      await flushPromises()
+    })
+
+    // Backing out has to leave nothing behind: until this dialog had a Cancel at all, the
+    // only way out was the little x, and a half-typed PIN sat there until the next visit.
+    it('forgets a half-typed pin when the dialog is closed again', async () => {
+      await mountWith()
+      await buttonWith('thank-you-card.settings.change-pin').trigger('click')
+      await field('new-pin').setValue('4073')
+      await field('dialog-cancel').trigger('click')
+      await flushPromises()
+      await buttonWith('thank-you-card.settings.change-pin').trigger('click')
+
+      expect(field('new-pin').element.value).toBe('')
     })
 
     // ⛔ Without the fallbacks an empty field would send 0, and a limit of zero is a card

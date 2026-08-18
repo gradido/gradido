@@ -144,7 +144,41 @@
       </p>
     </AppModal>
 
-    <BModal v-model="showSetup" :title="$t('thank-you-card.settings.pin-title')" hide-footer>
+    <!--
+      ⛔ `no-footer`, NOT `hide-footer`. bootstrap-vue-next renamed the prop; the old name is
+      accepted silently as a plain attribute and does nothing, so the dialog kept its default
+      footer and the panel showed TWO sets of buttons -- a save button of its own plus an
+      untranslated OK/Cancel pair underneath. Nothing warns about this.
+
+      The footer is the answer rather than something to hide: a dialog's actions belong in
+      it, and it brings the Cancel this dialog never had -- until now the only way out was
+      the little x in the corner.
+
+      ⚠️ `@ok.prevent`, because the dialog must NOT close itself: `savePin` closes it only
+      after the server has taken the PIN. A rejected PIN has to leave the dialog standing,
+      or the message lands on a screen that no longer shows the field it is about.
+
+      ⚠️ `busy`, not `ok-disabled`: the library computes both buttons from it
+      (`disableCancel = cancelDisabled || busy`, `disableOk = okDisabled || busy`), so a save
+      in flight takes Cancel out of reach too. Read in the shipped bundle, not assumed.
+
+      ⛔ And deliberately NOT `no-close-on-backdrop` / `no-close-on-esc` / `no-header-close`,
+      although a reviewer asked for them. Dismissing mid-save costs nothing: the mutation is
+      already sent, `run` still refetches and reports, and `@hide` clears the field -- the
+      worst case is a success message arriving after the box is gone. Sealing all three would
+      buy that back at the price of a request that hangs leaving somebody locked in a dialog
+      with both buttons dead and no way out at all, because `run` has no timeout. The x stays.
+    -->
+    <BModal
+      v-model="showSetup"
+      :title="$t('thank-you-card.settings.pin-title')"
+      :ok-title="$t('form.save')"
+      ok-variant="gradido"
+      :cancel-title="$t('form.cancel')"
+      :busy="busy"
+      @ok.prevent="savePin"
+      @hide="newPin = ''"
+    >
       <!--
         The rules carry an id so the field can point at them: a screen reader then reads
         what the PIN may be WITH the field, rather than leaving it behind as a paragraph
@@ -192,9 +226,6 @@
           </BButton>
         </template>
       </BInputGroup>
-      <BButton class="mt-3" variant="gradido" :disabled="busy" @click="savePin">
-        {{ $t('form.save') }}
-      </BButton>
     </BModal>
   </div>
 </template>
