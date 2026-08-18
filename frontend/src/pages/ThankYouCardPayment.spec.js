@@ -145,6 +145,11 @@ describe('ThankYouCardPayment', () => {
 
       expect(wrapper.text()).toContain('thank-you-card.status.CARD_BLOCKED')
       expect(field('amount').exists()).toBe(false)
+      // ⚠️ Belt and braces, and worth saying which: this line cannot fail from deleting the
+      // `v-if` guard — a blocked card never reaches that part of the template, which is why
+      // the guard has its own test below. What it does catch is somebody putting the label
+      // onto the dead-end screen, where a found card must stay anonymous. (coderabbit, #3760)
+      expect(field('label').exists()).toBe(false)
     })
 
     /**
