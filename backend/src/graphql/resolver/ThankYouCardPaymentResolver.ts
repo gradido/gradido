@@ -22,14 +22,16 @@ import {
 import { getLogger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
 import { GradidoUnit } from 'shared'
-import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
+import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
+  pinMatches,
   startOfDay,
   startOfNextDay,
   THANK_YOU_CARD_PAYMENT_VALID_MINUTES,
 } from '@/data/ThankYouCard.logic'
+import { ThankYouCardPaymentArgs } from '@/graphql/arg/ThankYouCardSettingsArgs'
 import { ThankYouCardPaymentStatus } from '@/graphql/enum/ThankYouCardPaymentStatus'
 import { ThankYouCardPayment, ThankYouCardPaymentResult } from '@/graphql/model/ThankYouCardPayment'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
@@ -129,9 +131,7 @@ export class ThankYouCardPaymentResolver {
   @Authorized([RIGHTS.RECEIVE_THANK_YOU_CARD_PAYMENT])
   @Mutation(() => ThankYouCardPayment)
   async createThankYouCardPayment(
-    @Arg('code', () => String) code: string,
-    @Arg('amount', () => GradidoUnit) amount: GradidoUnit,
-    @Arg('memo', () => String) memo: string,
+    @Args() { code, amount, memo }: ThankYouCardPaymentArgs,
     @Ctx() context: Context,
   ): Promise<ThankYouCardPayment> {
     const recipient = getUser(context)
@@ -140,9 +140,8 @@ export class ThankYouCardPaymentResolver {
     if (!checked.usable) {
       throw new LogError('Thank you card cannot be used', checked.status, code.slice(0, 6))
     }
-    if (amount.comparedTo(new GradidoUnit(0n)) <= 0) {
-      throw new LogError('Amount must be positive', amount.toString())
-    }
+    // ⚠️ The amount is no longer checked here — `@IsPositiveGradidoUnit` on the args does it
+    // now, at the edge, the same way the settings mutation has always done it.
 
     const validUntil = new Date(Date.now() + THANK_YOU_CARD_PAYMENT_VALID_MINUTES * 60 * 1000)
     const written = await dbInsertThankYouCardPayment({
@@ -241,7 +240,7 @@ export class ThankYouCardPaymentResolver {
       // whether the PIN is right. That cost lands on OUR server, which is a second and
       // independent reason for the three-attempt block, next to protecting the account.
       const offered = await SecretKeyCryptographyCreateKey(settings.pinSalt, pin)
-      if (offered !== settings.pin) {
+      if (!pinMatches(offered, settings.pin)) {
         const counted = await dbIncrementFailedAttempts(card.id)
         if (!counted.success) {
           throw new LogError('Could not count a failed attempt', card.id)
@@ -298,8 +297,12 @@ export class ThankYouCardPaymentResolver {
         return failure(ThankYouCardPaymentStatus.REQUEST_GONE)
       }
 
-      await executeTransaction(payment.amount, payment.memo, owner, recipient, logger)
+      // ⚠️ Before the booking, not after it. This counter counts WRONG PINS, and the PIN
+      // has just been proved right — whether the money then moves says nothing about that.
+      // Behind `executeTransaction` a throwing booking would leave the counter armed, and
+      // the next single mistype would block a card whose owner had just typed correctly.
       await dbResetFailedAttempts(card.id)
+      await executeTransaction(payment.amount, payment.memo, owner, recipient, logger)
 
       const success = failure(ThankYouCardPaymentStatus.SUCCESS)
       success.payerName = `${owner.firstName} ${owner.lastName}`

@@ -190,11 +190,16 @@ describe('ThankYouCardPayment', () => {
       )
     })
 
-    it('passes the amount with a comma as a number', async () => {
+    // ⛔ A comma has to become a dot, AND the value has to leave as a STRING. The
+    // GradidoUnit scalar refuses a number during variable coercion, which comes back as a
+    // bare HTTP 400 — no GraphQL error, nothing in the response to read. Asserting the type
+    // here is the only thing in this file that a mocked Apollo cannot paper over.
+    it('passes the amount as a string, with a comma turned into a dot', async () => {
       await mountUsable()
       await fillAndStart({ amount: '12,50' })
 
-      expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ amount: 12.5 }))
+      expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ amount: '12.5' }))
+      expect(typeof mockCreate.mock.calls[0][0].amount).toBe('string')
     })
   })
 
@@ -212,6 +217,30 @@ describe('ThankYouCardPayment', () => {
       expect(pin.attributes('aria-describedby')).toBe('tyc-pin-subtitle')
       expect(wrapper.find('#tyc-pin-title').exists()).toBe(true)
       expect(wrapper.find('#tyc-pin-subtitle').exists()).toBe(true)
+    })
+
+    // ⛔ NOT a password field where the browser can hide a text one. As a password field it
+    // was filled with the saved site password cut to six characters, it asked to be saved
+    // over and over, and accepting that once would have replaced somebody's Gradido password
+    // with six digits.
+    it('is a hidden text field, not a password field', async () => {
+      vi.stubGlobal('CSS', { supports: () => true })
+      await reachPinStep()
+
+      const pin = field('pin')
+      expect(pin.attributes('type')).toBe('text')
+      expect(pin.classes()).toContain('pin-masked')
+      vi.unstubAllGlobals()
+    })
+
+    // The one case where it still has to be one: no CSS masking, and a visible PIN at a
+    // counter is worse than a password manager.
+    it('falls back to a password field where nothing can hide a text one', async () => {
+      vi.stubGlobal('CSS', { supports: () => false })
+      await reachPinStep()
+
+      expect(field('pin').attributes('type')).toBe('password')
+      vi.unstubAllGlobals()
     })
 
     it('sends the pin as soon as six digits are in the field', async () => {

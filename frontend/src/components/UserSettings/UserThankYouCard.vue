@@ -48,13 +48,28 @@
         <label class="small" for="tyc-label">{{ $t('thank-you-card.settings.label') }}</label>
         <BFormInput id="tyc-label" :model-value="activeCard.label" disabled />
         <div class="mt-3">
-          <BButton variant="gradido" :disabled="busy" @click="download">
+          <BButton
+            variant="gradido"
+            :disabled="busy"
+            data-test="thank-you-card-sheet"
+            @click="printSheet"
+          >
+            {{ $t('thank-you-card.settings.sheet') }}
+          </BButton>
+          <BButton class="ms-2" variant="secondary" :disabled="busy" @click="download">
             {{ $t('thank-you-card.settings.print') }}
           </BButton>
-          <BButton class="ms-2" variant="danger" :disabled="busy" @click="block">
+          <BButton
+            class="ms-2"
+            variant="danger"
+            :disabled="busy"
+            data-test="thank-you-card-block"
+            @click="showBlockConfirm = true"
+          >
             {{ $t('thank-you-card.settings.block') }}
           </BButton>
         </div>
+        <div class="small text-muted mt-2">{{ $t('thank-you-card.settings.sheet-hint') }}</div>
       </div>
 
       <div v-else>
@@ -82,14 +97,52 @@
         <div class="small text-muted text-uppercase">
           {{ $t('thank-you-card.settings.earlier-cards') }}
         </div>
-        <div v-for="card in blockedCards" :key="card.id" class="d-flex justify-content-between">
+        <div
+          v-for="card in blockedCards"
+          :key="card.id"
+          class="d-flex justify-content-between align-items-center"
+        >
           <span class="small">{{ card.label }}</span>
-          <span class="small text-muted">
-            {{ $t('thank-you-card.settings.blocked-on', { date: $d(new Date(card.blockedAt)) }) }}
+          <span class="d-flex align-items-center gap-2">
+            <span class="small text-muted">
+              {{ $t('thank-you-card.settings.blocked-on', { date: $d(new Date(card.blockedAt)) }) }}
+            </span>
+            <BButton
+              size="sm"
+              variant="secondary"
+              :disabled="busy || Boolean(activeCard)"
+              :data-test="`thank-you-card-unblock-${card.id}`"
+              @click="unblockById(card.id)"
+            >
+              {{ $t('thank-you-card.settings.unblock') }}
+            </BButton>
           </span>
+        </div>
+        <!-- A disabled button with no reason next to it is a dead end. The reason is the
+             invariant itself: one member, one card that pays. -->
+        <div v-if="activeCard" class="small text-muted mt-1">
+          {{ $t('thank-you-card.settings.unblock-needs-no-active') }}
         </div>
       </div>
     </div>
+
+    <!--
+      ⛔ Only the BUTTON asks. The link out of the receipt mail (`?block=<id>`) blocks without
+      a question and must keep doing so: it is the emergency path, pressed by somebody who has
+      just read that their card paid for something they did not buy. A dialogue there would
+      put one more click between them and stopping it.
+    -->
+    <AppModal
+      :model-value="showBlockConfirm"
+      ok-only
+      :title="$t('thank-you-card.settings.block-confirm-title')"
+      @update:model-value="showBlockConfirm = $event"
+      @on-ok="confirmBlock"
+    >
+      <p class="mb-0" data-test="thank-you-card-block-confirm">
+        {{ $t('thank-you-card.settings.block-confirm') }}
+      </p>
+    </AppModal>
 
     <BModal v-model="showSetup" :title="$t('thank-you-card.settings.pin-title')" hide-footer>
       <!--
@@ -100,16 +153,45 @@
       <p id="thank-you-card-pin-rules" class="small">
         {{ $t('thank-you-card.settings.pin-rules') }}
       </p>
-      <BFormInput
-        id="thank-you-card-new-pin"
-        v-model="newPin"
-        type="password"
-        inputmode="numeric"
-        maxlength="6"
-        :aria-label="$t('thank-you-card.settings.pin-title')"
-        aria-describedby="thank-you-card-pin-rules"
-        data-test="thank-you-card-new-pin"
-      />
+      <!--
+        ⚠️ Hidden by default and readable on request, which is the opposite trade to a
+        password field. A PIN is set at home, typed once, and there is no "forgot it" —
+        getting it wrong here means a card that cannot pay and nobody knowing why. So the
+        eye is not a convenience: it is the only chance to check what was typed. It stays
+        hidden by default all the same, because "at home" is also a kitchen table with
+        somebody sitting across it.
+      -->
+      <BInputGroup>
+        <BFormInput
+          id="thank-you-card-new-pin"
+          v-model="newPin"
+          :type="pinInputType(showPin)"
+          :class="{ [PIN_MASK_CLASS]: !showPin }"
+          autocomplete="off"
+          inputmode="numeric"
+          maxlength="6"
+          :aria-label="$t('thank-you-card.settings.pin-title')"
+          aria-describedby="thank-you-card-pin-rules"
+          data-test="thank-you-card-new-pin"
+        />
+        <template #append>
+          <BButton
+            variant="outline-light"
+            class="border-start-0 rounded-end"
+            tabindex="-1"
+            :aria-label="
+              showPin
+                ? $t('thank-you-card.settings.pin-hide')
+                : $t('thank-you-card.settings.pin-show')
+            "
+            data-test="thank-you-card-pin-eye"
+            @click="showPin = !showPin"
+          >
+            <IBiEye v-if="showPin" class="eye-icon" />
+            <IBiEyeSlash v-else class="eye-icon" />
+          </BButton>
+        </template>
+      </BInputGroup>
       <BButton class="mt-3" variant="gradido" :disabled="busy" @click="savePin">
         {{ $t('form.save') }}
       </BButton>
@@ -134,11 +216,12 @@
  * There is no on/off control. Enabling means setting a PIN and disabling means deleting it,
  * so the state "on but without a PIN" cannot be reached, not even by a half-finished form.
  */
-import { BButton, BFormInput, BModal } from 'bootstrap-vue-next'
+import { BButton, BFormInput, BInputGroup, BModal } from 'bootstrap-vue-next'
+import AppModal from '@/components/AppModal'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMutation, useQuery } from '@vue/apollo-composable'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import {
   blockThankYouCard,
@@ -148,19 +231,28 @@ import {
   setThankYouCardSettings,
   thankYouCards,
   thankYouCardSettings,
+  unblockThankYouCard,
 } from '@/graphql/thankYouCard.graphql'
 import { useAppToast } from '@/composables/useToast'
-import { drawThankYouCard, thankYouCardFileName } from '@/utils/thankYouCard'
+import {
+  drawThankYouCard,
+  printThankYouCardSheet,
+  thankYouCardFileName,
+} from '@/utils/thankYouCard'
+import { PIN_MASK_CLASS, pinInputType } from '@/utils/pinMasking'
 import CONFIG from '@/config'
 
 const { t } = useI18n()
 const route = useRoute()
+const router = useRouter()
 const store = useStore()
 const { toastError, toastSuccess } = useAppToast()
 
 const settings = ref(null)
 const cards = ref([])
 const showSetup = ref(false)
+const showBlockConfirm = ref(false)
+const showPin = ref(false)
 const newPin = ref('')
 const newLabel = ref('')
 const maxPerPayment = ref('')
@@ -197,8 +289,20 @@ const { mutate: saveLimitsMutation } = useMutation(setThankYouCardLimits)
 const { mutate: disable } = useMutation(deleteThankYouCardSettings)
 const { mutate: addCard } = useMutation(createThankYouCard)
 const { mutate: blockCard } = useMutation(blockThankYouCard)
+const { mutate: unblockCard } = useMutation(unblockThankYouCard)
 
 const asNumber = (value) => Number(String(value).replace(',', '.'))
+
+/**
+ * ⛔ A GradidoUnit travels as a STRING, never as a number.
+ *
+ * `GradidoUnitScalar.parseValue` throws for anything that is not a string, so a number does
+ * not reach the resolver at all — the request dies during variable coercion and comes back
+ * as a bare **HTTP 400** with no GraphQL error in it to read. The rest of the wallet has
+ * always done it this way (`Send.vue` sends `amount.toString()`); this component did not,
+ * and no test could see it because a mocked Apollo accepts whatever it is handed.
+ */
+const asAmount = (value) => asNumber(value).toString()
 
 /**
  * The receipt links here with `?block=<id>`. The link only navigates -- the login is the
@@ -209,6 +313,13 @@ onMounted(() => {
   const wanted = Number(route.query.block)
   if (Number.isFinite(wanted) && wanted > 0) {
     blockById(wanted)
+    // ⛔ And the wish is taken out of the address, at once. It is an INSTRUCTION, not a
+    // description of the page, so it must not survive being acted on: left standing, it
+    // fires again on every reload and every visit through the history — and once the card
+    // has been deliberately unblocked, a reload would silently block it a second time,
+    // with nothing on the screen connecting the two. The reload right after blocking is
+    // the harmless half: it answers with "already blocked" for something that just worked.
+    router.replace({ query: {} })
   }
 })
 
@@ -231,8 +342,8 @@ const savePin = () =>
   run(async () => {
     await saveSettings({
       pin: newPin.value,
-      maxPerPayment: asNumber(maxPerPayment.value) || 50,
-      maxPerDay: asNumber(maxPerDay.value) || 100,
+      maxPerPayment: (asNumber(maxPerPayment.value) || 50).toString(),
+      maxPerDay: (asNumber(maxPerDay.value) || 100).toString(),
     })
     newPin.value = ''
     showSetup.value = false
@@ -242,8 +353,8 @@ const saveLimits = () =>
   run(
     () =>
       saveLimitsMutation({
-        maxPerPayment: asNumber(maxPerPayment.value),
-        maxPerDay: asNumber(maxPerDay.value),
+        maxPerPayment: asAmount(maxPerPayment.value),
+        maxPerDay: asAmount(maxPerDay.value),
       }),
     t('thank-you-card.settings.saved'),
   )
@@ -258,7 +369,55 @@ const create = () =>
 
 const blockById = (cardId) => run(() => blockCard({ cardId }), t('thank-you-card.settings.blocked'))
 
-const block = () => blockById(activeCard.value.id)
+/**
+ * ⛔ Reachable again, which it was not: blocking took one click and the card then vanished
+ * into a list with nothing to press. The backend has always had the mutation.
+ *
+ * ⚠️ Refused by the server while another card of theirs works — one member, one card that
+ * pays, and the daily limit is counted per card. The button says so by being unavailable and
+ * by the line under the list, rather than by letting somebody press it into an error.
+ */
+const unblockById = (cardId) =>
+  run(() => unblockCard({ cardId }), t('thank-you-card.settings.unblocked'))
+
+const confirmBlock = () => {
+  showBlockConfirm.value = false
+  // The dialogue can outlive the card it asks about — every action here reloads the list,
+  // and the receipt's own link can block it while this is open. Same guard `download` and
+  // `printSheet` carry: without it the click throws and the dialogue closes as if it had
+  // worked.
+  if (!activeCard.value) {
+    return
+  }
+  blockById(activeCard.value.id)
+}
+
+/**
+ * ⚠️ The two ways out differ in WHERE the size lives, not in what is drawn. The download
+ * hands over a PNG whose physical size nothing states — deliberately, see `gradidoCard.js`
+ * — for whoever wants to place it themselves. The sheet states it, in millimetres, on a page
+ * the browser prints at exactly that size. Which is why the sheet is the first button.
+ */
+const cardOptions = () => ({
+  url: `${window.location.origin}/dk/${activeCard.value.code}`,
+  label: activeCard.value.label,
+  community: CONFIG.COMMUNITY_NAME ?? store.state.community?.name ?? '',
+  title: t('thank-you-card.name'),
+})
+
+const printSheet = async () => {
+  if (!activeCard.value) {
+    return
+  }
+  busy.value = true
+  try {
+    await printThankYouCardSheet(cardOptions())
+  } catch (error) {
+    toastError(error.message)
+  } finally {
+    busy.value = false
+  }
+}
 
 const download = async () => {
   if (!activeCard.value) {
@@ -266,12 +425,7 @@ const download = async () => {
   }
   busy.value = true
   try {
-    const dataUrl = await drawThankYouCard({
-      url: `${window.location.origin}/dk/${activeCard.value.code}`,
-      label: activeCard.value.label,
-      community: CONFIG.COMMUNITY_NAME ?? store.state.community?.name ?? '',
-      title: t('thank-you-card.name'),
-    })
+    const dataUrl = await drawThankYouCard(cardOptions())
     const anchor = document.createElement('a')
     anchor.href = dataUrl
     anchor.download = thankYouCardFileName(activeCard.value.label)

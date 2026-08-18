@@ -13,6 +13,10 @@ const CODE_RANDOM_BYTES = 16
 export const THANK_YOU_CARD_PIN_LENGTH = 6
 export const THANK_YOU_CARD_LABEL_MAX_CHARS = 64
 
+/** As wide as the columns they land in — `memo` is varchar(512), `code` varchar(40). */
+export const THANK_YOU_CARD_MEMO_MAX_CHARS = 512
+export const THANK_YOU_CARD_CODE_MAX_CHARS = 40
+
 /** How long a request waits for its PIN before it stops working. */
 export const THANK_YOU_CARD_PAYMENT_VALID_MINUTES = 15
 
@@ -67,6 +71,32 @@ const isRun = (pin: string): boolean => {
     return false
   }
   return digits.every((digit, index) => index === 0 || digit - digits[index - 1] === step)
+}
+
+/**
+ * Does the PIN somebody typed derive to the value that was stored?
+ *
+ * ⛔ Compared as STRINGS, and that is not sloppiness — it is what the house has always done
+ * for this exact derivation (`PasswordEncryptor.verifyPassword`:
+ * `dbUser.password.toString() === encryptedPassword.toString()`).
+ *
+ * The reason is that the two sides do not come from the same place. The stored value comes
+ * out of the database through Drizzle; the offered one comes out of
+ * `SecretKeyCryptographyCreateKey`, which — when `USE_CRYPTO_WORKER` is on — crosses a
+ * worker boundary on the way back. Neither end guarantees the JS type, and a strict `!==`
+ * between a bigint and its own decimal spelling is ALWAYS true: every PIN is wrong, for
+ * everybody, while the server dutifully counts attempts and blocks the card.
+ *
+ * That is exactly what happened on 17.08.2026, with the correct form standing one file away.
+ */
+export const pinMatches = (offered: unknown, stored: unknown): boolean => {
+  // ⛔ Nothing is not a match. Without this, `String(undefined) === String(undefined)` is
+  // the string 'undefined' twice — so a settings row that came back empty would let ANY
+  // pin through. Found by the test below, in the fix for the bug this function is.
+  if (offered === null || offered === undefined || stored === null || stored === undefined) {
+    return false
+  }
+  return String(offered) === String(stored)
 }
 
 /**

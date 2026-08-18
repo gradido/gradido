@@ -57,13 +57,24 @@
         {{ $t('thank-you-card.receive.pin-subtitle', { amount: amount }) }}
       </div>
 
+      <!--
+        ⛔ NO eye here, deliberately, and not for consistency's sake with the settings page —
+        the opposite: there the field belongs to somebody alone at home who is SETTING a PIN
+        and has to be able to check it. Here it belongs to somebody standing at a counter,
+        typing a PIN they already know, on a stranger's device, with the till operator and
+        the queue behind them in reach of the same screen. An eye at a counter is a control
+        anybody present can press, and the first person to try it shows their PIN to the
+        room. What cannot be revealed cannot be revealed by mistake.
+        (Bernd, 17.08.2026, when the eye was added to the settings field.)
+      -->
       <BFormInput
         v-model="pin"
-        type="password"
+        :type="pinType"
         inputmode="numeric"
         autocomplete="one-time-code"
         :maxlength="PIN_LENGTH"
         class="text-center fs-3 tyc-pin"
+        :class="PIN_MASK_CLASS"
         aria-labelledby="tyc-pin-title"
         aria-describedby="tyc-pin-subtitle"
         data-test="thank-you-card-pin"
@@ -124,8 +135,13 @@ import {
 } from '@/graphql/thankYouCard.graphql'
 import { useAppToast } from '@/composables/useToast'
 import { useThankYouCardMemo } from '@/composables/useThankYouCardMemo'
+import { PIN_MASK_CLASS, pinInputType } from '@/utils/pinMasking'
 
 const PIN_LENGTH = 6
+
+// ⛔ A text field that CSS hides, not a password field. Read once: the answer cannot change
+// while somebody stands at the counter, and asking per keystroke would be work for nothing.
+const pinType = pinInputType()
 
 const route = useRoute()
 const { t } = useI18n()
@@ -176,7 +192,9 @@ const startPayment = async () => {
   try {
     const result = await create({
       code,
-      amount: parsedAmount.value,
+      // ⛔ As a STRING. The GradidoUnit scalar refuses a number during variable coercion,
+      // which comes back as a bare HTTP 400 rather than as a GraphQL error.
+      amount: parsedAmount.value.toString(),
       memo: memo.value || t('thank-you-card.receive.default-memo'),
     })
     paymentId.value = result?.data?.createThankYouCardPayment?.id ?? null

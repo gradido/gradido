@@ -799,6 +799,8 @@
     },
     "settings": {
       "block": "Karte sperren",
+      "block-confirm": "Danach kann mit dieser Karte nicht mehr bezahlt werden. Du kannst sie später wieder entsperren, solange keine andere Karte aktiv ist.",
+      "block-confirm-title": "Karte sperren?",
       "blocked": "Die Karte ist gesperrt.",
       "blocked-on": "gesperrt {date}",
       "change-pin": "PIN ändern",
@@ -816,11 +818,18 @@
       "max-per-payment": "Höchstbetrag je Zahlung",
       "not-set-up": "Noch nicht eingerichtet.",
       "on": "Eingeschaltet",
+      "pin-hide": "PIN verbergen",
       "pin-rules": "Sechs Ziffern. Nicht sechsmal dieselbe, keine Folge wie 123456 und kein Geburtsjahr am Anfang.",
+      "pin-show": "PIN anzeigen",
       "pin-title": "PIN setzen",
       "print": "Karte drucken",
       "saved": "Gespeichert",
+      "sheet": "Bogen drucken",
+      "sheet-hint": "Eine Karte in Originalgröße auf einer A4-Seite, zum Ausschneiden an der dünnen Linie. Im Druckfenster kannst Du sie auch als PDF sichern.",
       "title": "Mit Karte danken",
+      "unblock": "Entsperren",
+      "unblock-needs-no-active": "Zum Entsperren muss zuerst die aktive Karte gesperrt werden — es kann immer nur eine Karte bezahlen.",
+      "unblocked": "Die Karte ist wieder entsperrt.",
       "your-card": "Deine Karte"
     },
     "status": {
