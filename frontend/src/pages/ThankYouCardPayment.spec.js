@@ -91,10 +91,6 @@ describe('ThankYouCardPayment', () => {
 
   const createWrapper = () =>
     mount(ThankYouCardPayment, {
-      // ⚠️ Attached to the document, and that is not decoration: `focus()` on a detached
-      // element does nothing at all, so the cursor test would have measured the mounting
-      // style rather than the page. `afterEach` unmounts, which takes it back out.
-      attachTo: document.body,
       global: {
         mocks: { $t: (key, values) => (values ? `${key}:${JSON.stringify(values)}` : key) },
         stubs: { BButton, BFormCheckbox, BFormInput },
@@ -306,20 +302,6 @@ describe('ThankYouCardPayment', () => {
 
       expect(field('pin').attributes('type')).toBe('password')
       vi.unstubAllGlobals()
-    })
-
-    /**
-     * The cursor waits in the field. At a counter the phone changes hands and the payer
-     * should be able to type at once, without being told to tap the box first.
-     *
-     * Checked against `document.activeElement`, i.e. the browser's own answer to "where
-     * would typing go" — not against a spy on a method, which would pass just as well if
-     * the element it was called on had never been attached.
-     */
-    it('waits with the cursor in the field, so the payer can just type', async () => {
-      await reachPinStep()
-
-      expect(document.activeElement).toBe(field('pin').element)
     })
 
     it('sends the pin as soon as six digits are in the field', async () => {

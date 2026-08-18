@@ -99,7 +99,6 @@
         (Bernd, 17.08.2026, when the eye was added to the settings field.)
       -->
       <BFormInput
-        ref="pinField"
         v-model="pin"
         :type="pinType"
         inputmode="numeric"
@@ -174,7 +173,7 @@
  * which one it is still holding.
  */
 import { BButton, BFormCheckbox, BFormInput } from 'bootstrap-vue-next'
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
 import { useMutation, useQuery } from '@vue/apollo-composable'
@@ -213,7 +212,6 @@ const payerName = ref('')
 const busy = ref(false)
 const targetStatus = ref(null)
 const cardLabel = ref('')
-const pinField = ref(null)
 
 /**
  * Whoever is signed in on this device, which on this page is always the RECIPIENT -- the
@@ -258,22 +256,22 @@ onMounted(() => {
 })
 
 /**
- * The cursor waits in the field, so the payer can start typing the moment the phone reaches
- * them. At a counter that saves the one step nobody should have to be told about — the
- * merchant hands the phone over and the keyboard is already up.
+ * ⛔ There is deliberately NO autofocus on the PIN field, and this note is here so the next
+ * reader does not put one back.
  *
- * `nextTick` because the step is a `v-else-if` branch: at the moment `step` changes, the
- * field does not exist yet. And `focus` is the method BFormInput exposes for exactly this
- * (`__expose({ blur, element: input, focus })`), so there is no reaching through `$el`.
+ * It was built on 18.08.2026 and did nothing on an iPhone. WebKit opens the keyboard only
+ * when `focus()` sits in the call stack of the touch itself, and two things break that here:
+ * the mutation that creates the payment, and the tick Vue needs before the field exists at
+ * all. Chrome on Android measures the same permission by TIME rather than by stack, which is
+ * worse rather than better — it would work on a fast connection and fail on a slow one.
+ *
+ * ⚠️ And no test can tell you this. The one that was here asserted `document.activeElement`
+ * and passed, because jsdom has no such rule; the injection that removed the focus call
+ * failed it cleanly. Green, and wrong on the only device this page is ever opened on.
+ *
+ * What it would have bought is one tap, which the payer makes anyway while taking the phone
+ * in hand. (Bernd decided against pursuing it further on 18.08.2026.)
  */
-watch(step, async (value) => {
-  if (value !== 'pin') {
-    return
-  }
-  await nextTick()
-  pinField.value?.focus()
-})
-
 const startPayment = async () => {
   busy.value = true
   try {
