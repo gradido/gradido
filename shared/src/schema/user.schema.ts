@@ -1,5 +1,9 @@
 import { string } from 'zod'
 
+// Kept beside the regex that enforces them, so a change to one is a change to the
+// other in the same glance. Anything generating an alias has to respect both bounds.
+export const ALIAS_MIN_CHARS = 3
+export const ALIAS_MAX_CHARS = 20
 export const VALID_ALIAS_REGEX = /^(?=.{3,20}$)[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)*$/
 // \p{L} = a character from every alphabet (latin, greek, cyrillic, etc.)
 // first a character or ' is expected
@@ -7,7 +11,7 @@ export const VALID_ALIAS_REGEX = /^(?=.{3,20}$)[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)
 // last a character is expected
 export const VALID_NAME_REGEX = /^[\p{L}'][ \p{L}'-_]*[\p{L}]$/u
 
-const RESERVED_ALIAS = [
+export const RESERVED_ALIAS = [
   'admin',
   'email',
   'gast',

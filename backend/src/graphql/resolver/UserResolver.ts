@@ -27,8 +27,11 @@ import {
   validateAlias,
 } from 'core'
 import {
+  ALIAS_ORIGIN_ASSIGNED,
   ALIAS_ORIGIN_CHOSEN,
+  type AliasOrigin,
   AppDatabase,
+  aliasExists,
   ContributionLink as DbContributionLink,
   TransactionLink as DbTransactionLink,
   User as DbUser,
@@ -57,8 +60,11 @@ import {
   ALIAS_QUOTA_WINDOW_MS,
   AVATAR_FULL_MAX_BYTES,
   AVATAR_SMALL_MAX_BYTES,
+  aliasCandidates,
+  aliasSchema,
   JPEG_END_BYTES,
   JPEG_MAGIC_BYTES,
+  pickFreeAlias,
   updateAllDefinedAndChanged,
 } from 'shared'
 import { randombytes_random } from 'sodium-native'
@@ -465,6 +471,35 @@ export class UserResolver {
       dbUser = await queryRunner.manager.save(dbUser).catch((error) => {
         throw new LogError('Error while updating dbUser', error)
       })
+
+      // Everybody holds a name from here on. Migration 0116 covers the members who
+      // existed when it ran; without this, every account opened after it would carry
+      // none again - and since a transaction stores `sender.alias`, their rows would
+      // have nothing where a name belongs.
+      //
+      // A name the system builds is a proposal: it is reserved for them and can be
+      // taken back, but it costs none of their four picks until they adopt it.
+      let aliasOrigin: AliasOrigin = ALIAS_ORIGIN_CHOSEN
+      if (!dbUser.alias) {
+        aliasOrigin = ALIAS_ORIGIN_ASSIGNED
+        dbUser.alias = await pickFreeAlias(
+          aliasCandidates(dbUser.firstName, dbUser.lastName, email),
+          dbUser.id,
+          aliasExists,
+        )
+        // The ladder decides what to offer, the schema decides what may be written.
+        aliasSchema.parse(dbUser.alias)
+        dbUser = await queryRunner.manager.save(dbUser).catch((error) => {
+          throw new LogError('Error while storing the generated alias', error)
+        })
+      }
+      await dbInsertUserAlias(
+        dbUser.id,
+        dbUser.alias,
+        dbUser.communityUuid,
+        aliasOrigin,
+        queryRunner.manager,
+      )
 
       const activationLink = `${
         CONFIG.EMAIL_LINK_VERIFICATION

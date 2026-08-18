@@ -200,7 +200,10 @@ describe('UserResolver', () => {
               gradidoID: expect.any(String),
               hideAmountGDD: expect.any(Boolean),
               hideAmountGDT: expect.any(Boolean),
-              alias: null,
+              // Built from the name rather than left empty: everybody holds one from
+              // registration on, or their transaction rows would have nothing where a
+              // name belongs.
+              alias: 'PeterL',
               emailContact: expect.any(UserContact), // 'peter@lustig.de',
               emailId: expect.any(Number),
               firstName: 'Peter',
@@ -1310,7 +1313,8 @@ describe('UserResolver', () => {
 
         describe('valid alias', () => {
           it('updates the user in DB', async () => {
-            // first empty alias, because currently updating alias isn't allowed
+            // Cleared first so this exercises taking a name rather than changing one;
+            // changing is covered by its own cases.
             await User.update({ alias: 'BBB' }, { alias: () => 'NULL' })
             await mutate({
               mutation: updateUserInfos,
