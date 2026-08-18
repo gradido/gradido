@@ -786,18 +786,16 @@
     "back-to-account": "Back to account",
     "name": "Thank you card",
     "receive": {
+      "amount": "{amount} GDD",
       "attempts-left": "{n} tries left",
-      "card": "Card: {label}",
       "default-memo": "Card payment",
       "next": "Continue",
       "next-payment": "Next payment",
-      "pin-subtitle": "{amount} GDD",
       "pin-title": "Your PIN, please",
-      "received": "You received {amount} GDD from {name}.",
       "remember-memo": "Remember this reference",
+      "sent-from-to": "sent by {from} to {to}",
       "subtitle": "A thank you card was scanned.",
-      "thanks": "A thousand thanks!",
-      "title": "Receive Gradido"
+      "thanks": "Thank you!"
     },
     "settings": {
       "block": "Block card",
