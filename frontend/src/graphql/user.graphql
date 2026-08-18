@@ -16,6 +16,6 @@ query aliasStatus {
     changesLeft
     nextChangeAt
     ownAliases
-    aliasChosen
+    aliasSettled
   }
 }

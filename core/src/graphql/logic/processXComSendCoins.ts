@@ -419,11 +419,14 @@ export async function processXComCommittingSendCoins(
         transactionLinkId,
       })
     }
-    // first find pending Tx with given parameters
+    // first find pending Tx with given parameters. Deliberately NOT by the name: the
+    // alias is editable, so a member who renames between the pending and the committing
+    // phase would leave this lookup empty - the send would neither settle nor revert and
+    // the open-pending check would block them afterwards. The identifiers below already
+    // determine the row; the stored `pendingTx.userName` is what the protocol then uses.
     const pendingTx = await DbPendingTransaction.findOneBy({
       userCommunityUuid: senderCom.communityUuid ?? 'homeCom-UUID',
       userGradidoID: sender.gradidoID,
-      userName: sender.alias, // fullName(sender.firstName, sender.lastName),
       linkedUserCommunityUuid:
         receiverCom.communityUuid ?? CONFIG_CORE.FEDERATION_XCOM_RECEIVER_COMMUNITY_UUID,
       linkedUserGradidoID: recipient.recipGradidoID ? recipient.recipGradidoID : undefined,

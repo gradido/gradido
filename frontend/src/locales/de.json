@@ -749,6 +749,7 @@
       "first-free": "ist noch frei",
       "first-hint": "Du kannst ihn behalten oder Dir einen eigenen aussuchen. Später sind vier Änderungen im Jahr möglich.",
       "first-intro": "Damit andere Dich finden und Dir Gradido senden können, haben wir Dir einen Namen vorgeschlagen:",
+      "first-invalid": "Dieser Name passt nicht zu den Regeln",
       "first-keep": "Passt so",
       "first-other": "Anderen wählen",
       "first-rules": "3 bis 20 Zeichen · Buchstaben, Ziffern, - und _",

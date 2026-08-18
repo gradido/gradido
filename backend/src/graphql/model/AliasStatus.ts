@@ -27,9 +27,14 @@ export class AliasStatus {
   ownAliases: string[]
 
   /**
-   * Whether the name they hold is one they picked. False means the system handed it
+   * Whether the member has answered the question about the name they hold - by typing
+   * one themselves or by letting the built one stand. False means the system handed it
    * out and nobody has been asked yet, which is what brings up the window at login.
+   *
+   * Deliberately not called `aliasChosen`: keeping the built name settles the question
+   * without being a pick, and a field that conflated the two is what made it cost one
+   * of the four.
    */
   @Field(() => Boolean)
-  aliasChosen: boolean
+  aliasSettled: boolean
 }

@@ -10,12 +10,35 @@ import {
 import { User } from './User'
 
 /**
- * Where a name came from. Only a name the member picked counts against their yearly
- * quota - a name the system handed out is a proposal until they adopt it.
+ * Where a name came from. There are four values rather than two because the origin
+ * answers two questions that do not move together:
+ *
+ * 1. **Has the member answered the question the window at first login asks?**
+ *    `chosen` and `adopted` say yes, `assigned` and `migrated` say no.
+ * 2. **Does it count against the four picks a year?** Only `chosen` - the name the
+ *    member typed themselves. Keeping the name the system built is an answer, not a
+ *    pick, so it costs nothing (NU-010/011).
+ *
+ * Conflating the two is what made a kept name cost a quarter of the yearly quota for
+ * a name nobody chose.
+ *
+ * `migrated` is an `assigned` that migration 0116 handed out. It is kept apart so the
+ * rollback of that migration takes back its own work and leaves alone the names that
+ * were already there.
  */
 export const ALIAS_ORIGIN_ASSIGNED = 'assigned'
+export const ALIAS_ORIGIN_MIGRATED = 'migrated'
 export const ALIAS_ORIGIN_CHOSEN = 'chosen'
-export type AliasOrigin = typeof ALIAS_ORIGIN_ASSIGNED | typeof ALIAS_ORIGIN_CHOSEN
+export const ALIAS_ORIGIN_ADOPTED = 'adopted'
+export type AliasOrigin =
+  | typeof ALIAS_ORIGIN_ASSIGNED
+  | typeof ALIAS_ORIGIN_MIGRATED
+  | typeof ALIAS_ORIGIN_CHOSEN
+  | typeof ALIAS_ORIGIN_ADOPTED
+
+/** The member has answered - by typing a name or by keeping the one they were given. */
+export const aliasOriginIsSettled = (origin: AliasOrigin): boolean =>
+  origin === ALIAS_ORIGIN_CHOSEN || origin === ALIAS_ORIGIN_ADOPTED
 
 /**
  * Every name a member owns - not a log of the ones they left behind. `users.alias`

@@ -749,6 +749,7 @@
       "first-free": "is still free",
       "first-hint": "You can keep it or pick your own. Four changes a year are possible later on.",
       "first-intro": "So that others can find you and send you Gradido, we have suggested a name for you:",
+      "first-invalid": "This name does not match the rules",
       "first-keep": "Keep it",
       "first-other": "Pick another",
       "first-rules": "3 to 20 characters · letters, digits, - and _",

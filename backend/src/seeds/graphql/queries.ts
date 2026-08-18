@@ -45,7 +45,7 @@ export const aliasStatus = gql`
       changesLeft
       nextChangeAt
       ownAliases
-      aliasChosen
+      aliasSettled
     }
   }
 `

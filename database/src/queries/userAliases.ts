@@ -1,6 +1,11 @@
 // AI-GENERATED — not an architecture reference
 import { EntityManager, FindOptionsWhere, MoreThan, Not } from 'typeorm'
-import { ALIAS_ORIGIN_CHOSEN, AliasOrigin, UserAlias as DbUserAlias } from '../entity'
+import {
+  ALIAS_ORIGIN_ADOPTED,
+  ALIAS_ORIGIN_CHOSEN,
+  AliasOrigin,
+  UserAlias as DbUserAlias,
+} from '../entity'
 
 /**
  * Every name a member owns lives here; `users.alias` marks the current one. Taking a
@@ -93,9 +98,11 @@ export async function dbFindAliasesByUser(userId: number): Promise<DbUserAlias[]
 }
 
 /**
- * The member kept the name they were handed, which makes it a name they picked. Nothing
- * else about the row changes - `created_at` still records when they got it.
+ * The member kept the name they were handed. That answers the question the window at
+ * first login asks, so the window stops - but it is not a pick and costs none of the
+ * four (NU-010/011), which is exactly why `adopted` is its own origin and not `chosen`.
+ * Nothing else about the row changes; `created_at` still records when they got it.
  */
-export async function dbMarkAliasChosen(id: number): Promise<void> {
-  await DbUserAlias.update({ id }, { origin: ALIAS_ORIGIN_CHOSEN })
+export async function dbMarkAliasAdopted(id: number): Promise<void> {
+  await DbUserAlias.update({ id }, { origin: ALIAS_ORIGIN_ADOPTED })
 }

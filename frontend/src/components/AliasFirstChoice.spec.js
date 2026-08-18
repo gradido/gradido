@@ -18,7 +18,7 @@ vi.mock('bootstrap-vue-next', () => ({
   },
 }))
 
-const statusMock = ref({ aliasStatus: { aliasChosen: false } })
+const statusMock = ref({ aliasStatus: { aliasSettled: false } })
 const checkMock = ref({ checkUsername: true })
 const refetchMock = vi.fn()
 const adoptMock = vi.fn()
@@ -57,6 +57,7 @@ const i18n = createI18n({
       'settings.username.first-choose-title': 'Choose a name',
       'settings.username.first-free': 'is still free',
       'settings.username.first-taken': 'This name is already taken',
+      'settings.username.first-invalid': 'This name does not match the rules',
       'settings.username.first-rules': '3 to 20 characters',
       'settings.username.first-back': 'Back',
       'form.username': 'Username',
@@ -83,7 +84,7 @@ describe('AliasFirstChoice', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    statusMock.value = { aliasStatus: { aliasChosen: false } }
+    statusMock.value = { aliasStatus: { aliasSettled: false } }
     checkMock.value = { checkUsername: true }
     wrapper = mountComponent()
   })
@@ -91,7 +92,7 @@ describe('AliasFirstChoice', () => {
   // Only a member still holding a name the system built for them has anything to
   // answer here.
   it('stays away from somebody who already picked their name', () => {
-    statusMock.value = { aliasStatus: { aliasChosen: true } }
+    statusMock.value = { aliasStatus: { aliasSettled: true } }
     wrapper = mountComponent()
 
     expect(wrapper.find('[data-test="alias-first-choice"]').exists()).toBe(false)
@@ -130,6 +131,19 @@ describe('AliasFirstChoice', () => {
       await wrapper.find('[data-test="alias-first-input"]').setValue('taken')
 
       expect(wrapper.find('[data-test="alias-first-taken"]').exists()).toBe(true)
+      expect(wrapper.find('[data-test="alias-first-save"]').attributes('disabled')).toBeDefined()
+    })
+
+    // A name that is too short is not a name somebody else holds. Saying "taken" sends
+    // the member looking for another word when the word was fine, and it is the very
+    // first thing the wallet ever tells them. The mock answers "free" on purpose: that
+    // is the honest case, because the server's answer to the PREVIOUS keystroke is what
+    // `available` still holds while the new query is on its way.
+    it('says a short name has the wrong shape, not that it is taken', async () => {
+      await wrapper.find('[data-test="alias-first-input"]').setValue('ab')
+
+      expect(wrapper.find('[data-test="alias-first-invalid"]').exists()).toBe(true)
+      expect(wrapper.find('[data-test="alias-first-taken"]').exists()).toBe(false)
       expect(wrapper.find('[data-test="alias-first-save"]').attributes('disabled')).toBeDefined()
     })
 

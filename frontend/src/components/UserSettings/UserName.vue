@@ -46,7 +46,14 @@
             <small v-if="quotaExhausted" class="text-danger" data-test="username-quota-blocked">
               {{ $t('settings.username.quota-blocked', { date: nextChangeDate }) }}
             </small>
-            <small v-else class="text-muted" data-test="username-quota-left">
+            <!-- Only once the answer is here. While the query runs `changesLeft` is
+                 null, `quotaExhausted` is false, and this branch would state "0 more
+                 times" on every single load of the settings page. -->
+            <small
+              v-else-if="changesLeft !== null"
+              class="text-muted"
+              data-test="username-quota-left"
+            >
               {{ quotaLeftText }}
             </small>
           </BCol>
@@ -154,9 +161,15 @@ const showConfirm = ref(false)
 // Coming back to a name one already owns takes no name into possession, so it costs
 // nothing - and the member should be told that before they decide, not discover it
 // afterwards.
-const reclaiming = computed(() =>
-  (statusResult.value?.aliasStatus?.ownAliases ?? []).includes(values.username),
-)
+// Compared without regard to case, like the column itself (utf8mb4_unicode_ci) and
+// like every lookup on the server. `Bernd` and `BERND` are the same row, so a
+// case-sensitive `includes` would tell somebody a free return costs one of their four.
+const reclaiming = computed(() => {
+  const typed = values.username?.toLowerCase()
+  return (statusResult.value?.aliasStatus?.ownAliases ?? []).some(
+    (owned) => owned.toLowerCase() === typed,
+  )
+})
 const lastChange = computed(() => !reclaiming.value && changesLeft.value === 1)
 const confirmLeftText = computed(() =>
   t('settings.username.confirm-left', Math.max(0, (changesLeft.value ?? 1) - 1)),
@@ -192,7 +205,12 @@ const username = computed(() => store.state.username || '')
 const newUsername = computed(() => values.username && values.username !== store.state.username)
 
 const disabled = (err) => {
-  return !newUsername.value || quotaExhausted.value || !!Object.keys(err).length
+  // The quota only blocks TAKING a name. Coming back to one the member already owns
+  // writes no row and costs nothing - the server does not even look at the quota in
+  // that case - so blocking it here made the form stricter than the rule it enforces,
+  // and made the "this one is free" line in the confirmation unreachable.
+  const blockedByQuota = quotaExhausted.value && !reclaiming.value
+  return !newUsername.value || blockedByQuota || !!Object.keys(err).length
 }
 </script>
 

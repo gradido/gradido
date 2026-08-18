@@ -1,4 +1,5 @@
 import {
+  ALIAS_ORIGIN_ADOPTED,
   ALIAS_ORIGIN_ASSIGNED,
   ALIAS_ORIGIN_CHOSEN,
   Community as DbCommunity,
@@ -18,6 +19,7 @@ import {
   dbFindOldestChosenAliasSince,
   dbFindOwnAlias,
   dbInsertUserAlias,
+  dbMarkAliasAdopted,
 } from './userAliases'
 
 const db = AppDatabase.getInstance()
@@ -127,6 +129,19 @@ describe('userAliases.queries', () => {
       expect(await dbCountChosenAliasesSince(bibi.id, since)).toBe(0)
     })
 
+    it('does not count a name the member merely kept', async () => {
+      // Keeping the built name answers the question but is not a pick, so it must not
+      // eat one of the four. This is the whole reason `adopted` exists next to `chosen`.
+      const row = await dbInsertUserAlias(
+        bibi.id,
+        'bibi-kept',
+        communityUuid,
+        ALIAS_ORIGIN_ASSIGNED,
+      )
+      await dbMarkAliasAdopted(row.id)
+      expect(await dbCountChosenAliasesSince(bibi.id, new Date(Date.now() - DAY_MS))).toBe(0)
+    })
+
     it('does not count another member´s picks', async () => {
       await dbInsertUserAlias(peter.id, 'pick-one', communityUuid, ALIAS_ORIGIN_CHOSEN)
       const since = new Date(Date.now() - 365 * DAY_MS)
@@ -160,6 +175,46 @@ describe('userAliases.queries', () => {
     it('returns null when the member has picked nothing inside it', async () => {
       const since = new Date(Date.now() - 365 * DAY_MS)
       expect(await dbFindOldestChosenAliasSince(bibi.id, since)).toBeNull()
+    })
+  })
+
+  describe('dbMarkAliasAdopted', () => {
+    it('marks the row as kept, not as picked', async () => {
+      const row = await dbInsertUserAlias(
+        bibi.id,
+        'bibi-keep',
+        communityUuid,
+        ALIAS_ORIGIN_ASSIGNED,
+      )
+      await dbMarkAliasAdopted(row.id)
+      const after = await dbFindOwnAlias(bibi.id, 'bibi-keep', communityUuid)
+      expect(after?.origin).toBe(ALIAS_ORIGIN_ADOPTED)
+    })
+
+    it('leaves created_at alone, so the row still says when they got the name', async () => {
+      const row = await dbInsertUserAlias(bibi.id, 'bibi-old', communityUuid, ALIAS_ORIGIN_ASSIGNED)
+      await ageRow(row.id, 400)
+      const before = await dbFindOwnAlias(bibi.id, 'bibi-old', communityUuid)
+      await dbMarkAliasAdopted(row.id)
+      const after = await dbFindOwnAlias(bibi.id, 'bibi-old', communityUuid)
+      expect(after?.createdAt.getTime()).toBe(before?.createdAt.getTime())
+    })
+  })
+
+  describe('the column ignores case, and the code above it must agree', () => {
+    // Not a nicety: `users.alias` is written from what the member typed, while the row
+    // here is found by the database. If the two disagree about capitalisation, a member
+    // who only changes `Bernd` to `BERND` keeps a row nothing in TypeScript can match -
+    // which is what locked them in front of the window at first login.
+    it('finds the member´s own name whatever the capitalisation', async () => {
+      await dbInsertUserAlias(bibi.id, 'Bibi-Case', communityUuid, ALIAS_ORIGIN_CHOSEN)
+      expect(await dbFindOwnAlias(bibi.id, 'BIBI-CASE', communityUuid)).not.toBeNull()
+      expect(await dbFindOwnAlias(bibi.id, 'bibi-case', communityUuid)).not.toBeNull()
+    })
+
+    it('blocks a name somebody else holds in another capitalisation', async () => {
+      await dbInsertUserAlias(peter.id, 'Peter-Case', communityUuid, ALIAS_ORIGIN_CHOSEN)
+      expect(await dbAliasHeldByOther('peter-case', bibi.id)).toBe(true)
     })
   })
 })

@@ -64,7 +64,7 @@ const refetchQuotaMock = vi.fn()
 // The settings page asks for the quota before anything is typed, so the component
 // mounts a query as well as a mutation.
 const quotaMock = ref({
-  aliasStatus: { changesLeft: 3, nextChangeAt: null, ownAliases: [], aliasChosen: true },
+  aliasStatus: { changesLeft: 3, nextChangeAt: null, ownAliases: [], aliasSettled: true },
 })
 vi.mock('@vue/apollo-composable', () => ({
   useMutation: vi.fn(() => ({
@@ -123,7 +123,7 @@ describe('UserName Form', () => {
     vi.clearAllMocks()
     valuesMock.value.username = ''
     quotaMock.value = {
-      aliasStatus: { changesLeft: 3, nextChangeAt: null, ownAliases: [], aliasChosen: true },
+      aliasStatus: { changesLeft: 3, nextChangeAt: null, ownAliases: [], aliasSettled: true },
     }
     wrapper = mountComponent()
   })
@@ -165,9 +165,20 @@ describe('UserName Form', () => {
       expect(wrapper.find('[data-test="username-quota-left"]').text()).toBe('3 more changes')
     })
 
+    // While the query is on its way `changesLeft` is null, and a count of null reads as
+    // zero - so the page announced "0 more changes" on every single load of the settings
+    // before the real answer arrived.
+    it('says nothing about the quota until the answer is here', () => {
+      quotaMock.value = {}
+      wrapper = mountComponent()
+
+      expect(wrapper.find('[data-test="username-quota-left"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="username-quota-blocked"]').exists()).toBe(false)
+    })
+
     it('uses the singular form for the last one', async () => {
       quotaMock.value = {
-        aliasStatus: { changesLeft: 1, nextChangeAt: null, ownAliases: [], aliasChosen: true },
+        aliasStatus: { changesLeft: 1, nextChangeAt: null, ownAliases: [], aliasSettled: true },
       }
       wrapper = mountComponent()
       expect(wrapper.find('[data-test="username-quota-left"]').text()).toBe('one more change')
@@ -180,7 +191,7 @@ describe('UserName Form', () => {
             changesLeft: 0,
             nextChangeAt: '2027-02-03T10:00:00.000Z',
             ownAliases: [],
-            aliasChosen: true,
+            aliasSettled: true,
           },
         }
         wrapper = mountComponent({ username: 'existingUser' })
@@ -196,6 +207,28 @@ describe('UserName Form', () => {
         expect(
           wrapper.find('[data-test="submit-username-button"]').attributes('disabled'),
         ).toBeDefined()
+      })
+
+      // The quota blocks TAKING a name. Coming back to one already owned writes no row
+      // and the server does not even look at the quota - so disabling the button here
+      // made the form stricter than the rule it enforces, and put the "this one is
+      // free" line of the confirmation permanently out of reach.
+      it('still offers it for a name the member already owns', async () => {
+        quotaMock.value = {
+          aliasStatus: {
+            changesLeft: 0,
+            nextChangeAt: '2027-02-03T10:00:00.000Z',
+            ownAliases: ['newUser'],
+            aliasSettled: true,
+          },
+        }
+        wrapper = mountComponent({ username: 'existingUser' })
+        valuesMock.value.username = 'newUser'
+        await wrapper.vm.$nextTick()
+
+        expect(
+          wrapper.find('[data-test="submit-username-button"]').attributes('disabled'),
+        ).toBeUndefined()
       })
     })
   })
@@ -229,7 +262,7 @@ describe('UserName Form', () => {
 
     it('warns when it is the last change of the year', async () => {
       quotaMock.value = {
-        aliasStatus: { changesLeft: 1, nextChangeAt: null, ownAliases: [], aliasChosen: true },
+        aliasStatus: { changesLeft: 1, nextChangeAt: null, ownAliases: [], aliasSettled: true },
       }
       wrapper = mountComponent({ username: 'oldName' })
       await wrapper.find('form').trigger('submit')
@@ -245,7 +278,7 @@ describe('UserName Form', () => {
           changesLeft: 2,
           nextChangeAt: null,
           ownAliases: ['newName'],
-          aliasChosen: true,
+          aliasSettled: true,
         },
       }
       wrapper = mountComponent({ username: 'oldName' })
@@ -253,6 +286,26 @@ describe('UserName Form', () => {
 
       expect(wrapper.find('[data-test="confirm-free"]').exists()).toBe(true)
       expect(wrapper.find('[data-test="confirm-left"]').exists()).toBe(false)
+    })
+
+    // The column ignores case, so `newname` and `newName` are the very same row and the
+    // return is just as free. A case-sensitive comparison here told the member their
+    // free return would cost one of the four.
+    it('says so whatever the capitalisation', async () => {
+      quotaMock.value = {
+        aliasStatus: {
+          changesLeft: 2,
+          nextChangeAt: null,
+          ownAliases: ['newname'],
+          aliasSettled: true,
+        },
+      }
+      wrapper = mountComponent({ username: 'oldName' })
+      valuesMock.value.username = 'newName'
+      await wrapper.vm.$nextTick()
+      await wrapper.find('form').trigger('submit')
+
+      expect(wrapper.find('[data-test="confirm-free"]').exists()).toBe(true)
     })
 
     it('writes nothing while the question stands', async () => {

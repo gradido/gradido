@@ -26,10 +26,21 @@
       <BFormInput
         id="alias-first-input"
         v-model="typed"
-        :state="typed === currentAlias ? null : available"
+        :state="fieldState"
         data-test="alias-first-input"
       />
-      <div v-if="available === false" class="small text-danger mt-2" data-test="alias-first-taken">
+      <div
+        v-if="checkEnabled && !formatValid"
+        class="small text-danger mt-2"
+        data-test="alias-first-invalid"
+      >
+        {{ $t('settings.username.first-invalid') }}
+      </div>
+      <div
+        v-else-if="available === false"
+        class="small text-danger mt-2"
+        data-test="alias-first-taken"
+      >
         {{ $t('settings.username.first-taken') }}
       </div>
       <div v-else-if="available" class="small text-success mt-2" data-test="alias-first-free">
@@ -57,7 +68,7 @@
         </BButton>
         <BButton
           variant="gradido"
-          :disabled="!available || typed === currentAlias"
+          :disabled="!available || !formatValid || typed === currentAlias"
           data-test="alias-first-save"
           @click="saveChosen"
         >
@@ -77,6 +88,7 @@ import { BModal, BButton, BFormInput } from 'bootstrap-vue-next'
 import { adoptAlias, updateUserInfos } from '@/graphql/mutations'
 import { aliasStatus } from '@/graphql/user.graphql'
 import { checkUsername } from '@/graphql/queries'
+import { USERNAME_REGEX } from '@/validationSchemas'
 import { useAppToast } from '@/composables/useToast'
 import CONFIG from '@/config'
 
@@ -112,7 +124,7 @@ const addressPrefix = computed(() => {
 
 const visible = computed({
   get: () =>
-    !dismissed.value && !!currentAlias.value && result.value?.aliasStatus?.aliasChosen === false,
+    !dismissed.value && !!currentAlias.value && result.value?.aliasStatus?.aliasSettled === false,
   set: (open) => {
     if (!open) {
       dismissed.value = true
@@ -141,6 +153,19 @@ const { result: checkResult } = useQuery(
 const available = computed(() =>
   checkEnabled.value ? (checkResult.value?.checkUsername ?? null) : null,
 )
+// Checked here as well as on the server, for two reasons. It says WHY: without it
+// somebody who types two letters is told the name is taken, which is untrue and
+// unhelpful in the very first window they ever see. And it holds the button: the
+// server does refuse a malformed name, but `available` still carries the answer to the
+// PREVIOUS keystroke while the new query is in flight, so for that moment a `true` from
+// a valid name sits on an invalid one and the save goes out to fail with a bare code.
+const formatValid = computed(() => USERNAME_REGEX.test(typed.value))
+const fieldState = computed(() => {
+  if (!checkEnabled.value) {
+    return null
+  }
+  return formatValid.value ? available.value : false
+})
 
 const keepIt = async () => {
   try {

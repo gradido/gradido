@@ -1,9 +1,12 @@
 import { UserAlias } from './UserAlias'
 
 export {
+  ALIAS_ORIGIN_ADOPTED,
   ALIAS_ORIGIN_ASSIGNED,
   ALIAS_ORIGIN_CHOSEN,
+  ALIAS_ORIGIN_MIGRATED,
   type AliasOrigin,
+  aliasOriginIsSettled,
 } from './UserAlias'
 
 import { Community } from './Community'

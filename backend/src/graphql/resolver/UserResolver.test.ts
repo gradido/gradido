@@ -44,6 +44,7 @@ import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { userFactory } from '@/seeds/factory/user'
 import {
+  adoptAlias,
   confirmContribution,
   createContribution,
   createUser,
@@ -3281,6 +3282,77 @@ describe('UserResolver', () => {
       await expect(query({ query: aliasStatus })).resolves.toMatchObject({
         data: { aliasStatus: { changesLeft: 4, nextChangeAt: null } },
       })
+    })
+
+    // Keeping the built name answers the question the window at first login asks, which
+    // is what stops it coming back - but it is not a pick and must cost none of the four
+    // (NU-010/011). Both halves are the point, so both are asserted.
+    it('settles the question when the member keeps the built name, and spends no pick', async () => {
+      await UserAlias.save(
+        UserAlias.create({
+          userId: member.id,
+          alias: 'BBB',
+          communityUuid: member.communityUuid,
+          origin: ALIAS_ORIGIN_ASSIGNED,
+        }),
+      )
+
+      await expect(mutate({ mutation: adoptAlias })).resolves.toMatchObject({
+        data: { adoptAlias: true },
+      })
+
+      await expect(query({ query: aliasStatus })).resolves.toMatchObject({
+        data: { aliasStatus: { aliasSettled: true, changesLeft: 4 } },
+      })
+    })
+
+    // The column ignores case, so changing only the capitalisation keeps the very same
+    // row and writes nothing. Comparing with `===` in TypeScript stopped finding that
+    // row, reported the question as unanswered, and put the window back on screen at
+    // every page mount - with no way out of it but spending one of the four.
+    it('stays settled when the member only changes the capitalisation', async () => {
+      await changeTo('bibi-one')
+      await expect(query({ query: aliasStatus })).resolves.toMatchObject({
+        data: { aliasStatus: { aliasSettled: true } },
+      })
+
+      await changeTo('BIBI-ONE')
+
+      const stored = await User.findOneByOrFail({ id: member.id })
+      expect(stored.alias).toBe('BIBI-ONE')
+      expect(await ownedNames()).toEqual(['bibi-one'])
+      await expect(query({ query: aliasStatus })).resolves.toMatchObject({
+        data: { aliasStatus: { aliasSettled: true, changesLeft: 3 } },
+      })
+    })
+
+    // The quota blocks TAKING a name, not returning to one already owned - that writes
+    // no row, so there is nothing to charge for.
+    it('lets a member return to a name of their own after the quota is gone', async () => {
+      await changeTo('bibi-one')
+      await changeTo('bibi-two')
+      await changeTo('bibi-three')
+      await changeTo('bibi-four')
+      await expect(query({ query: aliasStatus })).resolves.toMatchObject({
+        data: { aliasStatus: { changesLeft: 0 } },
+      })
+
+      await changeTo('bibi-one')
+
+      const stored = await User.findOneByOrFail({ id: member.id })
+      expect(stored.alias).toBe('bibi-one')
+    })
+
+    // The resolver opens a transaction before it validates anything, so every way out
+    // has to close it. The most travelled one is the call that changes nothing: it used
+    // to return without a rollback or a release, and handed back a connection that was
+    // still inside a REPEATABLE READ transaction. More rounds than the pool holds, so a
+    // leak runs it dry and this test fails on the timeout rather than on an assertion.
+    it('gives the connection back when nothing changed', async () => {
+      for (let round = 0; round < 25; round++) {
+        await expect(changeTo('BBB')).resolves.toMatchObject({ data: { updateUserInfos: true } })
+      }
+      expect(await ownedNames()).toEqual([])
     })
 
     describe('the status query', () => {
