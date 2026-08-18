@@ -8,12 +8,20 @@ import { aliasCandidates, aliasSchema, pickFreeAlias } from 'shared'
  * row, reclaiming an earlier one only moves the marker, and leaving a name writes
  * nothing - its row is already there.
  *
- * `origin` says where a name came from, and nothing here is `chosen`: only a name the
- * member typed themselves counts against the yearly quota, and nobody has answered
- * under the new rules yet. This migration writes the two that mean "handed out" -
- * 'assigned' for the names that were already there, 'migrated' for the ones it builds
- * itself. They behave identically everywhere except in `downgrade`, which is the whole
- * reason they are told apart.
+ * `origin` says where a name came from, and this migration writes two of the four:
+ *
+ * 'adopted' for the names that were ALREADY THERE. This migration is the only one that
+ * has ever written `users.alias` - every value it finds was put there by a person, at
+ * registration or in the settings. So the question the window at first login asks is
+ * long answered for them, and it costs them none of the four: they chose under the old
+ * rules, before a quota existed. Recording them as 'assigned' would have been wrong
+ * twice - it would put a window in front of people who chose years ago and tell them
+ * "we suggested a name for you", which is simply untrue.
+ *
+ * 'migrated' for the ones this migration builds itself, for members who had no name.
+ * Those are genuinely unanswered, and they are exactly who the window is for. The value
+ * behaves like 'assigned' everywhere except in `downgrade`, which is the whole reason
+ * it is told apart from it.
  */
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(`
@@ -29,13 +37,14 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
       KEY user_id (user_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`)
 
-  // The names that were already there get their row FIRST, and they stay 'assigned'.
+  // The names that were already there get their row FIRST, as 'adopted' - see the note
+  // above: a person put them there, so the question is answered and nothing is owed.
   // Doing this before a single name is handed out is what keeps them apart from this
   // migration's own work - and that separation is the only reason the rollback below
   // can take back what it gave without stripping a name somebody held long before.
   await queryFn(`
     INSERT INTO user_aliases (user_id, alias, community_uuid, origin)
-    SELECT u.id, u.alias, u.community_uuid, 'assigned'
+    SELECT u.id, u.alias, u.community_uuid, 'adopted'
       FROM users u
      WHERE u.foreign = 0 AND u.alias IS NOT NULL AND u.community_uuid IS NOT NULL;`)
 
@@ -88,14 +97,14 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   // Taken back before the table goes, and only this migration's own work: `migrated`
-  // marks the names it handed out. Everything else stays - `assigned` rows are names
-  // that predate this feature, and `chosen` or `adopted` are names the member answered
-  // for, a migrated one included: once somebody said "this is mine", withdrawing the
-  // feature is no reason to take it off them.
+  // marks the names it handed out. Everything else stays - `adopted` and `chosen` are
+  // names the member answered for, a migrated one they later kept included: once
+  // somebody said "this is mine", withdrawing the feature is no reason to take it away.
   //
   // Two wider rules were tried and both destroy data: deriving the name from the member
   // again would clear a name somebody picked years ago that happens to match, and
-  // clearing every `assigned` would clear every name that existed before this table.
+  // clearing everything that is not `chosen` would clear every name that existed before
+  // this table.
   await queryFn(`
     UPDATE users u
       JOIN user_aliases a ON a.user_id = u.id AND a.alias = u.alias

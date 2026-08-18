@@ -13,6 +13,15 @@ vi.mock('../i18n', () => ({
   },
 }))
 
+// `vi.hoisted`, because `vi.mock` is lifted above every import and every `const` in
+// this file. The arrow below would defer the access far enough to work, which is
+// exactly what makes it a trap: shorten it to `clearApolloCache: clearApolloCacheMock`
+// and it breaks with a ReferenceError that points nowhere near the cause.
+const { clearApolloCacheMock } = vi.hoisted(() => ({ clearApolloCacheMock: vi.fn() }))
+vi.mock('../plugins/apolloCache', () => ({
+  clearApolloCache: clearApolloCacheMock,
+}))
+
 vi.mock('jwt-decode', () => ({
   default: vi.fn(() => ({ exp: '1234' })),
 }))
@@ -217,6 +226,17 @@ describe('Vuex store', () => {
       it('commits redirectPath', () => {
         logout({ commit, state, dispatch })
         expect(commit).toHaveBeenCalledWith('redirectPath', '/overview')
+      })
+
+      // Nothing here reloads the page, so the previous member's answers stay in the
+      // Apollo cache unless they are thrown out by hand. `aliasStatus` has no variables
+      // and therefore one single key: the next member to sign in was shown their
+      // predecessor's remaining name changes, and the window at first login stayed away
+      // because the cached answer said the question had been settled.
+      it('throws out the previous member´s cached answers', async () => {
+        clearApolloCacheMock.mockClear()
+        await logout({ commit, state, dispatch })
+        expect(clearApolloCacheMock).toHaveBeenCalled()
       })
 
       it('removes only its own storage blob', () => {
