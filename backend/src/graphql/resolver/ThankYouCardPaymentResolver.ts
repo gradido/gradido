@@ -34,6 +34,7 @@ import {
 import { ThankYouCardPaymentArgs } from '@/graphql/arg/ThankYouCardSettingsArgs'
 import { ThankYouCardPaymentStatus } from '@/graphql/enum/ThankYouCardPaymentStatus'
 import { ThankYouCardPayment, ThankYouCardPaymentResult } from '@/graphql/model/ThankYouCardPayment'
+import { ThankYouCardPaymentTarget } from '@/graphql/model/ThankYouCardPaymentTarget'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
@@ -69,6 +70,9 @@ type ThankYouCardReceipt = Parameters<typeof sendThankYouCardPaidEmail>[0]
  * Deliberately says nothing about WHOSE card it is. The merchant is holding it, so the
  * name is not a secret from them — but they have not proved anything yet, and there is
  * no reason for the server to hand it over before the PIN.
+ *
+ * The card itself comes back on success, and callers may pass on what is PRINTED on it —
+ * today the label, see `ThankYouCardPaymentTarget`. Nothing about its owner.
  */
 const checkCard = async (
   code: string,
@@ -108,16 +112,21 @@ export class ThankYouCardPaymentResolver {
    *
    * The landing page asks this so that a blocked card is caught before the merchant
    * types an amount into it.
+   *
+   * `checkCard` has the card in its hand already, so the label costs no second query.
+   * Why it may be named at all, and only on SUCCESS: see `ThankYouCardPaymentTarget`.
    */
   @Authorized([RIGHTS.RECEIVE_THANK_YOU_CARD_PAYMENT])
-  @Query(() => ThankYouCardPaymentStatus)
+  @Query(() => ThankYouCardPaymentTarget)
   async thankYouCardPaymentTarget(
     @Arg('code', () => String) code: string,
     @Ctx() context: Context,
-  ): Promise<ThankYouCardPaymentStatus> {
+  ): Promise<ThankYouCardPaymentTarget> {
     const recipient = getUser(context)
     const checked = await checkCard(code, recipient.id)
-    return checked.usable ? ThankYouCardPaymentStatus.SUCCESS : checked.status
+    return checked.usable
+      ? new ThankYouCardPaymentTarget(ThankYouCardPaymentStatus.SUCCESS, checked.card.label)
+      : new ThankYouCardPaymentTarget(checked.status)
   }
 
   /**

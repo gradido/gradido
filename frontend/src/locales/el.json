@@ -785,6 +785,7 @@
     "name": "Thank you card",
     "receive": {
       "attempts-left": "{n} tries left",
+      "card": "Card: {label}",
       "default-memo": "Card payment",
       "next": "Continue",
       "next-payment": "Next payment",

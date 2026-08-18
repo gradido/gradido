@@ -79,7 +79,11 @@ export class ThankYouCardPaymentArgs {
   memo: string
 }
 
-/** Printing a card. The label is the member's own word for it, never shown to anybody else. */
+/**
+ * Printing a card. The label is the member's own word for it, and it is printed on the
+ * card, so the till that scans it shows it back (see `ThankYouCardPaymentTarget`). It is
+ * never a secret from whoever is holding the card, and never reaches anybody else.
+ */
 @ArgsType()
 export class ThankYouCardArgs {
   @Field(() => String)

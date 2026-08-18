@@ -787,6 +787,7 @@
     "name": "Dank-Karte",
     "receive": {
       "attempts-left": "noch {n} Versuche",
+      "card": "Karte: {label}",
       "default-memo": "Kartenzahlung",
       "next": "Weiter",
       "next-payment": "Nächste Zahlung",
