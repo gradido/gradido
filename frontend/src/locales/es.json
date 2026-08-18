@@ -738,7 +738,11 @@
     },
     "username": {
       "change-success": "Tu nombre de usuario se ha cambiado correctamente.",
-      "confirm-change": "{from} pasa a ser {to}. ¿Estás seguro?",
+      "confirm-free": "Ya tuviste este nombre: este cambio no cuenta para tu año.",
+      "confirm-last": "Este es tu último cambio de este año.",
+      "confirm-left": "Después podrás cambiar tu nombre una vez más este año. | Después podrás cambiar tu nombre {n} veces más este año.",
+      "confirm-reserved": "{name} queda reservado para ti: puedes recuperarlo cuando quieras.",
+      "confirm-title": "¿Seguro que quieres cambiar tu nombre de usuario?",
       "quota-blocked": "Has agotado los cambios de nombre para este año. Podrás volver a hacerlo a partir del {date}.",
       "quota-left": "Puedes cambiar tu nombre de usuario una vez más este año. | Puedes cambiar tu nombre de usuario {n} veces más este año."
     }

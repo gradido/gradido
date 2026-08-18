@@ -68,18 +68,54 @@
       </BForm>
     </div>
     <!-- /div -->
+
+    <BModal
+      id="modal-confirm-username"
+      v-model="showConfirm"
+      hide-header
+      centered
+      data-test="confirm-username-modal"
+    >
+      <div class="text-center px-2 pt-3">
+        <p class="mb-0">{{ $t('settings.username.confirm-title') }}</p>
+        <div class="username-change d-flex align-items-center justify-content-center my-3">
+          <span class="username-old" data-test="confirm-old">{{ username }}</span>
+          <span class="username-arrow">&rarr;</span>
+          <span class="username-new" data-test="confirm-new">{{ values.username }}</span>
+        </div>
+        <p v-if="reclaiming" class="small mb-0 text-success" data-test="confirm-free">
+          {{ $t('settings.username.confirm-free') }}
+        </p>
+        <p v-else class="small text-muted mb-0">
+          {{ $t('settings.username.confirm-reserved', { name: username }) }}
+          <br />
+          <span v-if="lastChange" class="confirm-last" data-test="confirm-last">
+            {{ $t('settings.username.confirm-last') }}
+          </span>
+          <span v-else data-test="confirm-left">{{ confirmLeftText }}</span>
+        </p>
+      </div>
+      <template #footer>
+        <BButton variant="secondary" data-test="confirm-cancel" @click="showConfirm = false">
+          {{ $t('form.cancel') }}
+        </BButton>
+        <BButton variant="gradido" data-test="confirm-change" @click="applyChange">
+          {{ $t('form.change') }}
+        </BButton>
+      </template>
+    </BModal>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useStore } from 'vuex'
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
-import { BRow, BCol, BFormInput, BFormGroup, BForm, BButton } from 'bootstrap-vue-next'
+import { BRow, BCol, BFormInput, BFormGroup, BForm, BButton, BModal } from 'bootstrap-vue-next'
 import InputUsername from '@/components/Inputs/InputUsername'
 import { updateUserInfos } from '@/graphql/mutations'
-import { aliasQuota } from '@/graphql/user.graphql'
+import { aliasStatus } from '@/graphql/user.graphql'
 import { useAppToast } from '@/composables/useToast'
 import { useForm } from 'vee-validate'
 
@@ -100,44 +136,56 @@ const { handleSubmit, errors, values } = useForm()
 const { mutate: updateUserInfo } = useMutation(updateUserInfos)
 // Asked before anything is typed, so the button can name a date instead of letting
 // somebody choose a name and then refusing it.
-const { result: quotaResult, refetch: refetchQuota } = useQuery(aliasQuota)
+const { result: statusResult, refetch: refetchStatus } = useQuery(aliasStatus)
 
-const changesLeft = computed(() => quotaResult.value?.aliasQuota?.changesLeft ?? null)
+const changesLeft = computed(() => statusResult.value?.aliasStatus?.changesLeft ?? null)
 const quotaExhausted = computed(() => changesLeft.value === 0)
 // vue-i18n picks the branch from the count and hands the message its `n`, so the
 // number is passed once and nothing here has to know about plural forms.
 const quotaLeftText = computed(() => t('settings.username.quota-left', changesLeft.value ?? 0))
 
 const nextChangeDate = computed(() => {
-  const at = quotaResult.value?.aliasQuota?.nextChangeAt
+  const at = statusResult.value?.aliasStatus?.nextChangeAt
   return at ? new Date(at).toLocaleDateString(locale.value) : ''
 })
 
-const onSubmit = handleSubmit(async () => {
-  // The old name next to the new one is what makes somebody read it; a dialog showing
-  // only what they just typed gets clicked away.
-  const confirmed = window.confirm(
-    t('settings.username.confirm-change', { from: username.value, to: values.username }),
-  )
-  if (!confirmed) {
-    return
-  }
+const showConfirm = ref(false)
+
+// Coming back to a name one already owns takes no name into possession, so it costs
+// nothing - and the member should be told that before they decide, not discover it
+// afterwards.
+const reclaiming = computed(() =>
+  (statusResult.value?.aliasStatus?.ownAliases ?? []).includes(values.username),
+)
+const lastChange = computed(() => !reclaiming.value && changesLeft.value === 1)
+const confirmLeftText = computed(() =>
+  t('settings.username.confirm-left', Math.max(0, (changesLeft.value ?? 1) - 1)),
+)
+
+// The form only opens the question. Saving happens when it has been answered - the old
+// name beside the new one is what makes somebody read before they agree.
+const onSubmit = handleSubmit(() => {
+  showConfirm.value = true
+})
+
+const applyChange = async () => {
+  showConfirm.value = false
   try {
     await updateUserInfo({ alias: values.username })
     store.commit('username', values.username)
     toastSuccess(t('settings.username.change-success'))
-    await refetchQuota()
+    await refetchStatus()
   } catch (error) {
     // The button is disabled once the quota is gone, so this is a backstop - reachable
     // by a race or a direct call. It still must not put a bare error code on screen.
     if (error.message?.includes('ALIAS_QUOTA_EXHAUSTED')) {
-      await refetchQuota()
+      await refetchStatus()
       toastError(t('settings.username.quota-blocked', { date: nextChangeDate.value }))
     } else {
       toastError(error.message)
     }
   }
-})
+}
 
 const username = computed(() => store.state.username || '')
 
@@ -149,6 +197,39 @@ const disabled = (err) => {
 </script>
 
 <style>
+.username-change {
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.username-old,
+.username-new {
+  font-size: 1.05rem;
+  font-weight: 600;
+  padding: 9px 16px;
+  border-radius: 17px;
+  background-color: var(--surface-muted);
+  border: 1px solid var(--border);
+  word-break: break-all;
+}
+
+.username-old {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.username-new {
+  color: var(--gold, #c58d38);
+}
+
+.username-arrow {
+  color: var(--text-muted);
+}
+
+.confirm-last {
+  color: var(--warning, #f5b539);
+}
+
 .cursor-pointer {
   cursor: pointer;
 }

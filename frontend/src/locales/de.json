@@ -739,7 +739,11 @@
     },
     "username": {
       "change-success": "Dein Nutzername wurde erfolgreich geändert.",
-      "confirm-change": "Aus {from} wird {to}. Bist Du sicher?",
+      "confirm-free": "Diesen Namen hattest Du schon — die Änderung zählt nicht auf Dein Jahr.",
+      "confirm-last": "Das ist Deine letzte Änderung in diesem Jahr.",
+      "confirm-left": "Danach kannst Du Deinen Namen dieses Jahr noch einmal ändern. | Danach kannst Du Deinen Namen dieses Jahr noch {n}-mal ändern.",
+      "confirm-reserved": "{name} bleibt für Dich reserviert — Du kannst ihn jederzeit zurückholen.",
+      "confirm-title": "Willst Du Deinen Nutzernamen wirklich ändern?",
       "quota-blocked": "Du hast Deine Namensänderungen für dieses Jahr aufgebraucht. Ab {date} geht es wieder.",
       "quota-left": "Du kannst Deinen Nutzernamen dieses Jahr noch einmal ändern. | Du kannst Deinen Nutzernamen dieses Jahr noch {n}-mal ändern."
     }

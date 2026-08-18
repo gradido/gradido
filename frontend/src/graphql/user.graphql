@@ -11,9 +11,11 @@ query user($identifier: String!, $communityIdentifier: String) {
   }
 }
 
-query aliasQuota {
-  aliasQuota {
+query aliasStatus {
+  aliasStatus {
     changesLeft
     nextChangeAt
+    ownAliases
+    aliasChosen
   }
 }

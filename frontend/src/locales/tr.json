@@ -738,7 +738,11 @@
     },
     "username": {
       "change-success": "Kullanıcı adın başarıyla değiştirildi.",
-      "confirm-change": "{from} adı {to} olacak. Emin misin?",
+      "confirm-free": "Bu ad zaten sendeydi — bu değişiklik yılına sayılmaz.",
+      "confirm-last": "Bu, bu yılki son değişikliğin.",
+      "confirm-left": "Sonrasında adını bu yıl bir kez daha değiştirebilirsin. | Sonrasında adını bu yıl {n} kez daha değiştirebilirsin.",
+      "confirm-reserved": "{name} senin için ayrılmış kalır — istediğin zaman geri alabilirsin.",
+      "confirm-title": "Kullanıcı adını gerçekten değiştirmek istiyor musun?",
       "quota-blocked": "Bu yıl için ad değişikliği hakkını doldurdun. {date} tarihinden itibaren yeniden mümkün.",
       "quota-left": "Kullanıcı adını bu yıl bir kez daha değiştirebilirsin. | Kullanıcı adını bu yıl {n} kez daha değiştirebilirsin."
     }

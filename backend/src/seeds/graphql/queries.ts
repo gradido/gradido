@@ -39,11 +39,13 @@ export const queryOptIn = gql`
   }
 `
 
-export const aliasQuota = gql`
+export const aliasStatus = gql`
   query {
-    aliasQuota {
+    aliasStatus {
       changesLeft
       nextChangeAt
+      ownAliases
+      aliasChosen
     }
   }
 `

@@ -12,7 +12,7 @@ import { PublishNameType } from '@enum/PublishNameType'
 import { RoleNames } from '@enum/RoleNames'
 import { UserContactType } from '@enum/UserContactType'
 import { AdminUser, SearchAdminUsersResult } from '@model/AdminUser'
-import { AliasQuota } from '@model/AliasQuota'
+import { AliasStatus } from '@model/AliasStatus'
 import { GmsUserAuthenticationResult } from '@model/GmsUserAuthenticationResult'
 import { User } from '@model/User'
 import { SearchUsersResult, UserAdmin } from '@model/UserAdmin'
@@ -39,6 +39,7 @@ import {
   UserRole as DbUserRole,
   dbCountChosenAliasesSince,
   dbDeleteUserAvatar,
+  dbFindAliasesByUser,
   dbFindOldestChosenAliasSince,
   dbFindOwnAlias,
   dbFindProjectBrandingByAlias,
@@ -46,6 +47,7 @@ import {
   dbFindUserAvatarFull,
   dbFindUserAvatarSmall,
   dbInsertUserAlias,
+  dbMarkAliasChosen,
   dbUpsertUserAvatar,
   findUserByIdentifier,
   getHomeCommunity,
@@ -1086,30 +1088,61 @@ export class UserResolver {
 
   @Authorized([RIGHTS.GMS_USER_PLAYGROUND])
   /**
-   * What the settings page needs before the member types anything: whether they may
-   * still pick a name, and from when if not. Asking here rather than answering with an
-   * error keeps the button honest - it can say "not before 3 February" instead of
-   * letting somebody type a name and then refusing it.
+   * Asked before the member types anything, so the page can name a date on a disabled
+   * button instead of letting somebody choose a name and then refusing it - and so the
+   * confirmation can say what a change will cost before it happens.
    */
   @Authorized([RIGHTS.UPDATE_USER_INFOS])
-  @Query(() => AliasQuota)
-  async aliasQuota(@Ctx() context: Context): Promise<AliasQuota> {
+  @Query(() => AliasStatus)
+  async aliasStatus(@Ctx() context: Context): Promise<AliasStatus> {
     const user = getUser(context)
     const since = new Date(Date.now() - ALIAS_QUOTA_WINDOW_MS)
     const picked = await dbCountChosenAliasesSince(user.id, since)
+    const owned = await dbFindAliasesByUser(user.id)
 
-    const quota = new AliasQuota()
-    quota.changesLeft = Math.max(0, ALIAS_QUOTA_PER_WINDOW - picked)
-    quota.nextChangeAt = null
-    if (quota.changesLeft === 0) {
+    const status = new AliasStatus()
+    status.changesLeft = Math.max(0, ALIAS_QUOTA_PER_WINDOW - picked)
+    status.ownAliases = owned.map((row) => row.alias)
+    status.aliasChosen =
+      owned.find((row) => row.alias === user.alias)?.origin === ALIAS_ORIGIN_CHOSEN
+    status.nextChangeAt = null
+    if (status.changesLeft === 0) {
       // The window rolls, so it is the oldest pick still inside it that frees the next
       // slot - a year after it was made, not a year from today.
       const oldest = await dbFindOldestChosenAliasSince(user.id, since)
       if (oldest) {
-        quota.nextChangeAt = new Date(oldest.createdAt.getTime() + ALIAS_QUOTA_WINDOW_MS)
+        status.nextChangeAt = new Date(oldest.createdAt.getTime() + ALIAS_QUOTA_WINDOW_MS)
       }
     }
-    return quota
+    return status
+  }
+
+  /**
+   * "Passt so" at first login: the member keeps the name the system built for them, and
+   * by keeping it they take it. Nothing about the name changes - only that it is now
+   * theirs by choice, which is what stops the window coming back and what makes it cost
+   * one of the four, exactly as picking a different one would.
+   */
+  @Authorized([RIGHTS.UPDATE_USER_INFOS])
+  @Mutation(() => Boolean)
+  async adoptAlias(@Ctx() context: Context): Promise<boolean> {
+    const user = getUser(context)
+    const logger = createLogger('adoptAlias')
+    logger.addContext('user', user.id)
+
+    const row = await dbFindOwnAlias(user.id, user.alias, user.communityUuid)
+    if (!row) {
+      logger.warn('no row for the alias the member holds')
+      throw new LogError('ALIAS_NOT_FOUND')
+    }
+    if (row.origin === ALIAS_ORIGIN_CHOSEN) {
+      // Already theirs by choice - saying so twice is not an error, it just does
+      // nothing, which keeps a double click from becoming a failure.
+      return true
+    }
+    await dbMarkAliasChosen(row.id)
+    logger.info('member adopted the name they were given')
+    return true
   }
 
   @Query(() => GmsUserAuthenticationResult)

@@ -24,6 +24,12 @@ export const forgotPassword = gql`
   }
 `
 
+export const adoptAlias = gql`
+  mutation {
+    adoptAlias
+  }
+`
+
 export const updateUserInfos = gql`
   mutation (
     $firstName: String

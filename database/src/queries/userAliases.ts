@@ -86,3 +86,16 @@ export async function dbInsertUserAlias(
   const row = DbUserAlias.create({ userId, alias, communityUuid, origin })
   return manager ? manager.save(row) : DbUserAlias.save(row)
 }
+
+/** Every name this member owns, current one included. */
+export async function dbFindAliasesByUser(userId: number): Promise<DbUserAlias[]> {
+  return DbUserAlias.find({ where: { userId }, order: { createdAt: 'ASC' } })
+}
+
+/**
+ * The member kept the name they were handed, which makes it a name they picked. Nothing
+ * else about the row changes - `created_at` still records when they got it.
+ */
+export async function dbMarkAliasChosen(id: number): Promise<void> {
+  await DbUserAlias.update({ id }, { origin: ALIAS_ORIGIN_CHOSEN })
+}

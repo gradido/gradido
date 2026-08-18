@@ -60,7 +60,7 @@ import {
   updateUserInfos,
 } from '@/seeds/graphql/mutations'
 import {
-  aliasQuota,
+  aliasStatus,
   avatarFull,
   checkUsername,
   queryOptIn,
@@ -3278,17 +3278,17 @@ describe('UserResolver', () => {
         }),
       )
 
-      await expect(query({ query: aliasQuota })).resolves.toMatchObject({
-        data: { aliasQuota: { changesLeft: 4, nextChangeAt: null } },
+      await expect(query({ query: aliasStatus })).resolves.toMatchObject({
+        data: { aliasStatus: { changesLeft: 4, nextChangeAt: null } },
       })
     })
 
-    describe('the quota query', () => {
+    describe('the status query', () => {
       it('counts down as names are picked', async () => {
         await changeTo('bibi-one')
 
-        await expect(query({ query: aliasQuota })).resolves.toMatchObject({
-          data: { aliasQuota: { changesLeft: 3, nextChangeAt: null } },
+        await expect(query({ query: aliasStatus })).resolves.toMatchObject({
+          data: { aliasStatus: { changesLeft: 3, nextChangeAt: null } },
         })
       })
 
@@ -3300,16 +3300,16 @@ describe('UserResolver', () => {
         await changeTo('bibi-three')
         await changeTo('bibi-four')
 
-        const result = await query({ query: aliasQuota })
-        expect(result.data.aliasQuota.changesLeft).toBe(0)
-        expect(result.data.aliasQuota.nextChangeAt).not.toBeNull()
+        const result = await query({ query: aliasStatus })
+        expect(result.data.aliasStatus.changesLeft).toBe(0)
+        expect(result.data.aliasStatus.nextChangeAt).not.toBeNull()
 
         const oldest = await UserAlias.findOneOrFail({
           where: { userId: member.id, origin: ALIAS_ORIGIN_CHOSEN },
           order: { createdAt: 'ASC' },
         })
         const expected = new Date(oldest.createdAt.getTime() + 365 * 24 * 60 * 60 * 1000)
-        expect(new Date(result.data.aliasQuota.nextChangeAt).getTime()).toBeCloseTo(
+        expect(new Date(result.data.aliasStatus.nextChangeAt).getTime()).toBeCloseTo(
           expected.getTime(),
           -3,
         )

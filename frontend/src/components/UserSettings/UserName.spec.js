@@ -18,7 +18,12 @@ vi.mock('bootstrap-vue-next', () => ({
   BFormInput: { template: '<input />' },
   BFormGroup: { template: '<div><slot></slot></div>' },
   BForm: { template: '<form><slot></slot></form>' },
-  BButton: { template: '<button><slot></slot></button>' },
+  BButton: { template: '<button @click=\"$emit(`click`)\"><slot></slot></button>' },
+  // Honours modelValue so that "the question was asked" is something a test can see.
+  BModal: {
+    props: ['modelValue'],
+    template: '<div v-if=\"modelValue\"><slot></slot><slot name=\"footer\"></slot></div>',
+  },
 }))
 
 const i18n = createI18n({
@@ -30,6 +35,13 @@ const i18n = createI18n({
       'settings.username.confirm-change': '{from} becomes {to}. Are you sure?',
       'settings.username.quota-left': 'one more change | {n} more changes',
       'settings.username.quota-blocked': 'used up, again from {date}',
+      'settings.username.confirm-title': 'Really change your username?',
+      'settings.username.confirm-reserved': '{name} stays reserved for you.',
+      'settings.username.confirm-left': 'one more change after this | {n} more changes after this',
+      'settings.username.confirm-last': 'this is your last change this year',
+      'settings.username.confirm-free': 'you had this name before, it is free',
+      'form.cancel': 'Cancel',
+      'form.change': 'Change',
     },
   },
 })
@@ -51,7 +63,9 @@ const mutationMock = vi.fn()
 const refetchQuotaMock = vi.fn()
 // The settings page asks for the quota before anything is typed, so the component
 // mounts a query as well as a mutation.
-const quotaMock = ref({ aliasQuota: { changesLeft: 3, nextChangeAt: null } })
+const quotaMock = ref({
+  aliasStatus: { changesLeft: 3, nextChangeAt: null, ownAliases: [], aliasChosen: true },
+})
 vi.mock('@vue/apollo-composable', () => ({
   useMutation: vi.fn(() => ({
     mutate: mutationMock,
@@ -108,8 +122,9 @@ describe('UserName Form', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     valuesMock.value.username = ''
-    quotaMock.value = { aliasQuota: { changesLeft: 3, nextChangeAt: null } }
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    quotaMock.value = {
+      aliasStatus: { changesLeft: 3, nextChangeAt: null, ownAliases: [], aliasChosen: true },
+    }
     wrapper = mountComponent()
   })
 
@@ -151,7 +166,9 @@ describe('UserName Form', () => {
     })
 
     it('uses the singular form for the last one', async () => {
-      quotaMock.value = { aliasQuota: { changesLeft: 1, nextChangeAt: null } }
+      quotaMock.value = {
+        aliasStatus: { changesLeft: 1, nextChangeAt: null, ownAliases: [], aliasChosen: true },
+      }
       wrapper = mountComponent()
       expect(wrapper.find('[data-test="username-quota-left"]').text()).toBe('one more change')
     })
@@ -159,7 +176,12 @@ describe('UserName Form', () => {
     describe('when it is used up', () => {
       beforeEach(async () => {
         quotaMock.value = {
-          aliasQuota: { changesLeft: 0, nextChangeAt: '2027-02-03T10:00:00.000Z' },
+          aliasStatus: {
+            changesLeft: 0,
+            nextChangeAt: '2027-02-03T10:00:00.000Z',
+            ownAliases: [],
+            aliasChosen: true,
+          },
         }
         wrapper = mountComponent({ username: 'existingUser' })
         valuesMock.value.username = 'newUser'
@@ -178,23 +200,73 @@ describe('UserName Form', () => {
     })
   })
 
-  // A dialog naming only the new name gets clicked away; the old one next to it is
-  // what makes somebody read before saving.
+  // A dialog naming only the new name gets clicked away; the old one beside it is what
+  // makes somebody read before saving. Nothing is written until it is answered.
   describe('the confirmation before saving', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       wrapper = mountComponent({ username: 'oldName' })
       valuesMock.value.username = 'newName'
+      await wrapper.vm.$nextTick()
     })
 
-    it('asks with both names', async () => {
-      await wrapper.find('form').trigger('submit')
-      expect(window.confirm).toHaveBeenCalledWith('oldName becomes newName. Are you sure?')
+    it('asks nothing until the form is submitted', () => {
+      expect(wrapper.find('[data-test="confirm-username-modal"]').exists()).toBe(false)
     })
 
-    it('saves nothing when the member says no', async () => {
-      window.confirm.mockReturnValue(false)
+    it('shows both names once it is asked', async () => {
       await wrapper.find('form').trigger('submit')
+
+      expect(wrapper.find('[data-test="confirm-old"]').text()).toBe('oldName')
+      expect(wrapper.find('[data-test="confirm-new"]').text()).toBe('newName')
+    })
+
+    it('says what the change leaves, and that the old name is kept', async () => {
+      await wrapper.find('form').trigger('submit')
+
+      expect(wrapper.find('[data-test="confirm-left"]').text()).toBe('2 more changes after this')
+      expect(wrapper.text()).toContain('oldName stays reserved for you.')
+    })
+
+    it('warns when it is the last change of the year', async () => {
+      quotaMock.value = {
+        aliasStatus: { changesLeft: 1, nextChangeAt: null, ownAliases: [], aliasChosen: true },
+      }
+      wrapper = mountComponent({ username: 'oldName' })
+      await wrapper.find('form').trigger('submit')
+
+      expect(wrapper.find('[data-test="confirm-last"]').exists()).toBe(true)
+    })
+
+    // Coming back to a name one already owns takes no name into possession, so it is
+    // free - and saying so is the difference between a rule and a surprise.
+    it('says a name of one´s own costs nothing', async () => {
+      quotaMock.value = {
+        aliasStatus: {
+          changesLeft: 2,
+          nextChangeAt: null,
+          ownAliases: ['newName'],
+          aliasChosen: true,
+        },
+      }
+      wrapper = mountComponent({ username: 'oldName' })
+      await wrapper.find('form').trigger('submit')
+
+      expect(wrapper.find('[data-test="confirm-free"]').exists()).toBe(true)
+      expect(wrapper.find('[data-test="confirm-left"]').exists()).toBe(false)
+    })
+
+    it('writes nothing while the question stands', async () => {
+      await wrapper.find('form').trigger('submit')
+
       expect(mutationMock).not.toHaveBeenCalled()
+    })
+
+    it('writes nothing when the member says no', async () => {
+      await wrapper.find('form').trigger('submit')
+      await wrapper.find('[data-test="confirm-cancel"]').trigger('click')
+
+      expect(mutationMock).not.toHaveBeenCalled()
+      expect(wrapper.find('[data-test="confirm-username-modal"]').exists()).toBe(false)
     })
   })
 
@@ -223,6 +295,7 @@ describe('UserName Form', () => {
       valuesMock.value.username = 'newUser'
       await wrapper.vm.$nextTick()
       await wrapper.find('form').trigger('submit')
+      await wrapper.find('[data-test="confirm-change"]').trigger('click')
 
       expect(mutationMock).toHaveBeenCalledWith({ alias: 'newUser' })
       expect(wrapper.vm.store.state.username).toBe('newUser')
@@ -235,6 +308,7 @@ describe('UserName Form', () => {
       valuesMock.value.username = 'newUser'
       await wrapper.vm.$nextTick()
       await wrapper.find('form').trigger('submit')
+      await wrapper.find('[data-test="confirm-change"]').trigger('click')
 
       expect(mutationMock).toHaveBeenCalledWith({ alias: 'newUser' })
       expect(toastErrorMock).toHaveBeenCalledWith('API Error')
