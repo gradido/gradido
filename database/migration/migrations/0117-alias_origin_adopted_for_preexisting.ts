@@ -15,12 +15,11 @@
 // 0116 now writes 'adopted' for them. This migration carries the same correction to a
 // database that already ran the old version.
 //
-// ⚠️ It cannot separate those rows from the ones `createUser` wrote as 'assigned' in the
-// window between the two deployments, so a member who registered in exactly that window
-// loses the first-login question. That window is one afternoon on ki-playground; on
-// every other system 0117 follows 0116 within the same deploy and there is nothing else
-// for it to catch. A sharper predicate is buildable and would be cleverness against a
-// damage that does not exist.
+// It cannot separate those rows from the ones `createUser` wrote as 'assigned' in the
+// window between the two deployments - a member who registered in exactly that window
+// would lose the first-login question. Checked before shipping: nobody registered in it.
+// On every other system 0117 follows 0116 within the same deploy, so there is nothing
+// else for it to catch, which is why the predicate stays this plain.
 //
 // Idempotent: running it where 0116 already wrote 'adopted' matches nothing.
 
