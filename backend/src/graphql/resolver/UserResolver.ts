@@ -12,6 +12,7 @@ import { PublishNameType } from '@enum/PublishNameType'
 import { RoleNames } from '@enum/RoleNames'
 import { UserContactType } from '@enum/UserContactType'
 import { AdminUser, SearchAdminUsersResult } from '@model/AdminUser'
+import { AliasStatus } from '@model/AliasStatus'
 import { GmsUserAuthenticationResult } from '@model/GmsUserAuthenticationResult'
 import { User } from '@model/User'
 import { SearchUsersResult, UserAdmin } from '@model/UserAdmin'
@@ -26,17 +27,28 @@ import {
   validateAlias,
 } from 'core'
 import {
+  ALIAS_ORIGIN_ASSIGNED,
+  ALIAS_ORIGIN_CHOSEN,
+  type AliasOrigin,
   AppDatabase,
+  aliasExists,
+  aliasOriginIsSettled,
   ContributionLink as DbContributionLink,
   TransactionLink as DbTransactionLink,
   User as DbUser,
   UserContact as DbUserContact,
   UserRole as DbUserRole,
+  dbCountChosenAliasesSince,
   dbDeleteUserAvatar,
+  dbFindAliasesByUser,
+  dbFindOldestChosenAliasSince,
+  dbFindOwnAlias,
   dbFindProjectBrandingByAlias,
   dbFindProjectSpaceId,
   dbFindUserAvatarFull,
   dbFindUserAvatarSmall,
+  dbInsertUserAlias,
+  dbMarkAliasAdopted,
   dbUpsertUserAvatar,
   findUserByIdentifier,
   getHomeCommunity,
@@ -47,10 +59,15 @@ import { GraphQLResolveInfo } from 'graphql'
 import { getLogger, Logger } from 'log4js'
 import random from 'random-bigint'
 import {
+  ALIAS_QUOTA_PER_WINDOW,
+  ALIAS_QUOTA_WINDOW_MS,
   AVATAR_FULL_MAX_BYTES,
   AVATAR_SMALL_MAX_BYTES,
+  aliasCandidates,
+  aliasSchema,
   JPEG_END_BYTES,
   JPEG_MAGIC_BYTES,
+  pickFreeAlias,
   updateAllDefinedAndChanged,
 } from 'shared'
 import { randombytes_random } from 'sodium-native'
@@ -119,7 +136,8 @@ import { removeUserFromGms } from './util/syncMatchingEntryToGms'
 const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl', 'it', 'tr', 'ru', 'pt', 'el']
 const DEFAULT_LANGUAGE = 'de'
 const db = AppDatabase.getInstance()
-const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserResolver`)
+const createLogger = (method: string) =>
+  getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserResolver.${method}`)
 const isLanguage = (language: string): boolean => {
   return LANGUAGES.includes(language)
 }
@@ -160,7 +178,7 @@ export class UserResolver {
   @Authorized([RIGHTS.VERIFY_LOGIN])
   @Query(() => User)
   async verifyLogin(@Ctx() context: Context): Promise<User> {
-    const logger = createLogger()
+    const logger = createLogger('verifyLogin')
     logger.info('verifyLogin...')
     // TODO refactor and do not have duplicate code with login(see below)
     const userEntity = getUser(context)
@@ -194,7 +212,7 @@ export class UserResolver {
     @Args() { email, password, publisherId, project }: UnsecureLoginArgs,
     @Ctx() context: Context,
   ): Promise<User> {
-    const logger = createLogger()
+    const logger = createLogger('login')
     logger.info(`login with ${email.substring(0, 3)}..., project=${project} ...`)
     email = email.trim().toLowerCase()
     let dbUser: DbUser
@@ -312,7 +330,7 @@ export class UserResolver {
       project = null,
     }: CreateUserArgs,
   ): Promise<User> {
-    const logger = createLogger()
+    const logger = createLogger('createUser')
     const shortEmail = email.substring(0, 3)
     logger.addContext('email', shortEmail)
 
@@ -457,6 +475,35 @@ export class UserResolver {
         throw new LogError('Error while updating dbUser', error)
       })
 
+      // Everybody holds a name from here on. Migration 0116 covers the members who
+      // existed when it ran; without this, every account opened after it would carry
+      // none again - and since a transaction stores `sender.alias`, their rows would
+      // have nothing where a name belongs.
+      //
+      // A name the system builds is a proposal: it is reserved for them and can be
+      // taken back, but it costs none of their four picks until they adopt it.
+      let aliasOrigin: AliasOrigin = ALIAS_ORIGIN_CHOSEN
+      if (!dbUser.alias) {
+        aliasOrigin = ALIAS_ORIGIN_ASSIGNED
+        dbUser.alias = await pickFreeAlias(
+          aliasCandidates(dbUser.firstName, dbUser.lastName, email),
+          dbUser.id,
+          aliasExists,
+        )
+        // The ladder decides what to offer, the schema decides what may be written.
+        aliasSchema.parse(dbUser.alias)
+        dbUser = await queryRunner.manager.save(dbUser).catch((error) => {
+          throw new LogError('Error while storing the generated alias', error)
+        })
+      }
+      await dbInsertUserAlias(
+        dbUser.id,
+        dbUser.alias,
+        dbUser.communityUuid,
+        aliasOrigin,
+        queryRunner.manager,
+      )
+
       const activationLink = `${
         CONFIG.EMAIL_LINK_VERIFICATION
       }${emailContact.emailVerificationCode.toString()}${redeemCode ? `/${redeemCode}` : ''}${
@@ -536,7 +583,7 @@ export class UserResolver {
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
   @Mutation(() => Boolean)
   async forgotPassword(@Arg('email') email: string): Promise<boolean> {
-    const logger = createLogger()
+    const logger = createLogger('forgotPassword')
     const shortEmail = email.substring(0, 3)
     logger.addContext('email', shortEmail)
     logger.info('forgotPassword...')
@@ -597,7 +644,7 @@ export class UserResolver {
     @Arg('code') code: string,
     @Arg('password') password: string,
   ): Promise<boolean> {
-    const logger = createLogger()
+    const logger = createLogger('setPassword')
     logger.info(`setPassword...`)
     // Validate Password
     if (!isValidPassword(password)) {
@@ -677,7 +724,7 @@ export class UserResolver {
   @Authorized([RIGHTS.QUERY_OPT_IN])
   @Query(() => Boolean)
   async queryOptIn(@Arg('optIn') optIn: string): Promise<boolean> {
-    const logger = createLogger()
+    const logger = createLogger('queryOptIn')
     logger.addContext('optIn', optIn.substring(0, 4))
     logger.info(`queryOptIn...`)
     const userContact = await DbUserContact.findOneOrFail({
@@ -697,9 +744,13 @@ export class UserResolver {
 
   @Authorized([RIGHTS.CHECK_USERNAME])
   @Query(() => Boolean)
-  async checkUsername(@Arg('username') username: string): Promise<boolean> {
+  async checkUsername(
+    @Arg('username') username: string,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
     try {
-      await validateAlias(username)
+      const user = getUser(context)
+      await validateAlias(username, user?.id)
       return true
     } catch {
       return false
@@ -729,8 +780,8 @@ export class UserResolver {
       gmsPublishLocation,
       aboutMe,
     } = updateUserInfosArgs
-    const user = getUser(context)
-    const logger = createLogger()
+    let user = getUser(context)
+    const logger = createLogger('updateUserInfos')
     logger.addContext('user', user.id)
     // log only if a value is set
     logger.info(`updateUserInfos...`, {
@@ -763,72 +814,121 @@ export class UserResolver {
     const oldHumhubUsername = publishNameLogic.getUserIdentifier(
       user.humhubPublishName as PublishNameType,
     )
-
-    let updated = updateAllDefinedAndChanged(user, {
-      firstName,
-      lastName,
-      hideAmountGDD,
-      hideAmountGDT,
-      humhubAllowed,
-      gmsAllowed,
-      gmsPublishName: gmsPublishName?.valueOf(),
-      humhubPublishName: humhubPublishName?.valueOf(),
-      gmsPublishLocation: gmsPublishLocation?.valueOf(),
-      aboutMe,
-    })
-
-    // currently alias can only be set, not updated
-    if (alias && !user.alias && (await validateAlias(alias))) {
-      user.alias = alias
-      updated = true
-    }
-
-    if (language) {
-      if (!isLanguage(language)) {
-        logger.warn('try to set unsupported language', language)
-        throw new LogError('Given language is not a valid language or not supported')
-      }
-      user.language = language
-      updated = true
-    }
-
-    if (password && passwordNew) {
-      // Validate Password
-      if (!isValidPassword(passwordNew)) {
-        // TODO: log which rule(s) wasn't met
-        logger.warn('try to set invalid password')
-        throw new Error(
-          'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
-        )
-      }
-
-      if (!(await verifyPassword(user, password))) {
-        logger.debug('old password is invalid')
-        throw new LogError(`Old password is invalid`)
-      }
-
-      // Save new password hash and newly encrypted private key
-      user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-      user.password = await encryptPassword(user, passwordNew)
-      updated = true
-    }
-
-    if (gmsLocation) {
-      user.location = Location2Point(gmsLocation)
-      updated = true
-    }
-
-    // early exit if no update was made
-    if (!updated) {
-      return true
-    }
-
+    const queryRunner = db.getDataSource().createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction('REPEATABLE READ')
+    // Everything from here on runs inside the transaction that was just opened, and
+    // that is the point: before, only the save was guarded, so a rejected alias, an
+    // exhausted quota, a bad password or an unsupported language left the connection
+    // open with a REPEATABLE READ transaction still running on it.
     try {
-      await DbUser.save(user)
-    } catch (error) {
-      const errorMessage = 'Error saving user'
-      logger.error(errorMessage, error)
-      throw new Error(errorMessage)
+      let updated = updateAllDefinedAndChanged(user, {
+        firstName,
+        lastName,
+        hideAmountGDD,
+        hideAmountGDT,
+        humhubAllowed,
+        gmsAllowed,
+        gmsPublishName: gmsPublishName?.valueOf(),
+        humhubPublishName: humhubPublishName?.valueOf(),
+        gmsPublishLocation: gmsPublishLocation?.valueOf(),
+        aboutMe,
+      })
+      // Taking a name inserts a row and moves the marker; reclaiming one the member
+      // already owns only moves the marker. Leaving a name writes nothing - its row is
+      // already there. That is why the number of picked rows in a year is exactly how
+      // often somebody chose, and why coming back to an earlier name is free.
+      if (alias && alias !== user.alias) {
+        await validateAlias(alias, user.id)
+        const communityUuid = user.communityUuid
+        const ownAlready = await dbFindOwnAlias(user.id, alias, communityUuid, queryRunner.manager)
+        if (!ownAlready) {
+          const since = new Date(Date.now() - ALIAS_QUOTA_WINDOW_MS)
+          const picked = await dbCountChosenAliasesSince(user.id, since, queryRunner.manager)
+          if (picked >= ALIAS_QUOTA_PER_WINDOW) {
+            logger.warn('alias quota exhausted', picked)
+            throw new LogError('ALIAS_QUOTA_EXHAUSTED')
+          }
+          await dbInsertUserAlias(
+            user.id,
+            alias,
+            communityUuid,
+            ALIAS_ORIGIN_CHOSEN,
+            queryRunner.manager,
+          )
+          logger.debug('member took a new alias')
+        } else {
+          logger.debug('member reclaimed an alias they already owned')
+        }
+        user.alias = alias
+        updated = true
+      }
+
+      if (language) {
+        if (!isLanguage(language)) {
+          logger.warn('try to set unsupported language', language)
+          throw new LogError('Given language is not a valid language or not supported')
+        }
+        user.language = language
+        updated = true
+      }
+
+      if (password && passwordNew) {
+        // Validate Password
+        if (!isValidPassword(passwordNew)) {
+          // TODO: log which rule(s) wasn't met
+          logger.warn('try to set invalid password')
+          throw new Error(
+            'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+          )
+        }
+
+        if (!(await verifyPassword(user, password))) {
+          logger.debug('old password is invalid')
+          throw new LogError(`Old password is invalid`)
+        }
+
+        // Save new password hash and newly encrypted private key
+        user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
+        user.password = await encryptPassword(user, passwordNew)
+        updated = true
+      }
+
+      if (gmsLocation) {
+        user.location = Location2Point(gmsLocation)
+        updated = true
+      }
+
+      // early exit if no update was made. Nothing was written, but the transaction is
+      // open all the same and has to be closed before returning - and this is the most
+      // travelled way out of the whole resolver, so a bare `return` here leaked a
+      // connection on every call that changed nothing.
+      if (!updated) {
+        await queryRunner.rollbackTransaction()
+        return true
+      }
+
+      try {
+        user = await queryRunner.manager.save(user).catch((error) => {
+          throw new LogError('Error while saving user', error)
+        })
+        await queryRunner.commitTransaction()
+        logger.addContext('user', user.id)
+      } catch (err) {
+        const errorMessage = 'Error saving user'
+        logger.error(errorMessage, err)
+        throw new Error(errorMessage)
+      }
+    } catch (err) {
+      if (queryRunner.isTransactionActive) {
+        await queryRunner.rollbackTransaction()
+      }
+      // Passed on unchanged. The wallet reads ALIAS_QUOTA_EXHAUSTED off the message to
+      // name a date instead of showing a bare code, so flattening these into one
+      // message here would take that away.
+      throw err
+    } finally {
+      await queryRunner.release()
     }
     logger.info('updateUserInfos() successfully finished...')
     logger.debug('writing User data successful...', new UserLoggingView(user))
@@ -902,7 +1002,7 @@ export class UserResolver {
     @Ctx() context: Context,
   ): Promise<boolean> {
     const user = getUser(context)
-    const logger = createLogger()
+    const logger = createLogger('setUserAvatar')
     logger.addContext('user', user.id)
 
     const small = this.decodeAvatar(avatarSmall, 'small', AVATAR_SMALL_MAX_BYTES)
@@ -984,7 +1084,7 @@ export class UserResolver {
   @Mutation(() => Boolean)
   async removeUserAvatar(@Ctx() context: Context): Promise<boolean> {
     const user = getUser(context)
-    const logger = createLogger()
+    const logger = createLogger('removeUserAvatar')
     logger.addContext('user', user.id)
     logger.info('removeUserAvatar...')
 
@@ -996,18 +1096,88 @@ export class UserResolver {
   @Query(() => Boolean)
   async hasElopage(@Ctx() context: Context): Promise<boolean> {
     const dbUser = getUser(context)
-    const logger = createLogger()
+    const logger = createLogger('hasElopage')
     logger.addContext('user', dbUser.id)
     const elopageBuys = await hasElopageBuys(dbUser.emailContact.email)
     logger.info(`has Elopage (ablify): ${elopageBuys}`)
     return elopageBuys
   }
 
+  /**
+   * Asked before the member types anything, so the page can name a date on a disabled
+   * button instead of letting somebody choose a name and then refusing it - and so the
+   * confirmation can say what a change will cost before it happens.
+   */
+  @Authorized([RIGHTS.UPDATE_USER_INFOS])
+  @Query(() => AliasStatus)
+  async aliasStatus(@Ctx() context: Context): Promise<AliasStatus> {
+    const user = getUser(context)
+    const since = new Date(Date.now() - ALIAS_QUOTA_WINDOW_MS)
+    const picked = await dbCountChosenAliasesSince(user.id, since)
+    const owned = await dbFindAliasesByUser(user.id)
+
+    const status = new AliasStatus()
+    status.changesLeft = Math.max(0, ALIAS_QUOTA_PER_WINDOW - picked)
+    status.ownAliases = owned.map((row) => row.alias)
+    // Compared without regard to case, because the column is utf8mb4_unicode_ci and so
+    // is every lookup that writes it. A member who only changes the capitalisation of
+    // their own name keeps the very same row - a `===` here would stop finding it and
+    // put them back in front of the first-login window with no way out: keeping the
+    // name reports "already settled" without changing anything, so the window would
+    // return on every page mount until they spent one of their four picks.
+    const current = user.alias?.toLowerCase()
+    status.aliasSettled = owned.some(
+      (row) => row.alias.toLowerCase() === current && aliasOriginIsSettled(row.origin),
+    )
+    status.nextChangeAt = null
+    if (status.changesLeft === 0) {
+      // The window rolls, so it is the oldest pick still inside it that frees the next
+      // slot - a year after it was made, not a year from today.
+      const oldest = await dbFindOldestChosenAliasSince(user.id, since)
+      if (oldest) {
+        status.nextChangeAt = new Date(oldest.createdAt.getTime() + ALIAS_QUOTA_WINDOW_MS)
+      }
+    }
+    return status
+  }
+
+  /**
+   * "Passt so" at first login: the member keeps the name the system built for them, and
+   * Nothing about the name changes - only that the question has been answered, which
+   * is what stops the window coming back.
+   *
+   * It costs none of the four. The member did not pick this name, they only let it
+   * stand, and charging a quarter of the yearly quota for that would be a price for
+   * something that is barely an act (NU-010/011). That is why the row becomes
+   * `adopted` and not `chosen`.
+   */
+  @Authorized([RIGHTS.UPDATE_USER_INFOS])
+  @Mutation(() => Boolean)
+  async adoptAlias(@Ctx() context: Context): Promise<boolean> {
+    const user = getUser(context)
+    const logger = createLogger('adoptAlias')
+    logger.addContext('user', user.id)
+
+    const row = await dbFindOwnAlias(user.id, user.alias, user.communityUuid)
+    if (!row) {
+      logger.warn('no row for the alias the member holds')
+      throw new LogError('ALIAS_NOT_FOUND')
+    }
+    if (aliasOriginIsSettled(row.origin)) {
+      // Already answered - saying so twice is not an error, it just does nothing,
+      // which keeps a double click from becoming a failure.
+      return true
+    }
+    await dbMarkAliasAdopted(row.id)
+    logger.info('member kept the name they were given')
+    return true
+  }
+
   @Authorized([RIGHTS.GMS_USER_PLAYGROUND])
   @Query(() => GmsUserAuthenticationResult)
   async authenticateGmsUserSearch(@Ctx() context: Context): Promise<GmsUserAuthenticationResult> {
     const dbUser = getUser(context)
-    const logger = createLogger()
+    const logger = createLogger('authenticateGmsUserSearch')
     logger.addContext('user', dbUser.id)
     logger.info(`authenticateGmsUserSearch()...`)
 
@@ -1037,7 +1207,7 @@ export class UserResolver {
   @Query(() => UserLocationResult)
   async userLocation(@Ctx() context: Context): Promise<UserLocationResult> {
     const dbUser = getUser(context)
-    const logger = createLogger()
+    const logger = createLogger('userLocation')
     logger.addContext('user', dbUser.id)
     logger.info(`userLocation()...`)
 
@@ -1068,7 +1238,7 @@ export class UserResolver {
     @Arg('project', () => String, { nullable: true }) project?: string | null,
   ): Promise<string> {
     const dbUser = getUser(context)
-    const logger = createLogger()
+    const logger = createLogger('authenticateHumhubAutoLogin')
     logger.addContext('user', dbUser.id)
     logger.info(`authenticateHumhubAutoLogin()...`)
 
@@ -1271,7 +1441,7 @@ export class UserResolver {
     @Arg('email') email: string,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    const logger = createLogger()
+    const logger = createLogger('sendActivationEmail')
     email = email.trim().toLowerCase()
     const user = await findUserByEmail(email)
     logger.addContext('user', user.id)
@@ -1311,7 +1481,7 @@ export class UserResolver {
     }
     const foundDbUser = await findUserByIdentifier(identifier, communityIdentifier)
     if (!foundDbUser) {
-      createLogger().debug('User not found', identifier, communityIdentifier)
+      createLogger('user').debug('User not found', identifier, communityIdentifier)
       throw new Error('User not found')
     }
     return new User(foundDbUser)
@@ -1413,7 +1583,7 @@ export async function findUserByEmail(email: string): Promise<DbUser> {
     })
     return dbUser
   } catch (e) {
-    const logger = createLogger()
+    const logger = createLogger('findUserByEmail')
     if (e instanceof EntityNotFoundError || (e as Error).name === 'EntityNotFoundError') {
       logger.warn(`findUserByEmail failed, user with email=${email} not found`)
     } else {

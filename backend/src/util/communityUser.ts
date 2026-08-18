@@ -9,7 +9,7 @@ import { PasswordEncryptionType } from '@/graphql/enum/PasswordEncryptionType'
 const communityDbUser: dbUser = {
   id: -1,
   gradidoID: '11111111-2222-4333-4444-55555555',
-  alias: '',
+  alias: 'alias',
   // email: 'support@gradido.net',
   emailContact: new UserContact(),
   emailId: -1,

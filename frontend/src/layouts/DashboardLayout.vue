@@ -192,6 +192,7 @@
         </BCol>
       </BRow>
       <session-logout-timeout @logout="logoutUser" />
+      <alias-first-choice />
     </div>
   </div>
 </template>
@@ -211,6 +212,7 @@ import Navbar from '@/components/Menu/Navbar'
 import Sidebar from '@/components/Menu/Sidebar'
 import MobileSidebar from '@/components/MobileSidebar/MobileSidebar'
 import SessionLogoutTimeout from '@/components/SessionLogoutTimeout'
+import AliasFirstChoice from '@/components/AliasFirstChoice'
 import ContentFooter from '@/components/ContentFooter'
 import GddAmount from '@/components/Template/ContentHeader/GddAmount'
 import GdtAmount from '@/components/Template/ContentHeader/GdtAmount'

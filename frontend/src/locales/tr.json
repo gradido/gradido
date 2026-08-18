@@ -738,9 +738,24 @@
     },
     "username": {
       "change-success": "Kullanıcı adın başarıyla değiştirildi.",
-      "no-username": "Lütfen bir kullanıcı adı gir. Böylece diğer kullanıcıların e-posta adresini açıklamadan seni bulmasına yardımcı olursun."
-    },
-    "usernameInfo": "Kaydettikten sonra değiştirilemez!"
+      "confirm-free": "Bu ad zaten sendeydi — bu değişiklik yılına sayılmaz.",
+      "confirm-last": "Bu, bu yılki son değişikliğin.",
+      "confirm-left": "Sonrasında adını bu yıl bir kez daha değiştirebilirsin. | Sonrasında adını bu yıl {n} kez daha değiştirebilirsin.",
+      "confirm-reserved": "{name} senin için ayrılmış kalır — istediğin zaman geri alabilirsin.",
+      "confirm-title": "Kullanıcı adını gerçekten değiştirmek istiyor musun?",
+      "first-back": "Geri",
+      "first-choose-title": "Bir ad seç",
+      "first-free": "hâlâ boş",
+      "first-hint": "Bunu koruyabilir ya da kendin bir ad seçebilirsin. Sonrasında yılda dört değişiklik mümkün.",
+      "first-intro": "Başkaları seni bulabilsin ve sana Gradido gönderebilsin diye sana bir ad önerdik:",
+      "first-keep": "Böyle iyi",
+      "first-other": "Başkasını seç",
+      "first-rules": "3 ila 20 karakter · harfler, rakamlar, - ve _",
+      "first-taken": "Bu ad zaten alınmış",
+      "first-title": "Kullanıcı adın",
+      "quota-blocked": "Bu yıl için ad değişikliği hakkını doldurdun. {date} tarihinden itibaren yeniden mümkün.",
+      "quota-left": "Kullanıcı adını bu yıl bir kez daha değiştirebilirsin. | Kullanıcı adını bu yıl {n} kez daha değiştirebilirsin."
+    }
   },
   "signin": "Giriş yap",
   "signup": "Kayıt ol",

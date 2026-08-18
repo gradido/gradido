@@ -21,8 +21,7 @@
     "compile-scss": "bun ./scripts/scss.mjs compile",
     "watch-scss": "bun ./scripts/scss.mjs watch",
     "compile-scss-sass": "bun ./scripts/scss.mjs compile sass",
-    "watch-scss-sass": "bun ./scripts/scss.mjs watch sass",
-    "clear": "rimraf node_modules && rimraf build && rimraf .turbo"
+    "watch-scss-sass": "bun ./scripts/scss.mjs watch sass"
   },
   "dependencies": {
     "@morev/vue-transitions": "^3.0.2",
@@ -98,7 +97,6 @@
     "mock-apollo-client": "^1.2.1",
     "postcss-html": "^1.8.0",
     "prettier": "^3.5.3",
-    "rimraf": "3.0.2",
     "sass": "1.83.4",
     "stylelint": "^16.19.1",
     "stylelint-config-recommended-vue": "^1.6.0",

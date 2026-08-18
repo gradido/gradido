@@ -24,7 +24,7 @@ import {
 import Joi from 'joi'
 
 export const schema = Joi.object({
-  ANTHROPIC_ACTIVE,
+  // ANTHROPIC_ACTIVE,
   COMMUNITY_NAME,
   COMMUNITY_URL,
   COMMUNITY_DESCRIPTION,
@@ -199,6 +199,11 @@ export const schema = Joi.object({
   KLICKTIPP_APIKEY_EN: Joi.string()
     .default('SomeFakeKeyEN')
     .description('The API key for Klicktipp (English version)'),
+
+  ANTHROPIC_ACTIVE: Joi.boolean()
+    .default(false)
+    .description('Flag to enable or disable the Anthropic (Claude) API used by Crea')
+    .required(),
 
   ANTHROPIC_API_KEY: Joi.string()
     .pattern(/^sk-ant-[A-Za-z0-9-_]{20,}$/)

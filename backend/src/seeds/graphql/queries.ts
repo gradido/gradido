@@ -39,6 +39,17 @@ export const queryOptIn = gql`
   }
 `
 
+export const aliasStatus = gql`
+  query {
+    aliasStatus {
+      changesLeft
+      nextChangeAt
+      ownAliases
+      aliasSettled
+    }
+  }
+`
+
 export const checkUsername = gql`
   query ($username: String!) {
     checkUsername(username: $username)

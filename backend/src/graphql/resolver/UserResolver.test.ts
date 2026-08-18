@@ -16,17 +16,21 @@ import {
   sendResetPasswordEmail,
 } from 'core'
 import {
+  ALIAS_ORIGIN_ASSIGNED,
+  ALIAS_ORIGIN_CHOSEN,
   AppDatabase,
   Community as DbCommunity,
   Event as DbEvent,
   dbInsertMatchingEntry,
   TransactionLink,
   User,
+  UserAlias,
   UserContact,
   UserRole,
 } from 'database'
 import { GraphQLError } from 'graphql'
 import { AVATAR_FULL_MAX_BYTES, AVATAR_SMALL_MAX_BYTES } from 'shared'
+import { QueryRunner } from 'typeorm'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 import { deleteGmsUser, upsertGmsUsers } from '@/apis/gms/GmsClient'
 import { subscribe } from '@/apis/KlicktippController'
@@ -41,6 +45,7 @@ import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { userFactory } from '@/seeds/factory/user'
 import {
+  adoptAlias,
   confirmContribution,
   createContribution,
   createUser,
@@ -57,6 +62,7 @@ import {
   updateUserInfos,
 } from '@/seeds/graphql/mutations'
 import {
+  aliasStatus,
   avatarFull,
   checkUsername,
   queryOptIn,
@@ -112,7 +118,17 @@ jest.mock('@/apis/KlicktippController', () => {
   }
 })
 
-const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserResolver`)
+// The resolver now names its logger per method (createLogger('login') etc.), so each
+// assertion has to reach for the logger of the method that actually writes the message.
+const resolverLogger = (method: string) =>
+  getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserResolver.${method}`)
+const createUserLogger = resolverLogger('createUser')
+const setPasswordLogger = resolverLogger('setPassword')
+const loginLogger = resolverLogger('login')
+const forgotPasswordLogger = resolverLogger('forgotPassword')
+const updateUserInfosLogger = resolverLogger('updateUserInfos')
+const sendActivationEmailLogger = resolverLogger('sendActivationEmail')
+const findUserByEmailLogger = resolverLogger('findUserByEmail')
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
 CONFIG.EMAIL_CODE_REQUEST_TIME = 10
@@ -190,7 +206,10 @@ describe('UserResolver', () => {
               gradidoID: expect.any(String),
               hideAmountGDD: expect.any(Boolean),
               hideAmountGDT: expect.any(Boolean),
-              alias: null,
+              // Built from the name rather than left empty: everybody holds one from
+              // registration on, or their transaction rows would have nothing where a
+              // name belongs.
+              alias: 'PeterL',
               emailContact: expect.any(UserContact), // 'peter@lustig.de',
               emailId: expect.any(Number),
               firstName: 'Peter',
@@ -302,8 +321,8 @@ describe('UserResolver', () => {
       })
 
       it('logs an info', () => {
-        expect(logger.info).toBeCalledWith('User already exists')
-        expect(logger.addContext).toBeCalledWith('user', user[0].id)
+        expect(createUserLogger.info).toBeCalledWith('User already exists')
+        expect(createUserLogger.addContext).toBeCalledWith('user', user[0].id)
       })
 
       it('sends an account multi registration email', () => {
@@ -700,7 +719,7 @@ describe('UserResolver', () => {
       })
 
       it('logs the error found', () => {
-        expect(logger.warn).toBeCalledWith('invalid emailVerificationCode=not valid')
+        expect(setPasswordLogger.warn).toBeCalledWith('invalid emailVerificationCode=not valid')
       })
     })
   })
@@ -730,7 +749,7 @@ describe('UserResolver', () => {
       })
 
       it('logs the error found', () => {
-        expect(logger.warn).toBeCalledWith(
+        expect(findUserByEmailLogger.warn).toBeCalledWith(
           `findUserByEmail failed, user with email=${variables.email} not found`,
         )
       })
@@ -814,7 +833,7 @@ describe('UserResolver', () => {
       })
 
       it('logs warning before error is thrown', () => {
-        expect(logger.warn).toBeCalledWith('login failed, wrong password')
+        expect(loginLogger.warn).toBeCalledWith('login failed, wrong password')
       })
     })
 
@@ -845,7 +864,7 @@ describe('UserResolver', () => {
       })
 
       it('logs warning before error is thrown', () => {
-        expect(logger.warn).toBeCalledWith('login failed, user was deleted')
+        expect(loginLogger.warn).toBeCalledWith('login failed, user was deleted')
       })
     })
 
@@ -874,7 +893,7 @@ describe('UserResolver', () => {
       })
 
       it('logs warning before error is thrown', () => {
-        expect(logger.warn).toBeCalledWith('login failed, user email not checked')
+        expect(loginLogger.warn).toBeCalledWith('login failed, user email not checked')
       })
     })
 
@@ -901,7 +920,7 @@ describe('UserResolver', () => {
       })
 
       it('logs warning before error is thrown', () => {
-        expect(logger.warn).toBeCalledWith('login failed, user has not set a password yet')
+        expect(loginLogger.warn).toBeCalledWith('login failed, user has not set a password yet')
       })
     })
   })
@@ -1143,7 +1162,7 @@ describe('UserResolver', () => {
         })
 
         it('logs warning before throwing error', () => {
-          expect(logger.warn).toBeCalledWith(
+          expect(forgotPasswordLogger.warn).toBeCalledWith(
             'email already sent 0 minutes ago, min wait time: 10 minutes',
           )
         })
@@ -1300,7 +1319,8 @@ describe('UserResolver', () => {
 
         describe('valid alias', () => {
           it('updates the user in DB', async () => {
-            // first empty alias, because currently updating alias isn't allowed
+            // Cleared first so this exercises taking a name rather than changing one;
+            // changing is covered by its own cases.
             await User.update({ alias: 'BBB' }, { alias: () => 'NULL' })
             await mutate({
               mutation: updateUserInfos,
@@ -1407,7 +1427,10 @@ describe('UserResolver', () => {
         })
 
         it('logs the error found', () => {
-          expect(logger.warn).toBeCalledWith('try to set unsupported language', 'not-valid')
+          expect(updateUserInfosLogger.warn).toBeCalledWith(
+            'try to set unsupported language',
+            'not-valid',
+          )
         })
       })
 
@@ -1431,7 +1454,7 @@ describe('UserResolver', () => {
           })
 
           it('logs if logger is in debug mode', () => {
-            expect(logger.debug).toBeCalledWith(`old password is invalid`)
+            expect(updateUserInfosLogger.debug).toBeCalledWith(`old password is invalid`)
           })
         })
 
@@ -1458,7 +1481,7 @@ describe('UserResolver', () => {
           })
 
           it('logs warning', () => {
-            expect(logger.warn).toBeCalledWith('try to set invalid password')
+            expect(updateUserInfosLogger.warn).toBeCalledWith('try to set invalid password')
           })
         })
 
@@ -1516,7 +1539,7 @@ describe('UserResolver', () => {
           })
 
           it('log warning', () => {
-            expect(logger.warn).toBeCalledWith('login failed, wrong password')
+            expect(loginLogger.warn).toBeCalledWith('login failed, wrong password')
           })
         })
       })
@@ -2241,7 +2264,7 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(logger.warn).toBeCalledWith(
+            expect(findUserByEmailLogger.warn).toBeCalledWith(
               'findUserByEmail failed, user with email=invalid not found',
             )
           })
@@ -2261,7 +2284,9 @@ describe('UserResolver', () => {
           })
 
           it('log warning', () => {
-            expect(logger.warn).toBeCalledWith('call for activation of deleted user')
+            expect(sendActivationEmailLogger.warn).toBeCalledWith(
+              'call for activation of deleted user',
+            )
           })
         })
 
@@ -3160,7 +3185,256 @@ describe('UserResolver', () => {
     })
   })
 
+  // What the quota is for: not tidiness, but somebody cycling through near-misses of a
+  // popular name to catch payments meant for its owner. Every case below is about how
+  // much of that a member can do in a year, and what it costs them.
+  describe('taking, leaving and reclaiming a name', () => {
+    let member: User
+
+    beforeAll(async () => {
+      await cleanDB()
+      await writeHomeCommunityEntry()
+      member = await userFactory(testEnv, bibiBloxberg)
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+    })
+
+    afterAll(async () => {
+      await cleanDB()
+    })
+
+    beforeEach(async () => {
+      await UserAlias.delete({ userId: member.id })
+      await User.update({ id: member.id }, { alias: 'BBB' })
+    })
+
+    const changeTo = async (alias: string) =>
+      mutate({ mutation: updateUserInfos, variables: { alias } })
+
+    const ownedNames = async () =>
+      (await UserAlias.find({ where: { userId: member.id }, order: { id: 'ASC' } })).map(
+        (row) => row.alias,
+      )
+
+    it('records the name it takes, not the one it leaves', async () => {
+      await changeTo('bibi-one')
+
+      expect(await ownedNames()).toEqual(['bibi-one'])
+      const stored = await User.findOneByOrFail({ id: member.id })
+      expect(stored.alias).toBe('bibi-one')
+    })
+
+    // Reclaiming moves the marker and writes nothing, because no name enters their
+    // possession - which is why it costs none of the four.
+    it('writes nothing when a member comes back to a name of their own', async () => {
+      await changeTo('bibi-one')
+      await changeTo('bibi-two')
+      expect(await ownedNames()).toEqual(['bibi-one', 'bibi-two'])
+
+      await changeTo('bibi-one')
+
+      expect(await ownedNames()).toEqual(['bibi-one', 'bibi-two'])
+      const stored = await User.findOneByOrFail({ id: member.id })
+      expect(stored.alias).toBe('bibi-one')
+    })
+
+    // Ping-pong between two names one already owns is free and pointless: the count
+    // neither rises nor resets, and it never exceeds two names.
+    it('keeps the count steady however often somebody flips between two of their names', async () => {
+      await changeTo('bibi-one')
+      await changeTo('bibi-two')
+      for (let round = 0; round < 3; round++) {
+        await changeTo('bibi-one')
+        await changeTo('bibi-two')
+      }
+
+      expect(await ownedNames()).toHaveLength(2)
+    })
+
+    it('refuses the fifth pick of the year', async () => {
+      await changeTo('bibi-one')
+      await changeTo('bibi-two')
+      await changeTo('bibi-three')
+      await changeTo('bibi-four')
+
+      await expect(changeTo('bibi-five')).resolves.toEqual(
+        expect.objectContaining({
+          errors: [new GraphQLError('ALIAS_QUOTA_EXHAUSTED')],
+        }),
+      )
+      const stored = await User.findOneByOrFail({ id: member.id })
+      expect(stored.alias).toBe('bibi-four')
+    })
+
+    // A name handed out by the system is a proposal until it is adopted, so it must not
+    // eat a pick - otherwise everyone would start the year with three instead of four.
+    it('does not spend a pick on a name the system handed out', async () => {
+      await UserAlias.save(
+        UserAlias.create({
+          userId: member.id,
+          alias: 'BBB',
+          communityUuid: member.communityUuid,
+          origin: ALIAS_ORIGIN_ASSIGNED,
+        }),
+      )
+
+      await expect(query({ query: aliasStatus })).resolves.toMatchObject({
+        data: { aliasStatus: { changesLeft: 4, nextChangeAt: null } },
+      })
+    })
+
+    // Keeping the built name answers the question the window at first login asks, which
+    // is what stops it coming back - but it is not a pick and must cost none of the four
+    // (NU-010/011). Both halves are the point, so both are asserted.
+    it('settles the question when the member keeps the built name, and spends no pick', async () => {
+      await UserAlias.save(
+        UserAlias.create({
+          userId: member.id,
+          alias: 'BBB',
+          communityUuid: member.communityUuid,
+          origin: ALIAS_ORIGIN_ASSIGNED,
+        }),
+      )
+
+      await expect(mutate({ mutation: adoptAlias })).resolves.toMatchObject({
+        data: { adoptAlias: true },
+      })
+
+      await expect(query({ query: aliasStatus })).resolves.toMatchObject({
+        data: { aliasStatus: { aliasSettled: true, changesLeft: 4 } },
+      })
+    })
+
+    // The column ignores case, so changing only the capitalisation keeps the very same
+    // row and writes nothing. Comparing with `===` in TypeScript stopped finding that
+    // row, reported the question as unanswered, and put the window back on screen at
+    // every page mount - with no way out of it but spending one of the four.
+    it('stays settled when the member only changes the capitalisation', async () => {
+      await changeTo('bibi-one')
+      await expect(query({ query: aliasStatus })).resolves.toMatchObject({
+        data: { aliasStatus: { aliasSettled: true } },
+      })
+
+      await changeTo('BIBI-ONE')
+
+      const stored = await User.findOneByOrFail({ id: member.id })
+      expect(stored.alias).toBe('BIBI-ONE')
+      expect(await ownedNames()).toEqual(['bibi-one'])
+      await expect(query({ query: aliasStatus })).resolves.toMatchObject({
+        data: { aliasStatus: { aliasSettled: true, changesLeft: 3 } },
+      })
+    })
+
+    // The quota blocks TAKING a name, not returning to one already owned - that writes
+    // no row, so there is nothing to charge for.
+    it('lets a member return to a name of their own after the quota is gone', async () => {
+      await changeTo('bibi-one')
+      await changeTo('bibi-two')
+      await changeTo('bibi-three')
+      await changeTo('bibi-four')
+      await expect(query({ query: aliasStatus })).resolves.toMatchObject({
+        data: { aliasStatus: { changesLeft: 0 } },
+      })
+
+      await changeTo('bibi-one')
+
+      const stored = await User.findOneByOrFail({ id: member.id })
+      expect(stored.alias).toBe('bibi-one')
+    })
+
+    // The resolver opens a transaction before it validates anything, so every way out
+    // has to close it again. The most travelled one is the call that changes nothing: it
+    // used to return without a rollback or a release and handed back a connection that
+    // was still inside a REPEATABLE READ transaction.
+    //
+    // Watched at the runner rather than at the pool. Draining a pool only fails while
+    // the pool stays smaller than the number of rounds, which is an assumption nobody
+    // states and nobody maintains; this asserts the invariant itself - not one runner
+    // this resolver made is left unreleased.
+    const watchQueryRunners = () => {
+      const dataSource = db.getDataSource()
+      const create = dataSource.createQueryRunner.bind(dataSource)
+      const created: QueryRunner[] = []
+      const spy = jest.spyOn(dataSource, 'createQueryRunner').mockImplementation((mode) => {
+        const runner = create(mode)
+        jest.spyOn(runner, 'release')
+        created.push(runner)
+        return runner
+      })
+      return { created, stop: () => spy.mockRestore() }
+    }
+
+    it.each([
+      ['nothing changed', 'BBB'],
+      ['the name was refused', 'no'],
+    ])('gives the connection back when %s', async (_case, alias) => {
+      const watch = watchQueryRunners()
+      try {
+        await changeTo(alias)
+      } finally {
+        watch.stop()
+      }
+
+      expect(watch.created.length).toBeGreaterThan(0)
+      for (const runner of watch.created) {
+        expect(runner.release).toHaveBeenCalled()
+      }
+    })
+
+    describe('the status query', () => {
+      it('counts down as names are picked', async () => {
+        await changeTo('bibi-one')
+
+        await expect(query({ query: aliasStatus })).resolves.toMatchObject({
+          data: { aliasStatus: { changesLeft: 3, nextChangeAt: null } },
+        })
+      })
+
+      // The window rolls, so the date is a year after the oldest pick still inside it -
+      // not a year from today, which would keep somebody waiting too long.
+      it('names the date the next pick becomes possible', async () => {
+        await changeTo('bibi-one')
+        await changeTo('bibi-two')
+        await changeTo('bibi-three')
+        await changeTo('bibi-four')
+
+        const result = await query({ query: aliasStatus })
+        expect(result.data.aliasStatus.changesLeft).toBe(0)
+        expect(result.data.aliasStatus.nextChangeAt).not.toBeNull()
+
+        const oldest = await UserAlias.findOneOrFail({
+          where: { userId: member.id, origin: ALIAS_ORIGIN_CHOSEN },
+          order: { createdAt: 'ASC' },
+        })
+        const expected = new Date(oldest.createdAt.getTime() + 365 * 24 * 60 * 60 * 1000)
+        expect(new Date(result.data.aliasStatus.nextChangeAt).getTime()).toBeCloseTo(
+          expected.getTime(),
+          -3,
+        )
+      })
+    })
+  })
+
+  // checkUsername now has to know who is asking: a member may reclaim an alias they
+  // held before, so the query skips their own history rows. That identity only exists
+  // behind the token, which is why the right moved out of INALIENABLE_RIGHTS - and why
+  // these tests sign in first.
   describe('check username', () => {
+    beforeAll(async () => {
+      await cleanDB()
+      await userFactory(testEnv, bibiBloxberg)
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+    })
+
+    afterAll(async () => {
+      await cleanDB()
+    })
+
     describe('reserved alias', () => {
       it('returns false', async () => {
         await expect(

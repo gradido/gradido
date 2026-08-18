@@ -10,3 +10,12 @@ query user($identifier: String!, $communityIdentifier: String) {
     ...userFields
   }
 }
+
+query aliasStatus {
+  aliasStatus {
+    changesLeft
+    nextChangeAt
+    ownAliases
+    aliasSettled
+  }
+}

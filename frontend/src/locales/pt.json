@@ -738,9 +738,24 @@
     },
     "username": {
       "change-success": "O teu nome de utilizador foi alterado com sucesso.",
-      "no-username": "Por favor, introduz um nome de utilizador. Assim ajudas outros utilizadores a encontrar-te sem teres de revelar o teu endereço de e-mail."
-    },
-    "usernameInfo": "Não pode ser alterado após guardar!"
+      "confirm-free": "Já tiveste este nome — esta mudança não conta para o teu ano.",
+      "confirm-last": "Esta é a tua última mudança deste ano.",
+      "confirm-left": "Depois poderás mudar o teu nome mais uma vez este ano. | Depois poderás mudar o teu nome mais {n} vezes este ano.",
+      "confirm-reserved": "{name} fica reservado para ti — podes recuperá-lo a qualquer momento.",
+      "confirm-title": "Queres mesmo mudar o teu nome de utilizador?",
+      "first-back": "Voltar",
+      "first-choose-title": "Escolhe um nome",
+      "first-free": "ainda está livre",
+      "first-hint": "Podes mantê-lo ou escolher um teu. Mais tarde são possíveis quatro mudanças por ano.",
+      "first-intro": "Para que outros te possam encontrar e enviar Gradido, sugerimos-te um nome:",
+      "first-keep": "Assim está bem",
+      "first-other": "Escolher outro",
+      "first-rules": "3 a 20 caracteres · letras, algarismos, - e _",
+      "first-taken": "Este nome já está ocupado",
+      "first-title": "O teu nome de utilizador",
+      "quota-blocked": "Esgotaste as mudanças de nome para este ano. A partir de {date} será possível novamente.",
+      "quota-left": "Podes mudar o teu nome de utilizador mais uma vez este ano. | Podes mudar o teu nome de utilizador mais {n} vezes este ano."
+    }
   },
   "signin": "Iniciar sessão",
   "signup": "Registar",

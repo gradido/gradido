@@ -75,6 +75,17 @@ export const AVATAR_SMALL_MAX_BYTES = 10 * 1024
 export const JPEG_MAGIC_BYTES = [0xff, 0xd8]
 export const JPEG_END_BYTES = [0xff, 0xd9]
 
+// alias: how often a member may pick a name, and over what stretch. Four a year is
+// not a tidiness rule -- it is the brake against somebody cycling through near-misses
+// of a popular name to catch payments meant for its owner. The confirmation dialog
+// guards against typos; this guards against hoarding, and the two must not be confused.
+//
+// What is counted is picks, not renames: a name the system handed out costs nothing
+// until the member adopts it, and coming back to a name they already own is free,
+// because no name enters their possession. So four is more generous than it reads.
+export const ALIAS_QUOTA_PER_WINDOW = 4
+export const ALIAS_QUOTA_WINDOW_MS = 365 * 24 * 60 * 60 * 1000
+
 // authentication
 // 10 minutes
 export const FEDERATION_AUTHENTICATION_TIMEOUT_MS = 60 * 1000 * 10

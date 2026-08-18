@@ -4,7 +4,7 @@ import { getLogger } from '../../../config-schema/test/testSetup.bun'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import { validateAlias } from './user'
 
-const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.validation.user`)
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.validation.user.validateAlias`)
 
 mock.module('shared/src/schema/user.schema', () => ({
   aliasSchema: {
@@ -30,6 +30,7 @@ describe('validate alias', () => {
 
   describe('zod throw an validation error', () => {
     it('throws and logs an error', () => {
+      // console.log(`validateAlias('Bi')=${JSON.stringify(validateAlias('Bi'))}`)
       expect(validateAlias('Bi')).rejects.toThrowError(new Error('Given alias is too short'))
       expect(logger.warn.mock.calls[0]).toEqual([
         'invalid alias',
@@ -61,7 +62,9 @@ describe('validate alias', () => {
       it('throws and logs an error', () => {
         ;(aliasExists as jest.Mock).mockReturnValue(true)
         expect(validateAlias('b-b')).rejects.toEqual(new Error('Given alias is already in use'))
-        expect(logger.warn.mock.calls[0]).toEqual(['alias already in use', 'b-b'])
+        expect(logger.warn.mock.calls[0]).toEqual([
+          'alias already in use: alias=b-b, userId=undefined',
+        ])
       })
     })
 

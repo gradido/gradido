@@ -738,9 +738,24 @@
     },
     "username": {
       "change-success": "Je gebruikersnaam is succesvol gewijzigd.",
-      "no-username": "Voer een gebruikersnaam in. Zo help je andere gebruikers om je te vinden zonder je e-mailadres prijs te hoeven geven."
-    },
-    "usernameInfo": "Kan na het opslaan niet meer worden gewijzigd!"
+      "confirm-free": "Deze naam had je al — deze wijziging telt niet mee voor je jaar.",
+      "confirm-last": "Dit is je laatste wijziging dit jaar.",
+      "confirm-left": "Daarna kun je je naam dit jaar nog één keer wijzigen. | Daarna kun je je naam dit jaar nog {n} keer wijzigen.",
+      "confirm-reserved": "{name} blijft voor jou gereserveerd — je kunt hem altijd terugnemen.",
+      "confirm-title": "Wil je je gebruikersnaam echt wijzigen?",
+      "first-back": "Terug",
+      "first-choose-title": "Kies een naam",
+      "first-free": "is nog vrij",
+      "first-hint": "Je kunt hem houden of zelf een naam kiezen. Later zijn vier wijzigingen per jaar mogelijk.",
+      "first-intro": "Zodat anderen je kunnen vinden en je Gradido kunnen sturen, hebben we een naam voorgesteld:",
+      "first-keep": "Zo is het goed",
+      "first-other": "Andere kiezen",
+      "first-rules": "3 tot 20 tekens · letters, cijfers, - en _",
+      "first-taken": "Deze naam is al bezet",
+      "first-title": "Je gebruikersnaam",
+      "quota-blocked": "Je hebt je naamswijzigingen voor dit jaar opgebruikt. Vanaf {date} kan het weer.",
+      "quota-left": "Je kunt je gebruikersnaam dit jaar nog één keer wijzigen. | Je kunt je gebruikersnaam dit jaar nog {n} keer wijzigen."
+    }
   },
   "signin": "Aanmelden",
   "signup": "Registreren",

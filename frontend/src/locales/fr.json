@@ -738,9 +738,24 @@
     },
     "username": {
       "change-success": "Ton nom d'utilisateur a été modifié avec succès.",
-      "no-username": "Saisis un nom d'utilisateur. Tu aideras ainsi les autres utilisateurs à te trouver sans avoir à divulguer ton adresse e-mail."
-    },
-    "usernameInfo": "Ne peut plus être modifié après l'enregistrement !"
+      "confirm-free": "Tu as déjà porté ce nom — ce changement ne compte pas pour ton année.",
+      "confirm-last": "C'est ton dernier changement de cette année.",
+      "confirm-left": "Ensuite tu pourras encore changer de nom une fois cette année. | Ensuite tu pourras encore changer de nom {n} fois cette année.",
+      "confirm-reserved": "{name} te reste réservé — tu peux le reprendre à tout moment.",
+      "confirm-title": "Veux-tu vraiment changer ton nom d'utilisateur ?",
+      "first-back": "Retour",
+      "first-choose-title": "Choisis un nom",
+      "first-free": "est encore libre",
+      "first-hint": "Tu peux le garder ou en choisir un toi-même. Quatre changements par an seront possibles ensuite.",
+      "first-intro": "Pour que les autres puissent te trouver et t'envoyer des Gradido, nous t'avons proposé un nom :",
+      "first-keep": "Ça me va",
+      "first-other": "En choisir un autre",
+      "first-rules": "3 à 20 caractères · lettres, chiffres, - et _",
+      "first-taken": "Ce nom est déjà pris",
+      "first-title": "Ton nom d'utilisateur",
+      "quota-blocked": "Tu as épuisé tes changements de nom pour cette année. Ce sera à nouveau possible à partir du {date}.",
+      "quota-left": "Tu peux encore changer ton nom d'utilisateur une fois cette année. | Tu peux encore changer ton nom d'utilisateur {n} fois cette année."
+    }
   },
   "signin": "S'identifier",
   "signup": "S'inscrire",

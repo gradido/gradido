@@ -1,3 +1,14 @@
+import { UserAlias } from './UserAlias'
+
+export {
+  ALIAS_ORIGIN_ADOPTED,
+  ALIAS_ORIGIN_ASSIGNED,
+  ALIAS_ORIGIN_CHOSEN,
+  ALIAS_ORIGIN_MIGRATED,
+  type AliasOrigin,
+  aliasOriginIsSettled,
+} from './UserAlias'
+
 import { Community } from './Community'
 import { CommunityHandshakeState } from './CommunityHandshakeState'
 import { Contribution } from './Contribution'
@@ -21,6 +32,7 @@ import { UserCreationGroup } from './UserCreationGroup'
 import { UserRole } from './UserRole'
 
 export {
+  UserAlias,
   Community,
   CommunityHandshakeState,
   Contribution,
@@ -45,6 +57,7 @@ export {
 }
 
 export const entities = [
+  UserAlias,
   Community,
   CommunityHandshakeState,
   Contribution,

@@ -1,5 +1,11 @@
 import { clearLogs, getLogger, printLogs } from '../../../config-schema/test/testSetup.bun'
-import { Community as DbCommunity, User as DbUser, UserContact as DbUserContact } from '..'
+import {
+  ALIAS_ORIGIN_CHOSEN,
+  Community as DbCommunity,
+  User as DbUser,
+  UserAlias as DbUserAlias,
+  UserContact as DbUserContact,
+} from '..'
 import { AppDatabase } from '../AppDatabase'
 import { createCommunity } from '../seeds/community'
 import { userFactory } from '../seeds/factory/user'
@@ -8,6 +14,7 @@ import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import { LOG4JS_QUERIES_CATEGORY_NAME } from '.'
 import { aliasExists, dbClearGmsRegistration, findUserByIdentifier } from './user'
+import { dbInsertUserAlias } from './userAliases'
 
 const db = AppDatabase.getInstance()
 const userIdentifierLoggerName = `${LOG4JS_QUERIES_CATEGORY_NAME}.user.findUserByIdentifier`
@@ -173,6 +180,98 @@ describe('user.queries', () => {
       const result = await dbClearGmsRegistration(registered.id + 1000)
 
       expect(result.success).toBe(false)
+    })
+  })
+
+  // The point of keeping every name a member ever held: a card printed under the old
+  // one still reaches them. This is the path `…/u/alias` takes.
+  describe('finding somebody by a name they no longer use', () => {
+    let homeCom: DbCommunity
+    let communityUuid: string
+    let communityName: string
+    let bibi: DbUser
+
+    beforeAll(async () => {
+      await DbUserAlias.clear()
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await DbCommunity.clear()
+
+      homeCom = await createCommunity(false)
+      communityUuid = homeCom.communityUuid!
+      communityName = homeCom.name!
+      bibi = await userFactory({ ...bibiBloxberg, alias: 'newname' })
+      await dbInsertUserAlias(bibi.id, 'oldname', communityUuid, ALIAS_ORIGIN_CHOSEN)
+    })
+
+    it('finds them by the name they hold now', async () => {
+      const user = await findUserByIdentifier('newname', communityUuid)
+      expect(user?.id).toBe(bibi.id)
+    })
+
+    it('finds them by a name they left behind', async () => {
+      const user = await findUserByIdentifier('oldname', communityUuid)
+      expect(user?.id).toBe(bibi.id)
+    })
+
+    // The community may arrive as a name rather than a uuid - the wallet resolves it
+    // either way - and an earlier lookup passed it straight into a uuid column, so this
+    // path silently found nothing.
+    it('finds them by an earlier name when the community is given by name', async () => {
+      const user = await findUserByIdentifier('oldname', communityName)
+      expect(user?.id).toBe(bibi.id)
+    })
+
+    it('still finds nobody for a name that was never held', async () => {
+      expect(await findUserByIdentifier('nevermine', communityUuid)).toBeNull()
+    })
+  })
+
+  describe('aliasExists across communities and across time', () => {
+    let communityUuid: string
+    let bibi: DbUser
+
+    beforeAll(async () => {
+      await DbUserAlias.clear()
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await DbCommunity.clear()
+
+      const homeCom = await createCommunity(false)
+      communityUuid = homeCom.communityUuid!
+      bibi = await userFactory({ ...bibiBloxberg, alias: 'bibi-now' })
+    })
+
+    // Rows with foreign = 1 are cached copies of members of other communities. Aliases
+    // are unique per community since migration 0073, so one held over there must not
+    // refuse a member here - and the refusal would be unexplainable, because the row
+    // that caused it appears in no member list of this community.
+    it('lets a member take a name that only a cached foreign member holds', async () => {
+      const stranger = DbUser.create()
+      stranger.foreign = true
+      stranger.alias = 'faraway'
+      stranger.gradidoID = '11111111-2222-4333-8444-555555555555'
+      stranger.communityUuid = '99999999-2222-4333-8444-555555555555'
+      stranger.firstName = 'Far'
+      stranger.lastName = 'Away'
+      await DbUser.save(stranger)
+
+      expect(await aliasExists('faraway')).toBe(false)
+    })
+
+    it('refuses a name another member left behind', async () => {
+      const peter = await userFactory({ ...peterLustig, alias: 'peter-now' })
+      await dbInsertUserAlias(peter.id, 'peter-was', communityUuid, ALIAS_ORIGIN_CHOSEN)
+
+      expect(await aliasExists('peter-was', bibi.id)).toBe(true)
+    })
+
+    it('lets a member take back a name of their own', async () => {
+      await dbInsertUserAlias(bibi.id, 'bibi-was', communityUuid, ALIAS_ORIGIN_CHOSEN)
+
+      expect(await aliasExists('bibi-was', bibi.id)).toBe(false)
+      // ...and it stays blocked for everybody else.
+      expect(await aliasExists('bibi-was')).toBe(true)
     })
   })
 })

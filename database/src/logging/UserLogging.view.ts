@@ -25,7 +25,7 @@ export class UserLoggingView extends AbstractLoggingView {
       community: this.self.community
         ? new CommunityLoggingView(this.self.community).toJSON()
         : { id: this.self.communityUuid },
-      alias: this.self.alias?.substring(0, 3) + '...',
+      alias: this.self.alias, // ?.substring(0, 3) + '...',
       emailContact: this.self.emailContact
         ? new UserContactLoggingView(this.self.emailContact, false).toJSON()
         : { id: this.self.emailId },
