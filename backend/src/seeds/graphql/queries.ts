@@ -39,6 +39,15 @@ export const queryOptIn = gql`
   }
 `
 
+export const aliasQuota = gql`
+  query {
+    aliasQuota {
+      changesLeft
+      nextChangeAt
+    }
+  }
+`
+
 export const checkUsername = gql`
   query ($username: String!) {
     checkUsername(username: $username)

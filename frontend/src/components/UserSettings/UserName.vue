@@ -128,7 +128,14 @@ const onSubmit = handleSubmit(async () => {
     toastSuccess(t('settings.username.change-success'))
     await refetchQuota()
   } catch (error) {
-    toastError(error.message)
+    // The button is disabled once the quota is gone, so this is a backstop - reachable
+    // by a race or a direct call. It still must not put a bare error code on screen.
+    if (error.message?.includes('ALIAS_QUOTA_EXHAUSTED')) {
+      await refetchQuota()
+      toastError(t('settings.username.quota-blocked', { date: nextChangeDate.value }))
+    } else {
+      toastError(error.message)
+    }
   }
 })
 

@@ -16,12 +16,15 @@ import {
   sendResetPasswordEmail,
 } from 'core'
 import {
+  ALIAS_ORIGIN_ASSIGNED,
+  ALIAS_ORIGIN_CHOSEN,
   AppDatabase,
   Community as DbCommunity,
   Event as DbEvent,
   dbInsertMatchingEntry,
   TransactionLink,
   User,
+  UserAlias,
   UserContact,
   UserRole,
 } from 'database'
@@ -57,6 +60,7 @@ import {
   updateUserInfos,
 } from '@/seeds/graphql/mutations'
 import {
+  aliasQuota,
   avatarFull,
   checkUsername,
   queryOptIn,
@@ -3176,6 +3180,140 @@ describe('UserResolver', () => {
       expect(upsertMock).not.toHaveBeenCalled()
       const stored = await User.findOneOrFail({ where: { id: member.id } })
       expect(stored.gmsRegistered).toBe(false)
+    })
+  })
+
+  // What the quota is for: not tidiness, but somebody cycling through near-misses of a
+  // popular name to catch payments meant for its owner. Every case below is about how
+  // much of that a member can do in a year, and what it costs them.
+  describe('taking, leaving and reclaiming a name', () => {
+    let member: User
+
+    beforeAll(async () => {
+      await cleanDB()
+      await writeHomeCommunityEntry()
+      member = await userFactory(testEnv, bibiBloxberg)
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+    })
+
+    afterAll(async () => {
+      await cleanDB()
+    })
+
+    beforeEach(async () => {
+      await UserAlias.delete({ userId: member.id })
+      await User.update({ id: member.id }, { alias: 'BBB' })
+    })
+
+    const changeTo = async (alias: string) =>
+      mutate({ mutation: updateUserInfos, variables: { alias } })
+
+    const ownedNames = async () =>
+      (await UserAlias.find({ where: { userId: member.id }, order: { id: 'ASC' } })).map(
+        (row) => row.alias,
+      )
+
+    it('records the name it takes, not the one it leaves', async () => {
+      await changeTo('bibi-one')
+
+      expect(await ownedNames()).toEqual(['bibi-one'])
+      const stored = await User.findOneByOrFail({ id: member.id })
+      expect(stored.alias).toBe('bibi-one')
+    })
+
+    // Reclaiming moves the marker and writes nothing, because no name enters their
+    // possession - which is why it costs none of the four.
+    it('writes nothing when a member comes back to a name of their own', async () => {
+      await changeTo('bibi-one')
+      await changeTo('bibi-two')
+      expect(await ownedNames()).toEqual(['bibi-one', 'bibi-two'])
+
+      await changeTo('bibi-one')
+
+      expect(await ownedNames()).toEqual(['bibi-one', 'bibi-two'])
+      const stored = await User.findOneByOrFail({ id: member.id })
+      expect(stored.alias).toBe('bibi-one')
+    })
+
+    // Ping-pong between two names one already owns is free and pointless: the count
+    // neither rises nor resets, and it never exceeds two names.
+    it('keeps the count steady however often somebody flips between two of their names', async () => {
+      await changeTo('bibi-one')
+      await changeTo('bibi-two')
+      for (let round = 0; round < 3; round++) {
+        await changeTo('bibi-one')
+        await changeTo('bibi-two')
+      }
+
+      expect(await ownedNames()).toHaveLength(2)
+    })
+
+    it('refuses the fifth pick of the year', async () => {
+      await changeTo('bibi-one')
+      await changeTo('bibi-two')
+      await changeTo('bibi-three')
+      await changeTo('bibi-four')
+
+      await expect(changeTo('bibi-five')).resolves.toEqual(
+        expect.objectContaining({
+          errors: [new GraphQLError('ALIAS_QUOTA_EXHAUSTED')],
+        }),
+      )
+      const stored = await User.findOneByOrFail({ id: member.id })
+      expect(stored.alias).toBe('bibi-four')
+    })
+
+    // A name handed out by the system is a proposal until it is adopted, so it must not
+    // eat a pick - otherwise everyone would start the year with three instead of four.
+    it('does not spend a pick on a name the system handed out', async () => {
+      await UserAlias.save(
+        UserAlias.create({
+          userId: member.id,
+          alias: 'BBB',
+          communityUuid: member.communityUuid,
+          origin: ALIAS_ORIGIN_ASSIGNED,
+        }),
+      )
+
+      await expect(query({ query: aliasQuota })).resolves.toMatchObject({
+        data: { aliasQuota: { changesLeft: 4, nextChangeAt: null } },
+      })
+    })
+
+    describe('the quota query', () => {
+      it('counts down as names are picked', async () => {
+        await changeTo('bibi-one')
+
+        await expect(query({ query: aliasQuota })).resolves.toMatchObject({
+          data: { aliasQuota: { changesLeft: 3, nextChangeAt: null } },
+        })
+      })
+
+      // The window rolls, so the date is a year after the oldest pick still inside it -
+      // not a year from today, which would keep somebody waiting too long.
+      it('names the date the next pick becomes possible', async () => {
+        await changeTo('bibi-one')
+        await changeTo('bibi-two')
+        await changeTo('bibi-three')
+        await changeTo('bibi-four')
+
+        const result = await query({ query: aliasQuota })
+        expect(result.data.aliasQuota.changesLeft).toBe(0)
+        expect(result.data.aliasQuota.nextChangeAt).not.toBeNull()
+
+        const oldest = await UserAlias.findOneOrFail({
+          where: { userId: member.id, origin: ALIAS_ORIGIN_CHOSEN },
+          order: { createdAt: 'ASC' },
+        })
+        const expected = new Date(oldest.createdAt.getTime() + 365 * 24 * 60 * 60 * 1000)
+        expect(new Date(result.data.aliasQuota.nextChangeAt).getTime()).toBeCloseTo(
+          expected.getTime(),
+          -3,
+        )
+      })
     })
   })
 
