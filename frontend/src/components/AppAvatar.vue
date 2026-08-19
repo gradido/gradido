@@ -51,6 +51,15 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  // Where the circle's COLOUR comes from, when that should not be what the circle SHOWS.
+  // The two parted company when the letters started coming from the alias (AS-010): a
+  // circle reading "BE" still colours from "BH", which is why no existing member's colour
+  // moved and why the printed card still matches the screen.
+  // Optional -- without it the colour comes from the letters, exactly as before.
+  colorSeed: {
+    type: String,
+    default: '',
+  },
   // The "quiet" look for an avatar that has no picture yet: a pale disc with a dashed
   // ring instead of a solid colour, so an unfilled place looks like an unfilled place.
   // Only meaningful where the member can act on it — their own avatar.
@@ -114,13 +123,17 @@ const computedInitials = computed(() => {
     .slice(0, 2)
 })
 
-const backgroundColor = computed(() => avatarPaletteEntry(computedInitials.value || props.name).bg)
+// What the colour is drawn from. Falls back to what is shown, which is what every caller
+// relied on before colorSeed existed.
+const paletteSeed = computed(() => props.colorSeed || computedInitials.value || props.name)
+
+const backgroundColor = computed(() => avatarPaletteEntry(paletteSeed.value).bg)
 
 const textColor = computed(() => {
   if (props.color) {
     return getTextColor(props.color)
   }
-  return avatarPaletteEntry(computedInitials.value || props.name).text
+  return avatarPaletteEntry(paletteSeed.value).text
 })
 </script>
 
