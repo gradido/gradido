@@ -215,6 +215,9 @@ describe('UserResolver', () => {
               firstName: 'Peter',
               lastName: 'Lustig',
               aboutMe: null,
+              // On from the start: a member who uploads a picture has already shown an
+              // intention, so the switch follows rather than asks a second time.
+              avatarVisibleToMembers: true,
               gender: null,
               salutation: null,
               creaSignature: null,
