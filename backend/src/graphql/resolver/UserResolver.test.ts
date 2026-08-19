@@ -1412,6 +1412,48 @@ describe('UserResolver', () => {
         })
       })
 
+      // The one setting this delivery stores, read back from the row. It needs its own
+      // test because nothing else covers the write: the registration test above asserts
+      // avatarVisibleToMembers is true on a fresh account, which is the column DEFAULT
+      // and stays true whether or not the resolver ever writes the field. Drop the field
+      // from the write object in updateUserInfos and only these cases go red.
+      describe('whether the picture is visible to other members', () => {
+        it('stores the member turning it off', async () => {
+          await mutate({
+            mutation: updateUserInfos,
+            variables: { avatarVisibleToMembers: false },
+          })
+          await expect(User.find()).resolves.toEqual([
+            expect.objectContaining({ avatarVisibleToMembers: false }),
+          ])
+        })
+
+        it('stores the member turning it back on', async () => {
+          await mutate({
+            mutation: updateUserInfos,
+            variables: { avatarVisibleToMembers: true },
+          })
+          await expect(User.find()).resolves.toEqual([
+            expect.objectContaining({ avatarVisibleToMembers: true }),
+          ])
+        })
+
+        // False and "not sent" are different things, and a boolean is where they are most
+        // easily confused: a check on the value rather than on its presence would read a
+        // stored `false` as nothing to do and let the next unrelated save flip the member
+        // back to visible without anybody touching the switch.
+        it('leaves a stored no alone when a later save does not mention it', async () => {
+          await mutate({
+            mutation: updateUserInfos,
+            variables: { avatarVisibleToMembers: false },
+          })
+          await mutate({ mutation: updateUserInfos, variables: { firstName: 'Bibi' } })
+          await expect(User.find()).resolves.toEqual([
+            expect.objectContaining({ avatarVisibleToMembers: false, firstName: 'Bibi' }),
+          ])
+        })
+      })
+
       describe('language is not valid', () => {
         it('throws an error', async () => {
           jest.clearAllMocks()
