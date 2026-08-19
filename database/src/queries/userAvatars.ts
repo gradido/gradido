@@ -10,8 +10,14 @@ import { UserAvatarInsert, userAvatarsTable, usersTable } from '../schemas/drizz
 const UserAvatarNotFound = (where: string) => new DBNotFoundError('user_avatars', where)
 
 /**
- * The everyday picture, 128x128. This is the one other people are shown, so it is also
- * the one that reads on the common paths -- every wallet login asks for it.
+ * The everyday picture, 128x128, FOR ITS OWNER. Every wallet login asks for it, which is
+ * what makes this the one that reads on the common paths.
+ *
+ * ⛔ Own view only, and it carries no disclosure rule: the single caller is verifyLogin.
+ * What other members are shown is dbFindMemberAvatarsSmall further down, which applies
+ * mayBeShownToMembers() in the query. Do not reach for this one to put a face in front of
+ * somebody else -- it would hand out a picture the switch says no to, and nothing here
+ * would stop you.
  *
  * Selects the one column on purpose rather than the row: the full rendition next to it
  * is roughly ten times the size, and a `select()` would carry it out of the database on
@@ -154,7 +160,8 @@ export async function dbFindMemberAvatarTimestamps(userIds: number[]): Promise<M
  * ⛔ Own view only. This rendition has exactly one legitimate viewer, its owner, which
  * is why it carries no disclosure decision. Whoever calls this has to have established
  * that the caller IS the owner -- there is no scope where handing this to somebody else
- * is correct. Anything shown to other people reads dbFindUserAvatarSmall above.
+ * is correct. Anything shown to OTHER members reads dbFindMemberAvatarsSmall below, which
+ * carries the disclosure rule; dbFindUserAvatarSmall above is own-view only, like this one.
  */
 export async function dbFindUserAvatarFull(
   userId: number,

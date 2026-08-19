@@ -1,10 +1,14 @@
 // AI-GENERATED — not an architecture reference
 
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import {
+  claimMissingMemberAvatars,
   forgetAllMemberAvatars,
   forgetWithdrawnMemberAvatars,
   memberAvatarKey,
+  memberAvatarProps,
+  memberAvatarSource,
+  memberAvatarStoreEpoch,
   missingMemberAvatars,
   rememberMemberAvatars,
   storedMemberAvatar,
@@ -185,24 +189,184 @@ describe('useMemberAvatars', () => {
 
   // Without a cap this grows for as long as the browser keeps the key, and the member pays
   // for every face they ever shared a booking with.
-  it('stays under the cap by dropping what was fetched longest ago', () => {
-    const many = Array.from({ length: 205 }, (_, index) => ({
-      communityUuid: COMMUNITY,
-      gradidoID: `member-${index}`,
-      avatar: `picture-${index}`,
-      avatarUpdatedAt: MONDAY,
-    }))
-    for (const one of many) {
-      rememberMemberAvatars([one])
+  describe('the cap', () => {
+    const member = (index) => ({ communityUuid: COMMUNITY, gradidoID: `member-${index}` })
+    // One millisecond per write, so the order is a fact rather than a race. Without this
+    // 205 writes share a couple of dozen timestamps and the comparator cannot be measured.
+    const store = (index) => {
+      vi.advanceTimersByTime(1)
+      rememberMemberAvatars([
+        { ...member(index), avatar: `picture-${index}`, avatarUpdatedAt: MONDAY },
+      ])
     }
-    const stored = JSON.parse(localStorage.getItem('gradido-avatars'))
-    expect(Object.keys(stored).length).toBeLessThanOrEqual(200)
-    // The newest survive, the oldest are gone.
-    expect(storedMemberAvatar({ communityUuid: COMMUNITY, gradidoID: 'member-204' }, MONDAY)).toBe(
-      'picture-204',
-    )
-    expect(
-      storedMemberAvatar({ communityUuid: COMMUNITY, gradidoID: 'member-0' }, MONDAY),
-    ).toBeNull()
+
+    beforeEach(() => {
+      vi.useFakeTimers()
+    })
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('keeps exactly the cap, not merely no more than it', () => {
+      for (let index = 0; index < 205; index++) store(index)
+      const stored = JSON.parse(localStorage.getItem('gradido-avatars'))
+      // ⛔ `toBe`, not `toBeLessThanOrEqual`: an eviction that threw away 195 of the 200 it
+      // should have kept satisfied the old assertion, and so did dropping the sort entirely.
+      expect(Object.keys(stored).length).toBe(200)
+      expect(storedMemberAvatar(member(204), MONDAY)).toBe('picture-204')
+      expect(storedMemberAvatar(member(0), MONDAY)).toBeNull()
+    })
+
+    /**
+     * ⛔ The case that tells a real comparator from no comparator at all.
+     *
+     * `Map.set` on a key that is already there keeps its ORIGINAL position, while the fetch
+     * time moves to the end -- so this is the one arrangement where insertion order and
+     * `storedAt` order disagree. Filling to the cap and then refreshing the very first
+     * member makes them disagree about exactly one entry.
+     *
+     * Without it, `sort(() => 0)`, no sort at all, and a half-done rename of the field the
+     * comparator reads all pass.
+     */
+    it('drops the oldest FETCH, not the oldest position in the map', () => {
+      for (let index = 0; index < 200; index++) store(index)
+      store(0) // refreshed: first in the map, newest by fetch time
+      store(200) // one over the cap, so exactly one entry has to go
+
+      expect(storedMemberAvatar(member(0), MONDAY)).toBe('picture-0')
+      expect(storedMemberAvatar(member(1), MONDAY)).toBeNull()
+    })
+
+    /**
+     * An earlier build wrote `usedAt` where this one writes `storedAt`, and those entries
+     * are still lying in the browsers that ran it. Read verbatim, every comparison between
+     * two of them is `undefined - undefined` -- NaN, and the sort order is then unspecified.
+     */
+    it('carries over the fetch time an earlier build wrote under another name', () => {
+      localStorage.setItem(
+        'gradido-avatars',
+        JSON.stringify({
+          [memberAvatarKey(ANNA)]: {
+            avatar: 'anna-picture',
+            updatedAt: MONDAY.getTime(),
+            usedAt: 7,
+          },
+        }),
+      )
+      expect(storedMemberAvatar(ANNA, MONDAY)).toBe('anna-picture')
+
+      rememberMemberAvatars(answered(BEN, 'ben-picture', TUESDAY))
+      const stored = JSON.parse(localStorage.getItem('gradido-avatars'))
+      expect(stored[memberAvatarKey(ANNA)].storedAt).toBe(7)
+    })
+  })
+
+  describe('what the request asks for', () => {
+    /**
+     * ⚠️ One entry per MEMBER, not per booking row. The caller maps rows, so a member who
+     * paid the same shop twenty-five times would otherwise be named twenty-five times in
+     * one request -- and MEMBER_AVATARS_MAX_REFS counts what is sent, not who is meant, so
+     * the cap would be measured against the page size instead of against the people on it.
+     */
+    it('names a member once however many bookings they are in', () => {
+      const rows = Array.from({ length: 25 }, () => ({ ...ANNA, avatarUpdatedAt: MONDAY }))
+      expect(missingMemberAvatars(rows)).toEqual([
+        { communityUuid: COMMUNITY, gradidoID: ANNA.gradidoID },
+      ])
+    })
+
+    // A second booking list arriving before the first answer would otherwise ask for
+    // exactly the same faces again, and a third one after that.
+    it('does not ask again for what a request is already waiting on', () => {
+      const rows = [{ ...ANNA, avatarUpdatedAt: MONDAY }]
+      const first = claimMissingMemberAvatars(rows)
+      expect(first.refs).toHaveLength(1)
+      expect(claimMissingMemberAvatars(rows).refs).toEqual([])
+
+      // ...but a request that fails must not silence the member for the rest of the page.
+      first.done()
+      expect(claimMissingMemberAvatars(rows).refs).toHaveLength(1)
+    })
+  })
+
+  describe('an answer that arrives late', () => {
+    /**
+     * ⛔ The one thing a late answer must never do. The newer list reported that Anna has
+     * nothing to show, `forgetWithdrawnMemberAvatars` deleted her, and then the request the
+     * older list sent comes back carrying her face. Writing it would undo a withdrawal --
+     * on this device only, so nobody would ever see why.
+     */
+    it('cannot put back a face the newest list withdrew', () => {
+      forgetWithdrawnMemberAvatars([{ ...ANNA, avatarUpdatedAt: null }])
+      rememberMemberAvatars(answered(ANNA, 'anna-picture', MONDAY))
+      expect(storedMemberAvatar(ANNA, MONDAY)).toBeNull()
+    })
+
+    // ★ ...while everything else in the same answer is kept. Discarding the whole answer
+    // because a newer list arrived costs the member every portrait in it, downloaded and
+    // thrown away, and the list shows initials although the bytes had already come.
+    it('keeps the members the newest list said nothing about', () => {
+      forgetWithdrawnMemberAvatars([{ ...ANNA, avatarUpdatedAt: null }])
+      rememberMemberAvatars([
+        { ...ANNA, avatar: 'anna-picture', avatarUpdatedAt: MONDAY },
+        { ...BEN, avatar: 'ben-picture', avatarUpdatedAt: MONDAY },
+      ])
+      expect(storedMemberAvatar(BEN, MONDAY)).toBe('ben-picture')
+    })
+
+    /**
+     * ⛔ And the one a counter inside the component could not catch. The logout action wipes
+     * this store synchronously, while Apollo's cancellation of the request in flight is two
+     * deferrals later -- so an answer delivered in that gap resolves normally. The caller
+     * reads the epoch before the request and compares it after; this is what makes that
+     * possible, and what makes a wipe visible to a component that no longer exists.
+     */
+    it('counts a logout, so a request that crossed it can be recognised', () => {
+      const before = memberAvatarStoreEpoch()
+      forgetAllMemberAvatars()
+      expect(memberAvatarStoreEpoch()).not.toBe(before)
+    })
+  })
+
+  describe('what a booking row hands the avatar', () => {
+    const NAPOLI = {
+      ...ANNA,
+      alias: 'napoli',
+      firstName: 'Pizzeria',
+      lastName: 'Napoli',
+      avatarUpdatedAt: MONDAY,
+    }
+
+    it('is the whole set from one call, so the pair cannot be split', () => {
+      expect(memberAvatarProps(NAPOLI)).toEqual({
+        name: 'Pizzeria Napoli',
+        initials: 'NA',
+        colorSeed: 'PN',
+        src: '',
+      })
+    })
+
+    it('carries the picture once the wallet holds it', () => {
+      rememberMemberAvatars(answered(ANNA, 'anna-picture', MONDAY))
+      expect(memberAvatarSource(NAPOLI)).toBe('data:image/jpeg;base64,anna-picture')
+    })
+
+    // Built once per stored picture: a booking list re-renders whenever ANY member's
+    // picture arrives, and an ~11 KB string per row per render is the cost this avoids.
+    it('hands out the same string rather than building it again', () => {
+      rememberMemberAvatars(answered(ANNA, 'anna-picture', MONDAY))
+      expect(memberAvatarSource(NAPOLI)).toBe(memberAvatarSource(NAPOLI))
+    })
+
+    // A booking whose counterparty the backend could not resolve. Nothing here may throw --
+    // a throw inside a computed takes the whole row, and in the sidebar the whole list.
+    it('says nothing rather than failing for a row with no counterparty', () => {
+      expect(memberAvatarProps(null)).toEqual({
+        name: '',
+        initials: '',
+        colorSeed: '',
+        src: '',
+      })
+    })
   })
 })

@@ -56,6 +56,12 @@ export const checkUsername = gql`
   }
 `
 
+// ⚠️ Kept field-for-field in step with the wallet's `transactionFields` fragment
+// (frontend/src/graphql/transactions.graphql). This document is the only place a
+// transactionList selection meets the real schema in CI, so every field the wallet asks for
+// and this one does not is a field a rename can break at runtime with nothing red before --
+// the same hazard the memberAvatars document below is written to close, and the reason six
+// fields were added here at once.
 export const transactionsQuery = gql`
   query ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
     transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
@@ -77,7 +83,11 @@ export const transactionsQuery = gql`
         linkedUser {
           firstName
           lastName
+          communityUuid
+          communityName
           gradidoID
+          alias
+          avatarUpdatedAt
         }
         decay {
           decay
@@ -86,6 +96,8 @@ export const transactionsQuery = gql`
           duration
         }
         linkId
+        viaThankYouCard
+        thankYouCardLabel
       }
     }
   }

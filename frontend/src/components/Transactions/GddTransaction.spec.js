@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, vi } from 'vitest'
+import { nextTick } from 'vue'
 import GddTransaction from './GddTransaction.vue'
 import { avatarPaletteEntry } from '@/utils/avatarColor'
 import { forgetAllMemberAvatars, rememberMemberAvatars } from '@/composables/useMemberAvatars'
@@ -182,6 +183,52 @@ describe('GddTransaction', () => {
       })
       expect(avatarProps().src).toBe('')
       expect(avatarProps().initials).toBe('NA')
+    })
+
+    /**
+     * ⛔ The one condition under which this whole delivery works, and nothing measured it.
+     *
+     * The picture arrives a few hundred milliseconds after the list has already painted.
+     * The store is a plain Map -- deliberately, it holds base64 by the hundred -- so the
+     * only thing that tells a rendered row to look again is the counter `storedMemberAvatar`
+     * reads. Every other test here arranges the picture BEFORE mounting, or remounts, and
+     * both of those pass with that counter deleted; in the browser the member would then see
+     * initials for the whole visit and never a face.
+     *
+     * So: the SAME wrapper, painted first, picture second.
+     */
+    it('replaces the letters when the picture arrives after the first paint', async () => {
+      const when = '2026-08-19T09:00:00.000Z'
+      mountWith({
+        linkedUser: { ...BOOKING.linkedUser, gradidoID: 'g-napoli', avatarUpdatedAt: when },
+      })
+      expect(avatarProps().src).toBe('')
+
+      rememberMemberAvatars([
+        {
+          gradidoID: 'g-napoli',
+          communityUuid: null,
+          avatar: 'the-picture',
+          avatarUpdatedAt: when,
+        },
+      ])
+      await nextTick()
+
+      expect(avatarProps().src).toBe('data:image/jpeg;base64,the-picture')
+    })
+
+    /**
+     * A booking whose counterparty the backend could not resolve arrives as
+     * `linkedUser: null` -- the field is nullable and the resolver's if/else-if chain has no
+     * final branch. A throw inside a computed during render does not degrade this row, it
+     * REMOVES it: Vue substitutes a comment node, so the amount, the date and the name go
+     * with the circle, and no error handler is configured to report it.
+     */
+    it('draws an empty circle rather than tearing the row down', () => {
+      expect(() => mountWith({ linkedUser: null })).not.toThrow()
+      expect(avatarProps().initials).toBe('')
+      expect(avatarProps().name).toBe('')
+      expect(avatarProps().src).toBe('')
     })
   })
 })

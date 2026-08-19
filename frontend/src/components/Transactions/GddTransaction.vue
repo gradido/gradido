@@ -94,8 +94,7 @@ import Name from '../TransactionRows/Name'
 import DecayInformation from '../DecayInformations/DecayInformation'
 import { BAvatar, BRow } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
-import { avatarLettering } from '@/utils/avatarLettering'
-import { storedMemberAvatar } from '@/composables/useMemberAvatars'
+import { memberAvatarProps } from '@/composables/useMemberAvatars'
 
 const props = defineProps({
   transaction: {
@@ -113,23 +112,15 @@ const toggleVisible = () => {
   visible.value = !visible.value
 }
 
-// What the circle says and what colours it -- from one call, so the two cannot come to
-// describe different members (AS-010). The letters follow the alias, because the line
-// right beside this circle shows the alias; the colour keeps following the real initials,
-// so nobody's colour moved and the printed card still agrees with the screen.
-const lettering = computed(() => avatarLettering(props.transaction?.linkedUser))
-
-const fullName = computed(() =>
-  `${props.transaction?.linkedUser?.firstName ?? ''} ${props.transaction?.linkedUser?.lastName ?? ''}`.trim(),
-)
-
-// Only what the wallet already holds; the fetching for the whole list happens once, in
-// DashboardLayout. An empty string means "no picture", which is what AppAvatar expects.
-const avatarSrc = computed(() => {
-  const linkedUser = props.transaction?.linkedUser
-  const stored = storedMemberAvatar(linkedUser, linkedUser?.avatarUpdatedAt)
-  return stored ? `data:image/jpeg;base64,${stored}` : ''
-})
+// What the circle says, what colours it, and the picture if the wallet already holds one --
+// from one call, so the parts cannot come to describe different members (AS-010). The
+// letters follow the alias, because the line right beside this circle shows the alias; the
+// colour keeps following the real initials, so nobody's colour moves and the printed card
+// still agrees with the screen.
+//
+// Reading only, never fetching: the request for the whole list happens once, in
+// DashboardLayout. `linkedUser` may be null, and this is written for that.
+const memberAvatar = computed(() => memberAvatarProps(props.transaction?.linkedUser))
 
 const isCreationType = computed(() => {
   return props.transaction.typeId === 'CREATION'
@@ -148,12 +139,11 @@ const avatarProps = computed(() => {
     }
   } else {
     return {
-      // `name`, not `username`: AppAvatar has no username prop, so the old spelling was
-      // dropped in silence and the fallback it was meant to feed never arrived.
-      name: fullName.value,
-      initials: lettering.value.letters,
-      colorSeed: lettering.value.colorSeed,
-      src: avatarSrc.value,
+      // Spread, not four hand-copied lines: `name`, `initials`, `colorSeed` and `src`
+      // belong together, and the one time this house let a call site assemble such a set
+      // itself, it wrote `username` -- a prop AppAvatar does not have, dropped in silence,
+      // and the fallback it was meant to feed never arrived.
+      ...memberAvatar.value,
       color: '#fff',
       size: 42,
     }
