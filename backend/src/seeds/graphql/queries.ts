@@ -429,6 +429,22 @@ export const adminListContributionMessages = gql`
   }
 `
 
+// Written out exactly as frontend/src/graphql/queries.js sends it. The input type name
+// and the argument name are produced by type-graphql from class names on this side and
+// typed by hand on the other, and nothing links the two -- so a rename here would leave
+// the wallet sending a document the schema rejects, at runtime, with nothing red before.
+// This document is that link: it goes through the real schema on every backend test run.
+export const memberAvatars = gql`
+  query ($refs: [MemberAvatarRefInput!]!) {
+    memberAvatars(refs: $refs) {
+      gradidoID
+      communityUuid
+      avatar
+      avatarUpdatedAt
+    }
+  }
+`
+
 export const user = gql`
   query ($identifier: String!, $communityIdentifier: String!) {
     user(identifier: $identifier, communityIdentifier: $communityIdentifier) {

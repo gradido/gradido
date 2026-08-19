@@ -1,5 +1,22 @@
 import gql from 'graphql-tag'
 
+// The pictures of other members, asked for by the pair that identifies them. Only for the
+// ones the wallet does not already hold in useMemberAvatars -- a booking list carries a
+// date per member, and everything whose date still matches is already on this device.
+//
+// A member with nothing to show is simply absent from the answer; the backend decides that
+// (switch off, deleted, another community) and this side never learns which.
+export const memberAvatars = gql`
+  query ($refs: [MemberAvatarRefInput!]!) {
+    memberAvatars(refs: $refs) {
+      gradidoID
+      communityUuid
+      avatar
+      avatarUpdatedAt
+    }
+  }
+`
+
 export const verifyLogin = gql`
   query {
     verifyLogin {

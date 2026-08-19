@@ -21,6 +21,14 @@ fragment transactionFields on Transaction {
     communityName
     gradidoID
     alias
+    # When this member last changed the picture other members may see -- a date, not the
+    # picture. Both live queries share this fragment, so it is asked for once here rather
+    # than in each of them, the way balanceFields is.
+    #
+    # null means there is nothing to show, for whatever reason, and that is the whole
+    # answer the screen needs. It is also what tells the wallet to drop a picture it still
+    # holds for this member: see composables/useMemberAvatars.
+    avatarUpdatedAt
   }
   decay {
     decay

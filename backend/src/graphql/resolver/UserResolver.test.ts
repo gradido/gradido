@@ -65,6 +65,7 @@ import {
   aliasStatus,
   avatarFull,
   checkUsername,
+  memberAvatars,
   queryOptIn,
   searchAdminUsers,
   searchUsers,
@@ -2996,8 +2997,10 @@ describe('UserResolver', () => {
       expect(removed.data.removeUserAvatar).toBe(true)
     })
 
-    // The boundary this whole delivery keeps: a face is a disclosure to third parties,
-    // and there is no switch for it yet, so there is nobody it may be shown to.
+    // The boundary the field resolver keeps: `user` hands out any member by alias to
+    // everyone logged in, so the picture is withheld there and stays withheld. The switch
+    // that decides who may see a face works through memberAvatars below, not through this
+    // field -- widening this one would hand out pictures the switch never agreed to.
     it('hides the picture from another logged-in member', async () => {
       await mutate({
         mutation: login,
@@ -3028,6 +3031,79 @@ describe('UserResolver', () => {
       // at work and not a lookup that failed.
       expect(res.data.user.gradidoID).toBe(owner.gradidoID)
       expect(res.data.user.avatar).toBeNull()
+    })
+
+    // The batched reader other members' faces actually travel through. Run against the
+    // real schema on purpose: the input type name and the argument name are produced by
+    // type-graphql from class names here and typed by hand in the wallet, and nothing
+    // links the two. A rename would leave the wallet sending a document the schema
+    // rejects, at runtime, with nothing red beforehand. This document is that link.
+    //
+    // State on arrival: bob is logged in, bibi has a picture and has not touched the
+    // switch, so it stands at the column default.
+    describe('the pictures of other members', () => {
+      it("hands bibi's picture to bob, who shares bookings with her", async () => {
+        const res: any = await query({
+          query: memberAvatars,
+          variables: {
+            refs: [{ gradidoID: owner.gradidoID, communityUuid: homeCom.communityUuid }],
+          },
+        })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.memberAvatars).toHaveLength(1)
+        expect(res.data.memberAvatars[0].gradidoID).toBe(owner.gradidoID)
+        expect(res.data.memberAvatars[0].avatar).toBe(JPEG_BASE64)
+        expect(res.data.memberAvatars[0].avatarUpdatedAt).not.toBeNull()
+      })
+
+      // The switch, end to end and through the real schema -- the query test proves the
+      // SQL, this proves that the path a member's decision actually takes reaches it.
+      it('hands out nothing once bibi turns the switch off', async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+        await mutate({
+          mutation: updateUserInfos,
+          variables: { avatarVisibleToMembers: false },
+        })
+        await mutate({
+          mutation: login,
+          variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
+        })
+
+        const res: any = await query({
+          query: memberAvatars,
+          variables: {
+            refs: [{ gradidoID: owner.gradidoID, communityUuid: homeCom.communityUuid }],
+          },
+        })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.memberAvatars).toEqual([])
+      })
+
+      // Never an error for a member who is not there: that would make this a directory
+      // telling whoever asks which accounts exist.
+      it('says nothing at all about a member it does not know', async () => {
+        const res: any = await query({
+          query: memberAvatars,
+          variables: {
+            refs: [{ gradidoID: 'ffffffff-ffff-4fff-8fff-ffffffffffff', communityUuid: null }],
+          },
+        })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.memberAvatars).toEqual([])
+      })
+
+      // Without the cap this is a bulk download of every face in the community.
+      it('refuses a list longer than the cap', async () => {
+        const refs = Array.from({ length: 101 }, (_, index) => ({
+          gradidoID: `ffffffff-ffff-4fff-8fff-${String(index).padStart(12, '0')}`,
+          communityUuid: null,
+        }))
+        const res: any = await query({ query: memberAvatars, variables: { refs } })
+        expect(res.errors).toBeDefined()
+      })
     })
   })
 
