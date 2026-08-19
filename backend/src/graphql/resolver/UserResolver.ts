@@ -1,5 +1,6 @@
 import { UserArgs } from '@arg//UserArgs'
 import { CreateUserArgs } from '@arg/CreateUserArgs'
+import { MEMBER_AVATARS_MAX_REFS, MemberAvatarsArgs } from '@arg/MemberAvatarsArgs'
 import { Paginated } from '@arg/Paginated'
 import { SearchUsersFilters } from '@arg/SearchUsersFilters'
 import { SetUserRoleArgs } from '@arg/SetUserRoleArgs'
@@ -14,6 +15,7 @@ import { UserContactType } from '@enum/UserContactType'
 import { AdminUser, SearchAdminUsersResult } from '@model/AdminUser'
 import { AliasStatus } from '@model/AliasStatus'
 import { GmsUserAuthenticationResult } from '@model/GmsUserAuthenticationResult'
+import { MemberAvatar } from '@model/MemberAvatar'
 import { User } from '@model/User'
 import { SearchUsersResult, UserAdmin } from '@model/UserAdmin'
 import { UserContact } from '@model/UserContact'
@@ -41,6 +43,7 @@ import {
   dbCountChosenAliasesSince,
   dbDeleteUserAvatar,
   dbFindAliasesByUser,
+  dbFindMemberAvatarsSmall,
   dbFindOldestChosenAliasSince,
   dbFindOwnAlias,
   dbFindProjectBrandingByAlias,
@@ -1077,6 +1080,44 @@ export class UserResolver {
     const user = getUser(context)
     const avatar = await dbFindUserAvatarFull(user.id)
     return avatar.success ? avatar.value.toString('base64') : null
+  }
+
+  /**
+   * The pictures of several other members at once, for showing them next to the bookings
+   * the caller shares with them.
+   *
+   * ★ The caller ASKS for these; nothing pushes them. A booking list carries only a date
+   * per member (User.avatarUpdatedAt), so the wallet can work out which pictures it does
+   * not already hold and ask for exactly those. On a second visit that is usually none.
+   *
+   * ⛔ The disclosure rule is not here. Whether a member's face may be shown to other
+   * members lives in the query (dbFindMemberAvatarsSmall) so that no reader can forget
+   * it -- this resolver could not hand out a hidden picture even if it tried.
+   *
+   * A member who has nothing to show is simply absent from the answer, never an error.
+   * See MemberAvatar for why that is the smaller surface.
+   */
+  @Authorized([RIGHTS.VERIFY_LOGIN])
+  @Query(() => [MemberAvatar])
+  async memberAvatars(
+    @Args(() => MemberAvatarsArgs) { refs }: MemberAvatarsArgs,
+  ): Promise<MemberAvatar[]> {
+    // A cap, because without one this is a bulk download of every face in the community.
+    // Sized as one page of bookings plus room for a list that happens to name a different
+    // member in every row; a wallet that needs more asks twice.
+    if (refs.length > MEMBER_AVATARS_MAX_REFS) {
+      throw new LogError('Too many members requested at once', refs.length)
+    }
+
+    const rows = await dbFindMemberAvatarsSmall(refs.map((ref) => ref.gradidoID))
+    return rows.map((row) => {
+      const avatar = new MemberAvatar()
+      avatar.gradidoID = row.gradidoId
+      avatar.communityUuid = row.communityUuid
+      avatar.avatar = row.avatarSmall.toString('base64')
+      avatar.avatarUpdatedAt = row.updatedAt
+      return avatar
+    })
   }
 
   /**

@@ -55,6 +55,9 @@ export class User {
       // Lives in its own table, so the user row cannot carry it; verifyLogin fills it.
       // This is the small rendition -- the full one is fetched on demand, see avatarFull.
       this.avatar = null
+      // Same: not on the user row. Whoever assembles a list of members fills it in one
+      // batch; null until then, and null for good where there is nothing to show.
+      this.avatarUpdatedAt = null
       this.userLocation = dbUser.location ? Point2Location(dbUser.location as Point) : null
       // Unrestricted by default; verifyLogin fills in a scoped moderator's real groups.
       this.visibleCreationGroups = []
@@ -167,6 +170,22 @@ export class User {
   // that switch is avatarVisibleToMembers above. It exists now; nothing reads it yet.
   @Field(() => String, { nullable: true })
   avatar: string | null
+
+  // When this member last changed the picture that OTHER members may see. Not the picture
+  // itself -- a date, which is cheap enough to send with every row of a booking list.
+  //
+  // It is what lets the wallet keep pictures between visits without asking each time
+  // whether they are still current: a stored picture counts as fresh while its date
+  // matches this one, and a changed date invalidates exactly the one member who changed.
+  //
+  // null carries one meaning only -- there is nothing to show. No picture, the switch is
+  // off, the member is deleted, or they belong to another community. The wallet does not
+  // need to tell those apart, and it must not: each of them is somebody else's business.
+  //
+  // ⛔ Filled in one batch by whoever builds the list, never by a field resolver. A field
+  // resolver here would turn one booking list into one database round trip per row.
+  @Field(() => Date, { nullable: true })
+  avatarUpdatedAt: Date | null
 
   // This is not the users publisherId, but the one of the users who recommend him
   @Field(() => Int, { nullable: true })
