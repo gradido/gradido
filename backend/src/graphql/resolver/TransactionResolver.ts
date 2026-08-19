@@ -24,6 +24,7 @@ import {
   AppDatabase,
   countOpenPendingTransactions,
   DltTransaction as DbDltTransaction,
+  dbFindMemberAvatarTimestamps,
   dbSelectThankYouCardLabels,
   Transaction as dbTransaction,
   TransactionLink as dbTransactionLink,
@@ -366,6 +367,25 @@ export class TransactionResolver {
       relations: ['emailContact'],
     })
     const involvedUsers = involvedDbUsers.map((u) => new User(u))
+
+    // When each of these members last changed the picture other members may see. One
+    // query for the whole list, right here where the list already exists -- a field
+    // resolver would ask once per row instead, and a booking list has as many rows as the
+    // page is long.
+    //
+    // Dates only, no picture data: this rides along on every booking list, and the
+    // pictures themselves are fetched separately and only for the ones the wallet does
+    // not already hold. A member missing from the answer has nothing to show, and the
+    // query decides that -- switch off, deleted, or no picture at all. Deciding it here
+    // would mean every future reader of the list has to remember the same rule.
+    //
+    // involvedRemoteUsers are deliberately left out: they belong to another community,
+    // whose members' pictures are a separate delivery (AS-004).
+    const avatarDates = await dbFindMemberAvatarTimestamps(involvedUserIds)
+    for (const involvedUser of involvedUsers) {
+      involvedUser.avatarUpdatedAt = avatarDates.get(involvedUser.id) ?? null
+    }
+
     logger.debug(
       `involvedUsers=`,
       involvedUsers.map((u) => u.id),
