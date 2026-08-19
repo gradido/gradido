@@ -671,7 +671,7 @@
       "disabled": "Only you can see your picture now.",
       "enabled": "Your picture is visible to other members.",
       "visibility": "Show my picture to other members",
-      "visibilityInfo": "Other members see your picture next to the bookings you share. Without the tick your initials appear, as before."
+      "visibilityInfo": "Other members see your picture next to the bookings you share. When the setting is switched off, your initials appear, as before."
     },
     "community": "Community",
     "emailInfo": "Cannot be changed at this time.",
