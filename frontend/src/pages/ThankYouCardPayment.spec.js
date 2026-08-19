@@ -40,8 +40,27 @@ vi.mock('vue-router', () => ({
 const state = { firstName: 'Max', lastName: 'Mustermann' }
 vi.mock('vuex', () => ({ useStore: () => ({ state }) }))
 
+/**
+ * ⚠️ `n` is a real Intl call, not a stub that hands back a string of our own: the whole point
+ * of the amount field is that a number comes out in the language's own notation, and it has
+ * to survive a round trip through the reader. The same call the wallet's `numberFormats`
+ * makes -- German, two decimals.
+ */
+const germanDecimal = new Intl.NumberFormat('de', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
 vi.mock('vue-i18n', () => ({
-  useI18n: vi.fn(() => ({ t: (key) => key })),
+  useI18n: vi.fn(() => ({ t: (key) => key, n: (value) => germanDecimal.format(value) })),
+}))
+
+const mockReadParked = vi.fn(() => null)
+const mockClearParked = vi.fn()
+vi.mock('@/composables/useParkedAmount', () => ({
+  useParkedAmount: vi.fn(() => ({
+    readParked: mockReadParked,
+    clearParked: mockClearParked,
+  })),
 }))
 
 // The query hands its answer over through onResult, so the test keeps the callback and
@@ -122,6 +141,7 @@ describe('ThankYouCardPayment', () => {
     onTargetResult = undefined
     onTargetError = undefined
     mockReadRememberedMemo.mockReturnValue('')
+    mockReadParked.mockReturnValue(null)
     mockCreate.mockResolvedValue({ data: { createThankYouCardPayment: { id: PAYMENT_ID } } })
     mockConfirm.mockResolvedValue({
       data: { confirmThankYouCardPayment: { status: 'SUCCESS', payerName: 'Bibi Bloxberg' } },
@@ -435,6 +455,120 @@ describe('ThankYouCardPayment', () => {
 
       expect(mockToastError).toHaveBeenCalledWith('network')
       expect(field('pin').exists()).toBe(true)
+    })
+  })
+
+  /**
+   * The seam to the calculator page.
+   *
+   * ⛔ Every case here is about an amount that must NOT appear or must NOT stay: a total from
+   * this morning, one that was already charged, one that was misread. None of them would look
+   * wrong on screen -- a stale amount looks exactly like a fresh one -- so nothing but a test
+   * would ever catch them.
+   */
+  describe('an amount handed over by the calculator', () => {
+    it('arrives in the field, drawn the way the calculator drew it', async () => {
+      mockReadParked.mockReturnValue(6.3)
+      await mountUsable()
+
+      expect(field('amount').element.value).toBe('6,30')
+      expect(field('from-calculator').exists()).toBe(true)
+    })
+
+    it('leaves the field empty when nothing is parked', async () => {
+      await mountUsable()
+
+      expect(field('amount').element.value).toBe('')
+      expect(field('from-calculator').exists()).toBe(false)
+    })
+
+    /**
+     * ⛔ Read, not consumed. Consuming on arrival would lose the amount to an accidental
+     * reload, and whoever runs the till would add the whole basket up again with a customer
+     * waiting.
+     */
+    it('does not consume it just by opening the page', async () => {
+      mockReadParked.mockReturnValue(6.3)
+      await mountUsable()
+
+      expect(mockClearParked).not.toHaveBeenCalled()
+    })
+
+    it('lets it go once a payment has actually gone through', async () => {
+      mockReadParked.mockReturnValue(6.3)
+      await mountUsable()
+      await fillAndStart({ amount: '6,30' })
+      await field('pin').setValue('407312')
+      await flushPromises()
+
+      expect(field('paid-amount').exists()).toBe(true)
+      expect(mockClearParked).toHaveBeenCalled()
+    })
+
+    it('keeps it when the PIN was wrong', async () => {
+      mockReadParked.mockReturnValue(6.3)
+      mockConfirm.mockResolvedValue({
+        data: { confirmThankYouCardPayment: { status: 'WRONG_PIN', attemptsLeft: 2 } },
+      })
+      await mountUsable()
+      await fillAndStart({ amount: '6,30' })
+      await field('pin').setValue('111111')
+      await flushPromises()
+
+      expect(mockClearParked).not.toHaveBeenCalled()
+    })
+
+    /** The field stays editable -- an amount that appeared on its own and cannot be corrected
+     *  would be worse than one that was typed. */
+    it('can be overwritten', async () => {
+      mockReadParked.mockReturnValue(6.3)
+      await mountUsable()
+      await field('amount').setValue('9,00')
+      await fillAndStart({ amount: '9,00' })
+
+      expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ amount: '9' }))
+    })
+  })
+
+  describe('reading what was typed into the amount field', () => {
+    /**
+     * ★ Writes back what was READ, so a misread entry becomes visible before the PIN step
+     * rather than after the charge. At a desk keyboard there is no keypad, and somebody used
+     * to a pocket calculator types a full stop.
+     */
+    it.each([
+      ['6.30', '6,30'],
+      ['6,30', '6,30'],
+      ['1.234,50', '1.234,50'],
+      ['1234.5', '1.234,50'],
+    ])('shows %s back as %s when the field is left', async (typed, shown) => {
+      await mountUsable()
+      await field('amount').setValue(typed)
+      await field('amount').trigger('blur')
+
+      expect(field('amount').element.value).toBe(shown)
+    })
+
+    it('leaves an unusable entry alone rather than correcting it', async () => {
+      await mountUsable()
+      await field('amount').setValue('12abc')
+      await field('amount').trigger('blur')
+
+      expect(field('amount').element.value).toBe('12abc')
+    })
+
+    /**
+     * ⛔ As a STRING in dot notation. The GradidoUnit scalar refuses a number during variable
+     * coercion, which comes back as a bare HTTP 400 rather than a GraphQL error -- the fault
+     * Bernd hit on 17.08.2026 the first time a card was used.
+     */
+    it('sends a comma-typed amount on as a dot-notation string', async () => {
+      await mountUsable()
+      await fillAndStart({ amount: '12,50' })
+
+      expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ amount: '12.5' }))
+      const sent = mockCreate.mock.calls[0][0]
+      expect(typeof sent.amount).toBe('string')
     })
   })
 })
