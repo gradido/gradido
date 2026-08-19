@@ -51,6 +51,7 @@ export class User {
       this.humhubPublishName = dbUser.humhubPublishName
       this.gmsPublishLocation = dbUser.gmsPublishLocation
       this.aboutMe = dbUser.aboutMe
+      this.avatarVisibleToMembers = dbUser.avatarVisibleToMembers
       // Lives in its own table, so the user row cannot carry it; verifyLogin fills it.
       // This is the small rendition -- the full one is fetched on demand, see avatarFull.
       this.avatar = null
@@ -126,6 +127,11 @@ export class User {
 
   @Field(() => Boolean)
   gmsAllowed: boolean
+
+  // Whether other members may see this member's picture. Own setting, so it travels with
+  // verifyLogin like the two above; it says nothing about anybody else's picture.
+  @Field(() => Boolean)
+  avatarVisibleToMembers: boolean
 
   @Field(() => PublishNameType, { nullable: true })
   gmsPublishName: PublishNameType | null
