@@ -15,29 +15,53 @@
 const DEFAULT_LOCALE = 'en'
 
 /**
- * ⚠️ Read from Intl rather than kept in a table of our own. A table would be a second
- * source of truth next to `numberFormats` in i18n.js, and the two would drift the first
- * time a language is added -- Turkish is already missing from that one.
+ * One set of tools per language, built once and kept.
+ *
+ * ⚠️ Building an `Intl.NumberFormat` is the expensive part of Intl -- formatting with a
+ * built one is cheap. The display is redrawn on every key press and formats every number in
+ * the expression, so a basket of five items used to build ten formatters per digit pressed,
+ * on the kind of phone that stands at a market stall. Now it builds one per language, ever.
+ *
+ * ⚠️ Read from Intl rather than kept in a table of our own. A table would be a second source
+ * of truth next to `numberFormats` in i18n.js, and the two would drift the first time a
+ * language is added -- Turkish is already missing from that one.
+ *
+ * ★ The separator and the grouping are built TOGETHER, from the same resolved language. That
+ * is what makes the fallback safe: if one fell back to English while the other did not, the
+ * result would be an English separator on a number grouped some other way -- a shape no
+ * language has.
  */
-const separatorsOf = (locale, value) => {
-  try {
-    const parts = new Intl.NumberFormat(locale, { minimumFractionDigits: 1 }).formatToParts(value)
-    return parts
-  } catch {
-    // An unknown locale tag must not take the calculator down; English is the fallback the
-    // wallet uses everywhere else too.
-    return new Intl.NumberFormat(DEFAULT_LOCALE, { minimumFractionDigits: 1 }).formatToParts(value)
+const toolsByLocale = new Map()
+
+const buildTools = (locale) => ({
+  groups: new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }),
+  decimalSeparator:
+    new Intl.NumberFormat(locale, { minimumFractionDigits: 1 })
+      .formatToParts(1.1)
+      .find((part) => part.type === 'decimal')?.value ?? '.',
+})
+
+const toolsFor = (locale) => {
+  const tag = locale || DEFAULT_LOCALE
+  let tools = toolsByLocale.get(tag)
+  if (!tools) {
+    try {
+      tools = buildTools(tag)
+    } catch {
+      // An unknown language tag must not take the calculator down; English is the fallback
+      // the wallet uses everywhere else too.
+      tools = buildTools(DEFAULT_LOCALE)
+    }
+    toolsByLocale.set(tag, tools)
   }
+  return tools
 }
 
 /**
- * The character this locale puts between the whole part and the decimals -- the one the
+ * The character this language puts between the whole part and the decimals -- the one the
  * calculator's separator key has to carry. German gets a comma, English a full stop.
  */
-export const decimalSeparatorFor = (locale) => {
-  const part = separatorsOf(locale, 1.1).find((p) => p.type === 'decimal')
-  return part ? part.value : '.'
-}
+export const decimalSeparatorFor = (locale) => toolsFor(locale).decimalSeparator
 
 /**
  * Draws one number of the calculator's expression the way it should appear while it is
@@ -62,20 +86,11 @@ export const formatTypedNumber = (raw, locale) => {
   const whole = dot === -1 ? body : body.slice(0, dot)
   const decimals = dot === -1 ? null : body.slice(dot + 1)
 
-  let head
-  try {
-    head = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(Number(whole || '0'))
-  } catch {
-    // ⚠️ The same fallback the separator uses. Falling back to the ungrouped digits here
-    // while `decimalSeparatorFor` falls back to English would put an English separator on a
-    // number with no grouping -- a shape no locale has.
-    head = new Intl.NumberFormat(DEFAULT_LOCALE, { maximumFractionDigits: 0 }).format(
-      Number(whole || '0'),
-    )
-  }
+  const tools = toolsFor(locale)
   const sign = negative ? '-' : ''
+  const head = tools.groups.format(Number(whole || '0'))
   if (decimals === null) {
     return sign + head
   }
-  return sign + head + decimalSeparatorFor(locale) + decimals
+  return sign + head + tools.decimalSeparator + decimals
 }
