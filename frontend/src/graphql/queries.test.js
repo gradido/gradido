@@ -56,17 +56,30 @@ describe.each([
   })
 })
 
-// The avatar is deliberately not on that list. The login mutation does not carry it --
-// filling it there would mean a database read on the one request path every member and
-// every test takes -- so verifyLogin is the only place the wallet can get it, and two
-// callers read it from exactly here: guards.js on the token handoff, and Login.vue right
-// after a form login. Drop the field and both of them commit null over a good picture,
-// silently, which is the failure this whole guard exists for.
+// Two fields are deliberately not on that list, and for the same structural reason: the
+// login mutation cannot answer either of them, so verifyLogin is the only place the
+// wallet can read them. Two callers do exactly that: guards.js on the token handoff, and
+// Login.vue right after a form login. Drop a field here and both of them leave the store
+// empty, silently, which is the failure this whole guard exists for.
+//
+//   * the avatar, because filling it on the login path would mean a database read on the
+//     one request every member and every test makes;
+//   * avatarVisibleToMembers, because it is own-view only -- a field resolver hands it to
+//     nobody but its owner, and `login` runs on an inalienable right, so it has no
+//     authenticated caller to be the owner. It would come back null.
 describe('verifyLogin query', () => {
-  it('requests the avatar, which is the only place the wallet can read it', () => {
-    expect([...requestedFields(verifyLogin)]).toContain('avatar')
-  })
+  it.each(['avatar', 'avatarVisibleToMembers'])(
+    'requests "%s", which is the only place the wallet can read it',
+    (field) => {
+      expect([...requestedFields(verifyLogin)]).toContain(field)
+    },
+  )
 })
+
+// The other half of the same contract: neither field may be read off the login payload by
+// the login store action, because guards.js feeds that action a verifyLogin result while
+// Login.vue feeds it a login result. A field read there is right for one caller and
+// undefined for the other -- see store.test.js, which holds the action to clearing both.
 
 // Data protection: the community list is open to every member and shows denied
 // contributions too, so it names nobody. The backend refuses to send a person either

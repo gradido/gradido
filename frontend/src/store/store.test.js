@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mutations, actions, THEME_MODE_STORAGE_KEY } from './store'
 import i18n from '../i18n'
 import jwtDecode from 'jwt-decode'
@@ -146,6 +146,12 @@ describe('Vuex store', () => {
     describe('login', () => {
       const commit = vi.fn()
       const state = {}
+      // The mock is shared by every test below, so without this the call-count
+      // assertions only hold while they happen to run first, and reordering the block
+      // breaks them for a reason that has nothing to do with the store.
+      beforeEach(() => {
+        commit.mockClear()
+      })
       const commitedData = {
         gradidoID: 'my-gradido-id',
         language: 'de',
@@ -182,6 +188,18 @@ describe('Vuex store', () => {
         expect(localCommit).toHaveBeenCalledWith('avatar', null)
       })
 
+      // Same treatment, same reason, and one more of its own: the login mutation is
+      // answered without an authenticated caller, so an own-view-only field comes back
+      // null there. Reading it off the payload would be right for guards.js, which hands
+      // this action a verifyLogin result, and wrong for Login.vue, which hands it a login
+      // result -- the switch would then show "hidden" to every member whose picture is in
+      // fact shown. Both callers fill it from verifyLogin instead; see queries.test.js.
+      it("forgets the previous member's picture setting rather than reading a login payload", () => {
+        const localCommit = vi.fn()
+        login({ commit: localCommit, state: {} }, { ...commitedData, avatarVisibleToMembers: true })
+        expect(localCommit).toHaveBeenCalledWith('avatarVisibleToMembers', null)
+      })
+
       it('uses the account language when there is no deliberate pre-login choice', () => {
         const localCommit = vi.fn()
         login({ commit: localCommit, state: {} }, commitedData)
@@ -208,6 +226,12 @@ describe('Vuex store', () => {
       const commit = vi.fn()
       const dispatch = vi.fn()
       const state = { themeMode: 'dark' }
+      // See the login block above: shared mocks, so the count assertion below is only
+      // meaningful once each test starts from zero.
+      beforeEach(() => {
+        commit.mockClear()
+        dispatch.mockClear()
+      })
 
       it('calls twenty-three commits', () => {
         logout({ commit, state, dispatch })

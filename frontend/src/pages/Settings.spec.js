@@ -51,6 +51,7 @@ describe('Settings', () => {
         newsletterState: false,
         gmsAllowed: false,
         humhubAllowed: false,
+        avatarVisibleToMembers: true,
         ...state,
       }),
       mutations: {
@@ -59,6 +60,13 @@ describe('Settings', () => {
         },
         lastName(state, value) {
           state.lastName = value
+        },
+        // UserSettingsSwitch commits under the attr-name it was handed, and Vuex answers
+        // an unknown mutation type with a console line rather than an exception. Without
+        // this entry the switch below would save, toast success, and leave the store
+        // untouched -- and the test would not notice.
+        avatarVisibleToMembers(state, value) {
+          state.avatarVisibleToMembers = value
         },
       },
     })
@@ -94,6 +102,23 @@ describe('Settings', () => {
       },
     })
   }
+
+  // The only self-saving switch that mounts here: the GMS and HumHub ones sit behind
+  // isCommunityService, which is off under test. It takes its position straight from the
+  // store, and that is why this is worth a test of its own -- the store is filled from
+  // verifyLogin, and while that filling was missing the switch read "hidden" to every
+  // member whose picture was in fact shown.
+  describe('the switch for showing the picture to other members', () => {
+    it("stands where the member's stored setting stands", () => {
+      wrapper = createWrapper({ avatarVisibleToMembers: true })
+      expect(wrapper.find('input[type="checkbox"]').element.checked).toBe(true)
+    })
+
+    it('stands the other way round when they turned it off', () => {
+      wrapper = createWrapper({ avatarVisibleToMembers: false })
+      expect(wrapper.find('input[type="checkbox"]').element.checked).toBe(false)
+    })
+  })
 
   describe('mount', () => {
     beforeEach(() => {

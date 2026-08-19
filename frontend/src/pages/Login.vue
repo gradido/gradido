@@ -132,6 +132,7 @@ const onSubmit = handleSubmit(async (values) => {
     try {
       const { data } = await client.query({ query: verifyLogin, fetchPolicy: 'network-only' })
       store.commit('avatar', data.verifyLogin.avatar ?? null)
+      store.commit('avatarVisibleToMembers', data.verifyLogin.avatarVisibleToMembers ?? null)
     } catch (error) {
       // Initials until the next verifyLogin -- the same as before this was fetched at all.
     }

@@ -121,7 +121,13 @@ export const actions = {
     commit('lastName', data.lastName)
     commit('newsletterState', data.klickTipp.newsletterState)
     commit('gmsAllowed', data.gmsAllowed)
-    commit('avatarVisibleToMembers', data.avatarVisibleToMembers)
+    // Cleared, not read from the payload, for the same two reasons as the avatar below.
+    // It is own-view only -- a field resolver hands it to nobody but its owner -- and the
+    // login mutation runs on an inalienable right, so it has no authenticated caller and
+    // would be answered with null. verifyLogin is where it can be read, and whoever holds
+    // a verifyLogin result puts it in the store. Clearing matters because the persisted
+    // store still holds the previous member's setting when the next one signs in here.
+    commit('avatarVisibleToMembers', null)
     commit('humhubAllowed', data.humhubAllowed)
     commit('gmsPublishName', data.gmsPublishName)
     commit('humhubPublishName', data.humhubPublishName)

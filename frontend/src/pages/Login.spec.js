@@ -161,7 +161,7 @@ describe('Login', () => {
         })
         mockQuery.mockResolvedValue({
           data: {
-            verifyLogin: { avatar: 'base64-picture' },
+            verifyLogin: { avatar: 'base64-picture', avatarVisibleToMembers: false },
           },
         })
         await wrapper.find('form').trigger('submit')
@@ -193,6 +193,15 @@ describe('Login', () => {
       // on the ordinary path nothing does.
       it('fetches the picture and commits it', () => {
         expect(store.commit).toHaveBeenCalledWith('avatar', 'base64-picture')
+      })
+
+      // The same fetch carries the switch that says who may see that picture, and it
+      // cannot ride on the login mutation either -- own-view only, and login has no
+      // authenticated caller. Miss this commit and the settings page shows every member
+      // "not visible" while the column says otherwise, which is the wrong direction for a
+      // switch a member consults to check that they are hidden.
+      it('commits the picture-visibility setting from the same fetch', () => {
+        expect(store.commit).toHaveBeenCalledWith('avatarVisibleToMembers', false)
       })
     })
 
