@@ -11,6 +11,7 @@ import {
   login,
   setThankYouCardSettings,
 } from '@/seeds/graphql/mutations'
+import { thankYouCardPaymentTarget } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 
@@ -34,6 +35,7 @@ jest.mock('@/password/EncryptorUtils')
 CONFIG.DLT_ACTIVE = false
 
 let mutate: ApolloServerTestClient['mutate']
+let query: ApolloServerTestClient['query']
 
 const PIN = '407312'
 const WRONG_PIN = '111111'
@@ -66,6 +68,7 @@ describe('thank you card: the wrong-pin counter', () => {
   beforeAll(async () => {
     const testEnv = await testEnvironment()
     mutate = testEnv.mutate
+    query = testEnv.query
     await cleanDB()
 
     await userFactory(testEnv, bibiBloxberg)
@@ -129,6 +132,29 @@ describe('thank you card: the wrong-pin counter', () => {
       attemptsLeft: 1,
     })
     expect(await payWith('10', WRONG_PIN)).toMatchObject({ status: 'BLOCKED_NOW' })
-    expect(await payWith('10', PIN)).toMatchObject({ status: 'CARD_BLOCKED' })
+  })
+
+  /**
+   * What a merchant scanning the dead card is told afterwards.
+   *
+   * ⚠️ Asked rather than paid, and the first attempt at this test got it wrong: a blocked
+   * card does not even let a request be OPENED any more — `createThankYouCardPayment`
+   * refuses it outright, so there is no payment id to confirm against. The landing page
+   * asks this query instead, which is what the till actually does.
+   *
+   * ⛔ And the second half is the one that matters: NO label. It is the promise the label
+   * was added under — showing it for a card that cannot pay would tell whoever found it
+   * that their code belongs to a real, known card. Nothing tested that until now.
+   */
+  it('tells a till the card is blocked, and names nothing about it', async () => {
+    const target = await query({
+      query: thankYouCardPaymentTarget,
+      variables: { code: cardCode },
+    })
+
+    expect(target.data.thankYouCardPaymentTarget).toMatchObject({
+      status: 'CARD_BLOCKED',
+      cardLabel: null,
+    })
   })
 })
