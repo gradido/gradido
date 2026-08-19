@@ -151,15 +151,22 @@ export const forgetWithdrawnMemberAvatars = (refsWithDates) => {
  * with it. Called from the logout action next to the line for `gradido-frontend`.
  */
 export const forgetAllMemberAvatars = () => {
+  let storageIsEmpty = !PERSIST
   if (PERSIST) {
     try {
       localStorage.removeItem(STORAGE_KEY)
+      storageIsEmpty = true
     } catch {
-      // Nothing to do -- dropping the map below is what actually forgets them.
+      // Storage refused. Handled below, and it has to be: this runs on logout.
     }
   }
-  // null, not an empty map: `load` only reads storage when there is nothing in memory, so
-  // an empty map here would mean this module never looks at storage again for the lifetime
-  // of the page. Storage is the authority after this point, and it is now empty.
-  entries = null
+  // null, not an empty map, WHEN the removal worked: `load` only reads storage when there
+  // is nothing in memory, so an empty map would mean this module never looks at storage
+  // again for the life of the page. Storage is the authority from here, and it is empty.
+  //
+  // ⚠️ When the removal did NOT work, that reasoning inverts and becomes dangerous: the
+  // pictures are still lying in storage, and dropping the map would invite the very next
+  // read to load them back for whoever signs in next. An empty map is then the stricter
+  // answer -- nothing readable, and storage is never consulted again on this page.
+  entries = storageIsEmpty ? null : new Map()
 }

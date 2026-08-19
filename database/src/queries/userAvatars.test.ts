@@ -141,21 +141,32 @@ describe('member avatars for the booking list', () => {
   const SWITCHED_OFF = 9002
   const DELETED = 9003
   const NO_PICTURE = 9004
+  const FOREIGN = 9005
   const gid = (id: number) => `00000000-0000-4000-8000-0000000${id}`
 
   const picture = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x42])
+  const ALL = [SHOWN, SWITCHED_OFF, DELETED, NO_PICTURE, FOREIGN]
 
   beforeAll(async () => {
-    await db
-      .delete(usersTable)
-      .where(inArray(usersTable.id, [SHOWN, SWITCHED_OFF, DELETED, NO_PICTURE]))
+    await db.delete(usersTable).where(inArray(usersTable.id, ALL))
     await db.insert(usersTable).values([
       { id: SHOWN, gradidoId: gid(SHOWN), avatarVisibleToMembers: 1 },
       { id: SWITCHED_OFF, gradidoId: gid(SWITCHED_OFF), avatarVisibleToMembers: 0 },
       { id: DELETED, gradidoId: gid(DELETED), avatarVisibleToMembers: 1, deletedAt: new Date() },
       { id: NO_PICTURE, gradidoId: gid(NO_PICTURE), avatarVisibleToMembers: 1 },
+      // A member of ANOTHER community, exactly as the federation stores them: same table,
+      // same shape, allowed and undeleted. Production cannot give such a row a picture
+      // today -- only setUserAvatar writes one, and only for its own caller -- so this
+      // builds the state the code must REFUSE rather than the state it happens to avoid.
+      {
+        id: FOREIGN,
+        gradidoId: gid(FOREIGN),
+        avatarVisibleToMembers: 1,
+        foreign: 1,
+        communityUuid: '99999999-9999-4999-8999-999999999999',
+      },
     ])
-    for (const userId of [SHOWN, SWITCHED_OFF, DELETED]) {
+    for (const userId of [SHOWN, SWITCHED_OFF, DELETED, FOREIGN]) {
       await dbUpsertUserAvatar({
         userId,
         avatarSmall: picture,
@@ -166,12 +177,8 @@ describe('member avatars for the booking list', () => {
   })
 
   afterAll(async () => {
-    await db
-      .delete(userAvatarsTable)
-      .where(inArray(userAvatarsTable.userId, [SHOWN, SWITCHED_OFF, DELETED, NO_PICTURE]))
-    await db
-      .delete(usersTable)
-      .where(inArray(usersTable.id, [SHOWN, SWITCHED_OFF, DELETED, NO_PICTURE]))
+    await db.delete(userAvatarsTable).where(inArray(userAvatarsTable.userId, ALL))
+    await db.delete(usersTable).where(inArray(usersTable.id, ALL))
   })
 
   it('hands out the picture of a member who allows it', async () => {
@@ -196,6 +203,14 @@ describe('member avatars for the booking list', () => {
     expect(rows).toEqual([])
   })
 
+  // A gradidoId identifies one person only together with a community (see the uuid_key
+  // index), so a lookup by id alone reaches members of other communities -- who never
+  // agreed to anything here, and whose pictures are a separate delivery.
+  it('hands out nothing for a member of another community', async () => {
+    expect(await dbFindMemberAvatarsSmall([gid(FOREIGN)])).toEqual([])
+    expect(await dbFindMemberAvatarTimestamps([FOREIGN])).toEqual(new Map())
+  })
+
   it('hands out nothing for a member who has no picture', async () => {
     const rows = await dbFindMemberAvatarsSmall([gid(NO_PICTURE)])
     expect(rows).toEqual([])
@@ -209,6 +224,7 @@ describe('member avatars for the booking list', () => {
       gid(SWITCHED_OFF),
       gid(DELETED),
       gid(NO_PICTURE),
+      gid(FOREIGN),
       '00000000-0000-4000-8000-00000009999',
     ])
     expect(rows.map((row) => row.gradidoId)).toEqual([gid(SHOWN)])

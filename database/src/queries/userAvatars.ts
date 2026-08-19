@@ -51,10 +51,31 @@ export async function dbFindUserAvatarSmall(
  *     The NAME of a deleted member still travels with old bookings, because it belongs to
  *     the counterparty's record. The face belongs to the person.
  *
+ * A third part that is scope rather than consent, and it belongs here for the same reason:
+ * only this community's own members. The federation stores members of OTHER communities as
+ * rows in this same users table, so a lookup by gradidoId alone reaches them -- and that id
+ * is unique only per community (see the uuid_key index), so it does not even identify one
+ * person on its own.
+ *
+ * ⚠️ Nothing leaks through that today, and that is exactly why it is written down: the only
+ * writer of pictures is setUserAvatar, which writes for the caller's own account, so a
+ * foreign row never has one and the join finds nothing. A property that holds only because
+ * no other code path happens to set the field is not a rule, it is an accident.
+ *
+ * ★ Expressed as "not foreign" rather than by comparing community uuids, and that is the
+ * measured choice: a local member only gets a community_uuid if the home community had one
+ * when they registered, so comparing uuids would drop the oldest members. It is also
+ * derived here rather than taken from the caller -- a scope the caller supplies is a scope
+ * the caller can widen.
+ *
  * Deliberately NOT part of it: whether a picture exists. That is what the join answers.
  */
 const mayBeShownToMembers = () =>
-  and(eq(usersTable.avatarVisibleToMembers, 1), isNull(usersTable.deletedAt))
+  and(
+    eq(usersTable.foreign, 0),
+    eq(usersTable.avatarVisibleToMembers, 1),
+    isNull(usersTable.deletedAt),
+  )
 
 export interface MemberAvatarRow {
   gradidoId: string

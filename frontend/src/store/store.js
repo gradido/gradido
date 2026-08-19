@@ -178,12 +178,16 @@ export const actions = {
     // The wallet and admin share one origin, so localStorage.clear() would also wipe
     // the other app's session and the shared dark-mode theme key. Re-commit the theme
     // so the recreated blob keeps the device-local choice for the next session.
-    localStorage.removeItem('gradido-frontend')
     // Other members' pictures live under their own key, outside that blob and outside this
     // store, so removing the blob does not touch them. They have to go for the same reason
     // the blob does: the next member to sign in on this browser must not be handed the
     // faces the previous one was allowed to see.
+    //
+    // ⚠️ Before the line below, not after. Storage can refuse -- quota, private mode -- and
+    // the throw would take every following line of this action with it. Of the two, the
+    // faces are the ones that must not survive a logout.
     forgetAllMemberAvatars()
+    localStorage.removeItem('gradido-frontend')
     commit('setThemeMode', themeMode)
     dispatch('applyTheme')
     // Last, and for the same reason as `clearEntryDraft` above: nothing here reloads the

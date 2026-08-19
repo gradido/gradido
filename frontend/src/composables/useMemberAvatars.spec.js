@@ -155,6 +155,27 @@ describe('useMemberAvatars', () => {
     expect(storedMemberAvatar(ANNA, MONDAY)).toBeNull()
   })
 
+  // Logging out when storage refuses to delete. The pictures are still lying there, so
+  // dropping the in-memory map would invite the very next read to load them straight back
+  // for whoever signs in next -- an empty map is the stricter answer, and this is the case
+  // that tells the two apart.
+  it('stays silent after logging out even when storage refuses to delete', () => {
+    rememberMemberAvatars(answered(ANNA, 'anna-picture', MONDAY))
+    const removeItem = Storage.prototype.removeItem
+    Storage.prototype.removeItem = () => {
+      throw new Error('storage said no')
+    }
+    try {
+      forgetAllMemberAvatars()
+    } finally {
+      Storage.prototype.removeItem = removeItem
+    }
+
+    // The proof that the fixture is real: the picture IS still lying in storage.
+    expect(localStorage.getItem('gradido-avatars')).toContain('anna-picture')
+    expect(storedMemberAvatar(ANNA, MONDAY)).toBeNull()
+  })
+
   it('survives storage that cannot be read', () => {
     localStorage.setItem('gradido-avatars', 'not json at all')
     expect(storedMemberAvatar(ANNA, MONDAY)).toBeNull()
