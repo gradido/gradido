@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { and, asc, eq, isNull, sql } from 'drizzle-orm'
+import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm'
 import { Result, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { DBInsertFailed, DBNotFoundError } from '../errorTypes'
@@ -175,4 +175,27 @@ export async function dbResetFailedAttempts(cardId: number): Promise<VoidResult>
     .set({ failedAttempts: 0 })
     .where(eq(thankYouCardsTable.id, cardId))
   return { success: true }
+}
+
+/**
+ * The printed names of several cards at once, as a map from card id to label.
+ *
+ * ⛔ Written for the booking list, and the shape is the reason: that list draws a whole page
+ * of bookings, and asking once per row would put a query on a screen every member opens.
+ * One call for the page, or none at all when no booking on it was paid by card.
+ *
+ * ⚠️ Returns a plain Map rather than a Result: an id that has no row is not a failure the
+ * caller can do anything about — a card whose row is gone simply has no name to show, and
+ * the booking still happened. The caller reads a miss as "no name", which is exactly right.
+ */
+export async function dbSelectThankYouCardLabels(ids: number[]): Promise<Map<number, string>> {
+  if (ids.length === 0) {
+    return new Map()
+  }
+  const rows = await drizzleDb()
+    .select({ id: thankYouCardsTable.id, label: thankYouCardsTable.label })
+    .from(thankYouCardsTable)
+    .where(inArray(thankYouCardsTable.id, ids))
+
+  return new Map(rows.map((row) => [row.id, row.label]))
 }

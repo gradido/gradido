@@ -875,6 +875,7 @@
     "headline": "Geographical User Search",
     "text": "No matter which community you belong to, with the Geo Matching System you can find members of all communities on a map. You can filter according to offers and needs and display the users that match you.\n\nThe button opens a new browser window in which the users in your area are displayed on a map."
   },
+  "via_card": "via Card",
   "via_link": "via Link",
   "welcome": "Welcome to the community"
 }

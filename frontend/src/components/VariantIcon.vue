@@ -11,6 +11,10 @@
   <IBiHeart v-if="props.icon === 'heart'" class="icon-variant" />
   <IBiPersonCheck v-if="props.icon === 'person-check'" class="icon-variant" />
   <IBiGift v-if="props.icon === 'gift'" class="icon-variant" />
+  <!-- Two cards lying on top of each other. Deliberately NOT a credit card: a thank you
+       card is a printed piece of paper, and every card icon that carries a chip or a
+       magnetic stripe says bank. (Bernd chose this one on 19.08.2026.) -->
+  <ITablerCards v-if="props.icon === 'cards'" class="icon-variant" />
 </template>
 
 <script setup>

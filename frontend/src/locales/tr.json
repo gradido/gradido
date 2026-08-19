@@ -874,6 +874,7 @@
     "headline": "Coğrafi Kullanıcı Arama",
     "text": "Hangi topluluğa ait olursan ol, Geo Matching System ile tüm toplulukların üyelerini bir haritada bulabilirsin. Tekliflere ve ihtiyaçlara göre filtreleyebilir ve sana uygun kullanıcıları görüntüleyebilirsin.\n\nDüğmeyle, çevrendeki kullanıcıların bir haritada gösterildiği yeni bir tarayıcı penceresi açılır."
   },
+  "via_card": "via Card",
   "via_link": "link yoluyla",
   "welcome": "Topluluğa hoşgeldin"
 }

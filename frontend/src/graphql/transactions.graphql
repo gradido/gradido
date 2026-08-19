@@ -29,6 +29,10 @@ fragment transactionFields on Transaction {
     duration
   }
   linkId
+  # Paid with a printed thank you card. The name comes only with the payer's own row --
+  # the backend decides that, not the screen. See Transaction.thankYouCardLabel.
+  viaThankYouCard
+  thankYouCardLabel
 }
 
 query transactionsQuery($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {

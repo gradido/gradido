@@ -24,6 +24,7 @@ import {
   AppDatabase,
   countOpenPendingTransactions,
   DltTransaction as DbDltTransaction,
+  dbSelectThankYouCardLabels,
   Transaction as dbTransaction,
   TransactionLink as dbTransactionLink,
   User as dbUser,
@@ -64,6 +65,14 @@ export const executeTransaction = async (
   recipient: dbUser,
   logger: Logger,
   transactionLink?: dbTransactionLink | null,
+  /**
+   * The thank you card this payment was made with, if it was one.
+   *
+   * ⚠️ Written onto BOTH rows: the payer's SEND row and the till's RECEIVE row. Which of
+   * the two a reader is looking at is what decides how much of it they get to see -- the
+   * card's name only ever reaches its own owner. See `Transaction`.
+   */
+  thankYouCardId?: number | null,
 ): Promise<boolean> => {
   // acquire lock
   // const releaseLock = await TRANSACTIONS_LOCK.acquire()
@@ -141,6 +150,7 @@ export const executeTransaction = async (
       transactionSend.decayCalculationType = DecayCalculationType.NATIVE_C_FIXED_FACTOR_INTEGER
       transactionSend.previous = sendBalance.lastTransactionId
       transactionSend.transactionLinkId = transactionLink ? transactionLink.id : null
+      transactionSend.thankYouCardId = thankYouCardId ?? null
       await queryRunner.manager.insert(dbTransaction, transactionSend)
 
       logger.debug(`sendTransaction inserted: ${dbTransaction}`)
@@ -168,6 +178,7 @@ export const executeTransaction = async (
       transactionReceive.previous = receiveBalance ? receiveBalance.lastTransactionId : null
       transactionReceive.linkedTransactionId = transactionSend.id
       transactionReceive.transactionLinkId = transactionLink ? transactionLink.id : null
+      transactionReceive.thankYouCardId = thankYouCardId ?? null
       await queryRunner.manager.insert(dbTransaction, transactionReceive)
       logger.debug(`receive Transaction inserted: ${dbTransaction}`)
 
@@ -410,6 +421,31 @@ export class TransactionResolver {
       }
     }
 
+    /**
+     * The names of the cards on this page, fetched once for all of them.
+     *
+     * ⛔ Only from SEND rows. On somebody's own booking list a SEND row means "I paid", so
+     * the card is theirs and the name is their own word for it. A RECEIVE row is the till's
+     * side, and there the name stays out — see `Transaction.thankYouCardLabel`.
+     *
+     * ⚠️ Asked for the page, not per row: this list is what every member opens first, and a
+     * query per booking would put a page of them on the busiest screen in the wallet. When
+     * nothing on the page was paid by card, the query does not run at all.
+     */
+    const cardIdsOnThisPage = [
+      ...new Set(
+        userTransactions
+          .filter(
+            (t: dbTransaction) =>
+              (t.typeId as TransactionTypeId) === TransactionTypeId.SEND &&
+              t.thankYouCardId !== null &&
+              t.thankYouCardId !== undefined,
+          )
+          .map((t: dbTransaction) => t.thankYouCardId as number),
+      ),
+    ]
+    const cardLabels = await dbSelectThankYouCardLabels(cardIdsOnThisPage)
+
     // transactions
     userTransactions.forEach((userTransaction: dbTransaction) => {
       /*
@@ -431,7 +467,12 @@ export class TransactionResolver {
         )
         logger.debug(`remote linkedUser=${linkedUser?.id}`)
       }
-      transactions.push(new Transaction(userTransaction, self, linkedUser))
+      const cardLabel =
+        (userTransaction.typeId as TransactionTypeId) === TransactionTypeId.SEND &&
+        userTransaction.thankYouCardId
+          ? (cardLabels.get(userTransaction.thankYouCardId) ?? null)
+          : null
+      transactions.push(new Transaction(userTransaction, self, linkedUser, cardLabel))
     })
     logger.debug(
       `TransactionTypeId.CREATION: transactions=`,

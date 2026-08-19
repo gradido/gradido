@@ -343,7 +343,17 @@ export class ThankYouCardPaymentResolver {
         return failure(ThankYouCardPaymentStatus.REQUEST_GONE)
       }
 
-      await executeTransaction(payment.amount, payment.memo, owner, recipient, logger)
+      // ⚠️ `null` for the transaction link, then the card: this booking is neither, and the
+      // two markers are mutually exclusive in the booking list.
+      await executeTransaction(
+        payment.amount,
+        payment.memo,
+        owner,
+        recipient,
+        logger,
+        null,
+        card.id,
+      )
 
       const success = failure(ThankYouCardPaymentStatus.SUCCESS)
       success.payerName = `${owner.firstName} ${owner.lastName}`
