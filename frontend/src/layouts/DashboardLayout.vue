@@ -331,7 +331,20 @@ watch(
 // whether or not anything else works.
 //
 // Best effort by design: nobody loses their overview over a portrait.
+// Which list is current. A member can change page faster than a request comes back, and
+// without this the older answer would land last and win -- including for a member the
+// newer list had just reported as having nothing to show, whose face would come back after
+// being forgotten. Counted rather than cancelled, because the forgetting below must run
+// for every list either way.
+let avatarGeneration = 0
+
 const collectMemberAvatars = async (rows) => {
+  // ⚠️ Bumped for EVERY list, not only the ones that ask for something. A newer list that
+  // needs no request at all still has to invalidate whatever is in flight -- and that is
+  // exactly the case that matters, because "she has nothing to show any more" is a list
+  // that asks for nothing.
+  const generation = ++avatarGeneration
+
   const members = rows
     .map((row) => row.linkedUser)
     .filter((member) => member?.gradidoID)
@@ -347,7 +360,17 @@ const collectMemberAvatars = async (rows) => {
   if (!refs.length) return
 
   try {
-    const { data } = await apolloClient.query({ query: memberAvatars, variables: { refs } })
+    const { data } = await apolloClient.query({
+      query: memberAvatars,
+      variables: { refs },
+      // ⚠️ Not from the cache, ever. The request names members, not versions -- a member
+      // who replaces their picture is asked for under exactly the same variables as
+      // before, so a cached answer would hand back the picture they just replaced and the
+      // new one would never arrive. The freshness decision is made against the date on the
+      // list, before we get here; by this point the answer has to come from the server.
+      fetchPolicy: 'network-only',
+    })
+    if (generation !== avatarGeneration) return
     rememberMemberAvatars(data?.memberAvatars ?? [])
   } catch {
     // Initials this time round, and the next list asks again.

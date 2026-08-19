@@ -281,6 +281,41 @@ describe('DashboardLayout', () => {
       expect(mockApolloQuery).not.toHaveBeenCalled()
     })
 
+    // The request names members, not versions: a member who replaces their picture is asked
+    // for under exactly the same variables as last time. A cached answer would hand back
+    // the picture they just replaced, and the new one would never arrive.
+    it('always asks the server, never the cache', async () => {
+      onResultHandler(listWith([ANNA]))
+      await flushPromises()
+      expect(mockApolloQuery.mock.calls[0][0].fetchPolicy).toBe('network-only')
+    })
+
+    // ★ A member can turn the page faster than an answer comes back. The older answer must
+    // not land last and win -- least of all for somebody the newer list has just reported
+    // as having nothing to show, whose face would return after being forgotten.
+    it('drops an answer that a newer list has already overtaken', async () => {
+      let answerTheFirstRequest
+      mockApolloQuery.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            answerTheFirstRequest = () =>
+              resolve({ data: { memberAvatars: [{ ...ANNA, avatar: 'anna-picture' }] } })
+          }),
+      )
+      onResultHandler(listWith([ANNA]))
+      await flushPromises()
+
+      // The next list says she has nothing to show any more.
+      onResultHandler(listWith([{ ...ANNA, avatarUpdatedAt: null }]))
+      await flushPromises()
+
+      // ...and only now does the first request come back with her picture.
+      answerTheFirstRequest()
+      await flushPromises()
+
+      expect(storedMemberAvatar(ANNA, ANNA.avatarUpdatedAt)).toBeNull()
+    })
+
     // Best effort: nobody loses their overview over a portrait. The fetch is started and
     // not awaited, so a rejection cannot break the page by itself -- what it CAN do is
     // escape as an unhandled rejection, which is why the listener below is the assertion
