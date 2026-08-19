@@ -671,7 +671,7 @@
       "disabled": "Dein Bild siehst jetzt nur noch Du.",
       "enabled": "Dein Bild ist für andere Mitglieder sichtbar.",
       "visibility": "Mein Bild anderen Mitgliedern zeigen",
-      "visibilityInfo": "Andere Mitglieder sehen Dein Bild neben Euren gemeinsamen Buchungen. Ausgeschaltet erscheinen wie bisher Deine Anfangsbuchstaben."
+      "visibilityInfo": "Andere Mitglieder sehen Dein Bild neben Euren gemeinsamen Buchungen. Wenn die Einstellung ausgeschaltet ist, erscheinen wie bisher Deine Anfangsbuchstaben."
     },
     "community": "Kreise & Mitgliedssuche",
     "emailInfo": "Kann aktuell noch nicht geändert werden.",

@@ -671,7 +671,7 @@
       "disabled": "Agora só tu vês a tua imagem.",
       "enabled": "A tua imagem está visível para outros membros.",
       "visibility": "Mostrar a minha imagem a outros membros",
-      "visibilityInfo": "Os outros membros veem a tua imagem ao lado das transações que partilham. Desligado, aparecem as tuas iniciais, como até agora."
+      "visibilityInfo": "Os outros membros veem a tua imagem ao lado das transações que partilham. Quando a definição está desligada, aparecem as tuas iniciais, como até agora."
     },
     "community": "Círculos e pesquisa de membros",
     "emailInfo": "De momento, não pode ser alterado.",
