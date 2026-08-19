@@ -1,9 +1,9 @@
 // AI-GENERATED — not an architecture reference
-import { eq } from 'drizzle-orm'
+import { and, eq, inArray, isNull } from 'drizzle-orm'
 import { Result, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { DBNotFoundError } from '../errorTypes'
-import { UserAvatarInsert, userAvatarsTable } from '../schemas/drizzle.schema'
+import { UserAvatarInsert, userAvatarsTable, usersTable } from '../schemas/drizzle.schema'
 
 // TODO: replace results with valibot schema after update to typescript 5 is possible
 
@@ -33,6 +33,97 @@ export async function dbFindUserAvatarSmall(
   return avatar
     ? { success: true, value: avatar.avatarSmall }
     : { success: false, error: UserAvatarNotFound(`userId = ${userId}`) }
+}
+
+/**
+ * The one condition under which a picture may be shown to somebody other than its owner.
+ *
+ * ⚠️ It lives here, in the query, and not at the call site. A disclosure rule that every
+ * reader has to remember to apply is not a rule; the first caller who forgets it publishes
+ * a face, and nothing about the code says they were wrong. Both member-facing queries
+ * below share this, so there is one place to read and one place to change.
+ *
+ * Two parts, and they are not the same kind of thing:
+ *
+ *   * the switch -- the member said other members may see it (AS-003);
+ *   * not deleted -- somebody who closed their account can no longer reach the switch,
+ *     and a disclosure the subject can no longer withdraw must not keep running (AS-009).
+ *     The NAME of a deleted member still travels with old bookings, because it belongs to
+ *     the counterparty's record. The face belongs to the person.
+ *
+ * Deliberately NOT part of it: whether a picture exists. That is what the join answers.
+ */
+const mayBeShownToMembers = () =>
+  and(eq(usersTable.avatarVisibleToMembers, 1), isNull(usersTable.deletedAt))
+
+export interface MemberAvatarRow {
+  gradidoId: string
+  communityUuid: string | null
+  avatarSmall: Buffer
+  updatedAt: Date
+}
+
+/**
+ * The pictures of several members at once, for showing them next to shared bookings.
+ *
+ * Batched on purpose: the alternative is a field resolver on the user, which turns one
+ * booking list into one database round trip per row. Handed a capped list by its caller --
+ * the cap belongs to the API layer, which knows the page size; a query cannot know what a
+ * reasonable request looks like.
+ *
+ * ★ Looked up by gradidoId rather than by the (gradidoId, communityUuid) pair the unique
+ * key suggests, and that is a measured choice, not laziness: a local member only gets a
+ * community_uuid if the home community had one when they registered
+ * (UserResolver.createUser), so rows with NULL are real. Matching on the pair in SQL would
+ * drop exactly those members, silently and with no error to notice. The pair comes back
+ * with each row instead, so the caller can match what it asked for.
+ *
+ * A member who is not found, has no picture, or switched it off simply has no row in the
+ * answer. Never an error for "no such member": that would turn this into a directory that
+ * tells an anonymous asker which accounts exist.
+ */
+export async function dbFindMemberAvatarsSmall(gradidoIds: string[]): Promise<MemberAvatarRow[]> {
+  if (gradidoIds.length === 0) {
+    return []
+  }
+
+  return await drizzleDb()
+    .select({
+      gradidoId: usersTable.gradidoId,
+      communityUuid: usersTable.communityUuid,
+      avatarSmall: userAvatarsTable.avatarSmall,
+      updatedAt: userAvatarsTable.updatedAt,
+    })
+    .from(userAvatarsTable)
+    .innerJoin(usersTable, eq(usersTable.id, userAvatarsTable.userId))
+    .where(and(inArray(usersTable.gradidoId, gradidoIds), mayBeShownToMembers()))
+}
+
+/**
+ * When each of these members last changed their picture, for the members who have one to
+ * show. Keyed by the internal id, because the caller already holds the user rows.
+ *
+ * This is what lets the wallet keep pictures between visits without asking whether they
+ * are still current: a stored picture counts as fresh while its timestamp matches the one
+ * that came with the list. A member missing from the map has nothing to show -- no
+ * picture, switch off, or deleted -- which is the same answer the wallet needs either way.
+ *
+ * ⛔ Not a field resolver, for the same reason as above: one query for the whole list, not
+ * one per row. It carries no picture data at all, so it stays cheap on a path that every
+ * booking list takes.
+ */
+export async function dbFindMemberAvatarTimestamps(userIds: number[]): Promise<Map<number, Date>> {
+  if (userIds.length === 0) {
+    return new Map()
+  }
+
+  const rows = await drizzleDb()
+    .select({ userId: userAvatarsTable.userId, updatedAt: userAvatarsTable.updatedAt })
+    .from(userAvatarsTable)
+    .innerJoin(usersTable, eq(usersTable.id, userAvatarsTable.userId))
+    .where(and(inArray(userAvatarsTable.userId, userIds), mayBeShownToMembers()))
+
+  return new Map(rows.map((row) => [row.userId, row.updatedAt]))
 }
 
 /**

@@ -1,10 +1,12 @@
 // AI-GENERATED — not an architecture reference
-import { eq } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
-import { userAvatarsTable } from '../schemas'
+import { userAvatarsTable, usersTable } from '../schemas'
 import {
   dbDeleteUserAvatar,
+  dbFindMemberAvatarsSmall,
+  dbFindMemberAvatarTimestamps,
   dbFindUserAvatarFull,
   dbFindUserAvatarSmall,
   dbUpsertUserAvatar,
@@ -124,5 +126,112 @@ describe('userAvatars query test', () => {
   it('reports a miss when there was nothing to remove', async () => {
     const removed = await dbDeleteUserAvatar(1)
     expect(removed.success).toBe(false)
+  })
+})
+
+// The two batched readers are the ones other members' faces travel through, so what they
+// REFUSE matters more than what they return. Every refusal below is paired with the case
+// that differs from it in exactly one column -- a test that only ever asserts "nothing
+// came back" stays green when the condition dies and the pictures start flowing.
+//
+// Ids far away from the ones above on purpose: this block writes users rows, which the
+// rest of the file does not, and it takes them out again afterwards.
+describe('member avatars for the booking list', () => {
+  const SHOWN = 9001
+  const SWITCHED_OFF = 9002
+  const DELETED = 9003
+  const NO_PICTURE = 9004
+  const gid = (id: number) => `00000000-0000-4000-8000-0000000${id}`
+
+  const picture = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x42])
+
+  beforeAll(async () => {
+    await db
+      .delete(usersTable)
+      .where(inArray(usersTable.id, [SHOWN, SWITCHED_OFF, DELETED, NO_PICTURE]))
+    await db.insert(usersTable).values([
+      { id: SHOWN, gradidoId: gid(SHOWN), avatarVisibleToMembers: 1 },
+      { id: SWITCHED_OFF, gradidoId: gid(SWITCHED_OFF), avatarVisibleToMembers: 0 },
+      { id: DELETED, gradidoId: gid(DELETED), avatarVisibleToMembers: 1, deletedAt: new Date() },
+      { id: NO_PICTURE, gradidoId: gid(NO_PICTURE), avatarVisibleToMembers: 1 },
+    ])
+    for (const userId of [SHOWN, SWITCHED_OFF, DELETED]) {
+      await dbUpsertUserAvatar({
+        userId,
+        avatarSmall: picture,
+        avatarFull: picture,
+        mimeType: 'image/jpeg',
+      })
+    }
+  })
+
+  afterAll(async () => {
+    await db
+      .delete(userAvatarsTable)
+      .where(inArray(userAvatarsTable.userId, [SHOWN, SWITCHED_OFF, DELETED, NO_PICTURE]))
+    await db
+      .delete(usersTable)
+      .where(inArray(usersTable.id, [SHOWN, SWITCHED_OFF, DELETED, NO_PICTURE]))
+  })
+
+  it('hands out the picture of a member who allows it', async () => {
+    const rows = await dbFindMemberAvatarsSmall([gid(SHOWN)])
+    expect(rows).toHaveLength(1)
+    expect(rows[0].gradidoId).toBe(gid(SHOWN))
+    expect(Buffer.from(rows[0].avatarSmall).equals(picture)).toBe(true)
+  })
+
+  // AS-003. The row and the picture both exist; only the switch differs from the case
+  // above, so this cannot pass for some unrelated reason.
+  it('hands out nothing for a member who switched it off', async () => {
+    const rows = await dbFindMemberAvatarsSmall([gid(SWITCHED_OFF)])
+    expect(rows).toEqual([])
+  })
+
+  // AS-009. Somebody who closed their account can no longer reach the switch, so a
+  // disclosure they cannot withdraw must not keep running. Their name still travels with
+  // old bookings; their face does not.
+  it('hands out nothing for a deleted member, switch or no switch', async () => {
+    const rows = await dbFindMemberAvatarsSmall([gid(DELETED)])
+    expect(rows).toEqual([])
+  })
+
+  it('hands out nothing for a member who has no picture', async () => {
+    const rows = await dbFindMemberAvatarsSmall([gid(NO_PICTURE)])
+    expect(rows).toEqual([])
+  })
+
+  // The whole point of the batch: one question, many members, and the refusals do not
+  // take the permitted ones down with them.
+  it('answers for a mixed list without letting the refusals swallow the rest', async () => {
+    const rows = await dbFindMemberAvatarsSmall([
+      gid(SHOWN),
+      gid(SWITCHED_OFF),
+      gid(DELETED),
+      gid(NO_PICTURE),
+      '00000000-0000-4000-8000-00000009999',
+    ])
+    expect(rows.map((row) => row.gradidoId)).toEqual([gid(SHOWN)])
+  })
+
+  // An unknown member is an empty answer, never an error -- otherwise the query would
+  // tell whoever asks which accounts exist.
+  it('says nothing about a member it does not know', async () => {
+    const rows = await dbFindMemberAvatarsSmall(['00000000-0000-4000-8000-00000009999'])
+    expect(rows).toEqual([])
+  })
+
+  it('asks nothing at all for an empty list', async () => {
+    expect(await dbFindMemberAvatarsSmall([])).toEqual([])
+    expect(await dbFindMemberAvatarTimestamps([])).toEqual(new Map())
+  })
+
+  // The timestamps carry the same disclosure rule as the pictures. They are what the
+  // wallet decides freshness by, so a member missing here is a member whose stored
+  // picture must go -- getting this filter wrong would keep a withdrawn face on screen.
+  it('dates only the pictures that may be shown', async () => {
+    const dates = await dbFindMemberAvatarTimestamps([SHOWN, SWITCHED_OFF, DELETED, NO_PICTURE])
+    expect([...dates.keys()]).toEqual([SHOWN])
+    expect(dates.get(SHOWN)).toBeInstanceOf(Date)
   })
 })
