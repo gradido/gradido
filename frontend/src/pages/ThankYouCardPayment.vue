@@ -42,12 +42,17 @@
         type="text"
         inputmode="decimal"
         data-test="thank-you-card-amount"
+        @update:model-value="fromCalculator = false"
         @blur="normaliseAmount"
       />
       <!--
         ⚠️ Says where the number came from, and nothing more. The field stays editable: an
         amount that appeared on its own and cannot be corrected is worse than one that was
-        typed. Shown only for the first amount, not after it has been overwritten.
+        typed.
+
+        ⛔ And it goes the moment the amount is touched. A line that still claims an origin
+        the number no longer has is worse than no line: it says the calculator worked this
+        out, about a figure somebody typed over by hand. (coderabbit, PR #3771)
       -->
       <div
         v-if="fromCalculator"

@@ -139,6 +139,14 @@ describe('router', () => {
     // default browser, so most visitors arrive logged out.
     testRoute('/u/:alias', 'PublicProfile', false)
     testRoute('/dk/:code', 'ThankYouCardPayment')
+    testRoute('/calculator', 'Calculator')
+
+    // ⚠️ The page title is not a detail on this route: the breadcrumb prefixes `pageTitle.`
+    // and prints the raw key when it finds nothing there. Counting routes cannot see that.
+    it('gives the calculator a page title the breadcrumb can resolve', () => {
+      const route = routes.find((r) => r.path === '/calculator')
+      expect(route.meta.pageTitle).toBe('calculator')
+    })
 
     // The order is the whole point, and `routes.find` cannot see it. This is the regression
     // that made every printed QR code land on "page not found": the address route did not

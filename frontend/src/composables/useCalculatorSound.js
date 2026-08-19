@@ -40,7 +40,10 @@ export const useCalculatorSound = (enabled) => {
         context = new Constructor()
       }
       if (context.state === 'suspended') {
-        context.resume()
+        // The promise is caught rather than awaited: a browser that refuses to resume must
+        // not put an unhandled rejection on the page, and waiting for it would delay the
+        // key press behind a device we do not need an answer from.
+        context.resume().catch(() => {})
       }
       return context
     } catch {
@@ -121,6 +124,18 @@ export const useCalculatorSound = (enabled) => {
         // closing an already-closed context is not a problem worth reporting
       }
       context = null
+      /**
+       * ⛔ The throttle is measured against `currentTime`, and a fresh AudioContext starts
+       * that clock at zero. Left standing, the old stamp would be in the future of the new
+       * clock, `now - lastWarningAt` would be negative -- below the gap either way -- and
+       * every refused key would fall silent from then on.
+       *
+       * Today the only caller is `onUnmounted`, and the closure dies with the component, so
+       * the fault cannot be reached. It is reset anyway: the property belongs to the pair
+       * `close`/`currentTime`, not to a particular caller, and the refusal sound is the one
+       * thing somebody at a till hears without looking. (coderabbit, PR #3771)
+       */
+      lastWarningAt = -1
     }
   }
 

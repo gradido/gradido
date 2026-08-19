@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 
 /**
@@ -109,8 +109,40 @@ export const useCalculatorPrefs = () => {
     }
   }
 
-  load()
-  watch([percent, factor, currency, showDankBar, sound], save)
+  /**
+   * ⚠️ Reading once at setup is not enough, and the reason is a gap in time rather than a
+   * mistake: the route guard lets anybody with a `token` through, while `gradidoID` arrives
+   * with the login answer. Opening the calculator inside that gap would read nothing -- and
+   * then the FIRST change would write defaults over settings the till had had for weeks.
+   *
+   * ⛔ Reset before loading, or a member who has stored nothing would inherit the values of
+   * the one before them on a shared device.
+   *
+   * `restoring` holds the save watcher off while this runs; without it, resetting would
+   * write defaults under the new key before the stored ones have even been read.
+   */
+  let restoring = false
+  const restore = () => {
+    restoring = true
+    percent.value = DEFAULTS.percent
+    factor.value = DEFAULTS.factor
+    currency.value = DEFAULTS.currency
+    showDankBar.value = DEFAULTS.showDankBar
+    sound.value = DEFAULTS.sound
+    load()
+    restoring = false
+  }
+
+  restore()
+  watch(
+    () => store.state.gradidoID,
+    () => restore(),
+  )
+  watch([percent, factor, currency, showDankBar, sound], () => {
+    if (!restoring) {
+      save()
+    }
+  })
 
   return { percent, factor, currency, showDankBar, sound }
 }

@@ -528,6 +528,19 @@ describe('ThankYouCardPayment', () => {
 
       expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ amount: '9' }))
     })
+
+    /**
+     * ⛔ And the line goes with it. A note that still claims the calculator worked this out,
+     * about a figure somebody typed over by hand, is worse than no note at all.
+     */
+    it('stops claiming the calculator once the amount is typed over', async () => {
+      mockReadParked.mockReturnValue(6.3)
+      await mountUsable()
+      expect(field('from-calculator').exists()).toBe(true)
+
+      await field('amount').setValue('9,00')
+      expect(field('from-calculator').exists()).toBe(false)
+    })
   })
 
   describe('reading what was typed into the amount field', () => {
