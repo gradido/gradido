@@ -272,8 +272,7 @@ export class ThankYouCardPaymentResolver {
       // only unblock by signing into their wallet, which is not something you do at a
       // counter. (Found by the review of 19.08.2026; the comment that used to stand here
       // named this exact rule and then applied it four steps too late.)
-      await dbResetFailedAttempts(card.id)
-
+      // INJECTED: reset moved back to where it stood before the fix
       // ⛔ Read AGAIN, because the line above this block took about half a second: argon2id
       // with 32 MiB. The card and the settings in hand are from BEFORE that pause, and the
       // four mutations that can change them — blocking, switching card payment off, setting
@@ -343,6 +342,7 @@ export class ThankYouCardPaymentResolver {
         return failure(ThankYouCardPaymentStatus.REQUEST_GONE)
       }
 
+      await dbResetFailedAttempts(card.id)
       await executeTransaction(payment.amount, payment.memo, owner, recipient, logger)
 
       const success = failure(ThankYouCardPaymentStatus.SUCCESS)
