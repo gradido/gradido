@@ -21,6 +21,10 @@ const virtualLinkTransaction = (amount: GradidoUnit, user: User): Transaction =>
     linkedUser: null,
     linkedTransactionId: null,
     linkId: null,
+    // Neither of these is a real booking — one sums up open links, the other shows decay —
+    // so no card was ever involved.
+    viaThankYouCard: false,
+    thankYouCardLabel: null,
   }
 }
 
@@ -47,6 +51,10 @@ const virtualDecayTransaction = (
     linkedUser: null,
     linkedTransactionId: null,
     linkId: null,
+    // Neither of these is a real booking — one sums up open links, the other shows decay —
+    // so no card was ever involved.
+    viaThankYouCard: false,
+    thankYouCardLabel: null,
   }
 }
 

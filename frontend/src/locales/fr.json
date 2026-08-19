@@ -874,6 +874,7 @@
     "headline": "Recherche géographique d'utilisateurs",
     "text": "Quelle que soit la communauté à laquelle tu appartiens, le système de géo-matching te permet de trouver des membres de toutes les communautés sur une carte géographique. Tu peux filtrer selon les offres et les besoins et afficher les utilisateurs qui te correspondent.\n\nEn cliquant sur le bouton, une nouvelle fenêtre de navigateur s'ouvre et t'affiche les utilisateurs de ton entourage sur une carte."
   },
+  "via_card": "via Card",
   "via_link": "par lien",
   "welcome": "Bienvenu dans la communauté"
 }

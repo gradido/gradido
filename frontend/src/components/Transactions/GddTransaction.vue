@@ -42,6 +42,32 @@
           {{ $t('via_link') }}
           <variant-icon icon="link45deg" variant="muted" class="m-mb-1" />
         </div>
+        <!--
+          ★ One rule, in all three of these rows, and no component decides who may see what:
+          if a name came with the booking, it is shown; if not, only that a card was used.
+
+          What makes that safe is the BACKEND. It fills the name on a SEND row alone — the
+          payer's own row, where the card is theirs and answers "which of my cards was that?"
+          for somebody who has had several. The till's row arrives without one: they held the
+          card for a moment, but in their own history somebody else's word for it is none of
+          their business. A rule that lives in one place cannot drift apart in three.
+        -->
+        <div
+          v-else-if="props.transaction.thankYouCardLabel"
+          class="small"
+          data-test="transaction-via-card"
+        >
+          {{ props.transaction.thankYouCardLabel }}
+          <variant-icon icon="cards" variant="muted" class="m-mb-1" />
+        </div>
+        <div
+          v-else-if="props.transaction.viaThankYouCard"
+          class="small"
+          data-test="transaction-via-card"
+        >
+          {{ $t('via_card') }}
+          <variant-icon icon="cards" variant="muted" class="m-mb-1" />
+        </div>
       </BCol>
       <BCol cols="12" md="1" lg="1" class="text-end">
         <collapse-icon class="text-end" :visible="visible" />
