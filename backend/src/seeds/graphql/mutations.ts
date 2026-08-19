@@ -41,6 +41,7 @@ export const updateUserInfos = gql`
     $hideAmountGDD: Boolean
     $hideAmountGDT: Boolean
     $gmsAllowed: Boolean
+    $avatarVisibleToMembers: Boolean
     $gmsPublishName: PublishNameType
     $gmsLocation: Location
     $gmsPublishLocation: GmsPublishLocationType
@@ -56,6 +57,7 @@ export const updateUserInfos = gql`
       hideAmountGDD: $hideAmountGDD
       hideAmountGDT: $hideAmountGDT
       gmsAllowed: $gmsAllowed
+      avatarVisibleToMembers: $avatarVisibleToMembers
       gmsPublishName: $gmsPublishName
       gmsLocation: $gmsLocation
       gmsPublishLocation: $gmsPublishLocation

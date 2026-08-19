@@ -16,6 +16,10 @@ const communityDbUser: dbUser = {
   firstName: 'Gradido',
   lastName: 'Akademie',
   aboutMe: null,
+  // false, not the column's default: this stand-in has no picture and no settings page,
+  // so it can never have agreed to show one. Same reasoning as for deleted members --
+  // whoever cannot flip the switch must not be shown as having flipped it.
+  avatarVisibleToMembers: false,
   gender: null,
   salutation: null,
   creaSignature: null,

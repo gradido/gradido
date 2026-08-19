@@ -27,6 +27,10 @@ const addNavigationGuards = (router, store, apollo) => {
           // verifyLogin result puts it in the store; here that is free, since the result
           // is already in hand.
           store.commit('avatar', result.data.verifyLogin.avatar ?? null)
+          store.commit(
+            'avatarVisibleToMembers',
+            result.data.verifyLogin.avatarVisibleToMembers ?? null,
+          )
           next({ path: '/overview' })
         })
         .catch(() => {

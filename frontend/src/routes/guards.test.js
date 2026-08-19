@@ -25,6 +25,8 @@ const apolloQueryMock = vi.fn().mockResolvedValue({
   data: {
     verifyLogin: {
       firstName: 'Peter',
+      avatar: 'base64-picture',
+      avatarVisibleToMembers: false,
     },
   },
 })
@@ -77,8 +79,24 @@ describe('navigation guards', () => {
         query: verifyLogin,
         fetchPolicy: 'network-only',
       })
-      expect(storeDispatchMock).toHaveBeenCalledWith('login', { firstName: 'Peter' })
+      expect(storeDispatchMock).toHaveBeenCalledWith('login', {
+        firstName: 'Peter',
+        avatar: 'base64-picture',
+        avatarVisibleToMembers: false,
+      })
       expect(router.currentRoute.value.path).toBe('/overview')
+    })
+
+    // Two fields the login store action deliberately does not read off its payload,
+    // because the other caller of that action feeds it a login result, which cannot carry
+    // either. Whoever holds a verifyLogin result puts them in the store -- here that is
+    // free, the result is already in hand. Nothing held these two commits before, and the
+    // one for the setting is the repair for a switch that showed every member "hidden".
+    it('puts the picture and its visibility setting in the store', async () => {
+      await router.push({ path: '/authenticate', query: { token: 'valid-token' } })
+
+      expect(storeCommitMock).toHaveBeenCalledWith('avatar', 'base64-picture')
+      expect(storeCommitMock).toHaveBeenCalledWith('avatarVisibleToMembers', false)
     })
 
     it('handles server error correctly', async () => {

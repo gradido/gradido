@@ -667,6 +667,12 @@
         "updated": "format of name for GMS updated"
       }
     },
+    "avatar": {
+      "disabled": "Only you can see your picture now.",
+      "enabled": "Your picture is visible to other members.",
+      "visibility": "Show my picture to other members",
+      "visibilityInfo": "Other members see your picture next to the bookings you share. Without the tick your initials appear, as before."
+    },
     "community": "Community",
     "emailInfo": "Cannot be changed at this time.",
     "hideAmountGDD": "Your GDD amount is hidden.",
