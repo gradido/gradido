@@ -58,6 +58,7 @@
     "card": {
       "from-calculator": "hesap makinesinden",
       "park": "Teşekkür kartıyla öde",
+      "park-failed": "Not edilmedi — tutarı taradıktan sonra gir.",
       "parked": "Tutar not edildi: {amount} GDD",
       "scan-hint": "Şimdi kartı tara.",
       "undo": "Geri al"

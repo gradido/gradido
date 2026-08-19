@@ -162,7 +162,25 @@ export const useCalculator = ({ percent, factor, locale }) => {
   const expression = ref('')
   const justCalculated = ref(false)
   const subResult = ref(null)
-  const rate = dailyRateFor()
+  /**
+   * ★ Whether the two sums under the display still belong to what the display shows.
+   *
+   * ⛔ They are NOT cleared when the calculation moves on -- the PWA leaves them standing
+   * until AC ("Ergebnisse unten NICHT loeschen", index.html), and somebody who has used it
+   * at a counter for months reads a standing sub-line as normal. What must not stand is the
+   * CARD BUTTON: in the PWA a stale sub-line is an item of information, here it is a number
+   * that would be charged. So the sums stay and the button goes.
+   */
+  const subResultIsCurrent = ref(false)
+
+  /**
+   * The only way the expression is written, so that no future branch can move the
+   * calculation on and leave the button armed with the sum before it.
+   */
+  const setExpression = (next) => {
+    expression.value = next
+    subResultIsCurrent.value = false
+  }
 
   const display = computed(() => {
     if (expression.value === '') {
@@ -180,24 +198,25 @@ export const useCalculator = ({ percent, factor, locale }) => {
     return drawn
   })
 
-  /** True once there is a result worth handing to a card payment. */
+  /** The Gradido sum worth handing to a card payment -- of the calculation on screen NOW. */
   const payableGdd = computed(() =>
-    subResult.value?.kind === 'payment' && subResult.value.gdd > 0 ? subResult.value.gdd : null,
+    subResultIsCurrent.value && subResult.value?.kind === 'payment' && subResult.value.gdd > 0
+      ? subResult.value.gdd
+      : null,
   )
 
   const appendDigit = (digit) => {
     if (justCalculated.value) {
       justCalculated.value = false
-      expression.value = ''
+      setExpression('')
     }
     const current = currentNumber(expression.value)
     const dot = current.indexOf('.')
     if (dot !== -1 && current.length - dot - 1 >= 2) {
       return 'warn' // two decimals is what the currency has; a third is refused, as in the PWA
     }
-    expression.value = replaceCurrentNumber(
-      expression.value,
-      withoutLeadingZeros(current + String(digit)),
+    setExpression(
+      replaceCurrentNumber(expression.value, withoutLeadingZeros(current + String(digit))),
     )
     return 'digit'
   }
@@ -205,14 +224,14 @@ export const useCalculator = ({ percent, factor, locale }) => {
   const appendSeparator = () => {
     if (justCalculated.value) {
       justCalculated.value = false
-      expression.value = ''
+      setExpression('')
     }
     const current = currentNumber(expression.value)
     if (current.includes('.')) {
       return 'warn'
     }
     // "0." rather than ".", so the number reads as one before anything follows it
-    expression.value = replaceCurrentNumber(expression.value, `${current === '' ? '0' : current}.`)
+    setExpression(replaceCurrentNumber(expression.value, `${current === '' ? '0' : current}.`))
     return 'digit'
   }
 
@@ -226,7 +245,7 @@ export const useCalculator = ({ percent, factor, locale }) => {
     if (expression.value.endsWith(' ')) {
       return 'warn'
     }
-    expression.value += ` ${operator} `
+    setExpression(`${expression.value} ${operator} `)
     return 'function'
   }
 
@@ -236,16 +255,16 @@ export const useCalculator = ({ percent, factor, locale }) => {
       return 'warn'
     }
     if (expression.value.endsWith(' ')) {
-      expression.value = expression.value.slice(0, -3)
+      setExpression(expression.value.slice(0, -3))
     } else {
       const current = currentNumber(expression.value)
-      expression.value = replaceCurrentNumber(expression.value, current.slice(0, -1))
+      setExpression(replaceCurrentNumber(expression.value, current.slice(0, -1)))
     }
     return 'function'
   }
 
   const allClear = () => {
-    expression.value = ''
+    setExpression('')
     subResult.value = null
     justCalculated.value = false
     return 'function'
@@ -262,16 +281,18 @@ export const useCalculator = ({ percent, factor, locale }) => {
     if (Number.isNaN(value)) {
       return 'warn'
     }
-    expression.value = value.toFixed(2)
+    setExpression(value.toFixed(2))
     justCalculated.value = true
 
     if (percent.value > 0) {
+      const rate = dailyRateFor()
       const fiat = (value * (100 - percent.value)) / 100
       const gdd = (value - fiat) / factor.value
-      subResult.value = { kind: 'payment', fiat, gdd, dankBar: rate.gddToDankBar * gdd }
+      subResult.value = { kind: 'payment', fiat, gdd, dankBar: rate.gddToDankBar * gdd, rate }
     } else {
       subResult.value = null
     }
+    subResultIsCurrent.value = true
     return 'equals'
   }
 
@@ -281,9 +302,11 @@ export const useCalculator = ({ percent, factor, locale }) => {
     if (Number.isNaN(value)) {
       return 'warn'
     }
-    expression.value = value.toFixed(2)
+    setExpression(value.toFixed(2))
     justCalculated.value = true
-    subResult.value = { kind: 'dankbar', dankBar: value, gdd: value * rate.dankBarToGdd }
+    const rate = dailyRateFor()
+    subResult.value = { kind: 'dankbar', dankBar: value, gdd: value * rate.dankBarToGdd, rate }
+    subResultIsCurrent.value = true
     return 'function'
   }
 
@@ -291,7 +314,6 @@ export const useCalculator = ({ percent, factor, locale }) => {
     display,
     subResult,
     payableGdd,
-    rate,
     appendDigit,
     appendSeparator,
     appendOperator,

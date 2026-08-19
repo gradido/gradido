@@ -58,6 +58,7 @@
     "card": {
       "from-calculator": "de la calculatrice",
       "park": "Payer par carte de remerciement",
+      "park-failed": "Non retenu : saisis le montant après le scan.",
       "parked": "Montant retenu : {amount} GDD",
       "scan-hint": "Scanne maintenant la carte.",
       "undo": "Annuler"

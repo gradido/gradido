@@ -58,6 +58,7 @@
     "card": {
       "from-calculator": "from the calculator",
       "park": "Pay by thank-you card",
+      "park-failed": "Not noted — type the amount in after scanning.",
       "parked": "Amount noted: {amount} GDD",
       "scan-hint": "Now scan the card.",
       "undo": "Undo"

@@ -58,6 +58,7 @@
     "card": {
       "from-calculator": "aus dem Rechner",
       "park": "Mit Dank-Karte",
+      "park-failed": "Nicht gemerkt — bitte den Betrag nach dem Scannen eintippen.",
       "parked": "Betrag gemerkt: {amount} GDD",
       "scan-hint": "Jetzt die Karte scannen.",
       "undo": "Rückgängig"

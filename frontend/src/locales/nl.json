@@ -58,6 +58,7 @@
     "card": {
       "from-calculator": "uit de rekenmachine",
       "park": "Betalen met dankkaart",
+      "park-failed": "Niet onthouden — typ het bedrag na het scannen in.",
       "parked": "Bedrag onthouden: {amount} GDD",
       "scan-hint": "Scan nu de kaart.",
       "undo": "Ongedaan maken"

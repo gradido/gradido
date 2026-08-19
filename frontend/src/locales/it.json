@@ -58,6 +58,7 @@
     "card": {
       "from-calculator": "dalla calcolatrice",
       "park": "Paga con carta di ringraziamento",
+      "park-failed": "Non annotato: digita l'importo dopo la scansione.",
       "parked": "Importo annotato: {amount} GDD",
       "scan-hint": "Ora scansiona la carta.",
       "undo": "Annulla"

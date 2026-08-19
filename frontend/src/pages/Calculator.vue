@@ -45,15 +45,18 @@
           {{ $n(subResult.gdd, 'decimal') }}
         </div>
         <div v-if="showDankBar">
-          {{ $t('calculator.daily-rate') }} {{ $n(rate.gddToDankBar, RATE_FORMAT) }} &nbsp;|&nbsp;
-          DankBar {{ $n(subResult.dankBar, 'decimal') }}
+          {{ $t('calculator.daily-rate') }}
+          {{ $n(subResult.rate.gddToDankBar, RATE_FORMAT) }} &nbsp;|&nbsp; DankBar
+          {{ $n(subResult.dankBar, 'decimal') }}
         </div>
         <div v-if="factor !== 1">
           {{ $t('calculator.purchasing-power', { factor, currency }) }}
         </div>
       </template>
       <template v-else-if="subResult?.kind === 'dankbar'">
-        <div>{{ $t('calculator.daily-rate') }} {{ $n(rate.dankBarToGdd, RATE_FORMAT) }}</div>
+        <div>
+          {{ $t('calculator.daily-rate') }} {{ $n(subResult.rate.dankBarToGdd, RATE_FORMAT) }}
+        </div>
         <div data-test="calculator-sub-dankbar">
           {{
             $t('calculator.dankbar-equals', {
@@ -96,7 +99,7 @@
         v-if="parked === null"
         variant="gradido"
         class="w-100"
-        :disabled="payableGdd === null"
+        :disabled="payableAmount === null"
         data-test="calculator-park"
         @click="parkAmount"
       >
@@ -114,6 +117,19 @@
         >
           {{ $t('calculator.card.undo') }}
         </BButton>
+      </div>
+
+      <!--
+        ⛔ Storage can refuse to remember -- private browsing, a full quota. Saying nothing
+        would be the worst of it: whoever runs the till scans the card and finds an empty
+        field with a customer waiting.
+
+        ⚠️ Its own `v-if`, and OUTSIDE the pair above. Put between a `v-if` and its `v-else`
+        it does not sit beside them, it breaks them apart -- the `v-else` then answers this
+        condition instead of the one it was written for.
+      -->
+      <div v-if="parkFailed" class="small text-danger mt-2" data-test="calculator-park-failed">
+        {{ $t('calculator.card.park-failed') }}
       </div>
     </div>
 
@@ -203,7 +219,6 @@ import { useCalculatorPrefs } from '@/composables/useCalculatorPrefs'
 import { useCalculatorSound } from '@/composables/useCalculatorSound'
 import { useParkedAmount } from '@/composables/useParkedAmount'
 import { decimalSeparatorFor } from '@/utils/numberFormat'
-import { parseAmount } from '@/filters/amount'
 
 /** The daily rate is a rate, not money -- four places, and no currency grouping rules. */
 const RATE_FORMAT = { minimumFractionDigits: 4, maximumFractionDigits: 4 }
@@ -218,13 +233,12 @@ const DIGIT_ROWS = [
 const { t, locale } = useI18n()
 const { percent, factor, currency, showDankBar, sound } = useCalculatorPrefs()
 const { play, stop } = useCalculatorSound(sound)
-const { park, readParked, clearParked } = useParkedAmount()
+const { park, readParked, clearParked, hasParkedEntry, parkedKey } = useParkedAmount()
 
 const {
   display,
   subResult,
   payableGdd,
-  rate,
   appendDigit,
   appendSeparator,
   appendOperator,
@@ -235,6 +249,33 @@ const {
 } = useCalculator({ percent, factor, locale })
 
 const decimalSeparator = computed(() => decimalSeparatorFor(locale.value))
+
+/**
+ * Reads a number out of one of the two settings fields.
+ *
+ * ⛔ Deliberately NOT `parseAmount`. That one reads MONEY, and its grouping rule rests on
+ * GDD carrying two decimals, so it reads `1.075` as one thousand and seventy-five. Neither
+ * of these fields holds money -- the factor is a rate, the share is a percentage -- and a
+ * separator in a rate is always a decimal separator. `1,075` here means one and a bit.
+ */
+const readSetting = (typed) => Number(String(typed).trim().replace(',', '.'))
+
+/**
+ * What would actually be handed over: two decimals, because that is the amount the payment
+ * screen shows and charges. A longer number here would be a different amount from the one
+ * on the display.
+ *
+ * ⛔ Rounded FIRST and then checked against zero, not the other way round. A Gradido share
+ * of 0.004 is greater than zero and would arm the button, but it rounds to 0.00 -- and zero
+ * cannot be parked, so the button would sit there doing nothing at all.
+ */
+const payableAmount = computed(() => {
+  if (payableGdd.value === null) {
+    return null
+  }
+  const rounded = Number(payableGdd.value.toFixed(2))
+  return rounded > 0 ? rounded : null
+})
 
 const digitKey = (digit) => ({
   name: `digit-${digit}`,
@@ -289,9 +330,11 @@ const factorField = ref('')
 const currencyField = ref('')
 const shareField = ref('')
 const parked = ref(readParked())
+const parkFailed = ref(false)
 
 /** Runs a calculator action and plays whatever sound its path earned. */
 const press = (action) => {
+  parkFailed.value = false
   play(action())
 }
 
@@ -308,7 +351,7 @@ const openSettings = () => {
  * is harmless; losing them is not.
  */
 const closeSettings = () => {
-  const typed = parseAmount(factorField.value)
+  const typed = readSetting(factorField.value)
   factor.value = Number.isFinite(typed) && typed > 0 ? typed : 1
   currency.value = currencyField.value.trim() === '' ? '€' : currencyField.value.trim()
   settingsOpen.value = false
@@ -321,7 +364,7 @@ const openShare = () => {
 }
 
 const closeShare = () => {
-  const typed = parseAmount(shareField.value)
+  const typed = readSetting(shareField.value)
   if (Number.isFinite(typed)) {
     percent.value = Math.min(100, Math.max(0, typed))
   }
@@ -329,25 +372,87 @@ const closeShare = () => {
 }
 
 const parkAmount = () => {
-  if (payableGdd.value === null) {
+  const amount = payableAmount.value
+  if (amount === null) {
     return
   }
-  // Two decimals, because that is the amount the payment screen will show and charge. A
-  // longer number here would be a different amount from the one on the display.
-  const amount = Number(payableGdd.value.toFixed(2))
   if (park(amount)) {
     parked.value = amount
+    parkFailed.value = false
     play('equals')
+    return
   }
+  parkFailed.value = true
+  play('warn')
 }
 
 const undoPark = () => {
   clearParked()
   parked.value = null
+  parkFailed.value = false
   play('function')
 }
 
-onUnmounted(stop)
+/**
+ * ★ Brings the panel back in step with what is actually in storage, and the three answers
+ * are three different situations:
+ *
+ * - **a fresh amount** -- it is still waiting; show it.
+ * - **a stale entry** -- the ten minutes ran out. The panel goes so it stops claiming an
+ *   amount the payment screen would already refuse, but the basket on the display is still
+ *   this customer's and must not be touched.
+ * - **nothing at all** -- somebody consumed it, which can only mean the payment went
+ *   through. The sale is over, so the calculator starts clean, as if AC had been pressed.
+ *   *(Bernd, 19.08.2026: once the payment has gone through, the calculator has to be
+ *   cleared.)*
+ *
+ * ⚠️ `allClear` is called directly and not through `press`: nobody pressed anything, and a
+ * sound from a page that may be in the background behind the camera is noise.
+ */
+const syncParked = () => {
+  const fresh = readParked()
+  if (fresh !== null) {
+    parked.value = fresh
+    return
+  }
+  const wasParked = parked.value !== null
+  parked.value = null
+  if (wasParked && !hasParkedEntry()) {
+    allClear()
+  }
+}
+
+/**
+ * ⛔ Scanning the card leaves the wallet: the phone's own camera opens `/dk/CODE`, and on a
+ * phone that is usually a NEW tab. This page stays behind with the finished basket on it,
+ * and nothing that happens over there reaches it by itself.
+ *
+ * `storage` is how the browser tells one document that another changed the shared store --
+ * it fires everywhere EXCEPT in the document that wrote, which is exactly right here: our
+ * own `undoPark` must not trigger it. `visibilitychange` catches up when the tab comes back
+ * from a state in which it heard nothing.
+ */
+const onStorageChanged = (event) => {
+  if (event.key !== null && event.key !== parkedKey()) {
+    return
+  }
+  syncParked()
+}
+
+const onVisibilityChanged = () => {
+  if (document.visibilityState === 'visible') {
+    syncParked()
+  }
+}
+
+window.addEventListener('storage', onStorageChanged)
+document.addEventListener('visibilitychange', onVisibilityChanged)
+
+onUnmounted(() => {
+  window.removeEventListener('storage', onStorageChanged)
+  document.removeEventListener('visibilitychange', onVisibilityChanged)
+  stop()
+})
 </script>
 
 <style lang="scss" scoped>

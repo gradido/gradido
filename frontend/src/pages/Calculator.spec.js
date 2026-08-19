@@ -173,6 +173,98 @@ describe('Calculator page', () => {
       expect(window.localStorage.getItem('calculator-parked-amount:user-one')).toBeNull()
       expect(key(wrapper, 'display').text()).toBe('5,00')
     })
+
+    /**
+     * ⛔ The offer goes the moment the calculation moves on. The sums under the display stay
+     * standing as they do in the PWA, so a till that starts the next customer by typing
+     * rather than by pressing AC still SEES the old figure -- and that is exactly why the
+     * button must not still be holding it.
+     */
+    it('withdraws the offer as soon as the next customer is started', async () => {
+      const wrapper = mountCalculator('de')
+      await press(wrapper, 'digit-5', 'digit-0', 'equals')
+      expect(key(wrapper, 'park').attributes('disabled')).toBeUndefined()
+
+      await press(wrapper, 'digit-7')
+      expect(key(wrapper, 'display').text()).toBe('7')
+      expect(key(wrapper, 'park').attributes('disabled')).toBeDefined()
+    })
+
+    /**
+     * ⛔ A share this small is greater than zero -- so the button used to be live -- but it
+     * rounds to 0.00, and zero cannot be parked. Pressing it did nothing at all, forever,
+     * with no way to tell that apart from a missed tap.
+     */
+    it('offers nothing for a sum that rounds away to nothing', async () => {
+      window.localStorage.setItem('calculator-prefs:user-one', JSON.stringify({ percent: 40 }))
+      const wrapper = mountCalculator('de')
+      await press(wrapper, 'digit-0', 'separator', 'digit-0', 'digit-1', 'equals')
+      expect(key(wrapper, 'park').attributes('disabled')).toBeDefined()
+    })
+
+    /**
+     * ⛔ Storage refusing to remember is the one failure the till cannot see: the card gets
+     * scanned and the amount field opens empty, with a customer waiting.
+     */
+    it('says so when the amount cannot be remembered', async () => {
+      vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+        throw new Error('denied')
+      })
+      const wrapper = mountCalculator('de')
+      await press(wrapper, 'digit-5', 'equals', 'park')
+
+      expect(key(wrapper, 'parked').exists()).toBe(false)
+      expect(key(wrapper, 'park-failed').exists()).toBe(true)
+    })
+
+    /**
+     * ★ Scanning leaves the wallet -- the phone's camera opens `/dk/CODE`, on a phone
+     * usually in a NEW tab -- and the payment goes through over there. This page stays
+     * behind with the finished basket on it, so it listens: the amount disappearing from
+     * storage while another document holds it can only mean the payment went through.
+     *
+     * *(Bernd, 19.08.2026: once the payment has gone through, the calculator has to be
+     * cleared -- the same as AC.)*
+     */
+    it('clears itself when the payment goes through in the tab the camera opened', async () => {
+      const wrapper = mountCalculator('de')
+      await press(wrapper, 'digit-5', 'digit-0', 'equals', 'park')
+      expect(key(wrapper, 'parked').exists()).toBe(true)
+
+      // what the payment screen does on SUCCESS, seen from this tab
+      window.localStorage.removeItem('calculator-parked-amount:user-one')
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key: 'calculator-parked-amount:user-one',
+          newValue: null,
+        }),
+      )
+      await wrapper.vm.$nextTick()
+
+      expect(key(wrapper, 'parked').exists()).toBe(false)
+      expect(key(wrapper, 'display').text()).toBe('')
+      expect(key(wrapper, 'sub').text()).toBe('')
+    })
+
+    /**
+     * ⛔ …but a window that merely ran out must NOT wipe the basket. The panel stops claiming
+     * an amount the payment screen would already refuse, and the sum on the display belongs
+     * to the customer who is still standing there.
+     */
+    it('drops the panel but keeps the basket when the ten minutes run out', async () => {
+      vi.useFakeTimers()
+      const wrapper = mountCalculator('de')
+      await press(wrapper, 'digit-5', 'digit-0', 'equals', 'park')
+      expect(key(wrapper, 'parked').exists()).toBe(true)
+
+      vi.advanceTimersByTime(11 * 60 * 1000)
+      document.dispatchEvent(new Event('visibilitychange'))
+      await wrapper.vm.$nextTick()
+
+      expect(key(wrapper, 'parked').exists()).toBe(false)
+      expect(key(wrapper, 'display').text()).toBe('50,00')
+      vi.useRealTimers()
+    })
   })
 
   describe('settings', () => {

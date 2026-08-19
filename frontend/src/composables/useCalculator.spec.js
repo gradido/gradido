@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, afterEach, vi } from 'vitest'
 import { ref } from 'vue'
 import { dailyRateFor, evaluate, useCalculator } from './useCalculator'
 
@@ -230,6 +230,56 @@ describe('useCalculator', () => {
       calc.calculate()
       expect(calc.payableGdd.value).toBeCloseTo(5, 10)
     })
+
+    /**
+     * ⛔ The two sums under the display are NOT cleared when the calculation moves on -- the
+     * PWA leaves them standing until AC ("Ergebnisse unten NICHT loeschen", index.html) and
+     * that is carried over on purpose. What must not stand is what a card would be charged.
+     *
+     * The till finishes a sale, the customer pays, and the next customer is started by
+     * typing rather than by pressing AC. Without this, the sub-line still says 50 and the
+     * card button is still armed with it.
+     */
+    it('takes the card offer back as soon as the calculation moves on', () => {
+      const calc = setup({ percent: 100 })
+      type(calc, ['5', '0'])
+      calc.calculate()
+      expect(calc.payableGdd.value).toBeCloseTo(50, 10)
+
+      type(calc, ['7'])
+      expect(calc.display.value).toBe('7')
+      // still standing, as in the PWA -- and no longer on offer
+      expect(calc.subResult.value.gdd).toBeCloseTo(50, 10)
+      expect(calc.payableGdd.value).toBeNull()
+    })
+
+    /** Carrying on with an operator is the same thing: 50 = , + 2 0 is not 50 any more. */
+    it.each([
+      ['an operator and more digits', (calc) => calc.appendOperator('+') && type(calc, ['2'])],
+      ['a deletion', (calc) => calc.deleteLast()],
+      ['a separator', (calc) => calc.appendSeparator()],
+    ])('takes it back after %s too', (_name, carryOn) => {
+      const calc = setup({ percent: 100 })
+      type(calc, ['5', '0'])
+      calc.calculate()
+      expect(calc.payableGdd.value).toBeCloseTo(50, 10)
+
+      carryOn(calc)
+      expect(calc.payableGdd.value).toBeNull()
+    })
+
+    /** And pressing "=" again puts it back on offer, with the sum that is on screen now. */
+    it('offers the new sum once it has been worked out', () => {
+      const calc = setup({ percent: 100 })
+      type(calc, ['5', '0'])
+      calc.calculate()
+      calc.appendOperator('+')
+      type(calc, ['2', '0'])
+      expect(calc.payableGdd.value).toBeNull()
+
+      calc.calculate()
+      expect(calc.payableGdd.value).toBeCloseTo(70, 10)
+    })
   })
 
   describe('carrying on from a result', () => {
@@ -267,13 +317,47 @@ describe('useCalculator', () => {
   })
 
   describe('DankBar to Gradido', () => {
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    /**
+     * ⛔ The clock is pinned, and not for tidiness. Asserting against the rate the composable
+     * itself just produced would pass on 1 January whatever the code did: there `dayOfYear`
+     * is 1, so the rate and its reciprocal are both exactly 1 and swapping them is invisible.
+     * A day in the middle of the year tells them apart -- 0.6454 against 1.5494.
+     */
     it('converts at the day rate and reports both sides', () => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date(2026, 7, 19, 12))
       const calc = setup()
       type(calc, ['1', '0', '0'])
       expect(calc.dankBarToGdd()).toBe('function')
       expect(calc.subResult.value.kind).toBe('dankbar')
       expect(calc.subResult.value.dankBar).toBe(100)
-      expect(calc.subResult.value.gdd).toBeCloseTo(100 * calc.rate.dankBarToGdd, 10)
+      expect(calc.subResult.value.gdd).toBeCloseTo(64.5405, 4)
+      expect(calc.subResult.value.rate.gddToDankBar).toBeCloseTo(1.5494, 4)
+    })
+
+    /**
+     * ★ The rate is asked for when a sum is worked out, not when the page opens. A till
+     * leaves this page standing at the counter all day; the PWA is an app that gets closed,
+     * so the same "read it once" costs a great deal more here. Over New Year it is a factor
+     * of two -- 0.5001 on 31 December against 1.0000 on 1 January.
+     */
+    it('uses the rate of the day the sum is worked out on, not of the day the page opened', () => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date(2026, 11, 31, 23, 55))
+      const calc = setup()
+      type(calc, ['1', '0', '0'])
+      calc.dankBarToGdd()
+      expect(calc.subResult.value.gdd).toBeCloseTo(50.008, 3)
+
+      vi.setSystemTime(new Date(2027, 0, 1, 0, 5))
+      calc.allClear()
+      type(calc, ['1', '0', '0'])
+      calc.dankBarToGdd()
+      expect(calc.subResult.value.gdd).toBeCloseTo(100, 6)
     })
 
     it('refuses an empty display', () => {

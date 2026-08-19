@@ -56,6 +56,47 @@ describe('useParkedAmount', () => {
   })
 
   /** On a shared till the next person must not inherit somebody else's total. */
+  /**
+   * ⛔ A clock that has been put BACK. The window used to be `now - at > ten minutes`, and a
+   * stamp lying ahead of the clock makes that difference negative -- below the limit for as
+   * long as the clock takes to catch up. Ten minutes silently became however far it moved,
+   * and a finished basket would prefill the next card scanned.
+   */
+  it('refuses an amount stamped in the future rather than treating it as fresh', () => {
+    const { park, readParked } = useParkedAmount()
+    park(24.5)
+    vi.setSystemTime(Date.now() - 2 * 60 * 60 * 1000)
+    expect(readParked()).toBeNull()
+  })
+
+  /**
+   * ★ Gone and stale are different answers, and the calculator page acts on the difference:
+   * gone means somebody consumed it, so the payment went through and the sale is over.
+   */
+  describe('hasParkedEntry', () => {
+    it('says yes while an entry is there, fresh or not', () => {
+      const { park, readParked, hasParkedEntry } = useParkedAmount()
+      park(6.3)
+      expect(hasParkedEntry()).toBe(true)
+
+      vi.advanceTimersByTime(PARKED_AMOUNT_TTL_MS + 1000)
+      expect(readParked()).toBeNull()
+      expect(hasParkedEntry()).toBe(true)
+    })
+
+    it('says no once it has been consumed', () => {
+      const { park, clearParked, hasParkedEntry } = useParkedAmount()
+      park(6.3)
+      clearParked()
+      expect(hasParkedEntry()).toBe(false)
+    })
+
+    it('says no without an ID', () => {
+      state.gradidoID = null
+      expect(useParkedAmount().hasParkedEntry()).toBe(false)
+    })
+  })
+
   it('does not hand one member the amount of another', () => {
     useParkedAmount().park(6.3)
     state.gradidoID = 'user-two'

@@ -17,7 +17,10 @@ import { useStore } from 'vuex'
  *   inherit somebody else's amount -- and this one is money, not a shop name.
  * - **It expires.** Somebody who calculated at eleven and scans a card at four is starting a
  *   new sale, and the old total turning up in the field would be a charge nobody looked at.
- * - **It is consumed when taken.** Otherwise the same amount greets the next card.
+ * - **It is given up when the sale ends** -- paid, or refused for good. NOT when it is read:
+ *   the payment screen reads it on arrival and clears it once the payment has gone through,
+ *   because consuming on arrival would lose the amount to an accidental reload with a
+ *   customer waiting. See `readParked` and `clearParked` below.
  *
  * ⛔ The amount is stored RAW -- `1234.5`, dot notation, no grouping. A stored `1.234,50`
  * would be a different number depending on the interface language, and the language can
@@ -87,7 +90,13 @@ export const useParkedAmount = () => {
       if (!stored || !Number.isFinite(stored.amount) || !Number.isFinite(stored.at)) {
         return null
       }
-      if (Date.now() - stored.at > PARKED_AMOUNT_TTL_MS) {
+      /**
+       * ⚠️ Both directions. A stamp that lies AHEAD of the clock is not fresh, it is a clock
+       * that has been put back -- and `now - at` would then be negative, which is below the
+       * limit forever. Ten minutes would quietly become however far the clock moved.
+       */
+      const age = Date.now() - stored.at
+      if (age < 0 || age > PARKED_AMOUNT_TTL_MS) {
         return null
       }
       return stored.amount
@@ -109,9 +118,29 @@ export const useParkedAmount = () => {
   }
 
   /**
+   * Whether there is an entry at all, fresh or not.
+   *
+   * ★ The calculator needs the difference and `readParked` cannot give it: an entry that is
+   * GONE means somebody consumed it -- the sale is over and the calculator has to start
+   * clean. An entry that is merely stale means the clock ran out while the basket on screen
+   * is still the current one, and wiping that would take a till's work away from it.
+   */
+  const hasParkedEntry = () => {
+    const key = storageKey()
+    if (!key) {
+      return false
+    }
+    try {
+      return window.localStorage.getItem(key) !== null
+    } catch {
+      return false
+    }
+  }
+
+  /**
    * ⚠️ No read-and-clear in one go, deliberately. The payment screen reads on arrival and
    * clears only once a payment has gone through -- consuming on arrival would lose the
    * amount to an accidental reload, with a customer waiting at the counter.
    */
-  return { park, readParked, clearParked }
+  return { park, readParked, clearParked, hasParkedEntry, parkedKey: storageKey }
 }
