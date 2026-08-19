@@ -748,6 +748,7 @@
       "first-free": "is nog vrij",
       "first-hint": "Je kunt hem houden of zelf een naam kiezen. Later zijn vier wijzigingen per jaar mogelijk.",
       "first-intro": "Zodat anderen je kunnen vinden en je Gradido kunnen sturen, hebben we een naam voorgesteld:",
+      "first-invalid": "This name does not match the rules",
       "first-keep": "Zo is het goed",
       "first-other": "Andere kiezen",
       "first-rules": "3 tot 20 tekens · letters, cijfers, - en _",

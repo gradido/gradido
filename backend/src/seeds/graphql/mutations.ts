@@ -463,3 +463,42 @@ export const removeUserAvatar = gql`
     removeUserAvatar
   }
 `
+
+// --- the thank you card, from both sides of the counter ---
+
+export const setThankYouCardSettings = gql`
+  mutation ($pin: String!, $maxPerPayment: GradidoUnit!, $maxPerDay: GradidoUnit!) {
+    setThankYouCardSettings(pin: $pin, maxPerPayment: $maxPerPayment, maxPerDay: $maxPerDay) {
+      maxPerPayment
+      maxPerDay
+    }
+  }
+`
+
+export const createThankYouCard = gql`
+  mutation ($label: String!) {
+    createThankYouCard(label: $label) {
+      id
+      code
+      label
+    }
+  }
+`
+
+export const createThankYouCardPayment = gql`
+  mutation ($code: String!, $amount: GradidoUnit!, $memo: String!) {
+    createThankYouCardPayment(code: $code, amount: $amount, memo: $memo) {
+      id
+    }
+  }
+`
+
+export const confirmThankYouCardPayment = gql`
+  mutation ($paymentId: Int!, $pin: String!) {
+    confirmThankYouCardPayment(paymentId: $paymentId, pin: $pin) {
+      status
+      attemptsLeft
+      payerName
+    }
+  }
+`

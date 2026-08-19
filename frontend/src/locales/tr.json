@@ -748,6 +748,7 @@
       "first-free": "hâlâ boş",
       "first-hint": "Bunu koruyabilir ya da kendin bir ad seçebilirsin. Sonrasında yılda dört değişiklik mümkün.",
       "first-intro": "Başkaları seni bulabilsin ve sana Gradido gönderebilsin diye sana bir ad önerdik:",
+      "first-invalid": "This name does not match the rules",
       "first-keep": "Böyle iyi",
       "first-other": "Başkasını seç",
       "first-rules": "3 ila 20 karakter · harfler, rakamlar, - ve _",
