@@ -518,6 +518,27 @@ describe('ThankYouCardPayment', () => {
       expect(mockClearParked).not.toHaveBeenCalled()
     })
 
+    /**
+     * ⛔ But it lets go when the card says no for good. A wrong PIN with attempts left is a
+     * customer about to try again; a blocked card or one over its limit is not going to pay
+     * this basket at all -- they pay another way and the till moves on. Left standing, the
+     * finished basket would prefill whichever card is scanned next inside the ten minutes,
+     * under a line claiming the calculator worked it out for THAT sale. (Bernd, 19.08.2026)
+     */
+    it.each([['CARD_BLOCKED'], ['BLOCKED_NOW'], ['LIMIT_EXCEEDED'], ['NO_COVER']])(
+      'lets it go when the card answers %s',
+      async (status) => {
+        mockReadParked.mockReturnValue(6.3)
+        mockConfirm.mockResolvedValue({ data: { confirmThankYouCardPayment: { status } } })
+        await mountUsable()
+        await fillAndStart({ amount: '6,30' })
+        await field('pin').setValue('111111')
+        await flushPromises()
+
+        expect(mockClearParked).toHaveBeenCalled()
+      },
+    )
+
     /** The field stays editable -- an amount that appeared on its own and cannot be corrected
      *  would be worse than one that was typed. */
     it('can be overwritten', async () => {
@@ -540,6 +561,40 @@ describe('ThankYouCardPayment', () => {
 
       await field('amount').setValue('9,00')
       expect(field('from-calculator').exists()).toBe(false)
+    })
+  })
+
+  /**
+   * ⛔ The same rule the calculator's keypad enforces with the warning sound: GDD carries two
+   * decimals, so a third is not a slightly different amount but a DIFFERENT one. `0,123` read
+   * as a grouped number is 123 -- a thousand times the twelve cents that were meant, and the
+   * field would have handed it to the card without a murmur.
+   *
+   * *(Bernd, 19.08.2026: only two digits may follow the separator; a third is refused.)*
+   */
+  describe('two decimals, as the currency has', () => {
+    it.each([
+      ['0,123', '0,12'],
+      ['6,305', '6,30'],
+      ['1.234,505', '1.234,50'],
+    ])('refuses a third decimal: %s becomes %s', async (typed, expected) => {
+      await mountUsable()
+      await field('amount').setValue(typed)
+      await flushPromises()
+
+      expect(field('amount').element.value).toBe(expected)
+    })
+
+    /**
+     * ⚠️ …and leaves alone what already has at most two. The calculator's own handover is
+     * drawn with two decimals, so it passes through this untouched -- including its grouping.
+     */
+    it.each([['1.234,50'], ['6,3'], ['1234'], ['0,05']])('leaves %s as it was', async (typed) => {
+      await mountUsable()
+      await field('amount').setValue(typed)
+      await flushPromises()
+
+      expect(field('amount').element.value).toBe(typed)
     })
   })
 

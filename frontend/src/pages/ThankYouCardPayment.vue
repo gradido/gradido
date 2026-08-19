@@ -42,7 +42,7 @@
         type="text"
         inputmode="decimal"
         data-test="thank-you-card-amount"
-        @update:model-value="fromCalculator = false"
+        @update:model-value="onAmountTyped"
         @blur="normaliseAmount"
       />
       <!--
@@ -204,7 +204,7 @@ import {
 import { useAppToast } from '@/composables/useToast'
 import { useThankYouCardMemo } from '@/composables/useThankYouCardMemo'
 import { useParkedAmount } from '@/composables/useParkedAmount'
-import { parseAmount } from '@/filters/amount'
+import { parseAmount, withAtMostTwoDecimals } from '@/filters/amount'
 import { PIN_MASK_CLASS, pinInputType } from '@/utils/pinMasking'
 
 const PIN_LENGTH = 6
@@ -295,6 +295,32 @@ onMounted(() => {
     fromCalculator.value = true
   }
 })
+
+/**
+ * ⛔ At most two digits behind the decimal separator -- the rule the calculator's own keypad
+ * enforces with the warning sound, because GDD carries two decimals. A third digit here is
+ * not a slightly different amount, it is a DIFFERENT one: `0,123` read as a grouped number
+ * comes out as 123, and the field would hand that to the card without a murmur.
+ *
+ * ⚠️ A grouped number is left alone: in `1.234` the separator is not a decimal separator, so
+ * there is no third decimal to refuse. The check goes through `withAtMostTwoDecimals`, the
+ * same rule `parseAmount` reads by -- a field that fights entries the reader would have read
+ * correctly is worse than no field at all.
+ *
+ * The set-then-correct across a tick is the same dance `onPinTyped` does below: without it
+ * the input keeps the refused character on screen, because the model value it is told about
+ * has not changed.
+ */
+const onAmountTyped = async (value) => {
+  fromCalculator.value = false
+  const typed = String(value)
+  const allowed = withAtMostTwoDecimals(typed)
+  if (allowed !== typed) {
+    amount.value = typed
+    await nextTick()
+    amount.value = allowed
+  }
+}
 
 /**
  * Writes back what was READ, in the language's own notation -- so the field shows the same
@@ -415,8 +441,18 @@ const submitPin = async () => {
       attemptsLeft.value = answer.attemptsLeft
       return
     }
-    // Everything else ends this attempt: blocked, over a limit, no cover, request gone.
+    /**
+     * Everything else ends this attempt: blocked, over a limit, no cover, request gone.
+     *
+     * ⛔ And it ends the parked amount with it. A wrong PIN with attempts left returns above
+     * and keeps it, because the customer is going to try again -- but a card that is blocked
+     * or over its limit is not going to pay this basket at all. The customer pays another
+     * way and the till moves on; leaving the amount would hand the last basket to whichever
+     * card is scanned next inside the ten minutes, under a line claiming the calculator
+     * worked it out for THAT sale. (Bernd, 19.08.2026)
+     */
     failure.value = answer?.status ?? 'REQUEST_GONE'
+    clearParked()
     if (answer?.status === 'BLOCKED_NOW' || answer?.status === 'CARD_BLOCKED') {
       targetStatus.value = answer.status
     }
