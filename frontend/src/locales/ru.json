@@ -54,6 +54,30 @@
     "size": "Размер"
   },
   "back": "Вернуться",
+  "calculator": {
+    "card": {
+      "from-calculator": "из калькулятора",
+      "park": "Оплатить картой благодарности",
+      "parked": "Сумма запомнена: {amount} GDD",
+      "scan-hint": "Теперь отсканируй карту.",
+      "undo": "Отменить"
+    },
+    "daily-rate": "Курс дня",
+    "dankbar-equals": "{dankBar} DankBar = {gdd} Gradido",
+    "dankbar-to-gdd": "DankBar → GDD",
+    "gradido-share": "Gradido %",
+    "purchasing-power": "Покупательная способность: 1 GDD = {factor} {currency}",
+    "settings": {
+      "currency": "Валюта",
+      "purchasing-power": "Покупательная способность — 1 GDD =",
+      "show-dankbar": "Показывать DankBar",
+      "sound": "Звук",
+      "title": "Настройки"
+    },
+    "share": {
+      "label": "Доля Gradido (0–100 %)"
+    }
+  },
   "card-circles": {
     "allowed": {
       "button": "Открыть круги..."
@@ -601,6 +625,7 @@
   "moderatorChangedMemo": "Текст отредактирован модератором",
   "navigation": {
     "admin_area": "Поле для администратора",
+    "calculator": "Калькулятор",
     "community": "Сообщество",
     "logout": "Выйти",
     "matching": "Matching",
@@ -612,6 +637,7 @@
   },
   "openHours": "Открытые часы",
   "pageTitle": {
+    "calculator": "Калькулятор",
     "circles": "Gradido Круги",
     "contributions": "Создать Gradido",
     "gdt": "Ваши транзакции GDT",

@@ -20,6 +20,12 @@
               <span class="ms-2">{{ $t('navigation.send') }}</span>
             </div>
           </BNavItem>
+          <BNavItem to="/calculator" class="mb-3" active-class="active-route">
+            <div class="sidebar-menu-item-wrapper">
+              <i-mdi-calculator class="svg-icon" />
+              <span class="ms-2">{{ $t('navigation.calculator') }}</span>
+            </div>
+          </BNavItem>
           <BNavItem to="/transactions" :class="transactionClass" active-class="active-route">
             <div class="sidebar-menu-item-wrapper">
               <i-ion-layers-sharp class="svg-icon" />

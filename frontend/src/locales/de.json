@@ -54,6 +54,30 @@
     "size": "Größe"
   },
   "back": "Zurück",
+  "calculator": {
+    "card": {
+      "from-calculator": "aus dem Rechner",
+      "park": "Mit Dank-Karte",
+      "parked": "Betrag gemerkt: {amount} GDD",
+      "scan-hint": "Jetzt die Karte scannen.",
+      "undo": "Rückgängig"
+    },
+    "daily-rate": "Tageskurs",
+    "dankbar-equals": "{dankBar} DankBar = {gdd} Gradido",
+    "dankbar-to-gdd": "DankBar in GDD",
+    "gradido-share": "Gradido %",
+    "purchasing-power": "Kaufkraft: 1 GDD = {factor} {currency}",
+    "settings": {
+      "currency": "Währung",
+      "purchasing-power": "Kaufkraft — 1 GDD =",
+      "show-dankbar": "DankBar anzeigen",
+      "sound": "Ton",
+      "title": "Einstellungen"
+    },
+    "share": {
+      "label": "Gradido-Anteil (0–100 %)"
+    }
+  },
   "card-circles": {
     "allowed": {
       "button": "Kreise öffnen..."
@@ -601,6 +625,7 @@
   "moderatorChangedMemo": "Text vom Moderator bearbeitet",
   "navigation": {
     "admin_area": "Adminbereich",
+    "calculator": "Rechner",
     "community": "Gemeinschaft",
     "logout": "Abmelden",
     "matching": "Matching",
@@ -612,6 +637,7 @@
   },
   "openHours": "Offene Stunden",
   "pageTitle": {
+    "calculator": "Rechner",
     "circles": "Gradido Kreise",
     "contributions": "Gradido schöpfen",
     "gdt": "Deine GDT Transaktionen",

@@ -54,6 +54,30 @@
     "size": "Grootte"
   },
   "back": "Terug",
+  "calculator": {
+    "card": {
+      "from-calculator": "uit de rekenmachine",
+      "park": "Betalen met dankkaart",
+      "parked": "Bedrag onthouden: {amount} GDD",
+      "scan-hint": "Scan nu de kaart.",
+      "undo": "Ongedaan maken"
+    },
+    "daily-rate": "Dagkoers",
+    "dankbar-equals": "{dankBar} DankBar = {gdd} Gradido",
+    "dankbar-to-gdd": "DankBar → GDD",
+    "gradido-share": "Gradido %",
+    "purchasing-power": "Koopkracht: 1 GDD = {factor} {currency}",
+    "settings": {
+      "currency": "Valuta",
+      "purchasing-power": "Koopkracht — 1 GDD =",
+      "show-dankbar": "DankBar tonen",
+      "sound": "Geluid",
+      "title": "Instellingen"
+    },
+    "share": {
+      "label": "Gradido-aandeel (0–100 %)"
+    }
+  },
   "card-circles": {
     "allowed": {
       "button": "Kringen openen..."
@@ -601,6 +625,7 @@
   "moderatorChangedMemo": "Tekst bewerkt door moderator",
   "navigation": {
     "admin_area": "Beheerder",
+    "calculator": "Rekenmachine",
     "community": "Gemeenschap",
     "logout": "Afmelden",
     "matching": "Matching",
@@ -612,6 +637,7 @@
   },
   "openHours": "Open Hours",
   "pageTitle": {
+    "calculator": "Rekenmachine",
     "circles": "Gradido Kringen",
     "contributions": "Gradido scoop",
     "gdt": "Your GDT transactions",
