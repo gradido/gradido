@@ -5,6 +5,7 @@ import createPersistedState from 'vuex-persistedstate'
 import jwtDecode from 'jwt-decode'
 import i18n from '../i18n'
 import { clearEntryDraft } from '../composables/useEntryDraft'
+import { forgetAllMemberAvatars } from '../composables/useMemberAvatars'
 import { clearApolloCache } from '../plugins/apolloCache'
 
 // Dedicated localStorage key mirroring state.themeMode. The pre-paint script in
@@ -178,6 +179,11 @@ export const actions = {
     // the other app's session and the shared dark-mode theme key. Re-commit the theme
     // so the recreated blob keeps the device-local choice for the next session.
     localStorage.removeItem('gradido-frontend')
+    // Other members' pictures live under their own key, outside that blob and outside this
+    // store, so removing the blob does not touch them. They have to go for the same reason
+    // the blob does: the next member to sign in on this browser must not be handed the
+    // faces the previous one was allowed to see.
+    forgetAllMemberAvatars()
     commit('setThemeMode', themeMode)
     dispatch('applyTheme')
     // Last, and for the same reason as `clearEntryDraft` above: nothing here reloads the
