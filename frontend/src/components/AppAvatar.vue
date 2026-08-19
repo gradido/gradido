@@ -55,10 +55,16 @@ const props = defineProps({
   // The two parted company when the letters started coming from the alias (AS-010): a
   // circle reading "BE" still colours from "BH", which is why no existing member's colour
   // moved and why the printed card still matches the screen.
-  // Optional -- without it the colour comes from the letters, exactly as before.
+  //
+  // ⛔ The default is null, not '', and the difference is a real member: one who has an
+  // alias but no stored name has an empty seed, and an empty seed is an ANSWER -- it is
+  // what `useGradidoCard` and `useThankYouCheque` hand the palette for the same member.
+  // Treated as "not given" it would fall through to the letters below, and the disc would
+  // take its colour from the alias, which is the one thing AS-010 forbids. null means not
+  // given; '' means given and empty.
   colorSeed: {
     type: String,
-    default: '',
+    default: null,
   },
   // The "quiet" look for an avatar that has no picture yet: a pale disc with a dashed
   // ring instead of a solid colour, so an unfilled place looks like an unfilled place.
@@ -123,9 +129,10 @@ const computedInitials = computed(() => {
     .slice(0, 2)
 })
 
-// What the colour is drawn from. Falls back to what is shown, which is what every caller
-// relied on before colorSeed existed.
-const paletteSeed = computed(() => props.colorSeed || computedInitials.value || props.name)
+// What the colour is drawn from. `??`, not `||`: only an absent seed falls back to what is
+// shown, which is what every caller that predates colorSeed relied on. An empty seed is
+// used as it stands -- see the prop above.
+const paletteSeed = computed(() => props.colorSeed ?? (computedInitials.value || props.name))
 
 const backgroundColor = computed(() => avatarPaletteEntry(paletteSeed.value).bg)
 
