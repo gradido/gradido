@@ -185,7 +185,7 @@ describe('useMemberAvatars', () => {
 
   // Without a cap this grows for as long as the browser keeps the key, and the member pays
   // for every face they ever shared a booking with.
-  it('stays under the cap by dropping what was used longest ago', () => {
+  it('stays under the cap by dropping what was fetched longest ago', () => {
     const many = Array.from({ length: 205 }, (_, index) => ({
       communityUuid: COMMUNITY,
       gradidoID: `member-${index}`,

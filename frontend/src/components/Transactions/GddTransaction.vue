@@ -94,6 +94,8 @@ import Name from '../TransactionRows/Name'
 import DecayInformation from '../DecayInformations/DecayInformation'
 import { BAvatar, BRow } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
+import { avatarLettering } from '@/utils/avatarLettering'
+import { storedMemberAvatar } from '@/composables/useMemberAvatars'
 
 const props = defineProps({
   transaction: {
@@ -111,10 +113,23 @@ const toggleVisible = () => {
   visible.value = !visible.value
 }
 
-const username = computed(() => ({
-  username: `${props.transaction?.linkedUser?.firstName} ${props.transaction?.linkedUser?.lastName}`,
-  initials: `${props.transaction?.linkedUser?.firstName[0]}${props.transaction.linkedUser?.lastName[0]}`,
-}))
+// What the circle says and what colours it -- from one call, so the two cannot come to
+// describe different members (AS-010). The letters follow the alias, because the line
+// right beside this circle shows the alias; the colour keeps following the real initials,
+// so nobody's colour moved and the printed card still agrees with the screen.
+const lettering = computed(() => avatarLettering(props.transaction?.linkedUser))
+
+const fullName = computed(() =>
+  `${props.transaction?.linkedUser?.firstName ?? ''} ${props.transaction?.linkedUser?.lastName ?? ''}`.trim(),
+)
+
+// Only what the wallet already holds; the fetching for the whole list happens once, in
+// DashboardLayout. An empty string means "no picture", which is what AppAvatar expects.
+const avatarSrc = computed(() => {
+  const linkedUser = props.transaction?.linkedUser
+  const stored = storedMemberAvatar(linkedUser, linkedUser?.avatarUpdatedAt)
+  return stored ? `data:image/jpeg;base64,${stored}` : ''
+})
 
 const isCreationType = computed(() => {
   return props.transaction.typeId === 'CREATION'
@@ -133,8 +148,12 @@ const avatarProps = computed(() => {
     }
   } else {
     return {
-      username: username.value.username,
-      initials: username.value.initials,
+      // `name`, not `username`: AppAvatar has no username prop, so the old spelling was
+      // dropped in silence and the fallback it was meant to feed never arrived.
+      name: fullName.value,
+      initials: lettering.value.letters,
+      colorSeed: lettering.value.colorSeed,
+      src: avatarSrc.value,
       color: '#fff',
       size: 42,
     }

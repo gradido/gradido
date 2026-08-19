@@ -17,10 +17,12 @@
             <!--              :border="false"-->
             <!--            />-->
             <app-avatar
-              :size="72"
+              :size="64"
               :color="'#fff'"
               :name="`${transaction.linkedUser.firstName} ${transaction.linkedUser.lastName}`"
-              :initials="`${transaction.linkedUser.firstName[0]}${transaction.linkedUser.lastName[0]}`"
+              :initials="avatarFor(transaction.linkedUser).letters"
+              :color-seed="avatarFor(transaction.linkedUser).colorSeed"
+              :src="pictureFor(transaction.linkedUser)"
             />
           </div>
         </BCol>
@@ -56,6 +58,20 @@ import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { computed } from 'vue'
 import AppAvatar from '@/components/AppAvatar.vue'
+import { avatarLettering } from '@/utils/avatarLettering'
+import { storedMemberAvatar } from '@/composables/useMemberAvatars'
+
+// 64 rather than the 72 this used to be: the stored picture is 128 across, and 72 points
+// on a 2x screen asks for 144 -- more than there is, so it was visibly soft at the most
+// prominent avatar in the wallet. At 64 the two match exactly (AS-008).
+const avatarFor = (linkedUser) => avatarLettering(linkedUser)
+
+// Only what the wallet already holds. Fetching happens once for the whole list, in
+// DashboardLayout, so this never triggers a request of its own.
+const pictureFor = (linkedUser) => {
+  const stored = storedMemberAvatar(linkedUser, linkedUser?.avatarUpdatedAt)
+  return stored ? `data:image/jpeg;base64,${stored}` : ''
+}
 const props = defineProps({
   transactions: {
     default: () => [],

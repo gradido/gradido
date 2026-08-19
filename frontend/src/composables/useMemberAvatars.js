@@ -20,6 +20,8 @@
 // pictures already lying on this device, or turning the switch off would leave the face on
 // screen until the browser storage happened to be cleared.
 
+import { ref } from 'vue'
+
 const STORAGE_KEY = 'gradido-avatars'
 
 // Roughly two megabytes at the small rendition's cap. Far more than one page of bookings
@@ -47,6 +49,17 @@ const asTime = (value) => {
 }
 
 let entries = null
+
+// Bumped whenever the contents change. Read by storedMemberAvatar so that a component
+// asking for a picture inside a computed re-renders when the fetch answers -- the map
+// itself is a plain Map on purpose (it holds base64 by the hundred, and there is nothing
+// to gain from making every entry reactive), so without this the first paint would show
+// initials and nothing would ever replace them.
+const version = ref(0)
+
+// Touching the ref is the entire point, so it needs a name: a bare `version.value` reads
+// as a line somebody forgot to finish, and lint says so.
+const trackChanges = () => version.value
 
 const load = () => {
   if (entries) return entries
@@ -76,11 +89,11 @@ const save = () => {
   }
 }
 
-// Oldest first, by the time it was last handed out rather than by when it was stored: the
-// faces a member actually keeps seeing are the ones worth keeping.
+// Oldest first, by when it was fetched. Least-recently-SEEN would keep the more useful
+// set, but it would mean writing on every read, and this is read from inside a computed.
 const evictDownToCap = () => {
   if (entries.size <= MAX_ENTRIES) return
-  const byAge = [...entries.entries()].sort((a, b) => a[1].usedAt - b[1].usedAt)
+  const byAge = [...entries.entries()].sort((a, b) => a[1].storedAt - b[1].storedAt)
   for (const [key] of byAge.slice(0, entries.size - MAX_ENTRIES)) {
     entries.delete(key)
   }
@@ -91,16 +104,19 @@ const evictDownToCap = () => {
  * `avatarUpdatedAt` is the date the booking list reported; null means the member has
  * nothing to show, so nothing is returned even if a picture is lying here.
  */
-export const storedMemberAvatar = (ref, avatarUpdatedAt) => {
+export const storedMemberAvatar = (member, avatarUpdatedAt) => {
+  // Registers this reader with the counter above. Reading is otherwise free of effects,
+  // deliberately: this runs inside a computed, and a read that writes is the kind of thing
+  // that later nobody can explain.
+  trackChanges()
   const wanted = asTime(avatarUpdatedAt)
   // Belt and braces, and worth naming as such: on today's paths the date comparison below
   // already refuses a dateless request, because nothing dateless is ever stored. This line
   // is what keeps that true if the writer ever slips -- a stored entry with no date would
   // otherwise match a request with no date, and hand back a face that was withdrawn.
   if (wanted === null) return null
-  const entry = load().get(memberAvatarKey(ref))
+  const entry = load().get(memberAvatarKey(member))
   if (!entry || entry.updatedAt !== wanted) return null
-  entry.usedAt = Date.now()
   return entry.avatar
 }
 
@@ -125,10 +141,11 @@ export const rememberMemberAvatars = (answered) => {
   for (const { communityUuid = null, gradidoID, avatar, avatarUpdatedAt } of answered) {
     const updatedAt = asTime(avatarUpdatedAt)
     if (updatedAt === null) continue
-    load().set(memberAvatarKey({ communityUuid, gradidoID }), { avatar, updatedAt, usedAt: now })
+    load().set(memberAvatarKey({ communityUuid, gradidoID }), { avatar, updatedAt, storedAt: now })
   }
   evictDownToCap()
   save()
+  version.value++
 }
 
 /**
@@ -142,7 +159,10 @@ export const forgetWithdrawnMemberAvatars = (refsWithDates) => {
     if (asTime(avatarUpdatedAt) !== null) continue
     if (load().delete(memberAvatarKey(ref))) dropped = true
   }
-  if (dropped) save()
+  if (dropped) {
+    save()
+    version.value++
+  }
 }
 
 /**
@@ -169,4 +189,5 @@ export const forgetAllMemberAvatars = () => {
   // read to load them back for whoever signs in next. An empty map is then the stricter
   // answer -- nothing readable, and storage is never consulted again on this page.
   entries = storageIsEmpty ? null : new Map()
+  version.value++
 }

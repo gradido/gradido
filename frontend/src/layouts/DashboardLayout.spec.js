@@ -6,6 +6,8 @@ import { createStore } from 'vuex'
 import { createRouter, createWebHistory } from 'vue-router'
 import routes from '@/routes/routes'
 import { useQuery } from '@vue/apollo-composable'
+import flushPromises from 'flush-promises'
+import { forgetAllMemberAvatars, storedMemberAvatar } from '@/composables/useMemberAvatars'
 
 const toastErrorSpy = vi.fn()
 
@@ -17,6 +19,7 @@ vi.mock('@/composables/useToast', () => ({
 
 const mockRefetchFn = vi.fn()
 const mockMutateFn = vi.fn()
+const mockApolloQuery = vi.fn(() => Promise.resolve({ data: { memberAvatars: [] } }))
 let onErrorHandler
 let onResultHandler
 const mockQueryResult = ref(null)
@@ -45,6 +48,7 @@ vi.mock('@vue/apollo-composable', () => ({
     },
     loading,
   })),
+  useApolloClient: vi.fn(() => ({ client: { query: mockApolloQuery } })),
   useMutation: vi.fn(() => ({
     mutate: mockMutateFn,
     onDone: vi.fn(),
@@ -197,6 +201,143 @@ describe('DashboardLayout', () => {
   describe('at first', () => {
     it('renders a component Skeleton', () => {
       expect(wrapper.findComponent({ name: 'SkeletonOverview' }).exists()).toBe(true)
+    })
+  })
+
+  // The pictures beside the bookings. This layout is the only place the list arrives, and
+  // both places that draw a face read from what is fetched here, so the whole page costs
+  // one request -- or none at all, which is the common case on a second visit.
+  describe("other members' pictures", () => {
+    const listWith = (linkedUsers) => ({
+      data: {
+        transactionList: {
+          balance: { balanceGDT: '0', count: 0, linkCount: 0, balance: '0' },
+          transactions: linkedUsers.map((linkedUser, index) => ({ id: index, linkedUser })),
+        },
+      },
+    })
+    const ANNA = {
+      gradidoID: 'aaaa-anna',
+      communityUuid: 'cccc-community',
+      avatarUpdatedAt: '2026-08-17T10:00:00.000Z',
+    }
+
+    beforeEach(async () => {
+      mockApolloQuery.mockClear()
+      forgetAllMemberAvatars()
+      await nextTick()
+    })
+
+    it('asks for the pictures it does not already hold', async () => {
+      onResultHandler(listWith([ANNA]))
+      await flushPromises()
+
+      expect(mockApolloQuery).toHaveBeenCalledTimes(1)
+      expect(mockApolloQuery.mock.calls[0][0].variables).toEqual({
+        refs: [{ gradidoID: 'aaaa-anna', communityUuid: 'cccc-community' }],
+      })
+    })
+
+    // The reason the date travels with every row in the first place: on the next visit
+    // nothing has changed, so nothing is asked for.
+    it('asks for nothing on a second list where nothing changed', async () => {
+      mockApolloQuery.mockResolvedValueOnce({
+        data: {
+          memberAvatars: [{ ...ANNA, avatar: 'anna-picture' }],
+        },
+      })
+      onResultHandler(listWith([ANNA]))
+      await flushPromises()
+      mockApolloQuery.mockClear()
+
+      onResultHandler(listWith([ANNA]))
+      await flushPromises()
+
+      expect(mockApolloQuery).not.toHaveBeenCalled()
+    })
+
+    // ★ A member who switched their picture off arrives with no date at all. Their face has
+    // to leave this device, and it must not depend on a request being made -- there is no
+    // request to make for them.
+    it('forgets a picture the list stops reporting a date for', async () => {
+      mockApolloQuery.mockResolvedValueOnce({
+        data: { memberAvatars: [{ ...ANNA, avatar: 'anna-picture' }] },
+      })
+      onResultHandler(listWith([ANNA]))
+      await flushPromises()
+      expect(storedMemberAvatar(ANNA, ANNA.avatarUpdatedAt)).toBe('anna-picture')
+
+      mockApolloQuery.mockClear()
+      onResultHandler(listWith([{ ...ANNA, avatarUpdatedAt: null }]))
+      await flushPromises()
+
+      expect(storedMemberAvatar(ANNA, ANNA.avatarUpdatedAt)).toBeNull()
+      expect(mockApolloQuery).not.toHaveBeenCalled()
+    })
+
+    it('asks for nothing when no member has anything to show', async () => {
+      onResultHandler(listWith([{ ...ANNA, avatarUpdatedAt: null }]))
+      await flushPromises()
+      expect(mockApolloQuery).not.toHaveBeenCalled()
+    })
+
+    // The request names members, not versions: a member who replaces their picture is asked
+    // for under exactly the same variables as last time. A cached answer would hand back
+    // the picture they just replaced, and the new one would never arrive.
+    it('always asks the server, never the cache', async () => {
+      onResultHandler(listWith([ANNA]))
+      await flushPromises()
+      expect(mockApolloQuery.mock.calls[0][0].fetchPolicy).toBe('network-only')
+    })
+
+    // ★ A member can turn the page faster than an answer comes back. The older answer must
+    // not land last and win -- least of all for somebody the newer list has just reported
+    // as having nothing to show, whose face would return after being forgotten.
+    it('drops an answer that a newer list has already overtaken', async () => {
+      let answerTheFirstRequest
+      mockApolloQuery.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            answerTheFirstRequest = () =>
+              resolve({ data: { memberAvatars: [{ ...ANNA, avatar: 'anna-picture' }] } })
+          }),
+      )
+      onResultHandler(listWith([ANNA]))
+      await flushPromises()
+
+      // The next list says she has nothing to show any more.
+      onResultHandler(listWith([{ ...ANNA, avatarUpdatedAt: null }]))
+      await flushPromises()
+
+      // ...and only now does the first request come back with her picture.
+      answerTheFirstRequest()
+      await flushPromises()
+
+      expect(storedMemberAvatar(ANNA, ANNA.avatarUpdatedAt)).toBeNull()
+    })
+
+    // Best effort: nobody loses their overview over a portrait. The fetch is started and
+    // not awaited, so a rejection cannot break the page by itself -- what it CAN do is
+    // escape as an unhandled rejection, which is why the listener below is the assertion
+    // that actually measures the catch. Without it, this case passes either way.
+    it('shows the page anyway when the pictures cannot be fetched', async () => {
+      const escaped = []
+      const catchEscaping = (event) => escaped.push(event.reason ?? event)
+      window.addEventListener('unhandledrejection', catchEscaping)
+      process.on('unhandledRejection', catchEscaping)
+      try {
+        mockApolloQuery.mockRejectedValueOnce(new Error('network'))
+        onResultHandler(listWith([ANNA]))
+        await flushPromises()
+        await flushPromises()
+      } finally {
+        window.removeEventListener('unhandledrejection', catchEscaping)
+        process.off('unhandledRejection', catchEscaping)
+      }
+
+      expect(escaped).toEqual([])
+      expect(storedMemberAvatar(ANNA, ANNA.avatarUpdatedAt)).toBeNull()
+      expect(wrapper.find('.main-page').exists()).toBe(true)
     })
   })
 
