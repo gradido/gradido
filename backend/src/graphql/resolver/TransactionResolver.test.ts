@@ -24,7 +24,9 @@ import {
   confirmContribution,
   createContribution,
   login,
+  removeUserAvatar,
   sendCoins,
+  setUserAvatar,
   updateUserInfos,
 } from '@/seeds/graphql/mutations'
 import { transactionsQuery } from '@/seeds/graphql/queries'
@@ -508,31 +510,31 @@ describe('send coins', () => {
                   }),
                   expect.objectContaining({
                     amount: '-6.66',
-                    linkedUser: {
+                    linkedUser: expect.objectContaining({
                       firstName: 'Bob',
                       gradidoID: bob?.gradidoID,
                       lastName: 'der Baumeister',
-                    },
+                    }),
                     memo: 'send via alias',
                     typeId: 'SEND',
                   }),
                   expect.objectContaining({
                     amount: '10',
-                    linkedUser: {
+                    linkedUser: expect.objectContaining({
                       firstName: 'Bob',
                       gradidoID: bob?.gradidoID,
                       lastName: 'der Baumeister',
-                    },
+                    }),
                     memo: 'send via gradido ID',
                     typeId: 'RECEIVE',
                   }),
                   expect.objectContaining({
                     amount: '50',
-                    linkedUser: {
+                    linkedUser: expect.objectContaining({
                       firstName: 'Bob',
                       gradidoID: bob?.gradidoID,
                       lastName: 'der Baumeister',
-                    },
+                    }),
                     memo: 'unrepeatable memo',
                     typeId: 'RECEIVE',
                   }),
@@ -541,6 +543,78 @@ describe('send coins', () => {
             },
             errors: undefined,
           })
+        })
+      })
+
+      /**
+       * ⛔ The date the booking list carries for each counterparty, at the position that
+       * actually carries it. The query behind it is covered in
+       * database/src/queries/userAvatars.test.ts, and memberAvatars is covered in
+       * UserResolver.test.ts -- but the batch fill in transactionList had nothing at all.
+       * Delete the whole loop, or invert its `?? null`, and this file did not notice.
+       *
+       * ★ And it is not a cosmetic field. This null is the ONLY thing that tells every
+       * other member's device to drop a picture it is still holding: the wallet reads a
+       * missing date as "forget her", so a member who turns the switch off reaches those
+       * devices through this value or not at all (AS-003, AS-009).
+       */
+      describe("the counterparty's picture date", () => {
+        // A minimal but real JPEG head -- the resolver checks the magic bytes, so anything
+        // else would be rejected for the right reason and prove nothing.
+        const JPEG_BASE64 = Buffer.from([
+          0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0xff, 0xd9,
+        ]).toString('base64')
+        const JPEG_FULL_BASE64 = Buffer.from([
+          0xff, 0xd8, 0xff, 0xe1, 0x00, 0x10, 0x45, 0x78, 0x69, 0xff, 0xd9,
+        ]).toString('base64')
+
+        const bobsRow = async () => {
+          const res: any = await query({ query: transactionsQuery })
+          return res.data.transactionList.transactions.find(
+            (transaction: any) => transaction.linkedUser?.gradidoID === bob?.gradidoID,
+          )
+        }
+
+        beforeAll(async () => {
+          await mutate({ mutation: login, variables: bobData })
+          await mutate({
+            mutation: setUserAvatar,
+            variables: { avatarSmall: JPEG_BASE64, avatarFull: JPEG_FULL_BASE64 },
+          })
+          await mutate({ mutation: login, variables: peterData })
+        })
+
+        afterAll(async () => {
+          await mutate({ mutation: login, variables: bobData })
+          await mutate({ mutation: removeUserAvatar })
+          await mutate({ mutation: login, variables: peterData })
+        })
+
+        it('reaches peter for a member who shows their picture', async () => {
+          const row = await bobsRow()
+          expect(row).toBeDefined()
+          expect(row.linkedUser.avatarUpdatedAt).not.toBeNull()
+        })
+
+        // The same row, one switch later. Only the setting differs, so this cannot pass for
+        // some unrelated reason -- and the null it asserts is the withdrawal itself.
+        it('stops reaching him the moment bob switches it off', async () => {
+          await mutate({ mutation: login, variables: bobData })
+          await mutate({
+            mutation: updateUserInfos,
+            variables: { avatarVisibleToMembers: false },
+          })
+          await mutate({ mutation: login, variables: peterData })
+
+          const row = await bobsRow()
+          expect(row.linkedUser.avatarUpdatedAt).toBeNull()
+
+          await mutate({ mutation: login, variables: bobData })
+          await mutate({
+            mutation: updateUserInfos,
+            variables: { avatarVisibleToMembers: true },
+          })
+          await mutate({ mutation: login, variables: peterData })
         })
       })
     })
