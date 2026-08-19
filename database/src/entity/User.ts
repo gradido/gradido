@@ -184,6 +184,11 @@ export class User extends BaseEntity {
   @Column({ name: 'about_me', type: 'text', nullable: true, default: null })
   aboutMe: string | null
 
+  // Whether other members may see this member's picture. Not about a foreign system --
+  // unlike gmsAllowed and humhubAllowed next to it -- but about who may look.
+  @Column({ name: 'avatar_visible_to_members', type: 'bool', default: true })
+  avatarVisibleToMembers: boolean
+
   // Crea salutation/signature fields (E-013), moderator-curated; null = not set.
   @Column({
     name: 'gender',

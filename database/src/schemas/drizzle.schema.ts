@@ -268,6 +268,7 @@ export const usersTable = mysqlTable(
     // geometryType: geometry("location"),
     gmsPublishLocation: int('gms_publish_location').default(2).notNull(),
     aboutMe: text('about_me').default(sql`NULL`),
+    avatarVisibleToMembers: tinyint('avatar_visible_to_members').default(1).notNull(),
     gmsRegistered: tinyint('gms_registered').default(0).notNull(),
     gmsRegisteredAt: datetime('gms_registered_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     humhubAllowed: tinyint('humhub_allowed').default(0).notNull(),
