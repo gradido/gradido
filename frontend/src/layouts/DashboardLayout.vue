@@ -129,13 +129,19 @@
             <!-- Right Side Mobil -->
             <BCol :class="bareChrome ? 'd-none' : 'd-block d-lg-none'">
               <right-side>
-                <template #transactions>
-                  <last-transactions
-                    :transactions="transactions"
-                    :transaction-count="transactionCount"
-                    :transaction-link-count="transactionLinkCount"
-                  />
-                </template>
+                <!--
+                  Empty on purpose, and it always was in effect: this column shows below
+                  992px, while LastTransactions hides itself below 992px (d-none d-lg-block
+                  on its own root). The two conditions never overlap, so the list mounted
+                  here could not appear at any width -- it only rendered, and since the
+                  faces arrived that meant building up to eight base64 pictures per pass
+                  for a subtree nobody can see.
+
+                  On a phone the booking list IS the page, so a second copy of it beside
+                  the page has nothing to add. The desktop column below is the one that
+                  shows.
+                -->
+                <template #transactions />
                 <template #contributions>
                   <contributions-template />
                 </template>

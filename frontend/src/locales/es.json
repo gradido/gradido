@@ -671,7 +671,7 @@
       "disabled": "Ahora solo tú ves tu imagen.",
       "enabled": "Tu imagen es visible para otros miembros.",
       "visibility": "Mostrar mi imagen a otros miembros",
-      "visibilityInfo": "Otros miembros ven tu imagen junto a las transacciones que compartís. Cuando la opción está desactivada, aparecen tus iniciales, como hasta ahora."
+      "visibilityInfo": "Otros miembros ven tu imagen, por ejemplo junto a las transacciones que compartís. Cuando la opción está desactivada, aparecen tus iniciales, como hasta ahora."
     },
     "community": "Círculos y búsqueda de miembros",
     "emailInfo": "Por ahora todavía no se puede cambiar.",
