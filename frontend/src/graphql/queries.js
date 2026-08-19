@@ -24,6 +24,7 @@ export const verifyLogin = gql`
       hideAmountGDT
       aboutMe
       avatar
+      avatarVisibleToMembers
     }
   }
 `

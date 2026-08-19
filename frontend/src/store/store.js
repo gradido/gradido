@@ -47,6 +47,9 @@ export const mutations = {
   gmsAllowed: (state, gmsAllowed) => {
     state.gmsAllowed = gmsAllowed
   },
+  avatarVisibleToMembers: (state, avatarVisibleToMembers) => {
+    state.avatarVisibleToMembers = avatarVisibleToMembers
+  },
   humhubAllowed: (state, humhubAllowed) => {
     state.humhubAllowed = humhubAllowed
   },
@@ -118,6 +121,7 @@ export const actions = {
     commit('lastName', data.lastName)
     commit('newsletterState', data.klickTipp.newsletterState)
     commit('gmsAllowed', data.gmsAllowed)
+    commit('avatarVisibleToMembers', data.avatarVisibleToMembers)
     commit('humhubAllowed', data.humhubAllowed)
     commit('gmsPublishName', data.gmsPublishName)
     commit('humhubPublishName', data.humhubPublishName)
@@ -144,6 +148,7 @@ export const actions = {
     commit('lastName', '')
     commit('newsletterState', null)
     commit('gmsAllowed', null)
+    commit('avatarVisibleToMembers', null)
     commit('humhubAllowed', null)
     commit('gmsPublishName', null)
     commit('humhubPublishName', null)
@@ -228,6 +233,7 @@ try {
       roles: [],
       newsletterState: null,
       gmsAllowed: null,
+      avatarVisibleToMembers: null,
       humhubAllowed: null,
       gmsPublishName: null,
       humhubPublishName: null,

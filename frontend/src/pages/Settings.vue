@@ -81,6 +81,21 @@
           </BCol>
         </BRow>
         <hr />
+        <BRow class="mb-5">
+          <BCol cols="12" md="6" lg="6">
+            {{ $t('settings.avatar.visibility') }}
+            <div class="small">{{ $t('settings.avatar.visibilityInfo') }}</div>
+          </BCol>
+          <BCol cols="12" md="6" lg="6" class="text-end">
+            <user-settings-switch
+              :initial-value="state.avatarVisibleToMembers"
+              :attr-name="'avatarVisibleToMembers'"
+              :enabled-text="$t('settings.avatar.enabled')"
+              :disabled-text="$t('settings.avatar.disabled')"
+            />
+          </BCol>
+        </BRow>
+        <hr />
         <user-gradido-card class="mb-5" />
         <hr />
         <user-thank-you-card class="mb-5" />
