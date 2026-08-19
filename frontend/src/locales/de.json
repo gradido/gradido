@@ -668,7 +668,7 @@
       }
     },
     "avatar": {
-      "disabled": "Dein Bild sieht jetzt nur noch Du.",
+      "disabled": "Dein Bild siehst jetzt nur noch Du.",
       "enabled": "Dein Bild ist für andere Mitglieder sichtbar.",
       "visibility": "Mein Bild anderen Mitgliedern zeigen",
       "visibilityInfo": "Andere Mitglieder sehen Dein Bild neben Euren gemeinsamen Buchungen. Ohne Häkchen erscheinen wie bisher Deine Anfangsbuchstaben."
