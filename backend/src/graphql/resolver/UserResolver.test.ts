@@ -1417,12 +1417,26 @@ describe('UserResolver', () => {
       // avatarVisibleToMembers is true on a fresh account, which is the column DEFAULT
       // and stays true whether or not the resolver ever writes the field. Drop the field
       // from the write object in updateUserInfos and only these cases go red.
+      // Ordered off - untouched - on, so the block leaves the shared row the way it found
+      // it. Later cases in this file read other columns of the same member, and a fixture
+      // one test leaves changed is a failure the next test gets blamed for.
       describe('whether the picture is visible to other members', () => {
         it('stores the member turning it off', async () => {
           await mutate({
             mutation: updateUserInfos,
             variables: { avatarVisibleToMembers: false },
           })
+          await expect(User.find()).resolves.toEqual([
+            expect.objectContaining({ avatarVisibleToMembers: false }),
+          ])
+        })
+
+        // False and "not sent" are different things, and a boolean is where they are most
+        // easily confused: a check on the value rather than on its presence would read a
+        // stored no as nothing to do, and the next save that says nothing about the
+        // picture would put the member back on show without anybody touching the switch.
+        it('leaves a stored no alone when a later save does not mention it', async () => {
+          await mutate({ mutation: updateUserInfos, variables: {} })
           await expect(User.find()).resolves.toEqual([
             expect.objectContaining({ avatarVisibleToMembers: false }),
           ])
@@ -1435,21 +1449,6 @@ describe('UserResolver', () => {
           })
           await expect(User.find()).resolves.toEqual([
             expect.objectContaining({ avatarVisibleToMembers: true }),
-          ])
-        })
-
-        // False and "not sent" are different things, and a boolean is where they are most
-        // easily confused: a check on the value rather than on its presence would read a
-        // stored `false` as nothing to do and let the next unrelated save flip the member
-        // back to visible without anybody touching the switch.
-        it('leaves a stored no alone when a later save does not mention it', async () => {
-          await mutate({
-            mutation: updateUserInfos,
-            variables: { avatarVisibleToMembers: false },
-          })
-          await mutate({ mutation: updateUserInfos, variables: { firstName: 'Bibi' } })
-          await expect(User.find()).resolves.toEqual([
-            expect.objectContaining({ avatarVisibleToMembers: false, firstName: 'Bibi' }),
           ])
         })
       })
