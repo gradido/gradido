@@ -26,6 +26,28 @@ import { useStore } from 'vuex'
 
 const KEY_PREFIX = 'calculator-parked-amount:'
 
+/**
+ * Everything, for logging out.
+ *
+ * ⛔ The settings beside this one are NOT cleared, and that is the difference between them:
+ * a percentage is what the till is, and it is meant to still be there tomorrow morning --
+ * the same reasoning `useThankYouCardMemo` gives for keeping the reference. A parked amount
+ * is money in the middle of a sale, and it has no business on a device somebody has walked
+ * away from. It expires within ten minutes anyway; this makes it go at once.
+ *
+ * ⚠️ Never `localStorage.clear()`: the wallet and the admin share an origin.
+ */
+export const forgetParkedAmount = (gradidoID) => {
+  if (!gradidoID) {
+    return
+  }
+  try {
+    window.localStorage.removeItem(`${KEY_PREFIX}${gradidoID}`)
+  } catch {
+    // storage refusing to work must not take the rest of the logout with it
+  }
+}
+
 /** Ten minutes: long enough to walk through the camera app, short enough to be one sale. */
 export const PARKED_AMOUNT_TTL_MS = 10 * 60 * 1000
 

@@ -6,6 +6,7 @@ import jwtDecode from 'jwt-decode'
 import i18n from '../i18n'
 import { clearEntryDraft } from '../composables/useEntryDraft'
 import { forgetAllMemberAvatars } from '../composables/useMemberAvatars'
+import { forgetParkedAmount } from '../composables/useParkedAmount'
 import { clearApolloCache } from '../plugins/apolloCache'
 
 // Dedicated localStorage key mirroring state.themeMode. The pre-paint script in
@@ -148,6 +149,10 @@ export const actions = {
     commit('avatar', null)
   },
   logout: async ({ commit, state, dispatch }) => {
+    // ⛔ Held before the commits below, not read after them: the parked amount is keyed by
+    // this ID, and `commit('gradidoID', null)` is two lines down. Reading it later would
+    // give null, there would be no key, and a stranger's amount would stay on the device.
+    const signedOutMember = state.gradidoID
     commit('token', null)
     commit('username', '')
     commit('gradidoID', null)
@@ -187,6 +192,7 @@ export const actions = {
     // the throw would take every following line of this action with it. Of the two, the
     // faces are the ones that must not survive a logout.
     forgetAllMemberAvatars()
+    forgetParkedAmount(signedOutMember)
     localStorage.removeItem('gradido-frontend')
     commit('setThemeMode', themeMode)
     dispatch('applyTheme')

@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { PARKED_AMOUNT_TTL_MS, useParkedAmount } from './useParkedAmount'
+import { PARKED_AMOUNT_TTL_MS, forgetParkedAmount, useParkedAmount } from './useParkedAmount'
 
 /**
  * The amount that survives the jump out of the wallet and back.
@@ -81,6 +81,38 @@ describe('useParkedAmount', () => {
       expect(window.localStorage.getItem(KEY)).toBeNull()
     },
   )
+
+  /**
+   * ⛔ Money in the middle of a sale has no business on a device somebody has walked away
+   * from. The SETTINGS beside it deliberately survive a logout -- a percentage is what the
+   * till is, and it is meant to still be there tomorrow morning.
+   */
+  describe('logging out', () => {
+    it('takes a parked amount with it', () => {
+      useParkedAmount().park(6.3)
+      forgetParkedAmount('user-one')
+      expect(window.localStorage.getItem(KEY)).toBeNull()
+    })
+
+    it('leaves other members alone', () => {
+      useParkedAmount().park(6.3)
+      forgetParkedAmount('somebody-else')
+      expect(window.localStorage.getItem(KEY)).not.toBeNull()
+    })
+
+    it('does nothing without an ID rather than clearing the origin', () => {
+      useParkedAmount().park(6.3)
+      forgetParkedAmount(null)
+      expect(window.localStorage.getItem(KEY)).not.toBeNull()
+    })
+
+    it('does not let a refusing storage break the rest of the logout', () => {
+      vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+        throw new Error('denied')
+      })
+      expect(() => forgetParkedAmount('user-one')).not.toThrow()
+    })
+  })
 
   it('clears on request without waiting for the window', () => {
     const { park, clearParked, readParked } = useParkedAmount()

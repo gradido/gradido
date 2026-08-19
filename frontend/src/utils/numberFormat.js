@@ -54,8 +54,10 @@ export const formatTypedNumber = (raw, locale) => {
   if (raw === '' || raw === undefined || raw === null) {
     return ''
   }
-  const negative = raw.startsWith('-')
-  const body = negative ? raw.slice(1) : raw
+  // The calculator only ever passes strings; the coercion is for whoever calls this next.
+  const text = String(raw)
+  const negative = text.startsWith('-')
+  const body = negative ? text.slice(1) : text
   const dot = body.indexOf('.')
   const whole = dot === -1 ? body : body.slice(0, dot)
   const decimals = dot === -1 ? null : body.slice(dot + 1)
@@ -64,7 +66,12 @@ export const formatTypedNumber = (raw, locale) => {
   try {
     head = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(Number(whole || '0'))
   } catch {
-    head = whole || '0'
+    // ⚠️ The same fallback the separator uses. Falling back to the ungrouped digits here
+    // while `decimalSeparatorFor` falls back to English would put an English separator on a
+    // number with no grouping -- a shape no locale has.
+    head = new Intl.NumberFormat(DEFAULT_LOCALE, { maximumFractionDigits: 0 }).format(
+      Number(whole || '0'),
+    )
   }
   const sign = negative ? '-' : ''
   if (decimals === null) {
