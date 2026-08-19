@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 
-import { computed, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useStore } from 'vuex'
 
 /**
@@ -120,6 +120,12 @@ export const useCalculatorPrefs = () => {
    *
    * `restoring` holds the save watcher off while this runs; without it, resetting would
    * write defaults under the new key before the stored ones have even been read.
+   *
+   * ⛔ That is why the save watcher below is `flush: 'sync'`, and it is not a preference.
+   * A watcher on Vue's default flush runs AFTER `restore` has finished and set the flag back
+   * to false, so it would see `restoring === false` every time and the guard would do
+   * nothing at all -- measured, not assumed. Today that is harmless because `save` resolves
+   * the key itself, but the protection this comment describes would not exist.
    */
   let restoring = false
   const restore = () => {
@@ -138,11 +144,15 @@ export const useCalculatorPrefs = () => {
     () => store.state.gradidoID,
     () => restore(),
   )
-  watch([percent, factor, currency, showDankBar, sound], () => {
-    if (!restoring) {
-      save()
-    }
-  })
+  watch(
+    [percent, factor, currency, showDankBar, sound],
+    () => {
+      if (!restoring) {
+        save()
+      }
+    },
+    { flush: 'sync' },
+  )
 
   return { percent, factor, currency, showDankBar, sound }
 }
