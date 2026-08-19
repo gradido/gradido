@@ -1557,8 +1557,14 @@ export class UserResolver {
   /**
    * The avatar is own-view only, like aboutMe above, and for a stronger reason: showing
    * a face to other members is a disclosure to third parties, and this house gives every
-   * such disclosure its own switch. There is no switch for this one yet, so there is no
-   * one it may be shown to.
+   * such disclosure its own switch. That switch exists now - avatarVisibleToMembers,
+   * below - and nothing reads it yet, so today there is still no one this may be shown to.
+   *
+   * Whoever changes that must ADD the setting to the test below, never replace it. Rows
+   * whose owner could not possibly have set it carry the column default, which is
+   * "visible": members of a foreign community stored by the federation, the synthetic
+   * community user, and anyone deleted before the column existed. The owner test is what
+   * keeps those from reading as consent.
    *
    * Today nothing would leak without this guard either - only verifyLogin fills the
    * field, so `user` hands out a User whose avatar is null anyway. That is exactly why
@@ -1572,6 +1578,24 @@ export class UserResolver {
       return null
     }
     return user.avatar ?? null
+  }
+
+  /**
+   * The switch that belongs to the avatar above, and guarded like it. Whether a member
+   * shows their face is a decision about themselves, and what they decided is no more
+   * anybody else's business than the face: `user` hands out any member by alias to
+   * everyone logged in, and `queryTransactionLink { senderUser }` needs no token at all.
+   *
+   * Nothing is given up by this. The deliveries that put a face next to a booking read
+   * the setting HERE, in the backend, where they decide whether to send the picture at
+   * all - no client ever has to be told about somebody else's switch.
+   */
+  @FieldResolver(() => Boolean, { nullable: true })
+  avatarVisibleToMembers(@Root() user: User, @Ctx() context: Context): boolean | null {
+    if (context.user?.id !== user.id) {
+      return null
+    }
+    return user.avatarVisibleToMembers ?? null
   }
 }
 

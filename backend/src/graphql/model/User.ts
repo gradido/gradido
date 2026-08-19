@@ -128,9 +128,17 @@ export class User {
   @Field(() => Boolean)
   gmsAllowed: boolean
 
-  // Whether other members may see this member's picture. Own setting, so it travels with
-  // verifyLogin like the two above; it says nothing about anybody else's picture.
-  @Field(() => Boolean)
+  // Whether other members may see this member's picture. Own view only, like aboutMe and
+  // the avatar below, and guarded the same way: a field resolver hands it to nobody else.
+  // What a member decided about their own face is their business, and `user()` gives out
+  // any member by alias to anyone logged in.
+  //
+  // Nullable for that reason alone. The column is NOT NULL, so a member reading their own
+  // setting always gets a boolean; null here means "not yours to know", never "undecided".
+  //
+  // verifyLogin is where the wallet reads it -- not the login mutation, which runs on an
+  // inalienable right and therefore has no authenticated caller for the guard to match.
+  @Field(() => Boolean, { nullable: true })
   avatarVisibleToMembers: boolean
 
   @Field(() => PublishNameType, { nullable: true })
@@ -154,9 +162,9 @@ export class User {
   // on this type at all: it is fetched through the avatarFull query, which takes no
   // argument and so cannot be asked about somebody else.
   //
-  // Own view only. Nothing hands this to anybody else: a face next to a booking is a
-  // disclosure to third parties, and that needs its own decision and its own switch,
-  // the way gmsAllowed and humhubAllowed have one.
+  // Own view only. Nothing hands this to anybody else. A face next to a booking is a
+  // disclosure to third parties, and that needs its own decision and its own switch --
+  // that switch is avatarVisibleToMembers above. It exists now; nothing reads it yet.
   @Field(() => String, { nullable: true })
   avatar: string | null
 
