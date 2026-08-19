@@ -381,7 +381,16 @@ export class TransactionResolver {
     //
     // involvedRemoteUsers are deliberately left out: they belong to another community,
     // whose members' pictures are a separate delivery (AS-004).
-    const avatarDates = await dbFindMemberAvatarTimestamps(involvedUserIds)
+    //
+    // ⚠️ Without the caller's own id, which involvedUserIds carries because the row fetch
+    // above needs it. Their own date is never read -- `Transaction.user` is built from
+    // `self`, outside this loop, and a member cannot book with themselves -- so including
+    // it only widened the IN list. It also kept the query's own empty-list guard from ever
+    // firing from here: a first page of pure Schoepfung, which is what a new account has,
+    // left involvedUserIds at exactly [user.id] and paid for a join whose one possible row
+    // nothing could read.
+    const counterpartyIds = involvedUserIds.filter((id) => id !== user.id)
+    const avatarDates = await dbFindMemberAvatarTimestamps(counterpartyIds)
     for (const involvedUser of involvedUsers) {
       involvedUser.avatarUpdatedAt = avatarDates.get(involvedUser.id) ?? null
     }

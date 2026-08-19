@@ -165,9 +165,14 @@ export class User {
   // on this type at all: it is fetched through the avatarFull query, which takes no
   // argument and so cannot be asked about somebody else.
   //
-  // Own view only. Nothing hands this to anybody else. A face next to a booking is a
-  // disclosure to third parties, and that needs its own decision and its own switch --
-  // that switch is avatarVisibleToMembers above. It exists now; nothing reads it yet.
+  // Own view only THROUGH THIS FIELD -- the field resolver in UserResolver returns null to
+  // anybody but the owner. A face next to a booking is a disclosure to third parties, and
+  // that needs its own decision and its own switch: avatarVisibleToMembers above.
+  //
+  // ⚠️ That switch is read now, and other members DO see this rendition -- but through the
+  // memberAvatars query, which asks the database for the disclosure rule rather than
+  // carrying a picture around on a shared type. The guard on this field is what keeps the
+  // two apart.
   @Field(() => String, { nullable: true })
   avatar: string | null
 

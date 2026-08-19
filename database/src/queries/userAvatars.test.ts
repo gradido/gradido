@@ -142,10 +142,16 @@ describe('member avatars for the booking list', () => {
   const DELETED = 9003
   const NO_PICTURE = 9004
   const FOREIGN = 9005
+  // A local member who DOES carry a community uuid. Every other fixture here leaves the
+  // column null, which is a real state -- members who registered before the home community
+  // had one -- but it means the uuid the answer carries back is never anything but null,
+  // and a column that is only ever asserted as null is not asserted at all.
+  const WITH_COMMUNITY = 9006
+  const HOME_COMMUNITY = '11111111-1111-4111-8111-111111111111'
   const gid = (id: number) => `00000000-0000-4000-8000-0000000${id}`
 
   const picture = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x42])
-  const ALL = [SHOWN, SWITCHED_OFF, DELETED, NO_PICTURE, FOREIGN]
+  const ALL = [SHOWN, SWITCHED_OFF, DELETED, NO_PICTURE, FOREIGN, WITH_COMMUNITY]
 
   beforeAll(async () => {
     await db.delete(usersTable).where(inArray(usersTable.id, ALL))
@@ -165,8 +171,14 @@ describe('member avatars for the booking list', () => {
         foreign: 1,
         communityUuid: '99999999-9999-4999-8999-999999999999',
       },
+      {
+        id: WITH_COMMUNITY,
+        gradidoId: gid(WITH_COMMUNITY),
+        avatarVisibleToMembers: 1,
+        communityUuid: HOME_COMMUNITY,
+      },
     ])
-    for (const userId of [SHOWN, SWITCHED_OFF, DELETED, FOREIGN]) {
+    for (const userId of [SHOWN, SWITCHED_OFF, DELETED, FOREIGN, WITH_COMMUNITY]) {
       await dbUpsertUserAvatar({
         userId,
         avatarSmall: picture,
@@ -186,6 +198,33 @@ describe('member avatars for the booking list', () => {
     expect(rows).toHaveLength(1)
     expect(rows[0].gradidoId).toBe(gid(SHOWN))
     expect(Buffer.from(rows[0].avatarSmall).equals(picture)).toBe(true)
+  })
+
+  /**
+   * ⛔ The half of the answer nothing measured. The wallet keys its store on the PAIR --
+   * `${communityUuid}/${gradidoID}` -- and it reads the uuid off the answer, not off the
+   * request. Drop this column from the projection and every test here still passes, while
+   * in the wallet every picture is stored under a key nothing ever looks up: no face ever
+   * appears, and the same members are re-requested on every single booking list, forever,
+   * with no error anywhere.
+   *
+   * The query's own docblock rests on this ("The pair comes back with each row instead, so
+   * the caller can match what it asked for"), so it is worth one fixture that has a uuid.
+   */
+  it('carries the community back with the picture, which is half the identity', async () => {
+    const rows = await dbFindMemberAvatarsSmall([gid(WITH_COMMUNITY)])
+    expect(rows).toHaveLength(1)
+    expect(rows[0].gradidoId).toBe(gid(WITH_COMMUNITY))
+    expect(rows[0].communityUuid).toBe(HOME_COMMUNITY)
+  })
+
+  // ...and null is a real answer too, not an absent one: a member who registered before
+  // the home community had a uuid has none stored, and matching on the pair in SQL would
+  // drop exactly those.
+  it('carries a null community back rather than dropping the member', async () => {
+    const rows = await dbFindMemberAvatarsSmall([gid(SHOWN)])
+    expect(rows).toHaveLength(1)
+    expect(rows[0].communityUuid).toBeNull()
   })
 
   // AS-003. The row and the picture both exist; only the switch differs from the case
