@@ -502,3 +502,12 @@ export const userAboutMe = gql`
     }
   }
 `
+
+export const thankYouCardPaymentTarget = gql`
+  query ($code: String!) {
+    thankYouCardPaymentTarget(code: $code) {
+      status
+      cardLabel
+    }
+  }
+`

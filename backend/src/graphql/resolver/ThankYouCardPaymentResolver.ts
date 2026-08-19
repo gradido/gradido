@@ -264,10 +264,47 @@ export class ThankYouCardPaymentResolver {
         return wrong
       }
 
+      // ⛔ HERE, the moment the PIN is proved right — not after the payment goes through.
+      // This counter counts WRONG PINS, and nothing below this line is about the PIN: a
+      // limit, a shortfall, a request that ran out, a booking that threw. Standing after
+      // any of them, the reset was skipped on every one, so an earlier mistype survived a
+      // CORRECT PIN and the next single typo blocked the card — a card its owner can then
+      // only unblock by signing into their wallet, which is not something you do at a
+      // counter. (Found by the review of 19.08.2026; the comment that used to stand here
+      // named this exact rule and then applied it four steps too late.)
+      await dbResetFailedAttempts(card.id)
+
+      // ⛔ Read AGAIN, because the line above this block took about half a second: argon2id
+      // with 32 MiB. The card and the settings in hand are from BEFORE that pause, and the
+      // four mutations that can change them — blocking, switching card payment off, setting
+      // a new PIN, lowering the limits — do not take this card's lock, so they can land in
+      // the middle of it. Without this the wallet's promise that a blocked card "cannot pay
+      // after this" was untrue for that half second, and lowering a limit did not reach a
+      // payment already under way.
+      const freshCard = await dbSelectThankYouCardById(card.id)
+      if (!freshCard.success || freshCard.value.blockedAt !== null) {
+        return failure(ThankYouCardPaymentStatus.CARD_BLOCKED)
+      }
+      const freshSettings = await dbSelectThankYouCardSettings(card.userId)
+      if (!freshSettings.success) {
+        return failure(ThankYouCardPaymentStatus.CARD_NOT_SET_UP)
+      }
+      // ⚠️ A PIN changed under us is NOT a wrong PIN. The hash in hand was derived with the
+      // old salt, so re-comparing would fail for the wrong reason and cost an attempt on a
+      // card whose owner just did the right thing. Deriving again would cost another half
+      // second on our server. The request simply no longer applies.
+      if (
+        freshSettings.value.pin !== settings.pin ||
+        freshSettings.value.pinSalt !== settings.pinSalt
+      ) {
+        return failure(ThankYouCardPaymentStatus.REQUEST_GONE)
+      }
+      const limits = freshSettings.value
+
       // Limits are checked only now, after the PIN. Before it, nobody has proved they
       // hold this card, and a limit is a property of somebody's account -- there is no
       // reason to tell an unproven caller what it is.
-      if (payment.amount.comparedTo(settings.maxPerPayment) > 0) {
+      if (payment.amount.comparedTo(limits.maxPerPayment) > 0) {
         return failure(ThankYouCardPaymentStatus.LIMIT_PER_PAYMENT_EXCEEDED)
       }
       // ⚠️ Against the day the request was CREATED, not the day it is being confirmed.
@@ -280,7 +317,7 @@ export class ThankYouCardPaymentResolver {
         startOfDay(payment.createdAt),
         startOfNextDay(payment.createdAt),
       )
-      if (spentThatDay.add(payment.amount).comparedTo(settings.maxPerDay) > 0) {
+      if (spentThatDay.add(payment.amount).comparedTo(limits.maxPerDay) > 0) {
         return failure(ThankYouCardPaymentStatus.LIMIT_PER_DAY_EXCEEDED)
       }
 
@@ -306,11 +343,6 @@ export class ThankYouCardPaymentResolver {
         return failure(ThankYouCardPaymentStatus.REQUEST_GONE)
       }
 
-      // ⚠️ Before the booking, not after it. This counter counts WRONG PINS, and the PIN
-      // has just been proved right — whether the money then moves says nothing about that.
-      // Behind `executeTransaction` a throwing booking would leave the counter armed, and
-      // the next single mistype would block a card whose owner had just typed correctly.
-      await dbResetFailedAttempts(card.id)
       await executeTransaction(payment.amount, payment.memo, owner, recipient, logger)
 
       const success = failure(ThankYouCardPaymentStatus.SUCCESS)

@@ -748,6 +748,7 @@
       "first-free": "está libre",
       "first-hint": "Puedes conservarlo o elegir el tuyo. Más adelante son posibles cuatro cambios al año.",
       "first-intro": "Para que otros puedan encontrarte y enviarte Gradido, te hemos propuesto un nombre:",
+      "first-invalid": "This name does not match the rules",
       "first-keep": "Así está bien",
       "first-other": "Elegir otro",
       "first-rules": "De 3 a 20 caracteres · letras, cifras, - y _",
