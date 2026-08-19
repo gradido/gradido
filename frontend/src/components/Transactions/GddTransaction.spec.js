@@ -2,6 +2,8 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import GddTransaction from './GddTransaction.vue'
+import { avatarPaletteEntry } from '@/utils/avatarColor'
+import { forgetAllMemberAvatars, rememberMemberAvatars } from '@/composables/useMemberAvatars'
 
 /**
  * The row every booking in the wallet is drawn with.
@@ -106,5 +108,80 @@ describe('GddTransaction', () => {
 
     expect(wrapper.text()).toContain('via_link')
     expect(marker().exists()).toBe(false)
+  })
+
+  /**
+   * The circle beside the booking. Tested HERE and not only where the rule lives, because
+   * the rule living in one place does not make a call site pass it correctly -- the
+   * letters and the colour seed are two values that have to describe the same member, and
+   * the last time this house let call sites assemble such a pair, three of four were right
+   * and the fourth put a raw placeholder in front of members.
+   */
+  describe('the avatar beside the booking', () => {
+    const avatarProps = () => wrapper.findComponent({ name: 'AppAvatar' }).props()
+
+    afterEach(() => {
+      forgetAllMemberAvatars()
+    })
+
+    it('shows the first two letters of the alias, not the real initials', () => {
+      mountWith({})
+      expect(avatarProps().initials).toBe('NA')
+    })
+
+    // The colour must stay where it was, or every member with an alias changes colour the
+    // day this ships -- and the printed card, which is not reprinted, disagrees forever.
+    it('keeps colouring from the real initials', () => {
+      mountWith({})
+      expect(avatarProps().colorSeed).toBe('PN')
+      expect(avatarPaletteEntry(avatarProps().colorSeed)).toEqual(avatarPaletteEntry('PN'))
+      expect(avatarProps().colorSeed).not.toBe(avatarProps().initials)
+    })
+
+    // `username` was passed to a prop that does not exist, so it was dropped in silence.
+    it('passes the name under the name the component actually has', () => {
+      mountWith({})
+      expect(avatarProps().name).toBe('Pizzeria Napoli')
+    })
+
+    it('shows no picture while the wallet holds none', () => {
+      mountWith({})
+      expect(avatarProps().src).toBe('')
+    })
+
+    it('shows the picture once the wallet holds a current one', () => {
+      const when = '2026-08-19T09:00:00.000Z'
+      rememberMemberAvatars([
+        {
+          gradidoID: 'g-napoli',
+          communityUuid: null,
+          avatar: 'the-picture',
+          avatarUpdatedAt: when,
+        },
+      ])
+      mountWith({
+        linkedUser: { ...BOOKING.linkedUser, gradidoID: 'g-napoli', avatarUpdatedAt: when },
+      })
+      expect(avatarProps().src).toBe('data:image/jpeg;base64,the-picture')
+    })
+
+    // The withdrawal, seen from the row: the list stops reporting a date, so the stored
+    // picture must not answer -- even though it is still lying on this device.
+    it('falls back to the letters when the list reports no date', () => {
+      const when = '2026-08-19T09:00:00.000Z'
+      rememberMemberAvatars([
+        {
+          gradidoID: 'g-napoli',
+          communityUuid: null,
+          avatar: 'the-picture',
+          avatarUpdatedAt: when,
+        },
+      ])
+      mountWith({
+        linkedUser: { ...BOOKING.linkedUser, gradidoID: 'g-napoli', avatarUpdatedAt: null },
+      })
+      expect(avatarProps().src).toBe('')
+      expect(avatarProps().initials).toBe('NA')
+    })
   })
 })

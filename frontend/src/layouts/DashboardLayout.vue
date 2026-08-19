@@ -201,7 +201,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useRoute, useRouter } from 'vue-router'
-import { useQuery, useMutation } from '@vue/apollo-composable'
+import { useApolloClient, useQuery, useMutation } from '@vue/apollo-composable'
 import ContentHeader from '@/layouts/templates/ContentHeader'
 import ContributionsTemplate from '@/layouts/templates/ContributionsTemplate'
 import MatchingTemplate from '@/layouts/templates/MatchingTemplate'
@@ -220,11 +220,18 @@ import CommunityMember from '@/components/Template/ContentHeader/CommunityMember
 import LastTransactions from '@/components/Template/RightSide/LastTransactions'
 import { transactionsUserCountQuery } from '@/graphql/transactions.graphql'
 import { logout } from '@/graphql/mutations'
+import { memberAvatars } from '@/graphql/queries'
+import {
+  forgetWithdrawnMemberAvatars,
+  missingMemberAvatars,
+  rememberMemberAvatars,
+} from '@/composables/useMemberAvatars'
 import CONFIG from '@/config'
 import { useAppToast } from '@/composables/useToast'
 
 const store = useStore()
 const route = useRoute()
+const { client: apolloClient } = useApolloClient()
 
 // A route may bring its own head — the map does. Then the navbar, the page
 // heading and the content header are just distance between you and what you came
@@ -311,12 +318,49 @@ watch(
   },
 )
 
+// The pictures shown beside the bookings. This is the only place the list arrives, and
+// both places that draw a face are fed from here, so the fetching happens once for the
+// whole page rather than once per row.
+//
+// Each row carries a date, not a picture. Everything whose date still matches what the
+// wallet already holds needs nothing; on a second visit that is usually all of them, and
+// nothing is requested at all.
+//
+// ⚠️ Forgetting comes FIRST and does not depend on the request succeeding. A member who
+// switched their picture off arrives with no date, and their face has to leave this device
+// whether or not anything else works.
+//
+// Best effort by design: nobody loses their overview over a portrait.
+const collectMemberAvatars = async (rows) => {
+  const members = rows
+    .map((row) => row.linkedUser)
+    .filter((member) => member?.gradidoID)
+    .map(({ gradidoID, communityUuid, avatarUpdatedAt }) => ({
+      gradidoID,
+      communityUuid: communityUuid ?? null,
+      avatarUpdatedAt: avatarUpdatedAt ?? null,
+    }))
+  if (!members.length) return
+
+  forgetWithdrawnMemberAvatars(members)
+  const refs = missingMemberAvatars(members)
+  if (!refs.length) return
+
+  try {
+    const { data } = await apolloClient.query({ query: memberAvatars, variables: { refs } })
+    rememberMemberAvatars(data?.memberAvatars ?? [])
+  } catch {
+    // Initials this time round, and the next list asks again.
+  }
+}
+
 onResult((value) => {
   if (value && value.data) {
     if (value.data.transactionList) {
       const tr = value.data.transactionList
       GdtBalance.value = tr.balance?.balanceGDT === null ? 0 : Number(tr.balance?.balanceGDT)
       transactions.value = tr.transactions || []
+      collectMemberAvatars(transactions.value)
       balance.value = Number(tr.balance?.balance) || 0
       transactionCount.value = tr.balance?.count || 0
       transactionLinkCount.value = tr.balance?.linkCount || 0
