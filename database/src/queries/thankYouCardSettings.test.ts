@@ -17,6 +17,7 @@ const settingsOf = (userId: number, pin = 111111n) => ({
   userId,
   pin,
   pinSalt: `salt-${userId}`,
+  pinDerivation: 2,
   maxPerPayment: GradidoUnit.fromNumber(50),
   maxPerDay: GradidoUnit.fromNumber(100),
 })

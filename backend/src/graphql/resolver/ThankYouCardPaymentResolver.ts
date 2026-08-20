@@ -35,7 +35,7 @@ import { ThankYouCardPaymentArgs } from '@/graphql/arg/ThankYouCardSettingsArgs'
 import { ThankYouCardPaymentStatus } from '@/graphql/enum/ThankYouCardPaymentStatus'
 import { ThankYouCardPayment, ThankYouCardPaymentResult } from '@/graphql/model/ThankYouCardPayment'
 import { ThankYouCardPaymentTarget } from '@/graphql/model/ThankYouCardPaymentTarget'
-import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
+import { deriveKeyedPinKey } from '@/password/PinEncryptor'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { calculateBalance } from '@/util/validate'
@@ -245,10 +245,9 @@ export class ThankYouCardPaymentResolver {
       }
       const settings = settingsResult.value
 
-      // ⚠️ This is the expensive line: argon2id with 32 MiB, and it runs before we know
-      // whether the PIN is right. That cost lands on OUR server, which is a second and
-      // independent reason for the three-attempt block, next to protecting the account.
-      const offered = await SecretKeyCryptographyCreateKey(settings.pinSalt, pin)
+      // The keyed hash -- microseconds, no worker queue, see PinEncryptor for why the
+      // password KDF was the wrong cost here.
+      const offered = deriveKeyedPinKey(settings.pinSalt, pin)
       if (!pinMatches(offered, settings.pin)) {
         const counted = await dbIncrementFailedAttempts(card.id)
         if (!counted.success) {

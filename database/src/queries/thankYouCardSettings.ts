@@ -60,6 +60,7 @@ export async function dbUpsertThankYouCardSettings(
       set: {
         pin: row.pin,
         pinSalt: row.pinSalt,
+        pinDerivation: row.pinDerivation,
         maxPerPayment: row.maxPerPayment,
         maxPerDay: row.maxPerDay,
         updatedAt: new Date(),

@@ -15,6 +15,7 @@ import {
 import { Mutex } from 'redis-semaphore'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
+import { PinDerivation } from '@/data/PinDerivation.enum'
 import {
   createThankYouCardCode,
   createThankYouCardPinSalt,
@@ -27,7 +28,7 @@ import {
 } from '@/graphql/arg/ThankYouCardSettingsArgs'
 import { ThankYouCard } from '@/graphql/model/ThankYouCard'
 import { ThankYouCardSettings } from '@/graphql/model/ThankYouCardSettings'
-import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
+import { deriveKeyedPinKey } from '@/password/PinEncryptor'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
@@ -113,12 +114,16 @@ export class ThankYouCardResolver {
     // A fresh salt on every write, including a PIN change. Keeping the old one would let
     // anybody who once saw the stored value tell whether the PIN actually changed.
     const pinSalt = createThankYouCardPinSalt()
-    const pinHash = await SecretKeyCryptographyCreateKey(pinSalt, pin)
+    // The keyed hash, not the password KDF -- see PinEncryptor for the whole reasoning.
+    // Setting a PIN is also the loud half of the upgrade path: a row that still carries
+    // the old derivation leaves it here, because the hash is written anew anyway.
+    const pinHash = deriveKeyedPinKey(pinSalt, pin)
 
     const written = await dbUpsertThankYouCardSettings({
       userId: user.id,
       pin: pinHash,
       pinSalt,
+      pinDerivation: PinDerivation.KEYED_HASH,
       maxPerPayment,
       maxPerDay,
     })
