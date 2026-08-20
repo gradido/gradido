@@ -22,6 +22,11 @@ vi.mock('../plugins/apolloCache', () => ({
   clearApolloCache: clearApolloCacheMock,
 }))
 
+const { forgetParkedAmountMock } = vi.hoisted(() => ({ forgetParkedAmountMock: vi.fn() }))
+vi.mock('../composables/useParkedAmount', () => ({
+  forgetParkedAmount: forgetParkedAmountMock,
+}))
+
 vi.mock('jwt-decode', () => ({
   default: vi.fn(() => ({ exp: '1234' })),
 }))
@@ -225,12 +230,13 @@ describe('Vuex store', () => {
     describe('logout', () => {
       const commit = vi.fn()
       const dispatch = vi.fn()
-      const state = { themeMode: 'dark' }
+      const state = { themeMode: 'dark', gradidoID: 'user-one' }
       // See the login block above: shared mocks, so the count assertion below is only
       // meaningful once each test starts from zero.
       beforeEach(() => {
         commit.mockClear()
         dispatch.mockClear()
+        forgetParkedAmountMock.mockClear()
       })
 
       it('calls twenty-three commits', () => {
@@ -245,6 +251,37 @@ describe('Vuex store', () => {
         expect(commit).toHaveBeenCalledWith('setThemeMode', 'dark')
         expect(dispatch).toHaveBeenCalledWith('applyTheme')
         expect(commit).not.toHaveBeenCalledWith('setDarkMode', false)
+      })
+
+      /**
+       * ⛔ An amount parked mid-sale must not stay on a device somebody has walked away
+       * from. The ID is read BEFORE `commit('gradidoID', null)`, two lines into this action
+       * -- reading it after would give null, there would be no key, and the amount would sit
+       * there until it expired.
+       *
+       * The calculator SETTINGS are deliberately not cleared: a percentage is what the till
+       * is, and it is meant to still be there tomorrow morning. Same reasoning the card
+       * payment gives for keeping its reference.
+       */
+      it('takes a parked amount off the device, keyed by who is leaving', () => {
+        /**
+         * ⛔ This commit mock APPLIES the mutation, unlike the shared one above, and that is
+         * the whole test. A mock that only records the call cannot tell "read before the
+         * clear" from "read after it" -- the assertion below would pass either way, on a
+         * state object whose gradidoID never changes. With the mutation applied, reading it
+         * one line later gives null, there is no key, and the amount stays on the device.
+         */
+        const applyingCommit = vi.fn((mutation, value) => {
+          if (mutation === 'gradidoID') {
+            localState.gradidoID = value
+          }
+        })
+        const localState = { themeMode: 'dark', gradidoID: 'user-one' }
+        logout({ commit: applyingCommit, state: localState, dispatch })
+
+        expect(applyingCommit).toHaveBeenCalledWith('gradidoID', null)
+        expect(localState.gradidoID).toBeNull()
+        expect(forgetParkedAmountMock).toHaveBeenCalledWith('user-one')
       })
 
       it('commits redirectPath', () => {

@@ -28,6 +28,7 @@ const i18n = createI18n({
       navigation: {
         overview: 'Overview',
         send: 'Send',
+        calculator: 'Calculator',
         transactions: 'Transactions',
         matching: 'Matching',
         circles: 'Circles',
@@ -91,9 +92,9 @@ describe('Sidebar', () => {
     })
 
     describe('the general section', () => {
-      it('has seven nav-items', () => {
+      it('has six nav-items', () => {
         const generalSection = wrapper.findAll('ul')[0]
-        expect(generalSection.findAll('.nav-item')).toHaveLength(5)
+        expect(generalSection.findAll('.nav-item')).toHaveLength(6)
       })
 
       it('has nav-item "navigation.overview" in navbar', () => {
@@ -104,20 +105,24 @@ describe('Sidebar', () => {
         expect(wrapper.findAll('.nav-item').at(1).text()).toContain('Send')
       })
 
+      it('has nav-item "navigation.calculator" in navbar', () => {
+        expect(wrapper.findAll('.nav-item').at(2).text()).toContain('Calculator')
+      })
+
       it('has nav-item "navigation.transactions" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(2).text()).toContain('Transactions')
+        expect(wrapper.findAll('.nav-item').at(3).text()).toContain('Transactions')
       })
 
       it('has nav-item "creation" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(3).text()).toContain('Creation')
+        expect(wrapper.findAll('.nav-item').at(4).text()).toContain('Creation')
       })
 
       it('has nav-item "matching" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(4).text()).toContain('Matching')
+        expect(wrapper.findAll('.nav-item').at(5).text()).toContain('Matching')
       })
 
       it('has nav-item "info" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(5).text()).toContain('Info')
+        expect(wrapper.findAll('.nav-item').at(6).text()).toContain('Info')
       })
     })
 
@@ -128,7 +133,7 @@ describe('Sidebar', () => {
         })
 
         it('has two nav-items', () => {
-          expect(wrapper.findAll('.nav-item').slice(6)).toHaveLength(2)
+          expect(wrapper.findAll('.nav-item').slice(7)).toHaveLength(2)
         })
 
         it('has nav-item "navigation.settings" in navbar', () => {
@@ -146,7 +151,7 @@ describe('Sidebar', () => {
         })
 
         it('has three nav-items', () => {
-          expect(wrapper.findAll('.nav-item').slice(6)).toHaveLength(3)
+          expect(wrapper.findAll('.nav-item').slice(7)).toHaveLength(3)
         })
 
         it('has nav-item "navigation.settings" in navbar', () => {
@@ -154,7 +159,7 @@ describe('Sidebar', () => {
         })
 
         it('has nav-item "navigation.admin_area" in navbar', () => {
-          const adminItems = wrapper.findAll('.nav-item').slice(6)
+          const adminItems = wrapper.findAll('.nav-item').slice(7)
           expect(adminItems.length).toBeGreaterThan(1)
           expect(adminItems[1].text()).toContain('Admin Area')
         })
@@ -190,14 +195,22 @@ describe('Sidebar with MATCHING_ACTIVE off', () => {
     expect(mountSidebar().text()).not.toContain('Matching')
   })
 
-  it('drops the item from the general section, leaving four', () => {
+  it('drops the item from the general section, leaving five', () => {
     const generalSection = mountSidebar().findAll('ul')[0]
-    expect(generalSection.findAll('.nav-item')).toHaveLength(4)
+    expect(generalSection.findAll('.nav-item')).toHaveLength(5)
   })
 
   it('keeps every other menu item', () => {
     const text = mountSidebar().text()
-    for (const label of ['Overview', 'Send', 'Transactions', 'Creation', 'Info', 'Settings']) {
+    for (const label of [
+      'Overview',
+      'Send',
+      'Calculator',
+      'Transactions',
+      'Creation',
+      'Info',
+      'Settings',
+    ]) {
       expect(text).toContain(label)
     }
   })

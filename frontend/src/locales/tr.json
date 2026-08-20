@@ -54,6 +54,31 @@
     "size": "Boyut"
   },
   "back": "Geri",
+  "calculator": {
+    "card": {
+      "from-calculator": "hesap makinesinden",
+      "park": "Teşekkür kartıyla öde",
+      "park-failed": "Not edilmedi — tutarı taradıktan sonra gir.",
+      "parked": "Tutar not edildi: {amount} GDD",
+      "scan-hint": "Şimdi kartı tara.",
+      "undo": "Geri al"
+    },
+    "daily-rate": "Günlük kur",
+    "dankbar-equals": "{dankBar} DankBar = {gdd} Gradido",
+    "dankbar-to-gdd": "DankBar → GDD",
+    "gradido-share": "Gradido %",
+    "purchasing-power": "Satın alma gücü: 1 GDD = {factor} {currency}",
+    "settings": {
+      "currency": "Para birimi",
+      "purchasing-power": "Satın alma gücü — 1 GDD =",
+      "show-dankbar": "DankBar’ı göster",
+      "sound": "Ses",
+      "title": "Ayarlar"
+    },
+    "share": {
+      "label": "Gradido payı (0–100 %)"
+    }
+  },
   "card-circles": {
     "allowed": {
       "button": "Çemberleri aç..."
@@ -601,6 +626,7 @@
   "moderatorChangedMemo": "Metin moderatör tarafından düzenlendi",
   "navigation": {
     "admin_area": "Yönetici Alanı",
+    "calculator": "Hesap makinesi",
     "community": "Topluluk",
     "logout": "Çıkış",
     "matching": "Matching",
@@ -612,6 +638,7 @@
   },
   "openHours": "Açık Saatler",
   "pageTitle": {
+    "calculator": "Hesap makinesi",
     "circles": "Gradido Çemberleri",
     "contributions": "Gradido yarat",
     "gdt": "GDT işlemlerin",

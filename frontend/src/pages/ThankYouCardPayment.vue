@@ -42,7 +42,25 @@
         type="text"
         inputmode="decimal"
         data-test="thank-you-card-amount"
+        @update:model-value="onAmountTyped"
+        @blur="normaliseAmount"
       />
+      <!--
+        ⚠️ Says where the number came from, and nothing more. The field stays editable: an
+        amount that appeared on its own and cannot be corrected is worse than one that was
+        typed.
+
+        ⛔ And it goes the moment the amount is touched. A line that still claims an origin
+        the number no longer has is worse than no line: it says the calculator worked this
+        out, about a figure somebody typed over by hand. (coderabbit, PR #3771)
+      -->
+      <div
+        v-if="fromCalculator"
+        class="small text-muted"
+        data-test="thank-you-card-from-calculator"
+      >
+        {{ $t('calculator.card.from-calculator') }}
+      </div>
 
       <label class="small mt-3" for="tyc-memo">{{ $t('form.message') }}</label>
       <BFormInput id="tyc-memo" v-model="memo" type="text" data-test="thank-you-card-memo" />
@@ -185,6 +203,8 @@ import {
 } from '@/graphql/thankYouCard.graphql'
 import { useAppToast } from '@/composables/useToast'
 import { useThankYouCardMemo } from '@/composables/useThankYouCardMemo'
+import { useParkedAmount } from '@/composables/useParkedAmount'
+import { parseAmount, withAtMostTwoDecimals } from '@/filters/amount'
 import { PIN_MASK_CLASS, pinInputType } from '@/utils/pinMasking'
 
 const PIN_LENGTH = 6
@@ -194,10 +214,11 @@ const PIN_LENGTH = 6
 const pinType = pinInputType()
 
 const route = useRoute()
-const { t } = useI18n()
+const { t, n } = useI18n()
 const store = useStore()
 const { toastError } = useAppToast()
 const { readRememberedMemo, writeRememberedMemo } = useThankYouCardMemo()
+const { readParked, clearParked } = useParkedAmount()
 
 const code = route.params.code
 const step = ref('amount')
@@ -212,6 +233,7 @@ const payerName = ref('')
 const busy = ref(false)
 const targetStatus = ref(null)
 const cardLabel = ref('')
+const fromCalculator = ref(false)
 
 /**
  * Whoever is signed in on this device, which on this page is always the RECIPIENT -- the
@@ -226,8 +248,12 @@ const recipientName = computed(() =>
 const unusable = computed(() => targetStatus.value !== null && targetStatus.value !== 'SUCCESS')
 const statusKey = computed(() => targetStatus.value ?? 'CARD_UNKNOWN')
 
-// A comma is what a German keyboard offers first, so both separators have to be accepted.
-const parsedAmount = computed(() => Number(String(amount.value).replace(',', '.')))
+/**
+ * ⚠️ Through the same reader the calculator page uses, so a number typed here and a number
+ * calculated there mean the same thing. It is deliberately NOT locale-aware -- see the note
+ * on `parseAmount`; what is written follows the language, what is read must not.
+ */
+const parsedAmount = computed(() => parseAmount(amount.value))
 const amountIsUsable = computed(() => Number.isFinite(parsedAmount.value) && parsedAmount.value > 0)
 
 const { onResult: onTarget, onError: onTargetError } = useQuery(
@@ -253,7 +279,63 @@ const { mutate: confirm } = useMutation(confirmThankYouCardPayment)
 
 onMounted(() => {
   memo.value = readRememberedMemo()
+
+  /**
+   * ★ The amount the calculator parked before the card was scanned. Scanning leaves the
+   * wallet -- the phone's camera opens this page afresh -- so this is the only thing that
+   * survives the jump.
+   *
+   * ⚠️ Read, not consumed. Consuming here would lose the amount to an accidental reload, and
+   * whoever runs the till would have to add the whole basket up again with a customer
+   * waiting. It is cleared once a payment actually goes through.
+   */
+  const parked = readParked()
+  if (parked !== null) {
+    amount.value = n(parked, 'decimal')
+    fromCalculator.value = true
+  }
 })
+
+/**
+ * ⛔ At most two digits behind the decimal separator -- the rule the calculator's own keypad
+ * enforces with the warning sound, because GDD carries two decimals. A third digit here is
+ * not a slightly different amount, it is a DIFFERENT one: `0,123` read as a grouped number
+ * comes out as 123, and the field would hand that to the card without a murmur.
+ *
+ * ⚠️ A grouped number is left alone: in `1.234` the separator is not a decimal separator, so
+ * there is no third decimal to refuse. The check goes through `withAtMostTwoDecimals`, the
+ * same rule `parseAmount` reads by -- a field that fights entries the reader would have read
+ * correctly is worse than no field at all.
+ *
+ * The set-then-correct across a tick is the same dance `onPinTyped` does below: without it
+ * the input keeps the refused character on screen, because the model value it is told about
+ * has not changed.
+ */
+const onAmountTyped = async (value) => {
+  fromCalculator.value = false
+  const typed = String(value)
+  const allowed = withAtMostTwoDecimals(typed)
+  if (allowed !== typed) {
+    amount.value = typed
+    await nextTick()
+    amount.value = allowed
+  }
+}
+
+/**
+ * Writes back what was READ, in the language's own notation -- so the field shows the same
+ * number shape as the calculator, and a misread entry becomes visible before the PIN step
+ * rather than after the charge.
+ *
+ * An unusable entry is left alone: correcting somebody's half-typed number for them is how a
+ * field becomes impossible to type in.
+ */
+const normaliseAmount = () => {
+  const value = parsedAmount.value
+  if (Number.isFinite(value) && value > 0) {
+    amount.value = n(value, 'decimal')
+  }
+}
 
 /**
  * ⛔ There is deliberately NO autofocus on the PIN field, and this note is here so the next
@@ -350,14 +432,27 @@ const submitPin = async () => {
     if (answer?.status === 'SUCCESS') {
       payerName.value = answer.payerName
       step.value = 'done'
+      // Now, and not before: the parked amount has done its job, and leaving it would greet
+      // the next card with the last customer's total.
+      clearParked()
       return
     }
     if (answer?.status === 'WRONG_PIN') {
       attemptsLeft.value = answer.attemptsLeft
       return
     }
-    // Everything else ends this attempt: blocked, over a limit, no cover, request gone.
+    /**
+     * Everything else ends this attempt: blocked, over a limit, no cover, request gone.
+     *
+     * ⛔ And it ends the parked amount with it. A wrong PIN with attempts left returns above
+     * and keeps it, because the customer is going to try again -- but a card that is blocked
+     * or over its limit is not going to pay this basket at all. The customer pays another
+     * way and the till moves on; leaving the amount would hand the last basket to whichever
+     * card is scanned next inside the ten minutes, under a line claiming the calculator
+     * worked it out for THAT sale. (Bernd, 19.08.2026)
+     */
     failure.value = answer?.status ?? 'REQUEST_GONE'
+    clearParked()
     if (answer?.status === 'BLOCKED_NOW' || answer?.status === 'CARD_BLOCKED') {
       targetStatus.value = answer.status
     }
@@ -378,6 +473,7 @@ const cancel = () => {
 const reset = () => {
   cancel()
   amount.value = ''
+  fromCalculator.value = false
   paymentId.value = null
   payerName.value = ''
 }

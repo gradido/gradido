@@ -84,6 +84,17 @@ const routes = [
   //   },
   // },
   {
+    // A page of its own rather than a panel over whatever is open: at a till this is worked
+    // with for minutes at a time, the keypad wants the whole width, and the back button then
+    // does what somebody expects without any handling of ours.
+    path: '/calculator',
+    component: () => import('@/pages/Calculator'),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'calculator',
+    },
+  },
+  {
     name: 'Transactions',
     path: '/transactions',
     component: () => import('@/pages/Transactions'),

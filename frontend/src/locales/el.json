@@ -54,6 +54,31 @@
     "size": "Μέγεθος"
   },
   "back": "Πίσω",
+  "calculator": {
+    "card": {
+      "from-calculator": "από την αριθμομηχανή",
+      "park": "Πληρωμή με κάρτα ευχαριστίας",
+      "park-failed": "Δεν σημειώθηκε — πληκτρολόγησε το ποσό μετά τη σάρωση.",
+      "parked": "Το ποσό σημειώθηκε: {amount} GDD",
+      "scan-hint": "Τώρα σάρωσε την κάρτα.",
+      "undo": "Αναίρεση"
+    },
+    "daily-rate": "Ημερήσια ισοτιμία",
+    "dankbar-equals": "{dankBar} DankBar = {gdd} Gradido",
+    "dankbar-to-gdd": "DankBar → GDD",
+    "gradido-share": "Gradido %",
+    "purchasing-power": "Αγοραστική δύναμη: 1 GDD = {factor} {currency}",
+    "settings": {
+      "currency": "Νόμισμα",
+      "purchasing-power": "Αγοραστική δύναμη — 1 GDD =",
+      "show-dankbar": "Εμφάνιση DankBar",
+      "sound": "Ήχος",
+      "title": "Ρυθμίσεις"
+    },
+    "share": {
+      "label": "Μερίδιο Gradido (0–100 %)"
+    }
+  },
   "card-circles": {
     "allowed": {
       "button": "Άνοιγμα κύκλων..."
@@ -601,6 +626,7 @@
   "moderatorChangedMemo": "Το κείμενο επεξεργάστηκε από τον συντονιστή",
   "navigation": {
     "admin_area": "Περιοχή διαχείρισης",
+    "calculator": "Αριθμομηχανή",
     "community": "Κοινότητα",
     "logout": "Αποσύνδεση",
     "matching": "Matching",
@@ -612,6 +638,7 @@
   },
   "openHours": "Ανοιχτές ώρες",
   "pageTitle": {
+    "calculator": "Αριθμομηχανή",
     "circles": "Κύκλοι Gradido",
     "contributions": "Δημιουργία Gradido",
     "gdt": "Οι συναλλαγές σου GDT",

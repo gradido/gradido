@@ -54,6 +54,31 @@
     "size": "Dimensione"
   },
   "back": "Indietro",
+  "calculator": {
+    "card": {
+      "from-calculator": "dalla calcolatrice",
+      "park": "Paga con carta di ringraziamento",
+      "park-failed": "Non annotato: digita l'importo dopo la scansione.",
+      "parked": "Importo annotato: {amount} GDD",
+      "scan-hint": "Ora scansiona la carta.",
+      "undo": "Annulla"
+    },
+    "daily-rate": "Tasso del giorno",
+    "dankbar-equals": "{dankBar} DankBar = {gdd} Gradido",
+    "dankbar-to-gdd": "DankBar → GDD",
+    "gradido-share": "Gradido %",
+    "purchasing-power": "Potere d’acquisto: 1 GDD = {factor} {currency}",
+    "settings": {
+      "currency": "Valuta",
+      "purchasing-power": "Potere d’acquisto — 1 GDD =",
+      "show-dankbar": "Mostra DankBar",
+      "sound": "Suono",
+      "title": "Impostazioni"
+    },
+    "share": {
+      "label": "Quota Gradido (0–100 %)"
+    }
+  },
   "card-circles": {
     "allowed": {
       "button": "Apri i circoli..."
@@ -601,6 +626,7 @@
   "moderatorChangedMemo": "Testo modificato dal moderatore",
   "navigation": {
     "admin_area": "Area amministrazione",
+    "calculator": "Calcolatrice",
     "community": "Comunità",
     "logout": "Esci",
     "matching": "Matching",
@@ -612,6 +638,7 @@
   },
   "openHours": "Ore aperte",
   "pageTitle": {
+    "calculator": "Calcolatrice",
     "circles": "Circoli Gradido",
     "contributions": "Creare Gradido",
     "gdt": "Le tue transazioni GDT",
