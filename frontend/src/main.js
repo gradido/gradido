@@ -22,12 +22,18 @@ import { apolloProvider } from './plugins/apolloProvider'
 
 import 'clipboard-polyfill/overwrite-globals'
 
+import { installStaleChunkReload } from './utils/reloadOnStaleChunk'
+
 import { createBootstrap } from 'bootstrap-vue-next'
 
 import GlobalDirectives from '@/plugins/globalDirectives'
 import { plugin as vueTransitionsPlugin } from '@morev/vue-transitions/vue3'
 import PortalVue from 'portal-vue'
 import '@morev/vue-transitions/styles'
+
+// Before anything else that could navigate: a deploy invalidates the lazily loaded pages of
+// every wallet that is still open, and the cure is one reload -- see the module itself.
+installStaleChunkReload()
 
 const app = createApp(App)
 
