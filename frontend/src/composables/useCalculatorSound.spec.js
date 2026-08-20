@@ -153,6 +153,23 @@ describe('useCalculatorSound', () => {
     expect(gains[0].disconnect).toHaveBeenCalled()
   })
 
+  /**
+   * ⚠️ The throttle stamp dies with the context it was measured on. A replaced context
+   * starts its clock at zero, and a stamp from the old clock would sit in the new clock's
+   * future -- every refused key silent until the new clock catches up.
+   */
+  it('warns again after the context was replaced, whatever the old clock said', () => {
+    const { play } = useCalculatorSound(ref(true))
+    currentTime = 500
+    play('warn')
+    expect(created).toHaveLength(3)
+
+    window.AudioContext.mock.results[0].value.state = 'closed'
+    currentTime = 1
+    play('warn')
+    expect(created).toHaveLength(6)
+  })
+
   /** The warning is three tones but one device: resolved once, not four times. */
   it('resolves the device once for a whole warning', () => {
     window.AudioContext = vi.fn(() => ({ ...makeContext(), state: 'suspended' }))

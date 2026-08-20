@@ -28,7 +28,14 @@ export const installStaleChunkReload = (win = window) => {
     } catch {
       last = 0
     }
-    if (Date.now() - last < RETRY_GAP_MS) {
+    /**
+     * ⚠️ Both directions, same clock class as the parked amount's expiry: a marker that
+     * lies AHEAD of the clock (a clock put back, or a hand-written Infinity) would make the
+     * difference negative -- under the gap forever, and the cure would never run again for
+     * the life of the tab.
+     */
+    const now = Date.now()
+    if (Number.isFinite(last) && last <= now && now - last < RETRY_GAP_MS) {
       return
     }
     try {

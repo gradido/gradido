@@ -30,7 +30,7 @@
                Whoever needs it knows where it lives. (Bernd, 20.08.2026) -->
           <router-link
             to="/calculator"
-            class="calculator-quick"
+            class="sidebar-calculator-quick"
             :aria-label="$t('navigation.calculator')"
             data-test="sidebar-calculator"
           >
@@ -494,8 +494,10 @@ const admin = () => {
   }
 }
 
-/* Small to the eye, 44px to the pointer -- same rule as the gear inside the calculator. */
-.calculator-quick {
+/* Small to the eye, 44px to the pointer -- same rule as the gear inside the calculator.
+   ⚠️ Named for THIS spot: the style block of this layout is global, so a shared class name
+   would style the navbar's twin as well -- the desktop margin would shift the phone symbol. */
+.sidebar-calculator-quick {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -507,7 +509,7 @@ const admin = () => {
   opacity: 0.65;
 }
 
-.calculator-quick:hover {
+.sidebar-calculator-quick:hover {
   color: inherit;
   opacity: 1;
 }

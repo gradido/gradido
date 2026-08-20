@@ -76,6 +76,22 @@ describe('installStaleChunkReload', () => {
   })
 
   /**
+   * ⚠️ A marker ahead of the clock -- a clock put back, or a hand-written Infinity -- must
+   * not park the cure forever. Same clock class as the parked amount's expiry.
+   */
+  it.each([
+    ['a future timestamp', () => String(Date.now() + 2 * 60 * 60 * 1000)],
+    ['Infinity', () => 'Infinity'],
+  ])('still reloads when the marker holds %s', (_name, marker) => {
+    const win = makeWindow()
+    win.sessionStorage.setItem('stale-chunk-reloaded-at', marker())
+    installStaleChunkReload(win)
+    win.fire('vite:preloadError')
+
+    expect(win.location.reload).toHaveBeenCalledTimes(1)
+  })
+
+  /**
    * ⚠️ No marker, no reload. Without the marker the once-a-minute guard cannot hold, and a
    * silent reload loop is worse than the error it would hide.
    */

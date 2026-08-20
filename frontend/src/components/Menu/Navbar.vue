@@ -17,7 +17,7 @@
           <div class="d-block d-lg-none">
             <router-link
               to="/calculator"
-              class="calculator-quick"
+              class="navbar-calculator-quick"
               :aria-label="$t('navigation.calculator')"
               data-test="navbar-calculator"
             >
@@ -181,7 +181,7 @@ button.navbar-toggler > span.navbar-toggler-icon {
 }
 
 /* Small to the eye, 44px to the thumb -- same rule as the gear inside the calculator. */
-.calculator-quick {
+.navbar-calculator-quick {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -192,7 +192,7 @@ button.navbar-toggler > span.navbar-toggler-icon {
   opacity: 0.65;
 }
 
-.calculator-quick:hover {
+.navbar-calculator-quick:hover {
   color: inherit;
   opacity: 1;
 }

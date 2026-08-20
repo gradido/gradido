@@ -57,6 +57,13 @@ export const useCalculatorSound = (enabled) => {
          * and back in" at the till, in the wallet and in the PWA alike.
          */
         context = new Constructor()
+        /**
+         * ⚠️ Same rule as in `stop`, and for the same reason: the throttle stamp belongs to
+         * the pair close/currentTime, and a fresh context starts its clock at zero. Left
+         * standing, the old stamp would sit in the new clock's future and every refused key
+         * would fall silent until the new clock catches up.
+         */
+        lastWarningAt = -1
       }
       if (context.state !== 'running') {
         /**

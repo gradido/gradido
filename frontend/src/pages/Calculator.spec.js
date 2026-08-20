@@ -356,6 +356,26 @@ describe('Calculator page', () => {
       expect(key(wrapper, 'copy-gdd').exists()).toBe(true)
     })
 
+    /** No clipboard at all, or one that throws instead of rejecting: same audible refusal. */
+    it.each([
+      ['is missing entirely', () => delete window.navigator.clipboard],
+      [
+        'throws synchronously',
+        () =>
+          writeTextMock.mockImplementation(() => {
+            throw new Error('denied')
+          }),
+      ],
+    ])('still answers when the clipboard %s', async (_name, sabotage) => {
+      const wrapper = mountCalculator('de')
+      await press(wrapper, 'digit-5', 'equals')
+      sabotage()
+      await key(wrapper, 'copy-gdd').trigger('click')
+      await flushPromises()
+
+      expect(toastErrorMock).toHaveBeenCalled()
+    })
+
     /** A refused clipboard must say so -- a silent nothing looks exactly like a missed tap. */
     it('says so when the clipboard refuses', async () => {
       writeTextMock.mockImplementation(() => Promise.reject(new Error('denied')))

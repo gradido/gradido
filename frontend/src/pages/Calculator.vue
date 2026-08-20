@@ -415,16 +415,26 @@ const goBack = () => {
  * it was added.
  */
 const copyAmount = (value) => {
-  navigator.clipboard.writeText(n(value, 'ungroupedDecimal')).then(
-    () => {
-      play('function')
-      toastSuccess(t('calculator.copy.copied'))
-    },
-    () => {
-      play('warn')
-      toastError(t('calculator.copy.not-copied'))
-    },
-  )
+  const copied = () => {
+    play('function')
+    toastSuccess(t('calculator.copy.copied'))
+  }
+  const refused = () => {
+    play('warn')
+    toastError(t('calculator.copy.not-copied'))
+  }
+  /**
+   * ⚠️ The polyfill in main.js makes `navigator.clipboard` exist everywhere the wallet
+   * runs; the try is for the exotic rest -- an embedded view without the polyfill, or an
+   * implementation that throws instead of rejecting. It carries BOTH cases: reaching for a
+   * missing clipboard throws just like a synchronous writeText does, and each must end in
+   * the same audible refusal. A click that dies silently looks exactly like a missed tap.
+   */
+  try {
+    navigator.clipboard.writeText(n(value, 'ungroupedDecimal')).then(copied, refused)
+  } catch {
+    refused()
+  }
 }
 
 /** Runs a calculator action and plays whatever sound its path earned. */
