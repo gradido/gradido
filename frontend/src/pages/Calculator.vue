@@ -258,7 +258,13 @@ const decimalSeparator = computed(() => decimalSeparatorFor(locale.value))
  * of these fields holds money -- the factor is a rate, the share is a percentage -- and a
  * separator in a rate is always a decimal separator. `1,075` here means one and a bit.
  */
-const readSetting = (typed) => Number(String(typed).trim().replace(',', '.'))
+const readSetting = (typed) => {
+  const text = String(typed).trim().replace(',', '.')
+  // ⛔ NaN and not 0 for an empty field. `Number('')` is 0, and 0 is a legal Gradido share,
+  // so an emptied share field would be taken as a real answer: the sub-result disappears
+  // and the card button never arms again. "Nothing typed" and "zero" are different answers.
+  return text === '' ? NaN : Number(text)
+}
 
 /**
  * What would actually be handed over: two decimals, because that is the amount the payment

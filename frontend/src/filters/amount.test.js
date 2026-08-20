@@ -157,6 +157,27 @@ describe('parseAmount', () => {
         expect(parseAmount(typed)).toBeNaN()
       },
     )
+
+    /**
+     * ⛔ A character class is not a guard. `[\d.,]+` let `1.2.3` through, and the reader
+     * then quietly made 12.3 out of it -- while the hand-rolled reader this replaced gave
+     * NaN and left the payment button grey. On a payment screen the difference between
+     * "refused" and "charged 12,30" is the whole point.
+     */
+    it.each([['1.2.3'], ['1..2'], ['1,,2'], ['1.2.3.4'], ['.'], [','], ['1.234.5']])(
+      'gives NaN for the malformed separators in %s',
+      (typed) => {
+        expect(parseAmount(typed)).toBeNaN()
+      },
+    )
+
+    /** ⚠️ …but a number half typed is not malformed. Refusing it mid-word is unusable. */
+    it.each([
+      ['6,', 6],
+      ['1.', 1],
+    ])('still reads the half-typed %s as %s', (typed, expected) => {
+      expect(parseAmount(typed)).toBe(expected)
+    })
   })
 
   /**
@@ -196,6 +217,30 @@ describe('parseAmount', () => {
     /** What arrives already formatted carries two decimals and passes untouched. */
     it.each([['1.234,50'], ['6,3'], ['1234'], ['0,05']])('leaves %s alone', (typed) => {
       expect(withAtMostTwoDecimals(typed)).toBe(typed)
+    })
+
+    /**
+     * ⚠️ A number with SEVERAL groups is not ambiguous -- `1.234.567` can only be a whole
+     * number -- so it is left whole. Cutting a pasted one down to 1.234,56 would be the very
+     * fault this guards against.
+     */
+    it.each([['1.234.567'], ['10.000.000']])(
+      'leaves the unmistakably grouped %s whole',
+      (typed) => {
+        expect(withAtMostTwoDecimals(typed)).toBe(typed)
+      },
+    )
+
+    /**
+     * ⛔ The guard used to compare against the trimmed text and then cut the untrimmed one,
+     * so one trailing space made the ends stop matching and nothing was cut at all -- the
+     * third decimal walked straight through the rule meant to stop it.
+     */
+    it.each([
+      ['6,305 ', '6,30 '],
+      [' 6,305', ' 6,30'],
+    ])('cuts %s to %s, whitespace and all', (typed, expected) => {
+      expect(withAtMostTwoDecimals(typed)).toBe(expected)
     })
 
     /** Half-typed and unusable entries go back untouched -- that is how a field gets filled. */

@@ -52,8 +52,16 @@ const DECIMAL = {
   decimal: { style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2 },
 }
 
-const mountCalculator = (locale = 'de') =>
-  mount(Calculator, {
+/**
+ * ⛔ Every mounted page is kept and taken down again afterwards. The page registers
+ * `storage` and `visibilitychange` on the WINDOW and lets go of them in `onUnmounted`, so a
+ * page that is never unmounted keeps listening: the two event tests further down would
+ * otherwise reach the handlers of every instance left over from an earlier test, and one of
+ * those could answer instead of the one under test.
+ */
+const mounted = []
+const mountCalculator = (locale = 'de') => {
+  const wrapper = mount(Calculator, {
     global: {
       plugins: [
         createI18n({
@@ -66,6 +74,9 @@ const mountCalculator = (locale = 'de') =>
       stubs: ['IMdiSettings'],
     },
   })
+  mounted.push(wrapper)
+  return wrapper
+}
 
 const key = (wrapper, name) => wrapper.find(`[data-test="calculator-${name}"]`)
 const press = async (wrapper, ...names) => {
@@ -81,6 +92,12 @@ describe('Calculator page', () => {
   })
 
   afterEach(() => {
+    while (mounted.length) {
+      mounted.pop().unmount()
+    }
+    // ⚠️ Here rather than at the end of the test that sets them: a failing assertion above
+    // would skip that line and leave a fake clock running for everything after it.
+    vi.useRealTimers()
     vi.restoreAllMocks()
   })
 
@@ -263,7 +280,6 @@ describe('Calculator page', () => {
 
       expect(key(wrapper, 'parked').exists()).toBe(false)
       expect(key(wrapper, 'display').text()).toBe('50,00')
-      vi.useRealTimers()
     })
   })
 
@@ -323,5 +339,26 @@ describe('Calculator page', () => {
         expected,
       )
     })
+
+    /**
+     * ⛔ An emptied field is not an answer of zero. `Number('')` is 0, and 0 is a perfectly
+     * legal Gradido share, so it slipped past the "is this a number" guard: clearing the
+     * field and closing the panel set the share to nothing, the sub-result disappeared, and
+     * the card button never armed again. Whoever did it would see a calculator that had
+     * simply stopped offering Gradido, with nothing to say why.
+     */
+    it.each([[''], ['   ']])(
+      'leaves the share alone when the field is emptied (%s)',
+      async (typed) => {
+        window.localStorage.setItem('calculator-prefs:user-one', JSON.stringify({ percent: 60 }))
+        const wrapper = mountCalculator()
+        await press(wrapper, 'percent')
+        await key(wrapper, 'share-input').setValue(typed)
+        await wrapper.find('.modal-ok').trigger('click')
+
+        await press(wrapper, 'digit-1', 'digit-0', 'equals')
+        expect(key(wrapper, 'sub-amounts').text()).toContain('6,00')
+      },
+    )
   })
 })

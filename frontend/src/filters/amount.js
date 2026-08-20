@@ -25,27 +25,52 @@ export const createFilters = (i18n) => {
 }
 
 /**
- * The shape of a number that is grouped all the way through: a first group of one to three
- * digits, then nothing but groups of exactly three, and the SAME character between them.
+ * The shapes a typed amount is allowed to have. Everything else is not a number here.
  *
- * ⛔ This regex IS rule 2 below, stated positively, and stating it positively is what makes
- * it safe. Asking only "are there three digits behind the separator" gets two cases wrong:
- * `0,123` would read as grouping, though no language groups behind a bare zero, and
- * `1.234.567` would not, because there the three digits sit behind the LAST of several
- * separators. A number is grouped only if it looks grouped from end to end.
+ * ⛔ Stating the allowed shapes is the whole guard, and a character class is not enough.
+ * `[\d.,]+` accepts `1.2.3`, and the reader then quietly made 12.3 out of it -- while the
+ * hand-rolled reader this replaced returned NaN and left the payment button grey. A field
+ * that turns a fat-fingered entry into a chargeable amount is worse than one that refuses it.
+ *
+ * ⚠️ The trailing `\d*` in the decimal shapes is deliberate: `6,` is a number half typed,
+ * not a broken one, and refusing it mid-word would make the field impossible to type in.
  */
-const GROUPED_SHAPES = [/^[1-9]\d{0,2}(\.\d{3})+$/, /^[1-9]\d{0,2}(,\d{3})+$/]
+const HAS_A_DIGIT = /\d/
+const PLAIN = /^\d+$/
+const ONE_SEPARATOR = /^\d*[.,]\d*$/
+const GROUPED = [/^[1-9]\d{0,2}(\.\d{3})+$/, /^[1-9]\d{0,2}(,\d{3})+$/]
+const GROUPED_WITH_DECIMALS = [/^[1-9]\d{0,2}(\.\d{3})+,\d*$/, /^[1-9]\d{0,2}(,\d{3})+\.\d*$/]
+
+/** The digits of a typed amount, without sign or whitespace, or null if it is not one. */
+const digitsOf = (text) => {
+  if (text === null || text === undefined) {
+    return null
+  }
+  const cleaned = String(text).trim().replace(/\s/g, '')
+  const digits = cleaned.replace(/^[-+]/, '')
+  if (!HAS_A_DIGIT.test(digits)) {
+    return null
+  }
+  const wellFormed =
+    PLAIN.test(digits) ||
+    ONE_SEPARATOR.test(digits) ||
+    GROUPED.some((shape) => shape.test(digits)) ||
+    GROUPED_WITH_DECIMALS.some((shape) => shape.test(digits))
+  return wellFormed ? { digits, negative: cleaned.startsWith('-') } : null
+}
 
 /**
  * Splits an unsigned typed number into what is in front of the decimals and the decimals
  * themselves, `decimals: null` meaning there are none.
  *
- * The one place the two rules live. `parseAmount` and `withAtMostTwoDecimals` both go
- * through here, because a field that refuses what the reader accepts is worse than either.
+ * ⛔ A number is grouped only if it looks grouped from END TO END. Asking merely "are there
+ * three digits behind the separator" got two cases wrong: `0,123` read as grouping, though
+ * no language groups behind a bare zero, and `1.234.567` did not, because there the three
+ * digits sit behind the LAST of several separators.
  */
 const splitTypedNumber = (digits) => {
   const lastSeparator = Math.max(digits.lastIndexOf('.'), digits.lastIndexOf(','))
-  if (lastSeparator === -1 || GROUPED_SHAPES.some((shape) => shape.test(digits))) {
+  if (lastSeparator === -1 || GROUPED.some((shape) => shape.test(digits))) {
     return { whole: digits.replace(/[.,]/g, ''), decimals: null }
   }
   return {
@@ -53,9 +78,6 @@ const splitTypedNumber = (digits) => {
     decimals: digits.slice(lastSeparator + 1),
   }
 }
-
-/** Everything a typed amount may consist of. Anything else is not a number and says so. */
-const TYPED_NUMBER = /^[-+]?[\d.,]+$/
 
 /**
  * Reads an amount somebody typed. Used by the card payment's amount field and by the
@@ -71,67 +93,61 @@ const TYPED_NUMBER = /^[-+]?[\d.,]+$/
  * mean different amounts depending on a setting nobody touched -- on the number that gets
  * charged.
  *
- * Two rules make every realistic entry unambiguous without asking:
+ * Forgiving is not the same as credulous. The shapes above say what a number may look like;
+ * within those, two rules make every entry unambiguous without asking the language:
  *
  * 1. **The last separator is the decimal separator.** Everything before it is grouping and
  *    drops out. `1.234,50` and `1,234.50` both give 1234.5.
- * 2. **Unless the whole number is grouped from end to end**, in which case there are no
- *    decimals at all. `1.234` gives 1234 and `1.234.567` gives 1234567, while `6.30` gives
- *    6.3 and `0,123` gives 0.123.
+ * 2. **Unless the number is grouped from end to end**, in which case there are no decimals
+ *    at all. `1.234` gives 1234 and `1.234.567` gives 1234567, while `6.30` gives 6.3 and
+ *    `0,123` gives 0.123.
  *
  * ⛔ Rule 2 is a decision, not an accident, and it rests on the currency: GDD carries two
  * decimals -- `numberFormats` in i18n.js fixes them, the calculator's keypad refuses a third,
- * and `withAtMostTwoDecimals` below refuses one in the payment field. So three digits behind
- * a decimal separator cannot happen, and a number that looks grouped is grouped. Do not
- * "tidy" this away; without it, `1.234` typed at a desk keyboard would be read as one and a
- * bit.
- *
- * On a phone none of this comes up for grouping: the field carries `inputmode="decimal"`, so
- * there is a keypad with a single separator key.
+ * and `withAtMostTwoDecimals` below refuses one in the payment field. Do not "tidy" this
+ * away; without it, `1.234` typed at a desk keyboard would be read as one and a bit.
  *
  * @returns the number, or NaN for anything that is not one. NaN rather than 0 on purpose --
  *          "nothing usable" and "zero" are different answers, and a silent 0 on a payment
  *          screen is the worse of the two.
  */
 export const parseAmount = (text) => {
-  if (text === null || text === undefined) {
+  const read = digitsOf(text)
+  if (read === null) {
     return NaN
   }
-  const cleaned = String(text).trim().replace(/\s/g, '')
-  if (cleaned === '' || !TYPED_NUMBER.test(cleaned)) {
-    return NaN
-  }
-
-  const negative = cleaned.startsWith('-')
-  const { whole, decimals } = splitTypedNumber(cleaned.replace(/^[-+]/, ''))
+  const { whole, decimals } = splitTypedNumber(read.digits)
   const value = decimals === null ? Number(whole) : Number(`${whole}.${decimals}`)
-  return negative ? -value : value
+  return read.negative ? -value : value
 }
 
 /**
  * Cuts a typed amount back to two digits behind its last separator, which is what GDD has.
  *
- * ⛔ This is STRICTER than the reader above, and on purpose. The reader has to make sense of
- * whatever reaches it -- a prefilled `1.234,50`, a pasted figure -- so it accepts a number
- * that is grouped from end to end. A field somebody is typing into has to do the opposite
- * and let no ambiguity arise in the first place: `6,305` reads as six thousand three hundred
- * and five, and reads exactly the same when it was `6,30` with a slipped finger. There is no
- * telling those apart afterwards, so the third digit is refused as it is typed -- the same
- * rule the calculator's keypad enforces with the warning sound.
+ * ⛔ The ambiguity this exists for: `6,305` reads perfectly well as six thousand three
+ * hundred and five, and it reads exactly the same when it was `6,30` with a slipped finger.
+ * Nothing can tell those apart afterwards, so the field does not let the second one arise --
+ * the third digit goes as it is typed, the same rule the calculator's keypad enforces with
+ * the warning sound.
  *
- * ⚠️ The price, and it was weighed: a grouped whole number cannot be TYPED here any more.
- * `1.234` becomes `1.23` under the finger, visibly, and the amount is entered as `1234`.
- * That is one keystroke fewer and no ambiguity at all. What arrives already formatted --
- * the calculator's own handover -- carries two decimals and passes untouched.
+ * ⚠️ A number with SEVERAL groups is left alone, because there the reading is not ambiguous:
+ * `1.234.567` cannot be anything but a whole number, and mangling a pasted one into 1234.56
+ * would be the fault this guards against, not the guard.
  *
- * Anything that is not a number at all goes back untouched: half-typed entries are how a
- * field gets filled, and correcting them mid-word is how a field becomes impossible to
- * type in.
+ * ⚠️ The price, weighed and accepted: a grouped whole number with ONE separator cannot be
+ * typed here. `1.234` becomes `1.23` under the finger, visibly, and the amount is entered as
+ * `1234` -- one keystroke fewer and no ambiguity at all.
+ *
+ * Anything that is not a number goes back untouched, and so does the whitespace around it:
+ * cutting the digits but keeping a trailing space used to leave the entry exactly as long as
+ * it was, so the guard did nothing at all.
  */
 export const withAtMostTwoDecimals = (text) => {
   const typed = String(text ?? '')
-  const cleaned = typed.trim().replace(/\s/g, '')
-  if (cleaned === '' || !TYPED_NUMBER.test(cleaned)) {
+  const body = typed.trimEnd()
+  const tail = typed.slice(body.length)
+  const cleaned = body.trim().replace(/\s/g, '')
+  if (!HAS_A_DIGIT.test(cleaned) || !/^[-+]?[\d.,]+$/.test(cleaned)) {
     return typed
   }
 
@@ -140,8 +156,10 @@ export const withAtMostTwoDecimals = (text) => {
     return typed
   }
   const behind = cleaned.slice(lastSeparator + 1)
-  if (behind.length <= 2 || !typed.endsWith(behind)) {
+  const separators = (cleaned.match(/[.,]/g) || []).length
+  const unmistakablyGrouped = separators >= 2 && GROUPED.some((shape) => shape.test(cleaned))
+  if (behind.length <= 2 || unmistakablyGrouped || !body.endsWith(behind)) {
     return typed
   }
-  return typed.slice(0, typed.length - (behind.length - 2))
+  return body.slice(0, body.length - (behind.length - 2)) + tail
 }
