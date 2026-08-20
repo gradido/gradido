@@ -55,6 +55,7 @@
   },
   "back": "Terug",
   "calculator": {
+    "back": "Terug",
     "card": {
       "from-calculator": "uit de rekenmachine",
       "park": "Betalen met dankkaart",
@@ -62,6 +63,12 @@
       "parked": "Bedrag onthouden: {amount} GDD",
       "scan-hint": "Scan nu de kaart.",
       "undo": "Ongedaan maken"
+    },
+    "copy": {
+      "copied": "Gekopieerd.",
+      "fiat": "{currency}-bedrag kopiëren",
+      "gdd": "Gradido-bedrag kopiëren",
+      "not-copied": "Kopiëren niet gelukt."
     },
     "daily-rate": "Dagkoers",
     "dankbar-equals": "{dankBar} DankBar = {gdd} Gradido",

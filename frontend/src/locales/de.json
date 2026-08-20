@@ -55,6 +55,7 @@
   },
   "back": "Zurück",
   "calculator": {
+    "back": "Zurück",
     "card": {
       "from-calculator": "aus dem Rechner",
       "park": "Mit Dank-Karte",
@@ -62,6 +63,12 @@
       "parked": "Betrag gemerkt: {amount} GDD",
       "scan-hint": "Jetzt die Karte scannen.",
       "undo": "Rückgängig"
+    },
+    "copy": {
+      "copied": "Kopiert.",
+      "fiat": "{currency}-Betrag kopieren",
+      "gdd": "Gradido-Betrag kopieren",
+      "not-copied": "Konnte nicht kopieren."
     },
     "daily-rate": "Tageskurs",
     "dankbar-equals": "{dankBar} DankBar = {gdd} Gradido",

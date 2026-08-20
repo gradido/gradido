@@ -55,6 +55,7 @@
   },
   "back": "Retour",
   "calculator": {
+    "back": "Retour",
     "card": {
       "from-calculator": "de la calculatrice",
       "park": "Payer par carte de remerciement",
@@ -62,6 +63,12 @@
       "parked": "Montant retenu : {amount} GDD",
       "scan-hint": "Scanne maintenant la carte.",
       "undo": "Annuler"
+    },
+    "copy": {
+      "copied": "Copié.",
+      "fiat": "Copier le montant en {currency}",
+      "gdd": "Copier le montant Gradido",
+      "not-copied": "Impossible de copier."
     },
     "daily-rate": "Taux du jour",
     "dankbar-equals": "{dankBar} DankBar = {gdd} Gradido",

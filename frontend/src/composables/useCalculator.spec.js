@@ -252,15 +252,13 @@ describe('useCalculator', () => {
     })
 
     /**
-     * ⛔ The two sums under the display are NOT cleared when the calculation moves on -- the
-     * PWA leaves them standing until AC ("Ergebnisse unten NICHT loeschen", index.html) and
-     * that is carried over on purpose. What must not stand is what a card would be charged.
-     *
-     * The till finishes a sale, the customer pays, and the next customer is started by
-     * typing rather than by pressing AC. Without this, the sub-line still says 50 and the
-     * card button is still armed with it.
+     * ⛔ The sums under the display go the moment the calculation moves on -- and the card
+     * offer with them. This deliberately DIVERGES from the PWA, which leaves them standing
+     * until AC: there they were information, here actions hang off them, and the previous
+     * customer's sums under a new customer's digits are only ever misread. (Bernd,
+     * 20.08.2026, revising the original behaviour.)
      */
-    it('takes the card offer back as soon as the calculation moves on', () => {
+    it('clears the sums and the card offer as soon as the calculation moves on', () => {
       const calc = setup({ percent: 100 })
       type(calc, ['5', '0'])
       calc.calculate()
@@ -268,8 +266,7 @@ describe('useCalculator', () => {
 
       type(calc, ['7'])
       expect(calc.display.value).toBe('7')
-      // still standing, as in the PWA -- and no longer on offer
-      expect(calc.subResult.value.gdd).toBeCloseTo(50, 10)
+      expect(calc.subResult.value).toBeNull()
       expect(calc.payableGdd.value).toBeNull()
     })
 
@@ -278,17 +275,18 @@ describe('useCalculator', () => {
       ['an operator and more digits', (calc) => calc.appendOperator('+') && type(calc, ['2'])],
       ['a deletion', (calc) => calc.deleteLast()],
       ['a separator', (calc) => calc.appendSeparator()],
-    ])('takes it back after %s too', (_name, carryOn) => {
+    ])('clears them after %s too', (_name, carryOn) => {
       const calc = setup({ percent: 100 })
       type(calc, ['5', '0'])
       calc.calculate()
       expect(calc.payableGdd.value).toBeCloseTo(50, 10)
 
       carryOn(calc)
+      expect(calc.subResult.value).toBeNull()
       expect(calc.payableGdd.value).toBeNull()
     })
 
-    /** And pressing "=" again puts it back on offer, with the sum that is on screen now. */
+    /** And pressing "=" again puts everything back, with the sum that is on screen now. */
     it('offers the new sum once it has been worked out', () => {
       const calc = setup({ percent: 100 })
       type(calc, ['5', '0'])

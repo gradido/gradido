@@ -48,13 +48,34 @@ export const useCalculatorSound = (enabled) => {
         failed.value = true
         return null
       }
-      if (!context) {
+      if (!context || context.state === 'closed') {
+        /**
+         * ⛔ Replaced, never revived. iOS closes a context of its own accord -- a phone
+         * call, the tab frozen in the background -- and a closed context stays closed. Kept
+         * around, every later key press would ask a dead device and the calculator would be
+         * silent until the page happens to be rebuilt; this was "no sound until logging out
+         * and back in" at the till, in the wallet and in the PWA alike.
+         */
         context = new Constructor()
+        /**
+         * ⚠️ Same rule as in `stop`, and for the same reason: the throttle stamp belongs to
+         * the pair close/currentTime, and a fresh context starts its clock at zero. Left
+         * standing, the old stamp would sit in the new clock's future and every refused key
+         * would fall silent until the new clock catches up.
+         */
+        lastWarningAt = -1
       }
-      if (context.state === 'suspended') {
-        // The promise is caught rather than awaited: a browser that refuses to resume must
-        // not put an unhandled rejection on the page, and waiting for it would delay the
-        // key press behind a device we do not need an answer from.
+      if (context.state !== 'running') {
+        /**
+         * ⚠️ Not only 'suspended'. WebKit parks a context on the non-standard state
+         * 'interrupted' after a call or Siri, and a check for 'suspended' alone leaves it
+         * there -- silent, with no error anywhere. Anything that is not running gets one
+         * nudge; a state that cannot be resumed simply stays as it is.
+         *
+         * The promise is caught rather than awaited: a browser that refuses to resume must
+         * not put an unhandled rejection on the page, and waiting for it would delay the
+         * key press behind a device we do not need an answer from.
+         */
         swallowRejection(context.resume())
       }
       return context
@@ -65,9 +86,15 @@ export const useCalculatorSound = (enabled) => {
     }
   }
 
-  /** One tone, gliding from `from` to `to`. Equal values mean a steady note. */
-  const tone = (from, to, seconds, startAt) => {
-    const ctx = audioContext()
+  /**
+   * One tone, gliding from `from` to `to`. Equal values mean a steady note.
+   *
+   * `sharedCtx` lets a caller that already resolved the device pass it down -- the warning
+   * plays three tones, and resolving (state check, resume nudge) once instead of four times
+   * is what it saves.
+   */
+  const tone = (from, to, seconds, startAt, sharedCtx) => {
+    const ctx = sharedCtx ?? audioContext()
     if (!ctx) {
       return
     }
@@ -84,6 +111,15 @@ export const useCalculatorSound = (enabled) => {
     gain.gain.exponentialRampToValueAtTime(0.0001, at + seconds)
     oscillator.connect(gain)
     gain.connect(ctx.destination)
+    /**
+     * ⚠️ Let go when the tone is over. Without this every key press leaves a gain node
+     * wired to the output for the life of the context -- a till that plays a few hundred
+     * keys per shift accumulates a few hundred of them.
+     */
+    oscillator.onended = () => {
+      oscillator.disconnect()
+      gain.disconnect()
+    }
     oscillator.start(at)
     oscillator.stop(at + seconds + 0.02)
   }
@@ -103,7 +139,7 @@ export const useCalculatorSound = (enabled) => {
     const length = 0.11
     const gap = 0.06
     for (let i = 0; i < 3; i += 1) {
-      tone(432, 432, length, now + i * (length + gap))
+      tone(432, 432, length, now + i * (length + gap), ctx)
     }
   }
 

@@ -55,6 +55,7 @@
   },
   "back": "Back",
   "calculator": {
+    "back": "Back",
     "card": {
       "from-calculator": "from the calculator",
       "park": "Pay by thank-you card",
@@ -62,6 +63,12 @@
       "parked": "Amount noted: {amount} GDD",
       "scan-hint": "Now scan the card.",
       "undo": "Undo"
+    },
+    "copy": {
+      "copied": "Copied.",
+      "fiat": "Copy {currency} amount",
+      "gdd": "Copy Gradido amount",
+      "not-copied": "Could not copy."
     },
     "daily-rate": "Daily rate",
     "dankbar-equals": "{dankBar} DankBar = {gdd} Gradido",

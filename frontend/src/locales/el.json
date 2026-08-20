@@ -55,6 +55,7 @@
   },
   "back": "Πίσω",
   "calculator": {
+    "back": "Πίσω",
     "card": {
       "from-calculator": "από την αριθμομηχανή",
       "park": "Πληρωμή με κάρτα ευχαριστίας",
@@ -62,6 +63,12 @@
       "parked": "Το ποσό σημειώθηκε: {amount} GDD",
       "scan-hint": "Τώρα σάρωσε την κάρτα.",
       "undo": "Αναίρεση"
+    },
+    "copy": {
+      "copied": "Αντιγράφηκε.",
+      "fiat": "Αντιγραφή ποσού σε {currency}",
+      "gdd": "Αντιγραφή ποσού Gradido",
+      "not-copied": "Η αντιγραφή απέτυχε."
     },
     "daily-rate": "Ημερήσια ισοτιμία",
     "dankbar-equals": "{dankBar} DankBar = {gdd} Gradido",

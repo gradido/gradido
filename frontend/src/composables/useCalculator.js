@@ -175,23 +175,20 @@ export const useCalculator = ({ percent, factor, locale }) => {
   const justCalculated = ref(false)
   const subResult = ref(null)
   /**
-   * ★ Whether the two sums under the display still belong to what the display shows.
+   * The only way the expression is written: moving the calculation on takes the sums under
+   * the display with it, and everything that hangs off them -- the card button, the copy
+   * buttons -- goes in the same stroke.
    *
-   * ⛔ They are NOT cleared when the calculation moves on -- the PWA leaves them standing
-   * until AC ("Ergebnisse unten NICHT loeschen", index.html), and somebody who has used it
-   * at a counter for months reads a standing sub-line as normal. What must not stand is the
-   * CARD BUTTON: in the PWA a stale sub-line is an item of information, here it is a number
-   * that would be charged. So the sums stay and the button goes.
-   */
-  const subResultIsCurrent = ref(false)
-
-  /**
-   * The only way the expression is written, so that no future branch can move the
-   * calculation on and leave the button armed with the sum before it.
+   * ⛔ This deliberately DIVERGES from the PWA, which leaves the sums standing until AC
+   * ("Ergebnisse unten NICHT loeschen", index.html). There the standing line was a piece of
+   * information and cost nothing; here actions hang off it, and a sub-line showing the
+   * previous customer's sums under a new customer's digits is only ever misread. Bernd
+   * revised the original behaviour on 20.08.2026: what the display no longer shows, the
+   * sums no longer claim. Do not bring the standing sums back.
    */
   const setExpression = (next) => {
     expression.value = next
-    subResultIsCurrent.value = false
+    subResult.value = null
   }
 
   const display = computed(() => {
@@ -212,9 +209,7 @@ export const useCalculator = ({ percent, factor, locale }) => {
 
   /** The Gradido sum worth handing to a card payment -- of the calculation on screen NOW. */
   const payableGdd = computed(() =>
-    subResultIsCurrent.value && subResult.value?.kind === 'payment' && subResult.value.gdd > 0
-      ? subResult.value.gdd
-      : null,
+    subResult.value?.kind === 'payment' && subResult.value.gdd > 0 ? subResult.value.gdd : null,
   )
 
   const appendDigit = (digit) => {
@@ -277,7 +272,6 @@ export const useCalculator = ({ percent, factor, locale }) => {
 
   const allClear = () => {
     setExpression('')
-    subResult.value = null
     justCalculated.value = false
     return 'function'
   }
@@ -304,7 +298,6 @@ export const useCalculator = ({ percent, factor, locale }) => {
     } else {
       subResult.value = null
     }
-    subResultIsCurrent.value = true
     return 'equals'
   }
 
@@ -318,7 +311,6 @@ export const useCalculator = ({ percent, factor, locale }) => {
     justCalculated.value = true
     const rate = dailyRateFor()
     subResult.value = { kind: 'dankbar', dankBar: value, gdd: value * rate.dankBarToGdd, rate }
-    subResultIsCurrent.value = true
     return 'function'
   }
 
