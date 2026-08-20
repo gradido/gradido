@@ -99,6 +99,16 @@ describe('Navbar', () => {
     expect(wrapper.find('div.navbar-component').exists()).toBe(true)
   })
 
+  /**
+   * The quick way to the calculator on a phone: a small symbol ABOVE the menu opener,
+   * deliberately unmarked -- a tool for those who run a till, found by those who need it.
+   */
+  it('offers the calculator above the menu opener', () => {
+    const quick = wrapper.find('[data-test="navbar-calculator"]')
+    expect(quick.exists()).toBe(true)
+    expect(quick.attributes('href')).toBe('/calculator')
+  })
+
   it('has a .navbar-brand element', () => {
     expect(wrapper.find('div.navbar-brand').exists()).toBe(true)
   })

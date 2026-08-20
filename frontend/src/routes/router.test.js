@@ -148,6 +148,16 @@ describe('router', () => {
       expect(route.meta.pageTitle).toBe('calculator')
     })
 
+    /**
+     * ⚠️ bareChrome is what gives the calculator the whole screen on a phone -- without it
+     * the translucent navbar sits exactly over the total, which is the number two people
+     * read at arm's length. The layout only drops its chrome for routes that carry the flag.
+     */
+    it('lets the calculator bring its own head', () => {
+      const route = routes.find((r) => r.path === '/calculator')
+      expect(route.meta.bareChrome).toBe(true)
+    })
+
     // The order is the whole point, and `routes.find` cannot see it. This is the regression
     // that made every printed QR code land on "page not found": the address route did not
     // exist, so /u/... fell into the catch-all. A route declared after it would do the same,

@@ -1,12 +1,22 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
   <div class="calculator" data-test="calculator">
-    <!-- The gear gets a strip of its own, as in the PWA: it must not collide with the big
-         result on a narrow screen, and it must stay a 44px target even though it looks small. -->
+    <!-- The head is the page's own chrome: the route is bareChrome, so on a phone nothing
+         of the wallet remains and these two are the only way out and the only way in to the
+         settings. Both look small and stay 44px targets -- pressed at a counter, one-handed. -->
     <div class="calculator-head">
       <button
         type="button"
-        class="calculator-gear"
+        class="calculator-head-key"
+        :aria-label="$t('calculator.back')"
+        data-test="calculator-back"
+        @click="goBack"
+      >
+        <IMdiArrowLeft />
+      </button>
+      <button
+        type="button"
+        class="calculator-head-key"
         :aria-label="$t('calculator.settings.title')"
         data-test="calculator-settings-open"
         @click="press(openSettings)"
@@ -26,31 +36,37 @@
       {{ display }}
     </div>
 
+    <!-- Label and value together on the right, under the total they belong to. They used
+         to sit on opposite edges of the row, which read as two unrelated things. -->
     <button
       type="button"
       class="calculator-share"
       data-test="calculator-share"
       @click="press(openShare)"
     >
-      <span>{{ $t('calculator.gradido-share') }}</span>
-      <span>{{ percent }}</span>
+      {{ $t('calculator.gradido-share') }} {{ percent }}
     </button>
 
     <div class="calculator-sub" data-test="calculator-sub">
       <template v-if="subResult?.kind === 'payment'">
-        <!-- The two sums the whole page exists for: what is paid in the local currency, and
-             what is thanked in Gradido. -->
-        <div data-test="calculator-sub-amounts">
-          {{ currency }} {{ $n(subResult.fiat, 'decimal') }} &nbsp;|&nbsp; GDD
-          {{ $n(subResult.gdd, 'decimal') }}
+        <!-- ★ The two sums the whole page exists for, one line each and readable at arm's
+             length -- they used to share one small line while the total above kept a huge
+             field mostly empty. GDD is the larger of the two: it is the number that goes
+             over the card. The DankBar line comes last and stays small; it is losing its
+             importance. (Bernd, 20.08.2026) -->
+        <div class="calculator-sub-fiat" data-test="calculator-sub-fiat">
+          {{ currency }} {{ $n(subResult.fiat, 'decimal') }}
         </div>
-        <div v-if="showDankBar">
+        <div class="calculator-sub-gdd" data-test="calculator-sub-gdd">
+          GDD {{ $n(subResult.gdd, 'decimal') }}
+        </div>
+        <div v-if="factor !== 1" class="calculator-sub-note">
+          {{ $t('calculator.purchasing-power', { factor, currency }) }}
+        </div>
+        <div v-if="showDankBar" class="calculator-sub-note">
           {{ $t('calculator.daily-rate') }}
           {{ $n(subResult.rate.gddToDankBar, RATE_FORMAT) }} &nbsp;|&nbsp; DankBar
           {{ $n(subResult.dankBar, 'decimal') }}
-        </div>
-        <div v-if="factor !== 1">
-          {{ $t('calculator.purchasing-power', { factor, currency }) }}
         </div>
       </template>
       <template v-else-if="subResult?.kind === 'dankbar'">
@@ -213,6 +229,7 @@
  */
 import { BButton, BFormCheckbox, BFormInput, BModal } from 'bootstrap-vue-next'
 import { computed, onUnmounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useCalculator } from '@/composables/useCalculator'
 import { useCalculatorPrefs } from '@/composables/useCalculatorPrefs'
@@ -230,6 +247,7 @@ const DIGIT_ROWS = [
   { name: 'minus', digits: [1, 2, 3], operator: '-', label: '−' },
 ]
 
+const router = useRouter()
 const { t, locale } = useI18n()
 const { percent, factor, currency, showDankBar, sound } = useCalculatorPrefs()
 const { play, stop } = useCalculatorSound(sound)
@@ -337,6 +355,21 @@ const currencyField = ref('')
 const shareField = ref('')
 const parked = ref(readParked())
 const parkFailed = ref(false)
+
+/**
+ * Back to wherever the calculator was opened from -- it is reachable from every page, so a
+ * fixed target would be wrong for all but one of them.
+ *
+ * ⚠️ A deep link has no wallet history: `state.back` is null then, and a bare history step
+ * would walk OUT of the wallet. The overview is the safe landing.
+ */
+const goBack = () => {
+  if (router.options.history.state.back) {
+    router.back()
+  } else {
+    router.push('/overview')
+  }
+}
 
 /** Runs a calculator action and plays whatever sound its path earned. */
 const press = (action) => {
@@ -487,13 +520,13 @@ onUnmounted(() => {
 
 .calculator-head {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   padding: 4px 8px;
 }
 
 /* 44px stays the target even though the icon reads small -- this is pressed at a counter,
    often one-handed while the other hand holds something. */
-.calculator-gear {
+.calculator-head-key {
   width: 44px;
   height: 44px;
   display: flex;
@@ -506,7 +539,7 @@ onUnmounted(() => {
   cursor: pointer;
 }
 
-.calculator-gear:hover {
+.calculator-head-key:hover {
   color: rgb(210 210 210);
 }
 
@@ -524,24 +557,42 @@ onUnmounted(() => {
 }
 
 .calculator-share {
-  display: flex;
-  justify-content: space-between;
+  display: block;
   width: 100%;
   padding: 2px 20px 6px;
-  font-size: 16px;
+  font-size: 14px;
+  text-align: right;
   color: rgb(132 174 116);
   background: transparent;
   border: none;
   cursor: pointer;
 }
 
+/* Tall enough for the full set of lines, so the keypad does not jump when "=" fills it --
+   at a counter a key that moves under the finger is worse than empty space. */
 .calculator-sub {
-  min-height: 66px;
+  min-height: 108px;
   padding: 0 20px 10px;
-  font-size: 17px;
-  line-height: 1.3;
+  font-size: 15px;
+  line-height: 1.35;
   text-align: right;
   white-space: nowrap;
+}
+
+.calculator-sub-fiat {
+  font-size: 19px;
+  color: rgb(220 216 216);
+}
+
+.calculator-sub-gdd {
+  font-size: 27px;
+  color: var(--calc-ink);
+}
+
+.calculator-sub-note {
+  margin-top: 2px;
+  font-size: 13px;
+  color: rgb(150 150 150);
 }
 
 .calculator-keys {

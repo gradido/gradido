@@ -11,8 +11,21 @@
               alt="Logo"
             />
           </router-link>
-          <div v-b-toggle.sidebar-mobile variant="link" class="d-block d-lg-none">
-            <span class="navbar-toggler-icon h2"></span>
+          <!-- The calculator sits ABOVE the menu opener, deliberately small and unmarked:
+               it is a tool for those who run a till, not a headline feature. Whoever needs
+               it knows where it lives. (Bernd, 20.08.2026) -->
+          <div class="d-block d-lg-none">
+            <router-link
+              to="/calculator"
+              class="calculator-quick"
+              :aria-label="$t('navigation.calculator')"
+              data-test="navbar-calculator"
+            >
+              <i-mdi-calculator />
+            </router-link>
+            <div v-b-toggle.sidebar-mobile variant="link">
+              <span class="navbar-toggler-icon h2"></span>
+            </div>
           </div>
         </BNavbarBrand>
 
@@ -165,6 +178,23 @@ button.navbar-toggler > span.navbar-toggler-icon {
     left: 5%;
     max-width: 61%;
   }
+}
+
+/* Small to the eye, 44px to the thumb -- same rule as the gear inside the calculator. */
+.calculator-quick {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  font-size: 22px;
+  color: inherit;
+  opacity: 0.65;
+}
+
+.calculator-quick:hover {
+  color: inherit;
+  opacity: 1;
 }
 </style>
 

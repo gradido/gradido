@@ -19,6 +19,18 @@ const state = { gradidoID: 'user-one' }
 vi.mock('vuex', () => ({ useStore: () => ({ state }) }))
 
 /**
+ * The page's own back arrow. `historyState.back` is what vue-router remembers about where
+ * we came from -- null on a deep link, and that difference is the whole test.
+ */
+const historyState = { back: null }
+const mockRouter = {
+  back: vi.fn(),
+  push: vi.fn(),
+  options: { history: { state: historyState } },
+}
+vi.mock('vue-router', () => ({ useRouter: () => mockRouter }))
+
+/**
  * The house way of testing a modal (see `AliasFirstChoice.spec.js`): a stub that renders its
  * slot when it is open. The real one teleports, and a teleported panel is not inside the
  * wrapper -- so a field in it can neither be found nor filled in.
@@ -88,6 +100,9 @@ const press = async (wrapper, ...names) => {
 describe('Calculator page', () => {
   beforeEach(() => {
     state.gradidoID = 'user-one'
+    historyState.back = null
+    mockRouter.back.mockClear()
+    mockRouter.push.mockClear()
     window.localStorage.clear()
   })
 
@@ -119,7 +134,7 @@ describe('Calculator page', () => {
       await press(wrapper, 'digit-2', 'separator', 'digit-8', 'digit-0', 'equals')
 
       expect(key(wrapper, 'display').text()).toBe('10,50')
-      expect(key(wrapper, 'sub-amounts').text()).toContain('10,50')
+      expect(key(wrapper, 'sub-gdd').text()).toContain('10,50')
     })
 
     it('clears everything on AC', async () => {
@@ -283,6 +298,30 @@ describe('Calculator page', () => {
     })
   })
 
+  describe('the way back', () => {
+    /** Reachable from every page, so it returns to whichever page that was. */
+    it('steps back through the history when there is one', async () => {
+      historyState.back = '/overview'
+      const wrapper = mountCalculator()
+      await key(wrapper, 'back').trigger('click')
+
+      expect(mockRouter.back).toHaveBeenCalled()
+      expect(mockRouter.push).not.toHaveBeenCalled()
+    })
+
+    /**
+     * ⚠️ A deep link has no wallet history, and a bare history step would walk OUT of the
+     * wallet -- to whatever the browser had open before. The overview is the safe landing.
+     */
+    it('lands on the overview when the calculator was opened directly', async () => {
+      const wrapper = mountCalculator()
+      await key(wrapper, 'back').trigger('click')
+
+      expect(mockRouter.push).toHaveBeenCalledWith('/overview')
+      expect(mockRouter.back).not.toHaveBeenCalled()
+    })
+  })
+
   describe('settings', () => {
     it('keeps what was typed, and keeps it for next time', async () => {
       const wrapper = mountCalculator('de')
@@ -357,7 +396,7 @@ describe('Calculator page', () => {
         await wrapper.find('.modal-ok').trigger('click')
 
         await press(wrapper, 'digit-1', 'digit-0', 'equals')
-        expect(key(wrapper, 'sub-amounts').text()).toContain('6,00')
+        expect(key(wrapper, 'sub-gdd').text()).toContain('6,00')
       },
     )
   })
