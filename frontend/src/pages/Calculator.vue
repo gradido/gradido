@@ -655,12 +655,15 @@ onUnmounted(() => {
   color: var(--calc-ink);
 }
 
+/* 44px to the thumb like every other control on this page -- the icon stays small, the
+   negative margin keeps the grown box from pushing the sum lines apart. */
 .calculator-copy {
-  width: 36px;
-  height: 30px;
+  width: 44px;
+  height: 44px;
+  margin: -12px -8px;
   padding: 0;
   font-size: 15px;
-  vertical-align: baseline;
+  vertical-align: middle;
   color: inherit;
   opacity: 0.5;
   background: transparent;

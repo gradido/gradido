@@ -151,6 +151,7 @@ describe('useCalculatorSound', () => {
 
     created[0].onended()
     expect(gains[0].disconnect).toHaveBeenCalled()
+    expect(created[0].disconnect).toHaveBeenCalled()
   })
 
   /**
