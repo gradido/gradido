@@ -104,6 +104,49 @@ describe('useCalculatorSound', () => {
     expect(created).toHaveLength(6)
   })
 
+  /**
+   * ⛔ Old WebKit answers `resume()` and `close()` with NOTHING, where the standard answers
+   * with a promise. Calling `.catch` on nothing throws, the guard around the audio device
+   * reads that as "this browser has no sound", and the calculator goes silent for the rest
+   * of the session -- on exactly the old iPhones a market stall is most likely to be using.
+   */
+  it('keeps its voice on a browser whose resume answers with nothing', () => {
+    window.AudioContext = vi.fn(() => ({
+      ...makeContext(),
+      state: 'suspended',
+      resume: () => undefined,
+    }))
+    const { play } = useCalculatorSound(ref(true))
+    play('digit')
+    play('digit')
+    expect(created).toHaveLength(2)
+  })
+
+  /**
+   * ⛔ `close` REJECTS on a context that is already closed -- it does not throw -- so the
+   * try/catch around it never sees the rejection and it lands on the page unhandled. That
+   * the answer is CAUGHT is the whole assertion here: a test that only checked `stop` does
+   * not throw would stay green whatever happens, because the try/catch swallows the one
+   * thing that could throw. (Measured: it did.)
+   */
+  it('catches what a closing device answers with, instead of letting it escape', () => {
+    const answer = { catch: vi.fn() }
+    window.AudioContext = vi.fn(() => ({ ...makeContext(), close: () => answer }))
+    const { play, stop } = useCalculatorSound(ref(true))
+    play('digit')
+    stop()
+
+    expect(answer.catch).toHaveBeenCalled()
+  })
+
+  /** …and a device that answers with nothing at all must not take the page down either. */
+  it('lets go of a device whose close answers with nothing', () => {
+    window.AudioContext = vi.fn(() => ({ ...makeContext(), close: () => undefined }))
+    const { play, stop } = useCalculatorSound(ref(true))
+    play('digit')
+    expect(() => stop()).not.toThrow()
+  })
+
   it('costs the calculation nothing when the browser has no audio at all', () => {
     delete window.AudioContext
     const { play, stop } = useCalculatorSound(ref(true))

@@ -30,6 +30,18 @@ const OPERATOR_LABELS = { '+': '+', '-': '−', '*': '×', '/': '÷' }
 const SPLIT_ON_OPERATOR = / [+\-*/] /
 
 /**
+ * ⛔ A complete number, checked as a WHOLE. `Number.parseFloat` takes the valid prefix and
+ * silently drops the rest, so `1.2.3` came back as 1.2 -- and `1.234.567`, which is what a
+ * grouped number looks like, came back as 1.234. The guarantee below ("a grouped or
+ * comma-decimal string can never be calculated by accident") held for the comma, because a
+ * comma fails the character check, and did not hold for the full stop. Now it does.
+ *
+ * ⚠️ A trailing separator is allowed on purpose: `5.` is a number half typed, and the PWA
+ * calculates it too.
+ */
+const NUMBER_TOKEN = /^\d+\.?\d*$/
+
+/**
  * The Gradido daily rate: the year's decay, counted in whole days since 1 January.
  *
  * ⚠️ This is NOT the running decay the wallet applies to balances. It is the rate a paper
@@ -100,7 +112,7 @@ export const evaluate = (expression) => {
           digits += source[i]
           i += 1
         }
-        if (digits === '' || Number.isNaN(Number.parseFloat(digits))) {
+        if (!NUMBER_TOKEN.test(digits)) {
           return NaN
         }
         tokens.push({ val: sign * Number.parseFloat(digits) })
@@ -114,7 +126,7 @@ export const evaluate = (expression) => {
         digits += source[i]
         i += 1
       }
-      if (Number.isNaN(Number.parseFloat(digits))) {
+      if (!NUMBER_TOKEN.test(digits)) {
         return NaN
       }
       tokens.push({ val: Number.parseFloat(digits) })

@@ -40,6 +40,26 @@ describe('evaluate', () => {
     expect(evaluate(expression)).toBeCloseTo(expected, 10)
   })
 
+  /**
+   * ⛔ The character check alone was not the guard it was said to be. `Number.parseFloat`
+   * takes the valid prefix and drops the rest, so a grouped number -- exactly what something
+   * formatted for the display looks like -- came back as a plausible small number instead of
+   * NaN. `1.234.567` evaluated to 1.234. The comma half always worked, because a comma fails
+   * the character check; the full stop half did not, and that is the half a German display
+   * carries.
+   */
+  it.each([['1.2.3'], ['1.234.567'], ['1.2.3 + 1'], ['1..2']])(
+    'refuses %s rather than calculating its first few digits',
+    (expression) => {
+      expect(evaluate(expression)).toBeNaN()
+    },
+  )
+
+  /** ⚠️ A trailing separator stays calculable, as in the PWA: `5.` is half typed, not broken. */
+  it('still calculates a number with a trailing separator', () => {
+    expect(evaluate('5.')).toBe(5)
+  })
+
   it.each([[''], ['+'], ['1 +'], ['abc'], ['1,5'], [null]])(
     'gives NaN for %s rather than throwing',
     (expression) => {

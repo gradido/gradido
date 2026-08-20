@@ -21,6 +21,18 @@ import { ref } from 'vue'
 
 const WARNING_GAP_SECONDS = 0.45
 
+/**
+ * ⚠️ `resume()` and `close()` answer with a promise -- except on the old WebKit prefix,
+ * where they answer with nothing at all. Calling `.catch` on that throws a TypeError, which
+ * the guard around the audio context then reads as "this device has no sound" and switches
+ * the calculator silent for the rest of the session.
+ */
+const swallowRejection = (answer) => {
+  if (answer && typeof answer.catch === 'function') {
+    answer.catch(() => {})
+  }
+}
+
 export const useCalculatorSound = (enabled) => {
   let context = null
   let lastWarningAt = -1
@@ -43,7 +55,7 @@ export const useCalculatorSound = (enabled) => {
         // The promise is caught rather than awaited: a browser that refuses to resume must
         // not put an unhandled rejection on the page, and waiting for it would delay the
         // key press behind a device we do not need an answer from.
-        context.resume().catch(() => {})
+        swallowRejection(context.resume())
       }
       return context
     } catch {
@@ -119,9 +131,11 @@ export const useCalculatorSound = (enabled) => {
   const stop = () => {
     if (context) {
       try {
-        context.close()
+        // ⚠️ `close` REJECTS on a context that is already closed, it does not throw, so the
+        // catch below never sees it and the rejection would land on the page unhandled.
+        swallowRejection(context.close())
       } catch {
-        // closing an already-closed context is not a problem worth reporting
+        // a constructor-less or otherwise broken context must not cost the page
       }
       context = null
       /**

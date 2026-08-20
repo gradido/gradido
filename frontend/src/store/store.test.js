@@ -264,7 +264,23 @@ describe('Vuex store', () => {
        * payment gives for keeping its reference.
        */
       it('takes a parked amount off the device, keyed by who is leaving', () => {
-        logout({ commit, state, dispatch })
+        /**
+         * ⛔ This commit mock APPLIES the mutation, unlike the shared one above, and that is
+         * the whole test. A mock that only records the call cannot tell "read before the
+         * clear" from "read after it" -- the assertion below would pass either way, on a
+         * state object whose gradidoID never changes. With the mutation applied, reading it
+         * one line later gives null, there is no key, and the amount stays on the device.
+         */
+        const applyingCommit = vi.fn((mutation, value) => {
+          if (mutation === 'gradidoID') {
+            localState.gradidoID = value
+          }
+        })
+        const localState = { themeMode: 'dark', gradidoID: 'user-one' }
+        logout({ commit: applyingCommit, state: localState, dispatch })
+
+        expect(applyingCommit).toHaveBeenCalledWith('gradidoID', null)
+        expect(localState.gradidoID).toBeNull()
         expect(forgetParkedAmountMock).toHaveBeenCalledWith('user-one')
       })
 
