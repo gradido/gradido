@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { and, eq } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { GradidoUnit, Result, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { DBNotFoundError } from '../errorTypes'
@@ -66,51 +66,6 @@ export async function dbUpsertThankYouCardSettings(
         updatedAt: new Date(),
       },
     })
-  return { success: true }
-}
-
-/**
- * Replaces a PIN hash with one derived another way -- the silent upgrade path for rows
- * that still carry the old derivation.
- *
- * ⛔ Guarded by the OLD hash, not just the user id. The caller proved the PIN against a
- * value it read moments ago; if the row changed in between -- the owner set a new PIN, or
- * a parallel payment upgraded it first -- this write matches nothing and reports so, and
- * that is the correct outcome: never overwrite a newer secret with a derivation of an
- * older one. Running it twice is harmless for the same reason.
- */
-export async function dbUpgradeThankYouCardPinDerivation(row: {
-  userId: number
-  oldPin: bigint
-  oldPinDerivation: number
-  pin: bigint
-  pinSalt: string
-  pinDerivation: number
-}): Promise<VoidResult<DBNotFoundError>> {
-  const result = await drizzleDb()
-    .update(thankYouCardSettingsTable)
-    .set({
-      pin: row.pin,
-      pinSalt: row.pinSalt,
-      pinDerivation: row.pinDerivation,
-      updatedAt: new Date(),
-    })
-    .where(
-      and(
-        eq(thankYouCardSettingsTable.userId, row.userId),
-        eq(thankYouCardSettingsTable.pin, row.oldPin),
-        eq(thankYouCardSettingsTable.pinDerivation, row.oldPinDerivation),
-      ),
-    )
-  if (result[0].affectedRows === 0) {
-    return {
-      success: false,
-      error: new DBNotFoundError(
-        'thank_you_card_settings',
-        `userId: ${row.userId} with the expected old pin`,
-      ),
-    }
-  }
   return { success: true }
 }
 

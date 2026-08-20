@@ -1,19 +1,19 @@
 // AI-GENERATED — not an architecture reference
-// HOW the stored PIN hash was derived: 1 = the password KDF (argon2id + shorthash), 2 = a
-// keyed BLAKE2b. A hash cannot be converted, so every existing row keeps the value 1 --
-// which is exactly how its hash was made -- and is upgraded in place the next time its PIN
-// is proved right. New rows are written with 2 from the start.
+// HOW the stored PIN hash was derived. Today there is exactly one answer -- 2, a keyed
+// BLAKE2b -- and the column exists for the NEXT change of derivation: a hash cannot be
+// converted, so the day one arrives, every row must already say which derivation made its
+// hash. Adding the column then would be too late; adding it now costs one tinyint.
 //
-// ⚠️ Why the PIN leaves the password KDF (Dario, 20.08.2026): a six digit space is
-// brute-forced in minutes whatever the KDF costs, so the expensive derivation bought no
-// safety -- but every check spent 32 MiB and a slot in the same worker queue the login
-// waits in, and a market day of card payments could fill that queue for everyone. The
-// keyed hash costs microseconds and needs no queue; the server secrets still make a
-// database dump unreadable on its own.
+// The value 1 stays reserved: it named the password KDF (argon2id + shorthash) the PIN
+// used before Dario's finding of 20.08.2026 -- a six digit space is brute-forced in
+// minutes whatever the KDF costs, while every check spent 32 MiB and a slot in the same
+// worker queue the login waits in. That derivation never reached a release, so no row
+// carries a 1; the few PINs set on the test servers before this migration simply stop
+// matching and are set anew.
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(
-    'ALTER TABLE `thank_you_card_settings` ADD COLUMN `pin_derivation` tinyint unsigned NOT NULL DEFAULT 1 AFTER `pin_salt`;',
+    'ALTER TABLE `thank_you_card_settings` ADD COLUMN `pin_derivation` tinyint unsigned NOT NULL DEFAULT 2 AFTER `pin_salt`;',
   )
 }
 

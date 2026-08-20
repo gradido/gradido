@@ -14,7 +14,6 @@ import {
   dbSelectThankYouCardPayment,
   dbSelectThankYouCardSettings,
   dbSumConsumedThankYouCardPayments,
-  dbUpgradeThankYouCardPinDerivation,
   User as dbUser,
   MAX_FAILED_ATTEMPTS,
   ThankYouCardSelect,
@@ -26,9 +25,7 @@ import { GradidoUnit } from 'shared'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { PinDerivation } from '@/data/PinDerivation.enum'
 import {
-  createThankYouCardPinSalt,
   pinMatches,
   startOfDay,
   startOfNextDay,
@@ -38,7 +35,6 @@ import { ThankYouCardPaymentArgs } from '@/graphql/arg/ThankYouCardSettingsArgs'
 import { ThankYouCardPaymentStatus } from '@/graphql/enum/ThankYouCardPaymentStatus'
 import { ThankYouCardPayment, ThankYouCardPaymentResult } from '@/graphql/model/ThankYouCardPayment'
 import { ThankYouCardPaymentTarget } from '@/graphql/model/ThankYouCardPaymentTarget'
-import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 import { deriveKeyedPinKey } from '@/password/PinEncryptor'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
@@ -249,17 +245,9 @@ export class ThankYouCardPaymentResolver {
       }
       const settings = settingsResult.value
 
-      /**
-       * The row says how its hash was made. New rows carry the keyed hash -- microseconds,
-       * no worker queue, see PinEncryptor. Rows from before the change still carry the
-       * password KDF: argon2id with 32 MiB in the SAME worker queue the login waits in,
-       * which is exactly why they are upgraded below the moment their PIN proves right.
-       * The expensive branch dies out one successful payment at a time.
-       */
-      const offered =
-        settings.pinDerivation === PinDerivation.PASSWORD_KDF
-          ? await SecretKeyCryptographyCreateKey(settings.pinSalt, pin)
-          : deriveKeyedPinKey(settings.pinSalt, pin)
+      // The keyed hash -- microseconds, no worker queue, see PinEncryptor for why the
+      // password KDF was the wrong cost here.
+      const offered = deriveKeyedPinKey(settings.pinSalt, pin)
       if (!pinMatches(offered, settings.pin)) {
         const counted = await dbIncrementFailedAttempts(card.id)
         if (!counted.success) {
@@ -306,39 +294,11 @@ export class ThankYouCardPaymentResolver {
       // second on our server. The request simply no longer applies.
       if (
         freshSettings.value.pin !== settings.pin ||
-        freshSettings.value.pinSalt !== settings.pinSalt ||
-        freshSettings.value.pinDerivation !== settings.pinDerivation
+        freshSettings.value.pinSalt !== settings.pinSalt
       ) {
         return failure(ThankYouCardPaymentStatus.REQUEST_GONE)
       }
       const limits = freshSettings.value
-
-      /**
-       * ★ The silent half of the upgrade path: the PIN just proved right against the old
-       * expensive derivation, so this is the one moment the new hash can be written. The
-       * update is guarded by the old hash in the query itself -- if the owner set a new
-       * PIN or a parallel payment upgraded first, it matches nothing, and that is right:
-       * never overwrite a newer secret. A failure here is logged and nothing more; the
-       * payment in hand was proved and must not die of housekeeping.
-       *
-       * ⚠️ AFTER the identity check above, deliberately: this write changes pin and salt,
-       * and a parallel payment that read the old row will now end in REQUEST_GONE there --
-       * once per card, on the payment racing the upgrade, instead of a wrong-PIN count.
-       */
-      if (settings.pinDerivation === PinDerivation.PASSWORD_KDF) {
-        const freshSalt = createThankYouCardPinSalt()
-        const upgraded = await dbUpgradeThankYouCardPinDerivation({
-          userId: card.userId,
-          oldPin: settings.pin,
-          oldPinDerivation: settings.pinDerivation,
-          pin: deriveKeyedPinKey(freshSalt, pin),
-          pinSalt: freshSalt,
-          pinDerivation: PinDerivation.KEYED_HASH,
-        })
-        if (!upgraded.success) {
-          logger.info('pin derivation upgrade skipped, row changed under us', card.userId)
-        }
-      }
 
       // Limits are checked only now, after the PIN. Before it, nobody has proved they
       // hold this card, and a limit is a property of somebody's account -- there is no

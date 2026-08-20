@@ -324,18 +324,11 @@ export const thankYouCardSettingsTable = mysqlTable('thank_you_card_settings', {
   // same reason.
   pin: bigint({ mode: 'bigint', unsigned: true }).notNull(),
   pinSalt: varchar('pin_salt', { length: 64 }).notNull(),
-  // HOW `pin` was derived: 1 = the password KDF (argon2id + shorthash, the original way),
-  // 2 = a keyed BLAKE2b. A hash cannot be converted, so existing rows keep saying how
-  // theirs was made and are re-derived the next time the PIN is proved right. The values
-  // are named in backend/src/data/PinDerivation.enum.ts.
-  //
-  // ⚠️ Why the PIN left the password KDF: a six digit space is brute-forced in minutes
-  // whatever the KDF costs, so argon2id bought no safety here -- but every check spent
-  // 32 MiB and a slot in the worker queue the LOGIN also waits in. A market day of card
-  // payments could fill that queue and lock everyone out. The keyed hash costs
-  // microseconds, needs no queue, and the secrets still make a database dump unreadable
-  // on its own. (Dario, 20.08.2026)
-  pinDerivation: tinyint('pin_derivation', { unsigned: true }).notNull().default(1),
+  // HOW `pin` was derived -- today always 2, a keyed BLAKE2b (see
+  // backend/src/data/PinDerivation.enum.ts for why, and why 1 is reserved). The column is
+  // here for the NEXT change of derivation: a hash cannot be converted, so the day one
+  // arrives, every row must already say which derivation made its hash.
+  pinDerivation: tinyint('pin_derivation', { unsigned: true }).notNull().default(2),
   maxPerPayment: customGradidoUnit('max_per_payment_gdd4').notNull(),
   maxPerDay: customGradidoUnit('max_per_day_gdd4').notNull(),
   createdAt: datetime('created_at', { mode: 'date', fsp: 3 })

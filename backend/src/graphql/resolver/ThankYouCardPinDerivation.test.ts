@@ -2,10 +2,9 @@
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { dbSelectThankYouCardSettings, dbUpsertThankYouCardSettings } from 'database'
+import { dbSelectThankYouCardSettings } from 'database'
 import { CONFIG } from '@/config'
 import { PinDerivation } from '@/data/PinDerivation.enum'
-import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 import { userFactory } from '@/seeds/factory/user'
 import {
   confirmThankYouCardPayment,
@@ -18,14 +17,13 @@ import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 
 /**
- * The PIN's move off the password KDF (Dario, 20.08.2026): new rows carry a keyed hash
- * that costs microseconds and no worker-queue slot; rows from before keep saying how their
- * hash was made and are upgraded in place the moment their PIN proves right.
+ * The PIN's move off the password KDF (Dario, 20.08.2026): the stored hash is a keyed
+ * BLAKE2b that costs microseconds and no worker-queue slot. The row records the
+ * derivation so the NEXT change finds every row saying which one made its hash.
  *
- * ⚠️ The upgrade is tested through the LIMIT refusal on purpose: it sits after the PIN is
- * proved and before the limits, so a correct PIN that is then refused for its amount has
- * already upgraded the row. That is also the cheapest sequence to build -- no balance and
- * no booking are needed to prove any of this.
+ * ⚠️ Proving the PIN rides the LIMIT refusal on purpose: the check sits before the
+ * limits, so a correct PIN refused for its amount has still been proved -- and no
+ * balance or booking is needed to show any of this.
  */
 jest.mock('@/password/EncryptorUtils')
 
@@ -34,7 +32,6 @@ CONFIG.DLT_ACTIVE = false
 let mutate: ApolloServerTestClient['mutate']
 
 const PIN = '407312'
-const WRONG_PIN = '111111'
 const OVER_LIMIT = '80'
 
 let cardCode: string
@@ -65,22 +62,6 @@ const settingsRow = async () => {
     throw new Error('settings row vanished')
   }
   return result.value
-}
-
-/** Puts the row back the way the old code wrote it: password KDF, its hash, its marker. */
-const makeRowLegacy = async () => {
-  const legacySalt = 'legacy-salt'
-  const legacyHash = await SecretKeyCryptographyCreateKey(legacySalt, PIN)
-  const current = await settingsRow()
-  await dbUpsertThankYouCardSettings({
-    userId: payerId,
-    pin: legacyHash,
-    pinSalt: legacySalt,
-    pinDerivation: PinDerivation.PASSWORD_KDF,
-    maxPerPayment: current.maxPerPayment,
-    maxPerDay: current.maxPerDay,
-  })
-  return legacyHash
 }
 
 describe('thank you card: how the pin is derived', () => {
@@ -119,45 +100,6 @@ describe('thank you card: how the pin is derived', () => {
   it('proves a pin against the keyed derivation', async () => {
     expect(await payWith(OVER_LIMIT, PIN)).toMatchObject({
       status: 'LIMIT_PER_PAYMENT_EXCEEDED',
-    })
-  })
-
-  describe('a row from before the change', () => {
-    let legacyHash: bigint
-
-    beforeAll(async () => {
-      legacyHash = await makeRowLegacy()
-    })
-
-    it('still counts a wrong pin, without touching the derivation', async () => {
-      expect(await payWith('10', WRONG_PIN)).toMatchObject({ status: 'WRONG_PIN' })
-      const row = await settingsRow()
-      expect(row.pinDerivation).toBe(PinDerivation.PASSWORD_KDF)
-      expect(row.pin).toBe(legacyHash)
-    })
-
-    /**
-     * ⛔ The upgrade itself: the correct pin proves against the OLD derivation, and in the
-     * same request the row is rewritten -- new hash, fresh salt, new marker. The refusal
-     * that follows is about the amount, never about the pin.
-     */
-    it('upgrades the row the moment its pin proves right', async () => {
-      expect(await payWith(OVER_LIMIT, PIN)).toMatchObject({
-        status: 'LIMIT_PER_PAYMENT_EXCEEDED',
-      })
-
-      const row = await settingsRow()
-      expect(row.pinDerivation).toBe(PinDerivation.KEYED_HASH)
-      expect(row.pin).not.toBe(legacyHash)
-      expect(row.pinSalt).not.toBe('legacy-salt')
-    })
-
-    /** And the upgraded row keeps working: the same pin proves against the new hash. */
-    it('proves the same pin against the upgraded row', async () => {
-      expect(await payWith(OVER_LIMIT, PIN)).toMatchObject({
-        status: 'LIMIT_PER_PAYMENT_EXCEEDED',
-      })
-      expect((await settingsRow()).pinDerivation).toBe(PinDerivation.KEYED_HASH)
     })
   })
 })
