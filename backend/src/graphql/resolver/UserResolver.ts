@@ -1596,10 +1596,17 @@ export class UserResolver {
   }
 
   /**
-   * The avatar is own-view only, like aboutMe above, and for a stronger reason: showing
-   * a face to other members is a disclosure to third parties, and this house gives every
-   * such disclosure its own switch. That switch exists now - avatarVisibleToMembers,
-   * below - and nothing reads it yet, so today there is still no one this may be shown to.
+   * The avatar THROUGH THIS FIELD is own-view only, like aboutMe above, and for a stronger
+   * reason: showing a face to other members is a disclosure to third parties, and this
+   * house gives every such disclosure its own switch. That switch is avatarVisibleToMembers
+   * below.
+   *
+   * ⚠️ The switch IS read now, and the small rendition does reach other members -- through
+   * the memberAvatars query, over dbFindMemberAvatarsSmall, which applies
+   * mayBeShownToMembers() in the query itself. That path was ADDED beside this guard, and
+   * this guard stayed exactly as it was, which is the whole point: it is what keeps rows
+   * whose owner could not possibly have set the switch from reading as consent HERE, on a
+   * User handed out by name lookups and by link queries that need no token at all.
    *
    * Whoever changes that must ADD the setting to the test below, never replace it. Rows
    * whose owner could not possibly have set it carry the column default, which is

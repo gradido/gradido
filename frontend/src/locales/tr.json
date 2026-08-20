@@ -698,7 +698,7 @@
       "disabled": "Resmini artık yalnızca sen görüyorsun.",
       "enabled": "Resmin diğer üyeler tarafından görülebiliyor.",
       "visibility": "Resmimi diğer üyelere göster",
-      "visibilityInfo": "Diğer üyeler resmini paylaştığın işlemlerin yanında görür. Ayar kapalıyken şimdiye kadar olduğu gibi baş harflerin görünür."
+      "visibilityInfo": "Diğer üyeler resmini, örneğin paylaştığın işlemlerin yanında görür. Ayar kapalıyken şimdiye kadar olduğu gibi baş harflerin görünür."
     },
     "community": "Çemberler & Üye arama",
     "emailInfo": "Şu anda henüz değiştirilemiyor.",

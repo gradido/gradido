@@ -4,45 +4,37 @@
       <BCol class="h3">{{ $t('transaction.lastTransactions') }}</BCol>
     </BRow>
 
-    <div v-for="transaction in filteredTransactions" :key="transaction.id">
+    <div v-for="row in rows" :key="row.transaction.id">
       <BRow align-v="center" class="mb-4">
         <BCol cols="auto">
           <div class="align-items-center">
-            <!--            <avatar-->
-            <!--              class="vue3-avatar"-->
-            <!--              :size="72"-->
-            <!--              :color="'#fff'"-->
-            <!--              :name="`${transaction.linkedUser.firstName} ${transaction.linkedUser.lastName}`"-->
-            <!--              :initials="`${transaction.linkedUser.firstName[0]}${transaction.linkedUser.lastName[0]}`"-->
-            <!--              :border="false"-->
-            <!--            />-->
-            <app-avatar
-              :size="64"
-              :color="'#fff'"
-              :name="`${transaction.linkedUser.firstName} ${transaction.linkedUser.lastName}`"
-              :initials="avatarFor(transaction.linkedUser).letters"
-              :color-seed="avatarFor(transaction.linkedUser).colorSeed"
-              :src="pictureFor(transaction.linkedUser)"
-            />
+            <!-- 64 rather than the 72 this used to be: the stored picture is 128 across, and
+                 72 points on a 2x screen asks for 144 -- more than there is, so it was
+                 visibly soft at the most prominent avatar in the wallet. At 64 the two match
+                 exactly (AS-008). -->
+            <app-avatar :size="64" :color="'#fff'" v-bind="row.avatar" />
           </div>
         </BCol>
         <BCol class="p-1">
           <BRow>
             <BCol>
               <div class="fw-bold">
-                <name :linked-user="transaction.linkedUser" font-color="text-dark" />
+                <name :linked-user="row.transaction.linkedUser" font-color="text-dark" />
               </div>
               <button
                 class="transaction-details-link d-flex mt-3"
                 role="link"
-                :data-href="`/transactions#transaction-${transaction.id}`"
-                @click="handleRedirect(transaction.id)"
+                :data-href="`/transactions#transaction-${row.transaction.id}`"
+                @click="handleRedirect(row.transaction.id)"
               >
-                <span class="small" :class="{ 'received-amount': Number(transaction.amount) > 0 }">
-                  {{ $filters.GDD(transaction.amount) }}
+                <span
+                  class="small"
+                  :class="{ 'received-amount': Number(row.transaction.amount) > 0 }"
+                >
+                  {{ $filters.GDD(row.transaction.amount) }}
                 </span>
                 <span class="small ms-3 text-end">
-                  {{ $d(new Date(transaction.balanceDate), 'short') }}
+                  {{ $d(new Date(row.transaction.balanceDate), 'short') }}
                 </span>
               </button>
             </BCol>
@@ -58,20 +50,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { computed } from 'vue'
 import AppAvatar from '@/components/AppAvatar.vue'
-import { avatarLettering } from '@/utils/avatarLettering'
-import { storedMemberAvatar } from '@/composables/useMemberAvatars'
+import { memberAvatarProps } from '@/composables/useMemberAvatars'
 
-// 64 rather than the 72 this used to be: the stored picture is 128 across, and 72 points
-// on a 2x screen asks for 144 -- more than there is, so it was visibly soft at the most
-// prominent avatar in the wallet. At 64 the two match exactly (AS-008).
-const avatarFor = (linkedUser) => avatarLettering(linkedUser)
-
-// Only what the wallet already holds. Fetching happens once for the whole list, in
-// DashboardLayout, so this never triggers a request of its own.
-const pictureFor = (linkedUser) => {
-  const stored = storedMemberAvatar(linkedUser, linkedUser?.avatarUpdatedAt)
-  return stored ? `data:image/jpeg;base64,${stored}` : ''
-}
 const props = defineProps({
   transactions: {
     default: () => [],
@@ -88,8 +68,20 @@ const handleRedirect = (id) => {
   if (route.name !== 'Transactions') router.replace({ name: 'Transactions' })
 }
 
-const filteredTransactions = computed(() => {
-  return props.transactions
+// The avatar is worked out once per row, in a computed, rather than by calling helpers from
+// the template. Two reasons, and both bit here before:
+//
+//   * the letters and the colour seed have to come from ONE call, or a later edit can leave
+//     them describing different members. Calling the helper once per prop is exactly the
+//     split it exists to prevent.
+//   * `memberAvatarProps` reads the picture store, which is reactive. Called from the
+//     template it makes the whole list re-render on every change to any member's picture and
+//     rebuild eight ~11 KB data URIs; behind a computed, an unchanged value stops there.
+//
+// `linkedUser` may be null -- a booking whose counterparty the backend could not resolve --
+// and everything downstream of here is written for that.
+const rows = computed(() =>
+  props.transactions
     .filter(
       (transaction) =>
         transaction.typeId !== 'DECAY' &&
@@ -97,7 +89,8 @@ const filteredTransactions = computed(() => {
         transaction.typeId !== 'CREATION',
     )
     .slice(0, 8)
-})
+    .map((transaction) => ({ transaction, avatar: memberAvatarProps(transaction.linkedUser) })),
+)
 </script>
 
 <style scoped lang="scss">

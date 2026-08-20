@@ -3095,14 +3095,61 @@ describe('UserResolver', () => {
         expect(res.data.memberAvatars).toEqual([])
       })
 
-      // Without the cap this is a bulk download of every face in the community.
-      it('refuses a list longer than the cap', async () => {
-        const refs = Array.from({ length: 101 }, (_, index) => ({
+      const strangers = (count: number) =>
+        Array.from({ length: count }, (_, index) => ({
           gradidoID: `ffffffff-ffff-4fff-8fff-${String(index).padStart(12, '0')}`,
           communityUuid: null,
         }))
-        const res: any = await query({ query: memberAvatars, variables: { refs } })
+
+      /**
+       * Without the cap this is a bulk download of every face in the community.
+       *
+       * ⛔ The message is asserted, not merely that SOMETHING went wrong. Two caps guard
+       * this query -- @ArrayMaxSize on the args class, which rejects before a row is read,
+       * and the resolver's own check -- and `expect(res.errors).toBeDefined()` is satisfied
+       * by either, so it stays green if the one that protects the database is removed.
+       * MemberAvatarRefInput carries a TODO to replace exactly those decorators.
+       */
+      it('refuses a list longer than the cap, at the decorator that guards the database', async () => {
+        const res: any = await query({ query: memberAvatars, variables: { refs: strangers(101) } })
         expect(res.errors).toBeDefined()
+        expect(res.errors[0].message).toContain('Argument Validation Error')
+        expect(JSON.stringify(res.errors)).toContain('arrayMaxSize')
+      })
+
+      // ...and the other side of the boundary, which nothing measured: a full page of
+      // distinct counterparties has to get THROUGH. Tightening the per-ref validation, or
+      // lowering the cap, would otherwise kill every face on a busy page with a green suite
+      // -- the wallet swallows the error and simply shows initials.
+      it('lets a full page of members through', async () => {
+        const res: any = await query({ query: memberAvatars, variables: { refs: strangers(100) } })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.memberAvatars).toEqual([])
+      })
+
+      /**
+       * ⛔ The one query in this delivery that hands out other people's faces, and nothing
+       * established who may ask. Every case above runs with bob's token, which the
+       * decorator is irrelevant to -- remove @Authorized and they all still pass, while the
+       * query becomes an anonymous reader of every opted-in member's picture.
+       */
+      it('answers nobody who is not logged in', async () => {
+        resetToken()
+        const res: any = await query({
+          query: memberAvatars,
+          variables: {
+            refs: [{ gradidoID: owner.gradidoID, communityUuid: homeCom.communityUuid }],
+          },
+        })
+        expect(res.errors).toEqual([new GraphQLError('401 Unauthorized')])
+
+        // Put the session back: everything after this file's point runs on the token this
+        // test just threw away, and a suite that depends on test order should at least not
+        // be the thing that breaks it.
+        await mutate({
+          mutation: login,
+          variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
+        })
       })
     })
   })

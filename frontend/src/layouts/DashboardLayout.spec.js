@@ -281,13 +281,35 @@ describe('DashboardLayout', () => {
       expect(mockApolloQuery).not.toHaveBeenCalled()
     })
 
-    // The request names members, not versions: a member who replaces their picture is asked
-    // for under exactly the same variables as last time. A cached answer would hand back
-    // the picture they just replaced, and the new one would never arrive.
-    it('always asks the server, never the cache', async () => {
+    /**
+     * The request names members, not versions: a member who replaces their picture is asked
+     * for under exactly the same variables as last time. A cached answer would hand back
+     * the picture they just replaced, and the new one would never arrive.
+     *
+     * ⛔ `no-cache`, not `network-only`. Both skip the cache on the way IN, and only one of
+     * them also refuses to WRITE. MemberAvatar carries no id and there are no type policies,
+     * so nothing normalises the answer: every distinct ref list becomes its own ROOT_QUERY
+     * entry holding a full copy of the base64, and nothing evicts it before logout --
+     * measured at 2.1 MB of dead payload over eight pages, on top of the copy this wallet
+     * already keeps on purpose and caps at 200.
+     */
+    it('always asks the server, and leaves no copy in the cache', async () => {
       onResultHandler(listWith([ANNA]))
       await flushPromises()
-      expect(mockApolloQuery.mock.calls[0][0].fetchPolicy).toBe('network-only')
+      expect(mockApolloQuery.mock.calls[0][0].fetchPolicy).toBe('no-cache')
+    })
+
+    // A second booking list arriving before the first answer would otherwise ask for
+    // exactly the same faces again -- and on a slow connection a third one after that.
+    it('does not ask again for what a request is already waiting on', async () => {
+      mockApolloQuery.mockImplementationOnce(() => new Promise(() => {}))
+      onResultHandler(listWith([ANNA]))
+      await flushPromises()
+      expect(mockApolloQuery).toHaveBeenCalledTimes(1)
+
+      onResultHandler(listWith([ANNA]))
+      await flushPromises()
+      expect(mockApolloQuery).toHaveBeenCalledTimes(1)
     })
 
     // ★ A member can turn the page faster than an answer comes back. The older answer must
@@ -311,6 +333,75 @@ describe('DashboardLayout', () => {
 
       // ...and only now does the first request come back with her picture.
       answerTheFirstRequest()
+      await flushPromises()
+
+      expect(storedMemberAvatar(ANNA, ANNA.avatarUpdatedAt)).toBeNull()
+    })
+
+    /**
+     * ★ ...and only for her. Throwing the WHOLE answer away because a newer list arrived
+     * costs the member every portrait in it -- downloaded, paid for, and dropped -- and the
+     * list then shows initials although the bytes had already come. Only the members the
+     * newest list withdrew are actually dangerous, and the store is told exactly who those
+     * are.
+     */
+    it('keeps the rest of an answer a newer list overtook', async () => {
+      const BEN = {
+        gradidoID: 'bbbb-ben',
+        communityUuid: 'cccc-community',
+        avatarUpdatedAt: '2026-08-17T10:00:00.000Z',
+      }
+      let answerTheFirstRequest
+      mockApolloQuery.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            answerTheFirstRequest = () =>
+              resolve({
+                data: {
+                  memberAvatars: [
+                    { ...ANNA, avatar: 'anna-picture' },
+                    { ...BEN, avatar: 'ben-picture' },
+                  ],
+                },
+              })
+          }),
+      )
+      onResultHandler(listWith([ANNA, BEN]))
+      await flushPromises()
+
+      onResultHandler(listWith([{ ...ANNA, avatarUpdatedAt: null }, BEN]))
+      await flushPromises()
+
+      answerTheFirstRequest()
+      await flushPromises()
+
+      expect(storedMemberAvatar(ANNA, ANNA.avatarUpdatedAt)).toBeNull()
+      expect(storedMemberAvatar(BEN, BEN.avatarUpdatedAt)).toBe('ben-picture')
+    })
+
+    /**
+     * ⛔ The gap a counter inside this component could not close, because the component is
+     * gone by then. The logout action wipes the picture store synchronously as its first
+     * act, while Apollo's cancellation of the request in flight is two deferrals later -- a
+     * microtask for clearStore, then a setTimeout for the cancel. An answer delivered in
+     * between resolves normally, and writing it would hand the next member to sign in on
+     * this browser the faces the previous one was allowed to see.
+     */
+    it('drops an answer that came back after the member logged out', async () => {
+      let answerTheRequest
+      mockApolloQuery.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            answerTheRequest = () =>
+              resolve({ data: { memberAvatars: [{ ...ANNA, avatar: 'anna-picture' }] } })
+          }),
+      )
+      onResultHandler(listWith([ANNA]))
+      await flushPromises()
+
+      // What store.js does, first thing in the logout action.
+      forgetAllMemberAvatars()
+      answerTheRequest()
       await flushPromises()
 
       expect(storedMemberAvatar(ANNA, ANNA.avatarUpdatedAt)).toBeNull()

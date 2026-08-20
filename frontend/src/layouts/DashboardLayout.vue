@@ -129,13 +129,19 @@
             <!-- Right Side Mobil -->
             <BCol :class="bareChrome ? 'd-none' : 'd-block d-lg-none'">
               <right-side>
-                <template #transactions>
-                  <last-transactions
-                    :transactions="transactions"
-                    :transaction-count="transactionCount"
-                    :transaction-link-count="transactionLinkCount"
-                  />
-                </template>
+                <!--
+                  Empty on purpose, and it always was in effect: this column shows below
+                  992px, while LastTransactions hides itself below 992px (d-none d-lg-block
+                  on its own root). The two conditions never overlap, so the list mounted
+                  here could not appear at any width -- it only rendered, and since the
+                  faces arrived that meant building up to eight base64 pictures per pass
+                  for a subtree nobody can see.
+
+                  On a phone the booking list IS the page, so a second copy of it beside
+                  the page has nothing to add. The desktop column below is the one that
+                  shows.
+                -->
+                <template #transactions />
                 <template #contributions>
                   <contributions-template />
                 </template>
@@ -222,8 +228,9 @@ import { transactionsUserCountQuery } from '@/graphql/transactions.graphql'
 import { logout } from '@/graphql/mutations'
 import { memberAvatars } from '@/graphql/queries'
 import {
+  claimMissingMemberAvatars,
   forgetWithdrawnMemberAvatars,
-  missingMemberAvatars,
+  memberAvatarStoreEpoch,
   rememberMemberAvatars,
 } from '@/composables/useMemberAvatars'
 import CONFIG from '@/config'
@@ -331,20 +338,16 @@ watch(
 // whether or not anything else works.
 //
 // Best effort by design: nobody loses their overview over a portrait.
-// Which list is current. A member can change page faster than a request comes back, and
-// without this the older answer would land last and win -- including for a member the
-// newer list had just reported as having nothing to show, whose face would come back after
-// being forgotten. Counted rather than cancelled, because the forgetting below must run
-// for every list either way.
-let avatarGeneration = 0
-
+//
+// ⛔ Staleness is NOT guarded here any more, and that is the point: it is guarded in the
+// store, which is the thing that outlives this component. A counter in `setup()` is one per
+// layout instance, while the pictures are one per module -- so the instance that a logout
+// destroys keeps a counter nobody can ever bump again, and its guard passes by definition.
+// `forgetWithdrawnMemberAvatars` now names the withdrawn members to the store, and
+// `rememberMemberAvatars` refuses exactly those. Everything else in a late answer is kept
+// rather than thrown away: a member who turns a page while a request is out paid for those
+// bytes, and discarding them shows initials on a list whose portraits had already arrived.
 const collectMemberAvatars = async (rows) => {
-  // ⚠️ Bumped for EVERY list, not only the ones that ask for something. A newer list that
-  // needs no request at all still has to invalidate whatever is in flight -- and that is
-  // exactly the case that matters, because "she has nothing to show any more" is a list
-  // that asks for nothing.
-  const generation = ++avatarGeneration
-
   const members = rows
     .map((row) => row.linkedUser)
     .filter((member) => member?.gradidoID)
@@ -356,9 +359,12 @@ const collectMemberAvatars = async (rows) => {
   if (!members.length) return
 
   forgetWithdrawnMemberAvatars(members)
-  const refs = missingMemberAvatars(members)
+  const { refs, done } = claimMissingMemberAvatars(members)
   if (!refs.length) return
 
+  // Read before the request, compared after it. The one thing a late answer must never
+  // survive is a logout in between -- see memberAvatarStoreEpoch.
+  const epoch = memberAvatarStoreEpoch()
   try {
     const { data } = await apolloClient.query({
       query: memberAvatars,
@@ -368,12 +374,24 @@ const collectMemberAvatars = async (rows) => {
       // before, so a cached answer would hand back the picture they just replaced and the
       // new one would never arrive. The freshness decision is made against the date on the
       // list, before we get here; by this point the answer has to come from the server.
-      fetchPolicy: 'network-only',
+      //
+      // `no-cache`, not `network-only`: both skip the cache on the way IN, but
+      // network-only still writes the answer to it. MemberAvatar carries no id and there
+      // are no type policies, so nothing normalises it -- every distinct ref list becomes
+      // its own ROOT_QUERY entry holding a full copy of the base64, and nothing evicts it
+      // before logout. Measured at 2.1 MB of dead payload over eight pages, on top of the
+      // copy this module already keeps.
+      fetchPolicy: 'no-cache',
     })
-    if (generation !== avatarGeneration) return
+    if (epoch !== memberAvatarStoreEpoch()) return
     rememberMemberAvatars(data?.memberAvatars ?? [])
   } catch {
     // Initials this time round, and the next list asks again.
+  } finally {
+    // Whatever happened, these members are no longer being waited for. Without this a
+    // failed request would leave them marked in flight and they would never be asked
+    // about again on this page.
+    done()
   }
 }
 
