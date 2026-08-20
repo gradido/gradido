@@ -92,6 +92,10 @@ const routes = [
     meta: {
       requiresAuth: true,
       pageTitle: 'calculator',
+      // Like the map: the page brings its own head (back arrow, gear), so on a phone the
+      // wallet chrome goes entirely and the keypad gets the screen. On desktop the menu
+      // stays. Without this, the translucent navbar sat exactly over the total.
+      bareChrome: true,
     },
   },
   {

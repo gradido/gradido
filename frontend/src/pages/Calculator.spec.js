@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
 import Calculator from './Calculator.vue'
@@ -17,6 +17,27 @@ import en from '@/locales/en.json'
 
 const state = { gradidoID: 'user-one' }
 vi.mock('vuex', () => ({ useStore: () => ({ state }) }))
+
+/**
+ * The page's own back arrow. `historyState.back` is what vue-router remembers about where
+ * we came from -- null on a deep link, and that difference is the whole test.
+ */
+const historyState = { back: null }
+const mockRouter = {
+  back: vi.fn(),
+  push: vi.fn(),
+  options: { history: { state: historyState } },
+}
+vi.mock('vue-router', () => ({ useRouter: () => mockRouter }))
+
+const toastSuccessMock = vi.fn()
+const toastErrorMock = vi.fn()
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: () => ({ toastSuccess: toastSuccessMock, toastError: toastErrorMock }),
+}))
+
+/** What the copy buttons hand to the clipboard -- jsdom brings no clipboard of its own. */
+const writeTextMock = vi.fn(() => Promise.resolve())
 
 /**
  * The house way of testing a modal (see `AliasFirstChoice.spec.js`): a stub that renders its
@@ -50,6 +71,13 @@ vi.mock('bootstrap-vue-next', () => ({
 
 const DECIMAL = {
   decimal: { style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2 },
+  // What the copy buttons write: the same two decimals, but NEVER grouped -- see the page.
+  ungroupedDecimal: {
+    style: 'decimal',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    useGrouping: false,
+  },
 }
 
 /**
@@ -88,6 +116,17 @@ const press = async (wrapper, ...names) => {
 describe('Calculator page', () => {
   beforeEach(() => {
     state.gradidoID = 'user-one'
+    historyState.back = null
+    mockRouter.back.mockClear()
+    mockRouter.push.mockClear()
+    writeTextMock.mockClear()
+    writeTextMock.mockImplementation(() => Promise.resolve())
+    toastSuccessMock.mockClear()
+    toastErrorMock.mockClear()
+    Object.defineProperty(window.navigator, 'clipboard', {
+      value: { writeText: writeTextMock },
+      configurable: true,
+    })
     window.localStorage.clear()
   })
 
@@ -119,7 +158,7 @@ describe('Calculator page', () => {
       await press(wrapper, 'digit-2', 'separator', 'digit-8', 'digit-0', 'equals')
 
       expect(key(wrapper, 'display').text()).toBe('10,50')
-      expect(key(wrapper, 'sub-amounts').text()).toContain('10,50')
+      expect(key(wrapper, 'sub-gdd').text()).toContain('10,50')
     })
 
     it('clears everything on AC', async () => {
@@ -283,6 +322,97 @@ describe('Calculator page', () => {
     })
   })
 
+  describe('copying a sum', () => {
+    /**
+     * ⛔ Ungrouped is the whole point. Three of the wallet's amount fields still read with
+     * the plain comma-to-dot rule, so a copied `1.234,50` would turn to NaN in Send --
+     * `1234,50` is read correctly by every field, old rule and new.
+     */
+    it('copies the GDD sum ungrouped, in the notation of the language', async () => {
+      const wrapper = mountCalculator('de')
+      await press(wrapper, 'digit-1', 'digit-2', 'digit-3', 'digit-4', 'separator', 'digit-5')
+      await press(wrapper, 'equals')
+      await key(wrapper, 'copy-gdd').trigger('click')
+      await flushPromises()
+
+      expect(writeTextMock).toHaveBeenCalledWith('1234,50')
+      expect(toastSuccessMock).toHaveBeenCalled()
+    })
+
+    /** The local currency goes into an official till app -- the second copy case. */
+    it('copies the currency side of a mixed sale', async () => {
+      window.localStorage.setItem('calculator-prefs:user-one', JSON.stringify({ percent: 60 }))
+      const wrapper = mountCalculator('de')
+      await press(wrapper, 'digit-1', 'digit-0', 'equals')
+      await key(wrapper, 'copy-fiat').trigger('click')
+      await flushPromises()
+
+      expect(writeTextMock).toHaveBeenCalledWith('4,00')
+    })
+
+    it('offers the copy on a DankBar conversion too', async () => {
+      const wrapper = mountCalculator('de')
+      await press(wrapper, 'digit-1', 'digit-0', 'digit-0', 'dankbar')
+      expect(key(wrapper, 'copy-gdd').exists()).toBe(true)
+    })
+
+    /** No clipboard at all, or one that throws instead of rejecting: same audible refusal. */
+    it.each([
+      ['is missing entirely', () => delete window.navigator.clipboard],
+      [
+        'throws synchronously',
+        () =>
+          writeTextMock.mockImplementation(() => {
+            throw new Error('denied')
+          }),
+      ],
+    ])('still answers when the clipboard %s', async (_name, sabotage) => {
+      const wrapper = mountCalculator('de')
+      await press(wrapper, 'digit-5', 'equals')
+      sabotage()
+      await key(wrapper, 'copy-gdd').trigger('click')
+      await flushPromises()
+
+      expect(toastErrorMock).toHaveBeenCalled()
+    })
+
+    /** A refused clipboard must say so -- a silent nothing looks exactly like a missed tap. */
+    it('says so when the clipboard refuses', async () => {
+      writeTextMock.mockImplementation(() => Promise.reject(new Error('denied')))
+      const wrapper = mountCalculator('de')
+      await press(wrapper, 'digit-5', 'equals')
+      await key(wrapper, 'copy-gdd').trigger('click')
+      await flushPromises()
+
+      expect(toastErrorMock).toHaveBeenCalled()
+      expect(toastSuccessMock).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('the way back', () => {
+    /** Reachable from every page, so it returns to whichever page that was. */
+    it('steps back through the history when there is one', async () => {
+      historyState.back = '/overview'
+      const wrapper = mountCalculator()
+      await key(wrapper, 'back').trigger('click')
+
+      expect(mockRouter.back).toHaveBeenCalled()
+      expect(mockRouter.push).not.toHaveBeenCalled()
+    })
+
+    /**
+     * ⚠️ A deep link has no wallet history, and a bare history step would walk OUT of the
+     * wallet -- to whatever the browser had open before. The overview is the safe landing.
+     */
+    it('lands on the overview when the calculator was opened directly', async () => {
+      const wrapper = mountCalculator()
+      await key(wrapper, 'back').trigger('click')
+
+      expect(mockRouter.push).toHaveBeenCalledWith('/overview')
+      expect(mockRouter.back).not.toHaveBeenCalled()
+    })
+  })
+
   describe('settings', () => {
     it('keeps what was typed, and keeps it for next time', async () => {
       const wrapper = mountCalculator('de')
@@ -357,7 +487,7 @@ describe('Calculator page', () => {
         await wrapper.find('.modal-ok').trigger('click')
 
         await press(wrapper, 'digit-1', 'digit-0', 'equals')
-        expect(key(wrapper, 'sub-amounts').text()).toContain('6,00')
+        expect(key(wrapper, 'sub-gdd').text()).toContain('6,00')
       },
     )
   })

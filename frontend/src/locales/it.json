@@ -55,6 +55,7 @@
   },
   "back": "Indietro",
   "calculator": {
+    "back": "Indietro",
     "card": {
       "from-calculator": "dalla calcolatrice",
       "park": "Paga con carta di ringraziamento",
@@ -62,6 +63,12 @@
       "parked": "Importo annotato: {amount} GDD",
       "scan-hint": "Ora scansiona la carta.",
       "undo": "Annulla"
+    },
+    "copy": {
+      "copied": "Copiato.",
+      "fiat": "Copia importo in {currency}",
+      "gdd": "Copia importo Gradido",
+      "not-copied": "Impossibile copiare."
     },
     "daily-rate": "Tasso del giorno",
     "dankbar-equals": "{dankBar} DankBar = {gdd} Gradido",

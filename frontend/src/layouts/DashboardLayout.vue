@@ -25,6 +25,17 @@
       <BRow fluid class="d-flex" :class="bareTopSpace">
         <!-- Sidebar left -->
         <BCol cols="2" class="d-none d-lg-block">
+          <!-- The calculator sits above the menu, level with the page heading -- small and
+               unmarked on purpose: a tool for those who run a till, not a headline feature.
+               Whoever needs it knows where it lives. (Bernd, 20.08.2026) -->
+          <router-link
+            to="/calculator"
+            class="sidebar-calculator-quick"
+            :aria-label="$t('navigation.calculator')"
+            data-test="sidebar-calculator"
+          >
+            <i-mdi-calculator />
+          </router-link>
           <sidebar
             class="main-sidebar"
             :show-logo="bareChrome"
@@ -481,5 +492,25 @@ const admin = () => {
   .breadcrumb {
     padding-top: 55px !important;
   }
+}
+
+/* Small to the eye, 44px to the pointer -- same rule as the gear inside the calculator.
+   ⚠️ Named for THIS spot: the style block of this layout is global, so a shared class name
+   would style the navbar's twin as well -- the desktop margin would shift the phone symbol. */
+.sidebar-calculator-quick {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-left: 8px;
+  font-size: 22px;
+  color: inherit;
+  opacity: 0.65;
+}
+
+.sidebar-calculator-quick:hover {
+  color: inherit;
+  opacity: 1;
 }
 </style>

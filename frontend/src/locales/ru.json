@@ -55,6 +55,7 @@
   },
   "back": "Вернуться",
   "calculator": {
+    "back": "Назад",
     "card": {
       "from-calculator": "из калькулятора",
       "park": "Оплатить картой благодарности",
@@ -62,6 +63,12 @@
       "parked": "Сумма запомнена: {amount} GDD",
       "scan-hint": "Теперь отсканируй карту.",
       "undo": "Отменить"
+    },
+    "copy": {
+      "copied": "Скопировано.",
+      "fiat": "Скопировать сумму в {currency}",
+      "gdd": "Скопировать сумму Gradido",
+      "not-copied": "Не удалось скопировать."
     },
     "daily-rate": "Курс дня",
     "dankbar-equals": "{dankBar} DankBar = {gdd} Gradido",

@@ -541,6 +541,14 @@ describe('DashboardLayout', () => {
       expect(wrapper.find('.main-sidebar').exists()).toBeTruthy()
     })
 
+    /**
+     * The desktop twin of the navbar's quick symbol: above the menu, level with the page
+     * heading, small and unmarked. (Bernd, 20.08.2026)
+     */
+    it('offers the calculator above the menu', () => {
+      expect(wrapper.find('[data-test="sidebar-calculator"]').exists()).toBe(true)
+    })
+
     it('has a main content div', () => {
       expect(wrapper.find('div.main-content').exists()).toBeTruthy()
     })

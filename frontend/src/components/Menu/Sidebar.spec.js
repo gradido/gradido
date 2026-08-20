@@ -92,9 +92,9 @@ describe('Sidebar', () => {
     })
 
     describe('the general section', () => {
-      it('has six nav-items', () => {
+      it('has five nav-items', () => {
         const generalSection = wrapper.findAll('ul')[0]
-        expect(generalSection.findAll('.nav-item')).toHaveLength(6)
+        expect(generalSection.findAll('.nav-item')).toHaveLength(5)
       })
 
       it('has nav-item "navigation.overview" in navbar', () => {
@@ -105,24 +105,30 @@ describe('Sidebar', () => {
         expect(wrapper.findAll('.nav-item').at(1).text()).toContain('Send')
       })
 
-      it('has nav-item "navigation.calculator" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(2).text()).toContain('Calculator')
+      /**
+       * ⛔ The calculator is deliberately NOT a menu entry any more. It moved to a small
+       * symbol above the menu (navbar on the phone, above the sidebar on desktop) -- the
+       * menu was getting long, and the calculator is a tool for those who run a till, not a
+       * page everybody visits. (Bernd, 20.08.2026)
+       */
+      it('does not list the calculator as a menu entry', () => {
+        expect(wrapper.text()).not.toContain('Calculator')
       })
 
       it('has nav-item "navigation.transactions" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(3).text()).toContain('Transactions')
+        expect(wrapper.findAll('.nav-item').at(2).text()).toContain('Transactions')
       })
 
       it('has nav-item "creation" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(4).text()).toContain('Creation')
+        expect(wrapper.findAll('.nav-item').at(3).text()).toContain('Creation')
       })
 
       it('has nav-item "matching" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(5).text()).toContain('Matching')
+        expect(wrapper.findAll('.nav-item').at(4).text()).toContain('Matching')
       })
 
       it('has nav-item "info" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(6).text()).toContain('Info')
+        expect(wrapper.findAll('.nav-item').at(5).text()).toContain('Info')
       })
     })
 
@@ -133,7 +139,7 @@ describe('Sidebar', () => {
         })
 
         it('has two nav-items', () => {
-          expect(wrapper.findAll('.nav-item').slice(7)).toHaveLength(2)
+          expect(wrapper.findAll('.nav-item').slice(6)).toHaveLength(2)
         })
 
         it('has nav-item "navigation.settings" in navbar', () => {
@@ -151,7 +157,7 @@ describe('Sidebar', () => {
         })
 
         it('has three nav-items', () => {
-          expect(wrapper.findAll('.nav-item').slice(7)).toHaveLength(3)
+          expect(wrapper.findAll('.nav-item').slice(6)).toHaveLength(3)
         })
 
         it('has nav-item "navigation.settings" in navbar', () => {
@@ -159,7 +165,7 @@ describe('Sidebar', () => {
         })
 
         it('has nav-item "navigation.admin_area" in navbar', () => {
-          const adminItems = wrapper.findAll('.nav-item').slice(7)
+          const adminItems = wrapper.findAll('.nav-item').slice(6)
           expect(adminItems.length).toBeGreaterThan(1)
           expect(adminItems[1].text()).toContain('Admin Area')
         })
@@ -195,22 +201,16 @@ describe('Sidebar with MATCHING_ACTIVE off', () => {
     expect(mountSidebar().text()).not.toContain('Matching')
   })
 
-  it('drops the item from the general section, leaving five', () => {
+  it('drops the item from the general section, leaving four', () => {
     const generalSection = mountSidebar().findAll('ul')[0]
-    expect(generalSection.findAll('.nav-item')).toHaveLength(5)
+    expect(generalSection.findAll('.nav-item')).toHaveLength(4)
   })
 
   it('keeps every other menu item', () => {
+    // No 'Calculator' in this list any more: it moved out of the menu altogether, to the
+    // small symbol above it. See the main describe.
     const text = mountSidebar().text()
-    for (const label of [
-      'Overview',
-      'Send',
-      'Calculator',
-      'Transactions',
-      'Creation',
-      'Info',
-      'Settings',
-    ]) {
+    for (const label of ['Overview', 'Send', 'Transactions', 'Creation', 'Info', 'Settings']) {
       expect(text).toContain(label)
     }
   })

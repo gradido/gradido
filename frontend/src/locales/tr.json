@@ -55,6 +55,7 @@
   },
   "back": "Geri",
   "calculator": {
+    "back": "Geri",
     "card": {
       "from-calculator": "hesap makinesinden",
       "park": "Teşekkür kartıyla öde",
@@ -62,6 +63,12 @@
       "parked": "Tutar not edildi: {amount} GDD",
       "scan-hint": "Şimdi kartı tara.",
       "undo": "Geri al"
+    },
+    "copy": {
+      "copied": "Kopyalandı.",
+      "fiat": "{currency} tutarını kopyala",
+      "gdd": "Gradido tutarını kopyala",
+      "not-copied": "Kopyalanamadı."
     },
     "daily-rate": "Günlük kur",
     "dankbar-equals": "{dankBar} DankBar = {gdd} Gradido",
