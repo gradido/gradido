@@ -64,6 +64,12 @@
       "scan-hint": "Теперь отсканируй карту.",
       "undo": "Отменить"
     },
+    "copy": {
+      "copied": "Скопировано.",
+      "fiat": "Скопировать сумму в {currency}",
+      "gdd": "Скопировать сумму Gradido",
+      "not-copied": "Не удалось скопировать."
+    },
     "daily-rate": "Курс дня",
     "dankbar-equals": "{dankBar} DankBar = {gdd} Gradido",
     "dankbar-to-gdd": "DankBar → GDD",

@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
 import Calculator from './Calculator.vue'
@@ -29,6 +29,15 @@ const mockRouter = {
   options: { history: { state: historyState } },
 }
 vi.mock('vue-router', () => ({ useRouter: () => mockRouter }))
+
+const toastSuccessMock = vi.fn()
+const toastErrorMock = vi.fn()
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: () => ({ toastSuccess: toastSuccessMock, toastError: toastErrorMock }),
+}))
+
+/** What the copy buttons hand to the clipboard -- jsdom brings no clipboard of its own. */
+const writeTextMock = vi.fn(() => Promise.resolve())
 
 /**
  * The house way of testing a modal (see `AliasFirstChoice.spec.js`): a stub that renders its
@@ -62,6 +71,13 @@ vi.mock('bootstrap-vue-next', () => ({
 
 const DECIMAL = {
   decimal: { style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2 },
+  // What the copy buttons write: the same two decimals, but NEVER grouped -- see the page.
+  ungroupedDecimal: {
+    style: 'decimal',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    useGrouping: false,
+  },
 }
 
 /**
@@ -103,6 +119,14 @@ describe('Calculator page', () => {
     historyState.back = null
     mockRouter.back.mockClear()
     mockRouter.push.mockClear()
+    writeTextMock.mockClear()
+    writeTextMock.mockImplementation(() => Promise.resolve())
+    toastSuccessMock.mockClear()
+    toastErrorMock.mockClear()
+    Object.defineProperty(window.navigator, 'clipboard', {
+      value: { writeText: writeTextMock },
+      configurable: true,
+    })
     window.localStorage.clear()
   })
 
@@ -295,6 +319,53 @@ describe('Calculator page', () => {
 
       expect(key(wrapper, 'parked').exists()).toBe(false)
       expect(key(wrapper, 'display').text()).toBe('50,00')
+    })
+  })
+
+  describe('copying a sum', () => {
+    /**
+     * ⛔ Ungrouped is the whole point. Three of the wallet's amount fields still read with
+     * the plain comma-to-dot rule, so a copied `1.234,50` would turn to NaN in Send --
+     * `1234,50` is read correctly by every field, old rule and new.
+     */
+    it('copies the GDD sum ungrouped, in the notation of the language', async () => {
+      const wrapper = mountCalculator('de')
+      await press(wrapper, 'digit-1', 'digit-2', 'digit-3', 'digit-4', 'separator', 'digit-5')
+      await press(wrapper, 'equals')
+      await key(wrapper, 'copy-gdd').trigger('click')
+      await flushPromises()
+
+      expect(writeTextMock).toHaveBeenCalledWith('1234,50')
+      expect(toastSuccessMock).toHaveBeenCalled()
+    })
+
+    /** The local currency goes into an official till app -- the second copy case. */
+    it('copies the currency side of a mixed sale', async () => {
+      window.localStorage.setItem('calculator-prefs:user-one', JSON.stringify({ percent: 60 }))
+      const wrapper = mountCalculator('de')
+      await press(wrapper, 'digit-1', 'digit-0', 'equals')
+      await key(wrapper, 'copy-fiat').trigger('click')
+      await flushPromises()
+
+      expect(writeTextMock).toHaveBeenCalledWith('4,00')
+    })
+
+    it('offers the copy on a DankBar conversion too', async () => {
+      const wrapper = mountCalculator('de')
+      await press(wrapper, 'digit-1', 'digit-0', 'digit-0', 'dankbar')
+      expect(key(wrapper, 'copy-gdd').exists()).toBe(true)
+    })
+
+    /** A refused clipboard must say so -- a silent nothing looks exactly like a missed tap. */
+    it('says so when the clipboard refuses', async () => {
+      writeTextMock.mockImplementation(() => Promise.reject(new Error('denied')))
+      const wrapper = mountCalculator('de')
+      await press(wrapper, 'digit-5', 'equals')
+      await key(wrapper, 'copy-gdd').trigger('click')
+      await flushPromises()
+
+      expect(toastErrorMock).toHaveBeenCalled()
+      expect(toastSuccessMock).not.toHaveBeenCalled()
     })
   })
 

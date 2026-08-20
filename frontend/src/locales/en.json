@@ -64,6 +64,12 @@
       "scan-hint": "Now scan the card.",
       "undo": "Undo"
     },
+    "copy": {
+      "copied": "Copied.",
+      "fiat": "Copy {currency} amount",
+      "gdd": "Copy Gradido amount",
+      "not-copied": "Could not copy."
+    },
     "daily-rate": "Daily rate",
     "dankbar-equals": "{dankBar} DankBar = {gdd} Gradido",
     "dankbar-to-gdd": "DankBar to GDD",

@@ -54,11 +54,33 @@
              field mostly empty. GDD is the larger of the two: it is the number that goes
              over the card. The DankBar line comes last and stays small; it is losing its
              importance. (Bernd, 20.08.2026) -->
+        <!-- Copy buttons on the two sums that get typed in somewhere else: GDD into the
+             wallet's own amount fields, the local currency into an official till app. The
+             DankBar line gets none -- it is on its way out -- and neither does the total:
+             what is entered elsewhere is always one of the two shares, never their sum. -->
         <div class="calculator-sub-fiat" data-test="calculator-sub-fiat">
           {{ currency }} {{ $n(subResult.fiat, 'decimal') }}
+          <button
+            type="button"
+            class="calculator-copy"
+            :aria-label="$t('calculator.copy.fiat', { currency })"
+            data-test="calculator-copy-fiat"
+            @click="copyAmount(subResult.fiat)"
+          >
+            <IBiCopy />
+          </button>
         </div>
         <div class="calculator-sub-gdd" data-test="calculator-sub-gdd">
           GDD {{ $n(subResult.gdd, 'decimal') }}
+          <button
+            type="button"
+            class="calculator-copy"
+            :aria-label="$t('calculator.copy.gdd')"
+            data-test="calculator-copy-gdd"
+            @click="copyAmount(subResult.gdd)"
+          >
+            <IBiCopy />
+          </button>
         </div>
         <div v-if="factor !== 1" class="calculator-sub-note">
           {{ $t('calculator.purchasing-power', { factor, currency }) }}
@@ -80,6 +102,15 @@
               gdd: $n(subResult.gdd, 'decimal'),
             })
           }}
+          <button
+            type="button"
+            class="calculator-copy"
+            :aria-label="$t('calculator.copy.gdd')"
+            data-test="calculator-copy-gdd"
+            @click="copyAmount(subResult.gdd)"
+          >
+            <IBiCopy />
+          </button>
         </div>
       </template>
     </div>
@@ -231,6 +262,7 @@ import { BButton, BFormCheckbox, BFormInput, BModal } from 'bootstrap-vue-next'
 import { computed, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useAppToast } from '@/composables/useToast'
 import { useCalculator } from '@/composables/useCalculator'
 import { useCalculatorPrefs } from '@/composables/useCalculatorPrefs'
 import { useCalculatorSound } from '@/composables/useCalculatorSound'
@@ -248,7 +280,8 @@ const DIGIT_ROWS = [
 ]
 
 const router = useRouter()
-const { t, locale } = useI18n()
+const { t, n, locale } = useI18n()
+const { toastSuccess, toastError } = useAppToast()
 const { percent, factor, currency, showDankBar, sound } = useCalculatorPrefs()
 const { play, stop } = useCalculatorSound(sound)
 const { park, readParked, clearParked, hasParkedEntry, parkedKey } = useParkedAmount()
@@ -369,6 +402,29 @@ const goBack = () => {
   } else {
     router.push('/overview')
   }
+}
+
+/**
+ * Puts one of the two sums into the clipboard, to be typed in somewhere else.
+ *
+ * ⛔ UNGROUPED on purpose -- `1234,50`, never `1.234,50`. Three of the wallet's amount
+ * fields still read with the plain comma-to-dot rule, and a grouped thousand would turn to
+ * nonsense there; ungrouped with the language's own decimal separator is read correctly by
+ * every field of the wallet, and reads naturally outside it too. The format is
+ * `ungroupedDecimal` from i18n.js -- defined for every language and waiting, unused, since
+ * it was added.
+ */
+const copyAmount = (value) => {
+  navigator.clipboard.writeText(n(value, 'ungroupedDecimal')).then(
+    () => {
+      play('function')
+      toastSuccess(t('calculator.copy.copied'))
+    },
+    () => {
+      play('warn')
+      toastError(t('calculator.copy.not-copied'))
+    },
+  )
 }
 
 /** Runs a calculator action and plays whatever sound its path earned. */
@@ -587,6 +643,23 @@ onUnmounted(() => {
 .calculator-sub-gdd {
   font-size: 27px;
   color: var(--calc-ink);
+}
+
+.calculator-copy {
+  width: 36px;
+  height: 30px;
+  padding: 0;
+  font-size: 15px;
+  vertical-align: baseline;
+  color: inherit;
+  opacity: 0.5;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.calculator-copy:hover {
+  opacity: 1;
 }
 
 .calculator-sub-note {

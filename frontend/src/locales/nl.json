@@ -64,6 +64,12 @@
       "scan-hint": "Scan nu de kaart.",
       "undo": "Ongedaan maken"
     },
+    "copy": {
+      "copied": "Gekopieerd.",
+      "fiat": "{currency}-bedrag kopiëren",
+      "gdd": "Gradido-bedrag kopiëren",
+      "not-copied": "Kopiëren niet gelukt."
+    },
     "daily-rate": "Dagkoers",
     "dankbar-equals": "{dankBar} DankBar = {gdd} Gradido",
     "dankbar-to-gdd": "DankBar → GDD",
