@@ -13,6 +13,7 @@ import { useCalculatorSound } from './useCalculatorSound'
  */
 
 let created
+let gains
 let currentTime
 
 const makeContext = () => ({
@@ -25,16 +26,22 @@ const makeContext = () => ({
       type: '',
       frequency: { setValueAtTime: vi.fn(), exponentialRampToValueAtTime: vi.fn() },
       connect: vi.fn(),
+      disconnect: vi.fn(),
       start: vi.fn(),
       stop: vi.fn(),
     }
     created.push(oscillator)
     return oscillator
   },
-  createGain: () => ({
-    gain: { setValueAtTime: vi.fn(), exponentialRampToValueAtTime: vi.fn() },
-    connect: vi.fn(),
-  }),
+  createGain: () => {
+    const gain = {
+      gain: { setValueAtTime: vi.fn(), exponentialRampToValueAtTime: vi.fn() },
+      connect: vi.fn(),
+      disconnect: vi.fn(),
+    }
+    gains.push(gain)
+    return gain
+  },
   destination: {},
   resume: vi.fn(() => Promise.resolve()),
   close: vi.fn(),
@@ -43,6 +50,7 @@ const makeContext = () => ({
 describe('useCalculatorSound', () => {
   beforeEach(() => {
     created = []
+    gains = []
     currentTime = 100
     window.AudioContext = vi.fn(makeContext)
   })
@@ -102,6 +110,56 @@ describe('useCalculatorSound', () => {
     currentTime = 0
     play('warn')
     expect(created).toHaveLength(6)
+  })
+
+  /**
+   * ⚠️ WebKit parks the device on the non-standard state 'interrupted' after a phone call
+   * or Siri. A check for 'suspended' alone left it there -- no tone, no error, silent until
+   * logging out and back in. That was the till's "sometimes no sound" in the wallet and the
+   * PWA alike.
+   */
+  it('nudges a context iOS has interrupted', () => {
+    const { play } = useCalculatorSound(ref(true))
+    play('digit')
+    const ctx = window.AudioContext.mock.results[0].value
+    expect(ctx.resume).not.toHaveBeenCalled()
+
+    ctx.state = 'interrupted'
+    play('digit')
+    expect(ctx.resume).toHaveBeenCalledTimes(1)
+  })
+
+  /**
+   * ⛔ A context that reached 'closed' is dead for good -- iOS does that to a frozen tab.
+   * Revival attempts change nothing; only a fresh device brings the sound back.
+   */
+  it('replaces a context that was closed under it', () => {
+    const { play } = useCalculatorSound(ref(true))
+    play('digit')
+    expect(window.AudioContext).toHaveBeenCalledTimes(1)
+
+    window.AudioContext.mock.results[0].value.state = 'closed'
+    play('digit')
+    expect(window.AudioContext).toHaveBeenCalledTimes(2)
+    expect(created).toHaveLength(2)
+  })
+
+  /** The tone lets go of the output when it is over, or a shift's key presses pile up. */
+  it('disconnects a finished tone', () => {
+    useCalculatorSound(ref(true)).play('digit')
+    expect(created[0].onended).toBeTypeOf('function')
+
+    created[0].onended()
+    expect(gains[0].disconnect).toHaveBeenCalled()
+  })
+
+  /** The warning is three tones but one device: resolved once, not four times. */
+  it('resolves the device once for a whole warning', () => {
+    window.AudioContext = vi.fn(() => ({ ...makeContext(), state: 'suspended' }))
+    const { play } = useCalculatorSound(ref(true))
+    play('warn')
+    const ctx = window.AudioContext.mock.results[0].value
+    expect(ctx.resume).toHaveBeenCalledTimes(1)
   })
 
   /**
