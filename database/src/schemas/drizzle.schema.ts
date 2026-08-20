@@ -312,8 +312,9 @@ export type UserAvatarInsert = typeof userAvatarsTable.$inferInsert
 // disabling means deleting it. "Enabled but without a PIN" therefore cannot exist.
 export const thankYouCardSettingsTable = mysqlTable('thank_you_card_settings', {
   userId: int('user_id').primaryKey().notNull(),
-  // Same derivation as users.password (argon2id, then a 64 bit shorthash), but with its
-  // own salt -- a leak must not let one of the two secrets say anything about the other.
+  // A keyed BLAKE2b, cut to 64 bit (see backend/src/password/PinEncryptor.ts) -- NOT the
+  // users.password derivation, deliberately, and with its own salt: a leak must not let
+  // one of the two secrets say anything about the other.
   //
   // ⚠️ mode 'bigint' and unsigned, both load-bearing. The derivation returns a full 64 bit
   // word, and only one value in 2048 is small enough to survive as a JS number — 2^53 out
