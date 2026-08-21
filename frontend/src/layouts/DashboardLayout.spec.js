@@ -593,6 +593,22 @@ describe('DashboardLayout', () => {
       seeing.unmount()
     })
 
+    /**
+     * ⛔ WHERE they sit is the whole point, and nothing else here can see it. Inside the menu
+     * column the four tools pushed the menu down by their own height, so it no longer stood
+     * level with the account panel opposite -- which is how it had always been. They live in
+     * the heading row now, in the space its `offset-lg="2"` was leaving empty anyway.
+     *
+     * A jsdom test cannot measure a pixel, but it can hold the two apart: the tools in the
+     * heading row, the menu alone in its column. (Bernd, 21.08.2026)
+     */
+    it('keeps the tools out of the menu column, so the menu stays level', () => {
+      expect(wrapper.find('.breadcrumb .sidebar-quick-row').exists()).toBe(true)
+
+      const menuColumn = wrapper.find('.main-sidebar').element.parentElement
+      expect(menuColumn.querySelector('.sidebar-quick-row')).toBe(null)
+    })
+
     it('has a main content div', () => {
       expect(wrapper.find('div.main-content').exists()).toBeTruthy()
     })
