@@ -61,7 +61,7 @@
       "park": "Pay by thank-you card",
       "park-failed": "Not noted — type the amount in after scanning.",
       "parked": "Amount noted: {amount} GDD",
-      "scan-hint": "Now scan the card.",
+      "scan": "Scan card",
       "undo": "Undo"
     },
     "copy": {
@@ -687,6 +687,7 @@
       "submit": "Open"
     },
     "no-gradido-code": "Not a Gradido code.",
+    "permission-hint": "Asked for the camera every time? Your browser's site settings can allow the camera for this page for good.",
     "system-camera": {
       "parked": "The remembered amount is waiting and will be taken over.",
       "text": "Your device's camera opens the right page after scanning.",
@@ -858,6 +859,7 @@
   "success": "Success",
   "thank-you-card": {
     "back-to-account": "Back to account",
+    "back-to-calculator": "Back to the calculator",
     "name": "Thank you card",
     "receive": {
       "amount": "{amount} GDD",

@@ -154,7 +154,18 @@
       </BButton>
       <div v-else class="calculator-parked" data-test="calculator-parked">
         <div>{{ $t('calculator.card.parked', { amount: $n(parked, 'decimal') }) }}</div>
-        <div class="small">{{ $t('calculator.card.scan-hint') }}</div>
+        <!-- A button, not the sentence "now scan the card" it replaced: that sentence
+             described an action nobody could tap (it meant the phone's camera app). Back
+             from a wrong card, the way to the right one is this one press -- not undo,
+             re-park, scan. (Bernd, 21.08.2026) -->
+        <BButton
+          variant="gradido"
+          class="w-100 mt-2"
+          data-test="calculator-scan"
+          @click="scanAgain"
+        >
+          {{ $t('calculator.card.scan') }}
+        </BButton>
         <BButton
           size="sm"
           variant="secondary"
@@ -529,6 +540,17 @@ const undoPark = () => {
   parked.value = null
   parkFailed.value = false
   play('function')
+}
+
+/**
+ * Back to the camera with the amount still parked -- after a wrong card (the own one
+ * scanned by mistake, a refused one), without undo and re-park. The basket is saved again
+ * because the arrival read consumed the previous snapshot: this is a new round trip.
+ */
+const scanAgain = () => {
+  saveBasket(snapshot())
+  play('function')
+  router.push('/scan')
 }
 
 /**

@@ -44,6 +44,13 @@
         {{ $t('scanner.manual.open') }}
       </button>
 
+      <!-- From the second start in this browser session on: the permission question has
+           just come back, and this is the moment somebody wants to know how to make it
+           stop. See repeatedOpen. -->
+      <div v-if="repeatedOpen" class="scanner-permission-hint" data-test="scanner-permission-hint">
+        {{ $t('scanner.permission-hint') }}
+      </div>
+
       <!-- "No Gradido code": an answer, not an alarm. It shows briefly and scanning just
            continues; the same unknown code re-announces itself only after the lock below
            runs out, so a code held into the picture does not flicker this at 10/s. -->
@@ -220,6 +227,7 @@ import { useParkedAmount } from '@/composables/useParkedAmount'
 import { openExternalUrl } from '@/utils/browserLocation'
 import { communityHost } from '@/utils/gradidoAddress'
 import { resolveScanTarget } from '@/utils/scanTarget'
+import { countScannerOpen } from '@/utils/scannerOpens'
 
 /**
  * How long the same payload stays quiet after "keep scanning" or an unknown-code note.
@@ -259,6 +267,16 @@ const unknownShown = ref(false)
  * could refresh it, and a ref with an unreachable refresh site just claims otherwise.
  */
 const parkedWaiting = readParked() !== null
+
+/**
+ * Whether this is at least the second scanner start in this session. Engines that tie the
+ * camera grant to a live capture session (iOS Safari) ask the permission question again
+ * with every start — and the wallet stops the camera on every way out on purpose, so it
+ * cannot dodge the question by keeping the camera running (the light would stay on). What
+ * it CAN do is tell people, exactly at the second question, that the browser's own site
+ * settings allow the camera for this page for good. (Bernd, 21.08.2026)
+ */
+const repeatedOpen = countScannerOpen() > 1
 
 let ignoredValue = null
 let ignoredAt = 0
@@ -530,6 +548,14 @@ onUnmounted(() => {
   background: transparent;
   border: none;
   cursor: pointer;
+}
+
+.scanner-permission-hint {
+  margin: 6px 24px 0;
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: center;
+  color: var(--scan-dim);
 }
 
 .scanner-unknown {

@@ -31,8 +31,11 @@ vi.mock('@/composables/useThankYouCardMemo', () => ({
   })),
 }))
 
+/** Where the two "next" roads of this page lead — the calculator, since the till cycle. */
+const mockPush = vi.fn()
 vi.mock('vue-router', () => ({
   useRoute: vi.fn(() => ({ params: { code: 'DK-abc123' } })),
+  useRouter: vi.fn(() => ({ push: mockPush })),
 }))
 
 // The merchant, i.e. whoever is signed in on this device. The closing screen names them,
@@ -142,6 +145,7 @@ describe('ThankYouCardPayment', () => {
     onTargetError = undefined
     mockReadRememberedMemo.mockReturnValue('')
     mockReadParked.mockReturnValue(null)
+    mockPush.mockClear()
     mockCreate.mockResolvedValue({ data: { createThankYouCardPayment: { id: PAYMENT_ID } } })
     mockConfirm.mockResolvedValue({
       data: { confirmThankYouCardPayment: { status: 'SUCCESS', payerName: 'Bibi Bloxberg' } },
@@ -183,6 +187,28 @@ describe('ThankYouCardPayment', () => {
       // the guard has its own test below. What it does catch is somebody putting the label
       // onto the dead-end screen, where a found card must stay anonymous. (coderabbit, #3760)
       expect(field('label').exists()).toBe(false)
+    })
+
+    /**
+     * The same dead end reached in the MIDDLE of a till cycle — the merchant's own card
+     * scanned by mistake, with an amount parked — leads back to the calculator, not to the
+     * account: the calculator still holds the amount and offers the camera at once. Three
+     * taps via overview and "undo" used to stand between the wrong card and the right one.
+     * (Bernd, 21.08.2026)
+     */
+    it('leads back to the calculator when an amount is parked', async () => {
+      mockReadParked.mockReturnValue(6.3)
+      wrapper = createWrapper()
+      await nextTick()
+      onTargetResult({
+        data: { thankYouCardPaymentTarget: { status: 'OWN_CARD', cardLabel: null } },
+      })
+      await nextTick()
+
+      expect(field('back-calculator').exists()).toBe(true)
+      expect(field('back-calculator').attributes('to')).toBe('/calculator')
+      expect(field('back-account').exists()).toBe(false)
+      expect(routes.some((route) => route.path === '/calculator')).toBe(true)
     })
 
     /**
@@ -415,12 +441,18 @@ describe('ThankYouCardPayment', () => {
       expect(field('pin').exists()).toBe(true)
     })
 
-    it('starts over for the next customer', async () => {
+    /**
+     * "Next payment" is the next CUSTOMER: the next turn of the till cycle begins in the
+     * calculator, which starts clean on its own because the payment consumed the parked
+     * amount. It used to re-arm THIS card for another payment (Bernd, 21.08.2026: the old
+     * card came back instead of the empty calculator).
+     */
+    it('sends the next customer to the calculator', async () => {
       await payWith({ status: 'SUCCESS', payerName: 'Bibi Bloxberg' })
       await field('again').trigger('click')
       await nextTick()
 
-      expect(field('amount').element.value).toBe('')
+      expect(mockPush).toHaveBeenCalledWith('/calculator')
     })
   })
 
