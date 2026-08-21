@@ -58,7 +58,7 @@
     "back": "Voltar",
     "card": {
       "from-calculator": "da calculadora",
-      "park": "Pagar com cartão de agradecimento",
+      "park": "Com cartão de agradecimento",
       "park-failed": "Não anotado: escreve o valor depois de digitalizar.",
       "parked": "Valor anotado: {amount} GDD",
       "scan": "Ler cartão",
@@ -646,6 +646,18 @@
   },
   "missingGradidoAccount": "Ainda não tens uma conta {communityName}?",
   "moderatorChangedMemo": "Texto editado pelo moderador",
+  "my-codes": {
+    "back": "Voltar",
+    "gradido-card": {
+      "hint": "Quem ler este código pode enviar-te Gradido."
+    },
+    "thank-you-card": {
+      "hint": "Mostra este código como o cartão impresso — confirmas com o teu PIN.",
+      "no-card": "Ainda não criaste nenhum cartão. Nas definições dás-lhe um nome — depois podes mostrá-lo aqui e também imprimi-lo.",
+      "not-set-up": "A função de cartão ainda não está configurada. Nas definições defines um PIN e os teus valores máximos.",
+      "to-settings": "Ir para as definições"
+    }
+  },
   "navigation": {
     "admin_area": "Área de administração",
     "calculator": "Calculadora",
@@ -667,6 +679,8 @@
     "gdt": "As tuas transações GDT",
     "information": "{community}",
     "matching": "Matching",
+    "my-gradido-card": "O meu cartão Gradido",
+    "my-thank-you-card": "O meu cartão de agradecimento",
     "overview": "Bem-vindo {name}",
     "scanner": "Ler código",
     "send": "Enviar Gradido e e-mail",
@@ -897,9 +911,9 @@
     "receive": {
       "amount": "{amount} GDD",
       "attempts-left": "ainda {n} tentativas",
-      "default-memo": "Pagamento com cartão",
+      "default-memo": "Cartão de agradecimento",
       "next": "Continuar",
-      "next-payment": "Pagamento seguinte",
+      "next-payment": "Próximo agradecimento",
       "pin-title": "O teu PIN, por favor",
       "remember-memo": "Memorizar este motivo",
       "sent-from-to": "enviado por {from} para {to}",
@@ -908,7 +922,7 @@
     },
     "settings": {
       "block": "Bloquear cartão",
-      "block-confirm": "Depois disso já não será possível pagar com ele. Podes desbloqueá-lo mais tarde, enquanto não houver outro cartão ativo.",
+      "block-confirm": "Depois disso já não será possível agradecer com ele. Podes desbloqueá-lo mais tarde, enquanto não houver outro cartão ativo.",
       "block-confirm-title": "Bloquear o cartão?",
       "blocked": "O cartão está bloqueado.",
       "blocked-on": "bloqueado em {date}",
@@ -916,7 +930,7 @@
       "create": "Criar cartão",
       "created": "O cartão foi criado.",
       "disable": "Desligar a função de cartão",
-      "disabled": "O pagamento com cartão está desligado.",
+      "disabled": "A função de cartão está desligada.",
       "earlier-cards": "Cartões anteriores",
       "enable": "Definir um PIN e ligar",
       "explain": "Com um cartão de agradecimento podes agradecer mesmo quando não tens o telemóvel contigo. Mostras o cartão, a outra pessoa escreve o valor — e tu confirmas com o teu PIN.",
@@ -924,7 +938,7 @@
       "label": "Designação",
       "label-placeholder": "p. ex. carteira",
       "max-per-day": "Valor máximo por dia",
-      "max-per-payment": "Valor máximo por pagamento",
+      "max-per-payment": "Valor máximo por transação",
       "not-set-up": "Ainda não configurado.",
       "on": "Ligado",
       "pin-hide": "Ocultar PIN",
@@ -937,7 +951,7 @@
       "sheet-hint": "Um cartão em tamanho real numa página A4, para recortar pela linha fina. Na janela de impressão também o podes guardar como PDF.",
       "title": "O teu cartão de agradecimento — enviar Gradido com cartão",
       "unblock": "Desbloquear",
-      "unblock-needs-no-active": "Para desbloquear este, é preciso bloquear primeiro o cartão ativo — só um cartão pode pagar de cada vez.",
+      "unblock-needs-no-active": "Para desbloquear este, é preciso bloquear primeiro o cartão ativo — só um cartão pode agradecer de cada vez.",
       "unblocked": "O cartão funciona novamente.",
       "your-card": "O teu cartão"
     },

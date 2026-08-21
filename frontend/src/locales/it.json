@@ -58,7 +58,7 @@
     "back": "Indietro",
     "card": {
       "from-calculator": "dalla calcolatrice",
-      "park": "Paga con carta di ringraziamento",
+      "park": "Con carta di ringraziamento",
       "park-failed": "Non annotato: digita l'importo dopo la scansione.",
       "parked": "Importo annotato: {amount} GDD",
       "scan": "Scansiona la carta",
@@ -646,6 +646,18 @@
   },
   "missingGradidoAccount": "Non hai ancora un account {communityName}?",
   "moderatorChangedMemo": "Testo modificato dal moderatore",
+  "my-codes": {
+    "back": "Indietro",
+    "gradido-card": {
+      "hint": "Chi scansiona questo codice può inviarti Gradido."
+    },
+    "thank-you-card": {
+      "hint": "Mostra questo codice come la carta stampata — si conferma con il tuo PIN.",
+      "no-card": "Non hai ancora creato una carta. Nelle impostazioni le dai un nome — poi puoi mostrarla qui e anche stamparla.",
+      "not-set-up": "La funzione carta non è ancora impostata. Nelle impostazioni imposti un PIN e i tuoi importi massimi.",
+      "to-settings": "Alle impostazioni"
+    }
+  },
   "navigation": {
     "admin_area": "Area amministrazione",
     "calculator": "Calcolatrice",
@@ -667,6 +679,8 @@
     "gdt": "Le tue transazioni GDT",
     "information": "{community}",
     "matching": "Matching",
+    "my-gradido-card": "La mia tessera Gradido",
+    "my-thank-you-card": "La mia carta di ringraziamento",
     "overview": "Benvenuto {name}",
     "scanner": "Scansiona codice",
     "send": "Invia Gradido ed e-mail",
@@ -897,9 +911,9 @@
     "receive": {
       "amount": "{amount} GDD",
       "attempts-left": "ancora {n} tentativi",
-      "default-memo": "Pagamento con carta",
+      "default-memo": "Carta di ringraziamento",
       "next": "Avanti",
-      "next-payment": "Pagamento successivo",
+      "next-payment": "Prossimo ringraziamento",
       "pin-title": "Il tuo PIN, per favore",
       "remember-memo": "Ricorda questa causale",
       "sent-from-to": "inviato da {from} a {to}",
@@ -908,7 +922,7 @@
     },
     "settings": {
       "block": "Bloccare la carta",
-      "block-confirm": "Dopo di che con questa carta non si potrà più pagare. Puoi sbloccarla più tardi, finché non è attiva un’altra carta.",
+      "block-confirm": "Dopo di che con questa carta non si potrà più ringraziare. Puoi sbloccarla più tardi, finché non è attiva un’altra carta.",
       "block-confirm-title": "Bloccare la carta?",
       "blocked": "La carta è bloccata.",
       "blocked-on": "bloccata il {date}",
@@ -916,7 +930,7 @@
       "create": "Creare la carta",
       "created": "La carta è stata creata.",
       "disable": "Disattivare la funzione carta",
-      "disabled": "Il pagamento con carta è disattivato.",
+      "disabled": "La funzione carta è disattivata.",
       "earlier-cards": "Carte precedenti",
       "enable": "Impostare un PIN e attivare",
       "explain": "Con una carta di ringraziamento puoi ringraziare anche quando non hai il telefono con te. Mostri la carta, l’altra persona digita l’importo — e tu confermi con il tuo PIN.",
@@ -924,7 +938,7 @@
       "label": "Denominazione",
       "label-placeholder": "ad es. portafoglio",
       "max-per-day": "Importo massimo al giorno",
-      "max-per-payment": "Importo massimo per pagamento",
+      "max-per-payment": "Importo massimo per transazione",
       "not-set-up": "Non ancora configurata.",
       "on": "Attivata",
       "pin-hide": "Nascondere il PIN",
@@ -937,7 +951,7 @@
       "sheet-hint": "Una carta a grandezza naturale su una pagina A4, da ritagliare lungo la linea sottile. Nella finestra di stampa puoi anche salvarla come PDF.",
       "title": "La tua carta di ringraziamento — inviare Gradido con la carta",
       "unblock": "Sbloccare",
-      "unblock-needs-no-active": "Per sbloccare questa bisogna prima bloccare la carta attiva — può pagare sempre una sola carta.",
+      "unblock-needs-no-active": "Per sbloccare questa bisogna prima bloccare la carta attiva — può ringraziare sempre una sola carta.",
       "unblocked": "La carta funziona di nuovo.",
       "your-card": "La tua carta"
     },

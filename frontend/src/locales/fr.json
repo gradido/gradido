@@ -58,7 +58,7 @@
     "back": "Retour",
     "card": {
       "from-calculator": "de la calculatrice",
-      "park": "Payer par carte de remerciement",
+      "park": "Avec carte de remerciement",
       "park-failed": "Non retenu : saisis le montant après le scan.",
       "parked": "Montant retenu : {amount} GDD",
       "scan": "Scanner la carte",
@@ -646,6 +646,18 @@
   },
   "missingGradidoAccount": "Pas encore de compte {communityName} ?",
   "moderatorChangedMemo": "Texte édité par le modérateur",
+  "my-codes": {
+    "back": "Retour",
+    "gradido-card": {
+      "hint": "Qui scanne ce code peut t’envoyer des Gradido."
+    },
+    "thank-you-card": {
+      "hint": "Montre ce code comme la carte imprimée — la confirmation se fait avec ton PIN.",
+      "no-card": "Tu n’as pas encore créé de carte. Dans la configuration tu lui donnes un nom — ensuite tu peux la montrer ici et aussi l’imprimer.",
+      "not-set-up": "La fonction carte n’est pas encore configurée. Dans la configuration tu définis un PIN et tes montants maximaux.",
+      "to-settings": "Vers la configuration"
+    }
+  },
   "navigation": {
     "admin_area": "Partie administrative",
     "calculator": "Calculatrice",
@@ -667,6 +679,8 @@
     "gdt": "Tes transactions GDT",
     "information": "{community}",
     "matching": "Matching",
+    "my-gradido-card": "Ma carte Gradido",
+    "my-thank-you-card": "Ma carte de remerciement",
     "overview": "Bienvenue {name}",
     "scanner": "Scanner un code",
     "send": "Envoyer Gradido et e-mail",
@@ -897,9 +911,9 @@
     "receive": {
       "amount": "{amount} GDD",
       "attempts-left": "encore {n} essais",
-      "default-memo": "Paiement par carte",
+      "default-memo": "Carte de remerciement",
       "next": "Continuer",
-      "next-payment": "Paiement suivant",
+      "next-payment": "Remerciement suivant",
       "pin-title": "Ton code PIN, s’il te plaît",
       "remember-memo": "Retenir ce motif",
       "sent-from-to": "envoyé par {from} à {to}",
@@ -908,7 +922,7 @@
     },
     "settings": {
       "block": "Bloquer la carte",
-      "block-confirm": "Ensuite, il ne sera plus possible de payer avec elle. Tu peux la débloquer plus tard, tant qu’aucune autre carte n’est active.",
+      "block-confirm": "Ensuite, il ne sera plus possible de remercier avec elle. Tu peux la débloquer plus tard, tant qu’aucune autre carte n’est active.",
       "block-confirm-title": "Bloquer la carte ?",
       "blocked": "La carte est bloquée.",
       "blocked-on": "bloquée le {date}",
@@ -916,7 +930,7 @@
       "create": "Créer une carte",
       "created": "La carte est créée.",
       "disable": "Désactiver la fonction carte",
-      "disabled": "Le paiement par carte est désactivé.",
+      "disabled": "La fonction carte est désactivée.",
       "earlier-cards": "Cartes précédentes",
       "enable": "Définir un code PIN et activer",
       "explain": "Avec une carte de remerciement, tu peux remercier même sans ton téléphone. Tu montres la carte, l’autre personne saisit le montant — et tu confirmes avec ton code PIN.",
@@ -924,7 +938,7 @@
       "label": "Désignation",
       "label-placeholder": "p. ex. portefeuille",
       "max-per-day": "Montant maximal par jour",
-      "max-per-payment": "Montant maximal par paiement",
+      "max-per-payment": "Montant maximal par transaction",
       "not-set-up": "Pas encore configuré.",
       "on": "Activé",
       "pin-hide": "Masquer le code PIN",
@@ -937,7 +951,7 @@
       "sheet-hint": "Une carte à taille réelle sur une page A4, à découper le long du trait fin. Dans la fenêtre d’impression, tu peux aussi l’enregistrer en PDF.",
       "title": "Ta carte de remerciement — envoyer des Gradido par carte",
       "unblock": "Débloquer",
-      "unblock-needs-no-active": "Pour débloquer celle-ci, il faut d’abord bloquer la carte active — une seule carte peut payer à la fois.",
+      "unblock-needs-no-active": "Pour débloquer celle-ci, il faut d’abord bloquer la carte active — une seule carte peut remercier à la fois.",
       "unblocked": "La carte fonctionne à nouveau.",
       "your-card": "Ta carte"
     },

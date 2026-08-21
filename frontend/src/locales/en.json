@@ -58,7 +58,7 @@
     "back": "Back",
     "card": {
       "from-calculator": "from the calculator",
-      "park": "Pay by thank-you card",
+      "park": "With thank-you card",
       "park-failed": "Not noted — type the amount in after scanning.",
       "parked": "Amount noted: {amount} GDD",
       "scan": "Scan card",
@@ -646,6 +646,18 @@
   },
   "missingGradidoAccount": "Don't have a {communityName} account yet?",
   "moderatorChangedMemo": "Text edited by moderator",
+  "my-codes": {
+    "back": "Back",
+    "gradido-card": {
+      "hint": "Whoever scans this code can send you Gradido."
+    },
+    "thank-you-card": {
+      "hint": "Show this code just like the printed card — you confirm with your PIN.",
+      "no-card": "You have not made a card yet. Give it a name in the settings — then you can show it here and print it too.",
+      "not-set-up": "The card function is not set up yet. In the settings you set a PIN and your limits.",
+      "to-settings": "To the settings"
+    }
+  },
   "navigation": {
     "admin_area": "Admin Area",
     "calculator": "Calculator",
@@ -667,6 +679,8 @@
     "gdt": "Your GDT transactions",
     "information": "{community}",
     "matching": "Matching",
+    "my-gradido-card": "My Gradido card",
+    "my-thank-you-card": "My thank-you card",
     "overview": "Welcome {name}",
     "scanner": "Scan code",
     "send": "Send Gradido and email",
@@ -897,9 +911,9 @@
     "receive": {
       "amount": "{amount} GDD",
       "attempts-left": "{n} tries left",
-      "default-memo": "Card payment",
+      "default-memo": "Thank you card",
       "next": "Continue",
-      "next-payment": "Next payment",
+      "next-payment": "Next thank-you",
       "pin-title": "Your PIN, please",
       "remember-memo": "Remember this reference",
       "sent-from-to": "sent by {from} to {to}",
@@ -908,7 +922,7 @@
     },
     "settings": {
       "block": "Block card",
-      "block-confirm": "It cannot pay after this. You can unblock it later, as long as no other card is active.",
+      "block-confirm": "Nobody can thank with it after this. You can unblock it later, as long as no other card is active.",
       "block-confirm-title": "Block the card?",
       "blocked": "The card is blocked.",
       "blocked-on": "blocked {date}",
@@ -916,7 +930,7 @@
       "create": "Create card",
       "created": "The card has been created.",
       "disable": "Switch the card function off",
-      "disabled": "Card payment is switched off.",
+      "disabled": "The card function is switched off.",
       "earlier-cards": "Earlier cards",
       "enable": "Set a PIN and switch on",
       "explain": "With a thank you card you can give thanks even when you do not have your phone with you. You show the card, the other person types the amount — and you confirm with your PIN.",
@@ -924,7 +938,7 @@
       "label": "Label",
       "label-placeholder": "e.g. wallet",
       "max-per-day": "Maximum per day",
-      "max-per-payment": "Maximum per payment",
+      "max-per-payment": "Maximum per transaction",
       "not-set-up": "Not set up yet.",
       "on": "Switched on",
       "pin-hide": "Hide PIN",
@@ -937,7 +951,7 @@
       "sheet-hint": "One card at its real size on an A4 page, to cut out along the thin line. The print dialogue can also save it as a PDF.",
       "title": "Your thank you card — send Gradido by card",
       "unblock": "Unblock",
-      "unblock-needs-no-active": "To unblock this one, block the active card first — only one card can pay at a time.",
+      "unblock-needs-no-active": "To unblock this one, block the active card first — only one card can thank at a time.",
       "unblocked": "The card works again.",
       "your-card": "Your card"
     },

@@ -646,6 +646,18 @@
   },
   "missingGradidoAccount": "Noch kein {communityName} Konto?",
   "moderatorChangedMemo": "Text vom Moderator bearbeitet",
+  "my-codes": {
+    "back": "Zurück",
+    "gradido-card": {
+      "hint": "Wer diesen Code scannt, kann Dir Gradido senden."
+    },
+    "thank-you-card": {
+      "hint": "Zeig diesen Code wie die gedruckte Karte — bestätigt wird mit Deiner PIN.",
+      "no-card": "Du hast noch keine Karte angelegt. In den Einstellungen gibst Du ihr einen Namen — danach kannst Du sie hier zeigen und auch ausdrucken.",
+      "not-set-up": "Die Karten-Funktion ist noch nicht eingerichtet. In den Einstellungen setzt Du eine PIN und Deine Höchstbeträge.",
+      "to-settings": "Zu den Einstellungen"
+    }
+  },
   "navigation": {
     "admin_area": "Adminbereich",
     "calculator": "Rechner",
@@ -667,6 +679,8 @@
     "gdt": "Deine GDT Transaktionen",
     "information": "{community}",
     "matching": "Matching",
+    "my-gradido-card": "Meine Gradido-Karte",
+    "my-thank-you-card": "Meine Dank-Karte",
     "overview": "Willkommen {name}",
     "scanner": "Code scannen",
     "send": "Gradido und E-Mail senden",
@@ -897,9 +911,9 @@
     "receive": {
       "amount": "{amount} GDD",
       "attempts-left": "noch {n} Versuche",
-      "default-memo": "Kartenzahlung",
+      "default-memo": "Dank-Karte",
       "next": "Weiter",
-      "next-payment": "Nächste Zahlung",
+      "next-payment": "Nächster Dank",
       "pin-title": "Bitte Deine PIN",
       "remember-memo": "Diesen Verwendungszweck merken",
       "sent-from-to": "gesendet von {from} an {to}",
@@ -908,7 +922,7 @@
     },
     "settings": {
       "block": "Karte sperren",
-      "block-confirm": "Danach kann mit dieser Karte nicht mehr bezahlt werden. Du kannst sie später wieder entsperren, solange keine andere Karte aktiv ist.",
+      "block-confirm": "Danach kann mit dieser Karte nicht mehr gedankt werden. Du kannst sie später wieder entsperren, solange keine andere Karte aktiv ist.",
       "block-confirm-title": "Karte sperren?",
       "blocked": "Die Karte ist gesperrt.",
       "blocked-on": "gesperrt {date}",
@@ -916,7 +930,7 @@
       "create": "Karte anlegen",
       "created": "Die Karte ist angelegt.",
       "disable": "Karten-Funktion ausschalten",
-      "disabled": "Kartenzahlung ist ausgeschaltet.",
+      "disabled": "Die Karten-Funktion ist ausgeschaltet.",
       "earlier-cards": "Frühere Karten",
       "enable": "PIN setzen und einschalten",
       "explain": "Mit einer Dank-Karte kannst Du auch dann danken, wenn Du Dein Handy nicht dabei hast. Du zeigst die Karte, das Gegenüber tippt den Betrag — und Du bestätigst mit Deiner PIN.",
@@ -924,7 +938,7 @@
       "label": "Bezeichnung",
       "label-placeholder": "z. B. Portemonnaie",
       "max-per-day": "Höchstbetrag je Tag",
-      "max-per-payment": "Höchstbetrag je Zahlung",
+      "max-per-payment": "Höchstbetrag je Vorgang",
       "not-set-up": "Noch nicht eingerichtet.",
       "on": "Eingeschaltet",
       "pin-hide": "PIN verbergen",
@@ -937,7 +951,7 @@
       "sheet-hint": "Eine Karte in Originalgröße auf einer A4-Seite, zum Ausschneiden an der dünnen Linie. Im Druckfenster kannst Du sie auch als PDF sichern.",
       "title": "Deine Dank-Karte – Gradido senden mit Karte",
       "unblock": "Entsperren",
-      "unblock-needs-no-active": "Zum Entsperren muss zuerst die aktive Karte gesperrt werden — es kann immer nur eine Karte bezahlen.",
+      "unblock-needs-no-active": "Zum Entsperren muss zuerst die aktive Karte gesperrt werden — es kann immer nur eine Karte danken.",
       "unblocked": "Die Karte ist wieder entsperrt.",
       "your-card": "Deine Karte"
     },
