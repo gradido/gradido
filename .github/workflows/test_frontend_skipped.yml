@@ -1,0 +1,35 @@
+# Companion to test_frontend.yml. Do not run anything here - this workflow exists purely
+# so that the check names below get reported when test_frontend.yml does NOT run.
+#
+# Why: a required status check that is never reported stays "Expected - waiting for
+# status" forever and blocks the merge. test_frontend.yml is path-filtered, so on an
+# unrelated change it never starts and never reports. The paths-ignore list here is
+# the exact mirror of the paths list in test_frontend.yml and MUST be kept in sync with it.
+#
+# Caveat: paths and paths-ignore are not strict complements. A push that touches both
+# a filtered and an unfiltered file starts BOTH workflows, and both report the same
+# check names. See the note in the PR description before relying on this.
+
+name: Gradido Frontend Test CI (skipped)
+
+on:
+  push:
+    paths-ignore:
+      - 'frontend/**'
+      - 'config-schema/**'
+      - '.bun-version'
+      - '.nvmrc'
+      - '.github/workflows/test_frontend.yml'
+
+jobs:
+  build_test:
+    name: Docker Build Test - Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "test_frontend.yml not affected by this change - reporting success so the required check does not hang."
+
+  unit_test:
+    name: Unit Tests & Lint & Stylelint & Locales - Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "test_frontend.yml not affected by this change - reporting success so the required check does not hang."
