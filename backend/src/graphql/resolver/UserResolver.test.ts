@@ -260,6 +260,7 @@ describe('UserResolver', () => {
             emailVerificationCode: expect.any(String),
             emailOptInTypeId: OptInType.EMAIL_OPT_IN_REGISTER,
             emailResendCount: 0,
+            changeVetoCode: null,
             countryCode: null,
             phone: null,
             createdAt: expect.any(Date),

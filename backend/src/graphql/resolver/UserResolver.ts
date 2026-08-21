@@ -739,10 +739,14 @@ export class UserResolver {
     const logger = createLogger('queryOptIn')
     logger.addContext('optIn', optIn.substring(0, 4))
     logger.info(`queryOptIn...`)
-    // Same exclusion as in `setPassword`: a change code answers nothing here.
     const userContact = await DbUserContact.findOneOrFail({
-      where: { emailVerificationCode: optIn, emailOptInTypeId: Not(OptInType.EMAIL_OPT_IN_CHANGE) },
+      where: { emailVerificationCode: optIn },
     })
+    // Same exclusion as in `setPassword`: a change code answers nothing here - and it
+    // answers it exactly the way an unknown code does.
+    if (userContact.emailOptInTypeId === OptInType.EMAIL_OPT_IN_CHANGE) {
+      throw new EntityNotFoundError(DbUserContact, { where: { emailVerificationCode: optIn } })
+    }
     logger.addContext('user', userContact.userId)
     logger.debug('found optInCode', userContact.id)
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes

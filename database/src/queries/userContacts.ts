@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { OptInType, Result, UserContactType, VoidResult } from 'shared'
-import { EntityManager } from 'typeorm'
+import { EntityManager, Like } from 'typeorm'
 import { UserContact as DbUserContact } from '../entity'
 import { DBDuplicateEntryError, DBNotFoundError } from '../errorTypes'
 
@@ -43,6 +43,21 @@ export async function dbFindConfirmedUserContactEmails(userId: number): Promise<
     order: { createdAt: 'ASC' },
   })
   return rows.map((row) => row.email)
+}
+
+/**
+ * The members who hold an address containing this text - under ANY of their rows, current,
+ * earlier or pending - each id once. This is how the admin search finds somebody by the
+ * address the GDT server still knows them by. Not a join: `User.userContacts` has no
+ * usable join column (its inverse side is the `email_id` relation), so the ids are looked
+ * up here and handed to the user query.
+ */
+export async function dbFindUserIdsByEmailLike(searchCriteria: string): Promise<number[]> {
+  const rows = await DbUserContact.find({
+    select: { userId: true },
+    where: { email: Like(`%${searchCriteria}%`) },
+  })
+  return [...new Set(rows.map((row) => row.userId))]
 }
 
 /** The change this member has under way, if any. */

@@ -14,6 +14,7 @@ import {
   dbFindPendingEmailChange,
   dbFindPendingEmailChangeByCode,
   dbFindPendingEmailChangeByVetoCode,
+  dbFindUserIdsByEmailLike,
   dbInsertPendingEmailChange,
   dbPurgeExpiredEmailChanges,
 } from './userContacts'
@@ -99,6 +100,14 @@ describe('userContacts.queries', () => {
       if (!second.success) {
         expect(second.error).toBeInstanceOf(DBDuplicateEntryError)
       }
+    })
+
+    it('names a member for any of their addresses, and names them once', async () => {
+      expect(await dbFindUserIdsByEmailLike('bibi-new')).toEqual([bibi.id])
+      // Both of bibi's rows match - one id, not two.
+      expect(await dbFindUserIdsByEmailLike('bloxberg')).toEqual([bibi.id])
+      expect(await dbFindUserIdsByEmailLike('lustig')).toEqual([peter.id])
+      expect(await dbFindUserIdsByEmailLike('nobody')).toEqual([])
     })
 
     it('is a plain registration or reset code for nobody', async () => {
