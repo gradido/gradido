@@ -638,6 +638,7 @@
     "logout": "Terminar sessão",
     "matching": "Matching",
     "overview": "Vista geral",
+    "scanner": "Ler código",
     "send": "Enviar",
     "settings": "Definições",
     "support": "Suporte",
@@ -652,6 +653,7 @@
     "information": "{community}",
     "matching": "Matching",
     "overview": "Bem-vindo {name}",
+    "scanner": "Ler código",
     "send": "Enviar Gradido e e-mail",
     "settings": "Definições",
     "thank-you-card-receive": "Receber Gradido",
@@ -663,6 +665,38 @@
     "send": "Enviar Gradido"
   },
   "qrCode": "Código QR",
+  "scanner": {
+    "back": "Voltar",
+    "denied": {
+      "help": "Podes permitir o acesso para esta página nas definições do navegador.",
+      "title": "Sem acesso à câmara"
+    },
+    "foreign": {
+      "cheque": "Cheque de outra comunidade",
+      "continue": "Continuar a ler",
+      "gradido-card": "Cartão Gradido de outra comunidade",
+      "open": "Abrir lá",
+      "thank-you-card": "Cartão de agradecimento de outra comunidade"
+    },
+    "hint": "Mantém um cartão de agradecimento, um cheque ou um cartão Gradido na imagem",
+    "manual": {
+      "close": "Continuar a ler",
+      "invalid": "Isto não é um código ou link Gradido.",
+      "label": "Código ou link",
+      "open": "Escrever código ou link à mão",
+      "submit": "Abrir"
+    },
+    "no-gradido-code": "Não é um código Gradido.",
+    "system-camera": {
+      "parked": "O montante memorizado está à espera e será retomado.",
+      "text": "A câmara do teu dispositivo abre a página certa depois de ler o código.",
+      "title": "Ler com a aplicação de câmara"
+    },
+    "title": "Ler código Gradido",
+    "unavailable": {
+      "title": "Nenhuma câmara encontrada"
+    }
+  },
   "send_email": "Enviar e‑mail",
   "send_gdd": "Enviar GDD",
   "send_per_link": "Link, cheque, QR",

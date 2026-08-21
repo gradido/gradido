@@ -638,6 +638,7 @@
     "logout": "Çıkış",
     "matching": "Matching",
     "overview": "Toplu Bakış",
+    "scanner": "Kod tara",
     "send": "Gönder",
     "settings": "Ayarlar",
     "support": "Destek",
@@ -652,6 +653,7 @@
     "information": "{community}",
     "matching": "Matching",
     "overview": "Hoş geldin {name}",
+    "scanner": "Kod tara",
     "send": "Gradido ve e-posta gönder",
     "settings": "Ayarlar",
     "thank-you-card-receive": "Gradido al",
@@ -663,6 +665,38 @@
     "send": "Gradido gönder"
   },
   "qrCode": "QR Kodu",
+  "scanner": {
+    "back": "Geri",
+    "denied": {
+      "help": "Tarayıcı ayarlarında bu sayfa için erişime izin verebilirsin.",
+      "title": "Kameraya erişim yok"
+    },
+    "foreign": {
+      "cheque": "Başka bir topluluğun çeki",
+      "continue": "Taramaya devam et",
+      "gradido-card": "Başka bir topluluğun Gradido kartı",
+      "open": "Orada aç",
+      "thank-you-card": "Başka bir topluluğun teşekkür kartı"
+    },
+    "hint": "Teşekkür kartını, çeki veya Gradido kartını görüntüye tut",
+    "manual": {
+      "close": "Taramaya devam et",
+      "invalid": "Bu bir Gradido kodu veya linki değil.",
+      "label": "Kod veya link",
+      "open": "Kodu veya linki elle gir",
+      "submit": "Aç"
+    },
+    "no-gradido-code": "Gradido kodu değil.",
+    "system-camera": {
+      "parked": "Kaydedilen tutar bekliyor ve devralınacak.",
+      "text": "Cihazının kamerası taramadan sonra doğru sayfayı açar.",
+      "title": "Kamera uygulamasıyla tara"
+    },
+    "title": "Gradido kodunu tara",
+    "unavailable": {
+      "title": "Kamera bulunamadı"
+    }
+  },
   "send_email": "E‑posta gönder",
   "send_gdd": "GDD gönder",
   "send_per_link": "Link, çek, QR",

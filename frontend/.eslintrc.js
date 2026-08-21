@@ -88,6 +88,9 @@ module.exports = {
           // built as `matching.list.dir.${dir}` / `.line.${channel}`
           '/matching.list.dir./',
           '/matching.list.line./',
+          // built as `scanner.foreign.${kind}` -- the three kinds of Gradido code the
+          // scanner's foreign-community card can announce
+          '/scanner.foreign./',
           'error.empty-transactionlist',
           'error.no-transactionlist',
           'error.session-renewal-failed',
