@@ -61,7 +61,7 @@
       "park": "Paga con carta di ringraziamento",
       "park-failed": "Non annotato: digita l'importo dopo la scansione.",
       "parked": "Importo annotato: {amount} GDD",
-      "scan-hint": "Ora scansiona la carta.",
+      "scan": "Scansiona la carta",
       "undo": "Annulla"
     },
     "copy": {
@@ -702,6 +702,7 @@
       "submit": "Apri"
     },
     "no-gradido-code": "Non è un codice Gradido.",
+    "permission-hint": "Ti chiede la fotocamera ogni volta? Nelle impostazioni del sito del browser puoi consentire la fotocamera per questa pagina in modo permanente.",
     "system-camera": {
       "parked": "L'importo memorizzato attende e verrà ripreso.",
       "text": "La fotocamera del tuo dispositivo apre la pagina giusta dopo la scansione.",
@@ -891,6 +892,7 @@
   "success": "Successo",
   "thank-you-card": {
     "back-to-account": "Torna al conto",
+    "back-to-calculator": "Torna alla calcolatrice",
     "name": "Carta di ringraziamento",
     "receive": {
       "amount": "{amount} GDD",

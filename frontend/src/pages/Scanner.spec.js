@@ -111,6 +111,7 @@ describe('Scanner page', () => {
     scannerMock.resume.mockClear()
     openExternalUrlMock.mockClear()
     window.localStorage.clear()
+    window.sessionStorage.clear()
   })
 
   afterEach(() => {
@@ -123,6 +124,36 @@ describe('Scanner page', () => {
     it('starts the camera into the video element on mount', () => {
       const wrapper = mountScanner()
       expect(scannerMock.start).toHaveBeenCalledWith(wrapper.find('video').element)
+    })
+
+    /**
+     * The camera question comes back with every start on iOS Safari, and the wallet cannot
+     * make it stop — the browser's site settings can. The hint appears exactly from the
+     * second start in this session on, when the question has just repeated itself.
+     */
+    it('tells how to silence the permission question from the second start on', () => {
+      const first = mountScanner()
+      expect(el(first, 'permission-hint').exists()).toBe(false)
+
+      const second = mountScanner()
+      expect(el(second, 'permission-hint').text()).toContain('Website-Einstellungen')
+    })
+
+    // A browser that refuses its storage (private modes that throw on write) must not
+    // silently mean "never show the hint": the in-memory twin counts instead. Only the
+    // second mount is asserted — the module-level counter outlives earlier tests, so the
+    // first mount's state depends on test order.
+    it('still counts when the session storage refuses to write', () => {
+      const refusing = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+        throw new Error('QuotaExceededError')
+      })
+      try {
+        mountScanner()
+        const second = mountScanner()
+        expect(el(second, 'permission-hint').exists()).toBe(true)
+      } finally {
+        refusing.mockRestore()
+      }
     })
 
     it('shows title, hint and the hand-entry link while scanning', () => {

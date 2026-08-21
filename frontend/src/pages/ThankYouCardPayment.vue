@@ -9,8 +9,22 @@
         name and has nothing to do with routing — so the named form here resolved to nothing
         and vue-router throws on it. This is the screen somebody reaches after scanning a
         blocked or unknown card, and its only way out was that button.
+
+        Two ways out, by where the person came from: with an amount parked, they are in the
+        middle of a till cycle (their OWN card scanned by mistake, say) and the way back is
+        the calculator — which still holds the amount and offers the camera at once. Without
+        one, the account. Three taps via overview, calculator and "undo" used to stand
+        between the wrong card and the right one. (Bernd, 21.08.2026)
       -->
-      <BButton variant="secondary" to="/overview">
+      <BButton
+        v-if="fromCalculator"
+        variant="secondary"
+        to="/calculator"
+        data-test="thank-you-card-back-calculator"
+      >
+        {{ $t('thank-you-card.back-to-calculator') }}
+      </BButton>
+      <BButton v-else variant="secondary" to="/overview" data-test="thank-you-card-back-account">
         {{ $t('thank-you-card.back-to-account') }}
       </BButton>
     </div>
@@ -161,7 +175,7 @@
       <div class="mb-3" data-test="thank-you-card-paid-parties">
         {{ $t('thank-you-card.receive.sent-from-to', { from: payerName, to: recipientName }) }}
       </div>
-      <BButton variant="gradido" data-test="thank-you-card-again" @click="reset">
+      <BButton variant="gradido" data-test="thank-you-card-again" @click="nextCustomer">
         {{ $t('thank-you-card.receive.next-payment') }}
       </BButton>
     </div>
@@ -195,7 +209,7 @@ import { computed, nextTick, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
 import { useMutation, useQuery } from '@vue/apollo-composable'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import {
   confirmThankYouCardPayment,
   createThankYouCardPayment,
@@ -234,6 +248,7 @@ const busy = ref(false)
 const targetStatus = ref(null)
 const cardLabel = ref('')
 const fromCalculator = ref(false)
+const router = useRouter()
 
 /**
  * Whoever is signed in on this device, which on this page is always the RECIPIENT -- the
@@ -470,12 +485,16 @@ const cancel = () => {
   step.value = 'amount'
 }
 
-const reset = () => {
-  cancel()
-  amount.value = ''
-  fromCalculator.value = false
-  paymentId.value = null
-  payerName.value = ''
+/**
+ * "Next payment" is the next CUSTOMER. Since the wallet has its own scanner, a card
+ * payment is one turn of the till's cycle, and the next turn begins in the calculator —
+ * which starts clean on its own: the payment consumed the parked amount, and that is
+ * exactly the case in which the calculator throws its saved basket away. Before this the
+ * button re-armed THIS card for another payment, which was the only next step the
+ * phone-camera world had. (Bernd, 21.08.2026: "sofort wieder der leere Rechner")
+ */
+const nextCustomer = () => {
+  router.push('/calculator')
 }
 </script>
 

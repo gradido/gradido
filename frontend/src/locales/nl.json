@@ -61,7 +61,7 @@
       "park": "Betalen met dankkaart",
       "park-failed": "Niet onthouden — typ het bedrag na het scannen in.",
       "parked": "Bedrag onthouden: {amount} GDD",
-      "scan-hint": "Scan nu de kaart.",
+      "scan": "Kaart scannen",
       "undo": "Ongedaan maken"
     },
     "copy": {
@@ -702,6 +702,7 @@
       "submit": "Openen"
     },
     "no-gradido-code": "Geen Gradido-code.",
+    "permission-hint": "Elke keer de cameravraag? In de website-instellingen van je browser kun je de camera voor deze pagina blijvend toestaan.",
     "system-camera": {
       "parked": "Het onthouden bedrag wacht en wordt overgenomen.",
       "text": "De camera van je apparaat opent na het scannen de juiste pagina.",
@@ -891,6 +892,7 @@
   "success": "Succes",
   "thank-you-card": {
     "back-to-account": "Terug naar de rekening",
+    "back-to-calculator": "Terug naar de rekenmachine",
     "name": "Dankkaart",
     "receive": {
       "amount": "{amount} GDD",

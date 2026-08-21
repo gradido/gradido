@@ -61,7 +61,7 @@
       "park": "Payer par carte de remerciement",
       "park-failed": "Non retenu : saisis le montant après le scan.",
       "parked": "Montant retenu : {amount} GDD",
-      "scan-hint": "Scanne maintenant la carte.",
+      "scan": "Scanner la carte",
       "undo": "Annuler"
     },
     "copy": {
@@ -702,6 +702,7 @@
       "submit": "Ouvrir"
     },
     "no-gradido-code": "Ce n'est pas un code Gradido.",
+    "permission-hint": "La question de la caméra revient à chaque fois ? Dans les réglages de site de ton navigateur, tu peux autoriser la caméra pour cette page de façon permanente.",
     "system-camera": {
       "parked": "Le montant mémorisé attend et sera repris.",
       "text": "La caméra de ton appareil ouvre la bonne page après le scan.",
@@ -891,6 +892,7 @@
   "success": "Avec succès",
   "thank-you-card": {
     "back-to-account": "Retour au compte",
+    "back-to-calculator": "Retour à la calculatrice",
     "name": "Carte de remerciement",
     "receive": {
       "amount": "{amount} GDD",

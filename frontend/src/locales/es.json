@@ -61,7 +61,7 @@
       "park": "Pagar con tarjeta de agradecimiento",
       "park-failed": "No anotado: escribe el importe después de escanear.",
       "parked": "Importe anotado: {amount} GDD",
-      "scan-hint": "Ahora escanea la tarjeta.",
+      "scan": "Escanear tarjeta",
       "undo": "Deshacer"
     },
     "copy": {
@@ -702,6 +702,7 @@
       "submit": "Abrir"
     },
     "no-gradido-code": "No es un código Gradido.",
+    "permission-hint": "¿Te pregunta por la cámara cada vez? En la configuración del sitio de tu navegador puedes permitir la cámara para esta página de forma permanente.",
     "system-camera": {
       "parked": "El importe memorizado espera y será transferido.",
       "text": "La cámara de tu dispositivo abre la página correcta después de escanear.",
@@ -891,6 +892,7 @@
   "success": "Lo lograste",
   "thank-you-card": {
     "back-to-account": "Volver a la cuenta",
+    "back-to-calculator": "Volver a la calculadora",
     "name": "Tarjeta de agradecimiento",
     "receive": {
       "amount": "{amount} GDD",

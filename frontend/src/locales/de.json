@@ -61,7 +61,7 @@
       "park": "Mit Dank-Karte",
       "park-failed": "Nicht gemerkt — bitte den Betrag nach dem Scannen eintippen.",
       "parked": "Betrag gemerkt: {amount} GDD",
-      "scan-hint": "Jetzt die Karte scannen.",
+      "scan": "Karte scannen",
       "undo": "Rückgängig"
     },
     "copy": {
@@ -702,6 +702,7 @@
       "submit": "Öffnen"
     },
     "no-gradido-code": "Kein Gradido-Code.",
+    "permission-hint": "Jedes Mal die Kamera-Frage? In den Website-Einstellungen des Browsers lässt sich die Kamera für diese Seite dauerhaft erlauben.",
     "system-camera": {
       "parked": "Der gemerkte Betrag wartet und wird übernommen.",
       "text": "Die Kamera Deines Geräts öffnet nach dem Scannen die richtige Seite.",
@@ -891,6 +892,7 @@
   "success": "Erfolg",
   "thank-you-card": {
     "back-to-account": "Zurück zum Konto",
+    "back-to-calculator": "Zurück zum Rechner",
     "name": "Dank-Karte",
     "receive": {
       "amount": "{amount} GDD",
