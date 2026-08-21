@@ -58,7 +58,7 @@
     "back": "Atrás",
     "card": {
       "from-calculator": "de la calculadora",
-      "park": "Pagar con tarjeta de agradecimiento",
+      "park": "Con tarjeta de agradecimiento",
       "park-failed": "No anotado: escribe el importe después de escanear.",
       "parked": "Importe anotado: {amount} GDD",
       "scan": "Escanear tarjeta",
@@ -646,6 +646,20 @@
   },
   "missingGradidoAccount": "¿Aún no tienes una cuenta de {communityName}?",
   "moderatorChangedMemo": "Texto editado por el moderador",
+  "my-codes": {
+    "back": "Atrás",
+    "gradido-card": {
+      "hint": "Quien escanee este código puede enviarte Gradido."
+    },
+    "thank-you-card": {
+      "failed": "La tarjeta no se ha podido cargar ahora mismo.",
+      "hint": "Muestra este código como la tarjeta impresa — se confirma con tu PIN.",
+      "no-card": "Todavía no has creado ninguna tarjeta. En la configuración le pones un nombre — después puedes mostrarla aquí y también imprimirla.",
+      "not-set-up": "La función de tarjeta aún no está configurada. En la configuración estableces un PIN y tus importes máximos.",
+      "retry": "Intentarlo de nuevo",
+      "to-settings": "Ir a la configuración"
+    }
+  },
   "navigation": {
     "admin_area": "Área de administración",
     "calculator": "Calculadora",
@@ -667,6 +681,8 @@
     "gdt": "Tu GDT Transacciones",
     "information": "{community}",
     "matching": "Matching",
+    "my-gradido-card": "Mi tarjeta Gradido",
+    "my-thank-you-card": "Mi tarjeta de agradecimiento",
     "overview": "Welcome {name}",
     "scanner": "Escanear código",
     "send": "Enviar Gradido y correo electrónico",
@@ -897,9 +913,9 @@
     "receive": {
       "amount": "{amount} GDD",
       "attempts-left": "quedan {n} intentos",
-      "default-memo": "Pago con tarjeta",
+      "default-memo": "Tarjeta de agradecimiento",
       "next": "Continuar",
-      "next-payment": "Siguiente pago",
+      "next-payment": "Siguiente agradecimiento",
       "pin-title": "Tu PIN, por favor",
       "remember-memo": "Recordar este concepto",
       "sent-from-to": "enviado por {from} a {to}",
@@ -908,7 +924,7 @@
     },
     "settings": {
       "block": "Bloquear tarjeta",
-      "block-confirm": "Después de esto no se podrá pagar con ella. Puedes desbloquearla más tarde, mientras no haya otra tarjeta activa.",
+      "block-confirm": "Después de esto ya no se podrá agradecer con ella. Puedes desbloquearla más tarde, mientras no haya otra tarjeta activa.",
       "block-confirm-title": "¿Bloquear la tarjeta?",
       "blocked": "La tarjeta está bloqueada.",
       "blocked-on": "bloqueada el {date}",
@@ -916,15 +932,15 @@
       "create": "Crear tarjeta",
       "created": "La tarjeta se ha creado.",
       "disable": "Desactivar la función de tarjeta",
-      "disabled": "El pago con tarjeta está desactivado.",
+      "disabled": "La función de tarjeta está desactivada.",
       "earlier-cards": "Tarjetas anteriores",
       "enable": "Poner un PIN y activar",
-      "explain": "Con una tarjeta de agradecimiento puedes dar las gracias aunque no lleves el móvil contigo. Enseñas la tarjeta, la otra persona escribe el importe — y tú confirmas con tu PIN.",
+      "explain": "Con una tarjeta de agradecimiento puedes dar las gracias aunque no lleves el móvil contigo. Enseñas la tarjeta, la otra persona escribe el importe — y tú confirmas con tu PIN. Y si llevas el móvil pero no la tarjeta, muestras el mismo código en la pantalla — el símbolo con la flecha hacia arriba.",
       "explain-pin": "Tu PIN lo escribes en el dispositivo de otra persona. Por eso pones un límite: nunca se podrá cobrar más que eso.",
       "label": "Nombre",
       "label-placeholder": "p. ej. cartera",
       "max-per-day": "Importe máximo por día",
-      "max-per-payment": "Importe máximo por pago",
+      "max-per-payment": "Importe máximo por transacción",
       "not-set-up": "Todavía sin configurar.",
       "on": "Activado",
       "pin-hide": "Ocultar PIN",
@@ -937,7 +953,7 @@
       "sheet-hint": "Una tarjeta a tamaño real en una página A4, para recortar por la línea fina. En la ventana de impresión también puedes guardarla como PDF.",
       "title": "Tu tarjeta de agradecimiento: enviar Gradido con tarjeta",
       "unblock": "Desbloquear",
-      "unblock-needs-no-active": "Para desbloquear esta, primero hay que bloquear la tarjeta activa — solo una tarjeta puede pagar a la vez.",
+      "unblock-needs-no-active": "Para desbloquear esta, primero hay que bloquear la tarjeta activa — solo se puede agradecer con una tarjeta a la vez.",
       "unblocked": "La tarjeta vuelve a funcionar.",
       "your-card": "Tu tarjeta"
     },

@@ -58,7 +58,7 @@
     "back": "Terug",
     "card": {
       "from-calculator": "uit de rekenmachine",
-      "park": "Betalen met dankkaart",
+      "park": "Met dankkaart",
       "park-failed": "Niet onthouden — typ het bedrag na het scannen in.",
       "parked": "Bedrag onthouden: {amount} GDD",
       "scan": "Kaart scannen",
@@ -646,6 +646,20 @@
   },
   "missingGradidoAccount": "Nog geen {communityName}-account?",
   "moderatorChangedMemo": "Tekst bewerkt door moderator",
+  "my-codes": {
+    "back": "Terug",
+    "gradido-card": {
+      "hint": "Wie deze code scant, kan je Gradido sturen."
+    },
+    "thank-you-card": {
+      "failed": "De kaart kon nu niet worden geladen.",
+      "hint": "Laat deze code zien zoals de gedrukte kaart — je bevestigt met je pincode.",
+      "no-card": "Je hebt nog geen kaart aangemaakt. In de instellingen geef je hem een naam — daarna kun je hem hier laten zien en ook afdrukken.",
+      "not-set-up": "De kaartfunctie is nog niet ingesteld. In de instellingen stel je een pincode en je maximumbedragen in.",
+      "retry": "Opnieuw proberen",
+      "to-settings": "Naar de instellingen"
+    }
+  },
   "navigation": {
     "admin_area": "Beheerder",
     "calculator": "Rekenmachine",
@@ -667,6 +681,8 @@
     "gdt": "Your GDT transactions",
     "information": "{community}",
     "matching": "Matching",
+    "my-gradido-card": "Mijn Gradido-kaart",
+    "my-thank-you-card": "Mijn dankkaart",
     "overview": "Welcome {name}",
     "scanner": "Code scannen",
     "send": "Gradido en e-mail versturen",
@@ -897,9 +913,9 @@
     "receive": {
       "amount": "{amount} GDD",
       "attempts-left": "nog {n} pogingen",
-      "default-memo": "Kaartbetaling",
+      "default-memo": "Dankkaart",
       "next": "Verder",
-      "next-payment": "Volgende betaling",
+      "next-payment": "Volgende dank",
       "pin-title": "Jouw pincode, alsjeblieft",
       "remember-memo": "Deze omschrijving onthouden",
       "sent-from-to": "verzonden door {from} aan {to}",
@@ -908,7 +924,7 @@
     },
     "settings": {
       "block": "Kaart blokkeren",
-      "block-confirm": "Daarna kan er met deze kaart niet meer worden betaald. Je kunt hem later weer deblokkeren, zolang er geen andere kaart actief is.",
+      "block-confirm": "Daarna kan er met deze kaart niet meer worden bedankt. Je kunt hem later weer deblokkeren, zolang er geen andere kaart actief is.",
       "block-confirm-title": "Kaart blokkeren?",
       "blocked": "De kaart is geblokkeerd.",
       "blocked-on": "geblokkeerd op {date}",
@@ -916,15 +932,15 @@
       "create": "Kaart aanmaken",
       "created": "De kaart is aangemaakt.",
       "disable": "Kaartfunctie uitschakelen",
-      "disabled": "Kaartbetaling is uitgeschakeld.",
+      "disabled": "De kaartfunctie is uitgeschakeld.",
       "earlier-cards": "Eerdere kaarten",
       "enable": "Pincode instellen en inschakelen",
-      "explain": "Met een dankkaart kun je ook danken wanneer je jouw telefoon niet bij je hebt. Je laat de kaart zien, de ander typt het bedrag — en jij bevestigt met jouw pincode.",
+      "explain": "Met een dankkaart kun je ook danken wanneer je jouw telefoon niet bij je hebt. Je laat de kaart zien, de ander typt het bedrag — en jij bevestigt met jouw pincode. En heb je de telefoon wel bij je maar de kaart niet, dan laat je dezelfde code op het scherm zien — het symbool met de pijl omhoog.",
       "explain-pin": "Jouw pincode typ je op het apparaat van iemand anders. Daarom stel je een limiet in: meer dan dat kan er nooit worden afgeschreven.",
       "label": "Aanduiding",
       "label-placeholder": "bijv. portemonnee",
       "max-per-day": "Maximumbedrag per dag",
-      "max-per-payment": "Maximumbedrag per betaling",
+      "max-per-payment": "Maximumbedrag per transactie",
       "not-set-up": "Nog niet ingesteld.",
       "on": "Ingeschakeld",
       "pin-hide": "Pincode verbergen",
@@ -937,7 +953,7 @@
       "sheet-hint": "Eén kaart op ware grootte op een A4-pagina, om langs de dunne lijn uit te knippen. In het afdrukvenster kun je hem ook als PDF bewaren.",
       "title": "Jouw dankkaart — Gradido sturen met een kaart",
       "unblock": "Deblokkeren",
-      "unblock-needs-no-active": "Om deze te deblokkeren moet eerst de actieve kaart worden geblokkeerd — er kan altijd maar één kaart betalen.",
+      "unblock-needs-no-active": "Om deze te deblokkeren moet eerst de actieve kaart worden geblokkeerd — er kan altijd maar met één kaart worden bedankt.",
       "unblocked": "De kaart werkt weer.",
       "your-card": "Jouw kaart"
     },

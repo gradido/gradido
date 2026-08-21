@@ -58,7 +58,7 @@
     "back": "Geri",
     "card": {
       "from-calculator": "hesap makinesinden",
-      "park": "Teşekkür kartıyla öde",
+      "park": "Teşekkür kartıyla",
       "park-failed": "Not edilmedi — tutarı taradıktan sonra gir.",
       "parked": "Tutar not edildi: {amount} GDD",
       "scan": "Kartı tara",
@@ -646,6 +646,20 @@
   },
   "missingGradidoAccount": "Henüz bir {communityName} hesabın yok mu?",
   "moderatorChangedMemo": "Metin moderatör tarafından düzenlendi",
+  "my-codes": {
+    "back": "Geri",
+    "gradido-card": {
+      "hint": "Bu kodu okutan sana Gradido gönderebilir."
+    },
+    "thank-you-card": {
+      "failed": "Kart şu anda yüklenemedi.",
+      "hint": "Bu kodu basılı kart gibi göster — onay senin PIN’inle verilir.",
+      "no-card": "Henüz bir kart oluşturmadın. Ayarlarda ona bir ad verirsin — sonra burada gösterebilir ve yazdırabilirsin.",
+      "not-set-up": "Kart işlevi henüz kurulmadı. Ayarlarda bir PIN ve üst sınırlarını belirlersin.",
+      "retry": "Yeniden dene",
+      "to-settings": "Ayarlara git"
+    }
+  },
   "navigation": {
     "admin_area": "Yönetici Alanı",
     "calculator": "Hesap makinesi",
@@ -667,6 +681,8 @@
     "gdt": "GDT işlemlerin",
     "information": "{community}",
     "matching": "Matching",
+    "my-gradido-card": "Gradido kartım",
+    "my-thank-you-card": "Teşekkür kartım",
     "overview": "Hoş geldin {name}",
     "scanner": "Kod tara",
     "send": "Gradido ve e-posta gönder",
@@ -897,9 +913,9 @@
     "receive": {
       "amount": "{amount} GDD",
       "attempts-left": "{n} deneme kaldı",
-      "default-memo": "Kartla ödeme",
+      "default-memo": "Teşekkür kartı",
       "next": "Devam",
-      "next-payment": "Sonraki ödeme",
+      "next-payment": "Sonraki teşekkür",
       "pin-title": "PIN’ini gir lütfen",
       "remember-memo": "Bu açıklamayı hatırla",
       "sent-from-to": "{from} tarafından {to} kişisine gönderildi",
@@ -908,7 +924,7 @@
     },
     "settings": {
       "block": "Kartı blokla",
-      "block-confirm": "Bundan sonra bu kartla ödeme yapılamaz. Başka bir kart etkin olmadığı sürece daha sonra blokeyi kaldırabilirsin.",
+      "block-confirm": "Bundan sonra bu kartla teşekkür edilemez. Başka bir kart etkin olmadığı sürece daha sonra blokeyi kaldırabilirsin.",
       "block-confirm-title": "Kart bloklansın mı?",
       "blocked": "Kart bloklu.",
       "blocked-on": "{date} tarihinde bloklandı",
@@ -916,15 +932,15 @@
       "create": "Kart oluştur",
       "created": "Kart oluşturuldu.",
       "disable": "Kart işlevini kapat",
-      "disabled": "Kartla ödeme kapalı.",
+      "disabled": "Kart işlevi kapalı.",
       "earlier-cards": "Önceki kartlar",
       "enable": "PIN belirle ve aç",
-      "explain": "Bir teşekkür kartıyla telefonun yanında olmasa da teşekkür edebilirsin. Kartı gösterirsin, karşındaki tutarı yazar — ve sen PIN’inle onaylarsın.",
+      "explain": "Bir teşekkür kartıyla telefonun yanında olmasa da teşekkür edebilirsin. Kartı gösterirsin, karşındaki tutarı yazar — ve sen PIN’inle onaylarsın. Telefonun yanındaysa ama kart yanında değilse, aynı kodu ekranda gösterirsin — yukarı oklu simge.",
       "explain-pin": "PIN’ini başkasının cihazında yazarsın. Bu yüzden bir üst sınır belirlersin: bundan fazlası asla çekilemez.",
       "label": "Adlandırma",
       "label-placeholder": "örn. cüzdan",
       "max-per-day": "Günlük üst sınır",
-      "max-per-payment": "Ödeme başına üst sınır",
+      "max-per-payment": "İşlem başına üst sınır",
       "not-set-up": "Henüz kurulmadı.",
       "on": "Açık",
       "pin-hide": "PIN’i gizle",
@@ -937,7 +953,7 @@
       "sheet-hint": "A4 bir sayfada gerçek boyutunda bir kart, ince çizgiden kesmek için. Yazdırma penceresinde PDF olarak da kaydedebilirsin.",
       "title": "Teşekkür kartın — kartla Gradido gönder",
       "unblock": "Blokeyi kaldır",
-      "unblock-needs-no-active": "Bunun blokesini kaldırmak için önce etkin kartı bloklaman gerekir — aynı anda yalnızca bir kart ödeme yapabilir.",
+      "unblock-needs-no-active": "Bunun blokesini kaldırmak için önce etkin kartı bloklaman gerekir — aynı anda yalnızca bir kartla teşekkür edilebilir.",
       "unblocked": "Kart yeniden çalışıyor.",
       "your-card": "Kartın"
     },

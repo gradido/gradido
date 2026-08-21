@@ -91,7 +91,13 @@ describe('DashboardLayout', () => {
     })
   }
 
-  const createWrapper = () => {
+  /**
+   * ⚠️ `stubs` is an override, because `RouterLink: true` renders NO SLOT. Anything a link
+   * carries -- an icon, a label -- is invisible to a test through the default stub, and a
+   * `find` inside one comes back empty in a way that reads exactly like "it is not there".
+   * A test that needs to see inside a link passes a stub that renders its children.
+   */
+  const createWrapper = (stubs = {}) => {
     store = createVuexStore()
     routerPushSpy = vi.spyOn(router, 'push')
     return mount(DashboardLayout, {
@@ -110,6 +116,9 @@ describe('DashboardLayout', () => {
           ContentFooter: true,
           SkeletonOverview: true,
           'fade-transition': true,
+          // Last, so a caller can override ANY of them and not only RouterLink. Spread
+          // first, an override was silently ignored for every other name.
+          ...stubs,
         },
         mocks: {
           $t: (key) => key,
@@ -547,6 +556,41 @@ describe('DashboardLayout', () => {
      */
     it('offers the calculator above the menu', () => {
       expect(wrapper.find('[data-test="sidebar-calculator"]').exists()).toBe(true)
+    })
+
+    /**
+     * The same four tools as on the phone, in the same two-by-two arrangement -- one thing
+     * to learn instead of two. This column has room for four in a row at 1280px but not at
+     * 992px, where it is about 165px wide and four 44px targets are 176.
+     *
+     * ⚠️ The two new ones look alike: both carry the same square, and only the arrow says
+     * which way the Gradido move. So the pairing of destination and direction is what must
+     * not slip -- reaching for the wrong one at a counter shows the opposite code. Seeing
+     * the arrow means seeing INSIDE the link, which the default stub does not allow.
+     */
+    it('offers both of the member own codes, each with its own direction', async () => {
+      const seeing = createWrapper({
+        RouterLink: { props: ['to'], template: '<a :href="to"><slot /></a>' },
+      })
+      // A fresh layout starts on the skeleton, and the skeleton has no sidebar at all --
+      // the surrounding beforeEach advanced the clock for the shared wrapper, not for this
+      // one. Without this the finds come back empty, which reads like a missing link.
+      vi.advanceTimersByTime(1500)
+      await nextTick()
+
+      const cases = [
+        ['sidebar-my-thank-you-card', '/my-thank-you-card', 'out'],
+        ['sidebar-my-gradido-card', '/my-gradido-card', 'in'],
+      ]
+
+      for (const [test, href, direction] of cases) {
+        const quick = seeing.find(`[data-test="${test}"]`)
+        expect(quick.exists()).toBe(true)
+        expect(quick.attributes('href')).toBe(href)
+        expect(quick.find(`[data-test="quick-code-arrow-${direction}"]`).exists()).toBe(true)
+      }
+
+      seeing.unmount()
     })
 
     it('has a main content div', () => {
