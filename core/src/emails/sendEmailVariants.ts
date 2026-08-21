@@ -78,6 +78,84 @@ export const sendAccountMultiRegistrationEmail = (
   })
 }
 
+/** To the NEW address: the click that makes it the member's address. */
+export const sendEmailChangeConfirmEmail = (
+  data: EmailCommonData & {
+    confirmLink: string
+    timeDurationObject: Record<string, unknown>
+  },
+): Promise<Record<string, unknown> | boolean | null | Error> => {
+  return sendEmailTranslated({
+    receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
+    template: 'emailChangeConfirm',
+    locals: {
+      ...data,
+      ...getEmailCommonLocales(),
+    },
+  })
+}
+
+/**
+ * To the OLD address: a notice with a veto link, not a precondition. Whoever still reads
+ * that mailbox can throw the change away; whoever lost it is not held up by it.
+ */
+export const sendEmailChangeNoticeEmail = (
+  data: EmailCommonData & {
+    newEmail: string
+    revokeLink: string
+    timeDurationObject: Record<string, unknown>
+  },
+): Promise<Record<string, unknown> | boolean | null | Error> => {
+  return sendEmailTranslated({
+    receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
+    template: 'emailChangeNotice',
+    locals: {
+      ...data,
+      ...getEmailCommonLocales(),
+    },
+  })
+}
+
+/** After the change, to both addresses. */
+export const sendEmailChangeDoneEmail = (
+  data: EmailCommonData & {
+    oldEmail: string
+    newEmail: string
+  },
+): Promise<Record<string, unknown> | boolean | null | Error> => {
+  return sendEmailTranslated({
+    receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
+    template: 'emailChangeDone',
+    locals: {
+      ...data,
+      ...getEmailCommonLocales(),
+    },
+  })
+}
+
+/**
+ * To the support mailbox. The GDT server and the newsletter are keyed by address and get
+ * brought up to date by hand; this mail is what sets that in motion. `gdtEmail` is the
+ * address the GDT server is asked with - the one to merge the new address into.
+ */
+export const sendEmailChangeSupportEmail = (
+  data: EmailCommonData & {
+    alias: string
+    oldEmail: string
+    newEmail: string
+    gdtEmail: string
+  },
+): Promise<Record<string, unknown> | boolean | null | Error> => {
+  return sendEmailTranslated({
+    receiver: { to: data.email },
+    template: 'emailChangeSupport',
+    locals: {
+      ...data,
+      ...getEmailCommonLocales(),
+    },
+  })
+}
+
 export const sendContributionConfirmedEmail = (
   data: EmailCommonData &
     ContributionEmailCommonData & {

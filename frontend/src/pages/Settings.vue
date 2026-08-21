@@ -12,9 +12,7 @@
             <user-name />
           </BCol>
           <BCol cols="12" md="6" lg="6">
-            <BFormGroup :label="$t('form.email')" :description="$t('settings.emailInfo')">
-              <BFormInput :model-value="email" readonly @update:modelValue="email = $event" />
-            </BFormGroup>
+            <user-email />
           </BCol>
         </BRow>
 
@@ -215,6 +213,7 @@ import { computed, ref, watch } from 'vue'
 import { useMutation } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
+import UserEmail from '@/components/UserSettings/UserEmail.vue'
 import UserName from '@/components/UserSettings/UserName.vue'
 import UserLanguage from '@/components/LanguageSwitch2.vue'
 import UserPassword from '@/components/UserSettings/UserPassword'
@@ -250,7 +249,6 @@ const state = store.state
 
 const themeMode = ref(state.themeMode)
 const firstName = ref(state.firstName || '')
-const email = ref(state.email || '')
 const newsletterState = ref(state.newsletterState)
 const gmsAllowed = ref(state.gmsAllowed)
 const humhubAllowed = ref(state.humhubAllowed)

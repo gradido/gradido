@@ -229,6 +229,19 @@ const routes = [
     path: '/checkEmail/:optin/:code?',
     component: () => import('@/pages/ResetPassword'),
   },
+  // Both reached from a mail, mostly in a browser that is not signed in - so no auth.
+  // The page asks for a click before it does anything: a link that acts on being opened
+  // would be "clicked" by every mail scanner that prefetches links.
+  {
+    name: 'EmailChangeRevoke',
+    path: '/email-change/revoke/:code',
+    component: () => import('@/pages/EmailChange'),
+  },
+  {
+    name: 'EmailChangeConfirm',
+    path: '/email-change/:code',
+    component: () => import('@/pages/EmailChange'),
+  },
   {
     name: 'Redeem',
     path: '/redeem/:code',

@@ -54,4 +54,7 @@ export const USER_RIGHTS = [
   // authorises the payment is the card's code plus its PIN, not this right. Separate so
   // that it can be taken away on its own.
   RIGHTS.RECEIVE_THANK_YOU_CARD_PAYMENT,
+  // Asking for a new address, cancelling that request and seeing whether one is pending -
+  // one right, because every call reaches the caller's own contact rows and nothing else.
+  RIGHTS.MANAGE_OWN_EMAIL,
 ]

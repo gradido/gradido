@@ -461,8 +461,18 @@
   "unregister_mail": {
     "button": "Registrierungs-Email bestätigen, jetzt senden",
     "error": "Fehler beim Senden des Bestätigungs-Links an den Benutzer: {message}",
+    "gdt_email": "Für den GDT-Server zählt die erste Adresse dieses Kontos: {email}",
     "info": "Email bestätigen, wiederholt senden an:",
     "never_sent": "Es scheint so, als ob wir nie eine E-Mail an {email} geschickt haben",
+    "pending": "Änderung ausstehend: Bestätigung an {email} angefordert am {date}",
+    "replace": {
+      "button": "Adresse korrigieren",
+      "elopage_warning": "Achtung: Unter {email} gibt es Elopage-Käufe. Dieses Konto stammt wahrscheinlich aus dem Webhook – die Adresse ist dann kein Tippfehler.",
+      "hint": "Nur solange die Adresse nie bestätigt wurde (z. B. Tippfehler bei der Registrierung). Die Bestätigungs-Mail geht danach an die korrigierte Adresse.",
+      "placeholder": "Korrigierte E-Mail-Adresse",
+      "success": "Adresse korrigiert und Bestätigungs-Mail an {email} gesendet.",
+      "title": "Nie bestätigte Adresse korrigieren"
+    },
     "success": "Erfolgreiches Senden des Bestätigungs-Links an die E-Mail des Nutzers! ({email})",
     "text_false": " Die letzte Email wurde am {date} Uhr an das Mitglied ({email}) gesendet.",
     "text_true": " Die Email wurde bestätigt."

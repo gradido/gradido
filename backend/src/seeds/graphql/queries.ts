@@ -39,6 +39,28 @@ export const queryOptIn = gql`
   }
 `
 
+export const pendingEmailChange = gql`
+  query {
+    pendingEmailChange {
+      email
+      requestedAt
+      resendAllowedAt
+    }
+  }
+`
+
+export const adminEmailStatus = gql`
+  query ($userId: Int!) {
+    adminEmailStatus(userId: $userId) {
+      gdtEmail
+      currentConfirmed
+      elopageBuysOnCurrent
+      pendingEmail
+      pendingSince
+    }
+  }
+`
+
 export const aliasStatus = gql`
   query {
     aliasStatus {

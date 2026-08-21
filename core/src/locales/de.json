@@ -51,6 +51,44 @@
       "haveReceivedMessageFrom": "du hast soeben von {senderFirstName} {senderLastName} eine Nachricht erhalten",
       "title": "{senderFirstName} {senderLastName} hat dir eine Nachricht gesendet"
     },
+    "emailChangeConfirm": {
+      "confirm": "Neue Adresse bestätigen",
+      "notYou": "Wenn Du diese Änderung nicht angestoßen hast, kannst Du diese E-Mail einfach ignorieren – ohne Deine Bestätigung ändert sich nichts.",
+      "pleaseConfirm": "Bitte bestätige mit einem Klick, dass diese Adresse Dir gehört.",
+      "subject": "Bitte bestätige Deine neue E-Mail-Adresse",
+      "title": "Neue E-Mail-Adresse bestätigen",
+      "validity": "Der Link gilt {hours} Stunden. Danach kannst Du Dir in Deinen Einstellungen eine neue E-Mail schicken lassen.",
+      "validityMinutes": "Der Link gilt {minutes} Minuten. Danach kannst Du Dir in Deinen Einstellungen eine neue E-Mail schicken lassen.",
+      "youAskedFor": "Du möchtest die E-Mail-Adresse Deines Gradido-Kontos auf diese Adresse ändern."
+    },
+    "emailChangeDone": {
+      "changedTo": "Die E-Mail-Adresse Deines Gradido-Kontos lautet ab jetzt {newEmail}.",
+      "notYou": "Warst Du das nicht? Dann wende Dich bitte umgehend an {supportEmail}.",
+      "subject": "Deine E-Mail-Adresse wurde geändert",
+      "title": "E-Mail-Adresse geändert",
+      "wasBefore": "Bisher war es {oldEmail}."
+    },
+    "emailChangeNotice": {
+      "changePassword": "Wenn Du die Änderung verwirfst, ändere danach bitte auch Dein Passwort.",
+      "notYou": "Warst Du das nicht? Dann klicke hier – die Änderung wird verworfen und diese Adresse bleibt bestehen.",
+      "notYouTitle": "Das warst nicht Du?",
+      "requested": "Für Dein Gradido-Konto wurde eine Änderung der E-Mail-Adresse auf {newEmail} angestoßen.",
+      "revoke": "Änderung verwerfen",
+      "subject": "Änderung Deiner E-Mail-Adresse angestoßen",
+      "title": "Deine E-Mail-Adresse soll geändert werden",
+      "untilConfirmed": "Bis die neue Adresse bestätigt ist, gilt weiterhin diese hier. Wenn Du das selbst warst, musst Du nichts weiter tun.",
+      "validity": "Der Link gilt {hours} Stunden – danach verfällt die angestoßene Änderung von selbst.",
+      "validityMinutes": "Der Link gilt {minutes} Minuten – danach verfällt die angestoßene Änderung von selbst."
+    },
+    "emailChangeSupport": {
+      "gdtHint": "Für den GDT-Server zählt weiterhin die erste Adresse dieses Kontos: {gdtEmail}.",
+      "member": "Mitglied: {firstName} {lastName} ({alias})",
+      "newEmail": "Neue Adresse: {newEmail}",
+      "oldEmail": "Bisherige Adresse: {oldEmail}",
+      "subject": "E-Mail-Adresse geändert: {firstName} {lastName}",
+      "title": "Ein Mitglied hat seine E-Mail-Adresse geändert",
+      "todo": "Bitte die neue Adresse im GDT-Server diesem Konto zuführen und Klick-Tipp umstellen."
+    },
     "footer": {
       "contactOurSupport": "Bei weiteren Fragen kontaktiere bitte unseren Support.",
       "imprint": "Impressum",

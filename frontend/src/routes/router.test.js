@@ -81,8 +81,8 @@ describe('router', () => {
       expect(defaultRoute.redirect()).toEqual({ path: '/login' })
     })
 
-    it('has 27 routes defined', () => {
-      expect(routes).toHaveLength(27)
+    it('has 29 routes defined', () => {
+      expect(routes).toHaveLength(29)
     })
 
     const testRoute = (path, expectedName, requiresAuth = true) => {
@@ -132,6 +132,8 @@ describe('router', () => {
     testRoute('/forgot-password', 'ForgotPassword', false)
     testRoute('/register-community', 'RegisterCommunity', false)
     testRoute('/reset-password/:optin', 'ResetPassword', false)
+    testRoute('/email-change/revoke/:code', 'EmailChange', false)
+    testRoute('/email-change/:code', 'EmailChange', false)
     testRoute('/checkEmail/:optin/:code?', 'ResetPassword', false)
     testRoute('/redeem/:code', 'TransactionLink', false)
     // Declared ahead of the catch-all, which used to swallow it: every printed QR code on a

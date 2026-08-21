@@ -51,6 +51,44 @@
       "haveReceivedMessageFrom": "je hebt zojuist een bericht ontvangen van {senderFirstName} {senderLastName}",
       "title": "{senderFirstName} {senderLastName} heeft je een bericht gestuurd"
     },
+    "emailChangeConfirm": {
+      "confirm": "Nieuw adres bevestigen",
+      "notYou": "Heb je deze wijziging niet aangevraagd, dan kun je deze e-mail gewoon negeren – zonder jouw bevestiging verandert er niets.",
+      "pleaseConfirm": "Bevestig met één klik dat dit adres van jou is.",
+      "subject": "Bevestig je nieuwe e-mailadres",
+      "title": "Nieuw e-mailadres bevestigen",
+      "validity": "De link is {hours} uur geldig. Daarna kun je in je instellingen een nieuwe e-mail laten sturen.",
+      "validityMinutes": "De link is {minutes} minuten geldig. Daarna kun je in je instellingen een nieuwe e-mail laten sturen.",
+      "youAskedFor": "Je wilt het e-mailadres van je Gradido-account wijzigen naar dit adres."
+    },
+    "emailChangeDone": {
+      "changedTo": "Vanaf nu is het e-mailadres van je Gradido-account {newEmail}.",
+      "notYou": "Was jij dat niet? Neem dan meteen contact op met {supportEmail}.",
+      "subject": "Je e-mailadres is gewijzigd",
+      "title": "E-mailadres gewijzigd",
+      "wasBefore": "Tot nu toe was het {oldEmail}."
+    },
+    "emailChangeNotice": {
+      "changePassword": "Als je de wijziging afwijst, wijzig daarna dan ook je wachtwoord.",
+      "notYou": "Was jij dat niet? Klik dan hier – de wijziging wordt afgewezen en dit adres blijft bestaan.",
+      "notYouTitle": "Was jij dat niet?",
+      "requested": "Voor je Gradido-account is een wijziging van het e-mailadres naar {newEmail} aangevraagd.",
+      "revoke": "Wijziging afwijzen",
+      "subject": "Wijziging van je e-mailadres aangevraagd",
+      "title": "Je e-mailadres gaat veranderen",
+      "untilConfirmed": "Totdat het nieuwe adres is bevestigd, blijft dit adres gelden. Was jij het zelf, dan hoef je niets te doen.",
+      "validity": "De link is {hours} uur geldig – daarna vervalt de aangevraagde wijziging vanzelf.",
+      "validityMinutes": "De link is {minutes} minuten geldig – daarna vervalt de aangevraagde wijziging vanzelf."
+    },
+    "emailChangeSupport": {
+      "gdtHint": "Voor de GDT-server telt nog steeds het eerste adres van dit account: {gdtEmail}.",
+      "member": "Lid: {firstName} {lastName} ({alias})",
+      "newEmail": "Nieuw adres: {newEmail}",
+      "oldEmail": "Vorig adres: {oldEmail}",
+      "subject": "E-mailadres gewijzigd: {firstName} {lastName}",
+      "title": "Een lid heeft zijn e-mailadres gewijzigd",
+      "todo": "Koppel het nieuwe adres op de GDT-server aan dit account en werk Klick-Tipp bij."
+    },
     "footer": {
       "contactOurSupport": "Neem bij verdere vragen contact op met onze support.",
       "imprint": "Colofon",

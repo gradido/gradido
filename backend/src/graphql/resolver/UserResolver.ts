@@ -42,6 +42,7 @@ import {
   UserRole as DbUserRole,
   dbCountChosenAliasesSince,
   dbDeleteUserAvatar,
+  dbEmailTaken,
   dbFindAliasesByUser,
   dbFindMemberAvatarsSmall,
   dbFindOldestChosenAliasSince,
@@ -52,6 +53,7 @@ import {
   dbFindUserAvatarSmall,
   dbInsertUserAlias,
   dbMarkAliasAdopted,
+  dbPurgeExpiredEmailChanges,
   dbUpsertUserAvatar,
   findUserByIdentifier,
   getHomeCommunity,
@@ -88,7 +90,7 @@ import {
   Root,
 } from 'type-graphql'
 import { IRestResponse } from 'typed-rest-client'
-import { EntityNotFoundError, In, Point } from 'typeorm'
+import { EntityNotFoundError, In, Not, Point } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { Account as HumhubAccount } from '@/apis/humhub/model/Account'
@@ -99,6 +101,11 @@ import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import {
+  canEmailResend,
+  emailChangeExpiryCutoff,
+  isEmailVerificationCodeValid,
+} from '@/data/EmailVerificationCode.logic'
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import {
   EVENT_ADMIN_USER_DELETE,
@@ -656,8 +663,10 @@ export class UserResolver {
       )
     }
     // load code
+    // A pending e-mail change carries a code of the same kind, but that code confirms an
+    // address - it must not log anybody in. Its row is excluded here by its opt-in type.
     const userContact = await DbUserContact.findOneOrFail({
-      where: { emailVerificationCode: code },
+      where: { emailVerificationCode: code, emailOptInTypeId: Not(OptInType.EMAIL_OPT_IN_CHANGE) },
       relations: ['user'],
     }).catch(() => {
       // code wasn't in db, so we can write it into log without hesitation
@@ -733,6 +742,11 @@ export class UserResolver {
     const userContact = await DbUserContact.findOneOrFail({
       where: { emailVerificationCode: optIn },
     })
+    // Same exclusion as in `setPassword`: a change code answers nothing here - and it
+    // answers it exactly the way an unknown code does.
+    if (userContact.emailOptInTypeId === OptInType.EMAIL_OPT_IN_CHANGE) {
+      throw new EntityNotFoundError(DbUserContact, { where: { emailVerificationCode: optIn } })
+    }
     logger.addContext('user', userContact.userId)
     logger.debug('found optInCode', userContact.id)
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
@@ -1142,7 +1156,7 @@ export class UserResolver {
     const dbUser = getUser(context)
     const logger = createLogger('hasElopage')
     logger.addContext('user', dbUser.id)
-    const elopageBuys = await hasElopageBuys(dbUser.emailContact.email)
+    const elopageBuys = await hasElopageBuys(dbUser.id)
     logger.info(`has Elopage (ablify): ${elopageBuys}`)
     return elopageBuys
   }
@@ -1392,7 +1406,7 @@ export class UserResolver {
         const adminUser = new UserAdmin(
           user,
           userCreations ? userCreations.creations : getFullUserCreation(),
-          await hasElopageBuys(user.emailContact?.email),
+          await hasElopageBuys(user.id),
           emailConfirmationSend,
         )
         return adminUser
@@ -1669,28 +1683,10 @@ export async function findUserByEmail(email: string): Promise<DbUser> {
 }
 
 async function checkEmailExists(email: string): Promise<boolean> {
-  const userContact = await DbUserContact.findOne({
-    where: { email },
-    withDeleted: true,
-  })
-  if (userContact) {
-    return true
-  }
-  return false
-}
-
-const isTimeExpired = (updatedAt: Date, duration: number): boolean => {
-  const timeElapsed = Date.now() - new Date(updatedAt).getTime()
-  // time is given in minutes
-  return timeElapsed <= duration * 60 * 1000
-}
-
-const isEmailVerificationCodeValid = (updatedAt: Date): boolean => {
-  return isTimeExpired(updatedAt, CONFIG.EMAIL_CODE_VALID_TIME)
-}
-
-const canEmailResend = (updatedAt: Date): boolean => {
-  return !isTimeExpired(updatedAt, CONFIG.EMAIL_CODE_REQUEST_TIME)
+  // A pending e-mail change that ran past its window must not keep the address it wanted
+  // away from whoever registers with it now - clear it first, then ask.
+  await dbPurgeExpiredEmailChanges(emailChangeExpiryCutoff(), email)
+  return dbEmailTaken(email)
 }
 
 export function isUserInRole(user: DbUser, role: string | null | undefined): boolean {

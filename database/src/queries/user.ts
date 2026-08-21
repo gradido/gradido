@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { getLogger } from 'log4js'
 import { aliasSchema, emailSchema, uuidv4Schema, VoidResult } from 'shared'
-import { In, Raw } from 'typeorm'
+import { EntityManager, In, Raw } from 'typeorm'
 import { drizzleDb } from '../AppDatabase'
 import { User as DbUser, UserContact as DbUserContact } from '../entity'
 import { DBNotFoundError } from '../errorTypes'
@@ -151,4 +151,19 @@ export async function findUserNamesByIds(userIds: number[]): Promise<Map<number,
       return [user.id, `${user.firstName} ${user.lastName}`]
     }),
   )
+}
+
+/** Persist a member - inside the caller's transaction when given. */
+export async function dbSaveUser(user: DbUser, manager?: EntityManager): Promise<DbUser> {
+  return manager ? manager.save(user) : DbUser.save(user)
+}
+
+/**
+ * Holds the member's row under a write lock for the rest of the caller's transaction -
+ * the plain way to run "look, then change" for one member without a second request
+ * slipping in between (the e-mail change: one pending change, one mail per window).
+ * Returns nothing; the caller already holds the member.
+ */
+export async function dbLockUserRow(userId: number, manager: EntityManager): Promise<void> {
+  await manager.findOne(DbUser, { where: { id: userId }, lock: { mode: 'pessimistic_write' } })
 }

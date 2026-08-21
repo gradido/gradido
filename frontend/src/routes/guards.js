@@ -1,4 +1,5 @@
 import { verifyLogin } from '../graphql/queries'
+import { clearApolloCache } from '../plugins/apolloCache'
 
 const addNavigationGuards = (router, store, apollo) => {
   // handle publisherId
@@ -14,6 +15,10 @@ const addNavigationGuards = (router, store, apollo) => {
   // store token on authenticate
   router.beforeEach(async (to, from, next) => {
     if (to.path === '/authenticate' && to.query.token) {
+      // Another account may have been signed in here without logging out. Queries that
+      // take no variables share one cache key, so they would answer from that account's
+      // cache until the network catches up.
+      await clearApolloCache()
       store.commit('token', to.query.token)
       await apollo
         .query({

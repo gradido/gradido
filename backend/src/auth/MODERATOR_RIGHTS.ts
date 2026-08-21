@@ -23,4 +23,5 @@ export const MODERATOR_RIGHTS = [
   // contributions list shows it, so every moderator needs it, while the wallet - which
   // shares this GraphQL type - must not see what the moderation noted about a person.
   RIGHTS.VIEW_USER_SALUTATION,
+  RIGHTS.VIEW_USER_EMAIL_STATUS,
 ]

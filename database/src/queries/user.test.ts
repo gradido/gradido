@@ -13,7 +13,13 @@ import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import { LOG4JS_QUERIES_CATEGORY_NAME } from '.'
-import { aliasExists, dbClearGmsRegistration, findUserByIdentifier } from './user'
+import {
+  aliasExists,
+  dbClearGmsRegistration,
+  dbLockUserRow,
+  dbSaveUser,
+  findUserByIdentifier,
+} from './user'
 import { dbInsertUserAlias } from './userAliases'
 
 const db = AppDatabase.getInstance()
@@ -272,6 +278,68 @@ describe('user.queries', () => {
       expect(await aliasExists('bibi-was', bibi.id)).toBe(false)
       // ...and it stays blocked for everybody else.
       expect(await aliasExists('bibi-was')).toBe(true)
+    })
+  })
+
+  describe('dbSaveUser', () => {
+    let bibi: DbUser
+
+    beforeAll(async () => {
+      await DbUserAlias.clear()
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await DbCommunity.clear()
+
+      await createCommunity(false)
+      bibi = await userFactory(bibiBloxberg)
+    })
+
+    it('writes the changed row', async () => {
+      bibi.language = 'en'
+      await dbSaveUser(bibi)
+
+      expect((await DbUser.findOneByOrFail({ id: bibi.id })).language).toBe('en')
+    })
+
+    // The e-mail change moves `email_id` inside one transaction together with the contact
+    // row; a save that ignored the manager would slip out of that transaction.
+    it('writes through a given manager, inside its transaction', async () => {
+      const runner = db.getDataSource().createQueryRunner()
+      await runner.connect()
+      await runner.startTransaction()
+      bibi.language = 'fr'
+      await dbSaveUser(bibi, runner.manager)
+      await runner.rollbackTransaction()
+      await runner.release()
+
+      expect((await DbUser.findOneByOrFail({ id: bibi.id })).language).toBe('en')
+    })
+  })
+
+  describe('dbLockUserRow', () => {
+    let bibi: DbUser
+
+    beforeAll(async () => {
+      await DbUserAlias.clear()
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await DbCommunity.clear()
+
+      await createCommunity(false)
+      bibi = await userFactory(bibiBloxberg)
+    })
+
+    // What a lock does to a concurrent writer cannot be shown in a single-connection test;
+    // what can be shown is that it runs inside a transaction and changes nothing by itself.
+    it('takes the row inside a transaction and leaves the member as they are', async () => {
+      const runner = db.getDataSource().createQueryRunner()
+      await runner.connect()
+      await runner.startTransaction()
+      await expect(dbLockUserRow(bibi.id, runner.manager)).resolves.toBeUndefined()
+      await runner.commitTransaction()
+      await runner.release()
+
+      expect((await DbUser.findOneByOrFail({ id: bibi.id })).alias).toBe(bibi.alias)
     })
   })
 })

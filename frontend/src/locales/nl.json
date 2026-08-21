@@ -211,6 +211,21 @@
   "download": "Downloaden",
   "edit": "bewerken",
   "em-dash": "—",
+  "emailChange": {
+    "confirm": {
+      "button": "Nieuw adres bevestigen",
+      "done": "Je e-mailadres is gewijzigd. Log vanaf nu in met het nieuwe adres.",
+      "text": "Met één klik wordt dit adres het e-mailadres van je Gradido-account. Tot dan blijft je vorige adres gelden.",
+      "title": "Nieuw e-mailadres bevestigen"
+    },
+    "invalid": "Deze link is ongeldig of verlopen. In je instellingen kun je een nieuwe bevestigingsmail aanvragen.",
+    "revoke": {
+      "button": "Wijziging verwerpen",
+      "done": "De wijziging is verworpen – je vorige adres blijft bestaan. Had je de wijziging niet zelf aangevraagd, wijzig dan ook je wachtwoord.",
+      "text": "Was jij dat niet? Verwerp dan de aangevraagde wijziging – je vorige adres blijft bestaan.",
+      "title": "Wijziging van e-mailadres verwerpen"
+    }
+  },
   "error": {
     "email-already-sent": "Wij hebben jou minder dan 10 minuten geleden een email gestuurd.",
     "empty-transactionlist": "Er was een fout met de overdracht van het aantal van jouw transacties.",
@@ -743,7 +758,25 @@
       "visibilityInfo": "Andere leden zien jouw afbeelding, bijvoorbeeld naast de boekingen die jullie delen. Wanneer de instelling is uitgeschakeld, verschijnen zoals tot nu toe jouw initialen."
     },
     "community": "Kringen en ledenzoeker",
-    "emailInfo": "Kan momenteel nog niet worden gewijzigd.",
+    "email": {
+      "cancel": "Annuleren",
+      "cancelled": "De wijziging is verworpen.",
+      "change": "E-mailadres wijzigen",
+      "error-invalid": "Dat is geen geldig e-mailadres.",
+      "error-password": "Het wachtwoord klopt niet.",
+      "error-same": "Dat is al het e-mailadres van je account.",
+      "error-taken": "Dit e-mailadres is al in gebruik.",
+      "error-wait": "Wacht een paar minuten voordat je een nieuwe e-mail aanvraagt.",
+      "new": "Nieuw e-mailadres",
+      "password": "Je huidige wachtwoord",
+      "password-why": "Voor de veiligheid – zodat niemand je adres kan wijzigen op een ontgrendeld apparaat.",
+      "pending": "Bevestiging in afwachting: we hebben een e-mail gestuurd naar {email}. Totdat je op de link daarin klikt, blijft je vorige adres gelden.",
+      "resend": "E-mail opnieuw sturen",
+      "resend-wait": "Opnieuw sturen over {minutes} min.",
+      "send": "Bevestigingsmail sturen",
+      "sent": "We hebben een bevestigingsmail gestuurd naar {email}."
+    },
+    "emailInfo": "Een nieuw adres geldt zodra je het via de link in de bevestigingsmail hebt bevestigd.",
     "hideAmountGDD": "Je GDD-bedrag is verborgen.",
     "hideAmountGDT": "Je GDT-bedrag is verborgen.",
     "humhub": {

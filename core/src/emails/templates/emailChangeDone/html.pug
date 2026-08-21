@@ -1,0 +1,11 @@
+//- AI-GENERATED — not an architecture reference
+extends ../layout.pug
+
+block content
+  h2= t('emails.emailChangeDone.title')
+  .text-block
+    include ../includes/salutation.pug
+    p= t('emails.emailChangeDone.changedTo', { newEmail })
+    p= t('emails.emailChangeDone.wasBefore', { oldEmail })
+  .content
+    div(class="p_content")= t('emails.emailChangeDone.notYou', { supportEmail })

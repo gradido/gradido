@@ -211,6 +211,21 @@
   "download": "Scarica",
   "edit": "modifica",
   "em-dash": "—",
+  "emailChange": {
+    "confirm": {
+      "button": "Conferma il nuovo indirizzo",
+      "done": "Il tuo indirizzo e-mail è stato cambiato. D'ora in poi accedi con il nuovo indirizzo.",
+      "text": "Con un clic questo indirizzo diventa l'indirizzo e-mail del tuo account Gradido. Fino ad allora resta valido il tuo indirizzo precedente.",
+      "title": "Conferma il nuovo indirizzo e-mail"
+    },
+    "invalid": "Questo link non è valido o è scaduto. Nelle tue impostazioni puoi richiedere una nuova e-mail di conferma.",
+    "revoke": {
+      "button": "Annulla la modifica",
+      "done": "La modifica è stata annullata: il tuo indirizzo precedente resta valido. Se non avevi richiesto tu la modifica, cambia anche la tua password.",
+      "text": "Non sei stato tu? Allora annulla la modifica richiesta: il tuo indirizzo precedente resta valido.",
+      "title": "Annulla la modifica dell'indirizzo e-mail"
+    }
+  },
   "error": {
     "email-already-sent": "Ti abbiamo già inviato un'e-mail meno di 10 minuti fa.",
     "empty-transactionlist": "Si è verificato un errore nella trasmissione del numero delle tue transazioni.",
@@ -743,7 +758,25 @@
       "visibilityInfo": "Gli altri membri vedono la tua immagine, per esempio accanto alle transazioni che avete in comune. Quando l’impostazione è disattivata, compaiono le tue iniziali, come finora."
     },
     "community": "Circoli e ricerca dei membri",
-    "emailInfo": "Al momento non può ancora essere modificato.",
+    "email": {
+      "cancel": "Annulla",
+      "cancelled": "La modifica è stata annullata.",
+      "change": "Cambia indirizzo e-mail",
+      "error-invalid": "Questo non è un indirizzo e-mail valido.",
+      "error-password": "La password non è corretta.",
+      "error-same": "Questo è già l'indirizzo e-mail del tuo account.",
+      "error-taken": "Questo indirizzo e-mail è già in uso.",
+      "error-wait": "Attendi qualche minuto prima di richiedere una nuova e-mail.",
+      "new": "Nuovo indirizzo e-mail",
+      "password": "La tua password attuale",
+      "password-why": "Per sicurezza: così nessuno può cambiare il tuo indirizzo su un dispositivo sbloccato.",
+      "pending": "Conferma in sospeso: abbiamo inviato un'e-mail a {email}. Finché non clicchi sul link, resta valido il tuo indirizzo precedente.",
+      "resend": "Invia di nuovo l'e-mail",
+      "resend-wait": "Invia di nuovo tra {minutes} min.",
+      "send": "Invia e-mail di conferma",
+      "sent": "Abbiamo inviato un'e-mail di conferma a {email}."
+    },
+    "emailInfo": "Un nuovo indirizzo è valido non appena lo confermi tramite il link nell'e-mail di conferma.",
     "hideAmountGDD": "Il tuo importo in GDD è nascosto.",
     "hideAmountGDT": "Il tuo importo in GDT è nascosto.",
     "humhub": {

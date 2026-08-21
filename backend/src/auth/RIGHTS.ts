@@ -9,6 +9,9 @@ export enum RIGHTS {
   QUERY_REDEEM_JWT = 'QUERY_REDEEM_JWT',
   QUERY_OPT_IN = 'QUERY_OPT_IN',
   PROJECT_BRANDING_BANNER = 'PROJECT_BRANDING_BANNER',
+  // Both arrive from a mail link, so nobody is logged in; the code is what authorises.
+  CONFIRM_EMAIL_CHANGE = 'CONFIRM_EMAIL_CHANGE',
+  REVOKE_EMAIL_CHANGE = 'REVOKE_EMAIL_CHANGE',
   // User
   CHECK_USERNAME = 'CHECK_USERNAME',
   VERIFY_LOGIN = 'VERIFY_LOGIN',
@@ -53,6 +56,7 @@ export enum RIGHTS {
   MANAGE_OWN_CREATION_GROUPS = 'MANAGE_OWN_CREATION_GROUPS',
   MANAGE_OWN_THANK_YOU_CARD = 'MANAGE_OWN_THANK_YOU_CARD',
   RECEIVE_THANK_YOU_CARD_PAYMENT = 'RECEIVE_THANK_YOU_CARD_PAYMENT',
+  MANAGE_OWN_EMAIL = 'MANAGE_OWN_EMAIL',
   // Moderator
   SEARCH_USERS = 'SEARCH_USERS',
   ADMIN_CREATE_CONTRIBUTION = 'ADMIN_CREATE_CONTRIBUTION',
@@ -73,6 +77,9 @@ export enum RIGHTS {
   VIEW_USER_CONTACT = 'VIEW_USER_CONTACT',
   MANAGE_USER_CREATION_GROUPS = 'MANAGE_USER_CREATION_GROUPS',
   VIEW_USER_SALUTATION = 'VIEW_USER_SALUTATION',
+  // Which address the GDT server knows a member by, and whether a change is pending - the
+  // support needs it to merge addresses on the GDT server by hand.
+  VIEW_USER_EMAIL_STATUS = 'VIEW_USER_EMAIL_STATUS',
   // Moderator AI
   AI_SEND_MESSAGE = 'AI_SEND_MESSAGE',
   SET_USER_SALUTATION = 'SET_USER_SALUTATION',
@@ -86,6 +93,9 @@ export enum RIGHTS {
   AI_SETTINGS = 'AI_SETTINGS',
   MANAGE_CREATION_GROUPS = 'MANAGE_CREATION_GROUPS',
   SET_MODERATOR_CREATION_GROUP_SCOPE = 'SET_MODERATOR_CREATION_GROUP_SCOPE',
+  // Correcting a typo in an address that was NEVER confirmed (the member cannot reach the
+  // account to do it themselves). Writes on somebody else's contact row - admin only.
+  ADMIN_REPLACE_UNCONFIRMED_EMAIL = 'ADMIN_REPLACE_UNCONFIRMED_EMAIL',
   // LEGACY-HASHTAG-ADOPTION -- removable with the feature.
   // Adopting the legacy hashtags writes links onto OTHER members' contributions, in bulk.
   // Managing the group list itself does not, so it gets a right of its own rather than

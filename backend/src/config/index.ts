@@ -68,6 +68,9 @@ const email = {
   EMAIL_LINK_SETPASSWORD:
     COMMUNITY_URL + (process.env.EMAIL_LINK_SETPASSWORD_PATH ?? '/reset-password/'),
   EMAIL_LINK_OVERVIEW: COMMUNITY_URL + (process.env.EMAIL_LINK_OVERVIEW_PATH ?? '/overview'),
+  // Deliberately no environment variable of its own: a name that a server's .env has never
+  // seen is left as a literal `$NAME` by start.sh and takes the frontend build down.
+  EMAIL_LINK_EMAIL_CHANGE: COMMUNITY_URL + '/email-change/',
   // time in minutes a optin code is valid
   EMAIL_CODE_VALID_TIME: process.env.EMAIL_CODE_VALID_TIME
     ? (parseInt(process.env.EMAIL_CODE_VALID_TIME) ?? 1440)
