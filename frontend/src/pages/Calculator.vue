@@ -476,6 +476,16 @@ const closeShare = () => {
   shareOpen.value = false
 }
 
+/**
+ * "With thank-you card" is ONE act: park the amount AND open the wallet's own scanner
+ * (Bernd, 2026-08-21). Parking stays a real write first — it is the net under the act:
+ * if the camera says no, if the scan is interrupted, if the page reloads, the parked
+ * amount still waits, and this page still shows it on the way back.
+ *
+ * ⚠️ A refused park does NOT navigate: the message below the button is the one moment
+ * to learn the amount must be typed after scanning — on the scanner page it would
+ * already be gone.
+ */
 const parkAmount = () => {
   const amount = payableAmount.value
   if (amount === null) {
@@ -485,6 +495,7 @@ const parkAmount = () => {
     parked.value = amount
     parkFailed.value = false
     play('equals')
+    router.push('/scan')
     return
   }
   parkFailed.value = true
@@ -528,9 +539,10 @@ const syncParked = () => {
 }
 
 /**
- * ⛔ Scanning the card leaves the wallet: the phone's own camera opens `/dk/CODE`, and on a
- * phone that is usually a NEW tab. This page stays behind with the finished basket on it,
- * and nothing that happens over there reaches it by itself.
+ * ⛔ On the OLD way the card scan leaves the wallet: the phone's own camera opens
+ * `/dk/CODE`, on a phone usually in a NEW tab. This page stays behind with the finished
+ * basket on it, and nothing that happens over there reaches it by itself. The wallet's own
+ * scanner made that the fallback road, not a gone one — so this net stays.
  *
  * `storage` is how the browser tells one document that another changed the shared store --
  * it fires everywhere EXCEPT in the document that wrote, which is exactly right here: our

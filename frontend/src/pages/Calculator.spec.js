@@ -218,6 +218,19 @@ describe('Calculator page', () => {
       expect(key(wrapper, 'parked').text()).toContain('6,30')
     })
 
+    /**
+     * "With thank-you card" is ONE act since the wallet has its own scanner (Bernd,
+     * 21.08.2026): park the amount AND open the camera. The write comes first — it is
+     * the net under the act if the camera says no or the scan is interrupted.
+     */
+    it('opens the wallet scanner in the same act', async () => {
+      const wrapper = mountCalculator('de')
+      await press(wrapper, 'digit-5', 'equals', 'park')
+
+      expect(window.localStorage.getItem('calculator-parked-amount:user-one')).not.toBeNull()
+      expect(mockRouter.push).toHaveBeenCalledWith('/scan')
+    })
+
     /** Parking is a visible act with a way back -- and the way back must not clear the sum. */
     it('takes it back without touching the calculation', async () => {
       const wrapper = mountCalculator('de')
@@ -271,6 +284,9 @@ describe('Calculator page', () => {
 
       expect(key(wrapper, 'parked').exists()).toBe(false)
       expect(key(wrapper, 'park-failed').exists()).toBe(true)
+      // And it STAYS here: the message under the button is the one moment to learn the
+      // amount must be typed after scanning — on the scanner page it would be gone.
+      expect(mockRouter.push).not.toHaveBeenCalled()
     })
 
     /**
