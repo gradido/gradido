@@ -1,32 +1,19 @@
 name: Gradido Submodules Test CI
 
-on: push
+on:
+  push:
+    paths:
+      - 'core/**'
+      - 'config-schema/**'
+      - 'database/**'
+      - 'shared/**'
+      - 'shared-native/**'
+      - 'docker-compose.*'
+      - '.github/workflows/test_submodules.yml'
 
 jobs:
-  files-changed:
-    name: Detect File Changes - Submodules
-    runs-on: ubuntu-latest
-    outputs:
-      core: ${{ steps.changes.outputs.core }}
-      database: ${{ steps.changes.outputs.database }}
-      shared: ${{ steps.changes.outputs.shared }}
-      shared-native: ${{ steps.changes.outputs.shared-native }}
-      config: ${{ steps.changes.outputs.config }}
-    steps:
-      - uses: actions/checkout@v3.3.0
-
-      - name: Check for core file changes
-        uses: dorny/paths-filter@v2.11.1
-        id: changes
-        with:
-          token: ${{ github.token }}
-          filters: .github/file-filters.yml
-          list-files: shell
-
   build-windows:
     name: Build Windows - Submodules
-    if:  needs.files-changed.outputs.shared-native == 'true' || needs.files-changed.outputs.shared == 'true'
-    needs: files-changed
     runs-on: windows-latest
     steps:
       - name: Checkout code
@@ -54,8 +41,6 @@ jobs:
   
   build:
     name: Unit Tests & Typecheck & Build - Submodules
-    if: needs.files-changed.outputs.core == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.shared == 'true' || needs.files-changed.outputs.shared-native == 'true' || needs.files-changed.outputs.config == 'true'
-    needs: files-changed
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

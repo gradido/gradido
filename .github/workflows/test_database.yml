@@ -1,32 +1,17 @@
 name: Gradido Database Test CI
 
-on: push
+on:
+  push:
+    paths:
+      - 'database/**'
+      - 'shared/**'
+      - 'shared-native/**'
+      - 'docker-compose.*'
+      - '.github/workflows/test_database.yml'
 
 jobs:
-  files-changed:
-    name: Detect File Changes - Database
-    runs-on: ubuntu-latest
-    outputs:
-      database: ${{ steps.changes.outputs.database }}
-      shared: ${{ steps.changes.outputs.shared }}
-      shared-native: ${{ steps.changes.outputs.shared-native }}
-      docker-compose: ${{ steps.changes.outputs.docker-compose }}
-      mariadb: ${{ steps.changes.outputs.mariadb }}
-    steps:
-      - uses: actions/checkout@v3.3.0
-
-      - name: Check for frontend file changes
-        uses: dorny/paths-filter@v2.11.1
-        id: changes
-        with:
-          token: ${{ github.token }}
-          filters: .github/file-filters.yml
-          list-files: shell
-
   build:
-    if: needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.shared == 'true' || needs.files-changed.outputs.shared-native == 'true'
     name: Docker Build Test - Database up
-    needs: files-changed
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -36,9 +21,7 @@ jobs:
         run: docker build --target up -t "gradido/database:up" -f database/Dockerfile .
 
   database_migration_test:
-    if: needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.mariadb == 'true' || needs.files-changed.outputs.shared == 'true' || needs.files-changed.outputs.shared-native == 'true'
     name: Database Migration Test & Build & Typecheck - Up + Reset
-    needs: files-changed
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

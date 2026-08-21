@@ -1,35 +1,20 @@
 name: Gradido Backend Test CI
 
-on: push
+on:
+  push:
+    paths:
+      - 'backend/**'
+      - 'config-schema/**'
+      - 'core/**'
+      - 'database/**'
+      - 'shared/**'
+      - 'shared-native/**'
+      - 'docker-compose.*'
+      - '.github/workflows/test_backend.yml'
 
 jobs:
-  files-changed:
-    name: Detect File Changes - Backend
-    runs-on: ubuntu-latest
-    outputs:
-      backend: ${{ steps.changes.outputs.backend }}
-      config: ${{ steps.changes.outputs.config }}
-      core: ${{ steps.changes.outputs.core }}
-      shared: ${{ steps.changes.outputs.shared }}
-      shared-native: ${{ steps.changes.outputs.shared-native }}
-      database: ${{ steps.changes.outputs.database }}
-      docker-compose: ${{ steps.changes.outputs.docker-compose }}
-      mariadb: ${{ steps.changes.outputs.mariadb }}
-    steps:
-      - uses: actions/checkout@v3.3.0
-
-      - name: Check for frontend file changes
-        uses: dorny/paths-filter@v2.11.1
-        id: changes
-        with:
-          token: ${{ github.token }}
-          filters: .github/file-filters.yml
-          list-files: shell
-
   build_test:
-    if: needs.files-changed.outputs.backend == 'true' || needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.core == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.shared == 'true' || needs.files-changed.outputs.shared-native == 'true' || needs.files-changed.outputs.docker-compose == 'true'
     name: Docker Build Test - Backend
-    needs: files-changed
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -39,9 +24,7 @@ jobs:
         run: docker build -f ./backend/Dockerfile --target production -t "gradido/backend:production" .
 
   unit_test:
-    if: needs.files-changed.outputs.backend == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.mariadb == 'true' || needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.core == 'true' || needs.files-changed.outputs.shared == 'true' || needs.files-changed.outputs.shared-native == 'true'
     name: Unit tests & Typecheck & Build - Backend
-    needs: files-changed
     runs-on: ubuntu-latest
     steps:
       - name: Set Node.js version

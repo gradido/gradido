@@ -1,33 +1,19 @@
 name: Gradido DHT Node Test CI
 
-on: push
+on:
+  push:
+    paths:
+      - 'dht-node/**'
+      - 'config-schema/**'
+      - 'database/**'
+      - 'shared/**'
+      - 'shared-native/**'
+      - 'docker-compose.*'
+      - '.github/workflows/test_dht_node.yml'
 
 jobs:
-  files-changed:
-    name: Detect File Changes - DHT Node
-    runs-on: ubuntu-latest
-    outputs:
-      config: ${{ steps.changes.outputs.config }}
-      database: ${{ steps.changes.outputs.database }}
-      dht_node: ${{ steps.changes.outputs.dht_node }}
-      docker-compose: ${{ steps.changes.outputs.docker-compose }}
-      shared: ${{ steps.changes.outputs.shared }}
-      shared-native: ${{ steps.changes.outputs.shared-native }}
-    steps:
-      - uses: actions/checkout@v3.3.0
-
-      - name: Check for dht-node, config-schema, database, docker-compose file changes
-        uses: dorny/paths-filter@v2.11.1
-        id: changes
-        with:
-          token: ${{ github.token }}
-          filters: .github/file-filters.yml
-          list-files: shell
-
   build:
     name: Docker Build Test - DHT Node
-    if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.shared == 'true' || needs.files-changed.outputs.shared-native == 'true'
-    needs: files-changed
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -38,8 +24,6 @@ jobs:
 
   unit_test:
     name: Unit Tests & Typecheck & Build - DHT Node
-    if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.database == 'true' || needs.files-changed.outputs.dht_node == 'true' || needs.files-changed.outputs.docker-compose == 'true' || needs.files-changed.outputs.shared == 'true' || needs.files-changed.outputs.shared-native == 'true'
-    needs: files-changed
     runs-on: ubuntu-latest
     steps:
       - name: Set Node.js version

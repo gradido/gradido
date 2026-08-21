@@ -1,32 +1,15 @@
 name: Gradido Admin Interface Test CI
 
-on: push
+on:
+  push:
+    paths:
+      - 'admin/**'
+      - 'config-schema/**'
+      - '.github/workflows/test_admin_interface.yml'
 
 jobs:
-  # only (but most important) job from this workflow required for pull requests
-  # check results serve as run conditions for all other jobs here 
-  files-changed:
-    name: Detect File Changes - Admin Interface
-    runs-on: ubuntu-latest
-    outputs:
-      admin: ${{ steps.changes.outputs.admin }}
-      config: ${{ steps.changes.outputs.config }}
-    steps:
-      - uses: actions/checkout@v3.3.0
-
-      - name: Check for admin interface file changes
-        uses: dorny/paths-filter@v2.11.1
-        id: changes
-        with:
-          token: ${{ github.token }}
-          filters: .github/file-filters.yml
-          list-files: shell
-
-  
   build_test:
-    if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.admin == 'true'
     name: Docker Build Test - Admin Interface
-    needs: files-changed
     runs-on: ubuntu-latest
     steps:
 
@@ -37,9 +20,7 @@ jobs:
         run: docker build -f ./admin/Dockerfile --target production -t "gradido/admin:production" --build-arg NODE_ENV="production" --build-arg BUILD_COMMIT=$(git rev-parse HEAD) --build-arg BUILD_COMMIT_SHORT=$(git rev-parse --short HEAD) .
 
   unit_test_lint:
-    if: needs.files-changed.outputs.config == 'true' || needs.files-changed.outputs.admin == 'true'
     name: Unit Tests & Lint & Stylelint & Locales - Admin Interface
-    needs: files-changed
     runs-on: ubuntu-latest
     outputs:
       test-success: ${{ steps.test.outputs.success }}

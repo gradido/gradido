@@ -1,29 +1,15 @@
 name: Gradido DLT Connector Test CI
 
-on: push
+on:
+  push:
+    paths:
+      - 'dlt-connector/**'
+      - 'docker-compose.*'
+      - '.github/workflows/test_dlt_connector.yml'
 
 jobs:
-  files-changed:
-    name: Detect File Changes - DLT Connector
-    runs-on: ubuntu-latest
-    outputs:
-      dlt_connector: ${{ steps.changes.outputs.dlt_connector }}
-      docker-compose: ${{ steps.changes.outputs.docker-compose }}
-    steps:
-      - uses: actions/checkout@v3.3.0
-
-      - name: Check for frontend file changes
-        uses: dorny/paths-filter@v2.11.1
-        id: changes
-        with:
-          token: ${{ github.token }}
-          filters: .github/file-filters.yml
-          list-files: shell
-
   build:
     name: Docker Build Test - DLT Connector
-    if: needs.files-changed.outputs.dlt_connector == 'true'
-    needs: files-changed
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -45,8 +31,7 @@ jobs:
 
   unit_test:
     name: Unit Tests & Typecheck & Build - DLT Connector
-    if: needs.files-changed.outputs.dlt_connector == 'true' || needs.files-changed.outputs.docker-compose == 'true'
-    needs: [files-changed, build]
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
