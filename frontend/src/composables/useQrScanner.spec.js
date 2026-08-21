@@ -431,5 +431,73 @@ describe('useQrScanner', () => {
       expect(createQrDetectorMock).not.toHaveBeenCalledWith({ forcePonyfill: true })
       scanner.stop()
     })
+
+    // ⛔ Shared state is written only past the staleness check: a superseded run whose
+    // detector resolves LATE must not reinstall a broken detector over the demotion the
+    // current run just performed. (coderabbit, PR #3776)
+    it('a superseded run cannot reinstall its detector over a demotion', async () => {
+      const brokenDetect = vi.fn().mockRejectedValue(new Error('service unavailable'))
+      const goodDetect = vi.fn().mockResolvedValue([{ rawValue: 'works' }])
+      let handOverStale
+      createQrDetectorMock.mockImplementation((options) => {
+        if (options?.forcePonyfill) {
+          return Promise.resolve({ detect: goodDetect })
+        }
+        return new Promise((resolve) => {
+          const stale = handOverStale === undefined
+          if (stale) {
+            handOverStale = () => resolve({ detect: brokenDetect })
+          } else {
+            resolve({ detect: brokenDetect })
+          }
+        })
+      })
+      const staleStream = makeStream()
+      const liveStream = makeStream()
+      getUserMediaMock
+        .mockResolvedValueOnce(staleStream.stream)
+        .mockResolvedValueOnce(liveStream.stream)
+      const onCode = vi.fn()
+      const scanner = useQrScanner(onCode)
+      const video = makeVideo()
+
+      // Run A parks in createQrDetector; superseded; run B starts, fails a second of
+      // looks with the broken native detector and demotes to the good ponyfill.
+      const staleStart = scanner.start(video)
+      scanner.stop()
+      await scanner.start(video)
+      await flushAsync()
+      await vi.advanceTimersByTimeAsync(1000)
+      await flushAsync()
+      await vi.advanceTimersByTimeAsync(100)
+      expect(onCode).toHaveBeenCalledWith('works')
+
+      // NOW run A's detector arrives — and must change nothing.
+      handOverStale()
+      await staleStart
+      await flushAsync()
+      onCode.mockClear()
+      await vi.advanceTimersByTimeAsync(100)
+      expect(onCode).toHaveBeenCalledWith('works')
+      scanner.stop()
+    })
+
+    // A detect() hanging forever belongs to its old generation — it must not hold the
+    // `busy` latch against the NEXT run's loop.
+    it('a hanging look does not block the next run', async () => {
+      detectMock.mockReturnValueOnce(new Promise(() => {})).mockResolvedValue([])
+      const { scanner, video } = await startScanner()
+      await vi.advanceTimersByTimeAsync(100)
+      expect(detectMock).toHaveBeenCalledTimes(1)
+
+      const again = makeStream()
+      getUserMediaMock.mockResolvedValue(again.stream)
+      scanner.stop()
+      await scanner.start(video)
+      await flushAsync()
+      await vi.advanceTimersByTimeAsync(100)
+      expect(detectMock).toHaveBeenCalledTimes(2)
+      scanner.stop()
+    })
   })
 })

@@ -85,6 +85,9 @@ export const useQrScanner = (onCode) => {
     if (video) {
       video.srcObject = null
     }
+    // A detect() still in flight belongs to the old generation — its result is already
+    // ignored, but a hanging one must not keep the NEXT run's loop from ever looking.
+    busy = false
   }
 
   /**
@@ -147,10 +150,11 @@ export const useQrScanner = (onCode) => {
     })
 
     let mediaStream
+    let freshDetector
     try {
       // In parallel: on iOS the polyfill's wasm takes a moment on first load, and at
       // a till the seconds between opening and scanning are the ones that count.
-      ;[mediaStream, detector] = await Promise.all([streamPromise, createQrDetector()])
+      ;[mediaStream, freshDetector] = await Promise.all([streamPromise, createQrDetector()])
     } catch (error) {
       streamPromise.then(stopTracks).catch(() => {})
       // A rejection landing after this run was superseded reports nothing: the state
@@ -166,6 +170,10 @@ export const useQrScanner = (onCode) => {
       return
     }
 
+    // ⛔ Only past the staleness check, like everything shared: a superseded run that
+    // resolved late used to write the module `detector` here, reinstalling a detector
+    // demoteDetector had just replaced under the CURRENT run. (coderabbit, PR #3776)
+    detector = freshDetector
     stream = mediaStream
     video.srcObject = mediaStream
     try {
