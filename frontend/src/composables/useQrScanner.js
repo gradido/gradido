@@ -218,7 +218,13 @@ export const useQrScanner = (onCode) => {
         const codes = await detector.detect(video)
         detectFailures = 0
         const rawValue = codes?.[0]?.rawValue
-        if (rawValue && !paused && gen === generation) {
+        // ⛔ `hiddenHold` again, AFTER the await, and it is not belt-and-braces: the guard
+        // at the top of the tick only stops a look from STARTING. Hiding used to bump the
+        // generation (it tore the camera down), so a look already in flight was discarded
+        // by the `gen` check below; now that hiding keeps the camera, nothing else stops a
+        // result that lands a moment later -- and it would act on a code while the person
+        // is looking at another app. (coderabbit, PR #3781)
+        if (rawValue && !paused && !hiddenHold && gen === generation) {
           onCode(rawValue)
         }
       } catch {

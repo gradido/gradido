@@ -215,7 +215,7 @@ button.navbar-toggler > span.navbar-toggler-icon {
 
 /* Two columns of 44px, so the four tools stack two by two instead of pushing the block
    opposite off a narrow phone. */
-.navbar-quick-row {
+.navbar-component .navbar-quick-row {
   display: grid;
   grid-template-columns: repeat(2, 44px);
 }
@@ -238,7 +238,7 @@ button.navbar-toggler > span.navbar-toggler-icon {
    The colour is the menu's own: `--text` is #383838 in light and #e4e4e4 in dark, which is
    exactly what the sidebar items carry. No opacity -- the tone has to MATCH the menu, and
    0.65 of it is a different grey. */
-.navbar-quick-row > a {
+.navbar-component .navbar-quick-row > a {
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -248,7 +248,7 @@ button.navbar-toggler > span.navbar-toggler-icon {
   color: var(--text);
 }
 
-.navbar-quick-row > a:hover {
+.navbar-component .navbar-quick-row > a:hover {
   color: var(--text);
   opacity: 0.7;
 }

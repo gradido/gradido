@@ -532,7 +532,7 @@ const admin = () => {
 /* Two columns of 44px, as on the phone. The margin lines the block up with the menu
    entries in the column below it -- it used to sit on the scanner alone, which was the
    same thing said in a place that could only ever hold one tool. */
-.sidebar-quick-row {
+.main-page .sidebar-quick-row {
   display: grid;
   grid-template-columns: repeat(2, 44px);
   margin-left: 8px;
@@ -548,7 +548,7 @@ const admin = () => {
    `flex-start` and `--text` for the same reasons as on the phone: the glyphs line up on
    their left edge, and the tone is the menu's own (#383838 light, #e4e4e4 dark) rather
    than 0.65 of whatever the surroundings inherit. */
-.sidebar-quick-row > a {
+.main-page .sidebar-quick-row > a {
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
@@ -558,7 +558,7 @@ const admin = () => {
   color: var(--text);
 }
 
-.sidebar-quick-row > a:hover {
+.main-page .sidebar-quick-row > a:hover {
   color: var(--text);
   opacity: 0.7;
 }

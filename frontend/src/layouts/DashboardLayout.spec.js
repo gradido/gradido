@@ -603,7 +603,17 @@ describe('DashboardLayout', () => {
      * heading row, the menu alone in its column. (Bernd, 21.08.2026)
      */
     it('keeps the tools out of the menu column, so the menu stays level', () => {
-      expect(wrapper.find('.breadcrumb .sidebar-quick-row').exists()).toBe(true)
+      const row = wrapper.find('.breadcrumb .sidebar-quick-row')
+      expect(row.exists()).toBe(true)
+
+      // ⚠️ The COLUMN, not just "somewhere under the breadcrumb". Dropped into the ten-wide
+      // column beside it the row would still be under `.breadcrumb` and would sit on top of
+      // the page heading. It belongs in the two-wide one the offset used to leave empty --
+      // the same width as the menu below it, which is what puts it in the same line.
+      // (coderabbit, PR #3781)
+      const column = row.element.parentElement
+      expect(column.getAttribute('cols')).toBe('2')
+      expect(column.getAttribute('class')).toContain('d-lg-block')
 
       const menuColumn = wrapper.find('.main-sidebar').element.parentElement
       expect(menuColumn.querySelector('.sidebar-quick-row')).toBe(null)

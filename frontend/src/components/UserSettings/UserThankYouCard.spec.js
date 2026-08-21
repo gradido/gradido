@@ -646,7 +646,11 @@ describe('UserThankYouCard', () => {
       await mountWith()
 
       expect(field('sheet').exists()).toBe(true)
-      expect(wrapper.text()).not.toContain(translate('thank-you-card.settings.print'))
+      // ⚠️ The RAW key, not `translate()`. The template's `$t` mock hands the key straight
+      // back, so a `translated:`-prefixed needle is one the page can never contain -- the
+      // assertion would have been vacuously green with the button still standing.
+      // (coderabbit, PR #3781)
+      expect(wrapper.text()).not.toContain('thank-you-card.settings.print')
     })
 
     // ⛔ The sheet is what carries the physical size. The PNG deliberately states none — so

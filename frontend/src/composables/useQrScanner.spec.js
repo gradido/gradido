@@ -343,6 +343,34 @@ describe('useQrScanner', () => {
       scanner.stop()
     })
 
+    /**
+     * ⛔ The half a guard at the top of the tick cannot cover. `detect()` is async: a look
+     * that STARTED while the page was visible can land after it is hidden, and acting on
+     * that code would open a payment page behind the person's back.
+     *
+     * Hiding used to bump the generation, so such a result was discarded by the staleness
+     * check; keeping the camera took that away. (coderabbit, PR #3781)
+     */
+    it('drops a code that lands after the page was hidden', async () => {
+      const onCode = vi.fn()
+      const { scanner } = await startScanner(onCode)
+
+      let land
+      detectMock.mockReturnValue(
+        new Promise((resolve) => {
+          land = () => resolve([{ rawValue: 'https://example.test/dk/DK-1' }])
+        }),
+      )
+      await vi.advanceTimersByTimeAsync(200)
+
+      await fireVisibility('hidden')
+      land()
+      await flushAsync()
+
+      expect(onCode).not.toHaveBeenCalled()
+      scanner.stop()
+    })
+
     // A page that STAYS hidden does lose its camera -- that is where a light burning in a
     // tab nobody can see would be the real failure.
     it('a long absence releases the camera, and coming back starts a new one', async () => {
