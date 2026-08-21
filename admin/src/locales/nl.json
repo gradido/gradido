@@ -461,8 +461,18 @@
   "unregister_mail": {
     "button": "Registratie-e-mail bevestigen, nu verzenden",
     "error": "Fout bij het verzenden van de bevestigingslink naar de gebruiker: {message}",
+    "gdt_email": "Voor de GDT-server telt het eerste adres van dit account: {email}",
     "info": "E-mail bevestigen, herhaaldelijk verzenden naar:",
     "never_sent": "Het lijkt erop dat we nooit een e-mail naar het lid {email} hebben gestuurd",
+    "pending": "Wijziging in afwachting: bevestiging aangevraagd voor {email} op {date}",
+    "replace": {
+      "button": "Adres corrigeren",
+      "elopage_warning": "Let op: onder {email} zijn er Elopage-aankopen. Dit account komt waarschijnlijk uit de webhook – het adres is dan geen typefout.",
+      "hint": "Alleen zolang het adres nooit is bevestigd (bijv. typefout bij registratie). De bevestigingsmail gaat daarna naar het gecorrigeerde adres.",
+      "placeholder": "Gecorrigeerd e-mailadres",
+      "success": "Adres gecorrigeerd en bevestigingsmail verzonden naar {email}.",
+      "title": "Nooit bevestigd adres corrigeren"
+    },
     "success": "De bevestigingslink is succesvol naar de e-mail van de gebruiker verzonden! ({email})",
     "text_false": "De laatste e-mail is op {date} naar het lid ({email}) verzonden.",
     "text_true": "De e-mail is bevestigd."

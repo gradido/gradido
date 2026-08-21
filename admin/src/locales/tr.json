@@ -461,8 +461,18 @@
   "unregister_mail": {
     "button": "Kayıt e-postasını onayla, şimdi gönder",
     "error": "Onay bağlantısı kullanıcıya gönderilirken hata: {message}",
+    "gdt_email": "GDT sunucusu için bu hesabın ilk adresi geçerlidir: {email}",
     "info": "E-postayı onayla, tekrar gönder:",
     "never_sent": "Görünüşe göre {email} üyesine hiç e-posta göndermedik",
+    "pending": "Değişiklik bekliyor: {email} için onay {date} tarihinde istendi",
+    "replace": {
+      "button": "Adresi düzelt",
+      "elopage_warning": "Dikkat: {email} altında Elopage satın alımları var. Bu hesap büyük olasılıkla webhook'tan geldi – o halde adres bir yazım hatası değil.",
+      "hint": "Yalnızca adres hiç onaylanmadığı sürece (ör. kayıtta yazım hatası). Onay e-postası sonra düzeltilen adrese gider.",
+      "placeholder": "Düzeltilmiş e-posta adresi",
+      "success": "Adres düzeltildi ve onay e-postası {email} adresine gönderildi.",
+      "title": "Hiç onaylanmamış adresi düzelt"
+    },
     "success": "Onay bağlantısı kullanıcının e-postasına başarıyla gönderildi! ({email})",
     "text_false": "Son e-posta, {email} üyesine {date} tarihinde gönderildi.",
     "text_true": "E-posta onaylandı."

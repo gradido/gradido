@@ -461,8 +461,18 @@
   "unregister_mail": {
     "button": "Confirmar el correo de registro, enviar ahora",
     "error": "Error al enviar el enlace de confirmación al usuario: {message}",
+    "gdt_email": "Para el servidor GDT cuenta la primera dirección de esta cuenta: {email}",
     "info": "Confirmar correo, enviar repetidamente a:",
     "never_sent": "Parece que nunca hemos enviado un correo al miembro {email}",
+    "pending": "Cambio pendiente: confirmación solicitada para {email} el {date}",
+    "replace": {
+      "button": "Corregir dirección",
+      "elopage_warning": "Atención: hay compras de Elopage con {email}. Esta cuenta probablemente proviene del webhook; entonces la dirección no es una errata.",
+      "hint": "Solo mientras la dirección nunca haya sido confirmada (p. ej. errata en el registro). El correo de confirmación se enviará a la dirección corregida.",
+      "placeholder": "Dirección de correo corregida",
+      "success": "Dirección corregida y correo de confirmación enviado a {email}.",
+      "title": "Corregir una dirección nunca confirmada"
+    },
     "success": "¡El enlace de confirmación se ha enviado correctamente al correo del usuario! ({email})",
     "text_false": "El último correo se envió al miembro ({email}) el {date}.",
     "text_true": "El correo se ha confirmado."

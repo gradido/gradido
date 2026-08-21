@@ -86,11 +86,13 @@
                 v-if="!row.item.deletedAt"
                 :checked="row.item.emailChecked"
                 :email="row.item.email"
+                :user-id="row.item.userId"
                 :date-last-send="
                   row.item.emailConfirmationSend
                     ? $d(new Date(row.item.emailConfirmationSend), 'long')
                     : ''
                 "
+                @email-replaced="row.item.email = $event"
               />
             </BTab>
             <BTab :title="$t('creationList')" :disabled="row.item.deletedAt !== null">
