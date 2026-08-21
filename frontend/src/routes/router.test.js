@@ -81,8 +81,8 @@ describe('router', () => {
       expect(defaultRoute.redirect()).toEqual({ path: '/login' })
     })
 
-    it('has 26 routes defined', () => {
-      expect(routes).toHaveLength(26)
+    it('has 27 routes defined', () => {
+      expect(routes).toHaveLength(27)
     })
 
     const testRoute = (path, expectedName, requiresAuth = true) => {
@@ -140,6 +140,20 @@ describe('router', () => {
     testRoute('/u/:alias', 'PublicProfile', false)
     testRoute('/dk/:code', 'ThankYouCardPayment')
     testRoute('/calculator', 'Calculator')
+    testRoute('/scan', 'Scanner')
+
+    // Same two assertions as the calculator below, for the same reasons: the raw key
+    // would print if the breadcrumb cannot resolve it, and without bareChrome the
+    // translucent navbar would sit over the viewfinder.
+    it('gives the scanner a page title the breadcrumb can resolve', () => {
+      const route = routes.find((r) => r.path === '/scan')
+      expect(route.meta.pageTitle).toBe('scanner')
+    })
+
+    it('lets the scanner bring its own head', () => {
+      const route = routes.find((r) => r.path === '/scan')
+      expect(route.meta.bareChrome).toBe(true)
+    })
 
     // ⚠️ The page title is not a detail on this route: the breadcrumb prefixes `pageTitle.`
     // and prints the raw key when it finds nothing there. Counting routes cannot see that.

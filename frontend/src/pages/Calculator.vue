@@ -264,6 +264,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
 import { useCalculator } from '@/composables/useCalculator'
+import { useCalculatorBasket } from '@/composables/useCalculatorBasket'
 import { useCalculatorPrefs } from '@/composables/useCalculatorPrefs'
 import { useCalculatorSound } from '@/composables/useCalculatorSound'
 import { useParkedAmount } from '@/composables/useParkedAmount'
@@ -285,6 +286,7 @@ const { toastSuccess, toastError } = useAppToast()
 const { percent, factor, currency, showDankBar, sound } = useCalculatorPrefs()
 const { play, stop } = useCalculatorSound(sound)
 const { park, readParked, clearParked, hasParkedEntry, parkedKey } = useParkedAmount()
+const { saveBasket, takeBasket } = useCalculatorBasket()
 
 const {
   display,
@@ -297,7 +299,24 @@ const {
   allClear,
   calculate,
   dankBarToGdd,
+  snapshot,
+  restore,
 } = useCalculator({ percent, factor, locale })
+
+/**
+ * The way back from the scanner: parking navigated away and unmounted this page, so the
+ * basket comes back from what parkAmount wrote down — the WHOLE basket, display and
+ * fiat sum included (Bernd, 21.08.2026), not just the parked GDD amount.
+ *
+ * ⛔ Only while the parked entry still EXISTS. An entry that is GONE was consumed — the
+ * payment went through over there, the sale is over, and the standing rule for that is
+ * a clean start (Bernd, 19.08.2026), not yesterday's basket over a new customer. This
+ * is the same three-way reading syncParked applies at runtime, applied once on arrival.
+ */
+const savedBasket = takeBasket()
+if (savedBasket && hasParkedEntry()) {
+  restore(savedBasket)
+}
 
 const decimalSeparator = computed(() => decimalSeparatorFor(locale.value))
 
@@ -476,15 +495,29 @@ const closeShare = () => {
   shareOpen.value = false
 }
 
+/**
+ * "With thank-you card" is ONE act: park the amount AND open the wallet's own scanner
+ * (Bernd, 2026-08-21). Parking stays a real write first — it is the net under the act:
+ * if the camera says no, if the scan is interrupted, if the page reloads, the parked
+ * amount still waits, and this page still shows it on the way back.
+ *
+ * ⚠️ A refused park does NOT navigate: the message below the button is the one moment
+ * to learn the amount must be typed after scanning — on the scanner page it would
+ * already be gone.
+ */
 const parkAmount = () => {
   const amount = payableAmount.value
   if (amount === null) {
     return
   }
   if (park(amount)) {
+    // Written BEFORE the navigation that will unmount this page: the basket is what
+    // the way back restores. A refused save costs only that restore, never the act.
+    saveBasket(snapshot())
     parked.value = amount
     parkFailed.value = false
     play('equals')
+    router.push('/scan')
     return
   }
   parkFailed.value = true
@@ -528,9 +561,10 @@ const syncParked = () => {
 }
 
 /**
- * ⛔ Scanning the card leaves the wallet: the phone's own camera opens `/dk/CODE`, and on a
- * phone that is usually a NEW tab. This page stays behind with the finished basket on it,
- * and nothing that happens over there reaches it by itself.
+ * ⛔ On the OLD way the card scan leaves the wallet: the phone's own camera opens
+ * `/dk/CODE`, on a phone usually in a NEW tab. This page stays behind with the finished
+ * basket on it, and nothing that happens over there reaches it by itself. The wallet's own
+ * scanner made that the fallback road, not a gone one — so this net stays.
  *
  * `storage` is how the browser tells one document that another changed the shared store --
  * it fires everywhere EXCEPT in the document that wrote, which is exactly right here: our

@@ -128,6 +128,7 @@ describe('Calculator page', () => {
       configurable: true,
     })
     window.localStorage.clear()
+    window.sessionStorage.clear()
   })
 
   afterEach(() => {
@@ -218,6 +219,68 @@ describe('Calculator page', () => {
       expect(key(wrapper, 'parked').text()).toContain('6,30')
     })
 
+    /**
+     * "With thank-you card" is ONE act since the wallet has its own scanner (Bernd,
+     * 21.08.2026): park the amount AND open the camera. The write comes first — it is
+     * the net under the act if the camera says no or the scan is interrupted.
+     */
+    it('opens the wallet scanner in the same act', async () => {
+      const wrapper = mountCalculator('de')
+      await press(wrapper, 'digit-5', 'equals', 'park')
+
+      expect(window.localStorage.getItem('calculator-parked-amount:user-one')).not.toBeNull()
+      expect(mockRouter.push).toHaveBeenCalledWith('/scan')
+    })
+
+    /**
+     * ★ The navigation UNMOUNTS this page — the router mock here cannot show that, so
+     * the round trip is played by hand: park, unmount, mount again. The WHOLE basket
+     * comes back (Bernd, 21.08.2026): the display, and above all the fiat sum the
+     * customer still owes, which lives nowhere else.
+     */
+    it('the whole basket survives the round trip to the scanner', async () => {
+      window.localStorage.setItem('calculator-prefs:user-one', JSON.stringify({ percent: 60 }))
+      const before = mountCalculator('de')
+      await press(before, 'digit-1', 'digit-0', 'separator', 'digit-5', 'digit-0', 'equals')
+      await press(before, 'park')
+      before.unmount()
+
+      const after = mountCalculator('de')
+      expect(key(after, 'display').text()).toBe('10,50')
+      expect(key(after, 'sub-fiat').text()).toContain('4,20')
+      expect(key(after, 'parked').text()).toContain('6,30')
+    })
+
+    /**
+     * ⛔ A parked entry that is GONE was consumed: the payment went through over there,
+     * the sale is over — the calculator starts clean rather than laying yesterday's
+     * basket over a new customer (the same rule syncParked applies at runtime).
+     */
+    it('a consumed parked amount buries the basket', async () => {
+      const before = mountCalculator('de')
+      await press(before, 'digit-5', 'equals', 'park')
+      before.unmount()
+      window.localStorage.removeItem('calculator-parked-amount:user-one')
+
+      const after = mountCalculator('de')
+      expect(key(after, 'display').text()).toBe('')
+      expect(key(after, 'parked').exists()).toBe(false)
+    })
+
+    /** The basket is for the ONE way back: a second arrival starts fresh. */
+    it('does not restore the same basket twice', async () => {
+      const before = mountCalculator('de')
+      await press(before, 'digit-5', 'equals', 'park')
+      before.unmount()
+
+      const once = mountCalculator('de')
+      expect(key(once, 'display').text()).toBe('5,00')
+      once.unmount()
+
+      const twice = mountCalculator('de')
+      expect(key(twice, 'display').text()).toBe('')
+    })
+
     /** Parking is a visible act with a way back -- and the way back must not clear the sum. */
     it('takes it back without touching the calculation', async () => {
       const wrapper = mountCalculator('de')
@@ -271,6 +334,9 @@ describe('Calculator page', () => {
 
       expect(key(wrapper, 'parked').exists()).toBe(false)
       expect(key(wrapper, 'park-failed').exists()).toBe(true)
+      // And it STAYS here: the message under the button is the one moment to learn the
+      // amount must be typed after scanning — on the scanner page it would be gone.
+      expect(mockRouter.push).not.toHaveBeenCalled()
     })
 
     /**

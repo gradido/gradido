@@ -638,6 +638,7 @@
     "logout": "Afmelden",
     "matching": "Matching",
     "overview": "Overzicht",
+    "scanner": "Code scannen",
     "send": "Sturen",
     "settings": "Instellingen",
     "support": "Support",
@@ -652,6 +653,7 @@
     "information": "{community}",
     "matching": "Matching",
     "overview": "Welcome {name}",
+    "scanner": "Code scannen",
     "send": "Gradido en e-mail versturen",
     "settings": "Settings",
     "thank-you-card-receive": "Gradido ontvangen",
@@ -663,6 +665,38 @@
     "send": "Gradido versturen"
   },
   "qrCode": "QR Code",
+  "scanner": {
+    "back": "Terug",
+    "denied": {
+      "help": "Je kunt de toegang voor deze pagina toestaan in de browserinstellingen.",
+      "title": "Geen toegang tot de camera"
+    },
+    "foreign": {
+      "cheque": "Cheque van een andere gemeenschap",
+      "continue": "Verder scannen",
+      "gradido-card": "Gradido-kaart van een andere gemeenschap",
+      "open": "Daar openen",
+      "thank-you-card": "Dankkaart van een andere gemeenschap"
+    },
+    "hint": "Houd een dankkaart, cheque of Gradido-kaart in beeld",
+    "manual": {
+      "close": "Verder scannen",
+      "invalid": "Dit is geen Gradido-code of -link.",
+      "label": "Code of link",
+      "open": "Code of link met de hand invoeren",
+      "submit": "Openen"
+    },
+    "no-gradido-code": "Geen Gradido-code.",
+    "system-camera": {
+      "parked": "Het onthouden bedrag wacht en wordt overgenomen.",
+      "text": "De camera van je apparaat opent na het scannen de juiste pagina.",
+      "title": "Scannen met de camera-app"
+    },
+    "title": "Gradido-code scannen",
+    "unavailable": {
+      "title": "Geen camera gevonden"
+    }
+  },
   "send_email": "E‑mail versturen",
   "send_gdd": "GDD sturen",
   "send_per_link": "Link, cheque, QR",

@@ -163,16 +163,28 @@ export const useCalculatorSound = (enabled) => {
     }
   }
 
-  /** Lets go of the audio device when the page is left. */
+  /**
+   * Lets go of the audio device when the page is left.
+   *
+   * ★ One tone-length LATER, not at once: the park act navigates away WHILE its 300 ms
+   * confirmation tone plays (Bernd, 21.08.2026: the tone survives the navigation), and
+   * on a cached route the unmount lands within milliseconds — an immediate close() cut
+   * the one signal a till hears without looking. The timeout outlives the component on
+   * purpose; a remount builds its own fresh context meanwhile, unbothered.
+   */
   const stop = () => {
     if (context) {
-      try {
-        // ⚠️ `close` REJECTS on a context that is already closed, it does not throw, so the
-        // catch below never sees it and the rejection would land on the page unhandled.
-        swallowRejection(context.close())
-      } catch {
-        // a constructor-less or otherwise broken context must not cost the page
-      }
+      const parting = context
+      window.setTimeout(() => {
+        try {
+          // ⚠️ `close` REJECTS on a context that is already closed, it does not throw, so
+          // the catch below never sees it and the rejection would land on the page
+          // unhandled.
+          swallowRejection(parting.close())
+        } catch {
+          // a constructor-less or otherwise broken context must not cost the page
+        }
+      }, 400)
       context = null
       /**
        * ⛔ The throttle is measured against `currentTime`, and a fresh AudioContext starts

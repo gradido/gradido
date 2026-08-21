@@ -7,9 +7,11 @@ import { useStore } from 'vuex'
  *
  * ## Why it has to be parked at all
  *
- * Scanning a card means leaving the wallet: the phone's own camera reads the code and opens
- * `/dk/CODE` afresh. Nothing survives that jump except what was written down. So the
- * calculator writes the amount here, and the payment screen finds it waiting.
+ * The wallet has its own scanner now, but the amount still has to go over storage: on the
+ * OLD way (the phone's own camera) scanning leaves the wallet and opens `/dk/CODE` afresh,
+ * and nothing survives that jump except what was written down. The old way stays fully
+ * supported — it is the net when the camera says no — so the calculator writes the amount
+ * here either way, and the payment screen finds it waiting.
  *
  * ## Three properties, and each of them prevents a specific wrong charge
  *

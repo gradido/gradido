@@ -314,6 +314,60 @@ export const useCalculator = ({ percent, factor, locale }) => {
     return 'function'
   }
 
+  /**
+   * The whole basket, as one plain object — for the round trip to the scanner. The park
+   * act navigates away, which unmounts the page and with it these refs; only what was
+   * written down comes back (Bernd, 21.08.2026: the WHOLE basket survives, not just the
+   * parked amount — the fiat sum still to collect lives nowhere else).
+   */
+  const snapshot = () => ({
+    expression: expression.value,
+    justCalculated: justCalculated.value,
+    subResult: subResult.value,
+  })
+
+  /** Every number a stored sub-result carries, per kind — the restore validator's map. */
+  const SUB_RESULT_NUMBERS = {
+    payment: ['fiat', 'gdd', 'dankBar'],
+    dankbar: ['dankBar', 'gdd'],
+  }
+
+  const isRestorableSubResult = (sub) => {
+    if (sub === null) {
+      return true
+    }
+    const numbers = SUB_RESULT_NUMBERS[sub?.kind]
+    return (
+      Boolean(numbers) &&
+      numbers.every((field) => Number.isFinite(sub[field])) &&
+      Number.isFinite(sub.rate?.dankBarToGdd) &&
+      Number.isFinite(sub.rate?.gddToDankBar)
+    )
+  }
+
+  /**
+   * Puts a snapshot back. Storage content is the user's own, but it went through
+   * serialization and a page's lifetime — anything that does not hold the shape is
+   * refused whole rather than half-restored: a basket is either the one that was
+   * parked, or none.
+   *
+   * @returns {boolean} whether the snapshot was taken
+   */
+  const restore = (saved) => {
+    if (
+      !saved ||
+      typeof saved.expression !== 'string' ||
+      typeof saved.justCalculated !== 'boolean' ||
+      !isRestorableSubResult(saved.subResult)
+    ) {
+      return false
+    }
+    expression.value = saved.expression
+    justCalculated.value = saved.justCalculated
+    subResult.value = saved.subResult
+    return true
+  }
+
   return {
     display,
     subResult,
@@ -325,5 +379,7 @@ export const useCalculator = ({ percent, factor, locale }) => {
     allClear,
     calculate,
     dankBarToGdd,
+    snapshot,
+    restore,
   }
 }

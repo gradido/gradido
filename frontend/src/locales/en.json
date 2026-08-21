@@ -638,6 +638,7 @@
     "logout": "Logout",
     "matching": "Matching",
     "overview": "Overview",
+    "scanner": "Scan code",
     "send": "Send",
     "settings": "Settings",
     "support": "Support",
@@ -652,6 +653,7 @@
     "information": "{community}",
     "matching": "Matching",
     "overview": "Welcome {name}",
+    "scanner": "Scan code",
     "send": "Send Gradido and email",
     "settings": "Settings",
     "thank-you-card-receive": "Receive Gradido",
@@ -663,6 +665,38 @@
     "send": "Send Gradido"
   },
   "qrCode": "QR Code",
+  "scanner": {
+    "back": "Back",
+    "denied": {
+      "help": "You can allow access for this page in your browser settings.",
+      "title": "No access to the camera"
+    },
+    "foreign": {
+      "cheque": "Cheque of another community",
+      "continue": "Keep scanning",
+      "gradido-card": "Gradido card of another community",
+      "open": "Open there",
+      "thank-you-card": "Thank-you card of another community"
+    },
+    "hint": "Hold a thank-you card, cheque or Gradido card into the picture",
+    "manual": {
+      "close": "Keep scanning",
+      "invalid": "This is not a Gradido code or link.",
+      "label": "Code or link",
+      "open": "Type code or link by hand",
+      "submit": "Open"
+    },
+    "no-gradido-code": "Not a Gradido code.",
+    "system-camera": {
+      "parked": "The remembered amount is waiting and will be taken over.",
+      "text": "Your device's camera opens the right page after scanning.",
+      "title": "Scan with the camera app"
+    },
+    "title": "Scan Gradido code",
+    "unavailable": {
+      "title": "No camera found"
+    }
+  },
   "send_email": "Send email",
   "send_gdd": "Send GDD",
   "send_per_link": "Link, cheque, QR",

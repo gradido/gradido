@@ -25,9 +25,18 @@
       <BRow fluid class="d-flex" :class="bareTopSpace">
         <!-- Sidebar left -->
         <BCol cols="2" class="d-none d-lg-block">
-          <!-- The calculator sits above the menu, level with the page heading -- small and
-               unmarked on purpose: a tool for those who run a till, not a headline feature.
-               Whoever needs it knows where it lives. (Bernd, 20.08.2026) -->
+          <!-- The two till tools sit above the menu, level with the page heading -- small
+               and unmarked on purpose: tools for those who run a till, not headline
+               features. Whoever needs them knows where they live. Scan left of the
+               calculator, because scanning is the more general act. (Bernd, 20./21.08.2026) -->
+          <router-link
+            to="/scan"
+            class="sidebar-scanner-quick"
+            :aria-label="$t('navigation.scanner')"
+            data-test="sidebar-scanner"
+          >
+            <i-mdi-qrcode-scan />
+          </router-link>
           <router-link
             to="/calculator"
             class="sidebar-calculator-quick"
@@ -496,19 +505,25 @@ const admin = () => {
 
 /* Small to the eye, 44px to the pointer -- same rule as the gear inside the calculator.
    ⚠️ Named for THIS spot: the style block of this layout is global, so a shared class name
-   would style the navbar's twin as well -- the desktop margin would shift the phone symbol. */
+   would style the navbar's twins as well -- the desktop margin would shift the phone
+   symbols. The scanner carries the left margin; the calculator sits flush beside it. */
+.sidebar-scanner-quick {
+  margin-left: 8px;
+}
+
+.sidebar-scanner-quick,
 .sidebar-calculator-quick {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 44px;
   height: 44px;
-  margin-left: 8px;
   font-size: 22px;
   color: inherit;
   opacity: 0.65;
 }
 
+.sidebar-scanner-quick:hover,
 .sidebar-calculator-quick:hover {
   color: inherit;
   opacity: 1;

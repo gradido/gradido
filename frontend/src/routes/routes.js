@@ -99,6 +99,22 @@ const routes = [
     },
   },
   {
+    // The scanner is a tool of its own, not only the calculator's second half: it reads
+    // every Gradido code — thank-you card, cheque, Gradido card — including those of
+    // OTHER communities (federation; foreign ones go through a confirmation card).
+    // A page rather than an overlay for the calculator's reasons: deep-linkable, and the
+    // back button does what somebody expects without any handling of ours.
+    path: '/scan',
+    component: () => import('@/pages/Scanner'),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'scanner',
+      // Like the calculator: the page brings its own head (back arrow, title), so on a
+      // phone the wallet chrome goes entirely and the viewfinder gets the screen.
+      bareChrome: true,
+    },
+  },
+  {
     name: 'Transactions',
     path: '/transactions',
     component: () => import('@/pages/Transactions'),

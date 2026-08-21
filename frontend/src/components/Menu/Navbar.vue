@@ -11,18 +11,29 @@
               alt="Logo"
             />
           </router-link>
-          <!-- The calculator sits ABOVE the menu opener, deliberately small and unmarked:
-               it is a tool for those who run a till, not a headline feature. Whoever needs
-               it knows where it lives. (Bernd, 20.08.2026) -->
+          <!-- The two till tools sit ABOVE the menu opener, deliberately small and
+               unmarked: tools for those who run a till, not headline features. Whoever
+               needs them knows where they live. Scan left of the calculator, because
+               scanning is the more general act. (Bernd, 20./21.08.2026) -->
           <div class="d-block d-lg-none">
-            <router-link
-              to="/calculator"
-              class="navbar-calculator-quick"
-              :aria-label="$t('navigation.calculator')"
-              data-test="navbar-calculator"
-            >
-              <i-mdi-calculator />
-            </router-link>
+            <div class="navbar-quick-row">
+              <router-link
+                to="/scan"
+                class="navbar-scanner-quick"
+                :aria-label="$t('navigation.scanner')"
+                data-test="navbar-scanner"
+              >
+                <i-mdi-qrcode-scan />
+              </router-link>
+              <router-link
+                to="/calculator"
+                class="navbar-calculator-quick"
+                :aria-label="$t('navigation.calculator')"
+                data-test="navbar-calculator"
+              >
+                <i-mdi-calculator />
+              </router-link>
+            </div>
             <div v-b-toggle.sidebar-mobile variant="link">
               <span class="navbar-toggler-icon h2"></span>
             </div>
@@ -180,8 +191,15 @@ button.navbar-toggler > span.navbar-toggler-icon {
   }
 }
 
-/* Small to the eye, 44px to the thumb -- same rule as the gear inside the calculator. */
-.navbar-calculator-quick {
+.navbar-quick-row {
+  display: flex;
+}
+
+/* Small to the eye, 44px to the thumb -- same rule as the gear inside the calculator.
+   Two classes with the same look, NOT one shared class: DashboardLayout's twin taught
+   that a shared name styles across components (its style block is global). */
+.navbar-calculator-quick,
+.navbar-scanner-quick {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -192,7 +210,8 @@ button.navbar-toggler > span.navbar-toggler-icon {
   opacity: 0.65;
 }
 
-.navbar-calculator-quick:hover {
+.navbar-calculator-quick:hover,
+.navbar-scanner-quick:hover {
   color: inherit;
   opacity: 1;
 }

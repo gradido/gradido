@@ -638,6 +638,7 @@
     "logout": "Esci",
     "matching": "Matching",
     "overview": "Panoramica",
+    "scanner": "Scansiona codice",
     "send": "Invia",
     "settings": "Impostazioni",
     "support": "Supporto",
@@ -652,6 +653,7 @@
     "information": "{community}",
     "matching": "Matching",
     "overview": "Benvenuto {name}",
+    "scanner": "Scansiona codice",
     "send": "Invia Gradido ed e-mail",
     "settings": "Impostazioni",
     "thank-you-card-receive": "Ricevere Gradido",
@@ -663,6 +665,38 @@
     "send": "Invia Gradido"
   },
   "qrCode": "Codice QR",
+  "scanner": {
+    "back": "Indietro",
+    "denied": {
+      "help": "Puoi consentire l'accesso per questa pagina nelle impostazioni del browser.",
+      "title": "Nessun accesso alla fotocamera"
+    },
+    "foreign": {
+      "cheque": "Assegno di un'altra comunità",
+      "continue": "Continua a scansionare",
+      "gradido-card": "Tessera Gradido di un'altra comunità",
+      "open": "Apri lì",
+      "thank-you-card": "Carta di ringraziamento di un'altra comunità"
+    },
+    "hint": "Tieni una carta di ringraziamento, un assegno o una tessera Gradido nell'immagine",
+    "manual": {
+      "close": "Continua a scansionare",
+      "invalid": "Questo non è un codice o link Gradido.",
+      "label": "Codice o link",
+      "open": "Inserisci codice o link a mano",
+      "submit": "Apri"
+    },
+    "no-gradido-code": "Non è un codice Gradido.",
+    "system-camera": {
+      "parked": "L'importo memorizzato attende e verrà ripreso.",
+      "text": "La fotocamera del tuo dispositivo apre la pagina giusta dopo la scansione.",
+      "title": "Scansiona con l'app fotocamera"
+    },
+    "title": "Scansiona codice Gradido",
+    "unavailable": {
+      "title": "Nessuna fotocamera trovata"
+    }
+  },
   "send_email": "Invia e‑mail",
   "send_gdd": "Invia GDD",
   "send_per_link": "Link, assegno, QR",
