@@ -65,6 +65,12 @@ export const useQrScanner = (onCode) => {
   let timer = null
   let busy = false
   let paused = false
+  /**
+   * Hidden is its own hold, deliberately not `paused`: that one belongs to an open sheet,
+   * and a tab switch while a sheet is open must not resume the loop underneath it.
+   */
+  let hiddenHold = false
+  let graceTimer = null
   let detector = null
   let detectFailures = 0
   let triedPonyfillFallback = false
@@ -73,8 +79,16 @@ export const useQrScanner = (onCode) => {
     mediaStream?.getTracks().forEach((track) => track.stop())
   }
 
+  const clearGrace = () => {
+    if (graceTimer !== null) {
+      window.clearTimeout(graceTimer)
+      graceTimer = null
+    }
+  }
+
   /** Tears the running camera down. Touches neither `wanted` nor the view state. */
   const teardown = () => {
+    clearGrace()
     generation += 1
     if (timer !== null) {
       window.clearInterval(timer)
@@ -196,7 +210,7 @@ export const useQrScanner = (onCode) => {
     detectFailures = 0
     timer = window.setInterval(async () => {
       // readyState < 2: the video has no current frame yet — detect() would throw.
-      if (busy || paused || gen !== generation || video.readyState < 2) {
+      if (busy || paused || hiddenHold || gen !== generation || video.readyState < 2) {
         return
       }
       busy = true
@@ -220,16 +234,47 @@ export const useQrScanner = (onCode) => {
     }, DETECT_INTERVAL_MS)
   }
 
+  /**
+   * ⛔ Hiding no longer stops the camera AT ONCE, and that is the whole point.
+   *
+   * On a phone this fires for everything: switching apps, the screen dimming, a
+   * notification pulled down, the app switcher. Tearing the tracks down there and calling
+   * `getUserMedia` again on the way back is what made iOS ask for camera permission over
+   * and over — WebKit ties the grant to a live capture, so a fresh request after the last
+   * track stopped is a fresh question. (Bernd, 21.08.2026; the handler that did this was
+   * added the same day the asking came back, which is the whole of the evidence.)
+   *
+   * So: the frames stop immediately -- `hiddenHold` holds the loop, nothing is decoded and
+   * nothing is decided while nobody is looking -- and only a page that STAYS hidden loses
+   * its camera.
+   *
+   * ⚠️ And the two platforms land where they should, for opposite reasons. A backgrounded
+   * Safari has its timers suspended AND its capture stopped by iOS itself, so the grace
+   * timer never fires, the light is off anyway, and coming back costs no question. A hidden
+   * desktop tab keeps its timers, so the camera really is released -- which is where a
+   * light burning in a tab nobody can see would be the problem.
+   */
+  const HIDDEN_GRACE_MS = 30000
+
   const onVisibilityChanged = () => {
     if (document.visibilityState === 'hidden') {
-      teardown()
-      if (state.value === 'starting' || state.value === 'scanning') {
-        state.value = 'idle'
+      hiddenHold = true
+      if (graceTimer === null && (state.value === 'starting' || state.value === 'scanning')) {
+        graceTimer = window.setTimeout(() => {
+          graceTimer = null
+          teardown()
+          if (state.value === 'starting' || state.value === 'scanning') {
+            state.value = 'idle'
+          }
+        }, HIDDEN_GRACE_MS)
       }
       return
     }
-    // Coming back: restart only what hiding stopped. 'denied'/'unavailable' stay as
-    // they are — restarting there would re-prompt on every tab switch.
+    // Coming back: let the loop look again, and drop a teardown that is now moot. Restart
+    // only what hiding really stopped -- 'denied'/'unavailable' stay as they are, since
+    // restarting there would re-prompt on every tab switch.
+    hiddenHold = false
+    clearGrace()
     if (wanted && state.value === 'idle' && video) {
       run()
     }
@@ -255,6 +300,7 @@ export const useQrScanner = (onCode) => {
 
   const stop = () => {
     wanted = false
+    hiddenHold = false
     document.removeEventListener('visibilitychange', onVisibilityChanged)
     teardown()
     video = null
