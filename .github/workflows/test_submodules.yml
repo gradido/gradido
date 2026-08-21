@@ -9,6 +9,8 @@ on:
       - 'shared/**'
       - 'shared-native/**'
       - 'docker-compose.*'
+      - '.bun-version'
+      - '.nvmrc'
       - '.github/workflows/test_submodules.yml'
 
 jobs:

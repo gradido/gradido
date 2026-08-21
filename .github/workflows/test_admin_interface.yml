@@ -5,6 +5,8 @@ on:
     paths:
       - 'admin/**'
       - 'config-schema/**'
+      - '.bun-version'
+      - '.nvmrc'
       - '.github/workflows/test_admin_interface.yml'
 
 jobs:
@@ -25,13 +27,13 @@ jobs:
     outputs:
       test-success: ${{ steps.test.outputs.success }}
     steps:
-      - name: Set Node.js version
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.20.7'
-
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Set Node.js version
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
 
       - name: install bun 
         uses: oven-sh/setup-bun@v2

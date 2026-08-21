@@ -5,6 +5,8 @@ on:
     paths:
       - 'frontend/**'
       - 'config-schema/**'
+      - '.bun-version'
+      - '.nvmrc'
       - '.github/workflows/test_frontend.yml'
 
 jobs:
@@ -23,13 +25,13 @@ jobs:
     name: Unit Tests & Lint & Stylelint & Locales - Frontend
     runs-on: ubuntu-latest
     steps:
-      - name: Set Node.js version
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.20.7'
-
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set Node.js version
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
       
       - name: install bun 
         uses: oven-sh/setup-bun@v2

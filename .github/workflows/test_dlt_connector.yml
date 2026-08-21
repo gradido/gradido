@@ -5,6 +5,7 @@ on:
     paths:
       - 'dlt-connector/**'
       - 'docker-compose.*'
+      - '.bun-version'
       - '.github/workflows/test_dlt_connector.yml'
 
 jobs:
