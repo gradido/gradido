@@ -1,3 +1,4 @@
+import { EntityManager } from 'typeorm'
 import { ContributionLink as DbContributionLink, Event as DbEvent, User as DbUser } from '../entity'
 
 export async function findModeratorCreatingContributionLink(
@@ -24,10 +25,12 @@ export async function findModeratorCreatingContributionLink(
 export async function dbFindLatestEventForAffectedUser(
   type: string,
   affectedUserId: number,
+  manager?: EntityManager,
 ): Promise<DbEvent | null> {
-  return DbEvent.findOne({
+  const options = {
     // todo: move event types into db
     where: { type, affectedUserId },
-    order: { createdAt: 'DESC' },
-  })
+    order: { createdAt: 'DESC' as const },
+  }
+  return manager ? manager.findOne(DbEvent, options) : DbEvent.findOne(options)
 }

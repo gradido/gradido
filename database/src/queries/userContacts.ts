@@ -107,8 +107,12 @@ export async function dbFindPendingEmailChangeByVetoCode(
  * always checked (`checkEmailExists`), and it is what keeps a recycled address from
  * inheriting anything.
  */
-export async function dbEmailTaken(email: string): Promise<boolean> {
-  return (await DbUserContact.findOne({ where: { email }, withDeleted: true })) !== null
+export async function dbEmailTaken(email: string, manager?: EntityManager): Promise<boolean> {
+  const options = { where: { email }, withDeleted: true }
+  const found = manager
+    ? await manager.findOne(DbUserContact, options)
+    : await DbUserContact.findOne(options)
+  return found !== null
 }
 
 /**
@@ -137,12 +141,15 @@ export async function dbPurgeExpiredEmailChanges(olderThan: Date, email?: string
  * racing for the same address meet the unique key here - that is an expected outcome, not
  * a crash.
  */
-export async function dbInsertPendingEmailChange(row: {
-  userId: number
-  email: string
-  verificationCode: string
-  vetoCode: string
-}): Promise<Result<DbUserContact, DBDuplicateEntryError>> {
+export async function dbInsertPendingEmailChange(
+  row: {
+    userId: number
+    email: string
+    verificationCode: string
+    vetoCode: string
+  },
+  manager?: EntityManager,
+): Promise<Result<DbUserContact, DBDuplicateEntryError>> {
   const contact = DbUserContact.create({
     userId: row.userId,
     email: row.email,
@@ -153,7 +160,8 @@ export async function dbInsertPendingEmailChange(row: {
     changeVetoCode: row.vetoCode,
   })
   try {
-    return { success: true, value: await DbUserContact.save(contact) }
+    const saved = manager ? await manager.save(contact) : await DbUserContact.save(contact)
+    return { success: true, value: saved }
   } catch (error) {
     if (isDuplicateEntry(error)) {
       return {

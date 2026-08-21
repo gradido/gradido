@@ -23,6 +23,7 @@ import {
   dbFindPendingEmailChangeByCode,
   dbFindPendingEmailChangeByVetoCode,
   dbInsertPendingEmailChange,
+  dbLockUserRow,
   dbPurgeExpiredEmailChanges,
   dbSaveUser,
   dbSaveUserContact,
@@ -149,47 +150,71 @@ export class EmailChangeResolver {
       throw new LogError('This is already the email address of this account')
     }
 
-    // The rate limit lives on the event, not on the pending row: the row can be cancelled
-    // and recreated at will, the event cannot.
-    const lastRequest = await dbFindLatestEventForAffectedUser(
-      EventType.EMAIL_CHANGE_REQUEST,
-      user.id,
-    )
-    if (lastRequest && !canEmailResend(lastRequest.createdAt)) {
-      logger.warn('email change requested again inside the resend window')
-      throw new LogError(
-        `Email already sent less than ${printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} ago`,
-      )
-    }
-
     // A change somebody else started for this address and never finished must not block it.
     await dbPurgeExpiredEmailChanges(emailChangeExpiryCutoff(), email)
 
-    // Only one change at a time: a new request replaces whatever was pending - same
-    // address (a fresh mail) or another one (a change of mind). Hard delete, so the
-    // previous address is free again at once.
-    const previous = await dbFindPendingEmailChange(user.id)
-    if (previous) {
-      await dbDeleteUserContact(previous.id)
-    }
+    // From the rate-limit read to the insert, the member's row is held under a lock: two
+    // requests racing each other cannot both see "nothing pending" and both insert, nor
+    // both slip through the window. One change at a time is an invariant, not a hope.
+    // The rate limit itself lives on the event, not on the pending row: the row can be
+    // cancelled and recreated at will, the event cannot.
+    const queryRunner = db.getDataSource().createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction('REPEATABLE READ')
+    let pending: DbUserContact
+    try {
+      const manager = queryRunner.manager
+      await dbLockUserRow(user.id, manager)
 
-    if (await dbEmailTaken(email)) {
-      throw new LogError('Email address already in use')
-    }
+      const lastRequest = await dbFindLatestEventForAffectedUser(
+        EventType.EMAIL_CHANGE_REQUEST,
+        user.id,
+        manager,
+      )
+      if (lastRequest && !canEmailResend(lastRequest.createdAt)) {
+        logger.warn('email change requested again inside the resend window')
+        throw new LogError(
+          `Email already sent less than ${printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} ago`,
+        )
+      }
 
-    const inserted = await dbInsertPendingEmailChange({
-      userId: user.id,
-      email,
-      verificationCode: random(64).toString(),
-      vetoCode: random(64).toString(),
-    })
-    if (!inserted.success) {
-      // Lost a race for the same address - the same answer as if it had been taken before.
-      throw new LogError('Email address already in use')
-    }
-    const pending = inserted.value
+      // Only one change at a time: a new request replaces whatever was pending - same
+      // address (a fresh mail) or another one (a change of mind). Hard delete, so the
+      // previous address is free again at once.
+      const previous = await dbFindPendingEmailChange(user.id, manager)
+      if (previous) {
+        await dbDeleteUserContact(previous.id, manager)
+      }
 
-    await EVENT_EMAIL_CHANGE_REQUEST(user)
+      if (await dbEmailTaken(email, manager)) {
+        throw new LogError('Email address already in use')
+      }
+
+      const inserted = await dbInsertPendingEmailChange(
+        {
+          userId: user.id,
+          email,
+          verificationCode: random(64).toString(),
+          vetoCode: random(64).toString(),
+        },
+        manager,
+      )
+      if (!inserted.success) {
+        // Lost a race for the same address - the same answer as if it had been taken before.
+        throw new LogError('Email address already in use')
+      }
+      pending = inserted.value
+
+      await EVENT_EMAIL_CHANGE_REQUEST(user, manager)
+      await queryRunner.commitTransaction()
+    } catch (e) {
+      if (queryRunner.isTransactionActive) {
+        await queryRunner.rollbackTransaction()
+      }
+      throw e
+    } finally {
+      await queryRunner.release()
+    }
 
     const timeDurationObject = getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME)
     await sendEmailChangeConfirmEmail({
@@ -225,29 +250,52 @@ export class EmailChangeResolver {
     const logger = createLogger('resendEmailChange')
     const user = getUser(context)
     logger.addContext('user', user.id)
-    const pending = await dbFindPendingEmailChange(user.id)
-    if (!pending) {
-      throw new LogError('No email change is pending')
-    }
-    if (!isEmailVerificationCodeValid(issuedAt(pending))) {
-      // Ran past its window. Resending would renew it - and with it the hold on the address.
-      await dbDeleteUserContact(pending.id)
-      throw new LogError('No email change is pending')
-    }
-    const lastRequest = await dbFindLatestEventForAffectedUser(
-      EventType.EMAIL_CHANGE_REQUEST,
-      user.id,
-    )
-    if (lastRequest && !canEmailResend(lastRequest.createdAt)) {
-      throw new LogError(
-        `Email already sent less than ${printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} ago`,
+    // The same lock as in requestEmailChange: two resends racing each other would both pass
+    // the window check and both send.
+    const queryRunner = db.getDataSource().createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction('REPEATABLE READ')
+    let pending: DbUserContact
+    try {
+      const manager = queryRunner.manager
+      await dbLockUserRow(user.id, manager)
+
+      const found = await dbFindPendingEmailChange(user.id, manager)
+      if (!found) {
+        throw new LogError('No email change is pending')
+      }
+      if (!isEmailVerificationCodeValid(issuedAt(found))) {
+        // Ran past its window. Resending would renew it - and with it the hold on the
+        // address. The removal is kept, the answer is the one for "nothing pending".
+        await dbDeleteUserContact(found.id, manager)
+        await queryRunner.commitTransaction()
+        throw new LogError('No email change is pending')
+      }
+      const lastRequest = await dbFindLatestEventForAffectedUser(
+        EventType.EMAIL_CHANGE_REQUEST,
+        user.id,
+        manager,
       )
+      if (lastRequest && !canEmailResend(lastRequest.createdAt)) {
+        throw new LogError(
+          `Email already sent less than ${printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} ago`,
+        )
+      }
+      found.emailVerificationCode = random(64).toString()
+      found.changeVetoCode = random(64).toString()
+      found.updatedAt = new Date()
+      await dbSaveUserContact(found, manager)
+      await EVENT_EMAIL_CHANGE_REQUEST(user, manager)
+      await queryRunner.commitTransaction()
+      pending = found
+    } catch (e) {
+      if (queryRunner.isTransactionActive) {
+        await queryRunner.rollbackTransaction()
+      }
+      throw e
+    } finally {
+      await queryRunner.release()
     }
-    pending.emailVerificationCode = random(64).toString()
-    pending.changeVetoCode = random(64).toString()
-    pending.updatedAt = new Date()
-    await dbSaveUserContact(pending)
-    await EVENT_EMAIL_CHANGE_REQUEST(user)
 
     const timeDurationObject = getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME)
     await sendEmailChangeConfirmEmail({
