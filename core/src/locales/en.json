@@ -59,6 +59,42 @@
       "privacyPolicy": "Privacy Policy",
       "supportEmail": "support@gradido.net"
     },
+    "emailChangeConfirm": {
+      "confirm": "Confirm new address",
+      "notYou": "If you did not ask for this change, you can simply ignore this e-mail – nothing changes without your confirmation.",
+      "pleaseConfirm": "Please confirm with one click that this address is yours.",
+      "subject": "Please confirm your new e-mail address",
+      "title": "Confirm new e-mail address",
+      "validity": "The link is valid for {hours} hours. After that you can have a new e-mail sent from your settings.",
+      "youAskedFor": "You want to change the e-mail address of your Gradido account to this address."
+    },
+    "emailChangeDone": {
+      "changedTo": "From now on the e-mail address of your Gradido account is {newEmail}.",
+      "notYou": "That was not you? Then please contact {supportEmail} right away.",
+      "subject": "Your e-mail address has been changed",
+      "title": "E-mail address changed",
+      "wasBefore": "Until now it was {oldEmail}."
+    },
+    "emailChangeNotice": {
+      "changePassword": "If you revoke the change, please change your password afterwards as well.",
+      "notYou": "That was not you? Then click here – the change is revoked and this address stays.",
+      "notYouTitle": "That was not you?",
+      "requested": "A change of the e-mail address of your Gradido account to {newEmail} has been requested.",
+      "revoke": "Revoke change",
+      "subject": "Change of your e-mail address requested",
+      "title": "Your e-mail address is about to change",
+      "untilConfirmed": "Until the new address is confirmed, this one stays in force. If that was you, there is nothing more to do.",
+      "validity": "The link is valid for {hours} hours – after that the requested change expires by itself."
+    },
+    "emailChangeSupport": {
+      "gdtHint": "For the GDT server the first address of this account still counts: {gdtEmail}.",
+      "member": "Member: {firstName} {lastName} ({alias})",
+      "newEmail": "New address: {newEmail}",
+      "oldEmail": "Previous address: {oldEmail}",
+      "subject": "E-mail address changed: {firstName} {lastName}",
+      "title": "A member has changed their e-mail address",
+      "todo": "Please merge the new address into this account on the GDT server and update Klick-Tipp."
+    },
     "general": {
       "amountGDD": "Amount: {amountGDD} GDD",
       "answerNow": "Reply",

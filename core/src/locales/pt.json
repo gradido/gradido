@@ -59,6 +59,42 @@
       "privacyPolicy": "Política de privacidade",
       "supportEmail": "support@gradido.net"
     },
+    "emailChangeConfirm": {
+      "confirm": "Confirmar o novo endereço",
+      "notYou": "Se não pediste esta alteração, podes simplesmente ignorar este e-mail – sem a tua confirmação nada muda.",
+      "pleaseConfirm": "Confirma com um clique que este endereço é teu.",
+      "subject": "Confirma o teu novo endereço de e-mail",
+      "title": "Confirmar o novo endereço de e-mail",
+      "validity": "A ligação é válida durante {hours} horas. Depois podes pedir um novo e-mail nas tuas definições.",
+      "youAskedFor": "Queres alterar o endereço de e-mail da tua conta Gradido para este endereço."
+    },
+    "emailChangeDone": {
+      "changedTo": "A partir de agora, o endereço de e-mail da tua conta Gradido é {newEmail}.",
+      "notYou": "Não foste tu? Então contacta de imediato {supportEmail}.",
+      "subject": "O teu endereço de e-mail foi alterado",
+      "title": "Endereço de e-mail alterado",
+      "wasBefore": "Até agora era {oldEmail}."
+    },
+    "emailChangeNotice": {
+      "changePassword": "Se rejeitares a alteração, altera também a tua palavra-passe a seguir.",
+      "notYou": "Não foste tu? Então clica aqui – a alteração é rejeitada e este endereço mantém-se.",
+      "notYouTitle": "Não foste tu?",
+      "requested": "Foi pedida uma alteração do endereço de e-mail da tua conta Gradido para {newEmail}.",
+      "revoke": "Rejeitar a alteração",
+      "subject": "Alteração do teu endereço de e-mail pedida",
+      "title": "O teu endereço de e-mail vai mudar",
+      "untilConfirmed": "Até o novo endereço ser confirmado, este continua válido. Se foste tu, não precisas de fazer mais nada.",
+      "validity": "A ligação é válida durante {hours} horas – depois, a alteração pedida expira por si."
+    },
+    "emailChangeSupport": {
+      "gdtHint": "Para o servidor GDT continua a contar o primeiro endereço desta conta: {gdtEmail}.",
+      "member": "Membro: {firstName} {lastName} ({alias})",
+      "newEmail": "Novo endereço: {newEmail}",
+      "oldEmail": "Endereço anterior: {oldEmail}",
+      "subject": "Endereço de e-mail alterado: {firstName} {lastName}",
+      "title": "Um membro alterou o seu endereço de e-mail",
+      "todo": "Por favor, associa o novo endereço a esta conta no servidor GDT e atualiza o Klick-Tipp."
+    },
     "general": {
       "amountGDD": "Montante: {amountGDD} GDD",
       "answerNow": "Responder",

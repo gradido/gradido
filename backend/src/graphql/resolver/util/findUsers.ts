@@ -47,11 +47,17 @@ export const findUsers = async (
         : undefined,
     },
     {
-      emailContact: {
-        // ...(filters ?? emailChecked: filters.byActivated)
-        emailChecked: filters ? emailCheckedQuery(filters) : undefined,
+      // Every address a member ever had, not only the current one: somebody arriving from
+      // the GDT server holds the address that was first - which may well be one the member
+      // has since changed. The "activated" filter still reads the current address.
+      userContacts: {
         email: likeQuery(searchCriteria),
       },
+      emailContact: filters
+        ? {
+            emailChecked: emailCheckedQuery(filters),
+          }
+        : undefined,
       deletedAt: deletedAtQuery(filters),
     },
   ]

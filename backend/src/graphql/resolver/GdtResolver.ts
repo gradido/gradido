@@ -2,6 +2,7 @@ import { Paginated } from '@arg/Paginated'
 import { Order } from '@enum/Order'
 import { GdtEntry } from '@model/GdtEntry'
 import { GdtEntryList } from '@model/GdtEntryList'
+import { User as DbUser, dbFindOldestUserContact } from 'database'
 import { getLogger } from 'log4js'
 import { Arg, Args, Authorized, Ctx, Float, Int, Query, Resolver } from 'type-graphql'
 import { apiGet, apiPost } from '@/apis/HttpRequest'
@@ -12,6 +13,17 @@ import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.GdtResolver`)
+
+/**
+ * The GDT server knows a member by the address they FIRST had, and it answers per account:
+ * an address that the administrator merged into an account returns the whole account. So
+ * the oldest contact row is asked - not the current address (a member who changed it would
+ * vanish from the GDT server's point of view), and not all of them (merged addresses would
+ * count the same entries twice). Merging a new address into the account happens on the GDT
+ * server, by hand, triggered by the support mail the change sends.
+ */
+const gdtEmail = async (user: DbUser): Promise<string> =>
+  (await dbFindOldestUserContact(user.id))?.email ?? user.emailContact.email
 
 @Resolver()
 export class GdtResolver {
@@ -29,7 +41,7 @@ export class GdtResolver {
 
     try {
       const resultGDT = await apiGet(
-        `${CONFIG.GDT_API_URL}/GdtEntries/listPerEmailApi/${userEntity.emailContact.email}/${currentPage}/${pageSize}/${order}`,
+        `${CONFIG.GDT_API_URL}/GdtEntries/listPerEmailApi/${await gdtEmail(userEntity)}/${currentPage}/${pageSize}/${order}`,
       )
       if (!resultGDT.success) {
         return new GdtEntryList()
@@ -57,7 +69,7 @@ export class GdtResolver {
     const user = getUser(context)
     try {
       const resultGDTSum = await apiPost(`${CONFIG.GDT_API_URL}/GdtEntries/sumPerEmailApi`, {
-        email: user.emailContact.email,
+        email: await gdtEmail(user),
       })
       if (!resultGDTSum.success) {
         throw new LogError('Call not successful')

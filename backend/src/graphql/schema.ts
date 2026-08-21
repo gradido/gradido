@@ -12,6 +12,7 @@ import { ContributionResolver } from './resolver/ContributionResolver'
 import { CreaChatResolver } from './resolver/CreaChatResolver'
 import { CreaResolver } from './resolver/CreaResolver'
 import { CreationGroupResolver } from './resolver/CreationGroupResolver'
+import { EmailChangeResolver } from './resolver/EmailChangeResolver'
 import { GdtResolver } from './resolver/GdtResolver'
 import { KlicktippResolver } from './resolver/KlicktippResolver'
 import { MatchingEntryResolver } from './resolver/MatchingEntryResolver'
@@ -36,6 +37,7 @@ export const schema = async (): Promise<GraphQLSchema> => {
       ContributionResolver,
       CreaChatResolver,
       CreaResolver,
+      EmailChangeResolver,
       GdtResolver,
       CreationGroupResolver,
       MatchingEntryResolver,

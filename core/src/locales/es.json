@@ -59,6 +59,42 @@
       "privacyPolicy": "Política de privacidad",
       "supportEmail": "support@gradido.net"
     },
+    "emailChangeConfirm": {
+      "confirm": "Confirmar la nueva dirección",
+      "notYou": "Si no has solicitado este cambio, puedes ignorar este correo: sin tu confirmación no cambia nada.",
+      "pleaseConfirm": "Confirma con un clic que esta dirección es tuya.",
+      "subject": "Confirma tu nueva dirección de correo",
+      "title": "Confirmar la nueva dirección de correo",
+      "validity": "El enlace es válido durante {hours} horas. Después podrás solicitar un nuevo correo desde tus ajustes.",
+      "youAskedFor": "Quieres cambiar la dirección de correo de tu cuenta Gradido a esta dirección."
+    },
+    "emailChangeDone": {
+      "changedTo": "A partir de ahora, la dirección de correo de tu cuenta Gradido es {newEmail}.",
+      "notYou": "¿No has sido tú? Entonces contacta de inmediato con {supportEmail}.",
+      "subject": "Tu dirección de correo ha sido cambiada",
+      "title": "Dirección de correo cambiada",
+      "wasBefore": "Hasta ahora era {oldEmail}."
+    },
+    "emailChangeNotice": {
+      "changePassword": "Si rechazas el cambio, cambia también tu contraseña después.",
+      "notYou": "¿No has sido tú? Entonces haz clic aquí: el cambio se rechaza y esta dirección se mantiene.",
+      "notYouTitle": "¿No has sido tú?",
+      "requested": "Se ha solicitado cambiar la dirección de correo de tu cuenta Gradido a {newEmail}.",
+      "revoke": "Rechazar el cambio",
+      "subject": "Cambio de tu dirección de correo solicitado",
+      "title": "Tu dirección de correo va a cambiar",
+      "untilConfirmed": "Hasta que la nueva dirección sea confirmada, esta sigue siendo válida. Si has sido tú, no tienes que hacer nada más.",
+      "validity": "El enlace es válido durante {hours} horas; después, el cambio solicitado caduca por sí solo."
+    },
+    "emailChangeSupport": {
+      "gdtHint": "Para el servidor GDT sigue contando la primera dirección de esta cuenta: {gdtEmail}.",
+      "member": "Miembro: {firstName} {lastName} ({alias})",
+      "newEmail": "Nueva dirección: {newEmail}",
+      "oldEmail": "Dirección anterior: {oldEmail}",
+      "subject": "Dirección de correo cambiada: {firstName} {lastName}",
+      "title": "Un miembro ha cambiado su dirección de correo",
+      "todo": "Por favor, asigna la nueva dirección a esta cuenta en el servidor GDT y actualiza Klick-Tipp."
+    },
     "general": {
       "amountGDD": "Importe: {amountGDD} GDD",
       "answerNow": "Responder",

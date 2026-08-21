@@ -59,6 +59,42 @@
       "privacyPolicy": "Politique de confidentialité",
       "supportEmail": "support@gradido.net"
     },
+    "emailChangeConfirm": {
+      "confirm": "Confirmer la nouvelle adresse",
+      "notYou": "Si tu n'as pas demandé ce changement, tu peux simplement ignorer cet e-mail : sans ta confirmation, rien ne change.",
+      "pleaseConfirm": "Confirme d'un clic que cette adresse est bien la tienne.",
+      "subject": "Confirme ta nouvelle adresse e-mail",
+      "title": "Confirmer la nouvelle adresse e-mail",
+      "validity": "Le lien est valable {hours} heures. Ensuite, tu pourras demander un nouvel e-mail depuis tes paramètres.",
+      "youAskedFor": "Tu souhaites remplacer l'adresse e-mail de ton compte Gradido par cette adresse."
+    },
+    "emailChangeDone": {
+      "changedTo": "Désormais, l'adresse e-mail de ton compte Gradido est {newEmail}.",
+      "notYou": "Ce n'était pas toi ? Alors contacte immédiatement {supportEmail}.",
+      "subject": "Ton adresse e-mail a été modifiée",
+      "title": "Adresse e-mail modifiée",
+      "wasBefore": "Jusqu'à présent, c'était {oldEmail}."
+    },
+    "emailChangeNotice": {
+      "changePassword": "Si tu annules le changement, pense aussi à modifier ton mot de passe ensuite.",
+      "notYou": "Ce n'était pas toi ? Alors clique ici : le changement est annulé et cette adresse reste en place.",
+      "notYouTitle": "Ce n'était pas toi ?",
+      "requested": "Un changement de l'adresse e-mail de ton compte Gradido vers {newEmail} a été demandé.",
+      "revoke": "Annuler le changement",
+      "subject": "Changement de ton adresse e-mail demandé",
+      "title": "Ton adresse e-mail va changer",
+      "untilConfirmed": "Tant que la nouvelle adresse n'est pas confirmée, celle-ci reste valable. Si c'était toi, tu n'as rien d'autre à faire.",
+      "validity": "Le lien est valable {hours} heures ; ensuite, le changement demandé expire de lui-même."
+    },
+    "emailChangeSupport": {
+      "gdtHint": "Pour le serveur GDT, c'est toujours la première adresse de ce compte qui compte : {gdtEmail}.",
+      "member": "Membre : {firstName} {lastName} ({alias})",
+      "newEmail": "Nouvelle adresse : {newEmail}",
+      "oldEmail": "Ancienne adresse : {oldEmail}",
+      "subject": "Adresse e-mail modifiée : {firstName} {lastName}",
+      "title": "Un membre a modifié son adresse e-mail",
+      "todo": "Merci de rattacher la nouvelle adresse à ce compte sur le serveur GDT et de mettre à jour Klick-Tipp."
+    },
     "general": {
       "amountGDD": "Montant : {amountGDD} GDD",
       "answerNow": "Répondre",

@@ -1,0 +1,18 @@
+//- AI-GENERATED — not an architecture reference
+extends ../layout.pug
+
+block content
+  h2= t('emails.emailChangeConfirm.title')
+  .text-block
+    include ../includes/salutation.pug
+    p= t('emails.emailChangeConfirm.youAskedFor')
+  .content
+    h2= t('emails.emailChangeConfirm.title')
+    div(class="p_content")= t('emails.emailChangeConfirm.pleaseConfirm')
+    a.button-3(href=confirmLink) #{t('emails.emailChangeConfirm.confirm')}
+    div(class="p_content")= t('emails.general.orCopyLink')
+
+    a.clink(href=confirmLink) #{confirmLink}
+
+    div(class="p_content")= t('emails.emailChangeConfirm.validity', { hours: timeDurationObject.hours })
+    div(class="p_content")= t('emails.emailChangeConfirm.notYou')
