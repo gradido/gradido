@@ -113,6 +113,29 @@ describe('useCalculatorSound', () => {
   })
 
   /**
+   * ★ The park act navigates away WHILE its 300 ms confirmation tone plays (Bernd,
+   * 21.08.2026: the tone survives the navigation). An immediate close() on unmount cut
+   * that tone within its first milliseconds on every cached-route navigation — so the
+   * device is let go one tone-length later.
+   */
+  it('lets a playing tone finish before the device is closed', () => {
+    vi.useFakeTimers()
+    try {
+      const { play, stop } = useCalculatorSound(ref(true))
+      play('equals')
+      const ctx = window.AudioContext.mock.results[0].value
+
+      stop()
+      expect(ctx.close).not.toHaveBeenCalled()
+
+      vi.advanceTimersByTime(400)
+      expect(ctx.close).toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  /**
    * ⚠️ WebKit parks the device on the non-standard state 'interrupted' after a phone call
    * or Siri. A check for 'suspended' alone left it there -- no tone, no error, silent until
    * logging out and back in. That was the till's "sometimes no sound" in the wallet and the
@@ -206,13 +229,20 @@ describe('useCalculatorSound', () => {
    * thing that could throw. (Measured: it did.)
    */
   it('catches what a closing device answers with, instead of letting it escape', () => {
-    const answer = { catch: vi.fn() }
-    window.AudioContext = vi.fn(() => ({ ...makeContext(), close: () => answer }))
-    const { play, stop } = useCalculatorSound(ref(true))
-    play('digit')
-    stop()
+    vi.useFakeTimers()
+    try {
+      const answer = { catch: vi.fn() }
+      window.AudioContext = vi.fn(() => ({ ...makeContext(), close: () => answer }))
+      const { play, stop } = useCalculatorSound(ref(true))
+      play('digit')
+      stop()
+      // The close itself waits a tone-length (see stop()); the catching is what matters.
+      vi.advanceTimersByTime(400)
 
-    expect(answer.catch).toHaveBeenCalled()
+      expect(answer.catch).toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   /** …and a device that answers with nothing at all must not take the page down either. */
