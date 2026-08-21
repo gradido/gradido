@@ -935,7 +935,7 @@
       "disabled": "La función de tarjeta está desactivada.",
       "earlier-cards": "Tarjetas anteriores",
       "enable": "Poner un PIN y activar",
-      "explain": "Con una tarjeta de agradecimiento puedes dar las gracias aunque no lleves el móvil contigo. Enseñas la tarjeta, la otra persona escribe el importe — y tú confirmas con tu PIN.",
+      "explain": "Con una tarjeta de agradecimiento puedes dar las gracias aunque no lleves el móvil contigo. Enseñas la tarjeta, la otra persona escribe el importe — y tú confirmas con tu PIN. Y si llevas el móvil pero no la tarjeta, muestras el mismo código en la pantalla — el símbolo con la flecha hacia arriba.",
       "explain-pin": "Tu PIN lo escribes en el dispositivo de otra persona. Por eso pones un límite: nunca se podrá cobrar más que eso.",
       "label": "Nombre",
       "label-placeholder": "p. ej. cartera",

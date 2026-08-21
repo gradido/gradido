@@ -935,7 +935,7 @@
       "disabled": "Kart işlevi kapalı.",
       "earlier-cards": "Önceki kartlar",
       "enable": "PIN belirle ve aç",
-      "explain": "Bir teşekkür kartıyla telefonun yanında olmasa da teşekkür edebilirsin. Kartı gösterirsin, karşındaki tutarı yazar — ve sen PIN’inle onaylarsın.",
+      "explain": "Bir teşekkür kartıyla telefonun yanında olmasa da teşekkür edebilirsin. Kartı gösterirsin, karşındaki tutarı yazar — ve sen PIN’inle onaylarsın. Telefonun yanındaysa ama kart yanında değilse, aynı kodu ekranda gösterirsin — yukarı oklu simge.",
       "explain-pin": "PIN’ini başkasının cihazında yazarsın. Bu yüzden bir üst sınır belirlersin: bundan fazlası asla çekilemez.",
       "label": "Adlandırma",
       "label-placeholder": "örn. cüzdan",

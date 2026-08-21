@@ -935,7 +935,7 @@
       "disabled": "La fonction carte est désactivée.",
       "earlier-cards": "Cartes précédentes",
       "enable": "Définir un code PIN et activer",
-      "explain": "Avec une carte de remerciement, tu peux remercier même sans ton téléphone. Tu montres la carte, l’autre personne saisit le montant — et tu confirmes avec ton code PIN.",
+      "explain": "Avec une carte de remerciement, tu peux remercier même sans ton téléphone. Tu montres la carte, l’autre personne saisit le montant — et tu confirmes avec ton code PIN. Et si tu as le téléphone mais pas la carte, tu montres le même code à l’écran — le symbole avec la flèche vers le haut.",
       "explain-pin": "Tu saisis ton code PIN sur l’appareil de quelqu’un d’autre. C’est pourquoi tu fixes une limite : rien au-delà ne pourra jamais être prélevé.",
       "label": "Désignation",
       "label-placeholder": "p. ex. portefeuille",

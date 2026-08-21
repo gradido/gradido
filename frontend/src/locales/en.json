@@ -935,7 +935,7 @@
       "disabled": "The card function is switched off.",
       "earlier-cards": "Earlier cards",
       "enable": "Set a PIN and switch on",
-      "explain": "With a thank you card you can give thanks even when you do not have your phone with you. You show the card, the other person types the amount — and you confirm with your PIN.",
+      "explain": "With a thank you card you can give thanks even when you do not have your phone with you. You show the card, the other person types the amount — and you confirm with your PIN. And when you have the phone but not the card, you show the same code on the screen — the symbol with the arrow pointing up.",
       "explain-pin": "You type your PIN on somebody else’s device. That is why you set a limit: nothing above it can ever be taken.",
       "label": "Label",
       "label-placeholder": "e.g. wallet",
