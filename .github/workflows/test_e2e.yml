@@ -15,6 +15,27 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
+      # The Zig toolchain and the Node headers are pure downloads: the key only moves
+      # when ZIG_VERSION or .nvmrc does, so this hits on virtually every run.
+      - name: Cache Zig toolchain & node headers
+        uses: actions/cache@v4
+        with:
+          path: ~/.zig-build
+          key: zig-toolchain-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('shared-native/build_helper/const.ts', '.nvmrc') }}
+
+      # shared-native/build.ts points both ZIG_GLOBAL_CACHE_DIR and ZIG_LOCAL_CACHE_DIR
+      # here, so this one directory holds the compiled objects and the packages fetched
+      # from build.zig.zon. Zig's cache is content-addressed - restoring an outdated one
+      # via restore-keys is safe and turns a cold build into an incremental one.
+      # runner.os/arch are part of the key because shared_native.node is platform-specific.
+      - name: Cache Zig build cache
+        uses: actions/cache@v4
+        with:
+          path: shared-native/.zig-cache
+          key: zig-cache-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('shared-native/build.zig', 'shared-native/build_napi.zig', 'shared-native/build.zig.zon', 'shared-native/src/**', 'shared-native/include/**', 'shared-native/third_party/**') }}
+          restore-keys: |
+            zig-cache-v1-${{ runner.os }}-${{ runner.arch }}-
+
       - name: install bun 
         uses: oven-sh/setup-bun@v2
         with:
@@ -121,6 +142,27 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
+      # The Zig toolchain and the Node headers are pure downloads: the key only moves
+      # when ZIG_VERSION or .nvmrc does, so this hits on virtually every run.
+      - name: Cache Zig toolchain & node headers
+        uses: actions/cache@v4
+        with:
+          path: ~/.zig-build
+          key: zig-toolchain-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('shared-native/build_helper/const.ts', '.nvmrc') }}
+
+      # shared-native/build.ts points both ZIG_GLOBAL_CACHE_DIR and ZIG_LOCAL_CACHE_DIR
+      # here, so this one directory holds the compiled objects and the packages fetched
+      # from build.zig.zon. Zig's cache is content-addressed - restoring an outdated one
+      # via restore-keys is safe and turns a cold build into an incremental one.
+      # runner.os/arch are part of the key because shared_native.node is platform-specific.
+      - name: Cache Zig build cache
+        uses: actions/cache@v4
+        with:
+          path: shared-native/.zig-cache
+          key: zig-cache-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('shared-native/build.zig', 'shared-native/build_napi.zig', 'shared-native/build.zig.zon', 'shared-native/src/**', 'shared-native/include/**', 'shared-native/third_party/**') }}
+          restore-keys: |
+            zig-cache-v1-${{ runner.os }}-${{ runner.arch }}-
+
       - name: install bun 
         uses: oven-sh/setup-bun@v2
         with:
@@ -206,6 +248,27 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+
+      # The Zig toolchain and the Node headers are pure downloads: the key only moves
+      # when ZIG_VERSION or .nvmrc does, so this hits on virtually every run.
+      - name: Cache Zig toolchain & node headers
+        uses: actions/cache@v4
+        with:
+          path: ~/.zig-build
+          key: zig-toolchain-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('shared-native/build_helper/const.ts', '.nvmrc') }}
+
+      # shared-native/build.ts points both ZIG_GLOBAL_CACHE_DIR and ZIG_LOCAL_CACHE_DIR
+      # here, so this one directory holds the compiled objects and the packages fetched
+      # from build.zig.zon. Zig's cache is content-addressed - restoring an outdated one
+      # via restore-keys is safe and turns a cold build into an incremental one.
+      # runner.os/arch are part of the key because shared_native.node is platform-specific.
+      - name: Cache Zig build cache
+        uses: actions/cache@v4
+        with:
+          path: shared-native/.zig-cache
+          key: zig-cache-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('shared-native/build.zig', 'shared-native/build_napi.zig', 'shared-native/build.zig.zon', 'shared-native/src/**', 'shared-native/include/**', 'shared-native/third_party/**') }}
+          restore-keys: |
+            zig-cache-v1-${{ runner.os }}-${{ runner.arch }}-
 
       - name: install bun 
         uses: oven-sh/setup-bun@v2
