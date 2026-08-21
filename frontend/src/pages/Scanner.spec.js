@@ -20,6 +20,17 @@ import en from '@/locales/en.json'
 const state = { gradidoID: 'user-one' }
 vi.mock('vuex', () => ({ useStore: () => ({ state }) }))
 
+/**
+ * The configured community host — the second entry of the page's own-host list. The
+ * wallet's printed codes carry THIS host, and the page must read them as own even when
+ * the browser sits on an alias (jsdom's host here plays the alias). Hoisted, because
+ * the vi.mock factory below builds its object eagerly.
+ */
+const CONFIGURED_HOST = vi.hoisted(() => 'config-community.gradido.net')
+vi.mock('@/config', () => ({
+  default: { COMMUNITY_URL: `https://${CONFIGURED_HOST}` },
+}))
+
 const historyState = { back: null }
 const mockRouter = {
   back: vi.fn(),
@@ -140,6 +151,16 @@ describe('Scanner page', () => {
       expect(mockRouter.push).toHaveBeenCalledWith('/u/somebody')
     })
 
+    // The wallet's own printed codes carry the CONFIGURED community host, and the
+    // browser may sit on an alias of it — a member's own cheque must never draw the
+    // foreign-community card because those two names differ (finding 4, 21.08.2026).
+    it('reads a code on the configured community host as own', async () => {
+      const wrapper = mountScanner()
+      await scan(wrapper, `https://${CONFIGURED_HOST}/redeem/mine`)
+      expect(mockRouter.push).toHaveBeenCalledWith('/redeem/mine')
+      expect(el(wrapper, 'foreign').exists()).toBe(false)
+    })
+
     it('holds a foreign code behind the confirmation card', async () => {
       const wrapper = mountScanner()
       await scan(wrapper, `https://${FOREIGN}/dk/abc`)
@@ -190,14 +211,16 @@ describe('Scanner page', () => {
       expect(el(wrapper, 'foreign').exists()).toBe(true)
     })
 
-    it('restarts a stopped camera on keep-scanning instead of resuming a dead one', async () => {
+    it('restarts a stopped camera on keep-scanning, on top of the resume', async () => {
       const wrapper = mountScanner()
       await scan(wrapper, `https://${FOREIGN}/dk/abc`)
       // While the card was open the tab went hidden: the camera was STOPPED, not paused.
       scannerState.value = 'idle'
       await el(wrapper, 'foreign-continue').trigger('click')
 
-      expect(scannerMock.resume).not.toHaveBeenCalled()
+      // resume always runs (the pause belongs to the sheet), and the dead camera gets
+      // a fresh start on top.
+      expect(scannerMock.resume).toHaveBeenCalled()
       expect(scannerMock.start).toHaveBeenCalledTimes(2)
     })
 
@@ -214,11 +237,35 @@ describe('Scanner page', () => {
   })
 
   describe('hand entry', () => {
-    it('opens the sheet over the running camera', async () => {
+    it('opens the sheet over the running camera, with the loop held', async () => {
       const wrapper = mountScanner()
       await el(wrapper, 'manual-open').trigger('click')
       expect(el(wrapper, 'manual').exists()).toBe(true)
+      // The picture stays live (no stop), but the LOOP holds: a code drifting into the
+      // frame while somebody types must not navigate away mid-entry.
       expect(scannerMock.stop).not.toHaveBeenCalled()
+      expect(scannerMock.pause).toHaveBeenCalled()
+    })
+
+    // Belt to the pause: should a payload still arrive with the sheet open, a foreign
+    // target must close the sheet rather than raise the confirmation card UNDER it.
+    it('a foreign code closes the sheet instead of hiding the card beneath it', async () => {
+      const wrapper = mountScanner()
+      await el(wrapper, 'manual-open').trigger('click')
+      await scan(wrapper, `https://${FOREIGN}/dk/abc`)
+
+      expect(el(wrapper, 'manual').exists()).toBe(false)
+      expect(el(wrapper, 'foreign').exists()).toBe(true)
+    })
+
+    it('keeps the device keyboard from rewriting case-sensitive codes', async () => {
+      const wrapper = mountScanner()
+      await el(wrapper, 'manual-open').trigger('click')
+      const input = el(wrapper, 'manual-input')
+      expect(input.attributes('autocapitalize')).toBe('none')
+      expect(input.attributes('autocorrect')).toBe('off')
+      expect(input.attributes('spellcheck')).toBe('false')
+      expect(input.attributes('inputmode')).toBe('url')
     })
 
     it('opens an own link typed by hand', async () => {
@@ -254,11 +301,12 @@ describe('Scanner page', () => {
       expect(mockRouter.push).not.toHaveBeenCalled()
     })
 
-    it('closes without consequences', async () => {
+    it('closing lets the loop look again', async () => {
       const wrapper = mountScanner()
       await el(wrapper, 'manual-open').trigger('click')
       await el(wrapper, 'manual-close').trigger('click')
       expect(el(wrapper, 'manual').exists()).toBe(false)
+      expect(scannerMock.resume).toHaveBeenCalled()
     })
   })
 
@@ -326,24 +374,8 @@ describe('Scanner page', () => {
       expect(mockRouter.push).toHaveBeenCalledWith('/overview')
     })
 
-    const setVisibility = (value) => {
-      Object.defineProperty(document, 'visibilityState', { configurable: true, value })
-      document.dispatchEvent(new Event('visibilitychange'))
-    }
-
-    it('a hidden tab stops the camera; coming back restarts it', async () => {
-      const wrapper = mountScanner()
-      expect(scannerMock.start).toHaveBeenCalledTimes(1)
-
-      setVisibility('hidden')
-      expect(scannerMock.stop).toHaveBeenCalled()
-
-      scannerState.value = 'idle'
-      setVisibility('visible')
-      expect(scannerMock.start).toHaveBeenCalledTimes(2)
-      wrapper.unmount()
-      mounted.pop()
-    })
+    // Page visibility (hidden tabs, background-tab opens) is useQrScanner's own
+    // business now and is tested there — this page only starts and stops.
 
     it('unmounting stops the camera', () => {
       const wrapper = mountScanner()

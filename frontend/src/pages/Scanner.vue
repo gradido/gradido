@@ -39,7 +39,7 @@
         type="button"
         class="scanner-manual-link"
         data-test="scanner-manual-open"
-        @click="manualOpen = true"
+        @click="openManual"
       >
         {{ $t('scanner.manual.open') }}
       </button>
@@ -86,10 +86,17 @@
             <label class="visually-hidden" for="scanner-manual-inline">
               {{ $t('scanner.manual.label') }}
             </label>
+            <!-- Codes are case-sensitive and no words: the device keyboard must neither
+                 capitalize nor "correct" them, or the person types exactly what the card
+                 says and still lands on "link invalid". -->
             <BFormInput
               id="scanner-manual-inline"
               v-model="manualText"
               type="text"
+              autocapitalize="none"
+              autocorrect="off"
+              spellcheck="false"
+              inputmode="url"
               :placeholder="$t('scanner.manual.label')"
               data-test="scanner-manual-input"
             />
@@ -155,10 +162,15 @@
         <label class="scanner-sheet-label" for="scanner-manual-sheet">
           {{ $t('scanner.manual.label') }}
         </label>
+        <!-- Same keyboard discipline as the inline twin: codes are case-sensitive. -->
         <BFormInput
           id="scanner-manual-sheet"
           v-model="manualText"
           type="text"
+          autocapitalize="none"
+          autocorrect="off"
+          spellcheck="false"
+          inputmode="url"
           data-test="scanner-manual-input"
         />
         <BButton type="submit" variant="gradido" class="w-100" data-test="scanner-manual-submit">
@@ -202,9 +214,11 @@
 import { BButton, BFormInput } from 'bootstrap-vue-next'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import CONFIG from '@/config'
 import { useQrScanner } from '@/composables/useQrScanner'
 import { useParkedAmount } from '@/composables/useParkedAmount'
 import { openExternalUrl } from '@/utils/browserLocation'
+import { communityHost } from '@/utils/gradidoAddress'
 import { resolveScanTarget } from '@/utils/scanTarget'
 
 /**
@@ -217,6 +231,18 @@ const REANNOUNCE_AFTER_MS = 3000
 /** How long the "no Gradido code" note stays up. */
 const UNKNOWN_NOTE_MS = 2500
 
+/**
+ * Every host that means "this wallet". The serving host AND the configured community
+ * host: the wallet's own printed codes carry the latter, and the browser may sit on an
+ * alias of it (www vs apex, an IP-served local community — one day a Capacitor shell,
+ * whose page host is no community at all). A member's own cheque must never draw the
+ * foreign-community card because those two names differ. (Bernd, 21.08.2026)
+ */
+const OWN_HOSTS = [
+  window.location.host,
+  CONFIG.COMMUNITY_URL ? communityHost(CONFIG.COMMUNITY_URL) : '',
+].filter(Boolean)
+
 const router = useRouter()
 const { readParked } = useParkedAmount()
 
@@ -227,8 +253,12 @@ const manualText = ref('')
 const manualInvalid = ref(false)
 const unknownShown = ref(false)
 
-/** Read once on arrival: whether the calculator left an amount waiting. */
-const parkedWaiting = ref(readParked() !== null)
+/**
+ * Read once on arrival: whether the calculator left an amount waiting. A plain constant,
+ * deliberately — the only view that shows it (camera refused/missing) has no event that
+ * could refresh it, and a ref with an unreachable refresh site just claims otherwise.
+ */
+const parkedWaiting = readParked() !== null
 
 let ignoredValue = null
 let ignoredAt = 0
@@ -243,19 +273,37 @@ const isIgnored = (rawValue) =>
   rawValue === ignoredValue && Date.now() - ignoredAt < REANNOUNCE_AFTER_MS
 
 /**
- * One scanned payload. The parser is the whole decision:
+ * ONE dispatch for every road a target arrives on — scanned or typed. The sameness of
+ * those two roads is a stated security property (a person may type exactly what a
+ * sticker told them to), so it lives in one function rather than two drifting copies:
  *
  * - own community → stop the camera, navigate internally. Wordlessly, by decision:
  *   there is nothing to confirm about the place somebody already is.
- * - foreign community → hold the loop and raise the confirmation card.
- * - anything else → say "no Gradido code" and keep scanning. NEVER opened.
+ * - foreign community → close whatever sheet is open, hold the loop, raise the
+ *   confirmation card. Only its golden button ever opens a foreign link.
  */
+const handleTarget = (target, raw) => {
+  if (!target.foreign) {
+    scanner.stop()
+    router.push(target.path)
+    return
+  }
+  manualOpen.value = false
+  manualInvalid.value = false
+  scanner.pause()
+  // The RAW text rides along: the quiet-period lock compares against what the camera
+  // reads, and that is the raw payload, not the normalised URL built from it.
+  foreignTarget.value = { ...target, raw }
+}
+
+/** One scanned payload. The parser is the whole decision; see handleTarget. */
 const onCode = (rawValue) => {
   if (isIgnored(rawValue)) {
     return
   }
-  const target = resolveScanTarget(rawValue, window.location.host)
+  const target = resolveScanTarget(rawValue, OWN_HOSTS)
   if (!target) {
+    // "No Gradido code" — an answer, not an alarm. NEVER opened.
     ignoreForNow(rawValue)
     unknownShown.value = true
     window.clearTimeout(unknownTimer)
@@ -264,15 +312,7 @@ const onCode = (rawValue) => {
     }, UNKNOWN_NOTE_MS)
     return
   }
-  if (!target.foreign) {
-    scanner.stop()
-    router.push(target.path)
-    return
-  }
-  scanner.pause()
-  // The RAW text rides along: the quiet-period lock compares against what the camera
-  // reads, and that is the raw payload, not the normalised URL built from it.
-  foreignTarget.value = { ...target, raw: rawValue }
+  handleTarget(target, rawValue)
 }
 
 const scanner = useQrScanner(onCode)
@@ -295,37 +335,38 @@ const continueScanning = () => {
   // picture would raise the sheet again on the very next tick.
   ignoreForNow(foreignTarget.value.raw)
   foreignTarget.value = null
+  scanner.resume()
   // While the card was open the tab may have gone hidden, which STOPS the camera
-  // rather than pausing it — a resume would then face a dead stream.
+  // rather than pausing it — a resume alone would then face a dead stream.
   if (state.value === 'idle') {
     scanner.start(videoElement.value)
-  } else {
-    scanner.resume()
   }
 }
 
+/**
+ * The camera keeps running under the sheet — the picture staying live is part of the
+ * tool — but the LOOP holds: a code drifting into the frame while somebody types must
+ * neither navigate away mid-entry nor raise the confirmation card under this sheet.
+ */
+const openManual = () => {
+  manualOpen.value = true
+  scanner.pause()
+}
+
 const submitManual = () => {
-  const target = resolveScanTarget(manualText.value, window.location.host)
+  const target = resolveScanTarget(manualText.value, OWN_HOSTS)
   if (!target) {
     manualInvalid.value = true
     return
   }
-  if (!target.foreign) {
-    scanner.stop()
-    router.push(target.path)
-    return
-  }
-  // A typed foreign link takes the same confirmation road as a scanned one: the person
-  // may have typed exactly what a sticker told them to.
-  manualOpen.value = false
-  manualInvalid.value = false
-  scanner.pause()
-  foreignTarget.value = { ...target, raw: manualText.value }
+  // A typed foreign link takes the same confirmation road as a scanned one.
+  handleTarget(target, manualText.value)
 }
 
 const closeManual = () => {
   manualOpen.value = false
   manualInvalid.value = false
+  scanner.resume()
 }
 
 /**
@@ -342,35 +383,14 @@ const goBack = () => {
   }
 }
 
-/**
- * The camera dies whenever this page stops being looked at, and comes back when the
- * page does: a hidden tab with a running camera is cost without function, and on iOS a
- * camera light over a closed lid reads as surveillance.
- */
-const onVisibilityChanged = () => {
-  if (document.visibilityState === 'hidden') {
-    scanner.stop()
-    return
-  }
-  // Coming back: only restart what the hidden state stopped. An open confirmation card
-  // keeps the camera off until "keep scanning" decides; denied/unavailable have no
-  // video element to start into.
-  if (videoElement.value && !foreignTarget.value && state.value === 'idle') {
-    parkedWaiting.value = readParked() !== null
-    scanner.start(videoElement.value)
-  }
-}
-
-document.addEventListener('visibilitychange', onVisibilityChanged)
-
 // The camera starts as soon as the video element exists — onMounted is the first
-// moment the ref is bound.
+// moment the ref is bound. Page visibility (hidden tabs, background-tab opens) is the
+// composable's own business; this page only says when it wants a camera at all.
 onMounted(() => {
   scanner.start(videoElement.value)
 })
 
 onUnmounted(() => {
-  document.removeEventListener('visibilitychange', onVisibilityChanged)
   window.clearTimeout(unknownTimer)
   scanner.stop()
 })
@@ -395,6 +415,11 @@ onUnmounted(() => {
 
   position: relative;
   max-width: 480px;
+
+  /* The pair, not just dvh: engines without dvh (iOS Safari 15.0-15.3, older
+     Chromium) drop the second line entirely and the dark surface would collapse to
+     content height. Same deliberate fallback as MatchingMap. */
+  min-height: 100vh;
   min-height: 100dvh;
   margin: 0 auto;
   padding-bottom: 24px;
