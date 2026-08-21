@@ -1,5 +1,7 @@
 // AI-GENERATED — not an architecture reference
 
+import { sameHost } from '@/utils/gradidoAddress'
+
 /**
  * Reads what a scanned QR code or a hand-typed text points at.
  *
@@ -24,10 +26,21 @@
  * card and jumps via `url`. A code of the own community navigates internally via `path`,
  * which is rebuilt from the matched pieces rather than taken from the foreign text.
  *
- * @param {string} text     the raw scanned or typed text
- * @param {string} ownHost  the wallet's own host (`window.location.host`, port included)
- * @returns {{ kind: 'thank-you-card'|'cheque'|'gradido-card', path: string, url: string,
- *             host: string, foreign: boolean } | null}
+ * "Own" is a LIST of hosts, not one: the wallet's own printed codes carry the host of
+ * `COMMUNITY_URL`, while the browser may be looking at an alias of it (www vs apex, a
+ * local community reached by IP — and one day a Capacitor shell, where the page's own
+ * host is no community at all). A member's own cheque must never draw the foreign card
+ * just because the two names differ. The comparison is `sameHost` from gradidoAddress —
+ * the one definition of "same community host" the wallet already has.
+ *
+ * @param {string} text        the raw scanned or typed text
+ * @param {string[]} ownHosts  every host that means "this wallet" — typically
+ *                             `window.location.host` and the `COMMUNITY_URL` host
+ * @returns {{ kind: 'thank-you-card'|'cheque'|'gradido-card', path: string,
+ *             foreign: false }
+ *         | { kind: 'thank-you-card'|'cheque'|'gradido-card', path: string, url: string,
+ *             host: string, foreign: true }
+ *         | null}
  */
 
 /** Which route prefix means which kind of thing — the words the confirmation card uses. */
@@ -41,9 +54,10 @@ const KIND_BY_PREFIX = {
  * The path of a Gradido target: one of the three prefixes, then EXACTLY one non-empty
  * segment. `/dk/` (nothing follows) and `/dk/a/b` (too much follows) are no match.
  * The prefix is read case-insensitively like the router would; the code itself is not,
- * because codes are case-sensitive.
+ * because codes are case-sensitive. `?` and `#` are excluded from the segment so a
+ * query or fragment can never ride along inside a "code" — belt to the braces below.
  */
-const PATH_PATTERN = /^\/(dk|redeem|u)\/([^/]+)\/?$/i
+const PATH_PATTERN = /^\/(dk|redeem|u)\/([^/?#]+)\/?$/i
 
 const matchPath = (pathname) => {
   const match = pathname.match(PATH_PATTERN)
@@ -54,17 +68,32 @@ const matchPath = (pathname) => {
   return { prefix, code: match[2] }
 }
 
-export const resolveScanTarget = (text, ownHost) => {
+/**
+ * The own-community shape: only the rebuilt `path`. Query, hash and whatever else the
+ * foreign text carried fall away, so `router.push` only ever sees `/prefix/code` — and
+ * there is deliberately no `url` here: internal navigation goes by path, and a synthetic
+ * absolute URL would only invite somebody to open it.
+ */
+const ownTarget = ({ prefix, code }) => ({
+  kind: KIND_BY_PREFIX[prefix],
+  path: `/${prefix}/${code}`,
+  foreign: false,
+})
+
+export const resolveScanTarget = (text, ownHosts) => {
   const trimmed = String(text ?? '').trim()
   if (trimmed === '') {
     return null
   }
 
   // A bare path — `/dk/CODE` or `dk/CODE`, typed off a card by hand. No host in it, so
-  // it can only mean this wallet's own community.
-  const asPath = matchPath(trimmed.startsWith('/') ? trimmed : `/${trimmed}`)
+  // it can only mean this wallet's own community. The query/hash cut mirrors what the
+  // URL branch gets from `url.pathname`: the contract is that they fall away on EVERY
+  // road into `path`, not just the one the spec happened to test.
+  const bare = trimmed.startsWith('/') ? trimmed : `/${trimmed}`
+  const asPath = matchPath(bare.split(/[?#]/)[0])
   if (asPath) {
-    return ownTarget(asPath, ownHost)
+    return ownTarget(asPath)
   }
 
   // Everything else must parse as a URL. Hand-typed links usually come without a scheme
@@ -89,11 +118,10 @@ export const resolveScanTarget = (text, ownHost) => {
     return null
   }
 
-  // `url.host` is lowercased and port-carrying by construction; `window.location.host`
-  // matches that shape. Same host means own community — the scheme does not get a vote,
-  // because the internal navigation goes by path and never touches the scanned scheme.
-  if (url.host.toLowerCase() === String(ownHost).toLowerCase()) {
-    return ownTarget(matched, ownHost)
+  // Any of the own hosts means own community — the scheme does not get a vote, because
+  // the internal navigation goes by path and never touches the scanned scheme.
+  if ((ownHosts ?? []).some((own) => sameHost(url.host, own))) {
+    return ownTarget(matched)
   }
 
   return {
@@ -106,16 +134,3 @@ export const resolveScanTarget = (text, ownHost) => {
     foreign: true,
   }
 }
-
-/**
- * The own-community shape. `path` is REBUILT from the matched pieces: query, hash and
- * whatever else the foreign text carried fall away, so `router.push` only ever sees
- * `/prefix/code`.
- */
-const ownTarget = ({ prefix, code }, ownHost) => ({
-  kind: KIND_BY_PREFIX[prefix],
-  path: `/${prefix}/${code}`,
-  url: `https://${ownHost}/${prefix}/${code}`,
-  host: ownHost,
-  foreign: false,
-})
