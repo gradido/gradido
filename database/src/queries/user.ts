@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { getLogger } from 'log4js'
 import { aliasSchema, emailSchema, uuidv4Schema, VoidResult } from 'shared'
-import { In, Raw } from 'typeorm'
+import { EntityManager, In, Raw } from 'typeorm'
 import { drizzleDb } from '../AppDatabase'
 import { User as DbUser, UserContact as DbUserContact } from '../entity'
 import { DBNotFoundError } from '../errorTypes'
@@ -151,4 +151,9 @@ export async function findUserNamesByIds(userIds: number[]): Promise<Map<number,
       return [user.id, `${user.firstName} ${user.lastName}`]
     }),
   )
+}
+
+/** Persist a member - inside the caller's transaction when given. */
+export async function dbSaveUser(user: DbUser, manager?: EntityManager): Promise<DbUser> {
+  return manager ? manager.save(user) : DbUser.save(user)
 }

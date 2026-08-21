@@ -13,3 +13,21 @@ export async function findModeratorCreatingContributionLink(
   })
   return event?.actingUser
 }
+
+/**
+ * The most recent event of one type that concerns this member, or null.
+ *
+ * Used as a rate limit that survives the disappearance of the thing it guards: a pending
+ * e-mail change is a row that gets deleted on cancel, so "when was the last mail sent"
+ * cannot be read from it - the event stays.
+ */
+export async function dbFindLatestEventForAffectedUser(
+  type: string,
+  affectedUserId: number,
+): Promise<DbEvent | null> {
+  return DbEvent.findOne({
+    // todo: move event types into db
+    where: { type, affectedUserId },
+    order: { createdAt: 'DESC' },
+  })
+}
