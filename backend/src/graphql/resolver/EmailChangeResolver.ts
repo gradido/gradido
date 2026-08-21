@@ -312,7 +312,7 @@ export class EmailChangeResolver {
       email: user.emailContact.email,
       language: user.language,
       newEmail: pending.email,
-      revokeLink: revokeLink(pending.changeVetoCode),
+      revokeLink: revokeLink(pending.changeVetoCode as string),
       timeDurationObject,
     })
     logger.info('resendEmailChange... mails sent again')
