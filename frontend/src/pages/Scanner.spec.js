@@ -160,7 +160,7 @@ describe('Scanner page', () => {
       const wrapper = mountScanner()
       expect(wrapper.text()).toContain('Gradido-Code scannen')
       expect(el(wrapper, 'hint').text()).toBe(
-        'Dank-Karte, Scheck oder Gradido-Karte ins Bild halten',
+        'Dank-Karte, Scheck oder Visitenkarte ins Bild halten',
       )
       expect(el(wrapper, 'manual-open').text()).toBe('Code oder Link von Hand eingeben')
     })
@@ -206,7 +206,7 @@ describe('Scanner page', () => {
 
     it.each([
       ['/redeem/abc', 'Scheck einer anderen Community'],
-      ['/u/abc', 'Gradido-Karte einer anderen Community'],
+      ['/u/abc', 'Visitenkarte einer anderen Community'],
     ])('names the foreign kind for %s', async (path, title) => {
       const wrapper = mountScanner()
       await scan(wrapper, `https://${FOREIGN}${path}`)

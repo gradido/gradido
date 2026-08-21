@@ -56,9 +56,10 @@
           >
             {{ $t('thank-you-card.settings.sheet') }}
           </BButton>
-          <BButton class="ms-2" variant="secondary" :disabled="busy" @click="download">
-            {{ $t('thank-you-card.settings.print') }}
-          </BButton>
+          <!-- ⛔ The download button that used to stand here is gone, on purpose. A
+               thank-you card is not given away like a business card: it is ONE card, for one
+               person, printed at home. The sheet does that at the right size; a bare PNG of
+               unstated size only invited printing it wrong. (Bernd, 21.08.2026) -->
           <BButton
             class="ms-2"
             variant="danger"
@@ -265,11 +266,7 @@ import {
   unblockThankYouCard,
 } from '@/graphql/thankYouCard.graphql'
 import { useAppToast } from '@/composables/useToast'
-import {
-  drawThankYouCard,
-  printThankYouCardSheet,
-  thankYouCardFileName,
-} from '@/utils/thankYouCard'
+import { printThankYouCardSheet } from '@/utils/thankYouCard'
 import { PIN_MASK_CLASS, pinInputType } from '@/utils/pinMasking'
 import CONFIG from '@/config'
 
@@ -424,10 +421,10 @@ const confirmBlock = () => {
 }
 
 /**
- * ⚠️ The two ways out differ in WHERE the size lives, not in what is drawn. The download
- * hands over a PNG whose physical size nothing states — deliberately, see `gradidoCard.js`
- * — for whoever wants to place it themselves. The sheet states it, in millimetres, on a page
- * the browser prints at exactly that size. Which is why the sheet is the first button.
+ * One way out, and it is the one that states the SIZE: an A4 page the browser prints at
+ * exactly 54 x 85.6 mm, with a cut line. There used to be a second, a bare PNG whose
+ * physical size nothing states — right for a business card somebody takes to a print shop,
+ * wrong here, because a thank-you card is one card for one person, printed at home.
  */
 const cardOptions = () => ({
   url: `${window.location.origin}/dk/${activeCard.value.code}`,
@@ -443,24 +440,6 @@ const printSheet = async () => {
   busy.value = true
   try {
     await printThankYouCardSheet(cardOptions())
-  } catch (error) {
-    toastError(error.message)
-  } finally {
-    busy.value = false
-  }
-}
-
-const download = async () => {
-  if (!activeCard.value) {
-    return
-  }
-  busy.value = true
-  try {
-    const dataUrl = await drawThankYouCard(cardOptions())
-    const anchor = document.createElement('a')
-    anchor.href = dataUrl
-    anchor.download = thankYouCardFileName(activeCard.value.label)
-    anchor.click()
   } catch (error) {
     toastError(error.message)
   } finally {

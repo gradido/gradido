@@ -4,7 +4,8 @@
     <div v-if="alias" class="small mt-3" data-test="my-gradido-card-address">
       <gradido-address-copy :alias="alias" />
     </div>
-    <div class="small text-muted mt-3">{{ $t('my-codes.gradido-card.hint') }}</div>
+    <!-- Big, not a footnote: read at arm's length while the phone is held out. -->
+    <div class="fs-5 mt-4">{{ $t('my-codes.gradido-card.hint') }}</div>
   </own-code-view>
 </template>
 

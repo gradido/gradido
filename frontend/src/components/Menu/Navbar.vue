@@ -215,7 +215,7 @@ button.navbar-toggler > span.navbar-toggler-icon {
 
 /* Two columns of 44px, so the four tools stack two by two instead of pushing the block
    opposite off a narrow phone. */
-.navbar-quick-row {
+.navbar-component .navbar-quick-row {
   display: grid;
   grid-template-columns: repeat(2, 44px);
 }
@@ -225,21 +225,32 @@ button.navbar-toggler > span.navbar-toggler-icon {
    Written through the row rather than as one class per tool. This style block is GLOBAL,
    like DashboardLayout's, so a bare class name would style across components -- which is
    why there used to be two names for one look. A descendant of `.navbar-quick-row` cannot
-   escape this component, and it does not grow a fifth name when a fifth tool arrives. */
-.navbar-quick-row > a {
+   escape this component, and it does not grow a fifth name when a fifth tool arrives.
+
+   ⛔ `flex-start`, NOT `center`, and that is what puts the block where it belongs. Centring
+   a 22px glyph in a 44px target insets it by 11px, so the symbols stood a thumb's width
+   right of the menu opener below them and the top-right one reached into the leaves. Left
+   aligned, every glyph starts at the column edge -- the same edge the opener starts at,
+   within about a pixel (both SVGs carry roughly 3px of their own padding). The touch
+   targets and the spacing between the symbols are untouched; the whole block simply moves
+   11px left. (Bernd, 21.08.2026: "sodass die linke Kante eine Linie bildet")
+
+   The colour is the menu's own: `--text` is #383838 in light and #e4e4e4 in dark, which is
+   exactly what the sidebar items carry. No opacity -- the tone has to MATCH the menu, and
+   0.65 of it is a different grey. */
+.navbar-component .navbar-quick-row > a {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   width: 44px;
   height: 44px;
   font-size: 22px;
-  color: inherit;
-  opacity: 0.65;
+  color: var(--text);
 }
 
-.navbar-quick-row > a:hover {
-  color: inherit;
-  opacity: 1;
+.navbar-component .navbar-quick-row > a:hover {
+  color: var(--text);
+  opacity: 0.7;
 }
 </style>
 

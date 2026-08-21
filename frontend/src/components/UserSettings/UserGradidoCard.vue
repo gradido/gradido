@@ -61,19 +61,11 @@
       </BCol>
     </BRow>
 
+    <!-- The sheet leads. It is what somebody actually wants from a business card -- ten of
+         them, at the right size, ready to cut -- and the download is the way out for the one
+         person in a hundred taking the picture to a print shop. First position for the
+         common act. (Bernd, 21.08.2026) -->
     <BRow>
-      <BCol cols="12" md="6" class="mb-3">
-        <BButton
-          variant="primary"
-          :disabled="isBusy"
-          data-test="download-gradido-card"
-          @click="onDownload"
-        >
-          <IBiDownload class="me-1" />
-          {{ $t('gradido-card.download') }}
-        </BButton>
-        <div class="small mt-2">{{ $t('gradido-card.download-hint') }}</div>
-      </BCol>
       <BCol cols="12" md="6" class="mb-3">
         <BButton
           variant="gradido"
@@ -85,6 +77,18 @@
           {{ $t('gradido-card.sheet') }}
         </BButton>
         <div class="small mt-2">{{ $t('gradido-card.sheet-hint') }}</div>
+      </BCol>
+      <BCol cols="12" md="6" class="mb-3">
+        <BButton
+          variant="primary"
+          :disabled="isBusy"
+          data-test="download-gradido-card"
+          @click="onDownload"
+        >
+          <IBiDownload class="me-1" />
+          {{ $t('gradido-card.download') }}
+        </BButton>
+        <div class="small mt-2">{{ $t('gradido-card.download-hint') }}</div>
       </BCol>
     </BRow>
 

@@ -306,9 +306,77 @@ describe('useQrScanner', () => {
   })
 
   describe('the camera follows the eyes', () => {
-    it('a hidden tab stops the tracks; coming back restarts', async () => {
+    /**
+     * ⛔ The one that carries the iOS permission prompt. Every app switch, screen dim and
+     * pulled-down notification hides the page; tearing the tracks down there and asking
+     * `getUserMedia` again on the way back is a fresh permission question on iOS, because
+     * WebKit ties the grant to a live capture. So a SHORT absence must cost neither.
+     */
+    it('a short absence keeps the camera, and costs no second permission question', async () => {
+      const { scanner, track } = await startScanner()
+      getUserMediaMock.mockClear()
+
+      await fireVisibility('hidden')
+      await vi.advanceTimersByTimeAsync(5000)
+      expect(track.stop).not.toHaveBeenCalled()
+
+      await fireVisibility('visible')
+      expect(getUserMediaMock).not.toHaveBeenCalled()
+      expect(scanner.state.value).toBe('scanning')
+      scanner.stop()
+    })
+
+    // The frames stop at once all the same: nothing is decoded, and nothing decided, while
+    // nobody is looking. Only the permission is what gets kept.
+    it('decodes nothing while the page is hidden', async () => {
+      const onCode = vi.fn()
+      const { scanner } = await startScanner(onCode)
+      detectMock.mockResolvedValue([{ rawValue: 'https://example.test/dk/DK-1' }])
+
+      await fireVisibility('hidden')
+      await vi.advanceTimersByTimeAsync(1000)
+      expect(onCode).not.toHaveBeenCalled()
+
+      await fireVisibility('visible')
+      await vi.advanceTimersByTimeAsync(200)
+      expect(onCode).toHaveBeenCalled()
+      scanner.stop()
+    })
+
+    /**
+     * ⛔ The half a guard at the top of the tick cannot cover. `detect()` is async: a look
+     * that STARTED while the page was visible can land after it is hidden, and acting on
+     * that code would open a payment page behind the person's back.
+     *
+     * Hiding used to bump the generation, so such a result was discarded by the staleness
+     * check; keeping the camera took that away. (coderabbit, PR #3781)
+     */
+    it('drops a code that lands after the page was hidden', async () => {
+      const onCode = vi.fn()
+      const { scanner } = await startScanner(onCode)
+
+      let land
+      detectMock.mockReturnValue(
+        new Promise((resolve) => {
+          land = () => resolve([{ rawValue: 'https://example.test/dk/DK-1' }])
+        }),
+      )
+      await vi.advanceTimersByTimeAsync(200)
+
+      await fireVisibility('hidden')
+      land()
+      await flushAsync()
+
+      expect(onCode).not.toHaveBeenCalled()
+      scanner.stop()
+    })
+
+    // A page that STAYS hidden does lose its camera -- that is where a light burning in a
+    // tab nobody can see would be the real failure.
+    it('a long absence releases the camera, and coming back starts a new one', async () => {
       const { scanner, track } = await startScanner()
       await fireVisibility('hidden')
+      await vi.advanceTimersByTimeAsync(31000)
       expect(track.stop).toHaveBeenCalled()
       expect(scanner.state.value).toBe('idle')
 

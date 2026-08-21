@@ -14,28 +14,20 @@
 
       <!-- Breadcrumb -->
       <BRow class="breadcrumb" :class="chromeHidden">
-        <BCol cols="10" offset-lg="2">
-          <breadcrumb />
-        </BCol>
-      </BRow>
+        <!-- ⛔ A real column where an `offset-lg="2"` used to be. The four till tools stood
+             INSIDE the menu column below and pushed the whole menu down by their own height,
+             so it no longer stood level with the account panel opposite. Here they take the
+             space the offset was leaving empty anyway: level with the page heading, and the
+             menu is back where it was. (Bernd, 21.08.2026)
 
-      <!-- With the navbar and the heading gone there is nothing left to sit under,
-           so the air goes here — on the row, where the menu and the content get it
-           together and stay level. The phone gets none: there the map takes the edge. -->
-      <BRow fluid class="d-flex" :class="bareTopSpace">
-        <!-- Sidebar left -->
+             Below lg the column is gone and the breadcrumb starts at the left, exactly as
+             the offset did -- the phone has its own copy of these tools in the navbar.
+
+             Small and unmarked on purpose: tools for those who run a till, not headline
+             features. Scan left of the calculator, because scanning is the more general act;
+             two by two like the phone, and the rows mean something -- reading a code above,
+             showing one below. -->
         <BCol cols="2" class="d-none d-lg-block">
-          <!-- The four till tools sit above the menu, level with the page heading -- small
-               and unmarked on purpose: tools for those who run a till, not headline
-               features. Whoever needs them knows where they live. Scan left of the
-               calculator, because scanning is the more general act. (Bernd, 20./21.08.2026)
-
-               Two by two, the same shape as on the phone. Here it is not width that asks
-               for it -- this column has room at 1280px, but not at 992px, where it is
-               about 165px wide and four 44px targets are 176. Keeping the same
-               arrangement on both means one thing to learn instead of two.
-
-               The rows mean something: reading a code above, showing one below. -->
           <div class="sidebar-quick-row">
             <router-link
               to="/scan"
@@ -66,6 +58,18 @@
               <quick-code-icon direction="in" />
             </router-link>
           </div>
+        </BCol>
+        <BCol cols="10">
+          <breadcrumb />
+        </BCol>
+      </BRow>
+
+      <!-- With the navbar and the heading gone there is nothing left to sit under,
+           so the air goes here — on the row, where the menu and the content get it
+           together and stay level. The phone gets none: there the map takes the edge. -->
+      <BRow fluid class="d-flex" :class="bareTopSpace">
+        <!-- Sidebar left -->
+        <BCol cols="2" class="d-none d-lg-block">
           <sidebar
             class="main-sidebar"
             :show-logo="bareChrome"
@@ -525,33 +529,37 @@ const admin = () => {
   }
 }
 
-/* Two columns of 44px, as on the phone. The margin sits on the row now, where it lines the
-   block up with the menu entries below -- it used to sit on the scanner alone, which was
-   the same thing said in a place that could only ever hold one tool. */
-.sidebar-quick-row {
+/* Two columns of 44px, as on the phone. The margin lines the block up with the menu
+   entries in the column below it -- it used to sit on the scanner alone, which was the
+   same thing said in a place that could only ever hold one tool. */
+.main-page .sidebar-quick-row {
   display: grid;
   grid-template-columns: repeat(2, 44px);
   margin-left: 8px;
 }
 
 /* Small to the eye, 44px to the pointer -- same rule as the gear inside the calculator.
+
    ⚠️ Written through the row: the style block of this layout is GLOBAL, so a bare class
    name would style the navbar's twins as well -- the desktop margin would shift the phone
    symbols. That is what the two names per tool used to be for; a descendant of
-   `.sidebar-quick-row` cannot leave this layout, and it does not multiply with the tools. */
-.sidebar-quick-row > a {
+   `.sidebar-quick-row` cannot leave this layout, and it does not multiply with the tools.
+
+   `flex-start` and `--text` for the same reasons as on the phone: the glyphs line up on
+   their left edge, and the tone is the menu's own (#383838 light, #e4e4e4 dark) rather
+   than 0.65 of whatever the surroundings inherit. */
+.main-page .sidebar-quick-row > a {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   width: 44px;
   height: 44px;
   font-size: 22px;
-  color: inherit;
-  opacity: 0.65;
+  color: var(--text);
 }
 
-.sidebar-quick-row > a:hover {
-  color: inherit;
-  opacity: 1;
+.main-page .sidebar-quick-row > a:hover {
+  color: var(--text);
+  opacity: 0.7;
 }
 </style>
