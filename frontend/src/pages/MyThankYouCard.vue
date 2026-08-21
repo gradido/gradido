@@ -13,7 +13,9 @@
       <div v-if="community" class="small text-muted mt-2" data-test="my-thank-you-card-community">
         {{ community }}
       </div>
-      <div class="small text-muted mt-3">{{ $t('my-codes.thank-you-card.hint') }}</div>
+      <!-- Big, not a footnote. This is the one sentence somebody reads while holding the
+           phone out to a stranger, so it has to land at arm's length. (Bernd, 21.08.2026) -->
+      <div class="fs-5 mt-4">{{ $t('my-codes.thank-you-card.hint') }}</div>
     </template>
 
     <!-- ⛔ Ahead of the two below, and that is the whole point of it: a question that never

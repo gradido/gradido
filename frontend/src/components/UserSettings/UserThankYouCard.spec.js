@@ -43,12 +43,9 @@ vi.mock('vuex', () => ({
   useStore: vi.fn(() => ({ state: { community: { name: 'Gradido Community' } } })),
 }))
 
-const mockDrawThankYouCard = vi.fn()
 const mockPrintThankYouCardSheet = vi.fn()
 vi.mock('@/utils/thankYouCard', () => ({
-  drawThankYouCard: (...args) => mockDrawThankYouCard(...args),
   printThankYouCardSheet: (...args) => mockPrintThankYouCardSheet(...args),
-  thankYouCardFileName: (label) => `Dank-Karte ${label}.png`,
 }))
 
 vi.mock('@/config', () => ({ default: { COMMUNITY_NAME: 'Gradido Community' } }))
@@ -263,7 +260,6 @@ describe('UserThankYouCard', () => {
     mockUnblockCard.mockResolvedValue({})
     mockRefetchSettings.mockResolvedValue({})
     mockRefetchCards.mockResolvedValue({})
-    mockDrawThankYouCard.mockResolvedValue('data:image/png;base64,AAAA')
     mockPrintThankYouCardSheet.mockResolvedValue('data:image/png;base64,AAAA')
   })
 
@@ -637,29 +633,20 @@ describe('UserThankYouCard', () => {
   })
 
   describe('printing the card', () => {
-    it('draws it with the address a scanner will reach and saves it under the label', async () => {
-      // ⚠️ Only for the anchor. A blanket mock also answers Vue's own createElement, and
-      // the component stops rendering halfway through — with an error that names neither.
-      const anchor = { href: '', download: '', click: vi.fn() }
-      const realCreateElement = document.createElement.bind(document)
-      const createElement = vi
-        .spyOn(document, 'createElement')
-        .mockImplementation((tag) => (tag === 'a' ? anchor : realCreateElement(tag)))
-
+    /**
+     * ⛔ The download button is GONE, and this is what keeps it gone. It handed over a PNG
+     * whose physical size nothing states -- right for a business card somebody takes to a
+     * print shop, wrong for a thank-you card, which is one card for one person printed at
+     * home. (Bernd, 21.08.2026)
+     *
+     * Absence AND presence in one test on purpose: an "it is not there" alone stays green
+     * if the whole block dies, so the sheet has to still be standing beside it.
+     */
+    it('offers the sheet and no second way that loses the size', async () => {
       await mountWith()
-      await buttonWith('thank-you-card.settings.print').trigger('click')
-      await flushPromises()
 
-      expect(mockDrawThankYouCard).toHaveBeenCalledWith(
-        expect.objectContaining({
-          url: `${window.location.origin}/dk/${ACTIVE_CARD.code}`,
-          label: 'Portemonnaie',
-        }),
-      )
-      expect(anchor.download).toBe('Dank-Karte Portemonnaie.png')
-      expect(anchor.click).toHaveBeenCalled()
-      createElement.mockRestore()
-      expect(document.createElement('div').tagName).toBe('DIV')
+      expect(field('sheet').exists()).toBe(true)
+      expect(wrapper.text()).not.toContain(translate('thank-you-card.settings.print'))
     })
 
     // ⛔ The sheet is what carries the physical size. The PNG deliberately states none — so
@@ -685,15 +672,6 @@ describe('UserThankYouCard', () => {
       await flushPromises()
 
       expect(mockToastError).toHaveBeenCalledWith('no printer')
-    })
-
-    it('says so instead of failing silently when the drawing goes wrong', async () => {
-      mockDrawThankYouCard.mockRejectedValue(new Error('canvas'))
-      await mountWith()
-      await buttonWith('thank-you-card.settings.print').trigger('click')
-      await flushPromises()
-
-      expect(mockToastError).toHaveBeenCalledWith('canvas')
     })
   })
 
