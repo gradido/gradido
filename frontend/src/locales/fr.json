@@ -211,6 +211,21 @@
   "download": "Télécharger",
   "edit": "modifier",
   "em-dash": "—",
+  "emailChange": {
+    "confirm": {
+      "button": "Confirmer la nouvelle adresse",
+      "done": "Ton adresse e-mail a été modifiée. Désormais, connecte-toi avec la nouvelle adresse.",
+      "text": "D'un clic, cette adresse devient l'adresse e-mail de ton compte Gradido. Jusque-là, ton ancienne adresse reste valable.",
+      "title": "Confirmer la nouvelle adresse e-mail"
+    },
+    "invalid": "Ce lien n'est pas valable ou a expiré. Tu peux demander un nouvel e-mail de confirmation dans tes paramètres.",
+    "revoke": {
+      "button": "Abandonner le changement",
+      "done": "Le changement a été abandonné : ton ancienne adresse reste en place. Si tu n'avais pas demandé ce changement, modifie aussi ton mot de passe.",
+      "text": "Ce n'était pas toi ? Alors abandonne le changement demandé : ton ancienne adresse reste en place.",
+      "title": "Abandonner le changement d'adresse e-mail"
+    }
+  },
   "error": {
     "email-already-sent": "Nous t'avons déjà envoyé un e-mail il y a moins de 10 minutes.",
     "empty-transactionlist": "Il y a eu une erreur lors de la transmission du numéro de ta transaction.",
@@ -742,7 +757,25 @@
       "visibilityInfo": "Les autres membres voient ton image, par exemple à côté des transactions que vous partagez. Quand le réglage est désactivé, ce sont tes initiales qui apparaissent, comme avant."
     },
     "community": "Cercles et recherche de membres",
-    "emailInfo": "Ne peut pas encore être modifié pour le moment.",
+    "email": {
+      "cancel": "Annuler",
+      "cancelled": "Le changement a été abandonné.",
+      "change": "Modifier l'adresse e-mail",
+      "error-invalid": "Ce n'est pas une adresse e-mail valide.",
+      "error-password": "Le mot de passe est incorrect.",
+      "error-same": "C'est déjà l'adresse e-mail de ton compte.",
+      "error-taken": "Cette adresse e-mail est déjà utilisée.",
+      "error-wait": "Attends quelques minutes avant de demander un nouvel e-mail.",
+      "new": "Nouvelle adresse e-mail",
+      "password": "Ton mot de passe actuel",
+      "password-why": "Par sécurité : pour que personne ne puisse modifier ton adresse sur un appareil déverrouillé.",
+      "pending": "Confirmation en attente : nous avons envoyé un e-mail à {email}. Tant que tu n'as pas cliqué sur le lien, ton ancienne adresse reste valable.",
+      "resend": "Renvoyer l'e-mail",
+      "resend-wait": "Renvoyer dans {minutes} min",
+      "send": "Envoyer l'e-mail de confirmation",
+      "sent": "Nous avons envoyé un e-mail de confirmation à {email}."
+    },
+    "emailInfo": "Une nouvelle adresse prend effet dès que tu l'as confirmée via le lien de l'e-mail de confirmation.",
     "hideAmountGDD": "Ton montant GDD est caché.",
     "hideAmountGDT": "Ton montant GDT est caché.",
     "humhub": {

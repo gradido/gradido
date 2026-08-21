@@ -211,6 +211,21 @@
   "download": "Download",
   "edit": "edit",
   "em-dash": "—",
+  "emailChange": {
+    "confirm": {
+      "button": "Confirm new address",
+      "done": "Your e-mail address has been changed. From now on, log in with the new address.",
+      "text": "With one click this address becomes the e-mail address of your Gradido account. Until then your previous address stays in force.",
+      "title": "Confirm new e-mail address"
+    },
+    "invalid": "This link is invalid or has expired. You can request a new confirmation e-mail in your settings.",
+    "revoke": {
+      "button": "Discard change",
+      "done": "The change has been discarded – your previous address stays. If you did not request the change yourself, please change your password as well.",
+      "text": "That was not you? Then discard the requested change – your previous address stays.",
+      "title": "Discard change of e-mail address"
+    }
+  },
   "error": {
     "email-already-sent": "We already sent you an email less than 10 minutes ago.",
     "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
@@ -742,7 +757,25 @@
       "visibilityInfo": "Other members see your picture — for example next to the bookings you share. When the setting is switched off, your initials appear, as before."
     },
     "community": "Community",
-    "emailInfo": "Cannot be changed at this time.",
+    "email": {
+      "cancel": "Cancel",
+      "cancelled": "The change has been discarded.",
+      "change": "Change e-mail address",
+      "error-invalid": "That is not a valid e-mail address.",
+      "error-password": "The password is not correct.",
+      "error-same": "That is already the e-mail address of your account.",
+      "error-taken": "This e-mail address is already taken.",
+      "error-wait": "Please wait a few minutes before requesting a new e-mail.",
+      "new": "New e-mail address",
+      "password": "Your current password",
+      "password-why": "For safety – so that nobody can change your address on an unlocked device.",
+      "pending": "Confirmation pending: we have sent an e-mail to {email}. Until you click the link in it, your previous address stays in force.",
+      "resend": "Send e-mail again",
+      "resend-wait": "Send again in {minutes} min.",
+      "send": "Send confirmation e-mail",
+      "sent": "We have sent a confirmation e-mail to {email}."
+    },
+    "emailInfo": "A new address takes effect as soon as you have confirmed it via the link in the confirmation e-mail.",
     "hideAmountGDD": "Your GDD amount is hidden.",
     "hideAmountGDT": "Your GDT amount is hidden.",
     "humhub": {

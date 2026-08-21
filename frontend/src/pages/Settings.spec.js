@@ -93,6 +93,7 @@ describe('Settings', () => {
           BForm,
           BButton,
           'user-name': true,
+          'user-email': true,
           'user-language': true,
           'user-password': true,
           'user-newsletter': true,

@@ -148,6 +148,16 @@ export const queryOptIn = gql`
   }
 `
 
+export const pendingEmailChange = gql`
+  query {
+    pendingEmailChange {
+      email
+      requestedAt
+      resendAllowedAt
+    }
+  }
+`
+
 export const checkUsername = gql`
   query ($username: String!) {
     checkUsername(username: $username)

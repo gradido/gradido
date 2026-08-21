@@ -211,6 +211,21 @@
   "download": "Descargar",
   "edit": "editar",
   "em-dash": "—",
+  "emailChange": {
+    "confirm": {
+      "button": "Confirmar la nueva dirección",
+      "done": "Tu dirección de correo ha sido cambiada. A partir de ahora, inicia sesión con la nueva dirección.",
+      "text": "Con un clic, esta dirección pasa a ser la dirección de correo de tu cuenta Gradido. Hasta entonces sigue vigente tu dirección anterior.",
+      "title": "Confirmar la nueva dirección de correo"
+    },
+    "invalid": "Este enlace no es válido o ha caducado. En tus ajustes puedes solicitar un nuevo correo de confirmación.",
+    "revoke": {
+      "button": "Descartar el cambio",
+      "done": "El cambio se ha descartado: tu dirección anterior se mantiene. Si no habías solicitado el cambio tú, cambia también tu contraseña.",
+      "text": "¿No has sido tú? Entonces descarta el cambio solicitado: tu dirección anterior se mantiene.",
+      "title": "Descartar el cambio de dirección de correo"
+    }
+  },
   "error": {
     "email-already-sent": "Ya te hemos enviado un correo electrónico hace menos de 10 minutos.",
     "empty-transactionlist": "Ha habido un error en la transmisión del número de sus transacciones.",
@@ -742,7 +757,25 @@
       "visibilityInfo": "Otros miembros ven tu imagen, por ejemplo junto a las transacciones que compartís. Cuando la opción está desactivada, aparecen tus iniciales, como hasta ahora."
     },
     "community": "Círculos y búsqueda de miembros",
-    "emailInfo": "Por ahora todavía no se puede cambiar.",
+    "email": {
+      "cancel": "Cancelar",
+      "cancelled": "El cambio se ha descartado.",
+      "change": "Cambiar la dirección de correo",
+      "error-invalid": "Esa no es una dirección de correo válida.",
+      "error-password": "La contraseña no es correcta.",
+      "error-same": "Esa ya es la dirección de correo de tu cuenta.",
+      "error-taken": "Esta dirección de correo ya está en uso.",
+      "error-wait": "Espera unos minutos antes de solicitar un nuevo correo.",
+      "new": "Nueva dirección de correo",
+      "password": "Tu contraseña actual",
+      "password-why": "Por seguridad: para que nadie pueda cambiar tu dirección en un dispositivo desbloqueado.",
+      "pending": "Confirmación pendiente: hemos enviado un correo a {email}. Hasta que hagas clic en el enlace, sigue vigente tu dirección anterior.",
+      "resend": "Enviar el correo de nuevo",
+      "resend-wait": "Enviar de nuevo en {minutes} min.",
+      "send": "Enviar correo de confirmación",
+      "sent": "Hemos enviado un correo de confirmación a {email}."
+    },
+    "emailInfo": "Una nueva dirección es válida en cuanto la confirmes a través del enlace del correo de confirmación.",
     "hideAmountGDD": "Tu importe en GDD está oculto.",
     "hideAmountGDT": "Tu importe en GDT está oculto.",
     "humhub": {

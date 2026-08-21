@@ -211,6 +211,21 @@
   "download": "İndir",
   "edit": "düzenle",
   "em-dash": "—",
+  "emailChange": {
+    "confirm": {
+      "button": "Yeni adresi onayla",
+      "done": "E-posta adresin değiştirildi. Bundan sonra yeni adresle giriş yap.",
+      "text": "Tek tıkla bu adres Gradido hesabının e-posta adresi olur. O zamana kadar önceki adresin geçerli kalır.",
+      "title": "Yeni e-posta adresini onayla"
+    },
+    "invalid": "Bu bağlantı geçersiz veya süresi dolmuş. Ayarlarından yeni bir onay e-postası isteyebilirsin.",
+    "revoke": {
+      "button": "Değişikliği iptal et",
+      "done": "Değişiklik iptal edildi – önceki adresin kalır. Değişikliği sen istememişsen lütfen şifreni de değiştir.",
+      "text": "Bu sen değil miydin? O zaman istenen değişikliği iptal et – önceki adresin kalır.",
+      "title": "E-posta adresi değişikliğini iptal et"
+    }
+  },
   "error": {
     "email-already-sent": "Sana 10 dakikadan daha az sürede e-posta gönderdik .",
     "empty-transactionlist": "İşlem sayısının iletiminde bir hata oluştu.",
@@ -742,7 +757,25 @@
       "visibilityInfo": "Diğer üyeler resmini, örneğin paylaştığın işlemlerin yanında görür. Ayar kapalıyken şimdiye kadar olduğu gibi baş harflerin görünür."
     },
     "community": "Çemberler & Üye arama",
-    "emailInfo": "Şu anda henüz değiştirilemiyor.",
+    "email": {
+      "cancel": "İptal",
+      "cancelled": "Değişiklik iptal edildi.",
+      "change": "E-posta adresini değiştir",
+      "error-invalid": "Bu geçerli bir e-posta adresi değil.",
+      "error-password": "Şifre doğru değil.",
+      "error-same": "Bu zaten hesabının e-posta adresi.",
+      "error-taken": "Bu e-posta adresi zaten kullanımda.",
+      "error-wait": "Yeni bir e-posta istemeden önce lütfen birkaç dakika bekle.",
+      "new": "Yeni e-posta adresi",
+      "password": "Mevcut şifren",
+      "password-why": "Güvenlik için – kilidi açık bir cihazda kimse adresini değiştiremesin diye.",
+      "pending": "Onay bekleniyor: {email} adresine bir e-posta gönderdik. İçindeki bağlantıya tıklayana kadar önceki adresin geçerli kalır.",
+      "resend": "E-postayı yeniden gönder",
+      "resend-wait": "{minutes} dk. sonra yeniden gönder",
+      "send": "Onay e-postası gönder",
+      "sent": "{email} adresine bir onay e-postası gönderdik."
+    },
+    "emailInfo": "Yeni bir adres, onay e-postasındaki bağlantı üzerinden onayladığın anda geçerli olur.",
     "hideAmountGDD": "GDD tutarın gizli.",
     "hideAmountGDT": "GDT tutarın gizli.",
     "humhub": {

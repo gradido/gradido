@@ -24,6 +24,44 @@ export const forgotPassword = gql`
   }
 `
 
+export const requestEmailChange = gql`
+  mutation ($email: String!, $password: String!) {
+    requestEmailChange(email: $email, password: $password) {
+      email
+      requestedAt
+      resendAllowedAt
+    }
+  }
+`
+
+export const resendEmailChange = gql`
+  mutation {
+    resendEmailChange {
+      email
+      requestedAt
+      resendAllowedAt
+    }
+  }
+`
+
+export const cancelEmailChange = gql`
+  mutation {
+    cancelEmailChange
+  }
+`
+
+export const confirmEmailChange = gql`
+  mutation ($code: String!) {
+    confirmEmailChange(code: $code)
+  }
+`
+
+export const revokeEmailChange = gql`
+  mutation ($vetoCode: String!) {
+    revokeEmailChange(vetoCode: $vetoCode)
+  }
+`
+
 export const adoptAlias = gql`
   mutation {
     adoptAlias

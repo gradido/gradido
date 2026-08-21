@@ -211,6 +211,21 @@
   "download": "Transferir",
   "edit": "editar",
   "em-dash": "—",
+  "emailChange": {
+    "confirm": {
+      "button": "Confirmar o novo endereço",
+      "done": "O teu endereço de e-mail foi alterado. A partir de agora, inicia sessão com o novo endereço.",
+      "text": "Com um clique, este endereço passa a ser o endereço de e-mail da tua conta Gradido. Até lá, o teu endereço anterior continua válido.",
+      "title": "Confirmar o novo endereço de e-mail"
+    },
+    "invalid": "Esta ligação é inválida ou expirou. Nas tuas definições podes pedir um novo e-mail de confirmação.",
+    "revoke": {
+      "button": "Rejeitar a alteração",
+      "done": "A alteração foi rejeitada – o teu endereço anterior mantém-se. Se não foste tu a pedir a alteração, altera também a tua palavra-passe.",
+      "text": "Não foste tu? Então rejeita a alteração pedida – o teu endereço anterior mantém-se.",
+      "title": "Rejeitar a alteração do endereço de e-mail"
+    }
+  },
   "error": {
     "email-already-sent": "Já te enviámos um e-mail há menos de 10 minutos.",
     "empty-transactionlist": "Ocorreu um erro na transmissão do número das tuas transações.",
@@ -742,7 +757,25 @@
       "visibilityInfo": "Os outros membros veem a tua imagem, por exemplo ao lado das transações que partilham. Quando a definição está desligada, aparecem as tuas iniciais, como até agora."
     },
     "community": "Círculos e pesquisa de membros",
-    "emailInfo": "De momento, não pode ser alterado.",
+    "email": {
+      "cancel": "Cancelar",
+      "cancelled": "A alteração foi rejeitada.",
+      "change": "Alterar endereço de e-mail",
+      "error-invalid": "Isso não é um endereço de e-mail válido.",
+      "error-password": "A palavra-passe não está correta.",
+      "error-same": "Esse já é o endereço de e-mail da tua conta.",
+      "error-taken": "Este endereço de e-mail já está em uso.",
+      "error-wait": "Aguarda alguns minutos antes de pedires um novo e-mail.",
+      "new": "Novo endereço de e-mail",
+      "password": "A tua palavra-passe atual",
+      "password-why": "Por segurança – para que ninguém possa alterar o teu endereço num dispositivo desbloqueado.",
+      "pending": "Confirmação pendente: enviámos um e-mail para {email}. Até clicares na ligação, o teu endereço anterior continua válido.",
+      "resend": "Enviar o e-mail novamente",
+      "resend-wait": "Enviar novamente em {minutes} min.",
+      "send": "Enviar e-mail de confirmação",
+      "sent": "Enviámos um e-mail de confirmação para {email}."
+    },
+    "emailInfo": "Um novo endereço é válido assim que o confirmares através da ligação no e-mail de confirmação.",
     "hideAmountGDD": "O teu montante GDD está oculto.",
     "hideAmountGDT": "O teu montante GDT está oculto.",
     "humhub": {
