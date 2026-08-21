@@ -25,26 +25,47 @@
       <BRow fluid class="d-flex" :class="bareTopSpace">
         <!-- Sidebar left -->
         <BCol cols="2" class="d-none d-lg-block">
-          <!-- The two till tools sit above the menu, level with the page heading -- small
+          <!-- The four till tools sit above the menu, level with the page heading -- small
                and unmarked on purpose: tools for those who run a till, not headline
                features. Whoever needs them knows where they live. Scan left of the
-               calculator, because scanning is the more general act. (Bernd, 20./21.08.2026) -->
-          <router-link
-            to="/scan"
-            class="sidebar-scanner-quick"
-            :aria-label="$t('navigation.scanner')"
-            data-test="sidebar-scanner"
-          >
-            <i-mdi-qrcode-scan />
-          </router-link>
-          <router-link
-            to="/calculator"
-            class="sidebar-calculator-quick"
-            :aria-label="$t('navigation.calculator')"
-            data-test="sidebar-calculator"
-          >
-            <i-mdi-calculator />
-          </router-link>
+               calculator, because scanning is the more general act. (Bernd, 20./21.08.2026)
+
+               Two by two, the same shape as on the phone. Here it is not width that asks
+               for it -- this column has room at 1280px, but not at 992px, where it is
+               about 165px wide and four 44px targets are 176. Keeping the same
+               arrangement on both means one thing to learn instead of two.
+
+               The rows mean something: reading a code above, showing one below. -->
+          <div class="sidebar-quick-row">
+            <router-link
+              to="/scan"
+              :aria-label="$t('navigation.scanner')"
+              data-test="sidebar-scanner"
+            >
+              <i-mdi-qrcode-scan />
+            </router-link>
+            <router-link
+              to="/calculator"
+              :aria-label="$t('navigation.calculator')"
+              data-test="sidebar-calculator"
+            >
+              <i-mdi-calculator />
+            </router-link>
+            <router-link
+              to="/my-thank-you-card"
+              :aria-label="$t('pageTitle.my-thank-you-card')"
+              data-test="sidebar-my-thank-you-card"
+            >
+              <quick-code-icon direction="out" />
+            </router-link>
+            <router-link
+              to="/my-gradido-card"
+              :aria-label="$t('pageTitle.my-gradido-card')"
+              data-test="sidebar-my-gradido-card"
+            >
+              <quick-code-icon direction="in" />
+            </router-link>
+          </div>
           <sidebar
             class="main-sidebar"
             :show-logo="bareChrome"
@@ -235,6 +256,7 @@ import Breadcrumb from '@/components/Breadcrumb/breadcrumb'
 import RightSide from '@/layouts/templates/RightSide'
 import SkeletonOverview from '@/components/skeleton/Overview'
 import Navbar from '@/components/Menu/Navbar'
+import QuickCodeIcon from '@/components/Menu/QuickCodeIcon'
 import Sidebar from '@/components/Menu/Sidebar'
 import MobileSidebar from '@/components/MobileSidebar/MobileSidebar'
 import SessionLogoutTimeout from '@/components/SessionLogoutTimeout'
@@ -503,16 +525,21 @@ const admin = () => {
   }
 }
 
-/* Small to the eye, 44px to the pointer -- same rule as the gear inside the calculator.
-   ⚠️ Named for THIS spot: the style block of this layout is global, so a shared class name
-   would style the navbar's twins as well -- the desktop margin would shift the phone
-   symbols. The scanner carries the left margin; the calculator sits flush beside it. */
-.sidebar-scanner-quick {
+/* Two columns of 44px, as on the phone. The margin sits on the row now, where it lines the
+   block up with the menu entries below -- it used to sit on the scanner alone, which was
+   the same thing said in a place that could only ever hold one tool. */
+.sidebar-quick-row {
+  display: grid;
+  grid-template-columns: repeat(2, 44px);
   margin-left: 8px;
 }
 
-.sidebar-scanner-quick,
-.sidebar-calculator-quick {
+/* Small to the eye, 44px to the pointer -- same rule as the gear inside the calculator.
+   ⚠️ Written through the row: the style block of this layout is GLOBAL, so a bare class
+   name would style the navbar's twins as well -- the desktop margin would shift the phone
+   symbols. That is what the two names per tool used to be for; a descendant of
+   `.sidebar-quick-row` cannot leave this layout, and it does not multiply with the tools. */
+.sidebar-quick-row > a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -523,8 +550,7 @@ const admin = () => {
   opacity: 0.65;
 }
 
-.sidebar-scanner-quick:hover,
-.sidebar-calculator-quick:hover {
+.sidebar-quick-row > a:hover {
   color: inherit;
   opacity: 1;
 }

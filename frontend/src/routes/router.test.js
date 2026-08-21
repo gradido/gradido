@@ -81,8 +81,8 @@ describe('router', () => {
       expect(defaultRoute.redirect()).toEqual({ path: '/login' })
     })
 
-    it('has 29 routes defined', () => {
-      expect(routes).toHaveLength(29)
+    it('has 31 routes defined', () => {
+      expect(routes).toHaveLength(31)
     })
 
     const testRoute = (path, expectedName, requiresAuth = true) => {
@@ -143,6 +143,22 @@ describe('router', () => {
     testRoute('/dk/:code', 'ThankYouCardPayment')
     testRoute('/calculator', 'Calculator')
     testRoute('/scan', 'Scanner')
+    testRoute('/my-gradido-card', 'MyGradidoCard')
+    testRoute('/my-thank-you-card', 'MyThankYouCard')
+
+    /**
+     * ⛔ These two are the ONLY places a member's own codes are shown, and both must stay
+     * behind the login. The thank-you card code is a bearer token: a public route would put
+     * it one guessed address away from anybody, and the page would hand it out drawn large.
+     */
+    it.each([
+      ['/my-gradido-card', 'my-gradido-card'],
+      ['/my-thank-you-card', 'my-thank-you-card'],
+    ])('gives %s a page title the breadcrumb can resolve, and its own head', (path, title) => {
+      const route = routes.find((r) => r.path === path)
+      expect(route.meta.pageTitle).toBe(title)
+      expect(route.meta.bareChrome).toBe(true)
+    })
 
     // Same two assertions as the calculator below, for the same reasons: the raw key
     // would print if the breadcrumb cannot resolve it, and without bareChrome the

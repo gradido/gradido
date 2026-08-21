@@ -109,6 +109,40 @@ describe('Navbar', () => {
     expect(quick.attributes('href')).toBe('/calculator')
   })
 
+  /**
+   * The other half of the row: reading a code above, showing one below.
+   *
+   * ⚠️ The two are told apart by the arrow alone -- both carry the same square -- so the
+   * pairing of destination and direction is the thing that must not slip. Reaching for the
+   * wrong one at a counter shows a code that moves the Gradido the other way.
+   */
+  it('offers both of the member own codes, each with its own direction', () => {
+    const cases = [
+      ['navbar-my-thank-you-card', '/my-thank-you-card', 'out'],
+      ['navbar-my-gradido-card', '/my-gradido-card', 'in'],
+    ]
+
+    for (const [test, href, direction] of cases) {
+      const quick = wrapper.find(`[data-test="${test}"]`)
+      expect(quick.exists()).toBe(true)
+      expect(quick.attributes('href')).toBe(href)
+      expect(quick.find(`[data-test="quick-code-arrow-${direction}"]`).exists()).toBe(true)
+    }
+  })
+
+  /**
+   * ⛔ Two by two, not four in a row. Four 44px targets need 176px and the block opposite --
+   * avatar, name, and the Gradido address at 27 characters -- takes about 195px of a 375px
+   * phone. A single row would push it off the screen, and nothing in a jsdom test can see
+   * that; the grid with its two columns is what is checkable here.
+   */
+  it('stacks the four tools two by two', () => {
+    const row = wrapper.find('.navbar-quick-row')
+
+    expect(row.exists()).toBe(true)
+    expect(row.findAll('a')).toHaveLength(4)
+  })
+
   it('has a .navbar-brand element', () => {
     expect(wrapper.find('div.navbar-brand').exists()).toBe(true)
   })

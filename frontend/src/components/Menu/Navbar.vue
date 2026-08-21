@@ -11,15 +11,22 @@
               alt="Logo"
             />
           </router-link>
-          <!-- The two till tools sit ABOVE the menu opener, deliberately small and
+          <!-- The four till tools sit ABOVE the menu opener, deliberately small and
                unmarked: tools for those who run a till, not headline features. Whoever
                needs them knows where they live. Scan left of the calculator, because
-               scanning is the more general act. (Bernd, 20./21.08.2026) -->
+               scanning is the more general act. (Bernd, 20./21.08.2026)
+
+               ⛔ Two by two, NOT four in a row. Four 44px targets need 176px, and the
+               block opposite -- avatar, name and the Gradido address at 27 characters --
+               takes about 195px of a 375px phone. There is room for three. The second row
+               costs no height either: the brand block grows to about 128px and the block
+               opposite is already about 130px tall.
+
+               The rows mean something: reading a code above, showing one below. -->
           <div class="d-block d-lg-none">
             <div class="navbar-quick-row">
               <router-link
                 to="/scan"
-                class="navbar-scanner-quick"
                 :aria-label="$t('navigation.scanner')"
                 data-test="navbar-scanner"
               >
@@ -27,11 +34,24 @@
               </router-link>
               <router-link
                 to="/calculator"
-                class="navbar-calculator-quick"
                 :aria-label="$t('navigation.calculator')"
                 data-test="navbar-calculator"
               >
                 <i-mdi-calculator />
+              </router-link>
+              <router-link
+                to="/my-thank-you-card"
+                :aria-label="$t('pageTitle.my-thank-you-card')"
+                data-test="navbar-my-thank-you-card"
+              >
+                <quick-code-icon direction="out" />
+              </router-link>
+              <router-link
+                to="/my-gradido-card"
+                :aria-label="$t('pageTitle.my-gradido-card')"
+                data-test="navbar-my-gradido-card"
+              >
+                <quick-code-icon direction="in" />
               </router-link>
             </div>
             <div v-b-toggle.sidebar-mobile variant="link">
@@ -95,11 +115,13 @@
 <script>
 import { memberAlias } from '@/utils/gradidoAddress'
 import GradidoAddressCopy from '@/components/GradidoAddressCopy'
+import QuickCodeIcon from '@/components/Menu/QuickCodeIcon'
 
 export default {
   name: 'Navbar',
   components: {
     GradidoAddressCopy,
+    QuickCodeIcon,
   },
   props: {
     balance: { type: Number, required: true },
@@ -191,15 +213,20 @@ button.navbar-toggler > span.navbar-toggler-icon {
   }
 }
 
+/* Two columns of 44px, so the four tools stack two by two instead of pushing the block
+   opposite off a narrow phone. */
 .navbar-quick-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, 44px);
 }
 
 /* Small to the eye, 44px to the thumb -- same rule as the gear inside the calculator.
-   Two classes with the same look, NOT one shared class: DashboardLayout's twin taught
-   that a shared name styles across components (its style block is global). */
-.navbar-calculator-quick,
-.navbar-scanner-quick {
+
+   Written through the row rather than as one class per tool. This style block is GLOBAL,
+   like DashboardLayout's, so a bare class name would style across components -- which is
+   why there used to be two names for one look. A descendant of `.navbar-quick-row` cannot
+   escape this component, and it does not grow a fifth name when a fifth tool arrives. */
+.navbar-quick-row > a {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -210,8 +237,7 @@ button.navbar-toggler > span.navbar-toggler-icon {
   opacity: 0.65;
 }
 
-.navbar-calculator-quick:hover,
-.navbar-scanner-quick:hover {
+.navbar-quick-row > a:hover {
   color: inherit;
   opacity: 1;
 }

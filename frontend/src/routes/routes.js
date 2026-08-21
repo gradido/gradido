@@ -115,6 +115,29 @@ const routes = [
     },
   },
   {
+    // The other half of the scanner: showing a code instead of reading one. Two routes
+    // rather than one page with a switch, because the two are reached by two symbols --
+    // and a symbol that leads to a chooser is not a shortcut any more.
+    path: '/my-gradido-card',
+    component: () => import('@/pages/MyGradidoCard'),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'my-gradido-card',
+      // Like the scanner: the page brings its own head, and on a phone the code needs the
+      // width that the wallet chrome would otherwise take.
+      bareChrome: true,
+    },
+  },
+  {
+    path: '/my-thank-you-card',
+    component: () => import('@/pages/MyThankYouCard'),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'my-thank-you-card',
+      bareChrome: true,
+    },
+  },
+  {
     name: 'Transactions',
     path: '/transactions',
     component: () => import('@/pages/Transactions'),
