@@ -61,7 +61,7 @@
       "park": "Teşekkür kartıyla öde",
       "park-failed": "Not edilmedi — tutarı taradıktan sonra gir.",
       "parked": "Tutar not edildi: {amount} GDD",
-      "scan-hint": "Şimdi kartı tara.",
+      "scan": "Kartı tara",
       "undo": "Geri al"
     },
     "copy": {
@@ -687,6 +687,7 @@
       "submit": "Aç"
     },
     "no-gradido-code": "Gradido kodu değil.",
+    "permission-hint": "Her seferinde kamera sorusu mu geliyor? Tarayıcının site ayarlarında bu sayfa için kameraya kalıcı olarak izin verebilirsin.",
     "system-camera": {
       "parked": "Kaydedilen tutar bekliyor ve devralınacak.",
       "text": "Cihazının kamerası taramadan sonra doğru sayfayı açar.",
@@ -858,6 +859,7 @@
   "success": "Başarılı",
   "thank-you-card": {
     "back-to-account": "Hesaba dön",
+    "back-to-calculator": "Hesap makinesine dön",
     "name": "Teşekkür kartı",
     "receive": {
       "amount": "{amount} GDD",
