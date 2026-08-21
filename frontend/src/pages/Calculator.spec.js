@@ -252,6 +252,28 @@ describe('Calculator page', () => {
     })
 
     /**
+     * Back from a wrong card (the own one scanned by mistake), the parked panel offers the
+     * camera in ONE press — not undo, re-park, scan. And it saves the basket again: the
+     * arrival read consumed the previous snapshot, and this is a new round trip.
+     * (Bernd, 21.08.2026)
+     */
+    it('the parked panel offers the camera directly and saves the basket again', async () => {
+      const before = mountCalculator('de')
+      await press(before, 'digit-5', 'equals', 'park')
+      before.unmount()
+
+      const after = mountCalculator('de')
+      expect(window.sessionStorage.getItem('calculator-basket:user-one')).toBeNull()
+      expect(key(after, 'parked').exists()).toBe(true)
+
+      await key(after, 'scan').trigger('click')
+      expect(mockRouter.push).toHaveBeenLastCalledWith('/scan')
+      expect(mockRouter.push).toHaveBeenCalledTimes(2)
+      expect(window.sessionStorage.getItem('calculator-basket:user-one')).not.toBeNull()
+      expect(window.localStorage.getItem('calculator-parked-amount:user-one')).not.toBeNull()
+    })
+
+    /**
      * ⛔ A parked entry that is GONE was consumed: the payment went through over there,
      * the sale is over — the calculator starts clean rather than laying yesterday's
      * basket over a new customer (the same rule syncParked applies at runtime).

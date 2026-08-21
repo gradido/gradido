@@ -111,6 +111,7 @@ describe('Scanner page', () => {
     scannerMock.resume.mockClear()
     openExternalUrlMock.mockClear()
     window.localStorage.clear()
+    window.sessionStorage.clear()
   })
 
   afterEach(() => {
@@ -123,6 +124,19 @@ describe('Scanner page', () => {
     it('starts the camera into the video element on mount', () => {
       const wrapper = mountScanner()
       expect(scannerMock.start).toHaveBeenCalledWith(wrapper.find('video').element)
+    })
+
+    /**
+     * The camera question comes back with every start on iOS Safari, and the wallet cannot
+     * make it stop — the browser's site settings can. The hint appears exactly from the
+     * second start in this session on, when the question has just repeated itself.
+     */
+    it('tells how to silence the permission question from the second start on', () => {
+      const first = mountScanner()
+      expect(el(first, 'permission-hint').exists()).toBe(false)
+
+      const second = mountScanner()
+      expect(el(second, 'permission-hint').text()).toContain('Website-Einstellungen')
     })
 
     it('shows title, hint and the hand-entry link while scanning', () => {
