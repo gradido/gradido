@@ -652,9 +652,11 @@
       "hint": "Wer diesen Code scannt, kann Dir Gradido senden."
     },
     "thank-you-card": {
+      "failed": "Die Karte konnte gerade nicht geladen werden.",
       "hint": "Zeig diesen Code wie die gedruckte Karte — bestätigt wird mit Deiner PIN.",
       "no-card": "Du hast noch keine Karte angelegt. In den Einstellungen gibst Du ihr einen Namen — danach kannst Du sie hier zeigen und auch ausdrucken.",
       "not-set-up": "Die Karten-Funktion ist noch nicht eingerichtet. In den Einstellungen setzt Du eine PIN und Deine Höchstbeträge.",
+      "retry": "Nochmal versuchen",
       "to-settings": "Zu den Einstellungen"
     }
   },
@@ -951,7 +953,7 @@
       "sheet-hint": "Eine Karte in Originalgröße auf einer A4-Seite, zum Ausschneiden an der dünnen Linie. Im Druckfenster kannst Du sie auch als PDF sichern.",
       "title": "Deine Dank-Karte – Gradido senden mit Karte",
       "unblock": "Entsperren",
-      "unblock-needs-no-active": "Zum Entsperren muss zuerst die aktive Karte gesperrt werden — es kann immer nur eine Karte danken.",
+      "unblock-needs-no-active": "Zum Entsperren muss zuerst die aktive Karte gesperrt werden — es kann immer nur mit einer Karte gedankt werden.",
       "unblocked": "Die Karte ist wieder entsperrt.",
       "your-card": "Deine Karte"
     },

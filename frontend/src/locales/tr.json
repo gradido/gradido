@@ -652,9 +652,11 @@
       "hint": "Bu kodu okutan sana Gradido gönderebilir."
     },
     "thank-you-card": {
+      "failed": "Kart şu anda yüklenemedi.",
       "hint": "Bu kodu basılı kart gibi göster — onay senin PIN’inle verilir.",
       "no-card": "Henüz bir kart oluşturmadın. Ayarlarda ona bir ad verirsin — sonra burada gösterebilir ve yazdırabilirsin.",
       "not-set-up": "Kart işlevi henüz kurulmadı. Ayarlarda bir PIN ve üst sınırlarını belirlersin.",
+      "retry": "Yeniden dene",
       "to-settings": "Ayarlara git"
     }
   },
@@ -951,7 +953,7 @@
       "sheet-hint": "A4 bir sayfada gerçek boyutunda bir kart, ince çizgiden kesmek için. Yazdırma penceresinde PDF olarak da kaydedebilirsin.",
       "title": "Teşekkür kartın — kartla Gradido gönder",
       "unblock": "Blokeyi kaldır",
-      "unblock-needs-no-active": "Bunun blokesini kaldırmak için önce etkin kartı bloklaman gerekir — aynı anda yalnızca bir kart teşekkür edebilir.",
+      "unblock-needs-no-active": "Bunun blokesini kaldırmak için önce etkin kartı bloklaman gerekir — aynı anda yalnızca bir kartla teşekkür edilebilir.",
       "unblocked": "Kart yeniden çalışıyor.",
       "your-card": "Kartın"
     },

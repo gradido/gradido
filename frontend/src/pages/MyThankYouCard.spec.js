@@ -17,10 +17,15 @@ vi.mock('@/utils/qrCode', () => ({ renderQrCodeCanvas: vi.fn() }))
 
 vi.mock('@/config', () => ({ default: { COMMUNITY_NAME: 'KI Playground' } }))
 
-// The two queries hand their answers over through onResult, so the test keeps the callbacks
-// and plays the account's state back through them -- the same way the server would.
+// The two queries hand their answers over through onResult and onError, so the test keeps
+// the callbacks and plays the account's state -- or the failure -- back through them, the
+// same way the server would.
 let onSettingsResult
 let onCardsResult
+let onSettingsError
+let onCardsError
+const mockRefetchSettings = vi.fn()
+const mockRefetchCards = vi.fn()
 
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: vi.fn((document) => {
@@ -30,6 +35,10 @@ vi.mock('@vue/apollo-composable', () => ({
         onResult: (callback) => {
           onSettingsResult = callback
         },
+        onError: (callback) => {
+          onSettingsError = callback
+        },
+        refetch: mockRefetchSettings,
       }
     }
     if (name === 'thankYouCards') {
@@ -37,6 +46,10 @@ vi.mock('@vue/apollo-composable', () => ({
         onResult: (callback) => {
           onCardsResult = callback
         },
+        onError: (callback) => {
+          onCardsError = callback
+        },
+        refetch: mockRefetchCards,
       }
     }
     // Loud rather than forgiving: a renamed query that fell through to a shared mock would
@@ -54,9 +67,11 @@ const i18n = createI18n({
       'my-codes': {
         back: 'Back',
         'thank-you-card': {
+          failed: 'The card could not be loaded just now.',
           hint: 'Show it like the printed card.',
           'no-card': 'You have not made a card yet.',
           'not-set-up': 'The card function is not set up yet.',
+          retry: 'Try again',
           'to-settings': 'To the settings',
         },
       },
@@ -99,6 +114,8 @@ describe('MyThankYouCard', () => {
     vi.clearAllMocks()
     onSettingsResult = undefined
     onCardsResult = undefined
+    onSettingsError = undefined
+    onCardsError = undefined
     renderQrCodeCanvas.mockImplementation((link) =>
       Promise.resolve({ toDataURL: () => `drawn:${link}` }),
     )
@@ -191,6 +208,61 @@ describe('MyThankYouCard', () => {
       await flushPromises()
 
       expect(wrapper.find('[data-test="my-thank-you-card-none"]').exists()).toBe(false)
+    })
+  })
+
+  /**
+   * ⛔ A question that went unanswered is not the answer "no".
+   *
+   * The dangerous case is the second one below: the settings arrive, the card list does not,
+   * and the page would then read the silence as "you have not made a card yet" -- wrong, and
+   * wrong in the direction that sends somebody to the settings to make a card they already
+   * have. The failure branch sits ahead of the empty states for exactly this.
+   */
+  describe('when a query fails', () => {
+    it('says so instead of claiming nothing is set up', async () => {
+      const wrapper = mountPage()
+      onSettingsError(new Error('network'))
+      onCardsError(new Error('network'))
+      await flushPromises()
+
+      expect(wrapper.text()).toContain('The card could not be loaded just now.')
+      expect(wrapper.find('[data-test="my-thank-you-card-none"]').exists()).toBe(false)
+    })
+
+    it('does not read a missing card list as "no card yet"', async () => {
+      const wrapper = mountPage()
+      onSettingsResult({ data: { thankYouCardSettings: SETTINGS } })
+      onCardsError(new Error('network'))
+      await flushPromises()
+
+      expect(wrapper.find('[data-test="my-thank-you-card-failed"]').exists()).toBe(true)
+      expect(wrapper.text()).not.toContain('You have not made a card yet.')
+    })
+
+    // Asking again, rather than sending somebody out of the page and back in.
+    it('asks both queries again', async () => {
+      const wrapper = mountPage()
+      onCardsError(new Error('network'))
+      await flushPromises()
+
+      await wrapper.find('[data-test="my-thank-you-card-retry"]').trigger('click')
+
+      expect(mockRefetchSettings).toHaveBeenCalled()
+      expect(mockRefetchCards).toHaveBeenCalled()
+    })
+
+    // The way back in: a second answer clears the failure rather than leaving it standing.
+    it('shows the card once the answer finally arrives', async () => {
+      const wrapper = mountPage()
+      onCardsError(new Error('network'))
+      await flushPromises()
+
+      await wrapper.find('[data-test="my-thank-you-card-retry"]').trigger('click')
+      await answer({ settings: SETTINGS, cards: [ACTIVE_CARD] })
+
+      expect(wrapper.find('[data-test="my-thank-you-card-failed"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="my-thank-you-card-label"]').text()).toBe('Portemonnaie')
     })
   })
 })

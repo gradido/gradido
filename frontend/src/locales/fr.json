@@ -652,9 +652,11 @@
       "hint": "Qui scanne ce code peut t’envoyer des Gradido."
     },
     "thank-you-card": {
+      "failed": "La carte n’a pas pu être chargée pour l’instant.",
       "hint": "Montre ce code comme la carte imprimée — la confirmation se fait avec ton PIN.",
       "no-card": "Tu n’as pas encore créé de carte. Dans la configuration tu lui donnes un nom — ensuite tu peux la montrer ici et aussi l’imprimer.",
       "not-set-up": "La fonction carte n’est pas encore configurée. Dans la configuration tu définis un PIN et tes montants maximaux.",
+      "retry": "Réessayer",
       "to-settings": "Vers la configuration"
     }
   },
@@ -951,7 +953,7 @@
       "sheet-hint": "Une carte à taille réelle sur une page A4, à découper le long du trait fin. Dans la fenêtre d’impression, tu peux aussi l’enregistrer en PDF.",
       "title": "Ta carte de remerciement — envoyer des Gradido par carte",
       "unblock": "Débloquer",
-      "unblock-needs-no-active": "Pour débloquer celle-ci, il faut d’abord bloquer la carte active — une seule carte peut remercier à la fois.",
+      "unblock-needs-no-active": "Pour débloquer celle-ci, il faut d’abord bloquer la carte active — on ne peut remercier qu’avec une seule carte à la fois.",
       "unblocked": "La carte fonctionne à nouveau.",
       "your-card": "Ta carte"
     },

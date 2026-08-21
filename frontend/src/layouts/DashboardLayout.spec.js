@@ -104,8 +104,7 @@ describe('DashboardLayout', () => {
       global: {
         plugins: [store, router],
         stubs: {
-          ...stubs,
-          RouterLink: stubs.RouterLink ?? true,
+          RouterLink: true,
           RouterView: true,
           LastTransactions: true,
           Navbar: true,
@@ -117,6 +116,9 @@ describe('DashboardLayout', () => {
           ContentFooter: true,
           SkeletonOverview: true,
           'fade-transition': true,
+          // Last, so a caller can override ANY of them and not only RouterLink. Spread
+          // first, an override was silently ignored for every other name.
+          ...stubs,
         },
         mocks: {
           $t: (key) => key,

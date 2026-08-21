@@ -652,9 +652,11 @@
       "hint": "Quem ler este código pode enviar-te Gradido."
     },
     "thank-you-card": {
+      "failed": "Não foi possível carregar o cartão neste momento.",
       "hint": "Mostra este código como o cartão impresso — confirmas com o teu PIN.",
       "no-card": "Ainda não criaste nenhum cartão. Nas definições dás-lhe um nome — depois podes mostrá-lo aqui e também imprimi-lo.",
       "not-set-up": "A função de cartão ainda não está configurada. Nas definições defines um PIN e os teus valores máximos.",
+      "retry": "Tentar de novo",
       "to-settings": "Ir para as definições"
     }
   },
@@ -951,7 +953,7 @@
       "sheet-hint": "Um cartão em tamanho real numa página A4, para recortar pela linha fina. Na janela de impressão também o podes guardar como PDF.",
       "title": "O teu cartão de agradecimento — enviar Gradido com cartão",
       "unblock": "Desbloquear",
-      "unblock-needs-no-active": "Para desbloquear este, é preciso bloquear primeiro o cartão ativo — só um cartão pode agradecer de cada vez.",
+      "unblock-needs-no-active": "Para desbloquear este, é preciso bloquear primeiro o cartão ativo — só se pode agradecer com um cartão de cada vez.",
       "unblocked": "O cartão funciona novamente.",
       "your-card": "O teu cartão"
     },

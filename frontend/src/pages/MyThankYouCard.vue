@@ -16,6 +16,17 @@
       <div class="small text-muted mt-3">{{ $t('my-codes.thank-you-card.hint') }}</div>
     </template>
 
+    <!-- ⛔ Ahead of the two below, and that is the whole point of it: a question that never
+         got an answer must not be reported as the answer "no". Without this the page would
+         say "not set up yet" to somebody whose card exists and whose connection dropped --
+         at a counter, with the phone already held out. -->
+    <div v-else-if="failed" data-test="my-thank-you-card-failed">
+      <p class="mt-3">{{ $t('my-codes.thank-you-card.failed') }}</p>
+      <BButton variant="gradido" data-test="my-thank-you-card-retry" @click="retry">
+        {{ $t('my-codes.thank-you-card.retry') }}
+      </BButton>
+    </div>
+
     <!-- Nothing to show yet. Two different reasons, and they need different sentences:
          the card function is off, or it is on and no card has been made. Both end at the
          same place, so both get the same way there. -->
@@ -73,21 +84,62 @@ const cardsAnswered = ref(false)
 const answered = computed(() => settingsAnswered.value && cardsAnswered.value)
 
 /**
+ * ⛔ A question that went unanswered is not the answer "no".
+ *
+ * Either query can fail, and if one does, the state it was going to report never arrives.
+ * Without this the page falls through to "not set up yet" -- a sentence that is not merely
+ * unhelpful but WRONG, and wrong in the direction that sends somebody to the settings to
+ * fix a card that is already there. One flag for both, because either failure alone is
+ * enough: without the list there is no code to show, and without the settings there is no
+ * telling which of the two empty states is true.
+ */
+const failed = ref(false)
+
+/**
  * ⚠️ `network-only`, as in the settings panel. Neither query takes a variable, so Apollo
  * keeps one cache entry for all of them -- fine while it is refetched, and the reason not
  * to serve this page out of the cache.
  */
-const { onResult: onSettings } = useQuery(thankYouCardSettings, {}, { fetchPolicy: 'network-only' })
+const {
+  onResult: onSettings,
+  onError: onSettingsError,
+  refetch: refetchSettings,
+} = useQuery(thankYouCardSettings, {}, { fetchPolicy: 'network-only' })
 onSettings(({ data }) => {
   settings.value = data?.thankYouCardSettings ?? null
   settingsAnswered.value = true
 })
+onSettingsError(() => {
+  failed.value = true
+})
 
-const { onResult: onCards } = useQuery(thankYouCards, {}, { fetchPolicy: 'network-only' })
+const {
+  onResult: onCards,
+  onError: onCardsError,
+  refetch: refetchCards,
+} = useQuery(thankYouCards, {}, { fetchPolicy: 'network-only' })
 onCards(({ data }) => {
   cards.value = data?.thankYouCards ?? []
   cardsAnswered.value = true
 })
+onCardsError(() => {
+  failed.value = true
+})
+
+/**
+ * Asking again, rather than sending somebody out of the page and back in. The two flags go
+ * down with it so that a second failure is reported as one, and a slow answer does not
+ * flash the empty state on the way.
+ *
+ * The rejection is swallowed on purpose -- `onError` above already carries the state, and
+ * an unhandled rejection here would say the same thing a second time, in the console.
+ */
+const retry = () => {
+  failed.value = false
+  settingsAnswered.value = false
+  cardsAnswered.value = false
+  Promise.all([refetchSettings(), refetchCards()]).catch(() => {})
+}
 
 // One member, one card that pays -- the server refuses to unblock a second one while this
 // one lives, so there is nothing to choose between.

@@ -652,9 +652,11 @@
       "hint": "Whoever scans this code can send you Gradido."
     },
     "thank-you-card": {
+      "failed": "The card could not be loaded just now.",
       "hint": "Show this code just like the printed card — you confirm with your PIN.",
       "no-card": "You have not made a card yet. Give it a name in the settings — then you can show it here and print it too.",
       "not-set-up": "The card function is not set up yet. In the settings you set a PIN and your limits.",
+      "retry": "Try again",
       "to-settings": "To the settings"
     }
   },
@@ -922,7 +924,7 @@
     },
     "settings": {
       "block": "Block card",
-      "block-confirm": "Nobody can thank with it after this. You can unblock it later, as long as no other card is active.",
+      "block-confirm": "This card can no longer be used to give thanks. You can unblock it later, as long as no other card is active.",
       "block-confirm-title": "Block the card?",
       "blocked": "The card is blocked.",
       "blocked-on": "blocked {date}",
@@ -951,7 +953,7 @@
       "sheet-hint": "One card at its real size on an A4 page, to cut out along the thin line. The print dialogue can also save it as a PDF.",
       "title": "Your thank you card — send Gradido by card",
       "unblock": "Unblock",
-      "unblock-needs-no-active": "To unblock this one, block the active card first — only one card can thank at a time.",
+      "unblock-needs-no-active": "To unblock this one, block the active card first — only one card can be used to give thanks at a time.",
       "unblocked": "The card works again.",
       "your-card": "Your card"
     },

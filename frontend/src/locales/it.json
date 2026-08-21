@@ -652,9 +652,11 @@
       "hint": "Chi scansiona questo codice può inviarti Gradido."
     },
     "thank-you-card": {
+      "failed": "Al momento non è stato possibile caricare la carta.",
       "hint": "Mostra questo codice come la carta stampata — si conferma con il tuo PIN.",
       "no-card": "Non hai ancora creato una carta. Nelle impostazioni le dai un nome — poi puoi mostrarla qui e anche stamparla.",
       "not-set-up": "La funzione carta non è ancora impostata. Nelle impostazioni imposti un PIN e i tuoi importi massimi.",
+      "retry": "Riprova",
       "to-settings": "Alle impostazioni"
     }
   },
@@ -951,7 +953,7 @@
       "sheet-hint": "Una carta a grandezza naturale su una pagina A4, da ritagliare lungo la linea sottile. Nella finestra di stampa puoi anche salvarla come PDF.",
       "title": "La tua carta di ringraziamento — inviare Gradido con la carta",
       "unblock": "Sbloccare",
-      "unblock-needs-no-active": "Per sbloccare questa bisogna prima bloccare la carta attiva — può ringraziare sempre una sola carta.",
+      "unblock-needs-no-active": "Per sbloccare questa bisogna prima bloccare la carta attiva — si può ringraziare con una sola carta alla volta.",
       "unblocked": "La carta funziona di nuovo.",
       "your-card": "La tua carta"
     },

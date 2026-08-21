@@ -652,9 +652,11 @@
       "hint": "Wie deze code scant, kan je Gradido sturen."
     },
     "thank-you-card": {
+      "failed": "De kaart kon nu niet worden geladen.",
       "hint": "Laat deze code zien zoals de gedrukte kaart — je bevestigt met je pincode.",
       "no-card": "Je hebt nog geen kaart aangemaakt. In de instellingen geef je hem een naam — daarna kun je hem hier laten zien en ook afdrukken.",
       "not-set-up": "De kaartfunctie is nog niet ingesteld. In de instellingen stel je een pincode en je maximumbedragen in.",
+      "retry": "Opnieuw proberen",
       "to-settings": "Naar de instellingen"
     }
   },
@@ -951,7 +953,7 @@
       "sheet-hint": "Eén kaart op ware grootte op een A4-pagina, om langs de dunne lijn uit te knippen. In het afdrukvenster kun je hem ook als PDF bewaren.",
       "title": "Jouw dankkaart — Gradido sturen met een kaart",
       "unblock": "Deblokkeren",
-      "unblock-needs-no-active": "Om deze te deblokkeren moet eerst de actieve kaart worden geblokkeerd — er kan altijd maar één kaart bedanken.",
+      "unblock-needs-no-active": "Om deze te deblokkeren moet eerst de actieve kaart worden geblokkeerd — er kan altijd maar met één kaart worden bedankt.",
       "unblocked": "De kaart werkt weer.",
       "your-card": "Jouw kaart"
     },
