@@ -1,28 +1,15 @@
 name: Gradido Deploy Test CI
 
-on: push
+on:
+  push:
+    paths:
+      - 'deployment/bare_metal/**'
+      - 'docker-compose.*'
+      - '.github/workflows/test_deploy.yml'
 
 jobs:
-  files-changed:
-    name: Detect File Changes - Deploy Bare Metal
-    runs-on: ubuntu-latest
-    outputs:
-      deploy-bare-metal: ${{ steps.changes.outputs.deploy-bare-metal }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Check for deploy-bare-metal file changes
-        uses: dorny/paths-filter@v2.11.1
-        id: changes
-        with:
-          token: ${{ github.token }}
-          filters: .github/file-filters.yml
-          list-files: shell
-
   build_test:
-    if: needs.files-changed.outputs.deploy-bare-metal == 'true'
     name: Docker Build Test - Deploy Bare Metal
-    needs: files-changed
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

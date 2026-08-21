@@ -1,0 +1,39 @@
+# Companion to test_submodules.yml. Do not run anything here - this workflow exists purely
+# so that the check names below get reported when test_submodules.yml does NOT run.
+#
+# Why: a required status check that is never reported stays "Expected - waiting for
+# status" forever and blocks the merge. test_submodules.yml is path-filtered, so on an
+# unrelated change it never starts and never reports. The paths-ignore list here is
+# the exact mirror of the paths list in test_submodules.yml and MUST be kept in sync with it.
+#
+# Caveat: paths and paths-ignore are not strict complements. A push that touches both
+# a filtered and an unfiltered file starts BOTH workflows, and both report the same
+# check names. See the note in the PR description before relying on this.
+
+name: Gradido Submodules Test CI (skipped)
+
+on:
+  push:
+    paths-ignore:
+      - 'core/**'
+      - 'config-schema/**'
+      - 'database/**'
+      - 'shared/**'
+      - 'shared-native/**'
+      - 'docker-compose.*'
+      - '.bun-version'
+      - '.nvmrc'
+      - '.github/workflows/test_submodules.yml'
+
+jobs:
+  build-windows:
+    name: Build Windows - Submodules
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "test_submodules.yml not affected by this change - reporting success so the required check does not hang."
+
+  build:
+    name: Unit Tests & Typecheck & Build - Submodules
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "test_submodules.yml not affected by this change - reporting success so the required check does not hang."
