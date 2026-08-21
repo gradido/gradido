@@ -264,6 +264,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
 import { useCalculator } from '@/composables/useCalculator'
+import { useCalculatorBasket } from '@/composables/useCalculatorBasket'
 import { useCalculatorPrefs } from '@/composables/useCalculatorPrefs'
 import { useCalculatorSound } from '@/composables/useCalculatorSound'
 import { useParkedAmount } from '@/composables/useParkedAmount'
@@ -285,6 +286,7 @@ const { toastSuccess, toastError } = useAppToast()
 const { percent, factor, currency, showDankBar, sound } = useCalculatorPrefs()
 const { play, stop } = useCalculatorSound(sound)
 const { park, readParked, clearParked, hasParkedEntry, parkedKey } = useParkedAmount()
+const { saveBasket, takeBasket } = useCalculatorBasket()
 
 const {
   display,
@@ -297,7 +299,24 @@ const {
   allClear,
   calculate,
   dankBarToGdd,
+  snapshot,
+  restore,
 } = useCalculator({ percent, factor, locale })
+
+/**
+ * The way back from the scanner: parking navigated away and unmounted this page, so the
+ * basket comes back from what parkAmount wrote down — the WHOLE basket, display and
+ * fiat sum included (Bernd, 21.08.2026), not just the parked GDD amount.
+ *
+ * ⛔ Only while the parked entry still EXISTS. An entry that is GONE was consumed — the
+ * payment went through over there, the sale is over, and the standing rule for that is
+ * a clean start (Bernd, 19.08.2026), not yesterday's basket over a new customer. This
+ * is the same three-way reading syncParked applies at runtime, applied once on arrival.
+ */
+const savedBasket = takeBasket()
+if (savedBasket && hasParkedEntry()) {
+  restore(savedBasket)
+}
 
 const decimalSeparator = computed(() => decimalSeparatorFor(locale.value))
 
@@ -492,6 +511,9 @@ const parkAmount = () => {
     return
   }
   if (park(amount)) {
+    // Written BEFORE the navigation that will unmount this page: the basket is what
+    // the way back restores. A refused save costs only that restore, never the act.
+    saveBasket(snapshot())
     parked.value = amount
     parkFailed.value = false
     play('equals')
