@@ -209,11 +209,20 @@ describe('EmailChangeResolver', () => {
       it('does not let the change code log anybody in or answer the opt-in query', async () => {
         await expect(
           mutate({ mutation: setPassword, variables: { code, password: 'Bb12345_' } }),
-        ).resolves.toMatchObject({ data: null })
+        ).resolves.toMatchObject({
+          data: null,
+          errors: [new GraphQLError('Could not login with emailVerificationCode')],
+        })
+        // The answer an unknown code gets, byte for byte - so nothing is given away.
         await expect(
           query({ query: queryOptIn, variables: { optIn: code } }),
         ).resolves.toMatchObject({
           data: null,
+          errors: [
+            expect.objectContaining({
+              message: expect.stringContaining('Could not find any entity of type "UserContact"'),
+            }),
+          ],
         })
       })
 
@@ -354,6 +363,26 @@ describe('EmailChangeResolver', () => {
           withDeleted: true,
         }),
       ).toBeNull()
+    })
+
+    it('resending does not renew an expired change - it drops it, and the address is free', async () => {
+      const row = await pendingRow(bibi.id)
+      await ageContactRow(row!.id, 25)
+      await ageRequestEvents(bibi.id, 11)
+      await expect(mutate({ mutation: resendEmailChange })).resolves.toMatchObject({
+        data: null,
+        errors: [new GraphQLError('No email change is pending')],
+      })
+      expect(await pendingRow(bibi.id)).toBeNull()
+      expect(
+        await DbUserContact.findOne({ where: { email: row!.email }, withDeleted: true }),
+      ).toBeNull()
+      // A new change can start at once.
+      await mutate({
+        mutation: requestEmailChange,
+        variables: { email: 'bibi-seventh@bloxberg.de', password: PASSWORD },
+      })
+      expect((await pendingRow(bibi.id))?.email).toBe('bibi-seventh@bloxberg.de')
     })
 
     it('an expired change is refused and its row removed', async () => {

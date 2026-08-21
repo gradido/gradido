@@ -139,6 +139,14 @@ describe('ConfirmRegisterMailFormular', () => {
     })
   })
 
+  describe('when the table row is older than the truth', () => {
+    it('hides the correction once the fetched status says the address is confirmed', () => {
+      status.value.adminEmailStatus.currentConfirmed = true
+      wrapper = mountComponent()
+      expect(wrapper.find('[data-test="email-replace"]').exists()).toBe(false)
+    })
+  })
+
   describe('what the support needs beside the current address', () => {
     it('says nothing while the GDT address is the current one', () => {
       expect(wrapper.find('[data-test="email-gdt"]').exists()).toBe(false)

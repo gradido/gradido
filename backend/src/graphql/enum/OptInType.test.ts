@@ -5,9 +5,11 @@ import { OptInType } from './OptInType'
 // The opt-in type is defined twice - once here for GraphQL, once in `shared` for the
 // database layer. Both sides filter and insert on these numbers; this holds them together.
 describe('OptInType', () => {
-  it('mirrors the shared enum value for value', () => {
-    expect(OptInType.EMAIL_OPT_IN_REGISTER).toBe(SharedOptInType.EMAIL_OPT_IN_REGISTER)
-    expect(OptInType.EMAIL_OPT_IN_RESET_PASSWORD).toBe(SharedOptInType.EMAIL_OPT_IN_RESET_PASSWORD)
-    expect(OptInType.EMAIL_OPT_IN_CHANGE).toBe(SharedOptInType.EMAIL_OPT_IN_CHANGE)
+  // A numeric enum carries its reverse mapping as well; only the names count here.
+  const byName = (value: object) =>
+    Object.fromEntries(Object.entries(value).filter(([key]) => Number.isNaN(Number(key))))
+
+  it('mirrors the shared enum member for member - no more, no less', () => {
+    expect(byName(OptInType)).toEqual(byName(SharedOptInType))
   })
 })

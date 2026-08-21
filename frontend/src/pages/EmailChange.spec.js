@@ -97,13 +97,16 @@ describe('EmailChange page', () => {
       expect(emailCommit).not.toHaveBeenCalled()
     })
 
-    it('updates a signed-in wallet to the new address', async () => {
+    // The code is public, and the wallet signed in on this device need not be the account
+    // the code belongs to - so the open session is left alone.
+    it('leaves a signed-in wallet untouched', async () => {
       confirmMock.mockResolvedValue({ data: { confirmEmailChange: 'new@example.org' } })
       const wrapper = mountPage('some-token')
       await wrapper.find('[data-test="email-change-action"]').trigger('click')
       await nextTick()
       await nextTick()
-      expect(emailCommit).toHaveBeenCalledWith(expect.anything(), 'new@example.org')
+      expect(wrapper.find('[data-test="message"]').text()).toBe('Done | confirmed')
+      expect(emailCommit).not.toHaveBeenCalled()
     })
 
     it('tells about an invalid or expired link in the member language', async () => {

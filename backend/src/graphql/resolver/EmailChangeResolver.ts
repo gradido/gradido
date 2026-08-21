@@ -229,6 +229,11 @@ export class EmailChangeResolver {
     if (!pending) {
       throw new LogError('No email change is pending')
     }
+    if (!isEmailVerificationCodeValid(issuedAt(pending))) {
+      // Ran past its window. Resending would renew it - and with it the hold on the address.
+      await dbDeleteUserContact(pending.id)
+      throw new LogError('No email change is pending')
+    }
     const lastRequest = await dbFindLatestEventForAffectedUser(
       EventType.EMAIL_CHANGE_REQUEST,
       user.id,
@@ -304,6 +309,9 @@ export class EmailChangeResolver {
       user.emailContact = pending
       await dbSaveUser(user, queryRunner.manager)
 
+      // The record belongs to the change: neither without the other.
+      await EVENT_EMAIL_CHANGE_CONFIRMED(user, queryRunner.manager)
+
       await queryRunner.commitTransaction()
     } catch (e) {
       await queryRunner.rollbackTransaction()
@@ -312,8 +320,6 @@ export class EmailChangeResolver {
       await queryRunner.release()
     }
     logger.info('confirmEmailChange... marker moved')
-
-    await EVENT_EMAIL_CHANGE_CONFIRMED(user)
 
     const common = { firstName: user.firstName, lastName: user.lastName, language: user.language }
     // Both addresses hear of it: the new one because it is now in force, the old one

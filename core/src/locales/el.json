@@ -51,14 +51,6 @@
       "haveReceivedMessageFrom": "μόλις έλαβες ένα μήνυμα από {senderFirstName} {senderLastName}",
       "title": "{senderFirstName} {senderLastName} σου έστειλε ένα μήνυμα"
     },
-    "footer": {
-      "contactOurSupport": "Αν έχεις περαιτέρω ερωτήσεις, επικοινώνησε με την υποστήριξή μας.",
-      "imprint": "Νομική σημείωση",
-      "imprintAddress": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
-      "imprintImageAlt": "Λογότυπο Gradido-Akademie",
-      "privacyPolicy": "Πολιτική απορρήτου",
-      "supportEmail": "support@gradido.net"
-    },
     "emailChangeConfirm": {
       "confirm": "Επιβεβαίωση νέας διεύθυνσης",
       "notYou": "Αν δεν ζήτησες εσύ αυτή την αλλαγή, μπορείς απλώς να αγνοήσεις αυτό το e-mail – χωρίς την επιβεβαίωσή σου δεν αλλάζει τίποτα.",
@@ -66,6 +58,7 @@
       "subject": "Επιβεβαίωσε τη νέα σου διεύθυνση e-mail",
       "title": "Επιβεβαίωση νέας διεύθυνσης e-mail",
       "validity": "Ο σύνδεσμος ισχύει για {hours} ώρες. Μετά μπορείς να ζητήσεις νέο e-mail από τις ρυθμίσεις σου.",
+      "validityMinutes": "Ο σύνδεσμος ισχύει για {minutes} λεπτά. Μετά μπορείς να ζητήσεις νέο e-mail από τις ρυθμίσεις σου.",
       "youAskedFor": "Θέλεις να αλλάξεις τη διεύθυνση e-mail του λογαριασμού σου Gradido σε αυτή τη διεύθυνση."
     },
     "emailChangeDone": {
@@ -84,7 +77,8 @@
       "subject": "Ζητήθηκε αλλαγή της διεύθυνσης e-mail σου",
       "title": "Η διεύθυνση e-mail σου πρόκειται να αλλάξει",
       "untilConfirmed": "Μέχρι να επιβεβαιωθεί η νέα διεύθυνση, ισχύει αυτή εδώ. Αν ήσουν εσύ, δεν χρειάζεται να κάνεις τίποτα άλλο.",
-      "validity": "Ο σύνδεσμος ισχύει για {hours} ώρες – μετά η ζητούμενη αλλαγή λήγει από μόνη της."
+      "validity": "Ο σύνδεσμος ισχύει για {hours} ώρες – μετά η ζητούμενη αλλαγή λήγει από μόνη της.",
+      "validityMinutes": "Ο σύνδεσμος ισχύει για {minutes} λεπτά – μετά η ζητούμενη αλλαγή λήγει από μόνη της."
     },
     "emailChangeSupport": {
       "gdtHint": "Για τον διακομιστή GDT εξακολουθεί να μετράει η πρώτη διεύθυνση αυτού του λογαριασμού: {gdtEmail}.",
@@ -94,6 +88,14 @@
       "subject": "Η διεύθυνση e-mail άλλαξε: {firstName} {lastName}",
       "title": "Ένα μέλος άλλαξε τη διεύθυνση e-mail του",
       "todo": "Παρακαλώ σύνδεσε τη νέα διεύθυνση με αυτόν τον λογαριασμό στον διακομιστή GDT και ενημέρωσε το Klick-Tipp."
+    },
+    "footer": {
+      "contactOurSupport": "Αν έχεις περαιτέρω ερωτήσεις, επικοινώνησε με την υποστήριξή μας.",
+      "imprint": "Νομική σημείωση",
+      "imprintAddress": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
+      "imprintImageAlt": "Λογότυπο Gradido-Akademie",
+      "privacyPolicy": "Πολιτική απορρήτου",
+      "supportEmail": "support@gradido.net"
     },
     "general": {
       "amountGDD": "Ποσό: {amountGDD} GDD",

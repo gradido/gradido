@@ -22,7 +22,6 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { useMutation } from '@vue/apollo-composable'
 import { BButton } from 'bootstrap-vue-next'
@@ -31,7 +30,6 @@ import Message from '@/components/Message/Message.vue'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 
 const route = useRoute()
-const store = useStore()
 const { t } = useI18n()
 const { routeWithParamsAndQuery } = useAuthLinks()
 
@@ -70,15 +68,12 @@ const subtitle = ref('')
 const act = async () => {
   busy.value = true
   try {
+    // Nothing is written into a session that may be open on this device: the code is
+    // public, and the wallet signed in here need not be the account it belongs to.
     if (revoking.value) {
       await revoke({ vetoCode: route.params.code })
     } else {
-      const { data } = await confirm({ code: route.params.code })
-      // A wallet that happens to be signed in on this device shows the new address at
-      // once instead of the old one until the next login.
-      if (store.state.token) {
-        store.commit('email', data.confirmEmailChange)
-      }
+      await confirm({ code: route.params.code })
     }
     headline.value = t('message.title')
     subtitle.value = texts.value.done

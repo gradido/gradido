@@ -51,14 +51,6 @@
       "haveReceivedMessageFrom": "you have just received a message from {senderFirstName} {senderLastName}",
       "title": "{senderFirstName} {senderLastName} has sent you a message"
     },
-    "footer": {
-      "contactOurSupport": "If you have any further questions, please contact our support.",
-      "imprint": "Impressum",
-      "imprintAddress": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
-      "imprintImageAlt": "Gradido-Akademie Logo",
-      "privacyPolicy": "Privacy Policy",
-      "supportEmail": "support@gradido.net"
-    },
     "emailChangeConfirm": {
       "confirm": "Confirm new address",
       "notYou": "If you did not ask for this change, you can simply ignore this e-mail – nothing changes without your confirmation.",
@@ -66,6 +58,7 @@
       "subject": "Please confirm your new e-mail address",
       "title": "Confirm new e-mail address",
       "validity": "The link is valid for {hours} hours. After that you can have a new e-mail sent from your settings.",
+      "validityMinutes": "The link is valid for {minutes} minutes. After that you can have a new e-mail sent from your settings.",
       "youAskedFor": "You want to change the e-mail address of your Gradido account to this address."
     },
     "emailChangeDone": {
@@ -84,7 +77,8 @@
       "subject": "Change of your e-mail address requested",
       "title": "Your e-mail address is about to change",
       "untilConfirmed": "Until the new address is confirmed, this one stays in force. If that was you, there is nothing more to do.",
-      "validity": "The link is valid for {hours} hours – after that the requested change expires by itself."
+      "validity": "The link is valid for {hours} hours – after that the requested change expires by itself.",
+      "validityMinutes": "The link is valid for {minutes} minutes – after that the requested change expires by itself."
     },
     "emailChangeSupport": {
       "gdtHint": "For the GDT server the first address of this account still counts: {gdtEmail}.",
@@ -94,6 +88,14 @@
       "subject": "E-mail address changed: {firstName} {lastName}",
       "title": "A member has changed their e-mail address",
       "todo": "Please merge the new address into this account on the GDT server and update Klick-Tipp."
+    },
+    "footer": {
+      "contactOurSupport": "If you have any further questions, please contact our support.",
+      "imprint": "Impressum",
+      "imprintAddress": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
+      "imprintImageAlt": "Gradido-Akademie Logo",
+      "privacyPolicy": "Privacy Policy",
+      "supportEmail": "support@gradido.net"
     },
     "general": {
       "amountGDD": "Amount: {amountGDD} GDD",

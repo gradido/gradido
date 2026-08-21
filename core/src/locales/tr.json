@@ -51,14 +51,6 @@
       "haveReceivedMessageFrom": "az önce {senderFirstName} {senderLastName} tarafından bir mesaj aldın",
       "title": "{senderFirstName} {senderLastName} sana bir mesaj gönderdi"
     },
-    "footer": {
-      "contactOurSupport": "Başka sorun olursa lütfen desteğimize başvur.",
-      "imprint": "Künye",
-      "imprintAddress": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
-      "imprintImageAlt": "Gradido-Akademie logosu",
-      "privacyPolicy": "Gizlilik politikası",
-      "supportEmail": "support@gradido.net"
-    },
     "emailChangeConfirm": {
       "confirm": "Yeni adresi onayla",
       "notYou": "Bu değişikliği sen istemediysen bu e-postayı görmezden gelebilirsin – onayın olmadan hiçbir şey değişmez.",
@@ -66,6 +58,7 @@
       "subject": "Lütfen yeni e-posta adresini onayla",
       "title": "Yeni e-posta adresini onayla",
       "validity": "Bağlantı {hours} saat geçerlidir. Sonrasında ayarlarından yeni bir e-posta gönderilmesini isteyebilirsin.",
+      "validityMinutes": "Bağlantı {minutes} dakika geçerlidir. Sonrasında ayarlarından yeni bir e-posta gönderilmesini isteyebilirsin.",
       "youAskedFor": "Gradido hesabının e-posta adresini bu adresle değiştirmek istiyorsun."
     },
     "emailChangeDone": {
@@ -84,7 +77,8 @@
       "subject": "E-posta adresin için değişiklik istendi",
       "title": "E-posta adresin değişmek üzere",
       "untilConfirmed": "Yeni adres onaylanana kadar bu adres geçerli kalır. Bunu sen yaptıysan başka bir şey yapmana gerek yok.",
-      "validity": "Bağlantı {hours} saat geçerlidir – sonrasında istenen değişiklik kendiliğinden geçersiz olur."
+      "validity": "Bağlantı {hours} saat geçerlidir – sonrasında istenen değişiklik kendiliğinden geçersiz olur.",
+      "validityMinutes": "Bağlantı {minutes} dakika geçerlidir – sonrasında istenen değişiklik kendiliğinden geçersiz olur."
     },
     "emailChangeSupport": {
       "gdtHint": "GDT sunucusu için bu hesabın ilk adresi geçerli olmaya devam eder: {gdtEmail}.",
@@ -94,6 +88,14 @@
       "subject": "E-posta adresi değiştirildi: {firstName} {lastName}",
       "title": "Bir üye e-posta adresini değiştirdi",
       "todo": "Lütfen yeni adresi GDT sunucusunda bu hesaba bağla ve Klick-Tipp'i güncelle."
+    },
+    "footer": {
+      "contactOurSupport": "Başka sorun olursa lütfen desteğimize başvur.",
+      "imprint": "Künye",
+      "imprintAddress": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
+      "imprintImageAlt": "Gradido-Akademie logosu",
+      "privacyPolicy": "Gizlilik politikası",
+      "supportEmail": "support@gradido.net"
     },
     "general": {
       "amountGDD": "Tutar: {amountGDD} GDD",

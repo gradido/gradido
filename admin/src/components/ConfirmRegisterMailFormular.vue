@@ -19,8 +19,9 @@
         <!-- The other way out when the mail never arrives: a typo at registration. Only
              while the address was never confirmed - a confirmed address is the member's own
              to change, from their settings. The row is corrected in place, not historised:
-             a mistyped address was never anybody's key. -->
-        <div class="mt-4" data-test="email-replace">
+             a mistyped address was never anybody's key. The fetched status decides, not the
+             table row, which may be older than the confirmation. -->
+        <div v-if="!status || !status.currentConfirmed" class="mt-4" data-test="email-replace">
           <div class="fw-bold">{{ $t('unregister_mail.replace.title') }}</div>
           <div class="small text-muted mb-2">{{ $t('unregister_mail.replace.hint') }}</div>
           <div

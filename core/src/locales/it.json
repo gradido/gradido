@@ -51,14 +51,6 @@
       "haveReceivedMessageFrom": "hai appena ricevuto un messaggio da {senderFirstName} {senderLastName}",
       "title": "{senderFirstName} {senderLastName} ti ha inviato un messaggio"
     },
-    "footer": {
-      "contactOurSupport": "Per ulteriori domande, contatta il nostro supporto.",
-      "imprint": "Note legali",
-      "imprintAddress": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
-      "imprintImageAlt": "Logo Gradido-Akademie",
-      "privacyPolicy": "Informativa sulla privacy",
-      "supportEmail": "support@gradido.net"
-    },
     "emailChangeConfirm": {
       "confirm": "Conferma il nuovo indirizzo",
       "notYou": "Se non hai richiesto questa modifica, puoi semplicemente ignorare questa e-mail: senza la tua conferma non cambia nulla.",
@@ -66,6 +58,7 @@
       "subject": "Conferma il tuo nuovo indirizzo e-mail",
       "title": "Confermare il nuovo indirizzo e-mail",
       "validity": "Il link è valido per {hours} ore. Dopo potrai richiedere una nuova e-mail dalle tue impostazioni.",
+      "validityMinutes": "Il link è valido per {minutes} minuti. Dopo potrai richiedere una nuova e-mail dalle tue impostazioni.",
       "youAskedFor": "Vuoi cambiare l'indirizzo e-mail del tuo account Gradido con questo indirizzo."
     },
     "emailChangeDone": {
@@ -84,7 +77,8 @@
       "subject": "Richiesta di modifica del tuo indirizzo e-mail",
       "title": "Il tuo indirizzo e-mail sta per cambiare",
       "untilConfirmed": "Finché il nuovo indirizzo non viene confermato, resta valido questo. Se sei stato tu, non devi fare altro.",
-      "validity": "Il link è valido per {hours} ore; dopo, la modifica richiesta decade da sola."
+      "validity": "Il link è valido per {hours} ore; dopo, la modifica richiesta decade da sola.",
+      "validityMinutes": "Il link è valido per {minutes} minuti; dopo, la modifica richiesta decade da sola."
     },
     "emailChangeSupport": {
       "gdtHint": "Per il server GDT conta ancora il primo indirizzo di questo account: {gdtEmail}.",
@@ -94,6 +88,14 @@
       "subject": "Indirizzo e-mail cambiato: {firstName} {lastName}",
       "title": "Un membro ha cambiato il proprio indirizzo e-mail",
       "todo": "Per favore associa il nuovo indirizzo a questo account sul server GDT e aggiorna Klick-Tipp."
+    },
+    "footer": {
+      "contactOurSupport": "Per ulteriori domande, contatta il nostro supporto.",
+      "imprint": "Note legali",
+      "imprintAddress": "Gradido-Akademie\nInstitut für Wirtschaftsbionik\nPfarrweg 2\n74653 Künzelsau\nDeutschland",
+      "imprintImageAlt": "Logo Gradido-Akademie",
+      "privacyPolicy": "Informativa sulla privacy",
+      "supportEmail": "support@gradido.net"
     },
     "general": {
       "amountGDD": "Importo: {amountGDD} GDD",

@@ -168,7 +168,9 @@ describe('userContacts.queries', () => {
         where: { email: 'peter@lustig.de' },
       })
       await ageRow(registration.id, 24 * 400)
-      expect(await dbPurgeExpiredEmailChanges(new Date())).toBe(0)
+      // The same cutoff as before: the fresh pending row is younger than it and stays.
+      const olderThan = new Date(Date.now() - 24 * HOUR_MS)
+      expect(await dbPurgeExpiredEmailChanges(olderThan)).toBe(0)
       expect(await dbEmailTaken('peter@lustig.de')).toBe(true)
     })
   })

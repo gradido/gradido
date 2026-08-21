@@ -1,5 +1,4 @@
-import { dbFindConfirmedUserContactEmails, LoginElopageBuys } from 'database'
-import { In } from 'typeorm'
+import { dbCountElopageBuysByEmails, dbFindConfirmedUserContactEmails } from 'database'
 
 /**
  * Did this member ever buy something through Elopage? The webhook files purchases under the
@@ -9,9 +8,5 @@ import { In } from 'typeorm'
  */
 export async function hasElopageBuys(userId: number): Promise<boolean> {
   const emails = await dbFindConfirmedUserContactEmails(userId)
-  if (emails.length === 0) {
-    return false
-  }
-  const elopageBuyCount = await LoginElopageBuys.count({ where: { payerEmail: In(emails) } })
-  return elopageBuyCount > 0
+  return (await dbCountElopageBuysByEmails(emails)) > 0
 }
