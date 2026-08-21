@@ -139,6 +139,23 @@ describe('Scanner page', () => {
       expect(el(second, 'permission-hint').text()).toContain('Website-Einstellungen')
     })
 
+    // A browser that refuses its storage (private modes that throw on write) must not
+    // silently mean "never show the hint": the in-memory twin counts instead. Only the
+    // second mount is asserted — the module-level counter outlives earlier tests, so the
+    // first mount's state depends on test order.
+    it('still counts when the session storage refuses to write', () => {
+      const refusing = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+        throw new Error('QuotaExceededError')
+      })
+      try {
+        mountScanner()
+        const second = mountScanner()
+        expect(el(second, 'permission-hint').exists()).toBe(true)
+      } finally {
+        refusing.mockRestore()
+      }
+    })
+
     it('shows title, hint and the hand-entry link while scanning', () => {
       const wrapper = mountScanner()
       expect(wrapper.text()).toContain('Gradido-Code scannen')

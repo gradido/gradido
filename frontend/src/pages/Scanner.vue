@@ -227,6 +227,7 @@ import { useParkedAmount } from '@/composables/useParkedAmount'
 import { openExternalUrl } from '@/utils/browserLocation'
 import { communityHost } from '@/utils/gradidoAddress'
 import { resolveScanTarget } from '@/utils/scanTarget'
+import { countScannerOpen } from '@/utils/scannerOpens'
 
 /**
  * How long the same payload stays quiet after "keep scanning" or an unknown-code note.
@@ -266,19 +267,6 @@ const unknownShown = ref(false)
  * could refresh it, and a ref with an unreachable refresh site just claims otherwise.
  */
 const parkedWaiting = readParked() !== null
-
-/** Counts scanner starts in this browser session; the count survives route changes only. */
-const SCANNER_OPENS_KEY = 'scanner-opens'
-
-const countScannerOpen = () => {
-  try {
-    const count = Number(window.sessionStorage.getItem(SCANNER_OPENS_KEY) ?? 0) + 1
-    window.sessionStorage.setItem(SCANNER_OPENS_KEY, String(count))
-    return count
-  } catch {
-    return 1
-  }
-}
 
 /**
  * Whether this is at least the second scanner start in this session. Engines that tie the
