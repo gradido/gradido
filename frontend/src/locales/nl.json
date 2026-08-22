@@ -687,7 +687,7 @@
     "overview": "Welcome {name}",
     "scanner": "Code scannen",
     "send": "Gradido en e-mail versturen",
-    "settings": "Settings",
+    "settings": "Instellingen",
     "transactions": "Your transactions",
     "usersearch": "Geografisch leden zoeken (bèta)"
   },
@@ -819,6 +819,11 @@
       "communities-note": "(vervalt later)",
       "gradido-card": "Visitekaartje",
       "notifications": "Berichten",
+      "state": {
+        "blocked": "Geblokkeerd",
+        "off": "Uit",
+        "on": "Aan"
+      },
       "visibility": "Zichtbaarheid"
     },
     "name": {

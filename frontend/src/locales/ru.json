@@ -819,6 +819,11 @@
       "communities-note": "(позже будет удалено)",
       "gradido-card": "Визитная карточка",
       "notifications": "Сообщения",
+      "state": {
+        "blocked": "Заблокирована",
+        "off": "Выкл.",
+        "on": "Вкл."
+      },
       "visibility": "Видимость"
     },
     "name": {

@@ -50,37 +50,37 @@ const settingsRoutes = [
   {
     path: '/settings',
     component: () => import('@/pages/settings/Index.vue'),
-    meta: { requiresAuth: true, settingsChrome: true },
+    meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
   },
   {
     path: '/settings/account',
     component: () => import('@/pages/settings/Account.vue'),
-    meta: { requiresAuth: true, settingsChrome: true },
+    meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
   },
   {
     path: '/settings/appearance',
     component: () => import('@/pages/settings/Appearance.vue'),
-    meta: { requiresAuth: true, settingsChrome: true },
+    meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
   },
   {
     path: '/settings/gradido-card',
     component: () => import('@/pages/settings/GradidoCard.vue'),
-    meta: { requiresAuth: true, settingsChrome: true },
+    meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
   },
   {
     path: '/settings/thank-you-card',
     component: () => import('@/pages/settings/ThankYouCard.vue'),
-    meta: { requiresAuth: true, settingsChrome: true },
+    meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
   },
   {
     path: '/settings/visibility',
     component: () => import('@/pages/settings/Visibility.vue'),
-    meta: { requiresAuth: true, settingsChrome: true },
+    meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
   },
   {
     path: '/settings/notifications',
     component: () => import('@/pages/settings/Notifications.vue'),
-    meta: { requiresAuth: true, settingsChrome: true },
+    meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
   },
   // The area exists only where one of the two services is switched on -- otherwise the page
   // would stand empty and still be reachable by typing the address. Same reason the matching
@@ -90,7 +90,7 @@ const settingsRoutes = [
         {
           path: '/settings/communities',
           component: () => import('@/pages/settings/Communities.vue'),
-          meta: { requiresAuth: true, settingsChrome: true },
+          meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
         },
       ]
     : []),
@@ -271,9 +271,11 @@ const routes = [
   // menu instead of the main one, and the way back is the arrow at its top. Without that
   // arrow the main menu would have to stay -- two menu columns side by side.
   //
-  // ⛔ NO pageTitle on any of them. The breadcrumb heading would say "Settings" above a
-  // page that already names its section, and it costs a heading's height on the phone,
-  // which is the device the list is built for. (Bernd, 22.08.2026: the phone needs the room.)
+  // ⭐ Every one of them names `settings` as its pageTitle, so the breadcrumb writes
+  // "Settings" above the section the page itself names. It was left out at first, to save a
+  // heading's height on the phone -- and at the device that turned out to be the wrong trade:
+  // without it the settings looked like any other page and one hardly noticed one was in
+  // them. (Bernd, 22.08.2026, after using it.)
   ...settingsRoutes,
   {
     name: 'Login',

@@ -819,6 +819,11 @@
       "communities-note": "(will be dropped later)",
       "gradido-card": "Business card",
       "notifications": "Messages",
+      "state": {
+        "blocked": "Blocked",
+        "off": "Off",
+        "on": "On"
+      },
       "visibility": "Visibility"
     },
     "name": {

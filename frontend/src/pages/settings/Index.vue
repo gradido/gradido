@@ -13,44 +13,7 @@
           <i-mdi-arrow-left class="svg-icon" />
           <span class="ms-2">{{ $t('navigation.back-to-account') }}</span>
         </router-link>
-        <div class="h2 mb-4">{{ $t('navigation.settings') }}</div>
-        <BListGroup flush>
-          <BListGroupItem to="/settings/account" data-test="settings-list-account">
-            <i-mdi-account class="svg-icon me-2" />
-            {{ $t('settings.menu.account') }}
-          </BListGroupItem>
-          <BListGroupItem to="/settings/appearance" data-test="settings-list-appearance">
-            <i-mdi-palette-outline class="svg-icon me-2" />
-            {{ $t('settings.menu.appearance') }}
-          </BListGroupItem>
-          <BListGroupItem to="/settings/gradido-card" data-test="settings-list-gradido-card">
-            <i-mdi-card-account-details-outline class="svg-icon me-2" />
-            {{ $t('settings.menu.gradido-card') }}
-          </BListGroupItem>
-          <BListGroupItem to="/settings/thank-you-card" data-test="settings-list-thank-you-card">
-            <i-mdi-credit-card-outline class="svg-icon me-2" />
-            {{ $t('thank-you-card.name') }}
-          </BListGroupItem>
-          <BListGroupItem to="/settings/visibility" data-test="settings-list-visibility">
-            <i-mdi-eye-outline class="svg-icon me-2" />
-            {{ $t('settings.menu.visibility') }}
-          </BListGroupItem>
-          <BListGroupItem to="/settings/notifications" data-test="settings-list-notifications">
-            <i-mdi-bell-outline class="svg-icon me-2" />
-            {{ $t('settings.menu.notifications') }}
-          </BListGroupItem>
-          <BListGroupItem
-            v-if="isCommunityService"
-            to="/settings/communities"
-            data-test="settings-list-communities"
-          >
-            <i-mdi-account-group class="svg-icon me-2" />
-            {{ $t('settings.community') }}
-            <span class="d-block small text-muted ms-4 ps-2">
-              {{ $t('settings.menu.communities-note') }}
-            </span>
-          </BListGroupItem>
-        </BListGroup>
+        <settings-menu />
       </div>
     </div>
     <div class="d-none d-lg-block">
@@ -59,18 +22,16 @@
   </div>
 </template>
 <script setup>
-import CONFIG from '@/config'
 import SettingsAccount from './Account.vue'
-import { BListGroup, BListGroupItem } from 'bootstrap-vue-next'
-
-// Read once: the flags are baked in at build time, they cannot change while the app runs.
-const isCommunityService = CONFIG.GMS_ACTIVE || CONFIG.HUMHUB_ACTIVE
+import SettingsMenu from '@/components/Menu/SettingsMenu.vue'
 </script>
 <style scoped>
+/* The same colour as the way back in the desk menu: one way back, one look. */
 .settings-back {
   display: flex;
   align-items: center;
   margin-bottom: 1rem;
   font-weight: bold;
+  color: var(--text) !important;
 }
 </style>

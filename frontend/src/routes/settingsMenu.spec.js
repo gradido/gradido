@@ -9,6 +9,10 @@ import routes from './routes'
 /**
  * The menu and the routes are two files that have to agree, and nothing makes them.
  *
+ * ⚠️ The menu used to be two files -- one for the desk, one for the phone -- and this guard
+ * read both. They are one component now, which removes half of what could drift; the other
+ * half, menu against routes, is what remains and is measured here.
+ *
  * An entry without a route is a dead link -- exactly what happened to "notifications" while
  * this was being built: menu, list and a route test that listed the routes it found, all
  * green, and the entry led nowhere. A route without an entry is the other half: a page
@@ -23,22 +27,18 @@ const read = (relativePath) => readFileSync(resolve(here, relativePath), 'utf8')
 // in all three places -- menu, list and routes -- and both flags are off under test, so the
 // source still shows the entry while the route is rightly absent. That the three gates agree
 // is measured where each of them lives (SettingsSidebar.spec, Index.spec, router.test).
+// Both spellings: the entries live in a table in the script now (`to: '/settings/…'`), and a
+// template attribute (`to="/settings/…"`) is still what a hand-written row would use.
 const linkedPaths = (source) =>
-  [...new Set([...source.matchAll(/to="(\/settings\/[a-z-]+)"/g)].map((match) => match[1]))].filter(
+  [...new Set([...source.matchAll(/to(?:="|: ')(\/settings\/[a-z-]+)/g)].map((m) => m[1]))].filter(
     (path) => path !== '/settings/communities',
   )
 
 const registered = routes.map((route) => route.path)
 
 describe('the settings menu and the settings routes', () => {
-  it('leads nowhere that is not registered -- from the menu', () => {
-    for (const path of linkedPaths(read('../components/Menu/SettingsSidebar.vue'))) {
-      expect(registered).toContain(path)
-    }
-  })
-
-  it('leads nowhere that is not registered -- from the list on the phone', () => {
-    for (const path of linkedPaths(read('../pages/settings/Index.vue'))) {
+  it('leads nowhere that is not registered', () => {
+    for (const path of linkedPaths(read('../components/Menu/SettingsMenu.vue'))) {
       expect(registered).toContain(path)
     }
   })
@@ -47,10 +47,7 @@ describe('the settings menu and the settings routes', () => {
   // be reachable only by typing the address. /settings/extern is the one exception -- it is
   // the old address kept alive for links already in the world, not an area.
   it('offers every area it registers', () => {
-    const offered = new Set([
-      ...linkedPaths(read('../components/Menu/SettingsSidebar.vue')),
-      ...linkedPaths(read('../pages/settings/Index.vue')),
-    ])
+    const offered = new Set(linkedPaths(read('../components/Menu/SettingsMenu.vue')))
 
     const areas = registered.filter(
       (path) => path.startsWith('/settings/') && path !== '/settings/extern',

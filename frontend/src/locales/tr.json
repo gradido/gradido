@@ -819,6 +819,11 @@
       "communities-note": "(daha sonra kaldırılacak)",
       "gradido-card": "Kartvizit",
       "notifications": "Mesajlar",
+      "state": {
+        "blocked": "Engellendi",
+        "off": "Kapalı",
+        "on": "Açık"
+      },
       "visibility": "Görünürlük"
     },
     "name": {

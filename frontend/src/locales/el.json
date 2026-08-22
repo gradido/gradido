@@ -819,6 +819,11 @@
       "communities-note": "(θα καταργηθεί αργότερα)",
       "gradido-card": "Επαγγελματική κάρτα",
       "notifications": "Μηνύματα",
+      "state": {
+        "blocked": "Φραγμένη",
+        "off": "Ανενεργό",
+        "on": "Ενεργό"
+      },
       "visibility": "Ορατότητα"
     },
     "name": {
