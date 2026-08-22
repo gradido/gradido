@@ -124,11 +124,20 @@ describe('how the manifest is served', () => {
     expect(() => read(`../public${href}`)).not.toThrow()
   })
 
+  // The whole block, not just its first line: the content type is only half the reason this
+  // location exists. The other half is no-cache -- drop that and the manifest is served by
+  // the outer rules again, which is the thing the .webmanifest name was chosen to avoid.
+  const manifestBlock = (conf) => conf.slice(conf.indexOf(`location = ${href} {`)).split('}')[0]
+
   for (const template of ['gradido.conf.template', 'gradido.conf.ssl.template']) {
-    it(`has its own location in ${template}`, () => {
+    it(`serves the manifest with its own type and no-cache in ${template}`, () => {
       const conf = read(`../../deployment/bare_metal/nginx/sites-available/${template}`)
       expect(conf).toContain(`location = ${href} {`)
-      expect(conf).toContain('default_type application/manifest+json;')
+
+      const block = manifestBlock(conf)
+      expect(block).toContain('default_type application/manifest+json;')
+      expect(block).toContain('add_header Cache-Control "no-cache";')
+      expect(block).toContain('try_files $uri =404;')
     })
   }
 })

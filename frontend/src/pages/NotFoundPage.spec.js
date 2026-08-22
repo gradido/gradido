@@ -79,6 +79,19 @@ describe('NotFoundPage', () => {
       expect(push).toHaveBeenCalledWith('/overview')
     })
 
+    // Without .prevent the anchor's own href runs after the handler, so the router push is
+    // followed by a jump to "#!" -- an extra history entry, and "#!" left in the address.
+    // (The flaw is older than this page's back path: master had it on $router.go(-1).)
+    it('does not let the anchor href fire on top of the navigation', async () => {
+      vi.spyOn(router, 'push').mockImplementation(() => Promise.resolve())
+      const anchor = wrapper.find('a[href="#!"]').element
+      const click = new window.MouseEvent('click', { bubbles: true, cancelable: true })
+
+      anchor.dispatchEvent(click)
+
+      expect(click.defaultPrevented).toBe(true)
+    })
+
     // The whole illustration above the button is the same way out, and it was the one that
     // still carried the bare history step.
     it('takes the same way out when the illustration is clicked', async () => {

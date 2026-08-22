@@ -44,6 +44,17 @@ export default {
       },
     },
   },
+  created() {
+    // Keep following the OS while themeMode is 'system' (re-evaluate on OS
+    // light/dark change). The initial apply happens in main.js before mount.
+    if (!window.matchMedia) return
+    this.themeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    this.themeMediaListener = () => this.$store.dispatch('applyTheme')
+    this.themeMediaQuery.addEventListener('change', this.themeMediaListener)
+  },
+  beforeUnmount() {
+    this.themeMediaQuery?.removeEventListener('change', this.themeMediaListener)
+  },
   methods: {
     /**
      * Keeps <meta name="theme-color"> on the page background. Installed on a home screen
@@ -66,17 +77,6 @@ export default {
       const bg = getComputedStyle(document.body).getPropertyValue('--bg').trim()
       if (bg) meta.setAttribute('content', bg)
     },
-  },
-  created() {
-    // Keep following the OS while themeMode is 'system' (re-evaluate on OS
-    // light/dark change). The initial apply happens in main.js before mount.
-    if (!window.matchMedia) return
-    this.themeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    this.themeMediaListener = () => this.$store.dispatch('applyTheme')
-    this.themeMediaQuery.addEventListener('change', this.themeMediaListener)
-  },
-  beforeUnmount() {
-    this.themeMediaQuery?.removeEventListener('change', this.themeMediaListener)
   },
 }
 </script>

@@ -4,7 +4,7 @@
     <div class="header py-1 py-lg-1 pt-lg-3">
       <BContainer>
         <div class="header-body text-center mb-3">
-          <a href="#!" @click="goBack">
+          <a href="#!" @click.prevent="goBack">
             <div class="container">
               <div class="row">
                 <div class="col-sm-12 col-md-12 mt-5 mb-5">
