@@ -819,6 +819,11 @@
       "communities-note": "(verrà rimosso in seguito)",
       "gradido-card": "Biglietto da visita",
       "notifications": "Messaggi",
+      "state": {
+        "blocked": "Bloccata",
+        "off": "Disattivo",
+        "on": "Attivo"
+      },
       "visibility": "Visibilità"
     },
     "name": {

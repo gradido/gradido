@@ -1,12 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
-import { BListGroup, BListGroupItem } from 'bootstrap-vue-next'
-
-const mockConfig = { GMS_ACTIVE: false, HUMHUB_ACTIVE: false }
-vi.mock('@/config', () => ({
-  default: new Proxy({}, { get: (_target, key) => mockConfig[key] }),
-}))
 
 const RouterLinkStub = { props: ['to'], template: '<a :to="to"><slot /></a>' }
 
@@ -16,9 +10,8 @@ const mountIndex = async () => {
   return mount(Index, {
     global: {
       stubs: {
-        BListGroup,
-        BListGroupItem,
         RouterLink: RouterLinkStub,
+        'settings-menu': true,
         'settings-account': true,
       },
       mocks: { $t: (key) => key },
@@ -36,49 +29,13 @@ describe('the settings index', () => {
   it('is the list on a narrow screen and the account section on a wide one', async () => {
     const wrapper = await mountIndex()
 
-    const list = wrapper.find('.d-lg-none')
-    expect(list.exists()).toBe(true)
-    expect(list.find('[data-test="settings-list-account"]').exists()).toBe(true)
-
-    const wide = wrapper.find('.d-none.d-lg-block')
-    expect(wide.exists()).toBe(true)
-    expect(wide.find('settings-account-stub').exists()).toBe(true)
+    expect(wrapper.find('.d-lg-none').find('settings-menu-stub').exists()).toBe(true)
+    expect(wrapper.find('.d-none.d-lg-block').find('settings-account-stub').exists()).toBe(true)
   })
 
-  it('lists every area', async () => {
-    const wrapper = await mountIndex()
-
-    // Deduped: a list item that carries a `to` renders a link inside a link, and the
-    // data-test attribute rides along on both.
-    const entries = [
-      ...new Set(
-        wrapper.findAll('[data-test^="settings-list-"]').map((i) => i.attributes('data-test')),
-      ),
-    ]
-
-    expect(entries).toEqual([
-      'settings-list-account',
-      'settings-list-appearance',
-      'settings-list-gradido-card',
-      'settings-list-thank-you-card',
-      'settings-list-visibility',
-      'settings-list-notifications',
-    ])
-  })
-
-  // ⛔ Same agreement as in the menu and the routes: no service, no area, nowhere.
-  it('leaves out the circles while neither service is switched on', async () => {
-    const wrapper = await mountIndex()
-
-    expect(wrapper.find('[data-test="settings-list-communities"]').exists()).toBe(false)
-  })
-
-  it('shows the circles where one of them is', async () => {
-    mockConfig.HUMHUB_ACTIVE = true
-    const wrapper = await mountIndex()
-    mockConfig.HUMHUB_ACTIVE = false
-
-    expect(wrapper.find('[data-test="settings-list-communities"]').exists()).toBe(true)
+  // The very same component the desk menu carries -- one list, not two that can drift apart.
+  it('carries the shared menu list', async () => {
+    expect((await mountIndex()).findAll('settings-menu-stub')).toHaveLength(1)
   })
 
   /**
@@ -91,5 +48,13 @@ describe('the settings index', () => {
     expect(wrapper.find('[data-test="settings-back-to-account"]').attributes('to')).toBe(
       '/overview',
     )
+  })
+
+  /**
+   * ⚠️ No heading of its own any more: the breadcrumb writes "Settings" above every settings
+   * route now, and two of them under each other read like a mistake.
+   */
+  it('leaves the heading to the breadcrumb', async () => {
+    expect((await mountIndex()).find('.h2').exists()).toBe(false)
   })
 })

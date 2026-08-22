@@ -74,7 +74,9 @@
              well and somebody on a phone would open the hamburger inside the settings and
              find the settings again, with no way back into the wallet. The drawer keeps
              the main menu; on a phone the list at /settings is the settings menu. -->
-        <BCol cols="2" class="d-none d-lg-block">
+        <!-- ⚠️ Wider while the settings are open: their menu is a row list with a state
+             beside each entry, not the narrow word list of the main menu. -->
+        <BCol :cols="settingsChrome ? 3 : 2" class="d-none d-lg-block">
           <settings-sidebar v-if="settingsChrome" @logout="logoutUser" />
           <sidebar
             v-else

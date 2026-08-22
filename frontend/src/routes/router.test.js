@@ -113,11 +113,15 @@ describe('router', () => {
         }
       })
 
-      // The breadcrumb heading would repeat what the section already says, and it costs a
-      // heading's height on the phone -- the device the list is built for.
-      it('names no pageTitle, so no breadcrumb heading appears', () => {
+      /**
+       * ⭐ Every area writes "Settings" above itself. It was left out at first to save a
+       * heading's height on the phone -- and at the device that was the wrong trade: without
+       * it the settings looked like any other page and one hardly noticed one was in them.
+       * (Bernd, 22.08.2026, after using it.)
+       */
+      it('names the same pageTitle everywhere, so every area says where one is', () => {
         for (const route of settingsRoutes.filter((r) => !r.redirect)) {
-          expect(route.meta.pageTitle).toBeUndefined()
+          expect(route.meta.pageTitle).toBe('settings')
         }
       })
 

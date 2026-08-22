@@ -687,7 +687,7 @@
     "overview": "Welcome {name}",
     "scanner": "Escanear código",
     "send": "Enviar Gradido y correo electrónico",
-    "settings": "Soporte",
+    "settings": "Configuración",
     "transactions": "Tu Transacciones",
     "usersearch": "Búsqueda geográfica de miembros (beta)"
   },
@@ -819,6 +819,11 @@
       "communities-note": "(se eliminará más adelante)",
       "gradido-card": "Tarjeta de visita",
       "notifications": "Mensajes",
+      "state": {
+        "blocked": "Bloqueada",
+        "off": "Desactivado",
+        "on": "Activado"
+      },
       "visibility": "Visibilidad"
     },
     "name": {
