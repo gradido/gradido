@@ -294,10 +294,11 @@ const routes = [
     props: true,
     meta: {
       requiresAuth: true,
-      // ⚠️ A flat slug, not the key of the heading itself: the breadcrumb prefixes
-      // `pageTitle.`, and vue-i18n reads the dots as a path — so anything nested would be
-      // looked up under `pageTitle` and printed raw when it is not found there.
-      pageTitle: 'thank-you-card-receive',
+      // ⛔ NO pageTitle, and that is the whole point. "Gradido empfangen" stood above all
+      // three steps of this page -- scanned, PIN, thanks -- and said nothing the step
+      // below it did not already say, while costing a heading's height on the device this
+      // page is only ever used on. The breadcrumb shows nothing without a key.
+      // (Bernd, 22.08.2026)
     },
   },
   {

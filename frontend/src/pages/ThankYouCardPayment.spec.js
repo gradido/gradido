@@ -59,9 +59,11 @@ vi.mock('vue-i18n', () => ({
 
 const mockReadParked = vi.fn(() => null)
 const mockClearParked = vi.fn()
+const mockReadParkedRest = vi.fn(() => null)
 vi.mock('@/composables/useParkedAmount', () => ({
   useParkedAmount: vi.fn(() => ({
     readParked: mockReadParked,
+    readParkedRest: mockReadParkedRest,
     clearParked: mockClearParked,
   })),
 }))
@@ -415,6 +417,69 @@ describe('ThankYouCardPayment', () => {
       const paid = wrapper.find('[data-test="thank-you-card-paid-amount"]')
       expect(paid.text()).toContain('thank-you-card.receive.amount')
       expect(paid.text()).toContain('"amount":"12,50"')
+    })
+
+    /**
+     * ⛔ The half the Gradido did not cover, and the last place it can be read. The customer
+     * saw it on the calculator before the card was scanned; by the time this screen exists
+     * that display is two navigations away.
+     *
+     * ⚠️ The amount is NOT typed here, and that is the real flow rather than a convenience:
+     * coming from the calculator it arrives prefilled and nobody touches it. Typing into
+     * the field is what says "this is my own figure now" -- see the test below.
+     *
+     * ⚠️ And the remainder is read at MOUNT. A successful payment calls `clearParked()`, so
+     * the entry is gone by the time the receipt is drawn; the mock stops answering after
+     * the page is up, which is what pins that.
+     */
+    const payWithPrefilledAmount = async () => {
+      await mountUsable()
+      await field('memo').setValue('Pizzeria Napoli')
+      await field('next').trigger('click')
+      await flushPromises()
+      await field('pin').setValue('407312')
+      await flushPromises()
+    }
+
+    it('shows what is still to pay in the local currency', async () => {
+      mockReadParked.mockReturnValue(6.3)
+      mockReadParkedRest.mockReturnValue({ fiat: 4.2, currency: '€' })
+      await payWithPrefilledAmount()
+      mockReadParkedRest.mockReturnValue(null)
+
+      const line = wrapper.find('[data-test="thank-you-card-paid-rest"]')
+      expect(line.text()).toContain('4,2')
+      expect(line.text()).toContain('€')
+      expect(wrapper.text()).toContain('thank-you-card.receive.rest-note')
+    })
+
+    /**
+     * ⛔ The remainder and the "from the calculator" line are ONE claim: this figure came
+     * from a calculation, which also left something to pay. Type over the figure and the
+     * claim is void -- a remainder worked out for 6,30 GDD, standing beside a hand-typed
+     * 5,00 on a receipt, is a money figure put in front of a customer that belongs to a
+     * different sale. (coderabbit, PR #3782)
+     */
+    it('drops the remainder when the merchant types over the amount', async () => {
+      mockReadParked.mockReturnValue(6.3)
+      mockReadParkedRest.mockReturnValue({ fiat: 4.2, currency: '€' })
+      await mountUsable()
+      await fillAndStart({ amount: '5,00' })
+      await field('pin').setValue('407312')
+      await flushPromises()
+
+      expect(wrapper.find('[data-test="thank-you-card-paid-rest"]').exists()).toBe(false)
+      expect(wrapper.text()).not.toContain('thank-you-card.receive.rest-note')
+    })
+
+    // A sale settled fully in Gradido owes nothing, and a line reading "0,00 € to be settled
+    // separately" would invent a debt. The remainder is stored only when there is one.
+    it('says nothing about a remainder when there is none', async () => {
+      mockReadParkedRest.mockReturnValue(null)
+      await payWith({ status: 'SUCCESS', payerName: 'Bibi Bloxberg' })
+
+      expect(wrapper.find('[data-test="thank-you-card-paid-rest"]').exists()).toBe(false)
+      expect(wrapper.text()).not.toContain('thank-you-card.receive.rest-note')
     })
 
     it('says how many attempts are left after a wrong pin, and stays on the pin step', async () => {

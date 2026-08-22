@@ -687,7 +687,6 @@
     "scanner": "Σάρωση κωδικού",
     "send": "Αποστολή Gradido και email",
     "settings": "Ρυθμίσεις",
-    "thank-you-card-receive": "Λήψη Gradido",
     "transactions": "Οι συναλλαγές σου",
     "usersearch": "Γεωγραφική αναζήτηση μελών (beta)"
   },
@@ -918,6 +917,7 @@
       "next-payment": "Επόμενη συναλλαγή",
       "pin-title": "Το PIN σου, παρακαλώ",
       "remember-memo": "Να θυμάσαι αυτήν την αιτιολογία",
+      "rest-note": "εξοφλείται ξεχωριστά.",
       "sent-from-to": "στάλθηκε από {from} προς {to}",
       "subtitle": "Σαρώθηκε μια κάρτα ευχαριστίας.",
       "thanks": "Ευχαριστούμε πολύ!"

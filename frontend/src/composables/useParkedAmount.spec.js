@@ -41,6 +41,41 @@ describe('useParkedAmount', () => {
     expect(JSON.parse(window.localStorage.getItem(KEY)).amount).toBe(1234.5)
   })
 
+  /**
+   * The remainder in the local currency travels with the amount, through the SAME lease:
+   * after the Gradido go through, the receipt is the only place left that can tell the
+   * customer what is still to pay.
+   */
+  describe('what is still owed in the local currency', () => {
+    it('travels with the amount', () => {
+      const { park, readParkedRest } = useParkedAmount()
+      park(6.3, { fiat: 4.2, currency: '€' })
+      expect(readParkedRest()).toEqual({ fiat: 4.2, currency: '€' })
+    })
+
+    // ⛔ A sale settled fully in Gradido owes nothing, and "0,00 € to be settled separately"
+    // on a receipt would invent a debt. Zero is not a small remainder, it is none.
+    it.each([
+      ['nothing was split off', { fiat: 0, currency: '€' }],
+      ['no currency is set', { fiat: 4.2, currency: '' }],
+      ['nothing was passed at all', undefined],
+    ])('stays silent when %s', (_, rest) => {
+      const { park, readParkedRest } = useParkedAmount()
+      park(6.3, rest)
+      expect(readParkedRest()).toBe(null)
+    })
+
+    // The lease is shared on purpose: a remainder that outlived its sale would be a debt
+    // attached to the next customer.
+    it('expires with the amount it belongs to', () => {
+      const { park, readParked, readParkedRest } = useParkedAmount()
+      park(6.3, { fiat: 4.2, currency: '€' })
+      vi.advanceTimersByTime(PARKED_AMOUNT_TTL_MS + 1)
+      expect(readParked()).toBe(null)
+      expect(readParkedRest()).toBe(null)
+    })
+  })
+
   it('forgets an amount that is older than the window', () => {
     const { park, readParked } = useParkedAmount()
     park(6.3)

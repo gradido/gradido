@@ -175,6 +175,25 @@
       <div class="mb-3" data-test="thank-you-card-paid-parties">
         {{ $t('thank-you-card.receive.sent-from-to', { from: payerName, to: recipientName }) }}
       </div>
+
+      <!--
+        ⛔ The half the Gradido did NOT cover, and the last place it can still be read. The
+        customer saw it on the calculator before the card was scanned; by the time this
+        screen appears that display is two navigations away, and nobody wrote the number
+        down. Without this line the only ways left are remembering it or paying the local
+        currency FIRST -- which is the order the till was built to get rid of.
+        (Bernd, 22.08.2026)
+
+        Shown only when there IS a remainder: a sale settled fully in Gradido has none, and
+        a line reading "0,00 € to be settled separately" would invent a debt.
+      -->
+      <template v-if="rest">
+        <div class="fs-4 mb-1" data-test="thank-you-card-paid-rest">{{ restLine }}</div>
+        <div class="mb-3 text-muted" data-test="thank-you-card-paid-rest-note">
+          {{ $t('thank-you-card.receive.rest-note') }}
+        </div>
+      </template>
+
       <BButton variant="gradido" data-test="thank-you-card-again" @click="nextCustomer">
         {{ $t('thank-you-card.receive.next-payment') }}
       </BButton>
@@ -232,7 +251,7 @@ const { t, n } = useI18n()
 const store = useStore()
 const { toastError } = useAppToast()
 const { readRememberedMemo, writeRememberedMemo } = useThankYouCardMemo()
-const { readParked, clearParked } = useParkedAmount()
+const { readParked, readParkedRest, clearParked } = useParkedAmount()
 
 const code = route.params.code
 const step = ref('amount')
@@ -248,6 +267,21 @@ const busy = ref(false)
 const targetStatus = ref(null)
 const cardLabel = ref('')
 const fromCalculator = ref(false)
+/** What is still owed in the local currency, if the sale was a split one. */
+const rest = ref(null)
+
+/**
+ * ⚠️ Amount first, sign after -- as Bernd wrote the receipt, and as German writes money.
+ * The calculator puts the sign in FRONT of its own figure; that one is read by the person
+ * running the till, this one by the customer.
+ *
+ * Formatted here rather than in the template so the shape is stated once, and with the `n`
+ * this page already holds: the currency is a free sign from the calculator's settings
+ * ("€", "CHF", …), so there is no locale currency format to hand it to.
+ */
+const restLine = computed(() =>
+  rest.value ? `${n(rest.value.fiat, 'decimal')} ${rest.value.currency}` : '',
+)
 const router = useRouter()
 
 /**
@@ -309,6 +343,12 @@ onMounted(() => {
     amount.value = n(parked, 'decimal')
     fromCalculator.value = true
   }
+  /**
+   * ⛔ Read HERE, at mount, and held in a ref -- not read again when the receipt is drawn.
+   * A successful payment calls `clearParked()`, so by the time the thanks screen exists the
+   * entry is gone; asking for it then would always answer "nothing owed".
+   */
+  rest.value = readParkedRest()
 })
 
 /**
@@ -328,6 +368,12 @@ onMounted(() => {
  */
 const onAmountTyped = async (value) => {
   fromCalculator.value = false
+  // ⛔ And the remainder with it: the two are ONE claim -- "this figure came from a
+  // calculation, which also left 4,20 € to pay". Typed over, the Gradido amount is no
+  // longer the one the split was worked out for, so the remainder beside it on the receipt
+  // would be a money figure shown to a customer that belongs to a different sale.
+  // (coderabbit, PR #3782)
+  rest.value = null
   const typed = String(value)
   const allowed = withAtMostTwoDecimals(typed)
   if (allowed !== typed) {

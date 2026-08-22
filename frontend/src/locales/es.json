@@ -687,7 +687,6 @@
     "scanner": "Escanear código",
     "send": "Enviar Gradido y correo electrónico",
     "settings": "Soporte",
-    "thank-you-card-receive": "Recibir Gradido",
     "transactions": "Tu Transacciones",
     "usersearch": "Búsqueda geográfica de miembros (beta)"
   },
@@ -918,6 +917,7 @@
       "next-payment": "Siguiente transacción",
       "pin-title": "Tu PIN, por favor",
       "remember-memo": "Recordar este concepto",
+      "rest-note": "se paga por separado.",
       "sent-from-to": "enviado por {from} a {to}",
       "subtitle": "Se ha escaneado una tarjeta de agradecimiento.",
       "thanks": "¡Muchas gracias!"

@@ -545,9 +545,9 @@ const admin = () => {
    symbols. That is what the two names per tool used to be for; a descendant of
    `.sidebar-quick-row` cannot leave this layout, and it does not multiply with the tools.
 
-   `flex-start` and `--text` for the same reasons as on the phone: the glyphs line up on
-   their left edge, and the tone is the menu's own (#383838 light, #e4e4e4 dark) rather
-   than 0.65 of whatever the surroundings inherit. */
+   `flex-start` and `--icon-muted` for the same reasons as on the phone: the glyphs line up
+   on their left edge, and the tone is the one the menu icons themselves carry --
+   rgb(114 119 143) in both modes, not the near-black/near-white of the menu TEXT. */
 .main-page .sidebar-quick-row > a {
   display: inline-flex;
   align-items: center;
@@ -555,11 +555,11 @@ const admin = () => {
   width: 44px;
   height: 44px;
   font-size: 22px;
-  color: var(--text);
+  color: var(--icon-muted);
 }
 
 .main-page .sidebar-quick-row > a:hover {
-  color: var(--text);
+  color: var(--icon-muted);
   opacity: 0.7;
 }
 </style>
