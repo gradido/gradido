@@ -235,9 +235,11 @@ button.navbar-toggler > span.navbar-toggler-icon {
    targets and the spacing between the symbols are untouched; the whole block simply moves
    11px left. (Bernd, 21.08.2026: "sodass die linke Kante eine Linie bildet")
 
-   The colour is the menu's own: `--text` is #383838 in light and #e4e4e4 in dark, which is
-   exactly what the sidebar items carry. No opacity -- the tone has to MATCH the menu, and
-   0.65 of it is a different grey. */
+   The colour is the menu's own -- `--icon-muted`, which is what `svg.svg-icon` carries,
+   rgb(114 119 143) in BOTH modes. ⚠️ Not `--text`: the menu items' text is near-black in
+   light and near-white in dark, and the icons beside them are not. No opacity either --
+   the tone has to MATCH the menu, and 0.65 of it is a different grey.
+   (Bernd, 22.08.2026: "das ist so ein mittleres Grau, jeweils") */
 .navbar-component .navbar-quick-row > a {
   display: flex;
   align-items: center;
