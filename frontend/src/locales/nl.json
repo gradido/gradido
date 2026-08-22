@@ -687,7 +687,6 @@
     "scanner": "Code scannen",
     "send": "Gradido en e-mail versturen",
     "settings": "Settings",
-    "thank-you-card-receive": "Gradido ontvangen",
     "transactions": "Your transactions",
     "usersearch": "Geografisch leden zoeken (bèta)"
   },
@@ -918,6 +917,7 @@
       "next-payment": "Volgende transactie",
       "pin-title": "Jouw pincode, alsjeblieft",
       "remember-memo": "Deze omschrijving onthouden",
+      "rest-note": "wordt apart voldaan.",
       "sent-from-to": "verzonden door {from} aan {to}",
       "subtitle": "Er is een dankkaart gescand.",
       "thanks": "Hartelijk dank!"

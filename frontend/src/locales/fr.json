@@ -687,7 +687,6 @@
     "scanner": "Scanner un code",
     "send": "Envoyer Gradido et e-mail",
     "settings": "Configuration",
-    "thank-you-card-receive": "Recevoir des Gradido",
     "transactions": "Tes transactions",
     "usersearch": "Recherche géographique de membres (bèta)"
   },
@@ -918,6 +917,7 @@
       "next-payment": "Transaction suivante",
       "pin-title": "Ton code PIN, s’il te plaît",
       "remember-memo": "Retenir ce motif",
+      "rest-note": "à régler séparément.",
       "sent-from-to": "envoyé par {from} à {to}",
       "subtitle": "Une carte de remerciement a été scannée.",
       "thanks": "Merci beaucoup !"

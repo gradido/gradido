@@ -687,7 +687,6 @@
     "scanner": "Scan code",
     "send": "Send Gradido and email",
     "settings": "Settings",
-    "thank-you-card-receive": "Receive Gradido",
     "transactions": "Your transactions",
     "usersearch": "Geographic member search (beta)"
   },
@@ -918,6 +917,7 @@
       "next-payment": "Next transaction",
       "pin-title": "Your PIN, please",
       "remember-memo": "Remember this reference",
+      "rest-note": "to be settled separately.",
       "sent-from-to": "sent by {from} to {to}",
       "subtitle": "A thank you card was scanned.",
       "thanks": "Thank you!"

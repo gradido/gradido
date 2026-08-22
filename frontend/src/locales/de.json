@@ -687,7 +687,6 @@
     "scanner": "Code scannen",
     "send": "Gradido und E-Mail senden",
     "settings": "Einstellungen",
-    "thank-you-card-receive": "Gradido empfangen",
     "transactions": "Deine Transaktionen",
     "usersearch": "Geografische Mitgliedssuche (beta)"
   },
@@ -918,6 +917,7 @@
       "next-payment": "Nächster Vorgang",
       "pin-title": "Bitte Deine PIN",
       "remember-memo": "Diesen Verwendungszweck merken",
+      "rest-note": "wird separat beglichen.",
       "sent-from-to": "gesendet von {from} an {to}",
       "subtitle": "Eine Dank-Karte wurde gescannt.",
       "thanks": "Vielen Dank!"

@@ -687,7 +687,6 @@
     "scanner": "Kod tara",
     "send": "Gradido ve e-posta gönder",
     "settings": "Ayarlar",
-    "thank-you-card-receive": "Gradido al",
     "transactions": "İşlemlerin",
     "usersearch": "Coğrafi üye arama (beta)"
   },
@@ -918,6 +917,7 @@
       "next-payment": "Sonraki işlem",
       "pin-title": "PIN’ini gir lütfen",
       "remember-memo": "Bu açıklamayı hatırla",
+      "rest-note": "ayrıca ödenir.",
       "sent-from-to": "{from} tarafından {to} kişisine gönderildi",
       "subtitle": "Bir teşekkür kartı okutuldu.",
       "thanks": "Çok teşekkürler!"
