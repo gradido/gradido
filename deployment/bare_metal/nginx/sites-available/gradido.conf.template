@@ -44,6 +44,21 @@ server {
         root $PROJECT_ROOT/frontend/build/;
         index index.html;
 
+        # The web app manifest. An exact location and not a `types` block on purpose: a
+        # `types` block REPLACES the inherited mime map for the whole location, which would
+        # turn every other file served here into the default type. nginx 1.22's mime.types
+        # has no entry for .webmanifest, so the type is stated here.
+        #
+        # And the reason it is not called manifest.json: .json falls into the immutable
+        # bucket below, which is meant for files carrying a content stamp in their name. The
+        # manifest does not -- a changed icon, name or start_url would be frozen for a year
+        # and never reach an installed app.
+        location = /manifest.webmanifest {
+            default_type application/manifest+json;
+            add_header Cache-Control "no-cache";
+            try_files $uri =404;
+        }
+
         # caching rules for assets
         # static assets
         location ~* \.(?:woff2?|ttf|otf|eot|jpg|jpeg|png|gif|svg|webp|ico)$ {

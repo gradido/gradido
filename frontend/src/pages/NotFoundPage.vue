@@ -4,7 +4,7 @@
     <div class="header py-1 py-lg-1 pt-lg-3">
       <BContainer>
         <div class="header-body text-center mb-3">
-          <a href="#!" @click="$router.go(-1)">
+          <a href="#!" @click="goBack">
             <div class="container">
               <div class="row">
                 <div class="col-sm-12 col-md-12 mt-5 mb-5">
@@ -1186,7 +1186,7 @@
       </BContainer>
     </div>
     <div class="text-center">
-      <BButton class="test-back" variant="light" @click="$router.go(-1)">
+      <BButton class="test-back" variant="light" @click="goBack">
         {{ $t('back') }}
       </BButton>
     </div>
@@ -1217,6 +1217,23 @@ export default {
         rotateY: { value: '+=180', delay: 200 },
       },
     }
+  },
+  methods: {
+    /**
+     * Back where they came from, and to the overview when there is no "came from".
+     *
+     * ⚠️ A bare history step is a button that does nothing here: this page is reached by
+     * typing an address or opening a stale link, so there is often nothing behind it -- and
+     * installed on a home screen there is no browser bar to fall back on either. Same shape
+     * as the calculator, the scanner and the code pages.
+     */
+    goBack() {
+      if (this.$router.options.history.state.back) {
+        this.$router.back()
+      } else {
+        this.$router.push('/overview')
+      }
+    },
   },
 }
 </script>
