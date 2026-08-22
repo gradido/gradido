@@ -424,7 +424,7 @@
     "description": "Om af te drukken en uit te delen: jouw naam, jouw gemeenschap, jouw gebruikersnaam, jouw QR-code en jouw contactregels op een kaart ter grootte van een bankpas. Wie hem krijgt, kan jou Gradido sturen en jou bereiken.",
     "download": "Visitekaartje downloaden",
     "download-hint": "Eén afbeelding in drukkwaliteit — voor een drukkerij of om door te geven.",
-    "needs-username": "Je kaart draagt je Gradido-adres, en dat adres wordt gevormd uit je gebruikersnaam. Kies er eerst een — het veld staat iets hoger op deze pagina. Daarna kun je je kaart afdrukken en weggeven.",
+    "needs-username": "Je kaart draagt je Gradido-adres, en dat adres wordt gevormd uit je gebruikersnaam. Kies er eerst een — het veld staat onder “Mijn rekening”. Daarna kun je je kaart afdrukken en weggeven.",
     "needs-username-title": "Eerst de gebruikersnaam",
     "sheet": "Vel met 10 kaarten",
     "sheet-hint": "10 visitekaartjes op ware grootte op één A4-pagina. In het printvenster kun je hem ook als pdf opslaan.",

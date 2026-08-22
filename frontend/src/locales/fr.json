@@ -424,7 +424,7 @@
     "description": "À imprimer et à distribuer : ton nom, ta communauté, ton nom d’utilisateur, ton code QR et tes lignes de contact sur une carte au format d’une carte bancaire. Celui qui la reçoit peut t’envoyer des Gradido et te joindre.",
     "download": "Télécharger la carte de visite",
     "download-hint": "Une seule image en qualité d'impression — pour une imprimerie ou à transmettre.",
-    "needs-username": "Ta carte porte ton adresse Gradido, et cette adresse est formée à partir de ton nom d'utilisateur. Choisis-en un d'abord : le champ se trouve un peu plus haut sur cette page. Ensuite tu pourras imprimer ta carte et la donner.",
+    "needs-username": "Ta carte porte ton adresse Gradido, et cette adresse est formée à partir de ton nom d'utilisateur. Choisis-en un d'abord : le champ se trouve dans « Mon compte ». Ensuite tu pourras imprimer ta carte et la donner.",
     "needs-username-title": "D'abord le nom d'utilisateur",
     "sheet": "Planche de 10 cartes",
     "sheet-hint": "10 cartes de visite à taille réelle sur une page A4. Dans la fenêtre d’impression, tu peux aussi l’enregistrer en PDF.",

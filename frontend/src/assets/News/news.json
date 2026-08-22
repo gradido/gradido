@@ -5,7 +5,7 @@
     "extra": "In unserer geschützten Community unterstützen wir einander, achtsam in Kreiskultur.",
     "extra2": "Wähle hier, wie dein Name angezeigt werden soll:",
     "button": "Namensanzeige wählen",
-    "internUrl": "/settings/extern"
+    "internUrl": "/settings/communities"
   },
   {
     "locale": "en",
@@ -13,7 +13,7 @@
     "extra": "In our protected community we support each other, mindful in circle culture.",
     "extra2": "Choose here how your name should be displayed:",
     "button": "Choose name display",
-    "internUrl": "/settings/extern"
+    "internUrl": "/settings/communities"
   },
   {
     "locale": "fr",
@@ -21,7 +21,7 @@
     "extra": "Dans notre communauté protégée, nous nous soutenons mutuellement, en faisant attention à la culture des cercles.",
     "extra2": "Choisis ici comment ton nom doit être affiché :",
     "button": "Choisir l'affichage du nom",
-    "internUrl": "/settings/extern"
+    "internUrl": "/settings/communities"
   },
   {
     "locale": "es",
@@ -29,7 +29,7 @@
     "extra": "En nuestra comunidad protegida nos apoyamos mutuamente, conscientes de la cultura del círculo.",
     "extra2": "Elige aquí cómo se mostrará tu nombre:",
     "button": "Seleccione la visualización del nombre",
-    "internUrl": "/settings/extern"
+    "internUrl": "/settings/communities"
   },
   {
     "locale": "nl",
@@ -37,6 +37,6 @@
     "extra": "In onze beschermde gemeenschap steunen we elkaar, mindful in de kringcultuur.",
     "extra2": "Kies hier hoe je naam moet worden weergegeven:",
     "button": "Selecteer naamweergave",
-    "internUrl": "/settings/extern"
+    "internUrl": "/settings/communities"
   }
 ]

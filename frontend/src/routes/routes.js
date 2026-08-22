@@ -77,6 +77,11 @@ const settingsRoutes = [
     component: () => import('@/pages/settings/Visibility.vue'),
     meta: { requiresAuth: true, settingsChrome: true },
   },
+  {
+    path: '/settings/notifications',
+    component: () => import('@/pages/settings/Notifications.vue'),
+    meta: { requiresAuth: true, settingsChrome: true },
+  },
   // The area exists only where one of the two services is switched on -- otherwise the page
   // would stand empty and still be reachable by typing the address. Same reason the matching
   // routes above are not registered without their flag.

@@ -424,7 +424,7 @@
     "description": "Para imprimir y repartir: tu nombre, tu comunidad, tu nombre de usuario, tu código QR y tus líneas de contacto en una tarjeta del tamaño de una tarjeta bancaria. Quien la reciba podrá enviarte Gradido y ponerse en contacto contigo.",
     "download": "Descargar tarjeta de visita",
     "download-hint": "Una sola imagen en calidad de impresión — para una imprenta o para compartir.",
-    "needs-username": "Tu tarjeta lleva tu dirección Gradido, y esa dirección se forma con tu nombre de usuario. Elige uno primero: el campo está un poco más arriba en esta página. Después podrás imprimir tu tarjeta y entregarla.",
+    "needs-username": "Tu tarjeta lleva tu dirección Gradido, y esa dirección se forma con tu nombre de usuario. Elige uno primero: el campo está en «Mi cuenta». Después podrás imprimir tu tarjeta y entregarla.",
     "needs-username-title": "Primero el nombre de usuario",
     "sheet": "Hoja con 10 tarjetas",
     "sheet-hint": "10 tarjetas de visita a tamaño original en una página A4. En la ventana de impresión también puedes guardarla como PDF.",

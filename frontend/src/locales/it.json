@@ -424,7 +424,7 @@
     "description": "Da stampare e distribuire: il tuo nome, la tua comunità, il tuo nome utente, il tuo codice QR e le tue righe di contatto su una tessera delle dimensioni di una carta bancaria. Chi la riceve può inviarti Gradido e mettersi in contatto con te.",
     "download": "Scarica il biglietto da visita",
     "download-hint": "Una singola immagine in qualità di stampa — per una tipografia o da consegnare.",
-    "needs-username": "La tua tessera porta il tuo indirizzo Gradido, e quell'indirizzo nasce dal tuo nome utente. Scegline uno prima: il campo si trova poco più in alto in questa pagina. Poi potrai stampare la tua tessera e consegnarla.",
+    "needs-username": "La tua tessera porta il tuo indirizzo Gradido, e quell'indirizzo nasce dal tuo nome utente. Scegline uno prima: il campo si trova in «Il mio conto». Poi potrai stampare la tua tessera e consegnarla.",
     "needs-username-title": "Prima il nome utente",
     "sheet": "Foglio con 10 tessere",
     "sheet-hint": "10 biglietti da visita a grandezza originale su una pagina A4. Nella finestra di stampa puoi anche salvarla come PDF.",

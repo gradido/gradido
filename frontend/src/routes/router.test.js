@@ -81,8 +81,8 @@ describe('router', () => {
       expect(defaultRoute.redirect()).toEqual({ path: '/login' })
     })
 
-    it('has 37 routes defined', () => {
-      expect(routes).toHaveLength(37)
+    it('has 38 routes defined', () => {
+      expect(routes).toHaveLength(38)
     })
 
     // The settings are one route per area. That is what lets the same pages serve both
@@ -101,6 +101,7 @@ describe('router', () => {
           '/settings/gradido-card',
           '/settings/thank-you-card',
           '/settings/visibility',
+          '/settings/notifications',
           '/settings/extern',
         ])
       })

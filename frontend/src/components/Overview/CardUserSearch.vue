@@ -41,7 +41,7 @@
               </BButton>
             </div>
             <div v-else>
-              <RouterLink to="/settings/extern">
+              <RouterLink to="/settings/communities">
                 <BButton variant="gradido">
                   {{ $t('card-user-search.not-allowed.button') }}
                 </BButton>
