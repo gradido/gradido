@@ -40,6 +40,7 @@ export default {
         } else {
           document.body.removeAttribute('data-bs-theme')
         }
+        this.syncThemeColor()
       },
     },
   },
@@ -53,6 +54,29 @@ export default {
   },
   beforeUnmount() {
     this.themeMediaQuery?.removeEventListener('change', this.themeMediaListener)
+  },
+  methods: {
+    /**
+     * Keeps <meta name="theme-color"> on the page background. Installed on a home screen
+     * that colour is the status bar, so switching light/dark has to move it too --
+     * index.html only gets the first paint right.
+     *
+     * ⚠️ The value is READ from the --bg token rather than written again here. Two literals
+     * in a second file are two chances to drift, and this way the bar cannot disagree with
+     * the page by construction. Reading after the class toggle above is what makes it the
+     * new value: a class change is live in the CSSOM at once.
+     *
+     * ⛔ No fallback colour when the token comes back empty (dev, before the injected
+     * stylesheet lands). Doing nothing is not a gap -- the tag in index.html already carries
+     * the right value from before first paint, and a guessed literal here could only be
+     * wrong.
+     */
+    syncThemeColor() {
+      const meta = document.querySelector('meta[name="theme-color"]')
+      if (!meta) return
+      const bg = getComputedStyle(document.body).getPropertyValue('--bg').trim()
+      if (bg) meta.setAttribute('content', bg)
+    },
   },
 }
 </script>

@@ -89,4 +89,40 @@ describe('App', () => {
 
     expect(document.body.hasAttribute('data-bs-theme')).toBe(false)
   })
+
+  // Installed on a home screen the status bar takes its colour from theme-color, so a
+  // light/dark switch has to move it too -- index.html only gets the first paint right.
+  // The value is READ off the live --bg token rather than written a second time here, so
+  // the bar cannot disagree with the page.
+  describe('theme-color', () => {
+    const setThemeColorMeta = (content) => {
+      document.head.querySelector('meta[name="theme-color"]')?.remove()
+      const meta = document.createElement('meta')
+      meta.setAttribute('name', 'theme-color')
+      meta.setAttribute('content', content)
+      document.head.appendChild(meta)
+      return meta
+    }
+
+    it('puts the page background on the meta tag', () => {
+      const meta = setThemeColorMeta('#f5f5f5')
+      document.body.style.setProperty('--bg', '#17181a')
+
+      createWrapper({ state: { darkMode: true } })
+
+      expect(meta.getAttribute('content')).toBe('#17181a')
+      document.body.style.removeProperty('--bg')
+    })
+
+    // No fallback colour on purpose: index.html already set the right value before first
+    // paint, so leaving it alone is correct. A guessed literal here could only be wrong.
+    it('leaves the boot value alone when the token is not there yet', () => {
+      const meta = setThemeColorMeta('#f5f5f5')
+      document.body.style.removeProperty('--bg')
+
+      createWrapper({ state: { darkMode: true } })
+
+      expect(meta.getAttribute('content')).toBe('#f5f5f5')
+    })
+  })
 })
