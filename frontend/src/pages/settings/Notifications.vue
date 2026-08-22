@@ -1,6 +1,6 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
-  <div class="settings-notifications">
+  <settings-section :title="$t('settings.menu.notifications')">
     <BRow class="mb-5">
       <BCol cols="12" md="6" lg="6">
         {{ $t('settings.newsletter.newsletter') }}
@@ -16,9 +16,10 @@
         <user-newsletter />
       </BCol>
     </BRow>
-  </div>
+  </settings-section>
 </template>
 <script setup>
+import SettingsSection from '@/components/UserSettings/SettingsSection.vue'
 import { ref } from 'vue'
 import { useStore } from 'vuex'
 import UserNewsletter from '@/components/UserSettings/UserNewsletter.vue'

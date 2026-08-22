@@ -1,6 +1,6 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
-  <div class="settings-visibility">
+  <settings-section :title="$t('settings.menu.visibility')">
     <BRow class="mb-5">
       <BCol cols="12" md="6" lg="6">
         {{ $t('settings.avatar.visibility') }}
@@ -15,9 +15,10 @@
         />
       </BCol>
     </BRow>
-  </div>
+  </settings-section>
 </template>
 <script setup>
+import SettingsSection from '@/components/UserSettings/SettingsSection.vue'
 import { useStore } from 'vuex'
 import UserSettingsSwitch from '@/components/UserSettings/UserSettingsSwitch.vue'
 import { BRow, BCol } from 'bootstrap-vue-next'

@@ -17,7 +17,6 @@
     "desc": "Μαζί στηρίζουμε ο ένας τον άλλον – με επίγνωση, σε μια κουλτούρα κύκλου.",
     "title": "Κύκλοι Gradido"
   },
-  "PersonalDetails": "Προσωπικά στοιχεία",
   "advanced-calculation": "Προκαταρκτικός υπολογισμός",
   "answerNow": "→ Απάντησε τώρα!",
   "appOutdated": {
@@ -662,6 +661,8 @@
   },
   "navigation": {
     "admin_area": "Περιοχή διαχείρισης",
+    "back-to-account": "Πίσω στον λογαριασμό",
+    "back-to-settings": "Πίσω στις ρυθμίσεις",
     "calculator": "Αριθμομηχανή",
     "community": "Κοινότητα",
     "logout": "Αποσύνδεση",
@@ -803,7 +804,6 @@
         "updated": "Η μορφή ονόματος για την Gradido Community ενημερώθηκε."
       }
     },
-    "info": "Οι συναλλαγές μπορούν τώρα να γίνονται με όνομα χρήστη ή διεύθυνση email.",
     "language": {
       "de": "Deutsch",
       "en": "English",
@@ -812,6 +812,14 @@
       "fr": "Français",
       "nl": "Nederlands",
       "success": "Η γλώσσα σου άλλαξε με επιτυχία."
+    },
+    "menu": {
+      "account": "Ο λογαριασμός μου",
+      "appearance": "Προβολή",
+      "communities-note": "(θα καταργηθεί αργότερα)",
+      "gradido-card": "Επαγγελματική κάρτα",
+      "notifications": "Μηνύματα",
+      "visibility": "Ορατότητα"
     },
     "name": {
       "change-success": "Το όνομά σου άλλαξε με επιτυχία.",
@@ -906,7 +914,6 @@
   "submitted": "Υποβλήθηκε",
   "success": "Επιτυχία",
   "thank-you-card": {
-    "back-to-account": "Πίσω στον λογαριασμό",
     "back-to-calculator": "Πίσω στην αριθμομηχανή",
     "name": "Κάρτα ευχαριστίας",
     "receive": {

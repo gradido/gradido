@@ -1,9 +1,10 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
-  <div class="settings-gradido-card">
+  <settings-section :title="$t('settings.menu.gradido-card')">
     <user-gradido-card class="mb-5" />
-  </div>
+  </settings-section>
 </template>
 <script setup>
+import SettingsSection from '@/components/UserSettings/SettingsSection.vue'
 import UserGradidoCard from '@/components/UserSettings/UserGradidoCard.vue'
 </script>

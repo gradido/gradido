@@ -25,7 +25,7 @@
         {{ $t('thank-you-card.back-to-calculator') }}
       </BButton>
       <BButton v-else variant="secondary" to="/overview" data-test="thank-you-card-back-account">
-        {{ $t('thank-you-card.back-to-account') }}
+        {{ $t('navigation.back-to-account') }}
       </BButton>
     </div>
 

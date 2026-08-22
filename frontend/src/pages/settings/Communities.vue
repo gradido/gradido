@@ -1,6 +1,6 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
-  <div class="settings-communities community-service-tabs">
+  <settings-section :title="$t('settings.community')">
     <div v-if="isHumhub" class="mt-3">
       <BRow>
         <BCol cols="12" md="6" lg="6">
@@ -90,9 +90,10 @@
       </BRow>
       <div class="h4 mt-3 text-muted">{{ $t('GMS.desc') }}</div>
     </div>
-  </div>
+  </settings-section>
 </template>
 <script setup>
+import SettingsSection from '@/components/UserSettings/SettingsSection.vue'
 import { computed, ref } from 'vue'
 import { useStore } from 'vuex'
 import CONFIG from '@/config'
@@ -122,8 +123,3 @@ const humhubStateSwitch = (eventData) => {
   humhubAllowed.value = eventData
 }
 </script>
-<style>
-.community-service-tabs {
-  min-height: 315px;
-}
-</style>

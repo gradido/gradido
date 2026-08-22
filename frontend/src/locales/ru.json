@@ -17,7 +17,6 @@
     "desc": "Вместе мы поддерживаем друг друга — внимательно, в культуре кругов.",
     "title": "Gradido-Круги"
   },
-  "PersonalDetails": "Личные данные",
   "advanced-calculation": "заранее начислено",
   "answerNow": "→ Ответить сейчас!",
   "appOutdated": {
@@ -662,6 +661,8 @@
   },
   "navigation": {
     "admin_area": "Поле для администратора",
+    "back-to-account": "Назад к счёту",
+    "back-to-settings": "Назад к настройкам",
     "calculator": "Калькулятор",
     "community": "Сообщество",
     "logout": "Выйти",
@@ -803,7 +804,6 @@
         "updated": "Формат имени для сообщества Gradido обновлён."
       }
     },
-    "info": "Транзакции теперь можно совершать по имени пользователя или адресу эл. почты.",
     "language": {
       "de": "Немецкий",
       "en": "Английский",
@@ -812,6 +812,14 @@
       "fr": "Français",
       "nl": "Nederlands",
       "success": "Язык успешно изменён."
+    },
+    "menu": {
+      "account": "Мой счёт",
+      "appearance": "Отображение",
+      "communities-note": "(позже будет удалено)",
+      "gradido-card": "Визитная карточка",
+      "notifications": "Сообщения",
+      "visibility": "Видимость"
     },
     "name": {
       "change-success": "Имя успешно изменено.",
@@ -906,7 +914,6 @@
   "submitted": "Внесено",
   "success": "Результат/Успех",
   "thank-you-card": {
-    "back-to-account": "Назад к счёту",
     "back-to-calculator": "Назад к калькулятору",
     "name": "Карта благодарности",
     "receive": {

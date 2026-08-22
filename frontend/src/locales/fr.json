@@ -17,7 +17,6 @@
     "desc": "Ensemble, nous nous soutenons mutuellement – avec attention, dans la culture des cercles.",
     "title": "Cercles Gradido"
   },
-  "PersonalDetails": "Informations personnelles",
   "advanced-calculation": "Calcul avancé",
   "answerNow": "→ Répondre maintenant!",
   "appOutdated": {
@@ -662,6 +661,8 @@
   },
   "navigation": {
     "admin_area": "Partie administrative",
+    "back-to-account": "Retour au compte",
+    "back-to-settings": "Retour à la configuration",
     "calculator": "Calculatrice",
     "community": "Communauté",
     "logout": "Déconnexion",
@@ -803,7 +804,6 @@
         "updated": "Format du nom pour la communauté Gradido mis à jour."
       }
     },
-    "info": "Les transactions peuvent désormais être effectuées par nom d'utilisateur ou adresse e-mail.",
     "language": {
       "de": "Deutsch",
       "en": "English",
@@ -812,6 +812,14 @@
       "fr": "Français",
       "nl": "Nederlands",
       "success": "Ta langue de préférence a bien été actualisée."
+    },
+    "menu": {
+      "account": "Mon compte",
+      "appearance": "Affichage",
+      "communities-note": "(sera supprimé plus tard)",
+      "gradido-card": "Carte de visite",
+      "notifications": "Messages",
+      "visibility": "Visibilité"
     },
     "name": {
       "change-success": "Ton nom a bien été changé.",
@@ -906,7 +914,6 @@
   "submitted": "Envoyé",
   "success": "Avec succès",
   "thank-you-card": {
-    "back-to-account": "Retour au compte",
     "back-to-calculator": "Retour à la calculatrice",
     "name": "Carte de remerciement",
     "receive": {

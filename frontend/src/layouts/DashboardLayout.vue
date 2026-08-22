@@ -68,9 +68,16 @@
            so the air goes here — on the row, where the menu and the content get it
            together and stay level. The phone gets none: there the map takes the edge. -->
       <BRow fluid class="d-flex" :class="bareTopSpace">
-        <!-- Sidebar left -->
+        <!-- Sidebar left.
+             ⛔ The settings menu REPLACES the main one here, and only here. MobileSidebar
+             renders the very same `sidebar` component in its drawer -- swap it there as
+             well and somebody on a phone would open the hamburger inside the settings and
+             find the settings again, with no way back into the wallet. The drawer keeps
+             the main menu; on a phone the list at /settings is the settings menu. -->
         <BCol cols="2" class="d-none d-lg-block">
+          <settings-sidebar v-if="settingsChrome" />
           <sidebar
+            v-else
             class="main-sidebar"
             :show-logo="bareChrome"
             @admin="admin"
@@ -263,6 +270,7 @@ import Navbar from '@/components/Menu/Navbar'
 import QuickCodeIcon from '@/components/Menu/QuickCodeIcon'
 import Sidebar from '@/components/Menu/Sidebar'
 import MobileSidebar from '@/components/MobileSidebar/MobileSidebar'
+import SettingsSidebar from '@/components/Menu/SettingsSidebar.vue'
 import SessionLogoutTimeout from '@/components/SessionLogoutTimeout'
 import AliasFirstChoice from '@/components/AliasFirstChoice'
 import ContentFooter from '@/components/ContentFooter'
@@ -292,6 +300,7 @@ const { client: apolloClient } = useApolloClient()
 // goes too; on desktop it stays, and the menu keeps the logo the navbar took with
 // it. Every other route leaves these empty and is untouched.
 const bareChrome = computed(() => Boolean(route.meta.bareChrome))
+const settingsChrome = computed(() => Boolean(route.meta.settingsChrome))
 const chromeHidden = computed(() => (bareChrome.value ? 'd-none' : ''))
 const mobileHidden = computed(() => (bareChrome.value ? 'd-none d-lg-block' : ''))
 const bareTopSpace = computed(() => (bareChrome.value ? 'pt-lg-4' : ''))

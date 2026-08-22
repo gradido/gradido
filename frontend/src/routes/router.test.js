@@ -81,8 +81,57 @@ describe('router', () => {
       expect(defaultRoute.redirect()).toEqual({ path: '/login' })
     })
 
-    it('has 31 routes defined', () => {
-      expect(routes).toHaveLength(31)
+    it('has 37 routes defined', () => {
+      expect(routes).toHaveLength(37)
+    })
+
+    // The settings are one route per area. That is what lets the same pages serve both
+    // screen widths -- menu beside the content above 992px, list-then-page below it --
+    // and what makes a section linkable from outside.
+    describe('the settings areas', () => {
+      const settingsRoutes = routes.filter(
+        (r) => r.path === '/settings' || r.path.startsWith('/settings/'),
+      )
+
+      it('has one route per area, plus the index and the old address', () => {
+        expect(settingsRoutes.map((r) => r.path)).toEqual([
+          '/settings',
+          '/settings/account',
+          '/settings/appearance',
+          '/settings/gradido-card',
+          '/settings/thank-you-card',
+          '/settings/visibility',
+          '/settings/extern',
+        ])
+      })
+
+      it('guards every area and hands the layout the settings menu', () => {
+        for (const route of settingsRoutes.filter((r) => !r.redirect)) {
+          expect(route.meta.requiresAuth).toBe(true)
+          expect(route.meta.settingsChrome).toBe(true)
+        }
+      })
+
+      // The breadcrumb heading would repeat what the section already says, and it costs a
+      // heading's height on the phone -- the device the list is built for.
+      it('names no pageTitle, so no breadcrumb heading appears', () => {
+        for (const route of settingsRoutes.filter((r) => !r.redirect)) {
+          expect(route.meta.pageTitle).toBeUndefined()
+        }
+      })
+
+      // Five entries in the news file and two cards on the overview still point at the old
+      // address, and printed or mailed links keep arriving.
+      it('keeps the old /settings/extern address alive', () => {
+        const old = routes.find((r) => r.path === '/settings/extern')
+        expect(old.redirect()).toEqual({ path: '/settings/communities' })
+      })
+
+      // ⛔ Not merely hidden from the menu: without GMS or HumHub the page would stand empty
+      // and still be reachable by typing the address. Both flags are off under test.
+      it('does not register the circles area while neither service is switched on', () => {
+        expect(routes.find((r) => r.path === '/settings/communities')).toBeUndefined()
+      })
     })
 
     const testRoute = (path, expectedName, requiresAuth = true) => {

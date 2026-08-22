@@ -1,6 +1,6 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
-  <div class="settings-account">
+  <settings-section :title="$t('settings.menu.account')">
     <BRow>
       <BCol cols="12" md="6" lg="6">
         <user-name />
@@ -49,9 +49,10 @@
     <hr />
     <div class="mt-5">{{ $t('form.password') }}</div>
     <user-password />
-  </div>
+  </settings-section>
 </template>
 <script setup>
+import SettingsSection from '@/components/UserSettings/SettingsSection.vue'
 import { computed, ref } from 'vue'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
