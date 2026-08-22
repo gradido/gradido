@@ -521,7 +521,10 @@ const parkAmount = () => {
   if (amount === null) {
     return
   }
-  if (park(amount)) {
+  // The remainder travels with it: after the Gradido go through, the receipt is the only
+  // place left that can tell the customer what is still to pay -- the display that showed
+  // it is on the other side of a navigation by then. (Bernd, 22.08.2026)
+  if (park(amount, { fiat: subResult.value?.fiat, currency: currency.value })) {
     // Written BEFORE the navigation that will unmount this page: the basket is what
     // the way back restores. A refused save costs only that restore, never the act.
     saveBasket(snapshot())

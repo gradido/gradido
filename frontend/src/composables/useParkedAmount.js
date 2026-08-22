@@ -64,21 +64,35 @@ export const useParkedAmount = () => {
     return gradidoID ? `${KEY_PREFIX}${gradidoID}` : null
   }
 
-  const park = (amount) => {
+  /**
+   * @param {number} amount the Gradido to be handed over
+   * @param {{fiat?: number, currency?: string}} [rest] what is still owed in the local
+   *   currency, and the sign it is written with. Optional and separate on purpose: the
+   *   amount is what the payment page NEEDS, the rest is what the receipt owes the
+   *   customer afterwards -- and a till that splits nothing has none of it.
+   */
+  const park = (amount, rest = {}) => {
     const key = storageKey()
     if (!key || !Number.isFinite(amount) || amount <= 0) {
       return false
     }
+    const entry = { amount, at: Date.now() }
+    // Only a real remainder travels. Zero is the 100 % Gradido sale, and a receipt line
+    // saying "0,00 € to be settled separately" would invent a debt that does not exist.
+    if (Number.isFinite(rest.fiat) && rest.fiat > 0 && typeof rest.currency === 'string') {
+      entry.fiat = rest.fiat
+      entry.currency = rest.currency
+    }
     try {
-      window.localStorage.setItem(key, JSON.stringify({ amount, at: Date.now() }))
+      window.localStorage.setItem(key, JSON.stringify(entry))
       return true
     } catch {
       return false
     }
   }
 
-  /** The parked amount if it is still fresh, otherwise null. Does not consume it. */
-  const readParked = () => {
+  /** The stored entry if it is still fresh, otherwise null. Does not consume it. */
+  const readEntry = () => {
     const key = storageKey()
     if (!key) {
       return null
@@ -101,10 +115,27 @@ export const useParkedAmount = () => {
       if (age < 0 || age > PARKED_AMOUNT_TTL_MS) {
         return null
       }
-      return stored.amount
+      return stored
     } catch {
       return null
     }
+  }
+
+  /** The parked amount if it is still fresh, otherwise null. Does not consume it. */
+  const readParked = () => readEntry()?.amount ?? null
+
+  /**
+   * What is still owed in the local currency, if anything -- read through the SAME lease as
+   * the amount, so a remainder can never outlive the sale it belongs to.
+   *
+   * @returns {{fiat: number, currency: string}|null}
+   */
+  const readParkedRest = () => {
+    const entry = readEntry()
+    if (!entry || !Number.isFinite(entry.fiat) || entry.fiat <= 0 || !entry.currency) {
+      return null
+    }
+    return { fiat: entry.fiat, currency: entry.currency }
   }
 
   const clearParked = () => {
@@ -144,5 +175,5 @@ export const useParkedAmount = () => {
    * clears only once a payment has gone through -- consuming on arrival would lose the
    * amount to an accidental reload, with a customer waiting at the counter.
    */
-  return { park, readParked, clearParked, hasParkedEntry, parkedKey: storageKey }
+  return { park, readParked, readParkedRest, clearParked, hasParkedEntry, parkedKey: storageKey }
 }

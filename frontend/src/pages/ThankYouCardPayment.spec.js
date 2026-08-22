@@ -59,9 +59,11 @@ vi.mock('vue-i18n', () => ({
 
 const mockReadParked = vi.fn(() => null)
 const mockClearParked = vi.fn()
+const mockReadParkedRest = vi.fn(() => null)
 vi.mock('@/composables/useParkedAmount', () => ({
   useParkedAmount: vi.fn(() => ({
     readParked: mockReadParked,
+    readParkedRest: mockReadParkedRest,
     clearParked: mockClearParked,
   })),
 }))
@@ -415,6 +417,36 @@ describe('ThankYouCardPayment', () => {
       const paid = wrapper.find('[data-test="thank-you-card-paid-amount"]')
       expect(paid.text()).toContain('thank-you-card.receive.amount')
       expect(paid.text()).toContain('"amount":"12,50"')
+    })
+
+    /**
+     * ⛔ The half the Gradido did not cover, and the last place it can be read. The customer
+     * saw it on the calculator before the card was scanned; by the time this screen exists
+     * that display is two navigations away.
+     *
+     * ⚠️ The load-bearing detail is WHEN it is read. A successful payment calls
+     * `clearParked()`, so the entry is gone by the time the receipt is drawn -- reading it
+     * there would always answer "nothing owed". Hence the mock answering only while the
+     * page mounts, and nothing afterwards.
+     */
+    it('shows what is still to pay in the local currency', async () => {
+      mockReadParkedRest.mockReturnValue({ fiat: 4.2, currency: '€' })
+      await payWith({ status: 'SUCCESS', payerName: 'Bibi Bloxberg' })
+      mockReadParkedRest.mockReturnValue(null)
+
+      expect(wrapper.find('[data-test="thank-you-card-paid-rest"]').text()).toContain('4,2')
+      expect(wrapper.find('[data-test="thank-you-card-paid-rest"]').text()).toContain('€')
+      expect(wrapper.text()).toContain('thank-you-card.receive.rest-note')
+    })
+
+    // A sale settled fully in Gradido owes nothing, and a line reading "0,00 € to be settled
+    // separately" would invent a debt. The remainder is stored only when there is one.
+    it('says nothing about a remainder when there is none', async () => {
+      mockReadParkedRest.mockReturnValue(null)
+      await payWith({ status: 'SUCCESS', payerName: 'Bibi Bloxberg' })
+
+      expect(wrapper.find('[data-test="thank-you-card-paid-rest"]').exists()).toBe(false)
+      expect(wrapper.text()).not.toContain('thank-you-card.receive.rest-note')
     })
 
     it('says how many attempts are left after a wrong pin, and stays on the pin step', async () => {
