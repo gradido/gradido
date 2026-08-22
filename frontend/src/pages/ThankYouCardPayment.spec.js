@@ -424,19 +424,52 @@ describe('ThankYouCardPayment', () => {
      * saw it on the calculator before the card was scanned; by the time this screen exists
      * that display is two navigations away.
      *
-     * ⚠️ The load-bearing detail is WHEN it is read. A successful payment calls
-     * `clearParked()`, so the entry is gone by the time the receipt is drawn -- reading it
-     * there would always answer "nothing owed". Hence the mock answering only while the
-     * page mounts, and nothing afterwards.
+     * ⚠️ The amount is NOT typed here, and that is the real flow rather than a convenience:
+     * coming from the calculator it arrives prefilled and nobody touches it. Typing into
+     * the field is what says "this is my own figure now" -- see the test below.
+     *
+     * ⚠️ And the remainder is read at MOUNT. A successful payment calls `clearParked()`, so
+     * the entry is gone by the time the receipt is drawn; the mock stops answering after
+     * the page is up, which is what pins that.
      */
+    const payWithPrefilledAmount = async () => {
+      await mountUsable()
+      await field('memo').setValue('Pizzeria Napoli')
+      await field('next').trigger('click')
+      await flushPromises()
+      await field('pin').setValue('407312')
+      await flushPromises()
+    }
+
     it('shows what is still to pay in the local currency', async () => {
+      mockReadParked.mockReturnValue(6.3)
       mockReadParkedRest.mockReturnValue({ fiat: 4.2, currency: '€' })
-      await payWith({ status: 'SUCCESS', payerName: 'Bibi Bloxberg' })
+      await payWithPrefilledAmount()
       mockReadParkedRest.mockReturnValue(null)
 
-      expect(wrapper.find('[data-test="thank-you-card-paid-rest"]').text()).toContain('4,2')
-      expect(wrapper.find('[data-test="thank-you-card-paid-rest"]').text()).toContain('€')
+      const line = wrapper.find('[data-test="thank-you-card-paid-rest"]')
+      expect(line.text()).toContain('4,2')
+      expect(line.text()).toContain('€')
       expect(wrapper.text()).toContain('thank-you-card.receive.rest-note')
+    })
+
+    /**
+     * ⛔ The remainder and the "from the calculator" line are ONE claim: this figure came
+     * from a calculation, which also left something to pay. Type over the figure and the
+     * claim is void -- a remainder worked out for 6,30 GDD, standing beside a hand-typed
+     * 5,00 on a receipt, is a money figure put in front of a customer that belongs to a
+     * different sale. (coderabbit, PR #3782)
+     */
+    it('drops the remainder when the merchant types over the amount', async () => {
+      mockReadParked.mockReturnValue(6.3)
+      mockReadParkedRest.mockReturnValue({ fiat: 4.2, currency: '€' })
+      await mountUsable()
+      await fillAndStart({ amount: '5,00' })
+      await field('pin').setValue('407312')
+      await flushPromises()
+
+      expect(wrapper.find('[data-test="thank-you-card-paid-rest"]').exists()).toBe(false)
+      expect(wrapper.text()).not.toContain('thank-you-card.receive.rest-note')
     })
 
     // A sale settled fully in Gradido owes nothing, and a line reading "0,00 € to be settled

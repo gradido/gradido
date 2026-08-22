@@ -368,6 +368,12 @@ onMounted(() => {
  */
 const onAmountTyped = async (value) => {
   fromCalculator.value = false
+  // ⛔ And the remainder with it: the two are ONE claim -- "this figure came from a
+  // calculation, which also left 4,20 € to pay". Typed over, the Gradido amount is no
+  // longer the one the split was worked out for, so the remainder beside it on the receipt
+  // would be a money figure shown to a customer that belongs to a different sale.
+  // (coderabbit, PR #3782)
+  rest.value = null
   const typed = String(value)
   const allowed = withAtMostTwoDecimals(typed)
   if (allowed !== typed) {
