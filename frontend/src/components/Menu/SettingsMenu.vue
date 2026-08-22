@@ -54,10 +54,20 @@ const isCommunityService = CONFIG.GMS_ACTIVE || CONFIG.HUMHUB_ACTIVE
  * (the phone list and the desk menu are both in the DOM at /settings, one of them hidden by
  * a breakpoint) reads the cache instead of asking again.
  */
-const { result: cardSettings } = useQuery(thankYouCardSettings)
-const { result: cards } = useQuery(thankYouCards)
+const {
+  result: cardSettings,
+  loading: loadingSettings,
+  error: errorSettings,
+} = useQuery(thankYouCardSettings)
+const { result: cards, loading: loadingCards, error: errorCards } = useQuery(thankYouCards)
 
 const thankYouCardState = computed(() => {
+  // ⛔ Nothing at all while the answers are on their way, and nothing if they do not arrive.
+  // The naive form said "off" in the meantime -- and "off" beside a card that is switched ON
+  // is worse than an empty space: a state that is briefly wrong is still read as a state, and
+  // this line exists so that one look is enough.
+  if (loadingSettings.value || loadingCards.value) return null
+  if (errorSettings.value || errorCards.value) return null
   if (!cardSettings.value?.thankYouCardSettings) return t('settings.menu.state.off')
   const list = cards.value?.thankYouCards ?? []
   // Blocked is worth its own word: the function is on, but the card in the wallet does not

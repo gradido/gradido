@@ -10,12 +10,16 @@ vi.mock('@/config', () => ({
 
 let cardSettings = { value: { thankYouCardSettings: null } }
 let cards = { value: { thankYouCards: [] } }
+let loading = { value: false }
+let failed = { value: null }
 // ⚠️ Told apart by the query's OWN name, not by stringifying it: a parsed GraphQL document
 // stringifies to "[object Object]", so both queries would have got the same answer -- and the
 // two states that matter would have looked fine while reading the wrong one.
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: (query) => ({
     result: query?.definitions?.[0]?.name?.value === 'thankYouCardSettings' ? cardSettings : cards,
+    loading,
+    error: failed,
   }),
 }))
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key) => key }) }))
@@ -98,6 +102,8 @@ describe('the settings menu', () => {
     const stateOf = (wrapper, name) => wrapper.find(`[data-test="settings-state-${name}"]`).text()
 
     it('says off while the thank you card was never set up', async () => {
+      loading = { value: false }
+      failed = { value: null }
       cardSettings = { value: { thankYouCardSettings: null } }
       const wrapper = await mountMenu()
 
@@ -126,6 +132,30 @@ describe('the settings menu', () => {
 
       expect(stateOf(wrapper, 'visibility')).toBe('settings.menu.state.on')
       expect(stateOf(wrapper, 'notifications')).toBe('settings.menu.state.off')
+    })
+
+    /**
+     * ⛔ Nothing at all while the answers are on their way. The first form said "off" in the
+     * meantime -- and "off" beside a card that is switched ON is worse than an empty space:
+     * a state that is briefly wrong is still read as a state, and the whole point of the line
+     * is that one look is enough. (coderabbit, PR #3786.)
+     */
+    it('says nothing while it is still asking', async () => {
+      loading = { value: true }
+      cardSettings = { value: { thankYouCardSettings: { maxPerDay: '100' } } }
+      const wrapper = await mountMenu()
+      loading = { value: false }
+
+      expect(wrapper.find('[data-test="settings-state-thank-you-card"]').exists()).toBe(false)
+    })
+
+    it('says nothing if the answer never arrives', async () => {
+      failed = { value: new Error('no') }
+      cardSettings = { value: { thankYouCardSettings: { maxPerDay: '100' } } }
+      const wrapper = await mountMenu()
+      failed = { value: null }
+
+      expect(wrapper.find('[data-test="settings-state-thank-you-card"]').exists()).toBe(false)
     })
 
     /**

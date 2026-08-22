@@ -110,6 +110,10 @@ describe('DashboardLayout', () => {
           Navbar: true,
           Sidebar: true,
           MobileSidebar: true,
+          // ⚠️ The settings menu asks two queries of its own (the thank you card's state).
+          // Left un-stubbed they land in this file's shared useQuery spy and are counted as
+          // picture requests -- twelve tests about member avatars fell over them.
+          SettingsMenu: true,
           Breadcrumb: true,
           ContentHeader: true,
           RightSide: true,

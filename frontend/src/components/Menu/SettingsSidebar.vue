@@ -26,10 +26,18 @@
              reach until one goes back -- acceptable for "overview", which is one arrow away,
              and not acceptable for signing out. Found by the end-to-end test. -->
         <hr class="m-3" />
-        <a class="settings-logout" data-test="logout-menu" @click="$emit('logout')">
+        <!-- ⚠️ A button, not an anchor without an href: signing out is an action, and an
+             anchor with nothing to point at is neither reachable by keyboard nor announced
+             as something one can press. -->
+        <button
+          type="button"
+          class="settings-logout"
+          data-test="logout-menu"
+          @click="$emit('logout')"
+        >
           <i-humbleicons-logout class="svg-icon" />
           <span class="ms-2">{{ $t('navigation.logout') }}</span>
-        </a>
+        </button>
       </div>
     </div>
   </div>
@@ -61,8 +69,12 @@ defineEmits(['logout'])
 }
 
 .settings-logout {
+  width: 100%;
+  border: 0;
+  background: none;
   color: #cd5556 !important;
   cursor: pointer;
+  text-align: left;
 }
 
 #component-sidebar {
