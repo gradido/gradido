@@ -22,6 +22,13 @@
   --text-muted: #6c757d; // secondary / muted
   --text-inverse: #fff; // on dark / gold
 
+  // Icons
+  // ⚠️ The tone of an UNSELECTED navigation icon, and it is deliberately NOT flipped in
+  // dark mode: `svg.svg-icon` carries it in both, which is why the menu icons read as a
+  // mid grey-blue against near-black text in light and near-white text in dark. Anything
+  // that wants to sit beside them quietly takes this, not `--text`. (Bernd, 22.08.2026)
+  --icon-muted: #{$gradido-114}; // unselected navigation icons, both modes
+
   // Borders
   --border: #dee2e6; // lines / dividers
 

@@ -555,11 +555,11 @@ const admin = () => {
   width: 44px;
   height: 44px;
   font-size: 22px;
-  color: var(--text);
+  color: var(--icon-muted);
 }
 
 .main-page .sidebar-quick-row > a:hover {
-  color: var(--text);
+  color: var(--icon-muted);
   opacity: 0.7;
 }
 </style>

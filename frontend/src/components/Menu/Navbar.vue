@@ -245,11 +245,11 @@ button.navbar-toggler > span.navbar-toggler-icon {
   width: 44px;
   height: 44px;
   font-size: 22px;
-  color: var(--text);
+  color: var(--icon-muted);
 }
 
 .navbar-component .navbar-quick-row > a:hover {
-  color: var(--text);
+  color: var(--icon-muted);
   opacity: 0.7;
 }
 </style>
