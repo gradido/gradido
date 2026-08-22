@@ -17,7 +17,6 @@
     "desc": "Gemeinsam unterstützen wir einander –  achtsam in Kreiskultur.",
     "title": "Gradido-Kreise"
   },
-  "PersonalDetails": "Persönliche Angaben",
   "advanced-calculation": "Vorausberechnung",
   "answerNow": "→ Jetzt antworten!",
   "appOutdated": {
@@ -425,7 +424,7 @@
     "description": "Zum Ausdrucken und Weitergeben: Dein Name, Deine Gemeinschaft, Dein Benutzername, Dein QR-Code und Deine Kontaktzeilen auf einer Karte in Scheckkartengröße. Wer sie bekommt, kann Dir Gradido senden — und Dich erreichen.",
     "download": "Visitenkarte herunterladen",
     "download-hint": "Ein einzelnes Bild in Druckqualität — für eine Druckerei oder zum Weitergeben.",
-    "needs-username": "Deine Karte trägt Deine Gradido-Adresse — und die entsteht aus Deinem Benutzernamen. Bitte wähle zunächst einen; das Feld dafür findest Du etwas weiter oben auf dieser Seite. Danach kannst Du Deine Karte drucken und weitergeben.",
+    "needs-username": "Deine Karte trägt Deine Gradido-Adresse — und die entsteht aus Deinem Benutzernamen. Bitte wähle zunächst einen; das Feld dafür steht unter „Mein Konto“. Danach kannst Du Deine Karte drucken und weitergeben.",
     "needs-username-title": "Erst der Benutzername",
     "sheet": "Bogen mit 10 Karten",
     "sheet-hint": "10 Visitenkarten in Originalgröße auf einer A4-Seite. Im Druckfenster kannst Du sie auch als PDF sichern.",
@@ -662,6 +661,8 @@
   },
   "navigation": {
     "admin_area": "Adminbereich",
+    "back-to-account": "Zurück zum Konto",
+    "back-to-settings": "Zurück zu den Einstellungen",
     "calculator": "Rechner",
     "community": "Gemeinschaft",
     "logout": "Abmelden",
@@ -803,7 +804,6 @@
         "updated": "Namensformat für die Gradido Community aktualisiert."
       }
     },
-    "info": "Transaktionen können nun per Benutzername oder E-Mail-Adresse getätigt werden.",
     "language": {
       "de": "Deutsch",
       "en": "English",
@@ -812,6 +812,14 @@
       "fr": "Français",
       "nl": "Nederlands",
       "success": "Deine Sprache wurde erfolgreich geändert."
+    },
+    "menu": {
+      "account": "Mein Konto",
+      "appearance": "Darstellung",
+      "communities-note": "(entfällt später)",
+      "gradido-card": "Visitenkarte",
+      "notifications": "Nachrichten",
+      "visibility": "Sichtbarkeit"
     },
     "name": {
       "change-success": "Dein Name wurde erfolgreich geändert.",
@@ -906,7 +914,6 @@
   "submitted": "Eingereicht",
   "success": "Erfolg",
   "thank-you-card": {
-    "back-to-account": "Zurück zum Konto",
     "back-to-calculator": "Zurück zum Rechner",
     "name": "Dank-Karte",
     "receive": {

@@ -148,6 +148,53 @@ describe('DashboardLayout', () => {
   })
 
   /**
+   * The settings are a room one enters and leaves. While a settings route is open the menu
+   * column carries the settings menu instead of the main one -- that is what makes the arrow
+   * "back to account" mean anything, and it keeps the wide screen from showing two menu
+   * columns side by side.
+   *
+   * ⚠️ These use the wrapper the surrounding beforeEach already mounted. A second layout of
+   * their own would stay alive through the afterEach of the others and count their route
+   * changes twice -- the very pile-up the note below the afterEach describes.
+   */
+  describe('the menu column on a settings route', () => {
+    // A fresh layout starts on the skeleton, and the skeleton has no menu column at all.
+    beforeEach(async () => {
+      wrapper.vm.skeleton = false
+      await nextTick()
+    })
+
+    it('carries the settings menu', async () => {
+      await router.push('/settings/appearance')
+      await nextTick()
+
+      expect(wrapper.find('[data-test="settings-back-to-account"]').exists()).toBe(true)
+      expect(wrapper.find('.main-sidebar').exists()).toBe(false)
+    })
+
+    it('carries the main menu everywhere else', async () => {
+      await router.push('/transactions')
+      await nextTick()
+
+      expect(wrapper.find('.main-sidebar').exists()).toBe(true)
+      expect(wrapper.find('[data-test="settings-back-to-account"]').exists()).toBe(false)
+    })
+
+    /**
+     * ⛔ The drawer behind the hamburger renders the very same `Sidebar` component. Swap it
+     * there as well and somebody on a phone would open the hamburger inside the settings and
+     * find the settings again -- with no way back into the wallet. On a phone the list at
+     * /settings is the settings menu; the drawer stays the way out.
+     */
+    it('leaves the drawer on the main menu, even inside the settings', async () => {
+      await router.push('/settings/appearance')
+      await nextTick()
+
+      expect(wrapper.findComponent({ name: 'MobileSidebar' }).exists()).toBe(true)
+    })
+  })
+
+  /**
    * The balance in the header is fetched once, when this layout mounts — and the layout
    * outlives every route change. Until this watch existed, only a page that said so kept it
    * current (`Send` after a transfer, `Transactions` on paging), so a payment made anywhere

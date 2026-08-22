@@ -17,7 +17,6 @@
     "desc": "Samen ondersteunen we elkaar – aandachtig, in kringcultuur.",
     "title": "Gradido-kringen"
   },
-  "PersonalDetails": "Persoonlijke gegevens",
   "advanced-calculation": "Voorcalculatie",
   "answerNow": "→ Nu antwoorden!",
   "appOutdated": {
@@ -425,7 +424,7 @@
     "description": "Om af te drukken en uit te delen: jouw naam, jouw gemeenschap, jouw gebruikersnaam, jouw QR-code en jouw contactregels op een kaart ter grootte van een bankpas. Wie hem krijgt, kan jou Gradido sturen en jou bereiken.",
     "download": "Visitekaartje downloaden",
     "download-hint": "Eén afbeelding in drukkwaliteit — voor een drukkerij of om door te geven.",
-    "needs-username": "Je kaart draagt je Gradido-adres, en dat adres wordt gevormd uit je gebruikersnaam. Kies er eerst een — het veld staat iets hoger op deze pagina. Daarna kun je je kaart afdrukken en weggeven.",
+    "needs-username": "Je kaart draagt je Gradido-adres, en dat adres wordt gevormd uit je gebruikersnaam. Kies er eerst een — het veld staat onder “Mijn rekening”. Daarna kun je je kaart afdrukken en weggeven.",
     "needs-username-title": "Eerst de gebruikersnaam",
     "sheet": "Vel met 10 kaarten",
     "sheet-hint": "10 visitekaartjes op ware grootte op één A4-pagina. In het printvenster kun je hem ook als pdf opslaan.",
@@ -662,6 +661,8 @@
   },
   "navigation": {
     "admin_area": "Beheerder",
+    "back-to-account": "Terug naar de rekening",
+    "back-to-settings": "Terug naar instellingen",
     "calculator": "Rekenmachine",
     "community": "Gemeenschap",
     "logout": "Afmelden",
@@ -803,7 +804,6 @@
         "updated": "Naamformaat voor de Gradido-gemeenschap bijgewerkt."
       }
     },
-    "info": "Transacties kunnen nu worden uitgevoerd via gebruikersnaam of e-mailadres.",
     "language": {
       "de": "Deutsch",
       "en": "English",
@@ -812,6 +812,14 @@
       "fr": "Français",
       "nl": "Nederlands",
       "success": "Jouw taal werd succesvol veranderd."
+    },
+    "menu": {
+      "account": "Mijn rekening",
+      "appearance": "Vormgeving",
+      "communities-note": "(vervalt later)",
+      "gradido-card": "Visitekaartje",
+      "notifications": "Berichten",
+      "visibility": "Zichtbaarheid"
     },
     "name": {
       "change-success": "Jouw naam werd succesvol veranderd.",
@@ -906,7 +914,6 @@
   "submitted": "Ingediend",
   "success": "Succes",
   "thank-you-card": {
-    "back-to-account": "Terug naar de rekening",
     "back-to-calculator": "Terug naar de rekenmachine",
     "name": "Dankkaart",
     "receive": {

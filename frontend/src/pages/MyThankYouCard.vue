@@ -35,7 +35,11 @@
     <div v-else-if="answered" data-test="my-thank-you-card-none">
       <p v-if="settings" class="mt-3">{{ $t('my-codes.thank-you-card.no-card') }}</p>
       <p v-else class="mt-3">{{ $t('my-codes.thank-you-card.not-set-up') }}</p>
-      <BButton variant="gradido" to="/settings" data-test="my-thank-you-card-settings">
+      <BButton
+        variant="gradido"
+        to="/settings/thank-you-card"
+        data-test="my-thank-you-card-settings"
+      >
         {{ $t('my-codes.thank-you-card.to-settings') }}
       </BButton>
     </div>

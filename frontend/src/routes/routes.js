@@ -46,6 +46,66 @@ const matchingRoutes = CONFIG.MATCHING_ACTIVE
     ]
   : []
 
+const settingsRoutes = [
+  {
+    path: '/settings',
+    component: () => import('@/pages/settings/Index.vue'),
+    meta: { requiresAuth: true, settingsChrome: true },
+  },
+  {
+    path: '/settings/account',
+    component: () => import('@/pages/settings/Account.vue'),
+    meta: { requiresAuth: true, settingsChrome: true },
+  },
+  {
+    path: '/settings/appearance',
+    component: () => import('@/pages/settings/Appearance.vue'),
+    meta: { requiresAuth: true, settingsChrome: true },
+  },
+  {
+    path: '/settings/gradido-card',
+    component: () => import('@/pages/settings/GradidoCard.vue'),
+    meta: { requiresAuth: true, settingsChrome: true },
+  },
+  {
+    path: '/settings/thank-you-card',
+    component: () => import('@/pages/settings/ThankYouCard.vue'),
+    meta: { requiresAuth: true, settingsChrome: true },
+  },
+  {
+    path: '/settings/visibility',
+    component: () => import('@/pages/settings/Visibility.vue'),
+    meta: { requiresAuth: true, settingsChrome: true },
+  },
+  {
+    path: '/settings/notifications',
+    component: () => import('@/pages/settings/Notifications.vue'),
+    meta: { requiresAuth: true, settingsChrome: true },
+  },
+  // The area exists only where one of the two services is switched on -- otherwise the page
+  // would stand empty and still be reachable by typing the address. Same reason the matching
+  // routes above are not registered without their flag.
+  ...(CONFIG.GMS_ACTIVE || CONFIG.HUMHUB_ACTIVE
+    ? [
+        {
+          path: '/settings/communities',
+          component: () => import('@/pages/settings/Communities.vue'),
+          meta: { requiresAuth: true, settingsChrome: true },
+        },
+      ]
+    : []),
+  // The old address, and the only settings address that resolves in EVERY configuration --
+  // which is why the news entries point here rather than at the area itself. Where neither
+  // service is switched on the circles area is not registered at all, so a redirect straight
+  // to it would land on "not found"; before this rebuild the same link opened the settings.
+  {
+    path: '/settings/extern',
+    redirect: () => ({
+      path: CONFIG.GMS_ACTIVE || CONFIG.HUMHUB_ACTIVE ? '/settings/communities' : '/settings',
+    }),
+  },
+]
+
 const routes = [
   {
     path: '/authenticate',
@@ -206,14 +266,15 @@ const routes = [
   //     requiresAuth: true,
   //   },
   // },
-  {
-    path: '/settings/:tabAlias?',
-    component: () => import('@/pages/Settings'),
-    meta: {
-      requiresAuth: true,
-      pageTitle: 'settings',
-    },
-  },
+  // The settings are a room one enters and leaves, not one area beside the others: while
+  // a settings route is open, `settingsChrome` makes the layout column carry the settings
+  // menu instead of the main one, and the way back is the arrow at its top. Without that
+  // arrow the main menu would have to stay -- two menu columns side by side.
+  //
+  // ⛔ NO pageTitle on any of them. The breadcrumb heading would say "Settings" above a
+  // page that already names its section, and it costs a heading's height on the phone,
+  // which is the device the list is built for. (Bernd, 22.08.2026: the phone needs the room.)
+  ...settingsRoutes,
   {
     name: 'Login',
     path: '/login/:code?',

@@ -179,13 +179,15 @@ describe('MyThankYouCard', () => {
       expect(renderQrCodeCanvas).not.toHaveBeenCalled()
     })
 
-    // The way in stays open, so the way ON has to be there too.
-    it('offers the way to the settings', async () => {
+    // The way in stays open, so the way ON has to be there too -- and it leads to the card's
+    // own area, not to the front of the settings. It said /settings while the settings were
+    // one page; now that is the account section and this button would have landed there.
+    it('offers the way to the settings of this very card', async () => {
       const wrapper = mountPage()
       await answer({ settings: null, cards: [] })
 
       expect(wrapper.find('[data-test="my-thank-you-card-settings"]').attributes('href')).toBe(
-        '/settings',
+        '/settings/thank-you-card',
       )
     })
   })

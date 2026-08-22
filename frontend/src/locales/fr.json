@@ -17,7 +17,6 @@
     "desc": "Ensemble, nous nous soutenons mutuellement – avec attention, dans la culture des cercles.",
     "title": "Cercles Gradido"
   },
-  "PersonalDetails": "Informations personnelles",
   "advanced-calculation": "Calcul avancé",
   "answerNow": "→ Répondre maintenant!",
   "appOutdated": {
@@ -425,7 +424,7 @@
     "description": "À imprimer et à distribuer : ton nom, ta communauté, ton nom d’utilisateur, ton code QR et tes lignes de contact sur une carte au format d’une carte bancaire. Celui qui la reçoit peut t’envoyer des Gradido et te joindre.",
     "download": "Télécharger la carte de visite",
     "download-hint": "Une seule image en qualité d'impression — pour une imprimerie ou à transmettre.",
-    "needs-username": "Ta carte porte ton adresse Gradido, et cette adresse est formée à partir de ton nom d'utilisateur. Choisis-en un d'abord : le champ se trouve un peu plus haut sur cette page. Ensuite tu pourras imprimer ta carte et la donner.",
+    "needs-username": "Ta carte porte ton adresse Gradido, et cette adresse est formée à partir de ton nom d'utilisateur. Choisis-en un d'abord : le champ se trouve dans « Mon compte ». Ensuite tu pourras imprimer ta carte et la donner.",
     "needs-username-title": "D'abord le nom d'utilisateur",
     "sheet": "Planche de 10 cartes",
     "sheet-hint": "10 cartes de visite à taille réelle sur une page A4. Dans la fenêtre d’impression, tu peux aussi l’enregistrer en PDF.",
@@ -662,6 +661,8 @@
   },
   "navigation": {
     "admin_area": "Partie administrative",
+    "back-to-account": "Retour au compte",
+    "back-to-settings": "Retour à la configuration",
     "calculator": "Calculatrice",
     "community": "Communauté",
     "logout": "Déconnexion",
@@ -803,7 +804,6 @@
         "updated": "Format du nom pour la communauté Gradido mis à jour."
       }
     },
-    "info": "Les transactions peuvent désormais être effectuées par nom d'utilisateur ou adresse e-mail.",
     "language": {
       "de": "Deutsch",
       "en": "English",
@@ -812,6 +812,14 @@
       "fr": "Français",
       "nl": "Nederlands",
       "success": "Ta langue de préférence a bien été actualisée."
+    },
+    "menu": {
+      "account": "Mon compte",
+      "appearance": "Affichage",
+      "communities-note": "(sera supprimé plus tard)",
+      "gradido-card": "Carte de visite",
+      "notifications": "Messages",
+      "visibility": "Visibilité"
     },
     "name": {
       "change-success": "Ton nom a bien été changé.",
@@ -906,7 +914,6 @@
   "submitted": "Envoyé",
   "success": "Avec succès",
   "thank-you-card": {
-    "back-to-account": "Retour au compte",
     "back-to-calculator": "Retour à la calculatrice",
     "name": "Carte de remerciement",
     "receive": {

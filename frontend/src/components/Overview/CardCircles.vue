@@ -20,7 +20,7 @@
             >
               {{ $t('card-circles.allowed.button') }}
             </BButton>
-            <RouterLink v-else to="/settings/extern">
+            <RouterLink v-else to="/settings/communities">
               <BButton variant="gradido">
                 {{ $t('card-circles.not-allowed.button') }}
               </BButton>

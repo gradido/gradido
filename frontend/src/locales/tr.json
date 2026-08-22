@@ -17,7 +17,6 @@
     "desc": "Birlikte birbirimizi destekliyoruz – çember kültüründe özenle.",
     "title": "Gradido-Çemberleri"
   },
-  "PersonalDetails": "Kişisel bilgiler",
   "advanced-calculation": "Önceden hesaplama",
   "answerNow": "→ Şimdi yanıtla!",
   "appOutdated": {
@@ -425,7 +424,7 @@
     "description": "Yazdırmak ve dağıtmak için: adın, topluluğun, kullanıcı adın, QR kodun ve iletişim satırların banka kartı büyüklüğünde bir kartta. Kartı alan kişi sana Gradido gönderebilir ve sana ulaşabilir.",
     "download": "Kartviziti indir",
     "download-hint": "Baskı kalitesinde tek bir görsel — bir matbaa için veya birine vermek için.",
-    "needs-username": "Kartın Gradido adresini taşır ve bu adres kullanıcı adından oluşur. Lütfen önce bir tane seç — alan bu sayfanın biraz yukarısında. Sonra kartını yazdırıp verebilirsin.",
+    "needs-username": "Kartın Gradido adresini taşır ve bu adres kullanıcı adından oluşur. Lütfen önce bir tane seç — alan «Hesabım» bölümünde. Sonra kartını yazdırıp verebilirsin.",
     "needs-username-title": "Önce kullanıcı adı",
     "sheet": "10 kartlık sayfa",
     "sheet-hint": "Bir A4 sayfada orijinal boyutta 10 kartvizit. Yazdırma penceresinde PDF olarak da kaydedebilirsin.",
@@ -662,6 +661,8 @@
   },
   "navigation": {
     "admin_area": "Yönetici Alanı",
+    "back-to-account": "Hesaba dön",
+    "back-to-settings": "Ayarlara dön",
     "calculator": "Hesap makinesi",
     "community": "Topluluk",
     "logout": "Çıkış",
@@ -803,7 +804,6 @@
         "updated": "Gradido Topluluğu için isim biçimi güncellendi."
       }
     },
-    "info": "İşlemler artık kullanıcı adı veya e-posta adresiyle yapılabilir.",
     "language": {
       "de": "Deutsch",
       "en": "English",
@@ -812,6 +812,14 @@
       "fr": "Français",
       "nl": "Nederlands",
       "success": "Dil başarıyla güncellendi."
+    },
+    "menu": {
+      "account": "Hesabım",
+      "appearance": "Gösterim",
+      "communities-note": "(daha sonra kaldırılacak)",
+      "gradido-card": "Kartvizit",
+      "notifications": "Mesajlar",
+      "visibility": "Görünürlük"
     },
     "name": {
       "change-success": "Adın başarıyla değiştirildi.",
@@ -906,7 +914,6 @@
   "submitted": "Gönderildi",
   "success": "Başarılı",
   "thank-you-card": {
-    "back-to-account": "Hesaba dön",
     "back-to-calculator": "Hesap makinesine dön",
     "name": "Teşekkür kartı",
     "receive": {

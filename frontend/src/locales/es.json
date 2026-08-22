@@ -17,7 +17,6 @@
     "desc": "Juntos nos apoyamos mutuamente, con atención, en la cultura de los círculos.",
     "title": "Círculos Gradido"
   },
-  "PersonalDetails": "Datos personales",
   "advanced-calculation": "Proyección",
   "answerNow": "→ ¡Responde ahora!",
   "appOutdated": {
@@ -425,7 +424,7 @@
     "description": "Para imprimir y repartir: tu nombre, tu comunidad, tu nombre de usuario, tu código QR y tus líneas de contacto en una tarjeta del tamaño de una tarjeta bancaria. Quien la reciba podrá enviarte Gradido y ponerse en contacto contigo.",
     "download": "Descargar tarjeta de visita",
     "download-hint": "Una sola imagen en calidad de impresión — para una imprenta o para compartir.",
-    "needs-username": "Tu tarjeta lleva tu dirección Gradido, y esa dirección se forma con tu nombre de usuario. Elige uno primero: el campo está un poco más arriba en esta página. Después podrás imprimir tu tarjeta y entregarla.",
+    "needs-username": "Tu tarjeta lleva tu dirección Gradido, y esa dirección se forma con tu nombre de usuario. Elige uno primero: el campo está en «Mi cuenta». Después podrás imprimir tu tarjeta y entregarla.",
     "needs-username-title": "Primero el nombre de usuario",
     "sheet": "Hoja con 10 tarjetas",
     "sheet-hint": "10 tarjetas de visita a tamaño original en una página A4. En la ventana de impresión también puedes guardarla como PDF.",
@@ -662,6 +661,8 @@
   },
   "navigation": {
     "admin_area": "Área de administración",
+    "back-to-account": "Volver a la cuenta",
+    "back-to-settings": "Volver a la configuración",
     "calculator": "Calculadora",
     "community": "Comunidad",
     "logout": "Salir",
@@ -803,7 +804,6 @@
         "updated": "Formato del nombre para la comunidad Gradido actualizado."
       }
     },
-    "info": "Las transacciones ahora se pueden realizar mediante nombre de usuario o dirección de correo electrónico.",
     "language": {
       "de": "Deutsch",
       "en": "English",
@@ -812,6 +812,14 @@
       "fr": "Français",
       "nl": "Nederlands",
       "success": "Tu idioma ha sido cambiado con éxito."
+    },
+    "menu": {
+      "account": "Mi cuenta",
+      "appearance": "Visualización",
+      "communities-note": "(se eliminará más adelante)",
+      "gradido-card": "Tarjeta de visita",
+      "notifications": "Mensajes",
+      "visibility": "Visibilidad"
     },
     "name": {
       "change-success": "Tu nombre ha sido cambiado con éxito.",
@@ -906,7 +914,6 @@
   "submitted": "Enviado",
   "success": "Lo lograste",
   "thank-you-card": {
-    "back-to-account": "Volver a la cuenta",
     "back-to-calculator": "Volver a la calculadora",
     "name": "Tarjeta de agradecimiento",
     "receive": {

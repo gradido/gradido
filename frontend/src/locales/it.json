@@ -17,7 +17,6 @@
     "desc": "Insieme ci sosteniamo a vicenda, con attenzione, nella cultura dei circoli.",
     "title": "Circoli Gradido"
   },
-  "PersonalDetails": "Dati personali",
   "advanced-calculation": "Proiezione",
   "answerNow": "→ Rispondi ora!",
   "appOutdated": {
@@ -425,7 +424,7 @@
     "description": "Da stampare e distribuire: il tuo nome, la tua comunità, il tuo nome utente, il tuo codice QR e le tue righe di contatto su una tessera delle dimensioni di una carta bancaria. Chi la riceve può inviarti Gradido e mettersi in contatto con te.",
     "download": "Scarica il biglietto da visita",
     "download-hint": "Una singola immagine in qualità di stampa — per una tipografia o da consegnare.",
-    "needs-username": "La tua tessera porta il tuo indirizzo Gradido, e quell'indirizzo nasce dal tuo nome utente. Scegline uno prima: il campo si trova poco più in alto in questa pagina. Poi potrai stampare la tua tessera e consegnarla.",
+    "needs-username": "La tua tessera porta il tuo indirizzo Gradido, e quell'indirizzo nasce dal tuo nome utente. Scegline uno prima: il campo si trova in «Il mio conto». Poi potrai stampare la tua tessera e consegnarla.",
     "needs-username-title": "Prima il nome utente",
     "sheet": "Foglio con 10 tessere",
     "sheet-hint": "10 biglietti da visita a grandezza originale su una pagina A4. Nella finestra di stampa puoi anche salvarla come PDF.",
@@ -662,6 +661,8 @@
   },
   "navigation": {
     "admin_area": "Area amministrazione",
+    "back-to-account": "Torna al conto",
+    "back-to-settings": "Torna alle impostazioni",
     "calculator": "Calcolatrice",
     "community": "Comunità",
     "logout": "Esci",
@@ -803,7 +804,6 @@
         "updated": "Formato del nome per la comunità Gradido aggiornato."
       }
     },
-    "info": "Le transazioni ora possono essere effettuate tramite nome utente o indirizzo e-mail.",
     "language": {
       "de": "Deutsch",
       "en": "English",
@@ -812,6 +812,14 @@
       "fr": "Français",
       "nl": "Nederlands",
       "success": "La tua lingua è stata modificata con successo."
+    },
+    "menu": {
+      "account": "Il mio conto",
+      "appearance": "Visualizzazione",
+      "communities-note": "(verrà rimosso in seguito)",
+      "gradido-card": "Biglietto da visita",
+      "notifications": "Messaggi",
+      "visibility": "Visibilità"
     },
     "name": {
       "change-success": "Il tuo nome è stato modificato con successo.",
@@ -906,7 +914,6 @@
   "submitted": "Inviato",
   "success": "Successo",
   "thank-you-card": {
-    "back-to-account": "Torna al conto",
     "back-to-calculator": "Torna alla calcolatrice",
     "name": "Carta di ringraziamento",
     "receive": {

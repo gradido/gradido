@@ -17,7 +17,6 @@
     "desc": "Together we support each other - mindful in circle culture.",
     "title": "Gradido-circles"
   },
-  "PersonalDetails": "Personal details",
   "advanced-calculation": "Advanced calculation",
   "answerNow": "→ Reply now!",
   "appOutdated": {
@@ -425,7 +424,7 @@
     "description": "To print and hand out: your name, your community, your username, your QR code and your contact lines on a card the size of a bank card. Whoever receives it can send you Gradido — and reach you.",
     "download": "Download business card",
     "download-hint": "A single image in print quality — for a print shop or to pass on.",
-    "needs-username": "Your card carries your Gradido address, and that address is built from your user name. Please choose one first — the field is a little further up on this page. Then you can print your card and give it away.",
+    "needs-username": "Your card carries your Gradido address, and that address is built from your user name. Please choose one first — the field is under “My account”. Then you can print your card and give it away.",
     "needs-username-title": "A user name first",
     "sheet": "Sheet with 10 cards",
     "sheet-hint": "10 business cards at original size on one A4 page. In the print dialogue you can also save it as a PDF.",
@@ -662,6 +661,8 @@
   },
   "navigation": {
     "admin_area": "Admin Area",
+    "back-to-account": "Back to account",
+    "back-to-settings": "Back to settings",
     "calculator": "Calculator",
     "community": "Community",
     "logout": "Logout",
@@ -803,7 +804,6 @@
         "updated": "Format of name for the Gradido Community updated."
       }
     },
-    "info": "Transactions can now be made by username or email address.",
     "language": {
       "de": "Deutsch",
       "en": "English",
@@ -812,6 +812,14 @@
       "fr": "Français",
       "nl": "Nederlands",
       "success": "Your language has been successfully updated."
+    },
+    "menu": {
+      "account": "My account",
+      "appearance": "Display",
+      "communities-note": "(will be dropped later)",
+      "gradido-card": "Business card",
+      "notifications": "Messages",
+      "visibility": "Visibility"
     },
     "name": {
       "change-success": "Your name has been successfully changed.",
@@ -906,7 +914,6 @@
   "submitted": "Submitted",
   "success": "Success",
   "thank-you-card": {
-    "back-to-account": "Back to account",
     "back-to-calculator": "Back to the calculator",
     "name": "Thank you card",
     "receive": {
