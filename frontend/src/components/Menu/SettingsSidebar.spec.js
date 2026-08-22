@@ -37,7 +37,7 @@ describe('SettingsSidebar', () => {
     const wrapper = await mountMenu()
 
     expect(wrapper.find('[data-test="settings-menu-communities"]').exists()).toBe(false)
-    expect(wrapper.findAll('.sidebar-menu-item-wrapper')).toHaveLength(6)
+    expect(wrapper.findAll('[data-test^="settings-menu-"]')).toHaveLength(6)
   })
 
   it('shows the circles where one of them is', async () => {
@@ -46,7 +46,7 @@ describe('SettingsSidebar', () => {
     mockConfig.GMS_ACTIVE = false
 
     expect(wrapper.find('[data-test="settings-menu-communities"]').exists()).toBe(true)
-    expect(wrapper.findAll('.sidebar-menu-item-wrapper')).toHaveLength(7)
+    expect(wrapper.findAll('[data-test^="settings-menu-"]')).toHaveLength(7)
   })
 
   /**
@@ -61,6 +61,25 @@ describe('SettingsSidebar', () => {
 
     expect(back.exists()).toBe(true)
     expect(back.attributes('to')).toBe('/overview')
+  })
+
+  /**
+   * ⛔ The one item of the main menu that has to come along. This menu stands in the main
+   * one's place, so everything it offered is out of reach until one goes back -- fine for
+   * "overview", not fine for signing out. Found by the end-to-end test, which logs out from
+   * the settings page after changing a password, and looked for a menu that was not there.
+   */
+  it('brings signing out along', async () => {
+    const wrapper = await mountMenu()
+
+    expect(wrapper.find('[data-test="logout-menu"]').exists()).toBe(true)
+  })
+
+  it('asks the layout to sign out, rather than doing it itself', async () => {
+    const wrapper = await mountMenu()
+    await wrapper.find('[data-test="logout-menu"] a').trigger('click')
+
+    expect(wrapper.emitted('logout')).toHaveLength(1)
   })
 
   // /settings shows the account section on a wide screen, so its entry is the one to light.

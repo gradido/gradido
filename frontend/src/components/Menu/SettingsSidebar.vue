@@ -108,6 +108,24 @@
               </span>
             </div>
           </BNavItem>
+          <!-- ⛔ The one item of the main menu that has to come along. While a settings route
+               is open this menu stands in the main one's place, so everything it offered is out
+               of reach until one goes back -- acceptable for "overview" or "send", which are one
+               arrow away, and not acceptable for signing out. On a phone the drawer still has it;
+               on a wide screen this was the only copy. Found by the end-to-end test, which logs
+               out from the settings page after changing a password. -->
+          <hr class="m-3" />
+          <BNavItem
+            class="fw-bold"
+            active-class="active-route"
+            data-test="logout-menu"
+            @click="$emit('logout')"
+          >
+            <div class="sidebar-menu-item-wrapper">
+              <i-humbleicons-logout class="svg-icon logout-icon" />
+              <span class="ms-2 logout-text">{{ $t('navigation.logout') }}</span>
+            </div>
+          </BNavItem>
         </BNav>
       </div>
     </div>
@@ -120,6 +138,8 @@ import { BNav, BNavItem } from 'bootstrap-vue-next'
 defineProps({
   shadow: { type: Boolean, default: true },
 })
+
+defineEmits(['logout'])
 
 // Read once: the flags are baked in at build time, they cannot change while the app runs.
 const isCommunityService = CONFIG.GMS_ACTIVE || CONFIG.HUMHUB_ACTIVE
@@ -155,6 +175,11 @@ const isCommunityService = CONFIG.GMS_ACTIVE || CONFIG.HUMHUB_ACTIVE
   display: flex;
   align-items: flex-start;
   padding: 4px 12px;
+}
+
+.logout-text,
+.logout-icon {
+  color: #cd5556;
 }
 
 .svg-icon {

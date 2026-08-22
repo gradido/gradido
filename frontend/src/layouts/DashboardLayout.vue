@@ -75,7 +75,7 @@
              find the settings again, with no way back into the wallet. The drawer keeps
              the main menu; on a phone the list at /settings is the settings menu. -->
         <BCol cols="2" class="d-none d-lg-block">
-          <settings-sidebar v-if="settingsChrome" />
+          <settings-sidebar v-if="settingsChrome" @logout="logoutUser" />
           <sidebar
             v-else
             class="main-sidebar"

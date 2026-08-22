@@ -11,7 +11,11 @@ export class SideNavMenu {
   }
 
   logout() {
-    cy.get('.main-sidebar').find(this.logoutMenu).click()
+    // Scoped by what is VISIBLE, not by which menu it belongs to. There are two menus in the
+    // column now -- the main one and, while a settings route is open, the settings one -- and
+    // a third copy sits in the phone drawer. `.main-sidebar` named one of them, so signing out
+    // from the settings page found nothing.
+    cy.get(`${this.logoutMenu}:visible`).click()
     return this
   }
 }
