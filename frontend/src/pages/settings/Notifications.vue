@@ -20,11 +20,14 @@
 </template>
 <script setup>
 import SettingsSection from '@/components/UserSettings/SettingsSection.vue'
-import { ref } from 'vue'
+import { computed } from 'vue'
 import { useStore } from 'vuex'
 import UserNewsletter from '@/components/UserSettings/UserNewsletter.vue'
 import { BRow, BCol } from 'bootstrap-vue-next'
 
 const store = useStore()
-const newsletterState = ref(store.state.newsletterState)
+// Computed, not a ref taken once: the switch beside this line writes to the store, and a
+// snapshot would leave the sentence below it saying the opposite of the switch until the
+// next reload. (It was a snapshot on the old page too.)
+const newsletterState = computed(() => store.state.newsletterState)
 </script>

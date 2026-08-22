@@ -11,7 +11,7 @@
     </BRow>
 
     <hr />
-    <BForm>
+    <BForm @submit.prevent="onSubmit">
       <BRow class="mt-3">
         <BCol cols="12" md="6" lg="6">
           <label>{{ $t('form.firstname') }}</label>

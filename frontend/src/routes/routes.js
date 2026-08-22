@@ -94,11 +94,15 @@ const settingsRoutes = [
         },
       ]
     : []),
-  // The old address. Five entries in the news file and two cards on the overview still point
-  // here, and printed or mailed links keep arriving -- so it stays.
+  // The old address, and the only settings address that resolves in EVERY configuration --
+  // which is why the news entries point here rather than at the area itself. Where neither
+  // service is switched on the circles area is not registered at all, so a redirect straight
+  // to it would land on "not found"; before this rebuild the same link opened the settings.
   {
     path: '/settings/extern',
-    redirect: () => ({ path: '/settings/communities' }),
+    redirect: () => ({
+      path: CONFIG.GMS_ACTIVE || CONFIG.HUMHUB_ACTIVE ? '/settings/communities' : '/settings',
+    }),
   },
 ]
 
