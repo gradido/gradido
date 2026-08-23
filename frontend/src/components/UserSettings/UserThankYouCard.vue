@@ -336,6 +336,18 @@ const asAmount = (value) => asNumber(value).toString()
  * The receipt links here with `?block=<id>`. The link only navigates -- the login is the
  * authorisation, and the router guard has already required it by the time this runs. That
  * is why no public "block" door had to be opened for a mail button.
+ *
+ * ⛔ And it acts without asking, on purpose. This is the emergency brake on a payment
+ * credential: whoever reads a receipt for a payment they did not make wants the card dead
+ * now, not after a dialog. What makes that safe is not a question beforehand but the shape
+ * of the action -- `blockThankYouCard` resolves through `findOwnCard(cardId, user.id)`, so
+ * it can only ever reach the reader's own card; it says so with a toast; and the undo sits
+ * on this very page. Act, tell, offer the way back.
+ *
+ * Nor can anything but a real visit trigger it: the mutation needs the Vue app booted, the
+ * store restored and a Bearer token from it, so a mail client or link scanner fetching the
+ * URL gets nothing but `index.html`. The token is a header, not a cookie, so there is no
+ * cross-site request to forge either.
  */
 onMounted(() => {
   const wanted = Number(route.query.block)
