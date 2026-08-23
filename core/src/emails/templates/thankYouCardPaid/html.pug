@@ -11,7 +11,7 @@ block content
       br
       = t('emails.thankYouCardPaid.recipient', { recipientName, recipientCommunity })
       br
-      = t('emails.thankYouCardPaid.memo', { transactionMemo })
+      span.human-text= t('emails.thankYouCardPaid.memo', { transactionMemo })
       br
       = t('emails.thankYouCardPaid.paidWith', { cardLabel })
 
