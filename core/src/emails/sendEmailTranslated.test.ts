@@ -108,6 +108,22 @@ describe('sendEmailTranslated', () => {
           }),
         })
       })
+
+      // The header banner is a transparent png so that it reads the same in light
+      // and dark mode. `expect.any(Array)` above would still pass if the file, its
+      // mime type or the cid drifted back - and nothing else in the suite looks at
+      // an attachment, so this is the only place that holds them.
+      it('attaches the header banner as an inline png under the cid the template uses', () => {
+        const attachments = (
+          result as { originalMessage: { attachments: Array<Record<string, unknown>> } }
+        ).originalMessage.attachments
+        expect(attachments.find((a) => a.cid === 'gradidoheader')).toMatchObject({
+          filename: 'gradido-header.png',
+          contentType: 'image/png',
+          cid: 'gradidoheader',
+          contentDisposition: 'inline',
+        })
+      })
     })
 
     it('calls "i18n.setLocale" with "en"', async () => {
