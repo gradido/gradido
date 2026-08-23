@@ -111,6 +111,8 @@ vi.mock('@vue/apollo-composable', () => ({
 
 const SETTINGS = { maxPerPayment: 50, maxPerDay: 100 }
 const ACTIVE_CARD = { id: 7, label: 'Portemonnaie', code: 'DK-abc123', blockedAt: null }
+// A second one that works, for the case where the list moves on while the question stands.
+const OTHER_ACTIVE_CARD = { id: 9, label: 'Marktstand', code: 'DK-def456', blockedAt: null }
 const BLOCKED_CARD = {
   id: 3,
   label: 'Alte Karte',
@@ -208,14 +210,16 @@ describe('UserThankYouCard', () => {
               '</div>',
           },
           // AppModal teleports to body, so its content would leave the wrapper. The stub
-          // keeps the two things the tests care about: it shows while open, and its ok
-          // button is reachable.
+          // shows while open and renders BOTH slots.
+          // ⛔ The footer slot in particular: it used to render an invented ok button of its
+          // own instead, so the tests pressed something that does not ship while the real
+          // buttons were never mounted at all.
           AppModal: {
             props: ['modelValue', 'title', 'okOnly'],
             emits: ['update:modelValue', 'on-ok'],
             template:
               '<div v-if="modelValue" class="app-modal-stub"><slot />' +
-              '<button data-test="app-modal-ok" @click="$emit(\'on-ok\')">ok</button></div>',
+              '<slot name="footer" /></div>',
           },
         },
       },
@@ -521,7 +525,7 @@ describe('UserThankYouCard', () => {
     it('blocks the card that works, by its own id, once it is confirmed', async () => {
       await mountWith()
       await field('block').trigger('click')
-      await wrapper.find('[data-test="app-modal-ok"]').trigger('click')
+      await wrapper.find('[data-test="thank-you-card-block-ok"]').trigger('click')
       await flushPromises()
 
       expect(mockBlockCard).toHaveBeenCalledWith({ cardId: ACTIVE_CARD.id })
@@ -545,24 +549,23 @@ describe('UserThankYouCard', () => {
       expect(wrapper.text()).toContain('thank-you-card.settings.unblock-needs-no-active')
     })
 
-    // Blocked cards are kept rather than deleted, so an old card can still say what happened
-    // to it instead of turning into an unknown code.
     // The dialogue can outlive the card it asks about: every action here reloads the list,
-    // and the receipt's own link can block it while the question is on screen. Without the
-    // guard the click throws and the dialogue closes as if it had worked.
-    it('does nothing when the card is gone by the time the question is answered', async () => {
+    // and the receipt's own link can arrive while the question is on screen. The answer has
+    // to land on the card the question NAMED — reading `activeCard` again at that point
+    // would block whatever is active by then, which is a different card.
+    it('blocks the card it asked about, not whichever one is active by then', async () => {
       await mountWith()
       await field('block').trigger('click')
 
-      onCardsResult({ data: { thankYouCards: [BLOCKED_CARD] } })
+      onCardsResult({ data: { thankYouCards: [BLOCKED_CARD, OTHER_ACTIVE_CARD] } })
       await flushPromises()
-      await wrapper.find('[data-test="app-modal-ok"]').trigger('click')
+      await wrapper.find('[data-test="thank-you-card-block-ok"]').trigger('click')
       await flushPromises()
 
-      // ⛔ Both halves. Without the guard nothing is blocked EITHER — because the handler
-      // throws on the way, which Vue swallows. Only the second assertion tells the two
-      // apart, and the first alone would have been green for the wrong reason.
-      expect(mockBlockCard).not.toHaveBeenCalled()
+      // ⛔ Both halves: the right card, and no throw on the way. Reading the active card at
+      // confirm time would satisfy neither — it would block OTHER_ACTIVE_CARD, and where
+      // there is none it would throw, which Vue swallows into a green test.
+      expect(mockBlockCard).toHaveBeenCalledWith({ cardId: ACTIVE_CARD.id })
       expect(handlerErrors).toHaveLength(0)
     })
 
@@ -584,17 +587,52 @@ describe('UserThankYouCard', () => {
     // ⛔ The receipt mail links here with ?block=<id>. It is the whole reason the receipt is
     // part of the security model rather than a courtesy: noticing and blocking is what turns
     // a daily cap into a cap for good.
-    it('blocks the card the receipt points at, without anybody pressing anything', async () => {
+    //
+    // ⛔ It ASKS. The link can be months old, opened out of a history entry or forwarded by
+    // somebody else, and blocking reaches out of this page: the card in a wallet stops
+    // working. So the wish goes through the same question the button does.
+    it('asks about the card the receipt points at instead of blocking it', async () => {
       routeQuery = { block: '7' }
       await mountWith()
+
+      expect(wrapper.find('[data-test="thank-you-card-block-confirm"]').exists()).toBe(true)
+      expect(mockBlockCard).not.toHaveBeenCalled()
+    })
+
+    it('blocks the card the receipt points at once it is confirmed', async () => {
+      routeQuery = { block: '7' }
+      await mountWith()
+      await wrapper.find('[data-test="thank-you-card-block-ok"]').trigger('click')
+      await flushPromises()
 
       expect(mockBlockCard).toHaveBeenCalledWith({ cardId: 7 })
     })
 
+    // The question has to say WHICH card, or it is no question at all - the reader gets it
+    // out of a mail and cannot see the list behind it.
+    it('names the card it is asking about', async () => {
+      routeQuery = { block: '7' }
+      await mountWith()
+
+      expect(wrapper.find('[data-test="thank-you-card-block-card"]').text()).toContain(
+        'Portemonnaie',
+      )
+    })
+
+    it('leaves the card alone when the question is answered with no', async () => {
+      routeQuery = { block: '7' }
+      await mountWith()
+      await wrapper.find('[data-test="thank-you-card-block-cancel"]').trigger('click')
+      await flushPromises()
+
+      expect(mockBlockCard).not.toHaveBeenCalled()
+      expect(wrapper.find('[data-test="thank-you-card-block-confirm"]').exists()).toBe(false)
+    })
+
     // ⛔ An instruction, not a description of the page — so it must not survive being acted
     // on. Left standing it fires again on every reload and every visit through the history,
-    // and after the card has been deliberately unblocked a reload would block it a second
-    // time, with nothing on the screen connecting the two.
+    // and after the card has been deliberately unblocked a reload would ask a second time,
+    // with nothing on the screen connecting the two.
     it('takes the wish out of the address once it has been acted on', async () => {
       routeQuery = { block: '7' }
       await mountWith()

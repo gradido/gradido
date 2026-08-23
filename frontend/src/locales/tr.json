@@ -937,6 +937,7 @@
     "settings": {
       "block": "Kartı blokla",
       "block-confirm": "Bundan sonra bu kartla teşekkür edilemez. Başka bir kart etkin olmadığı sürece daha sonra blokeyi kaldırabilirsin.",
+      "block-confirm-card": "Teşekkür kartı: {label}",
       "block-confirm-title": "Kart bloklansın mı?",
       "blocked": "Kart bloklu.",
       "blocked-on": "{date} tarihinde bloklandı",

@@ -16,7 +16,10 @@
             {{ $t('form.ok') }}
           </BButton>
           <slot v-else name="footer">
-            <BButton @click="closeModal">{{ $('form.close') }}</BButton>
+            <!-- $t, not $. `$` is nothing in a template, so this branch threw the moment
+                 it rendered - which it never did: both users so far pass their own footer,
+                 and this delivery adds the third. -->
+            <BButton @click="closeModal">{{ $t('form.close') }}</BButton>
           </slot>
         </div>
       </div>

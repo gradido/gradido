@@ -65,7 +65,7 @@
             variant="danger"
             :disabled="busy"
             data-test="thank-you-card-block"
-            @click="showBlockConfirm = true"
+            @click="pendingBlockId = activeCard.id"
           >
             {{ $t('thank-you-card.settings.block') }}
           </BButton>
@@ -128,21 +128,38 @@
     </div>
 
     <!--
-      ⛔ Only the BUTTON asks. The link out of the receipt mail (`?block=<id>`) blocks without
-      a question and must keep doing so: it is the emergency path, pressed by somebody who has
-      just read that their card paid for something they did not buy. A dialogue there would
-      put one more click between them and stopping it.
+      Both ways in ask, and both ask about a NAMED card: the button means the one that works,
+      the receipt link names the one that was paid with -- which may since have been replaced.
+      That is why the dialogue holds an id rather than a flag.
+
+      ⚠️ Its own footer, not `ok-only`. A dialogue that opens because somebody followed a link
+      needs a way of saying no, and `ok-only` renders an OK and nothing else. The buttons also
+      say what they do: an "Ok" under a question is only half an answer.
     -->
     <AppModal
-      :model-value="showBlockConfirm"
-      ok-only
+      :model-value="pendingBlockId !== null"
       :title="$t('thank-you-card.settings.block-confirm-title')"
-      @update:model-value="showBlockConfirm = $event"
-      @on-ok="confirmBlock"
+      @update:model-value="pendingBlockId = null"
     >
+      <p v-if="pendingBlockLabel" class="fw-bold mb-2" data-test="thank-you-card-block-card">
+        {{ $t('thank-you-card.settings.block-confirm-card', { label: pendingBlockLabel }) }}
+      </p>
       <p class="mb-0" data-test="thank-you-card-block-confirm">
         {{ $t('thank-you-card.settings.block-confirm') }}
       </p>
+      <template #footer>
+        <BButton data-test="thank-you-card-block-cancel" @click="pendingBlockId = null">
+          {{ $t('form.cancel') }}
+        </BButton>
+        <BButton
+          variant="danger"
+          :disabled="busy"
+          data-test="thank-you-card-block-ok"
+          @click="confirmBlock"
+        >
+          {{ $t('thank-you-card.settings.block') }}
+        </BButton>
+      </template>
     </AppModal>
 
     <!--
@@ -279,7 +296,11 @@ const { toastError, toastSuccess } = useAppToast()
 const settings = ref(null)
 const cards = ref([])
 const showSetup = ref(false)
-const showBlockConfirm = ref(false)
+// null while nothing is being asked. It holds an ID rather than a flag because the two ways
+// in name different cards, and because the answer must land on the card the question named:
+// reading `activeCard` again at confirm time would block whatever is active by then, which
+// after a reload in the meantime need not be the same card.
+const pendingBlockId = ref(null)
 const showPin = ref(false)
 const newPin = ref('')
 const newLabel = ref('')
@@ -289,6 +310,12 @@ const busy = ref(false)
 
 const activeCard = computed(() => cards.value.find((card) => !card.blockedAt) ?? null)
 const blockedCards = computed(() => cards.value.filter((card) => card.blockedAt))
+// Empty until the list arrives, which at mount it has not: the receipt's link opens the
+// question before the query answers, so the name appears a moment later. Better late than
+// asked about a card the reader cannot identify.
+const pendingBlockLabel = computed(
+  () => cards.value.find((card) => card.id === pendingBlockId.value)?.label ?? '',
+)
 
 const { refetch: refetchSettings, onResult: onSettings } = useQuery(
   thankYouCardSettings,
@@ -337,22 +364,25 @@ const asAmount = (value) => asNumber(value).toString()
  * authorisation, and the router guard has already required it by the time this runs. That
  * is why no public "block" door had to be opened for a mail button.
  *
- * ⛔ And it acts without asking, on purpose. This is the emergency brake on a payment
- * credential: whoever reads a receipt for a payment they did not make wants the card dead
- * now, not after a dialog. What makes that safe is not a question beforehand but the shape
- * of the action -- `blockThankYouCard` resolves through `findOwnCard(cardId, user.id)`, so
- * it can only ever reach the reader's own card; it says so with a toast; and the undo sits
- * on this very page. Act, tell, offer the way back.
+ * ⛔ It opens the question, it does not block. The link may be months old, it may be opened
+ * from a history entry or forwarded by somebody else, and blocking a card is the one action
+ * here that reaches out of this page -- the card in a wallet stops working. So the wish out
+ * of the address goes through the same dialogue the button does, naming the card, with a way
+ * of saying no.
  *
- * Nor can anything but a real visit trigger it: the mutation needs the Vue app booted, the
- * store restored and a Bearer token from it, so a mail client or link scanner fetching the
- * URL gets nothing but `index.html`. The token is a header, not a cookie, so there is no
- * cross-site request to forge either.
+ * ⚠️ That costs the emergency path one click, and the click is the point: whoever did NOT
+ * mean it gets to stop, and whoever did mean it sees which card they are killing. The undo
+ * on this page stays the second net, not the first.
+ *
+ * (What the question does not have to guard against is a machine following the link. The
+ * mutation needs the Vue app booted, the store restored and a Bearer token out of it, so a
+ * mail client or link scanner fetching the URL gets `index.html` and nothing happens; the
+ * token is a header, not a cookie, so there is no cross-site request to forge either.)
  */
 onMounted(() => {
   const wanted = Number(route.query.block)
   if (Number.isFinite(wanted) && wanted > 0) {
-    blockById(wanted)
+    pendingBlockId.value = wanted
     // ⛔ And the wish is taken out of the address, at once. It is an INSTRUCTION, not a
     // description of the page, so it must not survive being acted on: left standing, it
     // fires again on every reload and every visit through the history — and once the card
@@ -421,15 +451,19 @@ const unblockById = (cardId) =>
   run(() => unblockCard({ cardId }), t('thank-you-card.settings.unblocked'))
 
 const confirmBlock = () => {
-  showBlockConfirm.value = false
-  // The dialogue can outlive the card it asks about — every action here reloads the list,
-  // and the receipt's own link can block it while this is open. Same guard `download` and
-  // `printSheet` carry: without it the click throws and the dialogue closes as if it had
-  // worked.
-  if (!activeCard.value) {
+  const wanted = pendingBlockId.value
+  pendingBlockId.value = null
+  // Belt and braces: the dialogue cannot be open without an id, so this only fires if
+  // something else has cleared it in between.
+  if (wanted === null) {
     return
   }
-  blockById(activeCard.value.id)
+  // The id the question named, not `activeCard` read again here. The list reloads after
+  // every action and the receipt's own link can arrive while this stands open, so the two
+  // need not still be the same card -- and answering "yes" to one question must not block
+  // a different card. If it has been blocked in the meantime the server says so, which is
+  // an honest answer; silently doing nothing after somebody pressed the red button is not.
+  blockById(wanted)
 }
 
 /**
