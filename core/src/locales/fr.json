@@ -127,9 +127,9 @@
     },
     "thankYouCardPaid": {
       "blockCard": "Bloquer la carte",
+      "card": "Carte : {cardLabel}",
       "memo": "Motif : {transactionMemo}",
       "notYou": "Ce n’était pas vous ? Bloquez votre carte ici même : elle cesse de fonctionner, votre adresse Gradido reste.",
-      "paidWith": "Payé avec : carte « {cardLabel} »",
       "recipient": "Destinataire : {recipientName} ({recipientCommunity})",
       "subject": "Vous avez transmis {amountGDD} GDD avec votre carte de remerciement",
       "title": "{amountGDD} GDD ont été transmis avec votre carte de remerciement",

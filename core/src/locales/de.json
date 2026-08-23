@@ -127,9 +127,9 @@
     },
     "thankYouCardPaid": {
       "blockCard": "Karte sperren",
+      "card": "Karte: {cardLabel}",
       "memo": "Verwendungszweck: {transactionMemo}",
       "notYou": "Das warst Du nicht? Dann sperre Deine Karte gleich hier — sie funktioniert danach nicht mehr, Deine Gradido-Adresse bleibt bestehen.",
-      "paidWith": "Bezahlt mit: Karte „{cardLabel}“",
       "recipient": "Empfänger: {recipientName} ({recipientCommunity})",
       "subject": "Du hast mit Deiner Dank-Karte {amountGDD} GDD weitergegeben",
       "title": "Mit Deiner Dank-Karte wurden {amountGDD} GDD weitergegeben",
