@@ -22,10 +22,10 @@
       "readMessage": "Nachricht lesen und beantworten",
       "subject": "Nachricht zu deinem Gemeinwohl-Beitrag",
       "title": "Nachricht zu deinem Gemeinwohl-Beitrag",
-      "toSeeAndAnswerMessage": "Um auf die Nachricht zu antworten, gehe in deinem Gradido-Konto ins Menü „Schöpfen“ auf den Tab „Meine Beiträge“."
+      "toSeeAndAnswerMessage": "Antworten kannst du direkt bei deinem Beitrag."
     },
     "contribution": {
-      "toSeeContributionsAndMessages": "Um deine Gemeinwohl-Beiträge und dazugehörige Nachrichten zu sehen, gehe in deinem Gradido-Konto ins Menü „Schöpfen“ auf den Tab „Meine Beiträge“."
+      "toSeeContributionsAndMessages": "Deine Gemeinwohl-Beiträge und die Nachrichten dazu findest du in deinem Gradido-Konto."
     },
     "contributionChangedByModerator": {
       "subject": "Dein Gemeinwohl-Beitrag wurde geändert",
@@ -104,6 +104,7 @@
       "contribution": "Gemeinwohl-Beitrag: {contributionMemo}",
       "contributionDetails": "Beitragsdetails",
       "detailsYouFindOnLinkToYourAccount": "Details zur Transaktion findest du in deinem Gradido-Konto.",
+      "doNotAnswer": "automatische Nachricht",
       "helloName": "Hallo {firstName} {lastName},",
       "linkValidity": "Der Link hat eine Gültigkeit von {hours} Stunden.\nSollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen.",
       "linkValidityWithMinutes": "Der Link hat eine Gültigkeit von {hours} Stunden und {minutes} Minuten.\nSollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen.",
@@ -115,6 +116,7 @@
       "reset": "zurücksetzen",
       "sincerelyYours": "Liebe Grüße",
       "toAccount": "Zum Konto",
+      "toContribution": "Zum Beitrag",
       "transactionDetails": "Transaktionsdetails",
       "yourGradidoTeam": "dein Gradido-Team"
     },
@@ -141,8 +143,7 @@
       "title": "{senderFirstName} {senderLastName} hat deinen Gradido-Link eingelöst"
     },
     "transactionReceived": {
-      "haveReceivedAmountGDDFrom": "du hast soeben {transactionAmount} GDD erhalten von {senderFirstName} {senderLastName}",
-      "replySubject": "Re: {senderFirstName} {senderLastName} hat dir {transactionAmount} Gradido gesendet",
+      "haveReceivedAmountGDDFrom": "du hast soeben {transactionAmount} GDD erhalten von {senderFirstName} {senderLastName}.",
       "subject": "{senderFirstName} {senderLastName} hat dir {transactionAmount} Gradido gesendet",
       "title": "{senderFirstName} {senderLastName} hat dir {transactionAmount} Gradido gesendet"
     }

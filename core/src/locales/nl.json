@@ -22,10 +22,10 @@
       "readMessage": "Bericht lezen en beantwoorden",
       "subject": "Bericht over je bijdrage aan het algemeen welzijn",
       "title": "Bericht over je bijdrage aan het algemeen welzijn",
-      "toSeeAndAnswerMessage": "Om het bericht te beantwoorden, ga je in je Gradido-account naar het menu ‘Creëren’ en klik je op het tabblad ‘Mijn bijdragen’."
+      "toSeeAndAnswerMessage": "Je kunt direct bij je bijdrage antwoorden."
     },
     "contribution": {
-      "toSeeContributionsAndMessages": "Om je bijdragen aan het algemeen welzijn en de bijbehorende berichten te zien, ga je in je Gradido-account naar het menu ‘Creëren’ en klik je op het tabblad ‘Mijn bijdragen’."
+      "toSeeContributionsAndMessages": "Je vindt je bijdragen aan het algemeen welzijn en de bijbehorende berichten in je Gradido-account."
     },
     "contributionChangedByModerator": {
       "subject": "Je bijdrage aan het algemeen welzijn is gewijzigd",
@@ -104,6 +104,7 @@
       "contribution": "Bijdrage aan het algemeen welzijn: {contributionMemo}",
       "contributionDetails": "Details van de bijdrage",
       "detailsYouFindOnLinkToYourAccount": "De details van de transactie vind je in je Gradido-account.",
+      "doNotAnswer": "automatisch bericht",
       "helloName": "Hallo {firstName} {lastName},",
       "linkValidity": "De link is {hours} uur geldig.\nAls de geldigheid van de link al verlopen is, kun je hier een nieuwe link laten toesturen.",
       "linkValidityWithMinutes": "De link is {hours} uur en {minutes} minuten geldig.\nAls de geldigheid van de link al verlopen is, kun je hier een nieuwe link laten toesturen.",
@@ -115,6 +116,7 @@
       "reset": "resetten",
       "sincerelyYours": "Hartelijke groet,",
       "toAccount": "Naar het account",
+      "toContribution": "Naar de bijdrage",
       "transactionDetails": "Transactiedetails",
       "yourGradidoTeam": "je Gradido-team"
     },
@@ -141,8 +143,7 @@
       "title": "{senderFirstName} {senderLastName} heeft je Gradido-link ingewisseld"
     },
     "transactionReceived": {
-      "haveReceivedAmountGDDFrom": "je hebt zojuist {transactionAmount} GDD ontvangen van {senderFirstName} {senderLastName}",
-      "replySubject": "RE: {senderFirstName} {senderLastName} heeft je {transactionAmount} Gradido gestuurd",
+      "haveReceivedAmountGDDFrom": "je hebt zojuist {transactionAmount} GDD ontvangen van {senderFirstName} {senderLastName}.",
       "subject": "{senderFirstName} {senderLastName} heeft je {transactionAmount} Gradido gestuurd",
       "title": "{senderFirstName} {senderLastName} heeft je {transactionAmount} Gradido gestuurd"
     }

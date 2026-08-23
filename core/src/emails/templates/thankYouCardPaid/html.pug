@@ -18,6 +18,9 @@ block content
     a.button-3(href=`${communityURL}/transactions`) #{t('emails.general.toAccount')}
 
     p= t('emails.thankYouCardPaid.notYou')
-    a.button-3(href=`${communityURL}/settings?block=${cardId}`) #{t('emails.thankYouCardPaid.blockCard')}
+    //- The settings area was split into one address per section, so /settings now shows
+        "my account" and the card section moved to its own route - the ?block= wish is
+        read there and nowhere else. Red, because blocking cannot be taken back here.
+    a.button-6(href=`${communityURL}/settings/thank-you-card?block=${cardId}`) #{t('emails.thankYouCardPaid.blockCard')}
 
     include ../includes/doNotReply.pug

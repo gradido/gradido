@@ -10,7 +10,13 @@ block content
     div(class="p_content")
       p= t('emails.addedContributionMessage.message', { message })
       p= t('emails.addedContributionMessage.toSeeAndAnswerMessage')
+    //- Green leads where the answer belongs, and for a moderator's question that is
+        the contribution itself, not the send form - the thread hangs on the entry.
+    .child-right
+      a.button-5(href=`${contributionFrontendLink}`)
+        include ../includes/chatbox-icon.pug
+        span #{t('emails.general.answerNow')}
 
-    a.button-3(href=`${contributionFrontendLink}`) #{t('emails.general.toAccount')}
+  a.button-3(href=`${communityURL}/transactions`) #{t('emails.general.toAccount')}
 
-    include ../includes/doNotReply.pug
+  include ../includes/doNotReply.pug
