@@ -65,8 +65,11 @@ describe('router', () => {
         expect(scrollBehavior({}, {}, savedPosition)).toEqual(savedPosition)
       })
 
-      it('returns selector when hash is given', () => {
-        expect(scrollBehavior({ hash: '#to' }, {})).toEqual({ selector: '#to' })
+      // `el`, the vue-router 4 key. This test used to assert `selector`, which is the
+      // vue-router 3 key and was therefore ignored - the test held the defect in place
+      // by writing down what it found instead of what should hold.
+      it('returns the element to scroll to when hash is given', () => {
+        expect(scrollBehavior({ hash: '#to' }, {})).toEqual({ el: '#to' })
       })
 
       it('returns top left coordinates as default', () => {

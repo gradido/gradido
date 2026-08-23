@@ -11,7 +11,12 @@ const router = createRouter({
       return savedPosition
     }
     if (to.hash) {
-      return { selector: to.hash }
+      // `el`, not `selector`: `selector` is the vue-router 3 spelling and this is 4, so
+      // the option was silently ignored and no page ever scrolled to its anchor. The
+      // contribution list does not notice because it scrolls itself once its data is
+      // in - which is also why this alone cannot replace that: an anchor can only be
+      // reached after the element behind it exists.
+      return { el: to.hash }
     }
     return { left: 0, top: 0 }
   },

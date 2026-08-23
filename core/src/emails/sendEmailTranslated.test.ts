@@ -100,7 +100,7 @@ describe('sendEmailTranslated', () => {
           originalMessage: expect.objectContaining({
             to: 'receiver@mail.org',
             cc: 'support@gradido.net',
-            from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
+            from: 'Gradido (automated message) <info@gradido.net>',
             attachments: expect.any(Array),
             subject: 'Try To Register Again With Your Email',
             html: expect.stringContaining('Try To Register Again With Your Email'),
@@ -157,7 +157,7 @@ describe('sendEmailTranslated', () => {
         originalMessage: expect.objectContaining({
           to: CONFIG.EMAIL_TEST_RECEIVER,
           cc: 'support@gradido.net',
-          from: `Gradido (emails.general.doNotAnswer) <${CONFIG.EMAIL_SENDER}>`,
+          from: `Gradido (automated message) <${CONFIG.EMAIL_SENDER}>`,
           attachments: expect.any(Array),
           subject: 'Try To Register Again With Your Email',
           html: expect.stringContaining('Try To Register Again With Your Email'),
