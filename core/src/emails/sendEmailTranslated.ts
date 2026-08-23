@@ -7,7 +7,7 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import { i18n } from '../locales/localization'
 import chatboxIcon from './templates/includes/chatbox-icon.png'
 import facebookIcon from './templates/includes/facebook-icon.png'
-import gradidoHeader from './templates/includes/gradido-header.jpeg'
+import gradidoHeader from './templates/includes/gradido-header.png'
 import telegramIcon from './templates/includes/telegram-icon.png'
 import twitterIcon from './templates/includes/twitter-icon.png'
 import youtubeIcon from './templates/includes/youtube-icon.png'
@@ -79,10 +79,10 @@ export const sendEmailTranslated = async ({
         ...receiver,
         attachments: [
           {
-            filename: 'gradido-header.jpeg',
+            filename: 'gradido-header.png',
             content: gradidoHeader,
             cid: 'gradidoheader',
-            contentType: 'image/jpeg',
+            contentType: 'image/png',
             contentDisposition: 'inline',
           },
           {
