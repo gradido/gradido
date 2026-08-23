@@ -96,7 +96,7 @@ describe('sendEmailVariants', () => {
         expect(resultClone).toMatchObject({
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
+            from: 'Gradido (automated message) <info@gradido.net>',
             attachments: expect.any(Array),
             subject: 'Message about your common good contribution',
             html: expect.any(String),
@@ -151,7 +151,7 @@ describe('sendEmailVariants', () => {
         expect(resultClone).toMatchObject({
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
+            from: 'Gradido (automated message) <info@gradido.net>',
             attachments: expect.any(Array),
             subject: 'Email Verification',
             html: expect.any(String),
@@ -201,7 +201,7 @@ describe('sendEmailVariants', () => {
           expect(resultClone).toMatchObject({
             originalMessage: expect.objectContaining({
               to: 'Peter Lustig <peter@lustig.de>',
-              from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
+              from: 'Gradido (automated message) <info@gradido.net>',
               attachments: expect.any(Array),
               subject: 'Try To Register Again With Your Email',
               html: expect.any(String),
@@ -261,7 +261,7 @@ describe('sendEmailVariants', () => {
         expect(resultClone).toMatchObject({
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
+            from: 'Gradido (automated message) <info@gradido.net>',
             attachments: expect.any(Array),
             subject: 'Your contribution to the common good was confirmed',
             html: expect.any(String),
@@ -320,7 +320,7 @@ describe('sendEmailVariants', () => {
         expect(resultClone).toMatchObject({
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
+            from: 'Gradido (automated message) <info@gradido.net>',
             attachments: expect.any(Array),
             subject: 'Your common good contribution has been changed',
             html: expect.any(String),
@@ -377,7 +377,7 @@ describe('sendEmailVariants', () => {
         expect(resultClone).toMatchObject({
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
+            from: 'Gradido (automated message) <info@gradido.net>',
             attachments: expect.any(Array),
             subject: 'Your common good contribution was rejected',
             html: expect.any(String),
@@ -434,7 +434,7 @@ describe('sendEmailVariants', () => {
         expect(resultClone).toMatchObject({
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
+            from: 'Gradido (automated message) <info@gradido.net>',
             attachments: expect.any(Array),
             subject: 'Your common good contribution was deleted',
             html: expect.any(String),
@@ -489,7 +489,7 @@ describe('sendEmailVariants', () => {
         expect(resultClone).toMatchObject({
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
+            from: 'Gradido (automated message) <info@gradido.net>',
             attachments: expect.any(Array),
             subject: 'Reset password',
             html: expect.any(String),
@@ -549,7 +549,7 @@ describe('sendEmailVariants', () => {
         expect(resultClone).toMatchObject({
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
+            from: 'Gradido (automated message) <info@gradido.net>',
             attachments: expect.any(Array),
             subject: 'Bibi Bloxberg has redeemed your Gradido link',
             html: expect.any(String),
@@ -574,7 +574,8 @@ describe('sendEmailVariants', () => {
         memo: 'Du bist schon lustiger ;)',
         senderFirstName: 'Bibi',
         senderLastName: 'Bloxberg',
-        senderEmail: 'bibi@bloxberg.de',
+        senderUuid: '3f9a1e2c-1111-4a2b-9c3d-000000000001',
+        senderCommunityUuid: 'aaaa1111-2222-4333-8444-555566667777',
         transactionAmount: GradidoUnit.fromNumber(37.4),
       })
     })
@@ -593,7 +594,8 @@ describe('sendEmailVariants', () => {
             memo: 'Du bist schon lustiger ;)',
             senderFirstName: 'Bibi',
             senderLastName: 'Bloxberg',
-            senderEmail: 'bibi@bloxberg.de',
+            senderUuid: '3f9a1e2c-1111-4a2b-9c3d-000000000001',
+            senderCommunityUuid: 'aaaa1111-2222-4333-8444-555566667777',
             transactionAmount: '37.40',
             supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,
             communityURL: CONFIG.COMMUNITY_URL,
@@ -609,7 +611,7 @@ describe('sendEmailVariants', () => {
         expect(resultClone).toMatchObject({
           originalMessage: expect.objectContaining({
             to: 'Peter Lustig <peter@lustig.de>',
-            from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
+            from: 'Gradido (automated message) <info@gradido.net>',
             attachments: expect.any(Array),
             subject: 'Bibi Bloxberg has sent you 37.40 Gradido',
             html: expect.any(String),

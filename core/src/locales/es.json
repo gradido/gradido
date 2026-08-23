@@ -22,10 +22,10 @@
       "readMessage": "Leer y responder al mensaje",
       "subject": "Mensaje sobre tu contribución al bien común",
       "title": "Mensaje sobre tu contribución al bien común",
-      "toSeeAndAnswerMessage": "Para responder al mensaje, ve al menú «Crear» de tu cuenta de Gradido y haz clic en la pestaña «Mis contribuciones»."
+      "toSeeAndAnswerMessage": "Puedes responder directamente en tu contribución."
     },
     "contribution": {
-      "toSeeContributionsAndMessages": "Para ver tus contribuciones al bien común y los mensajes relacionados, ve al menú «Crear» de tu cuenta de Gradido y haz clic en la pestaña «Mis contribuciones»."
+      "toSeeContributionsAndMessages": "Encontrarás tus contribuciones al bien común y los mensajes relacionados en tu cuenta de Gradido."
     },
     "contributionChangedByModerator": {
       "subject": "Tu contribución al bien común ha sido modificada",
@@ -104,6 +104,7 @@
       "contribution": "Contribución al bien común: {contributionMemo}",
       "contributionDetails": "Detalles de la contribución",
       "detailsYouFindOnLinkToYourAccount": "Encontrarás los detalles de la transacción en tu cuenta de Gradido.",
+      "doNotAnswer": "mensaje automático",
       "helloName": "Hola {firstName} {lastName},",
       "linkValidity": "El enlace tiene una validez de {hours} horas.\nSi la validez del enlace ya ha expirado, aquí puedes solicitar que se te envíe un nuevo enlace.",
       "linkValidityWithMinutes": "El enlace tiene una validez de {hours} horas y {minutes} minutos.\nSi la validez del enlace ya ha expirado, aquí puedes solicitar que se te envíe un nuevo enlace.",
@@ -115,6 +116,7 @@
       "reset": "restablecer",
       "sincerelyYours": "Un cordial saludo,",
       "toAccount": "A la cuenta",
+      "toContribution": "A la contribución",
       "transactionDetails": "Detalles de la transacción",
       "yourGradidoTeam": "tu equipo de Gradido"
     },
@@ -141,8 +143,7 @@
       "title": "{senderFirstName} {senderLastName} ha canjeado tu enlace de Gradido"
     },
     "transactionReceived": {
-      "haveReceivedAmountGDDFrom": "acabas de recibir {transactionAmount} GDD de {senderFirstName} {senderLastName}",
-      "replySubject": "RE: {senderFirstName} {senderLastName} te ha enviado {transactionAmount} Gradido",
+      "haveReceivedAmountGDDFrom": "acabas de recibir {transactionAmount} GDD de {senderFirstName} {senderLastName}.",
       "subject": "{senderFirstName} {senderLastName} te ha enviado {transactionAmount} Gradido",
       "title": "{senderFirstName} {senderLastName} te ha enviado {transactionAmount} Gradido"
     }

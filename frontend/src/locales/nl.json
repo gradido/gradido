@@ -937,6 +937,7 @@
     "settings": {
       "block": "Kaart blokkeren",
       "block-confirm": "Daarna kan er met deze kaart niet meer worden bedankt. Je kunt hem later weer deblokkeren, zolang er geen andere kaart actief is.",
+      "block-confirm-card": "Dankkaart: {label}",
       "block-confirm-title": "Kaart blokkeren?",
       "blocked": "De kaart is geblokkeerd.",
       "blocked-on": "geblokkeerd op {date}",

@@ -113,7 +113,9 @@ describe('navigation guards', () => {
 
   describe('authorization', () => {
     it('redirects to login when not authorized', async () => {
-      const to = { path: '/protected', meta: { requiresAuth: true } }
+      // fullPath as well as path: the real router always provides it, and the guard
+      // stores it so a query or hash survives the login.
+      const to = { path: '/protected', fullPath: '/protected', meta: { requiresAuth: true } }
       const from = {}
       let nextCalled = false
       let nextArg = null
@@ -135,10 +137,35 @@ describe('navigation guards', () => {
       expect(storeCommitMock).toHaveBeenCalledWith('redirectPath', '/protected')
     })
 
+    // The one that actually measures the fix: here path and fullPath differ, so a guard
+    // that stored `path` would drop the query and the hash. Every deep link out of an
+    // e-mail is made of exactly those two parts, and its reader is signed out.
+    it('remembers query and hash, not just the path', async () => {
+      const to = {
+        path: '/contributions/own-contributions/1',
+        fullPath: '/contributions/own-contributions/1?art=email#contributionListItem-42',
+        meta: { requiresAuth: true },
+      }
+
+      const authGuard = addedGuards.find(
+        (guard) =>
+          guard.toString().includes('requiresAuth') && guard.toString().includes('redirectPath'),
+      )
+
+      await authGuard(to, {}, () => {})
+
+      expect(storeCommitMock).toHaveBeenCalledWith(
+        'redirectPath',
+        '/contributions/own-contributions/1?art=email#contributionListItem-42',
+      )
+    })
+
     it('does not redirect to login when authorized', async () => {
       store.state.token = 'valid-token'
 
-      const to = { path: '/protected', meta: { requiresAuth: true } }
+      // fullPath as well as path: the real router always provides it, and the guard
+      // stores it so a query or hash survives the login.
+      const to = { path: '/protected', fullPath: '/protected', meta: { requiresAuth: true } }
       const from = {}
       let nextCalled = false
       let nextArg = null

@@ -937,6 +937,7 @@
     "settings": {
       "block": "Block card",
       "block-confirm": "This card can no longer be used to give thanks. You can unblock it later, as long as no other card is active.",
+      "block-confirm-card": "Thank you card: {label}",
       "block-confirm-title": "Block the card?",
       "blocked": "The card is blocked.",
       "blocked-on": "blocked {date}",

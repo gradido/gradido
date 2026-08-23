@@ -284,22 +284,32 @@ export const sendTransactionLinkRedeemedEmail = (
   })
 }
 
+/**
+ * The uuids are what makes a reply possible, so they decide whether the template shows
+ * the reply button - the sender's e-mail address no longer appears in this mail at all.
+ *
+ * It used to be the address that decided, through a second template
+ * (`transactionReceivedNoSender`) whose only difference was the missing mailto. With the
+ * address gone the two templates were the same page, so there is one again, with the
+ * button behind an `if` - the shape `customEmail` has always used.
+ */
 export const sendTransactionReceivedEmail = (
   data: EmailCommonData & {
     senderFirstName: string
     senderLastName: string
-    senderEmail: string | null
     memo: string
     transactionAmount: GradidoUnit
+    senderUuid?: string
+    senderCommunityUuid?: string
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
-    template: data.senderEmail !== null ? 'transactionReceived' : 'transactionReceivedNoSender',
+    template: 'transactionReceived',
     locals: {
       ...data,
       transactionAmount: decimalSeparatorByLanguage(data.transactionAmount, data.language),
-      ...(data.senderEmail !== null ? getEmailCommonLocales() : { locale: data.language }),
+      ...getEmailCommonLocales(),
     },
   })
 }

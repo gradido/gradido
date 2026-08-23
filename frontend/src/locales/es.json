@@ -937,6 +937,7 @@
     "settings": {
       "block": "Bloquear tarjeta",
       "block-confirm": "Después de esto ya no se podrá agradecer con ella. Puedes desbloquearla más tarde, mientras no haya otra tarjeta activa.",
+      "block-confirm-card": "Tarjeta de agradecimiento: {label}",
       "block-confirm-title": "¿Bloquear la tarjeta?",
       "blocked": "La tarjeta está bloqueada.",
       "blocked-on": "bloqueada el {date}",

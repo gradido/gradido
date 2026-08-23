@@ -235,7 +235,10 @@ export const executeTransaction = async (
       memo,
       senderFirstName: sender.firstName,
       senderLastName: sender.lastName,
-      senderEmail: sender.emailContact.email,
+      // The reply button in the mail leads to the send form with the sender filled in,
+      // so the mail carries these instead of the sender's e-mail address.
+      senderUuid: sender.gradidoID,
+      senderCommunityUuid: sender.communityUuid,
       transactionAmount: amount,
     })
     if (transactionLink) {

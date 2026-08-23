@@ -22,10 +22,10 @@
       "readMessage": "Прочитать и ответить на сообщение",
       "subject": "Сообщение о вашем вкладе в общее благо",
       "title": "Сообщение о вашем вкладе в общее благо",
-      "toSeeAndAnswerMessage": "Чтобы ответить на сообщение, перейдите в вашем аккаунте Gradido в меню «Создание» и нажмите на вкладку «Мои вклады»."
+      "toSeeAndAnswerMessage": "Ответить можно прямо у вашего вклада."
     },
     "contribution": {
-      "toSeeContributionsAndMessages": "Чтобы увидеть ваши вклады в общее благо и связанные с ними сообщения, перейдите в вашем аккаунте Gradido в меню «Создание» и нажмите на вкладку «Мои вклады»."
+      "toSeeContributionsAndMessages": "Ваши вклады в общее благо и сообщения к ним вы найдёте в вашем аккаунте Gradido."
     },
     "contributionChangedByModerator": {
       "subject": "Ваш вклад в общее благо был изменён",
@@ -104,6 +104,7 @@
       "contribution": "Вклад в общее благо: {contributionMemo}",
       "contributionDetails": "Сведения о вкладе",
       "detailsYouFindOnLinkToYourAccount": "Сведения о транзакции вы найдёте в вашем аккаунте Gradido.",
+      "doNotAnswer": "автоматическое сообщение",
       "helloName": "Здравствуйте, {firstName} {lastName},",
       "linkValidity": "Ссылка действительна {hours} часов.\nЕсли срок действия ссылки уже истёк, вы можете запросить здесь новую ссылку.",
       "linkValidityWithMinutes": "Ссылка действительна {hours} часов и {minutes} минут.\nЕсли срок действия ссылки уже истёк, вы можете запросить здесь новую ссылку.",
@@ -115,6 +116,7 @@
       "reset": "сбросить",
       "sincerelyYours": "С наилучшими пожеланиями,",
       "toAccount": "В аккаунт",
+      "toContribution": "К вкладу",
       "transactionDetails": "Сведения о транзакции",
       "yourGradidoTeam": "ваша команда Gradido"
     },
@@ -141,8 +143,7 @@
       "title": "{senderFirstName} {senderLastName} воспользовался вашей ссылкой Gradido"
     },
     "transactionReceived": {
-      "haveReceivedAmountGDDFrom": "вы только что получили {transactionAmount} GDD от {senderFirstName} {senderLastName}",
-      "replySubject": "RE: {senderFirstName} {senderLastName} отправил вам {transactionAmount} Gradido",
+      "haveReceivedAmountGDDFrom": "вы только что получили {transactionAmount} GDD от {senderFirstName} {senderLastName}.",
       "subject": "{senderFirstName} {senderLastName} отправил вам {transactionAmount} Gradido",
       "title": "{senderFirstName} {senderLastName} отправил вам {transactionAmount} Gradido"
     }

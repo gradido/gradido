@@ -94,7 +94,11 @@ export class SendEmailCommand extends BaseCommand<
       language: recipientUser.language,
       senderFirstName: senderUser.firstName,
       senderLastName: senderUser.lastName,
-      senderEmail: senderUser.emailId !== null ? senderUser.emailContact.email : null, // will define the template
+      // Both mails put a way back to the sender behind these; without them the templates
+      // fall back to a send form with nobody in it. They were in hand here all along -
+      // the command carries them as its own required fields - and simply never passed on.
+      senderUuid: this.sendEmailCommandParams.senderGradidoId,
+      senderCommunityUuid: this.sendEmailCommandParams.senderComUuid,
       subject: this.sendEmailCommandParams.subject || '',
       memo: this.sendEmailCommandParams.memo || '',
       transactionAmount: GradidoUnit.fromString(this.sendEmailCommandParams.amount || '0').abs(),

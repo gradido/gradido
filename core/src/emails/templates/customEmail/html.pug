@@ -11,7 +11,13 @@ block content
 
   .memo-block
     div(class="p_content")= memo
-  if senderCommunityUuid && senderUuid
-    a.button-3(href=`${communityURL}/send/${senderCommunityUuid}/${senderUuid}`) #{t('emails.general.toAccount')}
-  else
-    a.button-3(href=`${communityURL}/send`) #{t('emails.general.toAccount')}
+    //- Green sits inside the card because that is where it is seen; the gold button
+        below only offers the way into the account. Before, the single gold button led
+        to the send form while saying "to account" - the label lied about its target.
+    if senderCommunityUuid && senderUuid
+      .child-right
+        a.button-5(href=`${communityURL}/send/${senderCommunityUuid}/${senderUuid}?art=email`)
+          include ../includes/chatbox-icon.pug
+          span #{t('emails.general.answerNow')}
+
+  a.button-3(href=`${communityURL}/transactions`) #{t('emails.general.toAccount')}

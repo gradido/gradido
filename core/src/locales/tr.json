@@ -22,10 +22,10 @@
       "readMessage": "Mesajı oku ve yanıtla",
       "subject": "Ortak yarara katkın hakkında mesaj",
       "title": "Ortak yarara katkın hakkında mesaj",
-      "toSeeAndAnswerMessage": "Mesajı yanıtlamak için Gradido hesabında “Oluştur” menüsüne git ve “Katkılarım” sekmesine tıkla."
+      "toSeeAndAnswerMessage": "Doğrudan katkının yanından yanıtlayabilirsin."
     },
     "contribution": {
-      "toSeeContributionsAndMessages": "Ortak yarara katkılarını ve ilgili mesajları görmek için Gradido hesabında “Oluştur” menüsüne git ve “Katkılarım” sekmesine tıkla."
+      "toSeeContributionsAndMessages": "Ortak yarara katkılarını ve ilgili mesajları Gradido hesabında bulabilirsin."
     },
     "contributionChangedByModerator": {
       "subject": "Ortak yarara katkın değiştirildi",
@@ -104,6 +104,7 @@
       "contribution": "Ortak yarara katkı: {contributionMemo}",
       "contributionDetails": "Katkı ayrıntıları",
       "detailsYouFindOnLinkToYourAccount": "İşlem ayrıntılarını Gradido hesabında bulabilirsin.",
+      "doNotAnswer": "otomatik mesaj",
       "helloName": "Merhaba {firstName} {lastName},",
       "linkValidity": "Bağlantı {hours} saat geçerlidir.\nBağlantının geçerlilik süresi dolduysa, buradan yeni bir bağlantı gönderilmesini isteyebilirsin.",
       "linkValidityWithMinutes": "Bağlantı {hours} saat {minutes} dakika geçerlidir.\nBağlantının geçerlilik süresi dolduysa, buradan yeni bir bağlantı gönderilmesini isteyebilirsin.",
@@ -115,6 +116,7 @@
       "reset": "sıfırla",
       "sincerelyYours": "Sevgiler,",
       "toAccount": "Hesaba git",
+      "toContribution": "Katkıya git",
       "transactionDetails": "İşlem ayrıntıları",
       "yourGradidoTeam": "Gradido ekibin"
     },
@@ -141,8 +143,7 @@
       "title": "{senderFirstName} {senderLastName} Gradido bağlantını kullandı"
     },
     "transactionReceived": {
-      "haveReceivedAmountGDDFrom": "az önce {senderFirstName} {senderLastName} tarafından {transactionAmount} GDD aldın",
-      "replySubject": "RE: {senderFirstName} {senderLastName} sana {transactionAmount} Gradido gönderdi",
+      "haveReceivedAmountGDDFrom": "az önce {senderFirstName} {senderLastName} tarafından {transactionAmount} GDD aldın.",
       "subject": "{senderFirstName} {senderLastName} sana {transactionAmount} Gradido gönderdi",
       "title": "{senderFirstName} {senderLastName} sana {transactionAmount} Gradido gönderdi"
     }

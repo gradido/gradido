@@ -111,9 +111,14 @@ h2 {
   margin-bottom: 40px;
 }
 
+/* Three buttons, three meanings, and they are the whole vocabulary of these mails:
+   gold (.button-3) is the way on to wherever the thing lives, green (.button-5) is
+   an answer to a person and therefore stands INSIDE the card, grey (.button-4) is
+   the fallback ("new link"), red (.button-6) takes something away for good. */
 .button-3,
 .button-4,
-.button-5 {
+.button-5,
+.button-6 {
   display: inline-block;
   padding: 9px 15px;
   color: white;
@@ -149,6 +154,18 @@ h2 {
      that one, so it has to be turned off explicitly. */
   box-shadow: none;
   transition: all 0.3s ease;
+}
+
+.button-6 {
+  /* The only red in the mails. This button blocks a thank-you card, which cannot be
+     taken back from the mail - it must not read as a sibling of the gold way-on
+     button standing above it. Same shape as .button-3, only the hue differs, so it
+     stays where a gold button stood.
+     background-image, not the background shorthand - see .button-5 for why. */
+  background-image: linear-gradient(135deg, #a32020, #6e6e6e);
+  /* No shadow, for the reason given at .button-5: a dark-mode client turns the
+     inherited dark grey shadow into a light halo around the button. */
+  box-shadow: none;
 }
 
 .button-5:hover {

@@ -22,10 +22,10 @@
       "readMessage": "Διάβασε και απάντησε στο μήνυμα",
       "subject": "Μήνυμα σχετικά με τη συνεισφορά σου στο κοινό καλό",
       "title": "Μήνυμα σχετικά με τη συνεισφορά σου στο κοινό καλό",
-      "toSeeAndAnswerMessage": "Για να απαντήσεις στο μήνυμα, πήγαινε στο μενού «Δημιουργία» του λογαριασμού σου στο Gradido και κάνε κλικ στην καρτέλα «Οι συνεισφορές μου»."
+      "toSeeAndAnswerMessage": "Μπορείς να απαντήσεις απευθείας στη συνεισφορά σου."
     },
     "contribution": {
-      "toSeeContributionsAndMessages": "Για να δεις τις συνεισφορές σου στο κοινό καλό και τα σχετικά μηνύματα, πήγαινε στο μενού «Δημιουργία» του λογαριασμού σου στο Gradido και κάνε κλικ στην καρτέλα «Οι συνεισφορές μου»."
+      "toSeeContributionsAndMessages": "Τις συνεισφορές σου στο κοινό καλό και τα σχετικά μηνύματα θα τις βρεις στον λογαριασμό σου στο Gradido."
     },
     "contributionChangedByModerator": {
       "subject": "Η συνεισφορά σου στο κοινό καλό άλλαξε",
@@ -104,6 +104,7 @@
       "contribution": "Συνεισφορά στο κοινό καλό: {contributionMemo}",
       "contributionDetails": "Λεπτομέρειες συνεισφοράς",
       "detailsYouFindOnLinkToYourAccount": "Τις λεπτομέρειες της συναλλαγής θα τις βρεις στον λογαριασμό σου στο Gradido.",
+      "doNotAnswer": "αυτόματο μήνυμα",
       "helloName": "Γεια σου {firstName} {lastName},",
       "linkValidity": "Ο σύνδεσμος ισχύει για {hours} ώρες.\nΑν η ισχύς του συνδέσμου έχει ήδη λήξει, μπορείς να ζητήσεις εδώ την αποστολή νέου συνδέσμου.",
       "linkValidityWithMinutes": "Ο σύνδεσμος ισχύει για {hours} ώρες και {minutes} λεπτά.\nΑν η ισχύς του συνδέσμου έχει ήδη λήξει, μπορείς να ζητήσεις εδώ την αποστολή νέου συνδέσμου.",
@@ -115,6 +116,7 @@
       "reset": "επαναφορά",
       "sincerelyYours": "Με εκτίμηση,",
       "toAccount": "Στον λογαριασμό",
+      "toContribution": "Στη συνεισφορά",
       "transactionDetails": "Λεπτομέρειες συναλλαγής",
       "yourGradidoTeam": "η ομάδα σου Gradido"
     },
@@ -141,8 +143,7 @@
       "title": "{senderFirstName} {senderLastName} εξαργύρωσε τον σύνδεσμό σου Gradido"
     },
     "transactionReceived": {
-      "haveReceivedAmountGDDFrom": "μόλις έλαβες {transactionAmount} GDD από {senderFirstName} {senderLastName}",
-      "replySubject": "RE: {senderFirstName} {senderLastName} σου έστειλε {transactionAmount} Gradido",
+      "haveReceivedAmountGDDFrom": "μόλις έλαβες {transactionAmount} GDD από {senderFirstName} {senderLastName}.",
       "subject": "{senderFirstName} {senderLastName} σου έστειλε {transactionAmount} Gradido",
       "title": "{senderFirstName} {senderLastName} σου έστειλε {transactionAmount} Gradido"
     }

@@ -50,8 +50,14 @@ const addNavigationGuards = (router, store, apollo) => {
   // handle authentication
   router.beforeEach((to, from, next) => {
     if (to.meta.requiresAuth && !store.state.token) {
-      // store redirect path
-      store.commit('redirectPath', to.path)
+      // fullPath, not path: it carries the query and the hash, and both are what a link
+      // out of an e-mail is made of. The receipt blocks a card with ?block=<id>, the
+      // reply button opens the send form in e-mail mode with ?art=email, and the
+      // contribution mails jump to one entry with #contributionListItem-<id>. Whoever
+      // clicks such a link is almost always signed out, so this is the normal path for
+      // them, not the edge case - with `path` every one of those wishes was dropped at
+      // the login and the person landed on the right page with the wish gone.
+      store.commit('redirectPath', to.fullPath)
       next({ path: '/login' })
     } else {
       next()

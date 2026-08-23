@@ -937,6 +937,7 @@
     "settings": {
       "block": "Karte sperren",
       "block-confirm": "Danach kann mit dieser Karte nicht mehr gedankt werden. Du kannst sie später wieder entsperren, solange keine andere Karte aktiv ist.",
+      "block-confirm-card": "Dank-Karte: {label}",
       "block-confirm-title": "Karte sperren?",
       "blocked": "Die Karte ist gesperrt.",
       "blocked-on": "gesperrt {date}",
