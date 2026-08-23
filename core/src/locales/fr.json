@@ -129,11 +129,11 @@
       "blockCard": "Bloquer la carte",
       "card": "Carte : {cardLabel}",
       "memo": "Motif : {transactionMemo}",
-      "notYou": "Ce n’était pas vous ? Bloquez votre carte ici même : elle cesse de fonctionner, votre adresse Gradido reste.",
+      "notYou": "Ce n’était pas toi ? Bloque ta carte ici même : elle cesse de fonctionner, ton adresse Gradido reste.",
       "recipient": "Destinataire : {recipientName} ({recipientCommunity})",
-      "subject": "Vous avez transmis {amountGDD} GDD avec votre carte de remerciement",
-      "title": "{amountGDD} GDD ont été transmis avec votre carte de remerciement",
-      "wasPaid": "{amountGDD} GDD viennent d’être transmis avec votre carte de remerciement."
+      "subject": "Tu as transmis {amountGDD} GDD avec ta carte de remerciement",
+      "title": "{amountGDD} GDD ont été transmis avec ta carte de remerciement",
+      "wasPaid": "{amountGDD} GDD viennent d’être transmis avec ta carte de remerciement."
     },
     "transactionLinkRedeemed": {
       "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) vient d'utiliser ton lien.",
