@@ -127,9 +127,9 @@
     },
     "thankYouCardPaid": {
       "blockCard": "Μπλοκάρισμα κάρτας",
+      "card": "Κάρτα: {cardLabel}",
       "memo": "Αιτιολογία: {transactionMemo}",
       "notYou": "Δεν ήσασταν εσείς; Μπλοκάρετε την κάρτα σας εδώ — παύει να λειτουργεί, η διεύθυνση Gradido παραμένει.",
-      "paidWith": "Πληρωμή με: κάρτα «{cardLabel}»",
       "recipient": "Παραλήπτης: {recipientName} ({recipientCommunity})",
       "subject": "Μεταβιβάσατε {amountGDD} GDD με την κάρτα ευχαριστίας σας",
       "title": "Μεταβιβάστηκαν {amountGDD} GDD με την κάρτα ευχαριστίας σας",

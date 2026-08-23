@@ -127,9 +127,9 @@
     },
     "thankYouCardPaid": {
       "blockCard": "Kaart blokkeren",
+      "card": "Kaart: {cardLabel}",
       "memo": "Omschrijving: {transactionMemo}",
       "notYou": "Was jij dat niet? Blokkeer je kaart hier meteen — hij werkt daarna niet meer, je Gradido-adres blijft.",
-      "paidWith": "Betaald met: kaart “{cardLabel}”",
       "recipient": "Ontvanger: {recipientName} ({recipientCommunity})",
       "subject": "Je hebt {amountGDD} GDD doorgegeven met je bedankkaart",
       "title": "Er is {amountGDD} GDD doorgegeven met je bedankkaart",

@@ -127,9 +127,9 @@
     },
     "thankYouCardPaid": {
       "blockCard": "Bloquear tarjeta",
+      "card": "Tarjeta: {cardLabel}",
       "memo": "Concepto: {transactionMemo}",
       "notYou": "¿No has sido tú? Bloquea tu tarjeta aquí mismo: dejará de funcionar, tu dirección Gradido se mantiene.",
-      "paidWith": "Pagado con: tarjeta «{cardLabel}»",
       "recipient": "Destinatario: {recipientName} ({recipientCommunity})",
       "subject": "Has entregado {amountGDD} GDD con tu tarjeta de agradecimiento",
       "title": "Se han entregado {amountGDD} GDD con tu tarjeta de agradecimiento",
