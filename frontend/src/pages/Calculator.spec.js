@@ -3,6 +3,12 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
 import Calculator from './Calculator.vue'
+// fileURLToPath is handed the string import.meta.url, never a URL object built here: the
+// test environment brings its own URL class, and node rejects an instance of it as coming
+// from the wrong realm -- which passes locally and fails in CI.
+import { readFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import de from '@/locales/de.json'
 import en from '@/locales/en.json'
 
@@ -578,5 +584,104 @@ describe('Calculator page', () => {
         expect(key(wrapper, 'sub-gdd').text()).toContain('6,00')
       },
     )
+  })
+})
+
+/**
+ * The two colour palettes, held against each other in the source.
+ *
+ * ⛔ Not a snapshot of how it looks -- a guard against the one way this breaks quietly.
+ * Light is the base and dark the override, so a role that is added to light and forgotten
+ * in dark does not fail anywhere: the dark calculator simply serves the LIGHT value for
+ * that one property, and nothing crashes, no test turns red, and a near-white key appears
+ * on a near-black keypad. That is exactly the shape of the defect this change removes, and
+ * it would come back the first time somebody adds a colour in a hurry.
+ */
+describe('Calculator colours', () => {
+  const source = readFileSync(
+    resolve(dirname(fileURLToPath(import.meta.url)), './Calculator.vue'),
+    'utf8',
+  )
+
+  const block = (selector) => {
+    const start = source.indexOf(`\n${selector} {`)
+    expect(start, `${selector} not found`).toBeGreaterThan(-1)
+    return source.slice(start, source.indexOf('\n}', start))
+  }
+  const rolesIn = (selector) => [...block(selector).matchAll(/(--calc-[\w-]+):\s*([^;]+);/g)]
+
+  const light = new Map(rolesIn('.calculator').map((m) => [m[1], m[2].trim()]))
+  const dark = new Map(rolesIn('.dark-mode .calculator').map((m) => [m[1], m[2].trim()]))
+
+  it('defines every role in both palettes', () => {
+    expect(light.size).toBeGreaterThan(10)
+    expect([...dark.keys()].sort()).toEqual([...light.keys()].sort())
+  })
+
+  it('gives every role a different value in the two palettes', () => {
+    const same = [...light]
+      .filter(([role, value]) => dark.get(role) === value)
+      .map(([role]) => role)
+    expect(same).toEqual([])
+  })
+
+  /**
+   * Dark mode was explicitly not to change when light mode was added (Bernd, 23.08.2026).
+   * These are the values the file carried before, written out so that moving one is a
+   * decision somebody has to make here, not a side effect of tidying the palette.
+   */
+  it('leaves dark mode on the colours it was born with', () => {
+    expect(Object.fromEntries(dark)).toEqual({
+      '--calc-surface': 'rgb(40 40 40)',
+      '--calc-ink': 'rgb(255 253 253)',
+      '--calc-fiat': 'rgb(220 216 216)',
+      '--calc-muted': 'rgb(150 150 150)',
+      '--calc-muted-hover': 'rgb(210 210 210)',
+      '--calc-accent': 'rgb(132 174 116)',
+      '--calc-grid': 'rgb(60 60 60)',
+      '--calc-digit': 'rgb(20 22 18)',
+      '--calc-key-ink': 'rgb(198 190 190)',
+      '--calc-key-hover': 'rgb(30 30 30)',
+      '--calc-accent-ink': 'rgb(198 190 190)',
+      '--calc-result': 'rgb(9 5 64)',
+      '--calc-result-hover': 'rgb(10 5 76)',
+      '--calc-operator': 'rgb(27 80 7)',
+      '--calc-operator-hover': 'rgb(33 98 10)',
+      '--calc-delete': 'rgb(12 1 2)',
+      '--calc-delete-hover': 'rgb(30 4 8)',
+    })
+  })
+
+  /**
+   * Every colour the calculator paints has to come from a role, or it cannot follow the
+   * switch -- a value written straight into a rule is invisible in light mode until somebody
+   * opens the page there. That is how the calculator looked before this change: correct in
+   * dark, and carrying fourteen values that ignored the wallet's theme.
+   *
+   * ⚠️ Stated as a POSITIVE rule -- every colour-taking property must resolve to a role --
+   * rather than as a hunt for literals. A first version searched for `rgb(` and `#hex` after
+   * the dark block, which named its own blind spots: `hsl()`, `rgba()`, a bare `red`, and
+   * anything written BETWEEN the two palettes all passed, while the test's name promised it
+   * had looked. Naming the shapes that are allowed needs no list of the ones that are not.
+   *
+   * ⚠️ And the declaration is found after `{` or `;`, not at the start of a LINE: the second
+   * version anchored on `^\s*` and a one-line rule (`.foo { border: 1px solid #ccc; }`) went
+   * straight through it. Found by injecting exactly that -- the three colour syntaxes were
+   * caught and the one-liner was not.
+   */
+  const COLOUR_PROPERTIES =
+    /[{;]\s*(background-color|border-color|outline-color|box-shadow|background|border|outline|color|fill|stroke)\s*:\s*([^;{}]+)[;}]/g
+  // Neutral keywords take no colour of their own, so they cannot disagree with the theme.
+  const NEUTRAL = ['none', 'transparent', 'inherit', 'currentcolor', 'unset', 'initial']
+
+  it('paints from roles only, never from a value of its own', () => {
+    const styles = source.slice(source.indexOf('<style lang="scss" scoped>'))
+    const painted = [...styles.matchAll(COLOUR_PROPERTIES)].map((m) => m[2].trim())
+
+    expect(painted.length).toBeGreaterThan(15)
+    const own = painted.filter(
+      (value) => !/^var\(--calc-[\w-]+\)$/.test(value) && !NEUTRAL.includes(value.toLowerCase()),
+    )
+    expect(own).toEqual([])
   })
 })
