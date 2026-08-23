@@ -703,9 +703,29 @@ describe('Calculator colours', () => {
       return rule.match(/[{;]\s*color:\s*([^;}]+)[;}]/)?.[1]
     }
 
+    // ⚠️ The exact role, not "some colour". `color: var(--calc-ink)` in a hover rule is a
+    // declaration too, and it is precisely the value that caused the defect.
+    const genericHover = styles.indexOf('\n.key:hover {')
+    expect(genericHover).toBeGreaterThan(-1)
+
     for (const key of ['.key-result', '.key-operator', '.key-delete']) {
       expect(inkOf(key), `${key} has no ink of its own`).toBeTruthy()
-      expect(inkOf(`${key}:hover`), `${key}:hover lets .key:hover decide the ink`).toBeTruthy()
+      expect(inkOf(`${key}:hover`), `${key}:hover does not use the accent hover role`).toBe(
+        'var(--calc-accent-ink-hover)',
+      )
+
+      /*
+        ⛔ And the ORDER, because that is what makes it hold. `.key:hover` and
+        `.key-result:hover` have the same specificity (0,2,0) -- the later one wins, and
+        nothing else in the file says so. Move the generic rule down and the ink goes back to
+        `--calc-ink` with every value still coming from a role and every role still in both
+        palettes. (coderabbit spotted this; the injection round had not, because it only
+        tried REMOVING the ink, never reordering the rules.)
+      */
+      expect(
+        styles.indexOf(`\n${key}:hover {`),
+        `${key}:hover must come after .key:hover, or the generic rule wins the cascade`,
+      ).toBeGreaterThan(genericHover)
     }
   })
 
