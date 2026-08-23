@@ -104,7 +104,6 @@
       "contribution": "Contribution au bien commun : {contributionMemo}",
       "contributionDetails": "Détails de la contribution",
       "detailsYouFindOnLinkToYourAccount": "Tu trouveras les détails de la transaction dans ton compte Gradido.",
-      "doNotAnswer": "message automatique",
       "helloName": "Bonjour {firstName} {lastName},",
       "linkValidity": "Le lien est valable {hours} heures.\nSi la validité du lien a déjà expiré, tu peux te faire envoyer un nouveau lien ici.",
       "linkValidityWithMinutes": "Le lien est valable {hours} heures et {minutes} minutes.\nSi la validité du lien a déjà expiré, tu peux te faire envoyer un nouveau lien ici.",

@@ -104,7 +104,6 @@
       "contribution": "Contribution: : {contributionMemo}",
       "contributionDetails": "Contribution details",
       "detailsYouFindOnLinkToYourAccount": "You can find transaction details in your Gradido account.",
-      "doNotAnswer": "automated message",
       "helloName": "Hello {firstName} {lastName},",
       "linkValidity": "The link has a validity of {hours} hours.\nIf the validity of the link has already expired, you can have a new link sent to you here.",
       "linkValidityWithMinutes": "The link has a validity of {hours} hours and {minutes} minutes.\nIf the validity of the link has already expired, you can have a new link sent to you here.",

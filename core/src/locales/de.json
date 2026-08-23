@@ -104,7 +104,6 @@
       "contribution": "Gemeinwohl-Beitrag: {contributionMemo}",
       "contributionDetails": "Beitragsdetails",
       "detailsYouFindOnLinkToYourAccount": "Details zur Transaktion findest du in deinem Gradido-Konto.",
-      "doNotAnswer": "automatische Nachricht",
       "helloName": "Hallo {firstName} {lastName},",
       "linkValidity": "Der Link hat eine Gültigkeit von {hours} Stunden.\nSollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen.",
       "linkValidityWithMinutes": "Der Link hat eine Gültigkeit von {hours} Stunden und {minutes} Minuten.\nSollte die Gültigkeit des Links bereits abgelaufen sein, kannst du dir hier einen neuen Link schicken lassen.",

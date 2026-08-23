@@ -77,10 +77,6 @@ h2 {
   background-color: #f5f5f5;
   text-align: left;
   color: #696c72;
-  /* the message is written by a person: keep the line breaks they typed, which
-     html would otherwise collapse into spaces. Only this block, so that the
-     wording of every other mail stays laid out as before. */
-  white-space: pre-wrap;
 }
 
 
@@ -98,6 +94,27 @@ h2 {
   box-sizing: border-box;
   border: 1px solid #808080;
   background-color: #f5f5f5;
+}
+
+/* Text a person typed, wherever it appears - a memo, a moderator's question, the
+   subject and body of a message. Html collapses the line breaks they pressed; this
+   keeps them.
+
+   ⛔ On the text itself, never on a block that holds other elements. Pug pretty-prints,
+   so a container carries newlines of its OWN between its children, and `pre` rules make
+   those visible too - a stray blank line in every mail. Inside `span.human-text= memo`
+   there is nothing but the text.
+
+   `pre-line` rather than `pre-wrap`, matching how the wallet shows the same messages
+   (`ParseMessage.vue`): line breaks kept, runs of spaces collapsed, long lines still
+   wrap. Nothing here is preformatted; it is prose somebody typed.
+
+   ⚠️ Word-based clients (Outlook on Windows) support `white-space` poorly, so there the
+   breaks may still collapse. Unmeasured - nobody here has Outlook. The alternative is
+   emitting <br> per line, which every client renders; it is a bigger change and it
+   leaves the way the rest of the software does this. Worth revisiting if it is reported. */
+.human-text {
+  white-space: pre-line;
 }
 
 .p_content{
@@ -161,8 +178,21 @@ h2 {
      taken back from the mail - it must not read as a sibling of the gold way-on
      button standing above it. Same shape as .button-3, only the hue differs, so it
      stays where a gold button stood.
-     background-image, not the background shorthand - see .button-5 for why. */
-  background-image: linear-gradient(135deg, #a32020, #6e6e6e);
+
+     #f5365c is the wallet's own danger colour, read out of the shipped stylesheet
+     (`.btn-danger{--bs-btn-bg:#f5365c}`) - the same red the confirmation dialogue wears,
+     so the mail and the question it leads to are recognisably one thing.
+
+     A gradient, not a flat fill: a dark-mode client inverts `background-color` and would
+     turn a signal red into turquoise. It cannot invert `background-image`, which is why
+     gold and green are gradients too. The second stop is the same red a shade deeper, so
+     it still reads as one colour.
+
+     White lettering, like every other button here: 3.77:1 against #f5365c - the same
+     league as the green button at 3.92:1. The wallet uses black on this red (5.56:1)
+     because Bootstrap computes it; a mail button with black lettering would be the odd
+     one out among the other four. */
+  background-image: linear-gradient(135deg, #f5365c, #d0264a);
   /* No shadow, for the reason given at .button-5: a dark-mode client turns the
      inherited dark grey shadow into a light halo around the button. */
   box-shadow: none;

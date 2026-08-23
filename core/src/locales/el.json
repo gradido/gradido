@@ -104,7 +104,6 @@
       "contribution": "Συνεισφορά στο κοινό καλό: {contributionMemo}",
       "contributionDetails": "Λεπτομέρειες συνεισφοράς",
       "detailsYouFindOnLinkToYourAccount": "Τις λεπτομέρειες της συναλλαγής θα τις βρεις στον λογαριασμό σου στο Gradido.",
-      "doNotAnswer": "αυτόματο μήνυμα",
       "helloName": "Γεια σου {firstName} {lastName},",
       "linkValidity": "Ο σύνδεσμος ισχύει για {hours} ώρες.\nΑν η ισχύς του συνδέσμου έχει ήδη λήξει, μπορείς να ζητήσεις εδώ την αποστολή νέου συνδέσμου.",
       "linkValidityWithMinutes": "Ο σύνδεσμος ισχύει για {hours} ώρες και {minutes} λεπτά.\nΑν η ισχύς του συνδέσμου έχει ήδη λήξει, μπορείς να ζητήσεις εδώ την αποστολή νέου συνδέσμου.",
