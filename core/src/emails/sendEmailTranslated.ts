@@ -66,7 +66,12 @@ export const sendEmailTranslated = async ({
   // TESTING: see 'README.md'
   const email = new Email({
     message: {
-      from: `Gradido (${i18n.__('emails.general.doNotAnswer')}) <${CONFIG.EMAIL_SENDER}>`,
+      // ⛔ No parenthesis after the name. This used to read `Gradido (...) <address>` with a
+      // hint in the brackets, and NONE of it ever reached anybody: in RFC 5322 `(...)` is a
+      // COMMENT, and nodemailer's address parser drops it -- every mail Gradido has sent
+      // arrived as plain `Gradido <address>`. The hint was invisible either way, so it says
+      // what it does now. A display name in quotes would keep brackets, if one is ever wanted.
+      from: `Gradido <${CONFIG.EMAIL_SENDER}>`,
     },
     send: CONFIG.EMAIL,
     transport,

@@ -104,7 +104,6 @@
       "contribution": "Вклад в общее благо: {contributionMemo}",
       "contributionDetails": "Сведения о вкладе",
       "detailsYouFindOnLinkToYourAccount": "Сведения о транзакции вы найдёте в вашем аккаунте Gradido.",
-      "doNotAnswer": "автоматическое сообщение",
       "helloName": "Здравствуйте, {firstName} {lastName},",
       "linkValidity": "Ссылка действительна {hours} часов.\nЕсли срок действия ссылки уже истёк, вы можете запросить здесь новую ссылку.",
       "linkValidityWithMinutes": "Ссылка действительна {hours} часов и {minutes} минут.\nЕсли срок действия ссылки уже истёк, вы можете запросить здесь новую ссылку.",

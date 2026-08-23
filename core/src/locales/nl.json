@@ -104,7 +104,6 @@
       "contribution": "Bijdrage aan het algemeen welzijn: {contributionMemo}",
       "contributionDetails": "Details van de bijdrage",
       "detailsYouFindOnLinkToYourAccount": "De details van de transactie vind je in je Gradido-account.",
-      "doNotAnswer": "automatisch bericht",
       "helloName": "Hallo {firstName} {lastName},",
       "linkValidity": "De link is {hours} uur geldig.\nAls de geldigheid van de link al verlopen is, kun je hier een nieuwe link laten toesturen.",
       "linkValidityWithMinutes": "De link is {hours} uur en {minutes} minuten geldig.\nAls de geldigheid van de link al verlopen is, kun je hier een nieuwe link laten toesturen.",
