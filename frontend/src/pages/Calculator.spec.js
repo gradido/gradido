@@ -654,16 +654,34 @@ describe('Calculator colours', () => {
 
   /**
    * Every colour the calculator paints has to come from a role, or it cannot follow the
-   * switch -- a literal deep in the block is invisible in light mode until somebody opens
-   * the page there. This is how the calculator looked before this change: correct in dark,
-   * and carrying fourteen values that ignored the wallet's theme.
+   * switch -- a value written straight into a rule is invisible in light mode until somebody
+   * opens the page there. That is how the calculator looked before this change: correct in
+   * dark, and carrying fourteen values that ignored the wallet's theme.
+   *
+   * ⚠️ Stated as a POSITIVE rule -- every colour-taking property must resolve to a role --
+   * rather than as a hunt for literals. A first version searched for `rgb(` and `#hex` after
+   * the dark block, which named its own blind spots: `hsl()`, `rgba()`, a bare `red`, and
+   * anything written BETWEEN the two palettes all passed, while the test's name promised it
+   * had looked. Naming the shapes that are allowed needs no list of the ones that are not.
+   *
+   * ⚠️ And the declaration is found after `{` or `;`, not at the start of a LINE: the second
+   * version anchored on `^\s*` and a one-line rule (`.foo { border: 1px solid #ccc; }`) went
+   * straight through it. Found by injecting exactly that -- the three colour syntaxes were
+   * caught and the one-liner was not.
    */
-  it('paints from roles only, never from a literal', () => {
-    // Everything after the dark palette's closing brace -- the palettes themselves are the
-    // one place literals belong.
-    const darkStart = source.indexOf('\n.dark-mode .calculator {')
-    const rest = source.slice(source.indexOf('\n}', darkStart) + 2)
-    expect(rest).toContain('.calculator-head')
-    expect(rest.match(/rgb\([\d\s]+\)|#[0-9a-fA-F]{3,8}\b/g)).toBeNull()
+  const COLOUR_PROPERTIES =
+    /[{;]\s*(background-color|border-color|outline-color|box-shadow|background|border|outline|color|fill|stroke)\s*:\s*([^;{}]+)[;}]/g
+  // Neutral keywords take no colour of their own, so they cannot disagree with the theme.
+  const NEUTRAL = ['none', 'transparent', 'inherit', 'currentcolor', 'unset', 'initial']
+
+  it('paints from roles only, never from a value of its own', () => {
+    const styles = source.slice(source.indexOf('<style lang="scss" scoped>'))
+    const painted = [...styles.matchAll(COLOUR_PROPERTIES)].map((m) => m[2].trim())
+
+    expect(painted.length).toBeGreaterThan(15)
+    const own = painted.filter(
+      (value) => !/^var\(--calc-[\w-]+\)$/.test(value) && !NEUTRAL.includes(value.toLowerCase()),
+    )
+    expect(own).toEqual([])
   })
 })
