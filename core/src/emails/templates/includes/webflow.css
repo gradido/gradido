@@ -37,18 +37,16 @@ h2 {
   padding: 5px 10% 5px 10%;
   line-height: 26px;
   border-radius: 16px;
-  /* A gradient here on purpose - the one place in this file where that is right.
-     A flat #f5f5f5 sits ten steps from white: visible on a light page, but after a
-     dark-mode client inverts it, ten steps from black, where the eye no longer
-     separates it from the page. The inversion is arithmetically right and
-     perceptually wrong. A translucent mid-grey written as a gradient is left alone
-     by the inversion - clients invert background-color, not background-image - so
-     it works from both ends: it darkens a light page and lightens a dark one.
-     background-color stays underneath as the fallback for Outlook on Windows,
-     which renders no gradients at all.
-     13% is the trade: it costs ~15 steps of lightness in light mode and buys ~12
-     steps of separation in dark mode. A single value cannot have both. */
-  background-image: linear-gradient(rgba(128, 128, 128, 0.13), rgba(128, 128, 128, 0.13));
+  /* The card needs an edge that survives dark mode, and the fill cannot provide it.
+     #f5f5f5 sits ten steps from white - visible on a light page; a dark-mode client
+     inverts it to ten steps from black, where the eye no longer separates it from
+     the page. Raising the contrast only moves the cost to light mode: a single
+     value cannot serve both ends.
+     A mid-grey line can, and it sidesteps the question rather than answering it:
+     128 inverts to 127. Whether a client touches border colours stops mattering,
+     because the colour is its own inverse. And mid-grey carries against both
+     grounds - roughly 3.9:1 on white, 4.8:1 on near-black. */
+  border: 1px solid #808080;
   background-color: #f5f5f5;
   text-align: left;
   font-weight: bold;
@@ -61,9 +59,9 @@ h2 {
   margin: 10px 1% 40px 1%;
   padding: 20px 10% 20px 10%;
   border-radius: 16px;
-  /* translucent grey over the colour, so the card survives dark mode too
+  /* mid-grey edge: its own inverse, so the card is a card in both modes
      - see .subject-block above */
-  background-image: linear-gradient(rgba(128, 128, 128, 0.13), rgba(128, 128, 128, 0.13));
+  border: 1px solid #808080;
   background-color: #f5f5f5;
   text-align: left;
   color: #696c72;
@@ -80,9 +78,9 @@ h2 {
   margin: 40px 1% 40px 1%;
   padding: 20px 10% 40px 10%;
   border-radius: 24px;
-  /* translucent grey over the colour, so the card survives dark mode too
+  /* mid-grey edge: its own inverse, so the card is a card in both modes
      - see .subject-block above */
-  background-image: linear-gradient(rgba(128, 128, 128, 0.13), rgba(128, 128, 128, 0.13));
+  border: 1px solid #808080;
   background-color: #f5f5f5;
 }
 
