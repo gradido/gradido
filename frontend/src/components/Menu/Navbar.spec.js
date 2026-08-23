@@ -210,7 +210,8 @@ describe('Navbar', () => {
    *
    * Below 450px it is `position: fixed` and translucent, so the page needs matching clearance
    * underneath -- `.breadcrumb`'s `padding-top` in layouts/DashboardLayout.vue plus
-   * `.page-breadcrumb`'s `margin-top` in Breadcrumb/breadcrumb.vue, 83 + 48 = 131px today.
+   * `.page-breadcrumb`'s `margin-top` in Breadcrumb/breadcrumb.vue, 69 + 48 = 117px today
+   -- measured on the phone, after 131 turned out to be about twice the room needed.
    *
    * ⛔ On 21.08.2026 the four till tools were added as a second row of 44px. The note written
    * at the time checked the new height against the block OPPOSITE -- avatar, name and address,

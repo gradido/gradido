@@ -662,6 +662,11 @@ onUnmounted(() => {
     than a tint. (Bernd chose this over the quieter tinted set, from two rendered options.)
   */
   --calc-accent-ink: #fff;
+
+  /* ⛔ Hovering must not take the ink off these keys. `.key:hover` sets `--calc-ink` for
+     every key, which in dark LIFTS the label (198 -> 255) and in light would drop white
+     onto saturated colour. Their own hover ink keeps both right. */
+  --calc-accent-ink-hover: #fff;
   --calc-result: #3b46a8;
   --calc-result-hover: #333da0;
   --calc-operator: #2f7a12;
@@ -696,6 +701,10 @@ onUnmounted(() => {
   /* In dark the three special keys are dark surfaces themselves, so their labels keep the
      digits' colour -- there the hue does the distinguishing, not the ink. */
   --calc-accent-ink: rgb(198 190 190);
+
+  /* The value `.key:hover` handed these keys before the role existed, so dark hovers
+     exactly as it did. */
+  --calc-accent-ink-hover: rgb(255 253 253);
   --calc-result: rgb(9 5 64);
   --calc-result-hover: rgb(10 5 76);
   --calc-operator: rgb(27 80 7);
@@ -828,6 +837,7 @@ onUnmounted(() => {
 }
 
 .key-result:hover {
+  color: var(--calc-accent-ink-hover);
   background-color: var(--calc-result-hover);
 }
 
@@ -837,6 +847,7 @@ onUnmounted(() => {
 }
 
 .key-operator:hover {
+  color: var(--calc-accent-ink-hover);
   background-color: var(--calc-operator-hover);
 }
 
@@ -846,6 +857,7 @@ onUnmounted(() => {
 }
 
 .key-delete:hover {
+  color: var(--calc-accent-ink-hover);
   background-color: var(--calc-delete-hover);
 }
 

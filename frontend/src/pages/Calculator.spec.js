@@ -643,6 +643,7 @@ describe('Calculator colours', () => {
       '--calc-key-ink': 'rgb(198 190 190)',
       '--calc-key-hover': 'rgb(30 30 30)',
       '--calc-accent-ink': 'rgb(198 190 190)',
+      '--calc-accent-ink-hover': 'rgb(255 253 253)',
       '--calc-result': 'rgb(9 5 64)',
       '--calc-result-hover': 'rgb(10 5 76)',
       '--calc-operator': 'rgb(27 80 7)',
@@ -673,6 +674,60 @@ describe('Calculator colours', () => {
     /[{;]\s*(background-color|border-color|outline-color|box-shadow|background|border|outline|color|fill|stroke)\s*:\s*([^;{}]+)[;}]/g
   // Neutral keywords take no colour of their own, so they cannot disagree with the theme.
   const NEUTRAL = ['none', 'transparent', 'inherit', 'currentcolor', 'unset', 'initial']
+
+  /**
+   * ⛔ This one exists because the palette shipped with the defect it now guards.
+   *
+   * `.key:hover` sets `color: var(--calc-ink)` for EVERY key. On the digits that is what it
+   * is for. On the three keys that carry their own ink it silently takes that ink away, and
+   * the two palettes disagree about what happens next: in dark `--calc-ink` is BRIGHTER than
+   * the key's ink, so hovering lifts the label and looks intended; in light it is #383838
+   * against white, so hovering dropped a dark label onto saturated colour. Live for four
+   * hours, and on a phone `:hover` sticks after a tap -- so it stayed dark until the next
+   * key. (Bernd, 23.08.2026.)
+   *
+   * ⚠️ The colour tests above could not see it: each value came from a role, and each role
+   * was in both palettes. What was wrong was the COMBINATION -- a broader rule reaching over
+   * a narrower one. So the rule here is: a key that sets its own ink has to set it on hover
+   * too, or `.key:hover` decides for it.
+   */
+  it('lets no key lose its own ink on hover', () => {
+    const styles = source.slice(source.indexOf('<style lang="scss" scoped>'))
+    const inkOf = (selector) => {
+      const start = styles.indexOf(`\n${selector} {`)
+      expect(start, `${selector} not found`).toBeGreaterThan(-1)
+      // ⚠️ Anchored on `{` or `;`, NOT on a word boundary: `\bcolor:` also matches inside
+      // `background-color:`, so the first version of this guard found the hover BACKGROUND,
+      // called it an ink and passed. The injection round caught it; nothing else could have.
+      const rule = styles.slice(start, styles.indexOf('\n}', start))
+      return rule.match(/[{;]\s*color:\s*([^;}]+)[;}]/)?.[1]
+    }
+
+    // ⚠️ The exact role, not "some colour". `color: var(--calc-ink)` in a hover rule is a
+    // declaration too, and it is precisely the value that caused the defect.
+    const genericHover = styles.indexOf('\n.key:hover {')
+    expect(genericHover).toBeGreaterThan(-1)
+
+    for (const key of ['.key-result', '.key-operator', '.key-delete']) {
+      expect(inkOf(key), `${key} has no ink of its own`).toBeTruthy()
+      expect(inkOf(`${key}:hover`), `${key}:hover does not use the accent hover role`).toBe(
+        'var(--calc-accent-ink-hover)',
+      )
+
+      /*
+        ⛔ And the ORDER, because that is what makes it hold. `.key:hover` and
+        `.key-result:hover` have the same specificity (0,2,0) -- the later one wins, and
+        nothing else in the file says so. Move the generic rule down and the ink goes back to
+        `--calc-ink` with every value still coming from a role and every role still in both
+        palettes. (coderabbit spotted this; the injection round had not, because it only
+        tried REMOVING the ink, never reordering the rules.)
+      */
+      expect(
+        styles.indexOf(`\n${key}:hover {`),
+        `${key}:hover must come after .key:hover, or the generic rule wins the cascade`,
+      ).toBeGreaterThan(genericHover)
+    }
+  })
 
   it('paints from roles only, never from a value of its own', () => {
     const styles = source.slice(source.indexOf('<style lang="scss" scoped>'))
