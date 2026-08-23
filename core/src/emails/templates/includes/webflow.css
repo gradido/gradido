@@ -37,10 +37,18 @@ h2 {
   padding: 5px 10% 5px 10%;
   line-height: 26px;
   border-radius: 16px;
-  /* a flat colour, not a gradient: dark-mode mail clients invert background-color
-     and color together, but they cannot invert a background-image. The webflow
-     export wrote this solid fill as a gradient, so the text turned light while
-     the card stayed light - light on light. Renders identically either way. */
+  /* A gradient here on purpose - the one place in this file where that is right.
+     A flat #f5f5f5 sits ten steps from white: visible on a light page, but after a
+     dark-mode client inverts it, ten steps from black, where the eye no longer
+     separates it from the page. The inversion is arithmetically right and
+     perceptually wrong. A translucent mid-grey written as a gradient is left alone
+     by the inversion - clients invert background-color, not background-image - so
+     it works from both ends: it darkens a light page and lightens a dark one.
+     background-color stays underneath as the fallback for Outlook on Windows,
+     which renders no gradients at all.
+     13% is the trade: it costs ~15 steps of lightness in light mode and buys ~12
+     steps of separation in dark mode. A single value cannot have both. */
+  background-image: linear-gradient(rgba(128, 128, 128, 0.13), rgba(128, 128, 128, 0.13));
   background-color: #f5f5f5;
   text-align: left;
   font-weight: bold;
@@ -53,7 +61,9 @@ h2 {
   margin: 10px 1% 40px 1%;
   padding: 20px 10% 20px 10%;
   border-radius: 16px;
-  /* flat colour, not a gradient - see .subject-block above */
+  /* translucent grey over the colour, so the card survives dark mode too
+     - see .subject-block above */
+  background-image: linear-gradient(rgba(128, 128, 128, 0.13), rgba(128, 128, 128, 0.13));
   background-color: #f5f5f5;
   text-align: left;
   color: #696c72;
@@ -70,7 +80,9 @@ h2 {
   margin: 40px 1% 40px 1%;
   padding: 20px 10% 40px 10%;
   border-radius: 24px;
-  /* flat colour, not a gradient - see .subject-block above */
+  /* translucent grey over the colour, so the card survives dark mode too
+     - see .subject-block above */
+  background-image: linear-gradient(rgba(128, 128, 128, 0.13), rgba(128, 128, 128, 0.13));
   background-color: #f5f5f5;
 }
 
@@ -107,12 +119,21 @@ h2 {
 }
 
 .button-5 {
-  background: linear-gradient(135deg, #53900c, #6e6e6e); 
+  /* background-image, not the background shorthand. The shorthand also sets
+     background-color to transparent, and a dark-mode client reads that as "no
+     background of its own" and paints its own over the gradient - which is why
+     this button turned black while .button-3 above, written the same way but
+     with background-image, kept its gold. */
+  background-image: linear-gradient(135deg, #53900c, #6e6e6e);
   font-size: 20px;
   font-weight: 600;
   color: #f5f5f5;
   width: auto;
-  box-shadow: 20px 20px 25px; 
+  /* No shadow at all, not even the one inherited from the rule above. That one is
+     rgba(56, 56, 56, 0.3) - a dark grey, which a dark-mode client inverts into a
+     light halo around the button. Removing the button's own shadow made it inherit
+     that one, so it has to be turned off explicitly. */
+  box-shadow: none;
   transition: all 0.3s ease;
 }
 
