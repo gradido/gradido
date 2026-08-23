@@ -534,9 +534,25 @@ const admin = () => {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(4, 112, 6, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
 }
 
+/*
+  ⛔ THIS NUMBER BELONGS TO THE NAVBAR'S HEIGHT. Below 450px the navbar is `position: fixed`
+  and translucent (Menu/Navbar.vue), so whatever it covers is still readable -- which is why
+  a mismatch here does not look broken, it looks smudged.
+
+  ⚠️ And the clearance is TWO numbers on the SAME element: this padding plus the `margin-top`
+  in Breadcrumb/breadcrumb.vue. Together they have to clear the navbar; neither alone says
+  what it depends on. That is how the four till tools slipped past on 21.08.2026 -- their
+  second row grew the brand block from about 88px to about 128px, the note at the time
+  checked it against the block OPPOSITE (about 130px, so the navbar did not get taller than
+  itself) and nobody held it against the room underneath. 48 + 55 = 103 was suddenly less
+  than 128, and the heading sat under the last 25px. (Bernd found it on the phone, 23.08.)
+
+  48 + 83 = 131. Grow the navbar again and this has to grow with it -- Navbar.spec.js fails
+  when a fifth tool adds a third row.
+*/
 @media screen and (width <= 450px) {
   .breadcrumb {
-    padding-top: 55px !important;
+    padding-top: 83px !important;
   }
 }
 

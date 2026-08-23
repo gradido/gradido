@@ -205,4 +205,41 @@ describe('Navbar', () => {
       expect(html.indexOf('username')).toBeLessThan(html.indexOf('ibicopy'))
     })
   })
+  /**
+   * The height of this navbar is somebody else's problem, and that is the whole point.
+   *
+   * Below 450px it is `position: fixed` and translucent, so the page needs matching clearance
+   * underneath -- `.breadcrumb`'s `padding-top` in layouts/DashboardLayout.vue plus
+   * `.page-breadcrumb`'s `margin-top` in Breadcrumb/breadcrumb.vue, 83 + 48 = 131px today.
+   *
+   * ⛔ On 21.08.2026 the four till tools were added as a second row of 44px. The note written
+   * at the time checked the new height against the block OPPOSITE -- avatar, name and address,
+   * about 130px -- and concluded the second row "costs no height". True of the navbar, and it
+   * left the room BELOW it untouched at 103px. The heading sat under the last 25px for two
+   * days, smudged rather than hidden, because the bar is 90% opaque. (Bernd, on the phone.)
+   *
+   * A rendered height is not measurable here -- jsdom lays nothing out. What is measurable is
+   * the assumption the clearance was calculated from: two rows. A fifth tool makes it three,
+   * and then 131px is short again by the height of a row.
+   */
+  describe('height the page has to clear', () => {
+    const TOOLS_PER_ROW = 2
+    const ROWS_THE_CLEARANCE_ALLOWS = 2
+
+    it('keeps the till tools within the rows the clearance was calculated for', () => {
+      const tools = wrapper
+        .findAll('.navbar-quick-row a')
+        .filter((link) => link.attributes('data-test')?.startsWith('navbar-'))
+      const rows = Math.ceil(tools.length / TOOLS_PER_ROW)
+
+      expect(tools.length).toBeGreaterThan(0)
+      expect(
+        rows,
+        `The navbar now needs ${rows} rows of tools. The clearance below it was calculated ` +
+          `for ${ROWS_THE_CLEARANCE_ALLOWS}: raise .breadcrumb's padding-top in ` +
+          `DashboardLayout.vue by about 44px per extra row, and take the same again out of ` +
+          `the space under the heading in breadcrumb.vue, or the page slides down with it.`,
+      ).toBe(ROWS_THE_CLEARANCE_ALLOWS)
+    })
+  })
 })
