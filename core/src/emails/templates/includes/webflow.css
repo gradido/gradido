@@ -179,8 +179,20 @@ h2 {
      button standing above it. Same shape as .button-3, only the hue differs, so it
      stays where a gold button stood.
 
-     background-image, not the background shorthand - see .button-5 for why. */
-  background-image: linear-gradient(135deg, #a32020, #6e6e6e);
+     #f5365c is the wallet's own danger colour, read out of the shipped stylesheet
+     (`.btn-danger{--bs-btn-bg:#f5365c}`) - the same red the confirmation dialogue wears,
+     so the mail and the question it leads to are recognisably one thing.
+
+     A gradient, not a flat fill: a dark-mode client inverts `background-color` and would
+     turn a signal red into turquoise. It cannot invert `background-image`, which is why
+     gold and green are gradients too. The second stop is the same red a shade deeper, so
+     it still reads as one colour.
+
+     White lettering, like every other button here: 3.77:1 against #f5365c - the same
+     league as the green button at 3.92:1. The wallet uses black on this red (5.56:1)
+     because Bootstrap computes it; a mail button with black lettering would be the odd
+     one out among the other four. */
+  background-image: linear-gradient(135deg, #f5365c, #d0264a);
   /* No shadow, for the reason given at .button-5: a dark-mode client turns the
      inherited dark grey shadow into a light halo around the button. */
   box-shadow: none;
