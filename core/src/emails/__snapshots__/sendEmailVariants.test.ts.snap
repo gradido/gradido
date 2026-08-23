@@ -144,7 +144,7 @@ exports[`sendEmailVariants sendAccountActivationEmail result has the correct htm
           <p>Hello Peter Lustig,</p>
           <p>Your email address has just been registered with Gradido.</p>
         </div>
-        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(rgba(128, 128, 128, 0.13), rgba(128, 128, 128, 0.13)); background-color: #f5f5f5;\">
+        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; box-sizing: border-box; border: 1px solid #808080; background-color: #f5f5f5;\">
           <h2 style=\"margin-top: 15px; color: #383838;\">Complete registration</h2>
           <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Please click here to complete the registration and activate your Gradido account.</div><a class=\"button-3\" href=\"http://localhost/checkEmail/6627633878930542284\" style=\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\">Activate account</a>
           <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Or copy the link into your browser window.</div><a class=\"clink\" href=\"http://localhost/checkEmail/6627633878930542284\" style=\"line-break: anywhere; margin-bottom: 40px;\">http://localhost/checkEmail/6627633878930542284</a>
@@ -321,7 +321,7 @@ exports[`sendEmailVariants sendAccountMultiRegistrationEmail calls "sendEmailTra
           <p>Your email address has just been used again to register an account with Gradido.<br>However, an account already exists for your email address.
           </p>
         </div>
-        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(rgba(128, 128, 128, 0.13), rgba(128, 128, 128, 0.13)); background-color: #f5f5f5;\">
+        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; box-sizing: border-box; border: 1px solid #808080; background-color: #f5f5f5;\">
           <h2 style=\"margin-top: 15px; color: #383838;\">Reset password</h2>
           <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">If you have forgotten your password, please click here.</div><a class=\"button-3\" href=\"http://localhost/forgot-password\" style=\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\">reset</a>
           <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Or copy the link into your browser window.</div><a class=\"clink\" href=\"http://localhost/forgot-password\" style=\"line-break: anywhere; margin-bottom: 40px;\">http://localhost/forgot-password</a>
@@ -494,7 +494,7 @@ exports[`sendEmailVariants sendAddedContributionMessageEmail result has the corr
           <p>Hello Peter Lustig,</p>
           <p>You have received a message from Bibi Bloxberg regarding your common good contribution “My contribution.”.</p>
         </div>
-        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(rgba(128, 128, 128, 0.13), rgba(128, 128, 128, 0.13)); background-color: #f5f5f5;\">
+        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; box-sizing: border-box; border: 1px solid #808080; background-color: #f5f5f5;\">
           <h2 style=\"margin-top: 15px; color: #383838;\">Read and reply to message</h2>
           <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">
             <p>„My message.“</p>
@@ -668,7 +668,7 @@ exports[`sendEmailVariants sendContributionChangedByModeratorEmail result has th
           <p>Hello Peter Lustig,</p>
           <p>your common good contribution 'My contribution.' has just been changed by Bibi Bloxberg and now reads as 'This is a better contribution memo.'</p>
         </div>
-        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(rgba(128, 128, 128, 0.13), rgba(128, 128, 128, 0.13)); background-color: #f5f5f5;\">
+        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; box-sizing: border-box; border: 1px solid #808080; background-color: #f5f5f5;\">
           <h2 style=\"margin-top: 15px; color: #383838;\">Contribution details</h2>
           <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab.</div><a class=\"button-3\" href=\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\" style=\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\">To account</a>
           <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Or copy the link into your browser window.</div><a class=\"clink\" href=\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\" style=\"line-break: anywhere; margin-bottom: 40px;\">https://gradido.net/contributions/own-contributions/1#contributionListItem-1</a>
@@ -840,7 +840,7 @@ exports[`sendEmailVariants sendContributionConfirmedEmail result has the correct
           <p>Hello Peter Lustig,</p>
           <p>Your common good contribution “My contribution.” has just been approved by Bibi Bloxberg. Your Gradido account has been credited with 23.54 GDD.</p>
         </div>
-        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(rgba(128, 128, 128, 0.13), rgba(128, 128, 128, 0.13)); background-color: #f5f5f5;\">
+        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; box-sizing: border-box; border: 1px solid #808080; background-color: #f5f5f5;\">
           <h2 style=\"margin-top: 15px; color: #383838;\">Contribution details</h2>
           <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab.</div><a class=\"button-3\" href=\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\" style=\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\">To account</a>
           <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Or copy the link into your browser window.</div><a class=\"clink\" href=\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\" style=\"line-break: anywhere; margin-bottom: 40px;\">https://gradido.net/contributions/own-contributions/1#contributionListItem-1</a>
@@ -1012,7 +1012,7 @@ exports[`sendEmailVariants sendContributionDeletedEmail result has the correct h
           <p>Hello Peter Lustig,</p>
           <p>Your common good contribution “My contribution.” was deleted by Bibi Bloxberg.</p>
         </div>
-        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(rgba(128, 128, 128, 0.13), rgba(128, 128, 128, 0.13)); background-color: #f5f5f5;\">
+        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; box-sizing: border-box; border: 1px solid #808080; background-color: #f5f5f5;\">
           <h2 style=\"margin-top: 15px; color: #383838;\">Contribution details</h2>
           <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab.</div><a class=\"button-3\" href=\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\" style=\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\">To account</a>
           <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Or copy the link into your browser window.</div><a class=\"clink\" href=\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\" style=\"line-break: anywhere; margin-bottom: 40px;\">https://gradido.net/contributions/own-contributions/1#contributionListItem-1</a>
@@ -1184,7 +1184,7 @@ exports[`sendEmailVariants sendContributionDeniedEmail result has the correct ht
           <p>Hello Peter Lustig,</p>
           <p>Your common good contribution “My contribution.” was rejected by Bibi Bloxberg.</p>
         </div>
-        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(rgba(128, 128, 128, 0.13), rgba(128, 128, 128, 0.13)); background-color: #f5f5f5;\">
+        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; box-sizing: border-box; border: 1px solid #808080; background-color: #f5f5f5;\">
           <h2 style=\"margin-top: 15px; color: #383838;\">Contribution details</h2>
           <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab.</div><a class=\"button-3\" href=\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\" style=\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\">To account</a>
           <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Or copy the link into your browser window.</div><a class=\"clink\" href=\"https://gradido.net/contributions/own-contributions/1#contributionListItem-1\" style=\"line-break: anywhere; margin-bottom: 40px;\">https://gradido.net/contributions/own-contributions/1#contributionListItem-1</a>
@@ -1356,7 +1356,7 @@ exports[`sendEmailVariants sendResetPasswordEmail result has the correct html as
           <p>Hello Peter Lustig,</p>
           <p>You, or someone else, requested a password reset for this account.</p>
         </div>
-        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(rgba(128, 128, 128, 0.13), rgba(128, 128, 128, 0.13)); background-color: #f5f5f5;\">
+        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; box-sizing: border-box; border: 1px solid #808080; background-color: #f5f5f5;\">
           <h2 style=\"margin-top: 15px; color: #383838;\">Reset password</h2>
           <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">If it was you, please click here.</div><a class=\"button-3\" href=\"http://localhost/reset-password/3762660021544901417\" style=\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\">reset</a>
           <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Or copy the link into your browser window.</div><a class=\"clink\" href=\"http://localhost/reset-password/3762660021544901417\" style=\"line-break: anywhere; margin-bottom: 40px;\">http://localhost/reset-password/3762660021544901417</a>
@@ -1532,7 +1532,7 @@ exports[`sendEmailVariants sendTransactionLinkRedeemedEmail result has the corre
           <p>Hello Peter Lustig,</p>
           <p>Bibi Bloxberg (bibi@bloxberg.de) has just redeemed your link.</p>
         </div>
-        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(rgba(128, 128, 128, 0.13), rgba(128, 128, 128, 0.13)); background-color: #f5f5f5;\">
+        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; box-sizing: border-box; border: 1px solid #808080; background-color: #f5f5f5;\">
           <h2 style=\"margin-top: 15px; color: #383838;\">Transaction details</h2>
           <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Amount: 17.65 GDD<br>Message: You deserve it! 🙏🏼<br>You can find transaction details in your Gradido account.
           </div><a class=\"button-3\" href=\"http://localhost/transactions\" style=\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\">To account</a>
@@ -1705,7 +1705,7 @@ exports[`sendEmailVariants sendTransactionReceivedEmail result has the correct h
           <p> You have just received 37.40 GDD from Bibi Bloxberg (<a href=\"mailto:bibi@bloxberg.de?subject=RE%3A%20Bibi%20Bloxberg%20has%20sent%20you%2037.40%20Gradido\">bibi@bloxberg.de</a>).     
           </p>
         </div>
-        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; background-image: linear-gradient(rgba(128, 128, 128, 0.13), rgba(128, 128, 128, 0.13)); background-color: #f5f5f5;\">
+        <div class=\"content\" style=\"display: block; width: 78%; margin: 40px 1% 40px 1%; padding: 20px 10% 40px 10%; border-radius: 24px; box-sizing: border-box; border: 1px solid #808080; background-color: #f5f5f5;\">
           <h2 style=\"margin-top: 15px; color: #383838;\">Message</h2>
           <div class=\"child-left\" style=\"text-align: left;\">
             <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">Du bist schon lustiger ;)</div>
