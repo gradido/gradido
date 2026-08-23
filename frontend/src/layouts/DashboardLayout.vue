@@ -547,12 +547,18 @@ const admin = () => {
   itself) and nobody held it against the room underneath. 48 + 55 = 103 was suddenly less
   than 128, and the heading sat under the last 25px. (Bernd found it on the phone, 23.08.)
 
-  48 + 83 = 131. Grow the navbar again and this has to grow with it -- Navbar.spec.js fails
-  when a fifth tool adds a third row.
+  ⚠️ 48 + 69 = 117, and the last number is MEASURED ON THE DEVICE, not calculated. The sum
+  first went to 131, from "about 128px" in the navbar's own note plus a little. Bernd looked
+  at it on the phone: half of the added room was enough. So the ~128 was the overestimate,
+  and 117 is what the navbar actually needs -- keep it that way round if this ever moves
+  again, because the note over there is an estimate and the phone is not.
+
+  Grow the navbar and this has to grow with it -- Navbar.spec.js fails when a fifth tool
+  adds a third row.
 */
 @media screen and (width <= 450px) {
   .breadcrumb {
-    padding-top: 83px !important;
+    padding-top: 69px !important;
   }
 }
 
