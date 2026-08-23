@@ -45,8 +45,26 @@ export default {
 }
 
 @media screen and (width <= 450px) {
+  /* ⚠️ Half of the clearance under the fixed navbar. The other half is the `padding-top` on
+     `.breadcrumb` in layouts/DashboardLayout.vue, and the note on what the two have to add
+     up to lives there. Change one, read the other. */
   .page-breadcrumb {
     margin-top: 3rem;
+  }
+
+  /*
+    The heading needed 28px more room when the navbar grew a second row of till tools, and it
+    is paid for here rather than by pushing the whole page down: 8 + 12 taken out of the 36px
+    that stood between the heading and the content (the h1's own 8px stays). The heading moves
+    28px, the page 8px.
+
+    ⛔ Titled pages only. An untitled box gives everything back that served the heading (rule
+    above) and keeps just the top clearance -- an unqualified value here would hand it 4px of
+    that back, on exactly the phones the space was won for. (Bernd, 22.08.2026)
+  */
+  .page-breadcrumb:not(.is-untitled) {
+    padding-bottom: 0.25rem;
+    margin-bottom: 0.25rem;
   }
 }
 </style>
