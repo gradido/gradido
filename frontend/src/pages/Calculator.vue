@@ -621,19 +621,53 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 /*
-  The calculator keeps the PWA's own colours rather than the wallet's white card. They are
-  what makes it recognisable as the same tool -- and dark keys under a bright counter light
-  are easier to hit than pale ones.
+  The calculator follows the wallet's light/dark switch like every other page.
+
+  It did not, until now: it carried the standalone Gradido calculator's dark colours in both
+  modes, and the comment here justified that with recognisability and with dark keys being
+  easier to hit under counter light. ⛔ Both were written after the fact -- the colours were
+  simply taken over, light and dark were never considered. What settled it is neither: a
+  member who picks automatic switching gets a wallet that follows the time of day and one
+  part that does not. And in bright surroundings a light interface reads better, which is
+  the whole reason the switch exists. (Bernd, 23.08.2026)
 
   ⛔ Custom properties on the element, NOT scss variables at the top of the block: the style
   block is parsed by lightningcss when it is bundled, and a declaration outside any selector
   fails there with "Invalid empty selector" -- which neither lint nor the tests catch, only
   `bun run build`.
+
+  Light is the base and dark the override, the same way round as the wallet's own tokens
+  (_design-tokens.scss on :root, gradido-template-dark.scss on .dark-mode). Every value in
+  the dark block is the one this file already carried -- Calculator.spec.js holds them.
 */
 .calculator {
-  --calc-surface: rgb(40 40 40);
-  --calc-ink: rgb(255 253 253);
-  --calc-digit: rgb(20 22 18);
+  /* surfaces and text */
+  --calc-surface: #fff;
+  --calc-ink: #383838;
+  --calc-fiat: #5a5f66;
+  --calc-muted: #6c757d;
+  --calc-muted-hover: #383838;
+  --calc-accent: #047006;
+
+  /* the keypad */
+  --calc-grid: #dee2e6;
+  --calc-digit: #eef0f3;
+  --calc-key-ink: #26282c;
+  --calc-key-hover: #e2e5ea;
+
+  /*
+    The three keys that are not digits. They keep their meaning by hue -- blue closes a sum,
+    green joins one, red takes away -- and in light mode they are saturated with white text
+    rather than tinted: these are the keys found without looking, and colour carries further
+    than a tint. (Bernd chose this over the quieter tinted set, from two rendered options.)
+  */
+  --calc-accent-ink: #fff;
+  --calc-result: #3b46a8;
+  --calc-result-hover: #333da0;
+  --calc-operator: #2f7a12;
+  --calc-operator-hover: #29690f;
+  --calc-delete: #9d2b33;
+  --calc-delete-hover: #8c242b;
 
   max-width: 480px;
   margin: 0 auto;
@@ -641,6 +675,33 @@ onUnmounted(() => {
   background-color: var(--calc-surface);
   border-radius: 12px;
   overflow: hidden;
+}
+
+/*
+  Dark mode: the colours this calculator was born with, taken over from the standalone
+  Gradido calculator. Not one of them changed when light mode was added.
+*/
+.dark-mode .calculator {
+  --calc-surface: rgb(40 40 40);
+  --calc-ink: rgb(255 253 253);
+  --calc-fiat: rgb(220 216 216);
+  --calc-muted: rgb(150 150 150);
+  --calc-muted-hover: rgb(210 210 210);
+  --calc-accent: rgb(132 174 116);
+  --calc-grid: rgb(60 60 60);
+  --calc-digit: rgb(20 22 18);
+  --calc-key-ink: rgb(198 190 190);
+  --calc-key-hover: rgb(30 30 30);
+
+  /* In dark the three special keys are dark surfaces themselves, so their labels keep the
+     digits' colour -- there the hue does the distinguishing, not the ink. */
+  --calc-accent-ink: rgb(198 190 190);
+  --calc-result: rgb(9 5 64);
+  --calc-result-hover: rgb(10 5 76);
+  --calc-operator: rgb(27 80 7);
+  --calc-operator-hover: rgb(33 98 10);
+  --calc-delete: rgb(12 1 2);
+  --calc-delete-hover: rgb(30 4 8);
 }
 
 .calculator-head {
@@ -658,14 +719,14 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   font-size: 24px;
-  color: rgb(150 150 150);
+  color: var(--calc-muted);
   background: transparent;
   border: none;
   cursor: pointer;
 }
 
 .calculator-head-key:hover {
-  color: rgb(210 210 210);
+  color: var(--calc-muted-hover);
 }
 
 .calculator-display {
@@ -687,7 +748,7 @@ onUnmounted(() => {
   padding: 2px 20px 6px;
   font-size: 14px;
   text-align: right;
-  color: rgb(132 174 116);
+  color: var(--calc-accent);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -706,7 +767,7 @@ onUnmounted(() => {
 
 .calculator-sub-fiat {
   font-size: 19px;
-  color: rgb(220 216 216);
+  color: var(--calc-fiat);
 }
 
 .calculator-sub-gdd {
@@ -737,20 +798,20 @@ onUnmounted(() => {
 .calculator-sub-note {
   margin-top: 2px;
   font-size: 13px;
-  color: rgb(150 150 150);
+  color: var(--calc-muted);
 }
 
 .calculator-keys {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 1px;
-  background-color: rgb(60 60 60);
+  background-color: var(--calc-grid);
 }
 
 .key {
   min-height: 62px;
   font-size: 30px;
-  color: rgb(198 190 190);
+  color: var(--calc-key-ink);
   background-color: var(--calc-digit);
   border: none;
   cursor: pointer;
@@ -758,31 +819,34 @@ onUnmounted(() => {
 
 .key:hover {
   color: var(--calc-ink);
-  background-color: rgb(30 30 30);
+  background-color: var(--calc-key-hover);
 }
 
 .key-result {
-  background-color: rgb(9 5 64);
+  color: var(--calc-accent-ink);
+  background-color: var(--calc-result);
 }
 
 .key-result:hover {
-  background-color: rgb(10 5 76);
+  background-color: var(--calc-result-hover);
 }
 
 .key-operator {
-  background-color: rgb(27 80 7);
+  color: var(--calc-accent-ink);
+  background-color: var(--calc-operator);
 }
 
 .key-operator:hover {
-  background-color: rgb(33 98 10);
+  background-color: var(--calc-operator-hover);
 }
 
 .key-delete {
-  background-color: rgb(12 1 2);
+  color: var(--calc-accent-ink);
+  background-color: var(--calc-delete);
 }
 
 .key-delete:hover {
-  background-color: rgb(30 4 8);
+  background-color: var(--calc-delete-hover);
 }
 
 .key-dankbar {
