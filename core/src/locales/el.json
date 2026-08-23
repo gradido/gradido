@@ -129,11 +129,11 @@
       "blockCard": "Μπλοκάρισμα κάρτας",
       "card": "Κάρτα: {cardLabel}",
       "memo": "Αιτιολογία: {transactionMemo}",
-      "notYou": "Δεν ήσασταν εσείς; Μπλοκάρετε την κάρτα σας εδώ — παύει να λειτουργεί, η διεύθυνση Gradido παραμένει.",
+      "notYou": "Δεν ήσουν εσύ; Μπλόκαρε την κάρτα σου εδώ — παύει να λειτουργεί, η διεύθυνση Gradido παραμένει.",
       "recipient": "Παραλήπτης: {recipientName} ({recipientCommunity})",
-      "subject": "Μεταβιβάσατε {amountGDD} GDD με την κάρτα ευχαριστίας σας",
-      "title": "Μεταβιβάστηκαν {amountGDD} GDD με την κάρτα ευχαριστίας σας",
-      "wasPaid": "Μόλις μεταβιβάστηκαν {amountGDD} GDD με την κάρτα ευχαριστίας σας."
+      "subject": "Μεταβίβασες {amountGDD} GDD με την κάρτα ευχαριστίας σου",
+      "title": "Μεταβιβάστηκαν {amountGDD} GDD με την κάρτα ευχαριστίας σου",
+      "wasPaid": "Μόλις μεταβιβάστηκαν {amountGDD} GDD με την κάρτα ευχαριστίας σου."
     },
     "transactionLinkRedeemed": {
       "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) μόλις εξαργύρωσε τον σύνδεσμό σου.",
