@@ -22,11 +22,7 @@ vi.mock('@/components/Message/Message.vue', () => ({
   },
 }))
 
-vi.mock('@/composables/useAuthLinks', () => ({
-  useAuthLinks: () => ({ routeWithParamsAndQuery: () => '/login' }),
-}))
-
-const route = { name: 'EmailChangeConfirm', params: { code: 'the-code' } }
+const route = { name: 'EmailChangeConfirm', params: { changeCode: 'the-code' } }
 vi.mock('vue-router', () => ({
   useRoute: () => route,
 }))
@@ -74,7 +70,7 @@ describe('EmailChange page', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     route.name = 'EmailChangeConfirm'
-    route.params = { code: 'the-code' }
+    route.params = { changeCode: 'the-code' }
   })
 
   describe('confirming', () => {
@@ -109,6 +105,26 @@ describe('EmailChange page', () => {
       expect(emailCommit).not.toHaveBeenCalled()
     })
 
+    /**
+     * ⛔ The button under the success message used to be built with
+     * `routeWithParamsAndQuery('Login')`, which carries the CURRENT route's params over -
+     * and this route's param landed in `/login/:code?`, where `code` means the redeem code
+     * of a transaction link. The member got `/login/<confirmation code>`, and after a
+     * successful login `Login.vue` sent them on to `/redeem/<confirmation code>`: a dead
+     * end at the very end of the change. Found by hand, 24.08.2026.
+     *
+     * Two things keep it away now: the link takes no params, and this route's param is
+     * named `changeCode`, so nothing of ours fits that slot any more.
+     */
+    it('sends to the plain login page - never with the confirmation code in it', async () => {
+      confirmMock.mockResolvedValue({ data: { confirmEmailChange: 'new@example.org' } })
+      const wrapper = mountPage()
+      await wrapper.find('[data-test="email-change-action"]').trigger('click')
+      await nextTick()
+      await nextTick()
+      expect(wrapper.findComponent({ name: 'Message' }).props('linkTo')).toEqual({ name: 'Login' })
+    })
+
     it('tells about an invalid or expired link in the member language', async () => {
       confirmMock.mockRejectedValue(new Error('GraphQL error: Invalid or expired code'))
       const wrapper = mountPage()
@@ -122,7 +138,7 @@ describe('EmailChange page', () => {
   describe('revoking', () => {
     beforeEach(() => {
       route.name = 'EmailChangeRevoke'
-      route.params = { code: 'the-veto' }
+      route.params = { changeCode: 'the-veto' }
     })
 
     it('revokes with the veto code on click - never the confirmation', async () => {

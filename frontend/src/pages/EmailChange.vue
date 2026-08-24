@@ -15,7 +15,7 @@
     :headline="headline"
     :subtitle="subtitle"
     :button-text="$t('login')"
-    :link-to="routeWithParamsAndQuery('Login')"
+    :link-to="{ name: 'Login' }"
   />
 </template>
 
@@ -27,11 +27,9 @@ import { useMutation } from '@vue/apollo-composable'
 import { BButton } from 'bootstrap-vue-next'
 import { confirmEmailChange, revokeEmailChange } from '@/graphql/mutations'
 import Message from '@/components/Message/Message.vue'
-import { useAuthLinks } from '@/composables/useAuthLinks'
 
 const route = useRoute()
 const { t } = useI18n()
-const { routeWithParamsAndQuery } = useAuthLinks()
 
 const emit = defineEmits(['set-mobile-start'])
 
@@ -71,9 +69,9 @@ const act = async () => {
     // Nothing is written into a session that may be open on this device: the code is
     // public, and the wallet signed in here need not be the account it belongs to.
     if (revoking.value) {
-      await revoke({ vetoCode: route.params.code })
+      await revoke({ vetoCode: route.params.changeCode })
     } else {
-      await confirm({ code: route.params.code })
+      await confirm({ code: route.params.changeCode })
     }
     headline.value = t('message.title')
     subtitle.value = texts.value.done

@@ -320,12 +320,12 @@ const routes = [
   // would be "clicked" by every mail scanner that prefetches links.
   {
     name: 'EmailChangeRevoke',
-    path: '/email-change/revoke/:code',
+    path: '/email-change/revoke/:changeCode',
     component: () => import('@/pages/EmailChange'),
   },
   {
     name: 'EmailChangeConfirm',
-    path: '/email-change/:code',
+    path: '/email-change/:changeCode',
     component: () => import('@/pages/EmailChange'),
   },
   {
