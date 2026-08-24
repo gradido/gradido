@@ -87,7 +87,8 @@
       "oldEmail": "Dirección anterior: {oldEmail}",
       "subject": "Dirección de correo cambiada: {firstName} {lastName}",
       "title": "Un miembro ha cambiado su dirección de correo",
-      "todo": "Por favor, asigna la nueva dirección a esta cuenta en el servidor GDT y actualiza Klick-Tipp."
+      "todo": "Por favor, asigna la nueva dirección a esta cuenta en el servidor GDT y actualiza Klick-Tipp.",
+      "todoTakeBack": "Cambio de vuelta a una dirección anterior de esta cuenta: no hay nada que fusionar en el servidor GDT. Por favor, actualiza solo Klick-Tipp."
     },
     "footer": {
       "contactOurSupport": "Si tienes más preguntas, ponte en contacto con nuestro soporte.",

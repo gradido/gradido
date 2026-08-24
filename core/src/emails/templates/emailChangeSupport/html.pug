@@ -9,4 +9,7 @@ block content
     p= t('emails.emailChangeSupport.newEmail', { newEmail })
   .content
     div(class="p_content")= t('emails.emailChangeSupport.gdtHint', { gdtEmail })
-    div(class="p_content")= t('emails.emailChangeSupport.todo')
+    if takeBack
+      div(class="p_content")= t('emails.emailChangeSupport.todoTakeBack')
+    else
+      div(class="p_content")= t('emails.emailChangeSupport.todo')

@@ -10,10 +10,22 @@ import { DBDuplicateEntryError, DBNotFoundError } from '../errorTypes'
  * them by, and a row that vanished would let the Elopage webhook open a second account on
  * the next subscription event.
  *
- * A pending change is a second row of opt-in type EMAIL_OPT_IN_CHANGE with
- * `emailChecked = false`. Confirming it moves the marker; cancelling, vetoing or expiry
- * deletes it HARD - a soft-deleted row would still block the address for everybody,
- * because the registration check looks at deleted rows too.
+ * A pending change is the row of opt-in type EMAIL_OPT_IN_CHANGE. Confirming it moves the
+ * marker; cancelling, vetoing or expiry releases it again.
+ *
+ * There are two kinds of pending row, and they end differently:
+ *  - A FRESH one, inserted for an address the member never had: `emailChecked = false`.
+ *    Released by a HARD delete - a soft-deleted row would still block the address for
+ *    everybody, because the registration check looks at deleted rows too.
+ *  - A TAKE-BACK: the member's OWN earlier row, borrowed for the change. `email` is
+ *    unique, so a second row with that address cannot exist; going back to an address one
+ *    already held means re-pointing `users.email_id` at the row that is already there.
+ *    It carries `emailChecked = true` and is released by RESTORING it, never by deleting -
+ *    it is history, and history stays (see above).
+ *
+ * ⛔ Which is why a settled row must not keep the CHANGE type: after a confirmation the row
+ * is simply a confirmed address again (type REGISTER). Otherwise every address the member
+ * ever changed to would look like a change in flight.
  *
  * Same rule as in `userAliases.ts`: whatever the caller writes inside its REPEATABLE READ
  * transaction takes the optional `EntityManager`, so a rollback of `users` takes the
@@ -65,11 +77,23 @@ export async function dbFindPendingEmailChange(
   userId: number,
   manager?: EntityManager,
 ): Promise<DbUserContact | null> {
-  const where = {
-    userId,
-    emailOptInTypeId: OptInType.EMAIL_OPT_IN_CHANGE,
-    emailChecked: false,
-  }
+  // The type alone says it: a settled row is put back to REGISTER when it is confirmed,
+  // so nothing but a change in flight carries CHANGE - fresh or taken back.
+  const where = { userId, emailOptInTypeId: OptInType.EMAIL_OPT_IN_CHANGE }
+  return manager ? manager.findOne(DbUserContact, { where }) : DbUserContact.findOne({ where })
+}
+
+/**
+ * The member's OWN row for this address, if they ever held it. This is what makes going
+ * back possible: the address is not free, but it is not somebody else's either - it is
+ * already theirs, and the row only has to be pointed at again.
+ */
+export async function dbFindOwnUserContactByEmail(
+  userId: number,
+  email: string,
+  manager?: EntityManager,
+): Promise<DbUserContact | null> {
+  const where = { userId, email }
   return manager ? manager.findOne(DbUserContact, { where }) : DbUserContact.findOne({ where })
 }
 
@@ -84,7 +108,6 @@ export async function dbFindPendingEmailChangeByCode(code: string): Promise<DbUs
     where: {
       emailVerificationCode: code,
       emailOptInTypeId: OptInType.EMAIL_OPT_IN_CHANGE,
-      emailChecked: false,
     },
   })
 }
@@ -97,7 +120,6 @@ export async function dbFindPendingEmailChangeByVetoCode(
     where: {
       changeVetoCode: vetoCode,
       emailOptInTypeId: OptInType.EMAIL_OPT_IN_CHANGE,
-      emailChecked: false,
     },
   })
 }
@@ -127,6 +149,8 @@ export async function dbPurgeExpiredEmailChanges(olderThan: Date, email?: string
     .delete()
     .from(DbUserContact)
     .where('email_opt_in_type_id = :type', { type: OptInType.EMAIL_OPT_IN_CHANGE })
+    // Only fresh rows. A take-back is one of the member's own confirmed addresses and is
+    // never deleted; it is restored by the paths that know whose it is.
     .andWhere('email_checked = 0')
     .andWhere('COALESCE(updated_at, created_at) < :before', { before: olderThan })
   if (email) {
@@ -171,6 +195,52 @@ export async function dbInsertPendingEmailChange(
     }
     throw error
   }
+}
+
+/**
+ * Borrow one of the member's OWN earlier rows for a change back to that address. The row
+ * keeps `emailChecked` - it is and stays a confirmed address of theirs - and only takes on
+ * the change type and the two fresh codes.
+ */
+export async function dbMarkUserContactPending(
+  contact: DbUserContact,
+  codes: { verificationCode: string; vetoCode: string },
+  manager?: EntityManager,
+): Promise<DbUserContact> {
+  contact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_CHANGE
+  contact.emailVerificationCode = codes.verificationCode
+  contact.changeVetoCode = codes.vetoCode
+  contact.updatedAt = new Date()
+  return manager ? manager.save(contact) : DbUserContact.save(contact)
+}
+
+/**
+ * End a pending change without carrying it out - cancelled, vetoed or expired. A fresh row
+ * goes for good; a taken-back row is put back to what it was, because it is one of the
+ * member's addresses and those are never deleted.
+ *
+ * ⛔ The fresh verification code is not cosmetic. A restored row carries the REGISTER type
+ * again, and `setPassword` accepts any code whose row is not of the change type - so
+ * leaving the mailed code in place would turn a cancelled change into a working
+ * activation ticket for whoever still holds that link.
+ */
+export async function dbReleasePendingEmailChange(
+  contact: DbUserContact,
+  freshVerificationCode: string,
+  manager?: EntityManager,
+): Promise<'restored' | 'deleted'> {
+  if (!contact.emailChecked) {
+    await (manager
+      ? manager.delete(DbUserContact, { id: contact.id })
+      : DbUserContact.delete({ id: contact.id }))
+    return 'deleted'
+  }
+  contact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
+  contact.emailVerificationCode = freshVerificationCode
+  contact.changeVetoCode = null
+  contact.updatedAt = new Date()
+  await (manager ? manager.save(contact) : DbUserContact.save(contact))
+  return 'restored'
 }
 
 /** Persist changes to a contact row - inside the caller's transaction when given. */

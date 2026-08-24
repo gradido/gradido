@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+import { OptInType, UserContactType } from 'shared'
 import { Community as DbCommunity, User as DbUser, UserContact as DbUserContact } from '..'
 import { AppDatabase } from '../AppDatabase'
 import { DBDuplicateEntryError } from '../errorTypes'
@@ -11,12 +12,15 @@ import {
   dbEmailTaken,
   dbFindConfirmedUserContactEmails,
   dbFindOldestUserContact,
+  dbFindOwnUserContactByEmail,
   dbFindPendingEmailChange,
   dbFindPendingEmailChangeByCode,
   dbFindPendingEmailChangeByVetoCode,
   dbFindUserIdsByEmailLike,
   dbInsertPendingEmailChange,
+  dbMarkUserContactPending,
   dbPurgeExpiredEmailChanges,
+  dbReleasePendingEmailChange,
 } from './userContacts'
 
 const db = AppDatabase.getInstance()
@@ -172,6 +176,87 @@ describe('userContacts.queries', () => {
       const olderThan = new Date(Date.now() - 24 * HOUR_MS)
       expect(await dbPurgeExpiredEmailChanges(olderThan)).toBe(0)
       expect(await dbEmailTaken('peter@lustig.de')).toBe(true)
+    })
+  })
+
+  /**
+   * Going back to an address one held before. `email` is unique, so there is no second row
+   * to insert - the member's own row is borrowed, and it must come out of that unharmed
+   * whichever way the change ends.
+   */
+  describe('taking an earlier address back', () => {
+    let earlier: DbUserContact
+
+    beforeAll(async () => {
+      await DbUserContact.delete({ userId: bibi.id, emailChecked: false })
+      // What a completed change leaves behind: a confirmed address that is no longer the
+      // one in force.
+      earlier = DbUserContact.create({
+        userId: bibi.id,
+        email: 'bibi-earlier@bloxberg.de',
+        type: UserContactType.USER_CONTACT_EMAIL,
+        emailChecked: true,
+        emailOptInTypeId: OptInType.EMAIL_OPT_IN_REGISTER,
+        emailVerificationCode: '9001',
+      })
+      await DbUserContact.save(earlier)
+    })
+
+    it('is found as belonging to this member, and to no other', async () => {
+      expect((await dbFindOwnUserContactByEmail(bibi.id, 'bibi-earlier@bloxberg.de'))?.id).toBe(
+        earlier.id,
+      )
+      expect(await dbFindOwnUserContactByEmail(peter.id, 'bibi-earlier@bloxberg.de')).toBeNull()
+      // ...while the plain question still says the address is spoken for - which is what
+      // keeps a stranger from taking it.
+      expect(await dbEmailTaken('bibi-earlier@bloxberg.de')).toBe(true)
+    })
+
+    it('becomes the pending change without losing that it was confirmed', async () => {
+      await dbMarkUserContactPending(earlier, { verificationCode: '9002', vetoCode: '9003' })
+
+      const pending = await dbFindPendingEmailChange(bibi.id)
+      expect(pending?.id).toBe(earlier.id)
+      expect(pending?.emailChecked).toBe(true)
+      expect((await dbFindPendingEmailChangeByCode('9002'))?.id).toBe(earlier.id)
+      expect((await dbFindPendingEmailChangeByVetoCode('9003'))?.id).toBe(earlier.id)
+    })
+
+    // ⛔ The bulk purge works by SQL and cannot tell whose row it is - so it must never
+    // touch a confirmed one, however long the change has been lying around.
+    it('survives the purge that clears out forgotten changes', async () => {
+      await ageRow(earlier.id, 25)
+      expect(await dbPurgeExpiredEmailChanges(new Date(Date.now() - 24 * HOUR_MS))).toBe(0)
+      expect(await DbUserContact.findOneBy({ id: earlier.id })).not.toBeNull()
+    })
+
+    it('is restored, never deleted, when the change is called off', async () => {
+      const outcome = await dbReleasePendingEmailChange(earlier, '9004')
+
+      expect(outcome).toBe('restored')
+      const row = await DbUserContact.findOneByOrFail({ id: earlier.id })
+      expect(row.emailOptInTypeId).toBe(OptInType.EMAIL_OPT_IN_REGISTER)
+      expect(row.changeVetoCode).toBeNull()
+      expect(row.emailChecked).toBe(true)
+      // The mailed code has to die with the change: a restored row is of the REGISTER type
+      // again, and `setPassword` accepts codes of that kind.
+      expect(row.emailVerificationCode).toBe('9004')
+      expect(await dbFindPendingEmailChange(bibi.id)).toBeNull()
+    })
+
+    it('deletes a fresh row instead - that address was never theirs', async () => {
+      const inserted = await dbInsertPendingEmailChange({
+        userId: bibi.id,
+        email: 'bibi-never-had@bloxberg.de',
+        verificationCode: '9005',
+        vetoCode: '9006',
+      })
+      if (!inserted.success) {
+        throw inserted.error
+      }
+
+      expect(await dbReleasePendingEmailChange(inserted.value, '9007')).toBe('deleted')
+      expect(await dbEmailTaken('bibi-never-had@bloxberg.de')).toBe(false)
     })
   })
 })

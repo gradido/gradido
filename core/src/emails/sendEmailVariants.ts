@@ -144,6 +144,8 @@ export const sendEmailChangeSupportEmail = (
     oldEmail: string
     newEmail: string
     gdtEmail: string
+    /** A change back to an address the member held before - nothing to merge on the GDT server. */
+    takeBack: boolean
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
