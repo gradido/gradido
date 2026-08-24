@@ -415,21 +415,29 @@ html:has(body.dark-mode) {
  * own `.btn-danger`, and an `!important` there outranks a plain declaration here however
  * specific this selector is. Without it the light red would have shown through in dark mode --
  * measured in the built stylesheet, where the first attempt did exactly that.
+ *
+ * ⚠️ The fill has to clear TWO bars at once, and #d32f2f cleared only one (white 4.98:1, but
+ * 2.81:1 against the card -- a filled shape needs 3:1 to be a shape at all). #d93636 is the
+ * point where both hold: white 4.63:1, card 3.02:1. Hover goes DARKER (#c62828, white 5.62:1)
+ * rather than lighter, which is where the room is. (coderabbit, and it was right.)
  */
 .dark-mode .btn-danger {
-  --bs-btn-bg: #d32f2f !important;
-  --bs-btn-border-color: #d32f2f !important;
-  --bs-btn-hover-bg: #e03a3a !important;
-  --bs-btn-hover-border-color: #e03a3a !important;
-  --bs-btn-active-bg: #e03a3a !important;
-  --bs-btn-active-border-color: #e03a3a !important;
-  --bs-btn-disabled-bg: #d32f2f !important;
-  --bs-btn-disabled-border-color: #d32f2f !important;
+  --bs-btn-bg: #d93636 !important;
+  --bs-btn-border-color: #d93636 !important;
+  --bs-btn-hover-bg: #c62828 !important;
+  --bs-btn-hover-border-color: #c62828 !important;
+  --bs-btn-active-bg: #c62828 !important;
+  --bs-btn-active-border-color: #c62828 !important;
+  --bs-btn-disabled-bg: #d93636 !important;
+  --bs-btn-disabled-border-color: #d93636 !important;
 }
 
 .dark-mode .btn-outline-secondary {
   --bs-btn-color: var(--text);
-  --bs-btn-border-color: var(--border);
+  /* ⚠️ --text-muted, not --border: the border token is 1.16:1 against the card, which is a
+     hairline nobody sees, and this button is nothing BUT its outline. 5.03:1 now.
+     (coderabbit, and it was right.) */
+  --bs-btn-border-color: var(--text-muted);
   --bs-btn-hover-bg: var(--surface-muted);
   --bs-btn-hover-color: var(--text);
   --bs-btn-hover-border-color: var(--text-muted);
