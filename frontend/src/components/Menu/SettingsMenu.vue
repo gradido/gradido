@@ -20,7 +20,6 @@
       <settings-menu-icon :name="entry.test" class="settings-menu-icon" />
       <span class="settings-menu-label">
         {{ entry.label }}
-        <span v-if="entry.note" class="settings-menu-note">{{ entry.note }}</span>
       </span>
       <span
         v-if="entry.state"
@@ -123,12 +122,16 @@ const entries = computed(() => {
   // does not exist at all -- so the entry goes, and the route is not registered either.
   // ⚠️ No state: there are TWO switches behind it (GMS and HumHub), and one word cannot say
   // what two switches stand at.
+  //
+  // ⛔ And no "(will be dropped later)" either. That note was written for US -- it kept the
+  // area from being quietly made permanent -- but it was standing in the MEMBER's menu, where
+  // it only raises a question nobody can answer: dropped why? A screen is not a notebook.
+  // (Bernd, 24.08.2026.)
   if (isCommunityService) {
     list.push({
       to: '/settings/communities',
       test: 'communities',
       label: t('settings.community'),
-      note: t('settings.menu.communities-note'),
     })
   }
   return list
@@ -162,12 +165,6 @@ const entries = computed(() => {
 .settings-menu-label {
   flex: 1 1 auto;
   min-width: 0;
-}
-
-.settings-menu-note {
-  display: block;
-  font-size: 0.8rem;
-  color: var(--text-muted);
 }
 
 .settings-menu-state {

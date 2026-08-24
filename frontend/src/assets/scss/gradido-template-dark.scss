@@ -391,6 +391,53 @@ html:has(body.dark-mode) {
   color: var(--text);
 }
 
+/**
+ * Outline buttons that carry no colour of their own ("E-Mail-Adresse ändern"). Bootstrap
+ * builds them from $secondary, which is near-white (#f7fafc) in this template: in dark mode
+ * that drew a WHITE ring around a transparent -- so black -- button, with the light-mode
+ * link blue (#4385b1) inside it at 3.48:1, under the 4.5 a small label needs.
+ * (Bernd, 24.08.2026: "ein schwarzer Knopf mit weißem Rand und blauer Schrift".)
+ * Text at 11:1 now, and the ring is a normal border rather than the brightest thing on the
+ * screen.
+ */
+
+/**
+ * ⚠️ The red button needs its own fill in dark mode, and NOT the dark --danger token. That
+ * token is made for TEXT: #ef5350 is light so it can be read against a dark ground, and white
+ * on it falls to 3.49:1. A button has the opposite job -- it is a surface that has to carry a
+ * white label. #d32f2f does both: white at 4.98:1, and 2.81:1 against the card, which is
+ * enough for a filled shape with a border (the 3:1 rule is about outlines, not fills).
+ *
+ * ★ The general shape of this: a colour that works as text does not automatically work as a
+ * ground. Same name, two jobs.
+ *
+ * ⚠️ `!important` here too, and not for tidiness: the light rule needs it to beat Bootstrap's
+ * own `.btn-danger`, and an `!important` there outranks a plain declaration here however
+ * specific this selector is. Without it the light red would have shown through in dark mode --
+ * measured in the built stylesheet, where the first attempt did exactly that.
+ */
+.dark-mode .btn-danger {
+  --bs-btn-bg: #d32f2f !important;
+  --bs-btn-border-color: #d32f2f !important;
+  --bs-btn-hover-bg: #e03a3a !important;
+  --bs-btn-hover-border-color: #e03a3a !important;
+  --bs-btn-active-bg: #e03a3a !important;
+  --bs-btn-active-border-color: #e03a3a !important;
+  --bs-btn-disabled-bg: #d32f2f !important;
+  --bs-btn-disabled-border-color: #d32f2f !important;
+}
+
+.dark-mode .btn-outline-secondary {
+  --bs-btn-color: var(--text);
+  --bs-btn-border-color: var(--border);
+  --bs-btn-hover-bg: var(--surface-muted);
+  --bs-btn-hover-color: var(--text);
+  --bs-btn-hover-border-color: var(--text-muted);
+  --bs-btn-active-bg: var(--surface-muted);
+  --bs-btn-active-color: var(--text);
+  --bs-btn-active-border-color: var(--text-muted);
+}
+
 // "Load more links" button (BButton variant=outline-primary) -> Gradido link green.
 .dark-mode .btn-outline-primary {
   --bs-btn-color: var(--link);
