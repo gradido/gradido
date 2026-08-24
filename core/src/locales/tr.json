@@ -87,7 +87,8 @@
       "oldEmail": "Önceki adres: {oldEmail}",
       "subject": "E-posta adresi değiştirildi: {firstName} {lastName}",
       "title": "Bir üye e-posta adresini değiştirdi",
-      "todo": "Lütfen yeni adresi GDT sunucusunda bu hesaba bağla ve Klick-Tipp'i güncelle."
+      "todo": "Lütfen yeni adresi GDT sunucusunda bu hesaba bağla ve Klick-Tipp'i güncelle.",
+      "todoTakeBack": "Bu hesabın önceki bir adresine geri dönüş – GDT sunucusunda birleştirilecek bir şey yok. Lütfen yalnızca Klick-Tipp'i güncelleyin."
     },
     "footer": {
       "contactOurSupport": "Başka sorun olursa lütfen desteğimize başvur.",

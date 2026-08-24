@@ -4,6 +4,7 @@ import { ApolloServerTestClient } from 'apollo-server-testing'
 import { CONFIG as CORE_CONFIG } from 'core'
 import { AppDatabase, User as DbUser, UserContact as DbUserContact } from 'database'
 import { GraphQLError } from 'graphql'
+import { OptInType } from 'shared'
 import { CONFIG } from '@/config'
 import { userFactory } from '@/seeds/factory/user'
 import {
@@ -19,6 +20,7 @@ import {
 } from '@/seeds/graphql/mutations'
 import { adminEmailStatus, pendingEmailChange, queryOptIn } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
+import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
 // The mock derives the key the same way (salt by encryption type, gradido id for the
@@ -45,8 +47,11 @@ const CODE_INVALID = new GraphQLError('Invalid or expired code')
 const loginAs = (email: string) =>
   mutate({ mutation: login, variables: { email, password: PASSWORD } })
 
+// The same question the application asks: a change in flight is the row of the change
+// type - which, since a change back borrows a confirmed row, is no longer the same as
+// "unconfirmed".
 const pendingRow = (userId: number) =>
-  DbUserContact.findOne({ where: { userId, emailChecked: false } })
+  DbUserContact.findOne({ where: { userId, emailOptInTypeId: OptInType.EMAIL_OPT_IN_CHANGE } })
 
 /**
  * The rate limit reads the request event, not the clock - so instead of faking timers
@@ -488,6 +493,138 @@ describe('EmailChangeResolver', () => {
       ).resolves.toMatchObject({
         data: null,
         errors: [new GraphQLError('401 Unauthorized')],
+      })
+    })
+  })
+
+  /**
+   * ⭐ Going back to an address one held before, found missing by Bernd at the device on
+   * 24.08.2026: the wallet answered "already in use" for the member's OWN earlier address.
+   * The alias has allowed taking a name back all along, and for the same reason - an
+   * address one has already proven is not somebody else's.
+   *
+   * `user_contacts.email` is unique, so there is nothing to insert: the row is already
+   * there and is borrowed for the change. What these tests watch is that it comes out of
+   * that unharmed - the history must not shrink, and the marker must land on the old row.
+   */
+  describe('changing back to an address one held before', () => {
+    let bob: DbUser
+
+    const rowsOf = (userId: number) =>
+      DbUserContact.find({ where: { userId }, order: { createdAt: 'ASC' }, withDeleted: true })
+
+    const confirmPending = async (userId: number) => {
+      const row = await pendingRow(userId)
+      return mutate({
+        mutation: confirmEmailChange,
+        variables: { code: row!.emailVerificationCode.toString() },
+      })
+    }
+
+    beforeAll(async () => {
+      resetToken()
+      bob = await userFactory(testEnv, bobBaumeister)
+      await loginAs('bob@baumeister.de')
+      // Away from the registration address, and confirmed - this is what leaves an earlier
+      // address behind.
+      await mutate({
+        mutation: requestEmailChange,
+        variables: { email: 'bob-second@baumeister.de', password: PASSWORD },
+      })
+      await confirmPending(bob.id)
+      await ageRequestEvents(bob.id, 11)
+    })
+
+    afterAll(() => {
+      resetToken()
+    })
+
+    it('leaves the earlier address behind as a confirmed row that is not in flight', async () => {
+      const rows = await rowsOf(bob.id)
+
+      expect(rows.map((row) => row.email)).toEqual([
+        'bob@baumeister.de',
+        'bob-second@baumeister.de',
+      ])
+      // ⛔ The settled row must not keep the change type, or every address the member ever
+      // changed to would look like a change in flight to the finder.
+      expect(rows.every((row) => row.emailOptInTypeId !== OptInType.EMAIL_OPT_IN_CHANGE)).toBe(true)
+      expect(await pendingRow(bob.id)).toBeNull()
+    })
+
+    it('accepts the earlier address instead of calling it taken', async () => {
+      await expect(
+        mutate({
+          mutation: requestEmailChange,
+          variables: { email: 'bob@baumeister.de', password: PASSWORD },
+        }),
+      ).resolves.toMatchObject({
+        data: { requestEmailChange: { email: 'bob@baumeister.de' } },
+        errors: undefined,
+      })
+      // Borrowed, not inserted: still two rows, and the pending one is the old one.
+      const rows = await rowsOf(bob.id)
+      expect(rows).toHaveLength(2)
+      expect((await pendingRow(bob.id))?.email).toBe('bob@baumeister.de')
+    })
+
+    it('still refuses an address that belongs to somebody else', async () => {
+      await ageRequestEvents(bob.id, 11)
+      await expect(
+        mutate({
+          mutation: requestEmailChange,
+          variables: { email: 'bibi@bloxberg.de', password: PASSWORD },
+        }),
+      ).resolves.toMatchObject({
+        data: null,
+        errors: [new GraphQLError('Email address already in use')],
+      })
+    })
+
+    it('restores the borrowed row when the change is called off, instead of deleting it', async () => {
+      await ageRequestEvents(bob.id, 11)
+      await mutate({
+        mutation: requestEmailChange,
+        variables: { email: 'bob@baumeister.de', password: PASSWORD },
+      })
+      await mutate({ mutation: cancelEmailChange })
+
+      const rows = await rowsOf(bob.id)
+      expect(rows.map((row) => row.email)).toEqual([
+        'bob@baumeister.de',
+        'bob-second@baumeister.de',
+      ])
+      expect(await pendingRow(bob.id)).toBeNull()
+      // Still a confirmed address of theirs - the history is untouched.
+      const earlier = rows.find((row) => row.email === 'bob@baumeister.de')
+      expect(earlier?.emailChecked).toBe(true)
+    })
+
+    it('moves the marker back to the old row on confirmation, adding nothing', async () => {
+      await ageRequestEvents(bob.id, 11)
+      await mutate({
+        mutation: requestEmailChange,
+        variables: { email: 'bob@baumeister.de', password: PASSWORD },
+      })
+      await confirmPending(bob.id)
+
+      const rows = await rowsOf(bob.id)
+      expect(rows).toHaveLength(2)
+      const stored = await DbUser.findOneOrFail({
+        where: { id: bob.id },
+        relations: ['emailContact'],
+      })
+      expect(stored.emailContact.email).toBe('bob@baumeister.de')
+      expect(stored.emailId).toBe(rows[0].id)
+      expect(await pendingRow(bob.id)).toBeNull()
+    })
+
+    it('lets them log in with the address they came back to, and not with the other', async () => {
+      resetToken()
+      await expect(loginAs('bob@baumeister.de')).resolves.toMatchObject({ errors: undefined })
+      resetToken()
+      await expect(loginAs('bob-second@baumeister.de')).resolves.toMatchObject({
+        data: null,
       })
     })
   })

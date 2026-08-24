@@ -87,7 +87,8 @@
       "oldEmail": "Endereço anterior: {oldEmail}",
       "subject": "Endereço de e-mail alterado: {firstName} {lastName}",
       "title": "Um membro alterou o seu endereço de e-mail",
-      "todo": "Por favor, associa o novo endereço a esta conta no servidor GDT e atualiza o Klick-Tipp."
+      "todo": "Por favor, associa o novo endereço a esta conta no servidor GDT e atualiza o Klick-Tipp.",
+      "todoTakeBack": "Regresso a um endereço anterior desta conta – não há nada a fundir no servidor GDT. Por favor, atualiza apenas o Klick-Tipp."
     },
     "footer": {
       "contactOurSupport": "Se tiveres mais questões, contacta o nosso suporte.",
