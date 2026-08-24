@@ -434,6 +434,7 @@ html:has(body.dark-mode) {
 
 .dark-mode .btn-outline-secondary {
   --bs-btn-color: var(--text);
+
   /* ⚠️ --text-muted, not --border: the border token is 1.16:1 against the card, which is a
      hairline nobody sees, and this button is nothing BUT its outline. 5.03:1 now.
      (coderabbit, and it was right.) */
