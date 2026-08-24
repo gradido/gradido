@@ -190,6 +190,27 @@ describe('DashboardLayout', () => {
      * find the settings again -- with no way back into the wallet. On a phone the list at
      * /settings is the settings menu; the drawer stays the way out.
      */
+    /**
+     * ⛔ And the column on the OTHER side goes away. `RightSide` answers `empty` for every
+     * /settings route, so it rendered nothing there and still took a quarter of the screen:
+     * with the menu that left the content six of twelve columns, and the widest screen gave
+     * the settings the least room. It showed worst on the business card, whose contact field
+     * stands beside the card and had no width left to type in.
+     */
+    it('drops the empty right column, so the content gets the room', async () => {
+      await router.push('/settings/gradido-card')
+      await nextTick()
+
+      expect(wrapper.findComponent({ name: 'RightSide' }).exists()).toBe(false)
+    })
+
+    it('keeps it everywhere else', async () => {
+      await router.push('/transactions')
+      await nextTick()
+
+      expect(wrapper.findComponent({ name: 'RightSide' }).exists()).toBe(true)
+    })
+
     it('leaves the drawer on the main menu, even inside the settings', async () => {
       await router.push('/settings/appearance')
       await nextTick()

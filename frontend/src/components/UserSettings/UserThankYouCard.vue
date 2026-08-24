@@ -28,15 +28,15 @@
       </label>
       <BFormInput id="tyc-max-day" v-model="maxPerDay" type="text" inputmode="decimal" />
 
-      <div class="mt-3">
+      <!-- ⚠️ Wrapping, and with a gap of their own. `ms-2` on each button spaces them
+           sideways and says nothing about the line below -- so on a narrow screen they broke
+           into a stack with no air between them. -->
+      <div class="mt-3 d-flex flex-wrap gap-2">
         <BButton variant="gradido" :disabled="busy" @click="saveLimits">
           {{ $t('form.save') }}
         </BButton>
-        <BButton class="ms-2" variant="secondary" @click="showSetup = true">
+        <BButton variant="secondary" @click="showSetup = true">
           {{ $t('thank-you-card.settings.change-pin') }}
-        </BButton>
-        <BButton class="ms-2" variant="danger" :disabled="busy" @click="switchOff">
-          {{ $t('thank-you-card.settings.disable') }}
         </BButton>
       </div>
 
@@ -47,7 +47,7 @@
       <div v-if="activeCard" data-test="thank-you-card-active">
         <label class="small" for="tyc-label">{{ $t('thank-you-card.settings.label') }}</label>
         <BFormInput id="tyc-label" :model-value="activeCard.label" disabled />
-        <div class="mt-3">
+        <div class="mt-3 d-flex flex-wrap gap-2">
           <BButton
             variant="gradido"
             :disabled="busy"
@@ -61,7 +61,6 @@
                person, printed at home. The sheet does that at the right size; a bare PNG of
                unstated size only invited printing it wrong. (Bernd, 21.08.2026) -->
           <BButton
-            class="ms-2"
             variant="danger"
             :disabled="busy"
             data-test="thank-you-card-block"
@@ -98,18 +97,21 @@
         <div class="small text-muted text-uppercase">
           {{ $t('thank-you-card.settings.earlier-cards') }}
         </div>
+        <!-- ⚠️ Wraps, and the label is normal size. Everything here was `small` and the
+             button `size="sm"`, so the one thing one comes for -- unblocking a card -- was the
+             smallest target on the page and easy to miss. The row is built for several cards,
+             so each one is a line one can actually read. (Bernd, 24.08.2026.) -->
         <div
           v-for="card in blockedCards"
           :key="card.id"
-          class="d-flex justify-content-between align-items-center"
+          class="d-flex flex-wrap justify-content-between align-items-center gap-2 py-2"
         >
-          <span class="small">{{ card.label }}</span>
-          <span class="d-flex align-items-center gap-2">
+          <span>{{ card.label }}</span>
+          <span class="d-flex align-items-center flex-wrap gap-2">
             <span class="small text-muted">
               {{ $t('thank-you-card.settings.blocked-on', { date: $d(new Date(card.blockedAt)) }) }}
             </span>
             <BButton
-              size="sm"
               variant="secondary"
               :disabled="busy || Boolean(activeCard)"
               :data-test="`thank-you-card-unblock-${card.id}`"
@@ -125,6 +127,20 @@
           {{ $t('thank-you-card.settings.unblock-needs-no-active') }}
         </div>
       </div>
+
+      <!-- ⛔ Last, alone, behind a rule. Switching the whole function off is not a sibling of
+           "save" and "change PIN" -- it undoes what the whole section is for. Stuck to them in
+           one row it read as a third equal choice, and on a narrow screen it sat glued under
+           them with no air at all. (Bernd, 24.08.2026.) -->
+      <hr class="mt-4" />
+      <BButton
+        variant="danger"
+        :disabled="busy"
+        data-test="thank-you-card-disable"
+        @click="switchOff"
+      >
+        {{ $t('thank-you-card.settings.disable') }}
+      </BButton>
     </div>
 
     <!--

@@ -182,6 +182,38 @@ html > body {
   filter: invert(1) grayscale(1) brightness(1.6);
 }
 
+/**
+ * The red button ("Karte sperren", "Kartenfunktion ausschalten"). Two things were wrong at
+ * once, and they looked like one: Bootstrap picks the label colour from the fill's luminance
+ * and chose BLACK on Argon's #f5365c -- which reads as unfinished next to every other button
+ * in the wallet, all of which carry white. (Bernd, 24.08.2026: "die Schrift weiß machen".)
+ *
+ * ⚠️ Measured first, because the wish and the arithmetic disagreed: white on #f5365c is
+ * 3.77:1, black 5.56:1 -- so on THAT red, black really is the better contrast. The
+ * disagreement was never about the label, it was about the fill: #f5365c is Argon's, not
+ * ours. On our own --danger (#c62828) white reaches 5.62:1, better than the black it
+ * replaces. Taking our own colour makes the wish and the measurement agree.
+ *
+ * ⚠️ `!important`, like `.btn-primary` right below. This file is imported BEFORE
+ * `bootstrap/scss/bootstrap` (see gradido.scss), so at equal specificity Bootstrap's own
+ * `.btn-danger` wins and this block would have done nothing at all. Measured in the built
+ * stylesheet, not assumed -- the first attempt was silently overruled.
+ */
+.btn-danger {
+  --bs-btn-bg: var(--danger) !important;
+  --bs-btn-border-color: var(--danger) !important;
+  --bs-btn-color: #fff !important;
+  --bs-btn-hover-bg: var(--danger) !important;
+  --bs-btn-hover-border-color: var(--danger) !important;
+  --bs-btn-hover-color: #fff !important;
+  --bs-btn-active-bg: var(--danger) !important;
+  --bs-btn-active-border-color: var(--danger) !important;
+  --bs-btn-active-color: #fff !important;
+  --bs-btn-disabled-bg: var(--danger) !important;
+  --bs-btn-disabled-border-color: var(--danger) !important;
+  --bs-btn-disabled-color: #fff !important;
+}
+
 // .btn-primary pim {
 .btn-primary {
   background-color: #5a7b02 !important;

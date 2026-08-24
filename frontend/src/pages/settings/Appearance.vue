@@ -1,12 +1,12 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
   <settings-section :title="$t('settings.menu.appearance')">
-    <BRow>
-      <BCol cols="12" md="6" lg="6">{{ $t('language') }}</BCol>
-      <BCol cols="12" md="6" lg="6" class="text-end">
-        <user-language />
-      </BCol>
-    </BRow>
+    <!-- ⚠️ Left, under its own heading. The right-aligned row was a leftover from the old
+         settings page, where every line was a label on the left and a control pushed to the
+         far right -- with the wide column that put the language picker as far from its own
+         label as the page allowed. (Bernd, 24.08.2026: "war noch nie schön".) -->
+    <div class="mb-2">{{ $t('language') }}</div>
+    <user-language />
 
     <hr />
     <!-- This block used to hang OUTSIDE the tabs, below all of them, because the old page

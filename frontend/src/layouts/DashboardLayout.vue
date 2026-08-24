@@ -180,8 +180,11 @@
                 </BCol>
               </BRow>
             </BCol>
-            <!-- Right Side Mobil -->
-            <BCol :class="bareChrome ? 'd-none' : 'd-block d-lg-none'">
+            <!-- Right Side Mobil.
+                 ⛔ Also gone while the settings are open, and for the same reason as its desk
+                 twin below: `RightSide` answers `empty` for every /settings route. On a phone
+                 it cost no width, only an empty block's worth of air above the page. -->
+            <BCol v-if="!settingsChrome" :class="bareChrome ? 'd-none' : 'd-block d-lg-none'">
               <right-side>
                 <!--
                   Empty on purpose, and it always was in effect: this column shows below
@@ -225,8 +228,16 @@
             </BCol>
           </BRow>
         </BCol>
-        <!-- RightSide Desktop -->
-        <BCol cols="3" class="d-none d-lg-block">
+        <!-- RightSide Desktop.
+             ⛔ Not while the settings are open. `RightSide` answers `empty` for every
+             /settings route (see its own switch), so the column renders NOTHING there -- and
+             still took a quarter of the screen. Together with the menu that left the content
+             six of twelve columns: the widest screen gave the settings the least room, which
+             is exactly backwards. It showed worst on the business card, where the contact
+             field stands beside the card and had no width left to type in.
+             (Bernd, 24.08.2026: "ausgerechnet beim breiten Bildschirm kann ich das
+             Kontakteingabe-Feld nicht ausfüllen".) -->
+        <BCol v-if="!settingsChrome" cols="3" class="d-none d-lg-block">
           <right-side>
             <template #transactions>
               <last-transactions

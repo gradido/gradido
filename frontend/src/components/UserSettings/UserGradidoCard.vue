@@ -79,8 +79,14 @@
         <div class="small mt-2">{{ $t('gradido-card.sheet-hint') }}</div>
       </BCol>
       <BCol cols="12" md="6" class="mb-3">
+        <!-- ⚠️ `secondary`, not `primary`. The sheet beside it is the main act; this one is the
+             quieter twin. And `.btn-primary` carries Argon's leftovers: an olive fill (#5a7b02)
+             with a BLUE border (#5e72e4) that matches nothing -- wrong in light mode too, only
+             less visible there. `secondary` is the one variant with a kept dark-mode rule.
+             (Bernd, 24.08.2026: "der könnte z. B. grau sein" -- and he cannot judge the green
+             himself, so it was measured: 2.84:1 against the dark card, nearly invisible.) -->
         <BButton
-          variant="primary"
+          variant="secondary"
           :disabled="isBusy"
           data-test="download-gradido-card"
           @click="onDownload"
