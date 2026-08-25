@@ -80,6 +80,24 @@
         </label>
       </div>
 
+      <!-- A second row, and deliberately no heading over either of them: where the
+           picture comes from above, what to do with it below. It appears only once there
+           is a picture, so the empty state stays as quiet as it was. -->
+      <div v-if="hasPicture" class="avatar-actions">
+        <BButton variant="outline-secondary" @click="onRotate">
+          <IBiArrowClockwise class="avatar-action-icon" />
+          {{ $t('avatar.rotate') }}
+        </BButton>
+        <BButton
+          :variant="mirrored ? 'secondary' : 'outline-secondary'"
+          :aria-pressed="mirrored"
+          @click="onMirror"
+        >
+          <IBiSymmetryVertical class="avatar-action-icon" />
+          {{ $t('avatar.mirror') }}
+        </BButton>
+      </div>
+
       <div class="avatar-measure">{{ measure }}</div>
     </div>
 
@@ -120,7 +138,13 @@ import {
   encodeUnderTarget,
   isHeicFileName,
 } from '@/utils/avatarImage'
-import { applyCrop, avatarCrop, centeredOffsets } from '@/utils/avatarGeometry'
+import {
+  applyCrop,
+  avatarCrop,
+  centeredOffsets,
+  mirroredOffsetX,
+  nextRotation,
+} from '@/utils/avatarGeometry'
 
 // The preview is 280 CSS pixels; the stored squares are AVATAR_FULL_SIZE and
 // AVATAR_SMALL_SIZE, both drawn from this same frame.
@@ -420,6 +444,42 @@ function encode() {
   })
 }
 
+/**
+ * One button, a quarter turn clockwise, four presses back to the start -- pressing three
+ * times IS the other direction, so a second button would ask for a decision nobody has.
+ *
+ * Size and position go back to the middle: past a quarter turn width and height have
+ * swapped, and the old position means a place that no longer exists. It costs nothing in
+ * practice, because turning is almost always the first thing done and framing the second.
+ */
+function onRotate() {
+  rotation.value = nextRotation(rotation.value)
+  zoom.value = 1
+  previousZoom = 1
+  recenter()
+  redraw()
+}
+
+/**
+ * Flipping leaves the visible part where it is -- without moving the offset with it, the
+ * picture jumps sideways when somebody only meant to turn it over.
+ *
+ * ⚠️ Whether a phone stores a selfie mirrored is the phone's business, and it differs.
+ * This is how a member overrules it either way, for their own face.
+ */
+function onMirror() {
+  offsetX = mirroredOffsetX({
+    sourceWidth: naturalWidth,
+    sourceHeight: naturalHeight,
+    rotation: rotation.value,
+    zoom: zoom.value,
+    offsetX,
+    frame: FRAME,
+  })
+  mirrored.value = !mirrored.value
+  redraw()
+}
+
 function onSave() {
   emits('saved', cropped.value)
   isOpen.value = false
@@ -531,6 +591,11 @@ function onRemove() {
   .avatar-camera {
     display: inline-block;
   }
+}
+
+.avatar-action-icon {
+  margin-right: 0.35rem;
+  vertical-align: -0.1em;
 }
 
 .avatar-measure {
