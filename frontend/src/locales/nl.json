@@ -62,14 +62,17 @@
     "error-heic": "De browser kan deze afbeelding niet openen. Het is een HEIC, het cameraformaat van de iPhone. Zet hem om naar JPEG of kies de afbeelding rechtstreeks op de iPhone.",
     "error-too-large": "Deze afbeelding is te groot. Kies er een van minder dan {limit} MB.",
     "measure": "Bronbestand {source} KB, er wordt {result} KB verzonden",
+    "mirror": "Spiegelen",
     "pick-hint": "Sleep een afbeelding hierheen of kies er hieronder een",
     "remove": "Foto verwijderen",
     "remove-confirm": "Ja, verwijderen",
     "remove-question": "Je account toont dan weer je initialen. Je kunt op elk moment een nieuwe foto instellen.",
     "removed": "Je profielfoto is verwijderd",
+    "rotate": "Draaien",
     "saved": "Je profielfoto is opgeslagen",
     "set": "Profielfoto instellen",
-    "size": "Grootte"
+    "size": "Grootte",
+    "take-photo": "Foto maken"
   },
   "back": "Terug",
   "calculator": {

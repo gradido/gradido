@@ -62,14 +62,17 @@
     "error-heic": "Dieses Bild kann der Browser nicht öffnen. Es ist ein HEIC, das Kameraformat des iPhones. Wandle es in JPEG um, oder wähle das Bild direkt auf dem iPhone aus.",
     "error-too-large": "Dieses Bild ist zu groß. Bitte wähle eines unter {limit} MB.",
     "measure": "Ausgangsdatei {source} KB, gesendet werden {result} KB",
+    "mirror": "Spiegeln",
     "pick-hint": "Bild hierher ziehen oder unten auswählen",
     "remove": "Bild entfernen",
     "remove-confirm": "Ja, entfernen",
     "remove-question": "Dein Konto zeigt dann wieder Deine Anfangsbuchstaben. Du kannst jederzeit ein neues Bild setzen.",
     "removed": "Dein Profilbild wurde entfernt",
+    "rotate": "Drehen",
     "saved": "Dein Profilbild wurde gespeichert",
     "set": "Profilbild setzen",
-    "size": "Größe"
+    "size": "Größe",
+    "take-photo": "Foto aufnehmen"
   },
   "back": "Zurück",
   "calculator": {
