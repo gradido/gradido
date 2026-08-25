@@ -218,14 +218,15 @@ export const memberAvatarSource = (member) => {
  * each call -- which is the split avatarLettering exists to make impossible. Binding this
  * whole object with `v-bind` cannot be half-forwarded either.
  *
- * @param {{alias?, firstName?, lastName?, gradidoID?, communityUuid?, avatarUpdatedAt?}|null} member
+ * @param {{alias?, firstName?, lastName?, gradidoID?, communityUuid?, avatarUpdatedAt?, avatarColorIndex?}|null} member
  */
 export const memberAvatarProps = (member) => {
-  const { letters, colorSeed } = avatarLettering(member)
+  const { letters, colorSeed, colorIndex } = avatarLettering(member)
   return {
     name: `${member?.firstName ?? ''} ${member?.lastName ?? ''}`.trim(),
     initials: letters,
     colorSeed,
+    colorIndex,
     src: memberAvatarSource(member),
   }
 }

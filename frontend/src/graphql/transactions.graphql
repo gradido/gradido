@@ -21,6 +21,11 @@ fragment transactionFields on Transaction {
     communityName
     gradidoID
     alias
+    # The circle colour as a finished digit, computed by the server from the real
+    # initials (NU-017). It is what keeps every circle the colour it always was once
+    # firstName and lastName stop being delivered for other members -- the colour rule
+    # itself must not move to the alias (AS-010).
+    avatarColorIndex
     # When this member last changed the picture other members may see -- a date, not the
     # picture. Both live queries share this fragment, so it is asked for once here rather
     # than in each of them, the way balanceFields is.

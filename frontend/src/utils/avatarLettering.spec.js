@@ -101,7 +101,24 @@ describe('avatarLettering', () => {
      */
     it('survives a booking whose counterparty could not be resolved', () => {
       expect(() => avatarLettering(null)).not.toThrow()
-      expect(avatarLettering(null)).toEqual({ letters: '', colorSeed: '' })
+      expect(avatarLettering(null)).toEqual({ letters: '', colorSeed: '', colorIndex: null })
+    })
+  })
+
+  // The server-computed colour digit (NU-017). It rides along next to the seed so the
+  // one-call rule covers it, and it is integer-or-null: a query that never asked for the
+  // field leaves undefined, and nothing unexpected may reach the palette lookup.
+  describe('the server-sent colour index', () => {
+    it('passes a real index through', () => {
+      expect(avatarLettering({ alias: 'anna', avatarColorIndex: 0 }).colorIndex).toBe(0)
+      expect(avatarLettering({ alias: 'anna', avatarColorIndex: 9 }).colorIndex).toBe(9)
+    })
+
+    it('turns everything that is not an integer into null', () => {
+      expect(avatarLettering({ alias: 'anna' }).colorIndex).toBe(null)
+      expect(avatarLettering({ alias: 'anna', avatarColorIndex: null }).colorIndex).toBe(null)
+      expect(avatarLettering({ alias: 'anna', avatarColorIndex: '3' }).colorIndex).toBe(null)
+      expect(avatarLettering({ alias: 'anna', avatarColorIndex: NaN }).colorIndex).toBe(null)
     })
   })
 

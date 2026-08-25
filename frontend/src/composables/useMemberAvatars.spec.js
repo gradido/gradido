@@ -342,8 +342,15 @@ describe('useMemberAvatars', () => {
         name: 'Pizzeria Napoli',
         initials: 'NA',
         colorSeed: 'PN',
+        colorIndex: null,
         src: '',
       })
+    })
+
+    // The server-computed colour digit (NU-017) rides along untouched: it is what keeps
+    // the circle's colour once firstName and lastName stop being delivered.
+    it('passes the server-sent colour index through', () => {
+      expect(memberAvatarProps({ ...NAPOLI, avatarColorIndex: 7 }).colorIndex).toBe(7)
     })
 
     it('carries the picture once the wallet holds it', () => {
@@ -365,6 +372,7 @@ describe('useMemberAvatars', () => {
         name: '',
         initials: '',
         colorSeed: '',
+        colorIndex: null,
         src: '',
       })
     })

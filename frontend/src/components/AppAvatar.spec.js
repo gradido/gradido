@@ -3,7 +3,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
 import AppAvatar from './AppAvatar.vue'
-import { avatarPaletteEntry } from '@/utils/avatarColor'
+import { AVATAR_COLOR_PALETTE, avatarPaletteEntry } from '@/utils/avatarColor'
 
 const circleStyle = (wrapper) => wrapper.find('.app-avatar').attributes('style') ?? ''
 
@@ -36,6 +36,30 @@ describe('AppAvatar', () => {
       // assertion above could pass by coincidence.
       expect(avatarPaletteEntry('BE').bg).not.toBe(avatarPaletteEntry('BH').bg)
       expect(style).not.toContain(asRgb(avatarPaletteEntry('BE').bg))
+    })
+  })
+
+  // The server-computed digit (NU-017), for members whose names this browser no longer
+  // receives. It must win over the seed -- the seed cannot be built for those members --
+  // and anything invalid must fall back to the seed path instead of inventing a colour.
+  describe('the colour index from the server', () => {
+    it('wins over the seed', () => {
+      const wrapper = mount(AppAvatar, {
+        props: { initials: 'BE', colorSeed: 'BH', colorIndex: 3 },
+      })
+      const style = circleStyle(wrapper)
+      expect(style).toContain(asRgb(AVATAR_COLOR_PALETTE[3].bg))
+      expect(AVATAR_COLOR_PALETTE[3].bg).not.toBe(avatarPaletteEntry('BH').bg)
+      expect(style).not.toContain(asRgb(avatarPaletteEntry('BH').bg))
+    })
+
+    it('falls back to the seed when the index is not a palette index', () => {
+      for (const colorIndex of [null, -1, 10, 3.5]) {
+        const wrapper = mount(AppAvatar, {
+          props: { initials: 'BE', colorSeed: 'BH', colorIndex },
+        })
+        expect(circleStyle(wrapper)).toContain(asRgb(avatarPaletteEntry('BH').bg))
+      }
     })
   })
 
