@@ -90,6 +90,27 @@ describe('AppAvatar', () => {
     })
   })
 
+  /**
+   * ⛔ The crash that predates this delivery: a deleted author's message arrives with no
+   * name at all, and `default: ''` does NOT catch that -- Vue fills a default only for an
+   * ABSENT prop, never for an explicit null. Before the guard this reached `.split` on
+   * null and took the whole contribution thread down with it.
+   */
+  describe('without a name', () => {
+    it('draws an empty circle instead of throwing', () => {
+      const wrapper = mount(AppAvatar, { props: { name: null } })
+
+      expect(wrapper.find('.app-avatar').exists()).toBe(true)
+      expect(wrapper.find('span').text()).toBe('')
+    })
+
+    it('still shows the letters it was handed directly', () => {
+      const wrapper = mount(AppAvatar, { props: { name: null, initials: 'BE' } })
+
+      expect(wrapper.find('span').text()).toBe('BE')
+    })
+  })
+
   it('takes the size it is given', () => {
     const wrapper = mount(AppAvatar, { props: { size: 64, initials: 'BE' } })
     expect(circleStyle(wrapper)).toContain('width: 64px')

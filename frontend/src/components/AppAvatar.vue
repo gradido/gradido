@@ -131,7 +131,10 @@ function getTextColor(backgroundColor) {
 
 const computedInitials = computed(() => {
   if (props.initials) return props.initials
-  return props.name
+  // `?? ''`, not a bare read: `default` only fills an ABSENT prop, so a caller that
+  // passes an explicit null -- a deleted author's name, for one -- reaches `.split` on
+  // null and tears the whole thread down. An empty circle is the right answer there.
+  return (props.name ?? '')
     .split(' ')
     .map((word) => word[0])
     .join('')
