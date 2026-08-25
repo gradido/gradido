@@ -12,7 +12,7 @@ export class ContributionMessage {
     this.createdAt = dbContributionMessage.createdAt
     this.updatedAt = dbContributionMessage.updatedAt
     this.type = dbContributionMessage.type
-    this.userAlias = user?.alias ?? null
+    this.userAlias = user ? (user.alias ?? user.gradidoID) : null
     this.userAvatarColorIndex = user ? avatarColorIndex(user.firstName, user.lastName) : null
     this.userId = user?.id ?? null
     this.isModerator = dbContributionMessage.isModerator
@@ -35,7 +35,9 @@ export class ContributionMessage {
 
   // What the wallet's contribution thread shows as the author's name (NU-020): the
   // moderation appears under its alias, and the member's own messages are labelled from
-  // the member's own store. Null only for messages whose author row is gone.
+  // the member's own store. Without an alias the gradidoID stands in, the same rule the
+  // booking list follows (NU-018) -- an author who has one must not turn nameless.
+  // Null only for messages whose author row is gone.
   @Field(() => String, { nullable: true })
   userAlias: string | null
 
