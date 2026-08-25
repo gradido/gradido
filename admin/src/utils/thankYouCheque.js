@@ -148,7 +148,10 @@ export const chequeFileName = (occasion, amount, maxChars = 50) => {
   return `${prefix}${name}.png`
 }
 
-const drawHeader = (ctx, { logo, leaves, kind, name, initials, community, portrait }) => {
+const drawHeader = (
+  ctx,
+  { logo, leaves, kind, name, initials, colorSeed, community, portrait },
+) => {
   ctx.fillStyle = COLOR_HEADER_BG
   ctx.fillRect(MARGIN, 0, CHEQUE_WIDTH, HEADER)
   ctx.fillStyle = '#e4e4e4'
@@ -190,10 +193,11 @@ const drawHeader = (ctx, { logo, leaves, kind, name, initials, community, portra
       ctx.drawImage(portrait, centerX - size / 2, centerY - size / 2, size, size)
       ctx.restore()
     } else {
-      // The palette the wallet picks from, not a colour of the cheque's own. A member whose
-      // initials are blue on screen must not be blue-grey on paper: card and cheque land on
-      // the same table.
-      const palette = avatarPaletteEntry(initials)
+      // The palette the wallet picks from, not a colour of the cheque's own. And the
+      // wallet's split (AS-010): the LETTERS may come from the alias while the COLOUR
+      // keeps hashing the real initials, so no member's disc changes colour on paper.
+      // Callers that pass no colorSeed colour from what they show, as before.
+      const palette = avatarPaletteEntry(colorSeed ?? initials)
       ctx.beginPath()
       ctx.arc(centerX, centerY, size / 2, 0, Math.PI * 2)
       ctx.fillStyle = palette.bg
@@ -247,6 +251,9 @@ const drawFooterAddress = (ctx, { host, alias, left, baseline }) => {
  * @param {string} data.memo      free text, truncated to two lines
  * @param {string} data.hintLine  "... scan the QR code!"
  * @param {string} data.validLine "... is valid until 26.08.2026."
+ * @param {string} [data.colorSeed] what the circle's colour hashes from, when that is not
+ *                                what the circle shows (AS-010: letters from the alias,
+ *                                colour from the real initials)
  * @param {string} [data.host]    the community host of the sender, for the footer address
  * @param {string} [data.alias]   the sender's user name; without it the web address is shown
  * @param {string} [data.portrait] the sender's picture as a data URI, if there is one

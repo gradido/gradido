@@ -2,8 +2,10 @@
 
 import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
+import CONFIG from '@/config'
 import { useAppToast } from '@/composables/useToast'
 import { renderQrCodeCanvas } from '@/utils/qrCode'
+import { avatarLettering } from '@/utils/avatarLettering'
 import { gradidoAddress, memberAlias } from '@/utils/gradidoAddress'
 import { chequeFileName, drawCheque } from '@/utils/thankYouCheque'
 
@@ -29,11 +31,16 @@ export const useThankYouCheque = ({ link, amount, memo, validUntil }) => {
     // has no user name yet.
     const { firstName, lastName, username, gradidoID, avatar } = store.state
     const alias = memberAlias(username, gradidoID)
+    // Letters from the alias, colour from the real initials -- the wallet's split
+    // (AS-010), so the disc on paper matches the member's circle on screen.
+    const { letters, colorSeed } = avatarLettering({ alias: username, firstName, lastName })
     return drawCheque({
       kind: 'thankYou',
-      // The alias in the header, not the real name (NU-021/KLAR-07): a cheque is handed
-      // to strangers. The card keeps the real name -- that is a card's purpose.
-      name: alias,
+      // The community in the header (NU-021/KLAR-07, Bernds Wahl "Option B"): the alias
+      // already gives in the headline and signs in the footer address -- repeating it a
+      // third time up here said nothing, while the community is on no other line. The
+      // starting-bonus cheque carries the community up here as well.
+      name: CONFIG.COMMUNITY_NAME,
       // The same address the card prints, in the same three weights. Taken by name rather
       // than spread: the cheque needs the host, and a field added to the address later
       // should not ride along into the drawing unnoticed.
@@ -43,7 +50,8 @@ export const useThankYouCheque = ({ link, amount, memo, validUntil }) => {
       // pixels. It is already in the store, so this costs no query and no waiting -- unlike
       // the card, which prints 24 mm and needs the large one.
       portrait: avatar ? `data:image/jpeg;base64,${avatar}` : null,
-      initials: `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`,
+      initials: letters,
+      colorSeed,
       // The same sentence the copy text and the redeem page build, so the three never
       // disagree about who is giving: the alias (NU-021/KLAR-07).
       headline: `${alias} ${t('transaction-link.send_you')} ${amount} Gradido.`,

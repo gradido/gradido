@@ -19,7 +19,7 @@ vi.mock('@/utils/qrCode', () => ({
 // confirm that the cheque calls something; the real builder confirms it gets the very host
 // the card prints -- which is the whole point of them sharing one.
 vi.mock('@/config', () => ({
-  default: { COMMUNITY_URL: 'https://ki-playground.gradido.net' },
+  default: { COMMUNITY_URL: 'https://ki-playground.gradido.net', COMMUNITY_NAME: 'KI Playground' },
 }))
 
 const mockToastError = vi.fn()
@@ -73,10 +73,12 @@ describe('useThankYouCheque', () => {
     expect(mockDrawCheque).toHaveBeenCalledWith(
       expect.objectContaining({
         kind: 'thankYou',
-        // The alias in the header (NU-021/KLAR-07): a cheque is handed to strangers.
-        // The initials stay the REAL ones -- they only seed the circle (AS-010).
-        name: 'bernd',
-        initials: 'BH',
+        // The community in the header (Option B): the alias already gives in the
+        // headline and signs in the footer -- and the circle follows the wallet split,
+        // letters from the alias, colour seeded from the real initials (AS-010).
+        name: 'KI Playground',
+        initials: 'BE',
+        colorSeed: 'BH',
         memo: 'Gradido-Café Berlin',
         qrCanvas: mockQrCanvas,
       }),
@@ -112,12 +114,13 @@ describe('useThankYouCheque', () => {
     expect(portrait).toBe('data:image/jpeg;base64,BASE64SMALL')
   })
 
-  it('leaves the initials to stand in when there is no picture', async () => {
+  it('leaves the alias letters to stand in when there is no picture', async () => {
     await useThankYouCheque(LINK).drawThankYouCheque()
 
-    const { portrait, initials } = mockDrawCheque.mock.calls[0][0]
+    const { portrait, initials, colorSeed } = mockDrawCheque.mock.calls[0][0]
     expect(portrait).toBeNull()
-    expect(initials).toBe('BH')
+    expect(initials).toBe('BE')
+    expect(colorSeed).toBe('BH')
   })
 
   // Card and cheque have to say the same thing about the same person, so both take the

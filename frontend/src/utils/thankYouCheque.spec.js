@@ -131,9 +131,12 @@ const recordingContext = () => {
 const CHEQUE = {
   qrCanvas: { width: 360, isTheQr: true },
   kind: 'thankYou',
-  name: 'Bernd Hückstädt',
-  initials: 'BH',
-  headline: 'Bernd sends you 20 Gradido.',
+  // The shape the wallet really sends since Option B: the community up top, the circle
+  // lettered from the alias while its colour hashes from the real initials (AS-010).
+  name: 'KI Playground',
+  initials: 'BE',
+  colorSeed: 'BH',
+  headline: 'bernd sends you 20 Gradido.',
   memo: 'Thank you for the evening',
   hintLine: 'Scan the QR code!',
   validLine: 'Valid until 26.08.2026.',
@@ -187,10 +190,10 @@ describe('drawCheque', () => {
 
   // The address moved out of the header, because in its durable form it is half again as
   // long and would crowd it.
-  it('keeps the header to the name and drops the address from it', async () => {
+  it('keeps the header to the community and drops the address from it', async () => {
     await drawCheque(CHEQUE)
 
-    expect(texts()).toContain('Bernd Hückstädt')
+    expect(texts()).toContain('KI Playground')
     expect(texts()).not.toContain('ki-playground.gradido.net/u/bernd')
   })
 
@@ -219,13 +222,26 @@ describe('drawCheque', () => {
     expect(texts()).toContain('www.gradido.net')
   })
 
-  it('uses the wallet palette for the initials, not a colour of its own', async () => {
+  it('letters the disc from the alias and colours it from the initials seed', async () => {
     await drawCheque(CHEQUE)
 
-    const initials = ctx.calls.find((c) => c.name === 'fillText' && c.args[0] === 'BH')
-    expect(initials.fillStyle).toBe(avatarPaletteEntry('BH').text)
+    const letters = ctx.calls.find((c) => c.name === 'fillText' && c.args[0] === 'BE')
+    expect(letters.fillStyle).toBe(avatarPaletteEntry('BH').text)
     const disc = ctx.calls.find((c) => c.name === 'fill')
     expect(disc.fillStyle).toBe(avatarPaletteEntry('BH').bg)
+    // ...and demonstrably not the colour the letters alone would hash to, or the
+    // assertion above could pass by coincidence (AS-010).
+    expect(avatarPaletteEntry('BE').bg).not.toBe(avatarPaletteEntry('BH').bg)
+    expect(disc.fillStyle).not.toBe(avatarPaletteEntry('BE').bg)
+  })
+
+  // Callers that never learned the split -- the admin's starting bonus passes none --
+  // keep colouring from what the circle shows.
+  it('falls back to colouring from the shown initials without a seed', async () => {
+    await drawCheque({ ...CHEQUE, colorSeed: undefined })
+
+    const disc = ctx.calls.find((c) => c.name === 'fill')
+    expect(disc.fillStyle).toBe(avatarPaletteEntry('BE').bg)
   })
 
   // Asserting "some clip happened" would prove nothing: the watermark is clipped too, with
@@ -234,7 +250,7 @@ describe('drawCheque', () => {
   it('draws the picture instead of the initials, clipped to a circle', async () => {
     await drawCheque({ ...CHEQUE, portrait: 'data:image/jpeg;base64,portrait' })
 
-    expect(texts()).not.toContain('BH')
+    expect(texts()).not.toContain('BE')
     const arc = ctx.calls.findIndex((c) => c.name === 'arc')
     expect(arc).toBeGreaterThan(-1)
     expect(ctx.calls[arc + 1].name).toBe('clip')
