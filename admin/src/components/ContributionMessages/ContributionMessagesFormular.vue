@@ -271,13 +271,18 @@ const appendCreaSupplement = () => {
   // The 💬 + alias marker is built here, locally — the moderator's name never reached
   // the AI (like [ANREDE]/[SIGNATUR]). append-only: the original text is untouched.
   //
-  // The ALIAS, not the first name (NU-020): this text travels via the memo into the
-  // booking and stands in account statements for good. The firstName fallback covers a
-  // stored moderator object from before the alias was in verifyLogin — it is rewritten at
-  // the next pass through /authenticate. Not "within one session": the 10-minute token
-  // renews itself on every request, so a moderator who keeps working never passes that
-  // way. It takes ten minutes of idleness, or a logout.
-  const moderatorName = store.state.moderator?.alias ?? store.state.moderator?.firstName ?? ''
+  // The ALIAS, and NOTHING else (NU-020): this text travels via the memo into the booking
+  // and stands in account statements for good, read by the member and by anyone they show
+  // the statement to.
+  //
+  // ⛔ There used to be a firstName fallback here for a stored moderator object from
+  // before the alias was in verifyLogin. It is gone: that object is only rewritten at the
+  // next pass through /authenticate, and since the 10-minute token renews on every
+  // request, a moderator who keeps working never passes that way -- so the "brief
+  // transition window" was in truth a whole working day of permanent bookings carrying a
+  // real first name. A marker without a name is cosmetic and heals itself at the next
+  // sign-in; a real name in a booking memo does not.
+  const moderatorName = store.state.moderator?.alias ?? ''
   const marker = moderatorName
     ? `${MEMO_MARKER} ${moderatorName}: ${supplement}`
     : `${MEMO_MARKER} ${supplement}`

@@ -280,16 +280,19 @@ describe('ContributionMessagesFormular', () => {
     expect(wrapper.vm.tabindex).toBe(2)
   })
 
-  // A moderator whose stored login object predates the alias in verifyLogin: the marker
-  // degrades to the first name for that one session instead of writing '💬 :'.
-  it('falls back to the first name while the stored moderator has no alias yet', () => {
+  // A moderator whose stored login object predates the alias in verifyLogin. The marker
+  // goes out WITHOUT a name rather than with the real one: this text lands in a booking
+  // memo permanently, and the stored object is only refreshed at the next pass through
+  // /authenticate, which an active moderator does not reach for hours.
+  it('writes no name at all while the stored moderator has no alias yet', () => {
     const current = storeState.moderator
     storeState.moderator = { firstName: 'Bernd' }
     try {
       useCreaSupplement().setLastSupplement('Genehmigt.')
       wrapper = createWrapper()
       wrapper.vm.appendCreaSupplement()
-      expect(wrapper.vm.form.memo).toContain('💬 Bernd: Genehmigt.')
+      expect(wrapper.vm.form.memo).toContain('💬 Genehmigt.')
+      expect(wrapper.vm.form.memo).not.toContain('Bernd')
     } finally {
       storeState.moderator = current
     }
