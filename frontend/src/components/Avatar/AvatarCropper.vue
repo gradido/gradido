@@ -65,19 +65,26 @@
         <!-- `capture` is a hint on the field: the operating system opens its camera app,
              which brings its own front/back switch -- so one button covers both the selfie
              and being photographed by someone else. No camera API, no permission prompt
-             from us; on a desktop the hint is ignored, which is why the label is hidden
-             there (it would open the very same file dialog as its neighbour). -->
-        <input
-          id="avatar-source-camera"
-          type="file"
-          accept="image/*"
-          capture="user"
-          class="visually-hidden"
-          @change="onFileChosen"
-        />
-        <label class="btn btn-outline-success avatar-camera" for="avatar-source-camera">
-          {{ $t('avatar.take-photo') }}
-        </label>
+             from us; on a desktop the hint is ignored, so the whole control is hidden there
+             (it would open the very same file dialog as its neighbour).
+             ⛔ Field and label are hidden TOGETHER, by one wrapper. Hiding only the label
+             leaves the field focusable: a keyboard user then lands on a tab stop with
+             nothing visible on it. Two rules that must agree can stop agreeing; one element
+             cannot. `display: contents` lets the label take part in the row as if the
+             wrapper were not there. -->
+        <span class="avatar-camera">
+          <input
+            id="avatar-source-camera"
+            type="file"
+            accept="image/*"
+            capture="user"
+            class="visually-hidden"
+            @change="onFileChosen"
+          />
+          <label class="btn btn-outline-success" for="avatar-source-camera">
+            {{ $t('avatar.take-photo') }}
+          </label>
+        </span>
       </div>
 
       <!-- A second row, and deliberately no heading over either of them: where the
@@ -581,15 +588,17 @@ function onRemove() {
 }
 
 /* Only where a camera app exists. `capture` is silently ignored on a desktop, where this
-   label would open the same dialog as "choose image" and be a second button for one
-   thing. A touch laptop shows it, and there the hint may well work. */
+   would open the same dialog as "choose image" and be a second button for one thing. A
+   touch laptop shows it, and there the hint may well work.
+
+   The wrapper carries this, so the field goes with the label -- see the template. */
 .avatar-camera {
   display: none;
 }
 
 @media (pointer: coarse) {
   .avatar-camera {
-    display: inline-block;
+    display: contents;
   }
 }
 

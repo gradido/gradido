@@ -80,6 +80,10 @@ export function centeredOffsets({ sourceWidth, sourceHeight, rotation = 0, zoom 
 /**
  * Where the horizontal offset has to move so that mirroring leaves the VISIBLE part where
  * it is. Without it the picture jumps sideways when someone only meant to flip it.
+ *
+ * It is always the HORIZONTAL offset, at every rotation: avatarCrop picks the source axis
+ * so that the flip is left-to-right on screen whatever the turn, and the frame's own x is
+ * what moves as a result.
  */
 export function mirroredOffsetX({
   sourceWidth,
@@ -121,6 +125,7 @@ export function avatarCrop({
   outputSize,
 }) {
   const size = outputSize ?? frame
+  const quarterTurn = rotation === 90 || rotation === 270
   const { effectiveWidth, effectiveHeight } = effectiveSize(sourceWidth, sourceHeight, rotation)
   const minScale = coverScale(effectiveWidth, effectiveHeight, frame)
   const scale = minScale * zoom
@@ -141,7 +146,18 @@ export function avatarCrop({
     steps.push(['translate', 0, drawWidth], ['rotate', -Math.PI / 2])
   }
   if (mirrored) {
-    steps.push(['translate', drawWidth, 0], ['scale', -1, 1])
+    // ⛔ Which of the source's own axes gets flipped depends on the rotation, and getting
+    // this wrong is invisible in the common case. The mirror is applied innermost, in the
+    // SOURCE's frame; a quarter turn maps the source's x axis onto the frame's y axis. So
+    // flipping about x after a quarter turn turns the picture upside down on screen --
+    // measured: at 90 degrees the corners swapped top for bottom, not left for right.
+    // A member who straightens a sideways photo and then presses "mirror" expects their
+    // face flipped left to right, not stood on its head.
+    if (quarterTurn) {
+      steps.push(['translate', 0, drawHeight], ['scale', 1, -1])
+    } else {
+      steps.push(['translate', drawWidth, 0], ['scale', -1, 1])
+    }
   }
 
   return {

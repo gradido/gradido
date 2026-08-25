@@ -111,6 +111,14 @@ describe('mirroredOffsetX', () => {
     expect(mirroredOffsetX({ ...WIDE, offsetX: 0, frame: FRAME })).toBeCloseTo(-93.33333, 4)
   })
 
+  // The flip is left-to-right on screen at every rotation (avatarCrop picks the source
+  // axis for that), so it is always the horizontal offset that has to move -- measured
+  // against effectiveWidth, which a quarter turn swaps.
+  it('uses the turned width after a quarter turn', () => {
+    // effectiveWidth at 90 is the source HEIGHT: 900 * 0.3111111 = 280, exactly the frame.
+    expect(mirroredOffsetX({ ...WIDE, rotation: 90, offsetX: 0, frame: FRAME })).toBeCloseTo(0, 6)
+  })
+
   it('is its own undo', () => {
     const once = mirroredOffsetX({ ...WIDE, offsetX: -20, frame: FRAME })
     expect(mirroredOffsetX({ ...WIDE, offsetX: once, frame: FRAME })).toBeCloseTo(-20, 6)
@@ -167,6 +175,31 @@ describe('avatarCrop, the transform chain', () => {
     expect(steps[1][1]).toBeCloseTo(DRAW_WIDTH, 4)
     expect(steps[2][1]).toBe(-1)
     expect(steps[2][2]).toBe(1)
+  })
+
+  // ⛔ The gap that let a real defect through: mirroring was only ever asserted at
+  // rotation 0. The mirror runs in the SOURCE's frame, and a quarter turn maps the
+  // source's x axis onto the frame's y axis -- so flipping about x after a quarter turn
+  // stands the picture on its head instead of turning it left to right. Measured in a
+  // browser before and after: at 90 degrees the corners swapped top for bottom.
+  it('flips the source about its other axis after a quarter turn', () => {
+    const { steps } = avatarCrop({ ...WIDE, rotation: 90, mirrored: true, frame: FRAME })
+    const flip = steps[steps.length - 1]
+    const before = steps[steps.length - 2]
+    expect(flip).toEqual(['scale', 1, -1])
+    expect(before[0]).toBe('translate')
+    expect(before[1]).toBe(0)
+    expect(before[2]).toBeCloseTo(DRAW_HEIGHT, 4)
+  })
+
+  it('does the same at three quarters', () => {
+    const { steps } = avatarCrop({ ...WIDE, rotation: 270, mirrored: true, frame: FRAME })
+    expect(steps[steps.length - 1]).toEqual(['scale', 1, -1])
+  })
+
+  it('keeps flipping about x at a half turn, where the axes still line up', () => {
+    const { steps } = avatarCrop({ ...WIDE, rotation: 180, mirrored: true, frame: FRAME })
+    expect(steps[steps.length - 1]).toEqual(['scale', -1, 1])
   })
 
   it('mirrors after turning, not before', () => {
