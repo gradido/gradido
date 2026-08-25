@@ -83,7 +83,10 @@ async function onSaved({ small, full }) {
     // Written to the store only after the server accepted it, so the wallet never shows
     // a picture that is not stored.
     store.commit('avatar', small)
-    toast.toastSuccess(t('avatar.saved'))
+    // No confirmation here, deliberately: the toast covered the very picture it was
+    // announcing, and the avatar changing IS the confirmation. (Bernd, 25.08.2026.)
+    // Removing keeps its own message -- there the picture is gone, so something has to
+    // say why -- and every error message stays: those carry what cannot be seen.
   } catch (error) {
     toast.toastError(error.message)
   }
