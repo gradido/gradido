@@ -36,19 +36,14 @@ import {
 } from 'database'
 import { getLogger, Logger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
-import {
-  CommandJwtPayloadType,
-  DecayCalculationType,
-  encryptAndSign,
-  GradidoUnit,
-  VALID_ALIAS_REGEX,
-} from 'shared'
+import { CommandJwtPayloadType, DecayCalculationType, encryptAndSign, GradidoUnit } from 'shared'
 import { randombytes_random } from 'sodium-native'
 import { Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import { In, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { isAliasEraName } from '@/data/StoredUserName.logic'
 import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
@@ -356,13 +351,12 @@ export class TransactionResolver {
             // such a value through the unguarded alias field would hand a member the
             // counterparty's real name, which is the one thing NU-019 forbids.
             //
-            // The shape decides, because nothing else can: an alias is 3-20 characters
-            // of letters, digits and single separators, so an assembled name -- which
-            // always carries the space the split looks for -- cannot pass. Where it does
-            // not pass, the row falls back to the gradidoID. The split itself is
-            // untouched (KLAR-11, with Dario) and still feeds firstName/lastName, which
-            // the guard shows to the moderation and to nobody else.
-            if (VALID_ALIAS_REGEX.test(transaction.linkedUserName)) {
+            // The shape decides, because nothing else can -- see isAliasEraName, which
+            // holds that rule and its limits. Where it says no, the row falls back to the
+            // gradidoID. The split itself is untouched (KLAR-11, with Dario) and still
+            // feeds firstName/lastName, which the guard shows to the moderation and to
+            // nobody else.
+            if (isAliasEraName(transaction.linkedUserName)) {
               remoteUser.alias = transaction.linkedUserName
             }
             remoteUser.firstName = transaction.linkedUserName.slice(
