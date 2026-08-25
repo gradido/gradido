@@ -218,12 +218,17 @@ export const memberAvatarSource = (member) => {
  * each call -- which is the split avatarLettering exists to make impossible. Binding this
  * whole object with `v-bind` cannot be half-forwarded either.
  *
- * @param {{alias?, firstName?, lastName?, gradidoID?, communityUuid?, avatarUpdatedAt?, avatarColorIndex?}|null} member
+ * No `name`: the booking fragment no longer asks for firstName/lastName (NU-019), so it
+ * was structurally empty for both callers -- and AppAvatar's own default is the same
+ * empty string. `colorSeed` stays and is empty for the same reason, which is not the
+ * same thing: AppAvatar distinguishes an ABSENT seed from a given empty one, and an
+ * empty seed is the answer here (the colour comes from `colorIndex`).
+ *
+ * @param {{alias?, gradidoID?, communityUuid?, avatarUpdatedAt?, avatarColorIndex?}|null} member
  */
 export const memberAvatarProps = (member) => {
   const { letters, colorSeed, colorIndex } = avatarLettering(member)
   return {
-    name: `${member?.firstName ?? ''} ${member?.lastName ?? ''}`.trim(),
     initials: letters,
     colorSeed,
     colorIndex,

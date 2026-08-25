@@ -15,8 +15,9 @@ fragment transactionFields on Transaction {
   balanceDate
   memo
   linkedUser {
-    firstName
-    lastName
+    # No firstName/lastName: for members they are always null now (NU-019), and for a
+    # moderator reading their own list they would be real names sitting in a browser
+    # cache for no screen to show. The row reads by alias, the circle by the digit below.
     communityUuid
     communityName
     gradidoID

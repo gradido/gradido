@@ -3,7 +3,6 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { nextTick } from 'vue'
 import GddTransaction from './GddTransaction.vue'
-import { avatarPaletteEntry } from '@/utils/avatarColor'
 import { forgetAllMemberAvatars, rememberMemberAvatars } from '@/composables/useMemberAvatars'
 
 /**
@@ -27,7 +26,9 @@ const BOOKING = {
   balanceDate: new Date('2026-08-19T10:31:00Z'),
   memo: 'Pizzeria Napoli',
   decay: { decay: '0', start: null, end: null, duration: 0 },
-  linkedUser: { firstName: 'Pizzeria', lastName: 'Napoli', alias: 'napoli' },
+  // The shape the booking fragment delivers: an alias and the server's colour digit, no
+  // real name (NU-019).
+  linkedUser: { alias: 'napoli', avatarColorIndex: 3 },
   linkId: null,
   viaThankYouCard: false,
   thankYouCardLabel: null,
@@ -163,17 +164,13 @@ describe('GddTransaction', () => {
 
     // The colour must stay where it was, or every member with an alias changes colour the
     // day this ships -- and the printed card, which is not reprinted, disagrees forever.
-    it('keeps colouring from the real initials', () => {
+    // It travels as the server's finished digit now (NU-017), because the real initials
+    // it is hashed from are no longer delivered to this browser.
+    it('keeps colouring from what the server computed, not from the alias', () => {
       mountWith({})
-      expect(avatarProps().colorSeed).toBe('PN')
-      expect(avatarPaletteEntry(avatarProps().colorSeed)).toEqual(avatarPaletteEntry('PN'))
+      expect(avatarProps().colorIndex).toBe(3)
+      expect(avatarProps().colorSeed).toBe('')
       expect(avatarProps().colorSeed).not.toBe(avatarProps().initials)
-    })
-
-    // `username` was passed to a prop that does not exist, so it was dropped in silence.
-    it('passes the name under the name the component actually has', () => {
-      mountWith({})
-      expect(avatarProps().name).toBe('Pizzeria Napoli')
     })
 
     it('shows no picture while the wallet holds none', () => {
