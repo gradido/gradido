@@ -248,6 +248,8 @@ export const login = gql`
     login(email: $email, password: $password, publisherId: $publisherId, project: $project) {
       gradidoID
       alias
+      emailChecked
+      createdAt
       firstName
       lastName
       language
@@ -348,5 +350,25 @@ export const setUserAvatar = gql`
 export const removeUserAvatar = gql`
   mutation {
     removeUserAvatar
+  }
+`
+
+export const completeAssistedRegistration = gql`
+  mutation ($assistCode: String!, $email: String!, $password: String!) {
+    completeAssistedRegistration(assistCode: $assistCode, email: $email, password: $password) {
+      redeemCode
+    }
+  }
+`
+
+export const confirmEmailMutation = gql`
+  mutation ($code: String!) {
+    confirmEmail(code: $code)
+  }
+`
+
+export const resendConfirmationEmail = gql`
+  mutation {
+    resendConfirmationEmail
   }
 `
