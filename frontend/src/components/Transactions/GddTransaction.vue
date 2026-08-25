@@ -95,6 +95,7 @@ import DecayInformation from '../DecayInformations/DecayInformation'
 import { BAvatar, BRow } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
 import { memberAvatarProps } from '@/composables/useMemberAvatars'
+import { memberAlias } from '@/utils/memberName'
 
 const props = defineProps({
   transaction: {
@@ -162,9 +163,7 @@ const nameProps = computed(() => {
       // stand-in, not to the moderator who approved it -- the backend swaps that user in
       // unconditionally -- so `alias` carries the configured community name and this line
       // names the community, as it always did. No real name is delivered here any more.
-      creationLinkedUser: `${
-        props.transaction.linkedUser.alias || props.transaction.linkedUser.gradidoID
-      }`,
+      creationLinkedUser: memberAlias(props.transaction.linkedUser),
     }
   } else {
     return {

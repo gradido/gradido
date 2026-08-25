@@ -9,10 +9,9 @@ import { forgetAllMemberAvatars, rememberMemberAvatars } from '@/composables/use
 /**
  * The row every booking in the wallet is drawn with.
  *
- * ⛔ Written because it had no test at all, while its two dead neighbours
- * (`TransactionSend.vue`, `TransactionReceive.vue`) have one each. Nothing imports those
- * two — this is the row that actually reaches a screen, so this is where the marker under
- * the amount has to be held.
+ * ⛔ Written because it had no test at all, while three dead neighbours that nothing
+ * imported had one each. Those are gone now; this is the row that actually reaches a
+ * screen, so this is where the marker under the amount has to be held.
  */
 
 vi.mock('vuex', () => ({
