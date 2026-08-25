@@ -41,8 +41,6 @@ const {
   newsletterState,
   gmsAllowed,
   humhubAllowed,
-  gmsPublishName,
-  humhubPublishName,
   gmsPublishLocation,
   publisherId,
   roles,
@@ -168,8 +166,6 @@ describe('Vuex store', () => {
         },
         gmsAllowed: true,
         humhubAllowed: false,
-        gmsPublishName: 'GMS_PUBLISH_NAME_FULL',
-        humhubPublishName: 'GMS_PUBLISH_NAME_FULL',
         gmsPublishLocation: 'GMS_LOCATION_TYPE_EXACT',
         hasElopage: false,
         publisherId: 1234,
@@ -179,9 +175,9 @@ describe('Vuex store', () => {
         darkMode: true,
       }
 
-      it('calls twenty commits', () => {
+      it('calls eighteen commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(20)
+        expect(commit).toHaveBeenCalledTimes(18)
       })
 
       // Not read from the payload -- the login mutation cannot carry a picture -- but
@@ -239,9 +235,9 @@ describe('Vuex store', () => {
         forgetParkedAmountMock.mockClear()
       })
 
-      it('calls twenty-three commits', () => {
+      it('calls twenty-one commits', () => {
         logout({ commit, state, dispatch })
-        expect(commit).toHaveBeenCalledTimes(23)
+        expect(commit).toHaveBeenCalledTimes(21)
       })
 
       // ... (other logout action tests remain largely the same)

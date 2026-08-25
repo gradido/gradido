@@ -55,12 +55,6 @@ export const mutations = {
   humhubAllowed: (state, humhubAllowed) => {
     state.humhubAllowed = humhubAllowed
   },
-  gmsPublishName: (state, gmsPublishName) => {
-    state.gmsPublishName = gmsPublishName
-  },
-  humhubPublishName: (state, humhubPublishName) => {
-    state.humhubPublishName = humhubPublishName
-  },
   gmsPublishLocation: (state, gmsPublishLocation) => {
     state.gmsPublishLocation = gmsPublishLocation
   },
@@ -131,8 +125,6 @@ export const actions = {
     // store still holds the previous member's setting when the next one signs in here.
     commit('avatarVisibleToMembers', null)
     commit('humhubAllowed', data.humhubAllowed)
-    commit('gmsPublishName', data.gmsPublishName)
-    commit('humhubPublishName', data.humhubPublishName)
     commit('gmsPublishLocation', data.gmsPublishLocation)
     commit('hasElopage', data.hasElopage)
     commit('publisherId', data.publisherId)
@@ -162,8 +154,6 @@ export const actions = {
     commit('gmsAllowed', null)
     commit('avatarVisibleToMembers', null)
     commit('humhubAllowed', null)
-    commit('gmsPublishName', null)
-    commit('humhubPublishName', null)
     commit('gmsPublishLocation', null)
     commit('hasElopage', false)
     commit('project', null)
@@ -257,8 +247,6 @@ try {
       gmsAllowed: null,
       avatarVisibleToMembers: null,
       humhubAllowed: null,
-      gmsPublishName: null,
-      humhubPublishName: null,
       gmsPublishLocation: null,
       hasElopage: false,
       project: null,

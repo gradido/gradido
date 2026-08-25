@@ -81,8 +81,6 @@ export const updateUserInfos = gql`
     $gmsAllowed: Boolean
     $humhubAllowed: Boolean
     $avatarVisibleToMembers: Boolean
-    $gmsPublishName: PublishNameType
-    $humhubPublishName: PublishNameType
     $gmsLocation: Location
     $gmsPublishLocation: GmsPublishLocationType
     $aboutMe: String
@@ -99,8 +97,6 @@ export const updateUserInfos = gql`
       gmsAllowed: $gmsAllowed
       humhubAllowed: $humhubAllowed
       avatarVisibleToMembers: $avatarVisibleToMembers
-      gmsPublishName: $gmsPublishName
-      humhubPublishName: $humhubPublishName
       gmsLocation: $gmsLocation
       gmsPublishLocation: $gmsPublishLocation
       aboutMe: $aboutMe
@@ -256,8 +252,6 @@ export const login = gql`
       }
       gmsAllowed
       humhubAllowed
-      gmsPublishName
-      humhubPublishName
       gmsPublishLocation
       userLocation
       hasElopage

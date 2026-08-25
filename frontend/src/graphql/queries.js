@@ -30,8 +30,6 @@ export const verifyLogin = gql`
       }
       gmsAllowed
       humhubAllowed
-      gmsPublishName
-      humhubPublishName
       gmsPublishLocation
       userLocation
       hasElopage
@@ -83,44 +81,6 @@ export const userLocationQuery = gql`
     userLocation {
       userLocation
       communityLocation
-    }
-  }
-`
-
-export const transactionsQuery = gql`
-  query ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
-    transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
-      balance {
-        balance
-        balanceGDT
-        count
-        linkCount
-        openLinkCount
-      }
-      transactions {
-        id
-        typeId
-        amount
-        balance
-        previousBalance
-        balanceDate
-        memo
-        linkedUser {
-          firstName
-          lastName
-          communityUuid
-          communityName
-          gradidoID
-          alias
-        }
-        decay {
-          decay
-          start
-          end
-          duration
-        }
-        linkId
-      }
     }
   }
 `
