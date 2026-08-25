@@ -11,7 +11,7 @@
   </div>
 </template>
 <script>
-import { memberAlias } from '@/utils/memberName'
+import { memberAlias } from '@/utils/gradidoAddress'
 
 export default {
   name: 'Name',
@@ -39,7 +39,7 @@ export default {
     // How the wallet names a member (NU-018), plus the community they belong to.
     itemText() {
       return this.linkedUser
-        ? memberAlias(this.linkedUser) +
+        ? memberAlias(this.linkedUser.alias, this.linkedUser.gradidoID) +
             (this.linkedUser.communityName ? ' / ' + this.linkedUser.communityName : '')
         : this.text
     },

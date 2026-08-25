@@ -205,7 +205,6 @@ import { ref, computed, watch, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuery } from '@vue/apollo-composable'
 import { SEND_TYPES } from '@/utils/sendTypes'
-import { memberAlias } from '@/utils/memberName'
 import CommunitySwitch from '@/components/CommunitySwitch.vue'
 import ValidatedInput from '@/components/Inputs/ValidatedInput.vue'
 import {
@@ -215,7 +214,7 @@ import {
   subject as subjectSchema,
 } from '@/validationSchemas'
 import { object, number } from 'yup'
-import { sameHost, splitRecipient } from '@/utils/gradidoAddress'
+import { memberAlias, sameHost, splitRecipient } from '@/utils/gradidoAddress'
 import { user } from '@/graphql/queries'
 import CONFIG from '@/config'
 import { useAppToast } from '@/composables/useToast'
@@ -374,7 +373,7 @@ watch(
     if (user) {
       // The recipient as the wallet names them (NU-018); the real name is not delivered
       // to other members any more.
-      userName.value = memberAlias(user)
+      userName.value = memberAlias(user.alias, user.gradidoID)
       form.identifier = userIdentifier.value.identifier
     }
   },

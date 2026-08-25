@@ -51,12 +51,19 @@ export const communityHost = (url) => {
  *
  * One line, and it lives here anyway: it stood written out in three places, and two of
  * them print. If the rule ever changes, exactly one of them would have been updated.
+ * The booking list, the send form and both redeem views read it through here too, since
+ * the wallet stopped delivering other members' real names (NU-018).
+ *
+ * ⚠️ Ends in `|| ''` so it can never hand a template `undefined`. That is not
+ * hypothetical here: the word "undefined" once reached a PRINTED cheque, from a caller
+ * one letter off on the field name (see useThankYouCheque). A member with neither value
+ * is nobody the wallet can name, and an empty line says that better than the word.
  *
  * @param {string} username
  * @param {string} gradidoID
- * @returns {string}
+ * @returns {string} never null or undefined
  */
-export const memberAlias = (username, gradidoID) => username || gradidoID
+export const memberAlias = (username, gradidoID) => username || gradidoID || ''
 
 /**
  * The member's own address, in the two shapes that are always needed together.

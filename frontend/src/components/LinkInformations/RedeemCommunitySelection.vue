@@ -11,7 +11,7 @@
       <h1 v-if="!isContributionLink && linkData.amount !== ''">
         <template v-if="linkData.senderUser">
           <!-- The sender, as the wallet names a member (NU-018). -->
-          {{ memberAlias(linkData.senderUser) }}
+          {{ memberAlias(linkData.senderUser.alias, linkData.senderUser.gradidoID) }}
           {{ $t('transaction-link.send_you') }} {{ linkData.amount }} {{ $t('GDD-long') }}
         </template>
       </h1>
@@ -56,7 +56,7 @@
 <script setup>
 import CONFIG from '@/config'
 import { computed } from 'vue'
-import { memberAlias } from '@/utils/memberName'
+import { memberAlias } from '@/utils/gradidoAddress'
 import { createRedeemJwtMutation } from '@/graphql/mutations'
 import { useMutation } from '@vue/apollo-composable'
 

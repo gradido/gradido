@@ -22,7 +22,7 @@
 </template>
 <script>
 import CONFIG from '@/config'
-import { memberAlias } from '@/utils/memberName'
+import { memberAlias } from '@/utils/gradidoAddress'
 
 export default {
   name: 'RedeemInformation',
@@ -38,7 +38,7 @@ export default {
   },
   computed: {
     senderName() {
-      return memberAlias(this.linkData.senderUser)
+      return memberAlias(this.linkData.senderUser?.alias, this.linkData.senderUser?.gradidoID)
     },
   },
 }

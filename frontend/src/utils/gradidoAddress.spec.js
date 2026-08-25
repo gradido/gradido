@@ -25,6 +25,12 @@ describe('memberAlias', () => {
     expect(memberAlias(undefined, 'uuid-1')).toBe('uuid-1')
     expect(memberAlias(null, 'uuid-1')).toBe('uuid-1')
   })
+
+  // Never `undefined`: two callers print, and the word once reached a printed cheque.
+  it('says nothing rather than "undefined" when there is neither', () => {
+    expect(memberAlias(undefined, undefined)).toBe('')
+    expect(memberAlias(null, null)).toBe('')
+  })
 })
 
 describe('gradidoAddress', () => {
