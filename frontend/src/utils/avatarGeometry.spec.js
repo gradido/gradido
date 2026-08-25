@@ -216,10 +216,22 @@ describe('applyCrop', () => {
       rotate: (...args) => calls.push(['rotate', ...args]),
       scale: (...args) => calls.push(['scale', ...args]),
       drawImage: (...args) => calls.push(['drawImage', ...args.slice(1)]),
+      // Getters alongside the setters: a canvas context has both, and the linter is right
+      // that a write-only property is a shape nothing real has.
+      _fillStyle: '',
+      get fillStyle() {
+        return this._fillStyle
+      },
       set fillStyle(value) {
+        this._fillStyle = value
         calls.push(['fillStyle', value])
       },
+      _smoothing: '',
+      get imageSmoothingQuality() {
+        return this._smoothing
+      },
       set imageSmoothingQuality(value) {
+        this._smoothing = value
         calls.push(['smoothing', value])
       },
     }
