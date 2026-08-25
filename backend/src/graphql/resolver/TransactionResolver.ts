@@ -343,6 +343,14 @@ export class TransactionResolver {
           }
           remoteUser.gradidoID = transaction.linkedUserGradidoID
           if (transaction.linkedUserName) {
+            // The stored name goes into the alias as well, and that is what the booking
+            // row shows. Since #3645 the column holds the ALIAS for every booking made
+            // in the alias era, so a foreign row now reads under the alias its sender
+            // signed; rows from before it keep showing the name that was stored then,
+            // which is exactly what they showed before. The split below is untouched
+            // (KLAR-11, with Dario) -- it still feeds firstName/lastName for those
+            // older rows.
+            remoteUser.alias = transaction.linkedUserName
             remoteUser.firstName = transaction.linkedUserName.slice(
               0,
               transaction.linkedUserName.indexOf(' '),
