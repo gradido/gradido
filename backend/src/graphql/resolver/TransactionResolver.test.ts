@@ -510,12 +510,15 @@ describe('send coins', () => {
                   }),
                   expect.objectContaining({
                     amount: '-6.66',
-                    // The real-name guard (NU-019): peter is a stranger to bob, so
-                    // the names read as null and the alias is what identifies the row.
+                    // The real-name guard (NU-019) seen from the MODERATION side: peter
+                    // is the seeded administrator, so he is one of the two parties the
+                    // guard lets through and bob's row carries the real name. The row
+                    // still leads with the alias. What an ordinary member gets instead
+                    // is pinned in UserRealNameGuard.test.ts, which covers all six cases.
                     linkedUser: expect.objectContaining({
-                      firstName: null,
+                      firstName: 'Bob',
                       gradidoID: bob?.gradidoID,
-                      lastName: null,
+                      lastName: 'der Baumeister',
                       alias: 'bob',
                     }),
                     memo: 'send via alias',
@@ -523,12 +526,15 @@ describe('send coins', () => {
                   }),
                   expect.objectContaining({
                     amount: '10',
-                    // The real-name guard (NU-019): peter is a stranger to bob, so
-                    // the names read as null and the alias is what identifies the row.
+                    // The real-name guard (NU-019) seen from the MODERATION side: peter
+                    // is the seeded administrator, so he is one of the two parties the
+                    // guard lets through and bob's row carries the real name. The row
+                    // still leads with the alias. What an ordinary member gets instead
+                    // is pinned in UserRealNameGuard.test.ts, which covers all six cases.
                     linkedUser: expect.objectContaining({
-                      firstName: null,
+                      firstName: 'Bob',
                       gradidoID: bob?.gradidoID,
-                      lastName: null,
+                      lastName: 'der Baumeister',
                       alias: 'bob',
                     }),
                     memo: 'send via gradido ID',
@@ -536,12 +542,15 @@ describe('send coins', () => {
                   }),
                   expect.objectContaining({
                     amount: '50',
-                    // The real-name guard (NU-019): peter is a stranger to bob, so
-                    // the names read as null and the alias is what identifies the row.
+                    // The real-name guard (NU-019) seen from the MODERATION side: peter
+                    // is the seeded administrator, so he is one of the two parties the
+                    // guard lets through and bob's row carries the real name. The row
+                    // still leads with the alias. What an ordinary member gets instead
+                    // is pinned in UserRealNameGuard.test.ts, which covers all six cases.
                     linkedUser: expect.objectContaining({
-                      firstName: null,
+                      firstName: 'Bob',
                       gradidoID: bob?.gradidoID,
-                      lastName: null,
+                      lastName: 'der Baumeister',
                       alias: 'bob',
                     }),
                     memo: 'unrepeatable memo',
