@@ -273,8 +273,10 @@ const appendCreaSupplement = () => {
   //
   // The ALIAS, not the first name (NU-020): this text travels via the memo into the
   // booking and stands in account statements for good. The firstName fallback covers a
-  // stored moderator object from before the alias was in verifyLogin — it refreshes
-  // itself within one working session (10-minute token -> /authenticate rewrites it).
+  // stored moderator object from before the alias was in verifyLogin — it is rewritten at
+  // the next pass through /authenticate. Not "within one session": the 10-minute token
+  // renews itself on every request, so a moderator who keeps working never passes that
+  // way. It takes ten minutes of idleness, or a logout.
   const moderatorName = store.state.moderator?.alias ?? store.state.moderator?.firstName ?? ''
   const marker = moderatorName
     ? `${MEMO_MARKER} ${moderatorName}: ${supplement}`

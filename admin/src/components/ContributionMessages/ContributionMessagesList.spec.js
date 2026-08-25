@@ -68,7 +68,10 @@ const defaultUser = {
   firstName: 'Peter',
   lastName: 'Lustig',
   uniqueUsername: 'peter.lustig',
-  publicName: 'PeLu',
+  // Alias-shaped, because that is what publicName carries since NU-024. 'PeLu' were
+  // initials from the publish-name setting, and a fixture in the old shape lets a test
+  // pass on a value the server cannot send any more.
+  publicName: 'peterl',
   createdAt: new Date().toString(),
   emailContact: {
     email: 'peter.lustig@example.com',

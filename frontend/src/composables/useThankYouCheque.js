@@ -36,7 +36,7 @@ export const useThankYouCheque = ({ link, amount, memo, validUntil }) => {
     const { letters, colorSeed } = avatarLettering({ alias: username, firstName, lastName })
     return drawCheque({
       kind: 'thankYou',
-      // The community in the header (NU-021/KLAR-07, Bernds Wahl "Option B"): the alias
+      // The community in the header (NU-021/KLAR-07, decided as "Option B"): the alias
       // already gives in the headline and signs in the footer address -- repeating it a
       // third time up here said nothing, while the community is on no other line. The
       // starting-bonus cheque carries the community up here as well.
