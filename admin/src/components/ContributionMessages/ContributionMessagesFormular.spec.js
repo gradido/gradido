@@ -6,8 +6,12 @@ import { BButton, BForm } from 'bootstrap-vue-next'
 import { useCreaClipboard } from '@/composables/useCreaClipboard'
 import { useCreaSupplement } from '@/composables/useCreaSupplement'
 
+// Mutable so single tests can model a stale stored moderator (no alias yet).
+const { storeState } = vi.hoisted(() => ({
+  storeState: { moderator: { firstName: 'Bernd', alias: 'berndh' } },
+}))
 vi.mock('vuex', () => ({
-  useStore: () => ({ state: { moderator: { firstName: 'Bernd' } } }),
+  useStore: () => ({ state: storeState }),
 }))
 
 const mockToastError = vi.fn()
@@ -270,9 +274,25 @@ describe('ContributionMessagesFormular', () => {
     wrapper.vm.form.memo = 'Impulse geschrieben'
     wrapper.vm.appendCreaSupplement()
     expect(wrapper.vm.form.memo.startsWith('Impulse geschrieben')).toBe(true)
-    expect(wrapper.vm.form.memo).toContain('💬 Bernd: Genehmigt, da frei geteilte Impulse.')
+    // The ALIAS, not the first name (NU-020): the memo travels into the booking.
+    expect(wrapper.vm.form.memo).toContain('💬 berndh: Genehmigt, da frei geteilte Impulse.')
     // append-only: the original text is preserved untouched before the marker.
     expect(wrapper.vm.tabindex).toBe(2)
+  })
+
+  // A moderator whose stored login object predates the alias in verifyLogin: the marker
+  // degrades to the first name for that one session instead of writing '💬 :'.
+  it('falls back to the first name while the stored moderator has no alias yet', () => {
+    const current = storeState.moderator
+    storeState.moderator = { firstName: 'Bernd' }
+    try {
+      useCreaSupplement().setLastSupplement('Genehmigt.')
+      wrapper = createWrapper()
+      wrapper.vm.appendCreaSupplement()
+      expect(wrapper.vm.form.memo).toContain('💬 Bernd: Genehmigt.')
+    } finally {
+      storeState.moderator = current
+    }
   })
 
   it('shows the Crea append button only when a supplement is held', async () => {

@@ -757,14 +757,10 @@
         "userCoords": "La tua posizione: Latitudine {lat}, Longitudine {lng}",
         "userLocationLabel": "La tua posizione"
       },
-      "naming-format": "Mostra il nome:",
       "publish-location": {
         "approximate": "Posizione approssimativa",
         "exact": "Posizione esatta",
         "updated": "Tipo di posizione per il GMS aggiornato"
-      },
-      "publish-name": {
-        "updated": "Formato del nome per il GMS aggiornato"
       }
     },
     "avatar": {
@@ -798,11 +794,7 @@
     "humhub": {
       "delete-disabled": "L'account utente può essere eliminato solo nel menu del profilo della piattaforma di cooperazione.",
       "disabled": "I dati non vengono esportati verso la comunità Gradido",
-      "enabled": "I dati vengono esportati verso la comunità Gradido",
-      "naming-format": "Mostra il nome:",
-      "publish-name": {
-        "updated": "Formato del nome per la comunità Gradido aggiornato."
-      }
+      "enabled": "I dati vengono esportati verso la comunità Gradido"
     },
     "language": {
       "de": "Deutsch",
@@ -850,18 +842,6 @@
         "text": "Salva ora la tua nuova password, con cui in futuro potrai accedere al tuo account Gradido."
       },
       "subtitle": "Se hai dimenticato la password, puoi reimpostarla qui."
-    },
-    "publish-name": {
-      "alias-or-initials": "Nome utente o iniziali",
-      "alias-or-initials-tooltip": "Il nome utente, se presente, oppure le iniziali del nome e del cognome, ogni volta le prime due lettere",
-      "first": "Nome",
-      "first-initial": "Nome e iniziale",
-      "first-initial-tooltip": "Il nome più la prima lettera del cognome",
-      "first-tooltip": "Solo il nome",
-      "initials": "Iniziali",
-      "initials-tooltip": "Le iniziali del nome e del cognome, cioè ogni volta le prime due lettere, indipendentemente dall'esistenza del nome utente",
-      "name-full": "Nome e cognome",
-      "name-full-tooltip": "Nome completo: nome più cognome"
     },
     "showAmountGDD": "Il tuo importo in GDD è visibile.",
     "showAmountGDT": "Il tuo importo in GDT è visibile.",

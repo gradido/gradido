@@ -757,14 +757,10 @@
         "userCoords": "Tu ubicación: Lat {lat}, Lng {lng}",
         "userLocationLabel": "Tu ubicación"
       },
-      "naming-format": "Mostrar el nombre:",
       "publish-location": {
         "approximate": "Posición aproximada",
         "exact": "Posición exacta",
         "updated": "Tipo de posición para el GMS actualizado"
-      },
-      "publish-name": {
-        "updated": "Formato del nombre para el GMS actualizado"
       }
     },
     "avatar": {
@@ -798,11 +794,7 @@
     "humhub": {
       "delete-disabled": "La cuenta de usuario solo puede eliminarse en el menú de perfil de la plataforma de cooperación.",
       "disabled": "Los datos no se exportan a la comunidad Gradido",
-      "enabled": "Los datos se exportan a la comunidad Gradido",
-      "naming-format": "Mostrar el nombre:",
-      "publish-name": {
-        "updated": "Formato del nombre para la comunidad Gradido actualizado."
-      }
+      "enabled": "Los datos se exportan a la comunidad Gradido"
     },
     "language": {
       "de": "Deutsch",
@@ -850,18 +842,6 @@
         "text": "Ahora guarda tu nueva contraseña, que podrás utilizar para acceder a tu cuenta de Gradido en el futuro."
       },
       "subtitle": "Si has olvidado tu contraseña, puedes restablecerla aquí."
-    },
-    "publish-name": {
-      "alias-or-initials": "Nombre de usuario o iniciales",
-      "alias-or-initials-tooltip": "El nombre de usuario, si existe, o las iniciales del nombre y del apellido, en cada caso las dos primeras letras",
-      "first": "Nombre",
-      "first-initial": "Nombre e inicial",
-      "first-initial-tooltip": "El nombre más la primera letra del apellido",
-      "first-tooltip": "Solo el nombre",
-      "initials": "Iniciales",
-      "initials-tooltip": "Las iniciales del nombre y del apellido, es decir, las dos primeras letras de cada uno, independientemente de la existencia del nombre de usuario",
-      "name-full": "Nombre y apellido",
-      "name-full-tooltip": "Nombre completo: nombre más apellido"
     },
     "showAmountGDD": "Tu importe en GDD está visible.",
     "showAmountGDT": "Tu importe en GDT está visible.",

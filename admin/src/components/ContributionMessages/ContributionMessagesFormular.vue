@@ -268,11 +268,16 @@ const appendCreaSupplement = () => {
   if (!supplement) {
     return
   }
-  // The 💬 + first-name marker is built here, locally — the moderator's name never
-  // reached the AI (like [ANREDE]/[SIGNATUR]). append-only: the original text is untouched.
-  const firstName = store.state.moderator?.firstName ?? ''
-  const marker = firstName
-    ? `${MEMO_MARKER} ${firstName}: ${supplement}`
+  // The 💬 + alias marker is built here, locally — the moderator's name never reached
+  // the AI (like [ANREDE]/[SIGNATUR]). append-only: the original text is untouched.
+  //
+  // The ALIAS, not the first name (NU-020): this text travels via the memo into the
+  // booking and stands in account statements for good. The firstName fallback covers a
+  // stored moderator object from before the alias was in verifyLogin — it refreshes
+  // itself within one working session (10-minute token -> /authenticate rewrites it).
+  const moderatorName = store.state.moderator?.alias ?? store.state.moderator?.firstName ?? ''
+  const marker = moderatorName
+    ? `${MEMO_MARKER} ${moderatorName}: ${supplement}`
     : `${MEMO_MARKER} ${supplement}`
   const current = form.value.memo.trim()
   form.value.memo = current ? `${current}${MEMO_SEPARATOR}${marker}` : marker

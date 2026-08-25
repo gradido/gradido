@@ -35,7 +35,10 @@ export class GmsUser {
     // this.firstName = fn !== '' ? fn : null // getGmsFirstName(user)
     // const ln = pnLogic.getLastName(user.gmsPublishName as PublishNameType)
     // this.lastName = ln !== '' ? ln : null // getGmsLastName(user)
-    this.alias = pnLogic.getPublicName(user.gmsPublishName as PublishNameType)
+    // The alias, no longer steered by the publish-name setting (NU-024). The KEY the
+    // GMS recognises the user by is this.uuid above and stays untouched; the next
+    // upsert overwrites the display on its own.
+    this.alias = pnLogic.hasAlias() ? user.alias : user.gradidoID
     if (user.location && user.location.type === 'Point') {
       this.location = user.location.coordinates
     }

@@ -9,6 +9,7 @@ export class AdminUser {
     const groups = describeModeratorCreationGroups(role)
     this.firstName = user.firstName
     this.lastName = user.lastName
+    this.alias = user.alias
     this.role = role ? role.role : ''
     this.visibleCreationGroups = groups.tags
     this.seesAllCreationGroups = groups.seesAllCreationGroups
@@ -20,6 +21,12 @@ export class AdminUser {
 
   @Field(() => String)
   lastName: string
+
+  // What the community info page shows instead of the real name (NU-021): this type is
+  // handed to every signed-in member, and the field resolver that guards User.firstName
+  // cannot reach it. Nullable because the column is, although every local user has one.
+  @Field(() => String, { nullable: true })
+  alias: string | null
 
   @Field(() => String)
   role: string

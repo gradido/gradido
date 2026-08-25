@@ -17,7 +17,6 @@ import { OpenCreation } from '@model/OpenCreation'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import {
   contributionTransaction,
-  fullName,
   sendContributionChangedByModeratorEmail,
   sendContributionConfirmedEmail,
   sendContributionDeletedEmail,
@@ -627,11 +626,14 @@ export class ContributionResolver {
         transaction.memo = contribution.memo
         transaction.userId = contribution.userId
         transaction.userGradidoID = user.gradidoID
-        transaction.userName = fullName(user.firstName, user.lastName)
+        // The alias, not the real name (NU-020/NU-021): a booking is permanent, so a
+        // name written here outlives every later display fix. Same convention as the
+        // send/receive path in TransactionResolver. Every local user has an alias.
+        transaction.userName = user.alias
         transaction.userCommunityUuid = user.communityUuid
         transaction.linkedUserId = moderatorUser.id
         transaction.linkedUserGradidoID = moderatorUser.gradidoID
-        transaction.linkedUserName = fullName(moderatorUser.firstName, moderatorUser.lastName)
+        transaction.linkedUserName = moderatorUser.alias
         transaction.linkedUserCommunityUuid = moderatorUser.communityUuid
         transaction.previous = lastTransaction ? lastTransaction.id : null
         transaction.amount = contribution.amount

@@ -14,7 +14,6 @@ import {
   contributionTransaction,
   deferredTransferTransaction,
   EncryptedTransferArgs,
-  fullName,
   interpretEncryptedTransferArgs,
   redeemDeferredTransferTransaction,
   TransactionTypeId,
@@ -363,7 +362,9 @@ export class TransactionLinkResolver {
           }
           */
           transaction.userGradidoID = user.gradidoID
-          transaction.userName = fullName(user.firstName, user.lastName)
+          // The alias, not the real name (NU-021): a booking is permanent. Same
+          // convention as the send/receive path in TransactionResolver.
+          transaction.userName = user.alias
           transaction.previous = lastTransaction ? lastTransaction.id : null
           transaction.amount = contribution.amount
           transaction.creationDate = contribution.contributionDate

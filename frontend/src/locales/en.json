@@ -757,14 +757,10 @@
         "userCoords": "Your Location: Lat {lat}, Lng {lng}",
         "userLocationLabel": "Your Location"
       },
-      "naming-format": "Show Name:",
       "publish-location": {
         "approximate": "approximate position",
         "exact": "exact position",
         "updated": "format of location for GMS updated"
-      },
-      "publish-name": {
-        "updated": "format of name for GMS updated"
       }
     },
     "avatar": {
@@ -798,11 +794,7 @@
     "humhub": {
       "delete-disabled": "The user account can only be deleted in the profile menu of the cooperation platform.",
       "disabled": "Data not exported into the Gradido Community",
-      "enabled": "Data exported into the Gradido Community",
-      "naming-format": "Show Name:",
-      "publish-name": {
-        "updated": "Format of name for the Gradido Community updated."
-      }
+      "enabled": "Data exported into the Gradido Community"
     },
     "language": {
       "de": "Deutsch",
@@ -850,18 +842,6 @@
         "text": "Now save your new password, which you can use to log in to your Gradido account in the future."
       },
       "subtitle": "If you have forgotten your password, you can reset it here."
-    },
-    "publish-name": {
-      "alias-or-initials": "Username or initials (Default)",
-      "alias-or-initials-tooltip": "username, if available, or the initials of the first name and last name, the first two letters in each case",
-      "first": "Firstname",
-      "first-initial": "First name and initial",
-      "first-initial-tooltip": "first name plus the first letter of the last name",
-      "first-tooltip": "the first name only",
-      "initials": "Initials",
-      "initials-tooltip": "Initials of first name and last name, i.e. the first two letters of each regardless of the existence of the user name",
-      "name-full": "first name and last name",
-      "name-full-tooltip": "full name: first name plus last name"
     },
     "showAmountGDD": "Your GDD amount is visible.",
     "showAmountGDT": "Your GDT amount is visible.",

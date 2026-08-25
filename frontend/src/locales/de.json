@@ -757,14 +757,10 @@
         "userCoords": "Dein Standort: Breitengrad {lat}, Längengrad {lng}",
         "userLocationLabel": "Dein Standort"
       },
-      "naming-format": "Namen anzeigen:",
       "publish-location": {
         "approximate": "Ungefähre Position",
         "exact": "Genaue Position",
         "updated": "Positionstyp für GMS aktualisiert"
-      },
-      "publish-name": {
-        "updated": "Namensformat für GMS aktualisiert"
       }
     },
     "avatar": {
@@ -798,11 +794,7 @@
     "humhub": {
       "delete-disabled": "Das Benutzerkonto kann nur im Profil-Menü der Kooperationsplattform gelöscht werden.",
       "disabled": "Daten werden nicht in die Gradido Community exportiert",
-      "enabled": "Daten werden in die Gradido Community exportiert",
-      "naming-format": "Namen anzeigen:",
-      "publish-name": {
-        "updated": "Namensformat für die Gradido Community aktualisiert."
-      }
+      "enabled": "Daten werden in die Gradido Community exportiert"
     },
     "language": {
       "de": "Deutsch",
@@ -850,18 +842,6 @@
         "text": "Speichere nun dein neues Passwort, mit dem du dich zukünftig in deinem Gradido-Konto anmelden kannst."
       },
       "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen."
-    },
-    "publish-name": {
-      "alias-or-initials": "Benutzername oder Initialen",
-      "alias-or-initials-tooltip": "Benutzername, falls vorhanden, oder die Initialen von Vorname und Nachname jeweils die ersten zwei Buchstaben",
-      "first": "Vorname",
-      "first-initial": "Vorname und Initial",
-      "first-initial-tooltip": "Vornamen plus den ersten Anfangsbuchstaben des Nachnamens",
-      "first-tooltip": "Nur der Vornamen",
-      "initials": "Initialen",
-      "initials-tooltip": "Initialen von Vor- und Nachname also jeweils die ersten zwei Buchstaben unabhängig von der Existenz des Benutzernamens",
-      "name-full": "Vorname und Nachname",
-      "name-full-tooltip": "Vollständiger Name: Vorname plus Nachname"
     },
     "showAmountGDD": "Dein GDD Betrag ist sichtbar.",
     "showAmountGDT": "Dein GDT Betrag ist sichtbar.",

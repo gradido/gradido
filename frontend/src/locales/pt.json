@@ -757,14 +757,10 @@
         "userCoords": "A tua localização: Lat {lat}, Lng {lng}",
         "userLocationLabel": "A tua localização"
       },
-      "naming-format": "Mostrar nome:",
       "publish-location": {
         "approximate": "posição aproximada",
         "exact": "posição exata",
         "updated": "tipo de posição para o GMS atualizado"
-      },
-      "publish-name": {
-        "updated": "formato do nome para o GMS atualizado"
       }
     },
     "avatar": {
@@ -798,11 +794,7 @@
     "humhub": {
       "delete-disabled": "A conta de utilizador só pode ser eliminada no menu de perfil da plataforma de cooperação.",
       "disabled": "Os dados não são exportados para a Gradido Community",
-      "enabled": "Os dados são exportados para a Gradido Community",
-      "naming-format": "Mostrar nome:",
-      "publish-name": {
-        "updated": "Formato do nome para a Gradido Community atualizado."
-      }
+      "enabled": "Os dados são exportados para a Gradido Community"
     },
     "language": {
       "de": "Deutsch",
@@ -850,18 +842,6 @@
         "text": "Guarda agora a tua nova palavra-passe, com a qual poderás iniciar sessão na tua conta Gradido no futuro."
       },
       "subtitle": "Se te esqueceste da tua palavra-passe, podes repô-la aqui."
-    },
-    "publish-name": {
-      "alias-or-initials": "Nome de utilizador ou iniciais (predefinição)",
-      "alias-or-initials-tooltip": "nome de utilizador, se disponível, ou as iniciais do nome próprio e do apelido, em cada caso as duas primeiras letras",
-      "first": "Nome próprio",
-      "first-initial": "Nome próprio e inicial",
-      "first-initial-tooltip": "nome próprio mais a primeira letra do apelido",
-      "first-tooltip": "apenas o nome próprio",
-      "initials": "Iniciais",
-      "initials-tooltip": "Iniciais do nome próprio e do apelido, ou seja, as duas primeiras letras de cada, independentemente da existência do nome de utilizador",
-      "name-full": "nome próprio e apelido",
-      "name-full-tooltip": "nome completo: nome próprio mais apelido"
     },
     "showAmountGDD": "O teu montante GDD está visível.",
     "showAmountGDT": "O teu montante GDT está visível.",

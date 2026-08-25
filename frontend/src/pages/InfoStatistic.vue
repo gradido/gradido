@@ -13,14 +13,14 @@
       <hr />
       <div class="h3">{{ $t('community.admins') }}</div>
       <ul>
-        <li v-for="item in admins" :key="item.id">{{ item.firstName }} {{ item.lastName }}</li>
+        <li v-for="item in admins" :key="item.key">{{ item.alias }}</li>
       </ul>
       <div class="h3">{{ $t('community.groupsAndModerators') }}</div>
       <div v-for="group in groupSections" :key="group.tag" class="mb-3">
         <div class="fw-bold">{{ group.label }}</div>
         <ul v-if="group.moderators.length" class="mb-0">
           <li v-for="item in group.moderators" :key="item.key">
-            {{ item.firstName }} {{ item.lastName }}
+            {{ item.alias }}
           </li>
         </ul>
         <div v-else class="fst-italic text-muted">{{ $t('community.noModerators') }}</div>
@@ -29,7 +29,7 @@
         <div class="fw-bold">{{ $t('community.moderatorsUntagged') }}</div>
         <ul class="mb-0">
           <li v-for="item in untaggedModerators" :key="item.key">
-            {{ item.firstName }} {{ item.lastName }}
+            {{ item.alias }}
           </li>
         </ul>
       </div>
@@ -37,7 +37,7 @@
         <div class="fw-bold">{{ $t('community.moderatorsAllGroups') }}</div>
         <ul class="mb-0">
           <li v-for="item in allGroupsModerators" :key="item.key">
-            {{ item.firstName }} {{ item.lastName }}
+            {{ item.alias }}
           </li>
         </ul>
       </div>
@@ -79,13 +79,19 @@ const { result: creationGroupsResult } = useQuery(creationGroupsQuery)
 // same list — the backend applies the very same group scope to them.
 const MODERATOR_ROLES = ['MODERATOR', 'MODERATOR_AI']
 
-const admins = computed(() => itemsAdminUser.value.filter((item) => item.role === 'ADMIN'))
+// Listed and sorted by alias (NU-021): the real name is not delivered to this page any
+// more. The alias is unique per community, so it also serves as the list key.
+const admins = computed(() =>
+  itemsAdminUser.value
+    .filter((item) => item.role === 'ADMIN')
+    .map((item, index) => ({ ...item, key: `${item.alias}-${index}` })),
+)
 const moderators = computed(() =>
   itemsAdminUser.value
     .filter((item) => MODERATOR_ROLES.includes(item.role))
-    .map((item, index) => ({ ...item, key: `${item.firstName}-${item.lastName}-${index}` }))
+    .map((item, index) => ({ ...item, key: `${item.alias}-${index}` }))
     .sort((a, b) =>
-      `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`, undefined, {
+      (a.alias ?? '').localeCompare(b.alias ?? '', undefined, {
         sensitivity: 'base',
       }),
     ),

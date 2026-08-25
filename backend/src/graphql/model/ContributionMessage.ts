@@ -12,6 +12,7 @@ export class ContributionMessage {
     this.type = dbContributionMessage.type
     this.userFirstName = user?.firstName ?? null
     this.userLastName = user?.lastName ?? null
+    this.userAlias = user?.alias ?? null
     this.userId = user?.id ?? null
     this.isModerator = dbContributionMessage.isModerator
   }
@@ -36,6 +37,12 @@ export class ContributionMessage {
 
   @Field(() => String, { nullable: true })
   userLastName: string | null
+
+  // What the wallet's contribution thread shows as the author's name (NU-020): the
+  // moderation appears under its alias, and the member's own messages are labelled from
+  // the member's own store. Null only for messages whose author row is gone.
+  @Field(() => String, { nullable: true })
+  userAlias: string | null
 
   @Field(() => Int, { nullable: true })
   userId: number | null

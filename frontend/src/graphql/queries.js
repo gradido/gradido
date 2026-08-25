@@ -285,8 +285,7 @@ export const searchAdminUsers = gql`
     searchAdminUsers(pageSize: $pageSize, currentPage: $currentPage, order: $order) {
       userCount
       userList {
-        firstName
-        lastName
+        alias
         role
         visibleCreationGroups
         seesAllCreationGroups
