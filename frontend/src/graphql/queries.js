@@ -22,6 +22,8 @@ export const verifyLogin = gql`
     verifyLogin {
       gradidoID
       alias
+      emailChecked
+      createdAt
       firstName
       lastName
       language
@@ -322,6 +324,15 @@ export const listContributionMessages = gql`
 export const user = gql`
   query ($identifier: String!, $communityIdentifier: String!) {
     user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
+      firstName
+      lastName
+    }
+  }
+`
+
+export const assistedRegistrationInfo = gql`
+  query ($assistCode: String!) {
+    assistedRegistrationInfo(assistCode: $assistCode) {
       firstName
       lastName
     }

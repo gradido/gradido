@@ -105,6 +105,28 @@ export const schema = Joi.object({
     .description('Base of the confirm and veto links of an e-mail address change.')
     .required(),
 
+  EMAIL_LINK_REGISTER_ASSIST: Joi.string()
+    .uri({ scheme: ['http', 'https'] })
+    .custom((value: string, helpers: Joi.CustomHelpers<string>): string | Joi.ErrorReport => {
+      if (!value.startsWith(helpers.state.ancestors[0].COMMUNITY_URL)) {
+        return helpers.error('string.pattern.base', { value, communityUrl: COMMUNITY_URL })
+      }
+      return value
+    })
+    .description('Base of the helper link in the multi-registration mail (EM-013).')
+    .required(),
+
+  EMAIL_LINK_CONFIRM_EMAIL: Joi.string()
+    .uri({ scheme: ['http', 'https'] })
+    .custom((value: string, helpers: Joi.CustomHelpers<string>): string | Joi.ErrorReport => {
+      if (!value.startsWith(helpers.state.ancestors[0].COMMUNITY_URL)) {
+        return helpers.error('string.pattern.base', { value, communityUrl: COMMUNITY_URL })
+      }
+      return value
+    })
+    .description('Base of the confirm-only link of an assisted registration (EM-013).')
+    .required(),
+
   EMAIL_LINK_OVERVIEW: Joi.string()
     .uri({ scheme: ['http', 'https'] })
     .custom((value: string, helpers: Joi.CustomHelpers<string>): string | Joi.ErrorReport => {

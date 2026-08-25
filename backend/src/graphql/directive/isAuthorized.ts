@@ -4,6 +4,7 @@ import { AuthChecker } from 'type-graphql'
 
 import { INALIENABLE_RIGHTS } from '@/auth/INALIENABLE_RIGHTS'
 import { decode, encode } from '@/auth/JWT'
+import { RESTRICTED_WHILE_UNCONFIRMED } from '@/auth/RESTRICTED_WHILE_UNCONFIRMED'
 import { RIGHTS } from '@/auth/RIGHTS'
 import {
   ROLE_ADMIN,
@@ -13,6 +14,7 @@ import {
   ROLE_UNAUTHORIZED,
   ROLE_USER,
 } from '@/auth/ROLES'
+import { isConfirmationOverdue } from '@/data/EmailConfirmation.logic'
 import { Context } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
@@ -77,6 +79,26 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
   const missingRights = (rights as RIGHTS[]).filter((right) => !context.role?.hasRight(right))
   if (missingRights.length !== 0) {
     throw new LogError('401 Unauthorized')
+  }
+
+  // EM-013: an account whose address was never confirmed keeps full access for the
+  // grace period and is then narrowed down — everything that creates value or acts
+  // outward is refused until the address is confirmed; viewing and self-management
+  // (including the two ways out: resend and address correction) stay. The reminder
+  // modal in the wallet is the visible half; this here is what makes the blockade
+  // hold against a bare API call. Pure in-memory check: the user row above already
+  // carries the emailContact relation, so no request gains an extra query.
+  if (
+    context.user?.emailContact &&
+    !context.user.emailContact.emailChecked &&
+    isConfirmationOverdue(context.user.createdAt)
+  ) {
+    const refused = (rights as RIGHTS[]).filter((right) =>
+      RESTRICTED_WHILE_UNCONFIRMED.includes(right),
+    )
+    if (refused.length !== 0) {
+      throw new LogError('401 Unauthorized')
+    }
   }
 
   // set new header token

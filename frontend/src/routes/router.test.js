@@ -84,8 +84,8 @@ describe('router', () => {
       expect(defaultRoute.redirect()).toEqual({ path: '/login' })
     })
 
-    it('has 38 routes defined', () => {
-      expect(routes).toHaveLength(38)
+    it('has 40 routes defined', () => {
+      expect(routes).toHaveLength(40)
     })
 
     // The settings are one route per area. That is what lets the same pages serve both

@@ -23,6 +23,25 @@
     "reload": "Ricarica",
     "text": "È disponibile una versione più recente. Ricarica la pagina."
   },
+  "assistedRegistration": {
+    "assist": {
+      "button": "Crea account",
+      "done": "L'account è pronto! Una mail di conferma è in viaggio verso la nuova casella. Accedi ora e incassa l'assegno:",
+      "emailHint": "Inserisci qui l'indirizzo e-mail del nuovo membro — non il tuo. La password la digita il nuovo membro.",
+      "emailTaken": "Questo indirizzo e-mail ha già un account Gradido. Usa \"Password dimenticata\" per rientrare.",
+      "intro": "{name} vuole iniziare un account Gradido.",
+      "invalid": "Questo link non è valido o è scaduto.",
+      "loginButton": "Accedi e incassa l'assegno",
+      "title": "Creare insieme un account Gradido"
+    },
+    "confirm": {
+      "button": "Conferma indirizzo",
+      "done": "Il tuo indirizzo e-mail è confermato. Il tuo account ora ti resta aperto stabilmente.",
+      "invalid": "Questo link di conferma non è valido o è scaduto. Accedi e fatti inviare una nuova mail.",
+      "text": "Clicca sul pulsante per confermare che questo indirizzo e-mail appartiene al tuo account Gradido.",
+      "title": "Confermare indirizzo e-mail"
+    }
+  },
   "asterisks": "****",
   "auth": {
     "left": {
@@ -224,6 +243,16 @@
       "text": "Non sei stato tu? Allora annulla la modifica richiesta: il tuo indirizzo precedente resta valido.",
       "title": "Annulla la modifica dell'indirizzo e-mail"
     }
+  },
+  "emailConfirmation": {
+    "changeAddress": "Correggi indirizzo",
+    "grace": "Fino al {deadline} puoi già usare pienamente il tuo account — dopo attenderà la tua conferma.",
+    "later": "Più tardi",
+    "mailSent": "Una mail di conferma è in viaggio verso il tuo indirizzo. Clicca sul link al suo interno.",
+    "overdue": "Il periodo di transizione è terminato. Conferma il tuo indirizzo e-mail — il tuo account si riaprirà subito completamente.",
+    "resend": "Invia di nuovo la mail",
+    "resent": "La mail di conferma è di nuovo in viaggio.",
+    "title": "Conferma il tuo indirizzo e-mail"
   },
   "error": {
     "email-already-sent": "Ti abbiamo già inviato un'e-mail meno di 10 minuti fa.",

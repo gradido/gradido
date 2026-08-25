@@ -23,6 +23,25 @@
     "reload": "Neu laden",
     "text": "Es gibt eine neuere Fassung. Bitte lade die Seite neu."
   },
+  "assistedRegistration": {
+    "assist": {
+      "button": "Konto einrichten",
+      "done": "Das Konto ist eingerichtet! Eine Bestätigungs-Mail ist unterwegs an das neue Postfach. Jetzt anmelden und den Scheck einlösen:",
+      "emailHint": "Tragt hier die eigene E-Mail-Adresse des neuen Mitglieds ein — nicht Deine. Das Passwort tippt das neue Mitglied selbst.",
+      "emailTaken": "Diese E-Mail-Adresse hat bereits ein Gradido-Konto. Nutze „Passwort vergessen“, um wieder hineinzukommen.",
+      "intro": "{name} möchte ein Gradido-Konto beginnen.",
+      "invalid": "Dieser Link ist ungültig oder abgelaufen.",
+      "loginButton": "Anmelden und Scheck einlösen",
+      "title": "Gemeinsam ein Gradido-Konto einrichten"
+    },
+    "confirm": {
+      "button": "Adresse bestätigen",
+      "done": "Deine E-Mail-Adresse ist bestätigt. Dein Konto steht Dir jetzt dauerhaft offen.",
+      "invalid": "Dieser Bestätigungs-Link ist ungültig oder abgelaufen. Melde Dich an und lasse Dir eine neue Mail senden.",
+      "text": "Klicke auf den Knopf, um zu bestätigen, dass diese E-Mail-Adresse zu Deinem Gradido-Konto gehört.",
+      "title": "E-Mail-Adresse bestätigen"
+    }
+  },
   "asterisks": "****",
   "auth": {
     "left": {
@@ -224,6 +243,16 @@
       "text": "Warst Du das nicht? Dann verwirf die angestoßene Änderung – Deine bisherige Adresse bleibt bestehen.",
       "title": "Änderung der E-Mail-Adresse verwerfen"
     }
+  },
+  "emailConfirmation": {
+    "changeAddress": "Adresse korrigieren",
+    "grace": "Bis {deadline} kannst Du Dein Konto schon vollständig nutzen — danach wartet es auf Deine Bestätigung.",
+    "later": "Später",
+    "mailSent": "Eine Bestätigungs-Mail ist an Deine E-Mail-Adresse unterwegs. Bitte klicke auf den Link darin.",
+    "overdue": "Die Übergangszeit ist abgelaufen. Bitte bestätige Deine E-Mail-Adresse — danach steht Dir Dein Konto sofort wieder vollständig offen.",
+    "resend": "Mail erneut senden",
+    "resent": "Die Bestätigungs-Mail ist erneut unterwegs.",
+    "title": "Bestätige Deine E-Mail-Adresse"
   },
   "error": {
     "email-already-sent": "Wir haben dir bereits eine E-Mail vor weniger als 10 Minuten geschickt.",

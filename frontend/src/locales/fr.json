@@ -23,6 +23,25 @@
     "reload": "Recharger",
     "text": "Une version plus récente est disponible. Merci de recharger la page."
   },
+  "assistedRegistration": {
+    "assist": {
+      "button": "Créer le compte",
+      "done": "Le compte est prêt ! Un e-mail de confirmation est en route vers la nouvelle boîte. Connecte-toi maintenant et encaisse le chèque :",
+      "emailHint": "Saisis ici l'adresse e-mail du nouveau membre — pas la tienne. Le mot de passe, le nouveau membre le tape lui-même.",
+      "emailTaken": "Cette adresse e-mail a déjà un compte Gradido. Utilise « Mot de passe oublié » pour y revenir.",
+      "intro": "{name} souhaite commencer un compte Gradido.",
+      "invalid": "Ce lien n'est pas valable ou a expiré.",
+      "loginButton": "Se connecter et encaisser le chèque",
+      "title": "Créer ensemble un compte Gradido"
+    },
+    "confirm": {
+      "button": "Confirmer l'adresse",
+      "done": "Ton adresse e-mail est confirmée. Ton compte te reste désormais ouvert durablement.",
+      "invalid": "Ce lien de confirmation n'est pas valable ou a expiré. Connecte-toi et fais-toi envoyer un nouvel e-mail.",
+      "text": "Clique sur le bouton pour confirmer que cette adresse e-mail appartient à ton compte Gradido.",
+      "title": "Confirmer l'adresse e-mail"
+    }
+  },
   "asterisks": "****",
   "auth": {
     "left": {
@@ -224,6 +243,16 @@
       "text": "Ce n'était pas toi ? Alors abandonne le changement demandé : ton ancienne adresse reste en place.",
       "title": "Abandonner le changement d'adresse e-mail"
     }
+  },
+  "emailConfirmation": {
+    "changeAddress": "Corriger l'adresse",
+    "grace": "Jusqu'au {deadline}, tu peux déjà utiliser pleinement ton compte — ensuite il attendra ta confirmation.",
+    "later": "Plus tard",
+    "mailSent": "Un e-mail de confirmation est en route vers ton adresse. Clique sur le lien qu’il contient.",
+    "overdue": "La période de transition est terminée. Confirme ton adresse e-mail — ton compte se rouvrira aussitôt entièrement.",
+    "resend": "Renvoyer l'e-mail",
+    "resent": "L'e-mail de confirmation est de nouveau en route.",
+    "title": "Confirme ton adresse e-mail"
   },
   "error": {
     "email-already-sent": "Nous t'avons déjà envoyé un e-mail il y a moins de 10 minutes.",

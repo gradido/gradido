@@ -23,6 +23,25 @@
     "reload": "Recargar",
     "text": "Hay una versión más reciente. Por favor, recarga la página."
   },
+  "assistedRegistration": {
+    "assist": {
+      "button": "Crear cuenta",
+      "done": "¡La cuenta está lista! Un correo de confirmación va de camino al nuevo buzón. Inicia sesión ahora y canjea el cheque:",
+      "emailHint": "Introduce aquí la dirección de correo propia del nuevo miembro — no la tuya. La contraseña la escribe el nuevo miembro.",
+      "emailTaken": "Esta dirección de correo ya tiene una cuenta de Gradido. Usa «He olvidado mi contraseña» para volver a entrar.",
+      "intro": "{name} quiere empezar una cuenta de Gradido.",
+      "invalid": "Este enlace no es válido o ha caducado.",
+      "loginButton": "Iniciar sesión y canjear el cheque",
+      "title": "Crear juntos una cuenta de Gradido"
+    },
+    "confirm": {
+      "button": "Confirmar dirección",
+      "done": "Tu dirección de correo está confirmada. Tu cuenta queda abierta para ti de forma permanente.",
+      "invalid": "Este enlace de confirmación no es válido o ha caducado. Inicia sesión y pide que te envíen un nuevo correo.",
+      "text": "Haz clic en el botón para confirmar que esta dirección de correo pertenece a tu cuenta de Gradido.",
+      "title": "Confirmar dirección de correo"
+    }
+  },
   "asterisks": "****",
   "auth": {
     "left": {
@@ -224,6 +243,16 @@
       "text": "¿No has sido tú? Entonces descarta el cambio solicitado: tu dirección anterior se mantiene.",
       "title": "Descartar el cambio de dirección de correo"
     }
+  },
+  "emailConfirmation": {
+    "changeAddress": "Corregir dirección",
+    "grace": "Hasta {deadline} puedes usar tu cuenta plenamente — después esperará tu confirmación.",
+    "later": "Más tarde",
+    "mailSent": "Un correo de confirmación va de camino a tu dirección. Haz clic en el enlace que contiene.",
+    "overdue": "El plazo de transición ha terminado. Confirma tu dirección de correo — tu cuenta volverá a abrirse por completo en ese momento.",
+    "resend": "Enviar correo de nuevo",
+    "resent": "El correo de confirmación va de camino otra vez.",
+    "title": "Confirma tu dirección de correo"
   },
   "error": {
     "email-already-sent": "Ya te hemos enviado un correo electrónico hace menos de 10 minutos.",

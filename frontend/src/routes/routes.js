@@ -328,6 +328,18 @@ const routes = [
     path: '/email-change/:changeCode',
     component: () => import('@/pages/EmailChange'),
   },
+  // EM-013, the doorbell flow. Own parameter names on purpose — never :code, which
+  // /login/:code? reads as a redeem code (the collision that bit PR #3798).
+  {
+    name: 'RegisterAssist',
+    path: '/register-assist/:assistCode',
+    component: () => import('@/pages/RegisterAssist'),
+  },
+  {
+    name: 'ConfirmEmail',
+    path: '/confirm-email/:confirmationCode',
+    component: () => import('@/pages/ConfirmEmail'),
+  },
   {
     name: 'Redeem',
     path: '/redeem/:code',

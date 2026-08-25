@@ -264,6 +264,7 @@
       </BRow>
       <session-logout-timeout @logout="logoutUser" />
       <alias-first-choice />
+      <email-confirmation-reminder />
     </div>
   </div>
 </template>
@@ -286,6 +287,7 @@ import MobileSidebar from '@/components/MobileSidebar/MobileSidebar'
 import SettingsSidebar from '@/components/Menu/SettingsSidebar.vue'
 import SessionLogoutTimeout from '@/components/SessionLogoutTimeout'
 import AliasFirstChoice from '@/components/AliasFirstChoice'
+import EmailConfirmationReminder from '@/components/EmailConfirmationReminder'
 import ContentFooter from '@/components/ContentFooter'
 import GddAmount from '@/components/Template/ContentHeader/GddAmount'
 import GdtAmount from '@/components/Template/ContentHeader/GdtAmount'

@@ -23,6 +23,25 @@
     "reload": "Reload",
     "text": "A newer version is available. Please reload the page."
   },
+  "assistedRegistration": {
+    "assist": {
+      "button": "Set up account",
+      "done": "The account is ready! A confirmation mail is on its way to the new mailbox. Sign in now and redeem the cheque:",
+      "emailHint": "Enter the new member's own e-mail address here — not yours. The new member types the password themselves.",
+      "emailTaken": "This e-mail address already has a Gradido account. Use \"Forgot password\" to get back in.",
+      "intro": "{name} would like to start a Gradido account.",
+      "invalid": "This link is invalid or has expired.",
+      "loginButton": "Sign in and redeem the cheque",
+      "title": "Setting up a Gradido account together"
+    },
+    "confirm": {
+      "button": "Confirm address",
+      "done": "Your e-mail address is confirmed. Your account is now open to you for good.",
+      "invalid": "This confirmation link is invalid or has expired. Sign in and have a new mail sent to you.",
+      "text": "Click the button to confirm that this e-mail address belongs to your Gradido account.",
+      "title": "Confirm e-mail address"
+    }
+  },
   "asterisks": "****",
   "auth": {
     "left": {
@@ -224,6 +243,16 @@
       "text": "That was not you? Then discard the requested change – your previous address stays.",
       "title": "Discard change of e-mail address"
     }
+  },
+  "emailConfirmation": {
+    "changeAddress": "Correct address",
+    "grace": "Until {deadline} you can already use your account fully — after that it waits for your confirmation.",
+    "later": "Later",
+    "mailSent": "A confirmation mail is on its way to your e-mail address. Please click the link inside.",
+    "overdue": "The grace period has ended. Please confirm your e-mail address — your account opens up fully again the moment you do.",
+    "resend": "Send mail again",
+    "resent": "The confirmation mail is on its way again.",
+    "title": "Confirm your e-mail address"
   },
   "error": {
     "email-already-sent": "We already sent you an email less than 10 minutes ago.",

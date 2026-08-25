@@ -11,6 +11,9 @@
       "contactSupport": "Contact support",
       "emailExists": "However, an account already exists for your email address.",
       "emailReused": "Your email address has just been used again to register an account with Gradido.",
+      "helperButton": "I am helping someone set up an account",
+      "helperIntro": "If someone is sitting next to you who just used your e-mail address to start a Gradido account: continue the setup here. Together you enter their own e-mail address, and they choose their password themselves.",
+      "helperTitle": "Helping someone at a Gradido café right now?",
       "ifYouAreNotTheOne": "If you did not try to register again, please contact our support:",
       "onForgottenPasswordClickLink": "If you have forgotten your password, please click here.",
       "subject": "Try To Register Again With Your Email",
@@ -23,6 +26,16 @@
       "subject": "Message about your common good contribution",
       "title": "Message about your common good contribution",
       "toSeeAndAnswerMessage": "You can reply directly at your contribution."
+    },
+    "assistedRegistrationConfirm": {
+      "accountCreated": "Together with a Gradido member, an account has just been set up for you — with this e-mail address.",
+      "clickToConfirm": "Please click here to confirm your e-mail address.",
+      "confirmButton": "Confirm address",
+      "confirmHeading": "Confirm e-mail address",
+      "notYou": "You know nothing about this account? Then ignore this e-mail — without confirmation the account stays locked.",
+      "pleaseConfirm": "Please confirm that this address is yours — only then will your account stay open for good.",
+      "subject": "Confirm your e-mail address",
+      "title": "Your Gradido account is ready"
     },
     "contribution": {
       "toSeeContributionsAndMessages": "You will find your common good contributions and the messages about them in your Gradido account."
@@ -88,7 +101,8 @@
       "subject": "E-mail address changed: {firstName} {lastName}",
       "title": "A member has changed their e-mail address",
       "todo": "Please merge the new address into this account on the GDT server and update Klick-Tipp.",
-      "todoTakeBack": "A change back to an earlier address of this account – nothing to merge on the GDT server. Please only update Klick-Tipp."
+      "todoTakeBack": "A change back to an earlier address of this account – nothing to merge on the GDT server. Please only update Klick-Tipp.",
+      "todoTypoCorrection": "The previous address was never confirmed (a typo during setup) – nothing to merge on the GDT server. Please only enter the new address into Klick-Tipp."
     },
     "footer": {
       "contactOurSupport": "If you have any further questions, please contact our support.",

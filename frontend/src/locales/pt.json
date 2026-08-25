@@ -23,6 +23,25 @@
     "reload": "Recarregar",
     "text": "Existe uma versão mais recente. Por favor, recarregue a página."
   },
+  "assistedRegistration": {
+    "assist": {
+      "button": "Criar conta",
+      "done": "A conta está pronta! Um e-mail de confirmação vai a caminho da nova caixa de correio. Inicia sessão agora e resgata o cheque:",
+      "emailHint": "Introduz aqui o endereço de e-mail próprio do novo membro — não o teu. A palavra-passe é o novo membro que a escreve.",
+      "emailTaken": "Este endereço de e-mail já tem uma conta Gradido. Usa \"Esqueci-me da palavra-passe\" para voltar a entrar.",
+      "intro": "{name} quer começar uma conta Gradido.",
+      "invalid": "Esta ligação é inválida ou expirou.",
+      "loginButton": "Iniciar sessão e resgatar o cheque",
+      "title": "Criar juntos uma conta Gradido"
+    },
+    "confirm": {
+      "button": "Confirmar endereço",
+      "done": "O teu endereço de e-mail está confirmado. A tua conta fica agora aberta para ti de forma permanente.",
+      "invalid": "Esta ligação de confirmação é inválida ou expirou. Inicia sessão e pede o envio de um novo e-mail.",
+      "text": "Clica no botão para confirmar que este endereço de e-mail pertence à tua conta Gradido.",
+      "title": "Confirmar endereço de e-mail"
+    }
+  },
   "asterisks": "****",
   "auth": {
     "left": {
@@ -224,6 +243,16 @@
       "text": "Não foste tu? Então rejeita a alteração pedida – o teu endereço anterior mantém-se.",
       "title": "Rejeitar a alteração do endereço de e-mail"
     }
+  },
+  "emailConfirmation": {
+    "changeAddress": "Corrigir endereço",
+    "grace": "Até {deadline} já podes usar a tua conta por completo — depois ela ficará à espera da tua confirmação.",
+    "later": "Mais tarde",
+    "mailSent": "Um e-mail de confirmação vai a caminho do teu endereço. Clica na ligação que ele contém.",
+    "overdue": "O período de transição terminou. Confirma o teu endereço de e-mail — logo a seguir a tua conta volta a abrir por completo.",
+    "resend": "Enviar e-mail de novo",
+    "resent": "O e-mail de confirmação vai de novo a caminho.",
+    "title": "Confirma o teu endereço de e-mail"
   },
   "error": {
     "email-already-sent": "Já te enviámos um e-mail há menos de 10 minutos.",
