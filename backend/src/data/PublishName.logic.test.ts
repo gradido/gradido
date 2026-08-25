@@ -92,6 +92,14 @@ describe('test publish name logic', () => {
       user.alias = 'abc'
       expect(logic.getPublicAlias()).toBe('abc')
     })
+    // Declared `: string`, so it has to return one. A user carrying neither value is not
+    // a state the system produces, but a fixture is -- and `Profile` puts this straight
+    // into a `.length` check, where undefined is a crash rather than a blank name.
+    it('for neither alias nor identifier', () => {
+      user.alias = ''
+      user.gradidoID = undefined as unknown as string
+      expect(logic.getPublicAlias()).toBe('')
+    })
   })
 
   describe('test user identifier ', () => {

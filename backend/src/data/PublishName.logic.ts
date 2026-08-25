@@ -32,11 +32,17 @@ export class PublishNameLogic {
    * through where the other three showed the identifier. `hasAlias()` decides for all
    * four now.
    *
+   * ⚠️ `?? ''` because the entity's types lie: `alias` is declared `string` while the
+   * column is nullable, and a user object that carries neither -- a bare `new User()` in
+   * a fixture -- would otherwise hand back `undefined` from a function declared to return
+   * a string. `Profile` puts the result straight into a `.length` check, so undefined
+   * there is a crash, not a blank. The wallet's `memberAlias` ends the same way.
+   *
    * Exempt from Result on purpose: every user produces an answer, there is no failure
    * to model.
    */
   public getPublicAlias(): string {
-    return this.hasAlias() ? this.user.alias : this.user.gradidoID
+    return (this.hasAlias() ? this.user.alias : this.user.gradidoID) ?? ''
   }
 
   /**
