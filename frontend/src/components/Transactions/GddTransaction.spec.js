@@ -102,6 +102,38 @@ describe('GddTransaction', () => {
     expect(marker().find('[data-icon="cards"]').exists()).toBe(true)
   })
 
+  /**
+   * The creation line, and it had no test at all until now -- which is exactly how it
+   * came to be read as "the moderator's alias" when it never was.
+   *
+   * A CREATION booking is not linked to the moderator who approved it: the backend puts
+   * the community stand-in in that slot unconditionally, so the fixture here is
+   * STUB-shaped -- an alias that is a community name, and no real name at all, because
+   * the stand-in is not a person and has none.
+   */
+  describe('the creation line', () => {
+    const CREATION = {
+      typeId: 'CREATION',
+      amount: '200',
+      linkedUser: {
+        alias: 'Gradido Entwicklung',
+        gradidoID: '11111111-2222-4333-4444-55555555',
+      },
+    }
+
+    it('names the community, not a person', () => {
+      mountWith(CREATION)
+
+      expect(wrapper.text()).toContain('Gradido Entwicklung')
+    })
+
+    it('falls back to the identifier when no name is configured', () => {
+      mountWith({ ...CREATION, linkedUser: { ...CREATION.linkedUser, alias: null } })
+
+      expect(wrapper.text()).toContain('11111111-2222-4333-4444-55555555')
+    })
+  })
+
   // A link and a card are mutually exclusive, and the link wins the branch. Pinned so that
   // adding a third marker later cannot quietly make a row show two.
   it('shows one marker at a time, never two', () => {

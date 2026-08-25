@@ -158,7 +158,10 @@ const nameProps = computed(() => {
   if (isCreationType.value) {
     return {
       class: 'fw-bold',
-      // The moderator's alias (NU-020); the real name is no longer delivered here.
+      // The COMMUNITY's name (NU-020). A creation booking is linked to the community
+      // stand-in, not to the moderator who approved it -- the backend swaps that user in
+      // unconditionally -- so `alias` carries the configured community name and this line
+      // names the community, as it always did. No real name is delivered here any more.
       creationLinkedUser: `${
         props.transaction.linkedUser.alias || props.transaction.linkedUser.gradidoID
       }`,
