@@ -21,8 +21,8 @@
           v-show="hasPicture"
           ref="preview"
           class="avatar-preview"
-          :width="FRAME"
-          :height="FRAME"
+          :width="previewSize"
+          :height="previewSize"
         ></canvas>
         <div v-if="hasPicture" class="avatar-mask"></div>
         <div v-if="!hasPicture" class="avatar-placeholder">
@@ -41,7 +41,7 @@
           max="4"
           step="0.01"
           :disabled="!hasPicture"
-          @input="redraw"
+          @input="redraw(true)"
         />
       </div>
 
@@ -162,6 +162,20 @@ import {
 const FRAME = 280
 const framePx = `${FRAME}px`
 
+/**
+ * The preview canvas measures FRAME in CSS but has to hold device pixels, or it is drawn
+ * at half resolution on a retina screen -- the <img> it replaced was rendered at the
+ * screen's own resolution, so anything less is a step backwards. Capped at 2: beyond that
+ * the extra pixels cost more than they show.
+ */
+const previewSize = FRAME * Math.min(2, Math.round(window.devicePixelRatio || 1))
+
+/**
+ * The shorter edge a downscaled stand-in is built to. At zoom 1 it matches the preview
+ * exactly; zoomed in it goes soft, which is why it is only used while a finger is moving.
+ */
+const WORKING_EDGE = previewSize
+
 const props = defineProps({
   modelValue: Boolean,
   hasAvatar: Boolean,
@@ -188,6 +202,12 @@ const preview = ref(null)
 // The source lives outside the reactive state on purpose: it is a decoded bitmap that
 // nothing renders directly, and making it reactive would have Vue walk it on every draw.
 let sourceImage = null
+/**
+ * A small stand-in used only while dragging. Redrawing a 12-megapixel photo into the
+ * preview on every pointer move stutters on a phone (measured by Bernd, 25.08.2026); the
+ * stored renditions keep coming from the original, so nothing is lost.
+ */
+let workingImage = null
 
 const hasPicture = ref(false)
 // Turn and mirror. They sit here rather than in the geometry call so that the two buttons
@@ -214,6 +234,7 @@ function reset() {
   // where nothing catches it.
   clearTimeout(redrawTimer)
   sourceImage = null
+  workingImage = null
   hasPicture.value = false
   loadError.value = ''
   zoom.value = 1
@@ -235,6 +256,7 @@ function reset() {
 function showError(message) {
   clearTimeout(redrawTimer)
   sourceImage = null
+  workingImage = null
   hasPicture.value = false
   cropped.value = null
   measure.value = ''
@@ -286,6 +308,7 @@ function loadImage(dataUrl, fileName) {
     sourceImage = probe
     naturalWidth = probe.naturalWidth
     naturalHeight = probe.naturalHeight
+    workingImage = makeWorkingCopy(probe, naturalWidth, naturalHeight)
     zoom.value = 1
     // The offsets below are centered for zoom 1, so previousZoom has to say 1 as well.
     // It outlives the picture -- AvatarButton keeps this component mounted -- so whatever
@@ -337,22 +360,56 @@ function recenter() {
   offsetY = centred.offsetY
 }
 
-function paintPreview() {
+/**
+ * Builds the dragging stand-in. Drawn straight into its target size, like every other
+ * canvas here -- painting the photo full size first is the shape that returns a black
+ * image on iOS.
+ *
+ * Returns null when the source is already small enough to draw cheaply.
+ */
+function makeWorkingCopy(image, width, height) {
+  const shorter = Math.min(width, height)
+  if (shorter <= WORKING_EDGE) {
+    return null
+  }
+  const scale = WORKING_EDGE / shorter
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.max(1, Math.round(width * scale))
+  canvas.height = Math.max(1, Math.round(height * scale))
+  const context = canvas.getContext('2d')
+  context.imageSmoothingQuality = 'high'
+  context.drawImage(image, 0, 0, canvas.width, canvas.height)
+  return canvas
+}
+
+/**
+ * @param {boolean} fast draw from the stand-in. The geometry is untouched by this: the
+ *   stand-in keeps the source's proportions and applyCrop is told the destination size
+ *   outright, so a smaller picture lands in exactly the same square.
+ */
+function paintPreview(fast = false) {
   if (!sourceImage || !preview.value) {
     return
   }
-  const geometry = geometryFor(FRAME)
+  const drawFrom = fast && workingImage ? workingImage : sourceImage
+  const geometry = geometryFor(previewSize)
   // Reading the clamped values back keeps the panning limits in one place -- the geometry
   // decides how far the picture may go, not the pointer handler.
   offsetX = geometry.offsetX
   offsetY = geometry.offsetY
   // No high-quality downscaling here: this repaints on every pointer move, and the frame
   // is 280 pixels. The stored renditions get it.
-  applyCrop(preview.value.getContext('2d'), sourceImage, geometry, FRAME, false)
+  applyCrop(preview.value.getContext('2d'), drawFrom, geometry, previewSize, false)
 }
 
 let previousZoom = 1
-function redraw() {
+
+/**
+ * @param {boolean} moving true while a finger or the slider is still travelling. Then the
+ *   preview is drawn from the stand-in; once things go quiet the same timer that encodes
+ *   also repaints it sharply, so what rests on screen is always the real thing.
+ */
+function redraw(moving = false) {
   if (!sourceImage) {
     return
   }
@@ -362,9 +419,14 @@ function redraw() {
     offsetY = FRAME / 2 - (FRAME / 2 - offsetY) * factor
     previousZoom = zoom.value
   }
-  paintPreview()
+  paintPreview(moving)
   clearTimeout(redrawTimer)
-  redrawTimer = setTimeout(encode, 90)
+  redrawTimer = setTimeout(settle, 90)
+}
+
+function settle() {
+  paintPreview()
+  encode()
 }
 
 const isDragging = ref(false)
@@ -391,9 +453,9 @@ function onPointerMove(event) {
   }
   offsetX = startOffsetX + (event.clientX - startX)
   offsetY = startOffsetY + (event.clientY - startY)
-  paintPreview()
+  paintPreview(true)
   clearTimeout(redrawTimer)
-  redrawTimer = setTimeout(encode, 90)
+  redrawTimer = setTimeout(settle, 90)
 }
 
 function onPointerUp() {
