@@ -37,11 +37,39 @@
         />
       </div>
 
+      <!-- Labels, not buttons that click a hidden input. A file field styled away with
+           `hidden` (display:none) cannot be opened from script in an embedded frame or on
+           some phone browsers -- the press does nothing at all, with no error. It is also
+           out of the tab order, so the keyboard cannot reach it either. `visually-hidden`
+           keeps the field focusable and lets the label do the opening, without script. -->
       <div class="avatar-actions">
-        <BButton variant="outline-success" @click="fileInput.click()">
+        <input
+          id="avatar-source-file"
+          type="file"
+          accept="image/*"
+          class="visually-hidden"
+          @change="onFileChosen"
+        />
+        <label class="btn btn-outline-success" for="avatar-source-file">
           {{ $t('avatar.choose-image') }}
-        </BButton>
-        <input ref="fileInput" type="file" accept="image/*" hidden @change="onFileChosen" />
+        </label>
+
+        <!-- `capture` is a hint on the field: the operating system opens its camera app,
+             which brings its own front/back switch -- so one button covers both the selfie
+             and being photographed by someone else. No camera API, no permission prompt
+             from us; on a desktop the hint is ignored, which is why the label is hidden
+             there (it would open the very same file dialog as its neighbour). -->
+        <input
+          id="avatar-source-camera"
+          type="file"
+          accept="image/*"
+          capture="user"
+          class="visually-hidden"
+          @change="onFileChosen"
+        />
+        <label class="btn btn-outline-success avatar-camera" for="avatar-source-camera">
+          {{ $t('avatar.take-photo') }}
+        </label>
       </div>
 
       <div class="avatar-measure">{{ measure }}</div>
@@ -116,7 +144,6 @@ watch(isOpen, (open) => emits('update:modelValue', open))
 
 const frame = ref(null)
 const image = ref(null)
-const fileInput = ref(null)
 
 const imageSrc = ref('')
 const loadError = ref('')
@@ -449,6 +476,26 @@ function onRemove() {
   gap: 9px;
   flex-wrap: wrap;
   margin-top: 10px;
+}
+
+/* The visible label carries the focus ring of the field it belongs to -- without this,
+   a keyboard user tabs onto something invisible. */
+.avatar-actions .visually-hidden:focus-visible + .btn {
+  outline: 2px solid #047006;
+  outline-offset: 2px;
+}
+
+/* Only where a camera app exists. `capture` is silently ignored on a desktop, where this
+   label would open the same dialog as "choose image" and be a second button for one
+   thing. A touch laptop shows it, and there the hint may well work. */
+.avatar-camera {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .avatar-camera {
+    display: inline-block;
+  }
 }
 
 .avatar-measure {
