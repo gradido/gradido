@@ -168,7 +168,10 @@ const framePx = `${FRAME}px`
  * screen's own resolution, so anything less is a step backwards. Capped at 2: beyond that
  * the extra pixels cost more than they show.
  */
-const previewSize = FRAME * Math.min(2, Math.round(window.devicePixelRatio || 1))
+// ⚠️ Round AFTER the multiplication, not the ratio itself: a fractional ratio -- 1.25 on
+// a Windows laptop at 125% scaling, 1.5 at 150% -- would otherwise round down to 1 and
+// leave exactly those screens with the half-resolution preview this is here to fix.
+const previewSize = Math.round(FRAME * Math.min(2, window.devicePixelRatio || 1))
 
 /**
  * The shorter edge a downscaled stand-in is built to. At zoom 1 it matches the preview
