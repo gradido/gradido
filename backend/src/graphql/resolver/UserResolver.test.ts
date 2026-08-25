@@ -330,12 +330,15 @@ describe('UserResolver', () => {
         expect(createUserLogger.addContext).toBeCalledWith('user', user[0].id)
       })
 
-      it('sends an account multi registration email', () => {
+      it('sends an account multi registration email without the helper branch', () => {
+        // No redeem code on this attempt, so no helper link (EM-013): the mail renders
+        // exactly as it always has.
         expect(sendAccountMultiRegistrationEmail).toBeCalledWith({
           firstName: 'Peter',
           lastName: 'Lustig',
           email: 'peter@lustig.de',
           language: 'de',
+          helperLink: null,
         })
       })
 

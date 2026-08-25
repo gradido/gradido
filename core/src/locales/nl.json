@@ -11,6 +11,9 @@
       "contactSupport": "Contact opnemen met support",
       "emailExists": "Er bestaat echter al een account voor je e-mailadres.",
       "emailReused": "je e-mailadres is zojuist opnieuw gebruikt om een account bij Gradido te registreren.",
+      "helperButton": "Ik help iemand een account aan te maken",
+      "helperIntro": "Als er iemand naast je zit die zojuist jouw e-mailadres heeft gebruikt om een Gradido-account te beginnen: ga hier verder met de installatie. Samen voeren jullie het eigen e-mailadres in, en het wachtwoord kiest hij of zij zelf.",
+      "helperTitle": "Help je op dit moment iemand in een Gradido-café?",
       "ifYouAreNotTheOne": "Als je niet hebt geprobeerd je opnieuw te registreren, neem dan contact op met onze support:",
       "onForgottenPasswordClickLink": "Als je je wachtwoord bent vergeten, klik dan hier.",
       "subject": "Nieuwe registratiepoging met je e-mailadres",
@@ -23,6 +26,16 @@
       "subject": "Bericht over je bijdrage aan het algemeen welzijn",
       "title": "Bericht over je bijdrage aan het algemeen welzijn",
       "toSeeAndAnswerMessage": "Je kunt direct bij je bijdrage antwoorden."
+    },
+    "assistedRegistrationConfirm": {
+      "accountCreated": "Samen met een Gradido-lid is er zojuist een account voor je aangemaakt — met dit e-mailadres.",
+      "clickToConfirm": "Klik hier om je e-mailadres te bevestigen.",
+      "confirmButton": "Adres bevestigen",
+      "confirmHeading": "E-mailadres bevestigen",
+      "notYou": "Weet je niets van dit account? Negeer dan deze e-mail — zonder bevestiging blijft het account gesloten.",
+      "pleaseConfirm": "Bevestig dat dit adres van jou is — pas dan blijft je account blijvend geopend.",
+      "subject": "Bevestig je e-mailadres",
+      "title": "Je Gradido-account is klaar"
     },
     "contribution": {
       "toSeeContributionsAndMessages": "Je vindt je bijdragen aan het algemeen welzijn en de bijbehorende berichten in je Gradido-account."

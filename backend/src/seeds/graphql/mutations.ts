@@ -40,6 +40,26 @@ export const confirmEmailChange = gql`
   }
 `
 
+export const completeAssistedRegistration = gql`
+  mutation ($assistCode: String!, $email: String!, $password: String!) {
+    completeAssistedRegistration(assistCode: $assistCode, email: $email, password: $password) {
+      redeemCode
+    }
+  }
+`
+
+export const confirmEmail = gql`
+  mutation ($code: String!) {
+    confirmEmail(code: $code)
+  }
+`
+
+export const resendConfirmationEmail = gql`
+  mutation {
+    resendConfirmationEmail
+  }
+`
+
 export const revokeEmailChange = gql`
   mutation ($vetoCode: String!) {
     revokeEmailChange(vetoCode: $vetoCode)
@@ -415,6 +435,7 @@ export const login = gql`
     login(email: $email, password: $password, publisherId: $publisherId) {
       gradidoID
       alias
+      emailChecked
       firstName
       lastName
       language

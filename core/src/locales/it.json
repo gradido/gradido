@@ -11,6 +11,9 @@
       "contactSupport": "Contatta il supporto",
       "emailExists": "Tuttavia, esiste già un account per il tuo indirizzo e-mail.",
       "emailReused": "il tuo indirizzo e-mail è appena stato utilizzato di nuovo per registrare un account su Gradido.",
+      "helperButton": "Sto aiutando qualcuno a creare un account",
+      "helperIntro": "Se accanto a te c'è una persona che ha appena usato il tuo indirizzo e-mail per iniziare un account Gradido: continua qui la configurazione. Insieme inserite il suo indirizzo e-mail, e la password la sceglie lei stessa.",
+      "helperTitle": "Stai aiutando qualcuno in un caffè Gradido in questo momento?",
       "ifYouAreNotTheOne": "Se non hai provato a registrarti di nuovo, contatta il nostro supporto:",
       "onForgottenPasswordClickLink": "Se hai dimenticato la password, clicca qui.",
       "subject": "Nuovo tentativo di registrazione con la tua e-mail",
@@ -23,6 +26,16 @@
       "subject": "Messaggio riguardo al tuo contributo al bene comune",
       "title": "Messaggio riguardo al tuo contributo al bene comune",
       "toSeeAndAnswerMessage": "Puoi rispondere direttamente al tuo contributo."
+    },
+    "assistedRegistrationConfirm": {
+      "accountCreated": "Insieme a un membro Gradido è stato appena creato un account per te — con questo indirizzo e-mail.",
+      "clickToConfirm": "Clicca qui per confermare il tuo indirizzo e-mail.",
+      "confirmButton": "Conferma indirizzo",
+      "confirmHeading": "Confermare l'indirizzo e-mail",
+      "notYou": "Non sai nulla di questo account? Allora ignora questa e-mail — senza conferma il conto resta chiuso.",
+      "pleaseConfirm": "Conferma che questo indirizzo è tuo — solo allora il tuo account resterà aperto in modo permanente.",
+      "subject": "Conferma il tuo indirizzo e-mail",
+      "title": "Il tuo account Gradido è pronto"
     },
     "contribution": {
       "toSeeContributionsAndMessages": "Trovi i tuoi contributi al bene comune e i relativi messaggi nel tuo account Gradido."

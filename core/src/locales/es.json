@@ -11,6 +11,9 @@
       "contactSupport": "Contactar con el soporte",
       "emailExists": "Sin embargo, ya existe una cuenta para tu dirección de correo electrónico.",
       "emailReused": "tu dirección de correo electrónico acaba de utilizarse de nuevo para registrar una cuenta en Gradido.",
+      "helperButton": "Estoy ayudando a alguien a crear una cuenta",
+      "helperIntro": "Si a tu lado hay una persona que acaba de usar tu dirección de correo electrónico para empezar una cuenta de Gradido: continúa aquí la configuración. Juntos introducís su propia dirección de correo, y su contraseña la elige ella misma.",
+      "helperTitle": "¿Estás ayudando a alguien en un café Gradido?",
       "ifYouAreNotTheOne": "Si no has intentado registrarte de nuevo, ponte en contacto con nuestro soporte:",
       "onForgottenPasswordClickLink": "Si has olvidado tu contraseña, haz clic aquí.",
       "subject": "Nuevo intento de registro con tu correo electrónico",
@@ -23,6 +26,16 @@
       "subject": "Mensaje sobre tu contribución al bien común",
       "title": "Mensaje sobre tu contribución al bien común",
       "toSeeAndAnswerMessage": "Puedes responder directamente en tu contribución."
+    },
+    "assistedRegistrationConfirm": {
+      "accountCreated": "Junto con un miembro de Gradido se acaba de crear una cuenta para ti — con esta dirección de correo electrónico.",
+      "clickToConfirm": "Haz clic aquí para confirmar tu dirección de correo electrónico.",
+      "confirmButton": "Confirmar dirección",
+      "confirmHeading": "Confirmar dirección de correo",
+      "notYou": "¿No sabes nada de esta cuenta? Entonces ignora este correo — sin confirmación la cuenta permanece cerrada.",
+      "pleaseConfirm": "Confirma que esta dirección es tuya — solo entonces tu cuenta quedará abierta de forma permanente.",
+      "subject": "Confirma tu dirección de correo electrónico",
+      "title": "Tu cuenta de Gradido está lista"
     },
     "contribution": {
       "toSeeContributionsAndMessages": "Encontrarás tus contribuciones al bien común y los mensajes relacionados en tu cuenta de Gradido."

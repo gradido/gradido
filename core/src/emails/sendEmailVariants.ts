@@ -66,11 +66,34 @@ export const sendAccountActivationEmail = (
 }
 
 export const sendAccountMultiRegistrationEmail = (
-  data: EmailCommonData,
+  // helperLink (EM-013): set only when the registration attempt carried a redeem code —
+  // the mail then offers "I am helping someone set up a Gradido account". Absent, the
+  // mail renders exactly as it always has.
+  data: EmailCommonData & { helperLink?: string | null },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
     template: 'accountMultiRegistration',
+    locals: {
+      ...data,
+      ...getEmailCommonLocales(),
+    },
+  })
+}
+
+/**
+ * The guest's half of an assisted registration (EM-013): account and password already
+ * exist, this mail only asks them to confirm that the address is theirs.
+ */
+export const sendAssistedRegistrationConfirmEmail = (
+  data: EmailCommonData & {
+    confirmLink: string
+    timeDurationObject: Record<string, unknown>
+  },
+): Promise<Record<string, unknown> | boolean | null | Error> => {
+  return sendEmailTranslated({
+    receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
+    template: 'assistedRegistrationConfirm',
     locals: {
       ...data,
       ...getEmailCommonLocales(),

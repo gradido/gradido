@@ -15,6 +15,7 @@ import {
   User as DbUser,
   UserContact as DbUserContact,
   dbCountElopageBuysByEmail,
+  dbDeleteUserContact,
   dbEmailTaken,
   dbFindLatestEventForAffectedUser,
   dbFindOldestUserContact,
@@ -244,15 +245,23 @@ export class EmailChangeResolver {
       confirmLink: confirmLink(pending.emailVerificationCode),
       timeDurationObject,
     })
-    await sendEmailChangeNoticeEmail({
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.emailContact.email,
-      language: user.language,
-      newEmail: pending.email,
-      revokeLink: revokeLink(pending.changeVetoCode as string),
-      timeDurationObject,
-    })
+    // A veto goes only to a CONFIRMED address (EM-013). A never-confirmed address has
+    // never proven possession, so the veto protects nobody there — and it would arm the
+    // wrong person: in the assisted flow, "correct a mistyped address" changes away
+    // from an unconfirmed row, and a veto mail to that (possibly foreign) mailbox would
+    // let a stranger block the correction. Structurally the same mistake that killed
+    // EM-010, one level deeper.
+    if (user.emailContact.emailChecked) {
+      await sendEmailChangeNoticeEmail({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.emailContact.email,
+        language: user.language,
+        newEmail: pending.email,
+        revokeLink: revokeLink(pending.changeVetoCode as string),
+        timeDurationObject,
+      })
+    }
     logger.info('requestEmailChange... mails sent')
 
     return toPending(pending, new Date())
@@ -325,15 +334,18 @@ export class EmailChangeResolver {
       confirmLink: confirmLink(pending.emailVerificationCode),
       timeDurationObject,
     })
-    await sendEmailChangeNoticeEmail({
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.emailContact.email,
-      language: user.language,
-      newEmail: pending.email,
-      revokeLink: revokeLink(pending.changeVetoCode as string),
-      timeDurationObject,
-    })
+    // Same rule as in requestEmailChange: a veto goes only to a confirmed address.
+    if (user.emailContact.emailChecked) {
+      await sendEmailChangeNoticeEmail({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.emailContact.email,
+        language: user.language,
+        newEmail: pending.email,
+        revokeLink: revokeLink(pending.changeVetoCode as string),
+        timeDurationObject,
+      })
+    }
     logger.info('resendEmailChange... mails sent again')
     return toPending(pending, new Date())
   }
@@ -361,6 +373,7 @@ export class EmailChangeResolver {
     // the member is loaded by id.
     const user = await getUserById(pending.userId, false, true)
     const oldEmail = user.emailContact.email
+    const oldWasConfirmed = user.emailContact.emailChecked
 
     const queryRunner = db.getDataSource().createQueryRunner()
     await queryRunner.connect()
@@ -379,9 +392,20 @@ export class EmailChangeResolver {
       pending.emailVerificationCode = random(64).toString()
       await dbSaveUserContact(pending, queryRunner.manager)
 
+      const oldContact = user.emailContact
       user.emailId = pending.id
       user.emailContact = pending
       await dbSaveUser(user, queryRunner.manager)
+
+      // EM-013: an address that was NEVER confirmed was never a key — not the GDT
+      // anchor (EM-004 asks the oldest LIVING row), not anybody's. Left in place, a
+      // mistyped address from an assisted registration would stay the oldest row and
+      // point the GDT anchor at a typo forever; deleted hard, the member's real
+      // address becomes the oldest. EM-007's precision covers this literally: "never
+      // delete" protects rows that were ever valid.
+      if (!oldContact.emailChecked && oldContact.id !== pending.id) {
+        await dbDeleteUserContact(oldContact.id, queryRunner.manager)
+      }
 
       // The record belongs to the change: neither without the other.
       await EVENT_EMAIL_CHANGE_CONFIRMED(user, queryRunner.manager)
@@ -404,12 +428,16 @@ export class EmailChangeResolver {
       oldEmail,
       newEmail: pending.email,
     })
-    await sendEmailChangeDoneEmail({
-      ...common,
-      email: oldEmail,
-      oldEmail,
-      newEmail: pending.email,
-    })
+    // ... unless the old address never proved possession (EM-013): a never-confirmed
+    // row belongs to nobody — mailing it would tell a stranger, or a typo.
+    if (oldWasConfirmed) {
+      await sendEmailChangeDoneEmail({
+        ...common,
+        email: oldEmail,
+        oldEmail,
+        newEmail: pending.email,
+      })
+    }
 
     // The support mailbox is where the GDT server and the newsletter get brought up to date
     // by hand. The oldest row is named because it is the address the GDT server is asked

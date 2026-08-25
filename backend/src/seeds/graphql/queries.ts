@@ -561,3 +561,12 @@ export const thankYouCardPaymentTarget = gql`
     }
   }
 `
+
+export const assistedRegistrationInfo = gql`
+  query ($assistCode: String!) {
+    assistedRegistrationInfo(assistCode: $assistCode) {
+      firstName
+      lastName
+    }
+  }
+`

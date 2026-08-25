@@ -6,6 +6,7 @@ import {
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
   sendAddedContributionMessageEmail,
+  sendAssistedRegistrationConfirmEmail,
   sendContributionChangedByModeratorEmail,
   sendContributionConfirmedEmail,
   sendContributionDeletedEmail,
@@ -212,6 +213,85 @@ describe('sendEmailVariants', () => {
 
         it('has the correct html as snapshot', () => {
           expect(result.originalMessage.html).toMatchSnapshot()
+        })
+
+        // The doorbell branch (EM-013). Substance assertions rather than a snapshot on
+        // purpose: these tests only run in the CI, so a new snapshot could never be
+        // written from a locally verified render.
+        it('renders no helper branch without a helper link', () => {
+          expect(result.originalMessage.html).not.toContain('register-assist')
+        })
+      })
+    })
+
+    describe('with a helper link (the attempt carried a redeem code)', () => {
+      let helperResult: any
+      beforeAll(async () => {
+        helperResult = await sendAccountMultiRegistrationEmail({
+          firstName: 'Peter',
+          lastName: 'Lustig',
+          email: 'peter@lustig.de',
+          language: 'en',
+          helperLink: 'http://localhost/register-assist/1234567890',
+        })
+      })
+
+      it('offers the helper branch with its link', () => {
+        expect(helperResult.originalMessage.html).toContain(
+          'http://localhost/register-assist/1234567890',
+        )
+        expect(helperResult.originalMessage.html).toContain(
+          'I am helping someone set up an account',
+        )
+      })
+    })
+  })
+
+  describe('sendAssistedRegistrationConfirmEmail', () => {
+    beforeAll(async () => {
+      result = await sendAssistedRegistrationConfirmEmail({
+        firstName: 'Guest',
+        lastName: 'Person',
+        email: 'guest@example.org',
+        language: 'en',
+        confirmLink: 'http://localhost/confirm-email/9876543210',
+        timeDurationObject: { hours: 24, minutes: 0 },
+      })
+    })
+
+    describe('calls "sendEmailTranslated"', () => {
+      it('with expected parameters', () => {
+        expect(sendEmailTranslatedSpy).toBeCalledWith({
+          receiver: {
+            to: 'Guest Person <guest@example.org>',
+          },
+          template: 'assistedRegistrationConfirm',
+          locals: expect.objectContaining({
+            firstName: 'Guest',
+            lastName: 'Person',
+            language: 'en',
+            confirmLink: 'http://localhost/confirm-email/9876543210',
+          }),
+        })
+      })
+
+      describe('result', () => {
+        it('is the expected object', () => {
+          const resultClone = JSON.parse(JSON.stringify(result))
+          expect(resultClone).toMatchObject({
+            originalMessage: expect.objectContaining({
+              to: 'Guest Person <guest@example.org>',
+              from: 'Gradido <info@gradido.net>',
+              subject: 'Confirm your e-mail address',
+              html: expect.any(String),
+            }),
+          })
+        })
+
+        // Confirm-only: the mail must carry ITS link, not the set-password one.
+        it('carries the confirm link and no set-password link', () => {
+          expect(result.originalMessage.html).toContain('http://localhost/confirm-email/9876543210')
+          expect(result.originalMessage.html).not.toContain('reset-password')
         })
       })
     })
