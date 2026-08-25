@@ -857,7 +857,14 @@ export class TransactionLinkResolver {
       const senderCommunity = new Community(senderCom)
       const senderUser = new User(null)
       senderUser.gradidoID = verifiedRedeemJwtPayload.sendergradidoid
+      // The signed name lands in BOTH fields, and the alias is the one that survives.
+      // The sending side signs `alias ?? firstName ?? ''` (see queryTransactionLink
+      // above), so for anyone with an alias this value IS the alias -- while
+      // `firstName` is read through the real-name guard (NU-019) and reads as null to
+      // the stranger who is redeeming, leaving the redeem page with no name at all.
+      // firstName stays assigned for links signed by a community that still sends one.
       senderUser.firstName = verifiedRedeemJwtPayload.sendername
+      senderUser.alias = verifiedRedeemJwtPayload.sendername
       const redeemJwtLink = new RedeemJwtLink(
         verifiedRedeemJwtPayload,
         senderCommunity,
