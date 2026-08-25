@@ -7,7 +7,8 @@
         </BAvatar>
       </BCol>
       <BCol>
-        <div class="fw-bold">{{ linkedUser.firstName }} {{ linkedUser.lastName }}</div>
+        <!-- The moderator who confirmed the creation, under their alias (NU-020). -->
+        <div class="fw-bold">{{ linkedUser.alias || linkedUser.gradidoID }}</div>
         <span class="small">{{ $d(new Date(balanceDate), 'short') }}</span>
         <span class="ms-4 small">{{ $d(new Date(balanceDate), 'time') }}</span>
       </BCol>

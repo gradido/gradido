@@ -112,8 +112,8 @@ const propsData = {
   },
   id: 9,
   linkedUser: {
-    firstName: 'Bibi',
-    lastName: 'Bloxberg',
+    alias: 'bibi',
+    gradidoID: 'bibi-gradido-id',
     __typename: 'User',
   },
   memo: 'sadasd asdasdasdasdadadd da dad aad',
@@ -152,9 +152,10 @@ describe('TransactionCreation', () => {
     expect(wrapper.find('div.transaction-slot-creation').exists()).toBe(true)
   })
 
-  it('displays the correct user name', () => {
+  // The moderator who confirmed the creation appears under their alias (NU-020).
+  it('displays the moderator alias', () => {
     const nameElement = wrapper.find('.fw-bold')
-    expect(nameElement.text()).toBe('Bibi Bloxberg')
+    expect(nameElement.text()).toBe('bibi')
   })
 
   it('displays the correct date and time', () => {

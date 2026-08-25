@@ -355,7 +355,9 @@ export class ThankYouCardPaymentResolver {
       )
 
       const success = failure(ThankYouCardPaymentStatus.SUCCESS)
-      success.payerName = `${owner.firstName} ${owner.lastName}`
+      // The alias, not the real name (NU-021/KLAR-09): this sentence is read by the
+      // merchant, a third party to the card's owner.
+      success.payerName = owner.alias || owner.gradidoID
       success.amount = payment.amount
 
       // Assembled here, where the data is, and SENT after the lock is gone. See below.

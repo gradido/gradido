@@ -10,7 +10,8 @@
       <h1 v-if="linkData.amount === ''">{{ $t('gdd_per_link.redeemlink-error') }}</h1>
       <h1 v-if="!isContributionLink && linkData.amount !== ''">
         <template v-if="linkData.senderUser">
-          {{ linkData.senderUser.firstName }}
+          <!-- The sender under their alias; without one the full gradidoID (NU-018). -->
+          {{ linkData.senderUser.alias || linkData.senderUser.gradidoID }}
           {{ $t('transaction-link.send_you') }} {{ linkData.amount }} {{ $t('GDD-long') }}
         </template>
       </h1>
@@ -169,7 +170,9 @@ async function onSwitch(event) {
         code: props.redeemCode,
         amount: props.linkData.amount,
         memo: props.linkData.memo,
-        firstName: props.linkData.senderUser?.firstName,
+        // The backend signs the JWT's sendername as `alias ?? firstName ?? ''` -- the
+        // alias is what travels now (it is finally in the query's selection), and the
+        // real name is no longer sent along.
         alias: props.linkData.senderUser?.alias,
         validUntil: props.linkData.validUntil,
       })

@@ -239,6 +239,7 @@ export const createContributionMessage = gql`
       type
       userFirstName
       userLastName
+      userAlias
     }
   }
 `

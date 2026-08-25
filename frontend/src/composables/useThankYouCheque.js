@@ -31,7 +31,9 @@ export const useThankYouCheque = ({ link, amount, memo, validUntil }) => {
     const alias = memberAlias(username, gradidoID)
     return drawCheque({
       kind: 'thankYou',
-      name: `${firstName} ${lastName}`.trim(),
+      // The alias in the header, not the real name (NU-021/KLAR-07): a cheque is handed
+      // to strangers. The card keeps the real name -- that is a card's purpose.
+      name: alias,
       // The same address the card prints, in the same three weights. Taken by name rather
       // than spread: the cheque needs the host, and a field added to the address later
       // should not ride along into the drawing unnoticed.
@@ -42,7 +44,9 @@ export const useThankYouCheque = ({ link, amount, memo, validUntil }) => {
       // the card, which prints 24 mm and needs the large one.
       portrait: avatar ? `data:image/jpeg;base64,${avatar}` : null,
       initials: `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`,
-      headline: `${firstName} ${t('transaction-link.send_you')} ${amount} Gradido.`,
+      // The same sentence the copy text and the redeem page build, so the three never
+      // disagree about who is giving: the alias (NU-021/KLAR-07).
+      headline: `${alias} ${t('transaction-link.send_you')} ${amount} Gradido.`,
       memo,
       hintLine: t('thank-you-cheque.scan-qr'),
       validLine: t('thank-you-cheque.valid-until', { date: d(new Date(validUntil), 'short') }),

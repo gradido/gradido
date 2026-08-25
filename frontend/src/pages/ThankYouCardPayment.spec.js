@@ -40,7 +40,7 @@ vi.mock('vue-router', () => ({
 
 // The merchant, i.e. whoever is signed in on this device. The closing screen names them,
 // so the store has to answer here the same way it does in the wallet.
-const state = { firstName: 'Max', lastName: 'Mustermann' }
+const state = { firstName: 'Max', lastName: 'Mustermann', username: 'maxm', gradidoID: 'max-uuid' }
 vi.mock('vuex', () => ({ useStore: () => ({ state }) }))
 
 /**
@@ -150,7 +150,7 @@ describe('ThankYouCardPayment', () => {
     mockPush.mockClear()
     mockCreate.mockResolvedValue({ data: { createThankYouCardPayment: { id: PAYMENT_ID } } })
     mockConfirm.mockResolvedValue({
-      data: { confirmThankYouCardPayment: { status: 'SUCCESS', payerName: 'Bibi Bloxberg' } },
+      data: { confirmThankYouCardPayment: { status: 'SUCCESS', payerName: 'bibi' } },
     })
   })
 
@@ -403,16 +403,18 @@ describe('ThankYouCardPayment', () => {
      * and is wrong for the other half of every payment.
      */
     it('names payer and merchant, so the screen fits whoever is holding the phone', async () => {
-      await payWith({ status: 'SUCCESS', payerName: 'Bibi Bloxberg' })
+      await payWith({ status: 'SUCCESS', payerName: 'bibi' })
 
       expect(wrapper.text()).toContain('thank-you-card.receive.thanks')
       const parties = wrapper.find('[data-test="thank-you-card-paid-parties"]')
-      expect(parties.text()).toContain('"from":"Bibi Bloxberg"')
-      expect(parties.text()).toContain('"to":"Max Mustermann"')
+      // Both sides under their alias (NU-021/KLAR-09): the payer's comes from the
+      // server's answer, the merchant's from the wallet's own store.
+      expect(parties.text()).toContain('"from":"bibi"')
+      expect(parties.text()).toContain('"to":"maxm"')
     })
 
     it('shows what was paid on the closing screen, not only on the pin step', async () => {
-      await payWith({ status: 'SUCCESS', payerName: 'Bibi Bloxberg' })
+      await payWith({ status: 'SUCCESS', payerName: 'bibi' })
 
       const paid = wrapper.find('[data-test="thank-you-card-paid-amount"]')
       expect(paid.text()).toContain('thank-you-card.receive.amount')
@@ -476,7 +478,7 @@ describe('ThankYouCardPayment', () => {
     // separately" would invent a debt. The remainder is stored only when there is one.
     it('says nothing about a remainder when there is none', async () => {
       mockReadParkedRest.mockReturnValue(null)
-      await payWith({ status: 'SUCCESS', payerName: 'Bibi Bloxberg' })
+      await payWith({ status: 'SUCCESS', payerName: 'bibi' })
 
       expect(wrapper.find('[data-test="thank-you-card-paid-rest"]').exists()).toBe(false)
       expect(wrapper.text()).not.toContain('thank-you-card.receive.rest-note')
@@ -513,7 +515,7 @@ describe('ThankYouCardPayment', () => {
      * card came back instead of the empty calculator).
      */
     it('sends the next customer to the calculator', async () => {
-      await payWith({ status: 'SUCCESS', payerName: 'Bibi Bloxberg' })
+      await payWith({ status: 'SUCCESS', payerName: 'bibi' })
       await field('again').trigger('click')
       await nextTick()
 

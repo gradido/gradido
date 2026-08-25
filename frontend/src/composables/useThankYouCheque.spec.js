@@ -73,7 +73,9 @@ describe('useThankYouCheque', () => {
     expect(mockDrawCheque).toHaveBeenCalledWith(
       expect.objectContaining({
         kind: 'thankYou',
-        name: 'Bernd Hückstädt',
+        // The alias in the header (NU-021/KLAR-07): a cheque is handed to strangers.
+        // The initials stay the REAL ones -- they only seed the circle (AS-010).
+        name: 'bernd',
         initials: 'BH',
         memo: 'Gradido-Café Berlin',
         qrCanvas: mockQrCanvas,
@@ -128,11 +130,14 @@ describe('useThankYouCheque', () => {
     expect(alias).toBe('bernd')
   })
 
-  it('builds the headline from the sender and the amount', async () => {
+  it('builds the headline from the sender alias and the amount', async () => {
     await useThankYouCheque(LINK).drawThankYouCheque()
 
     const { headline } = mockDrawCheque.mock.calls[0][0]
-    expect(headline).toContain('Bernd')
+    expect(headline).toContain('bernd')
+    // ...and demonstrably not the real name (NU-021): 'bernd' is a substring of
+    // 'Bernd' only by case, so pin the absence explicitly.
+    expect(headline).not.toContain('Bernd')
     expect(headline).toContain('20')
   })
 

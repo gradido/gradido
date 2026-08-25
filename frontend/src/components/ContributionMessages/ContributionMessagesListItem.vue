@@ -16,16 +16,11 @@
           <parse-message v-bind="message" data-test="message" class="p-2"></parse-message>
         </BCol>
         <BCol cols="2">
-          <!--          <avatar-->
-          <!--            class="vue3-avatar"-->
-          <!--            :name="storeName.username"-->
-          <!--            :initials="storeName.initials"-->
-          <!--            :border="false"-->
-          <!--          />-->
           <app-avatar
             class="vue3-avatar"
             :name="storeName.username"
             :initials="storeName.initials"
+            :color-seed="storeName.colorSeed"
           />
         </BCol>
       </BRow>
@@ -42,6 +37,7 @@
             class="vue3-avatar"
             :name="storeName.username"
             :initials="storeName.initials"
+            :color-seed="storeName.colorSeed"
           />
         </BCol>
       </BRow>
@@ -49,7 +45,11 @@
     <div v-else>
       <BRow class="mb-3 p-2 is-moderator">
         <BCol cols="2">
-          <app-avatar :name="moderationName.username" :initials="moderationName.initials" />
+          <app-avatar
+            :name="moderationName.username"
+            :initials="moderationName.initials"
+            :color-seed="moderationName.colorSeed"
+          />
         </BCol>
         <BCol cols="10">
           <div class="font-weight-bold">
@@ -69,6 +69,7 @@
 <script>
 import ParseMessage from '@/components/ContributionMessages/ParseMessage'
 import AppAvatar from '@/components/AppAvatar.vue'
+import { avatarLettering } from '@/utils/avatarLettering'
 
 export default {
   name: 'ContributionMessagesListItem',
@@ -83,19 +84,39 @@ export default {
     },
   },
   computed: {
+    // Aliases, not assembled names (NU-020): the alias is unique per community, so two
+    // people who happen to share a name no longer read as the same person here.
     isNotModerator() {
       return this.storeName.username === this.moderationName.username
     },
+    // The member's own side, from the store the wallet fills at login. Letters from the
+    // alias, colour from the real initials (AS-010) -- avatarLettering holds that pair
+    // together, the same as in the booking rows.
     storeName() {
+      const { letters, colorSeed } = avatarLettering({
+        alias: this.$store.state.username,
+        firstName: this.$store.state.firstName,
+        lastName: this.$store.state.lastName,
+      })
       return {
-        username: `${this.$store.state.firstName} ${this.$store.state.lastName}`,
-        initials: `${this.$store.state.firstName[0]}${this.$store.state.lastName[0]}`,
+        username: this.$store.state.username,
+        initials: letters,
+        colorSeed,
       }
     },
+    // The message author's side -- for moderation messages the moderator, under their
+    // alias (NU-020). The real-name fields still ride along on the message and feed
+    // ONLY the colour, so no circle changes colour with this delivery.
     moderationName() {
+      const { letters, colorSeed } = avatarLettering({
+        alias: this.message.userAlias,
+        firstName: this.message.userFirstName,
+        lastName: this.message.userLastName,
+      })
       return {
-        username: `${this.message.userFirstName} ${this.message.userLastName}`,
-        initials: `${this.message.userFirstName[0]}${this.message.userLastName[0]}`,
+        username: this.message.userAlias,
+        initials: letters,
+        colorSeed,
       }
     },
   },

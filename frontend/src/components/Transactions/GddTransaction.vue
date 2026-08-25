@@ -158,7 +158,10 @@ const nameProps = computed(() => {
   if (isCreationType.value) {
     return {
       class: 'fw-bold',
-      creationLinkedUser: `${props.transaction.linkedUser.firstName} ${props.transaction.linkedUser.lastName}`,
+      // The moderator's alias (NU-020); the real name is no longer delivered here.
+      creationLinkedUser: `${
+        props.transaction.linkedUser.alias || props.transaction.linkedUser.gradidoID
+      }`,
     }
   } else {
     return {

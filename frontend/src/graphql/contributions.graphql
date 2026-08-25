@@ -28,6 +28,9 @@ fragment contributionMessageFields on ContributionMessage {
   type
   userFirstName
   userLastName
+  # What the thread shows as the author's name (NU-020). The name fields above keep
+  # feeding only the circle colour, so no avatar changes colour (AS-010).
+  userAlias
   userId
 }
 

@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import ContributionMessagesListItem from './ContributionMessagesListItem.vue'
+import AppAvatar from '@/components/AppAvatar.vue'
 import message from '../Message/Message.vue'
 import { defineComponent } from 'vue'
 import { BCol, BRow } from 'bootstrap-vue-next'
@@ -52,6 +53,7 @@ describe('ContributionMessagesListItem', () => {
             state: {
               firstName: 'Peter',
               lastName: 'Lustig',
+              username: 'peterl',
               ...store,
             },
           },
@@ -73,6 +75,7 @@ describe('ContributionMessagesListItem', () => {
           message: 'This is a history message',
           userFirstName: 'Peter',
           userLastName: 'Lustig',
+          userAlias: 'peterl',
         },
       })
     })
@@ -101,6 +104,7 @@ describe('ContributionMessagesListItem', () => {
           message: 'User message',
           userFirstName: 'Peter',
           userLastName: 'Lustig',
+          userAlias: 'peterl',
         },
       })
     })
@@ -109,8 +113,8 @@ describe('ContributionMessagesListItem', () => {
       expect(wrapper.find('.is-not-moderator').exists()).toBe(true)
     })
 
-    it('displays the user name', () => {
-      expect(wrapper.find('[data-test="username"]').text()).toBe('Peter Lustig')
+    it('displays the member own alias', () => {
+      expect(wrapper.find('[data-test="username"]').text()).toBe('peterl')
     })
 
     it('displays the formatted date', () => {
@@ -131,6 +135,7 @@ describe('ContributionMessagesListItem', () => {
           message: 'Moderator message',
           userFirstName: 'Mod',
           userLastName: 'Erator',
+          userAlias: 'moderator',
         },
       })
     })
@@ -139,8 +144,17 @@ describe('ContributionMessagesListItem', () => {
       expect(wrapper.find('.is-moderator').exists()).toBe(true)
     })
 
-    it('displays the moderator name', () => {
-      expect(wrapper.find('[data-test="username"]').text()).toBe('Mod Erator')
+    it('displays the moderator alias (NU-020)', () => {
+      expect(wrapper.find('[data-test="username"]').text()).toBe('moderator')
+    })
+
+    // AS-010: the letters follow the alias next to them, the COLOUR keeps coming from
+    // the real initials -- so no circle changes colour with the alias switch. The name
+    // fields still ride along on the message for exactly this seed.
+    it('letters the circle from the alias and colours it from the real initials', () => {
+      const avatar = wrapper.findComponent(AppAvatar)
+      expect(avatar.props('initials')).toBe('MO')
+      expect(avatar.props('colorSeed')).toBe('ME')
     })
 
     it('displays the moderator label', () => {

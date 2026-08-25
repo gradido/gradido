@@ -371,7 +371,9 @@ watch(
   () => userResult.value?.user,
   (user) => {
     if (user) {
-      userName.value = `${user.firstName} ${user.lastName}`
+      // The recipient under their alias; without one the full gradidoID (NU-018). The
+      // real name is not delivered to other members any more.
+      userName.value = user.alias || user.gradidoID
       form.identifier = userIdentifier.value.identifier
     }
   },

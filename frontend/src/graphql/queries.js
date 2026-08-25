@@ -177,7 +177,7 @@ export const queryTransactionLink = gql`
         deletedAt
         senderUser {
           gradidoID
-          firstName
+          alias
           publisherId
         }
         communities {
@@ -202,7 +202,7 @@ export const queryTransactionLink = gql`
         }
         senderUser {
           gradidoID
-          firstName
+          alias
         }
         recipientCommunity {
           foreign
@@ -213,7 +213,6 @@ export const queryTransactionLink = gql`
         }
         recipientUser {
           gradidoID
-          firstName
           publisherId
         }
       }
@@ -312,6 +311,7 @@ export const listContributionMessages = gql`
         type
         userFirstName
         userLastName
+        userAlias
         userId
       }
     }
@@ -321,8 +321,8 @@ export const listContributionMessages = gql`
 export const user = gql`
   query ($identifier: String!, $communityIdentifier: String!) {
     user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
-      firstName
-      lastName
+      alias
+      gradidoID
     }
   }
 `
