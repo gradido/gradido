@@ -786,14 +786,10 @@
         "userCoords": "Konumun: Enlem {lat}, Boylam {lng}",
         "userLocationLabel": "Konumun"
       },
-      "naming-format": "İsmi göster:",
       "publish-location": {
         "approximate": "Yaklaşık konum",
         "exact": "Tam konum",
         "updated": "GMS için konum türü güncellendi"
-      },
-      "publish-name": {
-        "updated": "GMS için isim biçimi güncellendi"
       }
     },
     "avatar": {
@@ -827,11 +823,7 @@
     "humhub": {
       "delete-disabled": "Kullanıcı hesabı yalnızca işbirliği platformunun profil menüsünden silinebilir.",
       "disabled": "Veriler Gradido Topluluğuna aktarılmıyor",
-      "enabled": "Veriler Gradido Topluluğuna aktarılıyor",
-      "naming-format": "İsmi göster:",
-      "publish-name": {
-        "updated": "Gradido Topluluğu için isim biçimi güncellendi."
-      }
+      "enabled": "Veriler Gradido Topluluğuna aktarılıyor"
     },
     "language": {
       "de": "Deutsch",
@@ -879,18 +871,6 @@
         "text": "Gelecekte Gradido hesabına giriş yapmak için kullanabileceğin yeni şifreni kaydet."
       },
       "subtitle": "Şifreni unuttuysan, buradan sıfırlayabilirsin."
-    },
-    "publish-name": {
-      "alias-or-initials": "Kullanıcı adı veya baş harfler",
-      "alias-or-initials-tooltip": "Varsa kullanıcı adı, yoksa adın ve soyadın baş harfleri, her birinin ilk iki harfi",
-      "first": "Ad",
-      "first-initial": "Ad ve baş harf",
-      "first-initial-tooltip": "Ad artı soyadının ilk harfi",
-      "first-tooltip": "Yalnızca ad",
-      "initials": "Baş harfler",
-      "initials-tooltip": "Ad ve soyadın baş harfleri, yani kullanıcı adının varlığından bağımsız olarak her birinin ilk iki harfi",
-      "name-full": "Ad ve soyad",
-      "name-full-tooltip": "Tam ad: ad artı soyad"
     },
     "showAmountGDD": "GDD tutarın görünür.",
     "showAmountGDT": "GDT tutarın görünür.",

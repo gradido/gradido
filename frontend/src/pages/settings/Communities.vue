@@ -18,19 +18,10 @@
           />
         </BCol>
       </BRow>
+      <!-- The "how should your name appear" selector is gone (NU-024): what HumHub
+           shows is the alias now, full stop. The stored setting keeps steering the
+           technical account key over there and stays untouched underneath. -->
       <div class="h4">{{ $t('Humhub.desc') }}</div>
-      <BRow v-if="humhubAllowed" class="mb-4 humhub-publish-name-row">
-        <BCol cols="12" md="6" lg="6">
-          {{ $t('settings.humhub.naming-format') }}
-        </BCol>
-        <BCol cols="12" md="6" lg="6">
-          <user-naming-format
-            :initial-value="state.humhubPublishName"
-            :attr-name="'humhubPublishName'"
-            :success-message="$t('settings.humhub.publish-name.updated')"
-          />
-        </BCol>
-      </BRow>
     </div>
     <div v-if="isGMS" class="mt-3">
       <BRow>
@@ -49,18 +40,6 @@
       </BRow>
       <div class="h4 mt-3">{{ $t('GMS.desc') }}</div>
       <div v-if="gmsAllowed">
-        <BRow class="mb-4">
-          <BCol cols="12" md="6" lg="6">
-            {{ $t('settings.GMS.naming-format') }}
-          </BCol>
-          <BCol cols="12" md="6" lg="6">
-            <user-naming-format
-              :initial-value="state.gmsPublishName"
-              :attr-name="'gmsPublishName'"
-              :success-message="$t('settings.GMS.publish-name.updated')"
-            />
-          </BCol>
-        </BRow>
         <BRow class="mb-4">
           <BCol cols="12" md="6" lg="6">
             {{ $t('settings.GMS.location-format') }}
@@ -98,7 +77,6 @@ import { computed, ref } from 'vue'
 import { useStore } from 'vuex'
 import CONFIG from '@/config'
 import UserSettingsSwitch from '@/components/UserSettings/UserSettingsSwitch.vue'
-import UserNamingFormat from '@/components/UserSettings/UserNamingFormat'
 import UserGMSLocationFormat from '@/components/UserSettings/UserGMSLocationFormat'
 import UserGmsLocationCapturing from '@/components/UserSettings/UserGmsLocationCapturing'
 import { BRow, BCol } from 'bootstrap-vue-next'

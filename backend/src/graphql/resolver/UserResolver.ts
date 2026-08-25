@@ -140,6 +140,7 @@ import { extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
 import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
 import { Location2Point, Point2Location } from './util/Location2Point'
+import { maySeeRealName } from './util/maySeeRealName'
 import { describeModeratorCreationGroups } from './util/moderatorCreationGroupScope'
 import { deleteUserRole, setUserRole } from './util/modifyUserRole'
 import { sendUsersToGms } from './util/sendUserToGms'
@@ -272,10 +273,17 @@ export class UserResolver {
     }
     logger.debug('validation of login credentials successful...')
 
+    // Login runs on an inalienable right, so no authenticated caller exists while this
+    // answer is serialised -- but the member HAS just proven who they are, and from here
+    // on everything below is entitled to know it. Without this line the
+    // firstName/lastName field resolvers would read the owner exception as "not you" and
+    // the wallet's own store would fill with null names.
+    context.user = dbUser
+
     const user = new User(dbUser)
 
     // Elopage Status & Stored PublisherId
-    user.hasElopage = await this.hasElopage({ ...context, user: dbUser })
+    user.hasElopage = await this.hasElopage(context)
     logger.debug('user.hasElopage', user.hasElopage)
     if (!user.hasElopage && publisherId) {
       user.publisherId = publisherId
@@ -1438,6 +1446,31 @@ export class UserResolver {
       return null
     }
     return user.salutation ?? null
+  }
+
+  /**
+   * The member's real first name -- moderation and the member themselves, everyone else
+   * reads null and speaks of the member by alias (NU-019). Guarded here for the same
+   * reason as salutation: this ObjectType leaves through `user()` (any signed-in member,
+   * any identifier), `transactionList { linkedUser }`, and `queryTransactionLink
+   * { senderUser }` with no token at all. Without this resolver every display fix is one
+   * query away from being undone.
+   *
+   * Who counts as those two is `maySeeRealName`, shared with lastName below -- a guard
+   * that has to be edited twice is a guard that will one day be edited once.
+   *
+   * Null instead of throwing, like salutation: an error here would null the whole
+   * enclosing user for a query that merely asked for too much.
+   */
+  @FieldResolver(() => String, { nullable: true })
+  firstName(@Root() user: User, @Ctx() context: Context): string | null {
+    return maySeeRealName(context, user) ? (user.firstName ?? null) : null
+  }
+
+  /** The other half of the name; same guard as firstName above. */
+  @FieldResolver(() => String, { nullable: true })
+  lastName(@Root() user: User, @Ctx() context: Context): string | null {
+    return maySeeRealName(context, user) ? (user.lastName ?? null) : null
   }
 
   /**

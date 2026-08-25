@@ -41,8 +41,6 @@ const {
   newsletterState,
   gmsAllowed,
   humhubAllowed,
-  gmsPublishName,
-  humhubPublishName,
   gmsPublishLocation,
   publisherId,
   roles,
@@ -168,8 +166,6 @@ describe('Vuex store', () => {
         },
         gmsAllowed: true,
         humhubAllowed: false,
-        gmsPublishName: 'GMS_PUBLISH_NAME_FULL',
-        humhubPublishName: 'GMS_PUBLISH_NAME_FULL',
         gmsPublishLocation: 'GMS_LOCATION_TYPE_EXACT',
         hasElopage: false,
         publisherId: 1234,
@@ -179,9 +175,9 @@ describe('Vuex store', () => {
         darkMode: true,
       }
 
-      it('calls twenty-two commits', () => {
+      it('calls twenty commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(22)
+        expect(commit).toHaveBeenCalledTimes(20)
       })
 
       // EM-013: the confirm-reminder modal derives its deadline from these two. `?? null`
@@ -252,9 +248,9 @@ describe('Vuex store', () => {
         forgetParkedAmountMock.mockClear()
       })
 
-      it('calls twenty-five commits', () => {
+      it('calls twenty-three commits', () => {
         logout({ commit, state, dispatch })
-        expect(commit).toHaveBeenCalledTimes(25)
+        expect(commit).toHaveBeenCalledTimes(23)
       })
 
       // ... (other logout action tests remain largely the same)

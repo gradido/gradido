@@ -6,12 +6,14 @@
         {{ CONFIG.COMMUNITY_NAME }}
         {{ $t('contribution-link.thanksYouWith') }} {{ $filters.GDD(linkData.amount) }}
       </h1>
+      <!-- The sender under their alias; without one the full gradidoID (NU-018). This
+           page is the one place an unauthenticated visitor sees a sender at all. -->
       <h3 v-if="isRedeemJwtLink && linkData.amount !== ''">
-        {{ '"' + linkData.senderCommunity.name + '.' + linkData.senderUser.firstName + '"' }}
+        {{ '"' + linkData.senderCommunity.name + '.' + senderName + '"' }}
         {{ $t('transaction-link.send_you') }} {{ $filters.GDD(linkData.amount) }}
       </h3>
       <h3 v-if="!isRedeemJwtLink && !isContributionLink && linkData.amount !== ''">
-        {{ '"' + linkData.senderUser.firstName + '"' }}
+        {{ '"' + senderName + '"' }}
         {{ $t('transaction-link.send_you') }} {{ $filters.GDD(linkData.amount) }}
       </h3>
       <b>{{ linkData.memo }}</b>
@@ -20,6 +22,7 @@
 </template>
 <script>
 import CONFIG from '@/config'
+import { memberAlias } from '@/utils/gradidoAddress'
 
 export default {
   name: 'RedeemInformation',
@@ -32,6 +35,11 @@ export default {
     return {
       CONFIG,
     }
+  },
+  computed: {
+    senderName() {
+      return memberAlias(this.linkData.senderUser?.alias, this.linkData.senderUser?.gradidoID)
+    },
   },
 }
 </script>

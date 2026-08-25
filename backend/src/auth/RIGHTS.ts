@@ -82,6 +82,12 @@ export enum RIGHTS {
   VIEW_USER_CONTACT = 'VIEW_USER_CONTACT',
   MANAGE_USER_CREATION_GROUPS = 'MANAGE_USER_CREATION_GROUPS',
   VIEW_USER_SALUTATION = 'VIEW_USER_SALUTATION',
+  // Reading a member's real first and last name off the shared User type. Moderation
+  // only, plus the member themselves -- the owner exception is spelled out in the field
+  // resolver, not modelled as a second right (NU-019). ⛔ Never add this to USER_RIGHTS:
+  // a guard whose key everybody holds guards nothing, which is exactly what happened to
+  // VIEW_USER_CONTACT next door.
+  VIEW_USER_REAL_NAME = 'VIEW_USER_REAL_NAME',
   // Which address the GDT server knows a member by, and whether a change is pending - the
   // support needs it to merge addresses on the GDT server by hand.
   VIEW_USER_EMAIL_STATUS = 'VIEW_USER_EMAIL_STATUS',

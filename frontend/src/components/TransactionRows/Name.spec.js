@@ -74,16 +74,36 @@ describe('Name', () => {
       beforeEach(async () => {
         await wrapper.setProps({
           linkedUser: {
-            firstName: 'Bibi',
-            lastName: 'Bloxberg',
+            alias: 'bibi',
             gradidoID: 'gradido-ID',
             communityUuid: 'community UUID',
           },
         })
       })
 
-      it('has a link with first and last name', () => {
-        expect(wrapper.find('div.gdd-transaction-list-item-name').text()).toBe('Bibi Bloxberg')
+      it('has a link with the alias', () => {
+        expect(wrapper.find('div.gdd-transaction-list-item-name').text()).toBe('bibi')
+      })
+
+      // NU-018: without an alias the FULL gradidoID -- usable, copyable, resolvable.
+      // A shortened one would be decoration; the row is protected by CSS clipping.
+      it('falls back to the full gradidoID without one', async () => {
+        await wrapper.setProps({
+          linkedUser: { alias: null, gradidoID: 'gradido-ID', communityUuid: 'community UUID' },
+        })
+        expect(wrapper.find('div.gdd-transaction-list-item-name').text()).toBe('gradido-ID')
+      })
+
+      it('appends the community name for a foreign row', async () => {
+        await wrapper.setProps({
+          linkedUser: {
+            alias: 'bibi',
+            gradidoID: 'gradido-ID',
+            communityUuid: 'community UUID',
+            communityName: 'Nachbarort',
+          },
+        })
+        expect(wrapper.find('div.gdd-transaction-list-item-name').text()).toBe('bibi / Nachbarort')
       })
 
       it('has a link', () => {

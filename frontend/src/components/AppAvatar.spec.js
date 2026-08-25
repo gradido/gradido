@@ -3,7 +3,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
 import AppAvatar from './AppAvatar.vue'
-import { avatarPaletteEntry } from '@/utils/avatarColor'
+import { AVATAR_COLOR_PALETTE, avatarPaletteEntry } from '@/utils/avatarColor'
 
 const circleStyle = (wrapper) => wrapper.find('.app-avatar').attributes('style') ?? ''
 
@@ -39,6 +39,30 @@ describe('AppAvatar', () => {
     })
   })
 
+  // The server-computed digit (NU-017), for members whose names this browser no longer
+  // receives. It must win over the seed -- the seed cannot be built for those members --
+  // and anything invalid must fall back to the seed path instead of inventing a colour.
+  describe('the colour index from the server', () => {
+    it('wins over the seed', () => {
+      const wrapper = mount(AppAvatar, {
+        props: { initials: 'BE', colorSeed: 'BH', colorIndex: 3 },
+      })
+      const style = circleStyle(wrapper)
+      expect(style).toContain(asRgb(AVATAR_COLOR_PALETTE[3].bg))
+      expect(AVATAR_COLOR_PALETTE[3].bg).not.toBe(avatarPaletteEntry('BH').bg)
+      expect(style).not.toContain(asRgb(avatarPaletteEntry('BH').bg))
+    })
+
+    it('falls back to the seed when the index is not a palette index', () => {
+      for (const colorIndex of [null, -1, 10, 3.5]) {
+        const wrapper = mount(AppAvatar, {
+          props: { initials: 'BE', colorSeed: 'BH', colorIndex },
+        })
+        expect(circleStyle(wrapper)).toContain(asRgb(avatarPaletteEntry('BH').bg))
+      }
+    })
+  })
+
   describe('with a picture', () => {
     it('shows the picture instead of the letters', () => {
       const wrapper = mount(AppAvatar, {
@@ -63,6 +87,27 @@ describe('AppAvatar', () => {
       const wrapper = mount(AppAvatar, { props: { initials: 'BE', src: '' } })
       expect(wrapper.find('img').exists()).toBe(false)
       expect(wrapper.text()).toBe('BE')
+    })
+  })
+
+  /**
+   * ⛔ The crash that predates this delivery: a deleted author's message arrives with no
+   * name at all, and `default: ''` does NOT catch that -- Vue fills a default only for an
+   * ABSENT prop, never for an explicit null. Before the guard this reached `.split` on
+   * null and took the whole contribution thread down with it.
+   */
+  describe('without a name', () => {
+    it('draws an empty circle instead of throwing', () => {
+      const wrapper = mount(AppAvatar, { props: { name: null } })
+
+      expect(wrapper.find('.app-avatar').exists()).toBe(true)
+      expect(wrapper.find('span').text()).toBe('')
+    })
+
+    it('still shows the letters it was handed directly', () => {
+      const wrapper = mount(AppAvatar, { props: { name: null, initials: 'BE' } })
+
+      expect(wrapper.find('span').text()).toBe('BE')
     })
   })
 

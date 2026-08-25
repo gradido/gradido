@@ -42,8 +42,6 @@ describe.each([
     'newsletterState',
     'gmsAllowed',
     'humhubAllowed',
-    'gmsPublishName',
-    'humhubPublishName',
     'gmsPublishLocation',
     'userLocation',
     'hasElopage',
@@ -56,17 +54,20 @@ describe.each([
   })
 })
 
-// Two fields are deliberately not on that list, and for the same structural reason: the
-// login mutation cannot answer either of them, so verifyLogin is the only place the
-// wallet can read them. Two callers do exactly that: guards.js on the token handoff, and
-// Login.vue right after a form login. Drop a field here and both of them leave the store
-// empty, silently, which is the failure this whole guard exists for.
+// Two fields are deliberately not on that list: verifyLogin is the only place the wallet
+// reads them. Two callers do exactly that: guards.js on the token handoff, and Login.vue
+// right after a form login. Drop a field here and both of them leave the store empty,
+// silently, which is the failure this whole guard exists for.
 //
-//   * the avatar, because filling it on the login path would mean a database read on the
-//     one request every member and every test makes;
-//   * avatarVisibleToMembers, because it is own-view only -- a field resolver hands it to
-//     nobody but its owner, and `login` runs on an inalienable right, so it has no
-//     authenticated caller to be the owner. It would come back null.
+// Both are kept off the login answer by DESIGN, not by inability -- login now names the
+// member it just authenticated as the owner of the request, so an own-view field resolver
+// would answer it. What still argues against them is cost: filling the avatar would mean
+// a database read on the one request every member and every test makes, and
+// avatarVisibleToMembers travels beside it.
+//
+//   * the avatar;
+//   * avatarVisibleToMembers, which is own-view only -- a field resolver hands it to
+//     nobody but its owner.
 describe('verifyLogin query', () => {
   it.each(['avatar', 'avatarVisibleToMembers'])(
     'requests "%s", which is the only place the wallet can read it',

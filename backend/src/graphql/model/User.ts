@@ -4,6 +4,7 @@ import { User as DbUser } from 'database'
 import { Field, Int, ObjectType } from 'type-graphql'
 import { Point } from 'typeorm'
 
+import { avatarColorIndex } from '@/data/AvatarColor.logic'
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import { Point2Location } from '@/graphql/resolver/util/Location2Point'
 
@@ -26,7 +27,12 @@ export class User {
 
       const publishNameLogic = new PublishNameLogic(dbUser)
       const publishNameType = dbUser.humhubPublishName as PublishNameType
-      this.publicName = publishNameLogic.getPublicName(publishNameType)
+      // The alias for everyone (the full gradidoID without one, NU-018). This used to
+      // follow the old publish-name setting, whose display role ended with NU-024 -- a
+      // member who once picked "full name" for HumHub would otherwise keep handing their
+      // real name to any signed-in member through this unguarded field. The admin's
+      // contribution thread header reads it and shows the alias now.
+      this.publicName = publishNameLogic.getPublicAlias()
       this.userIdentifier = publishNameLogic.getUserIdentifier(publishNameType)
 
       if (dbUser.emailContact) {
@@ -35,6 +41,7 @@ export class User {
       }
       this.firstName = dbUser.firstName
       this.lastName = dbUser.lastName
+      this.avatarColorIndex = avatarColorIndex(dbUser.firstName, dbUser.lastName)
       this.salutation = dbUser.salutation
       this.deletedAt = dbUser.deletedAt
       this.createdAt = dbUser.createdAt
@@ -95,6 +102,18 @@ export class User {
 
   @Field(() => String, { nullable: true })
   lastName: string | null
+
+  // The colour of this member's avatar circle, as an index into the wallet's ten-entry
+  // palette. Computed from the first characters of the real name, so that no existing
+  // circle colour moves (AS-010) — and computed HERE so the name itself can stop
+  // travelling (NU-017): once firstName and lastName read as null to other members,
+  // this digit is all the wallet needs to keep every circle the colour it always was.
+  //
+  // Nullable for the synthetic users that are assembled field by field instead of from
+  // a database row (new User(null), see queryRedeemJwtLink); the wallet falls back to
+  // its own seed computation when the index is absent.
+  @Field(() => Int, { nullable: true })
+  avatarColorIndex: number | null
 
   // How this participant is addressed in Crea's replies, curated by the moderation
   // (E-013). Null = none set, so the first-name heuristic decides. Kept here rather

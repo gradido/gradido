@@ -26,7 +26,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { avatarPaletteEntry } from '@/utils/avatarColor'
+import { AVATAR_COLOR_PALETTE, avatarPaletteEntry } from '@/utils/avatarColor'
 
 const props = defineProps({
   size: {
@@ -64,6 +64,16 @@ const props = defineProps({
   // given; '' means given and empty.
   colorSeed: {
     type: String,
+    default: null,
+  },
+  // The circle's colour as a finished palette index (0-9), computed by the server from
+  // the real initials (NU-017). It exists for members whose names this browser no
+  // longer receives: the seed above cannot be built for them, but their circle must
+  // stay the colour it always was (AS-010). Where it is given and valid it wins over
+  // colorSeed; null means not given, and everything falls back to the seed path that
+  // every caller with a local name still uses.
+  colorIndex: {
+    type: Number,
     default: null,
   },
   // The "quiet" look for an avatar that has no picture yet: a pale disc with a dashed
@@ -121,7 +131,10 @@ function getTextColor(backgroundColor) {
 
 const computedInitials = computed(() => {
   if (props.initials) return props.initials
-  return props.name
+  // `?? ''`, not a bare read: `default` only fills an ABSENT prop, so a caller that
+  // passes an explicit null -- a deleted author's name, for one -- reaches `.split` on
+  // null and tears the whole thread down. An empty circle is the right answer there.
+  return (props.name ?? '')
     .split(' ')
     .map((word) => word[0])
     .join('')
@@ -134,7 +147,18 @@ const computedInitials = computed(() => {
 // used as it stands -- see the prop above.
 const paletteSeed = computed(() => props.colorSeed ?? (computedInitials.value || props.name))
 
-const backgroundColor = computed(() => avatarPaletteEntry(paletteSeed.value).bg)
+// The server-sent index, taken only when it is a real palette index. Anything else --
+// null from a caller without one, or a value outside the palette -- falls back to the
+// seed path rather than crashing the lookup or inventing a colour.
+const paletteEntry = computed(() => {
+  const index = props.colorIndex
+  if (Number.isInteger(index) && index >= 0 && index < AVATAR_COLOR_PALETTE.length) {
+    return AVATAR_COLOR_PALETTE[index]
+  }
+  return avatarPaletteEntry(paletteSeed.value)
+})
+
+const backgroundColor = computed(() => paletteEntry.value.bg)
 
 // ⚠️ Nothing reads this, and wiring it into the template would be a regression rather than
 // a fix -- which is why it is spelled out here instead of left looking like an oversight.
@@ -151,7 +175,7 @@ const textColor = computed(() => {
   if (props.color) {
     return getTextColor(props.color)
   }
-  return avatarPaletteEntry(paletteSeed.value).text
+  return paletteEntry.value.text
 })
 </script>
 

@@ -27,6 +27,24 @@ function member(gmsAllowed: boolean): dbUser {
 }
 
 describe('GmsUser', () => {
+  describe('alias', () => {
+    // NU-024: the display is the alias, no longer steered by the publish-name setting.
+    // The key the GMS recognises the member by is uuid and does not move.
+    it('is the member alias, whatever the old publish-name setting says', () => {
+      const withFullNameSetting = {
+        ...member(true),
+        gmsPublishName: PublishNameType.PUBLISH_NAME_FULL,
+      } as dbUser
+      expect(new GmsUser(withFullNameSetting).alias).toBe('bibi')
+      expect(new GmsUser(withFullNameSetting).uuid).toBe('3a2f6f1e-6c1a-4e1a-9d3e-2f1b7c8d9e01')
+    })
+
+    it('falls back to the full gradidoID without one', () => {
+      const nameless = { ...member(true), alias: null } as unknown as dbUser
+      expect(new GmsUser(nameless).alias).toBe('3a2f6f1e-6c1a-4e1a-9d3e-2f1b7c8d9e01')
+    })
+  })
+
   describe('aboutMe', () => {
     it('travels along for a member who takes part', () => {
       expect(new GmsUser(member(true)).aboutMe).toBe(ABOUT_ME)

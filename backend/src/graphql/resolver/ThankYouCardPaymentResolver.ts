@@ -25,6 +25,7 @@ import { GradidoUnit } from 'shared'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { PublishNameLogic } from '@/data/PublishName.logic'
 import {
   pinMatches,
   startOfDay,
@@ -355,7 +356,11 @@ export class ThankYouCardPaymentResolver {
       )
 
       const success = failure(ThankYouCardPaymentStatus.SUCCESS)
-      success.payerName = `${owner.firstName} ${owner.lastName}`
+      // The alias, not the real name (NU-021/KLAR-09): this sentence is read by the
+      // merchant, a third party to the card's owner. Through the shared rule, which this
+      // line used to sidestep with a bare `||` -- that let a legacy alias of one or two
+      // characters through here while every other screen showed the identifier.
+      success.payerName = new PublishNameLogic(owner).getPublicAlias()
       success.amount = payment.amount
 
       // Assembled here, where the data is, and SENT after the lock is gone. See below.

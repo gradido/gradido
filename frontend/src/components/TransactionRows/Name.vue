@@ -11,6 +11,8 @@
   </div>
 </template>
 <script>
+import { memberAlias } from '@/utils/gradidoAddress'
+
 export default {
   name: 'Name',
   props: {
@@ -34,14 +36,10 @@ export default {
     },
   },
   computed: {
+    // How the wallet names a member (NU-018), plus the community they belong to.
     itemText() {
       return this.linkedUser
-        ? this.linkedUser.alias
-          ? this.linkedUser.alias +
-            (this.linkedUser.communityName ? ' / ' + this.linkedUser.communityName : '')
-          : this.linkedUser.firstName +
-            ' ' +
-            this.linkedUser.lastName +
+        ? memberAlias(this.linkedUser.alias, this.linkedUser.gradidoID) +
             (this.linkedUser.communityName ? ' / ' + this.linkedUser.communityName : '')
         : this.text
     },
@@ -68,3 +66,15 @@ export default {
   },
 }
 </script>
+<style scoped>
+/* A 36-character gradidoID fallback must not blow up the booking row on a phone:
+   clipped visually with an ellipsis, while the full value stays in the text and stays
+   copyable (NU-018). Both the inner div (router-link case) and the bare span form
+   their own line, so both need the clipping. */
+.gdd-transaction-list-item-name,
+.gdd-transaction-list-item-name > div {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+</style>

@@ -238,6 +238,7 @@ import { useAppToast } from '@/composables/useToast'
 import { useThankYouCardMemo } from '@/composables/useThankYouCardMemo'
 import { useParkedAmount } from '@/composables/useParkedAmount'
 import { parseAmount, withAtMostTwoDecimals } from '@/filters/amount'
+import { memberAlias } from '@/utils/gradidoAddress'
 import { PIN_MASK_CLASS, pinInputType } from '@/utils/pinMasking'
 
 const PIN_LENGTH = 6
@@ -289,10 +290,10 @@ const router = useRouter()
  * merchant. Read from the store rather than asked of the server: the wallet has known it
  * since the login, and the closing screen has to name both sides (see the comment on the
  * done step) without a round trip at the moment the phone changes hands.
+ *
+ * The alias, not the real name (NU-021/KLAR-09): the payer reads this screen too.
  */
-const recipientName = computed(() =>
-  `${store.state.firstName ?? ''} ${store.state.lastName ?? ''}`.trim(),
-)
+const recipientName = computed(() => memberAlias(store.state.username, store.state.gradidoID))
 
 const unusable = computed(() => targetStatus.value !== null && targetStatus.value !== 'SUCCESS')
 const statusKey = computed(() => targetStatus.value ?? 'CARD_UNKNOWN')

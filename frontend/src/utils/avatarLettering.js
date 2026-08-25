@@ -37,6 +37,13 @@
  * Falling back to the real initials where there is no alias -- a member of another
  * community, or an old row -- which is exactly today's behaviour.
  *
+ * ★ `colorIndex` is the server-computed form of the same colour (NU-017): the backend
+ * hashes the real initials itself and sends the finished digit, so the circle keeps its
+ * colour even where firstName and lastName are no longer delivered for other members.
+ * Where it is present it wins over the locally built seed (AppAvatar decides that); here
+ * it is only passed through, next to the seed, so the pair-from-one-call rule above
+ * covers all three values.
+ *
  * ⚠️ A null member is not a programmer error here. A booking row whose counterparty the
  * backend could not resolve arrives as `linkedUser: null` (the field is nullable, and the
  * resolver's if/else-if chain has no final branch), and the sibling components in the same
@@ -44,16 +51,20 @@
  * `null` would tear down the whole row -- and in the sidebar the whole list -- over a
  * circle. Hence the explicit `?? {}` below.
  *
- * @param {{alias?: string|null, firstName?: string|null, lastName?: string|null}|null} member
- * @returns {{letters: string, colorSeed: string}}
+ * @param {{alias?: string|null, firstName?: string|null, lastName?: string|null, avatarColorIndex?: number|null}|null} member
+ * @returns {{letters: string, colorSeed: string, colorIndex: number|null}}
  */
 export const avatarLettering = (member) => {
-  const { alias, firstName, lastName } = member ?? {}
+  const { alias, firstName, lastName, avatarColorIndex } = member ?? {}
   // Raw. See the second paragraph above -- this is the seed, not the display.
   const colorSeed = `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`
   return {
     letters: aliasLetters(alias) || colorSeed.toUpperCase(),
     colorSeed,
+    // Integer or null, nothing in between: a query that does not ask for the field
+    // leaves undefined, and anything unexpected must fall back to the seed, not crash
+    // the palette lookup.
+    colorIndex: Number.isInteger(avatarColorIndex) ? avatarColorIndex : null,
   }
 }
 

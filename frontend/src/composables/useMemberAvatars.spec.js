@@ -329,21 +329,29 @@ describe('useMemberAvatars', () => {
   })
 
   describe('what a booking row hands the avatar', () => {
+    // Exactly the shape the booking fragment delivers: an alias and the server's colour
+    // digit, no real name (NU-019). A fixture carrying firstName would let this file
+    // assert a value that no longer reaches the wallet.
     const NAPOLI = {
       ...ANNA,
       alias: 'napoli',
-      firstName: 'Pizzeria',
-      lastName: 'Napoli',
+      avatarColorIndex: 3,
       avatarUpdatedAt: MONDAY,
     }
 
     it('is the whole set from one call, so the pair cannot be split', () => {
       expect(memberAvatarProps(NAPOLI)).toEqual({
-        name: 'Pizzeria Napoli',
         initials: 'NA',
-        colorSeed: 'PN',
+        colorSeed: '',
+        colorIndex: 3,
         src: '',
       })
+    })
+
+    // The server-computed colour digit (NU-017) rides along untouched: it is what keeps
+    // the circle's colour once firstName and lastName stop being delivered.
+    it('passes the server-sent colour index through', () => {
+      expect(memberAvatarProps({ ...NAPOLI, avatarColorIndex: 7 }).colorIndex).toBe(7)
     })
 
     it('carries the picture once the wallet holds it', () => {
@@ -362,9 +370,9 @@ describe('useMemberAvatars', () => {
     // a throw inside a computed takes the whole row, and in the sidebar the whole list.
     it('says nothing rather than failing for a row with no counterparty', () => {
       expect(memberAvatarProps(null)).toEqual({
-        name: '',
         initials: '',
         colorSeed: '',
+        colorIndex: null,
         src: '',
       })
     })

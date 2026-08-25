@@ -23,7 +23,10 @@ describe('isHumhubUserIdenticalToDbUser', () => {
     expect(result).toBe(true)
   })
 
-  it('Should return false, because last name differ because of publish name type', () => {
+  // Since NU-024 the publish-name setting steers only account.username (the key), no
+  // longer the profile display -- so a changed setting is still a difference, but it is
+  // the USERNAME that differs now, not the profile names.
+  it('Should return false, because the username (key) differs with the publish name type', () => {
     const humhubUser = new GetUser(defaultUser, 1)
     defaultUser.humhubPublishName = PublishNameType.PUBLISH_NAME_FIRST
     const result = isHumhubUserIdenticalToDbUser(humhubUser, defaultUser)

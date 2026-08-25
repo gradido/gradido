@@ -43,6 +43,7 @@ import { In, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { isAliasEraName } from '@/data/StoredUserName.logic'
 import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
@@ -343,6 +344,21 @@ export class TransactionResolver {
           }
           remoteUser.gradidoID = transaction.linkedUserGradidoID
           if (transaction.linkedUserName) {
+            // The stored name goes into the alias, and that is what the booking row
+            // shows -- but ONLY when it can be an alias. Since #3645 this column holds
+            // the alias for every booking made in the alias era; before that it held an
+            // assembled "First Last", which the split below still relies on. Passing
+            // such a value through the unguarded alias field would hand a member the
+            // counterparty's real name, which is the one thing NU-019 forbids.
+            //
+            // The shape decides, because nothing else can -- see isAliasEraName, which
+            // holds that rule and its limits. Where it says no, the row falls back to the
+            // gradidoID. The split itself is untouched (KLAR-11, with Dario) and still
+            // feeds firstName/lastName, which the guard shows to the moderation and to
+            // nobody else.
+            if (isAliasEraName(transaction.linkedUserName)) {
+              remoteUser.alias = transaction.linkedUserName
+            }
             remoteUser.firstName = transaction.linkedUserName.slice(
               0,
               transaction.linkedUserName.indexOf(' '),

@@ -14,7 +14,6 @@ import {
   contributionTransaction,
   deferredTransferTransaction,
   EncryptedTransferArgs,
-  fullName,
   interpretEncryptedTransferArgs,
   redeemDeferredTransferTransaction,
   TransactionTypeId,
@@ -54,6 +53,7 @@ import { randombytes_random } from 'sodium-native'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { PublishNameLogic } from '@/data/PublishName.logic'
 import {
   EVENT_CONTRIBUTION_LINK_REDEEM,
   EVENT_TRANSACTION_LINK_CREATE,
@@ -363,7 +363,11 @@ export class TransactionLinkResolver {
           }
           */
           transaction.userGradidoID = user.gradidoID
-          transaction.userName = fullName(user.firstName, user.lastName)
+          // The alias, not the real name (NU-021): a booking is permanent. Same
+          // convention as the send/receive path in TransactionResolver, and through the
+          // shared rule so a member without a usable alias stores their gradidoID rather
+          // than nothing at all.
+          transaction.userName = new PublishNameLogic(user).getPublicAlias()
           transaction.previous = lastTransaction ? lastTransaction.id : null
           transaction.amount = contribution.amount
           transaction.creationDate = contribution.contributionDate
@@ -497,7 +501,18 @@ export class TransactionLinkResolver {
       const redeemJwtPayloadType = new RedeemJwtPayloadType(
         senderCommunityUuid,
         gradidoId,
-        alias ?? firstName ?? '',
+        // The ALIAS, never the first name (NU-019). This token crosses a community
+        // border and is read by a stranger, so a real name signed here would leave our
+        // reach entirely -- and the redeem page displays it unguarded on the other side.
+        // Empty for a member without one; the receiving page falls back to the gradidoID.
+        //
+        // ⚠️ Measured, so nobody reads more into this than it says: it used to be
+        // `alias ?? firstName ?? ''`, but the ONLY caller (RedeemCommunitySelection.vue)
+        // has never filled the `firstName` argument, so no real name was travelling.
+        // This closes the possibility, not a live leak. The argument itself stays for
+        // now -- an old wallet bundle still in someone's browser may name it, and a
+        // rejected variable would break their redeem in the deploy window.
+        alias ?? '',
         code,
         amount,
         memo,
@@ -856,7 +871,19 @@ export class TransactionLinkResolver {
       const senderCommunity = new Community(senderCom)
       const senderUser = new User(null)
       senderUser.gradidoID = verifiedRedeemJwtPayload.sendergradidoid
+      // The signed name lands in BOTH fields, and the alias is the one that survives:
+      // `firstName` is read through the real-name guard (NU-019) and reads as null to
+      // the stranger who is redeeming, which left the redeem page with no name at all.
+      //
+      // ⚠️ The payload cannot say WHICH of the two it carries -- the field is one string.
+      // Our own side no longer signs anything but the alias (see queryTransactionLink
+      // above), so no real name of ours travels this way any more. A link minted by a
+      // community still running the older code can still carry that community's member's
+      // first name, and it is displayed. Ending that needs a distinct, versioned field in
+      // the redeem payload, which is a change to the federation contract and belongs with
+      // the rest of KLAR-11 rather than here.
       senderUser.firstName = verifiedRedeemJwtPayload.sendername
+      senderUser.alias = verifiedRedeemJwtPayload.sendername
       const redeemJwtLink = new RedeemJwtLink(
         verifiedRedeemJwtPayload,
         senderCommunity,

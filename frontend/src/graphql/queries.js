@@ -32,8 +32,6 @@ export const verifyLogin = gql`
       }
       gmsAllowed
       humhubAllowed
-      gmsPublishName
-      humhubPublishName
       gmsPublishLocation
       userLocation
       hasElopage
@@ -85,44 +83,6 @@ export const userLocationQuery = gql`
     userLocation {
       userLocation
       communityLocation
-    }
-  }
-`
-
-export const transactionsQuery = gql`
-  query ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
-    transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
-      balance {
-        balance
-        balanceGDT
-        count
-        linkCount
-        openLinkCount
-      }
-      transactions {
-        id
-        typeId
-        amount
-        balance
-        previousBalance
-        balanceDate
-        memo
-        linkedUser {
-          firstName
-          lastName
-          communityUuid
-          communityName
-          gradidoID
-          alias
-        }
-        decay {
-          decay
-          start
-          end
-          duration
-        }
-        linkId
-      }
     }
   }
 `
@@ -179,7 +139,7 @@ export const queryTransactionLink = gql`
         deletedAt
         senderUser {
           gradidoID
-          firstName
+          alias
           publisherId
         }
         communities {
@@ -204,7 +164,7 @@ export const queryTransactionLink = gql`
         }
         senderUser {
           gradidoID
-          firstName
+          alias
         }
         recipientCommunity {
           foreign
@@ -215,7 +175,6 @@ export const queryTransactionLink = gql`
         }
         recipientUser {
           gradidoID
-          firstName
           publisherId
         }
       }
@@ -287,8 +246,7 @@ export const searchAdminUsers = gql`
     searchAdminUsers(pageSize: $pageSize, currentPage: $currentPage, order: $order) {
       userCount
       userList {
-        firstName
-        lastName
+        alias
         role
         visibleCreationGroups
         seesAllCreationGroups
@@ -313,8 +271,8 @@ export const listContributionMessages = gql`
         createdAt
         updatedAt
         type
-        userFirstName
-        userLastName
+        userAlias
+        userAvatarColorIndex
         userId
       }
     }
@@ -324,8 +282,8 @@ export const listContributionMessages = gql`
 export const user = gql`
   query ($identifier: String!, $communityIdentifier: String!) {
     user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
-      firstName
-      lastName
+      alias
+      gradidoID
     }
   }
 `

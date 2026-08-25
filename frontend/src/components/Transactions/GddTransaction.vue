@@ -95,6 +95,7 @@ import DecayInformation from '../DecayInformations/DecayInformation'
 import { BAvatar, BRow } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
 import { memberAvatarProps } from '@/composables/useMemberAvatars'
+import { memberAlias } from '@/utils/gradidoAddress'
 
 const props = defineProps({
   transaction: {
@@ -158,7 +159,14 @@ const nameProps = computed(() => {
   if (isCreationType.value) {
     return {
       class: 'fw-bold',
-      creationLinkedUser: `${props.transaction.linkedUser.firstName} ${props.transaction.linkedUser.lastName}`,
+      // The COMMUNITY's name (NU-020). A creation booking is linked to the community
+      // stand-in, not to the moderator who approved it -- the backend swaps that user in
+      // unconditionally -- so `alias` carries the configured community name and this line
+      // names the community, as it always did. No real name is delivered here any more.
+      creationLinkedUser: memberAlias(
+        props.transaction.linkedUser.alias,
+        props.transaction.linkedUser.gradidoID,
+      ),
     }
   } else {
     return {

@@ -786,14 +786,10 @@
         "userCoords": "Ton emplacement : Lat {lat}, Long {lng}",
         "userLocationLabel": "Ton emplacement"
       },
-      "naming-format": "Afficher le nom :",
       "publish-location": {
         "approximate": "Position approximative",
         "exact": "Position exacte",
         "updated": "Type de position pour le GMS mis à jour"
-      },
-      "publish-name": {
-        "updated": "Format du nom pour le GMS mis à jour"
       }
     },
     "avatar": {
@@ -827,11 +823,7 @@
     "humhub": {
       "delete-disabled": "Le compte utilisateur ne peut être supprimé que dans le menu de profil de la plateforme de coopération.",
       "disabled": "Les données ne sont pas exportées vers la communauté Gradido",
-      "enabled": "Les données sont exportées vers la communauté Gradido",
-      "naming-format": "Afficher le nom :",
-      "publish-name": {
-        "updated": "Format du nom pour la communauté Gradido mis à jour."
-      }
+      "enabled": "Les données sont exportées vers la communauté Gradido"
     },
     "language": {
       "de": "Deutsch",
@@ -879,18 +871,6 @@
         "text": "Sauvegarde ton nouveau mot de passe maintenant, que tu pourras utiliser pour te connecter à ton compte Gradido dans le futur."
       },
       "subtitle": "Si tu as oublié ton mot de passe, tu peux le réinitialiser ici."
-    },
-    "publish-name": {
-      "alias-or-initials": "Nom d'utilisateur ou initiales",
-      "alias-or-initials-tooltip": "Le nom d'utilisateur, s'il existe, ou les initiales du prénom et du nom, à chaque fois les deux premières lettres",
-      "first": "Prénom",
-      "first-initial": "Prénom et initiale",
-      "first-initial-tooltip": "Le prénom plus la première lettre du nom de famille",
-      "first-tooltip": "Le prénom uniquement",
-      "initials": "Initiales",
-      "initials-tooltip": "Les initiales du prénom et du nom, soit à chaque fois les deux premières lettres, indépendamment de l'existence d'un nom d'utilisateur",
-      "name-full": "Prénom et nom de famille",
-      "name-full-tooltip": "Nom complet : prénom plus nom de famille"
     },
     "showAmountGDD": "Ton montant GDD est visible.",
     "showAmountGDT": "Ton montant GDT est visible.",

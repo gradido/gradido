@@ -406,8 +406,7 @@ export const searchAdminUsers = gql`
     searchAdminUsers {
       userCount
       userList {
-        firstName
-        lastName
+        alias
         role
         visibleCreationGroups
         seesAllCreationGroups
@@ -432,8 +431,8 @@ export const listContributionMessages = gql`
         createdAt
         updatedAt
         type
-        userFirstName
-        userLastName
+        userAlias
+        userAvatarColorIndex
         userId
       }
     }
@@ -455,8 +454,8 @@ export const adminListContributionMessages = gql`
         createdAt
         updatedAt
         type
-        userFirstName
-        userLastName
+        userAlias
+        userAvatarColorIndex
         userId
       }
     }

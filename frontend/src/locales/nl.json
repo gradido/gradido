@@ -786,14 +786,10 @@
         "userCoords": "Jouw locatie: Lat {lat}, Lng {lng}",
         "userLocationLabel": "Jouw locatie"
       },
-      "naming-format": "Naam tonen:",
       "publish-location": {
         "approximate": "Geschatte positie",
         "exact": "Exacte positie",
         "updated": "Positietype voor GMS bijgewerkt"
-      },
-      "publish-name": {
-        "updated": "Naamformaat voor GMS bijgewerkt"
       }
     },
     "avatar": {
@@ -827,11 +823,7 @@
     "humhub": {
       "delete-disabled": "Het gebruikersaccount kan alleen worden verwijderd in het profielmenu van het samenwerkingsplatform.",
       "disabled": "Gegevens worden niet naar de Gradido-gemeenschap geëxporteerd",
-      "enabled": "Gegevens worden naar de Gradido-gemeenschap geëxporteerd",
-      "naming-format": "Naam tonen:",
-      "publish-name": {
-        "updated": "Naamformaat voor de Gradido-gemeenschap bijgewerkt."
-      }
+      "enabled": "Gegevens worden naar de Gradido-gemeenschap geëxporteerd"
     },
     "language": {
       "de": "Deutsch",
@@ -879,18 +871,6 @@
         "text": "Sla nu je nieuwe wachtwoord, waarmee je je voortaan in jouw Gradido-rekening kunt aanmelden, op."
       },
       "subtitle": "Wanneer je het wachtwoord hebt vergeten, kun je het hier opnieuw instellen."
-    },
-    "publish-name": {
-      "alias-or-initials": "Gebruikersnaam of initialen",
-      "alias-or-initials-tooltip": "De gebruikersnaam, indien aanwezig, of de initialen van voornaam en achternaam, telkens de eerste twee letters",
-      "first": "Voornaam",
-      "first-initial": "Voornaam en initiaal",
-      "first-initial-tooltip": "De voornaam plus de eerste letter van de achternaam",
-      "first-tooltip": "Alleen de voornaam",
-      "initials": "Initialen",
-      "initials-tooltip": "De initialen van voornaam en achternaam, dus telkens de eerste twee letters, ongeacht of er een gebruikersnaam bestaat",
-      "name-full": "Voornaam en achternaam",
-      "name-full-tooltip": "Volledige naam: voornaam plus achternaam"
     },
     "showAmountGDD": "Je GDD-bedrag is zichtbaar.",
     "showAmountGDT": "Je GDT-bedrag is zichtbaar.",
