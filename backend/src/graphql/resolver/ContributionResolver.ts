@@ -40,6 +40,7 @@ import { Arg, Args, Authorized, Ctx, Info, Int, Mutation, Query, Resolver } from
 import { EntityManager, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { PublishNameLogic } from '@/data/PublishName.logic'
 import {
   EVENT_ADMIN_CONTRIBUTION_CONFIRM,
   EVENT_ADMIN_CONTRIBUTION_CREATE,
@@ -628,12 +629,16 @@ export class ContributionResolver {
         transaction.userGradidoID = user.gradidoID
         // The alias, not the real name (NU-020/NU-021): a booking is permanent, so a
         // name written here outlives every later display fix. Same convention as the
-        // send/receive path in TransactionResolver. Every local user has an alias.
-        transaction.userName = user.alias
+        // send/receive path in TransactionResolver. Through the shared rule rather than
+        // read off the column: in production every local user has an alias (migration
+        // 0116 filled them, createUser has assigned one since #3645), but a SEEDED
+        // environment has moderators without -- and a booking that stored null there
+        // would carry no public name for good.
+        transaction.userName = new PublishNameLogic(user).getPublicAlias()
         transaction.userCommunityUuid = user.communityUuid
         transaction.linkedUserId = moderatorUser.id
         transaction.linkedUserGradidoID = moderatorUser.gradidoID
-        transaction.linkedUserName = moderatorUser.alias
+        transaction.linkedUserName = new PublishNameLogic(moderatorUser).getPublicAlias()
         transaction.linkedUserCommunityUuid = moderatorUser.communityUuid
         transaction.previous = lastTransaction ? lastTransaction.id : null
         transaction.amount = contribution.amount
