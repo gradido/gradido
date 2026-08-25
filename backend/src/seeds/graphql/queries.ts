@@ -431,8 +431,8 @@ export const listContributionMessages = gql`
         createdAt
         updatedAt
         type
-        userFirstName
-        userLastName
+        userAlias
+        userAvatarColorIndex
         userId
       }
     }
@@ -454,8 +454,8 @@ export const adminListContributionMessages = gql`
         createdAt
         updatedAt
         type
-        userFirstName
-        userLastName
+        userAlias
+        userAvatarColorIndex
         userId
       }
     }

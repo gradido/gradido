@@ -309,9 +309,8 @@ export const listContributionMessages = gql`
         createdAt
         updatedAt
         type
-        userFirstName
-        userLastName
         userAlias
+        userAvatarColorIndex
         userId
       }
     }

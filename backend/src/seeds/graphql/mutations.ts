@@ -380,8 +380,8 @@ export const createContributionMessage = gql`
       createdAt
       updatedAt
       type
-      userFirstName
-      userLastName
+      userAlias
+      userAvatarColorIndex
     }
   }
 `
@@ -398,8 +398,8 @@ export const adminCreateContributionMessage = gql`
       createdAt
       updatedAt
       type
-      userFirstName
-      userLastName
+      userAlias
+      userAvatarColorIndex
     }
   }
 `

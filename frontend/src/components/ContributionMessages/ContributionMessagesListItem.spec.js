@@ -73,9 +73,8 @@ describe('ContributionMessagesListItem', () => {
           type: 'HISTORY',
           createdAt: '2022-08-29T12:23:27.000Z',
           message: 'This is a history message',
-          userFirstName: 'Peter',
-          userLastName: 'Lustig',
           userAlias: 'peterl',
+          userAvatarColorIndex: 6,
         },
       })
     })
@@ -102,9 +101,8 @@ describe('ContributionMessagesListItem', () => {
           type: 'DIALOG',
           createdAt: '2022-08-29T12:23:27.000Z',
           message: 'User message',
-          userFirstName: 'Peter',
-          userLastName: 'Lustig',
           userAlias: 'peterl',
+          userAvatarColorIndex: 6,
         },
       })
     })
@@ -133,9 +131,8 @@ describe('ContributionMessagesListItem', () => {
           type: 'DIALOG',
           createdAt: '2022-08-29T12:23:27.000Z',
           message: 'Moderator message',
-          userFirstName: 'Mod',
-          userLastName: 'Erator',
           userAlias: 'moderator',
+          userAvatarColorIndex: 4,
         },
       })
     })
@@ -148,13 +145,13 @@ describe('ContributionMessagesListItem', () => {
       expect(wrapper.find('[data-test="username"]').text()).toBe('moderator')
     })
 
-    // AS-010: the letters follow the alias next to them, the COLOUR keeps coming from
-    // the real initials -- so no circle changes colour with the alias switch. The name
-    // fields still ride along on the message for exactly this seed.
-    it('letters the circle from the alias and colours it from the real initials', () => {
+    // AS-010/NU-017: the letters follow the alias next to them, the COLOUR arrives as
+    // the finished digit the server hashed from the real initials -- the name itself no
+    // longer travels on the message, and no circle changes colour.
+    it('letters the circle from the alias and colours it from the server digit', () => {
       const avatar = wrapper.findComponent(AppAvatar)
       expect(avatar.props('initials')).toBe('MO')
-      expect(avatar.props('colorSeed')).toBe('ME')
+      expect(avatar.props('colorIndex')).toBe(4)
     })
 
     it('displays the moderator label', () => {

@@ -1,6 +1,8 @@
 import { ContributionMessage as DbContributionMessage } from 'database'
 import { Field, Int, ObjectType } from 'type-graphql'
 
+import { avatarColorIndex } from '@/data/AvatarColor.logic'
+
 @ObjectType()
 export class ContributionMessage {
   constructor(dbContributionMessage: DbContributionMessage) {
@@ -10,9 +12,8 @@ export class ContributionMessage {
     this.createdAt = dbContributionMessage.createdAt
     this.updatedAt = dbContributionMessage.updatedAt
     this.type = dbContributionMessage.type
-    this.userFirstName = user?.firstName ?? null
-    this.userLastName = user?.lastName ?? null
     this.userAlias = user?.alias ?? null
+    this.userAvatarColorIndex = user ? avatarColorIndex(user.firstName, user.lastName) : null
     this.userId = user?.id ?? null
     this.isModerator = dbContributionMessage.isModerator
   }
@@ -32,17 +33,17 @@ export class ContributionMessage {
   @Field(() => String)
   type: string
 
-  @Field(() => String, { nullable: true })
-  userFirstName: string | null
-
-  @Field(() => String, { nullable: true })
-  userLastName: string | null
-
   // What the wallet's contribution thread shows as the author's name (NU-020): the
   // moderation appears under its alias, and the member's own messages are labelled from
   // the member's own store. Null only for messages whose author row is gone.
   @Field(() => String, { nullable: true })
   userAlias: string | null
+
+  // The author's circle colour as a finished digit (NU-017), computed from the real
+  // initials the way the whole wallet does it -- sent so the real name itself no longer
+  // has to travel on this type while no circle changes colour (AS-010).
+  @Field(() => Int, { nullable: true })
+  userAvatarColorIndex: number | null
 
   @Field(() => Int, { nullable: true })
   userId: number | null

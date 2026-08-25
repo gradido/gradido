@@ -48,7 +48,7 @@
           <app-avatar
             :name="moderationName.username"
             :initials="moderationName.initials"
-            :color-seed="moderationName.colorSeed"
+            :color-index="moderationName.colorIndex"
           />
         </BCol>
         <BCol cols="10">
@@ -105,18 +105,18 @@ export default {
       }
     },
     // The message author's side -- for moderation messages the moderator, under their
-    // alias (NU-020). The real-name fields still ride along on the message and feed
-    // ONLY the colour, so no circle changes colour with this delivery.
+    // alias (NU-020). The real name no longer travels on the message at all: the server
+    // sends the finished colour digit instead (NU-017), so the circle keeps the colour
+    // it always had (AS-010) while nothing but the alias arrives here.
     moderationName() {
-      const { letters, colorSeed } = avatarLettering({
+      const { letters, colorIndex } = avatarLettering({
         alias: this.message.userAlias,
-        firstName: this.message.userFirstName,
-        lastName: this.message.userLastName,
+        avatarColorIndex: this.message.userAvatarColorIndex,
       })
       return {
         username: this.message.userAlias,
         initials: letters,
-        colorSeed,
+        colorIndex,
       }
     },
   },
