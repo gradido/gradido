@@ -137,6 +137,7 @@ import { extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
 import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
 import { Location2Point, Point2Location } from './util/Location2Point'
+import { maySeeRealName } from './util/maySeeRealName'
 import { describeModeratorCreationGroups } from './util/moderatorCreationGroupScope'
 import { deleteUserRole, setUserRole } from './util/modifyUserRole'
 import { sendUsersToGms } from './util/sendUserToGms'
@@ -280,10 +281,17 @@ export class UserResolver {
     }
     logger.debug('validation of login credentials successful...')
 
+    // Login runs on an inalienable right, so no authenticated caller exists while this
+    // answer is serialised -- but the member HAS just proven who they are, and from here
+    // on everything below is entitled to know it. Without this line the
+    // firstName/lastName field resolvers would read the owner exception as "not you" and
+    // the wallet's own store would fill with null names.
+    context.user = dbUser
+
     const user = new User(dbUser)
 
     // Elopage Status & Stored PublisherId
-    user.hasElopage = await this.hasElopage({ ...context, user: dbUser })
+    user.hasElopage = await this.hasElopage(context)
     logger.debug('user.hasElopage', user.hasElopage)
     if (!user.hasElopage && publisherId) {
       user.publisherId = publisherId
@@ -313,11 +321,6 @@ export class UserResolver {
       }
     }
     user.klickTipp = await klicktippStatePromise
-    // Login runs on an inalienable right, so no authenticated caller exists while this
-    // answer is serialised -- but the member HAS just proven who they are. Without this
-    // line the firstName/lastName field resolvers would read the owner exception as
-    // "not you" and the wallet's own store would fill with null names.
-    context.user = dbUser
     logger.info('successful Login')
     logger.trace('user after login', new UserLoggingView(dbUser))
     return user
@@ -1600,36 +1603,21 @@ export class UserResolver {
    * { senderUser }` with no token at all. Without this resolver every display fix is one
    * query away from being undone.
    *
-   * The owner exception is spelled out (context.user), NOT modelled as a second right:
-   * VIEW_OWN_USER_CONTACT next door is assigned to no role and guards nothing -- that
-   * construction is the one this deliberately avoids. The login mutation sets
-   * context.user to the member it just authenticated, so the wallet's login answer
-   * carries the member's own name.
+   * Who counts as those two is `maySeeRealName`, shared with lastName below -- a guard
+   * that has to be edited twice is a guard that will one day be edited once.
    *
    * Null instead of throwing, like salutation: an error here would null the whole
    * enclosing user for a query that merely asked for too much.
    */
   @FieldResolver(() => String, { nullable: true })
   firstName(@Root() user: User, @Ctx() context: Context): string | null {
-    if (context.role?.hasRight(RIGHTS.VIEW_USER_REAL_NAME)) {
-      return user.firstName ?? null
-    }
-    if (context.user && context.user.id === user.id) {
-      return user.firstName ?? null
-    }
-    return null
+    return maySeeRealName(context, user) ? (user.firstName ?? null) : null
   }
 
   /** The other half of the name; same guard as firstName above. */
   @FieldResolver(() => String, { nullable: true })
   lastName(@Root() user: User, @Ctx() context: Context): string | null {
-    if (context.role?.hasRight(RIGHTS.VIEW_USER_REAL_NAME)) {
-      return user.lastName ?? null
-    }
-    if (context.user && context.user.id === user.id) {
-      return user.lastName ?? null
-    }
-    return null
+    return maySeeRealName(context, user) ? (user.lastName ?? null) : null
   }
 
   /**
