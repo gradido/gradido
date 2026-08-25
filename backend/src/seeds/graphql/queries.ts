@@ -406,8 +406,7 @@ export const searchAdminUsers = gql`
     searchAdminUsers {
       userCount
       userList {
-        firstName
-        lastName
+        alias
         role
         visibleCreationGroups
         seesAllCreationGroups

@@ -7,8 +7,6 @@ export class AdminUser {
   constructor(user: User) {
     const role = user.userRoles.length > 0 ? user.userRoles[0] : null
     const groups = describeModeratorCreationGroups(role)
-    this.firstName = user.firstName
-    this.lastName = user.lastName
     this.alias = user.alias
     this.role = role ? role.role : ''
     this.visibleCreationGroups = groups.tags
@@ -16,15 +14,10 @@ export class AdminUser {
     this.seesUntagged = groups.seesUntagged
   }
 
-  @Field(() => String)
-  firstName: string
-
-  @Field(() => String)
-  lastName: string
-
-  // What the community info page shows instead of the real name (NU-021): this type is
-  // handed to every signed-in member, and the field resolver that guards User.firstName
-  // cannot reach it. Nullable because the column is, although every local user has one.
+  // The alias is all this type says about who a moderator is (NU-021): it is handed to
+  // every signed-in member for the community info page, and the field resolver that
+  // guards User.firstName cannot reach a type of its own -- so the real name is simply
+  // not on it. Nullable because the column is, although every local user has one.
   @Field(() => String, { nullable: true })
   alias: string | null
 

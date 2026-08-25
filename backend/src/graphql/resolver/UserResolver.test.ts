@@ -1625,9 +1625,11 @@ describe('UserResolver', () => {
               searchAdminUsers: {
                 userCount: 1,
                 userList: expect.arrayContaining([
+                  // The type carries only the alias since NU-021 -- and this seed user
+                  // has none, which is exactly what the nullable field means. userCount 1
+                  // plus the role make the row unambiguous.
                   expect.objectContaining({
-                    firstName: 'Peter',
-                    lastName: 'Lustig',
+                    alias: null,
                     role: RoleNames.ADMIN,
                   }),
                 ]),

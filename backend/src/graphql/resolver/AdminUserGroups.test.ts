@@ -41,8 +41,7 @@ afterAll(async () => {
 })
 
 interface ListedUser {
-  firstName: string
-  lastName: string
+  alias: string | null
   role: string
   visibleCreationGroups: string[]
   seesAllCreationGroups: boolean
@@ -58,12 +57,14 @@ const listAdminUsers = async (): Promise<ListedUser[]> => {
   return userList
 }
 
-const ADMIN = 'Peter'
-const MODERATOR = 'Bibi'
-const AI_MODERATOR = 'Garrick'
+// Since NU-021 the type carries only the alias -- the real name is deliberately not on
+// it -- so the fixtures pin aliases for the two seed users that have none of their own.
+const ADMIN = 'peterl'
+const MODERATOR = 'BBB'
+const AI_MODERATOR = 'garrick'
 
-const byFirstName = (users: ListedUser[], firstName: string): ListedUser | undefined =>
-  users.find((user) => user.firstName === firstName)
+const byAlias = (users: ListedUser[], alias: string): ListedUser | undefined =>
+  users.find((user) => user.alias === alias)
 
 const setRole = async (
   userId: number,
@@ -84,9 +85,9 @@ describe('searchAdminUsers — groups shown on the community info page', () => {
   let aiModerator: User
 
   beforeAll(async () => {
-    await userFactory(testEnv, peterLustig) // administrator
-    scopedModerator = await userFactory(testEnv, bibiBloxberg)
-    aiModerator = await userFactory(testEnv, garrickOllivander)
+    await userFactory(testEnv, { ...peterLustig, alias: 'peterl' }) // administrator
+    scopedModerator = await userFactory(testEnv, bibiBloxberg) // seed alias 'BBB'
+    aiModerator = await userFactory(testEnv, { ...garrickOllivander, alias: 'garrick' })
 
     await setRole(scopedModerator.id, RoleNames.MODERATOR, JSON.stringify(['firefighter']))
     await setRole(aiModerator.id, RoleNames.MODERATOR_AI, null)
@@ -106,21 +107,21 @@ describe('searchAdminUsers — groups shown on the community info page', () => {
     // Before the group listing, the query asked only for 'admin' and 'moderator', so a
     // MODERATOR_AI was missing from the page entirely — and with them their groups.
     const users = await listAdminUsers()
-    const listed = byFirstName(users, AI_MODERATOR)
+    const listed = byAlias(users, AI_MODERATOR)
     expect(listed).toBeDefined()
     expect(listed?.role).toBe(RoleNames.MODERATOR_AI)
   })
 
   it('reports the groups a scoped moderator looks after', async () => {
     const users = await listAdminUsers()
-    const listed = byFirstName(users, MODERATOR)
+    const listed = byAlias(users, MODERATOR)
     expect(listed?.visibleCreationGroups).toEqual(['firefighter'])
     expect(listed?.seesAllCreationGroups).toBe(false)
   })
 
   it('reports a moderator without any scope as covering every group', async () => {
     const users = await listAdminUsers()
-    const listed = byFirstName(users, AI_MODERATOR)
+    const listed = byAlias(users, AI_MODERATOR)
     expect(listed?.visibleCreationGroups).toEqual([])
     expect(listed?.seesAllCreationGroups).toBe(true)
   })
@@ -128,7 +129,7 @@ describe('searchAdminUsers — groups shown on the community info page', () => {
   it('treats the "*all" sentinel the same as no scope at all', async () => {
     await setRole(scopedModerator.id, RoleNames.MODERATOR, JSON.stringify(['*all', 'firefighter']))
     const users = await listAdminUsers()
-    const listed = byFirstName(users, MODERATOR)
+    const listed = byAlias(users, MODERATOR)
     expect(listed?.seesAllCreationGroups).toBe(true)
   })
 
@@ -137,7 +138,7 @@ describe('searchAdminUsers — groups shown on the community info page', () => {
     // their own heading, never under "every group".
     await setRole(scopedModerator.id, RoleNames.MODERATOR, JSON.stringify(['*untagged']))
     const users = await listAdminUsers()
-    const listed = byFirstName(users, MODERATOR)
+    const listed = byAlias(users, MODERATOR)
     expect(listed?.visibleCreationGroups).toEqual([])
     expect(listed?.seesAllCreationGroups).toBe(false)
   })
@@ -152,7 +153,7 @@ describe('searchAdminUsers — groups shown on the community info page', () => {
       JSON.stringify(['firefighter', '*untagged']),
     )
     const users = await listAdminUsers()
-    const listed = byFirstName(users, MODERATOR)
+    const listed = byAlias(users, MODERATOR)
     expect(listed?.visibleCreationGroups).toEqual(['firefighter'])
     expect(listed?.seesAllCreationGroups).toBe(false)
     expect(listed?.seesUntagged).toBe(true)
@@ -161,13 +162,13 @@ describe('searchAdminUsers — groups shown on the community info page', () => {
   it('reports a scope of only real groups as not covering the untagged ones', async () => {
     await setRole(scopedModerator.id, RoleNames.MODERATOR, JSON.stringify(['firefighter']))
     const users = await listAdminUsers()
-    const listed = byFirstName(users, MODERATOR)
+    const listed = byAlias(users, MODERATOR)
     expect(listed?.seesUntagged).toBe(false)
   })
 
   it('leaves administrators unrestricted', async () => {
     const users = await listAdminUsers()
-    const listed = byFirstName(users, ADMIN)
+    const listed = byAlias(users, ADMIN)
     expect(listed?.role).toBe(RoleNames.ADMIN)
     expect(listed?.seesAllCreationGroups).toBe(true)
   })
