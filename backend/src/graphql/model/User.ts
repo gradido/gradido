@@ -27,7 +27,12 @@ export class User {
 
       const publishNameLogic = new PublishNameLogic(dbUser)
       const publishNameType = dbUser.humhubPublishName as PublishNameType
-      this.publicName = publishNameLogic.getPublicName(publishNameType)
+      // The alias for everyone (the full gradidoID without one, NU-018). This used to
+      // follow the old publish-name setting, whose display role ended with NU-024 -- a
+      // member who once picked "full name" for HumHub would otherwise keep handing their
+      // real name to any signed-in member through this unguarded field. The admin's
+      // contribution thread header reads it and shows the alias now.
+      this.publicName = publishNameLogic.hasAlias() ? dbUser.alias : dbUser.gradidoID
       this.userIdentifier = publishNameLogic.getUserIdentifier(publishNameType)
 
       if (dbUser.emailContact) {
