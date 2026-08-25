@@ -4,7 +4,6 @@ import { Point } from 'typeorm'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { UpdateUserInfosArgs } from '@/graphql/arg/UpdateUserInfosArgs'
 import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
-import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { LogError } from '@/server/LogError'
 import { Point2Location } from './Location2Point'
 
@@ -20,17 +19,12 @@ export function compareGmsRelevantUserSettings(
     throw new LogError('comparison without any user is impossible')
   }
   logger.debug('compareGmsRelevantUserSettings:', new UserLoggingView(orgUser), updateUserInfosArgs)
-  // nach GMS updaten, wenn alias gesetzt wird oder ist und PublishLevel die alias-Übermittlung erlaubt
-  if (
-    updateUserInfosArgs.alias &&
-    orgUser.alias !== updateUserInfosArgs.alias &&
-    ((updateUserInfosArgs.gmsPublishName &&
-      updateUserInfosArgs.gmsPublishName.valueOf ===
-        PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS.valueOf) ||
-      (!updateUserInfosArgs.gmsPublishName &&
-        orgUser.gmsPublishName &&
-        orgUser.gmsPublishName.valueOf === PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS.valueOf))
-  ) {
+  // A changed alias always has to reach the GMS. It used to depend on the publish-name
+  // setting standing at ALIAS_OR_INITIALS -- but since NU-024 the alias travels
+  // unconditionally (`GmsUser` sets it from the user, the setting no longer steers it),
+  // so a member whose setting still reads FULL from the old days would have kept an
+  // outdated alias over there for good.
+  if (updateUserInfosArgs.alias && orgUser.alias !== updateUserInfosArgs.alias) {
     return true
   }
   if (
@@ -50,12 +44,6 @@ export function compareGmsRelevantUserSettings(
     updateUserInfosArgs.gmsPublishLocation !== undefined &&
     (orgUser.gmsPublishLocation as GmsPublishLocationType) !==
       updateUserInfosArgs.gmsPublishLocation
-  ) {
-    return true
-  }
-  if (
-    updateUserInfosArgs.gmsPublishName &&
-    (orgUser.gmsPublishName as PublishNameType) !== updateUserInfosArgs.gmsPublishName
   ) {
     return true
   }
