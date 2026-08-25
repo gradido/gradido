@@ -28,7 +28,7 @@
       "button": "Konto einrichten",
       "done": "Das Konto ist eingerichtet! Eine Bestätigungs-Mail ist unterwegs an das neue Postfach. Jetzt anmelden und den Scheck einlösen:",
       "emailHint": "Tragt hier die eigene E-Mail-Adresse des neuen Mitglieds ein — nicht Deine. Das Passwort tippt das neue Mitglied selbst.",
-      "emailTaken": "Diese E-Mail-Adresse hat bereits ein Gradido-Konto. Nutze „Passwort vergessen\", um wieder hineinzukommen.",
+      "emailTaken": "Diese E-Mail-Adresse hat bereits ein Gradido-Konto. Nutze „Passwort vergessen“, um wieder hineinzukommen.",
       "intro": "{name} möchte ein Gradido-Konto beginnen.",
       "invalid": "Dieser Link ist ungültig oder abgelaufen.",
       "loginButton": "Anmelden und Scheck einlösen",
