@@ -43,6 +43,16 @@ const ADMIN_USERS = [
     seesAllCreationGroups: true,
     seesUntagged: true,
   },
+  // anna AFTER peterl on purpose, for the same reason garrick comes before bibi below:
+  // the administrators are a sorted list too, and a fixture that already arrives in
+  // order cannot tell a sorted list from an unsorted one.
+  {
+    alias: 'anna',
+    role: 'ADMIN',
+    visibleCreationGroups: [],
+    seesAllCreationGroups: true,
+    seesUntagged: true,
+  },
   // garrick before bibi on purpose: the page must sort by alias, and a fixture that
   // already arrives sorted would let a dropped sort pass unnoticed.
   {
@@ -160,6 +170,15 @@ describe('InfoStatistic', () => {
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('peterl')
     expect(wrapper.text()).toContain('zora')
+  })
+
+  // The administrators are read the same way the moderators are, so they are ordered the
+  // same way. Left unsorted they arrived in whatever order the backend's paging returned.
+  it('sorts administrators by their alias', async () => {
+    await wrapper.vm.$nextTick()
+    const text = wrapper.text()
+    expect(text.indexOf('anna')).toBeGreaterThan(-1)
+    expect(text.indexOf('anna')).toBeLessThan(text.indexOf('peterl'))
   })
 
   it('displays contact information', () => {

@@ -81,20 +81,20 @@ const MODERATOR_ROLES = ['MODERATOR', 'MODERATOR_AI']
 
 // Listed and sorted by alias (NU-021): the real name is not delivered to this page any
 // more. The alias is unique per community, so it also serves as the list key.
+const byAlias = (a, b) =>
+  (a.alias ?? '').localeCompare(b.alias ?? '', undefined, { sensitivity: 'base' })
+
 const admins = computed(() =>
   itemsAdminUser.value
     .filter((item) => item.role === 'ADMIN')
-    .map((item, index) => ({ ...item, key: `${item.alias}-${index}` })),
+    .map((item, index) => ({ ...item, key: `${item.alias}-${index}` }))
+    .sort(byAlias),
 )
 const moderators = computed(() =>
   itemsAdminUser.value
     .filter((item) => MODERATOR_ROLES.includes(item.role))
     .map((item, index) => ({ ...item, key: `${item.alias}-${index}` }))
-    .sort((a, b) =>
-      (a.alias ?? '').localeCompare(b.alias ?? '', undefined, {
-        sensitivity: 'base',
-      }),
-    ),
+    .sort(byAlias),
 )
 
 // Group functions: moderators are listed under every group they look after, so a
