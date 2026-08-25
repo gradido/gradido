@@ -1,10 +1,8 @@
 import { User as dbUser, MatchingEntrySelect } from 'database'
 
 import { PublishNameLogic } from '@/data/PublishName.logic'
-// import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
 import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
 import { GmsPublishPhoneType } from '@/graphql/enum/GmsPublishPhoneType'
-import { PublishNameType } from '@/graphql/enum/PublishNameType'
 
 import { GmsMatchingEntry } from './GmsMatchingEntry'
 
@@ -31,14 +29,10 @@ export class GmsUser {
     this.email = this.getGmsEmail(user)
     this.countryCode = this.getGmsCountryCode(user)
     this.mobile = this.getGmsPhone(user)
-    // const fn = pnLogic.getFirstName(user.gmsPublishName as PublishNameType)
-    // this.firstName = fn !== '' ? fn : null // getGmsFirstName(user)
-    // const ln = pnLogic.getLastName(user.gmsPublishName as PublishNameType)
-    // this.lastName = ln !== '' ? ln : null // getGmsLastName(user)
     // The alias, no longer steered by the publish-name setting (NU-024). The KEY the
     // GMS recognises the user by is this.uuid above and stays untouched; the next
     // upsert overwrites the display on its own.
-    this.alias = pnLogic.hasAlias() ? user.alias : user.gradidoID
+    this.alias = pnLogic.getPublicAlias()
     if (user.location && user.location.type === 'Point') {
       this.location = user.location.coordinates
     }
@@ -62,9 +56,7 @@ export class GmsUser {
   status: number
   createdAt: Date
   updatedAt: Date
-  firstName: string | null | undefined
-  lastName: string | null | undefined
-  alias: string | undefined
+  alias: string
   type: string
   address: string | undefined
   city: string | undefined
@@ -75,76 +67,6 @@ export class GmsUser {
   location: number[]
   aboutMe: string | null
   matchingEntries?: GmsMatchingEntry[]
-
-  private getGmsAlias(user: dbUser): string | undefined {
-    if (
-      user.gmsAllowed &&
-      user.alias &&
-      (user.gmsPublishName as PublishNameType) === PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS
-    ) {
-      return user.alias
-    }
-    if (
-      user.gmsAllowed &&
-      ((!user.alias &&
-        (user.gmsPublishName as PublishNameType) ===
-          PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS) ||
-        (user.gmsPublishName as PublishNameType) === PublishNameType.PUBLISH_NAME_INITIALS)
-    ) {
-      return (
-        this.firstUpperCaseSecondLowerCase(user.firstName) +
-        this.firstUpperCaseSecondLowerCase(user.lastName)
-      )
-    }
-  }
-
-  private getGmsFirstName(user: dbUser): string | null | undefined {
-    if (
-      user.gmsAllowed &&
-      ((user.gmsPublishName as PublishNameType) === PublishNameType.PUBLISH_NAME_FIRST ||
-        (user.gmsPublishName as PublishNameType) === PublishNameType.PUBLISH_NAME_FIRST_INITIAL ||
-        (user.gmsPublishName as PublishNameType) === PublishNameType.PUBLISH_NAME_FULL)
-    ) {
-      return user.firstName
-    }
-    if (
-      user.gmsAllowed &&
-      ((!user.alias &&
-        (user.gmsPublishName as PublishNameType) ===
-          PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS) ||
-        (user.gmsPublishName as PublishNameType) === PublishNameType.PUBLISH_NAME_INITIALS)
-    ) {
-      // return this.firstUpperCaseSecondLowerCase(user.firstName)
-      return null // cause to delete firstname in gms
-    }
-  }
-
-  private getGmsLastName(user: dbUser): string | null | undefined {
-    if (
-      user.gmsAllowed &&
-      (user.gmsPublishName as PublishNameType) === PublishNameType.PUBLISH_NAME_FULL
-    ) {
-      return user.lastName
-    }
-    if (
-      user.gmsAllowed &&
-      (user.gmsPublishName as PublishNameType) === PublishNameType.PUBLISH_NAME_FIRST_INITIAL
-    ) {
-      return this.firstUpperCaseSecondLowerCase(user.lastName)
-    }
-    return null // cause to delete lastname in gms
-
-    /*
-    if (
-      user.gmsAllowed &&
-      ((!user.alias && user.gmsPublishName === PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS) ||
-        user.gmsPublishName === PublishNameType.PUBLISH_NAME_FIRST_INITIAL ||
-        user.gmsPublishName === PublishNameType.PUBLISH_NAME_INITIALS)
-    ) {
-      return this.firstUpperCaseSecondLowerCase(user.lastName)
-    }
-    */
-  }
 
   private getGmsEmail(user: dbUser): string | undefined {
     if (user.gmsAllowed && user.emailContact?.gmsPublishEmail) {
@@ -172,12 +94,5 @@ export class GmsUser {
     ) {
       return user.emailContact?.phone
     }
-  }
-
-  private firstUpperCaseSecondLowerCase(name: string) {
-    if (name && name.length >= 2) {
-      return name.charAt(0).toUpperCase() + name.charAt(1).toLocaleLowerCase()
-    }
-    return name
   }
 }

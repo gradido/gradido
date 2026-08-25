@@ -32,7 +32,7 @@ export class User {
       // member who once picked "full name" for HumHub would otherwise keep handing their
       // real name to any signed-in member through this unguarded field. The admin's
       // contribution thread header reads it and shows the alias now.
-      this.publicName = publishNameLogic.hasAlias() ? dbUser.alias : dbUser.gradidoID
+      this.publicName = publishNameLogic.getPublicAlias()
       this.userIdentifier = publishNameLogic.getUserIdentifier(publishNameType)
 
       if (dbUser.emailContact) {

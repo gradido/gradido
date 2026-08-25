@@ -12,12 +12,10 @@ export class Profile {
     // keeps it searchable there. The publish-name setting no longer steers this --
     // ⛔ it keeps steering Account.username, the KEY HumHub recognises the user by,
     // which must not change or the login breaks for existing accounts.
-    this.firstname = publishNameLogic.hasAlias() ? user.alias : user.gradidoID
+    this.firstname = publishNameLogic.getPublicAlias()
     this.lastname = ''
 
-    this.gradido_address = `${CONFIG.COMMUNITY_NAME}/${
-      publishNameLogic.hasAlias() ? user.alias : user.gradidoID
-    }`
+    this.gradido_address = `${CONFIG.COMMUNITY_NAME}/${publishNameLogic.getPublicAlias()}`
   }
 
   firstname: string

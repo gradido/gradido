@@ -9,13 +9,6 @@ export class PublishNameLogic {
 
   constructor(private user: User) {}
 
-  private firstUpperCaseSecondLowerCase(name: string) {
-    if (name && name.length >= 2) {
-      return name.charAt(0).toUpperCase() + name.charAt(1).toLocaleLowerCase()
-    }
-    return name
-  }
-
   // remove character which are invalid for humhub username
   private filterOutInvalidChar(name: string) {
     return XRegExp.match(name, this.usernameRegex, 'all').join('')
@@ -29,40 +22,21 @@ export class PublishNameLogic {
   }
 
   /**
-   * get first name based on publishNameType: PublishNameType value
-   * @param publishNameType
-   * @returns user.firstName for PUBLISH_NAME_FIRST, PUBLISH_NAME_FIRST_INITIAL or PUBLISH_NAME_FULL
+   * What another member is allowed to call this one (NU-018/NU-024): the alias, and
+   * without one the FULL gradidoID. No publish-name setting steers it -- that setting's
+   * display role ended with NU-024, and the real name is not handed out here at all.
+   *
+   * ⛔ The single place this rule lives on the server. It sat inline at four call sites
+   * that all had to agree, and one of them (the till's receipt) had already drifted to a
+   * bare `alias || gradidoID` -- which let a legacy alias of one or two characters
+   * through where the other three showed the identifier. `hasAlias()` decides for all
+   * four now.
+   *
+   * Exempt from Result on purpose: every user produces an answer, there is no failure
+   * to model.
    */
-  public getFirstName(publishNameType: PublishNameType): string {
-    let firstName = ''
-    if (this.user && typeof this.user.firstName === 'string') {
-      firstName = this.user.firstName
-    }
-    return [
-      PublishNameType.PUBLISH_NAME_FIRST,
-      PublishNameType.PUBLISH_NAME_FIRST_INITIAL,
-      PublishNameType.PUBLISH_NAME_FULL,
-    ].includes(publishNameType)
-      ? firstName.slice(0, 20)
-      : ''
-  }
-
-  /**
-   * get last name based on publishNameType: GmsPublishNameType value
-   * @param publishNameType
-   * @returns user.lastName for PUBLISH_NAME_LAST, PUBLISH_NAME_FULL
-   *   first initial from user.lastName for PUBLISH_NAME_FIRST_INITIAL
-   */
-  public getLastName(publishNameType: PublishNameType): string {
-    let lastName = ''
-    if (this.user && typeof this.user.lastName === 'string') {
-      lastName = this.user.lastName
-    }
-    return publishNameType === PublishNameType.PUBLISH_NAME_FULL
-      ? lastName.slice(0, 20)
-      : publishNameType === PublishNameType.PUBLISH_NAME_FIRST_INITIAL && lastName.length > 0
-        ? lastName.charAt(0)
-        : ''
+  public getPublicAlias(): string {
+    return this.hasAlias() ? this.user.alias : this.user.gradidoID
   }
 
   /**
@@ -78,39 +52,8 @@ export class PublishNameLogic {
       : this.user.gradidoID
   }
 
-  /**
-   * get public name based on publishNameType: PublishNameType value
-   * @param publishNameType: PublishNameType
-   * @return alias if exist and type = PUBLISH_NAME_ALIAS_OR_INITALS
-   *         initials if type = PUBLISH_NAME_INITIALS
-   *         full first name if type = PUBLISH_NAME_FIRST
-   *         full first name and last name initial if type = PUBLISH_NAME_FIRST_INITIAL
-   *         full first name and full last name if type = PUBLISH_NAME_FULL
-   */
-  public getPublicName(publishNameType: PublishNameType): string {
-    return this.isUsernameFromAlias(publishNameType)
-      ? this.getUsernameFromAlias()
-      : this.isUsernameFromInitials(publishNameType)
-        ? this.getUsernameFromInitials()
-        : `${this.getFirstName(publishNameType)} ${this.getLastName(publishNameType)}`.trim()
-  }
-
-  public getUsernameFromInitials(): string {
-    return (
-      this.firstUpperCaseSecondLowerCase(this.user.firstName) +
-      this.firstUpperCaseSecondLowerCase(this.user.lastName)
-    ).trim()
-  }
-
   public getUsernameFromAlias(): string {
     return this.filterOutInvalidChar(this.user.alias)
-  }
-
-  public isUsernameFromInitials(publishNameType: PublishNameType): boolean {
-    return (
-      PublishNameType.PUBLISH_NAME_INITIALS === publishNameType ||
-      (PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS === publishNameType && !this.hasAlias())
-    )
   }
 
   public isUsernameFromAlias(publishNameType: PublishNameType): boolean {

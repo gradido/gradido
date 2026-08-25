@@ -51,30 +51,6 @@ describe('test publish name logic', () => {
     })
   })
 
-  describe('test isUsernameFromInitials', () => {
-    it('for publish name initials', () => {
-      expect(logic.isUsernameFromInitials(PublishNameType.PUBLISH_NAME_INITIALS)).toBe(true)
-    })
-    it('for publish name alias or initials, with alias set', () => {
-      expect(logic.isUsernameFromInitials(PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS)).toBe(
-        false,
-      )
-    })
-    it('for publish name alias or initials, with alias not set', () => {
-      user.alias = ''
-      expect(logic.isUsernameFromInitials(PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS)).toBe(true)
-    })
-    it('for publish name first', () => {
-      expect(logic.isUsernameFromInitials(PublishNameType.PUBLISH_NAME_FIRST)).toBe(false)
-    })
-    it('for publish name first initial', () => {
-      expect(logic.isUsernameFromInitials(PublishNameType.PUBLISH_NAME_FIRST_INITIAL)).toBe(false)
-    })
-    it('for publish name full', () => {
-      expect(logic.isUsernameFromInitials(PublishNameType.PUBLISH_NAME_FULL)).toBe(false)
-    })
-  })
-
   describe('test isUsernameFromAlias', () => {
     it('for publish name initials', () => {
       expect(logic.isUsernameFromAlias(PublishNameType.PUBLISH_NAME_INITIALS)).toBe(false)
@@ -94,6 +70,27 @@ describe('test publish name logic', () => {
     })
     it('for publish name full', () => {
       expect(logic.isUsernameFromAlias(PublishNameType.PUBLISH_NAME_FULL)).toBe(false)
+    })
+  })
+
+  // The one rule the server names a member by (NU-018/NU-024). It replaced four inline
+  // copies, one of which used a bare `alias || gradidoID` -- hence the short-alias cases
+  // here: they are exactly where that copy disagreed with the other three.
+  describe('test getPublicAlias', () => {
+    it('for alias set', () => {
+      expect(logic.getPublicAlias()).toBe('alias')
+    })
+    it('for alias empty string', () => {
+      user.alias = ''
+      expect(logic.getPublicAlias()).toBe(gradidoUuid)
+    })
+    it('for alias string to short 2', () => {
+      user.alias = 'ab'
+      expect(logic.getPublicAlias()).toBe(gradidoUuid)
+    })
+    it('for alias string 3', () => {
+      user.alias = 'abc'
+      expect(logic.getPublicAlias()).toBe('abc')
     })
   })
 
@@ -118,39 +115,6 @@ describe('test publish name logic', () => {
     })
     it('for publish name full', () => {
       expect(logic.getUserIdentifier(PublishNameType.PUBLISH_NAME_FULL)).toBe(gradidoUuid)
-    })
-  })
-
-  describe('test public name', () => {
-    it('for alias or initials with alias set', () => {
-      expect(logic.getPublicName(PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS)).toBe('alias')
-    })
-    it('for alias or initials with empty alias', () => {
-      user.alias = ''
-      expect(logic.getPublicName(PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS)).toBe('JoSm')
-    })
-    it('for alias or initials with empty alias and lower case written names', () => {
-      user.alias = ''
-      user.firstName = 'john'
-      user.lastName = 'smith'
-      expect(logic.getPublicName(PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS)).toBe('JoSm')
-    })
-    it('for publish name initials', () => {
-      expect(logic.getPublicName(PublishNameType.PUBLISH_NAME_INITIALS)).toBe('JoSm')
-    })
-    it('for publish name initials with lower case written names', () => {
-      user.firstName = 'john'
-      user.lastName = 'smith'
-      expect(logic.getPublicName(PublishNameType.PUBLISH_NAME_INITIALS)).toBe('JoSm')
-    })
-    it('for publish name first', () => {
-      expect(logic.getPublicName(PublishNameType.PUBLISH_NAME_FIRST)).toBe('John')
-    })
-    it('for publish name first initial', () => {
-      expect(logic.getPublicName(PublishNameType.PUBLISH_NAME_FIRST_INITIAL)).toBe('John S')
-    })
-    it('for publish name full', () => {
-      expect(logic.getPublicName(PublishNameType.PUBLISH_NAME_FULL)).toBe('John Smith')
     })
   })
 })
