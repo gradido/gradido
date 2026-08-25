@@ -171,9 +171,10 @@ async function onSwitch(event) {
         code: props.redeemCode,
         amount: props.linkData.amount,
         memo: props.linkData.memo,
-        // The backend signs the JWT's sendername as `alias ?? firstName ?? ''` -- the
-        // alias is what travels now (it is finally in the query's selection), and the
-        // real name is no longer sent along.
+        // The only name this call sends, and the backend signs exactly it (`alias ?? ''`
+        // in createRedeemJwt). The mutation still declares a `firstName` variable and the
+        // resolver still accepts the argument -- neither is filled from here, and the
+        // commented-out block above is where it used to be.
         alias: props.linkData.senderUser?.alias,
         validUntil: props.linkData.validUntil,
       })

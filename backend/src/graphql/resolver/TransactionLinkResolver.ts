@@ -502,9 +502,16 @@ export class TransactionLinkResolver {
         senderCommunityUuid,
         gradidoId,
         // The ALIAS, never the first name (NU-019). This token crosses a community
-        // border and is read by a stranger, so a real name signed here leaves our reach
-        // entirely -- and the redeem page displays it unguarded on the other side.
+        // border and is read by a stranger, so a real name signed here would leave our
+        // reach entirely -- and the redeem page displays it unguarded on the other side.
         // Empty for a member without one; the receiving page falls back to the gradidoID.
+        //
+        // ⚠️ Measured, so nobody reads more into this than it says: it used to be
+        // `alias ?? firstName ?? ''`, but the ONLY caller (RedeemCommunitySelection.vue)
+        // has never filled the `firstName` argument, so no real name was travelling.
+        // This closes the possibility, not a live leak. The argument itself stays for
+        // now -- an old wallet bundle still in someone's browser may name it, and a
+        // rejected variable would break their redeem in the deploy window.
         alias ?? '',
         code,
         amount,
