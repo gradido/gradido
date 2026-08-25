@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { OptInType } from '@enum/OptInType'
+import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { AssistedRegistrationInfo, AssistedRegistrationResult } from '@model/AssistedRegistration'
 import { sendAssistedRegistrationConfirmEmail } from 'core'
 import {
@@ -164,7 +165,10 @@ export class AssistedRegistrationResolver {
     })
     logger.addContext('user', userContact.user.id)
     const user = userContact.user
-    if (user.password === BigInt(0)) {
+    // "No password" is the encryption type, NOT `password === 0n` — the bigint column
+    // arrives untyped at runtime, so that comparison never matches (the login has the
+    // same rule; getUserCryptographicSalt is the pattern).
+    if (user.passwordEncryptionType === PasswordEncryptionType.NO_PASSWORD) {
       logger.warn('confirmEmail refused: account holds no password (classic registration)')
       throw new LogError('Could not confirm with this code')
     }

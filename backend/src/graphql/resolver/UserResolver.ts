@@ -228,7 +228,12 @@ export class UserResolver {
     // the wallet shows the confirm reminder, and after the grace period the auth checker
     // narrows their rights until the address is confirmed. No existing account changes
     // behaviour here: unconfirmed always meant no password before EM-013.
-    if (!dbUser.emailContact.emailChecked && dbUser.password === BigInt(0)) {
+    // "No password" is the encryption type, NOT `password === 0n`: the bigint column
+    // arrives untyped at runtime, so that comparison never matches (see the TODO below).
+    if (
+      !dbUser.emailContact.emailChecked &&
+      dbUser.passwordEncryptionType === PasswordEncryptionType.NO_PASSWORD
+    ) {
       logger.warn('login failed, user email not checked')
       throw new Error('The Users email is not validate yet')
     }

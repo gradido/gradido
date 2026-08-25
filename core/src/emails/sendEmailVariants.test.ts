@@ -289,10 +289,14 @@ describe('sendEmailVariants', () => {
           })
         })
 
-        // Confirm-only: the mail must carry ITS link, not the set-password one.
-        it('carries the confirm link and no set-password link', () => {
+        // Confirm-only: the mail must carry ITS link — and no password page at all.
+        // forgot-password also guards the requestNewLink include staying out: its
+        // button led there, and that page flips the opt-in row to RESET, disarming
+        // this very confirm link.
+        it('carries the confirm link and no password page link', () => {
           expect(result.originalMessage.html).toContain('http://localhost/confirm-email/9876543210')
           expect(result.originalMessage.html).not.toContain('reset-password')
+          expect(result.originalMessage.html).not.toContain('forgot-password')
         })
       })
     })

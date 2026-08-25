@@ -779,6 +779,7 @@ describe('UserResolver', () => {
             data: {
               login: {
                 alias: 'BBB',
+                emailChecked: true,
                 firstName: 'Bibi',
                 gmsAllowed: true,
                 gmsPublishLocation: 'GMS_LOCATION_TYPE_RANDOM',
@@ -1708,6 +1709,7 @@ describe('UserResolver', () => {
             data: {
               login: {
                 alias: 'BBB',
+                emailChecked: true,
                 firstName: 'Bibi',
                 gmsAllowed: true,
                 gmsPublishLocation: 'GMS_LOCATION_TYPE_RANDOM',

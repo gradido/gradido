@@ -21,6 +21,13 @@ block content
 
     a.clink(href=confirmLink) #{confirmLink}
 
-    include ../includes/requestNewLink.pug
+    //- Deliberately NO requestNewLink include: its button leads to the forgot-password
+    //- page, which flips the opt-in row to RESET and would disarm this very confirm
+    //- link. Resending lives in the wallet's reminder modal instead. The validity
+    //- lines stay — they answer "how long is this link good for".
+    if timeDurationObject.minutes == 0
+      div(class="p_content")= t('emails.general.linkValidity', { hours: timeDurationObject.hours })
+    else
+      div(class="p_content")= t('emails.general.linkValidityWithMinutes', { hours: timeDurationObject.hours, minutes: timeDurationObject.minutes })
 
     div(class="p_content")= t('emails.assistedRegistrationConfirm.notYou')
