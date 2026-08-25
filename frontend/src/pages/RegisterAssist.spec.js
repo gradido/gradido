@@ -35,7 +35,8 @@ vi.mock('@/components/Message/Message.vue', () => ({
   default: {
     name: 'Message',
     props: ['headline', 'subtitle', 'buttonText', 'linkTo'],
-    template: '<div data-test="message" :data-link-to="JSON.stringify(linkTo)">{{ subtitle }}</div>',
+    template:
+      '<div data-test="message" :data-link-to="JSON.stringify(linkTo)">{{ subtitle }}</div>',
   },
 }))
 

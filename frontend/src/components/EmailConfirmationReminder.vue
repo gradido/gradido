@@ -58,7 +58,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useStore } from 'vuex'
 import { useRoute, useRouter } from 'vue-router'
 import { useMutation } from '@vue/apollo-composable'
@@ -90,7 +90,20 @@ const deadline = computed(() =>
     : null,
 )
 
-const overdue = computed(() => !!deadline.value && Date.now() > deadline.value.getTime())
+// A bare Date.now() is invisible to Vue: without a ticking source the computed would
+// freeze on its first value, and a session kept open across the deadline would never
+// see the modal return. One-minute steps are plenty for a 24h grace period — and they
+// make the modal appear by itself the moment the deadline passes.
+const now = ref(Date.now())
+let ticker = null
+onMounted(() => {
+  ticker = setInterval(() => {
+    now.value = Date.now()
+  }, 60000)
+})
+onUnmounted(() => clearInterval(ticker))
+
+const overdue = computed(() => !!deadline.value && now.value > deadline.value.getTime())
 
 const deadlineText = computed(() =>
   deadline.value

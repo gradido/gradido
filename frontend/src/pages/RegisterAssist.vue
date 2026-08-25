@@ -12,7 +12,7 @@
     <p class="pb-4 text-muted">{{ $t('assistedRegistration.assist.emailHint') }}</p>
     <BForm role="form" @submit.prevent="onSubmit">
       <input-email />
-      <input-password-confirmation :model-value="form" register @update:modelValue="form" />
+      <input-password-confirmation register />
       <BRow>
         <BCol cols="12" lg="6">
           <BButton
@@ -57,11 +57,6 @@ const { t } = useI18n()
 const { toastError } = useAppToast()
 
 const emit = defineEmits(['set-mobile-start'])
-
-const form = ref({
-  password: '',
-  passwordRepeat: '',
-})
 
 const busy = ref(false)
 const showPageMessage = ref(false)

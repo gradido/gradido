@@ -87,9 +87,9 @@ describe('EmailConfirmationReminder', () => {
       const wrapper = mountWith({ emailChecked: false, accountCreatedAt: hoursAgo(1) })
       expect(wrapper.find('[data-test="email-confirmation-grace"]').exists()).toBe(true)
       expect(wrapper.find('[data-test="email-confirmation-later"]').exists()).toBe(true)
-      expect(wrapper.find('[data-test="email-confirmation-reminder"]').attributes('data-no-close')).toBe(
-        'false',
-      )
+      expect(
+        wrapper.find('[data-test="email-confirmation-reminder"]').attributes('data-no-close'),
+      ).toBe('false')
       await wrapper.find('[data-test="email-confirmation-later"]').trigger('click')
       expect(wrapper.find('[data-test="email-confirmation-reminder"]').exists()).toBe(false)
     })
@@ -100,9 +100,9 @@ describe('EmailConfirmationReminder', () => {
       const wrapper = mountWith({ emailChecked: false, accountCreatedAt: hoursAgo(25) })
       expect(wrapper.find('[data-test="email-confirmation-overdue"]').exists()).toBe(true)
       expect(wrapper.find('[data-test="email-confirmation-later"]').exists()).toBe(false)
-      expect(wrapper.find('[data-test="email-confirmation-reminder"]').attributes('data-no-close')).toBe(
-        'true',
-      )
+      expect(
+        wrapper.find('[data-test="email-confirmation-reminder"]').attributes('data-no-close'),
+      ).toBe('true')
     })
 
     it('keeps the two ways out: resending the mail …', async () => {
@@ -126,6 +126,32 @@ describe('EmailConfirmationReminder', () => {
       await wrapper.find('[data-test="email-confirmation-resend"]').trigger('click')
       await wrapper.vm.$nextTick()
       expect(toastErrorMock).toHaveBeenCalledWith('Email already sent less than 10 minutes ago')
+    })
+  })
+
+  describe('when the deadline passes mid-session', () => {
+    it('returns by itself — overdue overrides the earlier dismissal', async () => {
+      vi.useFakeTimers()
+      try {
+        // 30 seconds of grace left when the wallet opens.
+        const wrapper = mountWith({
+          emailChecked: false,
+          accountCreatedAt: new Date(Date.now() - (24 * 60 * 60 * 1000 - 30000)).toISOString(),
+        })
+        expect(wrapper.find('[data-test="email-confirmation-grace"]').exists()).toBe(true)
+        await wrapper.find('[data-test="email-confirmation-later"]').trigger('click')
+        expect(wrapper.find('[data-test="email-confirmation-reminder"]').exists()).toBe(false)
+
+        // Two minutes later the ticker has fired and the deadline lies behind us.
+        vi.advanceTimersByTime(2 * 60000)
+        await wrapper.vm.$nextTick()
+        expect(wrapper.find('[data-test="email-confirmation-overdue"]').exists()).toBe(true)
+        expect(
+          wrapper.find('[data-test="email-confirmation-reminder"]').attributes('data-no-close'),
+        ).toBe('true')
+      } finally {
+        vi.useRealTimers()
+      }
     })
   })
 
