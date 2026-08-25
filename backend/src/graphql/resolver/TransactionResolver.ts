@@ -36,7 +36,13 @@ import {
 } from 'database'
 import { getLogger, Logger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
-import { CommandJwtPayloadType, DecayCalculationType, encryptAndSign, GradidoUnit } from 'shared'
+import {
+  CommandJwtPayloadType,
+  DecayCalculationType,
+  encryptAndSign,
+  GradidoUnit,
+  VALID_ALIAS_REGEX,
+} from 'shared'
 import { randombytes_random } from 'sodium-native'
 import { Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import { In, IsNull } from 'typeorm'
@@ -343,14 +349,22 @@ export class TransactionResolver {
           }
           remoteUser.gradidoID = transaction.linkedUserGradidoID
           if (transaction.linkedUserName) {
-            // The stored name goes into the alias as well, and that is what the booking
-            // row shows. Since #3645 the column holds the ALIAS for every booking made
-            // in the alias era, so a foreign row now reads under the alias its sender
-            // signed; rows from before it keep showing the name that was stored then,
-            // which is exactly what they showed before. The split below is untouched
-            // (KLAR-11, with Dario) -- it still feeds firstName/lastName for those
-            // older rows.
-            remoteUser.alias = transaction.linkedUserName
+            // The stored name goes into the alias, and that is what the booking row
+            // shows -- but ONLY when it can be an alias. Since #3645 this column holds
+            // the alias for every booking made in the alias era; before that it held an
+            // assembled "First Last", which the split below still relies on. Passing
+            // such a value through the unguarded alias field would hand a member the
+            // counterparty's real name, which is the one thing NU-019 forbids.
+            //
+            // The shape decides, because nothing else can: an alias is 3-20 characters
+            // of letters, digits and single separators, so an assembled name -- which
+            // always carries the space the split looks for -- cannot pass. Where it does
+            // not pass, the row falls back to the gradidoID. The split itself is
+            // untouched (KLAR-11, with Dario) and still feeds firstName/lastName, which
+            // the guard shows to the moderation and to nobody else.
+            if (VALID_ALIAS_REGEX.test(transaction.linkedUserName)) {
+              remoteUser.alias = transaction.linkedUserName
+            }
             remoteUser.firstName = transaction.linkedUserName.slice(
               0,
               transaction.linkedUserName.indexOf(' '),
