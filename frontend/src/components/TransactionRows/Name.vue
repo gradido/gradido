@@ -11,6 +11,8 @@
   </div>
 </template>
 <script>
+import { memberAlias } from '@/utils/memberName'
+
 export default {
   name: 'Name',
   props: {
@@ -34,12 +36,10 @@ export default {
     },
   },
   computed: {
-    // The alias; without one the FULL gradidoID (NU-018) -- ungekuerzt on purpose: the
-    // full identifier can be copied into the send form and resolved, a shortened one is
-    // decoration. The row is kept from bursting by CSS below, not by cutting the value.
+    // How the wallet names a member (NU-018), plus the community they belong to.
     itemText() {
       return this.linkedUser
-        ? (this.linkedUser.alias || this.linkedUser.gradidoID) +
+        ? memberAlias(this.linkedUser) +
             (this.linkedUser.communityName ? ' / ' + this.linkedUser.communityName : '')
         : this.text
     },

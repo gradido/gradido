@@ -205,6 +205,7 @@ import { ref, computed, watch, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuery } from '@vue/apollo-composable'
 import { SEND_TYPES } from '@/utils/sendTypes'
+import { memberAlias } from '@/utils/memberName'
 import CommunitySwitch from '@/components/CommunitySwitch.vue'
 import ValidatedInput from '@/components/Inputs/ValidatedInput.vue'
 import {
@@ -371,9 +372,9 @@ watch(
   () => userResult.value?.user,
   (user) => {
     if (user) {
-      // The recipient under their alias; without one the full gradidoID (NU-018). The
-      // real name is not delivered to other members any more.
-      userName.value = user.alias || user.gradidoID
+      // The recipient as the wallet names them (NU-018); the real name is not delivered
+      // to other members any more.
+      userName.value = memberAlias(user)
       form.identifier = userIdentifier.value.identifier
     }
   },
