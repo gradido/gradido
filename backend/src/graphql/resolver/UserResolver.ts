@@ -313,6 +313,11 @@ export class UserResolver {
       }
     }
     user.klickTipp = await klicktippStatePromise
+    // Login runs on an inalienable right, so no authenticated caller exists while this
+    // answer is serialised -- but the member HAS just proven who they are. Without this
+    // line the firstName/lastName field resolvers would read the owner exception as
+    // "not you" and the wallet's own store would fill with null names.
+    context.user = dbUser
     logger.info('successful Login')
     logger.trace('user after login', new UserLoggingView(dbUser))
     return user
@@ -1585,6 +1590,46 @@ export class UserResolver {
       return null
     }
     return user.salutation ?? null
+  }
+
+  /**
+   * The member's real first name -- moderation and the member themselves, everyone else
+   * reads null and speaks of the member by alias (NU-019). Guarded here for the same
+   * reason as salutation: this ObjectType leaves through `user()` (any signed-in member,
+   * any identifier), `transactionList { linkedUser }`, and `queryTransactionLink
+   * { senderUser }` with no token at all. Without this resolver every display fix is one
+   * query away from being undone.
+   *
+   * The owner exception is spelled out (context.user), NOT modelled as a second right:
+   * VIEW_OWN_USER_CONTACT next door is assigned to no role and guards nothing -- that
+   * construction is the one this deliberately avoids. The login mutation sets
+   * context.user to the member it just authenticated, so the wallet's login answer
+   * carries the member's own name.
+   *
+   * Null instead of throwing, like salutation: an error here would null the whole
+   * enclosing user for a query that merely asked for too much.
+   */
+  @FieldResolver(() => String, { nullable: true })
+  firstName(@Root() user: User, @Ctx() context: Context): string | null {
+    if (context.role?.hasRight(RIGHTS.VIEW_USER_REAL_NAME)) {
+      return user.firstName ?? null
+    }
+    if (context.user && context.user.id === user.id) {
+      return user.firstName ?? null
+    }
+    return null
+  }
+
+  /** The other half of the name; same guard as firstName above. */
+  @FieldResolver(() => String, { nullable: true })
+  lastName(@Root() user: User, @Ctx() context: Context): string | null {
+    if (context.role?.hasRight(RIGHTS.VIEW_USER_REAL_NAME)) {
+      return user.lastName ?? null
+    }
+    if (context.user && context.user.id === user.id) {
+      return user.lastName ?? null
+    }
+    return null
   }
 
   /**

@@ -510,30 +510,39 @@ describe('send coins', () => {
                   }),
                   expect.objectContaining({
                     amount: '-6.66',
+                    // The real-name guard (NU-019): peter is a stranger to bob, so
+                    // the names read as null and the alias is what identifies the row.
                     linkedUser: expect.objectContaining({
-                      firstName: 'Bob',
+                      firstName: null,
                       gradidoID: bob?.gradidoID,
-                      lastName: 'der Baumeister',
+                      lastName: null,
+                      alias: 'bob',
                     }),
                     memo: 'send via alias',
                     typeId: 'SEND',
                   }),
                   expect.objectContaining({
                     amount: '10',
+                    // The real-name guard (NU-019): peter is a stranger to bob, so
+                    // the names read as null and the alias is what identifies the row.
                     linkedUser: expect.objectContaining({
-                      firstName: 'Bob',
+                      firstName: null,
                       gradidoID: bob?.gradidoID,
-                      lastName: 'der Baumeister',
+                      lastName: null,
+                      alias: 'bob',
                     }),
                     memo: 'send via gradido ID',
                     typeId: 'RECEIVE',
                   }),
                   expect.objectContaining({
                     amount: '50',
+                    // The real-name guard (NU-019): peter is a stranger to bob, so
+                    // the names read as null and the alias is what identifies the row.
                     linkedUser: expect.objectContaining({
-                      firstName: 'Bob',
+                      firstName: null,
                       gradidoID: bob?.gradidoID,
-                      lastName: 'der Baumeister',
+                      lastName: null,
+                      alias: 'bob',
                     }),
                     memo: 'unrepeatable memo',
                     typeId: 'RECEIVE',
