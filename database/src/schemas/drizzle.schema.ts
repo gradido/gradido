@@ -303,6 +303,33 @@ export const userAvatarsTable = mysqlTable('user_avatars', {
 export type UserAvatarSelect = typeof userAvatarsTable.$inferSelect
 export type UserAvatarInsert = typeof userAvatarsTable.$inferInsert
 
+// A registration attempt that rang an existing member's doorbell (see migration 0124).
+// Parked only when the attempt carried a redeem code; the member's multi-registration
+// mail then offers "I am helping someone set up a Gradido account". Rows expire after
+// the mail-code window and are purged lazily. The host's address never becomes an
+// account address — it only receives the one mail.
+export const assistedRegistrationsTable = mysqlTable(
+  'assisted_registrations',
+  {
+    id: int().autoincrement().primaryKey().notNull(),
+    firstName: varchar('first_name', { length: 255 }).notNull(),
+    lastName: varchar('last_name', { length: 255 }).notNull(),
+    language: varchar({ length: 4 }).default(sql`'de'`).notNull(),
+    redeemCode: varchar('redeem_code', { length: 64 }).notNull(),
+    publisherId: int('publisher_id').default(sql`NULL`),
+    project: varchar({ length: 255 }).default(sql`NULL`),
+    hostUserId: int('host_user_id').notNull(),
+    assistCode: bigint('assist_code', { mode: 'bigint', unsigned: true }).notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [unique('assist_code_key').on(table.assistCode)],
+)
+
+export type AssistedRegistrationSelect = typeof assistedRegistrationsTable.$inferSelect
+export type AssistedRegistrationInsert = typeof assistedRegistrationsTable.$inferInsert
+
 // Paying with a printed card. Three tables, split along who owns what: the PIN and the
 // limits belong to the person, the code and the failure counter belong to the card, and
 // the payment request is a short-lived thing that lives between "amount entered" and

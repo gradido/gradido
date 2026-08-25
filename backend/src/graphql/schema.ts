@@ -4,6 +4,7 @@ import { GraphQLSchema } from 'graphql'
 import { Duration, GradidoUnit } from 'shared'
 import { buildSchema } from 'type-graphql'
 import { isAuthorized } from './directive/isAuthorized'
+import { AssistedRegistrationResolver } from './resolver/AssistedRegistrationResolver'
 import { BalanceResolver } from './resolver/BalanceResolver'
 import { CommunityResolver } from './resolver/CommunityResolver'
 import { ContributionLinkResolver } from './resolver/ContributionLinkResolver'
@@ -30,6 +31,7 @@ import { LocationScalar } from './scalar/Location'
 export const schema = async (): Promise<GraphQLSchema> => {
   return buildSchema({
     resolvers: [
+      AssistedRegistrationResolver,
       BalanceResolver,
       CommunityResolver,
       ContributionLinkResolver,

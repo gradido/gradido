@@ -11,6 +11,9 @@
       "contactSupport": "Desteğe başvur",
       "emailExists": "Ancak e-posta adresin için zaten bir hesap mevcut.",
       "emailReused": "e-posta adresin az önce Gradido'da bir hesap kaydetmek için yeniden kullanıldı.",
+      "helperButton": "Birine hesap açmasında yardım ediyorum",
+      "helperIntro": "Yanında, az önce senin e-posta adresini kullanarak bir Gradido hesabı açmaya başlayan biri oturuyorsa: Kuruluma buradan devam et. Birlikte onun kendi e-posta adresini girersiniz, şifresini ise kendisi seçer.",
+      "helperTitle": "Şu anda bir Gradido kafesinde birine mi yardım ediyorsun?",
       "ifYouAreNotTheOne": "Yeniden kaydolmayı sen denemediysen, lütfen desteğimize başvur:",
       "onForgottenPasswordClickLink": "Şifreni unuttuysan, lütfen buraya tıkla.",
       "subject": "E-postanla yeniden kayıt denemesi",
@@ -23,6 +26,16 @@
       "subject": "Ortak yarara katkın hakkında mesaj",
       "title": "Ortak yarara katkın hakkında mesaj",
       "toSeeAndAnswerMessage": "Doğrudan katkının yanından yanıtlayabilirsin."
+    },
+    "assistedRegistrationConfirm": {
+      "accountCreated": "Bir Gradido üyesiyle birlikte az önce senin için bir hesap oluşturuldu — bu e-posta adresiyle.",
+      "clickToConfirm": "E-posta adresini onaylamak için lütfen buraya tıkla.",
+      "confirmButton": "Adresi onayla",
+      "confirmHeading": "E-posta adresini onayla",
+      "notYou": "Bu hesaptan haberin yok mu? O zaman bu e-postayı dikkate alma — onay olmadan hesap kapalı kalır.",
+      "pleaseConfirm": "Lütfen bu adresin sana ait olduğunu onayla — hesabın ancak o zaman kalıcı olarak açık kalır.",
+      "subject": "E-posta adresini onayla",
+      "title": "Gradido hesabın hazır"
     },
     "contribution": {
       "toSeeContributionsAndMessages": "Ortak yarara katkılarını ve ilgili mesajları Gradido hesabında bulabilirsin."
@@ -88,7 +101,8 @@
       "subject": "E-posta adresi değiştirildi: {firstName} {lastName}",
       "title": "Bir üye e-posta adresini değiştirdi",
       "todo": "Lütfen yeni adresi GDT sunucusunda bu hesaba bağla ve Klick-Tipp'i güncelle.",
-      "todoTakeBack": "Bu hesabın önceki bir adresine geri dönüş – GDT sunucusunda birleştirilecek bir şey yok. Lütfen yalnızca Klick-Tipp'i güncelleyin."
+      "todoTakeBack": "Bu hesabın önceki bir adresine geri dönüş – GDT sunucusunda birleştirilecek bir şey yok. Lütfen yalnızca Klick-Tipp'i güncelleyin.",
+      "todoTypoCorrection": "Önceki adres hiç onaylanmadı (kurulum sırasında yazım hatası) – GDT sunucusunda birleştirilecek bir şey yok. Lütfen yalnızca yeni adresi Klick-Tipp'e ekleyin."
     },
     "footer": {
       "contactOurSupport": "Başka sorun olursa lütfen desteğimize başvur.",

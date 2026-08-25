@@ -23,6 +23,25 @@
     "reload": "Yenile",
     "text": "Daha yeni bir sürüm mevcut. Lütfen sayfayı yenileyin."
   },
+  "assistedRegistration": {
+    "assist": {
+      "button": "Hesap aç",
+      "done": "Hesap hazır! Bir onay e-postası yeni posta kutusuna doğru yolda. Şimdi giriş yap ve çeki bozdur:",
+      "emailHint": "Buraya yeni üyenin kendi e-posta adresini gir — seninkini değil. Şifreyi yeni üye kendisi yazar.",
+      "emailTaken": "Bu e-posta adresinin zaten bir Gradido hesabı var. Tekrar girmek için \"Şifremi unuttum\" yolunu kullan.",
+      "intro": "{name} bir Gradido hesabı başlatmak istiyor.",
+      "invalid": "Bu bağlantı geçersiz veya süresi dolmuş.",
+      "loginButton": "Giriş yap ve çeki bozdur",
+      "title": "Birlikte bir Gradido hesabı açmak"
+    },
+    "confirm": {
+      "button": "Adresi onayla",
+      "done": "E-posta adresin onaylandı. Hesabın artık kalıcı olarak sana açık.",
+      "invalid": "Bu onay bağlantısı geçersiz veya süresi dolmuş. Giriş yap ve kendine yeni bir e-posta gönder.",
+      "text": "Bu e-posta adresinin Gradido hesabına ait olduğunu onaylamak için düğmeye tıkla.",
+      "title": "E-posta adresini onayla"
+    }
+  },
   "asterisks": "****",
   "auth": {
     "left": {
@@ -224,6 +243,16 @@
       "text": "Bu sen değil miydin? O zaman istenen değişikliği iptal et – önceki adresin kalır.",
       "title": "E-posta adresi değişikliğini iptal et"
     }
+  },
+  "emailConfirmation": {
+    "changeAddress": "Adresi düzelt",
+    "grace": "{deadline} tarihine kadar hesabını tam olarak kullanabilirsin — sonrasında onayını bekler.",
+    "later": "Daha sonra",
+    "mailSent": "Bir onay e-postası adresine doğru yolda. Lütfen içindeki bağlantıya tıkla.",
+    "overdue": "Geçiş süresi doldu. Lütfen e-posta adresini onayla — hesabın hemen yeniden tamamen açılır.",
+    "resend": "E-postayı yeniden gönder",
+    "resent": "Onay e-postası yeniden yolda.",
+    "title": "E-posta adresini onayla"
   },
   "error": {
     "email-already-sent": "Sana 10 dakikadan daha az sürede e-posta gönderdik .",

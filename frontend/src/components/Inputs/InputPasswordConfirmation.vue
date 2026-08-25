@@ -42,9 +42,12 @@
 import InputPassword from './InputPassword'
 
 defineProps({
+  // Never read here — the two fields register themselves with vee-validate. Optional
+  // so callers without a binding stay warning-free; existing callers keep passing it.
   modelValue: {
     type: Object,
-    required: true,
+    required: false,
+    default: null,
   },
   register: {
     type: Boolean,

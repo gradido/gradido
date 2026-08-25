@@ -1,5 +1,6 @@
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 
+export * from './assistedRegistrations'
 export * from './communities'
 export * from './communityHandshakes'
 export * from './creachatThreads'

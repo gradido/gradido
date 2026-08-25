@@ -1,0 +1,33 @@
+//- AI-GENERATED — not an architecture reference
+//- The guest's half of an assisted registration (EM-013): the account already exists
+//- and the password is already set — this mail only asks the guest to prove the
+//- address is theirs. Deliberately NOT the accountActivation template: that one talks
+//- about finishing the registration by choosing a password, which here is already done.
+extend ../layout.pug
+
+block content
+  h2= t('emails.assistedRegistrationConfirm.title')
+  .text-block
+    include ../includes/salutation.pug
+    p
+      = t('emails.assistedRegistrationConfirm.accountCreated')
+      br
+      = t('emails.assistedRegistrationConfirm.pleaseConfirm')
+  .content
+    h2= t('emails.assistedRegistrationConfirm.confirmHeading')
+    div(class="p_content")= t('emails.assistedRegistrationConfirm.clickToConfirm')
+    a.button-3(href=confirmLink) #{t('emails.assistedRegistrationConfirm.confirmButton')}
+    div(class="p_content")= t('emails.general.orCopyLink')
+
+    a.clink(href=confirmLink) #{confirmLink}
+
+    //- Deliberately NO requestNewLink include: its button leads to the forgot-password
+    //- page, which flips the opt-in row to RESET and would disarm this very confirm
+    //- link. Resending lives in the wallet's reminder modal instead. The validity
+    //- lines stay — they answer "how long is this link good for".
+    if timeDurationObject.minutes == 0
+      div(class="p_content")= t('emails.general.linkValidity', { hours: timeDurationObject.hours })
+    else
+      div(class="p_content")= t('emails.general.linkValidityWithMinutes', { hours: timeDurationObject.hours, minutes: timeDurationObject.minutes })
+
+    div(class="p_content")= t('emails.assistedRegistrationConfirm.notYou')

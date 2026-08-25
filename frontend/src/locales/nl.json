@@ -23,6 +23,25 @@
     "reload": "Opnieuw laden",
     "text": "Er is een nieuwere versie beschikbaar. Laad de pagina opnieuw."
   },
+  "assistedRegistration": {
+    "assist": {
+      "button": "Account aanmaken",
+      "done": "Het account is klaar! Een bevestigingsmail is onderweg naar het nieuwe postvak. Meld je nu aan en verzilver de cheque:",
+      "emailHint": "Voer hier het eigen e-mailadres van het nieuwe lid in — niet dat van jou. Het wachtwoord typt het nieuwe lid zelf.",
+      "emailTaken": "Dit e-mailadres heeft al een Gradido-account. Gebruik \"Wachtwoord vergeten\" om weer binnen te komen.",
+      "intro": "{name} wil een Gradido-account beginnen.",
+      "invalid": "Deze link is ongeldig of verlopen.",
+      "loginButton": "Aanmelden en cheque verzilveren",
+      "title": "Samen een Gradido-account aanmaken"
+    },
+    "confirm": {
+      "button": "Adres bevestigen",
+      "done": "Je e-mailadres is bevestigd. Je account staat nu blijvend voor je open.",
+      "invalid": "Deze bevestigingslink is ongeldig of verlopen. Meld je aan en laat je een nieuwe mail sturen.",
+      "text": "Klik op de knop om te bevestigen dat dit e-mailadres bij jouw Gradido-account hoort.",
+      "title": "E-mailadres bevestigen"
+    }
+  },
   "asterisks": "****",
   "auth": {
     "left": {
@@ -224,6 +243,16 @@
       "text": "Was jij dat niet? Verwerp dan de aangevraagde wijziging – je vorige adres blijft bestaan.",
       "title": "Wijziging van e-mailadres verwerpen"
     }
+  },
+  "emailConfirmation": {
+    "changeAddress": "Adres corrigeren",
+    "grace": "Tot {deadline} kun je je account al volledig gebruiken — daarna wacht het op je bevestiging.",
+    "later": "Later",
+    "mailSent": "Een bevestigingsmail is onderweg naar je e-mailadres. Klik op de link erin.",
+    "overdue": "De overgangstijd is voorbij. Bevestig je e-mailadres — daarna staat je account meteen weer volledig open.",
+    "resend": "Mail opnieuw sturen",
+    "resent": "De bevestigingsmail is opnieuw onderweg.",
+    "title": "Bevestig je e-mailadres"
   },
   "error": {
     "email-already-sent": "Wij hebben jou minder dan 10 minuten geleden een email gestuurd.",

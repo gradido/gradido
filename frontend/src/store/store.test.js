@@ -175,9 +175,22 @@ describe('Vuex store', () => {
         darkMode: true,
       }
 
-      it('calls eighteen commits', () => {
+      it('calls twenty commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(18)
+        expect(commit).toHaveBeenCalledTimes(20)
+      })
+
+      // EM-013: the confirm-reminder modal derives its deadline from these two. `?? null`
+      // in the action keeps a caller that does not select the fields from writing
+      // undefined into the persisted store.
+      it('stores the confirmation state and the account age', () => {
+        const localCommit = vi.fn()
+        login(
+          { commit: localCommit, state: {} },
+          { ...commitedData, emailChecked: false, createdAt: '2026-08-25T06:00:00.000Z' },
+        )
+        expect(localCommit).toHaveBeenCalledWith('emailChecked', false)
+        expect(localCommit).toHaveBeenCalledWith('accountCreatedAt', '2026-08-25T06:00:00.000Z')
       })
 
       // Not read from the payload -- the login mutation cannot carry a picture -- but
@@ -235,9 +248,9 @@ describe('Vuex store', () => {
         forgetParkedAmountMock.mockClear()
       })
 
-      it('calls twenty-one commits', () => {
+      it('calls twenty-three commits', () => {
         logout({ commit, state, dispatch })
-        expect(commit).toHaveBeenCalledTimes(21)
+        expect(commit).toHaveBeenCalledTimes(23)
       })
 
       // ... (other logout action tests remain largely the same)

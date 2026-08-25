@@ -78,6 +78,12 @@ export const mutations = {
   hideAmountGDT: (state, hideAmountGDT) => {
     state.hideAmountGDT = !!hideAmountGDT
   },
+  emailChecked: (state, emailChecked) => {
+    state.emailChecked = emailChecked
+  },
+  accountCreatedAt: (state, accountCreatedAt) => {
+    state.accountCreatedAt = accountCreatedAt
+  },
   email: (state, email) => {
     state.email = email || ''
   },
@@ -131,6 +137,9 @@ export const actions = {
     commit('roles', data.roles)
     commit('hideAmountGDD', data.hideAmountGDD)
     commit('hideAmountGDT', data.hideAmountGDT)
+    // ?? null keeps a caller that does not select the two fields from writing undefined
+    commit('emailChecked', data.emailChecked ?? null)
+    commit('accountCreatedAt', data.createdAt ?? null)
     commit('userLocation', data.userLocation)
     // Forget the previous member's picture. Not read from `data` -- the login mutation
     // cannot carry it -- but cleared unconditionally, because whoever logs in here is not
@@ -161,6 +170,8 @@ export const actions = {
     commit('roles', null)
     commit('hideAmountGDD', false)
     commit('hideAmountGDT', true)
+    commit('emailChecked', null)
+    commit('accountCreatedAt', null)
     commit('email', '')
     commit('userLocation', null)
     commit('avatar', null)
@@ -253,6 +264,10 @@ try {
       publisherId: null,
       hideAmountGDD: null,
       hideAmountGDT: null,
+      // EM-013: whether the member's address is confirmed, and when the account was
+      // created — the confirm-reminder modal derives its deadline from the two.
+      emailChecked: null,
+      accountCreatedAt: null,
       email: '',
       darkMode: false,
       themeMode: 'system',

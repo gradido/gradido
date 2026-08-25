@@ -11,6 +11,9 @@
       "contactSupport": "Contactar o suporte",
       "emailExists": "No entanto, já existe uma conta para o teu endereço de e-mail.",
       "emailReused": "o teu endereço de e-mail acabou de ser utilizado novamente para registar uma conta no Gradido.",
+      "helperButton": "Estou a ajudar alguém a criar uma conta",
+      "helperIntro": "Se ao teu lado está uma pessoa que acabou de usar o teu endereço de e-mail para começar uma conta Gradido: continua aqui a configuração. Juntos introduzem o endereço de e-mail dela, e a palavra-passe escolhe-a ela própria.",
+      "helperTitle": "Estás a ajudar alguém num café Gradido neste momento?",
       "ifYouAreNotTheOne": "Se não tentaste registar-te novamente, contacta o nosso suporte:",
       "onForgottenPasswordClickLink": "Se te esqueceste da tua palavra-passe, clica aqui.",
       "subject": "Nova tentativa de registo com o teu e-mail",
@@ -23,6 +26,16 @@
       "subject": "Mensagem sobre a tua contribuição para o bem comum",
       "title": "Mensagem sobre a tua contribuição para o bem comum",
       "toSeeAndAnswerMessage": "Podes responder diretamente na tua contribuição."
+    },
+    "assistedRegistrationConfirm": {
+      "accountCreated": "Juntamente com um membro Gradido acaba de ser criada uma conta para ti — com este endereço de e-mail.",
+      "clickToConfirm": "Clica aqui para confirmar o teu endereço de e-mail.",
+      "confirmButton": "Confirmar endereço",
+      "confirmHeading": "Confirmar endereço de e-mail",
+      "notYou": "Não sabes nada desta conta? Então ignora este e-mail — sem confirmação a conta permanece fechada.",
+      "pleaseConfirm": "Confirma que este endereço é teu — só então a tua conta ficará aberta de forma permanente.",
+      "subject": "Confirma o teu endereço de e-mail",
+      "title": "A tua conta Gradido está pronta"
     },
     "contribution": {
       "toSeeContributionsAndMessages": "Encontras as tuas contribuições para o bem comum e as mensagens associadas na tua conta Gradido."
@@ -88,7 +101,8 @@
       "subject": "Endereço de e-mail alterado: {firstName} {lastName}",
       "title": "Um membro alterou o seu endereço de e-mail",
       "todo": "Por favor, associa o novo endereço a esta conta no servidor GDT e atualiza o Klick-Tipp.",
-      "todoTakeBack": "Regresso a um endereço anterior desta conta – não há nada a fundir no servidor GDT. Por favor, atualiza apenas o Klick-Tipp."
+      "todoTakeBack": "Regresso a um endereço anterior desta conta – não há nada a fundir no servidor GDT. Por favor, atualiza apenas o Klick-Tipp.",
+      "todoTypoCorrection": "O endereço anterior nunca foi confirmado (erro de digitação na criação) – não há nada a fundir no servidor GDT. Por favor, insere apenas o novo endereço no Klick-Tipp."
     },
     "footer": {
       "contactOurSupport": "Se tiveres mais questões, contacta o nosso suporte.",
