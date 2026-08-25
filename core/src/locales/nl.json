@@ -101,7 +101,8 @@
       "subject": "E-mailadres gewijzigd: {firstName} {lastName}",
       "title": "Een lid heeft zijn e-mailadres gewijzigd",
       "todo": "Koppel het nieuwe adres op de GDT-server aan dit account en werk Klick-Tipp bij.",
-      "todoTakeBack": "Terugwijziging naar een eerder adres van dit account – op de GDT-server valt niets samen te voegen. Werk alleen Klick-Tipp bij."
+      "todoTakeBack": "Terugwijziging naar een eerder adres van dit account – op de GDT-server valt niets samen te voegen. Werk alleen Klick-Tipp bij.",
+      "todoTypoCorrection": "Het vorige adres is nooit bevestigd (een typefout bij het aanmaken) – op de GDT-server valt niets samen te voegen. Voer alleen het nieuwe adres in Klick-Tipp in."
     },
     "footer": {
       "contactOurSupport": "Neem bij verdere vragen contact op met onze support.",

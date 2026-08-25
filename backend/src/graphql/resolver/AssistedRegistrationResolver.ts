@@ -127,11 +127,18 @@ export class AssistedRegistrationResolver {
     )
     // Outside the account transaction on purpose: the attempt row is Drizzle, the
     // account is TypeORM, and nothing depends on the two being atomic — a row that
-    // survives here simply expires, and its address is taken now anyway.
+    // survives here simply expires, and its address is taken now anyway. That holds
+    // for a second call with a DIFFERENT address too: registering books no money (a
+    // transaction link pays once at redeem, guarded by redeemedBy; a contribution
+    // link is per-user by design and its code is printed on the cheque anyway), so
+    // the worst case is one extra empty account — the class any mistyped classic
+    // registration leaves behind as well.
     await dbDeleteAssistedRegistration(row.id)
 
-    const host = await DbUser.findOne({ where: { id: row.hostUserId } })
-    await EVENT_USER_REGISTER_ASSISTED(dbUser, host ?? ({ id: 0 } as DbUser))
+    // Only the id goes into the event, so no lookup: a host soft-deleted inside the
+    // 24h window still keeps "who helped whom" answerable (same placeholder pattern
+    // as registerAccount).
+    await EVENT_USER_REGISTER_ASSISTED(dbUser, { id: row.hostUserId } as DbUser)
     logger.info('completeAssistedRegistration... successful')
 
     return { redeemCode: row.redeemCode }

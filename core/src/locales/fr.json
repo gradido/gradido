@@ -101,7 +101,8 @@
       "subject": "Adresse e-mail modifiée : {firstName} {lastName}",
       "title": "Un membre a modifié son adresse e-mail",
       "todo": "Merci de rattacher la nouvelle adresse à ce compte sur le serveur GDT et de mettre à jour Klick-Tipp.",
-      "todoTakeBack": "Retour à une adresse antérieure de ce compte – rien à fusionner sur le serveur GDT. Merci de ne mettre à jour que Klick-Tipp."
+      "todoTakeBack": "Retour à une adresse antérieure de ce compte – rien à fusionner sur le serveur GDT. Merci de ne mettre à jour que Klick-Tipp.",
+      "todoTypoCorrection": "L'ancienne adresse n'a jamais été confirmée (faute de frappe à la création) – rien à fusionner sur le serveur GDT. Merci de seulement saisir la nouvelle adresse dans Klick-Tipp."
     },
     "footer": {
       "contactOurSupport": "Pour toute autre question, contacte notre support.",

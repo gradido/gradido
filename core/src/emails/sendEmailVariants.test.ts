@@ -11,6 +11,7 @@ import {
   sendContributionConfirmedEmail,
   sendContributionDeletedEmail,
   sendContributionDeniedEmail,
+  sendEmailChangeSupportEmail,
   sendResetPasswordEmail,
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
@@ -294,6 +295,52 @@ describe('sendEmailVariants', () => {
           expect(result.originalMessage.html).not.toContain('reset-password')
         })
       })
+    })
+  })
+
+  describe('sendEmailChangeSupportEmail', () => {
+    // Substance assertions rather than snapshots, for the same reason as above: these
+    // tests only run in the CI. The markers are phrases from en.json, so they couple
+    // the template branch to the locale text instead of echoing the test's own input.
+    const supportData = {
+      firstName: 'Guest',
+      lastName: 'Person',
+      email: 'support@gradido.net',
+      language: 'en',
+      alias: 'guest',
+      oldEmail: 'typo@example.org',
+      newEmail: 'real@example.org',
+      gdtEmail: 'real@example.org',
+    }
+
+    it('asks to merge on a normal change', async () => {
+      const normal: any = await sendEmailChangeSupportEmail({
+        ...supportData,
+        gdtEmail: 'anchor@example.org',
+        takeBack: false,
+        typoCorrection: false,
+      })
+      expect(normal.originalMessage.html).toContain('merge the new address')
+    })
+
+    it('on an EM-013 typo correction says nothing is to merge — Klick-Tipp only needs the new address', async () => {
+      const typo: any = await sendEmailChangeSupportEmail({
+        ...supportData,
+        takeBack: false,
+        typoCorrection: true,
+      })
+      expect(typo.originalMessage.html).toContain('never confirmed')
+      expect(typo.originalMessage.html).not.toContain('merge the new address')
+    })
+
+    it('keeps the take-back wording for a change back to an earlier address', async () => {
+      const back: any = await sendEmailChangeSupportEmail({
+        ...supportData,
+        takeBack: true,
+        typoCorrection: false,
+      })
+      expect(back.originalMessage.html).toContain('change back to an earlier address')
+      expect(back.originalMessage.html).not.toContain('merge the new address')
     })
   })
 

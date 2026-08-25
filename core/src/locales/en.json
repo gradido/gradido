@@ -101,7 +101,8 @@
       "subject": "E-mail address changed: {firstName} {lastName}",
       "title": "A member has changed their e-mail address",
       "todo": "Please merge the new address into this account on the GDT server and update Klick-Tipp.",
-      "todoTakeBack": "A change back to an earlier address of this account – nothing to merge on the GDT server. Please only update Klick-Tipp."
+      "todoTakeBack": "A change back to an earlier address of this account – nothing to merge on the GDT server. Please only update Klick-Tipp.",
+      "todoTypoCorrection": "The previous address was never confirmed (a typo during setup) – nothing to merge on the GDT server. Please only enter the new address into Klick-Tipp."
     },
     "footer": {
       "contactOurSupport": "If you have any further questions, please contact our support.",

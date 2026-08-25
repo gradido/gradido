@@ -453,6 +453,10 @@ export class EmailChangeResolver {
       newEmail: pending.email,
       gdtEmail: oldest?.email ?? oldEmail,
       takeBack,
+      // EM-013 typo correction: the replaced address was never confirmed, so it was
+      // never on the GDT server and never in Klick-Tipp — "merge the new address"
+      // would ask the support to merge an address into itself.
+      typoCorrection: !oldWasConfirmed,
     })
     logger.info('confirmEmailChange... mails sent')
     return pending.email

@@ -6,6 +6,7 @@ import {
   sendAssistedRegistrationConfirmEmail,
   sendEmailChangeConfirmEmail,
   sendEmailChangeNoticeEmail,
+  sendEmailChangeSupportEmail,
 } from 'core'
 import {
   AppDatabase,
@@ -445,6 +446,18 @@ describe('AssistedRegistrationResolver', () => {
       })
       const oldest = await dbFindOldestUserContact(guest3.id)
       expect(oldest?.email).toBe(realEmail)
+
+      // ... and the support mail must not ask to merge a typo that never reached the
+      // GDT server: the typo-correction flag switches its todo text.
+      expect(sendEmailChangeSupportEmail).toBeCalledWith(
+        expect.objectContaining({
+          oldEmail: typoEmail,
+          newEmail: realEmail,
+          gdtEmail: realEmail,
+          takeBack: false,
+          typoCorrection: true,
+        }),
+      )
     })
   })
 })

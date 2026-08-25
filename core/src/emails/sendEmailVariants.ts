@@ -169,6 +169,11 @@ export const sendEmailChangeSupportEmail = (
     gdtEmail: string
     /** A change back to an address the member held before - nothing to merge on the GDT server. */
     takeBack: boolean
+    /**
+     * The replaced address was never confirmed (an EM-013 typo correction): it was never
+     * on the GDT server and never in Klick-Tipp - the new address only needs entering.
+     */
+    typoCorrection: boolean
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({

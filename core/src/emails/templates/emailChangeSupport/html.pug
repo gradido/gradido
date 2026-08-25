@@ -9,7 +9,11 @@ block content
     p= t('emails.emailChangeSupport.newEmail', { newEmail })
   .content
     div(class="p_content")= t('emails.emailChangeSupport.gdtHint', { gdtEmail })
-    if takeBack
+    //- A never-confirmed old address (EM-013 typo) dominates: whatever else is true,
+    //- there is nothing on the GDT server or in Klick-Tipp under that address.
+    if typoCorrection
+      div(class="p_content")= t('emails.emailChangeSupport.todoTypoCorrection')
+    else if takeBack
       div(class="p_content")= t('emails.emailChangeSupport.todoTakeBack')
     else
       div(class="p_content")= t('emails.emailChangeSupport.todo')
