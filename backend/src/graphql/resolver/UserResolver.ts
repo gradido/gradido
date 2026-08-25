@@ -229,7 +229,8 @@ export class UserResolver {
     // narrows their rights until the address is confirmed. No existing account changes
     // behaviour here: unconfirmed always meant no password before EM-013.
     // "No password" is the encryption type, NOT `password === 0n`: the bigint column
-    // arrives untyped at runtime, so that comparison never matches (see the TODO below).
+    // arrives as a string at runtime (bigNumberStrings), so that comparison never
+    // matches — the old TODO on the guard below said so for years.
     if (
       !dbUser.emailContact.emailChecked &&
       dbUser.passwordEncryptionType === PasswordEncryptionType.NO_PASSWORD
@@ -237,8 +238,7 @@ export class UserResolver {
       logger.warn('login failed, user email not checked')
       throw new Error('The Users email is not validate yet')
     }
-    // TODO: at least in test this does not work since `dbUser.password = 0` and `BigInto(0) = 0n`
-    if (dbUser.password === BigInt(0)) {
+    if (dbUser.passwordEncryptionType === PasswordEncryptionType.NO_PASSWORD) {
       // TODO we want to catch this on the frontend and ask the user to check his emails or resend code
       logger.warn('login failed, user has not set a password yet')
       throw new Error('The User has not set a password yet')
