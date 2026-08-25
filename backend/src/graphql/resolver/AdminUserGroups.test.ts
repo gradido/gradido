@@ -41,7 +41,7 @@ afterAll(async () => {
 })
 
 interface ListedUser {
-  alias: string | null
+  alias: string
   role: string
   visibleCreationGroups: string[]
   seesAllCreationGroups: boolean

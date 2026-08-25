@@ -1606,9 +1606,11 @@ describe('UserResolver', () => {
     })
 
     describe('authenticated', () => {
+      let admin: User
+
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        await userFactory(testEnv, peterLustig)
+        admin = await userFactory(testEnv, peterLustig)
         await mutate({
           mutation: login,
           variables: {
@@ -1625,11 +1627,13 @@ describe('UserResolver', () => {
               searchAdminUsers: {
                 userCount: 1,
                 userList: expect.arrayContaining([
-                  // The type carries only the alias since NU-021 -- and this seed user
-                  // has none, which is exactly what the nullable field means. userCount 1
-                  // plus the role make the row unambiguous.
+                  // The type carries only the alias since NU-021, and this seed user has
+                  // none -- so the gradidoID stands in (NU-018). Pinned against the
+                  // user's own identifier rather than `any(String)`: an admin who reads
+                  // as an empty row is precisely what a seeded environment produced, and
+                  // only naming the value proves which fallback ran.
                   expect.objectContaining({
-                    alias: null,
+                    alias: admin.gradidoID,
                     role: RoleNames.ADMIN,
                   }),
                 ]),

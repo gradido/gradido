@@ -7,7 +7,7 @@ export class AdminUser {
   constructor(user: User) {
     const role = user.userRoles.length > 0 ? user.userRoles[0] : null
     const groups = describeModeratorCreationGroups(role)
-    this.alias = user.alias
+    this.alias = user.alias ?? user.gradidoID
     this.role = role ? role.role : ''
     this.visibleCreationGroups = groups.tags
     this.seesAllCreationGroups = groups.seesAllCreationGroups
@@ -17,9 +17,12 @@ export class AdminUser {
   // The alias is all this type says about who a moderator is (NU-021): it is handed to
   // every signed-in member for the community info page, and the field resolver that
   // guards User.firstName cannot reach a type of its own -- so the real name is simply
-  // not on it. Nullable because the column is, although every local user has one.
-  @Field(() => String, { nullable: true })
-  alias: string | null
+  // not on it. Where the column is empty the gradidoID stands in, the same rule the
+  // booking list follows (NU-018): seeded environments -- the ki-playground among them --
+  // have an admin without an alias, and that admin must not read as a blank row on the
+  // community info page. Never null, so the page can sort and key on it.
+  @Field(() => String)
+  alias: string
 
   @Field(() => String)
   role: string
