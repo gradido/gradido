@@ -62,7 +62,7 @@
     },
     "customEmail": {
       "haveReceivedMessageFrom": "вы только что получили сообщение от {senderAlias}",
-      "title": "{senderAlias} отправил вам сообщение"
+      "title": "Пользователь {senderAlias} отправил вам сообщение"
     },
     "emailChangeConfirm": {
       "confirm": "Подтвердить новый адрес",
@@ -151,15 +151,15 @@
       "wasPaid": "Только что вашей картой благодарности передано {amountGDD} GDD."
     },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderAlias} ({senderEmail}) только что воспользовался вашей ссылкой.",
+      "hasRedeemedYourLink": "Пользователь {senderAlias} ({senderEmail}) только что воспользовался вашей ссылкой.",
       "memo": "Сообщение: {transactionMemo}",
-      "subject": "{senderAlias} воспользовался вашей ссылкой Gradido",
-      "title": "{senderAlias} воспользовался вашей ссылкой Gradido"
+      "subject": "Пользователь {senderAlias} воспользовался вашей ссылкой Gradido",
+      "title": "Пользователь {senderAlias} воспользовался вашей ссылкой Gradido"
     },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "вы только что получили {transactionAmount} GDD от {senderAlias}.",
-      "subject": "{senderAlias} отправил вам {transactionAmount} Gradido",
-      "title": "{senderAlias} отправил вам {transactionAmount} Gradido"
+      "subject": "Пользователь {senderAlias} отправил вам {transactionAmount} Gradido",
+      "title": "Пользователь {senderAlias} отправил вам {transactionAmount} Gradido"
     }
   },
   "general": {
