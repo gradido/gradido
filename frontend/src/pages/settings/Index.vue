@@ -7,13 +7,13 @@
          LIST is the page; above it the menu stands to the left and this shows the first
          section, exactly as the account tab used to open. -->
     <div class="d-lg-none">
-      <div class="card bg-white gradido-border-radius appBoxShadow p-4 mt--3">
+      <div class="card bg-white gradido-border-radius appBoxShadow py-4 px-0 mt--3">
         <!-- ⛔ By PATH: the route at /overview carries no name and the named form throws. -->
-        <router-link to="/overview" class="settings-back" data-test="settings-back-to-account">
+        <router-link to="/overview" class="settings-back px-4" data-test="settings-back-to-account">
           <i-mdi-arrow-left class="svg-icon" />
           <span class="ms-2">{{ $t('navigation.back-to-account') }}</span>
         </router-link>
-        <settings-menu />
+        <settings-menu class="is-page" />
       </div>
     </div>
     <div class="d-none d-lg-block">
