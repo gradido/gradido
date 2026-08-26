@@ -368,8 +368,14 @@ describe('user.queries', () => {
         emailVerificationCode: '112233445566778899',
       })
       await moved.save()
-      bibi.emailId = moved.id
-      await bibi.save()
+      // Through the column, not through the entity: `bibi` still carries its ORIGINAL
+      // `emailContact` relation, and that relation IS `email_id` - saving the entity would
+      // write the old contact's id straight back over the new one. That is precisely what
+      // happened on the first run, and it made both tests below fail for opposite reasons.
+      await DbUser.update({ id: bibi.id }, { emailId: moved.id })
+      // So the fixture has to prove itself. A silent no-op here would leave two tests that
+      // look like they cover something and cover the reverse.
+      expect((await DbUser.findOneByOrFail({ id: bibi.id })).emailId).toBe(moved.id)
     })
 
     // `UserContact.user` IS `users.email_id`, seen from the other side, so the row left
