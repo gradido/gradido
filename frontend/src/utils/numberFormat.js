@@ -41,17 +41,31 @@ const buildTools = (locale) => ({
       .find((part) => part.type === 'decimal')?.value ?? '.',
 })
 
+/**
+ * The language the tools are actually built from -- English wherever the asked-for one is
+ * not one this runtime knows.
+ *
+ * ⚠️ Asked of Intl explicitly, NOT caught from the constructor. `Intl.NumberFormat` only
+ * throws on a MALFORMED tag; a well-formed one it does not know -- "xx-nonsense" -- it
+ * accepts and quietly resolves to the locale of the machine it runs on. A try/catch would
+ * therefore give somebody with an unknown language the separators of whatever the browser
+ * or the build agent happens to be set to, which is a different answer on every machine,
+ * instead of the English fallback the wallet uses everywhere else.
+ */
+const resolveLocale = (tag) => {
+  try {
+    return Intl.NumberFormat.supportedLocalesOf(tag).length > 0 ? tag : DEFAULT_LOCALE
+  } catch {
+    // A malformed tag -- the one case the constructor would have thrown on.
+    return DEFAULT_LOCALE
+  }
+}
+
 const toolsFor = (locale) => {
   const tag = locale || DEFAULT_LOCALE
   let tools = toolsByLocale.get(tag)
   if (!tools) {
-    try {
-      tools = buildTools(tag)
-    } catch {
-      // An unknown language tag must not take the calculator down; English is the fallback
-      // the wallet uses everywhere else too.
-      tools = buildTools(DEFAULT_LOCALE)
-    }
+    tools = buildTools(resolveLocale(tag))
     toolsByLocale.set(tag, tools)
   }
   return tools
