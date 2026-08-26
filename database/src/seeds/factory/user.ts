@@ -1,9 +1,8 @@
 import random from 'random-bigint'
 import { OptInType, PasswordEncryptionType, UserContactType } from 'shared'
 import { v4 } from 'uuid'
-import { Community } from '../../entity'
 import { RoleNames } from '../../enum/RoleNames'
-import { getHomeCommunity } from '../../queries/communities'
+import { getHomeCommunityDrizzle } from '../../queries/communities'
 import {
   dbFindLastUserId,
   dbFindUsersByIds,
@@ -18,31 +17,22 @@ import {
 } from '../../queries/userContacts'
 import { dbFindUserRolesByUserIds, dbInsertUserRole } from '../../queries/userRoles'
 import {
+  CommunitiesSelect,
+  FullUser,
   UserContactInsert,
   UserContactSelect,
   UserInsert,
   UserRoleInsert,
   UserRoleSelect,
   UserSelect,
-} from '../../schemas/drizzle.schema'
+} from '../../schemas'
 import { UserInterface } from '../users/UserInterface'
-
-/**
- * A seeded user together with the rows written alongside it. Replaces the
- * TypeORM entity the factory used to return, so field names follow the drizzle
- * schema (`gradidoId`, not `gradidoID`).
- */
-export type SeedUser = UserSelect & {
-  community?: Community | null
-  emailContact: UserContactSelect
-  userRoles: UserRoleSelect[]
-}
 
 export async function userFactory(
   user: UserInterface,
-  homeCommunity?: Community | null,
-): Promise<SeedUser> {
-  const community = homeCommunity ?? (await getHomeCommunity())
+  homeCommunity?: CommunitiesSelect | null,
+): Promise<FullUser> {
+  const community = homeCommunity ?? (await getHomeCommunityDrizzle())
   const insertedUser = await insertUser(buildUser(user, community))
   const emailContact = await insertUserContact(buildUserContact(user, insertedUser.id))
 
@@ -64,9 +54,9 @@ export async function userFactory(
 // only use in non-parallel environment (seeding for example)
 export async function userFactoryBulk(
   users: UserInterface[],
-  homeCommunity?: Community | null,
-): Promise<SeedUser[]> {
-  const community = homeCommunity ?? (await getHomeCommunity())
+  homeCommunity?: CommunitiesSelect | null,
+): Promise<FullUser[]> {
+  const community = homeCommunity ?? (await getHomeCommunityDrizzle())
 
   const userRows: UserInsert[] = []
   const userContactRows: UserContactInsert[] = []
@@ -109,7 +99,10 @@ export async function userFactoryBulk(
   }))
 }
 
-export function buildUser(user: UserInterface, homeCommunity?: Community | null): UserInsert {
+export function buildUser(
+  user: UserInterface,
+  homeCommunity?: CommunitiesSelect | null,
+): UserInsert {
   return {
     firstName: user.firstName ?? '',
     lastName: user.lastName ?? '',
