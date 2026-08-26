@@ -59,11 +59,25 @@ export const communityHost = (url) => {
  * one letter off on the field name (see useThankYouCheque). A member with neither value
  * is nobody the wallet can name, and an empty line says that better than the word.
  *
+ * ⛔ The threshold, not mere truthiness. A stored name of one or two characters predates
+ * the rule and is not one, so it falls back to the identifier -- which is what the server
+ * does everywhere else (`shared`'s `publicAlias`). Without it the wallet printed
+ * `host/u/ab` on somebody's card while every mail about them said `host/u/<uuid>`: two
+ * addresses for one person, and one of them on paper. That is the exact disagreement the
+ * comment at the top of this file says this module exists to prevent.
+ *
+ * ⚠️ The rule is written out here rather than imported: the wallet has no dependency on
+ * `shared`, which is a package boundary and not an oversight. `gradidoAddress.drift.spec.js`
+ * runs this function against `publicAlias` so the two copies cannot part company unnoticed.
+ *
  * @param {string} username
  * @param {string} gradidoID
  * @returns {string} never null or undefined
  */
-export const memberAlias = (username, gradidoID) => username || gradidoID || ''
+const ALIAS_MIN_CHARS = 3
+
+export const memberAlias = (username, gradidoID) =>
+  (username && username.trim().length >= ALIAS_MIN_CHARS ? username : gradidoID) || ''
 
 /**
  * The member's own address, in the two shapes that are always needed together.

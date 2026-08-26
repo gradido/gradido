@@ -4,7 +4,7 @@ block content
   .text-block
     include ../includes/salutation.pug
     p
-      = t('emails.customEmail.haveReceivedMessageFrom', { senderFirstName, senderLastName })
+      = t('emails.customEmail.haveReceivedMessageFrom', { senderAlias })
 
   .subject-block
     div(class="p_content human-text")= subject

@@ -1,10 +1,10 @@
 extend ../layout.pug
 
 block content
-  h2=  t('emails.transactionLinkRedeemed.title', { senderFirstName, senderLastName })
+  h2=  t('emails.transactionLinkRedeemed.title', { senderAlias })
   .text-block
     include ../includes/salutation.pug
-    p= t('emails.transactionLinkRedeemed.hasRedeemedYourLink', { senderFirstName, senderLastName, senderEmail })
+    p= t('emails.transactionLinkRedeemed.hasRedeemedYourLink', { senderAlias, senderCommunity })
   .content
     h2= t('emails.general.transactionDetails')
     div(class="p_content")= t('emails.general.amountGDD', { amountGDD: transactionAmount })

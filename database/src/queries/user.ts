@@ -141,9 +141,27 @@ export async function dbClearGmsRegistration(userId: number): Promise<VoidResult
   return { success: false, error: new DBNotFoundError('users', `id = ${userId}`) }
 }
 
+/**
+ * The REAL names of the moderators behind a contribution -- who changed it, who moderated
+ * it, who closed it. Its one caller is the admin contribution list.
+ *
+ * ⛔ The real name here is a decision, not an oversight, and it survived the round that
+ * took real names out of everything a third party reads (NU-021/KLAR-09). This column is
+ * not read by a member about another member; it is read by a moderator about a colleague,
+ * and somebody who declined a contribution has to be a person the next moderator can go
+ * and ask. An alias would cost exactly that, and for colleagues without one it would put
+ * a 36-character identifier in a 500-row table. (Bernd, 26.08.2026.)
+ *
+ * So: if a later round is tempted to "fix" this the way the mails were fixed -- it was
+ * looked at, and this is the answer. What must not happen is the reverse: this function
+ * must not grow a second caller that shows the result to MEMBERS. Everything on that side
+ * goes through `publicAlias` in `shared`.
+ */
 export async function findUserNamesByIds(userIds: number[]): Promise<Map<number, string>> {
   const users = await DbUser.find({
-    select: { id: true, firstName: true, lastName: true, alias: true },
+    // No `alias`: it was selected and never read, which made this function look like it
+    // was about to hand one out.
+    select: { id: true, firstName: true, lastName: true },
     where: { id: In(userIds) },
   })
   return new Map(

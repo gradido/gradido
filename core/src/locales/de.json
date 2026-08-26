@@ -20,7 +20,7 @@
       "title": "Erneuter Registrierungsversuch mit Deiner E-Mail"
     },
     "addedContributionMessage": {
-      "commonGoodContributionMessage": "Du hast zu Deinem Gemeinwohl-Beitrag „{contributionMemo}“ eine Nachricht von {senderFirstName} {senderLastName} erhalten.",
+      "commonGoodContributionMessage": "Du hast zu Deinem Gemeinwohl-Beitrag „{contributionMemo}“ eine Nachricht von {senderAlias} erhalten.",
       "message": "„{message}“",
       "readMessage": "Nachricht lesen und beantworten",
       "subject": "Nachricht zu Deinem Gemeinwohl-Beitrag",
@@ -42,27 +42,27 @@
     },
     "contributionChangedByModerator": {
       "subject": "Dein Gemeinwohl-Beitrag wurde geändert",
-      "text": "Dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde soeben von {senderFirstName} {senderLastName} geändert und lautet jetzt „{contributionMemoUpdated}“",
+      "text": "Dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde soeben von {senderAlias} geändert und lautet jetzt „{contributionMemoUpdated}“",
       "title": "Dein Gemeinwohl-Beitrag wurde geändert"
     },
     "contributionConfirmed": {
-      "commonGoodContributionConfirmed": "Dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde soeben von {senderFirstName} {senderLastName} bestätigt. Es wurden Deinem Gradido-Konto {amountGDD} GDD gutgeschrieben.",
+      "commonGoodContributionConfirmed": "Dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde soeben von {senderAlias} bestätigt. Es wurden Deinem Gradido-Konto {amountGDD} GDD gutgeschrieben.",
       "subject": "Dein Gemeinwohl-Beitrag wurde bestätigt",
       "title": "Dein Gemeinwohl-Beitrag wurde bestätigt"
     },
     "contributionDeleted": {
-      "commonGoodContributionDeleted": "Dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde von {senderFirstName} {senderLastName} gelöscht.",
+      "commonGoodContributionDeleted": "Dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde von {senderAlias} gelöscht.",
       "subject": "Dein Gemeinwohl-Beitrag wurde gelöscht",
       "title": "Dein Gemeinwohl-Beitrag wurde gelöscht"
     },
     "contributionDenied": {
-      "commonGoodContributionDenied": "Dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde von {senderFirstName} {senderLastName} abgelehnt.",
+      "commonGoodContributionDenied": "Dein Gemeinwohl-Beitrag „{contributionMemo}“ wurde von {senderAlias} abgelehnt.",
       "subject": "Dein Gemeinwohl-Beitrag wurde abgelehnt",
       "title": "Dein Gemeinwohl-Beitrag wurde abgelehnt"
     },
     "customEmail": {
-      "haveReceivedMessageFrom": "Du hast soeben von {senderFirstName} {senderLastName} eine Nachricht erhalten",
-      "title": "{senderFirstName} {senderLastName} hat Dir eine Nachricht gesendet"
+      "haveReceivedMessageFrom": "Du hast soeben von {senderAlias} eine Nachricht erhalten",
+      "title": "{senderAlias} hat Dir eine Nachricht gesendet"
     },
     "emailChangeConfirm": {
       "confirm": "Neue Adresse bestätigen",
@@ -151,15 +151,15 @@
       "wasPaid": "Soeben wurden mit Deiner Dank-Karte {amountGDD} GDD weitergegeben."
     },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) hat soeben Deinen Link eingelöst.",
+      "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) hat soeben Deinen Link eingelöst.",
       "memo": "Nachricht: {transactionMemo}",
-      "subject": "{senderFirstName} {senderLastName} hat Deinen Gradido-Link eingelöst",
-      "title": "{senderFirstName} {senderLastName} hat Deinen Gradido-Link eingelöst"
+      "subject": "{senderAlias} hat Deinen Gradido-Link eingelöst",
+      "title": "{senderAlias} hat Deinen Gradido-Link eingelöst"
     },
     "transactionReceived": {
-      "haveReceivedAmountGDDFrom": "Du hast soeben {transactionAmount} GDD erhalten von {senderFirstName} {senderLastName}.",
-      "subject": "{senderFirstName} {senderLastName} hat Dir {transactionAmount} Gradido gesendet",
-      "title": "{senderFirstName} {senderLastName} hat Dir {transactionAmount} Gradido gesendet"
+      "haveReceivedAmountGDDFrom": "Du hast soeben {transactionAmount} GDD erhalten von {senderAlias}.",
+      "subject": "{senderAlias} hat Dir {transactionAmount} Gradido gesendet",
+      "title": "{senderAlias} hat Dir {transactionAmount} Gradido gesendet"
     }
   },
   "general": {

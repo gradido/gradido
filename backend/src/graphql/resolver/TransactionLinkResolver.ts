@@ -700,9 +700,13 @@ export class TransactionLinkResolver {
               lastName: recipientUser.lastName,
               email: recipientUser.emailContact.email,
               language: recipientUser.language,
-              senderFirstName: senderUser.firstName,
-              senderLastName: senderUser.lastName,
-              senderEmail: senderUser.emailContact?.email,
+              senderAlias: new PublishNameLogic(senderUser).getPublicAlias(),
+              // ⛔ A COMMUNITY name, and never an address: this sentence is read by a THIRD
+              //    PARTY, which is the whole reason the alias replaced the real name here.
+              //    The live callers pass `getCommunityName(...)`; see TransactionResolver.
+              //    Left unfillable on purpose -- reviving this block must not be a matter of
+              //    deleting the comment markers.
+              senderCommunity: <community name>,
               transactionMemo: memo,
               transactionAmount: new Decimal(amount),
             })

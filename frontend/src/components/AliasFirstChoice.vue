@@ -29,22 +29,30 @@
         :state="fieldState"
         data-test="alias-first-input"
       />
-      <div
-        v-if="checkEnabled && !formatValid"
-        class="small text-danger mt-2"
-        data-test="alias-first-invalid"
-      >
-        {{ $t('settings.username.first-invalid') }}
-      </div>
-      <div
-        v-else-if="available === false"
-        class="small text-danger mt-2"
-        data-test="alias-first-taken"
-      >
-        {{ $t('settings.username.first-taken') }}
-      </div>
-      <div v-else-if="available" class="small text-success mt-2" data-test="alias-first-free">
-        {{ $t('settings.username.first-free') }}
+      <!-- One line that is always there. The three states used to be three v-ifs that
+           could all be false at once -- between two keystrokes, while the answer was on
+           its way -- so the line vanished and everything below it jumped up and back.
+           Reserving the row costs nothing and the field stops twitching while typing. -->
+      <div class="alias-first-status small mt-2">
+        <span
+          v-if="checkEnabled && !formatValid"
+          class="text-danger"
+          data-test="alias-first-invalid"
+        >
+          {{ $t('settings.username.first-invalid') }}
+        </span>
+        <span v-else-if="checkFailed" class="text-warning" data-test="alias-first-check-failed">
+          {{ $t('settings.username.first-check-failed') }}
+        </span>
+        <span v-else-if="available === false" class="text-danger" data-test="alias-first-taken">
+          {{ $t('settings.username.first-taken') }}
+        </span>
+        <span v-else-if="available" class="text-success" data-test="alias-first-free">
+          {{ $t('settings.username.first-free') }}
+        </span>
+        <span v-else-if="checkEnabled" class="text-muted" data-test="alias-first-checking">
+          {{ $t('settings.username.first-checking') }}
+        </span>
       </div>
       <div class="alias-address mt-3">
         {{ addressPrefix }}
@@ -63,12 +71,12 @@
         </BButton>
       </template>
       <template v-else>
-        <BButton variant="secondary" data-test="alias-first-back" @click="choosing = false">
+        <BButton variant="secondary" data-test="alias-first-back" @click="goBack">
           {{ $t('settings.username.first-back') }}
         </BButton>
         <BButton
           variant="gradido"
-          :disabled="!available || !formatValid || typed === currentAlias"
+          :disabled="!canSave"
           data-test="alias-first-save"
           @click="saveChosen"
         >
@@ -80,7 +88,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { useMutation, useQuery } from '@vue/apollo-composable'
@@ -126,12 +134,46 @@ const addressPrefix = computed(() => {
   }
 })
 
+// Debounced, the way the contribution lists do it: without this a query went out on
+// every single keystroke, and each one flipped the answer to "not known yet" and back.
+// `probed` is what the query reads; `typed` is what the member sees.
+//
+// Declared HERE, above everything that writes it. `startChoosing` below sets it, and
+// that only ever held because a click handler cannot run before setup has finished --
+// anything evaluated DURING setup would have found it in the temporal dead zone.
+const probed = ref('')
+let probeTimer = null
+watch(typed, (value) => {
+  clearTimeout(probeTimer)
+  if (!value) {
+    probed.value = ''
+    return
+  }
+  probeTimer = setTimeout(() => {
+    probed.value = value
+  }, 300)
+})
+
+// The way out of the debounce, and it has to be an explicit one: this window is never
+// unmounted -- DashboardLayout renders it for the whole session -- so `onBeforeUnmount`
+// is a lifecycle hook that fires on nothing. Without this, leaving mid-word still sent
+// the question 300 ms later, and `typed` kept its value for the rest of the session,
+// which left the query enabled the whole time (it is `no-cache`, so every re-render of
+// the address bar could ask again).
+const stopProbing = () => {
+  clearTimeout(probeTimer)
+  typed.value = ''
+  probed.value = ''
+}
+onBeforeUnmount(stopProbing)
+
 const visible = computed({
   get: () =>
     !dismissed.value && !!currentAlias.value && result.value?.aliasStatus?.aliasSettled === false,
   set: (open) => {
     if (!open) {
       dismissed.value = true
+      stopProbing()
     }
   },
 })
@@ -141,7 +183,14 @@ const visible = computed({
 // would find an empty field.
 const startChoosing = () => {
   typed.value = currentAlias.value
+  probed.value = currentAlias.value
   choosing.value = true
+}
+
+// The second exit, and the one a member takes most often. Same reason as above.
+const goBack = () => {
+  choosing.value = false
+  stopProbing()
 }
 
 // Asked while typing, with the same query the settings page uses. Reactive variables
@@ -149,33 +198,76 @@ const startChoosing = () => {
 // called and returns a bare false after that, which would read as "taken" for every
 // name after the first.
 const checkEnabled = computed(() => !!typed.value && typed.value !== currentAlias.value)
-const { result: checkResult, loading: checking } = useQuery(
+
+// Checked here as well as on the server, to say WHY: without it somebody who types two
+// letters is told the name is taken, which is untrue and unhelpful in the very first
+// window they ever see. It also holds the button and keeps the query below from asking
+// about a word that cannot be free -- and it must be declared BEFORE that query, whose
+// options getter runs during setup.
+const formatValid = computed(() => USERNAME_REGEX.test(typed.value))
+
+const {
+  result: checkResult,
+  loading: checking,
+  error: checkError,
+} = useQuery(
   checkUsername,
-  () => ({ username: typed.value }),
-  () => ({ enabled: checkEnabled.value, fetchPolicy: 'no-cache' }),
+  () => ({ username: probed.value }),
+  // `formatValid` too: "ab" can never be free, so asking about it is a round trip whose
+  // answer is discarded either way -- the invalid branch below wins in the template, in
+  // `fieldState` and on the Save button. Nothing reads a stale answer through this gap.
+  () => ({
+    enabled: checkEnabled.value && formatValid.value && probed.value === typed.value,
+    fetchPolicy: 'no-cache',
+  }),
 )
+// A failed query is NOT an absent answer here. Apollo's `processError` sets `error` and
+// flips `loading` back, and leaves `result` exactly as it was - so the answer of the
+// PREVIOUS word stays readable and would be read as this word's: a green "still free"
+// for a name that is taken, with Save armed behind it.
+//
+// ⛔ And `error` survives exactly the same way. It is cleared when the query STARTS, not
+// when it is switched off, so in the 300 ms between a keystroke and the debounce the
+// failure of the word before is still standing. Without `probed === typed` the line
+// would say "could not be checked" about a word nothing was ever asked about -- and
+// because a failed check hands Save back to the server, it would arm the button too.
+// The same trap as the stale answer above, one floor down.
+const checkFailed = computed(
+  () => checkEnabled.value && !checking.value && probed.value === typed.value && !!checkError.value,
+)
+
 // `null` while the answer is on its way, because the previous one is still lying in
 // `checkResult` and it belongs to a different word. Without this, typing a free name
 // and then a taken one leaves the old `true` on screen for the length of a round trip -
 // long enough to click Save and get a bare error code back.
 const available = computed(() => {
-  if (!checkEnabled.value || checking.value) {
+  if (!checkEnabled.value || checking.value || checkFailed.value || probed.value !== typed.value) {
     return null
   }
   return checkResult.value?.checkUsername ?? null
 })
-// Checked here as well as on the server, to say WHY: without it somebody who types two
-// letters is told the name is taken, which is untrue and unhelpful in the very first
-// window they ever see. It also holds the button, but it is not what makes the stale
-// answer harmless - only a valid word ever reaches the server, so the guard against a
-// leftover `true` has to sit on `available` itself, above.
-const formatValid = computed(() => USERNAME_REGEX.test(typed.value))
 const fieldState = computed(() => {
   if (!checkEnabled.value) {
     return null
   }
-  return formatValid.value ? available.value : false
+  if (!formatValid.value) {
+    return false
+  }
+  // Neither green nor red while the check is unavailable: the field says nothing rather
+  // than colouring in something nobody verified.
+  return checkFailed.value ? null : available.value
 })
+
+// The server decides whether a name is free; this query only says so early. So a check
+// that could not run hands the decision back to it rather than locking the button - the
+// only other way out of this window leaves the question open and brings it back next
+// login, and `saveChosen` already turns a refusal into a message.
+const canSave = computed(
+  () =>
+    formatValid.value &&
+    typed.value !== currentAlias.value &&
+    (available.value === true || checkFailed.value),
+)
 
 const keepIt = async () => {
   try {
@@ -187,6 +279,14 @@ const keepIt = async () => {
   }
 }
 
+// The server answers in English, the way UserEmail does it -- and this refusal stopped
+// being a rarity the moment a failed check started handing the decision back to it. It
+// is also the one a member can provoke on purpose: pick a taken name while the check
+// cannot run. So it gets the sentence that stands above the button anyway, rather than
+// `Given alias is already in use` in a German window. Anything else is shown as it came.
+const errorText = (message) =>
+  message?.includes('already in use') ? t('settings.username.first-taken') : message
+
 const saveChosen = async () => {
   try {
     await updateUser({ alias: typed.value })
@@ -194,7 +294,7 @@ const saveChosen = async () => {
     dismissed.value = true
     await refetch()
   } catch (error) {
-    toastError(error.message)
+    toastError(errorText(error.message))
   }
 }
 </script>
@@ -211,5 +311,40 @@ const saveChosen = async () => {
   font-size: 0.84rem;
   color: var(--text-muted);
   word-break: break-all;
+}
+
+/* The status line keeps its row even when it has nothing to say. Without the reserved
+   height the address and the rules below it moved up and down while typing.
+
+   TWO lines, and in the line's own em rather than a rem literal. 1.25rem was the first
+   attempt and it was wrong twice over.
+
+   It is shorter than a SINGLE line of this text -- .small is 0.875em at line-height 1.5,
+   so 21px against the 20px it reserved -- which is why the first keystroke still nudged
+   everything below it, on every screen size.
+
+   And the longer translations wrap on a narrow phone. Measured in a browser at the real
+   font (Open Sans 14px) rather than predicted, across the modal's own geometry:
+
+     viewport   line width   wraps
+     430 px     366 px       nothing
+     393 px     329 px       nothing
+     375 px     311 px       nothing
+     360 px     296 px       Greek "does not match the rules" (43 chars)
+     320 px     256 px       Greek "does not match the rules"
+
+   So which messages wrap depends on the language AND the device, two lines is the worst
+   case across all ten, and a third is never needed. Reserving the wrapped case is what
+   holds for every combination -- including a reader who has enlarged their type, which a
+   width-keyed media query would miss.
+
+   `em` here resolves against this element's own font-size, so one line is 1.5em and two
+   are 3em whatever the base size is -- no ratio copied into a literal that would go
+   stale the day the type scale moves.
+
+   ⚠️ jsdom computes no layout, so no test in this repo can see this rule work. The table
+   above is the measurement; the window itself is looked at on a phone. */
+.alias-first-status {
+  min-height: 3em;
 }
 </style>

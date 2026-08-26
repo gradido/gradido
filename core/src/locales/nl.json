@@ -20,7 +20,7 @@
       "title": "Nieuwe registratiepoging met je e-mailadres"
     },
     "addedContributionMessage": {
-      "commonGoodContributionMessage": "je hebt een bericht ontvangen van {senderFirstName} {senderLastName} over je bijdrage aan het algemeen welzijn ‘{contributionMemo}’.",
+      "commonGoodContributionMessage": "je hebt een bericht ontvangen van {senderAlias} over je bijdrage aan het algemeen welzijn ‘{contributionMemo}’.",
       "message": "‘{message}’",
       "readMessage": "Bericht lezen en beantwoorden",
       "subject": "Bericht over je bijdrage aan het algemeen welzijn",
@@ -42,27 +42,27 @@
     },
     "contributionChangedByModerator": {
       "subject": "Je bijdrage aan het algemeen welzijn is gewijzigd",
-      "text": "je bijdrage aan het algemeen welzijn ‘{contributionMemo}’ is zojuist gewijzigd door {senderFirstName} {senderLastName} en luidt nu ‘{contributionMemoUpdated}’",
+      "text": "je bijdrage aan het algemeen welzijn ‘{contributionMemo}’ is zojuist gewijzigd door {senderAlias} en luidt nu ‘{contributionMemoUpdated}’",
       "title": "Je bijdrage aan het algemeen welzijn is gewijzigd"
     },
     "contributionConfirmed": {
-      "commonGoodContributionConfirmed": "je bijdrage aan het algemeen welzijn ‘{contributionMemo}’ is zojuist bevestigd door {senderFirstName} {senderLastName}. Er is {amountGDD} GDD op je Gradido-account bijgeschreven.",
+      "commonGoodContributionConfirmed": "je bijdrage aan het algemeen welzijn ‘{contributionMemo}’ is zojuist bevestigd door {senderAlias}. Er is {amountGDD} GDD op je Gradido-account bijgeschreven.",
       "subject": "Je bijdrage aan het algemeen welzijn is bevestigd",
       "title": "Je bijdrage aan het algemeen welzijn is bevestigd"
     },
     "contributionDeleted": {
-      "commonGoodContributionDeleted": "je bijdrage aan het algemeen welzijn ‘{contributionMemo}’ is verwijderd door {senderFirstName} {senderLastName}.",
+      "commonGoodContributionDeleted": "je bijdrage aan het algemeen welzijn ‘{contributionMemo}’ is verwijderd door {senderAlias}.",
       "subject": "Je bijdrage aan het algemeen welzijn is verwijderd",
       "title": "Je bijdrage aan het algemeen welzijn is verwijderd"
     },
     "contributionDenied": {
-      "commonGoodContributionDenied": "je bijdrage aan het algemeen welzijn ‘{contributionMemo}’ is afgewezen door {senderFirstName} {senderLastName}.",
+      "commonGoodContributionDenied": "je bijdrage aan het algemeen welzijn ‘{contributionMemo}’ is afgewezen door {senderAlias}.",
       "subject": "Je bijdrage aan het algemeen welzijn is afgewezen",
       "title": "Je bijdrage aan het algemeen welzijn is afgewezen"
     },
     "customEmail": {
-      "haveReceivedMessageFrom": "je hebt zojuist een bericht ontvangen van {senderFirstName} {senderLastName}",
-      "title": "{senderFirstName} {senderLastName} heeft je een bericht gestuurd"
+      "haveReceivedMessageFrom": "je hebt zojuist een bericht ontvangen van {senderAlias}",
+      "title": "{senderAlias} heeft je een bericht gestuurd"
     },
     "emailChangeConfirm": {
       "confirm": "Nieuw adres bevestigen",
@@ -151,15 +151,15 @@
       "wasPaid": "Er is zojuist {amountGDD} GDD doorgegeven met je bedankkaart."
     },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) heeft zojuist je link ingewisseld.",
+      "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) heeft zojuist je link ingewisseld.",
       "memo": "Bericht: {transactionMemo}",
-      "subject": "{senderFirstName} {senderLastName} heeft je Gradido-link ingewisseld",
-      "title": "{senderFirstName} {senderLastName} heeft je Gradido-link ingewisseld"
+      "subject": "{senderAlias} heeft je Gradido-link ingewisseld",
+      "title": "{senderAlias} heeft je Gradido-link ingewisseld"
     },
     "transactionReceived": {
-      "haveReceivedAmountGDDFrom": "je hebt zojuist {transactionAmount} GDD ontvangen van {senderFirstName} {senderLastName}.",
-      "subject": "{senderFirstName} {senderLastName} heeft je {transactionAmount} Gradido gestuurd",
-      "title": "{senderFirstName} {senderLastName} heeft je {transactionAmount} Gradido gestuurd"
+      "haveReceivedAmountGDDFrom": "je hebt zojuist {transactionAmount} GDD ontvangen van {senderAlias}.",
+      "subject": "{senderAlias} heeft je {transactionAmount} Gradido gestuurd",
+      "title": "{senderAlias} heeft je {transactionAmount} Gradido gestuurd"
     }
   },
   "general": {

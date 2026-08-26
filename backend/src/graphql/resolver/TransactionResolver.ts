@@ -43,6 +43,7 @@ import { In, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { PublishNameLogic } from '@/data/PublishName.logic'
 import { isAliasEraName } from '@/data/StoredUserName.logic'
 import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
 import { Context, getUser } from '@/server/context'
@@ -130,19 +131,25 @@ export const executeTransaction = async (
     await queryRunner.startTransaction('REPEATABLE READ')
     logger.debug(`open Transaction to write...`)
     try {
+      // Through the shared rule, like the contribution and link paths. A bare `.alias`
+      // here wrote `null` for anybody who has not picked a name yet -- and it wrote it
+      // PERMANENTLY, into the most common booking type there is, where a legacy alias of
+      // one or two characters would also have stood while every other screen showed the
+      // identifier. Both names are read twice below, so they are worked out once.
+      const senderName = new PublishNameLogic(sender).getPublicAlias()
+      const recipientName = new PublishNameLogic(recipient).getPublicAlias()
+
       // transaction
       const transactionSend = new dbTransaction()
       transactionSend.typeId = TransactionTypeId.SEND
       transactionSend.memo = memo
       transactionSend.userId = sender.id
       transactionSend.userGradidoID = sender.gradidoID
-      // from now on the alias is written as userName in the transactions
-      transactionSend.userName = sender.alias // fullName(sender.firstName, sender.lastName)
+      transactionSend.userName = senderName
       transactionSend.userCommunityUuid = sender.communityUuid
       transactionSend.linkedUserId = recipient.id
       transactionSend.linkedUserGradidoID = recipient.gradidoID
-      // from now on the alias is written as userName in the transactions
-      transactionSend.linkedUserName = recipient.alias // fullName(recipient.firstName, recipient.lastName)
+      transactionSend.linkedUserName = recipientName
       transactionSend.linkedUserCommunityUuid = recipient.communityUuid
       transactionSend.amount = negativeAmount
       transactionSend.balance = sendBalance.balance
@@ -162,13 +169,11 @@ export const executeTransaction = async (
       transactionReceive.memo = memo
       transactionReceive.userId = recipient.id
       transactionReceive.userGradidoID = recipient.gradidoID
-      // from now on the alias is written as userName in the transactions
-      transactionReceive.userName = recipient.alias // fullName(recipient.firstName, recipient.lastName)
+      transactionReceive.userName = recipientName
       transactionReceive.userCommunityUuid = recipient.communityUuid
       transactionReceive.linkedUserId = sender.id
       transactionReceive.linkedUserGradidoID = sender.gradidoID
-      // from now on the alias is written as userName in the transactions
-      transactionReceive.linkedUserName = sender.alias // fullName(sender.firstName, sender.lastName)
+      transactionReceive.linkedUserName = senderName
       transactionReceive.linkedUserCommunityUuid = sender.communityUuid
       transactionReceive.amount = amount
       const receiveBalance = await calculateBalance(recipient.id, amount, receivedCallDate)
@@ -234,8 +239,7 @@ export const executeTransaction = async (
       email: recipient.emailContact.email,
       language: recipient.language,
       memo,
-      senderFirstName: sender.firstName,
-      senderLastName: sender.lastName,
+      senderAlias: new PublishNameLogic(sender).getPublicAlias(),
       // The reply button in the mail leads to the send form with the sender filled in,
       // so the mail carries these instead of the sender's e-mail address.
       senderUuid: sender.gradidoID,
@@ -249,9 +253,12 @@ export const executeTransaction = async (
         lastName: sender.lastName,
         email: sender.emailContact.email,
         language: sender.language,
-        senderFirstName: recipient.firstName,
-        senderLastName: recipient.lastName,
-        senderEmail: recipientCom, // recipient.emailContact.email,
+        senderAlias: new PublishNameLogic(recipient).getPublicAlias(),
+        // The community, not an address. The field used to be called `senderEmail`
+        // while both live callers passed a community name, with the real address
+        // commented out beside it -- a name that invited the next person to put the
+        // leak back, in the one mail that names a third party.
+        senderCommunity: recipientCom,
         transactionAmount: amount,
         transactionMemo: memo,
       })
@@ -694,8 +701,7 @@ export class TransactionResolver {
         lastName: recipientUser.lastName,
         email: recipientUser.emailContact.email,
         language: recipientUser.language,
-        senderFirstName: senderUser.firstName,
-        senderLastName: senderUser.lastName,
+        senderAlias: new PublishNameLogic(senderUser).getPublicAlias(),
         subject: subject,
         memo: memo,
         senderUuid: senderUser.gradidoID,

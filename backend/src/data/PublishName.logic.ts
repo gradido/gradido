@@ -1,4 +1,5 @@
 import { User } from 'database'
+import { ALIAS_MIN_CHARS, publicAlias } from 'shared'
 import XRegExp from 'xregexp'
 
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
@@ -14,8 +15,17 @@ export class PublishNameLogic {
     return XRegExp.match(name, this.usernameRegex, 'all').join('')
   }
 
+  /**
+   * Whether this member has an alias worth using -- for the humhub username, which is
+   * what `getUserIdentifier` builds.
+   *
+   * The threshold comes from `ALIAS_MIN_CHARS` rather than a literal `3`. It stood here
+   * as a literal while `publicAlias` in `shared` read the constant: two copies of one
+   * number, in a class that had just been made to delegate. Measured the same way too,
+   * on the trimmed length, so the two cannot disagree about an alias of three spaces.
+   */
   public hasAlias(): boolean {
-    if (this.user.alias && this.user.alias.length >= 3) {
+    if (this.user.alias && this.user.alias.trim().length >= ALIAS_MIN_CHARS) {
       return true
     }
     return false
@@ -29,20 +39,27 @@ export class PublishNameLogic {
    * ⛔ The single place this rule lives on the server. It sat inline at four call sites
    * that all had to agree, and one of them (the till's receipt) had already drifted to a
    * bare `alias || gradidoID` -- which let a legacy alias of one or two characters
-   * through where the other three showed the identifier. `hasAlias()` decides for all
-   * four now.
+   * through where the other three showed the identifier. They all come through here now.
    *
-   * ⚠️ `?? ''` because the entity's types lie: `alias` is declared `string` while the
-   * column is nullable, and a user object that carries neither -- a bare `new User()` in
-   * a fixture -- would otherwise hand back `undefined` from a function declared to return
-   * a string. `Profile` puts the result straight into a `.length` check, so undefined
-   * there is a crash, not a blank. The wallet's `memberAlias` ends the same way.
+   * ⚠️ Not through `hasAlias()`, which is what this said until the rule moved to
+   * `shared`. That method answers a different question -- whether an alias can become a
+   * humhub username -- and only shares the threshold with this one.
+   *
+   * ⛔ Delegates to `shared`, it does not repeat the rule: `core` writes the same value
+   * into the mails a third party reads and cannot import this class, so the rule had to
+   * move somewhere all three packages reach. This method stays because the call sites
+   * here hold a whole user and reading two fields off it at each of them is what let the
+   * rule drift in the first place.
+   *
+   * Never null: the entity's types lie -- `alias` is declared `string` while the column
+   * is nullable -- and `Profile` puts the result straight into a `.length` check, where
+   * undefined is a crash rather than a blank.
    *
    * Exempt from Result on purpose: every user produces an answer, there is no failure
    * to model.
    */
   public getPublicAlias(): string {
-    return (this.hasAlias() ? this.user.alias : this.user.gradidoID) ?? ''
+    return publicAlias(this.user.alias, this.user.gradidoID)
   }
 
   /**
