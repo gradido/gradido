@@ -670,9 +670,9 @@ describe('sendEmailVariants', () => {
             to: 'Peter Lustig <peter@lustig.de>',
             from: 'Gradido <info@gradido.net>',
             attachments: expect.any(Array),
-            subject: 'Bibi Bloxberg has redeemed your Gradido link',
+            subject: 'bibi has redeemed your Gradido link',
             html: expect.any(String),
-            text: expect.stringContaining('BIBI BLOXBERG HAS REDEEMED YOUR GRADIDO LINK'),
+            text: expect.stringContaining('BIBI HAS REDEEMED YOUR GRADIDO LINK'),
           }),
         })
       })
@@ -730,9 +730,9 @@ describe('sendEmailVariants', () => {
             to: 'Peter Lustig <peter@lustig.de>',
             from: 'Gradido <info@gradido.net>',
             attachments: expect.any(Array),
-            subject: 'Bibi Bloxberg has sent you 37.40 Gradido',
+            subject: 'bibi has sent you 37.40 Gradido',
             html: expect.any(String),
-            text: expect.stringContaining('BIBI BLOXBERG HAS SENT YOU 37.40 GRADIDO'),
+            text: expect.stringContaining('BIBI HAS SENT YOU 37.40 GRADIDO'),
           }),
         })
       })
