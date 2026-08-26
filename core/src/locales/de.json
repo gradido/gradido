@@ -70,8 +70,7 @@
       "pleaseConfirm": "Bitte bestätige mit einem Klick, dass diese Adresse Dir gehört.",
       "subject": "Bitte bestätige Deine neue E-Mail-Adresse",
       "title": "Neue E-Mail-Adresse bestätigen",
-      "validity": "Der Link gilt {hours} Stunden. Danach kannst Du Dir in Deinen Einstellungen eine neue E-Mail schicken lassen.",
-      "validityMinutes": "Der Link gilt {minutes} Minuten. Danach kannst Du Dir in Deinen Einstellungen eine neue E-Mail schicken lassen.",
+      "validUntil": "Der Link gilt bis {validUntil}. Danach kannst Du Dir in Deinen Einstellungen eine neue E-Mail schicken lassen.",
       "youAskedFor": "Du möchtest die E-Mail-Adresse Deines Gradido-Kontos auf diese Adresse ändern."
     },
     "emailChangeDone": {
@@ -90,8 +89,7 @@
       "subject": "Änderung Deiner E-Mail-Adresse angestoßen",
       "title": "Deine E-Mail-Adresse soll geändert werden",
       "untilConfirmed": "Bis die neue Adresse bestätigt ist, gilt weiterhin diese hier. Wenn Du das selbst warst, musst Du nichts weiter tun.",
-      "validity": "Der Link gilt {hours} Stunden – danach verfällt die angestoßene Änderung von selbst.",
-      "validityMinutes": "Der Link gilt {minutes} Minuten – danach verfällt die angestoßene Änderung von selbst."
+      "validUntil": "Der Link gilt bis {validUntil} – danach verfällt die angestoßene Änderung von selbst."
     },
     "emailChangeSupport": {
       "gdtHint": "Für den GDT-Server zählt weiterhin die erste Adresse dieses Kontos: {gdtEmail}.",

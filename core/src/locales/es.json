@@ -70,8 +70,7 @@
       "pleaseConfirm": "Confirma con un clic que esta dirección es tuya.",
       "subject": "Confirma tu nueva dirección de correo",
       "title": "Confirmar la nueva dirección de correo",
-      "validity": "El enlace es válido durante {hours} horas. Después podrás solicitar un nuevo correo desde tus ajustes.",
-      "validityMinutes": "El enlace es válido durante {minutes} minutos. Después podrás solicitar un nuevo correo desde tus ajustes.",
+      "validUntil": "El enlace es válido hasta el {validUntil}. Después podrás solicitar un nuevo correo desde tus ajustes.",
       "youAskedFor": "Quieres cambiar la dirección de correo de tu cuenta Gradido a esta dirección."
     },
     "emailChangeDone": {
@@ -90,8 +89,7 @@
       "subject": "Cambio de tu dirección de correo solicitado",
       "title": "Tu dirección de correo va a cambiar",
       "untilConfirmed": "Hasta que la nueva dirección sea confirmada, esta sigue siendo válida. Si has sido tú, no tienes que hacer nada más.",
-      "validity": "El enlace es válido durante {hours} horas; después, el cambio solicitado caduca por sí solo.",
-      "validityMinutes": "El enlace es válido durante {minutes} minutos; después, el cambio solicitado caduca por sí solo."
+      "validUntil": "El enlace es válido hasta el {validUntil}; después, el cambio solicitado caduca por sí solo."
     },
     "emailChangeSupport": {
       "gdtHint": "Para el servidor GDT sigue contando la primera dirección de esta cuenta: {gdtEmail}.",

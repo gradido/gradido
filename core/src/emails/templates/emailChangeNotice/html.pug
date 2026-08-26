@@ -16,8 +16,5 @@ block content
     a.clink(href=revokeLink) #{revokeLink}
 
     div(class="p_content")= t('emails.emailChangeNotice.changePassword')
-    //- The window may be set below an hour; then there are no hours to name.
-    if timeDurationObject.hours
-      div(class="p_content")= t('emails.emailChangeNotice.validity', { hours: timeDurationObject.hours })
-    else
-      div(class="p_content")= t('emails.emailChangeNotice.validityMinutes', { minutes: timeDurationObject.minutes })
+    //- A moment, not a duration: a resent link carries the deadline the change already had.
+    div(class="p_content")= t('emails.emailChangeNotice.validUntil', { validUntil })

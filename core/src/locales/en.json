@@ -70,8 +70,7 @@
       "pleaseConfirm": "Please confirm with one click that this address is yours.",
       "subject": "Please confirm your new e-mail address",
       "title": "Confirm new e-mail address",
-      "validity": "The link is valid for {hours} hours. After that you can have a new e-mail sent from your settings.",
-      "validityMinutes": "The link is valid for {minutes} minutes. After that you can have a new e-mail sent from your settings.",
+      "validUntil": "The link is valid until {validUntil}. After that you can have a new e-mail sent from your settings.",
       "youAskedFor": "You want to change the e-mail address of your Gradido account to this address."
     },
     "emailChangeDone": {
@@ -90,8 +89,7 @@
       "subject": "Change of your e-mail address requested",
       "title": "Your e-mail address is about to change",
       "untilConfirmed": "Until the new address is confirmed, this one stays in force. If that was you, there is nothing more to do.",
-      "validity": "The link is valid for {hours} hours – after that the requested change expires by itself.",
-      "validityMinutes": "The link is valid for {minutes} minutes – after that the requested change expires by itself."
+      "validUntil": "The link is valid until {validUntil} – after that the requested change expires by itself."
     },
     "emailChangeSupport": {
       "gdtHint": "For the GDT server the first address of this account still counts: {gdtEmail}.",

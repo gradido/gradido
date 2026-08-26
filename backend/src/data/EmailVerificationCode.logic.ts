@@ -24,6 +24,11 @@ export const canEmailResend = (issuedAt: Date): boolean => {
   return !isWithinWindow(issuedAt, CONFIG.EMAIL_CODE_REQUEST_TIME)
 }
 
+/** The moment a code issued at `issuedAt` stops working. */
+export const emailVerificationCodeValidUntil = (issuedAt: Date): Date => {
+  return new Date(new Date(issuedAt).getTime() + CONFIG.EMAIL_CODE_VALID_TIME * 60 * 1000)
+}
+
 /** The moment a pending e-mail change issued before has run past its window. */
 export const emailChangeExpiryCutoff = (): Date => {
   return new Date(Date.now() - CONFIG.EMAIL_CODE_VALID_TIME * 60 * 1000)
