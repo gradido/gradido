@@ -151,7 +151,7 @@
       "wasPaid": "Er is zojuist {amountGDD} GDD doorgegeven met je bedankkaart."
     },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderAlias} ({senderEmail}) heeft zojuist je link ingewisseld.",
+      "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) heeft zojuist je link ingewisseld.",
       "memo": "Bericht: {transactionMemo}",
       "subject": "{senderAlias} heeft je Gradido-link ingewisseld",
       "title": "{senderAlias} heeft je Gradido-link ingewisseld"

@@ -151,7 +151,7 @@
       "wasPaid": "Teşekkür kartınla az önce {amountGDD} GDD aktarıldı."
     },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderAlias} ({senderEmail}) az önce bağlantını kullandı.",
+      "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) az önce bağlantını kullandı.",
       "memo": "Mesaj: {transactionMemo}",
       "subject": "{senderAlias} Gradido bağlantını kullandı",
       "title": "{senderAlias} Gradido bağlantını kullandı"

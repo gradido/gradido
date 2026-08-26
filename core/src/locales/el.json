@@ -151,7 +151,7 @@
       "wasPaid": "Μόλις μεταβιβάστηκαν {amountGDD} GDD με την κάρτα ευχαριστίας σου."
     },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderAlias} ({senderEmail}) μόλις εξαργύρωσε τον σύνδεσμό σου.",
+      "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) μόλις εξαργύρωσε τον σύνδεσμό σου.",
       "memo": "Μήνυμα: {transactionMemo}",
       "subject": "{senderAlias} εξαργύρωσε τον σύνδεσμό σου Gradido",
       "title": "{senderAlias} εξαργύρωσε τον σύνδεσμό σου Gradido"

@@ -633,7 +633,7 @@ describe('sendEmailVariants', () => {
         email: 'peter@lustig.de',
         language: 'en',
         senderAlias: 'bibi',
-        senderEmail: 'bibi@bloxberg.de',
+        senderCommunity: 'Bloxberg',
         transactionMemo: 'You deserve it! 🙏🏼',
         transactionAmount: GradidoUnit.fromNumber(17.65),
       })
@@ -651,7 +651,7 @@ describe('sendEmailVariants', () => {
             lastName: 'Lustig',
             language: 'en',
             senderAlias: 'bibi',
-            senderEmail: 'bibi@bloxberg.de',
+            senderCommunity: 'Bloxberg',
             transactionMemo: 'You deserve it! 🙏🏼',
             transactionAmount: '17.65',
             supportEmail: CONFIG.COMMUNITY_SUPPORT_MAIL,

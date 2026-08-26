@@ -151,7 +151,7 @@
       "wasPaid": "Только что вашей картой благодарности передано {amountGDD} GDD."
     },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "Пользователь {senderAlias} ({senderEmail}) только что воспользовался вашей ссылкой.",
+      "hasRedeemedYourLink": "Пользователь {senderAlias} ({senderCommunity}) только что воспользовался вашей ссылкой.",
       "memo": "Сообщение: {transactionMemo}",
       "subject": "Пользователь {senderAlias} воспользовался вашей ссылкой Gradido",
       "title": "Пользователь {senderAlias} воспользовался вашей ссылкой Gradido"

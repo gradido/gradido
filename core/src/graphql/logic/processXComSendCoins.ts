@@ -182,7 +182,7 @@ export async function processXComCompleteTransaction(
           email: senderUser.emailContact.email,
           language: senderUser.language,
           senderAlias: publicAlias(foreignUser.alias, foreignUser.gradidoID),
-          senderEmail: recipientCom.name!, // foreignUser.emailContact.email,
+          senderCommunity: recipientCom.name!,
           transactionAmount: GradidoUnit.fromString(amount),
           transactionMemo: memo,
         })

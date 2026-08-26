@@ -145,7 +145,12 @@ export async function revertSettledReceiveTransaction(
       email: recipient.emailContact.email,
       language: recipient.language,
       senderAlias: publicAlias(sender.alias, sender.gradidoID),
-      senderEmail: sender.emailContact.email,
+      // ⛔ A COMMUNITY name, and never an address: this sentence is read by a THIRD
+      //    PARTY, which is the whole reason the alias replaced the real name here.
+      //    The live callers pass `getCommunityName(...)`; see TransactionResolver.
+      //    Left unfillable on purpose -- reviving this block must not be a matter of
+      //    deleting the comment markers.
+      senderCommunity: <community name>,
       transactionAmount: amount,
     })
     if (transactionLink) {
@@ -155,7 +160,12 @@ export async function revertSettledReceiveTransaction(
         email: sender.emailContact.email,
         language: sender.language,
         senderAlias: publicAlias(recipient.alias, recipient.gradidoID),
-        senderEmail: recipient.emailContact.email,
+        // ⛔ A COMMUNITY name, and never an address: this sentence is read by a THIRD
+        //    PARTY, which is the whole reason the alias replaced the real name here.
+        //    The live callers pass `getCommunityName(...)`; see TransactionResolver.
+        //    Left unfillable on purpose -- reviving this block must not be a matter of
+        //    deleting the comment markers.
+        senderCommunity: <community name>,
         transactionAmount: amount,
         transactionMemo: memo,
       })

@@ -151,7 +151,7 @@
       "wasPaid": "Soeben wurden mit Deiner Dank-Karte {amountGDD} GDD weitergegeben."
     },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderAlias} ({senderEmail}) hat soeben Deinen Link eingelöst.",
+      "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) hat soeben Deinen Link eingelöst.",
       "memo": "Nachricht: {transactionMemo}",
       "subject": "{senderAlias} hat Deinen Gradido-Link eingelöst",
       "title": "{senderAlias} hat Deinen Gradido-Link eingelöst"

@@ -151,7 +151,7 @@
       "wasPaid": "Acabaram de ser passados {amountGDD} GDD com o teu cartão de agradecimento."
     },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderAlias} ({senderEmail}) acabou de resgatar o teu link.",
+      "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) acabou de resgatar o teu link.",
       "memo": "Mensagem: {transactionMemo}",
       "subject": "{senderAlias} resgatou o teu link Gradido",
       "title": "{senderAlias} resgatou o teu link Gradido"

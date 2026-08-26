@@ -151,7 +151,7 @@
       "wasPaid": "{amountGDD} GDD viennent d’être transmis avec ta carte de remerciement."
     },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderAlias} ({senderEmail}) vient d'utiliser ton lien.",
+      "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) vient d'utiliser ton lien.",
       "memo": "Message : {transactionMemo}",
       "subject": "{senderAlias} a utilisé ton lien Gradido",
       "title": "{senderAlias} a utilisé ton lien Gradido"

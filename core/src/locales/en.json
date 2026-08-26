@@ -151,7 +151,7 @@
       "wasPaid": "{amountGDD} GDD have just been passed on with your thank you card."
     },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderAlias} ({senderEmail}) has just redeemed your link.",
+      "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) has just redeemed your link.",
       "memo": "Message: {transactionMemo}",
       "subject": "{senderAlias} has redeemed your Gradido link",
       "title": "{senderAlias} has redeemed your Gradido link"

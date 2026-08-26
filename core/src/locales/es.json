@@ -151,7 +151,7 @@
       "wasPaid": "Se acaban de entregar {amountGDD} GDD con tu tarjeta de agradecimiento."
     },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderAlias} ({senderEmail}) acaba de canjear tu enlace.",
+      "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) acaba de canjear tu enlace.",
       "memo": "Mensaje: {transactionMemo}",
       "subject": "{senderAlias} ha canjeado tu enlace de Gradido",
       "title": "{senderAlias} ha canjeado tu enlace de Gradido"

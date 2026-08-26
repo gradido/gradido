@@ -300,7 +300,7 @@ export const sendThankYouCardPaidEmail = (
 export const sendTransactionLinkRedeemedEmail = (
   data: EmailCommonData & {
     senderAlias: string
-    senderEmail: string
+    senderCommunity: string
     transactionMemo: string
     transactionAmount: GradidoUnit
   },

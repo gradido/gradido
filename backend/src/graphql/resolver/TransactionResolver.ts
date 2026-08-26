@@ -254,7 +254,11 @@ export const executeTransaction = async (
         email: sender.emailContact.email,
         language: sender.language,
         senderAlias: new PublishNameLogic(recipient).getPublicAlias(),
-        senderEmail: recipientCom, // recipient.emailContact.email,
+        // The community, not an address. The field used to be called `senderEmail`
+        // while both live callers passed a community name, with the real address
+        // commented out beside it -- a name that invited the next person to put the
+        // leak back, in the one mail that names a third party.
+        senderCommunity: recipientCom,
         transactionAmount: amount,
         transactionMemo: memo,
       })
