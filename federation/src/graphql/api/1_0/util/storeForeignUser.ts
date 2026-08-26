@@ -15,6 +15,22 @@ export async function storeForeignUser(args: SendCoinsArgs): Promise<boolean> {
           gradidoID: args.senderUserUuid,
         },
       })
+      // Split once, and only when there is something to split. `senderUserName` is
+      // typed non-null and this file has never trusted that -- both branches below used
+      // to guard it, while the condition between them sliced it unguarded. That was
+      // harmless while the update branch only warned; now that it WRITES, a throw there
+      // is caught by the catch at the bottom and takes the alias update down with it.
+      const incoming =
+        args.senderUserName !== null
+          ? {
+              firstName: args.senderUserName.slice(0, args.senderUserName.indexOf(' ')),
+              lastName: args.senderUserName.slice(
+                args.senderUserName.indexOf(' '),
+                args.senderUserName.length,
+              ),
+            }
+          : null
+
       if (!user) {
         logger.debug(
           'X-Com: no foreignUser found for:',
@@ -27,12 +43,9 @@ export async function storeForeignUser(args: SendCoinsArgs): Promise<boolean> {
           foreignUser.alias = args.senderAlias
         }
         foreignUser.communityUuid = args.senderCommunityUuid
-        if (args.senderUserName !== null) {
-          foreignUser.firstName = args.senderUserName.slice(0, args.senderUserName.indexOf(' '))
-          foreignUser.lastName = args.senderUserName.slice(
-            args.senderUserName.indexOf(' '),
-            args.senderUserName.length,
-          )
+        if (incoming) {
+          foreignUser.firstName = incoming.firstName
+          foreignUser.lastName = incoming.lastName
         }
         foreignUser.gradidoID = args.senderUserUuid
         foreignUser = await DbUser.save(foreignUser)
@@ -40,10 +53,12 @@ export async function storeForeignUser(args: SendCoinsArgs): Promise<boolean> {
 
         return true
       } else if (
-        user.firstName !== args.senderUserName.slice(0, args.senderUserName.indexOf(' ')) ||
-        user.lastName !==
-          args.senderUserName.slice(args.senderUserName.indexOf(' '), args.senderUserName.length) ||
-        user.alias !== args.senderAlias
+        (incoming !== null &&
+          (user.firstName !== incoming.firstName || user.lastName !== incoming.lastName)) ||
+        // An alias the partner did not send is not a difference. Compared bare, every
+        // transfer from a community that sends none would fall into the update branch
+        // and rewrite the same row, for ever.
+        (!!args.senderAlias && user.alias !== args.senderAlias)
       ) {
         // Brought up to date rather than only complained about. This branch used to warn
         // and leave, so a foreign member who picked a name AFTER their first transfer
@@ -57,12 +72,9 @@ export async function storeForeignUser(args: SendCoinsArgs): Promise<boolean> {
           user: new UserLoggingView(user),
           args: new SendCoinsArgsLoggingView(args),
         })
-        if (args.senderUserName !== null) {
-          user.firstName = args.senderUserName.slice(0, args.senderUserName.indexOf(' '))
-          user.lastName = args.senderUserName.slice(
-            args.senderUserName.indexOf(' '),
-            args.senderUserName.length,
-          )
+        if (incoming) {
+          user.firstName = incoming.firstName
+          user.lastName = incoming.lastName
         }
         if (args.senderAlias) {
           user.alias = args.senderAlias

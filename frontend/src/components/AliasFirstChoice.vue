@@ -224,9 +224,17 @@ const {
 // A failed query is NOT an absent answer here. Apollo's `processError` sets `error` and
 // flips `loading` back, and leaves `result` exactly as it was - so the answer of the
 // PREVIOUS word stays readable and would be read as this word's: a green "still free"
-// for a name that is taken, with Save armed behind it. `error` is cleared on every
-// start, so this only ever describes the word being asked about.
-const checkFailed = computed(() => checkEnabled.value && !checking.value && !!checkError.value)
+// for a name that is taken, with Save armed behind it.
+//
+// ⛔ And `error` survives exactly the same way. It is cleared when the query STARTS, not
+// when it is switched off, so in the 300 ms between a keystroke and the debounce the
+// failure of the word before is still standing. Without `probed === typed` the line
+// would say "could not be checked" about a word nothing was ever asked about -- and
+// because a failed check hands Save back to the server, it would arm the button too.
+// The same trap as the stale answer above, one floor down.
+const checkFailed = computed(
+  () => checkEnabled.value && !checking.value && probed.value === typed.value && !!checkError.value,
+)
 
 // `null` while the answer is on its way, because the previous one is still lying in
 // `checkResult` and it belongs to a different word. Without this, typing a free name

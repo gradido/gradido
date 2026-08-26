@@ -286,6 +286,26 @@ describe('AliasFirstChoice', () => {
       expect(saveDisabled()).toBe(false)
     })
 
+    /**
+     * ⛔ The same trap one floor down, and coderabbit found it in the fix for the trap
+     * above: apollo clears `error` when a query STARTS, not when it is switched off. So
+     * in the 300 ms between a keystroke and the debounce, the failure of the PREVIOUS
+     * word is still standing -- and a `checkFailed` that does not compare `probed` with
+     * `typed` reports it about a word nothing was ever asked about. Since a failed check
+     * hands Save back to the server, that would arm the button as well.
+     */
+    it('does not carry a failure over to the next, unasked word', async () => {
+      failingNames.value = ['Klaus']
+      await type('Klaus')
+      expect(statusSays()).toEqual(['alias-first-check-failed'])
+
+      await wrapper.find('[data-test="alias-first-input"]').setValue('Peter')
+
+      expect(asked.value).not.toContain('Peter')
+      expect(statusSays()).toEqual(['alias-first-checking'])
+      expect(saveDisabled()).toBe(true)
+    })
+
     it('saves a free one and closes', async () => {
       await type('Bernd')
       await wrapper.find('[data-test="alias-first-save"]').trigger('click')
