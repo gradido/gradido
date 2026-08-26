@@ -25,6 +25,20 @@ describe('decimalSeparatorFor', () => {
     expect(decimalSeparatorFor('xx-nonsense')).toBe('.')
     expect(decimalSeparatorFor(undefined)).toBe('.')
   })
+
+  /**
+   * ⚠️ A DIFFERENT path through Intl from the one above, and the reason the fallback cannot
+   * be a `try/catch` alone. "xx-nonsense" is a WELL-FORMED tag Intl merely does not know, so
+   * it is accepted and quietly resolved; "en_US" -- the POSIX spelling that leaks out of a
+   * `LANG` variable -- is not a language tag at all, and Intl throws on it. One underscore
+   * in a config file must not take the keypad down, so both paths end at the same full stop.
+   */
+  it.each([['en_US'], ['e'], ['de--DE']])(
+    'falls back to a full stop for the malformed tag %s',
+    (locale) => {
+      expect(decimalSeparatorFor(locale)).toBe('.')
+    },
+  )
 })
 
 describe('formatTypedNumber', () => {
@@ -69,6 +83,11 @@ describe('formatTypedNumber', () => {
    */
   it('falls back to English for grouping and separator alike', () => {
     expect(formatTypedNumber('1234.5', 'xx-nonsense')).toBe('1,234.5')
+  })
+
+  /** ⚠️ And the same for a tag Intl rejects outright rather than resolving. */
+  it('falls back to English for a malformed tag as well', () => {
+    expect(formatTypedNumber('1234.5', 'en_US')).toBe('1,234.5')
   })
 
   /** Asked twice, answered the same: the formatter is built once per language and kept. */
