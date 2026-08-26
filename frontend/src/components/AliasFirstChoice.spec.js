@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { ref } from 'vue'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { nextTick, ref } from 'vue'
 import { createStore } from 'vuex'
 import { createI18n } from 'vue-i18n'
 import AliasFirstChoice from './AliasFirstChoice.vue'
@@ -61,6 +61,7 @@ const i18n = createI18n({
       'settings.username.first-taken': 'This name is already taken',
       'settings.username.first-invalid': 'This name does not match the rules',
       'settings.username.first-rules': '3 to 20 characters',
+      'settings.username.first-checking': 'checking ...',
       'settings.username.first-back': 'Back',
       'form.username': 'Username',
       'form.save': 'Save',
@@ -84,12 +85,26 @@ const mountComponent = (username = 'BerndH') =>
 describe('AliasFirstChoice', () => {
   let wrapper
 
+  // The field asks the server through a 300 ms debounce, so a test that only sets a
+  // value is still standing in the gap before the question goes out. Typing and then
+  // walking the clock forward is what a member does by pausing.
+  const type = async (value) => {
+    await wrapper.find('[data-test="alias-first-input"]').setValue(value)
+    vi.advanceTimersByTime(350)
+    await nextTick()
+  }
+
   beforeEach(() => {
+    vi.useFakeTimers()
     vi.clearAllMocks()
     statusMock.value = { aliasStatus: { aliasSettled: false } }
     checkMock.value = { checkUsername: true }
     checkLoadingMock.value = false
     wrapper = mountComponent()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   // Only a member still holding a name the system built for them has anything to
@@ -131,7 +146,7 @@ describe('AliasFirstChoice', () => {
 
     it('refuses to save a name that is taken', async () => {
       checkMock.value = { checkUsername: false }
-      await wrapper.find('[data-test="alias-first-input"]').setValue('taken')
+      await type('taken')
 
       expect(wrapper.find('[data-test="alias-first-taken"]').exists()).toBe(true)
       expect(wrapper.find('[data-test="alias-first-save"]').attributes('disabled')).toBeDefined()
@@ -143,7 +158,7 @@ describe('AliasFirstChoice', () => {
     // is the honest case, because the server's answer to the PREVIOUS keystroke is what
     // `available` still holds while the new query is on its way.
     it('says a short name has the wrong shape, not that it is taken', async () => {
-      await wrapper.find('[data-test="alias-first-input"]').setValue('ab')
+      await type('ab')
 
       expect(wrapper.find('[data-test="alias-first-invalid"]').exists()).toBe(true)
       expect(wrapper.find('[data-test="alias-first-taken"]').exists()).toBe(false)
@@ -155,22 +170,71 @@ describe('AliasFirstChoice', () => {
     // taken keeps a green Save button for the length of a round trip - and the member
     // gets a bare error code for clicking what the window told them to click.
     it('trusts no answer while the next one is on its way', async () => {
-      await wrapper.find('[data-test="alias-first-input"]').setValue('Bernd')
+      await type('Bernd')
       expect(wrapper.find('[data-test="alias-first-save"]').attributes('disabled')).toBeUndefined()
 
       checkLoadingMock.value = true
-      await wrapper.find('[data-test="alias-first-input"]').setValue('Peter')
+      await type('Peter')
 
       expect(wrapper.find('[data-test="alias-first-free"]').exists()).toBe(false)
       expect(wrapper.find('[data-test="alias-first-save"]').attributes('disabled')).toBeDefined()
     })
 
     it('saves a free one and closes', async () => {
-      await wrapper.find('[data-test="alias-first-input"]').setValue('Bernd')
+      await type('Bernd')
       await wrapper.find('[data-test="alias-first-save"]').trigger('click')
 
       expect(updateMock).toHaveBeenCalledWith({ alias: 'Bernd' })
       expect(wrapper.find('[data-test="alias-first-choice"]').exists()).toBe(false)
+    })
+
+    /**
+     * ⛔ The reported bug: the field twitched on every keystroke and every deletion.
+     *
+     * The three messages were three v-ifs that could all be false at once -- exactly
+     * between a keystroke and its answer -- so the whole line vanished and the address
+     * and the rules below it jumped up and back. A member typing a nine-letter name saw
+     * it nine times.
+     *
+     * Which change should make this red: putting the messages back into a chain that can
+     * render nothing, or dropping the reserved row.
+     */
+    it('keeps the status line in place while the answer is on its way', async () => {
+      const status = () => wrapper.find('.alias-first-status')
+
+      await wrapper.find('[data-test="alias-first-input"]').setValue('Bern')
+      // Mid-keystroke: the debounce has not fired, so nothing is known about this word.
+      expect(status().exists()).toBe(true)
+      expect(wrapper.find('[data-test="alias-first-checking"]').exists()).toBe(true)
+
+      await type('Bernd')
+      expect(status().exists()).toBe(true)
+      expect(wrapper.find('[data-test="alias-first-free"]').exists()).toBe(true)
+
+      checkLoadingMock.value = true
+      await type('Bernda')
+      expect(status().exists()).toBe(true)
+    })
+
+    // One query per pause, not per keystroke. Five characters used to mean five round
+    // trips, and every answer arriving flipped the line and moved the layout again.
+    //
+    // The assertion that carries this is the one MID-burst: while the member is still
+    // typing, no intermediate word may have gone out. Checking only the end state would
+    // pass without any debounce at all.
+    it('asks the server once for a word, not once per letter', async () => {
+      const input = wrapper.find('[data-test="alias-first-input"]')
+      for (const value of ['B', 'Be', 'Ber', 'Bern', 'Bernd']) {
+        await input.setValue(value)
+        vi.advanceTimersByTime(50)
+      }
+
+      expect(wrapper.vm.probed).toBe('BerndH')
+
+      vi.advanceTimersByTime(350)
+      await nextTick()
+
+      expect(wrapper.vm.probed).toBe('Bernd')
     })
 
     it('goes back to the proposal', async () => {

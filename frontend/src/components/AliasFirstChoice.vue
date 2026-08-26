@@ -29,22 +29,27 @@
         :state="fieldState"
         data-test="alias-first-input"
       />
-      <div
-        v-if="checkEnabled && !formatValid"
-        class="small text-danger mt-2"
-        data-test="alias-first-invalid"
-      >
-        {{ $t('settings.username.first-invalid') }}
-      </div>
-      <div
-        v-else-if="available === false"
-        class="small text-danger mt-2"
-        data-test="alias-first-taken"
-      >
-        {{ $t('settings.username.first-taken') }}
-      </div>
-      <div v-else-if="available" class="small text-success mt-2" data-test="alias-first-free">
-        {{ $t('settings.username.first-free') }}
+      <!-- One line that is always there. The three states used to be three v-ifs that
+           could all be false at once -- between two keystrokes, while the answer was on
+           its way -- so the line vanished and everything below it jumped up and back.
+           Reserving the row costs nothing and the field stops twitching while typing. -->
+      <div class="alias-first-status small mt-2">
+        <span
+          v-if="checkEnabled && !formatValid"
+          class="text-danger"
+          data-test="alias-first-invalid"
+        >
+          {{ $t('settings.username.first-invalid') }}
+        </span>
+        <span v-else-if="available === false" class="text-danger" data-test="alias-first-taken">
+          {{ $t('settings.username.first-taken') }}
+        </span>
+        <span v-else-if="available" class="text-success" data-test="alias-first-free">
+          {{ $t('settings.username.first-free') }}
+        </span>
+        <span v-else-if="checkEnabled" class="text-muted" data-test="alias-first-checking">
+          {{ $t('settings.username.first-checking') }}
+        </span>
       </div>
       <div class="alias-address mt-3">
         {{ addressPrefix }}
@@ -80,7 +85,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { useMutation, useQuery } from '@vue/apollo-composable'
@@ -141,6 +146,7 @@ const visible = computed({
 // would find an empty field.
 const startChoosing = () => {
   typed.value = currentAlias.value
+  probed.value = currentAlias.value
   choosing.value = true
 }
 
@@ -149,17 +155,31 @@ const startChoosing = () => {
 // called and returns a bare false after that, which would read as "taken" for every
 // name after the first.
 const checkEnabled = computed(() => !!typed.value && typed.value !== currentAlias.value)
+
+// Debounced, the way the contribution lists do it: without this a query went out on
+// every single keystroke, and each one flipped the answer to "not known yet" and back.
+// `probed` is what the query reads; `typed` is what the member sees.
+const probed = ref('')
+let probeTimer = null
+watch(typed, (value) => {
+  clearTimeout(probeTimer)
+  probeTimer = setTimeout(() => {
+    probed.value = value
+  }, 300)
+})
+onBeforeUnmount(() => clearTimeout(probeTimer))
+
 const { result: checkResult, loading: checking } = useQuery(
   checkUsername,
-  () => ({ username: typed.value }),
-  () => ({ enabled: checkEnabled.value, fetchPolicy: 'no-cache' }),
+  () => ({ username: probed.value }),
+  () => ({ enabled: checkEnabled.value && probed.value === typed.value, fetchPolicy: 'no-cache' }),
 )
 // `null` while the answer is on its way, because the previous one is still lying in
 // `checkResult` and it belongs to a different word. Without this, typing a free name
 // and then a taken one leaves the old `true` on screen for the length of a round trip -
 // long enough to click Save and get a bare error code back.
 const available = computed(() => {
-  if (!checkEnabled.value || checking.value) {
+  if (!checkEnabled.value || checking.value || probed.value !== typed.value) {
     return null
   }
   return checkResult.value?.checkUsername ?? null
@@ -211,5 +231,11 @@ const saveChosen = async () => {
   font-size: 0.84rem;
   color: var(--text-muted);
   word-break: break-all;
+}
+
+/* The status line keeps its row even when it has nothing to say. Without the reserved
+   height the address and the rules below it moved up and down while typing. */
+.alias-first-status {
+  min-height: 1.25rem;
 }
 </style>
