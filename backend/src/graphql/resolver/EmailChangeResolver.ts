@@ -268,9 +268,9 @@ export class EmailChangeResolver {
   }
 
   /**
-   * Sends the two mails of a pending change once more, with fresh codes. No password here:
-   * nothing about the target changes, only the codes - and the rate limit on the request
-   * event applies to this just as to a new request.
+   * Sends the two mails of a pending change once more - the same codes, so the link from
+   * the first mail keeps working. No password here: nothing about the change is altered at
+   * all, and the rate limit on the request event applies just as to a new request.
    */
   @Authorized([RIGHTS.MANAGE_OWN_EMAIL])
   @Mutation(() => PendingEmailChange)
@@ -309,10 +309,16 @@ export class EmailChangeResolver {
           `Email already sent less than ${printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} ago`,
         )
       }
-      found.emailVerificationCode = random(64).toString()
-      found.changeVetoCode = random(64).toString()
-      found.updatedAt = new Date()
-      await dbSaveUserContact(found, manager)
+      // ⛔ The row is deliberately NOT written here, and fresh codes are deliberately not
+      // issued. `updatedAt` is an @UpdateDateColumn with `onUpdate`, so ANY save moves it -
+      // and `updatedAt` is the moment the whole change is measured from, both by the window
+      // check above and by `dbPurgeExpiredEmailChanges`. Rotating the codes would therefore
+      // buy the change another full window, once per resend, for as long as somebody keeps
+      // pressing the button: an address nobody ever confirmed, held against everybody else
+      // for good - unregistrable, and closed to the Elopage webhook (see `webhook/elopage`).
+      // Re-sending the codes that are already on the row costs nothing, because the mail
+      // goes to the same address and the same member; and it leaves the change with the one
+      // lifetime it was granted when it started.
       await EVENT_EMAIL_CHANGE_REQUEST(user, manager)
       await queryRunner.commitTransaction()
       pending = found

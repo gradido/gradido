@@ -25,10 +25,10 @@
     I assume that the webhook arrives via POST and transmits a string as shown above
 */
 
-import { UserContact as dbUserContact, LoginElopageBuys } from 'database'
+import { LoginElopageBuys } from 'database'
 import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { UserResolver } from '@/graphql/resolver/UserResolver'
+import { checkEmailExists, UserResolver } from '@/graphql/resolver/UserResolver'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.webhook.elopage`)
 
@@ -118,9 +118,20 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
       return
     }
 
-    // Do we already have such a user?
-    // if ((await dbUser.count({ email })) !== 0) {
-    if ((await dbUserContact.count({ where: { email } })) !== 0) {
+    // Do we already have such a user? This is the question the registration asks, and it
+    // has to be asked the same way: `checkEmailExists` first clears out the e-mail changes
+    // that ran past their window, then looks.
+    //
+    // Counting the rows raw - as this did - also counted a change somebody merely typed in
+    // and never confirmed. Nothing here would ever clear such a row: the purge only runs for
+    // an address that some path asks about, and no path asks about this one. So a buyer
+    // whose address had once been typed into a stranger's change form silently got no
+    // account, and no retry would ever fix it.
+    //
+    // A change still inside its window does hold the address, and then this still returns
+    // without creating an account. That hold now lasts one window at most - see the note in
+    // `resendEmailChange`, where it used to be renewable without end.
+    if (await checkEmailExists(email)) {
       logger.info(`Did not create User - already exists with email: ${email}`)
       return
     }

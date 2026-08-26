@@ -240,17 +240,23 @@ describe('EmailChangeResolver', () => {
         ).resolves.toMatchObject({ data: null, errors: [CODE_INVALID] })
       })
 
-      it('issues fresh codes on resend once the window has passed', async () => {
+      it('resends the codes it already has, without buying another window', async () => {
         await ageRequestEvents(bibi.id, 11)
+        const before = await pendingRow(bibi.id)
+        const deadlineBefore = (before!.updatedAt ?? before!.createdAt).getTime()
         await expect(mutate({ mutation: resendEmailChange })).resolves.toMatchObject({
           data: { resendEmailChange: { email: 'bibi-new@bloxberg.de' } },
           errors: undefined,
         })
         const row = await pendingRow(bibi.id)
-        expect(row!.emailVerificationCode.toString()).not.toBe(code)
-        expect(row!.changeVetoCode!.toString()).not.toBe(vetoCode)
-        code = row!.emailVerificationCode.toString()
-        vetoCode = row!.changeVetoCode!.toString()
+        // The mailed links keep working - the codes are the ones that already went out.
+        expect(row!.emailVerificationCode.toString()).toBe(code)
+        expect(row!.changeVetoCode!.toString()).toBe(vetoCode)
+        // And this is the point of the test: the clock the whole change is measured by has
+        // not moved. Every write to the row moves it (`updatedAt` is an @UpdateDateColumn
+        // with `onUpdate`), and a change that could be renewed on every resend would hold a
+        // stranger's address for good.
+        expect((row!.updatedAt ?? row!.createdAt).getTime()).toBe(deadlineBefore)
       })
 
       it('moves the account to the new address on confirmation and keeps the old row', async () => {
@@ -288,6 +294,7 @@ describe('EmailChangeResolver', () => {
         resetToken()
         await expect(loginAs('bibi@bloxberg.de')).resolves.toMatchObject({ data: null })
       })
+
     })
   })
 
