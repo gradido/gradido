@@ -2,7 +2,7 @@
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { dbSelectThankYouCardSettings } from 'database'
+import { AppDatabase, dbSelectThankYouCardSettings } from 'database'
 import { CONFIG } from '@/config'
 import { PinDerivation } from '@/data/PinDerivation.enum'
 import { userFactory } from '@/seeds/factory/user'
@@ -30,6 +30,7 @@ jest.mock('@/password/EncryptorUtils')
 CONFIG.DLT_ACTIVE = false
 
 let mutate: ApolloServerTestClient['mutate']
+let db: AppDatabase
 
 const PIN = '407312'
 const OVER_LIMIT = '80'
@@ -68,6 +69,7 @@ describe('thank you card: how the pin is derived', () => {
   beforeAll(async () => {
     const testEnv = await testEnvironment()
     mutate = testEnv.mutate
+    db = testEnv.db
     await cleanDB()
 
     const payer = await userFactory(testEnv, bibiBloxberg)
@@ -90,6 +92,10 @@ describe('thank you card: how the pin is derived', () => {
 
   afterAll(async () => {
     await cleanDB()
+    // ⚠️ The pool this suite opened has to be closed here, or its sockets keep the jest
+    // worker alive after the last assertion -- the "open handles" every other resolver
+    // test avoids by doing the same.
+    await db.destroy()
   })
 
   it('writes new settings with the keyed derivation', async () => {

@@ -138,18 +138,50 @@ const entries = computed(() => {
 })
 </script>
 <style scoped>
+/**
+ * ⚠️ The rule is a `::after`, not a `border-bottom`, and that is the whole point of BAU-09.
+ * A border runs the full width of the row; this one starts BEHIND the icon and runs to the
+ * row's right edge -- the phone-settings pattern Bernd named as the model. The icons stand
+ * as their own column instead of being cut by every line.
+ *
+ * The left offset is the row's own padding + the icon (18px) + the gap, so it lands exactly
+ * where the label starts. `--row-pad` carries it, because the page fassung below widens both.
+ */
+.settings-menu {
+  --row-pad: 1rem;
+}
+
 .settings-menu-row {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.9rem 1rem;
-  border-bottom: 1px solid var(--border);
+  padding: 0.9rem var(--row-pad);
   color: var(--text) !important;
   text-decoration: none;
 }
 
-.settings-menu-row:last-child {
-  border-bottom: 0;
+.settings-menu-row::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: calc(var(--row-pad) + 18px + 0.75rem);
+  right: 0;
+  height: 1px;
+  background: var(--border);
+}
+
+.settings-menu-row:last-child::after {
+  display: none;
+}
+
+/**
+ * On the phone the list IS the page, so it runs to the card's edge: the card drops its side
+ * padding and the rows carry it instead. Without this the rules stopped 24px short on BOTH
+ * sides -- six little floating stripes rather than one list. (Bernd, 26.08.2026.)
+ */
+.settings-menu.is-page {
+  --row-pad: 1.5rem;
 }
 
 .settings-menu-row.is-current {
