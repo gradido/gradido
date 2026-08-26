@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { printDateTime } from './time'
+import { printDateTime, resolveDateTimeLocale } from './time'
 
 describe('printDateTime', () => {
   const moment = new Date('2026-08-27T09:05:00Z')
@@ -19,5 +19,25 @@ describe('printDateTime', () => {
 
   it('falls back to English for a tag Intl cannot read, instead of costing the mail', () => {
     expect(printDateTime(moment, 'not a language tag')).toBe(printDateTime(moment, 'en'))
+  })
+})
+
+describe('resolveDateTimeLocale', () => {
+  // Measured here rather than through `printDateTime`, because the interesting case cannot
+  // be shown through it: on a machine whose own default is English, asking for an unknown
+  // language gives the English answer either way - right for the wrong reason.
+  it('keeps a language this runtime knows', () => {
+    expect(resolveDateTimeLocale('de')).toBe('de')
+  })
+
+  it('answers English for a WELL-FORMED tag it does not know, not the machine default', () => {
+    // The one Intl does not throw on. Left to the constructor it would resolve to whatever
+    // the server is set to, so a mail would be dated differently on every machine.
+    expect(resolveDateTimeLocale('xx')).toBe('en')
+    expect(resolveDateTimeLocale('xx-nonsense')).toBe('en')
+  })
+
+  it('answers English for a malformed tag, the one case Intl throws on', () => {
+    expect(resolveDateTimeLocale('not a language tag')).toBe('en')
   })
 })
