@@ -309,19 +309,33 @@ const saveChosen = async () => {
    height the address and the rules below it moved up and down while typing.
 
    TWO lines, and in the line's own em rather than a rem literal. 1.25rem was the first
-   attempt and it was wrong twice over: it is shorter than a single line of this text
-   (.small is 0.875em at line-height 1.5, so 1.3125rem), so even on a wide screen the
-   first keystroke still nudged everything below it -- and on a phone the longer
-   translations wrap, which moved it by a whole line. The Greek "does not match the
-   rules" is 42 characters against 20 for "is still free", so which messages wrap
-   depends on the language, and only reserving the wrapped case holds for all ten.
+   attempt and it was wrong twice over.
+
+   It is shorter than a SINGLE line of this text -- .small is 0.875em at line-height 1.5,
+   so 21px against the 20px it reserved -- which is why the first keystroke still nudged
+   everything below it, on every screen size.
+
+   And the longer translations wrap on a narrow phone. Measured in a browser at the real
+   font (Open Sans 14px) rather than predicted, across the modal's own geometry:
+
+     viewport   line width   wraps
+     430 px     366 px       nothing
+     393 px     329 px       nothing
+     375 px     311 px       nothing
+     360 px     296 px       Greek "does not match the rules" (43 chars)
+     320 px     256 px       Greek "does not match the rules"
+
+   So which messages wrap depends on the language AND the device, two lines is the worst
+   case across all ten, and a third is never needed. Reserving the wrapped case is what
+   holds for every combination -- including a reader who has enlarged their type, which a
+   width-keyed media query would miss.
 
    `em` here resolves against this element's own font-size, so one line is 1.5em and two
    are 3em whatever the base size is -- no ratio copied into a literal that would go
    stale the day the type scale moves.
 
-   ⚠️ jsdom computes no layout, so no test in this repo can see this rule work. It is
-   checked by looking at the window on a phone. */
+   ⚠️ jsdom computes no layout, so no test in this repo can see this rule work. The table
+   above is the measurement; the window itself is looked at on a phone. */
 .alias-first-status {
   min-height: 3em;
 }
