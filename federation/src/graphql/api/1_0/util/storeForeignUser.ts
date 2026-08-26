@@ -45,11 +45,31 @@ export async function storeForeignUser(args: SendCoinsArgs): Promise<boolean> {
           args.senderUserName.slice(args.senderUserName.indexOf(' '), args.senderUserName.length) ||
         user.alias !== args.senderAlias
       ) {
-        logger.warn('X-Com: foreignUser still exists, but with different name or alias:', {
+        // Brought up to date rather than only complained about. This branch used to warn
+        // and leave, so a foreign member who picked a name AFTER their first transfer
+        // kept the row they arrived with for good. That was survivable while the mails
+        // named people by their real name -- now they name a third party by alias, and an
+        // empty one here puts their 36-character identifier in the subject line.
+        //
+        // An alias the partner community did not send does NOT clear the one on file:
+        // silence is "nothing new to say", not "it is gone".
+        logger.debug('X-Com: foreignUser exists with a different name or alias, updating:', {
           user: new UserLoggingView(user),
           args: new SendCoinsArgsLoggingView(args),
         })
-        return false
+        if (args.senderUserName !== null) {
+          user.firstName = args.senderUserName.slice(0, args.senderUserName.indexOf(' '))
+          user.lastName = args.senderUserName.slice(
+            args.senderUserName.indexOf(' '),
+            args.senderUserName.length,
+          )
+        }
+        if (args.senderAlias) {
+          user.alias = args.senderAlias
+        }
+        await DbUser.save(user)
+        logger.debug('X-Com: foreignUser updated:', new UserLoggingView(user))
+        return true
       } else {
         logger.debug('X-Com: foreignUser still exists...:', new UserLoggingView(user))
         return true
