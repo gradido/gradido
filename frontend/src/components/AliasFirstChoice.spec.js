@@ -6,7 +6,15 @@ import { createI18n } from 'vue-i18n'
 import AliasFirstChoice from './AliasFirstChoice.vue'
 
 vi.mock('bootstrap-vue-next', () => ({
-  BButton: { template: '<button @click="$emit(`click`)"><slot></slot></button>' },
+  // ⛔ `emits` is not decoration. Without it Vue treats the parent's `@click` as a
+  // fallthrough attribute AND the template's own `$emit('click')` fires it, so ONE click
+  // runs the handler TWICE. Measured, not guessed: the save handler was entered twice for
+  // a single click, which quietly turned a `mockRejectedValueOnce` into "first call
+  // refused, second call succeeded" -- a refusal test that closed the window instead.
+  BButton: {
+    emits: ['click'],
+    template: '<button @click="$emit(`click`)"><slot></slot></button>',
+  },
   BFormInput: {
     props: ['modelValue'],
     template:
@@ -306,11 +314,35 @@ describe('AliasFirstChoice', () => {
       expect(saveDisabled()).toBe(true)
     })
 
+    /**
+     * The other half of handing the decision back to the server: if it refuses, the
+     * member has to be able to read the refusal. The backend answers in English
+     * (`Given alias is already in use`), and this path stopped being a rarity the moment
+     * a failed check started arming Save.
+     */
+    it('says a refusal in the member language, not the server one', async () => {
+      failingNames.value = ['Peter']
+      await type('Peter')
+      expect(saveDisabled()).toBe(false)
+
+      updateMock.mockRejectedValueOnce(new Error('Given alias is already in use'))
+      await wrapper.find('[data-test="alias-first-save"]').trigger('click')
+      await nextTick()
+
+      expect(toastErrorMock).toHaveBeenCalledWith('This name is already taken')
+      // Still open, so the member can pick another word.
+      expect(wrapper.find('[data-test="alias-first-input"]').exists()).toBe(true)
+    })
+
     it('saves a free one and closes', async () => {
       await type('Bernd')
       await wrapper.find('[data-test="alias-first-save"]').trigger('click')
 
       expect(updateMock).toHaveBeenCalledWith({ alias: 'Bernd' })
+      // ONCE. A button mock without `emits` runs the handler twice per click, which is
+      // invisible while every call succeeds and rewrites the result the moment one of
+      // them does not.
+      expect(updateMock).toHaveBeenCalledTimes(1)
       expect(wrapper.find('[data-test="alias-first-choice"]').exists()).toBe(false)
     })
 

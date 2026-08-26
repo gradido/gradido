@@ -279,6 +279,14 @@ const keepIt = async () => {
   }
 }
 
+// The server answers in English, the way UserEmail does it -- and this refusal stopped
+// being a rarity the moment a failed check started handing the decision back to it. It
+// is also the one a member can provoke on purpose: pick a taken name while the check
+// cannot run. So it gets the sentence that stands above the button anyway, rather than
+// `Given alias is already in use` in a German window. Anything else is shown as it came.
+const errorText = (message) =>
+  message?.includes('already in use') ? t('settings.username.first-taken') : message
+
 const saveChosen = async () => {
   try {
     await updateUser({ alias: typed.value })
@@ -286,7 +294,7 @@ const saveChosen = async () => {
     dismissed.value = true
     await refetch()
   } catch (error) {
-    toastError(error.message)
+    toastError(errorText(error.message))
   }
 }
 </script>
