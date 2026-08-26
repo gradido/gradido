@@ -6,7 +6,8 @@ import {
   MatchingEntrySelect,
 } from 'database'
 import { getLogger } from 'log4js'
-import { upsertGmsUsers } from '@/apis/gms/GmsClient'
+import { putGmsMatchingEntrySnapshots, upsertGmsUsers } from '@/apis/gms/GmsClient'
+import { GmsMatchingEntrySnapshot } from '@/apis/gms/model/GmsMatchingEntry'
 import { GmsUser } from '@/apis/gms/model/GmsUser'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -34,21 +35,28 @@ export async function sendUsersToGms(
     const userIds = users.map((user) => user.id)
     logger.debug(`Users will be send to GMS ${userIds}`)
 
-    let entriesByUser: Map<number, MatchingEntrySelect[]> | undefined
+    let snapshots: GmsMatchingEntrySnapshot[] | undefined
     if (withMatchingEntries) {
-      entriesByUser = await findLiveEntriesByUser(userIds)
+      const entriesByUser = await findLiveEntriesByUser(userIds)
+      // One snapshot per user, the ones without entries included. An empty list matters:
+      // it tells the GMS this member has no live entries, so any it still holds are
+      // removed. A member left out of the batch is not touched at all.
+      snapshots = users.map(
+        (user) => new GmsMatchingEntrySnapshot(user.gradidoID, entriesByUser.get(user.id) ?? []),
+      )
     }
 
     const result = await upsertGmsUsers(
       homeCom.gmsApiKey,
-      users.map(
-        (user) =>
-          // An empty array matters here: it tells the GMS this member has no live
-          // entries, so any it still holds are removed.
-          new GmsUser(user, entriesByUser ? (entriesByUser.get(user.id) ?? []) : undefined),
-      ),
+      users.map((user) => new GmsUser(user)),
     )
     if (result) {
+      if (snapshots) {
+        // Strictly after the users: the GMS drops a snapshot for a member it does not
+        // know yet, warns, and answers 200 all the same - so the wrong order loses the
+        // entries without anything here noticing.
+        await putGmsMatchingEntrySnapshots(homeCom.gmsApiKey, snapshots)
+      }
       await batchUpdateGmsStatus(userIds)
     }
   } catch (err) {

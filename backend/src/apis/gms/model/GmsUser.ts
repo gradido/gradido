@@ -1,18 +1,11 @@
-import { User as dbUser, MatchingEntrySelect } from 'database'
+import { User as dbUser } from 'database'
 
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
 import { GmsPublishPhoneType } from '@/graphql/enum/GmsPublishPhoneType'
 
-import { GmsMatchingEntry } from './GmsMatchingEntry'
-
 export class GmsUser {
-  /**
-   * @param entries when given, they state this user's FULL set of entries: the GMS
-   *   writes what is in the list and removes what is not. Leaving it out says
-   *   nothing about entries, and the GMS keeps whatever it has.
-   */
-  constructor(user: dbUser, entries?: MatchingEntrySelect[]) {
+  constructor(user: dbUser) {
     const pnLogic = new PublishNameLogic(user)
 
     this.uuid = user.gradidoID
@@ -23,9 +16,6 @@ export class GmsUser {
     // out, because leaving it out lets the GMS keep what it has: a text written while
     // consent was on has to go when it is switched off.
     this.aboutMe = user.gmsAllowed ? user.aboutMe : null
-    if (entries) {
-      this.matchingEntries = entries.map((entry) => new GmsMatchingEntry(entry))
-    }
     this.email = this.getGmsEmail(user)
     this.countryCode = this.getGmsCountryCode(user)
     this.mobile = this.getGmsPhone(user)
@@ -66,7 +56,6 @@ export class GmsUser {
   language: string
   location: number[]
   aboutMe: string | null
-  matchingEntries?: GmsMatchingEntry[]
 
   private getGmsEmail(user: dbUser): string | undefined {
     if (user.gmsAllowed && user.emailContact?.gmsPublishEmail) {
