@@ -342,4 +342,46 @@ describe('user.queries', () => {
       expect((await DbUser.findOneByOrFail({ id: bibi.id })).alias).toBe(bibi.alias)
     })
   })
+
+  describe('an address the member has left behind', () => {
+    let bibi: DbUser
+    let leftBehind: string
+
+    beforeAll(async () => {
+      await DbUserAlias.clear()
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await DbCommunity.clear()
+
+      await createCommunity(false)
+      bibi = await userFactory(bibiBloxberg)
+      leftBehind = bibi.emailContact.email
+
+      // What a confirmed e-mail change leaves: the old row stays - it is the address the GDT
+      // server knows the member by - and `users.email_id` points at the new one.
+      const moved = DbUserContact.create({
+        userId: bibi.id,
+        email: 'bibi-moved-on@bloxberg.de',
+        type: bibi.emailContact.type,
+        emailChecked: true,
+        emailOptInTypeId: bibi.emailContact.emailOptInTypeId,
+        emailVerificationCode: '112233445566778899',
+      })
+      await moved.save()
+      bibi.emailId = moved.id
+      await bibi.save()
+    })
+
+    // `UserContact.user` IS `users.email_id`, seen from the other side, so the row left
+    // behind has no member on it at all. Nothing else in the query tells it apart from a
+    // current address - it is still `emailChecked` - and the relation condition is a LEFT
+    // JOIN, so it comes through. Before the guard the next line wrote to null.
+    it('answers with nothing instead of falling over', async () => {
+      expect(await findUserByIdentifier(leftBehind)).toBeNull()
+    })
+
+    it('still finds the member under the address that is now in force', async () => {
+      expect((await findUserByIdentifier('bibi-moved-on@bloxberg.de'))?.id).toBe(bibi.id)
+    })
+  })
 })

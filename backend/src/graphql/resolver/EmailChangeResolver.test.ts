@@ -295,6 +295,36 @@ describe('EmailChangeResolver', () => {
         await expect(loginAs('bibi@bloxberg.de')).resolves.toMatchObject({ data: null })
       })
 
+      it('refuses a password link that points at the address bibi left behind', async () => {
+        // The order that makes this real: bibi asks for a new password, so a reset code is
+        // written onto the row that is current at that moment - and then confirms the change
+        // that was already under way. `users.email_id` moves on, and that row becomes
+        // history while the code mailed to bibi still sits on it.
+        const leftBehind = await DbUserContact.findOneOrFail({
+          where: { userId: bibi.id, email: 'bibi@bloxberg.de' },
+        })
+        const strandedCode = '112233445566778899'
+        await DbUserContact.update(
+          { id: leftBehind.id },
+          {
+            emailVerificationCode: strandedCode,
+            emailOptInTypeId: OptInType.EMAIL_OPT_IN_RESET_PASSWORD,
+          },
+        )
+        // `UserContact.user` IS `users.email_id` seen from the other side, so this row has no
+        // member on it. The link reached `userContact.user.id` and died there - before the
+        // window check, so even a long-expired link answered with an internal error instead
+        // of saying it had expired. It has to read like a code we never had.
+        await expect(
+          mutate({
+            mutation: setPassword,
+            variables: { code: strandedCode, password: 'Bb12345_' },
+          }),
+        ).resolves.toMatchObject({
+          data: null,
+          errors: [new GraphQLError('Could not login with emailVerificationCode')],
+        })
+      })
     })
   })
 
