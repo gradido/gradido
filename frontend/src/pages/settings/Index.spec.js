@@ -42,6 +42,18 @@ describe('the settings index', () => {
    * ⛔ By PATH: the route at /overview carries no name and the named form throws. On a phone
    * this is the way out of the settings -- the drawer behind the hamburger is the other.
    */
+  /**
+   * ⚠️ `is-page` is what widens the rows so the rules reach the card's edge. Without it the
+   * card has no side padding while the rows keep the narrow one -- the rules stop short on
+   * the left and the icons sit against the edge. One word in a template, and nothing shouts
+   * when it goes missing. (BAU-09, Bernd 26.08.2026.)
+   */
+  it('tells the menu it is the page here, not a column', async () => {
+    const wrapper = await mountIndex()
+
+    expect(wrapper.find('settings-menu-stub').classes()).toContain('is-page')
+  })
+
   it('leads back to the account by path', async () => {
     const wrapper = await mountIndex()
 
