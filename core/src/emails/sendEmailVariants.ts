@@ -108,7 +108,8 @@ export const sendAssistedRegistrationConfirmEmail = (
 export const sendEmailChangeConfirmEmail = (
   data: EmailCommonData & {
     confirmLink: string
-    timeDurationObject: Record<string, unknown>
+    /** Already written out for the reader's language - the mail only puts it in a sentence. */
+    validUntil: string
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
@@ -129,7 +130,8 @@ export const sendEmailChangeNoticeEmail = (
   data: EmailCommonData & {
     newEmail: string
     revokeLink: string
-    timeDurationObject: Record<string, unknown>
+    /** Already written out for the reader's language - the mail only puts it in a sentence. */
+    validUntil: string
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({

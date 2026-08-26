@@ -163,6 +163,14 @@ export class AssistedRegistrationResolver {
       logger.warn('invalid emailVerificationCode')
       throw new Error('Could not confirm with this code')
     })
+    // Same trap as in `setPassword`: `UserContact.user` is the inverse of `users.email_id`
+    // and is empty for a row that is no longer the member's address. The REGISTER filter
+    // above does not catch it - a settled row carries REGISTER again - so the activation
+    // link from an address the member has since left would arrive here and be dereferenced.
+    if (!userContact.user) {
+      logger.warn(`emailVerificationCode belongs to a former address, contact=${userContact.id}`)
+      throw new Error('Could not confirm with this code')
+    }
     logger.addContext('user', userContact.user.id)
     const user = userContact.user
     // "No password" is the encryption type, NOT `password === 0n` — the bigint column

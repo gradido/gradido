@@ -240,17 +240,23 @@ describe('EmailChangeResolver', () => {
         ).resolves.toMatchObject({ data: null, errors: [CODE_INVALID] })
       })
 
-      it('issues fresh codes on resend once the window has passed', async () => {
+      it('resends the codes it already has, without buying another window', async () => {
         await ageRequestEvents(bibi.id, 11)
+        const before = await pendingRow(bibi.id)
+        const deadlineBefore = (before!.updatedAt ?? before!.createdAt).getTime()
         await expect(mutate({ mutation: resendEmailChange })).resolves.toMatchObject({
           data: { resendEmailChange: { email: 'bibi-new@bloxberg.de' } },
           errors: undefined,
         })
         const row = await pendingRow(bibi.id)
-        expect(row!.emailVerificationCode.toString()).not.toBe(code)
-        expect(row!.changeVetoCode!.toString()).not.toBe(vetoCode)
-        code = row!.emailVerificationCode.toString()
-        vetoCode = row!.changeVetoCode!.toString()
+        // The mailed links keep working - the codes are the ones that already went out.
+        expect(row!.emailVerificationCode.toString()).toBe(code)
+        expect(row!.changeVetoCode!.toString()).toBe(vetoCode)
+        // And this is the point of the test: the clock the whole change is measured by has
+        // not moved. Every write to the row moves it (`updatedAt` is an @UpdateDateColumn
+        // with `onUpdate`), and a change that could be renewed on every resend would hold a
+        // stranger's address for good.
+        expect((row!.updatedAt ?? row!.createdAt).getTime()).toBe(deadlineBefore)
       })
 
       it('moves the account to the new address on confirmation and keeps the old row', async () => {
@@ -287,6 +293,37 @@ describe('EmailChangeResolver', () => {
         await expect(loginAs('bibi-new@bloxberg.de')).resolves.toMatchObject({ errors: undefined })
         resetToken()
         await expect(loginAs('bibi@bloxberg.de')).resolves.toMatchObject({ data: null })
+      })
+
+      it('refuses a password link that points at the address bibi left behind', async () => {
+        // The order that makes this real: bibi asks for a new password, so a reset code is
+        // written onto the row that is current at that moment - and then confirms the change
+        // that was already under way. `users.email_id` moves on, and that row becomes
+        // history while the code mailed to bibi still sits on it.
+        const leftBehind = await DbUserContact.findOneOrFail({
+          where: { userId: bibi.id, email: 'bibi@bloxberg.de' },
+        })
+        const strandedCode = '112233445566778899'
+        await DbUserContact.update(
+          { id: leftBehind.id },
+          {
+            emailVerificationCode: strandedCode,
+            emailOptInTypeId: OptInType.EMAIL_OPT_IN_RESET_PASSWORD,
+          },
+        )
+        // `UserContact.user` IS `users.email_id` seen from the other side, so this row has no
+        // member on it. The link reached `userContact.user.id` and died there - before the
+        // window check, so even a long-expired link answered with an internal error instead
+        // of saying it had expired. It has to read like a code we never had.
+        await expect(
+          mutate({
+            mutation: setPassword,
+            variables: { code: strandedCode, password: 'Bb12345_' },
+          }),
+        ).resolves.toMatchObject({
+          data: null,
+          errors: [new GraphQLError('Could not login with emailVerificationCode')],
+        })
       })
     })
   })

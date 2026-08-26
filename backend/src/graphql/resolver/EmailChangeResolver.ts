@@ -43,6 +43,7 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
   canEmailResend,
   emailChangeExpiryCutoff,
+  emailVerificationCodeValidUntil,
   isEmailVerificationCodeValid,
   resendAllowedAt,
 } from '@/data/EmailVerificationCode.logic'
@@ -55,7 +56,7 @@ import {
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
-import { getTimeDurationObject, printTimeDuration } from '@/util/time'
+import { getTimeDurationObject, printDateTime, printTimeDuration } from '@/util/time'
 
 /**
  * Changing the e-mail address of one's own account.
@@ -236,14 +237,20 @@ export class EmailChangeResolver {
       await queryRunner.release()
     }
 
-    const timeDurationObject = getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME)
+    // A moment, not a duration. A resend hands out the deadline the change already had, so
+    // "valid for 24 hours" would be a promise the link cannot keep. `issuedAt` is what every
+    // other reader of this row measures by, so the mail now says the same thing they do.
+    const validUntil = printDateTime(
+      emailVerificationCodeValidUntil(issuedAt(pending)),
+      user.language,
+    )
     await sendEmailChangeConfirmEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email: pending.email,
       language: user.language,
       confirmLink: confirmLink(pending.emailVerificationCode),
-      timeDurationObject,
+      validUntil,
     })
     // A veto goes only to a CONFIRMED address (EM-013). A never-confirmed address has
     // never proven possession, so the veto protects nobody there — and it would arm the
@@ -259,7 +266,7 @@ export class EmailChangeResolver {
         language: user.language,
         newEmail: pending.email,
         revokeLink: revokeLink(pending.changeVetoCode as string),
-        timeDurationObject,
+        validUntil,
       })
     }
     logger.info('requestEmailChange... mails sent')
@@ -268,9 +275,9 @@ export class EmailChangeResolver {
   }
 
   /**
-   * Sends the two mails of a pending change once more, with fresh codes. No password here:
-   * nothing about the target changes, only the codes - and the rate limit on the request
-   * event applies to this just as to a new request.
+   * Sends the two mails of a pending change once more - the same codes, so the link from
+   * the first mail keeps working. No password here: nothing about the change is altered at
+   * all, and the rate limit on the request event applies just as to a new request.
    */
   @Authorized([RIGHTS.MANAGE_OWN_EMAIL])
   @Mutation(() => PendingEmailChange)
@@ -309,10 +316,16 @@ export class EmailChangeResolver {
           `Email already sent less than ${printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} ago`,
         )
       }
-      found.emailVerificationCode = random(64).toString()
-      found.changeVetoCode = random(64).toString()
-      found.updatedAt = new Date()
-      await dbSaveUserContact(found, manager)
+      // ⛔ The row is deliberately NOT written here, and fresh codes are deliberately not
+      // issued. `updatedAt` is an @UpdateDateColumn with `onUpdate`, so ANY save moves it -
+      // and `updatedAt` is the moment the whole change is measured from, both by the window
+      // check above and by `dbPurgeExpiredEmailChanges`. Rotating the codes would therefore
+      // buy the change another full window, once per resend, for as long as somebody keeps
+      // pressing the button: an address nobody ever confirmed, held against everybody else
+      // for good - unregistrable, and closed to the Elopage webhook (see `webhook/elopage`).
+      // Re-sending the codes that are already on the row costs nothing, because the mail
+      // goes to the same address and the same member; and it leaves the change with the one
+      // lifetime it was granted when it started.
       await EVENT_EMAIL_CHANGE_REQUEST(user, manager)
       await queryRunner.commitTransaction()
       pending = found
@@ -325,14 +338,20 @@ export class EmailChangeResolver {
       await queryRunner.release()
     }
 
-    const timeDurationObject = getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME)
+    // A moment, not a duration. A resend hands out the deadline the change already had, so
+    // "valid for 24 hours" would be a promise the link cannot keep. `issuedAt` is what every
+    // other reader of this row measures by, so the mail now says the same thing they do.
+    const validUntil = printDateTime(
+      emailVerificationCodeValidUntil(issuedAt(pending)),
+      user.language,
+    )
     await sendEmailChangeConfirmEmail({
       firstName: user.firstName,
       lastName: user.lastName,
       email: pending.email,
       language: user.language,
       confirmLink: confirmLink(pending.emailVerificationCode),
-      timeDurationObject,
+      validUntil,
     })
     // Same rule as in requestEmailChange: a veto goes only to a confirmed address.
     if (user.emailContact.emailChecked) {
@@ -343,7 +362,7 @@ export class EmailChangeResolver {
         language: user.language,
         newEmail: pending.email,
         revokeLink: revokeLink(pending.changeVetoCode as string),
-        timeDurationObject,
+        validUntil,
       })
     }
     logger.info('resendEmailChange... mails sent again')

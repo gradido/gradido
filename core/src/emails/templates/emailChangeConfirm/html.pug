@@ -14,9 +14,6 @@ block content
 
     a.clink(href=confirmLink) #{confirmLink}
 
-    //- The window may be set below an hour; then there are no hours to name.
-    if timeDurationObject.hours
-      div(class="p_content")= t('emails.emailChangeConfirm.validity', { hours: timeDurationObject.hours })
-    else
-      div(class="p_content")= t('emails.emailChangeConfirm.validityMinutes', { minutes: timeDurationObject.minutes })
+    //- A moment, not a duration: a resent link carries the deadline the change already had.
+    div(class="p_content")= t('emails.emailChangeConfirm.validUntil', { validUntil })
     div(class="p_content")= t('emails.emailChangeConfirm.notYou')

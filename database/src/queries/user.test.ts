@@ -342,4 +342,52 @@ describe('user.queries', () => {
       expect((await DbUser.findOneByOrFail({ id: bibi.id })).alias).toBe(bibi.alias)
     })
   })
+
+  describe('an address the member has left behind', () => {
+    let bibi: DbUser
+    let leftBehind: string
+
+    beforeAll(async () => {
+      await DbUserAlias.clear()
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await DbCommunity.clear()
+
+      await createCommunity(false)
+      bibi = await userFactory(bibiBloxberg)
+      leftBehind = bibi.emailContact.email
+
+      // What a confirmed e-mail change leaves: the old row stays - it is the address the GDT
+      // server knows the member by - and `users.email_id` points at the new one.
+      const moved = DbUserContact.create({
+        userId: bibi.id,
+        email: 'bibi-moved-on@bloxberg.de',
+        type: bibi.emailContact.type,
+        emailChecked: true,
+        emailOptInTypeId: bibi.emailContact.emailOptInTypeId,
+        emailVerificationCode: '112233445566778899',
+      })
+      await moved.save()
+      // Through the column, not through the entity: `bibi` still carries its ORIGINAL
+      // `emailContact` relation, and that relation IS `email_id` - saving the entity would
+      // write the old contact's id straight back over the new one. That is precisely what
+      // happened on the first run, and it made both tests below fail for opposite reasons.
+      await DbUser.update({ id: bibi.id }, { emailId: moved.id })
+      // So the fixture has to prove itself. A silent no-op here would leave two tests that
+      // look like they cover something and cover the reverse.
+      expect((await DbUser.findOneByOrFail({ id: bibi.id })).emailId).toBe(moved.id)
+    })
+
+    // `UserContact.user` IS `users.email_id`, seen from the other side, so the row left
+    // behind has no member on it at all. Nothing else in the query tells it apart from a
+    // current address - it is still `emailChecked` - and the relation condition is a LEFT
+    // JOIN, so it comes through. Before the guard the next line wrote to null.
+    it('answers with nothing instead of falling over', async () => {
+      expect(await findUserByIdentifier(leftBehind)).toBeNull()
+    })
+
+    it('still finds the member under the address that is now in force', async () => {
+      expect((await findUserByIdentifier('bibi-moved-on@bloxberg.de'))?.id).toBe(bibi.id)
+    })
+  })
 })

@@ -534,6 +534,16 @@ export class UserResolver {
       logger.warn(`invalid emailVerificationCode=${code}`)
       throw new Error('Could not login with emailVerificationCode')
     })
+    // `UserContact.user` is the inverse of `users.email_id` and is empty for every row that
+    // is not the member's current address. A row keeps its verification code when the
+    // account moves on to another address, so an old "set your password" link can land here
+    // pointing at an address the member gave up. It must not set a password - and it has to
+    // read from outside exactly like a code we never had. The check stands BEFORE the window
+    // check, which would otherwise be reached with a null user.
+    if (!userContact.user) {
+      logger.warn(`emailVerificationCode belongs to a former address, contact=${userContact.id}`)
+      throw new Error('Could not login with emailVerificationCode')
+    }
     logger.addContext('user', userContact.user.id)
     logger.debug('userContact loaded...')
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes

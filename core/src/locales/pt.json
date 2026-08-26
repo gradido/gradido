@@ -70,8 +70,7 @@
       "pleaseConfirm": "Confirma com um clique que este endereço é teu.",
       "subject": "Confirma o teu novo endereço de e-mail",
       "title": "Confirmar o novo endereço de e-mail",
-      "validity": "A ligação é válida durante {hours} horas. Depois podes pedir um novo e-mail nas tuas definições.",
-      "validityMinutes": "A ligação é válida durante {minutes} minutos. Depois podes pedir um novo e-mail nas tuas definições.",
+      "validUntil": "A ligação é válida até {validUntil}. Depois podes pedir um novo e-mail nas tuas definições.",
       "youAskedFor": "Queres alterar o endereço de e-mail da tua conta Gradido para este endereço."
     },
     "emailChangeDone": {
@@ -90,8 +89,7 @@
       "subject": "Alteração do teu endereço de e-mail pedida",
       "title": "O teu endereço de e-mail vai mudar",
       "untilConfirmed": "Até o novo endereço ser confirmado, este continua válido. Se foste tu, não precisas de fazer mais nada.",
-      "validity": "A ligação é válida durante {hours} horas – depois, a alteração pedida expira por si.",
-      "validityMinutes": "A ligação é válida durante {minutes} minutos – depois, a alteração pedida expira por si."
+      "validUntil": "A ligação é válida até {validUntil} – depois, a alteração pedida expira por si."
     },
     "emailChangeSupport": {
       "gdtHint": "Para o servidor GDT continua a contar o primeiro endereço desta conta: {gdtEmail}.",
