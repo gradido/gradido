@@ -131,19 +131,25 @@ export const executeTransaction = async (
     await queryRunner.startTransaction('REPEATABLE READ')
     logger.debug(`open Transaction to write...`)
     try {
+      // Through the shared rule, like the contribution and link paths. A bare `.alias`
+      // here wrote `null` for anybody who has not picked a name yet -- and it wrote it
+      // PERMANENTLY, into the most common booking type there is, where a legacy alias of
+      // one or two characters would also have stood while every other screen showed the
+      // identifier. Both names are read twice below, so they are worked out once.
+      const senderName = new PublishNameLogic(sender).getPublicAlias()
+      const recipientName = new PublishNameLogic(recipient).getPublicAlias()
+
       // transaction
       const transactionSend = new dbTransaction()
       transactionSend.typeId = TransactionTypeId.SEND
       transactionSend.memo = memo
       transactionSend.userId = sender.id
       transactionSend.userGradidoID = sender.gradidoID
-      // from now on the alias is written as userName in the transactions
-      transactionSend.userName = sender.alias // fullName(sender.firstName, sender.lastName)
+      transactionSend.userName = senderName
       transactionSend.userCommunityUuid = sender.communityUuid
       transactionSend.linkedUserId = recipient.id
       transactionSend.linkedUserGradidoID = recipient.gradidoID
-      // from now on the alias is written as userName in the transactions
-      transactionSend.linkedUserName = recipient.alias // fullName(recipient.firstName, recipient.lastName)
+      transactionSend.linkedUserName = recipientName
       transactionSend.linkedUserCommunityUuid = recipient.communityUuid
       transactionSend.amount = negativeAmount
       transactionSend.balance = sendBalance.balance
@@ -163,13 +169,11 @@ export const executeTransaction = async (
       transactionReceive.memo = memo
       transactionReceive.userId = recipient.id
       transactionReceive.userGradidoID = recipient.gradidoID
-      // from now on the alias is written as userName in the transactions
-      transactionReceive.userName = recipient.alias // fullName(recipient.firstName, recipient.lastName)
+      transactionReceive.userName = recipientName
       transactionReceive.userCommunityUuid = recipient.communityUuid
       transactionReceive.linkedUserId = sender.id
       transactionReceive.linkedUserGradidoID = sender.gradidoID
-      // from now on the alias is written as userName in the transactions
-      transactionReceive.linkedUserName = sender.alias // fullName(sender.firstName, sender.lastName)
+      transactionReceive.linkedUserName = senderName
       transactionReceive.linkedUserCommunityUuid = sender.communityUuid
       transactionReceive.amount = amount
       const receiveBalance = await calculateBalance(recipient.id, amount, receivedCallDate)

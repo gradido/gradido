@@ -371,7 +371,11 @@ export class ThankYouCardPaymentResolver {
           lastName: owner.lastName,
           email: owner.emailContact.email,
           language: owner.language,
-          recipientName: `${recipient.firstName} ${recipient.lastName}`,
+          // The mirror of `payerName` above, and it leaks the other way: this receipt is
+          // read by the card's OWNER, and it names the merchant -- a third party to them.
+          // The salutation above (firstName/lastName) is the owner's own name in their own
+          // inbox and stays; only this line crosses to somebody else (NU-021/KLAR-09).
+          recipientName: new PublishNameLogic(recipient).getPublicAlias(),
           recipientCommunity: await getCommunityName(recipient.communityUuid),
           transactionMemo: payment.memo,
           transactionAmount: payment.amount,
