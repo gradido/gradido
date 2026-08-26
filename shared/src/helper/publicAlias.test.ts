@@ -43,6 +43,23 @@ describe('publicAlias', () => {
   })
 
   /**
+   * Blank is not a name, however long it is. Three spaces are three characters and used
+   * to pass the length check -- which would not merely have shown an empty name, it
+   * would have HIDDEN the identifier that is supposed to stand in for a missing one.
+   *
+   * `VALID_ALIAS_REGEX` admits no spaces, so nothing can arrive this way today. The rows
+   * this rule exists for are the ones that predate it, and `user.schema.ts` still notes
+   * that the backend does not use these schemas everywhere.
+   */
+  it('does not take blank space for an alias', () => {
+    expect(publicAlias('   ', ID)).toBe(ID)
+    expect(publicAlias(' \t\n ', ID)).toBe(ID)
+    expect(publicAlias(' ab ', ID)).toBe(ID)
+    // Stored as it is, though: the trim measures, it does not rewrite.
+    expect(publicAlias(' abc ', ID)).toBe(' abc ')
+  })
+
+  /**
    * ⚠️ The type says `gradidoID` is required, and every persisted user has one -- but
    * TypeScript's guarantee stops at the type boundary and this is called from three
    * packages. `Profile` puts the result straight into a `.length` check, where undefined

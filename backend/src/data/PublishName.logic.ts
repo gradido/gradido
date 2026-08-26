@@ -1,5 +1,5 @@
 import { User } from 'database'
-import { publicAlias } from 'shared'
+import { ALIAS_MIN_CHARS, publicAlias } from 'shared'
 import XRegExp from 'xregexp'
 
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
@@ -15,8 +15,17 @@ export class PublishNameLogic {
     return XRegExp.match(name, this.usernameRegex, 'all').join('')
   }
 
+  /**
+   * Whether this member has an alias worth using -- for the humhub username, which is
+   * what `getUserIdentifier` builds.
+   *
+   * The threshold comes from `ALIAS_MIN_CHARS` rather than a literal `3`. It stood here
+   * as a literal while `publicAlias` in `shared` read the constant: two copies of one
+   * number, in a class that had just been made to delegate. Measured the same way too,
+   * on the trimmed length, so the two cannot disagree about an alias of three spaces.
+   */
   public hasAlias(): boolean {
-    if (this.user.alias && this.user.alias.length >= 3) {
+    if (this.user.alias && this.user.alias.trim().length >= ALIAS_MIN_CHARS) {
       return true
     }
     return false
@@ -30,8 +39,11 @@ export class PublishNameLogic {
    * ⛔ The single place this rule lives on the server. It sat inline at four call sites
    * that all had to agree, and one of them (the till's receipt) had already drifted to a
    * bare `alias || gradidoID` -- which let a legacy alias of one or two characters
-   * through where the other three showed the identifier. `hasAlias()` decides for all
-   * four now.
+   * through where the other three showed the identifier. They all come through here now.
+   *
+   * ⚠️ Not through `hasAlias()`, which is what this said until the rule moved to
+   * `shared`. That method answers a different question -- whether an alias can become a
+   * humhub username -- and only shares the threshold with this one.
    *
    * ⛔ Delegates to `shared`, it does not repeat the rule: `core` writes the same value
    * into the mails a third party reads and cannot import this class, so the rule had to

@@ -16,7 +16,15 @@ import { ALIAS_MIN_CHARS } from '../schema/user.schema'
  * `ALIAS_MIN_CHARS`, not mere truthiness: a stored alias of one or two characters
  * predates the rule and is not one, so it falls back to the identifier like an absent
  * one does. `backend`'s `PublishNameLogic.getPublicAlias()` delegates here rather than
- * repeating it.
+ * repeating it, and its `hasAlias()` measures with the same constant and the same trim.
+ *
+ * Measured on the TRIMMED length, though the alias is returned as stored. Three spaces
+ * are three characters and would otherwise pass as a name -- a blank where a member
+ * expects to be called something, and worse, a blank that HIDES the identifier that is
+ * supposed to stand in. `VALID_ALIAS_REGEX` admits no spaces, so nothing can arrive that
+ * way today; the rows that made this rule necessary are the ones that predate it, and
+ * `user.schema.ts` still carries a TODO about the backend not using these schemas
+ * everywhere. Trimming costs nothing and closes the case without needing to know.
  *
  * The gradidoID is handed out in FULL on purpose -- `findUserByIdentifier` resolves a
  * UUID as readily as an alias, so it is a working address rather than a placeholder,
@@ -36,4 +44,4 @@ import { ALIAS_MIN_CHARS } from '../schema/user.schema'
  * to model.
  */
 export const publicAlias = (alias: string | null | undefined, gradidoID: string): string =>
-  (alias && alias.length >= ALIAS_MIN_CHARS ? alias : gradidoID) || ''
+  (alias && alias.trim().length >= ALIAS_MIN_CHARS ? alias : gradidoID) || ''
