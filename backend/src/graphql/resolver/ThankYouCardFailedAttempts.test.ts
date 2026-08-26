@@ -2,6 +2,7 @@
 
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
+import { AppDatabase } from 'database'
 import { CONFIG } from '@/config'
 import { userFactory } from '@/seeds/factory/user'
 import {
@@ -36,6 +37,7 @@ CONFIG.DLT_ACTIVE = false
 
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
+let db: AppDatabase
 
 const PIN = '407312'
 const WRONG_PIN = '111111'
@@ -69,6 +71,7 @@ describe('thank you card: the wrong-pin counter', () => {
     const testEnv = await testEnvironment()
     mutate = testEnv.mutate
     query = testEnv.query
+    db = testEnv.db
     await cleanDB()
 
     await userFactory(testEnv, bibiBloxberg)
@@ -92,6 +95,10 @@ describe('thank you card: the wrong-pin counter', () => {
 
   afterAll(async () => {
     await cleanDB()
+    // ⚠️ The pool this suite opened has to be closed here, or its sockets keep the jest
+    // worker alive after the last assertion -- the "open handles" every other resolver
+    // test avoids by doing the same.
+    await db.destroy()
   })
 
   it('counts a wrong pin down towards the block', async () => {
