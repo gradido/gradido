@@ -169,10 +169,23 @@ watch(typed, (value) => {
 })
 onBeforeUnmount(() => clearTimeout(probeTimer))
 
+// Checked here as well as on the server, to say WHY: without it somebody who types two
+// letters is told the name is taken, which is untrue and unhelpful in the very first
+// window they ever see. It also holds the button and keeps the query below from asking
+// about a word that cannot be free -- and it must be declared BEFORE that query, whose
+// options getter runs during setup.
+const formatValid = computed(() => USERNAME_REGEX.test(typed.value))
+
 const { result: checkResult, loading: checking } = useQuery(
   checkUsername,
   () => ({ username: probed.value }),
-  () => ({ enabled: checkEnabled.value && probed.value === typed.value, fetchPolicy: 'no-cache' }),
+  // `formatValid` too: "ab" can never be free, so asking about it is a round trip whose
+  // answer is discarded either way -- the invalid branch below wins in the template, in
+  // `fieldState` and on the Save button. Nothing reads a stale answer through this gap.
+  () => ({
+    enabled: checkEnabled.value && formatValid.value && probed.value === typed.value,
+    fetchPolicy: 'no-cache',
+  }),
 )
 // `null` while the answer is on its way, because the previous one is still lying in
 // `checkResult` and it belongs to a different word. Without this, typing a free name
@@ -184,12 +197,6 @@ const available = computed(() => {
   }
   return checkResult.value?.checkUsername ?? null
 })
-// Checked here as well as on the server, to say WHY: without it somebody who types two
-// letters is told the name is taken, which is untrue and unhelpful in the very first
-// window they ever see. It also holds the button, but it is not what makes the stale
-// answer harmless - only a valid word ever reaches the server, so the guard against a
-// leftover `true` has to sit on `available` itself, above.
-const formatValid = computed(() => USERNAME_REGEX.test(typed.value))
 const fieldState = computed(() => {
   if (!checkEnabled.value) {
     return null

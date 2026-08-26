@@ -22,10 +22,18 @@ import { ALIAS_MIN_CHARS } from '../schema/user.schema'
  * UUID as readily as an alias, so it is a working address rather than a placeholder,
  * and a shortened one would only be decoration.
  *
+ * ⚠️ The two parameters differ on purpose. `alias` is nullable because the COLUMN is,
+ * while the entity declares it `string` -- that lie is why this rule exists at all.
+ * `gradidoID` is required, because every persisted user has one and a caller with
+ * nothing to fall back on has no business asking what to call somebody.
+ *
+ * The `|| ''` behind it is the belt, not the contract: TypeScript's guarantee stops at
+ * the type boundary, and this is called from three packages. When it was missing, a bare
+ * `new User()` in a fixture reached `Profile.firstname` as `undefined` and the `.length`
+ * check there threw -- six tests red, in CI only, because that suite cannot run locally.
+ *
  * Exempt from Result on purpose: every input produces an answer, there is no failure
  * to model.
  */
-export const publicAlias = (
-  alias: string | null | undefined,
-  gradidoID: string | null | undefined,
-): string => (alias && alias.length >= ALIAS_MIN_CHARS ? alias : (gradidoID ?? ''))
+export const publicAlias = (alias: string | null | undefined, gradidoID: string): string =>
+  (alias && alias.length >= ALIAS_MIN_CHARS ? alias : gradidoID) || ''
