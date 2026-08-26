@@ -1,4 +1,5 @@
 import { User } from 'database'
+import { publicAlias } from 'shared'
 import XRegExp from 'xregexp'
 
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
@@ -32,17 +33,21 @@ export class PublishNameLogic {
    * through where the other three showed the identifier. `hasAlias()` decides for all
    * four now.
    *
-   * ⚠️ `?? ''` because the entity's types lie: `alias` is declared `string` while the
-   * column is nullable, and a user object that carries neither -- a bare `new User()` in
-   * a fixture -- would otherwise hand back `undefined` from a function declared to return
-   * a string. `Profile` puts the result straight into a `.length` check, so undefined
-   * there is a crash, not a blank. The wallet's `memberAlias` ends the same way.
+   * ⛔ Delegates to `shared`, it does not repeat the rule: `core` writes the same value
+   * into the mails a third party reads and cannot import this class, so the rule had to
+   * move somewhere all three packages reach. This method stays because the call sites
+   * here hold a whole user and reading two fields off it at each of them is what let the
+   * rule drift in the first place.
+   *
+   * Never null: the entity's types lie -- `alias` is declared `string` while the column
+   * is nullable -- and `Profile` puts the result straight into a `.length` check, where
+   * undefined is a crash rather than a blank.
    *
    * Exempt from Result on purpose: every user produces an answer, there is no failure
    * to model.
    */
   public getPublicAlias(): string {
-    return (this.hasAlias() ? this.user.alias : this.user.gradidoID) ?? ''
+    return publicAlias(this.user.alias, this.user.gradidoID)
   }
 
   /**
