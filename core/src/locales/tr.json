@@ -20,7 +20,7 @@
       "title": "E-postanla yeniden kayıt denemesi"
     },
     "addedContributionMessage": {
-      "commonGoodContributionMessage": "{senderFirstName} {senderLastName}, ortak yarara katkın “{contributionMemo}” hakkında sana bir mesaj gönderdi.",
+      "commonGoodContributionMessage": "{senderAlias}, ortak yarara katkın “{contributionMemo}” hakkında sana bir mesaj gönderdi.",
       "message": "“{message}”",
       "readMessage": "Mesajı oku ve yanıtla",
       "subject": "Ortak yarara katkın hakkında mesaj",
@@ -42,27 +42,27 @@
     },
     "contributionChangedByModerator": {
       "subject": "Ortak yarara katkın değiştirildi",
-      "text": "ortak yarara katkın “{contributionMemo}” az önce {senderFirstName} {senderLastName} tarafından değiştirildi ve şimdi şöyle: “{contributionMemoUpdated}”",
+      "text": "ortak yarara katkın “{contributionMemo}” az önce {senderAlias} tarafından değiştirildi ve şimdi şöyle: “{contributionMemoUpdated}”",
       "title": "Ortak yarara katkın değiştirildi"
     },
     "contributionConfirmed": {
-      "commonGoodContributionConfirmed": "ortak yarara katkın “{contributionMemo}” az önce {senderFirstName} {senderLastName} tarafından onaylandı. Gradido hesabına {amountGDD} GDD yatırıldı.",
+      "commonGoodContributionConfirmed": "ortak yarara katkın “{contributionMemo}” az önce {senderAlias} tarafından onaylandı. Gradido hesabına {amountGDD} GDD yatırıldı.",
       "subject": "Ortak yarara katkın onaylandı",
       "title": "Ortak yarara katkın onaylandı"
     },
     "contributionDeleted": {
-      "commonGoodContributionDeleted": "ortak yarara katkın “{contributionMemo}” {senderFirstName} {senderLastName} tarafından silindi.",
+      "commonGoodContributionDeleted": "ortak yarara katkın “{contributionMemo}” {senderAlias} tarafından silindi.",
       "subject": "Ortak yarara katkın silindi",
       "title": "Ortak yarara katkın silindi"
     },
     "contributionDenied": {
-      "commonGoodContributionDenied": "ortak yarara katkın “{contributionMemo}” {senderFirstName} {senderLastName} tarafından reddedildi.",
+      "commonGoodContributionDenied": "ortak yarara katkın “{contributionMemo}” {senderAlias} tarafından reddedildi.",
       "subject": "Ortak yarara katkın reddedildi",
       "title": "Ortak yarara katkın reddedildi"
     },
     "customEmail": {
-      "haveReceivedMessageFrom": "az önce {senderFirstName} {senderLastName} tarafından bir mesaj aldın",
-      "title": "{senderFirstName} {senderLastName} sana bir mesaj gönderdi"
+      "haveReceivedMessageFrom": "az önce {senderAlias} tarafından bir mesaj aldın",
+      "title": "{senderAlias} sana bir mesaj gönderdi"
     },
     "emailChangeConfirm": {
       "confirm": "Yeni adresi onayla",
@@ -151,15 +151,15 @@
       "wasPaid": "Teşekkür kartınla az önce {amountGDD} GDD aktarıldı."
     },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) az önce bağlantını kullandı.",
+      "hasRedeemedYourLink": "{senderAlias} ({senderEmail}) az önce bağlantını kullandı.",
       "memo": "Mesaj: {transactionMemo}",
-      "subject": "{senderFirstName} {senderLastName} Gradido bağlantını kullandı",
-      "title": "{senderFirstName} {senderLastName} Gradido bağlantını kullandı"
+      "subject": "{senderAlias} Gradido bağlantını kullandı",
+      "title": "{senderAlias} Gradido bağlantını kullandı"
     },
     "transactionReceived": {
-      "haveReceivedAmountGDDFrom": "az önce {senderFirstName} {senderLastName} tarafından {transactionAmount} GDD aldın.",
-      "subject": "{senderFirstName} {senderLastName} sana {transactionAmount} Gradido gönderdi",
-      "title": "{senderFirstName} {senderLastName} sana {transactionAmount} Gradido gönderdi"
+      "haveReceivedAmountGDDFrom": "az önce {senderAlias} tarafından {transactionAmount} GDD aldın.",
+      "subject": "{senderAlias} sana {transactionAmount} Gradido gönderdi",
+      "title": "{senderAlias} sana {transactionAmount} Gradido gönderdi"
     }
   },
   "general": {

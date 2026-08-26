@@ -1,6 +1,6 @@
 import { findUserByUuids } from 'database'
 import { getLogger } from 'log4js'
-import { GradidoUnit } from 'shared'
+import { GradidoUnit, publicAlias } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { sendCustomEmail, sendTransactionReceivedEmail } from '../../emails/sendEmailVariants'
 import { BaseCommand } from '../BaseCommand'
@@ -92,8 +92,7 @@ export class SendEmailCommand extends BaseCommand<
       lastName: recipientUser.lastName, // will be part of receiver
       email: recipientUser.emailContact.email, // will be part of receiver
       language: recipientUser.language,
-      senderFirstName: senderUser.firstName,
-      senderLastName: senderUser.lastName,
+      senderAlias: publicAlias(senderUser.alias, senderUser.gradidoID),
       // Both mails put a way back to the sender behind these; without them the templates
       // fall back to a send form with nobody in it. They were in hand here all along -
       // the command carries them as its own required fields - and simply never passed on.

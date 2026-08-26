@@ -419,8 +419,7 @@ export class ContributionResolver {
         lastName: user.lastName,
         email: user.emailContact.email,
         language: user.language,
-        senderFirstName: moderator.firstName,
-        senderLastName: moderator.lastName,
+        senderAlias: new PublishNameLogic(moderator).getPublicAlias(),
         contributionMemo: updateUnconfirmedContributionContext.getOldMemo(),
         contributionMemoUpdated: contribution.memo,
         contributionFrontendLink: await contributionFrontendLink(
@@ -541,8 +540,7 @@ export class ContributionResolver {
       lastName: user.lastName,
       email: user.emailContact.email,
       language: user.language,
-      senderFirstName: moderator.firstName,
-      senderLastName: moderator.lastName,
+      senderAlias: new PublishNameLogic(moderator).getPublicAlias(),
       contributionMemo: contribution.memo,
       contributionFrontendLink: await contributionFrontendLink(
         contribution.id,
@@ -664,8 +662,7 @@ export class ContributionResolver {
           lastName: user.lastName,
           email: user.emailContact.email,
           language: user.language,
-          senderFirstName: moderatorUser.firstName,
-          senderLastName: moderatorUser.lastName,
+          senderAlias: new PublishNameLogic(moderatorUser).getPublicAlias(),
           contributionMemo: contribution.memo,
           contributionAmount: contribution.amount,
           contributionFrontendLink: await contributionFrontendLink(
@@ -767,8 +764,7 @@ export class ContributionResolver {
       lastName: user.lastName,
       email: user.emailContact.email,
       language: user.language,
-      senderFirstName: moderator.firstName,
-      senderLastName: moderator.lastName,
+      senderAlias: new PublishNameLogic(moderator).getPublicAlias(),
       contributionMemo: contributionToUpdate.memo,
       contributionFrontendLink: await contributionFrontendLink(
         contributionToUpdate.id,

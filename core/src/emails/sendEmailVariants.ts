@@ -16,8 +16,11 @@ export interface EmailCommonData {
 }
 
 export interface ContributionEmailCommonData {
-  senderFirstName: string
-  senderLastName: string
+  // The alias, never a real name (NU-019/KLAR-08): this mail is read by somebody who is
+  // a THIRD PARTY to the person named here -- the member whose contribution a moderator
+  // touched, or the counterparty of a booking. The recipient's OWN name still fills
+  // `firstName`/`lastName` above; that is their own name in their own inbox.
+  senderAlias: string
   contributionMemo: string
   contributionFrontendLink: string
 }
@@ -296,8 +299,7 @@ export const sendThankYouCardPaidEmail = (
 
 export const sendTransactionLinkRedeemedEmail = (
   data: EmailCommonData & {
-    senderFirstName: string
-    senderLastName: string
+    senderAlias: string
     senderEmail: string
     transactionMemo: string
     transactionAmount: GradidoUnit
@@ -325,8 +327,7 @@ export const sendTransactionLinkRedeemedEmail = (
  */
 export const sendTransactionReceivedEmail = (
   data: EmailCommonData & {
-    senderFirstName: string
-    senderLastName: string
+    senderAlias: string
     memo: string
     transactionAmount: GradidoUnit
     senderUuid?: string
@@ -346,8 +347,7 @@ export const sendTransactionReceivedEmail = (
 
 export const sendCustomEmail = (
   data: EmailCommonData & {
-    senderFirstName: string
-    senderLastName: string
+    senderAlias: string
     subject: string
     memo: string
     senderUuid?: string

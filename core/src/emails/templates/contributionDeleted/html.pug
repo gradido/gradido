@@ -4,7 +4,7 @@ block content
   h2= t('emails.contributionDeleted.title')
   .text-block
     include ../includes/salutation.pug
-    p.human-text= t('emails.contributionDeleted.commonGoodContributionDeleted', { contributionMemo, senderFirstName, senderLastName })
+    p.human-text= t('emails.contributionDeleted.commonGoodContributionDeleted', { contributionMemo, senderAlias })
   .content
     include ../includes/contributionDetailsCTA.pug
     include ../includes/doNotReply.pug

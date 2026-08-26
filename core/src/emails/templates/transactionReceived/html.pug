@@ -1,11 +1,11 @@
 extend ../layout.pug
 
 block content
-  h2= t('emails.transactionReceived.title', { senderFirstName, senderLastName, transactionAmount })
+  h2= t('emails.transactionReceived.title', { senderAlias, transactionAmount })
   .text-block
     include ../includes/salutation.pug
     p
-      = t('emails.transactionReceived.haveReceivedAmountGDDFrom', { transactionAmount, senderFirstName, senderLastName })
+      = t('emails.transactionReceived.haveReceivedAmountGDDFrom', { transactionAmount, senderAlias })
   .content
     h2= t('emails.general.message')
     .child-left

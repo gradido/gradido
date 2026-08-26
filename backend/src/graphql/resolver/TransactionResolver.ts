@@ -43,6 +43,7 @@ import { In, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { PublishNameLogic } from '@/data/PublishName.logic'
 import { isAliasEraName } from '@/data/StoredUserName.logic'
 import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
 import { Context, getUser } from '@/server/context'
@@ -234,8 +235,7 @@ export const executeTransaction = async (
       email: recipient.emailContact.email,
       language: recipient.language,
       memo,
-      senderFirstName: sender.firstName,
-      senderLastName: sender.lastName,
+      senderAlias: new PublishNameLogic(sender).getPublicAlias(),
       // The reply button in the mail leads to the send form with the sender filled in,
       // so the mail carries these instead of the sender's e-mail address.
       senderUuid: sender.gradidoID,
@@ -249,8 +249,7 @@ export const executeTransaction = async (
         lastName: sender.lastName,
         email: sender.emailContact.email,
         language: sender.language,
-        senderFirstName: recipient.firstName,
-        senderLastName: recipient.lastName,
+        senderAlias: new PublishNameLogic(recipient).getPublicAlias(),
         senderEmail: recipientCom, // recipient.emailContact.email,
         transactionAmount: amount,
         transactionMemo: memo,
@@ -694,8 +693,7 @@ export class TransactionResolver {
         lastName: recipientUser.lastName,
         email: recipientUser.emailContact.email,
         language: recipientUser.language,
-        senderFirstName: senderUser.firstName,
-        senderLastName: senderUser.lastName,
+        senderAlias: new PublishNameLogic(senderUser).getPublicAlias(),
         subject: subject,
         memo: memo,
         senderUuid: senderUser.gradidoID,

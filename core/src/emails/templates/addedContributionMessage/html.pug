@@ -4,7 +4,7 @@ block content
   h2= t('emails.addedContributionMessage.title')
   .text-block
     include ../includes/salutation.pug
-    p.human-text= t('emails.addedContributionMessage.commonGoodContributionMessage', { senderFirstName, senderLastName, contributionMemo })
+    p.human-text= t('emails.addedContributionMessage.commonGoodContributionMessage', { senderAlias, contributionMemo })
   .content
     h2= t('emails.addedContributionMessage.readMessage')
     div(class="p_content")

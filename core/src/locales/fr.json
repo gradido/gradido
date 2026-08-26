@@ -20,7 +20,7 @@
       "title": "Nouvelle tentative d'inscription avec ton e-mail"
     },
     "addedContributionMessage": {
-      "commonGoodContributionMessage": "tu as reçu un message de {senderFirstName} {senderLastName} concernant ta contribution au bien commun « {contributionMemo} ».",
+      "commonGoodContributionMessage": "tu as reçu un message de {senderAlias} concernant ta contribution au bien commun « {contributionMemo} ».",
       "message": "« {message} »",
       "readMessage": "Lire et répondre au message",
       "subject": "Message concernant ta contribution au bien commun",
@@ -42,27 +42,27 @@
     },
     "contributionChangedByModerator": {
       "subject": "Ta contribution au bien commun a été modifiée",
-      "text": "ta contribution au bien commun « {contributionMemo} » vient d'être modifiée par {senderFirstName} {senderLastName} et est désormais « {contributionMemoUpdated} »",
+      "text": "ta contribution au bien commun « {contributionMemo} » vient d'être modifiée par {senderAlias} et est désormais « {contributionMemoUpdated} »",
       "title": "Ta contribution au bien commun a été modifiée"
     },
     "contributionConfirmed": {
-      "commonGoodContributionConfirmed": "ta contribution au bien commun « {contributionMemo} » vient d'être confirmée par {senderFirstName} {senderLastName}. {amountGDD} GDD ont été crédités sur ton compte Gradido.",
+      "commonGoodContributionConfirmed": "ta contribution au bien commun « {contributionMemo} » vient d'être confirmée par {senderAlias}. {amountGDD} GDD ont été crédités sur ton compte Gradido.",
       "subject": "Ta contribution au bien commun a été confirmée",
       "title": "Ta contribution au bien commun a été confirmée"
     },
     "contributionDeleted": {
-      "commonGoodContributionDeleted": "ta contribution au bien commun « {contributionMemo} » a été supprimée par {senderFirstName} {senderLastName}.",
+      "commonGoodContributionDeleted": "ta contribution au bien commun « {contributionMemo} » a été supprimée par {senderAlias}.",
       "subject": "Ta contribution au bien commun a été supprimée",
       "title": "Ta contribution au bien commun a été supprimée"
     },
     "contributionDenied": {
-      "commonGoodContributionDenied": "ta contribution au bien commun « {contributionMemo} » a été refusée par {senderFirstName} {senderLastName}.",
+      "commonGoodContributionDenied": "ta contribution au bien commun « {contributionMemo} » a été refusée par {senderAlias}.",
       "subject": "Ta contribution au bien commun a été refusée",
       "title": "Ta contribution au bien commun a été refusée"
     },
     "customEmail": {
-      "haveReceivedMessageFrom": "tu viens de recevoir un message de {senderFirstName} {senderLastName}",
-      "title": "{senderFirstName} {senderLastName} t'a envoyé un message"
+      "haveReceivedMessageFrom": "tu viens de recevoir un message de {senderAlias}",
+      "title": "{senderAlias} t'a envoyé un message"
     },
     "emailChangeConfirm": {
       "confirm": "Confirmer la nouvelle adresse",
@@ -151,15 +151,15 @@
       "wasPaid": "{amountGDD} GDD viennent d’être transmis avec ta carte de remerciement."
     },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) vient d'utiliser ton lien.",
+      "hasRedeemedYourLink": "{senderAlias} ({senderEmail}) vient d'utiliser ton lien.",
       "memo": "Message : {transactionMemo}",
-      "subject": "{senderFirstName} {senderLastName} a utilisé ton lien Gradido",
-      "title": "{senderFirstName} {senderLastName} a utilisé ton lien Gradido"
+      "subject": "{senderAlias} a utilisé ton lien Gradido",
+      "title": "{senderAlias} a utilisé ton lien Gradido"
     },
     "transactionReceived": {
-      "haveReceivedAmountGDDFrom": "tu viens de recevoir {transactionAmount} GDD de {senderFirstName} {senderLastName}.",
-      "subject": "{senderFirstName} {senderLastName} t'a envoyé {transactionAmount} Gradido",
-      "title": "{senderFirstName} {senderLastName} t'a envoyé {transactionAmount} Gradido"
+      "haveReceivedAmountGDDFrom": "tu viens de recevoir {transactionAmount} GDD de {senderAlias}.",
+      "subject": "{senderAlias} t'a envoyé {transactionAmount} Gradido",
+      "title": "{senderAlias} t'a envoyé {transactionAmount} Gradido"
     }
   },
   "general": {

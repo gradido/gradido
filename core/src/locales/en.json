@@ -20,7 +20,7 @@
       "title": "Try To Register Again With Your Email"
     },
     "addedContributionMessage": {
-      "commonGoodContributionMessage": "You have received a message from {senderFirstName} {senderLastName} regarding your common good contribution “{contributionMemo}”.",
+      "commonGoodContributionMessage": "You have received a message from {senderAlias} regarding your common good contribution “{contributionMemo}”.",
       "message": "„{message}“",
       "readMessage": "Read and reply to message",
       "subject": "Message about your common good contribution",
@@ -42,27 +42,27 @@
     },
     "contributionChangedByModerator": {
       "subject": "Your common good contribution has been changed",
-      "text": "your common good contribution '{contributionMemo}' has just been changed by {senderFirstName} {senderLastName} and now reads as '{contributionMemoUpdated}'",
+      "text": "your common good contribution '{contributionMemo}' has just been changed by {senderAlias} and now reads as '{contributionMemoUpdated}'",
       "title": "Your common good contribution has been changed"
     },
     "contributionConfirmed": {
-      "commonGoodContributionConfirmed": "Your common good contribution “{contributionMemo}” has just been approved by {senderFirstName} {senderLastName}. Your Gradido account has been credited with {amountGDD} GDD.",
+      "commonGoodContributionConfirmed": "Your common good contribution “{contributionMemo}” has just been approved by {senderAlias}. Your Gradido account has been credited with {amountGDD} GDD.",
       "subject": "Your contribution to the common good was confirmed",
       "title": "Your contribution to the common good was confirmed"
     },
     "contributionDeleted": {
-      "commonGoodContributionDeleted": "Your common good contribution “{contributionMemo}” was deleted by {senderFirstName} {senderLastName}.",
+      "commonGoodContributionDeleted": "Your common good contribution “{contributionMemo}” was deleted by {senderAlias}.",
       "subject": "Your common good contribution was deleted",
       "title": "Your common good contribution was deleted"
     },
     "contributionDenied": {
-      "commonGoodContributionDenied": "Your common good contribution “{contributionMemo}” was rejected by {senderFirstName} {senderLastName}.",
+      "commonGoodContributionDenied": "Your common good contribution “{contributionMemo}” was rejected by {senderAlias}.",
       "subject": "Your common good contribution was rejected",
       "title": "Your common good contribution was rejected"
     },
     "customEmail": {
-      "haveReceivedMessageFrom": "you have just received a message from {senderFirstName} {senderLastName}",
-      "title": "{senderFirstName} {senderLastName} has sent you a message"
+      "haveReceivedMessageFrom": "you have just received a message from {senderAlias}",
+      "title": "{senderAlias} has sent you a message"
     },
     "emailChangeConfirm": {
       "confirm": "Confirm new address",
@@ -151,15 +151,15 @@
       "wasPaid": "{amountGDD} GDD have just been passed on with your thank you card."
     },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) has just redeemed your link.",
+      "hasRedeemedYourLink": "{senderAlias} ({senderEmail}) has just redeemed your link.",
       "memo": "Message: {transactionMemo}",
-      "subject": "{senderFirstName} {senderLastName} has redeemed your Gradido link",
-      "title": "{senderFirstName} {senderLastName} has redeemed your Gradido link"
+      "subject": "{senderAlias} has redeemed your Gradido link",
+      "title": "{senderAlias} has redeemed your Gradido link"
     },
     "transactionReceived": {
-      "haveReceivedAmountGDDFrom": "You have just received {transactionAmount} GDD from {senderFirstName} {senderLastName}.",
-      "subject": "{senderFirstName} {senderLastName} has sent you {transactionAmount} Gradido",
-      "title": "{senderFirstName} {senderLastName} has sent you {transactionAmount} Gradido"
+      "haveReceivedAmountGDDFrom": "You have just received {transactionAmount} GDD from {senderAlias}.",
+      "subject": "{senderAlias} has sent you {transactionAmount} Gradido",
+      "title": "{senderAlias} has sent you {transactionAmount} Gradido"
     }
   },
   "general": {
