@@ -891,6 +891,7 @@
       "confirm-reserved": "{name} queda reservado para ti: puedes recuperarlo cuando quieras.",
       "confirm-title": "¿Seguro que quieres cambiar tu nombre de usuario?",
       "first-back": "Atrás",
+      "first-check-failed": "no se ha podido comprobar",
       "first-checking": "comprobando …",
       "first-choose-title": "Elige un nombre",
       "first-free": "está libre",

@@ -41,6 +41,9 @@
         >
           {{ $t('settings.username.first-invalid') }}
         </span>
+        <span v-else-if="checkFailed" class="text-warning" data-test="alias-first-check-failed">
+          {{ $t('settings.username.first-check-failed') }}
+        </span>
         <span v-else-if="available === false" class="text-danger" data-test="alias-first-taken">
           {{ $t('settings.username.first-taken') }}
         </span>
@@ -68,12 +71,12 @@
         </BButton>
       </template>
       <template v-else>
-        <BButton variant="secondary" data-test="alias-first-back" @click="choosing = false">
+        <BButton variant="secondary" data-test="alias-first-back" @click="goBack">
           {{ $t('settings.username.first-back') }}
         </BButton>
         <BButton
           variant="gradido"
-          :disabled="!available || !formatValid || typed === currentAlias"
+          :disabled="!canSave"
           data-test="alias-first-save"
           @click="saveChosen"
         >
@@ -131,12 +134,46 @@ const addressPrefix = computed(() => {
   }
 })
 
+// Debounced, the way the contribution lists do it: without this a query went out on
+// every single keystroke, and each one flipped the answer to "not known yet" and back.
+// `probed` is what the query reads; `typed` is what the member sees.
+//
+// Declared HERE, above everything that writes it. `startChoosing` below sets it, and
+// that only ever held because a click handler cannot run before setup has finished --
+// anything evaluated DURING setup would have found it in the temporal dead zone.
+const probed = ref('')
+let probeTimer = null
+watch(typed, (value) => {
+  clearTimeout(probeTimer)
+  if (!value) {
+    probed.value = ''
+    return
+  }
+  probeTimer = setTimeout(() => {
+    probed.value = value
+  }, 300)
+})
+
+// The way out of the debounce, and it has to be an explicit one: this window is never
+// unmounted -- DashboardLayout renders it for the whole session -- so `onBeforeUnmount`
+// is a lifecycle hook that fires on nothing. Without this, leaving mid-word still sent
+// the question 300 ms later, and `typed` kept its value for the rest of the session,
+// which left the query enabled the whole time (it is `no-cache`, so every re-render of
+// the address bar could ask again).
+const stopProbing = () => {
+  clearTimeout(probeTimer)
+  typed.value = ''
+  probed.value = ''
+}
+onBeforeUnmount(stopProbing)
+
 const visible = computed({
   get: () =>
     !dismissed.value && !!currentAlias.value && result.value?.aliasStatus?.aliasSettled === false,
   set: (open) => {
     if (!open) {
       dismissed.value = true
+      stopProbing()
     }
   },
 })
@@ -150,24 +187,17 @@ const startChoosing = () => {
   choosing.value = true
 }
 
+// The second exit, and the one a member takes most often. Same reason as above.
+const goBack = () => {
+  choosing.value = false
+  stopProbing()
+}
+
 // Asked while typing, with the same query the settings page uses. Reactive variables
 // rather than a lazy query on purpose: `load()` answers only the first time it is
 // called and returns a bare false after that, which would read as "taken" for every
 // name after the first.
 const checkEnabled = computed(() => !!typed.value && typed.value !== currentAlias.value)
-
-// Debounced, the way the contribution lists do it: without this a query went out on
-// every single keystroke, and each one flipped the answer to "not known yet" and back.
-// `probed` is what the query reads; `typed` is what the member sees.
-const probed = ref('')
-let probeTimer = null
-watch(typed, (value) => {
-  clearTimeout(probeTimer)
-  probeTimer = setTimeout(() => {
-    probed.value = value
-  }, 300)
-})
-onBeforeUnmount(() => clearTimeout(probeTimer))
 
 // Checked here as well as on the server, to say WHY: without it somebody who types two
 // letters is told the name is taken, which is untrue and unhelpful in the very first
@@ -176,7 +206,11 @@ onBeforeUnmount(() => clearTimeout(probeTimer))
 // options getter runs during setup.
 const formatValid = computed(() => USERNAME_REGEX.test(typed.value))
 
-const { result: checkResult, loading: checking } = useQuery(
+const {
+  result: checkResult,
+  loading: checking,
+  error: checkError,
+} = useQuery(
   checkUsername,
   () => ({ username: probed.value }),
   // `formatValid` too: "ab" can never be free, so asking about it is a round trip whose
@@ -187,12 +221,19 @@ const { result: checkResult, loading: checking } = useQuery(
     fetchPolicy: 'no-cache',
   }),
 )
+// A failed query is NOT an absent answer here. Apollo's `processError` sets `error` and
+// flips `loading` back, and leaves `result` exactly as it was - so the answer of the
+// PREVIOUS word stays readable and would be read as this word's: a green "still free"
+// for a name that is taken, with Save armed behind it. `error` is cleared on every
+// start, so this only ever describes the word being asked about.
+const checkFailed = computed(() => checkEnabled.value && !checking.value && !!checkError.value)
+
 // `null` while the answer is on its way, because the previous one is still lying in
 // `checkResult` and it belongs to a different word. Without this, typing a free name
 // and then a taken one leaves the old `true` on screen for the length of a round trip -
 // long enough to click Save and get a bare error code back.
 const available = computed(() => {
-  if (!checkEnabled.value || checking.value || probed.value !== typed.value) {
+  if (!checkEnabled.value || checking.value || checkFailed.value || probed.value !== typed.value) {
     return null
   }
   return checkResult.value?.checkUsername ?? null
@@ -201,8 +242,24 @@ const fieldState = computed(() => {
   if (!checkEnabled.value) {
     return null
   }
-  return formatValid.value ? available.value : false
+  if (!formatValid.value) {
+    return false
+  }
+  // Neither green nor red while the check is unavailable: the field says nothing rather
+  // than colouring in something nobody verified.
+  return checkFailed.value ? null : available.value
 })
+
+// The server decides whether a name is free; this query only says so early. So a check
+// that could not run hands the decision back to it rather than locking the button - the
+// only other way out of this window leaves the question open and brings it back next
+// login, and `saveChosen` already turns a refusal into a message.
+const canSave = computed(
+  () =>
+    formatValid.value &&
+    typed.value !== currentAlias.value &&
+    (available.value === true || checkFailed.value),
+)
 
 const keepIt = async () => {
   try {
@@ -241,8 +298,23 @@ const saveChosen = async () => {
 }
 
 /* The status line keeps its row even when it has nothing to say. Without the reserved
-   height the address and the rules below it moved up and down while typing. */
+   height the address and the rules below it moved up and down while typing.
+
+   TWO lines, and in the line's own em rather than a rem literal. 1.25rem was the first
+   attempt and it was wrong twice over: it is shorter than a single line of this text
+   (.small is 0.875em at line-height 1.5, so 1.3125rem), so even on a wide screen the
+   first keystroke still nudged everything below it -- and on a phone the longer
+   translations wrap, which moved it by a whole line. The Greek "does not match the
+   rules" is 42 characters against 20 for "is still free", so which messages wrap
+   depends on the language, and only reserving the wrapped case holds for all ten.
+
+   `em` here resolves against this element's own font-size, so one line is 1.5em and two
+   are 3em whatever the base size is -- no ratio copied into a literal that would go
+   stale the day the type scale moves.
+
+   ⚠️ jsdom computes no layout, so no test in this repo can see this rule work. It is
+   checked by looking at the window on a phone. */
 .alias-first-status {
-  min-height: 1.25rem;
+  min-height: 3em;
 }
 </style>

@@ -891,6 +891,7 @@
       "confirm-reserved": "{name} senin için ayrılmış kalır — istediğin zaman geri alabilirsin.",
       "confirm-title": "Kullanıcı adını gerçekten değiştirmek istiyor musun?",
       "first-back": "Geri",
+      "first-check-failed": "denetlenemedi",
       "first-checking": "kontrol ediliyor …",
       "first-choose-title": "Bir ad seç",
       "first-free": "hâlâ boş",

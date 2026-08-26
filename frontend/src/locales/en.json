@@ -891,6 +891,7 @@
       "confirm-reserved": "{name} stays reserved for you — you can take it back at any time.",
       "confirm-title": "Do you really want to change your username?",
       "first-back": "Back",
+      "first-check-failed": "could not be checked",
       "first-checking": "checking …",
       "first-choose-title": "Choose a name",
       "first-free": "is still free",
