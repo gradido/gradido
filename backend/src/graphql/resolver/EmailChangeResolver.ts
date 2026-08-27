@@ -19,10 +19,10 @@ import {
   dbEmailTaken,
   dbFindLatestEventForAffectedUser,
   dbFindOldestUserContact,
-  dbFindOwnUserContactByEmail,
   dbFindPendingEmailChange,
   dbFindPendingEmailChangeByCode,
   dbFindPendingEmailChangeByVetoCode,
+  dbFindUserContactByEmail,
   dbInsertPendingEmailChange,
   dbLockUserRow,
   dbMarkUserContactPending,
@@ -93,6 +93,43 @@ const freshCodes = () => ({
 })
 
 /**
+ * Everything that moves a pending change - starting it, re-sending it, carrying it out,
+ * giving it up - runs in here: one `REPEATABLE READ` transaction with the member's row
+ * held under `dbLockUserRow`.
+ *
+ * ⛔ The lock is not decoration, and the reason changed with the change-back. A release
+ * used to be a hard DELETE on a row id nobody would use again, so a straggler hit nothing.
+ * Now a release WRITES - a take-back row is restored, ids are reused - and two paths that
+ * read before they write can undo each other:
+ *  - confirm reads, veto releases, confirm saves: TypeORM sees no database row behind the
+ *    entity and INSERTS it again, id and all. The change stands although it was withdrawn.
+ *  - cancel reads, a fresh request rewrites the same row, cancel saves: the mail that just
+ *    went out is dead on arrival and the wallet says nothing is pending.
+ * Both vanish if the row is re-read INSIDE the lock, which is what every caller does here.
+ */
+const underMemberLock = async <T>(
+  userId: number,
+  work: (manager: EntityManager) => Promise<T>,
+): Promise<T> => {
+  const queryRunner = db.getDataSource().createQueryRunner()
+  await queryRunner.connect()
+  await queryRunner.startTransaction('REPEATABLE READ')
+  try {
+    await dbLockUserRow(userId, queryRunner.manager)
+    const result = await work(queryRunner.manager)
+    await queryRunner.commitTransaction()
+    return result
+  } catch (e) {
+    if (queryRunner.isTransactionActive) {
+      await queryRunner.rollbackTransaction()
+    }
+    throw e
+  } finally {
+    await queryRunner.release()
+  }
+}
+
+/**
  * Every way a change can end without being carried out. A fresh row goes, a taken-back one
  * is restored - and either way the mailed code stops working, which is why a new one is
  * handed in (see `dbReleasePendingEmailChange`).
@@ -121,8 +158,15 @@ export class EmailChangeResolver {
       return null
     }
     if (!isEmailVerificationCodeValid(issuedAt(pending))) {
-      // Ran past its window: it holds the address for nobody any more.
-      await releasePending(pending)
+      // Ran past its window: it holds the address for nobody any more. Released under the
+      // lock and on a row re-read there - opening the settings must not undo a change the
+      // member started in another tab a moment ago.
+      await underMemberLock(user.id, async (manager) => {
+        const locked = await dbFindPendingEmailChange(user.id, manager)
+        if (locked && !isEmailVerificationCodeValid(issuedAt(locked))) {
+          await releasePending(locked, manager)
+        }
+      })
       return null
     }
     const lastRequest = await dbFindLatestEventForAffectedUser(
@@ -179,13 +223,8 @@ export class EmailChangeResolver {
     // both slip through the window. One change at a time is an invariant, not a hope.
     // The rate limit itself lives on the event, not on the pending row: the row can be
     // cancelled and recreated at will, the event cannot.
-    const queryRunner = db.getDataSource().createQueryRunner()
-    await queryRunner.connect()
-    await queryRunner.startTransaction('REPEATABLE READ')
-    let pending: DbUserContact
-    try {
-      const manager = queryRunner.manager
-      await dbLockUserRow(user.id, manager)
+    const pending = await underMemberLock(user.id, async (manager) => {
+      let row: DbUserContact
 
       const lastRequest = await dbFindLatestEventForAffectedUser(
         EventType.EMAIL_CHANGE_REQUEST,
@@ -203,10 +242,17 @@ export class EmailChangeResolver {
       // for the same reason: an address one has already proven is not somebody else's.
       // `user_contacts.email` is unique, so there is no second row to insert; the row is
       // already there and only gets borrowed for the change.
-      const own = await dbFindOwnUserContactByEmail(user.id, email, manager)
-      if (!own && (await dbEmailTaken(email, manager))) {
+      // ⛔ ONE look, not two. `email` is unique, so at most one row can hold it and its
+      // `user_id` answers both questions at once. Asking them separately meant asking with
+      // two different visibilities - `dbEmailTaken` counts deleted rows, the ownership
+      // question did not - and the day anything soft-deletes a contact row those two
+      // disagree: the member is told their OWN earlier address is already in use, which is
+      // exactly what the change back was built to end.
+      const existing = await dbFindUserContactByEmail(email, manager)
+      if (existing && (existing.userId !== user.id || existing.deletedAt !== null)) {
         throw new LogError('Email address already in use')
       }
+      const own = existing
 
       // Only one change at a time: a new request replaces whatever was pending - same
       // address (a fresh mail) or another one (a change of mind). Unless it IS the row we
@@ -220,7 +266,7 @@ export class EmailChangeResolver {
         // A real take-back: the member's own PROVEN address, borrowed for the change. Fresh
         // codes and a fresh window are right here - the address is theirs however this ends,
         // so its window keeps nobody out.
-        pending = await dbMarkUserContactPending(own, freshCodes(), manager)
+        row = await dbMarkUserContactPending(own, freshCodes(), manager)
       } else if (own) {
         // ⛔ The member's own change on this very address, still running - they are asking
         // again because the mail did not arrive. Writing the row would move `updatedAt`, and
@@ -229,7 +275,7 @@ export class EmailChangeResolver {
         // endless hold that `resendEmailChange` stopped selling in #3806, bought through the
         // other door instead. So the row is left exactly as it is and the codes already on it
         // go out again - which also means the mail names the deadline the change really has.
-        pending = own
+        row = own
       } else {
         const inserted = await dbInsertPendingEmailChange(
           { userId: user.id, email, ...freshCodes() },
@@ -239,19 +285,12 @@ export class EmailChangeResolver {
           // Lost a race for the same address - the same answer as if it had been taken before.
           throw new LogError('Email address already in use')
         }
-        pending = inserted.value
+        row = inserted.value
       }
 
       await EVENT_EMAIL_CHANGE_REQUEST(user, manager)
-      await queryRunner.commitTransaction()
-    } catch (e) {
-      if (queryRunner.isTransactionActive) {
-        await queryRunner.rollbackTransaction()
-      }
-      throw e
-    } finally {
-      await queryRunner.release()
-    }
+      return row
+    })
 
     // A moment, not a duration. A resend hands out the deadline the change already had, so
     // "valid for 24 hours" would be a promise the link cannot keep. `issuedAt` is what every
@@ -303,24 +342,18 @@ export class EmailChangeResolver {
     logger.addContext('user', user.id)
     // The same lock as in requestEmailChange: two resends racing each other would both pass
     // the window check and both send.
-    const queryRunner = db.getDataSource().createQueryRunner()
-    await queryRunner.connect()
-    await queryRunner.startTransaction('REPEATABLE READ')
-    let pending: DbUserContact
-    try {
-      const manager = queryRunner.manager
-      await dbLockUserRow(user.id, manager)
-
+    // ⚠️ "nothing pending" is RETURNED from inside the lock, not thrown out of it: an
+    // expired row is released, and that release has to survive - throwing here would roll
+    // it back and leave the address held by a change that is already over. The refusal is
+    // raised after the transaction has committed.
+    const pending = await underMemberLock(user.id, async (manager) => {
       const found = await dbFindPendingEmailChange(user.id, manager)
       if (!found) {
-        throw new LogError('No email change is pending')
+        return null
       }
       if (!isEmailVerificationCodeValid(issuedAt(found))) {
-        // Ran past its window. Resending would renew it - and with it the hold on the
-        // address. The removal is kept, the answer is the one for "nothing pending".
         await releasePending(found, manager)
-        await queryRunner.commitTransaction()
-        throw new LogError('No email change is pending')
+        return null
       }
       const lastRequest = await dbFindLatestEventForAffectedUser(
         EventType.EMAIL_CHANGE_REQUEST,
@@ -346,15 +379,10 @@ export class EmailChangeResolver {
       // again - that is left standing on purpose, because a never-confirmed change no longer
       // keeps anybody out (`checkEmailExists` gives it up), so the renewal costs nothing.
       await EVENT_EMAIL_CHANGE_REQUEST(user, manager)
-      await queryRunner.commitTransaction()
-      pending = found
-    } catch (e) {
-      if (queryRunner.isTransactionActive) {
-        await queryRunner.rollbackTransaction()
-      }
-      throw e
-    } finally {
-      await queryRunner.release()
+      return found
+    })
+    if (!pending) {
+      throw new LogError('No email change is pending')
     }
 
     // A moment, not a duration. A resend hands out the deadline the change already had, so
@@ -394,33 +422,42 @@ export class EmailChangeResolver {
   async confirmEmailChange(@Arg('code') code: string): Promise<string> {
     const logger = createLogger('confirmEmailChange')
     logger.info('confirmEmailChange...')
-    const pending = await dbFindPendingEmailChangeByCode(code)
-    if (!pending) {
+    const found = await dbFindPendingEmailChangeByCode(code)
+    if (!found) {
       // Unknown and expired read the same from outside - there is nothing to tell apart.
       logger.warn('no pending change for this code')
       throw new LogError(CODE_INVALID)
     }
-    if (!isEmailVerificationCodeValid(issuedAt(pending))) {
-      await releasePending(pending)
-      logger.warn('code ran past its window')
-      throw new LogError(CODE_INVALID)
-    }
-    logger.addContext('user', pending.userId)
+    logger.addContext('user', found.userId)
 
-    // `UserContact.user` is the inverse of `users.email_id` and empty for a pending row;
-    // the member is loaded by id.
-    const user = await getUserById(pending.userId, false, true)
-    const oldEmail = user.emailContact.email
-    const oldWasConfirmed = user.emailContact.emailChecked
+    // ⛔ Everything from here is decided AGAIN under the member's lock, on a row re-read
+    // inside it. The search above only says whose row this is. Between it and the write
+    // below, a veto or a cancel can release the row - and `save` on the entity read
+    // earlier would put it back, id and all, so the change would stand although somebody
+    // had withdrawn it.
+    const settled = await underMemberLock(found.userId, async (manager) => {
+      const pending = await dbFindPendingEmailChangeByCode(code, manager)
+      if (!pending) {
+        logger.warn('the change this code belonged to was already gone')
+        throw new LogError(CODE_INVALID)
+      }
+      if (!isEmailVerificationCodeValid(issuedAt(pending))) {
+        await releasePending(pending, manager)
+        logger.warn('code ran past its window')
+        throw new LogError(CODE_INVALID)
+      }
 
-    const queryRunner = db.getDataSource().createQueryRunner()
-    await queryRunner.connect()
-    await queryRunner.startTransaction('REPEATABLE READ')
-    // A row that was already confirmed is one of the member's own earlier addresses: this
-    // is a change BACK, and the support has nothing to merge on the GDT server for it.
-    const takeBack = pending.emailChecked
+      // `UserContact.user` is the inverse of `users.email_id` and empty for a pending row;
+      // the member is loaded by id.
+      const user = await getUserById(pending.userId, false, true)
+      const oldContact = user.emailContact
+      const oldEmail = oldContact.email
+      const oldWasConfirmed = oldContact.emailChecked
+      // A row that was already confirmed is one of the member's own earlier addresses:
+      // this is a change BACK, and the support has nothing to merge on the GDT server.
+      // Read BEFORE the mutation below, which sets the very flag it asks about.
+      const takeBack = pending.emailChecked
 
-    try {
       pending.emailChecked = true
       pending.changeVetoCode = null
       // ⛔ Settled, so no longer in flight. Without this every address the member ever
@@ -428,12 +465,11 @@ export class EmailChangeResolver {
       pending.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
       // One-time code: whoever still holds the link cannot do anything with it now.
       pending.emailVerificationCode = random(64).toString()
-      await dbSaveUserContact(pending, queryRunner.manager)
+      await dbSaveUserContact(pending, manager)
 
-      const oldContact = user.emailContact
       user.emailId = pending.id
       user.emailContact = pending
-      await dbSaveUser(user, queryRunner.manager)
+      await dbSaveUser(user, manager)
 
       // EM-013: an address that was NEVER confirmed was never a key — not the GDT
       // anchor (EM-004 asks the oldest LIVING row), not anybody's. Left in place, a
@@ -442,19 +478,15 @@ export class EmailChangeResolver {
       // address becomes the oldest. EM-007's precision covers this literally: "never
       // delete" protects rows that were ever valid.
       if (!oldContact.emailChecked && oldContact.id !== pending.id) {
-        await dbDeleteUserContact(oldContact.id, queryRunner.manager)
+        await dbDeleteUserContact(oldContact.id, manager)
       }
 
       // The record belongs to the change: neither without the other.
-      await EVENT_EMAIL_CHANGE_CONFIRMED(user, queryRunner.manager)
+      await EVENT_EMAIL_CHANGE_CONFIRMED(user, manager)
 
-      await queryRunner.commitTransaction()
-    } catch (e) {
-      await queryRunner.rollbackTransaction()
-      throw new LogError('Error confirming the email change', e)
-    } finally {
-      await queryRunner.release()
-    }
+      return { user, newEmail: pending.email, oldEmail, oldWasConfirmed, takeBack }
+    })
+    const { user, newEmail, oldEmail, oldWasConfirmed, takeBack } = settled
     logger.info('confirmEmailChange... marker moved')
 
     const common = { firstName: user.firstName, lastName: user.lastName, language: user.language }
@@ -462,9 +494,9 @@ export class EmailChangeResolver {
     // because if this was not the member, this mail is their last chance to notice.
     await sendEmailChangeDoneEmail({
       ...common,
-      email: pending.email,
+      email: newEmail,
       oldEmail,
-      newEmail: pending.email,
+      newEmail: newEmail,
     })
     // ... unless the old address never proved possession (EM-013): a never-confirmed
     // row belongs to nobody — mailing it would tell a stranger, or a typo.
@@ -473,7 +505,7 @@ export class EmailChangeResolver {
         ...common,
         email: oldEmail,
         oldEmail,
-        newEmail: pending.email,
+        newEmail: newEmail,
       })
     }
 
@@ -485,10 +517,18 @@ export class EmailChangeResolver {
       firstName: user.firstName,
       lastName: user.lastName,
       email: CONFIG.COMMUNITY_SUPPORT_MAIL,
-      language: user.language,
+      // ⛔ NOT `user.language`. This is the one mail the backend sends to a fixed
+      // mailbox rather than to a member, and it had inherited the field from the nine
+      // that do go to members - so a Turkish member's change back produced a Turkish
+      // work order in the support inbox, and the one thing this mail exists to say
+      // ("nothing to merge" against "please merge") became unreadable to whoever has to
+      // act on it. A fixed language, and English is the one the house already uses for
+      // everything not addressed to a member (see `apis/gms/GmsClient`). Bernd chose it
+      // on 27.08.2026.
+      language: 'en',
       alias: user.alias ?? '',
       oldEmail,
-      newEmail: pending.email,
+      newEmail: newEmail,
       gdtEmail: oldest?.email ?? oldEmail,
       takeBack,
       // EM-013 typo correction: the replaced address was never confirmed, so it was
@@ -497,7 +537,7 @@ export class EmailChangeResolver {
       typoCorrection: !oldWasConfirmed,
     })
     logger.info('confirmEmailChange... mails sent')
-    return pending.email
+    return newEmail
   }
 
   @Authorized([RIGHTS.REVOKE_EMAIL_CHANGE])
@@ -511,7 +551,17 @@ export class EmailChangeResolver {
       throw new LogError(CODE_INVALID)
     }
     logger.addContext('user', pending.userId)
-    await releasePending(pending)
+    // The search above only says WHOSE row this is; the decision is made again under the
+    // lock. Whoever holds the veto link is told the truth: if the change was carried out or
+    // withdrawn in the meantime, this code no longer stands for anything.
+    await underMemberLock(pending.userId, async (manager) => {
+      const locked = await dbFindPendingEmailChangeByVetoCode(vetoCode, manager)
+      if (!locked) {
+        logger.warn('the change this veto code belonged to was already gone')
+        throw new LogError(CODE_INVALID)
+      }
+      await releasePending(locked, manager)
+    })
     logger.info('revokeEmailChange... pending change dropped')
     return true
   }
@@ -522,9 +572,18 @@ export class EmailChangeResolver {
     const logger = createLogger('cancelEmailChange')
     const user = getUser(context)
     logger.addContext('user', user.id)
-    const pending = await dbFindPendingEmailChange(user.id)
-    if (pending) {
-      await releasePending(pending)
+    // Read under the lock, not before it: a cancel that decided on a row it read earlier
+    // would write over a request the member made in the meantime - and the mail for that
+    // request had already gone out.
+    const dropped = await underMemberLock(user.id, async (manager) => {
+      const pending = await dbFindPendingEmailChange(user.id, manager)
+      if (!pending) {
+        return false
+      }
+      await releasePending(pending, manager)
+      return true
+    })
+    if (dropped) {
       logger.info('cancelEmailChange... pending change dropped')
     }
     return true

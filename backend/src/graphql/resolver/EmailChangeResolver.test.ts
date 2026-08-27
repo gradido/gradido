@@ -348,6 +348,21 @@ describe('EmailChangeResolver', () => {
           data: null,
           errors: [new GraphQLError('Could not login with emailVerificationCode')],
         })
+
+        // ⛔ And the question BEFORE that one has to give the same answer. `queryOptIn` is
+        // what the reset page asks before it shows the form; it used to say "valid" for this
+        // very code, so the member got a password form whose submit button then refused. A
+        // dead end at the END of the road is worse than a refusal at its start.
+        await expect(
+          query({ query: queryOptIn, variables: { optIn: strandedCode } }),
+        ).resolves.toMatchObject({
+          data: null,
+          errors: [
+            expect.objectContaining({
+              message: expect.stringContaining('Could not find any entity of type "UserContact"'),
+            }),
+          ],
+        })
       })
     })
   })

@@ -612,10 +612,22 @@ export class UserResolver {
     logger.info(`queryOptIn...`)
     const userContact = await DbUserContact.findOneOrFail({
       where: { emailVerificationCode: optIn },
+      relations: ['user'],
     })
     // Same exclusion as in `setPassword`: a change code answers nothing here - and it
     // answers it exactly the way an unknown code does.
     if (userContact.emailOptInTypeId === OptInType.EMAIL_OPT_IN_CHANGE) {
+      throw new EntityNotFoundError(DbUserContact, { where: { emailVerificationCode: optIn } })
+    }
+    // ⛔ And the third place that has to ask the same thing. `UserContact.user` is the
+    // inverse of `users.email_id`, so it is empty for a row that is no longer the member's
+    // address - and such a row keeps its verification code when the account moves on. Two
+    // paths already refuse it (`setPassword`, `AssistedRegistrationResolver.confirmEmail`);
+    // this one said "valid", the form appeared, and the submit button then refused. A dead
+    // end at the END of the road is worse than a refusal at its start, so it refuses here
+    // too - and, like the branch above, exactly the way an unknown code is refused.
+    if (!userContact.user) {
+      logger.warn('optIn belongs to an address the member has left behind')
       throw new EntityNotFoundError(DbUserContact, { where: { emailVerificationCode: optIn } })
     }
     logger.addContext('user', userContact.userId)
