@@ -242,6 +242,7 @@
     "revoke": {
       "button": "Annulla la modifica",
       "done": "La modifica è stata annullata: il tuo indirizzo precedente resta valido. Se non avevi richiesto tu la modifica, cambia anche la tua password.",
+      "invalid": "Questo link non è valido o è scaduto.",
       "text": "Non sei stato tu? Allora annulla la modifica richiesta: il tuo indirizzo precedente resta valido.",
       "title": "Annulla la modifica dell'indirizzo e-mail"
     }

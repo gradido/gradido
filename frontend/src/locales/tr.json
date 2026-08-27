@@ -242,6 +242,7 @@
     "revoke": {
       "button": "Değişikliği iptal et",
       "done": "Değişiklik iptal edildi – önceki adresin kalır. Değişikliği sen istememişsen lütfen şifreni de değiştir.",
+      "invalid": "Bu bağlantı geçersiz veya süresi dolmuş.",
       "text": "Bu sen değil miydin? O zaman istenen değişikliği iptal et – önceki adresin kalır.",
       "title": "E-posta adresi değişikliğini iptal et"
     }

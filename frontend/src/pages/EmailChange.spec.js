@@ -51,7 +51,8 @@ const i18n = createI18n({
       'emailChange.revoke.text': 'revoke text',
       'emailChange.revoke.button': 'Discard change',
       'emailChange.revoke.done': 'discarded',
-      'emailChange.invalid': 'link invalid',
+      'emailChange.invalid': 'link invalid, ask in your settings',
+      'emailChange.revoke.invalid': 'link invalid',
     },
   },
 })
@@ -131,7 +132,9 @@ describe('EmailChange page', () => {
       await wrapper.find('[data-test="email-change-action"]').trigger('click')
       await nextTick()
       await nextTick()
-      expect(wrapper.find('[data-test="message"]').text()).toBe('Error | link invalid')
+      expect(wrapper.find('[data-test="message"]').text()).toBe(
+        'Error | link invalid, ask in your settings',
+      )
     })
   })
 
@@ -151,6 +154,18 @@ describe('EmailChange page', () => {
       expect(revokeMock).toHaveBeenCalledWith({ vetoCode: 'the-veto' })
       expect(confirmMock).not.toHaveBeenCalled()
       expect(wrapper.find('[data-test="message"]').text()).toBe('Done | discarded')
+    })
+
+    // The shared text's second sentence ("request a new confirmation e-mail in your
+    // settings") is advice for the member confirming - the veto reader may be somebody
+    // else entirely, so their dead link gets the first sentence alone.
+    it('tells about a dead link without the confirm advice', async () => {
+      revokeMock.mockRejectedValue(new Error('GraphQL error: Invalid or expired code'))
+      const wrapper = mountPage()
+      await wrapper.find('[data-test="email-change-action"]').trigger('click')
+      await nextTick()
+      await nextTick()
+      expect(wrapper.find('[data-test="message"]').text()).toBe('Error | link invalid')
     })
   })
 })

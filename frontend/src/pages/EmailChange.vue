@@ -46,12 +46,17 @@ const texts = computed(() =>
         text: t('emailChange.revoke.text'),
         button: t('emailChange.revoke.button'),
         done: t('emailChange.revoke.done'),
+        // The shared text's advice sentence ("request a new confirmation e-mail in your
+        // settings") is written for the member confirming - the veto reader may be
+        // somebody else entirely, so their dead link gets the first sentence alone.
+        invalid: t('emailChange.revoke.invalid'),
       }
     : {
         title: t('emailChange.confirm.title'),
         text: t('emailChange.confirm.text'),
         button: t('emailChange.confirm.button'),
         done: t('emailChange.confirm.done'),
+        invalid: t('emailChange.invalid'),
       },
 )
 
@@ -78,7 +83,7 @@ const act = async () => {
   } catch (error) {
     headline.value = t('message.errorTitle')
     subtitle.value = error.message.includes('Invalid or expired code')
-      ? t('emailChange.invalid')
+      ? texts.value.invalid
       : error.message
   } finally {
     busy.value = false

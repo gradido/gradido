@@ -31,6 +31,7 @@ import {
   dbReleasePendingEmailChange,
   dbSaveUser,
   dbSaveUserContact,
+  dbUpdateUserPassword,
 } from 'database'
 import { getLogger } from 'log4js'
 import random from 'random-bigint'
@@ -237,16 +238,16 @@ export class EmailChangeResolver {
     ) {
       user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
       user.password = await encryptPassword(user, password)
-      await dbSaveUser(user)
+      // Exactly the two columns, NOT a full save: this entity is the request snapshot,
+      // and `save()` diffs against the row as of NOW - it would write every stale column
+      // back, `users.email_id` above all, undoing a confirm that landed in between.
+      await dbUpdateUserPassword(user.id, user.password, user.passwordEncryptionType)
       logger.info('re-keyed the password from the address to the gradido id')
     }
 
     const email = rawEmail.trim().toLowerCase()
     if (!emailSchema.safeParse(email).success) {
       throw new LogError('Invalid email address')
-    }
-    if (email === user.emailContact.email.toLowerCase()) {
-      throw new LogError('This is already the email address of this account')
     }
 
     // A change somebody else started for this address and never finished must not block it.
@@ -257,7 +258,30 @@ export class EmailChangeResolver {
     // both slip through the window. One change at a time is an invariant, not a hope.
     // The rate limit itself lives on the event, not on the pending row: the row can be
     // cancelled and recreated at will, the event cannot.
-    const pending = await underMemberLock(user.id, async (manager) => {
+    const { row: pending, currentContact } = await underMemberLock(user.id, async (manager) => {
+      // The context user is a snapshot from before `verifyPassword` - hundreds of
+      // milliseconds of Argon2id sit between it and this lock, and a confirm in another
+      // tab can move the address in force inside that window. Everything that depends on
+      // WHICH address is current - the guard below, and the mailbox the veto notice goes
+      // to - is therefore decided on this read under the lock, never on the snapshot.
+      // On the snapshot, the guard waved the current address through into the take-back
+      // branch, which marked the row `users.email_id` points at as a change onto itself -
+      // and the notice, with a working veto link, went to the mailbox the account had
+      // just left.
+      // ⚠️ The catch is TARGETED, not a blanket over the lock like `confirmEmailChange`
+      // has: this lock body throws refusals the wallet matches on verbatim (the guard
+      // below, the rate limit, 'Email address already in use') - wrapping those would
+      // change their messages. What it catches is the one read that can fail on its own:
+      // a member soft-deleted mid-session is still authenticated (the auth layer reads
+      // withDeleted) but has no row here, and the raw EntityNotFoundError names the
+      // internal id and writes no log line.
+      const lockedUser = await dbGetUserById(user.id, false, true, manager).catch((e) => {
+        throw new LogError('Error requesting the email change', e)
+      })
+      if (email === lockedUser.emailContact.email.toLowerCase()) {
+        throw new LogError('This is already the email address of this account')
+      }
+
       let row: DbUserContact
 
       const lastRequest = await dbFindLatestEventForAffectedUser(
@@ -307,17 +331,24 @@ export class EmailChangeResolver {
 
       if (own?.emailChecked) {
         // A real take-back: the member's own PROVEN address, borrowed for the change. Fresh
-        // codes and a fresh window are right here - the address is theirs however this ends,
-        // so its window keeps nobody out.
+        // codes and a fresh window are right on the FIRST ask - the address is theirs
+        // however this ends, so its window keeps nobody out.
         //
-        // ⚠️ That argument covers the WINDOW and not the CODES, and this branch rotates both
-        // on every repeat, including the veto code. So asking a second time for an address
-        // one is taking back kills the stop button in the notice already delivered to the
-        // old address: whoever reads that mailbox and decides against the change clicks a
-        // revoke link that now answers "invalid". Older than this file and left standing
-        // here, but it is a hold that renews itself and a veto that silently expires - it
-        // belongs on the cleanup list, not in this delivery.
-        row = await dbMarkUserContactPending(own, freshCodes(), manager)
+        // A REPEAT inside the window leaves the row untouched, like the two sibling doors
+        // (`resendEmailChange`, and the fresh-row repeat below). That argument covered the
+        // window and not the codes: rotating on a repeat killed the stop button in the
+        // notice already delivered to the old address, and the write moved `updatedAt` -
+        // the moment the whole change is measured from - so every repeat bought another
+        // full window. The mails go out again with the codes and the deadline the change
+        // already has.
+        //
+        // A run-out take-back is not a repeat: its notice promised the change would lapse,
+        // so asking again starts a new change - fresh codes, fresh window, fresh notice.
+        // `previous` IS the change under way (the one row of the CHANGE type), so "this
+        // very row is already it" is one identity check against the one source of truth.
+        const repeatInFlight =
+          previous?.id === own.id && isEmailVerificationCodeValid(issuedAt(own))
+        row = repeatInFlight ? own : await dbMarkUserContactPending(own, freshCodes(), manager)
       } else if (own) {
         // ⛔ The member's own change on this very address, still running - they are asking
         // again because the mail did not arrive. Writing the row would move `updatedAt`, and
@@ -340,7 +371,7 @@ export class EmailChangeResolver {
       }
 
       await EVENT_EMAIL_CHANGE_REQUEST(user, manager)
-      return row
+      return { row, currentContact: lockedUser.emailContact }
     })
 
     // A moment, not a duration. A resend hands out the deadline the change already had, so
@@ -364,11 +395,11 @@ export class EmailChangeResolver {
     // from an unconfirmed row, and a veto mail to that (possibly foreign) mailbox would
     // let a stranger block the correction. Structurally the same mistake that killed
     // EM-010, one level deeper.
-    if (user.emailContact.emailChecked) {
+    if (currentContact.emailChecked) {
       await sendEmailChangeNoticeEmail({
         firstName: user.firstName,
         lastName: user.lastName,
-        email: user.emailContact.email,
+        email: currentContact.email,
         language: user.language,
         newEmail: pending.email,
         revokeLink: revokeLink(pending.changeVetoCode as string),
@@ -397,7 +428,7 @@ export class EmailChangeResolver {
     // expired row is released, and that release has to survive - throwing here would roll
     // it back and leave the address held by a change that is already over. The refusal is
     // raised after the transaction has committed.
-    const pending = await underMemberLock(user.id, async (manager) => {
+    const resent = await underMemberLock(user.id, async (manager) => {
       const found = await dbFindPendingEmailChange(user.id, manager)
       if (!found) {
         return null
@@ -424,19 +455,26 @@ export class EmailChangeResolver {
       // Re-sending the codes already on the row costs nothing - same address, same member -
       // and it leaves the change the one lifetime it started with.
       //
-      // ⚠️ The same door existed in `requestEmailChange` and was shut on 27.08.2026: asking
-      // again for the SAME address wrote the row and bought the window this branch refuses
-      // to buy. Shut for a change in flight, that is - the take-back branch above still
-      // rotates and still renews, and this line used to say "both are shut now", which was
-      // never true of that one. What also renews a hold is cancelling and asking
+      // ⚠️ The same door existed twice in `requestEmailChange` - asking again for the SAME
+      // address, and repeating a take-back - and each wrote the row and bought the window
+      // this branch refuses to buy. Both are shut now: a repeat inside the window leaves
+      // the row untouched there too. What still renews a hold is cancelling and asking
       // again - that is left standing on purpose, because a never-confirmed change no longer
       // keeps anybody out (`checkEmailExists` gives it up), so the renewal costs nothing.
+      //
+      // Same rule as in requestEmailChange: which address is current - the notice's gate
+      // and mailbox below - is decided on a read under the lock, never on the snapshot.
+      // And the same TARGETED catch: the rate-limit throw above must keep its message.
+      const lockedUser = await dbGetUserById(user.id, false, true, manager).catch((e) => {
+        throw new LogError('Error resending the email change', e)
+      })
       await EVENT_EMAIL_CHANGE_REQUEST(user, manager)
-      return found
+      return { row: found, currentContact: lockedUser.emailContact }
     })
-    if (!pending) {
+    if (!resent) {
       throw new LogError('No email change is pending')
     }
+    const { row: pending, currentContact } = resent
 
     // A moment, not a duration. A resend hands out the deadline the change already had, so
     // "valid for 24 hours" would be a promise the link cannot keep. `issuedAt` is what every
@@ -454,11 +492,11 @@ export class EmailChangeResolver {
       validUntil,
     })
     // Same rule as in requestEmailChange: a veto goes only to a confirmed address.
-    if (user.emailContact.emailChecked) {
+    if (currentContact.emailChecked) {
       await sendEmailChangeNoticeEmail({
         firstName: user.firstName,
         lastName: user.lastName,
-        email: user.emailContact.email,
+        email: currentContact.email,
         language: user.language,
         newEmail: pending.email,
         revokeLink: revokeLink(pending.changeVetoCode as string),
@@ -636,23 +674,36 @@ export class EmailChangeResolver {
     }
     logger.addContext('user', pending.userId)
     // The search above only says WHOSE row this is; the decision is made again under the
-    // lock. Whoever holds the veto link is told the truth: if the change was carried out or
-    // withdrawn in the meantime, this code no longer stands for anything.
+    // lock. Whoever holds the veto link is told the truth: if the change was carried out,
+    // withdrawn or ran out in the meantime, this code no longer stands for anything.
     //
-    // ⚠️ The refusal is RETURNED and raised after the commit, like its two neighbours. It
-    // could be thrown from inside today, because nothing is written before it - but this is
-    // the one path with no expiry check, so the obvious next edit here is exactly the one
-    // the neighbours already have (release a run-out change, then refuse), and thrown from
-    // inside, that release would roll back. That is the regression this branch just
-    // repaired; the safe shape is in place before the write arrives, not after.
+    // ⚠️ The refusal is RETURNED and raised after the commit, like its two neighbours,
+    // because the run-out branch WRITES before it refuses: releasing the change is cleanup
+    // that has to outlive the refusal, and thrown from inside it would roll back with the
+    // transaction.
     const released = await underMemberLock(pending.userId, async (manager) => {
       const locked = await dbFindPendingEmailChangeByVetoCode(vetoCode, manager)
       if (!locked) {
         logger.warn('the change this veto code belonged to was already gone')
         return false
       }
+      // Validity is read BEFORE the release - the restore path moves `updatedAt`, which
+      // is what `issuedAt` measures. Either way the row is released; what differs is the
+      // answer: run out, the notice said it itself ("the link is valid until ... - after
+      // that the change lapses of its own accord"), so the click gets the refusal, not a
+      // stop it did not cause.
+      const stillValid = isEmailVerificationCodeValid(issuedAt(locked))
+      if (!stillValid) {
+        logger.warn('the change this veto code belonged to had already run out')
+      }
       await releasePending(locked, manager)
-      return true
+      return stillValid
+    }).catch((e) => {
+      // Same reason as in `confirmEmailChange`: the right is inalienable, so the caller
+      // is anonymous, and whatever is thrown here is the message the public veto page
+      // prints. Safe as a blanket - nothing in this lock body throws on purpose, both
+      // refusals RETURN, and the CODE_INVALID throws sit outside this chain.
+      throw new LogError('Error revoking the email change', e)
     })
     if (!released) {
       throw new LogError(CODE_INVALID)
