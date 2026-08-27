@@ -22,7 +22,6 @@ import { adminEmailStatus, pendingEmailChange, queryOptIn } from '@/seeds/graphq
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { stephenHawking } from '@/seeds/users/stephen-hawking'
 
 // The mock derives the key the same way (salt by encryption type, gradido id for the
 // current type), just without the real argon2 cost - so the address change is still
@@ -704,14 +703,27 @@ describe('EmailChangeResolver', () => {
     let holder: DbUser
 
     beforeAll(async () => {
+      // Built here rather than taken from the seed shelf: the two unused seed members are
+      // unusable on purpose - Stephen Hawking carries a `deletedAt` and Garrick Ollivander
+      // an unconfirmed address, and the first attempt at this test failed on exactly that.
       resetToken()
-      holder = await userFactory(testEnv, stephenHawking)
-      await loginAs('stephen@hawking.uk')
-      await mutate({
-        mutation: requestEmailChange,
-        variables: { email: wanted, password: PASSWORD },
+      holder = await userFactory(testEnv, {
+        email: 'holder@example.org',
+        firstName: 'Holder',
+        lastName: 'OfAddresses',
+        emailChecked: true,
+        language: 'de',
       })
-      // The fixture has to be real AND young - age is exactly what must not matter here.
+      await expect(loginAs('holder@example.org')).resolves.toMatchObject({ errors: undefined })
+      await expect(
+        mutate({
+          mutation: requestEmailChange,
+          variables: { email: wanted, password: PASSWORD },
+        }),
+      ).resolves.toMatchObject({ data: { requestEmailChange: { email: wanted } } })
+      // The fixture proves itself at every step - a silent no-op here would leave a test
+      // that looks like it covers something and covers nothing. Young on purpose: age is
+      // exactly what must not matter.
       const held = await pendingRow(holder.id)
       expect(held?.email).toBe(wanted)
       expect(held?.emailChecked).toBe(false)
