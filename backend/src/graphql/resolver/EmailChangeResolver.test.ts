@@ -714,6 +714,89 @@ describe('EmailChangeResolver', () => {
         data: null,
       })
     })
+
+    /**
+     * The stop button in the notice must survive a repeat: whoever reads the old mailbox
+     * decides on the mail they HAVE, and that is as often the first one as the latest.
+     */
+    describe('asking again for the address one is taking back', () => {
+      beforeAll(async () => {
+        await loginAs('bob@baumeister.de')
+        await ageRequestEvents(bob.id, 11)
+      })
+
+      afterAll(() => {
+        resetToken()
+      })
+
+      it('keeps the codes already delivered - and the first stop button still works', async () => {
+        await mutate({
+          mutation: requestEmailChange,
+          variables: { email: 'bob-second@baumeister.de', password: PASSWORD },
+        })
+        const before = await pendingRow(bob.id)
+        const code = before!.emailVerificationCode.toString()
+        const vetoCode = before!.changeVetoCode!.toString()
+        const deadlineBefore = (before!.updatedAt ?? before!.createdAt).getTime()
+
+        await ageRequestEvents(bob.id, 11)
+        await expect(
+          mutate({
+            mutation: requestEmailChange,
+            variables: { email: 'bob-second@baumeister.de', password: PASSWORD },
+          }),
+        ).resolves.toMatchObject({
+          data: { requestEmailChange: { email: 'bob-second@baumeister.de' } },
+          errors: undefined,
+        })
+
+        const row = await pendingRow(bob.id)
+        // Same row, same codes, and the clock has not moved: the links that already went
+        // out keep working, and no repeat buys another window.
+        expect(row!.id).toBe(before!.id)
+        expect(row!.emailVerificationCode.toString()).toBe(code)
+        expect(row!.changeVetoCode!.toString()).toBe(vetoCode)
+        expect((row!.updatedAt ?? row!.createdAt).getTime()).toBe(deadlineBefore)
+
+        // The stop button from the FIRST notice, clicked after the second ask.
+        await expect(
+          mutate({ mutation: revokeEmailChange, variables: { vetoCode } }),
+        ).resolves.toMatchObject({ data: { revokeEmailChange: true }, errors: undefined })
+        expect(await pendingRow(bob.id)).toBeNull()
+      })
+
+      it('starts a new change with fresh codes once the old one has run out', async () => {
+        await ageRequestEvents(bob.id, 11)
+        await mutate({
+          mutation: requestEmailChange,
+          variables: { email: 'bob-second@baumeister.de', password: PASSWORD },
+        })
+        const before = await pendingRow(bob.id)
+        const oldCode = before!.emailVerificationCode.toString()
+        const oldVeto = before!.changeVetoCode!.toString()
+        await ageContactRow(before!.id, 25)
+        await ageRequestEvents(bob.id, 11)
+
+        await expect(
+          mutate({
+            mutation: requestEmailChange,
+            variables: { email: 'bob-second@baumeister.de', password: PASSWORD },
+          }),
+        ).resolves.toMatchObject({
+          data: { requestEmailChange: { email: 'bob-second@baumeister.de' } },
+          errors: undefined,
+        })
+        const row = await pendingRow(bob.id)
+        // The notice of the run-out change promised it would lapse; asking after that is
+        // a NEW change on the same borrowed row - the dead links are not resold.
+        expect(row!.id).toBe(before!.id)
+        expect(row!.emailVerificationCode.toString()).not.toBe(oldCode)
+        expect(row!.changeVetoCode!.toString()).not.toBe(oldVeto)
+
+        await mutate({ mutation: cancelEmailChange })
+        expect(await pendingRow(bob.id)).toBeNull()
+      })
+    })
   })
 
   /**

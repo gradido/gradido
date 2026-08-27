@@ -307,17 +307,23 @@ export class EmailChangeResolver {
 
       if (own?.emailChecked) {
         // A real take-back: the member's own PROVEN address, borrowed for the change. Fresh
-        // codes and a fresh window are right here - the address is theirs however this ends,
-        // so its window keeps nobody out.
+        // codes and a fresh window are right on the FIRST ask - the address is theirs
+        // however this ends, so its window keeps nobody out.
         //
-        // ⚠️ That argument covers the WINDOW and not the CODES, and this branch rotates both
-        // on every repeat, including the veto code. So asking a second time for an address
-        // one is taking back kills the stop button in the notice already delivered to the
-        // old address: whoever reads that mailbox and decides against the change clicks a
-        // revoke link that now answers "invalid". Older than this file and left standing
-        // here, but it is a hold that renews itself and a veto that silently expires - it
-        // belongs on the cleanup list, not in this delivery.
-        row = await dbMarkUserContactPending(own, freshCodes(), manager)
+        // A REPEAT inside the window leaves the row untouched, like the two sibling doors
+        // (`resendEmailChange`, and the fresh-row repeat below). That argument covered the
+        // window and not the codes: rotating on a repeat killed the stop button in the
+        // notice already delivered to the old address, and the write moved `updatedAt` -
+        // the moment the whole change is measured from - so every repeat bought another
+        // full window. The mails go out again with the codes and the deadline the change
+        // already has.
+        //
+        // A run-out take-back is not a repeat: its notice promised the change would lapse,
+        // so asking again starts a new change - fresh codes, fresh window, fresh notice.
+        const repeatInFlight =
+          own.emailOptInTypeId === OptInType.EMAIL_OPT_IN_CHANGE &&
+          isEmailVerificationCodeValid(issuedAt(own))
+        row = repeatInFlight ? own : await dbMarkUserContactPending(own, freshCodes(), manager)
       } else if (own) {
         // ⛔ The member's own change on this very address, still running - they are asking
         // again because the mail did not arrive. Writing the row would move `updatedAt`, and
@@ -424,11 +430,10 @@ export class EmailChangeResolver {
       // Re-sending the codes already on the row costs nothing - same address, same member -
       // and it leaves the change the one lifetime it started with.
       //
-      // ⚠️ The same door existed in `requestEmailChange` and was shut on 27.08.2026: asking
-      // again for the SAME address wrote the row and bought the window this branch refuses
-      // to buy. Shut for a change in flight, that is - the take-back branch above still
-      // rotates and still renews, and this line used to say "both are shut now", which was
-      // never true of that one. What also renews a hold is cancelling and asking
+      // ⚠️ The same door existed twice in `requestEmailChange` - asking again for the SAME
+      // address, and repeating a take-back - and each wrote the row and bought the window
+      // this branch refuses to buy. Both are shut now: a repeat inside the window leaves
+      // the row untouched there too. What still renews a hold is cancelling and asking
       // again - that is left standing on purpose, because a never-confirmed change no longer
       // keeps anybody out (`checkEmailExists` gives it up), so the renewal costs nothing.
       await EVENT_EMAIL_CHANGE_REQUEST(user, manager)
