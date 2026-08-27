@@ -242,10 +242,10 @@
     "revoke": {
       "button": "Abandonner le changement",
       "done": "Le changement a été abandonné : ton ancienne adresse reste en place. Si tu n'avais pas demandé ce changement, modifie aussi ton mot de passe.",
+      "invalid": "Ce lien n'est pas valable ou a expiré.",
       "text": "Ce n'était pas toi ? Alors abandonne le changement demandé : ton ancienne adresse reste en place.",
       "title": "Abandonner le changement d'adresse e-mail"
-    },
-    "revokeInvalid": "Ce lien n'est pas valable ou a expiré."
+    }
   },
   "emailConfirmation": {
     "changeAddress": "Corriger l'adresse",

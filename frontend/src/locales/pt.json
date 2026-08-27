@@ -242,10 +242,10 @@
     "revoke": {
       "button": "Rejeitar a alteração",
       "done": "A alteração foi rejeitada – o teu endereço anterior mantém-se. Se não foste tu a pedir a alteração, altera também a tua palavra-passe.",
+      "invalid": "Esta ligação é inválida ou expirou.",
       "text": "Não foste tu? Então rejeita a alteração pedida – o teu endereço anterior mantém-se.",
       "title": "Rejeitar a alteração do endereço de e-mail"
-    },
-    "revokeInvalid": "Esta ligação é inválida ou expirou."
+    }
   },
   "emailConfirmation": {
     "changeAddress": "Corrigir endereço",

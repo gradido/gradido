@@ -52,7 +52,7 @@ const i18n = createI18n({
       'emailChange.revoke.button': 'Discard change',
       'emailChange.revoke.done': 'discarded',
       'emailChange.invalid': 'link invalid, ask in your settings',
-      'emailChange.revokeInvalid': 'link invalid',
+      'emailChange.revoke.invalid': 'link invalid',
     },
   },
 })

@@ -242,10 +242,10 @@
     "revoke": {
       "button": "Discard change",
       "done": "The change has been discarded – your previous address stays. If you did not request the change yourself, please change your password as well.",
+      "invalid": "This link is invalid or has expired.",
       "text": "That was not you? Then discard the requested change – your previous address stays.",
       "title": "Discard change of e-mail address"
-    },
-    "revokeInvalid": "This link is invalid or has expired."
+    }
   },
   "emailConfirmation": {
     "changeAddress": "Correct address",

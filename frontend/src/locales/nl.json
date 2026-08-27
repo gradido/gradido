@@ -242,10 +242,10 @@
     "revoke": {
       "button": "Wijziging verwerpen",
       "done": "De wijziging is verworpen – je vorige adres blijft bestaan. Had je de wijziging niet zelf aangevraagd, wijzig dan ook je wachtwoord.",
+      "invalid": "Deze link is ongeldig of verlopen.",
       "text": "Was jij dat niet? Verwerp dan de aangevraagde wijziging – je vorige adres blijft bestaan.",
       "title": "Wijziging van e-mailadres verwerpen"
-    },
-    "revokeInvalid": "Deze link is ongeldig of verlopen."
+    }
   },
   "emailConfirmation": {
     "changeAddress": "Adres corrigeren",
