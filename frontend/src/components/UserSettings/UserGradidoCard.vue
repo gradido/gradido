@@ -24,6 +24,26 @@
       </BCol>
 
       <BCol cols="12" md>
+        <!-- ⛔ Above the contact block and on by default. A card is handed to strangers, and
+             whether one's real name travels with it is the holder's decision, not ours
+             (Bernd, 27.08.2026). Ticked, the card is exactly the one it always was; unticked,
+             the user name takes the top line -- bare, without the word "user name" in front
+             of it, because up there it is simply what this person is called -- and the
+             labelled line that used to carry it below goes away. -->
+        <div class="d-flex align-items-center gap-3 mb-1">
+          <span class="fw-bold">{{ $t('gradido-card.real-name') }}</span>
+          <BFormCheckbox
+            v-model="printRealName"
+            class="small"
+            data-test="gradido-card-print-real-name"
+          >
+            {{ $t('gradido-card.real-name-print') }}
+          </BFormCheckbox>
+        </div>
+        <div class="small text-muted mb-3" data-test="gradido-card-real-name-hint">
+          {{ $t('gradido-card.real-name-hint') }}
+        </div>
+
         <div class="d-flex align-items-center gap-3 mb-1">
           <label class="fw-bold mb-0" for="gradido-card-contact">
             {{ $t('gradido-card.contact') }}
@@ -127,6 +147,10 @@ const contactText = ref('')
 // On by default: the word reads as an invitation to get in touch rather than as a label.
 // Five full lines are the case where it is in the way, and then it can go.
 const printHeading = ref(true)
+// On by default as well, and for a different reason: this is the card as it has always
+// been printed. Turning it off is a deliberate step somebody takes, not a state they can
+// find themselves in without having chosen it.
+const printRealName = ref(true)
 
 /**
  * No card without a user name.
@@ -230,6 +254,7 @@ const redraw = async () => {
     const card = await drawCard({
       contact: lines.value,
       heading: printHeading.value,
+      realName: printRealName.value,
       preview: true,
     })
     if (isCurrent()) preview.value = card
@@ -258,10 +283,18 @@ watch(printHeading, (value) => {
   redraw()
 })
 
+watch(printRealName, (value) => {
+  writeStored('real-name', value ? '1' : '0')
+  redraw()
+})
+
 onMounted(() => {
   contactText.value = readStored('contact') ?? ''
-  // Only an explicit "0" turns it off, so a browser that remembers nothing keeps the default.
+  // Only an explicit "0" turns these off, so a browser that remembers nothing keeps the
+  // defaults -- and for the real name that direction matters: a device that cannot remember
+  // must fall back to the card as it has always been, never to a quieter one nobody chose.
   printHeading.value = readStored('contact-heading') !== '0'
+  printRealName.value = readStored('real-name') !== '0'
   redraw()
 })
 
@@ -281,7 +314,11 @@ const run = async (action) => {
   isBusy.value = true
   try {
     preview.value =
-      (await action({ contact: lines.value, heading: printHeading.value })) ?? preview.value
+      (await action({
+        contact: lines.value,
+        heading: printHeading.value,
+        realName: printRealName.value,
+      })) ?? preview.value
   } finally {
     isBusy.value = false
   }

@@ -457,6 +457,9 @@
     "download-hint": "Une seule image en qualité d'impression — pour une imprimerie ou à transmettre.",
     "needs-username": "Ta carte porte ton adresse Gradido, et cette adresse est formée à partir de ton nom d'utilisateur. Choisis-en un d'abord : le champ se trouve dans « Mon compte ». Ensuite tu pourras imprimer ta carte et la donner.",
     "needs-username-title": "D'abord le nom d'utilisateur",
+    "real-name": "Nom réel",
+    "real-name-hint": "Sans la coche, c’est ton nom d’utilisateur qui figure en haut : ton nom n’apparaît alors nulle part sur la carte.",
+    "real-name-print": "l’imprimer",
     "sheet": "Planche de 10 cartes",
     "sheet-hint": "10 cartes de visite à taille réelle sur une page A4. Dans la fenêtre d’impression, tu peux aussi l’enregistrer en PDF.",
     "title": "Ta carte de visite"

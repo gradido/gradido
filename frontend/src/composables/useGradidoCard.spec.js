@@ -270,4 +270,65 @@ describe('useGradidoCard', () => {
       )
     })
   })
+
+  /**
+   * A card is handed to strangers, so whether the real name travels with it is the holder's
+   * decision (Bernd, 27.08.2026). Off, the alias takes the name line and the labelled line
+   * that used to carry it goes.
+   *
+   * ⛔ These tests are here rather than only on the checkbox, because the ways the name can
+   * come back in are all in THIS file: the disc's letters and the file name of the download.
+   * A decision honoured on the big line and broken in two small ones is not honoured.
+   */
+  describe('a card without the real name', () => {
+    it('puts the alias where the name stands, bare, and drops the labelled line', async () => {
+      await useGradidoCard().drawCard({ realName: false })
+
+      expect(mockDrawGradidoCard).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'bernd', alias: 'bernd', showAliasLine: false }),
+      )
+    })
+
+    it('keeps the name and the line when it is not switched off', async () => {
+      await useGradidoCard().drawCard()
+
+      expect(mockDrawGradidoCard).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'Bernd Hückstädt', showAliasLine: true }),
+      )
+    })
+
+    // ⛔ "BH" beside an alias is the real name in two letters, handed to the same stranger.
+    // The colour goes on hashing the real initials (AS-010), so no member's disc changes
+    // colour when they hide their name -- and their already printed cards stay in step.
+    it('takes the disc letters from the alias, and leaves its colour alone', async () => {
+      await useGradidoCard().drawCard({ realName: false })
+
+      expect(mockDrawGradidoCard).toHaveBeenCalledWith(
+        expect.objectContaining({ initials: 'BE', colorSeed: 'BH' }),
+      )
+    })
+
+    it('keeps the real initials on the disc while the real name is printed', async () => {
+      await useGradidoCard().drawCard()
+
+      expect(mockDrawGradidoCard).toHaveBeenCalledWith(
+        expect.objectContaining({ initials: 'BH', colorSeed: 'BH' }),
+      )
+    })
+
+    // The file name is what a print shop reads off the file, so it follows the card.
+    it('names the downloaded file after the alias, not after the member', async () => {
+      await useGradidoCard().downloadCard({ realName: false })
+
+      expect(anchor.download).toBe('Gradido bernd.png')
+    })
+
+    it('carries the decision to the sheet as well', async () => {
+      await useGradidoCard().printCardSheet({ realName: false })
+
+      expect(mockDrawGradidoCard).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'bernd', showAliasLine: false }),
+      )
+    })
+  })
 })
