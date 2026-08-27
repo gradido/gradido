@@ -863,7 +863,7 @@
     "password": {
       "change-password": "Passwort ändern",
       "forgot_pwd": "Passwort vergessen?",
-      "resend_subtitle": "Dein Aktivierungslink ist abgelaufen. Du kannst hier ein neuen anfordern.",
+      "resend_subtitle": "Dein Aktivierungslink ist abgelaufen. Du kannst hier einen neuen anfordern.",
       "reset": "Passwort zurücksetzen",
       "reset-password": {
         "text": "Gib nun ein neues Passwort ein, mit dem du dich zukünftig in deinem Gradido-Konto anmelden willst."

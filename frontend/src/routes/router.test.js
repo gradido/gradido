@@ -283,4 +283,50 @@ describe('router', () => {
       })
     })
   })
+
+  /**
+   * ⛔ The blind spot that let a whole family of broken links ship: everything above compares
+   * route PATHS as strings and never asks the router to resolve anything. A link that names a
+   * route it cannot satisfy - a required parameter nobody supplies, a parameter the target
+   * does not have - looks exactly like a working one until somebody clicks it, and then it
+   * either throws out of the click handler or silently drops what it was carrying.
+   *
+   * So these ask the real router, with the real route table.
+   */
+  describe('the targets the wallet actually links to', () => {
+    it('sends a member without a password somewhere that exists', () => {
+      // Login.vue used to name `ResetPassword` here.
+      expect(router.resolve({ name: 'ForgotPassword' }).fullPath).toBe('/forgot-password')
+    })
+
+    it('refuses a target whose required parameter nobody supplies', () => {
+      // The proof that the old target was unreachable: it does not fail softly, it throws.
+      expect(() => router.resolve({ name: 'ResetPassword' })).toThrow(/optin/)
+    })
+
+    it('carries the reason for landing on the forgot-password page', () => {
+      const resolved = router.resolve({
+        name: 'ForgotPasswordComingFrom',
+        params: { comingFrom: 'reset-password' },
+      })
+      expect(resolved.params.comingFrom).toBe('reset-password')
+      // Naming the parameterless route instead - as ResetPassword.vue did - loses it.
+      expect(
+        router.resolve({ name: 'ForgotPassword', params: { comingFrom: 'x' } }).params,
+      ).toEqual({})
+    })
+
+    it('never lets a mail-link route call its parameter :code', () => {
+      // routes.js writes this rule as a comment because of PR #3798: `/login/:code?` reads
+      // `code` as a redeem code, so a link built from a mail-link route would hand the login
+      // page one. Here it is as a check rather than a hope.
+      const mailLinkRoutes = routes.filter(
+        (r) => r.path.startsWith('/email-change/') || r.path.startsWith('/register-assist/'),
+      )
+      expect(mailLinkRoutes.length).toBeGreaterThan(0)
+      for (const route of mailLinkRoutes) {
+        expect(route.path).not.toContain(':code')
+      }
+    })
+  })
 })
