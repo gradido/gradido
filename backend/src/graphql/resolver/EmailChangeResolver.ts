@@ -23,6 +23,7 @@ import {
   dbFindPendingEmailChangeByCode,
   dbFindPendingEmailChangeByVetoCode,
   dbFindUserContactByEmail,
+  dbGetUserById,
   dbInsertPendingEmailChange,
   dbLockUserRow,
   dbMarkUserContactPending,
@@ -30,7 +31,6 @@ import {
   dbReleasePendingEmailChange,
   dbSaveUser,
   dbSaveUserContact,
-  getUserById,
 } from 'database'
 import { getLogger } from 'log4js'
 import random from 'random-bigint'
@@ -526,7 +526,7 @@ export class EmailChangeResolver {
       // `UserContact.user` is the inverse of `users.email_id` and empty for a pending row;
       // the member is loaded by id - through the transaction's manager, so this read sees
       // what the lock is holding rather than whatever is committed beside it.
-      const user = await getUserById(pending.userId, false, true, manager)
+      const user = await dbGetUserById(pending.userId, false, true, manager)
       const oldContact = user.emailContact
       const oldEmail = oldContact.email
       const oldWasConfirmed = oldContact.emailChecked
@@ -691,7 +691,7 @@ export class EmailChangeResolver {
   @Authorized([RIGHTS.VIEW_USER_EMAIL_STATUS])
   @Query(() => AdminEmailStatus)
   async adminEmailStatus(@Arg('userId', () => Int) userId: number): Promise<AdminEmailStatus> {
-    const user: DbUser = await getUserById(userId, false, true)
+    const user: DbUser = await dbGetUserById(userId, false, true)
     const oldest = await dbFindOldestUserContact(user.id)
     const pending = await dbFindPendingEmailChange(user.id)
     return new AdminEmailStatus({
@@ -719,7 +719,7 @@ export class EmailChangeResolver {
   ): Promise<string> {
     const logger = createLogger('adminReplaceUnconfirmedEmail')
     const moderator = getUser(context)
-    const user = await getUserById(userId, false, true)
+    const user = await dbGetUserById(userId, false, true)
     logger.addContext('user', user.id)
     logger.info('adminReplaceUnconfirmedEmail...')
 
