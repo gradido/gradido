@@ -27,11 +27,17 @@
                 :data-href="`/transactions#transaction-${row.transaction.id}`"
                 @click="handleRedirect(row.transaction.id)"
               >
+                <!-- ⛔ No currency here, unlike everywhere else in the wallet. This column
+                     is three of twelve wide, and `− 45,00 GDD` broke over two lines as soon
+                     as the window narrowed -- while every amount in this list is in GDD, so
+                     the unit was saying nothing and costing exactly the width that made it
+                     wrap. The sign stays: it is what tells received from sent, together with
+                     the colour. (Bernd, 27.08.2026) -->
                 <span
-                  class="small"
+                  class="small transaction-amount"
                   :class="{ 'received-amount': Number(row.transaction.amount) > 0 }"
                 >
-                  {{ $filters.GDD(row.transaction.amount) }}
+                  {{ $filters.signedAmount(row.transaction.amount) }}
                 </span>
                 <span class="small ms-3 text-end">
                   {{ $d(new Date(row.transaction.balanceDate), 'short') }}
@@ -104,5 +110,12 @@ const rows = computed(() =>
 
 .transaction-details-link:hover {
   border-color: #383838;
+}
+
+/* The sign and the number are one word to the eye, and the space between them is a real
+   space -- so the second guard against a break has to be here, not only in the shorter
+   text. The date beside it may still wrap; that costs nothing. */
+.transaction-amount {
+  white-space: nowrap;
 }
 </style>

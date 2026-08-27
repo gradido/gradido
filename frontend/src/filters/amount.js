@@ -10,18 +10,33 @@ export const createFilters = (i18n) => {
     }
   }
 
-  const formatGDD = (value) => {
+  /**
+   * The amount with its direction, and without the currency.
+   *
+   * Incoming money leads with a plus; outgoing already carries the minus that `formatAmount`
+   * writes, so nothing is put in front of it.
+   *
+   * Its own formatter because the booking list beside the overview prints amounts in a
+   * column three of twelve wide, where `-45,00 GDD` broke over two lines as soon as the
+   * window narrowed. Every amount in that list is in GDD, so the unit was saying nothing and
+   * costing the width that made it wrap. (Bernd, 27.08.2026)
+   */
+  const formatSignedAmount = (value) => {
     const formattedAmount = formatAmount(value)
     if (formattedAmount === '') return ''
 
     const numValue = Number(value)
-    if (isNaN(numValue)) return formattedAmount + ' GDD'
+    if (isNaN(numValue)) return formattedAmount
 
-    const prefix = numValue >= 0 ? '+ ' : numValue < 0 ? '' : ''
-    return prefix + formattedAmount + ' GDD'
+    return (numValue >= 0 ? '+ ' : '') + formattedAmount
   }
 
-  return { amount: formatAmount, GDD: formatGDD }
+  const formatGDD = (value) => {
+    const signed = formatSignedAmount(value)
+    return signed === '' ? '' : signed + ' GDD'
+  }
+
+  return { amount: formatAmount, signedAmount: formatSignedAmount, GDD: formatGDD }
 }
 
 /**
