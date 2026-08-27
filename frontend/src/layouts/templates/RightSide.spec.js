@@ -66,4 +66,30 @@ describe('RightSide', () => {
       expect(wrapper.vm.name).toBe('transactions')
     })
   })
+
+  /**
+   * ⛔ The booking list stands beside the overview and nowhere else (Bernd, 27.08.2026).
+   * The two code pages and the scanner are the reason it is a rule and not a tidy-up: they
+   * are held out to another person, who was reading the last bookings next to the code.
+   * The rest is repetition -- on /transactions the column repeated the page it stands
+   * beside.
+   */
+  describe.each([
+    ['/my-gradido-card'],
+    ['/my-thank-you-card'],
+    ['/scan'],
+    ['/calculator'],
+    ['/send'],
+    ['/transactions'],
+    ['/gdt'],
+    ['/information'],
+  ])('at %s', (path) => {
+    beforeEach(() => {
+      wrapper = createWrapper(path)
+    })
+
+    it('has name set to "empty"', () => {
+      expect(wrapper.vm.name).toBe('empty')
+    })
+  })
 })
