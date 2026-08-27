@@ -47,8 +47,10 @@
     </BForm>
 
     <hr />
-    <div class="mt-5">{{ $t('form.password') }}</div>
-    <user-password />
+    <!-- No label of our own over this. The card below opens with "change password" and the
+         pencil, so a line reading "password" beside it only said the word a second time
+         without being the thing one clicks. (Bernd, 27.08.2026) -->
+    <user-password class="mt-5" />
   </settings-section>
 </template>
 <script setup>
