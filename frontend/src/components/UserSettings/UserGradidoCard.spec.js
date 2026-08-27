@@ -317,6 +317,26 @@ describe('UserGradidoCard', () => {
       expect(wrapper.find('[data-test="gradido-card-real-name-hint"]').exists()).toBe(true)
     })
 
+    /**
+     * The tick's own text is only "print it". Beside it stands the word it belongs to, and a
+     * screen reader has to be told they are one line -- otherwise this privacy setting is
+     * announced as "print it" and names nothing.
+     *
+     * ⚠️ Both ids, in that order: `aria-labelledby` REPLACES the native label instead of
+     * adding to it, so naming the word alone would lose "print it" entirely.
+     */
+    it('is announced as the whole line, not as the tick alone', async () => {
+      const wrapper = await wrapperFor()
+
+      const labelledBy = nameBox(wrapper).attributes('aria-labelledby').split(/\s+/)
+
+      expect(labelledBy).toEqual(['gradido-card-real-name', 'gradido-card-real-name-print'])
+      expect(labelledBy.map((id) => wrapper.find(`#${id}`).text())).toEqual([
+        'gradido-card.real-name',
+        'gradido-card.real-name-print',
+      ])
+    })
+
     it('is printed unless it is switched off', async () => {
       const wrapper = await wrapperFor()
 

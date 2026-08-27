@@ -35,8 +35,18 @@ describe('rightSideSlot', () => {
     expect(rightSideSlot(path)).toBe('empty')
   })
 
-  // The regular expression behind this needs at least one character after the slash. What a
-  // route cannot produce it still has to survive, because the layout asks on every change.
+  /**
+   * ⚠️ A path a router really hands over: `/overview/` matches the `/overview` record. The
+   * pattern this spec was first written against missed it and answered `empty` -- invisible
+   * while the booking list was the DEFAULT, and the overview's column the moment it was not.
+   */
+  it.each(['/overview/', '/contributions/', '/matching/'])('reads %s as its section', (path) => {
+    expect(rightSideSlot(path)).toBe(rightSideSlot(path.slice(0, -1)))
+    expect(rightSideSlot(path)).not.toBe('empty')
+  })
+
+  // What a route cannot produce it still has to survive, because the layout asks on every
+  // change.
   it('survives a path that names no section', () => {
     expect(rightSideSlot('/')).toBe('empty')
     expect(rightSideSlot('')).toBe('empty')

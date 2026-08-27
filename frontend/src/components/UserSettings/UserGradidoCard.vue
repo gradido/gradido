@@ -30,14 +30,25 @@
              the user name takes the top line -- bare, without the word "user name" in front
              of it, because up there it is simply what this person is called -- and the
              labelled line that used to carry it below goes away. -->
+        <!-- ⚠️ Both ids, in reading order. The tick's own text is only "print it", which
+             says nothing on its own to somebody who cannot see the word beside it -- and
+             naming just that word instead would be worse, because `aria-labelledby` REPLACES
+             the native label rather than adding to it, so the box would announce "real name"
+             and never say what ticking does. Named together they read as the line reads.
+             (coderabbit at PR #3811; measured -- the attribute lands on the input itself.) -->
         <div class="d-flex align-items-center gap-3 mb-1">
-          <span class="fw-bold">{{ $t('gradido-card.real-name') }}</span>
+          <span id="gradido-card-real-name" class="fw-bold">
+            {{ $t('gradido-card.real-name') }}
+          </span>
           <BFormCheckbox
             v-model="printRealName"
             class="small"
+            aria-labelledby="gradido-card-real-name gradido-card-real-name-print"
             data-test="gradido-card-print-real-name"
           >
-            {{ $t('gradido-card.real-name-print') }}
+            <span id="gradido-card-real-name-print">
+              {{ $t('gradido-card.real-name-print') }}
+            </span>
           </BFormCheckbox>
         </div>
         <div class="small text-muted mb-3" data-test="gradido-card-real-name-hint">
