@@ -234,6 +234,68 @@ describe('drawGradidoCard', () => {
     })
   })
 
+  /**
+   * The name was the one piece of text on the card without a rule of its own: fixed size, no
+   * clip, so a long one ran into the logo and then over the edge. Paper cannot be corrected.
+   *
+   * The numbers below are the recording context's, which measures half the font size per
+   * character. What was measured in a real browser with Open Sans loaded is the ORDER of the
+   * cases -- a 29-character name already touching the logo, a 39-character one 255 px past
+   * the card -- and that is what these stand in for.
+   */
+  describe('the name fits beside the logo', () => {
+    // The name is the first text written on the card, and the only one at 700 weight up here.
+    const nameDraw = () => ctx.calls.find((call) => call.name === 'fillText')
+    const sizeOfName = () => Number(/(\d+)px/.exec(nameDraw().font)[1])
+    // 1011 wide, 38 padding either side, and the logo is 500 x 147 drawn 52 high: 177 across.
+    // What is left, less the 14 of air: 744.
+    const ROOM = 744
+    const widthOfName = () => String(nameDraw().args[0]).length * 0.5 * sizeOfName()
+
+    it('leaves an ordinary name at full size', async () => {
+      await drawGradidoCard(CARD)
+
+      expect(sizeOfName()).toBe(47)
+      expect(widthOfName()).toBeLessThanOrEqual(ROOM)
+    })
+
+    it('shrinks a long name until it fits instead of running off the card', async () => {
+      await drawGradidoCard({ ...CARD, name: 'Maximiliane von Sonnenberg-Hohenzollern' })
+
+      expect(sizeOfName()).toBeLessThan(47)
+      expect(widthOfName()).toBeLessThanOrEqual(ROOM)
+    })
+
+    // Reachable since the card can be printed without the real name: a stored user name of
+    // one or two characters predates the rule and falls back to the Gradido ID.
+    it('shrinks a Gradido ID standing in for a name', async () => {
+      await drawGradidoCard({ ...CARD, name: '8f3a1c7e-42b9-4d61-9c07-1e5a2b8d3f40' })
+
+      expect(sizeOfName()).toBeLessThan(47)
+      expect(widthOfName()).toBeLessThanOrEqual(ROOM)
+    })
+
+    // ⛔ The floor is the size of the community line beneath it. Below that the name stops
+    // reading as the heading of the card, and too small to read helps nobody either.
+    it('never shrinks below the line underneath it', async () => {
+      await drawGradidoCard({ ...CARD, name: 'x'.repeat(300) })
+
+      expect(sizeOfName()).toBe(33)
+    })
+
+    // The same rule the address line follows: a line that had to shrink fills less of its
+    // row, it does not move it.
+    it('keeps the row where it is when the name shrinks', async () => {
+      await drawGradidoCard(CARD)
+      const baselineFull = nameDraw().args[2]
+
+      ctx = recordingContext()
+      await drawGradidoCard({ ...CARD, name: 'Maximiliane von Sonnenberg-Hohenzollern' })
+
+      expect(nameDraw().args[2]).toBe(baselineFull)
+    })
+  })
+
   it('places the QR that was handed in, rather than building one', async () => {
     await drawGradidoCard(CARD)
 
