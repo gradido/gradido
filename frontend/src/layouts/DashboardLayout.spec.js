@@ -221,12 +221,14 @@ describe('DashboardLayout', () => {
       await nextTick()
 
       const targets = withHeader.findAll('router-link-stub').map((link) => link.attributes('to'))
-      const relative = targets.filter((target) => !target.startsWith('/'))
+      // ⚠️ Down BEFORE the assertions, not after. A second layout that outlives a failing
+      // test keeps listening and counts the other tests' route changes a second time -- the
+      // pile-up the note under the afterEach describes. Injecting the old relative links
+      // showed it: one real failure, two unrelated tests dragged down with it.
+      withHeader.unmount()
 
       expect(targets).toContain('/transactions')
-      expect(relative).toEqual([])
-
-      withHeader.unmount()
+      expect(targets.filter((target) => !target.startsWith('/'))).toEqual([])
     })
 
     it('keeps it on the overview, where the booking list belongs', async () => {
