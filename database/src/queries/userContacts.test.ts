@@ -12,10 +12,10 @@ import {
   dbEmailTaken,
   dbFindConfirmedUserContactEmails,
   dbFindOldestUserContact,
-  dbFindOwnUserContactByEmail,
   dbFindPendingEmailChange,
   dbFindPendingEmailChangeByCode,
   dbFindPendingEmailChangeByVetoCode,
+  dbFindUserContactByEmail,
   dbFindUserIdsByEmailLike,
   dbInsertPendingEmailChange,
   dbMarkUserContactPending,
@@ -204,10 +204,20 @@ describe('userContacts.queries', () => {
     })
 
     it('is found as belonging to this member, and to no other', async () => {
-      expect((await dbFindOwnUserContactByEmail(bibi.id, 'bibi-earlier@bloxberg.de'))?.id).toBe(
-        earlier.id,
-      )
-      expect(await dbFindOwnUserContactByEmail(peter.id, 'bibi-earlier@bloxberg.de')).toBeNull()
+      // One question, one visibility. Whose the address is follows from the row, so the
+      // caller can no longer get "not yours" and "already taken" out of two lookups that
+      // disagree - the way a member used to be told their OWN earlier address was in use.
+      const row = await dbFindUserContactByEmail('bibi-earlier@bloxberg.de')
+      expect(row?.id).toBe(earlier.id)
+      expect(row?.userId).toBe(bibi.id)
+      // ⛔ The other half of the title needs a row that is somebody ELSE's, and asked for
+      // by ITS address. Until the review of 27.08.2026 this line read
+      // `expect(row?.userId).not.toBe(peter.id)` on the row above - which the assertion two
+      // lines up had already settled, so it could not fail on any input and the "no other"
+      // half was carried by nothing.
+      const petersRow = await dbFindUserContactByEmail('peter@lustig.de')
+      expect(petersRow?.userId).toBe(peter.id)
+      expect(petersRow?.userId).not.toBe(bibi.id)
       // ...while the plain question still says the address is spoken for - which is what
       // keeps a stranger from taking it.
       expect(await dbEmailTaken('bibi-earlier@bloxberg.de')).toBe(true)
