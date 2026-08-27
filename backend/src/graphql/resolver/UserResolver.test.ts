@@ -32,7 +32,7 @@ import { GraphQLError } from 'graphql'
 import { AVATAR_FULL_MAX_BYTES, AVATAR_SMALL_MAX_BYTES } from 'shared'
 import { QueryRunner } from 'typeorm'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
-import { deleteGmsUser, upsertGmsUsers } from '@/apis/gms/GmsClient'
+import { deleteGmsUser, putGmsMatchingEntrySnapshots, upsertGmsUsers } from '@/apis/gms/GmsClient'
 import { subscribe } from '@/apis/KlicktippController'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -95,6 +95,7 @@ jest.mock('@/apis/gms/GmsClient', () => {
     __esModule: true,
     ...originalModule,
     upsertGmsUsers: jest.fn(),
+    putGmsMatchingEntrySnapshots: jest.fn(),
     deleteGmsUser: jest.fn(),
   }
 })
@@ -3172,6 +3173,7 @@ describe('UserResolver', () => {
   describe('gms consent withdrawn and given again', () => {
     const ENTRY_UUID = 'b6f0c1d2-3e4a-4b5c-8d9e-0f1a2b3c4d5e'
     const upsertMock = upsertGmsUsers as jest.Mock
+    const snapshotMock = putGmsMatchingEntrySnapshots as jest.Mock
     const deleteMock = deleteGmsUser as jest.Mock
     let member: User
 
@@ -3199,6 +3201,7 @@ describe('UserResolver', () => {
 
       CONFIG.GMS_ACTIVE = true
       upsertMock.mockResolvedValue(true)
+      snapshotMock.mockResolvedValue(true)
       deleteMock.mockResolvedValue(true)
       await mutate({
         mutation: login,
@@ -3222,16 +3225,28 @@ describe('UserResolver', () => {
 
     it('sends the member back with their live entries when they join again', async () => {
       upsertMock.mockClear()
+      snapshotMock.mockClear()
 
       await mutate({ mutation: updateUserInfos, variables: { gmsAllowed: true } })
 
       expect(upsertMock).toHaveBeenCalledTimes(1)
-      const [, gmsUsers] = upsertMock.mock.calls[0]
-      // Without the entries the GMS keeps what it has - and after the delete above that
+      expect(snapshotMock).toHaveBeenCalledTimes(1)
+      const [, snapshots] = snapshotMock.mock.calls[0]
+      // Without the snapshot the GMS keeps what it has - and after the delete above that
       // is nothing, so the member's offer would be gone from every search.
-      expect(gmsUsers[0].matchingEntries).toEqual([
-        expect.objectContaining({ uuid: ENTRY_UUID, summary: 'Lastenrad zum Ausleihen' }),
+      expect(snapshots).toEqual([
+        expect.objectContaining({
+          userUuid: member.gradidoID,
+          entries: [
+            expect.objectContaining({ uuid: ENTRY_UUID, summary: 'Lastenrad zum Ausleihen' }),
+          ],
+        }),
       ])
+      // The member has to exist over there before their entries are addressed to them,
+      // or the GMS drops the snapshot with a warning and still answers 200.
+      expect(upsertMock.mock.invocationCallOrder[0]).toBeLessThan(
+        snapshotMock.mock.invocationCallOrder[0],
+      )
     })
   })
 
