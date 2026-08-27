@@ -12,15 +12,16 @@ import {
   dbEmailTaken,
   dbFindConfirmedUserContactEmails,
   dbFindOldestUserContact,
-  dbFindOwnUserContactByEmail,
   dbFindPendingEmailChange,
   dbFindPendingEmailChangeByCode,
   dbFindPendingEmailChangeByVetoCode,
+  dbFindUserContactByEmail,
   dbFindUserIdsByEmailLike,
   dbInsertPendingEmailChange,
   dbMarkUserContactPending,
   dbPurgeExpiredEmailChanges,
   dbReleasePendingEmailChange,
+  dbReleaseUnconfirmedEmailChangeFor,
 } from './userContacts'
 
 const db = AppDatabase.getInstance()
@@ -203,10 +204,20 @@ describe('userContacts.queries', () => {
     })
 
     it('is found as belonging to this member, and to no other', async () => {
-      expect((await dbFindOwnUserContactByEmail(bibi.id, 'bibi-earlier@bloxberg.de'))?.id).toBe(
-        earlier.id,
-      )
-      expect(await dbFindOwnUserContactByEmail(peter.id, 'bibi-earlier@bloxberg.de')).toBeNull()
+      // One question, one visibility. Whose the address is follows from the row, so the
+      // caller can no longer get "not yours" and "already taken" out of two lookups that
+      // disagree - the way a member used to be told their OWN earlier address was in use.
+      const row = await dbFindUserContactByEmail('bibi-earlier@bloxberg.de')
+      expect(row?.id).toBe(earlier.id)
+      expect(row?.userId).toBe(bibi.id)
+      // ⛔ The other half of the title needs a row that is somebody ELSE's, and asked for
+      // by ITS address. Until the review of 27.08.2026 this line read
+      // `expect(row?.userId).not.toBe(peter.id)` on the row above - which the assertion two
+      // lines up had already settled, so it could not fail on any input and the "no other"
+      // half was carried by nothing.
+      const petersRow = await dbFindUserContactByEmail('peter@lustig.de')
+      expect(petersRow?.userId).toBe(peter.id)
+      expect(petersRow?.userId).not.toBe(bibi.id)
       // ...while the plain question still says the address is spoken for - which is what
       // keeps a stranger from taking it.
       expect(await dbEmailTaken('bibi-earlier@bloxberg.de')).toBe(true)
@@ -257,6 +268,73 @@ describe('userContacts.queries', () => {
 
       expect(await dbReleasePendingEmailChange(inserted.value, '9007')).toBe('deleted')
       expect(await dbEmailTaken('bibi-never-had@bloxberg.de')).toBe(false)
+    })
+  })
+
+  /**
+   * A change that only ever TYPED an address in must not keep it from somebody who is
+   * registering with it - not once it is expired, and not while it is still running. The
+   * expiry purge answers a different question and cannot do this one.
+   */
+  describe('giving up a never-confirmed hold on an address', () => {
+    let held: DbUserContact
+
+    beforeAll(async () => {
+      const inserted = await dbInsertPendingEmailChange({
+        userId: bibi.id,
+        email: 'wanted@example.org',
+        verificationCode: '9101',
+        vetoCode: '9102',
+      })
+      if (!inserted.success) {
+        throw inserted.error
+      }
+      held = inserted.value
+      // The fixture has to be real, and young: the whole point is that age does not matter.
+      expect(await dbEmailTaken('wanted@example.org')).toBe(true)
+      expect(await dbPurgeExpiredEmailChanges(new Date(Date.now() - 24 * HOUR_MS))).toBe(0)
+    })
+
+    afterAll(async () => {
+      await DbUserContact.delete({ email: 'wanted@example.org' })
+    })
+
+    it('gives up a change that is still well inside its window', async () => {
+      expect(await dbReleaseUnconfirmedEmailChangeFor('wanted@example.org')).toBe(1)
+      expect(await dbEmailTaken('wanted@example.org')).toBe(false)
+      expect(await dbFindPendingEmailChange(bibi.id)).toBeNull()
+      expect(await DbUserContact.findOne({ where: { id: held.id }, withDeleted: true })).toBeNull()
+    })
+
+    it('leaves every other address alone', async () => {
+      const registration = await DbUserContact.findOneOrFail({
+        where: { email: 'peter@lustig.de' },
+      })
+      expect(await dbReleaseUnconfirmedEmailChangeFor('peter@lustig.de')).toBe(0)
+      expect(await dbEmailTaken('peter@lustig.de')).toBe(true)
+      expect((await DbUserContact.findOneOrFail({ where: { id: registration.id } })).id).toBe(
+        registration.id,
+      )
+    })
+
+    // The take-back borrows a row the member PROVED. Giving that up would hand somebody
+    // else an address its owner is on their way back to - and would shrink the history the
+    // Elopage webhook and the GDT server read.
+    it('never gives up a take-back, because that address was proven', async () => {
+      const earlierBack = await DbUserContact.findOneOrFail({
+        where: { email: 'bibi-earlier@bloxberg.de' },
+      })
+      await dbMarkUserContactPending(
+        earlierBack,
+        { verificationCode: '9103', vetoCode: '9104' },
+        undefined,
+      )
+
+      expect(await dbReleaseUnconfirmedEmailChangeFor('bibi-earlier@bloxberg.de')).toBe(0)
+      expect(await dbEmailTaken('bibi-earlier@bloxberg.de')).toBe(true)
+      expect((await dbFindPendingEmailChange(bibi.id))?.id).toBe(earlierBack.id)
+
+      await dbReleasePendingEmailChange(earlierBack, '9105')
     })
   })
 })

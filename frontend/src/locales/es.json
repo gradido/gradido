@@ -457,6 +457,9 @@
     "download-hint": "Una sola imagen en calidad de impresión — para una imprenta o para compartir.",
     "needs-username": "Tu tarjeta lleva tu dirección Gradido, y esa dirección se forma con tu nombre de usuario. Elige uno primero: el campo está en «Mi cuenta». Después podrás imprimir tu tarjeta y entregarla.",
     "needs-username-title": "Primero el nombre de usuario",
+    "real-name": "Nombre real",
+    "real-name-hint": "Sin la marca, arriba en la tarjeta aparece tu nombre de usuario: tu nombre no figura entonces en ninguna parte de ella.",
+    "real-name-print": "imprimirlo",
     "sheet": "Hoja con 10 tarjetas",
     "sheet-hint": "10 tarjetas de visita a tamaño original en una página A4. En la ventana de impresión también puedes guardarla como PDF.",
     "title": "Tu tarjeta de visita"
@@ -820,8 +823,7 @@
       "sent": "Hemos enviado un correo de confirmación a {email}."
     },
     "emailInfo": "Una nueva dirección es válida en cuanto la confirmes a través del enlace del correo de confirmación.",
-    "hideAmountGDD": "Tu importe en GDD está oculto.",
-    "hideAmountGDT": "Tu importe en GDT está oculto.",
+    "hide-amount": "Ocultar el importe en {currency}",
     "humhub": {
       "delete-disabled": "La cuenta de usuario solo puede eliminarse en el menú de perfil de la plataforma de cooperación.",
       "disabled": "Los datos no se exportan a la comunidad Gradido",
@@ -873,8 +875,6 @@
       },
       "subtitle": "Si has olvidado tu contraseña, puedes restablecerla aquí."
     },
-    "showAmountGDD": "Tu importe en GDD está visible.",
-    "showAmountGDT": "Tu importe en GDT está visible.",
     "theme": {
       "dark": "Oscuro",
       "hint": "Elige «Seguir la configuración del sistema» para cambiar automáticamente entre el modo claro y oscuro, según la configuración de tu dispositivo o navegador.",

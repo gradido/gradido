@@ -457,6 +457,9 @@
     "download-hint": "Ein einzelnes Bild in Druckqualität — für eine Druckerei oder zum Weitergeben.",
     "needs-username": "Deine Karte trägt Deine Gradido-Adresse — und die entsteht aus Deinem Benutzernamen. Bitte wähle zunächst einen; das Feld dafür steht unter „Mein Konto“. Danach kannst Du Deine Karte drucken und weitergeben.",
     "needs-username-title": "Erst der Benutzername",
+    "real-name": "Klarname",
+    "real-name-hint": "Ohne Haken steht oben auf der Karte Dein Benutzername — Dein Name erscheint dann nirgends darauf.",
+    "real-name-print": "mitdrucken",
     "sheet": "Bogen mit 10 Karten",
     "sheet-hint": "10 Visitenkarten in Originalgröße auf einer A4-Seite. Im Druckfenster kannst Du sie auch als PDF sichern.",
     "title": "Deine Visitenkarte"
@@ -820,8 +823,7 @@
       "sent": "Wir haben eine Bestätigungs-E-Mail an {email} geschickt."
     },
     "emailInfo": "Eine neue Adresse gilt, sobald Du sie über den Link in der Bestätigungs-E-Mail bestätigt hast.",
-    "hideAmountGDD": "Dein GDD Betrag ist versteckt.",
-    "hideAmountGDT": "Dein GDT Betrag ist versteckt.",
+    "hide-amount": "{currency}-Betrag verbergen",
     "humhub": {
       "delete-disabled": "Das Benutzerkonto kann nur im Profil-Menü der Kooperationsplattform gelöscht werden.",
       "disabled": "Daten werden nicht in die Gradido Community exportiert",
@@ -861,7 +863,7 @@
     "password": {
       "change-password": "Passwort ändern",
       "forgot_pwd": "Passwort vergessen?",
-      "resend_subtitle": "Dein Aktivierungslink ist abgelaufen. Du kannst hier ein neuen anfordern.",
+      "resend_subtitle": "Dein Aktivierungslink ist abgelaufen. Du kannst hier einen neuen anfordern.",
       "reset": "Passwort zurücksetzen",
       "reset-password": {
         "text": "Gib nun ein neues Passwort ein, mit dem du dich zukünftig in deinem Gradido-Konto anmelden willst."
@@ -873,8 +875,6 @@
       },
       "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen."
     },
-    "showAmountGDD": "Dein GDD Betrag ist sichtbar.",
-    "showAmountGDT": "Dein GDT Betrag ist sichtbar.",
     "theme": {
       "dark": "Dunkel",
       "hint": "Wähle „Systemeinstellung folgen“, um automatisch zwischen hellem und dunklem Modus zu wechseln — je nach Einstellung Deines Geräts oder Browsers.",

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import RightSide from './RightSide'
 
@@ -9,61 +9,36 @@ vi.mock('bootstrap-vue-next', () => ({
   },
 }))
 
+/**
+ * ⛔ There is nothing left here about routes, and that is the change. This column used to
+ * work out which panel it carried by parsing `$route.path` -- the second reading of a
+ * decision the layout had already made in order to render it at all. The route names the
+ * panel now (`meta.rightSide`), the layout passes it on, and this is a wrapper again.
+ */
 describe('RightSide', () => {
-  let wrapper
-
-  const createWrapper = (routePath) => {
-    return mount(RightSide, {
-      global: {
-        mocks: {
-          $route: {
-            path: routePath,
-          },
-        },
-        stubs: {
-          BContainer: true,
-        },
+  const mountWith = (panel) =>
+    mount(RightSide, {
+      props: { panel },
+      slots: {
+        transactions: '<div data-test="panel-transactions" />',
+        contributions: '<div data-test="panel-contributions" />',
+        matching: '<div data-test="panel-matching" />',
       },
     })
-  }
 
-  describe('at /contributions/contribute', () => {
-    beforeEach(() => {
-      wrapper = createWrapper('/contributions/contribute')
-    })
+  it.each(['transactions', 'contributions', 'matching'])(
+    'renders the %s panel it was given',
+    (panel) => {
+      const wrapper = mountWith(panel)
 
-    it('has name set to "contributions"', () => {
-      expect(wrapper.vm.name).toBe('contributions')
-    })
-  })
+      expect(wrapper.find(`[data-test="panel-${panel}"]`).exists()).toBe(true)
+      expect(wrapper.findAll('[data-test^="panel-"]')).toHaveLength(1)
+    },
+  )
 
-  describe('at /settings', () => {
-    beforeEach(() => {
-      wrapper = createWrapper('/settings')
-    })
-
-    it('has name set to "empty"', () => {
-      expect(wrapper.vm.name).toBe('empty')
-    })
-  })
-
-  describe('at /matching/entries', () => {
-    beforeEach(() => {
-      wrapper = createWrapper('/matching/entries')
-    })
-
-    it('has name set to "matching"', () => {
-      expect(wrapper.vm.name).toBe('matching')
-    })
-  })
-
-  describe('at /overview', () => {
-    beforeEach(() => {
-      wrapper = createWrapper('/overview')
-    })
-
-    it('has name set to "transactions"', () => {
-      expect(wrapper.vm.name).toBe('transactions')
-    })
+  // Nothing here decides anything, so an unknown name simply has no slot -- the guard against
+  // that is on the route, where the panel is named, and in the routes spec that checks it.
+  it('renders nothing for a panel it has no slot for', () => {
+    expect(mountWith('nonesuch').findAll('[data-test^="panel-"]')).toHaveLength(0)
   })
 })

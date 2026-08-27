@@ -457,6 +457,9 @@
     "download-hint": "Uma única imagem em qualidade de impressão — para uma gráfica ou para entregar.",
     "needs-username": "O teu cartão leva o teu endereço Gradido, e esse endereço nasce do teu nome de utilizador. Escolhe um primeiro — o campo está em «A minha conta». Depois podes imprimir o teu cartão e entregá-lo.",
     "needs-username-title": "Primeiro o nome de utilizador",
+    "real-name": "Nome real",
+    "real-name-hint": "Sem a marca, no topo aparece o teu nome de utilizador: o teu nome não fica então em lado nenhum do cartão.",
+    "real-name-print": "imprimir",
     "sheet": "Folha com 10 cartões",
     "sheet-hint": "10 cartões de visita em tamanho original numa página A4. Na janela de impressão também podes guardá-la como PDF.",
     "title": "O teu cartão de visita"
@@ -820,8 +823,7 @@
       "sent": "Enviámos um e-mail de confirmação para {email}."
     },
     "emailInfo": "Um novo endereço é válido assim que o confirmares através da ligação no e-mail de confirmação.",
-    "hideAmountGDD": "O teu montante GDD está oculto.",
-    "hideAmountGDT": "O teu montante GDT está oculto.",
+    "hide-amount": "Ocultar o montante em {currency}",
     "humhub": {
       "delete-disabled": "A conta de utilizador só pode ser eliminada no menu de perfil da plataforma de cooperação.",
       "disabled": "Os dados não são exportados para a Gradido Community",
@@ -873,8 +875,6 @@
       },
       "subtitle": "Se te esqueceste da tua palavra-passe, podes repô-la aqui."
     },
-    "showAmountGDD": "O teu montante GDD está visível.",
-    "showAmountGDT": "O teu montante GDT está visível.",
     "theme": {
       "dark": "Escuro",
       "hint": "Escolhe «Seguir a configuração do sistema» para alternar automaticamente entre o modo claro e escuro, conforme a configuração do teu dispositivo ou navegador.",

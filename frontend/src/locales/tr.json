@@ -457,6 +457,9 @@
     "download-hint": "Baskı kalitesinde tek bir görsel — bir matbaa için veya birine vermek için.",
     "needs-username": "Kartın Gradido adresini taşır ve bu adres kullanıcı adından oluşur. Lütfen önce bir tane seç — alan «Hesabım» bölümünde. Sonra kartını yazdırıp verebilirsin.",
     "needs-username-title": "Önce kullanıcı adı",
+    "real-name": "Gerçek ad",
+    "real-name-hint": "İşaret kaldırılırsa kartın üstünde kullanıcı adın yer alır — adın o zaman kartta hiçbir yerde görünmez.",
+    "real-name-print": "onu da yazdır",
     "sheet": "10 kartlık sayfa",
     "sheet-hint": "Bir A4 sayfada orijinal boyutta 10 kartvizit. Yazdırma penceresinde PDF olarak da kaydedebilirsin.",
     "title": "Kartvizitin"
@@ -820,8 +823,7 @@
       "sent": "{email} adresine bir onay e-postası gönderdik."
     },
     "emailInfo": "Yeni bir adres, onay e-postasındaki bağlantı üzerinden onayladığın anda geçerli olur.",
-    "hideAmountGDD": "GDD tutarın gizli.",
-    "hideAmountGDT": "GDT tutarın gizli.",
+    "hide-amount": "{currency} tutarını gizle",
     "humhub": {
       "delete-disabled": "Kullanıcı hesabı yalnızca işbirliği platformunun profil menüsünden silinebilir.",
       "disabled": "Veriler Gradido Topluluğuna aktarılmıyor",
@@ -873,8 +875,6 @@
       },
       "subtitle": "Şifreni unuttuysan, buradan sıfırlayabilirsin."
     },
-    "showAmountGDD": "GDD tutarın görünür.",
-    "showAmountGDT": "GDT tutarın görünür.",
     "theme": {
       "dark": "Koyu",
       "hint": "Cihazının veya tarayıcının ayarına göre açık ve koyu mod arasında otomatik geçiş için 'Sistem ayarını izle'yi seç.",

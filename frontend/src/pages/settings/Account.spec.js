@@ -58,6 +58,18 @@ describe('the account section', () => {
     expect(mockMutate).toHaveBeenCalledWith({ firstName: 'Janer', lastName: 'Doe' })
   })
 
+  /**
+   * The card below opens with "change password" and a pencil. A label of ours saying just
+   * "password" beside it repeated the word without being the thing one clicks -- two halves
+   * of one line, neither of them the button. (Bernd, 27.08.2026)
+   */
+  it('leaves the password heading to the card that carries the button', () => {
+    const wrapper = mountAccount()
+
+    expect(wrapper.findComponent({ name: 'UserPassword' }).exists()).toBe(true)
+    expect(wrapper.text()).not.toContain('form.password')
+  })
+
   it('offers the save button only once something differs', async () => {
     const wrapper = mountAccount()
     expect(wrapper.find('[data-test="submit-userdata"]').exists()).toBe(false)

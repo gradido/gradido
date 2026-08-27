@@ -23,15 +23,30 @@ export async function aliasExists(alias: string, userId?: number): Promise<boole
   return dbAliasHeldByOther(alias, userId)
 }
 
-export async function getUserById(
+/**
+ * ⚠️ Pass `manager` from inside a transaction. Without it this reads over its own
+ * connection, so a caller that holds the member's row under `SELECT ... FOR UPDATE` and
+ * then saves what it read here would be writing an entity it loaded from beside its own
+ * transaction rather than from within it.
+ *
+ * Renamed from `getUserById` for AGENTS.md's `db…` rule, because this delivery touched it.
+ * Five executing functions in this file still carry no prefix (`aliasExists`,
+ * `findForeignUserByUuids`, `findUserByUuids`, `findUserNamesByIds`, `findUserByIdentifier`)
+ * - together 68 call sites against this one's 6, so they are their own mechanical change and
+ * not this one's. Until they follow, the file has two conventions and this note is the only
+ * thing saying which way it is going.
+ */
+export async function dbGetUserById(
   id: number,
   withCommunity: boolean = false,
   withEmailContact: boolean = false,
+  manager?: EntityManager,
 ): Promise<DbUser> {
-  return DbUser.findOneOrFail({
+  const options = {
     where: { id },
     relations: { community: withCommunity, emailContact: withEmailContact },
-  })
+  }
+  return manager ? manager.findOneOrFail(DbUser, options) : DbUser.findOneOrFail(options)
 }
 
 /**
@@ -65,6 +80,20 @@ export const findUserByIdentifier = async (
       relations: { user: { community: true } },
     })
     if (userContact) {
+      // `UserContact.user` is the inverse of `users.email_id`, so it is EMPTY for every row
+      // that is not the address currently in force - and since the e-mail change a member
+      // keeps a confirmed row for every address they ever held. `emailChecked` does not tell
+      // the two apart: an address one gave up stays checked. Without this guard the query
+      // returned such an orphaned row (the relation condition is a LEFT JOIN, and an absent
+      // community identifier adds no condition at all) and the next line wrote to null.
+      //
+      // Answering "not found" is what `findUserByEmail` does with the same input, so the two
+      // ways of asking agree. Whether a FORMER address should still lead to its owner - the
+      // way a former alias does further down - is a product question, not this one's to
+      // settle.
+      if (!userContact.user) {
+        return null
+      }
       // TODO: remove circular reference
       const user = userContact.user
       user.emailContact = userContact

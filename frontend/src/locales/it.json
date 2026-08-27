@@ -457,6 +457,9 @@
     "download-hint": "Una singola immagine in qualità di stampa — per una tipografia o da consegnare.",
     "needs-username": "La tua tessera porta il tuo indirizzo Gradido, e quell'indirizzo nasce dal tuo nome utente. Scegline uno prima: il campo si trova in «Il mio conto». Poi potrai stampare la tua tessera e consegnarla.",
     "needs-username-title": "Prima il nome utente",
+    "real-name": "Nome reale",
+    "real-name-hint": "Senza la spunta, in alto compare il tuo nome utente: il tuo nome non appare allora da nessuna parte sul biglietto.",
+    "real-name-print": "stamparlo",
     "sheet": "Foglio con 10 tessere",
     "sheet-hint": "10 biglietti da visita a grandezza originale su una pagina A4. Nella finestra di stampa puoi anche salvarla come PDF.",
     "title": "Il tuo biglietto da visita"
@@ -820,8 +823,7 @@
       "sent": "Abbiamo inviato un'e-mail di conferma a {email}."
     },
     "emailInfo": "Un nuovo indirizzo è valido non appena lo confermi tramite il link nell'e-mail di conferma.",
-    "hideAmountGDD": "Il tuo importo in GDD è nascosto.",
-    "hideAmountGDT": "Il tuo importo in GDT è nascosto.",
+    "hide-amount": "Nascondi l'importo in {currency}",
     "humhub": {
       "delete-disabled": "L'account utente può essere eliminato solo nel menu del profilo della piattaforma di cooperazione.",
       "disabled": "I dati non vengono esportati verso la comunità Gradido",
@@ -873,8 +875,6 @@
       },
       "subtitle": "Se hai dimenticato la password, puoi reimpostarla qui."
     },
-    "showAmountGDD": "Il tuo importo in GDD è visibile.",
-    "showAmountGDT": "Il tuo importo in GDT è visibile.",
     "theme": {
       "dark": "Scuro",
       "hint": "Scegli «Segui l'impostazione del sistema» per passare automaticamente tra la modalità chiara e scura, in base all'impostazione del tuo dispositivo o browser.",

@@ -1,8 +1,13 @@
 <template>
   <BCard id="change_pwd" class="card-border-radius card-background-gray">
     <div>
-      <BRow class="mb-4 text-end">
-        <BCol class="text-end">
+      <!-- The opener stands at the LEFT edge and says the whole thing on its own: "change
+           password", with the pencil. It used to sit on the right, under a label reading
+           just "password" that the settings page put on the left of the same line -- so the
+           row said the word twice and neither half was the button. One line, one place, one
+           click. (Bernd, 27.08.2026) -->
+      <BRow class="mb-4">
+        <BCol>
           <BButton
             class="change-password-form-opener"
             data-test="open-password-change-form"
@@ -120,7 +125,10 @@ const onSubmit = handleSubmit(async () => {
   color: $gradido-4;
   display: flex;
   align-items: center;
-  margin-left: auto;
+
+  /* No `margin-left: auto` any more -- that was what pushed the button to the right edge,
+     and a flex item without it sits where its column starts. */
+  padding-left: 0;
 
   > span {
     margin-right: 15px;

@@ -239,9 +239,14 @@ describe('Login', () => {
         await flushPromises()
       }
 
-      describe('login fails with "User email not validated"', () => {
+      // ⛔ The literal below is what `login` in UserResolver.ts really throws, word for
+      // word. The spec used to feed 'User email not validated.', a sentence the backend
+      // never produced - so this block was green while the branch it names had never once
+      // fired. If the backend text moves, this is the half of the contract that has to move
+      // with it; the other half is `UserResolver.test.ts`.
+      describe('login fails because the address was never confirmed', () => {
         beforeEach(async () => {
-          await createError('GraphQL error: User email not validated.')
+          await createError('GraphQL error: The Users email is not validate yet')
         })
 
         it('shows error message', () => {

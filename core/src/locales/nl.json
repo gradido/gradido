@@ -70,8 +70,7 @@
       "pleaseConfirm": "Bevestig met één klik dat dit adres van jou is.",
       "subject": "Bevestig je nieuwe e-mailadres",
       "title": "Nieuw e-mailadres bevestigen",
-      "validity": "De link is {hours} uur geldig. Daarna kun je in je instellingen een nieuwe e-mail laten sturen.",
-      "validityMinutes": "De link is {minutes} minuten geldig. Daarna kun je in je instellingen een nieuwe e-mail laten sturen.",
+      "validUntil": "De link is geldig tot {validUntil}. Daarna kun je in je instellingen een nieuwe e-mail laten sturen.",
       "youAskedFor": "Je wilt het e-mailadres van je Gradido-account wijzigen naar dit adres."
     },
     "emailChangeDone": {
@@ -90,8 +89,7 @@
       "subject": "Wijziging van je e-mailadres aangevraagd",
       "title": "Je e-mailadres gaat veranderen",
       "untilConfirmed": "Totdat het nieuwe adres is bevestigd, blijft dit adres gelden. Was jij het zelf, dan hoef je niets te doen.",
-      "validity": "De link is {hours} uur geldig – daarna vervalt de aangevraagde wijziging vanzelf.",
-      "validityMinutes": "De link is {minutes} minuten geldig – daarna vervalt de aangevraagde wijziging vanzelf."
+      "validUntil": "De link is geldig tot {validUntil} – daarna vervalt de aangevraagde wijziging vanzelf."
     },
     "emailChangeSupport": {
       "gdtHint": "Voor de GDT-server telt nog steeds het eerste adres van dit account: {gdtEmail}.",

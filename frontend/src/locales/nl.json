@@ -457,6 +457,9 @@
     "download-hint": "Eén afbeelding in drukkwaliteit — voor een drukkerij of om door te geven.",
     "needs-username": "Je kaart draagt je Gradido-adres, en dat adres wordt gevormd uit je gebruikersnaam. Kies er eerst een — het veld staat onder “Mijn rekening”. Daarna kun je je kaart afdrukken en weggeven.",
     "needs-username-title": "Eerst de gebruikersnaam",
+    "real-name": "Echte naam",
+    "real-name-hint": "Zonder vinkje staat bovenaan je gebruikersnaam — je naam staat dan nergens op het kaartje.",
+    "real-name-print": "meedrukken",
     "sheet": "Vel met 10 kaarten",
     "sheet-hint": "10 visitekaartjes op ware grootte op één A4-pagina. In het printvenster kun je hem ook als pdf opslaan.",
     "title": "Jouw visitekaartje"
@@ -820,8 +823,7 @@
       "sent": "We hebben een bevestigingsmail gestuurd naar {email}."
     },
     "emailInfo": "Een nieuw adres geldt zodra je het via de link in de bevestigingsmail hebt bevestigd.",
-    "hideAmountGDD": "Je GDD-bedrag is verborgen.",
-    "hideAmountGDT": "Je GDT-bedrag is verborgen.",
+    "hide-amount": "{currency}-bedrag verbergen",
     "humhub": {
       "delete-disabled": "Het gebruikersaccount kan alleen worden verwijderd in het profielmenu van het samenwerkingsplatform.",
       "disabled": "Gegevens worden niet naar de Gradido-gemeenschap geëxporteerd",
@@ -873,8 +875,6 @@
       },
       "subtitle": "Wanneer je het wachtwoord hebt vergeten, kun je het hier opnieuw instellen."
     },
-    "showAmountGDD": "Je GDD-bedrag is zichtbaar.",
-    "showAmountGDT": "Je GDT-bedrag is zichtbaar.",
     "theme": {
       "dark": "Donker",
       "hint": "Kies 'Systeeminstelling volgen' om automatisch te wisselen tussen de lichte en donkere modus, op basis van de instelling van je apparaat of browser.",

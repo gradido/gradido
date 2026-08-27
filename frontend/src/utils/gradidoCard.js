@@ -6,7 +6,8 @@
  * Layout (millimetres, converted to pixels at 300 dpi):
  *
  *   card 85.6 x 54 -- the size of a bank card, with a thin grey cutting line
- *   |- the name, and under it two labelled lines: community and user name
+ *   |- the name, and under it the labelled lines: community, and the user name unless the
+ *   |  member prints no real name -- then the alias IS the name line and the second one goes
  *   |- the picture 20 (or an initials disc) on the left, the QR on the right, and
  *   |  between them the contact block: a heading and up to five lines the member types
  *   `- the address line at the bottom, under a hairline
@@ -34,6 +35,16 @@
  * They are typed for a print run rather than stored on the server. That is what makes a
  * printed card a decision per recipient instead of a setting made in advance, and it is
  * why nothing here needs a release switch: printing is the release.
+ *
+ * ## Every piece of text on the card has a rule for fitting -- including the name
+ *
+ * The name was the exception until 27.08.2026: drawn at a fixed 4 mm with no clip, so a long
+ * one ran into the logo and then over the edge. Measured in a browser with Open Sans loaded,
+ * a 29-character name was already touching the logo and a 39-character one was 255 px past
+ * the card. It now shrinks like the address line does, down to the size of the community
+ * line beneath it and no further -- and is clipped to its room like the contact block, for
+ * the names past about 42 characters that the floor cannot save. Shrinking is the rule and
+ * the clip is the backstop; neither alone covers the case.
  *
  * ## The QR size follows the address, it is not a fixed number
  *
@@ -78,6 +89,33 @@ const PADDING = mm(3.2)
 
 const NAME_SIZE = mm(4)
 const NAME_BLOCK = Math.round(NAME_SIZE * 1.1)
+/**
+ * How small the name may become.
+ *
+ * The same idea as the address line at the foot: shrink until it fits, because a name that
+ * runs off the card is a card nobody can print, and paper cannot be corrected. What is new
+ * is only that it applies up here too -- the name was the ONE piece of text on the card
+ * without a rule of its own, drawn at a fixed size with no clip, so a long one ran into the
+ * logo and then over the edge.
+ *
+ * Measured in a real browser with Open Sans actually loaded (27.08.2026), at 300 dpi and
+ * against the 744 px this leaves beside the logo:
+ *
+ *   Bernd Hückstädt                          396 px  -- half the room
+ *   Christiane Schmidt-Wellenkamp            755 px  -- was already touching the logo
+ *   Maximiliane von Sonnenberg-Hohenzollern 1013 px  -- ran off the card
+ *   8f3a1c7e-…-1e5a2b8d3f40 (a Gradido ID)   914 px  -- reachable since the card can be
+ *                                                      printed without the real name
+ *
+ * ⛔ The floor is VALUE_SIZE, not a number picked for looks: the name must never end up
+ * smaller than the community line underneath it, or it stops reading as the heading of the
+ * card. A name past about 41 characters therefore still overflows -- the same trade the
+ * address line makes, and for the same reason: too small to read helps nobody either.
+ */
+const NAME_MIN_SIZE = mm(2.8)
+// Air between the name and the logo in the opposite corner. Without it the longest names
+// that still "fit" end flush against it, which reads as a mistake rather than as a full line.
+const NAME_LOGO_GAP = mm(1.2)
 const LINES_GAP = mm(1)
 const LABEL_SIZE = mm(2.1)
 const VALUE_SIZE = mm(2.8)
@@ -90,7 +128,8 @@ const PICTURE = mm(20)
 
 // The band that holds picture, contact lines and QR. It keeps its height whatever the QR
 // measures, so the rest of the card does not move when a shorter address makes the code
-// smaller.
+// smaller. The one thing that does change it is a card printed without the user-name line:
+// then the band takes that row as well, rather than leaving a hole where the line stood.
 const MIDDLE_ROW = mm(28)
 
 // The widest the code may ever be. 28 mm is the size that was tested on paper and read;
@@ -176,7 +215,7 @@ export const cardFileName = (name) => {
   return chequeFileName(person ? `Gradido ${person}` : 'Gradido')
 }
 
-const drawPicture = (ctx, { image, initials, x, y }) => {
+const drawPicture = (ctx, { image, initials, colorSeed, x, y }) => {
   const radius = PICTURE / 2
   if (image) {
     ctx.save()
@@ -191,7 +230,13 @@ const drawPicture = (ctx, { image, initials, x, y }) => {
   // No picture: the initials disc, exactly as the wallet draws it everywhere else. A dashed
   // empty ring is the wallet's way of inviting its owner to upload one -- on a card that is
   // handed away, the same shape reads as a gap, because the beholder is somebody else.
-  const palette = avatarPaletteEntry(initials)
+  //
+  // ⛔ Letters and colour come from two different places, and that is decision AS-010, not
+  // an oversight: the letters follow the line the disc stands next to (the real initials
+  // while the card carries the real name, the alias once it does not), and the colour keeps
+  // hashing the real initials so that nobody's disc changes colour when they hide their
+  // name. The cheque does the same, for the same reason.
+  const palette = avatarPaletteEntry(colorSeed ?? initials)
   ctx.beginPath()
   ctx.arc(x + radius, y + radius, radius, 0, Math.PI * 2)
   ctx.fillStyle = palette.bg
@@ -245,6 +290,22 @@ const drawLabelledLine = (ctx, { label, value, valueColor, top }) => {
 export const qrSizeFor = (qrCanvas) => {
   const modules = Math.max(1, Math.round((qrCanvas?.width ?? 0) / QR_SOURCE_CELL))
   return Math.min(QR_MAX, modules * QR_SOURCE_CELL)
+}
+
+/**
+ * The size the name is drawn at: full size unless it does not fit beside the logo.
+ *
+ * ⚠️ The baseline is NOT recomputed from it. A name that had to shrink fills less of its
+ * row, it does not move it -- the same rule the address line and the contact lines follow.
+ */
+const nameSizeFor = (ctx, name, width) => {
+  let size = NAME_SIZE
+  ctx.font = `700 ${size}px ${FONT}`
+  while (size > NAME_MIN_SIZE && ctx.measureText(name).width > width) {
+    size -= 1
+    ctx.font = `700 ${size}px ${FONT}`
+  }
+  return size
 }
 
 /**
@@ -364,8 +425,10 @@ const drawAddress = (ctx, { host, alias, top }) => {
  * @param {string} data.communityName        the community, as the send form spells it
  * @param {string} data.aliasLabel           the word in front of the user-name line
  * @param {string} data.alias                the user name
+ * @param {boolean} [data.showAliasLine]     false leaves the user-name line off the card
  * @param {string} data.host                 the community host, printed without a scheme
  * @param {string} data.initials             shown when there is no picture
+ * @param {string} [data.colorSeed]          what the disc's colour hashes, if not the letters
  * @param {string} [data.picture]            the crop as a data URI, if there is one
  * @param {string} [data.contactHeading]     the word above the contact lines
  * @param {string[]} [data.contact]          up to five lines the member typed
@@ -400,12 +463,31 @@ export const drawGradidoCard = async (data) => {
   ctx.textBaseline = 'alphabetic'
   ctx.textAlign = 'left'
 
-  ctx.fillStyle = COLOR_TEXT
-  ctx.font = `700 ${NAME_SIZE}px ${FONT}`
-  ctx.fillText(data.name ?? '', PADDING, baselineOf(PADDING, NAME_SIZE))
-
+  // The logo first, because the room left for the name is what it does not take. Its width
+  // comes from the loaded image rather than from a constant, so a different logo cannot
+  // quietly make the name overlap it.
   const logoWidth = logo.width * (LOGO_HEIGHT / logo.height)
   ctx.drawImage(logo, WIDTH - PADDING - logoWidth, PADDING, logoWidth, LOGO_HEIGHT)
+
+  const nameText = data.name ?? ''
+  const nameRoom = WIDTH - 2 * PADDING - logoWidth - NAME_LOGO_GAP
+  ctx.fillStyle = COLOR_TEXT
+  ctx.font = `700 ${nameSizeFor(ctx, nameText, nameRoom)}px ${FONT}`
+  // ⛔ The clip is the last resort behind the shrinking, exactly as it is for the contact
+  // block: `nameSizeFor` stops at its floor whether or not the text fits, so a name past
+  // about 42 characters is still too wide -- and this now paints AFTER the logo, because the
+  // room it may use is what the logo does not take. Without the clip such a name would run
+  // straight across the brand mark and off the card.
+  //
+  // ⚠️ This does not depend on paint order, and that is the point. Before the shrinking
+  // existed, an over-long name was hidden by the logo being drawn on top of it afterwards --
+  // containment by accident, from a line whose order nobody could change safely.
+  ctx.save()
+  ctx.beginPath()
+  ctx.rect(PADDING, PADDING, nameRoom, NAME_BLOCK)
+  ctx.clip()
+  ctx.fillText(nameText, PADDING, baselineOf(PADDING, NAME_SIZE))
+  ctx.restore()
 
   const firstRow = PADDING + NAME_BLOCK + LINES_GAP
   drawLabelledLine(ctx, {
@@ -414,19 +496,33 @@ export const drawGradidoCard = async (data) => {
     valueColor: COLOR_GREEN,
     top: firstRow,
   })
-  drawLabelledLine(ctx, {
-    label: data.aliasLabel,
-    value: data.alias,
-    valueColor: COLOR_TEXT,
-    top: firstRow + ROW_HEIGHT,
-  })
+  // ⛔ Left off when the member prints no real name. The alias then stands in the name's
+  // place at the top, and a labelled line repeating it two lines below would say the same
+  // word twice -- which is what makes this a missing line rather than an empty one.
+  const showAliasLine = data.showAliasLine !== false
+  if (showAliasLine) {
+    drawLabelledLine(ctx, {
+      label: data.aliasLabel,
+      value: data.alias,
+      valueColor: COLOR_TEXT,
+      top: firstRow + ROW_HEIGHT,
+    })
+  }
 
-  const middleTop = firstRow + 2 * ROW_HEIGHT + BLOCK_GAP
+  // The freed row goes to the band below rather than staying a hole under the community
+  // line: picture, contact block and QR keep their sizes, stay centred and simply gain a
+  // little air, and the address line keeps its place at the foot of the card. Nothing about
+  // the QR changes -- its size follows the address and is capped at QR_MAX, never at the
+  // height of the band it sits in.
+  const labelledLines = showAliasLine ? 2 : 1
+  const middleTop = firstRow + labelledLines * ROW_HEIGHT + BLOCK_GAP
+  const middleRow = MIDDLE_ROW + (2 - labelledLines) * ROW_HEIGHT
   drawPicture(ctx, {
     image: picture,
     initials: data.initials,
+    colorSeed: data.colorSeed,
     x: PADDING,
-    y: middleTop + Math.round((MIDDLE_ROW - PICTURE) / 2),
+    y: middleTop + Math.round((middleRow - PICTURE) / 2),
   })
 
   const qrSize = qrSizeFor(data.qrCanvas)
@@ -438,7 +534,7 @@ export const drawGradidoCard = async (data) => {
     left: PADDING + PICTURE + CONTACT_GAP,
     width: qrLeft - CONTACT_GAP - (PADDING + PICTURE + CONTACT_GAP),
     top: middleTop,
-    height: MIDDLE_ROW,
+    height: middleRow,
   })
 
   // Smoothing off: a scanner reads hard module edges better than soft ones. It is safe to
@@ -450,7 +546,7 @@ export const drawGradidoCard = async (data) => {
   ctx.drawImage(
     data.qrCanvas,
     qrLeft,
-    middleTop + Math.round((MIDDLE_ROW - qrSize) / 2),
+    middleTop + Math.round((middleRow - qrSize) / 2),
     qrSize,
     qrSize,
   )

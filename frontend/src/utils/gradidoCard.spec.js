@@ -234,6 +234,90 @@ describe('drawGradidoCard', () => {
     })
   })
 
+  /**
+   * The name was the one piece of text on the card without a rule of its own: fixed size, no
+   * clip, so a long one ran into the logo and then over the edge. Paper cannot be corrected.
+   *
+   * The numbers below are the recording context's, which measures half the font size per
+   * character. What was measured in a real browser with Open Sans loaded is the ORDER of the
+   * cases -- a 29-character name already touching the logo, a 39-character one 255 px past
+   * the card -- and that is what these stand in for.
+   */
+  describe('the name fits beside the logo', () => {
+    // The name is the first text written on the card, and the only one at 700 weight up here.
+    const nameDraw = () => ctx.calls.find((call) => call.name === 'fillText')
+    const sizeOfName = () => Number(/(\d+)px/.exec(nameDraw().font)[1])
+    // 1011 wide, 38 padding either side, and the logo is 500 x 147 drawn 52 high: 177 across.
+    // What is left, less the 14 of air: 744.
+    const ROOM = 744
+    const widthOfName = () => String(nameDraw().args[0]).length * 0.5 * sizeOfName()
+
+    it('leaves an ordinary name at full size', async () => {
+      await drawGradidoCard(CARD)
+
+      expect(sizeOfName()).toBe(47)
+      expect(widthOfName()).toBeLessThanOrEqual(ROOM)
+    })
+
+    it('shrinks a long name until it fits instead of running off the card', async () => {
+      await drawGradidoCard({ ...CARD, name: 'Maximiliane von Sonnenberg-Hohenzollern' })
+
+      expect(sizeOfName()).toBeLessThan(47)
+      expect(widthOfName()).toBeLessThanOrEqual(ROOM)
+    })
+
+    // Reachable since the card can be printed without the real name: a stored user name of
+    // one or two characters predates the rule and falls back to the Gradido ID.
+    it('shrinks a Gradido ID standing in for a name', async () => {
+      await drawGradidoCard({ ...CARD, name: '8f3a1c7e-42b9-4d61-9c07-1e5a2b8d3f40' })
+
+      expect(sizeOfName()).toBeLessThan(47)
+      expect(widthOfName()).toBeLessThanOrEqual(ROOM)
+    })
+
+    // ⛔ The floor is the size of the community line beneath it. Below that the name stops
+    // reading as the heading of the card, and too small to read helps nobody either.
+    it('never shrinks below the line underneath it', async () => {
+      await drawGradidoCard({ ...CARD, name: 'x'.repeat(300) })
+
+      expect(sizeOfName()).toBe(33)
+    })
+
+    // The same rule the address line follows: a line that had to shrink fills less of its
+    // row, it does not move it.
+    /**
+     * ⛔ The floor is a hard stop, so a name past about 42 characters is still too wide --
+     * and the name is painted AFTER the logo now, because the room it may use is what the
+     * logo does not take. Without a clip it would run straight across the brand mark and off
+     * the card. Shrinking is the rule, the clip is the backstop; neither alone covers it.
+     */
+    it('clips a name the floor cannot save, so nothing paints over the logo', async () => {
+      await drawGradidoCard({ ...CARD, name: 'x'.repeat(300) })
+
+      const nameAt = ctx.calls.findIndex((call) => call.name === 'fillText')
+      const before = ctx.calls.slice(0, nameAt).map((call) => call.name)
+
+      expect(before.slice(-3)).toEqual(['beginPath', 'rect', 'clip'])
+      expect(ctx.calls[nameAt + 1].name).toBe('restore')
+
+      // The clip is the room beside the logo: 1011 wide, 38 padding either side, a logo of
+      // 500 x 147 drawn 52 high (177 across), less 14 of air.
+      const clipBox = ctx.calls[nameAt - 2].args
+      expect(clipBox[0]).toBe(38)
+      expect(clipBox[2]).toBeCloseTo(744, 0)
+    })
+
+    it('keeps the row where it is when the name shrinks', async () => {
+      await drawGradidoCard(CARD)
+      const baselineFull = nameDraw().args[2]
+
+      ctx = recordingContext()
+      await drawGradidoCard({ ...CARD, name: 'Maximiliane von Sonnenberg-Hohenzollern' })
+
+      expect(nameDraw().args[2]).toBe(baselineFull)
+    })
+  })
+
   it('places the QR that was handed in, rather than building one', async () => {
     await drawGradidoCard(CARD)
 
@@ -381,7 +465,9 @@ describe('drawGradidoCard', () => {
     it('clips the column so nothing can paint over the QR', async () => {
       await drawGradidoCard({ ...CARD, contact: ['anything'] })
 
-      const rect = ctx.calls.findIndex((call) => call.name === 'rect')
+      // ⚠️ The LAST rect, not the first: since the name is clipped to its own room too, the
+      // first one belongs to the heading at the top of the card.
+      const rect = ctx.calls.findLastIndex((call) => call.name === 'rect')
       expect(rect).toBeGreaterThanOrEqual(0)
 
       const clip = ctx.calls.findIndex((call, index) => index > rect && call.name === 'clip')
@@ -430,6 +516,83 @@ describe('drawGradidoCard', () => {
     // number is held against the generator itself rather than copied and hoped for.
     it('counts modules with the cell size the generator actually uses', () => {
       expect(qrCodeOptions('https://example.org', null).cellSize).toBe(QR_SOURCE_CELL)
+    })
+  })
+
+  /**
+   * A card handed to strangers need not carry its owner's real name (Bernd, 27.08.2026).
+   * The caller then puts the alias where the name stood and asks for the labelled line
+   * below to be left off -- otherwise the same word would stand twice, two lines apart.
+   */
+  describe('without the user-name line', () => {
+    // What the composable hands in for that case: the alias as the name, no labelled line,
+    // the disc lettered from the alias and still coloured from the real initials.
+    const QUIET = { ...CARD, name: 'bernd', showAliasLine: false, initials: 'BE', colorSeed: 'BH' }
+
+    // The picture and the code are both centred in the band between the labelled lines and
+    // the address, so either of them tells where that band sits.
+    const pictureCentre = () => ctx.calls.find((call) => call.name === 'arc').args[1]
+    const qrDraw = () =>
+      ctx.calls.find((call) => call.name === 'drawImage' && call.args[0] === CARD.qrCanvas)
+    const qrCentre = () => qrDraw().args[2] + qrDraw().args[4] / 2
+    // The hairline over the address: the last rectangle the card fills.
+    const hairlineTop = () => ctx.calls.filter((call) => call.name === 'fillRect').at(-1).args[1]
+
+    it('leaves the labelled line off and keeps the community line', async () => {
+      await drawGradidoCard(QUIET)
+
+      const texts = textsDrawn(ctx)
+      expect(texts).not.toContain('Benutzername')
+      expect(texts).toContain('Gemeinschaft')
+      expect(texts).toContain('KI Playground')
+      // Still printed where it belongs: as the name at the top, and in the address at the foot.
+      expect(texts.filter((text) => text === 'bernd')).toHaveLength(2)
+    })
+
+    // ⛔ Two letters are enough to give the name back. The letters follow the line the disc
+    // stands beside (AS-010); the colour keeps hashing the real initials, so nobody's disc
+    // changes colour -- and an already printed card stays in step with the screen.
+    it('letters the disc from what it was given and colours it from the seed', async () => {
+      await drawGradidoCard(QUIET)
+
+      const letters = ctx.calls.find((call) => call.name === 'fillText' && call.args[0] === 'BE')
+      expect(letters.fillStyle).toBe(avatarPaletteEntry('BH').text)
+      expect(ctx.calls.find((call) => call.name === 'fill').fillStyle).toBe(
+        avatarPaletteEntry('BH').bg,
+      )
+    })
+
+    /**
+     * The freed row goes to the band rather than staying a hole under the community line.
+     * The band therefore keeps its bottom edge and grows upwards, and everything centred in
+     * it rises by HALF the row -- 21 px, which is 1.75 mm on paper.
+     *
+     * ⚠️ Moving the band up without growing it would also raise the picture, by the whole
+     * row, and leave the gap at the foot instead. That is why this measures the distance and
+     * not merely the direction.
+     */
+    it('gives the freed row to the band, and leaves the foot of the card alone', async () => {
+      await drawGradidoCard(CARD)
+      const withLine = { picture: pictureCentre(), qr: qrCentre(), hairline: hairlineTop() }
+
+      ctx = recordingContext()
+      await drawGradidoCard(QUIET)
+
+      expect(hairlineTop()).toBe(withLine.hairline)
+      expect(withLine.picture - pictureCentre()).toBe(21)
+      expect(withLine.qr - qrCentre()).toBe(21)
+      // Picture and code share one centre line, before and after.
+      expect(qrCentre()).toBe(pictureCentre())
+    })
+
+    it('leaves the code the size the address asks for', async () => {
+      await drawGradidoCard(CARD)
+      const withLine = qrDraw().args[3]
+
+      ctx = recordingContext()
+      await drawGradidoCard(QUIET)
+
+      expect(qrDraw().args[3]).toBe(withLine)
     })
   })
 })

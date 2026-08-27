@@ -457,6 +457,9 @@
     "download-hint": "A single image in print quality — for a print shop or to pass on.",
     "needs-username": "Your card carries your Gradido address, and that address is built from your user name. Please choose one first — the field is under “My account”. Then you can print your card and give it away.",
     "needs-username-title": "A user name first",
+    "real-name": "Real name",
+    "real-name-hint": "Without the tick your user name stands at the top instead — your name then appears nowhere on the card.",
+    "real-name-print": "print it",
     "sheet": "Sheet with 10 cards",
     "sheet-hint": "10 business cards at original size on one A4 page. In the print dialogue you can also save it as a PDF.",
     "title": "Your business card"
@@ -820,8 +823,7 @@
       "sent": "We have sent a confirmation e-mail to {email}."
     },
     "emailInfo": "A new address takes effect as soon as you have confirmed it via the link in the confirmation e-mail.",
-    "hideAmountGDD": "Your GDD amount is hidden.",
-    "hideAmountGDT": "Your GDT amount is hidden.",
+    "hide-amount": "Hide {currency} amount",
     "humhub": {
       "delete-disabled": "The user account can only be deleted in the profile menu of the cooperation platform.",
       "disabled": "Data not exported into the Gradido Community",
@@ -873,8 +875,6 @@
       },
       "subtitle": "If you have forgotten your password, you can reset it here."
     },
-    "showAmountGDD": "Your GDD amount is visible.",
-    "showAmountGDT": "Your GDT amount is visible.",
     "theme": {
       "dark": "Dark",
       "hint": "Choose 'Follow system setting' to switch automatically between light and dark mode, based on your device or browser setting.",

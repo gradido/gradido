@@ -457,6 +457,9 @@
     "download-hint": "Une seule image en qualité d'impression — pour une imprimerie ou à transmettre.",
     "needs-username": "Ta carte porte ton adresse Gradido, et cette adresse est formée à partir de ton nom d'utilisateur. Choisis-en un d'abord : le champ se trouve dans « Mon compte ». Ensuite tu pourras imprimer ta carte et la donner.",
     "needs-username-title": "D'abord le nom d'utilisateur",
+    "real-name": "Nom réel",
+    "real-name-hint": "Sans la coche, c’est ton nom d’utilisateur qui figure en haut : ton nom n’apparaît alors nulle part sur la carte.",
+    "real-name-print": "l’imprimer",
     "sheet": "Planche de 10 cartes",
     "sheet-hint": "10 cartes de visite à taille réelle sur une page A4. Dans la fenêtre d’impression, tu peux aussi l’enregistrer en PDF.",
     "title": "Ta carte de visite"
@@ -820,8 +823,7 @@
       "sent": "Nous avons envoyé un e-mail de confirmation à {email}."
     },
     "emailInfo": "Une nouvelle adresse prend effet dès que tu l'as confirmée via le lien de l'e-mail de confirmation.",
-    "hideAmountGDD": "Ton montant GDD est caché.",
-    "hideAmountGDT": "Ton montant GDT est caché.",
+    "hide-amount": "Masquer le montant en {currency}",
     "humhub": {
       "delete-disabled": "Le compte utilisateur ne peut être supprimé que dans le menu de profil de la plateforme de coopération.",
       "disabled": "Les données ne sont pas exportées vers la communauté Gradido",
@@ -873,8 +875,6 @@
       },
       "subtitle": "Si tu as oublié ton mot de passe, tu peux le réinitialiser ici."
     },
-    "showAmountGDD": "Ton montant GDD est visible.",
-    "showAmountGDT": "Ton montant GDT est visible.",
     "theme": {
       "dark": "Sombre",
       "hint": "Choisis « Suivre le réglage du système » pour basculer automatiquement entre le mode clair et sombre, selon le réglage de ton appareil ou navigateur.",

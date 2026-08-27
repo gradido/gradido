@@ -25,10 +25,10 @@
     I assume that the webhook arrives via POST and transmits a string as shown above
 */
 
-import { UserContact as dbUserContact, LoginElopageBuys } from 'database'
+import { LoginElopageBuys } from 'database'
 import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { UserResolver } from '@/graphql/resolver/UserResolver'
+import { checkEmailExists, UserResolver } from '@/graphql/resolver/UserResolver'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.webhook.elopage`)
 
@@ -118,9 +118,16 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
       return
     }
 
-    // Do we already have such a user?
-    // if ((await dbUser.count({ email })) !== 0) {
-    if ((await dbUserContact.count({ where: { email } })) !== 0) {
+    // Do we already have such a user? This is the question the registration asks, and it
+    // has to be asked the same way, through `checkEmailExists` - which gives up any change
+    // that has only ever TYPED this address in, whatever its age, before it looks.
+    //
+    // Counting the rows raw - as this did - counted such a change as an account. Nothing
+    // here would ever clear it, and it could be renewed indefinitely, so a buyer whose
+    // address a stranger had once typed into a change form silently got no account and no
+    // retry would ever fix it. The buyer is the one who will have to answer mail at that
+    // address; the typed claim yields to them.
+    if (await checkEmailExists(email)) {
       logger.info(`Did not create User - already exists with email: ${email}`)
       return
     }

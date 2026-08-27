@@ -13,17 +13,44 @@
           :alt="$t('gradido-card.title')"
           data-test="gradido-card-preview"
         />
-        <div
-          v-else-if="!hasUsername"
-          class="gradido-card-empty small"
-          data-test="gradido-card-empty"
-        >
+        <div v-else-if="!hasAlias" class="gradido-card-empty small" data-test="gradido-card-empty">
           {{ $t('gradido-card.needs-username') }}
         </div>
         <div v-else class="gradido-card-empty" />
       </BCol>
 
       <BCol cols="12" md>
+        <!-- ⛔ Above the contact block and on by default. A card is handed to strangers, and
+             whether one's real name travels with it is the holder's decision, not ours
+             (Bernd, 27.08.2026). Ticked, the card is exactly the one it always was; unticked,
+             the user name takes the top line -- bare, without the word "user name" in front
+             of it, because up there it is simply what this person is called -- and the
+             labelled line that used to carry it below goes away. -->
+        <!-- ⚠️ Both ids, in reading order. The tick's own text is only "print it", which
+             says nothing on its own to somebody who cannot see the word beside it -- and
+             naming just that word instead would be worse, because `aria-labelledby` REPLACES
+             the native label rather than adding to it, so the box would announce "real name"
+             and never say what ticking does. Named together they read as the line reads.
+             (coderabbit at PR #3811; measured -- the attribute lands on the input itself.) -->
+        <div class="d-flex align-items-center gap-3 mb-1">
+          <span id="gradido-card-real-name" class="fw-bold">
+            {{ $t('gradido-card.real-name') }}
+          </span>
+          <BFormCheckbox
+            v-model="printRealName"
+            class="small"
+            aria-labelledby="gradido-card-real-name gradido-card-real-name-print"
+            data-test="gradido-card-print-real-name"
+          >
+            <span id="gradido-card-real-name-print">
+              {{ $t('gradido-card.real-name-print') }}
+            </span>
+          </BFormCheckbox>
+        </div>
+        <div class="small text-muted mb-3" data-test="gradido-card-real-name-hint">
+          {{ $t('gradido-card.real-name-hint') }}
+        </div>
+
         <div class="d-flex align-items-center gap-3 mb-1">
           <label class="fw-bold mb-0" for="gradido-card-contact">
             {{ $t('gradido-card.contact') }}
@@ -115,6 +142,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import AppModal from '@/components/AppModal'
 import { useGradidoCard } from '@/composables/useGradidoCard'
+import { memberAlias } from '@/utils/gradidoAddress'
 import { CONTACT_MAX_LINES, contactLines } from '@/utils/gradidoCard'
 
 const { drawCard, downloadCard, printCardSheet } = useGradidoCard()
@@ -127,6 +155,10 @@ const contactText = ref('')
 // On by default: the word reads as an invitation to get in touch rather than as a label.
 // Five full lines are the case where it is in the way, and then it can go.
 const printHeading = ref(true)
+// On by default as well, and for a different reason: this is the card as it has always
+// been printed. Turning it off is a deliberate step somebody takes, not a state they can
+// find themselves in without having chosen it.
+const printRealName = ref(true)
 
 /**
  * No card without a user name.
@@ -148,7 +180,19 @@ const printHeading = ref(true)
  * This is for the time in between. Once the user name is compulsory the case cannot arise,
  * and the gate can go.
  */
-const hasUsername = computed(() => Boolean(store.state.username))
+const hasAlias = computed(() => {
+  const { username, gradidoID } = store.state
+  // ⛔ Not `Boolean(username)`. `memberAlias` needs three characters and falls back to the
+  // Gradido ID below that -- so a stored name of one or two characters, which predates the
+  // rule and really exists, opened this gate and then printed a 36-character identifier
+  // where the docblock above says a name belongs. Since the card can be printed without the
+  // real name it would land on the NAME line as well, and in the file name of the download.
+  // Asking the resolver instead of the raw field is the same question the card actually asks.
+  //
+  // ⚠️ The first half is not redundant: with both values empty the comparison would be
+  // '' === '' and the gate would open on nothing at all.
+  return Boolean(username) && memberAlias(username, gradidoID) === username
+})
 
 const lines = computed(() => contactLines(contactText.value.split('\n')))
 
@@ -222,7 +266,7 @@ const redraw = async () => {
   const round = ++redrawRound
   const isCurrent = () => round === redrawRound
 
-  if (!hasUsername.value) {
+  if (!hasAlias.value) {
     preview.value = ''
     return
   }
@@ -230,6 +274,7 @@ const redraw = async () => {
     const card = await drawCard({
       contact: lines.value,
       heading: printHeading.value,
+      realName: printRealName.value,
       preview: true,
     })
     if (isCurrent()) preview.value = card
@@ -258,10 +303,18 @@ watch(printHeading, (value) => {
   redraw()
 })
 
+watch(printRealName, (value) => {
+  writeStored('real-name', value ? '1' : '0')
+  redraw()
+})
+
 onMounted(() => {
   contactText.value = readStored('contact') ?? ''
-  // Only an explicit "0" turns it off, so a browser that remembers nothing keeps the default.
+  // Only an explicit "0" turns these off, so a browser that remembers nothing keeps the
+  // defaults -- and for the real name that direction matters: a device that cannot remember
+  // must fall back to the card as it has always been, never to a quieter one nobody chose.
   printHeading.value = readStored('contact-heading') !== '0'
+  printRealName.value = readStored('real-name') !== '0'
   redraw()
 })
 
@@ -274,14 +327,18 @@ onBeforeUnmount(() => window.clearTimeout(redrawTimer))
  * screen after a download is what came out of it.
  */
 const run = async (action) => {
-  if (!hasUsername.value) {
+  if (!hasAlias.value) {
     needsUsername.value = true
     return
   }
   isBusy.value = true
   try {
     preview.value =
-      (await action({ contact: lines.value, heading: printHeading.value })) ?? preview.value
+      (await action({
+        contact: lines.value,
+        heading: printHeading.value,
+        realName: printRealName.value,
+      })) ?? preview.value
   } finally {
     isBusy.value = false
   }
