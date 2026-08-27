@@ -11,6 +11,14 @@ import { initLogging } from '@/server/logger'
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.gms.ExportUsers`)
 
 CORE_CONFIG.EMAIL = false
+// Members per call. 100 always fits both GMS limits - 500 snapshots and 5000 entries
+// across the batch - no matter how many entries a member has.
+//
+// Raising this changes what binds: the two limits meet at ten entries per member, and
+// above that average the entry budget runs out first - 500 members averaging twelve
+// entries are 6000 entries and refused. Whoever goes higher has to cut the snapshots by
+// entry count rather than by member count; there is a worked pattern for it in the GMS
+// repo, `snapshotChunks()` in backend/src/logic/communitySync.bench.test.ts.
 const BATCH_SIZE = 100
 
 async function main() {
