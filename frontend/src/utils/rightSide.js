@@ -1,5 +1,7 @@
 // AI-GENERATED — not an architecture reference
 
+import { routeSection } from '@/utils/routeSection'
+
 /**
  * Which panel the right-hand column carries on a given route -- and, from the same answer,
  * whether the column is there at all.
@@ -33,8 +35,8 @@
  * condition (`!settingsChrome`), which was already one route list too many.
  */
 
-// Keyed by the first path segment, which is how a section is addressed here:
-// `/contributions/contribute` and `/matching/entries` are the same section as their root.
+// Keyed by the section a path belongs to -- its first segment, read by utils/routeSection,
+// which the header above the page reads with as well.
 const SLOT_BY_SECTION = {
   overview: 'transactions',
   contributions: 'contributions',
@@ -44,17 +46,8 @@ const SLOT_BY_SECTION = {
 /**
  * @param {string} path  the current route path
  * @returns {string} the name of the slot to render, `'empty'` where there is none
- *
- * ⚠️ Reads the first segment rather than stripping the rest, because a TRAILING SLASH is a
- * path a router really hands over: `/overview/` matches the `/overview` record. The pattern
- * this replaces (`^\/(.+?)(\/.+)?$`, carried over from RightSide) needed a character after
- * the slash, so it answered `overview/` and the section was missed. It could not show while
- * the booking list was the DEFAULT -- a missed section landed on the same panel anyway --
- * and the moment the list became the exception it would have cost the overview its column.
- * (coderabbit at PR #3811, verified against both patterns over every path in the spec.)
  */
-export const rightSideSlot = (path) =>
-  SLOT_BY_SECTION[String(path ?? '').match(/^\/([^/]+)/)?.[1]] ?? 'empty'
+export const rightSideSlot = (path) => SLOT_BY_SECTION[routeSection(path)] ?? 'empty'
 
 /**
  * @param {string} path  the current route path
