@@ -431,6 +431,33 @@ describe('EmailChangeResolver', () => {
         mutate({ mutation: revokeEmailChange, variables: { vetoCode } }),
       ).resolves.toMatchObject({ data: null, errors: [CODE_INVALID] })
     })
+
+    it('answers expired once the change ran out - and still clears the row away', async () => {
+      // The notice named this moment: "the link is valid until ... - after that the
+      // change lapses of its own accord". A click past it must not report a stop it
+      // did not cause.
+      await ageRequestEvents(bibi.id, 11)
+      await mutate({
+        mutation: requestEmailChange,
+        variables: { email: 'bibi-late@bloxberg.de', password: PASSWORD },
+      })
+      const row = await pendingRow(bibi.id)
+      await ageContactRow(row!.id, 25)
+      await expect(
+        mutate({
+          mutation: revokeEmailChange,
+          variables: { vetoCode: row!.changeVetoCode!.toString() },
+        }),
+      ).resolves.toMatchObject({ data: null, errors: [CODE_INVALID] })
+      // The refusal did not roll the cleanup back: the row is gone and the address free.
+      expect(await pendingRow(bibi.id)).toBeNull()
+      expect(
+        await DbUserContact.findOne({
+          where: { email: 'bibi-late@bloxberg.de' },
+          withDeleted: true,
+        }),
+      ).toBeNull()
+    })
   })
 
   describe('cancelling and replacing', () => {
@@ -813,6 +840,29 @@ describe('EmailChangeResolver', () => {
 
         await mutate({ mutation: cancelEmailChange })
         expect(await pendingRow(bob.id)).toBeNull()
+      })
+
+      it('an expired stop button answers expired - and the borrowed row is restored', async () => {
+        await ageRequestEvents(bob.id, 11)
+        await mutate({
+          mutation: requestEmailChange,
+          variables: { email: 'bob-second@baumeister.de', password: PASSWORD },
+        })
+        const row = await pendingRow(bob.id)
+        const vetoCode = row!.changeVetoCode!.toString()
+        await ageContactRow(row!.id, 25)
+
+        await expect(
+          mutate({ mutation: revokeEmailChange, variables: { vetoCode } }),
+        ).resolves.toMatchObject({ data: null, errors: [CODE_INVALID] })
+        // Released despite the refusal - and restored, never deleted: it is one of the
+        // member's own addresses.
+        expect(await pendingRow(bob.id)).toBeNull()
+        const restored = await DbUserContact.findOneOrFail({
+          where: { email: 'bob-second@baumeister.de' },
+        })
+        expect(restored.emailChecked).toBe(true)
+        expect(restored.changeVetoCode).toBeNull()
       })
     })
   })

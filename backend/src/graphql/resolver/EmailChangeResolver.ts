@@ -652,19 +652,25 @@ export class EmailChangeResolver {
     }
     logger.addContext('user', pending.userId)
     // The search above only says WHOSE row this is; the decision is made again under the
-    // lock. Whoever holds the veto link is told the truth: if the change was carried out or
-    // withdrawn in the meantime, this code no longer stands for anything.
+    // lock. Whoever holds the veto link is told the truth: if the change was carried out,
+    // withdrawn or ran out in the meantime, this code no longer stands for anything.
     //
-    // ⚠️ The refusal is RETURNED and raised after the commit, like its two neighbours. It
-    // could be thrown from inside today, because nothing is written before it - but this is
-    // the one path with no expiry check, so the obvious next edit here is exactly the one
-    // the neighbours already have (release a run-out change, then refuse), and thrown from
-    // inside, that release would roll back. That is the regression this branch just
-    // repaired; the safe shape is in place before the write arrives, not after.
+    // ⚠️ The refusal is RETURNED and raised after the commit, like its two neighbours,
+    // because the run-out branch WRITES before it refuses: releasing the change is cleanup
+    // that has to outlive the refusal, and thrown from inside it would roll back with the
+    // transaction.
     const released = await underMemberLock(pending.userId, async (manager) => {
       const locked = await dbFindPendingEmailChangeByVetoCode(vetoCode, manager)
       if (!locked) {
         logger.warn('the change this veto code belonged to was already gone')
+        return false
+      }
+      if (!isEmailVerificationCodeValid(issuedAt(locked))) {
+        // The notice said it itself: "the link is valid until {validUntil} - after that
+        // the change lapses of its own accord". Here it lapses, and the click is answered
+        // with the refusal - not with a success it did not cause.
+        await releasePending(locked, manager)
+        logger.warn('the change this veto code belonged to had already run out')
         return false
       }
       await releasePending(locked, manager)
