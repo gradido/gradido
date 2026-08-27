@@ -285,6 +285,28 @@ describe('drawGradidoCard', () => {
 
     // The same rule the address line follows: a line that had to shrink fills less of its
     // row, it does not move it.
+    /**
+     * ⛔ The floor is a hard stop, so a name past about 42 characters is still too wide --
+     * and the name is painted AFTER the logo now, because the room it may use is what the
+     * logo does not take. Without a clip it would run straight across the brand mark and off
+     * the card. Shrinking is the rule, the clip is the backstop; neither alone covers it.
+     */
+    it('clips a name the floor cannot save, so nothing paints over the logo', async () => {
+      await drawGradidoCard({ ...CARD, name: 'x'.repeat(300) })
+
+      const nameAt = ctx.calls.findIndex((call) => call.name === 'fillText')
+      const before = ctx.calls.slice(0, nameAt).map((call) => call.name)
+
+      expect(before.slice(-3)).toEqual(['beginPath', 'rect', 'clip'])
+      expect(ctx.calls[nameAt + 1].name).toBe('restore')
+
+      // The clip is the room beside the logo: 1011 wide, 38 padding either side, a logo of
+      // 500 x 147 drawn 52 high (177 across), less 14 of air.
+      const clipBox = ctx.calls[nameAt - 2].args
+      expect(clipBox[0]).toBe(38)
+      expect(clipBox[2]).toBeCloseTo(744, 0)
+    })
+
     it('keeps the row where it is when the name shrinks', async () => {
       await drawGradidoCard(CARD)
       const baselineFull = nameDraw().args[2]
@@ -443,7 +465,9 @@ describe('drawGradidoCard', () => {
     it('clips the column so nothing can paint over the QR', async () => {
       await drawGradidoCard({ ...CARD, contact: ['anything'] })
 
-      const rect = ctx.calls.findIndex((call) => call.name === 'rect')
+      // ⚠️ The LAST rect, not the first: since the name is clipped to its own room too, the
+      // first one belongs to the heading at the top of the card.
+      const rect = ctx.calls.findLastIndex((call) => call.name === 'rect')
       expect(rect).toBeGreaterThanOrEqual(0)
 
       const clip = ctx.calls.findIndex((call, index) => index > rect && call.name === 'clip')

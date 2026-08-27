@@ -823,6 +823,7 @@
       "sent": "We have sent a confirmation e-mail to {email}."
     },
     "emailInfo": "A new address takes effect as soon as you have confirmed it via the link in the confirmation e-mail.",
+    "hide-amount": "Hide {currency} amount",
     "humhub": {
       "delete-disabled": "The user account can only be deleted in the profile menu of the cooperation platform.",
       "disabled": "Data not exported into the Gradido Community",

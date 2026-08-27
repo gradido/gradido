@@ -823,6 +823,7 @@
       "sent": "Wir haben eine Bestätigungs-E-Mail an {email} geschickt."
     },
     "emailInfo": "Eine neue Adresse gilt, sobald Du sie über den Link in der Bestätigungs-E-Mail bestätigt hast.",
+    "hide-amount": "{currency}-Betrag verbergen",
     "humhub": {
       "delete-disabled": "Das Benutzerkonto kann nur im Profil-Menü der Kooperationsplattform gelöscht werden.",
       "disabled": "Daten werden nicht in die Gradido Community exportiert",

@@ -823,6 +823,7 @@
       "sent": "We hebben een bevestigingsmail gestuurd naar {email}."
     },
     "emailInfo": "Een nieuw adres geldt zodra je het via de link in de bevestigingsmail hebt bevestigd.",
+    "hide-amount": "{currency}-bedrag verbergen",
     "humhub": {
       "delete-disabled": "Het gebruikersaccount kan alleen worden verwijderd in het profielmenu van het samenwerkingsplatform.",
       "disabled": "Gegevens worden niet naar de Gradido-gemeenschap geëxporteerd",

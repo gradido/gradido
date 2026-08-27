@@ -42,7 +42,9 @@
  * one ran into the logo and then over the edge. Measured in a browser with Open Sans loaded,
  * a 29-character name was already touching the logo and a 39-character one was 255 px past
  * the card. It now shrinks like the address line does, down to the size of the community
- * line beneath it and no further.
+ * line beneath it and no further -- and is clipped to its room like the contact block, for
+ * the names past about 42 characters that the floor cannot save. Shrinking is the rule and
+ * the clip is the backstop; neither alone covers the case.
  *
  * ## The QR size follows the address, it is not a fixed number
  *
@@ -468,9 +470,24 @@ export const drawGradidoCard = async (data) => {
   ctx.drawImage(logo, WIDTH - PADDING - logoWidth, PADDING, logoWidth, LOGO_HEIGHT)
 
   const nameText = data.name ?? ''
+  const nameRoom = WIDTH - 2 * PADDING - logoWidth - NAME_LOGO_GAP
   ctx.fillStyle = COLOR_TEXT
-  ctx.font = `700 ${nameSizeFor(ctx, nameText, WIDTH - 2 * PADDING - logoWidth - NAME_LOGO_GAP)}px ${FONT}`
+  ctx.font = `700 ${nameSizeFor(ctx, nameText, nameRoom)}px ${FONT}`
+  // ⛔ The clip is the last resort behind the shrinking, exactly as it is for the contact
+  // block: `nameSizeFor` stops at its floor whether or not the text fits, so a name past
+  // about 42 characters is still too wide -- and this now paints AFTER the logo, because the
+  // room it may use is what the logo does not take. Without the clip such a name would run
+  // straight across the brand mark and off the card.
+  //
+  // ⚠️ This does not depend on paint order, and that is the point. Before the shrinking
+  // existed, an over-long name was hidden by the logo being drawn on top of it afterwards --
+  // containment by accident, from a line whose order nobody could change safely.
+  ctx.save()
+  ctx.beginPath()
+  ctx.rect(PADDING, PADDING, nameRoom, NAME_BLOCK)
+  ctx.clip()
   ctx.fillText(nameText, PADDING, baselineOf(PADDING, NAME_SIZE))
+  ctx.restore()
 
   const firstRow = PADDING + NAME_BLOCK + LINES_GAP
   drawLabelledLine(ctx, {

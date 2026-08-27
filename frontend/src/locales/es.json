@@ -823,6 +823,7 @@
       "sent": "Hemos enviado un correo de confirmación a {email}."
     },
     "emailInfo": "Una nueva dirección es válida en cuanto la confirmes a través del enlace del correo de confirmación.",
+    "hide-amount": "Ocultar el importe en {currency}",
     "humhub": {
       "delete-disabled": "La cuenta de usuario solo puede eliminarse en el menú de perfil de la plataforma de cooperación.",
       "disabled": "Los datos no se exportan a la comunidad Gradido",

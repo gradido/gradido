@@ -31,8 +31,14 @@
                      is three of twelve wide, and `− 45,00 GDD` broke over two lines as soon
                      as the window narrowed -- while every amount in this list is in GDD, so
                      the unit was saying nothing and costing exactly the width that made it
-                     wrap. The sign stays: it is what tells received from sent, together with
-                     the colour. (Bernd, 27.08.2026) -->
+                     wrap.
+
+                     ⛔ The sign stays, and it carries this ALONE in light mode. The first
+                     version of this note said "together with the colour" -- but
+                     `.received-amount` has exactly one rule in the whole project, under
+                     `.dark-mode`, so in light mode there is no colour signal at all. Whoever
+                     next thinks the plus is noise should know that removing it leaves
+                     nothing. (Bernd, 27.08.2026) -->
                 <span
                   class="small transaction-amount"
                   :class="{ 'received-amount': Number(row.transaction.amount) > 0 }"

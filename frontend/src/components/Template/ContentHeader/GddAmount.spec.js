@@ -96,6 +96,30 @@ describe('GddAmount', () => {
     wrapper = createWrapper()
   })
 
+  /**
+   * ⛔ The control is an icon and nothing else, and the balance it switches is a plain
+   * v-if pair outside any live region -- so without a name and a state it announced as a
+   * bare "button" and its result was never announced at all. The success toast used to
+   * cover that; removing the toast laid it bare rather than causing it.
+   */
+  describe('the eye is a named toggle, not a bare button', () => {
+    const toggle = () => wrapper.find('[data-test="toggle-hide-amount-gdd"]')
+
+    it('carries a name that says what it does', () => {
+      expect(toggle().attributes('aria-label')).toBe('settings.hide-amount')
+    })
+
+    it('carries the state, so the result is audible', async () => {
+      expect(toggle().attributes('aria-pressed')).toBe('false')
+
+      mockMutate.mockResolvedValue({ data: { updateUserInfos: { validValues: 1 } } })
+      await toggle().trigger('click')
+      await nextTick()
+
+      expect(toggle().attributes('aria-pressed')).toBe('true')
+    })
+  })
+
   it('renders the component gdd-amount', () => {
     expect(wrapper.find('div.gdd-amount').exists()).toBe(true)
   })

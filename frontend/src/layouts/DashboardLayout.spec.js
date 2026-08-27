@@ -204,6 +204,31 @@ describe('DashboardLayout', () => {
       expect(wrapper.findComponent({ name: 'RightSide' }).exists()).toBe(false)
     })
 
+    /**
+     * ⛔ The tiles in the page heading linked RELATIVELY (`to="transactions"`). From a path
+     * ending in a slash -- which a router really hands over, and which the section fix made
+     * render this heading for the first time -- vue-router resolves that one segment too
+     * deep: `/overview/` + `transactions` is `/overview/transactions`, which matches only
+     * the catch-all. That route carries no `requiresAuth`, so App.vue swaps the whole page
+     * to AuthLayout and the member is out of the wallet. Four leading slashes.
+     */
+    it('links out of the page heading by absolute path', async () => {
+      await router.push('/overview')
+      // ⚠️ The real ContentHeader, because the default stub renders no slots -- and the
+      // links under test live inside them, so a stubbed header would report zero and pass.
+      const withHeader = createWrapper({ ContentHeader: false })
+      withHeader.vm.skeleton = false
+      await nextTick()
+
+      const targets = withHeader.findAll('router-link-stub').map((link) => link.attributes('to'))
+      const relative = targets.filter((target) => !target.startsWith('/'))
+
+      expect(targets).toContain('/transactions')
+      expect(relative).toEqual([])
+
+      withHeader.unmount()
+    })
+
     it('keeps it on the overview, where the booking list belongs', async () => {
       await router.push('/overview')
       await nextTick()
