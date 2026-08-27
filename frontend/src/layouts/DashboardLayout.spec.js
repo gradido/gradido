@@ -231,6 +231,42 @@ describe('DashboardLayout', () => {
       expect(targets.filter((target) => !target.startsWith('/'))).toEqual([])
     })
 
+    /**
+     * ⛔ The layout takes the panel from the matched record and passes it on, rather than
+     * working it out from the path a second time. That is what lets two routes of one section
+     * differ -- `/matching/karte` says `rightSide: null` beside its `bareChrome` while
+     * `/matching/:tab` says `matching`, which a lookup keyed by the first path segment could
+     * not express. ⚠️ That pair cannot be checked here: `MATCHING_ACTIVE` is compiled into the
+     * bundle (`process.env.MATCHING_ACTIVE` in config/index.js), and no value is set for the
+     * UNIT-TEST run, so those routes are not registered in this file at all. Nothing to do
+     * with the servers -- ki-playground carries the flag on. The pair is held in
+     * routes.test.js, which loads the table with the flag mocked on.
+     */
+    it('carries the panel the route named', async () => {
+      await router.push('/overview')
+      await nextTick()
+      expect(wrapper.findComponent({ name: 'RightSide' }).props('panel')).toBe('transactions')
+
+      await router.push('/contributions/contribute')
+      await nextTick()
+      expect(wrapper.findComponent({ name: 'RightSide' }).props('panel')).toBe('contributions')
+    })
+
+    /**
+     * The phone carries two of the three panels. On the overview it used to render the column
+     * and then nothing inside it -- an empty block's worth of air above the page, for a list
+     * that hides itself below 992px anyway. One condition per column now, not one for both.
+     */
+    it('gives the phone a column only where the phone has a panel', async () => {
+      await router.push('/overview')
+      await nextTick()
+      expect(wrapper.findAllComponents({ name: 'RightSide' })).toHaveLength(1)
+
+      await router.push('/contributions/contribute')
+      await nextTick()
+      expect(wrapper.findAllComponents({ name: 'RightSide' })).toHaveLength(2)
+    })
+
     it('keeps it on the overview, where the booking list belongs', async () => {
       await router.push('/overview')
       await nextTick()
