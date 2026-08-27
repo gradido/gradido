@@ -23,14 +23,24 @@
 // the relation an enforced invariant is a separate question with a separate risk, and it
 // needs the data looked at first.
 
+// ⛔ `IF NOT EXISTS` / `IF EXISTS`, because this file is TWO statements and DDL in MySQL
+// and MariaDB does not roll back. If the first ALTER commits and the second one does not -
+// a dropped connection, a lock timeout on a large table - the runner never records the
+// migration, and the retry dies on `Duplicate key name` instead of finishing the half that
+// is missing. That retry is a deploy, and the paragraph above says what a failed deploy
+// looks like: `start.sh` has already stopped the services, so the server stays on the
+// waiting page until somebody goes in by hand. Guarding each statement makes the retry the
+// repair. `0073` already does exactly this on this very table.
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  await queryFn('ALTER TABLE `users` ADD INDEX `IDX_users_email_id` (`email_id`);')
+  await queryFn('ALTER TABLE `users` ADD INDEX IF NOT EXISTS `IDX_users_email_id` (`email_id`);')
   await queryFn(
-    'ALTER TABLE `user_contacts` ADD INDEX `IDX_user_contacts_user_created` (`user_id`, `created_at`);',
+    'ALTER TABLE `user_contacts` ADD INDEX IF NOT EXISTS `IDX_user_contacts_user_created` (`user_id`, `created_at`);',
   )
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
-  await queryFn('ALTER TABLE `users` DROP INDEX `IDX_users_email_id`;')
-  await queryFn('ALTER TABLE `user_contacts` DROP INDEX `IDX_user_contacts_user_created`;')
+  await queryFn('ALTER TABLE `users` DROP INDEX IF EXISTS `IDX_users_email_id`;')
+  await queryFn(
+    'ALTER TABLE `user_contacts` DROP INDEX IF EXISTS `IDX_user_contacts_user_created`;',
+  )
 }
