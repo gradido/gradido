@@ -140,6 +140,13 @@ const onSubmit = handleSubmit(async (values) => {
         // best effort: the chosen language already applies locally
       }
     }
+    // ⚠️ Correct here, and only because signing in requires the address that is IN FORCE:
+    // `findUserByEmail` joins through `users.email_id`, so a former address cannot get
+    // anybody through this form, and what was typed IS the current address. That is a fact
+    // about another file, not about this line - if a former address is ever allowed to sign
+    // in (the alias already works that way, deliberately), this quietly starts writing a
+    // stale address into the store again. What keeps it fresh AFTERWARDS is the
+    // `/authenticate` guard, which commits the address from a real `verifyLogin` answer.
     store.commit('email', values.email)
     // await loader.hide()
     if (store.state.project) {
