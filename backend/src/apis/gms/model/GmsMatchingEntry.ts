@@ -33,3 +33,21 @@ export class GmsUserMatchingEntry extends GmsMatchingEntry {
 
   userUuid: string
 }
+
+/**
+ * One member's entries, stated in full. What is in `entries` is written, what is
+ * missing from it is removed, and an empty list says the member has no entries at
+ * all. A member nobody sends a snapshot for is not touched.
+ *
+ * That is how a repair run cleans up entries which were paused or deleted while the
+ * GMS could not be reached, without ever sending a delete.
+ */
+export class GmsMatchingEntrySnapshot {
+  constructor(userUuid: string, entries: MatchingEntrySelect[]) {
+    this.userUuid = userUuid
+    this.entries = entries.map((entry) => new GmsMatchingEntry(entry))
+  }
+
+  userUuid: string
+  entries: GmsMatchingEntry[]
+}

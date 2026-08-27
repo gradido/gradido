@@ -7,7 +7,7 @@ import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'
 
-import { GmsUserMatchingEntry } from './model/GmsMatchingEntry'
+import { GmsMatchingEntrySnapshot, GmsUserMatchingEntry } from './model/GmsMatchingEntry'
 import { GmsUser } from './model/GmsUser'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.gms.GmsClient`)
@@ -152,6 +152,48 @@ export async function upsertGmsUsers(apiKey: string, users: GmsUser[]): Promise<
   } else {
     logger.info('GMS-Communication disabled per ConfigKey GMS_ACTIVE=false!')
     return false
+  }
+}
+
+/**
+ * Write the matching entries of a batch of members, each member's set stated in full.
+ * The GMS removes what a snapshot leaves out, so this also cleans up entries that were
+ * paused or deleted while it could not be reached.
+ *
+ * Send this only after the users themselves are through: a member the GMS does not know
+ * yet has their snapshot dropped with a warning, and the call still answers 200.
+ */
+export async function putGmsMatchingEntrySnapshots(
+  apiKey: string,
+  snapshots: GmsMatchingEntrySnapshot[],
+): Promise<boolean> {
+  if (!CONFIG.GMS_ACTIVE) {
+    logger.info('GMS-Communication disabled per ConfigKey GMS_ACTIVE=false!')
+    return false
+  }
+  const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_API_URL)
+  const service = 'community-users/matching-entry-snapshots'
+  try {
+    const result = await axios.put(baseUrl.concat(service), snapshots, {
+      headers: gmsHeaders(apiKey),
+      httpAgent,
+      httpsAgent,
+    })
+    logger.debug('PUT-Response of community-users/matching-entry-snapshots:', result)
+    if (result.status !== 200) {
+      throw new LogError(
+        'HTTP Status Error in community-users/matching-entry-snapshots:',
+        result.status,
+        result.statusText,
+      )
+    }
+    return true
+  } catch (error: unknown) {
+    logger.error('Error in put community-users/matching-entry-snapshots:', error)
+    if (error instanceof Error) {
+      throw new LogError(error.message)
+    }
+    throw new LogError('Unknown error in put community-users/matching-entry-snapshots')
   }
 }
 

@@ -84,44 +84,48 @@ export async function dbFindPendingEmailChange(
 }
 
 /**
- * The member's OWN row for this address, if they ever held it. This is what makes going
- * back possible: the address is not free, but it is not somebody else's either - it is
- * already theirs, and the row only has to be pointed at again.
- */
-export async function dbFindOwnUserContactByEmail(
-  userId: number,
-  email: string,
-  manager?: EntityManager,
-): Promise<DbUserContact | null> {
-  const where = { userId, email }
-  return manager ? manager.findOne(DbUserContact, { where }) : DbUserContact.findOne({ where })
-}
-
-/**
  * A pending change by the code from the confirmation mail. Only that kind of row: a
  * registration or reset code must not confirm a change, and the inverse holds in the
  * password paths. No relation is loaded here - `UserContact.user` is the inverse of
  * `users.email_id` and therefore empty for a pending row; load the member by `userId`.
+ *
+ * ⛔ `forUpdate` is what makes a read-then-write on this row safe, and it takes a lock on
+ * THIS row - the member's `users` row is a different row and does not protect it. A plain
+ * read under REPEATABLE READ serves the snapshot, so a hard DELETE committed by one of the
+ * unlocked deleters after that read stays invisible: the caller's `save()` then finds a row
+ * in its snapshot, chooses UPDATE over INSERT, matches zero rows, and TypeORM does not look
+ * at `affected`. The member ends up with `users.email_id` pointing at a row that is gone and
+ * cannot log in at all, having just been mailed that the change succeeded. A locking read
+ * reads the latest committed version instead: the delete either blocks until this
+ * transaction ends, or has already happened and the row is correctly not found.
  */
-export async function dbFindPendingEmailChangeByCode(code: string): Promise<DbUserContact | null> {
-  return DbUserContact.findOne({
+export async function dbFindPendingEmailChangeByCode(
+  code: string,
+  manager?: EntityManager,
+  forUpdate = false,
+): Promise<DbUserContact | null> {
+  const options = {
     where: {
       emailVerificationCode: code,
       emailOptInTypeId: OptInType.EMAIL_OPT_IN_CHANGE,
     },
-  })
+    ...(forUpdate ? { lock: { mode: 'pessimistic_write' as const } } : {}),
+  }
+  return manager ? manager.findOne(DbUserContact, options) : DbUserContact.findOne(options)
 }
 
 /** A pending change by the veto code from the notice to the old address. */
 export async function dbFindPendingEmailChangeByVetoCode(
   vetoCode: string,
+  manager?: EntityManager,
 ): Promise<DbUserContact | null> {
-  return DbUserContact.findOne({
+  const options = {
     where: {
       changeVetoCode: vetoCode,
       emailOptInTypeId: OptInType.EMAIL_OPT_IN_CHANGE,
     },
-  })
+  }
+  return manager ? manager.findOne(DbUserContact, options) : DbUserContact.findOne(options)
 }
 
 /**
@@ -130,11 +134,26 @@ export async function dbFindPendingEmailChangeByVetoCode(
  * inheriting anything.
  */
 export async function dbEmailTaken(email: string, manager?: EntityManager): Promise<boolean> {
+  return (await dbFindUserContactByEmail(email, manager)) !== null
+}
+
+/**
+ * The one row that can hold this address - `email` is unique, so there is at most one, and
+ * its `user_id` says whose it is.
+ *
+ * ⛔ Deleted rows are included, and that is the whole reason this exists as ONE question.
+ * Asking "is it taken" and "is it mine" separately meant asking with two different
+ * visibilities: `dbEmailTaken` counts deleted rows, the ownership question did not.
+ * The moment anything soft-deletes a contact row, those two disagree - and a member is told
+ * their OWN earlier address is already in use, which is the very thing the change-back was
+ * built to end.
+ */
+export async function dbFindUserContactByEmail(
+  email: string,
+  manager?: EntityManager,
+): Promise<DbUserContact | null> {
   const options = { where: { email }, withDeleted: true }
-  const found = manager
-    ? await manager.findOne(DbUserContact, options)
-    : await DbUserContact.findOne(options)
-  return found !== null
+  return manager ? manager.findOne(DbUserContact, options) : DbUserContact.findOne(options)
 }
 
 /**

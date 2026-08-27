@@ -242,6 +242,7 @@
     "revoke": {
       "button": "Änderung verwerfen",
       "done": "Die Änderung wurde verworfen – Deine bisherige Adresse bleibt bestehen. Wenn Du die Änderung nicht selbst angestoßen hattest, ändere bitte auch Dein Passwort.",
+      "invalid": "Dieser Link ist ungültig oder abgelaufen.",
       "text": "Warst Du das nicht? Dann verwirf die angestoßene Änderung – Deine bisherige Adresse bleibt bestehen.",
       "title": "Änderung der E-Mail-Adresse verwerfen"
     }

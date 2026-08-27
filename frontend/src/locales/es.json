@@ -242,6 +242,7 @@
     "revoke": {
       "button": "Descartar el cambio",
       "done": "El cambio se ha descartado: tu dirección anterior se mantiene. Si no habías solicitado el cambio tú, cambia también tu contraseña.",
+      "invalid": "Este enlace no es válido o ha caducado.",
       "text": "¿No has sido tú? Entonces descarta el cambio solicitado: tu dirección anterior se mantiene.",
       "title": "Descartar el cambio de dirección de correo"
     }

@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { CONFIG as CORE_CONFIG } from 'core'
+import { CONFIG as CORE_CONFIG, sendEmailChangeNoticeEmail } from 'core'
 import { AppDatabase, User as DbUser, UserContact as DbUserContact } from 'database'
 import { GraphQLError } from 'graphql'
 import { OptInType } from 'shared'
@@ -22,11 +22,29 @@ import { adminEmailStatus, pendingEmailChange, queryOptIn } from '@/seeds/graphq
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { Context } from '@/server/context'
+import { EmailChangeResolver } from './EmailChangeResolver'
 
 // The mock derives the key the same way (salt by encryption type, gradido id for the
 // current type), just without the real argon2 cost - so the address change is still
 // exercised against the salt rule it has to survive.
 jest.mock('@/password/EncryptorUtils')
+
+// The mails become spies so a test can name their recipient - which mailbox the veto
+// notice goes to IS the finding the race tests below guard. Everything else of `core`
+// (its CONFIG above all) stays real.
+jest.mock('core', () => {
+  const originalModule = jest.requireActual('core')
+  return {
+    __esModule: true,
+    ...originalModule,
+    sendAccountActivationEmail: jest.fn(),
+    sendEmailChangeConfirmEmail: jest.fn(),
+    sendEmailChangeDoneEmail: jest.fn(),
+    sendEmailChangeNoticeEmail: jest.fn(),
+    sendEmailChangeSupportEmail: jest.fn(),
+  }
+})
 
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
@@ -67,11 +85,15 @@ const ageRequestEvents = async (userId: number, minutesAgo: number) => {
     ])
 }
 
+/**
+ * Only `updated_at`: it alone drives expiry (`issuedAt` and the purge both read it
+ * first, and the column is filled on insert). Aging `created_at` too would falsify the
+ * history order of a CONFIRMED take-back row for the rest of the suite - and the oldest
+ * row is the GDT anchor.
+ */
 const ageContactRow = async (id: number, hoursAgo: number) => {
   const then = new Date(Date.now() - hoursAgo * 60 * 60 * 1000)
-  await db
-    .getDataSource()
-    .query('UPDATE user_contacts SET created_at = ?, updated_at = ? WHERE id = ?', [then, then, id])
+  await db.getDataSource().query('UPDATE user_contacts SET updated_at = ? WHERE id = ?', [then, id])
 }
 
 beforeAll(async () => {
@@ -348,6 +370,32 @@ describe('EmailChangeResolver', () => {
           data: null,
           errors: [new GraphQLError('Could not login with emailVerificationCode')],
         })
+
+        // ⛔ And the question BEFORE that one has to give the same answer. `queryOptIn` is
+        // what the reset page asks before it shows the form; it used to say "valid" for this
+        // very code, so the member got a password form whose submit button then refused. A
+        // dead end at the END of the road is worse than a refusal at its start.
+        //
+        // Held against the answer to a code that was never issued, not against a phrase:
+        // "the same answer" is the whole point, and `EntityNotFoundError` prints the
+        // criteria it was built from - so loading a relation for the ownership check, or
+        // building either refusal from anything but the plain code, makes the three
+        // distinguishable and tells whoever asks which of them they hit.
+        const strandedAnswer = await query({
+          query: queryOptIn,
+          variables: { optIn: strandedCode },
+        })
+        const neverIssued = await query({
+          query: queryOptIn,
+          variables: { optIn: 'a-code-nobody-ever-had' },
+        })
+        expect(strandedAnswer.data).toBeNull()
+        expect(neverIssued.errors?.[0].message).toContain(
+          'Could not find any entity of type "UserContact"',
+        )
+        expect(strandedAnswer.errors?.[0].message).toBe(
+          neverIssued.errors?.[0].message.replace('a-code-nobody-ever-had', strandedCode),
+        )
       })
     })
   })
@@ -386,6 +434,33 @@ describe('EmailChangeResolver', () => {
       await expect(
         mutate({ mutation: revokeEmailChange, variables: { vetoCode } }),
       ).resolves.toMatchObject({ data: null, errors: [CODE_INVALID] })
+    })
+
+    it('answers expired once the change ran out - and still clears the row away', async () => {
+      // The notice named this moment: "the link is valid until ... - after that the
+      // change lapses of its own accord". A click past it must not report a stop it
+      // did not cause.
+      await ageRequestEvents(bibi.id, 11)
+      await mutate({
+        mutation: requestEmailChange,
+        variables: { email: 'bibi-late@bloxberg.de', password: PASSWORD },
+      })
+      const row = await pendingRow(bibi.id)
+      await ageContactRow(row!.id, 25)
+      await expect(
+        mutate({
+          mutation: revokeEmailChange,
+          variables: { vetoCode: row!.changeVetoCode!.toString() },
+        }),
+      ).resolves.toMatchObject({ data: null, errors: [CODE_INVALID] })
+      // The refusal did not roll the cleanup back: the row is gone and the address free.
+      expect(await pendingRow(bibi.id)).toBeNull()
+      expect(
+        await DbUserContact.findOne({
+          where: { email: 'bibi-late@bloxberg.de' },
+          withDeleted: true,
+        }),
+      ).toBeNull()
     })
   })
 
@@ -688,6 +763,112 @@ describe('EmailChangeResolver', () => {
         data: null,
       })
     })
+
+    /**
+     * The stop button in the notice must survive a repeat: whoever reads the old mailbox
+     * decides on the mail they HAVE, and that is as often the first one as the latest.
+     */
+    describe('asking again for the address one is taking back', () => {
+      beforeAll(async () => {
+        await loginAs('bob@baumeister.de')
+        await ageRequestEvents(bob.id, 11)
+      })
+
+      afterAll(() => {
+        resetToken()
+      })
+
+      it('keeps the codes already delivered - and the first stop button still works', async () => {
+        await mutate({
+          mutation: requestEmailChange,
+          variables: { email: 'bob-second@baumeister.de', password: PASSWORD },
+        })
+        const before = await pendingRow(bob.id)
+        const code = before!.emailVerificationCode.toString()
+        const vetoCode = before!.changeVetoCode!.toString()
+        const deadlineBefore = (before!.updatedAt ?? before!.createdAt).getTime()
+
+        await ageRequestEvents(bob.id, 11)
+        await expect(
+          mutate({
+            mutation: requestEmailChange,
+            variables: { email: 'bob-second@baumeister.de', password: PASSWORD },
+          }),
+        ).resolves.toMatchObject({
+          data: { requestEmailChange: { email: 'bob-second@baumeister.de' } },
+          errors: undefined,
+        })
+
+        const row = await pendingRow(bob.id)
+        // Same row, same codes, and the clock has not moved: the links that already went
+        // out keep working, and no repeat buys another window.
+        expect(row!.id).toBe(before!.id)
+        expect(row!.emailVerificationCode.toString()).toBe(code)
+        expect(row!.changeVetoCode!.toString()).toBe(vetoCode)
+        expect((row!.updatedAt ?? row!.createdAt).getTime()).toBe(deadlineBefore)
+
+        // The stop button from the FIRST notice, clicked after the second ask.
+        await expect(
+          mutate({ mutation: revokeEmailChange, variables: { vetoCode } }),
+        ).resolves.toMatchObject({ data: { revokeEmailChange: true }, errors: undefined })
+        expect(await pendingRow(bob.id)).toBeNull()
+      })
+
+      it('starts a new change with fresh codes once the old one has run out', async () => {
+        await ageRequestEvents(bob.id, 11)
+        await mutate({
+          mutation: requestEmailChange,
+          variables: { email: 'bob-second@baumeister.de', password: PASSWORD },
+        })
+        const before = await pendingRow(bob.id)
+        const oldCode = before!.emailVerificationCode.toString()
+        const oldVeto = before!.changeVetoCode!.toString()
+        await ageContactRow(before!.id, 25)
+        await ageRequestEvents(bob.id, 11)
+
+        await expect(
+          mutate({
+            mutation: requestEmailChange,
+            variables: { email: 'bob-second@baumeister.de', password: PASSWORD },
+          }),
+        ).resolves.toMatchObject({
+          data: { requestEmailChange: { email: 'bob-second@baumeister.de' } },
+          errors: undefined,
+        })
+        const row = await pendingRow(bob.id)
+        // The notice of the run-out change promised it would lapse; asking after that is
+        // a NEW change on the same borrowed row - the dead links are not resold.
+        expect(row!.id).toBe(before!.id)
+        expect(row!.emailVerificationCode.toString()).not.toBe(oldCode)
+        expect(row!.changeVetoCode!.toString()).not.toBe(oldVeto)
+
+        await mutate({ mutation: cancelEmailChange })
+        expect(await pendingRow(bob.id)).toBeNull()
+      })
+
+      it('an expired stop button answers expired - and the borrowed row is restored', async () => {
+        await ageRequestEvents(bob.id, 11)
+        await mutate({
+          mutation: requestEmailChange,
+          variables: { email: 'bob-second@baumeister.de', password: PASSWORD },
+        })
+        const row = await pendingRow(bob.id)
+        const vetoCode = row!.changeVetoCode!.toString()
+        await ageContactRow(row!.id, 25)
+
+        await expect(
+          mutate({ mutation: revokeEmailChange, variables: { vetoCode } }),
+        ).resolves.toMatchObject({ data: null, errors: [CODE_INVALID] })
+        // Released despite the refusal - and restored, never deleted: it is one of the
+        // member's own addresses.
+        expect(await pendingRow(bob.id)).toBeNull()
+        const restored = await DbUserContact.findOneOrFail({
+          where: { email: 'bob-second@baumeister.de' },
+        })
+        expect(restored.emailChecked).toBe(true)
+        expect(restored.changeVetoCode).toBeNull()
+      })
+    })
   })
 
   /**
@@ -756,6 +937,94 @@ describe('EmailChangeResolver', () => {
           withDeleted: true,
         }),
       ).toBe(0)
+    })
+  })
+
+  /**
+   * ⭐ Two tabs, one member: the request in tab 1 carries a context snapshot taken before
+   * `verifyPassword`'s Argon2id work, and a confirm in tab 2 can move the address in
+   * force inside that window. The resolver is called directly here - the test server
+   * builds a fresh context per call, and the whole point is a STALE one.
+   */
+  describe('a request racing a confirm in another tab', () => {
+    let racer: DbUser
+    let stale: DbUser
+
+    const resolver = new EmailChangeResolver()
+    const staleContext = (): Context => ({ token: null, setHeaders: [], user: stale })
+
+    beforeAll(async () => {
+      resetToken()
+      racer = await userFactory(testEnv, {
+        email: 'racer@example.org',
+        firstName: 'Racer',
+        lastName: 'OfTabs',
+        emailChecked: true,
+        language: 'de',
+      })
+      await loginAs('racer@example.org')
+      await mutate({
+        mutation: requestEmailChange,
+        variables: { email: 'racer-second@example.org', password: PASSWORD },
+      })
+      // Tab 1's snapshot, taken while racer@example.org was still in force ...
+      stale = await DbUser.findOneOrFail({
+        where: { id: racer.id },
+        relations: ['emailContact'],
+      })
+      expect(stale.emailContact.email).toBe('racer@example.org')
+      // ... and tab 2 confirms before tab 1's request reaches the lock.
+      const row = await pendingRow(racer.id)
+      await expect(
+        mutate({
+          mutation: confirmEmailChange,
+          variables: { code: row!.emailVerificationCode.toString() },
+        }),
+      ).resolves.toMatchObject({ errors: undefined })
+      await ageRequestEvents(racer.id, 11)
+    })
+
+    afterAll(() => {
+      resetToken()
+    })
+
+    it('refuses the address that has just become current - decided under the lock', async () => {
+      await expect(
+        resolver.requestEmailChange('racer-second@example.org', PASSWORD, staleContext()),
+      ).rejects.toThrow('This is already the email address of this account')
+      // Nothing was marked: the row in force is not a pending change onto itself.
+      expect(await pendingRow(racer.id)).toBeNull()
+    })
+
+    it('sends the notice to the address in force, not to the snapshot', async () => {
+      ;(sendEmailChangeNoticeEmail as jest.Mock).mockClear()
+      await resolver.requestEmailChange('racer-third@example.org', PASSWORD, staleContext())
+      expect((await pendingRow(racer.id))?.email).toBe('racer-third@example.org')
+      // The mailbox that can stop the change is the one the account is AT - the
+      // snapshot points at the one it left a moment ago.
+      expect(sendEmailChangeNoticeEmail).toHaveBeenCalledTimes(1)
+      expect(sendEmailChangeNoticeEmail).toHaveBeenCalledWith(
+        expect.objectContaining({ email: 'racer-second@example.org' }),
+      )
+      await mutate({ mutation: cancelEmailChange })
+      expect(await pendingRow(racer.id)).toBeNull()
+    })
+
+    it('resends the notice to the address in force, not to the snapshot', async () => {
+      await ageRequestEvents(racer.id, 11)
+      await mutate({
+        mutation: requestEmailChange,
+        variables: { email: 'racer-fourth@example.org', password: PASSWORD },
+      })
+      await ageRequestEvents(racer.id, 11)
+      ;(sendEmailChangeNoticeEmail as jest.Mock).mockClear()
+      await resolver.resendEmailChange(staleContext())
+      expect(sendEmailChangeNoticeEmail).toHaveBeenCalledTimes(1)
+      expect(sendEmailChangeNoticeEmail).toHaveBeenCalledWith(
+        expect.objectContaining({ email: 'racer-second@example.org' }),
+      )
+      await mutate({ mutation: cancelEmailChange })
+      expect(await pendingRow(racer.id)).toBeNull()
     })
   })
 })

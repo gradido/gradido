@@ -23,15 +23,30 @@ export async function aliasExists(alias: string, userId?: number): Promise<boole
   return dbAliasHeldByOther(alias, userId)
 }
 
-export async function getUserById(
+/**
+ * ⚠️ Pass `manager` from inside a transaction. Without it this reads over its own
+ * connection, so a caller that holds the member's row under `SELECT ... FOR UPDATE` and
+ * then saves what it read here would be writing an entity it loaded from beside its own
+ * transaction rather than from within it.
+ *
+ * Renamed from `getUserById` for AGENTS.md's `db…` rule, because this delivery touched it.
+ * Five executing functions in this file still carry no prefix (`aliasExists`,
+ * `findForeignUserByUuids`, `findUserByUuids`, `findUserNamesByIds`, `findUserByIdentifier`)
+ * - together 68 call sites against this one's 6, so they are their own mechanical change and
+ * not this one's. Until they follow, the file has two conventions and this note is the only
+ * thing saying which way it is going.
+ */
+export async function dbGetUserById(
   id: number,
   withCommunity: boolean = false,
   withEmailContact: boolean = false,
+  manager?: EntityManager,
 ): Promise<DbUser> {
-  return DbUser.findOneOrFail({
+  const options = {
     where: { id },
     relations: { community: withCommunity, emailContact: withEmailContact },
-  })
+  }
+  return manager ? manager.findOneOrFail(DbUser, options) : DbUser.findOneOrFail(options)
 }
 
 /**
@@ -188,6 +203,20 @@ export async function findUserNamesByIds(userIds: number[]): Promise<Map<number,
 /** Persist a member - inside the caller's transaction when given. */
 export async function dbSaveUser(user: DbUser, manager?: EntityManager): Promise<DbUser> {
   return manager ? manager.save(user) : DbUser.save(user)
+}
+
+/**
+ * Re-key the stored password: exactly these two columns, nothing else. Callers hold a
+ * request-context snapshot that may be minutes old, and a full entity `save()` diffs
+ * against the row as of NOW - it would write every stale column back, `users.email_id`
+ * above all, undoing whatever committed in between.
+ */
+export async function dbUpdateUserPassword(
+  userId: number,
+  password: DbUser['password'],
+  passwordEncryptionType: DbUser['passwordEncryptionType'],
+): Promise<void> {
+  await DbUser.update({ id: userId }, { password, passwordEncryptionType })
 }
 
 /**
