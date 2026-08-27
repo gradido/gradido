@@ -7,7 +7,7 @@ const i18nMock = {
   },
 }
 
-const { amount, GDD } = createFilters(i18nMock)
+const { amount, signedAmount, GDD } = createFilters(i18nMock)
 
 describe('amount filters', () => {
   describe('amount', () => {
@@ -59,6 +59,48 @@ describe('amount filters', () => {
 
     it('returns empty string when called with not a number value', () => {
       expect(GDD('not a number')).toBe('')
+    })
+  })
+
+  /**
+   * The same amount without its currency, for the booking list beside the overview: in a
+   * column three of twelve wide `− 45,00 GDD` broke over two lines as soon as the window
+   * narrowed, and every amount in that list is in GDD anyway.
+   *
+   * ⛔ The direction stays. It is what tells received from sent, together with the colour --
+   * dropping the unit must not quietly drop the sign with it.
+   */
+  describe('signedAmount', () => {
+    it('leads an incoming amount with a plus', () => {
+      i18nMock.global.n.mockReturnValueOnce('1')
+      expect(signedAmount(1)).toBe('+ 1')
+    })
+
+    it('leaves the proper minus an outgoing amount already carries', () => {
+      i18nMock.global.n.mockReturnValueOnce('-1')
+      expect(signedAmount(-1)).toBe('− 1')
+    })
+
+    it('counts zero as incoming, as the currency form does', () => {
+      i18nMock.global.n.mockReturnValueOnce('0')
+      expect(signedAmount(0)).toBe('+ 0')
+    })
+
+    it('says nothing where there is no amount', () => {
+      expect(signedAmount(null)).toBe('')
+      expect(signedAmount(undefined)).toBe('')
+      expect(signedAmount('not a number')).toBe('')
+    })
+
+    // The two are one formatter with and without the unit, so they cannot drift apart on the
+    // sign, the separator or the spacing.
+    it('is what the currency form prints, less the unit', () => {
+      for (const value of [-1234.5, -1, 0, 1, 1234.5]) {
+        i18nMock.global.n.mockReturnValueOnce(String(value))
+        const withUnit = GDD(value)
+        i18nMock.global.n.mockReturnValueOnce(String(value))
+        expect(withUnit).toBe(`${signedAmount(value)} GDD`)
+      }
     })
   })
 })

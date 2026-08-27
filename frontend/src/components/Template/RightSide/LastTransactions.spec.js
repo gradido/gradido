@@ -139,7 +139,7 @@ describe('LastTransactions', () => {
           mocks: {
             $t: (key) => key,
             $d: (date) => String(date),
-            $filters: { GDD: (amount) => String(amount) },
+            $filters: { signedAmount: (amount) => String(amount) },
           },
           stubs: {
             BRow: { template: '<div><slot /></div>' },

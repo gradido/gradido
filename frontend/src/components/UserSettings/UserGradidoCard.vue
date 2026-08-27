@@ -13,11 +13,7 @@
           :alt="$t('gradido-card.title')"
           data-test="gradido-card-preview"
         />
-        <div
-          v-else-if="!hasUsername"
-          class="gradido-card-empty small"
-          data-test="gradido-card-empty"
-        >
+        <div v-else-if="!hasAlias" class="gradido-card-empty small" data-test="gradido-card-empty">
           {{ $t('gradido-card.needs-username') }}
         </div>
         <div v-else class="gradido-card-empty" />
@@ -146,6 +142,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import AppModal from '@/components/AppModal'
 import { useGradidoCard } from '@/composables/useGradidoCard'
+import { memberAlias } from '@/utils/gradidoAddress'
 import { CONTACT_MAX_LINES, contactLines } from '@/utils/gradidoCard'
 
 const { drawCard, downloadCard, printCardSheet } = useGradidoCard()
@@ -183,7 +180,19 @@ const printRealName = ref(true)
  * This is for the time in between. Once the user name is compulsory the case cannot arise,
  * and the gate can go.
  */
-const hasUsername = computed(() => Boolean(store.state.username))
+const hasAlias = computed(() => {
+  const { username, gradidoID } = store.state
+  // ⛔ Not `Boolean(username)`. `memberAlias` needs three characters and falls back to the
+  // Gradido ID below that -- so a stored name of one or two characters, which predates the
+  // rule and really exists, opened this gate and then printed a 36-character identifier
+  // where the docblock above says a name belongs. Since the card can be printed without the
+  // real name it would land on the NAME line as well, and in the file name of the download.
+  // Asking the resolver instead of the raw field is the same question the card actually asks.
+  //
+  // ⚠️ The first half is not redundant: with both values empty the comparison would be
+  // '' === '' and the gate would open on nothing at all.
+  return Boolean(username) && memberAlias(username, gradidoID) === username
+})
 
 const lines = computed(() => contactLines(contactText.value.split('\n')))
 
@@ -257,7 +266,7 @@ const redraw = async () => {
   const round = ++redrawRound
   const isCurrent = () => round === redrawRound
 
-  if (!hasUsername.value) {
+  if (!hasAlias.value) {
     preview.value = ''
     return
   }
@@ -318,7 +327,7 @@ onBeforeUnmount(() => window.clearTimeout(redrawTimer))
  * screen after a download is what came out of it.
  */
 const run = async (action) => {
-  if (!hasUsername.value) {
+  if (!hasAlias.value) {
     needsUsername.value = true
     return
   }

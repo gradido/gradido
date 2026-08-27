@@ -204,6 +204,33 @@ describe('DashboardLayout', () => {
       expect(wrapper.findComponent({ name: 'RightSide' }).exists()).toBe(false)
     })
 
+    /**
+     * ⛔ The tiles in the page heading linked RELATIVELY (`to="transactions"`). From a path
+     * ending in a slash -- which a router really hands over, and which the section fix made
+     * render this heading for the first time -- vue-router resolves that one segment too
+     * deep: `/overview/` + `transactions` is `/overview/transactions`, which matches only
+     * the catch-all. That route carries no `requiresAuth`, so App.vue swaps the whole page
+     * to AuthLayout and the member is out of the wallet. Four leading slashes.
+     */
+    it('links out of the page heading by absolute path', async () => {
+      await router.push('/overview')
+      // ⚠️ The real ContentHeader, because the default stub renders no slots -- and the
+      // links under test live inside them, so a stubbed header would report zero and pass.
+      const withHeader = createWrapper({ ContentHeader: false })
+      withHeader.vm.skeleton = false
+      await nextTick()
+
+      const targets = withHeader.findAll('router-link-stub').map((link) => link.attributes('to'))
+      // ⚠️ Down BEFORE the assertions, not after. A second layout that outlives a failing
+      // test keeps listening and counts the other tests' route changes a second time -- the
+      // pile-up the note under the afterEach describes. Injecting the old relative links
+      // showed it: one real failure, two unrelated tests dragged down with it.
+      withHeader.unmount()
+
+      expect(targets).toContain('/transactions')
+      expect(targets.filter((target) => !target.startsWith('/'))).toEqual([])
+    })
+
     it('keeps it on the overview, where the booking list belongs', async () => {
       await router.push('/overview')
       await nextTick()

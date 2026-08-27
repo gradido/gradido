@@ -33,7 +33,20 @@
           </span>
         </BCol>
         <BCol cols="3" class="border-start border-dark">
-          <button class="transparent-button" @click="updateHideAmountGDD">
+          <!-- ⛔ The button carries its own name and its own state. It is an icon and
+               nothing else -- no text, no title, no label -- so before this it announced as
+               a bare "button", and the balance it switches is a plain v-if pair outside any
+               live region. The success toast was the only thing a screen reader ever heard
+               here, and removing it laid that bare rather than causing it.
+               `aria-pressed` is what makes the result audible: the label names the action
+               and stays put, the state says whether it is on. (27.08.2026) -->
+          <button
+            class="transparent-button"
+            :aria-label="$t('settings.hide-amount', { currency: $t('GDD') })"
+            :aria-pressed="hideAmount"
+            data-test="toggle-hide-amount-gdd"
+            @click="updateHideAmountGDD"
+          >
             <IBiEyeSlash
               v-if="hideAmount"
               class="me-3 gradido-global-border-color-accent eye-icon"
@@ -50,7 +63,6 @@
 import { computed } from 'vue'
 import { useStore } from 'vuex'
 import { useMutation } from '@vue/apollo-composable'
-import { useI18n } from 'vue-i18n'
 import { updateUserInfos } from '@/graphql/mutations'
 import { useAppToast } from '@/composables/useToast'
 
@@ -63,8 +75,7 @@ const props = defineProps({
 
 const store = useStore()
 const { mutate } = useMutation(updateUserInfos)
-const { t } = useI18n()
-const { toastSuccess, toastError } = useAppToast()
+const { toastError } = useAppToast()
 
 const hideAmount = computed(() => store.state.hideAmountGDD)
 
@@ -75,12 +86,16 @@ const updateHideAmountGDD = async () => {
     })
 
     store.commit('hideAmountGDD', !hideAmount.value)
-
-    if (!hideAmount.value) {
-      toastSuccess(t('settings.showAmountGDD'))
-    } else {
-      toastSuccess(t('settings.hideAmountGDD'))
-    }
+    // ⛔ No toast either way. Hiding or showing the balance is a switch whose whole result
+    // is on screen the moment it lands -- the number is there or it is not -- so a message
+    // saying so afterwards only repeats what the eye has already seen. Switched quickly back
+    // and forth they piled up on top of each other. (Bernd, 27.08.2026)
+    //
+    // ⚠️ The failure still speaks, and the reason is the opposite of what stood here at
+    // first: `store.commit` above sits INSIDE the try, after the awaited mutation, so a
+    // rejected save never reaches it and nothing changes on this device. The click simply
+    // does nothing -- and a control that does nothing, silently, is the one case the eye
+    // cannot report. That is what `toastError` is for.
   } catch (error) {
     toastError(error.message)
   }
