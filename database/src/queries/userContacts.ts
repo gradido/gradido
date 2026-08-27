@@ -161,6 +161,33 @@ export async function dbPurgeExpiredEmailChanges(olderThan: Date, email?: string
 }
 
 /**
+ * Give up every never-confirmed change that is holding this address - however young.
+ *
+ * ⛔ This is NOT the same question as `dbPurgeExpiredEmailChanges`, and the difference is
+ * the whole point. That one tidies away claims that ran out of time. This one settles a
+ * conflict between two claims on the SAME address: a pending change is somebody who TYPED
+ * the address in, a registration is somebody who is about to be sent mail at it and has to
+ * answer it. The typed claim yields.
+ *
+ * Without that, the typed claim wins - silently, and for as long as it is renewed. It kept
+ * the address from whoever actually holds the mailbox, and it closed the Elopage webhook for
+ * a paying buyer whose address a stranger had once typed into a change form.
+ *
+ * A CONFIRMED row is never touched: that address is proven, and it stays its owner's - which
+ * is also why a take-back (a member's own earlier address, borrowed) survives this.
+ */
+export async function dbReleaseUnconfirmedEmailChangeFor(email: string): Promise<number> {
+  const result = await DbUserContact.createQueryBuilder()
+    .delete()
+    .from(DbUserContact)
+    .where('email_opt_in_type_id = :type', { type: OptInType.EMAIL_OPT_IN_CHANGE })
+    .andWhere('email_checked = 0')
+    .andWhere('email = :email', { email })
+    .execute()
+  return result.affected ?? 0
+}
+
+/**
  * The row a change starts with: the new address, unconfirmed, both codes set. Two members
  * racing for the same address meet the unique key here - that is an expected outcome, not
  * a crash.
