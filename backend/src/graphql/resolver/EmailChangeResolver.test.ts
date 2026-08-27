@@ -353,16 +353,27 @@ describe('EmailChangeResolver', () => {
         // what the reset page asks before it shows the form; it used to say "valid" for this
         // very code, so the member got a password form whose submit button then refused. A
         // dead end at the END of the road is worse than a refusal at its start.
-        await expect(
-          query({ query: queryOptIn, variables: { optIn: strandedCode } }),
-        ).resolves.toMatchObject({
-          data: null,
-          errors: [
-            expect.objectContaining({
-              message: expect.stringContaining('Could not find any entity of type "UserContact"'),
-            }),
-          ],
+        //
+        // Held against the answer to a code that was never issued, not against a phrase:
+        // "the same answer" is the whole point, and `EntityNotFoundError` prints the
+        // criteria it was built from - so loading a relation for the ownership check, or
+        // building either refusal from anything but the plain code, makes the three
+        // distinguishable and tells whoever asks which of them they hit.
+        const strandedAnswer = await query({
+          query: queryOptIn,
+          variables: { optIn: strandedCode },
         })
+        const neverIssued = await query({
+          query: queryOptIn,
+          variables: { optIn: 'a-code-nobody-ever-had' },
+        })
+        expect(strandedAnswer.data).toBeNull()
+        expect(neverIssued.errors?.[0].message).toContain(
+          'Could not find any entity of type "UserContact"',
+        )
+        expect(strandedAnswer.errors?.[0].message).toBe(
+          neverIssued.errors?.[0].message.replace('a-code-nobody-ever-had', strandedCode),
+        )
       })
     })
   })

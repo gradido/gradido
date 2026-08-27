@@ -105,7 +105,21 @@ const freshCodes = () => ({
  *    entity and INSERTS it again, id and all. The change stands although it was withdrawn.
  *  - cancel reads, a fresh request rewrites the same row, cancel saves: the mail that just
  *    went out is dead on arrival and the wallet says nothing is pending.
- * Both vanish if the row is re-read INSIDE the lock, which is what every caller does here.
+ * Both are shut by re-reading the row INSIDE the lock, which is what every caller here does.
+ *
+ * ⚠️ Shut against writers that take the SAME lock - which is what "the member's own paths"
+ * means and no more. One writer stands outside it: `dbReleaseUnconfirmedEmailChangeFor`,
+ * called by `checkEmailExists` from the registration, the assisted registration and the
+ * Elopage webhook. It DELETEs a never-confirmed change row for an address without holding
+ * anybody's lock and without a manager, and it is right that it does - it is reached from a
+ * STRANGER's request, who is registering with that address and has no member to lock. So the
+ * narrow window stays open: a member confirming at the very instant somebody registers with
+ * the address they had only typed in. `user_contacts.email` is unique and bounds what can
+ * come of it - one of the two hits the key and fails - so the cost is an error where one of
+ * them should have got a plain answer, not a wrong address in force. Not closed here,
+ * because closing it means the registration path first looking up whose row this is and
+ * then holding a lock on an account that is not the one asking. Named rather than left to
+ * read as covered.
  */
 const underMemberLock = async <T>(
   userId: number,
@@ -435,21 +449,31 @@ export class EmailChangeResolver {
     // below, a veto or a cancel can release the row - and `save` on the entity read
     // earlier would put it back, id and all, so the change would stand although somebody
     // had withdrawn it.
+    //
+    // ⚠️ A refusal is RETURNED from in here, never thrown out of it - the same shape as in
+    // `resendEmailChange`, and for the same reason. Releasing an expired row is not part of
+    // what this caller asked for: that row is over however this request ends, so the release
+    // has to outlive the refusal. Thrown from inside, it would roll back with the transaction
+    // and leave the address held by a change that had already run out. Refusing something the
+    // member DID ask for is the other case and belongs inside: `requestEmailChange` throws
+    // over a lost race after releasing the previous change, and there the rollback is right -
+    // the request did not happen, so nothing about it may stand.
     const settled = await underMemberLock(found.userId, async (manager) => {
       const pending = await dbFindPendingEmailChangeByCode(code, manager)
       if (!pending) {
         logger.warn('the change this code belonged to was already gone')
-        throw new LogError(CODE_INVALID)
+        return null
       }
       if (!isEmailVerificationCodeValid(issuedAt(pending))) {
         await releasePending(pending, manager)
         logger.warn('code ran past its window')
-        throw new LogError(CODE_INVALID)
+        return null
       }
 
       // `UserContact.user` is the inverse of `users.email_id` and empty for a pending row;
-      // the member is loaded by id.
-      const user = await getUserById(pending.userId, false, true)
+      // the member is loaded by id - through the transaction's manager, so this read sees
+      // what the lock is holding rather than whatever is committed beside it.
+      const user = await getUserById(pending.userId, false, true, manager)
       const oldContact = user.emailContact
       const oldEmail = oldContact.email
       const oldWasConfirmed = oldContact.emailChecked
@@ -486,6 +510,11 @@ export class EmailChangeResolver {
 
       return { user, newEmail: pending.email, oldEmail, oldWasConfirmed, takeBack }
     })
+    if (!settled) {
+      // Raised after the transaction has committed, so the release above stands. Unknown,
+      // withdrawn and expired all read the same from outside - there is nothing to tell apart.
+      throw new LogError(CODE_INVALID)
+    }
     const { user, newEmail, oldEmail, oldWasConfirmed, takeBack } = settled
     logger.info('confirmEmailChange... marker moved')
 

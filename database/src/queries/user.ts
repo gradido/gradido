@@ -23,15 +23,23 @@ export async function aliasExists(alias: string, userId?: number): Promise<boole
   return dbAliasHeldByOther(alias, userId)
 }
 
+/**
+ * ⚠️ Pass `manager` from inside a transaction. Without it this reads over its own
+ * connection, so a caller that holds the member's row under `SELECT ... FOR UPDATE` and
+ * then saves what it read here would be writing an entity it loaded from beside its own
+ * transaction rather than from within it.
+ */
 export async function getUserById(
   id: number,
   withCommunity: boolean = false,
   withEmailContact: boolean = false,
+  manager?: EntityManager,
 ): Promise<DbUser> {
-  return DbUser.findOneOrFail({
+  const options = {
     where: { id },
     relations: { community: withCommunity, emailContact: withEmailContact },
-  })
+  }
+  return manager ? manager.findOneOrFail(DbUser, options) : DbUser.findOneOrFail(options)
 }
 
 /**
