@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { CONFIG as CORE_CONFIG } from 'core'
+import { CONFIG as CORE_CONFIG, sendEmailChangeNoticeEmail } from 'core'
 import { AppDatabase, User as DbUser, UserContact as DbUserContact } from 'database'
 import { GraphQLError } from 'graphql'
 import { OptInType } from 'shared'
@@ -22,11 +22,29 @@ import { adminEmailStatus, pendingEmailChange, queryOptIn } from '@/seeds/graphq
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { Context } from '@/server/context'
+import { EmailChangeResolver } from './EmailChangeResolver'
 
 // The mock derives the key the same way (salt by encryption type, gradido id for the
 // current type), just without the real argon2 cost - so the address change is still
 // exercised against the salt rule it has to survive.
 jest.mock('@/password/EncryptorUtils')
+
+// The mails become spies so a test can name their recipient - which mailbox the veto
+// notice goes to IS the finding the race tests below guard. Everything else of `core`
+// (its CONFIG above all) stays real.
+jest.mock('core', () => {
+  const originalModule = jest.requireActual('core')
+  return {
+    __esModule: true,
+    ...originalModule,
+    sendAccountActivationEmail: jest.fn(),
+    sendEmailChangeConfirmEmail: jest.fn(),
+    sendEmailChangeDoneEmail: jest.fn(),
+    sendEmailChangeNoticeEmail: jest.fn(),
+    sendEmailChangeSupportEmail: jest.fn(),
+  }
+})
 
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
@@ -865,6 +883,77 @@ describe('EmailChangeResolver', () => {
           withDeleted: true,
         }),
       ).toBe(0)
+    })
+  })
+
+  /**
+   * ⭐ Two tabs, one member: the request in tab 1 carries a context snapshot taken before
+   * `verifyPassword`'s Argon2id work, and a confirm in tab 2 can move the address in
+   * force inside that window. The resolver is called directly here - the test server
+   * builds a fresh context per call, and the whole point is a STALE one.
+   */
+  describe('a request racing a confirm in another tab', () => {
+    let racer: DbUser
+    let stale: DbUser
+
+    const resolver = new EmailChangeResolver()
+    const staleContext = (): Context => ({ token: null, setHeaders: [], user: stale })
+
+    beforeAll(async () => {
+      resetToken()
+      racer = await userFactory(testEnv, {
+        email: 'racer@example.org',
+        firstName: 'Racer',
+        lastName: 'OfTabs',
+        emailChecked: true,
+        language: 'de',
+      })
+      await loginAs('racer@example.org')
+      await mutate({
+        mutation: requestEmailChange,
+        variables: { email: 'racer-second@example.org', password: PASSWORD },
+      })
+      // Tab 1's snapshot, taken while racer@example.org was still in force ...
+      stale = await DbUser.findOneOrFail({
+        where: { id: racer.id },
+        relations: ['emailContact'],
+      })
+      expect(stale.emailContact.email).toBe('racer@example.org')
+      // ... and tab 2 confirms before tab 1's request reaches the lock.
+      const row = await pendingRow(racer.id)
+      await expect(
+        mutate({
+          mutation: confirmEmailChange,
+          variables: { code: row!.emailVerificationCode.toString() },
+        }),
+      ).resolves.toMatchObject({ errors: undefined })
+      await ageRequestEvents(racer.id, 11)
+    })
+
+    afterAll(() => {
+      resetToken()
+    })
+
+    it('refuses the address that has just become current - decided under the lock', async () => {
+      await expect(
+        resolver.requestEmailChange('racer-second@example.org', PASSWORD, staleContext()),
+      ).rejects.toThrow('This is already the email address of this account')
+      // Nothing was marked: the row in force is not a pending change onto itself.
+      expect(await pendingRow(racer.id)).toBeNull()
+    })
+
+    it('sends the notice to the address in force, not to the snapshot', async () => {
+      ;(sendEmailChangeNoticeEmail as jest.Mock).mockClear()
+      await resolver.requestEmailChange('racer-third@example.org', PASSWORD, staleContext())
+      expect((await pendingRow(racer.id))?.email).toBe('racer-third@example.org')
+      // The mailbox that can stop the change is the one the account is AT - the
+      // snapshot points at the one it left a moment ago.
+      expect(sendEmailChangeNoticeEmail).toHaveBeenCalledTimes(1)
+      expect(sendEmailChangeNoticeEmail).toHaveBeenCalledWith(
+        expect.objectContaining({ email: 'racer-second@example.org' }),
+      )
+      await mutate({ mutation: cancelEmailChange })
+      expect(await pendingRow(racer.id)).toBeNull()
     })
   })
 })

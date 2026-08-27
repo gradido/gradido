@@ -245,9 +245,6 @@ export class EmailChangeResolver {
     if (!emailSchema.safeParse(email).success) {
       throw new LogError('Invalid email address')
     }
-    if (email === user.emailContact.email.toLowerCase()) {
-      throw new LogError('This is already the email address of this account')
-    }
 
     // A change somebody else started for this address and never finished must not block it.
     await dbPurgeExpiredEmailChanges(emailChangeExpiryCutoff(), email)
@@ -257,7 +254,21 @@ export class EmailChangeResolver {
     // both slip through the window. One change at a time is an invariant, not a hope.
     // The rate limit itself lives on the event, not on the pending row: the row can be
     // cancelled and recreated at will, the event cannot.
-    const pending = await underMemberLock(user.id, async (manager) => {
+    const { row: pending, currentContact } = await underMemberLock(user.id, async (manager) => {
+      // The context user is a snapshot from before `verifyPassword` - hundreds of
+      // milliseconds of Argon2id sit between it and this lock, and a confirm in another
+      // tab can move the address in force inside that window. Everything that depends on
+      // WHICH address is current - the guard below, and the mailbox the veto notice goes
+      // to - is therefore decided on this read under the lock, never on the snapshot.
+      // On the snapshot, the guard waved the current address through into the take-back
+      // branch, which marked the row `users.email_id` points at as a change onto itself -
+      // and the notice, with a working veto link, went to the mailbox the account had
+      // just left.
+      const lockedUser = await dbGetUserById(user.id, false, true, manager)
+      if (email === lockedUser.emailContact.email.toLowerCase()) {
+        throw new LogError('This is already the email address of this account')
+      }
+
       let row: DbUserContact
 
       const lastRequest = await dbFindLatestEventForAffectedUser(
@@ -346,7 +357,7 @@ export class EmailChangeResolver {
       }
 
       await EVENT_EMAIL_CHANGE_REQUEST(user, manager)
-      return row
+      return { row, currentContact: lockedUser.emailContact }
     })
 
     // A moment, not a duration. A resend hands out the deadline the change already had, so
@@ -370,11 +381,11 @@ export class EmailChangeResolver {
     // from an unconfirmed row, and a veto mail to that (possibly foreign) mailbox would
     // let a stranger block the correction. Structurally the same mistake that killed
     // EM-010, one level deeper.
-    if (user.emailContact.emailChecked) {
+    if (currentContact.emailChecked) {
       await sendEmailChangeNoticeEmail({
         firstName: user.firstName,
         lastName: user.lastName,
-        email: user.emailContact.email,
+        email: currentContact.email,
         language: user.language,
         newEmail: pending.email,
         revokeLink: revokeLink(pending.changeVetoCode as string),
