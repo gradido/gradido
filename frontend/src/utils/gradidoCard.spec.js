@@ -432,4 +432,81 @@ describe('drawGradidoCard', () => {
       expect(qrCodeOptions('https://example.org', null).cellSize).toBe(QR_SOURCE_CELL)
     })
   })
+
+  /**
+   * A card handed to strangers need not carry its owner's real name (Bernd, 27.08.2026).
+   * The caller then puts the alias where the name stood and asks for the labelled line
+   * below to be left off -- otherwise the same word would stand twice, two lines apart.
+   */
+  describe('without the user-name line', () => {
+    // What the composable hands in for that case: the alias as the name, no labelled line,
+    // the disc lettered from the alias and still coloured from the real initials.
+    const QUIET = { ...CARD, name: 'bernd', showAliasLine: false, initials: 'BE', colorSeed: 'BH' }
+
+    // The picture and the code are both centred in the band between the labelled lines and
+    // the address, so either of them tells where that band sits.
+    const pictureCentre = () => ctx.calls.find((call) => call.name === 'arc').args[1]
+    const qrDraw = () =>
+      ctx.calls.find((call) => call.name === 'drawImage' && call.args[0] === CARD.qrCanvas)
+    const qrCentre = () => qrDraw().args[2] + qrDraw().args[4] / 2
+    // The hairline over the address: the last rectangle the card fills.
+    const hairlineTop = () => ctx.calls.filter((call) => call.name === 'fillRect').at(-1).args[1]
+
+    it('leaves the labelled line off and keeps the community line', async () => {
+      await drawGradidoCard(QUIET)
+
+      const texts = textsDrawn(ctx)
+      expect(texts).not.toContain('Benutzername')
+      expect(texts).toContain('Gemeinschaft')
+      expect(texts).toContain('KI Playground')
+      // Still printed where it belongs: as the name at the top, and in the address at the foot.
+      expect(texts.filter((text) => text === 'bernd')).toHaveLength(2)
+    })
+
+    // ⛔ Two letters are enough to give the name back. The letters follow the line the disc
+    // stands beside (AS-010); the colour keeps hashing the real initials, so nobody's disc
+    // changes colour -- and an already printed card stays in step with the screen.
+    it('letters the disc from what it was given and colours it from the seed', async () => {
+      await drawGradidoCard(QUIET)
+
+      const letters = ctx.calls.find((call) => call.name === 'fillText' && call.args[0] === 'BE')
+      expect(letters.fillStyle).toBe(avatarPaletteEntry('BH').text)
+      expect(ctx.calls.find((call) => call.name === 'fill').fillStyle).toBe(
+        avatarPaletteEntry('BH').bg,
+      )
+    })
+
+    /**
+     * The freed row goes to the band rather than staying a hole under the community line.
+     * The band therefore keeps its bottom edge and grows upwards, and everything centred in
+     * it rises by HALF the row -- 21 px, which is 1.75 mm on paper.
+     *
+     * ⚠️ Moving the band up without growing it would also raise the picture, by the whole
+     * row, and leave the gap at the foot instead. That is why this measures the distance and
+     * not merely the direction.
+     */
+    it('gives the freed row to the band, and leaves the foot of the card alone', async () => {
+      await drawGradidoCard(CARD)
+      const withLine = { picture: pictureCentre(), qr: qrCentre(), hairline: hairlineTop() }
+
+      ctx = recordingContext()
+      await drawGradidoCard(QUIET)
+
+      expect(hairlineTop()).toBe(withLine.hairline)
+      expect(withLine.picture - pictureCentre()).toBe(21)
+      expect(withLine.qr - qrCentre()).toBe(21)
+      // Picture and code share one centre line, before and after.
+      expect(qrCentre()).toBe(pictureCentre())
+    })
+
+    it('leaves the code the size the address asks for', async () => {
+      await drawGradidoCard(CARD)
+      const withLine = qrDraw().args[3]
+
+      ctx = recordingContext()
+      await drawGradidoCard(QUIET)
+
+      expect(qrDraw().args[3]).toBe(withLine)
+    })
+  })
 })

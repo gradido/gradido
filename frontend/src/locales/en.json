@@ -457,6 +457,9 @@
     "download-hint": "A single image in print quality — for a print shop or to pass on.",
     "needs-username": "Your card carries your Gradido address, and that address is built from your user name. Please choose one first — the field is under “My account”. Then you can print your card and give it away.",
     "needs-username-title": "A user name first",
+    "real-name": "Real name",
+    "real-name-hint": "Without the tick your user name stands at the top instead — your name then appears nowhere on the card.",
+    "real-name-print": "print it",
     "sheet": "Sheet with 10 cards",
     "sheet-hint": "10 business cards at original size on one A4 page. In the print dialogue you can also save it as a PDF.",
     "title": "Your business card"

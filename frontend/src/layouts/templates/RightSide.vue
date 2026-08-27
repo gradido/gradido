@@ -6,20 +6,15 @@
   </div>
 </template>
 <script>
+import { rightSideSlot } from '@/utils/rightSide'
+
 export default {
   name: 'RightSide',
   computed: {
+    // The route list lives in utils/rightSide, because the layout has to ask the same
+    // question before it renders this column at all -- see the note over there.
     name() {
-      switch (this.$route.path.replace(/^\/(.+?)(\/.+)?$/, '$1')) {
-        case 'settings':
-          return 'empty'
-        case 'contributions':
-          return 'contributions'
-        case 'matching':
-          return 'matching'
-        default:
-          return 'transactions'
-      }
+      return rightSideSlot(this.$route.path)
     },
   },
 }

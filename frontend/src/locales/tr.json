@@ -457,6 +457,9 @@
     "download-hint": "Baskı kalitesinde tek bir görsel — bir matbaa için veya birine vermek için.",
     "needs-username": "Kartın Gradido adresini taşır ve bu adres kullanıcı adından oluşur. Lütfen önce bir tane seç — alan «Hesabım» bölümünde. Sonra kartını yazdırıp verebilirsin.",
     "needs-username-title": "Önce kullanıcı adı",
+    "real-name": "Gerçek ad",
+    "real-name-hint": "İşaret kaldırılırsa kartın üstünde kullanıcı adın yer alır — adın o zaman kartta hiçbir yerde görünmez.",
+    "real-name-print": "onu da yazdır",
     "sheet": "10 kartlık sayfa",
     "sheet-hint": "Bir A4 sayfada orijinal boyutta 10 kartvizit. Yazdırma penceresinde PDF olarak da kaydedebilirsin.",
     "title": "Kartvizitin"

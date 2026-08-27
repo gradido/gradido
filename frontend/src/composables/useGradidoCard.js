@@ -6,6 +6,7 @@ import { useStore } from 'vuex'
 import CONFIG from '@/config'
 import { useAppToast } from '@/composables/useToast'
 import { avatarFull } from '@/graphql/queries'
+import { avatarLettering } from '@/utils/avatarLettering'
 import { gradidoAddress, memberAlias } from '@/utils/gradidoAddress'
 import { cardFileName, drawGradidoCard } from '@/utils/gradidoCard'
 import { printSheet } from '@/utils/printSheet'
@@ -99,6 +100,28 @@ export const useGradidoCard = () => {
   }
 
   /**
+   * The name the card actually carries, which is not always the member's own.
+   *
+   * A card is handed to strangers, and whether one's real name goes out with it is the
+   * holder's decision, not ours (Bernd, 27.08.2026). With the real name off, the alias moves
+   * up into the name's place -- bare, without the word "user name" in front of it, because
+   * up there it is simply what this person is called. The line that used to carry it below
+   * then goes; see drawGradidoCard.
+   *
+   * ⛔ Everything the card says about the member has to follow that one decision, or the
+   * name comes back in by a side door. Two of those doors are easy to miss:
+   *
+   * - **the initials disc**, when there is no picture. "BH" beside an alias is the real name
+   *   in two letters, handed to the same stranger. So the letters follow the name line
+   *   (AS-010) while the COLOUR keeps hashing the real initials, so nobody's disc changes.
+   * - **the file name of the download**, which is what a print shop reads off the file.
+   */
+  const printedName = (realName) => {
+    const { username, gradidoID } = store.state
+    return realName ? memberName() : memberAlias(username, gradidoID)
+  }
+
+  /**
    * The everyday picture, as a data URI, or null. Held in the store as bare base64.
    */
   const storedPicture = () =>
@@ -108,24 +131,43 @@ export const useGradidoCard = () => {
    * @param {object} [options]
    * @param {string[]} [options.contact]  the lines the member typed, at most five
    * @param {boolean} [options.heading]   whether the word above them is printed too
+   * @param {boolean} [options.realName]  whether the member's real name goes on the card
    * @param {boolean} [options.preview]   true for the picture on screen, false for paper
    */
-  const drawCard = async ({ contact = [], heading = true, preview = false } = {}) => {
+  const drawCard = async ({
+    contact = [],
+    heading = true,
+    realName = true,
+    preview = false,
+  } = {}) => {
     const { firstName, lastName, username, gradidoID } = store.state
     const alias = memberAlias(username, gradidoID)
     const { host, link } = gradidoAddress(alias)
+    // Letters from the alias, colour from the real initials -- the wallet's split (AS-010).
+    // Which of the two the card shows follows the name line above the disc, see printedName.
+    //
+    // ⚠️ The RESOLVED alias, not the raw user name. They differ for a stored name of one or
+    // two characters, which predates the rule and falls back to the Gradido ID -- and the
+    // disc has to agree with the line printed beside it, which is that same resolved value.
+    const { letters, colorSeed } = avatarLettering({ alias, firstName, lastName })
 
     return drawGradidoCard({
       qrCanvas: await renderQrCodeCanvas(link),
-      name: memberName(),
+      name: printedName(realName),
       // The two labels the wallet already uses for these fields. Printing a different word
       // than the send form shows would make the card harder to follow, not easier.
       communityLabel: t('community.community'),
       communityName: CONFIG.COMMUNITY_NAME,
       aliasLabel: t('form.username'),
       alias,
+      // Without the real name the alias is already the name line; a labelled line saying it
+      // again two lines below would only repeat it.
+      showAliasLine: realName,
       host,
-      initials: `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`,
+      // Raw, not uppercased: this is a hash seed as well as two letters, and
+      // `avatarPaletteEntry` is case-sensitive. `drawPicture` uppercases what it draws.
+      initials: realName ? colorSeed : letters,
+      colorSeed,
       picture: preview ? storedPicture() : await fetchPicture(),
       // The same word stands over the field the member types into. The field looks like
       // its result, which is the whole point of drawing the card while they type.
@@ -147,12 +189,21 @@ export const useGradidoCard = () => {
    * The images the card is made of are only loaded at this point, so one that fails to load
    * must not stay silent.
    */
-  const downloadCard = async ({ contact = [], heading = true, image = null } = {}) => {
+  const downloadCard = async ({
+    contact = [],
+    heading = true,
+    realName = true,
+    image = null,
+  } = {}) => {
     try {
-      const card = image ?? (await drawCard({ contact, heading }))
+      const card = image ?? (await drawCard({ contact, heading, realName }))
       const anchor = document.createElement('a')
       anchor.href = card
-      anchor.download = cardFileName(memberName())
+      // ⛔ The name that is ON the card, not the member's own. A file called
+      // "Gradido Bernd Hückstädt.png" is what a print shop reads, and handing the real name
+      // over in the file name of a card that deliberately does not carry it would undo the
+      // decision at the last step.
+      anchor.download = cardFileName(printedName(realName))
       anchor.click()
       return card
     } catch (error) {
@@ -169,9 +220,9 @@ export const useGradidoCard = () => {
    * The page is built in a hidden frame rather than a new window, because a new window is
    * what pop-up blockers stop.
    */
-  const printCardSheet = async ({ contact = [], heading = true } = {}) => {
+  const printCardSheet = async ({ contact = [], heading = true, realName = true } = {}) => {
     try {
-      const card = await drawCard({ contact, heading })
+      const card = await drawCard({ contact, heading, realName })
       // ⚠️ The frame dance lives in `utils/printSheet` since the thank you card needed the
       // same one. Everything specific to THIS sheet -- ten cards, landscape, the padding
       // that keeps the grid inside the paper -- stays here.

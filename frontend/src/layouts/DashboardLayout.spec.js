@@ -204,12 +204,28 @@ describe('DashboardLayout', () => {
       expect(wrapper.findComponent({ name: 'RightSide' }).exists()).toBe(false)
     })
 
-    it('keeps it everywhere else', async () => {
-      await router.push('/transactions')
+    it('keeps it on the overview, where the booking list belongs', async () => {
+      await router.push('/overview')
       await nextTick()
 
       expect(wrapper.findComponent({ name: 'RightSide' }).exists()).toBe(true)
     })
+
+    /**
+     * ⛔ Since 27.08.2026 the same applies wherever the column has nothing to say -- and the
+     * code pages are why it matters rather than merely tidies: they are held out to another
+     * person, who was reading the member's last bookings beside the code. On /transactions
+     * the column repeated the page it stands beside.
+     */
+    it.each(['/my-gradido-card', '/my-thank-you-card', '/scan', '/calculator', '/transactions'])(
+      'drops it at %s as well',
+      async (path) => {
+        await router.push(path)
+        await nextTick()
+
+        expect(wrapper.findComponent({ name: 'RightSide' }).exists()).toBe(false)
+      },
+    )
 
     it('leaves the drawer on the main menu, even inside the settings', async () => {
       await router.push('/settings/appearance')

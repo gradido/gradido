@@ -457,6 +457,9 @@
     "download-hint": "Ein einzelnes Bild in Druckqualität — für eine Druckerei oder zum Weitergeben.",
     "needs-username": "Deine Karte trägt Deine Gradido-Adresse — und die entsteht aus Deinem Benutzernamen. Bitte wähle zunächst einen; das Feld dafür steht unter „Mein Konto“. Danach kannst Du Deine Karte drucken und weitergeben.",
     "needs-username-title": "Erst der Benutzername",
+    "real-name": "Klarname",
+    "real-name-hint": "Ohne Haken steht oben auf der Karte Dein Benutzername — Dein Name erscheint dann nirgends darauf.",
+    "real-name-print": "mitdrucken",
     "sheet": "Bogen mit 10 Karten",
     "sheet-hint": "10 Visitenkarten in Originalgröße auf einer A4-Seite. Im Druckfenster kannst Du sie auch als PDF sichern.",
     "title": "Deine Visitenkarte"

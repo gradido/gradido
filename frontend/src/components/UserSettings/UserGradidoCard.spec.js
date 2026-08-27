@@ -59,7 +59,12 @@ describe('UserGradidoCard', () => {
   it('shows the card as soon as the page opens', async () => {
     const wrapper = await wrapperFor()
 
-    expect(mockDrawCard).toHaveBeenCalledWith({ contact: [], heading: true, preview: true })
+    expect(mockDrawCard).toHaveBeenCalledWith({
+      contact: [],
+      heading: true,
+      realName: true,
+      preview: true,
+    })
     expect(wrapper.find('[data-test="gradido-card-preview"]').attributes('src')).toBe(
       'data:image/png;base64,preview',
     )
@@ -165,6 +170,7 @@ describe('UserGradidoCard', () => {
       expect(mockDrawCard).toHaveBeenLastCalledWith({
         contact: ['bernd@gradido.net', '+49 7071 123456'],
         heading: true,
+        realName: true,
         preview: true,
       })
     })
@@ -179,10 +185,12 @@ describe('UserGradidoCard', () => {
       expect(mockDownloadCard).toHaveBeenCalledWith({
         contact: ['bernd@gradido.net'],
         heading: true,
+        realName: true,
       })
       expect(mockPrintCardSheet).toHaveBeenCalledWith({
         contact: ['bernd@gradido.net'],
         heading: true,
+        realName: true,
       })
     })
 
@@ -197,6 +205,7 @@ describe('UserGradidoCard', () => {
       expect(mockDrawCard).toHaveBeenLastCalledWith({
         contact: ['one', 'two'],
         heading: true,
+        realName: true,
         preview: true,
       })
     })
@@ -220,7 +229,12 @@ describe('UserGradidoCard', () => {
     it('is printed unless it is switched off', async () => {
       const wrapper = await wrapperFor()
 
-      expect(mockDrawCard).toHaveBeenCalledWith({ contact: [], heading: true, preview: true })
+      expect(mockDrawCard).toHaveBeenCalledWith({
+        contact: [],
+        heading: true,
+        realName: true,
+        preview: true,
+      })
 
       await wrapper.find('[data-test="gradido-card-print-heading"]').setValue(false)
       await flushPromises()
@@ -228,6 +242,7 @@ describe('UserGradidoCard', () => {
       expect(mockDrawCard).toHaveBeenLastCalledWith({
         contact: [],
         heading: false,
+        realName: true,
         preview: true,
       })
     })
@@ -240,8 +255,12 @@ describe('UserGradidoCard', () => {
       await wrapper.find('[data-test="download-gradido-card"]').trigger('click')
       await wrapper.find('[data-test="print-gradido-sheet"]').trigger('click')
 
-      expect(mockDownloadCard).toHaveBeenCalledWith({ contact: [], heading: false })
-      expect(mockPrintCardSheet).toHaveBeenCalledWith({ contact: [], heading: false })
+      expect(mockDownloadCard).toHaveBeenCalledWith({ contact: [], heading: false, realName: true })
+      expect(mockPrintCardSheet).toHaveBeenCalledWith({
+        contact: [],
+        heading: false,
+        realName: true,
+      })
     })
 
     const tickBox = (wrapper) => wrapper.find('[data-test="gradido-card-print-heading"]')
@@ -275,6 +294,134 @@ describe('UserGradidoCard', () => {
       storeState.gradidoID = 'uuid-1'
       const back = await wrapperFor()
       expect(tickBox(back).element.checked).toBe(false)
+    })
+  })
+
+  /**
+   * A card is handed to strangers, so whether the real name travels with it is the holder's
+   * decision, not ours (Bernd, 27.08.2026). On by default: ticked, this is the card as it has
+   * always been printed, and turning it off is a step somebody takes deliberately.
+   */
+  describe('the real name', () => {
+    const nameBox = (wrapper) => wrapper.find('[data-test="gradido-card-print-real-name"]')
+    const headingBox = (wrapper) => wrapper.find('[data-test="gradido-card-print-heading"]')
+
+    it('stands above the contact block, so it is seen before the field is filled', async () => {
+      const wrapper = await wrapperFor()
+
+      const boxes = wrapper
+        .findAll('input[type="checkbox"]')
+        .map((box) => box.attributes('data-test'))
+
+      expect(boxes).toEqual(['gradido-card-print-real-name', 'gradido-card-print-heading'])
+      expect(wrapper.find('[data-test="gradido-card-real-name-hint"]').exists()).toBe(true)
+    })
+
+    /**
+     * The tick's own text is only "print it". Beside it stands the word it belongs to, and a
+     * screen reader has to be told they are one line -- otherwise this privacy setting is
+     * announced as "print it" and names nothing.
+     *
+     * ⚠️ Both ids, in that order: `aria-labelledby` REPLACES the native label instead of
+     * adding to it, so naming the word alone would lose "print it" entirely.
+     */
+    it('is announced as the whole line, not as the tick alone', async () => {
+      const wrapper = await wrapperFor()
+
+      const labelledBy = nameBox(wrapper).attributes('aria-labelledby').split(/\s+/)
+
+      expect(labelledBy).toEqual(['gradido-card-real-name', 'gradido-card-real-name-print'])
+      expect(labelledBy.map((id) => wrapper.find(`#${id}`).text())).toEqual([
+        'gradido-card.real-name',
+        'gradido-card.real-name-print',
+      ])
+    })
+
+    it('is printed unless it is switched off', async () => {
+      const wrapper = await wrapperFor()
+
+      expect(mockDrawCard).toHaveBeenCalledWith({
+        contact: [],
+        heading: true,
+        realName: true,
+        preview: true,
+      })
+
+      await nameBox(wrapper).setValue(false)
+      await flushPromises()
+
+      expect(mockDrawCard).toHaveBeenLastCalledWith({
+        contact: [],
+        heading: true,
+        realName: false,
+        preview: true,
+      })
+    })
+
+    // ⛔ Both ways out, not only the preview. The card that reaches paper is the one that
+    // matters here -- a preview that honoured the decision while the download did not would
+    // be worse than no switch at all.
+    it('carries the decision to the download and to the sheet', async () => {
+      const wrapper = await wrapperFor()
+      await nameBox(wrapper).setValue(false)
+      await flushPromises()
+
+      await wrapper.find('[data-test="download-gradido-card"]').trigger('click')
+      await wrapper.find('[data-test="print-gradido-sheet"]').trigger('click')
+
+      expect(mockDownloadCard).toHaveBeenCalledWith({
+        contact: [],
+        heading: true,
+        realName: false,
+      })
+      expect(mockPrintCardSheet).toHaveBeenCalledWith({
+        contact: [],
+        heading: true,
+        realName: false,
+      })
+    })
+
+    it('is remembered on this device, and only an explicit no turns it off', async () => {
+      const wrapper = await wrapperFor()
+      await nameBox(wrapper).setValue(false)
+      await flushPromises()
+
+      const again = await wrapperFor()
+      expect(nameBox(again).element.checked).toBe(false)
+
+      // ⛔ This direction matters more than it does for the word above the lines: a device
+      // that cannot remember has to fall back to the card as it has always been, never to a
+      // quieter one that nobody chose.
+      window.localStorage.clear()
+      const fresh = await wrapperFor()
+      expect(nameBox(fresh).element.checked).toBe(true)
+    })
+
+    it("is one member's decision, not the browser's", async () => {
+      const wrapper = await wrapperFor()
+      await nameBox(wrapper).setValue(false)
+      await flushPromises()
+
+      storeState.gradidoID = 'uuid-2'
+      const other = await wrapperFor()
+      expect(nameBox(other).element.checked).toBe(true)
+
+      storeState.gradidoID = 'uuid-1'
+      const back = await wrapperFor()
+      expect(nameBox(back).element.checked).toBe(false)
+    })
+
+    // Two boxes, two keys. They were built from the same helper, and a shared key would have
+    // made each one silently undo the other on the next visit.
+    it('is remembered apart from the word above the contact lines', async () => {
+      const wrapper = await wrapperFor()
+      await nameBox(wrapper).setValue(false)
+      await flushPromises()
+
+      const again = await wrapperFor()
+
+      expect(nameBox(again).element.checked).toBe(false)
+      expect(headingBox(again).element.checked).toBe(true)
     })
   })
 
@@ -339,7 +486,12 @@ describe('UserGradidoCard', () => {
       const other = await wrapperFor()
 
       expect(other.find('[data-test="gradido-card-contact"]').element.value).toBe('')
-      expect(mockDrawCard).toHaveBeenLastCalledWith({ contact: [], heading: true, preview: true })
+      expect(mockDrawCard).toHaveBeenLastCalledWith({
+        contact: [],
+        heading: true,
+        realName: true,
+        preview: true,
+      })
     })
   })
 })
