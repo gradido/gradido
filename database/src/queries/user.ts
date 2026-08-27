@@ -206,6 +206,20 @@ export async function dbSaveUser(user: DbUser, manager?: EntityManager): Promise
 }
 
 /**
+ * Re-key the stored password: exactly these two columns, nothing else. Callers hold a
+ * request-context snapshot that may be minutes old, and a full entity `save()` diffs
+ * against the row as of NOW - it would write every stale column back, `users.email_id`
+ * above all, undoing whatever committed in between.
+ */
+export async function dbUpdateUserPassword(
+  userId: number,
+  password: DbUser['password'],
+  passwordEncryptionType: DbUser['passwordEncryptionType'],
+): Promise<void> {
+  await DbUser.update({ id: userId }, { password, passwordEncryptionType })
+}
+
+/**
  * Holds the member's row under a write lock for the rest of the caller's transaction -
  * the plain way to run "look, then change" for one member without a second request
  * slipping in between (the e-mail change: one pending change, one mail per window).

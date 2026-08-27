@@ -18,6 +18,7 @@ import {
   dbClearGmsRegistration,
   dbLockUserRow,
   dbSaveUser,
+  dbUpdateUserPassword,
   findUserByIdentifier,
 } from './user'
 import { dbInsertUserAlias } from './userAliases'
@@ -388,6 +389,32 @@ describe('user.queries', () => {
 
     it('still finds the member under the address that is now in force', async () => {
       expect((await findUserByIdentifier('bibi-moved-on@bloxberg.de'))?.id).toBe(bibi.id)
+    })
+  })
+
+  describe('dbUpdateUserPassword', () => {
+    let before: DbUser
+
+    beforeAll(async () => {
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await userFactory(bibiBloxberg)
+      before = (await DbUser.find())[0]
+    })
+
+    it('re-keys the two password columns and leaves the rest of the row alone', async () => {
+      const newType = before.passwordEncryptionType === 1 ? 2 : 1
+      await dbUpdateUserPassword(before.id, BigInt('987654321987654321'), newType)
+      const after = await DbUser.findOneByOrFail({ id: before.id })
+      // bigint columns come back as strings from the driver - compare as text.
+      expect(String(after.password)).toBe('987654321987654321')
+      expect(after.passwordEncryptionType).toBe(newType)
+      // The reason this function exists instead of a save(): nothing else moves - the
+      // email marker above all (see the fixture comment two describes up for what a
+      // stale entity save() does to it).
+      expect(after.emailId).toBe(before.emailId)
+      expect(after.firstName).toBe(before.firstName)
+      expect(after.gradidoID).toBe(before.gradidoID)
     })
   })
 })

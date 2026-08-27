@@ -85,11 +85,15 @@ const ageRequestEvents = async (userId: number, minutesAgo: number) => {
     ])
 }
 
+/**
+ * Only `updated_at`: it alone drives expiry (`issuedAt` and the purge both read it
+ * first, and the column is filled on insert). Aging `created_at` too would falsify the
+ * history order of a CONFIRMED take-back row for the rest of the suite - and the oldest
+ * row is the GDT anchor.
+ */
 const ageContactRow = async (id: number, hoursAgo: number) => {
   const then = new Date(Date.now() - hoursAgo * 60 * 60 * 1000)
-  await db
-    .getDataSource()
-    .query('UPDATE user_contacts SET created_at = ?, updated_at = ? WHERE id = ?', [then, then, id])
+  await db.getDataSource().query('UPDATE user_contacts SET updated_at = ? WHERE id = ?', [then, id])
 }
 
 beforeAll(async () => {
@@ -998,6 +1002,23 @@ describe('EmailChangeResolver', () => {
       expect((await pendingRow(racer.id))?.email).toBe('racer-third@example.org')
       // The mailbox that can stop the change is the one the account is AT - the
       // snapshot points at the one it left a moment ago.
+      expect(sendEmailChangeNoticeEmail).toHaveBeenCalledTimes(1)
+      expect(sendEmailChangeNoticeEmail).toHaveBeenCalledWith(
+        expect.objectContaining({ email: 'racer-second@example.org' }),
+      )
+      await mutate({ mutation: cancelEmailChange })
+      expect(await pendingRow(racer.id)).toBeNull()
+    })
+
+    it('resends the notice to the address in force, not to the snapshot', async () => {
+      await ageRequestEvents(racer.id, 11)
+      await mutate({
+        mutation: requestEmailChange,
+        variables: { email: 'racer-fourth@example.org', password: PASSWORD },
+      })
+      await ageRequestEvents(racer.id, 11)
+      ;(sendEmailChangeNoticeEmail as jest.Mock).mockClear()
+      await resolver.resendEmailChange(staleContext())
       expect(sendEmailChangeNoticeEmail).toHaveBeenCalledTimes(1)
       expect(sendEmailChangeNoticeEmail).toHaveBeenCalledWith(
         expect.objectContaining({ email: 'racer-second@example.org' }),
