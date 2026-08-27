@@ -88,16 +88,28 @@ export async function dbFindPendingEmailChange(
  * registration or reset code must not confirm a change, and the inverse holds in the
  * password paths. No relation is loaded here - `UserContact.user` is the inverse of
  * `users.email_id` and therefore empty for a pending row; load the member by `userId`.
+ *
+ * ⛔ `forUpdate` is what makes a read-then-write on this row safe, and it takes a lock on
+ * THIS row - the member's `users` row is a different row and does not protect it. A plain
+ * read under REPEATABLE READ serves the snapshot, so a hard DELETE committed by one of the
+ * unlocked deleters after that read stays invisible: the caller's `save()` then finds a row
+ * in its snapshot, chooses UPDATE over INSERT, matches zero rows, and TypeORM does not look
+ * at `affected`. The member ends up with `users.email_id` pointing at a row that is gone and
+ * cannot log in at all, having just been mailed that the change succeeded. A locking read
+ * reads the latest committed version instead: the delete either blocks until this
+ * transaction ends, or has already happened and the row is correctly not found.
  */
 export async function dbFindPendingEmailChangeByCode(
   code: string,
   manager?: EntityManager,
+  forUpdate = false,
 ): Promise<DbUserContact | null> {
   const options = {
     where: {
       emailVerificationCode: code,
       emailOptInTypeId: OptInType.EMAIL_OPT_IN_CHANGE,
     },
+    ...(forUpdate ? { lock: { mode: 'pessimistic_write' as const } } : {}),
   }
   return manager ? manager.findOne(DbUserContact, options) : DbUserContact.findOne(options)
 }
