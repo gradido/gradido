@@ -5,11 +5,11 @@ import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-// Bernd found this at the device on 27.08.2026: Paula changed her address, confirmed the
-// new one, and the settings page kept showing the old one - through a reload as well.
-// Signing in again with the new address was the only thing that helped, and it was the
-// only thing that ever could: `state.email` was written in exactly one place, the login
-// form, and the store is persisted, so nothing renewed it.
+// Found by hand, in the running wallet: a member changes their address, confirms the new
+// one, and a settings page left open keeps showing the old one - through a reload as well.
+// Signing in again with the new address is the only thing that helps, and it is the only
+// thing that ever could: `state.email` was written in exactly one place, the login form,
+// and the store is persisted, so nothing renewed it.
 //
 // The shape of the bug is the reason this file exists rather than a component test. No
 // component test could see it: the frontend specs hand the layout a made-up response, so a
