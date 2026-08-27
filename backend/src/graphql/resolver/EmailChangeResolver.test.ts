@@ -22,6 +22,7 @@ import { adminEmailStatus, pendingEmailChange, queryOptIn } from '@/seeds/graphq
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { stephenHawking } from '@/seeds/users/stephen-hawking'
 
 // The mock derives the key the same way (salt by encryption type, gradido id for the
 // current type), just without the real argon2 cost - so the address change is still
@@ -256,6 +257,30 @@ describe('EmailChangeResolver', () => {
         // not moved. Every write to the row moves it (`updatedAt` is an @UpdateDateColumn
         // with `onUpdate`), and a change that could be renewed on every resend would hold a
         // stranger's address for good.
+        expect((row!.updatedAt ?? row!.createdAt).getTime()).toBe(deadlineBefore)
+      })
+
+      it('asks again for the same address without buying another window', async () => {
+        // The other door into the same hold. `resendEmailChange` stopped selling a new
+        // window on 26.08.2026; asking again through `requestEmailChange` bought one anyway,
+        // once every ten minutes, for as long as somebody kept asking.
+        await ageRequestEvents(bibi.id, 11)
+        const before = await pendingRow(bibi.id)
+        const deadlineBefore = (before!.updatedAt ?? before!.createdAt).getTime()
+        await expect(
+          mutate({
+            mutation: requestEmailChange,
+            variables: { email: 'bibi-new@bloxberg.de', password: PASSWORD },
+          }),
+        ).resolves.toMatchObject({
+          data: { requestEmailChange: { email: 'bibi-new@bloxberg.de' } },
+          errors: undefined,
+        })
+        const row = await pendingRow(bibi.id)
+        // Same row, same codes: the mail carries the link that already went out.
+        expect(row!.id).toBe(before!.id)
+        expect(row!.emailVerificationCode.toString()).toBe(code)
+        expect(row!.changeVetoCode!.toString()).toBe(vetoCode)
         expect((row!.updatedAt ?? row!.createdAt).getTime()).toBe(deadlineBefore)
       })
 
@@ -663,6 +688,62 @@ describe('EmailChangeResolver', () => {
       await expect(loginAs('bob-second@baumeister.de')).resolves.toMatchObject({
         data: null,
       })
+    })
+  })
+
+  /**
+   * Typing an address into the change form is a claim without proof. Registering with it is
+   * the same claim - but it ends in somebody having to answer mail at that address. So the
+   * typed claim yields, and it yields at any age: otherwise it kept the address from whoever
+   * really holds the mailbox, silently, and for as long as it was renewed. That is what shut
+   * the Elopage webhook out for a paying buyer.
+   */
+  describe('a never-confirmed hold yields to a registration', () => {
+    const wanted = 'wanted-by-both@example.org'
+
+    let holder: DbUser
+
+    beforeAll(async () => {
+      resetToken()
+      holder = await userFactory(testEnv, stephenHawking)
+      await loginAs('stephen@hawking.uk')
+      await mutate({
+        mutation: requestEmailChange,
+        variables: { email: wanted, password: PASSWORD },
+      })
+      // The fixture has to be real AND young - age is exactly what must not matter here.
+      const held = await pendingRow(holder.id)
+      expect(held?.email).toBe(wanted)
+      expect(held?.emailChecked).toBe(false)
+    })
+
+    it('lets the other person register with it, and drops the hold', async () => {
+      resetToken()
+      await expect(
+        mutate({
+          mutation: createUser,
+          variables: {
+            email: wanted,
+            firstName: 'Wanted',
+            lastName: 'ByBoth',
+            language: 'de',
+          },
+        }),
+      ).resolves.toMatchObject({ errors: undefined })
+
+      // The address now belongs to an account, and bibi's claim on it is gone - not merely
+      // hidden: a soft-deleted row would still block everybody, so it has to be really gone.
+      const owner = await DbUser.findOneOrFail({
+        where: { id: (await DbUserContact.findOneOrFail({ where: { email: wanted } })).userId },
+      })
+      expect(owner.id).not.toBe(holder.id)
+      expect(await pendingRow(holder.id)).toBeNull()
+      expect(
+        await DbUserContact.count({
+          where: { email: wanted, userId: holder.id },
+          withDeleted: true,
+        }),
+      ).toBe(0)
     })
   })
 })
