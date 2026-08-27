@@ -60,10 +60,11 @@ export async function sendUsersToGms(
       await batchUpdateGmsStatus(userIds)
     }
   } catch (err) {
-    if (!CONFIG.GMS_CREATE_USER_THROW_ERRORS) {
-      logger.warn('publishing user fails with ', err)
-      return false
+    if (CONFIG.GMS_CREATE_USER_THROW_ERRORS) {
+      throw err
     }
+    logger.warn('publishing user fails with ', err)
+    return false
   }
   return true
 }
