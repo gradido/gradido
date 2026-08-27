@@ -823,8 +823,7 @@
       "sent": "Wir haben eine Bestätigungs-E-Mail an {email} geschickt."
     },
     "emailInfo": "Eine neue Adresse gilt, sobald Du sie über den Link in der Bestätigungs-E-Mail bestätigt hast.",
-    "hideAmountGDD": "Dein GDD Betrag ist versteckt.",
-    "hideAmountGDT": "Dein GDT Betrag ist versteckt.",
+    "hide-amount": "{currency}-Betrag verbergen",
     "humhub": {
       "delete-disabled": "Das Benutzerkonto kann nur im Profil-Menü der Kooperationsplattform gelöscht werden.",
       "disabled": "Daten werden nicht in die Gradido Community exportiert",
@@ -864,7 +863,7 @@
     "password": {
       "change-password": "Passwort ändern",
       "forgot_pwd": "Passwort vergessen?",
-      "resend_subtitle": "Dein Aktivierungslink ist abgelaufen. Du kannst hier ein neuen anfordern.",
+      "resend_subtitle": "Dein Aktivierungslink ist abgelaufen. Du kannst hier einen neuen anfordern.",
       "reset": "Passwort zurücksetzen",
       "reset-password": {
         "text": "Gib nun ein neues Passwort ein, mit dem du dich zukünftig in deinem Gradido-Konto anmelden willst."
@@ -876,8 +875,6 @@
       },
       "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen."
     },
-    "showAmountGDD": "Dein GDD Betrag ist sichtbar.",
-    "showAmountGDT": "Dein GDT Betrag ist sichtbar.",
     "theme": {
       "dark": "Dunkel",
       "hint": "Wähle „Systemeinstellung folgen“, um automatisch zwischen hellem und dunklem Modus zu wechseln — je nach Einstellung Deines Geräts oder Browsers.",

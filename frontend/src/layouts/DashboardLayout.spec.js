@@ -204,6 +204,69 @@ describe('DashboardLayout', () => {
       expect(wrapper.findComponent({ name: 'RightSide' }).exists()).toBe(false)
     })
 
+    /**
+     * ⛔ The tiles in the page heading linked RELATIVELY (`to="transactions"`). From a path
+     * ending in a slash -- which a router really hands over, and which the section fix made
+     * render this heading for the first time -- vue-router resolves that one segment too
+     * deep: `/overview/` + `transactions` is `/overview/transactions`, which matches only
+     * the catch-all. That route carries no `requiresAuth`, so App.vue swaps the whole page
+     * to AuthLayout and the member is out of the wallet. Four leading slashes.
+     */
+    it('links out of the page heading by absolute path', async () => {
+      await router.push('/overview')
+      // ⚠️ The real ContentHeader, because the default stub renders no slots -- and the
+      // links under test live inside them, so a stubbed header would report zero and pass.
+      const withHeader = createWrapper({ ContentHeader: false })
+      withHeader.vm.skeleton = false
+      await nextTick()
+
+      const targets = withHeader.findAll('router-link-stub').map((link) => link.attributes('to'))
+      // ⚠️ Down BEFORE the assertions, not after. A second layout that outlives a failing
+      // test keeps listening and counts the other tests' route changes a second time -- the
+      // pile-up the note under the afterEach describes. Injecting the old relative links
+      // showed it: one real failure, two unrelated tests dragged down with it.
+      withHeader.unmount()
+
+      expect(targets).toContain('/transactions')
+      expect(targets.filter((target) => !target.startsWith('/'))).toEqual([])
+    })
+
+    /**
+     * ⛔ The layout takes the panel from the matched record and passes it on, rather than
+     * working it out from the path a second time. That is what lets two routes of one section
+     * differ -- `/matching/karte` says `rightSide: null` beside its `bareChrome` while
+     * `/matching/:tab` says `matching`, which a lookup keyed by the first path segment could
+     * not express. ⚠️ That pair cannot be checked here: `MATCHING_ACTIVE` is compiled into the
+     * bundle (`process.env.MATCHING_ACTIVE` in config/index.js), and no value is set for the
+     * UNIT-TEST run, so those routes are not registered in this file at all. Nothing to do
+     * with the servers -- ki-playground carries the flag on. The pair is held in
+     * routes.test.js, which loads the table with the flag mocked on.
+     */
+    it('carries the panel the route named', async () => {
+      await router.push('/overview')
+      await nextTick()
+      expect(wrapper.findComponent({ name: 'RightSide' }).props('panel')).toBe('transactions')
+
+      await router.push('/contributions/contribute')
+      await nextTick()
+      expect(wrapper.findComponent({ name: 'RightSide' }).props('panel')).toBe('contributions')
+    })
+
+    /**
+     * The phone carries two of the three panels. On the overview it used to render the column
+     * and then nothing inside it -- an empty block's worth of air above the page, for a list
+     * that hides itself below 992px anyway. One condition per column now, not one for both.
+     */
+    it('gives the phone a column only where the phone has a panel', async () => {
+      await router.push('/overview')
+      await nextTick()
+      expect(wrapper.findAllComponents({ name: 'RightSide' })).toHaveLength(1)
+
+      await router.push('/contributions/contribute')
+      await nextTick()
+      expect(wrapper.findAllComponents({ name: 'RightSide' })).toHaveLength(2)
+    })
+
     it('keeps it on the overview, where the booking list belongs', async () => {
       await router.push('/overview')
       await nextTick()
@@ -261,6 +324,33 @@ describe('DashboardLayout', () => {
       await nextTick()
 
       expect(mockRefetchFn).toHaveBeenCalledTimes(1)
+    })
+
+    /**
+     * ⛔ The fourth copy of "which page is this?" in this file family, and it carried the
+     * same blind spot as the other three: `/overview/` is not `/overview` to `includes`, and
+     * a router really hands that path over. Header and column read it correctly since the
+     * section fix; this line would have left the balance beside them at whatever it was when
+     * the layout mounted.
+     */
+    it.each(['/overview/', '/transactions/'])('asks again at %s as well', async (path) => {
+      await router.push('/send')
+      mockRefetchFn.mockClear()
+
+      await router.push(path)
+      await nextTick()
+
+      expect(mockRefetchFn).toHaveBeenCalledTimes(1)
+    })
+
+    it('still asks nowhere else', async () => {
+      await router.push('/overview')
+      mockRefetchFn.mockClear()
+
+      await router.push('/calculator')
+      await nextTick()
+
+      expect(mockRefetchFn).not.toHaveBeenCalled()
     })
 
     /**

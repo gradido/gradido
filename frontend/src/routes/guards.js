@@ -36,6 +36,13 @@ const addNavigationGuards = (router, store, apollo) => {
             'avatarVisibleToMembers',
             result.data.verifyLogin.avatarVisibleToMembers ?? null,
           )
+          // Same reasoning, and this is what makes the settings page tell the truth after
+          // an address change: the store's copy is only ever written where somebody holds
+          // a fresh answer from the server, and this guard is the one place a member
+          // passes through regularly without signing in again. Without it the page shows
+          // the address of the last sign-in until the next one - a reload does not help,
+          // because the store is persisted.
+          store.commit('email', result.data.verifyLogin.emailContact?.email ?? '')
           next({ path: '/overview' })
         })
         .catch(() => {

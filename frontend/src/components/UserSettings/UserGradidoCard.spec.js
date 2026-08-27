@@ -109,6 +109,31 @@ describe('UserGradidoCard', () => {
       storeState.username = ''
     })
 
+    /**
+     * ⛔ A stored name of one or two characters predates the three-character rule and really
+     * exists. It is truthy, so the old gate opened -- and `memberAlias` falls back to the
+     * Gradido ID below three, so the card printed a 36-character identifier as its ADDRESS,
+     * and (since the real name became optional) would have printed it as the NAME and in the
+     * file name of the download too. The gate asks the resolver now, not the raw field.
+     */
+    it.each(['a', 'ab', '  ab  '])('turns away the too-short name %j as well', async (name) => {
+      storeState.username = name
+      const wrapper = await wrapperFor()
+
+      expect(mockDrawCard).not.toHaveBeenCalled()
+      expect(wrapper.find('[data-test="gradido-card-empty"]').exists()).toBe(true)
+
+      await wrapper.find('[data-test="download-gradido-card"]').trigger('click')
+      expect(mockDownloadCard).not.toHaveBeenCalled()
+    })
+
+    it('lets a name that meets the rule through', async () => {
+      storeState.username = 'abc'
+      await wrapperFor()
+
+      expect(mockDrawCard).toHaveBeenCalled()
+    })
+
     it('does not draw a card from the download button', async () => {
       const wrapper = await wrapperFor()
 

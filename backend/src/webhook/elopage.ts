@@ -119,18 +119,14 @@ export const elopageWebhook = async (req: any, res: any): Promise<void> => {
     }
 
     // Do we already have such a user? This is the question the registration asks, and it
-    // has to be asked the same way: `checkEmailExists` first clears out the e-mail changes
-    // that ran past their window, then looks.
+    // has to be asked the same way, through `checkEmailExists` - which gives up any change
+    // that has only ever TYPED this address in, whatever its age, before it looks.
     //
-    // Counting the rows raw - as this did - also counted a change somebody merely typed in
-    // and never confirmed. Nothing here would ever clear such a row: the purge only runs for
-    // an address that some path asks about, and no path asks about this one. So a buyer
-    // whose address had once been typed into a stranger's change form silently got no
-    // account, and no retry would ever fix it.
-    //
-    // A change still inside its window does hold the address, and then this still returns
-    // without creating an account. That hold now lasts one window at most - see the note in
-    // `resendEmailChange`, where it used to be renewable without end.
+    // Counting the rows raw - as this did - counted such a change as an account. Nothing
+    // here would ever clear it, and it could be renewed indefinitely, so a buyer whose
+    // address a stranger had once typed into a change form silently got no account and no
+    // retry would ever fix it. The buyer is the one who will have to answer mail at that
+    // address; the typed claim yields to them.
     if (await checkEmailExists(email)) {
       logger.info(`Did not create User - already exists with email: ${email}`)
       return

@@ -823,8 +823,7 @@
       "sent": "Nous avons envoyé un e-mail de confirmation à {email}."
     },
     "emailInfo": "Une nouvelle adresse prend effet dès que tu l'as confirmée via le lien de l'e-mail de confirmation.",
-    "hideAmountGDD": "Ton montant GDD est caché.",
-    "hideAmountGDT": "Ton montant GDT est caché.",
+    "hide-amount": "Masquer le montant en {currency}",
     "humhub": {
       "delete-disabled": "Le compte utilisateur ne peut être supprimé que dans le menu de profil de la plateforme de coopération.",
       "disabled": "Les données ne sont pas exportées vers la communauté Gradido",
@@ -876,8 +875,6 @@
       },
       "subtitle": "Si tu as oublié ton mot de passe, tu peux le réinitialiser ici."
     },
-    "showAmountGDD": "Ton montant GDD est visible.",
-    "showAmountGDT": "Ton montant GDT est visible.",
     "theme": {
       "dark": "Sombre",
       "hint": "Choisis « Suivre le réglage du système » pour basculer automatiquement entre le mode clair et sombre, selon le réglage de ton appareil ou navigateur.",

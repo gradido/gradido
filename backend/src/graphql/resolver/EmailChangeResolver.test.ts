@@ -259,6 +259,30 @@ describe('EmailChangeResolver', () => {
         expect((row!.updatedAt ?? row!.createdAt).getTime()).toBe(deadlineBefore)
       })
 
+      it('asks again for the same address without buying another window', async () => {
+        // The other door into the same hold. `resendEmailChange` stopped selling a new
+        // window on 26.08.2026; asking again through `requestEmailChange` bought one anyway,
+        // once every ten minutes, for as long as somebody kept asking.
+        await ageRequestEvents(bibi.id, 11)
+        const before = await pendingRow(bibi.id)
+        const deadlineBefore = (before!.updatedAt ?? before!.createdAt).getTime()
+        await expect(
+          mutate({
+            mutation: requestEmailChange,
+            variables: { email: 'bibi-new@bloxberg.de', password: PASSWORD },
+          }),
+        ).resolves.toMatchObject({
+          data: { requestEmailChange: { email: 'bibi-new@bloxberg.de' } },
+          errors: undefined,
+        })
+        const row = await pendingRow(bibi.id)
+        // Same row, same codes: the mail carries the link that already went out.
+        expect(row!.id).toBe(before!.id)
+        expect(row!.emailVerificationCode.toString()).toBe(code)
+        expect(row!.changeVetoCode!.toString()).toBe(vetoCode)
+        expect((row!.updatedAt ?? row!.createdAt).getTime()).toBe(deadlineBefore)
+      })
+
       it('moves the account to the new address on confirmation and keeps the old row', async () => {
         await expect(
           mutate({ mutation: confirmEmailChange, variables: { code } }),
@@ -324,6 +348,32 @@ describe('EmailChangeResolver', () => {
           data: null,
           errors: [new GraphQLError('Could not login with emailVerificationCode')],
         })
+
+        // ⛔ And the question BEFORE that one has to give the same answer. `queryOptIn` is
+        // what the reset page asks before it shows the form; it used to say "valid" for this
+        // very code, so the member got a password form whose submit button then refused. A
+        // dead end at the END of the road is worse than a refusal at its start.
+        //
+        // Held against the answer to a code that was never issued, not against a phrase:
+        // "the same answer" is the whole point, and `EntityNotFoundError` prints the
+        // criteria it was built from - so loading a relation for the ownership check, or
+        // building either refusal from anything but the plain code, makes the three
+        // distinguishable and tells whoever asks which of them they hit.
+        const strandedAnswer = await query({
+          query: queryOptIn,
+          variables: { optIn: strandedCode },
+        })
+        const neverIssued = await query({
+          query: queryOptIn,
+          variables: { optIn: 'a-code-nobody-ever-had' },
+        })
+        expect(strandedAnswer.data).toBeNull()
+        expect(neverIssued.errors?.[0].message).toContain(
+          'Could not find any entity of type "UserContact"',
+        )
+        expect(strandedAnswer.errors?.[0].message).toBe(
+          neverIssued.errors?.[0].message.replace('a-code-nobody-ever-had', strandedCode),
+        )
       })
     })
   })
@@ -663,6 +713,75 @@ describe('EmailChangeResolver', () => {
       await expect(loginAs('bob-second@baumeister.de')).resolves.toMatchObject({
         data: null,
       })
+    })
+  })
+
+  /**
+   * Typing an address into the change form is a claim without proof. Registering with it is
+   * the same claim - but it ends in somebody having to answer mail at that address. So the
+   * typed claim yields, and it yields at any age: otherwise it kept the address from whoever
+   * really holds the mailbox, silently, and for as long as it was renewed. That is what shut
+   * the Elopage webhook out for a paying buyer.
+   */
+  describe('a never-confirmed hold yields to a registration', () => {
+    const wanted = 'wanted-by-both@example.org'
+
+    let holder: DbUser
+
+    beforeAll(async () => {
+      // Built here rather than taken from the seed shelf: the two unused seed members are
+      // unusable on purpose - Stephen Hawking carries a `deletedAt` and Garrick Ollivander
+      // an unconfirmed address, and the first attempt at this test failed on exactly that.
+      resetToken()
+      holder = await userFactory(testEnv, {
+        email: 'holder@example.org',
+        firstName: 'Holder',
+        lastName: 'OfAddresses',
+        emailChecked: true,
+        language: 'de',
+      })
+      await expect(loginAs('holder@example.org')).resolves.toMatchObject({ errors: undefined })
+      await expect(
+        mutate({
+          mutation: requestEmailChange,
+          variables: { email: wanted, password: PASSWORD },
+        }),
+      ).resolves.toMatchObject({ data: { requestEmailChange: { email: wanted } } })
+      // The fixture proves itself at every step - a silent no-op here would leave a test
+      // that looks like it covers something and covers nothing. Young on purpose: age is
+      // exactly what must not matter.
+      const held = await pendingRow(holder.id)
+      expect(held?.email).toBe(wanted)
+      expect(held?.emailChecked).toBe(false)
+    })
+
+    it('lets the other person register with it, and drops the hold', async () => {
+      resetToken()
+      await expect(
+        mutate({
+          mutation: createUser,
+          variables: {
+            email: wanted,
+            firstName: 'Wanted',
+            lastName: 'ByBoth',
+            language: 'de',
+          },
+        }),
+      ).resolves.toMatchObject({ errors: undefined })
+
+      // The address now belongs to an account, and bibi's claim on it is gone - not merely
+      // hidden: a soft-deleted row would still block everybody, so it has to be really gone.
+      const owner = await DbUser.findOneOrFail({
+        where: { id: (await DbUserContact.findOneOrFail({ where: { email: wanted } })).userId },
+      })
+      expect(owner.id).not.toBe(holder.id)
+      expect(await pendingRow(holder.id)).toBeNull()
+      expect(
+        await DbUserContact.count({
+          where: { email: wanted, userId: holder.id },
+          withDeleted: true,
+        }),
+      ).toBe(0)
     })
   })
 })

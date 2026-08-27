@@ -36,6 +36,16 @@
  * printed card a decision per recipient instead of a setting made in advance, and it is
  * why nothing here needs a release switch: printing is the release.
  *
+ * ## Every piece of text on the card has a rule for fitting -- including the name
+ *
+ * The name was the exception until 27.08.2026: drawn at a fixed 4 mm with no clip, so a long
+ * one ran into the logo and then over the edge. Measured in a browser with Open Sans loaded,
+ * a 29-character name was already touching the logo and a 39-character one was 255 px past
+ * the card. It now shrinks like the address line does, down to the size of the community
+ * line beneath it and no further -- and is clipped to its room like the contact block, for
+ * the names past about 42 characters that the floor cannot save. Shrinking is the rule and
+ * the clip is the backstop; neither alone covers the case.
+ *
  * ## The QR size follows the address, it is not a fixed number
  *
  * What decides whether a code can be read is the edge length of one *module*, not of the
@@ -79,6 +89,33 @@ const PADDING = mm(3.2)
 
 const NAME_SIZE = mm(4)
 const NAME_BLOCK = Math.round(NAME_SIZE * 1.1)
+/**
+ * How small the name may become.
+ *
+ * The same idea as the address line at the foot: shrink until it fits, because a name that
+ * runs off the card is a card nobody can print, and paper cannot be corrected. What is new
+ * is only that it applies up here too -- the name was the ONE piece of text on the card
+ * without a rule of its own, drawn at a fixed size with no clip, so a long one ran into the
+ * logo and then over the edge.
+ *
+ * Measured in a real browser with Open Sans actually loaded (27.08.2026), at 300 dpi and
+ * against the 744 px this leaves beside the logo:
+ *
+ *   Bernd Hückstädt                          396 px  -- half the room
+ *   Christiane Schmidt-Wellenkamp            755 px  -- was already touching the logo
+ *   Maximiliane von Sonnenberg-Hohenzollern 1013 px  -- ran off the card
+ *   8f3a1c7e-…-1e5a2b8d3f40 (a Gradido ID)   914 px  -- reachable since the card can be
+ *                                                      printed without the real name
+ *
+ * ⛔ The floor is VALUE_SIZE, not a number picked for looks: the name must never end up
+ * smaller than the community line underneath it, or it stops reading as the heading of the
+ * card. A name past about 41 characters therefore still overflows -- the same trade the
+ * address line makes, and for the same reason: too small to read helps nobody either.
+ */
+const NAME_MIN_SIZE = mm(2.8)
+// Air between the name and the logo in the opposite corner. Without it the longest names
+// that still "fit" end flush against it, which reads as a mistake rather than as a full line.
+const NAME_LOGO_GAP = mm(1.2)
 const LINES_GAP = mm(1)
 const LABEL_SIZE = mm(2.1)
 const VALUE_SIZE = mm(2.8)
@@ -256,6 +293,22 @@ export const qrSizeFor = (qrCanvas) => {
 }
 
 /**
+ * The size the name is drawn at: full size unless it does not fit beside the logo.
+ *
+ * ⚠️ The baseline is NOT recomputed from it. A name that had to shrink fills less of its
+ * row, it does not move it -- the same rule the address line and the contact lines follow.
+ */
+const nameSizeFor = (ctx, name, width) => {
+  let size = NAME_SIZE
+  ctx.font = `700 ${size}px ${FONT}`
+  while (size > NAME_MIN_SIZE && ctx.measureText(name).width > width) {
+    size -= 1
+    ctx.font = `700 ${size}px ${FONT}`
+  }
+  return size
+}
+
+/**
  * The size a contact line is drawn at.
  *
  * The same idea as the address line below: shrink until it fits rather than cut. A cut
@@ -410,12 +463,31 @@ export const drawGradidoCard = async (data) => {
   ctx.textBaseline = 'alphabetic'
   ctx.textAlign = 'left'
 
-  ctx.fillStyle = COLOR_TEXT
-  ctx.font = `700 ${NAME_SIZE}px ${FONT}`
-  ctx.fillText(data.name ?? '', PADDING, baselineOf(PADDING, NAME_SIZE))
-
+  // The logo first, because the room left for the name is what it does not take. Its width
+  // comes from the loaded image rather than from a constant, so a different logo cannot
+  // quietly make the name overlap it.
   const logoWidth = logo.width * (LOGO_HEIGHT / logo.height)
   ctx.drawImage(logo, WIDTH - PADDING - logoWidth, PADDING, logoWidth, LOGO_HEIGHT)
+
+  const nameText = data.name ?? ''
+  const nameRoom = WIDTH - 2 * PADDING - logoWidth - NAME_LOGO_GAP
+  ctx.fillStyle = COLOR_TEXT
+  ctx.font = `700 ${nameSizeFor(ctx, nameText, nameRoom)}px ${FONT}`
+  // ⛔ The clip is the last resort behind the shrinking, exactly as it is for the contact
+  // block: `nameSizeFor` stops at its floor whether or not the text fits, so a name past
+  // about 42 characters is still too wide -- and this now paints AFTER the logo, because the
+  // room it may use is what the logo does not take. Without the clip such a name would run
+  // straight across the brand mark and off the card.
+  //
+  // ⚠️ This does not depend on paint order, and that is the point. Before the shrinking
+  // existed, an over-long name was hidden by the logo being drawn on top of it afterwards --
+  // containment by accident, from a line whose order nobody could change safely.
+  ctx.save()
+  ctx.beginPath()
+  ctx.rect(PADDING, PADDING, nameRoom, NAME_BLOCK)
+  ctx.clip()
+  ctx.fillText(nameText, PADDING, baselineOf(PADDING, NAME_SIZE))
+  ctx.restore()
 
   const firstRow = PADDING + NAME_BLOCK + LINES_GAP
   drawLabelledLine(ctx, {

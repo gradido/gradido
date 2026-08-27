@@ -49,6 +49,7 @@ app.use(vueTransitionsPlugin())
 const filters = createFilters(i18n)
 app.config.globalProperties.$filters = {
   amount: filters.amount,
+  signedAmount: filters.signedAmount,
   GDD: filters.GDD,
 }
 

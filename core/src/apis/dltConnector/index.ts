@@ -5,9 +5,9 @@ import {
   TransactionLink as DbTransactionLink,
   User as DbUser,
   DltTransactionType,
+  dbGetUserById,
   getCommunityByUuid,
   getHomeCommunity,
-  getUserById,
   UserLoggingView,
 } from 'database'
 import { getLogger } from 'log4js'
@@ -203,7 +203,7 @@ export async function redeemDeferredTransferTransaction(
   try {
     if (!transactionLink.user) {
       logger.debug('load sender user')
-      transactionLink.user = await getUserById(transactionLink.userId, true, false)
+      transactionLink.user = await dbGetUserById(transactionLink.userId, true, false)
     }
     if (!transactionLink.user.community) {
       logger.debug('load sender community')

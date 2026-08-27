@@ -23,6 +23,22 @@ export const verifyLogin = gql`
       gradidoID
       alias
       emailChecked
+      # The address that is IN FORCE. The settings page reads it from the store, and the
+      # store used to get it from exactly one place - the login form - so it showed "the
+      # address you last signed in with" and nothing renewed it. A member who changed
+      # their address and confirmed it kept seeing the old one, through a reload as well,
+      # because the store is persisted; only signing in again with the new address helped,
+      # and that was the one thing that ever could. Deliberately NOT on the login mutation
+      # next to it: that runs on an inalienable right, so it has no authenticated caller,
+      # and the field resolver hands a contact row to nobody but its owner - the same
+      # reason the avatar is not there either.
+      #
+      # (No backticks in here: this is a GraphQL comment inside a gql template literal, so
+      # one would end the literal. Nothing warns about it - the file simply becomes a
+      # different, still-parseable program.)
+      emailContact {
+        email
+      }
       createdAt
       firstName
       lastName

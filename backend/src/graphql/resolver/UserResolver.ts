@@ -55,7 +55,7 @@ import {
   dbInsertUserAlias,
   dbMarkAliasAdopted,
   dbPurgeExpiredAssistedRegistrations,
-  dbPurgeExpiredEmailChanges,
+  dbReleaseUnconfirmedEmailChangeFor,
   dbUpsertUserAvatar,
   findUserByIdentifier,
   getHomeCommunity,
@@ -610,13 +610,40 @@ export class UserResolver {
     const logger = createLogger('queryOptIn')
     logger.addContext('optIn', optIn.substring(0, 4))
     logger.info(`queryOptIn...`)
+    // ⛔ The three refusals below have to be ONE answer, and this message goes out to the
+    // caller: `EntityNotFoundError` prints the criteria it was built from, so the loaded
+    // relation would otherwise appear in the "unknown code" answer and in neither of the
+    // other two - telling whoever asks which of the three they hit. Caught and re-thrown
+    // from the same criteria as the hand-thrown ones, the way `setPassword` funnels its
+    // own three cases into one sentence.
+    const unknownCode = () =>
+      new EntityNotFoundError(DbUserContact, { where: { emailVerificationCode: optIn } })
     const userContact = await DbUserContact.findOneOrFail({
       where: { emailVerificationCode: optIn },
+      relations: ['user'],
+    }).catch((e) => {
+      // Only the miss is rewritten. A connection error rewritten into "unknown code" would
+      // send whoever reads the log looking for a code that was never the problem.
+      if (e instanceof EntityNotFoundError) {
+        throw unknownCode()
+      }
+      throw e
     })
     // Same exclusion as in `setPassword`: a change code answers nothing here - and it
     // answers it exactly the way an unknown code does.
     if (userContact.emailOptInTypeId === OptInType.EMAIL_OPT_IN_CHANGE) {
-      throw new EntityNotFoundError(DbUserContact, { where: { emailVerificationCode: optIn } })
+      throw unknownCode()
+    }
+    // ⛔ And the third place that has to ask the same thing. `UserContact.user` is the
+    // inverse of `users.email_id`, so it is empty for a row that is no longer the member's
+    // address - and such a row keeps its verification code when the account moves on. Two
+    // paths already refuse it (`setPassword`, `AssistedRegistrationResolver.confirmEmail`);
+    // this one said "valid", the form appeared, and the submit button then refused. A dead
+    // end at the END of the road is worse than a refusal at its start, so it refuses here
+    // too - and, like the branch above, exactly the way an unknown code is refused.
+    if (!userContact.user) {
+      logger.warn('optIn belongs to an address the member has left behind')
+      throw unknownCode()
     }
     logger.addContext('user', userContact.userId)
     logger.debug('found optInCode', userContact.id)
@@ -1578,10 +1605,23 @@ export async function findUserByEmail(email: string): Promise<DbUser> {
   }
 }
 
+/**
+ * Is this address already somebody's? ⚠️ A question that CHANGES something: it gives up any
+ * never-confirmed change holding the address before it answers. The name says only half of
+ * that, and it did so before this line was written - the three callers are the doors through
+ * which an address becomes an account, and each of them is entitled to clear an unproven
+ * claim out of the way. Do not call it to merely look.
+ */
 export async function checkEmailExists(email: string): Promise<boolean> {
-  // A pending e-mail change that ran past its window must not keep the address it wanted
-  // away from whoever registers with it now - clear it first, then ask.
-  await dbPurgeExpiredEmailChanges(emailChangeExpiryCutoff(), email)
+  // A change that only ever TYPED this address in does not keep it from somebody who is
+  // registering with it now - not once it has run out of time, and not while it is still
+  // running either. Whoever registers will have to answer mail at the address; whoever typed
+  // it in has answered nothing, and could hold it for as long as they kept asking again.
+  //
+  // The three callers are the registration, the assisted registration and the Elopage
+  // webhook - every door through which an address becomes somebody's account. A confirmed
+  // row is untouched, so this never takes an address away from the member it belongs to.
+  await dbReleaseUnconfirmedEmailChangeFor(email)
   return dbEmailTaken(email)
 }
 

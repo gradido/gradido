@@ -23,15 +23,30 @@ export async function aliasExists(alias: string, userId?: number): Promise<boole
   return dbAliasHeldByOther(alias, userId)
 }
 
-export async function getUserById(
+/**
+ * ⚠️ Pass `manager` from inside a transaction. Without it this reads over its own
+ * connection, so a caller that holds the member's row under `SELECT ... FOR UPDATE` and
+ * then saves what it read here would be writing an entity it loaded from beside its own
+ * transaction rather than from within it.
+ *
+ * Renamed from `getUserById` for AGENTS.md's `db…` rule, because this delivery touched it.
+ * Five executing functions in this file still carry no prefix (`aliasExists`,
+ * `findForeignUserByUuids`, `findUserByUuids`, `findUserNamesByIds`, `findUserByIdentifier`)
+ * - together 68 call sites against this one's 6, so they are their own mechanical change and
+ * not this one's. Until they follow, the file has two conventions and this note is the only
+ * thing saying which way it is going.
+ */
+export async function dbGetUserById(
   id: number,
   withCommunity: boolean = false,
   withEmailContact: boolean = false,
+  manager?: EntityManager,
 ): Promise<DbUser> {
-  return DbUser.findOneOrFail({
+  const options = {
     where: { id },
     relations: { community: withCommunity, emailContact: withEmailContact },
-  })
+  }
+  return manager ? manager.findOneOrFail(DbUser, options) : DbUser.findOneOrFail(options)
 }
 
 /**

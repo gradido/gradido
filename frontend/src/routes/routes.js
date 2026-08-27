@@ -33,6 +33,14 @@ const matchingRoutes = CONFIG.MATCHING_ACTIVE
           // map takes the screen; on desktop the menu stays and the logo moves under
           // it, because the navbar it used to live in is gone.
           bareChrome: true,
+          // ⛔ And NO right-hand column, which is the line this whole record was missing.
+          // `/matching/:tab` next door carries `rightSide: 'matching'`; the map does not,
+          // and until 27.08.2026 there was no way to say so: the panel was looked up by the
+          // first path segment, and both routes are `matching`. So the page that exists to
+          // give the map the whole canvas handed a quarter of it to the matching panel on
+          // every desktop screen. Two neighbouring routes that must differ is exactly what a
+          // section-keyed table cannot express -- and why this now lives on the record.
+          rightSide: null,
         },
       },
       {
@@ -41,6 +49,7 @@ const matchingRoutes = CONFIG.MATCHING_ACTIVE
         meta: {
           requiresAuth: true,
           pageTitle: 'matching',
+          rightSide: 'matching',
         },
       },
     ]
@@ -122,6 +131,12 @@ const routes = [
     meta: {
       requiresAuth: true,
       pageTitle: 'overview',
+      // ⛔ The booking list stands beside this page and no other. Declared here rather than
+      // in a table somewhere else, because only the route knows -- see the note over
+      // `rightSidePanel` in DashboardLayout. A member showing somebody their QR code was
+      // showing their last bookings with it; that is the reason, and it belongs on the
+      // routes that do NOT carry this line as much as on the one that does.
+      rightSide: 'transactions',
     },
   },
   {
@@ -233,6 +248,7 @@ const routes = [
     meta: {
       requiresAuth: true,
       pageTitle: 'contributions',
+      rightSide: 'contributions',
     },
   },
   ...matchingRoutes,
