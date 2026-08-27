@@ -823,8 +823,6 @@
       "sent": "Hemos enviado un correo de confirmación a {email}."
     },
     "emailInfo": "Una nueva dirección es válida en cuanto la confirmes a través del enlace del correo de confirmación.",
-    "hideAmountGDD": "Tu importe en GDD está oculto.",
-    "hideAmountGDT": "Tu importe en GDT está oculto.",
     "humhub": {
       "delete-disabled": "La cuenta de usuario solo puede eliminarse en el menú de perfil de la plataforma de cooperación.",
       "disabled": "Los datos no se exportan a la comunidad Gradido",
@@ -876,8 +874,6 @@
       },
       "subtitle": "Si has olvidado tu contraseña, puedes restablecerla aquí."
     },
-    "showAmountGDD": "Tu importe en GDD está visible.",
-    "showAmountGDT": "Tu importe en GDT está visible.",
     "theme": {
       "dark": "Oscuro",
       "hint": "Elige «Seguir la configuración del sistema» para cambiar automáticamente entre el modo claro y oscuro, según la configuración de tu dispositivo o navegador.",

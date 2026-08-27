@@ -61,7 +61,7 @@ const props = defineProps({
 const store = useStore()
 const { mutate } = useMutation(updateUserInfos)
 const { t, n } = useI18n()
-const { toastSuccess, toastError } = useAppToast()
+const { toastError } = useAppToast()
 
 const hideAmount = computed(() => store.state.hideAmountGDT)
 
@@ -72,12 +72,14 @@ const updateHideAmountGDT = async () => {
     })
 
     store.commit('hideAmountGDT', !hideAmount.value)
-
-    if (!hideAmount.value) {
-      toastSuccess(t('settings.showAmountGDT'))
-    } else {
-      toastSuccess(t('settings.hideAmountGDT'))
-    }
+    // ⛔ No toast either way. Hiding or showing the balance is a switch whose whole result
+    // is on screen the moment it lands -- the number is there or it is not -- so a message
+    // saying so afterwards only repeats what the eye has already seen. Switched quickly back
+    // and forth they piled up on top of each other. (Bernd, 27.08.2026)
+    //
+    // ⚠️ The failure still speaks: `toastError` below is the only way to learn that the
+    // setting did NOT reach the server, and there the eye is no help at all -- the number
+    // has already changed on this device.
   } catch (error) {
     toastError(error.message)
   }

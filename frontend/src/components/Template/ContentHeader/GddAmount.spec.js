@@ -126,7 +126,10 @@ describe('GddAmount', () => {
         hideAmountGDD: true,
       })
       expect(mockCommit).toHaveBeenCalledWith('hideAmountGDD', true)
-      expect(mockToastSuccess).toHaveBeenCalledWith('settings.hideAmountGDD')
+      // ⛔ No toast: the whole result of this switch is on screen the moment it lands, and
+      // switched quickly back and forth they piled up. What the screen cannot show is a
+      // FAILED save -- that is why toastError stays, and it has a test of its own above.
+      expect(mockToastSuccess).not.toHaveBeenCalled()
 
       // Verify that the component updates its display
       expect(wrapper.find('.gradido-global-color-accent').text()).toBe('asterisks')
@@ -152,7 +155,10 @@ describe('GddAmount', () => {
         hideAmountGDD: false,
       })
       expect(mockCommit).toHaveBeenCalledWith('hideAmountGDD', false)
-      expect(mockToastSuccess).toHaveBeenCalledWith('settings.showAmountGDD')
+      // ⛔ No toast: the whole result of this switch is on screen the moment it lands, and
+      // switched quickly back and forth they piled up. What the screen cannot show is a
+      // FAILED save -- that is why toastError stays, and it has a test of its own above.
+      expect(mockToastSuccess).not.toHaveBeenCalled()
 
       // Verify that the component updates its display
       expect(wrapper.find('.gradido-global-color-accent').text()).toBe('123.45 GDD')
