@@ -2,7 +2,8 @@
 <template>
   <div class="forgot-password">
     <BContainer v-if="enterData">
-      <div class="pb-5">{{ $t('site.forgotPassword.heading') }}</div>
+      <div class="pb-3">{{ $t('site.forgotPassword.heading') }}</div>
+      <div class="pb-4" data-test="forgot-password-subtitle">{{ subtitleText }}</div>
       <BRow class="justify-content-center">
         <BCol>
           <BForm role="form" @submit.prevent="onSubmit">
@@ -53,7 +54,6 @@ import { useI18n } from 'vue-i18n'
 
 const { toastError } = useAppToast()
 
-const subtitle = ref('settings.password.subtitle')
 const showPageMessage = ref(false)
 const success = ref(null)
 
@@ -61,9 +61,19 @@ const { params } = useRoute()
 
 const { t } = useI18n()
 
-if (params.comingFrom) {
-  subtitle.value = 'settings.password.resend_subtitle'
-}
+/**
+ * Why the member is on this page. Whoever arrived from an expired reset link is told so,
+ * everybody else gets the plain invitation.
+ *
+ * ⚠️ Resolved to TEXT here, not handed to `$t` as a variable in the template: the i18n lint
+ * only counts keys it can read literally, and a `$t(subtitle)` would report both of these as
+ * unused. This also replaces a `subtitle` ref that no template ever rendered - the reason
+ * was computed and thrown away, which is why pointing a link at `:comingFrom` looked like it
+ * would fix nothing.
+ */
+const subtitleText = computed(() =>
+  params.comingFrom ? t('settings.password.resend_subtitle') : t('settings.password.subtitle'),
+)
 
 const { mutate } = useMutation(forgotPassword)
 

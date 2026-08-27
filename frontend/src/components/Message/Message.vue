@@ -22,7 +22,10 @@ export default {
     headline: { type: String, required: true },
     subtitle: { type: String, required: true },
     buttonText: { type: String, required: false, default: null },
-    linkTo: { type: String, required: false, default: null },
+    // Both forms really arrive here: `ForgotPassword.vue` passes the path `/login`, every
+    // other caller passes a route object. Declaring only the string made Vue warn on four
+    // of six callers.
+    linkTo: { type: [String, Object], required: false, default: null },
   },
   computed: {
     showButton() {

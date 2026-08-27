@@ -41,22 +41,23 @@ import InputPasswordConfirmation from '@/components/Inputs/InputPasswordConfirma
 import Message from '@/components/Message/Message.vue'
 import { useAppToast } from '@/composables/useToast'
 import { useForm } from 'vee-validate'
-import { useAuthLinks } from '@/composables/useAuthLinks'
-
-const { routeWithParamsAndQuery } = useAuthLinks()
 
 const textFields = {
   reset: {
     title: 'settings.password.change-password',
     text: 'settings.password.reset-password.text',
     button: 'settings.password.change-password',
-    linkTo: routeWithParamsAndQuery('Login'),
+    // A plain name, never `routeWithParamsAndQuery`: this page sits on
+    // `/checkEmail/:optin/:code?`, and spreading those params into `/login/:code?` hands the
+    // login page a redeem code it never asked for - the collision PR #3798 repaired one page
+    // further along.
+    linkTo: { name: 'Login' },
   },
   checkEmail: {
     title: 'settings.password.set',
     text: 'settings.password.set-password.text',
     button: 'settings.password.set',
-    linkTo: routeWithParamsAndQuery('Login'),
+    linkTo: { name: 'Login' },
   },
 }
 
@@ -103,7 +104,7 @@ const onSubmit = async () => {
       ? t('message.checkEmail')
       : t('message.reset')
     messageButtonText.value = t('login')
-    messageButtonLinkTo.value = routeWithParamsAndQuery('Login')
+    messageButtonLinkTo.value = { name: 'Login' }
   } catch (error) {
     const errorMessage = error.message.match(
       /email was sent more than ([0-9]+ hours)?( and )?([0-9]+ minutes)? ago/,
@@ -115,9 +116,13 @@ const onSubmit = async () => {
     messageHeadline.value = t('message.errorTitle')
     messageSubtitle.value = errorMessage
     messageButtonText.value = t('settings.password.reset')
-    messageButtonLinkTo.value = routeWithParamsAndQuery('ForgotPassword', {
+    // `ForgotPassword` has no parameters at all - vue-router discarded `comingFrom` here
+    // and the page never learned why somebody had landed on it. The route that carries the
+    // reason is a different one, and until now nothing pointed at it.
+    messageButtonLinkTo.value = {
+      name: 'ForgotPasswordComingFrom',
       params: { comingFrom: 'reset-password' },
-    })
+    }
     toastError(errorMessage)
   }
 }
@@ -129,9 +134,10 @@ const checkOptInCode = async () => {
     })
   } catch (error) {
     toastError(error.message)
-    await router.push(
-      routeWithParamsAndQuery('ForgotPassword', { params: { comingFrom: 'reset-password' } }),
-    )
+    await router.push({
+      name: 'ForgotPasswordComingFrom',
+      params: { comingFrom: 'reset-password' },
+    })
   }
 }
 

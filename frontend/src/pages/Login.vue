@@ -159,15 +159,24 @@ const onSubmit = handleSubmit(async (values) => {
       await router.push(store.state.redirectPath)
     }
   } catch (error) {
-    if (error.message.includes('User email not validated')) {
+    // ⛔ These two literals are one half of a contract with the backend, and the backend
+    // cannot be imported here. Both were wrong - a word order apart from what `login`
+    // actually throws - so neither branch had ever fired. A member without a password saw
+    // the raw English sentence in an "unknown error" toast instead of the page that tells
+    // them what to do. Pinned on this side by `Login.spec.js`, on the other by
+    // `UserResolver.test.ts`; move one and the pair has to move together.
+    if (error.message.includes('The Users email is not validate yet')) {
       showPageMessage.value = true
       errorSubtitle.value = t('message.activateEmail')
-      errorLinkTo.value = routeWithParamsAndQuery('ForgotPassword')
+      errorLinkTo.value = { name: 'ForgotPassword' }
       toastError(t('error.no-account'))
-    } else if (error.message.includes('User has no password set yet')) {
+    } else if (error.message.includes('The User has not set a password yet')) {
       showPageMessage.value = true
       errorSubtitle.value = t('message.unsetPassword')
-      errorLinkTo.value = routeWithParamsAndQuery('ResetPassword')
+      // Not `ResetPassword`: that route needs an `:optin` code, and a login page has none -
+      // `router.push` threw `Missing required param "optin"` straight out of the click
+      // handler. The road to a password is the one the branch above already takes.
+      errorLinkTo.value = { name: 'ForgotPassword' }
       toastError(t('error.no-account'))
     } else if (error.message.includes('No user with this credentials')) {
       toastError(t('error.no-user'))

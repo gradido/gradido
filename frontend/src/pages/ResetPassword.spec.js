@@ -290,8 +290,13 @@ vi.mock('vue-i18n', () => ({
 const router = createRouter({
   history: createWebHistory(),
   routes: [
+    // ⛔ These have to be the shapes the real table has. `/forgot-password/resetPassword`
+    // stood here and was nobody's route - a private table that invents its targets can never
+    // notice a link pointing at one that does not exist, which is how the discarded
+    // `comingFrom` parameter survived.
     { path: '/login/:code?', name: 'Login' },
-    { path: '/forgot-password/resetPassword', name: 'ForgotPassword' },
+    { path: '/forgot-password', name: 'ForgotPassword' },
+    { path: '/forgot-password/:comingFrom', name: 'ForgotPasswordComingFrom' },
   ],
 })
 
@@ -361,8 +366,9 @@ describe('ResetPassword', () => {
         expect(mockToastError).toHaveBeenCalledWith('Your time is up!')
       })
 
-      it('redirects to /forgot-password/resetPassword', () => {
-        expect(router.currentRoute.value.path).toBe('/forgot-password/resetPassword')
+      it('sends them to the forgot-password page, carrying the reason', () => {
+        expect(router.currentRoute.value.path).toBe('/forgot-password/reset-password')
+        expect(router.currentRoute.value.params.comingFrom).toBe('reset-password')
       })
     })
 
@@ -418,7 +424,7 @@ describe('ResetPassword', () => {
       )
       expect(message.props('buttonText')).toBe('settings.password.reset')
       expect(message.props('linkTo')).toMatchObject({
-        name: 'ForgotPassword',
+        name: 'ForgotPasswordComingFrom',
         params: { comingFrom: 'reset-password' },
       })
       expect(mockToastError).toHaveBeenCalledWith(
