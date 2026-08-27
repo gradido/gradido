@@ -11,45 +11,96 @@
       "contactSupport": "Связаться с поддержкой",
       "emailExists": "Однако для вашего адреса электронной почты уже существует аккаунт.",
       "emailReused": "ваш адрес электронной почты только что снова использовали для регистрации аккаунта в Gradido.",
+      "helperButton": "Я помогаю кому-то создать аккаунт",
+      "helperIntro": "Если рядом с вами сидит человек, который только что использовал ваш адрес электронной почты, чтобы начать аккаунт Gradido: продолжите настройку здесь. Вместе вы вводите его собственный адрес электронной почты, а пароль он выбирает сам.",
+      "helperTitle": "Вы сейчас помогаете кому-то в кафе Gradido?",
       "ifYouAreNotTheOne": "Если вы не пытались зарегистрироваться снова, пожалуйста, обратитесь в нашу поддержку:",
       "onForgottenPasswordClickLink": "Если вы забыли пароль, пожалуйста, нажмите здесь.",
       "subject": "Повторная попытка регистрации с вашим адресом электронной почты",
       "title": "Повторная попытка регистрации с вашим адресом электронной почты"
     },
     "addedContributionMessage": {
-      "commonGoodContributionMessage": "вы получили сообщение от {senderFirstName} {senderLastName} по поводу вашего вклада в общее благо «{contributionMemo}».",
+      "commonGoodContributionMessage": "вы получили сообщение от {senderAlias} по поводу вашего вклада в общее благо «{contributionMemo}».",
       "message": "«{message}»",
       "readMessage": "Прочитать и ответить на сообщение",
       "subject": "Сообщение о вашем вкладе в общее благо",
       "title": "Сообщение о вашем вкладе в общее благо",
-      "toSeeAndAnswerMessage": "Чтобы ответить на сообщение, перейдите в вашем аккаунте Gradido в меню «Создание» и нажмите на вкладку «Мои вклады»."
+      "toSeeAndAnswerMessage": "Ответить можно прямо у вашего вклада."
+    },
+    "assistedRegistrationConfirm": {
+      "accountCreated": "Вместе с участником Gradido для вас только что был создан аккаунт — с этим адресом электронной почты.",
+      "clickToConfirm": "Нажмите здесь, чтобы подтвердить ваш адрес электронной почты.",
+      "confirmButton": "Подтвердить адрес",
+      "confirmHeading": "Подтвердить адрес электронной почты",
+      "notYou": "Вы ничего не знаете об этом аккаунте? Тогда проигнорируйте это письмо — без подтверждения аккаунт останется закрытым.",
+      "pleaseConfirm": "Пожалуйста, подтвердите, что этот адрес принадлежит вам — только тогда ваш аккаунт останется открытым навсегда.",
+      "subject": "Подтвердите ваш адрес электронной почты",
+      "title": "Ваш аккаунт Gradido готов"
     },
     "contribution": {
-      "toSeeContributionsAndMessages": "Чтобы увидеть ваши вклады в общее благо и связанные с ними сообщения, перейдите в вашем аккаунте Gradido в меню «Создание» и нажмите на вкладку «Мои вклады»."
+      "toSeeContributionsAndMessages": "Ваши вклады в общее благо и сообщения к ним вы найдёте в вашем аккаунте Gradido."
     },
     "contributionChangedByModerator": {
       "subject": "Ваш вклад в общее благо был изменён",
-      "text": "ваш вклад в общее благо «{contributionMemo}» только что был изменён пользователем {senderFirstName} {senderLastName} и теперь звучит так: «{contributionMemoUpdated}»",
+      "text": "ваш вклад в общее благо «{contributionMemo}» только что был изменён пользователем {senderAlias} и теперь звучит так: «{contributionMemoUpdated}»",
       "title": "Ваш вклад в общее благо был изменён"
     },
     "contributionConfirmed": {
-      "commonGoodContributionConfirmed": "ваш вклад в общее благо «{contributionMemo}» только что был подтверждён пользователем {senderFirstName} {senderLastName}. На ваш аккаунт Gradido зачислено {amountGDD} GDD.",
+      "commonGoodContributionConfirmed": "ваш вклад в общее благо «{contributionMemo}» только что был подтверждён пользователем {senderAlias}. На ваш аккаунт Gradido зачислено {amountGDD} GDD.",
       "subject": "Ваш вклад в общее благо подтверждён",
       "title": "Ваш вклад в общее благо подтверждён"
     },
     "contributionDeleted": {
-      "commonGoodContributionDeleted": "ваш вклад в общее благо «{contributionMemo}» был удалён пользователем {senderFirstName} {senderLastName}.",
+      "commonGoodContributionDeleted": "ваш вклад в общее благо «{contributionMemo}» был удалён пользователем {senderAlias}.",
       "subject": "Ваш вклад в общее благо был удалён",
       "title": "Ваш вклад в общее благо был удалён"
     },
     "contributionDenied": {
-      "commonGoodContributionDenied": "ваш вклад в общее благо «{contributionMemo}» был отклонён пользователем {senderFirstName} {senderLastName}.",
+      "commonGoodContributionDenied": "ваш вклад в общее благо «{contributionMemo}» был отклонён пользователем {senderAlias}.",
       "subject": "Ваш вклад в общее благо был отклонён",
       "title": "Ваш вклад в общее благо был отклонён"
     },
     "customEmail": {
-      "haveReceivedMessageFrom": "вы только что получили сообщение от {senderFirstName} {senderLastName}",
-      "title": "{senderFirstName} {senderLastName} отправил вам сообщение"
+      "haveReceivedMessageFrom": "вы только что получили сообщение от {senderAlias}",
+      "title": "Пользователь {senderAlias} отправил вам сообщение"
+    },
+    "emailChangeConfirm": {
+      "confirm": "Подтвердить новый адрес",
+      "notYou": "Если вы не запрашивали это изменение, просто проигнорируйте это письмо – без вашего подтверждения ничего не изменится.",
+      "pleaseConfirm": "Подтвердите одним нажатием, что этот адрес принадлежит вам.",
+      "subject": "Пожалуйста, подтвердите свой новый адрес электронной почты",
+      "title": "Подтвердить новый адрес электронной почты",
+      "validUntil": "Ссылка действительна до {validUntil}. После этого вы можете запросить новое письмо в своих настройках.",
+      "youAskedFor": "Вы хотите изменить адрес электронной почты своего аккаунта Gradido на этот адрес."
+    },
+    "emailChangeDone": {
+      "changedTo": "Отныне адрес электронной почты вашего аккаунта Gradido – {newEmail}.",
+      "notYou": "Это были не вы? Тогда немедленно обратитесь по адресу {supportEmail}.",
+      "subject": "Ваш адрес электронной почты изменён",
+      "title": "Адрес электронной почты изменён",
+      "wasBefore": "До сих пор это был {oldEmail}."
+    },
+    "emailChangeNotice": {
+      "changePassword": "Если вы отклоните изменение, после этого, пожалуйста, смените и пароль.",
+      "notYou": "Это были не вы? Тогда нажмите здесь – изменение будет отклонено, и этот адрес останется.",
+      "notYouTitle": "Это были не вы?",
+      "requested": "Для вашего аккаунта Gradido запрошено изменение адреса электронной почты на {newEmail}.",
+      "revoke": "Отклонить изменение",
+      "subject": "Запрошено изменение вашего адреса электронной почты",
+      "title": "Ваш адрес электронной почты скоро изменится",
+      "untilConfirmed": "Пока новый адрес не подтверждён, действует этот. Если это были вы, больше ничего делать не нужно.",
+      "validUntil": "Ссылка действительна до {validUntil} – после этого запрошенное изменение истекает само."
+    },
+    "emailChangeSupport": {
+      "gdtHint": "Для сервера GDT по-прежнему действует первый адрес этого аккаунта: {gdtEmail}.",
+      "member": "Участник: {firstName} {lastName} ({alias})",
+      "newEmail": "Новый адрес: {newEmail}",
+      "oldEmail": "Прежний адрес: {oldEmail}",
+      "subject": "Адрес электронной почты изменён: {firstName} {lastName}",
+      "title": "Участник изменил свой адрес электронной почты",
+      "todo": "Пожалуйста, привяжите новый адрес к этому аккаунту на сервере GDT и обновите Klick-Tipp.",
+      "todoTakeBack": "Возврат к прежнему адресу этого аккаунта — на сервере GDT объединять нечего. Пожалуйста, обновите только Klick-Tipp.",
+      "todoTypoCorrection": "Прежний адрес так и не был подтверждён (опечатка при создании) — на сервере GDT объединять нечего. Пожалуйста, просто внесите новый адрес в Klick-Tipp."
     },
     "footer": {
       "contactOurSupport": "Если у вас есть другие вопросы, пожалуйста, обратитесь в нашу поддержку.",
@@ -77,6 +128,7 @@
       "reset": "сбросить",
       "sincerelyYours": "С наилучшими пожеланиями,",
       "toAccount": "В аккаунт",
+      "toContribution": "К вкладу",
       "transactionDetails": "Сведения о транзакции",
       "yourGradidoTeam": "ваша команда Gradido"
     },
@@ -86,17 +138,26 @@
       "title": "Сброс пароля",
       "youOrSomeoneResetPassword": "вы или кто-то другой запросили сброс пароля для этого аккаунта."
     },
+    "thankYouCardPaid": {
+      "blockCard": "Заблокировать карту",
+      "card": "Карта: {cardLabel}",
+      "memo": "Назначение: {transactionMemo}",
+      "notYou": "Это были не вы? Заблокируйте карту прямо здесь — она перестанет работать, ваш адрес Gradido останется.",
+      "recipient": "Получатель: {recipientName} ({recipientCommunity})",
+      "subject": "Вы передали {amountGDD} GDD своей картой благодарности",
+      "title": "Картой благодарности передано {amountGDD} GDD",
+      "wasPaid": "Только что вашей картой благодарности передано {amountGDD} GDD."
+    },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) только что воспользовался вашей ссылкой.",
+      "hasRedeemedYourLink": "Пользователь {senderAlias} ({senderCommunity}) только что воспользовался вашей ссылкой.",
       "memo": "Сообщение: {transactionMemo}",
-      "subject": "{senderFirstName} {senderLastName} воспользовался вашей ссылкой Gradido",
-      "title": "{senderFirstName} {senderLastName} воспользовался вашей ссылкой Gradido"
+      "subject": "Пользователь {senderAlias} воспользовался вашей ссылкой Gradido",
+      "title": "Пользователь {senderAlias} воспользовался вашей ссылкой Gradido"
     },
     "transactionReceived": {
-      "haveReceivedAmountGDDFrom": "вы только что получили {transactionAmount} GDD от {senderFirstName} {senderLastName}",
-      "replySubject": "RE: {senderFirstName} {senderLastName} отправил вам {transactionAmount} Gradido",
-      "subject": "{senderFirstName} {senderLastName} отправил вам {transactionAmount} Gradido",
-      "title": "{senderFirstName} {senderLastName} отправил вам {transactionAmount} Gradido"
+      "haveReceivedAmountGDDFrom": "вы только что получили {transactionAmount} GDD от {senderAlias}.",
+      "subject": "Пользователь {senderAlias} отправил вам {transactionAmount} Gradido",
+      "title": "Пользователь {senderAlias} отправил вам {transactionAmount} Gradido"
     }
   },
   "general": {

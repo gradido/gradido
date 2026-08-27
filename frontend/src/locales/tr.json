@@ -17,12 +17,30 @@
     "desc": "Birlikte birbirimizi destekliyoruz – çember kültüründe özenle.",
     "title": "Gradido-Çemberleri"
   },
-  "PersonalDetails": "Kişisel bilgiler",
   "advanced-calculation": "Önceden hesaplama",
   "answerNow": "→ Şimdi yanıtla!",
   "appOutdated": {
     "reload": "Yenile",
     "text": "Daha yeni bir sürüm mevcut. Lütfen sayfayı yenileyin."
+  },
+  "assistedRegistration": {
+    "assist": {
+      "button": "Hesap aç",
+      "done": "Hesap hazır! Bir onay e-postası yeni posta kutusuna doğru yolda. Şimdi giriş yap ve çeki bozdur:",
+      "emailHint": "Buraya yeni üyenin kendi e-posta adresini gir — seninkini değil. Şifreyi yeni üye kendisi yazar.",
+      "emailTaken": "Bu e-posta adresinin zaten bir Gradido hesabı var. Tekrar girmek için \"Şifremi unuttum\" yolunu kullan.",
+      "intro": "{name} bir Gradido hesabı başlatmak istiyor.",
+      "invalid": "Bu bağlantı geçersiz veya süresi dolmuş.",
+      "loginButton": "Giriş yap ve çeki bozdur",
+      "title": "Birlikte bir Gradido hesabı açmak"
+    },
+    "confirm": {
+      "button": "Adresi onayla",
+      "done": "E-posta adresin onaylandı. Hesabın artık kalıcı olarak sana açık.",
+      "invalid": "Bu onay bağlantısı geçersiz veya süresi dolmuş. Giriş yap ve kendine yeni bir e-posta gönder.",
+      "text": "Bu e-posta adresinin Gradido hesabına ait olduğunu onaylamak için düğmeye tıkla.",
+      "title": "E-posta adresini onayla"
+    }
   },
   "asterisks": "****",
   "auth": {
@@ -36,7 +54,58 @@
       "oneGratitude": "Birbirimiz, tüm insanlar ve doğa için."
     }
   },
+  "avatar": {
+    "apply": "Uygula",
+    "change": "Profil resmini değiştir",
+    "choose-image": "Görsel seç",
+    "error-format": "Tarayıcı bu görseli açamıyor. Lütfen bir JPEG veya PNG seç.",
+    "error-heic": "Tarayıcı bu görseli açamıyor. Bu bir HEIC, iPhone'un kamera biçimi. JPEG'e dönüştür ya da görseli doğrudan iPhone'da seç.",
+    "error-too-large": "Bu görsel çok büyük. Lütfen {limit} MB'tan küçük bir görsel seç.",
+    "measure": "Kaynak dosya {source} KB, {result} KB gönderilecek",
+    "mirror": "Aynala",
+    "pick-hint": "Bir görseli buraya sürükle veya aşağıdan seç",
+    "remove": "Resmi kaldır",
+    "remove-confirm": "Evet, kaldır",
+    "remove-question": "Hesabın yeniden baş harflerini gösterecek. İstediğin zaman yeni bir resim ayarlayabilirsin.",
+    "removed": "Profil resmin kaldırıldı",
+    "rotate": "Döndür",
+    "set": "Profil resmi ayarla",
+    "size": "Boyut",
+    "take-photo": "Fotoğraf çek"
+  },
   "back": "Geri",
+  "calculator": {
+    "back": "Geri",
+    "card": {
+      "from-calculator": "hesap makinesinden",
+      "park": "Teşekkür kartıyla",
+      "park-failed": "Not edilmedi — tutarı taradıktan sonra gir.",
+      "parked": "Tutar not edildi: {amount} GDD",
+      "scan": "Kartı tara",
+      "undo": "Geri al"
+    },
+    "copy": {
+      "copied": "Kopyalandı.",
+      "fiat": "{currency} tutarını kopyala",
+      "gdd": "Gradido tutarını kopyala",
+      "not-copied": "Kopyalanamadı."
+    },
+    "daily-rate": "Günlük kur",
+    "dankbar-equals": "{dankBar} DankBar = {gdd} Gradido",
+    "dankbar-to-gdd": "DankBar → GDD",
+    "gradido-share": "Gradido %",
+    "purchasing-power": "Satın alma gücü: 1 GDD = {factor} {currency}",
+    "settings": {
+      "currency": "Para birimi",
+      "purchasing-power": "Satın alma gücü — 1 GDD =",
+      "show-dankbar": "DankBar’ı göster",
+      "sound": "Ses",
+      "title": "Ayarlar"
+    },
+    "share": {
+      "label": "Gradido payı (0–100 %)"
+    }
+  },
   "card-circles": {
     "allowed": {
       "button": "Çemberleri aç..."
@@ -89,10 +158,10 @@
       "myContributionNoteList": "Bildirmiş olduğun henüz onaylanmamış olan  faaliyetleri istediğin zaman düzenleyebilir veya silebilirsin.",
       "pending": "Gönderildi ve onay bekleniyor"
     },
-    "communityWindow": "Contributions from the last {months} months",
+    "communityWindow": "Son {months} ayın katkıları",
     "creationGroup": {
       "help": "İsteğe bağlı. Grupsuz da olur. Metindeki bir #kelime grup belirlemez — bunun için bu alan var.",
-      "label": "Creation group",
+      "label": "Yaratım grubu",
       "none": "(grupsuz)"
     },
     "delete": "Hizmet gerçekten silinsin mi? Bundan sonra onu yalnızca sen ve moderatörler görebilir, topluluk göremez.",
@@ -102,8 +171,8 @@
       "byGroup": "Yaratım grubuna göre filtrele",
       "grouped": "(tüm gruplar)",
       "noGroup": "(grupsuz)",
-      "noResults": "No contributions found.",
-      "search": "Search contributions …"
+      "noResults": "Katkı bulunamadı.",
+      "search": "Katkılarda ara …"
     },
     "formText": {
       "bringYourTalentsTo": "Yeteneklerini topluluğa sun! Gönüllü olarak sunduğun hizmetler ayda max 1,000 GDD olacak şekilde saati 20 GDD olarak ödüllendirilecektir! Bir moderatör tarafından onaylandıktan sonra bu tutar hesabına yatırılacaktır.",
@@ -114,7 +183,7 @@
     },
     "isEdited": "katkıyı düzenledi",
     "lastContribution": "Son Katkılar",
-    "memoIsPublic": "Your description appears in the community list, where it is visible to all members. It shows the contribution's number instead of your name.",
+    "memoIsPublic": "Açıklaman topluluk listesinde görünür ve orada bütün üyeler tarafından görülebilir. Adının yerine katkının numarası yazar.",
     "noContributions": {
       "allContributions": "Henüz hiç katkı gönderilmedi.",
       "emptyPage": "Bu sayfa boş.",
@@ -125,7 +194,7 @@
       "lastMonth": "Seçilen ay için yaratım limitine ulaşıldı.",
       "thisMonth": "İçinde bulunduğun ay için yaratım limitine ulaşıldı."
     },
-    "number": "Contribution no. {number}",
+    "number": "Katkı no. {number}",
     "oldContribution": "Önceki sürüm",
     "selectDate": "Hizmet ne zaman verildi?",
     "submit": "Başvuru yapıldı",
@@ -162,6 +231,31 @@
   "download": "İndir",
   "edit": "düzenle",
   "em-dash": "—",
+  "emailChange": {
+    "confirm": {
+      "button": "Yeni adresi onayla",
+      "done": "E-posta adresin değiştirildi. Bundan sonra yeni adresle giriş yap.",
+      "text": "Tek tıkla bu adres Gradido hesabının e-posta adresi olur. O zamana kadar önceki adresin geçerli kalır.",
+      "title": "Yeni e-posta adresini onayla"
+    },
+    "invalid": "Bu bağlantı geçersiz veya süresi dolmuş. Ayarlarından yeni bir onay e-postası isteyebilirsin.",
+    "revoke": {
+      "button": "Değişikliği iptal et",
+      "done": "Değişiklik iptal edildi – önceki adresin kalır. Değişikliği sen istememişsen lütfen şifreni de değiştir.",
+      "text": "Bu sen değil miydin? O zaman istenen değişikliği iptal et – önceki adresin kalır.",
+      "title": "E-posta adresi değişikliğini iptal et"
+    }
+  },
+  "emailConfirmation": {
+    "changeAddress": "Adresi düzelt",
+    "grace": "{deadline} tarihine kadar hesabını tam olarak kullanabilirsin — sonrasında onayını bekler.",
+    "later": "Daha sonra",
+    "mailSent": "Bir onay e-postası adresine doğru yolda. Lütfen içindeki bağlantıya tıkla.",
+    "overdue": "Geçiş süresi doldu. Lütfen e-posta adresini onayla — hesabın hemen yeniden tamamen açılır.",
+    "resend": "E-postayı yeniden gönder",
+    "resent": "Onay e-postası yeniden yolda.",
+    "title": "E-posta adresini onayla"
+  },
   "error": {
     "email-already-sent": "Sana 10 dakikadan daha az sürede e-posta gönderdik .",
     "empty-transactionlist": "İşlem sayısının iletiminde bir hata oluştu.",
@@ -274,6 +368,7 @@
       },
       "identifier": {
         "communityIsReachable": "Topluluk bulunamadı veya erişilemiyor!",
+        "formatError": "Bu alıcıyı okuyamıyoruz. Mümkün olanlar: kullanıcı adı, e-posta, topluluk/kullanıcı adı ya da topluluk.net/u/kullaniciadi gibi bir Gradido adresi.",
         "required": "Alıcı zorunlu bir alandır.",
         "typeError": "Alıcı bir e-posta, kullanıcı adı veya Gradido ID olmalı."
       },
@@ -350,7 +445,27 @@
     "raise": "Artış",
     "recruited-member": "Davetli üye"
   },
+  "gradido-card": {
+    "contact": "İletişim",
+    "contact-count": "{max} satırdan {count} tanesi · bu cihazda saklanıyor",
+    "contact-hint": "Buraya yazdığın da basılır. Bu cihazda kalır ve sunucuya gönderilmez — paylaşılan bir bilgisayarda boş bırakmak daha iyidir.",
+    "contact-placeholder": "E-posta, telefon, web sitesi … — her satıra bir bilgi",
+    "contact-print-heading": "bu kelimeyi de yazdır",
+    "contact-too-many": "{max} satırdan fazla — kartta yalnızca ilk {max} satır yer alır.",
+    "description": "Yazdırmak ve dağıtmak için: adın, topluluğun, kullanıcı adın, QR kodun ve iletişim satırların banka kartı büyüklüğünde bir kartta. Kartı alan kişi sana Gradido gönderebilir ve sana ulaşabilir.",
+    "download": "Kartviziti indir",
+    "download-hint": "Baskı kalitesinde tek bir görsel — bir matbaa için veya birine vermek için.",
+    "needs-username": "Kartın Gradido adresini taşır ve bu adres kullanıcı adından oluşur. Lütfen önce bir tane seç — alan «Hesabım» bölümünde. Sonra kartını yazdırıp verebilirsin.",
+    "needs-username-title": "Önce kullanıcı adı",
+    "real-name": "Gerçek ad",
+    "real-name-hint": "İşaret kaldırılırsa kartın üstünde kullanıcı adın yer alır — adın o zaman kartta hiçbir yerde görünmez.",
+    "real-name-print": "onu da yazdır",
+    "sheet": "10 kartlık sayfa",
+    "sheet-hint": "Bir A4 sayfada orijinal boyutta 10 kartvizit. Yazdırma penceresinde PDF olarak da kaydedebilirsin.",
+    "title": "Kartvizitin"
+  },
   "gradidoid-copied-to-clipboard": "Gradido ID panoya kopyalandı.",
+  "gradidoid-not-copied": "Cihazın kopyalamaya izin vermiyor. Lütfen adresi seçip elle kopyala.",
   "h": "sa",
   "info": "Bilgi",
   "language": "Dil",
@@ -564,12 +679,30 @@
   },
   "missingGradidoAccount": "Henüz bir {communityName} hesabın yok mu?",
   "moderatorChangedMemo": "Metin moderatör tarafından düzenlendi",
+  "my-codes": {
+    "back": "Geri",
+    "gradido-card": {
+      "hint": "Bu kodu okutan sana Gradido gönderebilir."
+    },
+    "thank-you-card": {
+      "failed": "Kart şu anda yüklenemedi.",
+      "hint": "Bu kodu basılı bir teşekkür kartı gibi göster — onay senin PIN’inle verilir.",
+      "no-card": "Henüz bir kart oluşturmadın. Ayarlarda ona bir ad verirsin — sonra burada gösterebilir ve yazdırabilirsin.",
+      "not-set-up": "Kart işlevi henüz kurulmadı. Ayarlarda bir PIN ve üst sınırlarını belirlersin.",
+      "retry": "Yeniden dene",
+      "to-settings": "Ayarlara git"
+    }
+  },
   "navigation": {
     "admin_area": "Yönetici Alanı",
+    "back-to-account": "Hesaba dön",
+    "back-to-settings": "Ayarlara dön",
+    "calculator": "Hesap makinesi",
     "community": "Topluluk",
     "logout": "Çıkış",
     "matching": "Matching",
     "overview": "Toplu Bakış",
+    "scanner": "Kod tara",
     "send": "Gönder",
     "settings": "Ayarlar",
     "support": "Destek",
@@ -577,18 +710,59 @@
   },
   "openHours": "Açık Saatler",
   "pageTitle": {
+    "calculator": "Hesap makinesi",
     "circles": "Gradido Çemberleri",
     "contributions": "Gradido yarat",
     "gdt": "GDT işlemlerin",
     "information": "{community}",
     "matching": "Matching",
+    "my-gradido-card": "Kartvizitimin QR kodu",
+    "my-thank-you-card": "Teşekkür kartımın QR kodu",
     "overview": "Hoş geldin {name}",
+    "scanner": "Kod tara",
     "send": "Gradido ve e-posta gönder",
     "settings": "Ayarlar",
     "transactions": "İşlemlerin",
     "usersearch": "Coğrafi üye arama (beta)"
   },
+  "public-profile": {
+    "address": "Gradido adresi",
+    "send": "Gradido gönder"
+  },
   "qrCode": "QR Kodu",
+  "scanner": {
+    "back": "Geri",
+    "denied": {
+      "help": "Tarayıcı ayarlarında bu sayfa için erişime izin verebilirsin.",
+      "title": "Kameraya erişim yok"
+    },
+    "foreign": {
+      "cheque": "Başka bir topluluğun çeki",
+      "continue": "Taramaya devam et",
+      "gradido-card": "Başka bir topluluğun kartviziti",
+      "open": "Orada aç",
+      "thank-you-card": "Başka bir topluluğun teşekkür kartı"
+    },
+    "hint": "Teşekkür kartını, çeki veya kartviziti görüntüye tut",
+    "manual": {
+      "close": "Taramaya devam et",
+      "invalid": "Bu bir Gradido kodu veya linki değil.",
+      "label": "Kod veya link",
+      "open": "Kodu veya linki elle gir",
+      "submit": "Aç"
+    },
+    "no-gradido-code": "Gradido kodu değil.",
+    "permission-hint": "Her seferinde kamera sorusu mu geliyor? Tarayıcının site ayarlarında bu sayfa için kameraya kalıcı olarak izin verebilirsin.",
+    "system-camera": {
+      "parked": "Kaydedilen tutar bekliyor ve devralınacak.",
+      "text": "Cihazının kamerası taramadan sonra doğru sayfayı açar.",
+      "title": "Kamera uygulamasıyla tara"
+    },
+    "title": "Gradido kodunu tara",
+    "unavailable": {
+      "title": "Kamera bulunamadı"
+    }
+  },
   "send_email": "E‑posta gönder",
   "send_gdd": "GDD gönder",
   "send_per_link": "Link, çek, QR",
@@ -617,30 +791,44 @@
         "userCoords": "Konumun: Enlem {lat}, Boylam {lng}",
         "userLocationLabel": "Konumun"
       },
-      "naming-format": "İsmi göster:",
       "publish-location": {
         "approximate": "Yaklaşık konum",
         "exact": "Tam konum",
         "updated": "GMS için konum türü güncellendi"
-      },
-      "publish-name": {
-        "updated": "GMS için isim biçimi güncellendi"
       }
     },
+    "avatar": {
+      "disabled": "Resmini artık yalnızca sen görüyorsun.",
+      "enabled": "Resmin diğer üyeler tarafından görülebiliyor.",
+      "visibility": "Resmimi diğer üyelere göster",
+      "visibilityInfo": "Diğer üyeler resmini, örneğin paylaştığın işlemlerin yanında görür. Ayar kapalıyken şimdiye kadar olduğu gibi baş harflerin görünür."
+    },
     "community": "Çemberler & Üye arama",
-    "emailInfo": "Şu anda henüz değiştirilemiyor.",
-    "hideAmountGDD": "GDD tutarın gizli.",
-    "hideAmountGDT": "GDT tutarın gizli.",
+    "email": {
+      "cancel": "İptal",
+      "cancelled": "Değişiklik iptal edildi.",
+      "change": "E-posta adresini değiştir",
+      "error-invalid": "Bu geçerli bir e-posta adresi değil.",
+      "error-password": "Şifre doğru değil.",
+      "error-same": "Bu zaten hesabının e-posta adresi.",
+      "error-taken": "Bu e-posta adresi zaten kullanımda.",
+      "error-wait": "Yeni bir e-posta istemeden önce lütfen birkaç dakika bekle.",
+      "new": "Yeni e-posta adresi",
+      "password": "Mevcut şifren",
+      "password-why": "Güvenlik için – kilidi açık bir cihazda kimse adresini değiştiremesin diye.",
+      "pending": "Onay bekleniyor: {email} adresine bir e-posta gönderdik. İçindeki bağlantıya tıklayana kadar önceki adresin geçerli kalır.",
+      "resend": "E-postayı yeniden gönder",
+      "resend-wait": "{minutes} dk. sonra yeniden gönder",
+      "send": "Onay e-postası gönder",
+      "sent": "{email} adresine bir onay e-postası gönderdik."
+    },
+    "emailInfo": "Yeni bir adres, onay e-postasındaki bağlantı üzerinden onayladığın anda geçerli olur.",
+    "hide-amount": "{currency} tutarını gizle",
     "humhub": {
       "delete-disabled": "Kullanıcı hesabı yalnızca işbirliği platformunun profil menüsünden silinebilir.",
       "disabled": "Veriler Gradido Topluluğuna aktarılmıyor",
-      "enabled": "Veriler Gradido Topluluğuna aktarılıyor",
-      "naming-format": "İsmi göster:",
-      "publish-name": {
-        "updated": "Gradido Topluluğu için isim biçimi güncellendi."
-      }
+      "enabled": "Veriler Gradido Topluluğuna aktarılıyor"
     },
-    "info": "İşlemler artık kullanıcı adı veya e-posta adresiyle yapılabilir.",
     "language": {
       "de": "Deutsch",
       "en": "English",
@@ -650,12 +838,23 @@
       "nl": "Nederlands",
       "success": "Dil başarıyla güncellendi."
     },
+    "menu": {
+      "account": "Hesabım",
+      "appearance": "Gösterim",
+      "gradido-card": "Kartvizit",
+      "notifications": "Mesajlar",
+      "state": {
+        "blocked": "Engellendi",
+        "off": "Kapalı",
+        "on": "Açık"
+      },
+      "visibility": "Görünürlük"
+    },
     "name": {
       "change-success": "Adın başarıyla değiştirildi.",
       "enterFirstname": "Adını gir",
       "enterLastname": "Soyadını gir"
     },
-    "newSettings": "Yeni Ayarlar",
     "newsletter": {
       "newsletter": "E-posta yoluyla bilgilendirme",
       "newsletterFalse": "E-posta ile herhangi bir bilgi almayacaksın.",
@@ -676,20 +875,6 @@
       },
       "subtitle": "Şifreni unuttuysan, buradan sıfırlayabilirsin."
     },
-    "publish-name": {
-      "alias-or-initials": "Kullanıcı adı veya baş harfler",
-      "alias-or-initials-tooltip": "Varsa kullanıcı adı, yoksa adın ve soyadın baş harfleri, her birinin ilk iki harfi",
-      "first": "Ad",
-      "first-initial": "Ad ve baş harf",
-      "first-initial-tooltip": "Ad artı soyadının ilk harfi",
-      "first-tooltip": "Yalnızca ad",
-      "initials": "Baş harfler",
-      "initials-tooltip": "Ad ve soyadın baş harfleri, yani kullanıcı adının varlığından bağımsız olarak her birinin ilk iki harfi",
-      "name-full": "Ad ve soyad",
-      "name-full-tooltip": "Tam ad: ad artı soyad"
-    },
-    "showAmountGDD": "GDD tutarın görünür.",
-    "showAmountGDT": "GDT tutarın görünür.",
     "theme": {
       "dark": "Koyu",
       "hint": "Cihazının veya tarayıcının ayarına göre açık ve koyu mod arasında otomatik geçiş için 'Sistem ayarını izle'yi seç.",
@@ -699,9 +884,27 @@
     },
     "username": {
       "change-success": "Kullanıcı adın başarıyla değiştirildi.",
-      "no-username": "Lütfen bir kullanıcı adı gir. Böylece diğer kullanıcıların e-posta adresini açıklamadan seni bulmasına yardımcı olursun."
-    },
-    "usernameInfo": "Kaydettikten sonra değiştirilemez!"
+      "confirm-free": "Bu ad zaten sendeydi — bu değişiklik yılına sayılmaz.",
+      "confirm-last": "Bu, bu yılki son değişikliğin.",
+      "confirm-left": "Sonrasında adını bu yıl bir kez daha değiştirebilirsin. | Sonrasında adını bu yıl {n} kez daha değiştirebilirsin.",
+      "confirm-reserved": "{name} senin için ayrılmış kalır — istediğin zaman geri alabilirsin.",
+      "confirm-title": "Kullanıcı adını gerçekten değiştirmek istiyor musun?",
+      "first-back": "Geri",
+      "first-check-failed": "denetlenemedi",
+      "first-checking": "kontrol ediliyor …",
+      "first-choose-title": "Bir ad seç",
+      "first-free": "hâlâ boş",
+      "first-hint": "Bunu koruyabilir ya da kendin bir ad seçebilirsin. Sonrasında yılda dört değişiklik mümkün.",
+      "first-intro": "Diğer üyeler seni bu adla görür ve sana Gradido göndermek için bu adla bulur. Sana bir tane önerdik:",
+      "first-invalid": "Bu ad kurallara uymuyor",
+      "first-keep": "Böyle iyi",
+      "first-other": "Başkasını seç",
+      "first-rules": "3 ila 20 karakter · harfler, rakamlar, - ve _",
+      "first-taken": "Bu ad zaten alınmış",
+      "first-title": "Kullanıcı adın",
+      "quota-blocked": "Bu yıl için ad değişikliği hakkını doldurdun. {date} tarihinden itibaren yeniden mümkün.",
+      "quota-left": "Kullanıcı adını bu yıl bir kez daha değiştirebilirsin. | Kullanıcı adını bu yıl {n} kez daha değiştirebilirsin."
+    }
   },
   "signin": "Giriş yap",
   "signup": "Kayıt ol",
@@ -726,6 +929,71 @@
   "status": "Durum",
   "submitted": "Gönderildi",
   "success": "Başarılı",
+  "thank-you-card": {
+    "back-to-calculator": "Hesap makinesine dön",
+    "name": "Teşekkür kartı",
+    "receive": {
+      "amount": "{amount} GDD",
+      "attempts-left": "{n} deneme kaldı",
+      "default-memo": "Teşekkür kartı",
+      "next": "Devam",
+      "next-payment": "Sonraki işlem",
+      "pin-title": "PIN’ini gir lütfen",
+      "remember-memo": "Bu açıklamayı hatırla",
+      "rest-note": "ayrıca ödenir.",
+      "sent-from-to": "{from} tarafından {to} kişisine gönderildi",
+      "subtitle": "Bir teşekkür kartı okutuldu.",
+      "thanks": "Çok teşekkürler!"
+    },
+    "settings": {
+      "block": "Kartı blokla",
+      "block-confirm": "Bundan sonra bu kartla teşekkür edilemez. Başka bir kart etkin olmadığı sürece daha sonra blokeyi kaldırabilirsin.",
+      "block-confirm-card": "Teşekkür kartı: {label}",
+      "block-confirm-title": "Kart bloklansın mı?",
+      "blocked": "Kart bloklu.",
+      "blocked-on": "{date} tarihinde bloklandı",
+      "change-pin": "PIN değiştir",
+      "create": "Kart oluştur",
+      "created": "Kart oluşturuldu.",
+      "disable": "Kart işlevini kapat",
+      "disabled": "Kart işlevi kapalı.",
+      "earlier-cards": "Önceki kartlar",
+      "enable": "PIN belirle ve aç",
+      "explain": "Bir teşekkür kartıyla telefonun yanında olmasa da teşekkür edebilirsin. Kartı gösterirsin, karşındaki tutarı yazar — ve sen PIN’inle onaylarsın. Telefonun yanındaysa ama kart yanında değilse, aynı kodu ekranda gösterirsin — yukarı oklu simge.",
+      "explain-pin": "PIN’ini başkasının cihazında yazarsın. Bu yüzden bir üst sınır belirlersin: bundan fazlası asla çekilemez.",
+      "label": "Adlandırma",
+      "label-placeholder": "örn. cüzdan",
+      "max-per-day": "Günlük üst sınır",
+      "max-per-payment": "İşlem başına üst sınır",
+      "not-set-up": "Henüz kurulmadı.",
+      "on": "Açık",
+      "pin-hide": "PIN’i gizle",
+      "pin-rules": "Altı rakam. Altı kez aynısı olmasın, 123456 gibi bir dizi olmasın ve başta doğum yılı olmasın.",
+      "pin-show": "PIN’i göster",
+      "pin-title": "PIN belirle",
+      "saved": "Kaydedildi",
+      "sheet": "Teşekkür kartını yazdır",
+      "sheet-hint": "Teşekkür kartın bir A4 sayfada orijinal boyutta, ince çizgiden kesmek için. Yazdırma penceresinde PDF olarak da kaydedebilirsin.",
+      "title": "Teşekkür kartın – Kartla teşekkür et",
+      "unblock": "Blokeyi kaldır",
+      "unblock-needs-no-active": "Bunun blokesini kaldırmak için önce etkin kartı bloklaman gerekir — aynı anda yalnızca bir kartla teşekkür edilebilir.",
+      "unblocked": "Kart yeniden çalışıyor.",
+      "your-card": "Kartın"
+    },
+    "status": {
+      "BLOCKED_NOW": "Üç yanlış denemeden sonra kart bloklanır. Sahibi kendi Gradido hesabında blokeyi yeniden kaldırabilir.",
+      "CARD_BLOCKED": "Bu teşekkür kartı bloklu.",
+      "CARD_NOT_SET_UP": "Bu kartla şu anda teşekkür edilemiyor.",
+      "CARD_UNKNOWN": "Bu kartı tanımıyoruz.",
+      "LIMIT_PER_DAY_EXCEEDED": "Bu kartın günlük sınırına ulaşıldı.",
+      "LIMIT_PER_PAYMENT_EXCEEDED": "Tutar bu kartın üst sınırının üzerinde.",
+      "NOT_ENOUGH_GDD": "Bakiye yetmiyor.",
+      "OWN_CARD": "Bu senin kendi kartın.",
+      "REQUEST_GONE": "İstek zaman aşımına uğradı. Lütfen yeniden başla.",
+      "SUCCESS": "Hazır",
+      "WRONG_PIN": "PIN doğru değil."
+    }
+  },
   "thank-you-cheque": {
     "download": "Çeki indir",
     "scan-qr": "Senin hesabına Gradido transferi için QR kodu tara!",
@@ -755,6 +1023,7 @@
     "headline": "Coğrafi Kullanıcı Arama",
     "text": "Hangi topluluğa ait olursan ol, Geo Matching System ile tüm toplulukların üyelerini bir haritada bulabilirsin. Tekliflere ve ihtiyaçlara göre filtreleyebilir ve sana uygun kullanıcıları görüntüleyebilirsin.\n\nDüğmeyle, çevrendeki kullanıcıların bir haritada gösterildiği yeni bir tarayıcı penceresi açılır."
   },
+  "via_card": "kart ile",
   "via_link": "link yoluyla",
   "welcome": "Topluluğa hoşgeldin"
 }

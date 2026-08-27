@@ -1,3 +1,5 @@
+export * from './aliasFromName'
 export * from './BinaryData'
 export * from './onShutdown'
+export * from './publicAlias'
 export * from './updateField'

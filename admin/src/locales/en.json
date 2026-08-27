@@ -461,8 +461,18 @@
   "unregister_mail": {
     "button": "Confirm registration email, send now",
     "error": "Error sending the confirmation link to the user: {message}",
+    "gdt_email": "For the GDT server the first address of this account counts: {email}",
     "info": "Confirm email, send repeatedly to:",
     "never_sent": "It seems we did never send an email to the member {email}",
+    "pending": "Change pending: confirmation requested for {email} on {date}",
+    "replace": {
+      "button": "Correct address",
+      "elopage_warning": "Caution: there are Elopage purchases under {email}. This account most likely came from the webhook – the address is then probably not a typo.",
+      "hint": "Only while the address was never confirmed (e.g. a typo at registration). The confirmation mail then goes to the corrected address.",
+      "placeholder": "Corrected e-mail address",
+      "success": "Address corrected and confirmation mail sent to {email}.",
+      "title": "Correct a never-confirmed address"
+    },
     "success": "Successfully send the confirmation link to the user's email! ({email})",
     "text_false": "The last email was sent to the member ({email}) on {date}.",
     "text_true": "The email was confirmed."

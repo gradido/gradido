@@ -1,5 +1,3 @@
-#import './user.graphql'
-
 fragment unconfirmedContributionFields on Contribution {
   id
   amount
@@ -26,8 +24,11 @@ fragment contributionMessageFields on ContributionMessage {
   createdAt
   updatedAt
   type
-  userFirstName
-  userLastName
+  # What the thread shows as the author's name (NU-020), and the author's circle colour
+  # as a finished digit (NU-017) -- the real name no longer travels on this type, and no
+  # circle changes colour (AS-010).
+  userAlias
+  userAvatarColorIndex
   userId
 }
 

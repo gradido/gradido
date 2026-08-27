@@ -1,6 +1,8 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { nextTick } from 'vue'
 import LastTransactions from './LastTransactions'
+import { forgetAllMemberAvatars, rememberMemberAvatars } from '@/composables/useMemberAvatars'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -25,6 +27,15 @@ vi.mock('@/components/TransactionRows/Name', () => ({
 
 describe('LastTransactions', () => {
   let wrapper
+
+  // ⚠️ Every wrapper here reads the picture store, which is reactive -- so one left mounted
+  // goes on re-rendering when a later test stores or forgets a picture, outside the test
+  // that built it and without the mocks that test provided. Three unhandled rejections and
+  // a red run, from tests that all reported green.
+  afterEach(() => {
+    wrapper?.unmount()
+    wrapper = undefined
+  })
 
   const createWrapper = (props = {}) => {
     return mount(LastTransactions, {
@@ -104,5 +115,99 @@ describe('LastTransactions', () => {
     wrapper = createWrapper({ transactions })
     await wrapper.vm.$nextTick()
     expect(wrapper.findAll('.mb-4').length).toBe(1)
+  })
+
+  /**
+   * The most prominent avatar in the wallet, and the one carrying decision AS-008.
+   *
+   * ⛔ Written because nothing measured either half: the size was a decision nobody could
+   * see in a test, and the letters-from-alias rule is passed by this call site rather than
+   * enforced by the component it calls.
+   */
+  describe('the avatar beside each booking', () => {
+    const NAPOLI = {
+      id: 3,
+      amount: '-12.5',
+      linkedUser: { firstName: 'Pizzeria', lastName: 'Napoli', alias: 'napoli' },
+    }
+    // Own mount: the shared helper stubs BRow/BCol with `true`, and such a stub does not
+    // render what is inside it -- the avatar would never exist to be asked about.
+    const mountRows = (transactions) =>
+      mount(LastTransactions, {
+        props: { transactions },
+        global: {
+          mocks: {
+            $t: (key) => key,
+            $d: (date) => String(date),
+            $filters: { signedAmount: (amount) => String(amount) },
+          },
+          stubs: {
+            BRow: { template: '<div><slot /></div>' },
+            BCol: { template: '<div><slot /></div>' },
+          },
+        },
+      })
+    const avatar = () => wrapper.findComponent({ name: 'AppAvatar' })
+
+    beforeEach(() => {
+      forgetAllMemberAvatars()
+    })
+
+    // 64, not 72: the stored picture is 128 across, and 72 points on a 2x screen asks for
+    // 144 -- more than exists, so it was visibly soft exactly where it is largest (AS-008).
+    it('is 64 points, which is what the stored picture actually covers', () => {
+      wrapper = mountRows([NAPOLI])
+      expect(avatar().props().size).toBe(64)
+    })
+
+    it('shows the alias letters and keeps the colour on the real initials', () => {
+      wrapper = mountRows([NAPOLI])
+      expect(avatar().props().initials).toBe('NA')
+      expect(avatar().props().colorSeed).toBe('PN')
+    })
+
+    /**
+     * ⛔ The same wrapper throughout, painted first and given the picture second -- which is
+     * the order the wallet actually meets. The store is a plain Map, so the counter that
+     * `storedMemberAvatar` reads is the only thing that tells a rendered row to look again.
+     * Remounting between the two halves, which is what this test used to do, passes with
+     * that counter deleted; the member would then see initials for the whole visit.
+     */
+    it('shows a picture the wallet holds, and nothing while it holds none', async () => {
+      const when = '2026-08-19T09:00:00.000Z'
+      wrapper = mountRows([
+        {
+          ...NAPOLI,
+          linkedUser: { ...NAPOLI.linkedUser, gradidoID: 'g-napoli', avatarUpdatedAt: when },
+        },
+      ])
+      expect(avatar().props().src).toBe('')
+
+      rememberMemberAvatars([
+        {
+          gradidoID: 'g-napoli',
+          communityUuid: null,
+          avatar: 'the-picture',
+          avatarUpdatedAt: when,
+        },
+      ])
+      await nextTick()
+
+      expect(avatar().props().src).toBe('data:image/jpeg;base64,the-picture')
+    })
+
+    /**
+     * A booking whose counterparty the backend could not resolve arrives as
+     * `linkedUser: null`. Here that is worse than one odd circle: the throw happens inside
+     * this component's own `v-for`, so the whole "last bookings" panel disappears -- and
+     * the name binding beside the avatar used to dereference it without a guard.
+     */
+    it('draws an empty circle rather than losing the whole list', () => {
+      expect(() => {
+        wrapper = mountRows([{ ...NAPOLI, linkedUser: null }])
+      }).not.toThrow()
+      expect(avatar().props().initials).toBe('')
+      expect(avatar().props().name).toBe('')
+    })
   })
 })

@@ -17,12 +17,30 @@
     "desc": "Samen ondersteunen we elkaar – aandachtig, in kringcultuur.",
     "title": "Gradido-kringen"
   },
-  "PersonalDetails": "Persoonlijke gegevens",
   "advanced-calculation": "Voorcalculatie",
   "answerNow": "→ Nu antwoorden!",
   "appOutdated": {
     "reload": "Opnieuw laden",
     "text": "Er is een nieuwere versie beschikbaar. Laad de pagina opnieuw."
+  },
+  "assistedRegistration": {
+    "assist": {
+      "button": "Account aanmaken",
+      "done": "Het account is klaar! Een bevestigingsmail is onderweg naar het nieuwe postvak. Meld je nu aan en verzilver de cheque:",
+      "emailHint": "Voer hier het eigen e-mailadres van het nieuwe lid in — niet dat van jou. Het wachtwoord typt het nieuwe lid zelf.",
+      "emailTaken": "Dit e-mailadres heeft al een Gradido-account. Gebruik \"Wachtwoord vergeten\" om weer binnen te komen.",
+      "intro": "{name} wil een Gradido-account beginnen.",
+      "invalid": "Deze link is ongeldig of verlopen.",
+      "loginButton": "Aanmelden en cheque verzilveren",
+      "title": "Samen een Gradido-account aanmaken"
+    },
+    "confirm": {
+      "button": "Adres bevestigen",
+      "done": "Je e-mailadres is bevestigd. Je account staat nu blijvend voor je open.",
+      "invalid": "Deze bevestigingslink is ongeldig of verlopen. Meld je aan en laat je een nieuwe mail sturen.",
+      "text": "Klik op de knop om te bevestigen dat dit e-mailadres bij jouw Gradido-account hoort.",
+      "title": "E-mailadres bevestigen"
+    }
   },
   "asterisks": "****",
   "auth": {
@@ -36,7 +54,58 @@
       "oneGratitude": "Voor elkaar, voor alle mensen, voor de natuur."
     }
   },
+  "avatar": {
+    "apply": "Toepassen",
+    "change": "Profielfoto wijzigen",
+    "choose-image": "Afbeelding kiezen",
+    "error-format": "De browser kan deze afbeelding niet openen. Kies een JPEG of PNG.",
+    "error-heic": "De browser kan deze afbeelding niet openen. Het is een HEIC, het cameraformaat van de iPhone. Zet hem om naar JPEG of kies de afbeelding rechtstreeks op de iPhone.",
+    "error-too-large": "Deze afbeelding is te groot. Kies er een van minder dan {limit} MB.",
+    "measure": "Bronbestand {source} KB, er wordt {result} KB verzonden",
+    "mirror": "Spiegelen",
+    "pick-hint": "Sleep een afbeelding hierheen of kies er hieronder een",
+    "remove": "Foto verwijderen",
+    "remove-confirm": "Ja, verwijderen",
+    "remove-question": "Je account toont dan weer je initialen. Je kunt op elk moment een nieuwe foto instellen.",
+    "removed": "Je profielfoto is verwijderd",
+    "rotate": "Draaien",
+    "set": "Profielfoto instellen",
+    "size": "Grootte",
+    "take-photo": "Foto maken"
+  },
   "back": "Terug",
+  "calculator": {
+    "back": "Terug",
+    "card": {
+      "from-calculator": "uit de rekenmachine",
+      "park": "Met dankkaart",
+      "park-failed": "Niet onthouden — typ het bedrag na het scannen in.",
+      "parked": "Bedrag onthouden: {amount} GDD",
+      "scan": "Kaart scannen",
+      "undo": "Ongedaan maken"
+    },
+    "copy": {
+      "copied": "Gekopieerd.",
+      "fiat": "{currency}-bedrag kopiëren",
+      "gdd": "Gradido-bedrag kopiëren",
+      "not-copied": "Kopiëren niet gelukt."
+    },
+    "daily-rate": "Dagkoers",
+    "dankbar-equals": "{dankBar} DankBar = {gdd} Gradido",
+    "dankbar-to-gdd": "DankBar → GDD",
+    "gradido-share": "Gradido %",
+    "purchasing-power": "Koopkracht: 1 GDD = {factor} {currency}",
+    "settings": {
+      "currency": "Valuta",
+      "purchasing-power": "Koopkracht — 1 GDD =",
+      "show-dankbar": "DankBar tonen",
+      "sound": "Geluid",
+      "title": "Instellingen"
+    },
+    "share": {
+      "label": "Gradido-aandeel (0–100 %)"
+    }
+  },
   "card-circles": {
     "allowed": {
       "button": "Kringen openen..."
@@ -89,10 +158,10 @@
       "myContributionNoteList": "Ingediende bijdragen, die nog niet bevestigd zijn, kun je op elk moment wijzigen of verwijderen.",
       "pending": "Ingediend en wacht op bevestiging"
     },
-    "communityWindow": "Contributions from the last {months} months",
+    "communityWindow": "Bijdragen van de laatste {months} maanden",
     "creationGroup": {
       "help": "Optioneel. Het werkt ook zonder groep. Een #woord in de tekst stelt geen groep in — daarvoor is dit veld.",
-      "label": "Creation group",
+      "label": "Scheppingsgroep",
       "none": "(zonder groep)"
     },
     "delete": "Bijdrage echt verwijderen? Daarna is ze alleen nog zichtbaar voor jou en de moderatoren, onzichtbaar voor de gemeenschap.",
@@ -102,8 +171,8 @@
       "byGroup": "Filteren op creatiegroep",
       "grouped": "(alle groepen)",
       "noGroup": "(zonder groep)",
-      "noResults": "No contributions found.",
-      "search": "Search contributions …"
+      "noResults": "Geen bijdragen gevonden.",
+      "search": "Bijdragen doorzoeken …"
     },
     "formText": {
       "bringYourTalentsTo": "Bied je met jouw talenten in de gemeenschap aan! Jouw vrijwillige inzet belonen we met 20 GGD per uur, tot maximaal 1.000 GGD per maand.",
@@ -114,7 +183,7 @@
     },
     "isEdited": "heeft de bijdrage bewerkt",
     "lastContribution": "Laatste bijdragen",
-    "memoIsPublic": "Your description appears in the community list, where it is visible to all members. It shows the contribution's number instead of your name.",
+    "memoIsPublic": "Jouw beschrijving verschijnt in de gemeenschapslijst en is daar voor alle leden zichtbaar. In plaats van jouw naam staat er het nummer van de bijdrage.",
     "noContributions": {
       "allContributions": "Er zijn nog geen bijdragen ingediend.",
       "emptyPage": "Deze pagina is leeg.",
@@ -125,7 +194,7 @@
       "lastMonth": "De creatielimiet is bereikt voor de geselecteerde maand.",
       "thisMonth": "De creatielimiet is bereikt voor de huidige maand."
     },
-    "number": "Contribution no. {number}",
+    "number": "Bijdrage nr. {number}",
     "oldContribution": "Vorige versie",
     "selectDate": "Wanneer was jouw bijdrage?",
     "submit": "Indienen",
@@ -162,6 +231,31 @@
   "download": "Downloaden",
   "edit": "bewerken",
   "em-dash": "—",
+  "emailChange": {
+    "confirm": {
+      "button": "Nieuw adres bevestigen",
+      "done": "Je e-mailadres is gewijzigd. Log vanaf nu in met het nieuwe adres.",
+      "text": "Met één klik wordt dit adres het e-mailadres van je Gradido-account. Tot dan blijft je vorige adres gelden.",
+      "title": "Nieuw e-mailadres bevestigen"
+    },
+    "invalid": "Deze link is ongeldig of verlopen. In je instellingen kun je een nieuwe bevestigingsmail aanvragen.",
+    "revoke": {
+      "button": "Wijziging verwerpen",
+      "done": "De wijziging is verworpen – je vorige adres blijft bestaan. Had je de wijziging niet zelf aangevraagd, wijzig dan ook je wachtwoord.",
+      "text": "Was jij dat niet? Verwerp dan de aangevraagde wijziging – je vorige adres blijft bestaan.",
+      "title": "Wijziging van e-mailadres verwerpen"
+    }
+  },
+  "emailConfirmation": {
+    "changeAddress": "Adres corrigeren",
+    "grace": "Tot {deadline} kun je je account al volledig gebruiken — daarna wacht het op je bevestiging.",
+    "later": "Later",
+    "mailSent": "Een bevestigingsmail is onderweg naar je e-mailadres. Klik op de link erin.",
+    "overdue": "De overgangstijd is voorbij. Bevestig je e-mailadres — daarna staat je account meteen weer volledig open.",
+    "resend": "Mail opnieuw sturen",
+    "resent": "De bevestigingsmail is opnieuw onderweg.",
+    "title": "Bevestig je e-mailadres"
+  },
   "error": {
     "email-already-sent": "Wij hebben jou minder dan 10 minuten geleden een email gestuurd.",
     "empty-transactionlist": "Er was een fout met de overdracht van het aantal van jouw transacties.",
@@ -274,6 +368,7 @@
       },
       "identifier": {
         "communityIsReachable": "Community niet gevonden of niet bereikbaar!",
+        "formatError": "Deze ontvanger kunnen we niet lezen. Mogelijk zijn: gebruikersnaam, e-mail, gemeenschap/gebruikersnaam of een Gradido-adres zoals gemeenschap.net/u/gebruikersnaam.",
         "required": "Ontvanger is een verplicht veld.",
         "typeError": "Ontvanger moet een email, een gebruikersnaam of een Gradido ID zijn."
       },
@@ -350,7 +445,27 @@
     "raise": "Verhoging",
     "recruited-member": "Uitgenodigd lid"
   },
+  "gradido-card": {
+    "contact": "Contact",
+    "contact-count": "{count} van {max} regels · bewaard op dit apparaat",
+    "contact-hint": "Wat hier staat, wordt mee afgedrukt. Het blijft op dit apparaat en gaat niet naar de server — op een gedeelde computer dus beter leeg laten.",
+    "contact-placeholder": "E-mail, telefoon, website … — één gegeven per regel",
+    "contact-print-heading": "woord meedrukken",
+    "contact-too-many": "Meer dan {max} regels — alleen de eerste {max} staan op de kaart.",
+    "description": "Om af te drukken en uit te delen: jouw naam, jouw gemeenschap, jouw gebruikersnaam, jouw QR-code en jouw contactregels op een kaart ter grootte van een bankpas. Wie hem krijgt, kan jou Gradido sturen en jou bereiken.",
+    "download": "Visitekaartje downloaden",
+    "download-hint": "Eén afbeelding in drukkwaliteit — voor een drukkerij of om door te geven.",
+    "needs-username": "Je kaart draagt je Gradido-adres, en dat adres wordt gevormd uit je gebruikersnaam. Kies er eerst een — het veld staat onder “Mijn rekening”. Daarna kun je je kaart afdrukken en weggeven.",
+    "needs-username-title": "Eerst de gebruikersnaam",
+    "real-name": "Echte naam",
+    "real-name-hint": "Zonder vinkje staat bovenaan je gebruikersnaam — je naam staat dan nergens op het kaartje.",
+    "real-name-print": "meedrukken",
+    "sheet": "Vel met 10 kaarten",
+    "sheet-hint": "10 visitekaartjes op ware grootte op één A4-pagina. In het printvenster kun je hem ook als pdf opslaan.",
+    "title": "Jouw visitekaartje"
+  },
   "gradidoid-copied-to-clipboard": "Gradido ID gekopieerd naar klembord.",
+  "gradidoid-not-copied": "Je apparaat staat kopiëren niet toe. Selecteer het adres en kopieer het met de hand.",
   "h": "h",
   "info": "Informatie",
   "language": "Taal",
@@ -564,12 +679,30 @@
   },
   "missingGradidoAccount": "Nog geen {communityName}-account?",
   "moderatorChangedMemo": "Tekst bewerkt door moderator",
+  "my-codes": {
+    "back": "Terug",
+    "gradido-card": {
+      "hint": "Wie deze code scant, kan je Gradido sturen."
+    },
+    "thank-you-card": {
+      "failed": "De kaart kon nu niet worden geladen.",
+      "hint": "Laat deze code zien als een gedrukte dankkaart — je bevestigt met je pincode.",
+      "no-card": "Je hebt nog geen kaart aangemaakt. In de instellingen geef je hem een naam — daarna kun je hem hier laten zien en ook afdrukken.",
+      "not-set-up": "De kaartfunctie is nog niet ingesteld. In de instellingen stel je een pincode en je maximumbedragen in.",
+      "retry": "Opnieuw proberen",
+      "to-settings": "Naar de instellingen"
+    }
+  },
   "navigation": {
     "admin_area": "Beheerder",
+    "back-to-account": "Terug naar de rekening",
+    "back-to-settings": "Terug naar instellingen",
+    "calculator": "Rekenmachine",
     "community": "Gemeenschap",
     "logout": "Afmelden",
     "matching": "Matching",
     "overview": "Overzicht",
+    "scanner": "Code scannen",
     "send": "Sturen",
     "settings": "Instellingen",
     "support": "Support",
@@ -577,18 +710,59 @@
   },
   "openHours": "Open Hours",
   "pageTitle": {
+    "calculator": "Rekenmachine",
     "circles": "Gradido Kringen",
     "contributions": "Gradido scoop",
     "gdt": "Your GDT transactions",
     "information": "{community}",
     "matching": "Matching",
+    "my-gradido-card": "QR-code van mijn visitekaartje",
+    "my-thank-you-card": "QR-code van mijn dankkaart",
     "overview": "Welcome {name}",
+    "scanner": "Code scannen",
     "send": "Gradido en e-mail versturen",
-    "settings": "Settings",
+    "settings": "Instellingen",
     "transactions": "Your transactions",
     "usersearch": "Geografisch leden zoeken (bèta)"
   },
+  "public-profile": {
+    "address": "Gradido-adres",
+    "send": "Gradido versturen"
+  },
   "qrCode": "QR Code",
+  "scanner": {
+    "back": "Terug",
+    "denied": {
+      "help": "Je kunt de toegang voor deze pagina toestaan in de browserinstellingen.",
+      "title": "Geen toegang tot de camera"
+    },
+    "foreign": {
+      "cheque": "Cheque van een andere gemeenschap",
+      "continue": "Verder scannen",
+      "gradido-card": "Visitekaartje van een andere gemeenschap",
+      "open": "Daar openen",
+      "thank-you-card": "Dankkaart van een andere gemeenschap"
+    },
+    "hint": "Houd een dankkaart, cheque of visitekaartje in beeld",
+    "manual": {
+      "close": "Verder scannen",
+      "invalid": "Dit is geen Gradido-code of -link.",
+      "label": "Code of link",
+      "open": "Code of link met de hand invoeren",
+      "submit": "Openen"
+    },
+    "no-gradido-code": "Geen Gradido-code.",
+    "permission-hint": "Elke keer de cameravraag? In de website-instellingen van je browser kun je de camera voor deze pagina blijvend toestaan.",
+    "system-camera": {
+      "parked": "Het onthouden bedrag wacht en wordt overgenomen.",
+      "text": "De camera van je apparaat opent na het scannen de juiste pagina.",
+      "title": "Scannen met de camera-app"
+    },
+    "title": "Gradido-code scannen",
+    "unavailable": {
+      "title": "Geen camera gevonden"
+    }
+  },
   "send_email": "E‑mail versturen",
   "send_gdd": "GDD sturen",
   "send_per_link": "Link, cheque, QR",
@@ -617,30 +791,44 @@
         "userCoords": "Jouw locatie: Lat {lat}, Lng {lng}",
         "userLocationLabel": "Jouw locatie"
       },
-      "naming-format": "Naam tonen:",
       "publish-location": {
         "approximate": "Geschatte positie",
         "exact": "Exacte positie",
         "updated": "Positietype voor GMS bijgewerkt"
-      },
-      "publish-name": {
-        "updated": "Naamformaat voor GMS bijgewerkt"
       }
     },
+    "avatar": {
+      "disabled": "Jouw afbeelding zie nu alleen jij nog.",
+      "enabled": "Jouw afbeelding is zichtbaar voor andere leden.",
+      "visibility": "Mijn afbeelding aan andere leden tonen",
+      "visibilityInfo": "Andere leden zien jouw afbeelding, bijvoorbeeld naast de boekingen die jullie delen. Wanneer de instelling is uitgeschakeld, verschijnen zoals tot nu toe jouw initialen."
+    },
     "community": "Kringen en ledenzoeker",
-    "emailInfo": "Kan momenteel nog niet worden gewijzigd.",
-    "hideAmountGDD": "Je GDD-bedrag is verborgen.",
-    "hideAmountGDT": "Je GDT-bedrag is verborgen.",
+    "email": {
+      "cancel": "Annuleren",
+      "cancelled": "De wijziging is verworpen.",
+      "change": "E-mailadres wijzigen",
+      "error-invalid": "Dat is geen geldig e-mailadres.",
+      "error-password": "Het wachtwoord klopt niet.",
+      "error-same": "Dat is al het e-mailadres van je account.",
+      "error-taken": "Dit e-mailadres is al in gebruik.",
+      "error-wait": "Wacht een paar minuten voordat je een nieuwe e-mail aanvraagt.",
+      "new": "Nieuw e-mailadres",
+      "password": "Je huidige wachtwoord",
+      "password-why": "Voor de veiligheid – zodat niemand je adres kan wijzigen op een ontgrendeld apparaat.",
+      "pending": "Bevestiging in afwachting: we hebben een e-mail gestuurd naar {email}. Totdat je op de link daarin klikt, blijft je vorige adres gelden.",
+      "resend": "E-mail opnieuw sturen",
+      "resend-wait": "Opnieuw sturen over {minutes} min.",
+      "send": "Bevestigingsmail sturen",
+      "sent": "We hebben een bevestigingsmail gestuurd naar {email}."
+    },
+    "emailInfo": "Een nieuw adres geldt zodra je het via de link in de bevestigingsmail hebt bevestigd.",
+    "hide-amount": "{currency}-bedrag verbergen",
     "humhub": {
       "delete-disabled": "Het gebruikersaccount kan alleen worden verwijderd in het profielmenu van het samenwerkingsplatform.",
       "disabled": "Gegevens worden niet naar de Gradido-gemeenschap geëxporteerd",
-      "enabled": "Gegevens worden naar de Gradido-gemeenschap geëxporteerd",
-      "naming-format": "Naam tonen:",
-      "publish-name": {
-        "updated": "Naamformaat voor de Gradido-gemeenschap bijgewerkt."
-      }
+      "enabled": "Gegevens worden naar de Gradido-gemeenschap geëxporteerd"
     },
-    "info": "Transacties kunnen nu worden uitgevoerd via gebruikersnaam of e-mailadres.",
     "language": {
       "de": "Deutsch",
       "en": "English",
@@ -650,12 +838,23 @@
       "nl": "Nederlands",
       "success": "Jouw taal werd succesvol veranderd."
     },
+    "menu": {
+      "account": "Mijn rekening",
+      "appearance": "Vormgeving",
+      "gradido-card": "Visitekaartje",
+      "notifications": "Berichten",
+      "state": {
+        "blocked": "Geblokkeerd",
+        "off": "Uit",
+        "on": "Aan"
+      },
+      "visibility": "Zichtbaarheid"
+    },
     "name": {
       "change-success": "Jouw naam werd succesvol veranderd.",
       "enterFirstname": "Voornaam invoeren",
       "enterLastname": "Achternaam invoeren"
     },
-    "newSettings": "Nieuwe instellingen",
     "newsletter": {
       "newsletter": "Informatie per email",
       "newsletterFalse": "Je ontvangt geen informatie per email.",
@@ -676,20 +875,6 @@
       },
       "subtitle": "Wanneer je het wachtwoord hebt vergeten, kun je het hier opnieuw instellen."
     },
-    "publish-name": {
-      "alias-or-initials": "Gebruikersnaam of initialen",
-      "alias-or-initials-tooltip": "De gebruikersnaam, indien aanwezig, of de initialen van voornaam en achternaam, telkens de eerste twee letters",
-      "first": "Voornaam",
-      "first-initial": "Voornaam en initiaal",
-      "first-initial-tooltip": "De voornaam plus de eerste letter van de achternaam",
-      "first-tooltip": "Alleen de voornaam",
-      "initials": "Initialen",
-      "initials-tooltip": "De initialen van voornaam en achternaam, dus telkens de eerste twee letters, ongeacht of er een gebruikersnaam bestaat",
-      "name-full": "Voornaam en achternaam",
-      "name-full-tooltip": "Volledige naam: voornaam plus achternaam"
-    },
-    "showAmountGDD": "Je GDD-bedrag is zichtbaar.",
-    "showAmountGDT": "Je GDT-bedrag is zichtbaar.",
     "theme": {
       "dark": "Donker",
       "hint": "Kies 'Systeeminstelling volgen' om automatisch te wisselen tussen de lichte en donkere modus, op basis van de instelling van je apparaat of browser.",
@@ -699,9 +884,27 @@
     },
     "username": {
       "change-success": "Je gebruikersnaam is succesvol gewijzigd.",
-      "no-username": "Voer een gebruikersnaam in. Zo help je andere gebruikers om je te vinden zonder je e-mailadres prijs te hoeven geven."
-    },
-    "usernameInfo": "Kan na het opslaan niet meer worden gewijzigd!"
+      "confirm-free": "Deze naam had je al — deze wijziging telt niet mee voor je jaar.",
+      "confirm-last": "Dit is je laatste wijziging dit jaar.",
+      "confirm-left": "Daarna kun je je naam dit jaar nog één keer wijzigen. | Daarna kun je je naam dit jaar nog {n} keer wijzigen.",
+      "confirm-reserved": "{name} blijft voor jou gereserveerd — je kunt hem altijd terugnemen.",
+      "confirm-title": "Wil je je gebruikersnaam echt wijzigen?",
+      "first-back": "Terug",
+      "first-check-failed": "kon niet worden gecontroleerd",
+      "first-checking": "wordt gecontroleerd …",
+      "first-choose-title": "Kies een naam",
+      "first-free": "is nog vrij",
+      "first-hint": "Je kunt hem houden of zelf een naam kiezen. Later zijn vier wijzigingen per jaar mogelijk.",
+      "first-intro": "Onder deze naam zien andere leden je — en vinden ze je om je Gradido te sturen. We hebben er een voorgesteld:",
+      "first-invalid": "Deze naam voldoet niet aan de regels",
+      "first-keep": "Zo is het goed",
+      "first-other": "Andere kiezen",
+      "first-rules": "3 tot 20 tekens · letters, cijfers, - en _",
+      "first-taken": "Deze naam is al bezet",
+      "first-title": "Je gebruikersnaam",
+      "quota-blocked": "Je hebt je naamswijzigingen voor dit jaar opgebruikt. Vanaf {date} kan het weer.",
+      "quota-left": "Je kunt je gebruikersnaam dit jaar nog één keer wijzigen. | Je kunt je gebruikersnaam dit jaar nog {n} keer wijzigen."
+    }
   },
   "signin": "Aanmelden",
   "signup": "Registreren",
@@ -726,6 +929,71 @@
   "status": "Status",
   "submitted": "Ingediend",
   "success": "Succes",
+  "thank-you-card": {
+    "back-to-calculator": "Terug naar de rekenmachine",
+    "name": "Dankkaart",
+    "receive": {
+      "amount": "{amount} GDD",
+      "attempts-left": "nog {n} pogingen",
+      "default-memo": "Dankkaart",
+      "next": "Verder",
+      "next-payment": "Volgende transactie",
+      "pin-title": "Jouw pincode, alsjeblieft",
+      "remember-memo": "Deze omschrijving onthouden",
+      "rest-note": "wordt apart voldaan.",
+      "sent-from-to": "verzonden door {from} aan {to}",
+      "subtitle": "Er is een dankkaart gescand.",
+      "thanks": "Hartelijk dank!"
+    },
+    "settings": {
+      "block": "Kaart blokkeren",
+      "block-confirm": "Daarna kan er met deze kaart niet meer worden bedankt. Je kunt hem later weer deblokkeren, zolang er geen andere kaart actief is.",
+      "block-confirm-card": "Dankkaart: {label}",
+      "block-confirm-title": "Kaart blokkeren?",
+      "blocked": "De kaart is geblokkeerd.",
+      "blocked-on": "geblokkeerd op {date}",
+      "change-pin": "Pincode wijzigen",
+      "create": "Kaart aanmaken",
+      "created": "De kaart is aangemaakt.",
+      "disable": "Kaartfunctie uitschakelen",
+      "disabled": "De kaartfunctie is uitgeschakeld.",
+      "earlier-cards": "Eerdere kaarten",
+      "enable": "Pincode instellen en inschakelen",
+      "explain": "Met een dankkaart kun je ook danken wanneer je jouw telefoon niet bij je hebt. Je laat de kaart zien, de ander typt het bedrag — en jij bevestigt met jouw pincode. En heb je de telefoon wel bij je maar de kaart niet, dan laat je dezelfde code op het scherm zien — het symbool met de pijl omhoog.",
+      "explain-pin": "Jouw pincode typ je op het apparaat van iemand anders. Daarom stel je een limiet in: meer dan dat kan er nooit worden afgeschreven.",
+      "label": "Aanduiding",
+      "label-placeholder": "bijv. portemonnee",
+      "max-per-day": "Maximumbedrag per dag",
+      "max-per-payment": "Maximumbedrag per transactie",
+      "not-set-up": "Nog niet ingesteld.",
+      "on": "Ingeschakeld",
+      "pin-hide": "Pincode verbergen",
+      "pin-rules": "Zes cijfers. Niet zes keer hetzelfde, geen reeks zoals 123456 en geen geboortejaar aan het begin.",
+      "pin-show": "Pincode tonen",
+      "pin-title": "Pincode instellen",
+      "saved": "Opgeslagen",
+      "sheet": "Dankkaart afdrukken",
+      "sheet-hint": "Jouw dankkaart op ware grootte op een A4-pagina, om langs de dunne lijn uit te knippen. In het printvenster kun je hem ook als pdf opslaan.",
+      "title": "Jouw dankkaart – Danken met een kaart",
+      "unblock": "Deblokkeren",
+      "unblock-needs-no-active": "Om deze te deblokkeren moet eerst de actieve kaart worden geblokkeerd — er kan altijd maar met één kaart worden bedankt.",
+      "unblocked": "De kaart werkt weer.",
+      "your-card": "Jouw kaart"
+    },
+    "status": {
+      "BLOCKED_NOW": "Na drie foute pogingen is de kaart geblokkeerd. De eigenaar kan hem in zijn eigen Gradido-rekening weer vrijgeven.",
+      "CARD_BLOCKED": "Deze dankkaart is geblokkeerd.",
+      "CARD_NOT_SET_UP": "Met deze kaart kan op dit moment niet worden gedankt.",
+      "CARD_UNKNOWN": "Wij kennen deze kaart niet.",
+      "LIMIT_PER_DAY_EXCEEDED": "Deze kaart heeft haar daglimiet bereikt.",
+      "LIMIT_PER_PAYMENT_EXCEEDED": "Het bedrag ligt boven het maximum van deze kaart.",
+      "NOT_ENOUGH_GDD": "Het saldo is niet toereikend.",
+      "OWN_CARD": "Dit is jouw eigen kaart.",
+      "REQUEST_GONE": "Het verzoek is verlopen. Begin opnieuw, alsjeblieft.",
+      "SUCCESS": "Gereed",
+      "WRONG_PIN": "De pincode klopt niet."
+    }
+  },
   "thank-you-cheque": {
     "download": "Cheque downloaden",
     "scan-qr": "Om de Gradidos bijgeschreven te krijgen, scan de QR-code!",
@@ -755,6 +1023,7 @@
     "headline": "Geografisch zoeken naar gebruikers",
     "text": "Het maakt niet uit tot welke community je behoort, met het Geo Matching System kun je leden van alle communities vinden op een kaart. Je kunt filteren op aanbiedingen en vereisten en de gebruikers weergeven die aan je profiel voldoen.\n\nDe knop opent een nieuw browservenster waarin de gebruikers in je omgeving op een kaart worden weergegeven."
   },
+  "via_card": "via een kaart",
   "via_link": "via een link",
   "welcome": "Welkom in de gemeenschap"
 }

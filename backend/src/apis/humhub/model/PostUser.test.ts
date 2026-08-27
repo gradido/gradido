@@ -18,6 +18,10 @@ export enum PublishNameType {
 }
 */
 
+// Since NU-024 the publish-name setting steers ONLY account.username -- the key HumHub
+// recognises the user by, which must never move underneath an existing account. The
+// profile DISPLAY is the alias in every case (the full gradidoID without one). That is
+// why every block below expects the same firstname while the username still varies.
 describe('test creation of a humhub user from db user', () => {
   beforeEach(() => {
     const emailContact = new UserContact()
@@ -37,7 +41,7 @@ describe('test creation of a humhub user from db user', () => {
       const humhubUser = new HumhubUser(user)
 
       expect(humhubUser.account.username).toBe('alias')
-      expect(humhubUser.profile.firstname).toBe('')
+      expect(humhubUser.profile.firstname).toBe('alias')
       expect(humhubUser.profile.lastname).toBe('')
     })
 
@@ -47,7 +51,7 @@ describe('test creation of a humhub user from db user', () => {
       const humhubUser = new HumhubUser(user)
 
       expect(humhubUser.account.username).toBe(gradidoUuid)
-      expect(humhubUser.profile.firstname).toBe('JoSm')
+      expect(humhubUser.profile.firstname).toBe(gradidoUuid)
       expect(humhubUser.profile.lastname).toBe('')
     })
   })
@@ -58,7 +62,7 @@ describe('test creation of a humhub user from db user', () => {
       const humhubUser = new HumhubUser(user)
 
       expect(humhubUser.account.username).toBe(gradidoUuid)
-      expect(humhubUser.profile.firstname).toBe('JoSm')
+      expect(humhubUser.profile.firstname).toBe('alias')
       expect(humhubUser.profile.lastname).toBe('')
     })
 
@@ -68,7 +72,7 @@ describe('test creation of a humhub user from db user', () => {
       const humhubUser = new HumhubUser(user)
 
       expect(humhubUser.account.username).toBe(gradidoUuid)
-      expect(humhubUser.profile.firstname).toBe('JoSm')
+      expect(humhubUser.profile.firstname).toBe(gradidoUuid)
       expect(humhubUser.profile.lastname).toBe('')
     })
   })
@@ -79,7 +83,7 @@ describe('test creation of a humhub user from db user', () => {
       const humhubUser = new HumhubUser(user)
 
       expect(humhubUser.account.username).toBe(gradidoUuid)
-      expect(humhubUser.profile.firstname).toBe('John')
+      expect(humhubUser.profile.firstname).toBe('alias')
       expect(humhubUser.profile.lastname).toBe('')
     })
 
@@ -89,7 +93,7 @@ describe('test creation of a humhub user from db user', () => {
       const humhubUser = new HumhubUser(user)
 
       expect(humhubUser.account.username).toBe(gradidoUuid)
-      expect(humhubUser.profile.firstname).toBe('John')
+      expect(humhubUser.profile.firstname).toBe(gradidoUuid)
       expect(humhubUser.profile.lastname).toBe('')
     })
   })
@@ -100,8 +104,8 @@ describe('test creation of a humhub user from db user', () => {
       const humhubUser = new HumhubUser(user)
 
       expect(humhubUser.account.username).toBe(gradidoUuid)
-      expect(humhubUser.profile.firstname).toBe('John')
-      expect(humhubUser.profile.lastname).toBe('S')
+      expect(humhubUser.profile.firstname).toBe('alias')
+      expect(humhubUser.profile.lastname).toBe('')
     })
 
     it('with empty alias', () => {
@@ -110,8 +114,8 @@ describe('test creation of a humhub user from db user', () => {
       const humhubUser = new HumhubUser(user)
 
       expect(humhubUser.account.username).toBe(gradidoUuid)
-      expect(humhubUser.profile.firstname).toBe('John')
-      expect(humhubUser.profile.lastname).toBe('S')
+      expect(humhubUser.profile.firstname).toBe(gradidoUuid)
+      expect(humhubUser.profile.lastname).toBe('')
     })
   })
 
@@ -121,8 +125,8 @@ describe('test creation of a humhub user from db user', () => {
       const humhubUser = new HumhubUser(user)
 
       expect(humhubUser.account.username).toBe(gradidoUuid)
-      expect(humhubUser.profile.firstname).toBe('John')
-      expect(humhubUser.profile.lastname).toBe('Smith')
+      expect(humhubUser.profile.firstname).toBe('alias')
+      expect(humhubUser.profile.lastname).toBe('')
     })
 
     it('with empty alias', () => {
@@ -131,8 +135,8 @@ describe('test creation of a humhub user from db user', () => {
       const humhubUser = new HumhubUser(user)
 
       expect(humhubUser.account.username).toBe(gradidoUuid)
-      expect(humhubUser.profile.firstname).toBe('John')
-      expect(humhubUser.profile.lastname).toBe('Smith')
+      expect(humhubUser.profile.firstname).toBe(gradidoUuid)
+      expect(humhubUser.profile.lastname).toBe('')
     })
   })
 })

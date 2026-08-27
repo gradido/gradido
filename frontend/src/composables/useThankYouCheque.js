@@ -5,6 +5,8 @@ import { useStore } from 'vuex'
 import CONFIG from '@/config'
 import { useAppToast } from '@/composables/useToast'
 import { renderQrCodeCanvas } from '@/utils/qrCode'
+import { avatarLettering } from '@/utils/avatarLettering'
+import { gradidoAddress, memberAlias } from '@/utils/gradidoAddress'
 import { chequeFileName, drawCheque } from '@/utils/thankYouCheque'
 
 /**
@@ -24,13 +26,35 @@ export const useThankYouCheque = ({ link, amount, memo, validUntil }) => {
   const { toastError } = useAppToast()
 
   const drawThankYouCheque = async () => {
-    const { firstName, lastName, username, gradidoId } = store.state
+    // gradidoID, not gradidoId -- the store spells it with a capital D, and reading the
+    // other spelling put the word "undefined" on the printed cheque of every member who
+    // has no user name yet.
+    const { firstName, lastName, username, gradidoID, avatar } = store.state
+    const alias = memberAlias(username, gradidoID)
+    // Letters from the alias, colour from the real initials -- the wallet's split
+    // (AS-010), so the disc on paper matches the member's circle on screen.
+    const { letters, colorSeed } = avatarLettering({ alias: username, firstName, lastName })
     return drawCheque({
       kind: 'thankYou',
-      name: `${firstName} ${lastName}`.trim(),
-      address: `${CONFIG.COMMUNITY_NAME}/${username || gradidoId}`,
-      initials: `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`,
-      headline: `${firstName} ${t('transaction-link.send_you')} ${amount} Gradido.`,
+      // The community in the header (NU-021/KLAR-07, decided as "Option B"): the alias
+      // already gives in the headline and signs in the footer address -- repeating it a
+      // third time up here said nothing, while the community is on no other line. The
+      // starting-bonus cheque carries the community up here as well.
+      name: CONFIG.COMMUNITY_NAME,
+      // The same address the card prints, in the same three weights. Taken by name rather
+      // than spread: the cheque needs the host, and a field added to the address later
+      // should not ride along into the drawing unnoticed.
+      host: gradidoAddress(alias).host,
+      alias,
+      // The everyday 128-pixel rendition is enough: the cheque draws the picture at 78
+      // pixels. It is already in the store, so this costs no query and no waiting -- unlike
+      // the card, which prints 24 mm and needs the large one.
+      portrait: avatar ? `data:image/jpeg;base64,${avatar}` : null,
+      initials: letters,
+      colorSeed,
+      // The same sentence the copy text and the redeem page build, so the three never
+      // disagree about who is giving: the alias (NU-021/KLAR-07).
+      headline: `${alias} ${t('transaction-link.send_you')} ${amount} Gradido.`,
       memo,
       hintLine: t('thank-you-cheque.scan-qr'),
       validLine: t('thank-you-cheque.valid-until', { date: d(new Date(validUntil), 'short') }),

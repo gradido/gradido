@@ -14,7 +14,52 @@
 
       <!-- Breadcrumb -->
       <BRow class="breadcrumb" :class="chromeHidden">
-        <BCol cols="10" offset-lg="2">
+        <!-- ⛔ A real column where an `offset-lg="2"` used to be. The four till tools stood
+             INSIDE the menu column below and pushed the whole menu down by their own height,
+             so it no longer stood level with the account panel opposite. Here they take the
+             space the offset was leaving empty anyway: level with the page heading, and the
+             menu is back where it was. (Bernd, 21.08.2026)
+
+             Below lg the column is gone and the breadcrumb starts at the left, exactly as
+             the offset did -- the phone has its own copy of these tools in the navbar.
+
+             Small and unmarked on purpose: tools for those who run a till, not headline
+             features. Scan left of the calculator, because scanning is the more general act;
+             two by two like the phone, and the rows mean something -- reading a code above,
+             showing one below. -->
+        <BCol cols="2" class="d-none d-lg-block">
+          <div class="sidebar-quick-row">
+            <router-link
+              to="/scan"
+              :aria-label="$t('navigation.scanner')"
+              data-test="sidebar-scanner"
+            >
+              <i-mdi-qrcode-scan />
+            </router-link>
+            <router-link
+              to="/calculator"
+              :aria-label="$t('navigation.calculator')"
+              data-test="sidebar-calculator"
+            >
+              <i-mdi-calculator />
+            </router-link>
+            <router-link
+              to="/my-thank-you-card"
+              :aria-label="$t('pageTitle.my-thank-you-card')"
+              data-test="sidebar-my-thank-you-card"
+            >
+              <quick-code-icon direction="out" />
+            </router-link>
+            <router-link
+              to="/my-gradido-card"
+              :aria-label="$t('pageTitle.my-gradido-card')"
+              data-test="sidebar-my-gradido-card"
+            >
+              <quick-code-icon direction="in" />
+            </router-link>
+          </div>
+        </BCol>
+        <BCol cols="10">
           <breadcrumb />
         </BCol>
       </BRow>
@@ -23,9 +68,18 @@
            so the air goes here — on the row, where the menu and the content get it
            together and stay level. The phone gets none: there the map takes the edge. -->
       <BRow fluid class="d-flex" :class="bareTopSpace">
-        <!-- Sidebar left -->
-        <BCol cols="2" class="d-none d-lg-block">
+        <!-- Sidebar left.
+             ⛔ The settings menu REPLACES the main one here, and only here. MobileSidebar
+             renders the very same `sidebar` component in its drawer -- swap it there as
+             well and somebody on a phone would open the hamburger inside the settings and
+             find the settings again, with no way back into the wallet. The drawer keeps
+             the main menu; on a phone the list at /settings is the settings menu. -->
+        <!-- ⚠️ Wider while the settings are open: their menu is a row list with a state
+             beside each entry, not the narrow word list of the main menu. -->
+        <BCol :cols="settingsChrome ? 3 : 2" class="d-none d-lg-block">
+          <settings-sidebar v-if="settingsChrome" @logout="logoutUser" />
           <sidebar
+            v-else
             class="main-sidebar"
             :show-logo="bareChrome"
             @admin="admin"
@@ -48,7 +102,7 @@
                       <BRow>
                         <BCol cols="12" lg="5">
                           <div>
-                            <router-link to="transactions">
+                            <router-link to="/transactions">
                               <gdd-amount
                                 :balance="balance"
                                 :show-status="false"
@@ -78,7 +132,7 @@
                         </BCol>
                         <BCol cols="12" lg="6">
                           <div>
-                            <router-link to="gdt">
+                            <router-link to="/gdt">
                               <gdt-amount :gdt-balance="GdtBalance" :badge-show="false" />
                             </router-link>
                           </div>
@@ -94,7 +148,7 @@
                         </BCol>
                         <BCol cols="12" lg="6">
                           <div>
-                            <router-link to="gdt">
+                            <router-link to="/gdt">
                               <gdt-amount :gdt-balance="GdtBalance" />
                             </router-link>
                           </div>
@@ -105,7 +159,7 @@
                       <BRow>
                         <BCol cols="12" lg="6">
                           <div>
-                            <router-link to="transactions">
+                            <router-link to="/transactions">
                               <gdd-amount :balance="balance" :show-status="false" />
                             </router-link>
                           </div>
@@ -126,23 +180,20 @@
                 </BCol>
               </BRow>
             </BCol>
-            <!-- Right Side Mobil -->
-            <BCol :class="bareChrome ? 'd-none' : 'd-block d-lg-none'">
-              <right-side>
-                <template #transactions>
-                  <last-transactions
-                    :transactions="transactions"
-                    :transaction-count="transactionCount"
-                    :transaction-link-count="transactionLinkCount"
-                  />
-                </template>
+            <!-- Right Side Mobil.
+                 ⛔ Its own condition, not the desk twin's. The phone carries two of the three
+                 panels; the booking list it does not, because below 992px that list IS the
+                 page and a second copy beside it says nothing. Until now this column asked
+                 the same question as the desktop one and then rendered an empty block on the
+                 overview -- air above the page, for a panel it was never going to show. -->
+            <BCol v-if="showMobilePanel" :class="bareChrome ? 'd-none' : 'd-block d-lg-none'">
+              <right-side :panel="rightSidePanel">
                 <template #contributions>
                   <contributions-template />
                 </template>
                 <template #matching>
                   <matching-template />
                 </template>
-                <template #empty />
               </right-side>
             </BCol>
             <BCol cols="12">
@@ -165,9 +216,20 @@
             </BCol>
           </BRow>
         </BCol>
-        <!-- RightSide Desktop -->
-        <BCol cols="3" class="d-none d-lg-block">
-          <right-side>
+        <!-- RightSide Desktop.
+             ⛔ Only where the route asks for a panel. A column that renders nothing still
+             took a quarter of the screen: together with the menu that left the page six of
+             twelve columns, so the widest screen gave it the least room -- exactly backwards.
+             It showed worst on the business card, where the contact field stands beside the
+             card and had no width left to type in. (Bernd, 24.08.2026: "ausgerechnet beim
+             breiten Bildschirm kann ich das Kontakteingabe-Feld nicht ausfüllen".)
+
+             The booking list stands beside `/overview` and nowhere else, and that is not
+             merely tidiness: `/my-gradido-card`, `/my-thank-you-card` and `/scan` are pages
+             held out to another person, and the member's last bookings were in their field of
+             view. -->
+        <BCol v-if="rightSidePanel" cols="3" class="d-none d-lg-block">
+          <right-side :panel="rightSidePanel">
             <template #transactions>
               <last-transactions
                 :transactions="transactions"
@@ -175,7 +237,6 @@
                 :transaction-link-count="transactionLinkCount"
               />
             </template>
-            <template #empty />
             <template #contributions>
               <contributions-template />
             </template>
@@ -192,15 +253,17 @@
         </BCol>
       </BRow>
       <session-logout-timeout @logout="logoutUser" />
+      <alias-first-choice />
+      <email-confirmation-reminder />
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useRoute, useRouter } from 'vue-router'
-import { useQuery, useMutation } from '@vue/apollo-composable'
+import { useApolloClient, useQuery, useMutation } from '@vue/apollo-composable'
 import ContentHeader from '@/layouts/templates/ContentHeader'
 import ContributionsTemplate from '@/layouts/templates/ContributionsTemplate'
 import MatchingTemplate from '@/layouts/templates/MatchingTemplate'
@@ -208,9 +271,13 @@ import Breadcrumb from '@/components/Breadcrumb/breadcrumb'
 import RightSide from '@/layouts/templates/RightSide'
 import SkeletonOverview from '@/components/skeleton/Overview'
 import Navbar from '@/components/Menu/Navbar'
+import QuickCodeIcon from '@/components/Menu/QuickCodeIcon'
 import Sidebar from '@/components/Menu/Sidebar'
 import MobileSidebar from '@/components/MobileSidebar/MobileSidebar'
+import SettingsSidebar from '@/components/Menu/SettingsSidebar.vue'
 import SessionLogoutTimeout from '@/components/SessionLogoutTimeout'
+import AliasFirstChoice from '@/components/AliasFirstChoice'
+import EmailConfirmationReminder from '@/components/EmailConfirmationReminder'
 import ContentFooter from '@/components/ContentFooter'
 import GddAmount from '@/components/Template/ContentHeader/GddAmount'
 import GdtAmount from '@/components/Template/ContentHeader/GdtAmount'
@@ -218,11 +285,20 @@ import CommunityMember from '@/components/Template/ContentHeader/CommunityMember
 import LastTransactions from '@/components/Template/RightSide/LastTransactions'
 import { transactionsUserCountQuery } from '@/graphql/transactions.graphql'
 import { logout } from '@/graphql/mutations'
+import { memberAvatars } from '@/graphql/queries'
+import {
+  claimMissingMemberAvatars,
+  forgetWithdrawnMemberAvatars,
+  memberAvatarStoreEpoch,
+  rememberMemberAvatars,
+} from '@/composables/useMemberAvatars'
 import CONFIG from '@/config'
 import { useAppToast } from '@/composables/useToast'
+import { routeSection } from '@/utils/routeSection'
 
 const store = useStore()
 const route = useRoute()
+const { client: apolloClient } = useApolloClient()
 
 // A route may bring its own head — the map does. Then the navbar, the page
 // heading and the content header are just distance between you and what you came
@@ -230,6 +306,39 @@ const route = useRoute()
 // goes too; on desktop it stays, and the menu keeps the logo the navbar took with
 // it. Every other route leaves these empty and is untouched.
 const bareChrome = computed(() => Boolean(route.meta.bareChrome))
+const settingsChrome = computed(() => Boolean(route.meta.settingsChrome))
+/**
+ * Which panel the right-hand column carries, straight from the matched route record.
+ *
+ * ⛔ It used to be looked up by the first path segment, in a table of its own. Two things
+ * that costs, and both of them bit:
+ *
+ * - **Sibling routes cannot differ.** `/matching/karte` declares `bareChrome` because the map
+ *   wants the whole canvas, and `/matching/entries` wants the matching panel -- but both are
+ *   the section `matching`, so the table had one answer for two routes and the map paid a
+ *   quarter of every desktop screen. It says `rightSide: null` now, one line under the
+ *   `bareChrome` it belongs with.
+ * - **The path had to be parsed at all.** `/overview/` is a path a router really hands over,
+ *   and reading it as text got the section wrong; the matched RECORD cannot be wrong about
+ *   itself. That class of bug turned up four times in one day in this file family.
+ *
+ * And a route added later now carries its own answer instead of needing an edit in a file two
+ * directories away that its author has no reason to open.
+ *
+ * ⛔ NOT named `rightSide`. In `<script setup>` the template compiler resolves a tag against
+ * the setup bindings by camelizing it, so `<right-side>` finds a binding called `rightSide`
+ * BEFORE the imported component -- and renders a boolean instead of the column. Silently.
+ */
+const rightSidePanel = computed(() => route.meta.rightSide ?? null)
+
+// The phone carries two of the three panels. The booking list is the exception, and always
+// was in effect: LastTransactions hides itself below 992px, so mounting it here could never
+// show anything -- it only built up to eight base64 pictures for a subtree nobody can see.
+// Below 992px that list IS the page anyway.
+const MOBILE_HAS_NO_PANEL = ['transactions']
+const showMobilePanel = computed(
+  () => Boolean(rightSidePanel.value) && !MOBILE_HAS_NO_PANEL.includes(rightSidePanel.value),
+)
 const chromeHidden = computed(() => (bareChrome.value ? 'd-none' : ''))
 const mobileHidden = computed(() => (bareChrome.value ? 'd-none d-lg-block' : ''))
 const bareTopSpace = computed(() => (bareChrome.value ? 'pt-lg-4' : ''))
@@ -279,12 +388,118 @@ const updateTransactions = ({ currentPage, pageSize }) => {
   useRefetchTransactionsQuery({ currentPage, pageSize })
 }
 
+/**
+ * The two pages a member opens to check where they stand.
+ *
+ * ⛔ The balance in the header is fetched ONCE, when this layout mounts -- and the layout
+ * outlives every route change, so nothing brings it up to date on its own. Until now the
+ * only thing that refreshed it was a page saying so: `Send` emits `update-transactions`
+ * after a transfer, `Transactions` on paging. A payment made anywhere ELSE left the old
+ * number standing on every screen the member visited afterwards -- and a thank you card
+ * payment happens on its own page, at somebody else's till, and says nothing to this layout.
+ *
+ * ⚠️ Not a cache policy and not a page reload. The query already asks the server
+ * (`network-only`); it simply never ran a second time. A reload would have hidden that by
+ * throwing the whole application away, which is why it looked like an answer.
+ *
+ * ⚠️ Refetched with NO arguments: Apollo then reuses the variables the query already has,
+ * so somebody sitting on page three of their transactions is not sent back to page one.
+ */
+// ⚠️ Sections, compared through `routeSection`, not whole paths compared for equality. This
+// was the FOURTH copy of "which page is this?" in this layout family, and it carried the same
+// blind spot as the other three: `/overview/` is not `/overview` to `includes`, and a router
+// really hands that path over. The header and the column read it correctly since 27.08.; this
+// line would have left the balance beside them at whatever it was when the layout mounted.
+const SECTIONS_SHOWING_A_BALANCE = ['overview', 'transactions']
+
+watch(
+  () => route.path,
+  (path) => {
+    if (!SECTIONS_SHOWING_A_BALANCE.includes(routeSection(path))) {
+      return
+    }
+    pending.value = true
+    useRefetchTransactionsQuery()
+  },
+)
+
+// The pictures shown beside the bookings. This is the only place the list arrives, and
+// both places that draw a face are fed from here, so the fetching happens once for the
+// whole page rather than once per row.
+//
+// Each row carries a date, not a picture. Everything whose date still matches what the
+// wallet already holds needs nothing; on a second visit that is usually all of them, and
+// nothing is requested at all.
+//
+// ⚠️ Forgetting comes FIRST and does not depend on the request succeeding. A member who
+// switched their picture off arrives with no date, and their face has to leave this device
+// whether or not anything else works.
+//
+// Best effort by design: nobody loses their overview over a portrait.
+//
+// ⛔ Staleness is NOT guarded here any more, and that is the point: it is guarded in the
+// store, which is the thing that outlives this component. A counter in `setup()` is one per
+// layout instance, while the pictures are one per module -- so the instance that a logout
+// destroys keeps a counter nobody can ever bump again, and its guard passes by definition.
+// `forgetWithdrawnMemberAvatars` now names the withdrawn members to the store, and
+// `rememberMemberAvatars` refuses exactly those. Everything else in a late answer is kept
+// rather than thrown away: a member who turns a page while a request is out paid for those
+// bytes, and discarding them shows initials on a list whose portraits had already arrived.
+const collectMemberAvatars = async (rows) => {
+  const members = rows
+    .map((row) => row.linkedUser)
+    .filter((member) => member?.gradidoID)
+    .map(({ gradidoID, communityUuid, avatarUpdatedAt }) => ({
+      gradidoID,
+      communityUuid: communityUuid ?? null,
+      avatarUpdatedAt: avatarUpdatedAt ?? null,
+    }))
+  if (!members.length) return
+
+  forgetWithdrawnMemberAvatars(members)
+  const { refs, done } = claimMissingMemberAvatars(members)
+  if (!refs.length) return
+
+  // Read before the request, compared after it. The one thing a late answer must never
+  // survive is a logout in between -- see memberAvatarStoreEpoch.
+  const epoch = memberAvatarStoreEpoch()
+  try {
+    const { data } = await apolloClient.query({
+      query: memberAvatars,
+      variables: { refs },
+      // ⚠️ Not from the cache, ever. The request names members, not versions -- a member
+      // who replaces their picture is asked for under exactly the same variables as
+      // before, so a cached answer would hand back the picture they just replaced and the
+      // new one would never arrive. The freshness decision is made against the date on the
+      // list, before we get here; by this point the answer has to come from the server.
+      //
+      // `no-cache`, not `network-only`: both skip the cache on the way IN, but
+      // network-only still writes the answer to it. MemberAvatar carries no id and there
+      // are no type policies, so nothing normalises it -- every distinct ref list becomes
+      // its own ROOT_QUERY entry holding a full copy of the base64, and nothing evicts it
+      // before logout. Measured at 2.1 MB of dead payload over eight pages, on top of the
+      // copy this module already keeps.
+      fetchPolicy: 'no-cache',
+    })
+    if (epoch !== memberAvatarStoreEpoch()) return
+    rememberMemberAvatars(data?.memberAvatars ?? [])
+  } catch {
+    // Initials this time round, and the next list asks again.
+  } finally {
+    // Whatever happened, these members are no longer being waited for. Without this a
+    // failed request would leave them marked in flight and they would never be asked
+    // about again on this page.
+    done()
+  }
+}
+
 onResult((value) => {
   if (value && value.data) {
     if (value.data.transactionList) {
       const tr = value.data.transactionList
       GdtBalance.value = tr.balance?.balanceGDT === null ? 0 : Number(tr.balance?.balanceGDT)
       transactions.value = tr.transactions || []
+      collectMemberAvatars(transactions.value)
       balance.value = Number(tr.balance?.balance) || 0
       transactionCount.value = tr.balance?.count || 0
       transactionLinkCount.value = tr.balance?.linkCount || 0
@@ -300,6 +515,12 @@ onResult((value) => {
 
 onError((error) => {
   transactionCount.value = -1
+  // ⚠️ Cleared here too, not only on the way that succeeds. `pending` is handed to the page
+  // inside the router-view, so a refetch that fails leaves that page waiting for something
+  // that is never coming. It mattered less while only a deliberate action set it; since the
+  // watch above sets it on every navigation to those two pages, one failed request would
+  // strand whatever the member opened next.
+  pending.value = false
   toastError(error.message)
 })
 
@@ -354,9 +575,65 @@ const admin = () => {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(4, 112, 6, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
 }
 
+/*
+  ⛔ THIS NUMBER BELONGS TO THE NAVBAR'S HEIGHT. Below 450px the navbar is `position: fixed`
+  and translucent (Menu/Navbar.vue), so whatever it covers is still readable -- which is why
+  a mismatch here does not look broken, it looks smudged.
+
+  ⚠️ And the clearance is TWO numbers on the SAME element: this padding plus the `margin-top`
+  in Breadcrumb/breadcrumb.vue. Together they have to clear the navbar; neither alone says
+  what it depends on. That is how the four till tools slipped past on 21.08.2026 -- their
+  second row grew the brand block from about 88px to about 128px, the note at the time
+  checked it against the block OPPOSITE (about 130px, so the navbar did not get taller than
+  itself) and nobody held it against the room underneath. 48 + 55 = 103 was suddenly less
+  than 128, and the heading sat under the last 25px. (Bernd found it on the phone, 23.08.)
+
+  ⚠️ 48 + 69 = 117, and the last number is MEASURED ON THE DEVICE, not calculated. The sum
+  first went to 131, from "about 128px" in the navbar's own note plus a little. Bernd looked
+  at it on the phone: half of the added room was enough. So the ~128 was the overestimate,
+  and 117 is what the navbar actually needs -- keep it that way round if this ever moves
+  again, because the note over there is an estimate and the phone is not.
+
+  Grow the navbar and this has to grow with it -- Navbar.spec.js fails when a fifth tool
+  adds a third row.
+*/
 @media screen and (width <= 450px) {
   .breadcrumb {
-    padding-top: 55px !important;
+    padding-top: 69px !important;
   }
+}
+
+/* Two columns of 44px, as on the phone. The margin lines the block up with the menu
+   entries in the column below it -- it used to sit on the scanner alone, which was the
+   same thing said in a place that could only ever hold one tool. */
+.main-page .sidebar-quick-row {
+  display: grid;
+  grid-template-columns: repeat(2, 44px);
+  margin-left: 8px;
+}
+
+/* Small to the eye, 44px to the pointer -- same rule as the gear inside the calculator.
+
+   ⚠️ Written through the row: the style block of this layout is GLOBAL, so a bare class
+   name would style the navbar's twins as well -- the desktop margin would shift the phone
+   symbols. That is what the two names per tool used to be for; a descendant of
+   `.sidebar-quick-row` cannot leave this layout, and it does not multiply with the tools.
+
+   `flex-start` and `--icon-muted` for the same reasons as on the phone: the glyphs line up
+   on their left edge, and the tone is the one the menu icons themselves carry --
+   rgb(114 119 143) in both modes, not the near-black/near-white of the menu TEXT. */
+.main-page .sidebar-quick-row > a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 44px;
+  height: 44px;
+  font-size: 22px;
+  color: var(--icon-muted);
+}
+
+.main-page .sidebar-quick-row > a:hover {
+  color: var(--icon-muted);
+  opacity: 0.7;
 }
 </style>

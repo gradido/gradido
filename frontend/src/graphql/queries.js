@@ -1,10 +1,29 @@
 import gql from 'graphql-tag'
 
+// The pictures of other members, asked for by the pair that identifies them. Only for the
+// ones the wallet does not already hold in useMemberAvatars -- a booking list carries a
+// date per member, and everything whose date still matches is already on this device.
+//
+// A member with nothing to show is simply absent from the answer; the backend decides that
+// (switch off, deleted, another community) and this side never learns which.
+export const memberAvatars = gql`
+  query ($refs: [MemberAvatarRefInput!]!) {
+    memberAvatars(refs: $refs) {
+      gradidoID
+      communityUuid
+      avatar
+      avatarUpdatedAt
+    }
+  }
+`
+
 export const verifyLogin = gql`
   query {
     verifyLogin {
       gradidoID
       alias
+      emailChecked
+      createdAt
       firstName
       lastName
       language
@@ -13,8 +32,6 @@ export const verifyLogin = gql`
       }
       gmsAllowed
       humhubAllowed
-      gmsPublishName
-      humhubPublishName
       gmsPublishLocation
       userLocation
       hasElopage
@@ -23,7 +40,19 @@ export const verifyLogin = gql`
       hideAmountGDD
       hideAmountGDT
       aboutMe
+      avatar
+      avatarVisibleToMembers
     }
+  }
+`
+
+// The full 512x512 crop, on demand. Deliberately not a field on verifyLogin above: it is
+// about ten times the everyday rendition and is wanted at two moments only -- printing
+// the member card, and looking at one's own picture -- so the common paths do not carry
+// it. Takes no argument, so there is nobody to ask about but oneself.
+export const avatarFull = gql`
+  query {
+    avatarFull
   }
 `
 
@@ -58,44 +87,6 @@ export const userLocationQuery = gql`
   }
 `
 
-export const transactionsQuery = gql`
-  query ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
-    transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
-      balance {
-        balance
-        balanceGDT
-        count
-        linkCount
-        openLinkCount
-      }
-      transactions {
-        id
-        typeId
-        amount
-        balance
-        previousBalance
-        balanceDate
-        memo
-        linkedUser {
-          firstName
-          lastName
-          communityUuid
-          communityName
-          gradidoID
-          alias
-        }
-        decay {
-          decay
-          start
-          end
-          duration
-        }
-        linkId
-      }
-    }
-  }
-`
-
 export const listGDTEntriesQuery = gql`
   query ($currentPage: Int!, $pageSize: Int!) {
     listGDTEntries(currentPage: $currentPage, pageSize: $pageSize) {
@@ -119,6 +110,16 @@ export const queryOptIn = gql`
   }
 `
 
+export const pendingEmailChange = gql`
+  query {
+    pendingEmailChange {
+      email
+      requestedAt
+      resendAllowedAt
+    }
+  }
+`
+
 export const checkUsername = gql`
   query ($username: String!) {
     checkUsername(username: $username)
@@ -138,7 +139,7 @@ export const queryTransactionLink = gql`
         deletedAt
         senderUser {
           gradidoID
-          firstName
+          alias
           publisherId
         }
         communities {
@@ -163,7 +164,7 @@ export const queryTransactionLink = gql`
         }
         senderUser {
           gradidoID
-          firstName
+          alias
         }
         recipientCommunity {
           foreign
@@ -174,7 +175,6 @@ export const queryTransactionLink = gql`
         }
         recipientUser {
           gradidoID
-          firstName
           publisherId
         }
       }
@@ -246,8 +246,7 @@ export const searchAdminUsers = gql`
     searchAdminUsers(pageSize: $pageSize, currentPage: $currentPage, order: $order) {
       userCount
       userList {
-        firstName
-        lastName
+        alias
         role
         visibleCreationGroups
         seesAllCreationGroups
@@ -272,8 +271,8 @@ export const listContributionMessages = gql`
         createdAt
         updatedAt
         type
-        userFirstName
-        userLastName
+        userAlias
+        userAvatarColorIndex
         userId
       }
     }
@@ -283,6 +282,15 @@ export const listContributionMessages = gql`
 export const user = gql`
   query ($identifier: String!, $communityIdentifier: String!) {
     user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
+      alias
+      gradidoID
+    }
+  }
+`
+
+export const assistedRegistrationInfo = gql`
+  query ($assistCode: String!) {
+    assistedRegistrationInfo(assistCode: $assistCode) {
       firstName
       lastName
     }

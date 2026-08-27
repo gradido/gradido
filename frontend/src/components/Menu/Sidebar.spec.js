@@ -28,6 +28,7 @@ const i18n = createI18n({
       navigation: {
         overview: 'Overview',
         send: 'Send',
+        calculator: 'Calculator',
         transactions: 'Transactions',
         matching: 'Matching',
         circles: 'Circles',
@@ -91,7 +92,7 @@ describe('Sidebar', () => {
     })
 
     describe('the general section', () => {
-      it('has seven nav-items', () => {
+      it('has five nav-items', () => {
         const generalSection = wrapper.findAll('ul')[0]
         expect(generalSection.findAll('.nav-item')).toHaveLength(5)
       })
@@ -102,6 +103,16 @@ describe('Sidebar', () => {
 
       it('has nav-item "navigation.send" in navbar', () => {
         expect(wrapper.findAll('.nav-item').at(1).text()).toContain('Send')
+      })
+
+      /**
+       * ⛔ The calculator is deliberately NOT a menu entry any more. It moved to a small
+       * symbol above the menu (navbar on the phone, above the sidebar on desktop) -- the
+       * menu was getting long, and the calculator is a tool for those who run a till, not a
+       * page everybody visits. (Bernd, 20.08.2026)
+       */
+      it('does not list the calculator as a menu entry', () => {
+        expect(wrapper.text()).not.toContain('Calculator')
       })
 
       it('has nav-item "navigation.transactions" in navbar', () => {
@@ -196,6 +207,8 @@ describe('Sidebar with MATCHING_ACTIVE off', () => {
   })
 
   it('keeps every other menu item', () => {
+    // No 'Calculator' in this list any more: it moved out of the menu altogether, to the
+    // small symbol above it. See the main describe.
     const text = mountSidebar().text()
     for (const label of ['Overview', 'Send', 'Transactions', 'Creation', 'Info', 'Settings']) {
       expect(text).toContain(label)

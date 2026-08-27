@@ -48,8 +48,7 @@ describe('ContributionMessagesListItem', () => {
           createdAt: '2022-08-29T12:23:27.000Z',
           updatedAt: null,
           type: 'DIALOG',
-          userFirstName: 'Peter',
-          userLastName: 'Lustig',
+          userAlias: 'peterl',
           userId: 107,
           isModerator: true,
         },
@@ -61,7 +60,7 @@ describe('ContributionMessagesListItem', () => {
     })
 
     it('has the complete user name', () => {
-      expect(wrapper.find('[data-test="moderator-name"]').text()).toBe('Peter Lustig')
+      expect(wrapper.find('[data-test="moderator-name"]').text()).toBe('peterl')
     })
 
     it('has the message creation date', () => {
@@ -89,8 +88,7 @@ describe('ContributionMessagesListItem', () => {
           createdAt: '2022-08-29T12:25:34.000Z',
           updatedAt: null,
           type: 'DIALOG',
-          userFirstName: 'Bibi',
-          userLastName: 'Bloxberg',
+          userAlias: 'bibi',
           userId: 108,
         },
       })
@@ -101,7 +99,7 @@ describe('ContributionMessagesListItem', () => {
     })
 
     it('has the complete user name', () => {
-      expect(wrapper.find('[data-test="user-name"]').text()).toBe('Bibi Bloxberg')
+      expect(wrapper.find('[data-test="user-name"]').text()).toBe('bibi')
     })
 
     it('has the message creation date', () => {
@@ -131,8 +129,7 @@ This message also contains a link: https://gradido.net/de/
           createdAt: '2022-08-29T12:23:27.000Z',
           updatedAt: null,
           type: 'HISTORY',
-          userFirstName: 'Peter',
-          userLastName: 'Lustig',
+          userAlias: 'peterl',
           userId: 107,
         },
       })

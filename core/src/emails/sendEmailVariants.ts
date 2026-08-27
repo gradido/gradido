@@ -16,8 +16,11 @@ export interface EmailCommonData {
 }
 
 export interface ContributionEmailCommonData {
-  senderFirstName: string
-  senderLastName: string
+  // The alias, never a real name (NU-019/KLAR-08): this mail is read by somebody who is
+  // a THIRD PARTY to the person named here -- the member whose contribution a moderator
+  // touched, or the counterparty of a booking. The recipient's OWN name still fills
+  // `firstName`/`lastName` above; that is their own name in their own inbox.
+  senderAlias: string
   contributionMemo: string
   contributionFrontendLink: string
 }
@@ -66,11 +69,121 @@ export const sendAccountActivationEmail = (
 }
 
 export const sendAccountMultiRegistrationEmail = (
-  data: EmailCommonData,
+  // helperLink (EM-013): set only when the registration attempt carried a redeem code —
+  // the mail then offers "I am helping someone set up a Gradido account". Absent, the
+  // mail renders exactly as it always has.
+  data: EmailCommonData & { helperLink?: string | null },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
     template: 'accountMultiRegistration',
+    locals: {
+      ...data,
+      ...getEmailCommonLocales(),
+    },
+  })
+}
+
+/**
+ * The guest's half of an assisted registration (EM-013): account and password already
+ * exist, this mail only asks them to confirm that the address is theirs.
+ */
+export const sendAssistedRegistrationConfirmEmail = (
+  data: EmailCommonData & {
+    confirmLink: string
+    timeDurationObject: Record<string, unknown>
+  },
+): Promise<Record<string, unknown> | boolean | null | Error> => {
+  return sendEmailTranslated({
+    receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
+    template: 'assistedRegistrationConfirm',
+    locals: {
+      ...data,
+      ...getEmailCommonLocales(),
+    },
+  })
+}
+
+/** To the NEW address: the click that makes it the member's address. */
+export const sendEmailChangeConfirmEmail = (
+  data: EmailCommonData & {
+    confirmLink: string
+    /** Already written out for the reader's language - the mail only puts it in a sentence. */
+    validUntil: string
+  },
+): Promise<Record<string, unknown> | boolean | null | Error> => {
+  return sendEmailTranslated({
+    receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
+    template: 'emailChangeConfirm',
+    locals: {
+      ...data,
+      ...getEmailCommonLocales(),
+    },
+  })
+}
+
+/**
+ * To the OLD address: a notice with a veto link, not a precondition. Whoever still reads
+ * that mailbox can throw the change away; whoever lost it is not held up by it.
+ */
+export const sendEmailChangeNoticeEmail = (
+  data: EmailCommonData & {
+    newEmail: string
+    revokeLink: string
+    /** Already written out for the reader's language - the mail only puts it in a sentence. */
+    validUntil: string
+  },
+): Promise<Record<string, unknown> | boolean | null | Error> => {
+  return sendEmailTranslated({
+    receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
+    template: 'emailChangeNotice',
+    locals: {
+      ...data,
+      ...getEmailCommonLocales(),
+    },
+  })
+}
+
+/** After the change, to both addresses. */
+export const sendEmailChangeDoneEmail = (
+  data: EmailCommonData & {
+    oldEmail: string
+    newEmail: string
+  },
+): Promise<Record<string, unknown> | boolean | null | Error> => {
+  return sendEmailTranslated({
+    receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
+    template: 'emailChangeDone',
+    locals: {
+      ...data,
+      ...getEmailCommonLocales(),
+    },
+  })
+}
+
+/**
+ * To the support mailbox. The GDT server and the newsletter are keyed by address and get
+ * brought up to date by hand; this mail is what sets that in motion. `gdtEmail` is the
+ * address the GDT server is asked with - the one to merge the new address into.
+ */
+export const sendEmailChangeSupportEmail = (
+  data: EmailCommonData & {
+    alias: string
+    oldEmail: string
+    newEmail: string
+    gdtEmail: string
+    /** A change back to an address the member held before - nothing to merge on the GDT server. */
+    takeBack: boolean
+    /**
+     * The replaced address was never confirmed (an EM-013 typo correction): it was never
+     * on the GDT server and never in Klick-Tipp - the new address only needs entering.
+     */
+    typoCorrection: boolean
+  },
+): Promise<Record<string, unknown> | boolean | null | Error> => {
+  return sendEmailTranslated({
+    receiver: { to: data.email },
+    template: 'emailChangeSupport',
     locals: {
       ...data,
       ...getEmailCommonLocales(),
@@ -154,11 +267,42 @@ export const sendResetPasswordEmail = (
   })
 }
 
+/**
+ * The receipt for somebody who paid with their printed card.
+ *
+ * ⚠️ This is not a courtesy, it is part of the security model. The limits cap what can be
+ * lost in a DAY; only a member who NOTICES and blocks the card turns that into a cap for
+ * good. Without this mail a watched PIN keeps bleeding until somebody happens to scroll
+ * through their account.
+ *
+ * That is also why it carries a block link rather than only pointing at the account: the
+ * moment the receipt is read is the moment blocking has to be one reach away.
+ */
+export const sendThankYouCardPaidEmail = (
+  data: EmailCommonData & {
+    recipientName: string
+    recipientCommunity: string
+    transactionMemo: string
+    transactionAmount: GradidoUnit
+    cardLabel: string
+    cardId: number
+  },
+): Promise<Record<string, unknown> | boolean | null | Error> => {
+  return sendEmailTranslated({
+    receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
+    template: 'thankYouCardPaid',
+    locals: {
+      ...data,
+      transactionAmount: decimalSeparatorByLanguage(data.transactionAmount, data.language),
+      ...getEmailCommonLocales(),
+    },
+  })
+}
+
 export const sendTransactionLinkRedeemedEmail = (
   data: EmailCommonData & {
-    senderFirstName: string
-    senderLastName: string
-    senderEmail: string
+    senderAlias: string
+    senderCommunity: string
     transactionMemo: string
     transactionAmount: GradidoUnit
   },
@@ -174,30 +318,38 @@ export const sendTransactionLinkRedeemedEmail = (
   })
 }
 
+/**
+ * The uuids are what makes a reply possible, so they decide whether the template shows
+ * the reply button - the sender's e-mail address no longer appears in this mail at all.
+ *
+ * It used to be the address that decided, through a second template
+ * (`transactionReceivedNoSender`) whose only difference was the missing mailto. With the
+ * address gone the two templates were the same page, so there is one again, with the
+ * button behind an `if` - the shape `customEmail` has always used.
+ */
 export const sendTransactionReceivedEmail = (
   data: EmailCommonData & {
-    senderFirstName: string
-    senderLastName: string
-    senderEmail: string | null
+    senderAlias: string
     memo: string
     transactionAmount: GradidoUnit
+    senderUuid?: string
+    senderCommunityUuid?: string
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
-    template: data.senderEmail !== null ? 'transactionReceived' : 'transactionReceivedNoSender',
+    template: 'transactionReceived',
     locals: {
       ...data,
       transactionAmount: decimalSeparatorByLanguage(data.transactionAmount, data.language),
-      ...(data.senderEmail !== null ? getEmailCommonLocales() : { locale: data.language }),
+      ...getEmailCommonLocales(),
     },
   })
 }
 
 export const sendCustomEmail = (
   data: EmailCommonData & {
-    senderFirstName: string
-    senderLastName: string
+    senderAlias: string
     subject: string
     memo: string
     senderUuid?: string

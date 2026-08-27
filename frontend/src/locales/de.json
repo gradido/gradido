@@ -17,12 +17,30 @@
     "desc": "Gemeinsam unterstützen wir einander –  achtsam in Kreiskultur.",
     "title": "Gradido-Kreise"
   },
-  "PersonalDetails": "Persönliche Angaben",
   "advanced-calculation": "Vorausberechnung",
   "answerNow": "→ Jetzt antworten!",
   "appOutdated": {
     "reload": "Neu laden",
     "text": "Es gibt eine neuere Fassung. Bitte lade die Seite neu."
+  },
+  "assistedRegistration": {
+    "assist": {
+      "button": "Konto einrichten",
+      "done": "Das Konto ist eingerichtet! Eine Bestätigungs-Mail ist unterwegs an das neue Postfach. Jetzt anmelden und den Scheck einlösen:",
+      "emailHint": "Tragt hier die eigene E-Mail-Adresse des neuen Mitglieds ein — nicht Deine. Das Passwort tippt das neue Mitglied selbst.",
+      "emailTaken": "Diese E-Mail-Adresse hat bereits ein Gradido-Konto. Nutze „Passwort vergessen“, um wieder hineinzukommen.",
+      "intro": "{name} möchte ein Gradido-Konto beginnen.",
+      "invalid": "Dieser Link ist ungültig oder abgelaufen.",
+      "loginButton": "Anmelden und Scheck einlösen",
+      "title": "Gemeinsam ein Gradido-Konto einrichten"
+    },
+    "confirm": {
+      "button": "Adresse bestätigen",
+      "done": "Deine E-Mail-Adresse ist bestätigt. Dein Konto steht Dir jetzt dauerhaft offen.",
+      "invalid": "Dieser Bestätigungs-Link ist ungültig oder abgelaufen. Melde Dich an und lasse Dir eine neue Mail senden.",
+      "text": "Klicke auf den Knopf, um zu bestätigen, dass diese E-Mail-Adresse zu Deinem Gradido-Konto gehört.",
+      "title": "E-Mail-Adresse bestätigen"
+    }
   },
   "asterisks": "****",
   "auth": {
@@ -36,7 +54,58 @@
       "oneGratitude": "Für einander, für alle Menschen, für die Natur."
     }
   },
+  "avatar": {
+    "apply": "Übernehmen",
+    "change": "Profilbild ändern",
+    "choose-image": "Bild auswählen",
+    "error-format": "Dieses Bild kann der Browser nicht öffnen. Bitte wähle ein JPEG oder PNG.",
+    "error-heic": "Dieses Bild kann der Browser nicht öffnen. Es ist ein HEIC, das Kameraformat des iPhones. Wandle es in JPEG um, oder wähle das Bild direkt auf dem iPhone aus.",
+    "error-too-large": "Dieses Bild ist zu groß. Bitte wähle eines unter {limit} MB.",
+    "measure": "Ausgangsdatei {source} KB, gesendet werden {result} KB",
+    "mirror": "Spiegeln",
+    "pick-hint": "Bild hierher ziehen oder unten auswählen",
+    "remove": "Bild entfernen",
+    "remove-confirm": "Ja, entfernen",
+    "remove-question": "Dein Konto zeigt dann wieder Deine Anfangsbuchstaben. Du kannst jederzeit ein neues Bild setzen.",
+    "removed": "Dein Profilbild wurde entfernt",
+    "rotate": "Drehen",
+    "set": "Profilbild setzen",
+    "size": "Größe",
+    "take-photo": "Foto aufnehmen"
+  },
   "back": "Zurück",
+  "calculator": {
+    "back": "Zurück",
+    "card": {
+      "from-calculator": "aus dem Rechner",
+      "park": "Mit Dank-Karte",
+      "park-failed": "Nicht gemerkt — bitte den Betrag nach dem Scannen eintippen.",
+      "parked": "Betrag gemerkt: {amount} GDD",
+      "scan": "Karte scannen",
+      "undo": "Rückgängig"
+    },
+    "copy": {
+      "copied": "Kopiert.",
+      "fiat": "{currency}-Betrag kopieren",
+      "gdd": "Gradido-Betrag kopieren",
+      "not-copied": "Konnte nicht kopieren."
+    },
+    "daily-rate": "Tageskurs",
+    "dankbar-equals": "{dankBar} DankBar = {gdd} Gradido",
+    "dankbar-to-gdd": "DankBar in GDD",
+    "gradido-share": "Gradido %",
+    "purchasing-power": "Kaufkraft: 1 GDD = {factor} {currency}",
+    "settings": {
+      "currency": "Währung",
+      "purchasing-power": "Kaufkraft — 1 GDD =",
+      "show-dankbar": "DankBar anzeigen",
+      "sound": "Ton",
+      "title": "Einstellungen"
+    },
+    "share": {
+      "label": "Gradido-Anteil (0–100 %)"
+    }
+  },
   "card-circles": {
     "allowed": {
       "button": "Kreise öffnen..."
@@ -162,6 +231,31 @@
   "download": "Herunterladen",
   "edit": "bearbeiten",
   "em-dash": "—",
+  "emailChange": {
+    "confirm": {
+      "button": "Neue Adresse bestätigen",
+      "done": "Deine E-Mail-Adresse wurde geändert. Melde Dich ab jetzt mit der neuen Adresse an.",
+      "text": "Mit einem Klick wird diese Adresse die E-Mail-Adresse Deines Gradido-Kontos. Bis dahin gilt Deine bisherige Adresse weiter.",
+      "title": "Neue E-Mail-Adresse bestätigen"
+    },
+    "invalid": "Dieser Link ist ungültig oder abgelaufen. In Deinen Einstellungen kannst Du eine neue Bestätigungs-E-Mail anfordern.",
+    "revoke": {
+      "button": "Änderung verwerfen",
+      "done": "Die Änderung wurde verworfen – Deine bisherige Adresse bleibt bestehen. Wenn Du die Änderung nicht selbst angestoßen hattest, ändere bitte auch Dein Passwort.",
+      "text": "Warst Du das nicht? Dann verwirf die angestoßene Änderung – Deine bisherige Adresse bleibt bestehen.",
+      "title": "Änderung der E-Mail-Adresse verwerfen"
+    }
+  },
+  "emailConfirmation": {
+    "changeAddress": "Adresse korrigieren",
+    "grace": "Bis {deadline} kannst Du Dein Konto schon vollständig nutzen — danach wartet es auf Deine Bestätigung.",
+    "later": "Später",
+    "mailSent": "Eine Bestätigungs-Mail ist an Deine E-Mail-Adresse unterwegs. Bitte klicke auf den Link darin.",
+    "overdue": "Die Übergangszeit ist abgelaufen. Bitte bestätige Deine E-Mail-Adresse — danach steht Dir Dein Konto sofort wieder vollständig offen.",
+    "resend": "Mail erneut senden",
+    "resent": "Die Bestätigungs-Mail ist erneut unterwegs.",
+    "title": "Bestätige Deine E-Mail-Adresse"
+  },
   "error": {
     "email-already-sent": "Wir haben dir bereits eine E-Mail vor weniger als 10 Minuten geschickt.",
     "empty-transactionlist": "Es gab einen Fehler mit der Übermittlung der Anzahl deiner Transaktionen.",
@@ -202,7 +296,7 @@
     "from": "Von",
     "generate_now": "Jetzt generieren",
     "hours": "Stunden",
-    "identifier": "E-Mail, Nutzername oder Gradido ID",
+    "identifier": "E-Mail, Nutzername oder Gradido-Adresse",
     "lastname": "Nachname",
     "link_amount": "Link-Betrag",
     "link_decay_description": "Der Link-Betrag wird zusammen mit der maximalen Vergänglichkeit blockiert. Nach Einlösen, Verfallen oder Löschen des Links wird der Rest wieder freigegeben.",
@@ -274,8 +368,9 @@
       },
       "identifier": {
         "communityIsReachable": "Community nicht gefunden oder nicht erreichbar!",
+        "formatError": "Diese Empfänger-Angabe kann ich nicht lesen. Möglich sind: Nutzername, E-Mail, Gemeinschaft/Nutzername oder eine Gradido-Adresse wie gemeinschaft.net/u/Nutzername.",
         "required": "Der Empfänger ist ein Pflichtfeld.",
-        "typeError": "Der Empfänger muss eine E-Mail, ein Nutzernamen oder eine Gradido ID sein."
+        "typeError": "Der Empfänger muss eine E-Mail, ein Nutzername oder eine Gradido-Adresse sein."
       },
       "is-not": "Du kannst dir selbst keine Gradidos überweisen!",
       "memo": {
@@ -350,7 +445,27 @@
     "raise": "Erhöhung",
     "recruited-member": "Eingeladenes Mitglied"
   },
-  "gradidoid-copied-to-clipboard": "Gradido ID wurde in die Zwischenablage kopiert.",
+  "gradido-card": {
+    "contact": "Kontakt",
+    "contact-count": "{count} von {max} Zeilen · auf diesem Gerät gemerkt",
+    "contact-hint": "Was hier steht, wird mitgedruckt. Es bleibt auf diesem Gerät und geht nicht an den Server — auf einem fremden Rechner also besser leer lassen.",
+    "contact-placeholder": "E-Mail, Telefon, Netzseite … — eine Angabe je Zeile",
+    "contact-print-heading": "Wort mitdrucken",
+    "contact-too-many": "Mehr als {max} Zeilen — nur die ersten {max} stehen auf der Karte.",
+    "description": "Zum Ausdrucken und Weitergeben: Dein Name, Deine Gemeinschaft, Dein Benutzername, Dein QR-Code und Deine Kontaktzeilen auf einer Karte in Scheckkartengröße. Wer sie bekommt, kann Dir Gradido senden — und Dich erreichen.",
+    "download": "Visitenkarte herunterladen",
+    "download-hint": "Ein einzelnes Bild in Druckqualität — für eine Druckerei oder zum Weitergeben.",
+    "needs-username": "Deine Karte trägt Deine Gradido-Adresse — und die entsteht aus Deinem Benutzernamen. Bitte wähle zunächst einen; das Feld dafür steht unter „Mein Konto“. Danach kannst Du Deine Karte drucken und weitergeben.",
+    "needs-username-title": "Erst der Benutzername",
+    "real-name": "Klarname",
+    "real-name-hint": "Ohne Haken steht oben auf der Karte Dein Benutzername — Dein Name erscheint dann nirgends darauf.",
+    "real-name-print": "mitdrucken",
+    "sheet": "Bogen mit 10 Karten",
+    "sheet-hint": "10 Visitenkarten in Originalgröße auf einer A4-Seite. Im Druckfenster kannst Du sie auch als PDF sichern.",
+    "title": "Deine Visitenkarte"
+  },
+  "gradidoid-copied-to-clipboard": "Gradido-Adresse wurde in die Zwischenablage kopiert.",
+  "gradidoid-not-copied": "Dein Gerät lässt das Kopieren leider nicht zu. Bitte markiere die Adresse und kopiere sie von Hand.",
   "h": "h",
   "info": "Information",
   "language": "Sprache",
@@ -564,12 +679,30 @@
   },
   "missingGradidoAccount": "Noch kein {communityName} Konto?",
   "moderatorChangedMemo": "Text vom Moderator bearbeitet",
+  "my-codes": {
+    "back": "Zurück",
+    "gradido-card": {
+      "hint": "Wer diesen Code scannt, kann Dir Gradido senden."
+    },
+    "thank-you-card": {
+      "failed": "Die Karte konnte gerade nicht geladen werden.",
+      "hint": "Zeige diesen Code wie eine gedruckte Dank-Karte — bestätigt wird mit Deiner PIN.",
+      "no-card": "Du hast noch keine Karte angelegt. In den Einstellungen gibst Du ihr einen Namen — danach kannst Du sie hier zeigen und auch ausdrucken.",
+      "not-set-up": "Die Karten-Funktion ist noch nicht eingerichtet. In den Einstellungen setzt Du eine PIN und Deine Höchstbeträge.",
+      "retry": "Nochmal versuchen",
+      "to-settings": "Zu den Einstellungen"
+    }
+  },
   "navigation": {
     "admin_area": "Adminbereich",
+    "back-to-account": "Zurück zum Konto",
+    "back-to-settings": "Zurück zu den Einstellungen",
+    "calculator": "Rechner",
     "community": "Gemeinschaft",
     "logout": "Abmelden",
     "matching": "Matching",
     "overview": "Übersicht",
+    "scanner": "Code scannen",
     "send": "Senden",
     "settings": "Einstellungen",
     "support": "Support",
@@ -577,18 +710,59 @@
   },
   "openHours": "Offene Stunden",
   "pageTitle": {
+    "calculator": "Rechner",
     "circles": "Gradido Kreise",
     "contributions": "Gradido schöpfen",
     "gdt": "Deine GDT Transaktionen",
     "information": "{community}",
     "matching": "Matching",
+    "my-gradido-card": "QR-Code meiner Visitenkarte",
+    "my-thank-you-card": "QR-Code meiner Dank-Karte",
     "overview": "Willkommen {name}",
+    "scanner": "Code scannen",
     "send": "Gradido und E-Mail senden",
     "settings": "Einstellungen",
     "transactions": "Deine Transaktionen",
     "usersearch": "Geografische Mitgliedssuche (beta)"
   },
+  "public-profile": {
+    "address": "Gradido-Adresse",
+    "send": "Gradido senden"
+  },
   "qrCode": "QR Code",
+  "scanner": {
+    "back": "Zurück",
+    "denied": {
+      "help": "Du kannst den Zugriff in den Browser-Einstellungen für diese Seite erlauben.",
+      "title": "Kein Zugriff auf die Kamera"
+    },
+    "foreign": {
+      "cheque": "Scheck einer anderen Community",
+      "continue": "Weiter scannen",
+      "gradido-card": "Visitenkarte einer anderen Community",
+      "open": "Dort öffnen",
+      "thank-you-card": "Dank-Karte einer anderen Community"
+    },
+    "hint": "Dank-Karte, Scheck oder Visitenkarte ins Bild halten",
+    "manual": {
+      "close": "Weiter scannen",
+      "invalid": "Das ist kein Gradido-Code oder -Link.",
+      "label": "Code oder Link",
+      "open": "Code oder Link von Hand eingeben",
+      "submit": "Öffnen"
+    },
+    "no-gradido-code": "Kein Gradido-Code.",
+    "permission-hint": "Jedes Mal die Kamera-Frage? In den Website-Einstellungen des Browsers lässt sich die Kamera für diese Seite dauerhaft erlauben.",
+    "system-camera": {
+      "parked": "Der gemerkte Betrag wartet und wird übernommen.",
+      "text": "Die Kamera Deines Geräts öffnet nach dem Scannen die richtige Seite.",
+      "title": "Mit der Kamera-App scannen"
+    },
+    "title": "Gradido-Code scannen",
+    "unavailable": {
+      "title": "Keine Kamera gefunden"
+    }
+  },
   "send_email": "E‑Mail senden",
   "send_gdd": "GDD senden",
   "send_per_link": "Link, Scheck, QR",
@@ -617,30 +791,44 @@
         "userCoords": "Dein Standort: Breitengrad {lat}, Längengrad {lng}",
         "userLocationLabel": "Dein Standort"
       },
-      "naming-format": "Namen anzeigen:",
       "publish-location": {
         "approximate": "Ungefähre Position",
         "exact": "Genaue Position",
         "updated": "Positionstyp für GMS aktualisiert"
-      },
-      "publish-name": {
-        "updated": "Namensformat für GMS aktualisiert"
       }
     },
+    "avatar": {
+      "disabled": "Dein Bild siehst jetzt nur noch Du.",
+      "enabled": "Dein Bild ist für andere Mitglieder sichtbar.",
+      "visibility": "Mein Bild anderen Mitgliedern zeigen",
+      "visibilityInfo": "Andere Mitglieder sehen Dein Bild — zum Beispiel neben Euren gemeinsamen Buchungen. Wenn die Einstellung ausgeschaltet ist, erscheinen wie bisher Deine Anfangsbuchstaben."
+    },
     "community": "Kreise & Mitgliedssuche",
-    "emailInfo": "Kann aktuell noch nicht geändert werden.",
-    "hideAmountGDD": "Dein GDD Betrag ist versteckt.",
-    "hideAmountGDT": "Dein GDT Betrag ist versteckt.",
+    "email": {
+      "cancel": "Abbrechen",
+      "cancelled": "Die Änderung wurde verworfen.",
+      "change": "E-Mail-Adresse ändern",
+      "error-invalid": "Das ist keine gültige E-Mail-Adresse.",
+      "error-password": "Das Passwort stimmt nicht.",
+      "error-same": "Das ist bereits die E-Mail-Adresse Deines Kontos.",
+      "error-taken": "Diese E-Mail-Adresse ist bereits vergeben.",
+      "error-wait": "Bitte warte ein paar Minuten, bevor Du eine neue E-Mail anforderst.",
+      "new": "Neue E-Mail-Adresse",
+      "password": "Dein aktuelles Passwort",
+      "password-why": "Zur Sicherheit – damit niemand an einem offenen Gerät Deine Adresse ändern kann.",
+      "pending": "Bestätigung ausstehend: Wir haben eine E-Mail an {email} geschickt. Bis Du den Link darin anklickst, gilt Deine bisherige Adresse weiter.",
+      "resend": "E-Mail erneut senden",
+      "resend-wait": "Erneut senden in {minutes} Min.",
+      "send": "Bestätigungs-E-Mail senden",
+      "sent": "Wir haben eine Bestätigungs-E-Mail an {email} geschickt."
+    },
+    "emailInfo": "Eine neue Adresse gilt, sobald Du sie über den Link in der Bestätigungs-E-Mail bestätigt hast.",
+    "hide-amount": "{currency}-Betrag verbergen",
     "humhub": {
       "delete-disabled": "Das Benutzerkonto kann nur im Profil-Menü der Kooperationsplattform gelöscht werden.",
       "disabled": "Daten werden nicht in die Gradido Community exportiert",
-      "enabled": "Daten werden in die Gradido Community exportiert",
-      "naming-format": "Namen anzeigen:",
-      "publish-name": {
-        "updated": "Namensformat für die Gradido Community aktualisiert."
-      }
+      "enabled": "Daten werden in die Gradido Community exportiert"
     },
-    "info": "Transaktionen können nun per Benutzername oder E-Mail-Adresse getätigt werden.",
     "language": {
       "de": "Deutsch",
       "en": "English",
@@ -650,12 +838,23 @@
       "nl": "Nederlands",
       "success": "Deine Sprache wurde erfolgreich geändert."
     },
+    "menu": {
+      "account": "Mein Konto",
+      "appearance": "Darstellung",
+      "gradido-card": "Visitenkarte",
+      "notifications": "Nachrichten",
+      "state": {
+        "blocked": "Gesperrt",
+        "off": "Aus",
+        "on": "Ein"
+      },
+      "visibility": "Sichtbarkeit"
+    },
     "name": {
       "change-success": "Dein Name wurde erfolgreich geändert.",
       "enterFirstname": "Vorname eingeben",
       "enterLastname": "Nachname eingeben"
     },
-    "newSettings": "Neue Einstellungen",
     "newsletter": {
       "newsletter": "Informationen per E-Mail",
       "newsletterFalse": "Du erhältst keine Informationen per E-Mail.",
@@ -664,7 +863,7 @@
     "password": {
       "change-password": "Passwort ändern",
       "forgot_pwd": "Passwort vergessen?",
-      "resend_subtitle": "Dein Aktivierungslink ist abgelaufen. Du kannst hier ein neuen anfordern.",
+      "resend_subtitle": "Dein Aktivierungslink ist abgelaufen. Du kannst hier einen neuen anfordern.",
       "reset": "Passwort zurücksetzen",
       "reset-password": {
         "text": "Gib nun ein neues Passwort ein, mit dem du dich zukünftig in deinem Gradido-Konto anmelden willst."
@@ -676,20 +875,6 @@
       },
       "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen."
     },
-    "publish-name": {
-      "alias-or-initials": "Benutzername oder Initialen",
-      "alias-or-initials-tooltip": "Benutzername, falls vorhanden, oder die Initialen von Vorname und Nachname jeweils die ersten zwei Buchstaben",
-      "first": "Vorname",
-      "first-initial": "Vorname und Initial",
-      "first-initial-tooltip": "Vornamen plus den ersten Anfangsbuchstaben des Nachnamens",
-      "first-tooltip": "Nur der Vornamen",
-      "initials": "Initialen",
-      "initials-tooltip": "Initialen von Vor- und Nachname also jeweils die ersten zwei Buchstaben unabhängig von der Existenz des Benutzernamens",
-      "name-full": "Vorname und Nachname",
-      "name-full-tooltip": "Vollständiger Name: Vorname plus Nachname"
-    },
-    "showAmountGDD": "Dein GDD Betrag ist sichtbar.",
-    "showAmountGDT": "Dein GDT Betrag ist sichtbar.",
     "theme": {
       "dark": "Dunkel",
       "hint": "Wähle „Systemeinstellung folgen“, um automatisch zwischen hellem und dunklem Modus zu wechseln — je nach Einstellung Deines Geräts oder Browsers.",
@@ -699,9 +884,27 @@
     },
     "username": {
       "change-success": "Dein Nutzername wurde erfolgreich geändert.",
-      "no-username": "Bitte gib einen Benutzernamen ein. Damit hilfst du anderen Benutzern dich zu finden, ohne deine E-Mail-Adresse preisgeben zu müssen."
-    },
-    "usernameInfo": "Kann nach dem Speichern nicht mehr geändert werden!"
+      "confirm-free": "Diesen Namen hattest Du schon — die Änderung zählt nicht auf Dein Jahr.",
+      "confirm-last": "Das ist Deine letzte Änderung in diesem Jahr.",
+      "confirm-left": "Danach kannst Du Deinen Namen dieses Jahr noch einmal ändern. | Danach kannst Du Deinen Namen dieses Jahr noch {n}-mal ändern.",
+      "confirm-reserved": "{name} bleibt für Dich reserviert — Du kannst ihn jederzeit zurückholen.",
+      "confirm-title": "Willst Du Deinen Nutzernamen wirklich ändern?",
+      "first-back": "Zurück",
+      "first-check-failed": "konnte nicht geprüft werden",
+      "first-checking": "wird geprüft …",
+      "first-choose-title": "Such Dir einen Namen aus",
+      "first-free": "ist noch frei",
+      "first-hint": "Du kannst ihn behalten oder Dir einen eigenen aussuchen. Später sind vier Änderungen im Jahr möglich.",
+      "first-intro": "Unter diesem Namen sehen Dich andere Mitglieder — und finden Dich, um Dir Gradido zu senden. Wir haben Dir einen vorgeschlagen:",
+      "first-invalid": "Dieser Name passt nicht zu den Regeln",
+      "first-keep": "Passt so",
+      "first-other": "Anderen wählen",
+      "first-rules": "3 bis 20 Zeichen · Buchstaben, Ziffern, - und _",
+      "first-taken": "Dieser Name ist schon vergeben",
+      "first-title": "Dein Nutzername",
+      "quota-blocked": "Du hast Deine Namensänderungen für dieses Jahr aufgebraucht. Ab {date} geht es wieder.",
+      "quota-left": "Du kannst Deinen Nutzernamen dieses Jahr noch einmal ändern. | Du kannst Deinen Nutzernamen dieses Jahr noch {n}-mal ändern."
+    }
   },
   "signin": "Anmelden",
   "signup": "Registrieren",
@@ -726,6 +929,71 @@
   "status": "Status",
   "submitted": "Eingereicht",
   "success": "Erfolg",
+  "thank-you-card": {
+    "back-to-calculator": "Zurück zum Rechner",
+    "name": "Dank-Karte",
+    "receive": {
+      "amount": "{amount} GDD",
+      "attempts-left": "noch {n} Versuche",
+      "default-memo": "Dank-Karte",
+      "next": "Weiter",
+      "next-payment": "Nächster Vorgang",
+      "pin-title": "Bitte Deine PIN",
+      "remember-memo": "Diesen Verwendungszweck merken",
+      "rest-note": "wird separat beglichen.",
+      "sent-from-to": "gesendet von {from} an {to}",
+      "subtitle": "Eine Dank-Karte wurde gescannt.",
+      "thanks": "Vielen Dank!"
+    },
+    "settings": {
+      "block": "Karte sperren",
+      "block-confirm": "Danach kann mit dieser Karte nicht mehr gedankt werden. Du kannst sie später wieder entsperren, solange keine andere Karte aktiv ist.",
+      "block-confirm-card": "Dank-Karte: {label}",
+      "block-confirm-title": "Karte sperren?",
+      "blocked": "Die Karte ist gesperrt.",
+      "blocked-on": "gesperrt {date}",
+      "change-pin": "PIN ändern",
+      "create": "Karte anlegen",
+      "created": "Die Karte ist angelegt.",
+      "disable": "Karten-Funktion ausschalten",
+      "disabled": "Die Karten-Funktion ist ausgeschaltet.",
+      "earlier-cards": "Frühere Karten",
+      "enable": "PIN setzen und einschalten",
+      "explain": "Mit einer Dank-Karte kannst Du auch dann danken, wenn Du Dein Handy nicht dabei hast. Du zeigst die Karte, das Gegenüber tippt den Betrag — und Du bestätigst mit Deiner PIN. Und hast Du das Handy dabei, aber nicht die Karte, zeigst Du denselben Code auf dem Bildschirm — das Symbol mit dem Pfeil nach oben.",
+      "explain-pin": "Deine PIN tippst Du auf dem Gerät des anderen. Deshalb setzt Du ein Limit: mehr als das kann nie abgebucht werden.",
+      "label": "Bezeichnung",
+      "label-placeholder": "z. B. Portemonnaie",
+      "max-per-day": "Höchstbetrag je Tag",
+      "max-per-payment": "Höchstbetrag je Vorgang",
+      "not-set-up": "Noch nicht eingerichtet.",
+      "on": "Eingeschaltet",
+      "pin-hide": "PIN verbergen",
+      "pin-rules": "Sechs Ziffern. Nicht sechsmal dieselbe, keine Folge wie 123456 und kein Geburtsjahr am Anfang.",
+      "pin-show": "PIN anzeigen",
+      "pin-title": "PIN setzen",
+      "saved": "Gespeichert",
+      "sheet": "Dank-Karte drucken",
+      "sheet-hint": "Deine Dank-Karte in Originalgröße auf einer A4-Seite, zum Ausschneiden an der dünnen Linie. Im Druckfenster kannst Du sie auch als PDF sichern.",
+      "title": "Deine Dank-Karte – Mit Karte danken",
+      "unblock": "Entsperren",
+      "unblock-needs-no-active": "Zum Entsperren muss zuerst die aktive Karte gesperrt werden — es kann immer nur mit einer Karte gedankt werden.",
+      "unblocked": "Die Karte ist wieder entsperrt.",
+      "your-card": "Deine Karte"
+    },
+    "status": {
+      "BLOCKED_NOW": "Nach drei Fehlversuchen ist die Karte gesperrt. Der Besitzer kann sie in seinem eigenen Gradido-Konto wieder freigeben.",
+      "CARD_BLOCKED": "Diese Dank-Karte ist gesperrt.",
+      "CARD_NOT_SET_UP": "Mit dieser Karte kann zurzeit nicht gedankt werden.",
+      "CARD_UNKNOWN": "Diese Karte kennen wir nicht.",
+      "LIMIT_PER_DAY_EXCEEDED": "Das Tageslimit dieser Karte ist erreicht.",
+      "LIMIT_PER_PAYMENT_EXCEEDED": "Der Betrag liegt über dem Höchstbetrag dieser Karte.",
+      "NOT_ENOUGH_GDD": "Das Guthaben reicht nicht.",
+      "OWN_CARD": "Das ist Deine eigene Karte.",
+      "REQUEST_GONE": "Die Anfrage ist abgelaufen. Bitte neu beginnen.",
+      "SUCCESS": "Bereit",
+      "WRONG_PIN": "Die PIN stimmt nicht."
+    }
+  },
   "thank-you-cheque": {
     "download": "Scheck herunterladen",
     "scan-qr": "Damit die Gradido gutgeschrieben werden, scanne den QR-Code!",
@@ -755,6 +1023,7 @@
     "headline": "Geografische Nutzersuche",
     "text": "Ganz gleich zu welcher Community du gehörst, mit dem Geo Matching System findest du Mitglieder aller Communities auf einer Landkarte. Du kannst nach  Angeboten und Bedürfnissen filtern und dir die Nutzer anzeigen lassen, die zu Dir passen.\n\nMit dem Button wird ein neues Browser-Fenster geöffnet, in dem dir die Nutzer in deinem Umfeld auf einer Karte angezeigt werden."
   },
+  "via_card": "über eine Karte",
   "via_link": "über einen Link",
   "welcome": "Willkommen in der Gemeinschaft"
 }

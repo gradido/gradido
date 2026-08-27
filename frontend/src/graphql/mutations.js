@@ -24,6 +24,50 @@ export const forgotPassword = gql`
   }
 `
 
+export const requestEmailChange = gql`
+  mutation ($email: String!, $password: String!) {
+    requestEmailChange(email: $email, password: $password) {
+      email
+      requestedAt
+      resendAllowedAt
+    }
+  }
+`
+
+export const resendEmailChange = gql`
+  mutation {
+    resendEmailChange {
+      email
+      requestedAt
+      resendAllowedAt
+    }
+  }
+`
+
+export const cancelEmailChange = gql`
+  mutation {
+    cancelEmailChange
+  }
+`
+
+export const confirmEmailChange = gql`
+  mutation ($code: String!) {
+    confirmEmailChange(code: $code)
+  }
+`
+
+export const revokeEmailChange = gql`
+  mutation ($vetoCode: String!) {
+    revokeEmailChange(vetoCode: $vetoCode)
+  }
+`
+
+export const adoptAlias = gql`
+  mutation {
+    adoptAlias
+  }
+`
+
 export const updateUserInfos = gql`
   mutation (
     $firstName: String
@@ -36,8 +80,7 @@ export const updateUserInfos = gql`
     $hideAmountGDT: Boolean
     $gmsAllowed: Boolean
     $humhubAllowed: Boolean
-    $gmsPublishName: PublishNameType
-    $humhubPublishName: PublishNameType
+    $avatarVisibleToMembers: Boolean
     $gmsLocation: Location
     $gmsPublishLocation: GmsPublishLocationType
     $aboutMe: String
@@ -53,8 +96,7 @@ export const updateUserInfos = gql`
       hideAmountGDT: $hideAmountGDT
       gmsAllowed: $gmsAllowed
       humhubAllowed: $humhubAllowed
-      gmsPublishName: $gmsPublishName
-      humhubPublishName: $humhubPublishName
+      avatarVisibleToMembers: $avatarVisibleToMembers
       gmsLocation: $gmsLocation
       gmsPublishLocation: $gmsPublishLocation
       aboutMe: $aboutMe
@@ -191,8 +233,8 @@ export const createContributionMessage = gql`
       createdAt
       updatedAt
       type
-      userFirstName
-      userLastName
+      userAlias
+      userAvatarColorIndex
     }
   }
 `
@@ -202,6 +244,8 @@ export const login = gql`
     login(email: $email, password: $password, publisherId: $publisherId, project: $project) {
       gradidoID
       alias
+      emailChecked
+      createdAt
       firstName
       lastName
       language
@@ -210,8 +254,6 @@ export const login = gql`
       }
       gmsAllowed
       humhubAllowed
-      gmsPublishName
-      humhubPublishName
       gmsPublishLocation
       userLocation
       hasElopage
@@ -284,5 +326,43 @@ export const disburseTransactionLink = gql`
       validUntil: $validUntil
       recipientAlias: $recipientAlias
     )
+  }
+`
+
+// The member's own profile picture, both renditions from one crop. Base64 without a data
+// URI prefix; the browser has already cropped and stepped the quality down until each fit
+// its budget -- 128x128 for everyday use, 512x512 for the printed card.
+//
+// Both in one mutation on purpose: they describe the same square, and a half-applied
+// change would show the member two different pictures depending on where they look.
+export const setUserAvatar = gql`
+  mutation ($avatarSmall: String!, $avatarFull: String!) {
+    setUserAvatar(avatarSmall: $avatarSmall, avatarFull: $avatarFull)
+  }
+`
+
+export const removeUserAvatar = gql`
+  mutation {
+    removeUserAvatar
+  }
+`
+
+export const completeAssistedRegistration = gql`
+  mutation ($assistCode: String!, $email: String!, $password: String!) {
+    completeAssistedRegistration(assistCode: $assistCode, email: $email, password: $password) {
+      redeemCode
+    }
+  }
+`
+
+export const confirmEmailMutation = gql`
+  mutation ($code: String!) {
+    confirmEmail(code: $code)
+  }
+`
+
+export const resendConfirmationEmail = gql`
+  mutation {
+    resendConfirmationEmail
   }
 `

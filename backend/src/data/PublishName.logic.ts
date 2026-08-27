@@ -1,4 +1,5 @@
 import { User } from 'database'
+import { ALIAS_MIN_CHARS, publicAlias } from 'shared'
 import XRegExp from 'xregexp'
 
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
@@ -9,60 +10,56 @@ export class PublishNameLogic {
 
   constructor(private user: User) {}
 
-  private firstUpperCaseSecondLowerCase(name: string) {
-    if (name && name.length >= 2) {
-      return name.charAt(0).toUpperCase() + name.charAt(1).toLocaleLowerCase()
-    }
-    return name
-  }
-
   // remove character which are invalid for humhub username
   private filterOutInvalidChar(name: string) {
     return XRegExp.match(name, this.usernameRegex, 'all').join('')
   }
 
+  /**
+   * Whether this member has an alias worth using -- for the humhub username, which is
+   * what `getUserIdentifier` builds.
+   *
+   * The threshold comes from `ALIAS_MIN_CHARS` rather than a literal `3`. It stood here
+   * as a literal while `publicAlias` in `shared` read the constant: two copies of one
+   * number, in a class that had just been made to delegate. Measured the same way too,
+   * on the trimmed length, so the two cannot disagree about an alias of three spaces.
+   */
   public hasAlias(): boolean {
-    if (this.user.alias && this.user.alias.length >= 3) {
+    if (this.user.alias && this.user.alias.trim().length >= ALIAS_MIN_CHARS) {
       return true
     }
     return false
   }
 
   /**
-   * get first name based on publishNameType: PublishNameType value
-   * @param publishNameType
-   * @returns user.firstName for PUBLISH_NAME_FIRST, PUBLISH_NAME_FIRST_INITIAL or PUBLISH_NAME_FULL
+   * What another member is allowed to call this one (NU-018/NU-024): the alias, and
+   * without one the FULL gradidoID. No publish-name setting steers it -- that setting's
+   * display role ended with NU-024, and the real name is not handed out here at all.
+   *
+   * ⛔ The single place this rule lives on the server. It sat inline at four call sites
+   * that all had to agree, and one of them (the till's receipt) had already drifted to a
+   * bare `alias || gradidoID` -- which let a legacy alias of one or two characters
+   * through where the other three showed the identifier. They all come through here now.
+   *
+   * ⚠️ Not through `hasAlias()`, which is what this said until the rule moved to
+   * `shared`. That method answers a different question -- whether an alias can become a
+   * humhub username -- and only shares the threshold with this one.
+   *
+   * ⛔ Delegates to `shared`, it does not repeat the rule: `core` writes the same value
+   * into the mails a third party reads and cannot import this class, so the rule had to
+   * move somewhere all three packages reach. This method stays because the call sites
+   * here hold a whole user and reading two fields off it at each of them is what let the
+   * rule drift in the first place.
+   *
+   * Never null: the entity's types lie -- `alias` is declared `string` while the column
+   * is nullable -- and `Profile` puts the result straight into a `.length` check, where
+   * undefined is a crash rather than a blank.
+   *
+   * Exempt from Result on purpose: every user produces an answer, there is no failure
+   * to model.
    */
-  public getFirstName(publishNameType: PublishNameType): string {
-    let firstName = ''
-    if (this.user && typeof this.user.firstName === 'string') {
-      firstName = this.user.firstName
-    }
-    return [
-      PublishNameType.PUBLISH_NAME_FIRST,
-      PublishNameType.PUBLISH_NAME_FIRST_INITIAL,
-      PublishNameType.PUBLISH_NAME_FULL,
-    ].includes(publishNameType)
-      ? firstName.slice(0, 20)
-      : ''
-  }
-
-  /**
-   * get last name based on publishNameType: GmsPublishNameType value
-   * @param publishNameType
-   * @returns user.lastName for PUBLISH_NAME_LAST, PUBLISH_NAME_FULL
-   *   first initial from user.lastName for PUBLISH_NAME_FIRST_INITIAL
-   */
-  public getLastName(publishNameType: PublishNameType): string {
-    let lastName = ''
-    if (this.user && typeof this.user.lastName === 'string') {
-      lastName = this.user.lastName
-    }
-    return publishNameType === PublishNameType.PUBLISH_NAME_FULL
-      ? lastName.slice(0, 20)
-      : publishNameType === PublishNameType.PUBLISH_NAME_FIRST_INITIAL && lastName.length > 0
-        ? lastName.charAt(0)
-        : ''
+  public getPublicAlias(): string {
+    return publicAlias(this.user.alias, this.user.gradidoID)
   }
 
   /**
@@ -78,39 +75,8 @@ export class PublishNameLogic {
       : this.user.gradidoID
   }
 
-  /**
-   * get public name based on publishNameType: PublishNameType value
-   * @param publishNameType: PublishNameType
-   * @return alias if exist and type = PUBLISH_NAME_ALIAS_OR_INITALS
-   *         initials if type = PUBLISH_NAME_INITIALS
-   *         full first name if type = PUBLISH_NAME_FIRST
-   *         full first name and last name initial if type = PUBLISH_NAME_FIRST_INITIAL
-   *         full first name and full last name if type = PUBLISH_NAME_FULL
-   */
-  public getPublicName(publishNameType: PublishNameType): string {
-    return this.isUsernameFromAlias(publishNameType)
-      ? this.getUsernameFromAlias()
-      : this.isUsernameFromInitials(publishNameType)
-        ? this.getUsernameFromInitials()
-        : `${this.getFirstName(publishNameType)} ${this.getLastName(publishNameType)}`.trim()
-  }
-
-  public getUsernameFromInitials(): string {
-    return (
-      this.firstUpperCaseSecondLowerCase(this.user.firstName) +
-      this.firstUpperCaseSecondLowerCase(this.user.lastName)
-    ).trim()
-  }
-
   public getUsernameFromAlias(): string {
     return this.filterOutInvalidChar(this.user.alias)
-  }
-
-  public isUsernameFromInitials(publishNameType: PublishNameType): boolean {
-    return (
-      PublishNameType.PUBLISH_NAME_INITIALS === publishNameType ||
-      (PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS === publishNameType && !this.hasAlias())
-    )
   }
 
   public isUsernameFromAlias(publishNameType: PublishNameType): boolean {

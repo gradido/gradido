@@ -21,9 +21,6 @@ describe('GddTransactionList', () => {
       BPagination: true,
       TransactionListItem: true,
       TransactionDecay: true,
-      TransactionSend: true,
-      TransactionReceive: true,
-      TransactionCreation: true,
       TransactionLinkSummary: true,
     },
   }

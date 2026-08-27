@@ -1,5 +1,11 @@
 import { clearLogs, getLogger, printLogs } from '../../../config-schema/test/testSetup.bun'
-import { Community as DbCommunity, User as DbUser, UserContact as DbUserContact } from '..'
+import {
+  ALIAS_ORIGIN_CHOSEN,
+  Community as DbCommunity,
+  User as DbUser,
+  UserAlias as DbUserAlias,
+  UserContact as DbUserContact,
+} from '..'
 import { AppDatabase } from '../AppDatabase'
 import { createCommunity } from '../seeds/community'
 import { userFactory } from '../seeds/factory/user'
@@ -7,7 +13,14 @@ import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import { LOG4JS_QUERIES_CATEGORY_NAME } from '.'
-import { aliasExists, dbClearGmsRegistration, findUserByIdentifier } from './user'
+import {
+  aliasExists,
+  dbClearGmsRegistration,
+  dbLockUserRow,
+  dbSaveUser,
+  findUserByIdentifier,
+} from './user'
+import { dbInsertUserAlias } from './userAliases'
 
 const db = AppDatabase.getInstance()
 const userIdentifierLoggerName = `${LOG4JS_QUERIES_CATEGORY_NAME}.user.findUserByIdentifier`
@@ -173,6 +186,208 @@ describe('user.queries', () => {
       const result = await dbClearGmsRegistration(registered.id + 1000)
 
       expect(result.success).toBe(false)
+    })
+  })
+
+  // The point of keeping every name a member ever held: a card printed under the old
+  // one still reaches them. This is the path `…/u/alias` takes.
+  describe('finding somebody by a name they no longer use', () => {
+    let homeCom: DbCommunity
+    let communityUuid: string
+    let communityName: string
+    let bibi: DbUser
+
+    beforeAll(async () => {
+      await DbUserAlias.clear()
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await DbCommunity.clear()
+
+      homeCom = await createCommunity(false)
+      communityUuid = homeCom.communityUuid!
+      communityName = homeCom.name!
+      bibi = await userFactory({ ...bibiBloxberg, alias: 'newname' })
+      await dbInsertUserAlias(bibi.id, 'oldname', communityUuid, ALIAS_ORIGIN_CHOSEN)
+    })
+
+    it('finds them by the name they hold now', async () => {
+      const user = await findUserByIdentifier('newname', communityUuid)
+      expect(user?.id).toBe(bibi.id)
+    })
+
+    it('finds them by a name they left behind', async () => {
+      const user = await findUserByIdentifier('oldname', communityUuid)
+      expect(user?.id).toBe(bibi.id)
+    })
+
+    // The community may arrive as a name rather than a uuid - the wallet resolves it
+    // either way - and an earlier lookup passed it straight into a uuid column, so this
+    // path silently found nothing.
+    it('finds them by an earlier name when the community is given by name', async () => {
+      const user = await findUserByIdentifier('oldname', communityName)
+      expect(user?.id).toBe(bibi.id)
+    })
+
+    it('still finds nobody for a name that was never held', async () => {
+      expect(await findUserByIdentifier('nevermine', communityUuid)).toBeNull()
+    })
+  })
+
+  describe('aliasExists across communities and across time', () => {
+    let communityUuid: string
+    let bibi: DbUser
+
+    beforeAll(async () => {
+      await DbUserAlias.clear()
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await DbCommunity.clear()
+
+      const homeCom = await createCommunity(false)
+      communityUuid = homeCom.communityUuid!
+      bibi = await userFactory({ ...bibiBloxberg, alias: 'bibi-now' })
+    })
+
+    // Rows with foreign = 1 are cached copies of members of other communities. Aliases
+    // are unique per community since migration 0073, so one held over there must not
+    // refuse a member here - and the refusal would be unexplainable, because the row
+    // that caused it appears in no member list of this community.
+    it('lets a member take a name that only a cached foreign member holds', async () => {
+      const stranger = DbUser.create()
+      stranger.foreign = true
+      stranger.alias = 'faraway'
+      stranger.gradidoID = '11111111-2222-4333-8444-555555555555'
+      stranger.communityUuid = '99999999-2222-4333-8444-555555555555'
+      stranger.firstName = 'Far'
+      stranger.lastName = 'Away'
+      await DbUser.save(stranger)
+
+      expect(await aliasExists('faraway')).toBe(false)
+    })
+
+    it('refuses a name another member left behind', async () => {
+      const peter = await userFactory({ ...peterLustig, alias: 'peter-now' })
+      await dbInsertUserAlias(peter.id, 'peter-was', communityUuid, ALIAS_ORIGIN_CHOSEN)
+
+      expect(await aliasExists('peter-was', bibi.id)).toBe(true)
+    })
+
+    it('lets a member take back a name of their own', async () => {
+      await dbInsertUserAlias(bibi.id, 'bibi-was', communityUuid, ALIAS_ORIGIN_CHOSEN)
+
+      expect(await aliasExists('bibi-was', bibi.id)).toBe(false)
+      // ...and it stays blocked for everybody else.
+      expect(await aliasExists('bibi-was')).toBe(true)
+    })
+  })
+
+  describe('dbSaveUser', () => {
+    let bibi: DbUser
+
+    beforeAll(async () => {
+      await DbUserAlias.clear()
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await DbCommunity.clear()
+
+      await createCommunity(false)
+      bibi = await userFactory(bibiBloxberg)
+    })
+
+    it('writes the changed row', async () => {
+      bibi.language = 'en'
+      await dbSaveUser(bibi)
+
+      expect((await DbUser.findOneByOrFail({ id: bibi.id })).language).toBe('en')
+    })
+
+    // The e-mail change moves `email_id` inside one transaction together with the contact
+    // row; a save that ignored the manager would slip out of that transaction.
+    it('writes through a given manager, inside its transaction', async () => {
+      const runner = db.getDataSource().createQueryRunner()
+      await runner.connect()
+      await runner.startTransaction()
+      bibi.language = 'fr'
+      await dbSaveUser(bibi, runner.manager)
+      await runner.rollbackTransaction()
+      await runner.release()
+
+      expect((await DbUser.findOneByOrFail({ id: bibi.id })).language).toBe('en')
+    })
+  })
+
+  describe('dbLockUserRow', () => {
+    let bibi: DbUser
+
+    beforeAll(async () => {
+      await DbUserAlias.clear()
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await DbCommunity.clear()
+
+      await createCommunity(false)
+      bibi = await userFactory(bibiBloxberg)
+    })
+
+    // What a lock does to a concurrent writer cannot be shown in a single-connection test;
+    // what can be shown is that it runs inside a transaction and changes nothing by itself.
+    it('takes the row inside a transaction and leaves the member as they are', async () => {
+      const runner = db.getDataSource().createQueryRunner()
+      await runner.connect()
+      await runner.startTransaction()
+      await expect(dbLockUserRow(bibi.id, runner.manager)).resolves.toBeUndefined()
+      await runner.commitTransaction()
+      await runner.release()
+
+      expect((await DbUser.findOneByOrFail({ id: bibi.id })).alias).toBe(bibi.alias)
+    })
+  })
+
+  describe('an address the member has left behind', () => {
+    let bibi: DbUser
+    let leftBehind: string
+
+    beforeAll(async () => {
+      await DbUserAlias.clear()
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await DbCommunity.clear()
+
+      await createCommunity(false)
+      bibi = await userFactory(bibiBloxberg)
+      leftBehind = bibi.emailContact.email
+
+      // What a confirmed e-mail change leaves: the old row stays - it is the address the GDT
+      // server knows the member by - and `users.email_id` points at the new one.
+      const moved = DbUserContact.create({
+        userId: bibi.id,
+        email: 'bibi-moved-on@bloxberg.de',
+        type: bibi.emailContact.type,
+        emailChecked: true,
+        emailOptInTypeId: bibi.emailContact.emailOptInTypeId,
+        emailVerificationCode: '112233445566778899',
+      })
+      await moved.save()
+      // Through the column, not through the entity: `bibi` still carries its ORIGINAL
+      // `emailContact` relation, and that relation IS `email_id` - saving the entity would
+      // write the old contact's id straight back over the new one. That is precisely what
+      // happened on the first run, and it made both tests below fail for opposite reasons.
+      await DbUser.update({ id: bibi.id }, { emailId: moved.id })
+      // So the fixture has to prove itself. A silent no-op here would leave two tests that
+      // look like they cover something and cover the reverse.
+      expect((await DbUser.findOneByOrFail({ id: bibi.id })).emailId).toBe(moved.id)
+    })
+
+    // `UserContact.user` IS `users.email_id`, seen from the other side, so the row left
+    // behind has no member on it at all. Nothing else in the query tells it apart from a
+    // current address - it is still `emailChecked` - and the relation condition is a LEFT
+    // JOIN, so it comes through. Before the guard the next line wrote to null.
+    it('answers with nothing instead of falling over', async () => {
+      expect(await findUserByIdentifier(leftBehind)).toBeNull()
+    })
+
+    it('still finds the member under the address that is now in force', async () => {
+      expect((await findUserByIdentifier('bibi-moved-on@bloxberg.de'))?.id).toBe(bibi.id)
     })
   })
 })

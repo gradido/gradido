@@ -1,0 +1,21 @@
+name: Gradido Workflow Consistency CI
+
+on:
+  push:
+    paths:
+      - '.github/workflows/**'
+      - '.github/scripts/check_skipped_workflows.py'
+
+jobs:
+  check_companions:
+    name: Companion Workflows In Sync
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Install PyYAML
+        run: pip install --quiet pyyaml
+
+      - name: Every *_skipped.yml mirrors its real workflow
+        run: python3 .github/scripts/check_skipped_workflows.py

@@ -39,12 +39,51 @@ export const queryOptIn = gql`
   }
 `
 
+export const pendingEmailChange = gql`
+  query {
+    pendingEmailChange {
+      email
+      requestedAt
+      resendAllowedAt
+    }
+  }
+`
+
+export const adminEmailStatus = gql`
+  query ($userId: Int!) {
+    adminEmailStatus(userId: $userId) {
+      gdtEmail
+      currentConfirmed
+      elopageBuysOnCurrent
+      pendingEmail
+      pendingSince
+    }
+  }
+`
+
+export const aliasStatus = gql`
+  query {
+    aliasStatus {
+      changesLeft
+      nextChangeAt
+      ownAliases
+      aliasSettled
+    }
+  }
+`
+
 export const checkUsername = gql`
   query ($username: String!) {
     checkUsername(username: $username)
   }
 `
 
+// ⚠️ Kept field-for-field in step with the wallet's `transactionFields` fragment
+// (frontend/src/graphql/transactions.graphql). This document is the only place a
+// transactionList selection meets the real schema in CI, so every field the wallet asks for
+// and this one does not is a field a rename can break at runtime with nothing red before --
+// the same hazard the memberAvatars document below is written to close, and the reason six
+// fields were added here at once.
 export const transactionsQuery = gql`
   query ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
     transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
@@ -66,7 +105,11 @@ export const transactionsQuery = gql`
         linkedUser {
           firstName
           lastName
+          communityUuid
+          communityName
           gradidoID
+          alias
+          avatarUpdatedAt
         }
         decay {
           decay
@@ -75,6 +118,8 @@ export const transactionsQuery = gql`
           duration
         }
         linkId
+        viaThankYouCard
+        thankYouCardLabel
       }
     }
   }
@@ -361,8 +406,7 @@ export const searchAdminUsers = gql`
     searchAdminUsers {
       userCount
       userList {
-        firstName
-        lastName
+        alias
         role
         visibleCreationGroups
         seesAllCreationGroups
@@ -387,8 +431,8 @@ export const listContributionMessages = gql`
         createdAt
         updatedAt
         type
-        userFirstName
-        userLastName
+        userAlias
+        userAvatarColorIndex
         userId
       }
     }
@@ -410,10 +454,26 @@ export const adminListContributionMessages = gql`
         createdAt
         updatedAt
         type
-        userFirstName
-        userLastName
+        userAlias
+        userAvatarColorIndex
         userId
       }
+    }
+  }
+`
+
+// Written out exactly as frontend/src/graphql/queries.js sends it. The input type name
+// and the argument name are produced by type-graphql from class names on this side and
+// typed by hand on the other, and nothing links the two -- so a rename here would leave
+// the wallet sending a document the schema rejects, at runtime, with nothing red before.
+// This document is that link: it goes through the real schema on every backend test run.
+export const memberAvatars = gql`
+  query ($refs: [MemberAvatarRefInput!]!) {
+    memberAvatars(refs: $refs) {
+      gradidoID
+      communityUuid
+      avatar
+      avatarUpdatedAt
     }
   }
 `
@@ -456,11 +516,56 @@ export const verifyLoginAboutMe = gql`
   }
 `
 
+// Same reasoning: the avatar rides along on verifyLogin, and asking for it on its own
+// leaves the widely asserted queries untouched.
+export const verifyLoginAvatar = gql`
+  query {
+    verifyLogin {
+      gradidoID
+      avatar
+    }
+  }
+`
+
+// Own view only, and it takes no argument -- there is nobody to ask about but oneself.
+export const avatarFull = gql`
+  query {
+    avatarFull
+  }
+`
+
+export const userAvatar = gql`
+  query ($identifier: String!, $communityIdentifier: String!) {
+    user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
+      gradidoID
+      avatar
+    }
+  }
+`
+
 export const userAboutMe = gql`
   query ($identifier: String!, $communityIdentifier: String!) {
     user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
       gradidoID
       aboutMe
+    }
+  }
+`
+
+export const thankYouCardPaymentTarget = gql`
+  query ($code: String!) {
+    thankYouCardPaymentTarget(code: $code) {
+      status
+      cardLabel
+    }
+  }
+`
+
+export const assistedRegistrationInfo = gql`
+  query ($assistCode: String!) {
+    assistedRegistrationInfo(assistCode: $assistCode) {
+      firstName
+      lastName
     }
   }
 `

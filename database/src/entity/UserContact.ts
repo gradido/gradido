@@ -49,6 +49,20 @@ export class UserContact extends BaseEntity {
   @Column({ name: 'email_verification_code', type: 'bigint', unsigned: true, unique: true })
   emailVerificationCode: string
 
+  // Only set while this row is a pending e-mail change (opt-in type EMAIL_OPT_IN_CHANGE):
+  // the one-time code in the notice to the OLD address, which lets its holder throw the
+  // change away. Distinct from `emailVerificationCode` so that neither link can do the
+  // other's job. Cleared on confirmation.
+  @Column({
+    name: 'change_veto_code',
+    type: 'bigint',
+    unsigned: true,
+    unique: true,
+    nullable: true,
+    default: null,
+  })
+  changeVetoCode: string | null
+
   @Column({
     name: 'email_opt_in_type_id',
     type: 'int',

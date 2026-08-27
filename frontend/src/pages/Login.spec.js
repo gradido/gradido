@@ -30,12 +30,16 @@ vi.mock('@/composables/useToast', () => ({
 }))
 
 const mockMutate = vi.fn()
+const mockQuery = vi.fn()
 vi.mock('@vue/apollo-composable', () => ({
   useMutation: () => ({
     mutate: mockMutate,
   }),
   useLazyQuery: () => ({
     load: vi.fn(),
+  }),
+  useApolloClient: () => ({
+    client: { query: mockQuery },
   }),
 }))
 
@@ -155,6 +159,11 @@ describe('Login', () => {
             login: 'token',
           },
         })
+        mockQuery.mockResolvedValue({
+          data: {
+            verifyLogin: { avatar: 'base64-picture', avatarVisibleToMembers: false },
+          },
+        })
         await wrapper.find('form').trigger('submit')
         await flushPromises()
       })
@@ -178,6 +187,47 @@ describe('Login', () => {
       it('redirects to overview page', () => {
         expect(router.currentRoute.value.path).toBe('/overview')
       })
+
+      // The login mutation cannot carry the picture, so without this fetch the member
+      // sees initials until some later session renewal happens to refill the store -- and
+      // on the ordinary path nothing does.
+      it('fetches the picture and commits it', () => {
+        expect(store.commit).toHaveBeenCalledWith('avatar', 'base64-picture')
+      })
+
+      // The same fetch carries the switch that says who may see that picture, and it
+      // cannot ride on the login mutation either -- own-view only, and login has no
+      // authenticated caller. Miss this commit and the settings page shows every member
+      // "not visible" while the column says otherwise, which is the wrong direction for a
+      // switch a member consults to check that they are hidden.
+      it('commits the picture-visibility setting from the same fetch', () => {
+        expect(store.commit).toHaveBeenCalledWith('avatarVisibleToMembers', false)
+      })
+    })
+
+    // Best effort: a member who is logged in must not be thrown back over a picture.
+    describe('valid data, but the picture cannot be fetched', () => {
+      beforeEach(async () => {
+        await wrapper.find('#email-input-field').setValue('user@example.org')
+        await wrapper.find('#password-input-field').setValue('1234')
+        mockMutate.mockResolvedValue({ data: { login: 'token' } })
+        mockQuery.mockRejectedValue(new Error('network'))
+        await wrapper.find('form').trigger('submit')
+        await flushPromises()
+      })
+
+      it('logs the member in anyway', () => {
+        expect(store.dispatch).toHaveBeenCalledWith('login', 'token')
+        expect(router.currentRoute.value.path).toBe('/overview')
+      })
+
+      // Only half the guarantee, and the half that is observable from here: a failed
+      // fetch writes no picture. The other half -- that the previous member's picture is
+      // actively forgotten -- lives in the login store action, which is a mock in this
+      // spec, and is guarded in store.test.js instead.
+      it('writes no picture when the fetch failed', () => {
+        expect(store.commit).not.toHaveBeenCalledWith('avatar', expect.any(String))
+      })
     })
 
     describe('login fails', () => {
@@ -189,9 +239,14 @@ describe('Login', () => {
         await flushPromises()
       }
 
-      describe('login fails with "User email not validated"', () => {
+      // ⛔ The literal below is what `login` in UserResolver.ts really throws, word for
+      // word. The spec used to feed 'User email not validated.', a sentence the backend
+      // never produced - so this block was green while the branch it names had never once
+      // fired. If the backend text moves, this is the half of the contract that has to move
+      // with it; the other half is `UserResolver.test.ts`.
+      describe('login fails because the address was never confirmed', () => {
         beforeEach(async () => {
-          await createError('GraphQL error: User email not validated.')
+          await createError('GraphQL error: The Users email is not validate yet')
         })
 
         it('shows error message', () => {

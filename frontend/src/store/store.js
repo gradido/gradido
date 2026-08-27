@@ -5,6 +5,9 @@ import createPersistedState from 'vuex-persistedstate'
 import jwtDecode from 'jwt-decode'
 import i18n from '../i18n'
 import { clearEntryDraft } from '../composables/useEntryDraft'
+import { forgetAllMemberAvatars } from '../composables/useMemberAvatars'
+import { forgetParkedAmount } from '../composables/useParkedAmount'
+import { clearApolloCache } from '../plugins/apolloCache'
 
 // Dedicated localStorage key mirroring state.themeMode. The pre-paint script in
 // index.html reads it with a single getItem, so it never has to parse the whole
@@ -46,14 +49,11 @@ export const mutations = {
   gmsAllowed: (state, gmsAllowed) => {
     state.gmsAllowed = gmsAllowed
   },
+  avatarVisibleToMembers: (state, avatarVisibleToMembers) => {
+    state.avatarVisibleToMembers = avatarVisibleToMembers
+  },
   humhubAllowed: (state, humhubAllowed) => {
     state.humhubAllowed = humhubAllowed
-  },
-  gmsPublishName: (state, gmsPublishName) => {
-    state.gmsPublishName = gmsPublishName
-  },
-  humhubPublishName: (state, humhubPublishName) => {
-    state.humhubPublishName = humhubPublishName
   },
   gmsPublishLocation: (state, gmsPublishLocation) => {
     state.gmsPublishLocation = gmsPublishLocation
@@ -78,6 +78,12 @@ export const mutations = {
   hideAmountGDT: (state, hideAmountGDT) => {
     state.hideAmountGDT = !!hideAmountGDT
   },
+  emailChecked: (state, emailChecked) => {
+    state.emailChecked = emailChecked
+  },
+  accountCreatedAt: (state, accountCreatedAt) => {
+    state.accountCreatedAt = accountCreatedAt
+  },
   email: (state, email) => {
     state.email = email || ''
   },
@@ -89,6 +95,12 @@ export const mutations = {
   },
   userLocation: (state, userLocation) => {
     state.userLocation = userLocation
+  },
+  // The member's own profile picture as base64, or null. Persisted with the rest of the
+  // state, so it is there on the first paint after a reload instead of the avatar
+  // jumping from initials to picture.
+  avatar: (state, avatar) => {
+    state.avatar = avatar
   },
   redirectPath: (state, redirectPath) => {
     state.redirectPath = redirectPath || '/overview'
@@ -111,18 +123,37 @@ export const actions = {
     commit('lastName', data.lastName)
     commit('newsletterState', data.klickTipp.newsletterState)
     commit('gmsAllowed', data.gmsAllowed)
+    // Cleared, not read from the payload, for the same two reasons as the avatar below.
+    // It is own-view only -- a field resolver hands it to nobody but its owner -- and the
+    // login mutation runs on an inalienable right, so it has no authenticated caller and
+    // would be answered with null. verifyLogin is where it can be read, and whoever holds
+    // a verifyLogin result puts it in the store. Clearing matters because the persisted
+    // store still holds the previous member's setting when the next one signs in here.
+    commit('avatarVisibleToMembers', null)
     commit('humhubAllowed', data.humhubAllowed)
-    commit('gmsPublishName', data.gmsPublishName)
-    commit('humhubPublishName', data.humhubPublishName)
     commit('gmsPublishLocation', data.gmsPublishLocation)
     commit('hasElopage', data.hasElopage)
     commit('publisherId', data.publisherId)
     commit('roles', data.roles)
     commit('hideAmountGDD', data.hideAmountGDD)
     commit('hideAmountGDT', data.hideAmountGDT)
+    // ?? null keeps a caller that does not select the two fields from writing undefined
+    commit('emailChecked', data.emailChecked ?? null)
+    commit('accountCreatedAt', data.createdAt ?? null)
     commit('userLocation', data.userLocation)
+    // Forget the previous member's picture. Not read from `data` -- the login mutation
+    // cannot carry it -- but cleared unconditionally, because whoever logs in here is not
+    // necessarily who was here before. A session expires after ten minutes without anyone
+    // logging out, so the persisted store routinely still holds the last member's avatar
+    // when the next one arrives. Both callers fill it back in from their own verifyLogin
+    // result; until then the wallet shows initials, which is the honest answer.
+    commit('avatar', null)
   },
-  logout: ({ commit, state, dispatch }) => {
+  logout: async ({ commit, state, dispatch }) => {
+    // ⛔ Held before the commits below, not read after them: the parked amount is keyed by
+    // this ID, and `commit('gradidoID', null)` is two lines down. Reading it later would
+    // give null, there would be no key, and a stranger's amount would stay on the device.
+    const signedOutMember = state.gradidoID
     commit('token', null)
     commit('username', '')
     commit('gradidoID', null)
@@ -130,9 +161,8 @@ export const actions = {
     commit('lastName', '')
     commit('newsletterState', null)
     commit('gmsAllowed', null)
+    commit('avatarVisibleToMembers', null)
     commit('humhubAllowed', null)
-    commit('gmsPublishName', null)
-    commit('humhubPublishName', null)
     commit('gmsPublishLocation', null)
     commit('hasElopage', false)
     commit('project', null)
@@ -140,8 +170,11 @@ export const actions = {
     commit('roles', null)
     commit('hideAmountGDD', false)
     commit('hideAmountGDT', true)
+    commit('emailChecked', null)
+    commit('accountCreatedAt', null)
     commit('email', '')
     commit('userLocation', null)
+    commit('avatar', null)
     commit('redirectPath', '/overview')
     // Held outside the store, in a module that survives this action because logging
     // out does not reload the page.
@@ -151,9 +184,29 @@ export const actions = {
     // The wallet and admin share one origin, so localStorage.clear() would also wipe
     // the other app's session and the shared dark-mode theme key. Re-commit the theme
     // so the recreated blob keeps the device-local choice for the next session.
+    // Other members' pictures live under their own key, outside that blob and outside this
+    // store, so removing the blob does not touch them. They have to go for the same reason
+    // the blob does: the next member to sign in on this browser must not be handed the
+    // faces the previous one was allowed to see.
+    //
+    // ⚠️ Before the line below, not after. Storage can refuse -- quota, private mode -- and
+    // the throw would take every following line of this action with it. Of the two, the
+    // faces are the ones that must not survive a logout.
+    forgetAllMemberAvatars()
+    forgetParkedAmount(signedOutMember)
     localStorage.removeItem('gradido-frontend')
     commit('setThemeMode', themeMode)
     dispatch('applyTheme')
+    // Last, and for the same reason as `clearEntryDraft` above: nothing here reloads the
+    // page, so every answer the previous member's queries returned is still lying in the
+    // Apollo cache. `aliasStatus` takes no variables at all, so it sits under a single
+    // key - the next member to sign in was shown their predecessor's remaining name
+    // changes, and never saw the window at first login because the cached answer said
+    // the question had been settled.
+    //
+    // Kept at the end on purpose: everything above is local clean-up and stays
+    // synchronous, so a caller that does not await still gets all of it.
+    await clearApolloCache()
   },
   // Compute the effective dark mode from the device-local themeMode
   // (system | light | dark) plus the OS preference, then set the darkMode flag
@@ -197,25 +250,29 @@ try {
       gradidoID: null,
       firstName: '',
       lastName: '',
-      // username: '',
+      username: '',
       token: null,
       tokenTime: null,
       roles: [],
       newsletterState: null,
       gmsAllowed: null,
+      avatarVisibleToMembers: null,
       humhubAllowed: null,
-      gmsPublishName: null,
-      humhubPublishName: null,
       gmsPublishLocation: null,
       hasElopage: false,
       project: null,
       publisherId: null,
       hideAmountGDD: null,
       hideAmountGDT: null,
+      // EM-013: whether the member's address is confirmed, and when the account was
+      // created — the confirm-reminder modal derives its deadline from the two.
+      emailChecked: null,
+      accountCreatedAt: null,
       email: '',
       darkMode: false,
       themeMode: 'system',
       userLocation: null,
+      avatar: null,
       redirectPath: '/overview',
       transactionToHighlightId: '',
     },

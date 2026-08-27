@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
+import { memberAlias } from '@/utils/gradidoAddress'
 
 export const useCopyLinks = ({ link, amount, memo, validUntil }) => {
   const canCopyLink = ref(true)
@@ -34,9 +35,11 @@ export const useCopyLinks = ({ link, amount, memo, validUntil }) => {
       })
   }
 
+  // The sender under their alias (NU-021/KLAR-07): this text is pasted to strangers,
+  // and it is the same sentence the cheque and the redeem page build.
   const linkText = computed(() => {
     return `${link}
-${store.state.firstName} ${t('transaction-link.send_you')} ${amount} Gradido.
+${memberAlias(store.state.username, store.state.gradidoID)} ${t('transaction-link.send_you')} ${amount} Gradido.
 "${memo}"
 ${t('gdd_per_link.credit-your-gradido')} ${t('gdd_per_link.validUntilDate', {
       date: d(new Date(validUntil), 'short'),

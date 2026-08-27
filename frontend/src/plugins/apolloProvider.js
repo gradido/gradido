@@ -6,6 +6,7 @@ import { createHttpLink, ApolloLink, ApolloClient, InMemoryCache } from '@apollo
 import { onError } from '@apollo/client/link/error'
 import { createApolloProvider } from '@vue/apollo-option'
 import { provideApolloClient } from '@vue/apollo-composable'
+import { registerApolloCacheClear } from '@/plugins/apolloCache'
 import { isSchemaMismatch, markAppOutdated } from '@/composables/useAppOutdated'
 
 const httpLink = createHttpLink({ uri: CONFIG.GRAPHQL_URI })
@@ -52,6 +53,9 @@ const apolloClient = new ApolloClient({
 })
 
 provideApolloClient(apolloClient)
+
+// Handed to the store, which cannot import this file - see apolloCache.js.
+registerApolloCacheClear(() => apolloClient.clearStore())
 
 export const apolloProvider = createApolloProvider({
   defaultClient: apolloClient,

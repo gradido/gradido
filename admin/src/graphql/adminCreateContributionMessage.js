@@ -18,8 +18,7 @@ export const adminCreateContributionMessage = gql`
       createdAt
       updatedAt
       type
-      userFirstName
-      userLastName
+      userAlias
     }
   }
 `

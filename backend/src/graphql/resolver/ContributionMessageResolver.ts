@@ -15,6 +15,7 @@ import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type
 import { EntityManager, FindOptionsRelations } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { PublishNameLogic } from '@/data/PublishName.logic'
 import {
   EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE,
   EVENT_CONTRIBUTION_MESSAGE_CREATE,
@@ -188,8 +189,7 @@ export class ContributionMessageResolver {
         lastName: finalContribution.user.lastName,
         email: finalContribution.user.emailContact.email,
         language: finalContribution.user.language,
-        senderFirstName: moderator.firstName,
-        senderLastName: moderator.lastName,
+        senderAlias: new PublishNameLogic(moderator).getPublicAlias(),
         contributionMemo: finalContribution.memo,
         contributionFrontendLink: await contributionFrontendLink(
           finalContribution.id,

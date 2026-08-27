@@ -11,45 +11,96 @@
       "contactSupport": "Επικοινωνία με την υποστήριξη",
       "emailExists": "Ωστόσο, υπάρχει ήδη λογαριασμός για τη διεύθυνση email σου.",
       "emailReused": "η διεύθυνση email σου μόλις χρησιμοποιήθηκε ξανά για την εγγραφή λογαριασμού στο Gradido.",
+      "helperButton": "Βοηθώ κάποιον να δημιουργήσει λογαριασμό",
+      "helperIntro": "Αν δίπλα σου κάθεται ένας άνθρωπος που μόλις χρησιμοποίησε τη διεύθυνση email σου για να ξεκινήσει έναν λογαριασμό Gradido: συνέχισε εδώ τη ρύθμιση. Μαζί καταχωρείτε τη δική του διεύθυνση email, και τον κωδικό τον επιλέγει ο ίδιος.",
+      "helperTitle": "Βοηθάς αυτή τη στιγμή κάποιον σε ένα καφέ Gradido;",
       "ifYouAreNotTheOne": "Αν δεν προσπάθησες να εγγραφείς ξανά, επικοινώνησε με την υποστήριξή μας:",
       "onForgottenPasswordClickLink": "Αν ξέχασες τον κωδικό πρόσβασής σου, κάνε κλικ εδώ.",
       "subject": "Νέα προσπάθεια εγγραφής με το email σου",
       "title": "Νέα προσπάθεια εγγραφής με το email σου"
     },
     "addedContributionMessage": {
-      "commonGoodContributionMessage": "έλαβες ένα μήνυμα από {senderFirstName} {senderLastName} σχετικά με τη συνεισφορά σου στο κοινό καλό «{contributionMemo}».",
+      "commonGoodContributionMessage": "έλαβες ένα μήνυμα από {senderAlias} σχετικά με τη συνεισφορά σου στο κοινό καλό «{contributionMemo}».",
       "message": "«{message}»",
       "readMessage": "Διάβασε και απάντησε στο μήνυμα",
       "subject": "Μήνυμα σχετικά με τη συνεισφορά σου στο κοινό καλό",
       "title": "Μήνυμα σχετικά με τη συνεισφορά σου στο κοινό καλό",
-      "toSeeAndAnswerMessage": "Για να απαντήσεις στο μήνυμα, πήγαινε στο μενού «Δημιουργία» του λογαριασμού σου στο Gradido και κάνε κλικ στην καρτέλα «Οι συνεισφορές μου»."
+      "toSeeAndAnswerMessage": "Μπορείς να απαντήσεις απευθείας στη συνεισφορά σου."
+    },
+    "assistedRegistrationConfirm": {
+      "accountCreated": "Μαζί με ένα μέλος Gradido μόλις δημιουργήθηκε ένας λογαριασμός για σένα — με αυτή τη διεύθυνση email.",
+      "clickToConfirm": "Κάνε κλικ εδώ για να επιβεβαιώσεις τη διεύθυνση email σου.",
+      "confirmButton": "Επιβεβαίωση διεύθυνσης",
+      "confirmHeading": "Επιβεβαίωση διεύθυνσης email",
+      "notYou": "Δεν γνωρίζεις τίποτα για αυτόν τον λογαριασμό; Τότε αγνόησε αυτό το email — χωρίς επιβεβαίωση ο λογαριασμός παραμένει κλειστός.",
+      "pleaseConfirm": "Επιβεβαίωσε ότι αυτή η διεύθυνση είναι δική σου — μόνο τότε ο λογαριασμός σου θα παραμείνει μόνιμα ανοιχτός.",
+      "subject": "Επιβεβαίωσε τη διεύθυνση email σου",
+      "title": "Ο λογαριασμός σου Gradido είναι έτοιμος"
     },
     "contribution": {
-      "toSeeContributionsAndMessages": "Για να δεις τις συνεισφορές σου στο κοινό καλό και τα σχετικά μηνύματα, πήγαινε στο μενού «Δημιουργία» του λογαριασμού σου στο Gradido και κάνε κλικ στην καρτέλα «Οι συνεισφορές μου»."
+      "toSeeContributionsAndMessages": "Τις συνεισφορές σου στο κοινό καλό και τα σχετικά μηνύματα θα τις βρεις στον λογαριασμό σου στο Gradido."
     },
     "contributionChangedByModerator": {
       "subject": "Η συνεισφορά σου στο κοινό καλό άλλαξε",
-      "text": "η συνεισφορά σου στο κοινό καλό «{contributionMemo}» μόλις άλλαξε από {senderFirstName} {senderLastName} και τώρα είναι «{contributionMemoUpdated}»",
+      "text": "η συνεισφορά σου στο κοινό καλό «{contributionMemo}» μόλις άλλαξε από {senderAlias} και τώρα είναι «{contributionMemoUpdated}»",
       "title": "Η συνεισφορά σου στο κοινό καλό άλλαξε"
     },
     "contributionConfirmed": {
-      "commonGoodContributionConfirmed": "η συνεισφορά σου στο κοινό καλό «{contributionMemo}» μόλις επιβεβαιώθηκε από {senderFirstName} {senderLastName}. Στον λογαριασμό σου στο Gradido πιστώθηκαν {amountGDD} GDD.",
+      "commonGoodContributionConfirmed": "η συνεισφορά σου στο κοινό καλό «{contributionMemo}» μόλις επιβεβαιώθηκε από {senderAlias}. Στον λογαριασμό σου στο Gradido πιστώθηκαν {amountGDD} GDD.",
       "subject": "Η συνεισφορά σου στο κοινό καλό επιβεβαιώθηκε",
       "title": "Η συνεισφορά σου στο κοινό καλό επιβεβαιώθηκε"
     },
     "contributionDeleted": {
-      "commonGoodContributionDeleted": "η συνεισφορά σου στο κοινό καλό «{contributionMemo}» διαγράφηκε από {senderFirstName} {senderLastName}.",
+      "commonGoodContributionDeleted": "η συνεισφορά σου στο κοινό καλό «{contributionMemo}» διαγράφηκε από {senderAlias}.",
       "subject": "Η συνεισφορά σου στο κοινό καλό διαγράφηκε",
       "title": "Η συνεισφορά σου στο κοινό καλό διαγράφηκε"
     },
     "contributionDenied": {
-      "commonGoodContributionDenied": "η συνεισφορά σου στο κοινό καλό «{contributionMemo}» απορρίφθηκε από {senderFirstName} {senderLastName}.",
+      "commonGoodContributionDenied": "η συνεισφορά σου στο κοινό καλό «{contributionMemo}» απορρίφθηκε από {senderAlias}.",
       "subject": "Η συνεισφορά σου στο κοινό καλό απορρίφθηκε",
       "title": "Η συνεισφορά σου στο κοινό καλό απορρίφθηκε"
     },
     "customEmail": {
-      "haveReceivedMessageFrom": "μόλις έλαβες ένα μήνυμα από {senderFirstName} {senderLastName}",
-      "title": "{senderFirstName} {senderLastName} σου έστειλε ένα μήνυμα"
+      "haveReceivedMessageFrom": "μόλις έλαβες ένα μήνυμα από {senderAlias}",
+      "title": "{senderAlias} σου έστειλε ένα μήνυμα"
+    },
+    "emailChangeConfirm": {
+      "confirm": "Επιβεβαίωση νέας διεύθυνσης",
+      "notYou": "Αν δεν ζήτησες εσύ αυτή την αλλαγή, μπορείς απλώς να αγνοήσεις αυτό το e-mail – χωρίς την επιβεβαίωσή σου δεν αλλάζει τίποτα.",
+      "pleaseConfirm": "Επιβεβαίωσε με ένα κλικ ότι αυτή η διεύθυνση είναι δική σου.",
+      "subject": "Επιβεβαίωσε τη νέα σου διεύθυνση e-mail",
+      "title": "Επιβεβαίωση νέας διεύθυνσης e-mail",
+      "validUntil": "Ο σύνδεσμος ισχύει έως τις {validUntil}. Μετά μπορείς να ζητήσεις νέο e-mail από τις ρυθμίσεις σου.",
+      "youAskedFor": "Θέλεις να αλλάξεις τη διεύθυνση e-mail του λογαριασμού σου Gradido σε αυτή τη διεύθυνση."
+    },
+    "emailChangeDone": {
+      "changedTo": "Από τώρα η διεύθυνση e-mail του λογαριασμού σου Gradido είναι {newEmail}.",
+      "notYou": "Δεν ήσουν εσύ; Τότε επικοινώνησε αμέσως με {supportEmail}.",
+      "subject": "Η διεύθυνση e-mail σου άλλαξε",
+      "title": "Η διεύθυνση e-mail άλλαξε",
+      "wasBefore": "Μέχρι τώρα ήταν {oldEmail}."
+    },
+    "emailChangeNotice": {
+      "changePassword": "Αν απορρίψεις την αλλαγή, άλλαξε στη συνέχεια και τον κωδικό σου.",
+      "notYou": "Δεν ήσουν εσύ; Τότε κάνε κλικ εδώ – η αλλαγή απορρίπτεται και αυτή η διεύθυνση παραμένει.",
+      "notYouTitle": "Δεν ήσουν εσύ;",
+      "requested": "Για τον λογαριασμό σου Gradido ζητήθηκε αλλαγή της διεύθυνσης e-mail σε {newEmail}.",
+      "revoke": "Απόρριψη αλλαγής",
+      "subject": "Ζητήθηκε αλλαγή της διεύθυνσης e-mail σου",
+      "title": "Η διεύθυνση e-mail σου πρόκειται να αλλάξει",
+      "untilConfirmed": "Μέχρι να επιβεβαιωθεί η νέα διεύθυνση, ισχύει αυτή εδώ. Αν ήσουν εσύ, δεν χρειάζεται να κάνεις τίποτα άλλο.",
+      "validUntil": "Ο σύνδεσμος ισχύει έως τις {validUntil} – μετά η ζητούμενη αλλαγή λήγει από μόνη της."
+    },
+    "emailChangeSupport": {
+      "gdtHint": "Για τον διακομιστή GDT εξακολουθεί να μετράει η πρώτη διεύθυνση αυτού του λογαριασμού: {gdtEmail}.",
+      "member": "Μέλος: {firstName} {lastName} ({alias})",
+      "newEmail": "Νέα διεύθυνση: {newEmail}",
+      "oldEmail": "Προηγούμενη διεύθυνση: {oldEmail}",
+      "subject": "Η διεύθυνση e-mail άλλαξε: {firstName} {lastName}",
+      "title": "Ένα μέλος άλλαξε τη διεύθυνση e-mail του",
+      "todo": "Παρακαλώ σύνδεσε τη νέα διεύθυνση με αυτόν τον λογαριασμό στον διακομιστή GDT και ενημέρωσε το Klick-Tipp.",
+      "todoTakeBack": "Επιστροφή σε προηγούμενη διεύθυνση αυτού του λογαριασμού – δεν υπάρχει τίποτα προς συγχώνευση στον διακομιστή GDT. Ενημερώστε μόνο το Klick-Tipp.",
+      "todoTypoCorrection": "Η προηγούμενη διεύθυνση δεν επιβεβαιώθηκε ποτέ (τυπογραφικό λάθος κατά τη ρύθμιση) – δεν υπάρχει τίποτα προς συγχώνευση στον διακομιστή GDT. Απλώς καταχωρίστε τη νέα διεύθυνση στο Klick-Tipp."
     },
     "footer": {
       "contactOurSupport": "Αν έχεις περαιτέρω ερωτήσεις, επικοινώνησε με την υποστήριξή μας.",
@@ -77,6 +128,7 @@
       "reset": "επαναφορά",
       "sincerelyYours": "Με εκτίμηση,",
       "toAccount": "Στον λογαριασμό",
+      "toContribution": "Στη συνεισφορά",
       "transactionDetails": "Λεπτομέρειες συναλλαγής",
       "yourGradidoTeam": "η ομάδα σου Gradido"
     },
@@ -86,17 +138,26 @@
       "title": "Επαναφορά κωδικού πρόσβασης",
       "youOrSomeoneResetPassword": "εσύ, ή κάποιος άλλος, ζήτησες επαναφορά κωδικού πρόσβασης για αυτόν τον λογαριασμό."
     },
+    "thankYouCardPaid": {
+      "blockCard": "Μπλοκάρισμα κάρτας",
+      "card": "Κάρτα: {cardLabel}",
+      "memo": "Αιτιολογία: {transactionMemo}",
+      "notYou": "Δεν ήσουν εσύ; Μπλόκαρε την κάρτα σου εδώ — παύει να λειτουργεί, η διεύθυνση Gradido παραμένει.",
+      "recipient": "Παραλήπτης: {recipientName} ({recipientCommunity})",
+      "subject": "Μεταβίβασες {amountGDD} GDD με την κάρτα ευχαριστίας σου",
+      "title": "Μεταβιβάστηκαν {amountGDD} GDD με την κάρτα ευχαριστίας σου",
+      "wasPaid": "Μόλις μεταβιβάστηκαν {amountGDD} GDD με την κάρτα ευχαριστίας σου."
+    },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) μόλις εξαργύρωσε τον σύνδεσμό σου.",
+      "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) μόλις εξαργύρωσε τον σύνδεσμό σου.",
       "memo": "Μήνυμα: {transactionMemo}",
-      "subject": "{senderFirstName} {senderLastName} εξαργύρωσε τον σύνδεσμό σου Gradido",
-      "title": "{senderFirstName} {senderLastName} εξαργύρωσε τον σύνδεσμό σου Gradido"
+      "subject": "{senderAlias} εξαργύρωσε τον σύνδεσμό σου Gradido",
+      "title": "{senderAlias} εξαργύρωσε τον σύνδεσμό σου Gradido"
     },
     "transactionReceived": {
-      "haveReceivedAmountGDDFrom": "μόλις έλαβες {transactionAmount} GDD από {senderFirstName} {senderLastName}",
-      "replySubject": "RE: {senderFirstName} {senderLastName} σου έστειλε {transactionAmount} Gradido",
-      "subject": "{senderFirstName} {senderLastName} σου έστειλε {transactionAmount} Gradido",
-      "title": "{senderFirstName} {senderLastName} σου έστειλε {transactionAmount} Gradido"
+      "haveReceivedAmountGDDFrom": "μόλις έλαβες {transactionAmount} GDD από {senderAlias}.",
+      "subject": "{senderAlias} σου έστειλε {transactionAmount} Gradido",
+      "title": "{senderAlias} σου έστειλε {transactionAmount} Gradido"
     }
   },
   "general": {

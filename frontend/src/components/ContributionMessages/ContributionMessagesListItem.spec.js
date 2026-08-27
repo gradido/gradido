@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import ContributionMessagesListItem from './ContributionMessagesListItem.vue'
+import AppAvatar from '@/components/AppAvatar.vue'
 import message from '../Message/Message.vue'
 import { defineComponent } from 'vue'
 import { BCol, BRow } from 'bootstrap-vue-next'
@@ -52,6 +53,7 @@ describe('ContributionMessagesListItem', () => {
             state: {
               firstName: 'Peter',
               lastName: 'Lustig',
+              username: 'peterl',
               ...store,
             },
           },
@@ -71,8 +73,8 @@ describe('ContributionMessagesListItem', () => {
           type: 'HISTORY',
           createdAt: '2022-08-29T12:23:27.000Z',
           message: 'This is a history message',
-          userFirstName: 'Peter',
-          userLastName: 'Lustig',
+          userAlias: 'peterl',
+          userAvatarColorIndex: 6,
         },
       })
     })
@@ -99,8 +101,8 @@ describe('ContributionMessagesListItem', () => {
           type: 'DIALOG',
           createdAt: '2022-08-29T12:23:27.000Z',
           message: 'User message',
-          userFirstName: 'Peter',
-          userLastName: 'Lustig',
+          userAlias: 'peterl',
+          userAvatarColorIndex: 6,
         },
       })
     })
@@ -109,8 +111,8 @@ describe('ContributionMessagesListItem', () => {
       expect(wrapper.find('.is-not-moderator').exists()).toBe(true)
     })
 
-    it('displays the user name', () => {
-      expect(wrapper.find('[data-test="username"]').text()).toBe('Peter Lustig')
+    it('displays the member own alias', () => {
+      expect(wrapper.find('[data-test="username"]').text()).toBe('peterl')
     })
 
     it('displays the formatted date', () => {
@@ -129,8 +131,8 @@ describe('ContributionMessagesListItem', () => {
           type: 'DIALOG',
           createdAt: '2022-08-29T12:23:27.000Z',
           message: 'Moderator message',
-          userFirstName: 'Mod',
-          userLastName: 'Erator',
+          userAlias: 'moderator',
+          userAvatarColorIndex: 4,
         },
       })
     })
@@ -139,8 +141,17 @@ describe('ContributionMessagesListItem', () => {
       expect(wrapper.find('.is-moderator').exists()).toBe(true)
     })
 
-    it('displays the moderator name', () => {
-      expect(wrapper.find('[data-test="username"]').text()).toBe('Mod Erator')
+    it('displays the moderator alias (NU-020)', () => {
+      expect(wrapper.find('[data-test="username"]').text()).toBe('moderator')
+    })
+
+    // AS-010/NU-017: the letters follow the alias next to them, the COLOUR arrives as
+    // the finished digit the server hashed from the real initials -- the name itself no
+    // longer travels on the message, and no circle changes colour.
+    it('letters the circle from the alias and colours it from the server digit', () => {
+      const avatar = wrapper.findComponent(AppAvatar)
+      expect(avatar.props('initials')).toBe('MO')
+      expect(avatar.props('colorIndex')).toBe(4)
     })
 
     it('displays the moderator label', () => {

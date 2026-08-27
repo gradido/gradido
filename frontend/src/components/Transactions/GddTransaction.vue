@@ -42,6 +42,32 @@
           {{ $t('via_link') }}
           <variant-icon icon="link45deg" variant="muted" class="m-mb-1" />
         </div>
+        <!--
+          ★ One rule, in all three of these rows, and no component decides who may see what:
+          if a name came with the booking, it is shown; if not, only that a card was used.
+
+          What makes that safe is the BACKEND. It fills the name on a SEND row alone — the
+          payer's own row, where the card is theirs and answers "which of my cards was that?"
+          for somebody who has had several. The till's row arrives without one: they held the
+          card for a moment, but in their own history somebody else's word for it is none of
+          their business. A rule that lives in one place cannot drift apart in three.
+        -->
+        <div
+          v-else-if="props.transaction.thankYouCardLabel"
+          class="small"
+          data-test="transaction-via-card"
+        >
+          {{ props.transaction.thankYouCardLabel }}
+          <variant-icon icon="cards" variant="muted" class="m-mb-1" />
+        </div>
+        <div
+          v-else-if="props.transaction.viaThankYouCard"
+          class="small"
+          data-test="transaction-via-card"
+        >
+          {{ $t('via_card') }}
+          <variant-icon icon="cards" variant="muted" class="m-mb-1" />
+        </div>
       </BCol>
       <BCol cols="12" md="1" lg="1" class="text-end">
         <collapse-icon class="text-end" :visible="visible" />
@@ -68,6 +94,8 @@ import Name from '../TransactionRows/Name'
 import DecayInformation from '../DecayInformations/DecayInformation'
 import { BAvatar, BRow } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
+import { memberAvatarProps } from '@/composables/useMemberAvatars'
+import { memberAlias } from '@/utils/gradidoAddress'
 
 const props = defineProps({
   transaction: {
@@ -85,10 +113,15 @@ const toggleVisible = () => {
   visible.value = !visible.value
 }
 
-const username = computed(() => ({
-  username: `${props.transaction?.linkedUser?.firstName} ${props.transaction?.linkedUser?.lastName}`,
-  initials: `${props.transaction?.linkedUser?.firstName[0]}${props.transaction.linkedUser?.lastName[0]}`,
-}))
+// What the circle says, what colours it, and the picture if the wallet already holds one --
+// from one call, so the parts cannot come to describe different members (AS-010). The
+// letters follow the alias, because the line right beside this circle shows the alias; the
+// colour keeps following the real initials, so nobody's colour moves and the printed card
+// still agrees with the screen.
+//
+// Reading only, never fetching: the request for the whole list happens once, in
+// DashboardLayout. `linkedUser` may be null, and this is written for that.
+const memberAvatar = computed(() => memberAvatarProps(props.transaction?.linkedUser))
 
 const isCreationType = computed(() => {
   return props.transaction.typeId === 'CREATION'
@@ -107,8 +140,11 @@ const avatarProps = computed(() => {
     }
   } else {
     return {
-      username: username.value.username,
-      initials: username.value.initials,
+      // Spread, not four hand-copied lines: `name`, `initials`, `colorSeed` and `src`
+      // belong together, and the one time this house let a call site assemble such a set
+      // itself, it wrote `username` -- a prop AppAvatar does not have, dropped in silence,
+      // and the fallback it was meant to feed never arrived.
+      ...memberAvatar.value,
       color: '#fff',
       size: 42,
     }
@@ -123,7 +159,14 @@ const nameProps = computed(() => {
   if (isCreationType.value) {
     return {
       class: 'fw-bold',
-      creationLinkedUser: `${props.transaction.linkedUser.firstName} ${props.transaction.linkedUser.lastName}`,
+      // The COMMUNITY's name (NU-020). A creation booking is linked to the community
+      // stand-in, not to the moderator who approved it -- the backend swaps that user in
+      // unconditionally -- so `alias` carries the configured community name and this line
+      // names the community, as it always did. No real name is delivered here any more.
+      creationLinkedUser: memberAlias(
+        props.transaction.linkedUser.alias,
+        props.transaction.linkedUser.gradidoID,
+      ),
     }
   } else {
     return {

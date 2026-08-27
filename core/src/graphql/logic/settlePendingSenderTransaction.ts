@@ -139,9 +139,13 @@ export async function settlePendingSenderTransaction(
       email: recipient.emailContact.email,
       language: recipient.language,
       memo,
-      senderFirstName: sender.firstName,
-      senderLastName: sender.lastName,
-      senderEmail: sender.emailContact.email,
+      senderAlias: publicAlias(sender.alias, sender.gradidoID),
+      // ⛔ A COMMUNITY name, and never an address: this sentence is read by a THIRD
+      //    PARTY, which is the whole reason the alias replaced the real name here.
+      //    The live callers pass `getCommunityName(...)`; see TransactionResolver.
+      //    Left unfillable on purpose -- reviving this block must not be a matter of
+      //    deleting the comment markers.
+      senderCommunity: <community name>,
       transactionAmount: amount,
     })
     if (transactionLink) {
@@ -150,9 +154,13 @@ export async function settlePendingSenderTransaction(
         lastName: sender.lastName,
         email: sender.emailContact.email,
         language: sender.language,
-        senderFirstName: recipient.firstName,
-        senderLastName: recipient.lastName,
-        senderEmail: recipient.emailContact.email,
+        senderAlias: publicAlias(recipient.alias, recipient.gradidoID),
+        // ⛔ A COMMUNITY name, and never an address: this sentence is read by a THIRD
+        //    PARTY, which is the whole reason the alias replaced the real name here.
+        //    The live callers pass `getCommunityName(...)`; see TransactionResolver.
+        //    Left unfillable on purpose -- reviving this block must not be a matter of
+        //    deleting the comment markers.
+        senderCommunity: <community name>,
         transactionAmount: amount,
         transactionMemo: memo,
       })

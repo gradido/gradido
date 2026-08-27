@@ -65,8 +65,11 @@ describe('router', () => {
         expect(scrollBehavior({}, {}, savedPosition)).toEqual(savedPosition)
       })
 
-      it('returns selector when hash is given', () => {
-        expect(scrollBehavior({ hash: '#to' }, {})).toEqual({ selector: '#to' })
+      // `el`, the vue-router 4 key. This test used to assert `selector`, which is the
+      // vue-router 3 key and was therefore ignored - the test held the defect in place
+      // by writing down what it found instead of what should hold.
+      it('returns the element to scroll to when hash is given', () => {
+        expect(scrollBehavior({ hash: '#to' }, {})).toEqual({ el: '#to' })
       })
 
       it('returns top left coordinates as default', () => {
@@ -81,8 +84,67 @@ describe('router', () => {
       expect(defaultRoute.redirect()).toEqual({ path: '/login' })
     })
 
-    it('has 23 routes defined', () => {
-      expect(routes).toHaveLength(23)
+    it('has 40 routes defined', () => {
+      expect(routes).toHaveLength(40)
+    })
+
+    // The settings are one route per area. That is what lets the same pages serve both
+    // screen widths -- menu beside the content above 992px, list-then-page below it --
+    // and what makes a section linkable from outside.
+    describe('the settings areas', () => {
+      const settingsRoutes = routes.filter(
+        (r) => r.path === '/settings' || r.path.startsWith('/settings/'),
+      )
+
+      it('has one route per area, plus the index and the old address', () => {
+        expect(settingsRoutes.map((r) => r.path)).toEqual([
+          '/settings',
+          '/settings/account',
+          '/settings/appearance',
+          '/settings/gradido-card',
+          '/settings/thank-you-card',
+          '/settings/visibility',
+          '/settings/notifications',
+          '/settings/extern',
+        ])
+      })
+
+      it('guards every area and hands the layout the settings menu', () => {
+        for (const route of settingsRoutes.filter((r) => !r.redirect)) {
+          expect(route.meta.requiresAuth).toBe(true)
+          expect(route.meta.settingsChrome).toBe(true)
+        }
+      })
+
+      /**
+       * ⭐ Every area writes "Settings" above itself. It was left out at first to save a
+       * heading's height on the phone -- and at the device that was the wrong trade: without
+       * it the settings looked like any other page and one hardly noticed one was in them.
+       * (Bernd, 22.08.2026, after using it.)
+       */
+      it('names the same pageTitle everywhere, so every area says where one is', () => {
+        for (const route of settingsRoutes.filter((r) => !r.redirect)) {
+          expect(route.meta.pageTitle).toBe('settings')
+        }
+      })
+
+      /**
+       * Five entries in the news file point at the old address, and printed or mailed links
+       * keep arriving. ⛔ It has to resolve in EVERY configuration: where neither service is
+       * switched on the circles area is not registered, so a redirect straight to it would
+       * land on "not found" -- and before this rebuild the same link opened the settings.
+       * Both flags are off under test, which is the case that would have broken.
+       */
+      it('keeps the old /settings/extern address alive, wherever it can land', () => {
+        const old = routes.find((r) => r.path === '/settings/extern')
+        expect(old.redirect()).toEqual({ path: '/settings' })
+      })
+
+      // ⛔ Not merely hidden from the menu: without GMS or HumHub the page would stand empty
+      // and still be reachable by typing the address. Both flags are off under test.
+      it('does not register the circles area while neither service is switched on', () => {
+        expect(routes.find((r) => r.path === '/settings/communities')).toBeUndefined()
+      })
     })
 
     const testRoute = (path, expectedName, requiresAuth = true) => {
@@ -94,6 +156,14 @@ describe('router', () => {
         if (requiresAuth) {
           it('requires authorization', () => {
             expect(route.meta.requiresAuth).toBe(true)
+          })
+        } else {
+          // Passing `false` used to assert nothing at all, so a route that quietly became
+          // guarded would still have passed here. On the public ones that flag is not a
+          // detail: it decides whether somebody without an account gets through, and on
+          // /u/:alias it also decides the layout -- App.vue picks it from this one field.
+          it('does not require authorization', () => {
+            expect(route.meta?.requiresAuth).not.toBe(true)
           })
         }
 
@@ -124,8 +194,75 @@ describe('router', () => {
     testRoute('/forgot-password', 'ForgotPassword', false)
     testRoute('/register-community', 'RegisterCommunity', false)
     testRoute('/reset-password/:optin', 'ResetPassword', false)
+    testRoute('/email-change/revoke/:changeCode', 'EmailChange', false)
+    testRoute('/email-change/:changeCode', 'EmailChange', false)
     testRoute('/checkEmail/:optin/:code?', 'ResetPassword', false)
     testRoute('/redeem/:code', 'TransactionLink', false)
+    // Declared ahead of the catch-all, which used to swallow it: every printed QR code on a
+    // Gradido card landed on "page not found". Public on purpose -- a phone camera opens the
+    // default browser, so most visitors arrive logged out.
+    testRoute('/u/:alias', 'PublicProfile', false)
+    testRoute('/dk/:code', 'ThankYouCardPayment')
+    testRoute('/calculator', 'Calculator')
+    testRoute('/scan', 'Scanner')
+    testRoute('/my-gradido-card', 'MyGradidoCard')
+    testRoute('/my-thank-you-card', 'MyThankYouCard')
+
+    /**
+     * ⛔ These two are the ONLY places a member's own codes are shown, and both must stay
+     * behind the login. The thank-you card code is a bearer token: a public route would put
+     * it one guessed address away from anybody, and the page would hand it out drawn large.
+     */
+    it.each([
+      ['/my-gradido-card', 'my-gradido-card'],
+      ['/my-thank-you-card', 'my-thank-you-card'],
+    ])('gives %s a page title the breadcrumb can resolve, and its own head', (path, title) => {
+      const route = routes.find((r) => r.path === path)
+      expect(route.meta.pageTitle).toBe(title)
+      expect(route.meta.bareChrome).toBe(true)
+    })
+
+    // Same two assertions as the calculator below, for the same reasons: the raw key
+    // would print if the breadcrumb cannot resolve it, and without bareChrome the
+    // translucent navbar would sit over the viewfinder.
+    it('gives the scanner a page title the breadcrumb can resolve', () => {
+      const route = routes.find((r) => r.path === '/scan')
+      expect(route.meta.pageTitle).toBe('scanner')
+    })
+
+    it('lets the scanner bring its own head', () => {
+      const route = routes.find((r) => r.path === '/scan')
+      expect(route.meta.bareChrome).toBe(true)
+    })
+
+    // ⚠️ The page title is not a detail on this route: the breadcrumb prefixes `pageTitle.`
+    // and prints the raw key when it finds nothing there. Counting routes cannot see that.
+    it('gives the calculator a page title the breadcrumb can resolve', () => {
+      const route = routes.find((r) => r.path === '/calculator')
+      expect(route.meta.pageTitle).toBe('calculator')
+    })
+
+    /**
+     * ⚠️ bareChrome is what gives the calculator the whole screen on a phone -- without it
+     * the translucent navbar sits exactly over the total, which is the number two people
+     * read at arm's length. The layout only drops its chrome for routes that carry the flag.
+     */
+    it('lets the calculator bring its own head', () => {
+      const route = routes.find((r) => r.path === '/calculator')
+      expect(route.meta.bareChrome).toBe(true)
+    })
+
+    // The order is the whole point, and `routes.find` cannot see it. This is the regression
+    // that made every printed QR code land on "page not found": the address route did not
+    // exist, so /u/... fell into the catch-all. A route declared after it would do the same,
+    // and nothing else in this file would notice.
+    it('declares the public profile ahead of the catch-all', () => {
+      const profile = routes.findIndex((r) => r.path === '/u/:alias')
+      const catchAll = routes.findIndex((r) => r.name === 'NotFound')
+
+      expect(profile).toBeGreaterThanOrEqual(0)
+      expect(profile).toBeLessThan(catchAll)
+    })
     // Declared ahead of /matching/:tab, so this must not fall through to Matching.
     testRoute('/matching/karte', 'MatchingMap')
 
@@ -144,6 +281,52 @@ describe('router', () => {
         expect(notFoundRoute).toBeDefined()
         expect(notFoundRoute.component).toEqual(NotFound)
       })
+    })
+  })
+
+  /**
+   * ⛔ The blind spot that let a whole family of broken links ship: everything above compares
+   * route PATHS as strings and never asks the router to resolve anything. A link that names a
+   * route it cannot satisfy - a required parameter nobody supplies, a parameter the target
+   * does not have - looks exactly like a working one until somebody clicks it, and then it
+   * either throws out of the click handler or silently drops what it was carrying.
+   *
+   * So these ask the real router, with the real route table.
+   */
+  describe('the targets the wallet actually links to', () => {
+    it('sends a member without a password somewhere that exists', () => {
+      // Login.vue used to name `ResetPassword` here.
+      expect(router.resolve({ name: 'ForgotPassword' }).fullPath).toBe('/forgot-password')
+    })
+
+    it('refuses a target whose required parameter nobody supplies', () => {
+      // The proof that the old target was unreachable: it does not fail softly, it throws.
+      expect(() => router.resolve({ name: 'ResetPassword' })).toThrow(/optin/)
+    })
+
+    it('carries the reason for landing on the forgot-password page', () => {
+      const resolved = router.resolve({
+        name: 'ForgotPasswordComingFrom',
+        params: { comingFrom: 'reset-password' },
+      })
+      expect(resolved.params.comingFrom).toBe('reset-password')
+      // Naming the parameterless route instead - as ResetPassword.vue did - loses it.
+      expect(
+        router.resolve({ name: 'ForgotPassword', params: { comingFrom: 'x' } }).params,
+      ).toEqual({})
+    })
+
+    it('never lets a mail-link route call its parameter :code', () => {
+      // routes.js writes this rule as a comment because of PR #3798: `/login/:code?` reads
+      // `code` as a redeem code, so a link built from a mail-link route would hand the login
+      // page one. Here it is as a check rather than a hope.
+      const mailLinkRoutes = routes.filter(
+        (r) => r.path.startsWith('/email-change/') || r.path.startsWith('/register-assist/'),
+      )
+      expect(mailLinkRoutes.length).toBeGreaterThan(0)
+      for (const route of mailLinkRoutes) {
+        expect(route.path).not.toContain(':code')
+      }
     })
   })
 })

@@ -11,8 +11,52 @@
               alt="Logo"
             />
           </router-link>
-          <div v-b-toggle.sidebar-mobile variant="link" class="d-block d-lg-none">
-            <span class="navbar-toggler-icon h2"></span>
+          <!-- The four till tools sit ABOVE the menu opener, deliberately small and
+               unmarked: tools for those who run a till, not headline features. Whoever
+               needs them knows where they live. Scan left of the calculator, because
+               scanning is the more general act. (Bernd, 20./21.08.2026)
+
+               ⛔ Two by two, NOT four in a row. Four 44px targets need 176px, and the
+               block opposite -- avatar, name and the Gradido address at 27 characters --
+               takes about 195px of a 375px phone. There is room for three. The second row
+               costs no height either: the brand block grows to about 128px and the block
+               opposite is already about 130px tall.
+
+               The rows mean something: reading a code above, showing one below. -->
+          <div class="d-block d-lg-none">
+            <div class="navbar-quick-row">
+              <router-link
+                to="/scan"
+                :aria-label="$t('navigation.scanner')"
+                data-test="navbar-scanner"
+              >
+                <i-mdi-qrcode-scan />
+              </router-link>
+              <router-link
+                to="/calculator"
+                :aria-label="$t('navigation.calculator')"
+                data-test="navbar-calculator"
+              >
+                <i-mdi-calculator />
+              </router-link>
+              <router-link
+                to="/my-thank-you-card"
+                :aria-label="$t('pageTitle.my-thank-you-card')"
+                data-test="navbar-my-thank-you-card"
+              >
+                <quick-code-icon direction="out" />
+              </router-link>
+              <router-link
+                to="/my-gradido-card"
+                :aria-label="$t('pageTitle.my-gradido-card')"
+                data-test="navbar-my-gradido-card"
+              >
+                <quick-code-icon direction="in" />
+              </router-link>
+            </div>
+            <div v-b-toggle.sidebar-mobile variant="link">
+              <span class="navbar-toggler-icon h2"></span>
+            </div>
           </div>
         </BNavbarBrand>
 
@@ -20,43 +64,40 @@
 
         <BNavbarNav class="ms-auto" right>
           <div class="">
-            <router-link to="/settings" class="d-flex flex-column align-items-end text-end">
+            <div class="d-flex flex-column align-items-end text-end">
+              <!-- The avatar opens the picture tool; the settings link moved to the name
+                   below it. That name already carried the link colouring but was not a
+                   link at all, so the move turns a decoy into a function. -->
               <div class="ms-auto">
-                <app-avatar
+                <AvatarButton
                   class="vue3-avatar"
                   :name="username.username"
                   :initials="username.initials"
-                  :border="false"
                   :color="'#fff'"
                   :size="61"
                 />
               </div>
-              <div v-if="!hasUsername">
-                <div class="mt-3" data-test="navbar-item-username">{{ username.username }}</div>
-                <div class="small mt-1" data-test="navbar-item-gradido-id">{{ gradidoId }}</div>
-              </div>
-            </router-link>
-            <div class="d-flex flex-column align-items-end text-end">
-              <div
-                v-if="hasUsername"
+              <router-link
+                to="/settings"
                 class="navbar-like-link mt-3"
                 data-test="navbar-item-username"
               >
                 {{ username.username }}
-              </div>
+              </router-link>
+              <!-- One line for everybody. There used to be two blocks, and the one for
+                   members without a user name showed the address inside the settings link,
+                   with no way to copy it. That distinction is on its way out anyway -- the
+                   user name is becoming compulsory -- and until then the Gradido ID stands
+                   in, which resolves just as well. -->
               <div
-                v-if="hasUsername"
                 class="small navbar-like-link pointer mt-1"
-                data-test="navbar-item-gradido-id"
+                data-test="navbar-item-gradido-address"
               >
-                <a
-                  class="copy-clipboard-button"
-                  :title="$t('copy-to-clipboard')"
-                  @click="copyToClipboard(gradidoId)"
-                >
-                  <IBiCopy></IBiCopy>
-                  {{ gradidoId }}
-                </a>
+                <!-- The control itself moved into its own component when the public profile
+                     page became the second place that shows the address. It is a button and
+                     not an anchor: an anchor without a target is in no tab order, so the
+                     address was unreachable for anybody working without a mouse. -->
+                <gradido-address-copy :alias="alias" />
               </div>
             </div>
           </div>
@@ -72,19 +113,18 @@
 </template>
 
 <script>
-import CONFIG from '@/config'
-import { useAppToast } from '@/composables/useToast'
+import { memberAlias } from '@/utils/gradidoAddress'
+import GradidoAddressCopy from '@/components/GradidoAddressCopy'
+import QuickCodeIcon from '@/components/Menu/QuickCodeIcon'
 
 export default {
   name: 'Navbar',
+  components: {
+    GradidoAddressCopy,
+    QuickCodeIcon,
+  },
   props: {
     balance: { type: Number, required: true },
-  },
-  setup() {
-    const toast = useAppToast()
-    return {
-      toast,
-    }
   },
   data() {
     return {
@@ -99,20 +139,11 @@ export default {
         initials: `${this.$store.state.firstName[0]}${this.$store.state.lastName[0]}`,
       }
     },
-    hasUsername() {
-      return this.$store.state.username && this.$store.state.username.length > 0
-    },
-    gradidoId() {
-      const name = this.$store.state.username
-        ? this.$store.state.username
-        : this.$store.state.gradidoId
-      return `${CONFIG.COMMUNITY_NAME}/${name}`
-    },
-  },
-  methods: {
-    copyToClipboard(content) {
-      navigator.clipboard.writeText(content)
-      this.toast.toastSuccess(this.$t('gradidoid-copied-to-clipboard'))
+    alias() {
+      // gradidoID, not gradidoId -- the store spells it with a capital D, and the other
+      // spelling once put the word "undefined" in front of every member without a user
+      // name. It is worth naming at each call site; nothing catches it.
+      return memberAlias(this.$store.state.username, this.$store.state.gradidoID)
     },
   },
 }
@@ -180,6 +211,48 @@ button.navbar-toggler > span.navbar-toggler-icon {
     left: 5%;
     max-width: 61%;
   }
+}
+
+/* Two columns of 44px, so the four tools stack two by two instead of pushing the block
+   opposite off a narrow phone. */
+.navbar-component .navbar-quick-row {
+  display: grid;
+  grid-template-columns: repeat(2, 44px);
+}
+
+/* Small to the eye, 44px to the thumb -- same rule as the gear inside the calculator.
+
+   Written through the row rather than as one class per tool. This style block is GLOBAL,
+   like DashboardLayout's, so a bare class name would style across components -- which is
+   why there used to be two names for one look. A descendant of `.navbar-quick-row` cannot
+   escape this component, and it does not grow a fifth name when a fifth tool arrives.
+
+   ⛔ `flex-start`, NOT `center`, and that is what puts the block where it belongs. Centring
+   a 22px glyph in a 44px target insets it by 11px, so the symbols stood a thumb's width
+   right of the menu opener below them and the top-right one reached into the leaves. Left
+   aligned, every glyph starts at the column edge -- the same edge the opener starts at,
+   within about a pixel (both SVGs carry roughly 3px of their own padding). The touch
+   targets and the spacing between the symbols are untouched; the whole block simply moves
+   11px left. (Bernd, 21.08.2026: "sodass die linke Kante eine Linie bildet")
+
+   The colour is the menu's own -- `--icon-muted`, which is what `svg.svg-icon` carries,
+   rgb(114 119 143) in BOTH modes. ⚠️ Not `--text`: the menu items' text is near-black in
+   light and near-white in dark, and the icons beside them are not. No opacity either --
+   the tone has to MATCH the menu, and 0.65 of it is a different grey.
+   (Bernd, 22.08.2026: "das ist so ein mittleres Grau, jeweils") */
+.navbar-component .navbar-quick-row > a {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 44px;
+  height: 44px;
+  font-size: 22px;
+  color: var(--icon-muted);
+}
+
+.navbar-component .navbar-quick-row > a:hover {
+  color: var(--icon-muted);
+  opacity: 0.7;
 }
 </style>
 

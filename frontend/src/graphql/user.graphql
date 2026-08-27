@@ -1,12 +1,8 @@
-fragment userFields on User {
-  id
-  firstName
-  lastName
-  alias
-}
-
-query user($identifier: String!, $communityIdentifier: String) {
-  user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
-    ...userFields
+query aliasStatus {
+  aliasStatus {
+    changesLeft
+    nextChangeAt
+    ownAliases
+    aliasSettled
   }
 }

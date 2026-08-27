@@ -1,30 +1,24 @@
 extend ../layout.pug
 
-block content  
-  mixin mailto(email, subject)
-    - var formattedSubject = encodeURIComponent(subject)
-    a(class!=attributes.class href=`mailto:${email}?subject=${formattedSubject}`)
-      block
-
-  - var subject= t('emails.transactionReceived.replySubject', { senderFirstName, senderLastName, transactionAmount })
-  h2= t('emails.transactionReceived.title', { senderFirstName, senderLastName, transactionAmount })
+block content
+  h2= t('emails.transactionReceived.title', { senderAlias, transactionAmount })
   .text-block
     include ../includes/salutation.pug
-    p 
-      = t('emails.transactionReceived.haveReceivedAmountGDDFrom', { transactionAmount, senderFirstName, senderLastName })
-      |  (
-      +mailto(senderEmail, subject)=senderEmail
-      |).     
+    p
+      = t('emails.transactionReceived.haveReceivedAmountGDDFrom', { transactionAmount, senderAlias })
   .content
     h2= t('emails.general.message')
     .child-left
-      div(class="p_content")= memo
-    .child-right
-      +mailto(senderEmail, subject)(class="button-5")
-        include ../includes/chatbox-icon.pug 
-        span #{t('emails.general.answerNow')}
-    
+      div(class="p_content human-text")= memo
+    //- The reply leads into the wallet's own send form, e-mail tab, with the sender
+        already filled in - not to a mailto. Two things follow from that, and both are
+        the point: neither side learns the other's address, and the reply arrives as a
+        message the software itself sends. Without the uuids there is no way back, so
+        the button is left out rather than pointed somewhere general.
+    if senderCommunityUuid && senderUuid
+      .child-right
+        a.button-5(href=`${communityURL}/send/${senderCommunityUuid}/${senderUuid}?art=email`)
+          include ../includes/chatbox-icon.pug
+          span #{t('emails.general.answerNow')}
+
   a.button-3(href=`${communityURL}/transactions`) #{t('emails.general.toAccount')}
-
-  
-

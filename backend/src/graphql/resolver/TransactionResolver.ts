@@ -24,6 +24,8 @@ import {
   AppDatabase,
   countOpenPendingTransactions,
   DltTransaction as DbDltTransaction,
+  dbFindMemberAvatarTimestamps,
+  dbSelectThankYouCardLabels,
   Transaction as dbTransaction,
   TransactionLink as dbTransactionLink,
   User as dbUser,
@@ -41,6 +43,8 @@ import { In, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { PublishNameLogic } from '@/data/PublishName.logic'
+import { isAliasEraName } from '@/data/StoredUserName.logic'
 import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
@@ -64,6 +68,14 @@ export const executeTransaction = async (
   recipient: dbUser,
   logger: Logger,
   transactionLink?: dbTransactionLink | null,
+  /**
+   * The thank you card this payment was made with, if it was one.
+   *
+   * ⚠️ Written onto BOTH rows: the payer's SEND row and the till's RECEIVE row. Which of
+   * the two a reader is looking at is what decides how much of it they get to see -- the
+   * card's name only ever reaches its own owner. See `Transaction`.
+   */
+  thankYouCardId?: number | null,
 ): Promise<boolean> => {
   // acquire lock
   // const releaseLock = await TRANSACTIONS_LOCK.acquire()
@@ -119,17 +131,25 @@ export const executeTransaction = async (
     await queryRunner.startTransaction('REPEATABLE READ')
     logger.debug(`open Transaction to write...`)
     try {
+      // Through the shared rule, like the contribution and link paths. A bare `.alias`
+      // here wrote `null` for anybody who has not picked a name yet -- and it wrote it
+      // PERMANENTLY, into the most common booking type there is, where a legacy alias of
+      // one or two characters would also have stood while every other screen showed the
+      // identifier. Both names are read twice below, so they are worked out once.
+      const senderName = new PublishNameLogic(sender).getPublicAlias()
+      const recipientName = new PublishNameLogic(recipient).getPublicAlias()
+
       // transaction
       const transactionSend = new dbTransaction()
       transactionSend.typeId = TransactionTypeId.SEND
       transactionSend.memo = memo
       transactionSend.userId = sender.id
       transactionSend.userGradidoID = sender.gradidoID
-      transactionSend.userName = fullName(sender.firstName, sender.lastName)
+      transactionSend.userName = senderName
       transactionSend.userCommunityUuid = sender.communityUuid
       transactionSend.linkedUserId = recipient.id
       transactionSend.linkedUserGradidoID = recipient.gradidoID
-      transactionSend.linkedUserName = fullName(recipient.firstName, recipient.lastName)
+      transactionSend.linkedUserName = recipientName
       transactionSend.linkedUserCommunityUuid = recipient.communityUuid
       transactionSend.amount = negativeAmount
       transactionSend.balance = sendBalance.balance
@@ -139,6 +159,7 @@ export const executeTransaction = async (
       transactionSend.decayCalculationType = DecayCalculationType.NATIVE_C_FIXED_FACTOR_INTEGER
       transactionSend.previous = sendBalance.lastTransactionId
       transactionSend.transactionLinkId = transactionLink ? transactionLink.id : null
+      transactionSend.thankYouCardId = thankYouCardId ?? null
       await queryRunner.manager.insert(dbTransaction, transactionSend)
 
       logger.debug(`sendTransaction inserted: ${dbTransaction}`)
@@ -148,11 +169,11 @@ export const executeTransaction = async (
       transactionReceive.memo = memo
       transactionReceive.userId = recipient.id
       transactionReceive.userGradidoID = recipient.gradidoID
-      transactionReceive.userName = fullName(recipient.firstName, recipient.lastName)
+      transactionReceive.userName = recipientName
       transactionReceive.userCommunityUuid = recipient.communityUuid
       transactionReceive.linkedUserId = sender.id
       transactionReceive.linkedUserGradidoID = sender.gradidoID
-      transactionReceive.linkedUserName = fullName(sender.firstName, sender.lastName)
+      transactionReceive.linkedUserName = senderName
       transactionReceive.linkedUserCommunityUuid = sender.communityUuid
       transactionReceive.amount = amount
       const receiveBalance = await calculateBalance(recipient.id, amount, receivedCallDate)
@@ -164,6 +185,7 @@ export const executeTransaction = async (
       transactionReceive.previous = receiveBalance ? receiveBalance.lastTransactionId : null
       transactionReceive.linkedTransactionId = transactionSend.id
       transactionReceive.transactionLinkId = transactionLink ? transactionLink.id : null
+      transactionReceive.thankYouCardId = thankYouCardId ?? null
       await queryRunner.manager.insert(dbTransaction, transactionReceive)
       logger.debug(`receive Transaction inserted: ${dbTransaction}`)
 
@@ -217,9 +239,11 @@ export const executeTransaction = async (
       email: recipient.emailContact.email,
       language: recipient.language,
       memo,
-      senderFirstName: sender.firstName,
-      senderLastName: sender.lastName,
-      senderEmail: sender.emailContact.email,
+      senderAlias: new PublishNameLogic(sender).getPublicAlias(),
+      // The reply button in the mail leads to the send form with the sender filled in,
+      // so the mail carries these instead of the sender's e-mail address.
+      senderUuid: sender.gradidoID,
+      senderCommunityUuid: sender.communityUuid,
       transactionAmount: amount,
     })
     if (transactionLink) {
@@ -229,9 +253,12 @@ export const executeTransaction = async (
         lastName: sender.lastName,
         email: sender.emailContact.email,
         language: sender.language,
-        senderFirstName: recipient.firstName,
-        senderLastName: recipient.lastName,
-        senderEmail: recipientCom, // recipient.emailContact.email,
+        senderAlias: new PublishNameLogic(recipient).getPublicAlias(),
+        // The community, not an address. The field used to be called `senderEmail`
+        // while both live callers passed a community name, with the real address
+        // commented out beside it -- a name that invited the next person to put the
+        // leak back, in the one mail that names a third party.
+        senderCommunity: recipientCom,
         transactionAmount: amount,
         transactionMemo: memo,
       })
@@ -324,6 +351,21 @@ export class TransactionResolver {
           }
           remoteUser.gradidoID = transaction.linkedUserGradidoID
           if (transaction.linkedUserName) {
+            // The stored name goes into the alias, and that is what the booking row
+            // shows -- but ONLY when it can be an alias. Since #3645 this column holds
+            // the alias for every booking made in the alias era; before that it held an
+            // assembled "First Last", which the split below still relies on. Passing
+            // such a value through the unguarded alias field would hand a member the
+            // counterparty's real name, which is the one thing NU-019 forbids.
+            //
+            // The shape decides, because nothing else can -- see isAliasEraName, which
+            // holds that rule and its limits. Where it says no, the row falls back to the
+            // gradidoID. The split itself is untouched (KLAR-11, with Dario) and still
+            // feeds firstName/lastName, which the guard shows to the moderation and to
+            // nobody else.
+            if (isAliasEraName(transaction.linkedUserName)) {
+              remoteUser.alias = transaction.linkedUserName
+            }
             remoteUser.firstName = transaction.linkedUserName.slice(
               0,
               transaction.linkedUserName.indexOf(' '),
@@ -351,6 +393,34 @@ export class TransactionResolver {
       relations: ['emailContact'],
     })
     const involvedUsers = involvedDbUsers.map((u) => new User(u))
+
+    // When each of these members last changed the picture other members may see. One
+    // query for the whole list, right here where the list already exists -- a field
+    // resolver would ask once per row instead, and a booking list has as many rows as the
+    // page is long.
+    //
+    // Dates only, no picture data: this rides along on every booking list, and the
+    // pictures themselves are fetched separately and only for the ones the wallet does
+    // not already hold. A member missing from the answer has nothing to show, and the
+    // query decides that -- switch off, deleted, or no picture at all. Deciding it here
+    // would mean every future reader of the list has to remember the same rule.
+    //
+    // involvedRemoteUsers are deliberately left out: they belong to another community,
+    // whose members' pictures are a separate delivery (AS-004).
+    //
+    // ⚠️ Without the caller's own id, which involvedUserIds carries because the row fetch
+    // above needs it. Their own date is never read -- `Transaction.user` is built from
+    // `self`, outside this loop, and a member cannot book with themselves -- so including
+    // it only widened the IN list. It also kept the query's own empty-list guard from ever
+    // firing from here: a first page of pure Schoepfung, which is what a new account has,
+    // left involvedUserIds at exactly [user.id] and paid for a join whose one possible row
+    // nothing could read.
+    const counterpartyIds = involvedUserIds.filter((id) => id !== user.id)
+    const avatarDates = await dbFindMemberAvatarTimestamps(counterpartyIds)
+    for (const involvedUser of involvedUsers) {
+      involvedUser.avatarUpdatedAt = avatarDates.get(involvedUser.id) ?? null
+    }
+
     logger.debug(
       `involvedUsers=`,
       involvedUsers.map((u) => u.id),
@@ -406,6 +476,31 @@ export class TransactionResolver {
       }
     }
 
+    /**
+     * The names of the cards on this page, fetched once for all of them.
+     *
+     * ⛔ Only from SEND rows. On somebody's own booking list a SEND row means "I paid", so
+     * the card is theirs and the name is their own word for it. A RECEIVE row is the till's
+     * side, and there the name stays out — see `Transaction.thankYouCardLabel`.
+     *
+     * ⚠️ Asked for the page, not per row: this list is what every member opens first, and a
+     * query per booking would put a page of them on the busiest screen in the wallet. When
+     * nothing on the page was paid by card, the query does not run at all.
+     */
+    const cardIdsOnThisPage = [
+      ...new Set(
+        userTransactions
+          .filter(
+            (t: dbTransaction) =>
+              (t.typeId as TransactionTypeId) === TransactionTypeId.SEND &&
+              t.thankYouCardId !== null &&
+              t.thankYouCardId !== undefined,
+          )
+          .map((t: dbTransaction) => t.thankYouCardId as number),
+      ),
+    ]
+    const cardLabels = await dbSelectThankYouCardLabels(cardIdsOnThisPage)
+
     // transactions
     userTransactions.forEach((userTransaction: dbTransaction) => {
       /*
@@ -427,7 +522,12 @@ export class TransactionResolver {
         )
         logger.debug(`remote linkedUser=${linkedUser?.id}`)
       }
-      transactions.push(new Transaction(userTransaction, self, linkedUser))
+      const cardLabel =
+        (userTransaction.typeId as TransactionTypeId) === TransactionTypeId.SEND &&
+        userTransaction.thankYouCardId
+          ? (cardLabels.get(userTransaction.thankYouCardId) ?? null)
+          : null
+      transactions.push(new Transaction(userTransaction, self, linkedUser, cardLabel))
     })
     logger.debug(
       `TransactionTypeId.CREATION: transactions=`,
@@ -601,8 +701,7 @@ export class TransactionResolver {
         lastName: recipientUser.lastName,
         email: recipientUser.emailContact.email,
         language: recipientUser.language,
-        senderFirstName: senderUser.firstName,
-        senderLastName: senderUser.lastName,
+        senderAlias: new PublishNameLogic(senderUser).getPublicAlias(),
         subject: subject,
         memo: memo,
         senderUuid: senderUser.gradidoID,

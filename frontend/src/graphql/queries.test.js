@@ -1,28 +1,86 @@
 import { describe, it, expect } from 'vitest'
-import { print } from 'graphql'
 import { verifyLogin } from './queries'
+import { login } from './mutations'
 import { listAllContributions } from './contributions.graphql'
 
-// Regression guard: the token-handoff re-auth in routes/guards.js feeds the
-// verifyLogin result into the shared `login` store action. If any of these
-// fields is missing from the query, the action overwrites the value with
-// undefined, so the GMS/HumHub connection drops on every wallet <-> admin
-// round-trip. verifyLogin must stay in sync with the login mutation for the
-// fields the login action consumes.
-describe('verifyLogin query', () => {
-  const body = print(verifyLogin)
+// Regression guard for BOTH ways into the wallet. The form login (pages/Login.vue) and
+// the token-handoff re-auth (routes/guards.js) feed their result into the same `login`
+// store action, and that action commits every field below. Whichever document omits one
+// makes the action overwrite the value with undefined on the way in -- that is how the
+// GMS and HumHub connection came to drop on every wallet <-> admin round-trip. It does
+// not crash, which is why it needs a guard and not a reader: the two documents must stay
+// in sync with the action, and so with each other.
+//
+// Read from the query tree, not from its printed text, for the reason spelled out at
+// listAllContributions below: a substring match is also satisfied by a longer field name
+// that happens to contain it ("roles" inside "userRoles").
+const fieldNames = (node, into = new Set()) => {
+  for (const selection of node.selectionSet?.selections ?? []) {
+    if (selection.kind === 'Field') {
+      into.add(selection.name.value)
+      fieldNames(selection, into)
+    }
+  }
+  return into
+}
+
+const requestedFields = (document) =>
+  fieldNames(document.definitions.find((definition) => definition.kind === 'OperationDefinition'))
+
+describe.each([
+  ['verifyLogin query', verifyLogin],
+  ['login mutation', login],
+])('%s', (_name, document) => {
+  const fields = requestedFields(document)
 
   it.each([
+    'gradidoID',
+    'alias',
+    'firstName',
+    'lastName',
+    'language',
+    'newsletterState',
     'gmsAllowed',
     'humhubAllowed',
-    'gmsPublishName',
-    'humhubPublishName',
     'gmsPublishLocation',
     'userLocation',
+    'hasElopage',
+    'publisherId',
+    'roles',
+    'hideAmountGDD',
+    'hideAmountGDT',
   ])('requests the "%s" field consumed by the login action', (field) => {
-    expect(body).toContain(field)
+    expect([...fields]).toContain(field)
   })
 })
+
+// Two fields are deliberately not on that list: verifyLogin is the only place the wallet
+// reads them. Two callers do exactly that: guards.js on the token handoff, and Login.vue
+// right after a form login. Drop a field here and both of them leave the store empty,
+// silently, which is the failure this whole guard exists for.
+//
+// Both are kept off the login answer by DESIGN, not by inability -- login now names the
+// member it just authenticated as the owner of the request, so an own-view field resolver
+// would answer it. What still argues against them is cost: filling the avatar would mean
+// a database read on the one request every member and every test makes, and
+// avatarVisibleToMembers travels beside it.
+//
+//   * the avatar;
+//   * avatarVisibleToMembers, which is own-view only -- a field resolver hands it to
+//     nobody but its owner.
+describe('verifyLogin query', () => {
+  it.each(['avatar', 'avatarVisibleToMembers'])(
+    'requests "%s", which is the only place the wallet can read it',
+    (field) => {
+      expect([...requestedFields(verifyLogin)]).toContain(field)
+    },
+  )
+})
+
+// The other half of the same contract: neither field may be read off the login payload by
+// the login store action, because guards.js feeds that action a verifyLogin result while
+// Login.vue feeds it a login result. A field read there is right for one caller and
+// undefined for the other -- see store.test.js, which holds the action to clearing both.
 
 // Data protection: the community list is open to every member and shows denied
 // contributions too, so it names nobody. The backend refuses to send a person either

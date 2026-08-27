@@ -2,7 +2,7 @@
   <div class="mb-3 p-3 card-circles">
     <BContainer class="bg-white app-box-shadow gradido-border-radius p-4 mt--3">
       <div class="h3">{{ $t('card-circles.headline') }}</div>
-      <div class="my-3 text-small">
+      <div class="my-3 small">
         <span v-for="(line, lineNumber) of $t('card-circles.text').split('\n')" :key="lineNumber">
           {{ line }}
           <br />
@@ -20,7 +20,7 @@
             >
               {{ $t('card-circles.allowed.button') }}
             </BButton>
-            <RouterLink v-else to="/settings/extern">
+            <RouterLink v-else to="/settings/communities">
               <BButton variant="gradido">
                 {{ $t('card-circles.not-allowed.button') }}
               </BButton>

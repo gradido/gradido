@@ -11,45 +11,96 @@
       "contactSupport": "Desteğe başvur",
       "emailExists": "Ancak e-posta adresin için zaten bir hesap mevcut.",
       "emailReused": "e-posta adresin az önce Gradido'da bir hesap kaydetmek için yeniden kullanıldı.",
+      "helperButton": "Birine hesap açmasında yardım ediyorum",
+      "helperIntro": "Yanında, az önce senin e-posta adresini kullanarak bir Gradido hesabı açmaya başlayan biri oturuyorsa: Kuruluma buradan devam et. Birlikte onun kendi e-posta adresini girersiniz, şifresini ise kendisi seçer.",
+      "helperTitle": "Şu anda bir Gradido kafesinde birine mi yardım ediyorsun?",
       "ifYouAreNotTheOne": "Yeniden kaydolmayı sen denemediysen, lütfen desteğimize başvur:",
       "onForgottenPasswordClickLink": "Şifreni unuttuysan, lütfen buraya tıkla.",
       "subject": "E-postanla yeniden kayıt denemesi",
       "title": "E-postanla yeniden kayıt denemesi"
     },
     "addedContributionMessage": {
-      "commonGoodContributionMessage": "{senderFirstName} {senderLastName}, ortak yarara katkın “{contributionMemo}” hakkında sana bir mesaj gönderdi.",
+      "commonGoodContributionMessage": "{senderAlias}, ortak yarara katkın “{contributionMemo}” hakkında sana bir mesaj gönderdi.",
       "message": "“{message}”",
       "readMessage": "Mesajı oku ve yanıtla",
       "subject": "Ortak yarara katkın hakkında mesaj",
       "title": "Ortak yarara katkın hakkında mesaj",
-      "toSeeAndAnswerMessage": "Mesajı yanıtlamak için Gradido hesabında “Oluştur” menüsüne git ve “Katkılarım” sekmesine tıkla."
+      "toSeeAndAnswerMessage": "Doğrudan katkının yanından yanıtlayabilirsin."
+    },
+    "assistedRegistrationConfirm": {
+      "accountCreated": "Bir Gradido üyesiyle birlikte az önce senin için bir hesap oluşturuldu — bu e-posta adresiyle.",
+      "clickToConfirm": "E-posta adresini onaylamak için lütfen buraya tıkla.",
+      "confirmButton": "Adresi onayla",
+      "confirmHeading": "E-posta adresini onayla",
+      "notYou": "Bu hesaptan haberin yok mu? O zaman bu e-postayı dikkate alma — onay olmadan hesap kapalı kalır.",
+      "pleaseConfirm": "Lütfen bu adresin sana ait olduğunu onayla — hesabın ancak o zaman kalıcı olarak açık kalır.",
+      "subject": "E-posta adresini onayla",
+      "title": "Gradido hesabın hazır"
     },
     "contribution": {
-      "toSeeContributionsAndMessages": "Ortak yarara katkılarını ve ilgili mesajları görmek için Gradido hesabında “Oluştur” menüsüne git ve “Katkılarım” sekmesine tıkla."
+      "toSeeContributionsAndMessages": "Ortak yarara katkılarını ve ilgili mesajları Gradido hesabında bulabilirsin."
     },
     "contributionChangedByModerator": {
       "subject": "Ortak yarara katkın değiştirildi",
-      "text": "ortak yarara katkın “{contributionMemo}” az önce {senderFirstName} {senderLastName} tarafından değiştirildi ve şimdi şöyle: “{contributionMemoUpdated}”",
+      "text": "ortak yarara katkın “{contributionMemo}” az önce {senderAlias} tarafından değiştirildi ve şimdi şöyle: “{contributionMemoUpdated}”",
       "title": "Ortak yarara katkın değiştirildi"
     },
     "contributionConfirmed": {
-      "commonGoodContributionConfirmed": "ortak yarara katkın “{contributionMemo}” az önce {senderFirstName} {senderLastName} tarafından onaylandı. Gradido hesabına {amountGDD} GDD yatırıldı.",
+      "commonGoodContributionConfirmed": "ortak yarara katkın “{contributionMemo}” az önce {senderAlias} tarafından onaylandı. Gradido hesabına {amountGDD} GDD yatırıldı.",
       "subject": "Ortak yarara katkın onaylandı",
       "title": "Ortak yarara katkın onaylandı"
     },
     "contributionDeleted": {
-      "commonGoodContributionDeleted": "ortak yarara katkın “{contributionMemo}” {senderFirstName} {senderLastName} tarafından silindi.",
+      "commonGoodContributionDeleted": "ortak yarara katkın “{contributionMemo}” {senderAlias} tarafından silindi.",
       "subject": "Ortak yarara katkın silindi",
       "title": "Ortak yarara katkın silindi"
     },
     "contributionDenied": {
-      "commonGoodContributionDenied": "ortak yarara katkın “{contributionMemo}” {senderFirstName} {senderLastName} tarafından reddedildi.",
+      "commonGoodContributionDenied": "ortak yarara katkın “{contributionMemo}” {senderAlias} tarafından reddedildi.",
       "subject": "Ortak yarara katkın reddedildi",
       "title": "Ortak yarara katkın reddedildi"
     },
     "customEmail": {
-      "haveReceivedMessageFrom": "az önce {senderFirstName} {senderLastName} tarafından bir mesaj aldın",
-      "title": "{senderFirstName} {senderLastName} sana bir mesaj gönderdi"
+      "haveReceivedMessageFrom": "az önce {senderAlias} tarafından bir mesaj aldın",
+      "title": "{senderAlias} sana bir mesaj gönderdi"
+    },
+    "emailChangeConfirm": {
+      "confirm": "Yeni adresi onayla",
+      "notYou": "Bu değişikliği sen istemediysen bu e-postayı görmezden gelebilirsin – onayın olmadan hiçbir şey değişmez.",
+      "pleaseConfirm": "Bu adresin sana ait olduğunu tek tıkla onayla.",
+      "subject": "Lütfen yeni e-posta adresini onayla",
+      "title": "Yeni e-posta adresini onayla",
+      "validUntil": "Bağlantı {validUntil} tarihine kadar geçerlidir. Sonrasında ayarlarından yeni bir e-posta gönderilmesini isteyebilirsin.",
+      "youAskedFor": "Gradido hesabının e-posta adresini bu adresle değiştirmek istiyorsun."
+    },
+    "emailChangeDone": {
+      "changedTo": "Gradido hesabının e-posta adresi artık {newEmail}.",
+      "notYou": "Bu sen değil miydin? O zaman lütfen hemen {supportEmail} ile iletişime geç.",
+      "subject": "E-posta adresin değiştirildi",
+      "title": "E-posta adresi değiştirildi",
+      "wasBefore": "Şimdiye kadar {oldEmail} idi."
+    },
+    "emailChangeNotice": {
+      "changePassword": "Değişikliği reddedersen, ardından lütfen şifreni de değiştir.",
+      "notYou": "Bu sen değil miydin? O zaman buraya tıkla – değişiklik reddedilir ve bu adres kalır.",
+      "notYouTitle": "Bu sen değil miydin?",
+      "requested": "Gradido hesabının e-posta adresinin {newEmail} olarak değiştirilmesi istendi.",
+      "revoke": "Değişikliği reddet",
+      "subject": "E-posta adresin için değişiklik istendi",
+      "title": "E-posta adresin değişmek üzere",
+      "untilConfirmed": "Yeni adres onaylanana kadar bu adres geçerli kalır. Bunu sen yaptıysan başka bir şey yapmana gerek yok.",
+      "validUntil": "Bağlantı {validUntil} tarihine kadar geçerlidir – sonrasında istenen değişiklik kendiliğinden geçersiz olur."
+    },
+    "emailChangeSupport": {
+      "gdtHint": "GDT sunucusu için bu hesabın ilk adresi geçerli olmaya devam eder: {gdtEmail}.",
+      "member": "Üye: {firstName} {lastName} ({alias})",
+      "newEmail": "Yeni adres: {newEmail}",
+      "oldEmail": "Önceki adres: {oldEmail}",
+      "subject": "E-posta adresi değiştirildi: {firstName} {lastName}",
+      "title": "Bir üye e-posta adresini değiştirdi",
+      "todo": "Lütfen yeni adresi GDT sunucusunda bu hesaba bağla ve Klick-Tipp'i güncelle.",
+      "todoTakeBack": "Bu hesabın önceki bir adresine geri dönüş – GDT sunucusunda birleştirilecek bir şey yok. Lütfen yalnızca Klick-Tipp'i güncelleyin.",
+      "todoTypoCorrection": "Önceki adres hiç onaylanmadı (kurulum sırasında yazım hatası) – GDT sunucusunda birleştirilecek bir şey yok. Lütfen yalnızca yeni adresi Klick-Tipp'e ekleyin."
     },
     "footer": {
       "contactOurSupport": "Başka sorun olursa lütfen desteğimize başvur.",
@@ -77,6 +128,7 @@
       "reset": "sıfırla",
       "sincerelyYours": "Sevgiler,",
       "toAccount": "Hesaba git",
+      "toContribution": "Katkıya git",
       "transactionDetails": "İşlem ayrıntıları",
       "yourGradidoTeam": "Gradido ekibin"
     },
@@ -86,17 +138,26 @@
       "title": "Şifreyi sıfırla",
       "youOrSomeoneResetPassword": "sen ya da bir başkası, bu hesap için şifre sıfırlama talebinde bulundu."
     },
+    "thankYouCardPaid": {
+      "blockCard": "Kartı blokla",
+      "card": "Kart: {cardLabel}",
+      "memo": "Açıklama: {transactionMemo}",
+      "notYou": "Bu sen değil miydin? Kartını hemen buradan blokla — kart çalışmaz olur, Gradido adresin kalır.",
+      "recipient": "Alıcı: {recipientName} ({recipientCommunity})",
+      "subject": "Teşekkür kartınla {amountGDD} GDD aktardın",
+      "title": "Teşekkür kartınla {amountGDD} GDD aktarıldı",
+      "wasPaid": "Teşekkür kartınla az önce {amountGDD} GDD aktarıldı."
+    },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) az önce bağlantını kullandı.",
+      "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) az önce bağlantını kullandı.",
       "memo": "Mesaj: {transactionMemo}",
-      "subject": "{senderFirstName} {senderLastName} Gradido bağlantını kullandı",
-      "title": "{senderFirstName} {senderLastName} Gradido bağlantını kullandı"
+      "subject": "{senderAlias} Gradido bağlantını kullandı",
+      "title": "{senderAlias} Gradido bağlantını kullandı"
     },
     "transactionReceived": {
-      "haveReceivedAmountGDDFrom": "az önce {senderFirstName} {senderLastName} tarafından {transactionAmount} GDD aldın",
-      "replySubject": "RE: {senderFirstName} {senderLastName} sana {transactionAmount} Gradido gönderdi",
-      "subject": "{senderFirstName} {senderLastName} sana {transactionAmount} Gradido gönderdi",
-      "title": "{senderFirstName} {senderLastName} sana {transactionAmount} Gradido gönderdi"
+      "haveReceivedAmountGDDFrom": "az önce {senderAlias} tarafından {transactionAmount} GDD aldın.",
+      "subject": "{senderAlias} sana {transactionAmount} Gradido gönderdi",
+      "title": "{senderAlias} sana {transactionAmount} Gradido gönderdi"
     }
   },
   "general": {

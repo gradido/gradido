@@ -15,12 +15,26 @@ fragment transactionFields on Transaction {
   balanceDate
   memo
   linkedUser {
-    firstName
-    lastName
+    # No firstName/lastName: for members they are always null now (NU-019), and for a
+    # moderator reading their own list they would be real names sitting in a browser
+    # cache for no screen to show. The row reads by alias, the circle by the digit below.
     communityUuid
     communityName
     gradidoID
     alias
+    # The circle colour as a finished digit, computed by the server from the real
+    # initials (NU-017). It is what keeps every circle the colour it always was once
+    # firstName and lastName stop being delivered for other members -- the colour rule
+    # itself must not move to the alias (AS-010).
+    avatarColorIndex
+    # When this member last changed the picture other members may see -- a date, not the
+    # picture. Both live queries share this fragment, so it is asked for once here rather
+    # than in each of them, the way balanceFields is.
+    #
+    # null means there is nothing to show, for whatever reason, and that is the whole
+    # answer the screen needs. It is also what tells the wallet to drop a picture it still
+    # holds for this member: see composables/useMemberAvatars.
+    avatarUpdatedAt
   }
   decay {
     decay
@@ -29,6 +43,10 @@ fragment transactionFields on Transaction {
     duration
   }
   linkId
+  # Paid with a printed thank you card. The name comes only with the payer's own row --
+  # the backend decides that, not the screen. See Transaction.thankYouCardLabel.
+  viaThankYouCard
+  thankYouCardLabel
 }
 
 query transactionsQuery($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {

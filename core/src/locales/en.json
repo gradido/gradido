@@ -11,45 +11,96 @@
       "contactSupport": "Contact support",
       "emailExists": "However, an account already exists for your email address.",
       "emailReused": "Your email address has just been used again to register an account with Gradido.",
+      "helperButton": "I am helping someone set up an account",
+      "helperIntro": "If someone is sitting next to you who just used your e-mail address to start a Gradido account: continue the setup here. Together you enter their own e-mail address, and they choose their password themselves.",
+      "helperTitle": "Helping someone at a Gradido café right now?",
       "ifYouAreNotTheOne": "If you did not try to register again, please contact our support:",
       "onForgottenPasswordClickLink": "If you have forgotten your password, please click here.",
       "subject": "Try To Register Again With Your Email",
       "title": "Try To Register Again With Your Email"
     },
     "addedContributionMessage": {
-      "commonGoodContributionMessage": "You have received a message from {senderFirstName} {senderLastName} regarding your common good contribution “{contributionMemo}”.",
+      "commonGoodContributionMessage": "You have received a message from {senderAlias} regarding your common good contribution “{contributionMemo}”.",
       "message": "„{message}“",
       "readMessage": "Read and reply to message",
       "subject": "Message about your common good contribution",
       "title": "Message about your common good contribution",
-      "toSeeAndAnswerMessage": "To reply to the message, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab."
+      "toSeeAndAnswerMessage": "You can reply directly at your contribution."
+    },
+    "assistedRegistrationConfirm": {
+      "accountCreated": "Together with a Gradido member, an account has just been set up for you — with this e-mail address.",
+      "clickToConfirm": "Please click here to confirm your e-mail address.",
+      "confirmButton": "Confirm address",
+      "confirmHeading": "Confirm e-mail address",
+      "notYou": "You know nothing about this account? Then ignore this e-mail — without confirmation the account stays locked.",
+      "pleaseConfirm": "Please confirm that this address is yours — only then will your account stay open for good.",
+      "subject": "Confirm your e-mail address",
+      "title": "Your Gradido account is ready"
     },
     "contribution": {
-      "toSeeContributionsAndMessages": "To see your common good contributions and related messages, go to the “Creation” menu in your Gradido account and click on the “My contributions” tab."
+      "toSeeContributionsAndMessages": "You will find your common good contributions and the messages about them in your Gradido account."
     },
     "contributionChangedByModerator": {
       "subject": "Your common good contribution has been changed",
-      "text": "your common good contribution '{contributionMemo}' has just been changed by {senderFirstName} {senderLastName} and now reads as '{contributionMemoUpdated}'",
+      "text": "your common good contribution '{contributionMemo}' has just been changed by {senderAlias} and now reads as '{contributionMemoUpdated}'",
       "title": "Your common good contribution has been changed"
     },
     "contributionConfirmed": {
-      "commonGoodContributionConfirmed": "Your common good contribution “{contributionMemo}” has just been approved by {senderFirstName} {senderLastName}. Your Gradido account has been credited with {amountGDD} GDD.",
+      "commonGoodContributionConfirmed": "Your common good contribution “{contributionMemo}” has just been approved by {senderAlias}. Your Gradido account has been credited with {amountGDD} GDD.",
       "subject": "Your contribution to the common good was confirmed",
       "title": "Your contribution to the common good was confirmed"
     },
     "contributionDeleted": {
-      "commonGoodContributionDeleted": "Your common good contribution “{contributionMemo}” was deleted by {senderFirstName} {senderLastName}.",
+      "commonGoodContributionDeleted": "Your common good contribution “{contributionMemo}” was deleted by {senderAlias}.",
       "subject": "Your common good contribution was deleted",
       "title": "Your common good contribution was deleted"
     },
     "contributionDenied": {
-      "commonGoodContributionDenied": "Your common good contribution “{contributionMemo}” was rejected by {senderFirstName} {senderLastName}.",
+      "commonGoodContributionDenied": "Your common good contribution “{contributionMemo}” was rejected by {senderAlias}.",
       "subject": "Your common good contribution was rejected",
       "title": "Your common good contribution was rejected"
     },
     "customEmail": {
-      "haveReceivedMessageFrom": "you have just received a message from {senderFirstName} {senderLastName}",
-      "title": "{senderFirstName} {senderLastName} has sent you a message"
+      "haveReceivedMessageFrom": "you have just received a message from {senderAlias}",
+      "title": "{senderAlias} has sent you a message"
+    },
+    "emailChangeConfirm": {
+      "confirm": "Confirm new address",
+      "notYou": "If you did not ask for this change, you can simply ignore this e-mail – nothing changes without your confirmation.",
+      "pleaseConfirm": "Please confirm with one click that this address is yours.",
+      "subject": "Please confirm your new e-mail address",
+      "title": "Confirm new e-mail address",
+      "validUntil": "The link is valid until {validUntil}. After that you can have a new e-mail sent from your settings.",
+      "youAskedFor": "You want to change the e-mail address of your Gradido account to this address."
+    },
+    "emailChangeDone": {
+      "changedTo": "From now on the e-mail address of your Gradido account is {newEmail}.",
+      "notYou": "That was not you? Then please contact {supportEmail} right away.",
+      "subject": "Your e-mail address has been changed",
+      "title": "E-mail address changed",
+      "wasBefore": "Until now it was {oldEmail}."
+    },
+    "emailChangeNotice": {
+      "changePassword": "If you revoke the change, please change your password afterwards as well.",
+      "notYou": "That was not you? Then click here – the change is revoked and this address stays.",
+      "notYouTitle": "That was not you?",
+      "requested": "A change of the e-mail address of your Gradido account to {newEmail} has been requested.",
+      "revoke": "Revoke change",
+      "subject": "Change of your e-mail address requested",
+      "title": "Your e-mail address is about to change",
+      "untilConfirmed": "Until the new address is confirmed, this one stays in force. If that was you, there is nothing more to do.",
+      "validUntil": "The link is valid until {validUntil} – after that the requested change expires by itself."
+    },
+    "emailChangeSupport": {
+      "gdtHint": "For the GDT server the first address of this account still counts: {gdtEmail}.",
+      "member": "Member: {firstName} {lastName} ({alias})",
+      "newEmail": "New address: {newEmail}",
+      "oldEmail": "Previous address: {oldEmail}",
+      "subject": "E-mail address changed: {firstName} {lastName}",
+      "title": "A member has changed their e-mail address",
+      "todo": "Please merge the new address into this account on the GDT server and update Klick-Tipp.",
+      "todoTakeBack": "A change back to an earlier address of this account – nothing to merge on the GDT server. Please only update Klick-Tipp.",
+      "todoTypoCorrection": "The previous address was never confirmed (a typo during setup) – nothing to merge on the GDT server. Please only enter the new address into Klick-Tipp."
     },
     "footer": {
       "contactOurSupport": "If you have any further questions, please contact our support.",
@@ -77,6 +128,7 @@
       "reset": "reset",
       "sincerelyYours": "Kind regards,",
       "toAccount": "To account",
+      "toContribution": "To contribution",
       "transactionDetails": "Transaction details",
       "yourGradidoTeam": "your Gradido team"
     },
@@ -86,17 +138,26 @@
       "title": "Reset password",
       "youOrSomeoneResetPassword": "You, or someone else, requested a password reset for this account."
     },
+    "thankYouCardPaid": {
+      "blockCard": "Block card",
+      "card": "Card: {cardLabel}",
+      "memo": "Reference: {transactionMemo}",
+      "notYou": "That was not you? Block your card right here — it stops working, your Gradido address stays.",
+      "recipient": "Recipient: {recipientName} ({recipientCommunity})",
+      "subject": "You passed on {amountGDD} GDD with your thank you card",
+      "title": "{amountGDD} GDD were passed on with your thank you card",
+      "wasPaid": "{amountGDD} GDD have just been passed on with your thank you card."
+    },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) has just redeemed your link.",
+      "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) has just redeemed your link.",
       "memo": "Message: {transactionMemo}",
-      "subject": "{senderFirstName} {senderLastName} has redeemed your Gradido link",
-      "title": "{senderFirstName} {senderLastName} has redeemed your Gradido link"
+      "subject": "{senderAlias} has redeemed your Gradido link",
+      "title": "{senderAlias} has redeemed your Gradido link"
     },
     "transactionReceived": {
-      "haveReceivedAmountGDDFrom": "You have just received {transactionAmount} GDD from {senderFirstName} {senderLastName}",
-      "replySubject": "RE: {senderFirstName} {senderLastName} has sent you {transactionAmount} Gradido",
-      "subject": "{senderFirstName} {senderLastName} has sent you {transactionAmount} Gradido",
-      "title": "{senderFirstName} {senderLastName} has sent you {transactionAmount} Gradido"
+      "haveReceivedAmountGDDFrom": "You have just received {transactionAmount} GDD from {senderAlias}.",
+      "subject": "{senderAlias} has sent you {transactionAmount} Gradido",
+      "title": "{senderAlias} has sent you {transactionAmount} Gradido"
     }
   },
   "general": {

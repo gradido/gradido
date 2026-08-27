@@ -64,14 +64,15 @@
             active-class="active-route"
             data-test="settings-menu"
           >
+            <!-- ⛔ The badge that used to hang here said "Neue Einstellungen" and MEANT "you have
+                 no user name yet" -- two different things, and the second one has been solved
+                 elsewhere since Nutzername/NU-005: the window at first login asks for it. A hint
+                 that says something other than what it means is worse than none. (Bernd, 26.08.2026) -->
             <div class="sidebar-menu-item-wrapper">
               <div>
                 <i-mdi-settings class="svg-icon" />
                 <span class="ms-2">{{ $t('navigation.settings') }}</span>
               </div>
-              <BBadge v-if="!$store.state.username" variant="warning">
-                {{ $t('settings.newSettings') }}
-              </BBadge>
             </div>
           </BNavItem>
           <BNavItem

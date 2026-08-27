@@ -35,6 +35,22 @@ export class Transaction extends BaseEntity {
   })
   transactionLinkId?: number | null
 
+  /**
+   * The thank you card this booking was made with, on both rows of it.
+   *
+   * ⚠️ The card, not its name: cards cannot be renamed, so a copy of the name could not
+   * diverge today -- but pointing at the card cannot go stale even if that changes, and the
+   * name is then looked up where it is shown rather than carried by every booking.
+   */
+  @Column({
+    name: 'thank_you_card_id',
+    type: 'int',
+    unsigned: true,
+    nullable: true,
+    default: null,
+  })
+  thankYouCardId?: number | null
+
   @Column({
     name: 'amount_gdd4',
     type: 'bigint',

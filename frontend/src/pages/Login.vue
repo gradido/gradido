@@ -13,10 +13,7 @@
         </BRow>
         <BRow>
           <BCol class="d-flex justify-content-end mb-4 mb-lg-0">
-            <router-link
-              :to="routeWithParamsAndQuery('ForgotPassword')"
-              data-test="forgot-password-link"
-            >
+            <router-link :to="{ name: 'ForgotPassword' }" data-test="forgot-password-link">
               {{ $t('settings.password.forgot_pwd') }}
             </router-link>
           </BCol>
@@ -65,12 +62,13 @@ import InputPassword from '@/components/Inputs/InputPassword'
 import InputEmail from '@/components/Inputs/InputEmail'
 import Message from '@/components/Message/Message'
 import { login, authenticateHumhubAutoLoginProject, updateUserInfos } from '@/graphql/mutations'
+import { verifyLogin } from '@/graphql/queries'
 import { ref, computed } from 'vue'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
 import { useForm } from 'vee-validate'
-import { useMutation } from '@vue/apollo-composable'
+import { useApolloClient, useMutation } from '@vue/apollo-composable'
 import { useAppToast } from '@/composables/useToast'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import CONFIG from '@/config'
@@ -81,6 +79,7 @@ const router = useRouter()
 const route = useRoute()
 const store = useStore()
 const { t } = useI18n()
+const { client } = useApolloClient()
 const { mutate } = useMutation(login)
 const { mutate: mutateHumhubAutoLogin } = useMutation(authenticateHumhubAutoLoginProject)
 const { mutate: mutateUpdateUserInfos } = useMutation(updateUserInfos)
@@ -119,6 +118,21 @@ const onSubmit = handleSubmit(async (values) => {
     // consumes it, then persist it to the account so it sticks everywhere.
     const preLoginLanguage = store.state.preLoginLanguage
     await store.dispatch('login', loginResponse)
+    // The picture does not ride on the login mutation. Reading it there would put a
+    // second connection pool into the one request path that every member and every test
+    // takes, and the wallet needs it only here. Fetched right after instead, so a member
+    // who logs out and back in sees their own face from the first screen rather than
+    // initials until some later session renewal happens to refill the store.
+    //
+    // Best effort on purpose: somebody who is logged in must not be thrown back to the
+    // login page over a profile picture.
+    try {
+      const { data } = await client.query({ query: verifyLogin, fetchPolicy: 'network-only' })
+      store.commit('avatar', data.verifyLogin.avatar ?? null)
+      store.commit('avatarVisibleToMembers', data.verifyLogin.avatarVisibleToMembers ?? null)
+    } catch (error) {
+      // Initials until the next verifyLogin -- the same as before this was fetched at all.
+    }
     if (preLoginLanguage && preLoginLanguage !== loginResponse.language) {
       try {
         await mutateUpdateUserInfos({ locale: preLoginLanguage })
@@ -142,15 +156,24 @@ const onSubmit = handleSubmit(async (values) => {
       await router.push(store.state.redirectPath)
     }
   } catch (error) {
-    if (error.message.includes('User email not validated')) {
+    // ⛔ These two literals are one half of a contract with the backend, and the backend
+    // cannot be imported here. Both were wrong - a word order apart from what `login`
+    // actually throws - so neither branch had ever fired. A member without a password saw
+    // the raw English sentence in an "unknown error" toast instead of the page that tells
+    // them what to do. Pinned on this side by `Login.spec.js`, on the other by
+    // `UserResolver.test.ts`; move one and the pair has to move together.
+    if (error.message.includes('The Users email is not validate yet')) {
       showPageMessage.value = true
       errorSubtitle.value = t('message.activateEmail')
-      errorLinkTo.value = routeWithParamsAndQuery('ForgotPassword')
+      errorLinkTo.value = { name: 'ForgotPassword' }
       toastError(t('error.no-account'))
-    } else if (error.message.includes('User has no password set yet')) {
+    } else if (error.message.includes('The User has not set a password yet')) {
       showPageMessage.value = true
       errorSubtitle.value = t('message.unsetPassword')
-      errorLinkTo.value = routeWithParamsAndQuery('ResetPassword')
+      // Not `ResetPassword`: that route needs an `:optin` code, and a login page has none -
+      // `router.push` threw `Missing required param "optin"` straight out of the click
+      // handler. The road to a password is the one the branch above already takes.
+      errorLinkTo.value = { name: 'ForgotPassword' }
       toastError(t('error.no-account'))
     } else if (error.message.includes('No user with this credentials')) {
       toastError(t('error.no-user'))

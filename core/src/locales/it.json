@@ -11,45 +11,96 @@
       "contactSupport": "Contatta il supporto",
       "emailExists": "Tuttavia, esiste già un account per il tuo indirizzo e-mail.",
       "emailReused": "il tuo indirizzo e-mail è appena stato utilizzato di nuovo per registrare un account su Gradido.",
+      "helperButton": "Sto aiutando qualcuno a creare un account",
+      "helperIntro": "Se accanto a te c'è una persona che ha appena usato il tuo indirizzo e-mail per iniziare un account Gradido: continua qui la configurazione. Insieme inserite il suo indirizzo e-mail, e la password la sceglie lei stessa.",
+      "helperTitle": "Stai aiutando qualcuno in un caffè Gradido in questo momento?",
       "ifYouAreNotTheOne": "Se non hai provato a registrarti di nuovo, contatta il nostro supporto:",
       "onForgottenPasswordClickLink": "Se hai dimenticato la password, clicca qui.",
       "subject": "Nuovo tentativo di registrazione con la tua e-mail",
       "title": "Nuovo tentativo di registrazione con la tua e-mail"
     },
     "addedContributionMessage": {
-      "commonGoodContributionMessage": "hai ricevuto un messaggio da {senderFirstName} {senderLastName} riguardo al tuo contributo al bene comune «{contributionMemo}».",
+      "commonGoodContributionMessage": "hai ricevuto un messaggio da {senderAlias} riguardo al tuo contributo al bene comune «{contributionMemo}».",
       "message": "«{message}»",
       "readMessage": "Leggi e rispondi al messaggio",
       "subject": "Messaggio riguardo al tuo contributo al bene comune",
       "title": "Messaggio riguardo al tuo contributo al bene comune",
-      "toSeeAndAnswerMessage": "Per rispondere al messaggio, vai nel menu «Crea» del tuo account Gradido e clicca sulla scheda «I miei contributi»."
+      "toSeeAndAnswerMessage": "Puoi rispondere direttamente al tuo contributo."
+    },
+    "assistedRegistrationConfirm": {
+      "accountCreated": "Insieme a un membro Gradido è stato appena creato un account per te — con questo indirizzo e-mail.",
+      "clickToConfirm": "Clicca qui per confermare il tuo indirizzo e-mail.",
+      "confirmButton": "Conferma indirizzo",
+      "confirmHeading": "Confermare l'indirizzo e-mail",
+      "notYou": "Non sai nulla di questo account? Allora ignora questa e-mail — senza conferma il conto resta chiuso.",
+      "pleaseConfirm": "Conferma che questo indirizzo è tuo — solo allora il tuo account resterà aperto in modo permanente.",
+      "subject": "Conferma il tuo indirizzo e-mail",
+      "title": "Il tuo account Gradido è pronto"
     },
     "contribution": {
-      "toSeeContributionsAndMessages": "Per vedere i tuoi contributi al bene comune e i relativi messaggi, vai nel menu «Crea» del tuo account Gradido e clicca sulla scheda «I miei contributi»."
+      "toSeeContributionsAndMessages": "Trovi i tuoi contributi al bene comune e i relativi messaggi nel tuo account Gradido."
     },
     "contributionChangedByModerator": {
       "subject": "Il tuo contributo al bene comune è stato modificato",
-      "text": "il tuo contributo al bene comune «{contributionMemo}» è appena stato modificato da {senderFirstName} {senderLastName} e ora recita «{contributionMemoUpdated}»",
+      "text": "il tuo contributo al bene comune «{contributionMemo}» è appena stato modificato da {senderAlias} e ora recita «{contributionMemoUpdated}»",
       "title": "Il tuo contributo al bene comune è stato modificato"
     },
     "contributionConfirmed": {
-      "commonGoodContributionConfirmed": "il tuo contributo al bene comune «{contributionMemo}» è appena stato confermato da {senderFirstName} {senderLastName}. Sul tuo account Gradido sono stati accreditati {amountGDD} GDD.",
+      "commonGoodContributionConfirmed": "il tuo contributo al bene comune «{contributionMemo}» è appena stato confermato da {senderAlias}. Sul tuo account Gradido sono stati accreditati {amountGDD} GDD.",
       "subject": "Il tuo contributo al bene comune è stato confermato",
       "title": "Il tuo contributo al bene comune è stato confermato"
     },
     "contributionDeleted": {
-      "commonGoodContributionDeleted": "il tuo contributo al bene comune «{contributionMemo}» è stato eliminato da {senderFirstName} {senderLastName}.",
+      "commonGoodContributionDeleted": "il tuo contributo al bene comune «{contributionMemo}» è stato eliminato da {senderAlias}.",
       "subject": "Il tuo contributo al bene comune è stato eliminato",
       "title": "Il tuo contributo al bene comune è stato eliminato"
     },
     "contributionDenied": {
-      "commonGoodContributionDenied": "il tuo contributo al bene comune «{contributionMemo}» è stato rifiutato da {senderFirstName} {senderLastName}.",
+      "commonGoodContributionDenied": "il tuo contributo al bene comune «{contributionMemo}» è stato rifiutato da {senderAlias}.",
       "subject": "Il tuo contributo al bene comune è stato rifiutato",
       "title": "Il tuo contributo al bene comune è stato rifiutato"
     },
     "customEmail": {
-      "haveReceivedMessageFrom": "hai appena ricevuto un messaggio da {senderFirstName} {senderLastName}",
-      "title": "{senderFirstName} {senderLastName} ti ha inviato un messaggio"
+      "haveReceivedMessageFrom": "hai appena ricevuto un messaggio da {senderAlias}",
+      "title": "{senderAlias} ti ha inviato un messaggio"
+    },
+    "emailChangeConfirm": {
+      "confirm": "Conferma il nuovo indirizzo",
+      "notYou": "Se non hai richiesto questa modifica, puoi semplicemente ignorare questa e-mail: senza la tua conferma non cambia nulla.",
+      "pleaseConfirm": "Conferma con un clic che questo indirizzo è tuo.",
+      "subject": "Conferma il tuo nuovo indirizzo e-mail",
+      "title": "Confermare il nuovo indirizzo e-mail",
+      "validUntil": "Il link è valido fino al {validUntil}. Dopo potrai richiedere una nuova e-mail dalle tue impostazioni.",
+      "youAskedFor": "Vuoi cambiare l'indirizzo e-mail del tuo account Gradido con questo indirizzo."
+    },
+    "emailChangeDone": {
+      "changedTo": "Da ora l'indirizzo e-mail del tuo account Gradido è {newEmail}.",
+      "notYou": "Non sei stato tu? Allora contatta subito {supportEmail}.",
+      "subject": "Il tuo indirizzo e-mail è stato cambiato",
+      "title": "Indirizzo e-mail cambiato",
+      "wasBefore": "Finora era {oldEmail}."
+    },
+    "emailChangeNotice": {
+      "changePassword": "Se annulli la modifica, cambia poi anche la tua password.",
+      "notYou": "Non sei stato tu? Allora clicca qui: la modifica viene annullata e questo indirizzo resta valido.",
+      "notYouTitle": "Non sei stato tu?",
+      "requested": "Per il tuo account Gradido è stata richiesta la modifica dell'indirizzo e-mail in {newEmail}.",
+      "revoke": "Annulla la modifica",
+      "subject": "Richiesta di modifica del tuo indirizzo e-mail",
+      "title": "Il tuo indirizzo e-mail sta per cambiare",
+      "untilConfirmed": "Finché il nuovo indirizzo non viene confermato, resta valido questo. Se sei stato tu, non devi fare altro.",
+      "validUntil": "Il link è valido fino al {validUntil}; dopo, la modifica richiesta decade da sola."
+    },
+    "emailChangeSupport": {
+      "gdtHint": "Per il server GDT conta ancora il primo indirizzo di questo account: {gdtEmail}.",
+      "member": "Membro: {firstName} {lastName} ({alias})",
+      "newEmail": "Nuovo indirizzo: {newEmail}",
+      "oldEmail": "Indirizzo precedente: {oldEmail}",
+      "subject": "Indirizzo e-mail cambiato: {firstName} {lastName}",
+      "title": "Un membro ha cambiato il proprio indirizzo e-mail",
+      "todo": "Per favore associa il nuovo indirizzo a questo account sul server GDT e aggiorna Klick-Tipp.",
+      "todoTakeBack": "Ritorno a un indirizzo precedente di questo account: non c'è nulla da unire sul server GDT. Aggiorna solo Klick-Tipp.",
+      "todoTypoCorrection": "L'indirizzo precedente non è mai stato confermato (errore di battitura durante la creazione): non c'è nulla da unire sul server GDT. Inserisci solo il nuovo indirizzo in Klick-Tipp."
     },
     "footer": {
       "contactOurSupport": "Per ulteriori domande, contatta il nostro supporto.",
@@ -77,6 +128,7 @@
       "reset": "reimposta",
       "sincerelyYours": "Cordiali saluti,",
       "toAccount": "All'account",
+      "toContribution": "Al contributo",
       "transactionDetails": "Dettagli della transazione",
       "yourGradidoTeam": "il tuo team Gradido"
     },
@@ -86,17 +138,26 @@
       "title": "Reimposta la password",
       "youOrSomeoneResetPassword": "tu, o qualcun altro, hai richiesto la reimpostazione della password per questo account."
     },
+    "thankYouCardPaid": {
+      "blockCard": "Blocca la carta",
+      "card": "Carta: {cardLabel}",
+      "memo": "Causale: {transactionMemo}",
+      "notYou": "Non sei stato tu? Blocca subito la tua carta qui: smetterà di funzionare, il tuo indirizzo Gradido resta.",
+      "recipient": "Destinatario: {recipientName} ({recipientCommunity})",
+      "subject": "Hai trasmesso {amountGDD} GDD con la tua carta di ringraziamento",
+      "title": "Sono stati trasmessi {amountGDD} GDD con la tua carta di ringraziamento",
+      "wasPaid": "Sono appena stati trasmessi {amountGDD} GDD con la tua carta di ringraziamento."
+    },
     "transactionLinkRedeemed": {
-      "hasRedeemedYourLink": "{senderFirstName} {senderLastName} ({senderEmail}) ha appena riscattato il tuo link.",
+      "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) ha appena riscattato il tuo link.",
       "memo": "Messaggio: {transactionMemo}",
-      "subject": "{senderFirstName} {senderLastName} ha riscattato il tuo link Gradido",
-      "title": "{senderFirstName} {senderLastName} ha riscattato il tuo link Gradido"
+      "subject": "{senderAlias} ha riscattato il tuo link Gradido",
+      "title": "{senderAlias} ha riscattato il tuo link Gradido"
     },
     "transactionReceived": {
-      "haveReceivedAmountGDDFrom": "hai appena ricevuto {transactionAmount} GDD da {senderFirstName} {senderLastName}",
-      "replySubject": "RE: {senderFirstName} {senderLastName} ti ha inviato {transactionAmount} Gradido",
-      "subject": "{senderFirstName} {senderLastName} ti ha inviato {transactionAmount} Gradido",
-      "title": "{senderFirstName} {senderLastName} ti ha inviato {transactionAmount} Gradido"
+      "haveReceivedAmountGDDFrom": "hai appena ricevuto {transactionAmount} GDD da {senderAlias}.",
+      "subject": "{senderAlias} ti ha inviato {transactionAmount} Gradido",
+      "title": "{senderAlias} ti ha inviato {transactionAmount} Gradido"
     }
   },
   "general": {

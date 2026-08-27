@@ -23,4 +23,10 @@ export const MODERATOR_RIGHTS = [
   // contributions list shows it, so every moderator needs it, while the wallet - which
   // shares this GraphQL type - must not see what the moderation noted about a person.
   RIGHTS.VIEW_USER_SALUTATION,
+  // The real name behind an alias is moderation knowledge now (NU-019): the wallet
+  // speaks of members by alias, and the admin interface is where a person with a duty
+  // of care still sees who is who. ⛔ Moderator list only -- in USER_RIGHTS this right
+  // would void the guard on the day it ships.
+  RIGHTS.VIEW_USER_REAL_NAME,
+  RIGHTS.VIEW_USER_EMAIL_STATUS,
 ]

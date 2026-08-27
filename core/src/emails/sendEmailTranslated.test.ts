@@ -100,12 +100,28 @@ describe('sendEmailTranslated', () => {
           originalMessage: expect.objectContaining({
             to: 'receiver@mail.org',
             cc: 'support@gradido.net',
-            from: 'Gradido (emails.general.doNotAnswer) <info@gradido.net>',
+            from: 'Gradido <info@gradido.net>',
             attachments: expect.any(Array),
             subject: 'Try To Register Again With Your Email',
             html: expect.stringContaining('Try To Register Again With Your Email'),
             text: expect.stringContaining('TRY TO REGISTER AGAIN WITH YOUR EMAIL'),
           }),
+        })
+      })
+
+      // The header banner is a transparent png so that it reads the same in light
+      // and dark mode. `expect.any(Array)` above would still pass if the file, its
+      // mime type or the cid drifted back - and nothing else in the suite looks at
+      // an attachment, so this is the only place that holds them.
+      it('attaches the header banner as an inline png under the cid the template uses', () => {
+        const attachments = (
+          result as { originalMessage: { attachments: Array<Record<string, unknown>> } }
+        ).originalMessage.attachments
+        expect(attachments.find((a) => a.cid === 'gradidoheader')).toMatchObject({
+          filename: 'gradido-header.png',
+          contentType: 'image/png',
+          cid: 'gradidoheader',
+          contentDisposition: 'inline',
         })
       })
     })
@@ -141,7 +157,7 @@ describe('sendEmailTranslated', () => {
         originalMessage: expect.objectContaining({
           to: CONFIG.EMAIL_TEST_RECEIVER,
           cc: 'support@gradido.net',
-          from: `Gradido (emails.general.doNotAnswer) <${CONFIG.EMAIL_SENDER}>`,
+          from: `Gradido <${CONFIG.EMAIL_SENDER}>`,
           attachments: expect.any(Array),
           subject: 'Try To Register Again With Your Email',
           html: expect.stringContaining('Try To Register Again With Your Email'),

@@ -15,8 +15,7 @@ export const adminListContributionMessages = gql`
         createdAt
         updatedAt
         type
-        userFirstName
-        userLastName
+        userAlias
         userId
         isModerator
       }

@@ -32,12 +32,30 @@ h2 {
 
 .subject-block {
   display: block;
-  width: 78%;
+  /* 88%, not the 78% this carried before box-sizing came in. border-box pulls the
+     2x10% padding inside the declared width, so the same number now describes the
+     whole card instead of just its text column - the card lost 136px of the 680
+     without anyone changing a width. 88% lands between the old 98% and that. */
+  width: 88%;
   margin: 20px 1% 0px 1%;
   padding: 5px 10% 5px 10%;
   line-height: 26px;
   border-radius: 16px;
-  background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);
+  /* The card needs an edge that survives dark mode, and the fill cannot provide it.
+     #f5f5f5 sits ten steps from white - visible on a light page; a dark-mode client
+     inverts it to ten steps from black, where the eye no longer separates it from
+     the page. Raising the contrast only moves the cost to light mode: a single
+     value cannot serve both ends.
+     A mid-grey line can, and it sidesteps the question rather than answering it.
+     Under RGB inversion 128 becomes 127 - one step, which no eye resolves. So the
+     line looks the same whether a client leaves border colours alone or inverts
+     them, and there is nothing left to find out. Mid-grey also carries against
+     both grounds: roughly 3.9:1 on white, 4.9:1 on near-black.
+     box-sizing keeps the two border pixels inside the declared width instead of
+     adding to it, so the card cannot overflow a narrow window. */
+  box-sizing: border-box;
+  border: 1px solid #808080;
+  background-color: #f5f5f5;
   text-align: left;
   font-weight: bold;
   color: #383838;
@@ -45,27 +63,58 @@ h2 {
 
 .memo-block{
   display: block;
-  width: 78%;
+  /* 88%, not the 78% this carried before box-sizing came in. border-box pulls the
+     2x10% padding inside the declared width, so the same number now describes the
+     whole card instead of just its text column - the card lost 136px of the 680
+     without anyone changing a width. 88% lands between the old 98% and that. */
+  width: 88%;
   margin: 10px 1% 40px 1%;
   padding: 20px 10% 20px 10%;
   border-radius: 16px;
-  background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);
+  /* mid-grey edge, one step from its own inverse - see .subject-block above */
+  box-sizing: border-box;
+  border: 1px solid #808080;
+  background-color: #f5f5f5;
   text-align: left;
   color: #696c72;
-  /* the message is written by a person: keep the line breaks they typed, which
-     html would otherwise collapse into spaces. Only this block, so that the
-     wording of every other mail stays laid out as before. */
-  white-space: pre-wrap;
 }
 
 
 .content {
   display: block;
-  width: 78%;
+  /* 88%, not the 78% this carried before box-sizing came in. border-box pulls the
+     2x10% padding inside the declared width, so the same number now describes the
+     whole card instead of just its text column - the card lost 136px of the 680
+     without anyone changing a width. 88% lands between the old 98% and that. */
+  width: 88%;
   margin: 40px 1% 40px 1%;
   padding: 20px 10% 40px 10%;
   border-radius: 24px;
-  background-image: linear-gradient(180deg, #f5f5f5, #f5f5f5);
+  /* mid-grey edge, one step from its own inverse - see .subject-block above */
+  box-sizing: border-box;
+  border: 1px solid #808080;
+  background-color: #f5f5f5;
+}
+
+/* Text a person typed, wherever it appears - a memo, a moderator's question, the
+   subject and body of a message. Html collapses the line breaks they pressed; this
+   keeps them.
+
+   ⛔ On the text itself, never on a block that holds other elements. Pug pretty-prints,
+   so a container carries newlines of its OWN between its children, and `pre` rules make
+   those visible too - a stray blank line in every mail. Inside `span.human-text= memo`
+   there is nothing but the text.
+
+   `pre-line` rather than `pre-wrap`, matching how the wallet shows the same messages
+   (`ParseMessage.vue`): line breaks kept, runs of spaces collapsed, long lines still
+   wrap. Nothing here is preformatted; it is prose somebody typed.
+
+   ⚠️ Word-based clients (Outlook on Windows) support `white-space` poorly, so there the
+   breaks may still collapse. Unmeasured - nobody here has Outlook. The alternative is
+   emitting <br> per line, which every client renders; it is a bigger change and it
+   leaves the way the rest of the software does this. Worth revisiting if it is reported. */
+.human-text {
+  white-space: pre-line;
 }
 
 .p_content{
@@ -79,9 +128,14 @@ h2 {
   margin-bottom: 40px;
 }
 
+/* Three buttons, three meanings, and they are the whole vocabulary of these mails:
+   gold (.button-3) is the way on to wherever the thing lives, green (.button-5) is
+   an answer to a person and therefore stands INSIDE the card, grey (.button-4) is
+   the fallback ("new link"), red (.button-6) takes something away for good. */
 .button-3,
 .button-4,
-.button-5 {
+.button-5,
+.button-6 {
   display: inline-block;
   padding: 9px 15px;
   color: white;
@@ -101,13 +155,47 @@ h2 {
 }
 
 .button-5 {
-  background: linear-gradient(135deg, #53900c, #6e6e6e); 
+  /* background-image, not the background shorthand. The shorthand also sets
+     background-color to transparent, and a dark-mode client reads that as "no
+     background of its own" and paints its own over the gradient - which is why
+     this button turned black while .button-3 above, written the same way but
+     with background-image, kept its gold. */
+  background-image: linear-gradient(135deg, #53900c, #6e6e6e);
   font-size: 20px;
   font-weight: 600;
   color: #f5f5f5;
   width: auto;
-  box-shadow: 20px 20px 25px; 
+  /* No shadow at all, not even the one inherited from the rule above. That one is
+     rgba(56, 56, 56, 0.3) - a dark grey, which a dark-mode client inverts into a
+     light halo around the button. Removing the button's own shadow made it inherit
+     that one, so it has to be turned off explicitly. */
+  box-shadow: none;
   transition: all 0.3s ease;
+}
+
+.button-6 {
+  /* The only red in the mails. This button blocks a thank-you card, which cannot be
+     taken back from the mail - it must not read as a sibling of the gold way-on
+     button standing above it. Same shape as .button-3, only the hue differs, so it
+     stays where a gold button stood.
+
+     #f5365c is the wallet's own danger colour, read out of the shipped stylesheet
+     (`.btn-danger{--bs-btn-bg:#f5365c}`) - the same red the confirmation dialogue wears,
+     so the mail and the question it leads to are recognisably one thing.
+
+     A gradient, not a flat fill: a dark-mode client inverts `background-color` and would
+     turn a signal red into turquoise. It cannot invert `background-image`, which is why
+     gold and green are gradients too. The second stop is the same red a shade deeper, so
+     it still reads as one colour.
+
+     White lettering, like every other button here: 3.77:1 against #f5365c - the same
+     league as the green button at 3.92:1. The wallet uses black on this red (5.56:1)
+     because Bootstrap computes it; a mail button with black lettering would be the odd
+     one out among the other four. */
+  background-image: linear-gradient(135deg, #f5365c, #d0264a);
+  /* No shadow, for the reason given at .button-5: a dark-mode client turns the
+     inherited dark grey shadow into a light halo around the button. */
+  box-shadow: none;
 }
 
 .button-5:hover {

@@ -1,0 +1,26 @@
+extend ../layout.pug
+
+block content
+  h2= t('emails.thankYouCardPaid.title', { amountGDD: transactionAmount })
+  .text-block
+    include ../includes/salutation.pug
+    p= t('emails.thankYouCardPaid.wasPaid', { amountGDD: transactionAmount, cardLabel })
+  .content
+    h2= t('emails.general.transactionDetails')
+    div(class="p_content")= t('emails.general.amountGDD', { amountGDD: transactionAmount })
+      br
+      = t('emails.thankYouCardPaid.recipient', { recipientName, recipientCommunity })
+      br
+      span.human-text= t('emails.thankYouCardPaid.memo', { transactionMemo })
+      br
+      = t('emails.thankYouCardPaid.card', { cardLabel })
+
+    a.button-3(href=`${communityURL}/transactions`) #{t('emails.general.toAccount')}
+
+    p= t('emails.thankYouCardPaid.notYou')
+    //- The settings area was split into one address per section, so /settings now shows
+        "my account" and the card section moved to its own route - the ?block= wish is
+        read there and nowhere else. Red, because blocking cannot be taken back here.
+    a.button-6(href=`${communityURL}/settings/thank-you-card?block=${cardId}`) #{t('emails.thankYouCardPaid.blockCard')}
+
+    include ../includes/doNotReply.pug

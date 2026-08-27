@@ -10,7 +10,8 @@
       <h1 v-if="linkData.amount === ''">{{ $t('gdd_per_link.redeemlink-error') }}</h1>
       <h1 v-if="!isContributionLink && linkData.amount !== ''">
         <template v-if="linkData.senderUser">
-          {{ linkData.senderUser.firstName }}
+          <!-- The sender, as the wallet names a member (NU-018). -->
+          {{ memberAlias(linkData.senderUser.alias, linkData.senderUser.gradidoID) }}
           {{ $t('transaction-link.send_you') }} {{ linkData.amount }} {{ $t('GDD-long') }}
         </template>
       </h1>
@@ -55,6 +56,7 @@
 <script setup>
 import CONFIG from '@/config'
 import { computed } from 'vue'
+import { memberAlias } from '@/utils/gradidoAddress'
 import { createRedeemJwtMutation } from '@/graphql/mutations'
 import { useMutation } from '@vue/apollo-composable'
 
@@ -169,7 +171,10 @@ async function onSwitch(event) {
         code: props.redeemCode,
         amount: props.linkData.amount,
         memo: props.linkData.memo,
-        firstName: props.linkData.senderUser?.firstName,
+        // The only name this call sends, and the backend signs exactly it (`alias ?? ''`
+        // in createRedeemJwt). The mutation still declares a `firstName` variable and the
+        // resolver still accepts the argument -- neither is filled from here, and the
+        // commented-out block above is where it used to be.
         alias: props.linkData.senderUser?.alias,
         validUntil: props.linkData.validUntil,
       })

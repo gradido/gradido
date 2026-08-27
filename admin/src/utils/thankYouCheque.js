@@ -29,6 +29,8 @@
  * starting bonus stops looking like the printed thank-you cheque.
  */
 
+import { avatarPaletteEntry } from './avatarColor'
+
 const WIDTH = 1783
 const HEIGHT = 850
 const MARGIN = 106 // 9 mm of white on each side
@@ -53,7 +55,6 @@ const COLOR_MEMO = '#4b4b4b'
 const COLOR_GREEN = '#4a6741'
 const COLOR_HEADER_BG = '#f5f5f5'
 const COLOR_CUT_LINE = '#a8a8a8'
-const COLOR_AVATAR = '#5b7c99'
 
 const IMAGES = {
   logo: '/img/brand/gradido-logo.png',
@@ -147,7 +148,10 @@ export const chequeFileName = (occasion, amount, maxChars = 50) => {
   return `${prefix}${name}.png`
 }
 
-const drawHeader = (ctx, { logo, leaves, kind, name, address, initials, community }) => {
+const drawHeader = (
+  ctx,
+  { logo, leaves, kind, name, initials, colorSeed, community, portrait },
+) => {
   ctx.fillStyle = COLOR_HEADER_BG
   ctx.fillRect(MARGIN, 0, CHEQUE_WIDTH, HEADER)
   ctx.fillStyle = '#e4e4e4'
@@ -170,30 +174,73 @@ const drawHeader = (ctx, { logo, leaves, kind, name, address, initials, communit
     ctx.textBaseline = 'middle'
     ctx.fillText(community ?? '', right, HEADER / 2)
   } else {
-    ctx.font = `700 25px ${FONT}`
-    ctx.textBaseline = 'alphabetic'
-    ctx.fillText(name ?? '', right, HEADER / 2 - 4)
-    ctx.font = `400 24px ${FONT}`
-    ctx.fillText(address ?? '', right, HEADER / 2 + 30)
+    // The address used to sit under the name up here. It moved to the footer, because in
+    // its durable form it is half again as long and would crowd the header. With one line
+    // gone the name is centred rather than raised -- otherwise the header reads as cut off.
+    ctx.font = `700 29px ${FONT}`
+    ctx.textBaseline = 'middle'
+    ctx.fillText(name ?? '', right, HEADER / 2)
+    const nameWidth = ctx.measureText(name ?? '').width
 
     const size = 78
-    ctx.font = `400 24px ${FONT}`
-    const addressWidth = ctx.measureText(address ?? '').width
-    ctx.font = `700 25px ${FONT}`
-    const nameWidth = ctx.measureText(name ?? '').width
-    const centerX = right - Math.max(nameWidth, addressWidth) - 20 - size / 2
-    ctx.beginPath()
-    ctx.arc(centerX, HEADER / 2, size / 2, 0, Math.PI * 2)
-    ctx.fillStyle = COLOR_AVATAR
-    ctx.fill()
-    ctx.fillStyle = '#fff'
-    ctx.font = `600 29px ${FONT}`
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillText(initials ?? '', centerX, HEADER / 2 + 1)
+    const centerX = right - nameWidth - 22 - size / 2
+    const centerY = HEADER / 2
+    if (portrait) {
+      ctx.save()
+      ctx.beginPath()
+      ctx.arc(centerX, centerY, size / 2, 0, Math.PI * 2)
+      ctx.clip()
+      ctx.drawImage(portrait, centerX - size / 2, centerY - size / 2, size, size)
+      ctx.restore()
+    } else {
+      // The palette the wallet picks from, not a colour of the cheque's own. And the
+      // wallet's split (AS-010): the LETTERS may come from the alias while the COLOUR
+      // keeps hashing the real initials, so no member's disc changes colour on paper.
+      // Callers that pass no colorSeed colour from what they show, as before.
+      const palette = avatarPaletteEntry(colorSeed ?? initials)
+      ctx.beginPath()
+      ctx.arc(centerX, centerY, size / 2, 0, Math.PI * 2)
+      ctx.fillStyle = palette.bg
+      ctx.fill()
+      ctx.fillStyle = palette.text
+      ctx.font = `600 29px ${FONT}`
+      ctx.textAlign = 'center'
+      ctx.fillText(initials ?? '', centerX, centerY + 1)
+    }
   }
   ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
+}
+
+/**
+ * Draws the address line at the bottom in three weights, exactly as the Gradido card does:
+ * the host plain, the namespace pale, the user name bold. The one part somebody has to read
+ * off the paper and type is the one that stands out.
+ *
+ * A starting bonus has no member behind it, so there is no address to print -- that cheque
+ * keeps the web address it always had.
+ */
+const drawFooterAddress = (ctx, { host, alias, left, baseline }) => {
+  if (!alias) {
+    ctx.font = `700 ${FOOTER_SIZE}px ${FONT}`
+    ctx.fillStyle = COLOR_TEXT
+    ctx.fillText('www.gradido.net', left, baseline)
+    return
+  }
+
+  let x = left
+  ctx.font = `400 ${FOOTER_SIZE}px ${FONT}`
+  ctx.fillStyle = COLOR_MEMO
+  ctx.fillText(host ?? '', x, baseline)
+  x += ctx.measureText(host ?? '').width
+
+  ctx.fillStyle = '#8a8a8a'
+  ctx.fillText('/u/', x, baseline)
+  x += ctx.measureText('/u/').width
+
+  ctx.font = `700 ${FOOTER_SIZE}px ${FONT}`
+  ctx.fillStyle = COLOR_TEXT
+  ctx.fillText(alias, x, baseline)
 }
 
 /**
@@ -204,13 +251,20 @@ const drawHeader = (ctx, { logo, leaves, kind, name, address, initials, communit
  * @param {string} data.memo      free text, truncated to two lines
  * @param {string} data.hintLine  "... scan the QR code!"
  * @param {string} data.validLine "... is valid until 26.08.2026."
+ * @param {string} [data.colorSeed] what the circle's colour hashes from, when that is not
+ *                                what the circle shows (AS-010: letters from the alias,
+ *                                colour from the real initials)
+ * @param {string} [data.host]    the community host of the sender, for the footer address
+ * @param {string} [data.alias]   the sender's user name; without it the web address is shown
+ * @param {string} [data.portrait] the sender's picture as a data URI, if there is one
  * @returns {Promise<string>} the PNG as a data URL
  */
 export const drawCheque = async (data) => {
-  const [logo, leaves, watermark] = await Promise.all([
+  const [logo, leaves, watermark, portrait] = await Promise.all([
     loadImage(IMAGES.logo),
     loadImage(IMAGES.leaves),
     loadImage(IMAGES.watermark),
+    data.portrait ? loadImage(data.portrait) : Promise.resolve(null),
   ])
 
   const canvas = document.createElement('canvas')
@@ -221,7 +275,7 @@ export const drawCheque = async (data) => {
   ctx.fillStyle = '#fff'
   ctx.fillRect(0, 0, WIDTH, HEIGHT)
 
-  drawHeader(ctx, { logo, leaves, ...data })
+  drawHeader(ctx, { logo, leaves, ...data, portrait })
 
   // Leaf watermark at 125 % of the body height, aligned to the top and placed to
   // the left of the QR. It runs out of the image at the bottom on purpose, which
@@ -277,7 +331,9 @@ export const drawCheque = async (data) => {
   const webGap = 22
   const bottom = qrY + qrSize - 15
 
-  ctx.fillText('www.gradido.net', left, bottom)
+  drawFooterAddress(ctx, { host: data.host, alias: data.alias, left, baseline: bottom })
+  ctx.font = `700 ${FOOTER_SIZE}px ${FONT}`
+  ctx.fillStyle = COLOR_TEXT
   ctx.fillText(data.validLine ?? '', left, bottom - lineHeight - webGap)
   ctx.fillText(data.hintLine ?? '', left, bottom - 2 * lineHeight - webGap)
 

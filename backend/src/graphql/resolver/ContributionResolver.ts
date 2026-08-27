@@ -17,7 +17,6 @@ import { OpenCreation } from '@model/OpenCreation'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import {
   contributionTransaction,
-  fullName,
   sendContributionChangedByModeratorEmail,
   sendContributionConfirmedEmail,
   sendContributionDeletedEmail,
@@ -41,6 +40,7 @@ import { Arg, Args, Authorized, Ctx, Info, Int, Mutation, Query, Resolver } from
 import { EntityManager, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { PublishNameLogic } from '@/data/PublishName.logic'
 import {
   EVENT_ADMIN_CONTRIBUTION_CONFIRM,
   EVENT_ADMIN_CONTRIBUTION_CREATE,
@@ -419,8 +419,7 @@ export class ContributionResolver {
         lastName: user.lastName,
         email: user.emailContact.email,
         language: user.language,
-        senderFirstName: moderator.firstName,
-        senderLastName: moderator.lastName,
+        senderAlias: new PublishNameLogic(moderator).getPublicAlias(),
         contributionMemo: updateUnconfirmedContributionContext.getOldMemo(),
         contributionMemoUpdated: contribution.memo,
         contributionFrontendLink: await contributionFrontendLink(
@@ -541,8 +540,7 @@ export class ContributionResolver {
       lastName: user.lastName,
       email: user.emailContact.email,
       language: user.language,
-      senderFirstName: moderator.firstName,
-      senderLastName: moderator.lastName,
+      senderAlias: new PublishNameLogic(moderator).getPublicAlias(),
       contributionMemo: contribution.memo,
       contributionFrontendLink: await contributionFrontendLink(
         contribution.id,
@@ -627,11 +625,18 @@ export class ContributionResolver {
         transaction.memo = contribution.memo
         transaction.userId = contribution.userId
         transaction.userGradidoID = user.gradidoID
-        transaction.userName = fullName(user.firstName, user.lastName)
+        // The alias, not the real name (NU-020/NU-021): a booking is permanent, so a
+        // name written here outlives every later display fix. Same convention as the
+        // send/receive path in TransactionResolver. Through the shared rule rather than
+        // read off the column: in production every local user has an alias (migration
+        // 0116 filled them, createUser has assigned one since #3645), but a SEEDED
+        // environment has moderators without -- and a booking that stored null there
+        // would carry no public name for good.
+        transaction.userName = new PublishNameLogic(user).getPublicAlias()
         transaction.userCommunityUuid = user.communityUuid
         transaction.linkedUserId = moderatorUser.id
         transaction.linkedUserGradidoID = moderatorUser.gradidoID
-        transaction.linkedUserName = fullName(moderatorUser.firstName, moderatorUser.lastName)
+        transaction.linkedUserName = new PublishNameLogic(moderatorUser).getPublicAlias()
         transaction.linkedUserCommunityUuid = moderatorUser.communityUuid
         transaction.previous = lastTransaction ? lastTransaction.id : null
         transaction.amount = contribution.amount
@@ -657,8 +662,7 @@ export class ContributionResolver {
           lastName: user.lastName,
           email: user.emailContact.email,
           language: user.language,
-          senderFirstName: moderatorUser.firstName,
-          senderLastName: moderatorUser.lastName,
+          senderAlias: new PublishNameLogic(moderatorUser).getPublicAlias(),
           contributionMemo: contribution.memo,
           contributionAmount: contribution.amount,
           contributionFrontendLink: await contributionFrontendLink(
@@ -760,8 +764,7 @@ export class ContributionResolver {
       lastName: user.lastName,
       email: user.emailContact.email,
       language: user.language,
-      senderFirstName: moderator.firstName,
-      senderLastName: moderator.lastName,
+      senderAlias: new PublishNameLogic(moderator).getPublicAlias(),
       contributionMemo: contributionToUpdate.memo,
       contributionFrontendLink: await contributionFrontendLink(
         contributionToUpdate.id,

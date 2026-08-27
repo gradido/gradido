@@ -1,0 +1,20 @@
+//- AI-GENERATED — not an architecture reference
+extends ../layout.pug
+
+block content
+  h2= t('emails.emailChangeNotice.title')
+  .text-block
+    include ../includes/salutation.pug
+    p= t('emails.emailChangeNotice.requested', { newEmail })
+    p= t('emails.emailChangeNotice.untilConfirmed')
+  .content
+    h2= t('emails.emailChangeNotice.notYouTitle')
+    div(class="p_content")= t('emails.emailChangeNotice.notYou')
+    a.button-3(href=revokeLink) #{t('emails.emailChangeNotice.revoke')}
+    div(class="p_content")= t('emails.general.orCopyLink')
+
+    a.clink(href=revokeLink) #{revokeLink}
+
+    div(class="p_content")= t('emails.emailChangeNotice.changePassword')
+    //- A moment, not a duration: a resent link carries the deadline the change already had.
+    div(class="p_content")= t('emails.emailChangeNotice.validUntil', { validUntil })

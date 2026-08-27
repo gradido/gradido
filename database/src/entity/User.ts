@@ -16,6 +16,7 @@ import { type ContributionMessage as ContributionMessageType } from './Contribut
 import { type DltTransaction as DltTransactionType } from './DltTransaction'
 import { type TransactionLink as TransactionLinkType } from './TransactionLink'
 import { GeometryTransformer } from './transformer/GeometryTransformer'
+import { type UserAlias as UserAliasType } from './UserAlias'
 import { type UserContact as UserContactType } from './UserContact'
 import { type UserRole as UserRoleType } from './UserRole'
 
@@ -183,6 +184,11 @@ export class User extends BaseEntity {
   @Column({ name: 'about_me', type: 'text', nullable: true, default: null })
   aboutMe: string | null
 
+  // Whether other members may see this member's picture. Not about a foreign system --
+  // unlike gmsAllowed and humhubAllowed next to it -- but about who may look.
+  @Column({ name: 'avatar_visible_to_members', type: 'bool', default: true })
+  avatarVisibleToMembers: boolean
+
   // Crea salutation/signature fields (E-013), moderator-curated; null = not set.
   @Column({
     name: 'gender',
@@ -263,4 +269,10 @@ export class User extends BaseEntity {
   )
   @JoinColumn({ name: 'id', referencedColumnName: 'userId' })
   transactionLink?: TransactionLinkType | null
+
+  @OneToMany(
+    () => require('./UserAlias').UserAlias,
+    (userAlias: UserAliasType) => userAlias.user,
+  )
+  aliases?: UserAliasType[]
 }

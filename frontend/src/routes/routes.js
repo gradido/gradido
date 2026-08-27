@@ -33,6 +33,14 @@ const matchingRoutes = CONFIG.MATCHING_ACTIVE
           // map takes the screen; on desktop the menu stays and the logo moves under
           // it, because the navbar it used to live in is gone.
           bareChrome: true,
+          // ⛔ And NO right-hand column, which is the line this whole record was missing.
+          // `/matching/:tab` next door carries `rightSide: 'matching'`; the map does not,
+          // and until 27.08.2026 there was no way to say so: the panel was looked up by the
+          // first path segment, and both routes are `matching`. So the page that exists to
+          // give the map the whole canvas handed a quarter of it to the matching panel on
+          // every desktop screen. Two neighbouring routes that must differ is exactly what a
+          // section-keyed table cannot express -- and why this now lives on the record.
+          rightSide: null,
         },
       },
       {
@@ -41,10 +49,71 @@ const matchingRoutes = CONFIG.MATCHING_ACTIVE
         meta: {
           requiresAuth: true,
           pageTitle: 'matching',
+          rightSide: 'matching',
         },
       },
     ]
   : []
+
+const settingsRoutes = [
+  {
+    path: '/settings',
+    component: () => import('@/pages/settings/Index.vue'),
+    meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
+  },
+  {
+    path: '/settings/account',
+    component: () => import('@/pages/settings/Account.vue'),
+    meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
+  },
+  {
+    path: '/settings/appearance',
+    component: () => import('@/pages/settings/Appearance.vue'),
+    meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
+  },
+  {
+    path: '/settings/gradido-card',
+    component: () => import('@/pages/settings/GradidoCard.vue'),
+    meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
+  },
+  {
+    path: '/settings/thank-you-card',
+    component: () => import('@/pages/settings/ThankYouCard.vue'),
+    meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
+  },
+  {
+    path: '/settings/visibility',
+    component: () => import('@/pages/settings/Visibility.vue'),
+    meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
+  },
+  {
+    path: '/settings/notifications',
+    component: () => import('@/pages/settings/Notifications.vue'),
+    meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
+  },
+  // The area exists only where one of the two services is switched on -- otherwise the page
+  // would stand empty and still be reachable by typing the address. Same reason the matching
+  // routes above are not registered without their flag.
+  ...(CONFIG.GMS_ACTIVE || CONFIG.HUMHUB_ACTIVE
+    ? [
+        {
+          path: '/settings/communities',
+          component: () => import('@/pages/settings/Communities.vue'),
+          meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
+        },
+      ]
+    : []),
+  // The old address, and the only settings address that resolves in EVERY configuration --
+  // which is why the news entries point here rather than at the area itself. Where neither
+  // service is switched on the circles area is not registered at all, so a redirect straight
+  // to it would land on "not found"; before this rebuild the same link opened the settings.
+  {
+    path: '/settings/extern',
+    redirect: () => ({
+      path: CONFIG.GMS_ACTIVE || CONFIG.HUMHUB_ACTIVE ? '/settings/communities' : '/settings',
+    }),
+  },
+]
 
 const routes = [
   {
@@ -62,6 +131,12 @@ const routes = [
     meta: {
       requiresAuth: true,
       pageTitle: 'overview',
+      // ⛔ The booking list stands beside this page and no other. Declared here rather than
+      // in a table somewhere else, because only the route knows -- see the note over
+      // `rightSidePanel` in DashboardLayout. A member showing somebody their QR code was
+      // showing their last bookings with it; that is the reason, and it belongs on the
+      // routes that do NOT carry this line as much as on the one that does.
+      rightSide: 'transactions',
     },
   },
   {
@@ -83,6 +158,60 @@ const routes = [
   //     requiresAuth: true,
   //   },
   // },
+  {
+    // A page of its own rather than a panel over whatever is open: at a till this is worked
+    // with for minutes at a time, the keypad wants the whole width, and the back button then
+    // does what somebody expects without any handling of ours.
+    path: '/calculator',
+    component: () => import('@/pages/Calculator'),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'calculator',
+      // Like the map: the page brings its own head (back arrow, gear), so on a phone the
+      // wallet chrome goes entirely and the keypad gets the screen. On desktop the menu
+      // stays. Without this, the translucent navbar sat exactly over the total.
+      bareChrome: true,
+    },
+  },
+  {
+    // The scanner is a tool of its own, not only the calculator's second half: it reads
+    // every Gradido code — thank-you card, cheque, Gradido card — including those of
+    // OTHER communities (federation; foreign ones go through a confirmation card).
+    // A page rather than an overlay for the calculator's reasons: deep-linkable, and the
+    // back button does what somebody expects without any handling of ours.
+    path: '/scan',
+    component: () => import('@/pages/Scanner'),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'scanner',
+      // Like the calculator: the page brings its own head (back arrow, title), so on a
+      // phone the wallet chrome goes entirely and the viewfinder gets the screen.
+      bareChrome: true,
+    },
+  },
+  {
+    // The other half of the scanner: showing a code instead of reading one. Two routes
+    // rather than one page with a switch, because the two are reached by two symbols --
+    // and a symbol that leads to a chooser is not a shortcut any more.
+    path: '/my-gradido-card',
+    component: () => import('@/pages/MyGradidoCard'),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'my-gradido-card',
+      // Like the scanner: the page brings its own head, and on a phone the code needs the
+      // width that the wallet chrome would otherwise take.
+      bareChrome: true,
+    },
+  },
+  {
+    path: '/my-thank-you-card',
+    component: () => import('@/pages/MyThankYouCard'),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'my-thank-you-card',
+      bareChrome: true,
+    },
+  },
   {
     name: 'Transactions',
     path: '/transactions',
@@ -119,6 +248,7 @@ const routes = [
     meta: {
       requiresAuth: true,
       pageTitle: 'contributions',
+      rightSide: 'contributions',
     },
   },
   ...matchingRoutes,
@@ -152,14 +282,17 @@ const routes = [
   //     requiresAuth: true,
   //   },
   // },
-  {
-    path: '/settings/:tabAlias?',
-    component: () => import('@/pages/Settings'),
-    meta: {
-      requiresAuth: true,
-      pageTitle: 'settings',
-    },
-  },
+  // The settings are a room one enters and leaves, not one area beside the others: while
+  // a settings route is open, `settingsChrome` makes the layout column carry the settings
+  // menu instead of the main one, and the way back is the arrow at its top. Without that
+  // arrow the main menu would have to stay -- two menu columns side by side.
+  //
+  // ⭐ Every one of them names `settings` as its pageTitle, so the breadcrumb writes
+  // "Settings" above the section the page itself names. It was left out at first, to save a
+  // heading's height on the phone -- and at the device that turned out to be the wrong trade:
+  // without it the settings looked like any other page and one hardly noticed one was in
+  // them. (Bernd, 22.08.2026, after using it.)
+  ...settingsRoutes,
   {
     name: 'Login',
     path: '/login/:code?',
@@ -198,10 +331,66 @@ const routes = [
     path: '/checkEmail/:optin/:code?',
     component: () => import('@/pages/ResetPassword'),
   },
+  // Both reached from a mail, mostly in a browser that is not signed in - so no auth.
+  // The page asks for a click before it does anything: a link that acts on being opened
+  // would be "clicked" by every mail scanner that prefetches links.
+  {
+    name: 'EmailChangeRevoke',
+    path: '/email-change/revoke/:changeCode',
+    component: () => import('@/pages/EmailChange'),
+  },
+  {
+    name: 'EmailChangeConfirm',
+    path: '/email-change/:changeCode',
+    component: () => import('@/pages/EmailChange'),
+  },
+  // EM-013, the doorbell flow. Own parameter names on purpose — never :code, which
+  // /login/:code? reads as a redeem code (the collision that bit PR #3798).
+  {
+    name: 'RegisterAssist',
+    path: '/register-assist/:assistCode',
+    component: () => import('@/pages/RegisterAssist'),
+  },
+  {
+    name: 'ConfirmEmail',
+    path: '/confirm-email/:confirmationCode',
+    component: () => import('@/pages/ConfirmEmail'),
+  },
   {
     name: 'Redeem',
     path: '/redeem/:code',
     component: () => import('@/pages/TransactionLink'),
+  },
+  // The Gradido address, `community-host/u/alias`. Public on purpose: it is what a printed
+  // card, an e-mail signature or a QR code points at, and most people who arrive here are not
+  // logged in -- a phone camera opens the default browser, not the one the wallet was signed
+  // into. It has to stay above the catch-all, which is what used to swallow it: every printed
+  // QR code landed on "page not found".
+  {
+    name: 'PublicProfile',
+    path: '/u/:alias',
+    component: () => import('@/pages/PublicProfile'),
+  },
+  // Where a scanned thank you card lands. Its own namespace rather than a query on the
+  // Gradido address, because the card carries neither a name nor an address, only its
+  // code -- which keeps the profile page out of this entirely.
+  //
+  // ⚠️ requiresAuth, and that IS the whole login handling: the person who scans is the
+  // RECIPIENT and has an account, so the router guard sends them through the login and
+  // back here on its own. Nothing below checks whether anybody is signed in.
+  {
+    name: 'ThankYouCardPayment',
+    path: '/dk/:code',
+    component: () => import('@/pages/ThankYouCardPayment'),
+    props: true,
+    meta: {
+      requiresAuth: true,
+      // ⛔ NO pageTitle, and that is the whole point. "Gradido empfangen" stood above all
+      // three steps of this page -- scanned, PIN, thanks -- and said nothing the step
+      // below it did not already say, while costing a heading's height on the device this
+      // page is only ever used on. The breadcrumb shows nothing without a key.
+      // (Bernd, 22.08.2026)
+    },
   },
   {
     path: '/:catchAll(.*)',

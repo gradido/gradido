@@ -17,12 +17,30 @@
     "desc": "Juntos apoiamo-nos uns aos outros – atentos numa cultura de círculo.",
     "title": "Círculos Gradido"
   },
-  "PersonalDetails": "Dados pessoais",
   "advanced-calculation": "Cálculo antecipado",
   "answerNow": "→ Responde agora!",
   "appOutdated": {
     "reload": "Recarregar",
     "text": "Existe uma versão mais recente. Por favor, recarregue a página."
+  },
+  "assistedRegistration": {
+    "assist": {
+      "button": "Criar conta",
+      "done": "A conta está pronta! Um e-mail de confirmação vai a caminho da nova caixa de correio. Inicia sessão agora e resgata o cheque:",
+      "emailHint": "Introduz aqui o endereço de e-mail próprio do novo membro — não o teu. A palavra-passe é o novo membro que a escreve.",
+      "emailTaken": "Este endereço de e-mail já tem uma conta Gradido. Usa \"Esqueci-me da palavra-passe\" para voltar a entrar.",
+      "intro": "{name} quer começar uma conta Gradido.",
+      "invalid": "Esta ligação é inválida ou expirou.",
+      "loginButton": "Iniciar sessão e resgatar o cheque",
+      "title": "Criar juntos uma conta Gradido"
+    },
+    "confirm": {
+      "button": "Confirmar endereço",
+      "done": "O teu endereço de e-mail está confirmado. A tua conta fica agora aberta para ti de forma permanente.",
+      "invalid": "Esta ligação de confirmação é inválida ou expirou. Inicia sessão e pede o envio de um novo e-mail.",
+      "text": "Clica no botão para confirmar que este endereço de e-mail pertence à tua conta Gradido.",
+      "title": "Confirmar endereço de e-mail"
+    }
   },
   "asterisks": "****",
   "auth": {
@@ -36,7 +54,58 @@
       "oneGratitude": "Uns pelos outros, por todas as pessoas, pela natureza."
     }
   },
+  "avatar": {
+    "apply": "Aplicar",
+    "change": "Alterar foto de perfil",
+    "choose-image": "Escolher imagem",
+    "error-format": "O navegador não consegue abrir esta imagem. Escolhe um JPEG ou PNG.",
+    "error-heic": "O navegador não consegue abrir esta imagem. É um HEIC, o formato da câmara do iPhone. Converte-a para JPEG ou escolhe a imagem diretamente no iPhone.",
+    "error-too-large": "Esta imagem é demasiado grande. Escolhe uma com menos de {limit} MB.",
+    "measure": "Ficheiro original {source} KB, serão enviados {result} KB",
+    "mirror": "Espelhar",
+    "pick-hint": "Arrasta uma imagem para aqui ou escolhe uma abaixo",
+    "remove": "Remover foto",
+    "remove-confirm": "Sim, remover",
+    "remove-question": "A tua conta voltará a mostrar as tuas iniciais. Podes definir uma nova foto a qualquer momento.",
+    "removed": "A tua foto de perfil foi removida",
+    "rotate": "Rodar",
+    "set": "Definir foto de perfil",
+    "size": "Tamanho",
+    "take-photo": "Tirar uma foto"
+  },
   "back": "Voltar",
+  "calculator": {
+    "back": "Voltar",
+    "card": {
+      "from-calculator": "da calculadora",
+      "park": "Com cartão de agradecimento",
+      "park-failed": "Não anotado: escreve o valor depois de digitalizar.",
+      "parked": "Valor anotado: {amount} GDD",
+      "scan": "Ler cartão",
+      "undo": "Anular"
+    },
+    "copy": {
+      "copied": "Copiado.",
+      "fiat": "Copiar valor em {currency}",
+      "gdd": "Copiar valor Gradido",
+      "not-copied": "Não foi possível copiar."
+    },
+    "daily-rate": "Taxa do dia",
+    "dankbar-equals": "{dankBar} DankBar = {gdd} Gradido",
+    "dankbar-to-gdd": "DankBar → GDD",
+    "gradido-share": "Gradido %",
+    "purchasing-power": "Poder de compra: 1 GDD = {factor} {currency}",
+    "settings": {
+      "currency": "Moeda",
+      "purchasing-power": "Poder de compra — 1 GDD =",
+      "show-dankbar": "Mostrar DankBar",
+      "sound": "Som",
+      "title": "Definições"
+    },
+    "share": {
+      "label": "Parte em Gradido (0–100 %)"
+    }
+  },
   "card-circles": {
     "allowed": {
       "button": "Abrir círculos..."
@@ -89,10 +158,10 @@
       "myContributionNoteList": "Podes editar ou eliminar a qualquer momento as contribuições que ainda não foram confirmadas.",
       "pending": "Submetido e à espera de confirmação"
     },
-    "communityWindow": "Contributions from the last {months} months",
+    "communityWindow": "Contribuições dos últimos {months} meses",
     "creationGroup": {
       "help": "Opcional. Também funciona sem grupo. Uma #palavra no texto não define um grupo — é para isso que serve este campo.",
-      "label": "Creation group",
+      "label": "Grupo de criação",
       "none": "(sem grupo)"
     },
     "delete": "Eliminar mesmo a contribuição? Depois fica visível apenas para ti e os moderadores, invisível para a comunidade.",
@@ -102,8 +171,8 @@
       "byGroup": "Filtrar por grupo de criação",
       "grouped": "(todos os grupos)",
       "noGroup": "(sem grupo)",
-      "noResults": "No contributions found.",
-      "search": "Search contributions …"
+      "noResults": "Não foram encontradas contribuições.",
+      "search": "Pesquisar contribuições …"
     },
     "formText": {
       "bringYourTalentsTo": "Traz os teus talentos para a comunidade! Recompensamos o teu compromisso voluntário com 20 GDD por hora, até um máximo de 1.000 GDD por mês.",
@@ -114,7 +183,7 @@
     },
     "isEdited": "editou a contribuição",
     "lastContribution": "Últimas contribuições",
-    "memoIsPublic": "Your description appears in the community list, where it is visible to all members. It shows the contribution's number instead of your name.",
+    "memoIsPublic": "A tua descrição aparece na lista da comunidade, onde é visível para todos os membros. Aí figura o número da contribuição em vez do teu nome.",
     "noContributions": {
       "allContributions": "Ainda não foram submetidas contribuições.",
       "emptyPage": "Esta página está vazia.",
@@ -125,7 +194,7 @@
       "lastMonth": "O limite de criação foi atingido para o mês selecionado.",
       "thisMonth": "O limite de criação foi atingido para o mês atual."
     },
-    "number": "Contribution no. {number}",
+    "number": "Contribuição n.º {number}",
     "oldContribution": "Versão anterior",
     "selectDate": "Quando foi a tua contribuição?",
     "submit": "Submeter",
@@ -162,6 +231,31 @@
   "download": "Transferir",
   "edit": "editar",
   "em-dash": "—",
+  "emailChange": {
+    "confirm": {
+      "button": "Confirmar o novo endereço",
+      "done": "O teu endereço de e-mail foi alterado. A partir de agora, inicia sessão com o novo endereço.",
+      "text": "Com um clique, este endereço passa a ser o endereço de e-mail da tua conta Gradido. Até lá, o teu endereço anterior continua válido.",
+      "title": "Confirmar o novo endereço de e-mail"
+    },
+    "invalid": "Esta ligação é inválida ou expirou. Nas tuas definições podes pedir um novo e-mail de confirmação.",
+    "revoke": {
+      "button": "Rejeitar a alteração",
+      "done": "A alteração foi rejeitada – o teu endereço anterior mantém-se. Se não foste tu a pedir a alteração, altera também a tua palavra-passe.",
+      "text": "Não foste tu? Então rejeita a alteração pedida – o teu endereço anterior mantém-se.",
+      "title": "Rejeitar a alteração do endereço de e-mail"
+    }
+  },
+  "emailConfirmation": {
+    "changeAddress": "Corrigir endereço",
+    "grace": "Até {deadline} já podes usar a tua conta por completo — depois ela ficará à espera da tua confirmação.",
+    "later": "Mais tarde",
+    "mailSent": "Um e-mail de confirmação vai a caminho do teu endereço. Clica na ligação que ele contém.",
+    "overdue": "O período de transição terminou. Confirma o teu endereço de e-mail — logo a seguir a tua conta volta a abrir por completo.",
+    "resend": "Enviar e-mail de novo",
+    "resent": "O e-mail de confirmação vai de novo a caminho.",
+    "title": "Confirma o teu endereço de e-mail"
+  },
   "error": {
     "email-already-sent": "Já te enviámos um e-mail há menos de 10 minutos.",
     "empty-transactionlist": "Ocorreu um erro na transmissão do número das tuas transações.",
@@ -274,6 +368,7 @@
       },
       "identifier": {
         "communityIsReachable": "Comunidade não encontrada ou não acessível!",
+        "formatError": "Não conseguimos ler este destinatário. São possíveis: nome de utilizador, e-mail, comunidade/nome de utilizador ou um endereço Gradido como comunidade.net/u/nomedeutilizador.",
         "required": "O destinatário é um campo obrigatório.",
         "typeError": "O destinatário deve ser um e-mail, um nome de utilizador ou um ID Gradido."
       },
@@ -350,7 +445,27 @@
     "raise": "Aumento",
     "recruited-member": "Membro convidado"
   },
+  "gradido-card": {
+    "contact": "Contacto",
+    "contact-count": "{count} de {max} linhas · guardado neste dispositivo",
+    "contact-hint": "O que escreveres aqui é impresso também. Fica neste dispositivo e não é enviado para o servidor — num computador partilhado é melhor deixar vazio.",
+    "contact-placeholder": "E-mail, telefone, site … — uma indicação por linha",
+    "contact-print-heading": "imprimir esta palavra",
+    "contact-too-many": "Mais de {max} linhas — no cartão aparecem apenas as primeiras {max}.",
+    "description": "Para imprimir e distribuir: o teu nome, a tua comunidade, o teu nome de utilizador, o teu código QR e as tuas linhas de contacto num cartão do tamanho de um cartão bancário. Quem o receber pode enviar-te Gradido e contactar-te.",
+    "download": "Descarregar cartão de visita",
+    "download-hint": "Uma única imagem em qualidade de impressão — para uma gráfica ou para entregar.",
+    "needs-username": "O teu cartão leva o teu endereço Gradido, e esse endereço nasce do teu nome de utilizador. Escolhe um primeiro — o campo está em «A minha conta». Depois podes imprimir o teu cartão e entregá-lo.",
+    "needs-username-title": "Primeiro o nome de utilizador",
+    "real-name": "Nome real",
+    "real-name-hint": "Sem a marca, no topo aparece o teu nome de utilizador: o teu nome não fica então em lado nenhum do cartão.",
+    "real-name-print": "imprimir",
+    "sheet": "Folha com 10 cartões",
+    "sheet-hint": "10 cartões de visita em tamanho original numa página A4. Na janela de impressão também podes guardá-la como PDF.",
+    "title": "O teu cartão de visita"
+  },
   "gradidoid-copied-to-clipboard": "O ID Gradido foi copiado para a área de transferência.",
+  "gradidoid-not-copied": "O teu dispositivo não permite copiar. Seleciona o endereço e copia-o à mão.",
   "h": "h",
   "info": "Informação",
   "language": "Idioma",
@@ -564,12 +679,30 @@
   },
   "missingGradidoAccount": "Ainda não tens uma conta {communityName}?",
   "moderatorChangedMemo": "Texto editado pelo moderador",
+  "my-codes": {
+    "back": "Voltar",
+    "gradido-card": {
+      "hint": "Quem ler este código pode enviar-te Gradido."
+    },
+    "thank-you-card": {
+      "failed": "Não foi possível carregar o cartão neste momento.",
+      "hint": "Mostra este código como um cartão de agradecimento impresso — confirmas com o teu PIN.",
+      "no-card": "Ainda não criaste nenhum cartão. Nas definições dás-lhe um nome — depois podes mostrá-lo aqui e também imprimi-lo.",
+      "not-set-up": "A função de cartão ainda não está configurada. Nas definições defines um PIN e os teus valores máximos.",
+      "retry": "Tentar de novo",
+      "to-settings": "Ir para as definições"
+    }
+  },
   "navigation": {
     "admin_area": "Área de administração",
+    "back-to-account": "Voltar à conta",
+    "back-to-settings": "Voltar às definições",
+    "calculator": "Calculadora",
     "community": "Comunidade",
     "logout": "Terminar sessão",
     "matching": "Matching",
     "overview": "Vista geral",
+    "scanner": "Ler código",
     "send": "Enviar",
     "settings": "Definições",
     "support": "Suporte",
@@ -577,18 +710,59 @@
   },
   "openHours": "Horas em aberto",
   "pageTitle": {
+    "calculator": "Calculadora",
     "circles": "Círculos Gradido",
     "contributions": "Criar Gradido",
     "gdt": "As tuas transações GDT",
     "information": "{community}",
     "matching": "Matching",
+    "my-gradido-card": "Código QR do meu cartão de visita",
+    "my-thank-you-card": "Código QR do meu cartão de agradecimento",
     "overview": "Bem-vindo {name}",
+    "scanner": "Ler código",
     "send": "Enviar Gradido e e-mail",
     "settings": "Definições",
     "transactions": "As tuas transações",
     "usersearch": "Pesquisa geográfica de membros (beta)"
   },
+  "public-profile": {
+    "address": "Endereço Gradido",
+    "send": "Enviar Gradido"
+  },
   "qrCode": "Código QR",
+  "scanner": {
+    "back": "Voltar",
+    "denied": {
+      "help": "Podes permitir o acesso para esta página nas definições do navegador.",
+      "title": "Sem acesso à câmara"
+    },
+    "foreign": {
+      "cheque": "Cheque de outra comunidade",
+      "continue": "Continuar a ler",
+      "gradido-card": "Cartão de visita de outra comunidade",
+      "open": "Abrir lá",
+      "thank-you-card": "Cartão de agradecimento de outra comunidade"
+    },
+    "hint": "Mantém um cartão de agradecimento, um cheque ou um cartão de visita na imagem",
+    "manual": {
+      "close": "Continuar a ler",
+      "invalid": "Isto não é um código ou link Gradido.",
+      "label": "Código ou link",
+      "open": "Escrever código ou link à mão",
+      "submit": "Abrir"
+    },
+    "no-gradido-code": "Não é um código Gradido.",
+    "permission-hint": "Pergunta pela câmara de cada vez? Nas definições do site do teu navegador podes permitir a câmara para esta página de forma permanente.",
+    "system-camera": {
+      "parked": "O montante memorizado está à espera e será retomado.",
+      "text": "A câmara do teu dispositivo abre a página certa depois de ler o código.",
+      "title": "Ler com a aplicação de câmara"
+    },
+    "title": "Ler código Gradido",
+    "unavailable": {
+      "title": "Nenhuma câmara encontrada"
+    }
+  },
   "send_email": "Enviar e‑mail",
   "send_gdd": "Enviar GDD",
   "send_per_link": "Link, cheque, QR",
@@ -617,30 +791,44 @@
         "userCoords": "A tua localização: Lat {lat}, Lng {lng}",
         "userLocationLabel": "A tua localização"
       },
-      "naming-format": "Mostrar nome:",
       "publish-location": {
         "approximate": "posição aproximada",
         "exact": "posição exata",
         "updated": "tipo de posição para o GMS atualizado"
-      },
-      "publish-name": {
-        "updated": "formato do nome para o GMS atualizado"
       }
     },
+    "avatar": {
+      "disabled": "Agora só tu vês a tua imagem.",
+      "enabled": "A tua imagem está visível para outros membros.",
+      "visibility": "Mostrar a minha imagem a outros membros",
+      "visibilityInfo": "Os outros membros veem a tua imagem, por exemplo ao lado das transações que partilham. Quando a definição está desligada, aparecem as tuas iniciais, como até agora."
+    },
     "community": "Círculos e pesquisa de membros",
-    "emailInfo": "De momento, não pode ser alterado.",
-    "hideAmountGDD": "O teu montante GDD está oculto.",
-    "hideAmountGDT": "O teu montante GDT está oculto.",
+    "email": {
+      "cancel": "Cancelar",
+      "cancelled": "A alteração foi rejeitada.",
+      "change": "Alterar endereço de e-mail",
+      "error-invalid": "Isso não é um endereço de e-mail válido.",
+      "error-password": "A palavra-passe não está correta.",
+      "error-same": "Esse já é o endereço de e-mail da tua conta.",
+      "error-taken": "Este endereço de e-mail já está em uso.",
+      "error-wait": "Aguarda alguns minutos antes de pedires um novo e-mail.",
+      "new": "Novo endereço de e-mail",
+      "password": "A tua palavra-passe atual",
+      "password-why": "Por segurança – para que ninguém possa alterar o teu endereço num dispositivo desbloqueado.",
+      "pending": "Confirmação pendente: enviámos um e-mail para {email}. Até clicares na ligação, o teu endereço anterior continua válido.",
+      "resend": "Enviar o e-mail novamente",
+      "resend-wait": "Enviar novamente em {minutes} min.",
+      "send": "Enviar e-mail de confirmação",
+      "sent": "Enviámos um e-mail de confirmação para {email}."
+    },
+    "emailInfo": "Um novo endereço é válido assim que o confirmares através da ligação no e-mail de confirmação.",
+    "hide-amount": "Ocultar o montante em {currency}",
     "humhub": {
       "delete-disabled": "A conta de utilizador só pode ser eliminada no menu de perfil da plataforma de cooperação.",
       "disabled": "Os dados não são exportados para a Gradido Community",
-      "enabled": "Os dados são exportados para a Gradido Community",
-      "naming-format": "Mostrar nome:",
-      "publish-name": {
-        "updated": "Formato do nome para a Gradido Community atualizado."
-      }
+      "enabled": "Os dados são exportados para a Gradido Community"
     },
-    "info": "As transações podem agora ser feitas por nome de utilizador ou endereço de e-mail.",
     "language": {
       "de": "Deutsch",
       "en": "English",
@@ -650,12 +838,23 @@
       "nl": "Nederlands",
       "success": "O teu idioma foi alterado com sucesso."
     },
+    "menu": {
+      "account": "A minha conta",
+      "appearance": "Visualização",
+      "gradido-card": "Cartão de visita",
+      "notifications": "Mensagens",
+      "state": {
+        "blocked": "Bloqueado",
+        "off": "Desativado",
+        "on": "Ativado"
+      },
+      "visibility": "Visibilidade"
+    },
     "name": {
       "change-success": "O teu nome foi alterado com sucesso.",
       "enterFirstname": "Introduz o teu nome próprio",
       "enterLastname": "Introduz o teu apelido"
     },
-    "newSettings": "Novas definições",
     "newsletter": {
       "newsletter": "Informações por e-mail",
       "newsletterFalse": "Não receberás informações por e-mail.",
@@ -676,20 +875,6 @@
       },
       "subtitle": "Se te esqueceste da tua palavra-passe, podes repô-la aqui."
     },
-    "publish-name": {
-      "alias-or-initials": "Nome de utilizador ou iniciais (predefinição)",
-      "alias-or-initials-tooltip": "nome de utilizador, se disponível, ou as iniciais do nome próprio e do apelido, em cada caso as duas primeiras letras",
-      "first": "Nome próprio",
-      "first-initial": "Nome próprio e inicial",
-      "first-initial-tooltip": "nome próprio mais a primeira letra do apelido",
-      "first-tooltip": "apenas o nome próprio",
-      "initials": "Iniciais",
-      "initials-tooltip": "Iniciais do nome próprio e do apelido, ou seja, as duas primeiras letras de cada, independentemente da existência do nome de utilizador",
-      "name-full": "nome próprio e apelido",
-      "name-full-tooltip": "nome completo: nome próprio mais apelido"
-    },
-    "showAmountGDD": "O teu montante GDD está visível.",
-    "showAmountGDT": "O teu montante GDT está visível.",
     "theme": {
       "dark": "Escuro",
       "hint": "Escolhe «Seguir a configuração do sistema» para alternar automaticamente entre o modo claro e escuro, conforme a configuração do teu dispositivo ou navegador.",
@@ -699,9 +884,27 @@
     },
     "username": {
       "change-success": "O teu nome de utilizador foi alterado com sucesso.",
-      "no-username": "Por favor, introduz um nome de utilizador. Assim ajudas outros utilizadores a encontrar-te sem teres de revelar o teu endereço de e-mail."
-    },
-    "usernameInfo": "Não pode ser alterado após guardar!"
+      "confirm-free": "Já tiveste este nome — esta mudança não conta para o teu ano.",
+      "confirm-last": "Esta é a tua última mudança deste ano.",
+      "confirm-left": "Depois poderás mudar o teu nome mais uma vez este ano. | Depois poderás mudar o teu nome mais {n} vezes este ano.",
+      "confirm-reserved": "{name} fica reservado para ti — podes recuperá-lo a qualquer momento.",
+      "confirm-title": "Queres mesmo mudar o teu nome de utilizador?",
+      "first-back": "Voltar",
+      "first-check-failed": "não foi possível verificar",
+      "first-checking": "a verificar …",
+      "first-choose-title": "Escolhe um nome",
+      "first-free": "ainda está livre",
+      "first-hint": "Podes mantê-lo ou escolher um teu. Mais tarde são possíveis quatro mudanças por ano.",
+      "first-intro": "É com este nome que os outros membros te veem — e te encontram para te enviar Gradido. Sugerimos-te um:",
+      "first-invalid": "Este nome não cumpre as regras",
+      "first-keep": "Assim está bem",
+      "first-other": "Escolher outro",
+      "first-rules": "3 a 20 caracteres · letras, algarismos, - e _",
+      "first-taken": "Este nome já está ocupado",
+      "first-title": "O teu nome de utilizador",
+      "quota-blocked": "Esgotaste as mudanças de nome para este ano. A partir de {date} será possível novamente.",
+      "quota-left": "Podes mudar o teu nome de utilizador mais uma vez este ano. | Podes mudar o teu nome de utilizador mais {n} vezes este ano."
+    }
   },
   "signin": "Iniciar sessão",
   "signup": "Registar",
@@ -726,6 +929,71 @@
   "status": "Estado",
   "submitted": "Submetido",
   "success": "Sucesso",
+  "thank-you-card": {
+    "back-to-calculator": "Voltar à calculadora",
+    "name": "Cartão de agradecimento",
+    "receive": {
+      "amount": "{amount} GDD",
+      "attempts-left": "ainda {n} tentativas",
+      "default-memo": "Cartão de agradecimento",
+      "next": "Continuar",
+      "next-payment": "Transação seguinte",
+      "pin-title": "O teu PIN, por favor",
+      "remember-memo": "Memorizar este motivo",
+      "rest-note": "a liquidar em separado.",
+      "sent-from-to": "enviado por {from} para {to}",
+      "subtitle": "Foi lido um cartão de agradecimento.",
+      "thanks": "Muito obrigado!"
+    },
+    "settings": {
+      "block": "Bloquear cartão",
+      "block-confirm": "Depois disso já não será possível agradecer com ele. Podes desbloqueá-lo mais tarde, enquanto não houver outro cartão ativo.",
+      "block-confirm-card": "Cartão de agradecimento: {label}",
+      "block-confirm-title": "Bloquear o cartão?",
+      "blocked": "O cartão está bloqueado.",
+      "blocked-on": "bloqueado em {date}",
+      "change-pin": "Alterar PIN",
+      "create": "Criar cartão",
+      "created": "O cartão foi criado.",
+      "disable": "Desligar a função de cartão",
+      "disabled": "A função de cartão está desligada.",
+      "earlier-cards": "Cartões anteriores",
+      "enable": "Definir um PIN e ligar",
+      "explain": "Com um cartão de agradecimento podes agradecer mesmo quando não tens o telemóvel contigo. Mostras o cartão, a outra pessoa escreve o valor — e tu confirmas com o teu PIN. E se tens o telemóvel mas não o cartão, mostras o mesmo código no ecrã — o símbolo com a seta para cima.",
+      "explain-pin": "Escreves o teu PIN no aparelho de outra pessoa. Por isso defines um limite: nunca poderá ser cobrado mais do que isso.",
+      "label": "Designação",
+      "label-placeholder": "p. ex. carteira",
+      "max-per-day": "Valor máximo por dia",
+      "max-per-payment": "Valor máximo por transação",
+      "not-set-up": "Ainda não configurado.",
+      "on": "Ligado",
+      "pin-hide": "Ocultar PIN",
+      "pin-rules": "Seis algarismos. Não seis vezes o mesmo, nenhuma sequência como 123456 e nenhum ano de nascimento no início.",
+      "pin-show": "Mostrar PIN",
+      "pin-title": "Definir um PIN",
+      "saved": "Guardado",
+      "sheet": "Imprimir cartão de agradecimento",
+      "sheet-hint": "O teu cartão de agradecimento em tamanho original numa página A4, para recortar pela linha fina. Na janela de impressão também podes guardá-lo como PDF.",
+      "title": "O teu cartão de agradecimento – Agradecer com cartão",
+      "unblock": "Desbloquear",
+      "unblock-needs-no-active": "Para desbloquear este, é preciso bloquear primeiro o cartão ativo — só se pode agradecer com um cartão de cada vez.",
+      "unblocked": "O cartão funciona novamente.",
+      "your-card": "O teu cartão"
+    },
+    "status": {
+      "BLOCKED_NOW": "Após três tentativas erradas o cartão fica bloqueado. O proprietário pode libertá-lo novamente na sua própria conta Gradido.",
+      "CARD_BLOCKED": "Este cartão de agradecimento está bloqueado.",
+      "CARD_NOT_SET_UP": "Com este cartão não é possível agradecer de momento.",
+      "CARD_UNKNOWN": "Não conhecemos este cartão.",
+      "LIMIT_PER_DAY_EXCEEDED": "Este cartão atingiu o seu limite diário.",
+      "LIMIT_PER_PAYMENT_EXCEEDED": "O valor ultrapassa o máximo deste cartão.",
+      "NOT_ENOUGH_GDD": "O saldo não chega.",
+      "OWN_CARD": "Este é o teu próprio cartão.",
+      "REQUEST_GONE": "O pedido expirou. Começa de novo, por favor.",
+      "SUCCESS": "Pronto",
+      "WRONG_PIN": "O PIN não está correto."
+    }
+  },
   "thank-you-cheque": {
     "download": "Descarregar cheque",
     "scan-qr": "Para que os Gradido sejam creditados, digitaliza o código QR!",
@@ -755,6 +1023,7 @@
     "headline": "Pesquisa geográfica de utilizadores",
     "text": "Não importa a que comunidade pertenças, com o Geo Matching System encontras membros de todas as comunidades num mapa. Podes filtrar por ofertas e necessidades e ver os utilizadores que combinam contigo.\n\nO botão abre uma nova janela do navegador onde os utilizadores na tua área são apresentados num mapa."
   },
+  "via_card": "através de um cartão",
   "via_link": "através de um link",
   "welcome": "Bem-vindo à comunidade"
 }

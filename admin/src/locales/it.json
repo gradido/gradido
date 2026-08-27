@@ -461,8 +461,18 @@
   "unregister_mail": {
     "button": "Conferma l'e-mail di registrazione, invia ora",
     "error": "Errore durante l'invio del link di conferma all'utente: {message}",
+    "gdt_email": "Per il server GDT conta il primo indirizzo di questo account: {email}",
     "info": "Conferma l'e-mail, invia ripetutamente a:",
     "never_sent": "Sembra che non abbiamo mai inviato un'e-mail al membro {email}",
+    "pending": "Modifica in sospeso: conferma richiesta per {email} il {date}",
+    "replace": {
+      "button": "Correggi indirizzo",
+      "elopage_warning": "Attenzione: sotto {email} ci sono acquisti Elopage. Questo account proviene probabilmente dal webhook: l'indirizzo allora non è un refuso.",
+      "hint": "Solo finché l'indirizzo non è mai stato confermato (es. refuso alla registrazione). L'e-mail di conferma andrà poi all'indirizzo corretto.",
+      "placeholder": "Indirizzo e-mail corretto",
+      "success": "Indirizzo corretto ed e-mail di conferma inviata a {email}.",
+      "title": "Correggere un indirizzo mai confermato"
+    },
     "success": "Link di conferma inviato con successo all'e-mail dell'utente! ({email})",
     "text_false": "L'ultima e-mail è stata inviata al membro ({email}) il {date}.",
     "text_true": "L'e-mail è stata confermata."

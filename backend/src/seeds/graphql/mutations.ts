@@ -24,6 +24,76 @@ export const forgotPassword = gql`
   }
 `
 
+export const requestEmailChange = gql`
+  mutation ($email: String!, $password: String!) {
+    requestEmailChange(email: $email, password: $password) {
+      email
+      requestedAt
+      resendAllowedAt
+    }
+  }
+`
+
+export const confirmEmailChange = gql`
+  mutation ($code: String!) {
+    confirmEmailChange(code: $code)
+  }
+`
+
+export const completeAssistedRegistration = gql`
+  mutation ($assistCode: String!, $email: String!, $password: String!) {
+    completeAssistedRegistration(assistCode: $assistCode, email: $email, password: $password) {
+      redeemCode
+    }
+  }
+`
+
+export const confirmEmail = gql`
+  mutation ($code: String!) {
+    confirmEmail(code: $code)
+  }
+`
+
+export const resendConfirmationEmail = gql`
+  mutation {
+    resendConfirmationEmail
+  }
+`
+
+export const revokeEmailChange = gql`
+  mutation ($vetoCode: String!) {
+    revokeEmailChange(vetoCode: $vetoCode)
+  }
+`
+
+export const cancelEmailChange = gql`
+  mutation {
+    cancelEmailChange
+  }
+`
+
+export const resendEmailChange = gql`
+  mutation {
+    resendEmailChange {
+      email
+      requestedAt
+      resendAllowedAt
+    }
+  }
+`
+
+export const adminReplaceUnconfirmedEmail = gql`
+  mutation ($userId: Int!, $email: String!) {
+    adminReplaceUnconfirmedEmail(userId: $userId, email: $email)
+  }
+`
+
+export const adoptAlias = gql`
+  mutation {
+    adoptAlias
+  }
+`
+
 export const updateUserInfos = gql`
   mutation (
     $firstName: String
@@ -35,6 +105,7 @@ export const updateUserInfos = gql`
     $hideAmountGDD: Boolean
     $hideAmountGDT: Boolean
     $gmsAllowed: Boolean
+    $avatarVisibleToMembers: Boolean
     $gmsPublishName: PublishNameType
     $gmsLocation: Location
     $gmsPublishLocation: GmsPublishLocationType
@@ -50,6 +121,7 @@ export const updateUserInfos = gql`
       hideAmountGDD: $hideAmountGDD
       hideAmountGDT: $hideAmountGDT
       gmsAllowed: $gmsAllowed
+      avatarVisibleToMembers: $avatarVisibleToMembers
       gmsPublishName: $gmsPublishName
       gmsLocation: $gmsLocation
       gmsPublishLocation: $gmsPublishLocation
@@ -328,8 +400,8 @@ export const createContributionMessage = gql`
       createdAt
       updatedAt
       type
-      userFirstName
-      userLastName
+      userAlias
+      userAvatarColorIndex
     }
   }
 `
@@ -346,8 +418,8 @@ export const adminCreateContributionMessage = gql`
       createdAt
       updatedAt
       type
-      userFirstName
-      userLastName
+      userAlias
+      userAvatarColorIndex
     }
   }
 `
@@ -363,6 +435,7 @@ export const login = gql`
     login(email: $email, password: $password, publisherId: $publisherId) {
       gradidoID
       alias
+      emailChecked
       firstName
       lastName
       language
@@ -443,5 +516,56 @@ export const setMatchingEntryActive = gql`
 export const deleteMatchingEntry = gql`
   mutation ($uuid: String!) {
     deleteMatchingEntry(uuid: $uuid)
+  }
+`
+
+export const setUserAvatar = gql`
+  mutation ($avatarSmall: String!, $avatarFull: String!) {
+    setUserAvatar(avatarSmall: $avatarSmall, avatarFull: $avatarFull)
+  }
+`
+
+export const removeUserAvatar = gql`
+  mutation {
+    removeUserAvatar
+  }
+`
+
+// --- the thank you card, from both sides of the counter ---
+
+export const setThankYouCardSettings = gql`
+  mutation ($pin: String!, $maxPerPayment: GradidoUnit!, $maxPerDay: GradidoUnit!) {
+    setThankYouCardSettings(pin: $pin, maxPerPayment: $maxPerPayment, maxPerDay: $maxPerDay) {
+      maxPerPayment
+      maxPerDay
+    }
+  }
+`
+
+export const createThankYouCard = gql`
+  mutation ($label: String!) {
+    createThankYouCard(label: $label) {
+      id
+      code
+      label
+    }
+  }
+`
+
+export const createThankYouCardPayment = gql`
+  mutation ($code: String!, $amount: GradidoUnit!, $memo: String!) {
+    createThankYouCardPayment(code: $code, amount: $amount, memo: $memo) {
+      id
+    }
+  }
+`
+
+export const confirmThankYouCardPayment = gql`
+  mutation ($paymentId: Int!, $pin: String!) {
+    confirmThankYouCardPayment(paymentId: $paymentId, pin: $pin) {
+      status
+      attemptsLeft
+      payerName
+    }
   }
 `

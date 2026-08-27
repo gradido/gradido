@@ -16,16 +16,21 @@ import {
   sendResetPasswordEmail,
 } from 'core'
 import {
+  ALIAS_ORIGIN_ASSIGNED,
+  ALIAS_ORIGIN_CHOSEN,
   AppDatabase,
   Community as DbCommunity,
   Event as DbEvent,
   dbInsertMatchingEntry,
   TransactionLink,
   User,
+  UserAlias,
   UserContact,
   UserRole,
 } from 'database'
 import { GraphQLError } from 'graphql'
+import { AVATAR_FULL_MAX_BYTES, AVATAR_SMALL_MAX_BYTES } from 'shared'
+import { QueryRunner } from 'typeorm'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 import { deleteGmsUser, upsertGmsUsers } from '@/apis/gms/GmsClient'
 import { subscribe } from '@/apis/KlicktippController'
@@ -40,6 +45,7 @@ import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { userFactory } from '@/seeds/factory/user'
 import {
+  adoptAlias,
   confirmContribution,
   createContribution,
   createUser,
@@ -47,21 +53,28 @@ import {
   forgotPassword,
   login,
   logout,
+  removeUserAvatar,
   sendActivationEmail,
   setPassword,
+  setUserAvatar,
   setUserRole,
   unDeleteUser,
   updateUserInfos,
 } from '@/seeds/graphql/mutations'
 import {
+  aliasStatus,
+  avatarFull,
   checkUsername,
+  memberAvatars,
   queryOptIn,
   searchAdminUsers,
   searchUsers,
   userAboutMe,
+  userAvatar,
   user as userQuery,
   verifyLogin,
   verifyLoginAboutMe,
+  verifyLoginAvatar,
 } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
@@ -106,7 +119,17 @@ jest.mock('@/apis/KlicktippController', () => {
   }
 })
 
-const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserResolver`)
+// The resolver now names its logger per method (createLogger('login') etc.), so each
+// assertion has to reach for the logger of the method that actually writes the message.
+const resolverLogger = (method: string) =>
+  getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserResolver.${method}`)
+const createUserLogger = resolverLogger('createUser')
+const setPasswordLogger = resolverLogger('setPassword')
+const loginLogger = resolverLogger('login')
+const forgotPasswordLogger = resolverLogger('forgotPassword')
+const updateUserInfosLogger = resolverLogger('updateUserInfos')
+const sendActivationEmailLogger = resolverLogger('sendActivationEmail')
+const findUserByEmailLogger = resolverLogger('findUserByEmail')
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
 CONFIG.EMAIL_CODE_REQUEST_TIME = 10
@@ -184,12 +207,18 @@ describe('UserResolver', () => {
               gradidoID: expect.any(String),
               hideAmountGDD: expect.any(Boolean),
               hideAmountGDT: expect.any(Boolean),
-              alias: null,
+              // Built from the name rather than left empty: everybody holds one from
+              // registration on, or their transaction rows would have nothing where a
+              // name belongs.
+              alias: 'PeterL',
               emailContact: expect.any(UserContact), // 'peter@lustig.de',
               emailId: expect.any(Number),
               firstName: 'Peter',
               lastName: 'Lustig',
               aboutMe: null,
+              // On from the start: a member who uploads a picture has already shown an
+              // intention, so the switch follows rather than asks a second time.
+              avatarVisibleToMembers: true,
               gender: null,
               salutation: null,
               creaSignature: null,
@@ -231,6 +260,7 @@ describe('UserResolver', () => {
             emailVerificationCode: expect.any(String),
             emailOptInTypeId: OptInType.EMAIL_OPT_IN_REGISTER,
             emailResendCount: 0,
+            changeVetoCode: null,
             countryCode: null,
             phone: null,
             createdAt: expect.any(Date),
@@ -296,16 +326,19 @@ describe('UserResolver', () => {
       })
 
       it('logs an info', () => {
-        expect(logger.info).toBeCalledWith('User already exists')
-        expect(logger.addContext).toBeCalledWith('user', user[0].id)
+        expect(createUserLogger.info).toBeCalledWith('User already exists')
+        expect(createUserLogger.addContext).toBeCalledWith('user', user[0].id)
       })
 
-      it('sends an account multi registration email', () => {
+      it('sends an account multi registration email without the helper branch', () => {
+        // No redeem code on this attempt, so no helper link (EM-013): the mail renders
+        // exactly as it always has.
         expect(sendAccountMultiRegistrationEmail).toBeCalledWith({
           firstName: 'Peter',
           lastName: 'Lustig',
           email: 'peter@lustig.de',
           language: 'de',
+          helperLink: null,
         })
       })
 
@@ -694,7 +727,7 @@ describe('UserResolver', () => {
       })
 
       it('logs the error found', () => {
-        expect(logger.warn).toBeCalledWith('invalid emailVerificationCode=not valid')
+        expect(setPasswordLogger.warn).toBeCalledWith('invalid emailVerificationCode=not valid')
       })
     })
   })
@@ -724,7 +757,7 @@ describe('UserResolver', () => {
       })
 
       it('logs the error found', () => {
-        expect(logger.warn).toBeCalledWith(
+        expect(findUserByEmailLogger.warn).toBeCalledWith(
           `findUserByEmail failed, user with email=${variables.email} not found`,
         )
       })
@@ -746,6 +779,7 @@ describe('UserResolver', () => {
             data: {
               login: {
                 alias: 'BBB',
+                emailChecked: true,
                 firstName: 'Bibi',
                 gmsAllowed: true,
                 gmsPublishLocation: 'GMS_LOCATION_TYPE_RANDOM',
@@ -808,7 +842,7 @@ describe('UserResolver', () => {
       })
 
       it('logs warning before error is thrown', () => {
-        expect(logger.warn).toBeCalledWith('login failed, wrong password')
+        expect(loginLogger.warn).toBeCalledWith('login failed, wrong password')
       })
     })
 
@@ -839,7 +873,7 @@ describe('UserResolver', () => {
       })
 
       it('logs warning before error is thrown', () => {
-        expect(logger.warn).toBeCalledWith('login failed, user was deleted')
+        expect(loginLogger.warn).toBeCalledWith('login failed, user was deleted')
       })
     })
 
@@ -868,7 +902,7 @@ describe('UserResolver', () => {
       })
 
       it('logs warning before error is thrown', () => {
-        expect(logger.warn).toBeCalledWith('login failed, user email not checked')
+        expect(loginLogger.warn).toBeCalledWith('login failed, user email not checked')
       })
     })
 
@@ -895,7 +929,7 @@ describe('UserResolver', () => {
       })
 
       it('logs warning before error is thrown', () => {
-        expect(logger.warn).toBeCalledWith('login failed, user has not set a password yet')
+        expect(loginLogger.warn).toBeCalledWith('login failed, user has not set a password yet')
       })
     })
   })
@@ -1137,7 +1171,7 @@ describe('UserResolver', () => {
         })
 
         it('logs warning before throwing error', () => {
-          expect(logger.warn).toBeCalledWith(
+          expect(forgotPasswordLogger.warn).toBeCalledWith(
             'email already sent 0 minutes ago, min wait time: 10 minutes',
           )
         })
@@ -1294,7 +1328,8 @@ describe('UserResolver', () => {
 
         describe('valid alias', () => {
           it('updates the user in DB', async () => {
-            // first empty alias, because currently updating alias isn't allowed
+            // Cleared first so this exercises taking a name rather than changing one;
+            // changing is covered by its own cases.
             await User.update({ alias: 'BBB' }, { alias: () => 'NULL' })
             await mutate({
               mutation: updateUserInfos,
@@ -1383,6 +1418,47 @@ describe('UserResolver', () => {
         })
       })
 
+      // The one setting this delivery stores, read back from the row. It needs its own
+      // test because nothing else covers the write: the registration test above asserts
+      // avatarVisibleToMembers is true on a fresh account, which is the column DEFAULT
+      // and stays true whether or not the resolver ever writes the field. Drop the field
+      // from the write object in updateUserInfos and only these cases go red.
+      // Ordered off - untouched - on, so the block leaves the shared row the way it found
+      // it. Later cases in this file read other columns of the same member, and a fixture
+      // one test leaves changed is a failure the next test gets blamed for.
+      describe('whether the picture is visible to other members', () => {
+        it('stores the member turning it off', async () => {
+          await mutate({
+            mutation: updateUserInfos,
+            variables: { avatarVisibleToMembers: false },
+          })
+          await expect(User.find()).resolves.toEqual([
+            expect.objectContaining({ avatarVisibleToMembers: false }),
+          ])
+        })
+
+        // False and "not sent" are different things, and a boolean is where they are most
+        // easily confused: a check on the value rather than on its presence would read a
+        // stored no as nothing to do, and the next save that says nothing about the
+        // picture would put the member back on show without anybody touching the switch.
+        it('leaves a stored no alone when a later save does not mention it', async () => {
+          await mutate({ mutation: updateUserInfos, variables: {} })
+          await expect(User.find()).resolves.toEqual([
+            expect.objectContaining({ avatarVisibleToMembers: false }),
+          ])
+        })
+
+        it('stores the member turning it back on', async () => {
+          await mutate({
+            mutation: updateUserInfos,
+            variables: { avatarVisibleToMembers: true },
+          })
+          await expect(User.find()).resolves.toEqual([
+            expect.objectContaining({ avatarVisibleToMembers: true }),
+          ])
+        })
+      })
+
       describe('language is not valid', () => {
         it('throws an error', async () => {
           jest.clearAllMocks()
@@ -1401,7 +1477,10 @@ describe('UserResolver', () => {
         })
 
         it('logs the error found', () => {
-          expect(logger.warn).toBeCalledWith('try to set unsupported language', 'not-valid')
+          expect(updateUserInfosLogger.warn).toBeCalledWith(
+            'try to set unsupported language',
+            'not-valid',
+          )
         })
       })
 
@@ -1425,7 +1504,7 @@ describe('UserResolver', () => {
           })
 
           it('logs if logger is in debug mode', () => {
-            expect(logger.debug).toBeCalledWith(`old password is invalid`)
+            expect(updateUserInfosLogger.debug).toBeCalledWith(`old password is invalid`)
           })
         })
 
@@ -1452,7 +1531,7 @@ describe('UserResolver', () => {
           })
 
           it('logs warning', () => {
-            expect(logger.warn).toBeCalledWith('try to set invalid password')
+            expect(updateUserInfosLogger.warn).toBeCalledWith('try to set invalid password')
           })
         })
 
@@ -1510,7 +1589,7 @@ describe('UserResolver', () => {
           })
 
           it('log warning', () => {
-            expect(logger.warn).toBeCalledWith('login failed, wrong password')
+            expect(loginLogger.warn).toBeCalledWith('login failed, wrong password')
           })
         })
       })
@@ -1531,9 +1610,11 @@ describe('UserResolver', () => {
     })
 
     describe('authenticated', () => {
+      let admin: User
+
       beforeAll(async () => {
         await userFactory(testEnv, bibiBloxberg)
-        await userFactory(testEnv, peterLustig)
+        admin = await userFactory(testEnv, peterLustig)
         await mutate({
           mutation: login,
           variables: {
@@ -1550,9 +1631,13 @@ describe('UserResolver', () => {
               searchAdminUsers: {
                 userCount: 1,
                 userList: expect.arrayContaining([
+                  // The type carries only the alias since NU-021, and this seed user has
+                  // none -- so the gradidoID stands in (NU-018). Pinned against the
+                  // user's own identifier rather than `any(String)`: an admin who reads
+                  // as an empty row is precisely what a seeded environment produced, and
+                  // only naming the value proves which fallback ran.
                   expect.objectContaining({
-                    firstName: 'Peter',
-                    lastName: 'Lustig',
+                    alias: admin.gradidoID,
                     role: RoleNames.ADMIN,
                   }),
                 ]),
@@ -1630,6 +1715,7 @@ describe('UserResolver', () => {
             data: {
               login: {
                 alias: 'BBB',
+                emailChecked: true,
                 firstName: 'Bibi',
                 gmsAllowed: true,
                 gmsPublishLocation: 'GMS_LOCATION_TYPE_RANDOM',
@@ -2235,7 +2321,7 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(logger.warn).toBeCalledWith(
+            expect(findUserByEmailLogger.warn).toBeCalledWith(
               'findUserByEmail failed, user with email=invalid not found',
             )
           })
@@ -2255,7 +2341,9 @@ describe('UserResolver', () => {
           })
 
           it('log warning', () => {
-            expect(logger.warn).toBeCalledWith('call for activation of deleted user')
+            expect(sendActivationEmailLogger.warn).toBeCalledWith(
+              'call for activation of deleted user',
+            )
           })
         })
 
@@ -2789,6 +2877,295 @@ describe('UserResolver', () => {
     })
   })
 
+  // The profile picture the member sets for their own account. Own view only: nothing
+  // hands it to anybody else, which is the boundary this delivery deliberately keeps.
+  describe('user avatar', () => {
+    // A minimal but real JPEG head. The resolver checks the magic bytes, so anything
+    // that is not one would be rejected for the right reason and prove nothing.
+    const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0xff, 0xd9])
+    const JPEG_BASE64 = JPEG.toString('base64')
+    // The full rendition has to differ from the small one, or a resolver handing back the
+    // wrong column would pass every assertion below.
+    const JPEG_FULL = Buffer.from([
+      0xff, 0xd8, 0xff, 0xe1, 0x00, 0x10, 0x45, 0x78, 0x69, 0xff, 0xd9,
+    ])
+    const JPEG_FULL_BASE64 = JPEG_FULL.toString('base64')
+    const bothPictures = { avatarSmall: JPEG_BASE64, avatarFull: JPEG_FULL_BASE64 }
+
+    let homeCom: DbCommunity
+    let owner: User
+
+    beforeAll(async () => {
+      await cleanDB()
+      homeCom = await writeHomeCommunityEntry()
+      owner = await userFactory(testEnv, bibiBloxberg)
+      await userFactory(testEnv, bobBaumeister)
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+    })
+
+    afterAll(async () => {
+      await cleanDB()
+    })
+
+    it('has no picture before one is set', async () => {
+      const res: any = await query({ query: verifyLoginAvatar })
+      expect(res.data.verifyLogin.avatar).toBeNull()
+    })
+
+    it('stores a picture and hands the same bytes back', async () => {
+      const written: any = await mutate({
+        mutation: setUserAvatar,
+        variables: bothPictures,
+      })
+      expect(written.data.setUserAvatar).toBe(true)
+
+      const res: any = await query({ query: verifyLoginAvatar })
+      expect(res.data.verifyLogin.avatar).toBe(JPEG_BASE64)
+    })
+
+    // The payload coderabbit found: ff d8 00 passes an opening-marker check on its own.
+    it('refuses a payload that only starts like a JPEG', async () => {
+      const res: any = await mutate({
+        mutation: setUserAvatar,
+        variables: {
+          ...bothPictures,
+          avatarSmall: Buffer.from([0xff, 0xd8, 0x00]).toString('base64'),
+        },
+      })
+      expect(res.errors).toBeDefined()
+    })
+
+    it('refuses something that is not a JPEG', async () => {
+      const res: any = await mutate({
+        mutation: setUserAvatar,
+        variables: { ...bothPictures, avatarSmall: Buffer.from('not an image').toString('base64') },
+      })
+      expect(res.errors).toBeDefined()
+    })
+
+    it('refuses a picture over the size limit', async () => {
+      const tooLarge = Buffer.concat([JPEG, Buffer.alloc(AVATAR_FULL_MAX_BYTES, 0x20), JPEG])
+      const res: any = await mutate({
+        mutation: setUserAvatar,
+        variables: { ...bothPictures, avatarFull: tooLarge.toString('base64') },
+      })
+      expect(res.errors).toBeDefined()
+    })
+
+    // The two renditions have their own budgets, and this is the case a single shared
+    // limit would wave through: a "small" picture that is far too big to be one, yet
+    // comfortably under what the full rendition may weigh. Without a limit of its own,
+    // the everyday picture -- the one that goes on every screen and will one day cross
+    // community borders -- could quietly be 60 KB.
+    it('refuses a small rendition that is only small by name', async () => {
+      const smallButNot = Buffer.concat([JPEG, Buffer.alloc(AVATAR_SMALL_MAX_BYTES, 0x20), JPEG])
+      expect(smallButNot.length).toBeLessThan(AVATAR_FULL_MAX_BYTES)
+
+      const res: any = await mutate({
+        mutation: setUserAvatar,
+        variables: { ...bothPictures, avatarSmall: smallButNot.toString('base64') },
+      })
+      expect(res.errors).toBeDefined()
+    })
+
+    // Two columns, two readers, and nothing in the types keeps them apart -- both are
+    // base64 strings. So the assertion is that each way out carries its OWN rendition.
+    it('hands the full rendition to its owner, and never in place of the small one', async () => {
+      const full: any = await query({ query: avatarFull })
+      expect(full.data.avatarFull).toBe(JPEG_FULL_BASE64)
+
+      const small: any = await query({ query: verifyLoginAvatar })
+      expect(small.data.verifyLogin.avatar).toBe(JPEG_BASE64)
+    })
+
+    // Issues its own refusal rather than reading what earlier tests left behind. Without
+    // that, the assertion passes with a name filter or after a reorder and proves nothing
+    // about rejected writes at all.
+    it('leaves the stored picture untouched when a write was refused', async () => {
+      const refused: any = await mutate({
+        mutation: setUserAvatar,
+        variables: { ...bothPictures, avatarFull: Buffer.from('rubbish').toString('base64') },
+      })
+      expect(refused.errors).toBeDefined()
+
+      const res: any = await query({ query: verifyLoginAvatar })
+      expect(res.data.verifyLogin.avatar).toBe(JPEG_BASE64)
+    })
+
+    it('removes the picture', async () => {
+      const removed: any = await mutate({ mutation: removeUserAvatar })
+      expect(removed.data.removeUserAvatar).toBe(true)
+
+      const res: any = await query({ query: verifyLoginAvatar })
+      expect(res.data.verifyLogin.avatar).toBeNull()
+    })
+
+    // Removing a picture that is not there is what the member wanted either way.
+    it('stays quiet when there is nothing to remove', async () => {
+      const removed: any = await mutate({ mutation: removeUserAvatar })
+      expect(removed.data.removeUserAvatar).toBe(true)
+    })
+
+    // The boundary the field resolver keeps: `user` hands out any member by alias to
+    // everyone logged in, so the picture is withheld there and stays withheld. The switch
+    // that decides who may see a face works through memberAvatars below, not through this
+    // field -- widening this one would hand out pictures the switch never agreed to.
+    it('hides the picture from another logged-in member', async () => {
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+      const written: any = await mutate({
+        mutation: setUserAvatar,
+        variables: bothPictures,
+      })
+      // The fixture has to prove itself, or the assertion below passes for the wrong
+      // reason: a picture that was never stored is invisible to everyone.
+      if (written.errors || written.data?.setUserAvatar !== true) {
+        throw new Error(`could not store avatar: ${JSON.stringify(written.errors)}`)
+      }
+
+      await mutate({
+        mutation: login,
+        variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
+      })
+      const res: any = await query({
+        query: userAvatar,
+        variables: {
+          identifier: owner.gradidoID,
+          communityIdentifier: homeCom.communityUuid,
+        },
+      })
+      // The member is found - only the field is withheld, so this is the field resolver
+      // at work and not a lookup that failed.
+      expect(res.data.user.gradidoID).toBe(owner.gradidoID)
+      expect(res.data.user.avatar).toBeNull()
+    })
+
+    // The batched reader other members' faces actually travel through. Run against the
+    // real schema on purpose: the input type name and the argument name are produced by
+    // type-graphql from class names here and typed by hand in the wallet, and nothing
+    // links the two. A rename would leave the wallet sending a document the schema
+    // rejects, at runtime, with nothing red beforehand. This document is that link.
+    //
+    // State on arrival: bob is logged in, bibi has a picture and has not touched the
+    // switch, so it stands at the column default.
+    describe('the pictures of other members', () => {
+      it("hands bibi's picture to bob, who shares bookings with her", async () => {
+        const res: any = await query({
+          query: memberAvatars,
+          variables: {
+            refs: [{ gradidoID: owner.gradidoID, communityUuid: homeCom.communityUuid }],
+          },
+        })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.memberAvatars).toHaveLength(1)
+        expect(res.data.memberAvatars[0].gradidoID).toBe(owner.gradidoID)
+        expect(res.data.memberAvatars[0].avatar).toBe(JPEG_BASE64)
+        expect(res.data.memberAvatars[0].avatarUpdatedAt).not.toBeNull()
+      })
+
+      // The switch, end to end and through the real schema -- the query test proves the
+      // SQL, this proves that the path a member's decision actually takes reaches it.
+      it('hands out nothing once bibi turns the switch off', async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+        await mutate({
+          mutation: updateUserInfos,
+          variables: { avatarVisibleToMembers: false },
+        })
+        await mutate({
+          mutation: login,
+          variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
+        })
+
+        const res: any = await query({
+          query: memberAvatars,
+          variables: {
+            refs: [{ gradidoID: owner.gradidoID, communityUuid: homeCom.communityUuid }],
+          },
+        })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.memberAvatars).toEqual([])
+      })
+
+      // Never an error for a member who is not there: that would make this a directory
+      // telling whoever asks which accounts exist.
+      it('says nothing at all about a member it does not know', async () => {
+        const res: any = await query({
+          query: memberAvatars,
+          variables: {
+            refs: [{ gradidoID: 'ffffffff-ffff-4fff-8fff-ffffffffffff', communityUuid: null }],
+          },
+        })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.memberAvatars).toEqual([])
+      })
+
+      const strangers = (count: number) =>
+        Array.from({ length: count }, (_, index) => ({
+          gradidoID: `ffffffff-ffff-4fff-8fff-${String(index).padStart(12, '0')}`,
+          communityUuid: null,
+        }))
+
+      /**
+       * Without the cap this is a bulk download of every face in the community.
+       *
+       * ⛔ The message is asserted, not merely that SOMETHING went wrong. Two caps guard
+       * this query -- @ArrayMaxSize on the args class, which rejects before a row is read,
+       * and the resolver's own check -- and `expect(res.errors).toBeDefined()` is satisfied
+       * by either, so it stays green if the one that protects the database is removed.
+       * MemberAvatarRefInput carries a TODO to replace exactly those decorators.
+       */
+      it('refuses a list longer than the cap, at the decorator that guards the database', async () => {
+        const res: any = await query({ query: memberAvatars, variables: { refs: strangers(101) } })
+        expect(res.errors).toBeDefined()
+        expect(res.errors[0].message).toContain('Argument Validation Error')
+        expect(JSON.stringify(res.errors)).toContain('arrayMaxSize')
+      })
+
+      // ...and the other side of the boundary, which nothing measured: a full page of
+      // distinct counterparties has to get THROUGH. Tightening the per-ref validation, or
+      // lowering the cap, would otherwise kill every face on a busy page with a green suite
+      // -- the wallet swallows the error and simply shows initials.
+      it('lets a full page of members through', async () => {
+        const res: any = await query({ query: memberAvatars, variables: { refs: strangers(100) } })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.memberAvatars).toEqual([])
+      })
+
+      /**
+       * ⛔ The one query in this delivery that hands out other people's faces, and nothing
+       * established who may ask. Every case above runs with bob's token, which the
+       * decorator is irrelevant to -- remove @Authorized and they all still pass, while the
+       * query becomes an anonymous reader of every opted-in member's picture.
+       */
+      it('answers nobody who is not logged in', async () => {
+        resetToken()
+        const res: any = await query({
+          query: memberAvatars,
+          variables: {
+            refs: [{ gradidoID: owner.gradidoID, communityUuid: homeCom.communityUuid }],
+          },
+        })
+        expect(res.errors).toEqual([new GraphQLError('401 Unauthorized')])
+
+        // Put the session back: everything after this file's point runs on the token this
+        // test just threw away, and a suite that depends on test order should at least not
+        // be the thing that breaks it.
+        await mutate({
+          mutation: login,
+          variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
+        })
+      })
+    })
+  })
+
   // Leaving the GMS removes the member and everything of theirs over there. Joining again
   // therefore has to hand the GMS a whole member, entries included - the two mutations
   // below are one story and run in order.
@@ -2987,7 +3364,256 @@ describe('UserResolver', () => {
     })
   })
 
+  // What the quota is for: not tidiness, but somebody cycling through near-misses of a
+  // popular name to catch payments meant for its owner. Every case below is about how
+  // much of that a member can do in a year, and what it costs them.
+  describe('taking, leaving and reclaiming a name', () => {
+    let member: User
+
+    beforeAll(async () => {
+      await cleanDB()
+      await writeHomeCommunityEntry()
+      member = await userFactory(testEnv, bibiBloxberg)
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+    })
+
+    afterAll(async () => {
+      await cleanDB()
+    })
+
+    beforeEach(async () => {
+      await UserAlias.delete({ userId: member.id })
+      await User.update({ id: member.id }, { alias: 'BBB' })
+    })
+
+    const changeTo = async (alias: string) =>
+      mutate({ mutation: updateUserInfos, variables: { alias } })
+
+    const ownedNames = async () =>
+      (await UserAlias.find({ where: { userId: member.id }, order: { id: 'ASC' } })).map(
+        (row) => row.alias,
+      )
+
+    it('records the name it takes, not the one it leaves', async () => {
+      await changeTo('bibi-one')
+
+      expect(await ownedNames()).toEqual(['bibi-one'])
+      const stored = await User.findOneByOrFail({ id: member.id })
+      expect(stored.alias).toBe('bibi-one')
+    })
+
+    // Reclaiming moves the marker and writes nothing, because no name enters their
+    // possession - which is why it costs none of the four.
+    it('writes nothing when a member comes back to a name of their own', async () => {
+      await changeTo('bibi-one')
+      await changeTo('bibi-two')
+      expect(await ownedNames()).toEqual(['bibi-one', 'bibi-two'])
+
+      await changeTo('bibi-one')
+
+      expect(await ownedNames()).toEqual(['bibi-one', 'bibi-two'])
+      const stored = await User.findOneByOrFail({ id: member.id })
+      expect(stored.alias).toBe('bibi-one')
+    })
+
+    // Ping-pong between two names one already owns is free and pointless: the count
+    // neither rises nor resets, and it never exceeds two names.
+    it('keeps the count steady however often somebody flips between two of their names', async () => {
+      await changeTo('bibi-one')
+      await changeTo('bibi-two')
+      for (let round = 0; round < 3; round++) {
+        await changeTo('bibi-one')
+        await changeTo('bibi-two')
+      }
+
+      expect(await ownedNames()).toHaveLength(2)
+    })
+
+    it('refuses the fifth pick of the year', async () => {
+      await changeTo('bibi-one')
+      await changeTo('bibi-two')
+      await changeTo('bibi-three')
+      await changeTo('bibi-four')
+
+      await expect(changeTo('bibi-five')).resolves.toEqual(
+        expect.objectContaining({
+          errors: [new GraphQLError('ALIAS_QUOTA_EXHAUSTED')],
+        }),
+      )
+      const stored = await User.findOneByOrFail({ id: member.id })
+      expect(stored.alias).toBe('bibi-four')
+    })
+
+    // A name handed out by the system is a proposal until it is adopted, so it must not
+    // eat a pick - otherwise everyone would start the year with three instead of four.
+    it('does not spend a pick on a name the system handed out', async () => {
+      await UserAlias.save(
+        UserAlias.create({
+          userId: member.id,
+          alias: 'BBB',
+          communityUuid: member.communityUuid,
+          origin: ALIAS_ORIGIN_ASSIGNED,
+        }),
+      )
+
+      await expect(query({ query: aliasStatus })).resolves.toMatchObject({
+        data: { aliasStatus: { changesLeft: 4, nextChangeAt: null } },
+      })
+    })
+
+    // Keeping the built name answers the question the window at first login asks, which
+    // is what stops it coming back - but it is not a pick and must cost none of the four
+    // (NU-010/011). Both halves are the point, so both are asserted.
+    it('settles the question when the member keeps the built name, and spends no pick', async () => {
+      await UserAlias.save(
+        UserAlias.create({
+          userId: member.id,
+          alias: 'BBB',
+          communityUuid: member.communityUuid,
+          origin: ALIAS_ORIGIN_ASSIGNED,
+        }),
+      )
+
+      await expect(mutate({ mutation: adoptAlias })).resolves.toMatchObject({
+        data: { adoptAlias: true },
+      })
+
+      await expect(query({ query: aliasStatus })).resolves.toMatchObject({
+        data: { aliasStatus: { aliasSettled: true, changesLeft: 4 } },
+      })
+    })
+
+    // The column ignores case, so changing only the capitalisation keeps the very same
+    // row and writes nothing. Comparing with `===` in TypeScript stopped finding that
+    // row, reported the question as unanswered, and put the window back on screen at
+    // every page mount - with no way out of it but spending one of the four.
+    it('stays settled when the member only changes the capitalisation', async () => {
+      await changeTo('bibi-one')
+      await expect(query({ query: aliasStatus })).resolves.toMatchObject({
+        data: { aliasStatus: { aliasSettled: true } },
+      })
+
+      await changeTo('BIBI-ONE')
+
+      const stored = await User.findOneByOrFail({ id: member.id })
+      expect(stored.alias).toBe('BIBI-ONE')
+      expect(await ownedNames()).toEqual(['bibi-one'])
+      await expect(query({ query: aliasStatus })).resolves.toMatchObject({
+        data: { aliasStatus: { aliasSettled: true, changesLeft: 3 } },
+      })
+    })
+
+    // The quota blocks TAKING a name, not returning to one already owned - that writes
+    // no row, so there is nothing to charge for.
+    it('lets a member return to a name of their own after the quota is gone', async () => {
+      await changeTo('bibi-one')
+      await changeTo('bibi-two')
+      await changeTo('bibi-three')
+      await changeTo('bibi-four')
+      await expect(query({ query: aliasStatus })).resolves.toMatchObject({
+        data: { aliasStatus: { changesLeft: 0 } },
+      })
+
+      await changeTo('bibi-one')
+
+      const stored = await User.findOneByOrFail({ id: member.id })
+      expect(stored.alias).toBe('bibi-one')
+    })
+
+    // The resolver opens a transaction before it validates anything, so every way out
+    // has to close it again. The most travelled one is the call that changes nothing: it
+    // used to return without a rollback or a release and handed back a connection that
+    // was still inside a REPEATABLE READ transaction.
+    //
+    // Watched at the runner rather than at the pool. Draining a pool only fails while
+    // the pool stays smaller than the number of rounds, which is an assumption nobody
+    // states and nobody maintains; this asserts the invariant itself - not one runner
+    // this resolver made is left unreleased.
+    const watchQueryRunners = () => {
+      const dataSource = db.getDataSource()
+      const create = dataSource.createQueryRunner.bind(dataSource)
+      const created: QueryRunner[] = []
+      const spy = jest.spyOn(dataSource, 'createQueryRunner').mockImplementation((mode) => {
+        const runner = create(mode)
+        jest.spyOn(runner, 'release')
+        created.push(runner)
+        return runner
+      })
+      return { created, stop: () => spy.mockRestore() }
+    }
+
+    it.each([
+      ['nothing changed', 'BBB'],
+      ['the name was refused', 'no'],
+    ])('gives the connection back when %s', async (_case, alias) => {
+      const watch = watchQueryRunners()
+      try {
+        await changeTo(alias)
+      } finally {
+        watch.stop()
+      }
+
+      expect(watch.created.length).toBeGreaterThan(0)
+      for (const runner of watch.created) {
+        expect(runner.release).toHaveBeenCalled()
+      }
+    })
+
+    describe('the status query', () => {
+      it('counts down as names are picked', async () => {
+        await changeTo('bibi-one')
+
+        await expect(query({ query: aliasStatus })).resolves.toMatchObject({
+          data: { aliasStatus: { changesLeft: 3, nextChangeAt: null } },
+        })
+      })
+
+      // The window rolls, so the date is a year after the oldest pick still inside it -
+      // not a year from today, which would keep somebody waiting too long.
+      it('names the date the next pick becomes possible', async () => {
+        await changeTo('bibi-one')
+        await changeTo('bibi-two')
+        await changeTo('bibi-three')
+        await changeTo('bibi-four')
+
+        const result = await query({ query: aliasStatus })
+        expect(result.data.aliasStatus.changesLeft).toBe(0)
+        expect(result.data.aliasStatus.nextChangeAt).not.toBeNull()
+
+        const oldest = await UserAlias.findOneOrFail({
+          where: { userId: member.id, origin: ALIAS_ORIGIN_CHOSEN },
+          order: { createdAt: 'ASC' },
+        })
+        const expected = new Date(oldest.createdAt.getTime() + 365 * 24 * 60 * 60 * 1000)
+        expect(new Date(result.data.aliasStatus.nextChangeAt).getTime()).toBeCloseTo(
+          expected.getTime(),
+          -3,
+        )
+      })
+    })
+  })
+
+  // checkUsername now has to know who is asking: a member may reclaim an alias they
+  // held before, so the query skips their own history rows. That identity only exists
+  // behind the token, which is why the right moved out of INALIENABLE_RIGHTS - and why
+  // these tests sign in first.
   describe('check username', () => {
+    beforeAll(async () => {
+      await cleanDB()
+      await userFactory(testEnv, bibiBloxberg)
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+    })
+
+    afterAll(async () => {
+      await cleanDB()
+    })
+
     describe('reserved alias', () => {
       it('returns false', async () => {
         await expect(

@@ -222,10 +222,38 @@ describe('ForgotPassword', () => {
 
     wrapper = mount(ForgotPassword, {
       global: {
-        stubs: ['BContainer', 'BRow', 'BCol', 'BForm', 'BButton', 'input-email', 'message'],
+        // The real containers, like every other test here: stubbing them swallows their
+        // slot, and the line under test lives inside one.
+        components: { BContainer, BForm, BRow, BCol },
+        mocks: { $t: (msg) => msg },
+        stubs: ['BButton', 'input-email', 'message'],
       },
     })
 
-    expect(wrapper.vm.subtitle).toBe('settings.password.resend_subtitle')
+    // Asserted on what the page RENDERS, not on a variable: the old `subtitle` ref was
+    // computed and never displayed anywhere, so this test passed while the member was told
+    // nothing at all about why they had landed here.
+    expect(wrapper.find('[data-test="forgot-password-subtitle"]').text()).toBe(
+      'settings.password.resend_subtitle',
+    )
+  })
+
+  it('gives the plain invitation to everybody else', async () => {
+    const { useRoute } = await import('vue-router')
+    useRoute.mockReturnValue({ params: {} })
+
+    wrapper = mount(ForgotPassword, {
+      global: {
+        // The real containers, like every other test here: stubbing them swallows their
+        // slot, and the line under test lives inside one.
+        components: { BContainer, BForm, BRow, BCol },
+        mocks: { $t: (msg) => msg },
+        stubs: ['BButton', 'input-email', 'message'],
+      },
+    })
+
+    expect(wrapper.find('[data-test="forgot-password-subtitle"]').text()).toBe(
+      'settings.password.subtitle',
+    )
   })
 })

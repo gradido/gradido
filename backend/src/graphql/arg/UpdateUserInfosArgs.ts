@@ -54,6 +54,10 @@ export class UpdateUserInfosArgs {
   @IsBoolean()
   gmsAllowed?: boolean
 
+  @Field({ nullable: true })
+  @IsBoolean()
+  avatarVisibleToMembers?: boolean
+
   @Field(() => PublishNameType, { nullable: true })
   @IsEnum(PublishNameType)
   gmsPublishName?: PublishNameType | null

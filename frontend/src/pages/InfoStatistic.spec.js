@@ -32,34 +32,45 @@ const CREATION_GROUPS = [
   { id: 3, tag: 'chor', name: 'Chor' },
 ]
 
+// Exactly the shape searchAdminUsers delivers to this page: the alias, never the real
+// name (NU-021). A fixture carrying firstName would let the page read a field the real
+// answer does not have.
 const ADMIN_USERS = [
   {
-    firstName: 'Peter',
-    lastName: 'Lustig',
+    alias: 'peterl',
     role: 'ADMIN',
     visibleCreationGroups: [],
     seesAllCreationGroups: true,
     seesUntagged: true,
   },
+  // anna AFTER peterl on purpose, for the same reason garrick comes before bibi below:
+  // the administrators are a sorted list too, and a fixture that already arrives in
+  // order cannot tell a sorted list from an unsorted one.
   {
-    firstName: 'Bibi',
-    lastName: 'Bloxberg',
-    role: 'MODERATOR',
-    visibleCreationGroups: ['feuerwehr'],
-    seesAllCreationGroups: false,
-    seesUntagged: false,
+    alias: 'anna',
+    role: 'ADMIN',
+    visibleCreationGroups: [],
+    seesAllCreationGroups: true,
+    seesUntagged: true,
   },
+  // garrick before bibi on purpose: the page must sort by alias, and a fixture that
+  // already arrives sorted would let a dropped sort pass unnoticed.
   {
-    firstName: 'Garrick',
-    lastName: 'Ollivander',
+    alias: 'garrick',
     role: 'MODERATOR_AI',
     visibleCreationGroups: ['feuerwehr', 'musik'],
     seesAllCreationGroups: false,
     seesUntagged: false,
   },
   {
-    firstName: 'Super',
-    lastName: 'Admin',
+    alias: 'bibi',
+    role: 'MODERATOR',
+    visibleCreationGroups: ['feuerwehr'],
+    seesAllCreationGroups: false,
+    seesUntagged: false,
+  },
+  {
+    alias: 'zora',
     role: 'MODERATOR',
     visibleCreationGroups: [],
     seesAllCreationGroups: true,
@@ -157,8 +168,17 @@ describe('InfoStatistic', () => {
 
   it('displays admin and moderator information', async () => {
     await wrapper.vm.$nextTick()
-    expect(wrapper.text()).toContain('Peter Lustig')
-    expect(wrapper.text()).toContain('Super Admin')
+    expect(wrapper.text()).toContain('peterl')
+    expect(wrapper.text()).toContain('zora')
+  })
+
+  // The administrators are read the same way the moderators are, so they are ordered the
+  // same way. Left unsorted they arrived in whatever order the backend's paging returned.
+  it('sorts administrators by their alias', async () => {
+    await wrapper.vm.$nextTick()
+    const text = wrapper.text()
+    expect(text.indexOf('anna')).toBeGreaterThan(-1)
+    expect(text.indexOf('anna')).toBeLessThan(text.indexOf('peterl'))
   })
 
   it('displays contact information', () => {
@@ -182,16 +202,27 @@ describe('InfoStatistic', () => {
       const sections = wrapper.findAll('.mb-3')
       const firefighters = sections.find((section) => section.text().includes('Feuerwehr'))
       const music = sections.find((section) => section.text().includes('#musik'))
-      expect(firefighters.text()).toContain('Bibi Bloxberg')
+      expect(firefighters.text()).toContain('bibi')
       // A moderator with several groups appears under each of them.
-      expect(firefighters.text()).toContain('Garrick Ollivander')
-      expect(music.text()).toContain('Garrick Ollivander')
-      expect(music.text()).not.toContain('Bibi Bloxberg')
+      expect(firefighters.text()).toContain('garrick')
+      expect(music.text()).toContain('garrick')
+      expect(music.text()).not.toContain('bibi')
     })
 
     it('includes KI-Moderatoren, who are moderators with Crea', async () => {
       await wrapper.vm.$nextTick()
-      expect(wrapper.text()).toContain('Garrick Ollivander')
+      expect(wrapper.text()).toContain('garrick')
+    })
+
+    // The list is ordered by what it shows. Sorted by an invisible real name, the order
+    // would look random to the reader (the plan's named trap for this page).
+    it('sorts moderators by their alias', async () => {
+      await wrapper.vm.$nextTick()
+      const sections = wrapper.findAll('.mb-3')
+      const firefighters = sections.find((section) => section.text().includes('Feuerwehr'))
+      const text = firefighters.text()
+      expect(text.indexOf('bibi')).toBeGreaterThan(-1)
+      expect(text.indexOf('bibi')).toBeLessThan(text.indexOf('garrick'))
     })
 
     it('puts an unassigned moderator under "for all groups", not under a single group', async () => {
@@ -199,8 +230,8 @@ describe('InfoStatistic', () => {
       const sections = wrapper.findAll('.mb-3')
       const allGroups = sections.find((section) => section.text().includes('For all groups'))
       const firefighters = sections.find((section) => section.text().includes('Feuerwehr'))
-      expect(allGroups.text()).toContain('Super Admin')
-      expect(firefighters.text()).not.toContain('Super Admin')
+      expect(allGroups.text()).toContain('zora')
+      expect(firefighters.text()).not.toContain('zora')
     })
 
     it('marks a group that has no moderator yet', async () => {
@@ -221,8 +252,7 @@ describe('InfoStatistic', () => {
     it('lists a moderator who looks after a group and the ungrouped ones under both', async () => {
       const mixed = [
         {
-          firstName: 'Mira',
-          lastName: 'Muster',
+          alias: 'mira',
           role: 'MODERATOR',
           visibleCreationGroups: ['feuerwehr'],
           seesAllCreationGroups: false,
@@ -249,14 +279,14 @@ describe('InfoStatistic', () => {
       const untagged = sections.find((section) =>
         section.text().includes('Contributions without a group'),
       )
-      expect(firefighters.text()).toContain('Mira Muster')
-      expect(untagged.text()).toContain('Mira Muster')
+      expect(firefighters.text()).toContain('mira')
+      expect(untagged.text()).toContain('mira')
     })
 
     it('keeps administrators out of the group listing', async () => {
       await wrapper.vm.$nextTick()
       const sections = wrapper.findAll('.mb-3')
-      expect(sections.every((section) => !section.text().includes('Peter Lustig'))).toBe(true)
+      expect(sections.every((section) => !section.text().includes('peterl'))).toBe(true)
     })
   })
 
