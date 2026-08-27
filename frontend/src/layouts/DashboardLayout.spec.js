@@ -291,6 +291,33 @@ describe('DashboardLayout', () => {
     })
 
     /**
+     * ⛔ The fourth copy of "which page is this?" in this file family, and it carried the
+     * same blind spot as the other three: `/overview/` is not `/overview` to `includes`, and
+     * a router really hands that path over. Header and column read it correctly since the
+     * section fix; this line would have left the balance beside them at whatever it was when
+     * the layout mounted.
+     */
+    it.each(['/overview/', '/transactions/'])('asks again at %s as well', async (path) => {
+      await router.push('/send')
+      mockRefetchFn.mockClear()
+
+      await router.push(path)
+      await nextTick()
+
+      expect(mockRefetchFn).toHaveBeenCalledTimes(1)
+    })
+
+    it('still asks nowhere else', async () => {
+      await router.push('/overview')
+      mockRefetchFn.mockClear()
+
+      await router.push('/calculator')
+      await nextTick()
+
+      expect(mockRefetchFn).not.toHaveBeenCalled()
+    })
+
+    /**
      * ⚠️ With NO arguments. `refetch(variables)` replaces them, so passing the paging ones
      * along would send somebody sitting on page three back to page one every time they
      * glanced at their balance. Empty means "the same question again".

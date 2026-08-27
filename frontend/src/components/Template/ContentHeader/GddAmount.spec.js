@@ -102,6 +102,37 @@ describe('GddAmount', () => {
    * bare "button" and its result was never announced at all. The success toast used to
    * cover that; removing the toast laid it bare rather than causing it.
    */
+  /**
+   * ⛔ Two quick clicks are what this switch invites, and they used to leave the server and
+   * the device on different values: `!hideAmount.value` was read once for the request and
+   * again for the commit, so both clicks sent "hide" and the two commits then ran in turn and
+   * landed back on "visible". The balance stayed on screen and came back hidden at the next
+   * login, with nothing saying so.
+   *
+   * ⚠️ What this does NOT promise is that two clicks return you to where you started. The
+   * second one reads a state the first has not reached yet, so it repeats the same request
+   * and lands on the same value. Consistent, and one round trip more than necessary --
+   * serialising the clicks would be a separate change to the control, not to this read.
+   */
+  it('leaves the server and the device on the same value after two quick clicks', async () => {
+    const landed = []
+    mockMutate.mockImplementation((args) => {
+      landed.push(args.hideAmountGDD)
+      return Promise.resolve({ data: { updateUserInfos: { validValues: 1 } } })
+    })
+
+    const button = wrapper.find('[data-test="toggle-hide-amount-gdd"]')
+    // Both before either answer arrives.
+    const first = button.trigger('click')
+    const second = button.trigger('click')
+    await first
+    await second
+    await nextTick()
+
+    expect(landed).toHaveLength(2)
+    expect(mockHideAmountGDD.value).toBe(landed[landed.length - 1])
+  })
+
   describe('the eye is a named toggle, not a bare button', () => {
     const toggle = () => wrapper.find('[data-test="toggle-hide-amount-gdd"]')
 

@@ -311,6 +311,7 @@ import {
 import CONFIG from '@/config'
 import { useAppToast } from '@/composables/useToast'
 import { hasRightSide } from '@/utils/rightSide'
+import { routeSection } from '@/utils/routeSection'
 
 const store = useStore()
 const route = useRoute()
@@ -397,12 +398,17 @@ const updateTransactions = ({ currentPage, pageSize }) => {
  * ⚠️ Refetched with NO arguments: Apollo then reuses the variables the query already has,
  * so somebody sitting on page three of their transactions is not sent back to page one.
  */
-const PAGES_SHOWING_A_BALANCE = ['/overview', '/transactions']
+// ⚠️ Sections, compared through `routeSection`, not whole paths compared for equality. This
+// was the FOURTH copy of "which page is this?" in this layout family, and it carried the same
+// blind spot as the other three: `/overview/` is not `/overview` to `includes`, and a router
+// really hands that path over. The header and the column read it correctly since 27.08.; this
+// line would have left the balance beside them at whatever it was when the layout mounted.
+const SECTIONS_SHOWING_A_BALANCE = ['overview', 'transactions']
 
 watch(
   () => route.path,
   (path) => {
-    if (!PAGES_SHOWING_A_BALANCE.includes(path)) {
+    if (!SECTIONS_SHOWING_A_BALANCE.includes(routeSection(path))) {
       return
     }
     pending.value = true
