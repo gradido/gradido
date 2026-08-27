@@ -13,10 +13,7 @@
         </BRow>
         <BRow>
           <BCol class="d-flex justify-content-end mb-4 mb-lg-0">
-            <router-link
-              :to="routeWithParamsAndQuery('ForgotPassword')"
-              data-test="forgot-password-link"
-            >
+            <router-link :to="{ name: 'ForgotPassword' }" data-test="forgot-password-link">
               {{ $t('settings.password.forgot_pwd') }}
             </router-link>
           </BCol>

@@ -57,7 +57,12 @@ const { toastError } = useAppToast()
 const showPageMessage = ref(false)
 const success = ref(null)
 
-const { params } = useRoute()
+// ⚠️ The route object, not its parts. Both `/forgot-password` and
+// `/forgot-password/:comingFrom` render THIS component, so vue-router reuses the mounted
+// instance when one leads to the other - and a destructured `params` keeps pointing at the
+// object from the first navigation. Nothing takes that path today; the trap is left shut
+// rather than left standing. (coderabbit on #3816.)
+const route = useRoute()
 
 const { t } = useI18n()
 
@@ -72,7 +77,9 @@ const { t } = useI18n()
  * would fix nothing.
  */
 const subtitleText = computed(() =>
-  params.comingFrom ? t('settings.password.resend_subtitle') : t('settings.password.subtitle'),
+  route.params.comingFrom
+    ? t('settings.password.resend_subtitle')
+    : t('settings.password.subtitle'),
 )
 
 const { mutate } = useMutation(forgotPassword)
