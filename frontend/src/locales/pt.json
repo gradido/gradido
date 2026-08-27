@@ -457,6 +457,9 @@
     "download-hint": "Uma única imagem em qualidade de impressão — para uma gráfica ou para entregar.",
     "needs-username": "O teu cartão leva o teu endereço Gradido, e esse endereço nasce do teu nome de utilizador. Escolhe um primeiro — o campo está em «A minha conta». Depois podes imprimir o teu cartão e entregá-lo.",
     "needs-username-title": "Primeiro o nome de utilizador",
+    "real-name": "Nome real",
+    "real-name-hint": "Sem a marca, no topo aparece o teu nome de utilizador: o teu nome não fica então em lado nenhum do cartão.",
+    "real-name-print": "imprimir",
     "sheet": "Folha com 10 cartões",
     "sheet-hint": "10 cartões de visita em tamanho original numa página A4. Na janela de impressão também podes guardá-la como PDF.",
     "title": "O teu cartão de visita"

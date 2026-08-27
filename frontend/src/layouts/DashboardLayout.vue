@@ -181,10 +181,10 @@
               </BRow>
             </BCol>
             <!-- Right Side Mobil.
-                 ⛔ Also gone while the settings are open, and for the same reason as its desk
-                 twin below: `RightSide` answers `empty` for every /settings route. On a phone
-                 it cost no width, only an empty block's worth of air above the page. -->
-            <BCol v-if="!settingsChrome" :class="bareChrome ? 'd-none' : 'd-block d-lg-none'">
+                 ⛔ Only where the column has something to say -- `hasRightSide` answers that
+                 for both this one and its desk twin below. Where it answers no, this cost no
+                 width but an empty block's worth of air above the page. -->
+            <BCol v-if="showRightSide" :class="bareChrome ? 'd-none' : 'd-block d-lg-none'">
               <right-side>
                 <!--
                   Empty on purpose, and it always was in effect: this column shows below
@@ -229,15 +229,21 @@
           </BRow>
         </BCol>
         <!-- RightSide Desktop.
-             ⛔ Not while the settings are open. `RightSide` answers `empty` for every
-             /settings route (see its own switch), so the column renders NOTHING there -- and
-             still took a quarter of the screen. Together with the menu that left the content
-             six of twelve columns: the widest screen gave the settings the least room, which
-             is exactly backwards. It showed worst on the business card, where the contact
-             field stands beside the card and had no width left to type in.
-             (Bernd, 24.08.2026: "ausgerechnet beim breiten Bildschirm kann ich das
-             Kontakteingabe-Feld nicht ausfüllen".) -->
-        <BCol v-if="!settingsChrome" cols="3" class="d-none d-lg-block">
+             ⛔ Only where there is something to show. Where `RightSide` answers `empty` the
+             column renders NOTHING -- and still took a quarter of the screen. Together with
+             the menu that left the content six of twelve columns: the widest screen gave the
+             page the least room, which is exactly backwards. It showed worst on the business
+             card, where the contact field stands beside the card and had no width left to
+             type in. (Bernd, 24.08.2026: "ausgerechnet beim breiten Bildschirm kann ich das
+             Kontakteingabe-Feld nicht ausfüllen".)
+
+             Since 27.08.2026 that is no longer the settings alone: the booking list stands
+             beside `/overview` and nowhere else, so the till tools, the send form and the
+             booking page get the freed quarter as well. The list is not merely tidied away
+             there -- `/my-gradido-card`, `/my-thank-you-card` and `/scan` are pages held out
+             to another person, and the last bookings were in their field of view. See
+             utils/rightSide. -->
+        <BCol v-if="showRightSide" cols="3" class="d-none d-lg-block">
           <right-side>
             <template #transactions>
               <last-transactions
@@ -304,6 +310,7 @@ import {
 } from '@/composables/useMemberAvatars'
 import CONFIG from '@/config'
 import { useAppToast } from '@/composables/useToast'
+import { hasRightSide } from '@/utils/rightSide'
 
 const store = useStore()
 const route = useRoute()
@@ -316,6 +323,14 @@ const { client: apolloClient } = useApolloClient()
 // it. Every other route leaves these empty and is untouched.
 const bareChrome = computed(() => Boolean(route.meta.bareChrome))
 const settingsChrome = computed(() => Boolean(route.meta.settingsChrome))
+// Both right-hand columns ask this, and so does RightSide itself for what goes inside --
+// one route list, in utils/rightSide, rather than a copy of the condition per column.
+//
+// ⛔ NOT `rightSide`. In `<script setup>` the template compiler resolves a tag against the
+// setup bindings by camelizing it, so `<right-side>` looks for `rightSide` BEFORE it looks
+// for the imported `RightSide` -- a binding of that name wins, and the column then renders
+// a boolean instead of the component. Silently: no warning, no error, just an empty column.
+const showRightSide = computed(() => hasRightSide(route.path))
 const chromeHidden = computed(() => (bareChrome.value ? 'd-none' : ''))
 const mobileHidden = computed(() => (bareChrome.value ? 'd-none d-lg-block' : ''))
 const bareTopSpace = computed(() => (bareChrome.value ? 'pt-lg-4' : ''))

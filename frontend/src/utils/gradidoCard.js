@@ -6,7 +6,8 @@
  * Layout (millimetres, converted to pixels at 300 dpi):
  *
  *   card 85.6 x 54 -- the size of a bank card, with a thin grey cutting line
- *   |- the name, and under it two labelled lines: community and user name
+ *   |- the name, and under it the labelled lines: community, and the user name unless the
+ *   |  member prints no real name -- then the alias IS the name line and the second one goes
  *   |- the picture 20 (or an initials disc) on the left, the QR on the right, and
  *   |  between them the contact block: a heading and up to five lines the member types
  *   `- the address line at the bottom, under a hairline
@@ -90,7 +91,8 @@ const PICTURE = mm(20)
 
 // The band that holds picture, contact lines and QR. It keeps its height whatever the QR
 // measures, so the rest of the card does not move when a shorter address makes the code
-// smaller.
+// smaller. The one thing that does change it is a card printed without the user-name line:
+// then the band takes that row as well, rather than leaving a hole where the line stood.
 const MIDDLE_ROW = mm(28)
 
 // The widest the code may ever be. 28 mm is the size that was tested on paper and read;
@@ -176,7 +178,7 @@ export const cardFileName = (name) => {
   return chequeFileName(person ? `Gradido ${person}` : 'Gradido')
 }
 
-const drawPicture = (ctx, { image, initials, x, y }) => {
+const drawPicture = (ctx, { image, initials, colorSeed, x, y }) => {
   const radius = PICTURE / 2
   if (image) {
     ctx.save()
@@ -191,7 +193,13 @@ const drawPicture = (ctx, { image, initials, x, y }) => {
   // No picture: the initials disc, exactly as the wallet draws it everywhere else. A dashed
   // empty ring is the wallet's way of inviting its owner to upload one -- on a card that is
   // handed away, the same shape reads as a gap, because the beholder is somebody else.
-  const palette = avatarPaletteEntry(initials)
+  //
+  // ⛔ Letters and colour come from two different places, and that is decision AS-010, not
+  // an oversight: the letters follow the line the disc stands next to (the real initials
+  // while the card carries the real name, the alias once it does not), and the colour keeps
+  // hashing the real initials so that nobody's disc changes colour when they hide their
+  // name. The cheque does the same, for the same reason.
+  const palette = avatarPaletteEntry(colorSeed ?? initials)
   ctx.beginPath()
   ctx.arc(x + radius, y + radius, radius, 0, Math.PI * 2)
   ctx.fillStyle = palette.bg
@@ -364,8 +372,10 @@ const drawAddress = (ctx, { host, alias, top }) => {
  * @param {string} data.communityName        the community, as the send form spells it
  * @param {string} data.aliasLabel           the word in front of the user-name line
  * @param {string} data.alias                the user name
+ * @param {boolean} [data.showAliasLine]     false leaves the user-name line off the card
  * @param {string} data.host                 the community host, printed without a scheme
  * @param {string} data.initials             shown when there is no picture
+ * @param {string} [data.colorSeed]          what the disc's colour hashes, if not the letters
  * @param {string} [data.picture]            the crop as a data URI, if there is one
  * @param {string} [data.contactHeading]     the word above the contact lines
  * @param {string[]} [data.contact]          up to five lines the member typed
@@ -414,19 +424,33 @@ export const drawGradidoCard = async (data) => {
     valueColor: COLOR_GREEN,
     top: firstRow,
   })
-  drawLabelledLine(ctx, {
-    label: data.aliasLabel,
-    value: data.alias,
-    valueColor: COLOR_TEXT,
-    top: firstRow + ROW_HEIGHT,
-  })
+  // ⛔ Left off when the member prints no real name. The alias then stands in the name's
+  // place at the top, and a labelled line repeating it two lines below would say the same
+  // word twice -- which is what makes this a missing line rather than an empty one.
+  const showAliasLine = data.showAliasLine !== false
+  if (showAliasLine) {
+    drawLabelledLine(ctx, {
+      label: data.aliasLabel,
+      value: data.alias,
+      valueColor: COLOR_TEXT,
+      top: firstRow + ROW_HEIGHT,
+    })
+  }
 
-  const middleTop = firstRow + 2 * ROW_HEIGHT + BLOCK_GAP
+  // The freed row goes to the band below rather than staying a hole under the community
+  // line: picture, contact block and QR keep their sizes, stay centred and simply gain a
+  // little air, and the address line keeps its place at the foot of the card. Nothing about
+  // the QR changes -- its size follows the address and is capped at QR_MAX, never at the
+  // height of the band it sits in.
+  const labelledLines = showAliasLine ? 2 : 1
+  const middleTop = firstRow + labelledLines * ROW_HEIGHT + BLOCK_GAP
+  const middleRow = MIDDLE_ROW + (2 - labelledLines) * ROW_HEIGHT
   drawPicture(ctx, {
     image: picture,
     initials: data.initials,
+    colorSeed: data.colorSeed,
     x: PADDING,
-    y: middleTop + Math.round((MIDDLE_ROW - PICTURE) / 2),
+    y: middleTop + Math.round((middleRow - PICTURE) / 2),
   })
 
   const qrSize = qrSizeFor(data.qrCanvas)
@@ -438,7 +462,7 @@ export const drawGradidoCard = async (data) => {
     left: PADDING + PICTURE + CONTACT_GAP,
     width: qrLeft - CONTACT_GAP - (PADDING + PICTURE + CONTACT_GAP),
     top: middleTop,
-    height: MIDDLE_ROW,
+    height: middleRow,
   })
 
   // Smoothing off: a scanner reads hard module edges better than soft ones. It is safe to
@@ -450,7 +474,7 @@ export const drawGradidoCard = async (data) => {
   ctx.drawImage(
     data.qrCanvas,
     qrLeft,
-    middleTop + Math.round((MIDDLE_ROW - qrSize) / 2),
+    middleTop + Math.round((middleRow - qrSize) / 2),
     qrSize,
     qrSize,
   )
