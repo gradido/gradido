@@ -55,7 +55,7 @@ import {
   dbInsertUserAlias,
   dbMarkAliasAdopted,
   dbPurgeExpiredAssistedRegistrations,
-  dbPurgeExpiredEmailChanges,
+  dbReleaseUnconfirmedEmailChangeFor,
   dbUpsertUserAvatar,
   findUserByIdentifier,
   getHomeCommunity,
@@ -1578,10 +1578,23 @@ export async function findUserByEmail(email: string): Promise<DbUser> {
   }
 }
 
+/**
+ * Is this address already somebody's? ⚠️ A question that CHANGES something: it gives up any
+ * never-confirmed change holding the address before it answers. The name says only half of
+ * that, and it did so before this line was written - the three callers are the doors through
+ * which an address becomes an account, and each of them is entitled to clear an unproven
+ * claim out of the way. Do not call it to merely look.
+ */
 export async function checkEmailExists(email: string): Promise<boolean> {
-  // A pending e-mail change that ran past its window must not keep the address it wanted
-  // away from whoever registers with it now - clear it first, then ask.
-  await dbPurgeExpiredEmailChanges(emailChangeExpiryCutoff(), email)
+  // A change that only ever TYPED this address in does not keep it from somebody who is
+  // registering with it now - not once it has run out of time, and not while it is still
+  // running either. Whoever registers will have to answer mail at the address; whoever typed
+  // it in has answered nothing, and could hold it for as long as they kept asking again.
+  //
+  // The three callers are the registration, the assisted registration and the Elopage
+  // webhook - every door through which an address becomes somebody's account. A confirmed
+  // row is untouched, so this never takes an address away from the member it belongs to.
+  await dbReleaseUnconfirmedEmailChangeFor(email)
   return dbEmailTaken(email)
 }
 

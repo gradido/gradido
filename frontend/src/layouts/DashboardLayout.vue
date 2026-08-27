@@ -181,31 +181,19 @@
               </BRow>
             </BCol>
             <!-- Right Side Mobil.
-                 ⛔ Only where the column has something to say -- `hasRightSide` answers that
-                 for both this one and its desk twin below. Where it answers no, this cost no
-                 width but an empty block's worth of air above the page. -->
-            <BCol v-if="showRightSide" :class="bareChrome ? 'd-none' : 'd-block d-lg-none'">
-              <right-side>
-                <!--
-                  Empty on purpose, and it always was in effect: this column shows below
-                  992px, while LastTransactions hides itself below 992px (d-none d-lg-block
-                  on its own root). The two conditions never overlap, so the list mounted
-                  here could not appear at any width -- it only rendered, and since the
-                  faces arrived that meant building up to eight base64 pictures per pass
-                  for a subtree nobody can see.
-
-                  On a phone the booking list IS the page, so a second copy of it beside
-                  the page has nothing to add. The desktop column below is the one that
-                  shows.
-                -->
-                <template #transactions />
+                 ⛔ Its own condition, not the desk twin's. The phone carries two of the three
+                 panels; the booking list it does not, because below 992px that list IS the
+                 page and a second copy beside it says nothing. Until now this column asked
+                 the same question as the desktop one and then rendered an empty block on the
+                 overview -- air above the page, for a panel it was never going to show. -->
+            <BCol v-if="showMobilePanel" :class="bareChrome ? 'd-none' : 'd-block d-lg-none'">
+              <right-side :panel="rightSidePanel">
                 <template #contributions>
                   <contributions-template />
                 </template>
                 <template #matching>
                   <matching-template />
                 </template>
-                <template #empty />
               </right-side>
             </BCol>
             <BCol cols="12">
@@ -229,22 +217,19 @@
           </BRow>
         </BCol>
         <!-- RightSide Desktop.
-             ⛔ Only where there is something to show. Where `RightSide` answers `empty` the
-             column renders NOTHING -- and still took a quarter of the screen. Together with
-             the menu that left the content six of twelve columns: the widest screen gave the
-             page the least room, which is exactly backwards. It showed worst on the business
-             card, where the contact field stands beside the card and had no width left to
-             type in. (Bernd, 24.08.2026: "ausgerechnet beim breiten Bildschirm kann ich das
-             Kontakteingabe-Feld nicht ausfüllen".)
+             ⛔ Only where the route asks for a panel. A column that renders nothing still
+             took a quarter of the screen: together with the menu that left the page six of
+             twelve columns, so the widest screen gave it the least room -- exactly backwards.
+             It showed worst on the business card, where the contact field stands beside the
+             card and had no width left to type in. (Bernd, 24.08.2026: "ausgerechnet beim
+             breiten Bildschirm kann ich das Kontakteingabe-Feld nicht ausfüllen".)
 
-             Since 27.08.2026 that is no longer the settings alone: the booking list stands
-             beside `/overview` and nowhere else, so the till tools, the send form and the
-             booking page get the freed quarter as well. The list is not merely tidied away
-             there -- `/my-gradido-card`, `/my-thank-you-card` and `/scan` are pages held out
-             to another person, and the last bookings were in their field of view. See
-             utils/rightSide. -->
-        <BCol v-if="showRightSide" cols="3" class="d-none d-lg-block">
-          <right-side>
+             The booking list stands beside `/overview` and nowhere else, and that is not
+             merely tidiness: `/my-gradido-card`, `/my-thank-you-card` and `/scan` are pages
+             held out to another person, and the member's last bookings were in their field of
+             view. -->
+        <BCol v-if="rightSidePanel" cols="3" class="d-none d-lg-block">
+          <right-side :panel="rightSidePanel">
             <template #transactions>
               <last-transactions
                 :transactions="transactions"
@@ -252,7 +237,6 @@
                 :transaction-link-count="transactionLinkCount"
               />
             </template>
-            <template #empty />
             <template #contributions>
               <contributions-template />
             </template>
@@ -310,7 +294,7 @@ import {
 } from '@/composables/useMemberAvatars'
 import CONFIG from '@/config'
 import { useAppToast } from '@/composables/useToast'
-import { hasRightSide } from '@/utils/rightSide'
+import { routeSection } from '@/utils/routeSection'
 
 const store = useStore()
 const route = useRoute()
@@ -323,14 +307,38 @@ const { client: apolloClient } = useApolloClient()
 // it. Every other route leaves these empty and is untouched.
 const bareChrome = computed(() => Boolean(route.meta.bareChrome))
 const settingsChrome = computed(() => Boolean(route.meta.settingsChrome))
-// Both right-hand columns ask this, and so does RightSide itself for what goes inside --
-// one route list, in utils/rightSide, rather than a copy of the condition per column.
-//
-// ⛔ NOT `rightSide`. In `<script setup>` the template compiler resolves a tag against the
-// setup bindings by camelizing it, so `<right-side>` looks for `rightSide` BEFORE it looks
-// for the imported `RightSide` -- a binding of that name wins, and the column then renders
-// a boolean instead of the component. Silently: no warning, no error, just an empty column.
-const showRightSide = computed(() => hasRightSide(route.path))
+/**
+ * Which panel the right-hand column carries, straight from the matched route record.
+ *
+ * ⛔ It used to be looked up by the first path segment, in a table of its own. Two things
+ * that costs, and both of them bit:
+ *
+ * - **Sibling routes cannot differ.** `/matching/karte` declares `bareChrome` because the map
+ *   wants the whole canvas, and `/matching/entries` wants the matching panel -- but both are
+ *   the section `matching`, so the table had one answer for two routes and the map paid a
+ *   quarter of every desktop screen. It says `rightSide: null` now, one line under the
+ *   `bareChrome` it belongs with.
+ * - **The path had to be parsed at all.** `/overview/` is a path a router really hands over,
+ *   and reading it as text got the section wrong; the matched RECORD cannot be wrong about
+ *   itself. That class of bug turned up four times in one day in this file family.
+ *
+ * And a route added later now carries its own answer instead of needing an edit in a file two
+ * directories away that its author has no reason to open.
+ *
+ * ⛔ NOT named `rightSide`. In `<script setup>` the template compiler resolves a tag against
+ * the setup bindings by camelizing it, so `<right-side>` finds a binding called `rightSide`
+ * BEFORE the imported component -- and renders a boolean instead of the column. Silently.
+ */
+const rightSidePanel = computed(() => route.meta.rightSide ?? null)
+
+// The phone carries two of the three panels. The booking list is the exception, and always
+// was in effect: LastTransactions hides itself below 992px, so mounting it here could never
+// show anything -- it only built up to eight base64 pictures for a subtree nobody can see.
+// Below 992px that list IS the page anyway.
+const MOBILE_HAS_NO_PANEL = ['transactions']
+const showMobilePanel = computed(
+  () => Boolean(rightSidePanel.value) && !MOBILE_HAS_NO_PANEL.includes(rightSidePanel.value),
+)
 const chromeHidden = computed(() => (bareChrome.value ? 'd-none' : ''))
 const mobileHidden = computed(() => (bareChrome.value ? 'd-none d-lg-block' : ''))
 const bareTopSpace = computed(() => (bareChrome.value ? 'pt-lg-4' : ''))
@@ -397,12 +405,17 @@ const updateTransactions = ({ currentPage, pageSize }) => {
  * ⚠️ Refetched with NO arguments: Apollo then reuses the variables the query already has,
  * so somebody sitting on page three of their transactions is not sent back to page one.
  */
-const PAGES_SHOWING_A_BALANCE = ['/overview', '/transactions']
+// ⚠️ Sections, compared through `routeSection`, not whole paths compared for equality. This
+// was the FOURTH copy of "which page is this?" in this layout family, and it carried the same
+// blind spot as the other three: `/overview/` is not `/overview` to `includes`, and a router
+// really hands that path over. The header and the column read it correctly since 27.08.; this
+// line would have left the balance beside them at whatever it was when the layout mounted.
+const SECTIONS_SHOWING_A_BALANCE = ['overview', 'transactions']
 
 watch(
   () => route.path,
   (path) => {
-    if (!PAGES_SHOWING_A_BALANCE.includes(path)) {
+    if (!SECTIONS_SHOWING_A_BALANCE.includes(routeSection(path))) {
       return
     }
     pending.value = true

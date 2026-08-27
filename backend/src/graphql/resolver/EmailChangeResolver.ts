@@ -87,6 +87,11 @@ const revokeLink = (vetoCode: string): string =>
 
 const issuedAt = (contact: DbUserContact): Date => contact.updatedAt || contact.createdAt
 
+const freshCodes = () => ({
+  verificationCode: random(64).toString(),
+  vetoCode: random(64).toString(),
+})
+
 /**
  * Every way a change can end without being carried out. A fresh row goes, a taken-back one
  * is restored - and either way the mailed code stops working, which is why a new one is
@@ -211,12 +216,23 @@ export class EmailChangeResolver {
         await releasePending(previous, manager)
       }
 
-      const codes = { verificationCode: random(64).toString(), vetoCode: random(64).toString() }
-      if (own) {
-        pending = await dbMarkUserContactPending(own, codes, manager)
+      if (own?.emailChecked) {
+        // A real take-back: the member's own PROVEN address, borrowed for the change. Fresh
+        // codes and a fresh window are right here - the address is theirs however this ends,
+        // so its window keeps nobody out.
+        pending = await dbMarkUserContactPending(own, freshCodes(), manager)
+      } else if (own) {
+        // ⛔ The member's own change on this very address, still running - they are asking
+        // again because the mail did not arrive. Writing the row would move `updatedAt`, and
+        // `updatedAt` is the moment the whole change is measured from (the window check, and
+        // `dbPurgeExpiredEmailChanges`). Every repeat would buy another full window: the same
+        // endless hold that `resendEmailChange` stopped selling in #3806, bought through the
+        // other door instead. So the row is left exactly as it is and the codes already on it
+        // go out again - which also means the mail names the deadline the change really has.
+        pending = own
       } else {
         const inserted = await dbInsertPendingEmailChange(
-          { userId: user.id, email, ...codes },
+          { userId: user.id, email, ...freshCodes() },
           manager,
         )
         if (!inserted.success) {
@@ -319,13 +335,16 @@ export class EmailChangeResolver {
       // ⛔ The row is deliberately NOT written here, and fresh codes are deliberately not
       // issued. `updatedAt` is an @UpdateDateColumn with `onUpdate`, so ANY save moves it -
       // and `updatedAt` is the moment the whole change is measured from, both by the window
-      // check above and by `dbPurgeExpiredEmailChanges`. Rotating the codes would therefore
-      // buy the change another full window, once per resend, for as long as somebody keeps
-      // pressing the button: an address nobody ever confirmed, held against everybody else
-      // for good - unregistrable, and closed to the Elopage webhook (see `webhook/elopage`).
-      // Re-sending the codes that are already on the row costs nothing, because the mail
-      // goes to the same address and the same member; and it leaves the change with the one
-      // lifetime it was granted when it started.
+      // check above and by `dbPurgeExpiredEmailChanges`. Rotating the codes would buy the
+      // change another full window, once per resend, for as long as somebody kept pressing.
+      // Re-sending the codes already on the row costs nothing - same address, same member -
+      // and it leaves the change the one lifetime it started with.
+      //
+      // ⚠️ The same door exists in `requestEmailChange`, and until 27.08.2026 it was open:
+      // asking again for the SAME address wrote the row and bought the window this branch
+      // refuses to buy. Both are shut now. What still renews a hold is cancelling and asking
+      // again - that is left standing on purpose, because a never-confirmed change no longer
+      // keeps anybody out (`checkEmailExists` gives it up), so the renewal costs nothing.
       await EVENT_EMAIL_CHANGE_REQUEST(user, manager)
       await queryRunner.commitTransaction()
       pending = found

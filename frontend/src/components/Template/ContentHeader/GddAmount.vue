@@ -80,12 +80,18 @@ const { toastError } = useAppToast()
 const hideAmount = computed(() => store.state.hideAmountGDD)
 
 const updateHideAmountGDD = async () => {
+  // ⛔ Read ONCE, before the waiting. `hideAmount` is a computed on the store, so asking it
+  // again after the await asks a different question: two quick clicks -- the very thing this
+  // switch invites -- both read "visible" and both send "hide", and then the two commits run
+  // in turn and land on visible again. The server holds hidden, the device shows the number,
+  // and nothing says so until the next login. One value, used for both halves. (27.08.2026)
+  const hidden = !hideAmount.value
   try {
     await mutate({
-      hideAmountGDD: !hideAmount.value,
+      hideAmountGDD: hidden,
     })
 
-    store.commit('hideAmountGDD', !hideAmount.value)
+    store.commit('hideAmountGDD', hidden)
     // ⛔ No toast either way. Hiding or showing the balance is a switch whose whole result
     // is on screen the moment it lands -- the number is there or it is not -- so a message
     // saying so afterwards only repeats what the eye has already seen. Switched quickly back
