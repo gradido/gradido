@@ -244,7 +244,8 @@
       "done": "Die Änderung wurde verworfen – Deine bisherige Adresse bleibt bestehen. Wenn Du die Änderung nicht selbst angestoßen hattest, ändere bitte auch Dein Passwort.",
       "text": "Warst Du das nicht? Dann verwirf die angestoßene Änderung – Deine bisherige Adresse bleibt bestehen.",
       "title": "Änderung der E-Mail-Adresse verwerfen"
-    }
+    },
+    "revokeInvalid": "Dieser Link ist ungültig oder abgelaufen."
   },
   "emailConfirmation": {
     "changeAddress": "Adresse korrigieren",

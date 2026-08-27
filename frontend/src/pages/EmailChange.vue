@@ -77,9 +77,14 @@ const act = async () => {
     subtitle.value = texts.value.done
   } catch (error) {
     headline.value = t('message.errorTitle')
-    subtitle.value = error.message.includes('Invalid or expired code')
-      ? t('emailChange.invalid')
-      : error.message
+    if (error.message.includes('Invalid or expired code')) {
+      // The same first sentence, but not the shared advice: "request a new confirmation
+      // mail in your settings" is written for the member confirming - the veto reader
+      // may be somebody else entirely.
+      subtitle.value = revoking.value ? t('emailChange.revokeInvalid') : t('emailChange.invalid')
+    } else {
+      subtitle.value = error.message
+    }
   } finally {
     busy.value = false
     finished.value = true

@@ -244,7 +244,8 @@
       "done": "Değişiklik iptal edildi – önceki adresin kalır. Değişikliği sen istememişsen lütfen şifreni de değiştir.",
       "text": "Bu sen değil miydin? O zaman istenen değişikliği iptal et – önceki adresin kalır.",
       "title": "E-posta adresi değişikliğini iptal et"
-    }
+    },
+    "revokeInvalid": "Bu bağlantı geçersiz veya süresi dolmuş."
   },
   "emailConfirmation": {
     "changeAddress": "Adresi düzelt",
