@@ -150,13 +150,13 @@ When an AI creates a whole new file, that file is marked as AI-generated with a 
 
 Other file types need their own comment syntax — `//` is not a comment there and would break the file. Use the form that matches the language, with the same marker text:
 
-- **GraphQL** (`.graphql`) — a `#` comment on the first line:
+- **GraphQL** (`.graphql`) — a `#` comment on the first line when creating a new file with AI:
 
   ```graphql
   # AI-GENERATED — not an architecture reference
   ```
 
-- **Vue SFC** (`.vue`) — an HTML comment above the first block, not inside `<template>`:
+- **Vue SFC** (`.vue`) — an HTML comment above the first block, not inside `<template>` when creating a new file with AI:
 
   ```vue
   <!-- AI-GENERATED — not an architecture reference -->
