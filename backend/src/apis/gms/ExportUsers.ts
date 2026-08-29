@@ -19,8 +19,8 @@ CORE_CONFIG.EMAIL = false
 // entries are 6000 entries and refused. Whoever goes higher has to cut the snapshots by
 // entry count rather than by member count; there is a worked pattern for it in the GMS
 // repo, `snapshotChunks()` in backend/src/logic/communitySync.bench.test.ts.
-const BATCH_SIZE = 100
-const REQUEST_PER_SECOND = 20
+const BATCH_SIZE = 200
+const REQUEST_PER_SECOND = 10
 const ONE_SECOND_IN_MILLISECONDS = 1000
 
 async function main() {
@@ -57,7 +57,9 @@ async function main() {
     }
     if (requestCountSinceLastCheck >= REQUEST_PER_SECOND) {
       // wait to don't trigger request timeout of nginx of gms server
-      await delay(Math.abs(ONE_SECOND_IN_MILLISECONDS - (now.getTime() - timoutRequestCheck.getTime())))
+      await delay(
+        Math.abs(ONE_SECOND_IN_MILLISECONDS - (now.getTime() - timoutRequestCheck.getTime())),
+      )
     }
     const lastIndex = Math.min(current + BATCH_SIZE, userIds.length)
     const ids = userIds.slice(current, lastIndex).map((idStr) => idStr.id)
