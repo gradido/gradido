@@ -79,8 +79,8 @@ async function main() {
       }
       requestCountSinceLastCheck++
     }
+    alreadyUpdatedUserCount += lastIndex - current
     current += BATCH_SIZE
-    alreadyUpdatedUserCount += BATCH_SIZE
     process.stdout.write(`updated user: ${alreadyUpdatedUserCount}/${userIds.length}\r`)
   } while (current < userIds.length)
 
