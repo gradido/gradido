@@ -1,4 +1,4 @@
-import { CONFIG as CORE_CONFIG } from 'core'
+import { CONFIG as CORE_CONFIG, delay } from 'core'
 import { AppDatabase, User as DbUser, getHomeCommunity } from 'database'
 import { getLogger } from 'log4js'
 import { MonotonicTimer } from 'shared-native'
@@ -20,6 +20,8 @@ CORE_CONFIG.EMAIL = false
 // entry count rather than by member count; there is a worked pattern for it in the GMS
 // repo, `snapshotChunks()` in backend/src/logic/communitySync.bench.test.ts.
 const BATCH_SIZE = 100
+const REQUEST_PER_SECOND = 20
+const ONE_SECOND_IN_MILLISECONDS = 1000
 
 async function main() {
   const timeUsed = new MonotonicTimer()
@@ -45,7 +47,18 @@ async function main() {
 
   let alreadyUpdatedUserCount = 0
   let current = 0
+  let timoutRequestCheck = new Date()
+  let requestCountSinceLastCheck = 0
   do {
+    const now = new Date()
+    if (now.getTime() - timoutRequestCheck.getTime() > ONE_SECOND_IN_MILLISECONDS) {
+      timoutRequestCheck = now
+      requestCountSinceLastCheck = 0
+    }
+    if (requestCountSinceLastCheck >= REQUEST_PER_SECOND) {
+      // wait to don't trigger request timeout of nginx of gms server
+      await delay(Math.abs(ONE_SECOND_IN_MILLISECONDS - (now.getTime() - timoutRequestCheck.getTime())))
+    }
     const lastIndex = Math.min(current + BATCH_SIZE, userIds.length)
     const ids = userIds.slice(current, lastIndex).map((idStr) => idStr.id)
     logger.debug(`ids: ${JSON.stringify(ids)}`)
@@ -62,6 +75,7 @@ async function main() {
         await con.destroy()
         return
       }
+      requestCountSinceLastCheck++
     }
     current += BATCH_SIZE
     alreadyUpdatedUserCount += BATCH_SIZE
