@@ -1,5 +1,6 @@
 import NotFound from '@/pages/NotFoundPage'
 import CONFIG from '@/config'
+import { LAST_TRANSACTIONS_PAGE_SIZE, PAGE_SIZE } from '@/constants'
 
 // The new matching ships dark. Without MATCHING_ACTIVE its routes are never
 // registered at all, so /matching falls through to the catch-all and shows "not
@@ -137,6 +138,13 @@ const routes = [
       // showing their last bookings with it; that is the reason, and it belongs on the
       // routes that do NOT carry this line as much as on the one that does.
       rightSide: 'transactions',
+      // How many bookings the layout's one query asks for while this page is open. Here
+      // rather than in a table inside the layout, for the reason the note above gives: only
+      // the route knows, and a route added later carries its own answer.
+      //
+      // The column shows eight after dropping the two virtual rows and every creation, so
+      // this is deliberately more than eight -- see LAST_TRANSACTIONS_PAGE_SIZE.
+      transactionsPageSize: LAST_TRANSACTIONS_PAGE_SIZE,
     },
   },
   {
@@ -220,6 +228,11 @@ const routes = [
     meta: {
       requiresAuth: true,
       pageTitle: 'transactions',
+      // ⛔ The SAME constant the paginator on this page divides by. The layout asks the
+      // server with this number and GddTransactionList sizes its pages with it; while the
+      // two disagreed -- ten fetched, twenty-five per page -- bookings 11 to 25 were on no
+      // page a member could click.
+      transactionsPageSize: PAGE_SIZE,
     },
   },
   {

@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { nextTick } from 'vue'
 import LastTransactions from './LastTransactions'
 import { forgetAllMemberAvatars, rememberMemberAvatars } from '@/composables/useMemberAvatars'
+import { LAST_TRANSACTIONS_PAGE_SIZE, LAST_TRANSACTIONS_ROWS } from '@/constants'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -126,6 +127,45 @@ describe('LastTransactions', () => {
     wrapper = createWrapper({ transactions })
     await wrapper.vm.$nextTick()
     expect(wrapper.findAll('.mb-4').length).toBe(1)
+  })
+
+  /**
+   * ⛔ The pair of constants, measured rather than compared.
+   *
+   * `LAST_TRANSACTIONS_PAGE_SIZE` exists ONLY to make `LAST_TRANSACTIONS_ROWS` reachable:
+   * the layout asks for that many bookings, and this column then drops the two virtual rows
+   * page one always carries plus every creation before it cuts to eight. Asserting one
+   * constant against the other would be a tautology -- so this builds the page the server
+   * really sends and counts what a member ends up seeing.
+   *
+   * The review of 30.08.2026 found this uncovered by setting the fetch size to 1: every test
+   * in this file and in the layout's stayed green while the column would have shown one row.
+   */
+  it('fills the column from a page of the size the layout asks for', async () => {
+    const booking = (id, typeId) => ({
+      id,
+      typeId,
+      linkedUser: { firstName: 'John', lastName: 'Doe' },
+      amount: 100,
+      balanceDate: '2023-01-01',
+    })
+    // Two creations among the newest is the normal case, not the exception -- that is the
+    // whole reason the fetch is bigger than the cut.
+    const page = [
+      ...Array.from({ length: LAST_TRANSACTIONS_PAGE_SIZE - 2 }, (_, i) =>
+        booking(i + 1, 'TRANSFER'),
+      ),
+      booking(90, 'CREATION'),
+      booking(91, 'CREATION'),
+      // What the backend adds on top of page one, on top of the page size.
+      booking(98, 'DECAY'),
+      booking(99, 'LINK_SUMMARY'),
+    ]
+
+    wrapper = createWrapper({ transactions: page })
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.findAll('.mb-4').length).toBe(LAST_TRANSACTIONS_ROWS)
   })
 
   /**

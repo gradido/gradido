@@ -39,6 +39,9 @@ vi.mock('@/composables/useToast', () => ({
 vi.mock('@/components/GddTransactionList', () => ({
   default: {
     name: 'GddTransactionList',
+    // Declared so the test below can read it as a prop rather than as a fallthrough
+    // attribute — this page passing the page number through is the whole point of it.
+    props: ['currentPage'],
     template: '<div class="mock-gdd-transaction-list"></div>',
   },
 }))
@@ -97,6 +100,15 @@ describe('Transactions', () => {
     expect(wrapper.emitted('update-transactions')).toEqual([[{ currentPage: 2, pageSize: 25 }]])
   })
 
+  // ⛔ The middle link of the chain the whole fix rests on: layout -> this page -> list.
+  // Severing any one of the three brings back a paginator showing a different page from the
+  // rows above it.
+  it('hands the page the layout holds down to the list', async () => {
+    wrapper = createWrapper({ listPage: 3 })
+
+    expect(wrapper.findComponent({ name: 'GddTransactionList' }).props('currentPage')).toBe(3)
+  })
+
   describe('GDT transactions', () => {
     beforeEach(() => {
       wrapper = createWrapper({ gdt: true })
@@ -151,11 +163,11 @@ describe('Transactions', () => {
       expect(mockToastError).toHaveBeenCalledWith('API Error')
     })
 
-    it('updates GDT transactions when currentPage changes', async () => {
+    it('updates GDT transactions when gdtPage changes', async () => {
       await wrapper.setProps({ gdt: true })
       vi.clearAllMocks()
 
-      wrapper.vm.currentPage = 2
+      wrapper.vm.gdtPage = 2
       await nextTick()
 
       expect(mockLoadGdt).toHaveBeenCalled()

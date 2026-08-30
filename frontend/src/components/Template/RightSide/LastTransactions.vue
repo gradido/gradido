@@ -64,6 +64,7 @@ import { computed } from 'vue'
 import AppAvatar from '@/components/AppAvatar.vue'
 import { avatarZoomBindings } from '@/composables/useAvatarZoom'
 import { memberAvatarProps } from '@/composables/useMemberAvatars'
+import { LAST_TRANSACTIONS_ROWS } from '@/constants'
 
 const props = defineProps({
   transactions: {
@@ -101,7 +102,11 @@ const rows = computed(() =>
         transaction.typeId !== 'LINK_SUMMARY' &&
         transaction.typeId !== 'CREATION',
     )
-    .slice(0, 8)
+    // ⚠️ The fetch that feeds this is sized in `constants.js` for exactly this cut, and it
+    // is deliberately larger: three kinds of row are dropped above and never reach the
+    // count. Change the number here and the fetch has to grow with it, or the column simply
+    // shows fewer rows than it asks for.
+    .slice(0, LAST_TRANSACTIONS_ROWS)
     .map((transaction) => {
       const avatar = memberAvatarProps(transaction.linkedUser)
       return {

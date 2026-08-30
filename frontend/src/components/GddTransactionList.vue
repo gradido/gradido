@@ -34,11 +34,15 @@
               <gdd-transaction :transaction="transaction" />
             </template>
             <template v-else #LINK_SUMMARY>
+              <!-- Withdrawing a link changes the list, so it asks for the page it is on to
+                   be fetched again. Named explicitly rather than handed the child's event:
+                   the child sends no page, and a later one that did would silently become
+                   the page number. -->
               <transaction-link-summary
                 v-bind="transaction"
                 :transaction-link-count="transactionLinkCount"
                 :open-link-count="openLinkCount"
-                @update-transactions="updateTransactions"
+                @update-transactions="askForPage(currentPage)"
               />
             </template>
           </transaction-list-item>
@@ -55,7 +59,7 @@
       :total-rows="transactionCount"
       align="center"
       :hide-ellipsis="true"
-      @update:model-value="currentPage = $event"
+      @update:model-value="askForPage($event)"
     />
     <div v-if="transactionCount <= 0" class="mt-4 text-center">
       <IBiThreeDots v-if="pending" />
@@ -69,6 +73,7 @@ import TransactionListItem from '@/components/TransactionListItem'
 import TransactionDecay from '@/components/Transactions/TransactionDecay'
 import TransactionLinkSummary from '@/components/Transactions/TransactionLinkSummary'
 import GddTransaction from '@/components/Transactions/GddTransaction.vue'
+import { PAGE_SIZE } from '@/constants'
 
 export default {
   name: 'GddTransactionList',
@@ -80,7 +85,17 @@ export default {
   },
   props: {
     transactions: { type: Array, default: () => [] },
-    pageSize: { type: Number, default: 25 },
+    /**
+     * The page these rows ARE -- decided, fetched and held by the layout.
+     *
+     * ⛔ Not this component's own state. It was until 30.08.2026, and the two drifted apart
+     * every time the layout kept a page across a navigation, because this component is
+     * destroyed and rebuilt on a route change while the query above it is not. The way to
+     * another page is `askForPage`: ask, and the number comes back down here with the rows
+     * it belongs to. The full account is over the route watch in DashboardLayout.vue.
+     */
+    currentPage: { type: Number, default: 1 },
+    pageSize: { type: Number, default: PAGE_SIZE },
     timestamp: { type: Number, default: 0 },
     transactionCount: { type: Number, default: 0 },
     transactionLinkCount: { type: Number, default: 0 },
@@ -88,29 +103,30 @@ export default {
     showPagination: { type: Boolean, default: false },
     pending: { type: Boolean },
   },
-  data() {
-    return {
-      currentPage: 1,
-    }
-  },
   computed: {
     isPaginationVisible() {
       return this.showPagination && this.pageSize < this.transactionCount
     },
   },
   watch: {
-    currentPage() {
-      this.updateTransactions()
-    },
+    // ⚠️ Dead wiring as it stands, and worth knowing before anyone traces it again: nothing
+    // ever changes `timestamp`. Transactions.vue sets it once per mount and never writes to
+    // it, and it is the only place this component is used -- so this handler cannot fire in
+    // production. Left alone because removing a prop is not this change's business.
+    //
+    // ⚠️ Wrapped rather than `handler: 'askForPage'`: a watcher hands its handler the new
+    // value, and the new value here would be the timestamp, going out as a page number.
     timestamp: {
       immediate: false,
-      handler: 'updateTransactions',
+      handler() {
+        this.askForPage(this.currentPage)
+      },
     },
   },
   methods: {
-    updateTransactions() {
+    askForPage(currentPage) {
       this.$emit('update-transactions', {
-        currentPage: this.currentPage,
+        currentPage,
         pageSize: this.pageSize,
       })
       window.scrollTo(0, 0)
