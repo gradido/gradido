@@ -24,6 +24,8 @@ import 'clipboard-polyfill/overwrite-globals'
 
 import { installStaleChunkReload } from './utils/reloadOnStaleChunk'
 
+import { installNewVersionCheck } from './utils/newVersionCheck'
+
 import { createBootstrap } from 'bootstrap-vue-next'
 
 import GlobalDirectives from '@/plugins/globalDirectives'
@@ -34,6 +36,12 @@ import '@morev/vue-transitions/styles'
 // Before anything else that could navigate: a deploy invalidates the lazily loaded pages of
 // every wallet that is still open, and the cure is one reload -- see the module itself.
 installStaleChunkReload()
+
+// The other half of staying current across a deploy, and the one that does not wait for a
+// failure: it asks the server whether a newer build is being served and raises the flag
+// AppOutdatedBar reads. The router is handed over because an in-app navigation is the one
+// trigger that needs no browser event -- see the module itself.
+installNewVersionCheck({ router })
 
 const app = createApp(App)
 

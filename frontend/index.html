@@ -46,8 +46,15 @@
 
     No service worker, on purpose. Chrome dropped it from the installability criteria (108 on
     mobile, 112 on desktop) and iOS never needed it. It would take over keeping the app fresh
-    after a deploy -- a job installStaleChunkReload() and AppOutdatedBar already do, and both
-    rest on "a reload always fetches index.html", which a caching worker makes false.
+    after a deploy -- a job installStaleChunkReload(), newVersionCheck() and AppOutdatedBar
+    already do, and all three rest on the server being reachable for index.html.
+
+    ⛔ The third of those raises the stake, so anyone weighing a worker should read this first:
+    newVersionCheck fetches index.html itself and compares the build it names with the one it
+    is running. `cache: 'no-store'` governs the HTTP cache and does NOT bypass a worker's
+    fetch handler -- so a caching worker would hand it a copy of its own index.html, the
+    comparison would answer "nothing was deployed" for as long as the worker lived, and
+    nothing would fail: no error, no failing test, just a wallet that never updates again.
 
     viewport-fit stays at its default: keeping the safe area costs a strip in the theme colour
     and saves giving every page its own inset padding.
