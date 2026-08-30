@@ -34,11 +34,15 @@
               <gdd-transaction :transaction="transaction" />
             </template>
             <template v-else #LINK_SUMMARY>
+              <!-- Withdrawing a link changes the list, so it asks for the page it is on to
+                   be fetched again. Named explicitly rather than handed the child's event:
+                   the child sends no page, and a later one that did would silently become
+                   the page number. -->
               <transaction-link-summary
                 v-bind="transaction"
                 :transaction-link-count="transactionLinkCount"
                 :open-link-count="openLinkCount"
-                @update-transactions="updateTransactions"
+                @update-transactions="askForPage(currentPage)"
               />
             </template>
           </transaction-list-item>
@@ -55,7 +59,7 @@
       :total-rows="transactionCount"
       align="center"
       :hide-ellipsis="true"
-      @update:model-value="currentPage = $event"
+      @update:model-value="askForPage($event)"
     />
     <div v-if="transactionCount <= 0" class="mt-4 text-center">
       <IBiThreeDots v-if="pending" />
@@ -69,6 +73,7 @@ import TransactionListItem from '@/components/TransactionListItem'
 import TransactionDecay from '@/components/Transactions/TransactionDecay'
 import TransactionLinkSummary from '@/components/Transactions/TransactionLinkSummary'
 import GddTransaction from '@/components/Transactions/GddTransaction.vue'
+import { PAGE_SIZE } from '@/constants'
 
 export default {
   name: 'GddTransactionList',
@@ -80,7 +85,21 @@ export default {
   },
   props: {
     transactions: { type: Array, default: () => [] },
-    pageSize: { type: Number, default: 25 },
+    /**
+     * The page these rows ARE -- decided, fetched and held by the layout.
+     *
+     * ⛔ Not this component's own state any more. It used to be, and the two numbers drifted
+     * the moment the layout kept a page across a navigation: this component is destroyed and
+     * rebuilt on every route change, so it came back at one, while the query above it still
+     * held three. The paginator then highlighted one, the rows were three, and the buttons
+     * back to one were disabled -- because as far as the paginator knew, it was there
+     * already. (Bernd, 30.08.2026.)
+     *
+     * The way to another page is `askForPage`: ask, and the new number arrives back down
+     * here with the rows it belongs to.
+     */
+    currentPage: { type: Number, default: 1 },
+    pageSize: { type: Number, default: PAGE_SIZE },
     timestamp: { type: Number, default: 0 },
     transactionCount: { type: Number, default: 0 },
     transactionLinkCount: { type: Number, default: 0 },
@@ -88,29 +107,26 @@ export default {
     showPagination: { type: Boolean, default: false },
     pending: { type: Boolean },
   },
-  data() {
-    return {
-      currentPage: 1,
-    }
-  },
   computed: {
     isPaginationVisible() {
       return this.showPagination && this.pageSize < this.transactionCount
     },
   },
   watch: {
-    currentPage() {
-      this.updateTransactions()
-    },
     timestamp: {
       immediate: false,
-      handler: 'updateTransactions',
+      // ⚠️ Wrapped rather than `handler: 'askForPage'`: a watcher hands its handler the new
+      // value, and the new value here is a timestamp. It would have gone out as the page
+      // number.
+      handler() {
+        this.askForPage(this.currentPage)
+      },
     },
   },
   methods: {
-    updateTransactions() {
+    askForPage(currentPage) {
       this.$emit('update-transactions', {
-        currentPage: this.currentPage,
+        currentPage,
         pageSize: this.pageSize,
       })
       window.scrollTo(0, 0)

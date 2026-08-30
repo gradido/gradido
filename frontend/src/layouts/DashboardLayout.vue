@@ -205,6 +205,7 @@
                     :balance="balance"
                     :gdt-balance="GdtBalance"
                     :transactions="transactions"
+                    :list-page="listPage"
                     :transaction-count="transactionCount"
                     :transaction-link-count="transactionLinkCount"
                     :open-link-count="openLinkCount"
@@ -231,8 +232,11 @@
         <BCol v-if="rightSidePanel" cols="3" class="d-none d-lg-block">
           <right-side :panel="rightSidePanel">
             <template #transactions>
+              <!-- ⛔ `newestTransactions`, NOT the list the transactions page pages through.
+                   The column shows the member's newest bookings; feeding it the paged list
+                   put page three beside the overview. -->
               <last-transactions
-                :transactions="transactions"
+                :transactions="newestTransactions"
                 :transaction-count="transactionCount"
                 :transaction-link-count="transactionLinkCount"
               />
@@ -297,6 +301,7 @@ import {
   rememberMemberAvatars,
 } from '@/composables/useMemberAvatars'
 import CONFIG from '@/config'
+import { LAST_TRANSACTIONS_PAGE_SIZE, PAGE_SIZE } from '@/constants'
 import { useAppToast } from '@/composables/useToast'
 import { routeSection } from '@/utils/routeSection'
 
@@ -347,13 +352,52 @@ const chromeHidden = computed(() => (bareChrome.value ? 'd-none' : ''))
 const mobileHidden = computed(() => (bareChrome.value ? 'd-none d-lg-block' : ''))
 const bareTopSpace = computed(() => (bareChrome.value ? 'pt-lg-4' : ''))
 const router = useRouter()
+
+/**
+ * What the ONE booking query asks for, decided by the section the member is looking at.
+ *
+ * ⛔ There is a single query behind two very different readers, and until now the second one
+ * inherited whatever the first had last asked for. The transactions page pages by handing
+ * `{ currentPage, pageSize }` up here; those variables then stayed on the query, and every
+ * later refetch reused them -- including the one on the way to the overview, whose column is
+ * supposed to show the NEWEST bookings and instead showed page three. (Bernd, 30.08.2026.)
+ *
+ * The section decides, so the variables cannot carry a stale page across a navigation:
+ * `/overview` asks for the newest page in the column's size, `/transactions` for the newest
+ * page in the list's size, and a page number only ever comes from a paginator click within
+ * one visit (`updateTransactions` below).
+ *
+ * ⚠️ The `transactions` size and the size the paginator divides by are one number in two
+ * places -- both read `PAGE_SIZE` from `constants.js`, and nothing enforces that beyond
+ * both of them reading it. A layout asking for ten while the paginator divided by
+ * twenty-five is what hid rows 11 to 25 from every page a member could click.
+ *
+ * Sections, compared through `routeSection`, not whole paths compared for equality: this was
+ * the FOURTH copy of "which page is this?" in this layout family, and it carried the same
+ * blind spot as the other three -- `/overview/` is not `/overview` to `includes`, and a
+ * router really hands that path over.
+ */
+const SECTION_PAGE_SIZE = {
+  overview: LAST_TRANSACTIONS_PAGE_SIZE,
+  transactions: PAGE_SIZE,
+}
+
+const listVariables = (path) => {
+  const pageSize = SECTION_PAGE_SIZE[routeSection(path)]
+  return pageSize === undefined ? null : { currentPage: 1, pageSize, order: 'DESC' }
+}
+
 const {
   refetch: useRefetchTransactionsQuery,
   onError,
   onResult,
 } = useQuery(
   transactionsUserCountQuery,
-  { currentPage: 1, pageSize: 10, order: 'DESC' },
+  // Read from the route this layout STARTS on, not a fixed size. The watch below fires on a
+  // navigation, and a member who reloads on /transactions or opens a bookmark to it never
+  // makes one -- for them this call is the only one there is. Every other section falls back
+  // to the overview's size, which is what the header needs and the cheaper of the two.
+  listVariables(route.path) ?? listVariables('/overview'),
   { fetchPolicy: 'network-only' },
 )
 const { mutate: useLogoutMutation } = useMutation(logout)
@@ -362,6 +406,26 @@ const { toastError } = useAppToast()
 const balance = ref(0)
 const GdtBalance = ref(0)
 const transactions = ref([])
+
+/**
+ * The page of `transactions` currently loaded, and the rows the column beside the overview
+ * draws from.
+ *
+ * Two refs rather than one, because the column and the list want different things from the
+ * same query: the list wants the page that was asked for, the column wants the newest
+ * bookings and nothing else. `newestTransactions` is therefore only written when the answer
+ * that arrived belongs to page one -- so a page-three answer cannot reach the column even
+ * for the moment between a navigation and its refetch, which is exactly what a member on a
+ * slow connection would have seen.
+ *
+ * ⚠️ `listPage` is what was ASKED FOR, and an answer is attributed to whatever it says when
+ * that answer arrives. Turning a page and leaving for the overview inside one round trip can
+ * therefore still file the page-three rows under the column -- the overview's own answer
+ * overwrites them immediately after. Making that impossible would take the variables off the
+ * result, which Apollo does not hand to `onResult`.
+ */
+const listPage = ref(1)
+const newestTransactions = ref([])
 const transactionCount = ref(0)
 const transactionLinkCount = ref(0)
 const openLinkCount = ref(0)
@@ -387,9 +451,21 @@ const logoutUser = async () => {
   }
 }
 
-const updateTransactions = ({ currentPage, pageSize }) => {
+/**
+ * A page turned on the transactions list -- or a page that changed something and wants the
+ * numbers up here to catch up (`Send` after a transfer, the link summary after a link was
+ * withdrawn).
+ *
+ * ⚠️ Defaults rather than bare destructuring, because both kinds of caller come through
+ * here. `Send` calls it as `updateTransactions({})`; that used to reach Apollo as two
+ * `undefined` variables, leaving the SERVER's defaults to decide which page a transfer left
+ * the member on. The answer is the same one -- page one, `PAGE_SIZE` -- but it is now said
+ * here, where the paginator's size is read from the same constant.
+ */
+const updateTransactions = ({ currentPage = 1, pageSize = PAGE_SIZE } = {}) => {
   pending.value = true
-  useRefetchTransactionsQuery({ currentPage, pageSize })
+  listPage.value = currentPage
+  useRefetchTransactionsQuery({ currentPage, pageSize, order: 'DESC' })
 }
 
 /**
@@ -406,24 +482,26 @@ const updateTransactions = ({ currentPage, pageSize }) => {
  * (`network-only`); it simply never ran a second time. A reload would have hidden that by
  * throwing the whole application away, which is why it looked like an answer.
  *
- * ⚠️ Refetched with NO arguments: Apollo then reuses the variables the query already has,
- * so somebody sitting on page three of their transactions is not sent back to page one.
+ * ⛔ Refetched with the SECTION's own variables, and that is what puts a member back on page
+ * one. It used to go out with no arguments so that Apollo would reuse whatever the query
+ * already had, and the note here defended that as "somebody sitting on page three is not
+ * sent back to page one" -- but this watch fires on a PATH change, and turning a page does
+ * not change the path, so it never protected anybody sitting anywhere. What it did instead
+ * was carry page three OUT of the list: the overview's column showed page three as the
+ * member's newest bookings, and coming back to /transactions showed page three under a
+ * paginator that had been rebuilt at page one, with the buttons back to page one disabled.
+ * (Bernd, 30.08.2026.)
  */
-// ⚠️ Sections, compared through `routeSection`, not whole paths compared for equality. This
-// was the FOURTH copy of "which page is this?" in this layout family, and it carried the same
-// blind spot as the other three: `/overview/` is not `/overview` to `includes`, and a router
-// really hands that path over. The header and the column read it correctly since 27.08.; this
-// line would have left the balance beside them at whatever it was when the layout mounted.
-const SECTIONS_SHOWING_A_BALANCE = ['overview', 'transactions']
-
 watch(
   () => route.path,
   (path) => {
-    if (!SECTIONS_SHOWING_A_BALANCE.includes(routeSection(path))) {
+    const variables = listVariables(path)
+    if (!variables) {
       return
     }
     pending.value = true
-    useRefetchTransactionsQuery()
+    listPage.value = 1
+    useRefetchTransactionsQuery(variables)
   },
 )
 
@@ -503,6 +581,10 @@ onResult((value) => {
       const tr = value.data.transactionList
       GdtBalance.value = tr.balance?.balanceGDT === null ? 0 : Number(tr.balance?.balanceGDT)
       transactions.value = tr.transactions || []
+      // Only page one reaches the column beside the overview -- see `newestTransactions`.
+      if (listPage.value === 1) {
+        newestTransactions.value = transactions.value
+      }
       collectMemberAvatars(transactions.value)
       balance.value = Number(tr.balance?.balance) || 0
       transactionCount.value = tr.balance?.count || 0

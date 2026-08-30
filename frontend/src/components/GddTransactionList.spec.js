@@ -239,6 +239,30 @@ describe('GddTransactionList', () => {
             expect.arrayContaining([[{ currentPage: 2, pageSize: 25 }]]),
           )
         })
+
+        /**
+         * ⛔ Asking is all a click does. The highlight follows the ROWS, which arrive from
+         * the layout together with the page number they belong to -- so it cannot run ahead
+         * of them.
+         *
+         * Until 30.08.2026 the click set a number here, and this component is rebuilt on
+         * every route change while the query above it is not: it came back at one, the rows
+         * were whatever page the member had last turned to, and the buttons back to page one
+         * were disabled because the paginator believed it was there.
+         */
+        it('leaves the highlight where the layout put it', () => {
+          // ⚠️ Read as an ATTRIBUTE: the auto-stub declares no props of its own, so
+          // everything handed to it arrives as a string. `props('modelValue')` comes back
+          // undefined here and would pass against any wrong page just as happily.
+          const paginator = wrapper.findComponent({ name: 'BPagination' })
+          expect(paginator.attributes('model-value')).toBe('1')
+        })
+      })
+
+      it('shows the page it was given', async () => {
+        await wrapper.setProps({ currentPage: 3 })
+
+        expect(wrapper.findComponent({ name: 'BPagination' }).attributes('model-value')).toBe('3')
       })
 
       describe('show no pagination', () => {
