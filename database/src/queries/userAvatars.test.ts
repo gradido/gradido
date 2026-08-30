@@ -301,7 +301,7 @@ describe('member avatars for the booking list', () => {
   // face, so a gap here is the same leak, only more of it.
   describe('the full rendition of another member', () => {
     it('hands out the full crop of a member who allows it', async () => {
-      const full = await dbFindMemberAvatarFull(gid(SHOWN))
+      const full = await dbFindMemberAvatarFull(gid(SHOWN), null)
       expect(full).not.toBeNull()
       expect(Buffer.from(full as Buffer).equals(pictureFull)).toBe(true)
     })
@@ -309,7 +309,7 @@ describe('member avatars for the booking list', () => {
     // Two columns, both Buffers, and nothing in the types keeps them apart. Asserted
     // rather than assumed, exactly as it is for the owner's own two readers above.
     it('does not hand the small rendition out as the full one', async () => {
-      const full = await dbFindMemberAvatarFull(gid(SHOWN))
+      const full = await dbFindMemberAvatarFull(gid(SHOWN), null)
       expect(Buffer.from(full as Buffer).equals(picture)).toBe(false)
     })
 
@@ -317,25 +317,61 @@ describe('member avatars for the booking list', () => {
     // permitted one in exactly one column. A single "returns null" test would stay green
     // if the whole guard died.
     it('hands out nothing for a member who switched it off', async () => {
-      expect(await dbFindMemberAvatarFull(gid(SWITCHED_OFF))).toBeNull()
+      expect(await dbFindMemberAvatarFull(gid(SWITCHED_OFF), null)).toBeNull()
     })
 
     it('hands out nothing for a deleted member, switch or no switch', async () => {
-      expect(await dbFindMemberAvatarFull(gid(DELETED))).toBeNull()
+      expect(await dbFindMemberAvatarFull(gid(DELETED), null)).toBeNull()
     })
 
     it('hands out nothing for a member of another community', async () => {
-      expect(await dbFindMemberAvatarFull(gid(FOREIGN))).toBeNull()
+      // ⚠️ Asked with the foreign member's OWN community uuid, not null. Since the reader
+      // matches the pair, `null` would miss this row on the identity and the test would go
+      // green without the `foreign = 0` term ever being consulted -- the refusal has to be
+      // the guard's, not the key's.
+      expect(
+        await dbFindMemberAvatarFull(gid(FOREIGN), '99999999-9999-4999-8999-999999999999'),
+      ).toBeNull()
     })
 
     it('hands out nothing for a member who has no picture', async () => {
-      expect(await dbFindMemberAvatarFull(gid(NO_PICTURE))).toBeNull()
+      expect(await dbFindMemberAvatarFull(gid(NO_PICTURE), null)).toBeNull()
     })
 
     // One answer for "no such member" and for "not allowed", so that asking cannot be
     // used to find out which accounts exist.
     it('says nothing about a member it does not know', async () => {
-      expect(await dbFindMemberAvatarFull('00000000-0000-4000-8000-00000009999')).toBeNull()
+      expect(await dbFindMemberAvatarFull('00000000-0000-4000-8000-00000009999', null)).toBeNull()
+    })
+
+    /**
+     * The identity is the PAIR. `users` is unique on (gradido_id, community_uuid), so an id
+     * on its own does not name one person -- and a reader that ignores the second half
+     * hands back whoever the database reached first.
+     *
+     * ⛔ The NULL case is the one that breaks if somebody "tidies" the query into a plain
+     * `eq`: in SQL nothing equals NULL, so `eq(col, null)` would answer "no such member"
+     * for every account that registered before the home community had a uuid. Both
+     * directions are asserted, because each on its own is satisfied by a reader that always
+     * returns null.
+     */
+    it('finds the member whose community uuid is null', async () => {
+      const full = await dbFindMemberAvatarFull(gid(SHOWN), null)
+      expect(full).not.toBeNull()
+      expect(Buffer.from(full as Buffer).equals(pictureFull)).toBe(true)
+    })
+
+    it('finds the member whose community uuid is set', async () => {
+      const full = await dbFindMemberAvatarFull(gid(WITH_COMMUNITY), HOME_COMMUNITY)
+      expect(full).not.toBeNull()
+      expect(Buffer.from(full as Buffer).equals(pictureFull)).toBe(true)
+    })
+
+    // ...and each of them is refused under the OTHER community, which is what makes the two
+    // above assertions about the pair rather than about the id.
+    it('refuses the same member under a community they are not in', async () => {
+      expect(await dbFindMemberAvatarFull(gid(SHOWN), HOME_COMMUNITY)).toBeNull()
+      expect(await dbFindMemberAvatarFull(gid(WITH_COMMUNITY), null)).toBeNull()
     })
   })
 })

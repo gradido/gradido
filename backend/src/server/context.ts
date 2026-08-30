@@ -19,6 +19,14 @@ export interface Context {
   transactionCount?: number
   linkCount?: number
   sumHoldAvailableDecayedAmount?: GradidoUnit
+  // How many full-size member pictures this ONE request has already been served.
+  //
+  // ⛔ Per request, not per field. GraphQL lets a single document ask for the same field
+  // any number of times under different aliases, so a cap written inside one resolver call
+  // counts to one every time and bounds nothing. The batched reader next to it caps the
+  // LIST it is handed, which is a cap on the same axis and therefore has the same hole
+  // filled by MEMBER_AVATARS_MAX_REFS only because the list travels as one argument.
+  memberAvatarsFullServed?: number
 }
 
 export const context = (args: ExpressContext): Context => {

@@ -173,7 +173,18 @@ export async function dbFindMemberAvatarTimestamps(userIds: number[]): Promise<M
  * ★ One member per call, not a batch, and that is the shape rather than a simplification:
  * this answers a click. A batch here would be an invitation to prefetch the whole page at
  * ten times the weight of the list it decorates, and the small rendition exists precisely
- * so that nothing has to.
+ * so that nothing has to. ⚠️ The cap that makes that hold is NOT here and cannot be --
+ * GraphQL aliasing puts any number of these in one request, so it is counted per request
+ * at the API layer (MEMBER_AVATARS_FULL_MAX_PER_REQUEST).
+ *
+ * ⛔ Takes the PAIR, and both halves are used. The batched reader above matches on the id
+ * alone and hands the pair back so the caller can sort the answer out; that is right for a
+ * list and wrong here, because a single lookup with `.limit(1)` returns a bare picture with
+ * nothing attached that a caller could check it against. `users` is unique on
+ * (gradido_id, community_uuid) -- the id ALONE is not a key -- so matching both is what
+ * makes this reader answer about the member that was asked about rather than about whoever
+ * the database reached first. Today `foreign = 0` hides the difference; AS-004 is the
+ * delivery that removes exactly that term.
  *
  * Null for a member who has no picture, keeps it to themselves, is deleted, or does not
  * exist -- one answer for all four, deliberately. A distinguishable "no such member" would
@@ -182,12 +193,27 @@ export async function dbFindMemberAvatarTimestamps(userIds: number[]): Promise<M
  * where the own-view reader below returns a Result: there, "not found" is information the
  * caller owns; here it is information about somebody else.
  */
-export async function dbFindMemberAvatarFull(gradidoId: string): Promise<Buffer | null> {
+export async function dbFindMemberAvatarFull(
+  gradidoId: string,
+  communityUuid: string | null,
+): Promise<Buffer | null> {
   const rows = await drizzleDb()
     .select({ avatarFull: userAvatarsTable.avatarFull })
     .from(userAvatarsTable)
     .innerJoin(usersTable, eq(usersTable.id, userAvatarsTable.userId))
-    .where(and(eq(usersTable.gradidoId, gradidoId), mayBeShownToMembers()))
+    .where(
+      and(
+        eq(usersTable.gradidoId, gradidoId),
+        // ⛔ `isNull`, not `eq(col, null)`. In SQL nothing equals NULL, not even NULL, so
+        // `eq` here would silently answer "no such member" for every member who registered
+        // before the home community had a uuid -- and those are the oldest accounts, the
+        // ones least likely to be the reporter of the bug.
+        communityUuid === null
+          ? isNull(usersTable.communityUuid)
+          : eq(usersTable.communityUuid, communityUuid),
+        mayBeShownToMembers(),
+      ),
+    )
     .limit(1)
 
   return rows.at(0)?.avatarFull ?? null
