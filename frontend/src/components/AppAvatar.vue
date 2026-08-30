@@ -4,12 +4,12 @@
        tab stop on every circle in a booking list and announces twenty-five disabled
        controls to a screen reader for one picture. -->
   <component
-    :is="zoomable ? 'button' : 'div'"
+    :is="opensPicture ? 'button' : 'div'"
     ref="root"
     class="app-avatar d-flex justify-content-center align-items-center rounded-circle"
-    :class="{ 'app-avatar-quiet': quiet && !src, 'app-avatar-zoomable': zoomable }"
-    :type="zoomable ? 'button' : undefined"
-    :aria-label="zoomable ? zoomLabel : undefined"
+    :class="{ 'app-avatar-quiet': quiet && !src, 'app-avatar-zoomable': opensPicture }"
+    :type="opensPicture ? 'button' : undefined"
+    :aria-label="opensPicture ? zoomLabel : undefined"
     :style="{
       width: `${size}px`,
       height: `${size}px`,
@@ -122,6 +122,19 @@ const emit = defineEmits(['zoom'])
 
 const root = ref(null)
 
+/**
+ * Whether this circle actually opens anything: the caller asked for it AND there is a
+ * picture to open.
+ *
+ * ⛔ Both halves, structurally, rather than the prop alone. `avatarZoomBindings` never sets
+ * `zoomable` without a `src`, but this is a shared component and that is a convention its
+ * callers keep, not a rule this file enforces -- and a button drawn over letters stops the
+ * booking row's own click and then emits a zoom that `openAvatarZoom` refuses for want of a
+ * picture. A tap that consumes itself and does nothing is worse than the plain circle it
+ * replaced.
+ */
+const opensPicture = computed(() => props.zoomable && Boolean(props.src))
+
 // The rectangle the picture occupies RIGHT NOW, handed up so the overlay can grow out of
 // it. Measured here rather than at the call site: the call site knows which member this
 // is, this knows where the circle ended up.
@@ -136,7 +149,7 @@ const root = ref(null)
 // couples -- would swallow the tap and do neither thing: no picture, and no row either.
 // A dead circle is worse than one that behaves like the plain circle it used to be.
 const onClick = (event) => {
-  if (!props.zoomable) return
+  if (!opensPicture.value) return
   const element = root.value?.$el ?? root.value
   if (!element?.getBoundingClientRect) return
   event.stopPropagation()

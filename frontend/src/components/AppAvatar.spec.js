@@ -144,6 +144,21 @@ describe('AppAvatar', () => {
       ).toBe(true)
     })
 
+    /**
+     * ⛔ `zoomable` alone is not enough, and this is the case that says so. Nothing but
+     * convention stops a caller setting it on a circle that is showing letters -- and such
+     * a button would swallow the booking row's own click and then emit a zoom that
+     * `openAvatarZoom` refuses for want of a picture. A tap that consumes itself and does
+     * nothing is worse than the plain circle it replaced.
+     */
+    it('stays a plain circle when it is told to zoom but has no picture', async () => {
+      const wrapper = mount(AppAvatar, { props: { initials: 'BE', zoomable: true } })
+
+      expect(wrapper.find('button').exists()).toBe(false)
+      await wrapper.find('.app-avatar').trigger('click')
+      expect(wrapper.emitted('zoom')).toBeUndefined()
+    })
+
     it('reports where it is when it is clicked', async () => {
       const wrapper = mount(AppAvatar, {
         props: { initials: 'BE', src: PICTURE, zoomable: true },

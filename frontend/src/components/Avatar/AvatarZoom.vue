@@ -335,7 +335,23 @@ const requestClose = ({ immediate = false } = {}) => {
 }
 
 const onKeydown = (event) => {
-  if (event.key === 'Escape') requestClose()
+  if (event.key === 'Escape') {
+    requestClose()
+    return
+  }
+  // ⛔ `aria-modal` is a CLAIM, not a mechanism: it tells assistive tech the rest of the
+  // page is not there, and does nothing at all to stop Tab reaching it. Without this the
+  // member is told the wallet behind is hidden and can then tab into it and activate
+  // controls they cannot see.
+  //
+  // The overlay holds exactly one focusable thing, so the trap is the whole cycle: keep Tab
+  // on the close button. Written as "put it back" rather than as a list of focusable
+  // elements, because a list would go stale the day something else is added here -- and the
+  // stale version fails open, into the page this is supposed to shut off.
+  if (event.key === 'Tab' && shown.value) {
+    event.preventDefault()
+    closeButton.value?.focus?.()
+  }
 }
 
 // The origin rectangle is in viewport coordinates and is never re-measured, so once the
@@ -398,7 +414,14 @@ onBeforeUnmount(() => {
   // face open -- the idle-timeout logout is the realistic one, it fires precisely when
   // somebody is sitting still and looking -- would leave another member's picture and id
   // in memory for the life of the tab.
-  if (shown.value) closeAvatarZoom()
+  //
+  // ⚠️ Unconditionally, NOT `if (shown.value)`. The watcher is not `immediate` and flushes
+  // before render, so between `openAvatarZoom` and this component noticing there is a
+  // window in which the shared state holds a face while `shown` is still null. An unmount
+  // landing in that window -- and a logout is exactly what unmounts this -- would read the
+  // local state, find nothing, and leave the picture behind. `closeAvatarZoom` on an
+  // already-empty state costs one assignment.
+  closeAvatarZoom()
 })
 </script>
 

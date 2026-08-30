@@ -362,6 +362,28 @@ describe('AvatarZoom', () => {
       opener.remove()
     })
 
+    /**
+     * ⛔ `aria-modal="true"` is a claim about what assistive tech should ignore; it does
+     * nothing to stop Tab. Without a trap the member is told the wallet behind is hidden and
+     * can then tab into it and activate controls they cannot see.
+     */
+    it('keeps Tab inside the overlay', async () => {
+      const behind = document.createElement('button')
+      document.body.appendChild(behind)
+
+      await openGrown()
+      await twoFrames()
+
+      const event = new KeyboardEvent('keydown', { key: 'Tab', cancelable: true })
+      window.dispatchEvent(event)
+      await nextTick()
+
+      expect(event.defaultPrevented).toBe(true)
+      expect(document.activeElement).toBe(document.querySelector('.avatar-zoom-close'))
+      expect(document.activeElement).not.toBe(behind)
+      behind.remove()
+    })
+
     // ...but not to a node the page has since removed: `.focus()` on a detached element is
     // a silent no-op that drops focus to <body>, which is worse than leaving it where the
     // member has already put it.
@@ -389,6 +411,22 @@ describe('AvatarZoom', () => {
    */
   it('lets go of the shared state when it is torn down mid-flight', async () => {
     await openGrown()
+    wrapper.unmount()
+    wrapper = null
+
+    expect(avatarZoomState.value).toBeNull()
+  })
+
+  /**
+   * ⛔ The narrow window the test above cannot reach: the watcher is not `immediate` and
+   * flushes before render, so between `openAvatarZoom` and this component noticing, the
+   * shared state holds a face while `shown` is still null. An unmount landing exactly there
+   * -- and a logout is what unmounts this -- read the LOCAL state, found nothing, and left
+   * the picture behind. No `await` between the two lines, deliberately; that gap is the
+   * whole case.
+   */
+  it('lets go even when it is torn down before it has noticed', () => {
+    openAvatarZoom({ member: MEMBER, src: SMALL, origin: ORIGIN, label: 'Napoli' })
     wrapper.unmount()
     wrapper = null
 
