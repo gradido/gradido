@@ -98,6 +98,13 @@ const props = defineProps({
   // ⛔ Set it only where there IS a picture. A zoomable circle showing letters promises
   // something it cannot deliver -- `avatarZoomBindings` is what decides that, and it hands
   // back nothing at all for a member without one.
+  //
+  // ⛔ And never inside a caller that already wraps this component in a button.
+  // `Avatar/AvatarButton.vue` does exactly that, so `zoomable` there would render
+  // <button><button>, which the HTML parser closes early -- the overlay and the badge fall
+  // outside it and the change-picture click dies, with nothing red to say so. The obvious
+  // next ask ("let me see my OWN picture bigger") lands precisely there; it needs the
+  // wrapper's own handler, not this prop.
   zoomable: {
     type: Boolean,
     default: false,
