@@ -287,9 +287,19 @@ export type UserInsert = typeof usersTable.$inferInsert
 // because `users` is read on nearly every request and an image would weigh every one
 // of those reads down. user_id is the primary key: one member, one picture, so a
 // duplicate is impossible by shape rather than by care.
-// Two renditions from one upload. avatarSmall is what other people see and what will
-// federate; avatarFull is own-view only -- the printed card and the member's own look at
-// their picture. Never hand avatarFull to anybody but its owner.
+// Two renditions from one upload, and since AS-018 the difference between them is SIZE,
+// not audience. avatarSmall is the everyday picture -- every list, every booking row, and
+// what will federate. avatarFull is the 512 crop: the printed card, the member's own look
+// at their picture, and, on a click, one other member looked at properly.
+//
+// ⛔ Both are handed to other members only through a query that carries
+// mayBeShownToMembers() (see queries/userAvatars.ts). The rule is the switch, the deletion
+// and the community scope -- never the rendition. A reader that reaches either column
+// without that guard is a leak whichever column it picks.
+//
+// ⚠️ The header of migration 0114 describes the original rule ("avatar_full ... must never
+// leave the community"). It is left standing as the history it is; this comment is the one
+// that is current.
 export const userAvatarsTable = mysqlTable('user_avatars', {
   userId: int('user_id').primaryKey().notNull(),
   avatarSmall: customMediumBlob('avatar_small').notNull(),

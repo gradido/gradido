@@ -46,8 +46,13 @@ export async function dbFindUserAvatarSmall(
  *
  * ⚠️ It lives here, in the query, and not at the call site. A disclosure rule that every
  * reader has to remember to apply is not a rule; the first caller who forgets it publishes
- * a face, and nothing about the code says they were wrong. Both member-facing queries
+ * a face, and nothing about the code says they were wrong. All three member-facing queries
  * below share this, so there is one place to read and one place to change.
+ *
+ * ★ That it now also guards the FULL rendition (AS-018) is the argument for having put it
+ * here in the first place: opening a second rendition to members was one reader calling an
+ * existing guard, not a disclosure rule rewritten in a second place and drifting from this
+ * one.
  *
  * Two parts, and they are not the same kind of thing:
  *
@@ -154,14 +159,53 @@ export async function dbFindMemberAvatarTimestamps(userIds: number[]): Promise<M
 }
 
 /**
- * The full crop, 512x512, for the printed member card and for the member looking at
- * their own picture.
+ * ONE other member's full crop, 512x512, for looking at their face at a size a thumbnail
+ * cannot carry (AS-018).
  *
- * ⛔ Own view only. This rendition has exactly one legitimate viewer, its owner, which
- * is why it carries no disclosure decision. Whoever calls this has to have established
- * that the caller IS the owner -- there is no scope where handing this to somebody else
- * is correct. Anything shown to OTHER members reads dbFindMemberAvatarsSmall below, which
- * carries the disclosure rule; dbFindUserAvatarSmall above is own-view only, like this one.
+ * ⛔ Read the guard, not the rendition. Until AS-018 this column had exactly one legitimate
+ * viewer and said so in three places; that is no longer true, and the reason it is safe is
+ * NOT that a bigger picture became harmless -- it is that this reader carries
+ * mayBeShownToMembers() just as the small one does. The switch, the deletion and the
+ * community scope decide, and they decide identically for both renditions. What changed is
+ * the RESOLUTION shown to a circle that already sees the face, not the circle.
+ * dbFindUserAvatarFull below stays own-view only and must not grow an argument.
+ *
+ * ★ One member per call, not a batch, and that is the shape rather than a simplification:
+ * this answers a click. A batch here would be an invitation to prefetch the whole page at
+ * ten times the weight of the list it decorates, and the small rendition exists precisely
+ * so that nothing has to.
+ *
+ * Null for a member who has no picture, keeps it to themselves, is deleted, or does not
+ * exist -- one answer for all four, deliberately. A distinguishable "no such member" would
+ * turn this into a directory that confirms which accounts exist, which is the same reason
+ * dbFindMemberAvatarsSmall above never errors. That is also why this returns a bare null
+ * where the own-view reader below returns a Result: there, "not found" is information the
+ * caller owns; here it is information about somebody else.
+ */
+export async function dbFindMemberAvatarFull(gradidoId: string): Promise<Buffer | null> {
+  const rows = await drizzleDb()
+    .select({ avatarFull: userAvatarsTable.avatarFull })
+    .from(userAvatarsTable)
+    .innerJoin(usersTable, eq(usersTable.id, userAvatarsTable.userId))
+    .where(and(eq(usersTable.gradidoId, gradidoId), mayBeShownToMembers()))
+    .limit(1)
+
+  return rows.at(0)?.avatarFull ?? null
+}
+
+/**
+ * The full crop, 512x512, for the printed member card and for the member looking at
+ * THEIR OWN picture.
+ *
+ * ⛔ Own view only, and it carries no disclosure rule: it reads by internal user id, which
+ * only the owner's own session hands it. Whoever calls this has to have established that
+ * the caller IS the owner -- nothing here checks it.
+ *
+ * ⚠️ This used to say there was no scope in which the full rendition may reach somebody
+ * else. Since AS-018 there is one, and it is dbFindMemberAvatarFull above -- a SEPARATE
+ * function that carries mayBeShownToMembers(). The two must stay separate: widening this
+ * one instead would have put a disclosure decision on a reader whose every existing caller
+ * has already established ownership and would therefore pass any guard trivially.
  */
 export async function dbFindUserAvatarFull(
   userId: number,

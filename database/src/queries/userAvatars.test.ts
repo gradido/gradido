@@ -5,6 +5,7 @@ import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { userAvatarsTable, usersTable } from '../schemas'
 import {
   dbDeleteUserAvatar,
+  dbFindMemberAvatarFull,
   dbFindMemberAvatarsSmall,
   dbFindMemberAvatarTimestamps,
   dbFindUserAvatarFull,
@@ -151,6 +152,11 @@ describe('member avatars for the booking list', () => {
   const gid = (id: number) => `00000000-0000-4000-8000-0000000${id}`
 
   const picture = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x42])
+  // ⚠️ Distinct from `picture` on purpose. Both columns held the same bytes here until the
+  // full rendition got a member-facing reader of its own -- at which point "hands back the
+  // full one" and "hands back the small one" became assertions this fixture could not tell
+  // apart, and both would have passed.
+  const pictureFull = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x43, 0x44, 0x45, 0x46])
   const ALL = [SHOWN, SWITCHED_OFF, DELETED, NO_PICTURE, FOREIGN, WITH_COMMUNITY]
 
   beforeAll(async () => {
@@ -182,7 +188,7 @@ describe('member avatars for the booking list', () => {
       await dbUpsertUserAvatar({
         userId,
         avatarSmall: picture,
-        avatarFull: picture,
+        avatarFull: pictureFull,
         mimeType: 'image/jpeg',
       })
     }
@@ -288,5 +294,48 @@ describe('member avatars for the booking list', () => {
     const dates = await dbFindMemberAvatarTimestamps([SHOWN, SWITCHED_OFF, DELETED, NO_PICTURE])
     expect([...dates.keys()]).toEqual([SHOWN])
     expect(dates.get(SHOWN)).toBeInstanceOf(Date)
+  })
+
+  // AS-018: the 512 crop, for ONE member, on a click. Every refusal the small rendition
+  // makes has to be made here too -- this reader hands out a bigger picture of the same
+  // face, so a gap here is the same leak, only more of it.
+  describe('the full rendition of another member', () => {
+    it('hands out the full crop of a member who allows it', async () => {
+      const full = await dbFindMemberAvatarFull(gid(SHOWN))
+      expect(full).not.toBeNull()
+      expect(Buffer.from(full as Buffer).equals(pictureFull)).toBe(true)
+    })
+
+    // Two columns, both Buffers, and nothing in the types keeps them apart. Asserted
+    // rather than assumed, exactly as it is for the owner's own two readers above.
+    it('does not hand the small rendition out as the full one', async () => {
+      const full = await dbFindMemberAvatarFull(gid(SHOWN))
+      expect(Buffer.from(full as Buffer).equals(picture)).toBe(false)
+    })
+
+    // AS-003, AS-009 and the community scope, one per case, each differing from the
+    // permitted one in exactly one column. A single "returns null" test would stay green
+    // if the whole guard died.
+    it('hands out nothing for a member who switched it off', async () => {
+      expect(await dbFindMemberAvatarFull(gid(SWITCHED_OFF))).toBeNull()
+    })
+
+    it('hands out nothing for a deleted member, switch or no switch', async () => {
+      expect(await dbFindMemberAvatarFull(gid(DELETED))).toBeNull()
+    })
+
+    it('hands out nothing for a member of another community', async () => {
+      expect(await dbFindMemberAvatarFull(gid(FOREIGN))).toBeNull()
+    })
+
+    it('hands out nothing for a member who has no picture', async () => {
+      expect(await dbFindMemberAvatarFull(gid(NO_PICTURE))).toBeNull()
+    })
+
+    // One answer for "no such member" and for "not allowed", so that asking cannot be
+    // used to find out which accounts exist.
+    it('says nothing about a member it does not know', async () => {
+      expect(await dbFindMemberAvatarFull('00000000-0000-4000-8000-00000009999')).toBeNull()
+    })
   })
 })
