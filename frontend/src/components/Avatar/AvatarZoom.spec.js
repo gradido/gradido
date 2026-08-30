@@ -147,28 +147,43 @@ describe('AvatarZoom', () => {
     })
 
     /**
-     * ⛔ The one that cannot be reasoned away: an answer for a member the viewer has since
-     * closed, or swapped for somebody else, must not paint. Without the epoch counter a
-     * slow answer arrives after the next open and puts the WRONG PERSON'S FACE on screen,
-     * at full size, with nothing on the page to say so.
+     * ⛔ The one that cannot be reasoned away: a slow answer for the member who was open a
+     * moment ago must not paint on the member who is open NOW. Without the epoch counter
+     * this puts the WRONG PERSON'S FACE on screen, at full size, with nothing on the page
+     * to say so.
+     *
+     * ⚠️ The obvious version of this test -- open, close, let the answer land -- proves
+     * NOTHING, and an injection said so: with the overlay closed there is no `.avatar-zoom`
+     * at all, so the assertion holds with the guard deleted. The dangerous state is the one
+     * where the overlay is still open, showing somebody else.
      */
-    it('drops an answer that belongs to a face nobody is looking at any more', async () => {
-      let settle
-      mockQuery.mockReturnValue(
+    it('does not paint a slow answer onto the face that is open now', async () => {
+      let settleFirst
+      mockQuery.mockReturnValueOnce(
         new Promise((resolve) => {
-          settle = () => resolve({ data: { memberAvatarFull: FULL_BASE64 } })
+          settleFirst = () => resolve({ data: { memberAvatarFull: 'FIRSTFACE' } })
         }),
       )
+      mockQuery.mockResolvedValueOnce({ data: { memberAvatarFull: 'SECONDFACE' } })
 
       await openWith()
-      closeAvatarZoom()
+      // The member taps a second face before the first answer is back.
+      await openWith({
+        member: { gradidoID: 'g-other', communityUuid: 'c-home' },
+        src: 'data:image/jpeg;base64,OTHERSMALL',
+        label: 'Other',
+      })
+      await nextTick()
       await nextTick()
 
-      settle()
+      settleFirst()
       await nextTick()
       await nextTick()
 
-      expect(fullImage()).toBeNull()
+      // Still the second member's picture, and demonstrably not the first one's.
+      expect(fullImage()).not.toBeNull()
+      expect(fullImage().getAttribute('src')).toBe('data:image/jpeg;base64,SECONDFACE')
+      expect(fullImage().getAttribute('src')).not.toContain('FIRSTFACE')
     })
   })
 
