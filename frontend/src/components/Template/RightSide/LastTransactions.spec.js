@@ -6,7 +6,10 @@ import { forgetAllMemberAvatars, rememberMemberAvatars } from '@/composables/use
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
-    t: (key) => key,
+    // ⚠️ Values carried through, not dropped: the zoom button's label is the one string
+    // here that has to name a particular member, and a mock returning the bare key would
+    // make "labelled with the right person" indistinguishable from "labelled at all".
+    t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
     d: (date) => date,
   }),
 }))
