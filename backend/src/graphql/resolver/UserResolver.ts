@@ -12,6 +12,7 @@ import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { PublishNameType } from '@enum/PublishNameType'
 import { RoleNames } from '@enum/RoleNames'
 import { UserContactType } from '@enum/UserContactType'
+import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
 import { AdminUser, SearchAdminUsersResult } from '@model/AdminUser'
 import { AliasStatus } from '@model/AliasStatus'
 import { GmsUserAuthenticationResult } from '@model/GmsUserAuthenticationResult'
@@ -44,6 +45,7 @@ import {
   dbDeleteUserAvatar,
   dbEmailTaken,
   dbFindAliasesByUser,
+  dbFindMemberAvatarFull,
   dbFindMemberAvatarsSmall,
   dbFindOldestChosenAliasSince,
   dbFindOwnAlias,
@@ -1030,6 +1032,35 @@ export class UserResolver {
       avatar.avatarUpdatedAt = row.updatedAt
       return avatar
     })
+  }
+
+  /**
+   * ONE other member's picture at full size, for the member who tapped their face and
+   * wants to see who that actually is (AS-018).
+   *
+   * ★ A SEPARATE query rather than a second field on memberAvatars, and that is the whole
+   * cost control: the batched one decorates a list and is asked for on every visit, this
+   * one answers a click. Handing the 512 crop back there would put roughly ten times the
+   * weight on the common path for a picture almost nobody opens -- and a list of
+   * twenty-five would carry well over a megabyte.
+   *
+   * ⛔ The disclosure rule is not here either. dbFindMemberAvatarFull carries
+   * mayBeShownToMembers(), the same guard the small rendition goes through, so the switch,
+   * the deletion and the community scope answer identically for both renditions. Until
+   * AS-018 this column was own-view only; what changed is the SIZE shown to a circle that
+   * already sees the face, not who is in the circle (AS-006: one switch per audience, not
+   * per screen).
+   *
+   * Null for no picture, switch off, deleted, another community, and no such member alike
+   * -- see MemberAvatar for why one answer for all of them is the smaller surface.
+   */
+  @Authorized([RIGHTS.VERIFY_LOGIN])
+  @Query(() => String, { nullable: true })
+  async memberAvatarFull(
+    @Arg('ref', () => MemberAvatarRefInput) ref: MemberAvatarRefInput,
+  ): Promise<string | null> {
+    const avatar = await dbFindMemberAvatarFull(ref.gradidoID)
+    return avatar ? avatar.toString('base64') : null
   }
 
   /**
