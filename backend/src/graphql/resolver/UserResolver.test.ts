@@ -1,3 +1,4 @@
+import { MEMBER_AVATARS_FULL_MAX_PER_REQUEST } from '@arg/MemberAvatarsArgs'
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
 import { OptInType } from '@enum/OptInType'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
@@ -29,6 +30,7 @@ import {
   UserRole,
 } from 'database'
 import { GraphQLError } from 'graphql'
+import { gql } from 'graphql-tag'
 import { AVATAR_FULL_MAX_BYTES, AVATAR_SMALL_MAX_BYTES } from 'shared'
 import { QueryRunner } from 'typeorm'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
@@ -65,6 +67,7 @@ import {
   aliasStatus,
   avatarFull,
   checkUsername,
+  memberAvatarFull,
   memberAvatars,
   queryOptIn,
   searchAdminUsers,
@@ -3159,6 +3162,180 @@ describe('UserResolver', () => {
         // Put the session back: everything after this file's point runs on the token this
         // test just threw away, and a suite that depends on test order should at least not
         // be the thing that breaks it.
+        await mutate({
+          mutation: login,
+          variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
+        })
+      })
+    })
+
+    /**
+     * AS-018: the 512 crop, for ONE member, on a click. Until this delivery the column had
+     * no member-facing reader at all, so every case here is new ground rather than a
+     * variation of the batched one.
+     *
+     * ⛔ On arrival bibi's switch is OFF -- the block above turned it off and left it that
+     * way. Turning it back on is therefore a FIXTURE, not a formality: without it the first
+     * test would read null and pass for the wrong reason, proving nothing about a rendition
+     * that is allowed to travel.
+     */
+    describe('the full picture of another member', () => {
+      const refToOwner = () => ({
+        ref: { gradidoID: owner.gradidoID, communityUuid: homeCom.communityUuid },
+      })
+
+      beforeAll(async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+        const shown: any = await mutate({
+          mutation: updateUserInfos,
+          variables: { avatarVisibleToMembers: true },
+        })
+        // The fixture proves itself. A switch that silently stayed off would make every
+        // refusal below pass without any of them measuring a refusal.
+        if (shown.errors) {
+          throw new Error(`could not turn the switch on: ${JSON.stringify(shown.errors)}`)
+        }
+        await mutate({
+          mutation: login,
+          variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
+        })
+      })
+
+      it("hands bibi's full crop to bob", async () => {
+        const res: any = await query({ query: memberAvatarFull, variables: refToOwner() })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.memberAvatarFull).toBe(JPEG_FULL_BASE64)
+      })
+
+      // Both renditions are base64 strings on the wire, so nothing but this assertion says
+      // which column came out. The same check the owner's own two readers get above.
+      //
+      // ⚠️ The positive half is asserted FIRST and deliberately: `not.toBe(JPEG_BASE64)` is
+      // satisfied by null, which is the one answer this test can least afford to accept --
+      // a resolver that hands back nothing at all would pass the guard named as the defence
+      // against column confusion. Its database twin avoids this by comparing Buffers, which
+      // throws on null.
+      it('never hands the small rendition out in its place', async () => {
+        const res: any = await query({ query: memberAvatarFull, variables: refToOwner() })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.memberAvatarFull).toBe(JPEG_FULL_BASE64)
+        expect(res.data.memberAvatarFull).not.toBe(JPEG_BASE64)
+      })
+
+      /**
+       * ⛔ The identity is a PAIR. `users` is unique on (gradido_id, community_uuid), so
+       * asking with the wrong community is asking about a different person -- and before
+       * the review the resolver accepted `communityUuid`, validated it, and then dropped it
+       * on the floor, which no test could see because every fixture agreed by accident.
+       */
+      it('answers nothing when the community does not match', async () => {
+        const res: any = await query({
+          query: memberAvatarFull,
+          variables: {
+            ref: {
+              gradidoID: owner.gradidoID,
+              communityUuid: 'deadbeef-dead-4ead-8ead-deaddeaddead',
+            },
+          },
+        })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.memberAvatarFull).toBeNull()
+      })
+
+      /**
+       * ⛔ The cap, and it has to be measured through ALIASES or it measures nothing.
+       * `memberAvatarFull` takes one member, so a limit inside the resolver counts to one
+       * however often the field appears; the request-scoped counter is the only thing that
+       * sees eleven of them. A test that called the query eleven TIMES would pass with the
+       * counter deleted, because each call would be its own request.
+       */
+      it('refuses more full pictures than one request may have', async () => {
+        const ref = `{ gradidoID: "${owner.gradidoID}", communityUuid: ${
+          homeCom.communityUuid ? `"${homeCom.communityUuid}"` : 'null'
+        } }`
+        const aliases = Array.from(
+          { length: MEMBER_AVATARS_FULL_MAX_PER_REQUEST + 1 },
+          (_unused, index) => `a${index}: memberAvatarFull(ref: ${ref})`,
+        ).join('\n')
+
+        const res: any = await query({ query: gql`query { ${aliases} }` })
+        expect(res.errors).toBeDefined()
+        expect(JSON.stringify(res.errors)).toContain('Too many full-size pictures')
+      })
+
+      // ...and the other side of the boundary, which nothing else measures: a member who
+      // opens a few faces in a row must get through. A cap the ordinary use can reach is
+      // one somebody raises without reading why it is there.
+      it('lets a request that stays under the cap through', async () => {
+        const ref = `{ gradidoID: "${owner.gradidoID}", communityUuid: ${
+          homeCom.communityUuid ? `"${homeCom.communityUuid}"` : 'null'
+        } }`
+        const aliases = Array.from(
+          { length: MEMBER_AVATARS_FULL_MAX_PER_REQUEST },
+          (_unused, index) => `a${index}: memberAvatarFull(ref: ${ref})`,
+        ).join('\n')
+
+        const res: any = await query({ query: gql`query { ${aliases} }` })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.a0).toBe(JPEG_FULL_BASE64)
+      })
+
+      // The one switch, both renditions (AS-006). If this ever diverges from the batched
+      // reader, a member who withdrew their face keeps handing out the LARGER version of
+      // it -- which is the exact failure this delivery had to avoid.
+      it('stops handing it out the moment bibi turns the switch off', async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+        await mutate({
+          mutation: updateUserInfos,
+          variables: { avatarVisibleToMembers: false },
+        })
+        await mutate({
+          mutation: login,
+          variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
+        })
+
+        const res: any = await query({ query: memberAvatarFull, variables: refToOwner() })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.memberAvatarFull).toBeNull()
+
+        // ...and the small one is gone too, in the same breath. Asserted here rather than
+        // trusted: the two renditions travel through two queries, and "the switch works"
+        // has to mean both of them or it means nothing.
+        const small: any = await query({
+          query: memberAvatars,
+          variables: { refs: [refToOwner().ref] },
+        })
+        expect(small.data.memberAvatars).toEqual([])
+      })
+
+      it('says nothing at all about a member it does not know', async () => {
+        const res: any = await query({
+          query: memberAvatarFull,
+          variables: {
+            ref: { gradidoID: 'ffffffff-ffff-4fff-8fff-ffffffffffff', communityUuid: null },
+          },
+        })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.memberAvatarFull).toBeNull()
+      })
+
+      /**
+       * ⛔ Same reason as for the batched reader: every case above runs with bob's token,
+       * which the decorator is irrelevant to. Remove @Authorized and they all still pass
+       * while this becomes an anonymous reader of every opted-in member's face, at print
+       * resolution.
+       */
+      it('answers nobody who is not logged in', async () => {
+        resetToken()
+        const res: any = await query({ query: memberAvatarFull, variables: refToOwner() })
+        expect(res.errors).toEqual([new GraphQLError('401 Unauthorized')])
+
         await mutate({
           mutation: login,
           variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },

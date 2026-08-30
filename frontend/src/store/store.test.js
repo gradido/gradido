@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mutations, actions, THEME_MODE_STORAGE_KEY } from './store'
 import i18n from '../i18n'
 import jwtDecode from 'jwt-decode'
+import { avatarZoomState, openAvatarZoom } from '@/composables/useAvatarZoom'
 
 vi.mock('../i18n', () => ({
   default: {
@@ -307,6 +308,29 @@ describe('Vuex store', () => {
         clearApolloCacheMock.mockClear()
         await logout({ commit, state, dispatch })
         expect(clearApolloCacheMock).toHaveBeenCalled()
+      })
+
+      /**
+       * ⛔ The face somebody is LOOKING at lives in a third place again -- not the store,
+       * not the avatar cache above, but `useAvatarZoom`'s own module, which outlives every
+       * component. The idle-timeout logout is the realistic path: it fires precisely when
+       * a member is sitting still, and sitting still is what looking at a face is. Without
+       * this line another member's picture and gradido id stayed in memory for the life of
+       * the tab, through the next person's sign-in.
+       */
+      it('lets go of a picture that is open at full size', () => {
+        openAvatarZoom({
+          member: { gradidoID: 'g-napoli', communityUuid: null, alias: 'napoli' },
+          src: 'data:image/jpeg;base64,PICTURE',
+          origin: { top: 0, left: 0, width: 42, height: 42 },
+        })
+        // The fixture proves itself: a state that never opened would make the assertion
+        // below pass without the logout doing anything at all.
+        expect(avatarZoomState.value).not.toBeNull()
+
+        logout({ commit, state, dispatch })
+
+        expect(avatarZoomState.value).toBeNull()
       })
 
       it('removes only its own storage blob', () => {

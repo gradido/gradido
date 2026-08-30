@@ -255,6 +255,9 @@
       <session-logout-timeout @logout="logoutUser" />
       <alias-first-choice />
       <email-confirmation-reminder />
+      <!-- ONE for the whole wallet (AS-018). Every avatar that can be opened drives this
+           instance through `useAvatarZoom`; a modal per row would build one per booking. -->
+      <avatar-zoom />
     </div>
   </div>
 </template>
@@ -277,6 +280,7 @@ import MobileSidebar from '@/components/MobileSidebar/MobileSidebar'
 import SettingsSidebar from '@/components/Menu/SettingsSidebar.vue'
 import SessionLogoutTimeout from '@/components/SessionLogoutTimeout'
 import AliasFirstChoice from '@/components/AliasFirstChoice'
+import AvatarZoom from '@/components/Avatar/AvatarZoom.vue'
 import EmailConfirmationReminder from '@/components/EmailConfirmationReminder'
 import ContentFooter from '@/components/ContentFooter'
 import GddAmount from '@/components/Template/ContentHeader/GddAmount'

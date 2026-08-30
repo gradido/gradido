@@ -94,6 +94,7 @@ import Name from '../TransactionRows/Name'
 import DecayInformation from '../DecayInformations/DecayInformation'
 import { BAvatar, BRow } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
+import { avatarZoomBindings } from '@/composables/useAvatarZoom'
 import { memberAvatarProps } from '@/composables/useMemberAvatars'
 import { memberAlias } from '@/utils/gradidoAddress'
 
@@ -145,6 +146,18 @@ const avatarProps = computed(() => {
       // itself, it wrote `username` -- a prop AppAvatar does not have, dropped in silence,
       // and the fallback it was meant to feed never arrived.
       ...memberAvatar.value,
+      // Opens the picture at full size on a tap (AS-018). Empty for a member who has no
+      // picture, so those circles stay exactly as unclickable as they were -- the helper
+      // decides that, not this template.
+      //
+      // ⚠️ AFTER the spread on purpose. Both objects are built for this one avatar, so
+      // nothing collides today; put first, a later key of the same name in
+      // `memberAvatarProps` would silently take the zoom away and no test would say so.
+      //
+      // The label is NOT assembled here. It was, at both call sites, until a review pointed
+      // out that the helper already holds the member -- and that two call-site expressions
+      // are exactly how the button and the overlay come to name different people.
+      ...avatarZoomBindings(props.transaction?.linkedUser, memberAvatar.value),
       color: '#fff',
       size: 42,
     }

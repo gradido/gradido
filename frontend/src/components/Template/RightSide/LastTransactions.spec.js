@@ -6,9 +6,20 @@ import { forgetAllMemberAvatars, rememberMemberAvatars } from '@/composables/use
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
-    t: (key) => key,
+    // ⚠️ Values carried through, not dropped: the zoom button's label is the one string
+    // here that has to name a particular member, and a mock returning the bare key would
+    // make "labelled with the right person" indistinguishable from "labelled at all".
+    t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
     d: (date) => date,
   }),
+}))
+
+// ⚠️ The zoom composable builds its labels through `i18n.global.t`, because a composable is
+// not a setup scope. This file replaces the whole `vue-i18n` module, so `@/i18n` would find
+// no `createI18n` to call -- mocked here rather than widened above, so the vue-i18n stub
+// keeps saying only what this component asks of it.
+vi.mock('@/i18n', () => ({
+  default: { global: { t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) } },
 }))
 
 vi.mock('vue-avatar', () => ({
@@ -164,6 +175,33 @@ describe('LastTransactions', () => {
       wrapper = mountRows([NAPOLI])
       expect(avatar().props().initials).toBe('NA')
       expect(avatar().props().colorSeed).toBe('PN')
+    })
+
+    /**
+     * ⛔ The 64-point circle is the most prominent avatar in the wallet, and nothing in the
+     * repo read `zoomable` here until this test: the whole `avatarZoomBindings` spread
+     * could be deleted and every test stayed green, so the two call sites that show another
+     * member's face could drift apart with nothing red (AS-018).
+     */
+    it('offers the picture at full size once the wallet holds one', async () => {
+      const when = '2026-08-19T09:00:00.000Z'
+      wrapper = mountRows([
+        {
+          ...NAPOLI,
+          linkedUser: { ...NAPOLI.linkedUser, gradidoID: 'g-napoli', avatarUpdatedAt: when },
+        },
+      ])
+      // The same row without a picture first, so the assertion below is demonstrably about
+      // the picture and not about the row.
+      expect(avatar().props().zoomable).toBeFalsy()
+
+      rememberMemberAvatars([
+        { gradidoID: 'g-napoli', communityUuid: null, avatar: 'pic', avatarUpdatedAt: when },
+      ])
+      await nextTick()
+
+      expect(avatar().props().zoomable).toBe(true)
+      expect(avatar().props().zoomLabel).toContain('napoli')
     })
 
     /**

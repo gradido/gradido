@@ -1,6 +1,10 @@
 import { UserArgs } from '@arg//UserArgs'
 import { CreateUserArgs } from '@arg/CreateUserArgs'
-import { MEMBER_AVATARS_MAX_REFS, MemberAvatarsArgs } from '@arg/MemberAvatarsArgs'
+import {
+  MEMBER_AVATARS_FULL_MAX_PER_REQUEST,
+  MEMBER_AVATARS_MAX_REFS,
+  MemberAvatarsArgs,
+} from '@arg/MemberAvatarsArgs'
 import { Paginated } from '@arg/Paginated'
 import { SearchUsersFilters } from '@arg/SearchUsersFilters'
 import { SetUserRoleArgs } from '@arg/SetUserRoleArgs'
@@ -12,6 +16,7 @@ import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { PublishNameType } from '@enum/PublishNameType'
 import { RoleNames } from '@enum/RoleNames'
 import { UserContactType } from '@enum/UserContactType'
+import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
 import { AdminUser, SearchAdminUsersResult } from '@model/AdminUser'
 import { AliasStatus } from '@model/AliasStatus'
 import { GmsUserAuthenticationResult } from '@model/GmsUserAuthenticationResult'
@@ -44,6 +49,7 @@ import {
   dbDeleteUserAvatar,
   dbEmailTaken,
   dbFindAliasesByUser,
+  dbFindMemberAvatarFull,
   dbFindMemberAvatarsSmall,
   dbFindOldestChosenAliasSince,
   dbFindOwnAlias,
@@ -1030,6 +1036,54 @@ export class UserResolver {
       avatar.avatarUpdatedAt = row.updatedAt
       return avatar
     })
+  }
+
+  /**
+   * ONE other member's picture at full size, for the member who tapped their face and
+   * wants to see who that actually is (AS-018).
+   *
+   * ★ A SEPARATE query rather than a second field on memberAvatars: the batched one
+   * decorates a list and is asked for on every visit, this one answers a click. Handing
+   * the 512 crop back there would put roughly ten times the weight on the common path for
+   * a picture almost nobody opens -- and a list of twenty-five would carry well over a
+   * megabyte.
+   *
+   * ⛔ That separation is a SHAPE, not a cost control, and this docblock claimed otherwise
+   * until a review took the sentence at its word. Nothing about being one-member-per-call
+   * bounds a REQUEST: aliasing repeats the field freely, so 500 of them travel in one
+   * document. The cap is the counter below, and it is the only one there is --
+   * graphql-query-complexity is still a TODO in createServer.
+   *
+   * ⛔ The disclosure rule is not here either. dbFindMemberAvatarFull carries
+   * mayBeShownToMembers(), the same guard the small rendition goes through, so the switch,
+   * the deletion and the community scope answer identically for both renditions. Until
+   * AS-018 this column was own-view only; what changed is the SIZE shown to a circle that
+   * already sees the face, not who is in the circle (AS-006: one switch per audience, not
+   * per screen).
+   *
+   * Null for no picture, switch off, deleted, another community, and no such member alike
+   * -- see MemberAvatar for why one answer for all of them is the smaller surface.
+   */
+  @Authorized([RIGHTS.VERIFY_LOGIN])
+  @Query(() => String, { nullable: true })
+  async memberAvatarFull(
+    @Arg('ref', () => MemberAvatarRefInput) ref: MemberAvatarRefInput,
+    @Ctx() context: Context,
+  ): Promise<string | null> {
+    // ⛔ Counted on the REQUEST, not in this call. One document may carry this field any
+    // number of times under different aliases, so a counter local to the resolver counts
+    // to one every time and bounds nothing.
+    const served = (context.memberAvatarsFullServed ?? 0) + 1
+    context.memberAvatarsFullServed = served
+    if (served > MEMBER_AVATARS_FULL_MAX_PER_REQUEST) {
+      throw new LogError('Too many full-size pictures requested at once', served)
+    }
+
+    // Both halves of the pair. `users` is unique on (gradido_id, community_uuid), so the
+    // id alone does not identify one person -- see the query for why matching only it
+    // would hand back whoever the database reached first.
+    const avatar = await dbFindMemberAvatarFull(ref.gradidoID, ref.communityUuid ?? null)
+    return avatar ? avatar.toString('base64') : null
   }
 
   /**

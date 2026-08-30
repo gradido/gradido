@@ -179,10 +179,16 @@ export class User {
   // they have not set one. It does not come from the user row — it lives in its own
   // table and is filled in by verifyLogin, the way hasElopage and klickTipp are.
   //
-  // The SMALL rendition, 128x128. This is the everyday picture and the only one that is
-  // ever meant to be seen by anybody but its owner. The full 512x512 crop is not a field
-  // on this type at all: it is fetched through the avatarFull query, which takes no
-  // argument and so cannot be asked about somebody else.
+  // The SMALL rendition, 128x128 -- the everyday picture, the one every list and booking
+  // row shows. The full 512x512 crop is not a field on this type at all, and that has not
+  // changed; what HAS changed is why.
+  //
+  // ⛔ It used to be reachable only through the argument-less `avatarFull` query, so it was
+  // own-view only by SHAPE and this comment said so. Since AS-018 there is a second way in,
+  // `memberAvatarFull(ref:)`, which does take an argument and does exist to ask about
+  // somebody else. It is safe because it carries mayBeShownToMembers() in the query, not
+  // because it cannot be addressed. Do not read the absence of a full-size field here as
+  // proof that the column is unreachable.
   //
   // Own view only THROUGH THIS FIELD -- the field resolver in UserResolver returns null to
   // anybody but the owner. A face next to a booking is a disclosure to third parties, and

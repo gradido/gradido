@@ -478,6 +478,15 @@ export const memberAvatars = gql`
   }
 `
 
+// One member, one click, the 512 crop. Through the real schema for the same reason as the
+// batched reader above: the input type name and the argument name come out of type-graphql
+// and are typed by hand in the wallet, with nothing linking the two.
+export const memberAvatarFull = gql`
+  query ($ref: MemberAvatarRefInput!) {
+    memberAvatarFull(ref: $ref)
+  }
+`
+
 export const user = gql`
   query ($identifier: String!, $communityIdentifier: String!) {
     user(identifier: $identifier, communityIdentifier: $communityIdentifier) {

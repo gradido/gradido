@@ -71,7 +71,11 @@
     "rotate": "Повернуть",
     "set": "Установить фото профиля",
     "size": "Размер",
-    "take-photo": "Сделать фото"
+    "take-photo": "Сделать фото",
+    "zoom-open": "Увеличить фото {name}",
+    "zoom-open-plain": "Увеличить фото",
+    "zoom-picture": "Фото {name}",
+    "zoom-picture-plain": "Фото профиля"
   },
   "back": "Вернуться",
   "calculator": {

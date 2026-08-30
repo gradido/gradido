@@ -17,6 +17,23 @@ vi.mock('vuex', () => ({
   useStore: () => ({ state: { firstName: 'Max', lastName: 'Mustermann' } }),
 }))
 
+// ⚠️ The values are carried into the answer rather than dropped. A mock that returns the
+// bare key cannot tell "labelled with this member's name" from "labelled with nobody's",
+// and the label on the zoom button is exactly what says which face is about to open.
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
+  }),
+}))
+
+// ⚠️ The zoom composable builds its labels through `i18n.global.t`, because a composable is
+// not a setup scope. This file replaces the whole `vue-i18n` module, so `@/i18n` would find
+// no `createI18n` to call -- mocked here rather than widened above, so the vue-i18n stub
+// keeps saying only what this component asks of it.
+vi.mock('@/i18n', () => ({
+  default: { global: { t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) } },
+}))
+
 const BOOKING = {
   id: 7,
   typeId: 'SEND',
@@ -192,6 +209,55 @@ describe('GddTransaction', () => {
         linkedUser: { ...BOOKING.linkedUser, gradidoID: 'g-napoli', avatarUpdatedAt: when },
       })
       expect(avatarProps().src).toBe('data:image/jpeg;base64,the-picture')
+    })
+
+    /**
+     * Tapping the circle opens the picture at full size (AS-018).
+     *
+     * The three cases are the same fixture with ONE thing different each time, because the
+     * rule is one line: a circle is zoomable exactly when it has a picture. Assert only
+     * "zoomable when there is a picture" and the guard could be gone entirely.
+     */
+    describe('opening the picture at full size', () => {
+      const WHEN = '2026-08-19T09:00:00.000Z'
+      const withPicture = () => {
+        rememberMemberAvatars([
+          {
+            gradidoID: 'g-napoli',
+            communityUuid: null,
+            avatar: 'the-picture',
+            avatarUpdatedAt: WHEN,
+          },
+        ])
+        mountWith({
+          linkedUser: { ...BOOKING.linkedUser, gradidoID: 'g-napoli', avatarUpdatedAt: WHEN },
+        })
+      }
+
+      it('offers the picture when the wallet holds one', () => {
+        withPicture()
+        expect(avatarProps().zoomable).toBe(true)
+      })
+
+      // ⛔ The circle showing letters must not offer to enlarge them. Same booking, same
+      // member, no stored picture -- so a green here cannot be about anything else.
+      it('offers nothing when the circle is showing letters', () => {
+        mountWith({
+          linkedUser: { ...BOOKING.linkedUser, gradidoID: 'g-napoli', avatarUpdatedAt: WHEN },
+        })
+        expect(avatarProps().src).toBe('')
+        expect(avatarProps().zoomable).toBeFalsy()
+      })
+
+      // The alias, because that is the word printed beside the circle. Announcing the
+      // gradido id, or the community's name, would name somebody the member cannot see on
+      // the row. The mock carries the interpolation values through, so this really does
+      // read the name and not just the key.
+      it('says whose picture it is', () => {
+        withPicture()
+        expect(avatarProps().zoomLabel).toContain('avatar.zoom-open')
+        expect(avatarProps().zoomLabel).toContain('napoli')
+      })
     })
 
     // The withdrawal, seen from the row: the list stops reporting a date, so the stored
