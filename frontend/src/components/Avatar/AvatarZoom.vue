@@ -76,6 +76,7 @@
  * it grows. The page behind can scroll; the overlay is fixed and does not care.
  */
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useApolloClient } from '@vue/apollo-composable'
 import VariantIcon from '@/components/VariantIcon.vue'
 import { avatarZoomState, closeAvatarZoom } from '@/composables/useAvatarZoom'
@@ -93,6 +94,10 @@ const VIEWPORT_SHARE = 0.86
 const DURATION_MS = 260
 
 const { client } = useApolloClient()
+// ⚠️ Optional, because this component is mounted in tests without a router. `useRoute`
+// injects, so outside a router context it is simply undefined -- and reading `.path` off
+// that is a crash at mount, not a missing feature.
+const route = useRoute()
 
 const shown = ref(null)
 const grown = ref(false)
@@ -242,6 +247,16 @@ watch(avatarZoomState, (value) => {
   // back into by then, so it goes at once.
   if (shown.value && !closing) finishClose()
 })
+
+// The one way out that is not a tap and not Escape: the browser's back button. The
+// overlay covers the screen, so nothing inside it can navigate -- but the page underneath
+// can change without it, and a face left hanging over a different page belongs to nobody.
+watch(
+  () => route?.path,
+  () => {
+    if (shown.value) requestClose()
+  },
+)
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown)

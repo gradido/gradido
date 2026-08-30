@@ -2,7 +2,7 @@
 
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { nextTick } from 'vue'
+import { nextTick, reactive } from 'vue'
 import AvatarZoom from './AvatarZoom.vue'
 import { closeAvatarZoom, openAvatarZoom } from '@/composables/useAvatarZoom'
 
@@ -10,6 +10,11 @@ const mockQuery = vi.fn()
 vi.mock('@vue/apollo-composable', () => ({
   useApolloClient: () => ({ client: { query: (...args) => mockQuery(...args) } }),
 }))
+
+// Reactive, not a plain object: the component watches the path, and a mock that cannot
+// change would make the "closes when the page underneath changes" case unwritable.
+const mockRoute = reactive({ path: '/transactions' })
+vi.mock('vue-router', () => ({ useRoute: () => mockRoute }))
 
 const SMALL = 'data:image/jpeg;base64,SMALL'
 const FULL_BASE64 = 'FULLPICTURE'
@@ -52,7 +57,13 @@ describe('AvatarZoom', () => {
   beforeEach(() => {
     mockQuery.mockReset()
     mockQuery.mockResolvedValue({ data: { memberAvatarFull: FULL_BASE64 } })
-    wrapper = mount(AvatarZoom, { global: { mocks: { $t: (key) => key } } })
+    mockRoute.path = '/transactions'
+    wrapper = mount(AvatarZoom, {
+      global: {
+        mocks: { $t: (key) => key },
+        stubs: { VariantIcon: { props: ['icon'], template: '<i :data-icon="icon" />' } },
+      },
+    })
   })
 
   afterEach(() => {
@@ -205,6 +216,23 @@ describe('AvatarZoom', () => {
       await twoFrames()
 
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+      await nextTick()
+
+      expect(frameStyle()).toContain('width: 42px')
+    })
+
+    /**
+     * The browser's back button, which is the one way out that is neither a tap nor
+     * Escape. Nothing inside the overlay can navigate -- it covers the screen -- but the
+     * page underneath can change without it, and a face left hanging over a different page
+     * belongs to nobody.
+     */
+    it('closes when the page underneath changes', async () => {
+      await openWith()
+      await twoFrames()
+      expect(frameStyle()).toContain(`width: ${FINAL_SIZE}px`)
+
+      mockRoute.path = '/contributions'
       await nextTick()
 
       expect(frameStyle()).toContain('width: 42px')
