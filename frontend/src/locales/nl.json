@@ -71,7 +71,8 @@
     "rotate": "Draaien",
     "set": "Profielfoto instellen",
     "size": "Grootte",
-    "take-photo": "Foto maken"
+    "take-photo": "Foto maken",
+    "zoom-open": "Foto van {name} vergroten"
   },
   "back": "Terug",
   "calculator": {

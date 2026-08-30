@@ -71,7 +71,8 @@
     "rotate": "Rotate",
     "set": "Set profile picture",
     "size": "Size",
-    "take-photo": "Take a photo"
+    "take-photo": "Take a photo",
+    "zoom-open": "Enlarge picture of {name}"
   },
   "back": "Back",
   "calculator": {

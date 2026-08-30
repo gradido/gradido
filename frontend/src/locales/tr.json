@@ -71,7 +71,8 @@
     "rotate": "Döndür",
     "set": "Profil resmi ayarla",
     "size": "Boyut",
-    "take-photo": "Fotoğraf çek"
+    "take-photo": "Fotoğraf çek",
+    "zoom-open": "{name} resmini büyüt"
   },
   "back": "Geri",
   "calculator": {

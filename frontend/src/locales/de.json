@@ -71,7 +71,8 @@
     "rotate": "Drehen",
     "set": "Profilbild setzen",
     "size": "Größe",
-    "take-photo": "Foto aufnehmen"
+    "take-photo": "Foto aufnehmen",
+    "zoom-open": "Bild von {name} vergrößern"
   },
   "back": "Zurück",
   "calculator": {

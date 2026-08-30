@@ -1,13 +1,22 @@
 <template>
-  <div
+  <!-- A button only where there is something to open, a plain div everywhere else. The
+       alternative -- always a button, disabled when there is nothing to show -- puts a
+       tab stop on every circle in a booking list and announces twenty-five disabled
+       controls to a screen reader for one picture. -->
+  <component
+    :is="zoomable ? 'button' : 'div'"
+    ref="root"
     class="app-avatar d-flex justify-content-center align-items-center rounded-circle"
-    :class="{ 'app-avatar-quiet': quiet && !src }"
+    :class="{ 'app-avatar-quiet': quiet && !src, 'app-avatar-zoomable': zoomable }"
+    :type="zoomable ? 'button' : undefined"
+    :aria-label="zoomable ? zoomLabel : undefined"
     :style="{
       width: `${size}px`,
       height: `${size}px`,
       backgroundColor: src || quiet ? undefined : backgroundColor,
       textTransform: 'uppercase',
     }"
+    @click="onClick"
   >
     <img v-if="src" class="app-avatar-image" :src="src" alt="" />
     <span
@@ -21,11 +30,11 @@
     >
       {{ computedInitials }}
     </span>
-  </div>
+  </component>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { AVATAR_COLOR_PALETTE, avatarPaletteEntry } from '@/utils/avatarColor'
 
 const props = defineProps({
@@ -83,7 +92,44 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  // Whether tapping this circle opens the picture at full size (AS-018). Off by default,
+  // so every existing caller keeps the plain circle it had.
+  //
+  // ⛔ Set it only where there IS a picture. A zoomable circle showing letters promises
+  // something it cannot deliver -- `avatarZoomBindings` is what decides that, and it hands
+  // back nothing at all for a member without one.
+  zoomable: {
+    type: Boolean,
+    default: false,
+  },
+  // What a screen reader says about the button. Empty is a real answer here: an avatar
+  // whose member has no name to announce still opens, and a label made of nothing is
+  // better than one made of an id.
+  zoomLabel: {
+    type: String,
+    default: '',
+  },
 })
+
+const emit = defineEmits(['zoom'])
+
+const root = ref(null)
+
+// The rectangle the picture occupies RIGHT NOW, handed up so the overlay can grow out of
+// it. Measured here rather than at the call site: the call site knows which member this
+// is, this knows where the circle ended up.
+//
+// ⛔ `.stop` in code rather than in the template, because it is not decoration: the
+// booking row this sits inside opens its own details on click. Without it, looking at
+// somebody's face also unfolds the booking underneath the overlay -- and closing the
+// overlay reveals a row that changed for no reason the member can connect to anything.
+const onClick = (event) => {
+  if (!props.zoomable) return
+  event.stopPropagation()
+  const element = root.value?.$el ?? root.value
+  if (!element?.getBoundingClientRect) return
+  emit('zoom', element.getBoundingClientRect())
+}
 
 // Parse any color format to RGB
 function parseColor(color) {
@@ -184,6 +230,29 @@ const textColor = computed(() => {
    double slash is not a comment to it -- the build dies with "Invalid empty selector". */
 .app-avatar {
   overflow: hidden;
+}
+
+/* A button that has to look exactly like the div it replaces -- every one of these undoes
+   something the user agent adds. `appearance` last, because Safari keeps its own control
+   styling without it even when border and background are set. */
+.app-avatar-zoomable {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+  appearance: none;
+}
+
+/* Keyboard focus has to be visible, and an outline on a circle has to follow it. Drawn
+   OUTSIDE the shape (offset), because the picture fills the circle edge to edge and an
+   inset ring would sit on somebody's face. */
+.app-avatar-zoomable:focus-visible {
+  outline: 2px solid #276e6f;
+  outline-offset: 2px;
+}
+
+.dark-mode .app-avatar-zoomable:focus-visible {
+  outline-color: #8ed0d1;
 }
 
 .app-avatar-image {

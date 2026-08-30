@@ -71,7 +71,8 @@
     "rotate": "Pivoter",
     "set": "Définir la photo de profil",
     "size": "Taille",
-    "take-photo": "Prendre une photo"
+    "take-photo": "Prendre une photo",
+    "zoom-open": "Agrandir la photo de {name}"
   },
   "back": "Retour",
   "calculator": {

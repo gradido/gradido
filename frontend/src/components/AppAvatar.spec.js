@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 
 import { mount } from '@vue/test-utils'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import AppAvatar from './AppAvatar.vue'
 import { AVATAR_COLOR_PALETTE, avatarPaletteEntry } from '@/utils/avatarColor'
 
@@ -115,5 +115,100 @@ describe('AppAvatar', () => {
     const wrapper = mount(AppAvatar, { props: { size: 64, initials: 'BE' } })
     expect(circleStyle(wrapper)).toContain('width: 64px')
     expect(circleStyle(wrapper)).toContain('height: 64px')
+  })
+
+  /**
+   * The circle that opens the picture at full size (AS-018).
+   *
+   * ⚠️ jsdom lays nothing out, so every rectangle here is zeros. That is fine and is
+   * exactly the boundary: what can be held is that the click MEASURES and reports, not
+   * what it measured. The growing itself is a CSS transition and no test in this repo
+   * can see one.
+   */
+  describe('opening the picture at full size', () => {
+    const PICTURE = 'data:image/jpeg;base64,PICTURE'
+
+    // Both cases first, together, because the whole promise of the prop is that a caller
+    // which does not pass it keeps the element it always had. Two assertions, one line
+    // apart, so nobody has to trust the default.
+    it('is a button only where there is something to open', () => {
+      expect(
+        mount(AppAvatar, { props: { initials: 'BE' } })
+          .find('button')
+          .exists(),
+      ).toBe(false)
+      expect(
+        mount(AppAvatar, { props: { initials: 'BE', src: PICTURE, zoomable: true } })
+          .find('button')
+          .exists(),
+      ).toBe(true)
+    })
+
+    it('reports where it is when it is clicked', async () => {
+      const wrapper = mount(AppAvatar, {
+        props: { initials: 'BE', src: PICTURE, zoomable: true },
+      })
+      await wrapper.find('.app-avatar').trigger('click')
+
+      expect(wrapper.emitted('zoom')).toHaveLength(1)
+      // A rectangle, whatever jsdom made of it -- the four fields the overlay reads.
+      const [rect] = wrapper.emitted('zoom')[0]
+      expect(rect).toMatchObject({
+        top: expect.any(Number),
+        left: expect.any(Number),
+        width: expect.any(Number),
+        height: expect.any(Number),
+      })
+    })
+
+    // ⛔ The one that costs a bug report if it goes: the booking row this sits in opens its
+    // own details on click. Without the stop, looking at a face also unfolds the row
+    // underneath the overlay -- and there is nothing on screen to connect the two.
+    it('does not let the click reach the row it sits in', async () => {
+      const rowClicked = vi.fn()
+      const wrapper = mount(
+        {
+          components: { AppAvatar },
+          template: '<div @click="rowClicked"><AppAvatar v-bind="$attrs" /></div>',
+          props: [],
+          setup: () => ({ rowClicked }),
+        },
+        { attrs: { initials: 'BE', src: PICTURE, zoomable: true } },
+      )
+      await wrapper.find('.app-avatar').trigger('click')
+
+      expect(rowClicked).not.toHaveBeenCalled()
+    })
+
+    // The other half of the same rule: a circle that is NOT zoomable must let the row have
+    // its click, exactly as before this delivery.
+    it('leaves the click alone where there is nothing to open', async () => {
+      const rowClicked = vi.fn()
+      const wrapper = mount(
+        {
+          components: { AppAvatar },
+          template: '<div @click="rowClicked"><AppAvatar v-bind="$attrs" /></div>',
+          setup: () => ({ rowClicked }),
+        },
+        { attrs: { initials: 'BE' } },
+      )
+      await wrapper.find('.app-avatar').trigger('click')
+
+      expect(rowClicked).toHaveBeenCalledTimes(1)
+    })
+
+    it('says out loud whose picture is about to open', () => {
+      const wrapper = mount(AppAvatar, {
+        props: { initials: 'BE', src: PICTURE, zoomable: true, zoomLabel: 'Napoli' },
+      })
+      expect(wrapper.find('button').attributes('aria-label')).toBe('Napoli')
+    })
+
+    // No label, no lie: a button that announces nothing is better than one announcing an
+    // internal identifier, and the plain circle carries no aria-label at all.
+    it('puts no label on a circle that does not open', () => {
+      const wrapper = mount(AppAvatar, { props: { initials: 'BE', zoomLabel: 'Napoli' } })
+      expect(wrapper.find('.app-avatar').attributes('aria-label')).toBeUndefined()
+    })
   })
 })

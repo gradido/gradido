@@ -17,6 +17,15 @@ export const memberAvatars = gql`
   }
 `
 
+// ONE other member's 512 crop, on a click (AS-018). A query of its own rather than a
+// second field above, because that one decorates every booking list and this one answers a
+// tap: ten times the weight, wanted for one face out of twenty-five.
+export const memberAvatarFull = gql`
+  query ($ref: MemberAvatarRefInput!) {
+    memberAvatarFull(ref: $ref)
+  }
+`
+
 export const verifyLogin = gql`
   query {
     verifyLogin {

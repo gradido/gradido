@@ -71,7 +71,8 @@
     "rotate": "Ruota",
     "set": "Imposta immagine del profilo",
     "size": "Dimensione",
-    "take-photo": "Scatta una foto"
+    "take-photo": "Scatta una foto",
+    "zoom-open": "Ingrandisci l'immagine di {name}"
   },
   "back": "Indietro",
   "calculator": {

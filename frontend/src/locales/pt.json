@@ -71,7 +71,8 @@
     "rotate": "Rodar",
     "set": "Definir foto de perfil",
     "size": "Tamanho",
-    "take-photo": "Tirar uma foto"
+    "take-photo": "Tirar uma foto",
+    "zoom-open": "Ampliar a imagem de {name}"
   },
   "back": "Voltar",
   "calculator": {
