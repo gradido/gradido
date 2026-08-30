@@ -10,10 +10,7 @@
     </div>
     <div v-else>
       <!-- ⛔ `current-page` comes DOWN from the layout, which owns both the page number and
-           the query behind it. This page used to keep its own, and the two drifted apart the
-           moment the layout kept a page across a navigation: the paginator was rebuilt at
-           one while the rows were page three, and the buttons back to one were disabled
-           because as far as the paginator knew, it was already there. -->
+           the query behind it -- see the prop's own note in GddTransactionList.vue. -->
       <gdd-transaction-list
         :timestamp="timestamp"
         :current-page="listPage"

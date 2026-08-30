@@ -100,12 +100,9 @@ describe('Transactions', () => {
     expect(wrapper.emitted('update-transactions')).toEqual([[{ currentPage: 2, pageSize: 25 }]])
   })
 
-  /**
-   * ⛔ The page number comes DOWN from the layout, which owns it together with the query
-   * behind it. This page kept its own until 30.08.2026, and the two drifted apart on every
-   * route change: the list was rebuilt at page one while the layout still held the page the
-   * member had turned to.
-   */
+  // ⛔ The middle link of the chain the whole fix rests on: layout -> this page -> list.
+  // Severing any one of the three brings back a paginator showing a different page from the
+  // rows above it.
   it('hands the page the layout holds down to the list', async () => {
     wrapper = createWrapper({ listPage: 3 })
 

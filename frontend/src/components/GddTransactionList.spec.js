@@ -234,6 +234,28 @@ describe('GddTransactionList', () => {
           await wrapper.findComponent({ name: 'BPagination' }).vm.$emit('update:modelValue', 2)
         })
 
+        // ⚠️ Started at 3, not at the prop's default of 1: asserting "still 1" after a click
+        // would pass just as happily against a hardcoded `:model-value="1"`, with the prop
+        // not wired at all. Named by the review of 30.08.2026, which proved it by severing
+        // the binding.
+        describe('while the layout holds another page', () => {
+          beforeEach(async () => {
+            await wrapper.setProps({ currentPage: 3 })
+            await wrapper.findComponent({ name: 'BPagination' }).vm.$emit('update:modelValue', 5)
+          })
+
+          it('asks for the page that was clicked', () => {
+            expect(wrapper.emitted('update-transactions')).toEqual(
+              expect.arrayContaining([[{ currentPage: 5, pageSize: 25 }]]),
+            )
+          })
+
+          it('leaves the highlight where the layout put it', () => {
+            const paginator = wrapper.findComponent({ name: 'BPagination' })
+            expect(paginator.attributes('model-value')).toBe('3')
+          })
+        })
+
         it('emits update transactions', () => {
           expect(wrapper.emitted('update-transactions')).toEqual(
             expect.arrayContaining([[{ currentPage: 2, pageSize: 25 }]]),
@@ -250,19 +272,51 @@ describe('GddTransactionList', () => {
          * were whatever page the member had last turned to, and the buttons back to page one
          * were disabled because the paginator believed it was there.
          */
-        it('leaves the highlight where the layout put it', () => {
-          // ⚠️ Read as an ATTRIBUTE: the auto-stub declares no props of its own, so
-          // everything handed to it arrives as a string. `props('modelValue')` comes back
-          // undefined here and would pass against any wrong page just as happily.
-          const paginator = wrapper.findComponent({ name: 'BPagination' })
-          expect(paginator.attributes('model-value')).toBe('1')
-        })
       })
 
       it('shows the page it was given', async () => {
         await wrapper.setProps({ currentPage: 3 })
 
+        // ⚠️ An ATTRIBUTE, and a string: the auto-stub declares no props of its own, so
+        // `props('modelValue')` comes back undefined and would pass against any page.
         expect(wrapper.findComponent({ name: 'BPagination' }).attributes('model-value')).toBe('3')
+      })
+
+      /**
+       * ⛔ Withdrawing a link asks for the page the member is ON, not for page one. The
+       * review of 30.08.2026 proved this was uncovered by changing the handler to
+       * `askForPage(1)` -- every test in this file stayed green, while a member on page
+       * three would have been thrown back to the top of their bookings.
+       */
+      it('re-asks for the page it is on when a link is withdrawn', async () => {
+        // ⚠️ Its own wrapper, with a TransactionListItem stub that RENDERS ITS SLOTS. The
+        // default stub renders none, and the link summary lives in one -- so through the
+        // shared stubs this row does not exist and the test would report nothing found in a
+        // way that reads exactly like "the wiring is gone".
+        const withRow = mount(GddTransactionList, {
+          props: {
+            currentPage: 3,
+            transactions: [{ id: 1, typeId: 'LINK_SUMMARY' }],
+            transactionCount: 42,
+            pageSize: 25,
+            showPagination: true,
+          },
+          global: {
+            ...global,
+            stubs: {
+              ...global.stubs,
+              TransactionListItem: { template: '<div><slot name="LINK_SUMMARY" /></div>' },
+            },
+          },
+        })
+
+        await withRow
+          .findComponent({ name: 'TransactionLinkSummary' })
+          .vm.$emit('update-transactions')
+        const asked = withRow.emitted('update-transactions')
+        withRow.unmount()
+
+        expect(asked).toEqual([[{ currentPage: 3, pageSize: 25 }]])
       })
 
       describe('show no pagination', () => {

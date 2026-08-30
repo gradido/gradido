@@ -88,15 +88,11 @@ export default {
     /**
      * The page these rows ARE -- decided, fetched and held by the layout.
      *
-     * ⛔ Not this component's own state any more. It used to be, and the two numbers drifted
-     * the moment the layout kept a page across a navigation: this component is destroyed and
-     * rebuilt on every route change, so it came back at one, while the query above it still
-     * held three. The paginator then highlighted one, the rows were three, and the buttons
-     * back to one were disabled -- because as far as the paginator knew, it was there
-     * already. (Bernd, 30.08.2026.)
-     *
-     * The way to another page is `askForPage`: ask, and the new number arrives back down
-     * here with the rows it belongs to.
+     * ⛔ Not this component's own state. It was until 30.08.2026, and the two drifted apart
+     * every time the layout kept a page across a navigation, because this component is
+     * destroyed and rebuilt on a route change while the query above it is not. The way to
+     * another page is `askForPage`: ask, and the number comes back down here with the rows
+     * it belongs to. The full account is over the route watch in DashboardLayout.vue.
      */
     currentPage: { type: Number, default: 1 },
     pageSize: { type: Number, default: PAGE_SIZE },
@@ -113,11 +109,15 @@ export default {
     },
   },
   watch: {
+    // ⚠️ Dead wiring as it stands, and worth knowing before anyone traces it again: nothing
+    // ever changes `timestamp`. Transactions.vue sets it once per mount and never writes to
+    // it, and it is the only place this component is used -- so this handler cannot fire in
+    // production. Left alone because removing a prop is not this change's business.
+    //
+    // ⚠️ Wrapped rather than `handler: 'askForPage'`: a watcher hands its handler the new
+    // value, and the new value here would be the timestamp, going out as a page number.
     timestamp: {
       immediate: false,
-      // ⚠️ Wrapped rather than `handler: 'askForPage'`: a watcher hands its handler the new
-      // value, and the new value here is a timestamp. It would have gone out as the page
-      // number.
       handler() {
         this.askForPage(this.currentPage)
       },

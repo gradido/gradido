@@ -505,9 +505,9 @@ describe('DashboardLayout', () => {
      * coupling; asking for page one on arrival only shortened how long the wrong rows
      * showed.
      *
-     * ⚠️ Not airtight, and the ref says so where it is declared: a page-three answer that
-     * arrives AFTER the navigation has already set the page back to one is filed as page
-     * one. That is one round trip, and the overview's own answer overwrites it.
+     * ⚠️ The obvious hole -- a page-three answer landing after the navigation has set the
+     * page back to one -- is closed by Apollo rather than by this code; the ref's own note
+     * says where and quotes the line.
      */
     it('keeps the column on the newest bookings while the list is elsewhere', async () => {
       onResultHandler(listPage(['older']))
@@ -516,6 +516,26 @@ describe('DashboardLayout', () => {
       expect(wrapper.vm.transactions).toEqual(['older'])
       expect(wrapper.vm.newestTransactions).toEqual(['newest'])
     })
+  })
+
+  /**
+   * ⛔ That the page number REACHES the page inside the router-view. Everything else about
+   * this fix can be right and the member still sees the old defect if this one binding is
+   * missing: Transactions.vue would fall back to its prop default of 1 for ever, and the
+   * paginator would sit at one under whatever rows arrived.
+   *
+   * The review of 30.08.2026 found it by deleting the binding -- all 71 tests stayed green.
+   */
+  it('hands the page it holds to the page inside the router-view', async () => {
+    // A fresh layout starts on the skeleton, and the skeleton renders no router-view at all.
+    wrapper.vm.skeleton = false
+    await router.push('/transactions')
+    await wrapper.vm.updateTransactions({ currentPage: 4, pageSize: PAGE_SIZE })
+    await nextTick()
+
+    // ⚠️ Read as an attribute: RouterView is stubbed here and the stub declares no props of
+    // its own, so everything handed to it arrives as a string.
+    expect(wrapper.find('router-view-stub').attributes('list-page')).toBe('4')
   })
 
   /**
@@ -535,6 +555,25 @@ describe('DashboardLayout', () => {
     onTransactions.unmount()
 
     expect(asked[1]).toEqual({ currentPage: 1, pageSize: PAGE_SIZE, order: 'DESC' })
+  })
+
+  /**
+   * ⛔ `updateTransactions({})` is what `Send` calls after a transfer -- no page, no size.
+   * Before the defaults were added it reached Apollo as two `undefined` variables and the
+   * SERVER decided the page. Dropping the defaults again leaves every other test green.
+   */
+  it('reads a transfer as page one, when the page that asks names nothing', async () => {
+    mockRefetchFn.mockClear()
+
+    await wrapper.vm.updateTransactions({})
+    await nextTick()
+
+    expect(mockRefetchFn).toHaveBeenCalledWith({
+      currentPage: 1,
+      pageSize: PAGE_SIZE,
+      order: 'DESC',
+    })
+    expect(wrapper.vm.listPage).toBe(1)
   })
 
   it('renders DIV .main-page', () => {
