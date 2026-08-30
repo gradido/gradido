@@ -26,6 +26,14 @@ vi.mock('vue-i18n', () => ({
   }),
 }))
 
+// ⚠️ The zoom composable builds its labels through `i18n.global.t`, because a composable is
+// not a setup scope. This file replaces the whole `vue-i18n` module, so `@/i18n` would find
+// no `createI18n` to call -- mocked here rather than widened above, so the vue-i18n stub
+// keeps saying only what this component asks of it.
+vi.mock('@/i18n', () => ({
+  default: { global: { t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) } },
+}))
+
 const BOOKING = {
   id: 7,
   typeId: 'SEND',

@@ -211,6 +211,22 @@ export const memberAvatarSource = (member) => {
 }
 
 /**
+ * Whether the newest booking list reported that this member has nothing to show.
+ *
+ * ⛔ Not the same question as "is there a picture here". `withdrawnKeys` is rebuilt from
+ * the list in front of the member right now, so a member who is simply not on this page is
+ * NOT withdrawn -- only one the server actively reported without a date is. That is the
+ * distinction the overlay needs: it has to let go of a face whose owner just switched it
+ * off, and must not let go of one whose owner merely fell off page two.
+ *
+ * Goes through `trackChanges` like the other readers, so a caller can watch it.
+ */
+export const memberAvatarWithdrawn = (member) => {
+  trackChanges()
+  return Boolean(member) && withdrawnKeys.has(memberAvatarKey(member))
+}
+
+/**
  * Everything AppAvatar needs to draw one member, from one call.
  *
  * ★★ One call is the point. The letters and the colour seed must agree about which member
@@ -313,9 +329,20 @@ export const forgetWithdrawnMemberAvatars = (refsWithDates) => {
   }
   // Replaced, not merged: this describes the list in front of the member right now, and a
   // member who is simply no longer on the page has not withdrawn anything.
+  //
+  // ⚠️ The readers are woken when the SET changes, not only when something was deleted from
+  // storage. Those are different events: a picture that is being looked at right now, or
+  // one that was evicted, is withdrawn without anything being dropped -- and under the old
+  // condition the withdrawal reached storage and nothing else. Compared rather than always
+  // bumped, because `announceChange` empties the built `data:` URIs and every booking list
+  // would otherwise rebuild all of them.
+  const setChanged =
+    withdrawn.size !== withdrawnKeys.size || [...withdrawn].some((key) => !withdrawnKeys.has(key))
   withdrawnKeys = withdrawn
   if (dropped) {
     save()
+  }
+  if (dropped || setChanged) {
     announceChange()
   }
 }

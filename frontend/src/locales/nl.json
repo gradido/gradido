@@ -72,7 +72,10 @@
     "set": "Profielfoto instellen",
     "size": "Grootte",
     "take-photo": "Foto maken",
-    "zoom-open": "Foto van {name} vergroten"
+    "zoom-open": "Foto van {name} vergroten",
+    "zoom-open-plain": "Foto vergroten",
+    "zoom-picture": "Foto van {name}",
+    "zoom-picture-plain": "Profielfoto"
   },
   "back": "Terug",
   "calculator": {

@@ -59,13 +59,11 @@
 <script setup>
 import Name from '@/components/TransactionRows/Name'
 import { useRoute, useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
 import { computed } from 'vue'
 import AppAvatar from '@/components/AppAvatar.vue'
 import { avatarZoomBindings } from '@/composables/useAvatarZoom'
 import { memberAvatarProps } from '@/composables/useMemberAvatars'
-import { memberAlias } from '@/utils/gradidoAddress'
 
 const props = defineProps({
   transactions: {
@@ -77,7 +75,6 @@ const props = defineProps({
 const router = useRouter()
 const route = useRoute()
 const store = useStore()
-const { t } = useI18n()
 
 const handleRedirect = (id) => {
   store.dispatch('changeTransactionToHighlightId', id)
@@ -112,16 +109,7 @@ const rows = computed(() =>
         // Spread into one object, so the template still binds a single `row.avatar`. The
         // zoom half is empty for a member without a picture, which leaves that circle
         // exactly as it was (AS-018).
-        avatar: {
-          ...avatar,
-          ...avatarZoomBindings(
-            transaction.linkedUser,
-            avatar,
-            t('avatar.zoom-open', {
-              name: memberAlias(transaction.linkedUser?.alias, transaction.linkedUser?.gradidoID),
-            }),
-          ),
-        },
+        avatar: { ...avatar, ...avatarZoomBindings(transaction.linkedUser, avatar) },
       }
     }),
 )

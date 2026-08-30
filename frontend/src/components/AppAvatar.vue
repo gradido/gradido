@@ -123,11 +123,16 @@ const root = ref(null)
 // booking row this sits inside opens its own details on click. Without it, looking at
 // somebody's face also unfolds the booking underneath the overlay -- and closing the
 // overlay reveals a row that changed for no reason the member can connect to anything.
+//
+// ⚠️ AFTER the measurement, not before it. Stopped first, a circle that cannot report
+// where it is -- `zoomable` set without `onZoom` bound, which nothing but convention
+// couples -- would swallow the tap and do neither thing: no picture, and no row either.
+// A dead circle is worse than one that behaves like the plain circle it used to be.
 const onClick = (event) => {
   if (!props.zoomable) return
-  event.stopPropagation()
   const element = root.value?.$el ?? root.value
   if (!element?.getBoundingClientRect) return
+  event.stopPropagation()
   emit('zoom', element.getBoundingClientRect())
 }
 

@@ -93,7 +93,6 @@ import CollapseIcon from '../TransactionRows/CollapseIcon'
 import Name from '../TransactionRows/Name'
 import DecayInformation from '../DecayInformations/DecayInformation'
 import { BAvatar, BRow } from 'bootstrap-vue-next'
-import { useI18n } from 'vue-i18n'
 import AppAvatar from '@/components/AppAvatar.vue'
 import { avatarZoomBindings } from '@/composables/useAvatarZoom'
 import { memberAvatarProps } from '@/composables/useMemberAvatars'
@@ -108,7 +107,6 @@ const props = defineProps({
 
 const gddTransaction = ref(null)
 
-const { t } = useI18n()
 const store = useStore()
 const visible = ref(false)
 
@@ -129,18 +127,6 @@ const memberAvatar = computed(() => memberAvatarProps(props.transaction?.linkedU
 const isCreationType = computed(() => {
   return props.transaction.typeId === 'CREATION'
 })
-
-// What a screen reader says about the button. The alias, because that is the word beside
-// the circle -- announcing anything else would name somebody the member cannot see on the
-// row. Empty when there is no alias, which the label text is written to survive.
-const zoomLabel = computed(() =>
-  t('avatar.zoom-open', {
-    name: memberAlias(
-      props.transaction?.linkedUser?.alias,
-      props.transaction?.linkedUser?.gradidoID,
-    ),
-  }),
-)
 
 const avatarComponent = computed(() => {
   return isCreationType.value ? BAvatar : AppAvatar
@@ -167,7 +153,11 @@ const avatarProps = computed(() => {
       // ⚠️ AFTER the spread on purpose. Both objects are built for this one avatar, so
       // nothing collides today; put first, a later key of the same name in
       // `memberAvatarProps` would silently take the zoom away and no test would say so.
-      ...avatarZoomBindings(props.transaction?.linkedUser, memberAvatar.value, zoomLabel.value),
+      //
+      // The label is NOT assembled here. It was, at both call sites, until a review pointed
+      // out that the helper already holds the member -- and that two call-site expressions
+      // are exactly how the button and the overlay come to name different people.
+      ...avatarZoomBindings(props.transaction?.linkedUser, memberAvatar.value),
       color: '#fff',
       size: 42,
     }

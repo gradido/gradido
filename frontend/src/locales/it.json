@@ -72,7 +72,10 @@
     "set": "Imposta immagine del profilo",
     "size": "Dimensione",
     "take-photo": "Scatta una foto",
-    "zoom-open": "Ingrandisci l'immagine di {name}"
+    "zoom-open": "Ingrandisci l'immagine di {name}",
+    "zoom-open-plain": "Ingrandisci l'immagine",
+    "zoom-picture": "Immagine di {name}",
+    "zoom-picture-plain": "Immagine del profilo"
   },
   "back": "Indietro",
   "calculator": {

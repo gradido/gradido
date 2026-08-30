@@ -72,7 +72,10 @@
     "set": "Definir foto de perfil",
     "size": "Tamanho",
     "take-photo": "Tirar uma foto",
-    "zoom-open": "Ampliar a imagem de {name}"
+    "zoom-open": "Ampliar a imagem de {name}",
+    "zoom-open-plain": "Ampliar a imagem",
+    "zoom-picture": "Imagem de {name}",
+    "zoom-picture-plain": "Imagem de perfil"
   },
   "back": "Voltar",
   "calculator": {
