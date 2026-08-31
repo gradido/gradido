@@ -39,7 +39,18 @@ const MAX_PAGES_PER_REFRESH = 20
 export class MatchingVocabulary {
   private words: string[] = []
   private known = new Set<string>()
-  private lastId = 0
+  /**
+   * What the GMS has confirmed it holds - which is NOT the same as what we know.
+   *
+   * Two sets, because the two answer different questions. `known` decides what goes
+   * in front of the model, and a word this server coined belongs there the moment it
+   * exists, or the next batch of a backlog coins it again. `reported` decides what
+   * still has to be sent, and a word may only leave that queue when the GMS has
+   * actually taken it - otherwise a failed report retires the word for the life of
+   * the process and no other community ever learns it.
+   */
+  private reported = new Set<string>()
+  private walkedWholeList = false
 
   /** Everything known right now, for the instruction. */
   public current(): readonly string[] {
@@ -51,32 +62,58 @@ export class MatchingVocabulary {
   }
 
   /**
-   * Fetch whatever the GMS has that we do not.
+   * Fetch the whole list, from the beginning, every time.
+   *
+   * ⛔ Not from a remembered cursor, and that is a correction rather than a
+   * simplification. Ids come from a postgres identity, which allocates at INSERT and
+   * not at COMMIT - so a slow writer (the recount, inserting words no report arrived
+   * for, inside a statement that scans the whole entry table) can take ids 500-600
+   * while a fast one takes 601 and commits first. A page fetched in that window
+   * carries 601 and not 500-600, and a cursor moved to 601 would never see those
+   * hundred words again. They are exactly the words the recount had just repaired
+   * into existence, and the community would coin duplicates for every one of them.
+   *
+   * The price is the whole list per pass. Measured, it was 2125 words after 739
+   * entries and it converges rather than growing with them - three requests. When it
+   * stops being three, the answer is a cursor on something that orders by COMMIT
+   * rather than by allocation, not a bigger page.
    *
    * Throws when the GMS cannot be reached, and the caller decides what that means -
    * which is not the same answer in both cases. With a list already in hand, keying
-   * against a slightly old one costs at worst a duplicate word, and duplicates are a
-   * thing this design expects. With no list at all, every entry in the pass would
-   * coin its own word for things that already have one, and those duplicates are the
-   * expensive kind: they are what the whole vocabulary exists to prevent.
+   * against a slightly old one costs at worst a duplicate word. With none, every entry
+   * in the pass coins its own word for things that already have one, and those
+   * duplicates are the expensive kind: they are what the vocabulary exists to prevent.
    */
   public async refresh(apiKey: string): Promise<void> {
+    let afterId = 0
     for (let page = 0; page < MAX_PAGES_PER_REFRESH; page++) {
       const { words, hasMore } = await getGmsMatchingVocabulary(
         apiKey,
-        this.lastId,
+        afterId,
         Math.min(PAGE_SIZE, MATCHING_VOCABULARY_PAGE_MAX),
       )
       for (const row of words) {
         this.remember(row.word)
-        // Whatever the order the answer arrives in, the cursor may only move forward.
-        this.lastId = Math.max(this.lastId, row.id)
+        // Anything the GMS handed us is by definition already there, so it never
+        // needs reporting back.
+        this.reported.add(row.word)
+        afterId = Math.max(afterId, row.id)
       }
       if (!hasMore || !words.length) {
+        this.walkedWholeList = true
         return
       }
     }
-    logger.info(`matching vocabulary refresh stopped after ${MAX_PAGES_PER_REFRESH} pages`)
+    // Not `info`: this is the list every community's model sees being silently cut
+    // short, and the number it is cut at is ours, not the GMS's.
+    logger.warn(
+      `matching vocabulary: stopped after ${MAX_PAGES_PER_REFRESH} pages, the list is longer than this server will fetch`,
+    )
+  }
+
+  /** Whether a walk has ever run to the end. A part of the list is not the list. */
+  public hasWholeList(): boolean {
+    return this.walkedWholeList
   }
 
   /**
@@ -93,25 +130,38 @@ export class MatchingVocabulary {
    * be read through first.
    */
   public async report(apiKey: string, language: string, words: readonly string[]): Promise<void> {
-    // Deduplicated here and not only by `known`: one batch keys ten entries, and the
+    // Deduplicated here and not only by the sets: one batch keys ten entries, and the
     // words they share would otherwise be sent ten times and counted ten times
     // against what the GMS accepts per call.
-    const fresh = Array.from(new Set(words.filter((word) => word && !this.known.has(word))))
+    const fresh = Array.from(new Set(words.filter((word) => word && !this.reported.has(word))))
+
+    // Into the prompt list straight away, whatever the GMS says next. The next batch
+    // of a backlog has to see what this one coined, or a thousand entries coin the
+    // same word forty times - and that is true whether or not the GMS is reachable.
+    for (const word of fresh) {
+      this.remember(word)
+    }
     if (!fresh.length) {
       return
     }
+
     const added = await postGmsMatchingVocabulary(apiKey, language, fresh)
-    // ⛔ Only after the call came back. Remembering first would mean that a report
-    // which failed - a timeout, a 400, the GMS restarting - marked its words known,
-    // and this process would never offer them again: they would be missing from the
-    // shared vocabulary until a restart, and every other community would go on
-    // coining their own words for the same things.
+    // ⛔ Marked as sent only after the call came back. Doing it before would mean a
+    // report that failed - a timeout, a 400, the GMS restarting - retired its words
+    // for the life of the process: they would be missing from the shared vocabulary
+    // until a restart, and every other community would go on coining their own words
+    // for the same things.
     for (const word of fresh) {
-      this.remember(word)
+      this.reported.add(word)
     }
     logger.debug(`matching vocabulary: reported ${fresh.length} words, ${added} were new`)
   }
 
+  /**
+   * Into the list the model sees. Deliberately says nothing about `reported` - the
+   * words this fills come from two places, and only one of them is evidence that the
+   * GMS has them.
+   */
   private remember(word: string): void {
     if (!word || this.known.has(word)) {
       return

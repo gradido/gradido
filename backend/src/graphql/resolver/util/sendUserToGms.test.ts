@@ -158,7 +158,10 @@ describe('sendUsersToGms', () => {
           (sum: number, snapshot: { entries: unknown[] }) => sum + snapshot.entries.length,
           0,
         )
-        expect(entries).toBeLessThanOrEqual(3000)
+        // Against OUR bound, not the GMS's 3000. The 500 the comment calls deliberate
+        // - "so that its next change does not break this the day it lands" - is only
+        // a margin if something notices it being spent.
+        expect(entries).toBeLessThanOrEqual(2500)
       }
       // and nobody is left out
       const sent = snapshotMock.mock.calls.flatMap(([, snapshots]) => snapshots).length

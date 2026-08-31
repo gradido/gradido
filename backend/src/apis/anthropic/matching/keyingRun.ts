@@ -188,17 +188,26 @@ export class MatchingKeyingRun {
       )
     }
 
+    // Entries this pass has already asked about and got nothing usable for. The
+    // selector orders by id, so without this an entry the model never answers for
+    // stands at the head of every batch and is paid for again in each of them - ten
+    // times a pass, every pass, for ever. Held for the pass only: the next one tries
+    // again, once, which is the right cadence for something that may just have been
+    // a bad minute at the API.
+    const givenUpOn = new Set<string>()
+
     for (let batch = 0; batch < MAX_BATCHES_PER_PASS; batch++) {
-      const pending = await dbSelectMatchingEntriesNeedingKeying(
+      const selected = await dbSelectMatchingEntriesNeedingKeying(
         KEYING_INSTRUCTION_VERSION,
         BATCH_SIZE,
       )
+      const pending = selected.filter((row) => !givenUpOn.has(row.entry.uuid))
       if (!pending.length) {
         return
       }
       let written = 0
       try {
-        written = await this.keyBatch(client, gms, pending)
+        written = await this.keyBatch(client, gms, pending, givenUpOn)
       } catch (e) {
         // A model call can fail outright - a truncated answer, unparseable JSON, a
         // 500 from the API. Without this the throw would leave runPass through
@@ -224,11 +233,17 @@ export class MatchingKeyingRun {
     logger.info('matching keying run yielded with work left; continuing next pass')
   }
 
-  /** Returns how many entries actually got their keying stored. */
+  /**
+   * Returns how many entries actually got their keying stored.
+   *
+   * `givenUpOn` collects the ones this pass got nothing usable for, so the loop above
+   * stops re-selecting them. They keep their NULLs and come round again next pass.
+   */
   private async keyBatch(
     client: AnthropicClient,
     gms: { community: DbCommunity; apiKey: string },
     pending: MatchingEntryToKey[],
+    givenUpOn: Set<string>,
   ): Promise<number> {
     const records = await client.keyMatchingEntries(
       pending.map((row) => ({
@@ -244,13 +259,15 @@ export class MatchingKeyingRun {
     let stored = 0
 
     for (let index = 0; index < pending.length; index++) {
+      const row = pending[index]
       const record = records.get(index)
       if (!record) {
-        // Already logged by the client. Nothing is written, so this entry stays on
-        // the list and the next pass tries again.
+        // Named here, because the client only counts them - and without a uuid
+        // nothing anywhere says WHICH entry the model keeps failing to answer for.
+        logger.warn(`matching keying: no usable record for entry ${row.entry.uuid}`)
+        givenUpOn.add(row.entry.uuid)
         continue
       }
-      const row = pending[index]
       const { fields, dropped } = keyedFieldsFromAnswer(record)
       for (const reason of dropped) {
         logger.warn(`matching keying of entry ${row.entry.uuid}: dropped ${reason}`)
@@ -263,6 +280,7 @@ export class MatchingKeyingRun {
         { ...fields, instructionVersion: KEYING_INSTRUCTION_VERSION },
       )
       if (!written.success) {
+        givenUpOn.add(row.entry.uuid)
         // Almost always the member editing their entry while this call was out - the
         // sentence or the channel no longer matches, so these words are about an
         // entry that is gone. Their edit already put it back on the list.
@@ -273,15 +291,32 @@ export class MatchingKeyingRun {
       }
 
       stored++
+
+      // ⛔ The words are collected only if the entry actually reached the GMS, and
+      // that is not tidiness - it is the same consent question the publish answers.
+      //
+      // A member can withdraw from the GMS, or delete their account, while the model
+      // is thinking. The publish re-reads and refuses; the report used to go ahead
+      // anyway, and it writes into a table that has no community bound, no delete
+      // path, and that every community's model prompt is built from. Words derived
+      // from what somebody wrote would have been the one trace of them that outlived
+      // their withdrawal.
+      //
+      // Tying the two together also settles the GMS-is-down case in the right
+      // direction: an entry whose publish failed is not in the GMS, so its words have
+      // no business in the list yet either. The recount picks them up from the entry
+      // once it arrives.
+      if (!(await this.publish(gms, row.entry.uuid))) {
+        continue
+      }
+
       // Two letters, because that is the width of the GMS's column and what its
-      // schema demands. This column is varchar(4), so a stored `de-DE` would 400 the
-      // report and lose a whole batch's words.
+      // schema demands. It is OUR column that is varchar(4), so a stored `de-DE`
+      // would 400 the report and lose a whole batch's words.
       const language = row.userLanguage.slice(0, 2)
       const words = coinedByLanguage.get(language) ?? []
       words.push(...indexWordsOf(fields))
       coinedByLanguage.set(language, words)
-
-      await this.publish(gms, row.entry.uuid)
     }
 
     for (const [language, words] of coinedByLanguage) {
@@ -320,8 +355,16 @@ export class MatchingKeyingRun {
    *     sending our row would roll it back over there and leave it wrong.
    *   - the member withdraws from the GMS, or deletes their account.
    *
-   * `dbSelectPublishableMatchingEntry` answers all four in one read: nothing back
-   * means this entry may not be over there right now, whatever we just worked out.
+   * `dbSelectPublishableMatchingEntry` answers all four in one read - as of the read,
+   * which is not the same as as of the request landing. A pause committing while this
+   * PUT is in flight can still lose the race, and then a paused entry sits in the GMS
+   * until the member's next edit or a repair run. Narrow, because the delete path
+   * costs three database round trips before its own call, and bounded, because the
+   * request now has a timeout - but not closed, and saying so is better than a
+   * comment that reads as if it were.
+   *
+   * Answers whether the entry actually went. The caller needs to know, because the
+   * words are only reported to the shared vocabulary for entries that arrived.
    *
    * What this does NOT cover, and it is worth saying rather than implying: a member
    * whose very first sync to the GMS failed is unknown over there, and the per-entry
@@ -331,14 +374,14 @@ export class MatchingKeyingRun {
   private async publish(
     gms: { community: DbCommunity; apiKey: string },
     uuid: string,
-  ): Promise<void> {
+  ): Promise<boolean> {
     try {
       const fresh = await dbSelectPublishableMatchingEntry(uuid)
       if (!fresh) {
         logger.info(`matching keying: entry ${uuid} may not be in the GMS right now, not sent`)
-        return
+        return false
       }
-      await putGmsMatchingEntry(
+      return await putGmsMatchingEntry(
         gms.apiKey,
         new GmsUserMatchingEntry(fresh.userGradidoId, fresh.entry),
       )
@@ -347,6 +390,7 @@ export class MatchingKeyingRun {
       // What is missing over there is the entry's words, and the member's next edit
       // or a repair run carries them across.
       logger.warn(`could not publish the keying of entry ${uuid} to the GMS: ${e}`)
+      return false
     }
   }
 

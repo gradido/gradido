@@ -26,7 +26,11 @@ import {
   dbWriteMatchingEntryKeying,
   getHomeCommunity,
 } from 'database'
-import { getGmsMatchingVocabulary, putGmsMatchingEntry } from '@/apis/gms/GmsClient'
+import {
+  getGmsMatchingVocabulary,
+  postGmsMatchingVocabulary,
+  putGmsMatchingEntry,
+} from '@/apis/gms/GmsClient'
 
 const homeCommunity = getHomeCommunity as jest.Mock
 const pending = dbSelectMatchingEntriesNeedingKeying as jest.Mock
@@ -35,6 +39,7 @@ const client = AnthropicClient.getInstance as jest.Mock
 const publishable = dbSelectPublishableMatchingEntry as jest.Mock
 const writeKeying = dbWriteMatchingEntryKeying as jest.Mock
 const putEntry = putGmsMatchingEntry as jest.Mock
+const postWords = postGmsMatchingVocabulary as jest.Mock
 
 // What "spending" means: the one call in the whole run that costs money. Every test
 // below that says "does not spend" asserts on this, not on a step before it.
@@ -86,16 +91,36 @@ describe('the matching keying run and the switch it hangs on', () => {
     keyEntries.mockResolvedValue(new Map())
     client.mockReturnValue({ keyMatchingEntries: keyEntries })
     writeKeying.mockResolvedValue({ success: true })
-    publishable.mockResolvedValue({
-      entry: {
-        uuid: 'e-1',
-        matchingType: 'offer',
-        summary: 'Ich repariere Fahrraeder',
-        details: null,
-        remote: false,
-      },
-      userGradidoId: 'u-1',
-    })
+    publishable.mockResolvedValue({ entry: storedEntry(), userGradidoId: 'u-1' })
+    putEntry.mockResolvedValue(true)
+    postWords.mockResolvedValue(0)
+  })
+
+  /**
+   * The row as it comes back from the database AFTER the keying was written - which
+   * is what the publish reads and sends.
+   *
+   * The keyed columns are here on purpose: without them `GmsMatchingEntry` builds a
+   * payload with no `keying` at all, and every assertion about publishing would pass
+   * while the words never travelled.
+   */
+  const storedEntry = (overrides: Record<string, unknown> = {}) => ({
+    uuid: 'e-1',
+    matchingType: 'offer',
+    summary: 'Ich repariere Fahrraeder',
+    details: null,
+    remote: false,
+    keyWords: ['fahrradreparatur'],
+    keySubject: 'fahrrad',
+    keyActivity: 'reparieren',
+    keyCategory: 'reparatur',
+    keyArea: 'mobilitaet',
+    keyActor: 'fahrradmechaniker',
+    keySoughtActor: null,
+    keyTraits: [],
+    instructionVersion: 'gms176-1',
+    keyedAt: new Date('2026-08-31T10:00:00.000Z'),
+    ...overrides,
   })
 
   /** A model that answers the one waiting entry. */
@@ -246,13 +271,7 @@ describe('the matching keying run and the switch it hangs on', () => {
       // price while the model was thinking, and the correction has already gone to the
       // GMS - sending the old row would roll it back over there and leave it wrong.
       publishable.mockResolvedValue({
-        entry: {
-          uuid: 'e-1',
-          matchingType: 'offer',
-          summary: 'Ich repariere Fahrraeder',
-          details: 'Jetzt 20 Euro die Stunde',
-          remote: false,
-        },
+        entry: storedEntry({ details: 'Jetzt 20 Euro die Stunde' }),
         userGradidoId: 'u-1',
       })
 
@@ -262,6 +281,50 @@ describe('the matching keying run and the switch it hangs on', () => {
       const [, payload] = putEntry.mock.calls[0]
       expect(payload.details).toBe('Jetzt 20 Euro die Stunde')
       expect(payload.userUuid).toBe('u-1')
+    })
+
+    // ⛔ The point of the whole run, and nothing asserted it: the words have to be in
+    // what goes over. `GmsMatchingEntry` leaves the group out entirely when the row
+    // has no instruction version, so a re-read that missed the freshly written
+    // columns would send a keyless entry - the GMS would keep its NULLs, the entry
+    // would be off the to-do list for ever, and nothing would log a thing.
+    it('carries the keying that was just written', async () => {
+      await new MatchingKeyingRun().run()
+
+      const [, payload] = putEntry.mock.calls[0]
+      expect(payload.keying).toEqual(
+        expect.objectContaining({
+          keyWords: ['fahrradreparatur'],
+          keySubject: 'fahrrad',
+          keyActor: 'fahrradmechaniker',
+          instructionVersion: 'gms176-1',
+          keyedAt: '2026-08-31T10:00:00.000Z',
+        }),
+      )
+    })
+
+    // ⛔ A member can withdraw from the GMS, or delete their account, while the model
+    // is thinking. The publish re-reads and refuses - and the words must not go
+    // either, because the vocabulary is global, has no delete path, and every
+    // community's prompt is built from it.
+    it('reports no words for an entry it was not allowed to send', async () => {
+      publishable.mockResolvedValue(undefined)
+
+      await new MatchingKeyingRun().run()
+
+      expect(putEntry).not.toHaveBeenCalled()
+      expect(postWords).not.toHaveBeenCalled()
+    })
+
+    it('reports the words of an entry that did go', async () => {
+      await new MatchingKeyingRun().run()
+
+      expect(postWords).toHaveBeenCalledTimes(1)
+      const [, language, words] = postWords.mock.calls[0]
+      expect(language).toBe('de')
+      expect(words).toEqual(
+        expect.arrayContaining(['fahrradreparatur', 'fahrrad', 'fahrradmechaniker']),
+      )
     })
 
     // ⛔ The worst of the lot. Pausing an entry DELETES it from the GMS; publishing
@@ -274,6 +337,18 @@ describe('the matching keying run and the switch it hangs on', () => {
       expect(putEntry).not.toHaveBeenCalled()
       // The keying is still stored - it is not lost, it just does not travel now.
       expect(writeKeying).toHaveBeenCalled()
+    })
+
+    // The repair that catches a throwing model call had no test at all: remove the
+    // try/catch and every other test here still passes, while the regression - the
+    // throw escaping through nudge()'s catch and the same ten entries standing first
+    // in line at full price on every pass - comes back silently.
+    it('survives a model call that throws, without writing anything', async () => {
+      keyEntries.mockRejectedValue(new Error('the answer was truncated'))
+
+      await expect(new MatchingKeyingRun().run()).resolves.toBeUndefined()
+      expect(writeKeying).not.toHaveBeenCalled()
+      expect(putEntry).not.toHaveBeenCalled()
     })
 
     it('keeps the pass going when a publish fails', async () => {

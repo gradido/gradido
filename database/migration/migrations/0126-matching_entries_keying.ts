@@ -58,10 +58,20 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   // The keying run's own question - "what still needs working out?" - asked on its
   // timer AND on every entry a member saves. Once the backlog is drained the answer is
   // almost always "nothing", and without this it costs a walk over the whole table,
-  // joined to `users`, to find that out. Leading with `active` because the query
-  // filters on it first and the column is the more selective of the two.
+  // joined to `users`, to find that out.
+  //
+  // `instruction_version` leads, because it is the column that discriminates: in
+  // steady state nearly every row carries the current one, and the query wants the
+  // few that are NULL or older. `active` is true for almost every row, so leading
+  // with it would sort nothing.
+  //
+  // ⚠️ What it does NOT do is serve the `ORDER BY id`: the condition on
+  // instruction_version is a range (NULL, or anything other than the current value),
+  // so the sort still happens after the range is read. In steady state that range is
+  // nearly empty and it costs nothing; during a re-keying it is the whole table and
+  // the sort is the smaller half of that job anyway.
   await queryFn(
-    'ALTER TABLE `matching_entries` ADD INDEX IF NOT EXISTS `IDX_matching_entries_keying` (`active`, `instruction_version`);',
+    'ALTER TABLE `matching_entries` ADD INDEX IF NOT EXISTS `IDX_matching_entries_keying` (`instruction_version`, `active`);',
   )
 }
 

@@ -13,13 +13,23 @@ import { GmsUser } from './model/GmsUser'
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.gms.GmsClient`)
 
 /**
- * How long a vocabulary call may take before it is given up on.
+ * How long a call the keying run makes may take before it is given up on.
  *
  * The shared agents keep connections alive and set no timeout, and axios has none by
  * default, so a connection that dies without a FIN leaves the caller awaiting for as
- * long as the process lives. These two calls are made by a background run that keeps
- * one pass in flight at a time - so one hung request does not slow it down, it ends
+ * long as the process lives. Every call the background run makes needs this: it keeps
+ * one pass in flight at a time, so one hung request does not slow it down, it ends
  * it, with no error to log because nothing ever rejects.
+ *
+ * Carried by every call that any background loop makes - which is not only the keying
+ * run. The two DELETEs are retried by `retryInBackground`, and a hang there is worse
+ * than a slow one: `runRetries` awaits each attempt, so it never reaches attempt two,
+ * never reaches its own "still failing after 3 retries - GMS copy may remain" line,
+ * and a paused or deleted entry stays visible in everybody's search with nothing said
+ * anywhere. That loop exists for the privacy case; it has to be able to finish.
+ *
+ * ⚠️ The remaining calls have none. They are made from request handlers or from a
+ * script, where a hang costs one request rather than a whole guarantee.
  */
 const GMS_REQUEST_TIMEOUT_MS = 30_000
 
@@ -225,6 +235,13 @@ export async function putGmsMatchingEntry(
     headers: gmsHeaders(apiKey),
     httpAgent,
     httpsAgent,
+    // Same timeout, same reason as the vocabulary calls above - and this one matters
+    // more, because the keying run calls it once per entry from inside the pass that
+    // guards itself with a single in-flight promise. A half-open connection here
+    // would not fail the run, it would stop it, silently, until the process restarts.
+    // The member's own save path calls this too, where a timeout only turns a hang
+    // into the warning it already handles.
+    timeout: GMS_REQUEST_TIMEOUT_MS,
   })
   if (result.status !== 200) {
     throw new LogError(
@@ -250,6 +267,7 @@ export async function deleteGmsMatchingEntry(apiKey: string, uuid: string): Prom
     headers: gmsHeaders(apiKey),
     httpAgent,
     httpsAgent,
+    timeout: GMS_REQUEST_TIMEOUT_MS,
   })
   if (result.status !== 200) {
     throw new LogError(
@@ -281,6 +299,7 @@ export async function deleteGmsUser(apiKey: string, userUuid: string): Promise<b
     headers: gmsHeaders(apiKey),
     httpAgent,
     httpsAgent,
+    timeout: GMS_REQUEST_TIMEOUT_MS,
   })
   if (result.status !== 200) {
     throw new LogError(

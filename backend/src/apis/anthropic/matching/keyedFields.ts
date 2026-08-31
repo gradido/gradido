@@ -67,21 +67,36 @@ export function keyedFieldsFromAnswer(record: KeyingAnswerRecord): KeyedFieldsRe
   // once folded, and 66 does not fit the varchar(64) it is stored in on either side.
   // Bounding the raw word would let it through here and turn it into a database error
   // over there, on a whole batch. What is bounded is what is stored.
-  const keyWords = withinBound(
-    normaliseKeyWords(record.schluessel ?? []),
-    KEY_WORD_MAX_CHARS,
-    'key word',
-  ).slice(0, MAX_KEY_WORDS_PER_ENTRY)
+  const withinCount = (values: string[], max: number, what: string): string[] => {
+    if (values.length <= max) {
+      return values
+    }
+    // Said out loud, because the caller logs it against the entry. A model that
+    // answered with 300 key words for one sentence has gone wrong, and the count
+    // being quietly cut to 64 is the only evidence there would otherwise be.
+    dropped.push(`${values.length - max} ${what}s over the ${max} an entry may carry`)
+    return values.slice(0, max)
+  }
 
-  const keyTraits = Array.from(
-    new Set(
-      withinBound(
-        (record.merkmal ?? []).map((trait) => trait.trim()).filter(Boolean),
-        KEY_TRAIT_MAX_CHARS,
-        'trait',
+  const keyWords = withinCount(
+    withinBound(normaliseKeyWords(record.schluessel ?? []), KEY_WORD_MAX_CHARS, 'key word'),
+    MAX_KEY_WORDS_PER_ENTRY,
+    'key word',
+  )
+
+  const keyTraits = withinCount(
+    Array.from(
+      new Set(
+        withinBound(
+          (record.merkmal ?? []).map((trait) => trait.trim()).filter(Boolean),
+          KEY_TRAIT_MAX_CHARS,
+          'trait',
+        ),
       ),
     ),
-  ).slice(0, MAX_KEY_TRAITS_PER_ENTRY)
+    MAX_KEY_TRAITS_PER_ENTRY,
+    'trait',
+  )
 
   // An indexed field: folded, and empty becomes null. The model answers with an empty
   // string where a field does not apply - `gesuchter_beruf` outside the 'need'

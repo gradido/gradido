@@ -124,10 +124,13 @@ describe('keyedFieldsFromAnswer', () => {
     expect(dropped).toHaveLength(1)
   })
 
-  it('caps a runaway answer at the number of words an entry may carry', () => {
+  it('caps a runaway answer at the number of words an entry may carry, and says so', () => {
     const many = Array.from({ length: MAX_KEY_WORDS_PER_ENTRY + 20 }, (_, i) => `wort${i}`)
-    const { fields } = keyedFieldsFromAnswer(answer({ schluessel: many }))
+    const { fields, dropped } = keyedFieldsFromAnswer(answer({ schluessel: many }))
     expect(fields.keyWords).toHaveLength(MAX_KEY_WORDS_PER_ENTRY)
+    // A model that answers with 84 key words for one sentence has gone wrong, and
+    // the count being quietly cut is the only evidence there would otherwise be.
+    expect(dropped).toContain(`20 key words over the ${MAX_KEY_WORDS_PER_ENTRY} an entry may carry`)
   })
 
   it('folds duplicates the model repeated', () => {
