@@ -119,17 +119,16 @@ export async function dbSelectActiveMatchingEntriesByUserIds(
   if (userIds.length === 0) {
     return []
   }
-  const rows = await drizzleDb()
-    .select({ entry: matchingEntriesTable })
+  // Deliberately about the ENTRIES and not about the members: it answers "the live
+  // entries of these people", and who those people may be is the caller's question -
+  // which is also what its test asserts. The member-level guard for this path sits in
+  // `sendUsersToGms`, where the members are already in hand.
+  return drizzleDb()
+    .select()
     .from(matchingEntriesTable)
-    .innerJoin(usersTable, eq(usersTable.id, matchingEntriesTable.userId))
-    // The same four conditions as everywhere else that reaches the GMS. It used to
-    // ask only whether the entry was live and leave the member to the caller - which
-    // was defensible while the payload was the member's own sentence, and stopped
-    // being so when it started carrying the words derived from it. One caller
-    // (ExportUsers) checks the member itself, one (UserResolver) checks only consent.
-    .where(and(inArray(matchingEntriesTable.userId, userIds), mayReachTheGms()))
-  return rows.map((row) => row.entry)
+    .where(
+      and(inArray(matchingEntriesTable.userId, userIds), eq(matchingEntriesTable.active, true)),
+    )
 }
 
 /**

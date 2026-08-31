@@ -186,6 +186,34 @@ describe('sendUsersToGms', () => {
       expect(snapshotMock.mock.calls[1][1]).toHaveLength(1)
     })
 
+    // ⛔ A snapshot carries the entry's KEYING now, and the words in it go on into a
+    // vocabulary with no community bound and no delete path. A member who has
+    // withdrawn, been deleted, or belongs to another community must not be in one.
+    it.each([
+      ['who has withdrawn from the GMS', { gmsAllowed: false }],
+      ['who deleted their account', { deletedAt: new Date() }],
+      ['of another community', { foreign: true }],
+    ])('leaves out a member %s', async (_name, state) => {
+      const excluded = { ...member(9, 'uuid-9'), ...state } as DbUser
+
+      await sendUsersToGms([WITH_ENTRIES, excluded], HOME_COM, true)
+
+      const [, snapshots] = snapshotMock.mock.calls[0]
+      expect(snapshots).toHaveLength(1)
+      expect(snapshots[0].userUuid).toBe(WITH_ENTRIES.gradidoID)
+    })
+
+    // Left out, not sent empty: an empty snapshot says "this member has no live
+    // entries", which would DELETE what the GMS holds. For somebody who has withdrawn
+    // that removal is `removeUserFromGms`'s job, which retries until it lands.
+    it('sends no snapshot call at all when nobody in the batch may be published', async () => {
+      const excluded = { ...member(9, 'uuid-9'), gmsAllowed: false } as DbUser
+
+      await sendUsersToGms([excluded], HOME_COM, true)
+
+      expect(snapshotMock).not.toHaveBeenCalled()
+    })
+
     it('marks the batch as published once both calls are through', async () => {
       await sendUsersToGms([WITH_ENTRIES, WITHOUT_ENTRIES], HOME_COM, true)
 

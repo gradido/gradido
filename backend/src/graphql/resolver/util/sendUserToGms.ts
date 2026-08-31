@@ -80,12 +80,25 @@ export async function sendUsersToGms(
     let snapshots: GmsMatchingEntrySnapshot[] | undefined
     if (withMatchingEntries) {
       const entriesByUser = await findLiveEntriesByUser(userIds)
-      // One snapshot per user, the ones without entries included. An empty list matters:
-      // it tells the GMS this member has no live entries, so any it still holds are
-      // removed. A member left out of the batch is not touched at all.
-      snapshots = users.map(
-        (user) => new GmsMatchingEntrySnapshot(user.gradidoID, entriesByUser.get(user.id) ?? []),
-      )
+      // ⛔ Only members who may actually be published, and this became a rule rather
+      // than a nicety when the snapshot started carrying an entry's KEYING. A
+      // member's own sentence going over for somebody who has left is one thing; the
+      // words derived from it are another, because they go on into a vocabulary with
+      // no community bound and no delete path. `ExportUsers` filters its members
+      // itself; the resolver path checks only consent.
+      //
+      // Left out entirely rather than sent with an empty list: an empty snapshot
+      // means "this member has no live entries", which would delete what the GMS
+      // holds. For somebody who has withdrawn, that removal belongs to
+      // `removeUserFromGms`, which does it properly and retries.
+      snapshots = users
+        .filter((user) => user.gmsAllowed && !user.deletedAt && !user.foreign)
+        // One snapshot per remaining user, the ones without entries included. An empty
+        // list matters: it tells the GMS this member has no live entries, so any it
+        // still holds are removed. A member left out of the batch is not touched.
+        .map(
+          (user) => new GmsMatchingEntrySnapshot(user.gradidoID, entriesByUser.get(user.id) ?? []),
+        )
     }
 
     const result = await upsertGmsUsers(
