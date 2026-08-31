@@ -117,6 +117,14 @@ const humhub = {
 
 const anthropic = {
   ANTHROPIC_ACTIVE: process.env.ANTHROPIC_ACTIVE === 'true' || false,
+  // The community's matching switch. Read here as well as in the frontend, and for a
+  // reason the frontend does not have: the keying run spends money. With matching off
+  // no member can even reach the feature, so working out words for entries that
+  // predate the switch would be paying a language model for something nobody can see.
+  //
+  // Defaults to off, and that is the direction a missing value has to fail in: a
+  // community that never asked for this must not be billed for it.
+  MATCHING_ACTIVE: process.env.MATCHING_ACTIVE === 'true' || false,
   ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '',
   ANTHROPIC_MODEL: process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-5',
   // Opt-in preview: with no API key set, `CREA_STUB=true` makes Crea return a canned

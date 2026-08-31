@@ -45,6 +45,39 @@ export const MESSAGE_MIN_CHARS = 1
 export const ABOUT_ME_MAX_CHARS = 2000
 export const MATCHING_ENTRY_DETAILS_MAX_CHARS = 2000
 
+// matching, the keying of an entry: a language model turns the one sentence a member
+// wrote into the words their entry can be found under, plus seven fields saying what
+// it is about. Those words go on to the GMS and into a vocabulary every community
+// shares, so these bounds are the second set that has to agree across the two
+// repositories - same names, same values, in the GMS's own `shared` package.
+//
+// The split of duties behind them: here the model's answer is cleaned, so anything
+// over a bound is dropped and logged against the entry it came from. The GMS refuses
+// it outright, because it is the last place before a table every community reads.
+//
+// A key word is one German word - a compound and its parts, an activity, a person -
+// so 64 characters is far past any real one (the longest anyone writes down is around
+// 40). What this catches is not a long word but a model that answered with a sentence.
+export const KEY_WORD_MAX_CHARS = 64
+// Measured over 735 entries the model coins 5,8 key words per entry. Ten times that
+// bounds a runaway answer without ever touching a real one.
+export const MAX_KEY_WORDS_PER_ENTRY = 64
+// subject, activity, category, area, actor, sought actor - all asked for as one word.
+export const KEY_FIELD_MAX_CHARS = 64
+// Traits - condition, level, material, professional or private, who it is for - may be
+// short phrases rather than single words, so only their number and length are bounded.
+export const MAX_KEY_TRAITS_PER_ENTRY = 16
+export const KEY_TRAIT_MAX_CHARS = 64
+// Which version of the keying instruction produced an entry's fields. Stored against
+// the entry so that improving the instruction reaches the entries written before it,
+// instead of only the ones written after.
+export const INSTRUCTION_VERSION_MAX_CHARS = 32
+// How many words one call may report to the GMS vocabulary. One call is one entry's
+// worth of words, so this is far above what is ever sent.
+export const MAX_REPORTED_KEY_WORDS = 500
+// How many vocabulary words one call may fetch from the GMS.
+export const MATCHING_VOCABULARY_PAGE_MAX = 5000
+
 // avatar: the profile picture a member sets for their own account. One upload produces
 // two JPEGs, and both travel in the same mutation — so these two limits share one
 // budget rather than each having their own.

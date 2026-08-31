@@ -10,6 +10,7 @@ import {
 } from 'database'
 import { Arg, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import { v4 as uuidv4 } from 'uuid'
+import { matchingKeyingRun } from '@/apis/anthropic/matching/keyingRun'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { MatchingEntryInput } from '@/graphql/input/MatchingEntryInput'
 import { MatchingEntry } from '@/graphql/model/MatchingEntry'
@@ -83,6 +84,11 @@ export class MatchingEntryResolver {
 
     const entry = await readBackEntry(uuid)
     await syncMatchingEntryToGms(user, entry)
+    // Returns at once: the words are worked out by a language model, which takes
+    // seconds and can fail, and neither belongs in the member's save button. Until
+    // the run has been round, the entry is stored and served but not yet findable by
+    // word - the same trade the GMS makes with its vectors.
+    matchingKeyingRun.nudge()
     return new MatchingEntry(entry)
   }
 
@@ -94,8 +100,11 @@ export class MatchingEntryResolver {
     @Ctx() context: Context,
   ): Promise<MatchingEntry> {
     const user = getUser(context)
-    await findOwnEntry(uuid, user.id)
-    const updated = await dbUpdateMatchingEntry(uuid, {
+    const stored = await findOwnEntry(uuid, user.id)
+    // The stored row goes in, not just the uuid: an edit to the sentence or the
+    // channel makes the keying describe something the member no longer wrote, and
+    // clearing it is what puts the entry back on the keying run's list.
+    const updated = await dbUpdateMatchingEntry(stored, {
       matchingType: input.matchingType,
       summary: input.summary,
       details: input.details ?? null,
@@ -107,6 +116,7 @@ export class MatchingEntryResolver {
 
     const entry = await readBackEntry(uuid)
     await syncMatchingEntryToGms(user, entry)
+    matchingKeyingRun.nudge()
     return new MatchingEntry(entry)
   }
 
@@ -128,6 +138,9 @@ export class MatchingEntryResolver {
     // Pausing removes it from the GMS, resuming puts it back - the sync reads the
     // state and does the right thing either way.
     await syncMatchingEntryToGms(user, entry)
+    // Resuming an entry that was paused before it was ever keyed puts it on the
+    // list; pausing takes it off. Either way the run is the one that sorts it out.
+    matchingKeyingRun.nudge()
     return new MatchingEntry(entry)
   }
 

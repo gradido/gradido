@@ -138,6 +138,76 @@ describe('GmsClient', () => {
       ])
     })
 
+    // The keying: all of it or nothing, and the GMS reads the difference. An entry
+    // that has not been keyed leaves the group out entirely, which tells the GMS to
+    // keep whatever it already has - sending nulls instead would wipe it on every
+    // repair run by a server that does not key.
+    it('leaves the keying out entirely for an entry that has none', async () => {
+      put.mockResolvedValue(ok)
+
+      await putGmsMatchingEntrySnapshots(API_KEY, snapshots)
+
+      const [, body] = put.mock.calls[0]
+      expect(JSON.parse(JSON.stringify(body))[0].entries[0]).not.toHaveProperty('keying')
+    })
+
+    it('carries the whole keying for an entry that has one', async () => {
+      put.mockResolvedValue(ok)
+      const keyed = entry({
+        keyWords: ['lastenrad', 'anhaenger'],
+        keySubject: 'lastenrad',
+        keyActivity: 'ausleihen',
+        keyCategory: 'leihe',
+        keyArea: 'mobilitaet',
+        keyActor: null,
+        keySoughtActor: null,
+        keyTraits: ['gebraucht'],
+        instructionVersion: 'gms176-1',
+        keyedAt: new Date('2026-08-31T10:00:00.000Z'),
+      } as Partial<MatchingEntrySelect>)
+
+      await putGmsMatchingEntrySnapshots(API_KEY, [
+        new GmsMatchingEntrySnapshot(USER_UUID, [keyed]),
+      ])
+
+      const [, body] = put.mock.calls[0]
+      // Serialised, because that is what the GMS schema validates - and because the
+      // date has to arrive as a string it can parse, not as a Date object that JSON
+      // would render differently than the schema expects.
+      expect(JSON.parse(JSON.stringify(body))[0].entries[0].keying).toEqual({
+        keyWords: ['lastenrad', 'anhaenger'],
+        keySubject: 'lastenrad',
+        keyActivity: 'ausleihen',
+        keyCategory: 'leihe',
+        keyArea: 'mobilitaet',
+        keyActor: null,
+        keySoughtActor: null,
+        keyTraits: ['gebraucht'],
+        instructionVersion: 'gms176-1',
+        keyedAt: '2026-08-31T10:00:00.000Z',
+      })
+    })
+
+    // The index the entry is found under is NOT sent: the GMS derives it from these
+    // fields itself, because what an entry is findable under is not a community
+    // server's decision to make.
+    it('does not send an index of its own', async () => {
+      put.mockResolvedValue(ok)
+      const keyed = entry({
+        keyWords: ['lastenrad'],
+        keySubject: 'lastenrad',
+        instructionVersion: 'gms176-1',
+        keyedAt: new Date('2026-08-31T10:00:00.000Z'),
+      } as Partial<MatchingEntrySelect>)
+
+      await putGmsMatchingEntrySnapshots(API_KEY, [
+        new GmsMatchingEntrySnapshot(USER_UUID, [keyed]),
+      ])
+
+      const [, body] = put.mock.calls[0]
+      expect(JSON.parse(JSON.stringify(body))[0].entries[0].keying).not.toHaveProperty('indexWords')
+    })
+
     // No `active` flag travels: a paused entry is not sent as paused, it is left out of
     // the snapshot and therefore deleted.
     it('does not carry the active flag over', async () => {

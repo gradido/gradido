@@ -1,6 +1,7 @@
 import 'reflect-metadata'
 import 'source-map-support/register'
 import { getLogger } from 'log4js'
+import { matchingKeyingRun } from './apis/anthropic/matching/keyingRun'
 import { CONFIG } from './config'
 import {
   startValidateCommunities,
@@ -23,6 +24,11 @@ async function main() {
     }
   })
   await startValidateCommunities(Number(CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER))
+  // Works out the words a matching entry can be found under, in the background. Does
+  // nothing at all without an Anthropic key or without the GMS, and nothing is lost
+  // by that: entries are stored and served either way, they are just not yet
+  // findable by word.
+  matchingKeyingRun.start()
 }
 
 main().catch((e) => {

@@ -8,6 +8,7 @@ import {
   decimal,
   index,
   int,
+  json,
   longtext,
   mysqlTable,
   text,
@@ -154,6 +155,44 @@ export const matchingEntriesTable = mysqlTable(
     // payload — this keeps the conversion in one place instead of at every call site.
     remote: boolean().default(false).notNull(),
     active: boolean().default(true).notNull(),
+    // --- the keying ------------------------------------------------------------
+    //
+    // What a language model made of `summary`: the words this entry can be found
+    // under, and seven fields saying what it is about. Asked for here, on this
+    // server, because this is where the sentence and the model access are - the GMS
+    // stores what it is sent and never calls a model itself.
+    //
+    // All NULL until an entry has been keyed, and that IS the queue: an entry with
+    // no instruction version is one the keying run has not done yet, and an entry
+    // with an old one is one an improved instruction has not seen. There is no
+    // separate to-do table to keep in step.
+    //
+    // The German names are the fields of the instruction the model answers - what to
+    // search for when comparing a stored row against the measurements.
+
+    // `schluessel` - every word the model coined, normalised. JSON because MySQL has
+    // no array type; the GMS stores the same list in a real one.
+    keyWords: json('key_words').$type<string[]>().default(sql`NULL`),
+    // `sache` - what it is about. Goes into the index, so normalised like a key word.
+    keySubject: varchar('key_subject', { length: 64 }).default(sql`NULL`),
+    // `taetigkeit` - what happens with it, in the infinitive. Not in the index, so
+    // kept as the model wrote it.
+    keyActivity: varchar('key_activity', { length: 64 }).default(sql`NULL`),
+    // `klasse` - one of twelve, see apis/anthropic/matching/instruction.
+    keyCategory: varchar('key_category', { length: 64 }).default(sql`NULL`),
+    // `gebiet` - the field the subject belongs to. Not in the index.
+    keyArea: varchar('key_area', { length: 64 }).default(sql`NULL`),
+    // `wer` - the person acting or being sought. In the index.
+    keyActor: varchar('key_actor', { length: 64 }).default(sql`NULL`),
+    // `gesuchter_beruf` - who solves this problem. Only on the 'need' channel, and
+    // empty even there when no trade is being sought. In the index.
+    keySoughtActor: varchar('key_sought_actor', { length: 64 }).default(sql`NULL`),
+    // `merkmal` - condition, level, material, professional or private, who it is for.
+    // Short phrases rather than words, so these are NOT normalised.
+    keyTraits: json('key_traits').$type<string[]>().default(sql`NULL`),
+    instructionVersion: varchar('instruction_version', { length: 32 }).default(sql`NULL`),
+    keyedAt: datetime('keyed_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    // --- end of the keying -----------------------------------------------------
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),

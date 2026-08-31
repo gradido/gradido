@@ -166,6 +166,10 @@ export const schema = Joi.object({
     .when('GMS_ACTIVE', { is: true, then: Joi.required(), otherwise: Joi.optional() })
     .description('Whether errors should be thrown when creating users in GMS'),
 
+  MATCHING_ACTIVE: Joi.boolean()
+    .default(false)
+    .description('Whether the matching feature is on for this community'),
+
   GMS_API_URL: Joi.string()
     .uri({ scheme: ['http', 'https'] })
     .when('GMS_ACTIVE', { is: true, then: Joi.required(), otherwise: Joi.optional() })

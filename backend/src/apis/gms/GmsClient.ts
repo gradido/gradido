@@ -281,6 +281,90 @@ export async function deleteGmsUser(apiKey: string, userUuid: string): Promise<b
   return true
 }
 
+/** One word of the shared matching vocabulary, with the cursor to ask after it. */
+export interface GmsVocabularyWord {
+  id: number
+  word: string
+}
+
+/**
+ * A page of the shared matching vocabulary.
+ *
+ * The list is global - every community's coined words in one table - and it is what
+ * goes into the instruction before an entry is keyed, with one demand of the model: if
+ * one of these fits, use exactly it. Without it two members describing the same thing
+ * on two servers coin two words and never find each other.
+ *
+ * Paged by id, oldest first, because ids are only handed out and never reused: a
+ * caller remembers the last one it saw and asks for what came after, and misses
+ * nothing however much was inserted while it was away.
+ */
+export async function getGmsMatchingVocabulary(
+  apiKey: string,
+  afterId: number,
+  limit: number,
+): Promise<{ words: GmsVocabularyWord[]; hasMore: boolean }> {
+  if (!CONFIG.GMS_ACTIVE) {
+    logger.info('GMS-Communication disabled per ConfigKey GMS_ACTIVE=false!')
+    return { words: [], hasMore: false }
+  }
+  const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_API_URL)
+  const result = await axios.get(baseUrl.concat('matching-vocabulary'), {
+    params: { afterId: String(afterId), limit: String(limit) },
+    headers: gmsHeaders(apiKey),
+    httpAgent,
+    httpsAgent,
+  })
+  if (result.status !== 200) {
+    throw new LogError(
+      'HTTP Status Error in get matching-vocabulary:',
+      result.status,
+      result.statusText,
+    )
+  }
+  return { words: result.data?.words ?? [], hasMore: Boolean(result.data?.hasMore) }
+}
+
+/**
+ * Report the words this server just coined, so every other one can reuse them.
+ *
+ * Sent separately from the entry that carries them, and both halves of that matter.
+ * It arrives the moment the model has answered rather than whenever the entry is next
+ * counted; and the word outlives the entry, because a word we forget is one the next
+ * entry coins a second variant of.
+ *
+ * The language is the member's, and it is the only place the GMS can learn it: the
+ * sentence itself never leaves this server. Words first coined in a language other
+ * than German are measurably rougher, and the GMS keeps that mark so they can be read
+ * through first.
+ *
+ * Answers with how many were new to the GMS.
+ */
+export async function postGmsMatchingVocabulary(
+  apiKey: string,
+  language: string,
+  words: string[],
+): Promise<number> {
+  if (!CONFIG.GMS_ACTIVE) {
+    logger.info('GMS-Communication disabled per ConfigKey GMS_ACTIVE=false!')
+    return 0
+  }
+  const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_API_URL)
+  const result = await axios.post(
+    baseUrl.concat('matching-vocabulary'),
+    { language, words },
+    { headers: gmsHeaders(apiKey), httpAgent, httpsAgent },
+  )
+  if (result.status !== 200) {
+    throw new LogError(
+      'HTTP Status Error in post matching-vocabulary:',
+      result.status,
+      result.statusText,
+    )
+  }
+  return result.data?.added ?? 0
+}
+
 function gmsHeaders(apiKey: string) {
   return {
     accept: 'application/json',
