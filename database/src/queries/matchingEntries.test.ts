@@ -406,13 +406,34 @@ describe('the keying of a matching entry', () => {
         remote: false,
       })
 
-      // Gone, and the NULL is at the same time what puts the entry back on the list.
+      // Gone - ALL of it, not the four columns that happen to be checked elsewhere.
+      // The clearing constant carries ten, and a column dropped from it would leave
+      // one keyed field describing a sentence nobody wrote.
       const row = await rowOf('uuid-key-1')
       expect(row!.summary).toBe('Ich gebe Klavierunterricht')
-      expect(row!.keyWords).toBeNull()
-      expect(row!.keySubject).toBeNull()
-      expect(row!.instructionVersion).toBeNull()
-      expect(row!.keyedAt).toBeNull()
+      expect({
+        keyWords: row!.keyWords,
+        keySubject: row!.keySubject,
+        keyActivity: row!.keyActivity,
+        keyCategory: row!.keyCategory,
+        keyArea: row!.keyArea,
+        keyActor: row!.keyActor,
+        keySoughtActor: row!.keySoughtActor,
+        keyTraits: row!.keyTraits,
+        instructionVersion: row!.instructionVersion,
+        keyedAt: row!.keyedAt,
+      }).toEqual({
+        keyWords: null,
+        keySubject: null,
+        keyActivity: null,
+        keyCategory: null,
+        keyArea: null,
+        keyActor: null,
+        keySoughtActor: null,
+        keyTraits: null,
+        instructionVersion: null,
+        keyedAt: null,
+      })
     })
 
     it('clears it on a change of channel too, which the model is told about', async () => {

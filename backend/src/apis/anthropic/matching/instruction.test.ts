@@ -17,14 +17,27 @@ import {
 describe('the keying instruction', () => {
   it('carries no example', () => {
     // Measured: an example does not show the model how to answer, it tells it what to
-    // answer, and its own words come back in the keys of unrelated entries. The word
-    // the German instruction would use to introduce one is "Beispiel".
-    expect(KEYING_INSTRUCTION.toLowerCase()).not.toContain('beispiel')
+    // answer, and its own words come back in the keys of unrelated entries.
+    //
+    // ⚠️ A weak guard, and worth saying so rather than trusting it: it catches the
+    // German words that introduce one, and nothing else. The measured text already
+    // contains a parenthetical and a list of sample professions, so what really keeps
+    // examples out is the version constant and a re-measurement, not this line.
+    for (const opener of ['beispiel', 'z. b.', 'z.b.', 'etwa:', 'wie folgt']) {
+      expect(KEYING_INSTRUCTION.toLowerCase()).not.toContain(opener)
+    }
   })
 
   it('asks for the person even where the sentence does not name one', () => {
     // The single field that makes an entry findable by the trade somebody types.
-    expect(KEYING_INSTRUCTION).toContain('erschliesst')
+    // Anchored inside the `wer` block rather than on the word alone, which also
+    // appears in `gesuchter_beruf`.
+    const wer = KEYING_INSTRUCTION.slice(
+      KEYING_INSTRUCTION.search(/^wer\s/m),
+      KEYING_INSTRUCTION.search(/^gesuchter_beruf\s/m),
+    )
+    expect(wer).toContain('erschliesst')
+    expect(wer).toContain('Erfinde keine Woerter')
   })
 
   it('names all twelve categories, and only those', () => {
@@ -36,16 +49,22 @@ describe('the keying instruction', () => {
     ])
   })
 
-  it('asks for every field it describes', () => {
+  it('describes every field the schema demands, in its own block', () => {
     // The schema and the prose have to name the same fields: a field the prose
     // explains and the schema omits is never answered, and one the schema demands
     // and the prose does not explain is guessed at.
+    //
+    // Anchored on the field's own HEADER, not on the name appearing somewhere.
+    // `wer` occurs six times as a substring - inside `Handwerk`, quoted in three
+    // other blocks - so a `toContain('wer')` stays green with the entire `wer`
+    // description deleted, and that description is the one the file calls the reason
+    // an entry is findable by the trade people type.
     const required = KEYING_SCHEMA.properties.eintraege.items.required as readonly string[]
     for (const field of required) {
       if (field === 'nr') {
         continue
       }
-      expect(KEYING_INSTRUCTION).toContain(field)
+      expect(KEYING_INSTRUCTION).toMatch(new RegExp(`^${field}\\s`, 'm'))
     }
   })
 

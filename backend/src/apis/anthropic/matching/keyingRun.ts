@@ -8,7 +8,6 @@ import {
   type MatchingEntryToKey,
 } from 'database'
 import { getLogger } from 'log4js'
-import { MAX_REPORTED_KEY_WORDS } from 'shared'
 import { putGmsMatchingEntry } from '@/apis/gms/GmsClient'
 import { MatchingVocabulary } from '@/apis/gms/matchingVocabulary'
 import { GmsUserMatchingEntry } from '@/apis/gms/model/GmsMatchingEntry'
@@ -41,6 +40,15 @@ const BATCH_SIZE = 10
  * one go.
  */
 const MAX_BATCHES_PER_PASS = 10
+
+/**
+ * How many batches may fail before a pass gives up.
+ *
+ * One failure is a batch: something about those ten entries, or one bad minute at the
+ * API. Two in a row is the API, and walking the rest of a backlog to find that out
+ * costs a call per batch.
+ */
+const MAX_FAILED_BATCHES_PER_PASS = 2
 
 /**
  * How often the run looks for work.
@@ -174,11 +182,15 @@ export class MatchingKeyingRun {
     try {
       await this.vocabulary.refresh(gms.apiKey)
     } catch (e) {
-      if (!this.vocabulary.size()) {
-        // Nothing in hand at all - a first start while the GMS is away. Keying now
-        // would have every entry coin its own word for things that already have one,
-        // and paying a model to manufacture duplicates is worse than waiting.
-        logger.warn(`matching keying: no vocabulary and the GMS is not reachable (${e}), skipping`)
+      if (!this.vocabulary.hasWholeList()) {
+        // Never once read the list whole - a first start while the GMS is away, or a
+        // walk that broke off half way. Keying against part of a list coins a second
+        // word for everything in the missing part, and those words are never
+        // unlearned. Asking "do we have any words?" instead would take the other
+        // branch on the strength of one page out of three.
+        logger.warn(
+          `matching keying: the vocabulary has never been read whole and the GMS is not reachable (${e}), skipping`,
+        )
         return
       }
       // A list one pass old costs at worst a duplicate, and the run is what fills the
@@ -195,6 +207,7 @@ export class MatchingKeyingRun {
     // again, once, which is the right cadence for something that may just have been
     // a bad minute at the API.
     const givenUpOn = new Set<string>()
+    let failures = 0
 
     for (let batch = 0; batch < MAX_BATCHES_PER_PASS; batch++) {
       const selected = await dbSelectMatchingEntriesNeedingKeying(
@@ -216,7 +229,22 @@ export class MatchingKeyingRun {
         logger.error(
           `matching keying: the batch ${pending.map((row) => row.entry.uuid).join(', ')} failed: ${e}`,
         )
-        return
+        // Set aside for the rest of the pass, exactly like the entries that came back
+        // unusable. Otherwise one entry that makes the model overrun its token budget
+        // takes its nine neighbours down with it AND stands first in line again, so
+        // nothing behind them ever drains.
+        for (const row of pending) {
+          givenUpOn.add(row.entry.uuid)
+        }
+        // But not for ever within one pass: if the API is simply down, every batch
+        // throws, and walking the whole backlog to discover that costs one call per
+        // batch. Two is enough to tell "this batch" from "the API".
+        failures++
+        if (failures >= MAX_FAILED_BATCHES_PER_PASS) {
+          logger.error('matching keying: two batches in a row failed, stopping the pass')
+          return
+        }
+        continue
       }
       if (!written) {
         // Nothing was stored, so the same entries are first in line again next pass.
@@ -280,7 +308,12 @@ export class MatchingKeyingRun {
         { ...fields, instructionVersion: KEYING_INSTRUCTION_VERSION },
       )
       if (!written.success) {
-        givenUpOn.add(row.entry.uuid)
+        // ⛔ NOT added to `givenUpOn`. That set means "the model cannot key this"; a
+        // refused write means the opposite - the member edited the entry while the
+        // call was out, so what we have is about a version that no longer exists and
+        // the new one is already back on the list. Setting it aside here would make
+        // the run refuse, for the rest of the pass, the one entry it just proved
+        // somebody is actively working on.
         // Almost always the member editing their entry while this call was out - the
         // sentence or the channel no longer matches, so these words are about an
         // entry that is gone. Their edit already put it back on the list.
@@ -292,21 +325,23 @@ export class MatchingKeyingRun {
 
       stored++
 
-      // ⛔ The words are collected only if the entry actually reached the GMS, and
-      // that is not tidiness - it is the same consent question the publish answers.
+      // ⛔ Two different reasons not to send, and only one of them says anything
+      // about the words.
       //
-      // A member can withdraw from the GMS, or delete their account, while the model
-      // is thinking. The publish re-reads and refuses; the report used to go ahead
-      // anyway, and it writes into a table that has no community bound, no delete
-      // path, and that every community's model prompt is built from. Words derived
-      // from what somebody wrote would have been the one trace of them that outlived
-      // their withdrawal.
+      // REFUSED means the member has withdrawn from the GMS or deleted their account
+      // while the model was thinking. Their words must not go either: the vocabulary
+      // has no community bound, no delete path, and every community's model prompt is
+      // built from it, so a word coined from what they wrote would be the one trace
+      // of them that outlived their withdrawal.
       //
-      // Tying the two together also settles the GMS-is-down case in the right
-      // direction: an entry whose publish failed is not in the GMS, so its words have
-      // no business in the list yet either. The recount picks them up from the entry
-      // once it arrives.
-      if (!(await this.publish(gms, row.entry.uuid))) {
+      // FAILED means the GMS did not answer. The entry is ours and the member
+      // consented; it simply has not arrived yet. Holding its words back would lose
+      // them for good - the entry now carries the current instruction version, so
+      // nothing selects it again, and the recount over there can only count entries
+      // it actually has. So the words go, and the entry follows with the member's
+      // next edit or a repair run.
+      const sent = await this.publish(gms, row.entry.uuid)
+      if (sent === 'refused') {
         continue
       }
 
@@ -321,16 +356,7 @@ export class MatchingKeyingRun {
 
     for (const [language, words] of coinedByLanguage) {
       try {
-        // In chunks, because this is a whole batch's words rather than one entry's:
-        // ten entries of up to MAX_KEY_WORDS_PER_ENTRY each can offer more than the
-        // GMS accepts per call, and going over would 400 and lose all of them.
-        for (let from = 0; from < words.length; from += MAX_REPORTED_KEY_WORDS) {
-          await this.vocabulary.report(
-            gms.apiKey,
-            language,
-            words.slice(from, from + MAX_REPORTED_KEY_WORDS),
-          )
-        }
+        await this.vocabulary.report(gms.apiKey, language, words)
       } catch (e) {
         // The words are in our own copy either way, so this batch keyed consistently.
         // What another community misses is the chance to reuse them - which the GMS
@@ -363,8 +389,10 @@ export class MatchingKeyingRun {
    * request now has a timeout - but not closed, and saying so is better than a
    * comment that reads as if it were.
    *
-   * Answers whether the entry actually went. The caller needs to know, because the
-   * words are only reported to the shared vocabulary for entries that arrived.
+   * Answers with WHY it did not go, not just that it did not. `refused` is a
+   * statement about consent and the caller must hold the words back; `failed` is a
+   * statement about the network and it must not. A consent check that could not be
+   * made answers `refused`, never `failed`.
    *
    * What this does NOT cover, and it is worth saying rather than implying: a member
    * whose very first sync to the GMS failed is unknown over there, and the per-entry
@@ -374,23 +402,37 @@ export class MatchingKeyingRun {
   private async publish(
     gms: { community: DbCommunity; apiKey: string },
     uuid: string,
-  ): Promise<boolean> {
+  ): Promise<'sent' | 'refused' | 'failed'> {
+    // ⛔ The consent read stands OUTSIDE the try below, and that placement is the
+    // whole guarantee. Inside it, a database hiccup - a reset connection, a pool
+    // timeout, a restart - would be indistinguishable from a network failure at the
+    // PUT and would answer `failed`, on which the caller reports the words. A read
+    // that did not happen is not permission; it has to fail closed.
+    let fresh: Awaited<ReturnType<typeof dbSelectPublishableMatchingEntry>>
     try {
-      const fresh = await dbSelectPublishableMatchingEntry(uuid)
-      if (!fresh) {
-        logger.info(`matching keying: entry ${uuid} may not be in the GMS right now, not sent`)
-        return false
-      }
-      return await putGmsMatchingEntry(
+      fresh = await dbSelectPublishableMatchingEntry(uuid)
+    } catch (e) {
+      logger.warn(`could not check whether entry ${uuid} may go to the GMS: ${e}`)
+      return 'refused'
+    }
+    if (!fresh) {
+      logger.info(`matching keying: entry ${uuid} may not be in the GMS right now, not sent`)
+      return 'refused'
+    }
+
+    try {
+      await putGmsMatchingEntry(
         gms.apiKey,
         new GmsUserMatchingEntry(fresh.userGradidoId, fresh.entry),
       )
+      return 'sent'
     } catch (e) {
       // The keying is stored here, so nothing is lost and nothing is paid for twice.
-      // What is missing over there is the entry's words, and the member's next edit
-      // or a repair run carries them across.
+      // What is missing over there is the entry itself, and the member's next edit or
+      // a repair run carries it across. Told apart from a refusal on purpose - see
+      // the caller.
       logger.warn(`could not publish the keying of entry ${uuid} to the GMS: ${e}`)
-      return false
+      return 'failed'
     }
   }
 

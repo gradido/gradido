@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { getLogger } from 'log4js'
-import { MATCHING_VOCABULARY_PAGE_MAX } from 'shared'
+import { MATCHING_VOCABULARY_PAGE_MAX, MAX_REPORTED_KEY_WORDS } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { getGmsMatchingVocabulary, postGmsMatchingVocabulary } from './GmsClient'
 
@@ -10,13 +10,15 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.gms.matchingVocabula
 const PAGE_SIZE = 1000
 
 /**
- * How many pages one top-up will walk before it stops.
+ * How many pages one walk will fetch before it gives up.
  *
- * Only ever reached on a first start against a long-running GMS, and stopping early
- * is harmless: the list is short by whatever is left, and the next pass carries on
- * from the same cursor.
+ * A backstop against a runaway answer, not a budget: the walk starts from the
+ * beginning every time (see `refresh`), so a page it never reaches is a page it will
+ * never reach on any later pass either. At `PAGE_SIZE` that is 200.000 words, against
+ * 2125 measured after 739 entries - so hitting it means something is wrong, and the
+ * walk says so and does not claim to have read the list.
  */
-const MAX_PAGES_PER_REFRESH = 20
+const MAX_PAGES_PER_REFRESH = 200
 
 /**
  * The shared matching vocabulary, kept locally.
@@ -27,9 +29,8 @@ const MAX_PAGES_PER_REFRESH = 20
  * without it, a member here and a member on another server, months apart, coin
  * `vertikutierer` and `rasenluefter` and never find each other.
  *
- * Topped up rather than refetched. Word ids are handed out in the order words were
- * first coined and never reused, so remembering the last one seen and asking for what
- * came after it misses nothing, however much arrived in between.
+ * Read from the beginning every pass rather than topped up from a remembered
+ * position - `refresh` says why, and it is not a matter of taste.
  *
  * Held in memory and gone on restart, which costs one full walk through the list on
  * the next start and nothing else. Measured, the list was 2125 words after 739
@@ -104,14 +105,31 @@ export class MatchingVocabulary {
         return
       }
     }
-    // Not `info`: this is the list every community's model sees being silently cut
-    // short, and the number it is cut at is ours, not the GMS's.
+    // ⚠️ Deliberately does NOT set the flag. A walk that ran out of pages read part of
+    // a list, and a part of a list is not a list - the caller has to be able to tell
+    // the difference, because keying against part of it coins a second word for
+    // everything in the rest, permanently, in a table with no delete path.
+    //
+    // Not `info` either: this is the list every community's model sees being cut
+    // short, at a number that is ours rather than the GMS's.
     logger.warn(
       `matching vocabulary: stopped after ${MAX_PAGES_PER_REFRESH} pages, the list is longer than this server will fetch`,
     )
   }
 
-  /** Whether a walk has ever run to the end. A part of the list is not the list. */
+  /**
+   * Whether a walk has ever run all the way to the end of the list.
+   *
+   * Sticky on purpose: it answers "is there a real list in hand", which is what
+   * decides whether keying may happen at all. A single failed refresh after a good
+   * one does not make the list in memory worthless - it makes it one pass old, and
+   * one pass old costs at worst a duplicate word.
+   *
+   * ⚠️ What it therefore cannot tell you is whether the LATEST walk was complete. A
+   * process that once read a short list and now hits the page cap every time still
+   * answers true. The warning in `refresh` is what says that out loud; the flag is
+   * only ever asked whether we have anything worth keying against.
+   */
   public hasWholeList(): boolean {
     return this.walkedWholeList
   }
@@ -135,9 +153,11 @@ export class MatchingVocabulary {
     // against what the GMS accepts per call.
     const fresh = Array.from(new Set(words.filter((word) => word && !this.reported.has(word))))
 
-    // Into the prompt list straight away, whatever the GMS says next. The next batch
-    // of a backlog has to see what this one coined, or a thousand entries coin the
-    // same word forty times - and that is true whether or not the GMS is reachable.
+    // ⛔ ALL of them into the prompt list first, before a single call goes out. The
+    // next batch of a backlog has to see what this one coined, or a thousand entries
+    // coin the same word forty times - and that is true whether or not the GMS
+    // answers. Doing it per chunk below would leave every word after the first
+    // failure in neither list: not shown to the model, not queued for the GMS.
     for (const word of fresh) {
       this.remember(word)
     }
@@ -145,16 +165,22 @@ export class MatchingVocabulary {
       return
     }
 
-    const added = await postGmsMatchingVocabulary(apiKey, language, fresh)
-    // ⛔ Marked as sent only after the call came back. Doing it before would mean a
-    // report that failed - a timeout, a 400, the GMS restarting - retired its words
-    // for the life of the process: they would be missing from the shared vocabulary
-    // until a restart, and every other community would go on coining their own words
-    // for the same things.
-    for (const word of fresh) {
-      this.reported.add(word)
+    // In chunks, and the chunking lives here rather than at the caller because this
+    // is the class that knows the bound. A batch of ten entries can offer more words
+    // than the GMS accepts in one call, and going over would 400 and lose all of them.
+    for (let from = 0; from < fresh.length; from += MAX_REPORTED_KEY_WORDS) {
+      const chunk = fresh.slice(from, from + MAX_REPORTED_KEY_WORDS)
+      const added = await postGmsMatchingVocabulary(apiKey, language, chunk)
+      // ⛔ Marked as sent only after the call came back, and per chunk, so a failure
+      // half way does not claim the chunks that never went. Marking before would mean
+      // a report that failed - a timeout, a 400, the GMS restarting - retired its
+      // words for the life of the process: missing from the shared vocabulary until a
+      // restart, while every other community coins its own words for the same things.
+      for (const word of chunk) {
+        this.reported.add(word)
+      }
+      logger.debug(`matching vocabulary: reported ${chunk.length} words, ${added} were new`)
     }
-    logger.debug(`matching vocabulary: reported ${fresh.length} words, ${added} were new`)
   }
 
   /**

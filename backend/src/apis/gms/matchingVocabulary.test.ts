@@ -31,6 +31,10 @@ describe('the shared matching vocabulary, held locally', () => {
 
       expect(vocabulary.current()).toEqual(['fahrrad', 'rasen'])
       expect(vocabulary.hasWholeList()).toBe(true)
+      // The cursor moves WITHIN the walk. Without that it would ask for page one
+      // over and over, warn, and cap every community's prompt at the first page.
+      expect(fetchPage.mock.calls[0][1]).toBe(0)
+      expect(fetchPage.mock.calls[1][1]).toBe(1)
     })
 
     // ⛔ From the beginning, not from where the last walk stopped. Postgres allocates

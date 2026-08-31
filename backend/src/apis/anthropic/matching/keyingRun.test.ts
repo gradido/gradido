@@ -53,16 +53,28 @@ const keyEntries = jest.fn()
  * instruction version is current - and modelling that is what lets the batch loop
  * terminate the way it does in production.
  */
-const oneEntryWaiting = () => {
-  const waiting = [
-    {
-      entry: { uuid: 'e-1', summary: 'Ich repariere Fahrraeder', matchingType: 'offer' },
-      userGradidoId: 'u-1',
-      userLanguage: 'de',
-    },
-  ]
-  pending.mockResolvedValueOnce(waiting).mockResolvedValueOnce(waiting).mockResolvedValue([])
+const oneEntryWaiting = (...waiting: ReturnType<typeof waitingEntry>[]) => {
+  const batch = waiting.length ? waiting : [waitingEntry('e-1')]
+  // Reset first, so that a test naming its own entries replaces the default rather
+  // than queueing behind it - `…Once` values do not overwrite, they stack.
+  pending.mockReset()
+  pending.mockResolvedValueOnce(batch).mockResolvedValueOnce(batch).mockResolvedValue([])
 }
+
+/**
+ * One entry on the keying run's list.
+ *
+ * `userLanguage` is a full locale on purpose. The GMS's column holds two characters
+ * and its schema demands exactly two, so a stored `de-DE` reaching the report would
+ * 400 it and lose a whole batch's words - and a fixture that was already two
+ * characters could not tell whether the cut happens.
+ */
+const waitingEntry = (uuid: string, overrides: Record<string, unknown> = {}) => ({
+  entry: { uuid, summary: `Satz zu ${uuid}`, matchingType: 'offer' },
+  userGradidoId: `u-${uuid}`,
+  userLanguage: 'de-DE',
+  ...overrides,
+})
 
 /**
  * ⛔ The switch that decides whether a community pays for a language model.
@@ -123,26 +135,21 @@ describe('the matching keying run and the switch it hangs on', () => {
     ...overrides,
   })
 
+  /** One record as the model answers. */
+  const modelRecord = () => ({
+    nr: 1,
+    schluessel: ['fahrradreparatur'],
+    sache: 'fahrrad',
+    taetigkeit: 'reparieren',
+    klasse: 'reparatur',
+    gebiet: 'mobilitaet',
+    wer: 'fahrradmechaniker',
+    merkmal: [],
+    gesuchter_beruf: '',
+  })
+
   /** A model that answers the one waiting entry. */
-  const modelAnswers = () =>
-    keyEntries.mockResolvedValue(
-      new Map([
-        [
-          0,
-          {
-            nr: 1,
-            schluessel: ['fahrradreparatur'],
-            sache: 'fahrrad',
-            taetigkeit: 'reparieren',
-            klasse: 'reparatur',
-            gebiet: 'mobilitaet',
-            wer: 'fahrradmechaniker',
-            merkmal: [],
-            gesuchter_beruf: '',
-          },
-        ],
-      ]),
-    )
+  const modelAnswers = () => keyEntries.mockResolvedValue(new Map([[0, modelRecord()]]))
 
   afterEach(() => {
     CONFIG.MATCHING_ACTIVE = wasMatchingActive
@@ -321,10 +328,77 @@ describe('the matching keying run and the switch it hangs on', () => {
 
       expect(postWords).toHaveBeenCalledTimes(1)
       const [, language, words] = postWords.mock.calls[0]
+      // Cut to the two characters the GMS column holds. The member's own column is
+      // wider, and a `de-DE` arriving over there would 400 the whole report.
       expect(language).toBe('de')
       expect(words).toEqual(
         expect.arrayContaining(['fahrradreparatur', 'fahrrad', 'fahrradmechaniker']),
       )
+    })
+
+    // ⛔ One member withdrawing must not cost the rest of the batch their words. With
+    // a single-entry fixture "the batch carries on" and "the batch stops here" look
+    // exactly the same.
+    it('carries on with the rest of the batch when one entry may not go', async () => {
+      oneEntryWaiting(waitingEntry('e-1'), waitingEntry('e-2'))
+      keyEntries.mockResolvedValue(
+        new Map([
+          [0, modelRecord()],
+          [1, modelRecord()],
+        ]),
+      )
+      publishable
+        .mockResolvedValueOnce(undefined)
+        .mockResolvedValue({ entry: storedEntry({ uuid: 'e-2' }), userGradidoId: 'u-e-2' })
+
+      await new MatchingKeyingRun().run()
+
+      expect(putEntry).toHaveBeenCalledTimes(1)
+      expect(putEntry.mock.calls[0][1].uuid).toBe('e-2')
+      expect(postWords).toHaveBeenCalledTimes(1)
+    })
+
+    it('keeps on going when one publish throws', async () => {
+      oneEntryWaiting(waitingEntry('e-1'), waitingEntry('e-2'))
+      keyEntries.mockResolvedValue(
+        new Map([
+          [0, modelRecord()],
+          [1, modelRecord()],
+        ]),
+      )
+      putEntry.mockRejectedValueOnce(new Error('GMS unreachable')).mockResolvedValue(true)
+
+      await new MatchingKeyingRun().run()
+
+      // Both were tried - the first one's failure did not take the second with it.
+      expect(putEntry).toHaveBeenCalledTimes(2)
+      // And the first one's words still go: the entry is ours, the member consented,
+      // it simply has not arrived yet. Holding them back would lose them for good.
+      expect(postWords).toHaveBeenCalledTimes(1)
+    })
+
+    it('groups the words by the language of each member', async () => {
+      oneEntryWaiting(waitingEntry('e-1'), waitingEntry('e-2', { userLanguage: 'es' }))
+      keyEntries.mockResolvedValue(
+        new Map([
+          [0, modelRecord()],
+          // Different words on purpose: identical ones are reported once and the
+          // second report would rightly be skipped, which would hide the grouping.
+          [1, { ...modelRecord(), schluessel: ['brotbacken'], sache: 'brot', wer: 'baecker' }],
+        ]),
+      )
+
+      await new MatchingKeyingRun().run()
+
+      // The language is what the GMS records against a word, and one batch can hold
+      // members of several. Reporting them together would mark one language's words
+      // with another's.
+      const byLanguage = new Map(
+        postWords.mock.calls.map(([, language, words]) => [language, words]),
+      )
+      expect([...byLanguage.keys()].sort()).toEqual(['de', 'es'])
+      expect(byLanguage.get('de')).toEqual(expect.arrayContaining(['fahrradreparatur']))
+      expect(byLanguage.get('es')).toEqual(expect.arrayContaining(['brotbacken']))
     })
 
     // ⛔ The worst of the lot. Pausing an entry DELETES it from the GMS; publishing

@@ -1,5 +1,11 @@
 // AI-GENERATED — not an architecture reference
-import { KEY_TRAIT_MAX_CHARS, KEY_WORD_MAX_CHARS, MAX_KEY_WORDS_PER_ENTRY } from 'shared'
+import {
+  KEY_FIELD_MAX_CHARS,
+  KEY_TRAIT_MAX_CHARS,
+  KEY_WORD_MAX_CHARS,
+  MAX_KEY_TRAITS_PER_ENTRY,
+  MAX_KEY_WORDS_PER_ENTRY,
+} from 'shared'
 import type { KeyingAnswerRecord } from './instruction'
 import { keyedFieldsFromAnswer } from './keyedFields'
 
@@ -114,6 +120,38 @@ describe('keyedFieldsFromAnswer', () => {
       answer({ schluessel: [`${'a'.repeat(KEY_WORD_MAX_CHARS)}---`] }),
     )
     expect(fields.keyWords).toEqual(['a'.repeat(KEY_WORD_MAX_CHARS)])
+  })
+
+  it(`drops an activity or area beyond ${KEY_FIELD_MAX_CHARS} characters`, () => {
+    // Same shape as the key words: these are varchar(64) on both servers, and an
+    // over-long value that got through here would be a database error over there, on
+    // a whole bulk call.
+    const tooLong = 'a'.repeat(KEY_FIELD_MAX_CHARS + 1)
+    const { fields, dropped } = keyedFieldsFromAnswer(
+      answer({ taetigkeit: tooLong, gebiet: tooLong }),
+    )
+    expect(fields.keyActivity).toBeNull()
+    expect(fields.keyArea).toBeNull()
+    expect(dropped).toHaveLength(2)
+  })
+
+  // ⛔ A word that is not empty but folds to nothing - a foreign script, or only
+  // punctuation. Stored as `''` it would share a word with every other entry that
+  // had one, which is to say it would match everybody.
+  it('turns a field that folds away to nothing into null, not an empty string', () => {
+    const { fields } = keyedFieldsFromAnswer(
+      answer({ sache: '???', wer: 'велосипед', gesuchter_beruf: '...' }),
+    )
+    expect(fields.keySubject).toBeNull()
+    expect(fields.keyActor).toBeNull()
+    expect(fields.keySoughtActor).toBeNull()
+  })
+
+  it(`caps the traits at ${MAX_KEY_TRAITS_PER_ENTRY}, and says so`, () => {
+    const many = Array.from({ length: MAX_KEY_TRAITS_PER_ENTRY + 5 }, (_, i) => `merkmal${i}`)
+    const { fields, dropped } = keyedFieldsFromAnswer(answer({ merkmal: many }))
+    expect(fields.keyTraits).toHaveLength(MAX_KEY_TRAITS_PER_ENTRY)
+    expect(dropped).toContain(`5 traits over the ${MAX_KEY_TRAITS_PER_ENTRY} an entry may carry`)
   })
 
   it('drops an over-long trait as well', () => {

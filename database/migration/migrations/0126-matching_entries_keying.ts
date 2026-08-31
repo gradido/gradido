@@ -60,18 +60,19 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   // almost always "nothing", and without this it costs a walk over the whole table,
   // joined to `users`, to find that out.
   //
-  // `instruction_version` leads, because it is the column that discriminates: in
-  // steady state nearly every row carries the current one, and the query wants the
-  // few that are NULL or older. `active` is true for almost every row, so leading
-  // with it would sort nothing.
+  // `active` leads, and the reason is the shape of the conditions rather than how
+  // selective the columns are. `active = TRUE` is an equality test; the version test
+  // is a range (NULL, or anything other than the current value). A composite index
+  // can seek on equalities and then range-scan inside them, but everything after a
+  // range can only filter - so equality first, always. Led by the version instead,
+  // the scan would also walk every PAUSED entry carrying an out-of-date version.
   //
-  // ⚠️ What it does NOT do is serve the `ORDER BY id`: the condition on
-  // instruction_version is a range (NULL, or anything other than the current value),
-  // so the sort still happens after the range is read. In steady state that range is
-  // nearly empty and it costs nothing; during a re-keying it is the whole table and
-  // the sort is the smaller half of that job anyway.
+  // ⚠️ What it does not do either way is serve the `ORDER BY id`: the sort happens
+  // after the range is read. In steady state that range is nearly empty and it costs
+  // nothing; during a re-keying it is the whole table, and the sort is the smaller
+  // half of that job.
   await queryFn(
-    'ALTER TABLE `matching_entries` ADD INDEX IF NOT EXISTS `IDX_matching_entries_keying` (`instruction_version`, `active`);',
+    'ALTER TABLE `matching_entries` ADD INDEX IF NOT EXISTS `IDX_matching_entries_keying` (`active`, `instruction_version`);',
   )
 }
 

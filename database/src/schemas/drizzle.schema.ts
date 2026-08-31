@@ -206,9 +206,9 @@ export const matchingEntriesTable = mysqlTable(
     // What the keying run asks on its timer and on every member save: which entries
     // still need working out. Without it that walks the whole table to answer
     // "none" - which is the answer almost every time, once the backlog is drained.
-    // The version leads because it is the column that discriminates; `active` is true
-    // for almost every row. See migration 0126 for what this does not do.
-    index('IDX_matching_entries_keying').on(table.instructionVersion, table.active),
+    // `active` leads because its test is an equality and the version's is a range,
+    // and everything after a range can only filter. See migration 0126.
+    index('IDX_matching_entries_keying').on(table.active, table.instructionVersion),
   ],
 )
 

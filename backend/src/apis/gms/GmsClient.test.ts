@@ -195,9 +195,18 @@ describe('GmsClient', () => {
     // server's decision to make.
     it('does not send an index of its own', async () => {
       put.mockResolvedValue(ok)
+      // Every keyed column, nulls included - a row read from the database always has
+      // them, and a fixture that leaves them out lets `undefined` pass for `null`,
+      // which JSON drops silently.
       const keyed = entry({
         keyWords: ['lastenrad'],
         keySubject: 'lastenrad',
+        keyActivity: null,
+        keyCategory: null,
+        keyArea: null,
+        keyActor: null,
+        keySoughtActor: null,
+        keyTraits: [],
         instructionVersion: 'gms176-1',
         keyedAt: new Date('2026-08-31T10:00:00.000Z'),
       } as Partial<MatchingEntrySelect>)
@@ -207,7 +216,22 @@ describe('GmsClient', () => {
       ])
 
       const [, body] = put.mock.calls[0]
-      expect(JSON.parse(JSON.stringify(body))[0].entries[0].keying).not.toHaveProperty('indexWords')
+      // Named the way the GMS spells it, so the assertion can actually fail: a
+      // `not.toHaveProperty` on a name that exists nowhere passes for every possible
+      // change and is worse than no test.
+      const keying = JSON.parse(JSON.stringify(body))[0].entries[0].keying
+      expect(Object.keys(keying).sort()).toEqual([
+        'instructionVersion',
+        'keyActivity',
+        'keyActor',
+        'keyArea',
+        'keyCategory',
+        'keySoughtActor',
+        'keySubject',
+        'keyTraits',
+        'keyWords',
+        'keyedAt',
+      ])
     })
 
     // No `active` flag travels: a paused entry is not sent as paused, it is left out of
@@ -375,15 +399,61 @@ describe('GmsClient', () => {
     // itself with one in-flight promise: a half-open connection would leave that
     // promise pending forever, so the run would not fail, it would stop - silently,
     // with nothing to log, until the process restarts.
-    it('gives up on a hung connection rather than waiting for ever', async () => {
+    it('throws when the GMS answers something other than 200', async () => {
+      get.mockResolvedValue({ status: 500, statusText: 'Internal Server Error', data: {} })
+
+      // Without this the caller would read `{ words: [], hasMore: false }` as an
+      // empty vocabulary and key a whole backlog against nothing - the very state the
+      // run's "never read the list whole" guard exists to refuse.
+      await expect(getGmsMatchingVocabulary(API_KEY, 0, 10)).rejects.toThrow(
+        'HTTP Status Error in get matching-vocabulary:',
+      )
+    })
+
+    it('throws when a report is not accepted', async () => {
+      post.mockResolvedValue({ status: 400, statusText: 'Bad Request', data: {} })
+
+      // Read as success, the words would be marked as sent and never offered again.
+      await expect(postGmsMatchingVocabulary(API_KEY, 'de', ['x'])).rejects.toThrow(
+        'HTTP Status Error in post matching-vocabulary:',
+      )
+    })
+
+    it('says nothing to a GMS that is switched off', async () => {
+      CONFIG.GMS_ACTIVE = false
+
+      await expect(getGmsMatchingVocabulary(API_KEY, 0, 10)).resolves.toEqual({
+        words: [],
+        hasMore: false,
+      })
+      await expect(postGmsMatchingVocabulary(API_KEY, 'de', ['x'])).resolves.toBe(0)
+      expect(get).not.toHaveBeenCalled()
+      expect(post).not.toHaveBeenCalled()
+    })
+  })
+
+  // ⛔ Every call a background loop makes. A hang in one of these does not fail the
+  // loop, it stops it: the keying run holds a single in-flight promise, and
+  // `runRetries` awaits each attempt, so a hung DELETE never reaches attempt two and
+  // never reaches its own "GMS copy may remain" alarm - on the privacy path.
+  describe('the calls background loops make', () => {
+    it('all give up on a hung connection rather than waiting for ever', async () => {
       get.mockResolvedValue({ status: 200, data: { words: [], hasMore: false } })
       post.mockResolvedValue({ status: 200, data: { added: 0 } })
+      put.mockResolvedValue({ status: 200 })
+      del.mockResolvedValue({ status: 200 })
 
       await getGmsMatchingVocabulary(API_KEY, 0, 10)
       await postGmsMatchingVocabulary(API_KEY, 'de', ['rasenluefter'])
+      await putGmsMatchingEntry(API_KEY, new GmsUserMatchingEntry(USER_UUID, entry()))
+      await deleteGmsMatchingEntry(API_KEY, ENTRY_UUID)
+      await deleteGmsUser(API_KEY, USER_UUID)
 
       expect(get.mock.calls[0][1].timeout).toBeGreaterThan(0)
       expect(post.mock.calls[0][2].timeout).toBeGreaterThan(0)
+      expect(put.mock.calls[0][2].timeout).toBeGreaterThan(0)
+      expect(del.mock.calls[0][1].timeout).toBeGreaterThan(0)
+      expect(del.mock.calls[1][1].timeout).toBeGreaterThan(0)
     })
   })
 
