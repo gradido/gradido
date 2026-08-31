@@ -42,13 +42,13 @@ const BATCH_SIZE = 10
 const MAX_BATCHES_PER_PASS = 10
 
 /**
- * How many batches may fail before a pass gives up.
+ * How many batches may fail one after another before a pass gives up.
  *
  * One failure is a batch: something about those ten entries, or one bad minute at the
  * API. Two in a row is the API, and walking the rest of a backlog to find that out
- * costs a call per batch.
+ * costs a call per batch. The counter starts again after any batch that gets through.
  */
-const MAX_FAILED_BATCHES_PER_PASS = 2
+const MAX_FAILED_BATCHES_IN_A_ROW = 2
 
 /**
  * How often the run looks for work.
@@ -108,8 +108,10 @@ export class MatchingKeyingRun {
       return
     }
     logger.info(`matching keying run started, instruction ${KEYING_INSTRUCTION_VERSION}`)
-    // setTimeout rather than setInterval, as elsewhere in this backend: a pass that
-    // takes longer than the interval must not have the next one queued up behind it.
+    // setTimeout rather than setInterval, as elsewhere in this backend. ⚠️ Note that
+    // it does not by itself keep passes from piling up - the next timer is scheduled
+    // without awaiting the pass - so what actually provides that is the single
+    // in-flight promise in run(). This is house style, not the guarantee.
     const tick = () => {
       this.nudge()
       this.timer = setTimeout(tick, this.intervalMs)
@@ -210,11 +212,11 @@ export class MatchingKeyingRun {
     let failures = 0
 
     for (let batch = 0; batch < MAX_BATCHES_PER_PASS; batch++) {
-      const selected = await dbSelectMatchingEntriesNeedingKeying(
+      const pending = await dbSelectMatchingEntriesNeedingKeying(
         KEYING_INSTRUCTION_VERSION,
         BATCH_SIZE,
+        [...givenUpOn],
       )
-      const pending = selected.filter((row) => !givenUpOn.has(row.entry.uuid))
       if (!pending.length) {
         return
       }
@@ -240,12 +242,17 @@ export class MatchingKeyingRun {
         // throws, and walking the whole backlog to discover that costs one call per
         // batch. Two is enough to tell "this batch" from "the API".
         failures++
-        if (failures >= MAX_FAILED_BATCHES_PER_PASS) {
+        if (failures >= MAX_FAILED_BATCHES_IN_A_ROW) {
           logger.error('matching keying: two batches in a row failed, stopping the pass')
           return
         }
         continue
       }
+      // A batch that got through is evidence the API is answering, so the count of
+      // failures in a row starts again. Without this it counts failures in the whole
+      // pass, and two unrelated hiccups an hour apart would abandon a draining
+      // backlog on the strength of a name that says "in a row".
+      failures = 0
       if (!written) {
         // Nothing was stored, so the same entries are first in line again next pass.
         // ⚠️ An entry the model will never answer usably therefore blocks everything

@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { and, asc, desc, eq, inArray, isNull, ne, or } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, isNull, ne, notInArray, or } from 'drizzle-orm'
 import { Result, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { DBInsertFailed, DBNotFoundError } from '../errorTypes'
@@ -119,12 +119,17 @@ export async function dbSelectActiveMatchingEntriesByUserIds(
   if (userIds.length === 0) {
     return []
   }
-  return drizzleDb()
-    .select()
+  const rows = await drizzleDb()
+    .select({ entry: matchingEntriesTable })
     .from(matchingEntriesTable)
-    .where(
-      and(inArray(matchingEntriesTable.userId, userIds), eq(matchingEntriesTable.active, true)),
-    )
+    .innerJoin(usersTable, eq(usersTable.id, matchingEntriesTable.userId))
+    // The same four conditions as everywhere else that reaches the GMS. It used to
+    // ask only whether the entry was live and leave the member to the caller - which
+    // was defensible while the payload was the member's own sentence, and stopped
+    // being so when it started carrying the words derived from it. One caller
+    // (ExportUsers) checks the member itself, one (UserResolver) checks only consent.
+    .where(and(inArray(matchingEntriesTable.userId, userIds), mayReachTheGms()))
+  return rows.map((row) => row.entry)
 }
 
 /**
@@ -284,11 +289,17 @@ export interface MatchingEntryToKey {
  * The first three are the same set `mayBeShownToMembers` guards in queries/userAvatars,
  * for the same reason: what may be published about a member.
  *
+ * `skipUuids` are entries the caller has already given up on for now - the model
+ * answered nothing usable for them, or the whole batch failed. They are excluded in
+ * SQL, because the ordering and the limit make a caller-side filter useless: drop one
+ * from the answer and the next call hands back the same row.
+ *
  * Oldest first, so a backlog drains in the order it built up.
  */
 export async function dbSelectMatchingEntriesNeedingKeying(
   instructionVersion: string,
   limit: number,
+  skipUuids: readonly string[] = [],
 ): Promise<MatchingEntryToKey[]> {
   const rows = await drizzleDb()
     .select({
@@ -305,6 +316,11 @@ export async function dbSelectMatchingEntriesNeedingKeying(
           isNull(matchingEntriesTable.instructionVersion),
           ne(matchingEntriesTable.instructionVersion, instructionVersion),
         ),
+        // Left out here rather than filtered by the caller afterwards, and that is
+        // the difference between working and not: this is `ORDER BY id LIMIT n`, so
+        // an entry the caller drops from the answer is simply the same entry the next
+        // call returns. Nothing behind it would ever be reached.
+        skipUuids.length ? notInArray(matchingEntriesTable.uuid, [...skipUuids]) : undefined,
       ),
     )
     .orderBy(asc(matchingEntriesTable.id))

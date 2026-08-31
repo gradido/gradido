@@ -59,8 +59,9 @@ export const MATCHING_ENTRY_DETAILS_MAX_CHARS = 2000
 // so 64 characters is far past any real one (the longest anyone writes down is around
 // 40). What this catches is not a long word but a model that answered with a sentence.
 export const KEY_WORD_MAX_CHARS = 64
-// Measured over 735 entries the model coins 5,8 key words per entry. Ten times that
-// bounds a runaway answer without ever touching a real one.
+// Measured over 735 entries the model coins 5,8 key words per entry, so this is
+// roughly eleven times what one really carries - enough to bound a runaway answer
+// without ever touching a real one.
 export const MAX_KEY_WORDS_PER_ENTRY = 64
 // subject, activity, category, area, actor, sought actor - all asked for as one word.
 export const KEY_FIELD_MAX_CHARS = 64
@@ -72,8 +73,9 @@ export const KEY_TRAIT_MAX_CHARS = 64
 // the entry so that improving the instruction reaches the entries written before it,
 // instead of only the ones written after.
 export const INSTRUCTION_VERSION_MAX_CHARS = 32
-// How many words one call may report to the GMS vocabulary. One call is one entry's
-// worth of words, so this is far above what is ever sent.
+// How many words one call may report to the GMS vocabulary. A whole batch's worth is
+// collected and then sent in chunks of this size, so it is a chunk size rather than a
+// ceiling on what a batch may coin.
 export const MAX_REPORTED_KEY_WORDS = 500
 // How many vocabulary words one call may fetch from the GMS.
 export const MATCHING_VOCABULARY_PAGE_MAX = 5000

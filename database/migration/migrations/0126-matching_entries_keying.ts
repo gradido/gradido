@@ -71,6 +71,16 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   // after the range is read. In steady state that range is nearly empty and it costs
   // nothing; during a re-keying it is the whole table, and the sort is the smaller
   // half of that job.
+  // ⛔ Dropped first, and not because a fresh database needs it. This statement's
+  // column order was corrected while the migration was still unreleased, and
+  // `ADD INDEX IF NOT EXISTS` is a no-op against an index that already exists under
+  // that name - so a database that ran the earlier version would keep the old order
+  // for good while the schema file and every comment claim the new one, with nothing
+  // reading the real definition to notice. A drop makes the correction reach the
+  // machines the delivery was actually tested on.
+  await queryFn(
+    'ALTER TABLE `matching_entries` DROP INDEX IF EXISTS `IDX_matching_entries_keying`;',
+  )
   await queryFn(
     'ALTER TABLE `matching_entries` ADD INDEX IF NOT EXISTS `IDX_matching_entries_keying` (`active`, `instruction_version`);',
   )
