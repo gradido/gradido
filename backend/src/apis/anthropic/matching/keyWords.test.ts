@@ -2,10 +2,13 @@
 import { indexWordsOf, normaliseKeyWord, normaliseKeyWords } from './keyWords'
 
 /**
- * The same cases, with the same answers, as `matching/keyWords.test.ts` in the GMS.
- * Two copies of one rule need two copies of the proof: what makes a member here find
- * a member there is that both sides fold a word to the same string, and only a test
- * on each side can say that they do.
+ * The folding cases below are the same, with the same answers, as in the GMS's
+ * `matching/keyWords.test.ts`. Two copies of one rule need two copies of the proof:
+ * what makes a member here find a member there is that both sides fold a word to the
+ * same string, and only a test on each side can say that they do.
+ *
+ * The `indexWordsOf` cases are not shared - this column is nullable and the GMS's is
+ * not - so do not expect that half to diff clean.
  */
 describe('normaliseKeyWord', () => {
   it('lower-cases', () => {
@@ -17,6 +20,16 @@ describe('normaliseKeyWord', () => {
     expect(normaliseKeyWord('Bäcker')).toBe('baecker')
     expect(normaliseKeyWord('Möbel')).toBe('moebel')
     expect(normaliseKeyWord('Straße')).toBe('strasse')
+  })
+
+  // macOS and some input methods produce the DECOMPOSED form - a plain `u` followed
+  // by a combining diaeresis. Without folding that to the precomposed one first, the
+  // mark is simply dropped and `rasenlufter` joins the vocabulary beside
+  // `rasenluefter` as a second word for one thing. Both servers would agree on it,
+  // which is what would make it invisible.
+  it('folds the decomposed umlaut the same as the precomposed one', () => {
+    expect(normaliseKeyWord('Rasenl\u00fcfter')).toBe('rasenluefter')
+    expect(normaliseKeyWord('Rasenlu\u0308fter')).toBe('rasenluefter')
   })
 
   it('drops spaces, hyphens and punctuation', () => {

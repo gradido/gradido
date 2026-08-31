@@ -53,10 +53,12 @@ export class MatchingVocabulary {
   /**
    * Fetch whatever the GMS has that we do not.
    *
-   * Failing is not fatal and must not be: a keying run that cannot reach the GMS
-   * still works, it just works with the list it had. The entries it keys may coin a
-   * word that already existed somewhere - a duplicate, which is a thing the design
-   * expects and cleans up later, rather than a lost entry.
+   * Throws when the GMS cannot be reached, and the caller decides what that means -
+   * which is not the same answer in both cases. With a list already in hand, keying
+   * against a slightly old one costs at worst a duplicate word, and duplicates are a
+   * thing this design expects. With no list at all, every entry in the pass would
+   * coin its own word for things that already have one, and those duplicates are the
+   * expensive kind: they are what the whole vocabulary exists to prevent.
    */
   public async refresh(apiKey: string): Promise<void> {
     for (let page = 0; page < MAX_PAGES_PER_REFRESH; page++) {
@@ -91,14 +93,22 @@ export class MatchingVocabulary {
    * be read through first.
    */
   public async report(apiKey: string, language: string, words: readonly string[]): Promise<void> {
-    const fresh = words.filter((word) => !this.known.has(word))
-    for (const word of words) {
-      this.remember(word)
-    }
+    // Deduplicated here and not only by `known`: one batch keys ten entries, and the
+    // words they share would otherwise be sent ten times and counted ten times
+    // against what the GMS accepts per call.
+    const fresh = Array.from(new Set(words.filter((word) => word && !this.known.has(word))))
     if (!fresh.length) {
       return
     }
     const added = await postGmsMatchingVocabulary(apiKey, language, fresh)
+    // ⛔ Only after the call came back. Remembering first would mean that a report
+    // which failed - a timeout, a 400, the GMS restarting - marked its words known,
+    // and this process would never offer them again: they would be missing from the
+    // shared vocabulary until a restart, and every other community would go on
+    // coining their own words for the same things.
+    for (const word of fresh) {
+      this.remember(word)
+    }
     logger.debug(`matching vocabulary: reported ${fresh.length} words, ${added} were new`)
   }
 

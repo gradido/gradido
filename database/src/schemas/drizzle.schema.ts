@@ -203,6 +203,10 @@ export const matchingEntriesTable = mysqlTable(
   (table) => [
     unique('uniq_matching_entries_uuid').on(table.uuid),
     index('idx_matching_entries_user_id').on(table.userId),
+    // What the keying run asks on its timer and on every member save: which entries
+    // still need working out. Without it that walks the whole table to answer
+    // "none" - which is the answer almost every time, once the backlog is drained.
+    index('IDX_matching_entries_keying').on(table.active, table.instructionVersion),
   ],
 )
 

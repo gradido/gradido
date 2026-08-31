@@ -12,6 +12,17 @@ import { GmsUser } from './model/GmsUser'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.gms.GmsClient`)
 
+/**
+ * How long a vocabulary call may take before it is given up on.
+ *
+ * The shared agents keep connections alive and set no timeout, and axios has none by
+ * default, so a connection that dies without a FIN leaves the caller awaiting for as
+ * long as the process lives. These two calls are made by a background run that keeps
+ * one pass in flight at a time - so one hung request does not slow it down, it ends
+ * it, with no error to log because nothing ever rejects.
+ */
+const GMS_REQUEST_TIMEOUT_MS = 30_000
+
 /*
 export async function communityList(): Promise<GmsCommunity[] | string | undefined> {
   const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_URL)
@@ -314,6 +325,11 @@ export async function getGmsMatchingVocabulary(
     headers: gmsHeaders(apiKey),
     httpAgent,
     httpsAgent,
+    // The agents keep connections alive and set no timeout of their own, so without
+    // this a half-open connection leaves the caller awaiting forever - and the caller
+    // here is a background run that guards itself with a single in-flight promise. It
+    // would not fail; it would stop, silently, until the process restarts.
+    timeout: GMS_REQUEST_TIMEOUT_MS,
   })
   if (result.status !== 200) {
     throw new LogError(
@@ -353,7 +369,7 @@ export async function postGmsMatchingVocabulary(
   const result = await axios.post(
     baseUrl.concat('matching-vocabulary'),
     { language, words },
-    { headers: gmsHeaders(apiKey), httpAgent, httpsAgent },
+    { headers: gmsHeaders(apiKey), httpAgent, httpsAgent, timeout: GMS_REQUEST_TIMEOUT_MS },
   )
   if (result.status !== 200) {
     throw new LogError(

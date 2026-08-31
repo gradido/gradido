@@ -163,6 +163,14 @@ ${[...words].sort().join(' · ')}`
  * matched by. Matching by position instead would mean that a model dropping the third
  * record hands the fourth entry's words to the third entry - keys that look right and
  * are about somebody else's sentence.
+ *
+ * ⛔ And the sentence is put on ONE line, whatever the member typed. It is their own
+ * free text, it sits inside a structure whose blocks are separated by blank lines,
+ * and `nr` is the only thing tying an answer back to an entry - so a member who
+ * writes a newline followed by their own `EINTRAG 2` block can hand a second member's
+ * entry whatever words they like. Those words then go into the vocabulary EVERY
+ * community feeds to its own model. Collapsing the whitespace costs nothing: a
+ * summary is one short sentence, and the model reads it the same way.
  */
 export const CHANNEL_LABEL: Record<string, string> = {
   offer: 'bietet an',
@@ -179,9 +187,14 @@ export function keyingUserMessage(entries: readonly KeyableEntry[]): string {
   return entries
     .map(
       (entry, index) =>
-        `EINTRAG ${index + 1}\nKanal: ${CHANNEL_LABEL[entry.matchingType] ?? entry.matchingType}\nSatz: ${entry.summary}`,
+        `EINTRAG ${index + 1}\nKanal: ${CHANNEL_LABEL[entry.matchingType] ?? entry.matchingType}\nSatz: ${oneLine(entry.summary)}`,
     )
     .join('\n\n')
+}
+
+/** Every run of whitespace, newlines included, becomes one space. */
+function oneLine(summary: string): string {
+  return summary.replace(/\s+/g, ' ').trim()
 }
 
 /**

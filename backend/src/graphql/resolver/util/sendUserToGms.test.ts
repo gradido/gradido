@@ -138,6 +138,51 @@ describe('sendUsersToGms', () => {
       )
     })
 
+    // ⛔ What the GMS bounds is DATABASE ROWS, and one member can hold any number of
+    // entries - so a caller that counts only members has no idea how close it is. The
+    // limit already moved once (5000 to 3000, when the keyed columns widened an entry
+    // row); a batch over it is refused whole, and ExportUsers then abandons the rest
+    // of the repair run.
+    it('splits a batch that carries more entries than one call may', async () => {
+      const many = Array.from({ length: 6 }, (_, i) => member(100 + i, `uuid-${100 + i}`))
+      // 600 entries each: two members fit in a call, three do not.
+      selectEntriesMock.mockResolvedValue(
+        many.flatMap((m) => Array.from({ length: 600 }, (_, e) => entry(m.id, `e-${m.id}-${e}`))),
+      )
+
+      await sendUsersToGms(many, HOME_COM, true)
+
+      expect(snapshotMock.mock.calls.length).toBeGreaterThan(1)
+      for (const [, snapshots] of snapshotMock.mock.calls) {
+        const entries = snapshots.reduce(
+          (sum: number, snapshot: { entries: unknown[] }) => sum + snapshot.entries.length,
+          0,
+        )
+        expect(entries).toBeLessThanOrEqual(3000)
+      }
+      // and nobody is left out
+      const sent = snapshotMock.mock.calls.flatMap(([, snapshots]) => snapshots).length
+      expect(sent).toBe(many.length)
+    })
+
+    // A member whose own entries exceed the limit cannot be made to fit, and splitting
+    // their snapshot would change what a snapshot means - the full set, so that what
+    // is missing gets deleted. They travel alone and are refused alone.
+    it('gives a member with more entries than one call a call of their own', async () => {
+      const heavy = member(200, 'uuid-200')
+      const light = member(201, 'uuid-201')
+      selectEntriesMock.mockResolvedValue([
+        ...Array.from({ length: 4000 }, (_, e) => entry(heavy.id, `h-${e}`)),
+        entry(light.id, 'l-1'),
+      ])
+
+      await sendUsersToGms([heavy, light], HOME_COM, true)
+
+      expect(snapshotMock.mock.calls).toHaveLength(2)
+      expect(snapshotMock.mock.calls[0][1]).toHaveLength(1)
+      expect(snapshotMock.mock.calls[1][1]).toHaveLength(1)
+    })
+
     it('marks the batch as published once both calls are through', async () => {
       await sendUsersToGms([WITH_ENTRIES, WITHOUT_ENTRIES], HOME_COM, true)
 

@@ -248,6 +248,8 @@ describe('matchingEntries query test', () => {
 describe('the keying of a matching entry', () => {
   const KEYED = 901
   const NOT_ALLOWED = 902
+  const DELETED = 903
+  const FOREIGN = 904
 
   const keying = (overrides: Partial<MatchingEntryKeying> = {}): MatchingEntryKeying => ({
     keyWords: ['fahrradreparatur', 'fahrrad'],
@@ -276,7 +278,9 @@ describe('the keying of a matching entry', () => {
   }
 
   beforeAll(async () => {
-    await db.delete(usersTable).where(inArray(usersTable.id, [KEYED, NOT_ALLOWED]))
+    await db
+      .delete(usersTable)
+      .where(inArray(usersTable.id, [KEYED, NOT_ALLOWED, DELETED, FOREIGN]))
     await db.insert(usersTable).values([
       {
         id: KEYED,
@@ -293,6 +297,26 @@ describe('the keying of a matching entry', () => {
         language: 'de',
         gmsAllowed: 0,
       },
+      // A member who deleted their account. Only soft-deleted, so nothing but the
+      // query itself stops their entries from being worked out.
+      {
+        id: DELETED,
+        gradidoId: '90000000-0000-4000-8000-000000000903',
+        language: 'de',
+        gmsAllowed: 1,
+        deletedAt: new Date(),
+      },
+      // A member of ANOTHER community, as the federation stores them: same table,
+      // same shape. No local path gives such a row an entry - this builds the state
+      // the query must refuse rather than the state it happens to avoid.
+      {
+        id: FOREIGN,
+        gradidoId: '90000000-0000-4000-8000-000000000904',
+        language: 'de',
+        gmsAllowed: 1,
+        foreign: 1,
+        communityUuid: '99999999-9999-4999-8999-999999999999',
+      },
     ])
   })
 
@@ -301,7 +325,9 @@ describe('the keying of a matching entry', () => {
   })
 
   afterAll(async () => {
-    await db.delete(usersTable).where(inArray(usersTable.id, [KEYED, NOT_ALLOWED]))
+    await db
+      .delete(usersTable)
+      .where(inArray(usersTable.id, [KEYED, NOT_ALLOWED, DELETED, FOREIGN]))
   })
 
   describe('dbWriteMatchingEntryKeying', () => {
@@ -440,6 +466,21 @@ describe('the keying of a matching entry', () => {
     // community reads. A member who declined publication declined that too.
     it('leaves out the entry of a member who is not in the GMS', async () => {
       await anEntry('uuid-key-2', NOT_ALLOWED, 'Ich backe Brot')
+
+      expect(await dbSelectMatchingEntriesNeedingKeying('gms176-1', 10)).toEqual([])
+    })
+
+    // ⛔ The account is gone and so is the GMS copy. Words coined out of what they
+    // wrote would be the one trace of them that outlives the deletion, in a table
+    // every community reads.
+    it('leaves out the entry of a member who deleted their account', async () => {
+      await anEntry('uuid-key-4', DELETED, 'Ich verleihe Werkzeug')
+
+      expect(await dbSelectMatchingEntriesNeedingKeying('gms176-1', 10)).toEqual([])
+    })
+
+    it('leaves out the entry of a member of another community', async () => {
+      await anEntry('uuid-key-5', FOREIGN, 'Ich mache Fotos')
 
       expect(await dbSelectMatchingEntriesNeedingKeying('gms176-1', 10)).toEqual([])
     })

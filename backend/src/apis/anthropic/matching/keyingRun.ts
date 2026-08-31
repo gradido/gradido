@@ -2,11 +2,13 @@
 import {
   Community as DbCommunity,
   dbSelectMatchingEntriesNeedingKeying,
+  dbSelectPublishableMatchingEntry,
   dbWriteMatchingEntryKeying,
   getHomeCommunity,
   type MatchingEntryToKey,
 } from 'database'
 import { getLogger } from 'log4js'
+import { MAX_REPORTED_KEY_WORDS } from 'shared'
 import { putGmsMatchingEntry } from '@/apis/gms/GmsClient'
 import { MatchingVocabulary } from '@/apis/gms/matchingVocabulary'
 import { GmsUserMatchingEntry } from '@/apis/gms/model/GmsMatchingEntry'
@@ -63,8 +65,14 @@ const DEFAULT_INTERVAL_MS = 60_000
  * embedding backfill.
  *
  * There is no queue table. An entry whose `instruction_version` is missing or out of
- * date IS the to-do, which means nothing can fall off the list: an entry edited while
- * a pass was running had its keying cleared by that edit and is simply back on it.
+ * date IS the to-do - one column, written in the same statement as the words it
+ * belongs to, so the two cannot disagree. An entry edited while a pass was running had
+ * its keying cleared by that edit and is simply back on the list.
+ *
+ * What that does NOT cover, and it is worth saying rather than implying: an entry
+ * whose keying was stored here but whose publish to the GMS failed is off this list
+ * and still missing its words over there. The member's next edit or a bulk repair run
+ * carries them across; nothing in this file retries it.
  */
 export class MatchingKeyingRun {
   private readonly vocabulary = new MatchingVocabulary()
@@ -152,10 +160,33 @@ export class MatchingKeyingRun {
       return
     }
 
-    // Before anything is keyed, and once per pass rather than once per batch: what
-    // other communities have coined since last time. A stale list is what makes two
+    // Is there anything to do at all? Asked first, because a pass fires on every
+    // member save as well as on the timer, and in normal running almost every one of
+    // them finds nothing. Refreshing the vocabulary first would spend a GMS round
+    // trip per save to discover that.
+    if (!(await dbSelectMatchingEntriesNeedingKeying(KEYING_INSTRUCTION_VERSION, 1)).length) {
+      return
+    }
+
+    // Now that there is work: what other communities have coined since last time.
+    // Once per pass rather than once per batch - a stale list is what makes two
     // people describing one thing end up with two words for it.
-    await this.vocabulary.refresh(gms.apiKey)
+    try {
+      await this.vocabulary.refresh(gms.apiKey)
+    } catch (e) {
+      if (!this.vocabulary.size()) {
+        // Nothing in hand at all - a first start while the GMS is away. Keying now
+        // would have every entry coin its own word for things that already have one,
+        // and paying a model to manufacture duplicates is worse than waiting.
+        logger.warn(`matching keying: no vocabulary and the GMS is not reachable (${e}), skipping`)
+        return
+      }
+      // A list one pass old costs at worst a duplicate, and the run is what fills the
+      // vocabulary in the first place. Better to key than to stall.
+      logger.warn(
+        `matching keying: could not refresh the vocabulary (${e}), using the ${this.vocabulary.size()} words in hand`,
+      )
+    }
 
     for (let batch = 0; batch < MAX_BATCHES_PER_PASS; batch++) {
       const pending = await dbSelectMatchingEntriesNeedingKeying(
@@ -165,11 +196,25 @@ export class MatchingKeyingRun {
       if (!pending.length) {
         return
       }
-      const written = await this.keyBatch(client, gms, pending)
+      let written = 0
+      try {
+        written = await this.keyBatch(client, gms, pending)
+      } catch (e) {
+        // A model call can fail outright - a truncated answer, unparseable JSON, a
+        // 500 from the API. Without this the throw would leave runPass through
+        // nudge()'s catch, and the selector would hand back these same ten entries,
+        // first in line, on every pass from now on.
+        logger.error(
+          `matching keying: the batch ${pending.map((row) => row.entry.uuid).join(', ')} failed: ${e}`,
+        )
+        return
+      }
       if (!written) {
-        // The same entries would come back on the next turn of this loop, and be paid
-        // for again. Something is wrong with them or with the answers - the log says
-        // which - and the next pass is soon enough to find out.
+        // Nothing was stored, so the same entries are first in line again next pass.
+        // ⚠️ An entry the model will never answer usably therefore blocks everything
+        // behind it, once a minute, at full price. There is no attempt counter to
+        // stop that; what there is, is this line naming the count, the error above
+        // naming the entries, and the pass stopping rather than paying ten times.
         logger.warn(
           `matching keying: ${pending.length} entries produced nothing, stopping the pass`,
         )
@@ -211,14 +256,16 @@ export class MatchingKeyingRun {
         logger.warn(`matching keying of entry ${row.entry.uuid}: dropped ${reason}`)
       }
 
-      const written = await dbWriteMatchingEntryKeying(row.entry.uuid, row.entry.summary, {
-        ...fields,
-        instructionVersion: KEYING_INSTRUCTION_VERSION,
-      })
+      const written = await dbWriteMatchingEntryKeying(
+        row.entry.uuid,
+        row.entry.summary,
+        row.entry.matchingType,
+        { ...fields, instructionVersion: KEYING_INSTRUCTION_VERSION },
+      )
       if (!written.success) {
         // Almost always the member editing their entry while this call was out - the
-        // summary no longer matches, so these words are about a sentence that is
-        // gone. Their edit already put the entry back on the list.
+        // sentence or the channel no longer matches, so these words are about an
+        // entry that is gone. Their edit already put it back on the list.
         logger.info(
           `matching keying of entry ${row.entry.uuid} was not stored: ${written.error.message}`,
         )
@@ -226,16 +273,29 @@ export class MatchingKeyingRun {
       }
 
       stored++
-      const words = coinedByLanguage.get(row.userLanguage) ?? []
+      // Two letters, because that is the width of the GMS's column and what its
+      // schema demands. This column is varchar(4), so a stored `de-DE` would 400 the
+      // report and lose a whole batch's words.
+      const language = row.userLanguage.slice(0, 2)
+      const words = coinedByLanguage.get(language) ?? []
       words.push(...indexWordsOf(fields))
-      coinedByLanguage.set(row.userLanguage, words)
+      coinedByLanguage.set(language, words)
 
-      await this.publish(gms, row, fields)
+      await this.publish(gms, row.entry.uuid)
     }
 
     for (const [language, words] of coinedByLanguage) {
       try {
-        await this.vocabulary.report(gms.apiKey, language, words)
+        // In chunks, because this is a whole batch's words rather than one entry's:
+        // ten entries of up to MAX_KEY_WORDS_PER_ENTRY each can offer more than the
+        // GMS accepts per call, and going over would 400 and lose all of them.
+        for (let from = 0; from < words.length; from += MAX_REPORTED_KEY_WORDS) {
+          await this.vocabulary.report(
+            gms.apiKey,
+            language,
+            words.slice(from, from + MAX_REPORTED_KEY_WORDS),
+          )
+        }
       } catch (e) {
         // The words are in our own copy either way, so this batch keyed consistently.
         // What another community misses is the chance to reuse them - which the GMS
@@ -247,32 +307,46 @@ export class MatchingKeyingRun {
   }
 
   /**
-   * Send the freshly keyed entry over, so it can actually be found by its words.
+   * Send the entry over, so it can actually be found by its words.
    *
-   * The entry is rebuilt from the row plus what was just written rather than read
-   * back: a read would race the member's next edit, and this is the state that was
-   * stored a line ago.
+   * ⛔ Read again first, and never sent from the row this pass started with. A model
+   * call takes seconds, and every one of these happens in seconds:
+   *
+   *   - the member pauses the entry. Pausing DELETES it from the GMS, so sending the
+   *     row we hold would put it straight back into everyone's search - the one thing
+   *     the whole pause/delete arrangement exists to prevent.
+   *   - the member corrects a price. That does not clear the keying (rightly - the
+   *     sentence is unchanged), and their correction has already gone to the GMS, so
+   *     sending our row would roll it back over there and leave it wrong.
+   *   - the member withdraws from the GMS, or deletes their account.
+   *
+   * `dbSelectPublishableMatchingEntry` answers all four in one read: nothing back
+   * means this entry may not be over there right now, whatever we just worked out.
+   *
+   * What this does NOT cover, and it is worth saying rather than implying: a member
+   * whose very first sync to the GMS failed is unknown over there, and the per-entry
+   * route answers 400 for an unknown member. Their keying stays here and reaches the
+   * GMS with the next repair run. Nothing in this file retries it.
    */
   private async publish(
     gms: { community: DbCommunity; apiKey: string },
-    row: MatchingEntryToKey,
-    fields: ReturnType<typeof keyedFieldsFromAnswer>['fields'],
+    uuid: string,
   ): Promise<void> {
     try {
+      const fresh = await dbSelectPublishableMatchingEntry(uuid)
+      if (!fresh) {
+        logger.info(`matching keying: entry ${uuid} may not be in the GMS right now, not sent`)
+        return
+      }
       await putGmsMatchingEntry(
         gms.apiKey,
-        new GmsUserMatchingEntry(row.userGradidoId, {
-          ...row.entry,
-          ...fields,
-          instructionVersion: KEYING_INSTRUCTION_VERSION,
-          keyedAt: new Date(),
-        }),
+        new GmsUserMatchingEntry(fresh.userGradidoId, fresh.entry),
       )
     } catch (e) {
       // The keying is stored here, so nothing is lost and nothing is paid for twice.
       // What is missing over there is the entry's words, and the member's next edit
       // or a repair run carries them across.
-      logger.warn(`could not publish the keying of entry ${row.entry.uuid} to the GMS: ${e}`)
+      logger.warn(`could not publish the keying of entry ${uuid} to the GMS: ${e}`)
     }
   }
 

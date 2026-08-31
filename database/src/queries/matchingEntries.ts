@@ -182,24 +182,37 @@ function keyingDescribes(stored: MatchingEntrySelect, content: MatchingEntryCont
  * the answer, and it is read as such on both sides. Together with the instruction
  * version it is the witness that an entry has a keying at all.
  *
- * The uuid is checked against the summary the keying was computed from, and that is
- * not belt and braces. Between reading an entry for the keying run and writing the
- * answer, the member may have rewritten it - and that rewrite already cleared the
- * keying to schedule a fresh one. Writing anyway would pin words about the OLD
- * sentence onto the new entry, and nothing would ever notice: the row would look
- * keyed. So the write finds no row, the entry keeps its NULLs, and the next pass
- * works out what the member actually wrote. (The same guard, for the same reason, as
- * `writeEmbedding` in the GMS.)
+ * The uuid is checked against BOTH the sentence and the channel the keying was
+ * computed from, and that is not belt and braces. Between reading an entry for the
+ * keying run and writing the answer, the member may have changed either - and that
+ * change already cleared the keying to schedule a fresh one. Writing anyway would pin
+ * words about the old entry onto the new one, and nothing would ever notice: the row
+ * would look keyed and would drop off the list for good.
+ *
+ * Both, because both change the answer. The channel is given to the model, and the
+ * instruction fills `gesuchter_beruf` only on "sucht" - so an offer flipped to a need
+ * without touching the sentence gets a different keying, and `keyingDescribes` above
+ * treats it as invalidating for exactly that reason. Guarding on the sentence alone
+ * would let the two disagree.
+ *
+ * (The same guard, for the same reason, as `writeEmbedding` in the GMS.)
  */
 export async function dbWriteMatchingEntryKeying(
   uuid: string,
   summary: string,
+  matchingType: string,
   keying: MatchingEntryKeying,
 ): Promise<VoidResult<DBNotFoundError>> {
   const result = await drizzleDb()
     .update(matchingEntriesTable)
     .set({ ...keying, keyedAt: new Date() })
-    .where(and(eq(matchingEntriesTable.uuid, uuid), eq(matchingEntriesTable.summary, summary)))
+    .where(
+      and(
+        eq(matchingEntriesTable.uuid, uuid),
+        eq(matchingEntriesTable.summary, summary),
+        eq(matchingEntriesTable.matchingType, matchingType),
+      ),
+    )
 
   const firstRow = result[0]
   if (firstRow && firstRow.affectedRows === 1) {
@@ -207,6 +220,23 @@ export async function dbWriteMatchingEntryKeying(
   }
   return { success: false, error: MatchingEntryNotFound(`uuid = ${uuid} with this summary`) }
 }
+
+/**
+ * Whose entries may be published to the GMS at all.
+ *
+ * Four conditions, and every one of them is a rule somebody could otherwise break by
+ * writing a second query: the member takes part, the member still exists, the member
+ * is ours rather than a federated row from another community, and the entry is live.
+ * `syncMatchingEntryToGms` enforces the same set in its own words; this is the one
+ * place the keying run reads it from.
+ */
+const mayReachTheGms = () =>
+  and(
+    eq(matchingEntriesTable.active, true),
+    eq(usersTable.gmsAllowed, 1),
+    isNull(usersTable.deletedAt),
+    eq(usersTable.foreign, 0),
+  )
 
 /** An entry waiting to be keyed, with the two things about its owner the run needs. */
 export interface MatchingEntryToKey {
@@ -229,15 +259,25 @@ export interface MatchingEntryToKey {
  * ⚠️ A re-keying changes who matches whom. Somebody who saw twelve people light up
  * yesterday may see nine today. Deliberate and rare, not by the way.
  *
- * Two kinds of entry are left out, and neither is an optimisation:
+ * What is left out, and none of it is an optimisation:
  *
  *  - ⛔ entries of members who have not agreed to take part in the GMS. Keying sends
  *    words derived from what they wrote into a table every community reads, and a
  *    member who declined publication has declined that too. Their entry stays in
  *    their own list, unkeyed, and the day they agree it joins this one.
+ *  - ⛔ entries of members who deleted their account. The account is gone and the GMS
+ *    copy with it; coining words out of what they wrote would be the one trace of
+ *    them that outlives the deletion, and it would land in a global table. The row
+ *    is only soft-deleted, so nothing else stops this.
+ *  - entries owned by a federated row from another community. No local path creates
+ *    one, and if one ever appeared it would be another community's member and
+ *    another community's model call.
  *  - paused entries, which are not in the GMS and cannot be found by anybody, so a
  *    model call for them would buy nothing. Resuming does not give them a keying, so
  *    they rejoin the list by themselves.
+ *
+ * The first three are the same set `mayBeShownToMembers` guards in queries/userAvatars,
+ * for the same reason: what may be published about a member.
  *
  * Oldest first, so a backlog drains in the order it built up.
  */
@@ -255,8 +295,7 @@ export async function dbSelectMatchingEntriesNeedingKeying(
     .innerJoin(usersTable, eq(usersTable.id, matchingEntriesTable.userId))
     .where(
       and(
-        eq(matchingEntriesTable.active, true),
-        eq(usersTable.gmsAllowed, 1),
+        mayReachTheGms(),
         or(
           isNull(matchingEntriesTable.instructionVersion),
           ne(matchingEntriesTable.instructionVersion, instructionVersion),
@@ -266,6 +305,31 @@ export async function dbSelectMatchingEntriesNeedingKeying(
     .orderBy(asc(matchingEntriesTable.id))
     .limit(limit)
   return rows
+}
+
+/**
+ * One entry as it stands right now, if it may still be published to the GMS.
+ *
+ * Read again just before publishing, and that is the whole point of the function. A
+ * model call takes seconds, and in those seconds the member may have paused the entry
+ * (which deleted it from the GMS - publishing the stale row would put it back into
+ * everyone's search), corrected a price (publishing the stale row would roll their
+ * correction back over there), withdrawn from the GMS, or deleted their account.
+ *
+ * Nothing here says the answer is worthless: the keying is stored locally either way
+ * and travels with the next edit or repair run. It says only that this particular
+ * moment is not the one to send it.
+ */
+export async function dbSelectPublishableMatchingEntry(
+  uuid: string,
+): Promise<{ entry: MatchingEntrySelect; userGradidoId: string } | undefined> {
+  const rows = await drizzleDb()
+    .select({ entry: matchingEntriesTable, userGradidoId: usersTable.gradidoId })
+    .from(matchingEntriesTable)
+    .innerJoin(usersTable, eq(usersTable.id, matchingEntriesTable.userId))
+    .where(and(eq(matchingEntriesTable.uuid, uuid), mayReachTheGms()))
+    .limit(1)
+  return rows.at(0)
 }
 
 /**

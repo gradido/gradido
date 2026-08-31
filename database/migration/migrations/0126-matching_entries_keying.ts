@@ -55,9 +55,20 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(
     'ALTER TABLE `matching_entries` ADD COLUMN IF NOT EXISTS `keyed_at` DATETIME(3) DEFAULT NULL;',
   )
+  // The keying run's own question - "what still needs working out?" - asked on its
+  // timer AND on every entry a member saves. Once the backlog is drained the answer is
+  // almost always "nothing", and without this it costs a walk over the whole table,
+  // joined to `users`, to find that out. Leading with `active` because the query
+  // filters on it first and the column is the more selective of the two.
+  await queryFn(
+    'ALTER TABLE `matching_entries` ADD INDEX IF NOT EXISTS `IDX_matching_entries_keying` (`active`, `instruction_version`);',
+  )
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
+  await queryFn(
+    'ALTER TABLE `matching_entries` DROP INDEX IF EXISTS `IDX_matching_entries_keying`;',
+  )
   await queryFn('ALTER TABLE `matching_entries` DROP COLUMN IF EXISTS `keyed_at`;')
   await queryFn('ALTER TABLE `matching_entries` DROP COLUMN IF EXISTS `instruction_version`;')
   await queryFn('ALTER TABLE `matching_entries` DROP COLUMN IF EXISTS `key_traits`;')

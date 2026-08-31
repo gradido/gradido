@@ -117,6 +117,8 @@ const humhub = {
 
 const anthropic = {
   ANTHROPIC_ACTIVE: process.env.ANTHROPIC_ACTIVE === 'true' || false,
+  // TODO: move next to GMS_ACTIVE once there is a matching block to put it in. It is
+  // here because that is where it was added, not because it belongs to Anthropic.
   // The community's matching switch. Read here as well as in the frontend, and for a
   // reason the frontend does not have: the keying run spends money. With matching off
   // no member can even reach the feature, so working out words for entries that

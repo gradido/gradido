@@ -16,12 +16,54 @@ import { LogError } from '@/server/LogError'
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.sendUserToGms`)
 
 /**
+ * What one snapshot call may carry, as the GMS bounds it.
+ *
+ * Mirrored rather than imported - the GMS is a separate repository - and deliberately
+ * a little under its own numbers (500 snapshots, 3000 entries), so that its next
+ * change does not break this the day it lands.
+ */
+const GMS_MAX_SNAPSHOTS_PER_CALL = 400
+const GMS_MAX_ENTRIES_PER_CALL = 2500
+
+/**
  * @param withMatchingEntries send each user's live entries along, stating their
  *   full set: the GMS writes what it receives and removes what is missing. This is
  *   the repair path (ExportUsers) - it also cleans up entries that were paused or
  *   deleted while the GMS was unreachable. The everyday path leaves it out, and
  *   the GMS keeps the entries it has.
  */
+/**
+ * Split a batch of snapshots so that no call exceeds what the GMS accepts.
+ *
+ * Two bounds at once - members per call and entries across the call - because the GMS
+ * enforces both and either can bind first. A member whose own entries exceed the
+ * entry limit gets a chunk to themselves and is refused there rather than taking the
+ * batch down with them; nothing here can make that member fit, and splitting their
+ * snapshot would change what a snapshot MEANS (the full set, so that what is missing
+ * is deleted) and silently wipe the entries left out.
+ */
+function chunkByEntryCount(snapshots: GmsMatchingEntrySnapshot[]): GmsMatchingEntrySnapshot[][] {
+  const chunks: GmsMatchingEntrySnapshot[][] = []
+  let chunk: GmsMatchingEntrySnapshot[] = []
+  let entries = 0
+  for (const snapshot of snapshots) {
+    const wouldExceed =
+      chunk.length >= GMS_MAX_SNAPSHOTS_PER_CALL ||
+      (chunk.length > 0 && entries + snapshot.entries.length > GMS_MAX_ENTRIES_PER_CALL)
+    if (wouldExceed) {
+      chunks.push(chunk)
+      chunk = []
+      entries = 0
+    }
+    chunk.push(snapshot)
+    entries += snapshot.entries.length
+  }
+  if (chunk.length) {
+    chunks.push(chunk)
+  }
+  return chunks
+}
+
 export async function sendUsersToGms(
   users: DbUser[],
   homeCom: DbCommunity,
@@ -55,7 +97,15 @@ export async function sendUsersToGms(
         // Strictly after the users: the GMS drops a snapshot for a member it does not
         // know yet, warns, and answers 200 all the same - so the wrong order loses the
         // entries without anything here noticing.
-        await putGmsMatchingEntrySnapshots(homeCom.gmsApiKey, snapshots)
+        //
+        // In chunks by ENTRY count, not by member count, because that is what the GMS
+        // bounds. Its limit counts database rows, and one member can hold any number
+        // of entries - so a caller that only counts members has no idea how close it
+        // is. It moved from 5000 to 3000 when the keyed columns widened an entry row,
+        // and it will move again; chunking here means the caller never has to know.
+        for (const chunk of chunkByEntryCount(snapshots)) {
+          await putGmsMatchingEntrySnapshots(homeCom.gmsApiKey, chunk)
+        }
       }
       await batchUpdateGmsStatus(userIds)
     }

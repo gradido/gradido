@@ -93,6 +93,29 @@ describe('keyedFieldsFromAnswer', () => {
     expect(dropped).toHaveLength(1)
   })
 
+  // ⛔ The bound is on the FOLDED word, because folding makes words longer: an umlaut
+  // becomes two letters. Measured on the raw one this passes here and then fails at
+  // the GMS's varchar(64) - a 500 on a whole batch, for one word. A test with 'aaa…'
+  // cannot see it.
+  it('drops a word that only exceeds the bound once its umlauts are spelled out', () => {
+    const raw = `${'ü'.repeat(3)}${'a'.repeat(KEY_WORD_MAX_CHARS - 3)}`
+    expect(raw.length).toBe(KEY_WORD_MAX_CHARS)
+    const { fields, dropped } = keyedFieldsFromAnswer(
+      answer({ schluessel: ['fahrrad', raw], sache: raw }),
+    )
+    expect(fields.keyWords).toEqual(['fahrrad'])
+    expect(fields.keySubject).toBeNull()
+    expect(dropped).toHaveLength(2)
+  })
+
+  // The other half: a word the fold makes shorter than it looked has to be kept.
+  it('keeps a word that only fits once its separators are dropped', () => {
+    const { fields } = keyedFieldsFromAnswer(
+      answer({ schluessel: [`${'a'.repeat(KEY_WORD_MAX_CHARS)}---`] }),
+    )
+    expect(fields.keyWords).toEqual(['a'.repeat(KEY_WORD_MAX_CHARS)])
+  })
+
   it('drops an over-long trait as well', () => {
     const { fields, dropped } = keyedFieldsFromAnswer(
       answer({ merkmal: ['gebraucht', 'x'.repeat(KEY_TRAIT_MAX_CHARS + 1)] }),

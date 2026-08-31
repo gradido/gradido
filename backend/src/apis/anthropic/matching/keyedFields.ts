@@ -62,8 +62,15 @@ export function keyedFieldsFromAnswer(record: KeyingAnswerRecord): KeyedFieldsRe
       return false
     })
 
-  const keyWords = normaliseKeyWords(
-    withinBound(record.schluessel ?? [], KEY_WORD_MAX_CHARS, 'key word'),
+  // ⛔ Measured AFTER folding, never before. Spelling out an umlaut makes a word
+  // longer - `ä` becomes `ae` - so a 63-character compound with three of them is 66
+  // once folded, and 66 does not fit the varchar(64) it is stored in on either side.
+  // Bounding the raw word would let it through here and turn it into a database error
+  // over there, on a whole batch. What is bounded is what is stored.
+  const keyWords = withinBound(
+    normaliseKeyWords(record.schluessel ?? []),
+    KEY_WORD_MAX_CHARS,
+    'key word',
   ).slice(0, MAX_KEY_WORDS_PER_ENTRY)
 
   const keyTraits = Array.from(
@@ -83,11 +90,16 @@ export function keyedFieldsFromAnswer(record: KeyingAnswerRecord): KeyedFieldsRe
     if (!value) {
       return null
     }
-    if (value.length > KEY_WORD_MAX_CHARS) {
+    // Folded first, then measured - same reason as the key words above.
+    const folded = normaliseKeyWord(value)
+    if (!folded) {
+      return null
+    }
+    if (folded.length > KEY_WORD_MAX_CHARS) {
       dropped.push(`${what} over ${KEY_WORD_MAX_CHARS} characters`)
       return null
     }
-    return normaliseKeyWord(value) || null
+    return folded
   }
 
   // A field nothing compares: trimmed, bounded, kept as written.
