@@ -337,6 +337,7 @@ describe('the keying of a matching entry', () => {
       const written = await dbWriteMatchingEntryKeying(
         'uuid-key-1',
         'Ich repariere Fahrraeder',
+        'OFFER',
         keying(),
       )
       expect(written.success).toBe(true)
@@ -362,6 +363,7 @@ describe('the keying of a matching entry', () => {
       const written = await dbWriteMatchingEntryKeying(
         'uuid-key-1',
         'Ich gebe Klavierunterricht',
+        'OFFER',
         keying(),
       )
       expect(written.success).toBe(false)
@@ -370,12 +372,30 @@ describe('the keying of a matching entry', () => {
       expect(row!.keyWords).toBeNull()
       expect(row!.instructionVersion).toBeNull()
     })
+
+    // The channel is given to the model, and the instruction fills `gesuchter_beruf`
+    // only on the "sucht" one - so an offer flipped to a need gets a different keying.
+    // Guarding on the sentence alone would let an in-flight call write the offer's
+    // words onto the need, set the instruction version, and drop it off the list for
+    // good.
+    it('refuses to write words computed for the other channel', async () => {
+      await anEntry('uuid-key-1', KEYED, 'Ich repariere Fahrraeder')
+
+      const written = await dbWriteMatchingEntryKeying(
+        'uuid-key-1',
+        'Ich repariere Fahrraeder',
+        'NEED',
+        keying(),
+      )
+      expect(written.success).toBe(false)
+      expect((await rowOf('uuid-key-1'))!.keyWords).toBeNull()
+    })
   })
 
   describe('dbUpdateMatchingEntry and the keying', () => {
     it('clears the keying when the member rewrites the sentence', async () => {
       await anEntry('uuid-key-1', KEYED, 'Ich repariere Fahrraeder')
-      await dbWriteMatchingEntryKeying('uuid-key-1', 'Ich repariere Fahrraeder', keying())
+      await dbWriteMatchingEntryKeying('uuid-key-1', 'Ich repariere Fahrraeder', 'OFFER', keying())
 
       const stored = (await rowOf('uuid-key-1'))!
       await dbUpdateMatchingEntry(stored, {
@@ -396,7 +416,7 @@ describe('the keying of a matching entry', () => {
 
     it('clears it on a change of channel too, which the model is told about', async () => {
       await anEntry('uuid-key-1', KEYED, 'Ich repariere Fahrraeder')
-      await dbWriteMatchingEntryKeying('uuid-key-1', 'Ich repariere Fahrraeder', keying())
+      await dbWriteMatchingEntryKeying('uuid-key-1', 'Ich repariere Fahrraeder', 'OFFER', keying())
 
       const stored = (await rowOf('uuid-key-1'))!
       await dbUpdateMatchingEntry(stored, {
@@ -411,7 +431,7 @@ describe('the keying of a matching entry', () => {
 
     it('keeps it when only something beside the sentence changed', async () => {
       await anEntry('uuid-key-1', KEYED, 'Ich repariere Fahrraeder')
-      await dbWriteMatchingEntryKeying('uuid-key-1', 'Ich repariere Fahrraeder', keying())
+      await dbWriteMatchingEntryKeying('uuid-key-1', 'Ich repariere Fahrraeder', 'OFFER', keying())
 
       const stored = (await rowOf('uuid-key-1'))!
       await dbUpdateMatchingEntry(stored, {
@@ -441,7 +461,7 @@ describe('the keying of a matching entry', () => {
 
     it('leaves an entry alone once it carries the current instruction', async () => {
       await anEntry('uuid-key-1', KEYED, 'Ich repariere Fahrraeder')
-      await dbWriteMatchingEntryKeying('uuid-key-1', 'Ich repariere Fahrraeder', keying())
+      await dbWriteMatchingEntryKeying('uuid-key-1', 'Ich repariere Fahrraeder', 'OFFER', keying())
 
       expect(await dbSelectMatchingEntriesNeedingKeying('gms176-1', 10)).toEqual([])
     })
@@ -450,7 +470,7 @@ describe('the keying of a matching entry', () => {
     // than a one-way street: raise the version and every entry is work again.
     it('finds an entry again when the instruction has moved on', async () => {
       await anEntry('uuid-key-1', KEYED, 'Ich repariere Fahrraeder')
-      await dbWriteMatchingEntryKeying('uuid-key-1', 'Ich repariere Fahrraeder', keying())
+      await dbWriteMatchingEntryKeying('uuid-key-1', 'Ich repariere Fahrraeder', 'OFFER', keying())
 
       const pending = await dbSelectMatchingEntriesNeedingKeying('gms176-2', 10)
       expect(pending.map((row) => row.entry.uuid)).toEqual(['uuid-key-1'])
