@@ -10,6 +10,8 @@ import {
   createGmsHandshakeJWTToken,
   deleteGmsMatchingEntry,
   deleteGmsUser,
+  getGmsMatchingVocabulary,
+  postGmsMatchingVocabulary,
   putGmsMatchingEntry,
   putGmsMatchingEntrySnapshots,
   upsertGmsUsers,
@@ -337,6 +339,51 @@ describe('GmsClient', () => {
       await expect(deleteGmsMatchingEntry(API_KEY, ENTRY_UUID)).resolves.toBe(false)
       expect(put).not.toHaveBeenCalled()
       expect(del).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('the matching vocabulary routes', () => {
+    it('fetches a page and passes the cursor and the limit as query parameters', async () => {
+      get.mockResolvedValue({
+        status: 200,
+        data: { words: [{ id: 7, word: 'rasenluefter' }], hasMore: true },
+      })
+
+      const page = await getGmsMatchingVocabulary(API_KEY, 4, 1000)
+
+      const [url, config] = get.mock.calls[0]
+      expect(url).toBe('http://gms.test/api/matching-vocabulary')
+      // Strings, because that is what the GMS parses them from.
+      expect(config.params).toEqual({ afterId: '4', limit: '1000' })
+      expect(config.headers.authorization).toBe(`Bearer ${API_KEY}`)
+      expect(page).toEqual({ words: [{ id: 7, word: 'rasenluefter' }], hasMore: true })
+    })
+
+    it('reports coined words and answers how many were new', async () => {
+      post.mockResolvedValue({ status: 200, data: { added: 2 } })
+
+      const added = await postGmsMatchingVocabulary(API_KEY, 'de', ['rasenluefter', 'rasen'])
+
+      const [url, body] = post.mock.calls[0]
+      expect(url).toBe('http://gms.test/api/matching-vocabulary')
+      expect(body).toEqual({ language: 'de', words: ['rasenluefter', 'rasen'] })
+      expect(added).toBe(2)
+    })
+
+    // ⛔ The agents keep connections alive and set no timeout of their own, and axios
+    // has none by default. These two calls are made by a background run that guards
+    // itself with one in-flight promise: a half-open connection would leave that
+    // promise pending forever, so the run would not fail, it would stop - silently,
+    // with nothing to log, until the process restarts.
+    it('gives up on a hung connection rather than waiting for ever', async () => {
+      get.mockResolvedValue({ status: 200, data: { words: [], hasMore: false } })
+      post.mockResolvedValue({ status: 200, data: { added: 0 } })
+
+      await getGmsMatchingVocabulary(API_KEY, 0, 10)
+      await postGmsMatchingVocabulary(API_KEY, 'de', ['rasenluefter'])
+
+      expect(get.mock.calls[0][1].timeout).toBeGreaterThan(0)
+      expect(post.mock.calls[0][2].timeout).toBeGreaterThan(0)
     })
   })
 

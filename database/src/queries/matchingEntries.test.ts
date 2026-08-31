@@ -10,6 +10,7 @@ import {
   dbSelectMatchingEntriesByUserId,
   dbSelectMatchingEntriesNeedingKeying,
   dbSelectMatchingEntryByUuid,
+  dbSelectPublishableMatchingEntry,
   dbSetMatchingEntryActive,
   dbUpdateMatchingEntry,
   dbWriteMatchingEntryKeying,
@@ -446,6 +447,61 @@ describe('the keying of a matching entry', () => {
       expect(row!.details).toBe('Jetzt auch Lastenraeder')
       expect(row!.keyWords).toEqual(['fahrradreparatur', 'fahrrad'])
       expect(row!.instructionVersion).toBe('gms176-1')
+    })
+  })
+
+  // ⛔ The read that stands between a member pausing their entry and that entry
+  // reappearing in everyone's search. A model call takes seconds; everything this
+  // guards against happens in seconds.
+  describe('dbSelectPublishableMatchingEntry', () => {
+    it('gives back the entry as it stands NOW, not as it was read before', async () => {
+      await anEntry('uuid-key-1', KEYED, 'Ich repariere Fahrraeder')
+      const before = (await rowOf('uuid-key-1'))!
+
+      // The member corrects a price while the model call is out. That does not clear
+      // the keying - rightly, the sentence is unchanged - so nothing else would stop
+      // the run from publishing the old text over the correction.
+      await dbUpdateMatchingEntry(before, {
+        matchingType: before.matchingType,
+        summary: before.summary,
+        details: 'Jetzt 20 Euro die Stunde',
+        remote: false,
+      })
+
+      const fresh = await dbSelectPublishableMatchingEntry('uuid-key-1')
+      expect(fresh?.entry.details).toBe('Jetzt 20 Euro die Stunde')
+      expect(fresh?.userGradidoId).toBe('90000000-0000-4000-8000-000000000901')
+    })
+
+    // Pausing DELETES the entry from the GMS. Publishing it after that would put it
+    // back into the global search, and nothing anywhere would remove it again.
+    it('gives back nothing for an entry the member has paused', async () => {
+      await anEntry('uuid-key-1', KEYED, 'Ich repariere Fahrraeder')
+      await dbSetMatchingEntryActive('uuid-key-1', false)
+
+      expect(await dbSelectPublishableMatchingEntry('uuid-key-1')).toBeUndefined()
+    })
+
+    it('gives back nothing for a member who has left the GMS', async () => {
+      await anEntry('uuid-key-2', NOT_ALLOWED, 'Ich backe Brot')
+
+      expect(await dbSelectPublishableMatchingEntry('uuid-key-2')).toBeUndefined()
+    })
+
+    it('gives back nothing for a member who deleted their account', async () => {
+      await anEntry('uuid-key-4', DELETED, 'Ich verleihe Werkzeug')
+
+      expect(await dbSelectPublishableMatchingEntry('uuid-key-4')).toBeUndefined()
+    })
+
+    it('gives back nothing for a member of another community', async () => {
+      await anEntry('uuid-key-5', FOREIGN, 'Ich mache Fotos')
+
+      expect(await dbSelectPublishableMatchingEntry('uuid-key-5')).toBeUndefined()
+    })
+
+    it('gives back nothing for an entry that is gone', async () => {
+      expect(await dbSelectPublishableMatchingEntry('uuid-does-not-exist')).toBeUndefined()
     })
   })
 
