@@ -6,6 +6,7 @@ import { MatchingKeyingRun } from './keyingRun'
 // Everything this run reaches for, so that a pass which should do nothing can be
 // shown to do nothing - rather than shown to fail on a missing database.
 jest.mock('database', () => ({
+  dbIsMatchingKeyingActive: jest.fn(),
   dbSelectMatchingEntriesNeedingKeying: jest.fn(),
   dbSelectPublishableMatchingEntry: jest.fn(),
   dbWriteMatchingEntryKeying: jest.fn(),
@@ -21,6 +22,7 @@ jest.mock('../AnthropicClient', () => ({
 }))
 
 import {
+  dbIsMatchingKeyingActive,
   dbSelectMatchingEntriesNeedingKeying,
   dbSelectPublishableMatchingEntry,
   dbWriteMatchingEntryKeying,
@@ -33,6 +35,7 @@ import {
 } from '@/apis/gms/GmsClient'
 
 const homeCommunity = getHomeCommunity as jest.Mock
+const keyingActive = dbIsMatchingKeyingActive as jest.Mock
 const pending = dbSelectMatchingEntriesNeedingKeying as jest.Mock
 const vocabulary = getGmsMatchingVocabulary as jest.Mock
 const client = AnthropicClient.getInstance as jest.Mock
@@ -97,6 +100,10 @@ describe('the matching keying run and the switch it hangs on', () => {
     // where the words have to end up. Set here so that each test below changes the
     // one thing it is about.
     CONFIG.GMS_ACTIVE = true
+    // Three switches, not two: the community also has to have said yes to paying for
+    // the keying. On by default here so that each test below changes the one thing it
+    // is about - the two tests that are ABOUT this switch set it themselves.
+    keyingActive.mockResolvedValue(true)
     homeCommunity.mockResolvedValue({ id: 1, gmsApiKey: 'key' })
     pending.mockResolvedValue([])
     vocabulary.mockResolvedValue({ words: [], hasMore: false })
@@ -176,6 +183,39 @@ describe('the matching keying run and the switch it hangs on', () => {
     run.stop()
 
     expect(pending).not.toHaveBeenCalled()
+  })
+
+  it('stops before spending while the community has not switched the keying on', async () => {
+    CONFIG.MATCHING_ACTIVE = true
+    keyingActive.mockResolvedValue(false)
+    oneEntryWaiting()
+
+    await new MatchingKeyingRun().run()
+
+    // ⛔ The case this switch exists for, and it is not hypothetical: a server that
+    // shows the matching to its members while the decision about the model bill is
+    // still open. MATCHING_ACTIVE is on, an entry is waiting, and nothing is bought.
+    expect(keyEntries).not.toHaveBeenCalled()
+    // Not even the entry list: the switch answers before the run looks at member data.
+    expect(pending).not.toHaveBeenCalled()
+  })
+
+  it('reads the switch on every pass, so turning it off reaches a running process', async () => {
+    CONFIG.MATCHING_ACTIVE = true
+    oneEntryWaiting()
+    const run = new MatchingKeyingRun()
+
+    await run.run()
+    expect(keyEntries).toHaveBeenCalledTimes(1)
+
+    // ⚠️ The whole reason the value sits on the community row rather than in CONFIG.
+    // A check that ran once at startup would keep spending until somebody restarts the
+    // process, which is the opposite of what a switch is for.
+    keyingActive.mockResolvedValue(false)
+    await run.run()
+
+    expect(keyEntries).toHaveBeenCalledTimes(1)
+    expect(keyingActive).toHaveBeenCalledTimes(2)
   })
 
   it('keys what is waiting once matching is on', async () => {

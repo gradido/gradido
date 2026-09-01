@@ -33,6 +33,32 @@ export const communitiesTable = mysqlTable(
     name: varchar({ length: 40 }).default(sql`NULL`),
     description: varchar({ length: 255 }).default(sql`NULL`),
     gmsApiKey: varchar('gms_api_key', { length: 512 }).default(sql`NULL`),
+    /**
+     * Whether this community pays a language model to key its matching entries.
+     *
+     * ⛔ Off for every existing row, and that is a decision rather than a default. The
+     * keying run costs money per entry, and the first run on a server with a backlog
+     * pays for the whole backlog at once. Somebody has to say when that happens, and
+     * this column is where they say it.
+     *
+     * Separate from `MATCHING_ACTIVE` on purpose. That one answers "do members see the
+     * matching at all" - the menu entry and the routes - and it is compiled into the
+     * frontend bundle at build time. Two different questions were riding on it: a
+     * server that wants to show the feature had no way to say "but do not start
+     * buying words yet", and switching it off to stop the spending would take the
+     * feature off the screen with it.
+     *
+     * On the community rather than in the environment for two reasons. It is
+     * switchable while the process runs, which a `CONFIG` value read at startup is
+     * not - and the cost belongs to the community that has the members, which is the
+     * same reason the model call sits on the community server and not on the GMS.
+     *
+     * ⚠️ Read it fresh. `getHomeCommunityDrizzle` caches the community for the life of
+     * the process and never invalidates, so a value read through it would answer with
+     * whatever was true at the first read - which is exactly what a switch must not
+     * do. `dbIsMatchingKeyingActive` is the read that belongs here.
+     */
+    matchingKeyingActive: tinyint('matching_keying_active').default(0).notNull(),
     publicJwtKey: varchar('public_jwt_key', { length: 512 }).default(sql`NULL`),
     privateJwtKey: varchar('private_jwt_key', { length: 2048 }).default(sql`NULL`),
     // Warning: Can't parse geometry from database

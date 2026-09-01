@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import {
   Community as DbCommunity,
+  dbIsMatchingKeyingActive,
   dbSelectMatchingEntriesNeedingKeying,
   dbSelectPublishableMatchingEntry,
   dbWriteMatchingEntryKeying,
@@ -87,6 +88,17 @@ export class MatchingKeyingRun {
   private pass: Promise<void> | undefined
   private timer: ReturnType<typeof setTimeout> | undefined
   private readonly intervalMs: number
+  /**
+   * What `matching_keying_active` said last time, so the log says something when it
+   * changes and nothing when it does not.
+   *
+   * `undefined` until the first pass reads it, which is what makes the very first
+   * answer worth a line too - including "off", because a silent off is the state
+   * somebody will be puzzled by: they switch MATCHING_ACTIVE on, see the matching
+   * appear, and no words are ever bought. Without this the only way to find out why
+   * is to read this file.
+   */
+  private keyingActiveLastSeen: boolean | undefined
 
   public constructor(options: { intervalMs?: number } = {}) {
     this.intervalMs = options.intervalMs ?? DEFAULT_INTERVAL_MS
@@ -167,6 +179,31 @@ export class MatchingKeyingRun {
     }
     const gms = await this.gmsAccess()
     if (!gms) {
+      return
+    }
+    // Has this community said yes to paying for it? Asked here rather than in
+    // `start()` alone, and asked on EVERY pass rather than once: the value lives on
+    // the community row precisely so it can be turned off while the process runs, and
+    // a check that only ran at startup would answer with whatever was true then.
+    //
+    // ⛔ Separate from MATCHING_ACTIVE above, which is a different question. That one
+    // says whether members see the matching at all; this one says whether keying them
+    // is paid for. A server can want the first without the second - showing the
+    // feature while a decision about the model bill is still open is the ordinary
+    // case, and it is exactly the case ki-playground is in.
+    //
+    // Before the entry count on purpose. Both are one indexed read, and this one can
+    // say no without the run having looked at member data at all.
+    const keyingActive = await dbIsMatchingKeyingActive()
+    if (keyingActive !== this.keyingActiveLastSeen) {
+      this.keyingActiveLastSeen = keyingActive
+      logger.info(
+        keyingActive
+          ? 'matching keying: switched ON for this community (communities.matching_keying_active)'
+          : 'matching keying: OFF for this community - entries are stored and served, they simply never get their words. Turn it on with: UPDATE communities SET matching_keying_active = 1 WHERE foreign = 0',
+      )
+    }
+    if (!keyingActive) {
       return
     }
 
