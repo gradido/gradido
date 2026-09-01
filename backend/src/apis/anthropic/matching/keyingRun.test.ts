@@ -222,10 +222,11 @@ describe('the matching keying run and the switch it hangs on', () => {
 
     expect(keyEntries).toHaveBeenCalledTimes(1)
     expect(keyingActive).toHaveBeenCalledTimes(2)
-    // The switch answers before the entry list is read, so the second pass never got
-    // that far: two reads for the first pass (the "anything waiting" probe and the
-    // batch), none for the second.
-    expect(pending).toHaveBeenCalledTimes(2)
+    // ⭐ Sharper than counting model calls, and it costs nothing: `oneEntryWaiting`
+    // resets this mock, so the count above is the SECOND pass alone. The switch
+    // answers before the entry list is read, so that pass must not have touched the
+    // database at all - any call here means the guard did not stop it.
+    expect(pending).not.toHaveBeenCalled()
   })
 
   it('keys what is waiting once matching is on', async () => {
