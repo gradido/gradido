@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
-import { readdirSync, readFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import {
   GraphQLSchema,
@@ -74,20 +75,25 @@ const dirOf = (pkg: string): string => join(__dirname, '..', '..', '..', pkg, 's
  * did not would let a document added one directory down re-run the whole backend CI
  * and be checked by nothing.
  */
-const filesUnder = (dir: string, prefix = ''): { name: string; dir: string }[] =>
+const filesUnder = (dir: string, prefix = ''): { name: string; rel: string; dir: string }[] =>
   readdirSync(dir, { withFileTypes: true })
     .sort((a, b) => a.name.localeCompare(b.name))
     .flatMap((entry) =>
       entry.isDirectory()
         ? filesUnder(join(dir, entry.name), `${prefix}${entry.name}/`)
-        : [{ name: `${prefix}${entry.name}`, dir }],
+        : // ⚠️ Two names, and they are not the same one. `dir` already descends into
+          // the subdirectory, so reading must use the bare `name`; only the reported
+          // path carries `rel`. Folding them into one field made `join(dir, name)`
+          // repeat the subdirectory - `graphql/tief/tief/unten.graphql` - so the
+          // recursion added for nested documents failed on exactly them.
+          [{ name: entry.name, rel: `${prefix}${entry.name}`, dir }],
     )
 
 const documentsOf = (pkg: string): { path: string; source: string; dir: string }[] =>
   filesUnder(dirOf(pkg))
     .filter(({ name }) => /\.(graphql|js)$/.test(name) && !/\.(spec|test)\.js$/.test(name))
-    .flatMap(({ name, dir }) => {
-      const path = `${pkg}/src/graphql/${name}`
+    .flatMap(({ name, rel, dir }) => {
+      const path = `${pkg}/src/graphql/${rel}`
       const raw = readFileSync(join(dir, name), 'utf8')
       if (name.endsWith('.graphql')) {
         return [{ path, source: raw, dir }]
@@ -213,6 +219,29 @@ describe('the documents the front ends send', () => {
     // - "Cannot query field contribution" - and three of them would silently stop
     // testing arguments and variables at all.
     expect(validate(built, parse('query { contribution(id: 1) { id } }'), RULES)).toEqual([])
+  })
+
+  it('reads a document one directory down, and reads it from the right place', () => {
+    // ⛔ The recursion exists for this case alone, and it shipped broken: `name` carried
+    // the subdirectory while `dir` had already descended into it, so `join(dir, name)`
+    // asked for `graphql/deeper/deeper/below.graphql`. No document lives in a
+    // subdirectory today, so every other assertion in this file passes either way -
+    // which is precisely why the guard for it has to build its own.
+    const root = mkdtempSync(join(tmpdir(), 'gradido-documents-'))
+    try {
+      mkdirSync(join(root, 'deeper'))
+      writeFileSync(join(root, 'top.graphql'), 'query top { id }')
+      writeFileSync(join(root, 'deeper', 'below.graphql'), 'query below { id }')
+
+      const found = filesUnder(root)
+
+      expect(found.map((file) => file.rel).sort()).toEqual(['deeper/below.graphql', 'top.graphql'])
+      for (const file of found) {
+        expect(readFileSync(join(file.dir, file.name), 'utf8')).toContain('query')
+      }
+    } finally {
+      rmSync(root, { recursive: true, force: true })
+    }
   })
 
   it('reads both kinds of document, not just the half it started with', () => {
