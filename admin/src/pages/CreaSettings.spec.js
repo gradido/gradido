@@ -24,11 +24,13 @@ const ANSWER = {
     defaultModel: 'claude-sonnet-5',
     // ⛔ TRUE against a form that starts from false, so "read from the server" can be
     // told apart from "never read at all" - the field where that difference is a bill.
-    // ⚠️ And it must also differ from `fastMode` above, or the two are
-    // indistinguishable and a v-model pointing at the wrong one passes: measured, an
-    // injection binding this checkbox to `form.fastMode` left the whole file green
-    // while both fixture values were `true`.
-    matchingKeyingActive: false,
+    //
+    // ⚠️ Which leaves it equal to `fastMode` above, and that cannot be helped by
+    // choosing values: both must differ from the form's default of `false`, so both
+    // must be `true`, so they cannot differ from each other. The binding is therefore
+    // told apart by DIRECTION rather than by value - the checkbox test below toggles
+    // one and asserts the other did not move.
+    matchingKeyingActive: true,
   },
 }
 
@@ -186,7 +188,7 @@ describe('CreaSettings', () => {
         model: 'claude-opus-5',
         effort: 'high',
         fastMode: true,
-        matchingKeyingActive: false,
+        matchingKeyingActive: true,
       })
     })
 
@@ -195,16 +197,16 @@ describe('CreaSettings', () => {
       expect(wrapper.text()).toContain('crea.settings.matchingKeyingHint')
     })
 
-    // ⛔ The binding itself, through the checkbox rather than around it. Ticking the
-    // box must move THIS field and nothing else: an injection that bound it to
-    // `form.fastMode` used to leave the whole file green, because the stub emitted
-    // nothing and both fixture values were `true`.
-    it('moves the keying switch and only that one when its box is ticked', async () => {
+    // ⛔ The binding itself, through the checkbox rather than around it, and told apart
+    // by which field MOVES rather than by what the two hold. Both start `true` from the
+    // fixture; unticking the keying box must leave fast mode where it was. An injection
+    // binding this checkbox to `form.fastMode` used to leave the whole file green.
+    it('moves the keying switch and only that one when its box is unticked', async () => {
       const boxes = wrapper.findAllComponents({ name: 'BFormCheckbox' })
       expect(boxes).toHaveLength(2)
-      await boxes[1].find('input').setValue(true)
+      await boxes[1].find('input').setValue(false)
 
-      expect(wrapper.vm.form.matchingKeyingActive).toBe(true)
+      expect(wrapper.vm.form.matchingKeyingActive).toBe(false)
       expect(wrapper.vm.form.fastMode).toBe(true)
     })
 
@@ -220,7 +222,7 @@ describe('CreaSettings', () => {
           model: 'claude-opus-5',
           effort: 'high',
           fastMode: true,
-          matchingKeyingActive: false,
+          matchingKeyingActive: true,
         },
       })
     })
@@ -236,7 +238,7 @@ describe('CreaSettings', () => {
           model: 'claude-opus-5',
           effort: 'high',
           fastMode: true,
-          matchingKeyingActive: false,
+          matchingKeyingActive: true,
         },
       })
     })
