@@ -1,14 +1,13 @@
 // AI-GENERATED — not an architecture reference
 import { CreaResolver } from './CreaResolver'
 
-// The seam this file exists for: `setCreaSettings` writes TWO tables through two
-// different ORMs, with no transaction available between them, and returns one object
-// built from both. Every part of that is untested elsewhere - the database layer has
-// its own tests, the admin page has its own, and the ordering that decides which half
-// can be left orphaned had none at all.
+// The seam this file exists for: the Crea settings page writes TWO tables through two
+// different ORMs, and what matters is that each mutation touches only its own. That is
+// untested elsewhere - the database layer has its own tests, the admin page has its
+// own, and nothing else asks whether saving a model can move the switch that spends.
 //
-// Mocked rather than driven against a database, because what is under test is the
-// SEQUENCE, and a sequence is exactly what a mock can see and a database cannot.
+// Mocked rather than driven against a database, because what is under test is WHICH
+// CALLS HAPPEN, and that is exactly what a mock can see and a database cannot.
 jest.mock('database', () => ({
   dbIsMatchingKeyingActive: jest.fn(),
   dbSetMatchingKeyingActive: jest.fn(),
@@ -35,7 +34,6 @@ describe('the two writes behind the Crea settings', () => {
     model: 'claude-opus-5',
     effort: 'high',
     fastMode: true,
-    matchingKeyingActive: true,
     ...overrides,
   })
 
@@ -47,70 +45,98 @@ describe('the two writes behind the Crea settings', () => {
     isActive.mockResolvedValue(true)
   })
 
-  it('writes the model settings before it switches the spending on', async () => {
-    const order: string[] = []
-    writeSettings.mockImplementation(async () => {
-      order.push('settings')
-      return storedSettings
-    })
-    setActive.mockImplementation(async () => {
-      order.push('switch')
-      return { success: true }
-    })
-
+  it('does not touch the keying switch when the moderation settings are saved', async () => {
     await resolver.setCreaSettings(input())
 
-    // ⛔ The order is the whole point. There is no transaction to be had - the two
-    // writes cross ORMs and connection pools - so which one goes second decides which
-    // half can be left orphaned, and only one of the two orphans costs money.
-    expect(order).toEqual(['settings', 'switch'])
-  })
-
-  it('does not switch the spending on when the model write fails', async () => {
-    writeSettings.mockRejectedValue(new Error('Data too long for column model'))
-
-    await expect(resolver.setCreaSettings(input())).rejects.toThrow()
-
-    // The failure that made the order matter, and it is reachable from the panel:
-    // `crea_settings.model` is varchar(64) and nothing bounds the model string on the
-    // way in. Written the other way round, this admin would have read "the save did
-    // not work" while the keying was already switched on and buying.
+    // ⛔ The separation, asserted from the side that used to break it. When both rode
+    // in one mutation, a save of the model carried whatever switch value the form
+    // held - so a browser tab open since before somebody else flipped it could revert
+    // a paid run, or restart one that had been deliberately stopped.
+    expect(writeSettings).toHaveBeenCalled()
     expect(setActive).not.toHaveBeenCalled()
   })
 
-  it('answers with the stored switch, not with what it was handed', async () => {
+  it('reports the stored switch alongside the settings it did save', async () => {
+    isActive.mockResolvedValue(true)
+
+    const answer = await resolver.setCreaSettings(input())
+
+    // Read rather than carried over, so the page's other section cannot drift out of
+    // step with the database it is showing.
+    expect(answer.matchingKeyingActive).toBe(true)
+    expect(isActive).toHaveBeenCalled()
+  })
+
+  it('answers the switch mutation with what is stored, not with what it was handed', async () => {
     isActive.mockResolvedValue(false)
 
-    const answer = await resolver.setCreaSettings(input({ matchingKeyingActive: true }))
-
     // An UPDATE that matched no row is a real state here - a missing home community,
-    // which the read answers `false` for on purpose. Echoing the input would report a
-    // save that did not happen, on the one field where that means an unnoticed bill.
-    expect(answer.matchingKeyingActive).toBe(false)
+    // which the read answers `false` for on purpose. Echoing the argument would report
+    // a save that did not happen, on the one setting where that means an unnoticed bill.
+    expect(await resolver.setCreaMatchingKeying(true)).toBe(false)
   })
 
-  it('fails the save when the switch could not be stored', async () => {
+  it('fails the switch mutation when the write reported nothing', async () => {
     setActive.mockResolvedValue({ success: false, error: new Error('no home community') })
 
-    await expect(resolver.setCreaSettings(input())).rejects.toThrow()
+    await expect(resolver.setCreaMatchingKeying(true)).rejects.toThrow()
   })
 
-  it('leaves the switch alone when the field is absent', async () => {
-    // An admin bundle from before this field existed sends the other three. Absent
-    // means LEAVE IT - a contract rather than a guess - so that such a tab can still
-    // save a model instead of failing coercion on a field it has never heard of.
-    await resolver.setCreaSettings(input({ matchingKeyingActive: undefined }))
+  it('reports the switch as ON when that is what is stored', async () => {
+    // ⛔ Measured gap, and my own repair raised its stakes. `return false` from the
+    // mutation left every test here green, because both switch tests stubbed the read
+    // to `false` - and the page now compares the answer with what it sent, so a broken
+    // return would make every attempt to switch keying ON snap the box back and raise
+    // "somebody else changed it". The paid switch would be unturnable-on, silently.
+    isActive.mockResolvedValue(true)
+
+    expect(await resolver.setCreaMatchingKeying(true)).toBe(true)
+  })
+
+  it('accepts the deprecated switch field in the input and ignores it', async () => {
+    // ⚠️ The field exists only so that an admin bundle loaded before the split can
+    // still save: GraphQL rejects an unknown key in a variable object outright. Its
+    // whole job is to be tolerated, so deleting it must fail something - otherwise the
+    // next cleanup pass removes it a release early and breaks every open tab.
+    await resolver.setCreaSettings(input({ matchingKeyingActive: true }))
 
     expect(writeSettings).toHaveBeenCalled()
     expect(setActive).not.toHaveBeenCalled()
   })
 
-  it('still switches it OFF when asked to, rather than reading false as absent', async () => {
-    // ⚠️ The reason the resolver tests `!= null` instead of falsiness: `false` is the
-    // value that stops the spending, and treating it as "nothing was sent" would make
-    // the switch one-way.
-    await resolver.setCreaSettings(input({ matchingKeyingActive: false }))
+  it('switches ON with what it was asked for', async () => {
+    // ⛔ Measured gap, and it was the wrong one to have: hardcoding the write to
+    // `false` left all five tests green. The only argument assertion in the file
+    // pinned the OFF direction, so the one-line typo that makes the paid switch
+    // impossible to turn ON would have shipped.
+    await resolver.setCreaMatchingKeying(true)
 
+    expect(setActive).toHaveBeenCalledWith(true)
+  })
+
+  it('switches OFF as readily as ON', async () => {
+    isActive.mockResolvedValue(false)
+
+    expect(await resolver.setCreaMatchingKeying(false)).toBe(false)
     expect(setActive).toHaveBeenCalledWith(false)
+  })
+
+  it('reads the switch before it writes the settings', async () => {
+    // ⚠️ Order, and the reason is a failure rather than tidiness: this read serves a
+    // field no client selects any more, and a transient failure of it must not fail a
+    // save that has already committed.
+    const order: string[] = []
+    isActive.mockImplementation(async () => {
+      order.push('read')
+      return true
+    })
+    writeSettings.mockImplementation(async () => {
+      order.push('write')
+      return storedSettings
+    })
+
+    await resolver.setCreaSettings(input())
+
+    expect(order).toEqual(['read', 'write'])
   })
 })

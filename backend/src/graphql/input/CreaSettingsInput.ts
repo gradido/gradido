@@ -23,22 +23,21 @@ export class CreaSettingsInput {
   fastMode?: boolean | null
 
   /**
-   * Whether Crea works out the key words of matching entries.
+   * ⛔ DEPRECATED, ignored, and kept on purpose for exactly one release.
    *
-   * Absent means LEAVE IT, which is a contract rather than a guess - the resolver
-   * writes nothing when the field is missing, and reads the stored value back for the
-   * answer. The other two readings, "off" and "the default", would both be guesses
-   * about a setting that costs money, and this one is neither.
+   * The keying switch has its own mutation now (`setCreaMatchingKeying`) and this
+   * resolver does not read this field. It stays because GraphQL rejects an unknown
+   * key in a variable object as a hard coercion error, and the admin bundle running
+   * today still sends it: removing it outright breaks every admin tab that is open
+   * across the deploy - `setCreaSettings` AND `testCreaModel`, which shares this input
+   * and never read the field either.
    *
-   * ⛔ Nullable for a reason that only shows up during a deploy. `CreaSettingsInput`
-   * is also the argument of `testCreaModel`, which never reads this field - so a
-   * required `Boolean!` would reject BOTH mutations for any admin bundle loaded
-   * before the field existed, including the probe button that touches nothing. The
-   * admin panel has no service worker and no version check, so that browser tab is
-   * simply broken until somebody reloads it.
+   * ⚠️ And that break is invisible in the way that matters. A coercion failure comes
+   * back as `BAD_USER_INPUT`, while `useAppOutdated` raises the reload bar only for
+   * `GRAPHQL_VALIDATION_FAILED` - so the admin gets a raw red toast on both buttons
+   * and nothing tells them a reload would fix it.
    *
-   * ⚠️ The resolver tests `!= null`, not falsiness: `false` is the value that turns
-   * the spending OFF, and dropping it would make the switch one-way.
+   * Delete it in the release after this one, when no bundle sends it any more.
    */
   @Field(() => Boolean, { nullable: true })
   @IsOptional()
