@@ -1,11 +1,26 @@
 import gql from 'graphql-tag'
 
+// The shape of ONE row of `adminListContributions`, because that is what the caller
+// does with the answer: `items.value[index] = contribution` replaces a list row.
+// The user's name sits under `user` since real names left `Contribution` — a flat
+// `firstName` here made every reload fail validation and toast the raw error.
 export const getContribution = gql`
   query ($id: Int!) {
     contribution(id: $id) {
       id
-      firstName
-      lastName
+      user {
+        emailContact {
+          email
+        }
+        id
+        firstName
+        lastName
+        alias
+        salutation
+        publicName
+        userIdentifier
+        createdAt
+      }
       amount
       memo
       createdAt
@@ -14,7 +29,10 @@ export const getContribution = gql`
       confirmedBy
       updatedAt
       updatedBy
-      status
+      updatedByUserName
+      closedAt
+      closedBy
+      closedByUserName
       contributionStatus
       creationGroups {
         tag
@@ -26,6 +44,7 @@ export const getContribution = gql`
       deletedAt
       deletedBy
       moderatorId
+      moderatorUserName
       userId
       resubmissionAt
     }
