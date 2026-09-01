@@ -168,10 +168,16 @@ describe('sendUsersToGms', () => {
       expect(sent).toBe(many.length)
     })
 
-    // A member whose own entries exceed the limit cannot be made to fit, and splitting
-    // their snapshot would change what a snapshot means - the full set, so that what
-    // is missing gets deleted. They travel alone and are refused alone.
-    it('gives a member with more entries than one call a call of their own', async () => {
+    // ⛔ A member whose own entries exceed the limit cannot be made to fit, and
+    // splitting their snapshot would change what a snapshot means - the full set, so
+    // that what is missing gets deleted. So they are not sent at all.
+    //
+    // Sending them anyway is what this test used to assert, and it was wrong in a way
+    // no assertion here could see: the send THROWS on a refusal, the throw leaves the
+    // chunk loop, and every LATER chunk goes unsent - on this run and on every repair
+    // run after it, because the retry meets the same member again. One member would
+    // quietly stop the whole export.
+    it('does not send a member whose own entries exceed one call, and sends the rest', async () => {
       const heavy = member(200, 'uuid-200')
       const light = member(201, 'uuid-201')
       selectEntriesMock.mockResolvedValue([
@@ -181,9 +187,32 @@ describe('sendUsersToGms', () => {
 
       await sendUsersToGms([heavy, light], HOME_COM, true)
 
-      expect(snapshotMock.mock.calls).toHaveLength(2)
-      expect(snapshotMock.mock.calls[0][1]).toHaveLength(1)
-      expect(snapshotMock.mock.calls[1][1]).toHaveLength(1)
+      // The heavy member's chunk comes FIRST, so this is also the guard against the
+      // old behaviour: the light member is only reached if the heavy one did not
+      // stop the loop.
+      expect(snapshotMock.mock.calls).toHaveLength(1)
+      const [, sent] = snapshotMock.mock.calls[0]
+      expect(sent).toHaveLength(1)
+      expect(sent[0].userUuid).toBe(light.gradidoID)
+    })
+
+    it('carries on past a refused chunk rather than losing the ones behind it', async () => {
+      // The same shape with a real refusal: `putGmsMatchingEntrySnapshots` throws on a
+      // rejected call, and a throw inside the loop takes every later chunk with it.
+      const heavy = member(202, 'uuid-202')
+      const light = member(203, 'uuid-203')
+      selectEntriesMock.mockResolvedValue([
+        ...Array.from({ length: 4000 }, (_, e) => entry(heavy.id, `x-${e}`)),
+        entry(light.id, 'l-2'),
+      ])
+      snapshotMock.mockRejectedValueOnce(new Error('413 Payload Too Large'))
+
+      await sendUsersToGms([heavy, light], HOME_COM, true)
+
+      // The heavy chunk never reaches the mock at all, so the rejection queued above
+      // is still waiting - which is the point: nothing was sent that could be refused.
+      expect(snapshotMock.mock.calls).toHaveLength(1)
+      expect(snapshotMock.mock.calls[0][1][0].userUuid).toBe(light.gradidoID)
     })
 
     // ⛔ A snapshot carries the entry's KEYING now, and the words in it go on into a

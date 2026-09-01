@@ -110,8 +110,13 @@ export function keyedFieldsFromAnswer(record: KeyingAnswerRecord): KeyedFieldsRe
     if (!folded) {
       return null
     }
-    if (folded.length > KEY_WORD_MAX_CHARS) {
-      dropped.push(`${what} over ${KEY_WORD_MAX_CHARS} characters`)
+    // ⚠️ The FIELD bound, not the word bound. These three go into the `key_*`
+    // varchar(64) columns that `asWritten` bounds with KEY_FIELD_MAX_CHARS, not into
+    // `key_words`. Both constants are 64 today, so nothing behaves differently - which
+    // is exactly why it is worth fixing now: the day one of them moves alone, this
+    // would measure one group of fields against the other group's column width.
+    if (folded.length > KEY_FIELD_MAX_CHARS) {
+      dropped.push(`${what} over ${KEY_FIELD_MAX_CHARS} characters`)
       return null
     }
     return folded

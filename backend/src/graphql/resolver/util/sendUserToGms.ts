@@ -36,11 +36,17 @@ const GMS_MAX_ENTRIES_PER_CALL = 2500
  * Split a batch of snapshots so that no call exceeds what the GMS accepts.
  *
  * Two bounds at once - members per call and entries across the call - because the GMS
- * enforces both and either can bind first. A member whose own entries exceed the
- * entry limit gets a chunk to themselves and is refused there rather than taking the
- * batch down with them; nothing here can make that member fit, and splitting their
+ * enforces both and either can bind first.
+ *
+ * ⛔ A member whose OWN entries exceed the entry limit gets a chunk to themselves, and
+ * that chunk cannot succeed - nothing here can make them fit, and splitting their
  * snapshot would change what a snapshot MEANS (the full set, so that what is missing
- * is deleted) and silently wipe the entries left out.
+ * is deleted) and silently wipe the entries left out. Such a chunk is therefore never
+ * sent; `sendUsersToGms` drops it before the call. An earlier comment here claimed the
+ * member would be "refused there rather than taking the batch down with them", which
+ * was wrong in a way worth naming: the send THROWS on a refusal, the throw leaves the
+ * loop, and every later chunk goes unsent - for ever, because the repair run retries
+ * from the same place and hits the same member again.
  */
 function chunkByEntryCount(snapshots: GmsMatchingEntrySnapshot[]): GmsMatchingEntrySnapshot[][] {
   const chunks: GmsMatchingEntrySnapshot[][] = []
@@ -84,8 +90,13 @@ export async function sendUsersToGms(
       // than a nicety when the snapshot started carrying an entry's KEYING. A
       // member's own sentence going over for somebody who has left is one thing; the
       // words derived from it are another, because they go on into a vocabulary with
-      // no community bound and no delete path. `ExportUsers` filters its members
-      // itself; the resolver path checks only consent.
+      // no community bound and no delete path.
+      //
+      // Belt as well as braces: every caller already filters. `ExportUsers` selects
+      // `foreign: false, gmsAllowed: true` with `deleted_at is null`; the resolver
+      // path sits inside `user.gmsAllowed`; registration inside `dbUser.gmsAllowed`.
+      // Measured at the call sites, not inferred - and kept here anyway, because this
+      // is the only place that knows what a snapshot now carries.
       //
       // Left out entirely rather than sent with an empty list: an empty snapshot
       // means "this member has no live entries", which would delete what the GMS
@@ -117,6 +128,22 @@ export async function sendUsersToGms(
         // is. It moved from 5000 to 3000 when the keyed columns widened an entry row,
         // and it will move again; chunking here means the caller never has to know.
         for (const chunk of chunkByEntryCount(snapshots)) {
+          const entries = chunk.reduce((sum, snapshot) => sum + snapshot.entries.length, 0)
+          if (chunk.length === 1 && entries > GMS_MAX_ENTRIES_PER_CALL) {
+            // ⛔ Not sent, because it cannot succeed: one member over the limit is a
+            // guaranteed refusal, and a refusal here THROWS - which would leave this
+            // loop and take every later chunk with it, on this run and on every repair
+            // run after it. One member would quietly stop the whole export.
+            //
+            // Logged at error with the member, because this IS a gap: their entries do
+            // not reach the GMS and nothing retries them. The member record itself did
+            // go, so they are findable - it is their entries that are missing, and that
+            // needs a hand rather than another attempt.
+            logger.error(
+              `##gms## snapshot of member ${chunk[0].userUuid} holds ${entries} entries, over the ${GMS_MAX_ENTRIES_PER_CALL} a single call may carry - skipped, their entries are NOT on the GMS`,
+            )
+            continue
+          }
           await putGmsMatchingEntrySnapshots(homeCom.gmsApiKey, chunk)
         }
       }
