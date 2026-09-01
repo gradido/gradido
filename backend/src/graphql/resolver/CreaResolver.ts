@@ -5,7 +5,7 @@ import { CreaBatchEvaluation } from '@model/CreaBatchEvaluation'
 import { CreaEvaluation } from '@model/CreaEvaluation'
 import { CreaRewriteResult } from '@model/CreaRewriteResult'
 import { CreaModelTestResult, CreaSettings } from '@model/CreaSettings'
-import { User as DbUser } from 'database'
+import { User as DbUser, dbIsMatchingKeyingActive, dbSetMatchingKeyingActive } from 'database'
 import { SALUTATION_MAX_LENGTH } from 'shared'
 import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { AnthropicClient } from '@/apis/anthropic/AnthropicClient'
@@ -170,6 +170,10 @@ export class CreaResolver {
       effort: settings.effort,
       defaultModel: defaultCreaModel(),
       fastMode: settings.fastMode,
+      // From `communities`, not from the Crea settings row: the model and how hard it
+      // thinks are one setting for the whole instance, but who pays for keying belongs
+      // to the community that has the members.
+      matchingKeyingActive: await dbIsMatchingKeyingActive(),
     }
   }
 
@@ -180,6 +184,12 @@ export class CreaResolver {
   @Authorized([RIGHTS.AI_SETTINGS])
   @Mutation(() => CreaSettings)
   async setCreaSettings(@Arg('input') input: CreaSettingsInput): Promise<CreaSettings> {
+    // ⛔ The keying switch FIRST, and the order is the point rather than a style
+    // choice. It is the one of the four that decides whether money is spent, so if
+    // anything here is going to fail, it must fail before it. Written second, a
+    // failure of the model write would leave the spending switched on with a toast
+    // that said the save did not work.
+    await dbSetMatchingKeyingActive(input.matchingKeyingActive)
     const settings = await writeCreaSettings(
       input.model ?? null,
       input.effort as CreaEffort,
@@ -190,6 +200,7 @@ export class CreaResolver {
       effort: settings.effort,
       defaultModel: defaultCreaModel(),
       fastMode: settings.fastMode,
+      matchingKeyingActive: input.matchingKeyingActive,
     }
   }
 

@@ -151,6 +151,8 @@
       "fastModeBusy": "(fast mode busy right now – Crea answers at normal speed)",
       "fastModeHint": "Same model, faster output. Only available on Opus models, and answers cost twice as much. Where it is unavailable, Crea automatically answers at normal speed.",
       "fastModeRefused": "(fast mode refused: {detail} – Crea answers at normal speed)",
+      "matchingKeying": "Key words for matching entries",
+      "matchingKeyingHint": "Crea works out the words each matching entry can be found under. It costs per entry: the first run after switching on works through every entry at once. Switching off takes effect on the next pass, ten minutes at the outside.",
       "model": "AI model",
       "modelHint": "Leave empty = default model ({model}). You can type a new model directly.",
       "modelPlaceholder": "Default: {model}",

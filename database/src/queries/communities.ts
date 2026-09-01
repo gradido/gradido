@@ -56,6 +56,25 @@ export async function dbIsMatchingKeyingActive(): Promise<boolean> {
   return Boolean(rows[0]?.active)
 }
 
+/**
+ * Turn the keying of matching entries on or off for the home community.
+ *
+ * ⛔ Switching it ON is what starts the spending, and the first run after that works
+ * through every entry that has none - so this is not a preference, it is a decision
+ * about a bill. Switching it OFF reaches a running process: the run re-reads the
+ * column on every pass, so the next pass stops, ten minutes at the outside.
+ *
+ * Column-targeted rather than a `save()` of the community, because the row is read
+ * and written all over this codebase and a whole-entity write would carry back
+ * whatever the caller happened to be holding.
+ */
+export async function dbSetMatchingKeyingActive(active: boolean): Promise<void> {
+  await drizzleDb()
+    .update(communitiesTable)
+    .set({ matchingKeyingActive: active ? 1 : 0 })
+    .where(eq(communitiesTable.foreign, 0))
+}
+
 export async function getHomeCommunityWithFederatedCommunityOrFail(
   apiVersion: string,
 ): Promise<DbCommunity> {

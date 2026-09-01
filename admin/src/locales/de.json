@@ -151,6 +151,8 @@
       "fastModeBusy": "(schneller Modus gerade ausgelastet – Crea antwortet normal)",
       "fastModeHint": "Gleiches Modell, schnellere Ausgabe. Nur bei Opus-Modellen möglich, und die Antworten kosten dabei das Doppelte. Wo es nicht geht, antwortet Crea automatisch normal.",
       "fastModeRefused": "(schneller Modus abgelehnt: {detail} – Crea antwortet normal)",
+      "matchingKeying": "Schlüsselwörter für Matching-Einträge",
+      "matchingKeyingHint": "Crea sucht zu jedem Matching-Eintrag die Wörter, unter denen andere ihn finden. Kostet pro Eintrag: beim ersten Einschalten werden alle vorhandenen Einträge auf einmal abgearbeitet. Ausschalten wirkt beim nächsten Durchgang, spätestens nach zehn Minuten.",
       "model": "KI-Modell",
       "modelHint": "Leer lassen = Standardmodell ({model}). Ein neues Modell kannst Du direkt eintragen.",
       "modelPlaceholder": "Standard: {model}",

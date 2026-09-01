@@ -27,6 +27,12 @@
         </BFormCheckbox>
         <small class="text-muted d-block mt-1">{{ $t('crea.settings.fastModeHint') }}</small>
       </BFormGroup>
+      <BFormGroup class="mb-3">
+        <BFormCheckbox v-model="form.matchingKeyingActive">
+          {{ $t('crea.settings.matchingKeying') }}
+        </BFormCheckbox>
+        <small class="text-muted d-block mt-1">{{ $t('crea.settings.matchingKeyingHint') }}</small>
+      </BFormGroup>
       <BButton variant="primary" :disabled="saving || !settingsLoaded" @click="save">
         {{ $t('save') }}
       </BButton>
@@ -70,7 +76,7 @@ const isAdmin = computed(() => store.state.moderator.roles.includes('ADMIN'))
 // drops the effort level for the whole instance, confirmed by a success toast. That is not
 // only a race: a query that failed leaves the defaults standing for as long as the page is
 // open, because the error watcher below only raises a toast.
-const form = ref({ model: '', effort: 'disabled', fastMode: false })
+const form = ref({ model: '', effort: 'disabled', fastMode: false, matchingKeyingActive: false })
 const defaultModel = ref('')
 const settingsLoaded = ref(false)
 const saving = ref(false)
@@ -109,6 +115,7 @@ watch(
         model: settings.model ?? '',
         effort: settings.effort ?? 'disabled',
         fastMode: settings.fastMode ?? false,
+        matchingKeyingActive: settings.matchingKeyingActive ?? false,
       }
       defaultModel.value = settings.defaultModel
       settingsLoaded.value = true
@@ -126,7 +133,15 @@ const { mutate: testMutation } = useMutation(testCreaModel)
 
 function apiInput() {
   const model = form.value.model.trim()
-  return { model: model || null, effort: form.value.effort, fastMode: form.value.fastMode }
+  return {
+    model: model || null,
+    effort: form.value.effort,
+    fastMode: form.value.fastMode,
+    // ⚠️ Also for `testCreaModel`, which takes the same input type. The field is
+    // required there too, so leaving it out of this one place would break the test
+    // button - the probe ignores the value, it just has to be present.
+    matchingKeyingActive: form.value.matchingKeyingActive,
+  }
 }
 
 // Turns the fast-mode outcome code into a localized note. A rate limit means "busy
@@ -158,6 +173,7 @@ async function save() {
       model: settings.model ?? '',
       effort: settings.effort,
       fastMode: settings.fastMode ?? false,
+      matchingKeyingActive: settings.matchingKeyingActive ?? false,
     }
     defaultModel.value = settings.defaultModel
     toastSuccess(t('crea.settings.saved'))

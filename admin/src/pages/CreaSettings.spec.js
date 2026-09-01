@@ -22,6 +22,11 @@ const ANSWER = {
     effort: 'high',
     fastMode: true,
     defaultModel: 'claude-sonnet-5',
+    // ⛔ TRUE in the fixture on purpose, against a form that starts from false. The
+    // form's default for this one is the safe direction, so a fixture that agreed with
+    // it could not tell "read from the server" from "never read at all" - and this is
+    // the field where that difference is a bill.
+    matchingKeyingActive: true,
   },
 }
 
@@ -157,7 +162,24 @@ describe('CreaSettings', () => {
         model: 'claude-opus-5',
         effort: 'high',
         fastMode: true,
+        matchingKeyingActive: true,
       })
+    })
+
+    // The switch decides whether Crea is paid to key matching entries, and the run
+    // re-reads it every pass - so switching it off here reaches a process that is
+    // already running. It has to be on the page at all before any of that matters.
+    it('offers the keying switch, with what it costs beside it', () => {
+      expect(wrapper.text()).toContain('crea.settings.matchingKeying')
+      expect(wrapper.text()).toContain('crea.settings.matchingKeyingHint')
+    })
+
+    it('carries the switch into what it sends, for the test call as well as the save', async () => {
+      // ⚠️ `testCreaModel` takes the same input type, where the field is required too.
+      // Leaving it out of `apiInput` would break the test button rather than the save,
+      // which is the kind of thing that goes unnoticed until somebody presses it.
+      const sent = wrapper.vm.apiInput()
+      expect(sent.matchingKeyingActive).toBe(true)
     })
   })
 })

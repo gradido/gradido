@@ -21,4 +21,17 @@ export class CreaSettingsInput {
   @IsOptional()
   @IsBoolean()
   fastMode?: boolean | null
+
+  /**
+   * Whether Crea works out the key words of matching entries.
+   *
+   * ⛔ NOT optional, unlike the three above, and the difference is deliberate. They
+   * fall back to a harmless default when absent; this one decides whether money is
+   * spent, and a missing value would have to mean either "leave it" or "off" - both
+   * of which are a guess the caller should not be allowed to make. An admin panel
+   * that forgets the field gets a validation error rather than an accidental switch.
+   */
+  @Field()
+  @IsBoolean()
+  matchingKeyingActive: boolean
 }
