@@ -339,6 +339,32 @@ describe('CreaSettings', () => {
       release({ data: { setCreaMatchingKeying: true } })
     })
 
+    it('keeps a click made while the save was in flight', async () => {
+      // ⛔ The box stays editable during the request. Reading what was "asked" after
+      // the await would compare the server against a value nobody sent - a conflict
+      // that did not happen - and then overwrite the newer click with the older
+      // stored value.
+      let release
+      keyingMutate.mockReturnValueOnce(new Promise((resolve) => (release = resolve)))
+      const buttons = wrapper.findAll('button')
+      buttons[buttons.length - 1].trigger('click')
+      await nextTick()
+
+      // The admin changes their mind while the request is out.
+      const boxes = wrapper.findAllComponents({ name: 'BFormCheckbox' })
+      await boxes[1].find('input').setValue(false)
+      release({ data: { setCreaMatchingKeying: true } })
+      await nextTick()
+      await nextTick()
+
+      // Sent what was on screen at click time...
+      expect(keyingMutate).toHaveBeenCalledWith({ active: true })
+      // ...answered consistently with it, so no conflict...
+      expect(toastError).not.toHaveBeenCalled()
+      // ...and the newer click is still there, unsaved rather than overwritten.
+      expect(wrapper.vm.form.matchingKeyingActive).toBe(false)
+    })
+
     it('gives each section its own Save', () => {
       // Three buttons: save moderation, probe the model, save matching.
       expect(wrapper.findAll('button')).toHaveLength(3)

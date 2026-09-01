@@ -161,7 +161,7 @@
       "savedMatching": "Matching-Einstellung gespeichert",
       "savedModeration": "Einstellungen für die Moderation gespeichert",
       "sectionMatching": "Matching",
-      "sectionMatchingHint": "Hier gibt es keine Modellwahl. Das Verschlüsseln läuft für alle Gemeinschaften auf demselben Modell — sonst prägen zwei Server zwei Wörter für dieselbe Sache, und ihre Mitglieder finden einander nicht mehr.",
+      "sectionMatchingHint": "Hier gibt es keine Modellwahl. Crea sucht die Wörter für alle Gemeinschaften mit demselben Modell — sonst prägen zwei Server zwei Wörter für dieselbe Sache, und ihre Mitglieder finden einander nicht mehr.",
       "sectionModeration": "Unterstützung der Moderation",
       "sectionModerationHint": "Modell, Aufwandsstufe und schneller Modus gelten für alle Moderatoren gemeinsam.",
       "testFail": "Test fehlgeschlagen: {message}",

@@ -203,16 +203,20 @@ async function save() {
 async function saveKeying() {
   savingKeying.value = true
   try {
-    const { data } = await saveKeyingMutation({ active: form.value.matchingKeyingActive })
-    // What the server stored, not what was sent: an update that matched no row comes
-    // back as `false`, and the box has to follow rather than claim a save that did
-    // not happen.
-    const stored = data.setCreaMatchingKeying
-    // ⛔ The box follows what was STORED, and the message follows the box. The two
-    // differ only when somebody else wrote in between - and then "saved" over a box
-    // that just snapped back is the worst of both, on the control that costs money.
+    // ⛔ Read BEFORE the await, and sent from the same constant. Read afterwards it is
+    // whatever the box holds when the answer lands, not what was asked for - so a
+    // click while the request is out would compare the server against a value nobody
+    // sent, report a conflict that did not happen, and then overwrite that click.
     const asked = form.value.matchingKeyingActive
-    form.value.matchingKeyingActive = stored
+    const { data } = await saveKeyingMutation({ active: asked })
+    // What the server stored, which differs from `asked` only when somebody else wrote
+    // in between - the write throwing already covers the row-not-found case.
+    const stored = data.setCreaMatchingKeying
+    // ⚠️ And only follow the server where the box still holds what was sent. A newer
+    // click belongs to the person who made it; it is unsaved, not wrong.
+    if (form.value.matchingKeyingActive === asked) {
+      form.value.matchingKeyingActive = stored
+    }
     if (stored === asked) {
       toastSuccess(t('crea.settings.savedMatching'))
     } else {
