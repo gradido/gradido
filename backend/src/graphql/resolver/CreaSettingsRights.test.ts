@@ -6,8 +6,13 @@ import { AppDatabase, User, UserRole } from 'database'
 import { GraphQLError } from 'graphql'
 import { getLogger as originalGetLogger } from 'log4js'
 import { userFactory } from '@/seeds/factory/user'
-import { login, setCreaMatchingKeying, setCreaSettings } from '@/seeds/graphql/mutations'
-import { creaSettings } from '@/seeds/graphql/queries'
+import {
+  login,
+  setCreaMatchingKeying,
+  setCreaSettings,
+  testCreaModel,
+} from '@/seeds/graphql/mutations'
+import { creaSettings, listContributionLinks } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
@@ -49,7 +54,15 @@ afterAll(async () => {
 
 const loginAs = async (email: string): Promise<void> => {
   resetToken()
-  await mutate({ mutation: login, variables: { email, password: 'Aa12345_' } })
+  const { errors } = await mutate({ mutation: login, variables: { email, password: 'Aa12345_' } })
+
+  // ⛔ The assertion that keeps this whole file honest. A login that FAILED leaves
+  // `context.token` empty, and `isAuthorized` answers an empty token with the very
+  // words the refusals below assert - `401 Unauthorized`, byte for byte. Without this
+  // line, a renamed seed user, a changed seed password or an unchecked email address
+  // would make every refusal pass with nobody logged in at all, and the guard would be
+  // reported as measured while measuring nothing.
+  expect(errors).toBeUndefined()
 }
 
 const setRole = async (userId: number, role: RoleNames): Promise<void> => {
@@ -80,6 +93,21 @@ describe('the Crea settings — only administrators', () => {
     resetToken()
   })
 
+  it('has a moderator who is really logged in and really a moderator', async () => {
+    // ⚠️ The control the refusals cannot do without. Logged out, plain user, moderator
+    // and KI-moderator all fail the Crea calls with the SAME sentence, so no refusal
+    // below can tell them apart. This one can: it needs both a valid token and a
+    // moderator right, and it runs first so a broken fixture is named here rather than
+    // disguised as four passing guards.
+    await loginAs('bibi@bloxberg.de')
+    const { errors } = await query({
+      query: listContributionLinks,
+      variables: { currentPage: 1, pageSize: 25 },
+    })
+
+    expect(errors).toBeUndefined()
+  })
+
   it('refuses to let a moderator read them', async () => {
     await loginAs('bibi@bloxberg.de')
     await expect(query({ query: creaSettings })).resolves.toEqual(unauthorized)
@@ -100,6 +128,18 @@ describe('the Crea settings — only administrators', () => {
     ).resolves.toEqual(unauthorized)
   })
 
+  it('refuses to let a moderator spend a probe call', async () => {
+    // ⚠️ The fourth AI_SETTINGS operation, and it reaches the Anthropic API - so this
+    // file asserts only the REFUSAL for it. The guard runs as middleware, before the
+    // resolver body, so nothing is billed here. There is deliberately no
+    // administrator-succeeds counterpart: that one would cost real money on every CI
+    // run, and the positive control above already proves the fixture is sound.
+    await loginAs('bibi@bloxberg.de')
+    await expect(mutate({ mutation: testCreaModel, variables: SETTINGS })).resolves.toEqual(
+      unauthorized,
+    )
+  })
+
   it('refuses a KI-Moderator just the same', async () => {
     // MODERATOR_AI may send Crea a message; it may not decide what Crea costs.
     await setRole(moderator.id, RoleNames.MODERATOR_AI)
@@ -107,11 +147,23 @@ describe('the Crea settings — only administrators', () => {
     await expect(
       mutate({ mutation: setCreaMatchingKeying, variables: { active: true } }),
     ).resolves.toEqual(unauthorized)
+    // Put back, so a test appended after this one is not silently a KI-moderator while
+    // its name says moderator.
+    await setRole(moderator.id, RoleNames.MODERATOR)
   })
 
   it('lets an administrator read them', async () => {
     await loginAs('peter@lustig.de')
     const { errors } = await query({ query: creaSettings })
+    expect(errors).toBeUndefined()
+  })
+
+  it('lets an administrator save the moderation settings', async () => {
+    // Without this, `@Authorized` on `setCreaSettings` could name any right that
+    // administrators also lack and the refusal above would still pass.
+    await loginAs('peter@lustig.de')
+    const { errors } = await mutate({ mutation: setCreaSettings, variables: SETTINGS })
+
     expect(errors).toBeUndefined()
   })
 

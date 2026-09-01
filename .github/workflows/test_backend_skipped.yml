@@ -21,6 +21,8 @@ on:
       - 'database/**'
       - 'shared/**'
       - 'shared-native/**'
+      - 'admin/src/graphql/**'
+      - 'frontend/src/graphql/**'
       - 'docker-compose.*'
       - '.bun-version'
       - '.nvmrc'

@@ -12,7 +12,12 @@
     "lint:fix": {
     },
     "test": {
-      "dependsOn": ["database#up:backend_test", "^build"]
+      "dependsOn": ["database#up:backend_test", "^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/admin/src/graphql/**",
+        "$TURBO_ROOT$/frontend/src/graphql/**"
+      ]
     },
     "dev": {
       "dependsOn": ["database#up", "^build"]

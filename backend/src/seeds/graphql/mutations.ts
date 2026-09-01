@@ -590,3 +590,14 @@ export const setCreaMatchingKeying = gql`
     setCreaMatchingKeying(active: $active)
   }
 `
+
+export const testCreaModel = gql`
+  mutation ($input: CreaSettingsInput!) {
+    testCreaModel(input: $input) {
+      ok
+      code
+      message
+      fastMode
+    }
+  }
+`
