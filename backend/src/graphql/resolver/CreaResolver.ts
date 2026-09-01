@@ -184,41 +184,50 @@ export class CreaResolver {
   @Authorized([RIGHTS.AI_SETTINGS])
   @Mutation(() => CreaSettings)
   async setCreaSettings(@Arg('input') input: CreaSettingsInput): Promise<CreaSettings> {
-    // ⛔ The keying switch LAST, and the order is the point rather than a style
-    // choice. It is the one of the four that decides whether money is spent, so
-    // everything that can fail has to fail before it: there is no transaction to be
-    // had here, the two writes cross ORMs and connection pools, so ordering is the
-    // only lever. Written first, a failure of the model write would leave the
-    // spending switched ON behind a toast that said the save did not work - and that
-    // is not a corner case, `crea_settings.model` is varchar(64) and nothing bounds
-    // the model string on the way in, so a pasted name over 64 characters is enough.
+    // ⛔ This mutation writes the MODERATION settings only. The keying switch has its
+    // own, and that separation is not tidiness: it is one table each, it is one Save
+    // button each on the page, and it means a save of the model can no longer carry a
+    // stale switch value from a browser tab that has been open for an hour. There is
+    // no ordering question left either, because there is no second write here.
     const settings = await writeCreaSettings(
       input.model ?? null,
       input.effort as CreaEffort,
       input.fastMode ?? false,
     )
-    // Absent means LEAVE IT, which is a contract rather than a guess - so an admin
-    // bundle from before this field existed can still save the model and probe a
-    // model instead of failing coercion on a field it has never heard of.
-    // ⚠️ `!= null`, not falsy: `false` is the value that turns the spending OFF.
-    if (input.matchingKeyingActive != null) {
-      const written = await dbSetMatchingKeyingActive(input.matchingKeyingActive)
-      if (!written.success) {
-        throw new LogError('could not store the matching keying switch', written.error)
-      }
-    }
     return {
       model: settings.model,
       effort: settings.effort,
       defaultModel: defaultCreaModel(),
       fastMode: settings.fastMode,
-      // Read back, not echoed. An UPDATE that matched no row is a real state here -
-      // the read answers `false` for a missing home community on purpose - and
-      // echoing the input would report a save that did not happen, on the one field
-      // where that means an unnoticed bill. The three above come back from their own
-      // write for the same reason.
+      // Read rather than carried over: this mutation does not touch it, and returning
+      // a stale value would let the page's other section drift out of step with the
+      // database it is showing.
       matchingKeyingActive: await dbIsMatchingKeyingActive(),
     }
+  }
+
+  /**
+   * Whether Crea works out the key words of matching entries — the second half of
+   * this page, and the one that spends money per entry.
+   *
+   * Its own mutation rather than a fourth field on `setCreaSettings`, because it is
+   * its own table, its own decision and its own Save button. Saving a model must not
+   * be able to move it, which is exactly what a shared form could do from a tab that
+   * had been open since before somebody else switched it.
+   *
+   * ⛔ Answers with what is STORED, not with what was asked for. An UPDATE that
+   * matched no row is a real state here - a missing home community, which the read
+   * answers `false` for on purpose - and echoing the argument would report a save
+   * that did not happen, on the one setting where that means an unnoticed bill.
+   */
+  @Authorized([RIGHTS.AI_SETTINGS])
+  @Mutation(() => Boolean)
+  async setCreaMatchingKeying(@Arg('active') active: boolean): Promise<boolean> {
+    const written = await dbSetMatchingKeyingActive(active)
+    if (!written.success) {
+      throw new LogError('could not store the matching keying switch', written.error)
+    }
+    return await dbIsMatchingKeyingActive()
   }
 
   /**

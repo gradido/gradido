@@ -249,6 +249,18 @@ export class MatchingKeyingRun {
     let failures = 0
 
     for (let batch = 0; batch < MAX_BATCHES_PER_PASS; batch++) {
+      // ⛔ Again, every batch, not once per pass. A pass buys up to
+      // MAX_BATCHES_PER_PASS * BATCH_SIZE entries and nothing bounds its wall clock -
+      // ten sequential model calls with no deadline - so reading the switch only at
+      // the top meant an admin who unticked the box to stop a bill still paid for the
+      // rest of it. "Off" has to mean the next batch, not the next pass.
+      //
+      // The cost is one indexed read against one row per batch, set against a model
+      // call. Skipped for the first batch, which the check before the loop just made.
+      if (batch > 0 && !(await dbIsMatchingKeyingActive())) {
+        logger.info('matching keying: switched off mid-pass, stopping after this batch')
+        return
+      }
       const pending = await dbSelectMatchingEntriesNeedingKeying(
         KEYING_INSTRUCTION_VERSION,
         BATCH_SIZE,

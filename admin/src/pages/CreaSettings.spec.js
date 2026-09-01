@@ -42,13 +42,16 @@ const ANSWER = {
 // ⚠️ `vi.hoisted`, because a `vi.mock` factory runs before the module body - and a
 // COUNTER rather than `mockImplementationOnce`, because every test remounts and the
 // `Once` implementations would be spent on the first mount. `beforeEach` resets it.
-const { saveMutate, testMutate, mutations } = vi.hoisted(() => ({
+const { saveMutate, testMutate, keyingMutate, mutations } = vi.hoisted(() => ({
   saveMutate: vi.fn(),
   testMutate: vi.fn(),
+  keyingMutate: vi.fn(),
   mutations: { asked: 0 },
 }))
 vi.mock('@vue/apollo-composable', () => ({
-  useMutation: vi.fn(() => ({ mutate: mutations.asked++ === 0 ? saveMutate : testMutate })),
+  // In the order the component asks: the moderation save, the model probe, the keying
+  // switch. Three now, because the two sections have a Save each.
+  useMutation: vi.fn(() => ({ mutate: [saveMutate, testMutate, keyingMutate][mutations.asked++] })),
   useQuery: vi.fn(() => ({
     result: creaSettingsResult,
     error: creaSettingsError,
@@ -133,14 +136,17 @@ describe('CreaSettings', () => {
       wrapper = createWrapper()
     })
 
-    it('does not let the form be saved', () => {
+    it('shuts every button, including the one that spends', () => {
+      // Three now, one per thing that can be done: save moderation, probe the model,
+      // save matching. ⛔ Counted rather than indexed, so a fourth button arriving
+      // ungated cannot slip through - the gate exists because the form holds display
+      // defaults until the query answers, and submitting those would write a switch
+      // value nobody chose.
       const buttons = wrapper.findAll('button')
-      expect(buttons).toHaveLength(2)
-      expect(buttons[0].attributes('disabled')).toBeDefined()
-    })
-
-    it('does not let the model be tested either', () => {
-      expect(wrapper.findAll('button')[1].attributes('disabled')).toBeDefined()
+      expect(buttons).toHaveLength(3)
+      for (const button of buttons) {
+        expect(button.attributes('disabled')).toBeDefined()
+      }
     })
 
     it('says why nothing can be done yet', () => {
@@ -214,32 +220,41 @@ describe('CreaSettings', () => {
     // the three existing fields, and asserting only the new one could not see them:
     // measured, deleting `effort` from it left this file green while both mutations
     // would have died on a GraphQL validation error.
-    it('sends every setting when Save is pressed', async () => {
+    it('sends the moderation settings when its Save is pressed, and not the switch', async () => {
       await wrapper.findAll('button')[0].trigger('click')
 
+      // ⛔ No `matchingKeyingActive` in here, and that absence is the point: the two
+      // sections save separately, so a model save cannot carry a stale switch value
+      // from a tab that has been open since before somebody else changed it.
       expect(saveMutate).toHaveBeenCalledWith({
-        input: {
-          model: 'claude-opus-5',
-          effort: 'high',
-          fastMode: true,
-          matchingKeyingActive: true,
-        },
+        input: { model: 'claude-opus-5', effort: 'high', fastMode: true },
       })
+      expect(keyingMutate).not.toHaveBeenCalled()
+    })
+
+    it('sends only the switch when the matching Save is pressed', async () => {
+      const buttons = wrapper.findAll('button')
+      await buttons[buttons.length - 1].trigger('click')
+
+      expect(keyingMutate).toHaveBeenCalledWith({ active: true })
+      expect(saveMutate).not.toHaveBeenCalled()
+    })
+
+    it('gives each section its own Save', () => {
+      // Three buttons: save moderation, probe the model, save matching.
+      expect(wrapper.findAll('button')).toHaveLength(3)
+      expect(wrapper.text()).toContain('crea.settings.sectionModeration')
+      expect(wrapper.text()).toContain('crea.settings.sectionMatching')
     })
 
     // ⚠️ `testCreaModel` takes the same input type. The probe ignores the switch, but
     // the field travels with it - and this is the button that would have broken
     // rather than the save, which nobody notices until they press it.
-    it('sends the same settings when the model is probed', async () => {
+    it('probes with the moderation settings, which is all that input carries now', async () => {
       await wrapper.findAll('button')[1].trigger('click')
 
       expect(testMutate).toHaveBeenCalledWith({
-        input: {
-          model: 'claude-opus-5',
-          effort: 'high',
-          fastMode: true,
-          matchingKeyingActive: true,
-        },
+        input: { model: 'claude-opus-5', effort: 'high', fastMode: true },
       })
     })
   })

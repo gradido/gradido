@@ -229,6 +229,24 @@ describe('the matching keying run and the switch it hangs on', () => {
     expect(pending).not.toHaveBeenCalled()
   })
 
+  it('stops mid-pass when the switch goes off between batches', async () => {
+    CONFIG.MATCHING_ACTIVE = true
+    // Enough waiting entries that the pass would take a second batch.
+    const waiting = Array.from({ length: 2 }, (_, i) => waitingEntry(`m-${i}`))
+    pending.mockReset()
+    pending.mockResolvedValue(waiting)
+    keyEntries.mockResolvedValue(new Map([[0, modelRecord()]]))
+    // On for the pass's own check and the first batch, off from the second on.
+    keyingActive.mockResolvedValueOnce(true).mockResolvedValue(false)
+
+    await new MatchingKeyingRun().run()
+
+    // ⛔ Without the re-read the loop would run all MAX_BATCHES_PER_PASS batches and
+    // buy them, because the switch was only ever read before the loop. An admin who
+    // unticks the box to stop a bill would have paid for the rest of the pass.
+    expect(keyEntries).toHaveBeenCalledTimes(1)
+  })
+
   it('keys what is waiting once matching is on', async () => {
     CONFIG.MATCHING_ACTIVE = true
     oneEntryWaiting()

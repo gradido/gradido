@@ -83,8 +83,11 @@ mutation setCreaSettings ($input: CreaSettingsInput!) {
     effort
     defaultModel
     fastMode
-    matchingKeyingActive
   }
+}
+
+mutation setCreaMatchingKeying ($active: Boolean!) {
+  setCreaMatchingKeying(active: $active)
 }
 
 mutation testCreaModel($input: CreaSettingsInput!) {
