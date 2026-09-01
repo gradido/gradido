@@ -66,9 +66,10 @@ export async function dbIsMatchingKeyingActive(): Promise<boolean> {
  * entries that have no words, up to a hundred per pass and a pass a minute, until the
  * backlog is gone. That is not a preference, it is a decision about a bill.
  *
- * Switching it OFF is read by the next pass. ⚠️ Not by the pass already running - that
- * one reads the column once, before its batch loop, so up to a hundred more entries
- * are still paid for. "Off" means "buys no more after this pass", not "stops now".
+ * Switching it OFF is read again before every batch, so a pass in flight stops after
+ * the batch it is in - at most BATCH_SIZE more entries, not a whole pass. ⚠️ "At most
+ * one batch", not "nothing more": the batch already running is paid for, and the very
+ * first batch of a pass is not re-checked, because the pass just read the column.
  *
  * `VoidResult` rather than `void`, and the reason is the whole point of the function:
  * an UPDATE that matches no row is an expected runtime failure here, not an

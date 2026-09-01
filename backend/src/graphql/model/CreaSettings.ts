@@ -25,7 +25,8 @@ export class CreaSettings {
    * ⛔ Off is the state every community starts in, and turning it on is a decision
    * about a bill rather than a preference: the run pays per entry, and the first pass
    * after switching on works through every entry that has no words yet. Off reaches a
-   * running process - the run re-reads it every pass.
+   * running process - the run re-reads it before every batch, so a pass in flight
+   * stops after at most one more batch.
    *
    * Not stored beside the other three. Those are the model and how hard it thinks,
    * which are one row for the whole instance; this one belongs to the community that

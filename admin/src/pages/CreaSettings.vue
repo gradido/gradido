@@ -192,7 +192,7 @@ async function save() {
       fastMode: settings.fastMode ?? false,
     }
     defaultModel.value = settings.defaultModel
-    toastSuccess(t('crea.settings.saved'))
+    toastSuccess(t('crea.settings.savedModeration'))
   } catch (e) {
     toastError(e.message)
   } finally {
@@ -207,8 +207,17 @@ async function saveKeying() {
     // What the server stored, not what was sent: an update that matched no row comes
     // back as `false`, and the box has to follow rather than claim a save that did
     // not happen.
-    form.value.matchingKeyingActive = data.setCreaMatchingKeying
-    toastSuccess(t('crea.settings.saved'))
+    const stored = data.setCreaMatchingKeying
+    // ⛔ The box follows what was STORED, and the message follows the box. The two
+    // differ only when somebody else wrote in between - and then "saved" over a box
+    // that just snapped back is the worst of both, on the control that costs money.
+    const asked = form.value.matchingKeyingActive
+    form.value.matchingKeyingActive = stored
+    if (stored === asked) {
+      toastSuccess(t('crea.settings.savedMatching'))
+    } else {
+      toastError(t('crea.settings.matchingChangedElsewhere'))
+    }
   } catch (e) {
     toastError(e.message)
   } finally {

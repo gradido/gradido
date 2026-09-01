@@ -42,10 +42,28 @@ const ANSWER = {
 // ⚠️ `vi.hoisted`, because a `vi.mock` factory runs before the module body - and a
 // COUNTER rather than `mockImplementationOnce`, because every test remounts and the
 // `Once` implementations would be spent on the first mount. `beforeEach` resets it.
+// ⛔ They RESOLVE. A bare `vi.fn()` returns `undefined`, `const { data } = await
+// mutate(...)` throws a TypeError, and every click test lands in the catch - which
+// means the success path of both saves was dead code as far as this file was
+// concerned. Measured: with bare mocks, deleting the `...form.value` spread or the
+// read-back assignment left all twelve green.
 const { saveMutate, testMutate, keyingMutate, mutations } = vi.hoisted(() => ({
-  saveMutate: vi.fn(),
-  testMutate: vi.fn(),
-  keyingMutate: vi.fn(),
+  saveMutate: vi.fn(() =>
+    Promise.resolve({
+      data: {
+        setCreaSettings: {
+          model: 'claude-opus-5',
+          effort: 'high',
+          defaultModel: 'claude-sonnet-5',
+          fastMode: true,
+        },
+      },
+    }),
+  ),
+  testMutate: vi.fn(() =>
+    Promise.resolve({ data: { testCreaModel: { ok: true, code: 'ok', message: 'hi' } } }),
+  ),
+  keyingMutate: vi.fn(() => Promise.resolve({ data: { setCreaMatchingKeying: true } })),
   mutations: { asked: 0 },
 }))
 vi.mock('@vue/apollo-composable', () => ({
@@ -158,14 +176,20 @@ describe('CreaSettings', () => {
   // display defaults standing for as long as the page is open. The buttons have to stay
   // shut, or the failure turns into a silent overwrite at the admin's leisure.
   describe('when the query fails', () => {
-    it('keeps both buttons shut', async () => {
+    it('keeps every button shut, the one that spends included', async () => {
       wrapper = createWrapper()
       creaSettingsError.value = new Error('502 Bad Gateway')
       await nextTick()
 
+      // ⛔ Counted, not indexed. This is the branch where a keying button wired to the
+      // wrong condition would go unseen: a failed query leaves the form on its display
+      // defaults, and one click would then send `active: false` for a community that
+      // had it on.
       const buttons = wrapper.findAll('button')
-      expect(buttons[0].attributes('disabled')).toBeDefined()
-      expect(buttons[1].attributes('disabled')).toBeDefined()
+      expect(buttons).toHaveLength(3)
+      for (const button of buttons) {
+        expect(button.attributes('disabled')).toBeDefined()
+      }
     })
   })
 
@@ -176,10 +200,12 @@ describe('CreaSettings', () => {
       await nextTick()
     })
 
-    it('releases both buttons', () => {
+    it('releases every button', () => {
       const buttons = wrapper.findAll('button')
-      expect(buttons[0].attributes('disabled')).toBeUndefined()
-      expect(buttons[1].attributes('disabled')).toBeUndefined()
+      expect(buttons).toHaveLength(3)
+      for (const button of buttons) {
+        expect(button.attributes('disabled')).toBeUndefined()
+      }
     })
 
     it('drops the hint', () => {
@@ -238,6 +264,28 @@ describe('CreaSettings', () => {
 
       expect(keyingMutate).toHaveBeenCalledWith({ active: true })
       expect(saveMutate).not.toHaveBeenCalled()
+    })
+
+    // ⛔ The success path, which no test in this file used to reach. Both of these
+    // guard a single line that the previous version left as dead code.
+    it('keeps the switch across a moderation save', async () => {
+      await wrapper.findAll('button')[0].trigger('click')
+
+      // The mutation answers with the three fields it owns; without the spread in
+      // `save()` the switch would come back `undefined`, render as unticked whatever
+      // the truth is, and the next matching Save would send that.
+      expect(wrapper.vm.form.matchingKeyingActive).toBe(true)
+    })
+
+    it('takes the stored switch from the answer, not the one it sent', async () => {
+      keyingMutate.mockResolvedValueOnce({ data: { setCreaMatchingKeying: false } })
+      const buttons = wrapper.findAll('button')
+
+      await buttons[buttons.length - 1].trigger('click')
+
+      // Somebody else wrote in between: the box follows the database rather than the
+      // click, and the message says so instead of claiming a save.
+      expect(wrapper.vm.form.matchingKeyingActive).toBe(false)
     })
 
     it('gives each section its own Save', () => {

@@ -82,10 +82,39 @@ describe('the two writes behind the Crea settings', () => {
     await expect(resolver.setCreaMatchingKeying(true)).rejects.toThrow()
   })
 
+  it('switches ON with what it was asked for', async () => {
+    // ⛔ Measured gap, and it was the wrong one to have: hardcoding the write to
+    // `false` left all five tests green. The only argument assertion in the file
+    // pinned the OFF direction, so the one-line typo that makes the paid switch
+    // impossible to turn ON would have shipped.
+    await resolver.setCreaMatchingKeying(true)
+
+    expect(setActive).toHaveBeenCalledWith(true)
+  })
+
   it('switches OFF as readily as ON', async () => {
     isActive.mockResolvedValue(false)
 
     expect(await resolver.setCreaMatchingKeying(false)).toBe(false)
     expect(setActive).toHaveBeenCalledWith(false)
+  })
+
+  it('reads the switch before it writes the settings', async () => {
+    // ⚠️ Order, and the reason is a failure rather than tidiness: this read serves a
+    // field no client selects any more, and a transient failure of it must not fail a
+    // save that has already committed.
+    const order: string[] = []
+    isActive.mockImplementation(async () => {
+      order.push('read')
+      return true
+    })
+    writeSettings.mockImplementation(async () => {
+      order.push('write')
+      return storedSettings
+    })
+
+    await resolver.setCreaSettings(input())
+
+    expect(order).toEqual(['read', 'write'])
   })
 })

@@ -189,6 +189,13 @@ export class CreaResolver {
     // button each on the page, and it means a save of the model can no longer carry a
     // stale switch value from a browser tab that has been open for an hour. There is
     // no ordering question left either, because there is no second write here.
+    // ⚠️ BEFORE the write, and that is the point rather than the order it reads in.
+    // The type promises the stored switch state, so it has to be read rather than
+    // invented - but this mutation does not touch it, and a transient failure of a
+    // read nobody asked for must not fail a save that has already committed. Read
+    // first: then a failure here means nothing was written, which is what the error
+    // toast says.
+    const matchingKeyingActive = await dbIsMatchingKeyingActive()
     const settings = await writeCreaSettings(
       input.model ?? null,
       input.effort as CreaEffort,
@@ -199,10 +206,7 @@ export class CreaResolver {
       effort: settings.effort,
       defaultModel: defaultCreaModel(),
       fastMode: settings.fastMode,
-      // Read rather than carried over: this mutation does not touch it, and returning
-      // a stale value would let the page's other section drift out of step with the
-      // database it is showing.
-      matchingKeyingActive: await dbIsMatchingKeyingActive(),
+      matchingKeyingActive,
     }
   }
 
@@ -215,10 +219,11 @@ export class CreaResolver {
    * be able to move it, which is exactly what a shared form could do from a tab that
    * had been open since before somebody else switched it.
    *
-   * ⛔ Answers with what is STORED, not with what was asked for. An UPDATE that
-   * matched no row is a real state here - a missing home community, which the read
-   * answers `false` for on purpose - and echoing the argument would report a save
-   * that did not happen, on the one setting where that means an unnoticed bill.
+   * ⛔ Answers with what is STORED, not with what was asked for. The write throwing
+   * already covers the row-not-found case, so the two differ only when a SECOND admin
+   * wrote in between - and then the honest answer is the one in the database, not the
+   * one this caller happened to send. The page follows it, so the box ends up showing
+   * what is true rather than what was clicked.
    */
   @Authorized([RIGHTS.AI_SETTINGS])
   @Mutation(() => Boolean)
