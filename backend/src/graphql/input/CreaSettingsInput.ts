@@ -25,13 +25,23 @@ export class CreaSettingsInput {
   /**
    * Whether Crea works out the key words of matching entries.
    *
-   * ⛔ NOT optional, unlike the three above, and the difference is deliberate. They
-   * fall back to a harmless default when absent; this one decides whether money is
-   * spent, and a missing value would have to mean either "leave it" or "off" - both
-   * of which are a guess the caller should not be allowed to make. An admin panel
-   * that forgets the field gets a validation error rather than an accidental switch.
+   * Absent means LEAVE IT, which is a contract rather than a guess - the resolver
+   * writes nothing when the field is missing, and reads the stored value back for the
+   * answer. The other two readings, "off" and "the default", would both be guesses
+   * about a setting that costs money, and this one is neither.
+   *
+   * ⛔ Nullable for a reason that only shows up during a deploy. `CreaSettingsInput`
+   * is also the argument of `testCreaModel`, which never reads this field - so a
+   * required `Boolean!` would reject BOTH mutations for any admin bundle loaded
+   * before the field existed, including the probe button that touches nothing. The
+   * admin panel has no service worker and no version check, so that browser tab is
+   * simply broken until somebody reloads it.
+   *
+   * ⚠️ The resolver tests `!= null`, not falsiness: `false` is the value that turns
+   * the spending OFF, and dropping it would make the switch one-way.
    */
-  @Field()
+  @Field(() => Boolean, { nullable: true })
+  @IsOptional()
   @IsBoolean()
-  matchingKeyingActive: boolean
+  matchingKeyingActive?: boolean | null
 }

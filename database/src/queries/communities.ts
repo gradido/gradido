@@ -1,9 +1,12 @@
 import { eq } from 'drizzle-orm'
-import { Ed25519PublicKey, urlSchema, uuidv4Schema } from 'shared'
+import { Ed25519PublicKey, urlSchema, uuidv4Schema, VoidResult } from 'shared'
 import { FindOptionsOrder, FindOptionsWhere, IsNull, MoreThanOrEqual, Not } from 'typeorm'
 import { drizzleDb } from '../AppDatabase'
 import { Community as DbCommunity } from '../entity'
+import { DBNotFoundError } from '../errorTypes'
 import { CommunitiesSelect, communitiesTable } from '../schemas'
+
+const HomeCommunityNotFound = new DBNotFoundError('communities', 'foreign = 0')
 
 // cheap cache
 //let homeCommunityCache: DbCommunity | null = null
@@ -59,20 +62,43 @@ export async function dbIsMatchingKeyingActive(): Promise<boolean> {
 /**
  * Turn the keying of matching entries on or off for the home community.
  *
- * ⛔ Switching it ON is what starts the spending, and the first run after that works
- * through every entry that has none - so this is not a preference, it is a decision
- * about a bill. Switching it OFF reaches a running process: the run re-reads the
- * column on every pass, so the next pass stops, ten minutes at the outside.
+ * ⛔ Switching it ON is what starts the spending: the run then works through the
+ * entries that have no words, up to a hundred per pass and a pass a minute, until the
+ * backlog is gone. That is not a preference, it is a decision about a bill.
+ *
+ * Switching it OFF is read by the next pass. ⚠️ Not by the pass already running - that
+ * one reads the column once, before its batch loop, so up to a hundred more entries
+ * are still paid for. "Off" means "buys no more after this pass", not "stops now".
+ *
+ * `VoidResult` rather than `void`, and the reason is the whole point of the function:
+ * an UPDATE that matches no row is an expected runtime failure here, not an
+ * impossibility - the read beside this one answers `false` for exactly that state. A
+ * `Promise<void>` cannot tell the caller it wrote nothing, and the caller would then
+ * report a save that did not happen for the one setting that costs money.
  *
  * Column-targeted rather than a `save()` of the community, because the row is read
  * and written all over this codebase and a whole-entity write would carry back
  * whatever the caller happened to be holding.
  */
-export async function dbSetMatchingKeyingActive(active: boolean): Promise<void> {
-  await drizzleDb()
+export async function dbSetMatchingKeyingActive(
+  active: boolean,
+): Promise<VoidResult<DBNotFoundError>> {
+  const result = await drizzleDb()
     .update(communitiesTable)
     .set({ matchingKeyingActive: active ? 1 : 0 })
     .where(eq(communitiesTable.foreign, 0))
+
+  // ⚠️ The cached row above holds this column too, and it is never invalidated on its
+  // own. Nothing reads the switch through it today - the schema comment tells the next
+  // reader not to - but a warning in prose is weaker than a cache that is simply
+  // correct, and the natural thing to reach for is the cached community.
+  homeCommunityDrizzleCache = null
+
+  const firstRow = result[0]
+  if (firstRow && firstRow.affectedRows > 0) {
+    return { success: true }
+  }
+  return { success: false, error: HomeCommunityNotFound }
 }
 
 export async function getHomeCommunityWithFederatedCommunityOrFail(
