@@ -1,0 +1,190 @@
+// AI-GENERATED — not an architecture reference
+import {
+  KEY_FIELD_MAX_CHARS,
+  KEY_TRAIT_MAX_CHARS,
+  KEY_WORD_MAX_CHARS,
+  MAX_KEY_TRAITS_PER_ENTRY,
+  MAX_KEY_WORDS_PER_ENTRY,
+} from 'shared'
+import type { KeyingAnswerRecord } from './instruction'
+import { keyedFieldsFromAnswer } from './keyedFields'
+
+/** A record shaped the way the model answers, with the German field names. */
+const answer = (overrides: Partial<KeyingAnswerRecord> = {}): KeyingAnswerRecord => ({
+  nr: 1,
+  schluessel: ['wohnungsrenovierung', 'renovierung', 'maler'],
+  sache: 'wohnung',
+  taetigkeit: 'renovieren',
+  klasse: 'reparatur',
+  gebiet: 'bau',
+  wer: 'maler',
+  merkmal: ['professionell'],
+  gesuchter_beruf: '',
+  ...overrides,
+})
+
+describe('keyedFieldsFromAnswer', () => {
+  it('translates the German field names to the ones we store', () => {
+    const { fields } = keyedFieldsFromAnswer(answer())
+    expect(fields).toEqual({
+      keyWords: ['wohnungsrenovierung', 'renovierung', 'maler'],
+      keySubject: 'wohnung',
+      keyActivity: 'renovieren',
+      keyCategory: 'reparatur',
+      keyArea: 'bau',
+      keyActor: 'maler',
+      keySoughtActor: null,
+      keyTraits: ['professionell'],
+    })
+  })
+
+  it('folds the fields that go into the index', () => {
+    const { fields } = keyedFieldsFromAnswer(
+      answer({ schluessel: ['Rasenlüfter'], sache: 'Grünfläche', wer: 'Gärtner' }),
+    )
+    expect(fields.keyWords).toEqual(['rasenluefter'])
+    expect(fields.keySubject).toBe('gruenflaeche')
+    expect(fields.keyActor).toBe('gaertner')
+  })
+
+  it('leaves the fields nothing compares as the model wrote them', () => {
+    // Folding would cost the spelling and buy nothing: no search ever looks at these.
+    const { fields } = keyedFieldsFromAnswer(
+      answer({ taetigkeit: 'Bäume fällen', gebiet: 'Garten & Hof' }),
+    )
+    expect(fields.keyActivity).toBe('Bäume fällen')
+    expect(fields.keyArea).toBe('Garten & Hof')
+  })
+
+  it('leaves traits alone beyond trimming them', () => {
+    // They are short phrases, not words. Folding would turn `fuer kinder` into one
+    // unreadable string, and nothing gains from it.
+    const { fields } = keyedFieldsFromAnswer(answer({ merkmal: ['  fuer kinder ', 'gebraucht'] }))
+    expect(fields.keyTraits).toEqual(['fuer kinder', 'gebraucht'])
+  })
+
+  it('turns the empty answers into null', () => {
+    // The model answers with an empty string where a field does not apply -
+    // `gesuchter_beruf` outside the "sucht" channel is the everyday case - and null
+    // is what means "nothing here" everywhere downstream.
+    const { fields } = keyedFieldsFromAnswer(
+      answer({ gesuchter_beruf: '', wer: '', taetigkeit: '' }),
+    )
+    expect(fields.keySoughtActor).toBeNull()
+    expect(fields.keyActor).toBeNull()
+    expect(fields.keyActivity).toBeNull()
+  })
+
+  it('keeps the sought actor when the channel is one that has it', () => {
+    const { fields } = keyedFieldsFromAnswer(answer({ gesuchter_beruf: 'Installateur' }))
+    expect(fields.keySoughtActor).toBe('installateur')
+  })
+
+  it('drops a category that is not one of the twelve, and says so', () => {
+    // The schema asks for one of the twelve, so anything else is an answer that
+    // ignored the list. Dropping it costs one field; refusing the whole answer would
+    // cost the member their keying.
+    const { fields, dropped } = keyedFieldsFromAnswer(answer({ klasse: 'reparieren' }))
+    expect(fields.keyCategory).toBeNull()
+    expect(dropped).toContain('category "reparieren" is not one of the twelve')
+    expect(fields.keyWords).toHaveLength(3)
+  })
+
+  it('drops an over-long word and keeps the rest of the answer', () => {
+    const tooLong = 'a'.repeat(KEY_WORD_MAX_CHARS + 1)
+    const { fields, dropped } = keyedFieldsFromAnswer(
+      answer({ schluessel: ['fahrrad', tooLong, 'reparatur'] }),
+    )
+    expect(fields.keyWords).toEqual(['fahrrad', 'reparatur'])
+    expect(dropped).toHaveLength(1)
+  })
+
+  // ⛔ The bound is on the FOLDED word, because folding makes words longer: an umlaut
+  // becomes two letters. Measured on the raw one this passes here and then fails at
+  // the GMS's varchar(64) - a 500 on a whole batch, for one word. A test with 'aaa…'
+  // cannot see it.
+  it('drops a word that only exceeds the bound once its umlauts are spelled out', () => {
+    const raw = `${'ü'.repeat(3)}${'a'.repeat(KEY_WORD_MAX_CHARS - 3)}`
+    expect(raw.length).toBe(KEY_WORD_MAX_CHARS)
+    const { fields, dropped } = keyedFieldsFromAnswer(
+      answer({ schluessel: ['fahrrad', raw], sache: raw }),
+    )
+    expect(fields.keyWords).toEqual(['fahrrad'])
+    expect(fields.keySubject).toBeNull()
+    expect(dropped).toHaveLength(2)
+  })
+
+  // The other half: a word the fold makes shorter than it looked has to be kept.
+  it('keeps a word that only fits once its separators are dropped', () => {
+    const { fields } = keyedFieldsFromAnswer(
+      answer({ schluessel: [`${'a'.repeat(KEY_WORD_MAX_CHARS)}---`] }),
+    )
+    expect(fields.keyWords).toEqual(['a'.repeat(KEY_WORD_MAX_CHARS)])
+  })
+
+  it(`drops an activity or area beyond ${KEY_FIELD_MAX_CHARS} characters`, () => {
+    // Same shape as the key words: these are varchar(64) on both servers, and an
+    // over-long value that got through here would be a database error over there, on
+    // a whole bulk call.
+    const tooLong = 'a'.repeat(KEY_FIELD_MAX_CHARS + 1)
+    const { fields, dropped } = keyedFieldsFromAnswer(
+      answer({ taetigkeit: tooLong, gebiet: tooLong }),
+    )
+    expect(fields.keyActivity).toBeNull()
+    expect(fields.keyArea).toBeNull()
+    expect(dropped).toHaveLength(2)
+  })
+
+  // ⛔ A word that is not empty but folds to nothing - a foreign script, or only
+  // punctuation. Stored as `''` it would share a word with every other entry that
+  // had one, which is to say it would match everybody.
+  it('turns a field that folds away to nothing into null, not an empty string', () => {
+    const { fields } = keyedFieldsFromAnswer(
+      answer({ sache: '???', wer: 'велосипед', gesuchter_beruf: '...' }),
+    )
+    expect(fields.keySubject).toBeNull()
+    expect(fields.keyActor).toBeNull()
+    expect(fields.keySoughtActor).toBeNull()
+  })
+
+  it(`caps the traits at ${MAX_KEY_TRAITS_PER_ENTRY}, and says so`, () => {
+    const many = Array.from({ length: MAX_KEY_TRAITS_PER_ENTRY + 5 }, (_, i) => `merkmal${i}`)
+    const { fields, dropped } = keyedFieldsFromAnswer(answer({ merkmal: many }))
+    expect(fields.keyTraits).toHaveLength(MAX_KEY_TRAITS_PER_ENTRY)
+    expect(dropped).toContain(`5 traits over the ${MAX_KEY_TRAITS_PER_ENTRY} an entry may carry`)
+  })
+
+  it('drops an over-long trait as well', () => {
+    const { fields, dropped } = keyedFieldsFromAnswer(
+      answer({ merkmal: ['gebraucht', 'x'.repeat(KEY_TRAIT_MAX_CHARS + 1)] }),
+    )
+    expect(fields.keyTraits).toEqual(['gebraucht'])
+    expect(dropped).toHaveLength(1)
+  })
+
+  it('caps a runaway answer at the number of words an entry may carry, and says so', () => {
+    const many = Array.from({ length: MAX_KEY_WORDS_PER_ENTRY + 20 }, (_, i) => `wort${i}`)
+    const { fields, dropped } = keyedFieldsFromAnswer(answer({ schluessel: many }))
+    expect(fields.keyWords).toHaveLength(MAX_KEY_WORDS_PER_ENTRY)
+    // A model that answers with 84 key words for one sentence has gone wrong, and
+    // the count being quietly cut is the only evidence there would otherwise be.
+    expect(dropped).toContain(`20 key words over the ${MAX_KEY_WORDS_PER_ENTRY} an entry may carry`)
+  })
+
+  it('folds duplicates the model repeated', () => {
+    const { fields } = keyedFieldsFromAnswer(
+      answer({ schluessel: ['fahrrad', 'Fahrrad', 'fahrrad'] }),
+    )
+    expect(fields.keyWords).toEqual(['fahrrad'])
+  })
+
+  it('survives a record with nothing in it', () => {
+    // Not a hypothetical: the schema requires every field, but an empty string and an
+    // empty list satisfy it, and that is what a sentence the model made nothing of
+    // comes back as. It has to become a keying with no words, not a crash.
+    const { fields } = keyedFieldsFromAnswer({ nr: 1 })
+    expect(fields.keyWords).toEqual([])
+    expect(fields.keySubject).toBeNull()
+    expect(fields.keyTraits).toEqual([])
+  })
+})

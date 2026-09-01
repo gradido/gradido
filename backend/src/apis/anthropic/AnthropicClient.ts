@@ -27,6 +27,15 @@ import {
   moderatorDecisionLabel,
 } from './crea/ruleset'
 import { type CreaEffort, resolveCreaModelParams } from './crea/settings'
+import {
+  KEYING_INSTRUCTION,
+  KEYING_SCHEMA,
+  type KeyableEntry,
+  type KeyingAnswer,
+  type KeyingAnswerRecord,
+  keyingUserMessage,
+  vocabularyAppendix,
+} from './matching/instruction'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.anthropic.AnthropicClient`)
 
@@ -36,6 +45,26 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.anthropic.AnthropicC
 // code - the admin model field is deliberately free text so new models work without a
 // release - we ask for fast mode and fall back to a normal call when the API says no.
 const FAST_MODE_BETA = 'fast-mode-2026-02-01'
+
+/**
+ * The model that keys matching entries, named here rather than taken from the
+ * settings - and both halves of that are decisions rather than shortcuts.
+ *
+ * Haiku, because keying is a mechanical job on one short sentence and this is the
+ * model the whole matching behaviour was measured on: 89 % of 588 offer/need pairs
+ * found when the two halves arrive months apart, at 0,60-0,89 $ per 735 entries.
+ *
+ * Not the model an admin picks for Crea, and that is the important half. Crea's
+ * output is a text for one human to read, so a different model there means different
+ * wording and that is the community's business. The output here is a shared
+ * vocabulary: two communities on two models would coin two words for one thing, and
+ * their members would stop finding each other. One model for everyone until somebody
+ * has measured how far two of them agree.
+ */
+const KEYING_MODEL = 'claude-haiku-4-5'
+
+/** Room for a full batch's answer. The measurement used the same number. */
+const KEYING_MAX_TOKENS = 8000
 
 /**
  * Crea's answer was cut off at max_tokens. It gets its own class so a caller can tell
@@ -428,6 +457,80 @@ export class AnthropicClient {
     } catch (error) {
       return failed(error)
     }
+  }
+
+  /**
+   * Works out a batch of matching entries: for each one, the words it can be found
+   * under and seven fields saying what it is about.
+   *
+   * The vocabulary is handed in rather than fetched here, because what makes the whole
+   * mechanism work is that it is CURRENT - a word another community coined has to be
+   * in this list, or this entry coins a second word for the same thing and the two
+   * members never meet. Keeping it current is the keying run's job; this method passes
+   * it on unchanged.
+   *
+   * Several entries per call, because that is what the numbers come from and because
+   * of what the list costs: the instruction is around a thousand tokens and the
+   * vocabulary was 8000 after 739 entries, so a call carries that whether it works out
+   * one entry or ten. Ten at a time is the difference between the ~11 $ per ten
+   * thousand entries the plan budgeted and roughly eight times that.
+   *
+   * The price of a batch is that its ten entries share one vocabulary snapshot, so a
+   * word coined by the first cannot reach the second. That is exactly how the 89 %
+   * was measured, and it is also not the live case: entries arrive one at a time, so
+   * a batch only fills up when there is a backlog - a new community, or a re-keying.
+   *
+   * Records come back keyed by `nr`, which is the number each entry was given in the
+   * message. A record with no usable `nr` is dropped rather than guessed at: matching
+   * by position would hand one member's words to another member's entry the moment
+   * the model returns nine records for ten entries. A dropped one costs nothing - its
+   * entry keeps no keying and the next pass picks it up again.
+   */
+  public async keyMatchingEntries(
+    entries: readonly KeyableEntry[],
+    vocabulary: readonly string[],
+  ): Promise<Map<number, KeyingAnswerRecord>> {
+    const message = await this.createMessage(
+      {
+        model: KEYING_MODEL,
+        max_tokens: KEYING_MAX_TOKENS,
+        // One string, instruction and vocabulary together, because that is the shape
+        // that was measured. It also means no prompt cache: the vocabulary grows, so
+        // the prefix changes. That cost is the one the plan budgeted - it is not an
+        // oversight to be fixed by splitting the two apart without measuring again.
+        system: KEYING_INSTRUCTION + vocabularyAppendix(vocabulary),
+        messages: [{ role: 'user', content: keyingUserMessage(entries) }],
+        output_config: { format: { type: 'json_schema', schema: KEYING_SCHEMA } },
+      },
+      // Fast mode is a premium price for a faster answer, and nobody is waiting for
+      // this one: the member's save button returned long ago.
+      false,
+    )
+
+    logger.info(
+      `matching keying usage: entries=${entries.length} input=${message.usage.input_tokens} output=${message.usage.output_tokens}`,
+    )
+    this.assertNotTruncated(message, KEYING_MAX_TOKENS)
+
+    const answer = JSON.parse(this.firstTextBlock(message)) as KeyingAnswer
+    const byIndex = new Map<number, KeyingAnswerRecord>()
+    for (const record of answer.eintraege ?? []) {
+      const index = (record.nr ?? 0) - 1
+      if (!Number.isInteger(index) || index < 0 || index >= entries.length) {
+        logger.warn(`matching keying: record with unusable nr ${record.nr}, dropped`)
+        continue
+      }
+      if (byIndex.has(index)) {
+        logger.warn(`matching keying: two records claim entry ${record.nr}, keeping the first`)
+        continue
+      }
+      byIndex.set(index, record)
+    }
+    if (byIndex.size !== entries.length) {
+      // Not an error: what is missing simply stays unkeyed and comes round again.
+      logger.warn(`matching keying: ${byIndex.size} records for ${entries.length} entries`)
+    }
+    return byIndex
   }
 
   // Structural on purpose: the probe reads the same text block from either the normal

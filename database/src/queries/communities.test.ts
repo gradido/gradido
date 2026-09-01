@@ -1,8 +1,11 @@
+import { eq } from 'drizzle-orm'
 import { Ed25519PublicKey } from 'shared'
 import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from '..'
-import { AppDatabase } from '../AppDatabase'
+import { AppDatabase, drizzleDb } from '../AppDatabase'
+import { communitiesTable } from '../schemas'
 import { createCommunity, createVerifiedFederatedCommunity } from '../seeds/community'
 import {
+  dbIsMatchingKeyingActive,
   getCommunityByPublicKeyOrFail,
   getHomeCommunity,
   getHomeCommunityWithFederatedCommunityOrFail,
@@ -44,6 +47,53 @@ describe('community.queries', () => {
       expect(community?.privateKey).toStrictEqual(homeCom.privateKey)
     })
   })
+  describe('dbIsMatchingKeyingActive', () => {
+    // Flipped through drizzle, not through the TypeORM entity: the entity does not map
+    // this column (new code goes to drizzle, AGENTS.md), and `synchronize: false` means
+    // it never notices. Writing it the same way it is read is also what makes the test
+    // exercise the real mapping.
+    const setSwitch = async (id: number, on: boolean) =>
+      await drizzleDb()
+        .update(communitiesTable)
+        .set({ matchingKeyingActive: on ? 1 : 0 })
+        .where(eq(communitiesTable.id, id))
+
+    it('is off for a community that was never switched on', async () => {
+      // The state every existing row is in after migration 0127, and the reason the
+      // column exists: the first keying run works through the whole backlog and pays
+      // per entry, so somebody has to say when that starts.
+      await createCommunity(false)
+      expect(await dbIsMatchingKeyingActive()).toBe(false)
+    })
+
+    it('is on once the community says so', async () => {
+      const homeCom = await createCommunity(false)
+      await setSwitch(homeCom.id, true)
+      expect(await dbIsMatchingKeyingActive()).toBe(true)
+    })
+
+    it('reads it again rather than answering from the first read', async () => {
+      // ⚠️ The whole point of the column. `getHomeCommunityDrizzle` caches the
+      // community for the life of the process and never invalidates, so a value read
+      // through it would answer with whatever was true at startup - and a switch that
+      // only changes on restart is not a switch.
+      const homeCom = await createCommunity(false)
+      await setSwitch(homeCom.id, true)
+      expect(await dbIsMatchingKeyingActive()).toBe(true)
+
+      await setSwitch(homeCom.id, false)
+      expect(await dbIsMatchingKeyingActive()).toBe(false)
+    })
+
+    it('is off when there is no home community at all', async () => {
+      // Nobody to bill and nobody who decided reads the same as "not switched on".
+      // Throwing here would turn a run that should quietly stay off into an error on
+      // a timer.
+      await createCommunity(true)
+      expect(await dbIsMatchingKeyingActive()).toBe(false)
+    })
+  })
+
   describe('getHomeCommunityWithFederatedCommunityOrFail', () => {
     it('should return the home community with federated communities', async () => {
       const homeCom = await createCommunity(false)

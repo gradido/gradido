@@ -161,6 +161,12 @@ export const schema = Joi.object({
     .description('Timer interval in milliseconds for community validation')
     .required(),
 
+  // Matching. Its own switch rather than part of the GMS or Anthropic blocks: it uses
+  // both, and turning either of those on must not turn this on with them.
+  MATCHING_ACTIVE: Joi.boolean()
+    .default(false)
+    .description('Whether the matching feature is on for this community'),
+
   GMS_CREATE_USER_THROW_ERRORS: Joi.boolean()
     .default(false)
     .when('GMS_ACTIVE', { is: true, then: Joi.required(), otherwise: Joi.optional() })

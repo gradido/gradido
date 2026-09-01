@@ -138,6 +138,111 @@ describe('sendUsersToGms', () => {
       )
     })
 
+    // ⛔ What the GMS bounds is DATABASE ROWS, and one member can hold any number of
+    // entries - so a caller that counts only members has no idea how close it is. The
+    // limit already moved once (5000 to 3000, when the keyed columns widened an entry
+    // row); a batch over it is refused whole, and ExportUsers then abandons the rest
+    // of the repair run.
+    it('splits a batch that carries more entries than one call may', async () => {
+      const many = Array.from({ length: 6 }, (_, i) => member(100 + i, `uuid-${100 + i}`))
+      // 600 entries each: two members fit in a call, three do not.
+      selectEntriesMock.mockResolvedValue(
+        many.flatMap((m) => Array.from({ length: 600 }, (_, e) => entry(m.id, `e-${m.id}-${e}`))),
+      )
+
+      await sendUsersToGms(many, HOME_COM, true)
+
+      expect(snapshotMock.mock.calls.length).toBeGreaterThan(1)
+      for (const [, snapshots] of snapshotMock.mock.calls) {
+        const entries = snapshots.reduce(
+          (sum: number, snapshot: { entries: unknown[] }) => sum + snapshot.entries.length,
+          0,
+        )
+        // Against OUR bound, not the GMS's 3000. The 500 the comment calls deliberate
+        // - "so that its next change does not break this the day it lands" - is only
+        // a margin if something notices it being spent.
+        expect(entries).toBeLessThanOrEqual(2500)
+      }
+      // and nobody is left out
+      const sent = snapshotMock.mock.calls.flatMap(([, snapshots]) => snapshots).length
+      expect(sent).toBe(many.length)
+    })
+
+    // ⛔ A member whose own entries exceed the limit cannot be made to fit, and
+    // splitting their snapshot would change what a snapshot means - the full set, so
+    // that what is missing gets deleted. So they are not sent at all.
+    //
+    // Sending them anyway is what this test used to assert, and it was wrong in a way
+    // no assertion here could see: the send THROWS on a refusal, the throw leaves the
+    // chunk loop, and every LATER chunk goes unsent - on this run and on every repair
+    // run after it, because the retry meets the same member again. One member would
+    // quietly stop the whole export.
+    it('does not send a member whose own entries exceed one call, and sends the rest', async () => {
+      const heavy = member(200, 'uuid-200')
+      const light = member(201, 'uuid-201')
+      selectEntriesMock.mockResolvedValue([
+        ...Array.from({ length: 4000 }, (_, e) => entry(heavy.id, `h-${e}`)),
+        entry(light.id, 'l-1'),
+      ])
+
+      await sendUsersToGms([heavy, light], HOME_COM, true)
+
+      // The heavy member's chunk comes FIRST, so this is also the guard against the
+      // old behaviour: the light member is only reached if the heavy one did not
+      // stop the loop.
+      expect(snapshotMock.mock.calls).toHaveLength(1)
+      const [, sent] = snapshotMock.mock.calls[0]
+      expect(sent).toHaveLength(1)
+      expect(sent[0].userUuid).toBe(light.gradidoID)
+    })
+
+    it('carries on past a refused chunk rather than losing the ones behind it', async () => {
+      // The same shape with a real refusal: `putGmsMatchingEntrySnapshots` throws on a
+      // rejected call, and a throw inside the loop takes every later chunk with it.
+      const heavy = member(202, 'uuid-202')
+      const light = member(203, 'uuid-203')
+      selectEntriesMock.mockResolvedValue([
+        ...Array.from({ length: 4000 }, (_, e) => entry(heavy.id, `x-${e}`)),
+        entry(light.id, 'l-2'),
+      ])
+      snapshotMock.mockRejectedValueOnce(new Error('413 Payload Too Large'))
+
+      await sendUsersToGms([heavy, light], HOME_COM, true)
+
+      // The heavy chunk never reaches the mock at all, so the rejection queued above
+      // is still waiting - which is the point: nothing was sent that could be refused.
+      expect(snapshotMock.mock.calls).toHaveLength(1)
+      expect(snapshotMock.mock.calls[0][1][0].userUuid).toBe(light.gradidoID)
+    })
+
+    // ⛔ A snapshot carries the entry's KEYING now, and the words in it go on into a
+    // vocabulary with no community bound and no delete path. A member who has
+    // withdrawn, been deleted, or belongs to another community must not be in one.
+    it.each([
+      ['who has withdrawn from the GMS', { gmsAllowed: false }],
+      ['who deleted their account', { deletedAt: new Date() }],
+      ['of another community', { foreign: true }],
+    ])('leaves out a member %s', async (_name, state) => {
+      const excluded = { ...member(9, 'uuid-9'), ...state } as DbUser
+
+      await sendUsersToGms([WITH_ENTRIES, excluded], HOME_COM, true)
+
+      const [, snapshots] = snapshotMock.mock.calls[0]
+      expect(snapshots).toHaveLength(1)
+      expect(snapshots[0].userUuid).toBe(WITH_ENTRIES.gradidoID)
+    })
+
+    // Left out, not sent empty: an empty snapshot says "this member has no live
+    // entries", which would DELETE what the GMS holds. For somebody who has withdrawn
+    // that removal is `removeUserFromGms`'s job, which retries until it lands.
+    it('sends no snapshot call at all when nobody in the batch may be published', async () => {
+      const excluded = { ...member(9, 'uuid-9'), gmsAllowed: false } as DbUser
+
+      await sendUsersToGms([excluded], HOME_COM, true)
+
+      expect(snapshotMock).not.toHaveBeenCalled()
+    })
+
     it('marks the batch as published once both calls are through', async () => {
       await sendUsersToGms([WITH_ENTRIES, WITHOUT_ENTRIES], HOME_COM, true)
 

@@ -12,6 +12,27 @@ import { GmsUser } from './model/GmsUser'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.gms.GmsClient`)
 
+/**
+ * How long a call the keying run makes may take before it is given up on.
+ *
+ * The shared agents keep connections alive and set no timeout, and axios has none by
+ * default, so a connection that dies without a FIN leaves the caller awaiting for as
+ * long as the process lives. Every call the background run makes needs this: it keeps
+ * one pass in flight at a time, so one hung request does not slow it down, it ends
+ * it, with no error to log because nothing ever rejects.
+ *
+ * Carried by every call that any background loop makes - which is not only the keying
+ * run. The two DELETEs are retried by `retryInBackground`, and a hang there is worse
+ * than a slow one: `runRetries` awaits each attempt, so it never reaches attempt two,
+ * never reaches its own "still failing after 3 retries - GMS copy may remain" line,
+ * and a paused or deleted entry stays visible in everybody's search with nothing said
+ * anywhere. That loop exists for the privacy case; it has to be able to finish.
+ *
+ * ⚠️ The remaining calls have none. They are made from request handlers or from a
+ * script, where a hang costs one request rather than a whole guarantee.
+ */
+const GMS_REQUEST_TIMEOUT_MS = 30_000
+
 /*
 export async function communityList(): Promise<GmsCommunity[] | string | undefined> {
   const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_URL)
@@ -214,6 +235,13 @@ export async function putGmsMatchingEntry(
     headers: gmsHeaders(apiKey),
     httpAgent,
     httpsAgent,
+    // Same timeout, same reason as the vocabulary calls above - and this one matters
+    // more, because the keying run calls it once per entry from inside the pass that
+    // guards itself with a single in-flight promise. A half-open connection here
+    // would not fail the run, it would stop it, silently, until the process restarts.
+    // The member's own save path calls this too, where a timeout only turns a hang
+    // into the warning it already handles.
+    timeout: GMS_REQUEST_TIMEOUT_MS,
   })
   if (result.status !== 200) {
     throw new LogError(
@@ -239,6 +267,7 @@ export async function deleteGmsMatchingEntry(apiKey: string, uuid: string): Prom
     headers: gmsHeaders(apiKey),
     httpAgent,
     httpsAgent,
+    timeout: GMS_REQUEST_TIMEOUT_MS,
   })
   if (result.status !== 200) {
     throw new LogError(
@@ -270,6 +299,7 @@ export async function deleteGmsUser(apiKey: string, userUuid: string): Promise<b
     headers: gmsHeaders(apiKey),
     httpAgent,
     httpsAgent,
+    timeout: GMS_REQUEST_TIMEOUT_MS,
   })
   if (result.status !== 200) {
     throw new LogError(
@@ -279,6 +309,95 @@ export async function deleteGmsUser(apiKey: string, userUuid: string): Promise<b
     )
   }
   return true
+}
+
+/** One word of the shared matching vocabulary, with the cursor to ask after it. */
+export interface GmsVocabularyWord {
+  id: number
+  word: string
+}
+
+/**
+ * A page of the shared matching vocabulary.
+ *
+ * The list is global - every community's coined words in one table - and it is what
+ * goes into the instruction before an entry is keyed, with one demand of the model: if
+ * one of these fits, use exactly it. Without it two members describing the same thing
+ * on two servers coin two words and never find each other.
+ *
+ * Paged by id, oldest first, because ids are only handed out and never reused: a
+ * caller remembers the last one it saw and asks for what came after, and misses
+ * nothing however much was inserted while it was away.
+ */
+export async function getGmsMatchingVocabulary(
+  apiKey: string,
+  afterId: number,
+  limit: number,
+): Promise<{ words: GmsVocabularyWord[]; hasMore: boolean }> {
+  if (!CONFIG.GMS_ACTIVE) {
+    logger.info('GMS-Communication disabled per ConfigKey GMS_ACTIVE=false!')
+    return { words: [], hasMore: false }
+  }
+  const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_API_URL)
+  const result = await axios.get(baseUrl.concat('matching-vocabulary'), {
+    params: { afterId: String(afterId), limit: String(limit) },
+    headers: gmsHeaders(apiKey),
+    httpAgent,
+    httpsAgent,
+    // The agents keep connections alive and set no timeout of their own, so without
+    // this a half-open connection leaves the caller awaiting forever - and the caller
+    // here is a background run that guards itself with a single in-flight promise. It
+    // would not fail; it would stop, silently, until the process restarts.
+    timeout: GMS_REQUEST_TIMEOUT_MS,
+  })
+  if (result.status !== 200) {
+    throw new LogError(
+      'HTTP Status Error in get matching-vocabulary:',
+      result.status,
+      result.statusText,
+    )
+  }
+  return { words: result.data?.words ?? [], hasMore: Boolean(result.data?.hasMore) }
+}
+
+/**
+ * Report the words this server just coined, so every other one can reuse them.
+ *
+ * Sent separately from the entry that carries them, and both halves of that matter.
+ * It arrives the moment the model has answered rather than whenever the entry is next
+ * counted; and the word outlives the entry, because a word we forget is one the next
+ * entry coins a second variant of.
+ *
+ * The language is the member's, and it is the only place the GMS can learn it: the
+ * sentence itself never leaves this server. Words first coined in a language other
+ * than German are measurably rougher, and the GMS keeps that mark so they can be read
+ * through first.
+ *
+ * Answers with how many were new to the GMS.
+ */
+export async function postGmsMatchingVocabulary(
+  apiKey: string,
+  language: string,
+  words: string[],
+): Promise<number> {
+  if (!CONFIG.GMS_ACTIVE) {
+    logger.info('GMS-Communication disabled per ConfigKey GMS_ACTIVE=false!')
+    return 0
+  }
+  const baseUrl = ensureUrlEndsWithSlash(CONFIG.GMS_API_URL)
+  const result = await axios.post(
+    baseUrl.concat('matching-vocabulary'),
+    { language, words },
+    { headers: gmsHeaders(apiKey), httpAgent, httpsAgent, timeout: GMS_REQUEST_TIMEOUT_MS },
+  )
+  if (result.status !== 200) {
+    throw new LogError(
+      'HTTP Status Error in post matching-vocabulary:',
+      result.status,
+      result.statusText,
+    )
+  }
+  return result.data?.added ?? 0
 }
 
 function gmsHeaders(apiKey: string) {

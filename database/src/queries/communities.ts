@@ -33,6 +33,29 @@ export async function getHomeCommunityDrizzle(): Promise<CommunitiesSelect | nul
   return homeCommunityDrizzleCache
 }
 
+/**
+ * Whether the home community pays a language model to key its matching entries.
+ *
+ * ⚠️ Read fresh on every call, and that is the whole reason this is its own function
+ * rather than a field off `getHomeCommunityDrizzle`. That one caches the community for
+ * the life of the process and never invalidates, so it would answer with whatever was
+ * true when the process started - and a switch that only changes on restart is not a
+ * switch. The keying run asks once per pass, which is a single indexed read against
+ * one row, against a run that is about to spend money per entry.
+ *
+ * ⛔ Missing home community answers `false`, deliberately. "There is nobody to bill and
+ * nobody who decided" is the same answer as "not switched on", and the alternative -
+ * throwing - would turn a run that should quietly stay off into an error on a timer.
+ */
+export async function dbIsMatchingKeyingActive(): Promise<boolean> {
+  const rows = await drizzleDb()
+    .select({ active: communitiesTable.matchingKeyingActive })
+    .from(communitiesTable)
+    .where(eq(communitiesTable.foreign, 0))
+    .limit(1)
+  return Boolean(rows[0]?.active)
+}
+
 export async function getHomeCommunityWithFederatedCommunityOrFail(
   apiVersion: string,
 ): Promise<DbCommunity> {

@@ -10,6 +10,8 @@ import {
   createGmsHandshakeJWTToken,
   deleteGmsMatchingEntry,
   deleteGmsUser,
+  getGmsMatchingVocabulary,
+  postGmsMatchingVocabulary,
   putGmsMatchingEntry,
   putGmsMatchingEntrySnapshots,
   upsertGmsUsers,
@@ -135,6 +137,100 @@ describe('GmsClient', () => {
           ],
         },
         { userUuid: '7c4b1a90-1d2e-4f3a-8b5c-6d7e8f9a0b12', entries: [] },
+      ])
+    })
+
+    // The keying: all of it or nothing, and the GMS reads the difference. An entry
+    // that has not been keyed leaves the group out entirely, which tells the GMS to
+    // keep whatever it already has - sending nulls instead would wipe it on every
+    // repair run by a server that does not key.
+    it('leaves the keying out entirely for an entry that has none', async () => {
+      put.mockResolvedValue(ok)
+
+      await putGmsMatchingEntrySnapshots(API_KEY, snapshots)
+
+      const [, body] = put.mock.calls[0]
+      expect(JSON.parse(JSON.stringify(body))[0].entries[0]).not.toHaveProperty('keying')
+    })
+
+    it('carries the whole keying for an entry that has one', async () => {
+      put.mockResolvedValue(ok)
+      const keyed = entry({
+        keyWords: ['lastenrad', 'anhaenger'],
+        keySubject: 'lastenrad',
+        keyActivity: 'ausleihen',
+        keyCategory: 'leihe',
+        keyArea: 'mobilitaet',
+        keyActor: null,
+        keySoughtActor: null,
+        keyTraits: ['gebraucht'],
+        instructionVersion: 'gms176-1',
+        keyedAt: new Date('2026-08-31T10:00:00.000Z'),
+      } as Partial<MatchingEntrySelect>)
+
+      await putGmsMatchingEntrySnapshots(API_KEY, [
+        new GmsMatchingEntrySnapshot(USER_UUID, [keyed]),
+      ])
+
+      const [, body] = put.mock.calls[0]
+      // Serialised, because that is what the GMS schema validates - and because the
+      // date has to arrive as a string it can parse, not as a Date object that JSON
+      // would render differently than the schema expects.
+      expect(JSON.parse(JSON.stringify(body))[0].entries[0].keying).toEqual({
+        keyWords: ['lastenrad', 'anhaenger'],
+        keySubject: 'lastenrad',
+        keyActivity: 'ausleihen',
+        keyCategory: 'leihe',
+        keyArea: 'mobilitaet',
+        keyActor: null,
+        keySoughtActor: null,
+        keyTraits: ['gebraucht'],
+        instructionVersion: 'gms176-1',
+        keyedAt: '2026-08-31T10:00:00.000Z',
+      })
+    })
+
+    // The index the entry is found under is NOT sent: the GMS derives it from these
+    // fields itself, because what an entry is findable under is not a community
+    // server's decision to make.
+    it('does not send an index of its own', async () => {
+      put.mockResolvedValue(ok)
+      // Every keyed column, nulls included - a row read from the database always has
+      // them, and a fixture that leaves them out lets `undefined` pass for `null`,
+      // which JSON drops silently.
+      const keyed = entry({
+        keyWords: ['lastenrad'],
+        keySubject: 'lastenrad',
+        keyActivity: null,
+        keyCategory: null,
+        keyArea: null,
+        keyActor: null,
+        keySoughtActor: null,
+        keyTraits: [],
+        instructionVersion: 'gms176-1',
+        keyedAt: new Date('2026-08-31T10:00:00.000Z'),
+      } as Partial<MatchingEntrySelect>)
+
+      await putGmsMatchingEntrySnapshots(API_KEY, [
+        new GmsMatchingEntrySnapshot(USER_UUID, [keyed]),
+      ])
+
+      const [, body] = put.mock.calls[0]
+      // Named the way the GMS spells it, so the assertion can actually fail: a
+      // `not.toHaveProperty` on a name that exists nowhere passes for every possible
+      // change and is worse than no test.
+      const keying = JSON.parse(JSON.stringify(body))[0].entries[0].keying
+      expect(Object.keys(keying).sort()).toEqual([
+        'instructionVersion',
+        'keyActivity',
+        'keyActor',
+        'keyArea',
+        'keyCategory',
+        'keySoughtActor',
+        'keySubject',
+        'keyTraits',
+        'keyWords',
+        'keyedAt',
       ])
     })
 
@@ -267,6 +363,97 @@ describe('GmsClient', () => {
       await expect(deleteGmsMatchingEntry(API_KEY, ENTRY_UUID)).resolves.toBe(false)
       expect(put).not.toHaveBeenCalled()
       expect(del).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('the matching vocabulary routes', () => {
+    it('fetches a page and passes the cursor and the limit as query parameters', async () => {
+      get.mockResolvedValue({
+        status: 200,
+        data: { words: [{ id: 7, word: 'rasenluefter' }], hasMore: true },
+      })
+
+      const page = await getGmsMatchingVocabulary(API_KEY, 4, 1000)
+
+      const [url, config] = get.mock.calls[0]
+      expect(url).toBe('http://gms.test/api/matching-vocabulary')
+      // Strings, because that is what the GMS parses them from.
+      expect(config.params).toEqual({ afterId: '4', limit: '1000' })
+      expect(config.headers.authorization).toBe(`Bearer ${API_KEY}`)
+      expect(page).toEqual({ words: [{ id: 7, word: 'rasenluefter' }], hasMore: true })
+    })
+
+    it('reports coined words and answers how many were new', async () => {
+      post.mockResolvedValue({ status: 200, data: { added: 2 } })
+
+      const added = await postGmsMatchingVocabulary(API_KEY, 'de', ['rasenluefter', 'rasen'])
+
+      const [url, body] = post.mock.calls[0]
+      expect(url).toBe('http://gms.test/api/matching-vocabulary')
+      expect(body).toEqual({ language: 'de', words: ['rasenluefter', 'rasen'] })
+      expect(added).toBe(2)
+    })
+
+    // ⛔ The agents keep connections alive and set no timeout of their own, and axios
+    // has none by default. These two calls are made by a background run that guards
+    // itself with one in-flight promise: a half-open connection would leave that
+    // promise pending forever, so the run would not fail, it would stop - silently,
+    // with nothing to log, until the process restarts.
+    it('throws when the GMS answers something other than 200', async () => {
+      get.mockResolvedValue({ status: 500, statusText: 'Internal Server Error', data: {} })
+
+      // Without this the caller would read `{ words: [], hasMore: false }` as an
+      // empty vocabulary and key a whole backlog against nothing - the very state the
+      // run's "never read the list whole" guard exists to refuse.
+      await expect(getGmsMatchingVocabulary(API_KEY, 0, 10)).rejects.toThrow(
+        'HTTP Status Error in get matching-vocabulary:',
+      )
+    })
+
+    it('throws when a report is not accepted', async () => {
+      post.mockResolvedValue({ status: 400, statusText: 'Bad Request', data: {} })
+
+      // Read as success, the words would be marked as sent and never offered again.
+      await expect(postGmsMatchingVocabulary(API_KEY, 'de', ['x'])).rejects.toThrow(
+        'HTTP Status Error in post matching-vocabulary:',
+      )
+    })
+
+    it('says nothing to a GMS that is switched off', async () => {
+      CONFIG.GMS_ACTIVE = false
+
+      await expect(getGmsMatchingVocabulary(API_KEY, 0, 10)).resolves.toEqual({
+        words: [],
+        hasMore: false,
+      })
+      await expect(postGmsMatchingVocabulary(API_KEY, 'de', ['x'])).resolves.toBe(0)
+      expect(get).not.toHaveBeenCalled()
+      expect(post).not.toHaveBeenCalled()
+    })
+  })
+
+  // ⛔ Every call a background loop makes. A hang in one of these does not fail the
+  // loop, it stops it: the keying run holds a single in-flight promise, and
+  // `runRetries` awaits each attempt, so a hung DELETE never reaches attempt two and
+  // never reaches its own "GMS copy may remain" alarm - on the privacy path.
+  describe('the calls background loops make', () => {
+    it('all give up on a hung connection rather than waiting for ever', async () => {
+      get.mockResolvedValue({ status: 200, data: { words: [], hasMore: false } })
+      post.mockResolvedValue({ status: 200, data: { added: 0 } })
+      put.mockResolvedValue({ status: 200 })
+      del.mockResolvedValue({ status: 200 })
+
+      await getGmsMatchingVocabulary(API_KEY, 0, 10)
+      await postGmsMatchingVocabulary(API_KEY, 'de', ['rasenluefter'])
+      await putGmsMatchingEntry(API_KEY, new GmsUserMatchingEntry(USER_UUID, entry()))
+      await deleteGmsMatchingEntry(API_KEY, ENTRY_UUID)
+      await deleteGmsUser(API_KEY, USER_UUID)
+
+      expect(get.mock.calls[0][1].timeout).toBeGreaterThan(0)
+      expect(post.mock.calls[0][2].timeout).toBeGreaterThan(0)
+      expect(put.mock.calls[0][2].timeout).toBeGreaterThan(0)
+      expect(del.mock.calls[0][1].timeout).toBeGreaterThan(0)
+      expect(del.mock.calls[1][1].timeout).toBeGreaterThan(0)
     })
   })
 

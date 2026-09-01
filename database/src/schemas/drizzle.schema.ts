@@ -8,6 +8,7 @@ import {
   decimal,
   index,
   int,
+  json,
   longtext,
   mysqlTable,
   text,
@@ -32,6 +33,32 @@ export const communitiesTable = mysqlTable(
     name: varchar({ length: 40 }).default(sql`NULL`),
     description: varchar({ length: 255 }).default(sql`NULL`),
     gmsApiKey: varchar('gms_api_key', { length: 512 }).default(sql`NULL`),
+    /**
+     * Whether this community pays a language model to key its matching entries.
+     *
+     * ⛔ Off for every existing row, and that is a decision rather than a default. The
+     * keying run costs money per entry, and the first run on a server with a backlog
+     * pays for the whole backlog at once. Somebody has to say when that happens, and
+     * this column is where they say it.
+     *
+     * Separate from `MATCHING_ACTIVE` on purpose. That one answers "do members see the
+     * matching at all" - the menu entry and the routes - and it is compiled into the
+     * frontend bundle at build time. Two different questions were riding on it: a
+     * server that wants to show the feature had no way to say "but do not start
+     * buying words yet", and switching it off to stop the spending would take the
+     * feature off the screen with it.
+     *
+     * On the community rather than in the environment for two reasons. It is
+     * switchable while the process runs, which a `CONFIG` value read at startup is
+     * not - and the cost belongs to the community that has the members, which is the
+     * same reason the model call sits on the community server and not on the GMS.
+     *
+     * ⚠️ Read it fresh. `getHomeCommunityDrizzle` caches the community for the life of
+     * the process and never invalidates, so a value read through it would answer with
+     * whatever was true at the first read - which is exactly what a switch must not
+     * do. `dbIsMatchingKeyingActive` is the read that belongs here.
+     */
+    matchingKeyingActive: tinyint('matching_keying_active').default(0).notNull(),
     publicJwtKey: varchar('public_jwt_key', { length: 512 }).default(sql`NULL`),
     privateJwtKey: varchar('private_jwt_key', { length: 2048 }).default(sql`NULL`),
     // Warning: Can't parse geometry from database
@@ -154,6 +181,44 @@ export const matchingEntriesTable = mysqlTable(
     // payload — this keeps the conversion in one place instead of at every call site.
     remote: boolean().default(false).notNull(),
     active: boolean().default(true).notNull(),
+    // --- the keying ------------------------------------------------------------
+    //
+    // What a language model made of `summary`: the words this entry can be found
+    // under, and seven fields saying what it is about. Asked for here, on this
+    // server, because this is where the sentence and the model access are - the GMS
+    // stores what it is sent and never calls a model itself.
+    //
+    // All NULL until an entry has been keyed, and that IS the queue: an entry with
+    // no instruction version is one the keying run has not done yet, and an entry
+    // with an old one is one an improved instruction has not seen. There is no
+    // separate to-do table to keep in step.
+    //
+    // The German names are the fields of the instruction the model answers - what to
+    // search for when comparing a stored row against the measurements.
+
+    // `schluessel` - every word the model coined, normalised. JSON because MySQL has
+    // no array type; the GMS stores the same list in a real one.
+    keyWords: json('key_words').$type<string[]>().default(sql`NULL`),
+    // `sache` - what it is about. Goes into the index, so normalised like a key word.
+    keySubject: varchar('key_subject', { length: 64 }).default(sql`NULL`),
+    // `taetigkeit` - what happens with it, in the infinitive. Not in the index, so
+    // kept as the model wrote it.
+    keyActivity: varchar('key_activity', { length: 64 }).default(sql`NULL`),
+    // `klasse` - one of twelve, see apis/anthropic/matching/instruction.
+    keyCategory: varchar('key_category', { length: 64 }).default(sql`NULL`),
+    // `gebiet` - the field the subject belongs to. Not in the index.
+    keyArea: varchar('key_area', { length: 64 }).default(sql`NULL`),
+    // `wer` - the person acting or being sought. In the index.
+    keyActor: varchar('key_actor', { length: 64 }).default(sql`NULL`),
+    // `gesuchter_beruf` - who solves this problem. Only on the 'need' channel, and
+    // empty even there when no trade is being sought. In the index.
+    keySoughtActor: varchar('key_sought_actor', { length: 64 }).default(sql`NULL`),
+    // `merkmal` - condition, level, material, professional or private, who it is for.
+    // Short phrases rather than words, so these are NOT normalised.
+    keyTraits: json('key_traits').$type<string[]>().default(sql`NULL`),
+    instructionVersion: varchar('instruction_version', { length: 32 }).default(sql`NULL`),
+    keyedAt: datetime('keyed_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    // --- end of the keying -----------------------------------------------------
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),
@@ -164,6 +229,12 @@ export const matchingEntriesTable = mysqlTable(
   (table) => [
     unique('uniq_matching_entries_uuid').on(table.uuid),
     index('idx_matching_entries_user_id').on(table.userId),
+    // What the keying run asks on its timer and on every member save: which entries
+    // still need working out. Without it that walks the whole table to answer
+    // "none" - which is the answer almost every time, once the backlog is drained.
+    // `active` leads because its test is an equality and the version's is a range,
+    // and everything after a range can only filter. See migration 0126.
+    index('IDX_matching_entries_keying').on(table.active, table.instructionVersion),
   ],
 )
 
