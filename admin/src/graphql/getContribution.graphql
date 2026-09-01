@@ -1,0 +1,40 @@
+#import './fragments.graphql'
+
+# One row of `adminListContributions`, because that is what the caller does with the
+# answer: `items.value[index] = contribution` replaces a list row. It spreads the same
+# fragment rather than restating it — the hand-written copy that stood here drifted
+# apart from the schema and asked `Contribution` for three fields it does not have.
+query getContribution($id: Int!) {
+  contribution(id: $id) {
+    id
+    user {
+      emailContact {
+        email
+      }
+      ...UserCommonFields
+      publicName
+      userIdentifier
+      createdAt
+    }
+    amount
+    memo
+    creationGroups {
+      tag
+      name
+    }
+    closedAt
+    closedBy
+    closedByUserName
+    contributionDate
+    createdAt
+    updatedAt
+    updatedBy
+    updatedByUserName
+    contributionStatus
+    messagesCount
+    moderatorId
+    moderatorUserName
+    userId
+    resubmissionAt
+  }
+}

@@ -12,7 +12,7 @@ import {
   setCreaSettings,
   testCreaModel,
 } from '@/seeds/graphql/mutations'
-import { creaSettings, listContributionLinks } from '@/seeds/graphql/queries'
+import { adminListContributions, creaSettings } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
@@ -78,7 +78,16 @@ const unauthorized = expect.objectContaining({
   errors: [new GraphQLError('401 Unauthorized')],
 })
 
-const SETTINGS = { input: { model: null, effort: 'disabled', fastMode: false } }
+// Distinctive on every field, because the neutral state is also what `readCreaSettings`
+// answers when no row exists - so a save asserted with `{model: null, effort:
+// 'disabled', fastMode: false}` cannot tell a write from a write that never happened.
+const SETTINGS = { input: { model: 'claude-probe-value', effort: 'high', fastMode: true } }
+
+// ⛔ Its own constant, and deliberately the neutral one. `model` means something else
+// to the probe than to the save - `CreaResolver` reads `input.model?.trim() ||
+// defaultCreaModel()` - so anyone strengthening the save above by putting a real model
+// into it must not thereby arm a paid probe down here.
+const PROBE = { input: { model: null, effort: 'disabled', fastMode: false } }
 
 describe('the Crea settings — only administrators', () => {
   let moderator: User
@@ -96,13 +105,18 @@ describe('the Crea settings — only administrators', () => {
   it('has a moderator who is really logged in and really a moderator', async () => {
     // ⚠️ The control the refusals cannot do without. Logged out, plain user, moderator
     // and KI-moderator all fail the Crea calls with the SAME sentence, so no refusal
-    // below can tell them apart. This one can: it needs both a valid token and a
-    // moderator right, and it runs first so a broken fixture is named here rather than
-    // disguised as four passing guards.
+    // below can tell them apart. This one can, and it runs first so a broken fixture is
+    // named here rather than disguised as four passing guards.
+    //
+    // ⛔ It has to be a MODERATOR-only operation. `listContributionLinks` was the
+    // obvious pick and the wrong one: `LIST_CONTRIBUTION_LINKS` sits in USER_RIGHTS, so
+    // a plain user passes it too, and the control would have proved only the login -
+    // which `loginAs` already asserts. `ADMIN_LIST_CONTRIBUTIONS` is in MODERATOR_RIGHTS
+    // and in no lesser set, so this fails if `setRole` ever stops taking.
     await loginAs('bibi@bloxberg.de')
     const { errors } = await query({
-      query: listContributionLinks,
-      variables: { currentPage: 1, pageSize: 25 },
+      query: adminListContributions,
+      variables: { paginated: { pageSize: 1 } },
     })
 
     expect(errors).toBeUndefined()
@@ -135,7 +149,7 @@ describe('the Crea settings — only administrators', () => {
     // administrator-succeeds counterpart: that one would cost real money on every CI
     // run, and the positive control above already proves the fixture is sound.
     await loginAs('bibi@bloxberg.de')
-    await expect(mutate({ mutation: testCreaModel, variables: SETTINGS })).resolves.toEqual(
+    await expect(mutate({ mutation: testCreaModel, variables: PROBE })).resolves.toEqual(
       unauthorized,
     )
   })
@@ -143,13 +157,18 @@ describe('the Crea settings — only administrators', () => {
   it('refuses a KI-Moderator just the same', async () => {
     // MODERATOR_AI may send Crea a message; it may not decide what Crea costs.
     await setRole(moderator.id, RoleNames.MODERATOR_AI)
-    await loginAs('bibi@bloxberg.de')
-    await expect(
-      mutate({ mutation: setCreaMatchingKeying, variables: { active: true } }),
-    ).resolves.toEqual(unauthorized)
-    // Put back, so a test appended after this one is not silently a KI-moderator while
-    // its name says moderator.
-    await setRole(moderator.id, RoleNames.MODERATOR)
+    try {
+      await loginAs('bibi@bloxberg.de')
+      await expect(
+        mutate({ mutation: setCreaMatchingKeying, variables: { active: true } }),
+      ).resolves.toEqual(unauthorized)
+    } finally {
+      // ⚠️ In a `finally`, because the protection is worth exactly nothing otherwise:
+      // the day somebody puts AI_SETTINGS into MODERATOR_AI_RIGHTS, the assertion above
+      // throws and the restore that stops the next test from silently running as a
+      // KI-moderator is the line that does not run.
+      await setRole(moderator.id, RoleNames.MODERATOR)
+    }
   })
 
   it('lets an administrator read them', async () => {
@@ -158,13 +177,19 @@ describe('the Crea settings — only administrators', () => {
     expect(errors).toBeUndefined()
   })
 
-  it('lets an administrator save the moderation settings', async () => {
+  it('lets an administrator save the moderation settings, and stores them', async () => {
     // Without this, `@Authorized` on `setCreaSettings` could name any right that
     // administrators also lack and the refusal above would still pass.
     await loginAs('peter@lustig.de')
-    const { errors } = await mutate({ mutation: setCreaSettings, variables: SETTINGS })
+    const { data, errors } = await mutate({ mutation: setCreaSettings, variables: SETTINGS })
 
     expect(errors).toBeUndefined()
+    // ⚠️ Read back rather than trusting the absence of an error. The GraphQL layer only
+    // notices a resolver that returns NOTHING, never one that returns without writing -
+    // so dropping the save inside `writeCreaSettings` would leave a green test here.
+    expect(data?.setCreaSettings).toMatchObject(SETTINGS.input)
+    const stored = await query({ query: creaSettings })
+    expect(stored.data?.creaSettings).toMatchObject(SETTINGS.input)
   })
 
   it('lets an administrator switch the keying on and off again', async () => {
