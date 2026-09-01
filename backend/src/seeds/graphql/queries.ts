@@ -578,3 +578,15 @@ export const assistedRegistrationInfo = gql`
     }
   }
 `
+
+export const creaSettings = gql`
+  query {
+    creaSettings {
+      model
+      effort
+      defaultModel
+      fastMode
+      matchingKeyingActive
+    }
+  }
+`

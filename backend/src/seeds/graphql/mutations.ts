@@ -569,3 +569,24 @@ export const confirmThankYouCardPayment = gql`
     }
   }
 `
+
+// The two halves of the Crea settings page. Both are admin-only: the model applies to
+// every moderator at once, and the keying switch decides whether a language model is
+// paid per matching entry.
+export const setCreaSettings = gql`
+  mutation ($input: CreaSettingsInput!) {
+    setCreaSettings(input: $input) {
+      model
+      effort
+      defaultModel
+      fastMode
+      matchingKeyingActive
+    }
+  }
+`
+
+export const setCreaMatchingKeying = gql`
+  mutation ($active: Boolean!) {
+    setCreaMatchingKeying(active: $active)
+  }
+`
