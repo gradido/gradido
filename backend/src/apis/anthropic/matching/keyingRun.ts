@@ -200,7 +200,7 @@ export class MatchingKeyingRun {
       logger.info(
         keyingActive
           ? 'matching keying: switched ON for this community (communities.matching_keying_active)'
-          : 'matching keying: OFF for this community - entries are stored and served, they simply never get their words. Turn it on with: UPDATE communities SET matching_keying_active = 1 WHERE foreign = 0',
+          : 'matching keying: OFF for this community - entries are stored and served, they simply never get their words. Turn it on in the admin panel, under Crea settings',
       )
     }
     if (!keyingActive) {

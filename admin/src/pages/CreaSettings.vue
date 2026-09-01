@@ -71,7 +71,8 @@ const { toastSuccess, toastError } = useAppToast()
 const isAdmin = computed(() => store.state.moderator.roles.includes('ADMIN'))
 
 // The form holds display defaults until the query answers, never the server's values, and
-// setCreaSettings overwrites all three settings at once. So nothing here may be submitted
+// setCreaSettings overwrites all FOUR settings at once - the fourth being the one that
+// decides whether Crea is paid to key matching entries. So nothing here may be submitted
 // before settingsLoaded turns true - otherwise one click clears the configured model and
 // drops the effort level for the whole instance, confirmed by a success toast. That is not
 // only a race: a query that failed leaves the defaults standing for as long as the page is
