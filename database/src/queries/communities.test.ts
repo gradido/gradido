@@ -6,6 +6,7 @@ import { communitiesTable } from '../schemas'
 import { createCommunity, createVerifiedFederatedCommunity } from '../seeds/community'
 import {
   dbIsMatchingKeyingActive,
+  dbSetMatchingKeyingActive,
   getCommunityByPublicKeyOrFail,
   getHomeCommunity,
   getHomeCommunityWithFederatedCommunityOrFail,
@@ -83,6 +84,35 @@ describe('community.queries', () => {
 
       await setSwitch(homeCom.id, false)
       expect(await dbIsMatchingKeyingActive()).toBe(false)
+    })
+
+    it('is turned on and off again through its own write', async () => {
+      // The write the admin panel uses. Column-targeted rather than a `save()` of the
+      // community: the row is read and written all over the codebase, and a
+      // whole-entity write would carry back whatever the caller happened to hold.
+      await createCommunity(false)
+      expect(await dbIsMatchingKeyingActive()).toBe(false)
+
+      await dbSetMatchingKeyingActive(true)
+      expect(await dbIsMatchingKeyingActive()).toBe(true)
+
+      await dbSetMatchingKeyingActive(false)
+      expect(await dbIsMatchingKeyingActive()).toBe(false)
+    })
+
+    it('leaves a foreign community alone', async () => {
+      // ⛔ Scoped to the home community, like the read. A foreign row is another
+      // community's, and what they pay for is not ours to set.
+      const foreign = await createCommunity(true)
+      await createCommunity(false)
+
+      await dbSetMatchingKeyingActive(true)
+
+      const [row] = await drizzleDb()
+        .select({ active: communitiesTable.matchingKeyingActive })
+        .from(communitiesTable)
+        .where(eq(communitiesTable.id, foreign.id))
+      expect(row.active).toBe(0)
     })
 
     it('is off when there is no home community at all', async () => {

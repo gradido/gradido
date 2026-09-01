@@ -5,7 +5,7 @@ import { CreaBatchEvaluation } from '@model/CreaBatchEvaluation'
 import { CreaEvaluation } from '@model/CreaEvaluation'
 import { CreaRewriteResult } from '@model/CreaRewriteResult'
 import { CreaModelTestResult, CreaSettings } from '@model/CreaSettings'
-import { User as DbUser } from 'database'
+import { User as DbUser, dbIsMatchingKeyingActive, dbSetMatchingKeyingActive } from 'database'
 import { SALUTATION_MAX_LENGTH } from 'shared'
 import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { AnthropicClient } from '@/apis/anthropic/AnthropicClient'
@@ -170,6 +170,10 @@ export class CreaResolver {
       effort: settings.effort,
       defaultModel: defaultCreaModel(),
       fastMode: settings.fastMode,
+      // From `communities`, not from the Crea settings row: the model and how hard it
+      // thinks are one setting for the whole instance, but who pays for keying belongs
+      // to the community that has the members.
+      matchingKeyingActive: await dbIsMatchingKeyingActive(),
     }
   }
 
@@ -180,16 +184,40 @@ export class CreaResolver {
   @Authorized([RIGHTS.AI_SETTINGS])
   @Mutation(() => CreaSettings)
   async setCreaSettings(@Arg('input') input: CreaSettingsInput): Promise<CreaSettings> {
+    // ⛔ The keying switch LAST, and the order is the point rather than a style
+    // choice. It is the one of the four that decides whether money is spent, so
+    // everything that can fail has to fail before it: there is no transaction to be
+    // had here, the two writes cross ORMs and connection pools, so ordering is the
+    // only lever. Written first, a failure of the model write would leave the
+    // spending switched ON behind a toast that said the save did not work - and that
+    // is not a corner case, `crea_settings.model` is varchar(64) and nothing bounds
+    // the model string on the way in, so a pasted name over 64 characters is enough.
     const settings = await writeCreaSettings(
       input.model ?? null,
       input.effort as CreaEffort,
       input.fastMode ?? false,
     )
+    // Absent means LEAVE IT, which is a contract rather than a guess - so an admin
+    // bundle from before this field existed can still save the model and probe a
+    // model instead of failing coercion on a field it has never heard of.
+    // ⚠️ `!= null`, not falsy: `false` is the value that turns the spending OFF.
+    if (input.matchingKeyingActive != null) {
+      const written = await dbSetMatchingKeyingActive(input.matchingKeyingActive)
+      if (!written.success) {
+        throw new LogError('could not store the matching keying switch', written.error)
+      }
+    }
     return {
       model: settings.model,
       effort: settings.effort,
       defaultModel: defaultCreaModel(),
       fastMode: settings.fastMode,
+      // Read back, not echoed. An UPDATE that matched no row is a real state here -
+      // the read answers `false` for a missing home community on purpose - and
+      // echoing the input would report a save that did not happen, on the one field
+      // where that means an unnoticed bill. The three above come back from their own
+      // write for the same reason.
+      matchingKeyingActive: await dbIsMatchingKeyingActive(),
     }
   }
 
