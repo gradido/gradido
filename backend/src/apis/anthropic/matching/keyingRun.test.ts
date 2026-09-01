@@ -208,6 +208,12 @@ describe('the matching keying run and the switch it hangs on', () => {
     await run.run()
     expect(keyEntries).toHaveBeenCalledTimes(1)
 
+    // ⛔ The entry has to be waiting for the SECOND pass too, or this test proves
+    // nothing: `oneEntryWaiting` queues its batch for one pass and then hands back an
+    // empty list for ever, so a second pass would stop at "nothing to do" whether the
+    // switch is read or not. Measured, not assumed - with the guard deleted and
+    // without this line the test stayed green.
+    oneEntryWaiting()
     // ⚠️ The whole reason the value sits on the community row rather than in CONFIG.
     // A check that ran once at startup would keep spending until somebody restarts the
     // process, which is the opposite of what a switch is for.
@@ -216,6 +222,10 @@ describe('the matching keying run and the switch it hangs on', () => {
 
     expect(keyEntries).toHaveBeenCalledTimes(1)
     expect(keyingActive).toHaveBeenCalledTimes(2)
+    // The switch answers before the entry list is read, so the second pass never got
+    // that far: two reads for the first pass (the "anything waiting" probe and the
+    // batch), none for the second.
+    expect(pending).toHaveBeenCalledTimes(2)
   })
 
   it('keys what is waiting once matching is on', async () => {
