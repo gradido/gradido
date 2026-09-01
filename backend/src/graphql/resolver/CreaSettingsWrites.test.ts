@@ -82,6 +82,28 @@ describe('the two writes behind the Crea settings', () => {
     await expect(resolver.setCreaMatchingKeying(true)).rejects.toThrow()
   })
 
+  it('reports the switch as ON when that is what is stored', async () => {
+    // ⛔ Measured gap, and my own repair raised its stakes. `return false` from the
+    // mutation left every test here green, because both switch tests stubbed the read
+    // to `false` - and the page now compares the answer with what it sent, so a broken
+    // return would make every attempt to switch keying ON snap the box back and raise
+    // "somebody else changed it". The paid switch would be unturnable-on, silently.
+    isActive.mockResolvedValue(true)
+
+    expect(await resolver.setCreaMatchingKeying(true)).toBe(true)
+  })
+
+  it('accepts the deprecated switch field in the input and ignores it', async () => {
+    // ⚠️ The field exists only so that an admin bundle loaded before the split can
+    // still save: GraphQL rejects an unknown key in a variable object outright. Its
+    // whole job is to be tolerated, so deleting it must fail something - otherwise the
+    // next cleanup pass removes it a release early and breaks every open tab.
+    await resolver.setCreaSettings(input({ matchingKeyingActive: true }))
+
+    expect(writeSettings).toHaveBeenCalled()
+    expect(setActive).not.toHaveBeenCalled()
+  })
+
   it('switches ON with what it was asked for', async () => {
     // ⛔ Measured gap, and it was the wrong one to have: hardcoding the write to
     // `false` left all five tests green. The only argument assertion in the file

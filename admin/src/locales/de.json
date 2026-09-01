@@ -158,7 +158,6 @@
       "modelHint": "Leer lassen = Standardmodell ({model}). Ein neues Modell kannst Du direkt eintragen.",
       "modelPlaceholder": "Standard: {model}",
       "presetPlaceholder": "— Vorlage wählen —",
-      "saved": "Crea-Einstellungen gespeichert",
       "savedMatching": "Matching-Einstellung gespeichert",
       "savedModeration": "Einstellungen für die Moderation gespeichert",
       "sectionMatching": "Matching",

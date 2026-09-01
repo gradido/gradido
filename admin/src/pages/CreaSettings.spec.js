@@ -4,6 +4,16 @@ import { nextTick, ref } from 'vue'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import CreaSettings from './CreaSettings.vue'
 
+// ⛔ Hoisted and stable. The previous mock built fresh, uncaptured spies per call, so
+// nothing could see which message was raised - swapping the success and conflict arms
+// of `saveKeying` was green, and so was making the moderation save claim the matching
+// one. Those two messages are the whole point of telling the sections apart.
+const { toastSuccess, toastError } = vi.hoisted(() => ({
+  toastSuccess: vi.fn(),
+  toastError: vi.fn(),
+}))
+vi.mock('@/composables/useToast', () => ({ useAppToast: () => ({ toastSuccess, toastError }) }))
+
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key) => key,
@@ -80,10 +90,6 @@ vi.mock('vuex', () => ({
   useStore: vi.fn(() => ({
     state: { moderator: { id: 0, name: 'test moderator', roles: ['ADMIN'] } },
   })),
-}))
-
-vi.mock('@/composables/useToast', () => ({
-  useAppToast: () => ({ toastSuccess: vi.fn(), toastError: vi.fn() }),
 }))
 
 const mockBFormGroup = {
@@ -258,12 +264,41 @@ describe('CreaSettings', () => {
       expect(keyingMutate).not.toHaveBeenCalled()
     })
 
-    it('sends only the switch when the matching Save is pressed', async () => {
+    it('sends only the switch when the matching Save is pressed, and the right field', async () => {
+      // ⛔ Unticked FIRST, so the payload is told apart by direction rather than by
+      // value. With the fixture's `fastMode` and `matchingKeyingActive` both `true`,
+      // pointing this mutation at the wrong form field was green - the file's own
+      // header comment names that hazard and the checkbox test obeys it; this one
+      // did not.
+      const boxes = wrapper.findAllComponents({ name: 'BFormCheckbox' })
+      await boxes[1].find('input').setValue(false)
       const buttons = wrapper.findAll('button')
       await buttons[buttons.length - 1].trigger('click')
 
-      expect(keyingMutate).toHaveBeenCalledWith({ active: true })
+      expect(keyingMutate).toHaveBeenCalledWith({ active: false })
       expect(saveMutate).not.toHaveBeenCalled()
+    })
+
+    // #3: which message was raised, per section. Swapping the two arms of `saveKeying`
+    // used to be green, and so did making the moderation save claim the matching one.
+    it('says which section was saved', async () => {
+      await wrapper.findAll('button')[0].trigger('click')
+      expect(toastSuccess).toHaveBeenCalledWith('crea.settings.savedModeration')
+
+      toastSuccess.mockClear()
+      const buttons = wrapper.findAll('button')
+      await buttons[buttons.length - 1].trigger('click')
+      expect(toastSuccess).toHaveBeenCalledWith('crea.settings.savedMatching')
+    })
+
+    it('does not claim a save when somebody else moved the switch', async () => {
+      keyingMutate.mockResolvedValueOnce({ data: { setCreaMatchingKeying: false } })
+      const buttons = wrapper.findAll('button')
+
+      await buttons[buttons.length - 1].trigger('click')
+
+      expect(toastError).toHaveBeenCalledWith('crea.settings.matchingChangedElsewhere')
+      expect(toastSuccess).not.toHaveBeenCalled()
     })
 
     // ⛔ The success path, which no test in this file used to reach. Both of these
@@ -288,11 +323,30 @@ describe('CreaSettings', () => {
       expect(wrapper.vm.form.matchingKeyingActive).toBe(false)
     })
 
+    it('shuts the matching Save while its own save is in flight', async () => {
+      // ⛔ Its OWN flag. Wiring this button to `saving` - the moderation one - was
+      // green, and so was deleting the flag entirely, leaving the button that spends
+      // money re-clickable while its mutation is out.
+      let release
+      keyingMutate.mockReturnValueOnce(new Promise((resolve) => (release = resolve)))
+      const buttons = wrapper.findAll('button')
+
+      buttons[buttons.length - 1].trigger('click')
+      await nextTick()
+
+      expect(wrapper.findAll('button')[2].attributes('disabled')).toBeDefined()
+      expect(wrapper.findAll('button')[0].attributes('disabled')).toBeUndefined()
+      release({ data: { setCreaMatchingKeying: true } })
+    })
+
     it('gives each section its own Save', () => {
       // Three buttons: save moderation, probe the model, save matching.
       expect(wrapper.findAll('button')).toHaveLength(3)
-      expect(wrapper.text()).toContain('crea.settings.sectionModeration')
-      expect(wrapper.text()).toContain('crea.settings.sectionMatching')
+      // ⚠️ Negative lookahead, not `toContain`: `sectionMatchingHint` carries the
+      // heading's key as a prefix, so `toContain` was satisfied by the hint below it
+      // and deleting the heading outright stayed green.
+      expect(wrapper.text()).toMatch(/sectionModeration(?!Hint)/)
+      expect(wrapper.text()).toMatch(/sectionMatching(?!Hint)/)
     })
 
     // ⚠️ `testCreaModel` takes the same input type. The probe ignores the switch, but

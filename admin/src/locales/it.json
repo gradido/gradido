@@ -158,7 +158,6 @@
       "modelHint": "Leave empty = default model ({model}). You can type a new model directly.",
       "modelPlaceholder": "Default: {model}",
       "presetPlaceholder": "— choose a preset —",
-      "saved": "Crea settings saved",
       "savedMatching": "Matching setting saved",
       "savedModeration": "Moderation settings saved",
       "sectionMatching": "Matching",

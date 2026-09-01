@@ -245,6 +245,11 @@ describe('the matching keying run and the switch it hangs on', () => {
     // buy them, because the switch was only ever read before the loop. An admin who
     // unticks the box to stop a bill would have paid for the rest of the pass.
     expect(keyEntries).toHaveBeenCalledTimes(1)
+    // ⚠️ And the guard has to sit BEFORE the entry read of the batch it refuses, so a
+    // pass that is stopping does not touch member data on its way out. Two reads
+    // belong to the first batch - the "is there work" probe and its own - and none to
+    // the second. Without this line, moving the guard below the read stays green.
+    expect(pending).toHaveBeenCalledTimes(2)
   })
 
   it('keys what is waiting once matching is on', async () => {
