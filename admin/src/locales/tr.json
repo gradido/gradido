@@ -42,7 +42,7 @@
     "changeGroup": "Yaratım grubunu değiştir",
     "changeGroupConfirm": "Evet, taşı",
     "changeGroupDone": "Yaratım grubu değiştirildi.",
-    "changeGroupHint": "Görünür gruplarınıza bağlı olarak katkı listenizde artık görünmeyebilir.",
+    "changeGroupHint": "Görünür gruplarına bağlı olarak katkı listende artık görünmeyebilir.",
     "changeGroupQuestion": "Bu katkı {from} grubundan {to} grubuna taşınsın mı?",
     "confirmedBy": "{name} tarafından onaylandı.",
     "createdBy": "{name} tarafından oluşturuldu.",

@@ -42,7 +42,7 @@
     "changeGroup": "Changer de groupe de création",
     "changeGroupConfirm": "Oui, déplacer",
     "changeGroupDone": "Groupe de création modifié.",
-    "changeGroupHint": "Selon vos groupes visibles, la contribution pourrait ne plus apparaître dans votre liste.",
+    "changeGroupHint": "Selon tes groupes visibles, la contribution pourrait ne plus apparaître dans ta liste.",
     "changeGroupQuestion": "Déplacer cette contribution de {from} vers {to} ?",
     "confirmedBy": "Confirmé par {name}.",
     "createdBy": "Créé par {name}.",
