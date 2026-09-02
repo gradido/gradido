@@ -92,6 +92,7 @@ import { useApolloClient } from '@vue/apollo-composable'
 import VariantIcon from '@/components/VariantIcon.vue'
 import { avatarZoomEpoch, avatarZoomState, closeAvatarZoom } from '@/composables/useAvatarZoom'
 import { memberAvatarStoreEpoch, memberAvatarWithdrawn } from '@/composables/useMemberAvatars'
+import { memberKey as memberKeyOf } from '@/utils/gradidoAddress'
 import { memberAvatarFull } from '@/graphql/queries'
 
 // As close to the stored 512 as a screen usually allows, and never wider than the screen.
@@ -150,10 +151,9 @@ let openedAtScroll = 0
 
 const closing = computed(() => Boolean(closeTimer.value))
 
-// Identifies the face on screen, so the two <img> elements can be keyed on it.
-const memberKey = computed(() =>
-  shown.value ? `${shown.value.member.communityUuid ?? ''}/${shown.value.member.gradidoID}` : '',
-)
+// Identifies the face on screen, so the two <img> elements can be keyed on it. The same
+// key the avatar store and the favourites use -- one spelling of "which member".
+const memberKey = computed(() => (shown.value ? memberKeyOf(shown.value.member) : ''))
 
 const finalSize = computed(() =>
   Math.min(

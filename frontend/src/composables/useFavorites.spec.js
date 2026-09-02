@@ -5,7 +5,6 @@ import {
   favoritesLoaded,
   forgetFavorites,
   isFavorite,
-  loadFavorites,
   markFavorite,
   rememberFavorites,
 } from './useFavorites'
@@ -70,36 +69,55 @@ describe('useFavorites', () => {
     expect(isFavorite(CARLA)).toBe(false)
   })
 
-  it('loads from the server, bypassing the cache', async () => {
-    const query = vi.fn().mockResolvedValue({ data: { favoriteList: [SARAH] } })
-    await loadFavorites({ query })
-    expect(query).toHaveBeenCalledWith(
-      expect.objectContaining({ query: 'favoriteListQuery', fetchPolicy: 'network-only' }),
-    )
-    expect(isFavorite(SARAH)).toBe(true)
-    expect(favoritesLoaded()).toBe(true)
-  })
-
-  it('stays as it was, and not loaded, when the server cannot be reached', async () => {
-    rememberFavorites([CARLA])
-    const query = vi.fn().mockRejectedValue(new Error('offline'))
-    await loadFavorites({ query })
-    expect(isFavorite(CARLA)).toBe(true)
-  })
-
-  // ⛔ A logout while the request is out: the previous member's hearts must not land in the
-  // next member's session, whatever Apollo does with the in-flight query.
-  it('drops an answer that arrives after a logout', async () => {
-    const { query, release } = pending()
-    const load = loadFavorites({ query })
-    forgetFavorites()
-    release({ data: { favoriteList: [CARLA] } })
-    await load
-    expect(isFavorite(CARLA)).toBe(false)
-    expect(favoritesLoaded()).toBe(false)
-  })
-
   describe('ensureFavorites', () => {
+    it('loads from the server, bypassing the cache', async () => {
+      const query = vi.fn().mockResolvedValue({ data: { favoriteList: [SARAH] } })
+      await ensureFavorites({ query })
+      expect(query).toHaveBeenCalledWith(
+        expect.objectContaining({ query: 'favoriteListQuery', fetchPolicy: 'network-only' }),
+      )
+      expect(isFavorite(SARAH)).toBe(true)
+      expect(favoritesLoaded()).toBe(true)
+    })
+
+    // A heart tapped before the list arrived is on this device already; a failed load must
+    // not take it away again.
+    it('leaves what is already here when the server cannot be reached', async () => {
+      markFavorite(CARLA, true)
+      const query = vi.fn().mockRejectedValue(new Error('offline'))
+      await ensureFavorites({ query })
+      expect(isFavorite(CARLA)).toBe(true)
+      expect(favoritesLoaded()).toBe(false)
+    })
+
+    // ⛔ A logout while the request is out: the previous member's hearts must not land in
+    // the next member's session, whatever Apollo does with the in-flight query.
+    it('drops an answer that arrives after a logout', async () => {
+      const { query, release } = pending()
+      const load = ensureFavorites({ query })
+      forgetFavorites()
+      release({ data: { favoriteList: [CARLA] } })
+      await load
+      expect(isFavorite(CARLA)).toBe(false)
+      expect(favoritesLoaded()).toBe(false)
+    })
+
+    // The old request settles into the new session; its handle must not clear the new
+    // one's, or the next screen starts a second request for the same list.
+    it("does not release the next session's request when the old one settles", async () => {
+      const first = pending()
+      const stale = ensureFavorites({ query: first.query })
+      forgetFavorites()
+      const second = pending()
+      ensureFavorites({ query: second.query })
+      first.release({ data: { favoriteList: [CARLA] } })
+      await stale
+      // The second request is still out; a third caller has to join it, not start its own.
+      ensureFavorites({ query: second.query })
+      expect(second.query).toHaveBeenCalledTimes(1)
+      second.release({ data: { favoriteList: [SARAH] } })
+    })
+
     it('asks once, however many screens ask at the same time', async () => {
       const { query, release } = pending()
       const first = ensureFavorites({ query })

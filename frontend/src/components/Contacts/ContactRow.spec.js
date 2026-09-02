@@ -57,11 +57,11 @@ describe('ContactRow', () => {
             props: ['initials', 'src'],
             template: '<i data-test="avatar" :data-initials="initials" />',
           },
-          // Does what the real one does with a community name: appends it.
+          // Does what the real one does: appends the community, unless told not to.
           Name: {
-            props: ['linkedUser'],
+            props: ['linkedUser', 'withCommunity'],
             template:
-              '<span data-test="name">{{ linkedUser.alias }}{{ linkedUser.communityName ? " / " + linkedUser.communityName : "" }}</span>',
+              '<span data-test="name">{{ linkedUser.alias }}{{ withCommunity && linkedUser.communityName ? " / " + linkedUser.communityName : "" }}</span>',
           },
           FavoriteHeart: {
             props: ['member'],

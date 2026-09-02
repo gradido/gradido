@@ -325,11 +325,25 @@ describe('useMemberAvatars', () => {
     // list asks for all favourites plus a page at once, so the refs go in blocks.
     it('splits a long list into blocks the server accepts', async () => {
       const apollo = client()
-      const users = Array.from({ length: 230 }, (_, n) => member(n))
+      const users = Array.from({ length: 150 }, (_, n) => member(n))
       await fetchMemberAvatars(apollo, users)
-      expect(apollo.query).toHaveBeenCalledTimes(3)
+      expect(apollo.query).toHaveBeenCalledTimes(2)
       const sizes = apollo.query.mock.calls.map(([{ variables }]) => variables.refs.length)
-      expect(sizes).toEqual([100, 100, 30])
+      expect(sizes).toEqual([100, 50])
+    })
+
+    // ⛔ What the store cannot keep would be evicted by the very answer that brought it,
+    // count as missing again, and be asked for again by the next list -- on every
+    // keystroke, for a member with more pictured favourites than the cap.
+    it("never asks for more faces than the store can keep, and serves the caller's order", async () => {
+      const apollo = client()
+      const users = Array.from({ length: 260 }, (_, n) => member(n))
+      await fetchMemberAvatars(apollo, users)
+      const asked = apollo.query.mock.calls.flatMap(([{ variables }]) => variables.refs)
+      expect(asked).toHaveLength(200)
+      // The first ones handed in are the ones served.
+      expect(asked[0].gradidoID).toBe('id-0')
+      expect(asked.at(-1).gradidoID).toBe('id-199')
     })
 
     it('keeps the faces of the blocks that answered when one fails', async () => {

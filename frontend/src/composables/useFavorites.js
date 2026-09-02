@@ -71,8 +71,11 @@ export const forgetFavorites = () => {
 /**
  * Asks the server. `network-only`: a cached answer would be the previous member's on a
  * shared device where the cache survived (see the logout note in the store).
+ *
+ * Not exported: `ensureFavorites` is the one way in, so that nobody can bypass the
+ * short-circuit and the shared request by reaching for what looks like "the loader".
  */
-export const loadFavorites = async (apolloClient) => {
+const loadFavorites = async (apolloClient) => {
   const at = epoch
   try {
     const { data } = await apolloClient.query({
@@ -95,9 +98,14 @@ export const loadFavorites = async (apolloClient) => {
 export const ensureFavorites = (apolloClient) => {
   if (state.loaded) return Promise.resolve()
   if (!inFlight) {
-    inFlight = loadFavorites(apolloClient).finally(() => {
-      inFlight = null
+    // The handle clears only itself: a request that was still out when the member logged
+    // out settles later, and must not take the NEW session's request off the hook.
+    const handle = loadFavorites(apolloClient).finally(() => {
+      if (inFlight === handle) {
+        inFlight = null
+      }
     })
+    inFlight = handle
   }
   return inFlight
 }

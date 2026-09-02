@@ -381,7 +381,11 @@ export const forgetAllMemberAvatars = () => {
   announceChange()
 }
 
-/** What one memberAvatars request may name -- the server's MemberAvatarsArgs cap. */
+/**
+ * What one memberAvatars request may name -- the server's cap, in
+ * backend/src/data/MemberAvatars.logic.ts. Over it the request is refused WHOLE, so the
+ * two numbers must not drift; useMemberAvatars.drift.spec.js holds them together.
+ */
 export const MEMBER_AVATARS_MAX_REFS = 100
 
 /**
@@ -412,6 +416,12 @@ export const fetchMemberAvatars = async (apolloClient, users) => {
   const { refs, done } = claimMissingMemberAvatars(members)
   if (!refs.length) return
 
+  // ⛔ Never ask for more faces than this store can hold. What it cannot keep is evicted by
+  // the very answer that brought it, counts as missing again, and the next list asks for it
+  // again -- a member with more pictured favourites than the cap would pay for that on
+  // every keystroke. The caller's ORDER decides who is served: the rows on screen first.
+  const wanted = refs.slice(0, MAX_ENTRIES)
+
   // Read before the request, compared after it. The one thing a late answer must never
   // survive is a logout in between -- see memberAvatarStoreEpoch.
   const epoch = memberAvatarStoreEpoch()
@@ -420,11 +430,13 @@ export const fetchMemberAvatars = async (apolloClient, users) => {
     // favourites plus a page at once, and a member with many pictured favourites would
     // otherwise send one request the server refuses whole -- and get no faces at all.
     const chunks = []
-    for (let start = 0; start < refs.length; start += MEMBER_AVATARS_MAX_REFS) {
-      chunks.push(refs.slice(start, start + MEMBER_AVATARS_MAX_REFS))
+    for (let start = 0; start < wanted.length; start += MEMBER_AVATARS_MAX_REFS) {
+      chunks.push(wanted.slice(start, start + MEMBER_AVATARS_MAX_REFS))
     }
+    // `async` on the mapper, so that a synchronous throw from the client becomes a settled
+    // rejection like any other -- outside it, it would escape past this function.
     const answers = await Promise.allSettled(
-      chunks.map((chunk) =>
+      chunks.map(async (chunk) =>
         apolloClient.query({
           query: memberAvatars,
           variables: { refs: chunk },

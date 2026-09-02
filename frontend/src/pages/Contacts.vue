@@ -157,12 +157,16 @@ watch(otherRows, (rows) => {
 
 // Faces for the rows on screen, the way the booking list asks for them. Only the visible
 // ones: a member with hundreds of contacts must not pay for hundreds of pictures on page one.
+//
+// The page rows come FIRST: the store keeps a fixed number of faces and serves the list in
+// the order it is given, so a member with more favourites than it can hold sees the people
+// they are looking at, and initials further down.
 watch(
   [favoriteRows, pageRows],
   ([favorites, page]) => {
     fetchMemberAvatars(
       apolloClient,
-      [...favorites, ...page].map(({ user }) => user),
+      [...page, ...favorites].map(({ user }) => user),
     )
   },
   { immediate: true },

@@ -6,8 +6,9 @@
     </BCol>
     <BCol class="min-w-0">
       <div class="fw-bold">
-        <!-- The same link the booking row has: the name leads to the send form. -->
-        <name :linked-user="linkedUser" font-color="text-dark" />
+        <!-- The same link the booking row has: the name leads to the send form. Without
+             the community behind it -- it has its own line below. -->
+        <name :linked-user="contact.user" :with-community="false" font-color="text-dark" />
       </div>
       <!-- The community in a line of its own (mockup V02) -- not behind the name, where the
            booking row puts it for a member of ANOTHER community only. -->
@@ -44,10 +45,6 @@ const props = defineProps({
 })
 
 const { t, d } = useI18n()
-
-// `Name` appends " / community" whenever the user carries a communityName; here the
-// community has its own line, so the name link gets the user without it.
-const linkedUser = computed(() => ({ ...props.contact.user, communityName: null }))
 
 // How often, and how recently -- one string, so the separator is not raw template text.
 const meta = computed(
