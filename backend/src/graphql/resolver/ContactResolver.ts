@@ -1,4 +1,6 @@
 // AI-GENERATED — not an architecture reference
+import { Paginated } from '@arg/Paginated'
+import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
 import { Contact } from '@model/Contact'
 import { ContactList } from '@model/ContactList'
 import { MemberRef } from '@model/MemberRef'
@@ -6,22 +8,22 @@ import { User } from '@model/User'
 import {
   ContactRow,
   dbDeleteFavorite,
+  dbFindForeignUsersByGradidoIds,
   dbFindMemberAvatarTimestamps,
+  dbFindUsersByIds,
   dbInsertFavorite,
   dbSelectContactsByUserId,
   dbSelectFavoritesByUserId,
-  User as dbUser,
   getHomeCommunity,
 } from 'database'
 import { getLogger } from 'log4js'
-import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
-import { In } from 'typeorm'
+import { Arg, Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { MemberRefInput } from '@/graphql/input/MemberRefInput'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
-import { remoteUserFromBooking } from './util/counterparty'
+import { getCommunityName } from './util/communities'
+import { CounterpartyLookups, remoteUserFromBooking } from './util/counterparty'
 
 const createLogger = () =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContactResolver`)
@@ -34,9 +36,8 @@ const favoriteKey = (communityUuid: string, gradidoID: string): string =>
  * The community uuid a favourite is stored under.
  *
  * A member of this community who registered before it had a uuid carries none on their
- * row, and a booking with them carries none either; the wallet then sends null. The home
- * community's uuid stands in -- the same substitution the member-avatar key makes -- so
- * that one person is one key however old their account is.
+ * row; the home community's uuid stands in -- the same substitution contactList makes
+ * when it builds the model -- so that one person is one key however old their account is.
  */
 const resolveCommunityUuid = async (communityUuid: string | null | undefined): Promise<string> => {
   if (communityUuid) {
@@ -63,17 +64,13 @@ export class ContactResolver {
   @Authorized([RIGHTS.MANAGE_OWN_CONTACTS])
   @Query(() => ContactList)
   async contactList(
+    @Args() { currentPage = 1, pageSize = 25 }: Paginated,
+    @Arg('search', () => String, { nullable: true }) search: string | null,
     @Ctx() context: Context,
-    @Arg('currentPage', () => Int, { defaultValue: 1 }) currentPage: number,
-    @Arg('pageSize', () => Int, { defaultValue: 25 }) pageSize: number,
-    @Arg('search', () => String, { nullable: true }) search?: string | null,
   ): Promise<ContactList> {
     const user = getUser(context)
     const logger = createLogger()
     logger.addContext('user', user.id)
-    if (currentPage < 1 || pageSize < 1) {
-      throw new LogError('contactList: page and page size must be positive', currentPage, pageSize)
-    }
 
     const page = await dbSelectContactsByUserId(user.id, {
       search: search ?? undefined,
@@ -98,21 +95,34 @@ export class ContactResolver {
       .filter((id): id is number => id !== null)
     const localUsers = new Map<number, User>()
     if (localIds.length > 0) {
-      const rows = await dbUser.find({ where: { id: In(localIds) }, withDeleted: true })
+      const rows = await dbFindUsersByIds(localIds, { withDeleted: true })
       const avatarDates = await dbFindMemberAvatarTimestamps(localIds)
       for (const row of rows) {
         const model = new User(row)
         model.avatarUpdatedAt = avatarDates.get(row.id) ?? null
-        // The booking row gets the community name from the users->community relation,
-        // which is not loaded here; a member of this community is in the home community.
+        // A member whose users row predates the home community's uuid carries none. The
+        // home community stands in -- ONCE, here, where the model is built: the GraphQL
+        // field is non-null, the favourite is stored under that uuid, and the wallet keys
+        // the heart by it. One pair per person, and no layer downstream needs a fallback.
+        if (!model.communityUuid && homeUuid) {
+          model.communityUuid = homeUuid
+        }
+        // The booking list leaves communityName empty for a member of this community (it
+        // loads no community relation). The contact row shows the community, as the
+        // mockup does, in a line of its own -- so the name is set here, and the row keeps
+        // it out of the name link (ContactRow.vue).
         model.communityName = home?.name ?? null
         localUsers.set(row.id, model)
       }
     }
 
+    const lookups = await this.remoteLookups(
+      page.contacts.filter((row) => row.linkedUserId === null),
+    )
+
     const contacts: Contact[] = []
     for (const row of page.contacts) {
-      const model = await this.userForContact(row, localUsers, logger)
+      const model = await this.userForContact(row, localUsers, lookups, logger)
       if (!model) {
         continue
       }
@@ -122,9 +132,38 @@ export class ContactResolver {
     return new ContactList(contacts, page.count)
   }
 
+  /**
+   * The foreign counterparties of one page, looked up in one users query and one
+   * community lookup per community -- instead of two queries per contact. The wallet asks
+   * for the whole list at once, so a member with many cross-community contacts would
+   * otherwise pay hundreds of round trips for one page.
+   */
+  private async remoteLookups(remoteRows: ContactRow[]): Promise<CounterpartyLookups> {
+    const gradidoIds = [...new Set(remoteRows.map((row) => row.gradidoId))]
+    const foreignUsers = await dbFindForeignUsersByGradidoIds(gradidoIds)
+    const communityNames = new Map<string, Promise<string>>()
+    return {
+      findForeignUser: async (communityUuid, gradidoID) =>
+        foreignUsers.find(
+          (row) =>
+            row.gradidoID === gradidoID &&
+            (communityUuid === null || row.communityUuid === communityUuid),
+        ) ?? null,
+      communityName: (communityUuid) => {
+        let name = communityNames.get(communityUuid)
+        if (!name) {
+          name = getCommunityName(communityUuid)
+          communityNames.set(communityUuid, name)
+        }
+        return name
+      },
+    }
+  }
+
   private async userForContact(
     row: ContactRow,
     localUsers: Map<number, User>,
+    lookups: CounterpartyLookups,
     logger: ReturnType<typeof createLogger>,
   ): Promise<User | null> {
     if (row.linkedUserId !== null) {
@@ -140,10 +179,13 @@ export class ContactResolver {
       {
         linkedUserCommunityUuid: row.communityUuid,
         linkedUserGradidoID: row.gradidoId,
+        // Already null when the stored name cannot be an alias (dbSelectContactsByUserId);
+        // the helper's own guard is the second lock.
         linkedUserName: row.alias,
       },
       logger,
       `contact ${row.communityUuid}/${row.gradidoId}`,
+      lookups,
     )
   }
 
@@ -170,7 +212,7 @@ export class ContactResolver {
   @Authorized([RIGHTS.MANAGE_OWN_CONTACTS])
   @Mutation(() => Boolean)
   async addFavorite(
-    @Arg('ref', () => MemberRefInput) ref: MemberRefInput,
+    @Arg('ref', () => MemberAvatarRefInput) ref: MemberAvatarRefInput,
     @Ctx() context: Context,
   ): Promise<boolean> {
     const user = getUser(context)
@@ -190,7 +232,7 @@ export class ContactResolver {
   @Authorized([RIGHTS.MANAGE_OWN_CONTACTS])
   @Mutation(() => Boolean)
   async removeFavorite(
-    @Arg('ref', () => MemberRefInput) ref: MemberRefInput,
+    @Arg('ref', () => MemberAvatarRefInput) ref: MemberAvatarRefInput,
     @Ctx() context: Context,
   ): Promise<boolean> {
     const user = getUser(context)

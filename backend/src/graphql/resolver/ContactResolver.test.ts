@@ -2,7 +2,13 @@
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
-import { AppDatabase, transferGradidos, User } from 'database'
+import {
+  AppDatabase,
+  Transaction as DbTransaction,
+  TransactionTypeId,
+  transferGradidos,
+  User,
+} from 'database'
 import { GraphQLError } from 'graphql'
 import { GradidoUnit } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -31,6 +37,32 @@ let bob: User
 let peter: User
 
 const day = (n: number): Date => new Date(Date.UTC(2026, 7, n, 12, 0, 0))
+
+const FOREIGN_COMMUNITY = '99999999-9999-9999-9999-999999999999'
+const ANNA = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'
+
+/**
+ * A booking with a member of another community whose stored name is a pre-alias-era
+ * "First Last" -- the shape the X-Com path wrote before 9caba44a6. Written straight into
+ * the ledger, the way the federation writes it: no local user id, the pair and the name.
+ */
+const foreignReceiveWithRealName = async (user: User, balanceDate: Date): Promise<void> => {
+  const tx = new DbTransaction()
+  tx.typeId = TransactionTypeId.RECEIVE
+  tx.memo = 'from afar'
+  tx.userId = user.id
+  tx.userGradidoID = user.gradidoID
+  tx.userCommunityUuid = user.communityUuid
+  tx.linkedUserId = null
+  tx.linkedUserCommunityUuid = FOREIGN_COMMUNITY
+  tx.linkedUserGradidoID = ANNA
+  tx.linkedUserName = 'Anna Müller'
+  tx.amount = new GradidoUnit(10000n)
+  tx.balance = new GradidoUnit(10000n)
+  tx.decay = new GradidoUnit(0n)
+  tx.balanceDate = balanceDate
+  await tx.save()
+}
 
 /**
  * user_favorites is a drizzle table, so cleanDB() does not reach it — that one walks
@@ -63,6 +95,8 @@ beforeAll(async () => {
   await transferGradidos(bibi, bob, new GradidoUnit(100000n), 'one', day(1))
   await transferGradidos(bob, bibi, new GradidoUnit(20000n), 'two', day(2))
   await transferGradidos(bibi, peter, new GradidoUnit(30000n), 'three', day(3))
+  // And the oldest contact: a foreign member whose booking stored her real name.
+  await foreignReceiveWithRealName(bibi, day(0))
 })
 
 afterAll(async () => {
@@ -99,10 +133,11 @@ describe('ContactResolver', () => {
       const res: any = await query({ query: contactList })
       expect(res.errors).toBeUndefined()
       const list = res.data.contactList
-      expect(list.count).toBe(2)
+      expect(list.count).toBe(3)
       expect(list.contacts.map((c: any) => c.user.gradidoID)).toEqual([
         peter.gradidoID,
         bob.gradidoID,
+        ANNA,
       ])
       const bobRow = list.contacts[1]
       expect(bobRow).toMatchObject({ bookings: 2, favorite: false })
@@ -121,14 +156,48 @@ describe('ContactResolver', () => {
       expect(res.data.contactList.contacts[0].user.gradidoID).toBe(bob.gradidoID)
     })
 
+    it('names a foreign member by nothing when her stored name is a real name (NU-019)', async () => {
+      const res: any = await query({ query: contactList })
+      const anna = res.data.contactList.contacts.find((c: any) => c.user.gradidoID === ANNA)
+      expect(anna.user).toMatchObject({
+        communityUuid: FOREIGN_COMMUNITY,
+        alias: null,
+        firstName: null,
+        lastName: null,
+      })
+      // And the search is no oracle on what the row does not show.
+      const probe: any = await query({ query: contactList, variables: { search: 'müll' } })
+      expect(probe.data.contactList.count).toBe(0)
+    })
+
     it('pages', async () => {
       const res: any = await query({
         query: contactList,
         variables: { currentPage: 2, pageSize: 1 },
       })
-      expect(res.data.contactList.count).toBe(2)
+      expect(res.data.contactList.count).toBe(3)
       expect(res.data.contactList.contacts).toHaveLength(1)
       expect(res.data.contactList.contacts[0].user.gradidoID).toBe(bob.gradidoID)
+    })
+
+    it('refuses a page that is not a page', async () => {
+      const res: any = await query({ query: contactList, variables: { currentPage: 0 } })
+      expect(res.errors).toBeDefined()
+    })
+
+    it('stands in with the home community for a member whose row carries no uuid', async () => {
+      // A member registered before the home community had a uuid: the row says null. The
+      // list must still answer -- the field is non-null in the schema -- and name the pair
+      // the favourite will be stored under.
+      await db
+        .getDataSource()
+        .query('UPDATE users SET community_uuid = NULL WHERE id = ?', [peter.id])
+      const res: any = await query({ query: contactList })
+      expect(res.errors).toBeUndefined()
+      const peterRow = res.data.contactList.contacts.find(
+        (c: any) => c.user.gradidoID === peter.gradidoID,
+      )
+      expect(peterRow.user.communityUuid).toBe(bibi.communityUuid)
     })
 
     it('starts with no favourites', async () => {
@@ -172,6 +241,16 @@ describe('ContactResolver', () => {
         communityUuid: peter.communityUuid,
         gradidoID: peter.gradidoID,
       })
+    })
+
+    it('refuses an empty gradido id', async () => {
+      const res: any = await mutate({
+        mutation: addFavorite,
+        variables: { ref: { communityUuid: null, gradidoID: '' } },
+      })
+      expect(res.errors).toBeDefined()
+      const favorites: any = await query({ query: favoriteList })
+      expect(favorites.data.favoriteList.some((f: any) => f.gradidoID === '')).toBe(false)
     })
 
     it('refuses the heart on oneself', async () => {

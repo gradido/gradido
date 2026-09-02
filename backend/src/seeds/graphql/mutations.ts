@@ -603,13 +603,13 @@ export const testCreaModel = gql`
 `
 
 export const addFavorite = gql`
-  mutation ($ref: MemberRefInput!) {
+  mutation ($ref: MemberAvatarRefInput!) {
     addFavorite(ref: $ref)
   }
 `
 
 export const removeFavorite = gql`
-  mutation ($ref: MemberRefInput!) {
+  mutation ($ref: MemberAvatarRefInput!) {
     removeFavorite(ref: $ref)
   }
 `

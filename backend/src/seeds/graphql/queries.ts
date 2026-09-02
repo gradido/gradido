@@ -592,7 +592,7 @@ export const creaSettings = gql`
 `
 
 export const contactList = gql`
-  query ($currentPage: Int, $pageSize: Int, $search: String) {
+  query ($currentPage: Int = 1, $pageSize: Int = 25, $search: String) {
     contactList(currentPage: $currentPage, pageSize: $pageSize, search: $search) {
       count
       contacts {

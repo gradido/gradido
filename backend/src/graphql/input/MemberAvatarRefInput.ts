@@ -1,12 +1,13 @@
 // AI-GENERATED — not an architecture reference
-import { IsOptional, IsString, MaxLength } from 'class-validator'
+import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator'
 import { Field, InputType } from 'type-graphql'
 
 // TODO: replace the class-validator decorators with a valibot MemberAvatarRef.schema.ts
 // after the update to typescript 5 is possible
 
 /**
- * Which member a picture is being asked about.
+ * Which member is meant -- a picture is being asked about, or a heart is given
+ * (ContactResolver). One input type for one question, whoever asks it.
  *
  * ★ A PAIR, not a plain id, and today that is a promise rather than a need: every member
  * a wallet can currently see a booking with is in the same community, so communityUuid is
@@ -23,6 +24,7 @@ import { Field, InputType } from 'type-graphql'
 export class MemberAvatarRefInput {
   @Field(() => String)
   @IsString()
+  @IsNotEmpty()
   @MaxLength(36)
   gradidoID: string
 

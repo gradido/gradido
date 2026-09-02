@@ -1,8 +1,9 @@
 // AI-GENERATED — not an architecture reference
 import { User } from '@model/User'
-import { User as dbUser } from 'database'
+import { User as DbUser, findForeignUserByUuids } from 'database'
 import { Logger } from 'log4js'
 import { isAliasEraName } from '@/data/StoredUserName.logic'
+import { LogError } from '@/server/LogError'
 import { getCommunityName } from './communities'
 
 /** What a booking carries about a counterparty from another community. */
@@ -13,13 +14,30 @@ export interface RemoteCounterpartyRef {
 }
 
 /**
+ * Where the helper looks things up. The booking list takes the database directly, one
+ * row at a time; the contact list hands in a page's worth prefetched in one query, and
+ * community names memoised per request -- the rule below stays the same either way.
+ */
+export interface CounterpartyLookups {
+  /** The `users` row the federation stored for the pair, or null. */
+  findForeignUser: (communityUuid: string | null, gradidoID: string) => Promise<DbUser | null>
+  /** The community's name by its uuid, '' when unknown. */
+  communityName: (communityUuid: string) => Promise<string>
+}
+
+const dbLookups: CounterpartyLookups = {
+  findForeignUser: findForeignUserByUuids,
+  communityName: getCommunityName,
+}
+
+/**
  * The member of ANOTHER community behind a booking, as a `User` model.
  *
  * First the `users` row the federation may have stored for them (`foreign = 1`); failing
  * that, the model is built from what the booking itself carries. Moved here from the
- * booking list unchanged, because the contact list needs the very same rule -- and the
- * guard below (NU-019: the stored name reaches `alias` only when it can be one) must not
- * exist twice, or one copy drifts.
+ * booking list, because the contact list needs the very same rule -- and the guard below
+ * (NU-019: the stored name reaches `alias` only when it can be one) must not exist twice,
+ * or one copy drifts.
  *
  * @param origin names the booking in the debug log, nothing else
  */
@@ -27,17 +45,19 @@ export const remoteUserFromBooking = async (
   ref: RemoteCounterpartyRef,
   logger: Logger,
   origin: string,
+  lookups: CounterpartyLookups = dbLookups,
 ): Promise<User> => {
+  if (!ref.linkedUserGradidoID) {
+    // A programmer error, not a data condition: both callers filter on the id before they
+    // get here. A lookup without it would have nothing to look up -- and a where clause
+    // that quietly lost the id would find somebody else.
+    throw new LogError('remoteUserFromBooking: booking without a counterparty gradido id', origin)
+  }
   logger.debug('search for remoteUser...', ref.linkedUserCommunityUuid, ref.linkedUserGradidoID)
-  const dbRemoteUser = await dbUser.findOne({
-    where: [
-      {
-        foreign: true,
-        communityUuid: ref.linkedUserCommunityUuid ?? undefined,
-        gradidoID: ref.linkedUserGradidoID ?? undefined,
-      },
-    ],
-  })
+  const dbRemoteUser = await lookups.findForeignUser(
+    ref.linkedUserCommunityUuid,
+    ref.linkedUserGradidoID,
+  )
   logger.debug(`found dbRemoteUser: ${dbRemoteUser?.id}`)
   const remoteUser = new User(dbRemoteUser)
   if (dbRemoteUser === null) {
@@ -45,9 +65,7 @@ export const remoteUserFromBooking = async (
     if (ref.linkedUserCommunityUuid !== null) {
       remoteUser.communityUuid = ref.linkedUserCommunityUuid
     }
-    if (ref.linkedUserGradidoID !== null) {
-      remoteUser.gradidoID = ref.linkedUserGradidoID
-    }
+    remoteUser.gradidoID = ref.linkedUserGradidoID
     if (ref.linkedUserName) {
       // The stored name goes into the alias, and that is what the booking row
       // shows -- but ONLY when it can be an alias. Since #3645 this column holds
@@ -71,6 +89,6 @@ export const remoteUserFromBooking = async (
       )
     }
   }
-  remoteUser.communityName = await getCommunityName(remoteUser.communityUuid)
+  remoteUser.communityName = await lookups.communityName(remoteUser.communityUuid)
   return remoteUser
 }
