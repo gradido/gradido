@@ -54,6 +54,12 @@ beforeAll(async () => {
     bibi,
     peter,
   )
+  // ⚠️ From here on the dates only go FORWARD. Every seeded booking takes its balance
+  // from the member's last one and computes the decay between the two, and decay does not
+  // run backwards -- a booking dated before the previous one throws.
+  //
+  // The oldest contact of all: a foreign booking that stored an assembled real name.
+  await foreignReceive(bibi, fromAfar(ANNA, 'Anna Müller'), day(0))
   // Three bookings with peter, two with bob, in a deliberate order of dates.
   await transferGradidos(bibi, peter, new GradidoUnit(100000n), 'one', day(1))
   await transferGradidos(bibi, bob, new GradidoUnit(50000n), 'two', day(2))
@@ -63,8 +69,6 @@ beforeAll(async () => {
   // Two bookings from one foreign member, who renamed herself in between.
   await foreignReceive(bibi, fromAfar(SARAH, 'Sarah'), day(6))
   await foreignReceive(bibi, fromAfar(SARAH, 'SarahP'), day(7))
-  // The oldest contact of all: a foreign booking that stored an assembled real name.
-  await foreignReceive(bibi, fromAfar(ANNA, 'Anna Müller'), day(0))
 })
 
 afterAll(async () => {

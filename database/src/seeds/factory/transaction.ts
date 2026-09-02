@@ -55,6 +55,10 @@ export async function transferGradidos(
  * `createTransaction`, so that the balance path every existing test seed depends on stays
  * untouched.
  *
+ * ⚠️ Seed a member's bookings in CHRONOLOGICAL order, as with every factory here: the
+ * balance comes from their last booking and the decay is computed between the two dates,
+ * and decay does not run backwards -- an earlier date than the previous one throws.
+ *
  * @param name what the sending community called them; a pre-alias-era "First Last" is a
  *   legitimate value here, and the point of several tests
  */
