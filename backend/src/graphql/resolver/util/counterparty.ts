@@ -2,7 +2,7 @@
 import { User } from '@model/User'
 import { User as DbUser, findForeignUserByUuids } from 'database'
 import { Logger } from 'log4js'
-import { isAliasEraName } from '@/data/StoredUserName.logic'
+import { isAliasEraName } from 'shared'
 import { LogError } from '@/server/LogError'
 import { getCommunityName } from './communities'
 

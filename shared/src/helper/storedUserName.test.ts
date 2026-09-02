@@ -1,9 +1,12 @@
 // AI-GENERATED — not an architecture reference
 
-import { isAliasEraName } from './StoredUserName.logic'
+import { describe, expect, it } from 'bun:test'
+
+import { isAliasEraName } from './storedUserName'
 
 /**
- * The gate that keeps a legacy stored name out of the unguarded `User.alias` field.
+ * The gate that keeps a legacy stored name out of the unguarded `User.alias` field -- and
+ * out of the contact search, which reads the same column.
  *
  * ⛔ Which change should make this red: anything that lets an assembled "Firstname
  * Lastname" through. That is the whole point -- `alias` is the field the real-name guard

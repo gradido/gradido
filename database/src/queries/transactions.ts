@@ -1,5 +1,5 @@
 import { and, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm'
-import { GradidoUnit, VALID_ALIAS_REGEX, VoidResult } from 'shared'
+import { GradidoUnit, isAliasEraName, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { Transaction as DbTransaction } from '../entity'
 import { TransactionTypeId } from '../enum'
@@ -56,7 +56,7 @@ export async function dbUpdateBalanceAndDate(txPart: {
  *     `users` row with `foreign = 1`, which the caller looks up by the pair.
  *
  * ⚠️ `alias` for a foreign contact is null unless the stored `linked_user_name` has the
- * shape of an alias (VALID_ALIAS_REGEX): before the alias era that column held an assembled
+ * shape of an alias (`isAliasEraName`): before the alias era that column held an assembled
  * real name, and NU-019 forbids that name to reach a member by any path -- shown OR
  * searched. The guard sits here, before `search` runs over the rows, so that the search can
  * never confirm a name the row would not show. The resolver applies the same rule once
@@ -87,11 +87,18 @@ const asDate = (value: unknown): Date => (value instanceof Date ? value : new Da
 /**
  * The stored name of a foreign counterparty, or null when it cannot be an alias -- the one
  * rule that keeps a pre-alias-era "First Last" out of the list AND out of the search.
+ *
+ * `isAliasEraName` comes from `shared` because the backend applies the very same rule when
+ * it fills `User.alias` (see counterparty.ts). Two copies of it would be two locks that can
+ * drift apart, and the drift would silently reopen the search oracle this guard closes.
  */
-const aliasOrNull = (stored: unknown): string | null =>
-  stored !== null && stored !== undefined && VALID_ALIAS_REGEX.test(String(stored))
-    ? String(stored)
-    : null
+const aliasOrNull = (stored: unknown): string | null => {
+  if (stored === null || stored === undefined) {
+    return null
+  }
+  const name = String(stored)
+  return isAliasEraName(name) ? name : null
+}
 
 /**
  * Everyone this member has ever exchanged Gradido with -- each person once, newest contact
