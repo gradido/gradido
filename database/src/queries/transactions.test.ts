@@ -101,6 +101,19 @@ describe('dbSelectContactsByUserId', () => {
     })
   })
 
+  it('turns the order around when asked, oldest contact first', async () => {
+    const page = await dbSelectContactsByUserId(bibi.id, { limit: 25, offset: 0, order: 'ASC' })
+    expect(page.contacts.map((c) => c.gradidoId)).toEqual([
+      ANNA,
+      peter.gradidoID,
+      bob.gradidoID,
+      SARAH,
+    ])
+    // And the page is taken off the reversed list, not off the default one.
+    const first = await dbSelectContactsByUserId(bibi.id, { limit: 1, offset: 0, order: 'ASC' })
+    expect(first.contacts[0].gradidoId).toBe(ANNA)
+  })
+
   it('does not count the creation as a contact', async () => {
     const page = await dbSelectContactsByUserId(bibi.id, { limit: 25, offset: 0 })
     expect(page.contacts.some((c) => c.bookings > 3)).toBe(false)

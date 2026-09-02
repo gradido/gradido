@@ -117,10 +117,14 @@ const aliasOrNull = (stored: unknown): string | null => {
  *
  * `search` matches the alias, case-insensitively, anywhere in it -- the guarded alias, so a
  * foreign contact whose stored name is not alias-shaped matches nothing (see ContactRow).
+ *
+ * `order` is over `lastAt`, newest first unless asked otherwise -- the direction the API
+ * offers through the house `Paginated` arguments. A plain string union rather than the
+ * backend's `Order` enum, which this package cannot import.
  */
 export async function dbSelectContactsByUserId(
   userId: number,
-  options: { search?: string; limit: number; offset: number },
+  options: { search?: string; limit: number; offset: number; order?: 'ASC' | 'DESC' },
 ): Promise<ContactsPage> {
   const db = drizzleDb()
   const withCounterparty = and(
@@ -205,7 +209,11 @@ export async function dbSelectContactsByUserId(
   const matching = needle
     ? rows.filter((row) => (row.alias ?? '').toLowerCase().includes(needle))
     : rows
-  matching.sort((a, b) => b.lastAt.getTime() - a.lastAt.getTime())
+  matching.sort((a, b) =>
+    options.order === 'ASC'
+      ? a.lastAt.getTime() - b.lastAt.getTime()
+      : b.lastAt.getTime() - a.lastAt.getTime(),
+  )
 
   return {
     contacts: matching.slice(options.offset, options.offset + options.limit),
