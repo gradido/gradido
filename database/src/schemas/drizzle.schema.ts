@@ -416,7 +416,9 @@ export type UserAvatarInsert = typeof userAvatarsTable.$inferInsert
 export const userFavoritesTable = mysqlTable(
   'user_favorites',
   {
-    userId: int('user_id').notNull(),
+    // `unsigned`, because migration 0128 writes `int(10) unsigned` -- a schema that mirrors
+    // the table in part is what the transactions row was fixed for two commits earlier.
+    userId: int('user_id', { unsigned: true }).notNull(),
     favoriteCommunityUuid: varchar('favorite_community_uuid', { length: 36 }).notNull(),
     favoriteGradidoId: varchar('favorite_gradido_id', { length: 36 }).notNull(),
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })

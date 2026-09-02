@@ -279,11 +279,15 @@ export const missingMemberAvatars = (refsWithDates) => {
  * The same list, minus what another request is already waiting for, and marked as being
  * fetched. The returned `done` must run when the request settles, whatever its outcome --
  * a `finally` -- or those members would never be asked about again on this page.
+ *
+ * @param limit how many may be claimed. Only what is really going to be asked for should
+ *   be marked in flight; a member claimed and then left out of the request would be held
+ *   back from the next list for the length of a round trip, for nothing.
  */
-export const claimMissingMemberAvatars = (refsWithDates) => {
-  const refs = missingMemberAvatars(refsWithDates).filter(
-    (ref) => !inFlightKeys.has(memberAvatarKey(ref)),
-  )
+export const claimMissingMemberAvatars = (refsWithDates, limit = Number.POSITIVE_INFINITY) => {
+  const refs = missingMemberAvatars(refsWithDates)
+    .filter((ref) => !inFlightKeys.has(memberAvatarKey(ref)))
+    .slice(0, limit)
   for (const ref of refs) inFlightKeys.add(memberAvatarKey(ref))
   return {
     refs,
@@ -413,14 +417,12 @@ export const fetchMemberAvatars = async (apolloClient, users) => {
   if (!members.length) return
 
   forgetWithdrawnMemberAvatars(members)
-  const { refs, done } = claimMissingMemberAvatars(members)
-  if (!refs.length) return
-
   // ⛔ Never ask for more faces than this store can hold. What it cannot keep is evicted by
   // the very answer that brought it, counts as missing again, and the next list asks for it
   // again -- a member with more pictured favourites than the cap would pay for that on
   // every keystroke. The caller's ORDER decides who is served: the rows on screen first.
-  const wanted = refs.slice(0, MAX_ENTRIES)
+  const { refs, done } = claimMissingMemberAvatars(members, MAX_ENTRIES)
+  if (!refs.length) return
 
   // Read before the request, compared after it. The one thing a late answer must never
   // survive is a logout in between -- see memberAvatarStoreEpoch.
@@ -430,8 +432,8 @@ export const fetchMemberAvatars = async (apolloClient, users) => {
     // favourites plus a page at once, and a member with many pictured favourites would
     // otherwise send one request the server refuses whole -- and get no faces at all.
     const chunks = []
-    for (let start = 0; start < wanted.length; start += MEMBER_AVATARS_MAX_REFS) {
-      chunks.push(wanted.slice(start, start + MEMBER_AVATARS_MAX_REFS))
+    for (let start = 0; start < refs.length; start += MEMBER_AVATARS_MAX_REFS) {
+      chunks.push(refs.slice(start, start + MEMBER_AVATARS_MAX_REFS))
     }
     // `async` on the mapper, so that a synchronous throw from the client becomes a settled
     // rejection like any other -- outside it, it would escape past this function.

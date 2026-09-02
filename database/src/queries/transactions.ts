@@ -84,6 +84,10 @@ const COUNTERPARTY_TYPES = [TransactionTypeId.SEND, TransactionTypeId.RECEIVE]
 
 const asDate = (value: unknown): Date => (value instanceof Date ? value : new Date(String(value)))
 
+/** One contact as one string, for an order that does not depend on the storage engine. */
+const contactKey = (row: { communityUuid: string | null; gradidoId: string }): string =>
+  `${row.communityUuid ?? ''}/${row.gradidoId}`
+
 /**
  * The stored name of a foreign counterparty, or null when it cannot be an alias -- the one
  * rule that keeps a pre-alias-era "First Last" out of the list AND out of the search.
@@ -209,11 +213,24 @@ export async function dbSelectContactsByUserId(
   const matching = needle
     ? rows.filter((row) => (row.alias ?? '').toLowerCase().includes(needle))
     : rows
-  matching.sort((a, b) =>
-    options.order === 'ASC'
-      ? a.lastAt.getTime() - b.lastAt.getTime()
-      : b.lastAt.getTime() - a.lastAt.getTime(),
-  )
+  // ⛔ The pair breaks a tie on the date. Two contacts can share a balance_date, the two
+  // groupings come back in whatever order the engine chose, and every page is a SEPARATE
+  // request -- so without this a tied contact can appear on two pages, or on none.
+  //
+  // Plain string comparison, not localeCompare, whose order depends on the platform's
+  // locale data: two requests served by two processes would then page under two rules.
+  // The direction applies to the tie-break as well, so the reversed list is the exact
+  // reverse of the default one.
+  const direction = options.order === 'ASC' ? 1 : -1
+  matching.sort((a, b) => {
+    const byDate = a.lastAt.getTime() - b.lastAt.getTime()
+    if (byDate !== 0) {
+      return direction * byDate
+    }
+    const keyA = contactKey(a)
+    const keyB = contactKey(b)
+    return direction * (keyA < keyB ? -1 : keyA > keyB ? 1 : 0)
+  })
 
   return {
     contacts: matching.slice(options.offset, options.offset + options.limit),

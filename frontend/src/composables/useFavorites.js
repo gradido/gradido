@@ -33,6 +33,25 @@ const state = reactive({
 let epoch = 0
 let inFlight = null
 
+/**
+ * Hearts given or taken WHILE a load was in flight, by key.
+ *
+ * The server's answer describes the state as it was when the query left, so it must not be
+ * allowed to undo a tap that happened after that: the answer is applied first, these are
+ * applied on top. Null while no load is out, so an ordinary tap costs nothing.
+ */
+let marksDuringLoad = null
+
+const setKey = (key, on) => {
+  const keys = new Set(state.keys)
+  if (on) {
+    keys.add(key)
+  } else {
+    keys.delete(key)
+  }
+  state.keys = keys
+}
+
 /** Reactive: a component reading this re-renders when the set changes. */
 export const isFavorite = (member) =>
   Boolean(member?.gradidoID) && state.keys.has(memberKey(member))
@@ -51,13 +70,11 @@ export const rememberFavorites = (refs) => {
  * caller puts it back.
  */
 export const markFavorite = (member, on) => {
-  const keys = new Set(state.keys)
-  if (on) {
-    keys.add(memberKey(member))
-  } else {
-    keys.delete(memberKey(member))
+  const key = memberKey(member)
+  setKey(key, on)
+  if (marksDuringLoad) {
+    marksDuringLoad.set(key, on)
   }
-  state.keys = keys
 }
 
 /** On logout: the next member on this device must not see the previous one's hearts. */
@@ -66,6 +83,7 @@ export const forgetFavorites = () => {
   state.loaded = false
   epoch++
   inFlight = null
+  marksDuringLoad = null
 }
 
 /**
@@ -77,6 +95,8 @@ export const forgetFavorites = () => {
  */
 const loadFavorites = async (apolloClient) => {
   const at = epoch
+  const marks = new Map()
+  marksDuringLoad = marks
   try {
     const { data } = await apolloClient.query({
       query: favoriteListQuery,
@@ -84,9 +104,18 @@ const loadFavorites = async (apolloClient) => {
     })
     if (at !== epoch) return
     rememberFavorites(data?.favoriteList ?? [])
+    // What the member did while this was on its way. The server has those rows already --
+    // the mutations went out with the taps -- so the answer is simply older than they are.
+    for (const [key, on] of marks) {
+      setKey(key, on)
+    }
   } catch {
     // Empty hearts this time round. `loaded` stays false, so the next screen that calls
     // ensureFavorites asks again.
+  } finally {
+    if (marksDuringLoad === marks) {
+      marksDuringLoad = null
+    }
   }
 }
 

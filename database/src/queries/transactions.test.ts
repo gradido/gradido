@@ -23,6 +23,8 @@ const SARAH = 'dddddddd-dddd-dddd-dddd-dddddddddddd'
 // A foreign member whose bookings still carry a pre-alias-era "First Last" -- the shape the
 // X-Com path wrote before 9caba44a6. That name must reach nobody, not through the search either.
 const ANNA = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'
+// Books on the same day as Sarah, so that the order has a real tie to break.
+const TINA = 'ffffffff-ffff-ffff-ffff-ffffffffffff'
 
 const day = (n: number): Date => new Date(Date.UTC(2026, 7, n, 12, 0, 0))
 
@@ -69,6 +71,7 @@ beforeAll(async () => {
   // Two bookings from one foreign member, who renamed herself in between.
   await foreignReceive(bibi, fromAfar(SARAH, 'Sarah'), day(6))
   await foreignReceive(bibi, fromAfar(SARAH, 'SarahP'), day(7))
+  await foreignReceive(bibi, fromAfar(TINA, 'TinaP'), day(7))
 })
 
 afterAll(async () => {
@@ -79,15 +82,18 @@ afterAll(async () => {
 describe('dbSelectContactsByUserId', () => {
   it('lists every counterparty once, newest contact first, with dates and counts', async () => {
     const page = await dbSelectContactsByUserId(bibi.id, { limit: 25, offset: 0 })
-    expect(page.count).toBe(4)
+    expect(page.count).toBe(5)
+    // Tina and Sarah share the newest date; the uuid pair decides between them, descending
+    // with the rest.
     expect(page.contacts.map((c) => c.gradidoId)).toEqual([
+      TINA,
       SARAH,
       bob.gradidoID,
       peter.gradidoID,
       ANNA,
     ])
 
-    const [sarah, bobRow, peterRow] = page.contacts
+    const [, sarah, bobRow, peterRow] = page.contacts
     // peter's seed carries no alias, so the joined users row answers null -- asserted as
     // null on purpose: `peter.alias` on the saved entity is undefined, and toMatchObject
     // tells the two apart.
@@ -107,11 +113,13 @@ describe('dbSelectContactsByUserId', () => {
 
   it('turns the order around when asked, oldest contact first', async () => {
     const page = await dbSelectContactsByUserId(bibi.id, { limit: 25, offset: 0, order: 'ASC' })
+    // The exact reverse of the default order, tie included.
     expect(page.contacts.map((c) => c.gradidoId)).toEqual([
       ANNA,
       peter.gradidoID,
       bob.gradidoID,
       SARAH,
+      TINA,
     ])
     // And the page is taken off the reversed list, not off the default one.
     const first = await dbSelectContactsByUserId(bibi.id, { limit: 1, offset: 0, order: 'ASC' })
@@ -121,7 +129,7 @@ describe('dbSelectContactsByUserId', () => {
   it('does not count the creation as a contact', async () => {
     const page = await dbSelectContactsByUserId(bibi.id, { limit: 25, offset: 0 })
     expect(page.contacts.some((c) => c.bookings > 3)).toBe(false)
-    expect(page.count).toBe(4)
+    expect(page.count).toBe(5)
   })
 
   it('keeps a stored real name out of the list and out of the search (NU-019)', async () => {
@@ -145,14 +153,19 @@ describe('dbSelectContactsByUserId', () => {
     expect(page.contacts[0]).toMatchObject({ linkedUserId: bibi.id, bookings: 2 })
   })
 
-  it('pages without repeating or dropping anybody', async () => {
+  // ⛔ Two contacts share the newest date here, and every page is a separate request. An
+  // order that leaves a tie to the storage engine puts such a contact on both pages or on
+  // neither -- which is why the pair breaks the tie.
+  it('pages without repeating or dropping anybody, tie included', async () => {
     const first = await dbSelectContactsByUserId(bibi.id, { limit: 3, offset: 0 })
     const second = await dbSelectContactsByUserId(bibi.id, { limit: 3, offset: 3 })
-    expect(first.count).toBe(4)
+    expect(first.count).toBe(5)
     expect(first.contacts).toHaveLength(3)
-    expect(second.contacts).toHaveLength(1)
+    expect(second.contacts).toHaveLength(2)
     const all = [...first.contacts, ...second.contacts].map((c) => c.gradidoId)
-    expect(new Set(all).size).toBe(4)
+    expect(new Set(all).size).toBe(5)
+    // The two tied contacts land on the same page, in the order the pair gives them.
+    expect(first.contacts.map((c) => c.gradidoId).slice(0, 2)).toEqual([TINA, SARAH])
   })
 
   it('searches the alias, case-insensitively, and counts only what matches', async () => {

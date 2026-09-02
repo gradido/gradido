@@ -346,6 +346,18 @@ describe('useMemberAvatars', () => {
       expect(asked.at(-1).gradidoID).toBe('id-199')
     })
 
+    // Only what is really asked for may be marked in flight: a member claimed and then
+    // left out of the request would be held back from the next list for nothing.
+    it('does not hold back the ones it left out', () => {
+      const users = Array.from({ length: 260 }, (_, n) => member(n))
+      const { refs } = claimMissingMemberAvatars(users, 200)
+      expect(refs).toHaveLength(200)
+      // The 60 it left out are still free for the next caller.
+      const rest = claimMissingMemberAvatars(users)
+      expect(rest.refs).toHaveLength(60)
+      expect(rest.refs[0].gradidoID).toBe('id-200')
+    })
+
     it('keeps the faces of the blocks that answered when one fails', async () => {
       const apollo = {
         query: vi

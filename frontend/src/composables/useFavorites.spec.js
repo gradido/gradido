@@ -102,6 +102,28 @@ describe('useFavorites', () => {
       expect(favoritesLoaded()).toBe(false)
     })
 
+    // ⛔ The answer describes the list as it was when the query left. A heart tapped
+    // while it was on its way is newer than the answer -- and the server already has it,
+    // because the mutation went out with the tap.
+    it('keeps a heart tapped while the list was on its way', async () => {
+      const { query, release } = pending()
+      const load = ensureFavorites({ query })
+      markFavorite(SARAH, true)
+      release({ data: { favoriteList: [CARLA] } })
+      await load
+      expect(isFavorite(CARLA)).toBe(true)
+      expect(isFavorite(SARAH)).toBe(true)
+    })
+
+    it('keeps a heart TAKEN while the list was on its way', async () => {
+      const { query, release } = pending()
+      const load = ensureFavorites({ query })
+      markFavorite(CARLA, false)
+      release({ data: { favoriteList: [CARLA] } })
+      await load
+      expect(isFavorite(CARLA)).toBe(false)
+    })
+
     // The old request settles into the new session; its handle must not clear the new
     // one's, or the next screen starts a second request for the same list.
     it("does not release the next session's request when the old one settles", async () => {
