@@ -69,6 +69,7 @@ describe('GddTransaction', () => {
           CollapseIcon: true,
           DecayInformation: true,
           VariantIcon: { props: ['icon'], template: '<i :data-icon="icon" />' },
+          FavoriteHeart: { props: ['member'], template: '<i data-test="heart-stub" />' },
         },
       },
     })
@@ -323,6 +324,40 @@ describe('GddTransaction', () => {
       expect(avatarProps().initials).toBe('')
       expect(avatarProps().name).toBe('')
       expect(avatarProps().src).toBe('')
+    })
+  })
+
+  /**
+   * The heart sits exactly where the name is a link (KF-005): a counterparty with a
+   * gradidoID. A creation has none and gets none; a link or card booking has one on both
+   * sides, like any transfer (KF-011).
+   */
+  describe('the heart', () => {
+    const heart = () => wrapper.find('[data-test="heart-stub"]')
+
+    it('is there for a transfer with a counterparty', () => {
+      mountWith({ linkedUser: { alias: 'napoli', gradidoID: 'u-1', avatarColorIndex: 3 } })
+      expect(heart().exists()).toBe(true)
+    })
+
+    it('is there for a booking that came through a link, and one made with a card', () => {
+      mountWith({ linkId: 42, linkedUser: { alias: 'napoli', gradidoID: 'u-1' } })
+      expect(heart().exists()).toBe(true)
+      mountWith({ viaThankYouCard: true, linkedUser: { alias: 'napoli', gradidoID: 'u-1' } })
+      expect(heart().exists()).toBe(true)
+    })
+
+    it('is not there for a creation', () => {
+      mountWith({
+        typeId: 'CREATION',
+        linkedUser: { alias: 'Gradido Akademie', gradidoID: 'community', avatarColorIndex: 0 },
+      })
+      expect(heart().exists()).toBe(false)
+    })
+
+    it('is not there when the counterparty could not be resolved', () => {
+      mountWith({ linkedUser: { alias: 'napoli' } })
+      expect(heart().exists()).toBe(false)
     })
   })
 })

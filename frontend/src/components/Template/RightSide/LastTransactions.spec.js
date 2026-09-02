@@ -37,6 +37,14 @@ vi.mock('@/components/TransactionRows/Name', () => ({
   },
 }))
 
+vi.mock('@/components/FavoriteHeart.vue', () => ({
+  default: {
+    name: 'FavoriteHeart',
+    props: ['member'],
+    template: '<i class="heart-stub" />',
+  },
+}))
+
 describe('LastTransactions', () => {
   let wrapper
 
@@ -287,5 +295,42 @@ describe('LastTransactions', () => {
       expect(avatar().props().initials).toBe('')
       expect(avatar().props().name).toBe('')
     })
+  })
+
+  it('draws a heart beside every row that has a counterparty, and none where there is none', async () => {
+    const transactions = [
+      {
+        id: 1,
+        typeId: 'SEND',
+        linkedUser: { alias: 'a', gradidoID: 'u-1' },
+        amount: -1,
+        balanceDate: '2026-01-01',
+      },
+      {
+        id: 2,
+        typeId: 'RECEIVE',
+        linkedUser: { alias: 'b' },
+        amount: 2,
+        balanceDate: '2026-01-02',
+      },
+    ]
+    // Slot-rendering stubs: the plain `true` stubs above swallow the columns' content.
+    wrapper = mount(LastTransactions, {
+      props: { transactions },
+      global: {
+        // With the columns rendering their content, the header's `$t` runs too.
+        mocks: {
+          $t: (key) => key,
+          $d: (date) => String(date),
+          $filters: { signedAmount: (amount) => String(amount) },
+        },
+        stubs: {
+          BRow: { template: '<div><slot /></div>' },
+          BCol: { template: '<div><slot /></div>' },
+        },
+      },
+    })
+    await nextTick()
+    expect(wrapper.findAll('.heart-stub')).toHaveLength(1)
   })
 })

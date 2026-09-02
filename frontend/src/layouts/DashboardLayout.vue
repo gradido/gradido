@@ -294,6 +294,7 @@ import LastTransactions from '@/components/Template/RightSide/LastTransactions'
 import { transactionsUserCountQuery } from '@/graphql/transactions.graphql'
 import { logout } from '@/graphql/mutations'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
+import { loadFavorites } from '@/composables/useFavorites'
 import CONFIG from '@/config'
 import { LAST_TRANSACTIONS_PAGE_SIZE, PAGE_SIZE } from '@/constants'
 import { useAppToast } from '@/composables/useToast'
@@ -418,6 +419,9 @@ const totalUsers = ref(null)
 
 // only error correction, normally skeleton should be visible less than 1500ms
 onMounted(() => {
+  // The member's hearts, once per session -- the rows that carry a heart read them from
+  // the composable, so no booking query has to ask for them.
+  loadFavorites(apolloClient)
   setTimeout(() => {
     skeleton.value = false
   }, 1500)

@@ -50,6 +50,11 @@
                 </span>
               </button>
             </BCol>
+            <!-- The heart at the row's end (KF-005); every row here has a counterparty,
+                 creations are filtered out of `rows` below. -->
+            <BCol v-if="row.transaction.linkedUser?.gradidoID" cols="auto" class="p-1">
+              <favorite-heart :member="row.transaction.linkedUser" />
+            </BCol>
           </BRow>
         </BCol>
       </BRow>
@@ -58,6 +63,7 @@
 </template>
 <script setup>
 import Name from '@/components/TransactionRows/Name'
+import FavoriteHeart from '@/components/FavoriteHeart.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { computed } from 'vue'
