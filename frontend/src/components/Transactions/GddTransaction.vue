@@ -69,7 +69,19 @@
           <variant-icon icon="cards" variant="muted" class="m-mb-1" />
         </div>
       </BCol>
-      <BCol cols="12" md="1" lg="1" class="text-end">
+      <!-- Flex, because the heart is inline and the collapse arrow a block: side by side
+           only inside a flex row, on two lines otherwise. And `auto` rather than one
+           twelfth, which is narrower than the two symbols together at every width up to
+           about 1275 px -- they would not wrap, they would spill over the amount. -->
+      <BCol cols="12" md="auto" lg="auto" class="d-flex justify-content-end align-items-center">
+        <!-- The heart, exactly where the name is a link (KF-005): a counterparty with a
+             gradidoID. A creation row has none and gets none; a link or card row has one
+             on both sides, like any transfer (KF-011). -->
+        <favorite-heart
+          v-if="hasCounterparty"
+          :member="props.transaction.linkedUser"
+          class="me-2"
+        />
         <collapse-icon class="text-end" :visible="visible" />
       </BCol>
     </BRow>
@@ -91,6 +103,7 @@ import { ref, computed, watch } from 'vue'
 import { useStore } from 'vuex'
 import CollapseIcon from '../TransactionRows/CollapseIcon'
 import Name from '../TransactionRows/Name'
+import FavoriteHeart from '@/components/FavoriteHeart.vue'
 import DecayInformation from '../DecayInformations/DecayInformation'
 import { BAvatar, BRow } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
@@ -167,6 +180,12 @@ const avatarProps = computed(() => {
 const useNameComponent = computed(() => {
   return !isCreationType.value
 })
+
+// Same condition Name.vue uses to make the name a link -- and the one this row uses for
+// the heart. Held in one place so the two cannot drift apart.
+const hasCounterparty = computed(
+  () => !isCreationType.value && Boolean(props.transaction.linkedUser?.gradidoID),
+)
 
 const nameProps = computed(() => {
   if (isCreationType.value) {

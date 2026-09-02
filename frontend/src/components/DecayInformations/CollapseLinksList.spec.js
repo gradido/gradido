@@ -9,7 +9,7 @@ import { BButton } from 'bootstrap-vue-next'
 const mockT = vi.fn((key, params) => {
   switch (key) {
     case 'link-load':
-      if (params === 0) return '1 more link'
+      if (params === 1) return '1 more link'
       return `${params.n} more links`
     case 'link-load-more':
       return `Load ${params.n} more links`

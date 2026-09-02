@@ -16,9 +16,12 @@ import { LOG4JS_QUERIES_CATEGORY_NAME } from '.'
 import {
   aliasExists,
   dbClearGmsRegistration,
+  dbFindForeignUsersByGradidoIds,
+  dbFindUsersByIds,
   dbLockUserRow,
   dbSaveUser,
   dbUpdateUserPassword,
+  findForeignUserByUuids,
   findUserByIdentifier,
 } from './user'
 import { dbInsertUserAlias } from './userAliases'
@@ -279,6 +282,75 @@ describe('user.queries', () => {
       expect(await aliasExists('bibi-was', bibi.id)).toBe(false)
       // ...and it stays blocked for everybody else.
       expect(await aliasExists('bibi-was')).toBe(true)
+    })
+  })
+
+  describe('dbFindUsersByIds', () => {
+    let bibi: DbUser
+    let peter: DbUser
+    let bob: DbUser
+
+    beforeAll(async () => {
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await DbCommunity.clear()
+      await createCommunity(false)
+      bibi = await userFactory(bibiBloxberg)
+      peter = await userFactory(peterLustig)
+      bob = await userFactory(bobBaumeister)
+      await DbUser.update({ id: bob.id }, { deletedAt: new Date() })
+    })
+
+    it('answers the rows for the ids, and nothing for an empty list', async () => {
+      const rows = await dbFindUsersByIds([bibi.id, peter.id])
+      expect(rows.map((row) => row.id).sort()).toEqual([bibi.id, peter.id].sort())
+      expect(await dbFindUsersByIds([])).toEqual([])
+    })
+
+    it('leaves a deleted member out unless asked to keep them', async () => {
+      const living = await dbFindUsersByIds([bibi.id, bob.id])
+      expect(living.map((row) => row.id)).toEqual([bibi.id])
+      const all = await dbFindUsersByIds([bibi.id, bob.id], { withDeleted: true })
+      expect(all.map((row) => row.id).sort()).toEqual([bibi.id, bob.id].sort())
+      expect(all.find((row) => row.id === bob.id)?.deletedAt).not.toBeNull()
+    })
+  })
+
+  describe('findForeignUserByUuids', () => {
+    const FOREIGN_COMMUNITY = '99999999-9999-9999-9999-999999999999'
+    let sarah: DbUser
+
+    beforeAll(async () => {
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await DbCommunity.clear()
+      await createCommunity(false)
+      // A local member with the same gradido id as the foreign one: only the foreign row
+      // may come back, whichever way the pair is asked for.
+      const local = await userFactory(peterLustig)
+      sarah = await userFactory(bibiBloxberg)
+      await DbUser.update({ id: sarah.id }, { foreign: true, communityUuid: FOREIGN_COMMUNITY })
+      await DbUser.update({ id: local.id }, { gradidoID: sarah.gradidoID })
+    })
+
+    it('finds the foreign row by the pair', async () => {
+      const found = await findForeignUserByUuids(FOREIGN_COMMUNITY, sarah.gradidoID)
+      expect(found?.id).toBe(sarah.id)
+      expect(
+        await findForeignUserByUuids('00000000-0000-0000-0000-000000000000', sarah.gradidoID),
+      ).toBeNull()
+    })
+
+    it('goes by the gradido id alone when the booking carries no community uuid', async () => {
+      const found = await findForeignUserByUuids(null, sarah.gradidoID)
+      expect(found?.id).toBe(sarah.id)
+      expect(await findForeignUserByUuids(null, 'nobody')).toBeNull()
+    })
+
+    it('answers a whole set of ids at once, foreign rows only', async () => {
+      const rows = await dbFindForeignUsersByGradidoIds([sarah.gradidoID, 'nobody'])
+      expect(rows.map((row) => row.id)).toEqual([sarah.id])
+      expect(await dbFindForeignUsersByGradidoIds([])).toEqual([])
     })
   })
 

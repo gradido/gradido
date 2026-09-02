@@ -149,6 +149,27 @@
   },
   "communityInfo": "Community Information",
   "contact": "Contact",
+  "contacts": {
+    "addFavorite": "Add to favourites",
+    "all": "All contacts",
+    "bookings": "{n} booking | {n} bookings",
+    "count": "{n} contact | {n} contacts",
+    "empty": "No contacts yet. Whoever sends you Gradido or receives it from you appears here.",
+    "favorites": "Favourites",
+    "heart": {
+      "add": "Add to favourites",
+      "remove": "Remove from favourites"
+    },
+    "isFavorite": "Favourite",
+    "last": "last {date}",
+    "notReachable": "The contacts could not be loaded.",
+    "remove": {
+      "body": "{name} stays in your contacts. You can make {name} a favourite again at any time.",
+      "confirm": "Remove",
+      "title": "Remove {name} from your favourites?"
+    },
+    "search": "Search contacts …"
+  },
   "contribution": {
     "activity": "Activity",
     "alert": {
@@ -704,6 +725,7 @@
     "back-to-settings": "Back to settings",
     "calculator": "Calculator",
     "community": "Community",
+    "contacts": "Contacts",
     "logout": "Logout",
     "matching": "Matching",
     "overview": "Overview",
@@ -717,6 +739,7 @@
   "pageTitle": {
     "calculator": "Calculator",
     "circles": "Gradido Circles",
+    "contacts": "Your contacts",
     "contributions": "Create Gradido",
     "gdt": "Your GDT transactions",
     "information": "{community}",

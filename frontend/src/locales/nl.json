@@ -149,6 +149,27 @@
   },
   "communityInfo": "Informatie over de gemeenschap",
   "contact": "Contact",
+  "contacts": {
+    "addFavorite": "Aan favorieten toevoegen",
+    "all": "Alle contacten",
+    "bookings": "{n} boeking | {n} boekingen",
+    "count": "{n} contact | {n} contacten",
+    "empty": "Nog geen contacten. Wie jou Gradido stuurt of van jou ontvangt, verschijnt hier.",
+    "favorites": "Favorieten",
+    "heart": {
+      "add": "Aan favorieten toevoegen",
+      "remove": "Uit favorieten verwijderen"
+    },
+    "isFavorite": "Favoriet",
+    "last": "laatst {date}",
+    "notReachable": "De contacten konden niet worden geladen.",
+    "remove": {
+      "body": "{name} blijft in je contacten. Je kunt {name} altijd weer favoriet maken.",
+      "confirm": "Verwijderen",
+      "title": "{name} uit je favorieten verwijderen?"
+    },
+    "search": "Contact zoeken …"
+  },
   "contribution": {
     "activity": "Activiteit",
     "alert": {
@@ -704,6 +725,7 @@
     "back-to-settings": "Terug naar instellingen",
     "calculator": "Rekenmachine",
     "community": "Gemeenschap",
+    "contacts": "Contacten",
     "logout": "Afmelden",
     "matching": "Matching",
     "overview": "Overzicht",
@@ -717,6 +739,7 @@
   "pageTitle": {
     "calculator": "Rekenmachine",
     "circles": "Gradido Kringen",
+    "contacts": "Je contacten",
     "contributions": "Gradido scoop",
     "gdt": "Your GDT transactions",
     "information": "{community}",

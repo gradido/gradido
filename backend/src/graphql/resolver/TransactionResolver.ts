@@ -44,7 +44,6 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { PublishNameLogic } from '@/data/PublishName.logic'
-import { isAliasEraName } from '@/data/StoredUserName.logic'
 import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
@@ -55,6 +54,7 @@ import { SendEmailArgs } from '../arg/SendEmailArgs'
 import { BalanceResolver } from './BalanceResolver'
 import { GdtResolver } from './GdtResolver'
 import { getCommunityName, isHomeCommunity } from './util/communities'
+import { remoteUserFromBooking } from './util/counterparty'
 import { getTransactionList } from './util/getTransactionList'
 
 const db = AppDatabase.getInstance()
@@ -328,56 +328,9 @@ export class TransactionResolver {
         involvedUserIds.push(transaction.linkedUserId)
       }
       if (!transaction.linkedUserId && transaction.linkedUserGradidoID) {
-        logger.debug(
-          'search for remoteUser...',
-          transaction.linkedUserCommunityUuid,
-          transaction.linkedUserGradidoID,
+        involvedRemoteUsers.push(
+          await remoteUserFromBooking(transaction, logger, `tx: ${transaction.id}`),
         )
-        const dbRemoteUser = await dbUser.findOne({
-          where: [
-            {
-              foreign: true,
-              communityUuid: transaction.linkedUserCommunityUuid ?? undefined,
-              gradidoID: transaction.linkedUserGradidoID,
-            },
-          ],
-        })
-        logger.debug(`found dbRemoteUser: ${dbRemoteUser?.id}`)
-        const remoteUser = new User(dbRemoteUser)
-        if (dbRemoteUser === null) {
-          logger.debug(`no dbRemoteUser found, init from tx: ${transaction.id}`)
-          if (transaction.linkedUserCommunityUuid !== null) {
-            remoteUser.communityUuid = transaction.linkedUserCommunityUuid
-          }
-          remoteUser.gradidoID = transaction.linkedUserGradidoID
-          if (transaction.linkedUserName) {
-            // The stored name goes into the alias, and that is what the booking row
-            // shows -- but ONLY when it can be an alias. Since #3645 this column holds
-            // the alias for every booking made in the alias era; before that it held an
-            // assembled "First Last", which the split below still relies on. Passing
-            // such a value through the unguarded alias field would hand a member the
-            // counterparty's real name, which is the one thing NU-019 forbids.
-            //
-            // The shape decides, because nothing else can -- see isAliasEraName, which
-            // holds that rule and its limits. Where it says no, the row falls back to the
-            // gradidoID. The split itself is untouched (KLAR-11, with Dario) and still
-            // feeds firstName/lastName, which the guard shows to the moderation and to
-            // nobody else.
-            if (isAliasEraName(transaction.linkedUserName)) {
-              remoteUser.alias = transaction.linkedUserName
-            }
-            remoteUser.firstName = transaction.linkedUserName.slice(
-              0,
-              transaction.linkedUserName.indexOf(' '),
-            )
-            remoteUser.lastName = transaction.linkedUserName?.slice(
-              transaction.linkedUserName.indexOf(' '),
-              transaction.linkedUserName.length,
-            )
-          }
-        }
-        remoteUser.communityName = await getCommunityName(remoteUser.communityUuid)
-        involvedRemoteUsers.push(remoteUser)
       }
     }
     logger.debug(`involvedUserIds=`, involvedUserIds)

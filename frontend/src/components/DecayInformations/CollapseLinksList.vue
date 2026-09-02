@@ -49,7 +49,10 @@ export default {
   computed: {
     buttonText() {
       const i = this.transactionLinkCount - this.transactionLinks.length
-      if (i === 1) return this.$t('link-load', 0)
+      // ONE, not zero: the count is what the sentence is about, and every plural rule
+      // reads 1 as the singular. Zero landed on the plural form in every language --
+      // "die letzten 0 Links nachladen" -- because zero is not one.
+      if (i === 1) return this.$t('link-load', 1)
       if (i <= this.pageSize) return this.$t('link-load', { n: i })
       return this.$t('link-load-more', { n: this.pageSize })
     },

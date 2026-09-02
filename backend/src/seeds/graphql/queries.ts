@@ -590,3 +590,34 @@ export const creaSettings = gql`
     }
   }
 `
+
+export const contactList = gql`
+  query ($currentPage: Int = 1, $pageSize: Int = 25, $search: String) {
+    contactList(currentPage: $currentPage, pageSize: $pageSize, search: $search) {
+      count
+      contacts {
+        user {
+          gradidoID
+          communityUuid
+          communityName
+          alias
+          firstName
+          lastName
+        }
+        firstAt
+        lastAt
+        bookings
+        favorite
+      }
+    }
+  }
+`
+
+export const favoriteList = gql`
+  query {
+    favoriteList {
+      communityUuid
+      gradidoID
+    }
+  }
+`

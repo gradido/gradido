@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 
-import { VALID_ALIAS_REGEX } from 'shared'
+import { VALID_ALIAS_REGEX } from '../schema/user.schema'
 
 /**
  * Whether the name stored on a booking may be shown as a member's ALIAS.
@@ -13,6 +13,12 @@ import { VALID_ALIAS_REGEX } from 'shared'
  * the field that replaced the guarded name everywhere. Passing a legacy value through it
  * would hand every reader the counterparty's real name, by the very mechanism built to
  * stop that.
+ *
+ * ⛔ And it is not only about SHOWING. The contact list searches on the same column, so a
+ * rule that lives only where the name is displayed leaves the search able to confirm a
+ * name the row refuses to show -- a letter-by-letter oracle. That is why this rule sits in
+ * `shared`: the database package applies it before it searches, the backend before it
+ * fills `alias`, and neither can import the other.
  *
  * The SHAPE is the only discriminator available, and it is sufficient for the data that
  * exists: an alias is 3-20 characters of letters and digits with single `-`/`_`

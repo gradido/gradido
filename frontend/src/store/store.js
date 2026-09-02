@@ -7,6 +7,7 @@ import i18n from '../i18n'
 import { clearEntryDraft } from '../composables/useEntryDraft'
 import { closeAvatarZoom } from '../composables/useAvatarZoom'
 import { forgetAllMemberAvatars } from '../composables/useMemberAvatars'
+import { forgetFavorites } from '../composables/useFavorites'
 import { forgetParkedAmount } from '../composables/useParkedAmount'
 import { clearApolloCache } from '../plugins/apolloCache'
 
@@ -194,6 +195,8 @@ export const actions = {
     // the throw would take every following line of this action with it. Of the two, the
     // faces are the ones that must not survive a logout.
     forgetAllMemberAvatars()
+    // Same reason, same moment: the hearts are one member's, not the device's.
+    forgetFavorites()
     // ⚠️ A picture that is OPEN at this moment lives somewhere else again: the zoom keeps
     // the one face being looked at in its own module, outside the store and outside the
     // avatar cache above. The idle-timeout logout is the realistic path -- it fires

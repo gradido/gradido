@@ -149,6 +149,27 @@
   },
   "communityInfo": "Информация о сообществе",
   "contact": "Контакт",
+  "contacts": {
+    "addFavorite": "В избранное",
+    "all": "Все контакты",
+    "bookings": "{n} операция | {n} операции | {n} операций",
+    "count": "{n} контакт | {n} контакта | {n} контактов",
+    "empty": "Контактов пока нет. Здесь появится каждый, кто отправляет вам Gradido или получает их от вас.",
+    "favorites": "Избранные",
+    "heart": {
+      "add": "Добавить в избранное",
+      "remove": "Убрать из избранного"
+    },
+    "isFavorite": "В избранном",
+    "last": "последняя {date}",
+    "notReachable": "Не удалось загрузить контакты.",
+    "remove": {
+      "body": "{name} остаётся в ваших контактах. Вы можете в любой момент снова добавить {name} в избранное.",
+      "confirm": "Убрать",
+      "title": "Убрать {name} из ваших избранных?"
+    },
+    "search": "Поиск контакта …"
+  },
   "contribution": {
     "activity": "Деятельность",
     "alert": {
@@ -704,6 +725,7 @@
     "back-to-settings": "Назад к настройкам",
     "calculator": "Калькулятор",
     "community": "Сообщество",
+    "contacts": "Контакты",
     "logout": "Выйти",
     "matching": "Matching",
     "overview": "Обзор",
@@ -717,6 +739,7 @@
   "pageTitle": {
     "calculator": "Калькулятор",
     "circles": "Gradido Круги",
+    "contacts": "Ваши контакты",
     "contributions": "Создать Gradido",
     "gdt": "Ваши транзакции GDT",
     "information": "{community}",

@@ -293,13 +293,8 @@ import CommunityMember from '@/components/Template/ContentHeader/CommunityMember
 import LastTransactions from '@/components/Template/RightSide/LastTransactions'
 import { transactionsUserCountQuery } from '@/graphql/transactions.graphql'
 import { logout } from '@/graphql/mutations'
-import { memberAvatars } from '@/graphql/queries'
-import {
-  claimMissingMemberAvatars,
-  forgetWithdrawnMemberAvatars,
-  memberAvatarStoreEpoch,
-  rememberMemberAvatars,
-} from '@/composables/useMemberAvatars'
+import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
+import { ensureFavorites } from '@/composables/useFavorites'
 import CONFIG from '@/config'
 import { LAST_TRANSACTIONS_PAGE_SIZE, PAGE_SIZE } from '@/constants'
 import { useAppToast } from '@/composables/useToast'
@@ -424,6 +419,9 @@ const totalUsers = ref(null)
 
 // only error correction, normally skeleton should be visible less than 1500ms
 onMounted(() => {
+  // The member's hearts, once per session -- the rows that carry a heart read them from
+  // the composable, so no booking query has to ask for them.
+  ensureFavorites(apolloClient)
   setTimeout(() => {
     skeleton.value = false
   }, 1500)
@@ -518,51 +516,10 @@ watch(
 // rather than thrown away: a member who turns a page while a request is out paid for those
 // bytes, and discarding them shows initials on a list whose portraits had already arrived.
 const collectMemberAvatars = async (rows) => {
-  const members = rows
-    .map((row) => row.linkedUser)
-    .filter((member) => member?.gradidoID)
-    .map(({ gradidoID, communityUuid, avatarUpdatedAt }) => ({
-      gradidoID,
-      communityUuid: communityUuid ?? null,
-      avatarUpdatedAt: avatarUpdatedAt ?? null,
-    }))
-  if (!members.length) return
-
-  forgetWithdrawnMemberAvatars(members)
-  const { refs, done } = claimMissingMemberAvatars(members)
-  if (!refs.length) return
-
-  // Read before the request, compared after it. The one thing a late answer must never
-  // survive is a logout in between -- see memberAvatarStoreEpoch.
-  const epoch = memberAvatarStoreEpoch()
-  try {
-    const { data } = await apolloClient.query({
-      query: memberAvatars,
-      variables: { refs },
-      // ⚠️ Not from the cache, ever. The request names members, not versions -- a member
-      // who replaces their picture is asked for under exactly the same variables as
-      // before, so a cached answer would hand back the picture they just replaced and the
-      // new one would never arrive. The freshness decision is made against the date on the
-      // list, before we get here; by this point the answer has to come from the server.
-      //
-      // `no-cache`, not `network-only`: both skip the cache on the way IN, but
-      // network-only still writes the answer to it. MemberAvatar carries no id and there
-      // are no type policies, so nothing normalises it -- every distinct ref list becomes
-      // its own ROOT_QUERY entry holding a full copy of the base64, and nothing evicts it
-      // before logout. Measured at 2.1 MB of dead payload over eight pages, on top of the
-      // copy this module already keeps.
-      fetchPolicy: 'no-cache',
-    })
-    if (epoch !== memberAvatarStoreEpoch()) return
-    rememberMemberAvatars(data?.memberAvatars ?? [])
-  } catch {
-    // Initials this time round, and the next list asks again.
-  } finally {
-    // Whatever happened, these members are no longer being waited for. Without this a
-    // failed request would leave them marked in flight and they would never be asked
-    // about again on this page.
-    done()
-  }
+  await fetchMemberAvatars(
+    apolloClient,
+    rows.map((row) => row.linkedUser),
+  )
 }
 
 onResult((value) => {

@@ -34,14 +34,26 @@ export default {
       required: false,
       default: null,
     },
+    /**
+     * Whether the community goes behind the name, after a slash. True everywhere it has
+     * always been -- in a booking row that suffix is what marks a member of ANOTHER
+     * community. The contact list gives the community a line of its own instead (mockup
+     * V02) and switches it off here, rather than handing this component a doctored user.
+     */
+    withCommunity: {
+      type: Boolean,
+      required: false,
+      default: true,
+    },
   },
   computed: {
     // How the wallet names a member (NU-018), plus the community they belong to.
     itemText() {
-      return this.linkedUser
-        ? memberAlias(this.linkedUser.alias, this.linkedUser.gradidoID) +
-            (this.linkedUser.communityName ? ' / ' + this.linkedUser.communityName : '')
-        : this.text
+      if (!this.linkedUser) return this.text
+      const alias = memberAlias(this.linkedUser.alias, this.linkedUser.gradidoID)
+      return this.withCommunity && this.linkedUser.communityName
+        ? alias + ' / ' + this.linkedUser.communityName
+        : alias
     },
     pushTo() {
       return {

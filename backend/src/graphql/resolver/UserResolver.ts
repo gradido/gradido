@@ -1,10 +1,6 @@
 import { UserArgs } from '@arg//UserArgs'
 import { CreateUserArgs } from '@arg/CreateUserArgs'
-import {
-  MEMBER_AVATARS_FULL_MAX_PER_REQUEST,
-  MEMBER_AVATARS_MAX_REFS,
-  MemberAvatarsArgs,
-} from '@arg/MemberAvatarsArgs'
+import { MemberAvatarsArgs } from '@arg/MemberAvatarsArgs'
 import { Paginated } from '@arg/Paginated'
 import { SearchUsersFilters } from '@arg/SearchUsersFilters'
 import { SetUserRoleArgs } from '@arg/SetUserRoleArgs'
@@ -114,6 +110,10 @@ import {
   emailChangeExpiryCutoff,
   isEmailVerificationCodeValid,
 } from '@/data/EmailVerificationCode.logic'
+import {
+  MEMBER_AVATARS_FULL_MAX_PER_REQUEST,
+  MEMBER_AVATARS_MAX_REFS,
+} from '@/data/MemberAvatars.logic'
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import {
   EVENT_ADMIN_USER_DELETE,

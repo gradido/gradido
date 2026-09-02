@@ -26,6 +26,15 @@
               <span class="ms-2">{{ $t('navigation.transactions') }}</span>
             </div>
           </BNavItem>
+          <!-- Under "Transactions", because the contacts come out of the bookings (KF-008).
+               The day the chat arrives this entry changes its name, it does not get a
+               neighbour. -->
+          <BNavItem to="/contacts" class="mb-3" active-class="active-route">
+            <div class="sidebar-menu-item-wrapper">
+              <i-mdi-account-box-outline class="svg-icon" />
+              <span class="ms-2">{{ $t('navigation.contacts') }}</span>
+            </div>
+          </BNavItem>
           <BNavItem
             ref="contributionsLink"
             to="/contributions"

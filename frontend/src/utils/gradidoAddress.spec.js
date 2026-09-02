@@ -5,6 +5,7 @@ import {
   communityHost,
   gradidoAddress,
   memberAlias,
+  memberKey,
   sameHost,
   splitRecipient,
 } from './gradidoAddress'
@@ -30,6 +31,14 @@ describe('memberAlias', () => {
   it('says nothing rather than "undefined" when there is neither', () => {
     expect(memberAlias(undefined, undefined)).toBe('')
     expect(memberAlias(null, null)).toBe('')
+  })
+})
+
+describe('memberKey', () => {
+  it('is the uuid pair, with an empty community for a row that carries none', () => {
+    expect(memberKey({ communityUuid: 'home', gradidoID: 'carla' })).toBe('home/carla')
+    expect(memberKey({ gradidoID: 'carla' })).toBe('/carla')
+    expect(memberKey({ communityUuid: null, gradidoID: 'carla' })).toBe('/carla')
   })
 })
 

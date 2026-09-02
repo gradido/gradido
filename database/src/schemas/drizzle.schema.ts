@@ -11,6 +11,7 @@ import {
   json,
   longtext,
   mysqlTable,
+  primaryKey,
   text,
   tinyint,
   unique,
@@ -275,6 +276,26 @@ export const transactionsTable = mysqlTable(
     userId: int('user_id').notNull(),
     linkedUserId: int('linked_user_id').default(sql`NULL`),
     linkedTransactionId: int('linked_transaction_id').default(sql`NULL`),
+    // The rest of the row as the TypeORM entity (`entity/Transaction.ts`) has carried it for
+    // years. Added when the contact list needed the counterparty columns: a query over
+    // `transactions` in drizzle could only see half the row until then, and a schema that
+    // mirrors the table in part invites the next query to be written against the entity.
+    thankYouCardId: int('thank_you_card_id').default(sql`NULL`),
+    decay: customGradidoUnit('decay_gdd4').notNull(),
+    decayStart: datetime('decay_start', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    decayCalculationType: int('decay_calculation_type').default(0).notNull(),
+    creationDate: datetime('creation_date', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    userCommunityUuid: varchar('user_community_uuid', { length: 36 }).default(sql`NULL`),
+    userGradidoId: varchar('user_gradido_id', { length: 36 }).notNull(),
+    userName: varchar('user_name', { length: 512 }).default(sql`NULL`),
+    // The counterparty of a SEND or RECEIVE row, written by executeTransaction on both
+    // rows of a transfer. `linkedUserId` above is set for a member of this community;
+    // the uuid pair alone identifies a member of another one.
+    linkedUserCommunityUuid: varchar('linked_user_community_uuid', { length: 36 }).default(
+      sql`NULL`,
+    ),
+    linkedUserGradidoId: varchar('linked_user_gradido_id', { length: 36 }).default(sql`NULL`),
+    linkedUserName: varchar('linked_user_name', { length: 512 }).default(sql`NULL`),
   },
   (table) => [
     index('user_id').on(table.userId),
@@ -383,6 +404,37 @@ export const userAvatarsTable = mysqlTable('user_avatars', {
 
 export type UserAvatarSelect = typeof userAvatarsTable.$inferSelect
 export type UserAvatarInsert = typeof userAvatarsTable.$inferInsert
+
+// A member's favourites: the people they marked with the heart (see migration 0128).
+//
+// Keyed by the uuid PAIR of the favourite, never by their alias -- an alias changes, the
+// pair does not, and a favourite that stored the alias would point at nobody after a
+// rename. The pair also reaches across community borders, which a local user id cannot.
+//
+// The primary key IS the rule "one heart per person": a second insert is not a mistake,
+// it is the same heart, and the query treats it so.
+export const userFavoritesTable = mysqlTable(
+  'user_favorites',
+  {
+    // `unsigned`, because migration 0128 writes `int(10) unsigned` -- a schema that mirrors
+    // the table in part is what the transactions row was fixed for two commits earlier.
+    userId: int('user_id', { unsigned: true }).notNull(),
+    favoriteCommunityUuid: varchar('favorite_community_uuid', { length: 36 }).notNull(),
+    favoriteGradidoId: varchar('favorite_gradido_id', { length: 36 }).notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.userId, table.favoriteCommunityUuid, table.favoriteGradidoId],
+    }),
+    index('idx_user_favorites_user_id').on(table.userId),
+  ],
+)
+
+export type UserFavoriteSelect = typeof userFavoritesTable.$inferSelect
+export type UserFavoriteInsert = typeof userFavoritesTable.$inferInsert
 
 // A registration attempt that rang an existing member's doorbell (see migration 0124).
 // Parked only when the attempt carried a redeem code; the member's multi-registration

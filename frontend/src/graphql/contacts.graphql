@@ -1,0 +1,41 @@
+# AI-GENERATED — not an architecture reference
+
+# Everyone this member has exchanged Gradido with, each once (KF-004). `user` is the same
+# shape the booking fragment delivers, read by the same fields and under the same rule:
+# no firstName/lastName (NU-019).
+query contactListQuery($currentPage: Int = 1, $pageSize: Int = 25, $search: String) {
+  contactList(currentPage: $currentPage, pageSize: $pageSize, search: $search) {
+    count
+    contacts {
+      user {
+        communityUuid
+        communityName
+        gradidoID
+        alias
+        avatarColorIndex
+        avatarUpdatedAt
+      }
+      firstAt
+      lastAt
+      bookings
+      favorite
+    }
+  }
+}
+
+# The member's hearts as uuid pairs -- fetched once per session and held beside the
+# booking list, which is why the booking query needs no field for it (see useFavorites).
+query favoriteListQuery {
+  favoriteList {
+    communityUuid
+    gradidoID
+  }
+}
+
+mutation addFavorite($ref: MemberAvatarRefInput!) {
+  addFavorite(ref: $ref)
+}
+
+mutation removeFavorite($ref: MemberAvatarRefInput!) {
+  removeFavorite(ref: $ref)
+}

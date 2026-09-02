@@ -57,4 +57,7 @@ export const USER_RIGHTS = [
   // Asking for a new address, cancelling that request and seeing whether one is pending -
   // one right, because every call reaches the caller's own contact rows and nothing else.
   RIGHTS.MANAGE_OWN_EMAIL,
+  // The contact list is a view on the caller's own bookings, the hearts are the caller's
+  // own rows; there is nothing here that reaches anybody else's data.
+  RIGHTS.MANAGE_OWN_CONTACTS,
 ]
