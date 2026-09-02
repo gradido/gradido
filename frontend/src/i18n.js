@@ -9,6 +9,7 @@ import it from './locales/it.json'
 import ru from './locales/ru.json'
 import pt from './locales/pt.json'
 import el from './locales/el.json'
+import { pluralRules } from './utils/pluralRules'
 
 const numberFormats = {
   it: {
@@ -420,4 +421,5 @@ export default createI18n({
   messages: { de, en, es, fr, tr, nl, it, ru, pt, el },
   numberFormats,
   datetimeFormats,
+  pluralRules,
 })
