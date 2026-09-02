@@ -19,5 +19,6 @@ export * from './user'
 export * from './userAliases'
 export * from './userAvatars'
 export * from './userContacts'
+export * from './userFavorites'
 
 export const LOG4JS_QUERIES_CATEGORY_NAME = `${LOG4JS_BASE_CATEGORY_NAME}.queries`
