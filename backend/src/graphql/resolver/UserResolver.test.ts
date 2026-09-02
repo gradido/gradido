@@ -1,4 +1,3 @@
-import { MEMBER_AVATARS_FULL_MAX_PER_REQUEST } from '@arg/MemberAvatarsArgs'
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
 import { OptInType } from '@enum/OptInType'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
@@ -38,6 +37,7 @@ import { deleteGmsUser, putGmsMatchingEntrySnapshots, upsertGmsUsers } from '@/a
 import { subscribe } from '@/apis/KlicktippController'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { MEMBER_AVATARS_FULL_MAX_PER_REQUEST } from '@/data/MemberAvatars.logic'
 import { EventType } from '@/event/Events'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'

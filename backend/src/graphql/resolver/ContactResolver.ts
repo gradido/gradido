@@ -8,7 +8,6 @@ import { User } from '@model/User'
 import {
   ContactRow,
   dbDeleteFavorite,
-  dbFindForeignUsersByGradidoIds,
   dbFindMemberAvatarTimestamps,
   dbFindUsersByIds,
   dbInsertFavorite,
@@ -22,8 +21,7 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
-import { getCommunityName } from './util/communities'
-import { CounterpartyLookups, remoteUserFromBooking } from './util/counterparty'
+import { CounterpartyLookups, prefetchedLookups, remoteUserFromBooking } from './util/counterparty'
 
 const createLogger = () =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContactResolver`)
@@ -35,9 +33,10 @@ const favoriteKey = (communityUuid: string, gradidoID: string): string =>
 /**
  * The community uuid a favourite is stored under.
  *
- * A member of this community who registered before it had a uuid carries none on their
- * row; the home community's uuid stands in -- the same substitution contactList makes
- * when it builds the model -- so that one person is one key however old their account is.
+ * The wallet passes on what the booking gave it, and that may be nothing: a member of this
+ * community whose `users` row predates the home community's uuid carries none. Migration
+ * 0129 fills those rows, so this is the belt rather than the braces -- and it is also what
+ * answers a wallet that is older than the migration.
  */
 const resolveCommunityUuid = async (communityUuid: string | null | undefined): Promise<string> => {
   if (communityUuid) {
@@ -60,11 +59,15 @@ export class ContactResolver {
    * wallet reads the list by the fields it already knows. And by the same rule: nothing
    * here sets firstName or lastName for anybody but through the guarded path the booking
    * list uses (NU-019).
+   *
+   * ⚠️ The page arguments are the house `Paginated`, so the SCHEMA defaults are the ones
+   * that class carries -- page 1, size 3, newest first -- not the wallet's 25. Every
+   * caller states its own size; the seed and wallet documents declare theirs.
    */
   @Authorized([RIGHTS.MANAGE_OWN_CONTACTS])
   @Query(() => ContactList)
   async contactList(
-    @Args() { currentPage = 1, pageSize = 25 }: Paginated,
+    @Args() { currentPage, pageSize, order }: Paginated,
     @Arg('search', () => String, { nullable: true }) search: string | null,
     @Ctx() context: Context,
   ): Promise<ContactList> {
@@ -72,53 +75,53 @@ export class ContactResolver {
     const logger = createLogger()
     logger.addContext('user', user.id)
 
-    const page = await dbSelectContactsByUserId(user.id, {
-      search: search ?? undefined,
-      limit: pageSize,
-      offset: (currentPage - 1) * pageSize,
-    })
-
-    const home = await getHomeCommunity()
-    const homeUuid = home?.communityUuid ?? null
+    // Two rounds, not six: the page, the home community and the caller's hearts depend on
+    // nothing; everything below depends only on the page.
+    const [page, home, favoriteRows] = await Promise.all([
+      dbSelectContactsByUserId(user.id, {
+        search: search ?? undefined,
+        limit: pageSize,
+        offset: (currentPage - 1) * pageSize,
+        order,
+      }),
+      getHomeCommunity(),
+      dbSelectFavoritesByUserId(user.id),
+    ])
     const favorites = new Set(
-      (await dbSelectFavoritesByUserId(user.id)).map((row) =>
-        favoriteKey(row.favoriteCommunityUuid, row.favoriteGradidoId),
-      ),
+      favoriteRows.map((row) => favoriteKey(row.favoriteCommunityUuid, row.favoriteGradidoId)),
     )
 
     // Members of this community come from their users row -- deleted ones included, the
     // booking is the caller's own record and keeps naming them (AS-009 leaves them the
     // name and takes the picture) -- with the date of their picture in one batch, the way
-    // the booking list does it.
+    // the booking list does it. The members of other communities are looked up for the
+    // whole page at once; one query per person would be one round trip per person.
     const localIds = page.contacts
       .map((row) => row.linkedUserId)
       .filter((id): id is number => id !== null)
-    const localUsers = new Map<number, User>()
-    if (localIds.length > 0) {
-      const rows = await dbFindUsersByIds(localIds, { withDeleted: true })
-      const avatarDates = await dbFindMemberAvatarTimestamps(localIds)
-      for (const row of rows) {
-        const model = new User(row)
-        model.avatarUpdatedAt = avatarDates.get(row.id) ?? null
-        // A member whose users row predates the home community's uuid carries none. The
-        // home community stands in -- ONCE, here, where the model is built: the GraphQL
-        // field is non-null, the favourite is stored under that uuid, and the wallet keys
-        // the heart by it. One pair per person, and no layer downstream needs a fallback.
-        if (!model.communityUuid && homeUuid) {
-          model.communityUuid = homeUuid
-        }
-        // The booking list leaves communityName empty for a member of this community (it
-        // loads no community relation). The contact row shows the community, as the
-        // mockup does, in a line of its own -- so the name is set here, and the row keeps
-        // it out of the name link (ContactRow.vue).
-        model.communityName = home?.name ?? null
-        localUsers.set(row.id, model)
-      }
-    }
+    const [localRows, avatarDates, lookups] = await Promise.all([
+      dbFindUsersByIds(localIds, { withDeleted: true }),
+      dbFindMemberAvatarTimestamps(localIds),
+      prefetchedLookups(page.contacts.filter((row) => row.linkedUserId === null)),
+    ])
 
-    const lookups = await this.remoteLookups(
-      page.contacts.filter((row) => row.linkedUserId === null),
-    )
+    const localUsers = new Map<number, User>()
+    for (const row of localRows) {
+      const model = new User(row)
+      model.avatarUpdatedAt = avatarDates.get(row.id) ?? null
+      // A row that predates the home community's uuid carries none, and the GraphQL field
+      // is non-null. Migration 0129 fills those rows; this stands in for a database that
+      // has not run it yet, so that one member cannot take the whole list down.
+      if (!model.communityUuid && home?.communityUuid) {
+        model.communityUuid = home.communityUuid
+      }
+      // The booking list leaves communityName empty for a member of this community (it
+      // loads no community relation). The contact row shows the community, as the mockup
+      // does, in a line of its own -- so the name is set here, and the row keeps it out of
+      // the name link (ContactRow.vue).
+      model.communityName = home?.name ?? null
+      localUsers.set(row.id, model)
+    }
 
     const contacts: Contact[] = []
     for (const row of page.contacts) {
@@ -126,38 +129,18 @@ export class ContactResolver {
       if (!model) {
         continue
       }
-      const key = favoriteKey(model.communityUuid ?? homeUuid ?? '', model.gradidoID)
+      if (!model.communityUuid) {
+        // Only a member of another community can still get here: a booking that carries no
+        // community uuid and no stored `users` row. `User.communityUuid` is non-null, so
+        // delivering them would null the WHOLE answer -- one unnameable contact must not
+        // cost the member their contact list.
+        logger.warn(`contact ${row.gradidoId} has no community uuid, left out of the list`)
+        continue
+      }
+      const key = favoriteKey(model.communityUuid, model.gradidoID)
       contacts.push(new Contact(model, row.firstAt, row.lastAt, row.bookings, favorites.has(key)))
     }
     return new ContactList(contacts, page.count)
-  }
-
-  /**
-   * The foreign counterparties of one page, looked up in one users query and one
-   * community lookup per community -- instead of two queries per contact. The wallet asks
-   * for the whole list at once, so a member with many cross-community contacts would
-   * otherwise pay hundreds of round trips for one page.
-   */
-  private async remoteLookups(remoteRows: ContactRow[]): Promise<CounterpartyLookups> {
-    const gradidoIds = [...new Set(remoteRows.map((row) => row.gradidoId))]
-    const foreignUsers = await dbFindForeignUsersByGradidoIds(gradidoIds)
-    const communityNames = new Map<string, Promise<string>>()
-    return {
-      findForeignUser: async (communityUuid, gradidoID) =>
-        foreignUsers.find(
-          (row) =>
-            row.gradidoID === gradidoID &&
-            (communityUuid === null || row.communityUuid === communityUuid),
-        ) ?? null,
-      communityName: (communityUuid) => {
-        let name = communityNames.get(communityUuid)
-        if (!name) {
-          name = getCommunityName(communityUuid)
-          communityNames.set(communityUuid, name)
-        }
-        return name
-      },
-    }
   }
 
   private async userForContact(

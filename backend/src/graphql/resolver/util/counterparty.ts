@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { User } from '@model/User'
-import { User as DbUser, findForeignUserByUuids } from 'database'
+import { User as DbUser, dbFindForeignUsersByGradidoIds, findForeignUserByUuids } from 'database'
 import { Logger } from 'log4js'
 import { isAliasEraName } from 'shared'
 import { LogError } from '@/server/LogError'
@@ -28,6 +28,56 @@ export interface CounterpartyLookups {
 const dbLookups: CounterpartyLookups = {
   findForeignUser: findForeignUserByUuids,
   communityName: getCommunityName,
+}
+
+/** How a member of another community is keyed while a page is being resolved. */
+const pairKey = (communityUuid: string | null, gradidoID: string): string =>
+  `${communityUuid ?? ''}/${gradidoID}`
+
+/**
+ * The same lookups for a WHOLE page, in one users query and one query per community.
+ *
+ * A list that resolves its foreign counterparties one at a time pays two round trips per
+ * person; the contact list asks for every contact at once, so that is unbounded. This
+ * prefetches instead -- and lives here, beside `dbLookups`, so that the booking list can
+ * take it too without a second pair rule being written somewhere else.
+ *
+ * @param refs the foreign rows of the page: the uuid pair of each counterparty
+ */
+export const prefetchedLookups = async (
+  refs: { communityUuid: string | null; gradidoId: string }[],
+): Promise<CounterpartyLookups> => {
+  const foreignUsers = await dbFindForeignUsersByGradidoIds([
+    ...new Set(refs.map((ref) => ref.gradidoId)),
+  ])
+  const byPair = new Map<string, DbUser>()
+  const byId = new Map<string, DbUser>()
+  for (const row of foreignUsers) {
+    byPair.set(pairKey(row.communityUuid, row.gradidoID), row)
+    // A booking that carries no community uuid is matched by the id alone, the way
+    // findForeignUserByUuids does it; the first row wins there, as findOne would.
+    if (!byId.has(row.gradidoID)) {
+      byId.set(row.gradidoID, row)
+    }
+  }
+  const communityNames = new Map<string, Promise<string>>()
+  return {
+    findForeignUser: (communityUuid, gradidoID) =>
+      Promise.resolve(
+        (communityUuid === null
+          ? byId.get(gradidoID)
+          : byPair.get(pairKey(communityUuid, gradidoID))) ?? null,
+      ),
+    communityName: (communityUuid) => {
+      const known = communityNames.get(communityUuid)
+      if (known) {
+        return known
+      }
+      const asked = getCommunityName(communityUuid)
+      communityNames.set(communityUuid, asked)
+      return asked
+    },
+  }
 }
 
 /**
@@ -89,6 +139,10 @@ export const remoteUserFromBooking = async (
       )
     }
   }
-  remoteUser.communityName = await lookups.communityName(remoteUser.communityUuid)
+  // Only with a uuid to ask about: an undefined one would be dropped from the where clause
+  // and answer with an arbitrary community's name.
+  remoteUser.communityName = remoteUser.communityUuid
+    ? await lookups.communityName(remoteUser.communityUuid)
+    : null
   return remoteUser
 }
