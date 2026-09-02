@@ -69,11 +69,14 @@ beforeAll(async () => {
 
   // Bookings straight into the ledger: the contact list is a view on them, and this test
   // is about the view, not about sending. Two with bob, one with peter, peter's newer.
+  //
+  // ⚠️ In date order, and it has to be: a seeded booking takes its balance from the
+  // member's last one and computes the decay between the two dates, which does not run
+  // backwards. The oldest goes first.
+  await foreignReceive(bibi, anna, day(0))
   await transferGradidos(bibi, bob, new GradidoUnit(100000n), 'one', day(1))
   await transferGradidos(bob, bibi, new GradidoUnit(20000n), 'two', day(2))
   await transferGradidos(bibi, peter, new GradidoUnit(30000n), 'three', day(3))
-  // And the oldest contact: a foreign member whose booking stored her real name.
-  await foreignReceive(bibi, anna, day(0))
 })
 
 afterAll(async () => {
