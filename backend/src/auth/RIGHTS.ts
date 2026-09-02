@@ -91,6 +91,9 @@ export enum RIGHTS {
   // Which address the GDT server knows a member by, and whether a change is pending - the
   // support needs it to merge addresses on the GDT server by hand.
   VIEW_USER_EMAIL_STATUS = 'VIEW_USER_EMAIL_STATUS',
+  // The contact list and the hearts on it -- one right, because every call reaches the
+  // caller's own bookings and the caller's own favourites, nothing else.
+  MANAGE_OWN_CONTACTS = 'MANAGE_OWN_CONTACTS',
   // Moderator AI
   AI_SEND_MESSAGE = 'AI_SEND_MESSAGE',
   SET_USER_SALUTATION = 'SET_USER_SALUTATION',

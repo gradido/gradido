@@ -601,3 +601,15 @@ export const testCreaModel = gql`
     }
   }
 `
+
+export const addFavorite = gql`
+  mutation ($ref: MemberRefInput!) {
+    addFavorite(ref: $ref)
+  }
+`
+
+export const removeFavorite = gql`
+  mutation ($ref: MemberRefInput!) {
+    removeFavorite(ref: $ref)
+  }
+`
