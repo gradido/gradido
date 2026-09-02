@@ -245,6 +245,16 @@ const routes = [
     },
   },
   {
+    // Everyone this member has exchanged Gradido with -- a view on the bookings, so it
+    // stands beside them in the menu (KF-008). No right-hand column: the list is the page.
+    path: '/contacts',
+    component: () => import('@/pages/Contacts'),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'contacts',
+    },
+  },
+  {
     path: '/contributions',
     component: () => import('@/pages/Contributions'),
     meta: {
