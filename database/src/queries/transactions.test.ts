@@ -20,6 +20,9 @@ let bob: DbUser
 
 const FOREIGN_COMMUNITY = '99999999-9999-9999-9999-999999999999'
 const SARAH = 'dddddddd-dddd-dddd-dddd-dddddddddddd'
+// A foreign member whose bookings still carry a pre-alias-era "First Last" -- the shape the
+// X-Com path wrote before 9caba44a6. That name must reach nobody, not through the search either.
+const ANNA = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'
 
 const day = (n: number): Date => new Date(Date.UTC(2026, 7, n, 12, 0, 0))
 
@@ -32,6 +35,7 @@ const foreignReceive = async (
   user: DbUser,
   name: string,
   balanceDate: Date,
+  gradidoId: string = SARAH,
 ): Promise<DbTransaction> => {
   const tx = new DbTransaction()
   tx.typeId = TransactionTypeId.RECEIVE
@@ -41,7 +45,7 @@ const foreignReceive = async (
   tx.userCommunityUuid = user.communityUuid
   tx.linkedUserId = null
   tx.linkedUserCommunityUuid = FOREIGN_COMMUNITY
-  tx.linkedUserGradidoID = SARAH
+  tx.linkedUserGradidoID = gradidoId
   tx.linkedUserName = name
   tx.amount = new GradidoUnit(10000n)
   tx.balance = new GradidoUnit(10000n)
@@ -80,6 +84,8 @@ beforeAll(async () => {
   // Two bookings from one foreign member, who renamed herself in between.
   await foreignReceive(bibi, 'Sarah', day(6))
   await foreignReceive(bibi, 'SarahP', day(7))
+  // The oldest contact of all: a foreign booking that stored an assembled real name.
+  await foreignReceive(bibi, 'Anna Müller', day(0), ANNA)
 })
 
 afterAll(async () => {
@@ -90,11 +96,19 @@ afterAll(async () => {
 describe('dbSelectContactsByUserId', () => {
   it('lists every counterparty once, newest contact first, with dates and counts', async () => {
     const page = await dbSelectContactsByUserId(bibi.id, { limit: 25, offset: 0 })
-    expect(page.count).toBe(3)
-    expect(page.contacts.map((c) => c.gradidoId)).toEqual([SARAH, bob.gradidoID, peter.gradidoID])
+    expect(page.count).toBe(4)
+    expect(page.contacts.map((c) => c.gradidoId)).toEqual([
+      SARAH,
+      bob.gradidoID,
+      peter.gradidoID,
+      ANNA,
+    ])
 
     const [sarah, bobRow, peterRow] = page.contacts
-    expect(peterRow).toMatchObject({ linkedUserId: peter.id, alias: peter.alias, bookings: 3 })
+    // peter's seed carries no alias, so the joined users row answers null -- asserted as
+    // null on purpose: `peter.alias` on the saved entity is undefined, and toMatchObject
+    // tells the two apart.
+    expect(peterRow).toMatchObject({ linkedUserId: peter.id, alias: null, bookings: 3 })
     expect(peterRow.firstAt.getTime()).toBe(day(1).getTime())
     expect(peterRow.lastAt.getTime()).toBe(day(4).getTime())
     expect(bobRow).toMatchObject({ linkedUserId: bob.id, bookings: 2 })
@@ -111,7 +125,22 @@ describe('dbSelectContactsByUserId', () => {
   it('does not count the creation as a contact', async () => {
     const page = await dbSelectContactsByUserId(bibi.id, { limit: 25, offset: 0 })
     expect(page.contacts.some((c) => c.bookings > 3)).toBe(false)
-    expect(page.count).toBe(3)
+    expect(page.count).toBe(4)
+  })
+
+  it('keeps a stored real name out of the list and out of the search (NU-019)', async () => {
+    const page = await dbSelectContactsByUserId(bibi.id, { limit: 25, offset: 0 })
+    const anna = page.contacts.find((c) => c.gradidoId === ANNA)
+    // She is a contact -- the booking is real -- but the row names her by nothing.
+    expect(anna).toMatchObject({
+      linkedUserId: null,
+      communityUuid: FOREIGN_COMMUNITY,
+      alias: null,
+    })
+    // And the search cannot be used as an oracle on what the row does not show.
+    const probe = await dbSelectContactsByUserId(bibi.id, { search: 'müll', limit: 25, offset: 0 })
+    expect(probe.count).toBe(0)
+    expect(probe.contacts).toEqual([])
   })
 
   it('shows the other side the same booking, from their view', async () => {
@@ -121,13 +150,13 @@ describe('dbSelectContactsByUserId', () => {
   })
 
   it('pages without repeating or dropping anybody', async () => {
-    const first = await dbSelectContactsByUserId(bibi.id, { limit: 2, offset: 0 })
-    const second = await dbSelectContactsByUserId(bibi.id, { limit: 2, offset: 2 })
-    expect(first.count).toBe(3)
-    expect(first.contacts).toHaveLength(2)
+    const first = await dbSelectContactsByUserId(bibi.id, { limit: 3, offset: 0 })
+    const second = await dbSelectContactsByUserId(bibi.id, { limit: 3, offset: 3 })
+    expect(first.count).toBe(4)
+    expect(first.contacts).toHaveLength(3)
     expect(second.contacts).toHaveLength(1)
     const all = [...first.contacts, ...second.contacts].map((c) => c.gradidoId)
-    expect(new Set(all).size).toBe(3)
+    expect(new Set(all).size).toBe(4)
   })
 
   it('searches the alias, case-insensitively, and counts only what matches', async () => {

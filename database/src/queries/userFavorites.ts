@@ -21,13 +21,23 @@ export interface FavoriteRef {
   gradidoId: string
 }
 
-/** Everyone this member has marked, oldest heart first. */
+/**
+ * Everyone this member has marked, oldest heart first.
+ *
+ * The pair breaks ties: two hearts given within the same millisecond would otherwise come
+ * back in whatever order the storage engine chose, and a list that changes its order between
+ * two reads is a list nobody can compare.
+ */
 export async function dbSelectFavoritesByUserId(userId: number): Promise<UserFavoriteSelect[]> {
   return drizzleDb()
     .select()
     .from(userFavoritesTable)
     .where(eq(userFavoritesTable.userId, userId))
-    .orderBy(userFavoritesTable.createdAt)
+    .orderBy(
+      userFavoritesTable.createdAt,
+      userFavoritesTable.favoriteCommunityUuid,
+      userFavoritesTable.favoriteGradidoId,
+    )
 }
 
 /**

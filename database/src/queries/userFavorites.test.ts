@@ -75,11 +75,13 @@ describe('userFavorites query test', () => {
     })
     await dbInsertFavorite({ userId: 1, favoriteCommunityUuid: COMMUNITY, favoriteGradidoId: BOB })
     const mine = await dbSelectFavoritesByUserId(1)
-    expect(mine.map((f) => `${f.favoriteCommunityUuid}/${f.favoriteGradidoId}`)).toEqual([
-      `${COMMUNITY}/${CARLA}`,
-      `${OTHER_COMMUNITY}/${CARLA}`,
-      `${COMMUNITY}/${BOB}`,
-    ])
+    // Compared as a set: the query orders by created_at, and two inserts a few
+    // milliseconds apart are not a fixture this test can rely on.
+    expect(mine.map((f) => `${f.favoriteCommunityUuid}/${f.favoriteGradidoId}`).sort()).toEqual(
+      [`${COMMUNITY}/${CARLA}`, `${OTHER_COMMUNITY}/${CARLA}`, `${COMMUNITY}/${BOB}`].sort(),
+    )
+    // The first heart given is still the first in the list.
+    expect(mine[0]).toMatchObject({ favoriteCommunityUuid: COMMUNITY, favoriteGradidoId: CARLA })
   })
 
   it('takes one heart away and reports the one that is not there', async () => {

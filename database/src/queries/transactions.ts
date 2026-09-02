@@ -1,5 +1,5 @@
 import { and, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm'
-import { GradidoUnit, VoidResult } from 'shared'
+import { GradidoUnit, VALID_ALIAS_REGEX, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { Transaction as DbTransaction } from '../entity'
 import { TransactionTypeId } from '../enum'
@@ -55,9 +55,12 @@ export async function dbUpdateBalanceAndDate(txPart: {
  *     which is all this community ever learns about them, unless the federation stored a
  *     `users` row with `foreign = 1`, which the caller looks up by the pair.
  *
- * ⚠️ `alias` for a foreign contact is the stored `linked_user_name` as it is: before the
- * alias era that column held an assembled real name. Whoever shows it has to run it through
- * the same guard the booking list uses (`isAliasEraName`), this query does not decide that.
+ * ⚠️ `alias` for a foreign contact is null unless the stored `linked_user_name` has the
+ * shape of an alias (VALID_ALIAS_REGEX): before the alias era that column held an assembled
+ * real name, and NU-019 forbids that name to reach a member by any path -- shown OR
+ * searched. The guard sits here, before `search` runs over the rows, so that the search can
+ * never confirm a name the row would not show. The resolver applies the same rule once
+ * more when it builds the model (isAliasEraName); that is a second lock, not the first.
  */
 export interface ContactRow {
   linkedUserId: number | null
@@ -82,6 +85,15 @@ const COUNTERPARTY_TYPES = [TransactionTypeId.SEND, TransactionTypeId.RECEIVE]
 const asDate = (value: unknown): Date => (value instanceof Date ? value : new Date(String(value)))
 
 /**
+ * The stored name of a foreign counterparty, or null when it cannot be an alias -- the one
+ * rule that keeps a pre-alias-era "First Last" out of the list AND out of the search.
+ */
+const aliasOrNull = (stored: unknown): string | null =>
+  stored !== null && stored !== undefined && VALID_ALIAS_REGEX.test(String(stored))
+    ? String(stored)
+    : null
+
+/**
  * Everyone this member has ever exchanged Gradido with -- each person once, newest contact
  * first, with the dates of the first and the latest booking and how many there were.
  *
@@ -96,7 +108,8 @@ const asDate = (value: unknown): Date => (value instanceof Date ? value : new Da
  * hundred small rows for the busiest account (713 counterparties measured), and doing it
  * here keeps the two branches out of a UNION with GROUP BY on each side.
  *
- * `search` matches the alias, case-insensitively, anywhere in it.
+ * `search` matches the alias, case-insensitively, anywhere in it -- the guarded alias, so a
+ * foreign contact whose stored name is not alias-shaped matches nothing (see ContactRow).
  */
 export async function dbSelectContactsByUserId(
   userId: number,
@@ -168,7 +181,7 @@ export async function dbSelectContactsByUserId(
       communityUuid: row.communityUuid,
       // Guarded by the where clause; the type of the column is what makes this nullable.
       gradidoId: row.gradidoId as string,
-      alias: row.alias === null || row.alias === undefined ? null : String(row.alias),
+      alias: aliasOrNull(row.alias),
       deletedAt: null,
       firstAt: row.firstAt,
       lastAt: row.lastAt,

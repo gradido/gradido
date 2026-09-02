@@ -129,13 +129,42 @@ export const findUserByIdentifier = async (
   return null
 }
 
+/**
+ * The `users` row the federation stored for a member of another community, by the pair.
+ *
+ * `communityUuid` may be null: a booking row carries none when the other community had no
+ * uuid yet, and the lookup then goes by the gradido id alone -- spelled out, because TypeORM
+ * would otherwise drop an `undefined` from the `where` silently and the reader could not
+ * tell the two lookups apart.
+ */
 export async function findForeignUserByUuids(
-  communityUuid: string,
+  communityUuid: string | null,
   gradidoID: string,
 ): Promise<DbUser | null> {
   return DbUser.findOne({
-    where: { foreign: true, communityUuid, gradidoID },
+    where:
+      communityUuid === null
+        ? { foreign: true, gradidoID }
+        : { foreign: true, communityUuid, gradidoID },
   })
+}
+
+/**
+ * The `users` rows for a set of ids, in one query -- how a list resolves its local
+ * counterparties. `withDeleted`: a booking keeps naming a member whose account is gone
+ * (AS-009 leaves them the name and takes the picture), so the lists pass true.
+ *
+ * TypeORM as it was in the resolvers (AGENTS.md, step 1: move); translated with the rest
+ * of this file.
+ */
+export async function dbFindUsersByIds(
+  userIds: number[],
+  options: { withDeleted?: boolean } = {},
+): Promise<DbUser[]> {
+  if (userIds.length === 0) {
+    return []
+  }
+  return DbUser.find({ where: { id: In(userIds) }, withDeleted: options.withDeleted ?? false })
 }
 
 export async function findUserByUuids(
