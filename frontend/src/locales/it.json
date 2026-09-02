@@ -149,6 +149,26 @@
   },
   "communityInfo": "Informazioni sulla comunità",
   "contact": "Contatto",
+  "contacts": {
+    "addFavorite": "Aggiungi ai preferiti",
+    "all": "Tutti i contatti",
+    "bookings": "{n} movimento | {n} movimenti",
+    "count": "{n} contatto | {n} contatti",
+    "empty": "Ancora nessun contatto. Chi ti invia Gradido o li riceve da te compare qui.",
+    "favorites": "Preferiti",
+    "heart": {
+      "add": "Aggiungi ai preferiti",
+      "remove": "Rimuovi dai preferiti"
+    },
+    "isFavorite": "Preferito",
+    "last": "ultimo {date}",
+    "remove": {
+      "body": "{name} resta nei tuoi contatti. Puoi rendere {name} di nuovo un preferito in qualsiasi momento.",
+      "confirm": "Rimuovi",
+      "title": "Rimuovere {name} dai tuoi preferiti?"
+    },
+    "search": "Cerca contatto …"
+  },
   "contribution": {
     "activity": "Attività",
     "alert": {
@@ -704,6 +724,7 @@
     "back-to-settings": "Torna alle impostazioni",
     "calculator": "Calcolatrice",
     "community": "Comunità",
+    "contacts": "Contatti",
     "logout": "Esci",
     "matching": "Matching",
     "overview": "Panoramica",
@@ -717,6 +738,7 @@
   "pageTitle": {
     "calculator": "Calcolatrice",
     "circles": "Circoli Gradido",
+    "contacts": "I tuoi contatti",
     "contributions": "Creare Gradido",
     "gdt": "Le tue transazioni GDT",
     "information": "{community}",

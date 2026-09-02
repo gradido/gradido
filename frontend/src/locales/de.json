@@ -149,6 +149,26 @@
   },
   "communityInfo": "Gemeinschaft Information",
   "contact": "Kontakt",
+  "contacts": {
+    "addFavorite": "Zu Favoriten",
+    "all": "Alle Kontakte",
+    "bookings": "{n} Buchung | {n} Buchungen",
+    "count": "{n} Kontakt | {n} Kontakte",
+    "empty": "Noch keine Kontakte. Wer Dir Gradido sendet oder von Dir bekommt, erscheint hier.",
+    "favorites": "Favoriten",
+    "heart": {
+      "add": "Zu Favoriten hinzufügen",
+      "remove": "Aus Favoriten entfernen"
+    },
+    "isFavorite": "Favorit",
+    "last": "zuletzt {date}",
+    "remove": {
+      "body": "{name} bleibt in Deinen Kontakten. Du kannst {name} jederzeit wieder zum Favoriten machen.",
+      "confirm": "Entfernen",
+      "title": "{name} aus Deinen Favoriten entfernen?"
+    },
+    "search": "Kontakt suchen …"
+  },
   "contribution": {
     "activity": "Tätigkeit",
     "alert": {
@@ -704,6 +724,7 @@
     "back-to-settings": "Zurück zu den Einstellungen",
     "calculator": "Rechner",
     "community": "Gemeinschaft",
+    "contacts": "Kontakte",
     "logout": "Abmelden",
     "matching": "Matching",
     "overview": "Übersicht",
@@ -717,6 +738,7 @@
   "pageTitle": {
     "calculator": "Rechner",
     "circles": "Gradido Kreise",
+    "contacts": "Deine Kontakte",
     "contributions": "Gradido schöpfen",
     "gdt": "Deine GDT Transaktionen",
     "information": "{community}",

@@ -149,6 +149,26 @@
   },
   "communityInfo": "Topluluk Bilgisi",
   "contact": "İletişim",
+  "contacts": {
+    "addFavorite": "Favorilere ekle",
+    "all": "Tüm kişiler",
+    "bookings": "{n} işlem | {n} işlem",
+    "count": "{n} kişi | {n} kişi",
+    "empty": "Henüz kişi yok. Sana Gradido gönderen veya senden alan herkes burada görünür.",
+    "favorites": "Favoriler",
+    "heart": {
+      "add": "Favorilere ekle",
+      "remove": "Favorilerden çıkar"
+    },
+    "isFavorite": "Favori",
+    "last": "son {date}",
+    "remove": {
+      "body": "{name} kişilerinde kalır. {name} kişisini istediğin zaman yeniden favori yapabilirsin.",
+      "confirm": "Çıkar",
+      "title": "{name} favorilerinden çıkarılsın mı?"
+    },
+    "search": "Kişi ara …"
+  },
   "contribution": {
     "activity": "Hizmet",
     "alert": {
@@ -704,6 +724,7 @@
     "back-to-settings": "Ayarlara dön",
     "calculator": "Hesap makinesi",
     "community": "Topluluk",
+    "contacts": "Kişiler",
     "logout": "Çıkış",
     "matching": "Matching",
     "overview": "Toplu Bakış",
@@ -717,6 +738,7 @@
   "pageTitle": {
     "calculator": "Hesap makinesi",
     "circles": "Gradido Çemberleri",
+    "contacts": "Kişilerin",
     "contributions": "Gradido yarat",
     "gdt": "GDT işlemlerin",
     "information": "{community}",
