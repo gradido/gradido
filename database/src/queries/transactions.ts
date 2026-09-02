@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm'
+import { and, eq, inArray, isNotNull, isNull, ne, sql } from 'drizzle-orm'
 import { GradidoUnit, isAliasEraName, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { Transaction as DbTransaction } from '../entity'
@@ -168,6 +168,11 @@ export async function dbSelectContactsByUserId(
         withCounterparty,
         isNull(transactionsTable.linkedUserId),
         isNotNull(transactionsTable.linkedUserGradidoId),
+        // Not null AND not empty: the booking list tests the same column for truthiness
+        // and skips a row without an id (TransactionResolver), so a row carrying '' must
+        // not reach the contact list either -- there it would name nobody, and the
+        // counterparty helper refuses it as the programmer error it would be.
+        ne(transactionsTable.linkedUserGradidoId, ''),
       ),
     )
     .groupBy(transactionsTable.linkedUserCommunityUuid, transactionsTable.linkedUserGradidoId)

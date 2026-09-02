@@ -1,11 +1,11 @@
 // AI-GENERATED — not an architecture reference
 import { GradidoUnit } from 'shared'
 import { clearDatabase } from '../../migration/clear'
-import { Transaction as DbTransaction, User as DbUser, TransactionTypeId } from '..'
+import { User as DbUser } from '..'
 import { AppDatabase } from '../AppDatabase'
 import { createCommunity } from '../seeds/community'
 import { creationFactory, nMonthsBefore } from '../seeds/factory/creation'
-import { transferGradidos } from '../seeds/factory/transaction'
+import { foreignReceive, transferGradidos } from '../seeds/factory/transaction'
 import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
@@ -26,33 +26,12 @@ const ANNA = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'
 
 const day = (n: number): Date => new Date(Date.UTC(2026, 7, n, 12, 0, 0))
 
-/**
- * A booking with somebody from another community, the way the federation writes it:
- * no local user id, the uuid pair and the name as it arrived. Written directly, because
- * the transfer factory only knows local members.
- */
-const foreignReceive = async (
-  user: DbUser,
-  name: string,
-  balanceDate: Date,
-  gradidoId: string = SARAH,
-): Promise<DbTransaction> => {
-  const tx = new DbTransaction()
-  tx.typeId = TransactionTypeId.RECEIVE
-  tx.memo = 'from afar'
-  tx.userId = user.id
-  tx.userGradidoID = user.gradidoID
-  tx.userCommunityUuid = user.communityUuid
-  tx.linkedUserId = null
-  tx.linkedUserCommunityUuid = FOREIGN_COMMUNITY
-  tx.linkedUserGradidoID = gradidoId
-  tx.linkedUserName = name
-  tx.amount = new GradidoUnit(10000n)
-  tx.balance = new GradidoUnit(10000n)
-  tx.decay = new GradidoUnit(0n)
-  tx.balanceDate = balanceDate
-  return tx.save()
-}
+/** The counterparty of a foreign booking, as the seed factory takes it. */
+const fromAfar = (gradidoID: string, name: string) => ({
+  communityUuid: FOREIGN_COMMUNITY,
+  gradidoID,
+  name,
+})
 
 beforeAll(async () => {
   await appDB.init()
@@ -82,10 +61,10 @@ beforeAll(async () => {
   await transferGradidos(bibi, peter, new GradidoUnit(30000n), 'four', day(4))
   await transferGradidos(bob, bibi, new GradidoUnit(10000n), 'five', day(5))
   // Two bookings from one foreign member, who renamed herself in between.
-  await foreignReceive(bibi, 'Sarah', day(6))
-  await foreignReceive(bibi, 'SarahP', day(7))
+  await foreignReceive(bibi, fromAfar(SARAH, 'Sarah'), day(6))
+  await foreignReceive(bibi, fromAfar(SARAH, 'SarahP'), day(7))
   // The oldest contact of all: a foreign booking that stored an assembled real name.
-  await foreignReceive(bibi, 'Anna Müller', day(0), ANNA)
+  await foreignReceive(bibi, fromAfar(ANNA, 'Anna Müller'), day(0))
 })
 
 afterAll(async () => {
