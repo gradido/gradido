@@ -150,6 +150,20 @@ export async function findForeignUserByUuids(
 }
 
 /**
+ * Every `users` row the federation stored for members of other communities with one of
+ * these gradido ids -- one query for a whole page of contacts, where one per contact would
+ * be one round trip per person. The caller matches the pair; here it is the id alone,
+ * because a uuid is unique for every practical purpose and the caller's pair check is
+ * the second lock.
+ */
+export async function dbFindForeignUsersByGradidoIds(gradidoIds: string[]): Promise<DbUser[]> {
+  if (gradidoIds.length === 0) {
+    return []
+  }
+  return DbUser.find({ where: { foreign: true, gradidoID: In(gradidoIds) } })
+}
+
+/**
  * The `users` rows for a set of ids, in one query -- how a list resolves its local
  * counterparties. `withDeleted`: a booking keeps naming a member whose account is gone
  * (AS-009 leaves them the name and takes the picture), so the lists pass true.

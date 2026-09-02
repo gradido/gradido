@@ -16,6 +16,7 @@ import { LOG4JS_QUERIES_CATEGORY_NAME } from '.'
 import {
   aliasExists,
   dbClearGmsRegistration,
+  dbFindForeignUsersByGradidoIds,
   dbFindUsersByIds,
   dbLockUserRow,
   dbSaveUser,
@@ -344,6 +345,12 @@ describe('user.queries', () => {
       const found = await findForeignUserByUuids(null, sarah.gradidoID)
       expect(found?.id).toBe(sarah.id)
       expect(await findForeignUserByUuids(null, 'nobody')).toBeNull()
+    })
+
+    it('answers a whole set of ids at once, foreign rows only', async () => {
+      const rows = await dbFindForeignUsersByGradidoIds([sarah.gradidoID, 'nobody'])
+      expect(rows.map((row) => row.id)).toEqual([sarah.id])
+      expect(await dbFindForeignUsersByGradidoIds([])).toEqual([])
     })
   })
 
