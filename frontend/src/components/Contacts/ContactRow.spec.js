@@ -21,7 +21,13 @@ vi.mock('@/i18n', () => ({
 }))
 
 const CONTACT = {
-  user: { communityUuid: 'home', gradidoID: 'carla', alias: 'Carla-Sonne', avatarColorIndex: 2 },
+  user: {
+    communityUuid: 'home',
+    communityName: 'Gradido-Akademie',
+    gradidoID: 'carla',
+    alias: 'Carla-Sonne',
+    avatarColorIndex: 2,
+  },
   firstAt: '2026-07-01T10:00:00.000Z',
   lastAt: '2026-09-01T18:42:00.000Z',
   bookings: 12,
@@ -51,9 +57,11 @@ describe('ContactRow', () => {
             props: ['initials', 'src'],
             template: '<i data-test="avatar" :data-initials="initials" />',
           },
+          // Does what the real one does with a community name: appends it.
           Name: {
             props: ['linkedUser'],
-            template: '<span data-test="name">{{ linkedUser.alias }}</span>',
+            template:
+              '<span data-test="name">{{ linkedUser.alias }}{{ linkedUser.communityName ? " / " + linkedUser.communityName : "" }}</span>',
           },
           FavoriteHeart: {
             props: ['member'],
@@ -73,6 +81,19 @@ describe('ContactRow', () => {
   it('names the person through the same component the booking row uses', () => {
     mountWith()
     expect(wrapper.find('[data-test="name"]').text()).toBe('Carla-Sonne')
+  })
+
+  // Mockup V02: the community stands under the name in a line of its own -- not behind
+  // it, where the booking row puts it for a member of another community.
+  it('shows the community in a line of its own, not behind the name', () => {
+    mountWith()
+    expect(wrapper.find('[data-test="contact-community"]').text()).toBe('Gradido-Akademie')
+    expect(wrapper.find('[data-test="name"]').text()).not.toContain('/')
+  })
+
+  it('has no community line when the server named none', () => {
+    mountWith({ ...CONTACT, user: { ...CONTACT.user, communityName: null } })
+    expect(wrapper.find('[data-test="contact-community"]').exists()).toBe(false)
   })
 
   it('says how often and how recently', () => {

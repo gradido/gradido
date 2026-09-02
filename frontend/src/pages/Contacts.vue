@@ -13,6 +13,12 @@
       <BSpinner small />
     </div>
 
+    <!-- A failed request is not an empty list: "no contacts yet" would tell a member with
+         a hundred of them that they have none. -->
+    <div v-else-if="failed" class="text-muted" data-test="contacts-error">
+      {{ $t('contacts.notReachable') }}
+    </div>
+
     <div v-else-if="contacts.length === 0" class="text-muted" data-test="contacts-empty">
       {{ $t('contacts.empty') }}
     </div>
@@ -65,10 +71,11 @@ import { useApolloClient, useQuery } from '@vue/apollo-composable'
 import { BFormInput, BPagination, BSpinner } from 'bootstrap-vue-next'
 import ContactRow from '@/components/Contacts/ContactRow.vue'
 import { contactListQuery } from '@/graphql/contacts.graphql'
-import { isFavorite, favoriteKey } from '@/composables/useFavorites'
+import { ensureFavorites, isFavorite } from '@/composables/useFavorites'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import { useAppToast } from '@/composables/useToast'
 import { PAGE_SIZE } from '@/constants'
+import { memberKey } from '@/utils/gradidoAddress'
 
 /**
  * The whole list in one answer, then favourites, search and pages on this device.
@@ -76,36 +83,50 @@ import { PAGE_SIZE } from '@/constants'
  * The server pages and searches too -- but the favourites are to stand ABOVE the rest,
  * all of them, and the rest is to be searched as one types; both are one array operation
  * once the list is here, and a round trip each otherwise. The list is small: a few dozen
- * people for most members, some hundred for the busiest account measured (713). Should
- * somebody ever pass the cap below, the count under "all contacts" says so, and the
- * server-side page is the way to go further -- it exists, it is just not used yet.
+ * people for most members, some hundred for the busiest account measured (713).
+ *
+ * ⚠️ Past the cap below the list is cut, and nothing on this page says so: the number
+ * under "all contacts" counts what arrived, and the server's own `count` is not read
+ * here. The day an account passes a thousand counterparties, this page moves to the
+ * server-side pages, which exist for the compact panel of delivery 2 -- it is not a
+ * matter of one more constant.
  */
 const CONTACTS_FETCH_MAX = 1000
 
 const { toastError } = useAppToast()
 const { client: apolloClient } = useApolloClient()
 
+// The hearts, in case the layout's request at mount did not land (ensureFavorites is a
+// no-op once they are here).
+ensureFavorites(apolloClient)
+
 const contacts = ref([])
 const loaded = ref(false)
+const failed = ref(false)
 const search = ref('')
 const currentPage = ref(1)
 
 const { onResult, onError } = useQuery(
   contactListQuery,
   { currentPage: 1, pageSize: CONTACTS_FETCH_MAX },
-  { fetchPolicy: 'cache-and-network' },
+  // `network-only`, as the booking list: a cached copy would replay last visit's dates
+  // for the pictures before the fresh list arrives, and the avatar store takes the newest
+  // list it is shown as the truth about who withdrew a picture.
+  { fetchPolicy: 'network-only' },
 )
 onResult(({ data }) => {
   if (!data?.contactList) return
   contacts.value = data.contactList.contacts
   loaded.value = true
+  failed.value = false
 })
 onError((error) => {
   loaded.value = true
+  failed.value = true
   toastError(error.message)
 })
 
-const rowKey = (contact) => favoriteKey(contact.user)
+const rowKey = (contact) => memberKey(contact.user)
 
 const needle = computed(() => search.value.trim().toLowerCase())
 const matches = (contact) =>
@@ -139,15 +160,10 @@ watch(otherRows, (rows) => {
 watch(
   [favoriteRows, pageRows],
   ([favorites, page]) => {
-    const members = [...favorites, ...page]
-      .map(({ user }) => user)
-      .filter((user) => user?.gradidoID)
-      .map(({ gradidoID, communityUuid, avatarUpdatedAt }) => ({
-        gradidoID,
-        communityUuid: communityUuid ?? null,
-        avatarUpdatedAt: avatarUpdatedAt ?? null,
-      }))
-    if (members.length) fetchMemberAvatars(apolloClient, members)
+    fetchMemberAvatars(
+      apolloClient,
+      [...favorites, ...page].map(({ user }) => user),
+    )
   },
   { immediate: true },
 )

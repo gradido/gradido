@@ -162,6 +162,7 @@
     },
     "isFavorite": "Favorito",
     "last": "último {date}",
+    "notReachable": "Não foi possível carregar os contactos.",
     "remove": {
       "body": "{name} continua nos teus contactos. Podes voltar a tornar {name} favorito a qualquer momento.",
       "confirm": "Remover",

@@ -162,6 +162,7 @@
     },
     "isFavorite": "Favourite",
     "last": "last {date}",
+    "notReachable": "The contacts could not be loaded.",
     "remove": {
       "body": "{name} stays in your contacts. You can make {name} a favourite again at any time.",
       "confirm": "Remove",

@@ -294,7 +294,7 @@ import LastTransactions from '@/components/Template/RightSide/LastTransactions'
 import { transactionsUserCountQuery } from '@/graphql/transactions.graphql'
 import { logout } from '@/graphql/mutations'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
-import { loadFavorites } from '@/composables/useFavorites'
+import { ensureFavorites } from '@/composables/useFavorites'
 import CONFIG from '@/config'
 import { LAST_TRANSACTIONS_PAGE_SIZE, PAGE_SIZE } from '@/constants'
 import { useAppToast } from '@/composables/useToast'
@@ -421,7 +421,7 @@ const totalUsers = ref(null)
 onMounted(() => {
   // The member's hearts, once per session -- the rows that carry a heart read them from
   // the composable, so no booking query has to ask for them.
-  loadFavorites(apolloClient)
+  ensureFavorites(apolloClient)
   setTimeout(() => {
     skeleton.value = false
   }, 1500)
@@ -516,17 +516,10 @@ watch(
 // rather than thrown away: a member who turns a page while a request is out paid for those
 // bytes, and discarding them shows initials on a list whose portraits had already arrived.
 const collectMemberAvatars = async (rows) => {
-  const members = rows
-    .map((row) => row.linkedUser)
-    .filter((member) => member?.gradidoID)
-    .map(({ gradidoID, communityUuid, avatarUpdatedAt }) => ({
-      gradidoID,
-      communityUuid: communityUuid ?? null,
-      avatarUpdatedAt: avatarUpdatedAt ?? null,
-    }))
-  if (!members.length) return
-
-  await fetchMemberAvatars(apolloClient, members)
+  await fetchMemberAvatars(
+    apolloClient,
+    rows.map((row) => row.linkedUser),
+  )
 }
 
 onResult((value) => {

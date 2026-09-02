@@ -32,10 +32,10 @@ query favoriteListQuery {
   }
 }
 
-mutation addFavorite($ref: MemberRefInput!) {
+mutation addFavorite($ref: MemberAvatarRefInput!) {
   addFavorite(ref: $ref)
 }
 
-mutation removeFavorite($ref: MemberRefInput!) {
+mutation removeFavorite($ref: MemberAvatarRefInput!) {
   removeFavorite(ref: $ref)
 }

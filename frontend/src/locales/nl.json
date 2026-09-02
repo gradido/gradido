@@ -162,6 +162,7 @@
     },
     "isFavorite": "Favoriet",
     "last": "laatst {date}",
+    "notReachable": "De contacten konden niet worden geladen.",
     "remove": {
       "body": "{name} blijft in je contacten. Je kunt {name} altijd weer favoriet maken.",
       "confirm": "Verwijderen",

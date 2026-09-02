@@ -80,6 +80,16 @@ export const memberAlias = (username, gradidoID) =>
   (username && username.trim().length >= ALIAS_MIN_CHARS ? username : gradidoID) || ''
 
 /**
+ * One member as one string: the uuid pair, the way the server stores a heart and the
+ * avatar store keys a face. Both composables key by this, so they cannot come to mean
+ * different people by the same fields.
+ *
+ * @param {{communityUuid?: string|null, gradidoID: string}} member
+ * @returns {string}
+ */
+export const memberKey = ({ communityUuid, gradidoID }) => `${communityUuid ?? ''}/${gradidoID}`
+
+/**
  * The member's own address, in the two shapes that are always needed together.
  *
  * Shown and printed without a scheme (E-008); carried with one in links and in the

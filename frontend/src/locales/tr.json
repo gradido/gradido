@@ -162,6 +162,7 @@
     },
     "isFavorite": "Favori",
     "last": "son {date}",
+    "notReachable": "Kişiler yüklenemedi.",
     "remove": {
       "body": "{name} kişilerinde kalır. {name} kişisini istediğin zaman yeniden favori yapabilirsin.",
       "confirm": "Çıkar",

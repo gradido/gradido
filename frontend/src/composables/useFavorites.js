@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { reactive } from 'vue'
 import { favoriteListQuery } from '@/graphql/contacts.graphql'
+import { memberKey } from '@/utils/gradidoAddress'
 
 /**
  * The hearts this member has given, held once per session beside the booking list.
@@ -13,32 +14,34 @@ import { favoriteListQuery } from '@/graphql/contacts.graphql'
  * subset of the people one has booked with), it is needed on three screens at once, and
  * keeping it here leaves `transactionList` -- the query every page loads -- untouched.
  *
- * Keys are the uuid pair, the way the server stores a heart. A booking row may carry no
- * communityUuid for a member registered before the home community had one; the server
- * fills in the home community in that case, so such a row is matched by gradidoID alone
- * (a v4 uuid, unique for every practical purpose) rather than left without its heart.
+ * Keys are the uuid pair (memberKey), the way the server stores a heart. Every member the
+ * server delivers carries a communityUuid -- the resolver stands in with the home
+ * community for a row that has none -- so the pair is the one key, here as in the avatar
+ * store, and nothing needs a fallback.
  */
 const state = reactive({
   keys: new Set(),
-  gradidoIds: new Set(),
   loaded: false,
 })
 
-export const favoriteKey = ({ communityUuid, gradidoID }) => `${communityUuid ?? ''}/${gradidoID}`
+/**
+ * Bumped when the hearts are forgotten. A `favoriteList` answer that was on its way when
+ * the member logged out must not land in the next member's session -- Apollo cancels
+ * in-flight queries when the store is cleared, but a turn of the event loop after the
+ * forget, not in the same tick, and this closes that gap the way the avatar store does.
+ */
+let epoch = 0
+let inFlight = null
 
 /** Reactive: a component reading this re-renders when the set changes. */
-export const isFavorite = (member) => {
-  if (!member?.gradidoID) return false
-  if (state.keys.has(favoriteKey(member))) return true
-  return !member.communityUuid && state.gradidoIds.has(member.gradidoID)
-}
+export const isFavorite = (member) =>
+  Boolean(member?.gradidoID) && state.keys.has(memberKey(member))
 
 export const favoritesLoaded = () => state.loaded
 
 /** Replaces the set with what the server answered. */
 export const rememberFavorites = (refs) => {
-  state.keys = new Set(refs.map(favoriteKey))
-  state.gradidoIds = new Set(refs.map((ref) => ref.gradidoID))
+  state.keys = new Set(refs.map(memberKey))
   state.loaded = true
 }
 
@@ -49,42 +52,52 @@ export const rememberFavorites = (refs) => {
  */
 export const markFavorite = (member, on) => {
   const keys = new Set(state.keys)
-  const ids = new Set(state.gradidoIds)
-  const key = favoriteKey(member)
   if (on) {
-    keys.add(key)
-    ids.add(member.gradidoID)
+    keys.add(memberKey(member))
   } else {
-    keys.delete(key)
-    // The id set is a fallback for rows without a community; drop the id only when no
-    // other key still names this member.
-    if (![...keys].some((k) => k.endsWith(`/${member.gradidoID}`))) {
-      ids.delete(member.gradidoID)
-    }
+    keys.delete(memberKey(member))
   }
   state.keys = keys
-  state.gradidoIds = ids
 }
 
 /** On logout: the next member on this device must not see the previous one's hearts. */
 export const forgetFavorites = () => {
   state.keys = new Set()
-  state.gradidoIds = new Set()
   state.loaded = false
+  epoch++
+  inFlight = null
 }
 
 /**
- * Asks the server once. `network-only`: a cached answer would be the previous member's
- * on a shared device where the cache survived (see the logout note in the store).
+ * Asks the server. `network-only`: a cached answer would be the previous member's on a
+ * shared device where the cache survived (see the logout note in the store).
  */
 export const loadFavorites = async (apolloClient) => {
+  const at = epoch
   try {
     const { data } = await apolloClient.query({
       query: favoriteListQuery,
       fetchPolicy: 'network-only',
     })
+    if (at !== epoch) return
     rememberFavorites(data?.favoriteList ?? [])
   } catch {
-    // Empty hearts this time round; the next screen that needs them asks again.
+    // Empty hearts this time round. `loaded` stays false, so the next screen that calls
+    // ensureFavorites asks again.
   }
+}
+
+/**
+ * The hearts, once per session: the layout asks at mount, and every screen that shows
+ * hearts asks again -- which costs nothing once they are here, and is the retry when the
+ * first request failed. One request at a time, however many screens ask at once.
+ */
+export const ensureFavorites = (apolloClient) => {
+  if (state.loaded) return Promise.resolve()
+  if (!inFlight) {
+    inFlight = loadFavorites(apolloClient).finally(() => {
+      inFlight = null
+    })
+  }
+  return inFlight
 }

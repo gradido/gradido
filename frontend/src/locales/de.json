@@ -162,6 +162,7 @@
     },
     "isFavorite": "Favorit",
     "last": "zuletzt {date}",
+    "notReachable": "Die Kontakte konnten nicht geladen werden.",
     "remove": {
       "body": "{name} bleibt in Deinen Kontakten. Du kannst {name} jederzeit wieder zum Favoriten machen.",
       "confirm": "Entfernen",

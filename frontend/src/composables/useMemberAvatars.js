@@ -22,6 +22,7 @@
 
 import { ref } from 'vue'
 import { avatarLettering } from '@/utils/avatarLettering'
+import { memberKey } from '@/utils/gradidoAddress'
 import { memberAvatars } from '@/graphql/queries'
 
 const STORAGE_KEY = 'gradido-avatars'
@@ -51,8 +52,7 @@ const PERSIST = true
 // communityUuid is nullable for members who registered before the home community had one,
 // and it is part of the identity as soon as other communities arrive (AS-004), so it is in
 // the key from the start rather than bolted on later.
-export const memberAvatarKey = ({ communityUuid, gradidoID }) =>
-  `${communityUuid ?? ''}/${gradidoID}`
+export const memberAvatarKey = memberKey
 
 // Dates arrive as whatever the transport made of them -- a Date, or the string a JSON
 // round trip leaves behind. Compared as numbers so that those two forms of the same moment
@@ -381,19 +381,33 @@ export const forgetAllMemberAvatars = () => {
   announceChange()
 }
 
+/** What one memberAvatars request may name -- the server's MemberAvatarsArgs cap. */
+export const MEMBER_AVATARS_MAX_REFS = 100
+
 /**
  * Fetches the pictures these members' rows are missing, and forgets the ones withdrawn.
  *
  * Moved here from DashboardLayout when the contact list needed the same round trip: a
  * list that shows faces has to ask for them the same way the booking list does, and the
  * rules below (forget first, best effort, epoch guard against a logout in between) must
- * not exist twice.
+ * not exist twice. The same goes for the shape: callers hand in the users as the lists
+ * carry them, and this is the one place that reduces them to what the query takes.
  *
  * @param apolloClient the client to ask with -- handed in, because a composable has no
  *   setup scope of its own to take it from
- * @param members [{ gradidoID, communityUuid, avatarUpdatedAt }], one per member
+ * @param users the members as a list carries them ({ gradidoID, communityUuid,
+ *   avatarUpdatedAt, … }); entries without a gradidoID are skipped
  */
-export const fetchMemberAvatars = async (apolloClient, members) => {
+export const fetchMemberAvatars = async (apolloClient, users) => {
+  const members = users
+    .filter((user) => user?.gradidoID)
+    .map(({ gradidoID, communityUuid, avatarUpdatedAt }) => ({
+      gradidoID,
+      communityUuid: communityUuid ?? null,
+      avatarUpdatedAt: avatarUpdatedAt ?? null,
+    }))
+  if (!members.length) return
+
   forgetWithdrawnMemberAvatars(members)
   const { refs, done } = claimMissingMemberAvatars(members)
   if (!refs.length) return
@@ -402,27 +416,42 @@ export const fetchMemberAvatars = async (apolloClient, members) => {
   // survive is a logout in between -- see memberAvatarStoreEpoch.
   const epoch = memberAvatarStoreEpoch()
   try {
-    const { data } = await apolloClient.query({
-      query: memberAvatars,
-      variables: { refs },
-      // ⚠️ Not from the cache, ever. The request names members, not versions -- a member
-      // who replaces their picture is asked for under exactly the same variables as
-      // before, so a cached answer would hand back the picture they just replaced and the
-      // new one would never arrive. The freshness decision is made against the date on the
-      // list, before we get here; by this point the answer has to come from the server.
-      //
-      // `no-cache`, not `network-only`: both skip the cache on the way IN, but
-      // network-only still writes the answer to it. MemberAvatar carries no id and there
-      // are no type policies, so nothing normalises it -- every distinct ref list becomes
-      // its own ROOT_QUERY entry holding a full copy of the base64, and nothing evicts it
-      // before logout. Measured at 2.1 MB of dead payload over eight pages, on top of the
-      // copy this module already keeps.
-      fetchPolicy: 'no-cache',
-    })
+    // In blocks of what the server accepts per request: the contact list asks for all
+    // favourites plus a page at once, and a member with many pictured favourites would
+    // otherwise send one request the server refuses whole -- and get no faces at all.
+    const chunks = []
+    for (let start = 0; start < refs.length; start += MEMBER_AVATARS_MAX_REFS) {
+      chunks.push(refs.slice(start, start + MEMBER_AVATARS_MAX_REFS))
+    }
+    const answers = await Promise.allSettled(
+      chunks.map((chunk) =>
+        apolloClient.query({
+          query: memberAvatars,
+          variables: { refs: chunk },
+          // ⚠️ Not from the cache, ever. The request names members, not versions -- a member
+          // who replaces their picture is asked for under exactly the same variables as
+          // before, so a cached answer would hand back the picture they just replaced and
+          // the new one would never arrive. The freshness decision is made against the
+          // date on the list, before we get here; by this point the answer has to come
+          // from the server.
+          //
+          // `no-cache`, not `network-only`: both skip the cache on the way IN, but
+          // network-only still writes the answer to it. MemberAvatar carries no id and
+          // there are no type policies, so nothing normalises it -- every distinct ref
+          // list becomes its own ROOT_QUERY entry holding a full copy of the base64, and
+          // nothing evicts it before logout. Measured at 2.1 MB of dead payload over
+          // eight pages, on top of the copy this module already keeps.
+          fetchPolicy: 'no-cache',
+        }),
+      ),
+    )
     if (epoch !== memberAvatarStoreEpoch()) return
-    rememberMemberAvatars(data?.memberAvatars ?? [])
-  } catch {
-    // Initials this time round, and the next list asks again.
+    // A block that failed costs its faces this time round; the others are kept.
+    rememberMemberAvatars(
+      answers.flatMap((answer) =>
+        answer.status === 'fulfilled' ? (answer.value.data?.memberAvatars ?? []) : [],
+      ),
+    )
   } finally {
     // Whatever happened, these members are no longer being waited for. Without this a
     // failed request would leave them marked in flight and they would never be asked

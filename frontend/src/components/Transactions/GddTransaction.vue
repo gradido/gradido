@@ -69,7 +69,9 @@
           <variant-icon icon="cards" variant="muted" class="m-mb-1" />
         </div>
       </BCol>
-      <BCol cols="12" md="1" lg="1" class="text-end">
+      <!-- Flex, because the heart is inline and the collapse arrow a block: side by side
+           only inside a flex row, on two lines otherwise. -->
+      <BCol cols="12" md="1" lg="1" class="d-flex justify-content-end align-items-center">
         <!-- The heart, exactly where the name is a link (KF-005): a counterparty with a
              gradidoID. A creation row has none and gets none; a link or card row has one
              on both sides, like any transfer (KF-011). -->

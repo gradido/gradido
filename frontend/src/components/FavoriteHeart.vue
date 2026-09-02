@@ -21,8 +21,11 @@
     <!-- The question is asked in ONE direction only (KF-003). Giving the heart by mistake
          costs nothing; taking it away by mistake loses a friend from the list, and a phone
          in a pocket taps -- so removing asks, adding does not. -->
+    <!-- `lazy`: without it every closed dialog is rendered and teleported to the body --
+         one per heart, a page of bookings' worth of hidden dialogs. -->
     <BModal
       v-model="confirming"
+      lazy
       centered
       hide-header
       :cancel-title="$t('form.cancel')"

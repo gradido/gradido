@@ -7,9 +7,13 @@ import { forgetFavorites, markFavorite, rememberFavorites } from '@/composables/
 
 const handlers = new Map()
 const fire = (document, data) => handlers.get(document)?.result?.({ data })
-const apolloQuery = vi.fn().mockResolvedValue({ data: { memberAvatars: [] } })
+// The page asks for the hearts at setup (ensureFavorites) and for faces as rows appear.
+const apolloQuery = vi.fn().mockResolvedValue({ data: { favoriteList: [], memberAvatars: [] } })
 
-vi.mock('@/graphql/contacts.graphql', () => ({ contactListQuery: 'contactListQuery' }))
+vi.mock('@/graphql/contacts.graphql', () => ({
+  contactListQuery: 'contactListQuery',
+  favoriteListQuery: 'favoriteListQuery',
+}))
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: (document) => {
     const handler = { result: null, error: null }
@@ -79,6 +83,7 @@ describe('Contacts page', () => {
   beforeEach(() => {
     handlers.clear()
     forgetFavorites()
+    apolloQuery.mockClear()
   })
 
   afterEach(() => {
@@ -90,6 +95,25 @@ describe('Contacts page', () => {
     fire('contactListQuery', { contactList: { count: 0, contacts: [] } })
     await nextTick()
     expect(wrapper.find('[data-test="contacts-empty"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="contacts-error"]').exists()).toBe(false)
+  })
+
+  // A failed request is not an empty list: the member is told the list could not be
+  // loaded, not that they have no contacts.
+  it('says so when the list cannot be loaded, instead of "no contacts yet"', async () => {
+    mountPage()
+    handlers.get('contactListQuery')?.error?.(new Error('offline'))
+    await nextTick()
+    expect(wrapper.find('[data-test="contacts-error"]').text()).toBe('contacts.notReachable')
+    expect(wrapper.find('[data-test="contacts-empty"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="contacts-loading"]').exists()).toBe(false)
+  })
+
+  it("asks for the hearts itself, in case the layout's request did not land", () => {
+    mountPage()
+    expect(apolloQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ query: 'favoriteListQuery', fetchPolicy: 'network-only' }),
+    )
   })
 
   it('puts the favourites above all the others', async () => {

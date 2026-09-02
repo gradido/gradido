@@ -3,6 +3,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import {
   claimMissingMemberAvatars,
+  fetchMemberAvatars,
   forgetAllMemberAvatars,
   forgetWithdrawnMemberAvatars,
   memberAvatarKey,
@@ -286,6 +287,65 @@ describe('useMemberAvatars', () => {
       // ...but a request that fails must not silence the member for the rest of the page.
       first.done()
       expect(claimMissingMemberAvatars(rows).refs).toHaveLength(1)
+    })
+  })
+
+  describe('fetchMemberAvatars', () => {
+    const member = (n) => ({
+      communityUuid: COMMUNITY,
+      gradidoID: `id-${n}`,
+      alias: `Alias${n}`,
+      avatarUpdatedAt: MONDAY,
+    })
+    const client = (answer = { data: { memberAvatars: [] } }) => ({
+      query: vi.fn().mockResolvedValue(answer),
+    })
+
+    it('reduces the users a list carries to what the query takes, and skips nobodies', async () => {
+      const apollo = client()
+      await fetchMemberAvatars(apollo, [
+        { ...member(1), communityUuid: undefined },
+        { alias: 'no id' },
+        null,
+      ])
+      expect(apollo.query).toHaveBeenCalledTimes(1)
+      expect(apollo.query.mock.calls[0][0]).toMatchObject({
+        variables: { refs: [{ communityUuid: null, gradidoID: 'id-1' }] },
+        fetchPolicy: 'no-cache',
+      })
+    })
+
+    it('asks nothing when every face is here or nobody has one', async () => {
+      const apollo = client()
+      await fetchMemberAvatars(apollo, [{ ...member(1), avatarUpdatedAt: null }])
+      expect(apollo.query).not.toHaveBeenCalled()
+    })
+
+    // The server takes MEMBER_AVATARS_MAX_REFS per request and refuses more. The contact
+    // list asks for all favourites plus a page at once, so the refs go in blocks.
+    it('splits a long list into blocks the server accepts', async () => {
+      const apollo = client()
+      const users = Array.from({ length: 230 }, (_, n) => member(n))
+      await fetchMemberAvatars(apollo, users)
+      expect(apollo.query).toHaveBeenCalledTimes(3)
+      const sizes = apollo.query.mock.calls.map(([{ variables }]) => variables.refs.length)
+      expect(sizes).toEqual([100, 100, 30])
+    })
+
+    it('keeps the faces of the blocks that answered when one fails', async () => {
+      const apollo = {
+        query: vi
+          .fn()
+          .mockRejectedValueOnce(new Error('too many'))
+          .mockResolvedValueOnce({
+            data: { memberAvatars: answered(member(150), 'data:face', MONDAY) },
+          }),
+      }
+      const users = Array.from({ length: 160 }, (_, n) => member(n))
+      await fetchMemberAvatars(apollo, users)
+      expect(storedMemberAvatar(member(150), MONDAY)).toBe('data:face')
+      // And nobody stays marked as in flight: the next list may ask again.
+      expect(claimMissingMemberAvatars([member(1)]).refs).toHaveLength(1)
     })
   })
 
