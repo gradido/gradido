@@ -22,6 +22,7 @@
 
 import { ref } from 'vue'
 import { avatarLettering } from '@/utils/avatarLettering'
+import { memberAvatars } from '@/graphql/queries'
 
 const STORAGE_KEY = 'gradido-avatars'
 
@@ -378,4 +379,54 @@ export const forgetAllMemberAvatars = () => {
   inFlightKeys.clear()
   storeEpoch++
   announceChange()
+}
+
+/**
+ * Fetches the pictures these members' rows are missing, and forgets the ones withdrawn.
+ *
+ * Moved here from DashboardLayout when the contact list needed the same round trip: a
+ * list that shows faces has to ask for them the same way the booking list does, and the
+ * rules below (forget first, best effort, epoch guard against a logout in between) must
+ * not exist twice.
+ *
+ * @param apolloClient the client to ask with -- handed in, because a composable has no
+ *   setup scope of its own to take it from
+ * @param members [{ gradidoID, communityUuid, avatarUpdatedAt }], one per member
+ */
+export const fetchMemberAvatars = async (apolloClient, members) => {
+  forgetWithdrawnMemberAvatars(members)
+  const { refs, done } = claimMissingMemberAvatars(members)
+  if (!refs.length) return
+
+  // Read before the request, compared after it. The one thing a late answer must never
+  // survive is a logout in between -- see memberAvatarStoreEpoch.
+  const epoch = memberAvatarStoreEpoch()
+  try {
+    const { data } = await apolloClient.query({
+      query: memberAvatars,
+      variables: { refs },
+      // ⚠️ Not from the cache, ever. The request names members, not versions -- a member
+      // who replaces their picture is asked for under exactly the same variables as
+      // before, so a cached answer would hand back the picture they just replaced and the
+      // new one would never arrive. The freshness decision is made against the date on the
+      // list, before we get here; by this point the answer has to come from the server.
+      //
+      // `no-cache`, not `network-only`: both skip the cache on the way IN, but
+      // network-only still writes the answer to it. MemberAvatar carries no id and there
+      // are no type policies, so nothing normalises it -- every distinct ref list becomes
+      // its own ROOT_QUERY entry holding a full copy of the base64, and nothing evicts it
+      // before logout. Measured at 2.1 MB of dead payload over eight pages, on top of the
+      // copy this module already keeps.
+      fetchPolicy: 'no-cache',
+    })
+    if (epoch !== memberAvatarStoreEpoch()) return
+    rememberMemberAvatars(data?.memberAvatars ?? [])
+  } catch {
+    // Initials this time round, and the next list asks again.
+  } finally {
+    // Whatever happened, these members are no longer being waited for. Without this a
+    // failed request would leave them marked in flight and they would never be asked
+    // about again on this page.
+    done()
+  }
 }
