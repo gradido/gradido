@@ -425,9 +425,22 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 /* Comments here must be block comments: lightningcss parses SFC style blocks, and a
    double slash is not a comment to it -- the build dies with "Invalid empty selector". */
+
+/* ⛔ `scoped`, and it is not tidiness. Without it every rule below applies to any element
+   in the wallet that happens to carry one of these class names -- and one did.
+   `AvatarCropper` names its size row `.avatar-zoom` too, so the rule directly under this
+   comment turned that row into a `position: fixed; inset: 0` layer at `z-index: 2000`,
+   over the modal's 1000. The size slider then stretched across the whole window and the
+   invisible rest of it swallowed every click on the page: the wallet looked frozen, and
+   only a reload brought it back. Live from 30.08.2026 until it was found on 03.09., because
+   opening the picture cropper is the only way to meet it.
+
+   The two rules do not even fight: the scoped one sets `display`, `color`, `gap`; this one
+   sets `position`, `inset`, `z-index`. Disjoint, so BOTH applied and neither overrode the
+   other -- which is why nothing looked wrong in either stylesheet on its own. */
 .avatar-zoom {
   position: fixed;
   inset: 0;
@@ -524,7 +537,10 @@ onBeforeUnmount(() => {
     visibility 0s;
 }
 
-.avatar-zoom-close .icon-variant {
+/* ⚠️ `:deep`, because `.icon-variant` belongs to `VariantIcon.vue`, not to this
+   template -- it carries THAT component's scope attribute, so a plain descendant
+   selector would stop matching the moment this block became scoped. */
+.avatar-zoom-close :deep(.icon-variant) {
   width: 28px;
   height: 28px;
 }
