@@ -11,12 +11,20 @@ import { User } from './User'
  */
 @ObjectType()
 export class Contact {
-  constructor(user: User, firstAt: Date, lastAt: Date, bookings: number, favorite: boolean) {
+  constructor(
+    user: User,
+    firstAt: Date,
+    lastAt: Date,
+    bookings: number,
+    favorite: boolean,
+    homeCommunity: boolean,
+  ) {
     this.user = user
     this.firstAt = firstAt
     this.lastAt = lastAt
     this.bookings = bookings
     this.favorite = favorite
+    this.homeCommunity = homeCommunity
   }
 
   @Field(() => User)
@@ -37,4 +45,21 @@ export class Contact {
   /** Whether the asking member has given them the heart. */
   @Field(() => Boolean)
   favorite: boolean
+
+  /**
+   * Whether this person belongs to the community this server serves.
+   *
+   * Answered here because only this side can answer it: the wallet knows its own community
+   * by a name out of its OWN configuration, while the name on a contact was written from
+   * the backend's -- two variables in two deployments, which agree by coincidence and part
+   * company silently. The comparison made here is against the home community's uuid, which
+   * the resolver loads for the page anyway.
+   *
+   * What the wallet does with it: a member's Gradido address is `host/u/alias`, and the
+   * host is THEIR community's. For somebody in this one it is ours; for anybody else the
+   * wallet would have to invent it, and an address that resolves to the wrong person is
+   * worse than none.
+   */
+  @Field(() => Boolean)
+  homeCommunity: boolean
 }

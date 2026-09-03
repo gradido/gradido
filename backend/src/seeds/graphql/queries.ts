@@ -608,6 +608,7 @@ export const contactList = gql`
         lastAt
         bookings
         favorite
+        homeCommunity
       }
     }
   }
