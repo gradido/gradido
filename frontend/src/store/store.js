@@ -8,6 +8,7 @@ import { clearEntryDraft } from '../composables/useEntryDraft'
 import { closeAvatarZoom } from '../composables/useAvatarZoom'
 import { forgetAllMemberAvatars } from '../composables/useMemberAvatars'
 import { forgetFavorites } from '../composables/useFavorites'
+import { forgetContactsPanel } from '../composables/useContactsPanel'
 import { forgetParkedAmount } from '../composables/useParkedAmount'
 import { clearApolloCache } from '../plugins/apolloCache'
 
@@ -197,6 +198,9 @@ export const actions = {
     forgetAllMemberAvatars()
     // Same reason, same moment: the hearts are one member's, not the device's.
     forgetFavorites()
+    // And the contacts the right-hand column holds, which name the people this member has
+    // exchanged Gradido with -- the next member on this browser must not be handed them.
+    forgetContactsPanel()
     // ⚠️ A picture that is OPEN at this moment lives somewhere else again: the zoom keeps
     // the one face being looked at in its own module, outside the store and outside the
     // avatar cache above. The idle-timeout logout is the realistic path -- it fires
