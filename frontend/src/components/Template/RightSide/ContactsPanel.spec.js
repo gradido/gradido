@@ -420,4 +420,22 @@ describe('ContactsPanel', () => {
 
     expect(wrapper.find('[data-test="contacts-panel-search"]').element.value).toBe('car')
   })
+
+  /**
+   * ⛔ No heading of its own. The switch standing over the column IS the heading now
+   * (BAU-10b; Bernd, 03.09.2026: "anstatt der Ueberschrift eben diese beiden Buttons"), and
+   * a panel that prints one as well says the same word twice, one line under the other --
+   * the doubling this replaced, and it ate the top of a three-column-wide column.
+   *
+   * ⚠️ Measured on the KEY, not on a `.h3` class. `BCol` is stubbed to a bare `<div>` in
+   * this file, so a class assertion would describe the stub rather than the panel. With
+   * `$t` returning its key, a heading that came back would put the literal string
+   * `rightSide.contacts` at the top of the render, and nothing else here emits it.
+   */
+  it('prints no heading of its own -- the switch above carries it', async () => {
+    mountPanel()
+    await nextTick()
+
+    expect(wrapper.text()).not.toContain('rightSide.contacts')
+  })
 })

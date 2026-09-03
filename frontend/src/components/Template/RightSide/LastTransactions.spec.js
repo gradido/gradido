@@ -333,4 +333,29 @@ describe('LastTransactions', () => {
     await nextTick()
     expect(wrapper.findAll('.heart-stub')).toHaveLength(1)
   })
+
+  /**
+   * ⛔ The counterpart of the same rule in `ContactsPanel.spec`: the switch over the column
+   * is the heading, so this panel prints none. Its old one used the very key the switch's
+   * left position now asks for, so a heading coming back would print
+   * `transaction.lastTransactions` twice on one screen -- once in the tab, once beneath it.
+   */
+  it('prints no heading of its own -- the switch above carries it', () => {
+    // ⚠️ Mounted here rather than through `createWrapper`, and the difference decides
+    // whether this measures anything: that helper stubs `BCol: true`, and an auto-stub
+    // renders no slot content at all -- the heading's words would be missing from
+    // `text()` whether or not the heading existed. These stubs pass their slot through.
+    wrapper = mount(LastTransactions, {
+      props: { transactions: [] },
+      global: {
+        mocks: { $t: (key) => key, $d: (date) => String(date) },
+        stubs: {
+          BRow: { template: '<div><slot /></div>' },
+          BCol: { template: '<div><slot /></div>' },
+        },
+      },
+    })
+
+    expect(wrapper.text()).not.toContain('transaction.lastTransactions')
+  })
 })

@@ -1,9 +1,5 @@
 <template>
   <div class="rightside-last-transactions d-none d-lg-block">
-    <BRow class="mb-3">
-      <BCol class="h3">{{ $t('transaction.lastTransactions') }}</BCol>
-    </BRow>
-
     <div v-for="row in rows" :key="row.transaction.id">
       <BRow align-v="center" class="mb-4">
         <BCol cols="auto">

@@ -1,10 +1,6 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
   <div class="contacts-panel" data-test="contacts-panel">
-    <BRow class="mb-3">
-      <BCol class="h3">{{ $t('rightSide.contacts') }}</BCol>
-    </BRow>
-
     <BFormInput
       v-model="searchInput"
       type="search"
@@ -107,7 +103,7 @@
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useApolloClient } from '@vue/apollo-composable'
-import { BCol, BFormInput, BRow, BSpinner } from 'bootstrap-vue-next'
+import { BFormInput, BSpinner } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
 import ContactTiles from '@/components/Contacts/ContactTiles.vue'
 import ContactWindow from '@/components/Contacts/ContactWindow.vue'
