@@ -161,22 +161,28 @@ describe('ContactResolver', () => {
      * their address.
      */
     /**
-     * ⛔ The row's own `foreign` column decides, and it has to decide BEFORE the home uuid
-     * is stood in for. Both shapes are exercised, because the second one is what a first
-     * attempt at this got wrong: a federated member whose row carries NO uuid was given
-     * this community's, and was then declared ours by the very check meant to catch them.
+     * ⛔ The row's own `foreign` column decides, and it decides BEFORE the home uuid is
+     * stood in for. A set `linked_user_id` is not proof of belonging here: the federation
+     * stores foreign members as `users` rows too, and the contact query joins on that id
+     * without asking.
      *
-     * ⚠️ Migration 0129 fills `foreign = 0` rows only, so a foreign row with a null uuid is
-     * not a state the database grows out of -- it is the normal one for a federated member
-     * stored before the pair was written.
+     * ⚠️ Only ONE shape is exercised, and that is a measurement rather than an omission. A
+     * first version of this test also drove a foreign row with a NULL `community_uuid`,
+     * reasoning that migration 0129 fills `foreign = 0` rows only -- but no writer produces
+     * that state: both `core/graphql/logic/storeForeignUser` and
+     * `federation/graphql/api/1_0/util/storeForeignUser` assign the uuid, and the first is
+     * guarded on `communityUuid !== null` before it even builds the row. The fixture was
+     * inventing a state the real path does not allow, and the list's pre-existing rule for
+     * a contact without a uuid -- leave it out rather than null the whole answer -- then
+     * made the row vanish and the test read `undefined`.
      */
-    it.each([
-      ['carrying their own community uuid', FOREIGN_COMMUNITY],
-      ['carrying no community uuid at all', null],
-    ])('does not call a foreign member local, %s', async (unused, uuid) => {
+    it('does not call a foreign member local just because they have a users row', async () => {
       await db
         .getDataSource()
-        .query('UPDATE users SET `foreign` = 1, community_uuid = ? WHERE id = ?', [uuid, bob.id])
+        .query('UPDATE users SET `foreign` = 1, community_uuid = ? WHERE id = ?', [
+          FOREIGN_COMMUNITY,
+          bob.id,
+        ])
       try {
         const res: any = await query({ query: contactList })
         const bobRow = res.data.contactList.contacts.find(
