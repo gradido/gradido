@@ -61,6 +61,11 @@ describe('LastTransactions', () => {
     return mount(LastTransactions, {
       props,
       global: {
+        // ⚠️ `$t` is needed again. It was not before, and not because the component did
+        // without it: its heading sat inside a `BCol` that these auto-stubs render without
+        // their slot, so the call was never reached. The screen-reader heading stands free
+        // in the template, so every mount evaluates it.
+        mocks: { $t: (key) => key },
         stubs: {
           BRow: true,
           BCol: true,
@@ -340,7 +345,7 @@ describe('LastTransactions', () => {
    * left position now asks for, so a heading coming back would print
    * `transaction.lastTransactions` twice on one screen -- once in the tab, once beneath it.
    */
-  it('prints no heading of its own -- the switch above carries it', () => {
+  it('names the column for a screen reader, and only for one', () => {
     // ⚠️ Mounted here rather than through `createWrapper`, and the difference decides
     // whether this measures anything: that helper stubs `BCol: true`, and an auto-stub
     // renders no slot content at all -- the heading's words would be missing from
@@ -356,6 +361,11 @@ describe('LastTransactions', () => {
       },
     })
 
-    expect(wrapper.text()).not.toContain('transaction.lastTransactions')
+    const heading = wrapper.find('h2')
+
+    expect(heading.exists()).toBe(true)
+    expect(heading.text()).toBe('transaction.lastTransactions')
+    expect(heading.classes()).toContain('visually-hidden')
+    expect(wrapper.text().split('transaction.lastTransactions')).toHaveLength(2)
   })
 })

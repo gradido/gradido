@@ -432,10 +432,17 @@ describe('ContactsPanel', () => {
    * `$t` returning its key, a heading that came back would put the literal string
    * `rightSide.contacts` at the top of the render, and nothing else here emits it.
    */
-  it('prints no heading of its own -- the switch above carries it', async () => {
+  it('names the column for a screen reader, and only for one', async () => {
     mountPanel()
     await nextTick()
+    const heading = wrapper.find('h2')
 
-    expect(wrapper.text()).not.toContain('rightSide.contacts')
+    expect(heading.exists()).toBe(true)
+    expect(heading.text()).toBe('rightSide.contacts')
+    // Clipped, not removed: `d-none` would take it from assistive technology too.
+    expect(heading.classes()).toContain('visually-hidden')
+    // ⛔ And ONCE. A visible heading coming back would render the word a second time,
+    // under a switch that already says it -- the doubling this replaced.
+    expect(wrapper.text().split('rightSide.contacts')).toHaveLength(2)
   })
 })
