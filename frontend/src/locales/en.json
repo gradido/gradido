@@ -768,7 +768,6 @@
   "qrCode": "QR Code",
   "rightSide": {
     "aria": "Switch the right-hand column",
-    "bookings": "Bookings",
     "contacts": "Contacts"
   },
   "scanner": {

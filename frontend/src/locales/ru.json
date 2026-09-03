@@ -768,7 +768,6 @@
   "qrCode": "QR код",
   "rightSide": {
     "aria": "Переключить правую колонку",
-    "bookings": "Операции",
     "contacts": "Контакты"
   },
   "scanner": {

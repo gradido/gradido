@@ -61,6 +61,11 @@ describe('LastTransactions', () => {
     return mount(LastTransactions, {
       props,
       global: {
+        // ⚠️ `$t` is needed again. It was not before, and not because the component did
+        // without it: its heading sat inside a `BCol` that these auto-stubs render without
+        // their slot, so the call was never reached. The screen-reader heading stands free
+        // in the template, so every mount evaluates it.
+        mocks: { $t: (key) => key },
         stubs: {
           BRow: true,
           BCol: true,
@@ -332,5 +337,35 @@ describe('LastTransactions', () => {
     })
     await nextTick()
     expect(wrapper.findAll('.heart-stub')).toHaveLength(1)
+  })
+
+  /**
+   * ⛔ The counterpart of the same rule in `ContactsPanel.spec`: the switch over the column
+   * is the heading, so this panel prints none. Its old one used the very key the switch's
+   * left position now asks for, so a heading coming back would print
+   * `transaction.lastTransactions` twice on one screen -- once in the tab, once beneath it.
+   */
+  it('names the column for a screen reader, and only for one', () => {
+    // ⚠️ Mounted here rather than through `createWrapper`, and the difference decides
+    // whether this measures anything: that helper stubs `BCol: true`, and an auto-stub
+    // renders no slot content at all -- the heading's words would be missing from
+    // `text()` whether or not the heading existed. These stubs pass their slot through.
+    wrapper = mount(LastTransactions, {
+      props: { transactions: [] },
+      global: {
+        mocks: { $t: (key) => key, $d: (date) => String(date) },
+        stubs: {
+          BRow: { template: '<div><slot /></div>' },
+          BCol: { template: '<div><slot /></div>' },
+        },
+      },
+    })
+
+    const heading = wrapper.find('h2')
+
+    expect(heading.exists()).toBe(true)
+    expect(heading.text()).toBe('transaction.lastTransactions')
+    expect(heading.classes()).toContain('visually-hidden')
+    expect(wrapper.text().split('transaction.lastTransactions')).toHaveLength(2)
   })
 })

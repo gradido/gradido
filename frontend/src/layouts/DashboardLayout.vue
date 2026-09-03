@@ -242,15 +242,18 @@
           <right-side :panel="activePanelSlot">
             <!-- Over the column and inside its container, so it lines up with the panel
                  beneath it. Only where there are two positions: the contributions and
-                 matching columns have nothing to switch. -->
+                 matching columns have nothing to switch.
+
+                 ⛔ No wrapper and no `justify-content-end`. The switch is the column's
+                 heading now -- the panels beneath print none of their own any more -- so it
+                 spans the full width the way the heading did, instead of hiding in the top
+                 right corner as a pair of small buttons. -->
             <template v-if="isSwitchable" #head>
-              <div class="d-flex justify-content-end mb-2">
-                <panel-switch
-                  :model-value="panelChoice"
-                  :options="panelOptions"
-                  @update:model-value="choosePanel"
-                />
-              </div>
+              <panel-switch
+                :model-value="panelChoice"
+                :options="panelOptions"
+                @update:model-value="choosePanel"
+              />
             </template>
             <template #transactions>
               <!-- ⛔ `newestTransactions`, NOT the list the transactions page pages through.
@@ -396,7 +399,11 @@ const POSITION_SLOT = { bookings: 'transactions', contacts: 'contacts' }
 // i18n lint counts only literal keys, so a list of key STRINGS would have both of them
 // reported as unused in ten files -- and the next tidy-up would remove them.
 const panelOptions = computed(() => [
-  { value: 'bookings', label: t('rightSide.bookings') },
+  // ⛔ The VALUE stays `bookings`: it is what `useRightSidePref` has already written to
+  // every member's device, and renaming it would silently forget their choice. Only the
+  // word changes -- and to a key that already exists in all ten languages, because it is
+  // the heading `LastTransactions` used to print for itself.
+  { value: 'bookings', label: t('transaction.lastTransactions') },
   { value: 'contacts', label: t('rightSide.contacts') },
 ])
 

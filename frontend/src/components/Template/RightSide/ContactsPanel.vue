@@ -1,9 +1,19 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
   <div class="contacts-panel" data-test="contacts-panel">
-    <BRow class="mb-3">
-      <BCol class="h3">{{ $t('rightSide.contacts') }}</BCol>
-    </BRow>
+    <!-- ⛔ The column's name, for a screen reader only. The switch above carries it on
+         screen, but a group of pressed buttons is not a heading: the "next heading" jump
+         has nothing to land on, so the column had no title to navigate to.
+
+         ⚠️ It is not a heading that was lost here -- the markup this replaced was
+         `<BCol class="h3">`, and `h3` is a Bootstrap STYLING class on a div
+         (`tag: { default: 'div' }`), so the jump never found it either. This adds what was
+         never there, rather than restoring something. (coderabbit, PR #3837.)
+
+         ⚠️ `visually-hidden` is Bootstrap's own and ships in the stylesheet (verified in
+         the built CSS); it clips the element instead of hiding it, so the text stays
+         readable to assistive technology. `d-none` would take it away from that too. -->
+    <h2 class="visually-hidden">{{ $t('rightSide.contacts') }}</h2>
 
     <BFormInput
       v-model="searchInput"
@@ -107,7 +117,7 @@
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useApolloClient } from '@vue/apollo-composable'
-import { BCol, BFormInput, BRow, BSpinner } from 'bootstrap-vue-next'
+import { BFormInput, BSpinner } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
 import ContactTiles from '@/components/Contacts/ContactTiles.vue'
 import ContactWindow from '@/components/Contacts/ContactWindow.vue'
