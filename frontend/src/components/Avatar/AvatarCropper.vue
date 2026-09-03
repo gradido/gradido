@@ -32,7 +32,12 @@
         <div v-if="loadError" class="avatar-error">{{ loadError }}</div>
       </div>
 
-      <div class="avatar-zoom">
+      <!-- ⛔ `avatar-size`, NOT `avatar-zoom`. `AvatarZoom.vue` uses that name for its
+           full-screen overlay, and while its styles were unscoped this row inherited
+           `position: fixed; inset: 0; z-index: 2000` from it -- an invisible sheet over the
+           whole wallet that ate every click. That leak is closed at its own end now; the
+           second name means it cannot come back by reopening it. -->
+      <div class="avatar-size">
         <span>{{ $t('avatar.size') }}</span>
         <input
           v-model.number="zoom"
@@ -625,7 +630,7 @@ function onRemove() {
   font-size: 30px;
 }
 
-.avatar-zoom {
+.avatar-size {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -633,7 +638,7 @@ function onRemove() {
   color: var(--text-muted, #6c757d);
 }
 
-.avatar-zoom input {
+.avatar-size input {
   flex: 1;
   accent-color: #047006;
 }
