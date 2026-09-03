@@ -152,7 +152,9 @@
   "contacts": {
     "addFavorite": "Favorilere ekle",
     "all": "Tüm kişiler",
+    "allShort": "Tümü",
     "bookings": "{n} işlem | {n} işlem",
+    "chatLater": "Konuşma geçmişi — sohbetle birlikte gelecek",
     "count": "{n} kişi | {n} kişi",
     "empty": "Henüz kişi yok. Sana Gradido gönderen veya senden alan herkes burada görünür.",
     "favorites": "Favoriler",
@@ -162,13 +164,19 @@
     },
     "isFavorite": "Favori",
     "last": "son {date}",
+    "matches": "Sonuçlar",
+    "noFavorites": "Henüz favori yok. Bir kişinin yanındaki kalbe dokun.",
     "notReachable": "Kişiler yüklenemedi.",
+    "recent": "Son",
     "remove": {
       "body": "{name} kişilerinde kalır. {name} kişisini istediğin zaman yeniden favori yapabilirsin.",
       "confirm": "Çıkar",
       "title": "{name} favorilerinden çıkarılsın mı?"
     },
-    "search": "Kişi ara …"
+    "search": "Kişi ara …",
+    "sendEmail": "E-posta gönder",
+    "sendGradido": "Gradido gönder",
+    "since": "{date} tarihinden beri kişi"
   },
   "contribution": {
     "activity": "Hizmet",
@@ -758,6 +766,11 @@
     "send": "Gradido gönder"
   },
   "qrCode": "QR Kodu",
+  "rightSide": {
+    "aria": "Sağ sütunu değiştir",
+    "bookings": "İşlemler",
+    "contacts": "Kişiler"
+  },
   "scanner": {
     "back": "Geri",
     "denied": {

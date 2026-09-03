@@ -8,6 +8,7 @@ import routes from '@/routes/routes'
 import { useQuery } from '@vue/apollo-composable'
 import flushPromises from 'flush-promises'
 import { forgetAllMemberAvatars, storedMemberAvatar } from '@/composables/useMemberAvatars'
+import { forgetViewport } from '@/composables/useViewport'
 import { transactionsUserCountQuery } from '@/graphql/transactions.graphql'
 import { LAST_TRANSACTIONS_PAGE_SIZE, PAGE_SIZE } from '@/constants'
 
@@ -85,7 +86,10 @@ describe('DashboardLayout', () => {
   let logoutSpy
   let routerPushSpy
 
-  const createVuexStore = () => {
+  // ⚠️ `gradidoID` is what the remembered column choice is filed under, and it is null by
+  // default here on purpose: that is the state a layout mounted inside the gap between the
+  // token and the login answer is really in, and nothing may be remembered then.
+  const createVuexStore = (gradidoID = null) => {
     logoutSpy = vi.fn()
     return createStore({
       state: {
@@ -94,6 +98,7 @@ describe('DashboardLayout', () => {
         lastName: 'Example',
         token: 'valid-token',
         roles: [],
+        gradidoID,
       },
       actions: {
         logout: logoutSpy,
@@ -107,8 +112,8 @@ describe('DashboardLayout', () => {
    * `find` inside one comes back empty in a way that reads exactly like "it is not there".
    * A test that needs to see inside a link passes a stub that renders its children.
    */
-  const createWrapper = (stubs = {}) => {
-    store = createVuexStore()
+  const createWrapper = (stubs = {}, gradidoID = null) => {
+    store = createVuexStore(gradidoID)
     routerPushSpy = vi.spyOn(router, 'push')
     return mount(DashboardLayout, {
       global: {
@@ -318,7 +323,7 @@ describe('DashboardLayout', () => {
      * person, who was reading the member's last bookings beside the code. On /transactions
      * the column repeated the page it stands beside.
      */
-    it.each(['/my-gradido-card', '/my-thank-you-card', '/scan', '/calculator', '/transactions'])(
+    it.each(['/my-gradido-card', '/my-thank-you-card', '/scan', '/calculator'])(
       'drops it at %s as well',
       async (path) => {
         await router.push(path)
@@ -327,6 +332,249 @@ describe('DashboardLayout', () => {
         expect(wrapper.findComponent({ name: 'RightSide' }).exists()).toBe(false)
       },
     )
+
+    /**
+     * KF-009. The column now has two positions on three routes, and which one it starts on
+     * is the route's own answer -- the overview opens on bookings because that is the page
+     * one opens to see where one stands; the send form and the booking list open on
+     * contacts, because beside them the bookings would be the page repeated.
+     */
+    describe('the switch over the column (KF-009)', () => {
+      const KEY = (path) => `right-side:member-1:${path}`
+
+      afterEach(() => {
+        window.localStorage.clear()
+      })
+
+      it.each([
+        ['/overview', 'transactions'],
+        ['/transactions', 'contacts'],
+        ['/send', 'contacts'],
+      ])('starts %s on the position that route named', async (path, panel) => {
+        await router.push(path)
+        await nextTick()
+
+        expect(wrapper.findComponent({ name: 'RightSide' }).props('panel')).toBe(panel)
+      })
+
+      /**
+       * ⛔ That the panel is THERE, not merely that the route named it -- the same guard the
+       * booking column carries two tests above, and for the same reason: a setup binding
+       * named like a tag hides the component silently, and this file has lost a column to
+       * that twice. Measured in the compiler output as well; held here.
+       *
+       * ⚠️ With the REAL RightSide, because a default stub renders no slots and the panel
+       * lives in one.
+       */
+      it('renders the contacts panel itself, not only its name', async () => {
+        await router.push('/transactions')
+        const withPanel = createWrapper({ RightSide: false, ContactsPanel: true })
+        withPanel.vm.skeleton = false
+        await nextTick()
+
+        const rendered = withPanel.findComponent({ name: 'ContactsPanel' }).exists()
+        withPanel.unmount()
+
+        expect(rendered).toBe(true)
+      })
+
+      it('renders the switch itself over a column that has two positions', async () => {
+        await router.push('/overview')
+        const withPanel = createWrapper({ RightSide: false, ContactsPanel: true })
+        withPanel.vm.skeleton = false
+        await nextTick()
+
+        const rendered = withPanel.findComponent({ name: 'PanelSwitch' }).exists()
+        withPanel.unmount()
+
+        expect(rendered).toBe(true)
+      })
+
+      // The contributions column has nothing to switch, so it gets no switch.
+      it('gives no switch to a column with one position', async () => {
+        await router.push('/contributions/contribute')
+        const withPanel = createWrapper({ RightSide: false })
+        withPanel.vm.skeleton = false
+        await nextTick()
+
+        const rendered = withPanel.findComponent({ name: 'PanelSwitch' }).exists()
+        withPanel.unmount()
+
+        expect(rendered).toBe(false)
+      })
+
+      it('lets a remembered choice beat the route default', async () => {
+        window.localStorage.setItem(KEY('/overview'), 'contacts')
+        await router.push('/overview')
+        const remembered = createWrapper({}, 'member-1')
+        remembered.vm.skeleton = false
+        await nextTick()
+
+        const panel = remembered.findComponent({ name: 'RightSide' }).props('panel')
+        remembered.unmount()
+
+        expect(panel).toBe('contacts')
+      })
+
+      /**
+       * ⛔ One answer per route, not one for the column. Somebody who wants bookings beside
+       * the overview and contacts beside the send form is expressing two wishes.
+       */
+      it('remembers each route on its own', async () => {
+        // Both flipped AWAY from their own default, in opposite directions -- so a single
+        // shared key could not produce this pair of answers.
+        window.localStorage.setItem(KEY('/transactions'), 'bookings')
+        window.localStorage.setItem(KEY('/overview'), 'contacts')
+        await router.push('/transactions')
+        const remembered = createWrapper({}, 'member-1')
+        remembered.vm.skeleton = false
+        await nextTick()
+        const onTransactions = remembered.findComponent({ name: 'RightSide' }).props('panel')
+
+        await router.push('/overview')
+        await nextTick()
+        const onOverview = remembered.findComponent({ name: 'RightSide' }).props('panel')
+        remembered.unmount()
+
+        expect(onTransactions).toBe('transactions')
+        expect(onOverview).toBe('contacts')
+      })
+
+      /**
+       * ⛔ Nothing is remembered without a member. The id is null before the login answer
+       * arrives and again after signing out, and one shared key would hand the next person
+       * on a shared device the previous one's column.
+       */
+      it('remembers nothing while nobody is named', async () => {
+        window.localStorage.setItem(KEY('/overview'), 'contacts')
+        await router.push('/overview')
+        await nextTick()
+
+        expect(wrapper.findComponent({ name: 'RightSide' }).props('panel')).toBe('transactions')
+        expect(window.localStorage.getItem('right-side:null:/overview')).toBeNull()
+      })
+
+      /**
+       * ⛔ The WIRING, which nothing else here covers: the switch emitting and the layout
+       * acting on it are two halves, each tested on its own, and a missing
+       * `@update:model-value` would leave both green while the switch did nothing at all.
+       * ⚠️ With the real PanelSwitch, because a stub emits nothing.
+       */
+      it('turns the column when the switch is used, and remembers it', async () => {
+        await router.push('/overview')
+        const withPanel = createWrapper({ RightSide: false, ContactsPanel: true }, 'member-1')
+        withPanel.vm.skeleton = false
+        await nextTick()
+        expect(withPanel.findComponent({ name: 'RightSide' }).props('panel')).toBe('transactions')
+
+        await withPanel.find('[data-test="panel-switch-contacts"]').trigger('click')
+        await nextTick()
+
+        const panel = withPanel.findComponent({ name: 'RightSide' }).props('panel')
+        withPanel.unmount()
+
+        expect(panel).toBe('contacts')
+        expect(window.localStorage.getItem(KEY('/overview'))).toBe('contacts')
+      })
+
+      /**
+       * ⛔ Two components, not one with a posture prop. The strip was the column minus its
+       * column-only parts, and a state the column handles therefore had no counterpart
+       * there: a member with contacts and no hearts got an empty box over the send form.
+       * Each posture declares its own states now, so which one the layout hands to which
+       * column is the thing worth holding.
+       */
+      it('gives the phone the strip and the desk the column', async () => {
+        await router.push('/send')
+        const withPanel = createWrapper(
+          { RightSide: false, ContactsPanel: true, ContactsStrip: true },
+          'member-1',
+        )
+        withPanel.vm.skeleton = false
+        await nextTick()
+
+        const strips = withPanel.findAllComponents({ name: 'ContactsStrip' }).length
+        const columns = withPanel.findAllComponents({ name: 'ContactsPanel' }).length
+        withPanel.unmount()
+
+        expect({ strips, columns }).toEqual({ strips: 1, columns: 1 })
+      })
+
+      /**
+       * ⛔ A column is MOUNTED only where it can be seen. Both were mounted at every width
+       * with one hidden by CSS -- tolerable while the hidden twin only rendered, and not
+       * once it asks the server: a phone paid a contactList request and a portrait fetch
+       * for a subtree behind `display:none`.
+       *
+       * ⚠️ jsdom has no `matchMedia`, so the composable answers `unknown` and both columns
+       * mount, exactly as before -- which is what every other test in this file assumes.
+       * Here the query is stubbed so the real answer can be measured.
+       */
+      it.each([
+        ['desktop', true, { strips: 0, columns: 1 }],
+        ['a phone', false, { strips: 1, columns: 0 }],
+      ])('mounts one column on %s, not both', async (unused, matches, expected) => {
+        vi.stubGlobal('matchMedia', () => ({ matches, addEventListener: vi.fn() }))
+        forgetViewport()
+        await router.push('/send')
+        const withPanel = createWrapper(
+          { RightSide: false, ContactsPanel: true, ContactsStrip: true },
+          'member-1',
+        )
+        withPanel.vm.skeleton = false
+        await nextTick()
+
+        const counted = {
+          strips: withPanel.findAllComponents({ name: 'ContactsStrip' }).length,
+          columns: withPanel.findAllComponents({ name: 'ContactsPanel' }).length,
+        }
+        withPanel.unmount()
+        vi.unstubAllGlobals()
+        forgetViewport()
+
+        expect(counted).toEqual(expected)
+      })
+
+      /**
+       * ⛔ The phone keeps its strip whatever the switch says. The switch is rendered only
+       * in the desktop column, so a member who set /send to bookings on a wide window and
+       * then narrowed it lost the strip with no control anywhere to bring it back.
+       */
+      it('keeps the phone strip when the switch stands on bookings', async () => {
+        window.localStorage.setItem(KEY('/send/:communityIdentifier?/:userIdentifier?'), 'bookings')
+        vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener: vi.fn() }))
+        forgetViewport()
+        await router.push('/send')
+        const onPhone = createWrapper(
+          { RightSide: false, ContactsPanel: true, ContactsStrip: true },
+          'member-1',
+        )
+        onPhone.vm.skeleton = false
+        await nextTick()
+
+        const strips = onPhone.findAllComponents({ name: 'ContactsStrip' }).length
+        onPhone.unmount()
+        vi.unstubAllGlobals()
+        forgetViewport()
+
+        expect(strips).toBe(1)
+      })
+
+      /**
+       * BAU-11: the phone carries the strip over the send form and nowhere else. Two columns
+       * mean the mobile one is mounted as well -- it is hidden by CSS, not by `v-if`.
+       */
+      it.each([
+        ['/send', 2],
+        ['/transactions', 1],
+        ['/overview', 1],
+      ])('gives the phone a column at %s only where it has one', async (path, columns) => {
+        await router.push(path)
+        await nextTick()
+
+        expect(wrapper.findAllComponents({ name: 'RightSide' })).toHaveLength(columns)
+      })
+    })
 
     it('leaves the drawer on the main menu, even inside the settings', async () => {
       await router.push('/settings/appearance')

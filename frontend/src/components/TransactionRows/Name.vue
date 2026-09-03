@@ -1,7 +1,7 @@
 <template>
   <div class="name">
     <div class="gdd-transaction-list-item-name">
-      <div v-if="linkedUser && linkedUser.gradidoID">
+      <div v-if="linked && linkedUser && linkedUser.gradidoID">
         <router-link :class="fontColor" :to="pushTo">
           {{ itemText }}
         </router-link>
@@ -41,6 +41,20 @@ export default {
      * V02) and switches it off here, rather than handing this component a doctored user.
      */
     withCommunity: {
+      type: Boolean,
+      required: false,
+      default: true,
+    },
+    /**
+     * Whether the name is a link into the send form. True everywhere it has always been.
+     *
+     * ⛔ False where the row itself already means something: in the contact list and in the
+     * contacts column a tap opens the contact window (KF-010). An anchor inside a button is
+     * invalid HTML with no agreed behaviour, and it would give one word two destinations.
+     * Told to this component rather than solved by catching the click outside it, because
+     * the anchor is only ever rendered here.
+     */
+    linked: {
       type: Boolean,
       required: false,
       default: true,

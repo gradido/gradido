@@ -67,9 +67,22 @@ describe('Contacts page', () => {
             props: ['modelValue', 'totalRows', 'perPage'],
             template: '<nav data-test="contacts-pagination" :data-total="totalRows" />',
           },
+          // Emits `open` the way the real row does, so the page's half of KF-010 -- which
+          // person the window is handed -- is what is measured here. The window's own
+          // contents are its spec's business.
           ContactRow: {
             props: ['contact'],
-            template: '<div data-test="contact-row">{{ contact.user.alias }}</div>',
+            emits: ['open'],
+            template:
+              '<div data-test="contact-row" @click="$emit(\'open\', contact)">{{ contact.user.alias }}</div>',
+          },
+          // ⚠️ Stubbed, and it has to be: the real window reaches for `useRouter`, and this
+          // file installs no router -- which arrives as "Need to install with `app.use`",
+          // an error that says nothing about contacts.
+          ContactWindow: {
+            props: ['modelValue', 'contact'],
+            template:
+              '<div data-test="contact-window" :data-open="String(modelValue)" :data-who="contact?.user?.gradidoID ?? \'\'" />',
           },
         },
       },
@@ -151,6 +164,27 @@ describe('Contacts page', () => {
     expect(wrapper.find('[data-test="contacts-pagination"]').exists()).toBe(false)
     await wrapper.find('[data-test="contacts-search"]').setValue('zzz')
     expect(wrapper.find('[data-test="contacts-none-match"]').exists()).toBe(true)
+  })
+
+  /**
+   * KF-010: a tap on a contact opens the window over the list, one for the whole page --
+   * not one per row, and not a jump into the send form (that is one of the two ways OUT of
+   * the window).
+   */
+  it('opens the window on the person that was tapped', async () => {
+    mountPage()
+    fire('contactListQuery', { contactList: { contacts: [person(1), person(2)], count: 2 } })
+    await nextTick()
+
+    expect(wrapper.findAll('[data-test="contact-window"]')).toHaveLength(1)
+    expect(wrapper.find('[data-test="contact-window"]').attributes('data-open')).toBe('false')
+
+    await wrapper.findAll('[data-test="contact-row"]')[1].trigger('click')
+    await nextTick()
+
+    const openWindow = wrapper.find('[data-test="contact-window"]')
+    expect(openWindow.attributes('data-open')).toBe('true')
+    expect(openWindow.attributes('data-who')).toBe('id-2')
   })
 
   it('asks for the faces of the rows on screen only', async () => {

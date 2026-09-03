@@ -132,12 +132,17 @@ const routes = [
     meta: {
       requiresAuth: true,
       pageTitle: 'overview',
-      // ⛔ The booking list stands beside this page and no other. Declared here rather than
-      // in a table somewhere else, because only the route knows -- see the note over
+      // ⛔ A column with two positions, not a fixed panel (KF-009). Declared here rather
+      // than in a table somewhere else, because only the route knows -- see the note over
       // `rightSidePanel` in DashboardLayout. A member showing somebody their QR code was
-      // showing their last bookings with it; that is the reason, and it belongs on the
-      // routes that do NOT carry this line as much as on the one that does.
-      rightSide: 'transactions',
+      // showing their last bookings with it; that is the reason the card and scanner pages
+      // carry no column at all, and it belongs on the routes that do NOT carry this line as
+      // much as on the three that do.
+      rightSide: 'bookings-or-contacts',
+      // What the switch stands on before anybody has touched it. Bookings here: this is the
+      // page somebody opens to see where they stand, and the last bookings are that answer.
+      // A member's own choice, remembered per device, wins over this (useRightSidePref).
+      rightSideDefault: 'bookings',
       // How many bookings the layout's one query asks for while this page is open. Here
       // rather than in a table inside the layout, for the reason the note above gives: only
       // the route knows, and a route added later carries its own answer.
@@ -157,6 +162,25 @@ const routes = [
     meta: {
       requiresAuth: true,
       pageTitle: 'send',
+      rightSide: 'bookings-or-contacts',
+      // Contacts by default here: this is the page where one is looking for a person, and
+      // the column answers exactly that question (KF-009).
+      rightSideDefault: 'contacts',
+      // ⛔ Names the panel the PHONE carries here, and it is not the switch's answer: the
+      // switch lives in the desktop column, so a choice made on a wide screen must not be
+      // able to take the strip away from a narrow one (BAU-11, KF-009). A strip of
+      // favourites over the send form is a shortcut into the field right beneath it; over
+      // the overview or the booking list it would be a shortcut to nowhere, which is why
+      // only this route says it.
+      rightSideMobile: 'contacts',
+      // ⛔ NO `transactionsPageSize`, and the reason is a measurement that contradicts the
+      // plan this was built from (BAU-10c). The worry was that the column beside /send
+      // would stand empty in the bookings position -- but the layout's query runs at MOUNT
+      // with the column's own size as its fallback, and `newestTransactions` is filled from
+      // any page-one answer, so it is never empty. What the line DID do was arm the
+      // layout's route watch on /send: every navigation into the page -- including every
+      // tap on a contact in this very column, which pushes /send/<community>/<member> --
+      // cost a full booking query whose twelve rows nothing then drew.
     },
   },
   // {
@@ -228,6 +252,10 @@ const routes = [
     meta: {
       requiresAuth: true,
       pageTitle: 'transactions',
+      rightSide: 'bookings-or-contacts',
+      // Contacts by default: the bookings are already the page here, and a second copy of
+      // them beside it says nothing (KF-009).
+      rightSideDefault: 'contacts',
       // ⛔ The SAME constant the paginator on this page divides by. The layout asks the
       // server with this number and GddTransactionList sizes its pages with it; while the
       // two disagreed -- ten fetched, twenty-five per page -- bookings 11 to 25 were on no

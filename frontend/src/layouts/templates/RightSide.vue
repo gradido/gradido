@@ -1,6 +1,11 @@
 <template>
   <div class="right-side mt-3 mt-lg-0">
     <BContainer>
+      <!-- Anything that stands OVER the panel and belongs to the column rather than to
+           what is in it -- today the bookings-or-contacts switch (KF-009). Inside the
+           container, so it lines up with the panel beneath it rather than with the page
+           edge; empty on the columns that have nothing to switch. -->
+      <slot name="head" />
       <slot :name="panel" />
     </BContainer>
   </div>

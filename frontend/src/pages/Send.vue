@@ -217,7 +217,10 @@ export default {
 
           this.error = false
           this.emit('set-tunneled-email', null)
-          this.updateTransactions({})
+          // A counterparty was involved, so the contact list may have gained somebody --
+          // see the layout's `updateTransactions`. Creating a LINK names nobody, which is
+          // why the two calls below say different things.
+          this.updateTransactions({ contactsChanged: true })
           Object.assign(this.transactionData, this.EMPTY_TRANSACTION_DATA)
           this.currentTransactionStep = TRANSACTION_STEPS.transactionResultSendSuccess
         } else if (this.transactionData.selected === SEND_TYPES.link) {
@@ -411,7 +414,10 @@ async function sendTransaction() {
 
       error.value = false
       emit('set-tunneled-email', null)
-      updateTransactions({})
+      // A counterparty was involved, so the contact list may have gained somebody -- see
+      // the layout's `updateTransactions`. Creating a LINK names nobody, which is why the
+      // two calls below say different things.
+      updateTransactions({ contactsChanged: true })
       Object.assign(transactionData, EMPTY_TRANSACTION_DATA)
       currentTransactionStep.value = TRANSACTION_STEPS.transactionResultSendSuccess
     } else if (transactionData.selected === SEND_TYPES.link) {

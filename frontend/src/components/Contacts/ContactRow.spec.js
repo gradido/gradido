@@ -59,9 +59,13 @@ describe('ContactRow', () => {
           },
           // Does what the real one does: appends the community, unless told not to.
           Name: {
-            props: ['linkedUser', 'withCommunity'],
+            props: {
+              linkedUser: Object,
+              withCommunity: { type: Boolean, default: true },
+              linked: { type: Boolean, default: true },
+            },
             template:
-              '<span data-test="name">{{ linkedUser.alias }}{{ withCommunity && linkedUser.communityName ? " / " + linkedUser.communityName : "" }}</span>',
+              '<span data-test="name" :data-linked="String(linked)">{{ linkedUser.alias }}{{ withCommunity && linkedUser.communityName ? " / " + linkedUser.communityName : "" }}</span>',
           },
           FavoriteHeart: {
             props: ['member'],
@@ -112,5 +116,28 @@ describe('ContactRow', () => {
   it('draws the face from the alias, like the booking row', () => {
     mountWith()
     expect(wrapper.find('[data-test="avatar"]').attributes('data-initials')).toBe('CA')
+  })
+
+  /**
+   * KF-010: a tap on a contact opens the contact window. The row says WHO was tapped; the
+   * list owns the window.
+   */
+  it('says which person was tapped', async () => {
+    mountWith()
+    await wrapper.find('[data-test="contact-row-open"]').trigger('click')
+
+    expect(wrapper.emitted('open')).toEqual([[CONTACT]])
+  })
+
+  /**
+   * ⛔ And the name inside is no longer a link. The row is a button now, and a click on an
+   * anchor nested in it reaches BOTH: the router navigates away while the window opens
+   * behind it -- one word with two destinations. (`ContactRow.vue` and the `linked` prop
+   * doc say the same thing; an earlier version of this comment claimed the window would
+   * never open at all, which is not how a nested click behaves.)
+   */
+  it('does not let the name link away from under the button', () => {
+    mountWith()
+    expect(wrapper.find('[data-test="name"]').attributes('data-linked')).toBe('false')
   })
 })
