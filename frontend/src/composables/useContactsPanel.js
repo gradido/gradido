@@ -192,12 +192,18 @@ export const searchContactsPanel = (apolloClient, search) => {
  * saw them in it.
  */
 export const refreshContactsPanel = (apolloClient) => {
-  if (!state.page.loaded) return Promise.resolve()
-
+  // ⛔ The mark comes FIRST, before any reason not to fetch. Standing behind a
+  // `!state.page.loaded` gate lost the very case this exists for: a member completes a
+  // transfer while the first request is still on the wire -- a first visit to /send with the
+  // column up -- and that request left BEFORE the transfer, so its answer cannot carry the
+  // new counterparty. Without the mark it lands as `served === wanted`, `needsLoad` turns
+  // false, and nothing asks again for the rest of the session. Which is exactly the failure
+  // the paragraph above called impossible. (coderabbit, PR #3836.)
   state.page.wanted += 1
   if (state.search !== '') {
     state.matches.wanted += 1
   }
+  // Nothing to fetch FOR: the mark above is what makes the next mount ask.
   if (watching === 0) {
     return Promise.resolve()
   }

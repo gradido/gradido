@@ -143,6 +143,35 @@ describe('useContactsPanel', () => {
     releaseContactsPanel()
   })
 
+  /**
+   * ⛔ And a refresh during the FIRST load is not lost either. That request left before the
+   * transfer, so its answer cannot carry the new counterparty -- but it lands as the answer
+   * to what was asked, and without a mark raised in the meantime the slot looks current and
+   * nothing ever asks again. (coderabbit, PR #3836; the gate stood before the mark.)
+   */
+  it('does not lose a refresh made while the first load is still out', async () => {
+    const first = held()
+    const opening = ensureContactsPanel(clientOf(first.query))
+
+    // The transfer happens before the first answer is back. Nothing is mounted yet, so this
+    // only MARKS -- which is the half that was missing, and the half the assertion is about.
+    await refreshContactsPanel(clientOf(first.query))
+
+    first.release([contact(1)], 1)
+    await opening
+    await settle()
+
+    // The answer landed and is known to be behind: the next mount asks again.
+    expect(contactsPanelState.page.loaded).toBe(true)
+    expect(contactsPanelState.page.rows).toHaveLength(1)
+
+    const later = answering([contact(1), contact(2)], 2)
+    await ensureContactsPanel(clientOf(later))
+
+    expect(later).toHaveBeenCalledTimes(1)
+    expect(contactsPanelState.page.rows).toHaveLength(2)
+  })
+
   it('fetches at once when a panel is watching', async () => {
     const query = answering([contact(1)])
     const client = clientOf(query)
