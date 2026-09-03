@@ -60,8 +60,18 @@ const templateClasses = (source) => {
   const template = source.match(/<template>([\s\S]*)<\/template>/)
   if (!template) return new Set()
   const found = new Set()
-  for (const [, list] of template[1].matchAll(/class="([^"]*)"/g)) {
+  for (const [, list] of template[1].matchAll(/(?<!:)\bclass="([^"]*)"/g)) {
     for (const name of list.split(/\s+/)) if (name) found.add(name)
+  }
+  /**
+   * ⛔ And the bound form. `:class="{ 'avatar-zoom': enabled }"` puts the very same name on
+   * the very same element, and a matcher that read only the static attribute would report
+   * a clean tree while the leak was live -- the guard would describe nothing.
+   * (coderabbit, PR #3838.) Quoted literals are what can be read statically; a name
+   * computed at runtime cannot be, and this makes no claim to catch that.
+   */
+  for (const [, expression] of template[1].matchAll(/(?::|v-bind:)class="([^"]*)"/g)) {
+    for (const [, name] of expression.matchAll(/['`]([a-zA-Z][\w-]*)['`]/g)) found.add(name)
   }
   return found
 }
