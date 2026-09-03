@@ -186,13 +186,22 @@
                  page and a second copy beside it says nothing. Until now this column asked
                  the same question as the desktop one and then rendered an empty block on the
                  overview -- air above the page, for a panel it was never going to show. -->
-            <BCol v-if="showMobilePanel" :class="bareChrome ? 'd-none' : 'd-block d-lg-none'">
-              <right-side :panel="rightSidePanel">
+            <BCol
+              v-if="showMobilePanel && showMobileColumn"
+              :class="bareChrome ? 'd-none' : 'd-block d-lg-none'"
+            >
+              <right-side :panel="mobilePanelSlot">
                 <template #contributions>
                   <contributions-template />
                 </template>
                 <template #matching>
                   <matching-template />
+                </template>
+                <!-- The strip, not the column: on a phone this is a row of favourite faces
+                     over the send form, and the full list has its own page behind the menu
+                     (BAU-11). No switch here -- below 992px there is no column to turn. -->
+                <template #contacts>
+                  <contacts-strip />
                 </template>
               </right-side>
             </BCol>
@@ -229,8 +238,20 @@
              merely tidiness: `/my-gradido-card`, `/my-thank-you-card` and `/scan` are pages
              held out to another person, and the member's last bookings were in their field of
              view. -->
-        <BCol v-if="rightSidePanel" cols="3" class="d-none d-lg-block">
-          <right-side :panel="rightSidePanel">
+        <BCol v-if="activePanelSlot && showDesktopColumn" cols="3" class="d-none d-lg-block">
+          <right-side :panel="activePanelSlot">
+            <!-- Over the column and inside its container, so it lines up with the panel
+                 beneath it. Only where there are two positions: the contributions and
+                 matching columns have nothing to switch. -->
+            <template v-if="isSwitchable" #head>
+              <div class="d-flex justify-content-end mb-2">
+                <panel-switch
+                  :model-value="panelChoice"
+                  :options="panelOptions"
+                  @update:model-value="choosePanel"
+                />
+              </div>
+            </template>
             <template #transactions>
               <!-- ⛔ `newestTransactions`, NOT the list the transactions page pages through.
                    The column shows the member's newest bookings; feeding it the paged list
@@ -246,6 +267,9 @@
             </template>
             <template #matching>
               <matching-template />
+            </template>
+            <template #contacts>
+              <contacts-panel />
             </template>
           </right-side>
         </BCol>
@@ -270,6 +294,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useApolloClient, useQuery, useMutation } from '@vue/apollo-composable'
 import ContentHeader from '@/layouts/templates/ContentHeader'
 import ContributionsTemplate from '@/layouts/templates/ContributionsTemplate'
@@ -291,16 +316,23 @@ import GddAmount from '@/components/Template/ContentHeader/GddAmount'
 import GdtAmount from '@/components/Template/ContentHeader/GdtAmount'
 import CommunityMember from '@/components/Template/ContentHeader/CommunityMember'
 import LastTransactions from '@/components/Template/RightSide/LastTransactions'
+import ContactsPanel from '@/components/Template/RightSide/ContactsPanel.vue'
+import ContactsStrip from '@/components/Template/RightSide/ContactsStrip.vue'
+import PanelSwitch from '@/components/Template/RightSide/PanelSwitch.vue'
 import { transactionsUserCountQuery } from '@/graphql/transactions.graphql'
 import { logout } from '@/graphql/mutations'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import { ensureFavorites } from '@/composables/useFavorites'
+import { refreshContactsPanel } from '@/composables/useContactsPanel'
+import { useRightSidePref } from '@/composables/useRightSidePref'
+import { useViewport } from '@/composables/useViewport'
 import CONFIG from '@/config'
 import { LAST_TRANSACTIONS_PAGE_SIZE, PAGE_SIZE } from '@/constants'
 import { useAppToast } from '@/composables/useToast'
 
 const store = useStore()
 const route = useRoute()
+const { t } = useI18n()
 const { client: apolloClient } = useApolloClient()
 
 // A route may bring its own head — the map does. Then the navbar, the page
@@ -334,14 +366,112 @@ const settingsChrome = computed(() => Boolean(route.meta.settingsChrome))
  */
 const rightSidePanel = computed(() => route.meta.rightSide ?? null)
 
-// The phone carries two of the three panels. The booking list is the exception, and always
-// was in effect: LastTransactions hides itself below 992px, so mounting it here could never
-// show anything -- it only built up to eight base64 pictures for a subtree nobody can see.
-// Below 992px that list IS the page anyway.
-const MOBILE_HAS_NO_PANEL = ['transactions']
-const showMobilePanel = computed(
-  () => Boolean(rightSidePanel.value) && !MOBILE_HAS_NO_PANEL.includes(rightSidePanel.value),
+/**
+ * The column with two positions (KF-009).
+ *
+ * `bookings-or-contacts` is not a panel but a QUESTION the route asks: which of the two
+ * shall stand here? The route brings the answer for a first visit (`rightSideDefault`), the
+ * member's own answer -- remembered on this device -- wins over it, and the switch above
+ * the column is where it is given. ⛔ Not a setting: E-020, and the whole reason it lives
+ * where it is used.
+ */
+/**
+ * Which side of the breakpoint the window is on, so a column is MOUNTED only where it can
+ * be seen. Both columns were mounted at every width and one hidden by CSS -- harmless while
+ * the hidden twin only rendered, and not once it asks the server.
+ *
+ * `unknown` (no media query available) mounts both, exactly as before.
+ */
+const viewport = useViewport()
+const showDesktopColumn = computed(() => viewport.value !== 'mobile')
+const showMobileColumn = computed(() => viewport.value !== 'desktop')
+
+const SWITCHABLE_PANEL = 'bookings-or-contacts'
+const PANEL_POSITIONS = ['bookings', 'contacts']
+// What each position renders. The slot is still called `transactions` because that is the
+// panel's name in this column and has been since long before there was anything to switch;
+// `bookings` is what the switch SAYS, which is the member's word for it.
+const POSITION_SLOT = { bookings: 'transactions', contacts: 'contacts' }
+// ⛔ Translated here, with the keys written out. The switch is handed finished words: the
+// i18n lint counts only literal keys, so a list of key STRINGS would have both of them
+// reported as unused in ten files -- and the next tidy-up would remove them.
+const panelOptions = computed(() => [
+  { value: 'bookings', label: t('rightSide.bookings') },
+  { value: 'contacts', label: t('rightSide.contacts') },
+])
+
+const isSwitchable = computed(() => rightSidePanel.value === SWITCHABLE_PANEL)
+
+/**
+ * What the remembered choice is filed under.
+ *
+ * ⛔ The matched record's PATTERN, not `route.path` and not the page title. The send form's
+ * path carries a recipient (`/send/<community>/<member>`), so the resolved path would file
+ * one answer per person written to; the pattern is one string per route and cannot collide
+ * with another route's. And it is the route's own identity rather than a display key, which
+ * a later rename of a heading must not be able to reach into somebody's stored choice.
+ */
+const rightSideRouteKey = computed(() =>
+  isSwitchable.value ? (route.matched[route.matched.length - 1]?.path ?? null) : null,
 )
+const rightSideFallback = computed(() => route.meta.rightSideDefault ?? PANEL_POSITIONS[0])
+
+const { choice: panelChoice, choose: choosePanel } = useRightSidePref(
+  rightSideRouteKey,
+  rightSideFallback,
+  PANEL_POSITIONS,
+)
+
+/**
+ * The slot the column actually renders -- one name, wherever it came from.
+ *
+ * ⛔ NOT named after any tag in this file. `<right-side>`, `<last-transactions>` and
+ * `<contacts-panel>` are resolved against the setup bindings by camelizing them, so a
+ * binding called `rightSide`, `lastTransactions` or `contactsPanel` would hide the
+ * component behind a value -- silently, with the column rendering nothing. It has happened
+ * twice in this file; see the note over `rightSidePanel`.
+ */
+const activePanelSlot = computed(() => {
+  if (!rightSidePanel.value) return null
+  if (!isSwitchable.value) return rightSidePanel.value
+  return POSITION_SLOT[panelChoice.value] ?? POSITION_SLOT.bookings
+})
+
+/**
+ * What the phone carries above the page, which is a different question from what stands
+ * beside it on a desk.
+ *
+ * ⛔ A route that names its phone panel is answered BEFORE the switch is consulted, and
+ * that ordering is the point. The switch is rendered only inside the desktop column
+ * (KF-009: the phone has none) while its choice is remembered per device -- so a member who
+ * set /send to bookings on a wide window and then narrowed it lost the favourites strip
+ * with no control anywhere to bring it back.
+ *
+ * ⚠️ The fall-through below DOES read the switch, and it is only safe because `MOBILE_CARRIES`
+ * and the switch's own slots are disjoint sets. Putting `contacts` on that list would hand
+ * the desktop switch straight back to the phone -- name the panel on the route instead.
+ *
+ * A route that says `rightSideMobile` names the panel the phone gets there; today only the
+ * send form does, and it names the contacts (BAU-11) -- a strip of favourites is a shortcut
+ * into the field right beneath it, while over the overview or the booking list it would be
+ * a shortcut to nowhere.
+ *
+ * Everything else is carried only if it is on the list below -- an ALLOW-list, not a list
+ * of exceptions. Two things follow from that and both were wrong the other way round: the
+ * booking list is not on it (`LastTransactions` hides itself below 992px, so mounting it
+ * could never show anything -- it only built up to eight base64 pictures for a subtree
+ * nobody can see, and below 992px that list IS the page), and the contacts are not on it
+ * either, so they reach a phone only where a route names them. A deny-list handed them to
+ * every route whose column happened to stand on contacts, which is two routes more than
+ * BAU-11 asks for -- and a panel added later would land there by default.
+ */
+const MOBILE_CARRIES = ['contributions', 'matching']
+const mobilePanelSlot = computed(() => {
+  if (route.meta.rightSideMobile) return route.meta.rightSideMobile
+  const slot = activePanelSlot.value
+  return slot && MOBILE_CARRIES.includes(slot) ? slot : null
+})
+const showMobilePanel = computed(() => Boolean(mobilePanelSlot.value))
 const chromeHidden = computed(() => (bareChrome.value ? 'd-none' : ''))
 const mobileHidden = computed(() => (bareChrome.value ? 'd-none d-lg-block' : ''))
 const bareTopSpace = computed(() => (bareChrome.value ? 'pt-lg-4' : ''))
@@ -449,10 +579,28 @@ const logoutUser = async () => {
  * the member on. The answer is the same one -- page one, `PAGE_SIZE` -- but it is now said
  * here, where the paginator's size is read from the same constant.
  */
-const updateTransactions = ({ currentPage = 1, pageSize = PAGE_SIZE } = {}) => {
+const updateTransactions = (args = {}) => {
+  const { currentPage = 1, pageSize = PAGE_SIZE } = args
   pending.value = true
   listPage.value = currentPage
   useRefetchTransactionsQuery({ currentPage, pageSize, order: 'DESC' })
+  // ⚠️ The CALLER says whether a counterparty was involved, and only that refreshes the
+  // contacts. Guessing it from the absence of a page number was close but not right: `Send`
+  // calls this twice, once after a transfer and once after creating a LINK, and a link
+  // names nobody -- so every link cost a contact-list round trip whose answer was identical.
+  //
+  // Measured at the call sites rather than at the emitters, because the two disagree here.
+  // `GddTransactionList.askForPage` sends a page; `Send` sends `contactsChanged` on the
+  // coins path only. `TransactionLinkSummary` emits with no argument at all and never
+  // reaches this function: `GddTransactionList` is its only parent and intercepts it with
+  // `@update-transactions="askForPage(currentPage)"`, which re-emits a page.
+  //
+  // ⛔ And it is never dropped. With no panel on screen `refreshContactsPanel` marks the
+  // list as due instead of fetching, so the next mount asks -- a transfer made while the
+  // column stood on bookings used to be lost for the rest of the session.
+  if (args.contactsChanged) {
+    refreshContactsPanel(apolloClient)
+  }
 }
 
 /**

@@ -28,7 +28,12 @@
       <section v-if="favoriteRows.length" class="mb-4" data-test="contacts-favorites">
         <h2 class="h6 text-uppercase text-muted mb-2">{{ $t('contacts.favorites') }}</h2>
         <div class="bg-white gradido-border-radius app-box-shadow px-3">
-          <contact-row v-for="contact in favoriteRows" :key="rowKey(contact)" :contact="contact" />
+          <contact-row
+            v-for="contact in favoriteRows"
+            :key="rowKey(contact)"
+            :contact="contact"
+            @open="open"
+          />
         </div>
       </section>
 
@@ -44,7 +49,12 @@
           class="bg-white gradido-border-radius app-box-shadow px-3"
           data-test="contacts-page"
         >
-          <contact-row v-for="contact in pageRows" :key="rowKey(contact)" :contact="contact" />
+          <contact-row
+            v-for="contact in pageRows"
+            :key="rowKey(contact)"
+            :contact="contact"
+            @open="open"
+          />
         </div>
         <div v-else class="text-muted small" data-test="contacts-none-match">
           {{ $t('contacts.count', 0) }}
@@ -62,6 +72,9 @@
         />
       </section>
     </template>
+
+    <!-- One window for the page, not one per row (KF-010). -->
+    <contact-window v-model="windowOpen" :contact="selected" />
   </div>
 </template>
 
@@ -70,6 +83,8 @@ import { computed, ref, watch } from 'vue'
 import { useApolloClient, useQuery } from '@vue/apollo-composable'
 import { BFormInput, BPagination, BSpinner } from 'bootstrap-vue-next'
 import ContactRow from '@/components/Contacts/ContactRow.vue'
+import ContactWindow from '@/components/Contacts/ContactWindow.vue'
+import { useContactWindow } from '@/composables/useContactWindow'
 import { contactListQuery } from '@/graphql/contacts.graphql'
 import { ensureFavorites, isFavorite } from '@/composables/useFavorites'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
@@ -127,6 +142,11 @@ onError((error) => {
 })
 
 const rowKey = (contact) => memberKey(contact.user)
+
+// A tap on a row opens the contact window; the two ways on from there -- send Gradido,
+// send e-mail -- live inside it (KF-010). The state machine is shared with the column and
+// the phone strip, so the release-on-close rule is written once.
+const { windowOpen, selected, open } = useContactWindow()
 
 const needle = computed(() => search.value.trim().toLowerCase())
 const matches = (contact) =>

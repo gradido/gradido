@@ -136,6 +136,85 @@ describe('ContactResolver', () => {
       expect(res.data.contactList.contacts[0].user.gradidoID).toBe(bob.gradidoID)
     })
 
+    /**
+     * ⛔ The uuid decides, not the presence of a `users` row and not the community name.
+     * The wallet asks this to know whether it may build the member's Gradido address --
+     * `host/u/alias`, where the host is THEIR community's -- so a wrong yes puts a wrong
+     * address in front of somebody, which is worse than no address at all.
+     */
+    it('says who belongs to this community and who does not', async () => {
+      const res: any = await query({ query: contactList })
+      const byId = Object.fromEntries(
+        res.data.contactList.contacts.map((c: any) => [c.user.gradidoID, c]),
+      )
+
+      expect(byId[bob.gradidoID].homeCommunity).toBe(true)
+      expect(byId[bob.gradidoID].user.communityName).not.toBeNull()
+      // Anna's booking carries another community's uuid and no users row of her own.
+      expect(byId[ANNA].homeCommunity).toBe(false)
+    })
+
+    /**
+     * ⛔ A `users` row is not proof of belonging here: the federation stores foreign
+     * members as rows too. Before this the list called such a contact a member of THIS
+     * community and named them after it -- the wallet would then have printed our host in
+     * their address.
+     */
+    /**
+     * ⛔ The row's own `foreign` column decides, and it decides BEFORE the home uuid is
+     * stood in for. A set `linked_user_id` is not proof of belonging here: the federation
+     * stores foreign members as `users` rows too, and the contact query joins on that id
+     * without asking.
+     *
+     * ⚠️ Only ONE shape is exercised, and that is a measurement rather than an omission. A
+     * first version of this test also drove a foreign row with a NULL `community_uuid`,
+     * reasoning that migration 0129 fills `foreign = 0` rows only -- but no writer produces
+     * that state: both `core/graphql/logic/storeForeignUser` and
+     * `federation/graphql/api/1_0/util/storeForeignUser` assign the uuid, and the first is
+     * guarded on `communityUuid !== null` before it even builds the row. The fixture was
+     * inventing a state the real path does not allow, and the list's pre-existing rule for
+     * a contact without a uuid -- leave it out rather than null the whole answer -- then
+     * made the row vanish and the test read `undefined`.
+     */
+    it('does not call a foreign member local just because they have a users row', async () => {
+      await db
+        .getDataSource()
+        .query('UPDATE users SET `foreign` = 1, community_uuid = ? WHERE id = ?', [
+          FOREIGN_COMMUNITY,
+          bob.id,
+        ])
+      try {
+        const res: any = await query({ query: contactList })
+        const bobRow = res.data.contactList.contacts.find(
+          (c: any) => c.user.gradidoID === bob.gradidoID,
+        )
+
+        expect(bobRow.homeCommunity).toBe(false)
+        // ⛔ And never named after THIS community. Whether their own name can be found is
+        // the federation's business; claiming ours for them is what puts a wrong address
+        // in front of a member.
+        //
+        // Compared against a genuine local contact in the SAME answer, so the assertion
+        // proves itself: if bob were named after this community the two would match, and
+        // the check does not depend on what the seed happens to call the community.
+        const localRow = res.data.contactList.contacts.find(
+          (c: any) => c.user.gradidoID === peter.gradidoID,
+        )
+        expect(localRow.homeCommunity).toBe(true)
+        expect(localRow.user.communityName).not.toBeNull()
+        expect(bobRow.user.communityName).not.toBe(localRow.user.communityName)
+      } finally {
+        // ⚠️ Restored even when the expectations above fail: the tests after this one read
+        // the same row, and a leaked flag would fail them for a reason nothing states.
+        await db
+          .getDataSource()
+          .query('UPDATE users SET `foreign` = 0, community_uuid = ? WHERE id = ?', [
+            bibi.communityUuid,
+            bob.id,
+          ])
+      }
+    })
+
     it('names a foreign member by nothing when her stored name is a real name (NU-019)', async () => {
       const res: any = await query({ query: contactList })
       const anna = res.data.contactList.contacts.find((c: any) => c.user.gradidoID === ANNA)

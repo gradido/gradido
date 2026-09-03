@@ -244,12 +244,26 @@ const route = useRoute()
 const router = useRouter()
 const { toastError } = useAppToast()
 
-// A link may name the send type it wants (?art=email), so a button elsewhere can
-// land straight in e-mail mode — the matching profile's two buttons do exactly
-// this. Only 'email' switches; anything else keeps the default. The route still
-// carries only the recipient; this is the "how", read once at open.
-const radioSelected = ref(route.query.art === 'email' ? SEND_TYPES.email : props.selected)
+// A link may name the send type it wants (?art=…), so a button elsewhere can land
+// straight in e-mail mode — the matching profile's two buttons do exactly this, and
+// since KF-010 the contact window's two do as well. The route still carries only the
+// recipient; this is the "how".
+const radioSelected = ref(sendTypeFromQuery() ?? props.selected)
 const userName = ref('')
+
+/**
+ * The mode a link asks for, or null when it asks for none.
+ *
+ * ⛔ Only the two the query may name. An unknown word must not put this form into a state
+ * no button can produce, and `link` is deliberately not reachable from outside: a link
+ * that hands out links is not a flow anybody offers.
+ */
+function sendTypeFromQuery() {
+  const art = route.query.art
+  if (art === SEND_TYPES.email) return SEND_TYPES.email
+  if (art === SEND_TYPES.send) return SEND_TYPES.send
+  return null
+}
 
 const userIdentifier = computed(() => {
   if (route.params.userIdentifier && route.params.communityIdentifier) {
@@ -385,6 +399,36 @@ watch(userError, (error) => {
     toastError(error.message)
   }
 })
+
+/**
+ * ⛔ Watched, not read once at open. Reading it once works only when the form is BUILT by
+ * the navigation -- true for the map's profile window, which starts on another route, and
+ * false for the contact window in the column beside this very page: there the route record
+ * does not change, so the component is patched and setup never runs again. The e-mail
+ * button did nothing at all from the one place it was built for.
+ *
+ * ⛔ And the source is the whole NAVIGATION, not `route.query.art` alone. `?art` is a
+ * command ("open in this mode"), not a state, and a member who taps a second contact with
+ * the same button sends the same command: watching the value, that is no change and the
+ * form stayed in whatever mode they had picked by hand in between.
+ *
+ * ⚠️ What this still cannot do: the SAME contact tapped twice with the same button is an
+ * identical location, which the router refuses as a duplicate navigation -- nothing fires
+ * anywhere. Carrying the mode as a route param instead of a query would answer that too,
+ * and it is the shape to reach for the day /send takes a third piece of context.
+ *
+ * A navigation that names no mode leaves the choice alone, so an ordinary link to /send
+ * cannot undo what somebody has just picked with the radio buttons.
+ */
+watch(
+  () => route.fullPath,
+  () => {
+    const asked = sendTypeFromQuery()
+    if (asked) {
+      radioSelected.value = asked
+    }
+  },
+)
 
 // if identifier contain valid community identifier of a reachable community:
 // set it as target community and change community-switch to show only current value, instead of select

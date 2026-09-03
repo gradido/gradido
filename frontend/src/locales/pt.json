@@ -152,7 +152,9 @@
   "contacts": {
     "addFavorite": "Adicionar aos favoritos",
     "all": "Todos os contactos",
+    "allShort": "Todos",
     "bookings": "{n} movimento | {n} movimentos",
+    "chatLater": "Histórico da conversa — chegará com o chat",
     "count": "{n} contacto | {n} contactos",
     "empty": "Ainda não há contactos. Quem te envia Gradido ou os recebe de ti aparece aqui.",
     "favorites": "Favoritos",
@@ -162,13 +164,19 @@
     },
     "isFavorite": "Favorito",
     "last": "último {date}",
+    "matches": "Resultados",
+    "noFavorites": "Ainda sem favoritos. Toca no coração ao lado de um contacto.",
     "notReachable": "Não foi possível carregar os contactos.",
+    "recent": "Recentes",
     "remove": {
       "body": "{name} continua nos teus contactos. Podes voltar a tornar {name} favorito a qualquer momento.",
       "confirm": "Remover",
       "title": "Remover {name} dos teus favoritos?"
     },
-    "search": "Procurar contacto …"
+    "search": "Procurar contacto …",
+    "sendEmail": "Enviar e-mail",
+    "sendGradido": "Enviar Gradido",
+    "since": "Contacto desde {date}"
   },
   "contribution": {
     "activity": "Atividade",
@@ -758,6 +766,11 @@
     "send": "Enviar Gradido"
   },
   "qrCode": "Código QR",
+  "rightSide": {
+    "aria": "Mudar a coluna da direita",
+    "bookings": "Movimentos",
+    "contacts": "Contactos"
+  },
   "scanner": {
     "back": "Voltar",
     "denied": {

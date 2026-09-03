@@ -19,6 +19,11 @@ query contactListQuery($currentPage: Int = 1, $pageSize: Int = 25, $search: Stri
       lastAt
       bookings
       favorite
+      # Whether this person belongs to the community this wallet serves -- answered by the
+      # server, which compares community uuids. The wallet cannot answer it: it knows its
+      # own community by a name out of its own configuration, while the name on a contact
+      # was written from the backend's. See Contact.homeCommunity.
+      homeCommunity
     }
   }
 }

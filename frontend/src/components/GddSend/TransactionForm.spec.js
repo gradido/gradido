@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import TransactionForm from './TransactionForm'
-import { nextTick, ref } from 'vue'
+import { nextTick, reactive, ref } from 'vue'
 import { SEND_TYPES } from '@/utils/sendTypes'
 import {
   BCard,
@@ -111,6 +111,77 @@ describe('TransactionForm', () => {
       useRoute.mockReturnValueOnce({ params: {}, query: { art: 'nonsense' } })
       const w = createWrapper({ balance: 100 })
       expect(w.vm.radioSelected).toBe(SEND_TYPES.send)
+    })
+
+    /**
+     * ⛔ WATCHED, not read once at open, and the difference is a whole button.
+     *
+     * Reading it once works only where the form is BUILT by the navigation -- true for the
+     * profile window on the map, which starts on another route. The contact window in the
+     * column beside THIS page pushes /send/<community>/<member>: same route record, so the
+     * component is patched and setup never runs again, and "E-Mail senden" did nothing at
+     * all from the one place it was made for.
+     *
+     * ⚠️ A reactive route, because the file's default mock is a plain object -- a watch on
+     * it could never fire, and the test would pass by describing nothing.
+     */
+    it('follows the route when the mode changes under a form that is already open', async () => {
+      const route = reactive({ params: {}, query: {}, fullPath: '/send' })
+      useRoute.mockReturnValueOnce(route)
+      const w = createWrapper({ balance: 100 })
+      expect(w.vm.radioSelected).toBe(SEND_TYPES.send)
+
+      route.query = { art: 'email' }
+      route.fullPath = '/send?art=email'
+      await nextTick()
+      expect(w.vm.radioSelected).toBe(SEND_TYPES.email)
+
+      // And back: naming only the e-mail half left the other button unable to undo it.
+      route.query = { art: 'send' }
+      route.fullPath = '/send?art=send'
+      await nextTick()
+      expect(w.vm.radioSelected).toBe(SEND_TYPES.send)
+    })
+
+    /**
+     * ⛔ The whole NAVIGATION is the source, not the value of `art`. A member who taps a
+     * second contact with the same button sends the same command -- watching the value,
+     * that is no change at all, and the form stayed in whatever mode they had picked by
+     * hand in between.
+     */
+    it('re-applies the same mode when a different contact asks for it', async () => {
+      const route = reactive({
+        params: { userIdentifier: 'alice' },
+        query: { art: 'send' },
+        fullPath: '/send/c/alice?art=send',
+      })
+      useRoute.mockReturnValueOnce(route)
+      const w = createWrapper({ balance: 100 })
+      expect(w.vm.radioSelected).toBe(SEND_TYPES.send)
+
+      // The member switches the form by hand, without touching the address.
+      w.vm.radioSelected = SEND_TYPES.email
+      await nextTick()
+
+      // A second contact, same button: only the path changes.
+      route.params = { userIdentifier: 'bob' }
+      route.fullPath = '/send/c/bob?art=send'
+      await nextTick()
+
+      expect(w.vm.radioSelected).toBe(SEND_TYPES.send)
+    })
+
+    // A navigation that names no mode leaves the choice alone, so an ordinary link to
+    // /send cannot undo what somebody has just picked with the radio buttons.
+    it('leaves a hand-picked mode alone when the route names none', async () => {
+      const route = reactive({ params: {}, query: { art: 'email' } })
+      useRoute.mockReturnValueOnce(route)
+      const w = createWrapper({ balance: 100 })
+      expect(w.vm.radioSelected).toBe(SEND_TYPES.email)
+
+      route.query = {}
+      await nextTick()
+      expect(w.vm.radioSelected).toBe(SEND_TYPES.email)
     })
   })
 

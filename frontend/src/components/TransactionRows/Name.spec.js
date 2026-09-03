@@ -122,6 +122,20 @@ describe('Name', () => {
           },
         })
       })
+
+      /**
+       * ⛔ The link can be switched off, and the name still stands. The contact list and
+       * the contacts column are rows that open the contact window (KF-010); an anchor
+       * inside a row that is itself a button would win the click and navigate instead.
+       */
+      it('shows the name without a link where the row means something else', async () => {
+        await wrapper.setProps({ linked: false })
+
+        expect(
+          wrapper.find('div.gdd-transaction-list-item-name').findComponent(RouterLinkStub).exists(),
+        ).toBe(false)
+        expect(wrapper.find('div.gdd-transaction-list-item-name').text()).toBe('bibi')
+      })
     })
   })
 })

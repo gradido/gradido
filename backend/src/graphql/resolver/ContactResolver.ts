@@ -19,6 +19,7 @@ import { getLogger } from 'log4js'
 import { Arg, Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { isSameCommunity } from '@/data/Community.logic'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { CounterpartyLookups, prefetchedLookups, remoteUserFromBooking } from './util/counterparty'
@@ -106,22 +107,43 @@ export class ContactResolver {
     ])
 
     const localUsers = new Map<number, User>()
+    /** Contacts joined from a `users` row that belongs to another community. */
+    const foreignLocals: User[] = []
     for (const row of localRows) {
       const model = new User(row)
       model.avatarUpdatedAt = avatarDates.get(row.id) ?? null
-      // A row that predates the home community's uuid carries none, and the GraphQL field
-      // is non-null. Migration 0129 fills those rows; this stands in for a database that
-      // has not run it yet, so that one member cannot take the whole list down.
-      if (!model.communityUuid && home?.communityUuid) {
-        model.communityUuid = home.communityUuid
+
+      // ⛔ The row's OWN `foreign` column decides, and it decides BEFORE anything is stood
+      // in for. A set `linked_user_id` is not proof of belonging here -- the federation
+      // stores foreign members as `users` rows too, and the contact query joins on that id
+      // without asking. Deciding after the stand-in below would call every such member
+      // ours, which is the wrong answer this whole field exists to avoid.
+      if (row.foreign) {
+        // Their community's real name, not ours and not nothing. The lookup memoises per
+        // request, and these rows are rare -- a federated member with a stored row.
+        foreignLocals.push(model)
+      } else {
+        // A row that predates the home community's uuid carries none, and the GraphQL
+        // field is non-null. Migration 0129 fills those rows -- it fills `foreign = 0`
+        // rows only, which is why this stands inside the local branch and not above it.
+        if (!model.communityUuid && home?.communityUuid) {
+          model.communityUuid = home.communityUuid
+        }
+        // The booking list leaves communityName empty for a member of this community (it
+        // loads no community relation). The contact row shows the community, as the
+        // mockup does, in a line of its own -- so the name is set here, and the row keeps
+        // it out of the name link (ContactRow.vue).
+        model.communityName = home?.name ?? null
       }
-      // The booking list leaves communityName empty for a member of this community (it
-      // loads no community relation). The contact row shows the community, as the mockup
-      // does, in a line of its own -- so the name is set here, and the row keeps it out of
-      // the name link (ContactRow.vue).
-      model.communityName = home?.name ?? null
       localUsers.set(row.id, model)
     }
+    await Promise.all(
+      foreignLocals.map(async (model) => {
+        model.communityName = model.communityUuid
+          ? await lookups.communityName(model.communityUuid)
+          : null
+      }),
+    )
 
     const contacts: Contact[] = []
     for (const row of page.contacts) {
@@ -138,7 +160,16 @@ export class ContactResolver {
         continue
       }
       const key = favoriteKey(model.communityUuid, model.gradidoID)
-      contacts.push(new Contact(model, row.firstAt, row.lastAt, row.bookings, favorites.has(key)))
+      contacts.push(
+        new Contact(
+          model,
+          row.firstAt,
+          row.lastAt,
+          row.bookings,
+          favorites.has(key),
+          isSameCommunity(model.communityUuid, home?.communityUuid),
+        ),
+      )
     }
     return new ContactList(contacts, page.count)
   }

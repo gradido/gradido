@@ -25,7 +25,12 @@ afterEach(() => {
  * hold the two properties that made the move worth doing.
  */
 describe('the right-hand column is a property of the route', () => {
-  const PANELS = ['transactions', 'contributions', 'matching']
+  // What the layout can put in the column, plus the one entry that is not a panel at all:
+  // `bookings-or-contacts` is a QUESTION -- which of the two shall stand here? -- and the
+  // layout answers it from the route's default and the member's remembered choice (KF-009).
+  const PANELS = ['contributions', 'matching', 'bookings-or-contacts']
+  const SWITCHABLE = 'bookings-or-contacts'
+  const POSITIONS = ['bookings', 'contacts']
 
   it('names only panels the layout can render', async () => {
     const routes = await loadRoutes(true)
@@ -69,16 +74,95 @@ describe('the right-hand column is a property of the route', () => {
     expect(contradictory).toEqual([])
   })
 
-  // The booking list stands beside the overview and nowhere else: a member showing somebody
-  // their QR code was showing their last bookings with it.
-  it('gives the booking list to the overview alone', async () => {
+  /**
+   * The column stands beside these three and nowhere else. A member showing somebody their
+   * QR code was showing their last bookings with it -- that is why the card, cheque and
+   * scanner pages carry no column, and the list is held here so a new route cannot quietly
+   * join them.
+   */
+  it('gives the switchable column to the three routes that asked for it', async () => {
     const routes = await loadRoutes(true)
 
-    const withList = routes
+    const switchable = routes
+      .filter((route) => route.meta?.rightSide === SWITCHABLE)
+      .map((route) => route.path)
+
+    expect(switchable).toEqual([
+      '/overview',
+      '/send/:communityIdentifier?/:userIdentifier?',
+      '/transactions',
+    ])
+  })
+
+  /**
+   * ⛔ A default the layout can act on. An unknown word here would leave the column standing
+   * on whatever the fallback happens to be, which is a silent wrong answer rather than a
+   * failure -- and the factory settings themselves are the decision (KF-009): the overview
+   * opens on bookings, the other two on contacts.
+   */
+  it('gives every switchable route a position it can start on', async () => {
+    const routes = await loadRoutes(true)
+    const byPath = Object.fromEntries(routes.map((route) => [route.path, route]))
+
+    for (const route of routes.filter((r) => r.meta?.rightSide === SWITCHABLE)) {
+      expect(POSITIONS).toContain(route.meta.rightSideDefault)
+    }
+
+    expect(byPath['/overview'].meta.rightSideDefault).toBe('bookings')
+    expect(byPath['/transactions'].meta.rightSideDefault).toBe('contacts')
+    expect(byPath['/send/:communityIdentifier?/:userIdentifier?'].meta.rightSideDefault).toBe(
+      'contacts',
+    )
+  })
+
+  /**
+   * ⛔ `transactionsPageSize` says what the PAGE needs, never what the column needs. It arms
+   * the layout's route watch, so a route that carries it refetches the bookings on every
+   * navigation into it -- and /send is navigated into by the contacts column itself, once
+   * per tapped contact. The column is fed from the layout's mount-time query either way.
+   */
+  it('asks for bookings only where the page itself shows them', async () => {
+    const routes = await loadRoutes(true)
+
+    const asking = routes
+      .filter((route) => route.meta?.transactionsPageSize !== undefined)
+      .map((route) => route.path)
+
+    expect(asking).toEqual(['/overview', '/transactions'])
+  })
+
+  /**
+   * ⛔ The raw panel name is not a route's to declare any more -- the booking list is one
+   * POSITION of the switchable column, reachable only through the switch. Held because the
+   * guard it replaces ("only /overview may say 'transactions'") was written after a code
+   * page held out to another person showed that member's last bookings beside it.
+   */
+  it('lets no route name the booking panel directly', async () => {
+    const routes = await loadRoutes(true)
+
+    const direct = routes
       .filter((route) => route.meta?.rightSide === 'transactions')
       .map((route) => route.path)
 
-    expect(withList).toEqual(['/overview'])
+    expect(direct).toEqual([])
+  })
+
+  /**
+   * The phone carries the contacts strip over the send form and nowhere else (BAU-11): over
+   * the overview or the booking list a shortcut into a field that is not there is a shortcut
+   * to nowhere.
+   */
+  it('gives the phone the column on the send form alone', async () => {
+    const routes = await loadRoutes(true)
+
+    const onThePhone = routes
+      .filter((route) => route.meta?.rightSideMobile)
+      .map((route) => [route.path, route.meta.rightSideMobile])
+
+    // ⛔ It NAMES the panel rather than merely allowing one. The switch lives in the desktop
+    // column, so a phone panel derived from its answer could be taken away by a choice made
+    // on a wide screen -- with no control below 992px to bring it back.
+    expect(onThePhone).toEqual([['/send/:communityIdentifier?/:userIdentifier?', 'contacts']])
   })
 })
 

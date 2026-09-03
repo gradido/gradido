@@ -152,7 +152,9 @@
   "contacts": {
     "addFavorite": "Aan favorieten toevoegen",
     "all": "Alle contacten",
+    "allShort": "Alle",
     "bookings": "{n} boeking | {n} boekingen",
+    "chatLater": "Gespreksgeschiedenis — komt met de chat",
     "count": "{n} contact | {n} contacten",
     "empty": "Nog geen contacten. Wie jou Gradido stuurt of van jou ontvangt, verschijnt hier.",
     "favorites": "Favorieten",
@@ -162,13 +164,19 @@
     },
     "isFavorite": "Favoriet",
     "last": "laatst {date}",
+    "matches": "Resultaten",
+    "noFavorites": "Nog geen favorieten. Tik op het hartje bij een contact.",
     "notReachable": "De contacten konden niet worden geladen.",
+    "recent": "Recent",
     "remove": {
       "body": "{name} blijft in je contacten. Je kunt {name} altijd weer favoriet maken.",
       "confirm": "Verwijderen",
       "title": "{name} uit je favorieten verwijderen?"
     },
-    "search": "Contact zoeken …"
+    "search": "Contact zoeken …",
+    "sendEmail": "E-mail versturen",
+    "sendGradido": "Gradido versturen",
+    "since": "Contact sinds {date}"
   },
   "contribution": {
     "activity": "Activiteit",
@@ -758,6 +766,11 @@
     "send": "Gradido versturen"
   },
   "qrCode": "QR Code",
+  "rightSide": {
+    "aria": "De rechterkolom omschakelen",
+    "bookings": "Boekingen",
+    "contacts": "Contacten"
+  },
   "scanner": {
     "back": "Terug",
     "denied": {

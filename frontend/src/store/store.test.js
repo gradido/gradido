@@ -3,6 +3,7 @@ import { mutations, actions, THEME_MODE_STORAGE_KEY } from './store'
 import i18n from '../i18n'
 import jwtDecode from 'jwt-decode'
 import { avatarZoomState, openAvatarZoom } from '@/composables/useAvatarZoom'
+import { contactsPanelState } from '@/composables/useContactsPanel'
 
 vi.mock('../i18n', () => ({
   default: {
@@ -331,6 +332,34 @@ describe('Vuex store', () => {
         logout({ commit, state, dispatch })
 
         expect(avatarZoomState.value).toBeNull()
+      })
+
+      /**
+       * ⛔ A fourth place again, and the same rule: the contacts the right-hand column holds
+       * name the people this member has exchanged Gradido with. They live in their own
+       * module -- outside the store, outside the blob that is removed below -- so the next
+       * member on this browser would be handed them.
+       */
+      it('lets go of the contacts the column was holding', () => {
+        const row = { user: { communityUuid: 'home', gradidoID: 'g-1', alias: 'napoli' } }
+        contactsPanelState.page.rows = [row]
+        contactsPanelState.page.count = 7
+        contactsPanelState.page.loaded = true
+        contactsPanelState.search = 'nap'
+        contactsPanelState.matches.rows = [row]
+        contactsPanelState.matches.loaded = true
+        // The fixture proves itself: an empty state would make the assertions below pass
+        // without the logout doing anything at all.
+        expect(contactsPanelState.page.rows).toHaveLength(1)
+
+        logout({ commit, state, dispatch })
+
+        // Both slots, and the word that was typed -- a search is one member's business too.
+        expect(contactsPanelState.page.rows).toEqual([])
+        expect(contactsPanelState.page.count).toBe(0)
+        expect(contactsPanelState.page.loaded).toBe(false)
+        expect(contactsPanelState.matches.rows).toEqual([])
+        expect(contactsPanelState.search).toBe('')
       })
 
       it('removes only its own storage blob', () => {
