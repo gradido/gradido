@@ -33,6 +33,7 @@ import {
   getCommunityByUuid,
   getCommunityWithFederatedCommunityByIdentifier,
   getLastTransaction,
+  getTransactionList,
 } from 'database'
 import { getLogger, Logger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
@@ -55,7 +56,6 @@ import { BalanceResolver } from './BalanceResolver'
 import { GdtResolver } from './GdtResolver'
 import { getCommunityName, isHomeCommunity } from './util/communities'
 import { remoteUserFromBooking } from './util/counterparty'
-import { getTransactionList } from './util/getTransactionList'
 
 const db = AppDatabase.getInstance()
 const createLogger = () =>

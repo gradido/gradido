@@ -17,6 +17,32 @@ export const getLastTransaction = async (
   })
 }
 
+/**
+ * One member's bookings, one page at a time, with the row before each one (which feeds
+ * `previousBalance`).
+ *
+ * Moved here from `backend/src/graphql/resolver/util/getTransactionList.ts` -- step one of
+ * the query migration AGENTS.md describes, and step one only: still TypeORM, same options,
+ * same result. The order argument is a plain string union rather than the backend's `Order`
+ * enum, which this package cannot import; the enum's values are these two strings.
+ */
+export const getTransactionList = async (
+  userId: number,
+  limit: number,
+  offset: number,
+  order: 'ASC' | 'DESC',
+): Promise<[DbTransaction[], number]> => {
+  return DbTransaction.findAndCount({
+    where: {
+      userId,
+    },
+    order: { balanceDate: order, id: order },
+    relations: ['previousTransaction'],
+    skip: offset,
+    take: limit,
+  })
+}
+
 const TransactionNotFound = (where: string) => new DBNotFoundError('transactions', where)
 
 export async function dbUpdateBalanceAndDate(txPart: {
