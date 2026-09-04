@@ -74,9 +74,9 @@ describe('Contacts page', () => {
             // ⛔ A stub answers to whatever prop name it is handed, which is exactly how the
             // wrong one got this far -- see the test at the foot of this file, which asks
             // the REAL component instead.
-            props: ['modelValue', 'totalRows', 'perPage', 'noEllipsis'],
+            props: ['modelValue', 'totalRows', 'perPage', 'noEllipsis', 'limit'],
             template:
-              '<nav data-test="contacts-pagination" :data-total="totalRows" :data-no-ellipsis="noEllipsis" />',
+              '<nav data-test="contacts-pagination" :data-total="totalRows" :data-no-ellipsis="noEllipsis" :data-limit="limit" />',
           },
           // Emits `open` the way the real row does, so the page's half of KF-010 -- which
           // person the window is handed -- is what is measured here. The window's own
@@ -158,6 +158,10 @@ describe('Contacts page', () => {
     expect(wrapper.find('[data-test="contacts-pagination"]').attributes('data-no-ellipsis')).toBe(
       'true',
     )
+    // ⛔ And that the page ASKS for three page numbers. The test at the foot of this file
+    // proves what three does to the real component; this proves the page requests it. Both
+    // are needed: removing this binding left all eleven tests here green.
+    expect(wrapper.find('[data-test="contacts-pagination"]').attributes('data-limit')).toBe('3')
   })
 
   it('moves a person up as soon as they get the heart, without a refetch', async () => {
