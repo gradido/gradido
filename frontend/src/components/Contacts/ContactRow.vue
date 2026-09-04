@@ -5,13 +5,13 @@
       <app-avatar :size="42" :color="'#fff'" v-bind="avatar" />
     </BCol>
     <BCol class="min-w-0">
-      <!-- ⛔ A button, and the name inside it is no longer a link (KF-010). A tap on a
+      <!-- ⛔ A button, and the name inside it is not a second one (KF-010). A tap on a
            contact opens the contact window; the send form is one of the two ways OUT of
-           that window, not what a tap means any more. An anchor inside a button is invalid
-           HTML with no agreed behaviour, and here it would give one word two destinations:
-           the router navigating away while the window opens behind it. `Name` is told not
-           to link (`:linked="false"`) rather than the click being caught out here, because
-           the anchor is only ever rendered in that one component.
+           that window, not what a tap means any more. `Name` opens that same window itself
+           wherever the row around it means something else -- a booking row toggles its
+           details -- so here it is told not to (`:opens="false"`): a button inside a button
+           is invalid HTML with no agreed behaviour, and it would make this row's accessible
+           name the sum of two controls.
 
            The face beside it keeps what it had: where there is a picture it opens at full
            size (AS-018) and stops the click itself, so one circle keeps one meaning. Where
@@ -26,7 +26,7 @@
           <name
             :linked-user="contact.user"
             :with-community="false"
-            :linked="false"
+            :opens="false"
             font-color="text-dark"
           />
         </span>

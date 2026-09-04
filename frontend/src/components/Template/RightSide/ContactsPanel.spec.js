@@ -90,9 +90,9 @@ describe('ContactsPanel', () => {
           },
           FavoriteHeart: { props: ['member'], template: '<i data-test="heart" />' },
           Name: {
-            props: ['linkedUser', 'linked'],
+            props: ['linkedUser', 'opens'],
             template:
-              '<span data-test="name" :data-linked="String(linked)">{{ linkedUser.alias }}</span>',
+              '<span data-test="name" :data-opens="String(opens)">{{ linkedUser.alias }}</span>',
           },
           ContactTiles: {
             name: 'ContactTiles',
@@ -273,12 +273,12 @@ describe('ContactsPanel', () => {
     expect(row.find('button [data-test="heart"]').exists()).toBe(false)
   })
 
-  it('opens the window on the person that was tapped, and does not link the name', async () => {
+  it('opens the window on the person that was tapped, and the name opens none of its own', async () => {
     givenPage([person(1), person(2)])
     mountPanel()
     await nextTick()
 
-    expect(wrapper.find('[data-test="name"]').attributes('data-linked')).toBe('false')
+    expect(wrapper.find('[data-test="name"]').attributes('data-opens')).toBe('false')
 
     await wrapper.find('[data-test="contacts-panel-open-id-2"]').trigger('click')
     await nextTick()

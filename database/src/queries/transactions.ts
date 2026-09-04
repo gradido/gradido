@@ -90,6 +90,84 @@ export const bookingsWhere = (
 }
 
 /**
+ * Whether one grouped contact IS the counterparty asked about -- the same two branches
+ * `bookingsWhere` selects bookings by, in the grouped domain, and deliberately next to it.
+ *
+ * ⛔ The two rules must stay one rule. The contact window states a number ("51 bookings")
+ * and the link under that number opens the booking list narrowed by `bookingsWhere`. A
+ * contact matched here by a rule the booking filter does not share would put a count over
+ * a list of a different length, and nothing on either screen would say which was wrong.
+ *
+ * A local contact is matched by the `users` row, never by the pair: the grouping keys
+ * those rows by `linked_user_id` for the reason `bookingsWhere` gives -- an old booking may
+ * carry no pair at all. Where the asked-about pair resolved to no row (`localUserId` null),
+ * no local contact can match, which is the closed answer and the same one the where clause
+ * gives by leaving its id branch out.
+ */
+const isContactCounterparty = (row: ContactRow, counterparty: BookingCounterparty): boolean =>
+  row.linkedUserId !== null
+    ? row.linkedUserId === counterparty.localUserId
+    : row.gradidoId === counterparty.gradidoId && row.communityUuid === counterparty.communityUuid
+
+/**
+ * The two groupings can describe the SAME person twice -- joined back into one contact.
+ *
+ * A member of another community whose `users` row the federation stored at some point has
+ * bookings of BOTH shapes: the older ones carry no `linked_user_id` and are grouped by the
+ * pair, the newer ones carry it (settlePendingReceiveTransaction writes it) and are grouped
+ * by the row. `bookingsWhere` unites both branches, so their booking list has always been
+ * one list -- but the grouping handed back two contacts, each holding a part of the figures.
+ *
+ * ⛔ Merged for the WHOLE list, not only where it is narrowed. "Everyone this member has
+ * exchanged Gradido with, each once" is what this function promises, and the contact window
+ * states these figures directly over a link into the list `bookingsWhere` selects: a merge
+ * on one screen and not the other would have the two disagree about one person, which is
+ * worse than either answer alone. The duplication predates the narrowing; the narrowing is
+ * what made it state a wrong NUMBER instead of an extra row. (coderabbit, PR #3842.)
+ *
+ * ⚠️ Rows without a community uuid are left alone: those are members of THIS community
+ * (migration 0129's scope is `foreign = 0`), already unique by their `users` row, and there
+ * is nothing to match them against -- a pair is the only key both shapes carry.
+ *
+ * ★ And the merge is safe even where the assumption behind it does not hold. The pair is
+ * what `users.uuid_key` makes unique (migration 0073), so two rows carrying it ARE one
+ * person, whichever grouping found them -- the merge does not depend on remote rows only
+ * ever naming another community. Were a home member somehow to turn up on both sides, the
+ * two would be joined, which is the right answer for them too.
+ */
+const mergeSamePerson = (rows: ContactRow[]): ContactRow[] => {
+  const byPair = new Map<string, ContactRow>()
+  const contacts: ContactRow[] = []
+  for (const row of rows) {
+    const key = row.communityUuid === null ? null : `${row.communityUuid}/${row.gradidoId}`
+    const seen = key === null ? undefined : byPair.get(key)
+    if (seen === undefined) {
+      if (key !== null) {
+        byPair.set(key, row)
+      }
+      contacts.push(row)
+      continue
+    }
+    // The half with the `users` row wins the identity, so the caller reads the member's
+    // CURRENT alias, picture and deletion mark rather than the name one booking recorded.
+    if (seen.linkedUserId === null && row.linkedUserId !== null) {
+      seen.linkedUserId = row.linkedUserId
+      seen.alias = row.alias
+      seen.deletedAt = row.deletedAt
+    }
+    // Exactly what `bookingsWhere` would count over both branches together.
+    if (row.firstAt < seen.firstAt) {
+      seen.firstAt = row.firstAt
+    }
+    if (row.lastAt > seen.lastAt) {
+      seen.lastAt = row.lastAt
+    }
+    seen.bookings += row.bookings
+  }
+  return contacts
+}
+
+/**
  * One member's bookings, one page at a time, with the row before each one (which feeds
  * `previousBalance`) -- the whole account, or only the bookings shared with `counterparty`.
  *
@@ -218,13 +296,23 @@ const aliasOrNull = (stored: unknown): string | null => {
  * `search` matches the alias, case-insensitively, anywhere in it -- the guarded alias, so a
  * foreign contact whose stored name is not alias-shaped matches nothing (see ContactRow).
  *
+ * `counterparty` narrows the whole thing to ONE person, by the rule `isContactCounterparty`
+ * holds -- the lookup behind the contact window when it is opened from a booking row rather
+ * than from the contact list. `count` is then 0 or 1.
+ *
  * `order` is over `lastAt`, newest first unless asked otherwise -- the direction the API
  * offers through the house `Paginated` arguments. A plain string union rather than the
  * backend's `Order` enum, which this package cannot import.
  */
 export async function dbSelectContactsByUserId(
   userId: number,
-  options: { search?: string; limit: number; offset: number; order?: 'ASC' | 'DESC' },
+  options: {
+    search?: string
+    counterparty?: BookingCounterparty
+    limit: number
+    offset: number
+    order?: 'ASC' | 'DESC'
+  },
 ): Promise<ContactsPage> {
   const db = drizzleDb()
   const withCounterparty = and(
@@ -305,10 +393,22 @@ export async function dbSelectContactsByUserId(
     })),
   ]
 
+  // Each person once, whichever of the two groupings found them -- before anything counts,
+  // narrows, searches or pages, all of which would otherwise work on a split person.
+  const contacts = mergeSamePerson(rows)
+
+  // One member rather than the page: what the wallet asks when a booking row is tapped and
+  // the window over it has to state the same figures the contact list states. Narrowed
+  // before the search, which then has one row to look at -- the two are independent.
+  const { counterparty } = options
+  const narrowed = counterparty
+    ? contacts.filter((row) => isContactCounterparty(row, counterparty))
+    : contacts
+
   const needle = options.search?.trim().toLowerCase()
   const matching = needle
-    ? rows.filter((row) => (row.alias ?? '').toLowerCase().includes(needle))
-    : rows
+    ? narrowed.filter((row) => (row.alias ?? '').toLowerCase().includes(needle))
+    : narrowed
   // ⛔ The pair breaks a tie on the date. Two contacts can share a balance_date, the two
   // groupings come back in whatever order the engine chose, and every page is a SEPARATE
   // request -- so without this a tied contact can appear on two pages, or on none.

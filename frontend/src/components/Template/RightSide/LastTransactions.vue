@@ -28,8 +28,16 @@
         <BCol class="p-1">
           <BRow>
             <BCol>
+              <!-- The name opens the contact window (KF-010), the same one the contact
+                   list opens -- it is not a way into the send form any more, here as
+                   little as anywhere else. The button under it still leads to the booking
+                   itself, so the two things this row can mean stay two controls. -->
               <div class="fw-bold">
-                <name :linked-user="row.transaction.linkedUser" font-color="text-dark" />
+                <name
+                  :linked-user="row.transaction.linkedUser"
+                  font-color="text-dark"
+                  @open="openMember"
+                />
               </div>
               <button
                 class="transaction-details-link d-flex mt-3"
@@ -69,16 +77,22 @@
         </BCol>
       </BRow>
     </div>
+
+    <!-- ONE window for the whole column, as every other list has one. -->
+    <contact-window v-model="windowOpen" :contact="selected" />
   </div>
 </template>
 <script setup>
 import Name from '@/components/TransactionRows/Name'
+import ContactWindow from '@/components/Contacts/ContactWindow.vue'
 import FavoriteHeart from '@/components/FavoriteHeart.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { computed } from 'vue'
+import { useApolloClient } from '@vue/apollo-composable'
 import AppAvatar from '@/components/AppAvatar.vue'
 import { avatarZoomBindings } from '@/composables/useAvatarZoom'
+import { useContactWindow } from '@/composables/useContactWindow'
 import { memberAvatarProps } from '@/composables/useMemberAvatars'
 import { LAST_TRANSACTIONS_ROWS } from '@/constants'
 
@@ -92,6 +106,15 @@ const props = defineProps({
 const router = useRouter()
 const route = useRoute()
 const store = useStore()
+const { client: apolloClient } = useApolloClient()
+
+/**
+ * The contact window this column opens, and the lookup that fills in its three figures.
+ *
+ * A booking row names a member; how many bookings there were with them, and since when, is
+ * a grouping over all of them -- see useContactWindow.openMember.
+ */
+const { windowOpen, selected, openMember } = useContactWindow(apolloClient)
 
 const handleRedirect = (id) => {
   store.dispatch('changeTransactionToHighlightId', id)

@@ -65,7 +65,13 @@ describe('GddTransaction', () => {
           BCollapse: { template: '<div><slot /></div>' },
           BAvatar: true,
           AppAvatar: true,
-          Name: true,
+          // ⚠️ Emitting, not `true`. An auto-stub renders nothing and raises nothing, so
+          // the one line this row contributes to the chain below could not be reached.
+          Name: {
+            props: ['linkedUser'],
+            emits: ['open'],
+            template: '<button data-test="name-open" @click="$emit(\'open\', linkedUser)" />',
+          },
           CollapseIcon: true,
           DecayInformation: true,
           VariantIcon: { props: ['icon'], template: '<i :data-icon="icon" />' },
@@ -77,6 +83,32 @@ describe('GddTransaction', () => {
   }
 
   const marker = () => wrapper.find('[data-test="transaction-via-card"]')
+
+  /**
+   * ⛔ This row's link in the chain from a tapped name to the contact window: `Name` says
+   * WHO, this row passes it to whoever owns the list (KF-010).
+   *
+   * ⚠️ Written because deleting the binding left all 2231 tests of this suite green. It is
+   * a wiring line, not behaviour -- the kind both neighbouring specs presuppose, one by
+   * stubbing this row away and one by stubbing the name away.
+   */
+  it('hands a tapped member up to the list', async () => {
+    mountWith({})
+
+    await wrapper.find('[data-test="name-open"]').trigger('click')
+
+    expect(wrapper.emitted('open-member')).toHaveLength(1)
+    // The member the row was drawing, not one assembled a second time here.
+    expect(wrapper.emitted('open-member')[0][0]).toEqual(BOOKING.linkedUser)
+  })
+
+  // A creation row names the COMMUNITY, not a member, and renders no `Name` at all -- so
+  // there is nobody to open a window about and nothing to hand up.
+  it('offers no member to open on a creation row', () => {
+    mountWith({ typeId: 'CREATION', linkedUser: { alias: 'Gradido-Akademie' } })
+
+    expect(wrapper.find('[data-test="name-open"]').exists()).toBe(false)
+  })
 
   afterEach(() => {
     wrapper?.unmount()
