@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { nextTick } from 'vue'
 import LastTransactions from './LastTransactions'
@@ -30,12 +30,38 @@ vi.mock('vue-avatar', () => ({
   },
 }))
 
+// ⚠️ The stub RAISES the event, and takes the member from its own prop. A stub that only
+// rendered a div would leave `@open` untested while every assertion here stayed green --
+// the wiring, not the name, is what this column does with it.
 vi.mock('@/components/TransactionRows/Name', () => ({
   default: {
     name: 'Name',
-    template: '<div class="name"></div>',
+    props: ['linkedUser'],
+    emits: ['open'],
+    template:
+      '<div class="name"><button data-test="name-open" @click="$emit(\'open\', linkedUser)" /></div>',
   },
 }))
+
+const mockApolloQuery = vi.fn()
+vi.mock('@vue/apollo-composable', () => ({
+  useApolloClient: () => ({ client: { query: mockApolloQuery } }),
+}))
+
+/**
+ * ⚠️ In EVERY mount in this file, not only the ones that ask about it. Four mounts here
+ * carry their own stubs, and the three that left this one out pulled the real modal in --
+ * `BModal` then went looking for a router-link and a modal-manager injection that no test
+ * provides. They passed while doing it, so the noise was the only sign.
+ */
+const contactWindowStub = {
+  ContactWindow: {
+    name: 'ContactWindow',
+    props: ['modelValue', 'contact'],
+    template:
+      '<div data-test="contact-window" :data-open="String(modelValue)" :data-who="contact?.user?.gradidoID ?? \'\'" :data-bookings="String(contact?.bookings)" />',
+  },
+}
 
 vi.mock('@/components/FavoriteHeart.vue', () => ({
   default: {
@@ -69,6 +95,7 @@ describe('LastTransactions', () => {
         stubs: {
           BRow: true,
           BCol: true,
+          ...contactWindowStub,
         },
       },
     })
@@ -208,6 +235,7 @@ describe('LastTransactions', () => {
           stubs: {
             BRow: { template: '<div><slot /></div>' },
             BCol: { template: '<div><slot /></div>' },
+            ...contactWindowStub,
           },
         },
       })
@@ -332,6 +360,7 @@ describe('LastTransactions', () => {
         stubs: {
           BRow: { template: '<div><slot /></div>' },
           BCol: { template: '<div><slot /></div>' },
+          ...contactWindowStub,
         },
       },
     })
@@ -357,6 +386,7 @@ describe('LastTransactions', () => {
         stubs: {
           BRow: { template: '<div><slot /></div>' },
           BCol: { template: '<div><slot /></div>' },
+          ...contactWindowStub,
         },
       },
     })
@@ -367,5 +397,114 @@ describe('LastTransactions', () => {
     expect(heading.text()).toBe('transaction.lastTransactions')
     expect(heading.classes()).toContain('visually-hidden')
     expect(wrapper.text().split('transaction.lastTransactions')).toHaveLength(2)
+  })
+
+  /**
+   * The column's half of KF-010: a tap on a member means "this person" here exactly as it
+   * does in the contact list. What this column can hand over is the MEMBER off the booking
+   * row; the three figures the window states are a grouping over all bookings with them,
+   * and they arrive from the lookup a moment later.
+   */
+  describe('the contact window it opens', () => {
+    const margret = { gradidoID: 'id-margret', alias: 'margret', communityUuid: 'home-uuid' }
+    const transactions = [
+      { id: 1, typeId: 'SEND', amount: '-12', balanceDate: '2026-01-01', linkedUser: margret },
+    ]
+
+    // Slot-rendering stubs: the `true` stubs of the shared helper swallow the columns, and
+    // the name -- the control this whole block is about -- lives inside one.
+    const mountColumn = () =>
+      mount(LastTransactions, {
+        props: { transactions },
+        global: {
+          mocks: {
+            $t: (key) => key,
+            $d: (date) => String(date),
+            $filters: { signedAmount: (amount) => String(amount) },
+          },
+          stubs: {
+            BRow: { template: '<div><slot /></div>' },
+            BCol: { template: '<div><slot /></div>' },
+            ...contactWindowStub,
+          },
+        },
+      })
+
+    const windowAttrs = () => wrapper.find('[data-test="contact-window"]').attributes()
+
+    beforeEach(() => {
+      mockApolloQuery.mockReset()
+    })
+
+    it('stays closed until a name is tapped', () => {
+      mockApolloQuery.mockResolvedValue({ data: { contactList: { contacts: [] } } })
+      wrapper = mountColumn()
+
+      expect(windowAttrs()['data-open']).toBe('false')
+      expect(mockApolloQuery).not.toHaveBeenCalled()
+    })
+
+    /**
+     * ⛔ Open BEFORE the answer, on what the row already carries. Waiting for the round
+     * trip would be a tap that does nothing for as long as the network takes -- which on a
+     * phone reads as a broken button, and the member taps again.
+     */
+    it('opens on the tapped member at once, without waiting for the lookup', async () => {
+      // A lookup that never answers, so what is on screen here is the provisional half.
+      mockApolloQuery.mockReturnValue(new Promise(() => {}))
+      wrapper = mountColumn()
+
+      await wrapper.find('[data-test="name-open"]').trigger('click')
+      await nextTick()
+
+      expect(windowAttrs()['data-open']).toBe('true')
+      expect(windowAttrs()['data-who']).toBe('id-margret')
+      // Nothing invented: the figures are absent, not zero.
+      expect(windowAttrs()['data-bookings']).toBe('undefined')
+    })
+
+    it('asks about the pair the row carries', async () => {
+      mockApolloQuery.mockResolvedValue({ data: { contactList: { contacts: [] } } })
+      wrapper = mountColumn()
+
+      await wrapper.find('[data-test="name-open"]').trigger('click')
+      await flushPromises()
+
+      expect(mockApolloQuery).toHaveBeenCalledTimes(1)
+      expect(mockApolloQuery.mock.calls[0][0].variables).toEqual({
+        ref: { gradidoID: 'id-margret', communityUuid: 'home-uuid' },
+      })
+    })
+
+    it('fills in the figures the lookup brings', async () => {
+      const contact = { user: margret, firstAt: '2025-08-01', lastAt: '2026-01-01', bookings: 51 }
+      mockApolloQuery.mockResolvedValue({ data: { contactList: { contacts: [contact] } } })
+      wrapper = mountColumn()
+
+      await wrapper.find('[data-test="name-open"]').trigger('click')
+      await flushPromises()
+      await nextTick()
+
+      expect(windowAttrs()['data-open']).toBe('true')
+      expect(windowAttrs()['data-bookings']).toBe('51')
+    })
+
+    /**
+     * ⛔ A failed lookup is not a failed window. Everything the member came for -- the two
+     * buttons and the heart -- stands on the row's own data; only the grey figures stay
+     * away. Tearing the window down, or shouting about it, would be louder than the loss.
+     */
+    it('leaves the window standing when the lookup fails', async () => {
+      mockApolloQuery.mockRejectedValue(new Error('no'))
+      wrapper = mountColumn()
+
+      await wrapper.find('[data-test="name-open"]').trigger('click')
+      await flushPromises()
+      await nextTick()
+
+      expect(windowAttrs()['data-open']).toBe('true')
+      expect(windowAttrs()['data-who']).toBe('id-margret')
+      expect(windowAttrs()['data-bookings']).toBe('undefined')
+    })
   })
 })

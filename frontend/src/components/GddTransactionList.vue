@@ -31,7 +31,13 @@
             class="pointer mb-3 bg-white app-box-shadow gradido-border-radius p-3 test-list-group-item"
           >
             <template v-if="transaction.typeId !== 'LINK_SUMMARY'" #item>
-              <gdd-transaction :transaction="transaction" />
+              <!-- Straight up to whoever owns this list: a tap on the counterparty's name
+                   opens the contact window, and there is ONE of those per list rather than
+                   one per row. -->
+              <gdd-transaction
+                :transaction="transaction"
+                @open-member="$emit('open-member', $event)"
+              />
             </template>
             <template v-else #LINK_SUMMARY>
               <!-- Withdrawing a link changes the list, so it asks for the page it is on to
@@ -111,6 +117,9 @@ export default {
     /** Whether these rows are the bookings shared with ONE member rather than the account. */
     narrowed: { type: Boolean, default: false },
   },
+  // Declared, so that the handler does not also land on the root element as a plain
+  // attribute -- and so that the two events this list raises are readable in one place.
+  emits: ['update-transactions', 'open-member'],
   computed: {
     isPaginationVisible() {
       return this.showPagination && this.pageSize < this.transactionCount

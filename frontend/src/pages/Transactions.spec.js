@@ -1,4 +1,4 @@
-import { mount, RouterLinkStub } from '@vue/test-utils'
+import { flushPromises, mount, RouterLinkStub } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { nextTick, reactive, ref } from 'vue'
 import Transactions from './Transactions.vue'
@@ -27,7 +27,17 @@ vi.mock('vue-i18n', () => ({
     // The key, and the name after it where one was handed in -- so the label can be read
     // for which sentence it chose AND whom it named.
     t: (key, params) => (params?.name ? `${key}:${params.name}` : key),
+    d: (date) => String(date),
   }),
+}))
+
+// ⚠️ Needed since this page mounts the contact window: that pulls in the avatar-zoom
+// composable, which builds its labels through `i18n.global.t` because a composable is no
+// setup scope -- and the stub above has replaced the whole `vue-i18n` module, so `@/i18n`
+// would find no `createI18n` to call and the file would not even load. (The same mock
+// LastTransactions.spec carries, for the same chain.)
+vi.mock('@/i18n', () => ({
+  default: { global: { t: (key) => key } },
 }))
 
 // The GDT list's lazy query.
@@ -39,6 +49,8 @@ let listResultHandler
 let listErrorHandler
 const mockRefetchList = vi.fn(() => Promise.resolve())
 const mockLoading = ref(false)
+/** The single-contact lookup behind the window this page opens (useContactWindow). */
+const mockContactLookup = vi.fn(() => Promise.resolve({ data: { contactList: { contacts: [] } } }))
 vi.mock('@vue/apollo-composable', () => ({
   useLazyQuery: vi.fn(() => ({
     load: mockLoadGdt,
@@ -55,7 +67,7 @@ vi.mock('@vue/apollo-composable', () => ({
     refetch: mockRefetchList,
     loading: mockLoading,
   })),
-  useApolloClient: vi.fn(() => ({ client: {} })),
+  useApolloClient: vi.fn(() => ({ client: { query: mockContactLookup } })),
 }))
 
 const mockFetchMemberAvatars = vi.fn()
@@ -83,7 +95,17 @@ vi.mock('@/components/GddTransactionList', () => ({
       'narrowed',
       'pending',
     ],
+    emits: ['update-transactions', 'open-member'],
     template: '<div class="mock-gdd-transaction-list"></div>',
+  },
+}))
+
+vi.mock('@/components/Contacts/ContactWindow.vue', () => ({
+  default: {
+    name: 'ContactWindow',
+    props: ['modelValue', 'contact'],
+    template:
+      '<div data-test="contact-window" :data-open="String(modelValue)" :data-who="contact?.user?.gradidoID ?? \'\'" :data-bookings="String(contact?.bookings)" />',
   },
 }))
 
@@ -198,7 +220,9 @@ describe('Transactions', () => {
       expect(list().props('transactionCount')).toBe(40)
       expect(list().props('transactionLinkCount')).toBe(3)
       expect(list().props('openLinkCount')).toBe(1)
-      expect(mockFetchMemberAvatars).toHaveBeenCalledWith({}, [null, MARGRET])
+      // The apollo client this page holds, whatever it carries -- what is measured here
+      // is WHICH members were handed over, not the client's shape.
+      expect(mockFetchMemberAvatars).toHaveBeenCalledWith(expect.anything(), [null, MARGRET])
     })
 
     it('hands the list the waiting state of its own query', async () => {
@@ -461,6 +485,136 @@ describe('Transactions', () => {
       await nextTick()
 
       expect(mockLoadGdt).toHaveBeenCalled()
+    })
+  })
+
+  /**
+   * KF-010 in the booking list: a tap on a counterparty's name opens the contact window --
+   * the same window the contact list opens -- rather than jumping into the send form. The
+   * row hands over the MEMBER; the figures the window states are a grouping over all
+   * bookings with them and come from a lookup of their own.
+   */
+  describe('the contact window over the list', () => {
+    const OTHER = { gradidoID: 'other-id', communityUuid: 'far', alias: 'Anna' }
+    const contactFor = (member, bookings) => ({
+      user: member,
+      firstAt: '2025-08-01',
+      lastAt: '2026-01-01',
+      bookings,
+    })
+    const answering = (contact) =>
+      Promise.resolve({ data: { contactList: { contacts: contact ? [contact] : [] } } })
+
+    const windowAttrs = () => wrapper.find('[data-test="contact-window"]').attributes()
+
+    it('stays closed, and asks nothing, until a name is tapped', () => {
+      wrapper = createWrapper()
+
+      expect(windowAttrs()['data-open']).toBe('false')
+      expect(mockContactLookup).not.toHaveBeenCalled()
+    })
+
+    // ⛔ Open on the row's own member BEFORE the lookup answers. The other way round is a
+    // tap that does nothing for a round trip, which on a phone reads as a broken button.
+    it('opens on the tapped member at once, and asks about the pair', async () => {
+      mockContactLookup.mockReturnValue(new Promise(() => {}))
+      wrapper = createWrapper()
+
+      list().vm.$emit('open-member', MARGRET)
+      await nextTick()
+
+      expect(windowAttrs()['data-open']).toBe('true')
+      expect(windowAttrs()['data-who']).toBe(MARGRET.gradidoID)
+      // Nothing invented while the figures are unknown -- absent, not zero.
+      expect(windowAttrs()['data-bookings']).toBe('undefined')
+      expect(mockContactLookup.mock.calls[0][0].variables).toEqual({
+        ref: { gradidoID: MARGRET.gradidoID, communityUuid: MARGRET.communityUuid },
+      })
+    })
+
+    it('fills in the figures the lookup brings', async () => {
+      mockContactLookup.mockReturnValue(answering(contactFor(MARGRET, 51)))
+      wrapper = createWrapper()
+
+      list().vm.$emit('open-member', MARGRET)
+      await flushPromises()
+      await nextTick()
+
+      expect(windowAttrs()['data-bookings']).toBe('51')
+      expect(windowAttrs()['data-who']).toBe(MARGRET.gradidoID)
+    })
+
+    /**
+     * ⛔ An answer that lands after the window was closed must not reopen it. The member
+     * has moved on; a window coming back by itself a second later is the wallet acting on
+     * its own.
+     */
+    it('does not reopen a window that was closed while the lookup was out', async () => {
+      let answer
+      mockContactLookup.mockReturnValue(
+        new Promise((resolve) => {
+          answer = resolve
+        }),
+      )
+      wrapper = createWrapper()
+
+      list().vm.$emit('open-member', MARGRET)
+      await nextTick()
+      wrapper.findComponent({ name: 'ContactWindow' }).vm.$emit('update:modelValue', false)
+      await nextTick()
+      expect(windowAttrs()['data-open']).toBe('false')
+
+      answer({ data: { contactList: { contacts: [contactFor(MARGRET, 51)] } } })
+      await flushPromises()
+      await nextTick()
+
+      expect(windowAttrs()['data-open']).toBe('false')
+    })
+
+    /**
+     * ⛔ And a LATE answer must not write one person's figures under another's name. Two
+     * taps in quick succession is all it takes; without the guard the first answer lands
+     * last and the window states Margret's count over Anna's face.
+     */
+    it('drops an answer that is no longer the person on screen', async () => {
+      let firstAnswer
+      mockContactLookup
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            firstAnswer = resolve
+          }),
+        )
+        .mockReturnValueOnce(answering(contactFor(OTHER, 7)))
+      wrapper = createWrapper()
+
+      list().vm.$emit('open-member', MARGRET)
+      await nextTick()
+      list().vm.$emit('open-member', OTHER)
+      await flushPromises()
+      await nextTick()
+      expect(windowAttrs()['data-who']).toBe(OTHER.gradidoID)
+      expect(windowAttrs()['data-bookings']).toBe('7')
+
+      firstAnswer({ data: { contactList: { contacts: [contactFor(MARGRET, 51)] } } })
+      await flushPromises()
+      await nextTick()
+
+      // Still Anna, still Anna's count.
+      expect(windowAttrs()['data-who']).toBe(OTHER.gradidoID)
+      expect(windowAttrs()['data-bookings']).toBe('7')
+    })
+
+    it('leaves the window standing when the lookup fails', async () => {
+      mockContactLookup.mockReturnValue(Promise.reject(new Error('no')))
+      wrapper = createWrapper()
+
+      list().vm.$emit('open-member', MARGRET)
+      await flushPromises()
+      await nextTick()
+
+      expect(windowAttrs()['data-open']).toBe('true')
+      expect(windowAttrs()['data-who']).toBe(MARGRET.gradidoID)
+      expect(windowAttrs()['data-bookings']).toBe('undefined')
     })
   })
 })

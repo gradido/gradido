@@ -74,6 +74,16 @@
       <!-- The three numbers come from the same answer as the list: oldest booking, how
            many, newest booking.
 
+           ⛔ Only where they are. Opened from a booking row the window stands on what that
+           row carries, and a single booking knows nothing about how many there were in
+           all -- the figures arrive a moment later, from the lookup useContactWindow makes
+           (`openMember`). Until then the line is empty rather than guessed: `new Date(
+           undefined)` prints "Invalid Date" and a plural rule handed no number throws.
+
+           ⚠️ And the line keeps its HEIGHT while it is empty -- see the stylesheet. Letting
+           it collapse moved both buttons up by a line and then dropped them back down as
+           the answer landed, under a finger already on its way to one of them.
+
            ⛔ ONE link over the two figures, not one each. Narrowed to this member the
            newest booking IS the top row of the list, so "how many" and "when was the last"
            lead to the same place -- two links would have been two names for one door.
@@ -84,16 +94,18 @@
            collapse a whitespace-only node with a newline in it to one space, it deletes it.
            The spec reads the rendered text back for exactly that. -->
       <div class="contact-window-meta" data-test="contact-window-meta">
-        <span>{{ metaSince }}</span>
-        <span>{{ CONTACT_META_SEPARATOR }}</span>
-        <router-link
-          :to="bookingsRoute"
-          class="contact-window-bookings"
-          data-test="contact-window-bookings"
-          @click="closeWhenNavigating"
-        >
-          {{ metaBookings }}
-        </router-link>
+        <template v-if="counted">
+          <span>{{ metaSince }}</span>
+          <span>{{ CONTACT_META_SEPARATOR }}</span>
+          <router-link
+            :to="bookingsRoute"
+            class="contact-window-bookings"
+            data-test="contact-window-bookings"
+            @click="closeWhenNavigating"
+          >
+            {{ metaBookings }}
+          </router-link>
+        </template>
       </div>
 
       <BButton
@@ -193,16 +205,31 @@ const address = computed(() => {
   return gradidoAddress(alias.value).display
 })
 
+/**
+ * Whether the figures behind the meta line are known.
+ *
+ * A contact out of `contactListQuery` always carries them; a member handed straight off a
+ * booking row does not, until the lookup answers. Asked of all three, not of `bookings`
+ * alone, because the line is built from all three and one missing date is enough to print
+ * "Invalid Date" into it.
+ */
+const counted = computed(
+  () =>
+    props.contact?.bookings != null &&
+    Boolean(props.contact?.firstAt) &&
+    Boolean(props.contact?.lastAt),
+)
+
 /** Since when -- plain text, it leads nowhere. */
 const metaSince = computed(() =>
-  props.contact
+  counted.value
     ? t('contacts.since', { date: d(new Date(props.contact.firstAt), 'monthAndYear') })
     : '',
 )
 
 /** How many and how recently -- the part that leads to those bookings; the row's line. */
 const metaBookings = computed(() =>
-  props.contact ? contactBookingsMeta(props.contact, { t, d }) : '',
+  counted.value ? contactBookingsMeta(props.contact, { t, d }) : '',
 )
 
 /**
@@ -318,10 +345,15 @@ const toSend = (art) => {
   white-space: nowrap;
 }
 
+/* ⚠️ `min-height`, and it is not decoration: the line is empty while the figures behind it
+   are still being fetched (see the template). Without a reserved line the two buttons under
+   it sat a line higher and jumped down the moment the answer arrived -- past a finger
+   already reaching for "send Gradido". One line of this element's own line-height. */
 .contact-window-meta {
   font-size: 0.8rem;
   color: var(--bs-secondary-color, #6c757d);
   margin: 0.75rem 0 1rem;
+  min-height: 1.5em;
 }
 
 /* The link sits inside the muted meta line, so it takes that line's size and colour rather

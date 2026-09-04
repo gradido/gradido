@@ -1,29 +1,56 @@
 # AI-GENERATED — not an architecture reference
 
-# Everyone this member has exchanged Gradido with, each once (KF-004). `user` is the same
-# shape the booking fragment delivers, read by the same fields and under the same rule:
-# no firstName/lastName (NU-019).
+# One contact, whole. `user` is the same shape the booking fragment delivers, read by the
+# same fields and under the same rule: no firstName/lastName (NU-019).
+#
+# ⛔ A fragment because TWO documents ask for a contact now -- the list, and the single
+# lookup behind a contact window opened from a booking row. Both feed the SAME window, so a
+# field asked for in one and forgotten in the other would leave that window drawing a
+# person differently depending on where it was opened from, with every test still green:
+# the mocked Apollo layer answers whatever a spec puts in it. The same reason
+# `balanceFields` is one fragment, measured in balanceFields.spec.js.
+fragment contactFields on Contact {
+  user {
+    communityUuid
+    communityName
+    gradidoID
+    alias
+    avatarColorIndex
+    avatarUpdatedAt
+  }
+  firstAt
+  lastAt
+  bookings
+  favorite
+  # Whether this person belongs to the community this wallet serves -- answered by the
+  # server, which compares community uuids. The wallet cannot answer it: it knows its
+  # own community by a name out of its own configuration, while the name on a contact
+  # was written from the backend's. See Contact.homeCommunity.
+  homeCommunity
+}
+
+# Everyone this member has exchanged Gradido with, each once (KF-004).
 query contactListQuery($currentPage: Int = 1, $pageSize: Int = 25, $search: String) {
   contactList(currentPage: $currentPage, pageSize: $pageSize, search: $search) {
     count
     contacts {
-      user {
-        communityUuid
-        communityName
-        gradidoID
-        alias
-        avatarColorIndex
-        avatarUpdatedAt
-      }
-      firstAt
-      lastAt
-      bookings
-      favorite
-      # Whether this person belongs to the community this wallet serves -- answered by the
-      # server, which compares community uuids. The wallet cannot answer it: it knows its
-      # own community by a name out of its own configuration, while the name on a contact
-      # was written from the backend's. See Contact.homeCommunity.
-      homeCommunity
+      ...contactFields
+    }
+  }
+}
+
+# ONE contact, asked for by the pair a booking row carries -- what the contact window needs
+# when it is opened from the booking list or the column beside it (KF-010). The three
+# figures it states (since when, how many, how recently) are a grouping over ALL bookings
+# with that person and exist nowhere on a single row.
+#
+# ⚠️ `pageSize: 1` and the count is left unasked: the server has narrowed to one person, so
+# the answer is that person or nobody, and "how many contacts matched" is not a question
+# this screen has.
+query contactByMemberQuery($ref: MemberAvatarRefInput!) {
+  contactList(currentPage: 1, pageSize: 1, ref: $ref) {
+    contacts {
+      ...contactFields
     }
   }
 }

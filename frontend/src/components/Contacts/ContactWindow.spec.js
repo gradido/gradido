@@ -156,6 +156,61 @@ describe('ContactWindow', () => {
     expect(meta).toMatch(/contacts\.since \S+ · contacts\.bookings:12 · contacts\.last/)
   })
 
+  /**
+   * The window opened from a BOOKING row (KF-010): that row names the member but knows
+   * nothing about how many bookings there were in all, so it arrives as `{ user }` alone
+   * and the figures follow from a lookup (useContactWindow.openMember).
+   *
+   * ⛔ Nothing guessed in the meantime. `new Date(undefined)` prints "Invalid Date" and a
+   * plural rule handed no number throws -- so the line is empty until all three are there,
+   * and the two buttons, the heart and the name are all fully usable while it is.
+   */
+  describe('opened on a member whose figures are not in yet', () => {
+    const justTheMember = { user: CONTACT.user }
+
+    it('says nothing rather than guessing, and offers no way into the bookings', () => {
+      mountWindow(justTheMember)
+
+      expect(wrapper.find('[data-test="contact-window-meta"]').text()).toBe('')
+      expect(wrapper.find('[data-test="contact-window-bookings"]').exists()).toBe(false)
+    })
+
+    // ⚠️ The empty line KEEPS ITS PLACE. Letting it collapse moved both buttons up a line
+    // and dropped them back down when the answer landed -- under a finger already on its
+    // way to one of them.
+    it('holds the line open so nothing under it moves when the figures land', () => {
+      mountWindow(justTheMember)
+
+      expect(wrapper.find('[data-test="contact-window-meta"]').exists()).toBe(true)
+    })
+
+    it('still names the member and still offers both ways to reach them', () => {
+      mountWindow(justTheMember)
+
+      expect(wrapper.find('[data-test="contact-window-name"]').text()).toBe('Carla-Sonne')
+      expect(wrapper.find('[data-test="contact-window-send"]').exists()).toBe(true)
+      expect(wrapper.find('[data-test="contact-window-email"]').exists()).toBe(true)
+    })
+
+    // The address hangs off `homeCommunity`, which a booking row does not carry either --
+    // and an address invented for the wrong host is what that line exists to prevent.
+    it('leaves the address away until the lookup says whose community it is', () => {
+      mountWindow(justTheMember)
+
+      expect(wrapper.find('[data-test="contact-window-address"]').exists()).toBe(false)
+    })
+
+    it('shows the whole line once the figures arrive', async () => {
+      mountWindow(justTheMember)
+      await wrapper.setProps({ contact: CONTACT })
+
+      expect(wrapper.find('[data-test="contact-window-meta"]').text()).toMatch(
+        /contacts\.since \S+ · contacts\.bookings:12 · contacts\.last/,
+      )
+      expect(wrapper.find('[data-test="contact-window-bookings"]').exists()).toBe(true)
+    })
+  })
+
   it('closes on the way into the bookings, as it does for the send form', async () => {
     mountWindow()
     await wrapper.find('[data-test="contact-window-bookings"]').trigger('click')

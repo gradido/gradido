@@ -84,7 +84,7 @@
                 <name
                   :linked-user="row.contact.user"
                   :with-community="false"
-                  :linked="false"
+                  :opens="false"
                   font-color="text-dark"
                 />
               </span>
