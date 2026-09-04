@@ -3,6 +3,7 @@ import { GradidoUnit } from 'shared'
 import { clearDatabase } from '../../migration/clear'
 import { User as DbUser } from '..'
 import { AppDatabase } from '../AppDatabase'
+import { TransactionTypeId } from '../enum'
 import { createCommunity } from '../seeds/community'
 import { creationFactory, nMonthsBefore } from '../seeds/factory/creation'
 import { foreignReceive, transferGradidos } from '../seeds/factory/transaction'
@@ -10,7 +11,8 @@ import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { peterLustig } from '../seeds/users/peter-lustig'
-import { dbSelectContactsByUserId } from './transactions'
+import { dbSelectContactsByUserId, getTransactionList } from './transactions'
+import { dbFindUserIdByUuids } from './user'
 
 const appDB = AppDatabase.getInstance()
 
@@ -184,5 +186,78 @@ describe('dbSelectContactsByUserId', () => {
   it('answers an empty list for a member without any booking', async () => {
     const page = await dbSelectContactsByUserId(999999, { limit: 25, offset: 0 })
     expect(page).toEqual({ contacts: [], count: 0 })
+  })
+})
+
+describe('getTransactionList narrowed to one counterparty', () => {
+  /** What the resolver hands the query: the pair, and the users row carrying it if any. */
+  const withMember = async (communityUuid: string, gradidoId: string) => ({
+    localUserId: await dbFindUserIdByUuids(communityUuid, gradidoId),
+    gradidoId,
+    communityUuid,
+  })
+  const page = (userId: number, counterparty: Awaited<ReturnType<typeof withMember>>) =>
+    getTransactionList(userId, 25, 0, 'DESC', counterparty)
+
+  it('leaves the whole list alone when nobody is named', async () => {
+    const [rows, count] = await getTransactionList(bibi.id, 25, 0, 'DESC')
+    // The creation, five local bookings, four foreign ones.
+    expect(count).toBe(10)
+    expect(rows).toHaveLength(10)
+  })
+
+  it('counts what the contact window counts for a member of this community', async () => {
+    const peterRef = await withMember(peter.communityUuid as string, peter.gradidoID)
+    expect(peterRef.localUserId).toBe(peter.id)
+    const [rows, count] = await page(bibi.id, peterRef)
+    // Three bookings -- NOT four: the creation carries peter's id as the confirming
+    // moderator, and the window does not count it either.
+    expect(count).toBe(3)
+    expect(rows.map((row) => row.memo)).toEqual(['four', 'three', 'one'])
+    expect(rows.every((row) => row.linkedUserId === peter.id)).toBe(true)
+    expect(
+      rows.every((row) => [TransactionTypeId.SEND, TransactionTypeId.RECEIVE].includes(row.typeId)),
+    ).toBe(true)
+  })
+
+  it('counts what the contact window counts for a member of another community', async () => {
+    const sarah = await withMember(FOREIGN_COMMUNITY, SARAH)
+    expect(sarah.localUserId).toBeNull()
+    const [rows, count] = await page(bibi.id, sarah)
+    expect(count).toBe(2)
+    // Newest first, so the row on top is the one the window calls "last".
+    expect(rows.map((row) => row.linkedUserName)).toEqual(['SarahP', 'Sarah'])
+  })
+
+  it('pages the narrowed list, and the count stays the narrowed one', async () => {
+    const peterRef = await withMember(peter.communityUuid as string, peter.gradidoID)
+    const [first, count] = await getTransactionList(bibi.id, 2, 0, 'DESC', peterRef)
+    const [second] = await getTransactionList(bibi.id, 2, 2, 'DESC', peterRef)
+    expect(count).toBe(3)
+    expect(first.map((row) => row.memo)).toEqual(['four', 'three'])
+    expect(second.map((row) => row.memo)).toEqual(['one'])
+  })
+
+  // ⛔ The property `bookingsWhere` exists to keep: the caller's own id stands in every
+  // branch. bibi booked with peter and with Sarah; bob did with neither. A branch without
+  // `userId` would show bob bibi's bookings -- once per branch, so both are tried.
+  it("shows nobody another member's bookings", async () => {
+    const [byRow, rowCount] = await page(
+      bob.id,
+      await withMember(peter.communityUuid as string, peter.gradidoID),
+    )
+    expect(rowCount).toBe(0)
+    expect(byRow).toEqual([])
+    const [byPair, pairCount] = await page(bob.id, await withMember(FOREIGN_COMMUNITY, SARAH))
+    expect(pairCount).toBe(0)
+    expect(byPair).toEqual([])
+  })
+
+  it('answers an empty list, not the whole one, for a pair nobody is stored under', async () => {
+    const nobody = await withMember(FOREIGN_COMMUNITY, '00000000-0000-0000-0000-000000000000')
+    expect(nobody.localUserId).toBeNull()
+    const [rows, count] = await page(bibi.id, nobody)
+    expect(count).toBe(0)
+    expect(rows).toEqual([])
   })
 })

@@ -85,8 +85,18 @@ export const checkUsername = gql`
 // the same hazard the memberAvatars document below is written to close, and the reason six
 // fields were added here at once.
 export const transactionsQuery = gql`
-  query ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
-    transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
+  query (
+    $currentPage: Int = 1
+    $pageSize: Int = 25
+    $order: Order = DESC
+    $counterparty: MemberAvatarRefInput = null
+  ) {
+    transactionList(
+      currentPage: $currentPage
+      pageSize: $pageSize
+      order: $order
+      counterparty: $counterparty
+    ) {
       balance {
         balance
         balanceGDT

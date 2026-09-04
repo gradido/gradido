@@ -181,6 +181,32 @@ export async function dbFindUsersByIds(
   return DbUser.find({ where: { id: In(userIds) }, withDeleted: options.withDeleted ?? false })
 }
 
+/**
+ * The id of the `users` row carrying this pair, or null when there is none.
+ *
+ * For narrowing a booking list to one counterparty (queries/transactions.ts): the pair is
+ * what the contact window carries, and `uuid_key` makes it unique in `users` (migration
+ * 0073), so this is one row or none -- never a list to unite. No `foreign` condition: the
+ * federation stores members of other communities as rows too, and the contact list joins
+ * `linked_user_id` without asking. Deleted rows included: a booking keeps naming a member
+ * whose account is gone, so their bookings stay filterable.
+ *
+ * ⚠️ An exact pair. A `foreign = 0` row that still carried no community uuid would be
+ * missed -- migration 0129 filled those, and the contact list hands out the home uuid for
+ * them, so what arrives here is the filled pair.
+ */
+export async function dbFindUserIdByUuids(
+  communityUuid: string,
+  gradidoID: string,
+): Promise<number | null> {
+  const row = await DbUser.findOne({
+    where: { communityUuid, gradidoID },
+    select: ['id'],
+    withDeleted: true,
+  })
+  return row?.id ?? null
+}
+
 export async function findUserByUuids(
   communityUuid: string,
   gradidoID: string,

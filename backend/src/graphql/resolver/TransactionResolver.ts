@@ -1,6 +1,7 @@
 import { Paginated } from '@arg/Paginated'
 import { TransactionSendArgs } from '@arg/TransactionSendArgs'
 import { Order } from '@enum/Order'
+import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
 import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
 import { User } from '@model/User'
@@ -39,7 +40,7 @@ import { getLogger, Logger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
 import { CommandJwtPayloadType, DecayCalculationType, encryptAndSign, GradidoUnit } from 'shared'
 import { randombytes_random } from 'sodium-native'
-import { Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
+import { Arg, Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import { In, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
@@ -55,7 +56,7 @@ import { SendEmailArgs } from '../arg/SendEmailArgs'
 import { BalanceResolver } from './BalanceResolver'
 import { GdtResolver } from './GdtResolver'
 import { getCommunityName, isHomeCommunity } from './util/communities'
-import { remoteUserFromBooking } from './util/counterparty'
+import { bookingCounterparty, remoteUserFromBooking } from './util/counterparty'
 
 const db = AppDatabase.getInstance()
 const createLogger = () =>
@@ -278,6 +279,14 @@ export class TransactionResolver {
   async transactionList(
     @Args()
     { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
+    /**
+     * Only the bookings shared with this one member -- what the contact window links to
+     * ("51 bookings, last on 24.08."). The house's member reference, the pair the window
+     * holds, so a booking filter and a heart name a person the same way. Absent: the
+     * whole account, as before.
+     */
+    @Arg('counterparty', () => MemberAvatarRefInput, { nullable: true })
+    counterparty: MemberAvatarRefInput | null | undefined,
     @Ctx() context: Context,
   ): Promise<TransactionList> {
     const now = new Date()
@@ -285,6 +294,8 @@ export class TransactionResolver {
     const logger = createLogger()
     logger.addContext('user', user.id)
     logger.info(`transactionList`)
+
+    const narrowedTo = counterparty ? await bookingCounterparty(counterparty) : undefined
 
     let balanceGDTPromise: Promise<number | null> = Promise.resolve(null)
     if (CONFIG.GDT_ACTIVE) {
@@ -312,7 +323,11 @@ export class TransactionResolver {
       pageSize,
       offset,
       order,
+      narrowedTo,
     )
+    // The count of THIS list -- narrowed, it is the number of bookings shared with that
+    // member, which is what its paginator divides by. The wallet reads the account-wide
+    // figures off its own, never narrowed, query.
     context.transactionCount = userTransactionsCount
 
     // find involved users; I am involved
@@ -393,7 +408,12 @@ export class TransactionResolver {
     const lastTransactionBalance = lastTransaction.balance
 
     // decay & link transactions
-    if (currentPage === 1 && order === Order.DESC) {
+    //
+    // ⛔ Not while the list is narrowed to one member. Both rows are about the whole
+    // account -- the decay is the member's own balance losing value, the summary covers
+    // every open link they hold -- and under a heading "only bookings with Margret" they
+    // would be untrue, counted against a paginator sized by the narrowed count.
+    if (currentPage === 1 && order === Order.DESC && !narrowedTo) {
       logger.debug(`currentPage == 1: transactions=${transactions.map((t) => t.id)}`)
       // The virtual decay is always on the booked amount, not including the generated, not yet booked links,
       // since the decay is substantially different when the amount is less

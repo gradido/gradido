@@ -5,10 +5,11 @@ import { getLogger } from 'config-schema/test/testSetup'
 import { AppDatabase, foreignReceive, transferGradidos, User } from 'database'
 import { GraphQLError } from 'graphql'
 import { GradidoUnit } from 'shared'
+import { v4 as uuidv4 } from 'uuid'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { userFactory } from '@/seeds/factory/user'
 import { addFavorite, login, removeFavorite } from '@/seeds/graphql/mutations'
-import { contactList, favoriteList } from '@/seeds/graphql/queries'
+import { contactList, favoriteList, transactionsQuery } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
@@ -254,12 +255,21 @@ describe('ContactResolver', () => {
       await db
         .getDataSource()
         .query('UPDATE users SET community_uuid = NULL WHERE id = ?', [peter.id])
-      const res: any = await query({ query: contactList })
-      expect(res.errors).toBeUndefined()
-      const peterRow = res.data.contactList.contacts.find(
-        (c: any) => c.user.gradidoID === peter.gradidoID,
-      )
-      expect(peterRow.user.communityUuid).toBe(bibi.communityUuid)
+      try {
+        const res: any = await query({ query: contactList })
+        expect(res.errors).toBeUndefined()
+        const peterRow = res.data.contactList.contacts.find(
+          (c: any) => c.user.gradidoID === peter.gradidoID,
+        )
+        expect(peterRow.user.communityUuid).toBe(bibi.communityUuid)
+      } finally {
+        // ⚠️ Restored: this is the state migration 0129 removed, and the narrowed booking
+        // list below looks the row up by the filled pair. Left null, that list would find
+        // no row for peter and the two ends would disagree for a reason nothing states.
+        await db
+          .getDataSource()
+          .query('UPDATE users SET community_uuid = ? WHERE id = ?', [bibi.communityUuid, peter.id])
+      }
     })
 
     it('starts with no favourites', async () => {
@@ -357,6 +367,85 @@ describe('ContactResolver', () => {
       expect(list.data.contactList.contacts[0].bookings).toBe(2)
       const favorites: any = await query({ query: favoriteList })
       expect(favorites.data.favoriteList).toEqual([])
+    })
+  })
+
+  /**
+   * The link in the contact window: "51 bookings, last on 24.08." opens the booking list
+   * narrowed to that member. The number and the list are counted by ONE rule
+   * (queries/transactions.ts), and this is where the two ends meet the real schema.
+   */
+  describe('the narrowed booking list behind the window', () => {
+    const narrowed = async (member: { gradidoID: string; communityUuid: string | null }) => {
+      const res: any = await query({
+        query: transactionsQuery,
+        variables: {
+          counterparty: { gradidoID: member.gradidoID, communityUuid: member.communityUuid },
+        },
+      })
+      expect(res.errors).toBeUndefined()
+      return res.data.transactionList
+    }
+
+    describe('as bibi', () => {
+      beforeAll(async () => {
+        await loginAs('bibi@bloxberg.de')
+      })
+
+      it('counts what the window counts, for every contact, local and foreign', async () => {
+        const list: any = await query({ query: contactList })
+        expect(list.data.contactList.contacts).toHaveLength(3)
+        for (const contact of list.data.contactList.contacts) {
+          const bookings = await narrowed(contact.user)
+          expect(bookings.balance.count).toBe(contact.bookings)
+          expect(bookings.transactions).toHaveLength(contact.bookings)
+          expect(
+            bookings.transactions.every(
+              (t: any) => t.linkedUser?.gradidoID === contact.user.gradidoID,
+            ),
+          ).toBe(true)
+          // Newest first, so the row on top is the one the window calls "last".
+          expect(new Date(bookings.transactions[0].balanceDate).getTime()).toBe(
+            new Date(contact.lastAt).getTime(),
+          )
+        }
+      })
+
+      it('carries neither the decay row nor the link summary', async () => {
+        const whole: any = await query({ query: transactionsQuery })
+        expect(whole.data.transactionList.transactions[0].typeId).toBe('DECAY')
+        const bookings = await narrowed(bob)
+        expect(bookings.transactions.map((t: any) => t.typeId)).toEqual(['RECEIVE', 'SEND'])
+      })
+
+      it('answers an empty list, not the whole one, for a member nobody booked with', async () => {
+        const bookings = await narrowed({ gradidoID: uuidv4(), communityUuid: FOREIGN_COMMUNITY })
+        expect(bookings.transactions).toEqual([])
+        expect(bookings.balance.count).toBe(0)
+      })
+
+      it('fills in the home community for a member sent without one', async () => {
+        const bookings = await narrowed({ gradidoID: peter.gradidoID, communityUuid: null })
+        expect(bookings.balance.count).toBe(1)
+        expect(bookings.transactions[0].linkedUser.gradidoID).toBe(peter.gradidoID)
+      })
+    })
+
+    // ⛔ The one property the filter must never lose: it narrows, it cannot widen. bibi
+    // booked with peter and with anna, bob with neither -- one contact by users row, one
+    // by the pair on the booking, so both branches of the where are tried.
+    describe('as bob', () => {
+      beforeAll(async () => {
+        await loginAs('bob@baumeister.de')
+      })
+
+      it("shows him nothing of bibi's bookings", async () => {
+        for (const other of [peter, anna]) {
+          const bookings = await narrowed(other)
+          expect(bookings.transactions).toEqual([])
+          expect(bookings.balance.count).toBe(0)
+        }
+      })
     })
   })
 })

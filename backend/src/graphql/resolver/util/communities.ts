@@ -3,6 +3,7 @@ import {
   AppDatabase,
   Community as DbCommunity,
   FederatedCommunity as DbFederatedCommunity,
+  getHomeCommunity,
 } from 'database'
 import { FindOneOptions, IsNull, Not } from 'typeorm'
 
@@ -23,6 +24,27 @@ function findWithCommunityIdentifier(communityIdentifier: string): FindOneOption
  * @param communityIdentifier The identifier (URL, UUID, or name) of the community.
  * @returns A promise that resolves to true if a non-foreign community exists with the given identifier, otherwise false.
  */
+/**
+ * The community uuid a member reference is meant for.
+ *
+ * The wallet passes on what the booking or the contact row gave it, and that may be
+ * nothing: a member of this community whose `users` row predates the home community's uuid
+ * carries none. Migration 0129 fills those rows, so this is the belt rather than the braces
+ * -- and it is also what answers a wallet that is older than the migration.
+ */
+export async function resolveCommunityUuid(
+  communityUuid: string | null | undefined,
+): Promise<string> {
+  if (communityUuid) {
+    return communityUuid
+  }
+  const home = await getHomeCommunity()
+  if (!home?.communityUuid) {
+    throw new LogError('Home community has no uuid, cannot address a member without one')
+  }
+  return home.communityUuid
+}
+
 export async function isHomeCommunity(communityIdentifier: string): Promise<boolean> {
   // The !! operator in JavaScript or TypeScript is a shorthand for converting a value to a boolean.
   // It essentially converts any truthy value to true and any falsy value to false.

@@ -1,10 +1,16 @@
 // AI-GENERATED — not an architecture reference
 import { User } from '@model/User'
-import { User as DbUser, dbFindForeignUsersByGradidoIds, findForeignUserByUuids } from 'database'
+import {
+  BookingCounterparty,
+  User as DbUser,
+  dbFindForeignUsersByGradidoIds,
+  dbFindUserIdByUuids,
+  findForeignUserByUuids,
+} from 'database'
 import { Logger } from 'log4js'
 import { isAliasEraName } from 'shared'
 import { LogError } from '@/server/LogError'
-import { getCommunityName } from './communities'
+import { getCommunityName, resolveCommunityUuid } from './communities'
 
 /** What a booking carries about a counterparty from another community. */
 export interface RemoteCounterpartyRef {
@@ -145,4 +151,25 @@ export const remoteUserFromBooking = async (
     ? await lookups.communityName(remoteUser.communityUuid)
     : null
   return remoteUser
+}
+
+/**
+ * The member a booking list is narrowed to, from the reference the contact window sends:
+ * the pair, and the `users` row carrying it where there is one.
+ *
+ * A pair nobody is stored under is not an error -- it is a counterparty with no row and,
+ * almost certainly, no bookings: the list comes back empty under its own heading, and that
+ * is the true answer. What it can NOT do is widen the list: `bookingsWhere` keeps the
+ * caller's own id in every branch, whatever arrives here.
+ */
+export const bookingCounterparty = async (ref: {
+  gradidoID: string
+  communityUuid?: string | null
+}): Promise<BookingCounterparty> => {
+  const communityUuid = await resolveCommunityUuid(ref.communityUuid)
+  return {
+    localUserId: await dbFindUserIdByUuids(communityUuid, ref.gradidoID),
+    gradidoId: ref.gradidoID,
+    communityUuid,
+  }
 }
