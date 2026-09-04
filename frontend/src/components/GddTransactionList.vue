@@ -64,7 +64,7 @@
       :per-page="pageSize"
       :total-rows="transactionCount"
       align="center"
-      :hide-ellipsis="true"
+      :no-ellipsis="true"
       @update:model-value="askForPage($event)"
     />
     <!-- Exactly zero, not "nothing positive": -1 is the failed request above, and a

@@ -2,6 +2,9 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { nextTick } from 'vue'
+import { readFileSync, readdirSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { BPagination } from 'bootstrap-vue-next'
 import Contacts from './Contacts.vue'
 import { forgetFavorites, markFavorite, rememberFavorites } from '@/composables/useFavorites'
@@ -236,5 +239,72 @@ describe('Contacts page', () => {
 
     without.unmount()
     withProp.unmount()
+  })
+
+  /**
+   * ⛔ `limit` is what keeps the pager on ONE row inside a page that is only as wide as a
+   * phone, and it is the one line nothing else measures: at five page numbers the pager is
+   * 540 points against this page's 450 and the last two buttons drop to a second row, which
+   * is exactly what was reported. Three numbers is 421.
+   *
+   * ⚠️ Counted rather than measured, because jsdom does no layout -- but the count is what
+   * the width follows from, and it is asserted against the REAL component, so a change in
+   * how the library reads `limit` shows up here.
+   */
+  it('shows three page numbers, which is what keeps it on one row', () => {
+    const props = { modelValue: 6, perPage: 25, totalRows: 290, pills: true, size: 'lg' }
+    const five = mount(BPagination, { props: { ...props, noEllipsis: true } })
+    const three = mount(BPagination, { props: { ...props, noEllipsis: true, limit: 3 } })
+
+    const buttons = (w) => w.findAll('li').length
+
+    // Nine buttons is the wide form the page must not have: two arrows each side and five
+    // numbers. Seven is what fits.
+    expect(buttons(five)).toBe(9)
+    expect(buttons(three)).toBe(7)
+
+    five.unmount()
+    three.unmount()
+  })
+
+  /**
+   * ⛔⛔ The whole class, not this one call site. `hide-ellipsis` is BootstrapVue's Vue-2
+   * name; bootstrap-vue-next ignores it silently, so a pager carrying it looks configured
+   * and is not. FOUR pagers in this wallet carried it, every one inert, and the fourth got
+   * it by copying the third.
+   *
+   * ⚠️ This reads the files rather than mounting anything: the fault is that the prop
+   * reaches no component at all, so no component's test can see it. A grep is the right
+   * instrument here, and it guards the pagers nobody has written a spec for.
+   */
+  it('has no pager anywhere passing the prop bootstrap-vue-next ignores', () => {
+    const srcRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
+    const vueFiles = []
+    const walk = (dir) => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const full = join(dir, entry.name)
+        if (entry.isDirectory()) walk(full)
+        else if (entry.name.endsWith('.vue')) vueFiles.push(full)
+      }
+    }
+    walk(srcRoot)
+
+    // The scan itself has to be shown to work, or an empty list would pass as "clean".
+    expect(vueFiles.length).toBeGreaterThan(50)
+
+    // ⚠️ Comments stripped first, or this file's own explanation of the dead prop -- and
+    // the one beside the corrected pager -- would report themselves. A found line is not
+    // yet a running line.
+    const code = (file) =>
+      readFileSync(file, 'utf8')
+        .replace(/<!--[\s\S]*?-->/g, '')
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/^\s*\/\/.*$/gm, '')
+
+    // The stripping has to leave something behind, or every file would look clean.
+    expect(code(join(srcRoot, 'pages/Contacts.vue'))).toContain('no-ellipsis')
+
+    const offenders = vueFiles.filter((file) => /hide-ellipsis/.test(code(file)))
+    expect(offenders).toEqual([])
   })
 })

@@ -36,7 +36,7 @@
       :per-page="pageSize"
       :total-rows="transactionGdtCount"
       align="center"
-      :hide-ellipsis="true"
+      :no-ellipsis="true"
     />
   </div>
 </template>

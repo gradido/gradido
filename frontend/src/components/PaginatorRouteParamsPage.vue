@@ -8,7 +8,7 @@
     :per-page="pageSize"
     :total-rows="totalCount"
     align="center"
-    :hide-ellipsis="true"
+    :no-ellipsis="true"
     @update:model-value="updatePage"
   />
 </template>
