@@ -125,10 +125,15 @@ const isContactCounterparty = (row: ContactRow, counterparty: BookingCounterpart
  * worse than either answer alone. The duplication predates the narrowing; the narrowing is
  * what made it state a wrong NUMBER instead of an extra row. (coderabbit, PR #3842.)
  *
- * ⚠️ Only a pair can merge, and the two kinds can never collide: a local row without a
- * community uuid is a member of THIS community (migration 0129's scope is `foreign = 0`),
- * and a remote row always names another one -- a home member's booking always carries
- * `linked_user_id`.
+ * ⚠️ Rows without a community uuid are left alone: those are members of THIS community
+ * (migration 0129's scope is `foreign = 0`), already unique by their `users` row, and there
+ * is nothing to match them against -- a pair is the only key both shapes carry.
+ *
+ * ★ And the merge is safe even where the assumption behind it does not hold. The pair is
+ * what `users.uuid_key` makes unique (migration 0073), so two rows carrying it ARE one
+ * person, whichever grouping found them -- the merge does not depend on remote rows only
+ * ever naming another community. Were a home member somehow to turn up on both sides, the
+ * two would be joined, which is the right answer for them too.
  */
 const mergeSamePerson = (rows: ContactRow[]): ContactRow[] => {
   const byPair = new Map<string, ContactRow>()
