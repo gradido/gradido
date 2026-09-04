@@ -64,8 +64,11 @@ describe('Contacts page', () => {
           },
           BSpinner: true,
           BPagination: {
-            props: ['modelValue', 'totalRows', 'perPage'],
-            template: '<nav data-test="contacts-pagination" :data-total="totalRows" />',
+            // `hideEllipsis` is carried through: it is what makes the pager fit the
+            // narrowed page, so it has to be visible to a test.
+            props: ['modelValue', 'totalRows', 'perPage', 'hideEllipsis'],
+            template:
+              '<nav data-test="contacts-pagination" :data-total="totalRows" :data-hide-ellipsis="hideEllipsis" />',
           },
           // Emits `open` the way the real row does, so the page's half of KF-010 -- which
           // person the window is handed -- is what is measured here. The window's own
@@ -140,6 +143,13 @@ describe('Contacts page', () => {
     expect(rowsIn('contacts-page')).toEqual(['Alias1', 'Alias2', 'Alias3'])
     expect(wrapper.find('[data-test="contacts-count"]').text()).toContain('contacts.count:4')
     expect(wrapper.find('[data-test="contacts-pagination"]').attributes('data-total')).toBe('4')
+    // ⛔ The two "..." are two buttons wide, and this page is now only as wide as a phone.
+    // With them the pager measures 483 points and does not fit -- and it never fit a phone
+    // either. Measured in a browser; what can be held here is that the page still asks for
+    // them to be hidden, the way the wallet's own paginator does.
+    expect(wrapper.find('[data-test="contacts-pagination"]').attributes('data-hide-ellipsis')).toBe(
+      'true',
+    )
   })
 
   it('moves a person up as soon as they get the heart, without a refetch', async () => {

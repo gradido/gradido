@@ -391,5 +391,42 @@ describe('GddTransaction', () => {
       mountWith({ linkedUser: { alias: 'napoli' } })
       expect(heart().exists()).toBe(false)
     })
+
+    /**
+     * ⛔ WHERE it stands, which nothing measured while it stood in the wrong place. Beside
+     * the collapse arrow at the row's end it read as a mark on the BOOKING -- and a booking
+     * cannot be a favourite. It is a mark on the person, so it stands beside the person's
+     * name (Bernd, 04.09.2026).
+     *
+     * ⚠️ Written as a structural claim rather than a visual one, because jsdom does no
+     * layout: what it can say is which element the heart is a sibling of, and that is
+     * exactly what went wrong. The widths behind the change were measured in a browser
+     * against the built Bootstrap, not here.
+     */
+    it('stands beside the name, not beside the collapse arrow', () => {
+      mountWith({ linkedUser: { alias: 'napoli', gradidoID: 'u-1' } })
+
+      const heartEl = heart().element
+      const nameEl = wrapper.find('[data-test="name-open"]').element
+      const arrow = wrapper.find('collapse-icon-stub')
+
+      // The arrow is still drawn -- otherwise "not beside the arrow" would be true for the
+      // uninteresting reason that there is no arrow.
+      expect(arrow.exists()).toBe(true)
+      expect(heartEl.parentElement).toBe(nameEl.parentElement)
+      expect(heartEl.parentElement.contains(arrow.element)).toBe(false)
+    })
+
+    /**
+     * The column the two of them share has to be allowed to shrink, or the name -- one
+     * unbreakable run -- sets the row's floor and pushes the amount and the arrow off the
+     * line. Same guard and same class name as `ContactRow` and the bookings column.
+     */
+    it('lets the column holding name and heart give way', () => {
+      mountWith({ linkedUser: { alias: 'napoli', gradidoID: 'u-1' } })
+
+      const nameLine = wrapper.find('[data-test="name-open"]').element.parentElement
+      expect(nameLine.parentElement.className).toContain('min-w-0')
+    })
   })
 })

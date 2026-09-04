@@ -59,12 +59,21 @@
         <div v-else class="text-muted small" data-test="contacts-none-match">
           {{ $t('contacts.count', 0) }}
         </div>
+        <!-- ⛔ `hide-ellipsis`, as the wallet's own paginator has it
+             (`PaginatorRouteParamsPage`): the two "..." are two buttons wide and say
+             nothing the arrows beside them do not. Measured in a browser against the built
+             Bootstrap: with them this pager is 483 points wide and does not fit the page's
+             measure at all -- and it did not fit a PHONE either, which is where it has
+             always been narrowest. Without them it is 440, or 442 once the page numbers
+             reach two digits, and the `flex-wrap` in the stylesheet below catches that
+             remainder rather than a number I happened to measure. -->
         <BPagination
           v-if="otherRows.length > PAGE_SIZE"
           v-model="currentPage"
-          class="mt-3"
+          class="mt-3 contacts-pager"
           pills
           size="lg"
+          :hide-ellipsis="true"
           :per-page="PAGE_SIZE"
           :total-rows="otherRows.length"
           align="center"
@@ -192,3 +201,33 @@ watch(
   { immediate: true },
 )
 </script>
+
+<style lang="scss" scoped>
+/* ⛔ A contact row is a name and a heart, and nothing between them that grows. Given the
+   whole content column it stretched to whatever the window allowed, and the heart ended up
+   a hand's width from the person it belongs to -- the very complaint that does NOT arise on
+   a phone, where the column is simply narrow. So the page keeps a phone's measure on a
+   desktop too, rather than each row being taught to hold its heart closer. (Bernd,
+   04.09.2026.)
+
+   450 and not 390: it is a little wider than the widest common phone (430 points), so this
+   page is never TIGHTER on a desktop than on the device it already works on -- and it is
+   what the pager needs on one line once the page numbers reach two digits (442 points,
+   measured). It sits on the page root, so the search box, the headings, the two boxes and
+   the pager all share the one measure -- the search box above the list has to be the same
+   width, or the narrowing reads as a mistake.
+
+   Left, not centred: everything else on this page starts at the content column's left edge,
+   and a block that alone floats to the middle looks misplaced rather than deliberate. */
+.contacts {
+  max-width: 450px;
+}
+
+/* The guard behind the number above. `.pagination` is a flex row and Bootstrap leaves it at
+   `nowrap`, so anything wider than the page does not wrap -- it spills out of it. This does
+   not depend on a width I measured: whatever the page count and however wide the digits,
+   the pager gives way by taking a second line. */
+.contacts-pager {
+  flex-wrap: wrap;
+}
+</style>
