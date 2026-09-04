@@ -23,7 +23,12 @@ import { isSameCommunity } from '@/data/Community.logic'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { resolveCommunityUuid } from './util/communities'
-import { CounterpartyLookups, prefetchedLookups, remoteUserFromBooking } from './util/counterparty'
+import {
+  CounterpartyLookups,
+  bookingCounterparty,
+  prefetchedLookups,
+  remoteUserFromBooking,
+} from './util/counterparty'
 
 const createLogger = () =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContactResolver`)
@@ -46,23 +51,43 @@ export class ContactResolver {
    * ⚠️ The page arguments are the house `Paginated`, so the SCHEMA defaults are the ones
    * that class carries -- page 1, size 3, newest first -- not the wallet's 25. Every
    * caller states its own size; the seed and wallet documents declare theirs.
+   *
+   * With `ref` it answers about one person instead of a page -- see the argument.
    */
   @Authorized([RIGHTS.MANAGE_OWN_CONTACTS])
   @Query(() => ContactList)
   async contactList(
     @Args() { currentPage, pageSize, order }: Paginated,
     @Arg('search', () => String, { nullable: true }) search: string | null,
+    /**
+     * ONE contact instead of a page: the person a booking row names, asked for by the pair
+     * that row carries. What the contact window needs when it is opened from the booking
+     * list or from the column beside it, where the three figures it states -- since when,
+     * how many, how recently -- exist nowhere but in this grouping.
+     *
+     * ⛔ Resolved through `bookingCounterparty`, the same helper `transactionList` uses,
+     * and matched by the same two branches. The window states a count and links to the
+     * booking list narrowed by that very rule; two rules would put a number over a list of
+     * a different length. Absent: the page, as before.
+     */
+    @Arg('ref', () => MemberAvatarRefInput, { nullable: true })
+    ref: MemberAvatarRefInput | null | undefined,
     @Ctx() context: Context,
   ): Promise<ContactList> {
     const user = getUser(context)
     const logger = createLogger()
     logger.addContext('user', user.id)
 
+    // The pair the wallet asks about, before anything else can use it. Only where one was
+    // given -- without a `ref` nothing waits and the rounds below are what they were.
+    const counterparty = ref ? await bookingCounterparty(ref) : undefined
+
     // Two rounds, not six: the page, the home community and the caller's hearts depend on
     // nothing; everything below depends only on the page.
     const [page, home, favoriteRows] = await Promise.all([
       dbSelectContactsByUserId(user.id, {
         search: search ?? undefined,
+        counterparty,
         limit: pageSize,
         offset: (currentPage - 1) * pageSize,
         order,
