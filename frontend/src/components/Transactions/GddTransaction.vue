@@ -12,17 +12,30 @@
           <variant-icon v-if="isCreationType" icon="gift" variant="white" />
         </component>
       </BCol>
-      <BCol>
-        <div>
-          <!-- The name is its own control (KF-010): it opens the contact window for this
-               counterparty, while a tap anywhere else on the row still opens the booking's
-               details. What it hands up is the member it was given -- `Name` sends back the
-               `linkedUser` it was drawing, so no second expression here can name somebody
-               else. The LIST owns the window, one per list rather than one per row. -->
+      <!-- ⛔ `min-w-0`, because the name below is `nowrap` and would otherwise set this
+           column's floor to its own full width -- pushing the amount and the arrow out of
+           the row. Same guard, same class name, as `ContactRow` and the bookings column. -->
+      <BCol class="min-w-0">
+        <!-- ⛔ The heart stands HERE, beside the name, and not at the row's end where it
+             used to. Next to the collapse arrow it read as a mark on the BOOKING; it is a
+             mark on the PERSON, and a booking cannot be a favourite. (Bernd, 04.09.2026.)
+             Beside the name it says what it means without a word.
+
+             The name is its own control (KF-010): it opens the contact window for this
+             counterparty, while a tap anywhere else on the row still opens the booking's
+             details. What it hands up is the member it was given -- `Name` sends back the
+             `linkedUser` it was drawing, so no second expression here can name somebody
+             else. The LIST owns the window, one per list rather than one per row.
+
+             ⚠️ The heart swallows its own click (`@click.stop.prevent` in the component),
+             so it does not open the booking underneath it -- which is why it can sit
+             inside this row at all. -->
+        <div class="d-flex align-items-center gap-2">
           <Name v-if="useNameComponent" v-bind="nameProps" @open="emit('open-member', $event)" />
           <div v-else :class="nameProps.class">
             {{ nameProps.creationLinkedUser }}
           </div>
+          <favorite-heart v-if="hasCounterparty" :member="props.transaction.linkedUser" />
         </div>
         <span class="small">{{ $d(new Date(props.transaction.balanceDate), 'short') }}</span>
         <span class="ms-4 small">{{ $d(new Date(props.transaction.balanceDate), 'time') }}</span>
@@ -74,19 +87,10 @@
           <variant-icon icon="cards" variant="muted" class="m-mb-1" />
         </div>
       </BCol>
-      <!-- Flex, because the heart is inline and the collapse arrow a block: side by side
-           only inside a flex row, on two lines otherwise. And `auto` rather than one
-           twelfth, which is narrower than the two symbols together at every width up to
-           about 1275 px -- they would not wrap, they would spill over the amount. -->
+      <!-- The arrow alone now; the heart moved up beside the name. `auto` rather than one
+           twelfth, and still flex-and-end, so the symbol keeps its place at the row's
+           right edge at every width. -->
       <BCol cols="12" md="auto" lg="auto" class="d-flex justify-content-end align-items-center">
-        <!-- The heart, exactly where the name opens a window (KF-005): a counterparty with
-             a gradidoID. A creation row has none and gets none; a link or card row has one
-             on both sides, like any transfer (KF-011). -->
-        <favorite-heart
-          v-if="hasCounterparty"
-          :member="props.transaction.linkedUser"
-          class="me-2"
-        />
         <collapse-icon class="text-end" :visible="visible" />
       </BCol>
     </BRow>
@@ -197,7 +201,10 @@ const hasCounterparty = computed(
 const nameProps = computed(() => {
   if (isCreationType.value) {
     return {
-      class: 'fw-bold',
+      // ⛔ `min-w-0` travels with the name, not with its container: inside the flex line
+      // it shares with the heart it is the item that has to be allowed to shrink, or a
+      // long name pushes the heart out of the row instead of clipping.
+      class: 'fw-bold min-w-0',
       // The COMMUNITY's name (NU-020). A creation booking is linked to the community
       // stand-in, not to the moderator who approved it -- the backend swaps that user in
       // unconditionally -- so `alias` carries the configured community name and this line
@@ -209,7 +216,7 @@ const nameProps = computed(() => {
     }
   } else {
     return {
-      class: 'fw-bold',
+      class: 'fw-bold min-w-0',
       amount: props.transaction.amount,
       linkedUser: props.transaction.linkedUser,
       linkId: props.transaction.linkId,
@@ -249,5 +256,12 @@ watch(
 :deep(.b-avatar-custom > svg) {
   height: 2em;
   width: 2em;
+}
+
+/* See the note at the column: a Bootstrap `.col` floors at its own widest unbreakable
+   content, and the name is one unbreakable run. Without this the name decides how wide the
+   row has to be, and everything to its right is pushed off the line. */
+.min-w-0 {
+  min-width: 0;
 }
 </style>
