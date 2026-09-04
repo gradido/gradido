@@ -38,6 +38,32 @@ describe('PanelSwitch', () => {
     wrapper.unmount()
   })
 
+  /**
+   * ⛔ The proportions the caller asked for, on the element. Equal halves were the first
+   * answer and they were wrong: half of this column is not enough for "Letzte
+   * Transaktionen", which then wrapped and took "Kontakte" with it. The ratio is the
+   * caller's to state -- which word is long depends on the language -- so what this
+   * measures is that it ARRIVES.
+   */
+  it('gives each position the share it was handed', () => {
+    const wrapper = mount(PanelSwitch, {
+      props: {
+        modelValue: 'bookings',
+        options: [
+          { value: 'bookings', label: 'Bookings', share: 2 },
+          { value: 'contacts', label: 'Contacts' },
+        ],
+      },
+      global: { mocks: { $t: (key) => key } },
+    })
+    const [wide, narrow] = wrapper.findAll('.panel-switch-segment')
+
+    expect(wide.attributes('style')).toContain('flex-grow: 2')
+    // No share named: one, so a caller that says nothing gets equal positions.
+    expect(narrow.attributes('style')).toContain('flex-grow: 1')
+    wrapper.unmount()
+  })
+
   it('marks the position in force, for the eye and for a screen reader', () => {
     const wrapper = mountSwitch('contacts')
     const [bookings, contacts] = wrapper.findAll('.panel-switch-segment')
