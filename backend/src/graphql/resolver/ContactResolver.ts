@@ -24,8 +24,8 @@ import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { resolveCommunityUuid } from './util/communities'
 import {
-  CounterpartyLookups,
   bookingCounterparty,
+  CounterpartyLookups,
   prefetchedLookups,
   remoteUserFromBooking,
 } from './util/counterparty'
