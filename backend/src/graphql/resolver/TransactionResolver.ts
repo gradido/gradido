@@ -34,6 +34,7 @@ import {
   findUserByIdentifier,
   getCommunityByUuid,
   getCommunityWithFederatedCommunityByIdentifier,
+  getHomeCommunity,
   getLastTransaction,
 } from 'database'
 import { getLogger, Logger } from 'log4js'
@@ -380,6 +381,22 @@ export class TransactionResolver {
       relations: ['emailContact'],
     })
     const involvedUsers = involvedDbUsers.map((u) => new User(u))
+    // A member of this community whose row still carries no community uuid: migration 0129
+    // filled those, but was a no-op wherever the home community had no row yet when it
+    // ran. `User.communityUuid` is non-null in the schema, so one such counterparty on a
+    // page used to null the WHOLE list. The contact list stands in the home uuid for them
+    // (ContactResolver); so does this list now -- and only then does it ask which community
+    // is home, because every other page has nothing to fill.
+    const unfilledLocals = involvedDbUsers.filter((u) => !u.foreign && !u.communityUuid)
+    if (unfilledLocals.length > 0) {
+      const home = await getHomeCommunity()
+      for (const row of unfilledLocals) {
+        const model = involvedUsers.find((u) => u.id === row.id)
+        if (model && home?.communityUuid) {
+          model.communityUuid = home.communityUuid
+        }
+      }
+    }
 
     // When each of these members last changed the picture other members may see. One
     // query for the whole list, right here where the list already exists -- a field
