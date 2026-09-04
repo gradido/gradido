@@ -1,6 +1,5 @@
 import NotFound from '@/pages/NotFoundPage'
 import CONFIG from '@/config'
-import { LAST_TRANSACTIONS_PAGE_SIZE, PAGE_SIZE } from '@/constants'
 
 // The new matching ships dark. Without MATCHING_ACTIVE its routes are never
 // registered at all, so /matching falls through to the catch-all and shows "not
@@ -143,13 +142,11 @@ const routes = [
       // page somebody opens to see where they stand, and the last bookings are that answer.
       // A member's own choice, remembered per device, wins over this (useRightSidePref).
       rightSideDefault: 'bookings',
-      // How many bookings the layout's one query asks for while this page is open. Here
-      // rather than in a table inside the layout, for the reason the note above gives: only
-      // the route knows, and a route added later carries its own answer.
-      //
-      // The column shows eight after dropping the two virtual rows and every creation, so
-      // this is deliberately more than eight -- see LAST_TRANSACTIONS_PAGE_SIZE.
-      transactionsPageSize: LAST_TRANSACTIONS_PAGE_SIZE,
+      // The layout asks the server again for the balance and the newest bookings when a
+      // member opens this page. Here rather than in a table inside the layout, for the
+      // reason the note above gives: only the route knows, and a route added later carries
+      // its own answer.
+      refreshBalance: true,
     },
   },
   {
@@ -173,14 +170,13 @@ const routes = [
       // the overview or the booking list it would be a shortcut to nowhere, which is why
       // only this route says it.
       rightSideMobile: 'contacts',
-      // ⛔ NO `transactionsPageSize`, and the reason is a measurement that contradicts the
-      // plan this was built from (BAU-10c). The worry was that the column beside /send
-      // would stand empty in the bookings position -- but the layout's query runs at MOUNT
-      // with the column's own size as its fallback, and `newestTransactions` is filled from
-      // any page-one answer, so it is never empty. What the line DID do was arm the
-      // layout's route watch on /send: every navigation into the page -- including every
-      // tap on a contact in this very column, which pushes /send/<community>/<member> --
-      // cost a full booking query whose twelve rows nothing then drew.
+      // ⛔ NO `refreshBalance`, and the reason is a measurement that contradicts the plan
+      // this was built from (BAU-10c). The worry was that the column beside /send would
+      // stand empty in the bookings position -- but the layout's query runs at MOUNT, so it
+      // never is. What the line DID do was arm the layout's route watch on /send: every
+      // navigation into the page -- including the contact window's send buttons over this
+      // very column, which push /send/<community>/<member> -- cost a booking query whose
+      // twelve rows nothing then drew.
     },
   },
   // {
@@ -256,11 +252,9 @@ const routes = [
       // Contacts by default: the bookings are already the page here, and a second copy of
       // them beside it says nothing (KF-009).
       rightSideDefault: 'contacts',
-      // ⛔ The SAME constant the paginator on this page divides by. The layout asks the
-      // server with this number and GddTransactionList sizes its pages with it; while the
-      // two disagreed -- ten fetched, twenty-five per page -- bookings 11 to 25 were on no
-      // page a member could click.
-      transactionsPageSize: PAGE_SIZE,
+      // The page fetches its own list (Transactions.vue); this only asks the layout to bring
+      // the balance in the header up to date on arrival, the way the overview does.
+      refreshBalance: true,
     },
   },
   {

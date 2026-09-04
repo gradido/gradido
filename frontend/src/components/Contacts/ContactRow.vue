@@ -55,7 +55,7 @@ import { BCol, BRow } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
 import FavoriteHeart from '@/components/FavoriteHeart.vue'
 import Name from '@/components/TransactionRows/Name'
-import { contactDisplay } from '@/components/Contacts/contactDisplay'
+import { contactBookingsMeta, contactDisplay } from '@/components/Contacts/contactDisplay'
 
 /**
  * One person in the contact list: face, name, how long and how often, and the heart.
@@ -74,13 +74,9 @@ const emit = defineEmits(['open'])
 
 const { t, d } = useI18n()
 
-// How often, and how recently -- one string, so the separator is not raw template text.
-const meta = computed(
-  () =>
-    `${t('contacts.bookings', props.contact.bookings)} · ${t('contacts.last', {
-      date: d(new Date(props.contact.lastAt), 'short'),
-    })}`,
-)
+// How often, and how recently -- through the shared builder, the same line the window
+// shows (contactDisplay.js).
+const meta = computed(() => contactBookingsMeta(props.contact, { t, d }))
 
 // Through the shared helper, so the list, the column, the strip and the window cannot come
 // to draw one person four ways. The avatar stands outside the row's button here, so it may

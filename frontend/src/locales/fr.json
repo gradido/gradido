@@ -1049,8 +1049,12 @@
     "years": "Année"
   },
   "transaction": {
+    "allBookings": "Afficher toutes les opérations",
     "lastTransactions": "Dernières transactions",
+    "noneWithMember": "Il n’y a pas encore d’opérations avec ce membre.",
     "nullTransactions": "Tu n'as pas encore de transaction effectuée sur ton compte.",
+    "onlyWith": "Uniquement les opérations avec {name}",
+    "onlyWithSomeone": "Uniquement les opérations avec un membre",
     "receiverDeleted": "Le compte du destinataire n'existe plus",
     "receiverNotFound": "Destinataire inconnu",
     "show_all": "Voir toutes les <strong>{count}</strong> transactions."

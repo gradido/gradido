@@ -1049,8 +1049,12 @@
     "years": "Έτος"
   },
   "transaction": {
+    "allBookings": "Εμφάνιση όλων των κινήσεων",
     "lastTransactions": "Τελευταίες συναλλαγές",
+    "noneWithMember": "Δεν υπάρχουν ακόμη κινήσεις με αυτό το μέλος.",
     "nullTransactions": "Δεν έχεις ακόμη συναλλαγές στον λογαριασμό σου.",
+    "onlyWith": "Μόνο κινήσεις με {name}",
+    "onlyWithSomeone": "Μόνο κινήσεις με ένα μέλος",
     "receiverDeleted": "Ο λογαριασμός του παραλήπτη διαγράφηκε",
     "receiverNotFound": "Ο παραλήπτης δεν βρέθηκε",
     "show_all": "Δες όλες τις <strong>{count}</strong> συναλλαγές"

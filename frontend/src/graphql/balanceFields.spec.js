@@ -11,15 +11,16 @@ import { fileURLToPath } from 'node:url'
 // quietly shows zero. That is how openLinkCount was added to the wrong query and still
 // looked finished.
 //
-// So this compares the two files against each other: everything read from tr.balance has to
-// appear in the fragment the query actually sends.
+// So this compares the files against each other: everything read from tr.balance -- in the
+// layout (balance, balanceGDT) and on the transactions page (the count of its own list and
+// the account-wide link counts) -- has to appear in the fragment both queries send.
 
 const here = dirname(fileURLToPath(import.meta.url))
 const read = (relativePath) => readFileSync(resolve(here, relativePath), 'utf8')
 
 describe('balanceFields', () => {
   it('asks for every field the dashboard reads off the balance', () => {
-    const layout = read('../layouts/DashboardLayout.vue')
+    const layout = read('../layouts/DashboardLayout.vue') + read('../pages/Transactions.vue')
     const fragment = read('./transactions.graphql').match(
       /fragment balanceFields on Balance \{([^}]*)\}/,
     )[1]

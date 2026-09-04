@@ -1049,8 +1049,12 @@
     "years": "Jahr"
   },
   "transaction": {
+    "allBookings": "Alle Buchungen zeigen",
     "lastTransactions": "Letzte Transaktionen",
+    "noneWithMember": "Mit diesem Mitglied gibt es noch keine Buchungen.",
     "nullTransactions": "Du hast noch keine Transaktionen auf deinem Konto.",
+    "onlyWith": "Nur Buchungen mit {name}",
+    "onlyWithSomeone": "Nur Buchungen mit einem Mitglied",
     "receiverDeleted": "Das Empfängerkonto wurde gelöscht",
     "receiverNotFound": "Empfänger nicht gefunden",
     "show_all": "Alle <strong>{count}</strong> Transaktionen ansehen"

@@ -9,8 +9,26 @@
       />
     </div>
     <div v-else>
-      <!-- ⛔ `current-page` comes DOWN from the layout, which owns both the page number and
-           the query behind it -- see the prop's own note in GddTransactionList.vue. -->
+      <!-- The way back out, and inside the GDD branch only. A list narrowed to one contact
+           looks exactly like the whole one, only shorter: without this the member has 51
+           bookings where they know they have hundreds, and nothing says why. The GDT list
+           has never heard of the parameter, so it gets no mark.
+
+           The cross clears the parameters from THIS route rather than pointing at
+           /transactions, so it cannot move somebody off the tab they were on. -->
+      <div v-if="counterparty" class="transactions-filter" data-test="transactions-filter">
+        <span class="transactions-filter-label">{{ filterLabel }}</span>
+        <router-link
+          :to="{ path: route.path }"
+          class="transactions-filter-clear"
+          :aria-label="$t('transaction.allBookings')"
+          :title="$t('transaction.allBookings')"
+          data-test="transactions-filter-clear"
+        >
+          <IBiX />
+        </router-link>
+      </div>
+
       <gdd-transaction-list
         :timestamp="timestamp"
         :current-page="listPage"
@@ -18,40 +36,33 @@
         :transaction-link-count="transactionLinkCount"
         :open-link-count="openLinkCount"
         :transactions="transactions"
+        :narrowed="Boolean(counterparty)"
+        :pending="loading"
         :show-pagination="true"
         :page-size="pageSize"
-        @update-transactions="updateTransactions"
+        @update-transactions="askForPage"
       />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useLazyQuery } from '@vue/apollo-composable'
+import { useI18n } from 'vue-i18n'
+import { useApolloClient, useLazyQuery, useQuery } from '@vue/apollo-composable'
 import GddTransactionList from '@/components/GddTransactionList'
 import GdtTransactionList from '@/components/GdtTransactionList'
 import { listGDTEntriesQuery } from '@/graphql/queries'
+import { transactionsQuery } from '@/graphql/transactions.graphql'
+import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import { PAGE_SIZE } from '@/constants'
 import { useAppToast } from '@/composables/useToast'
+import { memberFromQuery, memberQueryKey } from '@/utils/bookingsRoute'
+import { memberAlias } from '@/utils/gradidoAddress'
 
 const props = defineProps({
   gdt: { type: Boolean, default: false },
-  transactions: {
-    default: () => [],
-    type: Array,
-  },
-  // The page of `transactions` the layout currently holds. Not a page this component may
-  // set: it asks by emitting `update-transactions` and gets the new number back down here.
-  // ⚠️ Which makes it the page ASKED FOR, not the page on screen -- between the request and
-  // its answer the paginator is already on the new number while the rows are still the old
-  // ones. That gap is one round trip and it closes itself; what it replaces was a gap that
-  // did not.
-  listPage: { type: Number, default: 1 },
-  transactionCount: { type: Number, default: 0 },
-  transactionLinkCount: { type: Number, default: 0 },
-  openLinkCount: { type: Number, default: 0 },
 })
 
 const emit = defineEmits(['update-transactions'])
@@ -60,24 +71,150 @@ const timestamp = ref(Date.now())
 const transactionsGdt = ref([])
 const transactionGdtCount = ref(0)
 // ⚠️ The GDT list only. It pages against its OWN query, a few lines below, and has nothing
-// to do with `listPage` above -- named apart because two page numbers in one file is how the
+// to do with `listPage` -- named apart because two page numbers in one file is how the
 // booking list got into trouble in the first place.
 const gdtPage = ref(1)
-// ⛔ The same constant the layout asks the server with. These two are the pair that has to
-// agree: this one divides the paginator, that one decides how many rows arrive. While the
-// layout asked for ten and this said twenty-five, a member's first look at their bookings
-// showed ten rows on a page the paginator had sized for twenty-five, and rows 11 to 25 were
-// on no page at all.
-const pageSize = ref(PAGE_SIZE)
+// The one number the paginator divides by and the server is asked with.
+const pageSize = PAGE_SIZE
 
 const { toastError } = useAppToast()
+const { client: apolloClient } = useApolloClient()
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
+
+/**
+ * The member this list is narrowed to, off the address -- what the contact window links
+ * to. Read through the module the window builds the address with (utils/bookingsRoute.js),
+ * which also decides what does NOT count as a narrowing (an array, an empty or over-long
+ * value). Read in ONE place: the query below and the mark above both take it from here.
+ */
+const counterparty = computed(() => memberFromQuery(route.query))
+
+/**
+ * The GDD list: this page's own query, this page's own page number.
+ *
+ * ⛔ Not the layout's. The layout asks for the balance and the member's newest bookings
+ * and hands nothing of it down here; while one query served both, a page turned here
+ * reached the column beside the overview and a filter would have reached the balance.
+ * Two owners, two queries -- a second request when the page opens is the price, and it
+ * is the request the layout makes on this route anyway to bring the balance up to date.
+ */
+const listPage = ref(1)
+const transactions = ref([])
+const transactionCount = ref(0)
+const transactionLinkCount = ref(0)
+const openLinkCount = ref(0)
+
+const listVariables = computed(() => ({
+  currentPage: listPage.value,
+  pageSize,
+  order: 'DESC',
+  counterparty: counterparty.value,
+}))
+// Reactive, because /transactions and /gdt share this component and the router patches
+// `gdt` in place rather than mounting the page anew -- the watch on it below exists for
+// the same reason.
+//
+// ⛔ `no-cache`, not `network-only`. Both this query and the layout's carry the two
+// virtual rows with fixed ids (-1 decay, -2 link summary); written into the normalised
+// cache they are ONE entity, and whichever answer lands second re-broadcasts the other
+// query with its own decay figures. Left out of the cache, the two answers stay apart.
+// The same choice the contacts panel makes (useContactsPanel).
+const listOptions = computed(() => ({ fetchPolicy: 'no-cache', enabled: !props.gdt }))
+
+const {
+  onResult: onListResult,
+  onError: onListError,
+  refetch: refetchList,
+  loading,
+} = useQuery(transactionsQuery, listVariables, listOptions)
+
+onListResult((value) => {
+  const tr = value?.data?.transactionList
+  if (!tr) return
+  transactions.value = tr.transactions || []
+  transactionCount.value = tr.balance?.count || 0
+  transactionLinkCount.value = tr.balance?.linkCount || 0
+  openLinkCount.value = tr.balance?.openLinkCount || 0
+  // The faces beside the rows, for this page's rows -- the layout fetches them only for
+  // the twelve it holds. Best effort by design: nobody loses their bookings over a portrait.
+  fetchMemberAvatars(
+    apolloClient,
+    transactions.value.map((row) => row.linkedUser),
+  )
+})
+
+onListError((error) => {
+  transactionCount.value = -1
+  toastError(error.message)
+})
+
+/**
+ * The list asked for a page (the paginator), or for the page it is on again (the link
+ * summary row, after a link was withdrawn -- GddTransactionList turns that into a request
+ * for the current page).
+ *
+ * ⚠️ The same page asked for again is not a page turn: the variables do not change, so the
+ * query would not run -- it is fetched again explicitly. And it is the one case that tells
+ * the LAYOUT as well: a withdrawn link moves the balance in the header, a page turn does
+ * not. The failure of the refetch is reported through onListError; the catch keeps it from
+ * surfacing a second time as an unhandled rejection. `?.` because refetch answers nothing
+ * while the query is switched off on the GDT tab.
+ */
+const askForPage = ({ currentPage = 1 } = {}) => {
+  if (currentPage === listPage.value) {
+    refetchList()?.catch(() => {})
+    emit('update-transactions', {})
+    return
+  }
+  listPage.value = currentPage
+}
+
+/** Everything the last answer left on screen, gone -- before the next member's arrives. */
+const forgetList = () => {
+  listPage.value = 1
+  transactions.value = []
+  transactionCount.value = 0
+  transactionLinkCount.value = 0
+  openLinkCount.value = 0
+}
+
+// A different member -- or none -- starts on page one, with nothing of the previous list
+// left on screen: the mark reads the name off the rows, and the old rows would have named
+// the wrong person under it until the answer arrived.
+//
+// ⛔ Watched as a STRING, not as the object: `memberFromQuery` builds a fresh object on
+// every read of the address, and a watch on it would fire on identity -- a navigation
+// that rebuilt the address with the same pair would empty the list, while Apollo, which
+// compares the variables by content, would not ask again. The key changes only when the
+// pair does.
+watch(() => memberQueryKey(counterparty.value), forgetList)
+
+/**
+ * Whose bookings these are.
+ *
+ * ⚠️ The name comes off the ROWS, not out of the address. A Gradido id is not a name, and
+ * putting one in the label would tell the member nothing; every row in a narrowed list has
+ * the same counterparty, so the first one with a counterparty answers it -- named the way
+ * every row and the contact window name them (`memberAlias`: a legacy alias too short to
+ * count falls back to the id, which is what the rows beneath show as well). Where the
+ * filter matched nothing there is no row and no name -- and then the shorter sentence is
+ * also the true one.
+ */
+const filterLabel = computed(() => {
+  const named = transactions.value.find((row) => row.linkedUser?.gradidoID)
+  return named
+    ? t('transaction.onlyWith', {
+        name: memberAlias(named.linkedUser.alias, named.linkedUser.gradidoID),
+      })
+    : t('transaction.onlyWithSomeone')
+})
 
 const variables = ref({
   currentPage: gdtPage.value,
-  pageSize: pageSize.value,
+  pageSize,
 })
 
 const {
@@ -91,13 +228,9 @@ const {
 const updateGdt = async () => {
   variables.value = {
     currentPage: gdtPage.value,
-    pageSize: pageSize.value,
+    pageSize,
   }
   await loadGdt()
-}
-
-const updateTransactions = (pagination) => {
-  emit('update-transactions', pagination)
 }
 
 onResult((result) => {
@@ -115,9 +248,13 @@ onError((error) => {
   toastError(error.message)
 })
 
+// The tabs share this instance (see `listOptions`), so switching to the GDT tab and back
+// is what a fresh visit to the bookings used to be: it starts on page one, the way a
+// navigation into the list always has.
 watch(
   () => props.gdt,
   (newVal) => {
+    listPage.value = 1
     if (newVal) {
       updateGdt()
     }
@@ -137,6 +274,42 @@ onMounted(() => {
 })
 </script>
 <style>
+/* ⛔ This block is UNSCOPED, so every selector here must be unmistakably this page's. A
+   generic name would style whatever else in the wallet happened to wear it -- which is how
+   an overlay's class name put an invisible sheet over the whole application on 03.09.2026. */
+.transactions-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding: 0.35rem 0.5rem 0.35rem 0.75rem;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 999px;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.transactions-filter-label {
+  font-size: 0.85rem;
+  color: var(--bs-secondary-color, #6c757d);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.transactions-filter-clear {
+  display: flex;
+  align-items: center;
+  color: var(--bs-secondary-color, #6c757d);
+  line-height: 1;
+  flex: none;
+}
+
+.transactions-filter-clear:hover,
+.transactions-filter-clear:focus-visible {
+  color: var(--bs-body-color);
+}
+
 .nav-tabs > li > a {
   padding-top: 14px;
   margin-bottom: 14px;

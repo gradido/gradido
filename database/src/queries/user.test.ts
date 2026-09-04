@@ -17,6 +17,7 @@ import {
   aliasExists,
   dbClearGmsRegistration,
   dbFindForeignUsersByGradidoIds,
+  dbFindUserIdByUuids,
   dbFindUsersByIds,
   dbLockUserRow,
   dbSaveUser,
@@ -313,6 +314,54 @@ describe('user.queries', () => {
       const all = await dbFindUsersByIds([bibi.id, bob.id], { withDeleted: true })
       expect(all.map((row) => row.id).sort()).toEqual([bibi.id, bob.id].sort())
       expect(all.find((row) => row.id === bob.id)?.deletedAt).not.toBeNull()
+    })
+  })
+
+  describe('dbFindUserIdByUuids', () => {
+    let bibi: DbUser
+    let bob: DbUser
+    let home: string
+
+    beforeAll(async () => {
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await DbCommunity.clear()
+      const community = await createCommunity(false)
+      home = community.communityUuid as string
+      bibi = await userFactory(bibiBloxberg)
+      bob = await userFactory(bobBaumeister)
+      await DbUser.update({ id: bob.id }, { deletedAt: new Date() })
+    })
+
+    it('finds the row by the pair, deleted members included, and nobody by a wrong pair', async () => {
+      expect(await dbFindUserIdByUuids(home, bibi.gradidoID)).toBe(bibi.id)
+      expect(await dbFindUserIdByUuids(home, bob.gradidoID)).toBe(bob.id)
+      expect(
+        await dbFindUserIdByUuids('99999999-9999-9999-9999-999999999999', bibi.gradidoID),
+      ).toBeNull()
+      expect(await dbFindUserIdByUuids(home, '00000000-0000-0000-0000-000000000000')).toBeNull()
+    })
+
+    // The state migration 0129 left behind wherever the home community had no row yet
+    // when it ran: a member of this community whose row carries no uuid. The contact list
+    // hands out the home uuid for them, so the home uuid has to find them here too.
+    it('finds a member whose row still carries no community uuid, by the home uuid', async () => {
+      await DbUser.update({ id: bibi.id }, { communityUuid: null })
+      try {
+        expect(await dbFindUserIdByUuids(home, bibi.gradidoID)).toBeNull()
+        expect(await dbFindUserIdByUuids(home, bibi.gradidoID, { homeCommunityUuid: home })).toBe(
+          bibi.id,
+        )
+        // Only for the home community: another community's uuid does not reach a row
+        // without one, whatever the option says.
+        expect(
+          await dbFindUserIdByUuids('99999999-9999-9999-9999-999999999999', bibi.gradidoID, {
+            homeCommunityUuid: home,
+          }),
+        ).toBeNull()
+      } finally {
+        await DbUser.update({ id: bibi.id }, { communityUuid: home })
+      }
     })
   })
 

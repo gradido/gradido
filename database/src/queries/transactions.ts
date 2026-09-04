@@ -1,5 +1,6 @@
 import { and, eq, inArray, isNotNull, isNull, ne, sql } from 'drizzle-orm'
 import { GradidoUnit, isAliasEraName, VoidResult } from 'shared'
+import { FindOptionsWhere, In, IsNull } from 'typeorm'
 import { drizzleDb } from '../AppDatabase'
 import { Transaction as DbTransaction } from '../entity'
 import { TransactionTypeId } from '../enum'
@@ -14,6 +15,104 @@ export const getLastTransaction = async (
     where: { userId },
     order: { balanceDate: 'DESC', id: 'DESC' },
     relations,
+  })
+}
+
+/**
+ * The two booking kinds that have a counterparty. A creation is booked with nobody -- and
+ * yet carries the confirming moderator's id in `linked_user_id` (ContributionResolver), which
+ * is why every list that names a counterparty restricts the type with this constant.
+ */
+const COUNTERPARTY_TYPES = [TransactionTypeId.SEND, TransactionTypeId.RECEIVE]
+
+/**
+ * Who a booking list is narrowed to: ONE other member, in the two forms a booking can carry
+ * them. They are the same two forms `dbSelectContactsByUserId` groups the contact list by,
+ * with the same type restriction, so the number in the contact window and the list its link
+ * opens are counted by one rule.
+ *
+ * ⚠️ One rule, spelled twice for now: the contact list is Drizzle, the paged list below is
+ * still TypeORM (AGENTS.md step 1, moved and not yet translated). They share the type
+ * constant and ContactResolver.test holds them against each other; step 2 -- translating
+ * `dbSelectTransactionsByUserId` -- is where the two spellings become one predicate.
+ */
+export interface BookingCounterparty {
+  /**
+   * The `users` row carrying the pair, or null when there is none. A member of this
+   * community always has one; a member of another community only where the federation
+   * stored one. Resolved by the caller through `dbFindUserIdByUuids` -- a users query,
+   * which belongs in queries/user.ts, not here.
+   */
+  localUserId: number | null
+  gradidoId: string
+  communityUuid: string
+}
+
+/**
+ * The `where` of one member's booking list, narrowed to one counterparty where one is given.
+ *
+ * ⛔ `userId` stands in EVERY branch. An array is OR to TypeORM, so a branch without it
+ * selects other members' bookings with that counterparty -- a leak that looks perfectly
+ * right to whoever tries the filter on their own account. Every branch is therefore built
+ * from one `own` object, and transactions.test.ts measures the property from the other
+ * side: bob, narrowed to somebody only bibi booked with, sees nothing.
+ *
+ * No branch for a counterparty without a `users` row that would match by id: it is simply
+ * left out, which is the closed answer. (`In([])` would also close, `{ linkedUserId:
+ * undefined }` would silently open -- TypeORM reads an undefined property as no condition.)
+ */
+export const bookingsWhere = (
+  userId: number,
+  counterparty?: BookingCounterparty,
+): FindOptionsWhere<DbTransaction> | FindOptionsWhere<DbTransaction>[] => {
+  if (!counterparty) {
+    return { userId }
+  }
+  // Every branch starts from this, and this is the one place the ⛔ above is enforced.
+  const own = { userId, typeId: In(COUNTERPARTY_TYPES) }
+  const where: FindOptionsWhere<DbTransaction>[] = [
+    // Booked with a member of another community who has no row here: the pair sits on the
+    // booking itself.
+    {
+      ...own,
+      linkedUserId: IsNull(),
+      linkedUserGradidoID: counterparty.gradidoId,
+      linkedUserCommunityUuid: counterparty.communityUuid,
+    },
+  ]
+  if (counterparty.localUserId !== null) {
+    // Booked with a member who has a `users` row: the booking points at it by id. The id
+    // decides rather than the pair, because an old booking may carry no pair at all -- the
+    // reason the contact list groups these by `linked_user_id` too.
+    where.push({ ...own, linkedUserId: counterparty.localUserId })
+  }
+  return where
+}
+
+/**
+ * One member's bookings, one page at a time, with the row before each one (which feeds
+ * `previousBalance`) -- the whole account, or only the bookings shared with `counterparty`.
+ *
+ * Moved here from `backend/src/graphql/resolver/util/getTransactionList.ts` -- step one of
+ * the query migration AGENTS.md describes, and step one only: still TypeORM, same options,
+ * same result. Renamed for the `db…` rule because this delivery touched it (the way
+ * `dbGetUserById` was); `getLastTransaction` above is untouched and keeps its name. The
+ * order argument is a plain string union rather than the backend's `Order` enum, which
+ * this package cannot import; the enum's values are these two strings.
+ */
+export const dbSelectTransactionsByUserId = async (
+  userId: number,
+  limit: number,
+  offset: number,
+  order: 'ASC' | 'DESC',
+  counterparty?: BookingCounterparty,
+): Promise<[DbTransaction[], number]> => {
+  return DbTransaction.findAndCount({
+    where: bookingsWhere(userId, counterparty),
+    order: { balanceDate: order, id: order },
+    relations: ['previousTransaction'],
+    skip: offset,
+    take: limit,
   })
 }
 
@@ -78,9 +177,6 @@ export interface ContactsPage {
   /** The number of PEOPLE this member has exchanged Gradido with, not of bookings. */
   count: number
 }
-
-/** The two booking kinds that have a counterparty. A creation is booked with nobody. */
-const COUNTERPARTY_TYPES = [TransactionTypeId.SEND, TransactionTypeId.RECEIVE]
 
 const asDate = (value: unknown): Date => (value instanceof Date ? value : new Date(String(value)))
 

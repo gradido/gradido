@@ -1049,8 +1049,12 @@
     "years": "Yıl"
   },
   "transaction": {
+    "allBookings": "Tüm işlemleri göster",
     "lastTransactions": "Son İşlemler",
+    "noneWithMember": "Bu üyeyle henüz işlem yok.",
     "nullTransactions": "Henüz hesabınında herhangi bir işlem yok.",
+    "onlyWith": "Yalnızca {name} ile işlemler",
+    "onlyWithSomeone": "Yalnızca bir üyeyle işlemler",
     "receiverDeleted": "Alıcı hesabı silindi",
     "receiverNotFound": "Alıcı bulunamadı",
     "show_all": "Bütün <strong>{count}</strong> işlemleri görüntüle."

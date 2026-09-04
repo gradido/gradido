@@ -22,6 +22,7 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { isSameCommunity } from '@/data/Community.logic'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
+import { resolveCommunityUuid } from './util/communities'
 import { CounterpartyLookups, prefetchedLookups, remoteUserFromBooking } from './util/counterparty'
 
 const createLogger = () =>
@@ -30,25 +31,6 @@ const createLogger = () =>
 /** The stored form of a favourite: community uuid and gradido id, as one key. */
 const favoriteKey = (communityUuid: string, gradidoID: string): string =>
   `${communityUuid}/${gradidoID}`
-
-/**
- * The community uuid a favourite is stored under.
- *
- * The wallet passes on what the booking gave it, and that may be nothing: a member of this
- * community whose `users` row predates the home community's uuid carries none. Migration
- * 0129 fills those rows, so this is the belt rather than the braces -- and it is also what
- * answers a wallet that is older than the migration.
- */
-const resolveCommunityUuid = async (communityUuid: string | null | undefined): Promise<string> => {
-  if (communityUuid) {
-    return communityUuid
-  }
-  const home = await getHomeCommunity()
-  if (!home?.communityUuid) {
-    throw new LogError('Home community has no uuid, cannot address a member without one')
-  }
-  return home.communityUuid
-}
 
 @Resolver()
 export class ContactResolver {

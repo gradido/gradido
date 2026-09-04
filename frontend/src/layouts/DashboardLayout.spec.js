@@ -10,7 +10,7 @@ import flushPromises from 'flush-promises'
 import { forgetAllMemberAvatars, storedMemberAvatar } from '@/composables/useMemberAvatars'
 import { forgetViewport } from '@/composables/useViewport'
 import { transactionsUserCountQuery } from '@/graphql/transactions.graphql'
-import { LAST_TRANSACTIONS_PAGE_SIZE, PAGE_SIZE } from '@/constants'
+import { LAST_TRANSACTIONS_PAGE_SIZE } from '@/constants'
 
 const toastErrorSpy = vi.fn()
 
@@ -640,43 +640,19 @@ describe('DashboardLayout', () => {
     })
 
     /**
-     * ⛔ With the SECTION's own variables, not with none.
-     *
-     * This test asserted the opposite until 30.08.2026 -- `toHaveBeenCalledWith()`, defended
-     * as "the same question again, rather than resetting the paging". The defence was wrong
-     * about its own mechanism: the watch fires on a PATH change, and turning a page does not
-     * change the path, so it never protected anybody sitting on page three. What the empty
-     * refetch did instead was carry the last page turned OUT of the list and into whatever
-     * the member opened next.
+     * The same question again -- no variables, so the refetch repeats the ones the query
+     * was mounted with. This query has exactly one shape now: the balance and the newest
+     * bookings in the column's size. The list a member pages through is the transactions
+     * page's own query and has nothing to say here, so there is no page to reset.
      */
-    it('asks for the first page of the section it is going to', async () => {
+    it('asks the same question again, whatever section it is going to', async () => {
       await router.push('/settings')
       mockRefetchFn.mockClear()
 
       await router.push('/transactions')
       await nextTick()
 
-      expect(mockRefetchFn).toHaveBeenCalledWith({
-        currentPage: 1,
-        pageSize: PAGE_SIZE,
-        order: 'DESC',
-      })
-    })
-
-    // The other section asks in the column's size, not the list's -- the overview shows
-    // eight bookings and has no business fetching a full page for them.
-    it('asks the overview in the size its column reads', async () => {
-      await router.push('/settings')
-      mockRefetchFn.mockClear()
-
-      await router.push('/overview')
-      await nextTick()
-
-      expect(mockRefetchFn).toHaveBeenCalledWith({
-        currentPage: 1,
-        pageSize: LAST_TRANSACTIONS_PAGE_SIZE,
-        order: 'DESC',
-      })
+      expect(mockRefetchFn).toHaveBeenCalledWith()
     })
 
     // The counterpart, and the one that keeps this from becoming "refetch on every click":
@@ -693,16 +669,15 @@ describe('DashboardLayout', () => {
   })
 
   /**
-   * The bug Bernd reported on 30.08.2026, in both the halves he described.
-   *
-   * One query serves two readers who want different things from it, and the page number used
-   * to stay on it after a paginator click. So the overview's column opened on page three of
-   * the member's bookings and called them the newest, and coming back to the list showed page
-   * three under a paginator that had been rebuilt at one -- with the buttons back to page one
-   * disabled, because as far as it knew it was already there.
+   * One query, one reader. Until 04.09.2026 this layout's query also served the list the
+   * transactions page pages through, and the two readers wanted different things from it:
+   * a page turned on the list reached the column beside the overview, and a filter would
+   * have reached the balance. The page fetches its own list now (Transactions.vue) -- so
+   * these guard what the layout no longer does, which is the decoupling itself.
    */
-  describe('after the member has turned a page', () => {
-    const listPage = (rows) => ({
+  describe('the layout and the booking list', () => {
+    const NEWEST = { currentPage: 1, pageSize: LAST_TRANSACTIONS_PAGE_SIZE, order: 'DESC' }
+    const listOf = (rows) => ({
       data: {
         transactionList: {
           balance: { balanceGDT: '0', count: 40, linkCount: 0, balance: '0' },
@@ -711,117 +686,60 @@ describe('DashboardLayout', () => {
       },
     })
 
-    beforeEach(async () => {
-      await router.push('/transactions')
-      onResultHandler(listPage(['newest']))
-      await wrapper.vm.updateTransactions({ currentPage: 2, pageSize: PAGE_SIZE })
-      await nextTick()
-    })
-
-    it('starts the overview at the newest bookings again', async () => {
-      mockRefetchFn.mockClear()
-
-      await router.push('/overview')
-      await nextTick()
-
-      expect(mockRefetchFn).toHaveBeenCalledWith({
-        currentPage: 1,
-        pageSize: LAST_TRANSACTIONS_PAGE_SIZE,
-        order: 'DESC',
-      })
-    })
-
-    it('starts the list at page one when the member comes back to it', async () => {
-      await router.push('/overview')
-      mockRefetchFn.mockClear()
+    it("asks in the column's size, and asks the same on the transactions", async () => {
+      const asked = useQuery.mock.calls.find(([query]) => query === transactionsUserCountQuery)
+      expect(asked[1]).toEqual(NEWEST)
 
       await router.push('/transactions')
-      await nextTick()
+      useQuery.mockClear()
+      const onTransactions = createWrapper()
+      const askedThere = useQuery.mock.calls.find(([query]) => query === transactionsUserCountQuery)
+      // Down before the assertion -- a second layout that outlives a failing test keeps
+      // listening and counts the other tests' route changes a second time.
+      onTransactions.unmount()
 
-      expect(mockRefetchFn).toHaveBeenCalledWith({
-        currentPage: 1,
-        pageSize: PAGE_SIZE,
-        order: 'DESC',
-      })
-      // And what the list is handed, so the paginator below it starts where the rows do.
-      expect(wrapper.vm.listPage).toBe(1)
+      expect(askedThere[1]).toEqual(NEWEST)
+    })
+
+    it('gives the column whatever the answer brings, and calls it the newest', async () => {
+      onResultHandler(listOf(['newest']))
+      await nextTick()
+      expect(wrapper.vm.newestTransactions).toEqual(['newest'])
     })
 
     /**
-     * ⛔ And the column holds its own rows, so the page the list is on does not reach it
-     * while the refetch after a navigation is still out. Feeding it the paged list was the
-     * coupling; asking for page one on arrival only shortened how long the wrong rows
-     * showed.
-     *
-     * ⚠️ The obvious hole -- a page-three answer landing after the navigation has set the
-     * page back to one -- is closed by Apollo rather than by this code; the ref's own note
-     * says where and quotes the line.
+     * ⛔ The decoupling, measured at the seam. The page inside the router-view gets the
+     * balance and nothing of the list -- no rows, no page number, no counts. Handing any
+     * of them down again is how the two readers get tied back together.
      */
-    it('keeps the column on the newest bookings while the list is elsewhere', async () => {
-      onResultHandler(listPage(['older']))
+    it('hands the page inside the router-view the balance and nothing of the list', async () => {
+      wrapper.vm.skeleton = false
+      await router.push('/transactions')
+      onResultHandler(listOf(['a', 'b']))
       await nextTick()
 
-      expect(wrapper.vm.transactions).toEqual(['older'])
-      expect(wrapper.vm.newestTransactions).toEqual(['newest'])
+      const attrs = wrapper.find('router-view-stub').attributes()
+      expect(attrs).toHaveProperty('balance')
+      expect(attrs).not.toHaveProperty('transactions')
+      expect(attrs).not.toHaveProperty('list-page')
+      expect(attrs).not.toHaveProperty('transaction-count')
+      expect(attrs).not.toHaveProperty('pending')
     })
-  })
 
-  /**
-   * ⛔ That the page number REACHES the page inside the router-view. Everything else about
-   * this fix can be right and the member still sees the old defect if this one binding is
-   * missing: Transactions.vue would fall back to its prop default of 1 for ever, and the
-   * paginator would sit at one under whatever rows arrived.
-   *
-   * The review of 30.08.2026 found it by deleting the binding -- all 71 tests stayed green.
-   */
-  it('hands the page it holds to the page inside the router-view', async () => {
-    // A fresh layout starts on the skeleton, and the skeleton renders no router-view at all.
-    wrapper.vm.skeleton = false
-    await router.push('/transactions')
-    await wrapper.vm.updateTransactions({ currentPage: 4, pageSize: PAGE_SIZE })
-    await nextTick()
+    /**
+     * `updateTransactions({})` is what `Send` calls after a transfer, and what the
+     * transactions page sends up after a link was withdrawn: the numbers up here moved.
+     * No page in it any more -- there is nothing here a page number could apply to.
+     */
+    it('asks the same question again when a page reports a change', async () => {
+      mockRefetchFn.mockClear()
 
-    // ⚠️ Read as an attribute: RouterView is stubbed here and the stub declares no props of
-    // its own, so everything handed to it arrives as a string.
-    expect(wrapper.find('router-view-stub').attributes('list-page')).toBe('4')
-  })
+      await wrapper.vm.updateTransactions({})
+      await nextTick()
 
-  /**
-   * ⛔ The member who reloads on their bookings, or opens a bookmark to them, makes no
-   * navigation at all -- so the watch above never fires and this one call is everything they
-   * get. It used to ask for ten rows while the paginator divided by twenty-five, which put
-   * bookings 11 to 25 on no page anybody could click.
-   */
-  it('asks for a full page when the member arrives on the transactions directly', async () => {
-    await router.push('/transactions')
-    useQuery.mockClear()
-
-    const onTransactions = createWrapper()
-    const asked = useQuery.mock.calls.find(([query]) => query === transactionsUserCountQuery)
-    // Down before the assertion — a second layout that outlives a failing test keeps
-    // listening and counts the other tests' route changes a second time.
-    onTransactions.unmount()
-
-    expect(asked[1]).toEqual({ currentPage: 1, pageSize: PAGE_SIZE, order: 'DESC' })
-  })
-
-  /**
-   * ⛔ `updateTransactions({})` is what `Send` calls after a transfer -- no page, no size.
-   * Before the defaults were added it reached Apollo as two `undefined` variables and the
-   * SERVER decided the page. Dropping the defaults again leaves every other test green.
-   */
-  it('reads a transfer as page one, when the page that asks names nothing', async () => {
-    mockRefetchFn.mockClear()
-
-    await wrapper.vm.updateTransactions({})
-    await nextTick()
-
-    expect(mockRefetchFn).toHaveBeenCalledWith({
-      currentPage: 1,
-      pageSize: PAGE_SIZE,
-      order: 'DESC',
+      expect(mockRefetchFn).toHaveBeenCalledTimes(1)
+      expect(mockRefetchFn).toHaveBeenCalledWith()
     })
-    expect(wrapper.vm.listPage).toBe(1)
   })
 
   it('renders DIV .main-page', () => {
@@ -1097,8 +1015,8 @@ describe('DashboardLayout', () => {
         expect(wrapper.vm.balance).toBe(1450)
       })
 
-      it('updates transactions', () => {
-        expect(wrapper.vm.transactions).toEqual([
+      it('updates the newest transactions', () => {
+        expect(wrapper.vm.newestTransactions).toEqual([
           'transaction1',
           'transaction2',
           'transaction3',
@@ -1108,14 +1026,6 @@ describe('DashboardLayout', () => {
 
       it('updates GDT balance', () => {
         expect(wrapper.vm.GdtBalance).toBe(100)
-      })
-
-      it('updates transaction count', () => {
-        expect(wrapper.vm.transactionCount).toBe(4)
-      })
-
-      it('updates transaction link count', () => {
-        expect(wrapper.vm.transactionLinkCount).toBe(8)
       })
     })
 
@@ -1128,34 +1038,9 @@ describe('DashboardLayout', () => {
         await nextTick()
       })
 
-      it('sets pending to true', () => {
-        expect(wrapper.vm.pending).toBeTruthy()
-      })
-
       it('toasts the error message', () => {
         onErrorHandler({ message: 'Ouch!' })
         expect(toastErrorSpy).toHaveBeenCalledWith('Ouch!')
-      })
-
-      /**
-       * ⛔ `pending` is handed down to the page inside the router-view, so a refetch that
-       * fails must not leave it standing — that page would wait for something that is never
-       * coming. It mattered less while only a deliberate action set it; now that opening the
-       * overview or the transactions sets it, one failed request would strand whatever the
-       * member opened next. (coderabbit, #3763)
-       */
-      it('stops the page waiting when the refetch fails', async () => {
-        await router.push('/overview')
-        await nextTick()
-        // Read off the stub's rendered attributes: `RouterView: true` makes a stub that
-        // declares no props, so what the layout hands down arrives as attrs, not props.
-        const pendingNow = () => wrapper.find('router-view-stub').attributes('pending')
-        expect(pendingNow()).toBe('true')
-
-        onErrorHandler({ message: 'Ouch!' })
-        await nextTick()
-
-        expect(pendingNow()).toBe('false')
       })
     })
 

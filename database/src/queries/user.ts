@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { and, eq, isNull, or } from 'drizzle-orm'
 import { getLogger } from 'log4js'
 import { aliasSchema, emailSchema, uuidv4Schema, VoidResult } from 'shared'
 import { EntityManager, In, Raw } from 'typeorm'
@@ -179,6 +179,51 @@ export async function dbFindUsersByIds(
     return []
   }
   return DbUser.find({ where: { id: In(userIds) }, withDeleted: options.withDeleted ?? false })
+}
+
+/**
+ * The id of the `users` row carrying this pair, or null when there is none.
+ *
+ * For narrowing a booking list to one counterparty (queries/transactions.ts): the pair is
+ * what the contact window carries, and `uuid_key` makes it unique in `users` (migration
+ * 0073), so this is one row or none -- never a list to unite. No `foreign` condition: the
+ * federation stores members of other communities as rows too, and the contact list joins
+ * `linked_user_id` without asking. No `deletedAt` condition either: a booking keeps naming
+ * a member whose account is gone, so their bookings stay filterable.
+ *
+ * `homeCommunityUuid`: when the pair names THIS community, a `foreign = 0` row that still
+ * carries no community uuid counts as well. Migration 0129 filled those rows, but it was a
+ * no-op wherever the home community had no row yet when it ran -- and the contact list
+ * stands in the home uuid for exactly these members (ContactResolver), so the pair it
+ * hands out has to find them here too, or the window would count bookings the list then
+ * cannot show.
+ */
+export async function dbFindUserIdByUuids(
+  communityUuid: string,
+  gradidoID: string,
+  options: { homeCommunityUuid?: string | null } = {},
+): Promise<number | null> {
+  const exactPair = and(
+    eq(usersTable.communityUuid, communityUuid),
+    eq(usersTable.gradidoId, gradidoID),
+  )
+  const where =
+    options.homeCommunityUuid && options.homeCommunityUuid === communityUuid
+      ? or(
+          exactPair,
+          and(
+            eq(usersTable.foreign, 0),
+            isNull(usersTable.communityUuid),
+            eq(usersTable.gradidoId, gradidoID),
+          ),
+        )
+      : exactPair
+  const rows = await drizzleDb()
+    .select({ id: usersTable.id })
+    .from(usersTable)
+    .where(where)
+    .limit(1)
+  return rows[0]?.id ?? null
 }
 
 export async function findUserByUuids(

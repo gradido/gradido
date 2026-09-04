@@ -1,6 +1,7 @@
 import { Paginated } from '@arg/Paginated'
 import { TransactionSendArgs } from '@arg/TransactionSendArgs'
 import { Order } from '@enum/Order'
+import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
 import { Transaction } from '@model/Transaction'
 import { TransactionList } from '@model/TransactionList'
 import { User } from '@model/User'
@@ -26,19 +27,21 @@ import {
   DltTransaction as DbDltTransaction,
   dbFindMemberAvatarTimestamps,
   dbSelectThankYouCardLabels,
+  dbSelectTransactionsByUserId,
   Transaction as dbTransaction,
   TransactionLink as dbTransactionLink,
   User as dbUser,
   findUserByIdentifier,
   getCommunityByUuid,
   getCommunityWithFederatedCommunityByIdentifier,
+  getHomeCommunity,
   getLastTransaction,
 } from 'database'
 import { getLogger, Logger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
 import { CommandJwtPayloadType, DecayCalculationType, encryptAndSign, GradidoUnit } from 'shared'
 import { randombytes_random } from 'sodium-native'
-import { Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
+import { Arg, Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import { In, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
@@ -54,8 +57,7 @@ import { SendEmailArgs } from '../arg/SendEmailArgs'
 import { BalanceResolver } from './BalanceResolver'
 import { GdtResolver } from './GdtResolver'
 import { getCommunityName, isHomeCommunity } from './util/communities'
-import { remoteUserFromBooking } from './util/counterparty'
-import { getTransactionList } from './util/getTransactionList'
+import { bookingCounterparty, prefetchedLookups, remoteUserFromBooking } from './util/counterparty'
 
 const db = AppDatabase.getInstance()
 const createLogger = () =>
@@ -278,6 +280,14 @@ export class TransactionResolver {
   async transactionList(
     @Args()
     { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
+    /**
+     * Only the bookings shared with this one member -- what the contact window links to
+     * ("51 bookings, last on 24.08."). The house's member reference, the pair the window
+     * holds, so a booking filter and a heart name a person the same way. Absent: the
+     * whole account, as before.
+     */
+    @Arg('counterparty', () => MemberAvatarRefInput, { nullable: true })
+    counterparty: MemberAvatarRefInput | null | undefined,
     @Ctx() context: Context,
   ): Promise<TransactionList> {
     const now = new Date()
@@ -292,8 +302,12 @@ export class TransactionResolver {
       balanceGDTPromise = gdtResolver.gdtBalance(context)
     }
 
-    // find current balance
-    const lastTransaction = await getLastTransaction(user.id)
+    // find current balance -- and, side by side with it, who the list is narrowed to:
+    // the two depend on nothing but the arguments, so neither waits for the other.
+    const [lastTransaction, narrowedTo] = await Promise.all([
+      getLastTransaction(user.id),
+      counterparty ? bookingCounterparty(counterparty) : Promise.resolve(undefined),
+    ])
     logger.debug(`lastTransaction=${lastTransaction?.id}`)
 
     const balanceResolver = new BalanceResolver()
@@ -307,17 +321,38 @@ export class TransactionResolver {
     // find transactions
     // first page can contain 26 due to virtual decay transaction
     const offset = (currentPage - 1) * pageSize
-    const [userTransactions, userTransactionsCount] = await getTransactionList(
+    const [userTransactions, userTransactionsCount] = await dbSelectTransactionsByUserId(
       user.id,
       pageSize,
       offset,
       order,
+      narrowedTo,
     )
+    // The count of THIS list -- narrowed, it is the number of bookings shared with that
+    // member, which is what its paginator divides by. The balance and the link counts
+    // beside it stay account-wide (BalanceResolver asks nothing about the counterparty);
+    // the header reads balance and balanceGDT off the layout's own, never narrowed, query.
     context.transactionCount = userTransactionsCount
 
     // find involved users; I am involved
     const involvedUserIds: number[] = [user.id]
     const involvedRemoteUsers: User[] = []
+    // The members of other communities on this page, looked up ONCE for the page: a list
+    // narrowed to one of them is a page where every row is theirs, and resolving each row
+    // on its own cost two round trips per row. The contact list prefetches the same way.
+    // Nothing is queried when the page carries no such row.
+    const remoteRows = userTransactions.filter(
+      (t: dbTransaction) =>
+        (t.typeId as TransactionTypeId) !== TransactionTypeId.CREATION &&
+        !t.linkedUserId &&
+        t.linkedUserGradidoID,
+    )
+    const remoteLookups = await prefetchedLookups(
+      remoteRows.map((t: dbTransaction) => ({
+        communityUuid: t.linkedUserCommunityUuid,
+        gradidoId: t.linkedUserGradidoID as string,
+      })),
+    )
     // userTransactions.forEach((transaction: dbTransaction) => {
     // use normal for loop because of timing problems with await in forEach-loop
     for (const transaction of userTransactions) {
@@ -329,7 +364,7 @@ export class TransactionResolver {
       }
       if (!transaction.linkedUserId && transaction.linkedUserGradidoID) {
         involvedRemoteUsers.push(
-          await remoteUserFromBooking(transaction, logger, `tx: ${transaction.id}`),
+          await remoteUserFromBooking(transaction, logger, `tx: ${transaction.id}`, remoteLookups),
         )
       }
     }
@@ -346,6 +381,28 @@ export class TransactionResolver {
       relations: ['emailContact'],
     })
     const involvedUsers = involvedDbUsers.map((u) => new User(u))
+    // A member of this community whose row still carries no community uuid: migration 0129
+    // filled those, but was a no-op wherever the home community had no row yet when it
+    // ran. `User.communityUuid` is non-null in the schema, so one such counterparty on a
+    // page used to null the WHOLE list. The contact list stands in the home uuid for them
+    // (ContactResolver); so does this list now -- and only then does it ask which community
+    // is home, because every other page has nothing to fill.
+    const unfilledLocals = involvedDbUsers.filter((u) => !u.foreign && !u.communityUuid)
+    if (unfilledLocals.length > 0) {
+      const home = await getHomeCommunity()
+      if (!home?.communityUuid) {
+        // Without a home uuid there is nothing to stand in, and the field is non-null: the
+        // list would fail on that row anyway, with a message that names no cause. The same
+        // error the contact list raises for the same state (resolveCommunityUuid).
+        throw new LogError('Home community has no uuid, cannot name a member without one')
+      }
+      for (const row of unfilledLocals) {
+        const model = involvedUsers.find((u) => u.id === row.id)
+        if (model) {
+          model.communityUuid = home.communityUuid
+        }
+      }
+    }
 
     // When each of these members last changed the picture other members may see. One
     // query for the whole list, right here where the list already exists -- a field
@@ -393,7 +450,12 @@ export class TransactionResolver {
     const lastTransactionBalance = lastTransaction.balance
 
     // decay & link transactions
-    if (currentPage === 1 && order === Order.DESC) {
+    //
+    // ⛔ Not while the list is narrowed to one member. Both rows are about the whole
+    // account -- the decay is the member's own balance losing value, the summary covers
+    // every open link they hold -- and under a heading "only bookings with Margret" they
+    // would be untrue, counted against a paginator sized by the narrowed count.
+    if (currentPage === 1 && order === Order.DESC && !narrowedTo) {
       logger.debug(`currentPage == 1: transactions=${transactions.map((t) => t.id)}`)
       // The virtual decay is always on the booked amount, not including the generated, not yet booked links,
       // since the decay is substantially different when the amount is less

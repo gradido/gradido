@@ -49,8 +49,22 @@ fragment transactionFields on Transaction {
   thankYouCardLabel
 }
 
-query transactionsQuery($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
-  transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
+# The booking list itself, one page at a time (Transactions.vue). `counterparty` narrows it
+# to the bookings shared with one member -- what the contact window links to; null asks for
+# the whole account. The layout's query below takes no such argument on purpose: the column
+# beside the overview shows the member's newest bookings, and those can never be narrowed.
+query transactionsQuery(
+  $currentPage: Int = 1
+  $pageSize: Int = 25
+  $order: Order = DESC
+  $counterparty: MemberAvatarRefInput = null
+) {
+  transactionList(
+    currentPage: $currentPage
+    pageSize: $pageSize
+    order: $order
+    counterparty: $counterparty
+  ) {
     balance {
       ...balanceFields
     }

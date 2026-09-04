@@ -1049,8 +1049,12 @@
     "years": "Год"
   },
   "transaction": {
+    "allBookings": "Показать все операции",
     "lastTransactions": "Последние транзакции",
+    "noneWithMember": "С этим участником пока нет операций.",
     "nullTransactions": "На вашем счету еще нет ни одной транзакции.",
+    "onlyWith": "Только операции с {name}",
+    "onlyWithSomeone": "Только операции с участником",
     "receiverDeleted": "Счет получателя был удален",
     "receiverNotFound": "Получатель не найден",
     "show_all": "Все <strong>{count}</strong> транзакции/сделки просмотреть"

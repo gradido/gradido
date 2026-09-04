@@ -79,14 +79,23 @@ export const checkUsername = gql`
 `
 
 // ⚠️ Kept field-for-field in step with the wallet's `transactionFields` fragment
-// (frontend/src/graphql/transactions.graphql). This document is the only place a
-// transactionList selection meets the real schema in CI, so every field the wallet asks for
-// and this one does not is a field a rename can break at runtime with nothing red before --
-// the same hazard the memberAvatars document below is written to close, and the reason six
-// fields were added here at once.
+// (frontend/src/graphql/transactions.graphql), and with its arguments. The wallet's own
+// document is validated against the schema by documents.test.ts; this one is the copy the
+// resolver tests EXECUTE, so a field or argument the wallet sends and this one does not is
+// a path those tests never exercise.
 export const transactionsQuery = gql`
-  query ($currentPage: Int = 1, $pageSize: Int = 25, $order: Order = DESC) {
-    transactionList(currentPage: $currentPage, pageSize: $pageSize, order: $order) {
+  query (
+    $currentPage: Int = 1
+    $pageSize: Int = 25
+    $order: Order = DESC
+    $counterparty: MemberAvatarRefInput = null
+  ) {
+    transactionList(
+      currentPage: $currentPage
+      pageSize: $pageSize
+      order: $order
+      counterparty: $counterparty
+    ) {
       balance {
         balance
         balanceGDT

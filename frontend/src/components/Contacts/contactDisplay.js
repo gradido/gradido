@@ -33,3 +33,19 @@ export const contactDisplay = (contact, { zoomable = false } = {}) => {
     avatar: zoomable ? { ...base, ...avatarZoomBindings(contact.user, base) } : base,
   }
 }
+
+/** Between the parts of a contact's meta line, carrying its own spaces on both sides. */
+export const CONTACT_META_SEPARATOR = ' · '
+
+/**
+ * "12 bookings · last on 24.08." -- how often, and how recently. One builder for the row
+ * and the window, so the two cannot come to say it differently; the window puts "since"
+ * in front of it with the same separator.
+ *
+ * `t` and `d` come from the caller's `useI18n()`: this file is not a setup scope.
+ */
+export const contactBookingsMeta = (contact, { t, d }) =>
+  [
+    t('contacts.bookings', contact.bookings),
+    t('contacts.last', { date: d(new Date(contact.lastAt), 'short') }),
+  ].join(CONTACT_META_SEPARATOR)

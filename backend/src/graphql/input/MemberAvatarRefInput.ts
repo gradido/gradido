@@ -6,15 +6,13 @@ import { Field, InputType } from 'type-graphql'
 // after the update to typescript 5 is possible
 
 /**
- * Which member is meant -- a picture is being asked about, or a heart is given
- * (ContactResolver). One input type for one question, whoever asks it.
+ * Which member is meant -- a picture is being asked about, a heart is given
+ * (ContactResolver), or a booking list is narrowed to them (TransactionResolver). One
+ * input type for one question, whoever asks it.
  *
- * ★ A PAIR, not a plain id, and today that is a promise rather than a need: every member
- * a wallet can currently see a booking with is in the same community, so communityUuid is
- * carried through and nothing else. It is here because members of other communities are a
- * decided, separate delivery (AS-004), and the day they arrive this interface must not
- * have to change -- which would mean a second query name, two paths in the wallet, and a
- * migration of whatever cache the first one built.
+ * ★ A PAIR, not a plain id. The contact list already carries members of other
+ * communities, keyed by this pair, and the booking filter matches them by it; a plain id
+ * would have needed a second query name and two paths in the wallet the day they arrived.
  *
  * Nullable because a local member registered before the home community had a uuid has
  * none stored either (see UserResolver.createUser), and rejecting those would hide
