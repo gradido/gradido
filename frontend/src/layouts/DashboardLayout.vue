@@ -403,8 +403,12 @@ const panelOptions = computed(() => [
   // every member's device, and renaming it would silently forget their choice. Only the
   // word changes -- and to a key that already exists in all ten languages, because it is
   // the heading `LastTransactions` used to print for itself.
-  { value: 'bookings', label: t('transaction.lastTransactions') },
-  { value: 'contacts', label: t('rightSide.contacts') },
+  // ⛔ Two thirds to one third, not half and half. "Letzte Transaktionen" needs the room
+  // and "Kontakte" does not: at equal widths the long word wrapped to two lines -- in
+  // German as soon as the active tab turned bold, and in French at any weight. The ratio
+  // lives here because it is a fact about these two WORDS, and the switch never sees them.
+  { value: 'bookings', label: t('transaction.lastTransactions'), share: 2 },
+  { value: 'contacts', label: t('rightSide.contacts'), share: 1 },
 ])
 
 const isSwitchable = computed(() => rightSidePanel.value === SWITCHABLE_PANEL)

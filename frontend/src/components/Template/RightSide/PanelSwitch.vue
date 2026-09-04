@@ -15,6 +15,7 @@
       type="button"
       class="panel-switch-segment"
       :class="option.value === modelValue ? 'active' : ''"
+      :style="{ flexGrow: option.share ?? 1 }"
       :aria-pressed="option.value === modelValue ? 'true' : 'false'"
       :data-test="`panel-switch-${option.value}`"
       @click="pick(option.value)"
@@ -44,7 +45,12 @@ const props = defineProps({
   /** The position in force. */
   modelValue: { type: String, required: true },
   /**
-   * `[{ value, label }]` -- the label is the FINISHED word, not a key.
+   * `[{ value, label, share }]` -- the label is the FINISHED word, not a key.
+   *
+   * `share` is how much of the row that position takes, relative to the others; it
+   * defaults to 1. ⛔ It is the CALLER's to set, not this component's to guess by
+   * position: which word is long depends on the language, and a rule like "the first
+   * one is wider" would be a claim about content this component never sees.
    *
    * ⛔ Not a key. `$t(option.label)` would read the key out of a variable, and the i18n lint
    * only counts literal ones -- every position's word would be reported as unused and the
@@ -74,16 +80,19 @@ const pick = (value) => {
   margin-bottom: 1rem;
 }
 
-/* ⛔ `flex: 1 1 0` with `min-width: 0`, not `flex: 1`. The two halves have to stay equal
-   whatever stands in them, and the words are not equally long in every language: German
-   pairs "Letzte Transaktionen" with "Kontakte", French "Dernières transactions" with
-   "Contacts" -- 22 characters against 8. Sized by content the left tab would take three
-   quarters of the column in French and half of it in Turkish. Sized by the track they
-   always split it evenly, and the long word wraps into a second line instead of pushing
-   the short one aside. Both halves then grow together, because that is what a flex row
-   does with stretched items. */
+/* ⛔ `flex-basis: 0` with `min-width: 0`, and the GROWTH comes from the caller (`share`).
+   Sized by their content the two tabs would jump about between languages -- German pairs
+   "Letzte Transaktionen" with "Kontakte", French "Dernières transactions" with "Contacts",
+   22 characters against 8 -- so the row is divided by the track instead.
+
+   ⚠️ Equal halves were the first answer and they were wrong: half of a three-column-wide
+   column is not enough for the long word, so it wrapped to two lines and took the short
+   one with it, in German as soon as the active tab turned bold. Two thirds to one third
+   holds the long word on one line in all ten languages and still leaves the short one more
+   room than it needs. (Bernd, 04.09.2026.) */
 .panel-switch-segment {
-  flex: 1 1 0;
+  flex-basis: 0;
+  flex-shrink: 1;
   min-width: 0;
   appearance: none;
   background: transparent;

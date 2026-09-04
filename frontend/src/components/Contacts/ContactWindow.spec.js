@@ -180,4 +180,24 @@ describe('ContactWindow', () => {
   it('draws nothing at all without a contact', () => {
     expect(mountWindow(null).find('[data-test="contact-window-name"]').exists()).toBe(false)
   })
+
+  /**
+   * ⛔ The window could always be closed by clicking beside it, and that is exactly the
+   * problem: it is a thing one has to know. A cross is the control everybody looks for.
+   * (Bernd, 04.09.2026.)
+   *
+   * ⚠️ The accessible name is measured too, not just the presence of a button. A bare ×
+   * reaches a screen reader as "times" or as nothing at all, and this window has no header
+   * to name it from.
+   */
+  it('closes from a cross that says what it is', async () => {
+    mountWindow()
+    const cross = wrapper.find('[data-test="contact-window-close"]')
+
+    expect(cross.exists()).toBe(true)
+    expect(cross.attributes('aria-label')).toBe('form.close')
+
+    await cross.trigger('click')
+    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([false])
+  })
 })

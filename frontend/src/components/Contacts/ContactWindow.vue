@@ -28,7 +28,26 @@
     data-test="contact-window"
     @update:model-value="emit('update:modelValue', $event)"
   >
-    <div v-if="contact">
+    <div v-if="contact" class="contact-window-inner">
+      <!-- ⛔ In the body, not by turning the header back on. `no-header` is what keeps the
+           person's name as the first thing in the window; a header would put an empty bar
+           above it and push the face down. The window could always be closed by clicking
+           beside it, but that is a thing one has to know -- a cross is the one control
+           everybody looks for. (Bernd, 04.09.2026.)
+
+           ⚠️ `$t('form.close')` as the accessible name, not the glyph: a screen reader
+           reading "times" or nothing at all is what a bare × amounts to. -->
+      <button
+        type="button"
+        class="contact-window-close"
+        :aria-label="$t('form.close')"
+        :title="$t('form.close')"
+        data-test="contact-window-close"
+        @click="emit('update:modelValue', false)"
+      >
+        <IBiX />
+      </button>
+
       <div class="contact-window-head">
         <app-avatar :size="64" :color="'#fff'" v-bind="avatar" />
         <div class="contact-window-who">
@@ -184,6 +203,37 @@ const toSend = (art) => {
 </script>
 
 <style lang="scss" scoped>
+/* ⛔ The cross is positioned against THIS, not against Bootstrap's `.modal-body`. That
+   element does carry `position: relative` today, but it belongs to bootstrap-vue-next --
+   borrowing it would make this window's layout depend on a detail of somebody else's
+   stylesheet, which is how a class name from another component put an invisible sheet over
+   the whole wallet on 03.09. */
+.contact-window-inner {
+  position: relative;
+}
+
+/* Top right of the body, and the head keeps its own padding clear of it so a long name
+   cannot run under the cross. */
+.contact-window-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.65rem;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 1.15rem;
+  line-height: 1;
+  padding: 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.contact-window-close:hover,
+.contact-window-close:focus-visible {
+  color: var(--bs-body-color);
+}
+
 .contact-window-head {
   display: flex;
   align-items: center;
