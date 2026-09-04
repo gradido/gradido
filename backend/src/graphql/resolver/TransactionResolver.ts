@@ -27,6 +27,7 @@ import {
   DltTransaction as DbDltTransaction,
   dbFindMemberAvatarTimestamps,
   dbSelectThankYouCardLabels,
+  dbSelectTransactionsByUserId,
   Transaction as dbTransaction,
   TransactionLink as dbTransactionLink,
   User as dbUser,
@@ -34,7 +35,6 @@ import {
   getCommunityByUuid,
   getCommunityWithFederatedCommunityByIdentifier,
   getLastTransaction,
-  getTransactionList,
 } from 'database'
 import { getLogger, Logger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
@@ -56,7 +56,7 @@ import { SendEmailArgs } from '../arg/SendEmailArgs'
 import { BalanceResolver } from './BalanceResolver'
 import { GdtResolver } from './GdtResolver'
 import { getCommunityName, isHomeCommunity } from './util/communities'
-import { bookingCounterparty, remoteUserFromBooking } from './util/counterparty'
+import { bookingCounterparty, prefetchedLookups, remoteUserFromBooking } from './util/counterparty'
 
 const db = AppDatabase.getInstance()
 const createLogger = () =>
@@ -295,16 +295,18 @@ export class TransactionResolver {
     logger.addContext('user', user.id)
     logger.info(`transactionList`)
 
-    const narrowedTo = counterparty ? await bookingCounterparty(counterparty) : undefined
-
     let balanceGDTPromise: Promise<number | null> = Promise.resolve(null)
     if (CONFIG.GDT_ACTIVE) {
       const gdtResolver = new GdtResolver()
       balanceGDTPromise = gdtResolver.gdtBalance(context)
     }
 
-    // find current balance
-    const lastTransaction = await getLastTransaction(user.id)
+    // find current balance -- and, side by side with it, who the list is narrowed to:
+    // the two depend on nothing but the arguments, so neither waits for the other.
+    const [lastTransaction, narrowedTo] = await Promise.all([
+      getLastTransaction(user.id),
+      counterparty ? bookingCounterparty(counterparty) : Promise.resolve(undefined),
+    ])
     logger.debug(`lastTransaction=${lastTransaction?.id}`)
 
     const balanceResolver = new BalanceResolver()
@@ -318,7 +320,7 @@ export class TransactionResolver {
     // find transactions
     // first page can contain 26 due to virtual decay transaction
     const offset = (currentPage - 1) * pageSize
-    const [userTransactions, userTransactionsCount] = await getTransactionList(
+    const [userTransactions, userTransactionsCount] = await dbSelectTransactionsByUserId(
       user.id,
       pageSize,
       offset,
@@ -326,13 +328,30 @@ export class TransactionResolver {
       narrowedTo,
     )
     // The count of THIS list -- narrowed, it is the number of bookings shared with that
-    // member, which is what its paginator divides by. The wallet reads the account-wide
-    // figures off its own, never narrowed, query.
+    // member, which is what its paginator divides by. The balance and the link counts
+    // beside it stay account-wide (BalanceResolver asks nothing about the counterparty);
+    // the header reads balance and balanceGDT off the layout's own, never narrowed, query.
     context.transactionCount = userTransactionsCount
 
     // find involved users; I am involved
     const involvedUserIds: number[] = [user.id]
     const involvedRemoteUsers: User[] = []
+    // The members of other communities on this page, looked up ONCE for the page: a list
+    // narrowed to one of them is a page where every row is theirs, and resolving each row
+    // on its own cost two round trips per row. The contact list prefetches the same way.
+    // Nothing is queried when the page carries no such row.
+    const remoteRows = userTransactions.filter(
+      (t: dbTransaction) =>
+        (t.typeId as TransactionTypeId) !== TransactionTypeId.CREATION &&
+        !t.linkedUserId &&
+        t.linkedUserGradidoID,
+    )
+    const remoteLookups = await prefetchedLookups(
+      remoteRows.map((t: dbTransaction) => ({
+        communityUuid: t.linkedUserCommunityUuid,
+        gradidoId: t.linkedUserGradidoID as string,
+      })),
+    )
     // userTransactions.forEach((transaction: dbTransaction) => {
     // use normal for loop because of timing problems with await in forEach-loop
     for (const transaction of userTransactions) {
@@ -344,7 +363,7 @@ export class TransactionResolver {
       }
       if (!transaction.linkedUserId && transaction.linkedUserGradidoID) {
         involvedRemoteUsers.push(
-          await remoteUserFromBooking(transaction, logger, `tx: ${transaction.id}`),
+          await remoteUserFromBooking(transaction, logger, `tx: ${transaction.id}`, remoteLookups),
         )
       }
     }

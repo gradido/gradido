@@ -24,7 +24,9 @@ export class Balance {
   @Field(() => Float, { nullable: true })
   balanceGDT: number | null
 
-  // the count of all transactions
+  // The count of the list this balance came back with: the whole account, or -- asked
+  // with a `counterparty` -- the bookings shared with that one member. The other figures
+  // here stay account-wide either way (TransactionResolver).
   @Field(() => Int)
   count: number
 

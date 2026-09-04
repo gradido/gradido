@@ -30,6 +30,11 @@ const COUNTERPARTY_TYPES = [TransactionTypeId.SEND, TransactionTypeId.RECEIVE]
  * them. They are the same two forms `dbSelectContactsByUserId` groups the contact list by,
  * with the same type restriction, so the number in the contact window and the list its link
  * opens are counted by one rule.
+ *
+ * ⚠️ One rule, spelled twice for now: the contact list is Drizzle, the paged list below is
+ * still TypeORM (AGENTS.md step 1, moved and not yet translated). They share the type
+ * constant and ContactResolver.test holds them against each other; step 2 -- translating
+ * `dbSelectTransactionsByUserId` -- is where the two spellings become one predicate.
  */
 export interface BookingCounterparty {
   /**
@@ -48,8 +53,9 @@ export interface BookingCounterparty {
  *
  * ⛔ `userId` stands in EVERY branch. An array is OR to TypeORM, so a branch without it
  * selects other members' bookings with that counterparty -- a leak that looks perfectly
- * right to whoever tries the filter on their own account. transactions.test.ts measures it
- * from the other side: bob, narrowed to somebody only bibi booked with, sees nothing.
+ * right to whoever tries the filter on their own account. Every branch is therefore built
+ * from one `own` object, and transactions.test.ts measures the property from the other
+ * side: bob, narrowed to somebody only bibi booked with, sees nothing.
  *
  * No branch for a counterparty without a `users` row that would match by id: it is simply
  * left out, which is the closed answer. (`In([])` would also close, `{ linkedUserId:
@@ -62,26 +68,25 @@ export const bookingsWhere = (
   if (!counterparty) {
     return { userId }
   }
-  const typeId = In(COUNTERPARTY_TYPES)
-  const byRow: FindOptionsWhere<DbTransaction>[] =
-    counterparty.localUserId === null
-      ? []
-      : // Booked with a member who has a `users` row: the booking points at it by id. The id
-        // decides rather than the pair, because an old booking may carry no pair at all --
-        // the reason the contact list groups these by `linked_user_id` too.
-        [{ userId, typeId, linkedUserId: counterparty.localUserId }]
-  return [
-    ...byRow,
+  // Every branch starts from this, and this is the one place the ⛔ above is enforced.
+  const own = { userId, typeId: In(COUNTERPARTY_TYPES) }
+  const where: FindOptionsWhere<DbTransaction>[] = [
     // Booked with a member of another community who has no row here: the pair sits on the
     // booking itself.
     {
-      userId,
-      typeId,
+      ...own,
       linkedUserId: IsNull(),
       linkedUserGradidoID: counterparty.gradidoId,
       linkedUserCommunityUuid: counterparty.communityUuid,
     },
   ]
+  if (counterparty.localUserId !== null) {
+    // Booked with a member who has a `users` row: the booking points at it by id. The id
+    // decides rather than the pair, because an old booking may carry no pair at all -- the
+    // reason the contact list groups these by `linked_user_id` too.
+    where.push({ ...own, linkedUserId: counterparty.localUserId })
+  }
+  return where
 }
 
 /**
@@ -90,10 +95,12 @@ export const bookingsWhere = (
  *
  * Moved here from `backend/src/graphql/resolver/util/getTransactionList.ts` -- step one of
  * the query migration AGENTS.md describes, and step one only: still TypeORM, same options,
- * same result. The order argument is a plain string union rather than the backend's `Order`
- * enum, which this package cannot import; the enum's values are these two strings.
+ * same result. Renamed for the `db…` rule because this delivery touched it (the way
+ * `dbGetUserById` was); `getLastTransaction` above is untouched and keeps its name. The
+ * order argument is a plain string union rather than the backend's `Order` enum, which
+ * this package cannot import; the enum's values are these two strings.
  */
-export const getTransactionList = async (
+export const dbSelectTransactionsByUserId = async (
   userId: number,
   limit: number,
   offset: number,

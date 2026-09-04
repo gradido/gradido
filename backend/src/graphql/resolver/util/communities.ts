@@ -20,11 +20,6 @@ function findWithCommunityIdentifier(communityIdentifier: string): FindOneOption
 }
 
 /**
- * Checks if a community with the given identifier exists and is not foreign.
- * @param communityIdentifier The identifier (URL, UUID, or name) of the community.
- * @returns A promise that resolves to true if a non-foreign community exists with the given identifier, otherwise false.
- */
-/**
  * The community uuid a member reference is meant for.
  *
  * The wallet passes on what the booking or the contact row gave it, and that may be
@@ -45,6 +40,11 @@ export async function resolveCommunityUuid(
   return home.communityUuid
 }
 
+/**
+ * Checks if a community with the given identifier exists and is not foreign.
+ * @param communityIdentifier The identifier (URL, UUID, or name) of the community.
+ * @returns A promise that resolves to true if a non-foreign community exists with the given identifier, otherwise false.
+ */
 export async function isHomeCommunity(communityIdentifier: string): Promise<boolean> {
   // The !! operator in JavaScript or TypeScript is a shorthand for converting a value to a boolean.
   // It essentially converts any truthy value to true and any falsy value to false.

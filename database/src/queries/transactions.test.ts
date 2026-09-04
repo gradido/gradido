@@ -11,7 +11,7 @@ import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { peterLustig } from '../seeds/users/peter-lustig'
-import { dbSelectContactsByUserId, getTransactionList } from './transactions'
+import { dbSelectContactsByUserId, dbSelectTransactionsByUserId } from './transactions'
 import { dbFindUserIdByUuids } from './user'
 
 const appDB = AppDatabase.getInstance()
@@ -189,7 +189,7 @@ describe('dbSelectContactsByUserId', () => {
   })
 })
 
-describe('getTransactionList narrowed to one counterparty', () => {
+describe('dbSelectTransactionsByUserId narrowed to one counterparty', () => {
   /** What the resolver hands the query: the pair, and the users row carrying it if any. */
   const withMember = async (communityUuid: string, gradidoId: string) => ({
     localUserId: await dbFindUserIdByUuids(communityUuid, gradidoId),
@@ -197,10 +197,10 @@ describe('getTransactionList narrowed to one counterparty', () => {
     communityUuid,
   })
   const page = (userId: number, counterparty: Awaited<ReturnType<typeof withMember>>) =>
-    getTransactionList(userId, 25, 0, 'DESC', counterparty)
+    dbSelectTransactionsByUserId(userId, 25, 0, 'DESC', counterparty)
 
   it('leaves the whole list alone when nobody is named', async () => {
-    const [rows, count] = await getTransactionList(bibi.id, 25, 0, 'DESC')
+    const [rows, count] = await dbSelectTransactionsByUserId(bibi.id, 25, 0, 'DESC')
     // The creation, five local bookings, four foreign ones.
     expect(count).toBe(10)
     expect(rows).toHaveLength(10)
@@ -231,8 +231,8 @@ describe('getTransactionList narrowed to one counterparty', () => {
 
   it('pages the narrowed list, and the count stays the narrowed one', async () => {
     const peterRef = await withMember(peter.communityUuid as string, peter.gradidoID)
-    const [first, count] = await getTransactionList(bibi.id, 2, 0, 'DESC', peterRef)
-    const [second] = await getTransactionList(bibi.id, 2, 2, 'DESC', peterRef)
+    const [first, count] = await dbSelectTransactionsByUserId(bibi.id, 2, 0, 'DESC', peterRef)
+    const [second] = await dbSelectTransactionsByUserId(bibi.id, 2, 2, 'DESC', peterRef)
     expect(count).toBe(3)
     expect(first.map((row) => row.memo)).toEqual(['four', 'three'])
     expect(second.map((row) => row.memo)).toEqual(['one'])

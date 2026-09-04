@@ -56,6 +56,18 @@ const loginAs = async (email: string): Promise<void> => {
 
 const ref = (user: User) => ({ communityUuid: user.communityUuid, gradidoID: user.gradidoID })
 
+/** The booking list of whoever is logged in, narrowed to one member -- what the window links to. */
+const narrowed = async (member: { gradidoID: string; communityUuid: string | null }) => {
+  const res: any = await query({
+    query: transactionsQuery,
+    variables: {
+      counterparty: { gradidoID: member.gradidoID, communityUuid: member.communityUuid },
+    },
+  })
+  expect(res.errors).toBeUndefined()
+  return res.data.transactionList
+}
+
 beforeAll(async () => {
   testEnv = await testEnvironment(logErrorLogger)
   mutate = testEnv.mutate
@@ -262,6 +274,12 @@ describe('ContactResolver', () => {
           (c: any) => c.user.gradidoID === peter.gradidoID,
         )
         expect(peterRow.user.communityUuid).toBe(bibi.communityUuid)
+        // ⛔ And the link the window builds from that stand-in must find him: the list is
+        // looked up by the pair, and his row carries none. Without the home fallback in
+        // dbFindUserIdByUuids the window said one booking and the list showed nothing.
+        const bookings = await narrowed(peterRow.user)
+        expect(bookings.balance.count).toBe(1)
+        expect(bookings.transactions[0].linkedUser.gradidoID).toBe(peter.gradidoID)
       } finally {
         // ⚠️ Restored: this is the state migration 0129 removed, and the narrowed booking
         // list below looks the row up by the filled pair. Left null, that list would find
@@ -376,17 +394,6 @@ describe('ContactResolver', () => {
    * (queries/transactions.ts), and this is where the two ends meet the real schema.
    */
   describe('the narrowed booking list behind the window', () => {
-    const narrowed = async (member: { gradidoID: string; communityUuid: string | null }) => {
-      const res: any = await query({
-        query: transactionsQuery,
-        variables: {
-          counterparty: { gradidoID: member.gradidoID, communityUuid: member.communityUuid },
-        },
-      })
-      expect(res.errors).toBeUndefined()
-      return res.data.transactionList
-    }
-
     describe('as bibi', () => {
       beforeAll(async () => {
         await loginAs('bibi@bloxberg.de')
