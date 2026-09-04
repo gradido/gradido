@@ -1,11 +1,26 @@
 <template>
   <div class="name">
     <div class="gdd-transaction-list-item-name">
-      <div v-if="linked && linkedUser && linkedUser.gradidoID">
-        <router-link :class="fontColor" :to="pushTo">
-          {{ itemText }}
-        </router-link>
-      </div>
+      <!-- ⛔ A button, not an anchor, and no longer a way into the send form. A tap on a
+           member means "this person" wherever it happens (KF-010): in the contact list, in
+           the column, and since 04.09.2026 in the booking rows and the column of newest
+           bookings too. The send form is one of the two ways OUT of the window that opens,
+           not what a tap means.
+
+           ⚠️ `.stop`, because the name is a control inside another one. The booking row
+           around it opens and closes the booking's details on click; without this, one tap
+           did both. Held here rather than at each call site: this is the only place the
+           control is rendered, so it is the only place the rule can be stated once. -->
+      <button
+        v-if="opensWindow"
+        type="button"
+        class="gdd-transaction-list-item-open"
+        :class="fontColor"
+        data-test="member-name-open"
+        @click.stop="$emit('open', linkedUser)"
+      >
+        {{ itemText }}
+      </button>
       <span v-else>{{ itemText }}</span>
     </div>
   </div>
@@ -46,21 +61,30 @@ export default {
       default: true,
     },
     /**
-     * Whether the name is a link into the send form. True everywhere it has always been.
+     * Whether the name is the control that opens this member's contact window.
      *
-     * ⛔ False where the row itself already means something: in the contact list and in the
-     * contacts column a tap opens the contact window (KF-010). An anchor inside a button is
-     * invalid HTML with no agreed behaviour, and it would give one word two destinations.
-     * Told to this component rather than solved by catching the click outside it, because
-     * the anchor is only ever rendered here.
+     * ⛔ False where the ROW itself already is that control: in the contact list and in the
+     * contacts column a tap anywhere on the row opens the window. A button inside a button
+     * is invalid HTML with no agreed behaviour, and it would make the row's accessible name
+     * the sum of two controls.
+     *
+     * True everywhere the row means something else -- a booking row toggles its details,
+     * and the column of newest bookings has its own link to the booking -- so there the
+     * name has to be its own control.
      */
-    linked: {
+    opens: {
       type: Boolean,
       required: false,
       default: true,
     },
   },
+  emits: ['open'],
   computed: {
+    // Nobody to open a window about: a row whose counterparty the backend could not
+    // resolve, and the creation rows, which name the community and not a member.
+    opensWindow() {
+      return this.opens && Boolean(this.linkedUser?.gradidoID)
+    },
     // How the wallet names a member (NU-018), plus the community they belong to.
     itemText() {
       if (!this.linkedUser) return this.text
@@ -69,38 +93,42 @@ export default {
         ? alias + ' / ' + this.linkedUser.communityName
         : alias
     },
-    pushTo() {
-      return {
-        name: 'Send',
-        params: {
-          userIdentifier: this.linkedUser.gradidoID,
-          communityIdentifier: this.linkedUser.communityUuid,
-        },
-      }
-    },
-  },
-  methods: {
-    async tunnelEmail() {
-      if (this.$route.path !== '/send') await this.$router.push({ path: '/send' })
-      this.$router.push({
-        params: {
-          userIdentifier: this.linkedUser.gradidoID,
-          communityIdentifier: this.linkedUser.communityUuid,
-        },
-      })
-    },
   },
 }
 </script>
 <style scoped>
 /* A 36-character gradidoID fallback must not blow up the booking row on a phone:
    clipped visually with an ellipsis, while the full value stays in the text and stays
-   copyable (NU-018). Both the inner div (router-link case) and the bare span form
-   their own line, so both need the clipping. */
+   copyable (NU-018). Both the button and the bare span form their own line, so both need
+   the clipping. */
 .gdd-transaction-list-item-name,
-.gdd-transaction-list-item-name > div {
+.gdd-transaction-list-item-open {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ⛔ Looks exactly like the anchor it replaced, and that is the point rather than tidiness:
+   the destination changed, the affordance must not. A name that stopped looking tappable
+   would hide the window from everybody who had learnt to tap it. `font: inherit` carries
+   the surrounding `fw-bold` in; the colour utilities the callers pass (`text-dark`) are
+   Bootstrap's own and carry `!important`, so they win here as they did over the anchor. */
+.gdd-transaction-list-item-open {
+  display: block;
+  max-width: 100%;
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  text-align: inherit;
+  color: var(--bs-link-color, #0d6efd);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.gdd-transaction-list-item-open:hover,
+.gdd-transaction-list-item-open:focus-visible {
+  color: var(--bs-link-hover-color, #0a58ca);
 }
 </style>

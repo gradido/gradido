@@ -14,7 +14,12 @@
       </BCol>
       <BCol>
         <div>
-          <Name v-if="useNameComponent" v-bind="nameProps" />
+          <!-- The name is its own control (KF-010): it opens the contact window for this
+               counterparty, while a tap anywhere else on the row still opens the booking's
+               details. What it hands up is the member it was given -- `Name` sends back the
+               `linkedUser` it was drawing, so no second expression here can name somebody
+               else. The LIST owns the window, one per list rather than one per row. -->
+          <Name v-if="useNameComponent" v-bind="nameProps" @open="emit('open-member', $event)" />
           <div v-else :class="nameProps.class">
             {{ nameProps.creationLinkedUser }}
           </div>
@@ -74,8 +79,8 @@
            twelfth, which is narrower than the two symbols together at every width up to
            about 1275 px -- they would not wrap, they would spill over the amount. -->
       <BCol cols="12" md="auto" lg="auto" class="d-flex justify-content-end align-items-center">
-        <!-- The heart, exactly where the name is a link (KF-005): a counterparty with a
-             gradidoID. A creation row has none and gets none; a link or card row has one
+        <!-- The heart, exactly where the name opens a window (KF-005): a counterparty with
+             a gradidoID. A creation row has none and gets none; a link or card row has one
              on both sides, like any transfer (KF-011). -->
         <favorite-heart
           v-if="hasCounterparty"
@@ -117,6 +122,8 @@ const props = defineProps({
     required: true,
   },
 })
+
+const emit = defineEmits(['open-member'])
 
 const gddTransaction = ref(null)
 

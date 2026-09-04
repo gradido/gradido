@@ -62,10 +62,10 @@ describe('ContactRow', () => {
             props: {
               linkedUser: Object,
               withCommunity: { type: Boolean, default: true },
-              linked: { type: Boolean, default: true },
+              opens: { type: Boolean, default: true },
             },
             template:
-              '<span data-test="name" :data-linked="String(linked)">{{ linkedUser.alias }}{{ withCommunity && linkedUser.communityName ? " / " + linkedUser.communityName : "" }}</span>',
+              '<span data-test="name" :data-opens="String(opens)">{{ linkedUser.alias }}{{ withCommunity && linkedUser.communityName ? " / " + linkedUser.communityName : "" }}</span>',
           },
           FavoriteHeart: {
             props: ['member'],
@@ -130,14 +130,13 @@ describe('ContactRow', () => {
   })
 
   /**
-   * ⛔ And the name inside is no longer a link. The row is a button now, and a click on an
-   * anchor nested in it reaches BOTH: the router navigates away while the window opens
-   * behind it -- one word with two destinations. (`ContactRow.vue` and the `linked` prop
-   * doc say the same thing; an earlier version of this comment claimed the window would
-   * never open at all, which is not how a nested click behaves.)
+   * ⛔ And the name inside opens nothing of its own. The row is the button here; `Name`
+   * carries its own control everywhere the row means something else (a booking row toggles
+   * its details), and a button nested inside this one would reach BOTH -- one word with two
+   * handlers, and an accessible name made of two controls.
    */
-  it('does not let the name link away from under the button', () => {
+  it('does not let the name be a second control under the button', () => {
     mountWith()
-    expect(wrapper.find('[data-test="name"]').attributes('data-linked')).toBe('false')
+    expect(wrapper.find('[data-test="name"]').attributes('data-opens')).toBe('false')
   })
 })

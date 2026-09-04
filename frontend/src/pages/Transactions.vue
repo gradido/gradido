@@ -41,7 +41,14 @@
         :show-pagination="true"
         :page-size="pageSize"
         @update-transactions="askForPage"
+        @open-member="openMember"
       />
+
+      <!-- ONE window for the whole list, opened by a tap on a counterparty's name
+           (KF-010). A booking row carries the member but not the three figures the window
+           states, so `openMember` shows it at once and fills those in when the lookup
+           answers. -->
+      <contact-window v-model="windowOpen" :contact="selected" />
     </div>
   </div>
 </template>
@@ -51,12 +58,14 @@ import { computed, ref, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useApolloClient, useLazyQuery, useQuery } from '@vue/apollo-composable'
+import ContactWindow from '@/components/Contacts/ContactWindow.vue'
 import GddTransactionList from '@/components/GddTransactionList'
 import GdtTransactionList from '@/components/GdtTransactionList'
 import { listGDTEntriesQuery } from '@/graphql/queries'
 import { transactionsQuery } from '@/graphql/transactions.graphql'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import { PAGE_SIZE } from '@/constants'
+import { useContactWindow } from '@/composables/useContactWindow'
 import { useAppToast } from '@/composables/useToast'
 import { memberFromQuery, memberQueryKey } from '@/utils/bookingsRoute'
 import { memberAlias } from '@/utils/gradidoAddress'
@@ -91,6 +100,16 @@ const { t } = useI18n()
  * value). Read in ONE place: the query below and the mark above both take it from here.
  */
 const counterparty = computed(() => memberFromQuery(route.query))
+
+/**
+ * The contact window this list opens, and the lookup behind it.
+ *
+ * ⚠️ Not the same thing as `counterparty` above, though both name a member: that one is the
+ * address this list is NARROWED to, this one is whoever was tapped. Tapping a name in a
+ * narrowed list opens the window over the very person it is narrowed to, and the link in
+ * that window leads back to the address it is already on -- harmless, and the honest answer.
+ */
+const { windowOpen, selected, openMember } = useContactWindow(apolloClient)
 
 /**
  * The GDD list: this page's own query, this page's own page number.

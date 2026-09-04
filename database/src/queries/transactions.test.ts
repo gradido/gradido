@@ -27,8 +27,30 @@ const SARAH = 'dddddddd-dddd-dddd-dddd-dddddddddddd'
 const ANNA = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'
 // Books on the same day as Sarah, so that the order has a real tie to break.
 const TINA = 'ffffffff-ffff-ffff-ffff-ffffffffffff'
+/**
+ * A foreign member the federation eventually stored a `users` row for -- so PETER's
+ * bookings with her exist in both shapes, and the two groupings find her twice.
+ *
+ * ⚠️ Seeded on peter and nobody else, so that every count and every order this file
+ * already asserts for bibi and bob stays exactly as it was.
+ */
+const LOTTE = 'aaaaaaaa-1111-2222-3333-444444444444'
+let lotteRowId: number
 
 const day = (n: number): Date => new Date(Date.UTC(2026, 7, n, 12, 0, 0))
+
+/**
+ * What the resolver hands either query: the pair, and the users row carrying it if any.
+ *
+ * At module scope because BOTH narrowings take it -- the booking list and the contact
+ * behind the window over it. One definition here is what lets the test below hold the two
+ * against each other.
+ */
+const withMember = async (communityUuid: string, gradidoId: string) => ({
+  localUserId: await dbFindUserIdByUuids(communityUuid, gradidoId),
+  gradidoId,
+  communityUuid,
+})
 
 /** The counterparty of a foreign booking, as the seed factory takes it. */
 const fromAfar = (gradidoID: string, name: string) => ({
@@ -74,6 +96,20 @@ beforeAll(async () => {
   await foreignReceive(bibi, fromAfar(SARAH, 'Sarah'), day(6))
   await foreignReceive(bibi, fromAfar(SARAH, 'SarahP'), day(7))
   await foreignReceive(bibi, fromAfar(TINA, 'TinaP'), day(7))
+
+  // ★ The split person, on peter. First the booking from before her row existed -- no
+  // `linked_user_id`, the pair on the booking. Then the row the federation stored, and a
+  // booking from after it, which carries the id the way settlePendingReceiveTransaction
+  // writes it. One person, two groupings.
+  await foreignReceive(peter, fromAfar(LOTTE, 'Lotte'), day(8))
+  const lotteRow = new DbUser()
+  lotteRow.gradidoID = LOTTE
+  lotteRow.communityUuid = FOREIGN_COMMUNITY
+  lotteRow.alias = 'lotte'
+  lotteRow.foreign = true
+  await lotteRow.save()
+  lotteRowId = lotteRow.id
+  await foreignReceive(peter, { ...fromAfar(LOTTE, 'Lotte'), linkedUserId: lotteRowId }, day(9))
 })
 
 afterAll(async () => {
@@ -189,13 +225,125 @@ describe('dbSelectContactsByUserId', () => {
   })
 })
 
-describe('dbSelectTransactionsByUserId narrowed to one counterparty', () => {
-  /** What the resolver hands the query: the pair, and the users row carrying it if any. */
-  const withMember = async (communityUuid: string, gradidoId: string) => ({
-    localUserId: await dbFindUserIdByUuids(communityUuid, gradidoId),
-    gradidoId,
-    communityUuid,
+/**
+ * ⛔ One person, however many groupings found them (KF-004: each person once).
+ *
+ * A member of another community whose `users` row the federation stored partway through has
+ * bookings of both shapes, and the two groupings each hold a PART of the figures. The
+ * booking list has always united them (`bookingsWhere`), so an unmerged contact list stated
+ * a count that its own link could not show. (coderabbit, PR #3842.)
+ */
+describe('dbSelectContactsByUserId with a person both groupings found', () => {
+  it('lists her once, with every booking counted', async () => {
+    const page = await dbSelectContactsByUserId(peter.id, { limit: 25, offset: 0 })
+
+    const lotte = page.contacts.filter((c) => c.gradidoId === LOTTE)
+    expect(lotte).toHaveLength(1)
+    expect(lotte[0]).toMatchObject({
+      // The half with the users row wins the identity, so the caller reads her CURRENT
+      // alias and picture rather than the name one booking happened to record.
+      linkedUserId: lotteRowId,
+      communityUuid: FOREIGN_COMMUNITY,
+      alias: 'lotte',
+      bookings: 2,
+    })
+    // Oldest of the two, newest of the two -- not one grouping's pair of dates.
+    expect(lotte[0].firstAt.getTime()).toBe(day(8).getTime())
+    expect(lotte[0].lastAt.getTime()).toBe(day(9).getTime())
   })
+
+  it('counts her once in the page count as well', async () => {
+    const page = await dbSelectContactsByUserId(peter.id, { limit: 25, offset: 0 })
+    // bibi and Lotte. Three rows before merging, which is what a page of 25 would have
+    // shown and what every later page would have been off by.
+    expect(page.count).toBe(2)
+    expect(page.contacts).toHaveLength(2)
+  })
+
+  // ⛔⛔ The property the whole delivery rests on, at the one shape that used to break it.
+  it('states exactly as many bookings as the narrowed booking list has', async () => {
+    const counterparty = await withMember(FOREIGN_COMMUNITY, LOTTE)
+    // The pair resolves to the stored row, so BOTH branches of bookingsWhere can match.
+    expect(counterparty.localUserId).toBe(lotteRowId)
+
+    const contacts = await dbSelectContactsByUserId(peter.id, {
+      counterparty,
+      limit: 25,
+      offset: 0,
+    })
+    const [, bookings] = await dbSelectTransactionsByUserId(peter.id, 25, 0, 'DESC', counterparty)
+
+    expect(contacts.count).toBe(1)
+    expect(contacts.contacts[0].bookings).toBe(bookings)
+    expect(bookings).toBe(2)
+  })
+})
+
+describe('dbSelectContactsByUserId narrowed to one counterparty', () => {
+  const contactFor = (userId: number, counterparty: Awaited<ReturnType<typeof withMember>>) =>
+    dbSelectContactsByUserId(userId, { counterparty, limit: 25, offset: 0 })
+
+  it('answers one contact for a member of this community, by their users row', async () => {
+    const peterRef = await withMember(peter.communityUuid as string, peter.gradidoID)
+    expect(peterRef.localUserId).toBe(peter.id)
+    const page = await contactFor(bibi.id, peterRef)
+    expect(page.count).toBe(1)
+    expect(page.contacts[0]).toMatchObject({ linkedUserId: peter.id, bookings: 3 })
+    expect(page.contacts[0].firstAt.getTime()).toBe(day(1).getTime())
+    expect(page.contacts[0].lastAt.getTime()).toBe(day(4).getTime())
+  })
+
+  it('answers one contact for a member of another community, by the pair', async () => {
+    const sarah = await withMember(FOREIGN_COMMUNITY, SARAH)
+    expect(sarah.localUserId).toBeNull()
+    const page = await contactFor(bibi.id, sarah)
+    expect(page.count).toBe(1)
+    expect(page.contacts[0]).toMatchObject({
+      linkedUserId: null,
+      communityUuid: FOREIGN_COMMUNITY,
+      alias: 'SarahP',
+      bookings: 2,
+    })
+  })
+
+  it('answers nothing for a pair nobody booked with', async () => {
+    const nobody = await withMember(FOREIGN_COMMUNITY, '00000000-0000-0000-0000-000000000000')
+    const page = await contactFor(bibi.id, nobody)
+    expect(page).toEqual({ contacts: [], count: 0 })
+  })
+
+  // ⛔ The same property `bookingsWhere` keeps, in the grouped domain: the answer is built
+  // from the CALLER's own bookings and nobody else's. bibi booked with peter, bob did not.
+  it("does not answer about another member's contact", async () => {
+    const peterRef = await withMember(peter.communityUuid as string, peter.gradidoID)
+    const page = await contactFor(bob.id, peterRef)
+    expect(page).toEqual({ contacts: [], count: 0 })
+  })
+
+  // ⛔⛔ The one guard that holds the two rules together. The contact window states this
+  // count and the link under it opens the booking list narrowed by `bookingsWhere`; if
+  // `isContactCounterparty` and that where clause ever part company, the window puts a
+  // number over a list of a different length and neither screen says which is wrong.
+  // Every kind of contact in the seed is tried, local and foreign, named and unnamed.
+  it('states exactly as many bookings as the narrowed booking list has', async () => {
+    const everyone: [string, string][] = [
+      [peter.communityUuid as string, peter.gradidoID],
+      [bob.communityUuid as string, bob.gradidoID],
+      [FOREIGN_COMMUNITY, SARAH],
+      [FOREIGN_COMMUNITY, ANNA],
+      [FOREIGN_COMMUNITY, TINA],
+    ]
+    for (const [communityUuid, gradidoId] of everyone) {
+      const counterparty = await withMember(communityUuid, gradidoId)
+      const contacts = await contactFor(bibi.id, counterparty)
+      const [, bookings] = await dbSelectTransactionsByUserId(bibi.id, 25, 0, 'DESC', counterparty)
+      expect(contacts.count).toBe(1)
+      expect(contacts.contacts[0].bookings).toBe(bookings)
+    }
+  })
+})
+
+describe('dbSelectTransactionsByUserId narrowed to one counterparty', () => {
   const page = (userId: number, counterparty: Awaited<ReturnType<typeof withMember>>) =>
     dbSelectTransactionsByUserId(userId, 25, 0, 'DESC', counterparty)
 

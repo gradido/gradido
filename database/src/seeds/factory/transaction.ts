@@ -61,10 +61,20 @@ export async function transferGradidos(
  *
  * @param name what the sending community called them; a pre-alias-era "First Last" is a
  *   legitimate value here, and the point of several tests
+ * @param linkedUserId the `users` row the federation stored for them, where there is one.
+ *   Left out it is null, which is the older shape and what every caller before 04.09.2026
+ *   wanted. Both shapes exist side by side for one person once such a row is stored --
+ *   `settlePendingReceiveTransaction` copies the id onto the booking from then on -- and
+ *   that is the case `mergeSamePerson` in queries/transactions.ts joins back together.
  */
 export async function foreignReceive(
   user: User,
-  counterparty: { communityUuid: string; gradidoID: string; name: string | null },
+  counterparty: {
+    communityUuid: string
+    gradidoID: string
+    name: string | null
+    linkedUserId?: number | null
+  },
   balanceDate: Date,
   amount: GradidoUnit = new GradidoUnit(10000n),
 ): Promise<Transaction> {
@@ -84,7 +94,7 @@ export async function foreignReceive(
   transaction.userGradidoID = user.gradidoID
   transaction.userName = fullName(user.firstName, user.lastName)
   transaction.userCommunityUuid = user.communityUuid
-  transaction.linkedUserId = null
+  transaction.linkedUserId = counterparty.linkedUserId ?? null
   transaction.linkedUserCommunityUuid = counterparty.communityUuid
   transaction.linkedUserGradidoID = counterparty.gradidoID
   transaction.linkedUserName = counterparty.name

@@ -418,6 +418,51 @@ describe('ContactResolver', () => {
         }
       })
 
+      /**
+       * ⛔ The single-contact lookup, which is what the contact window asks when it is
+       * opened from a BOOKING row rather than from the list (KF-010): that row names the
+       * member but carries none of the three figures, and they are a grouping over all
+       * bookings with them.
+       *
+       * Measured against BOTH neighbours -- the same contact inside the full list, and the
+       * booking list the window's link opens -- because the whole point of resolving it
+       * through `bookingCounterparty` is that all three come from one rule.
+       */
+      it('answers about one member, with the figures the list and the bookings agree on', async () => {
+        const list: any = await query({ query: contactList })
+        for (const inList of list.data.contactList.contacts) {
+          const one: any = await query({
+            query: contactList,
+            variables: {
+              ref: { gradidoID: inList.user.gradidoID, communityUuid: inList.user.communityUuid },
+            },
+          })
+          expect(one.data.contactList.contacts).toHaveLength(1)
+          expect(one.data.contactList.contacts[0]).toEqual(inList)
+          // And the count it states is the length of the list its link opens.
+          const bookings = await narrowed(inList.user)
+          expect(bookings.balance.count).toBe(one.data.contactList.contacts[0].bookings)
+        }
+      })
+
+      it('answers about nobody for a pair nobody booked with', async () => {
+        const one: any = await query({
+          query: contactList,
+          variables: { ref: { gradidoID: uuidv4(), communityUuid: FOREIGN_COMMUNITY } },
+        })
+        expect(one.data.contactList.contacts).toEqual([])
+        expect(one.data.contactList.count).toBe(0)
+      })
+
+      it('fills in the home community for a member asked about without one', async () => {
+        const one: any = await query({
+          query: contactList,
+          variables: { ref: { gradidoID: peter.gradidoID, communityUuid: null } },
+        })
+        expect(one.data.contactList.contacts).toHaveLength(1)
+        expect(one.data.contactList.contacts[0].user.gradidoID).toBe(peter.gradidoID)
+      })
+
       it('carries neither the decay row nor the link summary', async () => {
         const whole: any = await query({ query: transactionsQuery })
         expect(whole.data.transactionList.transactions[0].typeId).toBe('DECAY')
@@ -451,6 +496,22 @@ describe('ContactResolver', () => {
           const bookings = await narrowed(other)
           expect(bookings.transactions).toEqual([])
           expect(bookings.balance.count).toBe(0)
+        }
+      })
+
+      // ⛔ And the same property for the single-contact lookup, which is the other half of
+      // the pair: asking about somebody by their uuid pair must not answer about a person
+      // one has never booked with. The answer is built from the CALLER's own bookings.
+      it("tells him nothing about bibi's contacts either", async () => {
+        for (const other of [peter, anna]) {
+          const one: any = await query({
+            query: contactList,
+            variables: {
+              ref: { gradidoID: other.gradidoID, communityUuid: other.communityUuid },
+            },
+          })
+          expect(one.data.contactList.contacts).toEqual([])
+          expect(one.data.contactList.count).toBe(0)
         }
       })
     })
