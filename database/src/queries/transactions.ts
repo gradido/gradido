@@ -90,6 +90,26 @@ export const bookingsWhere = (
 }
 
 /**
+ * Whether one grouped contact IS the counterparty asked about -- the same two branches
+ * `bookingsWhere` selects bookings by, in the grouped domain, and deliberately next to it.
+ *
+ * ⛔ The two rules must stay one rule. The contact window states a number ("51 bookings")
+ * and the link under that number opens the booking list narrowed by `bookingsWhere`. A
+ * contact matched here by a rule the booking filter does not share would put a count over
+ * a list of a different length, and nothing on either screen would say which was wrong.
+ *
+ * A local contact is matched by the `users` row, never by the pair: the grouping keys
+ * those rows by `linked_user_id` for the reason `bookingsWhere` gives -- an old booking may
+ * carry no pair at all. Where the asked-about pair resolved to no row (`localUserId` null),
+ * no local contact can match, which is the closed answer and the same one the where clause
+ * gives by leaving its id branch out.
+ */
+const isContactCounterparty = (row: ContactRow, counterparty: BookingCounterparty): boolean =>
+  row.linkedUserId !== null
+    ? row.linkedUserId === counterparty.localUserId
+    : row.gradidoId === counterparty.gradidoId && row.communityUuid === counterparty.communityUuid
+
+/**
  * One member's bookings, one page at a time, with the row before each one (which feeds
  * `previousBalance`) -- the whole account, or only the bookings shared with `counterparty`.
  *
@@ -218,13 +238,23 @@ const aliasOrNull = (stored: unknown): string | null => {
  * `search` matches the alias, case-insensitively, anywhere in it -- the guarded alias, so a
  * foreign contact whose stored name is not alias-shaped matches nothing (see ContactRow).
  *
+ * `counterparty` narrows the whole thing to ONE person, by the rule `isContactCounterparty`
+ * holds -- the lookup behind the contact window when it is opened from a booking row rather
+ * than from the contact list. `count` is then 0 or 1.
+ *
  * `order` is over `lastAt`, newest first unless asked otherwise -- the direction the API
  * offers through the house `Paginated` arguments. A plain string union rather than the
  * backend's `Order` enum, which this package cannot import.
  */
 export async function dbSelectContactsByUserId(
   userId: number,
-  options: { search?: string; limit: number; offset: number; order?: 'ASC' | 'DESC' },
+  options: {
+    search?: string
+    counterparty?: BookingCounterparty
+    limit: number
+    offset: number
+    order?: 'ASC' | 'DESC'
+  },
 ): Promise<ContactsPage> {
   const db = drizzleDb()
   const withCounterparty = and(
@@ -305,10 +335,18 @@ export async function dbSelectContactsByUserId(
     })),
   ]
 
+  // One member rather than the page: what the wallet asks when a booking row is tapped and
+  // the window over it has to state the same figures the contact list states. Narrowed
+  // before the search, which then has one row to look at -- the two are independent.
+  const { counterparty } = options
+  const narrowed = counterparty
+    ? rows.filter((row) => isContactCounterparty(row, counterparty))
+    : rows
+
   const needle = options.search?.trim().toLowerCase()
   const matching = needle
-    ? rows.filter((row) => (row.alias ?? '').toLowerCase().includes(needle))
-    : rows
+    ? narrowed.filter((row) => (row.alias ?? '').toLowerCase().includes(needle))
+    : narrowed
   // ⛔ The pair breaks a tie on the date. Two contacts can share a balance_date, the two
   // groupings come back in whatever order the engine chose, and every page is a SEPARATE
   // request -- so without this a tied contact can appear on two pages, or on none.
