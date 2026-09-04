@@ -330,6 +330,58 @@ describe('LastTransactions', () => {
     })
   })
 
+  /**
+   * ⛔ The two pieces of wiring the heart's position hangs on, and nothing measured either:
+   * ONE row per booking, and `min-w-0` on the column that grows. Delete either and every
+   * other test in this file stays green while the heart drops onto a line of its own again
+   * -- at a different width for every booking, because a `.col` without `min-width: 0`
+   * floors at its own widest unbreakable text (the fault Bernd reported on 04.09.2026).
+   *
+   * ⚠️ What this canNOT see is the CSS itself: jsdom does no layout, so `min-width: 0`
+   * proves nothing here as a rule -- only as a class that is present on the right column.
+   * The widths in the component's own comments were measured in a browser against the real
+   * Bootstrap grid, not here.
+   */
+  it('keeps the heart in the booking own row, beside a column that may shrink', () => {
+    wrapper = mount(LastTransactions, {
+      props: {
+        transactions: [
+          {
+            id: 7,
+            typeId: 'SEND',
+            linkedUser: { alias: 'paula', gradidoID: 'u-7' },
+            amount: -45,
+            balanceDate: '2026-08-26',
+          },
+        ],
+      },
+      global: {
+        mocks: {
+          $t: (key) => key,
+          $d: (date) => String(date),
+          $filters: { signedAmount: (amount) => String(amount) },
+        },
+        stubs: {
+          BRow: { template: '<div class="row-stub"><slot /></div>' },
+          BCol: { template: '<div class="col-stub"><slot /></div>' },
+        },
+      },
+    })
+
+    // One row, not a row inside a row: the nested one is what let the heart wrap.
+    expect(wrapper.findAll('.row-stub')).toHaveLength(1)
+
+    // Face, text and heart are the three columns OF that row -- the heart a sibling of the
+    // name's column, not a passenger in a second row underneath it.
+    const nameColumn = wrapper.find('.name').element.closest('.col-stub')
+    const heartColumn = wrapper.find('.heart-stub').element.closest('.col-stub')
+    expect(nameColumn.parentElement).toBe(heartColumn.parentElement)
+    expect(nameColumn.parentElement.className).toContain('row-stub')
+
+    // And the name's column is the one allowed to give way.
+    expect(nameColumn.className).toContain('min-w-0')
+  })
+
   it('draws a heart beside every row that has a counterparty, and none where there is none', async () => {
     const transactions = [
       {
