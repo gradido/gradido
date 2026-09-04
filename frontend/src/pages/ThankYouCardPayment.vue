@@ -177,12 +177,16 @@
       </div>
 
       <!--
-        ⛔ The half the Gradido did NOT cover, and the last place it can still be read. The
+        ⛔ What is still owed in the local currency, and the last place it can be read. The
         customer saw it on the calculator before the card was scanned; by the time this
         screen appears that display is two navigations away, and nobody wrote the number
         down. Without this line the only ways left are remembering it or paying the local
         currency FIRST -- which is the order the till was built to get rid of.
         (Bernd, 22.08.2026)
+
+        ★ It also survives an edited Gradido amount, which is the common case at a counter --
+        somebody offering more than the calculator worked out. The reasoning is on
+        `onAmountTyped`. (Bernd, 04.09.2026)
 
         Shown only when there IS a remainder: a sale settled fully in Gradido has none, and
         a line reading "0,00 € to be settled separately" would invent a debt.
@@ -368,13 +372,24 @@ onMounted(() => {
  * has not changed.
  */
 const onAmountTyped = async (value) => {
+  // The note above the field goes -- this figure is no longer the calculator's.
   fromCalculator.value = false
-  // ⛔ And the remainder with it: the two are ONE claim -- "this figure came from a
-  // calculation, which also left 4,20 € to pay". Typed over, the Gradido amount is no
-  // longer the one the split was worked out for, so the remainder beside it on the receipt
-  // would be a money figure shown to a customer that belongs to a different sale.
-  // (coderabbit, PR #3782)
-  rest.value = null
+  /*
+   * ⛔ The remainder STAYS, and that is the whole difference between the two lines. It used
+   * to be cleared here as well, on the reading that they are one claim -- "this figure came
+   * from a calculation, which also left 4,20 € to pay" (coderabbit, PR #3782). That reading
+   * makes the two halves one sum. They are not: this screen holds two figures beside each
+   * other and has no way of turning one into the other -- the split was worked out in the
+   * calculator (Gradido share, purchasing-power factor), and neither the share nor the factor
+   * travels with the parked amount. There is no price of Gradido here to re-derive one from.
+   *
+   * What the edit usually IS at the counter: a customer offering MORE Gradido than the
+   * calculator worked out. The cash half of that sale does not move, and the merchant still
+   * has to collect it -- dropping the line would take away the last place it can be read.
+   * The rarer edit downwards (a card that cannot cover the amount) is settled between the
+   * two people standing there, so there is nothing here to recalculate either way.
+   * (Bernd, 04.09.2026)
+   */
   const typed = String(value)
   const allowed = withAtMostTwoDecimals(typed)
   if (allowed !== typed) {
