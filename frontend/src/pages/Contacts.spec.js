@@ -2,6 +2,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { nextTick } from 'vue'
+import { BPagination } from 'bootstrap-vue-next'
 import Contacts from './Contacts.vue'
 import { forgetFavorites, markFavorite, rememberFavorites } from '@/composables/useFavorites'
 
@@ -64,11 +65,15 @@ describe('Contacts page', () => {
           },
           BSpinner: true,
           BPagination: {
-            // `hideEllipsis` is carried through: it is what makes the pager fit the
-            // narrowed page, so it has to be visible to a test.
-            props: ['modelValue', 'totalRows', 'perPage', 'hideEllipsis'],
+            // `noEllipsis` is carried through: it is what makes the pager fit the narrowed
+            // page, so it has to be visible to a test.
+            //
+            // ⛔ A stub answers to whatever prop name it is handed, which is exactly how the
+            // wrong one got this far -- see the test at the foot of this file, which asks
+            // the REAL component instead.
+            props: ['modelValue', 'totalRows', 'perPage', 'noEllipsis'],
             template:
-              '<nav data-test="contacts-pagination" :data-total="totalRows" :data-hide-ellipsis="hideEllipsis" />',
+              '<nav data-test="contacts-pagination" :data-total="totalRows" :data-no-ellipsis="noEllipsis" />',
           },
           // Emits `open` the way the real row does, so the page's half of KF-010 -- which
           // person the window is handed -- is what is measured here. The window's own
@@ -146,8 +151,8 @@ describe('Contacts page', () => {
     // ⛔ The two "..." are two buttons wide, and this page is now only as wide as a phone.
     // With them the pager measures 483 points and does not fit -- and it never fit a phone
     // either. Measured in a browser; what can be held here is that the page still asks for
-    // them to be hidden, the way the wallet's own paginator does.
-    expect(wrapper.find('[data-test="contacts-pagination"]').attributes('data-hide-ellipsis')).toBe(
+    // them to be hidden.
+    expect(wrapper.find('[data-test="contacts-pagination"]').attributes('data-no-ellipsis')).toBe(
       'true',
     )
   })
@@ -205,5 +210,31 @@ describe('Contacts page', () => {
     await nextTick()
     const lastCall = fetchMemberAvatars.mock.calls.at(-1)
     expect(lastCall[1].map((m) => m.gradidoID)).toEqual(['id-1', 'id-2', 'id-3'])
+  })
+  /**
+   * ⛔⛔ The test above asks a STUB, and a stub answers to any prop name it is handed. This
+   * one asks the real component, and it is the only reason the name is right.
+   *
+   * The page first shipped `hide-ellipsis` -- BootstrapVue's Vue-2 name, copied from
+   * `PaginatorRouteParamsPage`, which still carries it. It does not exist in
+   * bootstrap-vue-next: the string does not occur once in the installed 0.26.8 bundle, and
+   * the component renders both "..." with it exactly as it does without it. The stub test
+   * stayed green throughout, because the stub declared whatever the page was passing.
+   *
+   * ⚠️ So this asserts the EFFECT, not the name: what the page needs is a pager without
+   * ellipses, whatever the library ends up calling that.
+   */
+  it('really loses its ellipses with the prop the page passes', () => {
+    const props = { modelValue: 6, perPage: 25, totalRows: 290, pills: true, size: 'lg' }
+    const without = mount(BPagination, { props })
+    const withProp = mount(BPagination, { props: { ...props, noEllipsis: true } })
+
+    // The pager has ellipses to lose -- otherwise the assertion below would hold for the
+    // uninteresting reason that this page count never shows any.
+    expect(without.html()).toContain('\u2026')
+    expect(withProp.html()).not.toContain('\u2026')
+
+    without.unmount()
+    withProp.unmount()
   })
 })

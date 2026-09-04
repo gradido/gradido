@@ -59,21 +59,32 @@
         <div v-else class="text-muted small" data-test="contacts-none-match">
           {{ $t('contacts.count', 0) }}
         </div>
-        <!-- ⛔ `hide-ellipsis`, as the wallet's own paginator has it
-             (`PaginatorRouteParamsPage`): the two "..." are two buttons wide and say
-             nothing the arrows beside them do not. Measured in a browser against the built
-             Bootstrap: with them this pager is 483 points wide and does not fit the page's
-             measure at all -- and it did not fit a PHONE either, which is where it has
-             always been narrowest. Without them it is 440, or 442 once the page numbers
-             reach two digits, and the `flex-wrap` in the stylesheet below catches that
-             remainder rather than a number I happened to measure. -->
+        <!-- ⛔ `no-ellipsis`: the two "..." are two buttons wide and say nothing the arrows
+             beside them do not. Measured in a browser against the built Bootstrap: with
+             them this pager is 483 points wide and does not fit the page's measure at all
+             -- and it did not fit a PHONE either, which is where it has always been
+             narrowest. Without them it is 421, or 442 once the page numbers reach two
+             digits, and the `flex-wrap` in the stylesheet below catches that remainder
+             rather than a number I happened to measure.
+
+             ⛔⛔ It is `no-ellipsis`, NOT `hide-ellipsis`. `hide-ellipsis` is BootstrapVue's
+             Vue-2 name and does not exist in bootstrap-vue-next: the string does not occur
+             once in the installed 0.26.8 bundle, and passing it renders both "..." exactly
+             as passing nothing does (measured on the real component: 2 ellipses without the
+             prop, 2 with `hide-ellipsis`, 0 with `no-ellipsis`).
+
+             ⚠️ `PaginatorRouteParamsPage` still carries `:hide-ellipsis="true"`, which is
+             where this was copied from -- so that paginator has never hidden anything, and
+             the next person to copy the pattern inherits the same dead prop. Left alone
+             here on purpose: correcting it changes what the contributions and booking pages
+             look like, which is a decision, not a fix. (coderabbit found this, 04.09.2026.) -->
         <BPagination
           v-if="otherRows.length > PAGE_SIZE"
           v-model="currentPage"
           class="mt-3 contacts-pager"
           pills
           size="lg"
-          :hide-ellipsis="true"
+          :no-ellipsis="true"
           :per-page="PAGE_SIZE"
           :total-rows="otherRows.length"
           align="center"
