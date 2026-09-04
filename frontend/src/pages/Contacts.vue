@@ -59,25 +59,27 @@
         <div v-else class="text-muted small" data-test="contacts-none-match">
           {{ $t('contacts.count', 0) }}
         </div>
-        <!-- ⛔ `no-ellipsis`: the two "..." are two buttons wide and say nothing the arrows
-             beside them do not. Measured in a browser against the built Bootstrap: with
-             them this pager is 483 points wide and does not fit the page's measure at all
-             -- and it did not fit a PHONE either, which is where it has always been
-             narrowest. Without them it is 421, or 442 once the page numbers reach two
-             digits, and the `flex-wrap` in the stylesheet below catches that remainder
-             rather than a number I happened to measure.
+        <!-- ⛔ `no-ellipsis` does NOT make this pager narrower, and an earlier note here
+             claimed it did. Measured properly on the real component, at 290 rows and 25 a
+             page: with the "..." it is 549 points, without them 540. The component does not
+             drop the two placeholders, it REPLACES them with two more page numbers --
+             `« ‹ … 2 3 4 … › »` becomes `« ‹ 1 2 3 4 5 › »`. So the reason to pass it is
+             not width but worth: two dead placeholders become two buttons one can actually
+             press. (Bernd, 04.09.2026: the dots had been irritating him for a while.)
+
+             ⛔ What makes it fit is `limit`, and that is the line the single row depends on:
+             three page numbers rather than five, `« ‹ 2 3 4 › »`, 421 points against this
+             page's 450. At `limit="4"` it is 479 and wraps again, so this is not a spare
+             margin -- do not raise it without measuring. The arrows keep every page
+             reachable: `«` first, `»` last.
 
              ⛔⛔ It is `no-ellipsis`, NOT `hide-ellipsis`. `hide-ellipsis` is BootstrapVue's
              Vue-2 name and does not exist in bootstrap-vue-next: the string does not occur
              once in the installed 0.26.8 bundle, and passing it renders both "..." exactly
-             as passing nothing does (measured on the real component: 2 ellipses without the
-             prop, 2 with `hide-ellipsis`, 0 with `no-ellipsis`).
-
-             ⚠️ `PaginatorRouteParamsPage` still carries `:hide-ellipsis="true"`, which is
-             where this was copied from -- so that paginator has never hidden anything, and
-             the next person to copy the pattern inherits the same dead prop. Left alone
-             here on purpose: correcting it changes what the contributions and booking pages
-             look like, which is a decision, not a fix. (coderabbit found this, 04.09.2026.) -->
+             as passing nothing does. Three other pagers in this wallet carried it, all
+             inert; they were corrected in the same delivery. There is a test at the foot of
+             `Contacts.spec.js` that reads every `.vue` file and fails on the dead name, so
+             the next copy of it cannot get in. (coderabbit found the first one, 04.09.2026.) -->
         <BPagination
           v-if="otherRows.length > PAGE_SIZE"
           v-model="currentPage"
@@ -85,6 +87,7 @@
           pills
           size="lg"
           :no-ellipsis="true"
+          :limit="3"
           :per-page="PAGE_SIZE"
           :total-rows="otherRows.length"
           align="center"
@@ -234,10 +237,11 @@ watch(
   max-width: 450px;
 }
 
-/* The guard behind the number above. `.pagination` is a flex row and Bootstrap leaves it at
-   `nowrap`, so anything wider than the page does not wrap -- it spills out of it. This does
-   not depend on a width I measured: whatever the page count and however wide the digits,
-   the pager gives way by taking a second line. */
+/* The guard behind the number above, and it stays even though `limit` now makes the pager
+   fit: `.pagination` is a flex row that Bootstrap leaves at `nowrap`, so anything wider than
+   the page does not wrap -- it spills out of it. On a phone the column is narrower than any
+   pager can be, so there it WILL take a second line, and that is the right way to give way.
+   What it must not do is hang out of the page. */
 .contacts-pager {
   flex-wrap: wrap;
 }
