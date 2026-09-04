@@ -390,9 +390,15 @@ export class TransactionResolver {
     const unfilledLocals = involvedDbUsers.filter((u) => !u.foreign && !u.communityUuid)
     if (unfilledLocals.length > 0) {
       const home = await getHomeCommunity()
+      if (!home?.communityUuid) {
+        // Without a home uuid there is nothing to stand in, and the field is non-null: the
+        // list would fail on that row anyway, with a message that names no cause. The same
+        // error the contact list raises for the same state (resolveCommunityUuid).
+        throw new LogError('Home community has no uuid, cannot name a member without one')
+      }
       for (const row of unfilledLocals) {
         const model = involvedUsers.find((u) => u.id === row.id)
-        if (model && home?.communityUuid) {
+        if (model) {
           model.communityUuid = home.communityUuid
         }
       }
