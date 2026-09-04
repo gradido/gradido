@@ -72,6 +72,25 @@ describe('GddTransactionList', () => {
       })
     })
 
+    // Two kinds of nothing: an account without bookings, and a list narrowed to a member
+    // there are none with. The second must not tell somebody with hundreds of bookings
+    // that they have none.
+    describe('nothing to show, narrowed to one member', () => {
+      beforeEach(async () => {
+        await wrapper.setProps({
+          transactions: [],
+          transactionCount: 0,
+          pending: false,
+          narrowed: true,
+        })
+      })
+      it('says there are no bookings with this member, not that there are none at all', () => {
+        const text = wrapper.find('div.gdd-transaction-list').text()
+        expect(text).toContain('transaction.noneWithMember')
+        expect(text).not.toContain('transaction.nullTransactions')
+      })
+    })
+
     describe('without any properties', () => {
       beforeEach(async () => {
         await wrapper.setProps({
