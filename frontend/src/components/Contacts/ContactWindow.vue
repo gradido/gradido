@@ -212,8 +212,11 @@ const toSend = (art) => {
   position: relative;
 }
 
-/* Top right of the body, and the head keeps its own padding clear of it so a long name
-   cannot run under the cross. */
+/* Top right of the body. ⚠️ Absolutely positioned, so it is OUT of the flow and the name
+   beside it lays out straight through the space it occupies -- the head has to reserve that
+   space itself, which is what the `padding-right` below does. This comment used to claim
+   that reservation while no rule made it, and a long alias ran under the cross.
+   (coderabbit, PR #3840.) */
 .contact-window-close {
   position: absolute;
   top: 0.5rem;
@@ -238,6 +241,9 @@ const toSend = (art) => {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+
+  /* The room the cross needs: 0.65rem from the right edge plus its own box. */
+  padding-right: 2rem;
 }
 
 .contact-window-who {

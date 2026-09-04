@@ -1,4 +1,7 @@
 // AI-GENERATED — not an architecture reference
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import ContactWindow from './ContactWindow.vue'
@@ -190,6 +193,23 @@ describe('ContactWindow', () => {
    * reaches a screen reader as "times" or as nothing at all, and this window has no header
    * to name it from.
    */
+  /**
+   * ⛔ The cross is out of the flow, so the name beside it lays out straight through the
+   * space it sits in and a long alias ran under it. The comment beside the rule claimed
+   * this reservation for a week while no rule made it -- so it is measured in the
+   * STYLESHEET, which is the only place jsdom lets it be seen at all.
+   */
+  it('reserves the room the cross takes, in the stylesheet', () => {
+    const source = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'ContactWindow.vue'),
+      'utf8',
+    )
+    const head = source.match(/\.contact-window-head\s*\{[^}]*\}/)
+
+    expect(head, '.contact-window-head no longer exists').not.toBeNull()
+    expect(head[0]).toMatch(/padding-right:\s*[\d.]+rem/)
+  })
+
   it('closes from a cross that says what it is', async () => {
     mountWindow()
     const cross = wrapper.find('[data-test="contact-window-close"]')
