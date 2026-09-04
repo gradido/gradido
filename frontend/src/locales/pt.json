@@ -1049,8 +1049,12 @@
     "years": "Ano"
   },
   "transaction": {
+    "allBookings": "Mostrar todos os movimentos",
     "lastTransactions": "Últimas transações",
+    "noneWithMember": "Ainda não há movimentos com este membro.",
     "nullTransactions": "Ainda não tens transações na tua conta.",
+    "onlyWith": "Apenas movimentos com {name}",
+    "onlyWithSomeone": "Apenas movimentos com um membro",
     "receiverDeleted": "A conta do destinatário foi eliminada",
     "receiverNotFound": "Destinatário não encontrado",
     "show_all": "Ver todas as <strong>{count}</strong> transações"

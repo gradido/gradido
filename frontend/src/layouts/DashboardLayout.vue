@@ -213,12 +213,6 @@
                     ref="router-view"
                     :balance="balance"
                     :gdt-balance="GdtBalance"
-                    :transactions="transactions"
-                    :list-page="listPage"
-                    :transaction-count="transactionCount"
-                    :transaction-link-count="transactionLinkCount"
-                    :open-link-count="openLinkCount"
-                    :pending="pending"
                     @update-transactions="updateTransactions"
                   ></router-view>
                 </transition-fade>
@@ -256,14 +250,11 @@
               />
             </template>
             <template #transactions>
-              <!-- ⛔ `newestTransactions`, NOT the list the transactions page pages through.
-                   The column shows the member's newest bookings; feeding it the paged list
-                   put page three beside the overview. -->
-              <last-transactions
-                :transactions="newestTransactions"
-                :transaction-count="transactionCount"
-                :transaction-link-count="transactionLinkCount"
-              />
+              <!-- The member's newest bookings, off this layout's own query. The list the
+                   transactions page pages through is that page's own (Transactions.vue) and
+                   never reaches here -- which is what keeps page three, or a list narrowed
+                   to one contact, out of a column that says "last transactions". -->
+              <last-transactions :transactions="newestTransactions" />
             </template>
             <template #contributions>
               <contributions-template />
@@ -330,7 +321,7 @@ import { refreshContactsPanel } from '@/composables/useContactsPanel'
 import { useRightSidePref } from '@/composables/useRightSidePref'
 import { useViewport } from '@/composables/useViewport'
 import CONFIG from '@/config'
-import { LAST_TRANSACTIONS_PAGE_SIZE, PAGE_SIZE } from '@/constants'
+import { LAST_TRANSACTIONS_PAGE_SIZE } from '@/constants'
 import { useAppToast } from '@/composables/useToast'
 
 const store = useStore()
@@ -489,72 +480,32 @@ const bareTopSpace = computed(() => (bareChrome.value ? 'pt-lg-4' : ''))
 const router = useRouter()
 
 /**
- * What the ONE booking query asks for: the newest page, in the size the open route names.
+ * What this layout's booking query asks for -- always the same thing: the balance, and the
+ * member's newest bookings in the size the column beside the overview reads.
  *
- * A page number only ever comes from a paginator click within one visit
- * (`updateTransactions` below); it can no longer survive a navigation, which is the fix the
- * route watch further down explains in full.
- *
- * ⛔ `route.meta.transactionsPageSize`, and NOT a table in here keyed by the first path
- * segment. That is the same lookup `rightSidePanel` above was rewritten away from three days
- * ago, for two reasons that apply word for word: sibling routes could not differ, and the
- * path had to be parsed to find the answer at all. A route that shows bookings now says so
- * where it is declared; routes without the line ask for nothing -- this answers `null` and
- * the watch leaves them alone.
+ * ⛔ Not the list the transactions page shows. That page fetches its own (Transactions.vue),
+ * with its own page number and, where a contact window sent it there, narrowed to one
+ * member. While one query served both, every page turn and every filter had to be kept
+ * out of the header and the column by hand, and it was not.
  */
-const listVariables = (pageSize) =>
-  pageSize === undefined ? null : { currentPage: 1, pageSize, order: 'DESC' }
+const NEWEST_BOOKINGS = {
+  currentPage: 1,
+  pageSize: LAST_TRANSACTIONS_PAGE_SIZE,
+  order: 'DESC',
+}
 
 const {
   refetch: useRefetchTransactionsQuery,
   onError,
   onResult,
-} = useQuery(
-  transactionsUserCountQuery,
-  // Read from the route this layout STARTS on, not a fixed size. The watch below fires on a
-  // navigation, and a member who reloads on /transactions or opens a bookmark to it never
-  // makes one -- for them this call is the only one there is. Every other route falls back to
-  // the column's size, which is what the header needs and the cheaper of the two.
-  listVariables(route.meta.transactionsPageSize) ?? listVariables(LAST_TRANSACTIONS_PAGE_SIZE),
-  { fetchPolicy: 'network-only' },
-)
+} = useQuery(transactionsUserCountQuery, NEWEST_BOOKINGS, { fetchPolicy: 'network-only' })
 const { mutate: useLogoutMutation } = useMutation(logout)
 const { toastError } = useAppToast()
 
 const balance = ref(0)
 const GdtBalance = ref(0)
-const transactions = ref([])
-
-/**
- * The page of `transactions` currently loaded, and the rows the column beside the overview
- * draws from.
- *
- * Two refs rather than one, because the column and the list want different things from the
- * same query: the list wants the page that was asked for, the column wants the newest
- * bookings and nothing else. `newestTransactions` is therefore only written when the answer
- * that arrived belongs to page one -- so the paged list does not reach the column even for
- * the moment between a navigation and its refetch, which is what a member on a slow
- * connection would have seen.
- *
- * ⚠️ `listPage` is what was ASKED FOR, and an answer is attributed to whatever it says when
- * that answer arrives -- Apollo hands `onResult` no variables to check it against. That reads
- * like a race (turn a page, leave for the overview, the page-three answer lands under the
- * column), and it is not one: `ObservableQuery`'s own observer reports a result only
- * `if (equal(this.variables, variables))` -- the variables the request went out with against
- * the ones the query holds now (node_modules/@apollo/client/core/ObservableQuery.js, in
- * `reobserveAsConcast`). A refetch replaces those variables before it goes out, so the
- * superseded answer is dropped and never reaches this handler.
- *
- * ⛔ Which means the guard below rests on a foreign library's delivery rule. Measured, not
- * assumed -- but if a future Apollo stops dropping superseded answers, this is where it
- * shows: the column would take a paged answer as the newest bookings.
- */
-const listPage = ref(1)
+/** The rows the column beside the overview draws from -- the newest, never a paged list. */
 const newestTransactions = ref([])
-const transactionCount = ref(0)
-const transactionLinkCount = ref(0)
-const openLinkCount = ref(0)
-const pending = ref(true)
 const skeleton = ref(true)
 const totalUsers = ref(null)
 
@@ -580,31 +531,19 @@ const logoutUser = async () => {
 }
 
 /**
- * A page turned on the transactions list -- or a page that changed something and wants the
- * numbers up here to catch up (`Send` after a transfer, the link summary after a link was
- * withdrawn).
+ * A page changed something and wants the numbers up here to catch up: `Send` after a
+ * transfer, the transactions page after a link was withdrawn from its summary row.
  *
- * ⚠️ Defaults rather than bare destructuring, because both kinds of caller come through
- * here. `Send` calls it as `updateTransactions({})`; that used to reach Apollo as two
- * `undefined` variables, leaving the SERVER's defaults to decide which page a transfer left
- * the member on. The answer is the same one -- page one, `PAGE_SIZE` -- but it is now said
- * here, where the paginator's size is read from the same constant.
+ * No page number any more. Turning a page is the transactions page's own business now, and
+ * this query asks for the newest bookings whatever happens -- so the refetch takes no
+ * variables and repeats the ones it was mounted with.
  */
 const updateTransactions = (args = {}) => {
-  const { currentPage = 1, pageSize = PAGE_SIZE } = args
-  pending.value = true
-  listPage.value = currentPage
-  useRefetchTransactionsQuery({ currentPage, pageSize, order: 'DESC' })
+  useRefetchTransactionsQuery()
   // ⚠️ The CALLER says whether a counterparty was involved, and only that refreshes the
-  // contacts. Guessing it from the absence of a page number was close but not right: `Send`
+  // contacts. Guessing it from the shape of the call was close but not right: `Send`
   // calls this twice, once after a transfer and once after creating a LINK, and a link
   // names nobody -- so every link cost a contact-list round trip whose answer was identical.
-  //
-  // Measured at the call sites rather than at the emitters, because the two disagree here.
-  // `GddTransactionList.askForPage` sends a page; `Send` sends `contactsChanged` on the
-  // coins path only. `TransactionLinkSummary` emits with no argument at all and never
-  // reaches this function: `GddTransactionList` is its only parent and intercepts it with
-  // `@update-transactions="askForPage(currentPage)"`, which re-emits a page.
   //
   // ⛔ And it is never dropped. With no panel on screen `refreshContactsPanel` marks the
   // list as due instead of fetching, so the next mount asks -- a transfer made while the
@@ -620,35 +559,26 @@ const updateTransactions = (args = {}) => {
  * ⛔ The balance in the header is fetched ONCE, when this layout mounts -- and the layout
  * outlives every route change, so nothing brings it up to date on its own. Until now the
  * only thing that refreshed it was a page saying so: `Send` emits `update-transactions`
- * after a transfer, `Transactions` on paging. A payment made anywhere ELSE left the old
- * number standing on every screen the member visited afterwards -- and a thank you card
- * payment happens on its own page, at somebody else's till, and says nothing to this layout.
+ * after a transfer. A payment made anywhere ELSE left the old number standing on every
+ * screen the member visited afterwards -- and a thank you card payment happens on its own
+ * page, at somebody else's till, and says nothing to this layout.
  *
  * ⚠️ Not a cache policy and not a page reload. The query already asks the server
  * (`network-only`); it simply never ran a second time. A reload would have hidden that by
  * throwing the whole application away, which is why it looked like an answer.
  *
- * ⛔ Refetched with the SECTION's own variables, and that is what puts a member back on page
- * one. It used to go out with no arguments so that Apollo would reuse whatever the query
- * already had, and the note here defended that as "somebody sitting on page three is not
- * sent back to page one" -- but this watch fires on a PATH change, and turning a page does
- * not change the path, so it never protected anybody sitting anywhere. What it did instead
- * was carry page three OUT of the list: the overview's column showed page three as the
- * member's newest bookings, and coming back to /transactions showed page three under a
- * paginator that had been rebuilt at page one, with the buttons back to page one disabled.
- * (Bernd, 30.08.2026.)
+ * Which pages: the ones whose route says `refreshBalance` -- declared there, for the reason
+ * `rightSidePanel` above gives. Not every route: a tap on a contact beside the send form
+ * pushes /send/<community>/<member>, and a query on every one of those drew nothing.
  */
 watch(
   () => route.path,
-  (path) => {
+  () => {
     // `path` is what changed; the answer is on the route record it changed to.
-    const variables = listVariables(route.meta.transactionsPageSize)
-    if (!variables) {
+    if (!route.meta.refreshBalance) {
       return
     }
-    pending.value = true
-    listPage.value = 1
-    useRefetchTransactionsQuery(variables)
+    useRefetchTransactionsQuery()
   },
 )
 
@@ -686,39 +616,18 @@ onResult((value) => {
     if (value.data.transactionList) {
       const tr = value.data.transactionList
       GdtBalance.value = tr.balance?.balanceGDT === null ? 0 : Number(tr.balance?.balanceGDT)
-      transactions.value = tr.transactions || []
-      // Only page one reaches the column beside the overview -- see `newestTransactions`.
-      //
-      // ⚠️ A copy of the array, not the array. Assigning it straight across left both refs
-      // holding ONE array, so the column would silently follow any later in-place change to
-      // the list -- a `.sort()` for display, an optimistic `.push()` -- without a fetch of
-      // its own, which is the coupling this ref exists to end. The rows inside are shared;
-      // only the array is not.
-      if (listPage.value === 1) {
-        newestTransactions.value = [...transactions.value]
-      }
-      collectMemberAvatars(transactions.value)
+      newestTransactions.value = tr.transactions || []
+      collectMemberAvatars(newestTransactions.value)
       balance.value = Number(tr.balance?.balance) || 0
-      transactionCount.value = tr.balance?.count || 0
-      transactionLinkCount.value = tr.balance?.linkCount || 0
-      openLinkCount.value = tr.balance?.openLinkCount || 0
     }
     if (value.data.communityStatistics) {
       totalUsers.value = value.data.communityStatistics.totalUsers || 0
     }
   }
-  pending.value = false
   skeleton.value = false
 })
 
 onError((error) => {
-  transactionCount.value = -1
-  // ⚠️ Cleared here too, not only on the way that succeeds. `pending` is handed to the page
-  // inside the router-view, so a refetch that fails leaves that page waiting for something
-  // that is never coming. It mattered less while only a deliberate action set it; since the
-  // watch above sets it on every navigation to those two pages, one failed request would
-  // strand whatever the member opened next.
-  pending.value = false
   toastError(error.message)
 })
 

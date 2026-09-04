@@ -116,17 +116,15 @@ describe('the right-hand column is a property of the route', () => {
   })
 
   /**
-   * ⛔ `transactionsPageSize` says what the PAGE needs, never what the column needs. It arms
-   * the layout's route watch, so a route that carries it refetches the bookings on every
-   * navigation into it -- and /send is navigated into by the contacts column itself, once
-   * per tapped contact. The column is fed from the layout's mount-time query either way.
+   * ⛔ `refreshBalance` arms the layout's route watch, so a route that carries it fetches
+   * the balance and the newest bookings again on every navigation into it -- and /send is
+   * navigated into by the contacts column itself, once per tapped contact. The column is
+   * fed from the layout's mount-time query either way.
    */
-  it('asks for bookings only where the page itself shows them', async () => {
+  it('refreshes the balance only where a member comes to check where they stand', async () => {
     const routes = await loadRoutes(true)
 
-    const asking = routes
-      .filter((route) => route.meta?.transactionsPageSize !== undefined)
-      .map((route) => route.path)
+    const asking = routes.filter((route) => route.meta?.refreshBalance).map((route) => route.path)
 
     expect(asking).toEqual(['/overview', '/transactions'])
   })

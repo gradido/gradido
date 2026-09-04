@@ -1049,8 +1049,12 @@
     "years": "Year"
   },
   "transaction": {
+    "allBookings": "Show all bookings",
     "lastTransactions": "Last Transactions",
+    "noneWithMember": "There are no bookings with this member yet.",
     "nullTransactions": "You don't have any transactions on your account yet.",
+    "onlyWith": "Only bookings with {name}",
+    "onlyWithSomeone": "Only bookings with one member",
     "receiverDeleted": "The recipient account was deleted",
     "receiverNotFound": "Recipient not found",
     "show_all": "View all <strong>{count}</strong> transactions."

@@ -63,6 +63,10 @@
     />
     <div v-if="transactionCount <= 0" class="mt-4 text-center">
       <IBiThreeDots v-if="pending" />
+      <!-- Two kinds of nothing. "You have no transactions yet" is false under a list
+           narrowed to one member -- the member may have hundreds, only none with this
+           person -- and told so they would go looking for their money. -->
+      <div v-else-if="narrowed">{{ $t('transaction.noneWithMember') }}</div>
       <div v-else>{{ $t('transaction.nullTransactions') }}</div>
     </div>
   </div>
@@ -102,6 +106,8 @@ export default {
     openLinkCount: { type: Number, default: 0 },
     showPagination: { type: Boolean, default: false },
     pending: { type: Boolean },
+    /** Whether these rows are the bookings shared with ONE member rather than the account. */
+    narrowed: { type: Boolean, default: false },
   },
   computed: {
     isPaginationVisible() {
