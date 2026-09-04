@@ -89,6 +89,16 @@ describe('GddTransactionList', () => {
         expect(text).toContain('transaction.noneWithMember')
         expect(text).not.toContain('transaction.nullTransactions')
       })
+
+      // A failed request is not an empty answer: the error banner alone, no sentence that
+      // claims to know how many bookings there are.
+      it('claims nothing about the bookings when the request failed', async () => {
+        await wrapper.setProps({ transactionCount: -1 })
+        const text = wrapper.find('div.gdd-transaction-list').text()
+        expect(text).toContain('error.empty-transactionlist')
+        expect(text).not.toContain('transaction.noneWithMember')
+        expect(text).not.toContain('transaction.nullTransactions')
+      })
     })
 
     describe('without any properties', () => {
@@ -100,11 +110,14 @@ describe('GddTransactionList', () => {
       })
       it('renders text saying that there are error.empty-transactionlist ', () => {
         expect(wrapper.find('div.gdd-transaction-list').text()).toContain(
-          'transaction.nullTransactions',
+          'error.empty-transactionlist',
         )
       })
-      it('renders text saying that there are no transaction.nullTransactions', () => {
-        expect(wrapper.find('div.gdd-transaction-list').text()).toContain(
+      // A failed request (-1) is not an empty account: the banner says the request failed,
+      // and no sentence beneath it claims to know how many transactions there are. Until
+      // 04.09.2026 both showed, one contradicting the other.
+      it('claims nothing about the transactions when the request failed', () => {
+        expect(wrapper.find('div.gdd-transaction-list').text()).not.toContain(
           'transaction.nullTransactions',
         )
       })

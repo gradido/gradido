@@ -287,7 +287,7 @@ const EMPTY_TRANSACTION_DATA = {
   memo: '',
 }
 
-const props = defineProps({
+defineProps({
   balance: { type: Number, default: 0 },
   GdtBalance: { type: Number, default: 0 },
 })

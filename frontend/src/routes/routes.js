@@ -174,9 +174,9 @@ const routes = [
       // this was built from (BAU-10c). The worry was that the column beside /send would
       // stand empty in the bookings position -- but the layout's query runs at MOUNT, so it
       // never is. What the line DID do was arm the layout's route watch on /send: every
-      // navigation into the page -- including every tap on a contact in this very column,
-      // which pushes /send/<community>/<member> -- cost a booking query whose twelve rows
-      // nothing then drew.
+      // navigation into the page -- including the contact window's send buttons over this
+      // very column, which push /send/<community>/<member> -- cost a booking query whose
+      // twelve rows nothing then drew.
     },
   },
   // {

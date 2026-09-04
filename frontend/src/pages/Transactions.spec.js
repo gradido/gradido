@@ -1,10 +1,11 @@
-import { mount } from '@vue/test-utils'
+import { mount, RouterLinkStub } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { nextTick, reactive, ref } from 'vue'
 import Transactions from './Transactions.vue'
 import { GdtEntryType } from '@/graphql/enums'
 import { transactionsQuery } from '@/graphql/transactions.graphql'
 import { PAGE_SIZE } from '@/constants'
+import { bookingsWithMemberRoute } from '@/utils/bookingsRoute'
 
 const mockScrollTo = vi.fn()
 window.scrollTo = mockScrollTo
@@ -36,7 +37,7 @@ const mockOnError = vi.fn()
 // The GDD list's own query.
 let listResultHandler
 let listErrorHandler
-const mockRefetchList = vi.fn()
+const mockRefetchList = vi.fn(() => Promise.resolve())
 const mockLoading = ref(false)
 vi.mock('@vue/apollo-composable', () => ({
   useLazyQuery: vi.fn(() => ({
@@ -102,6 +103,8 @@ const answer = (rows, balance = {}) => ({
     },
   },
 })
+/** The address the contact window builds for this member -- the SAME module, both ends. */
+const narrowedTo = (member) => bookingsWithMemberRoute(member).query
 
 describe('Transactions', () => {
   let wrapper
@@ -111,11 +114,7 @@ describe('Transactions', () => {
       props,
       global: {
         stubs: {
-          // Renders its slot and says where it leads, which the default stub does neither.
-          RouterLink: {
-            props: ['to'],
-            template: '<a :data-to="JSON.stringify(to)"><slot /></a>',
-          },
+          RouterLink: RouterLinkStub,
         },
         mocks: {
           $t: (key) => key,
@@ -139,6 +138,7 @@ describe('Transactions', () => {
     vi.clearAllMocks()
     mockRoute.path = '/transactions'
     mockRoute.query = {}
+    mockLoading.value = false
   })
 
   afterEach(() => {
@@ -174,7 +174,9 @@ describe('Transactions', () => {
         order: 'DESC',
         counterparty: null,
       })
-      expect(options).toEqual({ fetchPolicy: 'network-only', enabled: true })
+      // Out of the cache: the virtual rows carry fixed ids and would be shared with the
+      // layout's answer otherwise.
+      expect(options).toEqual({ fetchPolicy: 'no-cache', enabled: true })
     })
 
     it('does not ask for it on the GDT tab', async () => {
@@ -243,6 +245,42 @@ describe('Transactions', () => {
       expect(mockRefetchList).toHaveBeenCalledTimes(1)
       expect(wrapper.emitted('update-transactions')).toEqual([[{}]])
     })
+
+    // The failure is reported through onError; a second report as an unhandled rejection
+    // would be noise beside the toast.
+    it('does not let a failed refetch escape as an unhandled rejection', async () => {
+      mockRefetchList.mockReturnValueOnce(Promise.reject(new Error('offline')))
+      const escaped = []
+      const catchEscaping = (event) => {
+        escaped.push(event.reason)
+        event.preventDefault()
+      }
+      window.addEventListener('unhandledrejection', catchEscaping)
+      process.on('unhandledRejection', catchEscaping)
+      try {
+        wrapper = createWrapper()
+        await list().vm.$emit('update-transactions', { currentPage: 1, pageSize: PAGE_SIZE })
+        await new Promise((resolve) => setTimeout(resolve, 0))
+      } finally {
+        window.removeEventListener('unhandledrejection', catchEscaping)
+        process.off('unhandledRejection', catchEscaping)
+      }
+      expect(escaped).toEqual([])
+    })
+
+    // The tabs share this component instance: the GDT tab and back must not carry the
+    // page number over, the way a navigation into the list never did.
+    it('starts on page one again after the GDT tab', async () => {
+      wrapper = createWrapper()
+      await list().vm.$emit('update-transactions', { currentPage: 3, pageSize: PAGE_SIZE })
+      await wrapper.setProps({ gdt: true })
+      await wrapper.setProps({ gdt: false })
+      await nextTick()
+
+      const { variables } = await askedWith()
+      expect(variables.currentPage).toBe(1)
+      expect(list().props('currentPage')).toBe(1)
+    })
   })
 
   /**
@@ -251,7 +289,7 @@ describe('Transactions', () => {
    */
   describe('narrowed to one member', () => {
     beforeEach(() => {
-      mockRoute.query = { with: 'margret-id', community: 'home' }
+      mockRoute.query = narrowedTo(MARGRET)
     })
 
     it('asks the server for the bookings with that member only', async () => {
@@ -262,7 +300,7 @@ describe('Transactions', () => {
     })
 
     it('sends the id alone when the address names no community', async () => {
-      mockRoute.query = { with: 'margret-id' }
+      mockRoute.query = narrowedTo({ gradidoID: 'margret-id', communityUuid: null })
       wrapper = createWrapper()
       const { variables } = await askedWith()
       expect(variables.counterparty).toEqual({ gradidoID: 'margret-id', communityUuid: null })
@@ -282,29 +320,65 @@ describe('Transactions', () => {
       )
     })
 
+    // The rows beneath and the contact window show the id for such a member; the mark
+    // must not be the one place that shows the alias the wallet suppresses everywhere else.
+    it('names a member with a legacy alias too short to count by the id, as the rows do', async () => {
+      wrapper = createWrapper()
+      listResultHandler(
+        answer([{ id: 2, typeId: 'SEND', linkedUser: { ...MARGRET, alias: 'ab' } }]),
+      )
+      await nextTick()
+      expect(wrapper.find('[data-test="transactions-filter"]').text()).toContain(
+        'transaction.onlyWith:margret-id',
+      )
+    })
+
     it('leads back to the whole list on the same path, without the parameters', () => {
       wrapper = createWrapper()
-      const cross = wrapper.find('[data-test="transactions-filter-clear"]')
-      expect(JSON.parse(cross.attributes('data-to'))).toEqual({ path: '/transactions' })
+      const cross = wrapper.findComponent('[data-test="transactions-filter-clear"]')
+      expect(cross.props('to')).toEqual({ path: '/transactions' })
     })
 
     it('starts a different member on page one, with nothing of the last list on screen', async () => {
       wrapper = createWrapper()
-      listResultHandler(answer([{ id: 2, typeId: 'SEND', linkedUser: MARGRET }]))
+      listResultHandler(
+        answer([{ id: 2, typeId: 'SEND', linkedUser: MARGRET }], {
+          linkCount: 2,
+          openLinkCount: 1,
+        }),
+      )
       await list().vm.$emit('update-transactions', { currentPage: 3, pageSize: PAGE_SIZE })
       await nextTick()
       expect(list().props('currentPage')).toBe(3)
 
-      mockRoute.query = { with: 'somebody-else', community: 'home' }
+      mockRoute.query = narrowedTo({ gradidoID: 'somebody-else', communityUuid: 'home' })
       await nextTick()
 
       const { variables } = await askedWith()
       expect(variables.currentPage).toBe(1)
       expect(variables.counterparty.gradidoID).toBe('somebody-else')
       expect(list().props('transactions')).toEqual([])
+      expect(list().props('transactionLinkCount')).toBe(0)
+      expect(list().props('openLinkCount')).toBe(0)
       expect(wrapper.find('[data-test="transactions-filter"]').text()).toContain(
         'transaction.onlyWithSomeone',
       )
+    })
+
+    // ⛔ The address rebuilt with the SAME pair (a hash edit, an unrelated parameter) is
+    // not a different member. Apollo would not ask again for equal variables, so a reset
+    // here would have emptied the list for good.
+    it('keeps the list when the address is rebuilt with the same member', async () => {
+      wrapper = createWrapper()
+      const rows = [{ id: 2, typeId: 'SEND', linkedUser: MARGRET }]
+      listResultHandler(answer(rows))
+      await nextTick()
+
+      mockRoute.query = { ...narrowedTo(MARGRET), unrelated: '1' }
+      await nextTick()
+
+      expect(list().props('transactions')).toEqual(rows)
+      expect(list().props('transactionCount')).toBe(1)
     })
 
     // ⛔ `?with=a&with=b` arrives as an array. Sent on, the schema refuses the whole

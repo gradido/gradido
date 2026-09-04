@@ -485,8 +485,8 @@ const router = useRouter()
  *
  * ⛔ Not the list the transactions page shows. That page fetches its own (Transactions.vue),
  * with its own page number and, where a contact window sent it there, narrowed to one
- * member. While one query served both, every page turn and every filter had to be kept
- * out of the header and the column by hand, and it was not.
+ * member. While one query served both, every page turn had to be kept out of the column
+ * by hand, and a filter would have had to be kept out of the balance as well.
  */
 const NEWEST_BOOKINGS = {
   currentPage: 1,
@@ -539,7 +539,9 @@ const logoutUser = async () => {
  * variables and repeats the ones it was mounted with.
  */
 const updateTransactions = (args = {}) => {
-  useRefetchTransactionsQuery()
+  // The failure is reported through onError below; without the catch a network failure
+  // would also surface as an unhandled rejection beside the toast.
+  useRefetchTransactionsQuery()?.catch(() => {})
   // ⚠️ The CALLER says whether a counterparty was involved, and only that refreshes the
   // contacts. Guessing it from the shape of the call was close but not right: `Send`
   // calls this twice, once after a transfer and once after creating a LINK, and a link
@@ -568,8 +570,8 @@ const updateTransactions = (args = {}) => {
  * throwing the whole application away, which is why it looked like an answer.
  *
  * Which pages: the ones whose route says `refreshBalance` -- declared there, for the reason
- * `rightSidePanel` above gives. Not every route: a tap on a contact beside the send form
- * pushes /send/<community>/<member>, and a query on every one of those drew nothing.
+ * `rightSidePanel` above gives. Not every route: the contact window's send buttons push
+ * /send/<community>/<member>, and a query on every one of those drew nothing.
  */
 watch(
   () => route.path,
@@ -578,13 +580,12 @@ watch(
     if (!route.meta.refreshBalance) {
       return
     }
-    useRefetchTransactionsQuery()
+    useRefetchTransactionsQuery()?.catch(() => {})
   },
 )
 
-// The pictures shown beside the bookings. This is the only place the list arrives, and
-// both places that draw a face are fed from here, so the fetching happens once for the
-// whole page rather than once per row.
+// The pictures shown beside the newest bookings, fetched once for the column's rows. The
+// transactions page asks for its own rows' pictures the same way (Transactions.vue).
 //
 // Each row carries a date, not a picture. Everything whose date still matches what the
 // wallet already holds needs nothing; on a second visit that is usually all of them, and
@@ -602,8 +603,8 @@ watch(
 // destroys keeps a counter nobody can ever bump again, and its guard passes by definition.
 // `forgetWithdrawnMemberAvatars` now names the withdrawn members to the store, and
 // `rememberMemberAvatars` refuses exactly those. Everything else in a late answer is kept
-// rather than thrown away: a member who turns a page while a request is out paid for those
-// bytes, and discarding them shows initials on a list whose portraits had already arrived.
+// rather than thrown away: the bytes were paid for, and discarding them shows initials on
+// a list whose portraits had already arrived.
 const collectMemberAvatars = async (rows) => {
   await fetchMemberAvatars(
     apolloClient,

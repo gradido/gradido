@@ -85,12 +85,12 @@
            The spec reads the rendered text back for exactly that. -->
       <div class="contact-window-meta" data-test="contact-window-meta">
         <span>{{ metaSince }}</span>
-        <span>{{ SEPARATOR }}</span>
+        <span>{{ CONTACT_META_SEPARATOR }}</span>
         <router-link
           :to="bookingsRoute"
           class="contact-window-bookings"
           data-test="contact-window-bookings"
-          @click="emit('update:modelValue', false)"
+          @click="closeWhenNavigating"
         >
           {{ metaBookings }}
         </router-link>
@@ -136,9 +136,14 @@ import { useRouter } from 'vue-router'
 import { BButton, BModal } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
 import FavoriteHeart from '@/components/FavoriteHeart.vue'
-import { contactDisplay } from '@/components/Contacts/contactDisplay'
+import {
+  CONTACT_META_SEPARATOR,
+  contactBookingsMeta,
+  contactDisplay,
+} from '@/components/Contacts/contactDisplay'
 import { gradidoAddress } from '@/utils/gradidoAddress'
 import { SEND_TYPES } from '@/utils/sendTypes'
+import { bookingsWithMemberRoute } from '@/utils/bookingsRoute'
 
 /**
  * One contact, opened from wherever a contact stands: the list, the column, the strip.
@@ -188,8 +193,6 @@ const address = computed(() => {
   return gradidoAddress(alias.value).display
 })
 
-const SEPARATOR = ' · '
-
 /** Since when -- plain text, it leads nowhere. */
 const metaSince = computed(() =>
   props.contact
@@ -197,34 +200,32 @@ const metaSince = computed(() =>
     : '',
 )
 
-/** How many and how recently -- the part that leads to those bookings. */
+/** How many and how recently -- the part that leads to those bookings; the row's line. */
 const metaBookings = computed(() =>
-  props.contact
-    ? [
-        t('contacts.bookings', props.contact.bookings),
-        t('contacts.last', { date: d(new Date(props.contact.lastAt), 'short') }),
-      ].join(SEPARATOR)
-    : '',
+  props.contact ? contactBookingsMeta(props.contact, { t, d }) : '',
 )
 
 /**
- * The booking list, narrowed to this member: `/transactions?with=<gradido id>&community=…`
- * (Transactions.vue reads it back). The pair, the way `toSend` below has always sent it and
- * the way a heart names a person -- the count in this very line was computed by the pair,
- * so the list the link opens is counted by the same rule.
- *
- * ⛔ The Gradido id, not the alias. An alias can be given up and taken by somebody else,
- * and a bookmarked filter would then point at the wrong person's bookings. The window
- * closes on the way, as it does for the send form: the list this window sits over may be
- * the column beside the bookings page, which stays mounted across the navigation.
+ * The booking list, narrowed to this member. Built by the same module the transactions
+ * page reads the address with (utils/bookingsRoute.js) -- the two ends cannot drift.
  */
-const bookingsRoute = computed(() => ({
-  path: '/transactions',
-  query: {
-    with: props.contact?.user?.gradidoID,
-    ...(props.contact?.user?.communityUuid ? { community: props.contact.user.communityUuid } : {}),
-  },
-}))
+const bookingsRoute = computed(() => bookingsWithMemberRoute(props.contact?.user))
+
+/**
+ * The window closes on the way, as it does for the send form: the list this window sits
+ * over may be the column beside the bookings page, which stays mounted across the
+ * navigation.
+ *
+ * ⛔ Only when the click DOES navigate here. Vue runs RouterLink's own handler first, and
+ * that one calls preventDefault exactly when it navigates in this tab -- a cmd or middle
+ * click opens a new tab instead and leaves the event alone. Closing on those left the
+ * member in a tab whose window had vanished for nothing.
+ */
+const closeWhenNavigating = (event) => {
+  if (event.defaultPrevented) {
+    emit('update:modelValue', false)
+  }
+}
 
 /**
  * The two ways out, both of them the send form -- the second with the mode that opens the

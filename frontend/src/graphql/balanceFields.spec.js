@@ -12,8 +12,8 @@ import { fileURLToPath } from 'node:url'
 // looked finished.
 //
 // So this compares the files against each other: everything read from tr.balance -- in the
-// layout, which reads the account-wide figures, and on the transactions page, which reads
-// the counts of its own list -- has to appear in the fragment both queries send.
+// layout (balance, balanceGDT) and on the transactions page (the count of its own list and
+// the account-wide link counts) -- has to appear in the fragment both queries send.
 
 const here = dirname(fileURLToPath(import.meta.url))
 const read = (relativePath) => readFileSync(resolve(here, relativePath), 'utf8')

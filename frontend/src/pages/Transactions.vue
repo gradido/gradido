@@ -58,6 +58,8 @@ import { transactionsQuery } from '@/graphql/transactions.graphql'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import { PAGE_SIZE } from '@/constants'
 import { useAppToast } from '@/composables/useToast'
+import { memberFromQuery, memberQueryKey } from '@/utils/bookingsRoute'
+import { memberAlias } from '@/utils/gradidoAddress'
 
 const props = defineProps({
   gdt: { type: Boolean, default: false },
@@ -73,7 +75,7 @@ const transactionGdtCount = ref(0)
 // booking list got into trouble in the first place.
 const gdtPage = ref(1)
 // The one number the paginator divides by and the server is asked with.
-const pageSize = ref(PAGE_SIZE)
+const pageSize = PAGE_SIZE
 
 const { toastError } = useAppToast()
 const { client: apolloClient } = useApolloClient()
@@ -83,25 +85,12 @@ const router = useRouter()
 const { t } = useI18n()
 
 /**
- * The member this list is narrowed to, off the address: `?with=<gradido id>` and
- * `&community=<uuid>`, which is what the contact window links to. Read in ONE place -- the
- * query below and the mark above both take it from here.
- *
- * ⛔ `route.query.x` is `string | string[]`: `?with=a&with=b` arrives as an array, and an
- * array sent as the id is a request the schema refuses, so the whole list would fail. What
- * is not one plain string is treated as no narrowing at all -- and then there is no mark
- * either, so the page claims nothing it does not do. The community may be missing; the
- * server fills in its own for a member sent without one, the way it does for a heart.
- *
- * A Gradido id, not an alias: an alias can be given up and taken by somebody else, and a
- * bookmarked filter would then point at the wrong person's bookings.
+ * The member this list is narrowed to, off the address -- what the contact window links
+ * to. Read through the module the window builds the address with (utils/bookingsRoute.js),
+ * which also decides what does NOT count as a narrowing (an array, an empty or over-long
+ * value). Read in ONE place: the query below and the mark above both take it from here.
  */
-const queryString = (value) => (typeof value === 'string' && value !== '' ? value : null)
-const counterparty = computed(() => {
-  const gradidoID = queryString(route.query?.with)
-  if (!gradidoID) return null
-  return { gradidoID, communityUuid: queryString(route.query?.community) }
-})
+const counterparty = computed(() => memberFromQuery(route.query))
 
 /**
  * The GDD list: this page's own query, this page's own page number.
@@ -120,14 +109,20 @@ const openLinkCount = ref(0)
 
 const listVariables = computed(() => ({
   currentPage: listPage.value,
-  pageSize: pageSize.value,
+  pageSize,
   order: 'DESC',
   counterparty: counterparty.value,
 }))
 // Reactive, because /transactions and /gdt share this component and the router patches
 // `gdt` in place rather than mounting the page anew -- the watch on it below exists for
 // the same reason.
-const listOptions = computed(() => ({ fetchPolicy: 'network-only', enabled: !props.gdt }))
+//
+// ⛔ `no-cache`, not `network-only`. Both this query and the layout's carry the two
+// virtual rows with fixed ids (-1 decay, -2 link summary); written into the normalised
+// cache they are ONE entity, and whichever answer lands second re-broadcasts the other
+// query with its own decay figures. Left out of the cache, the two answers stay apart.
+// The same choice the contacts panel makes (useContactsPanel).
+const listOptions = computed(() => ({ fetchPolicy: 'no-cache', enabled: !props.gdt }))
 
 const {
   onResult: onListResult,
@@ -164,45 +159,62 @@ onListError((error) => {
  * ⚠️ The same page asked for again is not a page turn: the variables do not change, so the
  * query would not run -- it is fetched again explicitly. And it is the one case that tells
  * the LAYOUT as well: a withdrawn link moves the balance in the header, a page turn does
- * not.
+ * not. The failure of the refetch is reported through onListError; the catch keeps it from
+ * surfacing a second time as an unhandled rejection. `?.` because refetch answers nothing
+ * while the query is switched off on the GDT tab.
  */
 const askForPage = ({ currentPage = 1 } = {}) => {
   if (currentPage === listPage.value) {
-    refetchList()
+    refetchList()?.catch(() => {})
     emit('update-transactions', {})
     return
   }
   listPage.value = currentPage
 }
 
-// A different member -- or none -- starts on page one, with nothing of the previous list
-// left on screen: the mark reads the name off the rows, and the old rows would have named
-// the wrong person under it until the answer arrived.
-watch(counterparty, () => {
+/** Everything the last answer left on screen, gone -- before the next member's arrives. */
+const forgetList = () => {
   listPage.value = 1
   transactions.value = []
   transactionCount.value = 0
-})
+  transactionLinkCount.value = 0
+  openLinkCount.value = 0
+}
+
+// A different member -- or none -- starts on page one, with nothing of the previous list
+// left on screen: the mark reads the name off the rows, and the old rows would have named
+// the wrong person under it until the answer arrived.
+//
+// ⛔ Watched as a STRING, not as the object: `memberFromQuery` builds a fresh object on
+// every read of the address, and a watch on it would fire on identity -- a navigation
+// that rebuilt the address with the same pair would empty the list, while Apollo, which
+// compares the variables by content, would not ask again. The key changes only when the
+// pair does.
+watch(() => memberQueryKey(counterparty.value), forgetList)
 
 /**
  * Whose bookings these are.
  *
  * ⚠️ The name comes off the ROWS, not out of the address. A Gradido id is not a name, and
  * putting one in the label would tell the member nothing; every row in a narrowed list has
- * the same counterparty, so the first one that carries an alias answers it. Where the
+ * the same counterparty, so the first one with a counterparty answers it -- named the way
+ * every row and the contact window name them (`memberAlias`: a legacy alias too short to
+ * count falls back to the id, which is what the rows beneath show as well). Where the
  * filter matched nothing there is no row and no name -- and then the shorter sentence is
  * also the true one.
  */
 const filterLabel = computed(() => {
-  const named = transactions.value.find((row) => row.linkedUser?.alias)
+  const named = transactions.value.find((row) => row.linkedUser?.gradidoID)
   return named
-    ? t('transaction.onlyWith', { name: named.linkedUser.alias })
+    ? t('transaction.onlyWith', {
+        name: memberAlias(named.linkedUser.alias, named.linkedUser.gradidoID),
+      })
     : t('transaction.onlyWithSomeone')
 })
 
 const variables = ref({
   currentPage: gdtPage.value,
-  pageSize: pageSize.value,
+  pageSize,
 })
 
 const {
@@ -216,7 +228,7 @@ const {
 const updateGdt = async () => {
   variables.value = {
     currentPage: gdtPage.value,
-    pageSize: pageSize.value,
+    pageSize,
   }
   await loadGdt()
 }
@@ -236,9 +248,13 @@ onError((error) => {
   toastError(error.message)
 })
 
+// The tabs share this instance (see `listOptions`), so switching to the GDT tab and back
+// is what a fresh visit to the bookings used to be: it starts on page one, the way a
+// navigation into the list always has.
 watch(
   () => props.gdt,
   (newVal) => {
+    listPage.value = 1
     if (newVal) {
       updateGdt()
     }

@@ -69,10 +69,14 @@ describe('ContactWindow', () => {
         mocks: { $t: (key) => key },
         stubs: {
           BModal: { template: '<div><slot /></div>' },
-          // Renders its slot and says where it leads, which the default stub does neither.
+          // Renders its slot, says where it leads, and does what the real link's own click
+          // handler does: it claims the event (preventDefault) exactly when the click would
+          // navigate in this tab -- a plain click, not one with a modifier key. The window's
+          // close-on-the-way rule reads that claim, so the stub has to make it.
           RouterLink: {
             props: ['to'],
-            template: '<a :data-to="JSON.stringify(to)"><slot /></a>',
+            template:
+              '<a :data-to="JSON.stringify(to)" @click="$event.metaKey || $event.preventDefault()"><slot /></a>',
           },
           BButton: { template: '<button><slot /></button>' },
           AppAvatar: {
@@ -156,6 +160,14 @@ describe('ContactWindow', () => {
     mountWindow()
     await wrapper.find('[data-test="contact-window-bookings"]').trigger('click')
     expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
+  })
+
+  // A cmd-click opens the bookings in a NEW tab and leaves this one where it is -- so the
+  // window stays too; closing it left the member with nothing to look at here.
+  it('stays open when the click opens the bookings elsewhere', async () => {
+    mountWindow()
+    await wrapper.find('[data-test="contact-window-bookings"]').trigger('click', { metaKey: true })
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
   })
 
   it('sends Gradido to the send form, with the person already named', async () => {

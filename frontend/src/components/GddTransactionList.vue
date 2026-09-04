@@ -61,7 +61,9 @@
       :hide-ellipsis="true"
       @update:model-value="askForPage($event)"
     />
-    <div v-if="transactionCount <= 0" class="mt-4 text-center">
+    <!-- Exactly zero, not "nothing positive": -1 is the failed request above, and a
+         sentence about bookings has no business under an error banner. -->
+    <div v-if="transactionCount === 0" class="mt-4 text-center">
       <IBiThreeDots v-if="pending" />
       <!-- Two kinds of nothing. "You have no transactions yet" is false under a list
            narrowed to one member -- the member may have hundreds, only none with this
@@ -90,13 +92,13 @@ export default {
   props: {
     transactions: { type: Array, default: () => [] },
     /**
-     * The page these rows ARE -- decided, fetched and held by the layout.
+     * The page these rows ARE -- decided, fetched and held by Transactions.vue, which owns
+     * the query behind them.
      *
      * ⛔ Not this component's own state. It was until 30.08.2026, and the two drifted apart
-     * every time the layout kept a page across a navigation, because this component is
-     * destroyed and rebuilt on a route change while the query above it is not. The way to
-     * another page is `askForPage`: ask, and the number comes back down here with the rows
-     * it belongs to. The full account is over the route watch in DashboardLayout.vue.
+     * every time a page number survived a navigation that rebuilt this component. The way
+     * to another page is `askForPage`: ask, and the number comes back down here with the
+     * rows it belongs to.
      */
     currentPage: { type: Number, default: 1 },
     pageSize: { type: Number, default: PAGE_SIZE },
