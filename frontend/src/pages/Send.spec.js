@@ -83,8 +83,6 @@ describe('Send', () => {
       props: {
         balance: 1000,
         GdtBalance: 500,
-        transactions: [],
-        pending: false,
       },
       global: {
         mocks: {

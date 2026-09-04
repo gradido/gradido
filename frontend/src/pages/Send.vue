@@ -290,14 +290,6 @@ const EMPTY_TRANSACTION_DATA = {
 const props = defineProps({
   balance: { type: Number, default: 0 },
   GdtBalance: { type: Number, default: 0 },
-  transactions: {
-    type: Array,
-    default: () => [],
-  },
-  pending: {
-    type: Boolean,
-    default: true,
-  },
 })
 
 const emit = defineEmits(['set-tunneled-email', 'update-transactions'])
