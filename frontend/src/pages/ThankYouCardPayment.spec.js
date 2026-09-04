@@ -456,13 +456,34 @@ describe('ThankYouCardPayment', () => {
     })
 
     /**
-     * ⛔ The remainder and the "from the calculator" line are ONE claim: this figure came
-     * from a calculation, which also left something to pay. Type over the figure and the
-     * claim is void -- a remainder worked out for 6,30 GDD, standing beside a hand-typed
-     * 5,00 on a receipt, is a money figure put in front of a customer that belongs to a
-     * different sale. (coderabbit, PR #3782)
+     * ★ The remainder and the "from the calculator" line are NOT one claim, and this is where
+     * they part. Gradido and the local currency are separate things at this counter, never
+     * converted into each other -- so a customer offering 8,00 GDD instead of the 6,30 the
+     * calculator worked out changes nothing about the 4,20 € the merchant still collects.
+     * Dropping the line would take away the last place that figure can be read.
+     * (Bernd, 04.09.2026; reverses the reading of coderabbit, PR #3782)
      */
-    it('drops the remainder when the merchant types over the amount', async () => {
+    it('keeps the remainder when the merchant types over the amount', async () => {
+      mockReadParked.mockReturnValue(6.3)
+      mockReadParkedRest.mockReturnValue({ fiat: 4.2, currency: '€' })
+      await mountUsable()
+      await fillAndStart({ amount: '8,00' })
+      await field('pin').setValue('407312')
+      await flushPromises()
+
+      const line = wrapper.find('[data-test="thank-you-card-paid-rest"]')
+      expect(line.text()).toContain('4,2')
+      expect(line.text()).toContain('€')
+      expect(wrapper.text()).toContain('thank-you-card.receive.rest-note')
+    })
+
+    /**
+     * ⚠️ The downward edit, and it gets the same treatment on purpose: a card that cannot
+     * cover the amount leaves what happens to the cash between the two people standing
+     * there. The till does not decide that, so it has nothing to recalculate -- it shows the
+     * figure the calculator produced, unchanged. (Bernd, 04.09.2026)
+     */
+    it('keeps the remainder unchanged when the amount is edited downwards', async () => {
       mockReadParked.mockReturnValue(6.3)
       mockReadParkedRest.mockReturnValue({ fiat: 4.2, currency: '€' })
       await mountUsable()
@@ -470,8 +491,7 @@ describe('ThankYouCardPayment', () => {
       await field('pin').setValue('407312')
       await flushPromises()
 
-      expect(wrapper.find('[data-test="thank-you-card-paid-rest"]').exists()).toBe(false)
-      expect(wrapper.text()).not.toContain('thank-you-card.receive.rest-note')
+      expect(wrapper.find('[data-test="thank-you-card-paid-rest"]').text()).toContain('4,2')
     })
 
     // A sale settled fully in Gradido owes nothing, and a line reading "0,00 € to be settled
