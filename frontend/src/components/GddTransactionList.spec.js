@@ -34,6 +34,40 @@ describe('GddTransactionList', () => {
 
   const decayStartBlock = new Date('2021-05-13 17:46:31-0000')
 
+  /**
+   * ⛔ The list's link in the chain from a tapped name to the contact window (KF-010). One
+   * window per LIST rather than one per row, so the row says who and this passes it on to
+   * the page that holds the window.
+   *
+   * ⚠️ Written because deleting the binding left all 2231 tests of this suite green -- a
+   * wiring line, which the row's spec and the page's spec each presuppose from their own
+   * side. Its own stubs, because the shared ones swallow both the slot and the row.
+   */
+  it('carries a tapped member up to whoever owns the list', async () => {
+    const member = { gradidoID: 'margret-id', alias: 'Margret' }
+    wrapper = mount(GddTransactionList, {
+      props: { transactions: [{ id: 1, typeId: 'SEND' }] },
+      global: {
+        ...global,
+        stubs: {
+          ...global.stubs,
+          // The shared stub is `true`, which renders no slot -- the row would never exist.
+          TransactionListItem: { template: '<div><slot name="item" /></div>' },
+          GddTransaction: {
+            props: ['transaction'],
+            emits: ['open-member'],
+            template: '<button data-test="row-name" @click="$emit(\'open-member\', member)" />',
+            data: () => ({ member }),
+          },
+        },
+      },
+    })
+
+    await wrapper.find('[data-test="row-name"]').trigger('click')
+
+    expect(wrapper.emitted('open-member')).toEqual([[member]])
+  })
+
   describe('mount', () => {
     beforeEach(() => {
       wrapper = mountComponent()
