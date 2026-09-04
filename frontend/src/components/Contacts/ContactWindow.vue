@@ -72,8 +72,29 @@
       </div>
 
       <!-- The three numbers come from the same answer as the list: oldest booking, how
-           many, newest booking. -->
-      <div class="contact-window-meta" data-test="contact-window-meta">{{ meta }}</div>
+           many, newest booking.
+
+           ⛔ ONE link over the two figures, not one each. Narrowed to this member the
+           newest booking IS the top row of the list, so "how many" and "when was the last"
+           lead to the same place -- two links would have been two names for one door.
+           "Since when" leads nowhere and stays plain text. (Bernd, 04.09.2026.)
+
+           The separator carries its OWN spaces, in its own element, and nothing here relies
+           on the whitespace between the elements: Vue's `whitespace: 'condense'` does not
+           collapse a whitespace-only node with a newline in it to one space, it deletes it.
+           The spec reads the rendered text back for exactly that. -->
+      <div class="contact-window-meta" data-test="contact-window-meta">
+        <span>{{ metaSince }}</span>
+        <span>{{ SEPARATOR }}</span>
+        <router-link
+          :to="bookingsRoute"
+          class="contact-window-bookings"
+          data-test="contact-window-bookings"
+          @click="emit('update:modelValue', false)"
+        >
+          {{ metaBookings }}
+        </router-link>
+      </div>
 
       <BButton
         variant="primary"
@@ -167,16 +188,43 @@ const address = computed(() => {
   return gradidoAddress(alias.value).display
 })
 
-// One string, so the separators are not raw template text -- the same reason the contact
-// row builds its own.
-const meta = computed(() => {
-  if (!props.contact) return ''
-  return [
-    t('contacts.since', { date: d(new Date(props.contact.firstAt), 'monthAndYear') }),
-    t('contacts.bookings', props.contact.bookings),
-    t('contacts.last', { date: d(new Date(props.contact.lastAt), 'short') }),
-  ].join(' · ')
-})
+const SEPARATOR = ' · '
+
+/** Since when -- plain text, it leads nowhere. */
+const metaSince = computed(() =>
+  props.contact
+    ? t('contacts.since', { date: d(new Date(props.contact.firstAt), 'monthAndYear') })
+    : '',
+)
+
+/** How many and how recently -- the part that leads to those bookings. */
+const metaBookings = computed(() =>
+  props.contact
+    ? [
+        t('contacts.bookings', props.contact.bookings),
+        t('contacts.last', { date: d(new Date(props.contact.lastAt), 'short') }),
+      ].join(SEPARATOR)
+    : '',
+)
+
+/**
+ * The booking list, narrowed to this member: `/transactions?with=<gradido id>&community=…`
+ * (Transactions.vue reads it back). The pair, the way `toSend` below has always sent it and
+ * the way a heart names a person -- the count in this very line was computed by the pair,
+ * so the list the link opens is counted by the same rule.
+ *
+ * ⛔ The Gradido id, not the alias. An alias can be given up and taken by somebody else,
+ * and a bookmarked filter would then point at the wrong person's bookings. The window
+ * closes on the way, as it does for the send form: the list this window sits over may be
+ * the column beside the bookings page, which stays mounted across the navigation.
+ */
+const bookingsRoute = computed(() => ({
+  path: '/transactions',
+  query: {
+    with: props.contact?.user?.gradidoID,
+    ...(props.contact?.user?.communityUuid ? { community: props.contact.user.communityUuid } : {}),
+  },
+}))
 
 /**
  * The two ways out, both of them the send form -- the second with the mode that opens the
@@ -273,6 +321,14 @@ const toSend = (art) => {
   font-size: 0.8rem;
   color: var(--bs-secondary-color, #6c757d);
   margin: 0.75rem 0 1rem;
+}
+
+/* The link sits inside the muted meta line, so it takes that line's size and colour rather
+   than the theme's link blue; the underline is what says it leads somewhere. */
+.contact-window-bookings {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .contact-window-heart {

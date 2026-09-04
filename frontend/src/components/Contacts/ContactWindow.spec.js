@@ -69,6 +69,11 @@ describe('ContactWindow', () => {
         mocks: { $t: (key) => key },
         stubs: {
           BModal: { template: '<div><slot /></div>' },
+          // Renders its slot and says where it leads, which the default stub does neither.
+          RouterLink: {
+            props: ['to'],
+            template: '<a :data-to="JSON.stringify(to)"><slot /></a>',
+          },
           BButton: { template: '<button><slot /></button>' },
           AppAvatar: {
             props: ['initials'],
@@ -110,6 +115,47 @@ describe('ContactWindow', () => {
     expect(meta).toContain('monthAndYear(2026-07-04T10:00:00.000Z)')
     expect(meta).toContain('contacts.bookings:12')
     expect(meta).toContain('contacts.last')
+  })
+
+  /**
+   * The two numbers are ONE link into the booking list narrowed to this person (Bernd,
+   * 04.09.2026): the newest booking stands on top there, so "how many" and "when was the
+   * last" open the same door. "Since when" leads nowhere and is not part of it.
+   */
+  it('leads from the two numbers into the bookings with this person', () => {
+    mountWindow()
+    const link = wrapper.find('[data-test="contact-window-bookings"]')
+
+    expect(JSON.parse(link.attributes('data-to'))).toEqual({
+      path: '/transactions',
+      query: { with: 'carla-id', community: 'home-uuid' },
+    })
+    expect(link.text()).toContain('contacts.bookings:12')
+    expect(link.text()).toContain('contacts.last')
+    expect(link.text()).not.toContain('contacts.since')
+  })
+
+  it('names the community of a member from elsewhere in that link', () => {
+    mountWindow(STRANGER)
+    const link = wrapper.find('[data-test="contact-window-bookings"]')
+    expect(JSON.parse(link.attributes('data-to')).query).toEqual({
+      with: 'sarah-id',
+      community: 'provence-uuid',
+    })
+  })
+
+  // ⛔ Read off the RENDERED text, because that is where it went wrong: Vue deletes a
+  // whitespace-only node with a newline between two elements rather than condensing it,
+  // and the line read "…07/2026·12 Buchungen · zuletzt…" -- one dot glued, the next spaced.
+  it('spaces every separator the same, on both sides', () => {
+    const meta = mountWindow().find('[data-test="contact-window-meta"]').text()
+    expect(meta).toMatch(/contacts\.since \S+ · contacts\.bookings:12 · contacts\.last/)
+  })
+
+  it('closes on the way into the bookings, as it does for the send form', async () => {
+    mountWindow()
+    await wrapper.find('[data-test="contact-window-bookings"]').trigger('click')
+    expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
   })
 
   it('sends Gradido to the send form, with the person already named', async () => {
