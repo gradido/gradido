@@ -38,7 +38,6 @@ import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
-import { stephenHawking } from '@/seeds/users/stephen-hawking'
 
 // The whole process against a real database, with the model replaced by a hand: the
 // contributions, the thread, the booking and the events are the existing paths and are
@@ -83,7 +82,6 @@ let testEnv: {
 let peter: DbUser
 let bibi: DbUser
 let bob: DbUser
-let stephen: DbUser
 let raeuber: DbUser
 
 const loginAs = async (email: string): Promise<void> => {
@@ -141,7 +139,6 @@ beforeAll(async () => {
   peter = await userFactory(testEnv, peterLustig)
   bibi = await userFactory(testEnv, bibiBloxberg)
   bob = await userFactory(testEnv, { ...bobBaumeister, role: RoleNames.MODERATOR })
-  stephen = await userFactory(testEnv, stephenHawking)
   raeuber = await userFactory(testEnv, raeuberHotzenplotz)
 })
 
@@ -401,7 +398,7 @@ describe('FirstCreationResolver', () => {
       firstCreationLines.mockResolvedValue(
         answer(['für etwas'], true, 'Gewaltverherrlichung in Eintrag 0'),
       )
-      await loginAs('stephen@hawking.uk')
+      await loginAs('raeuber@hotzenplotz.de')
       const { data, errors } = await mutate({
         mutation: submitFirstCreation,
         variables: {
@@ -409,18 +406,22 @@ describe('FirstCreationResolver', () => {
         },
       })
       expect(errors).toBeUndefined()
-      const review = 'A person is still looking at your entries. You will hear from us.'
+      const review = 'Deine Einträge schaut sich noch ein Mensch an. Du hörst von uns.'
       expect(data.submitFirstCreation).toMatchObject({
         state: FirstCreationStatus.IN_REVIEW,
         eligible: false,
         message: review,
-        entries: [{ memo: 'I helped at home by etwas Schlimmes getan habe', confirmed: false }],
+        entries: [
+          {
+            memo: 'Ich habe zu Hause mitgeholfen, indem ich etwas Schlimmes getan habe',
+            confirmed: false,
+          },
+        ],
       })
-      const [contribution] = await contributionsOf(stephen)
+      const [contribution] = await contributionsOf(raeuber)
       expect(contribution).toMatchObject({
         contributionStatus: ContributionStatus.IN_PROGRESS,
         confirmedAt: null,
-        amount: expect.anything(),
       })
       expect(contribution.amount.toString()).toBe('100')
       const messages = await messagesOn(contribution.id)
@@ -433,21 +434,24 @@ describe('FirstCreationResolver', () => {
       ])
       expect(addedMessageMail).toHaveBeenCalledTimes(1)
       expect(confirmedMail).not.toHaveBeenCalled()
-      expect(await rowOf(stephen)).toMatchObject({
+      expect(await rowOf(raeuber)).toMatchObject({
         status: FirstCreationStatus.IN_REVIEW,
         reviewReason: FirstCreationReviewReason.SUSPICION,
         message: review,
         signerUserId: peter.id,
       })
-      expect(await eventsOf(EventType.FIRST_CREATION_REVIEW, stephen)).toHaveLength(1)
+      expect(await eventsOf(EventType.FIRST_CREATION_REVIEW, raeuber)).toHaveLength(1)
     })
 
     it('timeout: same path, no internal note, the reason on the row', async () => {
+      // The same member once more, reopened the way the function test will do it.
+      await reopen(raeuber, FirstCreationTestMode.WITH_BOOKING)
       firstCreationLines.mockResolvedValue({
         success: false,
         error: { reason: 'MODEL_TIMEOUT', message: 'FIRST_CREATION_MODEL_TIMEOUT' },
       })
       await loginAs('raeuber@hotzenplotz.de')
+      const before = (await contributionsOf(raeuber)).length
       const { data } = await mutate({
         mutation: submitFirstCreation,
         variables: {
@@ -458,14 +462,15 @@ describe('FirstCreationResolver', () => {
         },
       })
       expect(data.submitFirstCreation.state).toBe(FirstCreationStatus.IN_REVIEW)
-      const contributions = await contributionsOf(raeuber)
-      expect(contributions).toHaveLength(2)
-      expect(contributions.map((c) => c.confirmedAt)).toEqual([null, null])
-      expect(await messagesOn(contributions[0].id)).toHaveLength(1)
+      const fresh = (await contributionsOf(raeuber)).slice(before)
+      expect(fresh).toHaveLength(2)
+      expect(fresh.map((c) => c.confirmedAt)).toEqual([null, null])
+      expect(await messagesOn(fresh[0].id)).toHaveLength(1)
       expect(confirmedMail).not.toHaveBeenCalled()
       expect(await rowOf(raeuber)).toMatchObject({
         status: FirstCreationStatus.IN_REVIEW,
         reviewReason: FirstCreationReviewReason.MODEL_TIMEOUT,
+        contributionIds: fresh.map((c) => c.id),
       })
     })
   })

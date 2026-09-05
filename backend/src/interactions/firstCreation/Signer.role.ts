@@ -10,6 +10,7 @@ import {
 import { DomainError, Result } from 'shared'
 import { roleByName } from '@/auth/ROLES'
 import { Role } from '@/auth/Role'
+import { ContributionMessageArgs } from '@/graphql/arg/ContributionMessageArgs'
 import { addModeratorMessageAs } from '@/graphql/resolver/util/addModeratorMessageAs'
 import { confirmContributionAs } from '@/graphql/resolver/util/confirmContributionAs'
 import { describeModeratorCreationGroups } from '@/graphql/resolver/util/moderatorCreationGroupScope'
@@ -106,12 +107,14 @@ export async function signerComments(
   messageType: ContributionMessageType,
   clientTimezoneOffset: number,
 ): Promise<DbContributionMessage> {
-  return addModeratorMessageAs(
-    { contributionId, message, messageType },
-    signer.user,
-    signer.role,
-    clientTimezoneOffset,
-  )
+  // A real instance, not a plain object: UpdateUnconfirmedContributionContext picks its
+  // role with `instanceof` and would not recognise the shape otherwise.
+  const args = Object.assign(new ContributionMessageArgs(), {
+    contributionId,
+    message,
+    messageType,
+  })
+  return addModeratorMessageAs(args, signer.user, signer.role, clientTimezoneOffset)
 }
 
 /** Books one contribution in the signer's name — the existing confirmation path, whole. */

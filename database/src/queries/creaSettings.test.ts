@@ -7,10 +7,10 @@ const appDB = AppDatabase.getInstance()
 
 beforeAll(async () => {
   await appDB.init()
-  await CreaSetting.delete({})
+  await CreaSetting.clear()
 })
 afterAll(async () => {
-  await CreaSetting.delete({})
+  await CreaSetting.clear()
   await appDB.destroy()
 })
 
