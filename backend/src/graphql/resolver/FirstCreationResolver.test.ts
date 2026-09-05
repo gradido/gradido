@@ -769,14 +769,14 @@ describe('FirstCreationResolver', () => {
 
   describe('when the process breaks after the row is claimed', () => {
     it('a confirm failing mid-bundle lands in review with the note on the first open contribution', async () => {
-      await reopen(bibi, FirstCreationTestMode.WITH_BOOKING)
+      await reopen(raeuber, FirstCreationTestMode.WITH_BOOKING)
       firstCreationLines.mockResolvedValue(answer(['für eins', 'für zwei', 'für drei']))
       // The mail after the SECOND booking fails: that contribution is committed, the third
       // is never reached.
       confirmedMail.mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error('smtp down'))
-      await loginAs('bibi@bloxberg.de')
-      const before = (await contributionsOf(bibi)).length
-      const reviewsBefore = (await eventsOf(EventType.FIRST_CREATION_REVIEW, bibi)).length
+      await loginAs('raeuber@hotzenplotz.de')
+      const before = (await contributionsOf(raeuber)).length
+      const reviewsBefore = (await eventsOf(EventType.FIRST_CREATION_REVIEW, raeuber)).length
       const { data, errors } = await mutate({
         mutation: submitFirstCreation,
         variables: {
@@ -791,19 +791,21 @@ describe('FirstCreationResolver', () => {
         state: FirstCreationStatus.IN_REVIEW,
         message: 'Deine Einträge schaut sich noch ein Mensch an. Du hörst von uns.',
       })
-      const fresh = (await contributionsOf(bibi)).slice(before)
+      const fresh = (await contributionsOf(raeuber)).slice(before)
       expect(fresh.map((c) => c.confirmedAt !== null)).toEqual([true, true, false])
       // The note sits on the one still open, because the booked ones take no message.
       expect(await messagesOn(fresh[2].id)).toHaveLength(1)
       expect((await messagesOn(fresh[2].id))[0].message).toContain('noch ein Mensch')
       // Thanks note on the first, review note on the third: two mails, no more.
       expect(addedMessageMail).toHaveBeenCalledTimes(2)
-      expect(await rowOf(bibi)).toMatchObject({
+      expect(await rowOf(raeuber)).toMatchObject({
         status: FirstCreationStatus.IN_REVIEW,
         reviewReason: FirstCreationReviewReason.PROCESS_ERROR,
         contributionIds: fresh.map((c) => c.id),
       })
-      expect(await eventsOf(EventType.FIRST_CREATION_REVIEW, bibi)).toHaveLength(reviewsBefore + 1)
+      expect(await eventsOf(EventType.FIRST_CREATION_REVIEW, raeuber)).toHaveLength(
+        reviewsBefore + 1,
+      )
     })
 
     it('a failing entry leaves the ones before it on the row, in review, with a note', async () => {
@@ -947,8 +949,9 @@ describe('FirstCreationResolver', () => {
       // everybody now, and the state is still readable.
       await loginAs('bob@baumeister.de')
       const status = await query({ query: firstCreationStatus })
+      // Bob's last run above ended in review; whatever the state, the window is shut.
       expect(status.data.firstCreationStatus).toMatchObject({
-        state: FirstCreationStatus.DONE,
+        state: FirstCreationStatus.IN_REVIEW,
         eligible: false,
       })
     })
