@@ -52,6 +52,13 @@ export const getUser = (context: Context): dbUser => {
   throw new LogError('No user given in context')
 }
 
+export const getRole = (context: Context): Role => {
+  if (context.role) {
+    return context.role
+  }
+  throw new LogError('No role given in context')
+}
+
 export const getClientTimezoneOffset = (context: Context): number => {
   if (
     (context.clientTimezoneOffset || context.clientTimezoneOffset === 0) &&
