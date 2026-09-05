@@ -16,38 +16,30 @@ import {
 import { OpenCreation } from '@model/OpenCreation'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import {
-  contributionTransaction,
   sendContributionChangedByModeratorEmail,
-  sendContributionConfirmedEmail,
   sendContributionDeletedEmail,
   sendContributionDeniedEmail,
-  TransactionTypeId,
 } from 'core'
 import {
   AppDatabase,
   Contribution as DbContribution,
-  Transaction as DbTransaction,
   User as DbUser,
   findUserNamesByIds,
-  getLastTransaction,
   UserContact,
 } from 'database'
 import { GraphQLResolveInfo } from 'graphql'
 import { getLogger } from 'log4js'
-import { Mutex } from 'redis-semaphore'
-import { Decay, DecayCalculationType, GradidoUnit } from 'shared'
+import { GradidoUnit } from 'shared'
 import { Arg, Args, Authorized, Ctx, Info, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { EntityManager, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import {
-  EVENT_ADMIN_CONTRIBUTION_CONFIRM,
   EVENT_ADMIN_CONTRIBUTION_CREATE,
   EVENT_ADMIN_CONTRIBUTION_DELETE,
   EVENT_ADMIN_CONTRIBUTION_DENY,
   EVENT_ADMIN_CONTRIBUTION_UPDATE,
-  EVENT_CONTRIBUTION_CREATE,
   EVENT_CONTRIBUTION_DELETE,
   EVENT_CONTRIBUTION_UPDATE,
 } from '@/event/Events'
@@ -55,17 +47,15 @@ import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUncon
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { attachContributionCreationGroups } from './util/attachContributionCreationGroups'
-import {
-  linkContributionCreationGroups,
-  resolveContributionCreationGroups,
-  setContributionCreationGroups,
-} from './util/contributionCreationGroups'
+import { confirmContributionAs } from './util/confirmContributionAs'
+import { setContributionCreationGroups } from './util/contributionCreationGroups'
 import {
   COMMUNITY_WINDOW_MONTHS,
   contributionFrontendLink,
   loadAllContributions,
   loadUserContributions,
 } from './util/contributions'
+import { createUserContribution } from './util/createUserContribution'
 import { getOpenCreations, getUserCreation, validateContribution } from './util/creations'
 import { extractGraphQLFields } from './util/extractGraphQLFields'
 import { findContributions, parseModeratorScope } from './util/findContributions'
@@ -111,44 +101,12 @@ export class ContributionResolver {
   @Authorized([RIGHTS.CREATE_CONTRIBUTION])
   @Mutation(() => UnconfirmedContribution)
   async createContribution(
-    @Args() { amount, memo, contributionDate, creationGroups }: ContributionArgs,
+    @Args() contributionArgs: ContributionArgs,
     @Ctx() context: Context,
   ): Promise<UnconfirmedContribution> {
     const clientTimezoneOffset = getClientTimezoneOffset(context)
-
     const user = getUser(context)
-    const creations = await getUserCreation(user.id, clientTimezoneOffset)
-    const logger = createLogger()
-    logger.addContext('user', user.id)
-    logger.trace('creations', creations)
-    const contributionDateObj = new Date(contributionDate)
-    validateContribution(creations, amount, contributionDateObj, clientTimezoneOffset)
-
-    // Group functions: resolved before the row exists, so a lookup that fails leaves no
-    // half-written contribution behind.
-    const canonicalGroups = await resolveContributionCreationGroups(creationGroups ?? [])
-
-    const contribution = DbContribution.create()
-    contribution.userId = user.id
-    contribution.amount = amount
-    contribution.createdAt = new Date()
-    contribution.contributionDate = contributionDateObj
-    contribution.memo = memo
-    contribution.contributionType = ContributionType.USER
-    contribution.contributionStatus = ContributionStatus.PENDING
-    // Group functions: stamped on the entity, the same way adminCreateContribution does it,
-    // and for the same reason. A row on its way in has no links to replace and no stamp to
-    // correct, so setContributionCreationGroups would spend a delete that can never match
-    // plus an update on the row inserted one statement earlier. The stamp is written whether
-    // or not a group was chosen -- that is what tells "deliberately no group" apart from
-    // "never said anything".
-    contribution.creationGroupsSetAt = new Date()
-
-    logger.trace('contribution to save', contribution)
-    await DbContribution.save(contribution)
-    await linkContributionCreationGroups(contribution.id, canonicalGroups)
-    await EVENT_CONTRIBUTION_CREATE(user, contribution, amount)
-
+    const contribution = await createUserContribution(user, contributionArgs, clientTimezoneOffset)
     return new UnconfirmedContribution(contribution)
   }
 
@@ -558,142 +516,9 @@ export class ContributionResolver {
     @Ctx() context: Context,
   ): Promise<boolean> {
     await assertContributionInModeratorScope(id, context.user?.userRoles?.[0])
-    const logger = createLogger()
-    logger.addContext('contribution', id)
-    // acquire lock
-    const mutex = new Mutex(db.getRedisClient(), 'TRANSACTIONS_LOCK')
-    await mutex.acquire()
-
-    try {
-      const clientTimezoneOffset = getClientTimezoneOffset(context)
-      const contribution = await DbContribution.findOne({
-        where: { id },
-        relations: { user: { emailContact: true } },
-      })
-      if (!contribution) {
-        throw new LogError('Contribution not found', id)
-      }
-      if (contribution.confirmedAt) {
-        throw new LogError('Contribution already confirmed', id)
-      }
-      if (contribution.contributionStatus === 'DENIED') {
-        throw new LogError('Contribution already denied', id)
-      }
-
-      const moderatorUser = getUser(context)
-      if (moderatorUser.id === contribution.userId) {
-        throw new LogError('Moderator can not confirm own contribution')
-      }
-      const user = contribution.user
-      if (user.deletedAt) {
-        throw new LogError('Can not confirm contribution since the user was deleted')
-      }
-      const receivedCallDate = new Date()
-      const dltTransactionPromise = contributionTransaction(
-        contribution,
-        moderatorUser,
-        receivedCallDate,
-      )
-      const creations = await getUserCreation(contribution.userId, clientTimezoneOffset, false)
-      validateContribution(
-        creations,
-        contribution.amount,
-        contribution.contributionDate,
-        clientTimezoneOffset,
-      )
-
-      const queryRunner = db.getDataSource().createQueryRunner()
-      await queryRunner.connect()
-      await queryRunner.startTransaction('REPEATABLE READ') // 'READ COMMITTED')
-      const lastTransaction = await getLastTransaction(contribution.userId)
-      logger.info('lastTransaction ID', lastTransaction ? lastTransaction.id : 'undefined')
-
-      try {
-        let newBalance = new GradidoUnit(0n)
-        let decay: Decay | null = null
-        if (lastTransaction) {
-          decay = lastTransaction.balance.calculateDecay(
-            lastTransaction.balanceDate,
-            receivedCallDate,
-          )
-          newBalance = decay.balance
-        }
-        newBalance = newBalance.add(contribution.amount)
-
-        let transaction = new DbTransaction()
-        transaction.typeId = TransactionTypeId.CREATION
-        transaction.memo = contribution.memo
-        transaction.userId = contribution.userId
-        transaction.userGradidoID = user.gradidoID
-        // The alias, not the real name (NU-020/NU-021): a booking is permanent, so a
-        // name written here outlives every later display fix. Same convention as the
-        // send/receive path in TransactionResolver. Through the shared rule rather than
-        // read off the column: in production every local user has an alias (migration
-        // 0116 filled them, createUser has assigned one since #3645), but a SEEDED
-        // environment has moderators without -- and a booking that stored null there
-        // would carry no public name for good.
-        transaction.userName = new PublishNameLogic(user).getPublicAlias()
-        transaction.userCommunityUuid = user.communityUuid
-        transaction.linkedUserId = moderatorUser.id
-        transaction.linkedUserGradidoID = moderatorUser.gradidoID
-        transaction.linkedUserName = new PublishNameLogic(moderatorUser).getPublicAlias()
-        transaction.linkedUserCommunityUuid = moderatorUser.communityUuid
-        transaction.previous = lastTransaction ? lastTransaction.id : null
-        transaction.amount = contribution.amount
-        transaction.creationDate = contribution.contributionDate
-        transaction.balance = newBalance
-        transaction.balanceDate = receivedCallDate
-        transaction.decay = decay ? decay.decay : new GradidoUnit(0n)
-        transaction.decayStart = decay ? decay.start : null
-        transaction.decayCalculationType = DecayCalculationType.NATIVE_C_FIXED_FACTOR_INTEGER
-        transaction = await queryRunner.manager.save(DbTransaction, transaction)
-
-        contribution.confirmedAt = receivedCallDate
-        contribution.confirmedBy = moderatorUser.id
-        contribution.transactionId = transaction.id
-        contribution.contributionStatus = ContributionStatus.CONFIRMED
-        await queryRunner.manager.update(DbContribution, { id: contribution.id }, contribution)
-
-        await queryRunner.commitTransaction()
-
-        logger.info('creation commited successfuly.')
-        await sendContributionConfirmedEmail({
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.emailContact.email,
-          language: user.language,
-          senderAlias: new PublishNameLogic(moderatorUser).getPublicAlias(),
-          contributionMemo: contribution.memo,
-          contributionAmount: contribution.amount,
-          contributionFrontendLink: await contributionFrontendLink(
-            contribution.id,
-            contribution.createdAt,
-          ),
-        })
-
-        // update transaction id in dlt transaction tables
-        // wait for finishing transaction by dlt-connector/hiero
-        const dltStartTime = new Date()
-        const dltTransaction = await dltTransactionPromise
-        if (dltTransaction) {
-          dltTransaction.transactionId = transaction.id
-          await dltTransaction.save()
-        }
-        const dltEndTime = new Date()
-        logger.debug(
-          `dlt-connector contribution finished in ${dltEndTime.getTime() - dltStartTime.getTime()} ms`,
-        )
-      } catch (e) {
-        await queryRunner.rollbackTransaction()
-        throw new LogError('Creation was not successful', e)
-      } finally {
-        await queryRunner.release()
-      }
-      await EVENT_ADMIN_CONTRIBUTION_CONFIRM(user, moderatorUser, contribution, contribution.amount)
-    } finally {
-      // releaseLock()
-      await mutex.release()
-    }
+    const moderatorUser = getUser(context)
+    const clientTimezoneOffset = getClientTimezoneOffset(context)
+    await confirmContributionAs(id, moderatorUser, clientTimezoneOffset)
     return true
   }
 

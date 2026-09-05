@@ -1,36 +1,25 @@
 import { ContributionMessageArgs } from '@arg/ContributionMessageArgs'
 import { Paginated } from '@arg/Paginated'
-import { ContributionMessageType } from '@enum/ContributionMessageType'
 import { Order } from '@enum/Order'
 import { ContributionMessage, ContributionMessageListResult } from '@model/ContributionMessage'
-import { sendAddedContributionMessageEmail } from 'core'
 import {
   AppDatabase,
   Contribution as DbContribution,
   ContributionMessage as DbContributionMessage,
-  User as DbUser,
 } from 'database'
-import { getLogger } from 'log4js'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
-import { EntityManager, FindOptionsRelations } from 'typeorm'
+import { EntityManager } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { PublishNameLogic } from '@/data/PublishName.logic'
-import {
-  EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE,
-  EVENT_CONTRIBUTION_MESSAGE_CREATE,
-} from '@/event/Events'
+import { EVENT_CONTRIBUTION_MESSAGE_CREATE } from '@/event/Events'
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
-import { Context, getUser } from '@/server/context'
+import { Context, getClientTimezoneOffset, getRole, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
-import { contributionFrontendLink } from './util/contributions'
+import { addModeratorMessageAs } from './util/addModeratorMessageAs'
 import { findContributionMessages } from './util/findContributionMessages'
 import { assertContributionInModeratorScope } from './util/moderatorCreationGroupScope'
 
 const db = AppDatabase.getInstance()
-const createLogger = () =>
-  getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ContributionMessageResolver`)
 
 @Resolver()
 export class ContributionMessageResolver {
@@ -135,76 +124,14 @@ export class ContributionMessageResolver {
       contributionMessageArgs.contributionId,
       context.user?.userRoles?.[0],
     )
-    const logger = createLogger()
-    const { contributionId, messageType } = contributionMessageArgs
-    logger.addContext('contribution', contributionMessageArgs.contributionId)
-    const updateUnconfirmedContributionContext = new UpdateUnconfirmedContributionContext(
-      contributionId,
-      contributionMessageArgs,
-      context,
-    )
-    const relations: FindOptionsRelations<DbContribution> =
-      messageType === ContributionMessageType.DIALOG
-        ? { user: { emailContact: true } }
-        : { user: true }
-    let finalContribution: DbContribution | undefined
-    let finalContributionMessage: DbContributionMessage | undefined
-
-    try {
-      await db
-        .getDataSource()
-        .transaction('REPEATABLE READ', async (transactionalEntityManager: EntityManager) => {
-          const { contribution, contributionMessage, contributionChanged } =
-            await updateUnconfirmedContributionContext.run(transactionalEntityManager, relations)
-          if (contributionChanged) {
-            await transactionalEntityManager.update(
-              DbContribution,
-              { id: contributionId },
-              contribution,
-            )
-            logger.debug(
-              'contribution changed, resubmission at: %s, status: %s',
-              contribution.resubmissionAt,
-              contribution.contributionStatus,
-            )
-          }
-          if (contributionMessage) {
-            await transactionalEntityManager.insert(DbContributionMessage, contributionMessage)
-          }
-          finalContribution = contribution
-          finalContributionMessage = contributionMessage
-        })
-    } catch (e) {
-      throw new LogError(`ContributionMessage was not sent successfully: ${e}`, e)
-    }
-    if (!finalContribution || !finalContributionMessage) {
-      throw new LogError('ContributionMessage was not sent successfully')
-    }
     const moderator = getUser(context)
-
-    if (messageType === ContributionMessageType.DIALOG) {
-      // send email (never for moderator messages)
-      await sendAddedContributionMessageEmail({
-        firstName: finalContribution.user.firstName,
-        lastName: finalContribution.user.lastName,
-        email: finalContribution.user.emailContact.email,
-        language: finalContribution.user.language,
-        senderAlias: new PublishNameLogic(moderator).getPublicAlias(),
-        contributionMemo: finalContribution.memo,
-        contributionFrontendLink: await contributionFrontendLink(
-          finalContribution.id,
-          finalContribution.createdAt,
-        ),
-        message: finalContributionMessage.message,
-      })
-    }
-
-    await EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE(
-      { id: finalContribution.userId } as DbUser,
+    const moderatorRole = getRole(context)
+    const contributionMessage = await addModeratorMessageAs(
+      contributionMessageArgs,
       moderator,
-      finalContribution,
-      finalContributionMessage,
+      moderatorRole,
+      getClientTimezoneOffset(context),
     )
-    return new ContributionMessage(finalContributionMessage)
+    return new ContributionMessage(contributionMessage)
   }
 }
