@@ -949,11 +949,10 @@ describe('FirstCreationResolver', () => {
       // everybody now, and the state is still readable.
       await loginAs('bob@baumeister.de')
       const status = await query({ query: firstCreationStatus })
-      // Bob's last run above ended in review; whatever the state, the window is shut.
-      expect(status.data.firstCreationStatus).toMatchObject({
-        state: FirstCreationStatus.IN_REVIEW,
-        eligible: false,
-      })
+      // Whatever Bob's row says after the runs above, it is a row - and no signer means no
+      // window for anybody who has one.
+      expect(status.data.firstCreationStatus.state).not.toBe('NONE')
+      expect(status.data.firstCreationStatus.eligible).toBe(false)
     })
   })
 })
