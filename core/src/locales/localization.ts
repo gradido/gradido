@@ -54,3 +54,26 @@ export const i18n = new I18n({
     disable: false,
   },
 })
+
+/**
+ * One phrase in one locale, without touching the global locale.
+ *
+ * The mail path calls `i18n.setLocale` before rendering a template; a message that is
+ * composed in code for one member must not do that, because the process serves everybody
+ * at once. `__` with an explicit `locale` reads the catalog directly.
+ *
+ * Falls back to English when the phrase is not translated in the requested locale
+ * (i18n answers the key itself in that case), so a member whose language has not received
+ * the new keys yet reads a sentence rather than a key.
+ */
+export function translateForLocale(
+  locale: string,
+  key: string,
+  replacements: Record<string, string> = {},
+): string {
+  const translated = i18n.__({ phrase: key, locale }, replacements)
+  if (translated !== key || locale === 'en') {
+    return translated
+  }
+  return i18n.__({ phrase: key, locale: 'en' }, replacements)
+}
