@@ -21,17 +21,13 @@ export async function dbGetFirstCreationSignerUserId(): Promise<number | null> {
 /**
  * Sets (or clears) the signer. Column-targeted on purpose: the row also carries the
  * moderation settings, and a `save()` of a loaded entity would write those back from
- * whatever moment it was loaded. Creates the singleton row when the admin has never
- * saved any Crea setting before.
+ * whatever moment it was loaded. One upsert statement (INSERT ... ON DUPLICATE KEY UPDATE
+ * of this column only), so the singleton row comes into being atomically when the admin
+ * has never saved any Crea setting before - two admins saving at the same moment cannot
+ * race an update-then-insert into a duplicate key.
  *
  * Plain `void`: with a valid id this always succeeds, there is no expected failure.
  */
 export async function dbSetFirstCreationSignerUserId(userId: number | null): Promise<void> {
-  const updated = await CreaSetting.update(
-    { id: SINGLETON_ID },
-    { firstCreationSignerUserId: userId },
-  )
-  if (!updated.affected) {
-    await CreaSetting.insert({ id: SINGLETON_ID, firstCreationSignerUserId: userId })
-  }
+  await CreaSetting.upsert({ id: SINGLETON_ID, firstCreationSignerUserId: userId }, ['id'])
 }

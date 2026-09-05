@@ -69,6 +69,16 @@ describe('the two writes behind the Crea settings', () => {
     expect(setActive).not.toHaveBeenCalled()
   })
 
+  it('reads the signer BEFORE the settings write, like the switch', async () => {
+    await resolver.setCreaSettings(input())
+
+    // A read that fails after the write would report an error for a save that happened.
+    expect(signerId).toHaveBeenCalled()
+    expect(signerId.mock.invocationCallOrder[0]).toBeLessThan(
+      writeSettings.mock.invocationCallOrder[0],
+    )
+  })
+
   it('reports the stored switch alongside the settings it did save', async () => {
     isActive.mockResolvedValue(true)
 

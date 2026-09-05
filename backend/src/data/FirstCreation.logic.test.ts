@@ -147,6 +147,12 @@ describe('the four-line message', () => {
     expect(composeFirstCreationGreeting('Emma', 'en')).toBe('Dear Emma, welcome!')
   })
 
+  it('greets without a name when there is none, instead of "Willkommen, !"', () => {
+    expect(composeFirstCreationGreeting(null, 'de')).toBe('Willkommen!')
+    expect(composeFirstCreationGreeting('   ', 'de')).toBe('Willkommen!')
+    expect(composeFirstCreationGreeting(undefined, 'en')).toBe('Welcome!')
+  })
+
   it('builds Emma: two lines, the tick as the "Und für" line, W1 and closing fixed', () => {
     const message = composeFirstCreationMessage({
       firstName: 'Emma',

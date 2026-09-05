@@ -38,6 +38,13 @@ describe('creaSettings query test', () => {
     })
   })
 
+  it('lets two admins create the singleton at the same moment without a duplicate', async () => {
+    await CreaSetting.clear()
+    await Promise.all([dbSetFirstCreationSignerUserId(3), dbSetFirstCreationSignerUserId(4)])
+    expect(await CreaSetting.count()).toBe(1)
+    expect([3, 4]).toContain(await dbGetFirstCreationSignerUserId())
+  })
+
   it('clears the signer with null and does not add a second row', async () => {
     await dbSetFirstCreationSignerUserId(null)
     expect(await dbGetFirstCreationSignerUserId()).toBeNull()

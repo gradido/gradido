@@ -2,10 +2,12 @@
 import type { CreaBatchInput } from '@/graphql/input/CreaBatchInput'
 import type { CreaContributionInput } from '@/graphql/input/CreaContributionInput'
 import { SALUTATION_PLACEHOLDER, SIGNATURE_PLACEHOLDER } from './deterministics'
+import { checkFirstCreationAnswer, FIRST_CREATION_LINE_MAX_CHARS } from './firstCreation'
 import {
   buildStubBatch,
   buildStubBatchRewrite,
   buildStubEvaluation,
+  buildStubFirstCreationLines,
   buildStubRewrite,
   CREA_STUB_FLAG,
 } from './stub'
@@ -137,5 +139,24 @@ describe('crea stub batch evaluation (E-020)', () => {
     expect(deny.responseText).toContain('wieder frei')
     expect(confirm.memoSupplement).toBeTruthy()
     expect(deny.memoSupplement).toBeNull()
+  })
+})
+
+describe('crea stub first-creation lines', () => {
+  it('passes the same form check as a real answer, whatever the member wrote', () => {
+    const entries = [{ memo: 'x'.repeat(512) }, { memo: 'Ich habe geholfen' }]
+    const answer = buildStubFirstCreationLines(entries, 'de')
+    // The form check takes the model's raw shape; the stub answers the checked shape.
+    const raw = {
+      lines: answer.lines.map((text, entryIndex) => ({ entryIndex, text })),
+      suspicious: answer.suspicious,
+      reason: answer.reason,
+    }
+    expect(checkFirstCreationAnswer(raw, 2).success).toBe(true)
+    for (const line of answer.lines) {
+      expect(line.length).toBeLessThanOrEqual(FIRST_CREATION_LINE_MAX_CHARS)
+      expect(line).not.toContain('xxxx')
+    }
+    expect(buildStubFirstCreationLines(entries, 'en').lines[0]).toMatch(/^for /)
   })
 })

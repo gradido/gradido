@@ -205,6 +205,9 @@ export class CreaResolver {
     // first: then a failure here means nothing was written, which is what the error
     // toast says.
     const matchingKeyingActive = await dbIsMatchingKeyingActive()
+    // Same rule for the signer: read before the write, so a failing read cannot turn a
+    // save that has already committed into an error toast.
+    const firstCreationSigner = await readFirstCreationSigner()
     const settings = await writeCreaSettings(
       input.model ?? null,
       input.effort as CreaEffort,
@@ -216,7 +219,7 @@ export class CreaResolver {
       defaultModel: defaultCreaModel(),
       fastMode: settings.fastMode,
       matchingKeyingActive,
-      firstCreationSigner: await readFirstCreationSigner(),
+      firstCreationSigner,
     }
   }
 

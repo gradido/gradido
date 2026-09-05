@@ -164,9 +164,11 @@ export function buildStubBatchRewrite(input: CreaBatchInput): CreaRewriteResult 
 }
 
 /**
- * Canned first-creation lines for the staging preview (ES-006): one line per entry that
- * echoes the sentence, never suspicious. Only reached when no real client is configured
- * and CREA_STUB is on; lets the whole submit → comment → confirm path run without a key.
+ * Canned first-creation lines for the staging preview (ES-006): one fixed short line per
+ * entry, never suspicious. Fixed rather than quoting the sentence, so the line stays
+ * inside FIRST_CREATION_LINE_MAX_CHARS whatever the member wrote - this answer bypasses
+ * the form check the real one goes through. Only reached when no real client is
+ * configured and CREA_STUB is on.
  */
 export function buildStubFirstCreationLines(
   entries: FirstCreationModelEntry[],
@@ -174,10 +176,10 @@ export function buildStubFirstCreationLines(
 ): FirstCreationAnswer {
   const isEn = language.startsWith('en')
   return {
-    lines: entries.map((entry) =>
+    lines: entries.map((_entry, index) =>
       isEn
-        ? `for what you wrote: "${entry.memo}"`
-        : `für das, was Du geschrieben hast: „${entry.memo}“`,
+        ? `for what you did (entry ${index + 1})`
+        : `für das, was Du getan hast (Eintrag ${index + 1})`,
     ),
     suspicious: false,
     reason: '',

@@ -190,6 +190,7 @@
     },
     "message": {
       "closing": "Schön, dass Du da bist.",
+      "greetingAnonymous": "Willkommen!",
       "greetingFemale": "Liebe {name}, willkommen!",
       "greetingMale": "Lieber {name}, willkommen!",
       "greetingNeutral": "Willkommen, {name}!",

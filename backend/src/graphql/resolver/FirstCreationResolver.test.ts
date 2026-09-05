@@ -24,6 +24,7 @@ import { GraphQLError } from 'graphql'
 import { getLogger as originalGetLogger } from 'log4js'
 import { AnthropicClient } from '@/apis/anthropic/AnthropicClient'
 import { composeFirstCreationGreeting } from '@/data/FirstCreation.logic'
+import { EVENT_FIRST_CREATION_DONE } from '@/event/EVENT_FIRST_CREATION'
 import { EventType } from '@/event/Events'
 import { creationFactory } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
@@ -56,6 +57,12 @@ jest.mock('core', () => {
 })
 jest.mock('@/password/EncryptorUtils')
 
+// The outcome events write a row of their own; one of them is made to fail once below.
+jest.mock('@/event/EVENT_FIRST_CREATION', () => {
+  const actual = jest.requireActual('@/event/EVENT_FIRST_CREATION')
+  return { ...actual, EVENT_FIRST_CREATION_DONE: jest.fn(actual.EVENT_FIRST_CREATION_DONE) }
+})
+
 // The client is a singleton behind a config gate; the tests need it present and mute. The
 // spy is created INSIDE the factory (the factory runs while the imports above are still
 // being resolved) and fetched back through the mocked module.
@@ -68,6 +75,7 @@ const firstCreationLines = (
 ).firstCreationLines
 
 const addedMessageMail = sendAddedContributionMessageEmail as jest.Mock
+const doneEvent = EVENT_FIRST_CREATION_DONE as unknown as jest.Mock
 const confirmedMail = sendContributionConfirmedEmail as jest.Mock
 
 let mutate: ApolloServerTestClient['mutate']
@@ -551,6 +559,29 @@ describe('FirstCreationResolver', () => {
       expect(confirmedMail).toHaveBeenCalledTimes(7)
     })
 
+    it('keeps a thanked bundle thanked when only the outcome event fails', async () => {
+      await reopen(bibi, FirstCreationTestMode.WITH_BOOKING)
+      firstCreationLines.mockResolvedValue(answer(['für den Zaun']))
+      doneEvent.mockRejectedValueOnce(new Error('event store down'))
+      await loginAs('bibi@bloxberg.de')
+      const reviewsBefore = (await eventsOf(EventType.FIRST_CREATION_REVIEW, bibi)).length
+      const { data, errors } = await mutate({
+        mutation: submitFirstCreation,
+        variables: {
+          entries: [{ catalogKey: 'helpedNeighbourhood', text: 'den Zaun repariert habe' }],
+        },
+      })
+      expect(errors).toBeUndefined()
+      // Booked and thanked - and it stays that way: no second, contradicting note.
+      expect(data.submitFirstCreation.state).toBe(FirstCreationStatus.DONE)
+      expect(data.submitFirstCreation.message).toContain('für den Zaun')
+      expect(addedMessageMail).toHaveBeenCalledTimes(1)
+      expect(confirmedMail).toHaveBeenCalledTimes(1)
+      expect((await rowOf(bibi)).status).toBe(FirstCreationStatus.DONE)
+      // The process is not counted under a second outcome.
+      expect(await eventsOf(EventType.FIRST_CREATION_REVIEW, bibi)).toHaveLength(reviewsBefore)
+    })
+
     it('refuses more than ten entries before filing anything', async () => {
       await reopen(bibi, FirstCreationTestMode.WITH_BOOKING)
       await loginAs('bibi@bloxberg.de')
@@ -569,11 +600,11 @@ describe('FirstCreationResolver', () => {
     })
 
     it('refuses to start when the month cannot take another 100 GDD (ES-015)', async () => {
-      // Bibi has 300 GDD this month from the three runs above (the unbooked one counts too,
-      // its contributions are open); 650 more leaves 50 free, and 100 no longer fit.
+      // Bibi has 400 GDD this month from the four runs above (the unbooked one counts too,
+      // its contributions are open); 550 more leaves 50 free, and 100 no longer fit.
       await creationFactory(testEnv, {
         email: 'bibi@bloxberg.de',
-        amount: 650,
+        amount: 550,
         memo: 'Aufgefuellt bis kurz unter die Grenze',
         contributionDate: new Date().toISOString(),
         confirmed: true,

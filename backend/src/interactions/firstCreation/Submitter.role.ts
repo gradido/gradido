@@ -6,7 +6,9 @@ import {
   FirstCreationSelect,
   FirstCreationStatus,
 } from 'database'
+import { getLogger } from 'log4js'
 import { GradidoUnit, Result, VoidResult } from 'shared'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
   buildFirstCreationMemo,
   FIRST_CREATION_MAX_ENTRIES,
@@ -23,6 +25,8 @@ import {
   FirstCreationNotEligible,
   FirstCreationQuotaExceeded,
 } from './FirstCreation.errors'
+
+const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.interactions.firstCreation.submitter`)
 
 // The member (DCI role "submitter"): may they start, what do their entries become, and
 // the filing of the contributions in their own name — ordinary USER contributions through
@@ -109,7 +113,10 @@ export async function checkQuota(
   try {
     validateContribution(creations, FIRST_CREATION_TOTAL, new Date(), clientTimezoneOffset)
     return { success: true }
-  } catch {
+  } catch (error) {
+    // validateContribution also throws for a date it has no month for; the member gets the
+    // same answer either way, the log keeps the two apart.
+    logger.info(`first creation quota check refused for user ${userId}`, error)
     return { success: false, error: new FirstCreationQuotaExceeded() }
   }
 }

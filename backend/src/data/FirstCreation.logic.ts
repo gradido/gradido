@@ -150,7 +150,11 @@ export function composeFirstCreationGreeting(
   language: string,
 ): string {
   const name = firstName?.trim() ?? ''
-  const gender = name ? guessGender(name) : null
+  if (!name) {
+    // A blank first name gets the greeting without a name, not "Willkommen, !".
+    return translateForLocale(language, 'firstCreation.message.greetingAnonymous')
+  }
+  const gender = guessGender(name)
   const key =
     gender === 'female' ? 'greetingFemale' : gender === 'male' ? 'greetingMale' : 'greetingNeutral'
   return translateForLocale(language, `firstCreation.message.${key}`, { name })

@@ -17,7 +17,8 @@ vi.mock('@/composables/useToast', () => ({ useAppToast: () => ({ toastSuccess, t
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
-    t: (key) => key,
+    // Parameters stay visible, so a test can tell WHICH reason was put into a sentence.
+    t: (key, params) => (params ? `${key}:${JSON.stringify(params)}` : key),
     d: (value) => String(value),
   }),
 }))
@@ -523,7 +524,9 @@ describe('CreaSettings', () => {
       wrapper.vm.signerChoice = 5
       await nextTick()
       await signerSave().trigger('click')
-      expect(toastError).toHaveBeenCalledWith('crea.settings.signerRefused')
+      expect(toastError).toHaveBeenCalledWith(
+        'crea.settings.signerRefused:{"reason":"crea.settings.signerReason.SCOPED"}',
+      )
       expect(toastSuccess).not.toHaveBeenCalled()
       // The stored signer is untouched.
       expect(wrapper.vm.signer).toMatchObject({ userId: 7 })

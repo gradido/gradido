@@ -190,6 +190,7 @@
     },
     "message": {
       "closing": "Good to have you here.",
+      "greetingAnonymous": "Welcome!",
       "greetingFemale": "Dear {name}, welcome!",
       "greetingMale": "Dear {name}, welcome!",
       "greetingNeutral": "Welcome, {name}!",

@@ -377,10 +377,17 @@ async function runOutcome(
       model: step.model,
       signerUserId: signer.user.id,
     })
-    if (withoutBooking) {
-      await EVENT_FIRST_CREATION_UNBOOKED(user, signer.user, first)
-    } else {
-      await EVENT_FIRST_CREATION_DONE(user, signer.user, first)
+    // The outcome is committed from here on. An event that fails is logged, never answered
+    // with the review fallback below - that would mail the member a second, contradicting
+    // note over a thanked and booked bundle, and count one process under two outcomes.
+    try {
+      if (withoutBooking) {
+        await EVENT_FIRST_CREATION_UNBOOKED(user, signer.user, first)
+      } else {
+        await EVENT_FIRST_CREATION_DONE(user, signer.user, first)
+      }
+    } catch (eventError) {
+      logger.error(`first creation ${row.id}: outcome event failed`, eventError)
     }
   } catch (error) {
     logger.error(`first creation ${row.id}: outcome failed, handing to review`, error)
