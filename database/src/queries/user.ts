@@ -1,6 +1,6 @@
 import { and, eq, isNull, or } from 'drizzle-orm'
 import { getLogger } from 'log4js'
-import { aliasSchema, emailSchema, uuidv4Schema, VoidResult } from 'shared'
+import { aliasSchema, emailSchema, Result, uuidv4Schema, VoidResult } from 'shared'
 import { EntityManager, In, Raw } from 'typeorm'
 import { drizzleDb } from '../AppDatabase'
 import { User as DbUser, UserContact as DbUserContact } from '../entity'
@@ -47,6 +47,26 @@ export async function dbGetUserById(
     relations: { community: withCommunity, emailContact: withEmailContact },
   }
   return manager ? manager.findOneOrFail(DbUser, options) : DbUser.findOneOrFail(options)
+}
+
+/**
+ * A user together with the role row that isAuthorized reads for the logged-in person -
+ * for somebody who is NOT logged in but acts through a stored id, the first-creation
+ * signer. Deleted accounts come back too (`withDeleted`): the caller decides what a
+ * deleted signer means, and "not found" would hide that it was ever somebody.
+ *
+ * Not found IS an expected outcome here: the stored id may point at an account that has
+ * since been removed for good.
+ */
+export async function dbGetUserWithRolesById(id: number): Promise<Result<DbUser, DBNotFoundError>> {
+  const user = await DbUser.findOne({
+    where: { id },
+    withDeleted: true,
+    relations: { userRoles: true, emailContact: true },
+  })
+  return user
+    ? { success: true, value: user }
+    : { success: false, error: new DBNotFoundError('users', `id = ${id}`) }
 }
 
 /**

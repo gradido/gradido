@@ -596,6 +596,31 @@ export const creaSettings = gql`
       defaultModel
       fastMode
       matchingKeyingActive
+      firstCreationSigner {
+        userId
+        firstName
+        alias
+        role
+        eligible
+        reason
+      }
+    }
+  }
+`
+
+export const firstCreationStatus = gql`
+  query {
+    firstCreationStatus {
+      state
+      eligible
+      message
+      entries {
+        memo
+        confirmed
+        status
+      }
+      functionTestsEnabled
+      testRunsLeft
     }
   }
 `

@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import Anthropic from '@anthropic-ai/sdk'
 import { getLogger } from 'log4js'
-import { DomainError } from 'shared'
+import { DomainError, Result } from 'shared'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import type { CreaBatchInput } from '@/graphql/input/CreaBatchInput'
@@ -19,6 +19,14 @@ import {
   SALUTATION_UNCERTAIN_FLAG,
   SIGNATURE_PLACEHOLDER,
 } from './crea/deterministics'
+import {
+  buildFirstCreationUserMessage,
+  checkFirstCreationAnswer,
+  FIRST_CREATION_SCHEMA,
+  FIRST_CREATION_TIMEOUT_MS,
+  type FirstCreationAnswer,
+  type FirstCreationModelEntry,
+} from './crea/firstCreation'
 import { CREA_BATCH_SCHEMA, CREA_OUTPUT_SCHEMA, CREA_REWRITE_SCHEMA } from './crea/outputSchema'
 import { applyCreaDeterministics } from './crea/postprocess'
 import {
@@ -75,6 +83,19 @@ const KEYING_MAX_TOKENS = 8000
  * is for the log, the numbers are what a caller would act on if it ever wants to raise
  * the limit instead of asking the moderator to paste less.
  */
+/**
+ * Why the first creation got no usable answer from the model: the deadline passed, or the
+ * API/answer failed. The interaction records the reason on the process row (review quota).
+ */
+export class FirstCreationModelFailure extends DomainError {
+  constructor(
+    public readonly reason: 'MODEL_TIMEOUT' | 'MODEL_ERROR',
+    public readonly cause: unknown,
+  ) {
+    super(`FIRST_CREATION_${reason}`)
+  }
+}
+
 export class CreaTruncatedError extends DomainError {
   constructor(
     public readonly maxTokens: number,
@@ -378,6 +399,78 @@ export class AnthropicClient {
   }
 
   /**
+   * The first creation's one call (ES-006/ES-007): one line of thanks per entry, plus the
+   * hand raised for a suspicious entry. Same cached system prompt as the moderation Crea,
+   * the task itself in the user block (buildFirstCreationUserMessage), the answer
+   * constrained by FIRST_CREATION_SCHEMA and checked for its form before it is returned.
+   *
+   * ⛔ The deadline is a REQUEST option on this call alone (FIRST_CREATION_TIMEOUT_MS, no
+   * retry - the SDK's timeout is per attempt), not a client setting: the admin's Crea keeps the library defaults. A
+   * timeout, an API error and a malformed answer all come back as a failure with its
+   * reason — the interaction turns every one of them into "a human looks first" (ES-019).
+   */
+  public async firstCreationLines(
+    entries: FirstCreationModelEntry[],
+    language: string,
+  ): Promise<Result<{ answer: FirstCreationAnswer; model: string }, FirstCreationModelFailure>> {
+    const params = await resolveCreaModelParams()
+    let message: Anthropic.Message
+    try {
+      message = await this.createMessage(
+        {
+          model: params.model,
+          max_tokens: params.maxTokens,
+          thinking: params.thinking,
+          system: [
+            {
+              type: 'text',
+              text: buildCreaSystemPrompt(),
+              cache_control: { type: 'ephemeral' },
+            },
+          ],
+          messages: [{ role: 'user', content: buildFirstCreationUserMessage(entries, language) }],
+          output_config: params.effort
+            ? {
+                effort: params.effort,
+                format: { type: 'json_schema', schema: FIRST_CREATION_SCHEMA },
+              }
+            : { format: { type: 'json_schema', schema: FIRST_CREATION_SCHEMA } },
+        },
+        params.fastMode,
+        // maxRetries 0: the SDK's timeout is per attempt, and a retry would double the deadline.
+        { timeout: FIRST_CREATION_TIMEOUT_MS, maxRetries: 0 },
+      )
+    } catch (error) {
+      const timeout = error instanceof Anthropic.APIConnectionTimeoutError
+      logger.warn(
+        `crea first creation ${timeout ? 'timed out' : 'failed'}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      )
+      return {
+        success: false,
+        error: new FirstCreationModelFailure(timeout ? 'MODEL_TIMEOUT' : 'MODEL_ERROR', error),
+      }
+    }
+    logger.info(
+      `crea first creation usage: input=${message.usage.input_tokens} cacheRead=${message.usage.cache_read_input_tokens} output=${message.usage.output_tokens}`,
+    )
+    let raw: unknown
+    try {
+      this.assertNotTruncated(message, params.maxTokens)
+      raw = JSON.parse(this.firstTextBlock(message))
+    } catch (error) {
+      return { success: false, error: new FirstCreationModelFailure('MODEL_ERROR', error) }
+    }
+    const checked = checkFirstCreationAnswer(raw, entries.length)
+    if (!checked.success) {
+      logger.warn(`crea first creation answer malformed: ${checked.error.detail}`)
+      return { success: false, error: new FirstCreationModelFailure('MODEL_ERROR', checked.error) }
+    }
+    return { success: true, value: { answer: checked.value, model: params.model } }
+  }
+
+  /**
    * A cheap probe for the admin "test model" button (DO-4): verifies the given model
    * (and effort) actually answers. Returns a short outcome instead of throwing so the
    * UI can toast it. Runs on the shared client (needs the key active).
@@ -549,16 +642,20 @@ export class AnthropicClient {
   private async createMessage(
     body: Anthropic.MessageCreateParamsNonStreaming,
     fastMode: boolean,
+    requestOptions?: Anthropic.RequestOptions,
   ): Promise<Anthropic.Message> {
     if (!fastMode) {
-      return this.anthropic.messages.create(body)
+      return this.anthropic.messages.create(body, requestOptions)
     }
     try {
-      const message = await this.anthropic.beta.messages.create({
-        ...body,
-        speed: 'fast',
-        betas: [FAST_MODE_BETA],
-      })
+      const message = await this.anthropic.beta.messages.create(
+        {
+          ...body,
+          speed: 'fast',
+          betas: [FAST_MODE_BETA],
+        },
+        requestOptions,
+      )
       // The beta response carries the same fields Crea reads (content, usage,
       // stop_reason); only the TypeScript type differs.
       return message as Anthropic.Message
@@ -571,7 +668,7 @@ export class AnthropicClient {
           error instanceof Error ? error.message : String(error)
         }); retrying at normal speed`,
       )
-      return this.anthropic.messages.create(body)
+      return this.anthropic.messages.create(body, requestOptions)
     }
   }
 

@@ -74,6 +74,29 @@ query creaSettings {
     defaultModel
     fastMode
     matchingKeyingActive
+    firstCreationSigner {
+      userId
+      firstName
+      lastName
+      alias
+      role
+      eligible
+      reason
+    }
+  }
+}
+
+# Who confirms every first creation in their name (ES-005). Its own mutation and its own
+# Save button, like the keying switch: saving the model must not be able to move it.
+mutation setFirstCreationSigner($userId: Int) {
+  setFirstCreationSigner(userId: $userId) {
+    userId
+    firstName
+    lastName
+    alias
+    role
+    eligible
+    reason
   }
 }
 

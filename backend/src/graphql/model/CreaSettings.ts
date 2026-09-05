@@ -1,4 +1,4 @@
-import { Field, ObjectType } from 'type-graphql'
+import { Field, Int, ObjectType } from 'type-graphql'
 
 // The global Crea runtime settings shown in the admin panel (DO-4). `model` is the
 // stored override (null = the env default is in use); `defaultModel` is that env
@@ -34,6 +34,43 @@ export class CreaSettings {
    */
   @Field()
   matchingKeyingActive: boolean
+
+  /**
+   * Who signs the first creation (ES-005), or null when nobody is configured — and null
+   * means the first-creation window stays shut for every member.
+   */
+  @Field(() => FirstCreationSigner, { nullable: true })
+  firstCreationSigner: FirstCreationSigner | null
+}
+
+/**
+ * The configured signer as the admin page shows them. `eligible` is checked NOW, not at
+ * the time of picking: an account that lost its moderation role since is still stored,
+ * but the window is shut until an admin picks somebody else — and the page says so.
+ */
+@ObjectType()
+export class FirstCreationSigner {
+  @Field(() => Int)
+  userId: number
+
+  @Field(() => String, { nullable: true })
+  firstName: string | null
+
+  @Field(() => String, { nullable: true })
+  lastName: string | null
+
+  @Field(() => String, { nullable: true })
+  alias: string | null
+
+  @Field(() => String, { nullable: true })
+  role: string | null
+
+  @Field()
+  eligible: boolean
+
+  // Why not eligible, as a code the admin translates; empty when eligible.
+  @Field()
+  reason: string
 }
 
 // Result of the admin "test model" probe: whether a tiny call to the chosen model

@@ -160,6 +160,49 @@
       "title": "{senderAlias} has sent you {transactionAmount} Gradido"
     }
   },
+  "firstCreation": {
+    "catalog": {
+      "accompaniedHardTime": "I stood by someone through a hard time by {text}",
+      "animalShelter": "I helped out at an animal shelter or sanctuary by {text}",
+      "animalsOrNature": "I did something for animals or nature by {text}",
+      "caredForChildren": "I cared for my children and guided them into life by {text}",
+      "communityProject": "I carried a community project (festival, community-supported farm, community garden …) by {text}",
+      "fireBrigadeRescue": "I served with the volunteer fire brigade or the rescue service by {text}",
+      "helpedAtHome": "I helped at home by {text}",
+      "helpedElderlyPerson": "I helped an elderly person by {text}",
+      "helpedFellowStudents": "I helped my classmates or fellow students by {text}",
+      "helpedNeighbourhood": "I helped out in the neighbourhood where help was needed by {text}",
+      "helpedOldPerson": "I helped an old person by {text}",
+      "helpedParish": "I helped out in my municipality or parish by {text}",
+      "helpedSickPerson": "I helped a sick person by {text}",
+      "lookedAfterGrandchildren": "I looked after my grandchildren by {text}",
+      "lookedAfterOrTaught": "I looked after someone or taught someone something by {text}",
+      "madeSomeoneHappy": "I made someone happy by {text}",
+      "musicChoirCulture": "I contributed to music, choir or culture in the community by {text}",
+      "natureEnvironment": "I did something for nature and the environment by {text}",
+      "nursedRelative": "I nursed a relative by {text}",
+      "sharedKnowledge": "I passed on my knowledge (tutoring, a course, guidance) by {text}",
+      "supportedClub": "I supported my club by {text}",
+      "supportedDisabledPerson": "I supported a person with a disability by {text}"
+    },
+    "checks": {
+      "retiree": "I am a retiree."
+    },
+    "message": {
+      "closing": "Good to have you here.",
+      "greetingAnonymous": "Welcome!",
+      "greetingFemale": "Dear {name}, welcome!",
+      "greetingMale": "Dear {name}, welcome!",
+      "greetingNeutral": "Welcome, {name}!",
+      "internalNote": "Crea paused this first creation: {reason}. Please review and confirm, change or deny it by hand.",
+      "retireeLine": "for your life's work: all the years you were there for others",
+      "review": "A person is still looking at your entries. You will hear from us.",
+      "thanks": "The community thanks you — {lines}.",
+      "thanksOnlyCheck": "The community thanks you — {checkLine}.",
+      "thanksWithCheck": "The community thanks you — {lines}. And {checkLine}.",
+      "w1": "Your first 100 Gradido are thanks for what you have long since done."
+    }
+  },
   "general": {
     "decimalSeparator": "."
   }

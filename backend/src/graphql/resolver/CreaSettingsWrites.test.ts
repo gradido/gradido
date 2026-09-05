@@ -8,9 +8,16 @@ import { CreaResolver } from './CreaResolver'
 //
 // Mocked rather than driven against a database, because what is under test is WHICH
 // CALLS HAPPEN, and that is exactly what a mock can see and a database cannot.
+// The real module underneath: the resolver now reaches ROLES → RoleNames through the
+// signer check, and a mock that only knows two functions left RoleNames undefined at
+// import time. The signer reads are mocked to "nobody configured".
 jest.mock('database', () => ({
+  ...jest.requireActual('database'),
   dbIsMatchingKeyingActive: jest.fn(),
   dbSetMatchingKeyingActive: jest.fn(),
+  dbGetFirstCreationSignerUserId: jest.fn(),
+  dbGetUserWithRolesById: jest.fn(),
+  dbSetFirstCreationSignerUserId: jest.fn(),
 }))
 jest.mock('@/apis/anthropic/crea/settings', () => ({
   CREA_EFFORTS: ['disabled', 'low', 'medium', 'high', 'xhigh', 'max'],
@@ -19,11 +26,16 @@ jest.mock('@/apis/anthropic/crea/settings', () => ({
   writeCreaSettings: jest.fn(),
 }))
 
-import { dbIsMatchingKeyingActive, dbSetMatchingKeyingActive } from 'database'
+import {
+  dbGetFirstCreationSignerUserId,
+  dbIsMatchingKeyingActive,
+  dbSetMatchingKeyingActive,
+} from 'database'
 import { readCreaSettings, writeCreaSettings } from '@/apis/anthropic/crea/settings'
 
 const isActive = dbIsMatchingKeyingActive as jest.Mock
 const setActive = dbSetMatchingKeyingActive as jest.Mock
+const signerId = dbGetFirstCreationSignerUserId as jest.Mock
 const readSettings = readCreaSettings as jest.Mock
 const writeSettings = writeCreaSettings as jest.Mock
 
@@ -43,6 +55,7 @@ describe('the two writes behind the Crea settings', () => {
     writeSettings.mockResolvedValue(storedSettings)
     setActive.mockResolvedValue({ success: true })
     isActive.mockResolvedValue(true)
+    signerId.mockResolvedValue(null)
   })
 
   it('does not touch the keying switch when the moderation settings are saved', async () => {
@@ -54,6 +67,16 @@ describe('the two writes behind the Crea settings', () => {
     // a paid run, or restart one that had been deliberately stopped.
     expect(writeSettings).toHaveBeenCalled()
     expect(setActive).not.toHaveBeenCalled()
+  })
+
+  it('reads the signer BEFORE the settings write, like the switch', async () => {
+    await resolver.setCreaSettings(input())
+
+    // A read that fails after the write would report an error for a save that happened.
+    expect(signerId).toHaveBeenCalled()
+    expect(signerId.mock.invocationCallOrder[0]).toBeLessThan(
+      writeSettings.mock.invocationCallOrder[0],
+    )
   })
 
   it('reports the stored switch alongside the settings it did save', async () => {

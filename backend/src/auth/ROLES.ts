@@ -34,3 +34,21 @@ export const ROLE_DLT_CONNECTOR = new Role(RoleNames.DLT_CONNECTOR, DLT_CONNECTO
 
 // TODO from database
 export const ROLES = [ROLE_UNAUTHORIZED, ROLE_USER, ROLE_MODERATOR, ROLE_ADMIN]
+
+/**
+ * The rights bundle behind a stored role name, the same mapping isAuthorized applies to
+ * the logged-in user. For acting in somebody ELSE's name (the first-creation signer),
+ * where there is no request context to read the role from.
+ */
+export const roleByName = (roleName: string | null | undefined): Role => {
+  switch (roleName) {
+    case RoleNames.ADMIN:
+      return ROLE_ADMIN
+    case RoleNames.MODERATOR:
+      return ROLE_MODERATOR
+    case RoleNames.MODERATOR_AI:
+      return ROLE_MODERATOR_AI
+    default:
+      return ROLE_USER
+  }
+}

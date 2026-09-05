@@ -2,7 +2,7 @@
 import { OptInType, Result, UserContactType, VoidResult } from 'shared'
 import { EntityManager, Like } from 'typeorm'
 import { UserContact as DbUserContact } from '../entity'
-import { DBDuplicateEntryError, DBNotFoundError } from '../errorTypes'
+import { DBDuplicateEntryError, DBNotFoundError, isDuplicateEntry } from '../errorTypes'
 
 /**
  * A member's addresses. `users.email_id` marks the one that counts; every row that ever
@@ -33,11 +33,6 @@ import { DBDuplicateEntryError, DBNotFoundError } from '../errorTypes'
  */
 
 const UserContactNotFound = (where: string) => new DBNotFoundError('user_contacts', where)
-
-const isDuplicateEntry = (error: unknown): boolean => {
-  const code = (error as { code?: string; driverError?: { code?: string } } | null) ?? {}
-  return code.code === 'ER_DUP_ENTRY' || code.driverError?.code === 'ER_DUP_ENTRY'
-}
 
 /** The oldest living address of this member - the one the GDT server is asked with. */
 export async function dbFindOldestUserContact(userId: number): Promise<DbUserContact | null> {

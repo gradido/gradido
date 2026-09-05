@@ -160,6 +160,49 @@
       "title": "{senderAlias} hat Dir {transactionAmount} Gradido gesendet"
     }
   },
+  "firstCreation": {
+    "catalog": {
+      "accompaniedHardTime": "Ich habe jemanden in einer schweren Zeit begleitet, indem ich {text}",
+      "animalShelter": "Ich habe im Tierheim oder auf einem Gnadenhof mitgeholfen, indem ich {text}",
+      "animalsOrNature": "Ich habe etwas für Tiere oder die Natur getan, indem ich {text}",
+      "caredForChildren": "Ich habe meine Kinder versorgt und ins Leben begleitet, indem ich {text}",
+      "communityProject": "Ich habe ein Gemeinschafts-Projekt mitgetragen (Fest, Solidarische Landwirtschaft, Gemeinschaftsgarten …), indem ich {text}",
+      "fireBrigadeRescue": "Ich habe bei der Freiwilligen Feuerwehr oder im Rettungsdienst mitgewirkt, indem ich {text}",
+      "helpedAtHome": "Ich habe zu Hause mitgeholfen, indem ich {text}",
+      "helpedElderlyPerson": "Ich habe einem älteren Menschen geholfen, indem ich {text}",
+      "helpedFellowStudents": "Ich habe meinen Mitschülern oder Kommilitonen geholfen, indem ich {text}",
+      "helpedNeighbourhood": "Ich habe in der Nachbarschaft mitgeholfen, wo Hilfe gebraucht wurde, indem ich {text}",
+      "helpedOldPerson": "Ich habe einem alten Menschen geholfen, indem ich {text}",
+      "helpedParish": "Ich habe in meiner Gemeinde oder Kirchengemeinde mitgeholfen, indem ich {text}",
+      "helpedSickPerson": "Ich habe einem kranken Menschen geholfen, indem ich {text}",
+      "lookedAfterGrandchildren": "Ich habe meine Enkel betreut, indem ich {text}",
+      "lookedAfterOrTaught": "Ich habe auf jemanden aufgepasst oder jemandem etwas beigebracht, indem ich {text}",
+      "madeSomeoneHappy": "Ich habe jemandem eine Freude gemacht, indem ich {text}",
+      "musicChoirCulture": "Ich habe zu Musik, Chor oder Kultur in der Gemeinschaft beigetragen, indem ich {text}",
+      "natureEnvironment": "Ich habe etwas für Natur und Umwelt getan, indem ich {text}",
+      "nursedRelative": "Ich habe einen Angehörigen gepflegt, indem ich {text}",
+      "sharedKnowledge": "Ich habe mein Wissen weitergegeben (Nachhilfe, Kurs, Anleitung), indem ich {text}",
+      "supportedClub": "Ich habe meinen Verein unterstützt, indem ich {text}",
+      "supportedDisabledPerson": "Ich habe einen Menschen mit Behinderung unterstützt, indem ich {text}"
+    },
+    "checks": {
+      "retiree": "Ich bin Rentnerin / Rentner."
+    },
+    "message": {
+      "closing": "Schön, dass Du da bist.",
+      "greetingAnonymous": "Willkommen!",
+      "greetingFemale": "Liebe {name}, willkommen!",
+      "greetingMale": "Lieber {name}, willkommen!",
+      "greetingNeutral": "Willkommen, {name}!",
+      "internalNote": "Crea hat bei der Erst-Schöpfung angehalten: {reason}. Bitte prüfen und von Hand bestätigen, ändern oder ablehnen.",
+      "retireeLine": "für Dein Lebenswerk: all die Jahre, in denen Du für andere da warst",
+      "review": "Deine Einträge schaut sich noch ein Mensch an. Du hörst von uns.",
+      "thanks": "Die Gemeinschaft dankt Dir — {lines}.",
+      "thanksOnlyCheck": "Die Gemeinschaft dankt Dir — {checkLine}.",
+      "thanksWithCheck": "Die Gemeinschaft dankt Dir — {lines}. Und {checkLine}.",
+      "w1": "Deine ersten 100 Gradido sind Dank für das, was Du längst getan hast."
+    }
+  },
   "general": {
     "decimalSeparator": ","
   }

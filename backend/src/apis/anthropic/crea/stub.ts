@@ -12,6 +12,7 @@ import {
   SALUTATION_UNCERTAIN_FLAG,
   SIGNATURE_PLACEHOLDER,
 } from './deterministics'
+import type { FirstCreationAnswer, FirstCreationModelEntry } from './firstCreation'
 import { applyCreaDeterministics } from './postprocess'
 
 // Flag the stub carries so the admin UI shows a clear "preview, no AI" banner
@@ -160,4 +161,27 @@ export function buildStubBatchRewrite(input: CreaBatchInput): CreaRewriteResult 
         : 'Als echte Gemeinwohl-Beiträge genehmigt (Vorschau-Hinweis).'
       : null
   return { responseText: text, memoSupplement }
+}
+
+/**
+ * Canned first-creation lines for the staging preview (ES-006): one fixed short line per
+ * entry, never suspicious. Fixed rather than quoting the sentence, so the line stays
+ * inside FIRST_CREATION_LINE_MAX_CHARS whatever the member wrote - this answer bypasses
+ * the form check the real one goes through. Only reached when no real client is
+ * configured and CREA_STUB is on.
+ */
+export function buildStubFirstCreationLines(
+  entries: FirstCreationModelEntry[],
+  language: string,
+): FirstCreationAnswer {
+  const isEn = language.startsWith('en')
+  return {
+    lines: entries.map((_entry, index) =>
+      isEn
+        ? `for what you did (entry ${index + 1})`
+        : `für das, was Du getan hast (Eintrag ${index + 1})`,
+    ),
+    suspicious: false,
+    reason: '',
+  }
 }

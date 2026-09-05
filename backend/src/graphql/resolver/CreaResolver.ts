@@ -4,8 +4,14 @@ import { CreaSettingsInput } from '@input/CreaSettingsInput'
 import { CreaBatchEvaluation } from '@model/CreaBatchEvaluation'
 import { CreaEvaluation } from '@model/CreaEvaluation'
 import { CreaRewriteResult } from '@model/CreaRewriteResult'
-import { CreaModelTestResult, CreaSettings } from '@model/CreaSettings'
-import { User as DbUser, dbIsMatchingKeyingActive, dbSetMatchingKeyingActive } from 'database'
+import { CreaModelTestResult, CreaSettings, FirstCreationSigner } from '@model/CreaSettings'
+import {
+  User as DbUser,
+  dbGetFirstCreationSignerUserId,
+  dbIsMatchingKeyingActive,
+  dbSetFirstCreationSignerUserId,
+  dbSetMatchingKeyingActive,
+} from 'database'
 import { SALUTATION_MAX_LENGTH } from 'shared'
 import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { AnthropicClient } from '@/apis/anthropic/AnthropicClient'
@@ -25,6 +31,7 @@ import {
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { EVENT_ADMIN_USER_SALUTATION_SET } from '@/event/Events'
+import { resolveSigner } from '@/interactions/firstCreation/Signer.role'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
@@ -174,6 +181,7 @@ export class CreaResolver {
       // thinks are one setting for the whole instance, but who pays for keying belongs
       // to the community that has the members.
       matchingKeyingActive: await dbIsMatchingKeyingActive(),
+      firstCreationSigner: await readFirstCreationSigner(),
     }
   }
 
@@ -196,6 +204,9 @@ export class CreaResolver {
     // first: then a failure here means nothing was written, which is what the error
     // toast says.
     const matchingKeyingActive = await dbIsMatchingKeyingActive()
+    // Same rule for the signer: read before the write, so a failing read cannot turn a
+    // save that has already committed into an error toast.
+    const firstCreationSigner = await readFirstCreationSigner()
     const settings = await writeCreaSettings(
       input.model ?? null,
       input.effort as CreaEffort,
@@ -207,7 +218,40 @@ export class CreaResolver {
       defaultModel: defaultCreaModel(),
       fastMode: settings.fastMode,
       matchingKeyingActive,
+      firstCreationSigner,
     }
+  }
+
+  /**
+   * Who signs the first creation (ES-005). Its own mutation and its own Save button, for
+   * the same reason the keying switch has one: a save of the model from a tab that has
+   * been open for an hour must not be able to revert the signer — and a reverted signer
+   * is not a cosmetic slip, it shuts the window for every new member.
+   *
+   * ⛔ Refuses an account that could not sign (no moderation role, a group scope, deleted):
+   * stored, such a value would switch the window off silently, and the admin would learn
+   * about it from a member who never saw it. `null` clears the signer on purpose.
+   */
+  @Authorized([RIGHTS.AI_SETTINGS])
+  @Mutation(() => FirstCreationSigner, { nullable: true })
+  async setFirstCreationSigner(
+    @Arg('userId', () => Int, { nullable: true }) userId: number | null | undefined,
+  ): Promise<FirstCreationSigner | null> {
+    // An omitted argument is `undefined`, not `null`: only an explicit null clears. Passed
+    // on, undefined would drop the WHERE and pick the first users row as signer.
+    if (userId === undefined) {
+      throw new LogError('FIRST_CREATION_SIGNER_ARGUMENT_MISSING')
+    }
+    if (userId === null) {
+      await dbSetFirstCreationSignerUserId(null)
+      return null
+    }
+    const check = await resolveSigner(userId)
+    if (!check.success) {
+      throw new LogError(check.error.message, userId)
+    }
+    await dbSetFirstCreationSignerUserId(userId)
+    return describeSigner(check.value.user, '')
   }
 
   /**
@@ -249,5 +293,42 @@ export class CreaResolver {
     }
     const model = input.model?.trim() || defaultCreaModel()
     return client.probeModel(model, input.effort as CreaEffort, input.fastMode ?? false)
+  }
+}
+
+/** The stored signer for the admin page, or null when nobody is configured. */
+async function readFirstCreationSigner(): Promise<FirstCreationSigner | null> {
+  const userId = await dbGetFirstCreationSignerUserId()
+  if (userId === null) {
+    return null
+  }
+  const check = await resolveSigner(userId)
+  if (check.success) {
+    return describeSigner(check.value.user, '')
+  }
+  const user = check.error.user
+  return user
+    ? describeSigner(user, check.error.reason)
+    : {
+        userId,
+        firstName: null,
+        lastName: null,
+        alias: null,
+        role: null,
+        eligible: false,
+        reason: check.error.reason,
+      }
+}
+
+/** The one check's verdict, as the page shows it: empty reason means eligible. */
+function describeSigner(user: DbUser, reason: string): FirstCreationSigner {
+  return {
+    userId: user.id,
+    firstName: user.firstName ?? null,
+    lastName: user.lastName ?? null,
+    alias: user.alias ?? null,
+    role: user.userRoles?.[0]?.role ?? null,
+    eligible: reason === '',
+    reason,
   }
 }

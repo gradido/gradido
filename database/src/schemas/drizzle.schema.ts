@@ -563,3 +563,45 @@ export const thankYouCardPaymentsTable = mysqlTable(
 
 export type ThankYouCardPaymentSelect = typeof thankYouCardPaymentsTable.$inferSelect
 export type ThankYouCardPaymentInsert = typeof thankYouCardPaymentsTable.$inferInsert
+
+// The first creation (ES-002..ES-011): one process per member, from "sentences saved"
+// to "thanked" or "waiting for a human". The contributions themselves are ordinary rows
+// in `contributions` (type USER) — this table only remembers which of them belong to
+// the process, what state it is in, and the one message that is shown three times
+// (thread of the first contribution, mail, window).
+//
+// `contribution_ids` is a JSON list rather than a child table: the window and the healing
+// path both need "all contributions of this process" as one value, nothing ever asks
+// for a single link, and a member has at most a handful of entries.
+//
+// ⚠️ Two ORMs, no shared transaction: the contributions are written through TypeORM, this
+// row through Drizzle. The interaction is therefore a state machine that heals on the
+// next read, never an atomic block (see FirstCreation.context.ts).
+export const firstCreationsTable = mysqlTable(
+  'first_creations',
+  {
+    id: int().autoincrement().notNull(),
+    // `unsigned`, because `users.id` is `int(10) unsigned` and migration 0130 mirrors it.
+    userId: int('user_id', { unsigned: true }).notNull(),
+    status: varchar({ length: 16 }).notNull(),
+    reviewReason: varchar('review_reason', { length: 16 }).default(sql`NULL`),
+    entriesCount: tinyint('entries_count', { unsigned: true }).notNull(),
+    contributionIds: json('contribution_ids').$type<number[]>().notNull(),
+    message: text().default(sql`NULL`),
+    model: varchar({ length: 64 }).default(sql`NULL`),
+    testMode: varchar('test_mode', { length: 16 }).default(sql`NULL`),
+    signerUserId: int('signer_user_id', { unsigned: true }).default(sql`NULL`),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    // Maintained by the update queries, not by an ON UPDATE clause — same reason as
+    // creachat_threads: drizzle cannot express one on a datetime column.
+    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [unique('first_creations_user_id_key').on(table.userId)],
+)
+
+export type FirstCreationSelect = typeof firstCreationsTable.$inferSelect
+export type FirstCreationInsert = typeof firstCreationsTable.$inferInsert
