@@ -94,6 +94,10 @@ export enum RIGHTS {
   // The contact list and the hearts on it -- one right, because every call reaches the
   // caller's own bookings and the caller's own favourites, nothing else.
   MANAGE_OWN_CONTACTS = 'MANAGE_OWN_CONTACTS',
+  // The first creation (ES-002..ES-011): reading one's own state, saving one's own
+  // entries, skipping the window. Every call reaches the caller's own process only; the
+  // confirmation in the SIGNER's name happens inside the interaction, not behind this key.
+  FIRST_CREATION = 'FIRST_CREATION',
   // Moderator AI
   AI_SEND_MESSAGE = 'AI_SEND_MESSAGE',
   SET_USER_SALUTATION = 'SET_USER_SALUTATION',

@@ -613,3 +613,38 @@ export const removeFavorite = gql`
     removeFavorite(ref: $ref)
   }
 `
+
+export const setFirstCreationSigner = gql`
+  mutation ($userId: Int) {
+    setFirstCreationSigner(userId: $userId) {
+      userId
+      firstName
+      alias
+      role
+      eligible
+      reason
+    }
+  }
+`
+
+export const submitFirstCreation = gql`
+  mutation ($entries: [FirstCreationEntryInput!]!) {
+    submitFirstCreation(entries: $entries) {
+      state
+      eligible
+      message
+      entries {
+        memo
+        confirmed
+      }
+      functionTestsEnabled
+      testRunsLeft
+    }
+  }
+`
+
+export const skipFirstCreation = gql`
+  mutation {
+    skipFirstCreation
+  }
+`
