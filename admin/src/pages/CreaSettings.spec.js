@@ -3,6 +3,7 @@ import { mount } from '@vue/test-utils'
 import { nextTick, ref } from 'vue'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import CreaSettings from './CreaSettings.vue'
+import { searchUsers } from '@/graphql/searchUsers.js'
 
 // ⛔ Hoisted and stable. The previous mock built fresh, uncaptured spies per call, so
 // nothing could see which message was raised - swapping the success and conflict arms
@@ -25,6 +26,18 @@ vi.mock('vue-i18n', () => ({
 // test needs to hand the answer over AFTER the mount to see the gate open.
 const creaSettingsResult = ref(null)
 const creaSettingsError = ref(null)
+// The member search behind the signer picker: a second useQuery on the same page.
+const signerSearchResult = ref(null)
+
+const PETER = {
+  userId: 7,
+  firstName: 'Peter',
+  lastName: 'Lustig',
+  alias: 'peter',
+  role: 'ADMIN',
+  eligible: true,
+  reason: '',
+}
 
 const ANSWER = {
   creaSettings: {
@@ -41,6 +54,7 @@ const ANSWER = {
     // told apart by DIRECTION rather than by value - the checkbox test below toggles
     // one and asserts the other did not move.
     matchingKeyingActive: true,
+    firstCreationSigner: PETER,
   },
 }
 
@@ -57,7 +71,7 @@ const ANSWER = {
 // means the success path of both saves was dead code as far as this file was
 // concerned. Measured: with bare mocks, deleting the `...form.value` spread or the
 // read-back assignment left all twelve green.
-const { saveMutate, testMutate, keyingMutate, mutations } = vi.hoisted(() => ({
+const { saveMutate, testMutate, keyingMutate, signerMutate, mutations } = vi.hoisted(() => ({
   saveMutate: vi.fn(() =>
     Promise.resolve({
       data: {
@@ -74,16 +88,39 @@ const { saveMutate, testMutate, keyingMutate, mutations } = vi.hoisted(() => ({
     Promise.resolve({ data: { testCreaModel: { ok: true, code: 'ok', message: 'hi' } } }),
   ),
   keyingMutate: vi.fn(() => Promise.resolve({ data: { setCreaMatchingKeying: true } })),
+  signerMutate: vi.fn(({ userId }) =>
+    Promise.resolve({
+      data: {
+        setFirstCreationSigner:
+          userId === null
+            ? null
+            : {
+                userId,
+                firstName: 'Bob',
+                lastName: 'Baumeister',
+                alias: 'bob',
+                role: 'MODERATOR',
+                eligible: true,
+                reason: '',
+              },
+      },
+    }),
+  ),
   mutations: { asked: 0 },
 }))
 vi.mock('@vue/apollo-composable', () => ({
   // In the order the component asks: the moderation save, the model probe, the keying
-  // switch. Three now, because the two sections have a Save each.
-  useMutation: vi.fn(() => ({ mutate: [saveMutate, testMutate, keyingMutate][mutations.asked++] })),
-  useQuery: vi.fn(() => ({
-    result: creaSettingsResult,
-    error: creaSettingsError,
+  // switch, the signer. Four now, one per Save.
+  useMutation: vi.fn(() => ({
+    mutate: [saveMutate, testMutate, keyingMutate, signerMutate][mutations.asked++],
   })),
+  // Two queries on the page, told apart by their document: the settings and the member
+  // search behind the signer picker.
+  useQuery: vi.fn((document) =>
+    document === searchUsers
+      ? { result: signerSearchResult, error: ref(null) }
+      : { result: creaSettingsResult, error: creaSettingsError },
+  ),
 }))
 
 vi.mock('vuex', () => ({
@@ -148,6 +185,7 @@ describe('CreaSettings', () => {
     mutations.asked = 0
     creaSettingsResult.value = null
     creaSettingsError.value = null
+    signerSearchResult.value = null
   })
 
   // Both buttons submit the same form, and setCreaSettings overwrites all FOUR settings
@@ -167,7 +205,7 @@ describe('CreaSettings', () => {
       // defaults until the query answers, and submitting those would write a switch
       // value nobody chose.
       const buttons = wrapper.findAll('button')
-      expect(buttons).toHaveLength(3)
+      expect(buttons).toHaveLength(5)
       for (const button of buttons) {
         expect(button.attributes('disabled')).toBeDefined()
       }
@@ -192,7 +230,7 @@ describe('CreaSettings', () => {
       // defaults, and one click would then send `active: false` for a community that
       // had it on.
       const buttons = wrapper.findAll('button')
-      expect(buttons).toHaveLength(3)
+      expect(buttons).toHaveLength(5)
       for (const button of buttons) {
         expect(button.attributes('disabled')).toBeDefined()
       }
@@ -206,11 +244,16 @@ describe('CreaSettings', () => {
       await nextTick()
     })
 
-    it('releases every button', () => {
+    it('releases every button except the signer Save, which waits for a choice', () => {
+      // Order on the page: save moderation, probe, save signer, remove signer, save matching.
       const buttons = wrapper.findAll('button')
-      expect(buttons).toHaveLength(3)
-      for (const button of buttons) {
-        expect(button.attributes('disabled')).toBeUndefined()
+      expect(buttons).toHaveLength(5)
+      for (const [index, button] of buttons.entries()) {
+        if (index === 2) {
+          expect(button.attributes('disabled')).toBeDefined()
+        } else {
+          expect(button.attributes('disabled')).toBeUndefined()
+        }
       }
     })
 
@@ -334,8 +377,9 @@ describe('CreaSettings', () => {
       buttons[buttons.length - 1].trigger('click')
       await nextTick()
 
-      expect(wrapper.findAll('button')[2].attributes('disabled')).toBeDefined()
-      expect(wrapper.findAll('button')[0].attributes('disabled')).toBeUndefined()
+      const all = wrapper.findAll('button')
+      expect(all[all.length - 1].attributes('disabled')).toBeDefined()
+      expect(all[0].attributes('disabled')).toBeUndefined()
       release({ data: { setCreaMatchingKeying: true } })
     })
 
@@ -366,8 +410,10 @@ describe('CreaSettings', () => {
     })
 
     it('gives each section its own Save', () => {
-      // Three buttons: save moderation, probe the model, save matching.
-      expect(wrapper.findAll('button')).toHaveLength(3)
+      // Five buttons: save moderation, probe the model, save signer, remove signer, save
+      // matching.
+      expect(wrapper.findAll('button')).toHaveLength(5)
+      expect(wrapper.text()).toMatch(/sectionFirstCreation(?!Hint)/)
       // ⚠️ Negative lookahead, not `toContain`: `sectionMatchingHint` carries the
       // heading's key as a prefix, so `toContain` was satisfied by the hint below it
       // and deleting the heading outright stayed green.
@@ -384,6 +430,103 @@ describe('CreaSettings', () => {
       expect(testMutate).toHaveBeenCalledWith({
         input: { model: 'claude-opus-5', effort: 'high', fastMode: true },
       })
+    })
+  })
+  describe('the first-creation signer', () => {
+    const signerSave = () => wrapper.findAll('button')[2]
+    const signerRemove = () => wrapper.findAll('button')[3]
+
+    beforeEach(async () => {
+      wrapper = createWrapper()
+      creaSettingsResult.value = ANSWER
+      await nextTick()
+    })
+
+    it('shows who signs today, with their role', () => {
+      expect(wrapper.find('[data-test="first-creation-signer"]').text()).toContain(
+        'crea.settings.signerCurrent',
+      )
+      expect(wrapper.text()).not.toContain('crea.settings.noSigner')
+      expect(wrapper.text()).not.toContain('crea.settings.signerNotEligible')
+    })
+
+    it('says plainly when nobody signs - and that the window is off', async () => {
+      creaSettingsResult.value = {
+        creaSettings: { ...ANSWER.creaSettings, firstCreationSigner: null },
+      }
+      await nextTick()
+      expect(wrapper.text()).toContain('crea.settings.noSigner')
+      // Nothing to remove.
+      expect(signerRemove().attributes('disabled')).toBeDefined()
+    })
+
+    it('warns when the stored signer can no longer sign', async () => {
+      creaSettingsResult.value = {
+        creaSettings: {
+          ...ANSWER.creaSettings,
+          firstCreationSigner: {
+            ...PETER,
+            role: 'USER',
+            eligible: false,
+            reason: 'NOT_MODERATION',
+          },
+        },
+      }
+      await nextTick()
+      expect(wrapper.text()).toContain('crea.settings.signerNotEligible')
+    })
+
+    it('offers only admins and moderators from the search, and saves the chosen one', async () => {
+      signerSearchResult.value = {
+        searchUsers: {
+          userCount: 3,
+          userList: [
+            { userId: 3, firstName: 'Bibi', lastName: 'Bloxberg', roles: [] },
+            { userId: 5, firstName: 'Bob', lastName: 'Baumeister', roles: ['MODERATOR'] },
+            { userId: 7, firstName: 'Peter', lastName: 'Lustig', roles: ['ADMIN'] },
+          ],
+        },
+      }
+      // One letter is not a search yet.
+      wrapper.vm.signerQuery = 'b'
+      await nextTick()
+      expect(wrapper.vm.signerOptions).toEqual([])
+      expect(signerSave().attributes('disabled')).toBeDefined()
+
+      wrapper.vm.signerQuery = 'bo'
+      await nextTick()
+      expect(wrapper.vm.signerOptions.map((option) => option.value)).toEqual([5, 7])
+      wrapper.vm.signerChoice = 5
+      await nextTick()
+      expect(signerSave().attributes('disabled')).toBeUndefined()
+
+      await signerSave().trigger('click')
+      expect(signerMutate).toHaveBeenCalledWith({ userId: 5 })
+      expect(toastSuccess).toHaveBeenCalledWith('crea.settings.savedSigner')
+      // The page shows what the server stored, and the picker is empty again.
+      expect(wrapper.vm.signer).toMatchObject({ userId: 5, role: 'MODERATOR' })
+      expect(wrapper.vm.signerQuery).toBe('')
+      expect(saveMutate).not.toHaveBeenCalled()
+      expect(keyingMutate).not.toHaveBeenCalled()
+    })
+
+    it('removes the signer with null and says the window is off', async () => {
+      await signerRemove().trigger('click')
+      expect(signerMutate).toHaveBeenCalledWith({ userId: null })
+      expect(toastSuccess).toHaveBeenCalledWith('crea.settings.removedSigner')
+      expect(wrapper.vm.signer).toBeNull()
+      expect(wrapper.text()).toContain('crea.settings.noSigner')
+    })
+
+    it('turns a refusal code into a sentence', async () => {
+      signerMutate.mockRejectedValueOnce(new Error('FIRST_CREATION_SIGNER_UNAVAILABLE: SCOPED'))
+      wrapper.vm.signerChoice = 5
+      await nextTick()
+      await signerSave().trigger('click')
+      expect(toastError).toHaveBeenCalledWith('crea.settings.signerRefused')
+      expect(toastSuccess).not.toHaveBeenCalled()
+      // The stored signer is untouched.
+      expect(wrapper.vm.signer).toMatchObject({ userId: 7 })
     })
   })
 })

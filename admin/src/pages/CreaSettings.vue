@@ -45,6 +45,56 @@
 
       <hr class="my-4" />
 
+      <div class="h4 mb-1">{{ $t('crea.settings.sectionFirstCreation') }}</div>
+      <small class="text-muted d-block mb-3">
+        {{ $t('crea.settings.sectionFirstCreationHint') }}
+      </small>
+      <div class="mb-3" data-test="first-creation-signer">
+        <template v-if="signer">
+          <strong>{{ signerLabel }}</strong>
+          <span v-if="!signer.eligible" class="text-danger d-block">
+            {{ $t('crea.settings.signerNotEligible', { reason: signerReason(signer.reason) }) }}
+          </span>
+        </template>
+        <span v-else class="text-warning">{{ $t('crea.settings.noSigner') }}</span>
+      </div>
+      <BFormGroup :label="$t('crea.settings.signerSearch')" class="mb-3">
+        <BFormInput
+          v-model="signerQuery"
+          :placeholder="$t('crea.settings.signerSearchPlaceholder')"
+          data-test="signer-query"
+        />
+        <BFormSelect
+          v-if="signerOptions.length"
+          v-model="signerChoice"
+          class="mt-2"
+          :options="signerOptions"
+          data-test="signer-choice"
+        />
+        <small v-else-if="signerSearched" class="text-muted d-block mt-1">
+          {{ $t('crea.settings.signerNoMatch') }}
+        </small>
+      </BFormGroup>
+      <BButton
+        variant="primary"
+        :disabled="savingSigner || !settingsLoaded || !signerChoice"
+        data-test="signer-save"
+        @click="saveSigner"
+      >
+        {{ $t('save') }}
+      </BButton>
+      <BButton
+        variant="outline-danger"
+        class="ms-2"
+        :disabled="savingSigner || !settingsLoaded || !signer"
+        data-test="signer-remove"
+        @click="clearSigner"
+      >
+        {{ $t('crea.settings.signerRemove') }}
+      </BButton>
+
+      <hr class="my-4" />
+
       <div class="h4 mb-1">{{ $t('crea.settings.sectionMatching') }}</div>
       <small class="text-muted d-block mb-3">
         {{ $t('crea.settings.sectionMatchingHint') }}
@@ -77,8 +127,10 @@ import {
   creaSettings as creaSettingsQuery,
   setCreaMatchingKeying,
   setCreaSettings,
+  setFirstCreationSigner,
   testCreaModel,
 } from '@/graphql/crea.graphql'
+import { searchUsers } from '@/graphql/searchUsers.js'
 
 const { t } = useI18n()
 const store = useStore()
@@ -99,6 +151,15 @@ const settingsLoaded = ref(false)
 const saving = ref(false)
 const savingKeying = ref(false)
 const testing = ref(false)
+
+// The first-creation signer (ES-005): shown as stored, picked from the member search. Only
+// accounts that could sign are offered - an admin, or a moderator - and the server has the
+// last word (a moderator with a group scope is refused there, with a reason).
+const signer = ref(null)
+const signerQuery = ref('')
+const signerChoice = ref(null)
+const savingSigner = ref(false)
+const SIGNER_ROLES = ['ADMIN', 'MODERATOR', 'MODERATOR_AI']
 
 const modelPresetOptions = computed(() => [
   { value: '', text: t('crea.settings.presetPlaceholder') },
@@ -136,11 +197,66 @@ watch(
         matchingKeyingActive: settings.matchingKeyingActive ?? false,
       }
       defaultModel.value = settings.defaultModel
+      signer.value = settings.firstCreationSigner ?? null
       settingsLoaded.value = true
     }
   },
   { immediate: true },
 )
+
+const signerLabel = computed(() => {
+  if (!signer.value) return ''
+  const name = [signer.value.firstName, signer.value.lastName].filter(Boolean).join(' ')
+  return t('crea.settings.signerCurrent', {
+    name: name || signer.value.alias || `#${signer.value.userId}`,
+    role: signer.value.role ?? '-',
+  })
+})
+
+// The server answers with a code; the sentence is built here, in the admin's language.
+// Literal keys per case, so the i18n lint can see every one of them.
+function signerReason(code) {
+  switch (code) {
+    case 'NOT_FOUND':
+      return t('crea.settings.signerReason.NOT_FOUND')
+    case 'DELETED':
+      return t('crea.settings.signerReason.DELETED')
+    case 'NOT_MODERATION':
+      return t('crea.settings.signerReason.NOT_MODERATION')
+    case 'SCOPED':
+      return t('crea.settings.signerReason.SCOPED')
+    case 'IS_MEMBER':
+      return t('crea.settings.signerReason.IS_MEMBER')
+    case 'NOT_CONFIGURED':
+      return t('crea.settings.signerReason.NOT_CONFIGURED')
+    default:
+      return code
+  }
+}
+
+const signerSearchEnabled = computed(() => isAdmin.value && signerQuery.value.trim().length >= 2)
+const signerSearched = computed(() => signerSearchEnabled.value)
+const { result: signerSearchResult } = useQuery(
+  searchUsers,
+  () => ({
+    query: signerQuery.value.trim(),
+    filters: { byActivated: true, byDeleted: false },
+    currentPage: 1,
+    pageSize: 25,
+    order: 'ASC',
+  }),
+  { fetchPolicy: 'network-only', enabled: signerSearchEnabled },
+)
+const signerOptions = computed(() => {
+  if (!signerSearchEnabled.value) return []
+  const list = signerSearchResult.value?.searchUsers?.userList ?? []
+  return list
+    .filter((user) => (user.roles ?? []).some((role) => SIGNER_ROLES.includes(role)))
+    .map((user) => ({
+      value: user.userId,
+      text: `${user.firstName} ${user.lastName} · ${(user.roles ?? []).join(', ')}`,
+    }))
+})
 
 watch(error, () => {
   if (error.value) toastError(error.value.message)
@@ -149,6 +265,7 @@ watch(error, () => {
 const { mutate: saveMutation } = useMutation(setCreaSettings)
 const { mutate: testMutation } = useMutation(testCreaModel)
 const { mutate: saveKeyingMutation } = useMutation(setCreaMatchingKeying)
+const { mutate: signerMutation } = useMutation(setFirstCreationSigner)
 
 function apiInput() {
   const model = form.value.model.trim()
@@ -226,6 +343,47 @@ async function saveKeying() {
     toastError(e.message)
   } finally {
     savingKeying.value = false
+  }
+}
+
+// A refusal arrives as `FIRST_CREATION_SIGNER_UNAVAILABLE: <reason>` or
+// `FIRST_CREATION_SIGNER_NOT_FOUND`; everything else is shown as it came.
+function signerErrorText(error) {
+  const message = error?.message ?? String(error)
+  const unavailable = message.match(/FIRST_CREATION_SIGNER_UNAVAILABLE: (\w+)/)
+  if (unavailable) return t('crea.settings.signerRefused', { reason: signerReason(unavailable[1]) })
+  if (message.includes('FIRST_CREATION_SIGNER_NOT_FOUND')) {
+    return t('crea.settings.signerRefused', { reason: signerReason('NOT_FOUND') })
+  }
+  return message
+}
+
+async function saveSigner() {
+  if (!signerChoice.value) return
+  savingSigner.value = true
+  try {
+    const { data } = await signerMutation({ userId: signerChoice.value })
+    signer.value = data.setFirstCreationSigner
+    signerQuery.value = ''
+    signerChoice.value = null
+    toastSuccess(t('crea.settings.savedSigner'))
+  } catch (e) {
+    toastError(signerErrorText(e))
+  } finally {
+    savingSigner.value = false
+  }
+}
+
+async function clearSigner() {
+  savingSigner.value = true
+  try {
+    await signerMutation({ userId: null })
+    signer.value = null
+    toastSuccess(t('crea.settings.removedSigner'))
+  } catch (e) {
+    toastError(e.message)
+  } finally {
+    savingSigner.value = false
   }
 }
 
