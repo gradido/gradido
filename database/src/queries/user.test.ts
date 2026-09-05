@@ -5,6 +5,7 @@ import {
   User as DbUser,
   UserAlias as DbUserAlias,
   UserContact as DbUserContact,
+  UserRole as DbUserRole,
 } from '..'
 import { AppDatabase } from '../AppDatabase'
 import { createCommunity } from '../seeds/community'
@@ -546,6 +547,9 @@ describe('user.queries', () => {
     beforeAll(async () => {
       await DbUser.clear()
       await DbUserContact.clear()
+      // `clear()` truncates and restarts the ids, so role rows the earlier describes left
+      // behind would attach themselves to whoever gets those ids next.
+      await DbUserRole.clear()
       peter = await userFactory(peterLustig)
       bibi = await userFactory(bibiBloxberg)
     })

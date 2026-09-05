@@ -16,9 +16,21 @@ const FirstCreationNotFound = (where: string) => new DBNotFoundError('first_crea
 const FirstCreationInsertFailed = (row: FirstCreationInsert) =>
   new DBInsertFailed<FirstCreationInsert>('first_creations', row)
 
+// drizzle wraps the driver's error in a DrizzleQueryError and hands the original on as
+// `cause`; the TypeORM-era `driverError` is kept for the day this file is called from a
+// path that still runs there.
 const isDuplicateEntry = (error: unknown): boolean => {
-  const code = (error as { code?: string; driverError?: { code?: string } } | null) ?? {}
-  return code.code === 'ER_DUP_ENTRY' || code.driverError?.code === 'ER_DUP_ENTRY'
+  const wrapped =
+    (error as {
+      code?: string
+      cause?: { code?: string }
+      driverError?: { code?: string }
+    } | null) ?? {}
+  return (
+    wrapped.code === 'ER_DUP_ENTRY' ||
+    wrapped.cause?.code === 'ER_DUP_ENTRY' ||
+    wrapped.driverError?.code === 'ER_DUP_ENTRY'
+  )
 }
 
 /**
