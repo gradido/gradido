@@ -19,6 +19,7 @@ import {
   dbFindForeignUsersByGradidoIds,
   dbFindUserIdByUuids,
   dbFindUsersByIds,
+  dbGetUserWithRolesById,
   dbLockUserRow,
   dbSaveUser,
   dbUpdateUserPassword,
@@ -536,6 +537,40 @@ describe('user.queries', () => {
       expect(after.emailId).toBe(before.emailId)
       expect(after.firstName).toBe(before.firstName)
       expect(after.gradidoID).toBe(before.gradidoID)
+    })
+  })
+  describe('dbGetUserWithRolesById', () => {
+    let peter: DbUser
+    let bibi: DbUser
+
+    beforeAll(async () => {
+      await DbUser.clear()
+      await DbUserContact.clear()
+      peter = await userFactory(peterLustig)
+      bibi = await userFactory(bibiBloxberg)
+    })
+
+    it('brings the role row along, so a stored id can be checked without a request', async () => {
+      const found = await dbGetUserWithRolesById(peter.id)
+      expect(found.success).toBe(true)
+      if (found.success) {
+        expect(found.value.id).toBe(peter.id)
+        expect(found.value.userRoles.map((role) => role.role)).toEqual(['ADMIN'])
+        expect(found.value.emailContact).toBeDefined()
+      }
+    })
+
+    it('answers an empty role list for a plain member', async () => {
+      const found = await dbGetUserWithRolesById(bibi.id)
+      expect(found.success && found.value.userRoles).toEqual([])
+    })
+
+    it('reports an id nobody has as not found rather than throwing', async () => {
+      const missing = await dbGetUserWithRolesById(999999)
+      expect(missing.success).toBe(false)
+      if (!missing.success) {
+        expect(missing.error.name).toBe('DBNotFoundError')
+      }
     })
   })
 })

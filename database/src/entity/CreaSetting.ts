@@ -35,6 +35,17 @@ export class CreaSetting extends BaseEntity {
   @Column({ name: 'fast_mode', type: 'bool', nullable: false, default: false })
   fastMode: boolean
 
+  // Who confirms every first creation in their name (ES-005). NULL means no signer,
+  // and no signer means the first-creation window is switched off (migration 0131).
+  @Column({
+    name: 'first_creation_signer_user_id',
+    type: 'int',
+    unsigned: true,
+    nullable: true,
+    default: null,
+  })
+  firstCreationSignerUserId: number | null
+
   @UpdateDateColumn({ name: 'updated_at', type: 'datetime', precision: 3 })
   updatedAt: Date
 }
