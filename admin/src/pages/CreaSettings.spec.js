@@ -72,43 +72,46 @@ const ANSWER = {
 // means the success path of both saves was dead code as far as this file was
 // concerned. Measured: with bare mocks, deleting the `...form.value` spread or the
 // read-back assignment left all twelve green.
-const { saveMutate, testMutate, keyingMutate, signerMutate, mutations } = vi.hoisted(() => ({
-  saveMutate: vi.fn(() =>
-    Promise.resolve({
-      data: {
-        setCreaSettings: {
-          model: 'claude-opus-5',
-          effort: 'high',
-          defaultModel: 'claude-sonnet-5',
-          fastMode: true,
+const { saveMutate, testMutate, keyingMutate, signerMutate, mutations, queries } = vi.hoisted(
+  () => ({
+    saveMutate: vi.fn(() =>
+      Promise.resolve({
+        data: {
+          setCreaSettings: {
+            model: 'claude-opus-5',
+            effort: 'high',
+            defaultModel: 'claude-sonnet-5',
+            fastMode: true,
+          },
         },
-      },
-    }),
-  ),
-  testMutate: vi.fn(() =>
-    Promise.resolve({ data: { testCreaModel: { ok: true, code: 'ok', message: 'hi' } } }),
-  ),
-  keyingMutate: vi.fn(() => Promise.resolve({ data: { setCreaMatchingKeying: true } })),
-  signerMutate: vi.fn(({ userId }) =>
-    Promise.resolve({
-      data: {
-        setFirstCreationSigner:
-          userId === null
-            ? null
-            : {
-                userId,
-                firstName: 'Bob',
-                lastName: 'Baumeister',
-                alias: 'bob',
-                role: 'MODERATOR',
-                eligible: true,
-                reason: '',
-              },
-      },
-    }),
-  ),
-  mutations: { asked: 0 },
-}))
+      }),
+    ),
+    testMutate: vi.fn(() =>
+      Promise.resolve({ data: { testCreaModel: { ok: true, code: 'ok', message: 'hi' } } }),
+    ),
+    keyingMutate: vi.fn(() => Promise.resolve({ data: { setCreaMatchingKeying: true } })),
+    signerMutate: vi.fn(({ userId }) =>
+      Promise.resolve({
+        data: {
+          setFirstCreationSigner:
+            userId === null
+              ? null
+              : {
+                  userId,
+                  firstName: 'Bob',
+                  lastName: 'Baumeister',
+                  alias: 'bob',
+                  role: 'MODERATOR',
+                  eligible: true,
+                  reason: '',
+                },
+        },
+      }),
+    ),
+    mutations: { asked: 0 },
+    queries: { searchOptions: null },
+  }),
+)
 vi.mock('@vue/apollo-composable', () => ({
   // In the order the component asks: the moderation save, the model probe, the keying
   // switch, the signer. Four now, one per Save.
@@ -117,11 +120,13 @@ vi.mock('@vue/apollo-composable', () => ({
   })),
   // Two queries on the page, told apart by their document: the settings and the member
   // search behind the signer picker.
-  useQuery: vi.fn((document) =>
-    document === searchUsers
-      ? { result: signerSearchResult, error: ref(null) }
-      : { result: creaSettingsResult, error: creaSettingsError },
-  ),
+  useQuery: vi.fn((document, _variables, options) => {
+    if (document === searchUsers) {
+      queries.searchOptions = options
+      return { result: signerSearchResult, error: ref(null) }
+    }
+    return { result: creaSettingsResult, error: creaSettingsError }
+  }),
 }))
 
 vi.mock('vuex', () => ({
@@ -509,6 +514,40 @@ describe('CreaSettings', () => {
       expect(wrapper.vm.signerQuery).toBe('')
       expect(saveMutate).not.toHaveBeenCalled()
       expect(keyingMutate).not.toHaveBeenCalled()
+    })
+
+    it('drops a choice that is no longer on the list, so Save cannot send a stale id', async () => {
+      signerSearchResult.value = {
+        searchUsers: {
+          userCount: 2,
+          userList: [
+            { userId: 5, firstName: 'Bob', lastName: 'Baumeister', roles: ['MODERATOR'] },
+            { userId: 7, firstName: 'Peter', lastName: 'Lustig', roles: ['ADMIN'] },
+          ],
+        },
+      }
+      wrapper.vm.signerQuery = 'bo'
+      await nextTick()
+      wrapper.vm.signerChoice = 5
+      await nextTick()
+      expect(signerSave().attributes('disabled')).toBeUndefined()
+
+      // The admin edits the query; the result now holds only Peter.
+      signerSearchResult.value = {
+        searchUsers: {
+          userCount: 1,
+          userList: [{ userId: 7, firstName: 'Peter', lastName: 'Lustig', roles: ['ADMIN'] }],
+        },
+      }
+      await nextTick()
+      expect(wrapper.vm.signerChoice).toBeNull()
+      expect(signerSave().attributes('disabled')).toBeDefined()
+      await signerSave().trigger('click')
+      expect(signerMutate).not.toHaveBeenCalled()
+    })
+
+    it('debounces the member search instead of asking per keystroke', () => {
+      expect(queries.searchOptions).toMatchObject({ debounce: 300, fetchPolicy: 'network-only' })
     })
 
     it('removes the signer with null and says the window is off', async () => {

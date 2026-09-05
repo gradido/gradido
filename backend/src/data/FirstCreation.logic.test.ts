@@ -12,6 +12,8 @@ import {
   FIRST_CREATION_CHECK_KEYS,
   FIRST_CREATION_MAX_ENTRIES,
   FIRST_CREATION_TOTAL,
+  firstCreationContributionDate,
+  hasFirstCreationCatalog,
   splitFirstCreationAmount,
 } from './FirstCreation.logic'
 
@@ -62,6 +64,18 @@ describe('buildFirstCreationMemo', () => {
       0,
     )
     expect(helena.success && helena.value).toContain('oMa emmA gezeigt habe')
+  })
+
+  it('keeps apostrophes, ampersands and slashes as the member typed them', () => {
+    const memo = buildFirstCreationMemo(
+      { catalogKey: 'helpedAtHome', text: "Oma's Garten & Hof / Küche gepflegt habe" },
+      'de',
+      0,
+    )
+    expect(memo).toEqual({
+      success: true,
+      value: "Ich habe zu Hause mitgeholfen, indem ich Oma's Garten & Hof / Küche gepflegt habe",
+    })
   })
 
   it('uses the English stem for an English member', () => {
@@ -213,5 +227,30 @@ describe('the four-line message', () => {
     expect(composeFirstCreationInternalNote('Gewaltverherrlichung in Eintrag 2')).toBe(
       'Crea hat bei der Erst-Schöpfung angehalten: Gewaltverherrlichung in Eintrag 2. Bitte prüfen und von Hand bestätigen, ändern oder ablehnen.',
     )
+  })
+})
+
+describe('the catalog gate and the member’s calendar day', () => {
+  it('has the catalog for de and en only, until the localisation work ships the rest', () => {
+    expect(hasFirstCreationCatalog('de')).toBe(true)
+    expect(hasFirstCreationCatalog('en')).toBe(true)
+    for (const language of ['fr', 'es', 'it', 'nl', 'pt', 'ru', 'tr', 'el']) {
+      expect(hasFirstCreationCatalog(language)).toBe(false)
+    }
+  })
+
+  it('dates the bundle with the member’s calendar day, not the server’s instant', () => {
+    const realNow = Date.now
+    // 2026-10-01 02:00 UTC: still 30 September for New York (offset +240).
+    Date.now = () => Date.parse('2026-10-01T02:00:00Z')
+    try {
+      expect(firstCreationContributionDate(240)).toBe('2026-09-30')
+      expect(firstCreationContributionDate(0)).toBe('2026-10-01')
+      // Berlin at 00:30 local on 1 October is 22:30 UTC on 30 September: still October.
+      Date.now = () => Date.parse('2026-09-30T22:30:00Z')
+      expect(firstCreationContributionDate(-120)).toBe('2026-10-01')
+    } finally {
+      Date.now = realNow
+    }
   })
 })

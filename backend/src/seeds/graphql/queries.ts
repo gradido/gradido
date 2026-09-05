@@ -617,6 +617,7 @@ export const firstCreationStatus = gql`
       entries {
         memo
         confirmed
+        status
       }
       functionTestsEnabled
       testRunsLeft

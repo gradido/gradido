@@ -56,24 +56,42 @@ export const i18n = new I18n({
 })
 
 /**
- * One phrase in one locale, without touching the global locale.
+ * The catalog text of one key in one locale, or null when that locale has no translation.
+ * Read off the static catalog rather than through `__`: this never moves the global locale
+ * the mail path relies on, and it never runs Mustache.
+ */
+function phraseInLocale(locale: string, key: string): string | null {
+  const catalog = i18n.getCatalog(locale) as Record<string, string> | undefined
+  const phrase = catalog?.[key]
+  return typeof phrase === 'string' ? phrase : null
+}
+
+/** Whether `locale` carries its own text for `key` - no fallback counted. */
+export function hasPhraseInLocale(locale: string, key: string): boolean {
+  return phraseInLocale(locale, key) !== null
+}
+
+/**
+ * One phrase in one locale, with `{name}` placeholders filled by plain replacement.
  *
- * The mail path calls `i18n.setLocale` before rendering a template; a message that is
- * composed in code for one member must not do that, because the process serves everybody
- * at once. `__` with an explicit `locale` reads the catalog directly.
+ * Plain replacement and NOT Mustache on purpose: i18n renders `{name}` through Mustache's
+ * escaping form, which turns an apostrophe into `&#39;` and an ampersand into `&amp;` -
+ * right for the HTML mails this module serves, wrong for a contribution memo, a thread
+ * message or a window text, all of which are shown as plain text. The values here are
+ * inserted as they are.
  *
- * Falls back to English when the phrase is not translated in the requested locale
- * (i18n answers the key itself in that case), so a member whose language has not received
- * the new keys yet reads a sentence rather than a key.
+ * Falls back to English when the phrase is not translated in the requested locale, so a
+ * member whose language has not received the new keys yet reads a sentence rather than a
+ * key; a key that exists nowhere comes back as the key.
  */
 export function translateForLocale(
   locale: string,
   key: string,
   replacements: Record<string, string> = {},
 ): string {
-  const translated = i18n.__({ phrase: key, locale }, replacements)
-  if (translated !== key || locale === 'en') {
-    return translated
-  }
-  return i18n.__({ phrase: key, locale: 'en' }, replacements)
+  const phrase = phraseInLocale(locale, key) ?? phraseInLocale('en', key) ?? key
+  return Object.entries(replacements).reduce(
+    (text, [name, value]) => text.split(`{${name}}`).join(value),
+    phrase,
+  )
 }

@@ -7,6 +7,7 @@ import type { FirstCreationEntryInvalid } from '@/data/FirstCreation.logic'
 
 export type FirstCreationNotEligibleReason =
   | 'NO_SIGNER'
+  | 'NO_CATALOG'
   | 'ALREADY_STARTED'
   | 'HAS_MANUAL_CONTRIBUTION'
 

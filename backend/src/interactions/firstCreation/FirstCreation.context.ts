@@ -8,6 +8,7 @@ import {
   dbSelectFirstCreationByUserId,
   dbSelectFirstCreationEntriesByIds,
   dbUpdateFirstCreationOutcome,
+  FirstCreationEntryRow,
   FirstCreationReviewReason,
   FirstCreationSelect,
   FirstCreationStatus,
@@ -26,6 +27,7 @@ import {
   composeFirstCreationMessage,
   composeFirstCreationReviewMessage,
   FirstCreationEntryDraft,
+  hasFirstCreationCatalog,
 } from '@/data/FirstCreation.logic'
 import {
   EVENT_FIRST_CREATION_DONE,
@@ -33,7 +35,6 @@ import {
   EVENT_FIRST_CREATION_SKIP,
   EVENT_FIRST_CREATION_UNBOOKED,
 } from '@/event/Events'
-import { LogError } from '@/server/LogError'
 import {
   FirstCreationAlreadyRunning,
   FirstCreationError,
@@ -52,8 +53,8 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.interactions.firstCreatio
 const db = AppDatabase.getInstance()
 
 /**
- * A SUBMITTED row older than this with contributions still open is a process that broke
- * between filing and confirming; the next status read hands it to a human (G §3.4).
+ * A SUBMITTED row older than this whose lock nobody holds is a process that died between
+ * claiming the row and settling; the next status read hands it to a human (G §3.4).
  */
 export const FIRST_CREATION_STALE_MS = 5 * 60 * 1000
 
@@ -62,14 +63,21 @@ export interface FirstCreationView {
   state: 'NONE' | FirstCreationStatus
   eligible: boolean
   message: string | null
-  entries: { memo: string; confirmed: boolean }[]
+  entries: FirstCreationEntryView[]
   functionTestsEnabled: boolean
   testRunsLeft: number | null
 }
 
+export interface FirstCreationEntryView {
+  memo: string
+  confirmed: boolean
+  /** PENDING | IN_PROGRESS | CONFIRMED | DENIED | DELETED - read off the contribution. */
+  status: string
+}
+
 /*
  * The first creation as an interaction (AGENTS.md): a multi-step flow with intermediate
- * state — file, ask the model, comment, confirm — and three outcomes. Two roles: the
+ * state — claim, file, ask the model, comment, confirm — and three outcomes. Two roles: the
  * SUBMITTER (the member, Submitter.role.ts) and the SIGNER (the configured admin or
  * moderator, Signer.role.ts). Everything after the filing runs through the existing
  * confirmation path in the signer's name; new is only the orchestration and the model's
@@ -80,23 +88,56 @@ export interface FirstCreationView {
  * answer at all — every one of those means "a human looks first", never "refused".
  *
  * ⛔ Not atomic. The contributions live in TypeORM, the process row in Drizzle, and one
- * transaction does not cover both (AGENTS.md). So this is a state machine: SUBMITTED is
- * written right after the filing, moved forward by the outcome, and healed by
- * readFirstCreationStatus when a process broke in between — IN_REVIEW being the fallback
- * of every fallback. The booking path's own lock and confirmedAt check keep a healed or
- * repeated confirm from booking twice.
+ * transaction does not cover both (AGENTS.md). So this is a state machine, and its ORDER
+ * is the safety: the row is claimed FIRST (the unique key on user_id is the arbiter, the
+ * Redis lock only keeps two tabs from racing to the same refusal), then the contributions
+ * are filed and their ids written onto the row, then the outcome moves the row on. From
+ * the claim onwards nothing throws out of the process: whatever breaks lands in IN_REVIEW
+ * with a reason, and a status read heals a row whose process died — but only when nobody
+ * holds that member's lock any more.
  */
 
-/** ES-011 plus the signer: the two halves of "may the window open" in one answer. */
+/** ES-011 plus the signer plus the catalog: the halves of "may the window open". */
 async function isEligible(user: DbUser, row: FirstCreationSelect | null): Promise<boolean> {
-  const signer = await loadSignerFor(user.id)
-  if (!signer.success) {
+  // Cheapest checks first: a settled row and a manual contribution need no signer lookup.
+  if (!(await checkEligibility(user.id, row)).success) {
     return false
   }
-  return (await checkEligibility(user.id, row)).success
+  if (!hasFirstCreationCatalog(user.language)) {
+    return false
+  }
+  return (await loadSignerFor(user.id)).success
 }
 
-/** Reads the state; heals a SUBMITTED row that the process left behind (G §3.4). */
+const lockKey = (userId: number) => `FIRST_CREATION_LOCK:${userId}`
+
+/**
+ * The per-member lock. `onLockLost` logs instead of throwing: redis-semaphore refreshes the
+ * key from a timer while the process waits for the model, and a throw from that timer
+ * would be an unhandled rejection that takes the whole backend down.
+ */
+const memberLock = (userId: number) =>
+  new Mutex(db.getRedisClient(), lockKey(userId), {
+    onLockLost: (error) => logger.error(`first creation lock lost for user ${userId}`, error),
+  })
+
+const releaseQuietly = async (mutex: Mutex, userId: number): Promise<void> => {
+  try {
+    await mutex.release()
+  } catch (error) {
+    // A failed release must not turn a finished process into an error answer; the key
+    // expires on its own.
+    logger.error(`first creation lock release failed for user ${userId}`, error)
+  }
+}
+
+const entryView = (entry: FirstCreationEntryRow): FirstCreationEntryView => ({
+  memo: entry.memo,
+  confirmed: entry.confirmedAt !== null,
+  status: entry.deletedAt ? 'DELETED' : entry.status,
+})
+
+/** Reads the state; heals a SUBMITTED row whose process died (G §3.4). */
 export async function readFirstCreationStatus(
   user: DbUser,
   clientTimezoneOffset: number,
@@ -105,17 +146,18 @@ export async function readFirstCreationStatus(
   if (row?.status === FirstCreationStatus.SUBMITTED) {
     row = await healSubmitted(user, row, clientTimezoneOffset)
   }
-  const entries = row
-    ? (await dbSelectFirstCreationEntriesByIds(row.contributionIds)).map((entry) => ({
-        memo: entry.memo,
-        confirmed: entry.confirmedAt !== null,
-      }))
-    : []
+  // A FORCED row is a window about to reopen: what it shows belongs to the run that
+  // has not happened yet, not to the one before.
+  const showsPreviousRun = row?.status === FirstCreationStatus.FORCED
+  const entries =
+    row && !showsPreviousRun
+      ? (await dbSelectFirstCreationEntriesByIds(row.contributionIds)).map(entryView)
+      : []
   return {
     // The column is a varchar; the enum is what every writer in this file puts into it.
     state: (row?.status as FirstCreationStatus | undefined) ?? 'NONE',
     eligible: await isEligible(user, row),
-    message: row?.message ?? null,
+    message: showsPreviousRun ? null : (row?.message ?? null),
     entries,
     // L4 brings the function-test area; until then the window has nothing to show there.
     functionTestsEnabled: false,
@@ -124,109 +166,120 @@ export async function readFirstCreationStatus(
 }
 
 /**
- * A SUBMITTED row is a process in flight — or one that died. All contributions confirmed
- * means the confirm ran and only the last row update was lost: DONE, without the message
- * (it stands in the thread and the mail). Contributions still open after the stale window
- * means nobody will come back for them: the review message goes onto the thread and the
- * row to IN_REVIEW, the same as a model failure. Younger than that, it is left alone.
+ * A SUBMITTED row is a process in flight — or one that died. Alive is what the lock says:
+ * while the member's lock is held, the row is left alone whatever its age. With the lock
+ * free, all contributions confirmed means the confirm ran and only the last row update was
+ * lost: DONE. Contributions still open after the stale window means nobody will come back
+ * for them: the review note goes onto the thread and the row to IN_REVIEW.
  */
 async function healSubmitted(
   user: DbUser,
   row: FirstCreationSelect,
   clientTimezoneOffset: number,
 ): Promise<FirstCreationSelect> {
-  const entries = await dbSelectFirstCreationEntriesByIds(row.contributionIds)
-  const allConfirmed = entries.length > 0 && entries.every((entry) => entry.confirmedAt !== null)
-  if (allConfirmed) {
-    await dbUpdateFirstCreationOutcome(row.id, FirstCreationStatus.SUBMITTED, {
-      status: FirstCreationStatus.DONE,
-    })
-    return { ...row, status: FirstCreationStatus.DONE }
-  }
   if (Date.now() - row.updatedAt.getTime() < FIRST_CREATION_STALE_MS) {
     return row
   }
-  logger.warn(`first creation ${row.id} of user ${user.id} stale in SUBMITTED, handing to review`)
-  const reviewMessage = composeFirstCreationReviewMessage(user.language)
-  const signer = await loadSignerFor(user.id)
-  const firstId = row.contributionIds[0]
-  if (signer.success && firstId !== undefined) {
-    try {
-      await signerComments(
-        signer.value,
-        firstId,
-        reviewMessage,
-        ContributionMessageType.DIALOG,
-        clientTimezoneOffset,
-      )
-    } catch (error) {
-      logger.error('first creation healing: review comment failed', error)
-    }
+  const mutex = memberLock(user.id)
+  if (!(await mutex.tryAcquire())) {
+    // Somebody is still working on it.
+    return row
   }
-  const moved = await dbUpdateFirstCreationOutcome(row.id, FirstCreationStatus.SUBMITTED, {
-    status: FirstCreationStatus.IN_REVIEW,
-    reviewReason: FirstCreationReviewReason.MODEL_ERROR,
-    message: reviewMessage,
-  })
-  return moved.success
-    ? {
-        ...row,
-        status: FirstCreationStatus.IN_REVIEW,
-        reviewReason: FirstCreationReviewReason.MODEL_ERROR,
-        message: reviewMessage,
-      }
-    : ((await dbSelectFirstCreationByUserId(user.id)) ?? row)
+  try {
+    const entries = await dbSelectFirstCreationEntriesByIds(row.contributionIds)
+    const allConfirmed = entries.length > 0 && entries.every((entry) => entry.confirmedAt !== null)
+    if (allConfirmed) {
+      const moved = await dbUpdateFirstCreationOutcome(row.id, FirstCreationStatus.SUBMITTED, {
+        status: FirstCreationStatus.DONE,
+      })
+      return moved.success
+        ? { ...row, status: FirstCreationStatus.DONE }
+        : ((await dbSelectFirstCreationByUserId(user.id)) ?? row)
+    }
+    logger.warn(`first creation ${row.id} of user ${user.id} stale in SUBMITTED, handing to review`)
+    const signer = await loadSignerFor(user.id)
+    await settleInReview({
+      user,
+      signer: signer.success ? signer.value : null,
+      row,
+      contributionIds: row.contributionIds,
+      reason: FirstCreationReviewReason.PROCESS_ERROR,
+      internalReason: null,
+      model: null,
+      clientTimezoneOffset,
+    })
+    return (await dbSelectFirstCreationByUserId(user.id)) ?? row
+  } finally {
+    await releaseQuietly(mutex, user.id)
+  }
 }
 
-/** The member closed the window with nothing entered (ES-011): an event, no row. */
+/**
+ * The member closed the window with nothing entered (ES-011): an event, no row — and only
+ * when the window was open, so the skipper count counts skippers.
+ */
 export async function skipFirstCreation(user: DbUser): Promise<void> {
-  await EVENT_FIRST_CREATION_SKIP(user)
+  const row = await dbSelectFirstCreationByUserId(user.id)
+  if (await isEligible(user, row)) {
+    await EVENT_FIRST_CREATION_SKIP(user)
+  }
 }
 
 type ModelStep =
   | { kind: 'answer'; answer: FirstCreationAnswer; model: string | null }
   | { kind: 'failure'; reason: FirstCreationReviewReason; detail: string }
 
-/** Asks the model — or the stub, or nobody — for the lines; never throws. */
+/** Asks the model — or the stub, or nobody — for the lines. Never throws. */
 async function askModel(entries: PreparedEntry[], language: string): Promise<ModelStep> {
   const modelEntries = entries.filter((entry) => entry.check === null)
   if (modelEntries.length === 0) {
     // Only ticks: every line is fixed, nothing to ask.
     return { kind: 'answer', answer: { lines: [], suspicious: false, reason: '' }, model: null }
   }
-  const client = AnthropicClient.getInstance()
-  if (client) {
-    const result = await client.firstCreationLines(modelEntries, language)
-    if (result.success) {
-      return { kind: 'answer', answer: result.value.answer, model: result.value.model }
+  try {
+    const client = AnthropicClient.getInstance()
+    if (client) {
+      const result = await client.firstCreationLines(modelEntries, language)
+      if (result.success) {
+        return { kind: 'answer', answer: result.value.answer, model: result.value.model }
+      }
+      return {
+        kind: 'failure',
+        reason:
+          result.error.reason === 'MODEL_TIMEOUT'
+            ? FirstCreationReviewReason.MODEL_TIMEOUT
+            : FirstCreationReviewReason.MODEL_ERROR,
+        detail: result.error.message,
+      }
+    }
+    if (CONFIG.CREA_STUB) {
+      return {
+        kind: 'answer',
+        answer: buildStubFirstCreationLines(modelEntries, language),
+        model: 'stub',
+      }
     }
     return {
       kind: 'failure',
-      reason:
-        result.error.reason === 'MODEL_TIMEOUT'
-          ? FirstCreationReviewReason.MODEL_TIMEOUT
-          : FirstCreationReviewReason.MODEL_ERROR,
-      detail: result.error.message,
+      reason: FirstCreationReviewReason.MODEL_ERROR,
+      detail: 'no model configured',
     }
-  }
-  if (CONFIG.CREA_STUB) {
+  } catch (error) {
+    // The client reads the model settings before it calls; a database hiccup there is a
+    // model failure for this process, not an exception out of it.
+    logger.error('first creation: model step threw', error)
     return {
-      kind: 'answer',
-      answer: buildStubFirstCreationLines(modelEntries, language),
-      model: 'stub',
+      kind: 'failure',
+      reason: FirstCreationReviewReason.MODEL_ERROR,
+      detail: error instanceof Error ? error.message : String(error),
     }
-  }
-  return {
-    kind: 'failure',
-    reason: FirstCreationReviewReason.MODEL_ERROR,
-    detail: 'no model configured',
   }
 }
 
 /**
  * Saves the member's entries and runs the whole process (G §3.2). Returns the view the
- * window shows next, or one of the expected failures; anything that breaks AFTER the
- * contributions exist ends in IN_REVIEW rather than in an error.
+ * window shows next, or one of the expected failures — all of which are decided BEFORE
+ * anything is written.
  */
 export async function submitFirstCreation(
   user: DbUser,
@@ -234,8 +287,8 @@ export async function submitFirstCreation(
   clientTimezoneOffset: number,
 ): Promise<Result<FirstCreationView, FirstCreationError>> {
   // One process per member at a time: a second Save from a second tab is refused, not
-  // queued — queued, it would find the row taken and file a second bundle for nothing.
-  const mutex = new Mutex(db.getRedisClient(), `FIRST_CREATION_LOCK:${user.id}`)
+  // queued — queued, it would find the row taken and be refused a minute later.
+  const mutex = memberLock(user.id)
   if (!(await mutex.tryAcquire())) {
     return { success: false, error: new FirstCreationAlreadyRunning() }
   }
@@ -243,6 +296,11 @@ export async function submitFirstCreation(
     const signer = await loadSignerFor(user.id)
     if (!signer.success) {
       return { success: false, error: new FirstCreationNotEligible('NO_SIGNER') }
+    }
+    if (!hasFirstCreationCatalog(user.language)) {
+      // The sentence stems are ledger data (they become the memo); a language without
+      // them gets no window rather than an English stem glued to its own text.
+      return { success: false, error: new FirstCreationNotEligible('NO_CATALOG') }
     }
     const existing = await dbSelectFirstCreationByUserId(user.id)
     const eligible = await checkEligibility(user.id, existing)
@@ -258,99 +316,149 @@ export async function submitFirstCreation(
       return quota
     }
 
-    const contributions = await fileContributions(user, prepared.value, clientTimezoneOffset)
-    const row = await openProcessRow(user.id, existing, contributions, prepared.value)
-    const view = await runOutcome(
+    const claimed = await claimProcessRow(user.id, existing, prepared.value.length)
+    if (!claimed.success) {
+      return claimed
+    }
+    const view = await runProcess(
       user,
       signer.value,
-      row,
-      contributions,
+      claimed.value,
       prepared.value,
       clientTimezoneOffset,
     )
     return { success: true, value: view }
   } finally {
-    await mutex.release()
+    await releaseQuietly(mutex, user.id)
   }
 }
 
 /**
- * SUBMITTED, right after the filing — a fresh row, or the FORCED row the function test
- * left, moved on with the new contribution ids. Failing here after the contributions
- * exist is not an expected outcome (the lock and the eligibility check stand in front of
- * it), so it throws.
+ * SUBMITTED, before anything else is written — a fresh row, or the FORCED row the function
+ * test left, moved on. The unique key on user_id is the arbiter: a duplicate means another
+ * process owns this member and is answered as "already running".
  */
-async function openProcessRow(
+async function claimProcessRow(
   userId: number,
   existing: FirstCreationSelect | null,
-  contributions: DbContribution[],
-  entries: PreparedEntry[],
-): Promise<FirstCreationSelect> {
-  const contributionIds = contributions.map((contribution) => contribution.id)
+  entriesCount: number,
+): Promise<Result<FirstCreationSelect, FirstCreationAlreadyRunning>> {
   if (existing?.status === FirstCreationStatus.FORCED) {
     const moved = await dbUpdateFirstCreationOutcome(existing.id, FirstCreationStatus.FORCED, {
       status: FirstCreationStatus.SUBMITTED,
-      contributionIds,
-      entriesCount: entries.length,
+      contributionIds: [],
+      entriesCount,
       reviewReason: null,
       message: null,
       model: null,
       signerUserId: null,
     })
     if (!moved.success) {
-      throw new LogError('first creation: forced row vanished while filing', existing.id)
+      return { success: false, error: new FirstCreationAlreadyRunning() }
     }
     const reread = await dbSelectFirstCreationByUserId(userId)
     if (!reread) {
-      throw new LogError('first creation: row vanished while filing', existing.id)
+      return { success: false, error: new FirstCreationAlreadyRunning() }
     }
-    return reread
+    return { success: true, value: reread }
   }
   const inserted = await dbInsertFirstCreation({
     userId,
     status: FirstCreationStatus.SUBMITTED,
-    entriesCount: entries.length,
-    contributionIds,
+    entriesCount,
+    contributionIds: [],
   })
   if (!inserted.success) {
-    throw new LogError('first creation: could not open the process row', inserted.error)
+    if (inserted.error.name === 'DBDuplicateEntryError') {
+      return { success: false, error: new FirstCreationAlreadyRunning() }
+    }
+    // A plain insert failure on an empty row is not something the member can do anything
+    // about, and nothing has been written yet: it may crash.
+    throw inserted.error
   }
-  return inserted.value
+  return { success: true, value: inserted.value }
 }
 
 /**
- * The three outcomes (G §3.2 step 7). A — answer in time, no hand raised, real run or test
- * WITH booking: message, comment, confirm each, DONE. B — test WITHOUT booking: like A
- * without the confirms, DONE_UNBOOKED. C — hand raised, or no usable answer: the neutral
- * review message onto the thread (and the internal note if the hand was raised), IN_REVIEW.
- * Whatever throws inside lands in C as well.
+ * Everything after the claim. Never throws: the row exists, so every failure has a place
+ * to land (IN_REVIEW with a reason), and the answer is always the view of what happened.
  */
-async function runOutcome(
+async function runProcess(
+  user: DbUser,
+  signer: Signer,
+  row: FirstCreationSelect,
+  entries: PreparedEntry[],
+  clientTimezoneOffset: number,
+): Promise<FirstCreationView> {
+  // Filing writes into `filed` as it goes, so a throw halfway leaves the ids of what
+  // exists rather than nothing.
+  const filed: DbContribution[] = []
+  try {
+    await fileContributions(user, entries, clientTimezoneOffset, filed)
+    await dbUpdateFirstCreationOutcome(row.id, FirstCreationStatus.SUBMITTED, {
+      status: FirstCreationStatus.SUBMITTED,
+      contributionIds: filed.map((contribution) => contribution.id),
+    })
+  } catch (error) {
+    logger.error(`first creation ${row.id}: filing failed after ${filed.length} entries`, error)
+    return settleInReview({
+      user,
+      signer,
+      row,
+      contributionIds: filed.map((contribution) => contribution.id),
+      reason: FirstCreationReviewReason.PROCESS_ERROR,
+      internalReason: null,
+      model: null,
+      clientTimezoneOffset,
+    })
+  }
+  const contributionIds = filed.map((contribution) => contribution.id)
+  const step = await askModel(entries, user.language)
+  if (step.kind === 'failure') {
+    return settleInReview({
+      user,
+      signer,
+      row,
+      contributionIds,
+      reason: step.reason,
+      internalReason: null,
+      model: null,
+      clientTimezoneOffset,
+    })
+  }
+  if (step.answer.suspicious) {
+    return settleInReview({
+      user,
+      signer,
+      row,
+      contributionIds,
+      reason: FirstCreationReviewReason.SUSPICION,
+      internalReason: step.answer.reason || 'no reason given',
+      model: step.model,
+      clientTimezoneOffset,
+    })
+  }
+  return settleAsThanked(user, signer, row, filed, entries, step, clientTimezoneOffset)
+}
+
+/**
+ * Outcomes A and B: message, one comment on the first contribution, confirms (A only),
+ * DONE or DONE_UNBOOKED. A throw anywhere in here is a process failure and lands in
+ * IN_REVIEW — with the note on the first contribution that is still open, because the
+ * ones already booked no longer take a moderator message.
+ */
+async function settleAsThanked(
   user: DbUser,
   signer: Signer,
   row: FirstCreationSelect,
   contributions: DbContribution[],
   entries: PreparedEntry[],
+  step: Extract<ModelStep, { kind: 'answer' }>,
   clientTimezoneOffset: number,
 ): Promise<FirstCreationView> {
   const first = contributions[0]
-  const step = await askModel(entries, user.language)
+  const contributionIds = contributions.map((contribution) => contribution.id)
   try {
-    if (step.kind === 'failure') {
-      return await review(user, signer, row, first, step.reason, null, null, clientTimezoneOffset)
-    }
-    if (step.answer.suspicious) {
-      return await review(
-        user,
-        signer,
-        row,
-        first,
-        FirstCreationReviewReason.SUSPICION,
-        step.answer.reason || 'no reason given',
-        step.model,
-        clientTimezoneOffset,
-      )
-    }
     const message = composeFirstCreationMessage({
       firstName: user.firstName,
       language: user.language,
@@ -371,15 +479,20 @@ async function runOutcome(
       }
     }
     const status = withoutBooking ? FirstCreationStatus.DONE_UNBOOKED : FirstCreationStatus.DONE
-    await dbUpdateFirstCreationOutcome(row.id, FirstCreationStatus.SUBMITTED, {
+    const moved = await dbUpdateFirstCreationOutcome(row.id, FirstCreationStatus.SUBMITTED, {
       status,
       message,
       model: step.model,
       signerUserId: signer.user.id,
     })
-    // The outcome is committed from here on. An event that fails is logged, never answered
-    // with the review fallback below - that would mail the member a second, contradicting
-    // note over a thanked and booked bundle, and count one process under two outcomes.
+    if (!moved.success) {
+      // The row was moved by somebody else while this process ran; the booking stands,
+      // the row says what the other writer said. Loud in the log, no second note.
+      logger.error(`first creation ${row.id}: row left SUBMITTED while the process ran`)
+    }
+    // The outcome is committed from here on. An event that fails is logged, never
+    // answered with the review fallback - that would mail the member a second,
+    // contradicting note over a thanked and booked bundle.
     try {
       if (withoutBooking) {
         await EVENT_FIRST_CREATION_UNBOOKED(user, signer.user, first)
@@ -390,60 +503,92 @@ async function runOutcome(
       logger.error(`first creation ${row.id}: outcome event failed`, eventError)
     }
   } catch (error) {
-    logger.error(`first creation ${row.id}: outcome failed, handing to review`, error)
-    try {
-      return await review(
-        user,
-        signer,
-        row,
-        first,
-        FirstCreationReviewReason.MODEL_ERROR,
-        null,
-        step.kind === 'answer' ? step.model : null,
-        clientTimezoneOffset,
-      )
-    } catch (reviewError) {
-      logger.error(`first creation ${row.id}: review fallback failed as well`, reviewError)
-    }
+    logger.error(`first creation ${row.id}: thanking failed, handing to review`, error)
+    return settleInReview({
+      user,
+      signer,
+      row,
+      contributionIds,
+      reason: FirstCreationReviewReason.PROCESS_ERROR,
+      internalReason: null,
+      model: step.model,
+      clientTimezoneOffset,
+    })
   }
   return readFirstCreationStatus(user, clientTimezoneOffset)
 }
 
-/** Outcome C: the neutral message to the member, the internal note for the moderation. */
-async function review(
-  user: DbUser,
-  signer: Signer,
-  row: FirstCreationSelect,
-  first: DbContribution,
-  reason: FirstCreationReviewReason,
-  internalReason: string | null,
-  model: string | null,
-  clientTimezoneOffset: number,
-): Promise<FirstCreationView> {
+interface ReviewSettlement {
+  user: DbUser
+  signer: Signer | null
+  row: FirstCreationSelect
+  contributionIds: number[]
+  reason: FirstCreationReviewReason
+  internalReason: string | null
+  model: string | null
+  clientTimezoneOffset: number
+}
+
+/**
+ * Outcome C, and the landing place of every failure: the neutral note to the member on
+ * the first contribution that is still open, the internal note for the moderation when
+ * Crea raised its hand, IN_REVIEW with the reason, one event. Runs exactly once per
+ * process and never throws: each step is guarded on its own, so a failing mail or event
+ * cannot repeat the note.
+ */
+async function settleInReview(settlement: ReviewSettlement): Promise<FirstCreationView> {
+  const { user, signer, row, contributionIds, reason, internalReason, model } = settlement
   const message = composeFirstCreationReviewMessage(user.language)
-  await signerComments(
-    signer,
-    first.id,
-    message,
-    ContributionMessageType.DIALOG,
-    clientTimezoneOffset,
-  )
-  if (internalReason !== null) {
-    await signerComments(
-      signer,
-      first.id,
-      composeFirstCreationInternalNote(internalReason),
-      ContributionMessageType.MODERATOR,
-      clientTimezoneOffset,
+  const entries = await dbSelectFirstCreationEntriesByIds(contributionIds)
+  const target = entries.find((entry) => entry.confirmedAt === null && entry.deletedAt === null)
+  if (signer && target) {
+    try {
+      await signerComments(
+        signer,
+        target.id,
+        message,
+        ContributionMessageType.DIALOG,
+        settlement.clientTimezoneOffset,
+      )
+    } catch (error) {
+      logger.error(`first creation ${row.id}: review note failed`, error)
+    }
+    if (internalReason !== null) {
+      try {
+        await signerComments(
+          signer,
+          target.id,
+          composeFirstCreationInternalNote(internalReason),
+          ContributionMessageType.MODERATOR,
+          settlement.clientTimezoneOffset,
+        )
+      } catch (error) {
+        logger.error(`first creation ${row.id}: internal note failed`, error)
+      }
+    }
+  } else {
+    logger.warn(
+      `first creation ${row.id}: review without a thread note (signer ${signer ? 'yes' : 'no'}, open contribution ${target ? 'yes' : 'no'})`,
     )
   }
-  await dbUpdateFirstCreationOutcome(row.id, FirstCreationStatus.SUBMITTED, {
+  const moved = await dbUpdateFirstCreationOutcome(row.id, FirstCreationStatus.SUBMITTED, {
     status: FirstCreationStatus.IN_REVIEW,
     reviewReason: reason,
     message,
     model,
-    signerUserId: signer.user.id,
+    signerUserId: signer?.user.id ?? null,
+    contributionIds,
   })
-  await EVENT_FIRST_CREATION_REVIEW(user, signer.user, first)
-  return readFirstCreationStatus(user, clientTimezoneOffset)
+  if (!moved.success) {
+    logger.error(`first creation ${row.id}: could not move the row to IN_REVIEW`)
+  }
+  try {
+    const first = contributionIds[0]
+    if (signer && first !== undefined) {
+      await EVENT_FIRST_CREATION_REVIEW(user, signer.user, { id: first } as DbContribution)
+    }
+  } catch (error) {
+    logger.error(`first creation ${row.id}: review event failed`, error)
+  }
+  return readFirstCreationStatus(user, settlement.clientTimezoneOffset)
 }

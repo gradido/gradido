@@ -37,3 +37,22 @@ export class DBInsertFailed<T> extends DomainError {
     super(`DB_INSERT_FAILED in ${table}`)
   }
 }
+
+/**
+ * Whether a driver error is a unique-key violation. TypeORM hands the driver error on as
+ * `driverError`, drizzle wraps it in a DrizzleQueryError with the original as `cause`, and
+ * a bare mysql2 error carries the code itself - one question, three shapes.
+ */
+export const isDuplicateEntry = (error: unknown): boolean => {
+  const wrapped =
+    (error as {
+      code?: string
+      cause?: { code?: string }
+      driverError?: { code?: string }
+    } | null) ?? {}
+  return (
+    wrapped.code === 'ER_DUP_ENTRY' ||
+    wrapped.cause?.code === 'ER_DUP_ENTRY' ||
+    wrapped.driverError?.code === 'ER_DUP_ENTRY'
+  )
+}

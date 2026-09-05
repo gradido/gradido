@@ -245,7 +245,8 @@ const { result: signerSearchResult } = useQuery(
     pageSize: 25,
     order: 'ASC',
   }),
-  { fetchPolicy: 'network-only', enabled: signerSearchEnabled },
+  // Debounced: a request per keystroke would cost the server a full member search each.
+  { fetchPolicy: 'network-only', enabled: signerSearchEnabled, debounce: 300 },
 )
 const signerOptions = computed(() => {
   if (!signerSearchEnabled.value) return []
@@ -256,6 +257,17 @@ const signerOptions = computed(() => {
       value: user.userId,
       text: `${user.firstName} ${user.lastName} · ${(user.roles ?? []).join(', ')}`,
     }))
+})
+
+// A choice only stands while it is on the list. Without this, editing the query after a
+// pick keeps the old id armed behind a select that shows nothing - and Save sends it.
+watch(signerOptions, (options) => {
+  if (
+    signerChoice.value !== null &&
+    !options.some((option) => option.value === signerChoice.value)
+  ) {
+    signerChoice.value = null
+  }
 })
 
 watch(error, () => {
@@ -346,15 +358,12 @@ async function saveKeying() {
   }
 }
 
-// A refusal arrives as `FIRST_CREATION_SIGNER_UNAVAILABLE: <reason>` or
-// `FIRST_CREATION_SIGNER_NOT_FOUND`; everything else is shown as it came.
+// A refusal arrives as `FIRST_CREATION_SIGNER_UNAVAILABLE: <reason>`; everything else is
+// shown as it came.
 function signerErrorText(error) {
   const message = error?.message ?? String(error)
   const unavailable = message.match(/FIRST_CREATION_SIGNER_UNAVAILABLE: (\w+)/)
   if (unavailable) return t('crea.settings.signerRefused', { reason: signerReason(unavailable[1]) })
-  if (message.includes('FIRST_CREATION_SIGNER_NOT_FOUND')) {
-    return t('crea.settings.signerRefused', { reason: signerReason('NOT_FOUND') })
-  }
   return message
 }
 

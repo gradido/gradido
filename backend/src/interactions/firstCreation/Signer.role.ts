@@ -37,7 +37,11 @@ export type SignerUnavailableReason =
  * and a warning on the admin page.
  */
 export class SignerUnavailable extends DomainError {
-  constructor(public readonly reason: SignerUnavailableReason) {
+  constructor(
+    public readonly reason: SignerUnavailableReason,
+    /** The account that was looked at, when there was one - the admin page names it. */
+    public readonly user: DbUser | null = null,
+  ) {
     super(`FIRST_CREATION_SIGNER_UNAVAILABLE: ${reason}`)
   }
 }
@@ -50,7 +54,7 @@ export class SignerUnavailable extends DomainError {
  */
 export function checkSignerAccount(user: DbUser): Result<Signer, SignerUnavailable> {
   if (user.deletedAt) {
-    return { success: false, error: new SignerUnavailable('DELETED') }
+    return { success: false, error: new SignerUnavailable('DELETED', user) }
   }
   const userRole = user.userRoles?.[0] ?? null
   const roleName = userRole?.role ?? null
@@ -59,11 +63,11 @@ export function checkSignerAccount(user: DbUser): Result<Signer, SignerUnavailab
     roleName === RoleNames.MODERATOR ||
     roleName === RoleNames.MODERATOR_AI
   if (!isModeration) {
-    return { success: false, error: new SignerUnavailable('NOT_MODERATION') }
+    return { success: false, error: new SignerUnavailable('NOT_MODERATION', user) }
   }
   const scope = describeModeratorCreationGroups(userRole)
   if (!scope.seesAllCreationGroups || !scope.seesUntagged) {
-    return { success: false, error: new SignerUnavailable('SCOPED') }
+    return { success: false, error: new SignerUnavailable('SCOPED', user) }
   }
   return { success: true, value: { user, role: roleByName(roleName) } }
 }

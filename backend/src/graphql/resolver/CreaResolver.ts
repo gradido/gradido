@@ -8,7 +8,6 @@ import { CreaModelTestResult, CreaSettings, FirstCreationSigner } from '@model/C
 import {
   User as DbUser,
   dbGetFirstCreationSignerUserId,
-  dbGetUserWithRolesById,
   dbIsMatchingKeyingActive,
   dbSetFirstCreationSignerUserId,
   dbSetMatchingKeyingActive,
@@ -32,7 +31,7 @@ import {
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { EVENT_ADMIN_USER_SALUTATION_SET } from '@/event/Events'
-import { checkSignerAccount } from '@/interactions/firstCreation/Signer.role'
+import { resolveSigner } from '@/interactions/firstCreation/Signer.role'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
@@ -236,22 +235,23 @@ export class CreaResolver {
   @Authorized([RIGHTS.AI_SETTINGS])
   @Mutation(() => FirstCreationSigner, { nullable: true })
   async setFirstCreationSigner(
-    @Arg('userId', () => Int, { nullable: true }) userId: number | null,
+    @Arg('userId', () => Int, { nullable: true }) userId: number | null | undefined,
   ): Promise<FirstCreationSigner | null> {
+    // An omitted argument is `undefined`, not `null`: only an explicit null clears. Passed
+    // on, undefined would drop the WHERE and pick the first users row as signer.
+    if (userId === undefined) {
+      throw new LogError('FIRST_CREATION_SIGNER_ARGUMENT_MISSING')
+    }
     if (userId === null) {
       await dbSetFirstCreationSignerUserId(null)
       return null
     }
-    const found = await dbGetUserWithRolesById(userId)
-    if (!found.success) {
-      throw new LogError('FIRST_CREATION_SIGNER_NOT_FOUND', userId)
-    }
-    const check = checkSignerAccount(found.value)
+    const check = await resolveSigner(userId)
     if (!check.success) {
       throw new LogError(check.error.message, userId)
     }
     await dbSetFirstCreationSignerUserId(userId)
-    return describeSigner(found.value)
+    return describeSigner(check.value.user, '')
   }
 
   /**
@@ -302,30 +302,33 @@ async function readFirstCreationSigner(): Promise<FirstCreationSigner | null> {
   if (userId === null) {
     return null
   }
-  const found = await dbGetUserWithRolesById(userId)
-  if (!found.success) {
-    return {
-      userId,
-      firstName: null,
-      lastName: null,
-      alias: null,
-      role: null,
-      eligible: false,
-      reason: 'NOT_FOUND',
-    }
+  const check = await resolveSigner(userId)
+  if (check.success) {
+    return describeSigner(check.value.user, '')
   }
-  return describeSigner(found.value)
+  const user = check.error.user
+  return user
+    ? describeSigner(user, check.error.reason)
+    : {
+        userId,
+        firstName: null,
+        lastName: null,
+        alias: null,
+        role: null,
+        eligible: false,
+        reason: check.error.reason,
+      }
 }
 
-function describeSigner(user: DbUser): FirstCreationSigner {
-  const check = checkSignerAccount(user)
+/** The one check's verdict, as the page shows it: empty reason means eligible. */
+function describeSigner(user: DbUser, reason: string): FirstCreationSigner {
   return {
     userId: user.id,
     firstName: user.firstName ?? null,
     lastName: user.lastName ?? null,
     alias: user.alias ?? null,
     role: user.userRoles?.[0]?.role ?? null,
-    eligible: check.success,
-    reason: check.success ? '' : check.error.reason,
+    eligible: reason === '',
+    reason,
   }
 }

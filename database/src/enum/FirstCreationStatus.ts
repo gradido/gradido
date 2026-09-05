@@ -23,6 +23,8 @@ export enum FirstCreationReviewReason {
   SUSPICION = 'SUSPICION',
   MODEL_TIMEOUT = 'MODEL_TIMEOUT',
   MODEL_ERROR = 'MODEL_ERROR',
+  /** Something other than the model broke after the row was claimed: filing, comment, confirm. */
+  PROCESS_ERROR = 'PROCESS_ERROR',
 }
 
 /** A function-test run (L4); null on the row means a real run. */

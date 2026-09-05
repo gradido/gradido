@@ -404,8 +404,8 @@ export class AnthropicClient {
    * the task itself in the user block (buildFirstCreationUserMessage), the answer
    * constrained by FIRST_CREATION_SCHEMA and checked for its form before it is returned.
    *
-   * ⛔ The deadline is a REQUEST option on this call alone (FIRST_CREATION_TIMEOUT_MS, one
-   * retry at most), not a client setting: the admin's Crea keeps the library defaults. A
+   * ⛔ The deadline is a REQUEST option on this call alone (FIRST_CREATION_TIMEOUT_MS, no
+   * retry - the SDK's timeout is per attempt), not a client setting: the admin's Crea keeps the library defaults. A
    * timeout, an API error and a malformed answer all come back as a failure with its
    * reason — the interaction turns every one of them into "a human looks first" (ES-019).
    */
@@ -437,7 +437,8 @@ export class AnthropicClient {
             : { format: { type: 'json_schema', schema: FIRST_CREATION_SCHEMA } },
         },
         params.fastMode,
-        { timeout: FIRST_CREATION_TIMEOUT_MS, maxRetries: 1 },
+        // maxRetries 0: the SDK's timeout is per attempt, and a retry would double the deadline.
+        { timeout: FIRST_CREATION_TIMEOUT_MS, maxRetries: 0 },
       )
     } catch (error) {
       const timeout = error instanceof Anthropic.APIConnectionTimeoutError

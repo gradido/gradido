@@ -11,6 +11,7 @@ import {
   ContributionMessage as DbContributionMessage,
   Event as DbEvent,
   User as DbUser,
+  UserContact as DbUserContact,
   UserRole as DbUserRole,
   dbSelectFirstCreationByUserId,
   dbUpdateFirstCreationOutcome,
@@ -22,10 +23,16 @@ import {
 import { eq } from 'drizzle-orm'
 import { GraphQLError } from 'graphql'
 import { getLogger as originalGetLogger } from 'log4js'
+import { Mutex } from 'redis-semaphore'
+import { GradidoUnit } from 'shared'
 import { AnthropicClient } from '@/apis/anthropic/AnthropicClient'
 import { composeFirstCreationGreeting } from '@/data/FirstCreation.logic'
-import { EVENT_FIRST_CREATION_DONE } from '@/event/EVENT_FIRST_CREATION'
+import {
+  EVENT_FIRST_CREATION_DONE,
+  EVENT_FIRST_CREATION_REVIEW,
+} from '@/event/EVENT_FIRST_CREATION'
 import { EventType } from '@/event/Events'
+import { createUserContribution } from '@/graphql/resolver/util/createUserContribution'
 import { creationFactory } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
 import {
@@ -37,6 +44,7 @@ import {
 import { creaSettings, firstCreationStatus } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
+import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 
@@ -60,7 +68,16 @@ jest.mock('@/password/EncryptorUtils')
 // The outcome events write a row of their own; one of them is made to fail once below.
 jest.mock('@/event/EVENT_FIRST_CREATION', () => {
   const actual = jest.requireActual('@/event/EVENT_FIRST_CREATION')
-  return { ...actual, EVENT_FIRST_CREATION_DONE: jest.fn(actual.EVENT_FIRST_CREATION_DONE) }
+  return {
+    ...actual,
+    EVENT_FIRST_CREATION_DONE: jest.fn(actual.EVENT_FIRST_CREATION_DONE),
+    EVENT_FIRST_CREATION_REVIEW: jest.fn(actual.EVENT_FIRST_CREATION_REVIEW),
+  }
+})
+// The filing core, so one entry of a bundle can be made to fail.
+jest.mock('@/graphql/resolver/util/createUserContribution', () => {
+  const actual = jest.requireActual('@/graphql/resolver/util/createUserContribution')
+  return { ...actual, createUserContribution: jest.fn(actual.createUserContribution) }
 })
 
 // The client is a singleton behind a config gate; the tests need it present and mute. The
@@ -76,6 +93,11 @@ const firstCreationLines = (
 
 const addedMessageMail = sendAddedContributionMessageEmail as jest.Mock
 const doneEvent = EVENT_FIRST_CREATION_DONE as unknown as jest.Mock
+const reviewEvent = EVENT_FIRST_CREATION_REVIEW as unknown as jest.Mock
+const fileOne = createUserContribution as unknown as jest.Mock
+const realFileOne = jest.requireActual(
+  '@/graphql/resolver/util/createUserContribution',
+).createUserContribution
 const confirmedMail = sendContributionConfirmedEmail as jest.Mock
 
 let mutate: ApolloServerTestClient['mutate']
@@ -221,7 +243,9 @@ describe('FirstCreationResolver', () => {
       expect(
         await mutate({ mutation: setFirstCreationSigner, variables: { userId: 424242 } }),
       ).toEqual(
-        expect.objectContaining({ errors: [new GraphQLError('FIRST_CREATION_SIGNER_NOT_FOUND')] }),
+        expect.objectContaining({
+          errors: [new GraphQLError('FIRST_CREATION_SIGNER_UNAVAILABLE: NOT_FOUND')],
+        }),
       )
     })
 
@@ -258,6 +282,14 @@ describe('FirstCreationResolver', () => {
       expect(await dbSelectFirstCreationByUserId(bibi.id)).toBeNull()
       const again = await query({ query: firstCreationStatus })
       expect(again.data.firstCreationStatus.eligible).toBe(true)
+    })
+
+    it('writes no skip event for a member whose window is not open', async () => {
+      // Peter is the signer and therefore not eligible; his skip must not count.
+      await loginAs('peter@lustig.de')
+      const skipped = await mutate({ mutation: skipFirstCreation })
+      expect(skipped.data.skipFirstCreation).toBe(true)
+      expect(await eventsOf(EventType.FIRST_CREATION_SKIP, peter)).toHaveLength(0)
     })
 
     it('refuses entries that cannot become sentences, before anything is filed', async () => {
@@ -316,9 +348,9 @@ describe('FirstCreationResolver', () => {
         message: expectedMessage,
       })
       expect(data.submitFirstCreation.entries).toEqual([
-        { memo: expect.stringContaining('Gemeindefest'), confirmed: true },
-        { memo: expect.stringContaining('Nachbarskinder'), confirmed: true },
-        { memo: 'Ich bin Rentnerin / Rentner.', confirmed: true },
+        { memo: expect.stringContaining('Gemeindefest'), confirmed: true, status: 'CONFIRMED' },
+        { memo: expect.stringContaining('Nachbarskinder'), confirmed: true, status: 'CONFIRMED' },
+        { memo: 'Ich bin Rentnerin / Rentner.', confirmed: true, status: 'CONFIRMED' },
       ])
 
       // Three ordinary USER contributions, booked in the signer's name, 33,34 + 33,33 + 33,33.
@@ -423,6 +455,7 @@ describe('FirstCreationResolver', () => {
           {
             memo: 'Ich habe zu Hause mitgeholfen, indem ich etwas Schlimmes getan habe',
             confirmed: false,
+            status: 'IN_PROGRESS',
           },
         ],
       })
@@ -600,11 +633,23 @@ describe('FirstCreationResolver', () => {
     })
 
     it('refuses to start when the month cannot take another 100 GDD (ES-015)', async () => {
-      // Bibi has 400 GDD this month from the four runs above (the unbooked one counts too,
-      // its contributions are open); 550 more leaves 50 free, and 100 no longer fit.
+      // Whatever Bibi's earlier runs in this file left in the month (open ones count too),
+      // top the month up to 50 GDD free: then 100 no longer fit. Measured, not assumed, so
+      // an earlier test failing or a new run above does not turn this into a false red.
+      const now = new Date()
+      const thisMonth = (await contributionsOf(bibi)).filter(
+        (c) =>
+          !c.deletedAt &&
+          c.contributionStatus !== ContributionStatus.DENIED &&
+          c.contributionDate.getUTCFullYear() === now.getUTCFullYear() &&
+          c.contributionDate.getUTCMonth() === now.getUTCMonth(),
+      )
+      const used = thisMonth.reduce((sum, c) => sum.add(c.amount), new GradidoUnit(0n))
+      const topUp = Number((GradidoUnit.fromNumber(950).subtract(used).gddCent / 10000n).toString())
+      expect(topUp).toBeGreaterThan(0)
       await creationFactory(testEnv, {
         email: 'bibi@bloxberg.de',
-        amount: 550,
+        amount: topUp,
         memo: 'Aufgefuellt bis kurz unter die Grenze',
         contributionDate: new Date().toISOString(),
         confirmed: true,
@@ -661,7 +706,10 @@ describe('FirstCreationResolver', () => {
       const row = await rowOf(bob)
       await drizzle()
         .update(firstCreationsTable)
-        .set({ status: FirstCreationStatus.SUBMITTED })
+        .set({
+          status: FirstCreationStatus.SUBMITTED,
+          updatedAt: new Date(Date.now() - 6 * 60 * 1000),
+        })
         .where(eq(firstCreationsTable.id, row.id))
       await loginAs('bob@baumeister.de')
       const { data } = await query({ query: firstCreationStatus })
@@ -690,6 +738,16 @@ describe('FirstCreationResolver', () => {
         .set({ updatedAt: new Date(Date.now() - 6 * 60 * 1000) })
         .where(eq(firstCreationsTable.id, row.id))
       const messagesBefore = (await messagesOn(row.contributionIds[0])).length
+      // While somebody holds the member's lock the row is alive, however old it looks.
+      const held = new Mutex(
+        AppDatabase.getInstance().getRedisClient(),
+        `FIRST_CREATION_LOCK:${raeuber.id}`,
+      )
+      expect(await held.tryAcquire()).toBe(true)
+      const alive = await query({ query: firstCreationStatus })
+      expect(alive.data.firstCreationStatus.state).toBe(FirstCreationStatus.SUBMITTED)
+      expect(await messagesOn(row.contributionIds[0])).toHaveLength(messagesBefore)
+      await held.release()
       const stale = await query({ query: firstCreationStatus })
       expect(stale.data.firstCreationStatus).toMatchObject({
         state: FirstCreationStatus.IN_REVIEW,
@@ -697,7 +755,7 @@ describe('FirstCreationResolver', () => {
       })
       expect(await rowOf(raeuber)).toMatchObject({
         status: FirstCreationStatus.IN_REVIEW,
-        reviewReason: FirstCreationReviewReason.MODEL_ERROR,
+        reviewReason: FirstCreationReviewReason.PROCESS_ERROR,
       })
       // The review note went onto the thread once more, in the signer's name.
       const messages = await messagesOn(row.contributionIds[0])
@@ -706,6 +764,171 @@ describe('FirstCreationResolver', () => {
         userId: peter.id,
         type: ContributionMessageType.DIALOG,
       })
+    })
+  })
+
+  describe('when the process breaks after the row is claimed', () => {
+    it('a confirm failing mid-bundle lands in review with the note on the first open contribution', async () => {
+      await reopen(bibi, FirstCreationTestMode.WITH_BOOKING)
+      firstCreationLines.mockResolvedValue(answer(['für eins', 'für zwei', 'für drei']))
+      // The mail after the SECOND booking fails: that contribution is committed, the third
+      // is never reached.
+      confirmedMail.mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error('smtp down'))
+      await loginAs('bibi@bloxberg.de')
+      const before = (await contributionsOf(bibi)).length
+      const reviewsBefore = (await eventsOf(EventType.FIRST_CREATION_REVIEW, bibi)).length
+      const { data, errors } = await mutate({
+        mutation: submitFirstCreation,
+        variables: {
+          entries: [1, 2, 3].map((n) => ({
+            catalogKey: 'helpedAtHome',
+            text: `Ding ${n} getan habe`,
+          })),
+        },
+      })
+      expect(errors).toBeUndefined()
+      expect(data.submitFirstCreation).toMatchObject({
+        state: FirstCreationStatus.IN_REVIEW,
+        message: 'Deine Einträge schaut sich noch ein Mensch an. Du hörst von uns.',
+      })
+      const fresh = (await contributionsOf(bibi)).slice(before)
+      expect(fresh.map((c) => c.confirmedAt !== null)).toEqual([true, true, false])
+      // The note sits on the one still open, because the booked ones take no message.
+      expect(await messagesOn(fresh[2].id)).toHaveLength(1)
+      expect((await messagesOn(fresh[2].id))[0].message).toContain('noch ein Mensch')
+      // Thanks note on the first, review note on the third: two mails, no more.
+      expect(addedMessageMail).toHaveBeenCalledTimes(2)
+      expect(await rowOf(bibi)).toMatchObject({
+        status: FirstCreationStatus.IN_REVIEW,
+        reviewReason: FirstCreationReviewReason.PROCESS_ERROR,
+        contributionIds: fresh.map((c) => c.id),
+      })
+      expect(await eventsOf(EventType.FIRST_CREATION_REVIEW, bibi)).toHaveLength(reviewsBefore + 1)
+    })
+
+    it('a failing entry leaves the ones before it on the row, in review, with a note', async () => {
+      await reopen(raeuber, FirstCreationTestMode.WITH_BOOKING)
+      let calls = 0
+      fileOne.mockImplementation((...args: unknown[]) => {
+        calls += 1
+        if (calls === 2) {
+          throw new Error('database hiccup')
+        }
+        return realFileOne(...args)
+      })
+      await loginAs('raeuber@hotzenplotz.de')
+      const before = (await contributionsOf(raeuber)).length
+      const { data, errors } = await mutate({
+        mutation: submitFirstCreation,
+        variables: {
+          entries: [1, 2, 3].map((n) => ({
+            catalogKey: 'helpedAtHome',
+            text: `Sache ${n} getan habe`,
+          })),
+        },
+      })
+      fileOne.mockImplementation(realFileOne)
+      expect(errors).toBeUndefined()
+      expect(data.submitFirstCreation.state).toBe(FirstCreationStatus.IN_REVIEW)
+      const fresh = (await contributionsOf(raeuber)).slice(before)
+      expect(fresh).toHaveLength(1)
+      expect(await messagesOn(fresh[0].id)).toHaveLength(1)
+      expect(await rowOf(raeuber)).toMatchObject({
+        status: FirstCreationStatus.IN_REVIEW,
+        reviewReason: FirstCreationReviewReason.PROCESS_ERROR,
+        contributionIds: [fresh[0].id],
+      })
+      expect(firstCreationLines).not.toHaveBeenCalled()
+      // The window is not shut for good: the row is there, the moderation sees the bundle.
+      const status = await query({ query: firstCreationStatus })
+      expect(status.data.firstCreationStatus).toMatchObject({
+        state: FirstCreationStatus.IN_REVIEW,
+        eligible: false,
+      })
+    })
+
+    it('a review whose event fails still writes the note exactly once', async () => {
+      await reopen(raeuber, FirstCreationTestMode.WITH_BOOKING)
+      firstCreationLines.mockResolvedValue(answer(['für etwas'], true, 'Grund'))
+      reviewEvent.mockRejectedValueOnce(new Error('event store down'))
+      await loginAs('raeuber@hotzenplotz.de')
+      const before = (await contributionsOf(raeuber)).length
+      const { data } = await mutate({
+        mutation: submitFirstCreation,
+        variables: { entries: [{ catalogKey: 'helpedAtHome', text: 'etwas getan habe' }] },
+      })
+      expect(data.submitFirstCreation.state).toBe(FirstCreationStatus.IN_REVIEW)
+      const [fresh] = (await contributionsOf(raeuber)).slice(before)
+      const messages = await messagesOn(fresh.id)
+      expect(messages.map((m) => m.type)).toEqual([
+        ContributionMessageType.DIALOG,
+        ContributionMessageType.MODERATOR,
+      ])
+      expect(addedMessageMail).toHaveBeenCalledTimes(1)
+      expect((await rowOf(raeuber)).reviewReason).toBe(FirstCreationReviewReason.SUSPICION)
+    })
+
+    it('a model call that throws is a model failure, not an error to the member', async () => {
+      await reopen(bob, FirstCreationTestMode.WITH_BOOKING)
+      firstCreationLines.mockRejectedValue(new Error('settings table unreachable'))
+      await loginAs('bob@baumeister.de')
+      const { data, errors } = await mutate({
+        mutation: submitFirstCreation,
+        variables: { entries: [{ catalogKey: 'helpedAtHome', text: 'gebaut habe' }] },
+      })
+      expect(errors).toBeUndefined()
+      expect(data.submitFirstCreation.state).toBe(FirstCreationStatus.IN_REVIEW)
+      expect((await rowOf(bob)).reviewReason).toBe(FirstCreationReviewReason.MODEL_ERROR)
+    })
+  })
+
+  describe('who is kept out', () => {
+    let garrick: DbUser
+
+    beforeAll(async () => {
+      // Confirmed so that a password exists; the two tests below change what they need.
+      garrick = await userFactory(testEnv, {
+        ...garrickOllivander,
+        emailChecked: true,
+        language: 'fr',
+      })
+    })
+
+    it('a member whose language has no catalog yet sees no window', async () => {
+      await loginAs('garrick@ollivander.com')
+      const { data } = await query({ query: firstCreationStatus })
+      expect(data.firstCreationStatus).toMatchObject({ state: 'NONE', eligible: false })
+      const { errors } = await mutate({
+        mutation: submitFirstCreation,
+        variables: { entries: [{ catalogKey: 'retiree' }] },
+      })
+      expect(errors).toEqual([new GraphQLError('FIRST_CREATION_NOT_ELIGIBLE: NO_CATALOG')])
+      expect(await contributionsOf(garrick)).toHaveLength(0)
+    })
+
+    it('an unconfirmed address past the grace period is refused like every other value-creating call', async () => {
+      await DbUser.update(
+        { id: garrick.id },
+        { language: 'de', createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) },
+      )
+      await DbUserContact.update({ id: garrick.emailId ?? 0 }, { emailChecked: false })
+      await loginAs('garrick@ollivander.com')
+      const status = await query({ query: firstCreationStatus })
+      expect(status.errors).toEqual([new GraphQLError('401 Unauthorized')])
+      const { errors } = await mutate({
+        mutation: submitFirstCreation,
+        variables: { entries: [{ catalogKey: 'retiree' }] },
+      })
+      expect(errors).toEqual([new GraphQLError('401 Unauthorized')])
+      expect(await contributionsOf(garrick)).toHaveLength(0)
+    })
+
+    it('an omitted signer argument is refused rather than read as somebody', async () => {
+      await loginAs('peter@lustig.de')
+      const { errors } = await mutate({ mutation: setFirstCreationSigner, variables: {} })
+      expect(errors).toEqual([new GraphQLError('FIRST_CREATION_SIGNER_ARGUMENT_MISSING')])
+      const settings = await query({ query: creaSettings })
+      expect(settings.data.creaSettings.firstCreationSigner).toMatchObject({ userId: peter.id })
     })
   })
 

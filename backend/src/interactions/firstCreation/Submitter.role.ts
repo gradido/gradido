@@ -15,6 +15,7 @@ import {
   FIRST_CREATION_TOTAL,
   FirstCreationCheckKey,
   FirstCreationEntryDraft,
+  firstCreationContributionDate,
   isCheckKey,
   splitFirstCreationAmount,
 } from '@/data/FirstCreation.logic'
@@ -111,7 +112,12 @@ export async function checkQuota(
 ): Promise<VoidResult<FirstCreationQuotaExceeded>> {
   const creations = await getUserCreation(userId, clientTimezoneOffset)
   try {
-    validateContribution(creations, FIRST_CREATION_TOTAL, new Date(), clientTimezoneOffset)
+    validateContribution(
+      creations,
+      FIRST_CREATION_TOTAL,
+      new Date(firstCreationContributionDate(clientTimezoneOffset)),
+      clientTimezoneOffset,
+    )
     return { success: true }
   } catch (error) {
     // validateContribution also throws for a date it has no month for; the member gets the
@@ -122,19 +128,22 @@ export async function checkQuota(
 }
 
 /**
- * Files one USER contribution per entry, dated now (ES-010: the current month), through
- * the same core as the wallet's own form. Each one fires CONTRIBUTION_CREATE and counts
- * against the month like any other.
+ * Files one USER contribution per entry, dated with the member's calendar day (ES-010: the
+ * current month, in the member's frame), through the same core as the wallet's own form.
+ * Each one fires CONTRIBUTION_CREATE and counts against the month like any other.
+ *
+ * Writes into `filed` as it goes: a throw at entry k leaves the caller the ids of entries
+ * 1..k-1, which exist and must end up on the process row.
  */
 export async function fileContributions(
   user: DbUser,
   entries: PreparedEntry[],
   clientTimezoneOffset: number,
-): Promise<DbContribution[]> {
-  const contributions: DbContribution[] = []
-  const contributionDate = new Date().toISOString()
+  filed: DbContribution[],
+): Promise<void> {
+  const contributionDate = firstCreationContributionDate(clientTimezoneOffset)
   for (const entry of entries) {
-    contributions.push(
+    filed.push(
       await createUserContribution(
         user,
         { amount: entry.amount, memo: entry.memo, contributionDate, creationGroups: [] },
@@ -142,5 +151,4 @@ export async function fileContributions(
       ),
     )
   }
-  return contributions
 }

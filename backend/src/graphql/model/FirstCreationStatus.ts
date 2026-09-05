@@ -14,6 +14,13 @@ export class FirstCreationEntry {
    */
   @Field()
   confirmed: boolean
+
+  /**
+   * PENDING | IN_PROGRESS | CONFIRMED | DENIED | DELETED, read off the contribution - so a
+   * bundle the moderation refused or removed does not look like one still waiting.
+   */
+  @Field()
+  status: string
 }
 
 /**

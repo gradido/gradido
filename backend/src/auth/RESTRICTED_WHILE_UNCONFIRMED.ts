@@ -29,4 +29,7 @@ export const RESTRICTED_WHILE_UNCONFIRMED = [
   RIGHTS.UPDATE_MATCHING_ENTRY,
   RIGHTS.MANAGE_OWN_THANK_YOU_CARD,
   RIGHTS.RECEIVE_THANK_YOU_CARD_PAYMENT,
+  // The first creation books Gradido through its own interaction, not through
+  // createContribution, so the CREATE_CONTRIBUTION entry above does not reach it.
+  RIGHTS.FIRST_CREATION,
 ]

@@ -3,7 +3,12 @@ import { and, count, eq } from 'drizzle-orm'
 import { Result, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { FirstCreationStatus } from '../enum/FirstCreationStatus'
-import { DBDuplicateEntryError, DBInsertFailed, DBNotFoundError } from '../errorTypes'
+import {
+  DBDuplicateEntryError,
+  DBInsertFailed,
+  DBNotFoundError,
+  isDuplicateEntry,
+} from '../errorTypes'
 import {
   FirstCreationInsert,
   FirstCreationSelect,
@@ -15,23 +20,6 @@ import {
 const FirstCreationNotFound = (where: string) => new DBNotFoundError('first_creations', where)
 const FirstCreationInsertFailed = (row: FirstCreationInsert) =>
   new DBInsertFailed<FirstCreationInsert>('first_creations', row)
-
-// drizzle wraps the driver's error in a DrizzleQueryError and hands the original on as
-// `cause`; the TypeORM-era `driverError` is kept for the day this file is called from a
-// path that still runs there.
-const isDuplicateEntry = (error: unknown): boolean => {
-  const wrapped =
-    (error as {
-      code?: string
-      cause?: { code?: string }
-      driverError?: { code?: string }
-    } | null) ?? {}
-  return (
-    wrapped.code === 'ER_DUP_ENTRY' ||
-    wrapped.cause?.code === 'ER_DUP_ENTRY' ||
-    wrapped.driverError?.code === 'ER_DUP_ENTRY'
-  )
-}
 
 /**
  * The member's first-creation row, or null. No row is the normal state of every member

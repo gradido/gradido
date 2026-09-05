@@ -1,4 +1,4 @@
-import { i18n, translateForLocale } from './localization'
+import { hasPhraseInLocale, i18n, translateForLocale } from './localization'
 
 describe('localization', () => {
   it('translate emails.accountMultiRegistration.contactSupport with Contact support', () => {
@@ -29,6 +29,27 @@ describe('translateForLocale', () => {
   it('falls back to English for a locale that has no translation yet', () => {
     // The first-creation keys exist in de and en only for now (L1).
     expect(translateForLocale('fr', 'firstCreation.message.closing')).toBe('Good to have you here.')
+  })
+
+  it('inserts the values as they are - no HTML escaping of apostrophes, ampersands, slashes', () => {
+    expect(
+      translateForLocale('de', 'firstCreation.catalog.helpedAtHome', {
+        text: "Oma's Garten & Hof / Küche gepflegt habe",
+      }),
+    ).toBe("Ich habe zu Hause mitgeholfen, indem ich Oma's Garten & Hof / Küche gepflegt habe")
+    expect(
+      translateForLocale('en', 'firstCreation.message.greetingFemale', { name: "O'Neill" }),
+    ).toBe("Dear O'Neill, welcome!")
+    // A value that itself looks like a placeholder is inserted, not interpreted.
+    expect(
+      translateForLocale('de', 'firstCreation.message.greetingNeutral', { name: '{text}' }),
+    ).toBe('Willkommen, {text}!')
+  })
+
+  it('says whether a locale carries a phrase itself, without counting the fallback', () => {
+    expect(hasPhraseInLocale('de', 'firstCreation.catalog.helpedAtHome')).toBe(true)
+    expect(hasPhraseInLocale('fr', 'firstCreation.catalog.helpedAtHome')).toBe(false)
+    expect(hasPhraseInLocale('fr', 'emails.accountMultiRegistration.contactSupport')).toBe(true)
   })
 
   it('leaves a key that exists nowhere as it is', () => {

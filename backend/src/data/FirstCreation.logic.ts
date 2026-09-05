@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { translateForLocale } from 'core'
+import { hasPhraseInLocale, translateForLocale } from 'core'
 import { DomainError, GradidoUnit, MEMO_MAX_CHARS, Result } from 'shared'
 import { guessGender } from '@/apis/anthropic/crea/nameGender'
 
@@ -51,6 +51,27 @@ export const FIRST_CREATION_CATALOG_KEYS = [
 export const FIRST_CREATION_CHECK_KEYS = ['retiree'] as const
 
 export type FirstCreationCatalogKey = (typeof FIRST_CREATION_CATALOG_KEYS)[number]
+
+/**
+ * Whether the member's language has the sentence stems. The stems become the memo and the
+ * memo becomes ledger data, so a language without them gets no window rather than an
+ * English stem glued to the member's own words. de and en today; the others follow through
+ * the localisation work, not through a fallback.
+ */
+export function hasFirstCreationCatalog(language: string): boolean {
+  return FIRST_CREATION_CATALOG_KEYS.every((key) =>
+    hasPhraseInLocale(language, `firstCreation.catalog.${key}`),
+  )
+}
+
+/**
+ * The member's calendar day, as the wallet's own form sends it (ISO date without a time).
+ * The month bookkeeping in creations.ts indexes months in the CLIENT's frame; a server
+ * instant would name a different month for the first hours of every month west of UTC.
+ */
+export function firstCreationContributionDate(clientTimezoneOffset: number): string {
+  return new Date(Date.now() - clientTimezoneOffset * 60 * 1000).toISOString().slice(0, 10)
+}
 export type FirstCreationCheckKey = (typeof FIRST_CREATION_CHECK_KEYS)[number]
 
 export interface FirstCreationEntryDraft {
