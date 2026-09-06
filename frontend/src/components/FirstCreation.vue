@@ -139,7 +139,7 @@
       <p class="text-muted mb-4">{{ $t('firstCreation.waitingHint') }}</p>
       <div v-for="(line, index) in pendingLines" :key="index" class="fc-line">
         <span class="fc-circle fc-circle-open"></span>
-        <span>{{ line }}</span>
+        <span :data-test="`first-creation-pending-${index}`">{{ line }}</span>
       </div>
     </div>
 

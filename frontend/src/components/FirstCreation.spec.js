@@ -467,6 +467,23 @@ describe('FirstCreation', () => {
     })
 
     /**
+     * ⛔ The row says the stem and nothing else. It used to echo the member's words behind
+     * the connector, because the sentence lived out there and only its tail was in the box.
+     * With the whole sentence in the box, an echo would print it twice — and the copy in
+     * the row is the one nobody can edit.
+     */
+    it('leaves the sentence in the box and does not repeat it in the row', async () => {
+      const wrapper = build()
+      await write(wrapper, 'helpedSickPerson', `${sickStem}ihn zum Arzt gefahren habe`)
+
+      const row = wrapper.find('[data-test="first-creation-stem-helpedSickPerson"]').text()
+      expect(row).toBe('Ich habe einem kranken Menschen geholfen,')
+      expect(row).not.toContain('zum Arzt')
+      // And the "…" that used to stand in for the missing tail is gone with it.
+      expect(row).not.toContain('…')
+    })
+
+    /**
      * ⛔ The other half of the freedom, and the one the old build made impossible: the
      * member throws the opening away. Bernd's own example -- "Ich habe meinem kranken
      * Bruder Vitamin-Tabletten gekauft" is a whole sentence with no "indem ich" in it.
@@ -737,10 +754,14 @@ describe('FirstCreation', () => {
 
       const waiting = wrapper.find('[data-test="first-creation-waiting"]')
       expect(waiting.exists()).toBe(true)
-      expect(waiting.text()).toContain('Ich bin Rentnerin')
-      // The sentence as they wrote it -- the same text the server files, because the box
-      // holds the whole of it now.
-      expect(waiting.text()).toContain('Kuchen für das Fest gebacken habe')
+      // ⛔ Line by line and EXACTLY, not `toContain` on the whole screen. The box carries
+      // the opening now, so a screen that glued the stem in front once more would show the
+      // sentence twice — and a `toContain` would have stayed green through it. Injection:
+      // put the stem back in front in `pendingLines` and this falls.
+      const lines = wrapper
+        .findAll('[data-test^="first-creation-pending-"]')
+        .map((line) => line.text())
+      expect(lines).toEqual(['Ich bin Rentnerin / Rentner.', 'Kuchen für das Fest gebacken habe'])
       expect(waiting.text()).not.toContain('helpedParish')
       // Nothing to press while the request is still out there.
       expect(wrapper.find('[data-test="first-creation-waiting-close"]').exists()).toBe(false)
