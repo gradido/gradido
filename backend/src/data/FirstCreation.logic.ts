@@ -15,9 +15,15 @@ export const FIRST_CREATION_TOTAL = GradidoUnit.fromNumber(100)
 export const FIRST_CREATION_MAX_ENTRIES = 10
 
 /**
- * The sentence stems a member can complete (D §4, J §4). Each key is a phrase
- * `firstCreation.catalog.<key>` in core/src/locales with a `{text}` placeholder for what
- * the member wrote. The list is flat: how the window groups them is the window's business.
+ * The sentence stems a member can complete (D §4, J §4). The list is flat: how the window
+ * groups them is the window's business.
+ *
+ * ⚠️ Where the stems LIVE moved with the editable box. The wallet has its own copy
+ * (`utils/firstCreationCatalog.js` plus `locales/*.json`) and puts one into the box as the
+ * opening; core's copy no longer builds anything — `hasFirstCreationCatalog` below is the
+ * only thing that still reads it, as the answer to "does this language have a catalog at
+ * all". Its `{text}` placeholder is therefore no longer filled anywhere; it marks a phrase
+ * as a completable stem and nothing more.
  */
 export const FIRST_CREATION_CATALOG_KEYS = [
   'helpedSickPerson',
@@ -53,10 +59,10 @@ export const FIRST_CREATION_CHECK_KEYS = ['retiree'] as const
 export type FirstCreationCatalogKey = (typeof FIRST_CREATION_CATALOG_KEYS)[number]
 
 /**
- * Whether the member's language has the sentence stems. The stems become the memo and the
- * memo becomes ledger data, so a language without them gets no window rather than an
- * English stem glued to the member's own words. de and en today; the others follow through
- * the localisation work, not through a fallback.
+ * Whether the member's language has the sentence stems — asked of core, because core is
+ * the copy both packages can be measured against. A language without them gets no window
+ * rather than a box that opens in English under a German heading. de and en today; the
+ * others follow through the localisation work, not through a fallback.
  */
 export function hasFirstCreationCatalog(language: string): boolean {
   return FIRST_CREATION_CATALOG_KEYS.every((key) =>

@@ -37,6 +37,9 @@ describe('first creation catalog keys', () => {
       expect(message[`${check}Line`]).toBeDefined()
     }
     for (const key of FIRST_CREATION_CATALOG_KEYS) {
+      // ⚠️ Nothing fills this placeholder any more — the wallet carries the opening now and
+      // sends the whole sentence. It is kept as the mark of a completable stem, and asserted
+      // so that core's copy and the wallet's stay recognisably the same list.
       expect(catalog[key]).toContain('{text}')
     }
   })
