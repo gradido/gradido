@@ -805,6 +805,34 @@ describe('FirstCreationResolver', () => {
       }
     })
 
+    /**
+     * ⚠️ Placed after every test that needs Tessa's month, because it spends the rest of
+     * it. The one below is unaffected: the switch is asked before the quota, so it reaches
+     * its own refusal either way.
+     */
+    it('refuses once the month has no room for another run', async () => {
+      // Measured, not assumed: fill whatever is still free, so 100 no longer fit.
+      await loginAs('tessa@testerin.de')
+      const before = await query({ query: firstCreationStatus })
+      const runsLeft = before.data.firstCreationStatus.testRunsLeft
+      expect(runsLeft).toBeGreaterThan(0)
+      await creationFactory(testEnv, {
+        email: 'tessa@testerin.de',
+        amount: runsLeft * 100,
+        memo: 'Den Rest des Monats aufgebraucht',
+        contributionDate: new Date().toISOString(),
+        confirmed: true,
+      })
+      await loginAs('tessa@testerin.de')
+      const after = await query({ query: firstCreationStatus })
+      expect(after.data.firstCreationStatus.testRunsLeft).toBe(0)
+      const { errors } = await mutate({
+        mutation: startFirstCreationTest,
+        variables: { withBooking: true },
+      })
+      expect(errors).toEqual([new GraphQLError('FIRST_CREATION_TEST_REFUSED: NO_QUOTA')])
+    })
+
     it('is gone where the server switched it off', async () => {
       CONFIG.FUNCTION_TESTS_ENABLED = false
       try {

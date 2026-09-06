@@ -59,6 +59,12 @@ export type FirstCreationTestRefusedReason =
    * nothing anybody can see is worse than a refusal that says why.
    */
   | 'NO_SIGNER'
+  /**
+   * The caller's month has no room for another 100 GDD (ES-015). Same class as the two
+   * above: the window would open and then refuse at Save, because submitFirstCreation asks
+   * the very same question. ES-015 wants that said BEFORE, not after.
+   */
+  | 'NO_QUOTA'
   /** FUNCTION_TESTS_ENABLED is off on this server. */
   | 'DISABLED'
   /** A first creation is running for this account right now. */

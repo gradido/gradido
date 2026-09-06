@@ -60,7 +60,11 @@ export class FirstCreationResolver {
     @Arg('withBooking', () => Boolean) withBooking: boolean,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    const result = await startFirstCreationTest(getUser(context), withBooking)
+    const result = await startFirstCreationTest(
+      getUser(context),
+      withBooking,
+      getClientTimezoneOffset(context),
+    )
     if (!result.success) {
       throw new LogError(result.error.message)
     }

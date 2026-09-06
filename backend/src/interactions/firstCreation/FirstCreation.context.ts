@@ -276,6 +276,7 @@ export async function skipFirstCreation(user: DbUser): Promise<void> {
 export async function startFirstCreationTest(
   user: DbUser,
   withBooking: boolean,
+  clientTimezoneOffset: number,
 ): Promise<VoidResult<FirstCreationTestRefused>> {
   if (!CONFIG.FUNCTION_TESTS_ENABLED) {
     return { success: false, error: new FirstCreationTestRefused('DISABLED') }
@@ -288,6 +289,13 @@ export async function startFirstCreationTest(
   if (!signer.success) {
     const refusal = signer.error.reason === 'IS_MEMBER' ? 'IS_SIGNER' : 'NO_SIGNER'
     return { success: false, error: new FirstCreationTestRefused(refusal) }
+  }
+  // The same question submitFirstCreation asks, asked one step earlier: the window would
+  // open on an exhausted month and refuse the moment the entries were written out. The
+  // wallet greys both buttons at zero runs left, which leaves a hand-written call as the
+  // only way here — and ES-015 says an exhausted month is told BEFORE, not after.
+  if (!(await checkQuota(user.id, clientTimezoneOffset)).success) {
+    return { success: false, error: new FirstCreationTestRefused('NO_QUOTA') }
   }
   const mutex = memberLock(user.id)
   if (!(await mutex.tryAcquire())) {
