@@ -351,7 +351,7 @@
     "failed": "That did not work just now. Please try again.",
     "maxEntries": "No more than {max} entries here — you can always add more yourself later.",
     "nothing": "Nothing comes to mind right now",
-    "placeholder": "… baked a cake for the street party",
+    "placeholder": "Write it in your own words.",
     "projectAsk": {
       "later": "Later",
       "project": "This is a project account",

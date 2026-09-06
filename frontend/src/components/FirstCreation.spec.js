@@ -159,6 +159,9 @@ const build = (props = {}) => {
 }
 
 /** Opens a stem's field and types into it. */
+/** The opening the box carries for `helpedSickPerson`, as the window builds it. */
+const sickStem = 'Ich habe einem kranken Menschen geholfen, indem ich '
+
 const write = async (wrapper, stem, text) => {
   await wrapper.find(`[data-test="first-creation-stem-${stem}"]`).trigger('click')
   await nextTick()
@@ -456,14 +459,124 @@ describe('FirstCreation', () => {
      * it, not only in the box below -- so "indem ich Ich habe ..." shows itself at the
      * moment it is written instead of in the ledger afterwards.
      */
-    it('echoes the words into the sentence they complete', async () => {
+    /**
+     * ⭐ The whole of this delivery, in one test (Bernd, 06.09.). The box used to hold an
+     * example as a PLACEHOLDER -- one that belonged to a different stem, and one nobody
+     * could edit, so whoever wrote in the box was locked into a grammar somebody else had
+     * chosen. The sentence now starts IN the box, as a value, and every word of it is
+     * theirs.
+     */
+    it('opens the box with the sentence already in it, ready to be changed', async () => {
       const wrapper = build()
-      const row = () => wrapper.find('[data-test="first-creation-stem-helpedParish"]').text()
-      expect(row()).toContain('indem ich …')
+      await wrapper.find('[data-test="first-creation-stem-helpedSickPerson"]').trigger('click')
+      await nextTick()
 
-      await write(wrapper, 'helpedParish', 'Kuchen für das Fest gebacken habe')
-      expect(row()).toContain('indem ich Kuchen für das Fest gebacken habe')
-      expect(row()).not.toContain('…')
+      const field = wrapper.findAll('[data-test^="first-creation-text-"]').at(-1)
+      expect(field.element.value).toBe('Ich habe einem kranken Menschen geholfen, indem ich ')
+
+      // Completed: the opening stays and their words follow it.
+      await field.setValue('Ich habe einem kranken Menschen geholfen, indem ich ihn zum Arzt fuhr')
+      await nextTick()
+      await wrapper.find('[data-test="first-creation-save"]').trigger('click')
+      expect(submitMock).toHaveBeenCalledWith({
+        entries: [
+          {
+            catalogKey: 'helpedSickPerson',
+            text: 'Ich habe einem kranken Menschen geholfen, indem ich ihn zum Arzt fuhr',
+          },
+        ],
+      })
+    })
+
+    /**
+     * ⛔ The row says the stem and nothing else. It used to echo the member's words behind
+     * the connector, because the sentence lived out there and only its tail was in the box.
+     * With the whole sentence in the box, an echo would print it twice — and the copy in
+     * the row is the one nobody can edit.
+     */
+    it('leaves the sentence in the box and does not repeat it in the row', async () => {
+      const wrapper = build()
+      await write(wrapper, 'helpedSickPerson', `${sickStem}ihn zum Arzt gefahren habe`)
+
+      const row = wrapper.find('[data-test="first-creation-stem-helpedSickPerson"]').text()
+      expect(row).toBe('Ich habe einem kranken Menschen geholfen,')
+      expect(row).not.toContain('zum Arzt')
+      // And the "…" that used to stand in for the missing tail is gone with it.
+      expect(row).not.toContain('…')
+    })
+
+    /**
+     * ⛔ The other half of the freedom, and the one the old build made impossible: the
+     * member throws the opening away. Bernd's own example -- "Ich habe meinem kranken
+     * Bruder Vitamin-Tabletten gekauft" is a whole sentence with no "indem ich" in it.
+     */
+    it('lets the whole sentence be replaced, opening and all', async () => {
+      const wrapper = build()
+      await write(
+        wrapper,
+        'helpedSickPerson',
+        'Ich habe meinem kranken Bruder Vitamin-Tabletten gekauft',
+      )
+      await wrapper.find('[data-test="first-creation-save"]').trigger('click')
+
+      expect(submitMock).toHaveBeenCalledWith({
+        entries: [
+          {
+            catalogKey: 'helpedSickPerson',
+            text: 'Ich habe meinem kranken Bruder Vitamin-Tabletten gekauft',
+          },
+        ],
+      })
+    })
+
+    /**
+     * ⛔ An untouched opening is an empty entry, not a finished one. It is eight words, so
+     * a plain word count would call it written -- and Save would be within reach of
+     * somebody who has typed nothing at all.
+     */
+    it('counts an untouched opening as nothing written', async () => {
+      const wrapper = build()
+      await wrapper.find('[data-test="first-creation-stem-helpedSickPerson"]').trigger('click')
+      await nextTick()
+
+      expect(wrapper.find('[data-test="first-creation-count"]').text()).toContain('0')
+      expect(wrapper.find('[data-test="first-creation-save"]').attributes('disabled')).toBeDefined()
+      // Nor is it a half-written one: no reproach under a box nobody has touched.
+      expect(wrapper.find('[data-test^="first-creation-short-"]').exists()).toBe(false)
+    })
+
+    /**
+     * ⛔ One backspace at the end of an untouched box, which is a natural thing to do. It
+     * used to end the prefix match, so the opening counted as the member's own eight words
+     * — Save went live and an entry carrying nothing but the stem could be filed.
+     */
+    it('still counts nothing written when the opening loses its last space', async () => {
+      const wrapper = build()
+      await write(wrapper, 'helpedSickPerson', sickStem.trimEnd())
+
+      expect(wrapper.find('[data-test="first-creation-count"]').text()).toContain('0')
+      expect(wrapper.find('[data-test="first-creation-save"]').attributes('disabled')).toBeDefined()
+    })
+
+    /**
+     * And the floor still holds for the ordinary path: two words behind the opening are
+     * too few, and the reason stands at the box rather than at the pale button.
+     */
+    it('measures the floor against what the member added, not against the opening', async () => {
+      const wrapper = build()
+      await write(wrapper, 'helpedSickPerson', `${sickStem}ihn fuhr`)
+      expect(wrapper.find('[data-test^="first-creation-short-"]').exists()).toBe(true)
+      expect(wrapper.find('[data-test="first-creation-save"]').attributes('disabled')).toBeDefined()
+
+      // ⚠️ The SAME box, not another `write`: that one opens a second entry, and the first
+      // one's reproach would still be on screen -- the test would then prove nothing.
+      const field = wrapper.findAll('[data-test^="first-creation-text-"]').at(-1)
+      await field.setValue(`${sickStem}ihn zum Arzt gefahren habe`)
+      await nextTick()
+      expect(wrapper.find('[data-test^="first-creation-short-"]').exists()).toBe(false)
+      expect(
+        wrapper.find('[data-test="first-creation-save"]').attributes('disabled'),
+      ).toBeUndefined()
     })
 
     it('takes several entries from one beginning (ES-008)', async () => {
@@ -676,10 +789,14 @@ describe('FirstCreation', () => {
 
       const waiting = wrapper.find('[data-test="first-creation-waiting"]')
       expect(waiting.exists()).toBe(true)
-      expect(waiting.text()).toContain('Ich bin Rentnerin')
-      // Stem, connector and the member's words -- not the bare catalog key.
-      expect(waiting.text()).toContain('Ich habe in meiner Gemeinde')
-      expect(waiting.text()).toContain('indem ich Kuchen für das Fest gebacken habe')
+      // ⛔ Line by line and EXACTLY, not `toContain` on the whole screen. The box carries
+      // the opening now, so a screen that glued the stem in front once more would show the
+      // sentence twice — and a `toContain` would have stayed green through it. Injection:
+      // put the stem back in front in `pendingLines` and this falls.
+      const lines = wrapper
+        .findAll('[data-test^="first-creation-pending-"]')
+        .map((line) => line.text())
+      expect(lines).toEqual(['Ich bin Rentnerin / Rentner.', 'Kuchen für das Fest gebacken habe'])
       expect(waiting.text()).not.toContain('helpedParish')
       // Nothing to press while the request is still out there.
       expect(wrapper.find('[data-test="first-creation-waiting-close"]').exists()).toBe(false)

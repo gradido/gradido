@@ -129,9 +129,17 @@ const answer = (lines: string[], suspicious = false, reason = '') => ({
   value: { answer: { lines, suspicious, reason }, model: 'claude-test' },
 })
 
+/**
+ * ⚠️ Whole sentences, because that is what the wallet sends since the box carries the
+ * opening as an editable value: the server files what it is given. The second one keeps
+ * nothing of its stem's opening on purpose — that freedom is the point of the change.
+ */
 const bundle = [
-  { catalogKey: 'helpedParish', text: 'Kuchen fürs Gemeindefest gebacken habe' },
-  { catalogKey: 'helpedNeighbourhood', text: 'für die Nachbarskinder gekocht habe' },
+  {
+    catalogKey: 'helpedParish',
+    text: 'Ich habe in meiner Gemeinde mitgeholfen, indem ich Kuchen fürs Gemeindefest gebacken habe',
+  },
+  { catalogKey: 'helpedNeighbourhood', text: 'Ich habe für die Nachbarskinder gekocht' },
   { catalogKey: 'retiree' },
 ]
 
@@ -344,8 +352,8 @@ describe('FirstCreationResolver', () => {
       expect(firstCreationLines).toHaveBeenCalledTimes(1)
       const [sentEntries, language] = firstCreationLines.mock.calls[0]
       expect(sentEntries.map((entry: { memo: string }) => entry.memo)).toEqual([
-        'Ich habe in meiner Gemeinde oder Kirchengemeinde mitgeholfen, indem ich Kuchen fürs Gemeindefest gebacken habe',
-        'Ich habe in der Nachbarschaft mitgeholfen, wo Hilfe gebraucht wurde, indem ich für die Nachbarskinder gekocht habe',
+        'Ich habe in meiner Gemeinde mitgeholfen, indem ich Kuchen fürs Gemeindefest gebacken habe',
+        'Ich habe für die Nachbarskinder gekocht',
       ])
       expect(language).toBe('de')
       expect(JSON.stringify(firstCreationLines.mock.calls[0])).not.toContain('Bibi')
@@ -456,7 +464,7 @@ describe('FirstCreationResolver', () => {
       const { data, errors } = await mutate({
         mutation: submitFirstCreation,
         variables: {
-          entries: [{ catalogKey: 'helpedAtHome', text: 'etwas Schlimmes getan habe' }],
+          entries: [{ catalogKey: 'helpedAtHome', text: 'Ich habe etwas Schlimmes getan' }],
         },
       })
       expect(errors).toBeUndefined()
@@ -467,7 +475,7 @@ describe('FirstCreationResolver', () => {
         message: review,
         entries: [
           {
-            memo: 'Ich habe zu Hause mitgeholfen, indem ich etwas Schlimmes getan habe',
+            memo: 'Ich habe etwas Schlimmes getan',
             confirmed: false,
             status: 'IN_PROGRESS',
           },
