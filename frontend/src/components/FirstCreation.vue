@@ -491,7 +491,11 @@ const prefillFor = (stem) =>
  */
 const ownWords = (entry) => {
   const text = entry.text ?? ''
-  const prefill = prefillFor(entry.catalogKey)
+  // ⛔ Against the opening WITHOUT its trailing space. One backspace at the end of an
+  // untouched box is a natural thing to do, and it used to end the match: the opening then
+  // counted as the member's own eight words, so Save went live and an entry carrying
+  // nothing but the stem could be filed. Measured, not feared (coderabbit, 06.09.).
+  const prefill = prefillFor(entry.catalogKey).trimEnd()
   return wordCount(text.startsWith(prefill) ? text.slice(prefill.length) : text)
 }
 

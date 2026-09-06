@@ -546,6 +546,19 @@ describe('FirstCreation', () => {
     })
 
     /**
+     * ⛔ One backspace at the end of an untouched box, which is a natural thing to do. It
+     * used to end the prefix match, so the opening counted as the member's own eight words
+     * — Save went live and an entry carrying nothing but the stem could be filed.
+     */
+    it('still counts nothing written when the opening loses its last space', async () => {
+      const wrapper = build()
+      await write(wrapper, 'helpedSickPerson', sickStem.trimEnd())
+
+      expect(wrapper.find('[data-test="first-creation-count"]').text()).toContain('0')
+      expect(wrapper.find('[data-test="first-creation-save"]').attributes('disabled')).toBeDefined()
+    })
+
+    /**
      * And the floor still holds for the ordinary path: two words behind the opening are
      * too few, and the reason stands at the box rather than at the pale button.
      */

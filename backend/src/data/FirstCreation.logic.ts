@@ -143,8 +143,16 @@ export function buildFirstCreationMemo(
   if (text.length === 0) {
     return { success: false, error: new FirstCreationEntryInvalid(index, 'TEXT_MISSING') }
   }
-  // ⚠️ New here, and it has to be: the whole sentence now comes from the client, so the
-  // floor the wallet keeps (a few words) needs a counterpart the wallet cannot skip.
+  // A floor on the LEDGER TEXT, and only that: a memo has to be a memo, not "ja".
+  //
+  // ⛔ It is NOT the wallet's floor made safe, and an earlier version of this comment said
+  // it was. The wallet asks for a few words OF THE MEMBER'S OWN, measured against the
+  // opening it put in the box — and the server cannot repeat that measurement honestly: it
+  // is handed one sentence, with no way to tell a completed opening from one thrown away
+  // and rewritten, and reconstructing the opening here would tie the two locale copies back
+  // together in a way that fails silently when they drift. So a completed opening clears
+  // this floor by its stem, and that is what it is: an effort floor lives in the window, a
+  // sanity floor lives here, and the moderation (ES-018) is what stands behind both.
   if (text.length < MEMO_MIN_CHARS) {
     return { success: false, error: new FirstCreationEntryInvalid(index, 'TOO_SHORT') }
   }
