@@ -653,6 +653,16 @@ async function settleAsThanked(
     // ⚠️ Only outcome A. Without the booking (ES-016), and on every path through
     // settleInReview, the contributions stay open on purpose and answering is exactly what
     // they are for, so those keep the button.
+    //
+    // ⚠️ And the inversion this order carries, named rather than left for somebody to find:
+    // if a confirm below FAILS, the catch hands the bundle to settleInReview, the
+    // contribution stays open, and the member is holding a mail that says it is closed.
+    // They are corrected within seconds — the review note that follows is answerable and
+    // says so. Two ways out were weighed and both cost more than the case is worth:
+    // confirming before commenting is impossible (a confirmed contribution takes no
+    // moderator message at all, which is why this order exists), and lifting the mail out
+    // of addModeratorMessageAs would mean a second copy of a nine-field call with two
+    // derived values in it — a copied block, in the one path every moderator uses.
     await signerComments(
       signer,
       first.id,

@@ -252,6 +252,14 @@ describe('ContributionMessageResolver', () => {
             senderAlias: 'peterl',
             contributionMemo: 'Test env contribution',
             contributionFrontendLink: `http://localhost/contributions/own-contributions/1#contributionListItem-${result.data.createContribution.id}`,
+            // ⭐ And this is the point of the flag, asserted where it matters most: the
+            // ORDINARY moderator message keeps its reply button. Only a caller that
+            // confirms the contribution straight after commenting says false, and this is
+            // not one — it asks a question and waits for the answer.
+            //
+            // ⚠️ An exact `toBeCalledWith`, so a new field in the call belongs here. That
+            // is a feature: whoever adds one has to say what it means for this path.
+            answerable: true,
           })
         })
 
