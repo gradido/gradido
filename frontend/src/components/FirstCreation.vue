@@ -207,13 +207,36 @@
         <div v-if="unbooked" class="fc-note" data-test="first-creation-unbooked">
           {{ $t('firstCreation.unbooked') }}
         </div>
-        <div v-else-if="balanceShown" class="fc-balance" data-test="first-creation-balance">
-          <span class="fc-balance-label">{{ $t('firstCreation.balance') }}</span>
-          <span class="fc-balance-amount">{{ $filters.amount(balance) }} {{ $t('GDD') }}</span>
-        </div>
 
         <p class="fc-why-title">{{ $t('firstCreation.whyHundredTitle') }}</p>
         <p class="fc-why">{{ $t('firstCreation.whyHundred') }}</p>
+        <!-- The word carries the link, not the address: an address in running text is
+             something to read, a word is something to press. New tab, because the member
+             is in the middle of their first minute here and losing the window to a web
+             page would end it. `rel` with the target, or the opened page gets a handle
+             back on this one. -->
+        <i18n-t keypath="firstCreation.whyMore" tag="p" class="fc-why" scope="global">
+          <template #link>
+            <a
+              :href="COMMON_GOOD_URL"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-test="first-creation-why-more-link"
+            >
+              {{ $t('firstCreation.whyMoreLink') }}
+            </a>
+          </template>
+        </i18n-t>
+
+        <!-- ⛔ BELOW the hundred, not above it (Bernd, 06.09.). This box says what is on
+             the account, and that is the hundred only for somebody who arrived with an
+             empty one — whoever redeemed a link or a cheque first reads a larger number
+             directly under the sentence about their first hundred, and then "why a
+             hundred?" underneath answers a question they are no longer asking. -->
+        <div v-if="!unbooked && balanceShown" class="fc-balance" data-test="first-creation-balance">
+          <span class="fc-balance-label">{{ $t('firstCreation.balance') }}</span>
+          <span class="fc-balance-amount">{{ $filters.amount(balance) }} {{ $t('GDD') }}</span>
+        </div>
       </div>
     </div>
 
@@ -391,6 +414,13 @@ const welcome = computed(() => {
  * character from the others — so there is nothing here for a translator to decide.
  */
 const connectorOpen = computed(() => `${t('firstCreation.connector')} …`)
+
+/**
+ * Deliberately without a language prefix: gradido.net serves the page in the browser's
+ * language on its own, and a `/de/` glued on here would hand a Greek reader the German
+ * page. Same rule the rest of our gradido.net links follow.
+ */
+const COMMON_GOOD_URL = 'https://gradido.net/gemeinwohl-was-ist-das/'
 
 const categories = FIRST_CREATION_CATEGORIES
 const checkKeys = FIRST_CREATION_CHECK_KEYS
@@ -874,6 +904,14 @@ const TICK_CEREMONY_COUNT = 3
 /** The pause BEFORE the nth tick, 1-based. */
 const tickDelay = (nth) => (nth <= TICK_CEREMONY_COUNT ? TICK_MS_CEREMONY : TICK_MS_REST)
 const revealed = ref(0)
+/**
+ * ⛔ A ref, not a computed on `revealed`. The last tick used to be the only one nobody ever
+ * saw: the message, the balance and both buttons arrived in the same frame that drew it. So
+ * the last tick gets a pause of its own — and it is the CEREMONY length even when the ticks
+ * themselves have sped up to 1 s, because the pace exists to keep ten entries short, while
+ * this pause exists so that the last of them is seen (Bernd, 06.09.).
+ */
+const messageShown = ref(false)
 let tickTimer = null
 
 const stopTicking = () => {
@@ -892,7 +930,10 @@ const tickOnce = () => {
       if (revealed.value < doneEntries.value.length) {
         tickOnce()
       } else {
-        stopTicking()
+        tickTimer = setTimeout(() => {
+          messageShown.value = true
+          stopTicking()
+        }, TICK_MS_CEREMONY)
       }
     },
     tickDelay(revealed.value + 1),
@@ -903,20 +944,20 @@ watch(
   () => screen.value === 'result',
   (arrived) => {
     stopTicking()
+    revealed.value = 0
+    messageShown.value = false
     if (!arrived) {
-      revealed.value = 0
       return
     }
-    revealed.value = 0
     if (doneEntries.value.length > 0) {
       tickOnce()
+    } else {
+      // Nothing to reveal, nothing to wait for: the pause belongs to a tick, and there is
+      // none. Without this the window would sit empty on a bundle with no entries.
+      messageShown.value = true
     }
   },
   { immediate: true },
-)
-
-const messageShown = computed(
-  () => screen.value === 'result' && revealed.value >= doneEntries.value.length,
 )
 
 /* ── the balance, and why it waits ─────────────────────────────────────────── */

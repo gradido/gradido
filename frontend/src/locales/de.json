@@ -302,7 +302,7 @@
   },
   "existingGradidoAccount": "Du hast schon ein {communityName} Konto?",
   "firstCreation": {
-    "again": "+ Noch etwas mit diesem Anfang",
+    "again": "+ Da war noch mehr",
     "alsoFound": "Diese Nachricht findest Du auch bei Deinen Beiträgen und in Deinem Postfach.",
     "balance": "Auf Deinem Konto",
     "catalog": {
@@ -370,8 +370,10 @@
     "waitingHint": "Das dauert einen Moment — etwa eine halbe Minute. Du kannst das Fenster offen lassen.",
     "welcome": "Willkommen, {name}!",
     "welcomeAnonymous": "Willkommen!",
-    "whyHundred": "Die hundert sind zum Anfang, zum Kennenlernen. Ab jetzt gibt es jeden Monat welche — bis zu 1.000 Gradido für das, was Du Gutes tust.",
-    "whyHundredTitle": "Warum hundert?"
+    "whyHundred": "Die hundert sind zum Anfang, zum Kennenlernen. Ab jetzt gibt es jeden Monat welche — bis zu 1.000 Gradido für das, was Du Gutes für das Gemeinwohl tust.",
+    "whyHundredTitle": "Warum hundert?",
+    "whyMore": "Genauere Informationen findest Du {link}.",
+    "whyMoreLink": "hier"
   },
   "followUs": "folge uns:",
   "footer": {

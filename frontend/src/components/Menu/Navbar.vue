@@ -77,12 +77,23 @@
                   :size="61"
                 />
               </div>
+              <!-- ⭐ The cog is INSIDE the link, not a second one beside it. The name has
+                   led to the settings for a while and nobody could tell — a wheel behind it
+                   says where it goes (Bernd, 06.09.). Two anchors on one target would be
+                   two stations for a keyboard and two announcements for a screen reader,
+                   for one destination; `aria-hidden` on the wheel keeps it decoration and
+                   leaves the name as the whole label. -->
               <router-link
                 to="/settings"
-                class="navbar-like-link mt-3"
+                class="navbar-like-link navbar-settings-link mt-3"
                 data-test="navbar-item-username"
               >
-                {{ username.username }}
+                <span>{{ username.username }}</span>
+                <i-mdi-settings
+                  class="navbar-settings-cog"
+                  aria-hidden="true"
+                  data-test="navbar-item-settings-cog"
+                />
               </router-link>
               <!-- One line for everybody. There used to be two blocks, and the one for
                    members without a user name showed the address inside the settings link,
@@ -259,5 +270,17 @@ button.navbar-toggler > span.navbar-toggler-icon {
 <style scoped>
 :deep(.container-fluid) {
   padding: 0 !important;
+}
+
+/* Name and wheel on one line, the wheel a shade quieter: it points, the name names. */
+.navbar-settings-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.navbar-settings-cog {
+  flex: 0 0 auto;
+  opacity: 0.75;
 }
 </style>

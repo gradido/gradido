@@ -302,7 +302,7 @@
   },
   "existingGradidoAccount": "Already have a {communityName} account?",
   "firstCreation": {
-    "again": "+ Something else with this beginning",
+    "again": "+ There was more",
     "alsoFound": "You will also find this message with your contributions and in your mailbox.",
     "balance": "In your account",
     "catalog": {
@@ -370,8 +370,10 @@
     "waitingHint": "This takes a moment — about half a minute. You can leave this window open.",
     "welcome": "Welcome, {name}!",
     "welcomeAnonymous": "Welcome!",
-    "whyHundred": "The hundred are for the beginning, to get to know each other. From now on there are more every month — up to 1,000 Gradido for the good you do.",
-    "whyHundredTitle": "Why a hundred?"
+    "whyHundred": "The hundred are for the beginning, for getting to know each other. From now on there are more every month — up to 1,000 Gradido for the good you do for the common good.",
+    "whyHundredTitle": "Why a hundred?",
+    "whyMore": "You can find out more {link}.",
+    "whyMoreLink": "here"
   },
   "followUs": "follow us:",
   "footer": {

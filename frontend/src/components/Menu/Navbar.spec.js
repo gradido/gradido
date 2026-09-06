@@ -165,6 +165,25 @@ describe('Navbar', () => {
       expect(wrapper.find('[data-test="navbar-item-username"]').text()).toBe('Testy User')
     })
 
+    /**
+     * ⭐ The name has led to the settings for a while and nobody could tell (Bernd, 06.09.).
+     * ⛔ Measured as ONE link carrying both: two anchors on the same target would be two
+     * stations for a keyboard and two announcements for a screen reader, for one
+     * destination — so the wheel has to be inside the name's link, not beside it.
+     */
+    it('puts a settings wheel inside the name link, not beside it', () => {
+      const link = wrapper.find('[data-test="navbar-item-username"]')
+      // A real router is installed here, so the link renders as an anchor with an href.
+      expect(link.attributes('href')).toBe('/settings')
+      expect(link.find('[data-test="navbar-item-settings-cog"]').exists()).toBe(true)
+      // Decoration: the name is the whole label, the wheel only says where it goes.
+      expect(link.find('[data-test="navbar-item-settings-cog"]').attributes('aria-hidden')).toBe(
+        'true',
+      )
+      // And still exactly one link on this target, not two.
+      expect(wrapper.findAll('[data-test="navbar-item-settings-cog"]')).toHaveLength(1)
+    })
+
     it('shows the Gradido address, without a scheme', () => {
       expect(addressLine().text()).toBe(`${communityHost(CONFIG.COMMUNITY_URL)}/u/username`)
     })
