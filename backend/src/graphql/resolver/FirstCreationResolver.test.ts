@@ -403,6 +403,10 @@ describe('FirstCreationResolver', () => {
       expect(addedMessageMail.mock.calls[0][0]).toMatchObject({
         message: expectedMessage,
         language: 'de',
+        // ⛔ WITHOUT the reply button. The comment leaves the contribution open and the
+        // confirms below shut it seconds later — "answer directly at your contribution" is
+        // true when this mail is sent and false when it is read (Bernd, 06.09.).
+        answerable: false,
       })
       expect(confirmedMail).toHaveBeenCalledTimes(3)
       // The row and the event.
@@ -496,6 +500,9 @@ describe('FirstCreationResolver', () => {
         ],
       ])
       expect(addedMessageMail).toHaveBeenCalledTimes(1)
+      // The third outcome, and the button stays here as well: the bundle waits for a human
+      // and the member is meant to be able to write back to them (ES-018).
+      expect(addedMessageMail.mock.calls[0][0]).toMatchObject({ answerable: true })
       expect(confirmedMail).not.toHaveBeenCalled()
       expect(await rowOf(raeuber)).toMatchObject({
         status: FirstCreationStatus.IN_REVIEW,
@@ -571,6 +578,10 @@ describe('FirstCreationResolver', () => {
       expect(fresh.amount.toString()).toBe('100')
       expect(await messagesOn(fresh.id)).toHaveLength(1)
       expect(addedMessageMail).toHaveBeenCalledTimes(1)
+      // ⛔ And here the button STAYS. Nothing is confirmed in this variant, the
+      // contribution sits open in the admin (ES-016), and answering is exactly what it is
+      // there for. The mail is not switched globally — it is switched per outcome.
+      expect(addedMessageMail.mock.calls[0][0]).toMatchObject({ answerable: true })
       expect(confirmedMail).not.toHaveBeenCalled()
       // The SAME row, moved on: still one row per member.
       const row = await rowOf(bibi)

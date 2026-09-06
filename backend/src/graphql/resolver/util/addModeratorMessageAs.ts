@@ -47,6 +47,13 @@ export const addModeratorMessageAs = async (
   signer: DbUser,
   signerRole: Role,
   clientTimezoneOffset: number,
+  /**
+   * Whether the member will still be able to answer this on the thread. Only the caller
+   * knows: this comment leaves the contribution open, but a caller that confirms straight
+   * afterwards closes it before the mail is read. Default true — every moderator message
+   * has always been answerable, and `adminCreateContributionMessage` still is.
+   */
+  answerable = true,
 ): Promise<DbContributionMessage> => {
   const logger = createLogger()
   const { contributionId, messageType } = contributionMessageArgs
@@ -114,6 +121,7 @@ export const addModeratorMessageAs = async (
       language: finalContribution.user.language,
       senderAlias: new PublishNameLogic(signer).getPublicAlias(),
       contributionMemo: finalContribution.memo,
+      answerable,
       contributionFrontendLink: await contributionFrontendLink(
         finalContribution.id,
         finalContribution.createdAt,

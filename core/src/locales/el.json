@@ -21,8 +21,10 @@
     },
     "addedContributionMessage": {
       "commonGoodContributionMessage": "έλαβες ένα μήνυμα από {senderAlias} σχετικά με τη συνεισφορά σου στο κοινό καλό «{contributionMemo}».",
+      "contributionClosed": "Αυτή η συνεισφορά έχει ολοκληρωθεί — δεν μπορείς να απαντήσεις εδώ πια.",
       "message": "«{message}»",
       "readMessage": "Διάβασε και απάντησε στο μήνυμα",
+      "readMessageOnly": "Διάβασε το μήνυμα",
       "subject": "Μήνυμα σχετικά με τη συνεισφορά σου στο κοινό καλό",
       "title": "Μήνυμα σχετικά με τη συνεισφορά σου στο κοινό καλό",
       "toSeeAndAnswerMessage": "Μπορείς να απαντήσεις απευθείας στη συνεισφορά σου."

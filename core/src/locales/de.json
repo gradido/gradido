@@ -21,8 +21,10 @@
     },
     "addedContributionMessage": {
       "commonGoodContributionMessage": "Du hast zu Deinem Gemeinwohl-Beitrag „{contributionMemo}“ eine Nachricht von {senderAlias} erhalten.",
+      "contributionClosed": "Dieser Beitrag ist abgeschlossen — Du kannst hier nicht mehr antworten.",
       "message": "„{message}“",
       "readMessage": "Nachricht lesen und beantworten",
+      "readMessageOnly": "Nachricht lesen",
       "subject": "Nachricht zu Deinem Gemeinwohl-Beitrag",
       "title": "Nachricht zu Deinem Gemeinwohl-Beitrag",
       "toSeeAndAnswerMessage": "Antworten kannst Du direkt bei Deinem Beitrag."

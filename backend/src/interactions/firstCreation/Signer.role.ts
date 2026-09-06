@@ -110,6 +110,12 @@ export async function signerComments(
   message: string,
   messageType: ContributionMessageType,
   clientTimezoneOffset: number,
+  /**
+   * Passed on to the mail. False where this process confirms the contribution right after
+   * commenting: the thread is shut by the time the member opens the mail, and offering
+   * them a reply button there leads to a door that does not open (Bernd, 06.09.).
+   */
+  answerable = true,
 ): Promise<DbContributionMessage> {
   // A real instance, not a plain object: UpdateUnconfirmedContributionContext picks its
   // role with `instanceof` and would not recognise the shape otherwise.
@@ -118,7 +124,7 @@ export async function signerComments(
     message,
     messageType,
   })
-  return addModeratorMessageAs(args, signer.user, signer.role, clientTimezoneOffset)
+  return addModeratorMessageAs(args, signer.user, signer.role, clientTimezoneOffset, answerable)
 }
 
 /** Books one contribution in the signer's name — the existing confirmation path, whole. */

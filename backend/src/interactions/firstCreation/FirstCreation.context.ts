@@ -644,14 +644,33 @@ async function settleAsThanked(
       lines: step.answer.lines,
       checks: entries.flatMap((entry) => (entry.check ? [entry.check] : [])),
     })
+    const withoutBooking = row.testMode === FirstCreationTestMode.WITHOUT_BOOKING
+    // ⛔ The one place in the house where the mail must NOT offer a reply. The comment
+    // leaves the contribution open — and the loop below shuts it seconds later, long
+    // before the member opens the mail. Answering "directly at your contribution" is true
+    // when it is sent and false when it is read (Bernd, 06.09.).
+    //
+    // ⚠️ Only outcome A. Without the booking (ES-016), and on every path through
+    // settleInReview, the contributions stay open on purpose and answering is exactly what
+    // they are for, so those keep the button.
+    //
+    // ⚠️ And the inversion this order carries, named rather than left for somebody to find:
+    // if a confirm below FAILS, the catch hands the bundle to settleInReview, the
+    // contribution stays open, and the member is holding a mail that says it is closed.
+    // They are corrected within seconds — the review note that follows is answerable and
+    // says so. Two ways out were weighed and both cost more than the case is worth:
+    // confirming before commenting is impossible (a confirmed contribution takes no
+    // moderator message at all, which is why this order exists), and lifting the mail out
+    // of addModeratorMessageAs would mean a second copy of a nine-field call with two
+    // derived values in it — a copied block, in the one path every moderator uses.
     await signerComments(
       signer,
       first.id,
       message,
       ContributionMessageType.DIALOG,
       clientTimezoneOffset,
+      withoutBooking,
     )
-    const withoutBooking = row.testMode === FirstCreationTestMode.WITHOUT_BOOKING
     if (!withoutBooking) {
       for (const contribution of contributions) {
         await signerConfirms(signer, contribution.id, clientTimezoneOffset)
