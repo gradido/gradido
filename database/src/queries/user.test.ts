@@ -578,13 +578,13 @@ describe('user.queries', () => {
     })
 
     it('writes through a given manager, so a rolled-back transaction takes it back', async () => {
-      await db
-        .getDataSource()
-        .transaction(async (manager) => {
+      // The throw below is the rollback; anything else out of the block is a real failure.
+      await expect(
+        db.getDataSource().transaction(async (manager) => {
           expect((await dbSetCreationAllowed(before.id, false, manager)).success).toBe(true)
           throw new Error('roll it back')
-        })
-        .catch(() => undefined)
+        }),
+      ).rejects.toThrow('roll it back')
       expect((await DbUser.findOneByOrFail({ id: before.id })).creationAllowed).toBe(true)
     })
   })
