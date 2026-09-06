@@ -63,7 +63,7 @@
               <span v-if="echoOf(stem)" class="fc-own">
                 {{ $t('firstCreation.connector') }} {{ echoOf(stem) }}
               </span>
-              <i v-else class="fc-tail">{{ $t('firstCreation.connector') }} …</i>
+              <i v-else class="fc-tail">{{ connectorOpen }}</i>
             </span>
           </button>
 
@@ -317,6 +317,20 @@ const welcome = computed(() => {
   const name = (store.state.firstName ?? '').trim()
   return name ? t('firstCreation.welcome', { name }) : t('firstCreation.welcomeAnonymous')
 })
+
+/**
+ * "indem ich …" — the connector plus the mark that says "carry on here".
+ *
+ * ⚠️ Built here rather than given a locale key of its own, and the reason is drift: the
+ * connector has ONE key, read in three places. A second key holding the same words plus an
+ * ellipsis would be a copy of them, and a translator who improved one would leave the other
+ * behind.
+ *
+ * The ellipsis itself is punctuation, not prose. Measured across all ten locale files: each
+ * of them mixes "…" and "..." WITHIN its own language, and not one uses a different
+ * character from the others — so there is nothing here for a translator to decide.
+ */
+const connectorOpen = computed(() => `${t('firstCreation.connector')} …`)
 
 const categories = FIRST_CREATION_CATEGORIES
 const checkKeys = FIRST_CREATION_CHECK_KEYS
