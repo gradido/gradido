@@ -917,6 +917,17 @@
     },
     "community": "Kreise & Mitgliedssuche",
     "creationAccount": {
+      "confirm": {
+        "declare": "Auf Projekt-Konto umstellen",
+        "declareText": "Ein Projekt-Konto schöpft nicht mehr. Der Bereich „Schöpfen“ verschwindet aus Deinem Konto, und nur der Support kann das Schöpfen wieder einschalten.",
+        "declareTitle": "Willst Du dieses Konto wirklich auf ein Projekt-Konto umstellen?",
+        "next": "Weiter",
+        "requestText": "Den Wechsel zurück prüft ein Mensch. Wir schicken dem Support eine Nachricht; er prüft Dein Konto und schaltet das Schöpfen gegebenenfalls von Hand wieder ein. Du hörst von uns.",
+        "requestTitle": "Möchtest Du wieder schöpfen?",
+        "send": "Nachricht an den Support senden",
+        "typeWord": "Um auf ein Projekt-Konto umzustellen, das nicht schöpfen kann, gib bitte ein: {word}",
+        "word": "PROJEKTKONTO"
+      },
       "declared": "Dieses Konto ist jetzt ein Projekt-Konto. Der Bereich „Schöpfen“ ist ausgeblendet.",
       "mailFailed": "Die Nachricht an den Support konnte gerade nicht gesendet werden. Bitte versuche es später noch einmal.",
       "openContributions": "Solange Beiträge von Dir noch offen sind, kann das Konto kein Projekt-Konto werden. Warte, bis sie bestätigt sind, oder ziehe sie zurück.",

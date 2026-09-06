@@ -162,7 +162,27 @@
     >
       <p class="h5 mb-2">{{ $t('firstCreation.projectAsk.title') }}</p>
       <p>{{ $t('firstCreation.projectAsk.text') }}</p>
-      <p v-if="projectFailed" class="fc-note text-danger" data-test="first-creation-project-failed">
+    </div>
+
+    <!-- ── "this is a project account": the same two steps as in the settings ─────
+         (ABN-L3-01). The link above only opens this; nothing is declared before the word
+         is typed. Rendered as a screen of this window, not as a second modal on top. -->
+    <div
+      v-else-if="screen === 'projectConfirm'"
+      class="fc"
+      data-test="first-creation-project-confirm"
+    >
+      <project-account-confirm
+        mode="declare"
+        :busy="answering"
+        @confirm="declareProject"
+        @cancel="confirmingProject = false"
+      />
+      <p
+        v-if="projectFailed"
+        class="fc-note text-danger px-2"
+        data-test="first-creation-project-failed"
+      >
         {{ projectFailed }}
       </p>
     </div>
@@ -232,7 +252,7 @@
           class="fc-link"
           :disabled="answering"
           data-test="first-creation-project-account"
-          @click="declareProject"
+          @click="confirmingProject = true"
         >
           {{ $t('firstCreation.projectAsk.project') }}
         </button>
@@ -288,6 +308,7 @@ import {
   submitFirstCreation,
 } from '@/graphql/firstCreation.graphql'
 import { declareProjectAccount } from '@/graphql/user.graphql'
+import ProjectAccountConfirm from '@/components/UserSettings/ProjectAccountConfirm.vue'
 import {
   FIRST_CREATION_CATEGORIES,
   FIRST_CREATION_CHECK_KEYS,
@@ -616,10 +637,12 @@ const askingProject = ref(false)
  */
 const answering = ref(false)
 const projectFailed = ref('')
+/** The two-step confirmation is on screen (only ever from the question). */
+const confirmingProject = ref(false)
 
 const screen = computed(() => {
   if (askingProject.value) {
-    return 'projectAsk'
+    return confirmingProject.value ? 'projectConfirm' : 'projectAsk'
   }
   if (sending.value || status.value?.state === 'SUBMITTED') {
     return 'waiting'
