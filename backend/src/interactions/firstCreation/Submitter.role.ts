@@ -128,6 +128,28 @@ export async function checkQuota(
 }
 
 /**
+ * How many whole first-creation bundles the member's current month still has room for
+ * (ES-015). Reads the SAME numbers as checkQuota above, so the count on the screen and the
+ * refusal behind it cannot drift apart: getUserCreation answers with what is still free in
+ * [two months back, one month back, now] — the last entry is the current month, because
+ * getCreationDates builds that one from `clientNow` (creations.ts).
+ *
+ * Integer division on gddCent (bigint) is the floor for anything not negative, and a
+ * quota that somehow went past its ceiling counts as zero runs rather than a negative one.
+ */
+export async function countRemainingTestRuns(
+  userId: number,
+  clientTimezoneOffset: number,
+): Promise<number> {
+  const creations = await getUserCreation(userId, clientTimezoneOffset)
+  const free = creations[creations.length - 1]
+  if (!free || free.gddCent <= 0n) {
+    return 0
+  }
+  return Number(free.gddCent / FIRST_CREATION_TOTAL.gddCent)
+}
+
+/**
  * Files one USER contribution per entry, dated with the member's calendar day (ES-010: the
  * current month, in the member's frame), through the same core as the wallet's own form.
  * Each one fires CONTRIBUTION_CREATE and counts against the month like any other.

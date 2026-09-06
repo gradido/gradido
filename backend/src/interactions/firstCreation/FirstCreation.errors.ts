@@ -45,6 +45,38 @@ export class FirstCreationQuotaExceeded extends DomainError {
   }
 }
 
+export type FirstCreationTestRefusedReason =
+  /**
+   * The caller is the account configured as signer. The booking path refuses a moderator
+   * confirming their own contribution, and loadSignerFor turns that into "no signer" for
+   * this member — which would leave the forced row standing with a window that never
+   * opens. Refused here instead, where it can be said.
+   */
+  | 'IS_SIGNER'
+  /**
+   * No usable signer is configured at all. Forcing the row would still be written and the
+   * window would still not open (isEligible asks for a signer too) — a press that changes
+   * nothing anybody can see is worse than a refusal that says why.
+   */
+  | 'NO_SIGNER'
+  /**
+   * The caller's month has no room for another 100 GDD (ES-015). Same class as the two
+   * above: the window would open and then refuse at Save, because submitFirstCreation asks
+   * the very same question. ES-015 wants that said BEFORE, not after.
+   */
+  | 'NO_QUOTA'
+  /** FUNCTION_TESTS_ENABLED is off on this server. */
+  | 'DISABLED'
+  /** A first creation is running for this account right now. */
+  | 'RUNNING'
+
+/** The function test could not reopen the window (ES-014). */
+export class FirstCreationTestRefused extends DomainError {
+  constructor(public readonly reason: FirstCreationTestRefusedReason) {
+    super(`FIRST_CREATION_TEST_REFUSED: ${reason}`)
+  }
+}
+
 export type FirstCreationError =
   | FirstCreationNotEligible
   | FirstCreationAlreadyRunning

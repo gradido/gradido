@@ -4,7 +4,7 @@
        compile time (unplugin-icons through the components resolver); `<component :is>` would
        look for a globally registered component at RUNTIME and find none, and importing them
        as `~icons/...` modules breaks every test, because vitest.config.js carries no icons
-       plugin. Seven lines here keep the list itself readable and the tests running. -->
+       plugin. One line each here keeps the list itself readable and the tests running. -->
   <i-mdi-account v-if="name === 'account'" />
   <i-mdi-palette-outline v-else-if="name === 'appearance'" />
   <i-mdi-card-account-details-outline v-else-if="name === 'gradido-card'" />
@@ -12,6 +12,7 @@
   <i-mdi-eye-outline v-else-if="name === 'visibility'" />
   <i-mdi-bell-outline v-else-if="name === 'notifications'" />
   <i-mdi-account-group v-else-if="name === 'communities'" />
+  <i-mdi-flask-outline v-else-if="name === 'function-tests'" />
 </template>
 <script setup>
 defineProps({

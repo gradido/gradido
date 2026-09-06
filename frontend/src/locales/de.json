@@ -929,6 +929,19 @@
       "sent": "Wir haben eine Bestätigungs-E-Mail an {email} geschickt."
     },
     "emailInfo": "Eine neue Adresse gilt, sobald Du sie über den Link in der Bestätigungs-E-Mail bestätigt hast.",
+    "functionTests": {
+      "firstCreation": {
+        "failed": "Das hat nicht geklappt. Bitte lade die Seite neu und versuche es noch einmal.",
+        "intro": "Die Erst-Schöpfung erscheint nur einmal je Konto — für ein Konto, das schon geschöpft hat, kommt sie nie wieder. Hier kannst Du sie für Dein eigenes Konto noch einmal öffnen und den ganzen Vorgang echt durchlaufen.",
+        "noRunsLeft": "Das Kontingent dieses Monats ist ausgeschöpft — noch 0 von {total} Läufen.",
+        "runsLeft": "Noch {left} von {total} Läufen in diesem Monat",
+        "signerHint": "Du bist als Unterzeichner der Erst-Schöpfung eingestellt. Niemand kann seinen eigenen Beitrag bestätigen, darum läuft der Test auf Deinem Konto nicht — nimm ein anderes Admin-Konto.",
+        "title": "Erst-Schöpfung",
+        "unbookedHint": "Ohne Buchung bleiben die Beiträge als offene Beiträge im Admin stehen. Dort kannst Du sie von Hand bestätigen oder löschen — solange sie stehen, zählen sie auf Dein Monats-Kontingent.",
+        "withBooking": "Erst-Schöpfung erneut durchlaufen – mit Buchung",
+        "withoutBooking": "Erst-Schöpfung erneut durchlaufen – ohne Buchung"
+      }
+    },
     "hide-amount": "{currency}-Betrag verbergen",
     "humhub": {
       "delete-disabled": "Das Benutzerkonto kann nur im Profil-Menü der Kooperationsplattform gelöscht werden.",
@@ -947,6 +960,7 @@
     "menu": {
       "account": "Mein Konto",
       "appearance": "Darstellung",
+      "function-tests": "Funktionstest",
       "gradido-card": "Visitenkarte",
       "notifications": "Nachrichten",
       "state": {

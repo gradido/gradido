@@ -37,3 +37,12 @@ export const EVENT_FIRST_CREATION_UNBOOKED = async (
   firstContribution: DbContribution,
 ): Promise<DbEvent> =>
   Event(EventType.FIRST_CREATION_UNBOOKED, user, signer, null, null, firstContribution).save()
+
+/**
+ * An admin reopened their OWN first-creation window from the function-test area (ES-014).
+ * Affected and acting user are the same account on purpose: nobody acts on somebody else
+ * here, and that is precisely what makes the entry readable later — a FIRST_CREATION_DONE
+ * whose row was forced by hand has this one in front of it.
+ */
+export const EVENT_FIRST_CREATION_TEST = async (user: DbUser): Promise<DbEvent> =>
+  Event(EventType.FIRST_CREATION_TEST, user, user).save()

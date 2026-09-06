@@ -45,11 +45,22 @@ export class FirstCreationStatus {
   @Field(() => [FirstCreationEntry])
   entries: FirstCreationEntry[]
 
-  /** L4 — the function-test area; false until it exists. */
+  /** ES-014 — whether this server offers the function-test area at all. */
   @Field()
   functionTestsEnabled: boolean
 
-  /** L4 — how many test runs the month still allows; null until it exists. */
+  /**
+   * ES-015 — how many whole test runs the caller's month still has room for, or null when
+   * the caller does not hold FUNCTION_TESTS. Null is "not asked", not "none left".
+   */
   @Field(() => Int, { nullable: true })
   testRunsLeft: number | null
+
+  /**
+   * Whether the caller is the account set as first-creation signer — the one account for
+   * which the test cannot run (a moderator may not confirm their own contribution). Null
+   * on the same terms as testRunsLeft: not asked.
+   */
+  @Field(() => Boolean, { nullable: true })
+  isFirstCreationSigner: boolean | null
 }

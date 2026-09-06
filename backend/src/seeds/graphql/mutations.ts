@@ -640,6 +640,7 @@ export const submitFirstCreation = gql`
       }
       functionTestsEnabled
       testRunsLeft
+      isFirstCreationSigner
     }
   }
 `
@@ -647,5 +648,11 @@ export const submitFirstCreation = gql`
 export const skipFirstCreation = gql`
   mutation {
     skipFirstCreation
+  }
+`
+
+export const startFirstCreationTest = gql`
+  mutation ($withBooking: Boolean!) {
+    startFirstCreationTest(withBooking: $withBooking)
   }
 `

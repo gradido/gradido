@@ -26,6 +26,7 @@ import { getLogger as originalGetLogger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
 import { GradidoUnit } from 'shared'
 import { AnthropicClient } from '@/apis/anthropic/AnthropicClient'
+import { CONFIG } from '@/config'
 import { composeFirstCreationGreeting } from '@/data/FirstCreation.logic'
 import {
   EVENT_FIRST_CREATION_DONE,
@@ -39,6 +40,7 @@ import {
   login,
   setFirstCreationSigner,
   skipFirstCreation,
+  startFirstCreationTest,
   submitFirstCreation,
 } from '@/seeds/graphql/mutations'
 import { creaSettings, firstCreationStatus } from '@/seeds/graphql/queries'
@@ -150,7 +152,11 @@ const messagesOn = (contributionId: number) =>
 const eventsOf = (type: EventType, user: DbUser) =>
   DbEvent.find({ where: { type, affectedUserId: user.id } })
 
-/** Reopens a finished process the way the function test (L4) will: the SAME row, FORCED. */
+/**
+ * Reopens a finished process the way startFirstCreationTest does: the SAME row, FORCED.
+ * By hand rather than through that mutation, because most members reopened here are plain
+ * members who do not hold FUNCTION_TESTS — the mutation itself is exercised further down.
+ */
 const reopen = async (user: DbUser, testMode: FirstCreationTestMode | null) => {
   const row = await rowOf(user)
   const moved = await dbUpdateFirstCreationOutcome(row.id, row.status as FirstCreationStatus, {
@@ -193,8 +199,11 @@ describe('FirstCreationResolver', () => {
         eligible: false,
         message: null,
         entries: [],
-        functionTestsEnabled: false,
+        // The function-test switch defaults ON and is a plain server setting, so every
+        // caller learns it; the two fields behind it are for the key holders (L4).
+        functionTestsEnabled: true,
         testRunsLeft: null,
+        isFirstCreationSigner: null,
       })
       const { errors } = await mutate({
         mutation: submitFirstCreation,
@@ -663,6 +672,185 @@ describe('FirstCreationResolver', () => {
       expect(errors).toEqual([new GraphQLError('FIRST_CREATION_QUOTA_EXCEEDED')])
       expect(await contributionsOf(bibi)).toHaveLength(before)
       expect(firstCreationLines).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('the function test (ES-014)', () => {
+    /** An admin who is NOT the signer — the only account the test can actually run on. */
+    let tessa: DbUser
+
+    beforeAll(async () => {
+      tessa = await userFactory(testEnv, {
+        ...garrickOllivander,
+        email: 'tessa@testerin.de',
+        firstName: 'Tessa',
+        lastName: 'Testerin',
+        emailChecked: true,
+        language: 'de',
+        role: RoleNames.ADMIN,
+      })
+      // Half her month spent, and spent on a contribution she filed HERSELF: that is what
+      // makes her an account the window would never open for again (ES-011), which is the
+      // whole reason the function test exists.
+      await creationFactory(testEnv, {
+        email: 'tessa@testerin.de',
+        amount: 500,
+        memo: 'Im Garten der Nachbarin geholfen',
+        contributionDate: new Date().toISOString(),
+        confirmed: true,
+      })
+    })
+
+    it('is an admin key: a moderator is refused', async () => {
+      await loginAs('bob@baumeister.de')
+      const { errors } = await mutate({
+        mutation: startFirstCreationTest,
+        variables: { withBooking: true },
+      })
+      expect(errors).toEqual([new GraphQLError('401 Unauthorized')])
+    })
+
+    it('refuses the configured signer before anything is written', async () => {
+      await loginAs('peter@lustig.de')
+      const { errors } = await mutate({
+        mutation: startFirstCreationTest,
+        variables: { withBooking: true },
+      })
+      expect(errors).toEqual([new GraphQLError('FIRST_CREATION_TEST_REFUSED: IS_SIGNER')])
+      // Not merely an error message: a forced row for the signer would sit there with a
+      // window that can never open, because loadSignerFor answers IS_MEMBER for them.
+      expect(await dbSelectFirstCreationByUserId(peter.id)).toBeNull()
+    })
+
+    it('tells the signer so before they press, and counts nothing for a member', async () => {
+      await loginAs('peter@lustig.de')
+      const signer = await query({ query: firstCreationStatus })
+      expect(signer.data.firstCreationStatus).toMatchObject({
+        functionTestsEnabled: true,
+        isFirstCreationSigner: true,
+      })
+      await loginAs('bibi@bloxberg.de')
+      const member = await query({ query: firstCreationStatus })
+      expect(member.data.firstCreationStatus).toMatchObject({
+        functionTestsEnabled: true,
+        // Null is "not asked", and a member is never asked: both cost a read apiece.
+        testRunsLeft: null,
+        isFirstCreationSigner: null,
+      })
+    })
+
+    it('counts the runs the month still has room for, out of the quota itself', async () => {
+      await loginAs('tessa@testerin.de')
+      const { data } = await query({ query: firstCreationStatus })
+      expect(data.firstCreationStatus).toMatchObject({
+        // 1000 GDD a month, 500 of them spent above: five bundles of 100 still fit.
+        testRunsLeft: 5,
+        isFirstCreationSigner: false,
+        // She filed that creation herself, so the window is shut for her (ES-011) - which
+        // is exactly the state the button below has to get past.
+        eligible: false,
+      })
+    })
+
+    it('reopens the window of an account that has long since created', async () => {
+      await loginAs('tessa@testerin.de')
+      const { data, errors } = await mutate({
+        mutation: startFirstCreationTest,
+        variables: { withBooking: false },
+      })
+      expect(errors).toBeUndefined()
+      expect(data.startFirstCreationTest).toBe(true)
+      const row = await rowOf(tessa)
+      expect(row.status).toBe(FirstCreationStatus.FORCED)
+      expect(row.testMode).toBe(FirstCreationTestMode.WITHOUT_BOOKING)
+      const status = await query({ query: firstCreationStatus })
+      expect(status.data.firstCreationStatus).toMatchObject({
+        state: FirstCreationStatus.FORCED,
+        eligible: true,
+      })
+      expect(await eventsOf(EventType.FIRST_CREATION_TEST, tessa)).toHaveLength(1)
+    })
+
+    it('switches the mode of a run that has not started yet', async () => {
+      await loginAs('tessa@testerin.de')
+      const { errors } = await mutate({
+        mutation: startFirstCreationTest,
+        variables: { withBooking: true },
+      })
+      expect(errors).toBeUndefined()
+      expect((await rowOf(tessa)).testMode).toBe(FirstCreationTestMode.WITH_BOOKING)
+    })
+
+    /**
+     * Same shape as the signer refusal and the same reason: forcing the row does not open
+     * a window on its own. Runs last in this block, because it takes the signer away.
+     */
+    it('refuses while no signer is configured at all', async () => {
+      await loginAs('peter@lustig.de')
+      const cleared = await mutate({
+        mutation: setFirstCreationSigner,
+        variables: { userId: null },
+      })
+      expect(cleared.errors).toBeUndefined()
+      try {
+        await loginAs('tessa@testerin.de')
+        const { errors } = await mutate({
+          mutation: startFirstCreationTest,
+          variables: { withBooking: true },
+        })
+        expect(errors).toEqual([new GraphQLError('FIRST_CREATION_TEST_REFUSED: NO_SIGNER')])
+      } finally {
+        await loginAs('peter@lustig.de')
+        await mutate({ mutation: setFirstCreationSigner, variables: { userId: peter.id } })
+      }
+    })
+
+    /**
+     * ⚠️ Placed after every test that needs Tessa's month, because it spends the rest of
+     * it. The one below is unaffected: the switch is asked before the quota, so it reaches
+     * its own refusal either way.
+     */
+    it('refuses once the month has no room for another run', async () => {
+      // Measured, not assumed: fill whatever is still free, so 100 no longer fit.
+      await loginAs('tessa@testerin.de')
+      const before = await query({ query: firstCreationStatus })
+      const runsLeft = before.data.firstCreationStatus.testRunsLeft
+      expect(runsLeft).toBeGreaterThan(0)
+      await creationFactory(testEnv, {
+        email: 'tessa@testerin.de',
+        amount: runsLeft * 100,
+        memo: 'Den Rest des Monats aufgebraucht',
+        contributionDate: new Date().toISOString(),
+        confirmed: true,
+      })
+      await loginAs('tessa@testerin.de')
+      const after = await query({ query: firstCreationStatus })
+      expect(after.data.firstCreationStatus.testRunsLeft).toBe(0)
+      const { errors } = await mutate({
+        mutation: startFirstCreationTest,
+        variables: { withBooking: true },
+      })
+      expect(errors).toEqual([new GraphQLError('FIRST_CREATION_TEST_REFUSED: NO_QUOTA')])
+    })
+
+    it('is gone where the server switched it off', async () => {
+      CONFIG.FUNCTION_TESTS_ENABLED = false
+      try {
+        await loginAs('tessa@testerin.de')
+        const { data } = await query({ query: firstCreationStatus })
+        expect(data.firstCreationStatus).toMatchObject({
+          functionTestsEnabled: false,
+          testRunsLeft: null,
+          isFirstCreationSigner: null,
+        })
+        const { errors } = await mutate({
+          mutation: startFirstCreationTest,
+          variables: { withBooking: true },
+        })
+        expect(errors).toEqual([new GraphQLError('FIRST_CREATION_TEST_REFUSED: DISABLED')])
+      } finally {
+        CONFIG.FUNCTION_TESTS_ENABLED = true
+      }
     })
   })
 
