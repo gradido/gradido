@@ -279,6 +279,31 @@ export async function dbClearGmsRegistration(userId: number): Promise<VoidResult
 }
 
 /**
+ * ES-021: switch an account between "person, may create" and "project account, may not".
+ * This one column and nothing else — the callers hold a request-context snapshot of the
+ * member, and a full `save()` would write every stale column back (see dbUpdateUserPassword).
+ *
+ * Writing the value the row already holds is a success: mysql2 connects with FOUND_ROWS,
+ * so `affectedRows` counts the matched row, not a changed one — dbClearGmsRegistration
+ * relies on the same thing.
+ */
+export async function dbSetCreationAllowed(
+  userId: number,
+  allowed: boolean,
+): Promise<VoidResult<DBNotFoundError>> {
+  const result = await drizzleDb()
+    .update(usersTable)
+    .set({ creationAllowed: allowed ? 1 : 0 })
+    .where(eq(usersTable.id, userId))
+
+  const firstRow = result[0]
+  if (firstRow && firstRow.affectedRows === 1) {
+    return { success: true }
+  }
+  return { success: false, error: new DBNotFoundError('users', `id = ${userId}`) }
+}
+
+/**
  * The REAL names of the moderators behind a contribution -- who changed it, who moderated
  * it, who closed it. Its one caller is the admin contribution list.
  *
