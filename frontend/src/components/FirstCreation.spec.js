@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { nextTick, ref } from 'vue'
+import { nextTick, reactive, ref } from 'vue'
 import { createI18n } from 'vue-i18n'
 import FirstCreation from './FirstCreation.vue'
 import de from '@/locales/de.json'
@@ -32,6 +32,9 @@ vi.mock('bootstrap-vue-next', () => ({
     template: '<div v-if="modelValue"><slot></slot><slot name="footer"></slot></div>',
   },
 }))
+
+const storeState = reactive({ firstName: 'Ira' })
+vi.mock('vuex', () => ({ useStore: () => ({ state: storeState }) }))
 
 const routePath = ref('/overview')
 const pushed = []
@@ -132,6 +135,7 @@ const write = async (wrapper, stem, text) => {
 beforeEach(() => {
   vi.useFakeTimers()
   routePath.value = '/overview'
+  storeState.firstName = 'Ira'
   pushed.length = 0
   statusMock.value = { firstCreationStatus: status() }
   refetchMock.mockReset()
@@ -152,6 +156,16 @@ describe('FirstCreation', () => {
     it('shows the form when the member is eligible', () => {
       const wrapper = build()
       expect(wrapper.find('[data-test="first-creation-form"]').exists()).toBe(true)
+    })
+
+    it('greets the member by their first name, and without one greets them anyway', async () => {
+      const wrapper = build()
+      expect(wrapper.find('[data-test="first-creation-welcome"]').text()).toBe('Willkommen, Ira!')
+
+      // ⚠️ Never "Willkommen, !" -- an account without a first name gets the nameless form.
+      storeState.firstName = ''
+      await nextTick()
+      expect(wrapper.find('[data-test="first-creation-welcome"]').text()).toBe('Willkommen!')
     })
 
     it('stays away while the member is not eligible', () => {
@@ -239,23 +253,74 @@ describe('FirstCreation', () => {
       ).toBeUndefined()
     })
 
-    it('holds Save while an opened field has fewer than three words', async () => {
+    it('holds Save while a field has one or two words, and says so AT the field', async () => {
       const wrapper = build()
       await write(wrapper, 'helpedParish', 'Kuchen')
       expect(wrapper.find('[data-test="first-creation-save"]').attributes('disabled')).toBeDefined()
+      // ⛔ The point of the change: the reason stands where the cause is, not only as a
+      // pale button on the far side of the window.
+      expect(wrapper.find('[data-test^="first-creation-short-"]').exists()).toBe(true)
 
-      await write(wrapper, 'helpedParish', '')
-      const fields = wrapper.findAll('[data-test^="first-creation-text-"]')
-      await fields[0].setValue('Kuchen für das Fest gebacken habe')
-      await nextTick()
-      // Still held: the SECOND field is empty. Every open field counts, not just one.
-      expect(wrapper.find('[data-test="first-creation-save"]').attributes('disabled')).toBeDefined()
-
-      await fields[1].setValue('für die Kinder gekocht habe')
+      // Into the SAME field -- `write` would click the stem again and open a second one.
+      await wrapper
+        .find('[data-test^="first-creation-text-"]')
+        .setValue('Kuchen für das Fest gebacken habe')
       await nextTick()
       expect(
         wrapper.find('[data-test="first-creation-save"]').attributes('disabled'),
       ).toBeUndefined()
+      expect(wrapper.find('[data-test^="first-creation-short-"]').exists()).toBe(false)
+    })
+
+    /**
+     * ⛔ Bernd's finding at the first acceptance run: he tapped "one more with this
+     * beginning", never used the box, and Save went pale with nothing on screen to say why
+     * -- "das fällt selbst mir als IT-affinen Menschen kaum auf".
+     */
+    it('lets an untouched extra field alone: it neither blocks, nor counts, nor is sent', async () => {
+      const wrapper = build()
+      await write(wrapper, 'helpedParish', 'Kuchen für das Fest gebacken habe')
+      await wrapper.find('[data-test="first-creation-again-helpedParish"]').trigger('click')
+      await nextTick()
+      expect(wrapper.findAll('[data-test^="first-creation-text-"]')).toHaveLength(2)
+
+      // not blocked ...
+      expect(
+        wrapper.find('[data-test="first-creation-save"]').attributes('disabled'),
+      ).toBeUndefined()
+      // ... not counted (German writes the singular out: "ein Eintrag", not "1") ...
+      expect(wrapper.find('[data-test="first-creation-count"]').text()).toBe(
+        de.firstCreation.entries.split(' | ')[0],
+      )
+      // ... and not sent.
+      await wrapper.find('[data-test="first-creation-save"]').trigger('click')
+      expect(submitMock).toHaveBeenCalledWith({
+        entries: [{ catalogKey: 'helpedParish', text: 'Kuchen für das Fest gebacken habe' }],
+      })
+    })
+
+    it('takes the member back to the empty box rather than opening a second one', async () => {
+      const wrapper = build()
+      await wrapper.find('[data-test="first-creation-stem-helpedParish"]').trigger('click')
+      await nextTick()
+      await wrapper.find('[data-test="first-creation-stem-helpedParish"]').trigger('click')
+      await nextTick()
+      expect(wrapper.findAll('[data-test^="first-creation-text-"]')).toHaveLength(1)
+    })
+
+    /**
+     * Weg A (Bernd, 06.09.): what the member writes stands in the SENTENCE while they write
+     * it, not only in the box below -- so "indem ich Ich habe ..." shows itself at the
+     * moment it is written instead of in the ledger afterwards.
+     */
+    it('echoes the words into the sentence they complete', async () => {
+      const wrapper = build()
+      const row = () => wrapper.find('[data-test="first-creation-stem-helpedParish"]').text()
+      expect(row()).toContain('indem ich …')
+
+      await write(wrapper, 'helpedParish', 'Kuchen für das Fest gebacken habe')
+      expect(row()).toContain('indem ich Kuchen für das Fest gebacken habe')
+      expect(row()).not.toContain('…')
     })
 
     it('takes several entries from one beginning (ES-008)', async () => {
@@ -464,21 +529,51 @@ describe('FirstCreation', () => {
       submitMock.mockResolvedValue(settled('DONE', threeEntries, 'Liebe Emma, willkommen!'))
     })
 
-    it('sets the ticks one after another, 250 ms apart', async () => {
+    it('sets the ticks one after another, 2.5 s apart', async () => {
       const wrapper = build()
       await sendThree(wrapper)
-      expect(wrapper.findAll('[data-test="first-creation-tick"]')).toHaveLength(0)
+      const ticks = () => wrapper.findAll('[data-test="first-creation-tick"]').length
+      expect(ticks()).toBe(0)
 
-      await vi.advanceTimersByTimeAsync(250)
-      expect(wrapper.findAll('[data-test="first-creation-tick"]')).toHaveLength(1)
-      await vi.advanceTimersByTimeAsync(250)
-      expect(wrapper.findAll('[data-test="first-creation-tick"]')).toHaveLength(2)
+      // Just short of the beat: still nothing. Without this the assertion below would also
+      // pass for ticks that all appear at once.
+      await vi.advanceTimersByTimeAsync(2400)
+      expect(ticks()).toBe(0)
+
+      await vi.advanceTimersByTimeAsync(100)
+      expect(ticks()).toBe(1)
+      await vi.advanceTimersByTimeAsync(2500)
+      expect(ticks()).toBe(2)
       // The message waits for the last tick -- that is the whole point of the sequence.
       expect(wrapper.find('[data-test="first-creation-message"]').exists()).toBe(false)
 
-      await vi.advanceTimersByTimeAsync(250)
-      expect(wrapper.findAll('[data-test="first-creation-tick"]')).toHaveLength(3)
+      await vi.advanceTimersByTimeAsync(2500)
+      expect(ticks()).toBe(3)
       expect(wrapper.find('[data-test="first-creation-message"]').text()).toContain('Liebe Emma')
+    })
+
+    /**
+     * ⚠️ Bernd, 06.09.: "ab dem 4. Beitrag nur noch eine Sekunde". At 2.5 s throughout, ten
+     * entries would tick for 25 seconds before the message, the balance and both buttons
+     * appear -- longer than the wait that came before them. This way ten take 14.5 s and
+     * three, the ordinary case, keep the full ceremony.
+     */
+    it('keeps the ceremony for the first three and quickens from the fourth', async () => {
+      const many = Array.from({ length: 5 }, (unused, index) => entry(`e${index}`))
+      submitMock.mockResolvedValue(settled('DONE', many, 'Danke.'))
+      const wrapper = build()
+      await sendThree(wrapper)
+      const ticks = () => wrapper.findAll('[data-test="first-creation-tick"]').length
+
+      await vi.advanceTimersByTimeAsync(7500)
+      expect(ticks()).toBe(3)
+
+      // The fourth comes after ONE second, not another two and a half.
+      await vi.advanceTimersByTimeAsync(1000)
+      expect(ticks()).toBe(4)
+      await vi.advanceTimersByTimeAsync(1000)
+      expect(ticks()).toBe(5)
+      expect(wrapper.find('[data-test="first-creation-message"]').exists()).toBe(true)
     })
 
     it('names the community, not the signer (W4)', async () => {

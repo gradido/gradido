@@ -14,6 +14,12 @@
   >
     <!-- ── the question ─────────────────────────────────────────────────────── -->
     <div v-if="screen === 'form'" class="fc px-2 pt-3" data-test="first-creation-form">
+      <!-- ★ The door. A DIFFERENT sentence from the one that closes the message at the end
+           ("Liebe Ira, willkommen!"), and deliberately the plainer of the two: the second
+           one is then a step up rather than a repetition (Bernd, 06.09.). It also needs no
+           gender guess — that heuristic lives in the backend, and this greeting is built
+           here out of the name the wallet already holds. -->
+      <p class="fc-welcome" data-test="first-creation-welcome">{{ welcome }}</p>
       <p class="h5 mb-2">{{ $t('firstCreation.question') }}</p>
       <p class="text-muted mb-3">{{ $t('firstCreation.subtitle') }}</p>
 
@@ -48,7 +54,16 @@
             <span class="fc-dot"></span>
             <span class="fc-row-text">
               {{ $t(`firstCreation.catalog.${stem}`) }}
-              <i class="fc-tail">{{ $t('firstCreation.connector') }} …</i>
+              <!-- ⭐ While the member types, their own words stand HERE, behind the
+                   connector, in the sentence they are completing — not only in the box
+                   below. That is what makes "indem ich Ich habe …" visible at the moment
+                   it is written instead of in the ledger afterwards (Bernd, 06.09.).
+                   Only the first entry of this stem echoes: with several, the row would
+                   have to choose one, and the boxes below already show them all. -->
+              <span v-if="echoOf(stem)" class="fc-own">
+                {{ $t('firstCreation.connector') }} {{ echoOf(stem) }}
+              </span>
+              <i v-else class="fc-tail">{{ $t('firstCreation.connector') }} …</i>
             </span>
           </button>
 
@@ -69,6 +84,17 @@
               :placeholder="$t('firstCreation.placeholder')"
               :data-test="`first-creation-text-${entry.id}`"
             />
+            <!-- ⛔ The reason Save is pale, standing AT its cause. An empty field holds
+                 nothing back any more (see `canSave`); a half-written one does, and then it
+                 has to say so here — a pale button on the far side of the window is a
+                 blockade nobody can find. Bernd looked for it and he wrote this code. -->
+            <p
+              v-if="isTooShort(entry)"
+              class="fc-too-short"
+              :data-test="`first-creation-short-${entry.id}`"
+            >
+              {{ $t('firstCreation.tooShort') }}
+            </p>
             <div class="fc-edit-foot">
               <button
                 type="button"
@@ -214,6 +240,7 @@
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
+import { useStore } from 'vuex'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useMutation, useQuery } from '@vue/apollo-composable'
@@ -268,6 +295,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update-transactions'])
 
+const store = useStore()
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
@@ -277,6 +305,18 @@ const { result, refetch } = useQuery(firstCreationStatus, null, {
 })
 const { mutate: sendEntries } = useMutation(submitFirstCreation)
 const { mutate: sendSkip } = useMutation(skipFirstCreation)
+
+/**
+ * "Willkommen, Ira!" — the member's own first name, out of the store the login already
+ * filled (`login` and `verifyLogin` both carry it). No round trip and no backend change.
+ *
+ * ⚠️ Without a name it is the nameless form, never "Willkommen, !". The message at the end
+ * does the same thing one floor down (`greetingAnonymous` in core).
+ */
+const welcome = computed(() => {
+  const name = (store.state.firstName ?? '').trim()
+  return name ? t('firstCreation.welcome', { name }) : t('firstCreation.welcomeAnonymous')
+})
 
 const categories = FIRST_CREATION_CATEGORIES
 const checkKeys = FIRST_CREATION_CHECK_KEYS
@@ -342,8 +382,44 @@ const entries = reactive([])
 const expanded = ref([])
 let nextEntryId = 0
 
-const entryCount = computed(() => checked.value.length + entries.length)
+const wordCount = (text) => (text ?? '').trim().split(/\s+/).filter(Boolean).length
+
+/**
+ * ⛔ An EMPTY field is not an unfinished entry — it is a button that was pressed and not
+ * used. It counts for nothing, it is not sent, and above all it holds nothing back.
+ *
+ * It used to. Somebody tapped "one more with this beginning", left the box alone, and Save
+ * went pale with nothing on screen to say why. Bernd hit exactly that during the first
+ * acceptance run and had to hunt for the cause — "das fällt selbst mir als IT-affinen
+ * Menschen kaum auf". A blockade nobody can find is worse than no rule at all.
+ *
+ * A field with ONE or TWO words is the other case and DOES keep holding Save: the member's
+ * own words are in there, and dropping them silently would be worse than asking for a few
+ * more. What changed is that the field says so, at the cause — see `isTooShort` in the
+ * template.
+ */
+const isBlank = (entry) => wordCount(entry.text) === 0
+const isTooShort = (entry) => {
+  const words = wordCount(entry.text)
+  return words > 0 && words < FIRST_CREATION_MIN_WORDS
+}
+
+/** The entries with something in them — the ones that count and the ones that are sent. */
+const written = computed(() => entries.filter((entry) => !isBlank(entry)))
+
+const entryCount = computed(() => checked.value.length + written.value.length)
 const atMaxEntries = computed(() => entryCount.value >= FIRST_CREATION_MAX_ENTRIES)
+
+/**
+ * What stands behind the connector in the stem's own row while the member types (Weg A).
+ *
+ * The FIRST written entry of this stem, because the row is one sentence and cannot show
+ * two — the boxes underneath show every one of them. Empty means the row keeps its "…".
+ */
+const echoOf = (stem) => {
+  const first = entries.find((entry) => entry.catalogKey === stem && !isBlank(entry))
+  return first ? first.text.trim() : ''
+}
 
 const entriesOf = (stem) => entries.filter((entry) => entry.catalogKey === stem)
 
@@ -394,6 +470,16 @@ const addEntry = async (stem) => {
   if (atMaxEntries.value) {
     return
   }
+  // ⚠️ An empty box for this stem is already open: take the member there instead of opening
+  // a second one. Tapping the stem again, or "one more with this beginning", otherwise
+  // stacks blank boxes that say nothing and do nothing — which is how the blockade Bernd
+  // ran into used to multiply.
+  const blank = entries.find((entry) => entry.catalogKey === stem && isBlank(entry))
+  if (blank) {
+    await nextTick()
+    fields.get(blank.id)?.focus?.()
+    return
+  }
   const entry = { id: nextEntryId++, catalogKey: stem, text: '' }
   entries.push(entry)
   await nextTick()
@@ -408,18 +494,7 @@ const removeEntry = (id) => {
   fields.delete(id)
 }
 
-const wordCount = (text) => (text ?? '').trim().split(/\s+/).filter(Boolean).length
-
-/**
- * ⚠️ EVERY open field, not just one of them. A half-written sentence left standing is the
- * likeliest way to send something the community cannot read back, and the way out of it is
- * "remove entry", not a silent truncation.
- */
-const canSave = computed(
-  () =>
-    entryCount.value > 0 &&
-    entries.every((entry) => wordCount(entry.text) >= FIRST_CREATION_MIN_WORDS),
-)
+const canSave = computed(() => entryCount.value > 0 && !entries.some(isTooShort))
 
 /**
  * What goes over the wire: the key and the member's own words, never the sentence. The
@@ -428,7 +503,7 @@ const canSave = computed(
  */
 const payload = computed(() => [
   ...checked.value.map((catalogKey) => ({ catalogKey, text: null })),
-  ...entries.map((entry) => ({ catalogKey: entry.catalogKey, text: entry.text.trim() })),
+  ...written.value.map((entry) => ({ catalogKey: entry.catalogKey, text: entry.text.trim() })),
 ])
 
 /* ── sending, and the four screens ─────────────────────────────────────────── */
@@ -492,7 +567,7 @@ const pendingLines = computed(() => {
   const connector = t('firstCreation.connector')
   return [
     ...checked.value.map((key) => t(`firstCreation.checks.${key}`)),
-    ...entries.map(
+    ...written.value.map(
       (entry) =>
         `${t(`firstCreation.catalog.${entry.catalogKey}`)} ${connector} ${entry.text.trim()}`,
     ),
@@ -616,14 +691,45 @@ watch(
 
 /* ── the ticks ─────────────────────────────────────────────────────────────── */
 
-/** `D` §2 step 7: one after another, not all at once. */
-const TICK_MS = 250
+/*
+ * `D` §2 step 7: one after another, not all at once — and slowly enough to be a moment
+ * rather than a flicker. 250 ms was a flicker; Bernd asked for 2.5 s at the acceptance run.
+ *
+ * ⚠️ The first three carry the ceremony, the rest keep pace (Bernd, 06.09.): ten entries
+ * would otherwise be 25 seconds of ticking before the message, the balance and both buttons
+ * appear — longer than the wait that came before it. This way ten entries take 14.5 s and
+ * three, the ordinary case, take the full 7.5 s.
+ */
+const TICK_MS_CEREMONY = 2500
+const TICK_MS_REST = 1000
+const TICK_CEREMONY_COUNT = 3
+
+/** The pause BEFORE the nth tick, 1-based. */
+const tickDelay = (nth) => (nth <= TICK_CEREMONY_COUNT ? TICK_MS_CEREMONY : TICK_MS_REST)
 const revealed = ref(0)
 let tickTimer = null
 
 const stopTicking = () => {
-  clearInterval(tickTimer)
+  clearTimeout(tickTimer)
   tickTimer = null
+}
+
+/**
+ * A chain of timeouts rather than one interval, because the gap CHANGES after the third
+ * tick — an interval has one period for its whole life.
+ */
+const tickOnce = () => {
+  tickTimer = setTimeout(
+    () => {
+      revealed.value += 1
+      if (revealed.value < doneEntries.value.length) {
+        tickOnce()
+      } else {
+        stopTicking()
+      }
+    },
+    tickDelay(revealed.value + 1),
+  )
 }
 
 watch(
@@ -635,12 +741,9 @@ watch(
       return
     }
     revealed.value = 0
-    tickTimer = setInterval(() => {
-      revealed.value += 1
-      if (revealed.value >= doneEntries.value.length) {
-        stopTicking()
-      }
-    }, TICK_MS)
+    if (doneEntries.value.length > 0) {
+      tickOnce()
+    }
   },
   { immediate: true },
 )
@@ -672,6 +775,13 @@ onBeforeUnmount(() => {
 <style scoped>
 .fc {
   font-size: 0.95rem;
+}
+
+.fc-welcome {
+  margin-bottom: 4px;
+  color: var(--gold, #c58d38);
+  font-size: 1.15rem;
+  font-weight: 600;
 }
 
 .fc-check {
@@ -746,6 +856,18 @@ onBeforeUnmount(() => {
 
 .fc-tail {
   color: var(--text-muted);
+}
+
+/* The member's own words, standing in the sentence they complete while it is typed. Gold,
+   like the filled row in the mockup -- so what they wrote is visibly THEIRS. */
+.fc-own {
+  color: var(--gold, #c58d38);
+}
+
+.fc-too-short {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
 }
 
 .fc-edit {
