@@ -781,6 +781,30 @@ describe('FirstCreationResolver', () => {
       expect((await rowOf(tessa)).testMode).toBe(FirstCreationTestMode.WITH_BOOKING)
     })
 
+    /**
+     * Same shape as the signer refusal and the same reason: forcing the row does not open
+     * a window on its own. Runs last in this block, because it takes the signer away.
+     */
+    it('refuses while no signer is configured at all', async () => {
+      await loginAs('peter@lustig.de')
+      const cleared = await mutate({
+        mutation: setFirstCreationSigner,
+        variables: { userId: null },
+      })
+      expect(cleared.errors).toBeUndefined()
+      try {
+        await loginAs('tessa@testerin.de')
+        const { errors } = await mutate({
+          mutation: startFirstCreationTest,
+          variables: { withBooking: true },
+        })
+        expect(errors).toEqual([new GraphQLError('FIRST_CREATION_TEST_REFUSED: NO_SIGNER')])
+      } finally {
+        await loginAs('peter@lustig.de')
+        await mutate({ mutation: setFirstCreationSigner, variables: { userId: peter.id } })
+      }
+    })
+
     it('is gone where the server switched it off', async () => {
       CONFIG.FUNCTION_TESTS_ENABLED = false
       try {

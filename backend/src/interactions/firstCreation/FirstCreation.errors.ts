@@ -53,6 +53,12 @@ export type FirstCreationTestRefusedReason =
    * opens. Refused here instead, where it can be said.
    */
   | 'IS_SIGNER'
+  /**
+   * No usable signer is configured at all. Forcing the row would still be written and the
+   * window would still not open (isEligible asks for a signer too) — a press that changes
+   * nothing anybody can see is worse than a refusal that says why.
+   */
+  | 'NO_SIGNER'
   /** FUNCTION_TESTS_ENABLED is off on this server. */
   | 'DISABLED'
   /** A first creation is running for this account right now. */

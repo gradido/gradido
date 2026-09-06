@@ -266,10 +266,9 @@ export async function skipFirstCreation(user: DbUser): Promise<void> {
  * the ordinary process — the row is simply put back to FORCED, which is the one state
  * checkEligibility lets past a member who has already created.
  *
- * ⛔ Refused for the configured signer, BEFORE the row is written. loadSignerFor answers
- * IS_MEMBER for them, so the window would come out `eligible: false`: the forced row would
- * sit there and nothing would ever appear. The wallet says the same thing in front of the
- * button (isFirstCreationSigner); this is what makes it hold against a bare API call.
+ * ⛔ Refused BEFORE the row is written wherever the run could not finish anyway — see the
+ * signer check below. The wallet says the same thing in front of the button
+ * (isFirstCreationSigner); this is what holds against a bare API call.
  *
  * The member's own lock is taken for the same reason submitFirstCreation takes it: a run
  * in flight must not have its row pulled back under it.
@@ -281,9 +280,14 @@ export async function startFirstCreationTest(
   if (!CONFIG.FUNCTION_TESTS_ENABLED) {
     return { success: false, error: new FirstCreationTestRefused('DISABLED') }
   }
+  // ⛔ Both halves, and for one reason: a forced row alone does not open a window.
+  // isEligible asks for a signer as well, so pressing the button without one — or as the
+  // signer, for whom loadSignerFor answers IS_MEMBER — would write the row, send the admin
+  // to the overview and show them nothing at all. Refused here, where it can be said.
   const signer = await loadSignerFor(user.id)
-  if (!signer.success && signer.error.reason === 'IS_MEMBER') {
-    return { success: false, error: new FirstCreationTestRefused('IS_SIGNER') }
+  if (!signer.success) {
+    const refusal = signer.error.reason === 'IS_MEMBER' ? 'IS_SIGNER' : 'NO_SIGNER'
+    return { success: false, error: new FirstCreationTestRefused(refusal) }
   }
   const mutex = memberLock(user.id)
   if (!(await mutex.tryAcquire())) {
@@ -297,7 +301,14 @@ export async function startFirstCreationTest(
   } finally {
     await releaseQuietly(mutex, user.id)
   }
-  await EVENT_FIRST_CREATION_TEST(user)
+  // The row is the outcome and it is written; the event is its trace. A failing trace is
+  // logged, never turned into an answer that says the press did not work while the window
+  // is in fact armed — the same rule the outcome events downstream follow.
+  try {
+    await EVENT_FIRST_CREATION_TEST(user)
+  } catch (error) {
+    logger.error(`first creation test: event failed for user ${user.id}`, error)
+  }
   return { success: true }
 }
 
