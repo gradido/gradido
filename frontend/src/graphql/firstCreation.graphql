@@ -1,0 +1,43 @@
+# AI-GENERATED — not an architecture reference
+
+# Where the member stands with their first creation, and the two ways out of the window.
+#
+# ⚠️ `firstCreationStatus` takes no arguments, so every member shares one cache key. It is
+# read with `cache-and-network`, the way `aliasStatus` is; the cache itself is emptied on
+# logout (store.js). Both, not either -- see the comment in FirstCreation.vue.
+query firstCreationStatus {
+  firstCreationStatus {
+    state
+    eligible
+    message
+    entries {
+      memo
+      confirmed
+      status
+    }
+    functionTestsEnabled
+    testRunsLeft
+  }
+}
+
+# One entry is a catalog key plus what the member wrote. The SENTENCE is built on the
+# server from that key (backend/src/data/FirstCreation.logic.ts), so the window never sends
+# a stem of its own -- which is why the key list here has to match the one over there.
+mutation submitFirstCreation($entries: [FirstCreationEntryInput!]!) {
+  submitFirstCreation(entries: $entries) {
+    state
+    eligible
+    message
+    entries {
+      memo
+      confirmed
+      status
+    }
+    functionTestsEnabled
+    testRunsLeft
+  }
+}
+
+mutation skipFirstCreation {
+  skipFirstCreation
+}

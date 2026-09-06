@@ -91,6 +91,16 @@ module.exports = {
           // built as `scanner.foreign.${kind}` -- the three kinds of Gradido code the
           // scanner's foreign-community card can announce
           '/scanner.foreign./',
+          // The first-creation catalog: every sentence stem, tick and category heading is
+          // reached as `firstCreation.catalog.${key}` and friends, off the literal lists in
+          // utils/firstCreationCatalog.js, so none of them appears here as a literal.
+          // ⚠️ This rule is what would otherwise notice a key that no longer has a text.
+          // `firstCreationLocales.spec.js` takes that job over for these four: it holds the
+          // key lists against de and en and fails on either a missing text or a stray one.
+          '/firstCreation.catalog./',
+          '/firstCreation.checks./',
+          '/firstCreation.checkHints./',
+          '/firstCreation.categories./',
           'error.empty-transactionlist',
           'error.no-transactionlist',
           'error.session-renewal-failed',

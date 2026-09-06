@@ -98,6 +98,10 @@ import { aliasStatus } from '@/graphql/user.graphql'
 import { checkUsername } from '@/graphql/queries'
 import { USERNAME_REGEX } from '@/validationSchemas'
 import { useAppToast } from '@/composables/useToast'
+import {
+  firstLoginWindowOnScreen,
+  setFirstLoginWindowWanted,
+} from '@/composables/useFirstLoginWindow'
 import CONFIG from '@/config'
 
 /**
@@ -167,11 +171,24 @@ const stopProbing = () => {
 }
 onBeforeUnmount(stopProbing)
 
-const visible = computed({
-  get: () =>
+// Whether this window has a question to ask -- which is not the same as being on screen.
+// Three first-login windows hang side by side in DashboardLayout and two BModals stack, so
+// which of them the member sees is decided in one place (ES-003, useFirstLoginWindow).
+const wants = computed(
+  () =>
     !dismissed.value && !!currentAlias.value && result.value?.aliasStatus?.aliasSettled === false,
+)
+watch(wants, (value) => setFirstLoginWindowWanted('alias', value), { immediate: true })
+onBeforeUnmount(() => setFirstLoginWindowWanted('alias', false))
+
+const onScreen = firstLoginWindowOnScreen('alias')
+const visible = computed({
+  get: () => onScreen.value,
   set: (open) => {
-    if (!open) {
+    // ⚠️ Only the member closing it counts. This getter also goes false when the address
+    // reminder takes the screen, and BModal writes that back -- read as an answer, the name
+    // question would be retired for the session without ever having been asked.
+    if (!open && onScreen.value) {
       dismissed.value = true
       stopProbing()
     }

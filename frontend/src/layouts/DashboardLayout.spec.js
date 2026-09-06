@@ -11,6 +11,7 @@ import { forgetAllMemberAvatars, storedMemberAvatar } from '@/composables/useMem
 import { forgetViewport } from '@/composables/useViewport'
 import { transactionsUserCountQuery } from '@/graphql/transactions.graphql'
 import { LAST_TRANSACTIONS_PAGE_SIZE } from '@/constants'
+import FirstCreation from '@/components/FirstCreation.vue'
 
 const toastErrorSpy = vi.fn()
 
@@ -1182,6 +1183,64 @@ describe('DashboardLayout', () => {
             expect(routerPushSpy).not.toHaveBeenCalled()
           })
         })
+      })
+    })
+
+    /**
+     * ⛔ Wiring, and wiring is what no spec on either side of it covers by itself. The
+     * window's own spec mounts it directly with props it hands over; this layout's other
+     * tests never look at it. Delete the four lines below in the template and every one of
+     * the 2289 tests in this repo still passes — which is exactly the hole this block fills
+     * (skill, Frage null-q).
+     *
+     * ⚠️ `FirstCreation` is deliberately NOT stubbed here. It reads `firstCreationStatus`
+     * out of this file's shared `useQuery` spy, which answers with booking data, so the
+     * window finds no `eligible` and never opens — the real component, and no modal in the
+     * way of anything else.
+     */
+    describe('the first-creation window', () => {
+      const withBalance = (amount) => ({
+        data: {
+          transactionList: {
+            balance: { balanceGDT: '0', count: 1, linkCount: 0, balance: amount },
+            transactions: [],
+          },
+        },
+      })
+
+      it('hangs beside the other two first-login windows', () => {
+        expect(wrapper.findComponent(FirstCreation).exists()).toBe(true)
+      })
+
+      it('reads this layout´s balance rather than fetching one of its own', async () => {
+        onResultHandler(withBalance('100'))
+        await nextTick()
+        expect(wrapper.findComponent(FirstCreation).props('balance')).toBe(100)
+      })
+
+      /**
+       * ⛔ The stamp is how the window tells a balance fetched AFTER the booking from the one
+       * it already held. Without it the window would print whatever number the layout
+       * happened to be standing on — and for a member who already had a hundred, the stale
+       * one and the fresh one are the same value, so the number alone cannot say.
+       */
+      it('stamps the balance every time the query answers', async () => {
+        const before = wrapper.findComponent(FirstCreation).props('balanceStamp')
+        onResultHandler(withBalance('100'))
+        await nextTick()
+        const after = wrapper.findComponent(FirstCreation).props('balanceStamp')
+        expect(after).toBe(before + 1)
+
+        onResultHandler(withBalance('100'))
+        await nextTick()
+        expect(wrapper.findComponent(FirstCreation).props('balanceStamp')).toBe(before + 2)
+      })
+
+      it('asks this layout for a fresh balance when the creation was booked', async () => {
+        mockRefetchFn.mockClear()
+        await wrapper.findComponent(FirstCreation).vm.$emit('update-transactions')
+        await nextTick()
+        expect(mockRefetchFn).toHaveBeenCalledTimes(1)
       })
     })
 

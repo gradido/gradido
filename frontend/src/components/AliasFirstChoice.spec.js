@@ -4,6 +4,11 @@ import { nextTick, ref, watch } from 'vue'
 import { createStore } from 'vuex'
 import { createI18n } from 'vue-i18n'
 import AliasFirstChoice from './AliasFirstChoice.vue'
+import {
+  firstLoginWindow,
+  forgetFirstLoginWindows,
+  setFirstLoginWindowWanted,
+} from '@/composables/useFirstLoginWindow'
 
 vi.mock('bootstrap-vue-next', () => ({
   // ⛔ `emits` is not decoration. Without it Vue treats the parent's `@click` as a
@@ -190,6 +195,49 @@ describe('AliasFirstChoice', () => {
 
   it('shows the proposal to somebody who has not', () => {
     expect(wrapper.find('[data-test="alias-proposal"]').text()).toBe('BerndH')
+  })
+
+  /**
+   * ⛔ Three first-login windows hang side by side in DashboardLayout and two BModals stack.
+   * The address reminder comes first (ES-003): it can be waved away while this one wants an
+   * answer, and inside the grace period the member is on a clock they have to be told about.
+   *
+   * Without this test the whole ordering could be taken back out of this component and every
+   * other test in this file stayed green -- measured by putting `wants` straight into the
+   * getter, which is what the window did before.
+   */
+  describe('beside the other first-login windows', () => {
+    afterEach(forgetFirstLoginWindows)
+
+    it('waits while the address reminder has the screen', async () => {
+      setFirstLoginWindowWanted('email', true)
+      await nextTick()
+      expect(wrapper.find('[data-test="alias-first-choice"]').exists()).toBe(false)
+
+      // The counter-check, in the same test: it is waiting, not gone.
+      setFirstLoginWindowWanted('email', false)
+      await nextTick()
+      expect(wrapper.find('[data-test="alias-first-choice"]').exists()).toBe(true)
+    })
+
+    it('is not answered by the reminder taking the screen from it', async () => {
+      setFirstLoginWindowWanted('email', true)
+      await nextTick()
+      // BModal writes the closing back when its `modelValue` goes false on its own. Read as
+      // an answer, the name question would be retired for the session unasked.
+      await wrapper.findComponent({ name: 'BModal' }).vm.$emit('update:modelValue', false)
+      await nextTick()
+
+      setFirstLoginWindowWanted('email', false)
+      await nextTick()
+      expect(wrapper.find('[data-test="alias-first-choice"]').exists()).toBe(true)
+    })
+
+    it('lets go of the screen when it is unmounted', () => {
+      expect(firstLoginWindow.value).toBe('alias')
+      wrapper.unmount()
+      expect(firstLoginWindow.value).toBeNull()
+    })
   })
 
   // The address is what the name is for, and it is shown in the shape it takes on
