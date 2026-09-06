@@ -61,8 +61,8 @@ const BACKEND_CATALOG_KEYS = [
   'animalsOrNature',
 ]
 
-/** `FIRST_CREATION_CHECK_KEYS` from the same file. `child` is stage two and not here yet. */
-const BACKEND_CHECK_KEYS = ['retiree']
+/** `FIRST_CREATION_CHECK_KEYS` from the same file, in the backend's own order. */
+const BACKEND_CHECK_KEYS = ['retiree', 'child']
 
 const LANGUAGES = { de, en }
 

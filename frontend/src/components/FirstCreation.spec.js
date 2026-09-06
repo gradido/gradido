@@ -295,6 +295,28 @@ describe('FirstCreation', () => {
       ).toBeUndefined()
     })
 
+    /**
+     * ⚠️ The wallet's own half of the child tick. The window loops over the key list, so the
+     * new tick needed no code here — and that is exactly why it needs a test: nothing in
+     * the compiler or the linter would notice if the key fell out of the list again, and
+     * the catalog guard next door holds the LISTS against each other, not the screen.
+     */
+    it('offers the child tick beside the retiree one, and sends it', async () => {
+      const wrapper = build()
+      const child = wrapper.find('[data-test="first-creation-check-child"]')
+      expect(child.exists()).toBe(true)
+      expect(child.text()).toContain('Ich bin ein Kind.')
+      expect(child.text()).toContain('Auch Deine Zeit zählt.')
+
+      await child.trigger('click')
+      await wrapper.find('[data-test="first-creation-save"]').trigger('click')
+
+      // A tick is an entry with no text of its own (ES-008).
+      expect(submitMock).toHaveBeenCalledWith({
+        entries: [{ catalogKey: 'child', text: null }],
+      })
+    })
+
     it('holds Save while a field has one or two words, and says so AT the field', async () => {
       const wrapper = build()
       await write(wrapper, 'helpedParish', 'Kuchen')

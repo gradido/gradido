@@ -248,6 +248,25 @@ describe('the four-line message', () => {
     expect(message).not.toContain('Und für')
   })
 
+  /**
+   * ES-014 stage two, and the reason it is a test rather than a glance: `translateForLocale`
+   * hands back the KEY PATH for a key it cannot find, so a missing `childLine` would not
+   * throw — it would put `firstCreation.message.childLine` into a message a person reads.
+   */
+  it('thanks a child in its own words, not the retiree\u2019s', () => {
+    const message = composeFirstCreationMessage({
+      firstName: 'Ida',
+      language: 'de',
+      lines: [],
+      checks: ['child'],
+    })
+    expect(message.split('\n')[1]).toBe(
+      'Die Gemeinschaft dankt Dir — dafür, dass Du da bist und die Welt mit Deinen Augen siehst.',
+    )
+    expect(message).not.toContain('Lebenswerk')
+    expect(message).not.toContain('firstCreation.')
+  })
+
   it('builds the tick-only message without a model line', () => {
     const message = composeFirstCreationMessage({
       firstName: 'Alice',

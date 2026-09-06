@@ -338,9 +338,11 @@
       "knowledgeCulture": "Knowledge & culture"
     },
     "checkHints": {
+      "child": "Your time counts too.",
       "retiree": "Your life's work counts."
     },
     "checks": {
+      "child": "I am a child.",
       "retiree": "I am a retiree."
     },
     "confirmedFor": "Confirmed for the community {community}",
