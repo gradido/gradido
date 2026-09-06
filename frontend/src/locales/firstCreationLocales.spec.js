@@ -125,6 +125,8 @@ describe.each(Object.entries(LANGUAGES))('first creation texts in %s', (language
   it('has every text the window asks for by a literal key', () => {
     // The window would show the bare key path where one of these is missing.
     const literal = [
+      'welcome',
+      'welcomeAnonymous',
       'question',
       'subtitle',
       'connector',
@@ -135,6 +137,7 @@ describe.each(Object.entries(LANGUAGES))('first creation texts in %s', (language
       'remove',
       'entries',
       'maxEntries',
+      'tooShort',
       'failed',
       'nothing',
       'waiting',
@@ -158,6 +161,10 @@ describe.each(Object.entries(LANGUAGES))('first creation texts in %s', (language
     expect(block.showMore).toContain('{count}')
     expect(block.maxEntries).toContain('{max}')
     expect(block.confirmedFor).toContain('{community}')
+    expect(block.welcome).toContain('{name}')
+    // ⚠️ And the nameless form must NOT carry it -- an account without a first name would
+    // otherwise be greeted with "Willkommen, {name}!" spelled out.
+    expect(block.welcomeAnonymous).not.toContain('{name}')
     // `$t(key, count)` picks the form; `{n}` is what the count is bound to.
     expect(block.entries).toContain('|')
     expect(block.entries).toContain('{n}')
