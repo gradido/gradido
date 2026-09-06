@@ -275,8 +275,20 @@
         </BCol>
       </BRow>
       <session-logout-timeout @logout="logoutUser" />
+      <!-- The three windows a member meets on their first logins. Which of them is on
+           screen is decided in `useFirstLoginWindow`, not by their order here: two BModals
+           stack, and the one underneath is then reachable only by answering the one on top.
+           Their order in this template is free (they teleport) and must stay a detail. -->
       <alias-first-choice />
       <email-confirmation-reminder />
+      <!-- ES-002: what good have you already done? The balance comes off this layout's own
+           booking query rather than a second one of its own, so the number in the window
+           and the number in the header are the same answer. -->
+      <first-creation
+        :balance="balance"
+        :balance-stamp="balanceStamp"
+        @update-transactions="updateTransactions"
+      />
       <!-- ONE for the whole wallet (AS-018). Every avatar that can be opened drives this
            instance through `useAvatarZoom`; a modal per row would build one per booking. -->
       <avatar-zoom />
@@ -305,6 +317,7 @@ import SessionLogoutTimeout from '@/components/SessionLogoutTimeout'
 import AliasFirstChoice from '@/components/AliasFirstChoice'
 import AvatarZoom from '@/components/Avatar/AvatarZoom.vue'
 import EmailConfirmationReminder from '@/components/EmailConfirmationReminder'
+import FirstCreation from '@/components/FirstCreation.vue'
 import ContentFooter from '@/components/ContentFooter'
 import GddAmount from '@/components/Template/ContentHeader/GddAmount'
 import GdtAmount from '@/components/Template/ContentHeader/GdtAmount'
@@ -503,6 +516,16 @@ const { mutate: useLogoutMutation } = useMutation(logout)
 const { toastError } = useAppToast()
 
 const balance = ref(0)
+/**
+ * Bumped every time the query above ANSWERS.
+ *
+ * ⛔ Not decoration and not a counter of anything anybody reads: it is how the first-creation
+ * window can tell a balance fetched AFTER the booking from the one it already had. The
+ * number alone cannot say that — a member whose creation was the first thing on the account
+ * goes from 0 to 100, but one who already had 100 would go from 100 to 100, and a stale
+ * number and a fresh one are then the same value.
+ */
+const balanceStamp = ref(0)
 const GdtBalance = ref(0)
 /** The rows the column beside the overview draws from -- the newest, never a paged list. */
 const newestTransactions = ref([])
@@ -620,6 +643,7 @@ onResult((value) => {
       newestTransactions.value = tr.transactions || []
       collectMemberAvatars(newestTransactions.value)
       balance.value = Number(tr.balance?.balance) || 0
+      balanceStamp.value += 1
     }
     if (value.data.communityStatistics) {
       totalUsers.value = value.data.communityStatistics.totalUsers || 0
