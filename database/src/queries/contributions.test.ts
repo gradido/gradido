@@ -61,7 +61,8 @@ beforeAll(async () => {
   await insert(BOB, 'Ich habe noch etwas getan', ContributionType.ADMIN, {
     status: ContributionStatus.IN_PROGRESS,
   })
-  await insert(BOB, 'Das wurde abgelehnt', ContributionType.USER, {
+  // ADMIN-typed, so the USER-typed count above keeps its one row for Bob.
+  await insert(BOB, 'Das wurde abgelehnt', ContributionType.ADMIN, {
     status: ContributionStatus.DENIED,
   })
 })
