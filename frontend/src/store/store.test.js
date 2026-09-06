@@ -4,6 +4,7 @@ import i18n from '../i18n'
 import jwtDecode from 'jwt-decode'
 import { avatarZoomState, openAvatarZoom } from '@/composables/useAvatarZoom'
 import { contactsPanelState } from '@/composables/useContactsPanel'
+import { firstLoginWindow, setFirstLoginWindowWanted } from '@/composables/useFirstLoginWindow'
 
 vi.mock('../i18n', () => ({
   default: {
@@ -360,6 +361,23 @@ describe('Vuex store', () => {
         expect(contactsPanelState.page.loaded).toBe(false)
         expect(contactsPanelState.matches.rows).toEqual([])
         expect(contactsPanelState.search).toBe('')
+      })
+
+      /**
+       * ⛔ A fifth place, same rule. Which of the three first-login windows is on screen
+       * lives in its own module, and logging out does not reload the page — so a question
+       * the previous member left standing would decide which window the NEXT member sees,
+       * or whether they see one at all.
+       */
+      it('lets go of the first-login window that was on screen', () => {
+        setFirstLoginWindowWanted('alias', true)
+        // The fixture proves itself: nothing claimed would make the assertion below pass
+        // without the logout doing anything at all.
+        expect(firstLoginWindow.value).toBe('alias')
+
+        logout({ commit, state, dispatch })
+
+        expect(firstLoginWindow.value).toBeNull()
       })
 
       it('removes only its own storage blob', () => {

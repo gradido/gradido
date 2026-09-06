@@ -10,6 +10,7 @@ import { forgetAllMemberAvatars } from '../composables/useMemberAvatars'
 import { forgetFavorites } from '../composables/useFavorites'
 import { forgetContactsPanel } from '../composables/useContactsPanel'
 import { forgetParkedAmount } from '../composables/useParkedAmount'
+import { forgetFirstLoginWindows } from '../composables/useFirstLoginWindow'
 import { clearApolloCache } from '../plugins/apolloCache'
 
 // Dedicated localStorage key mirroring state.themeMode. The pre-paint script in
@@ -208,6 +209,10 @@ export const actions = {
     // line that face and its owner's id stayed in memory for the life of the tab, through
     // the next member's sign-in, which is the one thing the paragraph above forbids.
     closeAvatarZoom()
+    // Which first-login window had the screen, for the same reason: that module outlives
+    // this action, and the next member on this browser must meet their own windows rather
+    // than find all three silenced by a question the last member left unanswered.
+    forgetFirstLoginWindows()
     forgetParkedAmount(signedOutMember)
     localStorage.removeItem('gradido-frontend')
     commit('setThemeMode', themeMode)

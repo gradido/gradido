@@ -58,13 +58,17 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useRoute, useRouter } from 'vue-router'
 import { useMutation } from '@vue/apollo-composable'
 import { BButton, BModal } from 'bootstrap-vue-next'
 import { resendConfirmationEmail } from '@/graphql/mutations'
 import { useAppToast } from '@/composables/useToast'
+import {
+  firstLoginWindowOnScreen,
+  setFirstLoginWindowWanted,
+} from '@/composables/useFirstLoginWindow'
 
 // ⚠️ Mirrors CONFIRMATION_GRACE_PERIOD_HOURS in the backend
 // (backend/src/data/EmailConfirmation.logic.ts). The server enforces its own copy;
@@ -114,18 +118,32 @@ const deadlineText = computed(() =>
     : '',
 )
 
-const visible = computed({
-  // `overdue` overrides `dismissed`: past the deadline the modal returns on every
-  // route change — coming back from the settings without having corrected anything
-  // must not leave the account silently narrowed down with no explanation in sight.
-  get: () =>
+// Whether this window has something to say -- not the same as being on screen. It is FIRST
+// of the three first-login windows (ES-003, useFirstLoginWindow): it can be waved away
+// while the other two want an answer, and inside the grace period the member is on a clock
+// they have to be told about.
+const wants = computed(
+  () =>
     store.state.emailChecked === false &&
+    // `overdue` overrides `dismissed`: past the deadline the modal returns on every
+    // route change — coming back from the settings without having corrected anything
+    // must not leave the account silently narrowed down with no explanation in sight.
     (overdue.value || !dismissed.value) &&
     // Never in the settings: correcting the address lives there, and an unclosable
     // modal on top of it would wall off its own way out.
     !route.path.startsWith('/settings'),
+)
+watch(wants, (value) => setFirstLoginWindowWanted('email', value), { immediate: true })
+onUnmounted(() => setFirstLoginWindowWanted('email', false))
+
+const onScreen = firstLoginWindowOnScreen('email')
+const visible = computed({
+  get: () => onScreen.value,
   set: (value) => {
-    if (!value) {
+    // Only the member closing it counts -- see AliasFirstChoice for the same guard. Nothing
+    // outranks this window today, so the getter cannot go false on its own; the guard is
+    // here because that is a fact about the order, not about this component.
+    if (!value && onScreen.value) {
       dismissed.value = true
     }
   },
