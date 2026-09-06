@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { hasPhraseInLocale, translateForLocale } from 'core'
-import { DomainError, GradidoUnit, MEMO_MAX_CHARS, Result } from 'shared'
+import { DomainError, GradidoUnit, MEMO_MAX_CHARS, MEMO_MIN_CHARS, Result } from 'shared'
 import { guessGender } from '@/apis/anthropic/crea/nameGender'
 
 // Plain rules of the first creation: which sentence stems exist, how an entry becomes a
@@ -82,7 +82,12 @@ export interface FirstCreationEntryDraft {
 export class FirstCreationEntryInvalid extends DomainError {
   constructor(
     public readonly index: number,
-    public readonly detail: 'UNKNOWN_KEY' | 'TEXT_MISSING' | 'TEXT_ON_CHECK' | 'TOO_LONG',
+    public readonly detail:
+      | 'UNKNOWN_KEY'
+      | 'TEXT_MISSING'
+      | 'TEXT_ON_CHECK'
+      | 'TOO_SHORT'
+      | 'TOO_LONG',
   ) {
     super(`FIRST_CREATION_ENTRY_INVALID at ${index}: ${detail}`)
   }
@@ -95,10 +100,21 @@ export const isCatalogKey = (key: string): key is FirstCreationCatalogKey =>
   (FIRST_CREATION_CATALOG_KEYS as readonly string[]).includes(key)
 
 /**
- * The finished sentence, in the member's language, from key plus free text. Built here
- * and not in the client: the stem always comes from the locale file for the key, and the
- * client's part is the free text behind it, as typed — spelling is neither corrected nor
- * mentioned (D §7.3).
+ * The sentence that goes into the ledger.
+ *
+ * ⛔ For a CATALOG entry this is now the member's own sentence, verbatim (Bernd, 06.09.).
+ * The stem used to be glued on here from the locale file, with only the tail coming from
+ * the client — and that forced everybody into one grammar: whoever opened "Ich habe einem
+ * kranken Menschen geholfen" could not write "Ich habe meinem kranken Bruder
+ * Vitamin-Tabletten gekauft". The wallet now puts the opening INTO the box as an editable
+ * value and sends whatever stands there.
+ *
+ * What that costs, plainly: the server no longer guarantees the sentence begins with a
+ * stem it knows. Measured against the house, that is not a step down — `createContribution`
+ * has always taken a completely free memo, and the first creation was the stricter one. The
+ * key still travels and is still checked, because it tells a tick from a written entry.
+ *
+ * Spelling is neither corrected nor mentioned (D §7.3).
  */
 export function buildFirstCreationMemo(
   entry: FirstCreationEntryDraft,
@@ -121,11 +137,15 @@ export function buildFirstCreationMemo(
   if (text.length === 0) {
     return { success: false, error: new FirstCreationEntryInvalid(index, 'TEXT_MISSING') }
   }
-  const memo = translateForLocale(language, `firstCreation.catalog.${entry.catalogKey}`, { text })
-  if (memo.length > MEMO_MAX_CHARS) {
+  // ⚠️ New here, and it has to be: the whole sentence now comes from the client, so the
+  // floor the wallet keeps (a few words) needs a counterpart the wallet cannot skip.
+  if (text.length < MEMO_MIN_CHARS) {
+    return { success: false, error: new FirstCreationEntryInvalid(index, 'TOO_SHORT') }
+  }
+  if (text.length > MEMO_MAX_CHARS) {
     return { success: false, error: new FirstCreationEntryInvalid(index, 'TOO_LONG') }
   }
-  return { success: true, value: memo }
+  return { success: true, value: text }
 }
 
 /**

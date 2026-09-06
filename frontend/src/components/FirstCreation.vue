@@ -52,19 +52,12 @@
             @click="addEntry(stem)"
           >
             <span class="fc-dot"></span>
-            <span class="fc-row-text">
-              {{ $t(`firstCreation.catalog.${stem}`) }}
-              <!-- ⭐ While the member types, their own words stand HERE, behind the
-                   connector, in the sentence they are completing — not only in the box
-                   below. That is what makes "indem ich Ich habe …" visible at the moment
-                   it is written instead of in the ledger afterwards (Bernd, 06.09.).
-                   Only the first entry of this stem echoes: with several, the row would
-                   have to choose one, and the boxes below already show them all. -->
-              <span v-if="echoOf(stem)" class="fc-own">
-                {{ $t('firstCreation.connector') }} {{ echoOf(stem) }}
-              </span>
-              <i v-else class="fc-tail">{{ connectorOpen }}</i>
-            </span>
+            <!-- ⛔ The row is a button again, and nothing else. It used to echo the
+                 member's words behind the connector, because the sentence lived out here
+                 and only its tail was in the box. The sentence is IN the box now, editable
+                 from its first word — echoing it here would print it twice, and the second
+                 copy would be the one nobody can change (Bernd, 06.09.). -->
+            <span class="fc-row-text">{{ $t(`firstCreation.catalog.${stem}`) }}</span>
           </button>
 
           <!-- Every entry made from this stem, in the order they were opened. The same
@@ -402,20 +395,6 @@ const welcome = computed(() => {
 })
 
 /**
- * "indem ich …" — the connector plus the mark that says "carry on here".
- *
- * ⚠️ Built here rather than given a locale key of its own, and the reason is drift: the
- * connector has ONE key, read in three places. A second key holding the same words plus an
- * ellipsis would be a copy of them, and a translator who improved one would leave the other
- * behind.
- *
- * The ellipsis itself is punctuation, not prose. Measured across all ten locale files: each
- * of them mixes "…" and "..." WITHIN its own language, and not one uses a different
- * character from the others — so there is nothing here for a translator to decide.
- */
-const connectorOpen = computed(() => `${t('firstCreation.connector')} …`)
-
-/**
  * Deliberately without a language prefix: gradido.net serves the page in the browser's
  * language on its own, and a `/de/` glued on here would hand a Greek reader the German
  * page. Same rule the rest of our gradido.net links follow.
@@ -489,6 +468,34 @@ let nextEntryId = 0
 const wordCount = (text) => (text ?? '').trim().split(/\s+/).filter(Boolean).length
 
 /**
+ * ⭐ The opening of the sentence, as a VALUE for the box — the whole of this delivery.
+ *
+ * It used to be a placeholder showing an example ("… Kuchen für das Fest gebacken habe"),
+ * and that was wrong twice over (Bernd, 06.09.): the example belonged to a different stem,
+ * and a placeholder cannot be edited, so whoever wrote into the box was locked into one
+ * grammar. "Ich habe meinem kranken Bruder Vitamin-Tabletten gekauft" was unreachable.
+ *
+ * Now the sentence starts in the box and the member owns every word of it: complete it,
+ * rebuild it, or clear it and write something else entirely.
+ */
+const prefillFor = (stem) =>
+  `${t(`firstCreation.catalog.${stem}`)} ${t('firstCreation.connector')} `
+
+/**
+ * How much of this entry is the MEMBER'S. While the text still begins with the opening, it
+ * is what stands behind it; once they have rewritten the sentence, it is the whole thing.
+ *
+ * ⛔ Not the plain word count of the box any more, and that is not a detail: the untouched
+ * opening is already eight words, so a plain count would call an empty entry finished and
+ * put Save within reach of somebody who has written nothing.
+ */
+const ownWords = (entry) => {
+  const text = entry.text ?? ''
+  const prefill = prefillFor(entry.catalogKey)
+  return wordCount(text.startsWith(prefill) ? text.slice(prefill.length) : text)
+}
+
+/**
  * ⛔ An EMPTY field is not an unfinished entry — it is a button that was pressed and not
  * used. It counts for nothing, it is not sent, and above all it holds nothing back.
  *
@@ -502,9 +509,9 @@ const wordCount = (text) => (text ?? '').trim().split(/\s+/).filter(Boolean).len
  * more. What changed is that the field says so, at the cause — see `isTooShort` in the
  * template.
  */
-const isBlank = (entry) => wordCount(entry.text) === 0
+const isBlank = (entry) => ownWords(entry) === 0
 const isTooShort = (entry) => {
-  const words = wordCount(entry.text)
+  const words = ownWords(entry)
   return words > 0 && words < FIRST_CREATION_MIN_WORDS
 }
 
@@ -532,17 +539,6 @@ const entryCount = computed(() => checked.value.length + written.value.length)
 const atMaxEntries = computed(
   () => checked.value.length + entries.length >= FIRST_CREATION_MAX_ENTRIES,
 )
-
-/**
- * What stands behind the connector in the stem's own row while the member types (Weg A).
- *
- * The FIRST written entry of this stem, because the row is one sentence and cannot show
- * two — the boxes underneath show every one of them. Empty means the row keeps its "…".
- */
-const echoOf = (stem) => {
-  const first = entries.find((entry) => entry.catalogKey === stem && !isBlank(entry))
-  return first ? first.text.trim() : ''
-}
 
 const entriesOf = (stem) => entries.filter((entry) => entry.catalogKey === stem)
 
@@ -606,7 +602,7 @@ const addEntry = async (stem) => {
   if (atMaxEntries.value) {
     return
   }
-  const entry = { id: nextEntryId++, catalogKey: stem, text: '' }
+  const entry = { id: nextEntryId++, catalogKey: stem, text: prefillFor(stem) }
   entries.push(entry)
   await nextTick()
   fields.get(entry.id)?.focus?.()
@@ -713,13 +709,11 @@ const pendingLines = computed(() => {
   if (doneEntries.value.length > 0) {
     return doneEntries.value.map((entry) => entry.memo)
   }
-  const connector = t('firstCreation.connector')
   return [
     ...checked.value.map((key) => t(`firstCreation.checks.${key}`)),
-    ...written.value.map(
-      (entry) =>
-        `${t(`firstCreation.catalog.${entry.catalogKey}`)} ${connector} ${entry.text.trim()}`,
-    ),
+    // The sentence as they wrote it — the same text the server files, because the box now
+    // holds the whole of it.
+    ...written.value.map((entry) => entry.text.trim()),
   ]
 })
 
@@ -1060,16 +1054,6 @@ onBeforeUnmount(() => {
   margin-top: 6px;
   border: 1.5px solid var(--bs-border-color, #dee2e6);
   border-radius: 50%;
-}
-
-.fc-tail {
-  color: var(--text-muted);
-}
-
-/* The member's own words, standing in the sentence they complete while it is typed. Gold,
-   like the filled row in the mockup -- so what they wrote is visibly THEIRS. */
-.fc-own {
-  color: var(--gold, #c58d38);
 }
 
 .fc-too-short {

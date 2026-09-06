@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { GradidoUnit } from 'shared'
+import { GradidoUnit, MEMO_MIN_CHARS } from 'shared'
 import {
   buildFirstCreationMemo,
   composeFirstCreationGreeting,
@@ -43,44 +43,70 @@ describe('first creation catalog keys', () => {
 })
 
 describe('buildFirstCreationMemo', () => {
-  it('puts the member’s text into the stem of their language, untouched', () => {
+  /**
+   * ⛔ The sentence comes from the member now, whole (Bernd, 06.09.). The stem used to be
+   * glued on here and only the tail came from the client — which forced one grammar on
+   * everybody. The wallet puts the opening into the box as an editable value; whatever
+   * stands there is what is filed.
+   */
+  it('files the member’s sentence as they wrote it, trimmed and nothing else', () => {
     const memo = buildFirstCreationMemo(
-      { catalogKey: 'helpedParish', text: '  Kuchen fürs Gemeindefest gebacken habe ' },
+      {
+        catalogKey: 'helpedParish',
+        text: '  Ich habe in meiner Gemeinde mitgeholfen, indem ich Kuchen gebacken habe ',
+      },
       'de',
       0,
     )
     expect(memo).toEqual({
       success: true,
-      value:
-        'Ich habe in meiner Gemeinde oder Kirchengemeinde mitgeholfen, indem ich Kuchen fürs Gemeindefest gebacken habe',
+      value: 'Ich habe in meiner Gemeinde mitgeholfen, indem ich Kuchen gebacken habe',
     })
     // Spelling is neither corrected nor mentioned (D §7.3).
     const helena = buildFirstCreationMemo(
       {
         catalogKey: 'sharedKnowledge',
-        text: 'oMa emmA gezeigt habe, wie man die kaRte gröSSer macht',
+        text: 'Ich habe oMa emmA gezeigt, wie man die kaRte gröSSer macht',
       },
       'de',
       0,
     )
-    expect(helena.success && helena.value).toContain('oMa emmA gezeigt habe')
+    expect(helena.success && helena.value).toContain('oMa emmA gezeigt')
   })
 
-  it('keeps apostrophes, ampersands and slashes as the member typed them', () => {
+  /**
+   * Bernd's own example, and the one the old build made impossible: a whole sentence with
+   * no "indem ich" anywhere in it, under a stem that offers one.
+   */
+  it('takes a sentence that keeps nothing of the opening', () => {
     const memo = buildFirstCreationMemo(
-      { catalogKey: 'helpedAtHome', text: "Oma's Garten & Hof / Küche gepflegt habe" },
+      {
+        catalogKey: 'helpedSickPerson',
+        text: 'Ich habe meinem kranken Bruder Vitamin-Tabletten gekauft',
+      },
       'de',
       0,
     )
     expect(memo).toEqual({
       success: true,
-      value: "Ich habe zu Hause mitgeholfen, indem ich Oma's Garten & Hof / Küche gepflegt habe",
+      value: 'Ich habe meinem kranken Bruder Vitamin-Tabletten gekauft',
     })
+    // ⛔ And no stem is glued in front of it any more.
+    expect(memo.success && memo.value).not.toContain('Ich habe einem kranken Menschen geholfen')
   })
 
-  it('uses the English stem for an English member', () => {
+  it('keeps apostrophes, ampersands and slashes as the member typed them', () => {
     const memo = buildFirstCreationMemo(
-      { catalogKey: 'helpedAtHome', text: 'carrying the pizza boxes' },
+      { catalogKey: 'helpedAtHome', text: "Oma's Garten & Hof / Küche gepflegt" },
+      'de',
+      0,
+    )
+    expect(memo).toEqual({ success: true, value: "Oma's Garten & Hof / Küche gepflegt" })
+  })
+
+  it('does not care which language the sentence is in — it is the member’s', () => {
+    const memo = buildFirstCreationMemo(
+      { catalogKey: 'helpedAtHome', text: 'I helped at home by carrying the pizza boxes' },
       'en',
       0,
     )
@@ -110,6 +136,24 @@ describe('buildFirstCreationMemo', () => {
       1,
     )
     expect(!long.success && long.error.detail).toBe('TOO_LONG')
+  })
+
+  /**
+   * ⚠️ The floor is new, and it has to be: the whole sentence comes from the client now, so
+   * the few words the wallet asks for need a counterpart the wallet cannot skip. Four
+   * characters is under `MEMO_MIN_CHARS`; the sentence used to clear it by the stem alone.
+   */
+  it('refuses a sentence too short to be one, which the stem used to hide', () => {
+    const short = buildFirstCreationMemo({ catalogKey: 'helpedAtHome', text: 'ja' }, 'de', 3)
+    expect(!short.success && short.error.detail).toBe('TOO_SHORT')
+    expect(!short.success && short.error.index).toBe(3)
+    // And exactly at the boundary it is accepted, so the floor is a floor and not a wall.
+    const atFloor = buildFirstCreationMemo(
+      { catalogKey: 'helpedAtHome', text: 'x'.repeat(MEMO_MIN_CHARS) },
+      'de',
+      0,
+    )
+    expect(atFloor.success).toBe(true)
   })
 })
 
