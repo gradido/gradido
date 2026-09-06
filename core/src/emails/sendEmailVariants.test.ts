@@ -11,6 +11,7 @@ import {
   sendContributionConfirmedEmail,
   sendContributionDeletedEmail,
   sendContributionDeniedEmail,
+  sendCreationRightRequestSupportEmail,
   sendEmailChangeSupportEmail,
   sendResetPasswordEmail,
   sendTransactionLinkRedeemedEmail,
@@ -343,6 +344,53 @@ describe('sendEmailVariants', () => {
       })
       expect(back.originalMessage.html).toContain('change back to an earlier address')
       expect(back.originalMessage.html).not.toContain('merge the new address')
+    })
+  })
+
+  describe('sendCreationRightRequestSupportEmail', () => {
+    // Substance assertions, same reason as the support mail above: CI only, so a snapshot
+    // could never be written here. The markers are phrases from en.json.
+    const requestData = {
+      firstName: 'Pizzeria',
+      lastName: 'Napoli',
+      email: 'support@gradido.net',
+      language: 'en',
+      alias: 'napoli',
+      gradidoId: '11111111-2222-4333-4444-55555555',
+      memberEmail: 'napoli@example.org',
+      requestedAt: new Date('2026-09-06T14:00:00.000Z'),
+    }
+
+    it('names the account, its address and both moments where the holder declared it', async () => {
+      const mail: any = await sendCreationRightRequestSupportEmail({
+        ...requestData,
+        declaredAt: new Date('2026-09-01T09:30:00.000Z'),
+      })
+      expect(sendEmailTranslatedSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          receiver: { to: 'support@gradido.net' },
+          template: 'creationRightRequestSupport',
+        }),
+      )
+      const html = mail.originalMessage.html
+      expect(html).toContain('asks for the creation right back')
+      expect(html).toContain('napoli')
+      expect(html).toContain('11111111-2222-4333-4444-55555555')
+      expect(html).toContain('napoli@example.org')
+      expect(html).toContain('2026-09-01T09:30:00.000Z')
+      expect(html).toContain('2026-09-06T14:00:00.000Z')
+      expect(html).toContain('switch &quot;May create&quot; on')
+      expect(html).not.toContain('switched off by an administrator')
+    })
+
+    it('says so where an administrator switched creation off instead', async () => {
+      const mail: any = await sendCreationRightRequestSupportEmail({
+        ...requestData,
+        declaredAt: null,
+      })
+      const html = mail.originalMessage.html
+      expect(html).toContain('switched off by an administrator')
+      expect(html).not.toContain('Declared a project account by its holder')
     })
   })
 

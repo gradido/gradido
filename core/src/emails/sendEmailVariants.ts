@@ -191,6 +191,36 @@ export const sendEmailChangeSupportEmail = (
   })
 }
 
+/**
+ * ES-021/ES-022: the holder of a PROJECT account asks for the creation right back. Goes to
+ * the community's support mailbox in English (one mailbox, every language), like the
+ * e-mail-change work order above; an administrator then flips the switch by hand. The
+ * times arrive formatted by the caller — this mail has one fixed language, so there is
+ * nothing to localise here.
+ */
+export const sendCreationRightRequestSupportEmail = (
+  data: EmailCommonData & {
+    alias: string
+    gradidoId: string
+    /** The member's address in force - the support may want to write back. */
+    memberEmail: string
+    /** When the holder declared the account a project account; null = an administrator did. */
+    declaredAt: Date | null
+    requestedAt: Date
+  },
+): Promise<Record<string, unknown> | boolean | null | Error> => {
+  return sendEmailTranslated({
+    receiver: { to: data.email },
+    template: 'creationRightRequestSupport',
+    locals: {
+      ...data,
+      declaredAt: data.declaredAt ? data.declaredAt.toISOString() : null,
+      requestedAt: data.requestedAt.toISOString(),
+      ...getEmailCommonLocales(),
+    },
+  })
+}
+
 export const sendContributionConfirmedEmail = (
   data: EmailCommonData &
     ContributionEmailCommonData & {

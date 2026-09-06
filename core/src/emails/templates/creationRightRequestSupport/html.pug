@@ -1,0 +1,18 @@
+//- AI-GENERATED — not an architecture reference
+extends ../layout.pug
+
+block content
+  h2= t('emails.creationRightRequestSupport.title')
+  .text-block
+    p= t('emails.creationRightRequestSupport.member', { firstName, lastName, alias })
+    p= t('emails.creationRightRequestSupport.gradidoId', { gradidoId })
+    p= t('emails.creationRightRequestSupport.memberEmail', { memberEmail })
+    //- A project account declared by its holder carries the moment of that declaration;
+    //- one switched off by an administrator carries none, and the mail says which it was.
+    if declaredAt
+      p= t('emails.creationRightRequestSupport.declaredAt', { declaredAt })
+    else
+      p= t('emails.creationRightRequestSupport.declaredByAdmin')
+    p= t('emails.creationRightRequestSupport.requestedAt', { requestedAt })
+  .content
+    div(class="p_content")= t('emails.creationRightRequestSupport.todo')
