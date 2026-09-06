@@ -859,6 +859,62 @@ describe('FirstCreation', () => {
       )
     })
 
+    /**
+     * ⛔ Both of these were found by deleting the line, not by writing the test first: with
+     * `messageShown.value = false` taken out of the watcher, and with the zero-entry branch
+     * taken out, all 48 tests here stayed green. Two lines carrying behaviour with nothing
+     * watching them — the reset and the branch are wiring, and wiring almost never has a
+     * test, because one spec stubs it and the other takes it for granted.
+     */
+    it('starts the ceremony over when the screen is entered again', async () => {
+      // ⚠️ Driven from the server answer, NOT through Save: sending sets `settled`, and
+      // that holds the result screen for good — a test that submits first can never leave
+      // it again and would prove nothing about coming back.
+      const done = status({
+        state: 'DONE',
+        eligible: false,
+        entries: threeEntries,
+        message: 'Liebe Emma, willkommen!',
+      })
+      // The window has to be OPENED first -- `eligible` opens it and does not keep it open.
+      statusMock.value = { firstCreationStatus: status({ state: 'FORCED', eligible: true }) }
+      const wrapper = build()
+      await nextTick()
+      statusMock.value = { firstCreationStatus: done }
+      await vi.runAllTimersAsync()
+      expect(wrapper.find('[data-test="first-creation-message"]').exists()).toBe(true)
+
+      // Away and back: what a forced run does after a function test.
+      statusMock.value = { firstCreationStatus: status({ state: 'FORCED', eligible: true }) }
+      await nextTick()
+      statusMock.value = { firstCreationStatus: done }
+      await nextTick()
+
+      // ⛔ Not the message from the run before, standing over three empty circles.
+      expect(wrapper.find('[data-test="first-creation-message"]').exists()).toBe(false)
+      expect(wrapper.findAll('[data-test="first-creation-tick"]')).toHaveLength(0)
+
+      await vi.runAllTimersAsync()
+      expect(wrapper.find('[data-test="first-creation-message"]').exists()).toBe(true)
+    })
+
+    it('shows the message at once when there is no tick to wait for', async () => {
+      const wrapper = build()
+      statusMock.value = {
+        firstCreationStatus: status({
+          state: 'DONE',
+          eligible: true,
+          entries: [],
+          message: 'Liebe Emma, willkommen!',
+        }),
+      }
+      await nextTick()
+
+      // No entries, no ticks, so no pause belongs to anything: without the branch the
+      // window would sit empty for good.
+      expect(wrapper.find('[data-test="first-creation-message"]').exists()).toBe(true)
+    })
+
     it('names the community, not the signer (W4)', async () => {
       const wrapper = build()
       await sendThree(wrapper)
