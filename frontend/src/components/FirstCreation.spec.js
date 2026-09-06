@@ -358,9 +358,10 @@ describe('FirstCreation', () => {
 
       await wrapper.find('[data-test="first-creation-stem-helpedParish"]').trigger('click')
       await nextTick()
-      expect(wrapper.findAll('[data-test^="first-creation-text-"]')).toHaveLength(1)
-      // Not a no-op: the cursor goes to the box that is already there.
-      expect(focused).toHaveLength(1)
+      const boxes = wrapper.findAll('[data-test^="first-creation-text-"]')
+      expect(boxes).toHaveLength(1)
+      // Not a no-op: the cursor goes to the box that is already there -- named, not counted.
+      expect(focused).toEqual([boxes[0].attributes('data-test')])
     })
 
     /**
@@ -391,8 +392,11 @@ describe('FirstCreation', () => {
       await wrapper.find('[data-test="first-creation-stem-helpedParish"]').trigger('click')
       await nextTick()
 
-      expect(focused).toHaveLength(1)
-      expect(wrapper.findAll('[data-test^="first-creation-text-"]')).toHaveLength(10)
+      // ⚠️ WHICH box, not how many focus calls. With ten boxes on screen, a count of one
+      // holds just as well when the cursor lands in somebody else's finished sentence.
+      const boxes = wrapper.findAll('[data-test^="first-creation-text-"]')
+      expect(boxes).toHaveLength(10)
+      expect(focused).toEqual([boxes[9].attributes('data-test')])
     })
 
     /**
