@@ -772,6 +772,13 @@ describe('FirstCreation', () => {
 
       await vi.advanceTimersByTimeAsync(2500)
       expect(ticks()).toBe(3)
+      // ⛔ And STILL not the message. The last tick used to be the only one nobody saw --
+      // message, balance and both buttons arrived in the frame that drew it (Bernd, 06.09.).
+      expect(wrapper.find('[data-test="first-creation-message"]').exists()).toBe(false)
+
+      await vi.advanceTimersByTimeAsync(2400)
+      expect(wrapper.find('[data-test="first-creation-message"]').exists()).toBe(false)
+      await vi.advanceTimersByTimeAsync(100)
       expect(wrapper.find('[data-test="first-creation-message"]').text()).toContain('Liebe Emma')
     })
 
@@ -796,7 +803,60 @@ describe('FirstCreation', () => {
       expect(ticks()).toBe(4)
       await vi.advanceTimersByTimeAsync(1000)
       expect(ticks()).toBe(5)
+
+      // ⛔ But the CLOSING pause stays at the ceremony length, however fast the ticks ran
+      // (Bernd, 06.09.). The pace exists to keep ten entries short; this pause exists so
+      // that the last of them is seen, and one second is not enough for that.
+      await vi.advanceTimersByTimeAsync(1000)
+      expect(wrapper.find('[data-test="first-creation-message"]').exists()).toBe(false)
+      await vi.advanceTimersByTimeAsync(1500)
       expect(wrapper.find('[data-test="first-creation-message"]').exists()).toBe(true)
+    })
+
+    /**
+     * ⛔ The order, not the presence. Both blocks were there before; the box sat directly
+     * under the sentence about "your first hundred" and showed the ACCOUNT — which is the
+     * hundred only for somebody who arrived with an empty one. Whoever redeemed a link or
+     * a cheque first read a larger number there, and "why a hundred?" underneath answered
+     * a question they were no longer asking (Bernd, 06.09.).
+     */
+    it('puts why-a-hundred above the account, not below it', async () => {
+      const wrapper = build({ balance: 0, balanceStamp: 1 })
+      await sendThree(wrapper)
+      await vi.runAllTimersAsync()
+      await wrapper.setProps({ balance: 299.95, balanceStamp: 2 })
+      await nextTick()
+
+      const html = wrapper.html()
+      const why = html.indexOf('Warum hundert?')
+      const box = html.indexOf('first-creation-balance')
+      expect(why).toBeGreaterThan(-1)
+      expect(box).toBeGreaterThan(-1)
+      expect(why).toBeLessThan(box)
+    })
+
+    /**
+     * ⚠️ Measured at the rendered anchor, not at the locale key: the sentence is put
+     * together by `i18n-t`, and a component that fails to resolve renders NOTHING while
+     * every other test stays green.
+     */
+    it('hangs the link on the word and opens it in a new tab', async () => {
+      const wrapper = build()
+      await sendThree(wrapper)
+      await vi.runAllTimersAsync()
+
+      const link = wrapper.find('[data-test="first-creation-why-more-link"]')
+      expect(link.exists()).toBe(true)
+      expect(link.text()).toBe('hier')
+      // No language prefix: gradido.net follows the browser on its own, and a `/de/` glued
+      // on here would hand a Greek reader the German page.
+      expect(link.attributes('href')).toBe('https://gradido.net/gemeinwohl-was-ist-das/')
+      expect(link.attributes('target')).toBe('_blank')
+      expect(link.attributes('rel')).toContain('noopener')
+      // The address itself belongs on the word, not in the running text beside it.
+      expect(wrapper.find('[data-test="first-creation-message-block"]').text()).not.toContain(
+        'https://',
+      )
     })
 
     it('names the community, not the signer (W4)', async () => {
