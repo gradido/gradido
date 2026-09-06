@@ -421,8 +421,27 @@ const isTooShort = (entry) => {
 /** The entries with something in them — the ones that count and the ones that are sent. */
 const written = computed(() => entries.filter((entry) => !isBlank(entry)))
 
+/** What will be sent, and what the counter shows. */
 const entryCount = computed(() => checked.value.length + written.value.length)
-const atMaxEntries = computed(() => entryCount.value >= FIRST_CREATION_MAX_ENTRIES)
+
+/**
+ * ⛔ The cap counts SLOTS — every open field, empty or not — while the counter above counts
+ * only what is written. The two differ on purpose, and getting that wrong let eleven
+ * entries through.
+ *
+ * An empty field is a LATENT entry: it costs nothing today and becomes an entry the moment
+ * somebody types into it. Counting the cap on written entries alone let a member keep a
+ * blank box, fill the remaining nine slots plus the tick, and then go back and fill the
+ * blank — eleven on the way to a backend that refuses more than ten with `TOO_MANY`. The
+ * member would have seen "das hat nicht geklappt" and no reason, with every retry failing
+ * the same way.
+ *
+ * So no eleventh slot is ever opened. The member at nine written plus one empty box sees
+ * the note and the empty box together, and removing it gives the slot back.
+ */
+const atMaxEntries = computed(
+  () => checked.value.length + entries.length >= FIRST_CREATION_MAX_ENTRIES,
+)
 
 /**
  * What stands behind the connector in the stem's own row while the member types (Weg A).
@@ -508,7 +527,15 @@ const removeEntry = (id) => {
   fields.delete(id)
 }
 
-const canSave = computed(() => entryCount.value > 0 && !entries.some(isTooShort))
+const canSave = computed(
+  () =>
+    entryCount.value > 0 &&
+    // Unreachable while `atMaxEntries` counts slots — and kept anyway, because the backend
+    // is the one that decides (`TOO_MANY` in Submitter.role.ts) and a refusal there reaches
+    // the member as a bare "that did not work".
+    entryCount.value <= FIRST_CREATION_MAX_ENTRIES &&
+    !entries.some(isTooShort),
+)
 
 /**
  * What goes over the wire: the key and the member's own words, never the sentence. The

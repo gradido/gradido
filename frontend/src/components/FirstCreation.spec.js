@@ -299,6 +299,48 @@ describe('FirstCreation', () => {
       })
     })
 
+    /**
+     * ⛔ coderabbit, outside the diff, on the change that made blank fields free: an empty
+     * box is a LATENT entry. Left standing while the remaining slots and the tick are used
+     * up, filling it afterwards made eleven — and the backend refuses more than ten with
+     * `TOO_MANY`, which reaches the member as a bare "that did not work" that no retry
+     * fixes. This walks that exact path.
+     */
+    it('never lets a blank box carry the member past the maximum', async () => {
+      const wrapper = build()
+      const fill = async (index) => {
+        const boxes = wrapper.findAll('[data-test^="first-creation-text-"]')
+        await boxes[index].setValue(`Satz Nummer ${index} geschrieben habe`)
+        await nextTick()
+      }
+
+      // Nine written entries under one beginning ...
+      await write(wrapper, 'helpedParish', 'Satz Nummer 0 geschrieben habe')
+      for (let n = 1; n < 9; n++) {
+        await wrapper.find('[data-test="first-creation-again-helpedParish"]').trigger('click')
+        await nextTick()
+        await fill(n)
+      }
+      expect(wrapper.findAll('[data-test^="first-creation-text-"]')).toHaveLength(9)
+
+      // ... plus one box that is opened and left alone. That is the tenth SLOT.
+      await wrapper.find('[data-test="first-creation-again-helpedParish"]').trigger('click')
+      await nextTick()
+      expect(wrapper.findAll('[data-test^="first-creation-text-"]')).toHaveLength(10)
+      expect(wrapper.find('[data-test="first-creation-max"]').exists()).toBe(true)
+
+      // The tick would be the eleventh and is refused, though only nine are written.
+      await wrapper.find('[data-test="first-creation-check-retiree"]').trigger('click')
+      await nextTick()
+
+      // Now the blank is filled after the fact -- the step that used to make eleven.
+      await fill(9)
+      await wrapper.find('[data-test="first-creation-save"]').trigger('click')
+
+      expect(submitMock).toHaveBeenCalledTimes(1)
+      expect(submitMock.mock.calls[0][0].entries.length).toBeLessThanOrEqual(10)
+    })
+
     it('takes the member back to the empty box rather than opening a second one', async () => {
       const wrapper = build()
       await wrapper.find('[data-test="first-creation-stem-helpedParish"]').trigger('click')
