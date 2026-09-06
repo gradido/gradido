@@ -21,6 +21,13 @@ vi.mock('bootstrap-vue-next', () => ({
   },
   BFormTextarea: {
     props: ['modelValue'],
+    // `focus` so a test can see WHERE the window sent the cursor -- without it, "the tap
+    // did nothing" and "the tap went to the open box" look exactly alike.
+    methods: {
+      focus() {
+        focused.push(this.$attrs['data-test'])
+      },
+    },
     template:
       '<textarea :value="modelValue" @input="$emit(`update:modelValue`, $event.target.value)" />',
   },
@@ -33,6 +40,7 @@ vi.mock('bootstrap-vue-next', () => ({
   },
 }))
 
+const { focused } = vi.hoisted(() => ({ focused: [] }))
 const storeState = reactive({ firstName: 'Ira' })
 vi.mock('vuex', () => ({ useStore: () => ({ state: storeState }) }))
 
@@ -136,6 +144,7 @@ beforeEach(() => {
   vi.useFakeTimers()
   routePath.value = '/overview'
   storeState.firstName = 'Ira'
+  focused.length = 0
   pushed.length = 0
   statusMock.value = { firstCreationStatus: status() }
   refetchMock.mockReset()
@@ -345,9 +354,45 @@ describe('FirstCreation', () => {
       const wrapper = build()
       await wrapper.find('[data-test="first-creation-stem-helpedParish"]').trigger('click')
       await nextTick()
+      focused.length = 0
+
       await wrapper.find('[data-test="first-creation-stem-helpedParish"]').trigger('click')
       await nextTick()
       expect(wrapper.findAll('[data-test^="first-creation-text-"]')).toHaveLength(1)
+      // Not a no-op: the cursor goes to the box that is already there.
+      expect(focused).toHaveLength(1)
+    })
+
+    /**
+     * ⛔ coderabbit, second round, outside the diff — and it is the class this whole PR is
+     * about: a control that does nothing, silently. With the cap checked first, a member at
+     * the slot cap who tapped the stem of their own empty box got no response at all, even
+     * though going there opens no slot.
+     */
+    it('still goes to the open box when every slot is taken', async () => {
+      const wrapper = build()
+      const fill = async (index) => {
+        const boxes = wrapper.findAll('[data-test^="first-creation-text-"]')
+        await boxes[index].setValue(`Satz Nummer ${index} geschrieben habe`)
+        await nextTick()
+      }
+      await write(wrapper, 'helpedParish', 'Satz Nummer 0 geschrieben habe')
+      for (let n = 1; n < 9; n++) {
+        await wrapper.find('[data-test="first-creation-again-helpedParish"]').trigger('click')
+        await nextTick()
+        await fill(n)
+      }
+      // The tenth slot, left empty -- now every slot is taken.
+      await wrapper.find('[data-test="first-creation-again-helpedParish"]').trigger('click')
+      await nextTick()
+      expect(wrapper.find('[data-test="first-creation-max"]').exists()).toBe(true)
+      focused.length = 0
+
+      await wrapper.find('[data-test="first-creation-stem-helpedParish"]').trigger('click')
+      await nextTick()
+
+      expect(focused).toHaveLength(1)
+      expect(wrapper.findAll('[data-test^="first-creation-text-"]')).toHaveLength(10)
     })
 
     /**

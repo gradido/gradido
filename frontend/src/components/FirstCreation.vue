@@ -500,17 +500,20 @@ const registerField = (id, element) => {
 }
 
 const addEntry = async (stem) => {
-  if (atMaxEntries.value) {
-    return
-  }
-  // ⚠️ An empty box for this stem is already open: take the member there instead of opening
-  // a second one. Tapping the stem again, or "one more with this beginning", otherwise
-  // stacks blank boxes that say nothing and do nothing — which is how the blockade Bernd
-  // ran into used to multiply.
+  // ⚠️ Reuse comes BEFORE the cap, and the order is the point. An empty box for this stem is
+  // already open, so going to it opens no slot and the cap has nothing to say about it —
+  // checked first, a tap on the stem at the cap did nothing at all, silently. That is the
+  // very thing this window is being repaired for.
+  //
+  // Reuse rather than a second box: tapping the stem again, or "one more with this
+  // beginning", would otherwise stack blank boxes that say nothing and do nothing.
   const blank = entries.find((entry) => entry.catalogKey === stem && isBlank(entry))
   if (blank) {
     await nextTick()
     fields.get(blank.id)?.focus?.()
+    return
+  }
+  if (atMaxEntries.value) {
     return
   }
   const entry = { id: nextEntryId++, catalogKey: stem, text: '' }
