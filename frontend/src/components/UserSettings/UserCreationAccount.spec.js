@@ -7,6 +7,10 @@ import UserCreationAccount from './UserCreationAccount.vue'
 
 // The radio group is a stub that a test can drive the way the member does: by choosing.
 vi.mock('bootstrap-vue-next', () => ({
+  BModal: {
+    props: ['modelValue'],
+    template: '<div v-if="modelValue" data-test="modal-open"><slot></slot></div>',
+  },
   BFormRadioGroup: {
     props: ['modelValue', 'options', 'disabled'],
     emits: ['update:modelValue'],
@@ -18,6 +22,17 @@ vi.mock('bootstrap-vue-next', () => ({
         {{ option.text }}
       </label>
     </div>`,
+  },
+}))
+
+// The confirmation is a component of its own with its own spec; here it is a stub the
+// test answers through, so what is under test is that nothing moves WITHOUT it.
+vi.mock('@/components/UserSettings/ProjectAccountConfirm.vue', () => ({
+  default: {
+    props: ['mode', 'busy'],
+    emits: ['confirm', 'cancel'],
+    template:
+      '<div :data-test="\'confirm-\' + mode"><button data-test="confirm-yes" @click="$emit(`confirm`)" /><button data-test="confirm-no" @click="$emit(`cancel`)" /></div>',
   },
 }))
 
@@ -55,6 +70,12 @@ const checkedChoice = (wrapper) =>
     .find((input) => input.element.checked)
     ?.attributes('data-test')
 
+/** Answers the modal the member is looking at. */
+const confirmModal = async (wrapper) => {
+  await wrapper.find('[data-test="confirm-yes"]').trigger('click')
+  await settle()
+}
+
 const settle = async () => {
   await nextTick()
   await new Promise((resolve) => setTimeout(resolve, 0))
@@ -79,15 +100,38 @@ describe('UserCreationAccount', () => {
   })
 
   describe('switching off - the holder decides, at once', () => {
-    it('declares the project account and writes the store', async () => {
+    it('does nothing on the click alone: the radio snaps back and the two-step modal opens', async () => {
       const { wrapper, store } = build(true)
       await wrapper.find('[data-test="choice-project"]').trigger('change')
       await settle()
+      expect(declareMock).not.toHaveBeenCalled()
+      expect(store.state.creationAllowed).toBe(true)
+      expect(checkedChoice(wrapper)).toBe('choice-person')
+      expect(wrapper.find('[data-test="confirm-declare"]').exists()).toBe(true)
+    })
+
+    it('leaves everything as it was when the modal is cancelled', async () => {
+      const { wrapper, store } = build(true)
+      await wrapper.find('[data-test="choice-project"]').trigger('change')
+      await settle()
+      await wrapper.find('[data-test="confirm-no"]').trigger('click')
+      await settle()
+      expect(wrapper.find('[data-test="modal-open"]').exists()).toBe(false)
+      expect(declareMock).not.toHaveBeenCalled()
+      expect(store.state.creationAllowed).toBe(true)
+    })
+
+    it('declares the project account and writes the store once the modal is answered', async () => {
+      const { wrapper, store } = build(true)
+      await wrapper.find('[data-test="choice-project"]').trigger('change')
+      await settle()
+      await confirmModal(wrapper)
       expect(declareMock).toHaveBeenCalledTimes(1)
       expect(requestMock).not.toHaveBeenCalled()
       expect(store.state.creationAllowed).toBe(false)
       expect(checkedChoice(wrapper)).toBe('choice-project')
       expect(toastSuccess).toHaveBeenCalledWith('settings.creationAccount.declared')
+      expect(wrapper.find('[data-test="modal-open"]').exists()).toBe(false)
     })
 
     it('stays a person and says why when contributions are still open', async () => {
@@ -95,6 +139,7 @@ describe('UserCreationAccount', () => {
       const { wrapper, store } = build(true)
       await wrapper.find('[data-test="choice-project"]').trigger('change')
       await settle()
+      await confirmModal(wrapper)
       expect(store.state.creationAllowed).toBe(true)
       expect(checkedChoice(wrapper)).toBe('choice-person')
       expect(toastError).toHaveBeenCalledWith('settings.creationAccount.openContributions')
@@ -102,10 +147,20 @@ describe('UserCreationAccount', () => {
   })
 
   describe('switching back on - a request, a person checks it', () => {
+    it('opens the request modal on the click and sends nothing before it is answered', async () => {
+      const { wrapper } = build(false)
+      await wrapper.find('[data-test="choice-person"]').trigger('change')
+      await settle()
+      expect(requestMock).not.toHaveBeenCalled()
+      expect(wrapper.find('[data-test="confirm-request"]').exists()).toBe(true)
+      expect(checkedChoice(wrapper)).toBe('choice-project')
+    })
+
     it('asks the support, shows the hint and leaves the radio where the row is', async () => {
       const { wrapper, store } = build(false)
       await wrapper.find('[data-test="choice-person"]').trigger('change')
       await settle()
+      await confirmModal(wrapper)
       expect(requestMock).toHaveBeenCalledTimes(1)
       expect(declareMock).not.toHaveBeenCalled()
       // Nothing changed on the account: the switch is the administrator's.
@@ -121,6 +176,7 @@ describe('UserCreationAccount', () => {
       const { wrapper } = build(false)
       await wrapper.find('[data-test="choice-person"]').trigger('change')
       await settle()
+      await confirmModal(wrapper)
       expect(toastError).toHaveBeenCalledWith('settings.creationAccount.mailFailed')
       expect(wrapper.find('[data-test="creation-account-hint"]').exists()).toBe(false)
       expect(checkedChoice(wrapper)).toBe('choice-project')
@@ -131,6 +187,7 @@ describe('UserCreationAccount', () => {
       const { wrapper } = build(false)
       await wrapper.find('[data-test="choice-person"]').trigger('change')
       await settle()
+      await confirmModal(wrapper)
       expect(wrapper.find('[data-test="creation-account-hint"]').text()).toBe(
         'settings.creationAccount.rateLimited',
       )

@@ -917,6 +917,17 @@
     },
     "community": "Community",
     "creationAccount": {
+      "confirm": {
+        "declare": "Switch to a project account",
+        "declareText": "A project account no longer creates. The “Creation” area disappears from your account, and only the support can switch creation back on.",
+        "declareTitle": "Do you really want to turn this account into a project account?",
+        "next": "Continue",
+        "requestText": "A person checks the change back. We send the support a message; they check your account and, if appropriate, switch creation back on by hand. You will hear from us.",
+        "requestTitle": "Would you like to create again?",
+        "send": "Send the message to the support",
+        "typeWord": "To switch to a project account that cannot create, please type: {word}",
+        "word": "PROJECTACCOUNT"
+      },
       "declared": "This account is now a project account. The “Creation” area is hidden.",
       "mailFailed": "The message to the support could not be sent right now. Please try again later.",
       "openContributions": "While contributions of yours are still open, the account cannot become a project account. Wait until they are confirmed, or withdraw them.",

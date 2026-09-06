@@ -89,6 +89,16 @@ vi.mock('@/graphql/firstCreation.graphql', () => ({
 vi.mock('@/graphql/user.graphql', () => ({
   declareProjectAccount: 'DECLARE_PROJECT_ACCOUNT',
 }))
+// The two-step confirmation has a spec of its own; here it is a stub the test answers
+// through, so what is measured is that nothing is declared WITHOUT it.
+vi.mock('@/components/UserSettings/ProjectAccountConfirm.vue', () => ({
+  default: {
+    props: ['mode', 'busy'],
+    emits: ['confirm', 'cancel'],
+    template:
+      '<div data-test="confirm-stub"><button data-test="confirm-yes" @click="$emit(`confirm`)" /><button data-test="confirm-no" @click="$emit(`cancel`)" /></div>',
+  },
+}))
 
 const i18n = createI18n({ locale: 'de', legacy: false, messages: { de } })
 
@@ -575,11 +585,28 @@ describe('FirstCreation', () => {
       expect(wrapper.find('[data-test="first-creation"]').exists()).toBe(false)
     })
 
+    it('"This is a project account" opens the two-step confirmation and declares nothing yet', async () => {
+      const wrapper = build()
+      await wrapper.find('[data-test="first-creation-nothing"]').trigger('click')
+      await nextTick()
+      await wrapper.find('[data-test="first-creation-project-account"]').trigger('click')
+      await nextTick()
+      expect(wrapper.find('[data-test="first-creation-project-confirm"]').exists()).toBe(true)
+      expect(declareMock).not.toHaveBeenCalled()
+      // Cancelling goes back to the question, not out of the window.
+      await wrapper.find('[data-test="confirm-no"]').trigger('click')
+      await nextTick()
+      expect(wrapper.find('[data-test="first-creation-project-ask"]').exists()).toBe(true)
+      expect(wrapper.find('[data-test="first-creation"]').exists()).toBe(true)
+    })
+
     it('"This is a project account" declares it, tells the store and closes without a skip', async () => {
       const wrapper = build()
       await wrapper.find('[data-test="first-creation-nothing"]').trigger('click')
       await nextTick()
       await wrapper.find('[data-test="first-creation-project-account"]').trigger('click')
+      await nextTick()
+      await wrapper.find('[data-test="confirm-yes"]').trigger('click')
       await vi.runAllTimersAsync()
       expect(declareMock).toHaveBeenCalledTimes(1)
       expect(skipMock).not.toHaveBeenCalled()
@@ -594,13 +621,22 @@ describe('FirstCreation', () => {
       await wrapper.find('[data-test="first-creation-nothing"]').trigger('click')
       await nextTick()
       await wrapper.find('[data-test="first-creation-project-account"]').trigger('click')
+      await nextTick()
+      await wrapper.find('[data-test="confirm-yes"]').trigger('click')
       await vi.runAllTimersAsync()
-      expect(wrapper.find('[data-test="first-creation-project-ask"]').exists()).toBe(true)
+      expect(wrapper.find('[data-test="first-creation-project-confirm"]').exists()).toBe(true)
       expect(wrapper.find('[data-test="first-creation-project-failed"]').text()).toBe(
         de.settings.creationAccount.openContributions,
       )
       expect(storeState.creationAllowed).toBe(true)
       expect(wrapper.find('[data-test="first-creation"]').exists()).toBe(true)
+
+      // Back to the question and in again: the old refusal does not come along.
+      await wrapper.find('[data-test="confirm-no"]').trigger('click')
+      await nextTick()
+      await wrapper.find('[data-test="first-creation-project-account"]').trigger('click')
+      await nextTick()
+      expect(wrapper.find('[data-test="first-creation-project-failed"]').exists()).toBe(false)
     })
   })
 

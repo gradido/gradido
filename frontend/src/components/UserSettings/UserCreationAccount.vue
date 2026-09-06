@@ -22,6 +22,28 @@
     >
       {{ hint }}
     </div>
+
+    <!-- ABN-L3-01: neither direction moves on the click alone. The radio snaps back at once
+         and the modal carries the decision -- off is irreversible for the member (only the
+         support switches it back on), so it takes the question AND the word typed by hand;
+         on is a request to a person, said before the mail goes out. -->
+    <BModal
+      id="modal-project-account"
+      v-model="confirming"
+      hide-header
+      hide-footer
+      centered
+      no-close-on-backdrop
+      data-test="creation-account-modal"
+    >
+      <project-account-confirm
+        v-if="confirming"
+        :mode="confirmMode"
+        :busy="busy"
+        @confirm="confirmed"
+        @cancel="confirming = false"
+      />
+    </BModal>
   </div>
 </template>
 <script setup>
@@ -29,7 +51,8 @@ import { computed, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { useMutation } from '@vue/apollo-composable'
-import { BFormRadioGroup } from 'bootstrap-vue-next'
+import { BFormRadioGroup, BModal } from 'bootstrap-vue-next'
+import ProjectAccountConfirm from '@/components/UserSettings/ProjectAccountConfirm.vue'
 import { declareProjectAccount, requestCreationRight } from '@/graphql/user.graphql'
 import { useAppToast } from '@/composables/useToast'
 
@@ -62,10 +85,28 @@ const options = computed(() => [
 const busy = ref(false)
 const hint = ref('')
 
-const onChoice = async (choice) => {
+/** Which way the member wants to go -- the modal asks, `confirmed` then acts. */
+const confirming = ref(false)
+const confirmMode = ref(PERSON)
+
+const onChoice = (choice) => {
   if (busy.value) {
     return
   }
+  // The radio shows the row, not the wish, until the modal has been answered.
+  selected.value = fromStore()
+  if (choice === fromStore()) {
+    return
+  }
+  confirmMode.value = choice === PROJECT ? 'declare' : 'request'
+  confirming.value = true
+}
+
+const confirmed = async () => {
+  if (busy.value) {
+    return
+  }
+  const choice = confirmMode.value === 'declare' ? PROJECT : PERSON
   busy.value = true
   hint.value = ''
   try {
@@ -94,6 +135,7 @@ const onChoice = async (choice) => {
     // Whatever happened, the radio shows the row, not the wish.
     selected.value = fromStore()
     busy.value = false
+    confirming.value = false
   }
 }
 </script>
