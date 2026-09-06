@@ -91,6 +91,17 @@ const settingsRoutes = [
     component: () => import('@/pages/settings/Notifications.vue'),
     meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
   },
+  // ES-014, the function-test area. ⚠️ Registered unconditionally, unlike the circles below
+  // it, and the difference is not a slip: GMS_ACTIVE is baked into the bundle at build time
+  // and can be read while this list is being built, whereas whether this server offers
+  // function tests is an answer from the server (firstCreationStatus.functionTestsEnabled)
+  // that arrives long afterwards. So the page itself is what turns anybody else away, and
+  // the mutation behind it holds against a bare API call whatever the wallet shows.
+  {
+    path: '/settings/function-tests',
+    component: () => import('@/pages/settings/FunctionTests.vue'),
+    meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
+  },
   // The area exists only where one of the two services is switched on -- otherwise the page
   // would stand empty and still be reachable by typing the address. Same reason the matching
   // routes above are not registered without their flag.

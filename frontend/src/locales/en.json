@@ -929,6 +929,19 @@
       "sent": "We have sent a confirmation e-mail to {email}."
     },
     "emailInfo": "A new address takes effect as soon as you have confirmed it via the link in the confirmation e-mail.",
+    "functionTests": {
+      "firstCreation": {
+        "failed": "That did not work. Please reload the page and try again.",
+        "intro": "The first creation appears once per account — for an account that has already created, it never comes back. Here you can open it again for your own account and run the whole process for real.",
+        "noRunsLeft": "This month’s quota is used up — 0 of {total} runs left.",
+        "runsLeft": "{left} of {total} runs left this month",
+        "signerHint": "You are set as the signer of the first creation. Nobody can confirm their own contribution, so the test cannot run on your account — use another admin account.",
+        "title": "First creation",
+        "unbookedHint": "Without the booking the contributions stay in the admin area as open contributions. You can confirm or delete them there by hand — while they stand, they count against your monthly quota.",
+        "withBooking": "Run the first creation again – with booking",
+        "withoutBooking": "Run the first creation again – without booking"
+      }
+    },
     "hide-amount": "Hide {currency} amount",
     "humhub": {
       "delete-disabled": "The user account can only be deleted in the profile menu of the cooperation platform.",
@@ -947,6 +960,7 @@
     "menu": {
       "account": "My account",
       "appearance": "Display",
+      "function-tests": "Function test",
       "gradido-card": "Business card",
       "notifications": "Messages",
       "state": {

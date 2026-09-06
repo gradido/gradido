@@ -45,6 +45,26 @@ export class FirstCreationQuotaExceeded extends DomainError {
   }
 }
 
+export type FirstCreationTestRefusedReason =
+  /**
+   * The caller is the account configured as signer. The booking path refuses a moderator
+   * confirming their own contribution, and loadSignerFor turns that into "no signer" for
+   * this member — which would leave the forced row standing with a window that never
+   * opens. Refused here instead, where it can be said.
+   */
+  | 'IS_SIGNER'
+  /** FUNCTION_TESTS_ENABLED is off on this server. */
+  | 'DISABLED'
+  /** A first creation is running for this account right now. */
+  | 'RUNNING'
+
+/** The function test could not reopen the window (ES-014). */
+export class FirstCreationTestRefused extends DomainError {
+  constructor(public readonly reason: FirstCreationTestRefusedReason) {
+    super(`FIRST_CREATION_TEST_REFUSED: ${reason}`)
+  }
+}
+
 export type FirstCreationError =
   | FirstCreationNotEligible
   | FirstCreationAlreadyRunning

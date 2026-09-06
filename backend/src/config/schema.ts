@@ -265,6 +265,12 @@ export const schema = Joi.object({
       'Opt-in preview: with no API key, return a canned evaluation (no API call) so the UI/DB/deterministics can be exercised without a key. Off by default in production.',
     ),
 
+  FUNCTION_TESTS_ENABLED: Joi.boolean()
+    .default(true)
+    .description(
+      'ES-014: the function-test area in the wallet settings, for admins. On by default so it works on every server without an environment file being touched; set to false to hide it.',
+    ),
+
   USE_CRYPTO_WORKER: Joi.boolean()
     .default(false)
     .description(

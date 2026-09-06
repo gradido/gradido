@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, afterAll, vi } from 'vitest'
 import { createStore } from 'vuex'
 
 const mockConfig = { GMS_ACTIVE: false, HUMHUB_ACTIVE: false }
@@ -10,30 +10,47 @@ vi.mock('@/config', () => ({
 
 let cardSettings = { value: { thankYouCardSettings: null } }
 let cards = { value: { thankYouCards: [] } }
+let firstCreation = { value: { firstCreationStatus: { functionTestsEnabled: false } } }
 let loading = { value: false }
 let failed = { value: null }
 // ⚠️ Told apart by the query's OWN name, not by stringifying it: a parsed GraphQL document
 // stringifies to "[object Object]", so both queries would have got the same answer -- and the
 // two states that matter would have looked fine while reading the wrong one.
+const answers = {
+  thankYouCardSettings: () => cardSettings,
+  thankYouCards: () => cards,
+  firstCreationStatus: () => firstCreation,
+}
 vi.mock('@vue/apollo-composable', () => ({
-  useQuery: (query) => ({
-    result: query?.definitions?.[0]?.name?.value === 'thankYouCardSettings' ? cardSettings : cards,
-    loading,
-    error: failed,
-  }),
+  useQuery: (query) => {
+    const name = query?.definitions?.[0]?.name?.value
+    const answer = answers[name]
+    // ⛔ Loud rather than a shrug: a query nobody wrote an answer for used to fall through
+    // to `cards`, which reads as an empty result and makes an entry that should be there
+    // look rightly absent.
+    if (!answer) {
+      throw new Error(`no mocked answer for query ${name}`)
+    }
+    return { result: answer(), loading, error: failed }
+  },
 }))
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key) => key }) }))
 
 const RouterLinkStub = { props: ['to'], template: '<a :to="to"><slot /></a>' }
 
-const mountMenu = async ({ avatar = true, newsletter = false, path = '/settings' } = {}) => {
+const mountMenu = async ({
+  avatar = true,
+  newsletter = false,
+  path = '/settings',
+  roles = [],
+} = {}) => {
   vi.resetModules()
   const { default: SettingsMenu } = await import('./SettingsMenu.vue')
   return mount(SettingsMenu, {
     global: {
       plugins: [
         createStore({
-          state: () => ({ avatarVisibleToMembers: avatar, newsletterState: newsletter }),
+          state: () => ({ avatarVisibleToMembers: avatar, newsletterState: newsletter, roles }),
         }),
       ],
       stubs: { RouterLink: RouterLinkStub, 'settings-menu-icon': true },
@@ -74,6 +91,52 @@ describe('the settings menu', () => {
     mockConfig.GMS_ACTIVE = false
 
     expect(wrapper.find('[data-test="settings-menu-communities"]').exists()).toBe(true)
+  })
+
+  /**
+   * ES-014. Two halves, and both are measured in both directions: a member is not shown it
+   * even where the server offers it, and an admin is not shown it where the server does
+   * not. A one-sided "does not appear" test would stay green if the entry disappeared for
+   * everybody.
+   */
+  describe('the function-test area', () => {
+    const setSwitch = (functionTestsEnabled) => {
+      firstCreation = { value: { firstCreationStatus: { functionTestsEnabled } } }
+    }
+
+    it('is there for an admin where the server offers it', async () => {
+      setSwitch(true)
+      const wrapper = await mountMenu({ roles: ['ADMIN'] })
+
+      expect(wrapper.find('[data-test="settings-menu-function-tests"]').exists()).toBe(true)
+    })
+
+    it('is not there for a member, however the server stands', async () => {
+      setSwitch(true)
+      const wrapper = await mountMenu({ roles: [] })
+
+      expect(wrapper.find('[data-test="settings-menu-function-tests"]').exists()).toBe(false)
+    })
+
+    it('is not there for an admin where the server switched it off', async () => {
+      setSwitch(false)
+      const wrapper = await mountMenu({ roles: ['ADMIN'] })
+
+      expect(wrapper.find('[data-test="settings-menu-function-tests"]').exists()).toBe(false)
+    })
+
+    // Nothing is known yet while the answer is on its way, and an entry that flickers in
+    // and out is worse than one that arrives a moment late.
+    it('waits for the answer rather than guessing', async () => {
+      firstCreation = { value: null }
+      const wrapper = await mountMenu({ roles: ['ADMIN'] })
+
+      expect(wrapper.find('[data-test="settings-menu-function-tests"]').exists()).toBe(false)
+    })
+
+    // The tests below this block read other answers; leaving this one where the last case
+    // put it would hand them a null nobody wrote for them.
+    afterAll(() => setSwitch(false))
   })
 
   // /settings shows the account section on a wide screen, so its entry is the one to mark.

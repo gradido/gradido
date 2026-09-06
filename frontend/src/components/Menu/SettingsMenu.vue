@@ -38,6 +38,7 @@ import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { useQuery } from '@vue/apollo-composable'
 import CONFIG from '@/config'
+import { firstCreationStatus } from '@/graphql/firstCreation.graphql'
 import { thankYouCardSettings, thankYouCards } from '@/graphql/thankYouCard.graphql'
 import SettingsMenuIcon from './SettingsMenuIcon.vue'
 
@@ -77,6 +78,24 @@ const thankYouCardState = computed(() => {
 })
 
 const onOff = (value) => (value ? t('settings.menu.state.on') : t('settings.menu.state.off'))
+
+/**
+ * The function-test area (ES-014). Its own query rather than a third field on the two
+ * above, because it is the first creation's status this asks -- the same answer the window
+ * in the layout reads, so on the second of the two menus in the DOM and on the window this
+ * costs nothing new.
+ *
+ * ⚠️ `cache-and-network`, like everywhere this query is read: it takes no arguments, so
+ * every member on this browser shares one cache key.
+ */
+const { result: firstCreation } = useQuery(firstCreationStatus, null, {
+  fetchPolicy: 'cache-and-network',
+})
+const showFunctionTests = computed(
+  () =>
+    (store.state.roles ?? []).includes('ADMIN') &&
+    firstCreation.value?.firstCreationStatus?.functionTestsEnabled === true,
+)
 
 // Every label is a literal t() call: the i18n lint counts only literal keys, and a table of
 // key strings would report every one of them as unused.
@@ -132,6 +151,17 @@ const entries = computed(() => {
       to: '/settings/communities',
       test: 'communities',
       label: t('settings.community'),
+    })
+  }
+  // ES-014: a tool, not a setting, and last in the list for that reason. Both halves have
+  // to hold -- the server offers the area at all, and this account may use it. The route is
+  // registered whatever the answer (routes.js says why), so the page turns anybody else
+  // away and the backend refuses the mutation regardless; this line is only the way in.
+  if (showFunctionTests.value) {
+    list.push({
+      to: '/settings/function-tests',
+      test: 'function-tests',
+      label: t('settings.menu.function-tests'),
     })
   }
   return list

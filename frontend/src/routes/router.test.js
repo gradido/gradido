@@ -84,8 +84,8 @@ describe('router', () => {
       expect(defaultRoute.redirect()).toEqual({ path: '/login' })
     })
 
-    it('has 41 routes defined', () => {
-      expect(routes).toHaveLength(41)
+    it('has 42 routes defined', () => {
+      expect(routes).toHaveLength(42)
     })
 
     // The settings are one route per area. That is what lets the same pages serve both
@@ -105,6 +105,9 @@ describe('router', () => {
           '/settings/thank-you-card',
           '/settings/visibility',
           '/settings/notifications',
+          // Registered whatever the server answers, unlike /settings/communities, which is
+          // gated on a build-time flag and is therefore absent here. routes.js says why.
+          '/settings/function-tests',
           '/settings/extern',
         ])
       })

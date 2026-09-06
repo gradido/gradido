@@ -114,6 +114,10 @@ export enum RIGHTS {
   // Correcting a typo in an address that was NEVER confirmed (the member cannot reach the
   // account to do it themselves). Writes on somebody else's contact row - admin only.
   ADMIN_REPLACE_UNCONFIRMED_EMAIL = 'ADMIN_REPLACE_UNCONFIRMED_EMAIL',
+  // ES-014: the function-test area. Reopening one's OWN first-creation window on an
+  // account that has long since created — a tool, not a setting, and admin only because
+  // the run that follows books real Gradido out of the caller's own monthly quota.
+  FUNCTION_TESTS = 'FUNCTION_TESTS',
   // LEGACY-HASHTAG-ADOPTION -- removable with the feature.
   // Adopting the legacy hashtags writes links onto OTHER members' contributions, in bulk.
   // Managing the group list itself does not, so it gets a right of its own rather than

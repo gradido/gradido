@@ -4,6 +4,7 @@ import {
   AppDatabase,
   Contribution as DbContribution,
   User as DbUser,
+  dbGetFirstCreationSignerUserId,
   dbInsertFirstCreation,
   dbSelectFirstCreationByUserId,
   dbSelectFirstCreationEntriesByIds,
@@ -16,10 +17,12 @@ import {
 } from 'database'
 import { getLogger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
-import { Result } from 'shared'
+import { Result, VoidResult } from 'shared'
 import { AnthropicClient } from '@/apis/anthropic/AnthropicClient'
 import type { FirstCreationAnswer } from '@/apis/anthropic/crea/firstCreation'
 import { buildStubFirstCreationLines } from '@/apis/anthropic/crea/stub'
+import { RIGHTS } from '@/auth/RIGHTS'
+import { roleByName } from '@/auth/ROLES'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
@@ -33,17 +36,20 @@ import {
   EVENT_FIRST_CREATION_DONE,
   EVENT_FIRST_CREATION_REVIEW,
   EVENT_FIRST_CREATION_SKIP,
+  EVENT_FIRST_CREATION_TEST,
   EVENT_FIRST_CREATION_UNBOOKED,
 } from '@/event/Events'
 import {
   FirstCreationAlreadyRunning,
   FirstCreationError,
   FirstCreationNotEligible,
+  FirstCreationTestRefused,
 } from './FirstCreation.errors'
 import { loadSignerFor, Signer, signerComments, signerConfirms } from './Signer.role'
 import {
   checkEligibility,
   checkQuota,
+  countRemainingTestRuns,
   fileContributions,
   PreparedEntry,
   prepareEntries,
@@ -66,6 +72,7 @@ export interface FirstCreationView {
   entries: FirstCreationEntryView[]
   functionTestsEnabled: boolean
   testRunsLeft: number | null
+  isFirstCreationSigner: boolean | null
 }
 
 export interface FirstCreationEntryView {
@@ -159,9 +166,37 @@ export async function readFirstCreationStatus(
     eligible: await isEligible(user, row),
     message: showsPreviousRun ? null : (row?.message ?? null),
     entries,
-    // L4 brings the function-test area; until then the window has nothing to show there.
-    functionTestsEnabled: false,
-    testRunsLeft: null,
+    ...(await functionTestView(user, clientTimezoneOffset)),
+  }
+}
+
+/**
+ * The three fields the function-test area reads (ES-014). They answer TOGETHER or not at
+ * all: the switch is a plain server setting and everybody may know it, but the count and
+ * the signer question cost two more reads apiece, so they are asked only for an account
+ * that actually holds the key — which is every reader of that area and nobody else.
+ *
+ * The role is read off the user's own `userRoles`, the same relation isAuthorized loads
+ * onto the context user (`relations: ['emailContact', 'userRoles']`) and the same mapping
+ * it applies. A user handed in without that relation falls to ROLE_USER through
+ * roleByName's default branch, so the two extra reads are skipped and the fields say
+ * nothing — the direction a mistake has to fail in.
+ */
+async function functionTestView(
+  user: DbUser,
+  clientTimezoneOffset: number,
+): Promise<
+  Pick<FirstCreationView, 'functionTestsEnabled' | 'testRunsLeft' | 'isFirstCreationSigner'>
+> {
+  const enabled = CONFIG.FUNCTION_TESTS_ENABLED
+  const mayRunFunctionTests = roleByName(user.userRoles?.[0]?.role).hasRight(RIGHTS.FUNCTION_TESTS)
+  if (!enabled || !mayRunFunctionTests) {
+    return { functionTestsEnabled: enabled, testRunsLeft: null, isFirstCreationSigner: null }
+  }
+  return {
+    functionTestsEnabled: true,
+    testRunsLeft: await countRemainingTestRuns(user.id, clientTimezoneOffset),
+    isFirstCreationSigner: (await dbGetFirstCreationSignerUserId()) === user.id,
   }
 }
 
@@ -223,6 +258,101 @@ export async function skipFirstCreation(user: DbUser): Promise<void> {
   if (await isEligible(user, row)) {
     await EVENT_FIRST_CREATION_SKIP(user)
   }
+}
+
+/**
+ * ES-014: reopen this admin's OWN window on an account that has long since created, and
+ * say which of the two variants the run that follows is (ES-016). Everything after this is
+ * the ordinary process — the row is simply put back to FORCED, which is the one state
+ * checkEligibility lets past a member who has already created.
+ *
+ * ⛔ Refused for the configured signer, BEFORE the row is written. loadSignerFor answers
+ * IS_MEMBER for them, so the window would come out `eligible: false`: the forced row would
+ * sit there and nothing would ever appear. The wallet says the same thing in front of the
+ * button (isFirstCreationSigner); this is what makes it hold against a bare API call.
+ *
+ * The member's own lock is taken for the same reason submitFirstCreation takes it: a run
+ * in flight must not have its row pulled back under it.
+ */
+export async function startFirstCreationTest(
+  user: DbUser,
+  withBooking: boolean,
+): Promise<VoidResult<FirstCreationTestRefused>> {
+  if (!CONFIG.FUNCTION_TESTS_ENABLED) {
+    return { success: false, error: new FirstCreationTestRefused('DISABLED') }
+  }
+  const signer = await loadSignerFor(user.id)
+  if (!signer.success && signer.error.reason === 'IS_MEMBER') {
+    return { success: false, error: new FirstCreationTestRefused('IS_SIGNER') }
+  }
+  const mutex = memberLock(user.id)
+  if (!(await mutex.tryAcquire())) {
+    return { success: false, error: new FirstCreationTestRefused('RUNNING') }
+  }
+  try {
+    const forced = await forceProcessRow(user.id, withBooking)
+    if (!forced.success) {
+      return forced
+    }
+  } finally {
+    await releaseQuietly(mutex, user.id)
+  }
+  await EVENT_FIRST_CREATION_TEST(user)
+  return { success: true }
+}
+
+/**
+ * The row, put back to FORCED. A row that is SUBMITTED belongs to a process still on its
+ * way and is refused; every other state is an outcome and may be reopened.
+ *
+ * What the previous run left is cleared here rather than at the next claim: a FORCED row
+ * is a window about to open, and its message, its model and its signer describe a run that
+ * is over. The expected status is the one just read, so a writer who got there first loses
+ * this step instead of overwriting them.
+ */
+async function forceProcessRow(
+  userId: number,
+  withBooking: boolean,
+): Promise<VoidResult<FirstCreationTestRefused>> {
+  const testMode = withBooking
+    ? FirstCreationTestMode.WITH_BOOKING
+    : FirstCreationTestMode.WITHOUT_BOOKING
+  const existing = await dbSelectFirstCreationByUserId(userId)
+  if (!existing) {
+    const inserted = await dbInsertFirstCreation({
+      userId,
+      status: FirstCreationStatus.FORCED,
+      entriesCount: 0,
+      contributionIds: [],
+      testMode,
+    })
+    if (!inserted.success) {
+      // A second call landed between the read and the insert; that call did the same job.
+      return { success: false, error: new FirstCreationTestRefused('RUNNING') }
+    }
+    return { success: true }
+  }
+  if (existing.status === FirstCreationStatus.SUBMITTED) {
+    return { success: false, error: new FirstCreationTestRefused('RUNNING') }
+  }
+  const moved = await dbUpdateFirstCreationOutcome(
+    existing.id,
+    existing.status as FirstCreationStatus,
+    {
+      status: FirstCreationStatus.FORCED,
+      testMode,
+      reviewReason: null,
+      message: null,
+      model: null,
+      signerUserId: null,
+      contributionIds: [],
+      entriesCount: 0,
+    },
+  )
+  if (!moved.success) {
+    return { success: false, error: new FirstCreationTestRefused('RUNNING') }
+  }
+  return { success: true }
 }
 
 type ModelStep =

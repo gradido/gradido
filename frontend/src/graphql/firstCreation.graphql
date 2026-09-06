@@ -17,6 +17,7 @@ query firstCreationStatus {
     }
     functionTestsEnabled
     testRunsLeft
+    isFirstCreationSigner
   }
 }
 
@@ -35,9 +36,17 @@ mutation submitFirstCreation($entries: [FirstCreationEntryInput!]!) {
     }
     functionTestsEnabled
     testRunsLeft
+    isFirstCreationSigner
   }
 }
 
 mutation skipFirstCreation {
   skipFirstCreation
+}
+
+# ES-014: reopen one's OWN first-creation window on an account that has long since created,
+# with or without the booking (ES-016). Admins only (RIGHTS.FUNCTION_TESTS) -- the run that
+# follows is real and spends the caller's own monthly quota.
+mutation startFirstCreationTest($withBooking: Boolean!) {
+  startFirstCreationTest(withBooking: $withBooking)
 }

@@ -6,6 +6,7 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import {
   readFirstCreationStatus,
   skipFirstCreation,
+  startFirstCreationTest,
   submitFirstCreation,
 } from '@/interactions/firstCreation/FirstCreation.context'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
@@ -45,6 +46,24 @@ export class FirstCreationResolver {
   @Mutation(() => Boolean)
   async skipFirstCreation(@Ctx() context: Context): Promise<boolean> {
     await skipFirstCreation(getUser(context))
+    return true
+  }
+
+  /**
+   * ES-014: reopen one's own first-creation window, with or without the booking (ES-016).
+   * Its own right rather than FIRST_CREATION: this one is for administrators, and a right
+   * everybody holds cannot be withdrawn from anybody.
+   */
+  @Authorized([RIGHTS.FUNCTION_TESTS])
+  @Mutation(() => Boolean)
+  async startFirstCreationTest(
+    @Arg('withBooking', () => Boolean) withBooking: boolean,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    const result = await startFirstCreationTest(getUser(context), withBooking)
+    if (!result.success) {
+      throw new LogError(result.error.message)
+    }
     return true
   }
 }

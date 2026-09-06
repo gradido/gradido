@@ -621,6 +621,7 @@ export const firstCreationStatus = gql`
       }
       functionTestsEnabled
       testRunsLeft
+      isFirstCreationSigner
     }
   }
 `

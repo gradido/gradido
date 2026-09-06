@@ -25,6 +25,19 @@ const server = {
   GDT_ACTIVE: process.env.GDT_ACTIVE === 'true' || false,
   GDT_API_URL: process.env.GDT_API_URL ?? 'https://gdt.gradido.net',
   PRODUCTION: process.env.NODE_ENV === 'production' || false,
+  // ES-014: the function-test area in the wallet settings, admins only. On by default, so
+  // the areas can be used on every server without anybody editing an environment file --
+  // a community that does not want it switches it off with one line.
+  //
+  // ⛔ Deliberately NOT in .env.dist or any .env.template: a name a server's own .env has
+  // never seen is left standing by `envsubst` as a literal `$NAME`, which is a self
+  // reference that kills the frontend build AFTER start.sh has stopped the services
+  // (10./11.08.2026, twice). Read here from process.env with a default, and handed to the
+  // wallet through firstCreationStatus.functionTestsEnabled -- no frontend env either.
+  //
+  // The reversed test (`!== 'false'`) is what makes the default ON: an unset name is on,
+  // and only the literal string "false" switches it off.
+  FUNCTION_TESTS_ENABLED: process.env.FUNCTION_TESTS_ENABLED !== 'false',
 }
 
 const klicktipp = {
