@@ -267,6 +267,7 @@
     "enter_text": "Text eintragen",
     "form": "Schöpfungsformular",
     "min_characters": "Mindestens 10 Zeichen eingeben",
+    "not_allowed": "Dieses Konto ist ein Projekt-Konto und schöpft nicht. Das Schöpfen lässt sich unter „Nutzer-Rolle“ wieder einschalten.",
     "reset": "Zurücksetzen",
     "select_month": "Monat auswählen",
     "select_value": "Betrag auswählen",
@@ -507,6 +508,14 @@
   },
   "unregistered_emails": "Nur unregistrierte Nutzer",
   "userRole": {
+    "creationAllowed": {
+      "help": "Ein Projekt-Konto (Verein, Projekt, Geschäft) schöpft nicht, es empfängt Dank. Ausschalten kann das Mitglied selbst; einschalten nur ein Administrator.",
+      "label": "Kann schöpfen",
+      "no": "nein",
+      "switchedOff": "Schöpfen ausgeschaltet – dieses Konto ist jetzt ein Projekt-Konto.",
+      "switchedOn": "Schöpfen eingeschaltet – dieses Konto kann wieder schöpfen.",
+      "yes": "ja"
+    },
     "creationGroups": {
       "help": "Wird beim Einreichen vorbelegt.",
       "label": "Haupt-Schöpfungsgruppe des Nutzers",

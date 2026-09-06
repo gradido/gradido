@@ -44,6 +44,31 @@
           <small class="d-block text-muted mt-1">{{ $t('userRole.scope.help') }}</small>
         </div>
       </div>
+
+      <!-- ES-021: "may create" -- next to the roles, because it is a right, but NOT a role:
+           one column on the account, both directions. Administrators only (the mutation is
+           behind SET_CREATION_ALLOWED); a moderator sees where the switch stands. Outside
+           the v-if/v-else above on purpose: an administrator may flip it on their OWN
+           account too, and that branch shows nothing else. -->
+      <hr />
+      <div class="m-3" data-test="creation-allowed">
+        <BFormCheckbox
+          v-if="isModeratorRoleAdmin"
+          v-model="creationAllowed"
+          switch
+          data-test="creation-allowed-switch"
+          @update:model-value="saveCreationAllowed"
+        >
+          {{ $t('userRole.creationAllowed.label') }}
+        </BFormCheckbox>
+        <div v-else data-test="creation-allowed-readonly">
+          {{ $t('userRole.creationAllowed.label') }}:
+          {{
+            creationAllowed ? $t('userRole.creationAllowed.yes') : $t('userRole.creationAllowed.no')
+          }}
+        </div>
+        <small class="d-block text-muted mt-1">{{ $t('userRole.creationAllowed.help') }}</small>
+      </div>
     </div>
   </div>
 </template>
@@ -51,10 +76,11 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { BButton, BFormSelect } from 'bootstrap-vue-next'
+import { BButton, BFormCheckbox, BFormSelect } from 'bootstrap-vue-next'
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import { creationGroupOption } from '@/utils/creationGroupLabel'
 import { setUserRole as setUserRoleMutation } from '../graphql/setUserRole'
+import { setCreationAllowed as setCreationAllowedMutation } from '../graphql/setCreationAllowed'
 import {
   creationGroups,
   userCreationGroups,
@@ -88,7 +114,7 @@ const getCurrentRole = () => {
 const currentRole = ref(getCurrentRole())
 const roleSelected = ref(getCurrentRole())
 
-const emit = defineEmits(['update-roles', 'show-modal', 'select-role'])
+const emit = defineEmits(['update-roles', 'show-modal', 'select-role', 'update-creation-allowed'])
 const isModeratorRoleAdmin = computed(() => store.state.moderator.roles.includes('ADMIN'))
 const moderatorId = computed(() => store.state.moderator.id)
 
@@ -213,6 +239,27 @@ const saveScope = async () => {
     await refetchScope()
     toastSuccess(t('userRole.savedScope'))
   } catch (error) {
+    toastError(error.message)
+  }
+}
+
+// --- ES-021: may this account create? ---
+// `!== false`: a row from before the field existed says nothing, and nothing means the
+// default every account has -- a person who may create.
+const creationAllowed = ref(props.item.creationAllowed !== false)
+const { mutate: setCreationAllowed } = useMutation(setCreationAllowedMutation)
+const saveCreationAllowed = async (allowed) => {
+  try {
+    const result = await setCreationAllowed({ userId: props.item.userId, allowed })
+    const now = result?.data?.setCreationAllowed ?? allowed
+    creationAllowed.value = now
+    emit('update-creation-allowed', { userId: props.item.userId, creationAllowed: now })
+    toastSuccess(
+      now ? t('userRole.creationAllowed.switchedOn') : t('userRole.creationAllowed.switchedOff'),
+    )
+  } catch (error) {
+    // The switch shows the row, not the wish.
+    creationAllowed.value = !allowed
     toastError(error.message)
   }
 }

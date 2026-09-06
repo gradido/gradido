@@ -267,6 +267,7 @@
     "enter_text": "Saisir un texte",
     "form": "Formulaire de création",
     "min_characters": "Saisis au moins 10 caractères",
+    "not_allowed": "This account is a project account and does not create. Creation can be switched back on under “User Role”.",
     "reset": "Réinitialiser",
     "select_month": "Sélectionner le mois",
     "select_value": "Sélectionner le montant",
@@ -507,6 +508,14 @@
   },
   "unregistered_emails": "Uniquement les utilisateurs non inscrits",
   "userRole": {
+    "creationAllowed": {
+      "help": "A project account (association, project, business) does not create, it receives thanks. The member can switch it off; only an administrator switches it back on.",
+      "label": "May create",
+      "no": "no",
+      "switchedOff": "Creation switched off – this account is now a project account.",
+      "switchedOn": "Creation switched on – this account can create again.",
+      "yes": "yes"
+    },
     "creationGroups": {
       "help": "Pre-filled on submission.",
       "label": "User's main creation group",
