@@ -197,9 +197,11 @@
       "supportedDisabledPerson": "I supported a person with a disability by {text}"
     },
     "checks": {
+      "child": "I am a child.",
       "retiree": "I am a retiree."
     },
     "message": {
+      "childLine": "for being here and seeing the world with your own eyes",
       "closing": "Good to have you here.",
       "greetingAnonymous": "Welcome!",
       "greetingFemale": "Dear {name}, welcome!",
