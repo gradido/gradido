@@ -279,6 +279,34 @@ export async function dbClearGmsRegistration(userId: number): Promise<VoidResult
 }
 
 /**
+ * ES-021: switch an account between "person, may create" and "project account, may not".
+ * This one column and nothing else — the callers hold a request-context snapshot of the
+ * member, and a full `save()` would write every stale column back (see dbUpdateUserPassword).
+ *
+ * TypeORM rather than Drizzle, on purpose: the declaration writes this column AND an event
+ * row, and the two must land together or not at all. The events live in TypeORM, one
+ * transaction covers one ORM only (AGENTS.md), so this write joins the event's side. Pass
+ * `manager` from inside that transaction.
+ *
+ * Writing the value the row already holds is a success: mysql2 connects with FOUND_ROWS,
+ * so `affected` counts the matched row, not a changed one — dbClearGmsRegistration relies
+ * on the same thing.
+ */
+export async function dbSetCreationAllowed(
+  userId: number,
+  allowed: boolean,
+  manager?: EntityManager,
+): Promise<VoidResult<DBNotFoundError>> {
+  const result = manager
+    ? await manager.update(DbUser, { id: userId }, { creationAllowed: allowed })
+    : await DbUser.update({ id: userId }, { creationAllowed: allowed })
+  if (result.affected === 1) {
+    return { success: true }
+  }
+  return { success: false, error: new DBNotFoundError('users', `id = ${userId}`) }
+}
+
+/**
  * The REAL names of the moderators behind a contribution -- who changed it, who moderated
  * it, who closed it. Its one caller is the admin contribution list.
  *

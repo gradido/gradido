@@ -161,7 +161,11 @@ describe('Login', () => {
         })
         mockQuery.mockResolvedValue({
           data: {
-            verifyLogin: { avatar: 'base64-picture', avatarVisibleToMembers: false },
+            verifyLogin: {
+              avatar: 'base64-picture',
+              avatarVisibleToMembers: false,
+              creationAllowed: false,
+            },
           },
         })
         await wrapper.find('form').trigger('submit')
@@ -202,6 +206,13 @@ describe('Login', () => {
       // switch a member consults to check that they are hidden.
       it('commits the picture-visibility setting from the same fetch', () => {
         expect(store.commit).toHaveBeenCalledWith('avatarVisibleToMembers', false)
+      })
+
+      // ES-021: the "Create" menu item hangs on this, and the login answer does not carry
+      // it. Miss this commit and a project account sees "Create" until the next session
+      // renewal -- and a tap on it earns a page of refusals.
+      it('commits whether the account may create, from the same fetch', () => {
+        expect(store.commit).toHaveBeenCalledWith('creationAllowed', false)
       })
     })
 

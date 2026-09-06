@@ -4,6 +4,7 @@ import { AuthChecker } from 'type-graphql'
 
 import { INALIENABLE_RIGHTS } from '@/auth/INALIENABLE_RIGHTS'
 import { decode, encode } from '@/auth/JWT'
+import { RESTRICTED_FOR_PROJECT_ACCOUNT } from '@/auth/RESTRICTED_FOR_PROJECT_ACCOUNT'
 import { RESTRICTED_WHILE_UNCONFIRMED } from '@/auth/RESTRICTED_WHILE_UNCONFIRMED'
 import { RIGHTS } from '@/auth/RIGHTS'
 import {
@@ -95,6 +96,20 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
   ) {
     const refused = (rights as RIGHTS[]).filter((right) =>
       RESTRICTED_WHILE_UNCONFIRMED.includes(right),
+    )
+    if (refused.length !== 0) {
+      throw new LogError('401 Unauthorized')
+    }
+  }
+
+  // ES-021: a project account does not create. Same construction as the block above —
+  // a deny-list laid over the role's rights, checked purely in memory: `creation_allowed`
+  // is a column on the user row that was loaded above, so no request gains a query.
+  // The missing "Create" menu item in the wallet is the visible half; this is what holds
+  // against a bare API call.
+  if (context.user && !context.user.creationAllowed) {
+    const refused = (rights as RIGHTS[]).filter((right) =>
+      RESTRICTED_FOR_PROJECT_ACCOUNT.includes(right),
     )
     if (refused.length !== 0) {
       throw new LogError('401 Unauthorized')

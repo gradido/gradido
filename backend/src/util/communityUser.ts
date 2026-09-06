@@ -24,6 +24,10 @@ const communityDbUser: dbUser = {
   // so it can never have agreed to show one. Same reasoning as for deleted members --
   // whoever cannot flip the switch must not be shown as having flipped it.
   avatarVisibleToMembers: false,
+  // false, and again not the column's default: the community's stand-in is the
+  // counterparty of a CREATION booking, never the account that creates. A stand-in that
+  // "may create" would be a person nobody can ask.
+  creationAllowed: false,
   gender: null,
   salutation: null,
   creaSignature: null,

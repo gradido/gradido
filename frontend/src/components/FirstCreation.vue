@@ -150,6 +150,23 @@
       </div>
     </div>
 
+    <!-- ── the project-account question (ES-012), once ───────────────────────── -->
+    <!-- Behind "nothing comes to mind", not in the footer of the form: the one place where
+         the difference between a person and a project first makes a difference, and it must
+         not distract anybody who is a person (mockup, section 6). Asked on the FIRST skip
+         only -- `skippedBefore` comes from the server, so it holds across devices. -->
+    <div
+      v-else-if="screen === 'projectAsk'"
+      class="fc px-2 pt-3"
+      data-test="first-creation-project-ask"
+    >
+      <p class="h5 mb-2">{{ $t('firstCreation.projectAsk.title') }}</p>
+      <p>{{ $t('firstCreation.projectAsk.text') }}</p>
+      <p v-if="projectFailed" class="fc-note text-danger" data-test="first-creation-project-failed">
+        {{ projectFailed }}
+      </p>
+    </div>
+
     <!-- ── the ticks, then the message ──────────────────────────────────────── -->
     <div v-else-if="screen === 'result'" class="fc px-2 pt-3" data-test="first-creation-result">
       <div v-for="(entry, index) in doneEntries" :key="index" class="fc-line">
@@ -209,6 +226,26 @@
         </BButton>
       </template>
 
+      <template v-else-if="screen === 'projectAsk'">
+        <button
+          type="button"
+          class="fc-link"
+          :disabled="answering"
+          data-test="first-creation-project-account"
+          @click="declareProject"
+        >
+          {{ $t('firstCreation.projectAsk.project') }}
+        </button>
+        <BButton
+          variant="secondary"
+          :disabled="answering"
+          data-test="first-creation-later"
+          @click="later"
+        >
+          {{ $t('firstCreation.projectAsk.later') }}
+        </BButton>
+      </template>
+
       <!-- Nothing to press while the request is still out there. Once it is gone and the
            process runs on without us (see `ask` below), the way out comes back -- a member
            whose connection dropped must not be held in front of a spinner. -->
@@ -250,6 +287,7 @@ import {
   skipFirstCreation,
   submitFirstCreation,
 } from '@/graphql/firstCreation.graphql'
+import { declareProjectAccount } from '@/graphql/user.graphql'
 import {
   FIRST_CREATION_CATEGORIES,
   FIRST_CREATION_CHECK_KEYS,
@@ -305,6 +343,7 @@ const { result, refetch } = useQuery(firstCreationStatus, null, {
 })
 const { mutate: sendEntries } = useMutation(submitFirstCreation)
 const { mutate: sendSkip } = useMutation(skipFirstCreation)
+const { mutate: sendDeclare } = useMutation(declareProjectAccount)
 
 /**
  * "Willkommen, Ira!" — the member's own first name, out of the store the login already
@@ -568,7 +607,20 @@ const settled = ref(null)
 
 const status = computed(() => settled.value ?? result.value?.firstCreationStatus ?? null)
 
+/** ES-012: the project-account question is on screen. */
+const askingProject = ref(false)
+/**
+ * One flag for both answers to it. "Later" and "project account" each send a mutation, and a
+ * second tap while the first is out would send it again — a skip twice is two skip events,
+ * and the count of skippers is a measurement. So both buttons hang on this one flag.
+ */
+const answering = ref(false)
+const projectFailed = ref('')
+
 const screen = computed(() => {
+  if (askingProject.value) {
+    return 'projectAsk'
+  }
   if (sending.value || status.value?.state === 'SUBMITTED') {
     return 'waiting'
   }
@@ -673,12 +725,54 @@ const submit = async () => {
  * mutation writes no row — it is an event, so the count of people who skipped stays honest.
  */
 const nothingComesToMind = async () => {
+  // ES-012: the first time, one question before the window goes -- and only the first
+  // time. The server remembers the skip, so the second "nothing" closes at once.
+  if (!status.value?.skippedBefore) {
+    askingProject.value = true
+    return
+  }
+  await later()
+}
+
+/** "Later": the skip as before, question answered by not answering it (ES-011). */
+const later = async () => {
+  if (answering.value) {
+    return
+  }
+  answering.value = true
   try {
     await sendSkip()
   } catch {
     /* A lost measurement is not worth holding the member in a window they want to leave. */
+  } finally {
+    answering.value = false
   }
   close()
+}
+
+/**
+ * "This is a project account": creation is off from now on (ES-021), and this window is
+ * gone for good -- the server no longer calls the account eligible. The store learns it
+ * here, so the "Create" menu item disappears without waiting for the next verifyLogin.
+ */
+const declareProject = async () => {
+  if (answering.value) {
+    return
+  }
+  answering.value = true
+  projectFailed.value = ''
+  try {
+    await sendDeclare()
+    store.commit('creationAllowed', false)
+    close()
+  } catch (error) {
+    const message = error?.message ?? ''
+    projectFailed.value = message.includes('OPEN_CONTRIBUTIONS')
+      ? t('settings.creationAccount.openContributions')
+      : t('firstCreation.failed')
+  } finally {
+    answering.value = false
+  }
 }
 
 const close = () => {

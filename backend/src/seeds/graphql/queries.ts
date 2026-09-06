@@ -6,6 +6,7 @@ export const verifyLogin = gql`
       firstName
       lastName
       language
+      creationAllowed
       klickTipp {
         newsletterState
       }
@@ -167,6 +168,7 @@ export const searchUsers = gql`
         emailConfirmationSend
         deletedAt
         roles
+        creationAllowed
       }
     }
   }
@@ -608,6 +610,16 @@ export const creaSettings = gql`
   }
 `
 
+export const openCreations = gql`
+  query {
+    openCreations {
+      month
+      year
+      amount
+    }
+  }
+`
+
 export const firstCreationStatus = gql`
   query {
     firstCreationStatus {
@@ -619,6 +631,7 @@ export const firstCreationStatus = gql`
         confirmed
         status
       }
+      skippedBefore
       functionTestsEnabled
       testRunsLeft
       isFirstCreationSigner

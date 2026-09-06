@@ -21,6 +21,7 @@ export class UserAdmin {
     this.createdAt = user.createdAt
     this.emailConfirmationSend = emailConfirmationSend
     this.roles = user.userRoles?.map((userRole) => userRole.role) ?? []
+    this.creationAllowed = user.creationAllowed
   }
 
   @Field(() => Int)
@@ -55,6 +56,10 @@ export class UserAdmin {
 
   @Field(() => [String])
   roles: string[]
+
+  // ES-021: the admin's "may create" switch reads its position from here.
+  @Field(() => Boolean)
+  creationAllowed: boolean
 }
 
 @ObjectType()

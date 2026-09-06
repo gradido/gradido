@@ -16,6 +16,12 @@ const router = createRouter({
     { path: '/register', name: 'Register' },
     { path: '/forgot-password', name: 'ForgotPassword' },
     { path: '/protected', name: 'Protected', meta: { requiresAuth: true } },
+    { path: '/contributions', name: 'Contributions', meta: { requiresAuth: true } },
+    {
+      path: '/contributions/contribute',
+      name: 'Contribute',
+      meta: { requiresAuth: true },
+    },
   ],
 })
 
@@ -108,6 +114,28 @@ describe('navigation guards', () => {
       expect(apolloQueryMock).toHaveBeenCalled()
       expect(storeDispatchMock).toHaveBeenCalledWith('logout')
       expect(router.currentRoute.value.path).toBe('/authenticate')
+    })
+  })
+
+  // ES-021: the creation area is gone for a project account, from the address bar too.
+  describe('the creation area and the project account', () => {
+    beforeEach(() => {
+      store.state.token = 'valid-token'
+    })
+
+    it('sends a project account from the creation area to the overview', async () => {
+      store.state.creationAllowed = false
+      await router.push('/contributions/contribute')
+      expect(router.currentRoute.value.path).toBe('/overview')
+    })
+
+    it('lets a person in, and an account the store does not know yet', async () => {
+      store.state.creationAllowed = true
+      await router.push('/contributions')
+      expect(router.currentRoute.value.path).toBe('/contributions')
+      store.state.creationAllowed = null
+      await router.push('/contributions/contribute')
+      expect(router.currentRoute.value.path).toBe('/contributions/contribute')
     })
   })
 

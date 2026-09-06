@@ -5,6 +5,7 @@ import { ContributionStatus } from '../enum/ContributionStatus'
 import { ContributionType } from '../enum/ContributionType'
 import { contributionsTable } from '../schemas'
 import {
+  dbCountOpenContributionsByUserId,
   dbCountUserTypedContributionsByUserId,
   dbSelectFirstCreationEntriesByIds,
 } from './contributions'
@@ -56,6 +57,14 @@ beforeAll(async () => {
   // An admin-filed one for Alice and a USER one for Bob: neither may count for Alice.
   await insert(ALICE, 'Startguthaben', ContributionType.ADMIN)
   await insert(BOB, 'Ich habe etwas getan', ContributionType.USER)
+  // Two more shapes of "open" for Bob: one in progress, one denied (settled, not open).
+  await insert(BOB, 'Ich habe noch etwas getan', ContributionType.ADMIN, {
+    status: ContributionStatus.IN_PROGRESS,
+  })
+  // ADMIN-typed, so the USER-typed count above keeps its one row for Bob.
+  await insert(BOB, 'Das wurde abgelehnt', ContributionType.ADMIN, {
+    status: ContributionStatus.DENIED,
+  })
 })
 afterAll(async () => {
   await db.delete(contributionsTable)
@@ -68,6 +77,14 @@ describe('contributions query test', () => {
     expect(await dbCountUserTypedContributionsByUserId(ALICE)).toBe(3)
     expect(await dbCountUserTypedContributionsByUserId(BOB)).toBe(1)
     expect(await dbCountUserTypedContributionsByUserId(999)).toBe(0)
+  })
+
+  it('counts the open contributions of a member, whoever filed them, deleted ones excluded', async () => {
+    // Alice: one confirmed (settled), one PENDING, one deleted, one ADMIN PENDING -> 2.
+    expect(await dbCountOpenContributionsByUserId(ALICE)).toBe(2)
+    // Bob: one PENDING, one IN_PROGRESS, one DENIED -> 2.
+    expect(await dbCountOpenContributionsByUserId(BOB)).toBe(2)
+    expect(await dbCountOpenContributionsByUserId(999)).toBe(0)
   })
 
   it('returns the entries in the order of the ids, with tick and deletion visible', async () => {

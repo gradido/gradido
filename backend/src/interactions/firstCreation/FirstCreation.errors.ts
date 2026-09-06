@@ -10,6 +10,8 @@ export type FirstCreationNotEligibleReason =
   | 'NO_CATALOG'
   | 'ALREADY_STARTED'
   | 'HAS_MANUAL_CONTRIBUTION'
+  /** A project account does not create (ES-021). */
+  | 'PROJECT_ACCOUNT'
 
 /** The window should not have been open for this member right now. */
 export class FirstCreationNotEligible extends DomainError {
@@ -67,6 +69,12 @@ export type FirstCreationTestRefusedReason =
   | 'NO_QUOTA'
   /** FUNCTION_TESTS_ENABLED is off on this server. */
   | 'DISABLED'
+  /**
+   * The caller declared their own account a project account (ES-021). Same class as the
+   * three above: the row would be forced and the window would still not open, because
+   * isEligible asks the account kind first.
+   */
+  | 'PROJECT_ACCOUNT'
   /** A first creation is running for this account right now. */
   | 'RUNNING'
 

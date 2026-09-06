@@ -70,6 +70,19 @@ const addNavigationGuards = (router, store, apollo) => {
       next()
     }
   })
+
+  // ES-021: a project account does not create, so the whole creation area is gone for it --
+  // from the menu (Sidebar.vue) and, here, from the address bar. The backend refuses the
+  // calls behind that page either way (RESTRICTED_FOR_PROJECT_ACCOUNT); this only spares
+  // the member a page of error toasts. `=== false`, not a falsy check: null is "not known",
+  // and for not-known the answer is the one every existing account has.
+  router.beforeEach((to, from, next) => {
+    if (to.path.startsWith('/contributions') && store.state.creationAllowed === false) {
+      next({ path: '/overview' })
+    } else {
+      next()
+    }
+  })
 }
 
 export default addNavigationGuards

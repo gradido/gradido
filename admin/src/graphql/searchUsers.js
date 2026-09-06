@@ -28,6 +28,7 @@ export const searchUsers = gql`
         deletedAt
         createdAt
         roles
+        creationAllowed
       }
     }
   }

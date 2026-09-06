@@ -130,6 +130,8 @@ const onSubmit = handleSubmit(async (values) => {
       const { data } = await client.query({ query: verifyLogin, fetchPolicy: 'network-only' })
       store.commit('avatar', data.verifyLogin.avatar ?? null)
       store.commit('avatarVisibleToMembers', data.verifyLogin.avatarVisibleToMembers ?? null)
+      // ES-021, same route in: the login answer does not carry it, this one does.
+      store.commit('creationAllowed', data.verifyLogin.creationAllowed ?? null)
     } catch (error) {
       // Initials until the next verifyLogin -- the same as before this was fetched at all.
     }

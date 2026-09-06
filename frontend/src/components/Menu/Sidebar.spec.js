@@ -185,6 +185,43 @@ describe('Sidebar', () => {
   })
 })
 
+// ES-021: the whole creation area is gone for a project account. Both directions on
+// purpose -- an "is absent" test alone stays green when the item goes missing for good.
+describe('Sidebar and the project account', () => {
+  const mountSidebar = (state) =>
+    mount(Sidebar, {
+      global: {
+        plugins: [createVuexStore(state), i18n],
+        stubs: ['router-link', 'i-bi-cash'],
+        components: { BNav, BBadge, BNavItem, BImg },
+      },
+    })
+
+  it('offers "Creation" to a person who may create', () => {
+    const wrapper = mountSidebar({ creationAllowed: true })
+    expect(wrapper.find('[data-test="creation-menu"]').exists()).toBe(true)
+    expect(wrapper.text()).toContain('Creation')
+  })
+
+  it('offers it as well while the answer is not known yet - the default every account has', () => {
+    const wrapper = mountSidebar({ creationAllowed: null })
+    expect(wrapper.find('[data-test="creation-menu"]').exists()).toBe(true)
+  })
+
+  it('does not offer it to a project account, and keeps everything else', () => {
+    const wrapper = mountSidebar({ creationAllowed: false })
+    expect(wrapper.find('[data-test="creation-menu"]').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('Creation')
+    for (const label of ['Overview', 'Send', 'Transactions', 'Contacts', 'Info', 'Settings']) {
+      expect(wrapper.text()).toContain(label)
+    }
+  })
+
+  it('mounts without the contributions link the active-route watcher looks for', () => {
+    expect(() => mountSidebar({ creationAllowed: false })).not.toThrow()
+  })
+})
+
 describe('Sidebar with MATCHING_ACTIVE off', () => {
   const mountSidebar = () =>
     mount(Sidebar, {

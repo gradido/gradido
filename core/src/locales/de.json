@@ -60,6 +60,17 @@
       "subject": "Dein Gemeinwohl-Beitrag wurde abgelehnt",
       "title": "Dein Gemeinwohl-Beitrag wurde abgelehnt"
     },
+    "creationRightRequestSupport": {
+      "declaredAt": "Von der Kontoinhaberin / dem Kontoinhaber als Projekt-Konto erklärt am: {declaredAt}",
+      "declaredByAdmin": "Das Schöpfen wurde von einem Administrator ausgeschaltet, nicht vom Konto selbst erklärt.",
+      "gradidoId": "Gradido-ID: {gradidoId}",
+      "member": "Mitglied: {firstName} {lastName} ({alias})",
+      "memberEmail": "E-Mail-Adresse: {memberEmail}",
+      "requestedAt": "Angefragt am: {requestedAt}",
+      "subject": "Schöpfungsrecht angefragt: {alias}",
+      "title": "Ein Projekt-Konto möchte wieder schöpfen",
+      "todo": "Bitte prüfe, ob dieses Konto einem Menschen gehört, der schöpfen darf. Wenn ja, schalte im Admin-Bereich (Reiter Nutzer-Rolle) „Kann schöpfen“ für dieses Mitglied ein. Das Mitglied weiß, dass ein Mensch die Anfrage prüft."
+    },
     "customEmail": {
       "haveReceivedMessageFrom": "Du hast soeben von {senderAlias} eine Nachricht erhalten",
       "title": "{senderAlias} hat Dir eine Nachricht gesendet"

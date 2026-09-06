@@ -223,6 +223,9 @@ describe('UserResolver', () => {
               // On from the start: a member who uploads a picture has already shown an
               // intention, so the switch follows rather than asks a second time.
               avatarVisibleToMembers: true,
+              // A person who may create: the column default, and the sentence for every
+              // account that exists (ES-021).
+              creationAllowed: true,
               gender: null,
               salutation: null,
               creaSignature: null,
@@ -1048,6 +1051,7 @@ describe('UserResolver', () => {
                   firstName: 'Bibi',
                   lastName: 'Bloxberg',
                   language: 'de',
+                  creationAllowed: true,
                   klickTipp: {
                     newsletterState: false,
                   },

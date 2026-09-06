@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import ChangeUserRoleFormular from './ChangeUserRoleFormular.vue'
 import { useMutation } from '@vue/apollo-composable'
 import { useStore } from 'vuex'
+import { setCreationAllowed as setCreationAllowedMutation } from '../graphql/setCreationAllowed'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -50,6 +51,14 @@ const mockBButton = {
   name: 'BButton',
   template: '<button data-testid="mock-bbutton"><slot></slot></button>',
 }
+// Driven the way an administrator drives it: by flipping.
+const mockBFormCheckbox = {
+  name: 'BFormCheckbox',
+  props: ['modelValue', 'switch', 'disabled'],
+  emits: ['update:modelValue'],
+  template:
+    '<label><input type="checkbox" data-testid="mock-switch" :checked="modelValue" :disabled="disabled" @change="$emit(`update:modelValue`, $event.target.checked)" /><slot></slot></label>',
+}
 
 describe('ChangeUserRoleFormular', () => {
   let wrapper
@@ -66,6 +75,7 @@ describe('ChangeUserRoleFormular', () => {
         stubs: {
           BFormSelect: mockBFormSelect,
           BButton: mockBButton,
+          BFormCheckbox: mockBFormCheckbox,
         },
         mocks: {
           $t: (key) => key,
@@ -225,6 +235,102 @@ describe('ChangeUserRoleFormular', () => {
 
     it('has no button', () => {
       expect(wrapper.find('[data-testid="mock-bbutton"]').exists()).toBe(false)
+    })
+  })
+
+  // ES-021: the "may create" switch next to the roles.
+  describe('the may-create switch', () => {
+    let creationMutate
+    const asAdmin = () =>
+      vi.mocked(useStore).mockReturnValue({
+        state: { moderator: { id: 0, name: 'test moderator', roles: ['ADMIN'] } },
+      })
+    const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
+
+    beforeEach(() => {
+      creationMutate = vi.fn()
+      // The roles mutation and this one share useMutation; tell them apart by document.
+      useMutation.mockImplementation((document) => ({
+        mutate: document === setCreationAllowedMutation ? creationMutate : vi.fn(),
+      }))
+      asAdmin()
+    })
+
+    it('shows an administrator the switch, on for an account that may create', () => {
+      propsData = { item: { userId: 1, roles: [], creationAllowed: true } }
+      wrapper = createWrapper()
+      const box = wrapper.find('[data-testid="mock-switch"]')
+      expect(box.exists()).toBe(true)
+      expect(box.element.checked).toBe(true)
+      expect(wrapper.find('[data-test="creation-allowed-readonly"]').exists()).toBe(false)
+    })
+
+    it('shows it off for a project account, and on where the row does not say', () => {
+      propsData = { item: { userId: 1, roles: [], creationAllowed: false } }
+      expect(createWrapper().find('[data-testid="mock-switch"]').element.checked).toBe(false)
+      propsData = { item: { userId: 1, roles: [] } }
+      expect(createWrapper().find('[data-testid="mock-switch"]').element.checked).toBe(true)
+    })
+
+    it('shows a moderator where the switch stands, without a switch', () => {
+      vi.mocked(useStore).mockReturnValue({
+        state: { moderator: { id: 0, name: 'test moderator', roles: ['MODERATOR'] } },
+      })
+      propsData = { item: { userId: 1, roles: [], creationAllowed: false } }
+      wrapper = createWrapper()
+      expect(wrapper.find('[data-testid="mock-switch"]').exists()).toBe(false)
+      const readonly = wrapper.find('[data-test="creation-allowed-readonly"]')
+      expect(readonly.exists()).toBe(true)
+      expect(readonly.text()).toContain('userRole.creationAllowed.no')
+    })
+
+    it('switches creation off, tells the table and stays off', async () => {
+      creationMutate.mockResolvedValue({ data: { setCreationAllowed: false } })
+      propsData = { item: { userId: 7, roles: [], creationAllowed: true } }
+      wrapper = createWrapper()
+      await wrapper.find('[data-testid="mock-switch"]').setValue(false)
+      await flush()
+      expect(creationMutate).toHaveBeenCalledWith({ userId: 7, allowed: false })
+      expect(wrapper.emitted('update-creation-allowed')[0]).toEqual([
+        { userId: 7, creationAllowed: false },
+      ])
+      expect(wrapper.find('[data-testid="mock-switch"]').element.checked).toBe(false)
+    })
+
+    it('switches it back on the same way', async () => {
+      creationMutate.mockResolvedValue({ data: { setCreationAllowed: true } })
+      propsData = { item: { userId: 7, roles: [], creationAllowed: false } }
+      wrapper = createWrapper()
+      await wrapper.find('[data-testid="mock-switch"]').setValue(true)
+      await flush()
+      expect(creationMutate).toHaveBeenCalledWith({ userId: 7, allowed: true })
+      expect(wrapper.find('[data-testid="mock-switch"]').element.checked).toBe(true)
+    })
+
+    it('sends one request however often the switch is flipped while the first is out', async () => {
+      let release
+      creationMutate.mockImplementation(() => new Promise((resolve) => (release = resolve)))
+      propsData = { item: { userId: 7, roles: [], creationAllowed: true } }
+      wrapper = createWrapper()
+      const box = wrapper.find('[data-testid="mock-switch"]')
+      await box.setValue(false)
+      expect(box.attributes('disabled')).toBeDefined()
+      await wrapper.vm.saveCreationAllowed(true)
+      expect(creationMutate).toHaveBeenCalledTimes(1)
+      release({ data: { setCreationAllowed: false } })
+      await flush()
+      expect(box.attributes('disabled')).toBeUndefined()
+      expect(wrapper.emitted('update-creation-allowed')).toHaveLength(1)
+    })
+
+    it('springs back where the server refuses', async () => {
+      creationMutate.mockRejectedValue(new Error('401 Unauthorized'))
+      propsData = { item: { userId: 7, roles: [], creationAllowed: true } }
+      wrapper = createWrapper()
+      await wrapper.find('[data-testid="mock-switch"]').setValue(false)
+      await flush()
+      expect(wrapper.emitted('update-creation-allowed')).toBeFalsy()
+      expect(wrapper.find('[data-testid="mock-switch"]').element.checked).toBe(true)
     })
   })
 

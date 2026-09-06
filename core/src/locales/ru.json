@@ -60,6 +60,17 @@
       "subject": "Ваш вклад в общее благо был отклонён",
       "title": "Ваш вклад в общее благо был отклонён"
     },
+    "creationRightRequestSupport": {
+      "declaredAt": "Declared a project account by its holder on: {declaredAt}",
+      "declaredByAdmin": "Creation was switched off by an administrator, not declared by the holder.",
+      "gradidoId": "Gradido ID: {gradidoId}",
+      "member": "Member: {firstName} {lastName} ({alias})",
+      "memberEmail": "E-mail address: {memberEmail}",
+      "requestedAt": "Requested on: {requestedAt}",
+      "subject": "Creation right requested: {alias}",
+      "title": "A project account asks for the creation right back",
+      "todo": "Please check whether this account belongs to a person who may create. If so, switch \"May create\" on for this member in the admin interface (user role tab). The member has been told that a person checks the request."
+    },
     "customEmail": {
       "haveReceivedMessageFrom": "вы только что получили сообщение от {senderAlias}",
       "title": "Пользователь {senderAlias} отправил вам сообщение"

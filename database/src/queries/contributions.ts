@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
-import { and, count, eq, inArray } from 'drizzle-orm'
+import { and, count, eq, inArray, isNull } from 'drizzle-orm'
 import { drizzleDb } from '../AppDatabase'
+import { ContributionStatus } from '../enum/ContributionStatus'
 import { ContributionType } from '../enum/ContributionType'
 import { contributionsTable } from '../schemas/drizzle.schema'
 
@@ -19,6 +20,32 @@ export async function dbCountUserTypedContributionsByUserId(userId: number): Pro
       and(
         eq(contributionsTable.userId, userId),
         eq(contributionsTable.type, ContributionType.USER),
+      ),
+    )
+  return rows[0]?.n ?? 0
+}
+
+/**
+ * How many of this member's contributions are still OPEN — waiting for the moderation
+ * (PENDING or IN_PROGRESS) and not deleted. Whoever filed them counts: an ADMIN-filed one
+ * is as open as a USER-filed one.
+ *
+ * Its caller is the switch to a project account (ES-021): an account that may not create
+ * must not leave the moderation with open contributions to judge, so the switch is refused
+ * while any is standing.
+ */
+export async function dbCountOpenContributionsByUserId(userId: number): Promise<number> {
+  const rows = await drizzleDb()
+    .select({ n: count() })
+    .from(contributionsTable)
+    .where(
+      and(
+        eq(contributionsTable.userId, userId),
+        inArray(contributionsTable.status, [
+          ContributionStatus.PENDING,
+          ContributionStatus.IN_PROGRESS,
+        ]),
+        isNull(contributionsTable.deletedAt),
       ),
     )
   return rows[0]?.n ?? 0

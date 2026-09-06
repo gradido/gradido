@@ -68,8 +68,11 @@ describe.each([
 //   * the avatar;
 //   * avatarVisibleToMembers, which is own-view only -- a field resolver hands it to
 //     nobody but its owner.
+//   * creationAllowed (ES-021), which the "Create" menu item hangs on. Deliberately not on
+//     the login mutation either (G 5.5): everything the wallet learns after signing in
+//     arrives through verifyLogin, and Login.vue fills it from there right after the login.
 describe('verifyLogin query', () => {
-  it.each(['avatar', 'avatarVisibleToMembers'])(
+  it.each(['avatar', 'avatarVisibleToMembers', 'creationAllowed'])(
     'requests "%s", which is the only place the wallet can read it',
     (field) => {
       expect([...requestedFields(verifyLogin)]).toContain(field)

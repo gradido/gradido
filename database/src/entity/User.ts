@@ -189,6 +189,13 @@ export class User extends BaseEntity {
   @Column({ name: 'avatar_visible_to_members', type: 'bool', default: true })
   avatarVisibleToMembers: boolean
 
+  // ES-021: whether this account may create Gradido. A person may; a project account (an
+  // association, a project, a shop) does not create, it receives thanks. Switched OFF by the
+  // holder, switched back ON only by an administrator; RESTRICTED_FOR_PROJECT_ACCOUNT in the
+  // backend is what makes it hold against a bare API call.
+  @Column({ name: 'creation_allowed', type: 'bool', default: true })
+  creationAllowed: boolean
+
   // Crea salutation/signature fields (E-013), moderator-curated; null = not set.
   @Column({
     name: 'gender',

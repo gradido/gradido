@@ -23,6 +23,7 @@ import {
   dbGetUserWithRolesById,
   dbLockUserRow,
   dbSaveUser,
+  dbSetCreationAllowed,
   dbUpdateUserPassword,
   findForeignUserByUuids,
   findUserByIdentifier,
@@ -538,6 +539,53 @@ describe('user.queries', () => {
       expect(after.emailId).toBe(before.emailId)
       expect(after.firstName).toBe(before.firstName)
       expect(after.gradidoID).toBe(before.gradidoID)
+    })
+  })
+  describe('dbSetCreationAllowed', () => {
+    let before: DbUser
+
+    beforeAll(async () => {
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await userFactory(bibiBloxberg)
+      before = (await DbUser.find())[0]
+    })
+
+    it('starts as a person who may create, and switches off and on again', async () => {
+      // The column's default is the sentence for every existing account.
+      expect(before.creationAllowed).toBe(true)
+
+      const off = await dbSetCreationAllowed(before.id, false)
+      expect(off.success).toBe(true)
+      expect((await DbUser.findOneByOrFail({ id: before.id })).creationAllowed).toBe(false)
+
+      const on = await dbSetCreationAllowed(before.id, true)
+      expect(on.success).toBe(true)
+      const after = await DbUser.findOneByOrFail({ id: before.id })
+      expect(after.creationAllowed).toBe(true)
+      // Nothing else moved.
+      expect(after.emailId).toBe(before.emailId)
+      expect(after.firstName).toBe(before.firstName)
+    })
+
+    it('counts writing the value the row already holds as a success', async () => {
+      expect((await dbSetCreationAllowed(before.id, true)).success).toBe(true)
+    })
+
+    it('reports an id nobody has as not found', async () => {
+      const result = await dbSetCreationAllowed(424242, false)
+      expect(result.success).toBe(false)
+    })
+
+    it('writes through a given manager, so a rolled-back transaction takes it back', async () => {
+      // The throw below is the rollback; anything else out of the block is a real failure.
+      await expect(
+        db.getDataSource().transaction(async (manager) => {
+          expect((await dbSetCreationAllowed(before.id, false, manager)).success).toBe(true)
+          throw new Error('roll it back')
+        }),
+      ).rejects.toThrow('roll it back')
+      expect((await DbUser.findOneByOrFail({ id: before.id })).creationAllowed).toBe(true)
     })
   })
   describe('dbGetUserWithRolesById', () => {

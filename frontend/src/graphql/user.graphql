@@ -6,3 +6,16 @@ query aliasStatus {
     aliasSettled
   }
 }
+
+# ES-021, the project account. Both act on the caller's own account only. Declaring is
+# immediate; asking for the right back changes nothing -- it is a mail to the support, and
+# an administrator flips the switch. The codes the server answers with are read in
+# UserCreationAccount.vue: PROJECT_ACCOUNT_REFUSED: OPEN_CONTRIBUTIONS and
+# CREATION_RIGHT_REQUEST_REFUSED: RATE_LIMITED.
+mutation declareProjectAccount {
+  declareProjectAccount
+}
+
+mutation requestCreationRight {
+  requestCreationRight
+}

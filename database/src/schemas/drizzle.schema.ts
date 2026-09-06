@@ -361,6 +361,9 @@ export const usersTable = mysqlTable(
     gmsPublishLocation: int('gms_publish_location').default(2).notNull(),
     aboutMe: text('about_me').default(sql`NULL`),
     avatarVisibleToMembers: tinyint('avatar_visible_to_members').default(1).notNull(),
+    // ES-021: a person may create, a project account may not. 1 for every account that
+    // exists today - the distinction is made by the holder, never by a migration.
+    creationAllowed: tinyint('creation_allowed').default(1).notNull(),
     gmsRegistered: tinyint('gms_registered').default(0).notNull(),
     gmsRegisteredAt: datetime('gms_registered_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     humhubAllowed: tinyint('humhub_allowed').default(0).notNull(),

@@ -267,6 +267,7 @@
     "enter_text": "Ввести текст",
     "form": "Форма создания",
     "min_characters": "Введите не менее 10 символов",
+    "not_allowed": "This account is a project account and does not create. Creation can be switched back on under “User Role”.",
     "reset": "Сбросить",
     "select_month": "Выбрать месяц",
     "select_value": "Выбрать сумму",
@@ -507,6 +508,14 @@
   },
   "unregistered_emails": "Только незарегистрированные пользователи",
   "userRole": {
+    "creationAllowed": {
+      "help": "A project account (association, project, business) does not create, it receives thanks. The member can switch it off; only an administrator switches it back on.",
+      "label": "May create",
+      "no": "no",
+      "switchedOff": "Creation switched off – this account is now a project account.",
+      "switchedOn": "Creation switched on – this account can create again.",
+      "yes": "yes"
+    },
     "creationGroups": {
       "help": "Pre-filled on submission.",
       "label": "User's main creation group",

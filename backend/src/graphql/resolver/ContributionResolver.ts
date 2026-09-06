@@ -34,6 +34,7 @@ import { Arg, Args, Authorized, Ctx, Info, Int, Mutation, Query, Resolver } from
 import { EntityManager, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { CREATION_NOT_ALLOWED } from '@/data/ProjectAccount.logic'
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import {
   EVENT_ADMIN_CONTRIBUTION_CREATE,
@@ -282,6 +283,12 @@ export class ContributionResolver {
         'Cannot create contribution since the users email is not activated',
         emailContact,
       )
+    }
+    // ES-021: a project account does not create — not through the back door of a moderator
+    // filing for it either. The deny-list in isAuthorized only knows the CALLER; this is the
+    // one creation path where the account that creates is somebody else, so it asks here.
+    if (!emailContact.user.creationAllowed) {
+      throw new LogError(CREATION_NOT_ALLOWED, emailContact.userId)
     }
 
     const moderator = getUser(context)

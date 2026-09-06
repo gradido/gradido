@@ -107,6 +107,7 @@
                 :item="row.item"
                 @update-roles="updateRoles"
                 @show-modal="showModal"
+                @update-creation-allowed="row.item.creationAllowed = $event.creationAllowed"
               />
             </BTab>
             <BTab v-if="store.state.moderator.roles.includes('ADMIN')" :title="$t('delete_user')">

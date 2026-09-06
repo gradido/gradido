@@ -53,6 +53,7 @@ import { randombytes_random } from 'sodium-native'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { CREATION_NOT_ALLOWED } from '@/data/ProjectAccount.logic'
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import {
   EVENT_CONTRIBUTION_LINK_REDEEM,
@@ -246,6 +247,14 @@ export class TransactionLinkResolver {
     // const homeCom = await DbCommunity.findOneOrFail({ where: { foreign: false } })
     const user = getUser(context)
     if (code.match(/^CL-/)) {
+      // ES-021: a contribution link files a CREATION in the redeemer's name, and a project
+      // account does not create. Guarded here, in this branch only, and not by putting
+      // REDEEM_TRANSACTION_LINK on RESTRICTED_FOR_PROJECT_ACCOUNT: the same right covers
+      // redeeming a plain transfer link and taking a thank-you card, and a project account
+      // RECEIVES. Before the lock and the transaction, so a refusal costs neither.
+      if (!user.creationAllowed) {
+        throw new LogError(CREATION_NOT_ALLOWED, user.id)
+      }
       // acquire lock
       // const releaseLock = await TRANSACTIONS_LOCK.acquire()
       const mutex = new Mutex(db.getRedisClient(), 'TRANSACTIONS_LOCK')

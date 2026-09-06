@@ -56,6 +56,11 @@ export const mutations = {
   avatarVisibleToMembers: (state, avatarVisibleToMembers) => {
     state.avatarVisibleToMembers = avatarVisibleToMembers
   },
+  // ES-021: true = a person who creates, false = a project account, null = not known yet
+  // (a store persisted before the field existed, or a login answer that does not carry it).
+  creationAllowed: (state, creationAllowed) => {
+    state.creationAllowed = creationAllowed
+  },
   humhubAllowed: (state, humhubAllowed) => {
     state.humhubAllowed = humhubAllowed
   },
@@ -134,6 +139,11 @@ export const actions = {
     // a verifyLogin result puts it in the store. Clearing matters because the persisted
     // store still holds the previous member's setting when the next one signs in here.
     commit('avatarVisibleToMembers', null)
+    // ?? null, like emailChecked below: guards.js hands this action a verifyLogin answer
+    // that carries the field, Login.vue a login answer that does not. Null reads as "not
+    // known", and the menu shows "Create" for not-known -- the default every existing
+    // account has anyway. Login.vue fills it from its own verifyLogin right afterwards.
+    commit('creationAllowed', data.creationAllowed ?? null)
     commit('humhubAllowed', data.humhubAllowed)
     commit('gmsPublishLocation', data.gmsPublishLocation)
     commit('hasElopage', data.hasElopage)
@@ -166,6 +176,7 @@ export const actions = {
     commit('newsletterState', null)
     commit('gmsAllowed', null)
     commit('avatarVisibleToMembers', null)
+    commit('creationAllowed', null)
     commit('humhubAllowed', null)
     commit('gmsPublishLocation', null)
     commit('hasElopage', false)
@@ -277,6 +288,7 @@ try {
       newsletterState: null,
       gmsAllowed: null,
       avatarVisibleToMembers: null,
+      creationAllowed: null,
       humhubAllowed: null,
       gmsPublishLocation: null,
       hasElopage: false,

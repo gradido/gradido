@@ -350,6 +350,12 @@
     "maxEntries": "Mehr als {max} Einträge gehen hier nicht — weitere kannst Du jederzeit selbst eintragen.",
     "nothing": "Im Moment fällt mir nichts ein",
     "placeholder": "… Kuchen für das Fest gebacken habe",
+    "projectAsk": {
+      "later": "Später",
+      "project": "Dies ist ein Projekt-Konto",
+      "text": "Jeder Mensch kann bei Gradido schöpfen: für das, was er für andere tut. Falls dieses Konto kein Mensch ist, sondern ein Verein, ein Projekt oder ein Geschäft, sag es uns hier — ein Projekt-Konto schöpft nicht, es empfängt Dank.",
+      "title": "Alles gut — die Frage kommt beim nächsten Mal wieder."
+    },
     "question": "Was hast Du in den vergangenen Wochen schon Gutes für das Gemeinwohl getan?",
     "remove": "Eintrag entfernen",
     "review": "Deine Einträge schaut sich noch ein Mensch an. Du hörst von uns.",
@@ -910,6 +916,16 @@
       "visibilityInfo": "Andere Mitglieder sehen Dein Bild — zum Beispiel neben Euren gemeinsamen Buchungen. Wenn die Einstellung ausgeschaltet ist, erscheinen wie bisher Deine Anfangsbuchstaben."
     },
     "community": "Kreise & Mitgliedssuche",
+    "creationAccount": {
+      "declared": "Dieses Konto ist jetzt ein Projekt-Konto. Der Bereich „Schöpfen“ ist ausgeblendet.",
+      "mailFailed": "Die Nachricht an den Support konnte gerade nicht gesendet werden. Bitte versuche es später noch einmal.",
+      "openContributions": "Solange Beiträge von Dir noch offen sind, kann das Konto kein Projekt-Konto werden. Warte, bis sie bestätigt sind, oder ziehe sie zurück.",
+      "person": "Dieses Konto gehört einem Menschen. Ich schöpfe Gradido für das, was ich für andere tue.",
+      "project": "Dieses Konto gehört einem Projekt, Verein oder Geschäft. Es schöpft nicht — es empfängt Dank.",
+      "rateLimited": "Wir haben dem Support innerhalb des letzten Tages schon eine Nachricht geschickt — Du hörst von uns.",
+      "requested": "Den Wechsel zurück prüft ein Mensch. Wir haben dem Support gerade eine Nachricht geschickt — Du hörst von uns.",
+      "title": "Schöpfen"
+    },
     "email": {
       "cancel": "Abbrechen",
       "cancelled": "Die Änderung wurde verworfen.",

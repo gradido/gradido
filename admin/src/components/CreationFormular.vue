@@ -177,7 +177,13 @@ const submitCreation = async () => {
 
     onReset()
   } catch (error) {
-    toastError(error.message)
+    // ES-021: a project account does not create, not through this form either. The server
+    // answers with a code; the sentence is ours.
+    toastError(
+      error.message?.includes('CREATION_NOT_ALLOWED')
+        ? t('creation_form.not_allowed')
+        : error.message,
+    )
     onReset()
   } finally {
     refetchCreations()

@@ -284,13 +284,18 @@ describe('FirstCreationResolver', () => {
     it('sees the window and may skip it - the skip is an event, not a row', async () => {
       await loginAs('bibi@bloxberg.de')
       const { data } = await query({ query: firstCreationStatus })
-      expect(data.firstCreationStatus).toMatchObject({ state: 'NONE', eligible: true })
+      expect(data.firstCreationStatus).toMatchObject({
+        state: 'NONE',
+        eligible: true,
+        // Never skipped: the project-account question (ES-012) is still to be asked.
+        skippedBefore: false,
+      })
       const skipped = await mutate({ mutation: skipFirstCreation })
       expect(skipped.data.skipFirstCreation).toBe(true)
       expect(await eventsOf(EventType.FIRST_CREATION_SKIP, bibi)).toHaveLength(1)
       expect(await dbSelectFirstCreationByUserId(bibi.id)).toBeNull()
       const again = await query({ query: firstCreationStatus })
-      expect(again.data.firstCreationStatus.eligible).toBe(true)
+      expect(again.data.firstCreationStatus).toMatchObject({ eligible: true, skippedBefore: true })
     })
 
     it('writes no skip event for a member whose window is not open', async () => {
