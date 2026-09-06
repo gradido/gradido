@@ -918,6 +918,7 @@
     "community": "Kreise & Mitgliedssuche",
     "creationAccount": {
       "declared": "Dieses Konto ist jetzt ein Projekt-Konto. Der Bereich „Schöpfen“ ist ausgeblendet.",
+      "mailFailed": "Die Nachricht an den Support konnte gerade nicht gesendet werden. Bitte versuche es später noch einmal.",
       "openContributions": "Solange Beiträge von Dir noch offen sind, kann das Konto kein Projekt-Konto werden. Warte, bis sie bestätigt sind, oder ziehe sie zurück.",
       "person": "Dieses Konto gehört einem Menschen. Ich schöpfe Gradido für das, was ich für andere tue.",
       "project": "Dieses Konto gehört einem Projekt, Verein oder Geschäft. Es schöpft nicht — es empfängt Dank.",

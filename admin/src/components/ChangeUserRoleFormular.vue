@@ -56,6 +56,7 @@
           v-if="isModeratorRoleAdmin"
           v-model="creationAllowed"
           switch
+          :disabled="savingCreationAllowed"
           data-test="creation-allowed-switch"
           @update:model-value="saveCreationAllowed"
         >
@@ -247,8 +248,15 @@ const saveScope = async () => {
 // `!== false`: a row from before the field existed says nothing, and nothing means the
 // default every account has -- a person who may create.
 const creationAllowed = ref(props.item.creationAllowed !== false)
+// One request at a time: a second flip while the first is out would let the older answer
+// win and hand the table a stale value.
+const savingCreationAllowed = ref(false)
 const { mutate: setCreationAllowed } = useMutation(setCreationAllowedMutation)
 const saveCreationAllowed = async (allowed) => {
+  if (savingCreationAllowed.value) {
+    return
+  }
+  savingCreationAllowed.value = true
   try {
     const result = await setCreationAllowed({ userId: props.item.userId, allowed })
     const now = result?.data?.setCreationAllowed ?? allowed
@@ -261,10 +269,12 @@ const saveCreationAllowed = async (allowed) => {
     // The switch shows the row, not the wish.
     creationAllowed.value = !allowed
     toastError(error.message)
+  } finally {
+    savingCreationAllowed.value = false
   }
 }
 
-defineExpose({ currentRole, roleSelected, updateUserRole })
+defineExpose({ currentRole, roleSelected, updateUserRole, saveCreationAllowed })
 </script>
 
 <style>

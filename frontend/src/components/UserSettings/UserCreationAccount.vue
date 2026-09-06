@@ -83,6 +83,8 @@ const onChoice = async (choice) => {
     const message = error?.message ?? ''
     if (message.includes('RATE_LIMITED')) {
       hint.value = t('settings.creationAccount.rateLimited')
+    } else if (message.includes('MAIL_FAILED')) {
+      toastError(t('settings.creationAccount.mailFailed'))
     } else if (message.includes('OPEN_CONTRIBUTIONS')) {
       toastError(t('settings.creationAccount.openContributions'))
     } else {

@@ -576,6 +576,17 @@ describe('user.queries', () => {
       const result = await dbSetCreationAllowed(424242, false)
       expect(result.success).toBe(false)
     })
+
+    it('writes through a given manager, so a rolled-back transaction takes it back', async () => {
+      await db
+        .getDataSource()
+        .transaction(async (manager) => {
+          expect((await dbSetCreationAllowed(before.id, false, manager)).success).toBe(true)
+          throw new Error('roll it back')
+        })
+        .catch(() => undefined)
+      expect((await DbUser.findOneByOrFail({ id: before.id })).creationAllowed).toBe(true)
+    })
   })
   describe('dbGetUserWithRolesById', () => {
     let peter: DbUser

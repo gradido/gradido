@@ -557,6 +557,24 @@ describe('FirstCreation', () => {
       expect(storeState.creationAllowed).toBe(true)
     })
 
+    it('sends one skip however often "Later" is tapped while the first is out', async () => {
+      let release
+      skipMock.mockImplementation(() => new Promise((resolve) => (release = resolve)))
+      const wrapper = build()
+      await wrapper.find('[data-test="first-creation-nothing"]').trigger('click')
+      await nextTick()
+      const later = wrapper.find('[data-test="first-creation-later"]')
+      await later.trigger('click')
+      await later.trigger('click')
+      await wrapper.find('[data-test="first-creation-project-account"]').trigger('click')
+      expect(skipMock).toHaveBeenCalledTimes(1)
+      expect(declareMock).not.toHaveBeenCalled()
+      expect(later.attributes('disabled')).toBeDefined()
+      release({})
+      await vi.runAllTimersAsync()
+      expect(wrapper.find('[data-test="first-creation"]').exists()).toBe(false)
+    })
+
     it('"This is a project account" declares it, tells the store and closes without a skip', async () => {
       const wrapper = build()
       await wrapper.find('[data-test="first-creation-nothing"]').trigger('click')

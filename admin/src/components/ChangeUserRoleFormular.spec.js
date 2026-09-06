@@ -54,10 +54,10 @@ const mockBButton = {
 // Driven the way an administrator drives it: by flipping.
 const mockBFormCheckbox = {
   name: 'BFormCheckbox',
-  props: ['modelValue', 'switch'],
+  props: ['modelValue', 'switch', 'disabled'],
   emits: ['update:modelValue'],
   template:
-    '<label><input type="checkbox" data-testid="mock-switch" :checked="modelValue" @change="$emit(`update:modelValue`, $event.target.checked)" /><slot></slot></label>',
+    '<label><input type="checkbox" data-testid="mock-switch" :checked="modelValue" :disabled="disabled" @change="$emit(`update:modelValue`, $event.target.checked)" /><slot></slot></label>',
 }
 
 describe('ChangeUserRoleFormular', () => {
@@ -305,6 +305,22 @@ describe('ChangeUserRoleFormular', () => {
       await flush()
       expect(creationMutate).toHaveBeenCalledWith({ userId: 7, allowed: true })
       expect(wrapper.find('[data-testid="mock-switch"]').element.checked).toBe(true)
+    })
+
+    it('sends one request however often the switch is flipped while the first is out', async () => {
+      let release
+      creationMutate.mockImplementation(() => new Promise((resolve) => (release = resolve)))
+      propsData = { item: { userId: 7, roles: [], creationAllowed: true } }
+      wrapper = createWrapper()
+      const box = wrapper.find('[data-testid="mock-switch"]')
+      await box.setValue(false)
+      expect(box.attributes('disabled')).toBeDefined()
+      await wrapper.vm.saveCreationAllowed(true)
+      expect(creationMutate).toHaveBeenCalledTimes(1)
+      release({ data: { setCreationAllowed: false } })
+      await flush()
+      expect(box.attributes('disabled')).toBeUndefined()
+      expect(wrapper.emitted('update-creation-allowed')).toHaveLength(1)
     })
 
     it('springs back where the server refuses', async () => {

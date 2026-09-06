@@ -52,6 +52,8 @@ export type CreationRightRequestRefusedReason =
   | 'ALREADY_ALLOWED'
   /** A request went to the support less than a day ago. */
   | 'RATE_LIMITED'
+  /** The transport did not take the mail; nothing was recorded, the member may try again. */
+  | 'MAIL_FAILED'
 
 /** Asking for the creation right back is refused. */
 export class CreationRightRequestRefused extends DomainError {

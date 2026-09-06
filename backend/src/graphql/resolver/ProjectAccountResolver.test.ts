@@ -110,7 +110,8 @@ afterAll(async () => {
 })
 
 beforeEach(() => {
-  supportMail.mockClear()
+  // What sendEmailTranslated answers when the transport took the mail.
+  supportMail.mockReset().mockResolvedValue({ messageId: 'accepted' })
 })
 
 describe('the deny-list itself', () => {
@@ -275,6 +276,16 @@ describe('what a project account keeps', () => {
 describe('asking for the creation right back', () => {
   let firstRequestEventId: number
 
+  it('records nothing and blocks nobody when the transport does not take the mail', async () => {
+    // null is what sendEmailTranslated answers with mail switched off, undefined what it
+    // answers when the send was rejected.
+    supportMail.mockResolvedValueOnce(null)
+    await loginAs('bibi@bloxberg.de')
+    const { errors } = await mutate({ mutation: requestCreationRight })
+    expect(errors).toEqual([new GraphQLError('CREATION_RIGHT_REQUEST_REFUSED: MAIL_FAILED')])
+    expect(await eventsOf(EventType.CREATION_RIGHT_REQUEST, bibi)).toHaveLength(0)
+  })
+
   it('sends the support one mail, with the two moments, and records the request', async () => {
     await loginAs('bibi@bloxberg.de')
     const { data, errors } = await mutate({ mutation: requestCreationRight })
@@ -292,7 +303,7 @@ describe('asking for the creation right back', () => {
         gradidoId: bibi.gradidoID,
         memberEmail: 'bibi@bloxberg.de',
         declaredAt: declared.createdAt,
-        requestedAt: requests[0].createdAt,
+        requestedAt: expect.any(Date),
       }),
     )
     // Asking changes nothing: the switch is the administrator's.

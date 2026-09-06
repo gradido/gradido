@@ -918,6 +918,7 @@
     "community": "Community",
     "creationAccount": {
       "declared": "This account is now a project account. The “Creation” area is hidden.",
+      "mailFailed": "The message to the support could not be sent right now. Please try again later.",
       "openContributions": "While contributions of yours are still open, the account cannot become a project account. Wait until they are confirmed, or withdraw them.",
       "person": "This account belongs to a person. I create Gradido for what I do for others.",
       "project": "This account belongs to a project, an association or a business. It does not create — it receives thanks.",

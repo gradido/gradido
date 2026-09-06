@@ -116,6 +116,16 @@ describe('UserCreationAccount', () => {
       )
     })
 
+    it('says so when the mail could not be sent, and leaves nothing behind', async () => {
+      requestMock.mockRejectedValue(new Error('CREATION_RIGHT_REQUEST_REFUSED: MAIL_FAILED'))
+      const { wrapper } = build(false)
+      await wrapper.find('[data-test="choice-person"]').trigger('change')
+      await settle()
+      expect(toastError).toHaveBeenCalledWith('settings.creationAccount.mailFailed')
+      expect(wrapper.find('[data-test="creation-account-hint"]').exists()).toBe(false)
+      expect(checkedChoice(wrapper)).toBe('choice-project')
+    })
+
     it('tells the member a mail already went out today', async () => {
       requestMock.mockRejectedValue(new Error('CREATION_RIGHT_REQUEST_REFUSED: RATE_LIMITED'))
       const { wrapper } = build(false)

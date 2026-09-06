@@ -230,7 +230,7 @@
         <button
           type="button"
           class="fc-link"
-          :disabled="declaring"
+          :disabled="answering"
           data-test="first-creation-project-account"
           @click="declareProject"
         >
@@ -238,7 +238,7 @@
         </button>
         <BButton
           variant="secondary"
-          :disabled="declaring"
+          :disabled="answering"
           data-test="first-creation-later"
           @click="later"
         >
@@ -609,7 +609,12 @@ const status = computed(() => settled.value ?? result.value?.firstCreationStatus
 
 /** ES-012: the project-account question is on screen. */
 const askingProject = ref(false)
-const declaring = ref(false)
+/**
+ * One flag for both answers to it. "Later" and "project account" each send a mutation, and a
+ * second tap while the first is out would send it again — a skip twice is two skip events,
+ * and the count of skippers is a measurement. So both buttons hang on this one flag.
+ */
+const answering = ref(false)
 const projectFailed = ref('')
 
 const screen = computed(() => {
@@ -731,10 +736,16 @@ const nothingComesToMind = async () => {
 
 /** "Later": the skip as before, question answered by not answering it (ES-011). */
 const later = async () => {
+  if (answering.value) {
+    return
+  }
+  answering.value = true
   try {
     await sendSkip()
   } catch {
     /* A lost measurement is not worth holding the member in a window they want to leave. */
+  } finally {
+    answering.value = false
   }
   close()
 }
@@ -745,10 +756,10 @@ const later = async () => {
  * here, so the "Create" menu item disappears without waiting for the next verifyLogin.
  */
 const declareProject = async () => {
-  if (declaring.value) {
+  if (answering.value) {
     return
   }
-  declaring.value = true
+  answering.value = true
   projectFailed.value = ''
   try {
     await sendDeclare()
@@ -760,7 +771,7 @@ const declareProject = async () => {
       ? t('settings.creationAccount.openContributions')
       : t('firstCreation.failed')
   } finally {
-    declaring.value = false
+    answering.value = false
   }
 }
 
