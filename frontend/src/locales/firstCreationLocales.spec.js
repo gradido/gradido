@@ -149,6 +149,8 @@ describe.each(Object.entries(LANGUAGES))('first creation texts in %s', (language
       'balance',
       'whyHundredTitle',
       'whyHundred',
+      'whyMore',
+      'whyMoreLink',
       'thankSomeone',
       'toAccount',
     ]
@@ -160,6 +162,9 @@ describe.each(Object.entries(LANGUAGES))('first creation texts in %s', (language
   it('keeps the placeholders the window fills in', () => {
     expect(block.showMore).toContain('{count}')
     expect(block.maxEntries).toContain('{max}')
+    // The sentence is put together by `i18n-t`; without the slot the linked word would
+    // have nowhere to stand and the sentence would end at "findest Du".
+    expect(block.whyMore).toContain('{link}')
     expect(block.confirmedFor).toContain('{community}')
     expect(block.welcome).toContain('{name}')
     // ⚠️ And the nameless form must NOT carry it -- an account without a first name would
