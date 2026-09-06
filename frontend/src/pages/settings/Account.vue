@@ -51,6 +51,11 @@
          pencil, so a line reading "password" beside it only said the word a second time
          without being the thing one clicks. (Bernd, 27.08.2026) -->
     <user-password class="mt-5" />
+
+    <hr />
+    <!-- ES-021: person or project account. Below everything else, as the exception it is
+         (E-020, question 3): the default is a person, and almost nobody moves it. -->
+    <user-creation-account class="mt-4" />
   </settings-section>
 </template>
 <script setup>
@@ -64,6 +69,7 @@ import { useAppToast } from '@/composables/useToast'
 import UserName from '@/components/UserSettings/UserName.vue'
 import UserEmail from '@/components/UserSettings/UserEmail.vue'
 import UserPassword from '@/components/UserSettings/UserPassword'
+import UserCreationAccount from '@/components/UserSettings/UserCreationAccount.vue'
 import { BRow, BCol, BForm, BFormInput, BButton } from 'bootstrap-vue-next'
 
 const { t } = useI18n()

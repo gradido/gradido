@@ -15,6 +15,7 @@ query firstCreationStatus {
       confirmed
       status
     }
+    skippedBefore
     functionTestsEnabled
     testRunsLeft
     isFirstCreationSigner
@@ -34,6 +35,7 @@ mutation submitFirstCreation($entries: [FirstCreationEntryInput!]!) {
       confirmed
       status
     }
+    skippedBefore
     functionTestsEnabled
     testRunsLeft
     isFirstCreationSigner

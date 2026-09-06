@@ -35,6 +35,7 @@ const mountAccount = () =>
         'user-name': true,
         'user-email': true,
         'user-password': true,
+        'user-creation-account': true,
       },
       mocks: { $t: (key) => key },
     },

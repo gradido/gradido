@@ -35,11 +35,17 @@
               <span class="ms-2">{{ $t('navigation.contacts') }}</span>
             </div>
           </BNavItem>
+          <!-- ES-021: a project account does not create, so the whole area is gone from the
+               menu. `!== false`, not a truthy check: null is "not known" -- a store persisted
+               before the field existed, or the moment right after a login -- and for
+               not-known the answer is the one every existing account has: a person. -->
           <BNavItem
+            v-if="$store.state.creationAllowed !== false"
             ref="contributionsLink"
             to="/contributions"
             class="mb-3"
             active-class="active-route"
+            data-test="creation-menu"
           >
             <div class="sidebar-menu-item-wrapper">
               <i-mdi-people-group class="svg-icon" />

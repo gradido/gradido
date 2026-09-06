@@ -67,6 +67,10 @@ export const verifyLogin = gql`
       aboutMe
       avatar
       avatarVisibleToMembers
+      # ES-021: whether this account creates (a person) or receives thanks only (a project
+      # account). The "Create" menu item hangs on it. Read here and not on the login
+      # mutation, like everything else the wallet learns after signing in (G 5.5).
+      creationAllowed
     }
   }
 `

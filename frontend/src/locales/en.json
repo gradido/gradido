@@ -350,6 +350,12 @@
     "maxEntries": "No more than {max} entries here — you can always add more yourself later.",
     "nothing": "Nothing comes to mind right now",
     "placeholder": "… baked a cake for the street party",
+    "projectAsk": {
+      "later": "Later",
+      "project": "This is a project account",
+      "text": "Every person can create at Gradido: for what they do for others. If this account is not a person but an association, a project or a business, tell us here — a project account does not create, it receives thanks.",
+      "title": "All good — the question comes back next time."
+    },
     "question": "What good have you already done for the common good in the past weeks?",
     "remove": "Remove entry",
     "review": "A person will take a look at your entries. You will hear from us.",
@@ -910,6 +916,15 @@
       "visibilityInfo": "Other members see your picture — for example next to the bookings you share. When the setting is switched off, your initials appear, as before."
     },
     "community": "Community",
+    "creationAccount": {
+      "declared": "This account is now a project account. The “Creation” area is hidden.",
+      "openContributions": "While contributions of yours are still open, the account cannot become a project account. Wait until they are confirmed, or withdraw them.",
+      "person": "This account belongs to a person. I create Gradido for what I do for others.",
+      "project": "This account belongs to a project, an association or a business. It does not create — it receives thanks.",
+      "rateLimited": "We already sent the support a message within the last day — you will hear from us.",
+      "requested": "A person checks the change back. We have just sent the support a message — you will hear from us.",
+      "title": "Creation"
+    },
     "email": {
       "cancel": "Cancel",
       "cancelled": "The change has been discarded.",

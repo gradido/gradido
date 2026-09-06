@@ -178,9 +178,21 @@ describe('Vuex store', () => {
         darkMode: true,
       }
 
-      it('calls twenty commits', () => {
+      it('calls twenty-one commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(20)
+        expect(commit).toHaveBeenCalledTimes(21)
+      })
+
+      // ES-021: the "Create" menu item hangs on this. A login answer carries no such field,
+      // so it lands as null -- "not known", which the menu shows as a person -- and the
+      // verifyLogin answer that guards.js hands in carries the real value.
+      it('stores whether the account may create, and null where the answer does not say', () => {
+        const localCommit = vi.fn()
+        login({ commit: localCommit, state: {} }, { ...commitedData, creationAllowed: false })
+        expect(localCommit).toHaveBeenCalledWith('creationAllowed', false)
+        localCommit.mockClear()
+        login({ commit: localCommit, state: {} }, commitedData)
+        expect(localCommit).toHaveBeenCalledWith('creationAllowed', null)
       })
 
       // EM-013: the confirm-reminder modal derives its deadline from these two. `?? null`
@@ -253,7 +265,7 @@ describe('Vuex store', () => {
 
       it('calls twenty-three commits', () => {
         logout({ commit, state, dispatch })
-        expect(commit).toHaveBeenCalledTimes(23)
+        expect(commit).toHaveBeenCalledTimes(24)
       })
 
       // ... (other logout action tests remain largely the same)

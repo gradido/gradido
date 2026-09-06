@@ -41,8 +41,17 @@ vi.mock('bootstrap-vue-next', () => ({
 }))
 
 const { focused } = vi.hoisted(() => ({ focused: [] }))
-const storeState = reactive({ firstName: 'Ira' })
-vi.mock('vuex', () => ({ useStore: () => ({ state: storeState }) }))
+const storeState = reactive({ firstName: 'Ira', creationAllowed: true })
+const committed = []
+vi.mock('vuex', () => ({
+  useStore: () => ({
+    state: storeState,
+    commit: (name, value) => {
+      committed.push([name, value])
+      storeState[name] = value
+    },
+  }),
+}))
 
 const routePath = ref('/overview')
 const pushed = []
@@ -59,12 +68,16 @@ const statusMock = ref(null)
 const refetchMock = vi.fn()
 const submitMock = vi.fn()
 const skipMock = vi.fn()
+const declareMock = vi.fn()
 
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: () => ({ result: statusMock, refetch: refetchMock }),
   useMutation: (document) => ({
-    mutate: (variables) =>
-      document === 'SUBMIT_FIRST_CREATION' ? submitMock(variables) : skipMock(variables),
+    mutate: (variables) => {
+      if (document === 'SUBMIT_FIRST_CREATION') return submitMock(variables)
+      if (document === 'DECLARE_PROJECT_ACCOUNT') return declareMock(variables)
+      return skipMock(variables)
+    },
   }),
 }))
 
@@ -72,6 +85,9 @@ vi.mock('@/graphql/firstCreation.graphql', () => ({
   firstCreationStatus: 'FIRST_CREATION_STATUS',
   submitFirstCreation: 'SUBMIT_FIRST_CREATION',
   skipFirstCreation: 'SKIP_FIRST_CREATION',
+}))
+vi.mock('@/graphql/user.graphql', () => ({
+  declareProjectAccount: 'DECLARE_PROJECT_ACCOUNT',
 }))
 
 const i18n = createI18n({ locale: 'de', legacy: false, messages: { de } })
@@ -81,6 +97,7 @@ const status = (over = {}) => ({
   eligible: true,
   message: null,
   entries: [],
+  skippedBefore: false,
   functionTestsEnabled: false,
   testRunsLeft: null,
   ...over,
@@ -151,6 +168,9 @@ beforeEach(() => {
   answerRefetchWith(status())
   submitMock.mockReset().mockResolvedValue(settled('DONE', [entry('eins')], 'Danke.'))
   skipMock.mockReset().mockResolvedValue({})
+  declareMock.mockReset().mockResolvedValue({ data: { declareProjectAccount: true } })
+  storeState.creationAllowed = true
+  committed.length = 0
   forgetFirstLoginWindows()
 })
 
@@ -497,14 +517,72 @@ describe('FirstCreation', () => {
       expect(wrapper.find('[data-test="first-creation-save"]').attributes('disabled')).toBeDefined()
     })
 
-    it('calls skipFirstCreation and closes on "nothing comes to mind"', async () => {
+    it('calls skipFirstCreation and closes on "nothing comes to mind" once the question was asked', async () => {
+      // The server says this member has skipped before: no question, straight out.
+      statusMock.value = { firstCreationStatus: status({ skippedBefore: true }) }
       const wrapper = build()
       await wrapper.find('[data-test="first-creation-nothing"]').trigger('click')
       await vi.runAllTimersAsync()
       expect(skipMock).toHaveBeenCalledTimes(1)
       expect(submitMock).not.toHaveBeenCalled()
+      expect(wrapper.find('[data-test="first-creation-project-ask"]').exists()).toBe(false)
       expect(wrapper.find('[data-test="first-creation"]').exists()).toBe(false)
       expect(firstLoginWindow.value).toBe(null)
+    })
+  })
+
+  /* ES-012: the project account explains itself here, behind "nothing comes to mind". */
+  describe('the project-account question', () => {
+    it('is asked on the first "nothing comes to mind", before anything is sent', async () => {
+      const wrapper = build()
+      await wrapper.find('[data-test="first-creation-nothing"]').trigger('click')
+      await nextTick()
+      expect(wrapper.find('[data-test="first-creation-project-ask"]').exists()).toBe(true)
+      expect(wrapper.find('[data-test="first-creation-form"]').exists()).toBe(false)
+      expect(skipMock).not.toHaveBeenCalled()
+      expect(declareMock).not.toHaveBeenCalled()
+      // Still the same window on the stage -- not a dismissal.
+      expect(wrapper.find('[data-test="first-creation"]').exists()).toBe(true)
+    })
+
+    it('"Later" skips as before and closes', async () => {
+      const wrapper = build()
+      await wrapper.find('[data-test="first-creation-nothing"]').trigger('click')
+      await nextTick()
+      await wrapper.find('[data-test="first-creation-later"]').trigger('click')
+      await vi.runAllTimersAsync()
+      expect(skipMock).toHaveBeenCalledTimes(1)
+      expect(declareMock).not.toHaveBeenCalled()
+      expect(wrapper.find('[data-test="first-creation"]').exists()).toBe(false)
+      expect(storeState.creationAllowed).toBe(true)
+    })
+
+    it('"This is a project account" declares it, tells the store and closes without a skip', async () => {
+      const wrapper = build()
+      await wrapper.find('[data-test="first-creation-nothing"]').trigger('click')
+      await nextTick()
+      await wrapper.find('[data-test="first-creation-project-account"]').trigger('click')
+      await vi.runAllTimersAsync()
+      expect(declareMock).toHaveBeenCalledTimes(1)
+      expect(skipMock).not.toHaveBeenCalled()
+      // The menu item hangs on this; it must not wait for the next verifyLogin.
+      expect(committed).toContainEqual(['creationAllowed', false])
+      expect(wrapper.find('[data-test="first-creation"]').exists()).toBe(false)
+    })
+
+    it('stays on the question and says why when the server refuses', async () => {
+      declareMock.mockRejectedValue(new Error('PROJECT_ACCOUNT_REFUSED: OPEN_CONTRIBUTIONS'))
+      const wrapper = build()
+      await wrapper.find('[data-test="first-creation-nothing"]').trigger('click')
+      await nextTick()
+      await wrapper.find('[data-test="first-creation-project-account"]').trigger('click')
+      await vi.runAllTimersAsync()
+      expect(wrapper.find('[data-test="first-creation-project-ask"]').exists()).toBe(true)
+      expect(wrapper.find('[data-test="first-creation-project-failed"]').text()).toBe(
+        de.settings.creationAccount.openContributions,
+      )
+      expect(storeState.creationAllowed).toBe(true)
+      expect(wrapper.find('[data-test="first-creation"]').exists()).toBe(true)
     })
   })
 
@@ -797,6 +875,9 @@ describe('FirstCreation', () => {
     it('comes back with the question when nothing was entered (ES-011)', async () => {
       const first = build()
       await first.find('[data-test="first-creation-nothing"]').trigger('click')
+      await nextTick()
+      // The project-account question stands in between the first time (ES-012); "Later".
+      await first.find('[data-test="first-creation-later"]').trigger('click')
       await vi.runAllTimersAsync()
       first.unmount()
 
