@@ -64,4 +64,9 @@ export const USER_RIGHTS = [
   // on RESTRICTED_WHILE_UNCONFIRMED: inside the 24-hour window (EM-013) it is open, after
   // it the whole window closes with the other value-creating rights.
   RIGHTS.FIRST_CREATION,
+  // ES-021: both reach the caller's own account and nothing else. Neither is on
+  // RESTRICTED_FOR_PROJECT_ACCOUNT — the way back (a request to the support) has to stay
+  // open to the very account that is locked out of creating.
+  RIGHTS.DECLARE_PROJECT_ACCOUNT,
+  RIGHTS.REQUEST_CREATION_RIGHT,
 ]

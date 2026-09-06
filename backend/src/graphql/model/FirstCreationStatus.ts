@@ -45,6 +45,14 @@ export class FirstCreationStatus {
   @Field(() => [FirstCreationEntry])
   entries: FirstCreationEntry[]
 
+  /**
+   * ES-012: whether the member has closed the window with "nothing comes to mind" before.
+   * The project-account question is asked on the first skip only; the skip event is where
+   * this is read from.
+   */
+  @Field()
+  skippedBefore: boolean
+
   /** ES-014 — whether this server offers the function-test area at all. */
   @Field()
   functionTestsEnabled: boolean

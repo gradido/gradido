@@ -4,6 +4,7 @@ import {
   AppDatabase,
   Contribution as DbContribution,
   User as DbUser,
+  dbFindLatestEventForAffectedUser,
   dbGetFirstCreationSignerUserId,
   dbInsertFirstCreation,
   dbSelectFirstCreationByUserId,
@@ -38,6 +39,7 @@ import {
   EVENT_FIRST_CREATION_SKIP,
   EVENT_FIRST_CREATION_TEST,
   EVENT_FIRST_CREATION_UNBOOKED,
+  EventType,
 } from '@/event/Events'
 import {
   FirstCreationAlreadyRunning,
@@ -70,6 +72,12 @@ export interface FirstCreationView {
   eligible: boolean
   message: string | null
   entries: FirstCreationEntryView[]
+  /**
+   * Whether the member has closed the window with "nothing comes to mind" before (ES-012):
+   * the project-account question is asked on the FIRST skip only, and the skip event is the
+   * one trace a skip leaves.
+   */
+  skippedBefore: boolean
   functionTestsEnabled: boolean
   testRunsLeft: number | null
   isFirstCreationSigner: boolean | null
@@ -104,8 +112,16 @@ export interface FirstCreationEntryView {
  * holds that member's lock any more.
  */
 
-/** ES-011 plus the signer plus the catalog: the halves of "may the window open". */
+/**
+ * ES-011 plus the signer plus the catalog plus the account kind: the halves of "may the
+ * window open". A project account (ES-021) never sees it — the deny-list in isAuthorized
+ * refuses the status query outright, and this is the same answer one layer in, for the
+ * paths that reach the interaction without the resolver.
+ */
 async function isEligible(user: DbUser, row: FirstCreationSelect | null): Promise<boolean> {
+  if (!user.creationAllowed) {
+    return false
+  }
   // Cheapest checks first: a settled row and a manual contribution need no signer lookup.
   if (!(await checkEligibility(user.id, row)).success) {
     return false
@@ -166,6 +182,8 @@ export async function readFirstCreationStatus(
     eligible: await isEligible(user, row),
     message: showsPreviousRun ? null : (row?.message ?? null),
     entries,
+    skippedBefore:
+      (await dbFindLatestEventForAffectedUser(EventType.FIRST_CREATION_SKIP, user.id)) !== null,
     ...(await functionTestView(user, clientTimezoneOffset)),
   }
 }
@@ -280,6 +298,12 @@ export async function startFirstCreationTest(
 ): Promise<VoidResult<FirstCreationTestRefused>> {
   if (!CONFIG.FUNCTION_TESTS_ENABLED) {
     return { success: false, error: new FirstCreationTestRefused('DISABLED') }
+  }
+  // ES-021: an administrator who declared their own account a project account. FUNCTION_TESTS
+  // is not on the deny-list, so this is the one door in — and a forced row alone opens no
+  // window (isEligible asks the account kind first). Refused here, where it can be said.
+  if (!user.creationAllowed) {
+    return { success: false, error: new FirstCreationTestRefused('PROJECT_ACCOUNT') }
   }
   // ⛔ Both halves, and for one reason: a forced row alone does not open a window.
   // isEligible asks for a signer as well, so pressing the button without one — or as the
@@ -442,6 +466,12 @@ export async function submitFirstCreation(
     return { success: false, error: new FirstCreationAlreadyRunning() }
   }
   try {
+    // ES-021: the resolver's deny-list already refuses a project account; asked again here
+    // so that every caller of this function — not only the one behind FIRST_CREATION —
+    // meets the same condition isEligible asks before opening the window.
+    if (!user.creationAllowed) {
+      return { success: false, error: new FirstCreationNotEligible('PROJECT_ACCOUNT') }
+    }
     const signer = await loadSignerFor(user.id)
     if (!signer.success) {
       return { success: false, error: new FirstCreationNotEligible('NO_SIGNER') }

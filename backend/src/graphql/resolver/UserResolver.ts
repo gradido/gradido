@@ -1322,6 +1322,9 @@ export class UserResolver {
       'emailContact',
       'deletedAt',
       'createdAt',
+      // ES-021: the admin's "may create" switch. Listed here or the row comes back without
+      // it and every switch would show "off".
+      'creationAllowed',
     ]
     const [users, count] = await findUsers(
       userFields,

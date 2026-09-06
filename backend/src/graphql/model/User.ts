@@ -59,6 +59,7 @@ export class User {
       this.gmsPublishLocation = dbUser.gmsPublishLocation
       this.aboutMe = dbUser.aboutMe
       this.avatarVisibleToMembers = dbUser.avatarVisibleToMembers
+      this.creationAllowed = dbUser.creationAllowed
       // Lives in its own table, so the user row cannot carry it; verifyLogin fills it.
       // This is the small rendition -- the full one is fetched on demand, see avatarFull.
       this.avatar = null
@@ -162,6 +163,20 @@ export class User {
   // inalienable right and therefore has no authenticated caller for the guard to match.
   @Field(() => Boolean, { nullable: true })
   avatarVisibleToMembers: boolean
+
+  // ES-021: whether this account creates Gradido (a person) or receives thanks only (a
+  // project account). Wallet and admin both read it off this shared type; the federation
+  // does not (no such field in federation/src).
+  //
+  // No field resolver and no right on it, unlike salutation and avatarVisibleToMembers
+  // above — and the reason is the KIND of datum, not an oversight: this is a property of
+  // the account like hideAmountGDD, not something the moderation noted about a person or
+  // a decision about who may look at them. That an account belongs to an association or a
+  // shop is what such an account tells everybody anyway. What it PROTECTS is enforced
+  // elsewhere: the deny-list in isAuthorized (RESTRICTED_FOR_PROJECT_ACCOUNT), which reads
+  // the user row, never this field.
+  @Field(() => Boolean)
+  creationAllowed: boolean
 
   @Field(() => PublishNameType, { nullable: true })
   gmsPublishName: PublishNameType | null

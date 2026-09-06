@@ -98,6 +98,11 @@ export enum RIGHTS {
   // entries, skipping the window. Every call reaches the caller's own process only; the
   // confirmation in the SIGNER's name happens inside the interaction, not behind this key.
   FIRST_CREATION = 'FIRST_CREATION',
+  // ES-021, the project account. Both act on the caller's OWN account only: declaring it a
+  // project account (switches creation off, at once) and asking for the creation right
+  // back (a mail to the support — it switches nothing; an administrator does that).
+  DECLARE_PROJECT_ACCOUNT = 'DECLARE_PROJECT_ACCOUNT',
+  REQUEST_CREATION_RIGHT = 'REQUEST_CREATION_RIGHT',
   // Moderator AI
   AI_SEND_MESSAGE = 'AI_SEND_MESSAGE',
   SET_USER_SALUTATION = 'SET_USER_SALUTATION',
@@ -118,6 +123,9 @@ export enum RIGHTS {
   // account that has long since created — a tool, not a setting, and admin only because
   // the run that follows books real Gradido out of the caller's own monthly quota.
   FUNCTION_TESTS = 'FUNCTION_TESTS',
+  // ES-021: switching another account's creation right on or off. Writes on somebody
+  // else's row, so admin only — and its own right, so it can be withdrawn on its own.
+  SET_CREATION_ALLOWED = 'SET_CREATION_ALLOWED',
   // LEGACY-HASHTAG-ADOPTION -- removable with the feature.
   // Adopting the legacy hashtags writes links onto OTHER members' contributions, in bulk.
   // Managing the group list itself does not, so it gets a right of its own rather than

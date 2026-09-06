@@ -656,3 +656,21 @@ export const startFirstCreationTest = gql`
     startFirstCreationTest(withBooking: $withBooking)
   }
 `
+
+export const declareProjectAccount = gql`
+  mutation {
+    declareProjectAccount
+  }
+`
+
+export const requestCreationRight = gql`
+  mutation {
+    requestCreationRight
+  }
+`
+
+export const setCreationAllowed = gql`
+  mutation ($userId: Int!, $allowed: Boolean!) {
+    setCreationAllowed(userId: $userId, allowed: $allowed)
+  }
+`
