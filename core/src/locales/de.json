@@ -197,9 +197,11 @@
       "supportedDisabledPerson": "Ich habe einen Menschen mit Behinderung unterstützt, indem ich {text}"
     },
     "checks": {
+      "child": "Ich bin ein Kind.",
       "retiree": "Ich bin Rentnerin / Rentner."
     },
     "message": {
+      "childLine": "dafür, dass Du da bist und die Welt mit Deinen Augen siehst",
       "closing": "Schön, dass Du da bist.",
       "greetingAnonymous": "Willkommen!",
       "greetingFemale": "Liebe {name}, willkommen!",

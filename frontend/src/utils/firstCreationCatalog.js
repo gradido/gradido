@@ -75,7 +75,7 @@ export const FIRST_CREATION_CATEGORIES = [
  *
  * `child` is stage two and deliberately absent rather than present and hidden.
  */
-export const FIRST_CREATION_CHECK_KEYS = ['retiree']
+export const FIRST_CREATION_CHECK_KEYS = ['retiree', 'child']
 
 /** Every stem, flat -- the shape the backend's list has, for the test to compare against. */
 export const FIRST_CREATION_CATALOG_KEYS = FIRST_CREATION_CATEGORIES.flatMap(

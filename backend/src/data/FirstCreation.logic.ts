@@ -48,7 +48,7 @@ export const FIRST_CREATION_CATALOG_KEYS = [
  * The sentences a member ticks instead of completing (D §5). A tick has no free text, no
  * model line, and a fixed line of thanks (`firstCreation.message.<key>Line`).
  */
-export const FIRST_CREATION_CHECK_KEYS = ['retiree'] as const
+export const FIRST_CREATION_CHECK_KEYS = ['retiree', 'child'] as const
 
 export type FirstCreationCatalogKey = (typeof FIRST_CREATION_CATALOG_KEYS)[number]
 
