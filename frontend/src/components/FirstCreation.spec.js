@@ -86,6 +86,22 @@ const entry = (memo, confirmed = true) => ({
 })
 
 /**
+ * What a refetch answers -- and it writes the answer into the LIVE result too, because that
+ * is what apollo's refetch does.
+ *
+ * ⛔ Not a detail. Without it the live result kept saying `eligible: true` for the whole
+ * test, so the window's stickiness (`opened`) could be replaced by a live read of `eligible`
+ * and every test in this file stayed green -- while on the real thing the window would
+ * vanish the moment `ask()` came back after a cut connection.
+ */
+const answerRefetchWith = (next) => {
+  refetchMock.mockImplementation(async () => {
+    statusMock.value = { firstCreationStatus: next }
+    return { data: { firstCreationStatus: next } }
+  })
+}
+
+/**
  * ⚠️ Every mount is remembered and taken down again in `afterEach`.
  *
  * Not tidiness: `statusMock` is one reactive ref shared by every instance, and this
@@ -118,7 +134,8 @@ beforeEach(() => {
   routePath.value = '/overview'
   pushed.length = 0
   statusMock.value = { firstCreationStatus: status() }
-  refetchMock.mockReset().mockResolvedValue({ data: { firstCreationStatus: status() } })
+  refetchMock.mockReset()
+  answerRefetchWith(status())
   submitMock.mockReset().mockResolvedValue(settled('DONE', [entry('eins')], 'Danke.'))
   skipMock.mockReset().mockResolvedValue({})
   forgetFirstLoginWindows()
@@ -189,9 +206,17 @@ describe('FirstCreation', () => {
       await wrapper.find('[data-test="first-creation-save"]').trigger('click')
       await vi.runAllTimersAsync()
 
-      // ⛔ The whole point: `eligible` is false from here on, and reading it into v-model
-      // would take the window away at the moment it finally has something to say.
+      // The row is settled, so the server stops calling this member eligible -- and any
+      // later read of the query says so. On the real thing that read is `ask()` after a cut
+      // connection; here it is put in by hand, because the fixture has to reach the state
+      // the window has to survive.
+      statusMock.value = { firstCreationStatus: status({ eligible: false, state: 'DONE' }) }
+      await nextTick()
+
+      // ⛔ The whole point: reading `eligible` into v-model would take the window away at
+      // the moment it finally has something to say.
       expect(wrapper.find('[data-test="first-creation-result"]').exists()).toBe(true)
+      expect(wrapper.find('[data-test="first-creation-message"]').exists()).toBe(true)
     })
 
     it('lets go of the screen when it is unmounted', () => {
@@ -367,11 +392,9 @@ describe('FirstCreation', () => {
       // ⚠️ The nginx cut: `/graphql` has no proxy_read_timeout, so 60 s applies, and the
       // model deadline behind this mutation is exactly 60 s. The backend keeps working.
       submitMock.mockRejectedValue(new Error('Failed to fetch'))
-      refetchMock.mockResolvedValue({
-        data: {
-          firstCreationStatus: status({ state: 'DONE', entries: [entry('a')], message: 'Danke.' }),
-        },
-      })
+      answerRefetchWith(
+        status({ state: 'DONE', eligible: false, entries: [entry('a')], message: 'Danke.' }),
+      )
       const wrapper = build()
       await write(wrapper, 'helpedParish', 'Kuchen für das Fest gebacken habe')
       await wrapper.find('[data-test="first-creation-save"]').trigger('click')
@@ -384,7 +407,7 @@ describe('FirstCreation', () => {
 
     it('says so and keeps the form when the server says nothing was filed', async () => {
       submitMock.mockRejectedValue(new Error('nope'))
-      refetchMock.mockResolvedValue({ data: { firstCreationStatus: status() } })
+      answerRefetchWith(status())
       const wrapper = build()
       await write(wrapper, 'helpedParish', 'Kuchen für das Fest gebacken habe')
       await wrapper.find('[data-test="first-creation-save"]').trigger('click')
@@ -397,6 +420,8 @@ describe('FirstCreation', () => {
     })
 
     it('keeps asking while a row it does not own sits in SUBMITTED', async () => {
+      // The process is still running, so every answer says the same thing.
+      answerRefetchWith(status({ state: 'SUBMITTED' }))
       statusMock.value = { firstCreationStatus: status({ state: 'SUBMITTED' }) }
       build()
       expect(refetchMock).not.toHaveBeenCalled()
