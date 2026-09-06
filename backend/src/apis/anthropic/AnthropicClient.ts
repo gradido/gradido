@@ -709,7 +709,7 @@ export class AnthropicClient {
    */
   private buildRewriteUserMessage(input: CreaContributionInput): string {
     const lines: string[] = [
-      '## Beitrag (unveraendert)',
+      '## Beitrag (unverändert)',
       '',
       input.text,
       '',
@@ -724,7 +724,7 @@ export class AnthropicClient {
       )
     }
     lines.push(
-      '- Schreibe NUR den neuen Antwortvorschlag fuer diese Zielentscheidung; bewerte nicht neu.',
+      '- Schreibe NUR den neuen Antwortvorschlag für diese Zielentscheidung; bewerte nicht neu.',
     )
     return lines.join('\n')
   }
@@ -737,8 +737,8 @@ export class AnthropicClient {
    */
   private buildBatchUserMessage(input: CreaBatchInput): string {
     const lines: string[] = [
-      '## Mehrere Beitraege desselben Teilnehmers (Sammel-Bewertung)',
-      'Es folgen mehrere Beitraege DERSELBEN Person. Bilde EIN Gesamturteil und schreibe EINE Antwort, die alle Beitraege gemeinsam wuerdigt (nicht je Beitrag getrennt). Beziehe Dich, wo hilfreich, auf einzelne Beitraege. Faellt ein einzelner Beitrag aus der Reihe, sprich ihn in der Antwort an.',
+      '## Mehrere Beiträge desselben Teilnehmers (Sammel-Bewertung)',
+      'Es folgen mehrere Beiträge DERSELBEN Person. Bilde EIN Gesamturteil und schreibe EINE Antwort, die alle Beiträge gemeinsam würdigt (nicht je Beitrag getrennt). Beziehe Dich, wo hilfreich, auf einzelne Beiträge. Fällt ein einzelner Beitrag aus der Reihe, sprich ihn in der Antwort an.',
       '',
     ]
     input.contributions.forEach((contribution, index) => {
@@ -754,9 +754,9 @@ export class AnthropicClient {
     })
     lines.push(
       '## Fakten aus dem System',
-      `- Anrede: mit dem Platzhalter ${SALUTATION_PLACEHOLDER} beginnen (der Code fuellt den Namen lokal ein)`,
-      `- Grussformel: mit dem Platzhalter ${SIGNATURE_PLACEHOLDER} abschliessen (der Code fuellt die Moderator-Signatur lokal ein)`,
-      `- Eingestellte Software-Sprache (fuer reasoning): ${input.uiLanguage ?? 'de'}`,
+      `- Anrede: mit dem Platzhalter ${SALUTATION_PLACEHOLDER} beginnen (der Code füllt den Namen lokal ein)`,
+      `- Grußformel: mit dem Platzhalter ${SIGNATURE_PLACEHOLDER} abschließen (der Code füllt die Moderator-Signatur lokal ein)`,
+      `- Eingestellte Software-Sprache (für reasoning): ${input.uiLanguage ?? 'de'}`,
     )
     return lines.join('\n')
   }
@@ -767,7 +767,7 @@ export class AnthropicClient {
    * it does not re-evaluate.
    */
   private buildBatchRewriteUserMessage(input: CreaBatchInput): string {
-    const lines: string[] = ['## Mehrere Beitraege desselben Teilnehmers (unveraendert)', '']
+    const lines: string[] = ['## Mehrere Beiträge desselben Teilnehmers (unverändert)', '']
     input.contributions.forEach((contribution, index) => {
       const meta: string[] = []
       if (contribution.date) {
@@ -781,12 +781,12 @@ export class AnthropicClient {
     })
     lines.push(
       '## Fakten aus dem System',
-      `- Anrede: mit dem Platzhalter ${SALUTATION_PLACEHOLDER} beginnen (der Code fuellt den Namen lokal ein)`,
-      `- Grussformel: mit dem Platzhalter ${SIGNATURE_PLACEHOLDER} abschliessen (der Code fuellt die Moderator-Signatur lokal ein)`,
-      `- Eingestellte Software-Sprache (fuer reasoning): ${input.uiLanguage ?? 'de'}`,
+      `- Anrede: mit dem Platzhalter ${SALUTATION_PLACEHOLDER} beginnen (der Code füllt den Namen lokal ein)`,
+      `- Grußformel: mit dem Platzhalter ${SIGNATURE_PLACEHOLDER} abschließen (der Code füllt die Moderator-Signatur lokal ein)`,
+      `- Eingestellte Software-Sprache (für reasoning): ${input.uiLanguage ?? 'de'}`,
       '',
       '## Moderator-Vorgabe (weicht von Deiner Empfehlung ab)',
-      `- Zielentscheidung fuer ALLE Beitraege zusammen: ${moderatorDecisionLabel(input.moderatorDecision)}`,
+      `- Zielentscheidung für ALLE Beiträge zusammen: ${moderatorDecisionLabel(input.moderatorDecision)}`,
     )
     if (input.moderatorContext?.trim()) {
       lines.push(
@@ -794,7 +794,7 @@ export class AnthropicClient {
       )
     }
     lines.push(
-      '- Schreibe NUR den neuen gemeinsamen Antwortvorschlag fuer diese Zielentscheidung; bewerte nicht neu.',
+      '- Schreibe NUR den neuen gemeinsamen Antwortvorschlag für diese Zielentscheidung; bewerte nicht neu.',
     )
     return lines.join('\n')
   }
@@ -813,17 +813,17 @@ export class AnthropicClient {
     }
     if (input.monthlyHours != null) {
       lines.push(
-        `- Monatssumme Stunden (fuer den Deckel, kein Diskrepanz-Ausloeser): ${input.monthlyHours}`,
+        `- Monatssumme Stunden (für den Deckel, kein Diskrepanz-Auslöser): ${input.monthlyHours}`,
       )
     }
     if (input.memberStatus) {
       lines.push(`- Mitglieds-Status: ${input.memberStatus}`)
     }
     lines.push(
-      `- Anrede: mit dem Platzhalter ${SALUTATION_PLACEHOLDER} beginnen (der Code fuellt den Namen lokal ein)`,
+      `- Anrede: mit dem Platzhalter ${SALUTATION_PLACEHOLDER} beginnen (der Code füllt den Namen lokal ein)`,
     )
     lines.push(
-      `- Grussformel: mit dem Platzhalter ${SIGNATURE_PLACEHOLDER} abschliessen (der Code fuellt die Moderator-Signatur lokal ein)`,
+      `- Grußformel: mit dem Platzhalter ${SIGNATURE_PLACEHOLDER} abschließen (der Code füllt die Moderator-Signatur lokal ein)`,
     )
     if (input.date) {
       lines.push(`- Datum: ${input.date}`)
@@ -832,7 +832,7 @@ export class AnthropicClient {
       lines.push(`- Neu-Mitglied: ${input.isNewMember ? 'ja' : 'nein'}`)
     }
     lines.push(
-      `- Eingestellte Software-Sprache (fuer reasoning/appliedRule): ${input.uiLanguage ?? 'de'}`,
+      `- Eingestellte Software-Sprache (für reasoning/appliedRule): ${input.uiLanguage ?? 'de'}`,
     )
     return lines
   }
