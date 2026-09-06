@@ -630,6 +630,13 @@ describe('FirstCreation', () => {
       )
       expect(storeState.creationAllowed).toBe(true)
       expect(wrapper.find('[data-test="first-creation"]').exists()).toBe(true)
+
+      // Back to the question and in again: the old refusal does not come along.
+      await wrapper.find('[data-test="confirm-no"]').trigger('click')
+      await nextTick()
+      await wrapper.find('[data-test="first-creation-project-account"]').trigger('click')
+      await nextTick()
+      expect(wrapper.find('[data-test="first-creation-project-failed"]').exists()).toBe(false)
     })
   })
 

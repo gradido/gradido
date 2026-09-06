@@ -176,7 +176,7 @@
         mode="declare"
         :busy="answering"
         @confirm="declareProject"
-        @cancel="confirmingProject = false"
+        @cancel="cancelProjectConfirm"
       />
       <p
         v-if="projectFailed"
@@ -796,6 +796,12 @@ const declareProject = async () => {
   } finally {
     answering.value = false
   }
+}
+
+/** Back to the question -- and a refusal from the last try does not come along. */
+const cancelProjectConfirm = () => {
+  projectFailed.value = ''
+  confirmingProject.value = false
 }
 
 const close = () => {
