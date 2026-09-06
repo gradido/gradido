@@ -21,8 +21,10 @@
     },
     "addedContributionMessage": {
       "commonGoodContributionMessage": "вы получили сообщение от {senderAlias} по поводу вашего вклада в общее благо «{contributionMemo}».",
+      "contributionClosed": "Этот вклад завершён — ответить здесь уже нельзя.",
       "message": "«{message}»",
       "readMessage": "Прочитать и ответить на сообщение",
+      "readMessageOnly": "Прочитать сообщение",
       "subject": "Сообщение о вашем вкладе в общее благо",
       "title": "Сообщение о вашем вкладе в общее благо",
       "toSeeAndAnswerMessage": "Ответить можно прямо у вашего вклада."

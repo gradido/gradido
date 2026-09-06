@@ -21,8 +21,10 @@
     },
     "addedContributionMessage": {
       "commonGoodContributionMessage": "{senderAlias}, ortak yarara katkın “{contributionMemo}” hakkında sana bir mesaj gönderdi.",
+      "contributionClosed": "Bu katkı tamamlandı — buraya artık yanıt veremezsin.",
       "message": "“{message}”",
       "readMessage": "Mesajı oku ve yanıtla",
+      "readMessageOnly": "Mesajı oku",
       "subject": "Ortak yarara katkın hakkında mesaj",
       "title": "Ortak yarara katkın hakkında mesaj",
       "toSeeAndAnswerMessage": "Doğrudan katkının yanından yanıtlayabilirsin."

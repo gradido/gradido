@@ -21,8 +21,10 @@
     },
     "addedContributionMessage": {
       "commonGoodContributionMessage": "has recibido un mensaje de {senderAlias} sobre tu contribución al bien común «{contributionMemo}».",
+      "contributionClosed": "Esta contribución está cerrada — ya no puedes responder aquí.",
       "message": "«{message}»",
       "readMessage": "Leer y responder al mensaje",
+      "readMessageOnly": "Leer el mensaje",
       "subject": "Mensaje sobre tu contribución al bien común",
       "title": "Mensaje sobre tu contribución al bien común",
       "toSeeAndAnswerMessage": "Puedes responder directamente en tu contribución."

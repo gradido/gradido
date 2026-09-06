@@ -21,8 +21,10 @@
     },
     "addedContributionMessage": {
       "commonGoodContributionMessage": "je hebt een bericht ontvangen van {senderAlias} over je bijdrage aan het algemeen welzijn ‘{contributionMemo}’.",
+      "contributionClosed": "Deze bijdrage is afgerond — je kunt hier niet meer antwoorden.",
       "message": "‘{message}’",
       "readMessage": "Bericht lezen en beantwoorden",
+      "readMessageOnly": "Bericht lezen",
       "subject": "Bericht over je bijdrage aan het algemeen welzijn",
       "title": "Bericht over je bijdrage aan het algemeen welzijn",
       "toSeeAndAnswerMessage": "Je kunt direct bij je bijdrage antwoorden."

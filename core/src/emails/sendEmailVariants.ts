@@ -37,6 +37,15 @@ export const sendAddedContributionMessageEmail = (
   data: EmailCommonData &
     ContributionEmailCommonData & {
       message: string
+      /**
+       * Whether the member can still answer this message on the thread. The CALLER knows,
+       * and only the caller: this mail is right at the moment it is sent and wrong at the
+       * moment it is read whenever the contribution is confirmed straight after the comment
+       * — a first creation does exactly that. Without it the mail offers a button to a door
+       * that does not open (Bernd, 06.09.). Default true, which is what every moderator
+       * message has always been.
+       */
+      answerable?: boolean
     },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
@@ -45,6 +54,9 @@ export const sendAddedContributionMessageEmail = (
     },
     template: 'addedContributionMessage',
     locals: {
+      // Before the spread, so a caller that says nothing gets the old mail unchanged and a
+      // caller that says `false` is not overwritten by the default.
+      answerable: true,
       ...data,
       ...getEmailCommonLocales(),
     },

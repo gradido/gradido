@@ -6,16 +6,27 @@ block content
     include ../includes/salutation.pug
     p.human-text= t('emails.addedContributionMessage.commonGoodContributionMessage', { senderAlias, contributionMemo })
   .content
-    h2= t('emails.addedContributionMessage.readMessage')
+    //- The heading promises answering too, and it is the same promise: "lesen UND
+        beantworten" over a thread that is closed.
+    h2= t(answerable ? 'emails.addedContributionMessage.readMessage' : 'emails.addedContributionMessage.readMessageOnly')
     div(class="p_content")
       p.human-text= t('emails.addedContributionMessage.message', { message })
-      p= t('emails.addedContributionMessage.toSeeAndAnswerMessage')
+      //- ⛔ Not every one of these messages can be answered. The mail is right at the moment
+          it is sent and wrong at the moment it is read: a first creation is commented FIRST
+          and confirmed straight after, so by the time the member opens this the thread is
+          closed and the button leads to a door that does not open (Bernd, 06.09.). The
+          caller says which it is, because only the caller knows what it is about to do.
+      if answerable
+        p= t('emails.addedContributionMessage.toSeeAndAnswerMessage')
+      else
+        p= t('emails.addedContributionMessage.contributionClosed')
     //- Green leads where the answer belongs, and for a moderator's question that is
         the contribution itself, not the send form - the thread hangs on the entry.
-    .child-right
-      a.button-5(href=`${contributionFrontendLink}`)
-        include ../includes/chatbox-icon.pug
-        span #{t('emails.general.answerNow')}
+    if answerable
+      .child-right
+        a.button-5(href=`${contributionFrontendLink}`)
+          include ../includes/chatbox-icon.pug
+          span #{t('emails.general.answerNow')}
 
   a.button-3(href=`${communityURL}/transactions`) #{t('emails.general.toAccount')}
 

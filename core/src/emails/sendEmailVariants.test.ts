@@ -109,6 +109,55 @@ describe('sendEmailVariants', () => {
       it('has the correct html as snapshot', () => {
         expect(result.originalMessage.html).toMatchSnapshot()
       })
+
+      /**
+       * ⛔ Measured at the RENDERED mail, not at the locals handed to the renderer. The
+       * locals only prove the switch travels; whether the template branches on it is a
+       * question about pug, and only the html can answer it.
+       *
+       * Why it exists: this mail is right at the moment it is sent and wrong at the moment
+       * it is read whenever the contribution is confirmed straight after the comment — a
+       * first creation does exactly that (Bernd, 06.09.). The button then leads to a door
+       * that does not open.
+       */
+      it('offers the reply button, and the heading that promises it', () => {
+        const html = result.originalMessage.html
+        expect(html).toContain('Read and reply to message')
+        expect(html).toContain('You can reply directly at your contribution.')
+        expect(html).toContain(contributionFrontendLink)
+        expect(html).not.toContain('This contribution is complete')
+      })
+    })
+
+    describe('for a contribution that is about to be closed', () => {
+      let closed: any
+
+      beforeAll(async () => {
+        closed = await sendAddedContributionMessageEmail({
+          firstName: 'Peter',
+          lastName: 'Lustig',
+          email: 'peter@lustig.de',
+          language: 'en',
+          senderAlias: 'bibi',
+          contributionMemo: 'My contribution.',
+          contributionFrontendLink,
+          message: 'My message.',
+          answerable: false,
+        })
+      })
+
+      it('takes the button and both promises out, and says why', () => {
+        const html = closed.originalMessage.html
+        expect(html).toContain('This contribution is complete')
+        expect(html).not.toContain('You can reply directly at your contribution.')
+        // ⛔ The heading promises answering too, and it is the same promise.
+        expect(html).not.toContain('Read and reply to message')
+        expect(html).toContain('Read message')
+        // The link to the thread goes with the button: nothing left to press.
+        expect(html).not.toContain(contributionFrontendLink)
+        // What the mail is FOR is untouched — the message itself still stands in it.
+        expect(html).toContain('My message.')
+      })
     })
   })
 

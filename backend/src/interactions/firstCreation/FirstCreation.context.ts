@@ -644,14 +644,23 @@ async function settleAsThanked(
       lines: step.answer.lines,
       checks: entries.flatMap((entry) => (entry.check ? [entry.check] : [])),
     })
+    const withoutBooking = row.testMode === FirstCreationTestMode.WITHOUT_BOOKING
+    // ⛔ The one place in the house where the mail must NOT offer a reply. The comment
+    // leaves the contribution open — and the loop below shuts it seconds later, long
+    // before the member opens the mail. Answering "directly at your contribution" is true
+    // when it is sent and false when it is read (Bernd, 06.09.).
+    //
+    // ⚠️ Only outcome A. Without the booking (ES-016), and on every path through
+    // settleInReview, the contributions stay open on purpose and answering is exactly what
+    // they are for, so those keep the button.
     await signerComments(
       signer,
       first.id,
       message,
       ContributionMessageType.DIALOG,
       clientTimezoneOffset,
+      withoutBooking,
     )
-    const withoutBooking = row.testMode === FirstCreationTestMode.WITHOUT_BOOKING
     if (!withoutBooking) {
       for (const contribution of contributions) {
         await signerConfirms(signer, contribution.id, clientTimezoneOffset)
