@@ -43,15 +43,22 @@ describe('displayCore', () => {
       expect(scoreToStage('0.9', DEFAULTS)).toBe(0)
     })
 
-    it('splits the four steps at 0.40 / 0.52 / 0.62', () => {
-      expect(scoreToStage(0.399, DEFAULTS)).toBe(1)
-      expect(scoreToStage(0.4, DEFAULTS)).toBe(2)
-      expect(scoreToStage(0.52, DEFAULTS)).toBe(3)
-      expect(scoreToStage(0.62, DEFAULTS)).toBe(4)
+    it('splits the four steps at 0.50 / 0.65 / 0.80', () => {
+      expect(scoreToStage(0.499, DEFAULTS)).toBe(1)
+      expect(scoreToStage(0.5, DEFAULTS)).toBe(2)
+      expect(scoreToStage(0.65, DEFAULTS)).toBe(3)
+      expect(scoreToStage(0.8, DEFAULTS)).toBe(4)
     })
 
     it('gives an outstanding single match the full glow', () => {
       expect(scoreToStage(0.8903, DEFAULTS)).toBe(4)
+    })
+
+    it('puts each of the four brightnesses the GMS sends on its own step', () => {
+      // LEVEL_BRIGHTNESS of the GMS (matching/brightness.ts): level 1 to 4.
+      expect(
+        [0.46, 0.595, 0.73, 0.865].map((strength) => scoreToStage(strength, DEFAULTS)),
+      ).toEqual([1, 2, 3, 4])
     })
   })
 
@@ -72,15 +79,15 @@ describe('displayCore', () => {
 
   describe('channelStage', () => {
     it('takes the best match as the base', () => {
-      expect(channelStage([0.2, 0.55], DEFAULTS, false)).toBe(3)
+      expect(channelStage([0.2, 0.73], DEFAULTS, false)).toBe(3)
     })
 
     it('lets breadth lift three middling needs to the top', () => {
-      expect(channelStage([0.41, 0.45, 0.49], DEFAULTS, true)).toBe(4)
+      expect(channelStage([0.51, 0.55, 0.6], DEFAULTS, true)).toBe(4)
     })
 
     it('leaves them at their base when breadth is off', () => {
-      expect(channelStage([0.41, 0.45, 0.49], DEFAULTS, false)).toBe(2)
+      expect(channelStage([0.51, 0.55, 0.6], DEFAULTS, false)).toBe(2)
     })
 
     it('does not let a step-1 flicker count as breadth', () => {
@@ -131,7 +138,7 @@ describe('displayCore', () => {
   })
 
   describe('stagesOf', () => {
-    const match = { scores: { angebot: [0.55], interesse: [0.2] } }
+    const match = { scores: { angebot: [0.73], interesse: [0.2] } }
 
     it('reads every channel of a person', () => {
       expect(stagesOf(match, DEFAULTS, false)).toEqual({ interesse: 1, angebot: 3, gesuch: 0 })
@@ -210,10 +217,10 @@ describe('displayCore', () => {
   })
 
   describe('listPeak', () => {
-    const twoNeeds = { scores: { angebot: [0.41, 0.45] } }
+    const twoNeeds = { scores: { angebot: [0.51, 0.55] } }
 
     it('ranks by the same peak the map glows by', () => {
-      expect(listPeak({ scores: { angebot: [0.55] } }, 'passung')).toBe(3)
+      expect(listPeak({ scores: { angebot: [0.73] } }, 'passung')).toBe(3)
     })
 
     it('counts breadth only when the sort asks for it', () => {

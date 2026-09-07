@@ -8,8 +8,11 @@
  * display snaps to four discrete steps (the eye cannot separate more than that on
  * a glow field). The snapping happens here, at the edge, so ranking loses nothing.
  *
- * The numbers below are calibrated against the seed corpus and confirmed by eye on
- * the living glow field. Do not tune them without re-running that check.
+ * The thresholds below sit between the four level brightnesses the GMS sends as
+ * `strength` — 0.46 / 0.595 / 0.73 / 0.865, LEVEL_BRIGHTNESS in its
+ * matching/brightness.ts — so that each level lands on its own step. The cut and
+ * the step brightnesses were confirmed by eye on the living glow field. Do not tune
+ * them without re-running that check.
  */
 
 export const CHANNELS = ['interesse', 'angebot', 'gesuch']
@@ -105,8 +108,9 @@ export const LABEL_COLORS = {
 export const DEFAULTS = {
   // Below the cut a person shows as a grey presence ring, not as a match.
   cut: 0.17,
-  // The three thresholds splitting the four steps.
-  thresholds: [0.4, 0.52, 0.62],
+  // The three thresholds splitting the four steps: each sits between two of the
+  // four brightnesses the GMS sends (0.46 / 0.595 / 0.73 / 0.865).
+  thresholds: [0.5, 0.65, 0.8],
   // Share of the peak colour per step. Step 1 starts high because anything
   // below roughly 0.3 is invisible against a dark ground.
   stageBright: [0.46, 0.64, 0.82, 1.0],
