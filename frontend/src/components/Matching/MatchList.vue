@@ -121,21 +121,23 @@
       </ul>
     </section>
 
-    <!-- Everyone else nearby who has published something. Not clickable yet: the
-         presence route cannot name them, so here they show the reach, not a door
-         (that waits on the backend). A silent line is still a line worth hearing
-         while the network is small — someone near you, there to be reached. -->
+    <!-- Everyone else nearby. Not clickable yet: the presence route returns an
+         internal id and no community, so here they show the reach, not a door
+         (that waits on the backend, GMS-115). A silent line is still a line worth
+         hearing while the network is small — someone near you, there to be reached. -->
     <section v-if="silent.length" class="list-section" aria-labelledby="match-list-others-head">
       <h3 id="match-list-others-head" class="section-head">
         {{ $t('matching.list.othersHeading') }}
       </h3>
       <ul class="rows">
-        <li v-for="person in silent" :key="person.uuid" class="row row-silent">
+        <li v-for="person in silent" :key="person.id" class="row row-silent">
           <span class="row-body">
             <span class="row-head">
               <span class="row-name">{{ person.name }}</span>
-              <span class="row-sep" aria-hidden="true" />
-              <span class="row-community">{{ person.community.name }}</span>
+              <template v-if="person.community">
+                <span class="row-sep" aria-hidden="true" />
+                <span class="row-community">{{ person.community.name }}</span>
+              </template>
             </span>
             <span class="row-where">
               <PlaceText :where="whereOf(person)" :dir="dirOf(person)" />
