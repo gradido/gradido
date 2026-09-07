@@ -8,6 +8,7 @@
     size="lg"
     hide-header
     fullscreen="md"
+    :no-footer="footerMode === 'none'"
     :no-close-on-backdrop="sending"
     :no-close-on-esc="sending"
     data-test="first-creation"
@@ -20,7 +21,12 @@
            gender guess — that heuristic lives in the backend, and this greeting is built
            here out of the name the wallet already holds. -->
       <p class="fc-welcome" data-test="first-creation-welcome">{{ welcome }}</p>
-      <p class="h5 mb-2">{{ $t('firstCreation.question') }}</p>
+      <!-- ⭐ Why anybody is being asked this at all, BEFORE the question — the window used
+           to open with the question itself and walk in through the door with it (Bernd,
+           07.09.). It also says the beginning is already prepared, which is what turns a
+           blank demand into an offer. -->
+      <p class="fc-intro" data-test="first-creation-intro">{{ $t('firstCreation.intro') }}</p>
+      <p class="h5 mb-2 mt-3">{{ $t('firstCreation.question') }}</p>
       <p class="text-muted mb-3">{{ $t('firstCreation.subtitle') }}</p>
 
       <!-- The tick sits above everything, because it is the one entry that costs no
@@ -221,6 +227,17 @@
           </template>
         </i18n-t>
 
+        <!-- ⭐ Who confirmed THIS one, and who confirms every one after it. It stands after
+             the link rather than between it and `whyHundred`, so the "read more" sentence
+             stays with the paragraph it belongs to instead of appearing to point at the
+             moderation (Bernd, 07.09.).
+             ⚠️ It sits in a known tension with "Bestätigt für die Gemeinschaft" a few lines
+             up, where a person set in the admin signs (ES-005): what happened automatically
+             was the DECISION, not the signature. Bernd knows and accepts it. -->
+        <p class="fc-why" data-test="first-creation-why-confirmed">
+          {{ $t('firstCreation.whyConfirmed') }}
+        </p>
+
         <!-- ⛔ BELOW the hundred, not above it (Bernd, 06.09.). This box says what is on
              the account, and that is the hundred only for somebody who arrived with an
              empty one — whoever redeemed a link or a cheque first reads a larger number
@@ -245,7 +262,7 @@
     </div>
 
     <template #footer>
-      <template v-if="screen === 'form'">
+      <template v-if="footerMode === 'form'">
         <BButton variant="secondary" data-test="first-creation-nothing" @click="nothingComesToMind">
           {{ $t('firstCreation.nothing') }}
         </BButton>
@@ -262,7 +279,7 @@
         </BButton>
       </template>
 
-      <template v-else-if="screen === 'projectAsk'">
+      <template v-else-if="footerMode === 'projectAsk'">
         <button
           type="button"
           class="fc-link"
@@ -282,11 +299,8 @@
         </BButton>
       </template>
 
-      <!-- Nothing to press while the request is still out there. Once it is gone and the
-           process runs on without us (see `ask` below), the way out comes back -- a member
-           whose connection dropped must not be held in front of a spinner. -->
       <BButton
-        v-else-if="screen === 'waiting' && !sending"
+        v-else-if="footerMode === 'leave'"
         variant="secondary"
         data-test="first-creation-waiting-close"
         @click="close"
@@ -294,7 +308,7 @@
         {{ $t('firstCreation.toAccount') }}
       </BButton>
 
-      <template v-else-if="screen === 'result' ? messageShown : screen === 'review'">
+      <template v-else-if="footerMode === 'done'">
         <BButton variant="secondary" data-test="first-creation-to-account" @click="close">
           {{ $t('firstCreation.toAccount') }}
         </BButton>
@@ -1000,6 +1014,40 @@ const balanceShown = computed(
   () => stampAtSubmit.value !== null && props.balanceStamp > stampAtSubmit.value,
 )
 
+/* ── which footer, named once ──────────────────────────────────────────────── */
+
+/**
+ * ⛔ A footer with nothing to press has to reach BModal as `no-footer`, not as an empty
+ * slot. BModal renders the footer as `renderSlot($slots, 'footer', …, () => [cancel, ok])`
+ * — Cancel and OK are its FALLBACK (read in the installed 0.26.8) — and vue falls back to
+ * it whenever the slot produces nothing but comments, which is exactly what a chain of
+ * false `v-if`s leaves behind. So every screen with no button showed BootstrapVue's own
+ * untranslated "Cancel"/"OK" in the middle of the act: the whole wait, the two-and-a-half
+ * seconds before the message, and the project-account confirmation, which carries its own
+ * two buttons in the body.
+ *
+ * Named here rather than tested twice, because `no-footer` and the slot have to say the
+ * same thing — written out separately they would drift on the next screen anybody adds.
+ */
+const footerMode = computed(() => {
+  if (screen.value === 'form') {
+    return 'form'
+  }
+  if (screen.value === 'projectAsk') {
+    return 'projectAsk'
+  }
+  if (screen.value === 'waiting') {
+    // Nothing to press while the request is still out there. Once it is gone and the
+    // process runs on without us (see `ask` below), the way out comes back — a member
+    // whose connection dropped must not be held in front of a spinner.
+    return sending.value ? 'none' : 'leave'
+  }
+  if (screen.value === 'result') {
+    return messageShown.value ? 'done' : 'none'
+  }
+  return screen.value === 'review' ? 'done' : 'none'
+})
+
 onBeforeUnmount(() => {
   stopPolling()
   stopTicking()
@@ -1017,6 +1065,13 @@ onBeforeUnmount(() => {
   color: var(--gold, #c58d38);
   font-size: 1.15rem;
   font-weight: 600;
+}
+
+/* Plain running text, not muted: this is the sentence that says why the question is being
+   asked, and the muted grey belongs to the hint UNDER the question. */
+.fc-intro {
+  margin-bottom: 0;
+  line-height: 1.5;
 }
 
 .fc-check {

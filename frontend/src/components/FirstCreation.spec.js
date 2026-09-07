@@ -33,10 +33,28 @@ vi.mock('bootstrap-vue-next', () => ({
   },
   // Named and driven by `modelValue`, so a test can close the window the way the member
   // does -- from the outside, through v-model.
+  //
+  // ⛔ The footer here carries the ONE trait of the real BModal that this window keeps
+  // tripping over: Cancel and OK are the FALLBACK of the footer slot, so a slot that
+  // renders nothing gets them (`renderSlot($slots, 'footer', …, () => [cancel, ok])` in
+  // bootstrap-vue-next 0.26.8, and vue falls back on comment-only content -- which is what
+  // a chain of false `v-if`s leaves). A stub without the fallback answers every question
+  // about the footer with "looks fine", including the one that was wrong on screen.
+  //
+  // `noFooter` is declared for the same reason: a stub takes any attribute, so the test
+  // could not otherwise tell a prop that works from one this library does not have.
   BModal: {
     name: 'BModal',
-    props: ['modelValue'],
-    template: '<div v-if="modelValue"><slot></slot><slot name="footer"></slot></div>',
+    props: ['modelValue', 'noFooter'],
+    template: `<div v-if="modelValue">
+      <slot></slot>
+      <div v-if="!noFooter" class="modal-footer">
+        <slot name="footer">
+          <button data-test="bvn-cancel">Cancel</button>
+          <button data-test="bvn-ok">OK</button>
+        </slot>
+      </div>
+    </div>`,
   },
 }))
 
@@ -208,6 +226,38 @@ describe('FirstCreation', () => {
       storeState.firstName = ''
       await nextTick()
       expect(wrapper.find('[data-test="first-creation-welcome"]').text()).toBe('Willkommen!')
+    })
+
+    /**
+     * ⭐ Bernd, 07.09.: the window came through the door with the question. The greeting,
+     * the reason for the question and the offer that the beginning is already prepared now
+     * stand ahead of it, IN THAT ORDER -- an intro that arrived below its question would be
+     * an explanation nobody reads.
+     */
+    it('says why it is asking before it asks, and offers the beginning', () => {
+      const wrapper = build()
+      const intro = wrapper.find('[data-test="first-creation-intro"]')
+      expect(intro.exists()).toBe(true)
+      expect(intro.text()).toContain('Gemeinwohl')
+      expect(intro.text()).toContain('Deinen Anfang haben wir Dir schon vorbereitet.')
+
+      const html = wrapper.html()
+      expect(html.indexOf('first-creation-welcome')).toBeLessThan(
+        html.indexOf('first-creation-intro'),
+      )
+      expect(html.indexOf('first-creation-intro')).toBeLessThan(
+        html.indexOf('Was hast Du in den vergangenen Wochen'),
+      )
+    })
+
+    it('asks the question plainly and offers the sentences rather than demanding them', () => {
+      const form = build().find('[data-test="first-creation-form"]').text()
+      // "für das Gemeinwohl" moved up into the intro: the question no longer carries it.
+      expect(form).toContain('Was hast Du in den vergangenen Wochen schon Gutes getan?')
+      expect(form).not.toContain('schon Gutes für das Gemeinwohl getan')
+      // And the line under it says the sentences may be reshaped -- since #3857 the box
+      // carries the opening, so "vervollständige" was no longer the whole truth.
+      expect(form).toContain('Du kannst sie ergänzen, umformen oder ganz eigene schreiben.')
     })
 
     it('stays away while the member is not eligible', () => {
@@ -763,6 +813,91 @@ describe('FirstCreation', () => {
     })
   })
 
+  /**
+   * ⛔ Bernd, 07.09.: the window showed "Cancel" / "OK", untranslated, in the middle of the
+   * act. Not a text of ours -- BModal's own footer, which it falls back to whenever the
+   * footer slot renders nothing (the stub at the top of this file carries that trait, and
+   * without it none of these tests could tell the difference).
+   *
+   * Every assertion here has its counterpart: a screen with no buttons has no footer AND a
+   * screen with buttons has one. An "it is not there" alone would stay green if the footer
+   * were switched off everywhere.
+   */
+  describe('the footer', () => {
+    const foreignButtons = (wrapper) => [
+      wrapper.find('[data-test="bvn-cancel"]').exists(),
+      wrapper.find('[data-test="bvn-ok"]').exists(),
+    ]
+
+    it('is the window´s own on the form, never BModal´s', () => {
+      const wrapper = build()
+      expect(wrapper.find('.modal-footer').exists()).toBe(true)
+      expect(wrapper.find('[data-test="first-creation-save"]').exists()).toBe(true)
+      expect(foreignButtons(wrapper)).toEqual([false, false])
+    })
+
+    it('is gone while the answer is out, and comes back when the way out does', async () => {
+      let release
+      submitMock.mockImplementation(
+        () => new Promise((resolve) => (release = () => resolve(settled('DONE', [entry('a')])))),
+      )
+      const wrapper = build()
+      await write(wrapper, 'helpedParish', 'Kuchen für das Fest gebacken habe')
+      await wrapper.find('[data-test="first-creation-save"]').trigger('click')
+      await nextTick()
+
+      expect(wrapper.find('[data-test="first-creation-waiting"]').exists()).toBe(true)
+      expect(wrapper.find('.modal-footer').exists()).toBe(false)
+      expect(foreignButtons(wrapper)).toEqual([false, false])
+
+      release()
+      await vi.runAllTimersAsync()
+      // The other half: once there IS something to press, the bar is back with our button.
+      expect(wrapper.find('.modal-footer').exists()).toBe(true)
+      expect(wrapper.find('[data-test="first-creation-to-account"]').exists()).toBe(true)
+      expect(foreignButtons(wrapper)).toEqual([false, false])
+    })
+
+    it('stays away through the ticks and the pause before the message', async () => {
+      // ⚠️ This is the stretch Bernd saw: #3855 gave the last tick a 2.5 s pause of its own,
+      // which put the empty footer squarely in front of somebody who was looking at it.
+      submitMock.mockResolvedValue(settled('DONE', [entry('eins'), entry('zwei')], 'Danke.'))
+      const wrapper = build()
+      await write(wrapper, 'helpedParish', 'Kuchen für das Fest gebacken habe')
+      await wrapper.find('[data-test="first-creation-save"]').trigger('click')
+      await nextTick()
+      await nextTick()
+
+      expect(wrapper.find('[data-test="first-creation-result"]').exists()).toBe(true)
+      expect(wrapper.find('.modal-footer').exists()).toBe(false)
+
+      // After both ticks, still in the pause: the message is not there yet, and neither is
+      // anything to press.
+      await vi.advanceTimersByTimeAsync(5000)
+      expect(wrapper.findAll('[data-test="first-creation-tick"]')).toHaveLength(2)
+      expect(wrapper.find('[data-test="first-creation-message"]').exists()).toBe(false)
+      expect(wrapper.find('.modal-footer').exists()).toBe(false)
+      expect(foreignButtons(wrapper)).toEqual([false, false])
+
+      await vi.advanceTimersByTimeAsync(2500)
+      expect(wrapper.find('[data-test="first-creation-message"]').exists()).toBe(true)
+      expect(wrapper.find('.modal-footer').exists()).toBe(true)
+      expect(wrapper.find('[data-test="first-creation-thank"]').exists()).toBe(true)
+    })
+
+    it('leaves the project confirmation its own two buttons and no others', async () => {
+      const wrapper = build()
+      await wrapper.find('[data-test="first-creation-nothing"]').trigger('click')
+      await nextTick()
+      await wrapper.find('[data-test="first-creation-project-account"]').trigger('click')
+      await nextTick()
+
+      expect(wrapper.find('[data-test="confirm-stub"]').exists()).toBe(true)
+      expect(wrapper.find('.modal-footer').exists()).toBe(false)
+      expect(foreignButtons(wrapper)).toEqual([false, false])
+    })
+  })
+
   /* ES-012: the project account explains itself here, behind "nothing comes to mind". */
   describe('the project-account question', () => {
     it('is asked on the first "nothing comes to mind", before anything is sent', async () => {
@@ -1059,6 +1194,28 @@ describe('FirstCreation', () => {
       expect(why).toBeGreaterThan(-1)
       expect(box).toBeGreaterThan(-1)
       expect(why).toBeLessThan(box)
+    })
+
+    /**
+     * ⭐ Bernd, 07.09.: who confirmed THIS one, and who confirms every one after it. It
+     * stands after the "read more" link so that sentence keeps pointing at the common good
+     * rather than appearing to point at the moderation -- hence the order assertion, which
+     * is the whole of the placement decision.
+     */
+    it('says the software confirmed this one and a human reads the next', async () => {
+      const wrapper = build()
+      await sendThree(wrapper)
+      await vi.runAllTimersAsync()
+
+      const confirmed = wrapper.find('[data-test="first-creation-why-confirmed"]')
+      expect(confirmed.exists()).toBe(true)
+      expect(confirmed.text()).toContain('hat die Software gleich bestätigt')
+      expect(confirmed.text()).toContain('liest ein Mensch mit')
+
+      const html = wrapper.html()
+      expect(html.indexOf('first-creation-why-more-link')).toBeLessThan(
+        html.indexOf('first-creation-why-confirmed'),
+      )
     })
 
     /**
