@@ -18,13 +18,21 @@ export enum FirstCreationStatus {
   DONE_UNBOOKED = 'DONE_UNBOOKED',
 }
 
-/** Why a first creation waits for a human — kept for the review quota measurement. */
+/**
+ * Why a first creation waits for a human — kept for the review quota measurement.
+ *
+ * ⚠️ `first_creations.review_reason` is `varchar(16)`: every value here has to fit, and
+ * `firstCreations.test.ts` measures that rather than trusting it. `CHECK_CONFLICT` is short
+ * for exactly that reason — `CONTRADICTORY_CHECKS` would have been four characters too long.
+ */
 export enum FirstCreationReviewReason {
   SUSPICION = 'SUSPICION',
   MODEL_TIMEOUT = 'MODEL_TIMEOUT',
   MODEL_ERROR = 'MODEL_ERROR',
   /** Something other than the model broke after the row was claimed: filing, comment, confirm. */
   PROCESS_ERROR = 'PROCESS_ERROR',
+  /** Ticks that cannot both be true of one person — decided by the rules, not by Crea. */
+  CHECK_CONFLICT = 'CHECK_CONFLICT',
 }
 
 /** A function-test run (L4); null on the row means a real run. */

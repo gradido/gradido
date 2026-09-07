@@ -543,6 +543,114 @@ describe('FirstCreationResolver', () => {
         contributionIds: fresh.map((c) => c.id),
       })
     })
+
+    /**
+     * ⭐ Bernd, 07.09.: "Rentner" and "Kind" exclude each other, and a bundle carrying both
+     * is NOT refused — it goes to a moderator, like a suspicion does.
+     *
+     * ⛔ The refusal would have been the easy build: `prepareEntries` already turns the same
+     * tick twice away with `DUPLICATE_CHECK`, and the new rule would have fitted beside it in
+     * three lines. It would also have ended the case at the member's screen with "das hat
+     * nicht geklappt" and never let a human see it. The wallet stops the pair from being set
+     * at all; this path is for every client that is not our wallet.
+     */
+    it('two ticks that exclude each other: to a moderator, and the model is never asked', async () => {
+      await reopen(raeuber, FirstCreationTestMode.WITH_BOOKING)
+      await loginAs('raeuber@hotzenplotz.de')
+      const before = (await contributionsOf(raeuber)).length
+      const reviewsBefore = (await eventsOf(EventType.FIRST_CREATION_REVIEW, raeuber)).length
+      const { data, errors } = await mutate({
+        mutation: submitFirstCreation,
+        variables: {
+          entries: [
+            { catalogKey: 'retiree' },
+            { catalogKey: 'child' },
+            // ⚠️ A WRITTEN entry belongs in the bundle, and it is what makes the assertion
+            // below mean anything: `askModel` skips the client of its own accord when a
+            // bundle is nothing but ticks, so "the model was not asked" would have been
+            // true here without the new rule at all.
+            { catalogKey: 'helpedAtHome', text: 'Ich habe zu Hause mitgeholfen' },
+          ],
+        },
+      })
+      expect(errors).toBeUndefined()
+      const review = 'Deine Einträge schaut sich noch ein Mensch an. Du hörst von uns.'
+      expect(data.submitFirstCreation).toMatchObject({
+        state: FirstCreationStatus.IN_REVIEW,
+        message: review,
+      })
+
+      // ⛔ The assertion that places the rule BEFORE the model. Nobody waits half a minute
+      // for an answer that will not be used — and it is what tells this branch apart from
+      // the suspicion one, which reaches the same outcome through Crea.
+      expect(firstCreationLines).not.toHaveBeenCalled()
+
+      // Filed, so a moderator has something to look at, and open.
+      const fresh = (await contributionsOf(raeuber)).slice(before)
+      expect(fresh).toHaveLength(3)
+      expect(fresh.map((c) => c.confirmedAt)).toEqual([null, null, null])
+      expect(confirmedMail).not.toHaveBeenCalled()
+
+      const messages = await messagesOn(fresh[0].id)
+      expect(messages.map((m) => [m.type, m.message])).toEqual([
+        [ContributionMessageType.DIALOG, review],
+        [
+          ContributionMessageType.MODERATOR,
+          'Die Erst-Schöpfung wurde angehalten: es sind Häkchen gesetzt, die sich ausschließen — ' +
+            'Ich bin Rentnerin / Rentner. Ich bin ein Kind. ' +
+            'Bitte prüfen und von Hand bestätigen, ändern oder ablehnen.',
+        ],
+      ])
+      // ⚠️ And it does NOT say "Crea hat ... angehalten": Crea was never asked, and a note
+      // that put it on Crea would send a moderator through reasoning that does not exist.
+      expect(messages[1].message).not.toContain('Crea')
+
+      expect(await rowOf(raeuber)).toMatchObject({
+        status: FirstCreationStatus.IN_REVIEW,
+        reviewReason: FirstCreationReviewReason.CHECK_CONFLICT,
+        model: null,
+        contributionIds: fresh.map((c) => c.id),
+      })
+      expect(await eventsOf(EventType.FIRST_CREATION_REVIEW, raeuber)).toHaveLength(
+        reviewsBefore + 1,
+      )
+    })
+
+    /**
+     * The other half: ONE of the two ticks is not the contradiction, and the bundle goes on
+     * past the new rule to the model. Without this, "both are stopped" would also hold for a
+     * rule that stopped every tick.
+     *
+     * ⚠️ It ends in IN_REVIEW rather than DONE, and that is deliberate: the healing tests
+     * further down stage a SUBMITTED row on Raeuber's contributions and need them OPEN --
+     * their own comment says so. A run to DONE here leaves them confirmed, and healing then
+     * reads "all confirmed" and answers DONE. Measured the hard way, in the CI.
+     */
+    it('one of the two ticks alone is nothing to stop', async () => {
+      await reopen(raeuber, FirstCreationTestMode.WITH_BOOKING)
+      firstCreationLines.mockResolvedValue({
+        success: false,
+        error: { reason: 'MODEL_TIMEOUT', message: 'FIRST_CREATION_MODEL_TIMEOUT' },
+      })
+      await loginAs('raeuber@hotzenplotz.de')
+      const { data, errors } = await mutate({
+        mutation: submitFirstCreation,
+        variables: {
+          entries: [
+            { catalogKey: 'child' },
+            { catalogKey: 'helpedAtHome', text: 'Ich habe zu Hause mitgeholfen' },
+          ],
+        },
+      })
+      expect(errors).toBeUndefined()
+      // ⛔ The assertion that carries this test: the model was ASKED, so the new rule did not
+      // fire on a single tick. Where it lands afterwards is the model's business, not ours.
+      expect(firstCreationLines).toHaveBeenCalledTimes(1)
+      expect(data.submitFirstCreation.state).toBe(FirstCreationStatus.IN_REVIEW)
+      expect(await rowOf(raeuber)).toMatchObject({
+        reviewReason: FirstCreationReviewReason.MODEL_TIMEOUT,
+      })
+    })
   })
 
   describe('reopened by the function test (FORCED)', () => {

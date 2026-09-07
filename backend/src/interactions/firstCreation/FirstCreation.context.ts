@@ -27,9 +27,11 @@ import { roleByName } from '@/auth/ROLES'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
+  composeFirstCreationCheckConflictNote,
   composeFirstCreationInternalNote,
   composeFirstCreationMessage,
   composeFirstCreationReviewMessage,
+  conflictingChecks,
   FirstCreationEntryDraft,
   hasFirstCreationCatalog,
 } from '@/data/FirstCreation.logic'
@@ -257,7 +259,7 @@ async function healSubmitted(
       row,
       contributionIds: row.contributionIds,
       reason: FirstCreationReviewReason.PROCESS_ERROR,
-      internalReason: null,
+      internalNote: null,
       model: null,
       clientTimezoneOffset,
     })
@@ -586,12 +588,41 @@ async function runProcess(
       row,
       contributionIds: filed.map((contribution) => contribution.id),
       reason: FirstCreationReviewReason.PROCESS_ERROR,
-      internalReason: null,
+      internalNote: null,
       model: null,
       clientTimezoneOffset,
     })
   }
   const contributionIds = filed.map((contribution) => contribution.id)
+
+  /**
+   * ⭐ Ticks that contradict each other go to a human — they are not refused (Bernd, 07.09.).
+   *
+   * ⛔ The obvious place would have been `prepareEntries`, next to the `DUPLICATE_CHECK` that
+   * already turns the same tick twice away. That would have been wrong: a refusal there ends
+   * at the member's screen with "das hat nicht geklappt", and the case Bernd wants a
+   * moderator to SEE would never reach one. The wallet keeps both ticks from being set at
+   * all; this is for everything that is not our wallet.
+   *
+   * Asked here rather than before the filing, so the bundle exists for the moderation to
+   * look at and the note has an open thread to land on — and before the model, because the
+   * decision is already made and nobody should wait half a minute for an answer that will
+   * not be used.
+   */
+  const conflicting = conflictingChecks(entries.map((entry) => entry.check))
+  if (conflicting.length > 0) {
+    return settleInReview({
+      user,
+      signer,
+      row,
+      contributionIds,
+      reason: FirstCreationReviewReason.CHECK_CONFLICT,
+      internalNote: composeFirstCreationCheckConflictNote(conflicting),
+      model: null,
+      clientTimezoneOffset,
+    })
+  }
+
   const step = await askModel(entries, user.language)
   if (step.kind === 'failure') {
     return settleInReview({
@@ -600,7 +631,7 @@ async function runProcess(
       row,
       contributionIds,
       reason: step.reason,
-      internalReason: null,
+      internalNote: null,
       model: null,
       clientTimezoneOffset,
     })
@@ -612,7 +643,7 @@ async function runProcess(
       row,
       contributionIds,
       reason: FirstCreationReviewReason.SUSPICION,
-      internalReason: step.answer.reason || 'no reason given',
+      internalNote: composeFirstCreationInternalNote(step.answer.reason || 'no reason given'),
       model: step.model,
       clientTimezoneOffset,
     })
@@ -708,7 +739,7 @@ async function settleAsThanked(
       row,
       contributionIds,
       reason: FirstCreationReviewReason.PROCESS_ERROR,
-      internalReason: null,
+      internalNote: null,
       model: step.model,
       clientTimezoneOffset,
     })
@@ -722,7 +753,14 @@ interface ReviewSettlement {
   row: FirstCreationSelect
   contributionIds: number[]
   reason: FirstCreationReviewReason
-  internalReason: string | null
+  /**
+   * The note for the moderation, ready to post, or null where there is nothing to say.
+   *
+   * ⛔ The finished text, not a raw reason: the wording belongs to the outcome, not to this
+   * function. Crea's note opens with "Crea hat ... angehalten", and a stop the rules made
+   * needs a different sentence -- composing it here would have put every stop on Crea.
+   */
+  internalNote: string | null
   model: string | null
   clientTimezoneOffset: number
 }
@@ -735,7 +773,7 @@ interface ReviewSettlement {
  * cannot repeat the note.
  */
 async function settleInReview(settlement: ReviewSettlement): Promise<FirstCreationView> {
-  const { user, signer, row, contributionIds, reason, internalReason, model } = settlement
+  const { user, signer, row, contributionIds, reason, internalNote, model } = settlement
   const message = composeFirstCreationReviewMessage(user.language)
   const entries = await dbSelectFirstCreationEntriesByIds(contributionIds)
   const target = entries.find((entry) => entry.confirmedAt === null && entry.deletedAt === null)
@@ -751,12 +789,12 @@ async function settleInReview(settlement: ReviewSettlement): Promise<FirstCreati
     } catch (error) {
       logger.error(`first creation ${row.id}: review note failed`, error)
     }
-    if (internalReason !== null) {
+    if (internalNote !== null) {
       try {
         await signerComments(
           signer,
           target.id,
-          composeFirstCreationInternalNote(internalReason),
+          internalNote,
           ContributionMessageType.MODERATOR,
           settlement.clientTimezoneOffset,
         )

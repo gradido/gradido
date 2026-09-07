@@ -1,7 +1,11 @@
 // AI-GENERATED — not an architecture reference
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
-import { FirstCreationReviewReason, FirstCreationStatus } from '../enum/FirstCreationStatus'
+import {
+  FirstCreationReviewReason,
+  FirstCreationStatus,
+  FirstCreationTestMode,
+} from '../enum/FirstCreationStatus'
 import { firstCreationsTable } from '../schemas'
 import {
   dbCountFirstCreationsByStatus,
@@ -117,5 +121,30 @@ describe('firstCreations query test', () => {
     expect(await dbCountFirstCreationsByStatus(FirstCreationStatus.SUBMITTED)).toBe(1)
     expect(await dbCountFirstCreationsByStatus(FirstCreationStatus.IN_REVIEW)).toBe(0)
     expect((await dbSelectFirstCreationByUserId(CARLA))?.contributionIds).toEqual([21])
+  })
+
+  /**
+   * ⛔ `status`, `review_reason` and `test_mode` are all `varchar(16)`, and nothing between
+   * a new enum member and that column would complain: MySQL either truncates the value or
+   * refuses the write, and either way it surfaces as a broken process long after the enum
+   * looked fine in review.
+   *
+   * `CONTRADICTORY_CHECKS` was the obvious name for the newest reason and is twenty
+   * characters — it became `CHECK_CONFLICT` because of this test.
+   */
+  it('keeps every enum value inside the column that stores it', () => {
+    const COLUMN_LENGTH = 16
+    const columns = {
+      status: Object.values(FirstCreationStatus),
+      review_reason: Object.values(FirstCreationReviewReason),
+      test_mode: Object.values(FirstCreationTestMode),
+    }
+    Object.entries(columns).forEach(([column, values]) => {
+      values.forEach((value) => {
+        expect(`${column}: ${value} (${value.length})`).toBe(
+          `${column}: ${value} (${Math.min(value.length, COLUMN_LENGTH)})`,
+        )
+      })
+    })
   })
 })

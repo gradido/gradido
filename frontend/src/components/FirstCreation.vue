@@ -342,6 +342,7 @@ import ProjectAccountConfirm from '@/components/UserSettings/ProjectAccountConfi
 import {
   FIRST_CREATION_CATEGORIES,
   FIRST_CREATION_CHECK_KEYS,
+  FIRST_CREATION_EXCLUSIVE_CHECKS,
   FIRST_CREATION_MAX_ENTRIES,
   FIRST_CREATION_MIN_WORDS,
   FIRST_CREATION_STEMS_VISIBLE,
@@ -585,11 +586,25 @@ const toggleCategory = (key) => {
     : [...expanded.value, key]
 }
 
+/**
+ * ⭐ Setting one of two ticks that exclude each other TAKES THE OTHER AWAY, rather than
+ * refusing the tap or letting both stand (Bernd, 07.09.). "Ich bin Rentnerin / Rentner" and
+ * "Ich bin ein Kind" are two answers to one question, so the second tap is a correction of
+ * the first — a tap that visibly did nothing would read as a broken window.
+ *
+ * ⚠️ The cap is asked AFTER the other one is dropped: the exchange takes no new slot, so a
+ * member at the ceiling can still change their mind about which of the two they are.
+ */
 const toggleCheck = (key) => {
   if (checked.value.includes(key)) {
     checked.value = checked.value.filter((entry) => entry !== key)
-  } else if (!atMaxEntries.value) {
-    checked.value = [...checked.value, key]
+    return
+  }
+  const excluded = FIRST_CREATION_EXCLUSIVE_CHECKS.includes(key)
+    ? checked.value.filter((entry) => !FIRST_CREATION_EXCLUSIVE_CHECKS.includes(entry))
+    : checked.value
+  if (excluded.length < checked.value.length || !atMaxEntries.value) {
+    checked.value = [...excluded, key]
   }
 }
 
@@ -634,6 +649,19 @@ const removeEntry = (id) => {
   fields.delete(id)
 }
 
+/**
+ * Two ticks that exclude each other, which `toggleCheck` above makes unreachable by taking
+ * one away as the other goes on.
+ *
+ * ⛔ Kept anyway, and it is the second of the three layers Bernd asked for: the toggle is
+ * one line, and the day somebody restores `checked` from somewhere — a draft, a second tab,
+ * a refactor that keeps the array and loses the exchange — Save must not send a bundle that
+ * the server will hand straight to a moderator. Same reason the entry cap is checked twice.
+ */
+const checksConflict = computed(
+  () => checked.value.filter((key) => FIRST_CREATION_EXCLUSIVE_CHECKS.includes(key)).length > 1,
+)
+
 const canSave = computed(
   () =>
     entryCount.value > 0 &&
@@ -641,6 +669,7 @@ const canSave = computed(
     // is the one that decides (`TOO_MANY` in Submitter.role.ts) and a refusal there reaches
     // the member as a bare "that did not work".
     entryCount.value <= FIRST_CREATION_MAX_ENTRIES &&
+    !checksConflict.value &&
     !entries.some(isTooShort),
 )
 

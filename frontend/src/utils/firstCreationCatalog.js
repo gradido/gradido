@@ -77,6 +77,23 @@ export const FIRST_CREATION_CATEGORIES = [
  */
 export const FIRST_CREATION_CHECK_KEYS = ['retiree', 'child']
 
+/**
+ * Ticks that cannot both be true of one person. "Ich bin Rentnerin / Rentner" and "Ich bin
+ * ein Kind" are two answers to the same question, and both at once says something about the
+ * member that cannot be so (Bernd, 07.09.).
+ *
+ * ⛔ A named GROUP, not "the other tick". There are two of them today, and a third one
+ * anybody adds will not necessarily contradict either — a blanket "at most one tick" would
+ * refuse a tick that is simply a second true thing.
+ *
+ * ⚠️ The backend holds the same list (`FIRST_CREATION_EXCLUSIVE_CHECKS` in
+ * `backend/src/data/FirstCreation.logic.ts`) and neither package can import the other, so
+ * the test beside the locales compares the two by hand, as it does for the keys themselves.
+ * The two lists do different jobs: here a tick takes the other one's place, there the
+ * bundle is handed to a moderator.
+ */
+export const FIRST_CREATION_EXCLUSIVE_CHECKS = ['retiree', 'child']
+
 /** Every stem, flat -- the shape the backend's list has, for the test to compare against. */
 export const FIRST_CREATION_CATALOG_KEYS = FIRST_CREATION_CATEGORIES.flatMap(
   (category) => category.stems,

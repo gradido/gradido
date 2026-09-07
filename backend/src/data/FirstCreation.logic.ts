@@ -56,6 +56,24 @@ export const FIRST_CREATION_CATALOG_KEYS = [
  */
 export const FIRST_CREATION_CHECK_KEYS = ['retiree', 'child'] as const
 
+/**
+ * Ticks that cannot both be true of one person. "Ich bin Rentnerin / Rentner" and "Ich bin
+ * ein Kind" are two answers to the same question, and a bundle carrying both says something
+ * about the member that cannot be so (Bernd, 07.09.).
+ *
+ * ⛔ A named GROUP rather than "the other tick", because there are two of them today and
+ * the third one anybody adds will not necessarily contradict either. A blanket "at most one
+ * tick" would refuse a tick that is simply a second true thing.
+ *
+ * ⚠️ The wallet has its own copy (`utils/firstCreationCatalog.js`); neither package can
+ * import the other. The two are held together by the same test that holds the key lists
+ * together, `frontend/src/locales/firstCreationLocales.spec.js`.
+ */
+export const FIRST_CREATION_EXCLUSIVE_CHECKS: readonly FirstCreationCheckKey[] = [
+  'retiree',
+  'child',
+]
+
 export type FirstCreationCatalogKey = (typeof FIRST_CREATION_CATALOG_KEYS)[number]
 
 /**
@@ -104,6 +122,21 @@ export const isCheckKey = (key: string): key is FirstCreationCheckKey =>
 
 export const isCatalogKey = (key: string): key is FirstCreationCatalogKey =>
   (FIRST_CREATION_CATALOG_KEYS as readonly string[]).includes(key)
+
+/**
+ * The mutually exclusive ticks a bundle carries, in the group's own order. Two or more of
+ * them is the contradiction; an ordinary bundle gets an empty list.
+ *
+ * ⛔ Returns the keys, not a yes/no. The note the moderation reads names what was found —
+ * a bare `true` would hand a human a verdict and no evidence.
+ */
+export function conflictingChecks(
+  checks: readonly (FirstCreationCheckKey | null)[],
+): FirstCreationCheckKey[] {
+  const present = new Set(checks.filter((check): check is FirstCreationCheckKey => check !== null))
+  const found = FIRST_CREATION_EXCLUSIVE_CHECKS.filter((key) => present.has(key))
+  return found.length > 1 ? found : []
+}
 
 /**
  * The sentence that goes into the ledger.
@@ -255,4 +288,24 @@ export function composeFirstCreationReviewMessage(language: string): string {
  */
 export function composeFirstCreationInternalNote(reason: string): string {
   return translateForLocale('de', 'firstCreation.message.internalNote', { reason })
+}
+
+/**
+ * The internal note when the RULES stopped a bundle rather than Crea, with the ticks that
+ * contradict each other named. German, for the same reason as the note above.
+ *
+ * ⛔ Deliberately not `composeFirstCreationInternalNote`. That one opens with "Crea hat bei
+ * der Erst-Schöpfung angehalten", and here Crea never spoke — the contradiction is decided
+ * in code, before the model is asked at all. A note that put it on Crea would send a
+ * moderator searching Crea's reasoning for something that is not in it.
+ */
+export function composeFirstCreationCheckConflictNote(
+  checks: readonly FirstCreationCheckKey[],
+): string {
+  // The ticked sentences themselves, so the note says what the member actually ticked and
+  // stays right when a sentence is reworded.
+  const ticked = checks.map((key) => translateForLocale('de', `firstCreation.checks.${key}`))
+  return translateForLocale('de', 'firstCreation.message.checkConflictNote', {
+    checks: ticked.join(' '),
+  })
 }
