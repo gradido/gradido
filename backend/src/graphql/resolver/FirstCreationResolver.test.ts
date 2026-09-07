@@ -617,12 +617,21 @@ describe('FirstCreationResolver', () => {
     })
 
     /**
-     * The other half: ONE of the two ticks is an ordinary bundle and goes the whole way.
-     * Without this, "both are stopped" would also hold for a rule that stopped every tick.
+     * The other half: ONE of the two ticks is not the contradiction, and the bundle goes on
+     * past the new rule to the model. Without this, "both are stopped" would also hold for a
+     * rule that stopped every tick.
+     *
+     * ⚠️ It ends in IN_REVIEW rather than DONE, and that is deliberate: the healing tests
+     * further down stage a SUBMITTED row on Raeuber's contributions and need them OPEN --
+     * their own comment says so. A run to DONE here leaves them confirmed, and healing then
+     * reads "all confirmed" and answers DONE. Measured the hard way, in the CI.
      */
     it('one of the two ticks alone is nothing to stop', async () => {
       await reopen(raeuber, FirstCreationTestMode.WITH_BOOKING)
-      firstCreationLines.mockResolvedValue(answer(['für Dein Lebenswerk']))
+      firstCreationLines.mockResolvedValue({
+        success: false,
+        error: { reason: 'MODEL_TIMEOUT', message: 'FIRST_CREATION_MODEL_TIMEOUT' },
+      })
       await loginAs('raeuber@hotzenplotz.de')
       const { data, errors } = await mutate({
         mutation: submitFirstCreation,
@@ -634,8 +643,13 @@ describe('FirstCreationResolver', () => {
         },
       })
       expect(errors).toBeUndefined()
-      expect(data.submitFirstCreation.state).toBe(FirstCreationStatus.DONE)
+      // ⛔ The assertion that carries this test: the model was ASKED, so the new rule did not
+      // fire on a single tick. Where it lands afterwards is the model's business, not ours.
       expect(firstCreationLines).toHaveBeenCalledTimes(1)
+      expect(data.submitFirstCreation.state).toBe(FirstCreationStatus.IN_REVIEW)
+      expect(await rowOf(raeuber)).toMatchObject({
+        reviewReason: FirstCreationReviewReason.MODEL_TIMEOUT,
+      })
     })
   })
 
