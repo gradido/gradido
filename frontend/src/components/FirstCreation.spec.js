@@ -606,6 +606,93 @@ describe('FirstCreation', () => {
       })
     })
 
+    /**
+     * ⭐ Bernd, 07.09.: "Rentner" and "Kind" exclude each other, and the window is the first
+     * of three places that says so. Setting one takes the other away — a tap that visibly
+     * did nothing would read as a broken window, and both standing would send the bundle to
+     * a moderator for nothing.
+     */
+    it('lets one of two excluding ticks take the other´s place', async () => {
+      const wrapper = build()
+      const retiree = () => wrapper.find('[data-test="first-creation-check-retiree"]')
+      const child = () => wrapper.find('[data-test="first-creation-check-child"]')
+
+      await retiree().trigger('click')
+      expect(retiree().attributes('aria-pressed')).toBe('true')
+
+      await child().trigger('click')
+      expect(child().attributes('aria-pressed')).toBe('true')
+      expect(retiree().attributes('aria-pressed')).toBe('false')
+      // One entry, not two: the exchange is a correction, not an addition. (The German
+      // singular has no digit in it -- "ein Eintrag" -- so the word is what to look for.)
+      expect(wrapper.find('[data-test="first-creation-count"]').text()).toBe('ein Eintrag')
+
+      // And back again, so this is an exchange and not "child wins".
+      await retiree().trigger('click')
+      expect(retiree().attributes('aria-pressed')).toBe('true')
+      expect(child().attributes('aria-pressed')).toBe('false')
+
+      await wrapper.find('[data-test="first-creation-save"]').trigger('click')
+      expect(submitMock).toHaveBeenCalledWith({
+        entries: [{ catalogKey: 'retiree', text: null }],
+      })
+    })
+
+    /**
+     * ⚠️ The exchange must not be stopped by the ceiling: it opens no slot, so a member at
+     * ten entries can still say which of the two they are. Checking the cap before dropping
+     * the other tick would have made the tap do nothing, silently — the very thing this
+     * window has been repaired for once already.
+     */
+    it('still swaps the two ticks when the entries are at their ceiling', async () => {
+      const wrapper = build()
+      await wrapper.find('[data-test="first-creation-check-retiree"]').trigger('click')
+      await write(wrapper, 'helpedParish', 'einmal geholfen habe')
+      for (let index = 0; index < 12; index++) {
+        const again = wrapper.find('[data-test="first-creation-again-helpedParish"]')
+        if (!again.exists()) break
+        await again.trigger('click')
+        const fields = wrapper.findAll('[data-test^="first-creation-text-"]')
+        await fields[fields.length - 1].setValue('noch einmal geholfen habe')
+      }
+      expect(wrapper.find('[data-test="first-creation-max"]').exists()).toBe(true)
+
+      await wrapper.find('[data-test="first-creation-check-child"]').trigger('click')
+      expect(
+        wrapper.find('[data-test="first-creation-check-child"]').attributes('aria-pressed'),
+      ).toBe('true')
+      expect(
+        wrapper.find('[data-test="first-creation-check-retiree"]').attributes('aria-pressed'),
+      ).toBe('false')
+    })
+
+    /**
+     * ⛔ The second of the three layers, and it is unreachable through the toggle above --
+     * on purpose. The toggle is one line; the day somebody restores `checked` from a draft
+     * or keeps the array through a refactor and loses the exchange, Save must not send a
+     * bundle the server will hand straight to a moderator.
+     */
+    it('holds Save when both excluding ticks are set anyway', async () => {
+      const wrapper = build()
+      wrapper.vm.checked = ['retiree', 'child']
+      await nextTick()
+      expect(wrapper.find('[data-test="first-creation-count"]').text()).toContain('2')
+      // The state really is the forbidden one -- otherwise a disabled Save would prove
+      // nothing but that the window is empty.
+      expect(
+        wrapper.find('[data-test="first-creation-check-child"]').attributes('aria-pressed'),
+      ).toBe('true')
+      expect(wrapper.find('[data-test="first-creation-save"]').attributes('disabled')).toBeDefined()
+
+      // The counter-check: one of them alone and Save is alive, so this is the pair being
+      // held back and not the ticks in general.
+      wrapper.vm.checked = ['retiree']
+      await nextTick()
+      expect(
+        wrapper.find('[data-test="first-creation-save"]').attributes('disabled'),
+      ).toBeUndefined()
+    })
+
     it('counts the entries without naming an amount (W2)', async () => {
       const wrapper = build()
       expect(wrapper.find('[data-test="first-creation-count"]').text()).toContain('0')

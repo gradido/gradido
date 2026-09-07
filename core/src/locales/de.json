@@ -203,6 +203,7 @@
       "retiree": "Ich bin Rentnerin / Rentner."
     },
     "message": {
+      "checkConflictNote": "Die Erst-Schöpfung wurde angehalten: es sind Häkchen gesetzt, die sich ausschließen — {checks} Bitte prüfen und von Hand bestätigen, ändern oder ablehnen.",
       "childLine": "dafür, dass Du da bist und die Welt mit Deinen Augen siehst",
       "closing": "Schön, dass Du da bist.",
       "greetingAnonymous": "Willkommen!",

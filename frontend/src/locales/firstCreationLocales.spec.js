@@ -6,6 +6,7 @@ import {
   FIRST_CREATION_CATALOG_KEYS,
   FIRST_CREATION_CATEGORIES,
   FIRST_CREATION_CHECK_KEYS,
+  FIRST_CREATION_EXCLUSIVE_CHECKS,
 } from '@/utils/firstCreationCatalog'
 
 /**
@@ -64,12 +65,35 @@ const BACKEND_CATALOG_KEYS = [
 /** `FIRST_CREATION_CHECK_KEYS` from the same file, in the backend's own order. */
 const BACKEND_CHECK_KEYS = ['retiree', 'child']
 
+/**
+ * `FIRST_CREATION_EXCLUSIVE_CHECKS` from the same file — the ticks that cannot both be true
+ * of one person.
+ *
+ * ⚠️ The two sides do different jobs with this list and both have to hold it: here a tick
+ * takes the other one's place as it goes on, there a bundle carrying both is handed to a
+ * moderator (`CHECK_CONFLICT`). A key that fell out of one copy would leave the window
+ * letting a pair through that the server then stops — silently, with the member's hundred
+ * waiting on a human.
+ */
+const BACKEND_EXCLUSIVE_CHECKS = ['retiree', 'child']
+
 const LANGUAGES = { de, en }
 
 describe('first creation catalog', () => {
   it('offers exactly the keys the backend accepts', () => {
     expect([...FIRST_CREATION_CATALOG_KEYS].sort()).toEqual([...BACKEND_CATALOG_KEYS].sort())
     expect([...FIRST_CREATION_CHECK_KEYS].sort()).toEqual([...BACKEND_CHECK_KEYS].sort())
+  })
+
+  it('excludes the same pair of ticks the backend does', () => {
+    expect([...FIRST_CREATION_EXCLUSIVE_CHECKS].sort()).toEqual(
+      [...BACKEND_EXCLUSIVE_CHECKS].sort(),
+    )
+    // And every one of them is a tick at all — an exclusive key that is not in the check
+    // list would be a rule about something the window never shows.
+    FIRST_CREATION_EXCLUSIVE_CHECKS.forEach((key) => {
+      expect(FIRST_CREATION_CHECK_KEYS).toContain(key)
+    })
   })
 
   it('puts every stem in exactly one category', () => {

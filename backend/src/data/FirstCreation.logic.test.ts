@@ -4,12 +4,15 @@ import { join } from 'node:path'
 import { GradidoUnit, MEMO_MIN_CHARS } from 'shared'
 import {
   buildFirstCreationMemo,
+  composeFirstCreationCheckConflictNote,
   composeFirstCreationGreeting,
   composeFirstCreationInternalNote,
   composeFirstCreationMessage,
   composeFirstCreationReviewMessage,
+  conflictingChecks,
   FIRST_CREATION_CATALOG_KEYS,
   FIRST_CREATION_CHECK_KEYS,
+  FIRST_CREATION_EXCLUSIVE_CHECKS,
   FIRST_CREATION_MAX_ENTRIES,
   FIRST_CREATION_TOTAL,
   firstCreationContributionDate,
@@ -318,5 +321,48 @@ describe('the catalog gate and the member’s calendar day', () => {
     } finally {
       Date.now = realNow
     }
+  })
+})
+
+/**
+ * ⭐ "Rentner" and "Kind" exclude each other (Bernd, 07.09.). The rule lives here, in one
+ * predicate, because all three layers that carry it — the window's exchange, the pale Save
+ * and the review path — have to mean the same thing by it.
+ */
+describe('the ticks that exclude each other', () => {
+  it('names them when both are there, and stays silent otherwise', () => {
+    expect(conflictingChecks(['retiree', 'child'])).toEqual(['retiree', 'child'])
+    // Order does not decide it; the answer comes back in the group's own order either way.
+    expect(conflictingChecks(['child', 'retiree'])).toEqual(['retiree', 'child'])
+    // With written entries in between -- their `check` is null and does not count.
+    expect(conflictingChecks([null, 'retiree', null, 'child'])).toEqual(['retiree', 'child'])
+
+    expect(conflictingChecks(['retiree'])).toEqual([])
+    expect(conflictingChecks(['child'])).toEqual([])
+    expect(conflictingChecks([null, null])).toEqual([])
+    expect(conflictingChecks([])).toEqual([])
+  })
+
+  it('holds the same pair the window holds', () => {
+    // The wallet's copy is `FIRST_CREATION_EXCLUSIVE_CHECKS` in utils/firstCreationCatalog.js;
+    // neither package can import the other, so this side asserts the shape and the frontend
+    // spec compares the two lists name by name.
+    expect([...FIRST_CREATION_EXCLUSIVE_CHECKS].sort()).toEqual(['child', 'retiree'])
+    FIRST_CREATION_EXCLUSIVE_CHECKS.forEach((key) => {
+      expect(FIRST_CREATION_CHECK_KEYS).toContain(key)
+    })
+  })
+
+  it('writes a note that names the ticks and does not blame Crea for it', () => {
+    const note = composeFirstCreationCheckConflictNote(['retiree', 'child'])
+    expect(note).toContain('Ich bin Rentnerin / Rentner.')
+    expect(note).toContain('Ich bin ein Kind.')
+    expect(note).toContain('Bitte prüfen')
+    // ⛔ The whole reason this is not composeFirstCreationInternalNote: that one opens with
+    // "Crea hat bei der Erst-Schöpfung angehalten", and Crea is never asked on this path.
+    expect(note).not.toContain('Crea')
+    expect(composeFirstCreationInternalNote('irgendein Grund')).toContain('Crea')
+    // No unfilled placeholder reaching a moderator as seven characters of curly braces.
+    expect(note).not.toContain('{')
   })
 })

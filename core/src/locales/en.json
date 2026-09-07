@@ -203,6 +203,7 @@
       "retiree": "I am a retiree."
     },
     "message": {
+      "checkConflictNote": "This first creation was paused: ticks are set that exclude each other — {checks} Please review and confirm, change or reject by hand.",
       "childLine": "for being here and seeing the world with your own eyes",
       "closing": "Good to have you here.",
       "greetingAnonymous": "Welcome!",
