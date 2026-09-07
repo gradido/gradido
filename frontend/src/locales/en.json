@@ -699,6 +699,7 @@
       "radiusLabel": "How far out do you want to search? (km)",
       "radiusTitle": "Search radius",
       "search": "Search for a place or address",
+      "searchFailed": "The search is not reachable right now.",
       "searchHere": "Search here"
     },
     "new": {
@@ -735,6 +736,7 @@
       "keepAsk": "Shall people who fit “{text}” find you from now on?",
       "keepNo": "No, thanks",
       "label": "Currently searching for",
+      "notYet": "Typing a question comes with the next step. Until then the map searches with a saved entry, or with all of them.",
       "open": "Choose a search",
       "other": "Search for something else …",
       "pick": "Pick how you mean it — that runs the search.",

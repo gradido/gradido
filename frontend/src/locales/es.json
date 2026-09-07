@@ -621,6 +621,7 @@
       "radiusLabel": "¿En qué radio quieres buscar? (km)",
       "radiusTitle": "Radio de búsqueda",
       "search": "Buscar un lugar o una dirección",
+      "searchFailed": "La búsqueda no está disponible en este momento.",
       "searchHere": "Buscar aquí"
     },
     "new": {
@@ -657,6 +658,7 @@
       "keepAsk": "¿Quieres que a partir de ahora te encuentre quien encaje con «{text}»?",
       "keepNo": "No, gracias",
       "label": "Ahora mismo busco",
+      "notYet": "La búsqueda escrita llega con el siguiente paso. Hasta entonces, el mapa busca con una entrada guardada o con todas.",
       "open": "Elige una búsqueda",
       "other": "Buscar otra cosa …",
       "pick": "Elige en qué sentido lo dices — así se busca.",
