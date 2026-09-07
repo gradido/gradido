@@ -127,6 +127,7 @@ describe.each(Object.entries(LANGUAGES))('first creation texts in %s', (language
     const literal = [
       'welcome',
       'welcomeAnonymous',
+      'intro',
       'question',
       'subtitle',
       'connector',
@@ -151,6 +152,7 @@ describe.each(Object.entries(LANGUAGES))('first creation texts in %s', (language
       'whyHundred',
       'whyMore',
       'whyMoreLink',
+      'whyConfirmed',
       'thankSomeone',
       'toAccount',
     ]
