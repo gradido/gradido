@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useApolloClient } from '@vue/apollo-composable'
 import { authenticateGmsUserSearch } from '@/graphql/queries'
-import { displayType, scoresOf } from '@/components/Matching/displayCore'
+import { displayType, entryType, scoresOf } from '@/components/Matching/displayCore'
 
 /**
  * The seam between the glow map and its data: the two GMS routes behind the map.
@@ -39,11 +39,13 @@ import { displayType, scoresOf } from '@/components/Matching/displayCore'
  * so Apollo would cache one answer under one key for every member who ever logged
  * in on this browser.
  *
- * `query` — the typed question — has no route yet (POST community-user/match-query
- * is Paket 6). Until then a typed question is refused out loud: `error` carries
- * TYPED_QUERY_UNAVAILABLE and the matches are emptied, rather than answering the
- * member's stored entries under a question they never asked. The rings still load;
- * they do not depend on the question.
+ * `query` — the typed question — goes to GET community-user/typed-matches instead
+ * of the matches route: the words as typed (the field and the particulars, one
+ * question), the stance in the GMS's words, the same circle, the same token. The
+ * GMS folds the words like every keyed word and answers in the same shape; nothing
+ * of the member's stored entries is consulted, and every answer carries a null
+ * `matchedEntryUuid`, because no entry of mine is behind it. The rings load beside
+ * it either way; they do not depend on the question.
  *
  * A match, as the map AND the detail window want it:
  *
@@ -96,8 +98,6 @@ export function distanceKm(a, b) {
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)))
 }
 
-/** `error.code` when the member typed a question and there is no route for it yet. */
-export const TYPED_QUERY_UNAVAILABLE = 'TYPED_QUERY_UNAVAILABLE'
 /** `error.code` when the token or one of the two routes did not come through. */
 export const GMS_UNAVAILABLE = 'GMS_UNAVAILABLE'
 
@@ -221,6 +221,26 @@ function whereParams({ center, radius }) {
   })
 }
 
+/** The most characters the typed route reads; what the field and the particulars hold beyond it is cut, not refused. */
+const TYPED_TEXT_MAX = 200
+
+/**
+ * The circle plus the question: the field and the particulars as one text - they
+ * were typed for one search and the GMS reads a bag of words anyway - and the
+ * stance in the GMS's words (entryType), which names the channel to search.
+ */
+function typedParams(search) {
+  const params = whereParams(search)
+  const { text, details, matchingType } = search.query
+  const question = [text, details]
+    .map((part) => (part ?? '').trim())
+    .filter(Boolean)
+    .join(' ')
+  params.set('text', question.slice(0, TYPED_TEXT_MAX))
+  params.set('matchingType', entryType(matchingType))
+  return params
+}
+
 async function gmsGet(base, route, params, token) {
   // What comes back is one member's view, keyed by the token and not by the URL:
   // no-store keeps it out of the browser's HTTP cache, where the next member on
@@ -274,15 +294,14 @@ export function useMatches() {
       const base = apiBaseOf(url)
       const where = whereParams(search)
       const [people, others] = await Promise.all([
-        search.query ? [] : gmsGet(base, 'community-user/matches', where, token),
+        search.query
+          ? gmsGet(base, 'community-user/typed-matches', typedParams(search), token)
+          : gmsGet(base, 'community-user/matches', where, token),
         gmsGet(base, 'community-user/user-locations', where, token),
       ])
       if (request !== latest) return
       matches.value = people.map(toMatch)
       presence.value = withoutMatched(others, people).map(toPresence)
-      if (search.query) {
-        error.value = failure(TYPED_QUERY_UNAVAILABLE, 'no route for a typed question yet')
-      }
     } catch (err) {
       if (request !== latest) return
       error.value = err.code ? err : failure(GMS_UNAVAILABLE, err.message)

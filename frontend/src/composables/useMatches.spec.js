@@ -9,7 +9,6 @@ import {
   toMatch,
   toPresence,
   withoutMatched,
-  TYPED_QUERY_UNAVAILABLE,
   GMS_UNAVAILABLE,
 } from './useMatches'
 
@@ -217,6 +216,7 @@ describe('useMatches', () => {
       query.mockResolvedValue({ data: { authenticateGmsUserSearch: ACCESS } })
       fetchMock = vi.fn(async (url) => {
         if (url.includes('community-user/matches')) return okJson([matchedUser()])
+        if (url.includes('community-user/typed-matches')) return okJson([matchedUser()])
         if (url.includes('community-user/user-locations')) {
           return okJson([
             mapUser({ id: 1, alias: 'Marta', location: [9.69, 49.28] }),
@@ -278,16 +278,33 @@ describe('useMatches', () => {
       ])
     })
 
-    it('refuses a typed question out loud and still loads the rings', async () => {
-      const { matches, presence, error, load } = useMatches()
-      await load({ ...SEARCH, query: { text: 'Klavier', matchingType: 'gesuch' } })
-
-      expect(error.value?.code).toBe(TYPED_QUERY_UNAVAILABLE)
-      expect(matches.value).toEqual([])
-      expect(presence.value.map((person) => person.name)).toEqual(['Marta', 'Paul'])
-      expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
-        'https://ki-playground-gms.gradido.net/gms/community-user/user-locations?latitude=49.28&longitude=9.69&radius=25',
+    it('asks the typed route with the words and the stance, and the rings beside it', async () => {
+      const { load, error, matches, presence } = useMatches()
+      await load({
+        ...SEARCH,
+        query: { text: ' Klavier ', details: 'gebraucht', matchingType: 'gesuch' },
+      })
+      expect(error.value).toBeNull()
+      const urls = fetchMock.mock.calls.map(([url]) => new URL(url))
+      expect(urls.map((url) => url.pathname)).toEqual([
+        '/gms/community-user/typed-matches',
+        '/gms/community-user/user-locations',
       ])
+      // The field and the particulars as one question, trimmed; the stance in the
+      // GMS's words; the circle as for every search.
+      expect(urls[0].searchParams.get('text')).toBe('Klavier gebraucht')
+      expect(urls[0].searchParams.get('matchingType')).toBe('need')
+      expect(urls[0].searchParams.get('radius')).toBe(String(SEARCH.radius))
+      expect(matches.value.map((match) => match.uuid)).toEqual([matchedUser().uuid])
+      expect(presence.value).toHaveLength(1)
+    })
+
+    it('cuts a typed question at what the route reads', async () => {
+      const { load } = useMatches()
+      await load({ ...SEARCH, query: { text: 'x'.repeat(250), matchingType: 'angebot' } })
+      const url = new URL(fetchMock.mock.calls[0][0])
+      expect(url.searchParams.get('text')).toHaveLength(200)
+      expect(url.searchParams.get('matchingType')).toBe('offer')
     })
 
     it('reports a route that answers with an error, and shows nothing stale', async () => {
