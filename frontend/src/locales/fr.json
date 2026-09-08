@@ -658,7 +658,6 @@
       "keepAsk": "Veux-tu qu'à l'avenir te trouvent celles et ceux qui correspondent à « {text} » ?",
       "keepNo": "Non, merci",
       "label": "Je cherche en ce moment",
-      "notYet": "La recherche par saisie arrive à la prochaine étape. D’ici là, la carte cherche avec une entrée enregistrée ou avec toutes.",
       "open": "Choisir une recherche",
       "other": "Chercher autre chose …",
       "pick": "Choisis dans quel sens tu l'entends — c'est ce qui lance la recherche.",

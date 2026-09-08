@@ -736,7 +736,6 @@
       "keepAsk": "Shall people who fit “{text}” find you from now on?",
       "keepNo": "No, thanks",
       "label": "Currently searching for",
-      "notYet": "Typing a question comes with the next step. Until then the map searches with a saved entry, or with all of them.",
       "open": "Choose a search",
       "other": "Search for something else …",
       "pick": "Pick how you mean it — that runs the search.",

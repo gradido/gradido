@@ -243,15 +243,6 @@ describe('MatchingMap', () => {
       expect(toastError).toHaveBeenCalledWith('Die Suche ist gerade nicht erreichbar.')
     })
 
-    it('says a typed question has to wait, and does not blame the search', async () => {
-      const page = mountMap()
-      await page.vm.$nextTick()
-      searchError.value = failed('TYPED_QUERY_UNAVAILABLE')
-      await page.vm.$nextTick()
-      expect(toastError).toHaveBeenCalledTimes(1)
-      expect(toastError.mock.calls[0][0]).toContain('Tippsuche kommt mit dem nächsten Schritt')
-    })
-
     it('stays quiet when a search simply comes back', async () => {
       const page = mountMap()
       await page.vm.$nextTick()
