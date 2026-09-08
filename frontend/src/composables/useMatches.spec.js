@@ -249,6 +249,8 @@ describe('useMatches', () => {
         fetchPolicy: 'network-only',
       })
       const calls = fetchMock.mock.calls.map(([url, init]) => [url, init.headers.Authorization])
+      // Identity-bound answers stay out of the browser's HTTP cache.
+      expect(fetchMock.mock.calls.map(([, init]) => init.cache)).toEqual(['no-store', 'no-store'])
       expect(calls).toEqual([
         [
           'https://ki-playground-gms.gradido.net/gms/community-user/matches?latitude=49.28&longitude=9.69&radius=25',

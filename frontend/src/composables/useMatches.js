@@ -116,6 +116,12 @@ function failure(code, message) {
  * of the page the token was minted for is the origin of the API, and `/gms/` is
  * where it answers. Throws on anything that is not an absolute URL: a token
  * without a place to use it is a programmer error upstream, not a search result.
+ *
+ * The scheme is kept as configured. It is the operator's `GMS_DASHBOARD_URL`, and
+ * the older user search has handed this same token to that very origin for years
+ * (as a query parameter, even); `http://localhost:8080/` is the documented local
+ * setup. Whether the GMS is reached over TLS is decided where that URL is set,
+ * not second-guessed here.
  */
 export function apiBaseOf(pageUrl) {
   return `${new URL(pageUrl).origin}/gms/`
@@ -216,8 +222,13 @@ function whereParams({ center, radius }) {
 }
 
 async function gmsGet(base, route, params, token) {
+  // What comes back is one member's view, keyed by the token and not by the URL:
+  // no-store keeps it out of the browser's HTTP cache, where the next member on
+  // the same device could otherwise be served it. The GMS answers with `Vary: *`
+  // and no cache headers today; this seam does not depend on that staying so.
   const response = await fetch(`${base}${route}?${params}`, {
     headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
   })
   if (!response.ok) {
     throw failure(GMS_UNAVAILABLE, `${route}: HTTP ${response.status}`)
