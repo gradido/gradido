@@ -730,8 +730,6 @@
     "query": {
       "all": "All my entries",
       "clear": "Clear the search",
-      "details": "More about your search",
-      "detailsPlaceholder": "second-hand, 28 inch",
       "keep": "Keep as an entry",
       "keepAsk": "Shall people who fit “{text}” find you from now on?",
       "keepNo": "No, thanks",

@@ -13,8 +13,6 @@ const i18n = createI18n({
       matching: {
         query: {
           all: 'Alle meine Einträge',
-          details: 'Näheres zu Deiner Suche',
-          detailsPlaceholder: 'gebraucht, 28 Zoll',
           clear: 'Suche zurücksetzen',
           label: 'Ich suche gerade nach',
           open: 'Suche wählen',
@@ -149,41 +147,7 @@ describe('MatchQuery', () => {
       await wrapper.find('.typed-input').setValue('Fahrrad')
       await wrapper.findAll('.stance')[2].trigger('click')
 
-      expect(last(wrapper)).toEqual({
-        kind: 'typed',
-        text: 'Fahrrad',
-        details: '',
-        matchingType: 'gesuch',
-      })
-    })
-
-    it('carries the particulars along with the question', async () => {
-      // They are what lifts a hit from "same word" to "same thing", so they have to
-      // reach the search - and, later, the entry the search can become.
-      const wrapper = mountQuery()
-      await startTyping(wrapper)
-      const fields = wrapper.findAll('.typed-input')
-      await fields[0].setValue('Fahrrad')
-      await fields[1].setValue('  gebraucht, 28 Zoll  ')
-      await wrapper.findAll('.stance')[2].trigger('click')
-
-      expect(last(wrapper).details).toBe('gebraucht, 28 Zoll')
-    })
-
-    it('takes the stance back when only the particulars change', async () => {
-      // Same rule as for the summary, and for the same reason: the particulars narrow
-      // the very same question, so changing them unmakes the sentence that was asked.
-      const wrapper = mountQuery()
-      await startTyping(wrapper)
-      const fields = wrapper.findAll('.typed-input')
-      await fields[0].setValue('Fahrrad')
-      await wrapper.findAll('.stance')[2].trigger('click')
-
-      expect(wrapper.find('.stance.is-chosen').exists()).toBe(true)
-
-      await fields[1].setValue('nur Damenrad')
-
-      expect(wrapper.find('.stance.is-chosen').exists()).toBe(false)
+      expect(last(wrapper)).toEqual({ kind: 'typed', text: 'Fahrrad', matchingType: 'gesuch' })
     })
 
     it('asks on the summary alone - the particulars are an offer, not a toll', async () => {

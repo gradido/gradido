@@ -282,7 +282,7 @@ describe('useMatches', () => {
       const { load, error, matches, presence } = useMatches()
       await load({
         ...SEARCH,
-        query: { text: ' Klavier ', details: 'gebraucht', matchingType: 'gesuch' },
+        query: { text: ' Klavier ', matchingType: 'gesuch' },
       })
       expect(error.value).toBeNull()
       const urls = fetchMock.mock.calls.map(([url]) => new URL(url))
@@ -290,9 +290,9 @@ describe('useMatches', () => {
         '/gms/community-user/typed-matches',
         '/gms/community-user/user-locations',
       ])
-      // The field and the particulars as one question, trimmed; the stance in the
-      // GMS's words; the circle as for every search.
-      expect(urls[0].searchParams.get('text')).toBe('Klavier gebraucht')
+      // The words as typed, trimmed; the stance in the GMS's words; the circle as
+      // for every search.
+      expect(urls[0].searchParams.get('text')).toBe('Klavier')
       expect(urls[0].searchParams.get('matchingType')).toBe('need')
       expect(urls[0].searchParams.get('radius')).toBe(String(SEARCH.radius))
       expect(matches.value.map((match) => match.uuid)).toEqual([matchedUser().uuid])

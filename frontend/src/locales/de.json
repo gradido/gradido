@@ -730,8 +730,6 @@
     "query": {
       "all": "Alle meine Einträge",
       "clear": "Suche zurücksetzen",
-      "details": "Näheres zu Deiner Suche",
-      "detailsPlaceholder": "gebraucht, 28 Zoll",
       "keep": "Als Eintrag behalten",
       "keepAsk": "Soll Dich künftig finden, wer zu „{text}“ passt?",
       "keepNo": "Nein, danke",

@@ -308,7 +308,9 @@ describe('displayCore', () => {
   // and sits where a member could edit it. Every rejected shape here is one that would
   // otherwise reach the search, the menu and the keep offer at once.
   describe('a remembered selection', () => {
-    it('keeps a typed question whole', () => {
+    it('keeps a typed question whole, and drops the particulars an older release stored', () => {
+      // The second field is gone; what a browser remembered from before arrives as
+      // the one-line question it always was.
       expect(
         sanitizeSelection({
           kind: 'typed',
@@ -316,12 +318,7 @@ describe('displayCore', () => {
           details: 'gebraucht',
           matchingType: 'gesuch',
         }),
-      ).toEqual({
-        kind: 'typed',
-        text: 'ein Fahrrad',
-        details: 'gebraucht',
-        matchingType: 'gesuch',
-      })
+      ).toEqual({ kind: 'typed', text: 'ein Fahrrad', matchingType: 'gesuch' })
     })
 
     it('keeps a chosen entry of mine', () => {
@@ -329,14 +326,6 @@ describe('displayCore', () => {
         kind: 'entry',
         uuid: 'abc',
       })
-    })
-
-    it('fills in particulars that were never stored', () => {
-      // The field is younger than the stored shape, so a value written before it
-      // existed has to arrive as an empty string rather than as undefined.
-      expect(
-        sanitizeSelection({ kind: 'typed', text: 'ein Fahrrad', matchingType: 'gesuch' }).details,
-      ).toBe('')
     })
 
     it('falls back to everything when the shape is not one we still understand', () => {

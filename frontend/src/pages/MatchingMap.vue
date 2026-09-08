@@ -418,18 +418,13 @@ onEntries((result) => {
  * Take a typed search over to the entry form, filled in.
  *
  * Handed over in memory rather than as a route parameter: the words are the
- * member's own, and an address bar keeps them long after the moment.
- *
- * The particulars travel with it. They were typed to sharpen this very search, and
- * they are what a stored match is judged on too — asking for them a second time,
- * one screen later, would be asking the member to repeat themselves. The form still
+ * member's own, and an address bar keeps them long after the moment. The form still
  * opens and still has to be sent: an invitation, not an entry made behind their back.
  */
 function keepAsEntry() {
   if (!searchQuery.value) return
   entryDraft.put({
     summary: searchQuery.value.text,
-    details: searchQuery.value.details,
     matchingType: searchQuery.value.matchingType,
   })
   answerKeepOffer()
@@ -467,11 +462,7 @@ function onSelection(next) {
 // same), and the typed sentence when there is one.
 const searchQuery = computed(() =>
   selection.value.kind === 'typed'
-    ? {
-        text: selection.value.text,
-        details: selection.value.details ?? '',
-        matchingType: selection.value.matchingType,
-      }
+    ? { text: selection.value.text, matchingType: selection.value.matchingType }
     : null,
 )
 

@@ -652,8 +652,6 @@
     "query": {
       "all": "Al mijn vermeldingen",
       "clear": "Zoekopdracht wissen",
-      "details": "Meer over je zoekopdracht",
-      "detailsPlaceholder": "tweedehands, 28 inch",
       "keep": "Als vermelding bewaren",
       "keepAsk": "Wil je dat je voortaan gevonden wordt door wie bij ‘{text}’ past?",
       "keepNo": "Nee, bedankt",

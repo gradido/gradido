@@ -652,8 +652,6 @@
     "query": {
       "all": "Tüm girişlerim",
       "clear": "Aramayı sıfırla",
-      "details": "Aramanla ilgili ayrıntılar",
-      "detailsPlaceholder": "ikinci el, 28 inç",
       "keep": "Giriş olarak sakla",
       "keepAsk": "Bundan böyle “{text}” ile eşleşenler seni bulsun mu?",
       "keepNo": "Hayır, teşekkürler",

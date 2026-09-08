@@ -82,27 +82,6 @@
         </button>
       </div>
 
-      <!-- A second line for the particulars. The reranker reads the stem, the summary
-           AND the details, and the details are what lift a hit from "same word" to
-           "same thing" — the seed runs measured it. One line, not a box: in a search
-           nobody writes an essay, and a tall field would invite one. Optional; the
-           summary alone still asks a whole question. -->
-      <div class="typed-row typed-details">
-        <!-- The same 500 the search route allows (matchQuerySchema in the GMS
-             backend). Stopping a long paste at the field is kinder than letting the
-             server refuse it after the question was already asked. -->
-        <input
-          v-model="details"
-          type="text"
-          class="typed-input"
-          maxlength="500"
-          :placeholder="$t('matching.query.detailsPlaceholder')"
-          :aria-label="$t('matching.query.details')"
-          @input="onText"
-          @keydown.esc="cancelTyping"
-        />
-      </div>
-
       <div class="typed-stances" role="group" :aria-label="$t('matching.query.pick')">
         <button
           v-for="channel in CHANNELS"
@@ -144,7 +123,6 @@ const { t } = useI18n()
 const open = ref(false)
 const typing = ref(false)
 const text = ref('')
-const details = ref('')
 const chosen = ref(null)
 const textInput = ref(null)
 
@@ -180,7 +158,6 @@ async function startTyping() {
   open.value = false
   typing.value = true
   text.value = props.selection.kind === 'typed' ? props.selection.text : ''
-  details.value = props.selection.kind === 'typed' ? (props.selection.details ?? '') : ''
   chosen.value = props.selection.kind === 'typed' ? props.selection.matchingType : null
   await nextTick()
   textInput.value?.focus()
@@ -189,18 +166,16 @@ async function startTyping() {
 function cancelTyping() {
   typing.value = false
   text.value = ''
-  details.value = ''
   chosen.value = null
   emit('update:selection', { kind: 'all' })
 }
 
 /**
- * Changing the words takes the stance back — the details count as words too.
+ * Changing the words takes the stance back.
  *
  * Otherwise the list below would still hold answers to a sentence that no longer
  * exists. Letting the choice fall means one rule holds throughout: what you see
- * belongs to the sentence you finished. The details narrow the very same question,
- * so editing them has to take the stance back exactly as the summary does.
+ * belongs to the sentence you finished.
  */
 function onText() {
   chosen.value = null
@@ -212,7 +187,6 @@ function ask(channel) {
   emit('update:selection', {
     kind: 'typed',
     text: text.value.trim(),
-    details: details.value.trim(),
     matchingType: channel,
   })
 }
@@ -327,13 +301,6 @@ watch(
   border: 1px solid var(--border-subtle, rgb(0 0 0 / 15%));
   border-radius: 0.5rem;
   background: var(--surface);
-}
-
-/* Subordinate to the line above it: same field, quieter. It carries no icon and no
-   clear cross, because it is not a second search — it is the rest of the first. */
-.typed-details {
-  margin-top: 0.375rem;
-  padding-left: 2.15rem;
 }
 
 .typed-input {
