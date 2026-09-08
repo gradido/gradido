@@ -40,8 +40,8 @@ import { displayType, entryType, scoresOf } from '@/components/Matching/displayC
  * in on this browser.
  *
  * `query` — the typed question — goes to GET community-user/typed-matches instead
- * of the matches route: the words as typed (the field and the particulars, one
- * question), the stance in the GMS's words, the same circle, the same token. The
+ * of the matches route: the words as typed, the stance in the GMS's words, the same
+ * circle, the same token. The
  * GMS folds the words like every keyed word and answers in the same shape; nothing
  * of the member's stored entries is consulted, and every answer carries a null
  * `matchedEntryUuid`, because no entry of mine is behind it. The rings load beside
@@ -221,22 +221,17 @@ function whereParams({ center, radius }) {
   })
 }
 
-/** The most characters the typed route reads; what the field and the particulars hold beyond it is cut, not refused. */
+/** The most characters the typed route reads; what the field holds beyond it is cut, not refused. */
 const TYPED_TEXT_MAX = 200
 
 /**
- * The circle plus the question: the field and the particulars as one text - they
- * were typed for one search and the GMS reads a bag of words anyway - and the
- * stance in the GMS's words (entryType), which names the channel to search.
+ * The circle plus the question: the words as typed, and the stance in the GMS's
+ * words (entryType), which names the channel to search.
  */
 function typedParams(search) {
   const params = whereParams(search)
-  const { text, details, matchingType } = search.query
-  const question = [text, details]
-    .map((part) => (part ?? '').trim())
-    .filter(Boolean)
-    .join(' ')
-  params.set('text', question.slice(0, TYPED_TEXT_MAX))
+  const { text, matchingType } = search.query
+  params.set('text', (text ?? '').trim().slice(0, TYPED_TEXT_MAX))
   params.set('matchingType', entryType(matchingType))
   return params
 }

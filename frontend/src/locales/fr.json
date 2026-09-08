@@ -652,8 +652,6 @@
     "query": {
       "all": "Toutes mes entrées",
       "clear": "Réinitialiser la recherche",
-      "details": "En savoir plus sur ta recherche",
-      "detailsPlaceholder": "d'occasion, 28 pouces",
       "keep": "Conserver comme entrée",
       "keepAsk": "Veux-tu qu'à l'avenir te trouvent celles et ceux qui correspondent à « {text} » ?",
       "keepNo": "Non, merci",

@@ -67,12 +67,7 @@ export function sanitizeSelection(stored) {
     stored.text.trim() &&
     CHANNELS.includes(stored.matchingType)
   ) {
-    return {
-      kind: 'typed',
-      text: stored.text,
-      details: typeof stored.details === 'string' ? stored.details : '',
-      matchingType: stored.matchingType,
-    }
+    return { kind: 'typed', text: stored.text, matchingType: stored.matchingType }
   }
   return { kind: 'all' }
 }

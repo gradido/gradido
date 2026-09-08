@@ -652,8 +652,6 @@
     "query": {
       "all": "Todas mis entradas",
       "clear": "Restablecer la búsqueda",
-      "details": "Más sobre tu búsqueda",
-      "detailsPlaceholder": "de segunda mano, 28 pulgadas",
       "keep": "Conservar como entrada",
       "keepAsk": "¿Quieres que a partir de ahora te encuentre quien encaje con «{text}»?",
       "keepNo": "No, gracias",

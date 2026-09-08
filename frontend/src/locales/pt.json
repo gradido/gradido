@@ -652,8 +652,6 @@
     "query": {
       "all": "Todas as minhas entradas",
       "clear": "Repor a pesquisa",
-      "details": "Mais sobre a tua pesquisa",
-      "detailsPlaceholder": "usada, 28 polegadas",
       "keep": "Manter como entrada",
       "keepAsk": "Queres que, de agora em diante, te encontre quem corresponda a «{text}»?",
       "keepNo": "Não, obrigado",
