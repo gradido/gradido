@@ -42,11 +42,12 @@ const load = vi.fn()
 // spy and never fills anything in by itself.
 const matches = ref([])
 const presence = ref([])
+const searchError = ref(null)
 vi.mock('@/composables/useMatches', async () => {
   const actual = await vi.importActual('@/composables/useMatches')
   return {
     ...actual,
-    useMatches: () => ({ matches, presence, load }),
+    useMatches: () => ({ matches, presence, error: searchError, load }),
   }
 })
 
@@ -54,8 +55,10 @@ vi.mock('@/composables/useEntryDraft', () => ({
   useEntryDraft: () => ({ put: vi.fn(), take: () => null }),
 }))
 
+// One spy for the whole file, so a test can see what the page told the member.
+const toastError = vi.fn()
 vi.mock('@/composables/useToast', () => ({
-  useAppToast: () => ({ toastError: vi.fn(), toastSuccess: vi.fn() }),
+  useAppToast: () => ({ toastError, toastSuccess: vi.fn() }),
 }))
 
 vi.mock('leaflet-geosearch', () => ({
@@ -108,8 +111,10 @@ beforeEach(() => {
   replace.mockClear()
   push.mockClear()
   load.mockClear()
+  toastError.mockClear()
   matches.value = []
   presence.value = []
+  searchError.value = null
   window.localStorage.clear()
 })
 
@@ -224,6 +229,35 @@ describe('MatchingMap', () => {
 
       expect(load).toHaveBeenCalledTimes(1)
       expect(load.mock.calls[0][0].mineUuids).toEqual(['a'])
+    })
+  })
+
+  describe('when a search does not come through', () => {
+    const failed = (code) => Object.assign(new Error(code), { code })
+
+    it('tells the member the search is out of reach, in their words', async () => {
+      const page = mountMap()
+      await page.vm.$nextTick()
+      searchError.value = failed('GMS_UNAVAILABLE')
+      await page.vm.$nextTick()
+      expect(toastError).toHaveBeenCalledWith('Die Suche ist gerade nicht erreichbar.')
+    })
+
+    it('says a typed question has to wait, and does not blame the search', async () => {
+      const page = mountMap()
+      await page.vm.$nextTick()
+      searchError.value = failed('TYPED_QUERY_UNAVAILABLE')
+      await page.vm.$nextTick()
+      expect(toastError).toHaveBeenCalledTimes(1)
+      expect(toastError.mock.calls[0][0]).toContain('Tippsuche kommt mit dem nächsten Schritt')
+    })
+
+    it('stays quiet when a search simply comes back', async () => {
+      const page = mountMap()
+      await page.vm.$nextTick()
+      searchError.value = null
+      await page.vm.$nextTick()
+      expect(toastError).not.toHaveBeenCalled()
     })
   })
 })

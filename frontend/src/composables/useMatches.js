@@ -1,13 +1,11 @@
 // AI-GENERATED — not an architecture reference
 import { ref } from 'vue'
-import { scoresOf } from '@/components/Matching/displayCore'
+import { useApolloClient } from '@vue/apollo-composable'
+import { authenticateGmsUserSearch } from '@/graphql/queries'
+import { displayType, scoresOf } from '@/components/Matching/displayCore'
 
 /**
- * The seam between the glow map and its data.
- *
- * Right now this serves a stub. Once the GMS routes are merged and reachable,
- * only `load()` below changes — the map component never learns which side it got
- * its people from, so going live swaps the source, not the component.
+ * The seam between the glow map and its data: the two GMS routes behind the map.
  *
  * A search, as both sides of this seam mean it:
  *
@@ -15,66 +13,76 @@ import { scoresOf } from '@/components/Matching/displayCore'
  *     center: { lat, lng },
  *     radius,                            // km
  *     query?: { text, matchingType },    // a question typed instead of stored
- *     mineUuids?: string[],              // my entries, so a match can name the one
- *   }                                    // it answers
+ *     mineUuids?: string[],              // my entries — accepted, not sent (below)
+ *   }
  *
- * The centre is the deliberate one, not the map's — panning around is looking,
- * and looking must not search. Both routes take the radius as a required
- * parameter, so the stub demands it too: a stub that answers questions the real
- * thing would refuse teaches the caller a contract that does not exist.
+ * The centre is the deliberate one, not the map's — panning around is looking, and
+ * looking must not search. Both routes take the radius as a required parameter, so
+ * a search without one is not asked at all.
  *
- * `query` is the ad-hoc search: live it is POST /community-user/match-query, which
- * takes the text and the stance and runs exactly one pass of the same chain. When
- * it is set, nothing of mine is consulted — every answer carries a null
- * matchedEntryUuid, because no entry of mine is behind it.
+ * Two GET routes, one token:
+ *
+ *   community-user/matches         who near the centre answers what I said
+ *   community-user/user-locations  everyone near the centre — the grey rings
+ *
+ * Who is asking comes from the token, never from a parameter: the GMS reads the
+ * member's uuid and community out of it, looks up their entries itself and names
+ * the one each match answers (`matchedEntryUuid`). That is why `mineUuids` is not
+ * sent — the map still passes it, because a change in my entries is what makes it
+ * search again, and that trigger is right.
+ *
+ * The token is the one the older user search already uses (UserSearch.vue):
+ * `authenticateGmsUserSearch` has the wallet backend ask the GMS for a member token
+ * by the home community's API key, and hands the token back together with the
+ * dashboard page it was minted for. The API lives on that page's host (apiBaseOf).
+ * It is fetched fresh on every search, `network-only`: the query has no variables,
+ * so Apollo would cache one answer under one key for every member who ever logged
+ * in on this browser.
+ *
+ * `query` — the typed question — has no route yet (POST community-user/match-query
+ * is Paket 6). Until then a typed question is refused out loud: `error` carries
+ * TYPED_QUERY_UNAVAILABLE and the matches are emptied, rather than answering the
+ * member's stored entries under a question they never asked. The rings still load;
+ * they do not depend on the question.
  *
  * A match, as the map AND the detail window want it:
  *
  *   {
  *     uuid:      string,
- *     name:      string,
+ *     name:      string,              // the alias the GMS holds
  *     position:  { lat, lng },        // already blurred by the GMS, never the front door
  *     community: { uuid, name },      // where to reach them — the send form needs it
  *     aboutMe:   string | null,       // their own words; null means they wrote none
+ *     precision: 'genau' | 'ungefaehr',
  *     channels:  {
- *       interesse?: Entry[],          // every entry they published on that channel,
- *       angebot?:   Entry[],          // not only the ones that answer me
+ *       interesse?: Entry[],          // the entries of theirs that answer mine
+ *       angebot?:   Entry[],
  *       gesuch?:    Entry[],
  *     },
  *     scores:    { interesse?: number[], angebot?: number[], gesuch?: number[] },
  *   }
  *
- *   Entry = { uuid, summary, details: string|null, remote, strength: number|null }
+ *   Entry = { uuid, matchedEntryUuid, summary, details: string|null, remote,
+ *             strength, score, coreWord }
  *
- * Two shapes live here on purpose, because two questions ask different things:
+ * `channels` holds only the entries that answer me. The GMS has no profile route
+ * ("person X with all their entries") yet, so the rest of a person's list is out of
+ * reach — the window shows what answers, floated by strength. `scores` is what the
+ * MAP reads (via displayCore): one strength per own entry a person answers on a
+ * channel, derived from the same entries so there is one source of truth. `score`
+ * and `coreWord` are what the GMS read the strength off; they ride along for the
+ * day the map draws its own levels (Paket 6).
  *
- *   - `scores` is what the MAP reads (via displayCore): one strength per *own*
- *     entry this person answers on a channel. That is what lets breadth ("who
- *     fits more than once") count my needs rather than their offers. It is
- *     derived below from the matched entries, so there is one source of truth.
+ * Presence is everyone else in range — on the map the grey rings:
  *
- *   - `channels` is what the WINDOW reads: the whole person, every entry, matched
- *     or not — because the profile is the person, not the match. A matched entry
- *     carries its `strength`; the rest carry `null`. The window floats the
- *     matches to the top by strength and shows the rest by age.
+ *   { id: number, name: string, position: { lat, lng }, precision }
  *
- * Live, `channels` is the new PROFILE route ("give me person X with all their
- * entries") and the strengths come from the match route, joined by entry uuid —
- * exactly what GMS-111 planned. The map already holds the strengths; the window
- * only needs the full list added.
- *
- * Presence is everyone else in range — on the map they are the grey rings:
- *
- *   { uuid: string, position: { lat, lng }, hasEntries: boolean }
- *
- * ⚠️ The grey rings are NOT clickable yet, and that is deliberate. Opening a
- * profile for one needs three things the GMS backend does not have (GMS-115,
- * Dario's domain): the presence route returns the internal DB id, not a uuid, so
- * there is no key to ask with; the profile route is new; and `hasEntries` is
- * invented here (`index % 3`), it exists nowhere in the backend. Wiring the rings
- * to this stub would build against a fake that asks a question the real thing
- * cannot — the day's lesson. So the window handles the zero-match case (one
- * window, not two — GMS-111), but only the coloured markers open it for now.
+ * The presence route returns the internal id, not a uuid, and says nothing about
+ * entries. So the rings are not clickable, and every ring reads as "no entries
+ * known" (GMS-115 — the route would have to carry a uuid and that flag). The route
+ * also lists the people who are matches, and the seeker: the rings that would stand
+ * under a glowing marker are dropped here, or the heading would count those people
+ * twice. The seeker's own ring stays — the route gives nothing to tell it by.
  */
 
 /** Great-circle distance in km — the sphere the backend measures on. */
@@ -88,472 +96,200 @@ export function distanceKm(a, b) {
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)))
 }
 
-// --- stub ------------------------------------------------------------------
-// The strengths are real: they were measured against the seed corpus. The
-// people, their places, their words and who answers what are invented — the seed
-// only ever ran single searches, so it cannot show one person answering several
-// needs, nor the entries that do not match at all. Everything between these two
-// markers goes away when the routes go live.
+/** `error.code` when the member typed a question and there is no route for it yet. */
+export const TYPED_QUERY_UNAVAILABLE = 'TYPED_QUERY_UNAVAILABLE'
+/** `error.code` when the token or one of the two routes did not come through. */
+export const GMS_UNAVAILABLE = 'GMS_UNAVAILABLE'
 
-const COMMUNITIES = {
-  kuenzelsau: { uuid: 'b6a1f2c0-1111-4a11-8a11-000000000001', name: 'Gradido Künzelsau' },
-  hamburg: { uuid: 'b6a1f2c0-2222-4a22-8a22-000000000002', name: 'Gradido Hamburg' },
-  berlin: { uuid: 'b6a1f2c0-3333-4a33-8a33-000000000003', name: 'Gradido Berlin' },
+function failure(code, message) {
+  const err = new Error(message)
+  err.code = code
+  return err
 }
 
-// An entry is [summary, details|null, strength|null, remote?].
-// strength === null means "this person published it, but it does not answer me" —
-// it still belongs in their profile. A real number is a match on that channel.
-const m = (summary, details, strength, remote = false) => ({ summary, details, strength, remote })
-
-// dLat/dLng place them around the centre; aboutMe is null for the ones who wrote
-// none (the window drops the heading rather than accuse them of a gap).
-const STUB_PEOPLE = [
-  {
-    name: 'Marta',
-    dLat: 0.042,
-    dLng: -0.062,
-    community: 'kuenzelsau',
-    aboutMe: 'Ich schraube gern an Rädern und helfe, wo ich kann.',
-    channels: {
-      angebot: [
-        m('Fahrradreparatur', 'Alte und neue Räder, auch E-Bikes — ich komme vorbei', 0.4056),
-        m('Werkzeug zum Ausleihen', null, null),
-      ],
-      interesse: [m('Radtouren am Wochenende', null, null)],
-    },
-  },
-  {
-    name: 'Ben',
-    dLat: -0.038,
-    dLng: -0.048,
-    community: 'kuenzelsau',
-    aboutMe: null,
-    channels: {
-      angebot: [m('Fahrradwerkstatt', 'Samstags offen, Reparatur gegen Gradido', 0.536)],
-    },
-  },
-  {
-    name: 'Kai',
-    dLat: 0.021,
-    dLng: 0.071,
-    community: 'hamburg',
-    aboutMe: 'Zweiradmechaniker aus Leidenschaft.',
-    channels: {
-      angebot: [
-        m('Lastenrad-Service', 'Wartung und Reparatur von Lastenrädern', 0.5617),
-        m('Laufrad-Aufbau für Kinder', null, null),
-      ],
-    },
-  },
-  {
-    name: 'Eva',
-    dLat: -0.012,
-    dLng: 0.083,
-    community: 'hamburg',
-    aboutMe: 'Ich repariere fast alles, was rollt.',
-    channels: {
-      angebot: [m('Radreparatur in der Nachbarschaft', null, 0.5324)],
-    },
-  },
-  {
-    name: 'Nina',
-    dLat: -0.031,
-    dLng: 0.034,
-    community: 'kuenzelsau',
-    aboutMe: null,
-    channels: {
-      gesuch: [
-        m('einen Schlosser', 'Haustür klemmt, alter Schließzylinder', 0.4239),
-        m('jemanden fürs Fahrrad', null, null),
-      ],
-    },
-  },
-  {
-    name: 'Miriam',
-    dLat: 0.018,
-    dLng: -0.086,
-    community: 'berlin',
-    aboutMe: 'Musik ist mein Zuhause.',
-    channels: {
-      interesse: [
-        m('Klavier spielen', 'Am liebsten vierhändig, ich suche noch jemanden', 0.8044),
-        m('Kammermusik', null, null),
-        m('alte Notendrucke', null, null),
-      ],
-    },
-  },
-  {
-    name: 'Jonas',
-    dLat: 0.049,
-    dLng: 0.055,
-    community: 'berlin',
-    aboutMe: null,
-    channels: {
-      interesse: [m('Klaviermusik', null, 0.6688)],
-    },
-  },
-  // Two channels at once — green + red mix to an orange marker. A rich profile
-  // with many interests: the poster child for "the length is the portrait" and
-  // the "2 open + X more" drawer.
-  {
-    name: 'Sofia',
-    dLat: 0.036,
-    dLng: -0.028,
-    community: 'kuenzelsau',
-    aboutMe:
-      'Ich lebe für Musik und den Garten und freue mich über jede Begegnung, aus der etwas wächst.',
-    channels: {
-      angebot: [
-        m('Klavierunterricht für Kinder', 'Geduldig, spielerisch, bei mir zu Hause', 0.4949),
-        m('Notenblätter zum Tauschen', null, null),
-      ],
-      interesse: [
-        m('Permakultur', 'im eigenen Selbstversorgungsgarten', 0.5724),
-        m('Chorsingen', null, null),
-        m('Imkerei', 'zwei Völker im Garten', null),
-        m('Wildkräuter', null, null),
-        m('Tonarbeiten', null, null),
-        m('Sterne beobachten', null, null),
-        m('Aquarellmalerei', null, null),
-      ],
-    },
-  },
-  // All three channels — the whole person, a white marker.
-  {
-    name: 'Otto',
-    dLat: -0.008,
-    dLng: 0.018,
-    community: 'hamburg',
-    aboutMe: 'Handwerker, Gärtner, Nachbar.',
-    channels: {
-      angebot: [m('Fahrradreparatur', 'Ich hole das Rad auch ab', 0.536)],
-      gesuch: [m('einen Schlosser', null, 0.4239)],
-      interesse: [m('Permakultur', null, 0.8044), m('Kompost und Bokashi', null, null)],
-    },
-  },
-  // Two needs answered — breadth lifts this one a step.
-  {
-    name: 'Lena',
-    dLat: -0.022,
-    dLng: -0.074,
-    community: 'berlin',
-    aboutMe: null,
-    channels: {
-      angebot: [
-        m('Klavierunterricht', 'Für Anfänger jeden Alters', 0.4949),
-        m('Notenwart für den Chor', null, 0.4013),
-      ],
-    },
-  },
-  // Three needs answered — breadth lifts this one to the top.
-  {
-    name: 'Max',
-    dLat: 0.009,
-    dLng: 0.041,
-    community: 'kuenzelsau',
-    aboutMe: 'Wenn ich helfen kann, sag Bescheid.',
-    channels: {
-      angebot: [
-        m('Fahrradreparatur', null, 0.4056),
-        m('Klavierunterricht', 'Auch Hausbesuche', 0.4949),
-        m('kleine Schlosserarbeiten', 'Schließzylinder, klemmende Türen', 0.5324),
-        m('Anhänger zum Ausleihen', null, null),
-      ],
-    },
-  },
-  {
-    name: 'Tom',
-    dLat: -0.045,
-    dLng: 0.078,
-    community: 'hamburg',
-    aboutMe: null,
-    channels: {
-      angebot: [m('Chornoten sortieren und pflegen', null, 0.4013)],
-    },
-  },
-  {
-    name: 'Anna',
-    dLat: 0.058,
-    dLng: -0.035,
-    community: 'berlin',
-    aboutMe: 'Gärtnerin mit einem Faible für alte Sorten.',
-    channels: {
-      interesse: [
-        m('Permakultur', 'Mischkultur und Terra Preta', 0.5724),
-        m('Saatgut tauschen', null, null),
-      ],
-    },
-  },
-  {
-    name: 'Udo',
-    dLat: -0.052,
-    dLng: 0.012,
-    community: 'kuenzelsau',
-    aboutMe: null,
-    channels: {
-      gesuch: [m('einen Schlosser', 'für eine alte Haustür', 0.4239)],
-    },
-  },
-  // --- Zuschnitt 2: two clusters for the pixel-overlap cascade ---------------
-  // A house-share on one address (Juri's building): identical coordinates, so no
-  // zoom ever separates them — the case that must fall through to the list.
-  {
-    name: 'Juri',
-    dLat: 0.024,
-    dLng: 0.02,
-    community: 'kuenzelsau',
-    aboutMe: 'Ich trage Gradido in unsere Wohnanlage.',
-    channels: {
-      angebot: [m('Werkzeug zum Ausleihen', 'Bohrmaschine, Leiter, Akkuschrauber', 0.4056)],
-    },
-  },
-  {
-    name: 'Mara',
-    dLat: 0.024,
-    dLng: 0.02,
-    community: 'kuenzelsau',
-    aboutMe: null,
-    channels: {
-      gesuch: [m('jemanden fürs Fahrrad', 'die Kette springt immer wieder ab', 0.4239)],
-    },
-  },
-  {
-    name: 'Piet',
-    dLat: 0.024,
-    dLng: 0.02,
-    community: 'kuenzelsau',
-    aboutMe: null,
-    channels: {
-      angebot: [m('Klavierunterricht', 'für die Kinder aus dem Haus', 0.4949)],
-    },
-  },
-  {
-    name: 'Silke',
-    dLat: 0.024,
-    dLng: 0.02,
-    community: 'kuenzelsau',
-    aboutMe: 'Ich koche gern für viele.',
-    channels: {
-      interesse: [m('Gemeinschaftsgarten', 'im Innenhof der Anlage', 0.5724)],
-    },
-  },
-  // A cluster the blur has spread just enough — near but distinct, so a zoom step
-  // or two separates them into single, clickable pins.
-  {
-    name: 'Rosa',
-    dLat: -0.028,
-    dLng: 0.052,
-    community: 'hamburg',
-    aboutMe: null,
-    channels: {
-      angebot: [m('Lastenrad-Service', null, 0.5617)],
-    },
-  },
-  {
-    name: 'Bruno',
-    dLat: -0.0262,
-    dLng: 0.0538,
-    community: 'hamburg',
-    aboutMe: null,
-    channels: {
-      interesse: [m('Klaviermusik', null, 0.6688)],
-    },
-  },
-  {
-    name: 'Elif',
-    dLat: -0.0299,
-    dLng: 0.0508,
-    community: 'hamburg',
-    aboutMe: null,
-    channels: {
-      gesuch: [m('einen Schlosser für die Werkstatt', null, 0.4239)],
-    },
-  },
-]
-
-const CHANNELS = ['interesse', 'angebot', 'gesuch']
-
-/** The map reads strengths only: derive them from the matched entries. */
 /**
- * Give every entry a stable uuid, so the window can key on it across reloads, and
- * say which entry of MINE it answers.
+ * The API behind a GMS page.
  *
- * Live that second one comes from the GMS, which knows the pairing because it made
- * it. Here it is handed round the member's real entry uuids in turn - invented, like
- * the people, but enough for the focus lens to have something to narrow to.
+ * The GMS deploys dashboard and API on one host: the dashboard pages at the root
+ * (its nginx template, `location /$USER_MAP_BASE_PATH`) and the API under `/gms/`
+ * (`location /gms/` — a fixed path in that template, not a variable). So the origin
+ * of the page the token was minted for is the origin of the API, and `/gms/` is
+ * where it answers. Throws on anything that is not an absolute URL: a token
+ * without a place to use it is a programmer error upstream, not a search result.
+ *
+ * The scheme is kept as configured. It is the operator's `GMS_DASHBOARD_URL`, and
+ * the older user search has handed this same token to that very origin for years
+ * (as a query parameter, even); `http://localhost:8080/` is the documented local
+ * setup. Whether the GMS is reached over TLS is decided where that URL is set,
+ * not second-guessed here.
  */
-function withEntryUuids(channels, personIndex, mineUuids = []) {
-  const out = {}
-  let taken = personIndex
-  for (const channel of CHANNELS) {
-    const entries = channels[channel]
-    if (!entries || !entries.length) continue
-    out[channel] = entries.map((entry, entryIndex) => ({
-      uuid: `stub-entry-${personIndex}-${channel}-${entryIndex}`,
-      matchedEntryUuid: mineUuids.length ? mineUuids[taken++ % mineUuids.length] : null,
-      summary: entry.summary,
-      details: entry.details,
-      remote: entry.remote,
-      strength: entry.strength,
-    }))
+export function apiBaseOf(pageUrl) {
+  return `${new URL(pageUrl).origin}/gms/`
+}
+
+/**
+ * The GMS sends `[lng, lat]` — a PostGIS point, x before y (`ST_MakePoint(lng, lat)`
+ * in its queries). Leaflet and this map say `{ lat, lng }`.
+ */
+export function positionOf(location) {
+  return { lat: location[1], lng: location[0] }
+}
+
+/**
+ * How precisely a person let themselves be found, from the GMS's publish location
+ * type: 0 exact, 1 approximate, 2 random (GMS_PUBLISH_LOCATION_TYPES, by index).
+ * Anything else reads as approximate — the coarser end is the one that never
+ * claims more than the person allowed.
+ */
+export function precisionOf(type) {
+  return type === 0 ? 'genau' : 'ungefaehr'
+}
+
+function toEntry(entry) {
+  return {
+    uuid: entry.uuid,
+    matchedEntryUuid: entry.matchedEntryUuid,
+    summary: entry.summary,
+    details: entry.details,
+    remote: entry.remote,
+    strength: entry.strength,
+    score: entry.score,
+    coreWord: entry.coreWord,
   }
-  return out
-}
-
-/** What kind of entry answers mine - the same routing the GMS does. */
-const COMPLEMENT = { gesuch: 'angebot', angebot: 'gesuch', interesse: 'interesse' }
-
-/** How many of the asked words this entry carries, summary and details alike. */
-function hitsIn(entry, words) {
-  const haystack = `${entry.summary} ${entry.details ?? ''}`.toLowerCase()
-  return words.filter((word) => haystack.includes(word)).length
 }
 
 /**
- * The stub's answer to a typed question.
+ * One `MatchedUser` of the matches route → one match as the map wants it.
  *
- * Live, the vector and the reranker do this. Here: keep only the channel the stance
- * asks for, and let crude word overlap stand in for a score - enough to show that a
- * typed question narrows to one channel and ranks by something.
+ * The GMS keys its channels by what the OTHER person said, in its own words
+ * (`offer | need | interest`); the map keys them by the member's words
+ * (`angebot | gesuch | interesse`), translated once, in displayCore.
  */
-function answerQuery(channels, { text, details, matchingType }) {
-  const wanted = COMPLEMENT[matchingType]
-  const entries = channels[wanted]
-  if (!entries || !entries.length) return {}
-
-  // Summary and particulars are one question, so they are read as one bag of words -
-  // the same way the reranker reads stem, summary and details together live.
-  const words = `${text} ${details ?? ''}`
-    .toLowerCase()
-    .split(/\s+/)
-    .filter((word) => word.length > 2)
-  const scored = entries
-    .map((entry) => ({
-      ...entry,
-      // No entry of mine is behind a typed question - the same null the GMS returns.
-      // Without this the focus lens would find answers to entries nobody asked about.
-      matchedEntryUuid: null,
-      strength: hitsIn(entry, words) ? Math.min(0.95, 0.3 + hitsIn(entry, words) * 0.25) : null,
-    }))
-    .filter((entry) => entry.strength !== null)
-
-  return scored.length ? { [wanted]: scored } : {}
+export function toMatch(user) {
+  const channels = {}
+  for (const channel of user.channels ?? []) {
+    const key = displayType(channel.matchingType)
+    const entries = (channel.matches ?? []).map(toEntry)
+    channels[key] = channels[key] ? channels[key].concat(entries) : entries
+  }
+  return {
+    uuid: user.uuid,
+    name: user.alias,
+    position: positionOf(user.location),
+    community: user.community,
+    aboutMe: user.aboutMe,
+    precision: precisionOf(user.type),
+    channels,
+    scores: scoresOf(channels),
+  }
 }
 
-const PRESENCE_COUNT = 240
-// Roughly ±55 km by ±66 km around the centre. Wide enough that the radius has
-// something to cut: packed into 25 km they would all sit inside the default
-// circle, and turning the dial would show nothing happening.
-const PRESENCE_SPREAD_LAT = 1.0
-const PRESENCE_SPREAD_LNG = 1.8
-
-// stub-only: the presence route returns none of this — no uuid, no name. The list
-// needs a name to render a silent row, so we invent one here. Live, this whole
-// enrichment waits on the presence route (Dario's domain); until then the silent
-// rows show but do not open a profile or a contact, exactly like the grey rings.
-const PRESENCE_NAMES = [
-  'Lea',
-  'Paul',
-  'Mia',
-  'Finn',
-  'Emma',
-  'Noah',
-  'Lina',
-  'Elias',
-  'Clara',
-  'Jan',
-  'Ida',
-  'Timo',
-  'Ruth',
-  'Kurt',
-  'Frida',
-  'Bela',
-  'Nora',
-  'Sven',
-  'Alma',
-  'Ove',
-]
-
-/** Deterministic noise, so the stub does not jump around between reloads. */
-function wobble(seed) {
-  const x = Math.sin(seed * 12.9898) * 43758.5453
-  return x - Math.floor(x) - 0.5
+/** One person of the presence route → one grey ring. */
+export function toPresence(user) {
+  return {
+    id: user.id,
+    name: user.alias,
+    position: positionOf(user.location),
+    precision: precisionOf(user.type),
+  }
 }
 
-function stubMatches({ center, radius, query, mineUuids }) {
-  return (
-    STUB_PEOPLE.map((person, index) => {
-      const all = withEntryUuids(person.channels, index, mineUuids)
-      // A typed question is asked INSTEAD of my entries: what comes back answers it
-      // and nothing else, and no entry of mine is behind any of it.
-      const channels = query ? answerQuery(all, query) : all
-      return {
-        uuid: `stub-match-${index}`,
-        name: person.name,
-        position: { lat: center.lat + person.dLat, lng: center.lng + person.dLng },
-        community: COMMUNITIES[person.community],
-        aboutMe: person.aboutMe,
-        channels,
-        scores: scoresOf(channels),
-        // Which precision this person chose to be found at. The map shows everyone
-        // alike; the list speaks a distance no finer than this. Live, it comes from
-        // the GMS with the position — stubbed here as a mix so the list shows both.
-        precision: index % 3 === 0 ? 'ungefaehr' : 'genau',
-      }
-    })
-      .filter((match) => distanceKm(center, match.position) <= radius)
-      // A typed question leaves people with nothing to say about it out entirely,
-      // rather than carrying them along as matches with no channels.
-      .filter((match) => !query || Object.keys(match.channels).length > 0)
+/**
+ * The presence route lists everyone in range, matches included. Drop the ones the
+ * matches route already returned, so nobody is drawn as a ring under their own
+ * glow and counted twice. Both routes read the same row of the same table, so alias
+ * and point agree to the digit — and a housemate with the same point keeps their
+ * ring, because the alias tells them apart.
+ */
+export function withoutMatched(people, matched) {
+  return people.filter(
+    (person) =>
+      !matched.some(
+        (match) =>
+          match.alias === person.alias &&
+          match.location[0] === person.location[0] &&
+          match.location[1] === person.location[1],
+      ),
   )
 }
 
-function stubPresence({ center, radius }) {
-  const communities = Object.values(COMMUNITIES)
-  return Array.from({ length: PRESENCE_COUNT }, (_, index) => ({
-    uuid: `stub-presence-${index}`,
-    name: PRESENCE_NAMES[index % PRESENCE_NAMES.length],
-    community: communities[index % communities.length],
-    precision: index % 2 === 0 ? 'genau' : 'ungefaehr',
-    position: {
-      lat: center.lat + wobble(index + 1) * PRESENCE_SPREAD_LAT,
-      lng: center.lng + wobble(index + 101) * PRESENCE_SPREAD_LNG,
-    },
-    hasEntries: index % 3 !== 0,
-  })).filter((person) => distanceKm(center, person.position) <= radius)
+function whereParams({ center, radius }) {
+  return new URLSearchParams({
+    latitude: String(center.lat),
+    longitude: String(center.lng),
+    radius: String(radius),
+  })
 }
 
-// --- end of stub -----------------------------------------------------------
+async function gmsGet(base, route, params, token) {
+  // What comes back is one member's view, keyed by the token and not by the URL:
+  // no-store keeps it out of the browser's HTTP cache, where the next member on
+  // the same device could otherwise be served it. The GMS answers with `Vary: *`
+  // and no cache headers today; this seam does not depend on that staying so.
+  const response = await fetch(`${base}${route}?${params}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  })
+  if (!response.ok) {
+    throw failure(GMS_UNAVAILABLE, `${route}: HTTP ${response.status}`)
+  }
+  return response.json()
+}
+
+async function gmsAccess(client) {
+  const { data } = await client.query({
+    query: authenticateGmsUserSearch,
+    fetchPolicy: 'network-only',
+  })
+  return data.authenticateGmsUserSearch
+}
 
 export function useMatches() {
+  const { client } = useApolloClient()
   const matches = ref([])
   const presence = ref([])
   const loading = ref(false)
   const error = ref(null)
+  // The number of the search asked for last. Two searches can be in flight when the
+  // member moves the centre twice; only the last one asked for may write, or the
+  // older answer could land after the newer one and overwrite it.
+  let latest = 0
 
   /**
    * @param {object} search
    * @param {{lat: number, lng: number}} search.center where the member chose to search
-   * @param {number} search.radius how far out
+   * @param {number} search.radius how far out, km
    * @param {?{text: string, matchingType: string}} [search.query]
    *   a question typed on the spot instead of read from the member's entries
-   * @param {string[]} [search.mineUuids] the member's own entry uuids, so a match can
-   *   say which of them it answers
+   * @param {string[]} [search.mineUuids] the member's own entry uuids — not sent, the
+   *   GMS knows them from the token
    */
   async function load(search) {
     if (!search?.center || !(search.radius > 0)) return
+    const request = ++latest
     loading.value = true
     error.value = null
     try {
-      matches.value = stubMatches(search)
-      presence.value = stubPresence(search)
+      const { url, token } = await gmsAccess(client)
+      const base = apiBaseOf(url)
+      const where = whereParams(search)
+      const [people, others] = await Promise.all([
+        search.query ? [] : gmsGet(base, 'community-user/matches', where, token),
+        gmsGet(base, 'community-user/user-locations', where, token),
+      ])
+      if (request !== latest) return
+      matches.value = people.map(toMatch)
+      presence.value = withoutMatched(others, people).map(toPresence)
+      if (search.query) {
+        error.value = failure(TYPED_QUERY_UNAVAILABLE, 'no route for a typed question yet')
+      }
     } catch (err) {
-      error.value = err
+      if (request !== latest) return
+      error.value = err.code ? err : failure(GMS_UNAVAILABLE, err.message)
       matches.value = []
       presence.value = []
     } finally {
-      loading.value = false
+      if (request === latest) loading.value = false
     }
   }
 

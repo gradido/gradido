@@ -84,14 +84,14 @@ function matchItem(over = {}) {
   }
 }
 
+// What the presence route gives: an internal id, a name, a point, how precisely
+// they let themselves be found - no uuid, no community, no word about entries.
 function silentPerson(over = {}) {
   return {
-    uuid: over.uuid || 's1',
+    id: over.id ?? 1,
     name: over.name || 'Paul',
-    community: { name: over.community || 'Gradido Hamburg' },
     position: over.position || FAR,
     precision: over.precision || 'ungefaehr',
-    hasEntries: over.hasEntries ?? false,
   }
 }
 
@@ -177,6 +177,17 @@ describe('MatchList', () => {
     const wrapper = mountList({ matches: [matchItem()] })
     await wrapper.find('.row-match').trigger('click')
     expect(wrapper.emitted('open')[0][0].name).toBe('Sofia')
+  })
+
+  it('names a silent person without a community line - the presence route has none', () => {
+    const wrapper = mountList({ silent: [silentPerson()] })
+    expect(wrapper.find('.row-silent .row-name').text()).toBe('Paul')
+    expect(wrapper.find('.row-silent .row-community').exists()).toBe(false)
+
+    const named = mountList({
+      silent: [{ ...silentPerson(), community: { name: 'Gradido Hamburg' } }],
+    })
+    expect(named.find('.row-silent .row-community').text()).toBe('Gradido Hamburg')
   })
 
   it('shows silent people in their own section, not as buttons', () => {

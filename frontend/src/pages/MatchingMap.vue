@@ -256,7 +256,7 @@ import 'leaflet/dist/leaflet.css'
 import { GeoSearchControl, OpenStreetMapProvider } from 'leaflet-geosearch'
 import 'leaflet-geosearch/dist/geosearch.css'
 import { listMatchingEntries, userLocationQuery } from '@/graphql/queries'
-import { useMatches, distanceKm } from '@/composables/useMatches'
+import { useMatches, distanceKm, TYPED_QUERY_UNAVAILABLE } from '@/composables/useMatches'
 import { useEntryDraft } from '@/composables/useEntryDraft'
 import MatchQuery from '@/components/Matching/MatchQuery'
 import { useAppToast } from '@/composables/useToast'
@@ -348,7 +348,19 @@ const centerLabel = ref(readPref('centerLabel', ''))
 const radiusModal = ref(false)
 const radiusDraft = ref(DEFAULT_RADIUS)
 
-const { matches, presence, load } = useMatches()
+const { matches, presence, error: searchError, load } = useMatches()
+
+// A search that did not come through says so, in words the member can read. The
+// GMS answers with status codes and its own messages, neither meant for a screen;
+// the two things that can go wrong here are told apart by the code the composable
+// sets. Old results are already gone by the time this fires, so the toast is the
+// only thing that explains the empty map.
+// Two literal keys rather than one computed: the i18n lint only sees literals.
+watch(searchError, (err) => {
+  if (!err) return
+  if (err.code === TYPED_QUERY_UNAVAILABLE) toastError(t('matching.query.notYet'))
+  else toastError(t('matching.map.searchFailed'))
+})
 
 /**
  * What is being searched for right now — remembered under `pref.` like every other
