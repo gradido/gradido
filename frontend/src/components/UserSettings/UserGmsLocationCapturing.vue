@@ -32,8 +32,8 @@ import { useAppToast } from '@/composables/useToast'
 import UserLocationMap from '@/components/UserSettings/UserLocationMap'
 import { BButton, BModal } from 'bootstrap-vue-next'
 import { userLocationQuery } from '@/graphql/queries'
-import CONFIG from '@/config'
 import { useStore } from 'vuex'
+import { configuredCommunityPoint, hasPosition } from '@/utils/matchingPosition'
 
 const { t } = useI18n()
 const store = useStore()
@@ -50,11 +50,19 @@ const emit = defineEmits(['close'])
 
 onResult(({ data }) => {
   const locationData = data.userLocation
-  communityLocation.value.lng = locationData.communityLocation.longitude
-  communityLocation.value.lat = locationData.communityLocation.latitude
+  // Both points are nullable: an account may have no position, and an instance may have
+  // no coordinates set. Neither may leave this map centred on `undefined` -- the
+  // configured community point is the fallback, the same one the error case below takes.
+  const community = hasPosition(locationData.communityLocation)
+    ? {
+        lat: locationData.communityLocation.latitude,
+        lng: locationData.communityLocation.longitude,
+      }
+    : defaultLocation.value
+  communityLocation.value = { ...community }
 
-  userLocation.value.lng = locationData.userLocation?.longitude ?? communityLocation.value.lng
-  userLocation.value.lat = locationData.userLocation?.latitude ?? communityLocation.value.lat
+  userLocation.value.lng = locationData.userLocation?.longitude ?? community.lng
+  userLocation.value.lat = locationData.userLocation?.latitude ?? community.lat
 })
 
 onError((err) => {
@@ -63,13 +71,7 @@ onError((err) => {
   toastError(err.message)
 })
 
-const defaultLocation = computed(() => {
-  const defaultCommunityCoords = CONFIG.COMMUNITY_LOCATION.split(',')
-  return {
-    lat: parseFloat(defaultCommunityCoords[0]),
-    lng: parseFloat(defaultCommunityCoords[1]),
-  }
-})
+const defaultLocation = computed(() => configuredCommunityPoint())
 
 const saveUserLocation = async () => {
   try {

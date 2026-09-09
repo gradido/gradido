@@ -90,11 +90,14 @@ const addNavigationGuards = (router, store, apollo) => {
   // bookmark and the back button all end where both answers are given. The page itself
   // used to be the only lock, and it asked the wrong question -- see mayFind.
   //
-  // One path, and it covers the list too: the list is a LOOK of this same page
-  // (`pref.gms.map.mode`), not an address of its own. /matching/position is a tab of the
-  // matching page, so it is never gated by this.
+  // Read off the route record, not off the address: vue-router matches non-strictly and
+  // case-insensitively while leaving `to.path` as it was typed, so `/matching/karte/` and
+  // `/Matching/Karte` open the map and would slip past a string comparison. It covers the
+  // list too -- the list is a LOOK of this same page (`pref.gms.map.mode`), not an address
+  // of its own. /matching/position carries no flag, so it is never gated: it is where both
+  // answers are given.
   router.beforeEach((to, from, next) => {
-    if (to.path === '/matching/karte' && !mayFind(store.state)) {
+    if (to.meta.requiresFindable && !mayFind(store.state)) {
       next({ path: '/matching/position' })
     } else {
       next()

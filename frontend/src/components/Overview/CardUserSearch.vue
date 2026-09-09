@@ -60,6 +60,7 @@ import { useQuery } from '@vue/apollo-composable'
 import { useAppToast } from '@/composables/useToast'
 import { authenticateGmsUserSearch } from '@/graphql/queries'
 import { useStore } from 'vuex'
+import { hasPosition } from '@/utils/matchingPosition'
 
 const { toastError } = useAppToast()
 const store = useStore()
@@ -76,7 +77,11 @@ console.log(
 // use computed to react on state change, when user goes to settings and change something an get back here
 const gmsAllowed = computed(() => store.state.gmsAllowed)
 // console.log('gmsAllowed=', gmsAllowed)
-const gmsUserLocationExists = computed(() => store.state.userLocation !== null)
+// Two numbers, not "not null". An account that had never set a position used to be
+// answered with an empty object, and that `{}` is still in the persisted store of every
+// device that signed in before 09.09.2026 -- so `!== null` said yes here and offered the
+// GMS search to exactly the members the find map turns away.
+const gmsUserLocationExists = computed(() => hasPosition(store.state.userLocation))
 // console.log('gmsUserLocationExists=', gmsUserLocationExists)
 
 const { onResult, result, loading, onError } = useQuery(authenticateGmsUserSearch, null, {

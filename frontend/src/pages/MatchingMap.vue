@@ -666,6 +666,10 @@ onResult(({ data }) => {
   // and an account without a position was answered `{}` — truthy, so the redirect stayed
   // silent and everything below ran on (undefined, undefined).
   if (!isPositionSet(location.userLocation)) {
+    // Correct the store on the way out, not only the navigation. The guard in front of
+    // this page reads it, so leaving a stale yes standing would admit the member again on
+    // the next attempt and the bounce would repeat, silently, every time.
+    store.commit('userLocation', null)
     router.replace('/matching/position')
     return
   }
@@ -677,7 +681,7 @@ onResult(({ data }) => {
   // search — who is near me — and the only moment we get to choose it for them.
   if (!searchCenter.value) {
     searchCenter.value = { ...ownPosition.value }
-    writeCenter(searchCenter.value)
+    writePref('center', searchCenter.value)
     if (!centerLabel.value) resolveCenterLabel({ ...ownPosition.value })
   }
   drawOwn()
@@ -722,20 +726,6 @@ function readRadius() {
 function readCenter() {
   const stored = readPref('center', null)
   return isPlace(stored) ? stored : null
-}
-
-/**
- * The one place the search centre is remembered.
- *
- * Guarded, because JSON drops `undefined`: a centre of `{lat: undefined, lng: undefined}`
- * lands in the store as `{}` and reads back like a value that was really chosen. That is
- * what stood in `pref.gms.map.center` on 09.09.2026, and it is the fingerprint the fault
- * left behind. readCenter above already refuses to hand such a thing back — this stops it
- * being written in the first place, so nothing has to be healed later.
- */
-function writeCenter(center) {
-  if (!isPlace(center)) return
-  writePref('center', center)
 }
 
 function setLook(next) {
@@ -815,10 +805,20 @@ function runSearch() {
 }
 
 function moveSearchTo(next, { fly = false } = {}) {
+  // Refused where the centre is born, not where it is stored. A centre that is not two
+  // numbers is not a place: guarding only the write would leave the live centre poisoned
+  // while storage kept the old one, so drawCircle and drawCentre would run on `undefined`
+  // (Leaflet: "Invalid LatLng object"), the label would be reverse-geocoded from nothing,
+  // and the two would disagree until the next reload. The list's recenter hands this
+  // straight from a geosearch provider, unchecked -- the map's own handler checks.
+  if (!isPlace(next)) return
   inClusterZoom = false
   closeCluster()
   searchCenter.value = { lat: next.lat, lng: next.lng }
-  writeCenter(searchCenter.value)
+  // JSON drops `undefined`, so an unguarded centre would land in the store as `{}` and
+  // read back like a place somebody chose -- the fingerprint this fault left behind. Both
+  // writers of the centre are guarded above, so nothing has to be healed later.
+  writePref('center', searchCenter.value)
   drawCircle()
   drawCentre()
   // Move the view to the new centre too. On the map the geosearch control pans

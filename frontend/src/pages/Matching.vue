@@ -374,7 +374,11 @@ import {
 } from '@/graphql/mutations'
 import { listMatchingEntries, userLocationQuery, verifyLogin } from '@/graphql/queries'
 import { displayType, entryType } from '@/components/Matching/displayCore'
-import { hasPosition as isPositionSet } from '@/utils/matchingPosition'
+import {
+  configuredCommunityPoint,
+  hasPosition as isPositionSet,
+  mayFind,
+} from '@/utils/matchingPosition'
 import UserGMSLocationFormat from '@/components/UserSettings/UserGMSLocationFormat'
 import UserLocationMap from '@/components/UserSettings/UserLocationMap'
 import UserSettingsSwitch from '@/components/UserSettings/UserSettingsSwitch'
@@ -580,10 +584,12 @@ const { onResult: onUserLocation, onError: onUserLocationError } = useQuery(
 onUserLocation(({ data }) => {
   const loc = data?.userLocation
   if (!loc) return
-  communityLocation.value = {
-    lat: loc.communityLocation.latitude,
-    lng: loc.communityLocation.longitude,
-  }
+  // The community's point is nullable too: an instance whose admin never set one must
+  // still be able to show this map, because this is the page where a member sets their
+  // own position. Fall back to what the build was configured with.
+  communityLocation.value = isPositionSet(loc.communityLocation)
+    ? { lat: loc.communityLocation.latitude, lng: loc.communityLocation.longitude }
+    : configuredCommunityPoint()
   // Two numbers or nothing. `Boolean(loc.userLocation)` stood here until 09.09.2026, and
   // an account that had never set a position was answered with an empty object -- truthy,
   // so this page told the find button the way was clear and the map opened on nothing.
@@ -596,7 +602,20 @@ onUserLocation(({ data }) => {
   // set on another device leaves this store copy behind, the button would light up on
   // what the server just said and the guard would send the member straight back on what
   // the store still believes. A button that does nothing, silently.
-  store.commit('userLocation', hasPosition.value ? { ...loc.userLocation } : null)
+  //
+  // Only when it actually differs. Every mutation makes vuex-persistedstate serialize the
+  // WHOLE store and write it to localStorage, and the store carries the member's avatar as
+  // base64 -- so an unconditional commit would put a ~12 KB synchronous write behind every
+  // answer of a network-only query, to store two floats that did not change.
+  const known = store.state.userLocation
+  const fresh = hasPosition.value ? { ...loc.userLocation } : null
+  if (
+    isPositionSet(known) !== isPositionSet(fresh) ||
+    known?.latitude !== fresh?.latitude ||
+    known?.longitude !== fresh?.longitude
+  ) {
+    store.commit('userLocation', fresh)
+  }
   userLocationLoaded.value = true
 })
 onUserLocationError((error) => toastError(error.message))
@@ -705,7 +724,10 @@ function readMapMode() {
   }
 }
 const findList = readMapMode() === 'liste'
-const findHasAccess = computed(() => Boolean(store.state.gmsAllowed) && hasPosition.value)
+// The same rule the router guard applies, from the same module and the same source: the
+// store, which the handler above keeps in step with the server. Restating it here as
+// `gmsAllowed && hasPosition` was how the button and the gate came to disagree.
+const findHasAccess = computed(() => mayFind(store.state))
 function openFind() {
   // The button is disabled until then; this is the second lock, for anything that
   // reaches the handler another way. We cannot say "you have no position" while we

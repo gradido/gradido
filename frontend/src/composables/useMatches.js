@@ -327,12 +327,24 @@ export function useMatches() {
    *   GMS knows them from the token
    */
   async function load(search) {
+    if (!search?.center || !(search.radius > 0)) return
     // A centre that is not two numbers is not a place to search from, and the GMS says so
     // too -- `latitude must be a number`, a 400. Refused here rather than sent, because
-    // this side is the one that knows it never had a centre: it costs a token fetch and
-    // two round trips to be told what is already known, and the answer comes back as an
-    // error the member then has to be given a name for.
-    if (!isPlace(search?.center) || !(search.radius > 0)) return
+    // this side is the one that knows it: it costs a token fetch and two round trips to be
+    // told what is already known.
+    //
+    // Refused, not ignored. Returning here without touching anything would leave the
+    // previous place's people on screen under the new place's name, and would let an older
+    // search still in flight land afterwards and paint -- so this takes the same exit a
+    // failure takes: supersede, clear, say so.
+    if (!isPlace(search.center)) {
+      latest++
+      matches.value = []
+      presence.value = []
+      error.value = failure(GMS_REJECTED, 'search centre is not a pair of numbers')
+      loading.value = false
+      return
+    }
     const request = ++latest
     loading.value = true
     error.value = null

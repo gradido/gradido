@@ -41,6 +41,15 @@ const matchingRoutes = CONFIG.MATCHING_ACTIVE
           // every desktop screen. Two neighbouring routes that must differ is exactly what a
           // section-keyed table cannot express -- and why this now lives on the record.
           rightSide: null,
+          // ⭐ Both answers or neither: a position set AND permission to be found. The
+          // guard that enforces it reads this flag rather than comparing the address,
+          // for the reason written three lines up -- a per-route fact belongs on the
+          // route record. It is also the only form that holds: vue-router matches this
+          // record non-strictly and case-insensitively, so `/matching/karte/` and
+          // `/Matching/Karte` arrive here with `to.path` unchanged and would walk
+          // straight past a string comparison. `meta` comes from the matched record, so
+          // every spelling that reaches this page carries it.
+          requiresFindable: true,
         },
       },
       {

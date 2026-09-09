@@ -82,7 +82,14 @@ vi.mock('leaflet-geosearch', () => ({
 const i18n = createI18n({ legacy: false, locale: 'de', messages: { de } })
 
 const makeStore = (gmsAllowed) =>
-  createStore({ state: { gradidoID: 'a-member', gmsAllowed }, mutations: {} })
+  createStore({
+    state: { gradidoID: 'a-member', gmsAllowed, userLocation: { latitude: 48.2, longitude: 11.6 } },
+    mutations: {
+      userLocation: (state, value) => {
+        state.userLocation = value
+      },
+    },
+  })
 
 const location = {
   userLocation: { latitude: 48.2, longitude: 11.6 },
@@ -195,6 +202,18 @@ describe('MatchingMap', () => {
       expect(load).not.toHaveBeenCalled()
       expect(centreStored()).toBeNull()
     })
+
+    // The guard in front of this page reads the store. Correcting only the navigation
+    // would let it admit the member again on the next attempt, and the bounce would
+    // repeat, silently, every time.
+    it('corrects the store the guard reads, not only the navigation', async () => {
+      const page = mountMap()
+
+      fire(userLocationQuery, { userLocation: { ...location, userLocation: {} } })
+      await page.vm.$nextTick()
+
+      expect(page.vm.$store.state.userLocation).toBeNull()
+    })
   })
 
   // JSON drops `undefined`, so a centre of `{lat: undefined, lng: undefined}` lands in
@@ -222,16 +241,27 @@ describe('MatchingMap', () => {
       })
     })
 
-    it('never writes one that is not', async () => {
+    // Refused where the centre is born: guarding only the write would leave the live
+    // centre poisoned while storage kept the old one, and everything drawn from it --
+    // circle, crosshair, the reverse-geocoded label -- would run on `undefined`.
+    it('turns a centre that is not two numbers away entirely', async () => {
       const page = mountMap()
       fire(userLocationQuery, { userLocation: location })
       await page.vm.$nextTick()
       const before = window.localStorage.getItem('pref.gms.map.center')
+      const asked = load.mock.calls.length
 
       recenter(page, { lat: undefined, lng: undefined })
       await page.vm.$nextTick()
 
       expect(window.localStorage.getItem('pref.gms.map.center')).toBe(before)
+      // Not stored, and not searched for either: the whole move is refused, so the live
+      // centre still is the one the stored value names.
+      expect(load).toHaveBeenCalledTimes(asked)
+      expect(page.findComponent({ name: 'MatchList' }).props('center')).toEqual({
+        lat: 48.2,
+        lng: 11.6,
+      })
     })
   })
 

@@ -246,15 +246,54 @@ describe('useMatches', () => {
     // two round trips to be told `latitude must be a number`, which the wallet then read
     // out as "the search is not reachable". A centre that is not two numbers is not a
     // place to search from, and this side is the one that knows it.
-    it('asks nothing about a centre that is not two numbers', async () => {
+    it.each([
+      ['an empty object', {}],
+      ['half a pair', { lat: 49.28, lng: undefined }],
+      ['NaN, which passes every truthy check', { lat: NaN, lng: NaN }],
+      ['numbers that came as text', { lat: '49.28', lng: '9.69' }],
+    ])('asks nothing about a centre that is %s', async (_name, center) => {
       const { load } = useMatches()
-      await load({ center: {}, radius: 25 })
-      await load({ center: { lat: 49.28, lng: undefined }, radius: 25 })
-      await load({ center: { lat: NaN, lng: NaN }, radius: 25 })
-      await load({ center: { lat: '49.28', lng: '9.69' }, radius: 25 })
+      await load({ center, radius: 25 })
 
       expect(query).not.toHaveBeenCalled()
       expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    // Refused, not ignored. A silent return would leave the previous place's people on
+    // screen under the new place's name, with no toast -- the same "nothing happened and
+    // nothing was said" this delivery exists to end.
+    it('clears what it has and says so when it refuses a centre', async () => {
+      const { matches, presence, loading, error, load } = useMatches()
+      await load(SEARCH)
+      expect(matches.value.length).toBeGreaterThan(0)
+
+      await load({ center: {}, radius: 25 })
+
+      expect(matches.value).toEqual([])
+      expect(presence.value).toEqual([])
+      expect(error.value?.code).toBe(GMS_REJECTED)
+      expect(loading.value).toBe(false)
+    })
+
+    // A refusal supersedes what is in flight. Without that, the older search's answer
+    // lands afterwards and paints results for a place the member has already left.
+    it('lets no earlier search paint after a refusal', async () => {
+      let release
+      const held = new Promise((resolve) => {
+        release = resolve
+      })
+      fetchMock.mockImplementationOnce(async () => {
+        await held
+        return okJson([matchedUser()])
+      })
+      const { matches, load } = useMatches()
+
+      const first = load(SEARCH)
+      await load({ center: {}, radius: 25 })
+      release()
+      await first
+
+      expect(matches.value).toEqual([])
     })
 
     it('fetches the token fresh and asks both routes with it', async () => {

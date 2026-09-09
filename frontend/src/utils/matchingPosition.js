@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+import CONFIG from '@/config'
 
 /**
  * What counts as a position, and who may open the find map.
@@ -19,6 +20,20 @@
  * signed in before the fix -- so a truthy check would let exactly the broken case
  * through, on exactly the devices that have it.
  */
+
+/**
+ * The instance's own coordinates, as the build was configured -- the last fallback for a
+ * map that needs a centre to show.
+ *
+ * The server answers `communityLocation: null` where no admin ever set the community's
+ * point, and that must not stop a member from setting their own: the page for doing so is
+ * the very page that needs a centre to draw. The settings map has always fallen back this
+ * way for its own error case; this is that fallback, in one place.
+ */
+export function configuredCommunityPoint() {
+  const [lat, lng] = String(CONFIG.COMMUNITY_LOCATION ?? '').split(',')
+  return { lat: parseFloat(lat), lng: parseFloat(lng) }
+}
 
 /** The backend's shape: `{ longitude, latitude }`, or null where nothing is set. */
 export function hasPosition(userLocation) {

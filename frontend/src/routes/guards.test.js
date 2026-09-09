@@ -22,7 +22,13 @@ const router = createRouter({
       name: 'Contribute',
       meta: { requiresAuth: true },
     },
-    { path: '/matching/karte', name: 'MatchingMap', meta: { requiresAuth: true } },
+    // The flag is the real record's, see routes.test.js -- the guard reads it and never
+    // the address, so these two spellings of the same page must be gated alike.
+    {
+      path: '/matching/karte',
+      name: 'MatchingMap',
+      meta: { requiresAuth: true, requiresFindable: true },
+    },
     { path: '/matching/:tab', name: 'Matching', meta: { requiresAuth: true } },
   ],
 })
@@ -63,7 +69,12 @@ addNavigationGuards(router, store, apollo)
 describe('navigation guards', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // The store is shared by the whole file. Put back everything any block sets, or a case
+    // added later inherits answers that are nowhere in its own body.
     store.state.token = null
+    store.state.creationAllowed = null
+    store.state.gmsAllowed = null
+    store.state.userLocation = null
   })
 
   describe('publisher ID', () => {
@@ -182,6 +193,16 @@ describe('navigation guards', () => {
     it('sends a member whose stored position is an empty object to the position tab', async () => {
       store.state.userLocation = {}
       await router.push('/matching/karte')
+      expect(router.currentRoute.value.path).toBe('/matching/position')
+    })
+
+    // vue-router matches this record non-strictly and case-insensitively and leaves
+    // `to.path` as it was typed, so a guard comparing the address would let both of these
+    // through -- a bookmark or a mail client that normalises the slash walks past the gate
+    // and the map opens on nothing.
+    it.each(['/matching/karte/', '/Matching/Karte'])('gates %s as well', async (address) => {
+      store.state.userLocation = null
+      await router.push(address)
       expect(router.currentRoute.value.path).toBe('/matching/position')
     })
 
