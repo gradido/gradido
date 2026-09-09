@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 
+import { Location } from '@model/Location'
 import { Point } from 'typeorm'
 
 import { Location2Point, Point2Location } from './Location2Point'
@@ -71,16 +72,31 @@ describe('Location2Point / Point2Location', () => {
       )
     })
 
-    // The other half of why an empty point exists at all: zero is falsy, so the equator
-    // and the prime meridian are stored as "no coordinates". Kept as a measurement, not
-    // as an endorsement -- whoever changes that line will see here what it does today.
-    it('drops a zero coordinate and writes an empty point', () => {
-      expect(Location2Point({ longitude: 0, latitude: 51.314472 })).toEqual(point([]))
-      expect(Location2Point({ longitude: 9.495606, latitude: 0 })).toEqual(point([]))
+    // ⛔ This is where the empty point used to come from. `if (longitude && latitude)`
+    // stood here, so zero -- a coordinate like any other, and the prime meridian runs
+    // through the UK, France, Spain, Algeria and Ghana -- was stored as "no coordinates".
+    // The member was told the save had worked and then found they had no position.
+    it('keeps a zero coordinate, which is a place like any other', () => {
+      expect(Location2Point({ longitude: 0, latitude: 51.314472 })).toEqual(point([0, 51.314472]))
+      expect(Location2Point({ longitude: 9.495606, latitude: 0 })).toEqual(point([9.495606, 0]))
     })
 
-    it('round-trips through Point2Location as nothing at all', () => {
-      expect(Point2Location(Location2Point({ longitude: 0, latitude: 0 }))).toBeNull()
+    it('round-trips 0/0 back out as 0/0', () => {
+      expect(Point2Location(Location2Point({ longitude: 0, latitude: 0 }))).toEqual({
+        longitude: 0,
+        latitude: 0,
+      })
+    })
+
+    // What "unset" looks like in this column: an absent or unusable pair still writes the
+    // empty point, and Point2Location reads that back as no position.
+    it('still writes the empty point for a pair that is not two numbers', () => {
+      expect(Location2Point({} as unknown as Location)).toEqual(point([]))
+      expect(Location2Point({ longitude: NaN, latitude: 51.3 } as Location)).toEqual(point([]))
+      expect(Location2Point({ longitude: '9.5', latitude: '51.3' } as unknown as Location)).toEqual(
+        point([]),
+      )
+      expect(Point2Location(Location2Point({} as unknown as Location))).toBeNull()
     })
   })
 })

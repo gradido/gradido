@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { hasPosition, isPlace, mayFind } from './matchingPosition'
 
 /**
@@ -56,6 +56,37 @@ describe('matchingPosition', () => {
     // them being handed to the other predicate by mistake.
     it('does not accept the backend’s shape', () => {
       expect(isPlace({ latitude: 51.3, longitude: 9.5 })).toBe(false)
+    })
+  })
+
+  // The value is a string from the environment, and nothing validates it on the way in:
+  // frontend/src/config assembles the settings without running the Joi schema that
+  // describes them. So a mistyped COMMUNITY_LOCATION arrives here as it was written, and
+  // handing back NaN would centre a map on nothing -- the one thing this module is for.
+  describe('configuredCommunityPoint', () => {
+    const load = async (COMMUNITY_LOCATION) => {
+      vi.resetModules()
+      vi.doMock('@/config', () => ({ default: { COMMUNITY_LOCATION } }))
+      const module = await import('./matchingPosition')
+      return module.configuredCommunityPoint()
+    }
+
+    afterEach(() => {
+      vi.doUnmock('@/config')
+      vi.resetModules()
+    })
+
+    it('reads the configured pair', async () => {
+      expect(await load('49.280377, 9.690151')).toEqual({ lat: 49.280377, lng: 9.690151 })
+    })
+
+    it.each([
+      ['a value that is not a pair', 'Kuenzelsau'],
+      ['half a pair', '49.280377'],
+      ['an empty setting', ''],
+      ['no setting at all', undefined],
+    ])('still gives back a place for %s', async (_name, configured) => {
+      expect(isPlace(await load(configured))).toBe(true)
     })
   })
 

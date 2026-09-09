@@ -32,8 +32,18 @@ import CONFIG from '@/config'
  */
 export function configuredCommunityPoint() {
   const [lat, lng] = String(CONFIG.COMMUNITY_LOCATION ?? '').split(',')
-  return { lat: parseFloat(lat), lng: parseFloat(lng) }
+  const configured = { lat: parseFloat(lat), lng: parseFloat(lng) }
+  // Checked, not trusted: this value is a string from the environment and nothing
+  // validates it on the way in -- frontend/src/config assembles the settings without ever
+  // running the Joi schema that describes them, so a mistyped COMMUNITY_LOCATION arrives
+  // here exactly as it was written. Handing back NaN would centre a map on nothing, which
+  // is the one thing this module exists to prevent.
+  return isPlace(configured) ? configured : { ...FALLBACK_POINT }
 }
+
+// Where the config module itself lands when COMMUNITY_LOCATION is unset
+// (frontend/src/config/index.js) -- the academy's own place, and the last resort here.
+const FALLBACK_POINT = { lat: 49.280377, lng: 9.690151 }
 
 /** The backend's shape: `{ longitude, latitude }`, or null where nothing is set. */
 export function hasPosition(userLocation) {

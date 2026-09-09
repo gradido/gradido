@@ -3,7 +3,13 @@ import { Point } from 'typeorm'
 
 export function Location2Point(location: Location): Point {
   let pointStr: string
-  if (location.longitude && location.latitude) {
+  // Number.isFinite, not truthiness: zero is a coordinate like any other, and the
+  // prime meridian runs through the UK, France, Spain, Algeria and Ghana. Until
+  // 09.09.2026 a member there saved their pin, was told it had worked, and had it
+  // written away as a point with no coordinates -- which Point2Location then reads
+  // back, correctly, as no position at all. An absent or unusable pair still writes
+  // the empty point; that is what "unset" looks like in this column today.
+  if (Number.isFinite(location?.longitude) && Number.isFinite(location?.latitude)) {
     pointStr = '{ "type": "Point", "coordinates": ['
       .concat(location.longitude?.toString())
       .concat(', ')
