@@ -1224,16 +1224,22 @@ export class UserResolver {
     const result = new UserLocationResult()
     if (context.token) {
       const homeCom = await getHomeCommunity()
-      const communityLocation = homeCom ? Point2Location(homeCom.location as Point) : null
-      if (!communityLocation) {
+      if (!homeCom) {
         logger.error(
-          "couldn't load home community location, no home community with usable coordinates found, please start the dht-node first",
+          "couldn't load home community location, no home community found, please start the dht-node first",
         )
         throw new Error(
           `Error loading user location, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`,
         )
       }
-      result.communityLocation = communityLocation
+      // null where the instance never had coordinates set -- reported, not thrown. A
+      // missing admin setting must not take this query down: every member of the
+      // instance reads it, including those who have a position of their own, and the
+      // wallet cannot even offer the page for setting one while it fails.
+      result.communityLocation = Point2Location(homeCom.location as Point)
+      if (!result.communityLocation) {
+        logger.warn('home community has no usable coordinates, communityLocation is null')
+      }
       // null where this account has no position yet. A point without coordinates is not a
       // place, and saying so here is what keeps the map from opening on nothing: every
       // reader of this field asks "is there a position?" and used to be told yes by an

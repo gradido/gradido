@@ -16,9 +16,10 @@ import { LocationScalar } from '@/graphql/scalar/Location'
  * -- the whole query failing, for exactly the people this was fixed for. The wallet's own
  * specs cannot see it, because they hand the page an answer of their own making.
  *
- * `communityLocation` beside it has to stay non-null: it belongs to the instance, not to
- * the member, three components read it as always-there, and the resolver refuses to
- * answer at all when it is missing.
+ * `communityLocation` beside it is nullable for a different reason: the column is filled
+ * only when an admin sets it, and refusing to answer without it would take the whole
+ * matching area down for every member of the instance -- including everyone who has a
+ * position of their own. The readers fall back to CONFIG.COMMUNITY_LOCATION.
  *
  * Location is a SCALAR here (registered in graphql/schema.ts), not an object type -- which
  * is why the wallet asks for these two fields without a sub-selection and why an empty
@@ -33,7 +34,7 @@ class ProbeResolver {
 }
 
 describe('UserLocationResult', () => {
-  it('says a member may have no position, and an instance may not', async () => {
+  it('says neither a member nor an instance need have a position', async () => {
     const schema = await buildSchema({
       resolvers: [ProbeResolver],
       scalarsMap: [{ type: Location, scalar: LocationScalar }],
@@ -43,7 +44,7 @@ describe('UserLocationResult', () => {
       [
         'type UserLocationResult {',
         '  userLocation: Location',
-        '  communityLocation: Location!',
+        '  communityLocation: Location',
         '}',
       ].join('\n'),
     )
