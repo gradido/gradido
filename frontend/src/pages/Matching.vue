@@ -374,6 +374,7 @@ import {
 } from '@/graphql/mutations'
 import { listMatchingEntries, userLocationQuery, verifyLogin } from '@/graphql/queries'
 import { displayType, entryType } from '@/components/Matching/displayCore'
+import { hasPosition as isPositionSet } from '@/utils/matchingPosition'
 import UserGMSLocationFormat from '@/components/UserSettings/UserGMSLocationFormat'
 import UserLocationMap from '@/components/UserSettings/UserLocationMap'
 import UserSettingsSwitch from '@/components/UserSettings/UserSettingsSwitch'
@@ -583,11 +584,13 @@ onUserLocation(({ data }) => {
     lat: loc.communityLocation.latitude,
     lng: loc.communityLocation.longitude,
   }
-  hasPosition.value = Boolean(loc.userLocation)
-  userLocation.value = {
-    lat: loc.userLocation?.latitude ?? communityLocation.value.lat,
-    lng: loc.userLocation?.longitude ?? communityLocation.value.lng,
-  }
+  // Two numbers or nothing. `Boolean(loc.userLocation)` stood here until 09.09.2026, and
+  // an account that had never set a position was answered with an empty object -- truthy,
+  // so this page told the find button the way was clear and the map opened on nothing.
+  hasPosition.value = isPositionSet(loc.userLocation)
+  userLocation.value = hasPosition.value
+    ? { lat: loc.userLocation.latitude, lng: loc.userLocation.longitude }
+    : { ...communityLocation.value }
   userLocationLoaded.value = true
 })
 onUserLocationError((error) => toastError(error.message))

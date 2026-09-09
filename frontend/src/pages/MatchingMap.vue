@@ -267,7 +267,8 @@ import 'leaflet/dist/leaflet.css'
 import { GeoSearchControl, OpenStreetMapProvider } from 'leaflet-geosearch'
 import 'leaflet-geosearch/dist/geosearch.css'
 import { listMatchingEntries, userLocationQuery } from '@/graphql/queries'
-import { useMatches, distanceKm } from '@/composables/useMatches'
+import { useMatches, distanceKm, GMS_REJECTED } from '@/composables/useMatches'
+import { hasPosition as isPositionSet, isPlace } from '@/utils/matchingPosition'
 import { useEntryDraft } from '@/composables/useEntryDraft'
 import MatchQuery from '@/components/Matching/MatchQuery'
 import { useAppToast } from '@/composables/useToast'
@@ -366,7 +367,16 @@ const { matches, presence, error: searchError, load, suggest } = useMatches()
 // Old results are already gone by the time this fires, so the toast is the only
 // thing that explains the empty map.
 watch(searchError, (err) => {
-  if (err) toastError(t('matching.map.searchFailed'))
+  if (!err) return
+  // Two different facts, two different sentences. A 4xx is the GMS answering and
+  // refusing — it is there, it read the request, it would not have it — and calling that
+  // "not reachable" is what pointed the whole morning of 09.09.2026 at a healthy server
+  // while the wallet was asking it about a latitude of `undefined`.
+  // Two whole t() calls rather than one with the key chosen inside it: the i18n lint
+  // counts literal keys only, and a computed key reads to it as both of them being unused.
+  toastError(
+    err.code === GMS_REJECTED ? t('matching.map.searchRejected') : t('matching.map.searchFailed'),
+  )
 })
 
 /**
@@ -647,8 +657,15 @@ onResult(({ data }) => {
   const location = data?.userLocation
   if (!location) return
   // No pin, no map: the entry gate on the matching page says the same thing, and
-  // a map centred on nothing would be a riddle rather than an answer.
-  if (!location.userLocation) {
+  // a map centred on nothing would be a riddle rather than an answer. The router
+  // guard turns this member away before the page is built at all; this is the belt
+  // for the answer that arrives AFTER it, when the store said yes and the server
+  // says no.
+  //
+  // Two numbers, not a truthy object: until 09.09.2026 this read `!location.userLocation`,
+  // and an account without a position was answered `{}` — truthy, so the redirect stayed
+  // silent and everything below ran on (undefined, undefined).
+  if (!isPositionSet(location.userLocation)) {
     router.replace('/matching/position')
     return
   }
@@ -660,7 +677,7 @@ onResult(({ data }) => {
   // search — who is near me — and the only moment we get to choose it for them.
   if (!searchCenter.value) {
     searchCenter.value = { ...ownPosition.value }
-    writePref('center', searchCenter.value)
+    writeCenter(searchCenter.value)
     if (!centerLabel.value) resolveCenterLabel({ ...ownPosition.value })
   }
   drawOwn()
@@ -704,7 +721,21 @@ function readRadius() {
 
 function readCenter() {
   const stored = readPref('center', null)
-  return stored && Number.isFinite(stored.lat) && Number.isFinite(stored.lng) ? stored : null
+  return isPlace(stored) ? stored : null
+}
+
+/**
+ * The one place the search centre is remembered.
+ *
+ * Guarded, because JSON drops `undefined`: a centre of `{lat: undefined, lng: undefined}`
+ * lands in the store as `{}` and reads back like a value that was really chosen. That is
+ * what stood in `pref.gms.map.center` on 09.09.2026, and it is the fingerprint the fault
+ * left behind. readCenter above already refuses to hand such a thing back — this stops it
+ * being written in the first place, so nothing has to be healed later.
+ */
+function writeCenter(center) {
+  if (!isPlace(center)) return
+  writePref('center', center)
 }
 
 function setLook(next) {
@@ -787,7 +818,7 @@ function moveSearchTo(next, { fly = false } = {}) {
   inClusterZoom = false
   closeCluster()
   searchCenter.value = { lat: next.lat, lng: next.lng }
-  writePref('center', searchCenter.value)
+  writeCenter(searchCenter.value)
   drawCircle()
   drawCentre()
   // Move the view to the new centre too. On the map the geosearch control pans

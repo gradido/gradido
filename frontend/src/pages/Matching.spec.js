@@ -175,6 +175,41 @@ describe('Matching', () => {
 
       expect(findButton(page).attributes('disabled')).toBeUndefined()
     })
+
+    // ⭐ Both answers or neither: a position AND findability (Bernd, 09.09.2026).
+    //
+    // ⛔ `Boolean(loc.userLocation)` stood behind this button until then, and an account
+    // that had never set a position was answered `{}` -- truthy. So the button carried
+    // exactly the members who had nothing to show on the map straight onto it, where it
+    // centred on nothing and reported the GMS as unreachable.
+    const answer = (page, userLocation) => {
+      fire(userLocationQuery, {
+        userLocation: { userLocation, communityLocation: { latitude: 48.1, longitude: 11.5 } },
+      })
+      return page.vm.$nextTick()
+    }
+
+    it('carries a member with a position onto the map', async () => {
+      const page = mountPage('entries')
+      await answer(page, { latitude: 48.2, longitude: 11.6 })
+
+      await findButton(page).trigger('click')
+
+      expect(push).toHaveBeenCalledWith('/matching/karte')
+    })
+
+    it.each([
+      ['an empty object -- the answer that happened', {}],
+      ['nothing at all', null],
+      ['half a pair', { latitude: 48.2 }],
+    ])('holds a member back and explains, for %s', async (_name, userLocation) => {
+      const page = mountPage('entries')
+      await answer(page, userLocation)
+
+      await findButton(page).trigger('click')
+
+      expect(push).not.toHaveBeenCalled()
+    })
   })
 
   describe('the entry form', () => {

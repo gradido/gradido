@@ -1,5 +1,6 @@
 import { verifyLogin } from '../graphql/queries'
 import { clearApolloCache } from '../plugins/apolloCache'
+import { mayFind } from '../utils/matchingPosition'
 
 const addNavigationGuards = (router, store, apollo) => {
   // handle publisherId
@@ -79,6 +80,22 @@ const addNavigationGuards = (router, store, apollo) => {
   router.beforeEach((to, from, next) => {
     if (to.path.startsWith('/contributions') && store.state.creationAllowed === false) {
       next({ path: '/overview' })
+    } else {
+      next()
+    }
+  })
+
+  // ⭐ The find map needs BOTH answers: a position is set AND it may travel to the GMS.
+  // Without them there is nothing to draw and nothing to search from, so the address, a
+  // bookmark and the back button all end where both answers are given. The page itself
+  // used to be the only lock, and it asked the wrong question -- see mayFind.
+  //
+  // One path, and it covers the list too: the list is a LOOK of this same page
+  // (`pref.gms.map.mode`), not an address of its own. /matching/position is a tab of the
+  // matching page, so it is never gated by this.
+  router.beforeEach((to, from, next) => {
+    if (to.path === '/matching/karte' && !mayFind(store.state)) {
+      next({ path: '/matching/position' })
     } else {
       next()
     }

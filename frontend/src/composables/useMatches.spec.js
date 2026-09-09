@@ -10,6 +10,7 @@ import {
   toPresence,
   withoutMatched,
   GMS_UNAVAILABLE,
+  GMS_REJECTED,
 } from './useMatches'
 
 // The Apollo client the composable asks for the token. `query` is a spy so a test
@@ -240,6 +241,22 @@ describe('useMatches', () => {
       expect(fetchMock).not.toHaveBeenCalled()
     })
 
+    // 09.09.2026: a member without a position reached the map, its centre became
+    // `{lat: undefined, lng: undefined}`, and this seam sent it on -- a token fetch and
+    // two round trips to be told `latitude must be a number`, which the wallet then read
+    // out as "the search is not reachable". A centre that is not two numbers is not a
+    // place to search from, and this side is the one that knows it.
+    it('asks nothing about a centre that is not two numbers', async () => {
+      const { load } = useMatches()
+      await load({ center: {}, radius: 25 })
+      await load({ center: { lat: 49.28, lng: undefined }, radius: 25 })
+      await load({ center: { lat: NaN, lng: NaN }, radius: 25 })
+      await load({ center: { lat: '49.28', lng: '9.69' }, radius: 25 })
+
+      expect(query).not.toHaveBeenCalled()
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+
     it('fetches the token fresh and asks both routes with it', async () => {
       const { load } = useMatches()
       await load(SEARCH)
@@ -307,16 +324,37 @@ describe('useMatches', () => {
       expect(url.searchParams.get('matchingType')).toBe('offer')
     })
 
-    it('reports a route that answers with an error, and shows nothing stale', async () => {
-      fetchMock.mockImplementation(async () => ({ ok: false, status: 401, json: async () => ({}) }))
+    it('reports a route that could not answer, and shows nothing stale', async () => {
+      fetchMock.mockImplementation(async () => ({ ok: false, status: 503, json: async () => ({}) }))
       const { matches, presence, loading, error, load } = useMatches()
       await load(SEARCH)
 
       expect(error.value?.code).toBe(GMS_UNAVAILABLE)
-      expect(error.value?.message).toContain('401')
+      expect(error.value?.message).toContain('503')
       expect(matches.value).toEqual([])
       expect(presence.value).toEqual([])
       expect(loading.value).toBe(false)
+    })
+
+    // ⭐ A 4xx is the GMS answering and refusing, not the GMS being away, and the member
+    // is told the two apart. Calling a refusal "not reachable" is what pointed the whole
+    // morning of 09.09.2026 at a healthy server: it had answered 400 `must be a number`,
+    // correctly, to a search centred on nothing.
+    it.each([400, 401, 403, 422])('reports a refusal as a refusal (%i)', async (status) => {
+      fetchMock.mockImplementation(async () => ({ ok: false, status, json: async () => ({}) }))
+      const { error, load } = useMatches()
+      await load(SEARCH)
+
+      expect(error.value?.code).toBe(GMS_REJECTED)
+      expect(error.value?.status).toBe(status)
+    })
+
+    it.each([500, 502, 504])('reports a server that broke as unavailable (%i)', async (status) => {
+      fetchMock.mockImplementation(async () => ({ ok: false, status, json: async () => ({}) }))
+      const { error, load } = useMatches()
+      await load(SEARCH)
+
+      expect(error.value?.code).toBe(GMS_UNAVAILABLE)
     })
 
     it('reports a token that did not come', async () => {

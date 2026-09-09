@@ -622,7 +622,8 @@
       "radiusTitle": "Raio de pesquisa",
       "search": "Procurar um local ou endereço",
       "searchFailed": "A pesquisa não está acessível neste momento.",
-      "searchHere": "Procurar aqui"
+      "searchHere": "Procurar aqui",
+      "searchRejected": "A pesquisa foi recusada."
     },
     "new": {
       "cancel": "Cancelar",

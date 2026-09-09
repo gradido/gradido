@@ -7,6 +7,7 @@ import { createI18n } from 'vue-i18n'
 import de from '@/locales/de.json'
 import MatchingMap from './MatchingMap.vue'
 import { listMatchingEntries, userLocationQuery } from '@/graphql/queries'
+import { GMS_REJECTED, GMS_UNAVAILABLE } from '@/composables/useMatches'
 
 const replace = vi.fn()
 const push = vi.fn()
@@ -147,6 +148,113 @@ describe('MatchingMap', () => {
       await page.vm.$nextTick()
 
       expect(replace).toHaveBeenCalledWith('/matching/position')
+    })
+  })
+
+  // ⛔ 09.09.2026: an account that had never set a position was answered `{}` here, which
+  // is truthy, so the redirect below stayed silent. The page then read `.latitude` off it,
+  // put its own marker at (undefined, undefined), stored `{}` as the search centre and
+  // asked the GMS about it -- which refused, correctly, and the wallet reported the GMS
+  // as unreachable.
+  //
+  // The router guard turns such a member away before this page is built at all. These
+  // measure the belt: the answer that arrives AFTER the guard let somebody through,
+  // because the store said yes and the server says no.
+  describe('when the position is not two numbers', () => {
+    const centreStored = () => window.localStorage.getItem('pref.gms.map.center')
+
+    // The control for the three below: with a real position everything runs, so their
+    // silence means the page turned away, not that this spec cannot see anything.
+    it('builds the search when the position is real', async () => {
+      const page = mountMap()
+
+      fire(userLocationQuery, { userLocation: location })
+      await page.vm.$nextTick()
+
+      expect(replace).not.toHaveBeenCalled()
+      expect(load).toHaveBeenCalledTimes(1)
+      expect(JSON.parse(centreStored())).toEqual({ lat: 48.2, lng: 11.6 })
+    })
+
+    it.each([
+      ['an empty object -- the answer that happened', {}],
+      ['nothing at all', null],
+      ['half a pair', { latitude: 48.2 }],
+      ['coordinates that came as text', { latitude: '48.2', longitude: '11.6' }],
+    ])('sends the member to the position tab for %s', async (_name, userLocation) => {
+      const page = mountMap()
+
+      fire(userLocationQuery, { userLocation: { ...location, userLocation } })
+      await page.vm.$nextTick()
+
+      expect(replace).toHaveBeenCalledWith('/matching/position')
+      // No search, and no centre. Both statements sit AFTER the redirect in the same
+      // straight run as the marker being drawn, so their absence is the marker's absence
+      // too -- Leaflet itself is never built in this environment, there is no sized
+      // container and the 250 ms timer never runs, so it cannot be asked directly.
+      expect(load).not.toHaveBeenCalled()
+      expect(centreStored()).toBeNull()
+    })
+  })
+
+  // JSON drops `undefined`, so a centre of `{lat: undefined, lng: undefined}` lands in
+  // the store as `{}` and reads back like a place somebody chose. That is the fingerprint
+  // this fault left on Bernd's device.
+  describe('remembering the search centre', () => {
+    const recenter = (page, next) =>
+      page.findComponent({ name: 'MatchList' }).vm.$emit('recenter', next)
+
+    beforeEach(() => {
+      window.localStorage.setItem('pref.gms.map.mode', JSON.stringify('liste'))
+    })
+
+    it('remembers a centre that is two numbers', async () => {
+      const page = mountMap()
+      fire(userLocationQuery, { userLocation: location })
+      await page.vm.$nextTick()
+
+      recenter(page, { lat: 49.28, lng: 9.69 })
+      await page.vm.$nextTick()
+
+      expect(JSON.parse(window.localStorage.getItem('pref.gms.map.center'))).toEqual({
+        lat: 49.28,
+        lng: 9.69,
+      })
+    })
+
+    it('never writes one that is not', async () => {
+      const page = mountMap()
+      fire(userLocationQuery, { userLocation: location })
+      await page.vm.$nextTick()
+      const before = window.localStorage.getItem('pref.gms.map.center')
+
+      recenter(page, { lat: undefined, lng: undefined })
+      await page.vm.$nextTick()
+
+      expect(window.localStorage.getItem('pref.gms.map.center')).toBe(before)
+    })
+  })
+
+  // A 4xx is the GMS answering and refusing; anything else is the GMS not being usable.
+  // Two facts, two sentences -- saying "not reachable" for a refusal is what sent a whole
+  // morning looking at a healthy server.
+  describe('what the member is told when a search does not come back', () => {
+    it('says the search was refused when the GMS refused it', async () => {
+      const page = mountMap()
+
+      searchError.value = Object.assign(new Error('matches: HTTP 400'), { code: GMS_REJECTED })
+      await page.vm.$nextTick()
+
+      expect(toastError).toHaveBeenCalledWith(de.matching.map.searchRejected)
+    })
+
+    it('says the search is not reachable when it could not be reached', async () => {
+      const page = mountMap()
+
+      searchError.value = Object.assign(new Error('matches: HTTP 503'), { code: GMS_UNAVAILABLE })
+      await page.vm.$nextTick()
+
+      expect(toastError).toHaveBeenCalledWith(de.matching.map.searchFailed)
     })
   })
 

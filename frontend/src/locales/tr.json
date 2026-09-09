@@ -622,7 +622,8 @@
       "radiusTitle": "Arama yarıçapı",
       "search": "Bir yer ya da adres ara",
       "searchFailed": "Arama şu anda ulaşılabilir değil.",
-      "searchHere": "Burada ara"
+      "searchHere": "Burada ara",
+      "searchRejected": "Arama reddedildi."
     },
     "new": {
       "cancel": "İptal",

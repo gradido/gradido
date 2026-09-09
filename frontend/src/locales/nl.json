@@ -622,7 +622,8 @@
       "radiusTitle": "Zoekstraal",
       "search": "Zoek een plaats of adres",
       "searchFailed": "Het zoeken is op dit moment niet bereikbaar.",
-      "searchHere": "Hier zoeken"
+      "searchHere": "Hier zoeken",
+      "searchRejected": "De zoekopdracht is geweigerd."
     },
     "new": {
       "cancel": "Annuleren",
