@@ -234,8 +234,10 @@ describe('MatchQuery', () => {
     }
 
     const WORDS = [
-      { word: 'rasenluefter', entries: 12 },
-      { word: 'rasen', entries: 3 },
+      { word: 'rasenluefter', spelling: 'Rasenlüfter', entries: 12 },
+      // No sentence ever spelled this one out - the ordinary case for a word a
+      // keying model coined rather than read.
+      { word: 'rasen', spelling: null, entries: 3 },
     ]
 
     let wrapper
@@ -291,8 +293,11 @@ describe('MatchQuery', () => {
 
       expect(suggest).toHaveBeenCalledTimes(1)
       expect(suggest).toHaveBeenCalledWith('ras')
+      // As it reads where a sentence gave the spelling up, as it is stored where
+      // none did. The folded form is not a fallback for a failure - it is what the
+      // GMS holds, and what was shown before there was anything else.
       expect(wrapper.findAll('.suggestion').map((one) => one.text())).toEqual([
-        'rasenluefter',
+        'Rasenlüfter',
         'rasen',
       ])
       // The list is named for a reader who cannot see it sits under the field.
@@ -312,7 +317,9 @@ describe('MatchQuery', () => {
 
       await wrapper.findAll('.suggestion')[0].trigger('click')
 
-      expect(wrapper.find('.typed-input').element.value).toBe('rasenluefter')
+      // What was pressed is what lands in the field. Searching is unaffected: the
+      // typed search folds what it is given, so both forms are one question.
+      expect(wrapper.find('.typed-input').element.value).toBe('Rasenlüfter')
       // The stances are what ask, so the cursor stays where the sentence is written.
       expect(document.activeElement).toBe(wrapper.find('.typed-input').element)
       expect(wrapper.find('.typed-suggestions').exists()).toBe(false)
@@ -361,12 +368,12 @@ describe('MatchQuery', () => {
 
       // The newer answer arrives first, the older one after it - which is the order
       // that goes wrong, and the one a debounce alone does not prevent.
-      second.resolve([{ word: 'rasenluefter', entries: 12 }])
+      second.resolve([{ word: 'rasenluefter', spelling: 'Rasenlüfter', entries: 12 }])
       await flushPromises()
-      first.resolve([{ word: 'rasen', entries: 3 }])
+      first.resolve([{ word: 'rasen', spelling: null, entries: 3 }])
       await flushPromises()
 
-      expect(wrapper.findAll('.suggestion').map((one) => one.text())).toEqual(['rasenluefter'])
+      expect(wrapper.findAll('.suggestion').map((one) => one.text())).toEqual(['Rasenlüfter'])
     })
   })
 })
