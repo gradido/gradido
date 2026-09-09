@@ -1224,15 +1224,20 @@ export class UserResolver {
     const result = new UserLocationResult()
     if (context.token) {
       const homeCom = await getHomeCommunity()
-      if (!homeCom) {
+      const communityLocation = homeCom ? Point2Location(homeCom.location as Point) : null
+      if (!communityLocation) {
         logger.error(
-          "couldn't load home community location, no home community found, please start the dht-node first",
+          "couldn't load home community location, no home community with usable coordinates found, please start the dht-node first",
         )
         throw new Error(
           `Error loading user location, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`,
         )
       }
-      result.communityLocation = Point2Location(homeCom.location as Point)
+      result.communityLocation = communityLocation
+      // null where this account has no position yet. A point without coordinates is not a
+      // place, and saying so here is what keeps the map from opening on nothing: every
+      // reader of this field asks "is there a position?" and used to be told yes by an
+      // empty object.
       result.userLocation = Point2Location(dbUser.location as Point)
       logger.info('userLocation=', result)
     } else {

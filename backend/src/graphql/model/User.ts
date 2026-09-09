@@ -66,7 +66,11 @@ export class User {
       // Same: not on the user row. Whoever assembles a list of members fills it in one
       // batch; null until then, and null for good where there is nothing to show.
       this.avatarUpdatedAt = null
-      this.userLocation = dbUser.location ? Point2Location(dbUser.location as Point) : null
+      // No second check in front of it: Point2Location answers the whole question now --
+      // a missing point and a point without coordinates are both "no position". The old
+      // guard here asked whether a point EXISTS, which is a different question, and an
+      // account that had never set a position came through it as an empty object.
+      this.userLocation = Point2Location(dbUser.location as Point)
       // Unrestricted by default; verifyLogin fills in a scoped moderator's real groups.
       this.visibleCreationGroups = []
       this.seesAllCreationGroups = true
