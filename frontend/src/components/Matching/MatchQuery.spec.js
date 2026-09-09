@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
-import { mount } from '@vue/test-utils'
-import { describe, it, expect } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createI18n } from 'vue-i18n'
 import MatchQuery from './MatchQuery.vue'
 import { LABEL_COLORS } from './displayCore'
@@ -19,6 +19,7 @@ const i18n = createI18n({
           other: 'Etwas anderes suchen …',
           pick: 'Wähle, wie Du es meinst — damit wird gesucht.',
           placeholder: 'Fahrrad',
+          suggestions: 'Vorschläge',
           untouched: 'Deine Einträge bleiben unberührt.',
         },
         type: {
@@ -219,6 +220,147 @@ describe('MatchQuery', () => {
 
       expect(last(wrapper)).toEqual({ kind: 'all' })
       expect(wrapper.find('.typed-input').exists()).toBe(false)
+    })
+  })
+
+  describe('the offers under the field', () => {
+    /** A promise a test resolves when it wants to, so two answers can cross. */
+    const deferred = () => {
+      let settle
+      const promise = new Promise((resolve) => {
+        settle = resolve
+      })
+      return { promise, resolve: settle }
+    }
+
+    const WORDS = [
+      { word: 'rasenluefter', entries: 12 },
+      { word: 'rasen', entries: 3 },
+    ]
+
+    let wrapper
+
+    /** Attached to the document, because one of these asserts where the cursor is. */
+    const mountTyping = async (suggest) => {
+      wrapper = mount(MatchQuery, {
+        props: { entries, selection: { kind: 'all' }, suggest },
+        attachTo: document.body,
+        global: {
+          plugins: [i18n],
+          stubs: ['i-bi-search', 'i-bi-chevron-down', 'i-bi-check', 'i-bi-pencil', 'i-bi-x-lg'],
+        },
+      })
+      await wrapper.find('.query-bar').trigger('click')
+      await wrapper.findAll('.query-option').at(-1).trigger('click')
+      return wrapper
+    }
+
+    /** Type, then let the pause run out and the answer arrive. */
+    const type = async (what) => {
+      await wrapper.find('.typed-input').setValue(what)
+      await vi.advanceTimersByTimeAsync(200)
+      await flushPromises()
+    }
+
+    beforeEach(() => {
+      vi.useFakeTimers()
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+      wrapper?.unmount()
+      wrapper = null
+    })
+
+    it('offers what comes back, and asks once per pause rather than once per letter', async () => {
+      const suggest = vi.fn(async () => WORDS)
+      await mountTyping(suggest)
+
+      // Three letters in one go: the field waits, then asks about what is there.
+      await wrapper.find('.typed-input').setValue('r')
+      await wrapper.find('.typed-input').setValue('ra')
+      await wrapper.find('.typed-input').setValue('ras')
+      await vi.advanceTimersByTimeAsync(200)
+      await flushPromises()
+
+      expect(suggest).toHaveBeenCalledTimes(1)
+      expect(suggest).toHaveBeenCalledWith('ras')
+      expect(wrapper.findAll('.suggestion').map((one) => one.text())).toEqual([
+        'rasenluefter',
+        'rasen',
+      ])
+      // The list is named for a reader who cannot see it sits under the field.
+      expect(wrapper.find('.typed-suggestions').attributes('aria-label')).toBe('Vorschläge')
+    })
+
+    it('offers nothing when nothing comes back', async () => {
+      await mountTyping(vi.fn(async () => []))
+      await type('ras')
+
+      expect(wrapper.find('.typed-suggestions').exists()).toBe(false)
+    })
+
+    it('fills the field on a press, leaves the cursor there, and closes the offers', async () => {
+      await mountTyping(vi.fn(async () => WORDS))
+      await type('ras')
+
+      await wrapper.findAll('.suggestion')[0].trigger('click')
+
+      expect(wrapper.find('.typed-input').element.value).toBe('rasenluefter')
+      // The stances are what ask, so the cursor stays where the sentence is written.
+      expect(document.activeElement).toBe(wrapper.find('.typed-input').element)
+      expect(wrapper.find('.typed-suggestions').exists()).toBe(false)
+      // Nothing was searched for: pressing an offer is still only typing.
+      expect(emitted(wrapper)).toHaveLength(0)
+    })
+
+    it('takes the stance back when an offer changes the words', async () => {
+      await mountTyping(vi.fn(async () => WORDS))
+      await type('ras')
+      await wrapper.findAll('.stance')[0].trigger('click')
+      expect(wrapper.find('.stance').classes()).toContain('is-chosen')
+
+      await type('ras')
+      await wrapper.findAll('.suggestion')[0].trigger('click')
+
+      // Same rule as typing: what is shown belongs to the sentence that was finished,
+      // and this is a different sentence now.
+      expect(wrapper.find('.stance').classes()).not.toContain('is-chosen')
+    })
+
+    it('lets Esc take back the offers first and the field second', async () => {
+      await mountTyping(vi.fn(async () => WORDS))
+      await type('ras')
+
+      await wrapper.find('.typed-input').trigger('keydown.esc')
+      expect(wrapper.find('.typed-suggestions').exists()).toBe(false)
+      // Still typing - only the list went.
+      expect(wrapper.find('.typed-input').exists()).toBe(true)
+
+      await wrapper.find('.typed-input').trigger('keydown.esc')
+      expect(wrapper.find('.typed-input').exists()).toBe(false)
+    })
+
+    it('does not let a late answer land on a newer question', async () => {
+      const first = deferred()
+      const second = deferred()
+      const suggest = vi.fn()
+      suggest.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise)
+      await mountTyping(suggest)
+
+      await wrapper.find('.typed-input').setValue('ras')
+      await vi.advanceTimersByTimeAsync(200)
+      await wrapper.find('.typed-input').setValue('rasenlue')
+      await vi.advanceTimersByTimeAsync(200)
+
+      // The newer answer arrives first, the older one after it - which is the order
+      // that goes wrong, and the one a debounce alone does not prevent.
+      second.resolve([{ word: 'rasenluefter', entries: 12 }])
+      await flushPromises()
+      first.resolve([{ word: 'rasen', entries: 3 }])
+      await flushPromises()
+
+      expect(wrapper.findAll('.suggestion').map((one) => one.text())).toEqual(['rasenluefter'])
     })
   })
 })

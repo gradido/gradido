@@ -738,6 +738,7 @@
       "other": "Search for something else …",
       "pick": "Pick how you mean it — that runs the search.",
       "placeholder": "a bicycle",
+      "suggestions": "Suggestions",
       "untouched": "Your entries stay untouched."
     },
     "save": "Save",

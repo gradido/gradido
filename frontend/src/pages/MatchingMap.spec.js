@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { ref } from 'vue'
 import { createStore } from 'vuex'
@@ -38,6 +38,10 @@ vi.mock('@vue/apollo-composable', () => ({
 }))
 
 const load = vi.fn()
+// The offers under the search field. Held out like `load`, so a test can see that
+// the page hands the field the real one - a mock without it would let the binding
+// be deleted with every test still green.
+const suggest = vi.fn(async () => [])
 // Held out here so a test can hand the page a result set directly - load() is a
 // spy and never fills anything in by itself.
 const matches = ref([])
@@ -47,7 +51,7 @@ vi.mock('@/composables/useMatches', async () => {
   const actual = await vi.importActual('@/composables/useMatches')
   return {
     ...actual,
-    useMatches: () => ({ matches, presence, error: searchError, load }),
+    useMatches: () => ({ matches, presence, error: searchError, load, suggest }),
   }
 })
 
@@ -124,6 +128,15 @@ afterEach(() => {
 })
 
 describe('MatchingMap', () => {
+  it('hands the search field the offers, so a half-typed word can be finished', async () => {
+    const wrapper = mountMap()
+    await flushPromises()
+
+    // The field knows nothing about the GMS; the page is what connects the two. A
+    // stub answers to any prop name, so this asserts the value, not the name.
+    expect(wrapper.findComponent({ name: 'MatchQuery' }).props('suggest')).toBe(suggest)
+  })
+
   describe('when findability is off', () => {
     // The location query is switched off with it, so the redirect that lives in
     // that query's result — the one for "no pin yet" — can never speak. Without an

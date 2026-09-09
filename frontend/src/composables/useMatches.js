@@ -225,6 +225,28 @@ function whereParams({ center, radius }) {
 const TYPED_TEXT_MAX = 200
 
 /**
+ * The most characters the suggestions route reads - cut here rather than sent, or
+ * every keystroke past it would come back 422. Nothing is lost by the cut: the
+ * longest word the vocabulary can hold is shorter than this, so a prefix that long
+ * has no offers either way.
+ */
+const SUGGEST_PREFIX_MAX = 80
+
+/** Fewer letters than this and there is nothing to offer about; the GMS says so too. */
+const SUGGEST_MIN_CHARS = 2
+
+/**
+ * How long a fetched access stays good for the suggestions.
+ *
+ * The search fetches one per question, which is right - a question is a deliberate
+ * act and happens seldom. The offers are asked for while somebody types, so fetching
+ * one per call would put a GraphQL round trip through the wallet backend behind every
+ * few keystrokes. Kept for a typing session instead, and a token that has run out in
+ * the meantime is answered 401 and fetched again once (below).
+ */
+const SUGGEST_ACCESS_MAX_AGE_MS = 5 * 60 * 1000
+
+/**
  * The circle plus the question: the words as typed, and the stance in the GMS's
  * words (entryType), which names the channel to search.
  */
@@ -246,7 +268,12 @@ async function gmsGet(base, route, params, token) {
     cache: 'no-store',
   })
   if (!response.ok) {
-    throw failure(GMS_UNAVAILABLE, `${route}: HTTP ${response.status}`)
+    const err = failure(GMS_UNAVAILABLE, `${route}: HTTP ${response.status}`)
+    // The number itself, beside the sentence. The suggestions retry exactly one
+    // case - a kept token that has run out - and reading that out of a message
+    // would break the first time the message is worded differently.
+    err.status = response.status
+    throw err
   }
   return response.json()
 }
@@ -265,6 +292,10 @@ export function useMatches() {
   const presence = ref([])
   const loading = ref(false)
   const error = ref(null)
+  // The access the suggestions reuse, and when it was fetched. Only they reuse it:
+  // `load` below still fetches per search, on purpose.
+  let suggestAccess = null
+  let suggestAccessAt = 0
   // The number of the search asked for last. Two searches can be in flight when the
   // member moves the centre twice; only the last one asked for may write, or the
   // older answer could land after the newer one and overwrite it.
@@ -307,5 +338,58 @@ export function useMatches() {
     }
   }
 
-  return { matches, presence, loading, error, load }
+  /** The access for the offers: the kept one, unless it is stale or `fresh` is asked for. */
+  async function accessForSuggest(fresh) {
+    if (fresh || !suggestAccess || Date.now() - suggestAccessAt > SUGGEST_ACCESS_MAX_AGE_MS) {
+      suggestAccess = await gmsAccess(client)
+      suggestAccessAt = Date.now()
+    }
+    return suggestAccess
+  }
+
+  /**
+   * What a half-typed word could become — `GET community-user/vocabulary-suggest`.
+   *
+   * The vocabulary is the whole of what a typed search can find: a word is in it or
+   * the search comes back empty. So the offers are read straight off it, and no
+   * entry of anybody's is touched. The GMS folds the prefix like every keyed word,
+   * leaves out what no entry carries and what has been muted, and answers commonest
+   * first — see its README, "the search on key words".
+   *
+   * How many is the GMS's to decide (eight when nothing is asked for), because it is
+   * the side that knows how rare the words are.
+   *
+   * @param {string} prefix the letters typed so far
+   * @returns {Promise<{word: string, entries: number}[]>} the offers, commonest first
+   */
+  async function suggest(prefix) {
+    const typed = (prefix ?? '').trim().slice(0, SUGGEST_PREFIX_MAX)
+    if (typed.length < SUGGEST_MIN_CHARS) return []
+    const params = new URLSearchParams({ prefix: typed })
+    const ask = async (fresh) => {
+      const { url, token } = await accessForSuggest(fresh)
+      return await gmsGet(apiBaseOf(url), 'community-user/vocabulary-suggest', params, token)
+    }
+    try {
+      let body
+      try {
+        body = await ask(false)
+      } catch (err) {
+        // The one case a kept access has that a fetched one does not: it ran out
+        // while somebody was typing. Fetch once more and ask again; anything else
+        // is not ours to retry.
+        if (err.status !== 401) throw err
+        body = await ask(true)
+      }
+      return body.words ?? []
+    } catch {
+      // Offers are a convenience beside the field, not the answer to a question. A
+      // GMS that cannot be reached leaves the list empty and the field usable; the
+      // search itself has the toast, and two of them for one outage would only say
+      // the same thing twice.
+      return []
+    }
+  }
+
+  return { matches, presence, loading, error, load, suggest }
 }

@@ -358,4 +358,110 @@ describe('useMatches', () => {
       expect(matches.value.map((match) => match.name)).toEqual(['Fresh'])
     })
   })
+
+  describe('suggest', () => {
+    const SUGGEST_URL =
+      'https://ki-playground-gms.gradido.net/gms/community-user/vocabulary-suggest'
+    const WORDS = {
+      words: [
+        { word: 'rasenluefter', entries: 12 },
+        { word: 'rasen', entries: 3 },
+      ],
+    }
+
+    let fetchMock
+
+    beforeEach(() => {
+      query.mockReset()
+      query.mockResolvedValue({ data: { authenticateGmsUserSearch: ACCESS } })
+      fetchMock = vi.fn(async () => okJson(WORDS))
+      vi.stubGlobal('fetch', fetchMock)
+    })
+
+    afterEach(() => {
+      vi.unstubAllGlobals()
+    })
+
+    it('asks the route with the prefix and the token, and hands back the words', async () => {
+      const { suggest } = useMatches()
+
+      expect(await suggest('ras')).toEqual(WORDS.words)
+      const [url, init] = fetchMock.mock.calls[0]
+      expect(url).toBe(`${SUGGEST_URL}?prefix=ras`)
+      expect(init.headers.Authorization).toBe('Bearer tok-1')
+      // How many is the GMS's to decide - nothing here sends a limit.
+      expect(url).not.toContain('limit')
+    })
+
+    it('fetches one access for a whole typing session', async () => {
+      const { suggest } = useMatches()
+      await suggest('ra')
+      await suggest('ras')
+      await suggest('rase')
+
+      // Three keystrokes, three route calls - and ONE round trip through the wallet
+      // backend for the token. Fetching it per call is what this is here to prevent.
+      expect(fetchMock).toHaveBeenCalledTimes(3)
+      expect(query).toHaveBeenCalledTimes(1)
+    })
+
+    it('fetches a new access when the kept one is refused, and asks again with it', async () => {
+      query
+        .mockResolvedValueOnce({ data: { authenticateGmsUserSearch: ACCESS } })
+        .mockResolvedValueOnce({
+          data: { authenticateGmsUserSearch: { ...ACCESS, token: 'tok-2' } },
+        })
+      fetchMock
+        .mockResolvedValueOnce({ ok: false, status: 401, json: async () => ({}) })
+        .mockResolvedValueOnce(okJson(WORDS))
+      const { suggest } = useMatches()
+
+      expect(await suggest('ras')).toEqual(WORDS.words)
+      expect(query).toHaveBeenCalledTimes(2)
+      expect(fetchMock.mock.calls.map(([, init]) => init.headers.Authorization)).toEqual([
+        'Bearer tok-1',
+        'Bearer tok-2',
+      ])
+    })
+
+    it('retries nothing but the refusal', async () => {
+      // 500 is the GMS having a bad day, not a token that ran out. Fetching a second
+      // token would not help and would ask the wallet backend for one per keystroke.
+      fetchMock.mockResolvedValue({ ok: false, status: 500, json: async () => ({}) })
+      const { suggest } = useMatches()
+
+      expect(await suggest('ras')).toEqual([])
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+      expect(query).toHaveBeenCalledTimes(1)
+    })
+
+    it('asks nothing about a single letter', async () => {
+      const { suggest } = useMatches()
+
+      expect(await suggest('r')).toEqual([])
+      expect(await suggest('  r  ')).toEqual([])
+      expect(fetchMock).not.toHaveBeenCalled()
+      // Not even the token: a letter is not a question.
+      expect(query).not.toHaveBeenCalled()
+    })
+
+    it('cuts a prefix longer than the route reads', async () => {
+      const { suggest } = useMatches()
+      await suggest('r'.repeat(200))
+
+      // The route refuses more than 80 with a 400, and a search field is a place
+      // where somebody may well paste a sentence. Cut, and the answer is the empty
+      // one it would have been anyway - no word is that long.
+      const prefix = new URL(fetchMock.mock.calls[0][0]).searchParams.get('prefix')
+      expect(prefix).toHaveLength(80)
+    })
+
+    it('leaves the offers empty when the GMS cannot be reached, without raising', async () => {
+      fetchMock.mockRejectedValue(new Error('network down'))
+      const { suggest } = useMatches()
+
+      // The search has the toast; the offers beside the field say nothing twice.
+      expect(await suggest('ras')).toEqual([])
+    })
+  })
 })
