@@ -264,4 +264,79 @@ describe('MatchingMap', () => {
       expect(toastError).not.toHaveBeenCalled()
     })
   })
+
+  describe('the offer to keep a typed search', () => {
+    const PREF = 'pref.gms.map.'
+    /** A typed search is what the band hangs on; the page reads it back like any choice. */
+    const typedSearch = () =>
+      window.localStorage.setItem(
+        PREF + 'query',
+        JSON.stringify({ kind: 'typed', text: 'Ernährungsberatung', matchingType: 'gesuch' }),
+      )
+
+    it('offers to keep what was typed', async () => {
+      typedSearch()
+      const wrapper = mountMap()
+      await flushPromises()
+
+      expect(wrapper.find('.keep-offer').exists()).toBe(true)
+      expect(wrapper.find('.keep-offer').text()).toContain('Ernährungsberatung')
+    })
+
+    it('forgets a plain no once the next search is typed', async () => {
+      typedSearch()
+      const wrapper = mountMap()
+      await flushPromises()
+
+      await wrapper.find('.keep-no').trigger('click')
+
+      expect(wrapper.find('.keep-offer').exists()).toBe(false)
+      // Nothing permanent was said, so nothing permanent is stored - the offer is
+      // about ONE search, and the next one gets asked again.
+      expect(window.localStorage.getItem(PREF + 'queryOfferNever')).toBeNull()
+    })
+
+    it('never asks again once the box is ticked and the offer answered', async () => {
+      typedSearch()
+      const wrapper = mountMap()
+      await flushPromises()
+
+      await wrapper.find('.keep-never input').setValue(true)
+      // Ticking alone is not an answer: the box says what the next one means.
+      expect(wrapper.find('.keep-offer').exists()).toBe(true)
+
+      await wrapper.find('.keep-no').trigger('click')
+
+      expect(wrapper.find('.keep-offer').exists()).toBe(false)
+      expect(window.localStorage.getItem(PREF + 'queryOfferNever')).toBe('true')
+    })
+
+    it('does not carry a tick over into the next search', async () => {
+      typedSearch()
+      const wrapper = mountMap()
+      await flushPromises()
+      await wrapper.find('.keep-never input').setValue(true)
+
+      // Typing something else arms the offer again - and the box belongs to the
+      // offer that was on screen, not to the member for ever. Left ticked, the next
+      // plain "no, thanks" would silently mean "never again".
+      await wrapper
+        .findComponent({ name: 'MatchQuery' })
+        .vm.$emit('update:selection', { kind: 'typed', text: 'Fahrrad', matchingType: 'gesuch' })
+      await flushPromises()
+
+      expect(wrapper.find('.keep-offer').exists()).toBe(true)
+      expect(wrapper.find('.keep-never input').element.checked).toBe(false)
+    })
+
+    it('stays away on a later visit once it was told to', async () => {
+      typedSearch()
+      window.localStorage.setItem(PREF + 'queryOfferNever', 'true')
+      const wrapper = mountMap()
+      await flushPromises()
+
+      // The one thing the stored answer has to survive: a fresh page.
+      expect(wrapper.find('.keep-offer').exists()).toBe(false)
+    })
+  })
 })

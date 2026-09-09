@@ -199,21 +199,27 @@
 
          It sits outside the map frame in the markup as well, so no ancestor can turn
          itself into a containing block and clip a fixed child. -->
-    <div v-if="searchQuery && !keepDismissed" class="keep-offer" role="status" aria-live="polite">
-      <div class="keep-line">
-        <i-bi-bell class="keep-icon" />
-        <span class="keep-ask">
-          {{ $t('matching.query.keepAsk', { text: searchQuery.text }) }}
-        </span>
-      </div>
-      <div class="keep-actions">
-        <BButton variant="gradido" size="sm" class="keep-btn" @click="keepAsEntry">
-          {{ $t('matching.query.keep') }}
-        </BButton>
-        <button type="button" class="keep-no" @click="answerKeepOffer()">
-          {{ $t('matching.query.keepNo') }}
-        </button>
-      </div>
+    <div v-if="showKeepOffer" class="keep-offer" role="status" aria-live="polite">
+      <i-bi-bell class="keep-icon" />
+      <!-- The question carries the words the member typed, so it can be any length;
+           it is the one part that gives way, and it gives way by ellipsis rather than
+           by wrapping - a second line is the thing this band is not allowed to have. -->
+      <span class="keep-ask">
+        {{ $t('matching.query.keepAsk', { text: searchQuery.text }) }}
+      </span>
+      <BButton variant="gradido" size="sm" class="keep-btn" @click="keepAsEntry">
+        {{ $t('matching.query.keep') }}
+      </BButton>
+      <button type="button" class="keep-no" @click="answerKeepOffer()">
+        {{ $t('matching.query.keepNo') }}
+      </button>
+      <!-- Ticked, it is not an answer of its own: it says what the NEXT answer means.
+           A box that dismissed for good the moment it was ticked would be a button
+           wearing a checkbox, and an accidental one would be hard to undo. -->
+      <label class="keep-never">
+        <input v-model="keepNever" type="checkbox" />
+        <span>{{ $t('matching.query.keepNever') }}</span>
+      </label>
     </div>
 
     <!-- Closing this window is the brake: nothing is searched until you say so.
@@ -449,9 +455,32 @@ function keepAsEntry() {
  */
 const keepDismissed = ref(readPref('queryAnswered', false) === true)
 
+/**
+ * Never offer this again - the member's own answer, kept like every other choice on
+ * this page. Separate from `queryAnswered`, which is about ONE search and is taken
+ * back the moment the next one is typed; this one is not taken back by anything here.
+ */
+const keepOfferOff = ref(readPref('queryOfferNever', false) === true)
+/** Ticked but not yet acted on: it says what the next answer means, not more. */
+const keepNever = ref(false)
+
+const showKeepOffer = computed(
+  () => Boolean(searchQuery.value) && !keepDismissed.value && !keepOfferOff.value,
+)
+
 function answerKeepOffer(answered = true) {
   keepDismissed.value = answered
   writePref('queryAnswered', answered)
+  if (!answered) {
+    // The offer is being armed again for a new search, so a tick nobody acted on
+    // does not carry over into it.
+    keepNever.value = false
+    return
+  }
+  if (keepNever.value) {
+    keepOfferOff.value = true
+    writePref('queryOfferNever', true)
+  }
 }
 
 function onSelection(next) {
@@ -1417,6 +1446,20 @@ watch(mode, (value) => {
   width: 100%;
 }
 
+/* The page takes back the air the row above gives the menu.
+ *
+ * DashboardLayout puts `pt-lg-4` on the row that holds the sidebar AND the content,
+ * so both start at the same line - which is right for a page with a heading and
+ * wrong for this one, where every pixel above the map is pixels the band at the
+ * bottom takes from the controls. Measured on the deployed page: the frame ended 39px
+ * above the fold and the band stood 107px tall. The menu keeps its line; only the
+ * page moves. */
+@media (width >= 992px) {
+  .matching-map-page {
+    margin-top: -1.5rem;
+  }
+}
+
 /* The list sits over the map (which stays mounted and sized beneath it), under
    the look switch and the way back so both stay reachable to switch away. */
 .list-cover {
@@ -1444,12 +1487,25 @@ watch(mode, (value) => {
     min-height: 0;
   }
 
+  /* The full width of the screen, which on a phone is the whole point of a map.
+     Two column gutters stand between this page and the edge - a `col` inside a `row`
+     inside a `col-12` in DashboardLayout, half a gutter each - and 24px on either
+     side of a 390px screen is an eighth of it, spent on nothing. Only the map breaks
+     out; the search field and the controls keep the inset, because text against the
+     bezel is harder to read, not easier. */
   .map-shell {
-    flex: 1;
+    flex: 0 1 55dvh;
     min-height: 0;
+    margin-right: calc(var(--bs-gutter-x, 1.5rem) * -1);
+    margin-left: calc(var(--bs-gutter-x, 1.5rem) * -1);
     border-radius: 0;
   }
 
+  /* Held to a share of the screen rather than to whatever is left over. Portrait,
+     and the search runs in a circle around the middle, so height past the circle
+     shows countryside nobody asked about while the controls below are cramped.
+     `0 1` and not `0 0`: where the controls need more than the rest, the map gives
+     way rather than pushing them off the screen. */
   .map-canvas {
     height: 100%;
     min-height: 0;
@@ -1598,13 +1654,18 @@ watch(mode, (value) => {
   bottom: 0;
   left: 0;
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.75rem;
 
   /* The gold trim is 13px of fixed decoration along the bottom edge (.goldrand in
      App.vue). The band passes behind it, so its own content needs that much room
-     plus air, or the buttons would sit on the trim. */
-  padding: 0.85rem 1.25rem calc(13px + 0.7rem);
+     plus air, or the buttons would sit on the trim.
+
+     One line, and the padding is what makes it one: measured on the deployed page
+     the band stood 107px tall while only 39px were free under the map frame, so it
+     covered the controls it was meant to sit beside. */
+  padding: 0.4rem 1.25rem calc(13px + 0.35rem);
   border-top: 1px solid color-mix(in srgb, #c69130 45%, transparent);
   background: color-mix(in srgb, var(--surface) 80%, transparent);
   backdrop-filter: blur(3px);
@@ -1624,14 +1685,38 @@ watch(mode, (value) => {
   }
 }
 
-/* Question on one line, answers on the next — always, not only when the width
-   happens to force it. Side by side on a wide screen the sentence and the buttons
-   read as one crowded row; stacked, the question is a question and the buttons are
-   its two answers. */
-.keep-line {
+/* The question is the only part that may give way, so it takes the free width and
+   loses its end rather than its line. Everything else keeps its size: an answer that
+   is half-visible is not an answer. */
+.keep-ask {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.9375rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* On a phone the question goes altogether. There is no width for a sentence AND two
+   answers, and the sentence is the part that repeats what the search field says two
+   fingers above it. */
+@media (width <= 991.98px) {
+  .keep-ask {
+    display: none;
+  }
+}
+
+/* Not a second answer - it says what the next one means. Small, last, and out of the
+   way of the two buttons. */
+.keep-never {
   display: flex;
+  flex: none;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.35rem;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  cursor: pointer;
 }
 
 /* Arriving unbidden, it is the movement that is noticed — not the presence. The
@@ -1660,21 +1745,6 @@ watch(mode, (value) => {
   flex: none;
   color: #c69130;
   font-size: 1.15rem;
-}
-
-/* Capped, so the sentence stays a readable measure on a wide screen instead of
-   running the whole width of the display. */
-.keep-ask {
-  flex: 1;
-  min-width: 0;
-  max-width: 46rem;
-  font-size: 0.9375rem;
-}
-
-.keep-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 /* The house button carries 50px of side padding, which is the width of a landing
