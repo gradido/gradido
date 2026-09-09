@@ -1,5 +1,6 @@
 import { verifyLogin } from '../graphql/queries'
 import { clearApolloCache } from '../plugins/apolloCache'
+import { mayFind } from '../utils/matchingPosition'
 
 const addNavigationGuards = (router, store, apollo) => {
   // handle publisherId
@@ -79,6 +80,25 @@ const addNavigationGuards = (router, store, apollo) => {
   router.beforeEach((to, from, next) => {
     if (to.path.startsWith('/contributions') && store.state.creationAllowed === false) {
       next({ path: '/overview' })
+    } else {
+      next()
+    }
+  })
+
+  // ⭐ The find map needs BOTH answers: a position is set AND it may travel to the GMS.
+  // Without them there is nothing to draw and nothing to search from, so the address, a
+  // bookmark and the back button all end where both answers are given. The page itself
+  // used to be the only lock, and it asked the wrong question -- see mayFind.
+  //
+  // Read off the route record, not off the address: vue-router matches non-strictly and
+  // case-insensitively while leaving `to.path` as it was typed, so `/matching/karte/` and
+  // `/Matching/Karte` open the map and would slip past a string comparison. It covers the
+  // list too -- the list is a LOOK of this same page (`pref.gms.map.mode`), not an address
+  // of its own. /matching/position carries no flag, so it is never gated: it is where both
+  // answers are given.
+  router.beforeEach((to, from, next) => {
+    if (to.meta.requiresFindable && !mayFind(store.state)) {
+      next({ path: '/matching/position' })
     } else {
       next()
     }

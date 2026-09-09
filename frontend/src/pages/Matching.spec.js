@@ -58,7 +58,18 @@ const i18n = createI18n({ legacy: false, locale: 'de', messages: { de } })
 
 const store = createStore({
   state: { gradidoID: 'a-member', gmsAllowed: true, gmsPublishLocation: 'GMS_LOCATION_TYPE_EXACT' },
-  mutations: { gmsAllowed: () => {}, gmsPublishLocation: () => {} },
+  // Real mutations, not no-ops: the find button reads findability and the position off
+  // this store now, so a store that cannot be changed could only ever measure one half of
+  // the rule -- and it was the half that is easiest to delete unnoticed.
+  mutations: {
+    gmsAllowed: (state, value) => {
+      state.gmsAllowed = value
+    },
+    gmsPublishLocation: () => {},
+    userLocation: (state, value) => {
+      state.userLocation = value
+    },
+  },
 })
 
 // The map is exercised by its own spec; here it only has to be able to report a
@@ -108,6 +119,10 @@ const openModals = { BModal: { template: '<div class="modal-stub"><slot /></div>
 beforeEach(() => {
   handlers.clear()
   push.mockClear()
+  // The store is shared by the whole file; put it back so no case inherits the answers of
+  // the one before it.
+  store.state.gmsAllowed = true
+  store.state.userLocation = null
 })
 
 afterEach(() => {
@@ -174,6 +189,100 @@ describe('Matching', () => {
       await page.vm.$nextTick()
 
       expect(findButton(page).attributes('disabled')).toBeUndefined()
+    })
+
+    // ⭐ Both answers or neither: a position AND findability (Bernd, 09.09.2026).
+    //
+    // ⛔ `Boolean(loc.userLocation)` stood behind this button until then, and an account
+    // that had never set a position was answered `{}` -- truthy. So the button carried
+    // exactly the members who had nothing to show on the map straight onto it, where it
+    // centred on nothing and reported the GMS as unreachable.
+    const answer = (page, userLocation) => {
+      fire(userLocationQuery, {
+        userLocation: { userLocation, communityLocation: { latitude: 48.1, longitude: 11.5 } },
+      })
+      return page.vm.$nextTick()
+    }
+
+    it('carries a member with a position onto the map', async () => {
+      const page = mountPage('entries')
+      await answer(page, { latitude: 48.2, longitude: 11.6 })
+
+      await findButton(page).trigger('click')
+
+      expect(push).toHaveBeenCalledWith('/matching/karte')
+    })
+
+    // The guard in front of the map reads the store, this page reads the server. Left
+    // apart, a position set on another device would light this button up and the guard
+    // would send the member straight back -- a button that does nothing, and says nothing.
+    it('writes what the server just said into the store the guard reads', async () => {
+      const page = mountPage('entries')
+      await answer(page, { latitude: 48.2, longitude: 11.6 })
+
+      expect(store.state.userLocation).toEqual({ latitude: 48.2, longitude: 11.6 })
+
+      await answer(page, {})
+
+      expect(store.state.userLocation).toBeNull()
+    })
+
+    // ...but only when it actually differs. Every mutation makes vuex-persistedstate
+    // serialize the WHOLE store and write it to localStorage synchronously, and the store
+    // carries the member's avatar as base64 -- so an unconditional commit would put a
+    // ~12 KB write behind every answer of a network-only query, to store two floats that
+    // did not change. cache-and-network and a refetch both answer more than once.
+    it('does not write the store again for an answer that says the same', async () => {
+      const page = mountPage('entries')
+      const place = { latitude: 48.2, longitude: 11.6 }
+      await answer(page, place)
+
+      const commit = vi.spyOn(store, 'commit')
+      await answer(page, { ...place })
+
+      expect(commit).not.toHaveBeenCalledWith('userLocation', expect.anything())
+      commit.mockRestore()
+    })
+
+    it.each([
+      ['an empty object -- the answer that happened', {}],
+      ['nothing at all', null],
+      ['half a pair', { latitude: 48.2 }],
+    ])('holds a member back and explains, for %s', async (_name, userLocation) => {
+      const page = mountPage('entries')
+      await answer(page, userLocation)
+
+      await findButton(page).trigger('click')
+
+      expect(push).not.toHaveBeenCalled()
+    })
+
+    // The other half of the rule, and the one nothing measured until now: a position is
+    // not enough, the member has to allow it to travel. Delete the findability half of
+    // the gate and this is the case that goes red.
+    it('holds a member back who has a position but is not findable', async () => {
+      store.state.gmsAllowed = false
+      const page = mountPage('entries')
+      await answer(page, { latitude: 48.2, longitude: 11.6 })
+
+      await findButton(page).trigger('click')
+
+      expect(push).not.toHaveBeenCalled()
+    })
+  })
+
+  // An instance whose admin never set the community's coordinates answers null for them.
+  // That must not stop a member from setting their own -- this is the page where they do
+  // it, and the map on it needs a centre to draw.
+  describe('when the instance has no coordinates of its own', () => {
+    it('still gives the position map a centre to show', async () => {
+      const page = mountPage('position')
+      fire(userLocationQuery, { userLocation: { userLocation: null, communityLocation: null } })
+      await page.vm.$nextTick()
+
+      const centre = page.findComponent(UserLocationMapStub).props('userMarkerCoords')
+      expect(Number.isFinite(centre.lat)).toBe(true)
+      expect(Number.isFinite(centre.lng)).toBe(true)
     })
   })
 

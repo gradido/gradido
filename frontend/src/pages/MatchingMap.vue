@@ -267,7 +267,8 @@ import 'leaflet/dist/leaflet.css'
 import { GeoSearchControl, OpenStreetMapProvider } from 'leaflet-geosearch'
 import 'leaflet-geosearch/dist/geosearch.css'
 import { listMatchingEntries, userLocationQuery } from '@/graphql/queries'
-import { useMatches, distanceKm } from '@/composables/useMatches'
+import { useMatches, distanceKm, GMS_REJECTED } from '@/composables/useMatches'
+import { hasPosition as isPositionSet, isPlace } from '@/utils/matchingPosition'
 import { useEntryDraft } from '@/composables/useEntryDraft'
 import MatchQuery from '@/components/Matching/MatchQuery'
 import { useAppToast } from '@/composables/useToast'
@@ -366,7 +367,16 @@ const { matches, presence, error: searchError, load, suggest } = useMatches()
 // Old results are already gone by the time this fires, so the toast is the only
 // thing that explains the empty map.
 watch(searchError, (err) => {
-  if (err) toastError(t('matching.map.searchFailed'))
+  if (!err) return
+  // Two different facts, two different sentences. A 4xx is the GMS answering and
+  // refusing — it is there, it read the request, it would not have it — and calling that
+  // "not reachable" is what pointed the whole morning of 09.09.2026 at a healthy server
+  // while the wallet was asking it about a latitude of `undefined`.
+  // Two whole t() calls rather than one with the key chosen inside it: the i18n lint
+  // counts literal keys only, and a computed key reads to it as both of them being unused.
+  toastError(
+    err.code === GMS_REJECTED ? t('matching.map.searchRejected') : t('matching.map.searchFailed'),
+  )
 })
 
 /**
@@ -647,8 +657,19 @@ onResult(({ data }) => {
   const location = data?.userLocation
   if (!location) return
   // No pin, no map: the entry gate on the matching page says the same thing, and
-  // a map centred on nothing would be a riddle rather than an answer.
-  if (!location.userLocation) {
+  // a map centred on nothing would be a riddle rather than an answer. The router
+  // guard turns this member away before the page is built at all; this is the belt
+  // for the answer that arrives AFTER it, when the store said yes and the server
+  // says no.
+  //
+  // Two numbers, not a truthy object: until 09.09.2026 this read `!location.userLocation`,
+  // and an account without a position was answered `{}` — truthy, so the redirect stayed
+  // silent and everything below ran on (undefined, undefined).
+  if (!isPositionSet(location.userLocation)) {
+    // Correct the store on the way out, not only the navigation. The guard in front of
+    // this page reads it, so leaving a stale yes standing would admit the member again on
+    // the next attempt and the bounce would repeat, silently, every time.
+    store.commit('userLocation', null)
     router.replace('/matching/position')
     return
   }
@@ -704,7 +725,7 @@ function readRadius() {
 
 function readCenter() {
   const stored = readPref('center', null)
-  return stored && Number.isFinite(stored.lat) && Number.isFinite(stored.lng) ? stored : null
+  return isPlace(stored) ? stored : null
 }
 
 function setLook(next) {
@@ -784,9 +805,19 @@ function runSearch() {
 }
 
 function moveSearchTo(next, { fly = false } = {}) {
+  // Refused where the centre is born, not where it is stored. A centre that is not two
+  // numbers is not a place: guarding only the write would leave the live centre poisoned
+  // while storage kept the old one, so drawCircle and drawCentre would run on `undefined`
+  // (Leaflet: "Invalid LatLng object"), the label would be reverse-geocoded from nothing,
+  // and the two would disagree until the next reload. The list's recenter hands this
+  // straight from a geosearch provider, unchecked -- the map's own handler checks.
+  if (!isPlace(next)) return
   inClusterZoom = false
   closeCluster()
   searchCenter.value = { lat: next.lat, lng: next.lng }
+  // JSON drops `undefined`, so an unguarded centre would land in the store as `{}` and
+  // read back like a place somebody chose -- the fingerprint this fault left behind. Both
+  // writers of the centre are guarded above, so nothing has to be healed later.
   writePref('center', searchCenter.value)
   drawCircle()
   drawCentre()

@@ -22,6 +22,14 @@ const router = createRouter({
       name: 'Contribute',
       meta: { requiresAuth: true },
     },
+    // The flag is the real record's, see routes.test.js -- the guard reads it and never
+    // the address, so these two spellings of the same page must be gated alike.
+    {
+      path: '/matching/karte',
+      name: 'MatchingMap',
+      meta: { requiresAuth: true, requiresFindable: true },
+    },
+    { path: '/matching/:tab', name: 'Matching', meta: { requiresAuth: true } },
   ],
 })
 
@@ -61,7 +69,12 @@ addNavigationGuards(router, store, apollo)
 describe('navigation guards', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // The store is shared by the whole file. Put back everything any block sets, or a case
+    // added later inherits answers that are nowhere in its own body.
     store.state.token = null
+    store.state.creationAllowed = null
+    store.state.gmsAllowed = null
+    store.state.userLocation = null
   })
 
   describe('publisher ID', () => {
@@ -136,6 +149,70 @@ describe('navigation guards', () => {
       store.state.creationAllowed = null
       await router.push('/contributions/contribute')
       expect(router.currentRoute.value.path).toBe('/contributions/contribute')
+    })
+  })
+
+  // ⭐ Bernd's rule of 09.09.2026, and the way the map was built originally (7122a7b4e):
+  // the find map opens only with a position AND findability. The page's own redirect was
+  // the only lock before this, and it asked whether the location object EXISTS -- which an
+  // account without a position answered with `{}`.
+  describe('the find map and its two conditions', () => {
+    const place = { latitude: 51.314472, longitude: 9.495606 }
+
+    // Away from the map first, every time: vue-router drops a push to the location it is
+    // already on, guards and all, so a test starting where the last one ended would
+    // measure nothing and pass.
+    beforeEach(async () => {
+      store.state.token = 'valid-token'
+      store.state.gmsAllowed = true
+      store.state.userLocation = place
+      await router.push('/overview')
+    })
+
+    it('lets a member with both answers through', async () => {
+      await router.push('/matching/karte')
+      expect(router.currentRoute.value.path).toBe('/matching/karte')
+    })
+
+    it('sends a member without findability to the position tab', async () => {
+      store.state.gmsAllowed = false
+      await router.push('/matching/karte')
+      expect(router.currentRoute.value.path).toBe('/matching/position')
+    })
+
+    it('sends a member without a position to the position tab', async () => {
+      store.state.userLocation = null
+      await router.push('/matching/karte')
+      expect(router.currentRoute.value.path).toBe('/matching/position')
+    })
+
+    // The case that happened, and the reason this guard measures numbers rather than
+    // truth: `{}` is what the backend used to answer, and it is still sitting in the
+    // persisted store of every device that signed in before the fix. A truthy check here
+    // would wave through exactly the members it exists to stop.
+    it('sends a member whose stored position is an empty object to the position tab', async () => {
+      store.state.userLocation = {}
+      await router.push('/matching/karte')
+      expect(router.currentRoute.value.path).toBe('/matching/position')
+    })
+
+    // vue-router matches this record non-strictly and case-insensitively and leaves
+    // `to.path` as it was typed, so a guard comparing the address would let both of these
+    // through -- a bookmark or a mail client that normalises the slash walks past the gate
+    // and the map opens on nothing.
+    it.each(['/matching/karte/', '/Matching/Karte'])('gates %s as well', async (address) => {
+      store.state.userLocation = null
+      await router.push(address)
+      expect(router.currentRoute.value.path).toBe('/matching/position')
+    })
+
+    // The position tab is where both answers are given, so it can never be gated -- a
+    // guard that caught it would send a member without a position round in circles.
+    it('never stands in the way of the position tab itself', async () => {
+      store.state.gmsAllowed = false
+      store.state.userLocation = null
+      await router.push('/matching/position')
+      expect(router.currentRoute.value.path).toBe('/matching/position')
     })
   })
 

@@ -1232,7 +1232,18 @@ export class UserResolver {
           `Error loading user location, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`,
         )
       }
+      // null where the instance never had coordinates set -- reported, not thrown. A
+      // missing admin setting must not take this query down: every member of the
+      // instance reads it, including those who have a position of their own, and the
+      // wallet cannot even offer the page for setting one while it fails.
       result.communityLocation = Point2Location(homeCom.location as Point)
+      if (!result.communityLocation) {
+        logger.warn('home community has no usable coordinates, communityLocation is null')
+      }
+      // null where this account has no position yet. A point without coordinates is not a
+      // place, and saying so here is what keeps the map from opening on nothing: every
+      // reader of this field asks "is there a position?" and used to be told yes by an
+      // empty object.
       result.userLocation = Point2Location(dbUser.location as Point)
       logger.info('userLocation=', result)
     } else {

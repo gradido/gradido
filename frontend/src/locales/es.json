@@ -622,7 +622,8 @@
       "radiusTitle": "Radio de búsqueda",
       "search": "Buscar un lugar o una dirección",
       "searchFailed": "La búsqueda no está disponible en este momento.",
-      "searchHere": "Buscar aquí"
+      "searchHere": "Buscar aquí",
+      "searchRejected": "La búsqueda fue rechazada."
     },
     "new": {
       "cancel": "Cancelar",

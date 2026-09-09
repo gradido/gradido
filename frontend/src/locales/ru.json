@@ -622,7 +622,8 @@
       "radiusTitle": "Радиус поиска",
       "search": "Найти место или адрес",
       "searchFailed": "Поиск сейчас недоступен.",
-      "searchHere": "Искать здесь"
+      "searchHere": "Искать здесь",
+      "searchRejected": "Поиск отклонён."
     },
     "new": {
       "cancel": "Отмена",

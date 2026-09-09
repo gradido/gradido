@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useApolloClient } from '@vue/apollo-composable'
 import { authenticateGmsUserSearch } from '@/graphql/queries'
 import { displayType, entryType, scoresOf } from '@/components/Matching/displayCore'
+import { isPlace } from '@/utils/matchingPosition'
 
 /**
  * The seam between the glow map and its data: the two GMS routes behind the map.
@@ -98,8 +99,18 @@ export function distanceKm(a, b) {
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)))
 }
 
-/** `error.code` when the token or one of the two routes did not come through. */
+/** `error.code` when the token or one of the two routes did not come through at all. */
 export const GMS_UNAVAILABLE = 'GMS_UNAVAILABLE'
+
+/**
+ * `error.code` when the GMS answered and refused: any 4xx.
+ *
+ * Kept apart from GMS_UNAVAILABLE because the two are opposite facts and the member is
+ * told them apart. A refusal means the GMS is there, read the request and would not have
+ * it -- calling that "not reachable" is what sent the whole of 09.09.2026 looking at a
+ * server that was healthy, while the wallet was asking it about a latitude of `undefined`.
+ */
+export const GMS_REJECTED = 'GMS_REJECTED'
 
 function failure(code, message) {
   const err = new Error(message)
@@ -268,7 +279,12 @@ async function gmsGet(base, route, params, token) {
     cache: 'no-store',
   })
   if (!response.ok) {
-    const err = failure(GMS_UNAVAILABLE, `${route}: HTTP ${response.status}`)
+    // 4xx: answered and refused. 5xx and anything else: not usable. See GMS_REJECTED.
+    const refused = response.status >= 400 && response.status < 500
+    const err = failure(
+      refused ? GMS_REJECTED : GMS_UNAVAILABLE,
+      `${route}: HTTP ${response.status}`,
+    )
     // The number itself, beside the sentence. The suggestions retry exactly one
     // case - a kept token that has run out - and reading that out of a message
     // would break the first time the message is worded differently.
@@ -312,6 +328,23 @@ export function useMatches() {
    */
   async function load(search) {
     if (!search?.center || !(search.radius > 0)) return
+    // A centre that is not two numbers is not a place to search from, and the GMS says so
+    // too -- `latitude must be a number`, a 400. Refused here rather than sent, because
+    // this side is the one that knows it: it costs a token fetch and two round trips to be
+    // told what is already known.
+    //
+    // Refused, not ignored. Returning here without touching anything would leave the
+    // previous place's people on screen under the new place's name, and would let an older
+    // search still in flight land afterwards and paint -- so this takes the same exit a
+    // failure takes: supersede, clear, say so.
+    if (!isPlace(search.center)) {
+      latest++
+      matches.value = []
+      presence.value = []
+      error.value = failure(GMS_REJECTED, 'search centre is not a pair of numbers')
+      loading.value = false
+      return
+    }
     const request = ++latest
     loading.value = true
     error.value = null

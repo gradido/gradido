@@ -60,6 +60,20 @@ describe('the right-hand column is a property of the route', () => {
   })
 
   /**
+   * ⭐ The find map opens only with a position AND findability, and the guard that enforces
+   * it reads this flag rather than comparing the address. Two halves, measured in two
+   * places: that the flag is on the right record is here, that the guard acts on it is in
+   * guards.test.js. A guard keyed on the path string would be blind to `/matching/karte/`
+   * and `/Matching/Karte`, both of which open this very record.
+   */
+  it('marks the map, and only the map, as needing both answers', async () => {
+    const routes = await loadRoutes(true)
+    const gated = routes.filter((route) => route.meta?.requiresFindable).map((route) => route.path)
+
+    expect(gated).toEqual(['/matching/karte'])
+  })
+
+  /**
    * A page that brings its own head wants the screen. That is what `bareChrome` says, so a
    * route saying both is contradicting itself -- and the one that did is exactly the defect
    * above. Held over the whole table so the next `bareChrome` route cannot repeat it.

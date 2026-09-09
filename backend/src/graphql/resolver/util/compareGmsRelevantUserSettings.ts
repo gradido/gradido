@@ -82,6 +82,11 @@ export function compareGmsRelevantUserSettings(
     const orgLocation = Point2Location(orgUser.location as Point)
     const changedLocation = updateUserInfosArgs.gmsLocation
     if (
+      // A stored point without coordinates is no place at all, so whatever is sent now is
+      // a change. That was already the answer before Point2Location could say null -- the
+      // empty Location fell through the two comparisons below to the same true -- and it
+      // is spelled out here so the null cannot quietly turn it into false.
+      !orgLocation ||
       orgLocation.latitude !== changedLocation.latitude ||
       orgLocation.longitude !== changedLocation.longitude
     ) {

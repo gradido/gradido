@@ -700,7 +700,8 @@
       "radiusTitle": "Search radius",
       "search": "Search for a place or address",
       "searchFailed": "The search is not reachable right now.",
-      "searchHere": "Search here"
+      "searchHere": "Search here",
+      "searchRejected": "The search was refused."
     },
     "new": {
       "cancel": "Cancel",
