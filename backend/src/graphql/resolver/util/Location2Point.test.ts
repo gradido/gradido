@@ -42,15 +42,18 @@ describe('Location2Point / Point2Location', () => {
     })
 
     it('says null for coordinates that are not numbers', () => {
-      expect(Point2Location({ type: 'Point', coordinates: [null, null] } as unknown as Point))
-        .toBeNull()
-      expect(Point2Location({ type: 'Point', coordinates: ['9.5', '51.3'] } as unknown as Point))
-        .toBeNull()
+      expect(
+        Point2Location({ type: 'Point', coordinates: [null, null] } as unknown as Point),
+      ).toBeNull()
+      expect(
+        Point2Location({ type: 'Point', coordinates: ['9.5', '51.3'] } as unknown as Point),
+      ).toBeNull()
     })
 
     it('says null for something that is not a Point', () => {
-      expect(Point2Location({ type: 'LineString', coordinates: [1, 2] } as unknown as Point))
-        .toBeNull()
+      expect(
+        Point2Location({ type: 'LineString', coordinates: [1, 2] } as unknown as Point),
+      ).toBeNull()
     })
 
     // 0/0 IS a place on the globe, and it is the one the broken map kept showing. It can
