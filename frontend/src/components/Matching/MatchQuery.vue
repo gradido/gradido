@@ -70,7 +70,7 @@
           :placeholder="$t('matching.query.placeholder')"
           :aria-label="$t('matching.query.label')"
           @input="onText"
-          @keydown.esc="cancelTyping"
+          @keydown.esc="onEsc"
         />
         <button
           type="button"
@@ -81,6 +81,25 @@
           <i-bi-x-lg />
         </button>
       </div>
+
+      <!-- The words that could finish what is being typed. Not a correction and not
+           a filter: they are the words entries are actually found under, so picking
+           one is picking a search that has something to find. Nothing is asked until
+           the second letter, and the stances below still do the asking. -->
+      <!-- A plain list of buttons, not a listbox: nothing here is selected and the
+           arrow keys do not walk it. Pressing one fills the field, and the stances
+           still ask. -->
+      <ul
+        v-if="suggestions.length"
+        class="typed-suggestions"
+        :aria-label="$t('matching.query.suggestions')"
+      >
+        <li v-for="word in suggestions" :key="word.word">
+          <button type="button" class="suggestion" @click="chooseSuggestion(word.word)">
+            {{ word.word }}
+          </button>
+        </li>
+      </ul>
 
       <div class="typed-stances" role="group" :aria-label="$t('matching.query.pick')">
         <button
@@ -105,7 +124,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CHANNELS, LABEL_COLORS, displayType } from './displayCore'
 
@@ -114,7 +133,22 @@ const props = defineProps({
   entries: { type: Array, default: () => [] },
   /** { kind: 'all' } | { kind: 'entry', uuid } | { kind: 'typed', text, matchingType } */
   selection: { type: Object, required: true },
+  /**
+   * What a half-typed word could become — the GMS's vocabulary, handed in rather
+   * than fetched here, so this component keeps knowing nothing about the GMS.
+   * `(prefix) => Promise<{word, entries}[]>`; the default offers nothing, which is
+   * what a page that does not pass one means.
+   */
+  suggest: { type: Function, default: () => Promise.resolve([]) },
 })
+
+/**
+ * How long the field waits after the last keystroke before it asks.
+ *
+ * Short enough that the offers feel like part of the typing, long enough that a word
+ * typed straight through costs one call instead of one per letter.
+ */
+const SUGGEST_DEBOUNCE_MS = 150
 
 const emit = defineEmits(['update:selection'])
 
@@ -125,6 +159,12 @@ const typing = ref(false)
 const text = ref('')
 const chosen = ref(null)
 const textInput = ref(null)
+const suggestions = ref([])
+// The keystroke the offers on screen belong to. Two calls can be in flight when
+// somebody types on while the first is still out, and the older answer must not
+// land on top of the newer one - the same rule the search itself keeps.
+let asked = 0
+let debounce = null
 
 // A blank field has nothing to ask about, so the stances stay inert until there is
 // something to complete.
@@ -167,7 +207,44 @@ function cancelTyping() {
   typing.value = false
   text.value = ''
   chosen.value = null
+  clearSuggestions()
   emit('update:selection', { kind: 'all' })
+}
+
+/**
+ * Stop offering, and make sure no answer already on its way arrives to undo it.
+ *
+ * Raising the counter is the whole of it: every call in flight compares against it
+ * before it writes, so one that comes back after this finds itself out of date.
+ */
+function clearSuggestions() {
+  asked++
+  clearTimeout(debounce)
+  debounce = null
+  suggestions.value = []
+}
+
+/** Esc takes back the smallest thing that is open: the offers first, the field after. */
+function onEsc() {
+  if (suggestions.value.length) {
+    clearSuggestions()
+    return
+  }
+  cancelTyping()
+}
+
+/**
+ * Put the word in the field and leave the cursor there — the stances still ask.
+ *
+ * Nothing is done about the stance, and nothing needs to be: pressing one puts the
+ * offers away (`ask`), and typing takes it back (`onText`), so an offer can only ever
+ * be pressed while no stance is chosen. Measured, not assumed - a line clearing it
+ * here could be deleted with the whole suite still green.
+ */
+function chooseSuggestion(word) {
+  text.value = word
+  clearSuggestions()
+  textInput.value?.focus()
 }
 
 /**
@@ -179,11 +256,26 @@ function cancelTyping() {
  */
 function onText() {
   chosen.value = null
+  clearTimeout(debounce)
+  const typed = text.value
+  debounce = setTimeout(async () => {
+    const mine = ++asked
+    const words = await props.suggest(typed)
+    // Only the newest question may write. An older answer landing late would put
+    // the offers for `ras` under a field that already says `rasenlue`.
+    if (mine === asked) suggestions.value = words
+  }, SUGGEST_DEBOUNCE_MS)
 }
+
+// A timer that outlives the component would call into a torn-down instance, and the
+// member has left the search by then anyway.
+onUnmounted(() => clearTimeout(debounce))
 
 function ask(channel) {
   if (!canAsk.value) return
   chosen.value = channel
+  // The sentence is finished; what could still have completed it is no longer an offer.
+  clearSuggestions()
   emit('update:selection', {
     kind: 'typed',
     text: text.value.trim(),
@@ -321,6 +413,39 @@ watch(
   border: 0;
   background: transparent;
   color: var(--text-muted);
+}
+
+/* The offers sit between the field and the stances, in reading order: what could
+   finish the sentence, then what the sentence means. Chips rather than a dropdown -
+   they push the stances down instead of covering them, so nothing the member is
+   about to press moves out from under their finger. */
+.typed-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Deliberately not the gold of the stances. Gold is MY word on this page - the home
+   marker, the chosen stance - and a suggestion is the vocabulary's word, not mine. */
+.suggestion {
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--border-subtle, rgb(0 0 0 / 15%));
+  border-radius: 1rem;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.suggestion:hover {
+  border-color: var(--text-muted);
+  background: var(--surface-muted);
 }
 
 /* Room for the chosen one's ring to stand free of its neighbours. */

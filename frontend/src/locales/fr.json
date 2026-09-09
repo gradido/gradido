@@ -660,6 +660,7 @@
       "other": "Chercher autre chose …",
       "pick": "Choisis dans quel sens tu l'entends — c'est ce qui lance la recherche.",
       "placeholder": "vélo",
+      "suggestions": "Suggestions",
       "untouched": "Tes entrées restent inchangées."
     },
     "save": "Enregistrer",

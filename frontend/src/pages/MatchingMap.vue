@@ -14,7 +14,12 @@
            mode and inside the list in the other, it would move under the member
            every time they switch. The WHERE stays a map tool (the lens and the home
            button on the canvas); this is the WHAT, and it says so in words. -->
-      <MatchQuery :entries="myEntries" :selection="selection" @update:selection="onSelection" />
+      <MatchQuery
+        :entries="myEntries"
+        :selection="selection"
+        :suggest="suggest"
+        @update:selection="onSelection"
+      />
 
       <div
         class="map-shell gradido-border-radius app-box-shadow"
@@ -348,7 +353,7 @@ const centerLabel = ref(readPref('centerLabel', ''))
 const radiusModal = ref(false)
 const radiusDraft = ref(DEFAULT_RADIUS)
 
-const { matches, presence, error: searchError, load } = useMatches()
+const { matches, presence, error: searchError, load, suggest } = useMatches()
 
 // A search that did not come through says so, in words the member can read. The
 // GMS answers with status codes and its own messages, neither meant for a screen.
