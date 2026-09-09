@@ -233,11 +233,16 @@ function onEsc() {
   cancelTyping()
 }
 
-/** Put the word in the field and leave the cursor there — the stances still ask. */
+/**
+ * Put the word in the field and leave the cursor there — the stances still ask.
+ *
+ * Nothing is done about the stance, and nothing needs to be: pressing one puts the
+ * offers away (`ask`), and typing takes it back (`onText`), so an offer can only ever
+ * be pressed while no stance is chosen. Measured, not assumed - a line clearing it
+ * here could be deleted with the whole suite still green.
+ */
 function chooseSuggestion(word) {
   text.value = word
-  // Same rule as typing: the words changed, so the stance falls with them.
-  chosen.value = null
   clearSuggestions()
   textInput.value?.focus()
 }

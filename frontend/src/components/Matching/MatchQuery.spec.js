@@ -280,6 +280,12 @@ describe('MatchQuery', () => {
       await wrapper.find('.typed-input').setValue('r')
       await wrapper.find('.typed-input').setValue('ra')
       await wrapper.find('.typed-input').setValue('ras')
+
+      // Half a keystroke's worth of time is not the pause. Without a wait worth the
+      // name this would already have asked - about `r`, and then twice more.
+      await vi.advanceTimersByTimeAsync(50)
+      expect(suggest).not.toHaveBeenCalled()
+
       await vi.advanceTimersByTimeAsync(200)
       await flushPromises()
 
@@ -314,18 +320,18 @@ describe('MatchQuery', () => {
       expect(emitted(wrapper)).toHaveLength(0)
     })
 
-    it('takes the stance back when an offer changes the words', async () => {
+    it('puts the offers away once a stance has finished the sentence', async () => {
       await mountTyping(vi.fn(async () => WORDS))
       await type('ras')
+      expect(wrapper.findAll('.suggestion')).toHaveLength(2)
+
       await wrapper.findAll('.stance')[0].trigger('click')
+
+      // The question is asked; what could still have completed it is no longer an
+      // offer. This is also what keeps `chosen` and the offers from ever being on
+      // screen together, which is why pressing an offer does not touch the stance.
       expect(wrapper.find('.stance').classes()).toContain('is-chosen')
-
-      await type('ras')
-      await wrapper.findAll('.suggestion')[0].trigger('click')
-
-      // Same rule as typing: what is shown belongs to the sentence that was finished,
-      // and this is a different sentence now.
-      expect(wrapper.find('.stance').classes()).not.toContain('is-chosen')
+      expect(wrapper.find('.typed-suggestions').exists()).toBe(false)
     })
 
     it('lets Esc take back the offers first and the field second', async () => {
