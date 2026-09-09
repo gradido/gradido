@@ -591,6 +591,12 @@ onUserLocation(({ data }) => {
   userLocation.value = hasPosition.value
     ? { lat: loc.userLocation.latitude, lng: loc.userLocation.longitude }
     : { ...communityLocation.value }
+  // The router guard in front of the map reads the store, and this is the freshest answer
+  // there is -- so it is written back, or the two could disagree. They would: a position
+  // set on another device leaves this store copy behind, the button would light up on
+  // what the server just said and the guard would send the member straight back on what
+  // the store still believes. A button that does nothing, silently.
+  store.commit('userLocation', hasPosition.value ? { ...loc.userLocation } : null)
   userLocationLoaded.value = true
 })
 onUserLocationError((error) => toastError(error.message))

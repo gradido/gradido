@@ -58,7 +58,13 @@ const i18n = createI18n({ legacy: false, locale: 'de', messages: { de } })
 
 const store = createStore({
   state: { gradidoID: 'a-member', gmsAllowed: true, gmsPublishLocation: 'GMS_LOCATION_TYPE_EXACT' },
-  mutations: { gmsAllowed: () => {}, gmsPublishLocation: () => {} },
+  mutations: {
+    gmsAllowed: () => {},
+    gmsPublishLocation: () => {},
+    userLocation: (state, value) => {
+      state.userLocation = value
+    },
+  },
 })
 
 // The map is exercised by its own spec; here it only has to be able to report a
@@ -196,6 +202,20 @@ describe('Matching', () => {
       await findButton(page).trigger('click')
 
       expect(push).toHaveBeenCalledWith('/matching/karte')
+    })
+
+    // The guard in front of the map reads the store, this page reads the server. Left
+    // apart, a position set on another device would light this button up and the guard
+    // would send the member straight back -- a button that does nothing, and says nothing.
+    it('writes what the server just said into the store the guard reads', async () => {
+      const page = mountPage('entries')
+      await answer(page, { latitude: 48.2, longitude: 11.6 })
+
+      expect(store.state.userLocation).toEqual({ latitude: 48.2, longitude: 11.6 })
+
+      await answer(page, {})
+
+      expect(store.state.userLocation).toBeNull()
     })
 
     it.each([
