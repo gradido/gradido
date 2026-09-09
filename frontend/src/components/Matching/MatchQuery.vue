@@ -95,8 +95,13 @@
         :aria-label="$t('matching.query.suggestions')"
       >
         <li v-for="word in suggestions" :key="word.word">
-          <button type="button" class="suggestion" @click="chooseSuggestion(word.word)">
-            {{ word.word }}
+          <!-- Shown and inserted as it reads, not as it is stored. The GMS keeps one
+               folded form per word so that two members can share it (`rasenluefter`)
+               and, where a member's own sentence spelled it out, the readable one
+               beside it. Searching is unaffected either way: the typed search folds
+               what it is given, so `Rasenlüfter` and `rasenluefter` are one question. -->
+          <button type="button" class="suggestion" @click="chooseSuggestion(readable(word))">
+            {{ readable(word) }}
           </button>
         </li>
       </ul>
@@ -222,6 +227,17 @@ function clearSuggestions() {
   clearTimeout(debounce)
   debounce = null
   suggestions.value = []
+}
+
+/**
+ * How an offer reads: the spelling a sentence gave up, or the folded word itself.
+ *
+ * Null is the ordinary case for a word no sentence ever contained - a keying model
+ * coins those - and the folded word is then exactly what was shown before the GMS
+ * had a spelling at all.
+ */
+function readable(word) {
+  return word.spelling ?? word.word
 }
 
 /** Esc takes back the smallest thing that is open: the offers first, the field after. */
