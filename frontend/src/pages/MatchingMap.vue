@@ -1699,10 +1699,34 @@ watch(mode, (value) => {
 
 /* On a phone the question goes altogether. There is no width for a sentence AND two
    answers, and the sentence is the part that repeats what the search field says two
-   fingers above it. */
+   fingers above it.
+
+   ⛔ And what is left still does not fit one line, which is why the band may wrap
+   here and only here. Measured off the type and the padding: bell 16 + keep button
+   176 + no 99 + box 126 + gaps 36 = 453px of content, against 280 free on a 320px
+   screen and 350 on a 390px one. With `nowrap` the last control simply leaves the
+   screen — unreachable, not merely ugly. Wrapping lets the browser decide per width:
+   one line where it fits, the box on a short second line where it does not.
+
+   The band is one line on the desktop, where it was asked for and where 968px of
+   frame make it true. */
 @media (width <= 991.98px) {
   .keep-ask {
     display: none;
+  }
+
+  .keep-offer {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-right: 0.75rem;
+    padding-left: 0.75rem;
+  }
+
+  /* The landing-page padding on the house button is what pushes the row over on the
+     narrowest screens; here the button is one of three things sharing a phone. */
+  .keep-btn {
+    padding-right: 0.75rem !important;
+    padding-left: 0.75rem !important;
   }
 }
 
