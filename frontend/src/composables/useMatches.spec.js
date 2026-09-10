@@ -50,6 +50,7 @@ function matchedUser(over = {}) {
         matches: [
           {
             matchedEntryUuid: UUID.mine,
+            matchedSubject: 'lastenrad',
             uuid: UUID.entry,
             summary: 'Fahrradreparatur',
             details: null,
@@ -125,6 +126,7 @@ describe('useMatches', () => {
             {
               uuid: UUID.entry,
               matchedEntryUuid: UUID.mine,
+              matchedSubject: 'lastenrad',
               summary: 'Fahrradreparatur',
               details: null,
               remote: false,
@@ -134,7 +136,7 @@ describe('useMatches', () => {
             },
           ],
         },
-        scores: { angebot: [0.595] },
+        scores: { angebot: [{ strength: 0.595, entry: UUID.mine, subject: 'lastenrad' }] },
       })
     })
 
@@ -148,10 +150,11 @@ describe('useMatches', () => {
         matchedUser({ channels: [channel('need'), channel('interest'), channel('offer')] }),
       )
       expect(Object.keys(match.channels).sort()).toEqual(['angebot', 'gesuch', 'interesse'])
-      expect(match.scores).toEqual({ angebot: [0.46], gesuch: [0.46], interesse: [0.46] })
+      const dim = { strength: 0.46, entry: UUID.mine, subject: 'lastenrad' }
+      expect(match.scores).toEqual({ angebot: [dim], gesuch: [dim], interesse: [dim] })
     })
 
-    it('carries every strength of a channel into the scores, in order', () => {
+    it('carries every strength of a channel into the scores, in order, with what it answers', () => {
       const entry = matchedUser().channels[0].matches[0]
       const match = toMatch(
         matchedUser({
@@ -167,7 +170,47 @@ describe('useMatches', () => {
           ],
         }),
       )
-      expect(match.scores).toEqual({ angebot: [0.46, 0.865] })
+      expect(match.scores).toEqual({
+        angebot: [
+          { strength: 0.46, entry: UUID.mine, subject: 'lastenrad' },
+          { strength: 0.865, entry: UUID.mine, subject: 'lastenrad' },
+        ],
+      })
+    })
+
+    // A GMS that does not send the subject yet, or an entry of mine without one: the entry
+    // stands in, so the map stays whole and only counts such entries as a thing each. A
+    // typed question has no entry of mine behind it at all - nothing to count.
+    it('lets my entry stand in for a missing subject, and counts nothing for a typed question', () => {
+      const entry = matchedUser().channels[0].matches[0]
+      const scoresFor = (over) =>
+        toMatch(
+          matchedUser({
+            channels: [
+              { matchingType: 'offer', strength: 0.595, matches: [{ ...entry, ...over }] },
+            ],
+          }),
+        ).scores.angebot[0]
+
+      const withoutSubject = { ...entry }
+      delete withoutSubject.matchedSubject
+      expect(
+        toMatch(
+          matchedUser({
+            channels: [{ matchingType: 'offer', strength: 0.595, matches: [withoutSubject] }],
+          }),
+        ).scores.angebot[0],
+      ).toEqual({ strength: 0.595, entry: UUID.mine, subject: UUID.mine })
+      expect(scoresFor({ matchedSubject: null })).toEqual({
+        strength: 0.595,
+        entry: UUID.mine,
+        subject: UUID.mine,
+      })
+      expect(scoresFor({ matchedEntryUuid: null, matchedSubject: null })).toEqual({
+        strength: 0.595,
+        entry: null,
+        subject: null,
+      })
     })
 
     it('leaves a person without channels with nothing to glow by', () => {
@@ -405,7 +448,9 @@ describe('useMatches', () => {
       expect(loading.value).toBe(false)
       expect(error.value).toBeNull()
       expect(matches.value.map((match) => match.name)).toEqual(['Marta'])
-      expect(matches.value[0].scores).toEqual({ angebot: [0.595] })
+      expect(matches.value[0].scores).toEqual({
+        angebot: [{ strength: 0.595, entry: UUID.mine, subject: 'lastenrad' }],
+      })
       expect(presence.value).toEqual([
         { id: 2, name: 'Paul', position: { lat: 49.3, lng: 9.7 }, precision: 'ungefaehr' },
       ])

@@ -478,8 +478,12 @@ describe('MatchingMap', () => {
       position,
       community: { name: 'Muenchen' },
       aboutMe: '',
-      channels: { gesuch: [{ uuid: `${uuid}-entry`, strength: 0.46, matchedEntryUuid: 'mine' }] },
-      scores: { gesuch: [0.46] },
+      channels: {
+        gesuch: [
+          { uuid: `${uuid}-entry`, strength: 0.46, matchedEntryUuid: 'mine', matchedSubject: 'x' },
+        ],
+      },
+      scores: { gesuch: [{ strength: 0.46, entry: 'mine', subject: 'x' }] },
       precision: 'genau',
     })
     // The point `px` screen pixels east of the seeded view's middle.
@@ -544,15 +548,49 @@ describe('MatchingMap', () => {
     })
 
     // The control for the one above: with room between them the same tap opens the person,
-    // so the zoom there is the overlap speaking, not every tap zooming.
+    // so the zoom there is the overlap speaking, not every tap zooming. 70 px is beyond the
+    // largest tap area there is - 60 px since the fifth step - so beyond the crowd radius.
     it('opens the person when no other tap area reaches theirs', async () => {
-      const page = await buildMap('hell', [person('anna', east(0)), person('ben', east(60))])
+      const page = await buildMap('hell', [person('anna', east(0)), person('ben', east(70))])
 
       tap(page.findAll('.gk-hit')[0].element)
       await page.vm.$nextTick()
 
       expect(profileOpen(page)).toBe(true)
       expect(zoomNow()).toBe(VIEW.zoom)
+    })
+
+    // GMS-184: a step-4 match that answers a second thing of mine reaches the fifth step
+    // once "Wer mehrfach passt" is on - and the fifth step has a size of its own.
+    describe('on the fifth step', () => {
+      const broad = (uuid) => ({
+        ...person(uuid, east(0)),
+        scores: {
+          gesuch: [
+            { strength: 0.865, entry: 'my-bike', subject: 'fahrrad' },
+            { strength: 0.595, entry: 'my-flat', subject: 'wohnung' },
+          ],
+        },
+      })
+
+      it('draws the fifth size on the dark map and on the light one', async () => {
+        window.localStorage.setItem(`${KEY}breite`, JSON.stringify(true))
+        const dark = await buildMap('dunkel', [broad('clara')])
+        expect(px(dark.find('.gk-clickable').element, 'width')).toBe('130px')
+        expect(px(dark.find('.gk-hit').element, 'width')).toBe('60px')
+        dark.unmount()
+        wrapper = null
+
+        const light = await buildMap('hell', [broad('clara')])
+        expect(px(light.find('.gk-disc').element, 'width')).toBe('60px')
+        expect(px(light.find('.gk-clickable').element, 'width')).toBe('60px')
+      })
+
+      // The control: the same person without breadth is a step-4 match, sized as one.
+      it('stays on the fourth size while breadth is off', async () => {
+        const dark = await buildMap('dunkel', [broad('clara')])
+        expect(px(dark.find('.gk-clickable').element, 'width')).toBe('104px')
+      })
     })
   })
 
