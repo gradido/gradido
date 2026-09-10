@@ -45,6 +45,50 @@ describe('GmsUser', () => {
     })
   })
 
+  /**
+   * ⛔ The empty position, on its way OUT. Until 10.09.2026 this read the column straight --
+   * `this.location = user.location.coordinates` -- so a point without coordinates became
+   * `[]`, and `[]` is truthy: the fallback that exists for "no position" never fired, and a
+   * member with none was published to the GMS at `location: []` with an exact publish type.
+   */
+  describe('location', () => {
+    const withPoint = (coordinates: number[]) =>
+      ({ ...member(true), location: { type: 'Point', coordinates } }) as unknown as dbUser
+
+    it('sends the pair the way the GMS reads it, longitude first', () => {
+      const sent = new GmsUser(withPoint([9.69, 49.28]))
+      expect(sent.location).toEqual([9.69, 49.28])
+      expect(sent.type).toBe(
+        GmsPublishLocationType[GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE],
+      )
+    })
+
+    it('sends a zero coordinate too -- the prime meridian is a place', () => {
+      expect(new GmsUser(withPoint([0, 51.5])).location).toEqual([0, 51.5])
+    })
+
+    it.each([
+      ['a point with no coordinates -- the case that happened', [] as number[]],
+      ['half a pair', [9.69]],
+    ])('sends no place at all for %s, and asks to be placed at random', (_name, coordinates) => {
+      const sent = new GmsUser(withPoint(coordinates))
+
+      expect(sent.location).toBeUndefined()
+      expect(sent.type).toBe(
+        GmsPublishLocationType[GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM],
+      )
+    })
+
+    it('asks to be placed at random when there is no point at all', () => {
+      const sent = new GmsUser(member(true))
+
+      expect(sent.location).toBeUndefined()
+      expect(sent.type).toBe(
+        GmsPublishLocationType[GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM],
+      )
+    })
+  })
+
   describe('aboutMe', () => {
     it('travels along for a member who takes part', () => {
       expect(new GmsUser(member(true)).aboutMe).toBe(ABOUT_ME)

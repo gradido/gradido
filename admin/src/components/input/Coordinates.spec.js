@@ -82,6 +82,40 @@ describe('Coordinates', () => {
     expect(wrapper.vm.inputValue.longitude).toBe('78.9')
   })
 
+  /**
+   * ⛔ Emptying both fields means "this community has no coordinates". It used to be sent as
+   * two empty strings, and the backend wrote that away as a POINT WITH NO COORDINATES --
+   * which reads back as no location either, so it looked right and was not: the column has
+   * a NULL for exactly this, and `updateHomeCommunity` writes it when the value is null.
+   * Since 10.09.2026 the validator refuses anything that is not a pair of numbers, so two
+   * empty strings would be turned away rather than quietly stored.
+   */
+  it('says null when both fields are emptied, not two empty strings', async () => {
+    await wrapper.find('#home-community-latitude').setValue('')
+    await wrapper.find('#home-community-longitude').setValue('')
+
+    const zuletzt = wrapper.emitted('update:modelValue').at(-1)[0]
+    expect(zuletzt).toBeNull()
+  })
+
+  it('still says the pair while one of the two is filled', async () => {
+    await wrapper.find('#home-community-longitude').setValue('')
+
+    const zuletzt = wrapper.emitted('update:modelValue').at(-1)[0]
+    expect(zuletzt).not.toBeNull()
+    expect(zuletzt.latitude).toBe(56.78)
+  })
+
+  // ⛔ The combined field read `latitude && longitude`, so a coordinate of 0 emptied it --
+  // while the two numbers below it still showed the pair. The prime meridian runs through
+  // the UK, France, Spain, Algeria and Ghana.
+  it('shows a zero coordinate in the combined field', async () => {
+    await wrapper.find('#home-community-longitude').setValue('0')
+
+    expect(wrapper.find('#home-community-latitude-longitude-smart').element.value).toContain('0')
+    expect(wrapper.emitted('update:modelValue').at(-1)[0]).not.toBeNull()
+  })
+
   it('splits coordinates correctly when entering in latitudeLongitude input', async () => {
     const latitudeLongitudeInput = wrapper.find('#home-community-latitude-longitude-smart')
 
