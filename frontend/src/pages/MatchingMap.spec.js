@@ -4,10 +4,19 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { ref } from 'vue'
 import { createStore } from 'vuex'
 import { createI18n } from 'vue-i18n'
+import L from 'leaflet'
 import de from '@/locales/de.json'
 import MatchingMap from './MatchingMap.vue'
 import { listMatchingEntries, userLocationQuery } from '@/graphql/queries'
 import { GMS_REJECTED, GMS_UNAVAILABLE } from '@/composables/useMatches'
+
+// jsdom has no SVG geometry, and Leaflet decides once, when it is imported, whether it
+// may draw SVG at all - by looking for createSVGRect. Without it Leaflet finds no
+// renderer and the map dies at its first circle, before a single marker is drawn. This
+// is only that feature test: the SVG Leaflet then writes is plain DOM, which jsdom has.
+vi.hoisted(() => {
+  window.SVGSVGElement.prototype.createSVGRect = () => ({})
+})
 
 const replace = vi.fn()
 const push = vi.fn()
@@ -235,20 +244,17 @@ describe('MatchingMap', () => {
       expect(page.findComponent({ name: 'MatchList' }).exists()).toBe(false)
     })
 
-    // Removed, not carried across: nobody can say whose they were, and handing them to
-    // whoever opens the map first is the fault itself.
-    it('sweeps the flat keys off the device on the way in', async () => {
+    // The sweep of the old flat keys moved to sign-out (store.js, beside the seven other
+    // things that must not outlive one member), because an account without a position
+    // never reaches this page and its device was therefore never cleared. What matters
+    // here is only that the page ignores them, which the two cases above measure.
+    it("leaves the old flat keys where they are -- clearing them is the sign-out's job", async () => {
       flach('queryOfferNever', 'true')
-      flach('centerLabel', '"Gersdorfstrasse, Suedstadt"')
-      fremd('look', '"hell"')
 
       mountMap()
       await flushPromises()
 
-      expect(window.localStorage.getItem('pref.gms.map.queryOfferNever')).toBeNull()
-      expect(window.localStorage.getItem('pref.gms.map.centerLabel')).toBeNull()
-      // The other member's own key is not ours to remove -- only the nameless ones are.
-      expect(window.localStorage.getItem('pref.gms.map.somebody-else.look')).toBe('"hell"')
+      expect(window.localStorage.getItem('pref.gms.map.queryOfferNever')).toBe('true')
     })
   })
 
@@ -291,8 +297,8 @@ describe('MatchingMap', () => {
       expect(replace).toHaveBeenCalledWith('/matching/position')
       // No search, and no centre. Both statements sit AFTER the redirect in the same
       // straight run as the marker being drawn, so their absence is the marker's absence
-      // too -- Leaflet itself is never built in this environment, there is no sized
-      // container and the 250 ms timer never runs, so it cannot be asked directly.
+      // too -- Leaflet itself is not built in this test, the 250 ms timer never runs
+      // here, so it cannot be asked directly.
       expect(load).not.toHaveBeenCalled()
       expect(centreStored()).toBeNull()
     })
@@ -457,6 +463,96 @@ describe('MatchingMap', () => {
       await page.vm.$nextTick()
 
       expect(profileOpen(page)).toBe(false)
+    })
+  })
+
+  // F-10, Bernd at his iPhone: the small discs could hardly be hit. Leaflet is built here
+  // on purpose, unlike everywhere above - the 250 ms timer is run by hand and the view is
+  // seeded, so the zoom and with it every pixel between two people are known.
+  describe('the tap area of a coloured marker', () => {
+    const VIEW = { lat: 48.2, lng: 11.6, zoom: 12 }
+    // 0.46 is the dimmest brightness the GMS sends: step 1, the smallest disc there is.
+    const person = (uuid, position) => ({
+      uuid,
+      name: uuid,
+      position,
+      community: { name: 'Muenchen' },
+      aboutMe: '',
+      channels: { gesuch: [{ uuid: `${uuid}-entry`, strength: 0.46, matchedEntryUuid: 'mine' }] },
+      scores: { gesuch: [0.46] },
+      precision: 'genau',
+    })
+    // The point `px` screen pixels east of the seeded view's middle.
+    const east = (px) => {
+      const centre = L.CRS.EPSG3857.latLngToPoint(L.latLng(VIEW.lat, VIEW.lng), VIEW.zoom)
+      const { lat, lng } = L.CRS.EPSG3857.pointToLatLng(centre.add([px, 0]), VIEW.zoom)
+      return { lat, lng }
+    }
+    const px = (element, property) => element.style[property]
+
+    const buildMap = async (look, people) => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+      window.localStorage.setItem(`${KEY}look`, JSON.stringify(look))
+      window.localStorage.setItem(`${KEY}view`, JSON.stringify(VIEW))
+      const page = mountMap()
+      fire(userLocationQuery, { userLocation: location })
+      await page.vm.$nextTick()
+      vi.advanceTimersByTime(250)
+      matches.value = people
+      await page.vm.$nextTick()
+      return page
+    }
+    const tap = (element) => element.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    const zoomNow = () => JSON.parse(window.localStorage.getItem(`${KEY}view`)).zoom
+    const profileOpen = (page) => page.findComponent({ name: 'MatchProfile' }).props('modelValue')
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('keeps a step-1 disc at 20 px on the light map and gives it 44 px to tap', async () => {
+      const page = await buildMap('hell', [person('anna', east(0))])
+
+      const box = page.find('.gk-clickable').element
+      expect(px(page.find('.gk-disc').element, 'width')).toBe('20px')
+      expect(px(page.find('.gk-hit').element, 'width')).toBe('44px')
+      // The box is as big as the tap area, and still centred on the person.
+      expect([px(box, 'width'), px(box, 'height'), px(box, 'marginLeft')]).toEqual([
+        '44px',
+        '44px',
+        '-22px',
+      ])
+    })
+
+    it('gives the same person 44 px to tap inside the glow on the dark map', async () => {
+      const page = await buildMap('dunkel', [person('anna', east(0))])
+
+      expect(px(page.find('.gk-hit').element, 'width')).toBe('44px')
+      expect(px(page.find('.gk-clickable').element, 'width')).toBe('48px')
+    })
+
+    // 40 px apart, two tap areas of 44 px overlap: a finger there could mean either, so the
+    // map steps in rather than opening whichever area happened to lie on top.
+    it('zooms in when two tap areas overlap instead of opening one of them', async () => {
+      const page = await buildMap('hell', [person('anna', east(0)), person('ben', east(40))])
+
+      tap(page.findAll('.gk-hit')[0].element)
+      await page.vm.$nextTick()
+
+      expect(profileOpen(page)).toBe(false)
+      expect(zoomNow()).toBe(VIEW.zoom + 2)
+    })
+
+    // The control for the one above: with room between them the same tap opens the person,
+    // so the zoom there is the overlap speaking, not every tap zooming.
+    it('opens the person when no other tap area reaches theirs', async () => {
+      const page = await buildMap('hell', [person('anna', east(0)), person('ben', east(60))])
+
+      tap(page.findAll('.gk-hit')[0].element)
+      await page.vm.$nextTick()
+
+      expect(profileOpen(page)).toBe(true)
+      expect(zoomNow()).toBe(VIEW.zoom)
     })
   })
 
