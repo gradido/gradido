@@ -116,7 +116,14 @@ function valueUpdated() {
     editableGroup.invalidValues()
   }
 
-  emit('update:modelValue', inputValue.value)
+  // ⛔ null when both fields are empty, not two empty strings. Empty means "this community
+  // has no coordinates", and null is how the backend is told so: `updateHomeCommunity`
+  // writes NULL to the column for it, and its own comment says as much. Two empty strings
+  // used to be written away as a POINT WITH NO COORDINATES, which reads back as no location
+  // either -- the same answer by a worse road, and since 10.09.2026 the validator refuses
+  // it outright. `isValid` above already treats both-empty as a legitimate state.
+  const cleared = inputValue.value.latitude === '' && inputValue.value.longitude === ''
+  emit('update:modelValue', cleared ? null : inputValue.value)
 }
 
 watch(

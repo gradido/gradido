@@ -1,8 +1,10 @@
 import { User as dbUser } from 'database'
+import { Point } from 'typeorm'
 
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import { GmsPublishLocationType } from '@/graphql/enum/GmsPublishLocationType'
 import { GmsPublishPhoneType } from '@/graphql/enum/GmsPublishPhoneType'
+import { Point2Location } from '@/graphql/resolver/util/Location2Point'
 
 export class GmsUser {
   constructor(user: dbUser) {
@@ -23,8 +25,15 @@ export class GmsUser {
     // GMS recognises the user by is this.uuid above and stays untouched; the next
     // upsert overwrites the display on its own.
     this.alias = pnLogic.getPublicAlias()
-    if (user.location && user.location.type === 'Point') {
-      this.location = user.location.coordinates
+    // ⛔ Through Point2Location, not straight off the column. `this.location =
+    // user.location.coordinates` handed an EMPTY array on for a point without coordinates
+    // -- and `[]` is truthy, so the fallback five lines down never fired and a member with
+    // no position was published to the GMS at `location: []` with an exact publish type.
+    // The wallet stopped taking an empty point for a place on 09.09.2026; this is the same
+    // reader, on the way out.
+    const location = Point2Location(user.location as Point)
+    if (location) {
+      this.location = [location.longitude, location.latitude]
     }
     let publishLocationType: GmsPublishLocationType = user.gmsPublishLocation
     if (publishLocationType === GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM) {

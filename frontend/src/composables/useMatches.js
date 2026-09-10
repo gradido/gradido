@@ -147,6 +147,29 @@ export function positionOf(location) {
 }
 
 /**
+ * Whether one person of a GMS answer can be put on a map at all.
+ *
+ * ⛔ The pair was taken on trust: `positionOf([])` gives `{lat: undefined, lng: undefined}`
+ * and `positionOf(null)` throws — and both shapes are ones the wallet itself has been
+ * making. Until 10.09.2026 a member with an empty position was published to the GMS at
+ * `location: []`, so the GMS could hand it straight back. The undefined pair turns every
+ * distance into NaN, and a NaN comparator leaves Array.prototype.sort free to order as it
+ * likes, so the list reshuffles between renders; the thrown one lands in `load`'s try and
+ * comes out as "the search is not reachable" while the GMS answered 200 — the very
+ * misdiagnosis this whole strand of work exists to end.
+ *
+ * Dropped rather than drawn: somebody without a place on the map has nothing to show
+ * there, and the heading counts what is shown.
+ */
+export function hasUsablePoint(user) {
+  return (
+    Array.isArray(user?.location) &&
+    Number.isFinite(user.location[0]) &&
+    Number.isFinite(user.location[1])
+  )
+}
+
+/**
  * How precisely a person let themselves be found, from the GMS's publish location
  * type: 0 exact, 1 approximate, 2 random (GMS_PUBLISH_LOCATION_TYPES, by index).
  * Anything else reads as approximate — the coarser end is the one that never
@@ -359,8 +382,10 @@ export function useMatches() {
         gmsGet(base, 'community-user/user-locations', where, token),
       ])
       if (request !== latest) return
-      matches.value = people.map(toMatch)
-      presence.value = withoutMatched(others, people).map(toPresence)
+      // Filtered before mapping: what has no place on the map is not a marker, and the
+      // heading counts markers.
+      matches.value = people.filter(hasUsablePoint).map(toMatch)
+      presence.value = withoutMatched(others, people).filter(hasUsablePoint).map(toPresence)
     } catch (err) {
       if (request !== latest) return
       error.value = err.code ? err : failure(GMS_UNAVAILABLE, err.message)
