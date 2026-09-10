@@ -344,7 +344,12 @@ export const usersTable = mysqlTable(
     gmsPublishName: int('gms_publish_name').default(0).notNull(),
     humhubPublishName: int('humhub_publish_name').default(0).notNull(),
     deletedAt: datetime('deleted_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
-    password: bigint({ mode: 'number' }),
+    // ⚠️ mode 'bigint' and unsigned, both load-bearing - same reason as
+    // thank_you_card_settings.pin: the derivation returns a full unsigned 64 bit word
+    // (`readBigUInt64LE` in EncryptionWorker.js), and as a JS number almost every value
+    // loses precision. `unsigned` also keeps drizzle-kit from turning the column signed,
+    // which every hash from 2^63 up would overflow.
+    password: bigint({ mode: 'bigint', unsigned: true }).default(0n),
     passwordEncryptionType: int('password_encryption_type').default(0).notNull(),
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)

@@ -10,7 +10,6 @@ import { OptInType } from '@enum/OptInType'
 import { Order } from '@enum/Order'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { PublishNameType } from '@enum/PublishNameType'
-import { RoleNames } from '@enum/RoleNames'
 import { UserContactType } from '@enum/UserContactType'
 import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
 import { AdminUser, SearchAdminUsersResult } from '@model/AdminUser'
@@ -44,6 +43,7 @@ import {
   dbCountChosenAliasesSince,
   dbDeleteUserAvatar,
   dbEmailTaken,
+  dbFindAdminUsersPage,
   dbFindAliasesByUser,
   dbFindMemberAvatarFull,
   dbFindMemberAvatarsSmall,
@@ -53,6 +53,8 @@ import {
   dbFindProjectSpaceId,
   dbFindUserAvatarFull,
   dbFindUserAvatarSmall,
+  dbFindUserByEmailOrFail,
+  dbFindUsers,
   dbInsertAssistedRegistration,
   dbInsertUserAlias,
   dbMarkAliasAdopted,
@@ -94,7 +96,7 @@ import {
   Root,
 } from 'type-graphql'
 import { IRestResponse } from 'typed-rest-client'
-import { EntityNotFoundError, In, Not, Point } from 'typeorm'
+import { EntityNotFoundError, Not, Point } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { Account as HumhubAccount } from '@/apis/humhub/model/Account'
@@ -143,7 +145,6 @@ import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlaygro
 import { compareGmsRelevantUserSettings } from './util/compareGmsRelevantUserSettings'
 import { getFullUserCreation, getUserCreations } from './util/creations'
 import { extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
-import { findUsers } from './util/findUsers'
 import { getKlicktippState } from './util/getKlicktippState'
 import { Location2Point, Point2Location } from './util/Location2Point'
 import { maySeeRealName } from './util/maySeeRealName'
@@ -1300,20 +1301,7 @@ export class UserResolver {
     @Args()
     { currentPage = 1, pageSize = 25, order = Order.DESC }: Paginated,
   ): Promise<SearchAdminUsersResult> {
-    // MODERATOR_AI belongs here too: a KI-Moderator is a moderator who may additionally use
-    // Crea, so leaving the role out would drop real moderators from the community info page
-    // and leave their groups without a contact.
-    const [users, count] = await DbUser.findAndCount({
-      relations: ['userRoles'],
-      where: {
-        userRoles: { role: In([RoleNames.ADMIN, RoleNames.MODERATOR, RoleNames.MODERATOR_AI]) },
-      },
-      order: {
-        createdAt: order,
-      },
-      skip: (currentPage - 1) * pageSize,
-      take: pageSize,
-    })
+    const [users, count] = await dbFindAdminUsersPage(currentPage, pageSize, order)
     return {
       userCount: count,
       userList: users.map((user) => new AdminUser(user)),
@@ -1343,7 +1331,7 @@ export class UserResolver {
       // it and every switch would show "off".
       'creationAllowed',
     ]
-    const [users, count] = await findUsers(
+    const [users, count] = await dbFindUsers(
       userFields,
       query,
       filters ?? null,
@@ -1660,13 +1648,7 @@ export class UserResolver {
 
 export async function findUserByEmail(email: string): Promise<DbUser> {
   try {
-    const dbUser = await DbUser.findOneOrFail({
-      where: {
-        emailContact: { email },
-      },
-      withDeleted: true,
-      relations: { userRoles: true, emailContact: true },
-    })
+    const dbUser = await dbFindUserByEmailOrFail(email)
     return dbUser
   } catch (e) {
     const logger = createLogger('findUserByEmail')

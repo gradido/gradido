@@ -1,4 +1,5 @@
 import { and, asc, eq, gt, isNull, lte } from 'drizzle-orm'
+import { Order } from 'shared'
 import { IsNull, LessThanOrEqual, MoreThan } from 'typeorm'
 import { drizzleDb } from '../AppDatabase'
 import { TransactionLink as DbTransactionLink } from '../entity'
@@ -35,7 +36,7 @@ export async function transactionLinksPendingFromUserOrderByIdASC(
       deletedAt: IsNull(),
     },
     order: {
-      id: 'ASC',
+      id: Order.ASC,
     },
     take: count,
   })

@@ -1,6 +1,5 @@
-import { AppDatabase, User } from 'database'
+import { AppDatabase, dbFindUsersWithEmailContactPage } from 'database'
 import { getLogger } from 'log4js'
-import { IsNull, Not } from 'typeorm'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { initLogging } from '@/server/logger'
 import { HumHubClient } from './HumHubClient'
@@ -11,15 +10,6 @@ import { ExecutedHumhubAction, syncUser } from './syncUser'
 const USER_BULK_SIZE = 20
 const HUMHUB_BULK_SIZE = 50
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.humhub.ExportUsers`)
-
-function getUsersPage(page: number, limit: number): Promise<[User[], number]> {
-  return User.findAndCount({
-    relations: { emailContact: true },
-    skip: page * limit,
-    take: limit,
-    where: { emailContact: { email: Not(IsNull()) } },
-  })
-}
 
 /**
  * @param client
@@ -79,7 +69,7 @@ async function main() {
 
   do {
     try {
-      const [users, totalUsers] = await getUsersPage(page, USER_BULK_SIZE)
+      const [users, totalUsers] = await dbFindUsersWithEmailContactPage(page, USER_BULK_SIZE)
       dbUserCount += users.length
       userCount = users.length
       page++

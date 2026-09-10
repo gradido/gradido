@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+import { Order } from 'shared'
 import { EntityManager, FindOptionsWhere, MoreThan, Not } from 'typeorm'
 import {
   ALIAS_ORIGIN_ADOPTED,
@@ -76,7 +77,7 @@ export async function dbFindOldestChosenAliasSince(
       origin: ALIAS_ORIGIN_CHOSEN,
       createdAt: MoreThan(since),
     } as FindOptionsWhere<DbUserAlias>,
-    order: { createdAt: 'ASC' },
+    order: { createdAt: Order.ASC },
   })
 }
 
@@ -94,7 +95,7 @@ export async function dbInsertUserAlias(
 
 /** Every name this member owns, current one included. */
 export async function dbFindAliasesByUser(userId: number): Promise<DbUserAlias[]> {
-  return DbUserAlias.find({ where: { userId }, order: { createdAt: 'ASC' } })
+  return DbUserAlias.find({ where: { userId }, order: { createdAt: Order.ASC } })
 }
 
 /**

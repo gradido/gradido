@@ -1,5 +1,5 @@
 import { and, eq, inArray, isNotNull, isNull, ne, sql } from 'drizzle-orm'
-import { GradidoUnit, isAliasEraName, VoidResult } from 'shared'
+import { GradidoUnit, isAliasEraName, Order, VoidResult } from 'shared'
 import { FindOptionsWhere, In, IsNull } from 'typeorm'
 import { drizzleDb } from '../AppDatabase'
 import { Transaction as DbTransaction } from '../entity'
@@ -13,7 +13,7 @@ export const getLastTransaction = async (
 ): Promise<DbTransaction | null> => {
   return DbTransaction.findOne({
     where: { userId },
-    order: { balanceDate: 'DESC', id: 'DESC' },
+    order: { balanceDate: Order.DESC, id: Order.DESC },
     relations,
   })
 }
@@ -174,15 +174,13 @@ const mergeSamePerson = (rows: ContactRow[]): ContactRow[] => {
  * Moved here from `backend/src/graphql/resolver/util/getTransactionList.ts` -- step one of
  * the query migration AGENTS.md describes, and step one only: still TypeORM, same options,
  * same result. Renamed for the `db…` rule because this delivery touched it (the way
- * `dbGetUserById` was); `getLastTransaction` above is untouched and keeps its name. The
- * order argument is a plain string union rather than the backend's `Order` enum, which
- * this package cannot import; the enum's values are these two strings.
+ * `dbGetUserById` was); `getLastTransaction` above is untouched and keeps its name.
  */
 export const dbSelectTransactionsByUserId = async (
   userId: number,
   limit: number,
   offset: number,
-  order: 'ASC' | 'DESC',
+  order: Order,
   counterparty?: BookingCounterparty,
 ): Promise<[DbTransaction[], number]> => {
   return DbTransaction.findAndCount({
@@ -301,8 +299,7 @@ const aliasOrNull = (stored: unknown): string | null => {
  * than from the contact list. `count` is then 0 or 1.
  *
  * `order` is over `lastAt`, newest first unless asked otherwise -- the direction the API
- * offers through the house `Paginated` arguments. A plain string union rather than the
- * backend's `Order` enum, which this package cannot import.
+ * offers through the house `Paginated` arguments.
  */
 export async function dbSelectContactsByUserId(
   userId: number,
@@ -311,7 +308,7 @@ export async function dbSelectContactsByUserId(
     counterparty?: BookingCounterparty
     limit: number
     offset: number
-    order?: 'ASC' | 'DESC'
+    order?: Order
   },
 ): Promise<ContactsPage> {
   const db = drizzleDb()
@@ -417,7 +414,7 @@ export async function dbSelectContactsByUserId(
   // locale data: two requests served by two processes would then page under two rules.
   // The direction applies to the tie-break as well, so the reversed list is the exact
   // reverse of the default one.
-  const direction = options.order === 'ASC' ? 1 : -1
+  const direction = options.order === Order.ASC ? 1 : -1
   matching.sort((a, b) => {
     const byDate = a.lastAt.getTime() - b.lastAt.getTime()
     if (byDate !== 0) {

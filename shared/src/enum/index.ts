@@ -1,5 +1,6 @@
 export * from './DecayCalculationType'
 export * from './OptInType'
+export * from './Order'
 export * from './PasswordEncryptionType'
 export * from './PendingTransactionState'
 export * from './RoleNames'

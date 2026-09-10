@@ -1,8 +1,12 @@
 import { CONFIG as CORE_CONFIG, delay } from 'core'
-import { AppDatabase, User as DbUser, getHomeCommunity } from 'database'
+import {
+  AppDatabase,
+  dbFindGmsAllowedLocalUserIds,
+  dbFindUsersWithEmailContactByIds,
+  getHomeCommunity,
+} from 'database'
 import { getLogger } from 'log4js'
 import { MonotonicTimer } from 'shared-native'
-import { In } from 'typeorm'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { sendUsersToGms } from '@/graphql/resolver/util/sendUserToGms'
 import { LogError } from '@/server/LogError'
@@ -40,11 +44,7 @@ async function main() {
     throw new LogError('HomeCommunity needs GMS-ApiKey to publish user data to GMS.')
   }
   // read the ids of all local users, which are still not gms registered
-  const userIds = await DbUser.createQueryBuilder()
-    .select('id')
-    .where({ foreign: false, gmsAllowed: true })
-    .andWhere('deleted_at is null')
-    .getRawMany()
+  const userIds = await dbFindGmsAllowedLocalUserIds()
 
   let alreadyUpdatedUserCount = 0
   let current = 0
@@ -65,10 +65,7 @@ async function main() {
     const lastIndex = Math.min(current + BATCH_SIZE, userIds.length)
     const ids = userIds.slice(current, lastIndex).map((idStr) => idStr.id)
     logger.debug(`ids: ${JSON.stringify(ids)}`)
-    const users = await DbUser.find({
-      where: { id: In(ids) },
-      relations: ['emailContact'],
-    })
+    const users = await dbFindUsersWithEmailContactByIds(ids)
     if (users) {
       // The repair run sends the entries along, so the GMS also drops copies of
       // entries that were paused or deleted while it could not be reached.
