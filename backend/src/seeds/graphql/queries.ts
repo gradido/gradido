@@ -675,3 +675,15 @@ export const favoriteList = gql`
     }
   }
 `
+
+export const dynamicStatisticsQuery = gql`
+  query {
+    communityStatistics {
+      dynamicStatisticsFields {
+        activeUsers
+        totalGradidoAvailable
+        totalGradidoUnbookedDecayed
+      }
+    }
+  }
+`

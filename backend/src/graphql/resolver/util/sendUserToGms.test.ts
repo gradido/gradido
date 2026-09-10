@@ -1,8 +1,8 @@
 // AI-GENERATED — not an architecture reference
 import {
-  AppDatabase,
   Community as DbCommunity,
   User as DbUser,
+  dbMarkUsersGmsRegistered,
   dbSelectActiveMatchingEntriesByUserIds,
   MatchingEntrySelect,
 } from 'database'
@@ -18,22 +18,15 @@ jest.mock('database', () => {
     __esModule: true,
     ...actual,
     dbSelectActiveMatchingEntriesByUserIds: jest.fn(),
-    AppDatabase: { getInstance: jest.fn() },
+    dbMarkUsersGmsRegistered: jest.fn(),
   }
 })
 
 const upsertMock = upsertGmsUsers as jest.Mock
 const snapshotMock = putGmsMatchingEntrySnapshots as jest.Mock
 const selectEntriesMock = dbSelectActiveMatchingEntriesByUserIds as jest.Mock
-
 // The one statement sendUsersToGms writes itself: marking the batch as published.
-const execute = jest.fn()
-const queryBuilder: Record<string, jest.Mock> = {
-  update: jest.fn(() => queryBuilder),
-  set: jest.fn(() => queryBuilder),
-  where: jest.fn(() => queryBuilder),
-  execute,
-}
+const markRegisteredMock = dbMarkUsersGmsRegistered as jest.Mock
 
 const HOME_COM = { gmsApiKey: 'gms-test-key' } as DbCommunity
 
@@ -75,9 +68,6 @@ describe('sendUsersToGms', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    ;(AppDatabase.getInstance as jest.Mock).mockReturnValue({
-      getDataSource: () => ({ createQueryBuilder: () => queryBuilder }),
-    })
     upsertMock.mockResolvedValue(true)
     snapshotMock.mockResolvedValue(true)
     selectEntriesMock.mockResolvedValue([entry(WITH_ENTRIES.id, ENTRY_UUID)])
@@ -246,8 +236,8 @@ describe('sendUsersToGms', () => {
     it('marks the batch as published once both calls are through', async () => {
       await sendUsersToGms([WITH_ENTRIES, WITHOUT_ENTRIES], HOME_COM, true)
 
-      expect(execute).toHaveBeenCalledTimes(1)
-      expect(queryBuilder.where).toHaveBeenCalledWith('id IN (:...ids)', { ids: [1, 2] })
+      expect(markRegisteredMock).toHaveBeenCalledTimes(1)
+      expect(markRegisteredMock).toHaveBeenCalledWith([1, 2])
     })
   })
 
@@ -258,7 +248,7 @@ describe('sendUsersToGms', () => {
       await sendUsersToGms([WITH_ENTRIES], HOME_COM, true)
 
       expect(snapshotMock).not.toHaveBeenCalled()
-      expect(execute).not.toHaveBeenCalled()
+      expect(markRegisteredMock).not.toHaveBeenCalled()
     })
 
     it('does not mark anybody published when the snapshots throw', async () => {
@@ -267,7 +257,7 @@ describe('sendUsersToGms', () => {
 
       await expect(sendUsersToGms([WITH_ENTRIES], HOME_COM, true)).resolves.toBe(false)
 
-      expect(execute).not.toHaveBeenCalled()
+      expect(markRegisteredMock).not.toHaveBeenCalled()
     })
   })
 

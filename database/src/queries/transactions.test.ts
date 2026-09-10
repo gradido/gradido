@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { GradidoUnit } from 'shared'
+import { GradidoUnit, Order } from 'shared'
 import { clearDatabase } from '../../migration/clear'
 import { User as DbUser } from '..'
 import { AppDatabase } from '../AppDatabase'
@@ -150,7 +150,7 @@ describe('dbSelectContactsByUserId', () => {
   })
 
   it('turns the order around when asked, oldest contact first', async () => {
-    const page = await dbSelectContactsByUserId(bibi.id, { limit: 25, offset: 0, order: 'ASC' })
+    const page = await dbSelectContactsByUserId(bibi.id, { limit: 25, offset: 0, order: Order.ASC })
     // The exact reverse of the default order, tie included.
     expect(page.contacts.map((c) => c.gradidoId)).toEqual([
       ANNA,
@@ -160,7 +160,7 @@ describe('dbSelectContactsByUserId', () => {
       TINA,
     ])
     // And the page is taken off the reversed list, not off the default one.
-    const first = await dbSelectContactsByUserId(bibi.id, { limit: 1, offset: 0, order: 'ASC' })
+    const first = await dbSelectContactsByUserId(bibi.id, { limit: 1, offset: 0, order: Order.ASC })
     expect(first.contacts[0].gradidoId).toBe(ANNA)
   })
 
@@ -271,7 +271,13 @@ describe('dbSelectContactsByUserId with a person both groupings found', () => {
       limit: 25,
       offset: 0,
     })
-    const [, bookings] = await dbSelectTransactionsByUserId(peter.id, 25, 0, 'DESC', counterparty)
+    const [, bookings] = await dbSelectTransactionsByUserId(
+      peter.id,
+      25,
+      0,
+      Order.DESC,
+      counterparty,
+    )
 
     expect(contacts.count).toBe(1)
     expect(contacts.contacts[0].bookings).toBe(bookings)
@@ -336,7 +342,13 @@ describe('dbSelectContactsByUserId narrowed to one counterparty', () => {
     for (const [communityUuid, gradidoId] of everyone) {
       const counterparty = await withMember(communityUuid, gradidoId)
       const contacts = await contactFor(bibi.id, counterparty)
-      const [, bookings] = await dbSelectTransactionsByUserId(bibi.id, 25, 0, 'DESC', counterparty)
+      const [, bookings] = await dbSelectTransactionsByUserId(
+        bibi.id,
+        25,
+        0,
+        Order.DESC,
+        counterparty,
+      )
       expect(contacts.count).toBe(1)
       expect(contacts.contacts[0].bookings).toBe(bookings)
     }
@@ -345,10 +357,10 @@ describe('dbSelectContactsByUserId narrowed to one counterparty', () => {
 
 describe('dbSelectTransactionsByUserId narrowed to one counterparty', () => {
   const page = (userId: number, counterparty: Awaited<ReturnType<typeof withMember>>) =>
-    dbSelectTransactionsByUserId(userId, 25, 0, 'DESC', counterparty)
+    dbSelectTransactionsByUserId(userId, 25, 0, Order.DESC, counterparty)
 
   it('leaves the whole list alone when nobody is named', async () => {
-    const [rows, count] = await dbSelectTransactionsByUserId(bibi.id, 25, 0, 'DESC')
+    const [rows, count] = await dbSelectTransactionsByUserId(bibi.id, 25, 0, Order.DESC)
     // The creation, five local bookings, four foreign ones.
     expect(count).toBe(10)
     expect(rows).toHaveLength(10)
@@ -379,8 +391,8 @@ describe('dbSelectTransactionsByUserId narrowed to one counterparty', () => {
 
   it('pages the narrowed list, and the count stays the narrowed one', async () => {
     const peterRef = await withMember(peter.communityUuid as string, peter.gradidoID)
-    const [first, count] = await dbSelectTransactionsByUserId(bibi.id, 2, 0, 'DESC', peterRef)
-    const [second] = await dbSelectTransactionsByUserId(bibi.id, 2, 2, 'DESC', peterRef)
+    const [first, count] = await dbSelectTransactionsByUserId(bibi.id, 2, 0, Order.DESC, peterRef)
+    const [second] = await dbSelectTransactionsByUserId(bibi.id, 2, 2, Order.DESC, peterRef)
     expect(count).toBe(3)
     expect(first.map((row) => row.memo)).toEqual(['four', 'three'])
     expect(second.map((row) => row.memo)).toEqual(['one'])
