@@ -354,6 +354,15 @@ describe('useMatches', () => {
       expect(shown.channels.angebot[0].strength).toBe(0.595)
     })
 
+    // null is an answer, not a gap: the person has no text now. The match was read
+    // earlier from the same column, so its text is the older one.
+    it('lets a null about-me from the profile replace the older text of the match', () => {
+      const shown = withProfile(match(), toProfile(profileUser({ aboutMe: null })))
+
+      expect(match().aboutMe).toBe('Ich schraube gern an Rädern.')
+      expect(shown.aboutMe).toBeNull()
+    })
+
     it('keeps what the map knows and takes about-me from the profile', () => {
       const shown = withProfile(match(), toProfile(profileUser({ aboutMe: 'Neu geschrieben.' })))
 

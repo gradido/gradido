@@ -307,6 +307,9 @@ export function withProfile(person, profile) {
   return {
     ...person,
     community: person.community?.name ? person.community : profile.community,
+    // The profile's, null included: it is the newer read of the same column, and null
+    // says the person has no text now - the route always carries the field. Falling back
+    // to the match's text would show one they have just removed.
     aboutMe: profile.aboutMe,
     channels,
   }
