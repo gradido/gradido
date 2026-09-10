@@ -269,7 +269,7 @@ import 'leaflet-geosearch/dist/geosearch.css'
 import { listMatchingEntries, userLocationQuery } from '@/graphql/queries'
 import { useMatches, distanceKm, GMS_REJECTED } from '@/composables/useMatches'
 import { hasPosition as isPositionSet, isPlace } from '@/utils/matchingPosition'
-import { forgetLegacyMapPrefs, mapPrefPrefix } from '@/utils/matchingPrefs'
+import { mapPrefPrefix } from '@/utils/matchingPrefs'
 import { useEntryDraft } from '@/composables/useEntryDraft'
 import MatchQuery from '@/components/Matching/MatchQuery'
 import { useAppToast } from '@/composables/useToast'
@@ -348,12 +348,13 @@ const entryDraft = useEntryDraft()
 const store = useStore()
 const { toastError } = useAppToast()
 
-// Before the first read below, and in this order: sweep away what the flat prefix left on
-// this device, then take the prefix that belongs to whoever is signed in. Null where the
-// store cannot say -- then nothing is read and nothing is written, because a map on its
-// defaults is the honest answer to "whose settings are these?" and the old flat key was
-// the dishonest one.
-forgetLegacyMapPrefs()
+// The prefix that belongs to whoever is signed in. Null where the store cannot say -- then
+// nothing is read and nothing is written, because a map on its defaults is the honest
+// answer to "whose settings are these?" and the old flat key was the dishonest one.
+//
+// The sweep of those old flat keys used to stand here and now runs at sign-out, beside the
+// seven other things that must not outlive one member: an account without a position never
+// reaches this page, so on exactly those devices the old keys were never cleared.
 const prefPrefix = mapPrefPrefix(store.state.gradidoID)
 
 const mapContainer = ref(null)

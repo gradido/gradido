@@ -1245,7 +1245,13 @@ export class UserResolver {
       // reader of this field asks "is there a position?" and used to be told yes by an
       // empty object.
       result.userLocation = Point2Location(dbUser.location as Point)
-      logger.info('userLocation=', result)
+      // ⛔ Whether there is one, not where it is. This used to log the whole result, so
+      // every member's exact coordinates went into the backend log on every opening of the
+      // matching page and the map -- including the members who chose "approximate" or
+      // "random" precisely so the exact point would never leave the wallet.
+      logger.info(
+        `userLocation: member=${result.userLocation ? 'set' : 'none'}, community=${result.communityLocation ? 'set' : 'none'}`,
+      )
     } else {
       throw new LogError('userLocation missing valid user login-token')
     }

@@ -235,20 +235,17 @@ describe('MatchingMap', () => {
       expect(page.findComponent({ name: 'MatchList' }).exists()).toBe(false)
     })
 
-    // Removed, not carried across: nobody can say whose they were, and handing them to
-    // whoever opens the map first is the fault itself.
-    it('sweeps the flat keys off the device on the way in', async () => {
+    // The sweep of the old flat keys moved to sign-out (store.js, beside the seven other
+    // things that must not outlive one member), because an account without a position
+    // never reaches this page and its device was therefore never cleared. What matters
+    // here is only that the page ignores them, which the two cases above measure.
+    it("leaves the old flat keys where they are -- clearing them is the sign-out's job", async () => {
       flach('queryOfferNever', 'true')
-      flach('centerLabel', '"Gersdorfstrasse, Suedstadt"')
-      fremd('look', '"hell"')
 
       mountMap()
       await flushPromises()
 
-      expect(window.localStorage.getItem('pref.gms.map.queryOfferNever')).toBeNull()
-      expect(window.localStorage.getItem('pref.gms.map.centerLabel')).toBeNull()
-      // The other member's own key is not ours to remove -- only the nameless ones are.
-      expect(window.localStorage.getItem('pref.gms.map.somebody-else.look')).toBe('"hell"')
+      expect(window.localStorage.getItem('pref.gms.map.queryOfferNever')).toBe('true')
     })
   })
 
