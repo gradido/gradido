@@ -180,6 +180,29 @@ export function peakStage(channelStages) {
   )
 }
 
+/** Apple's floor for a tap target, in CSS pixels (= points on the iPhone). */
+export const HIT_MIN = 44
+
+/**
+ * The tap area of a marker: never smaller than the floor, never smaller than the disc.
+ * The disc itself keeps the size of its step, because the size carries the strength;
+ * an invisible area around it takes the tap. A step-1 disc of 20 px was next to
+ * impossible to hit on a phone (F-10, Bernd at his iPhone, 10.09.2026).
+ */
+export function hitSizeOf(discSize) {
+  return Math.max(discSize, HIT_MIN)
+}
+
+/**
+ * How near two points must be for a tap to be ambiguous: the largest tap area. Two tap
+ * areas overlap when their centres are closer than half their diameters added up, which
+ * is never more than the largest diameter - so within that radius the map zooms in
+ * instead of guessing whose area took the tap (F-10, Bernd, 10.09.2026).
+ */
+export function crowdRadiusOf(discSizes) {
+  return Math.max(...Object.values(discSizes).map(hitSizeOf))
+}
+
 /** Steps per channel for one person, honouring the channel filter. */
 /**
  * The strengths a person shows per channel, read off their entries.
