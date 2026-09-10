@@ -11,6 +11,7 @@ import {
   withoutMatched,
   GMS_UNAVAILABLE,
   GMS_REJECTED,
+  hasUsablePoint,
 } from './useMatches'
 
 // The Apollo client the composable asks for the token. `query` is a spy so a test
@@ -191,6 +192,53 @@ describe('useMatches', () => {
     })
   })
 
+  /**
+   * ⛔ The pair was taken on trust. `positionOf([])` gives `{lat: undefined, lng: undefined}`
+   * and `positionOf(null)` throws -- and both are shapes the wallet itself has been making:
+   * until 10.09.2026 a member with an empty position was published to the GMS at
+   * `location: []`, so it could come straight back.
+   */
+  describe('hasUsablePoint', () => {
+    it('is yes for a pair of numbers', () => {
+      expect(hasUsablePoint({ location: [9.69, 49.28] })).toBe(true)
+    })
+
+    it('is yes for a zero coordinate -- the prime meridian is a place', () => {
+      expect(hasUsablePoint({ location: [0, 51.5] })).toBe(true)
+    })
+
+    it.each([
+      ['an empty array -- the shape the wallet was publishing', []],
+      ['half a pair', [9.69]],
+      ['three of them', [9.69, 49.28, 100]],
+      ['nothing at all', null],
+      ['not an array', { lat: 1, lng: 2 }],
+      ['numbers that came as text', ['9.69', '49.28']],
+    ])('is no for %s', (_name, location) => {
+      expect(hasUsablePoint({ location })).toBe(false)
+    })
+
+    // The GMS is a foreign system: nothing our own backend validates protects what comes
+    // BACK from it. A latitude of 91 is finite and is not a place; drawn, it lands off the
+    // globe.
+    it.each([
+      ['a latitude past the pole', [9.69, 91]],
+      ['a longitude past the meridian', [181, 49.28]],
+      ['both past', [-181, -91]],
+    ])('is no for %s, finite though it is', (_name, location) => {
+      expect(hasUsablePoint({ location })).toBe(false)
+    })
+
+    it('is yes at the ends of the globe', () => {
+      expect(hasUsablePoint({ location: [180, 90] })).toBe(true)
+      expect(hasUsablePoint({ location: [-180, -90] })).toBe(true)
+    })
+
+    it('is no for a person that is not there', () => {
+      expect(hasUsablePoint(undefined)).toBe(false)
+    })
+  })
+
   describe('withoutMatched', () => {
     it('drops the people the matches route already returned', () => {
       const marta = mapUser({ id: 1, alias: 'Marta', location: [9.69, 49.28] })
@@ -317,6 +365,35 @@ describe('useMatches', () => {
           'Bearer tok-1',
         ],
       ])
+    })
+
+    // A person the GMS answers with but nobody can place is dropped, not drawn: an
+    // undefined pair makes every distance NaN, and a NaN comparator leaves sort free to
+    // order as it likes. `null` would throw inside the try and come out as "not
+    // reachable", while the GMS answered 200.
+    it('leaves out the people it could not place, rather than drawing them at nothing', async () => {
+      fetchMock.mockImplementation(async (url) => {
+        if (url.includes('community-user/matches')) {
+          return okJson([
+            matchedUser(),
+            matchedUser({ uuid: 'ohne-ort', alias: 'Ohne', location: [] }),
+            // ⚠️ The alias is shared with one of the rings below ON PURPOSE. withoutMatched
+            // compares the alias FIRST and `&&` short-circuits, so a person without a place
+            // is only ever dereferenced when somebody else carries the same name -- and a
+            // fixture without that collision passes whether the filtering is in the right
+            // order or not. It was, until coderabbit named it on 10.09.2026.
+            matchedUser({ uuid: 'gar-nichts', alias: 'Paul', location: null }),
+          ])
+        }
+        return okJson([mapUser(), mapUser({ id: 8, alias: 'Leer', location: [] })])
+      })
+      const { matches, presence, error, load } = useMatches()
+      await load(SEARCH)
+
+      expect(matches.value).toHaveLength(1)
+      expect(presence.value).toHaveLength(1)
+      // ...and no error: the GMS answered, and what it sent that could be placed is shown.
+      expect(error.value).toBeNull()
     })
 
     it('hands the map the matches and the rings, minus the people who glow', async () => {

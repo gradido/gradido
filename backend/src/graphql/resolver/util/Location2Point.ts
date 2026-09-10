@@ -1,6 +1,8 @@
 import { Location } from '@model/Location'
 import { Point } from 'typeorm'
 
+import { isUsableLocation } from '@/data/Location.logic'
+
 export function Location2Point(location: Location): Point {
   let pointStr: string
   // Number.isFinite, not truthiness: zero is a coordinate like any other, and the
@@ -37,12 +39,13 @@ export function Point2Location(point: Point | null | undefined): Location | null
   if (point?.type !== 'Point' || point.coordinates?.length !== 2) {
     return null
   }
-  const [longitude, latitude] = point.coordinates
-  if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
-    return null
-  }
   const location = new Location()
-  location.longitude = longitude
-  location.latitude = latitude
-  return location
+  location.longitude = point.coordinates[0]
+  location.latitude = point.coordinates[1]
+  // The same rule the writing side uses, so the two ends cannot disagree about what a
+  // position is. It matters here and not only there: the range check is new (10.09.2026)
+  // and rows written before it can hold a latitude of 91, which is finite and not a place.
+  // Read as null they are published to the GMS as "place me at random" rather than drawn
+  // at a point off the globe.
+  return isUsableLocation(location) ? location : null
 }
