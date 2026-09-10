@@ -166,6 +166,17 @@ describe('MatchProfile', () => {
     const shown = wrapper.findAll('.entry-summary').map((s) => s.text())
     expect(shown).toEqual(['Treffer B', 'Treffer C', 'Treffer A'])
     expect(wrapper.find('.more-btn').text()).toBe('2 weitere')
+
+    // Three matches and nothing else: all open, and no "0 weitere" under them.
+    const onlyMatches = mountProfile(
+      baseMatch({
+        channels: {
+          angebot: [entry('m1', 'A', 0.46), entry('m2', 'B', 0.865), entry('m3', 'C', 0.595)],
+        },
+      }),
+    )
+    expect(onlyMatches.findAll('.entry-summary')).toHaveLength(3)
+    expect(onlyMatches.find('.more-btn').exists()).toBe(false)
   })
 
   it('stands a single match open beside the newest of the rest', () => {

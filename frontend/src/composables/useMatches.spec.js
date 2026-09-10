@@ -361,13 +361,37 @@ describe('useMatches', () => {
       expect(offers.map((entry) => entry.uuid)).toEqual([UUID.entry])
     })
 
-    it('gives it the strongest pair and names every entry of mine, strongest first', () => {
-      const [offer] = forWindow(answeringTwo()).channels.angebot
+    it('gives it the strongest pair wherever it stands, and names every entry of mine, strongest first', () => {
+      const brightFirst = answeringTwo()
+      const dimFirst = {
+        ...brightFirst,
+        channels: { angebot: [...brightFirst.channels.angebot].reverse() },
+      }
 
-      expect(offer.strength).toBe(0.865)
-      expect(offer.matchedEntryUuid).toBe(UUID.mineToo)
-      expect(offer.matchedSubject).toBe('rad')
-      expect(offer.mine).toEqual([UUID.mineToo, UUID.mine])
+      for (const match of [brightFirst, dimFirst]) {
+        const [offer] = forWindow(match).channels.angebot
+        expect(offer.strength).toBe(0.865)
+        expect(offer.matchedEntryUuid).toBe(UUID.mineToo)
+        expect(offer.matchedSubject).toBe('rad')
+        expect(offer.mine).toEqual([UUID.mineToo, UUID.mine])
+      }
+    })
+
+    it('names an entry of mine once, should two pairs name it', () => {
+      const entry = matchedUser().channels[0].matches[0]
+      const twice = toMatch(
+        matchedUser({
+          channels: [
+            {
+              matchingType: 'offer',
+              strength: 0.73,
+              matches: [entry, { ...entry, strength: 0.73 }],
+            },
+          ],
+        }),
+      )
+
+      expect(forWindow(twice).channels.angebot[0].mine).toEqual([UUID.mine])
     })
 
     // The bike dealer: two offers of his on one need of mine are two entries in his profile.
