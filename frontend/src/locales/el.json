@@ -646,6 +646,7 @@
     },
     "profile": {
       "aria": "Προφίλ: {name}",
+      "matchesMine": "ταιριάζει με",
       "more": "{n} ακόμη",
       "sendEmail": "Αποστολή email",
       "sendGradido": "Αποστολή Gradido",

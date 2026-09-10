@@ -646,6 +646,7 @@
     },
     "profile": {
       "aria": "{name} profili",
+      "matchesMine": "şununla örtüşüyor",
       "more": "{n} tane daha",
       "sendEmail": "E-posta gönder",
       "sendGradido": "Gradido gönder",

@@ -250,7 +250,7 @@
          opens the same one, only with nothing standing open. -->
     <MatchProfile
       :model-value="profileOpen"
-      :match="activeMatch"
+      :match="windowMatch"
       @update:model-value="onProfileModel"
     />
   </div>
@@ -267,7 +267,14 @@ import 'leaflet/dist/leaflet.css'
 import { GeoSearchControl, OpenStreetMapProvider } from 'leaflet-geosearch'
 import 'leaflet-geosearch/dist/geosearch.css'
 import { listMatchingEntries, userLocationQuery } from '@/graphql/queries'
-import { useMatches, distanceKm, withProfile, GMS_REJECTED } from '@/composables/useMatches'
+import {
+  useMatches,
+  distanceKm,
+  forWindow,
+  withMine,
+  withProfile,
+  GMS_REJECTED,
+} from '@/composables/useMatches'
 import { hasPosition as isPositionSet, isPlace } from '@/utils/matchingPosition'
 import { mapPrefPrefix } from '@/utils/matchingPrefs'
 import { useEntryDraft } from '@/composables/useEntryDraft'
@@ -546,6 +553,10 @@ const searchQuery = computed(() =>
 // back to the map AND to whoever you were looking at.
 const profileOpen = ref(false)
 const activeMatch = ref(null)
+// What the window shows: the person, and under each matched entry the entries of mine it
+// answers (withMine). Computed, not set once, so the lines come even when my entries
+// arrive after the window has opened.
+const windowMatch = computed(() => withMine(activeMatch.value, myEntries.value))
 const clusterOpen = ref(false)
 const activeCluster = ref([])
 // True while zoomed into a cluster: the map is centred on the crowd, not on the
@@ -1044,13 +1055,14 @@ let profileRequest = 0
  * window for all of them (GMS-111).
  *
  * It opens at once with what the map knows - a match with the entries that answer me,
- * a ring with a name and a community - and then fills in everything the person
- * published from the profile route, the matched entries keeping their strength
- * (withProfile). If the route does not answer, the window stays as it opened and a
- * toast says the rest could not be loaded.
+ * each entry of theirs once however many of mine it answers (forWindow), a ring with a
+ * name and a community - and then fills in everything the person published from the
+ * profile route, the matched entries keeping their strength (withProfile). If the route
+ * does not answer, the window stays as it opened and a toast says the rest could not
+ * be loaded.
  */
 function openProfile(person) {
-  activeMatch.value = person
+  activeMatch.value = forWindow(person)
   profileOpen.value = true
   writePref('profile', person.uuid)
   fillProfile(person)

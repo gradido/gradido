@@ -9,6 +9,8 @@ import {
   toMatch,
   toPresence,
   toProfile,
+  forWindow,
+  withMine,
   withProfile,
   withoutMatched,
   GMS_UNAVAILABLE,
@@ -39,6 +41,7 @@ const UUID = {
   paul: '5b1f0a1e-0000-4000-8000-000000000005',
   other: '5b1f0a1e-0000-4000-8000-000000000006',
   newest: '5b1f0a1e-0000-4000-8000-000000000007',
+  mineToo: '5b1f0a1e-0000-4000-8000-000000000008',
 }
 
 function matchedUser(over = {}) {
@@ -330,8 +333,106 @@ describe('useMatches', () => {
     })
   })
 
+  // The matches route sends a record per pair, so an offer that answers two of my entries
+  // comes twice: the bright pair first, the dim one last.
+  const answeringTwo = () => {
+    const entry = matchedUser().channels[0].matches[0]
+    return toMatch(
+      matchedUser({
+        channels: [
+          {
+            matchingType: 'offer',
+            strength: 0.865,
+            matches: [
+              { ...entry, strength: 0.865, matchedEntryUuid: UUID.mineToo, matchedSubject: 'rad' },
+              { ...entry, strength: 0.46 },
+            ],
+          },
+        ],
+      }),
+    )
+  }
+
+  describe('forWindow', () => {
+    it('lists an entry of theirs once, however many of mine it answers', () => {
+      expect(answeringTwo().channels.angebot).toHaveLength(2)
+
+      const offers = forWindow(answeringTwo()).channels.angebot
+      expect(offers.map((entry) => entry.uuid)).toEqual([UUID.entry])
+    })
+
+    it('gives it the strongest pair and names every entry of mine, strongest first', () => {
+      const [offer] = forWindow(answeringTwo()).channels.angebot
+
+      expect(offer.strength).toBe(0.865)
+      expect(offer.matchedEntryUuid).toBe(UUID.mineToo)
+      expect(offer.matchedSubject).toBe('rad')
+      expect(offer.mine).toEqual([UUID.mineToo, UUID.mine])
+    })
+
+    // The bike dealer: two offers of his on one need of mine are two entries in his profile.
+    it('keeps apart two entries of theirs that answer the same entry of mine', () => {
+      const entry = matchedUser().channels[0].matches[0]
+      const dealer = toMatch(
+        matchedUser({
+          channels: [
+            {
+              matchingType: 'offer',
+              strength: 0.595,
+              matches: [entry, { ...entry, uuid: UUID.newest, summary: 'Lastenrad leihen' }],
+            },
+          ],
+        }),
+      )
+
+      expect(forWindow(dealer).channels.angebot.map((offer) => [offer.uuid, offer.mine])).toEqual([
+        [UUID.entry, [UUID.mine]],
+        [UUID.newest, [UUID.mine]],
+      ])
+    })
+
+    it('names no entry of mine for a typed question', () => {
+      const entry = { ...matchedUser().channels[0].matches[0], matchedEntryUuid: null }
+      const typed = toMatch(
+        matchedUser({ channels: [{ matchingType: 'offer', strength: 0.595, matches: [entry] }] }),
+      )
+
+      expect(forWindow(typed).channels.angebot[0].mine).toEqual([])
+    })
+
+    it('leaves the map its pairs', () => {
+      const match = answeringTwo()
+      const shown = forWindow(match)
+
+      expect(shown.scores).toEqual(match.scores)
+      expect(match.channels.angebot).toHaveLength(2)
+    })
+
+    it('opens a ring, which has no channels, with none', () => {
+      expect(forWindow(toPresence(mapUser())).channels).toEqual({})
+    })
+  })
+
   describe('withProfile', () => {
     const match = () => toMatch(matchedUser())
+
+    // Bauauftrag D: the profile lists the offer once, the map held it twice - and the
+    // window used to keep whichever pair came last, here the dim one and one of my two.
+    it('keeps both of my entries and the stronger pair when one entry answers two', () => {
+      const offers = withProfile(answeringTwo(), toProfile(profileUser())).channels.angebot
+      const repair = offers.filter((entry) => entry.uuid === UUID.entry)
+
+      expect(repair).toHaveLength(1)
+      expect(repair[0].strength).toBe(0.865)
+      expect(repair[0].mine).toEqual([UUID.mineToo, UUID.mine])
+    })
+
+    it('lists a matched entry the profile does not know once, too', () => {
+      const offers = withProfile(answeringTwo(), toProfile(profileUser({ entries: [] }))).channels
+        .angebot
+
+      expect(offers.map((entry) => [entry.uuid, entry.strength])).toEqual([[UUID.entry, 0.865]])
+    })
 
     // Bernd, 10.09.2026: a match opens the whole person, not only what answers me - the
     // matched entry keeps its strength, everything else comes without one.
@@ -384,6 +485,59 @@ describe('useMatches', () => {
           .flat()
           .every((entry) => entry.strength == null),
       ).toBe(true)
+    })
+  })
+
+  describe('withMine', () => {
+    // My own entries as listMatchingEntries hands them to the map, in the words the wallet
+    // stores (`offer | need | interest`).
+    const myEntries = [
+      {
+        uuid: UUID.mine,
+        matchingType: 'need',
+        summary: 'einen Fahrradmechaniker',
+        details: null,
+        remote: false,
+        active: true,
+        createdAt: '2026-09-01T10:00:00.000Z',
+      },
+      {
+        uuid: UUID.mineToo,
+        matchingType: 'interest',
+        summary: 'Lastenräder',
+        details: null,
+        remote: false,
+        active: true,
+        createdAt: '2026-09-02T10:00:00.000Z',
+      },
+    ]
+
+    it('names the sentence of every entry of mine a match answers, strongest first', () => {
+      const [offer] = withMine(forWindow(answeringTwo()), myEntries).channels.angebot
+
+      expect(offer.matches).toEqual([
+        { uuid: UUID.mineToo, matchingType: 'interest', summary: 'Lastenräder' },
+        { uuid: UUID.mine, matchingType: 'need', summary: 'einen Fahrradmechaniker' },
+      ])
+    })
+
+    it('passes over an entry of mine that is gone since the search', () => {
+      const [offer] = withMine(forWindow(answeringTwo()), [myEntries[0]]).channels.angebot
+
+      expect(offer.matches).toEqual([
+        { uuid: UUID.mine, matchingType: 'need', summary: 'einen Fahrradmechaniker' },
+      ])
+    })
+
+    it('gives an entry nothing matched no lines', () => {
+      const shown = withMine(withProfile(answeringTwo(), toProfile(profileUser())), myEntries)
+      const newest = shown.channels.angebot.find((entry) => entry.uuid === UUID.newest)
+
+      expect(newest.matches).toBeUndefined()
+    })
+
+    it('has nothing to show while no window is open', () => {
+      expect(withMine(null, myEntries)).toBeNull()
     })
   })
 

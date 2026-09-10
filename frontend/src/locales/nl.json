@@ -646,6 +646,7 @@
     },
     "profile": {
       "aria": "Profiel van {name}",
+      "matchesMine": "past bij",
       "more": "nog {n}",
       "sendEmail": "E-mail versturen",
       "sendGradido": "Gradido versturen",

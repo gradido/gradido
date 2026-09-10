@@ -1,9 +1,10 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
-  <!-- The window is the person's profile, not an explanation of the match. It
-       shows what they published and nothing else; the match only decides what
-       stands open. One window, not two: a grey ring is the same window with no
-       open areas. See GMS-111. -->
+  <!-- The window is the person's profile: what they published, and nothing else of
+       theirs. The match decides what stands open and says why - a dot before each
+       entry that matches, and under it the entry of mine it answers (Bernd,
+       10.09.2026; GMS-111 had left that out). One window, not two: a grey ring is
+       the same window with no open areas. See GMS-111. -->
   <BModal
     :model-value="modelValue"
     :aria-label="match ? $t('matching.profile.aria', { name: match.name }) : ''"
@@ -49,19 +50,35 @@
           <ul class="entry-list">
             <li v-for="entry in shownEntries(area)" :key="entry.uuid" class="entry">
               <div class="entry-line">
-                <span class="entry-summary">{{ entry.summary }}</span>
+                <!-- A match wears a dot, drawn by the stylesheet before the sentence
+                     (.has-dot): its size, colour and brightness come in as variables. -->
+                <span
+                  class="entry-summary"
+                  :class="{ 'is-match': entry.strength != null, 'has-dot': stageOf(entry) > 0 }"
+                  :style="dotStyle(area.key, entry)"
+                >
+                  {{ entry.summary }}
+                </span>
                 <span v-if="entry.remote" class="remote-badge">
                   {{ $t('matching.entries.remote') }}
                 </span>
               </div>
               <div v-if="entry.details" class="entry-details">{{ entry.details }}</div>
+              <!-- Why it matches: each entry of mine it answers, stem and sentence. -->
+              <div v-for="mine in entry.matches" :key="mine.uuid" class="entry-mine">
+                {{ $t('matching.profile.matchesMine') }}
+                <em class="mine-sentence">
+                  {{ $t(`matching.type.${displayType(mine.matchingType)}.prefix`) }}
+                  {{ mine.summary }}
+                </em>
+              </div>
             </li>
           </ul>
 
           <!-- "X more" presupposes a before, so it only appears where something
                already stands open. Over an empty area it would be wrong. -->
           <button
-            v-if="!areaExpanded[area.key] && area.count > SHOWN"
+            v-if="!areaExpanded[area.key] && moreCount(area) > 0"
             type="button"
             class="more-btn"
             @click="areaExpanded[area.key] = true"
@@ -95,13 +112,22 @@
 <script setup>
 import { computed, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { LABEL_COLORS } from '@/components/Matching/displayCore'
+import {
+  DEFAULTS,
+  LABEL_COLORS,
+  displayType,
+  scoreToStage,
+} from '@/components/Matching/displayCore'
 import CollapseIcon from '@/components/TransactionRows/CollapseIcon'
 
 // Heart first, then offer, then need — GMS-82's "Herz zuerst".
 const CHANNEL_ORDER = ['interesse', 'angebot', 'gesuch']
-// How many entries stand open in an area before "X more" folds the rest.
+// How many entries stand open in an area at the least; every match stands open beyond
+// it, and "X more" folds only the rest (openCount).
 const SHOWN = 2
+// The dot of a matched entry grows with its step, like the glow on the map, brought
+// down to the size of a line of text.
+const DOT_SIZE = [8, 9, 10, 12]
 // An honest ceiling, not pagination: thirty entries are ~3 KB, so blattering is
 // a tool without an opponent — but a runaway list still gets cut, plainly.
 const MAX_ENTRIES = 100
@@ -129,10 +155,12 @@ const areas = computed(() => {
   for (const key of CHANNEL_ORDER) {
     const entries = props.match.channels?.[key]
     if (!entries || !entries.length) continue
+    const matchedCount = entries.filter((e) => e.strength != null).length
     out.push({
       key,
       count: entries.length,
-      hasMatch: entries.some((e) => e.strength != null),
+      matchedCount,
+      hasMatch: matchedCount > 0,
       sorted: sortEntries(entries),
     })
   }
@@ -165,13 +193,36 @@ function dotColor(key) {
   return LABEL_COLORS[key]
 }
 
+/** The step of a matched entry as the map glows it; 0 for anything the map would not draw. */
+function stageOf(entry) {
+  return scoreToStage(entry.strength)
+}
+
+/** What the stylesheet needs to draw the dot of a match; nothing for an entry without one. */
+function dotStyle(key, entry) {
+  const stage = stageOf(entry)
+  if (!stage) return null
+  return {
+    '--dot-size': `${DOT_SIZE[stage - 1]}px`,
+    '--dot-color': dotColor(key),
+    '--dot-opacity': DEFAULTS.stageBright[stage - 1],
+  }
+}
+
+// Everything that matches stands open, and never fewer than SHOWN: a single match stands
+// beside the newest of the rest (Bernd, 10.09.2026). Before, the first two stood open
+// even when three matched, and the third lay behind "X more".
+function openCount(area) {
+  return Math.max(SHOWN, area.matchedCount)
+}
+
 function shownEntries(area) {
   const capped = area.sorted.slice(0, MAX_ENTRIES)
-  return areaExpanded[area.key] ? capped : capped.slice(0, SHOWN)
+  return areaExpanded[area.key] ? capped : capped.slice(0, openCount(area))
 }
 
 function moreCount(area) {
-  return Math.min(area.count, MAX_ENTRIES) - SHOWN
+  return Math.min(area.count, MAX_ENTRIES) - openCount(area)
 }
 
 function toSend(art) {
@@ -295,6 +346,43 @@ function toSend(art) {
   font-size: 15px;
   color: var(--text);
   word-break: break-word;
+}
+
+/* A match reads a shade heavier than the rest of the list. */
+.entry-summary.is-match {
+  font-weight: 600;
+}
+
+/* The dot of a match sits in the list's indent, centred under the area's own dot: a
+   12 px column 22 px left of the sentence (the head's 12 px dot and its 10 px gap, which
+   is the indent of .entry-list). Its margins and its width add up to nothing, so the
+   sentence stays where it is. Drawn before the first letter, so it stays on the first
+   line of a long sentence; `middle` centres it on the letters. */
+.entry-summary.has-dot::before {
+  content: '';
+  display: inline-block;
+  width: var(--dot-size);
+  height: var(--dot-size);
+  margin-right: calc(16px - var(--dot-size) / 2);
+  margin-left: calc((12px - var(--dot-size)) / 2 - 22px);
+  border-radius: 50%;
+  background: var(--dot-color);
+  opacity: var(--dot-opacity);
+  vertical-align: middle;
+}
+
+/* Why it matches: my own entry, in the voice of a note - muted, the sentence in
+   italics - so the person's own words stay the loudest thing in the window. */
+.entry-mine {
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  word-break: break-word;
+}
+
+.mine-sentence {
+  font-weight: 400;
 }
 
 .remote-badge {

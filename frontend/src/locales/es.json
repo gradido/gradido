@@ -646,6 +646,7 @@
     },
     "profile": {
       "aria": "Perfil de {name}",
+      "matchesMine": "coincide con",
       "more": "{n} más",
       "sendEmail": "Enviar correo electrónico",
       "sendGradido": "Enviar Gradido",
