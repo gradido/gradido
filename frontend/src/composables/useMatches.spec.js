@@ -210,11 +210,28 @@ describe('useMatches', () => {
     it.each([
       ['an empty array -- the shape the wallet was publishing', []],
       ['half a pair', [9.69]],
+      ['three of them', [9.69, 49.28, 100]],
       ['nothing at all', null],
       ['not an array', { lat: 1, lng: 2 }],
       ['numbers that came as text', ['9.69', '49.28']],
     ])('is no for %s', (_name, location) => {
       expect(hasUsablePoint({ location })).toBe(false)
+    })
+
+    // The GMS is a foreign system: nothing our own backend validates protects what comes
+    // BACK from it. A latitude of 91 is finite and is not a place; drawn, it lands off the
+    // globe.
+    it.each([
+      ['a latitude past the pole', [9.69, 91]],
+      ['a longitude past the meridian', [181, 49.28]],
+      ['both past', [-181, -91]],
+    ])('is no for %s, finite though it is', (_name, location) => {
+      expect(hasUsablePoint({ location })).toBe(false)
+    })
+
+    it('is yes at the ends of the globe', () => {
+      expect(hasUsablePoint({ location: [180, 90] })).toBe(true)
+      expect(hasUsablePoint({ location: [-180, -90] })).toBe(true)
     })
 
     it('is no for a person that is not there', () => {
@@ -360,7 +377,12 @@ describe('useMatches', () => {
           return okJson([
             matchedUser(),
             matchedUser({ uuid: 'ohne-ort', alias: 'Ohne', location: [] }),
-            matchedUser({ uuid: 'gar-nichts', alias: 'Nichts', location: null }),
+            // ⚠️ The alias is shared with one of the rings below ON PURPOSE. withoutMatched
+            // compares the alias FIRST and `&&` short-circuits, so a person without a place
+            // is only ever dereferenced when somebody else carries the same name -- and a
+            // fixture without that collision passes whether the filtering is in the right
+            // order or not. It was, until coderabbit named it on 10.09.2026.
+            matchedUser({ uuid: 'gar-nichts', alias: 'Paul', location: null }),
           ])
         }
         return okJson([mapUser(), mapUser({ id: 8, alias: 'Leer', location: [] })])
