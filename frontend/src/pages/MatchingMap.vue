@@ -269,6 +269,7 @@ import 'leaflet-geosearch/dist/geosearch.css'
 import { listMatchingEntries, userLocationQuery } from '@/graphql/queries'
 import { useMatches, distanceKm, GMS_REJECTED } from '@/composables/useMatches'
 import { hasPosition as isPositionSet, isPlace } from '@/utils/matchingPosition'
+import { forgetLegacyMapPrefs, mapPrefPrefix } from '@/utils/matchingPrefs'
 import { useEntryDraft } from '@/composables/useEntryDraft'
 import MatchQuery from '@/components/Matching/MatchQuery'
 import { useAppToast } from '@/composables/useToast'
@@ -299,13 +300,17 @@ const OTHERS = ['andereMit', 'andereOhne']
 // the coarser of the two ends always wins (describeDistance).
 const MY_PRECISION = 'genau'
 
-// Everything the map remembers lives under `pref.`, written straight to
-// localStorage rather than into the persisted-state blob. That is what makes it
-// survive a logout: logout removes only this app's own blob ('gradido-frontend',
-// see store/store.js), so a key outside it is left alone. All of it belongs
-// there: the auto-logout is rarely a decision the member made, and there is no
-// sense in punishing them for it by forgetting where they were searching.
-const PREF = 'pref.gms.map.'
+// Everything the map remembers is written straight to localStorage rather than into
+// the persisted-state blob, so it survives a logout: logout removes only this app's
+// own blob ('gradido-frontend', see store/store.js) and leaves keys outside it alone.
+// That is deliberate -- the auto-logout is rarely a decision the member made, and
+// there is no sense in punishing them for it by forgetting where they were searching.
+//
+// ⛔ But it used to survive INTO THE NEXT MEMBER as well: one flat prefix for the whole
+// device, with nobody in it. Bernd found it on 10.09.2026 -- a keep-offer he switched
+// off once stayed off for every account after, and a second account was carrying the
+// street name of the one before it. The prefix carries the gradidoID now; see
+// utils/matchingPrefs.
 const DEFAULT_RADIUS = 25
 const MAX_RADIUS = 20000
 // Leaflet wants a zoom to construct with. The real one arrives a tick later,
@@ -342,6 +347,14 @@ const router = useRouter()
 const entryDraft = useEntryDraft()
 const store = useStore()
 const { toastError } = useAppToast()
+
+// Before the first read below, and in this order: sweep away what the flat prefix left on
+// this device, then take the prefix that belongs to whoever is signed in. Null where the
+// store cannot say -- then nothing is read and nothing is written, because a map on its
+// defaults is the honest answer to "whose settings are these?" and the old flat key was
+// the dishonest one.
+forgetLegacyMapPrefs()
+const prefPrefix = mapPrefPrefix(store.state.gradidoID)
 
 const mapContainer = ref(null)
 const look = ref(readLook())
@@ -691,9 +704,25 @@ onResult(({ data }) => {
 })
 onError((error) => toastError(error.message))
 
+/**
+ * Where one setting lives, or null where there is nobody to attribute it to.
+ *
+ * ⛔ The rule in one place, so both seams keep it: no member, no key. Gluing `null` to the
+ * setting name would build `nullmode`, `nullcenter` -- and those are ordinary keys on an
+ * origin the wallet SHARES with the admin, so they can be written and read by something
+ * that is not this page. Reading one would hand an anonymous map somebody else's state;
+ * writing one would litter the browser with settings nobody can attribute or ever clear.
+ * Both are the flat prefix again, in a new costume.
+ */
+function prefKey(key) {
+  return prefPrefix ? prefPrefix + key : null
+}
+
 function readPref(key, fallback) {
+  const storageKey = prefKey(key)
+  if (!storageKey) return fallback
   try {
-    const raw = window.localStorage?.getItem(PREF + key)
+    const raw = window.localStorage?.getItem(storageKey)
     return raw ? JSON.parse(raw) : fallback
   } catch {
     // A stale or hand-edited value must not take the map down with it.
@@ -702,8 +731,10 @@ function readPref(key, fallback) {
 }
 
 function writePref(key, value) {
+  const storageKey = prefKey(key)
+  if (!storageKey) return
   try {
-    window.localStorage?.setItem(PREF + key, JSON.stringify(value))
+    window.localStorage?.setItem(storageKey, JSON.stringify(value))
   } catch {
     // Storage full or blocked: losing the preference beats losing the map.
   }

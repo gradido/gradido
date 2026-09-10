@@ -379,6 +379,7 @@ import {
   hasPosition as isPositionSet,
   mayFind,
 } from '@/utils/matchingPosition'
+import { mapPrefPrefix } from '@/utils/matchingPrefs'
 import UserGMSLocationFormat from '@/components/UserSettings/UserGMSLocationFormat'
 import UserLocationMap from '@/components/UserSettings/UserLocationMap'
 import UserSettingsSwitch from '@/components/UserSettings/UserSettingsSwitch'
@@ -715,9 +716,14 @@ const showFind = ref(false)
 // The button follows the saved view: come back to the list and it invites you back
 // to the list, not the map. Read once — the mode is set over on the map page, and
 // this page mounts fresh when you return, so a plain read is enough.
+// Keyed by the member, like everything the map remembers since 10.09.2026 -- reading the
+// flat key here would show this member the look the PREVIOUS one left on the device, and
+// it is the second reader of that key, which is exactly how such a change goes half done.
 function readMapMode() {
+  const prefix = mapPrefPrefix(store.state.gradidoID)
+  if (!prefix) return 'karte'
   try {
-    const raw = window.localStorage?.getItem('pref.gms.map.mode')
+    const raw = window.localStorage?.getItem(`${prefix}mode`)
     return raw ? JSON.parse(raw) : 'karte'
   } catch {
     return 'karte'

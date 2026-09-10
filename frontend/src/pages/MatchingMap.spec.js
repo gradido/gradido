@@ -81,9 +81,14 @@ vi.mock('leaflet-geosearch', () => ({
 
 const i18n = createI18n({ legacy: false, locale: 'de', messages: { de } })
 
+// Since 10.09.2026 every map setting hangs under the member, not under the browser -- so
+// a test that seeds one has to seed it where THIS member would look.
+const MEMBER = 'a-member'
+const KEY = `pref.gms.map.${MEMBER}.`
+
 const makeStore = (gmsAllowed) =>
   createStore({
-    state: { gradidoID: 'a-member', gmsAllowed, userLocation: { latitude: 48.2, longitude: 11.6 } },
+    state: { gradidoID: MEMBER, gmsAllowed, userLocation: { latitude: 48.2, longitude: 11.6 } },
     mutations: {
       userLocation: (state, value) => {
         state.userLocation = value
@@ -108,10 +113,10 @@ const entry = (uuid) => ({
 
 let wrapper = null
 
-const mountMap = ({ gmsAllowed = true } = {}) => {
+const mountMap = ({ gmsAllowed = true, store = makeStore(gmsAllowed) } = {}) => {
   wrapper = mount(MatchingMap, {
     global: {
-      plugins: [makeStore(gmsAllowed), i18n],
+      plugins: [store, i18n],
       stubs: { MatchQuery: true, MatchProfile: true, MatchList: true },
     },
   })
@@ -158,6 +163,95 @@ describe('MatchingMap', () => {
     })
   })
 
+  // ⛔ 10.09.2026, found by Bernd at the device: every map setting hung under one flat
+  // prefix with no member in it, so it belonged to the BROWSER. He switched the keep-offer
+  // off once and it stayed off for every account after; a second account carried the street
+  // name of the one before it. The sign-out action already clears seven such things, each
+  // with the same sentence -- the map page was simply not on that list.
+  describe('whose settings the map opens with', () => {
+    const flach = (name, value) => window.localStorage.setItem(`pref.gms.map.${name}`, value)
+    const fremd = (name, value) =>
+      window.localStorage.setItem(`pref.gms.map.somebody-else.${name}`, value)
+    const listenAnsicht = (page) => page.findComponent({ name: 'MatchList' }).exists()
+
+    // The control: this member's own key IS read, so the silence below means the page
+    // ignored the others rather than that it reads nothing at all.
+    it('opens with what THIS member set', async () => {
+      window.localStorage.setItem(`${KEY}mode`, JSON.stringify('liste'))
+      const page = mountMap()
+      await page.vm.$nextTick()
+
+      expect(listenAnsicht(page)).toBe(true)
+    })
+
+    it('does not open with what the device was left in', async () => {
+      flach('mode', JSON.stringify('liste'))
+      const page = mountMap()
+      await page.vm.$nextTick()
+
+      expect(listenAnsicht(page)).toBe(false)
+    })
+
+    it('does not open with what another member set', async () => {
+      fremd('mode', JSON.stringify('liste'))
+      const page = mountMap()
+      await page.vm.$nextTick()
+
+      expect(listenAnsicht(page)).toBe(false)
+    })
+
+    // ⛔ And the case with no member at all: the store has not filled yet, or filled
+    // without the id. There is no honest key then -- the flat one is the fault, and a
+    // made-up one (`null` glued to the setting name) would litter the browser with keys
+    // nobody can attribute or clean up. So: read nothing, write nothing, open on defaults.
+    it('writes nothing at all when the store cannot say who is signed in', async () => {
+      const namenlos = createStore({
+        state: { gmsAllowed: true, userLocation: { latitude: 48.2, longitude: 11.6 } },
+        mutations: { userLocation: () => {} },
+      })
+      const page = mountMap({ store: namenlos })
+
+      fire(userLocationQuery, { userLocation: location })
+      await flushPromises()
+
+      expect(Object.keys(window.localStorage)).toEqual([])
+      // ...and the map is built all the same, on its defaults.
+      expect(load).toHaveBeenCalled()
+    })
+
+    // The other half of the same rule, and the one my own comment got wrong: `null` glued
+    // to a setting name gives `nullmode`, an ordinary key on an origin the wallet SHARES
+    // with the admin. It cannot be written from here -- but "nothing on this origin ever
+    // writes it" is a claim about every program on it, and not one this page can make.
+    it('reads nothing either when the store cannot say who is signed in', async () => {
+      window.localStorage.setItem('nullmode', JSON.stringify('liste'))
+      const namenlos = createStore({
+        state: { gmsAllowed: true, userLocation: { latitude: 48.2, longitude: 11.6 } },
+        mutations: { userLocation: () => {} },
+      })
+      const page = mountMap({ store: namenlos })
+      await page.vm.$nextTick()
+
+      expect(page.findComponent({ name: 'MatchList' }).exists()).toBe(false)
+    })
+
+    // Removed, not carried across: nobody can say whose they were, and handing them to
+    // whoever opens the map first is the fault itself.
+    it('sweeps the flat keys off the device on the way in', async () => {
+      flach('queryOfferNever', 'true')
+      flach('centerLabel', '"Gersdorfstrasse, Suedstadt"')
+      fremd('look', '"hell"')
+
+      mountMap()
+      await flushPromises()
+
+      expect(window.localStorage.getItem('pref.gms.map.queryOfferNever')).toBeNull()
+      expect(window.localStorage.getItem('pref.gms.map.centerLabel')).toBeNull()
+      // The other member's own key is not ours to remove -- only the nameless ones are.
+      expect(window.localStorage.getItem('pref.gms.map.somebody-else.look')).toBe('"hell"')
+    })
+  })
+
   // ⛔ 09.09.2026: an account that had never set a position was answered `{}` here, which
   // is truthy, so the redirect below stayed silent. The page then read `.latitude` off it,
   // put its own marker at (undefined, undefined), stored `{}` as the search centre and
@@ -168,7 +262,7 @@ describe('MatchingMap', () => {
   // measure the belt: the answer that arrives AFTER the guard let somebody through,
   // because the store said yes and the server says no.
   describe('when the position is not two numbers', () => {
-    const centreStored = () => window.localStorage.getItem('pref.gms.map.center')
+    const centreStored = () => window.localStorage.getItem(`${KEY}center`)
 
     // The control for the three below: with a real position everything runs, so their
     // silence means the page turned away, not that this spec cannot see anything.
@@ -224,7 +318,7 @@ describe('MatchingMap', () => {
       page.findComponent({ name: 'MatchList' }).vm.$emit('recenter', next)
 
     beforeEach(() => {
-      window.localStorage.setItem('pref.gms.map.mode', JSON.stringify('liste'))
+      window.localStorage.setItem(`${KEY}mode`, JSON.stringify('liste'))
     })
 
     it('remembers a centre that is two numbers', async () => {
@@ -235,7 +329,7 @@ describe('MatchingMap', () => {
       recenter(page, { lat: 49.28, lng: 9.69 })
       await page.vm.$nextTick()
 
-      expect(JSON.parse(window.localStorage.getItem('pref.gms.map.center'))).toEqual({
+      expect(JSON.parse(window.localStorage.getItem(`${KEY}center`))).toEqual({
         lat: 49.28,
         lng: 9.69,
       })
@@ -248,13 +342,13 @@ describe('MatchingMap', () => {
       const page = mountMap()
       fire(userLocationQuery, { userLocation: location })
       await page.vm.$nextTick()
-      const before = window.localStorage.getItem('pref.gms.map.center')
+      const before = window.localStorage.getItem(`${KEY}center`)
       const asked = load.mock.calls.length
 
       recenter(page, { lat: undefined, lng: undefined })
       await page.vm.$nextTick()
 
-      expect(window.localStorage.getItem('pref.gms.map.center')).toBe(before)
+      expect(window.localStorage.getItem(`${KEY}center`)).toBe(before)
       // Not stored, and not searched for either: the whole move is refused, so the live
       // centre still is the one the stored value names.
       expect(load).toHaveBeenCalledTimes(asked)
@@ -339,7 +433,7 @@ describe('MatchingMap', () => {
     const profileOpen = (page) => page.findComponent({ name: 'MatchProfile' }).props('modelValue')
 
     it('opens the saved profile when it is in the first results', async () => {
-      window.localStorage.setItem('pref.gms.map.profile', JSON.stringify('u-1'))
+      window.localStorage.setItem(`${KEY}profile`, JSON.stringify('u-1'))
       const page = mountMap()
 
       matches.value = [person('u-1')]
@@ -352,7 +446,7 @@ describe('MatchingMap', () => {
     // happens to turn up in a later search would swing the window open unbidden -
     // which syncProfile's own note says must never happen.
     it('does not open it again on a later search', async () => {
-      window.localStorage.setItem('pref.gms.map.profile', JSON.stringify('u-1'))
+      window.localStorage.setItem(`${KEY}profile`, JSON.stringify('u-1'))
       const page = mountMap()
 
       matches.value = [person('u-2')]
@@ -404,7 +498,7 @@ describe('MatchingMap', () => {
   })
 
   describe('the offer to keep a typed search', () => {
-    const PREF = 'pref.gms.map.'
+    const PREF = KEY
     /** A typed search is what the band hangs on; the page reads it back like any choice. */
     const typedSearch = () =>
       window.localStorage.setItem(
