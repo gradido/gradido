@@ -113,10 +113,10 @@ const entry = (uuid) => ({
 
 let wrapper = null
 
-const mountMap = ({ gmsAllowed = true } = {}) => {
+const mountMap = ({ gmsAllowed = true, store = makeStore(gmsAllowed) } = {}) => {
   wrapper = mount(MatchingMap, {
     global: {
-      plugins: [makeStore(gmsAllowed), i18n],
+      plugins: [store, i18n],
       stubs: { MatchQuery: true, MatchProfile: true, MatchList: true },
     },
   })
@@ -198,6 +198,25 @@ describe('MatchingMap', () => {
       await page.vm.$nextTick()
 
       expect(listenAnsicht(page)).toBe(false)
+    })
+
+    // ⛔ And the case with no member at all: the store has not filled yet, or filled
+    // without the id. There is no honest key then -- the flat one is the fault, and a
+    // made-up one (`null` glued to the setting name) would litter the browser with keys
+    // nobody can attribute or clean up. So: read nothing, write nothing, open on defaults.
+    it('writes nothing at all when the store cannot say who is signed in', async () => {
+      const namenlos = createStore({
+        state: { gmsAllowed: true, userLocation: { latitude: 48.2, longitude: 11.6 } },
+        mutations: { userLocation: () => {} },
+      })
+      const page = mountMap({ store: namenlos })
+
+      fire(userLocationQuery, { userLocation: location })
+      await flushPromises()
+
+      expect(Object.keys(window.localStorage)).toEqual([])
+      // ...and the map is built all the same, on its defaults.
+      expect(load).toHaveBeenCalled()
     })
 
     // Removed, not carried across: nobody can say whose they were, and handing them to
