@@ -119,6 +119,7 @@ const openModals = { BModal: { template: '<div class="modal-stub"><slot /></div>
 beforeEach(() => {
   handlers.clear()
   push.mockClear()
+  window.localStorage.clear()
   // The store is shared by the whole file; put it back so no case inherits the answers of
   // the one before it.
   store.state.gmsAllowed = true
@@ -283,6 +284,31 @@ describe('Matching', () => {
       const centre = page.findComponent(UserLocationMapStub).props('userMarkerCoords')
       expect(Number.isFinite(centre.lat)).toBe(true)
       expect(Number.isFinite(centre.lng)).toBe(true)
+    })
+  })
+
+  // The second reader of the map's settings, and the one a change like this leaves behind:
+  // it decides whether the button offers the map or the list. Keyed by the member since
+  // 10.09.2026, or it would show this member the look the previous one left on the device.
+  describe('what the find button offers', () => {
+    const beschriftung = (page) => page.find('.find-btn').text()
+
+    it('offers the list when THIS member last used the list', () => {
+      window.localStorage.setItem(
+        `pref.gms.map.${store.state.gradidoID}.mode`,
+        JSON.stringify('liste'),
+      )
+      expect(beschriftung(mountPage('entries'))).toContain('Liste')
+    })
+
+    it('ignores what the device was left in', () => {
+      window.localStorage.setItem('pref.gms.map.mode', JSON.stringify('liste'))
+      expect(beschriftung(mountPage('entries'))).not.toContain('Liste')
+    })
+
+    it('ignores what another member set', () => {
+      window.localStorage.setItem('pref.gms.map.somebody-else.mode', JSON.stringify('liste'))
+      expect(beschriftung(mountPage('entries'))).not.toContain('Liste')
     })
   })
 
