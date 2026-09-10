@@ -724,6 +724,7 @@
     },
     "profile": {
       "aria": "Profil von {name}",
+      "matchesMine": "passt zu",
       "more": "{n} weitere",
       "sendEmail": "E-Mail senden",
       "sendGradido": "Gradido senden",

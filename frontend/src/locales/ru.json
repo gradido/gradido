@@ -646,6 +646,7 @@
     },
     "profile": {
       "aria": "Профиль: {name}",
+      "matchesMine": "совпадает с",
       "more": "ещё {n}",
       "sendEmail": "Отправить эл. письмо",
       "sendGradido": "Отправить Gradido",

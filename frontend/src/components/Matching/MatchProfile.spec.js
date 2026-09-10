@@ -24,6 +24,7 @@ const i18n = createI18n({
         },
         profile: {
           aria: 'Profil von {name}',
+          matchesMine: 'passt zu',
           more: '{n} weitere',
           sendEmail: 'E-Mail senden',
           sendGradido: 'Gradido senden',
@@ -145,6 +146,144 @@ describe('MatchProfile', () => {
     shown = wrapper.findAll('.entry-summary').map((s) => s.text())
     expect(shown).toHaveLength(3)
     expect(wrapper.find('.more-btn').exists()).toBe(false)
+  })
+
+  // Bernd, 10.09.2026: with two open, a third match lay behind "X weitere".
+  it('keeps every match open, however many, and folds only the rest', () => {
+    const wrapper = mountProfile(
+      baseMatch({
+        channels: {
+          angebot: [
+            entry('r1', 'kein Treffer, der neueste', null),
+            entry('m1', 'Treffer A', 0.46),
+            entry('m2', 'Treffer B', 0.865),
+            entry('r2', 'kein Treffer, älter', null),
+            entry('m3', 'Treffer C', 0.595),
+          ],
+        },
+      }),
+    )
+    const shown = wrapper.findAll('.entry-summary').map((s) => s.text())
+    expect(shown).toEqual(['Treffer B', 'Treffer C', 'Treffer A'])
+    expect(wrapper.find('.more-btn').text()).toBe('2 weitere')
+
+    // Three matches and nothing else: all open, and no "0 weitere" under them.
+    const onlyMatches = mountProfile(
+      baseMatch({
+        channels: {
+          angebot: [entry('m1', 'A', 0.46), entry('m2', 'B', 0.865), entry('m3', 'C', 0.595)],
+        },
+      }),
+    )
+    expect(onlyMatches.findAll('.entry-summary')).toHaveLength(3)
+    expect(onlyMatches.find('.more-btn').exists()).toBe(false)
+  })
+
+  it('stands a single match open beside the newest of the rest', () => {
+    const wrapper = mountProfile(
+      baseMatch({
+        channels: {
+          gesuch: [
+            entry('n', 'der neueste', null),
+            entry('m', 'der Treffer', 0.73),
+            entry('o', 'ein älterer', null),
+          ],
+        },
+      }),
+    )
+    const shown = wrapper.findAll('.entry-summary').map((s) => s.text())
+    expect(shown).toEqual(['der Treffer', 'der neueste'])
+    expect(wrapper.find('.more-btn').text()).toBe('1 weitere')
+  })
+
+  // The dot is drawn by the stylesheet (.has-dot::before) from three variables; jsdom paints
+  // nothing, so what can be read here is which sentence asks for a dot, and with what.
+  it('puts a dot before a match only, sized and lit by its step, in the colour of its area', async () => {
+    const wrapper = mountProfile(
+      baseMatch({
+        channels: {
+          angebot: [
+            entry('s1', 'Stufe eins', 0.46),
+            entry('s3', 'Stufe drei', 0.73),
+            entry('s4', 'Stufe vier', 0.865),
+            entry('s2', 'Stufe zwei', 0.595),
+            entry('none', 'kein Treffer', null),
+          ],
+        },
+      }),
+    )
+    const dots = wrapper
+      .findAll('.entry-summary')
+      .map((s) => [
+        s.element.textContent,
+        s.classes('has-dot'),
+        s.classes('is-match'),
+        s.element.style.getPropertyValue('--dot-size'),
+        s.element.style.getPropertyValue('--dot-opacity'),
+        s.element.style.getPropertyValue('--dot-color'),
+      ])
+    expect(dots).toEqual([
+      ['Stufe vier', true, true, '12px', '0.865', '#10b981'],
+      ['Stufe drei', true, true, '10px', '0.73', '#10b981'],
+      ['Stufe zwei', true, true, '9px', '0.595', '#10b981'],
+      ['Stufe eins', true, true, '8px', '0.46', '#10b981'],
+    ])
+
+    // Unfolded, the rest shows: no dot, no weight, nothing to draw with.
+    await wrapper.find('.more-btn').trigger('click')
+    const rest = wrapper.findAll('.entry-summary').at(4)
+    expect(rest.element.textContent).toBe('kein Treffer')
+    expect(rest.classes()).not.toContain('has-dot')
+    expect(rest.classes()).not.toContain('is-match')
+    expect(rest.attributes('style')).toBeUndefined()
+  })
+
+  it('names the entries of mine a match answers, one line each, and none under the rest', async () => {
+    const wrapper = mountProfile(
+      baseMatch({
+        channels: {
+          angebot: [
+            {
+              ...entry('a', 'Botengänge und kleine Erledigungen', 0.865),
+              matches: [
+                { uuid: 'mine-1', matchingType: 'need', summary: 'jemanden, der zur Post geht' },
+                { uuid: 'mine-2', matchingType: 'interest', summary: 'Spaziergänge' },
+              ],
+            },
+            { ...entry('b', 'Kuchen für Feste', 0.46), matches: [] },
+            entry('c', 'Chorsingen', null),
+          ],
+        },
+      }),
+    )
+    await wrapper.find('.more-btn').trigger('click')
+    const lines = wrapper
+      .findAll('.entry')
+      .map((item) => item.findAll('.entry-mine').map((line) => line.element.textContent))
+    // The stem is my entry's own, read off its kind - not the area's.
+    expect(lines).toEqual([
+      ['passt zu Ich suche jemanden, der zur Post geht', 'passt zu Ich liebe Spaziergänge'],
+      [],
+      [],
+    ])
+  })
+
+  it('shows a ring as it was: no dot, no line, every area shut', () => {
+    const wrapper = mountProfile(
+      baseMatch({
+        channels: {
+          angebot: [entry('a', 'Klavierunterricht', null), entry('b', 'Rasen mähen', null)],
+          gesuch: [entry('c', 'einen Schlosser', null)],
+        },
+      }),
+    )
+    expect(wrapper.findAll('.area-head').map((h) => h.attributes('aria-expanded'))).toEqual([
+      'false',
+      'false',
+    ])
+    expect(wrapper.find('.has-dot').exists()).toBe(false)
+    expect(wrapper.find('.is-match').exists()).toBe(false)
+    expect(wrapper.find('.entry-mine').exists()).toBe(false)
   })
 
   it('shows the count as a plain tally, never a score', () => {

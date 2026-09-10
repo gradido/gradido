@@ -72,7 +72,10 @@ import { isPlace } from '@/utils/matchingPosition'
  * `channels` holds only the entries that answer me - what the matches route knows. The
  * window shows everything the person published: `profile` below reads it from the
  * profile route, and `withProfile` lays these matched entries, with their strength, over
- * it (GMS-111: one window for a match and a ring). `scores` is what the
+ * it (GMS-111: one window for a match and a ring). An entry of theirs comes once for
+ * every entry of mine it answers - one record per pair, which is what the map counts by;
+ * the window lists it once (forWindow) and names the entries of mine beside it
+ * (withMine). `scores` is what the
  * MAP reads (via displayCore): per channel, one strength for every entry of theirs
  * that answers one of mine, with the entry of mine it answers and what that entry is
  * about (`matchedSubject`, sent by the GMS since 10.09.2026) - the glow counts breadth
@@ -280,16 +283,44 @@ export function toProfile(person) {
 }
 
 /**
+ * The window's view of a person as the map holds them: one entry per entry of theirs.
+ *
+ * The matches route sends a record per pair - an entry of theirs and the entry of mine it
+ * answers - so an offer that answers two of my needs comes twice. The map counts by those
+ * pairs; the window lists entries, and listing one twice is wrong (a doubled key, too).
+ * Folded here: the strongest pair gives the entry its strength and the rest of its fields,
+ * and `mine` names every entry of mine it answers, strongest first. A typed question has
+ * no entry of mine behind it, so there `mine` stays empty.
+ */
+export function forWindow(person) {
+  const channels = {}
+  for (const [key, entries] of Object.entries(person.channels ?? {})) {
+    const pairsOf = new Map()
+    for (const entry of entries) {
+      pairsOf.set(entry.uuid, [...(pairsOf.get(entry.uuid) ?? []), entry])
+    }
+    channels[key] = [...pairsOf.values()].map((pairs) => {
+      const strongestFirst = [...pairs].sort((a, b) => b.strength - a.strength)
+      const mine = [...new Set(strongestFirst.map((pair) => pair.matchedEntryUuid).filter(Boolean))]
+      return { ...strongestFirst[0], mine }
+    })
+  }
+  return { ...person, channels }
+}
+
+/**
  * The person the window shows: what the map knows of them, with everything they
  * published laid in (GMS-111). An entry the search matched keeps its strength -
  * the window opens its area and floats it to the top; every other entry comes without
  * one and folds behind "X more", newest first. A matched entry the profile does not
  * list (the cap, or an edit in between) stays: what glows on the map is never missing
- * from the window. Nothing of my own is paired with it - the window shows them, not me.
+ * from the window. The matched entries come folded (forWindow), so an entry that answers
+ * two of mine keeps both and the stronger pair's strength.
  */
 export function withProfile(person, profile) {
+  const folded = forWindow(person).channels
   const matched = new Map()
-  for (const entries of Object.values(person.channels ?? {})) {
+  for (const entries of Object.values(folded)) {
     for (const entry of entries) matched.set(entry.uuid, entry)
   }
   const channels = {}
@@ -300,7 +331,7 @@ export function withProfile(person, profile) {
       return matched.get(entry.uuid) ?? entry
     })
   }
-  for (const [key, entries] of Object.entries(person.channels ?? {})) {
+  for (const [key, entries] of Object.entries(folded)) {
     const missing = entries.filter((entry) => !listed.has(entry.uuid))
     if (missing.length) channels[key] = [...(channels[key] ?? []), ...missing]
   }
@@ -313,6 +344,32 @@ export function withProfile(person, profile) {
     aboutMe: profile.aboutMe,
     channels,
   }
+}
+
+/**
+ * The sentences of mine a matched entry answers, for the lines "passt zu" under it.
+ *
+ * Bernd, 10.09.2026: with the whole person in the window, nothing showed why they match -
+ * so the window names my entry after all, which GMS-111 had left out. Read off my own
+ * entries, which the map holds anyway; no server is asked. An entry of mine that is gone
+ * since the search (deleted or paused) has no sentence left and is left out; an entry of
+ * theirs the search did not match has no `mine` and gets no lines.
+ */
+export function withMine(person, myEntries) {
+  if (!person) return person
+  const byUuid = new Map(myEntries.map((entry) => [entry.uuid, entry]))
+  const channels = {}
+  for (const [key, entries] of Object.entries(person.channels)) {
+    channels[key] = entries.map((entry) => {
+      if (!entry.mine) return entry
+      const matches = entry.mine
+        .map((uuid) => byUuid.get(uuid))
+        .filter(Boolean)
+        .map(({ uuid, matchingType, summary }) => ({ uuid, matchingType, summary }))
+      return { ...entry, matches }
+    })
+  }
+  return { ...person, channels }
 }
 
 /**

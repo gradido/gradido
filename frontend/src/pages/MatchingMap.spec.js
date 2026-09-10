@@ -584,11 +584,69 @@ describe('MatchingMap', () => {
       const page = mountMap()
 
       open(page, match)
+      await page.vm.$nextTick()
+      const opened = shown(page).props('match')
       await flushPromises()
 
       expect(toastError).toHaveBeenCalledWith(de.matching.profile.unavailable)
       expect(shown(page).props('modelValue')).toBe(true)
-      expect(shown(page).props('match')).toEqual(match)
+      expect(shown(page).props('match')).toEqual(opened)
+      expect(opened.channels.angebot.map((entry) => entry.summary)).toEqual(['Fahrradreparatur'])
+    })
+
+    // Bauauftrag D, 10.09.2026: the matches route sends one record per pair, so an offer that
+    // answers two of my entries came into the window twice until the profile arrived.
+    it('shows an entry of theirs once, though it answers two of mine', async () => {
+      inList()
+      profile.mockImplementationOnce(() => new Promise(() => {}))
+      const page = mountMap()
+
+      const bike = match.channels.angebot[0]
+      open(page, {
+        ...match,
+        channels: {
+          angebot: [
+            { ...bike, strength: 0.46, matchedEntryUuid: 'mine-a' },
+            { ...bike, strength: 0.73, matchedEntryUuid: 'mine-b' },
+          ],
+        },
+      })
+      await page.vm.$nextTick()
+
+      const offers = shown(page).props('match').channels.angebot
+      expect(offers.map((entry) => [entry.uuid, entry.strength, entry.mine])).toEqual([
+        ['e-bike', 0.73, ['mine-b', 'mine-a']],
+      ])
+    })
+
+    // The line "passt zu" names my own entry. My entries and the window arrive on their
+    // own schedules, so the window reads them as they come, not once at opening.
+    it('names the entry of mine a match answers, also when my entries come after it opened', async () => {
+      inList()
+      const page = mountMap()
+
+      open(page, match)
+      await flushPromises()
+      expect(shown(page).props('match').channels.angebot[0].matches).toEqual([])
+
+      fire(listMatchingEntries, {
+        listMatchingEntries: [
+          {
+            uuid: 'mine',
+            matchingType: 'need',
+            summary: 'einen Fahrradmechaniker',
+            details: null,
+            active: true,
+            remote: false,
+            createdAt: '2026-09-01T10:00:00.000Z',
+          },
+        ],
+      })
+      await page.vm.$nextTick()
+
+      expect(shown(page).props('match').channels.angebot[0].matches).toEqual([
+        { uuid: 'mine', matchingType: 'need', summary: 'einen Fahrradmechaniker' },
+      ])
     })
 
     // Two taps in quick succession: the answer for the first may come after the second.
