@@ -98,7 +98,11 @@ function sanitizeLocation(location) {
 }
 
 function getLatitudeLongitudeString(locationData) {
-  return locationData?.latitude && locationData?.longitude
+  // ⛔ Finite, not truthy. A latitude or longitude of 0 is a coordinate like any other --
+  // the prime meridian runs through the UK, France, Spain, Algeria and Ghana -- and a
+  // truthy check emptied the combined field for it, so the two numbers below it and the
+  // line above them disagreed. The same falsy-zero this whole strand is about.
+  return Number.isFinite(locationData?.latitude) && Number.isFinite(locationData?.longitude)
     ? t('geo-coordinates.format', {
         latitude: locationData.latitude,
         longitude: locationData.longitude,
@@ -107,8 +111,12 @@ function getLatitudeLongitudeString(locationData) {
 }
 
 function valueUpdated() {
-  locationString.value = getLatitudeLongitudeString(inputValue.value)
+  // Sanitised FIRST, then read for the combined line. The other way round the line was
+  // built from what is still in the input boxes -- text -- so a finite-number check could
+  // never see the numbers it is asking about, and a typed `0` stayed invisible up there
+  // while both boxes below showed the pair.
   inputValue.value = sanitizeLocation(inputValue.value)
+  locationString.value = getLatitudeLongitudeString(inputValue.value)
 
   if (isValid.value && isChanged.value) {
     editableGroup.valueChanged()

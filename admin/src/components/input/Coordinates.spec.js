@@ -106,6 +106,16 @@ describe('Coordinates', () => {
     expect(zuletzt.latitude).toBe(56.78)
   })
 
+  // ⛔ The combined field read `latitude && longitude`, so a coordinate of 0 emptied it --
+  // while the two numbers below it still showed the pair. The prime meridian runs through
+  // the UK, France, Spain, Algeria and Ghana.
+  it('shows a zero coordinate in the combined field', async () => {
+    await wrapper.find('#home-community-longitude').setValue('0')
+
+    expect(wrapper.find('#home-community-latitude-longitude-smart').element.value).toContain('0')
+    expect(wrapper.emitted('update:modelValue').at(-1)[0]).not.toBeNull()
+  })
+
   it('splits coordinates correctly when entering in latitudeLongitude input', async () => {
     const latitudeLongitudeInput = wrapper.find('#home-community-latitude-longitude-smart')
 

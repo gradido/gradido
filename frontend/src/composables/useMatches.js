@@ -162,10 +162,20 @@ export function positionOf(location) {
  * there, and the heading counts what is shown.
  */
 export function hasUsablePoint(user) {
+  if (!Array.isArray(user?.location) || user.location.length !== 2) {
+    return false
+  }
+  const [lng, lat] = user.location
+  // Range as well as finiteness, and the range is not pedantry: the GMS is a foreign
+  // system, so nothing our own backend validates protects what comes BACK from it. A
+  // latitude of 91 is finite and is not a place; drawn, it lands off the globe.
   return (
-    Array.isArray(user?.location) &&
-    Number.isFinite(user.location[0]) &&
-    Number.isFinite(user.location[1])
+    Number.isFinite(lng) &&
+    Number.isFinite(lat) &&
+    lat >= -90 &&
+    lat <= 90 &&
+    lng >= -180 &&
+    lng <= 180
   )
 }
 
@@ -390,10 +400,18 @@ export function useMatches() {
         gmsGet(base, 'community-user/user-locations', where, token),
       ])
       if (request !== latest) return
-      // Filtered before mapping: what has no place on the map is not a marker, and the
-      // heading counts markers.
-      matches.value = people.filter(hasUsablePoint).map(toMatch)
-      presence.value = withoutMatched(others, people).filter(hasUsablePoint).map(toPresence)
+      // ⛔ Filtered before withoutMatched, not after. That function reads `location[0]` on
+      // both sides to tell a ring from the glow beneath it, so handing it the raw answers
+      // means a person without a place throws inside the try -- and comes out as
+      // GMS_UNAVAILABLE although both requests answered 200. The very misdiagnosis this
+      // strand exists to end, rebuilt one line further down.
+      //
+      // ⚠️ And a test can be green for the wrong reason here: `&&` checks the alias first,
+      // so an unplaceable person only reaches `location[0]` when some OTHER person shares
+      // their alias. The case below is built that way on purpose.
+      const placeable = people.filter(hasUsablePoint)
+      matches.value = placeable.map(toMatch)
+      presence.value = withoutMatched(others.filter(hasUsablePoint), placeable).map(toPresence)
     } catch (err) {
       if (request !== latest) return
       error.value = err.code ? err : failure(GMS_UNAVAILABLE, err.message)
