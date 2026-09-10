@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+import { Order } from 'shared'
 import { clearLogs, getLogger, printLogs } from '../../../config-schema/test/testSetup.bun'
 import {
   ALIAS_ORIGIN_CHOSEN,
@@ -9,15 +10,19 @@ import {
   UserRole as DbUserRole,
 } from '..'
 import { AppDatabase } from '../AppDatabase'
+import { RoleNames } from '../enum'
 import { createCommunity } from '../seeds/community'
-import { userFactory } from '../seeds/factory/user'
+import { createUserRole, userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { peterLustig } from '../seeds/users/peter-lustig'
+import { raeuberHotzenplotz } from '../seeds/users/raeuber-hotzenplotz'
 import { LOG4JS_QUERIES_CATEGORY_NAME } from '.'
 import {
+  dbFindAdminUsersPage,
   dbFindForeignUsersByGradidoIds,
   dbFindUsersByIds,
+  dbFindUsersWithEmailContactPage,
   dbGetUserWithRolesById,
   dbLockUserRow,
   dbSaveUser,
@@ -466,6 +471,52 @@ describe('user.typeorm.queries', () => {
       if (!missing.success) {
         expect(missing.error.name).toBe('DBNotFoundError')
       }
+    })
+  })
+
+  // Pages are only pages over a fixed order. Three members with the very same `createdAt`
+  // are where an order by `createdAt` alone stops being one.
+  describe('paging through members', () => {
+    const sameMoment = new Date(Date.UTC(2026, 0, 1, 12, 0, 0))
+    let ids: number[]
+
+    beforeAll(async () => {
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await DbUserRole.clear()
+      const members = [
+        await userFactory(bibiBloxberg),
+        await userFactory(bobBaumeister),
+        await userFactory(raeuberHotzenplotz),
+      ]
+      for (const member of members) {
+        await createUserRole(member.id, RoleNames.MODERATOR)
+      }
+      // A member without a role, so the admin list has somebody to leave out.
+      await userFactory(peterLustig)
+      await DbUserRole.delete({ role: RoleNames.ADMIN })
+      await DbUser.createQueryBuilder().update().set({ createdAt: sameMoment }).execute()
+      ids = members.map((member) => member.id).sort((a, b) => a - b)
+    })
+
+    it('lists the moderators newest first, and equal timestamps by id the same way', async () => {
+      const [first, count] = await dbFindAdminUsersPage(1, 2, Order.DESC)
+      const [second] = await dbFindAdminUsersPage(2, 2, Order.DESC)
+      expect(count).toBe(3)
+      expect(first.map((user) => user.id)).toEqual([ids[2], ids[1]])
+      expect(second.map((user) => user.id)).toEqual([ids[0]])
+
+      const [ascending] = await dbFindAdminUsersPage(1, 3, Order.ASC)
+      expect(ascending.map((user) => user.id)).toEqual(ids)
+    })
+
+    it('walks every member with an address exactly once, by id', async () => {
+      const [first, count] = await dbFindUsersWithEmailContactPage(0, 3)
+      const [second] = await dbFindUsersWithEmailContactPage(1, 3)
+      expect(count).toBe(4)
+      const walked = [...first, ...second].map((user) => user.id)
+      expect(walked).toEqual([...walked].sort((a, b) => a - b))
+      expect(new Set(walked).size).toBe(4)
     })
   })
 })

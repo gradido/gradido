@@ -279,6 +279,11 @@ export async function dbFindUsersWithEmailContactByIds(ids: number[]): Promise<D
 /**
  * One page of the members who have an e-mail address, with that address, and the count
  * of all of them. Moved from `backend/src/apis/humhub/ExportUsers.ts`.
+ *
+ * Ordered by id: pages are only pages over a fixed order. TypeORM happened to page by id
+ * anyway - with joins it fetches the page's ids first and appends the primary key to that
+ * query's order - but it said nothing about the rows within a page, and it stops doing even
+ * that the day the relation goes.
  */
 export async function dbFindUsersWithEmailContactPage(
   page: number,
@@ -286,6 +291,7 @@ export async function dbFindUsersWithEmailContactPage(
 ): Promise<[DbUser[], number]> {
   return DbUser.findAndCount({
     relations: { emailContact: true },
+    order: { id: Order.ASC },
     skip: page * limit,
     take: limit,
     where: { emailContact: { email: Not(IsNull()) } },
@@ -295,6 +301,9 @@ export async function dbFindUsersWithEmailContactPage(
 /**
  * One page of the admins and moderators, with their roles, and the count of all of them.
  * Moved from `searchAdminUsers` in `backend/src/graphql/resolver/UserResolver.ts`.
+ *
+ * By `createdAt`, and among equal ones by id in the same direction - see
+ * `dbFindUsersWithEmailContactPage` for what TypeORM did without it.
  */
 export async function dbFindAdminUsersPage(
   currentPage: number,
@@ -311,6 +320,7 @@ export async function dbFindAdminUsersPage(
     },
     order: {
       createdAt: order,
+      id: order,
     },
     skip: (currentPage - 1) * pageSize,
     take: pageSize,

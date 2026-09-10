@@ -11,11 +11,12 @@ import {
 import { AppDatabase } from '../AppDatabase'
 import { createCommunity } from '../seeds/community'
 import { creationFactory, nMonthsBefore } from '../seeds/factory/creation'
-import { transferGradidos } from '../seeds/factory/transaction'
+import { foreignReceive, transferGradidos } from '../seeds/factory/transaction'
 import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { peterLustig } from '../seeds/users/peter-lustig'
+import { getLastTransaction } from './transactions'
 import {
   aliasExists,
   dbClearGmsRegistration,
@@ -301,10 +302,56 @@ describe('user.queries', () => {
         where: { userId: peter.id },
         order: { balanceDate: Order.DESC, id: Order.DESC },
       })
-      // The raw column, as a string of gdd cents - what the statistics resolver reads.
+      // Each member's latest balance - what the statistics resolver adds up.
       expect(rows.map((row) => row.balance.gddCent || 0n).sort()).toEqual(
         [bibiLatest.balance.gddCent, peterLatest.balance.gddCent].sort(),
       )
+    })
+  })
+
+  // Two bookings at the very same moment - production had a member like that. Matching on
+  // `balance_date = MAX(balance_date)` answered both rows, so the statistics counted the
+  // member twice as active and added both balances.
+  describe('dbSelectLatestUserBalances with two bookings at the same moment', () => {
+    const FOREIGN_COMMUNITY = '99999999-9999-9999-9999-999999999999'
+    const moment = new Date(Date.UTC(2026, 7, 7, 12, 0, 0))
+    const fromAfar = (gradidoID: string) => ({
+      communityUuid: FOREIGN_COMMUNITY,
+      gradidoID,
+      name: 'Sarah',
+    })
+    let bibi: DbUser
+
+    beforeAll(async () => {
+      await clearDatabase()
+      await createCommunity(false)
+      bibi = await userFactory(bibiBloxberg)
+      await foreignReceive(
+        bibi,
+        fromAfar('dddddddd-dddd-dddd-dddd-dddddddddddd'),
+        new Date(Date.UTC(2026, 7, 1, 12, 0, 0)),
+      )
+      await foreignReceive(
+        bibi,
+        fromAfar('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'),
+        moment,
+        new GradidoUnit(20000n),
+      )
+      await foreignReceive(
+        bibi,
+        fromAfar('ffffffff-ffff-ffff-ffff-ffffffffffff'),
+        moment,
+        new GradidoUnit(30000n),
+      )
+    })
+
+    it('answers the member once, with the balance of the later booking', async () => {
+      const rows = await dbSelectLatestUserBalances()
+      const latest = await getLastTransaction(bibi.id)
+
+      expect(rows).toHaveLength(1)
+      expect(rows[0].balanceDate).toEqual(moment)
+      expect(rows[0].balance?.gddCent).toBe(latest?.balance.gddCent)
     })
   })
 })

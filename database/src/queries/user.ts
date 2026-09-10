@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull, max, or } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNull, or } from 'drizzle-orm'
 import { alias as aliasedTable } from 'drizzle-orm/mysql-core'
 import { GradidoUnit, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
@@ -145,6 +145,11 @@ export async function dbFindGmsAllowedLocalUserIds(): Promise<{ id: number }[]> 
 /**
  * The latest balance of every member who has one - one row per member, from their most
  * recent booking. Moved from `backend/src/graphql/resolver/StatisticsResolver.ts`.
+ *
+ * "Most recent" is `getLastTransaction`'s rule: latest `balance_date`, and of those the
+ * highest id. The TypeORM version matched `balance_date = MAX(balance_date)` instead, so a
+ * member with two bookings at the same moment came back twice - counted twice as active and
+ * with both balances in the sums. Production had one such member.
  */
 export async function dbSelectLatestUserBalances(): Promise<
   { balance: GradidoUnit | null; balanceDate: Date }[]
@@ -160,11 +165,13 @@ export async function dbSelectLatestUserBalances(): Promise<
     .where(
       and(
         eq(
-          transactionsTable.balanceDate,
+          transactionsTable.id,
           drizzleDb()
-            .select({ balanceDate: max(latest.balanceDate) })
+            .select({ id: latest.id })
             .from(latest)
-            .where(eq(latest.userId, usersTable.id)),
+            .where(eq(latest.userId, usersTable.id))
+            .orderBy(desc(latest.balanceDate), desc(latest.id))
+            .limit(1),
         ),
         isNull(usersTable.deletedAt),
       ),
