@@ -269,13 +269,15 @@ import 'leaflet-geosearch/dist/geosearch.css'
 import { listMatchingEntries, userLocationQuery } from '@/graphql/queries'
 import { useMatches, distanceKm, GMS_REJECTED } from '@/composables/useMatches'
 import { hasPosition as isPositionSet, isPlace } from '@/utils/matchingPosition'
-import { forgetLegacyMapPrefs, mapPrefPrefix } from '@/utils/matchingPrefs'
+import { mapPrefPrefix } from '@/utils/matchingPrefs'
 import { useEntryDraft } from '@/composables/useEntryDraft'
 import MatchQuery from '@/components/Matching/MatchQuery'
 import { useAppToast } from '@/composables/useToast'
 import {
   LABEL_COLORS,
   DEFAULTS,
+  crowdRadiusOf,
+  hitSizeOf,
   markerColor,
   peakStage,
   sanitizeSelection,
@@ -338,9 +340,12 @@ const MASK = {
 const COVER_TOL = 14
 const COVER_FADE = 72
 const SNAP_TOL = 24
-// Matches whose screen points fall within CLUSTER_PX of the clicked one share the
-// spot — the click resolves the crowd instead of blindly opening the top marker.
-const CLUSTER_PX = 26
+// Matches whose screen points fall within CROWD_PX of the tapped one share the spot —
+// the tap resolves the crowd instead of blindly opening the top marker. The radius is
+// the largest tap area, not a number of its own: two tap areas overlap when their
+// centres are closer than that, a tap there is ambiguous, and the map zooms in instead
+// of guessing whose area took it (F-10).
+const CROWD_PX = crowdRadiusOf(DISC_SIZE)
 
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -348,12 +353,13 @@ const entryDraft = useEntryDraft()
 const store = useStore()
 const { toastError } = useAppToast()
 
-// Before the first read below, and in this order: sweep away what the flat prefix left on
-// this device, then take the prefix that belongs to whoever is signed in. Null where the
-// store cannot say -- then nothing is read and nothing is written, because a map on its
-// defaults is the honest answer to "whose settings are these?" and the old flat key was
-// the dishonest one.
-forgetLegacyMapPrefs()
+// The prefix that belongs to whoever is signed in. Null where the store cannot say -- then
+// nothing is read and nothing is written, because a map on its defaults is the honest
+// answer to "whose settings are these?" and the old flat key was the dishonest one.
+//
+// The sweep of those old flat keys used to stand here and now runs at sign-out, beside the
+// seven other things that must not outlive one member: an account without a position never
+// reaches this page, so on exactly those devices the old keys were never cleared.
 const prefPrefix = mapPrefPrefix(store.state.gradidoID)
 
 const mapContainer = ref(null)
@@ -965,10 +971,11 @@ function swatchStyle(channel) {
 
 // The glow is a wide, soft light, but its box would take a click across its whole
 // span — so a bright neighbour, stacked on top, could steal a tap meant for the
-// crowd beneath it (only on the dark map; the disc look's box is too small to
-// reach). The box is therefore made click-through (the pointer-events rule at the
-// end of the style block), and only this small centred core — the size of the disc
-// look's dot — takes the click. Both looks then share one hit footprint.
+// crowd beneath it. The box is therefore made click-through (the pointer-events rule
+// at the end of the style block), and only a centred core takes the tap: at least
+// HIT_MIN across (displayCore, the floor a finger needs, F-10), and never smaller than
+// the disc of the same step. The disc looks carry the same core, so all three looks share one tap
+// footprint.
 function glowHtml(colour, size, share, hit) {
   const core = (share * 0.9).toFixed(2)
   const tint = `${colour[0]}, ${colour[1]}, ${colour[2]}`
@@ -977,8 +984,10 @@ function glowHtml(colour, size, share, hit) {
     radial-gradient(circle closest-side, rgba(${tint},1) 0%, rgba(${tint},.5) 32%, rgba(${tint},0) 68%)"></div><div class="gk-hit" style="width:${hit}px;height:${hit}px"></div>`
 }
 
-function discHtml(colour, size) {
-  return `<div class="gk-disc" style="width:${size}px;height:${size}px;background:${rgb(colour)}"></div>`
+// The disc shows the step and takes no tap; the invisible core over it does, as on the
+// glow above.
+function discHtml(colour, size, hit) {
+  return `<div class="gk-disc" style="width:${size}px;height:${size}px;background:${rgb(colour)}"></div><div class="gk-hit" style="width:${hit}px;height:${hit}px"></div>`
 }
 
 function drawMatches() {
@@ -989,10 +998,13 @@ function drawMatches() {
   const glowing = look.value === 'dunkel'
   for (const { match, stages, peak } of visibleMatches.value) {
     const colour = markerColor(stages, DEFAULTS)
-    const size = glowing ? GLOW_SIZE[peak] : DISC_SIZE[peak]
+    const hit = hitSizeOf(DISC_SIZE[peak])
+    // On the dark map the box is the glow and the tap area sits in its middle; on the
+    // two light ones the box is the tap area and the disc sits in its middle.
+    const size = glowing ? GLOW_SIZE[peak] : hit
     const html = glowing
-      ? glowHtml(colour, size, DEFAULTS.stageBright[peak - 1], DISC_SIZE[peak])
-      : discHtml(colour, size)
+      ? glowHtml(colour, size, DEFAULTS.stageBright[peak - 1], hit)
+      : discHtml(colour, DISC_SIZE[peak], hit)
 
     // Clickable, unlike the grey rings: a coloured marker is a match, and we have
     // their whole profile to show. The rings stay quiet until the backend can
@@ -1244,7 +1256,7 @@ function handleMatchClick(match) {
   const here = map.latLngToContainerPoint([match.position.lat, match.position.lng])
   const crowd = visibleMatches.value.filter(({ match: other }) => {
     const point = map.latLngToContainerPoint([other.position.lat, other.position.lng])
-    return here.distanceTo(point) <= CLUSTER_PX
+    return here.distanceTo(point) <= CROWD_PX
   })
   if (crowd.length <= 1) {
     openProfile(match)
@@ -1977,8 +1989,9 @@ watch(mode, (value) => {
   mix-blend-mode: screen;
 }
 
-/* The click core of a glowing marker: invisible, centred on the point, the size of
-   the disc look's dot. It is the only part of a wide glow that takes a tap. */
+/* The tap core of a coloured marker: invisible, centred on the point, at least HIT_MIN
+   (displayCore) across, otherwise the size of the disc. It is the only part of a marker
+   that takes a tap, on all three looks. */
 .gk-hit {
   position: absolute;
   top: 50%;
@@ -1989,12 +2002,16 @@ watch(mode, (value) => {
   cursor: pointer;
 }
 
+/* Centred in a box as big as its tap core, which takes the tap in its place. */
 .gk-disc {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   border-radius: 50%;
   box-sizing: border-box;
   border: 1.8px solid rgb(12 12 12 / 95%);
-  pointer-events: auto;
-  cursor: pointer;
+  pointer-events: none;
 }
 
 .gk-centre {
@@ -2024,9 +2041,9 @@ watch(mode, (value) => {
 }
 
 /* Leaflet gives an interactive marker icon pointer-events:auto at 0,2,0 specificity;
-   beating it needs 0,3,0. The coloured match markers hand their click to the core or
-   disc inside (both pointer-events:auto), so the icon box around them — much of it
-   invisible glow on the dark map — is click-through and cannot steal a tap. Kept at
+   beating it needs 0,3,0. The coloured match markers hand their click to the core
+   inside (pointer-events:auto), so the icon box around them — much of it invisible
+   glow on the dark map — is click-through and cannot steal a tap. Kept at
    the end of the block so specificity only ever ascends (no-descending-specificity). */
 .leaflet-interactive.gk-marker.gk-clickable {
   pointer-events: none;

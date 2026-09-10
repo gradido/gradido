@@ -25,6 +25,12 @@ vi.mock('../plugins/apolloCache', () => ({
   clearApolloCache: clearApolloCacheMock,
 }))
 
+const { forgetLegacyMapPrefsMock } = vi.hoisted(() => ({ forgetLegacyMapPrefsMock: vi.fn() }))
+vi.mock('../utils/matchingPrefs', async () => {
+  const actual = await vi.importActual('../utils/matchingPrefs')
+  return { ...actual, forgetLegacyMapPrefs: forgetLegacyMapPrefsMock }
+})
+
 const { forgetParkedAmountMock } = vi.hoisted(() => ({ forgetParkedAmountMock: vi.fn() }))
 vi.mock('../composables/useParkedAmount', () => ({
   forgetParkedAmount: forgetParkedAmountMock,
@@ -261,6 +267,23 @@ describe('Vuex store', () => {
         commit.mockClear()
         dispatch.mockClear()
         forgetParkedAmountMock.mockClear()
+        forgetLegacyMapPrefsMock.mockClear()
+      })
+
+      /**
+       * ⛔ The map's settings hung under one flat prefix for the whole device until
+       * 10.09.2026 -- a keep-offer switched off once stayed off for every account after,
+       * and one account carried the street name of the one before it. They are keyed by
+       * gradidoID now, and what the flat prefix left behind is cleared here, beside the
+       * seven other things that must not outlive one member.
+       *
+       * Here and not on the map page, where the sweep first stood: an account without a
+       * position never reaches that page -- the gate sends it to the position tab -- so on
+       * exactly those devices the old keys were never cleared. Every account passes here.
+       */
+      it('sweeps away the map settings the whole device used to share', () => {
+        logout({ commit, state, dispatch })
+        expect(forgetLegacyMapPrefsMock).toHaveBeenCalled()
       })
 
       it('calls twenty-three commits', () => {

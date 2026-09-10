@@ -12,6 +12,8 @@ import {
   entryType,
   listPeak,
   markerColor,
+  crowdRadiusOf,
+  hitSizeOf,
   peakStage,
   sanitizeSelection,
   scoreToStage,
@@ -134,6 +136,36 @@ describe('displayCore', () => {
     it('follows the strongest channel', () => {
       expect(peakStage({ interesse: 1, angebot: 3, gesuch: 2 })).toBe(3)
       expect(peakStage({})).toBe(0)
+    })
+  })
+
+  // F-10: the small discs could hardly be hit on an iPhone. The disc keeps its size, the
+  // tap area around it does not go below 44 px, and the crowd radius follows from it.
+  describe('tap areas', () => {
+    const DISCS = { 1: 20, 2: 28, 3: 38, 4: 48 }
+
+    it('lifts every disc smaller than a finger to 44 px', () => {
+      expect([20, 28, 38].map(hitSizeOf)).toEqual([44, 44, 44])
+    })
+
+    it('leaves a disc that is already bigger than the floor its own size', () => {
+      expect(hitSizeOf(48)).toBe(48)
+    })
+
+    it('makes the crowd radius the largest tap area, not a number of its own', () => {
+      expect(crowdRadiusOf(DISCS)).toBe(48)
+    })
+
+    // The case where the largest DISC would give the wrong answer: every disc below the
+    // floor, so two overlapping tap areas of 44 px would slip through a radius of 28.
+    it('measures the tap areas, not the discs, when every disc is smaller than a finger', () => {
+      expect(crowdRadiusOf({ 1: 20, 2: 28 })).toBe(44)
+    })
+
+    // So a fifth, larger step widens the radius by itself instead of leaving a gap in
+    // which two overlapping tap areas are read as two separate people.
+    it('follows a larger step without being told', () => {
+      expect(crowdRadiusOf({ ...DISCS, 5: 60 })).toBe(60)
     })
   })
 
