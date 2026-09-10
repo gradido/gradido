@@ -705,7 +705,10 @@ onResult(({ data }) => {
 onError((error) => toastError(error.message))
 
 function readPref(key, fallback) {
-  if (!prefPrefix) return fallback
+  // No guard on the prefix here, deliberately: writePref below carries the rule for both.
+  // Nothing can ever have been written without a member, so a read without one finds
+  // nothing and hands back the default -- which is the same answer a guard would give, and
+  // an injection round could not tell the two apart.
   try {
     const raw = window.localStorage?.getItem(prefPrefix + key)
     return raw ? JSON.parse(raw) : fallback
@@ -716,6 +719,10 @@ function readPref(key, fallback) {
 }
 
 function writePref(key, value) {
+  // ⛔ The one rule, at the one seam that can break it: no member, no key. A made-up key
+  // (`null` glued to the setting name) would litter the browser with settings nobody can
+  // attribute and nobody will ever clear -- the same fault as the flat prefix, in a new
+  // costume.
   if (!prefPrefix) return
   try {
     window.localStorage?.setItem(prefPrefix + key, JSON.stringify(value))
