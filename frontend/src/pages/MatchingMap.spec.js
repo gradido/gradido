@@ -219,6 +219,22 @@ describe('MatchingMap', () => {
       expect(load).toHaveBeenCalled()
     })
 
+    // The other half of the same rule, and the one my own comment got wrong: `null` glued
+    // to a setting name gives `nullmode`, an ordinary key on an origin the wallet SHARES
+    // with the admin. It cannot be written from here -- but "nothing on this origin ever
+    // writes it" is a claim about every program on it, and not one this page can make.
+    it('reads nothing either when the store cannot say who is signed in', async () => {
+      window.localStorage.setItem('nullmode', JSON.stringify('liste'))
+      const namenlos = createStore({
+        state: { gmsAllowed: true, userLocation: { latitude: 48.2, longitude: 11.6 } },
+        mutations: { userLocation: () => {} },
+      })
+      const page = mountMap({ store: namenlos })
+      await page.vm.$nextTick()
+
+      expect(page.findComponent({ name: 'MatchList' }).exists()).toBe(false)
+    })
+
     // Removed, not carried across: nobody can say whose they were, and handing them to
     // whoever opens the map first is the fault itself.
     it('sweeps the flat keys off the device on the way in', async () => {

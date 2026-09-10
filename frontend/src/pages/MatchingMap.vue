@@ -704,13 +704,25 @@ onResult(({ data }) => {
 })
 onError((error) => toastError(error.message))
 
+/**
+ * Where one setting lives, or null where there is nobody to attribute it to.
+ *
+ * ⛔ The rule in one place, so both seams keep it: no member, no key. Gluing `null` to the
+ * setting name would build `nullmode`, `nullcenter` -- and those are ordinary keys on an
+ * origin the wallet SHARES with the admin, so they can be written and read by something
+ * that is not this page. Reading one would hand an anonymous map somebody else's state;
+ * writing one would litter the browser with settings nobody can attribute or ever clear.
+ * Both are the flat prefix again, in a new costume.
+ */
+function prefKey(key) {
+  return prefPrefix ? prefPrefix + key : null
+}
+
 function readPref(key, fallback) {
-  // No guard on the prefix here, deliberately: writePref below carries the rule for both.
-  // Nothing can ever have been written without a member, so a read without one finds
-  // nothing and hands back the default -- which is the same answer a guard would give, and
-  // an injection round could not tell the two apart.
+  const storageKey = prefKey(key)
+  if (!storageKey) return fallback
   try {
-    const raw = window.localStorage?.getItem(prefPrefix + key)
+    const raw = window.localStorage?.getItem(storageKey)
     return raw ? JSON.parse(raw) : fallback
   } catch {
     // A stale or hand-edited value must not take the map down with it.
@@ -719,13 +731,10 @@ function readPref(key, fallback) {
 }
 
 function writePref(key, value) {
-  // ⛔ The one rule, at the one seam that can break it: no member, no key. A made-up key
-  // (`null` glued to the setting name) would litter the browser with settings nobody can
-  // attribute and nobody will ever clear -- the same fault as the flat prefix, in a new
-  // costume.
-  if (!prefPrefix) return
+  const storageKey = prefKey(key)
+  if (!storageKey) return
   try {
-    window.localStorage?.setItem(prefPrefix + key, JSON.stringify(value))
+    window.localStorage?.setItem(storageKey, JSON.stringify(value))
   } catch {
     // Storage full or blocked: losing the preference beats losing the map.
   }
