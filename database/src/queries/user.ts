@@ -1,205 +1,17 @@
-import { and, eq, isNull, or } from 'drizzle-orm'
-import { getLogger } from 'log4js'
-import { aliasSchema, emailSchema, Result, uuidv4Schema, VoidResult } from 'shared'
-import { EntityManager, In, Raw } from 'typeorm'
+import { and, desc, eq, inArray, isNull, max, or } from 'drizzle-orm'
+import { alias as aliasedTable } from 'drizzle-orm/mysql-core'
+import { GradidoUnit, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
-import { User as DbUser, UserContact as DbUserContact } from '../entity'
 import { DBNotFoundError } from '../errorTypes'
-import { usersTable } from '../schemas/drizzle.schema'
-import { findWithCommunityIdentifier, LOG4JS_QUERIES_CATEGORY_NAME } from './index'
-import { dbAliasHeldByOther, dbFindAliasOwner } from './userAliases'
+import { transactionsTable, usersTable } from '../schemas/drizzle.schema'
+import { dbAliasHeldByOther } from './userAliases'
 
-export async function aliasExists(alias: string, userId?: number): Promise<boolean> {
-  // Only local users count. Aliases are unique per community, not globally: migration
-  // 0073 dropped the global UNIQUE on users.alias in favour of UNIQUE(alias, community_uuid).
-  // Rows with foreign = 1 are cached copies of members of other communities, so an alias
-  // held there must not block a member of this one.
-  const user = await DbUser.findOne({ where: { alias, foreign: false } })
-  if (user !== null && (userId === undefined || user.id !== userId)) {
-    return true
-  }
-  // A name somebody left behind stays theirs, so it stays blocked - except for its own
-  // owner, who may take it back.
-  return dbAliasHeldByOther(alias, userId)
-}
-
-/**
- * ⚠️ Pass `manager` from inside a transaction. Without it this reads over its own
- * connection, so a caller that holds the member's row under `SELECT ... FOR UPDATE` and
- * then saves what it read here would be writing an entity it loaded from beside its own
- * transaction rather than from within it.
- *
- * Renamed from `getUserById` for AGENTS.md's `db…` rule, because this delivery touched it.
- * Five executing functions in this file still carry no prefix (`aliasExists`,
- * `findForeignUserByUuids`, `findUserByUuids`, `findUserNamesByIds`, `findUserByIdentifier`)
- * - together 68 call sites against this one's 6, so they are their own mechanical change and
- * not this one's. Until they follow, the file has two conventions and this note is the only
- * thing saying which way it is going.
- */
-export async function dbGetUserById(
-  id: number,
-  withCommunity: boolean = false,
-  withEmailContact: boolean = false,
-  manager?: EntityManager,
-): Promise<DbUser> {
-  const options = {
-    where: { id },
-    relations: { community: withCommunity, emailContact: withEmailContact },
-  }
-  return manager ? manager.findOneOrFail(DbUser, options) : DbUser.findOneOrFail(options)
-}
-
-/**
- * A user together with the role row that isAuthorized reads for the logged-in person -
- * for somebody who is NOT logged in but acts through a stored id, the first-creation
- * signer. Deleted accounts come back too (`withDeleted`): the caller decides what a
- * deleted signer means, and "not found" would hide that it was ever somebody.
- *
- * Not found IS an expected outcome here: the stored id may point at an account that has
- * since been removed for good.
- */
-export async function dbGetUserWithRolesById(id: number): Promise<Result<DbUser, DBNotFoundError>> {
-  const user = await DbUser.findOne({
-    where: { id },
-    withDeleted: true,
-    relations: { userRoles: true, emailContact: true },
-  })
-  return user
-    ? { success: true, value: user }
-    : { success: false, error: new DBNotFoundError('users', `id = ${id}`) }
-}
-
-/**
- *
- * @param identifier could be gradidoID, alias or email of user
- * @param communityIdentifier could be uuid or name of community
- * @returns
- */
-export const findUserByIdentifier = async (
-  identifier: string,
-  communityIdentifier?: string,
-): Promise<DbUser | null> => {
-  const communityWhere = communityIdentifier
-    ? findWithCommunityIdentifier(communityIdentifier)
-    : undefined
-
-  if (uuidv4Schema.safeParse(identifier).success) {
-    return DbUser.findOne({
-      where: { gradidoID: identifier, community: communityWhere },
-      relations: ['emailContact', 'community'],
-    })
-  } else if (emailSchema.safeParse(identifier).success) {
-    const userContact = await DbUserContact.findOne({
-      where: {
-        email: identifier,
-        emailChecked: true,
-        user: {
-          community: communityWhere,
-        },
-      },
-      relations: { user: { community: true } },
-    })
-    if (userContact) {
-      // `UserContact.user` is the inverse of `users.email_id`, so it is EMPTY for every row
-      // that is not the address currently in force - and since the e-mail change a member
-      // keeps a confirmed row for every address they ever held. `emailChecked` does not tell
-      // the two apart: an address one gave up stays checked. Without this guard the query
-      // returned such an orphaned row (the relation condition is a LEFT JOIN, and an absent
-      // community identifier adds no condition at all) and the next line wrote to null.
-      //
-      // Answering "not found" is what `findUserByEmail` does with the same input, so the two
-      // ways of asking agree. Whether a FORMER address should still lead to its owner - the
-      // way a former alias does further down - is a product question, not this one's to
-      // settle.
-      if (!userContact.user) {
-        return null
-      }
-      // TODO: remove circular reference
-      const user = userContact.user
-      user.emailContact = userContact
-      return user
-    }
-  } else if (aliasSchema.safeParse(identifier).success) {
-    const normedAlias = Raw((a) => `LOWER(${a}) = LOWER(:alias)`, { alias: identifier })
-    const foundUser = await DbUser.findOne({
-      where: { alias: normedAlias, community: communityWhere },
-      relations: ['emailContact', 'community'],
-    })
-    if (foundUser !== null) {
-      return foundUser
-    }
-    // Not a current name - but an earlier one still leads to its owner, which is what
-    // keeps a printed card working after a rename. Looking the row up by alias alone
-    // avoids the community identifier here: it may be a name rather than a uuid, and
-    // only local members have rows at all.
-    const owner = await dbFindAliasOwner(identifier)
-    if (owner) {
-      return DbUser.findOne({
-        where: { id: owner.userId, community: communityWhere },
-        relations: ['emailContact', 'community'],
-      })
-    }
-  } else {
-    // should don't happen often, so we create only in the rare case a logger for it
-    getLogger(`${LOG4JS_QUERIES_CATEGORY_NAME}.user.findUserByIdentifier`).warn(
-      'Unknown identifier type',
-      identifier,
-    )
-  }
-  return null
-}
-
-/**
- * The `users` row the federation stored for a member of another community, by the pair.
- *
- * `communityUuid` may be null: a booking row carries none when the other community had no
- * uuid yet, and the lookup then goes by the gradido id alone -- spelled out, because TypeORM
- * would otherwise drop an `undefined` from the `where` silently and the reader could not
- * tell the two lookups apart.
- */
-export async function findForeignUserByUuids(
-  communityUuid: string | null,
-  gradidoID: string,
-): Promise<DbUser | null> {
-  return DbUser.findOne({
-    where:
-      communityUuid === null
-        ? { foreign: true, gradidoID }
-        : { foreign: true, communityUuid, gradidoID },
-  })
-}
-
-/**
- * Every `users` row the federation stored for members of other communities with one of
- * these gradido ids -- one query for a whole page of contacts, where one per contact would
- * be one round trip per person. The caller matches the pair; here it is the id alone,
- * because a uuid is unique for every practical purpose and the caller's pair check is
- * the second lock.
- */
-export async function dbFindForeignUsersByGradidoIds(gradidoIds: string[]): Promise<DbUser[]> {
-  if (gradidoIds.length === 0) {
-    return []
-  }
-  return DbUser.find({ where: { foreign: true, gradidoID: In(gradidoIds) } })
-}
-
-/**
- * The `users` rows for a set of ids, in one query -- how a list resolves its local
- * counterparties. `withDeleted`: a booking keeps naming a member whose account is gone
- * (AS-009 leaves them the name and takes the picture), so the lists pass true.
- *
- * TypeORM as it was in the resolvers (AGENTS.md, step 1: move); translated with the rest
- * of this file.
- */
-export async function dbFindUsersByIds(
-  userIds: number[],
-  options: { withDeleted?: boolean } = {},
-): Promise<DbUser[]> {
-  if (userIds.length === 0) {
-    return []
-  }
-  return DbUser.find({ where: { id: In(userIds) }, withDeleted: options.withDeleted ?? false })
-}
+// Drizzle only. The `users` queries still on TypeORM live in `./user.typeorm` until they
+// are translated.
+//
+// Wherever TypeORM read `users` as its main table it added `deleted_at IS NULL` on its own
+// (the entity has a `@DeleteDateColumn`); Drizzle adds nothing, so the translations below
+// spell that condition out.
 
 /**
  * The id of the `users` row carrying this pair, or null when there is none.
@@ -246,17 +58,6 @@ export async function dbFindUserIdByUuids(
   return rows[0]?.id ?? null
 }
 
-export async function findUserByUuids(
-  communityUuid: string,
-  gradidoID: string,
-  foreign: boolean = false,
-): Promise<DbUser | null> {
-  return DbUser.findOne({
-    where: { foreign, communityUuid, gradidoID },
-    relations: ['emailContact'],
-  })
-}
-
 /**
  * Forget that the GMS holds a copy of this member - because it has just been removed.
  *
@@ -278,32 +79,24 @@ export async function dbClearGmsRegistration(userId: number): Promise<VoidResult
   return { success: false, error: new DBNotFoundError('users', `id = ${userId}`) }
 }
 
-/**
- * ES-021: switch an account between "person, may create" and "project account, may not".
- * This one column and nothing else — the callers hold a request-context snapshot of the
- * member, and a full `save()` would write every stale column back (see dbUpdateUserPassword).
- *
- * TypeORM rather than Drizzle, on purpose: the declaration writes this column AND an event
- * row, and the two must land together or not at all. The events live in TypeORM, one
- * transaction covers one ORM only (AGENTS.md), so this write joins the event's side. Pass
- * `manager` from inside that transaction.
- *
- * Writing the value the row already holds is a success: mysql2 connects with FOUND_ROWS,
- * so `affected` counts the matched row, not a changed one — dbClearGmsRegistration relies
- * on the same thing.
- */
-export async function dbSetCreationAllowed(
-  userId: number,
-  allowed: boolean,
-  manager?: EntityManager,
-): Promise<VoidResult<DBNotFoundError>> {
-  const result = manager
-    ? await manager.update(DbUser, { id: userId }, { creationAllowed: allowed })
-    : await DbUser.update({ id: userId }, { creationAllowed: allowed })
-  if (result.affected === 1) {
-    return { success: true }
+export async function aliasExists(alias: string, userId?: number): Promise<boolean> {
+  // Only local users count. Aliases are unique per community, not globally: migration
+  // 0073 dropped the global UNIQUE on users.alias in favour of UNIQUE(alias, community_uuid).
+  // Rows with foreign = 1 are cached copies of members of other communities, so an alias
+  // held there must not block a member of this one.
+  const [user] = await drizzleDb()
+    .select({ id: usersTable.id })
+    .from(usersTable)
+    .where(
+      and(eq(usersTable.alias, alias), eq(usersTable.foreign, 0), isNull(usersTable.deletedAt)),
+    )
+    .limit(1)
+  if (user !== undefined && (userId === undefined || user.id !== userId)) {
+    return true
   }
-  return { success: false, error: new DBNotFoundError('users', `id = ${userId}`) }
+  // A name somebody left behind stays theirs, so it stays blocked - except for its own
+  // owner, who may take it back.
+  return dbAliasHeldByOther(alias, userId)
 }
 
 /**
@@ -323,12 +116,12 @@ export async function dbSetCreationAllowed(
  * goes through `publicAlias` in `shared`.
  */
 export async function findUserNamesByIds(userIds: number[]): Promise<Map<number, string>> {
-  const users = await DbUser.find({
+  const users = await drizzleDb()
     // No `alias`: it was selected and never read, which made this function look like it
     // was about to hand one out.
-    select: { id: true, firstName: true, lastName: true },
-    where: { id: In(userIds) },
-  })
+    .select({ id: usersTable.id, firstName: usersTable.firstName, lastName: usersTable.lastName })
+    .from(usersTable)
+    .where(and(inArray(usersTable.id, userIds), isNull(usersTable.deletedAt)))
   return new Map(
     users.map((user) => {
       return [user.id, `${user.firstName} ${user.lastName}`]
@@ -336,31 +129,57 @@ export async function findUserNamesByIds(userIds: number[]): Promise<Map<number,
   )
 }
 
-/** Persist a member - inside the caller's transaction when given. */
-export async function dbSaveUser(user: DbUser, manager?: EntityManager): Promise<DbUser> {
-  return manager ? manager.save(user) : DbUser.save(user)
+/**
+ * The ids of all local members who allow the GMS to hold a copy of them and whose account
+ * is not deleted. Moved from `backend/src/apis/gms/ExportUsers.ts`.
+ */
+export async function dbFindGmsAllowedLocalUserIds(): Promise<{ id: number }[]> {
+  return drizzleDb()
+    .select({ id: usersTable.id })
+    .from(usersTable)
+    .where(
+      and(eq(usersTable.foreign, 0), eq(usersTable.gmsAllowed, 1), isNull(usersTable.deletedAt)),
+    )
 }
 
 /**
- * Re-key the stored password: exactly these two columns, nothing else. Callers hold a
- * request-context snapshot that may be minutes old, and a full entity `save()` diffs
- * against the row as of NOW - it would write every stale column back, `users.email_id`
- * above all, undoing whatever committed in between.
+ * The latest balance of every member who has one - one row per member, from their most
+ * recent booking. Moved from `backend/src/graphql/resolver/StatisticsResolver.ts`.
  */
-export async function dbUpdateUserPassword(
-  userId: number,
-  password: DbUser['password'],
-  passwordEncryptionType: DbUser['passwordEncryptionType'],
-): Promise<void> {
-  await DbUser.update({ id: userId }, { password, passwordEncryptionType })
+export async function dbSelectLatestUserBalances(): Promise<
+  { balance: GradidoUnit | null; balanceDate: Date }[]
+> {
+  const latest = aliasedTable(transactionsTable, 't')
+  return drizzleDb()
+    .select({
+      balance: transactionsTable.balance,
+      balanceDate: transactionsTable.balanceDate,
+    })
+    .from(usersTable)
+    .innerJoin(transactionsTable, eq(usersTable.id, transactionsTable.userId))
+    .where(
+      and(
+        eq(
+          transactionsTable.balanceDate,
+          drizzleDb()
+            .select({ balanceDate: max(latest.balanceDate) })
+            .from(latest)
+            .where(eq(latest.userId, usersTable.id)),
+        ),
+        isNull(usersTable.deletedAt),
+      ),
+    )
+    .orderBy(desc(transactionsTable.balanceDate), desc(transactionsTable.id))
 }
 
 /**
- * Holds the member's row under a write lock for the rest of the caller's transaction -
- * the plain way to run "look, then change" for one member without a second request
- * slipping in between (the e-mail change: one pending change, one mail per window).
- * Returns nothing; the caller already holds the member.
+ * Mark these members as published to the GMS, now. Moved from `batchUpdateGmsStatus` in
+ * `backend/src/graphql/resolver/util/sendUserToGms.ts`; `dbClearGmsRegistration` above is
+ * its counterpart.
  */
-export async function dbLockUserRow(userId: number, manager: EntityManager): Promise<void> {
-  await manager.findOne(DbUser, { where: { id: userId }, lock: { mode: 'pessimistic_write' } })
+export async function dbMarkUsersGmsRegistered(userIds: number[]): Promise<void> {
+  await drizzleDb()
+    .update(usersTable)
+    .set({ gmsRegistered: 1, gmsRegisteredAt: new Date() })
+    .where(inArray(usersTable.id, userIds))
 }

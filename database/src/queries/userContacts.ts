@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { OptInType, Result, UserContactType, VoidResult } from 'shared'
+import { OptInType, Order, Result, UserContactType, VoidResult } from 'shared'
 import { EntityManager, Like } from 'typeorm'
 import { UserContact as DbUserContact } from '../entity'
 import { DBDuplicateEntryError, DBNotFoundError, isDuplicateEntry } from '../errorTypes'
@@ -36,7 +36,7 @@ const UserContactNotFound = (where: string) => new DBNotFoundError('user_contact
 
 /** The oldest living address of this member - the one the GDT server is asked with. */
 export async function dbFindOldestUserContact(userId: number): Promise<DbUserContact | null> {
-  return DbUserContact.findOne({ where: { userId }, order: { createdAt: 'ASC' } })
+  return DbUserContact.findOne({ where: { userId }, order: { createdAt: Order.ASC } })
 }
 
 /**
@@ -47,7 +47,7 @@ export async function dbFindOldestUserContact(userId: number): Promise<DbUserCon
 export async function dbFindConfirmedUserContactEmails(userId: number): Promise<string[]> {
   const rows = await DbUserContact.find({
     where: { userId, emailChecked: true },
-    order: { createdAt: 'ASC' },
+    order: { createdAt: Order.ASC },
   })
   return rows.map((row) => row.email)
 }

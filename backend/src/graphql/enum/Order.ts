@@ -1,9 +1,7 @@
+import { Order } from 'shared'
 import { registerEnumType } from 'type-graphql'
 
-export enum Order {
-  ASC = 'ASC',
-  DESC = 'DESC',
-}
+export { Order }
 
 registerEnumType(Order, {
   name: 'Order', // this one is mandatory

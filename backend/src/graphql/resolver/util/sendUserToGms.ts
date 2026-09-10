@@ -1,7 +1,7 @@
 import {
-  AppDatabase,
   Community as DbCommunity,
   User as DbUser,
+  dbMarkUsersGmsRegistered,
   dbSelectActiveMatchingEntriesByUserIds,
   MatchingEntrySelect,
 } from 'database'
@@ -178,15 +178,6 @@ async function findLiveEntriesByUser(
 }
 
 async function batchUpdateGmsStatus(userIds: number[]) {
-  await AppDatabase.getInstance()
-    .getDataSource()
-    .createQueryBuilder()
-    .update(DbUser)
-    .set({
-      gmsRegistered: true,
-      gmsRegisteredAt: new Date(),
-    })
-    .where('id IN (:...ids)', { ids: userIds })
-    .execute()
+  await dbMarkUsersGmsRegistered(userIds)
   logger.debug(`${userIds} User marked as gms published.`)
 }
