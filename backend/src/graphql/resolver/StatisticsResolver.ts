@@ -1,5 +1,10 @@
 import { CommunityStatistics, DynamicStatisticsFields } from '@model/CommunityStatistics'
-import { AppDatabase, Transaction as DbTransaction, User as DbUser } from 'database'
+import {
+  AppDatabase,
+  Transaction as DbTransaction,
+  User as DbUser,
+  dbSelectLatestUserBalances,
+} from 'database'
 import { GradidoUnit } from 'shared'
 import { Authorized, FieldResolver, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -70,40 +75,24 @@ export class StatisticsResolver {
 
     const receivedCallDate = new Date()
 
-    const queryRunner = db.getDataSource().createQueryRunner()
-    try {
-      await queryRunner.connect()
+    const lastUserTransactions = await dbSelectLatestUserBalances()
 
-      const lastUserTransactions = await queryRunner.manager
-        .createQueryBuilder(DbUser, 'user')
-        .select('transaction.balance', 'balance')
-        .addSelect('transaction.balance_date', 'balanceDate')
-        .innerJoin(DbTransaction, 'transaction', 'user.id = transaction.user_id')
-        .where(
-          `transaction.balance_date = (SELECT MAX(t.balance_date) FROM transactions AS t WHERE t.user_id = user.id)`,
-        )
-        .orderBy('transaction.balance_date', 'DESC')
-        .addOrderBy('transaction.id', 'DESC')
-        .getRawMany()
+    const activeUsers = lastUserTransactions.length
 
-      const activeUsers = lastUserTransactions.length
-
-      lastUserTransactions.forEach(({ balance, balanceDate }) => {
-        const balanceGradidoUnit = GradidoUnit.fromGradidoCent(BigInt(balance))
-        const decay = balanceGradidoUnit.calculateDecay(new Date(balanceDate), receivedCallDate)
+    lastUserTransactions.forEach(({ balance, balanceDate }) => {
+      if (balance) {
+        const decay = balance.calculateDecay(new Date(balanceDate), receivedCallDate)
         if (decay) {
           totalGradidoAvailable = totalGradidoAvailable.add(decay.balance)
           totalGradidoUnbookedDecayed = totalGradidoUnbookedDecayed.add(decay.decay)
         }
-      })
-
-      return {
-        activeUsers,
-        totalGradidoAvailable,
-        totalGradidoUnbookedDecayed,
       }
-    } finally {
-      await queryRunner.release()
+    })
+
+    return {
+      activeUsers,
+      totalGradidoAvailable,
+      totalGradidoUnbookedDecayed,
     }
   }
 }

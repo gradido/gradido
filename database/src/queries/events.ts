@@ -1,3 +1,4 @@
+import { Order } from 'shared'
 import { EntityManager } from 'typeorm'
 import { ContributionLink as DbContributionLink, Event as DbEvent, User as DbUser } from '../entity'
 
@@ -30,7 +31,7 @@ export async function dbFindLatestEventForAffectedUser(
   const options = {
     // todo: move event types into db
     where: { type, affectedUserId },
-    order: { createdAt: 'DESC' as const },
+    order: { createdAt: Order.DESC },
   }
   return manager ? manager.findOne(DbEvent, options) : DbEvent.findOne(options)
 }
