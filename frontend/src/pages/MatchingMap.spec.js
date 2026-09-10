@@ -14,8 +14,14 @@ import { GMS_REJECTED, GMS_UNAVAILABLE } from '@/composables/useMatches'
 // may draw SVG at all - by looking for createSVGRect. Without it Leaflet finds no
 // renderer and the map dies at its first circle, before a single marker is drawn. This
 // is only that feature test: the SVG Leaflet then writes is plain DOM, which jsdom has.
+//
+// The grey rings are drawn on a canvas, which jsdom does not paint either. Leaflet only
+// needs a 2D context that takes every call; its own hit test - how near a tap has to be
+// to a ring - is plain arithmetic and runs as it does in a browser.
 vi.hoisted(() => {
   window.SVGSVGElement.prototype.createSVGRect = () => ({})
+  window.HTMLCanvasElement.prototype.getContext = () =>
+    new Proxy({}, { get: (target, name) => (name in target ? target[name] : () => {}) })
 })
 
 const replace = vi.fn()
@@ -57,11 +63,14 @@ const suggest = vi.fn(async () => [])
 const matches = ref([])
 const presence = ref([])
 const searchError = ref(null)
+// The profile route. Held out like `load`, so a test can see what the window asks for
+// and hand it an answer - or none.
+const profile = vi.fn()
 vi.mock('@/composables/useMatches', async () => {
   const actual = await vi.importActual('@/composables/useMatches')
   return {
     ...actual,
-    useMatches: () => ({ matches, presence, error: searchError, load, suggest }),
+    useMatches: () => ({ matches, presence, error: searchError, load, suggest, profile }),
   }
 })
 
@@ -137,6 +146,9 @@ beforeEach(() => {
   replace.mockClear()
   push.mockClear()
   load.mockClear()
+  // By default the profile route answers with a person who published nothing more.
+  profile.mockReset()
+  profile.mockImplementation(async (uuid) => ({ uuid, aboutMe: null, channels: {} }))
   toastError.mockClear()
   matches.value = []
   presence.value = []
@@ -464,6 +476,139 @@ describe('MatchingMap', () => {
 
       expect(profileOpen(page)).toBe(false)
     })
+
+    // Since a ring opens the window too, the window can be left open on a ring - off to
+    // "Gradido senden" and back - and a search can bring rings and no match at all.
+    it('opens a saved ring again, with no match in the results', async () => {
+      window.localStorage.setItem(`${KEY}profile`, JSON.stringify('r-1'))
+      const page = mountMap()
+
+      presence.value = [
+        {
+          id: 2,
+          uuid: 'r-1',
+          name: 'Paul',
+          community: { uuid: 'c-1', name: 'Muenchen' },
+          hasEntries: false,
+          position: { lat: 48.2, lng: 11.6 },
+          precision: 'ungefaehr',
+        },
+      ]
+      await page.vm.$nextTick()
+
+      expect(profileOpen(page)).toBe(true)
+      expect(profile).toHaveBeenCalledWith('r-1', 'c-1')
+    })
+  })
+
+  // GMS-111, Bernd 10.09.2026: a match, a grey ring and a silent line of the list open the
+  // same window. It opens at once with what the map knows and fills in the rest.
+  describe('the one window for a match and a ring', () => {
+    const match = {
+      uuid: 'u-1',
+      name: 'Anna',
+      position: { lat: 48.2, lng: 11.6 },
+      community: { uuid: 'c-1', name: 'Muenchen' },
+      aboutMe: 'Ich repariere.',
+      precision: 'genau',
+      channels: {
+        angebot: [
+          { uuid: 'e-bike', summary: 'Fahrradreparatur', strength: 0.73, matchedEntryUuid: 'mine' },
+        ],
+      },
+      scores: { angebot: [{ strength: 0.73, entry: 'mine', subject: 'fahrrad' }] },
+    }
+    const ring = {
+      id: 2,
+      uuid: 'r-1',
+      name: 'Paul',
+      community: { uuid: 'c-1', name: 'Muenchen' },
+      hasEntries: true,
+      position: { lat: 48.21, lng: 11.61 },
+      precision: 'ungefaehr',
+    }
+    // Everything Anna published: the matched offer and one more, newest first.
+    const annasProfile = {
+      uuid: 'u-1',
+      aboutMe: 'Ich repariere.',
+      channels: {
+        angebot: [
+          { uuid: 'e-new', summary: 'Lastenrad leihen', details: null, remote: false },
+          { uuid: 'e-bike', summary: 'Fahrradreparatur', details: null, remote: false },
+        ],
+      },
+    }
+    const shown = (page) => page.findComponent({ name: 'MatchProfile' })
+    const inList = () => window.localStorage.setItem(`${KEY}mode`, JSON.stringify('liste'))
+    const open = (page, person) =>
+      page.findComponent({ name: 'MatchList' }).vm.$emit('open', person)
+
+    it('opens a match at once and lays everything else they published in', async () => {
+      inList()
+      profile.mockResolvedValueOnce(annasProfile)
+      const page = mountMap()
+
+      open(page, match)
+      await page.vm.$nextTick()
+      // At once, with what the map knows...
+      expect(shown(page).props('modelValue')).toBe(true)
+      expect(shown(page).props('match').channels.angebot).toHaveLength(1)
+
+      await flushPromises()
+      // ...and then the whole person, the matched offer keeping its strength.
+      expect(profile).toHaveBeenCalledWith('u-1', 'c-1')
+      const offers = shown(page).props('match').channels.angebot
+      expect(offers.map((entry) => [entry.summary, entry.strength])).toEqual([
+        ['Lastenrad leihen', undefined],
+        ['Fahrradreparatur', 0.73],
+      ])
+    })
+
+    it('opens a silent person with their name and community, then fills in', async () => {
+      inList()
+      profile.mockResolvedValueOnce({ uuid: 'r-1', aboutMe: 'Ich imkere.', channels: {} })
+      const page = mountMap()
+
+      open(page, ring)
+      await page.vm.$nextTick()
+      expect(shown(page).props('match').name).toBe('Paul')
+      expect(shown(page).props('match').community.name).toBe('Muenchen')
+
+      await flushPromises()
+      expect(shown(page).props('match').aboutMe).toBe('Ich imkere.')
+    })
+
+    it('keeps what it shows and says so when the profile does not come', async () => {
+      inList()
+      profile.mockRejectedValueOnce(new Error('community-user/profile: HTTP 503'))
+      const page = mountMap()
+
+      open(page, match)
+      await flushPromises()
+
+      expect(toastError).toHaveBeenCalledWith(de.matching.profile.unavailable)
+      expect(shown(page).props('modelValue')).toBe(true)
+      expect(shown(page).props('match')).toEqual(match)
+    })
+
+    // Two taps in quick succession: the answer for the first may come after the second.
+    it('does not let a late answer land in the window of the next person', async () => {
+      inList()
+      let answerAnna
+      profile
+        .mockImplementationOnce(() => new Promise((resolve) => (answerAnna = resolve)))
+        .mockResolvedValueOnce({ uuid: 'r-1', aboutMe: 'Ich imkere.', channels: {} })
+      const page = mountMap()
+
+      open(page, match)
+      open(page, ring)
+      await flushPromises()
+      answerAnna(annasProfile)
+      await flushPromises()
+
+      expect(shown(page).props('match').name).toBe('Paul')
+      expect(shown(page).props('match').aboutMe).toBe('Ich imkere.')
+    })
   })
 
   // F-10, Bernd at his iPhone: the small discs could hardly be hit. Leaflet is built here
@@ -590,6 +735,47 @@ describe('MatchingMap', () => {
       it('stays on the fourth size while breadth is off', async () => {
         const dark = await buildMap('dunkel', [broad('clara')])
         expect(px(dark.find('.gk-clickable').element, 'width')).toBe('104px')
+      })
+    })
+
+    // Bernd, 10.09.2026: the grey rings open the profile too, with the same tap area as
+    // the markers. The ring stands in the middle of the view, which jsdom lays out at no
+    // size - container point (0, 0) - so the distance of a tap to it is its clientX.
+    describe('a grey ring', () => {
+      const ring = () => ({
+        id: 2,
+        uuid: 'r-1',
+        name: 'Paul',
+        community: { uuid: 'c-1', name: 'Muenchen' },
+        hasEntries: true,
+        position: east(0),
+        precision: 'ungefaehr',
+      })
+      const tapCanvas = (page, x) =>
+        page
+          .find('.leaflet-overlay-pane canvas')
+          .element.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: x, clientY: 0 }))
+
+      // 15 px out is far beside the ring's own 6 px, and well inside the 22 px of a 44 px area.
+      it('opens from anywhere in a 44 px tap area around it', async () => {
+        presence.value = [ring()]
+        const page = await buildMap('hell', [])
+
+        tapCanvas(page, 15)
+        await page.vm.$nextTick()
+
+        expect(profileOpen(page)).toBe(true)
+        expect(profile).toHaveBeenCalledWith('r-1', 'c-1')
+      })
+
+      it('does not open from beyond that area', async () => {
+        presence.value = [ring()]
+        const page = await buildMap('hell', [])
+
+        tapCanvas(page, 30)
+        await page.vm.$nextTick()
+
+        expect(profileOpen(page)).toBe(false)
       })
     })
   })

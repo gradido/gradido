@@ -648,7 +648,8 @@
       "aria": "{name} profili",
       "more": "{n} tane daha",
       "sendEmail": "E-posta gönder",
-      "sendGradido": "Gradido gönder"
+      "sendGradido": "Gradido gönder",
+      "unavailable": "Profil şu anda yüklenemedi."
     },
     "query": {
       "all": "Tüm girişlerim",

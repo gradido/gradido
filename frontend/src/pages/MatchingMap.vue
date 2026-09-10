@@ -267,7 +267,7 @@ import 'leaflet/dist/leaflet.css'
 import { GeoSearchControl, OpenStreetMapProvider } from 'leaflet-geosearch'
 import 'leaflet-geosearch/dist/geosearch.css'
 import { listMatchingEntries, userLocationQuery } from '@/graphql/queries'
-import { useMatches, distanceKm, GMS_REJECTED } from '@/composables/useMatches'
+import { useMatches, distanceKm, withProfile, GMS_REJECTED } from '@/composables/useMatches'
 import { hasPosition as isPositionSet, isPlace } from '@/utils/matchingPosition'
 import { mapPrefPrefix } from '@/utils/matchingPrefs'
 import { useEntryDraft } from '@/composables/useEntryDraft'
@@ -276,6 +276,7 @@ import { useAppToast } from '@/composables/useToast'
 import {
   LABEL_COLORS,
   DEFAULTS,
+  HIT_MIN,
   crowdRadiusOf,
   hitSizeOf,
   markerColor,
@@ -350,6 +351,14 @@ const SNAP_TOL = 24
 // of guessing whose area took it (F-10).
 const CROWD_PX = crowdRadiusOf(DISC_SIZE)
 
+// The grey rings: small on purpose - they are many, and they are not matches. Their tap
+// area is the markers' all the same (HIT_MIN, F-10), reached through the canvas's click
+// tolerance: Leaflet counts a tap as on a ring within radius + half the line + tolerance
+// of its centre (Path._clickTolerance, CircleMarker._containsPoint in Leaflet 1.9).
+const RING_RADIUS = 5
+const RING_WEIGHT = 2
+const RING_TOLERANCE = HIT_MIN / 2 - RING_RADIUS - RING_WEIGHT / 2
+
 const { t, locale } = useI18n()
 const router = useRouter()
 const entryDraft = useEntryDraft()
@@ -382,7 +391,7 @@ const centerLabel = ref(readPref('centerLabel', ''))
 const radiusModal = ref(false)
 const radiusDraft = ref(DEFAULT_RADIUS)
 
-const { matches, presence, error: searchError, load, suggest } = useMatches()
+const { matches, presence, error: searchError, load, suggest, profile: loadProfile } = useMatches()
 
 // A search that did not come through says so, in words the member can read. The
 // GMS answers with status codes and its own messages, neither meant for a screen.
@@ -1009,9 +1018,8 @@ function drawMatches() {
       ? glowHtml(colour, size, DEFAULTS.stageBright[peak - 1], hit)
       : discHtml(colour, DISC_SIZE[peak], hit)
 
-    // Clickable, unlike the grey rings: a coloured marker is a match, and we have
-    // their whole profile to show. The rings stay quiet until the backend can
-    // name them (no uuid on the presence route yet — GMS-115, Dario's domain).
+    // A coloured marker is a match: a tap opens their profile, or resolves a crowd
+    // first (handleMatchClick). The grey rings open the same window (drawPresence).
     L.marker([match.position.lat, match.position.lng], {
       icon: L.divIcon({
         className: 'gk-marker gk-clickable',
@@ -1027,16 +1035,47 @@ function drawMatches() {
   }
 }
 
-function openProfile(match) {
-  activeMatch.value = match
+// Counts the profiles asked for, so that a slow answer for somebody the member has
+// already left cannot land in the window of the next person (or of nobody).
+let profileRequest = 0
+
+/**
+ * Open the window on a person - a match, a grey ring or a silent line of the list: one
+ * window for all of them (GMS-111).
+ *
+ * It opens at once with what the map knows - a match with the entries that answer me,
+ * a ring with a name and a community - and then fills in everything the person
+ * published from the profile route, the matched entries keeping their strength
+ * (withProfile). If the route does not answer, the window stays as it opened and a
+ * toast says the rest could not be loaded.
+ */
+function openProfile(person) {
+  activeMatch.value = person
   profileOpen.value = true
-  writePref('profile', match.uuid)
+  writePref('profile', person.uuid)
+  fillProfile(person)
+}
+
+async function fillProfile(person) {
+  const request = ++profileRequest
+  // A ring from a GMS that does not name its rings yet: there is nobody to ask about.
+  if (!person.uuid || !person.community?.uuid) return
+  try {
+    const published = await loadProfile(person.uuid, person.community.uuid)
+    if (request !== profileRequest || !profileOpen.value) return
+    activeMatch.value = withProfile(person, published)
+  } catch {
+    if (request !== profileRequest) return
+    toastError(t('matching.profile.unavailable'))
+  }
 }
 
 /** The window's v-model. A close by the member forgets the person for good. */
 function onProfileModel(open) {
   profileOpen.value = open
   if (!open) {
+    // An answer still on its way is for a window that is gone.
+    profileRequest++
     activeMatch.value = null
     writePref('profile', null)
   }
@@ -1055,11 +1094,12 @@ function onProfileModel(open) {
 function syncProfile() {
   const savedUuid = readPref('profile', null)
   if (!savedUuid) return
-  const found = matches.value.find((entry) => entry.uuid === savedUuid)
-  if (found) {
-    activeMatch.value = found
-    profileOpen.value = true
-  }
+  // A match or a ring: the window was left open on one of them (GMS-111), and both are
+  // opened again the same way, the profile route asked once more.
+  const found =
+    matches.value.find((entry) => entry.uuid === savedUuid) ??
+    presence.value.find((person) => person.uuid === savedUuid)
+  if (found) openProfile(found)
 }
 
 function drawPresence() {
@@ -1069,19 +1109,27 @@ function drawPresence() {
 
   // Thousands of rings would choke the DOM, so these go on a canvas. The handful
   // of matches above stay divIcons — they are few and they carry real CSS.
+  //
+  // A ring opens the same window as a match (GMS-111), with the markers' tap area
+  // (RING_TOLERANCE). Two rings under one finger: whichever Leaflet finds opens - no
+  // crowd zoom for rings, on purpose; they are many and they are silent.
   const dark = look.value === 'dunkel'
   const stroke = dark ? 'rgb(116, 121, 131)' : 'rgb(95, 99, 107)'
   const fill = dark ? 'rgb(80, 84, 94)' : 'rgb(150, 154, 162)'
   for (const person of visiblePresence.value) {
-    L.circleMarker([person.position.lat, person.position.lng], {
+    // Only somebody the GMS names can be asked about; an older GMS names nobody.
+    const opens = Boolean(person.uuid && person.community?.uuid)
+    const ring = L.circleMarker([person.position.lat, person.position.lng], {
       renderer: canvasRenderer,
-      radius: 5,
-      weight: 2,
+      radius: RING_RADIUS,
+      weight: RING_WEIGHT,
       color: stroke,
       fillColor: fill,
       fillOpacity: person.hasEntries ? 1 : 0,
-      interactive: false,
-    }).addTo(presenceLayer)
+      interactive: opens,
+    })
+    if (opens) ring.on('click', () => openProfile(person))
+    ring.addTo(presenceLayer)
   }
   presenceLayer.addTo(map)
 }
@@ -1363,7 +1411,8 @@ function initMap() {
     maxZoom: 19,
   }).addTo(map)
 
-  canvasRenderer = L.canvas({ padding: 0.5 })
+  // Only the grey rings are drawn on this renderer, so its tolerance is theirs alone.
+  canvasRenderer = L.canvas({ padding: 0.5, tolerance: RING_TOLERANCE })
 
   const searchControl = new GeoSearchControl({
     provider: new OpenStreetMapProvider(),
@@ -1472,8 +1521,10 @@ watch([matches, presence], redraw, { deep: true })
 // which is exactly what syncProfile's own note says must not happen. One shot, on
 // the first results that actually carry something.
 let restoreDone = false
-watch(matches, () => {
-  if (restoreDone || !matches.value.length) return
+// Matches or rings: the window may have been left open on either, and a search can
+// bring rings and no match at all.
+watch([matches, presence], () => {
+  if (restoreDone || (!matches.value.length && !presence.value.length)) return
   restoreDone = true
   syncProfile()
   syncCluster()

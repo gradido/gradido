@@ -69,9 +69,10 @@ import { isPlace } from '@/utils/matchingPosition'
  *             remote, strength, score, coreWord }
  *   Score = { strength, entry, subject }
  *
- * `channels` holds only the entries that answer me. The GMS has no profile route
- * ("person X with all their entries") yet, so the rest of a person's list is out of
- * reach — the window shows what answers, floated by strength. `scores` is what the
+ * `channels` holds only the entries that answer me - what the matches route knows. The
+ * window shows everything the person published: `profile` below reads it from the
+ * profile route, and `withProfile` lays these matched entries, with their strength, over
+ * it (GMS-111: one window for a match and a ring). `scores` is what the
  * MAP reads (via displayCore): per channel, one strength for every entry of theirs
  * that answers one of mine, with the entry of mine it answers and what that entry is
  * about (`matchedSubject`, sent by the GMS since 10.09.2026) - the glow counts breadth
@@ -81,14 +82,17 @@ import { isPlace } from '@/utils/matchingPosition'
  *
  * Presence is everyone else in range — on the map the grey rings:
  *
- *   { id: number, name: string, position: { lat, lng }, precision }
+ *   { id: number, uuid, name: string, community: { uuid, name }, hasEntries: boolean,
+ *     position: { lat, lng }, precision }
  *
- * The presence route returns the internal id, not a uuid, and says nothing about
- * entries. So the rings are not clickable, and every ring reads as "no entries
- * known" (GMS-115 — the route would have to carry a uuid and that flag). The route
- * also lists the people who are matches, and the seeker: the rings that would stand
- * under a glowing marker are dropped here, or the heading would count those people
- * twice. The seeker's own ring stays — the route gives nothing to tell it by.
+ * Since 10.09.2026 the presence route names every person by the pair a profile is
+ * opened with - their uuid and their community - and says whether they have stated
+ * anything (GMS-115, GMS-74): a ring opens the same window as a match, and the ring is
+ * filled for somebody with entries. An older GMS without those fields leaves `uuid` and
+ * `community` null and every ring hollow; such a ring cannot be opened. The route also
+ * lists the people who are matches, and the seeker: the rings that would stand under a
+ * glowing marker are dropped here, or the heading would count those people twice. The
+ * seeker's own ring stays - the pair could tell it now, and nothing here asks it to.
  */
 
 /** Great-circle distance in km — the sphere the backend measures on. */
@@ -238,9 +242,76 @@ export function toMatch(user) {
 export function toPresence(user) {
   return {
     id: user.id,
+    uuid: user.uuid ?? null,
     name: user.alias,
+    community: user.community ?? null,
+    hasEntries: user.hasEntries === true,
     position: positionOf(user.location),
     precision: precisionOf(user.type),
+  }
+}
+
+/**
+ * One person of the profile route → the window's shape: every entry they published,
+ * keyed by the member's words like a match's, and none with a strength - the strengths
+ * come from the searches (withProfile). Newest first, as the GMS sends them.
+ */
+export function toProfile(person) {
+  const channels = {}
+  for (const entry of person.entries ?? []) {
+    const key = displayType(entry.matchingType)
+    const shown = {
+      uuid: entry.uuid,
+      summary: entry.summary,
+      details: entry.details,
+      remote: entry.remote,
+    }
+    channels[key] = channels[key] ? [...channels[key], shown] : [shown]
+  }
+  return {
+    uuid: person.uuid,
+    name: person.alias,
+    community: person.community,
+    aboutMe: person.aboutMe,
+    position: positionOf(person.location),
+    precision: precisionOf(person.type),
+    channels,
+  }
+}
+
+/**
+ * The person the window shows: what the map knows of them, with everything they
+ * published laid in (GMS-111). An entry the search matched keeps its strength -
+ * the window opens its area and floats it to the top; every other entry comes without
+ * one and folds behind "X more", newest first. A matched entry the profile does not
+ * list (the cap, or an edit in between) stays: what glows on the map is never missing
+ * from the window. Nothing of my own is paired with it - the window shows them, not me.
+ */
+export function withProfile(person, profile) {
+  const matched = new Map()
+  for (const entries of Object.values(person.channels ?? {})) {
+    for (const entry of entries) matched.set(entry.uuid, entry)
+  }
+  const channels = {}
+  const listed = new Set()
+  for (const [key, entries] of Object.entries(profile.channels ?? {})) {
+    channels[key] = entries.map((entry) => {
+      listed.add(entry.uuid)
+      return matched.get(entry.uuid) ?? entry
+    })
+  }
+  for (const [key, entries] of Object.entries(person.channels ?? {})) {
+    const missing = entries.filter((entry) => !listed.has(entry.uuid))
+    if (missing.length) channels[key] = [...(channels[key] ?? []), ...missing]
+  }
+  return {
+    ...person,
+    community: person.community?.name ? person.community : profile.community,
+    // The profile's, null included: it is the newer read of the same column, and null
+    // says the person has no text now - the route always carries the field. Falling back
+    // to the match's text would show one they have just removed.
+    aboutMe: profile.aboutMe,
+    channels,
   }
 }
 
@@ -286,15 +357,16 @@ const SUGGEST_PREFIX_MAX = 80
 const SUGGEST_MIN_CHARS = 2
 
 /**
- * How long a fetched access stays good for the suggestions.
+ * How long a fetched access stays good for the suggestions and the profiles.
  *
  * The search fetches one per question, which is right - a question is a deliberate
- * act and happens seldom. The offers are asked for while somebody types, so fetching
- * one per call would put a GraphQL round trip through the wallet backend behind every
- * few keystrokes. Kept for a typing session instead, and a token that has run out in
- * the meantime is answered 401 and fetched again once (below).
+ * act and happens seldom. The offers are asked for while somebody types, and a profile
+ * every time a window opens, so fetching one per call would put a GraphQL round trip
+ * through the wallet backend behind every few keystrokes and every tap. Kept for a while
+ * instead, and a token that has run out in the meantime is answered 401 and fetched
+ * again once (askKept, below).
  */
-const SUGGEST_ACCESS_MAX_AGE_MS = 5 * 60 * 1000
+const KEPT_ACCESS_MAX_AGE_MS = 5 * 60 * 1000
 
 /**
  * The circle plus the question: the words as typed, and the stance in the GMS's
@@ -355,10 +427,10 @@ export function useMatches() {
   const presence = ref([])
   const loading = ref(false)
   const error = ref(null)
-  // The access the suggestions reuse, and when it was fetched. Only they reuse it:
-  // `load` below still fetches per search, on purpose.
-  let suggestAccess = null
-  let suggestAccessAt = 0
+  // The access the suggestions and the profiles reuse, and when it was fetched. Only
+  // they reuse it: `load` below still fetches per search, on purpose.
+  let keptAccess = null
+  let keptAccessAt = 0
   // The number of the search asked for last. Two searches can be in flight when the
   // member moves the centre twice; only the last one asked for may write, or the
   // older answer could land after the newer one and overwrite it.
@@ -428,13 +500,31 @@ export function useMatches() {
     }
   }
 
-  /** The access for the offers: the kept one, unless it is stale or `fresh` is asked for. */
-  async function accessForSuggest(fresh) {
-    if (fresh || !suggestAccess || Date.now() - suggestAccessAt > SUGGEST_ACCESS_MAX_AGE_MS) {
-      suggestAccess = await gmsAccess(client)
-      suggestAccessAt = Date.now()
+  /** The kept access: the one fetched last, unless it is stale or `fresh` is asked for. */
+  async function accessKept(fresh) {
+    if (fresh || !keptAccess || Date.now() - keptAccessAt > KEPT_ACCESS_MAX_AGE_MS) {
+      keptAccess = await gmsAccess(client)
+      keptAccessAt = Date.now()
     }
-    return suggestAccess
+    return keptAccess
+  }
+
+  /**
+   * One GET with the kept access. The one case a kept access has that a fetched one
+   * does not - it ran out in the meantime - is answered 401: fetch once more and ask
+   * again. Anything else is not ours to retry and is thrown as gmsGet threw it.
+   */
+  async function askKept(route, params) {
+    const ask = async (fresh) => {
+      const { url, token } = await accessKept(fresh)
+      return await gmsGet(apiBaseOf(url), route, params, token)
+    }
+    try {
+      return await ask(false)
+    } catch (err) {
+      if (err.status !== 401) throw err
+      return await ask(true)
+    }
   }
 
   /**
@@ -456,21 +546,8 @@ export function useMatches() {
     const typed = (prefix ?? '').trim().slice(0, SUGGEST_PREFIX_MAX)
     if (typed.length < SUGGEST_MIN_CHARS) return []
     const params = new URLSearchParams({ prefix: typed })
-    const ask = async (fresh) => {
-      const { url, token } = await accessForSuggest(fresh)
-      return await gmsGet(apiBaseOf(url), 'community-user/vocabulary-suggest', params, token)
-    }
     try {
-      let body
-      try {
-        body = await ask(false)
-      } catch (err) {
-        // The one case a kept access has that a fetched one does not: it ran out
-        // while somebody was typing. Fetch once more and ask again; anything else
-        // is not ours to retry.
-        if (err.status !== 401) throw err
-        body = await ask(true)
-      }
+      const body = await askKept('community-user/vocabulary-suggest', params)
       return body.words ?? []
     } catch {
       // Offers are a convenience beside the field, not the answer to a question. A
@@ -481,5 +558,22 @@ export function useMatches() {
     }
   }
 
-  return { matches, presence, loading, error, load, suggest }
+  /**
+   * One person's profile — `GET community-user/profile` — in the window's shape
+   * (toProfile): everything they published, at most a hundred entries of a kind (the
+   * GMS's cap, passed on as it comes), none with a strength. The pair is what names
+   * them: a uuid names a person only within one community.
+   *
+   * Throws what gmsGet throws - a 404 for a pair that names nobody, an outage - and the
+   * page says so and keeps what the window already shows.
+   *
+   * @param {string} uuid the person's uuid
+   * @param {string} communityUuid the uuid of their community
+   */
+  async function profile(uuid, communityUuid) {
+    const params = new URLSearchParams({ uuid, community: communityUuid })
+    return toProfile(await askKept('community-user/profile', params))
+  }
+
+  return { matches, presence, loading, error, load, suggest, profile }
 }

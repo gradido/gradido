@@ -648,7 +648,8 @@
       "aria": "Perfil de {name}",
       "more": "{n} más",
       "sendEmail": "Enviar correo electrónico",
-      "sendGradido": "Enviar Gradido"
+      "sendGradido": "Enviar Gradido",
+      "unavailable": "El perfil no se ha podido cargar en este momento."
     },
     "query": {
       "all": "Todas mis entradas",

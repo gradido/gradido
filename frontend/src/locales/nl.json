@@ -648,7 +648,8 @@
       "aria": "Profiel van {name}",
       "more": "nog {n}",
       "sendEmail": "E-mail versturen",
-      "sendGradido": "Gradido versturen"
+      "sendGradido": "Gradido versturen",
+      "unavailable": "Het profiel kon op dit moment niet worden geladen."
     },
     "query": {
       "all": "Al mijn vermeldingen",
