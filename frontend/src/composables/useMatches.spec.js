@@ -8,6 +8,8 @@ import {
   precisionOf,
   toMatch,
   toPresence,
+  toProfile,
+  withProfile,
   withoutMatched,
   GMS_UNAVAILABLE,
   GMS_REJECTED,
@@ -23,16 +25,20 @@ vi.mock('@vue/apollo-composable', () => ({
 
 // --- the wire shapes, field for field as the GMS declares them ----------------
 // backend/src/server/output.schema.ts of the GMS: matchedUserSchema, matchedChannelSchema,
-// matchedEntrySchema, mapUserSchema. A fake fetch proves nothing about the other side,
-// so what it answers is copied from the schema, not invented: the channel words are the
-// server's (`offer | need | interest`), the point is `[lng, lat]`, `strength` is the
-// brightness of a level (0.46 / 0.595 / 0.73 / 0.865), `type` the publish location type.
+// matchedEntrySchema, mapPresenceSchema, profileUserSchema. A fake fetch proves nothing
+// about the other side, so what it answers is copied from the schema, not invented: the
+// channel words are the server's (`offer | need | interest`), the point is `[lng, lat]`,
+// `strength` is the brightness of a level (0.46 / 0.595 / 0.73 / 0.865), `type` the
+// publish location type.
 
 const UUID = {
   marta: '5b1f0a1e-0000-4000-8000-000000000001',
   mine: '5b1f0a1e-0000-4000-8000-000000000002',
   entry: '5b1f0a1e-0000-4000-8000-000000000003',
   community: '5b1f0a1e-0000-4000-8000-000000000004',
+  paul: '5b1f0a1e-0000-4000-8000-000000000005',
+  other: '5b1f0a1e-0000-4000-8000-000000000006',
+  newest: '5b1f0a1e-0000-4000-8000-000000000007',
 }
 
 function matchedUser(over = {}) {
@@ -67,7 +73,52 @@ function matchedUser(over = {}) {
 }
 
 function mapUser(over = {}) {
-  return { id: 7, alias: 'Paul', type: 1, location: [9.7, 49.3], ...over }
+  return {
+    id: 7,
+    uuid: UUID.paul,
+    alias: 'Paul',
+    type: 1,
+    location: [9.7, 49.3],
+    community: { uuid: UUID.community, name: 'Gradido Künzelsau' },
+    hasEntries: true,
+    ...over,
+  }
+}
+
+/** GET community-user/profile: what the person published, entries newest first. */
+function profileUser(over = {}) {
+  return {
+    uuid: UUID.marta,
+    alias: 'Marta',
+    aboutMe: 'Ich schraube gern an Rädern.',
+    type: 0,
+    location: [9.69, 49.28],
+    community: { uuid: UUID.community, name: 'Gradido Künzelsau' },
+    entries: [
+      {
+        uuid: UUID.newest,
+        matchingType: 'offer',
+        summary: 'Lastenrad leihen',
+        details: null,
+        remote: false,
+      },
+      {
+        uuid: UUID.other,
+        matchingType: 'need',
+        summary: 'Hilfe im Garten',
+        details: 'samstags',
+        remote: true,
+      },
+      {
+        uuid: UUID.entry,
+        matchingType: 'offer',
+        summary: 'Fahrradreparatur',
+        details: null,
+        remote: false,
+      },
+    ],
+    ...over,
+  }
 }
 
 const SEARCH = { center: { lat: 49.28, lng: 9.69 }, radius: 25 }
@@ -225,13 +276,105 @@ describe('useMatches', () => {
   })
 
   describe('toPresence', () => {
-    it('turns a map user into a grey ring keyed by the internal id', () => {
+    // GMS-115: the pair that opens the profile, and whether the ring is filled.
+    it('turns a map user into a grey ring that can open a profile', () => {
       expect(toPresence(mapUser())).toEqual({
         id: 7,
+        uuid: UUID.paul,
         name: 'Paul',
+        community: { uuid: UUID.community, name: 'Gradido Künzelsau' },
+        hasEntries: true,
         position: { lat: 49.3, lng: 9.7 },
         precision: 'ungefaehr',
       })
+    })
+
+    it('reads a GMS that does not name its rings yet as a hollow ring nobody can open', () => {
+      const older = { id: 7, alias: 'Paul', type: 1, location: [9.7, 49.3] }
+      expect(toPresence(older)).toEqual({
+        id: 7,
+        uuid: null,
+        name: 'Paul',
+        community: null,
+        hasEntries: false,
+        position: { lat: 49.3, lng: 9.7 },
+        precision: 'ungefaehr',
+      })
+    })
+  })
+
+  describe('toProfile', () => {
+    it('turns the profile route into the window: every entry, keyed by my words, none with a strength', () => {
+      expect(toProfile(profileUser())).toEqual({
+        uuid: UUID.marta,
+        name: 'Marta',
+        community: { uuid: UUID.community, name: 'Gradido Künzelsau' },
+        aboutMe: 'Ich schraube gern an Rädern.',
+        position: { lat: 49.28, lng: 9.69 },
+        precision: 'genau',
+        channels: {
+          // Newest first, as the GMS sent them.
+          angebot: [
+            { uuid: UUID.newest, summary: 'Lastenrad leihen', details: null, remote: false },
+            { uuid: UUID.entry, summary: 'Fahrradreparatur', details: null, remote: false },
+          ],
+          gesuch: [
+            { uuid: UUID.other, summary: 'Hilfe im Garten', details: 'samstags', remote: true },
+          ],
+        },
+      })
+    })
+
+    it('shows a person without entries as a person with none', () => {
+      expect(toProfile(profileUser({ entries: [], aboutMe: null })).channels).toEqual({})
+    })
+  })
+
+  describe('withProfile', () => {
+    const match = () => toMatch(matchedUser())
+
+    // Bernd, 10.09.2026: a match opens the whole person, not only what answers me - the
+    // matched entry keeps its strength, everything else comes without one.
+    it('lays everything the person published in, the matched entry with its strength', () => {
+      const shown = withProfile(match(), toProfile(profileUser()))
+
+      expect(shown.channels.angebot.map((entry) => [entry.summary, entry.strength])).toEqual([
+        ['Lastenrad leihen', undefined],
+        ['Fahrradreparatur', 0.595],
+      ])
+      expect(shown.channels.gesuch.map((entry) => entry.strength)).toEqual([undefined])
+      // The matched entry is the match's own, so the window can still say what it answers.
+      expect(shown.channels.angebot[1].matchedEntryUuid).toBe(UUID.mine)
+    })
+
+    it('keeps a matched entry the profile does not list', () => {
+      const shown = withProfile(match(), toProfile(profileUser({ entries: [] })))
+
+      expect(shown.channels.angebot.map((entry) => entry.summary)).toEqual(['Fahrradreparatur'])
+      expect(shown.channels.angebot[0].strength).toBe(0.595)
+    })
+
+    it('keeps what the map knows and takes about-me from the profile', () => {
+      const shown = withProfile(match(), toProfile(profileUser({ aboutMe: 'Neu geschrieben.' })))
+
+      expect(shown.uuid).toBe(UUID.marta)
+      expect(shown.position).toEqual({ lat: 49.28, lng: 9.69 })
+      expect(shown.scores).toEqual(match().scores)
+      expect(shown.aboutMe).toBe('Neu geschrieben.')
+    })
+
+    it('fills a ring with the profile, nothing of it matched', () => {
+      const ring = toPresence(mapUser({ uuid: UUID.marta }))
+      const shown = withProfile(ring, toProfile(profileUser()))
+
+      expect(shown.name).toBe('Paul')
+      expect(shown.community).toEqual({ uuid: UUID.community, name: 'Gradido Künzelsau' })
+      expect(shown.aboutMe).toBe('Ich schraube gern an Rädern.')
+      expect(
+        Object.values(shown.channels)
+          .flat()
+          .every((entry) => entry.strength == null),
+      ).toBe(true)
     })
   })
 
@@ -452,7 +595,15 @@ describe('useMatches', () => {
         angebot: [{ strength: 0.595, entry: UUID.mine, subject: 'lastenrad' }],
       })
       expect(presence.value).toEqual([
-        { id: 2, name: 'Paul', position: { lat: 49.3, lng: 9.7 }, precision: 'ungefaehr' },
+        {
+          id: 2,
+          uuid: UUID.paul,
+          name: 'Paul',
+          community: { uuid: UUID.community, name: 'Gradido Künzelsau' },
+          hasEntries: true,
+          position: { lat: 49.3, lng: 9.7 },
+          precision: 'ungefaehr',
+        },
       ])
     })
 
@@ -678,6 +829,99 @@ describe('useMatches', () => {
 
       // The search has the toast; the offers beside the field say nothing twice.
       expect(await suggest('ras')).toEqual([])
+    })
+  })
+
+  describe('profile', () => {
+    const PROFILE_URL = 'https://ki-playground-gms.gradido.net/gms/community-user/profile'
+
+    let fetchMock
+
+    beforeEach(() => {
+      query.mockReset()
+      query.mockResolvedValue({ data: { authenticateGmsUserSearch: ACCESS } })
+      fetchMock = vi.fn(async () => okJson(profileUser()))
+      vi.stubGlobal('fetch', fetchMock)
+    })
+
+    afterEach(() => {
+      vi.unstubAllGlobals()
+    })
+
+    it('asks for the person by the pair, and hands back the window', async () => {
+      const { profile } = useMatches()
+
+      expect(await profile(UUID.marta, UUID.community)).toEqual(toProfile(profileUser()))
+      const [url, init] = fetchMock.mock.calls[0]
+      expect(url).toBe(`${PROFILE_URL}?uuid=${UUID.marta}&community=${UUID.community}`)
+      expect(init.headers.Authorization).toBe('Bearer tok-1')
+    })
+
+    // A window opens on every tap. One round trip through the wallet backend for a
+    // token per tap is what the kept access is for - shared with the suggestions.
+    it('keeps one access for the profiles and the suggestions together', async () => {
+      const { profile, suggest } = useMatches()
+      fetchMock.mockImplementation(async (url) =>
+        okJson(url.includes('vocabulary-suggest') ? { words: [] } : profileUser()),
+      )
+
+      await profile(UUID.marta, UUID.community)
+      await suggest('ras')
+      await profile(UUID.paul, UUID.community)
+
+      expect(fetchMock).toHaveBeenCalledTimes(3)
+      expect(query).toHaveBeenCalledTimes(1)
+    })
+
+    it('fetches a new access when the kept one is refused, and asks again with it', async () => {
+      query
+        .mockResolvedValueOnce({ data: { authenticateGmsUserSearch: ACCESS } })
+        .mockResolvedValueOnce({
+          data: { authenticateGmsUserSearch: { ...ACCESS, token: 'tok-2' } },
+        })
+      fetchMock
+        .mockResolvedValueOnce({ ok: false, status: 401, json: async () => ({}) })
+        .mockResolvedValueOnce(okJson(profileUser()))
+      const { profile } = useMatches()
+
+      expect((await profile(UUID.marta, UUID.community)).name).toBe('Marta')
+      expect(fetchMock.mock.calls.map(([, init]) => init.headers.Authorization)).toEqual([
+        'Bearer tok-1',
+        'Bearer tok-2',
+      ])
+    })
+
+    // The page shows what the window already has and says the profile did not come;
+    // it can only do that if the failure reaches it.
+    it('throws a pair that names nobody as a refusal, and an outage as one, asking once', async () => {
+      const { profile } = useMatches()
+
+      fetchMock.mockResolvedValueOnce({ ok: false, status: 404, json: async () => ({}) })
+      await expect(profile(UUID.marta, UUID.community)).rejects.toMatchObject({
+        code: GMS_REJECTED,
+      })
+
+      fetchMock.mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({}) })
+      await expect(profile(UUID.marta, UUID.community)).rejects.toMatchObject({
+        code: GMS_UNAVAILABLE,
+      })
+      expect(fetchMock).toHaveBeenCalledTimes(2)
+    })
+
+    // The GMS caps a channel at a hundred; the window shows what came, and cuts nothing
+    // of its own on the way.
+    it('passes on as many entries as the GMS sent', async () => {
+      const offers = Array.from({ length: 100 }, (_, i) => ({
+        uuid: `5b1f0a1e-0000-4000-8000-${String(1000 + i).padStart(12, '0')}`,
+        matchingType: 'offer',
+        summary: `offer ${i}`,
+        details: null,
+        remote: false,
+      }))
+      fetchMock.mockResolvedValueOnce(okJson(profileUser({ entries: offers })))
+      const { profile } = useMatches()
+
+      expect((await profile(UUID.marta, UUID.community)).channels.angebot).toHaveLength(100)
     })
   })
 })

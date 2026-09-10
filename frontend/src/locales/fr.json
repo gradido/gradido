@@ -648,7 +648,8 @@
       "aria": "Profil de {name}",
       "more": "{n} de plus",
       "sendEmail": "Envoyer un e-mail",
-      "sendGradido": "Envoyer des Gradido"
+      "sendGradido": "Envoyer des Gradido",
+      "unavailable": "Le profil n’a pas pu être chargé pour le moment."
     },
     "query": {
       "all": "Toutes mes entrées",

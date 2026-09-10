@@ -121,28 +121,35 @@
       </ul>
     </section>
 
-    <!-- Everyone else nearby. Not clickable yet: the presence route returns an
-         internal id and no community, so here they show the reach, not a door
-         (that waits on the backend, GMS-115). A silent line is still a line worth
-         hearing while the network is small — someone near you, there to be reached. -->
+    <!-- Everyone else nearby. A silent line opens the same window as a match (GMS-111):
+         somebody without a match is still somebody to read about and to reach, and a
+         line worth hearing while the network is small. Only a person the GMS names can
+         be opened; an older GMS names nobody, and the line then says so by being off. -->
     <section v-if="silent.length" class="list-section" aria-labelledby="match-list-others-head">
       <h3 id="match-list-others-head" class="section-head">
         {{ $t('matching.list.othersHeading') }}
       </h3>
       <ul class="rows">
-        <li v-for="person in silent" :key="person.id" class="row row-silent">
-          <span class="row-body">
-            <span class="row-head">
-              <span class="row-name">{{ person.name }}</span>
-              <template v-if="person.community">
-                <span class="row-sep" aria-hidden="true" />
-                <span class="row-community">{{ person.community.name }}</span>
-              </template>
+        <li v-for="person in silent" :key="person.id">
+          <button
+            type="button"
+            class="row row-silent"
+            :disabled="!(person.uuid && person.community?.uuid)"
+            @click="$emit('open', person)"
+          >
+            <span class="row-body">
+              <span class="row-head">
+                <span class="row-name">{{ person.name }}</span>
+                <template v-if="person.community">
+                  <span class="row-sep" aria-hidden="true" />
+                  <span class="row-community">{{ person.community.name }}</span>
+                </template>
+              </span>
+              <span class="row-where">
+                <PlaceText :where="whereOf(person)" :dir="dirOf(person)" />
+              </span>
             </span>
-            <span class="row-where">
-              <PlaceText :where="whereOf(person)" :dir="dirOf(person)" />
-            </span>
-          </span>
+          </button>
         </li>
       </ul>
     </section>
@@ -533,6 +540,16 @@ function closeResults() {
 .row-silent {
   color: inherit;
   opacity: 0.85;
+
+  &:not(:disabled) {
+    cursor: pointer;
+  }
+
+  &:not(:disabled):hover,
+  &:not(:disabled):focus-visible {
+    background: rgb(23 141 129 / 8%);
+    outline: none;
+  }
 }
 
 .row-dots {

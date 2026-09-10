@@ -726,7 +726,8 @@
       "aria": "Profil von {name}",
       "more": "{n} weitere",
       "sendEmail": "E-Mail senden",
-      "sendGradido": "Gradido senden"
+      "sendGradido": "Gradido senden",
+      "unavailable": "Das Profil konnte gerade nicht geladen werden."
     },
     "query": {
       "all": "Alle meine Einträge",

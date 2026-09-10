@@ -648,7 +648,8 @@
       "aria": "Profilo di {name}",
       "more": "{n} in più",
       "sendEmail": "Invia e-mail",
-      "sendGradido": "Invia Gradido"
+      "sendGradido": "Invia Gradido",
+      "unavailable": "Al momento non è stato possibile caricare il profilo."
     },
     "query": {
       "all": "Tutte le mie voci",

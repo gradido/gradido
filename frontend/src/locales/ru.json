@@ -648,7 +648,8 @@
       "aria": "Профиль: {name}",
       "more": "ещё {n}",
       "sendEmail": "Отправить эл. письмо",
-      "sendGradido": "Отправить Gradido"
+      "sendGradido": "Отправить Gradido",
+      "unavailable": "Сейчас не удалось загрузить профиль."
     },
     "query": {
       "all": "Все мои записи",

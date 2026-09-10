@@ -86,14 +86,19 @@ function matchItem(over = {}) {
   }
 }
 
-// What the presence route gives: an internal id, a name, a point, how precisely
-// they let themselves be found - no uuid, no community, no word about entries.
+// What the presence route gives since 10.09.2026 (toPresence): the pair that names the
+// person, their community, whether they have entries, a point and how precisely they
+// let themselves be found.
 function silentPerson(over = {}) {
   return {
-    id: over.id ?? 1,
-    name: over.name || 'Paul',
-    position: over.position || FAR,
-    precision: over.precision || 'ungefaehr',
+    id: 1,
+    uuid: 'p-1',
+    name: 'Paul',
+    community: { uuid: 'c-1', name: 'Gradido Hamburg' },
+    hasEntries: false,
+    position: FAR,
+    precision: 'ungefaehr',
+    ...over,
   }
 }
 
@@ -205,23 +210,36 @@ describe('MatchList', () => {
     expect(wrapper.emitted('open')[0][0].name).toBe('Sofia')
   })
 
-  it('names a silent person without a community line - the presence route has none', () => {
-    const wrapper = mountList({ silent: [silentPerson()] })
-    expect(wrapper.find('.row-silent .row-name').text()).toBe('Paul')
-    expect(wrapper.find('.row-silent .row-community').exists()).toBe(false)
+  it('names a silent person, and their community once the GMS names it', () => {
+    const older = mountList({ silent: [silentPerson({ uuid: null, community: null })] })
+    expect(older.find('.row-silent .row-name').text()).toBe('Paul')
+    expect(older.find('.row-silent .row-community').exists()).toBe(false)
 
-    const named = mountList({
-      silent: [{ ...silentPerson(), community: { name: 'Gradido Hamburg' } }],
-    })
+    const named = mountList({ silent: [silentPerson()] })
     expect(named.find('.row-silent .row-community').text()).toBe('Gradido Hamburg')
   })
 
-  it('shows silent people in their own section, not as buttons', () => {
+  // Bernd, 10.09.2026: the grey ones open the same window as a match (GMS-111).
+  it('shows silent people in their own section, each a button that opens them', async () => {
     const wrapper = mountList({ silent: [silentPerson()] })
     const heads = wrapper.findAll('.section-head').map((h) => h.text())
     expect(heads).toContain('Weitere Menschen in Deiner Nähe')
-    expect(wrapper.find('.row-silent').exists()).toBe(true)
-    expect(wrapper.find('.row-silent').element.tagName).not.toBe('BUTTON')
+
+    const row = wrapper.find('.row-silent')
+    expect(row.element.tagName).toBe('BUTTON')
+    await row.trigger('click')
+    expect(wrapper.emitted('open')[0][0]).toEqual(silentPerson())
+  })
+
+  // An older GMS names nobody on its presence route: nothing to open, and the line says
+  // so by being off rather than by a window that cannot fill.
+  it('keeps a silent line off when the GMS does not name the person', async () => {
+    const wrapper = mountList({ silent: [silentPerson({ uuid: null, community: null })] })
+    const row = wrapper.find('.row-silent')
+
+    expect(row.attributes('disabled')).toBeDefined()
+    await row.trigger('click')
+    expect(wrapper.emitted('open')).toBeUndefined()
   })
 
   it('emits the chosen sort', () => {

@@ -648,7 +648,8 @@
       "aria": "Προφίλ: {name}",
       "more": "{n} ακόμη",
       "sendEmail": "Αποστολή email",
-      "sendGradido": "Αποστολή Gradido"
+      "sendGradido": "Αποστολή Gradido",
+      "unavailable": "Δεν ήταν δυνατή η φόρτωση του προφίλ αυτή τη στιγμή."
     },
     "query": {
       "all": "Όλες οι καταχωρίσεις μου",
