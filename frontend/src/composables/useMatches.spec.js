@@ -434,7 +434,7 @@ describe('useMatches', () => {
     // is told the two apart. Calling a refusal "not reachable" is what pointed the whole
     // morning of 09.09.2026 at a healthy server: it had answered 400 `must be a number`,
     // correctly, to a search centred on nothing.
-    it.each([400, 401, 403, 422])('reports a refusal as a refusal (%i)', async (status) => {
+    it.each([400, 422])('reports a refusal as a refusal (%i)', async (status) => {
       fetchMock.mockImplementation(async () => ({ ok: false, status, json: async () => ({}) }))
       const { error, load } = useMatches()
       await load(SEARCH)
@@ -442,6 +442,23 @@ describe('useMatches', () => {
       expect(error.value?.code).toBe(GMS_REJECTED)
       expect(error.value?.status).toBe(status)
     })
+
+    // ⛔ 401 and 403 are 4xx and are still NOT the member's doing: `load` fetches a fresh
+    // access for every search, so a refused token means the community's GMS key is wrong or
+    // has run out. Nobody at this end can act on that, and "the search was refused" would
+    // blame them for an outage. From where they stand the service is there and not usable.
+    it.each([401, 403])(
+      'does not blame the member for a key that is not theirs (%i)',
+      async (status) => {
+        fetchMock.mockImplementation(async () => ({ ok: false, status, json: async () => ({}) }))
+        const { error, load } = useMatches()
+        await load(SEARCH)
+
+        expect(error.value?.code).toBe(GMS_UNAVAILABLE)
+        // The number survives either way -- the suggestions retry keys on it, not on the code.
+        expect(error.value?.status).toBe(status)
+      },
+    )
 
     it.each([500, 502, 504])('reports a server that broke as unavailable (%i)', async (status) => {
       fetchMock.mockImplementation(async () => ({ ok: false, status, json: async () => ({}) }))

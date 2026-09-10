@@ -303,7 +303,15 @@ async function gmsGet(base, route, params, token) {
   })
   if (!response.ok) {
     // 4xx: answered and refused. 5xx and anything else: not usable. See GMS_REJECTED.
-    const refused = response.status >= 400 && response.status < 500
+    //
+    // ⛔ Except 401 and 403, and that is not a detail. `load` fetches a FRESH access for
+    // every search, so a refused token there cannot be the member's doing -- it means the
+    // community's GMS key is wrong or has run out, which nobody at this end can act on.
+    // Telling them the search was refused would blame them for an outage. From where they
+    // stand the service is there and not usable, and that is what "not reachable" says.
+    const OPERATORS_FAULT = [401, 403]
+    const refused =
+      response.status >= 400 && response.status < 500 && !OPERATORS_FAULT.includes(response.status)
     const err = failure(
       refused ? GMS_REJECTED : GMS_UNAVAILABLE,
       `${route}: HTTP ${response.status}`,

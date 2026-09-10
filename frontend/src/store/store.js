@@ -11,6 +11,7 @@ import { forgetFavorites } from '../composables/useFavorites'
 import { forgetContactsPanel } from '../composables/useContactsPanel'
 import { forgetParkedAmount } from '../composables/useParkedAmount'
 import { forgetFirstLoginWindows } from '../composables/useFirstLoginWindow'
+import { forgetLegacyMapPrefs } from '../utils/matchingPrefs'
 import { clearApolloCache } from '../plugins/apolloCache'
 
 // Dedicated localStorage key mirroring state.themeMode. The pre-paint script in
@@ -225,6 +226,15 @@ export const actions = {
     // than find all three silenced by a question the last member left unanswered.
     forgetFirstLoginWindows()
     forgetParkedAmount(signedOutMember)
+    // ⛔ Only what the FLAT prefix left behind, and only the nameless keys -- the ones the
+    // map wrote for the whole device before 10.09.2026, when it had nobody in the key. The
+    // member's own settings are keyed by their gradidoID and stay: a radius and a look are
+    // what the map IS for them, the same line useParkedAmount draws for the till beside it.
+    //
+    // Here rather than on the map page, where it stood until now: an account without a
+    // position never reaches that page -- the gate sends it to the position tab first -- so
+    // on those devices the old keys stayed lying about. Every account passes through here.
+    forgetLegacyMapPrefs()
     localStorage.removeItem('gradido-frontend')
     commit('setThemeMode', themeMode)
     dispatch('applyTheme')
