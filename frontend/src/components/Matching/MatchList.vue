@@ -235,17 +235,22 @@ function lineFor(item) {
 }
 
 /**
- * How many of my own entries this person answers, across the visible channels.
- * The scores hold one strength per *own* entry answered, so their count is the
- * breadth — the thing the map could only glow and the profile could only imply.
+ * How many of my own entries this person answers, across the visible channels — the
+ * thing the map could only glow and the profile could only imply. Different entries
+ * of mine, counted by the entry each score answers: two of their entries on one of
+ * mine are one. The line says "entries", so it counts entries; the glow counts the
+ * things they are about (displayCore, channelStage). A typed question has no entry
+ * of mine behind it and counts none.
  */
 function breadthOf(item) {
-  let n = 0
+  const mine = new Set()
   for (const channel of CHANNELS) {
     if ((item.stages?.[channel] || 0) < 1) continue
-    n += (item.match.scores?.[channel] || []).length
+    for (const { entry } of item.match.scores?.[channel] || []) {
+      if (entry !== null && entry !== undefined) mine.add(entry)
+    }
   }
-  return n
+  return mine.size
 }
 
 // --- distance and direction, spoken honestly ------------------------------

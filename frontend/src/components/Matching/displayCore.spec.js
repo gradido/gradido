@@ -26,6 +26,10 @@ import {
 // they are here so a later tweak to a threshold fails loudly instead of quietly
 // changing what every user sees on the map.
 describe('displayCore', () => {
+  // One score as scoresOf builds it: how brightly, which entry of mine it answers, and
+  // what that entry of mine is about. By default every score answers an entry of its own.
+  const score = (strength, subject, entry = `mine-${subject}`) => ({ strength, entry, subject })
+
   describe('scoreToStage', () => {
     it('leaves anything below the cut dark', () => {
       expect(scoreToStage(0.16, DEFAULTS)).toBe(0)
@@ -62,16 +66,28 @@ describe('displayCore', () => {
         [0.46, 0.595, 0.73, 0.865].map((strength) => scoreToStage(strength, DEFAULTS)),
       ).toEqual([1, 2, 3, 4])
     })
+
+    // GMS-184: the same span in five steps, and the fifth is breadth's alone - a score,
+    // however high, reads as step 4 at most.
+    it('keeps the fifth brightness for breadth alone', () => {
+      expect(DEFAULTS.stageBright).toEqual([0.46, 0.595, 0.73, 0.865, 1.0])
+      expect(scoreToStage(1.0, DEFAULTS)).toBe(4)
+    })
   })
 
   describe('applyBreite', () => {
-    it('lifts one step per additional need', () => {
+    it('lifts one step per additional thing', () => {
       expect(applyBreite(2, 1)).toBe(3)
       expect(applyBreite(2, 2)).toBe(4)
     })
 
-    it('caps at the top step', () => {
-      expect(applyBreite(3, 5)).toBe(4)
+    // Capped at four, the brightest would not move when breadth is switched on.
+    it('lifts the top of the score steps to the fifth', () => {
+      expect(applyBreite(4, 1)).toBe(5)
+    })
+
+    it('caps at the fifth step', () => {
+      expect(applyBreite(3, 5)).toBe(5)
     })
 
     it('never lifts someone who is below the cut', () => {
@@ -81,23 +97,69 @@ describe('displayCore', () => {
 
   describe('channelStage', () => {
     it('takes the best match as the base', () => {
-      expect(channelStage([0.2, 0.73], DEFAULTS, false)).toBe(3)
+      expect(channelStage([score(0.2, 'geige'), score(0.73, 'cello')], DEFAULTS, false)).toBe(3)
     })
 
-    it('lets breadth lift three middling needs to the top', () => {
-      expect(channelStage([0.51, 0.55, 0.6], DEFAULTS, true)).toBe(4)
+    it('lets breadth lift three middling things to step 4', () => {
+      const three = [score(0.51, 'geige'), score(0.55, 'cello'), score(0.6, 'bratsche')]
+      expect(channelStage(three, DEFAULTS, true)).toBe(4)
     })
 
     it('leaves them at their base when breadth is off', () => {
-      expect(channelStage([0.51, 0.55, 0.6], DEFAULTS, false)).toBe(2)
+      const three = [score(0.51, 'geige'), score(0.55, 'cello'), score(0.6, 'bratsche')]
+      expect(channelStage(three, DEFAULTS, false)).toBe(2)
     })
 
     it('does not let a step-1 flicker count as breadth', () => {
-      expect(channelStage([0.2, 0.19], DEFAULTS, true)).toBe(1)
+      expect(channelStage([score(0.2, 'geige'), score(0.19, 'cello')], DEFAULTS, true)).toBe(1)
     })
 
-    it('leaves a perfect single match at the top rather than overflowing', () => {
-      expect(channelStage([0.89], DEFAULTS, true)).toBe(4)
+    // A single match has nothing to be broad with: the fifth step needs a second thing.
+    it('leaves a perfect single match at step 4 - the fifth is breadth, not strength', () => {
+      expect(channelStage([score(0.89, 'fahrrad')], DEFAULTS, true)).toBe(4)
+    })
+
+    // The brightest move when "Wer mehrfach passt" is switched on (GMS-184).
+    it('lifts a perfect match to the fifth step once a second thing is answered', () => {
+      const perfectAndMore = [score(0.89, 'fahrrad'), score(0.55, 'wohnung')]
+      expect(channelStage(perfectAndMore, DEFAULTS, true)).toBe(5)
+      expect(channelStage(perfectAndMore, DEFAULTS, false)).toBe(4)
+    })
+
+    it('stops at the fifth step, however many things are answered', () => {
+      const many = ['fahrrad', 'wohnung', 'garten', 'kinder'].map((thing) => score(0.89, thing))
+      expect(channelStage(many, DEFAULTS, true)).toBe(5)
+    })
+
+    // Two of his offers answering ONE need of mine: one entry of mine, one thing.
+    it('does not count the bike dealer twice', () => {
+      const dealer = [score(0.73, 'fahrrad', 'my-need'), score(0.6, 'fahrrad', 'my-need')]
+      expect(channelStage(dealer, DEFAULTS, true)).toBe(3)
+    })
+
+    // Bernd, GMS-184: "Wenn einer dreimal Fahrrad eingegeben hat, ist das kein
+    // Mehrfachtreffer." Three entries of mine, one thing.
+    it('does not count three entries about one bicycle as three things', () => {
+      const threeBikes = ['e1', 'e2', 'e3'].map((mine) => score(0.6, 'fahrrad', mine))
+      expect(channelStage(threeBikes, DEFAULTS, true)).toBe(2)
+    })
+
+    it('counts two different things as breadth', () => {
+      const two = [score(0.6, 'fahrrad'), score(0.55, 'wohnung')]
+      expect(channelStage(two, DEFAULTS, true)).toBe(3)
+    })
+
+    // A typed question has no entry of mine behind it, so nothing to be broad about.
+    it('counts no breadth for a typed question', () => {
+      const typed = [score(0.73, null, null), score(0.6, null, null)]
+      expect(channelStage(typed, DEFAULTS, true)).toBe(3)
+    })
+
+    // Beside a real thing, a missing one is not a second thing: "null" is no subject.
+    // (All-null alone cannot show it - one null is one element, less one is none.)
+    it('never counts a missing subject as a thing of its own', () => {
+      const perfectAndNothing = [score(0.89, 'fahrrad'), score(0.6, null, null)]
+      expect(channelStage(perfectAndNothing, DEFAULTS, true)).toBe(4)
     })
 
     it('treats no scores as no match', () => {
@@ -107,16 +169,22 @@ describe('displayCore', () => {
   })
 
   describe('markerColor', () => {
-    it('shows a single channel in its own colour', () => {
-      expect(markerColor({ angebot: 4 }, DEFAULTS)).toEqual(CANON.angebot)
+    it('shows a single channel in its own colour at the top step', () => {
+      expect(markerColor({ angebot: 5 }, DEFAULTS)).toEqual(CANON.angebot)
     })
 
     it('mixes two channels additively into a second colour', () => {
-      expect(markerColor({ interesse: 4, angebot: 4 }, DEFAULTS)).toEqual([255, 204, 0])
+      expect(markerColor({ interesse: 5, angebot: 5 }, DEFAULTS)).toEqual([255, 204, 0])
     })
 
     it('turns the whole person white', () => {
-      expect(markerColor({ interesse: 4, angebot: 4, gesuch: 4 }, DEFAULTS)).toEqual(CANON.ganz)
+      expect(markerColor({ interesse: 5, angebot: 5, gesuch: 5 }, DEFAULTS)).toEqual(CANON.ganz)
+    })
+
+    // The brightest a single match can glow is the fourth step, 0.865 of the colour -
+    // the fifth brightness is what breadth adds on top.
+    it('keeps the fourth step a notch below the full colour', () => {
+      expect(markerColor({ angebot: 4 }, DEFAULTS)).toEqual([0, Math.round(204 * 0.865), 0])
     })
 
     it('dims a weaker step without changing its hue', () => {
@@ -170,7 +238,7 @@ describe('displayCore', () => {
   })
 
   describe('stagesOf', () => {
-    const match = { scores: { angebot: [0.73], interesse: [0.2] } }
+    const match = { scores: { angebot: [score(0.73, 'cello')], interesse: [score(0.2, 'geige')] } }
 
     it('reads every channel of a person', () => {
       expect(stagesOf(match, DEFAULTS, false)).toEqual({ interesse: 1, angebot: 3, gesuch: 0 })
@@ -249,10 +317,10 @@ describe('displayCore', () => {
   })
 
   describe('listPeak', () => {
-    const twoNeeds = { scores: { angebot: [0.51, 0.55] } }
+    const twoNeeds = { scores: { angebot: [score(0.51, 'geige'), score(0.55, 'cello')] } }
 
     it('ranks by the same peak the map glows by', () => {
-      expect(listPeak({ scores: { angebot: [0.73] } }, 'passung')).toBe(3)
+      expect(listPeak({ scores: { angebot: [score(0.73, 'cello')] } }, 'passung')).toBe(3)
     })
 
     it('counts breadth only when the sort asks for it', () => {
@@ -262,7 +330,12 @@ describe('displayCore', () => {
   })
 
   describe('topScore', () => {
-    const match = { scores: { angebot: [0.4, 0.55], interesse: [0.2] } }
+    const match = {
+      scores: {
+        angebot: [score(0.4, 'geige'), score(0.55, 'cello')],
+        interesse: [score(0.2, 'bratsche')],
+      },
+    }
 
     it('takes the strongest score across the visible channels', () => {
       expect(topScore(match)).toBeCloseTo(0.55)
@@ -278,21 +351,53 @@ describe('displayCore', () => {
     // then rebuilds their scores from what is left. If this ever read anything but
     // the entries handed to it, a person would keep glowing for an entry the member
     // just filtered away.
-    it('reads one strength per matched entry, per channel', () => {
+    it('reads one strength per matched entry, per channel, with what it answers', () => {
       const channels = {
-        angebot: [{ strength: 0.4 }, { strength: 0.55 }],
-        interesse: [{ strength: 0.2 }],
+        angebot: [
+          { strength: 0.4, matchedEntryUuid: 'my-need', matchedSubject: 'fahrrad' },
+          { strength: 0.55, matchedEntryUuid: 'my-other-need', matchedSubject: 'wohnung' },
+        ],
+        interesse: [{ strength: 0.2, matchedEntryUuid: 'my-interest', matchedSubject: 'geige' }],
       }
 
-      expect(scoresOf(channels)).toEqual({ angebot: [0.4, 0.55], interesse: [0.2] })
+      expect(scoresOf(channels)).toEqual({
+        angebot: [score(0.4, 'fahrrad', 'my-need'), score(0.55, 'wohnung', 'my-other-need')],
+        interesse: [score(0.2, 'geige', 'my-interest')],
+      })
+    })
+
+    // Where no subject comes, the entry of mine stands in for it - each such entry a
+    // thing of its own. A typed question has neither, and counts as nothing.
+    it('lets the entry of mine stand in for a missing subject', () => {
+      const channels = {
+        angebot: [
+          { strength: 0.4, matchedEntryUuid: 'my-need', matchedSubject: null },
+          { strength: 0.55, matchedEntryUuid: 'my-other-need' },
+          { strength: 0.6, matchedEntryUuid: null, matchedSubject: null },
+        ],
+      }
+
+      expect(scoresOf(channels)).toEqual({
+        angebot: [
+          score(0.4, 'my-need', 'my-need'),
+          score(0.55, 'my-other-need', 'my-other-need'),
+          score(0.6, null, null),
+        ],
+      })
     })
 
     it('leaves out the entries that answer nothing', () => {
       // A profile carries every entry a person published; only the matched ones
       // carry a strength, and only those may reach the brightness.
-      const channels = { angebot: [{ strength: 0.4 }, { strength: null }, {}] }
+      const channels = {
+        angebot: [
+          { strength: 0.4, matchedEntryUuid: 'my-need', matchedSubject: 'fahrrad' },
+          { strength: null },
+          {},
+        ],
+      }
 
-      expect(scoresOf(channels)).toEqual({ angebot: [0.4] })
+      expect(scoresOf(channels)).toEqual({ angebot: [score(0.4, 'fahrrad', 'my-need')] })
     })
 
     it('drops a channel with nothing matched, rather than reporting it empty', () => {

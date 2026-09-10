@@ -62,19 +62,22 @@ import { isPlace } from '@/utils/matchingPosition'
  *       angebot?:   Entry[],
  *       gesuch?:    Entry[],
  *     },
- *     scores:    { interesse?: number[], angebot?: number[], gesuch?: number[] },
+ *     scores:    { interesse?: Score[], angebot?: Score[], gesuch?: Score[] },
  *   }
  *
- *   Entry = { uuid, matchedEntryUuid, summary, details: string|null, remote,
- *             strength, score, coreWord }
+ *   Entry = { uuid, matchedEntryUuid, matchedSubject, summary, details: string|null,
+ *             remote, strength, score, coreWord }
+ *   Score = { strength, entry, subject }
  *
  * `channels` holds only the entries that answer me. The GMS has no profile route
  * ("person X with all their entries") yet, so the rest of a person's list is out of
  * reach — the window shows what answers, floated by strength. `scores` is what the
- * MAP reads (via displayCore): one strength per own entry a person answers on a
- * channel, derived from the same entries so there is one source of truth. `score`
- * and `coreWord` are what the GMS read the strength off; they ride along for the
- * day the map draws its own levels (Paket 6).
+ * MAP reads (via displayCore): per channel, one strength for every entry of theirs
+ * that answers one of mine, with the entry of mine it answers and what that entry is
+ * about (`matchedSubject`, sent by the GMS since 10.09.2026) - the glow counts breadth
+ * by the subject (GMS-184). Derived from the same entries, so there is one source of
+ * truth. `score` and `coreWord` are what the GMS read the strength off; they ride
+ * along for the day the map draws its own levels (Paket 6).
  *
  * Presence is everyone else in range — on the map the grey rings:
  *
@@ -193,6 +196,9 @@ function toEntry(entry) {
   return {
     uuid: entry.uuid,
     matchedEntryUuid: entry.matchedEntryUuid,
+    // What my entry behind it is about; null for a typed question, for an entry of mine
+    // without a subject, and from a GMS that does not send it yet.
+    matchedSubject: entry.matchedSubject ?? null,
     summary: entry.summary,
     details: entry.details,
     remote: entry.remote,

@@ -321,8 +321,11 @@ const BOOTSTRAP_ZOOM = 8
 
 // Marker sizes in screen pixels per step. They stay constant while zooming, the
 // way a pin does — a glow that grew with the zoom would read as a bigger match.
-const GLOW_SIZE = { 1: 48, 2: 64, 3: 82, 4: 104 }
-const DISC_SIZE = { 1: 20, 2: 28, 3: 38, 4: 48 }
+// Step 5, which only breadth reaches (GMS-184), follows the growth of the four before
+// it (each step about 1.25 to 1.3 times the last): computed, not yet seen - it is
+// judged by eye at its acceptance.
+const GLOW_SIZE = { 1: 48, 2: 64, 3: 82, 4: 104, 5: 130 }
+const DISC_SIZE = { 1: 20, 2: 28, 3: 38, 4: 48, 5: 60 }
 
 // The veil over everything outside the search. It dims by taking contrast away,
 // not light: on the dark map the stars are bright, so a pale wash costs them
@@ -974,8 +977,8 @@ function swatchStyle(channel) {
 // crowd beneath it. The box is therefore made click-through (the pointer-events rule
 // at the end of the style block), and only a centred core takes the tap: at least
 // HIT_MIN across (displayCore, the floor a finger needs, F-10), and never smaller than
-// the disc of the same step. The disc looks carry the same core, so all three looks share one tap
-// footprint.
+// the disc of the same step. The disc looks carry the same core, so all three looks
+// share one tap footprint.
 function glowHtml(colour, size, share, hit) {
   const core = (share * 0.9).toFixed(2)
   const tint = `${colour[0]}, ${colour[1]}, ${colour[2]}`

@@ -77,7 +77,9 @@ function matchItem(over = {}) {
       position: over.position || NEAR,
       precision: over.precision || 'genau',
       channels: over.channels || { angebot: [entry('Fahrradreparatur', 0.55)] },
-      scores: over.scores || { angebot: [0.55] },
+      scores: over.scores || {
+        angebot: [{ strength: 0.55, entry: 'my-need', subject: 'fahrrad' }],
+      },
     },
     stages: over.stages || { interesse: 0, angebot: 3, gesuch: 0 },
     peak: over.peak || 3,
@@ -140,11 +142,35 @@ describe('MatchList', () => {
       matches: [
         matchItem({
           channels: { angebot: [entry('a', 0.5), entry('b', 0.45)] },
-          scores: { angebot: [0.5, 0.45] },
+          scores: {
+            angebot: [
+              { strength: 0.5, entry: 'my-need', subject: 'fahrrad' },
+              { strength: 0.45, entry: 'my-other-need', subject: 'wohnung' },
+            ],
+          },
         }),
       ],
     })
     expect(many.find('.row-breadth').text()).toBe('trifft 2 Deiner Einträge')
+  })
+
+  // The line counts entries of MINE: two of the bike dealer's offers answering one
+  // need of mine meet one of my entries, not two.
+  it('counts two of their entries on one of mine as one of mine', () => {
+    const dealer = mountList({
+      matches: [
+        matchItem({
+          channels: { angebot: [entry('a', 0.5), entry('b', 0.45)] },
+          scores: {
+            angebot: [
+              { strength: 0.5, entry: 'my-need', subject: 'fahrrad' },
+              { strength: 0.45, entry: 'my-need', subject: 'fahrrad' },
+            ],
+          },
+        }),
+      ],
+    })
+    expect(dealer.find('.row-breadth').exists()).toBe(false)
   })
 
   it('never leaks a score or a percentage into a row', () => {

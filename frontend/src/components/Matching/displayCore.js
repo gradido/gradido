@@ -5,14 +5,16 @@
  * Pure functions turning a match score into what the eye sees. No DOM, no Vue.
  *
  * Two things stay apart on purpose: the score is continuous (it sorts), while the
- * display snaps to four discrete steps (the eye cannot separate more than that on
- * a glow field). The snapping happens here, at the edge, so ranking loses nothing.
+ * display snaps to discrete steps - four read off the score, and a fifth that only
+ * breadth reaches (GMS-184). The snapping happens here, at the edge, so ranking
+ * loses nothing.
  *
  * The thresholds below sit between the four level brightnesses the GMS sends as
  * `strength` — 0.46 / 0.595 / 0.73 / 0.865, LEVEL_BRIGHTNESS in its
- * matching/brightness.ts — so that each level lands on its own step. The cut and
- * the step brightnesses were confirmed by eye on the living glow field. Do not tune
- * them without re-running that check.
+ * matching/brightness.ts — so that each level lands on its own step. The cut was
+ * confirmed by eye on the living glow field, and so were the four step brightnesses
+ * of July; the five that replaced them on 10.09.2026 are the GMS's own ladder and are
+ * confirmed by eye at their acceptance. Do not tune either without that check.
  */
 
 export const CHANNELS = ['interesse', 'angebot', 'gesuch']
@@ -106,9 +108,11 @@ export const DEFAULTS = {
   // The three thresholds splitting the four steps: each sits between two of the
   // four brightnesses the GMS sends (0.46 / 0.595 / 0.73 / 0.865).
   thresholds: [0.5, 0.65, 0.8],
-  // Share of the peak colour per step. Step 1 starts high because anything
-  // below roughly 0.3 is invisible against a dark ground.
-  stageBright: [0.46, 0.64, 0.82, 1.0],
+  // Share of the peak colour per step: the GMS's five-step ladder (GMS-184), the same
+  // span as before in finer steps. Step 1 starts high because anything below roughly
+  // 0.3 is invisible against a dark ground; step 5 is reached only through breadth, so
+  // the brightest single matches still move when "Wer mehrfach passt" is switched.
+  stageBright: [0.46, 0.595, 0.73, 0.865, 1.0],
 }
 
 /** Score → step 0..4. Step 0 means "below the cut": no glow. */
@@ -126,13 +130,15 @@ export function scoreToStage(score, cfg = DEFAULTS) {
 }
 
 /**
- * Breadth amplifier: +1 step per additional need answered, counting only needs
- * that reach step 2. A step-1 flicker does not count — otherwise someone who
- * barely grazes four needs would glow as bright as a perfect single match.
+ * Breadth amplifier: +1 step per additional thing of mine answered, counting only
+ * those that reach step 2. A step-1 flicker does not count — otherwise someone who
+ * barely grazes four needs would glow as bright as a perfect single match. Up to the
+ * fifth step, which nothing else reaches: capped at four, the brightest matches would
+ * not move when breadth is switched on (Bernd, GMS-184).
  */
-export function applyBreite(baseStage, extraNeeds) {
+export function applyBreite(baseStage, extraThings) {
   if (baseStage < 1) return 0
-  return Math.min(4, baseStage + Math.max(0, extraNeeds))
+  return Math.min(5, baseStage + Math.max(0, extraThings))
 }
 
 export function stageBrightness(stage, cfg = DEFAULTS) {
@@ -142,16 +148,24 @@ export function stageBrightness(stage, cfg = DEFAULTS) {
 /**
  * One channel of one person → its step.
  *
- * `scores` holds one score per *own* entry this person answers on this channel.
- * The base is the best of them; breadth lifts it from there.
+ * `scores` holds one `{ strength, entry, subject }` per entry of theirs that answers
+ * one of mine on this channel (scoresOf). The base is the best strength. Breadth
+ * lifts it by the number of DIFFERENT things of mine answered at step 2 or above,
+ * less the one the base already is - things, not entries and not pairs (GMS-184):
+ * two of the bike dealer's offers on one need of mine are one thing, and so are three
+ * entries of mine about a bicycle. A typed question has no entry of mine behind it,
+ * so its subject is null and nothing there counts as breadth.
  */
 export function channelStage(scores, cfg = DEFAULTS, breiteOn = false) {
   if (!scores || !scores.length) return 0
-  const stages = scores.map((score) => scoreToStage(score, cfg))
+  const stages = scores.map(({ strength }) => scoreToStage(strength, cfg))
   const base = Math.max(...stages)
   if (base < 1) return 0
-  const atTwoPlus = stages.filter((stage) => stage >= 2).length
-  return applyBreite(base, breiteOn ? Math.max(0, atTwoPlus - 1) : 0)
+  const things = new Set()
+  scores.forEach(({ subject }, index) => {
+    if (stages[index] >= 2 && subject !== null && subject !== undefined) things.add(subject)
+  })
+  return applyBreite(base, breiteOn ? Math.max(0, things.size - 1) : 0)
 }
 
 /** Steps per channel → the marker's colour, mixed additively. */
@@ -212,14 +226,24 @@ export function crowdRadiusOf(discSizes) {
  * which narrows a person's entries to the one question asked and must then let the
  * brightness follow. Were the lens to keep the old scores, a person would glow for
  * an entry the member just filtered away.
+ *
+ * One `{ strength, entry, subject }` per entry of theirs that answers: how brightly,
+ * which entry of mine it answers, and what that entry of mine is about. The glow
+ * counts breadth by the subject, the list's "meets n of your entries" by the entry.
+ * Where the GMS sends no subject - my entry has none, or the GMS predates it - the
+ * entry stands in for it: each such entry of mine counts as a thing of its own.
  */
 export function scoresOf(channels) {
   const scores = {}
   for (const channel of CHANNELS) {
-    const strengths = (channels?.[channel] || [])
-      .map((entry) => entry.strength)
-      .filter((strength) => strength !== null && strength !== undefined)
-    if (strengths.length) scores[channel] = strengths
+    const answered = (channels?.[channel] || [])
+      .filter((entry) => entry.strength !== null && entry.strength !== undefined)
+      .map((entry) => ({
+        strength: entry.strength,
+        entry: entry.matchedEntryUuid ?? null,
+        subject: entry.matchedSubject ?? entry.matchedEntryUuid ?? null,
+      }))
+    if (answered.length) scores[channel] = answered
   }
   return scores
 }
@@ -292,14 +316,14 @@ export function listPeak(match, sortMode = 'passung', visible = null) {
 
 /**
  * The strongest continuous score across the visible channels — a tiebreaker,
- * since the peak is only 0..4 and would otherwise leave many people level.
+ * since the peak is only 0..5 and would otherwise leave many people level.
  */
 export function topScore(match, visible = null) {
   let top = 0
   for (const channel of CHANNELS) {
     if (visible && !visible[channel]) continue
-    for (const score of match.scores?.[channel] || []) {
-      if (score > top) top = score
+    for (const { strength } of match.scores?.[channel] || []) {
+      if (strength > top) top = strength
     }
   }
   return top
