@@ -60,25 +60,18 @@ export function compareGmsRelevantUserSettings(
   ) {
     return true
   }
-  if (
-    updateUserInfosArgs.gmsLocation &&
-    orgUser.location === null &&
-    updateUserInfosArgs.gmsLocation !== null
-  ) {
+  // A first position where there was none.
+  if (updateUserInfosArgs.gmsLocation && orgUser.location === null) {
     return true
   }
-  if (
-    updateUserInfosArgs.gmsLocation &&
-    orgUser.location !== null &&
-    updateUserInfosArgs.gmsLocation === null
-  ) {
-    return true
-  }
-  if (
-    updateUserInfosArgs.gmsLocation &&
-    orgUser.location !== null &&
-    updateUserInfosArgs.gmsLocation !== null
-  ) {
+  // ⛔ A branch for "the member cleared their position" stood here and could never be true:
+  // it asked for `gmsLocation` to be truthy AND strictly null at once. Removed rather than
+  // corrected, because there is nothing for it to answer -- REMOVING a position does not
+  // exist. `UserResolver` writes the column only `if (gmsLocation)`, so null means "leave
+  // it alone" there, and no caller in the wallet or the admin has ever sent one; measured
+  // 10.09.2026. Whoever builds "remove my position" needs three things, not one: a way to
+  // ask for it, a resolver that tells "leave alone" from "clear", and this clause back.
+  if (updateUserInfosArgs.gmsLocation && orgUser.location !== null) {
     const orgLocation = Point2Location(orgUser.location as Point)
     const changedLocation = updateUserInfosArgs.gmsLocation
     if (

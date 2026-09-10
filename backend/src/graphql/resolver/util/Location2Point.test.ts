@@ -51,6 +51,16 @@ describe('Location2Point / Point2Location', () => {
       ).toBeNull()
     })
 
+    // The range check is newer than some of the rows: a latitude of 91 is finite and is
+    // not a place, and nothing refused it before 10.09.2026. Read as null it is published
+    // to the GMS as "place me at random" rather than drawn at a point off the globe.
+    it.each([
+      ['a latitude past the pole', [9.49, 91]],
+      ['a longitude past the meridian', [181, 51.31]],
+    ])('says null for %s, finite though it is', (_name, coordinates) => {
+      expect(Point2Location(point(coordinates))).toBeNull()
+    })
+
     it('says null for something that is not a Point', () => {
       expect(
         Point2Location({ type: 'LineString', coordinates: [1, 2] } as unknown as Point),

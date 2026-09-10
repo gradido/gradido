@@ -147,6 +147,39 @@ export function positionOf(location) {
 }
 
 /**
+ * Whether one person of a GMS answer can be put on a map at all.
+ *
+ * ⛔ The pair was taken on trust: `positionOf([])` gives `{lat: undefined, lng: undefined}`
+ * and `positionOf(null)` throws — and both shapes are ones the wallet itself has been
+ * making. Until 10.09.2026 a member with an empty position was published to the GMS at
+ * `location: []`, so the GMS could hand it straight back. The undefined pair turns every
+ * distance into NaN, and a NaN comparator leaves Array.prototype.sort free to order as it
+ * likes, so the list reshuffles between renders; the thrown one lands in `load`'s try and
+ * comes out as "the search is not reachable" while the GMS answered 200 — the very
+ * misdiagnosis this whole strand of work exists to end.
+ *
+ * Dropped rather than drawn: somebody without a place on the map has nothing to show
+ * there, and the heading counts what is shown.
+ */
+export function hasUsablePoint(user) {
+  if (!Array.isArray(user?.location) || user.location.length !== 2) {
+    return false
+  }
+  const [lng, lat] = user.location
+  // Range as well as finiteness, and the range is not pedantry: the GMS is a foreign
+  // system, so nothing our own backend validates protects what comes BACK from it. A
+  // latitude of 91 is finite and is not a place; drawn, it lands off the globe.
+  return (
+    Number.isFinite(lng) &&
+    Number.isFinite(lat) &&
+    lat >= -90 &&
+    lat <= 90 &&
+    lng >= -180 &&
+    lng <= 180
+  )
+}
+
+/**
  * How precisely a person let themselves be found, from the GMS's publish location
  * type: 0 exact, 1 approximate, 2 random (GMS_PUBLISH_LOCATION_TYPES, by index).
  * Anything else reads as approximate — the coarser end is the one that never
@@ -359,8 +392,18 @@ export function useMatches() {
         gmsGet(base, 'community-user/user-locations', where, token),
       ])
       if (request !== latest) return
-      matches.value = people.map(toMatch)
-      presence.value = withoutMatched(others, people).map(toPresence)
+      // ⛔ Filtered before withoutMatched, not after. That function reads `location[0]` on
+      // both sides to tell a ring from the glow beneath it, so handing it the raw answers
+      // means a person without a place throws inside the try -- and comes out as
+      // GMS_UNAVAILABLE although both requests answered 200. The very misdiagnosis this
+      // strand exists to end, rebuilt one line further down.
+      //
+      // ⚠️ And a test can be green for the wrong reason here: `&&` checks the alias first,
+      // so an unplaceable person only reaches `location[0]` when some OTHER person shares
+      // their alias. The case below is built that way on purpose.
+      const placeable = people.filter(hasUsablePoint)
+      matches.value = placeable.map(toMatch)
+      presence.value = withoutMatched(others.filter(hasUsablePoint), placeable).map(toPresence)
     } catch (err) {
       if (request !== latest) return
       error.value = err.code ? err : failure(GMS_UNAVAILABLE, err.message)
