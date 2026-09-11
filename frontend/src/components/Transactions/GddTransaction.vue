@@ -44,7 +44,13 @@
            break is what makes them one line rather than two. From `md` on it is gone and
            everything stands in one line, as before. -->
       <div class="w-100 d-md-none" />
-      <BCol offset="3" md="3" lg="3" offset-md="0" offset-lg="0">
+      <!-- ⛔ `col` has to be SAID here. bootstrap-vue-next adds the plain `col` class only to a
+           column that has no breakpoint sizes at all; with `md`/`lg` given, the phone got no
+           width class, so Bootstrap's `.row > *` made the amount 100% wide beside its 25%
+           offset -- past the row's right edge -- and the arrow wrapped onto a line of its own,
+           at the left. Measured at 390 points against the served stylesheet: with `col` the
+           amount takes what the arrow leaves, and the page is exactly as wide as the screen. -->
+      <BCol col offset="3" md="3" lg="3" offset-md="0" offset-lg="0">
         <div class="small mb-2">
           {{ $t(`decay.types.${props.transaction.typeId.toLowerCase()}`) }}
         </div>
