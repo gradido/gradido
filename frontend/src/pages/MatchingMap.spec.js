@@ -1,6 +1,9 @@
 // AI-GENERATED — not an architecture reference
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { ref } from 'vue'
 import { createStore } from 'vuex'
 import { createI18n } from 'vue-i18n'
@@ -169,6 +172,38 @@ describe('MatchingMap', () => {
     // The field knows nothing about the GMS; the page is what connects the two. A
     // stub answers to any prop name, so this asserts the value, not the name.
     expect(wrapper.findComponent({ name: 'MatchQuery' }).props('suggest')).toBe(suggest)
+  })
+
+  // Bernd, 11.09.2026: the way back left the map for the search line, on the map and in
+  // the list alike, so the map's own controls can take the corner.
+  it('puts the way back at the start of the search line, off the map, and leads to the entries', async () => {
+    const onMap = mountMap()
+    await flushPromises()
+    expect(onMap.find('.query-row > .map-back + .query-field').exists()).toBe(true)
+    expect(onMap.find('.map-shell .map-back').exists()).toBe(false)
+
+    await onMap.find('.map-back').trigger('click')
+    expect(push).toHaveBeenCalledWith('/matching/entries')
+    onMap.unmount()
+
+    window.localStorage.setItem(`${KEY}mode`, JSON.stringify('liste'))
+    const inList = mountMap()
+    await flushPromises()
+    expect(inList.find('.query-row > .map-back').exists()).toBe(true)
+    expect(inList.find('.map-shell .map-back').exists()).toBe(false)
+  })
+
+  // jsdom lays nothing out, so how wide a chosen sentence claims to be cannot be measured
+  // here; the rule that keeps it from widening the page is read in the source instead.
+  // Measured in a browser on 11.09.2026: without it, a long entry chosen, the page dropped
+  // under the menu between 1070 and 1025px (Bernd's screenshots).
+  it('keeps a long question from widening the page', () => {
+    const here = dirname(fileURLToPath(import.meta.url))
+    const source = readFileSync(join(here, 'MatchingMap.vue'), 'utf8')
+    const rule = source.match(/\n\.query-field \{([^}]*)\}/)
+
+    expect(rule, 'no .query-field rule in the page').not.toBeNull()
+    expect(rule[1]).toMatch(/contain: inline-size;/)
   })
 
   describe('when findability is off', () => {
@@ -401,9 +436,9 @@ describe('MatchingMap', () => {
   })
 
   describe('when my entries arrive after the location', () => {
-    // Both queries go out together on a cold load and either can win. When the
-    // location wins, the first search carries none of my uuids, so nothing comes
-    // back able to say which of my entries it answers.
+    // Both queries go out together on a cold load and either can win. The GMS reads my
+    // entries through the token, so the first search is tagged either way; a change
+    // in the list is what asks again, and on a cold load the list arriving counts.
     it('asks again, this time carrying the uuids', async () => {
       const page = mountMap()
 

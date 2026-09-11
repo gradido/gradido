@@ -179,7 +179,6 @@
         <UserLocationMap
           v-if="userLocationLoaded"
           :user-marker-coords="userLocation"
-          :community-marker-coords="communityLocation"
           :show-coordinates="false"
           height="320px"
           user-icon="home"
@@ -587,7 +586,9 @@ onUserLocation(({ data }) => {
   if (!loc) return
   // The community's point is nullable too: an instance whose admin never set one must
   // still be able to show this map, because this is the page where a member sets their
-  // own position. Fall back to what the build was configured with.
+  // own position. Fall back to what the build was configured with. It is not drawn on
+  // the map (Bernd, 11.09.2026: it only confused); it is where the map opens for a
+  // member who has no home on it yet.
   communityLocation.value = isPositionSet(loc.communityLocation)
     ? { lat: loc.communityLocation.latitude, lng: loc.communityLocation.longitude }
     : configuredCommunityPoint()

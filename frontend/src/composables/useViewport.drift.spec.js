@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { describe, it, expect } from 'vitest'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { LG_BREAKPOINT_PX } from '@/constants'
@@ -98,5 +98,32 @@ describe('the layout boundary in JavaScript and in the stylesheet', () => {
     expect(css).toContain('.d-lg-block')
     expect(mediaCarrying(css, '.d-lg-block')).toContain(`${LG_BREAKPOINT_PX}px`)
     expect(mediaCarrying(css, '.d-lg-none')).toContain(`${LG_BREAKPOINT_PX}px`)
+  })
+
+  /**
+   * ⛔ And every component that switches its own layout by hand. The map page did, at 992,
+   * four times over - the same band once more: between 992 and 1024px the menu was gone
+   * while the page still behaved as though it stood beside it, and its search line was
+   * pulled off the top of the screen (Bernd, 11.09.2026). A component that needs the
+   * boundary in a `@media` query writes 1025px, or 1024.98px for the phone side.
+   */
+  it('has no component switching at Bootstrap default instead', () => {
+    // A walk of its own: `readdirSync` with `recursive` is newer than the Node some
+    // machines run this on, and there it quietly lists one directory level only.
+    const walk = (dir) =>
+      readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
+        entry.isDirectory() ? walk(join(dir, entry.name)) : [join(dir, entry.name)],
+      )
+    const styled = walk(join(here, '..'))
+      .filter((file) => /\.(vue|scss)$/.test(file))
+      .map((file) => [file, readFileSync(file, 'utf8')])
+    const atDefault = styled
+      .filter(([, text]) => /@media[^{]*\b99(?:2|1\.98)px/.test(text))
+      .map(([file]) => file)
+
+    // The search proves itself: it reads the tree, and it would see a switch at 1025.
+    expect(styled.length).toBeGreaterThan(100)
+    expect(styled.some(([, text]) => /@media[^{]*\b1025px/.test(text))).toBe(true)
+    expect(atDefault).toEqual([])
   })
 })
