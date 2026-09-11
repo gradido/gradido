@@ -93,6 +93,7 @@ Turbo and `bun run` automatically invoke the correct test runner defined in the 
 - Enums: `src/data/[Name].enum.ts`.
 - Tests: co-located `*.test.ts`, run with `bun test`.
 - New tables: a table without a TypeORM entity — which is every new one, since new code uses Drizzle — must be added to `drizzleOnlyTables` in `database/src/schemas/drizzleOnlyTables.ts`. `cleanDB` in the test helpers (`backend`, `federation`, `dht-node`) empties TypeORM's `entities` and that list, nothing else; a table on neither keeps its rows from one test file to the next. The same applies when the migration removes a table's TypeORM entity: the table moves to `drizzleOnlyTables`.
+- Fake timers in Jest tests: use `useFakeTimersForDrizzle()` from `backend/test/helpers.ts` instead of `jest.useFakeTimers()`. Jest 27 also fakes `process.nextTick`, which mysql2 — Drizzle's driver — needs to deliver every result, so any Drizzle query under plain fake timers hangs until the hook or test timeout. TypeORM runs on the `mysql` package and is unaffected, so this only surfaces once a query on that path moves to Drizzle. `federation` and `dht-node` have no such helper yet; they need the same one before a test there fakes timers around a Drizzle query.
 
 # Error handling
 
