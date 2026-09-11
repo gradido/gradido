@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import GddTransaction from './GddTransaction.vue'
 import DecayInformation from '../DecayInformations/DecayInformation'
+import { BCol, BCollapse, BRow } from 'bootstrap-vue-next'
 import { forgetAllMemberAvatars, rememberMemberAvatars } from '@/composables/useMemberAvatars'
 import { LIST_AVATAR_SIZE } from '@/constants'
 
@@ -206,6 +207,41 @@ describe('GddTransaction', () => {
       phoneBreak.element.nextElementSibling.querySelector('[data-test="transaction-amount"]'),
     ).not.toBeNull()
     expect(phoneBreak.element.nextElementSibling.nextElementSibling).toBe(arrowColumn)
+  })
+
+  /**
+   * ⛔ The same line measured with the REAL grid components, because the stubbed ones above
+   * cannot say which classes the library hands out -- and that is where it went wrong once:
+   * bootstrap-vue-next gives a column the plain `col` class only when it has no breakpoint
+   * sizes, so the amount column (`md`/`lg`) got no width class on the phone. Bootstrap's
+   * `.row > *` then made it 100% wide beside its offset, and the arrow wrapped under it,
+   * at the left -- live on both test servers until this test existed. (Measured at 390 points
+   * against the served stylesheet.)
+   */
+  it('gives the amount a share of the phone line, so the arrow fits beside it', () => {
+    wrapper = mount(GddTransaction, {
+      props: { transaction: { ...BOOKING } },
+      global: {
+        components: { BRow, BCol, BCollapse },
+        mocks: { $t: (key) => key, $d: (d) => String(d), $filters: { GDD: (a) => String(a) } },
+        stubs: {
+          BAvatar: true,
+          AppAvatar: true,
+          Name: true,
+          CollapseIcon: true,
+          DecayInformation: true,
+          VariantIcon: true,
+          FavoriteHeart: true,
+        },
+      },
+    })
+    const amountColumn = wrapper.find('[data-test="transaction-amount"]').element.parentElement
+    const arrowColumn = wrapper.findComponent({ name: 'CollapseIcon' }).element.parentElement
+
+    expect([...amountColumn.classList]).toEqual(expect.arrayContaining(['col', 'offset-3']))
+    expect(amountColumn.classList).toContain('col-md-3')
+    expect(arrowColumn.classList).toContain('col-auto')
+    expect(arrowColumn.classList).not.toContain('col-12')
   })
 
   it('says nothing under the amount for a plain transfer', () => {
