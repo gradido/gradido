@@ -467,12 +467,12 @@ onEntries((result) => {
     // onSelection searches on its own; asking twice would be the same question.
     return
   }
-  // This list and the location race each other on a cold load. When the location
-  // wins, the first search goes out carrying none of my uuids — so nothing comes
-  // back tagged as answering one of my entries, and looking through a single entry
-  // then keeps nothing at all: a blank map with a search bar that says otherwise.
-  // Ask again once the list has actually changed. Before a centre exists runSearch
-  // returns without asking, so the other race order costs nothing.
+  // Ask again once the list has actually changed: an entry added, paused or deleted
+  // changes what the GMS answers. The GMS reads my entries through the token, not
+  // from this list, so every search is already tagged with the entry of mine each
+  // match answers - on a cold load the list arriving after the location repeats the
+  // first search once, a round trip spent for the simpler rule. Before a centre exists
+  // runSearch returns without asking.
   if (entryKey(myEntries.value) !== keyBefore) runSearch()
 })
 
@@ -1597,8 +1597,14 @@ watch(mode, (value) => {
  * wrong for this one, where every pixel above the map is pixels the band at the
  * bottom takes from the controls. Measured on the deployed page: the frame ended 39px
  * above the fold and the band stood 107px tall. The menu keeps its line; only the
- * page moves. */
-@media (width >= 992px) {
+ * page moves.
+ *
+ * ⛔ Every switch on this page sits at the wallet's own boundary, 1025px
+ * (`LG_BREAKPOINT_PX`, where `pt-lg-4` and the menu come and go), not at Bootstrap's
+ * 992. At 992 the page was a desk page in a band with no menu and no `pt-lg-4`: this
+ * margin pulled the search line off the top of the screen (Bernd, 11.09.2026; an iPad
+ * held sideways is 1024px wide). `useViewport.drift.spec.js` refuses a 992 here. */
+@media (width >= 1025px) {
   .matching-map-page {
     margin-top: -1.5rem;
   }
@@ -1615,7 +1621,7 @@ watch(mode, (value) => {
 /* On a phone the page IS the map: it fills the screen, the controls sit right
    under it, and neither needs a scroll. dvh rather than vh, so the browser's own
    collapsing address bar cannot cut the controls off the bottom. */
-@media (width <= 991.98px) {
+@media (width <= 1024.98px) {
   .matching-map-page {
     display: flex;
     flex-direction: column;
@@ -1682,9 +1688,16 @@ watch(mode, (value) => {
   gap: 0.25rem;
 }
 
+/* The question must not decide how wide the page may be. Its bar keeps a chosen
+   sentence on one line and cuts it with an ellipsis - but uncontained, the whole
+   sentence still counted as the narrowest the page could get, and the layout's content
+   column, which never shrinks below its content, dropped under the menu instead (Bernd,
+   11.09.2026: a long entry chosen, the window between about 990 and 1070 px). With its
+   width contained the bar takes the width it is given and cuts the sentence there. */
 .query-field {
   flex: 1;
   min-width: 0;
+  contain: inline-size;
 }
 
 /* A bare arrow in the page's own text colour - light on the dark wallet, dark on the
@@ -1826,9 +1839,10 @@ watch(mode, (value) => {
 /* On a desktop it stops where the content column starts. Across the whole width it
    ran under the menu as well and read as an application-wide bar, which it is not —
    it belongs to this page. The sidebar is a 2-of-12 column in DashboardLayout, so
-   that is where the band begins. On a phone there is no sidebar and it spans the
-   screen, which is right: there the whole width IS the page. */
-@media (width >= 992px) {
+   that is where the band begins - from 1025px, where that column exists. Below it
+   there is no sidebar and the band spans the screen, which is right: there the whole
+   width IS the page. */
+@media (width >= 1025px) {
   .keep-offer {
     left: 16.6667%;
     border-top-left-radius: 0.5rem;
@@ -1860,7 +1874,7 @@ watch(mode, (value) => {
 
    The band is one line on the desktop, where it was asked for and where 968px of
    frame make it true. */
-@media (width <= 991.98px) {
+@media (width <= 1024.98px) {
   .keep-ask {
     display: none;
   }
