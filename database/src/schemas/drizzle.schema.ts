@@ -24,7 +24,7 @@ import { customGradidoUnit, customMediumBlob } from './customTypes'
 export const communitiesTable = mysqlTable(
   'communities',
   {
-    id: int().autoincrement().notNull(),
+    id: int().autoincrement().primaryKey().notNull(),
     foreign: tinyint().default(1).notNull(),
     url: varchar({ length: 255 }).notNull(),
     publicKey: binary('public_key', { length: 32 }).notNull(),
@@ -80,7 +80,7 @@ export type CommunitiesInsert = typeof communitiesTable.$inferInsert
 export const contributionsTable = mysqlTable(
   'contributions',
   {
-    id: int().autoincrement().notNull(),
+    id: int().autoincrement().primaryKey().notNull(),
     userId: int('user_id').default(sql`NULL`),
     createdAt: datetime('created_at', { mode: 'date' }).default(sql`NULL`),
     resubmissionAt: datetime('resubmission_at', { mode: 'date' }).default(sql`NULL`),
@@ -121,7 +121,7 @@ export type ContributionsInsert = typeof contributionsTable.$inferInsert
 export const creachatThreadsTable = mysqlTable(
   'creachat_threads',
   {
-    id: char({ length: 36 }).notNull(),
+    id: char({ length: 36 }).primaryKey().notNull(),
     userId: int('user_id').notNull(),
     messages: longtext().notNull(),
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
@@ -146,7 +146,7 @@ export type CreachatThreadInsert = typeof creachatThreadsTable.$inferInsert
 export const dltTransactionsTable = mysqlTable(
   'dlt_transactions',
   {
-    id: int().autoincrement().notNull(),
+    id: int().autoincrement().primaryKey().notNull(),
     transactionId: int('transaction_id').default(sql`NULL`),
     userId: int('user_id').default(sql`NULL`),
     transactionLinkId: int('transaction_link_id').default(sql`NULL`),
@@ -170,7 +170,7 @@ export type DltTransactionInsert = typeof dltTransactionsTable.$inferInsert
 export const matchingEntriesTable = mysqlTable(
   'matching_entries',
   {
-    id: int().autoincrement().notNull(),
+    id: int().autoincrement().primaryKey().notNull(),
     uuid: char({ length: 36 }).notNull(),
     userId: int('user_id').notNull(),
     matchingType: varchar('matching_type', { length: 12 }).notNull(),
@@ -245,7 +245,7 @@ export type MatchingEntryInsert = typeof matchingEntriesTable.$inferInsert
 export const projectBrandingsTable = mysqlTable(
   'project_brandings',
   {
-    id: int().autoincrement().notNull(),
+    id: int().autoincrement().primaryKey().notNull(),
     name: varchar({ length: 255 }).notNull(),
     alias: varchar({ length: 32 }).notNull(),
     description: text().default(sql`NULL`),
@@ -263,7 +263,7 @@ export type ProjectBrandingInsert = typeof projectBrandingsTable.$inferInsert
 export const transactionsTable = mysqlTable(
   'transactions',
   {
-    id: int().autoincrement().notNull(),
+    id: int().autoincrement().primaryKey().notNull(),
     previous: int().default(sql`NULL`),
     typeId: int('type_id').default(sql`NULL`),
     transactionLinkId: int('transaction_link_id').default(sql`NULL`),
@@ -312,7 +312,7 @@ export type TransactionInsert = typeof transactionsTable.$inferInsert
 export const transactionLinksTable = mysqlTable(
   'transaction_links',
   {
-    id: int().autoincrement().notNull(),
+    id: int().autoincrement().primaryKey().notNull(),
     userId: int().notNull(),
     amount: customGradidoUnit('amount_gdd4').default(sql`NULL`),
     holdAvailableAmount: customGradidoUnit('hold_available_amount_gdd4').default(sql`NULL`),
@@ -333,7 +333,7 @@ export type TransactionLinksInsert = typeof transactionLinksTable.$inferInsert
 export const usersTable = mysqlTable(
   'users',
   {
-    id: int().autoincrement().notNull(),
+    id: int().autoincrement().primaryKey().notNull(),
     foreign: tinyint().default(0).notNull(),
     gradidoId: char('gradido_id', { length: 36 }).notNull(),
     communityUuid: varchar('community_uuid', { length: 36 }).default(sql`NULL`),
@@ -396,7 +396,7 @@ export type UserInsert = typeof usersTable.$inferInsert
 export const userContactsTable = mysqlTable(
   'user_contacts',
   {
-    id: int({ unsigned: true }).autoincrement().notNull(),
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
     type: varchar({ length: 100 }).notNull(),
     userId: int('user_id', { unsigned: true }).notNull(),
     email: varchar({ length: 255 }).notNull(),
@@ -568,7 +568,7 @@ export type ThankYouCardSettingsInsert = typeof thankYouCardSettingsTable.$infer
 export const thankYouCardsTable = mysqlTable(
   'thank_you_cards',
   {
-    id: int().autoincrement().notNull(),
+    id: int().autoincrement().primaryKey().notNull(),
     userId: int('user_id').notNull(),
     // "DK-" plus 32 hex characters: 16 fully random bytes, no timestamp. Length inside a
     // QR code is free, so there is no reason to spend part of it on the creation time
@@ -603,7 +603,7 @@ export type ThankYouCardInsert = typeof thankYouCardsTable.$inferInsert
 export const thankYouCardPaymentsTable = mysqlTable(
   'thank_you_card_payments',
   {
-    id: int().autoincrement().notNull(),
+    id: int().autoincrement().primaryKey().notNull(),
     cardId: int('card_id').notNull(),
     recipientId: int('recipient_id').notNull(),
     amount: customGradidoUnit('amount_gdd4').notNull(),
@@ -636,7 +636,7 @@ export type ThankYouCardPaymentInsert = typeof thankYouCardPaymentsTable.$inferI
 export const firstCreationsTable = mysqlTable(
   'first_creations',
   {
-    id: int().autoincrement().notNull(),
+    id: int().autoincrement().primaryKey().notNull(),
     // `unsigned`, because `users.id` is `int(10) unsigned` and migration 0130 mirrors it.
     userId: int('user_id', { unsigned: true }).notNull(),
     status: varchar({ length: 16 }).notNull(),
