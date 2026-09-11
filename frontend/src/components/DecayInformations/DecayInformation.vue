@@ -1,6 +1,8 @@
 <template>
   <div class="decay-information-box">
-    <decay-information-before-startblock v-if="decay.start === null" :memo="memo" />
+    <!-- No memo in here any more: it stands in the booking's row, readable before this part
+         opens and shown whole in the same place once it does (GddTransaction). -->
+    <decay-information-before-startblock v-if="decay.start === null" />
     <decay-information-decay-startblock
       v-else-if="isStartBlock"
       :amount="amount"
@@ -12,7 +14,6 @@
       :amount="amount"
       :decay="decay"
       :type-id="typeId"
-      :memo="memo"
       :balance="balance"
       :previous-balance="previousBalance"
     />
@@ -37,10 +38,6 @@ export default {
     },
     decay: {
       type: Object,
-      required: true,
-    },
-    memo: {
-      type: String,
       required: true,
     },
     typeId: {

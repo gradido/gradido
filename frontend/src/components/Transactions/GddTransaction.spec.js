@@ -2,7 +2,11 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { nextTick } from 'vue'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
 import GddTransaction from './GddTransaction.vue'
+import DecayInformation from '../DecayInformations/DecayInformation'
 import { forgetAllMemberAvatars, rememberMemberAvatars } from '@/composables/useMemberAvatars'
 import { LIST_AVATAR_SIZE } from '@/constants'
 
@@ -113,6 +117,95 @@ describe('GddTransaction', () => {
 
   afterEach(() => {
     wrapper?.unmount()
+  })
+
+  /**
+   * ⛔ The memo belongs to the row (Bernd, 11.09.2026): its first line is readable before the
+   * booking is opened, and opening it shows the whole memo in the same place -- not a second
+   * copy in the opened part, and under no heading. Italics and the muted colour say what it is.
+   */
+  describe('the memo in the row', () => {
+    const memo = () => wrapper.find('[data-test="transaction-memo"]')
+
+    it('stands in the row before the booking is opened, cut to one line', () => {
+      mountWith({})
+
+      expect(memo().text()).toBe('Pizzeria Napoli')
+      expect(memo().classes()).toContain('transaction-memo-clamped')
+    })
+
+    it('opens to the whole memo in the same place, and hands none down to the opened part', async () => {
+      mountWith({})
+      await wrapper.trigger('click')
+
+      expect(memo().classes()).not.toContain('transaction-memo-clamped')
+      expect(wrapper.findAll('[data-test="transaction-memo"]')).toHaveLength(1)
+      // The opened part is stubbed here; what matters is that it is no longer GIVEN a memo --
+      // its own spec holds that it shows none and no heading.
+      expect(wrapper.findComponent(DecayInformation).attributes('memo')).toBeUndefined()
+    })
+
+    // Italics and the muted colour of the row's secondary lines, read where they are written:
+    // jsdom lays nothing out and computes no style from a scoped block.
+    it('is written in italics, in the muted colour', () => {
+      const source = readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), 'GddTransaction.vue'),
+        'utf8',
+      )
+      const rule = /\n\.transaction-memo \{([^}]*)\}/.exec(source)
+
+      expect(rule, 'no .transaction-memo rule').not.toBeNull()
+      expect(rule[1]).toContain('font-style: italic')
+      expect(rule[1]).toContain('color: var(--bs-secondary-color')
+    })
+
+    // Closed, the memo is part of the row and a click on it opens the booking; opened, a click
+    // on it does nothing -- somebody selecting the text to copy it keeps the booking open.
+    it('opens the closed booking on a click, and leaves the opened one open', async () => {
+      mountWith({})
+
+      await memo().trigger('click')
+      expect(memo().classes()).not.toContain('transaction-memo-clamped')
+
+      await memo().trigger('click')
+      expect(memo().classes()).not.toContain('transaction-memo-clamped')
+    })
+
+    it('lets a link in it open the link, not the booking', async () => {
+      mountWith({ memo: 'see https://gradido.net' })
+      // jsdom cannot navigate and says so on every followed link; stopped before it tries.
+      const noNavigation = (event) => event.preventDefault()
+      document.addEventListener('click', noNavigation, true)
+
+      await memo().find('a').trigger('click')
+      document.removeEventListener('click', noNavigation, true)
+      expect(memo().classes()).toContain('transaction-memo-clamped')
+    })
+
+    it('draws no line where there is no memo', () => {
+      mountWith({ memo: '' })
+      expect(memo().exists()).toBe(false)
+    })
+  })
+
+  /**
+   * ⛔ The arrow stands beside the amount at every width. On the phone it had a line of its
+   * own under the whole booking (`cols="12"`), while on the desk it always stood at the
+   * amount's height (Bernd, 11.09.2026). The phone's amount line is started by a break that
+   * only the phone sees; without it the amount would squeeze into the name's line.
+   */
+  it('keeps the arrow beside the amount, on the phone too', () => {
+    mountWith({})
+    const arrowColumn = wrapper.findComponent({ name: 'CollapseIcon' }).element.parentElement
+    const phoneBreak = wrapper.find('.w-100.d-md-none')
+
+    expect(arrowColumn.getAttribute('cols')).toBe('auto')
+    expect(arrowColumn.getAttribute('md')).toBeNull()
+    expect(phoneBreak.exists()).toBe(true)
+    expect(
+      phoneBreak.element.nextElementSibling.querySelector('[data-test="transaction-amount"]'),
+    ).not.toBeNull()
+    expect(phoneBreak.element.nextElementSibling.nextElementSibling).toBe(arrowColumn)
   })
 
   it('says nothing under the amount for a plain transfer', () => {
