@@ -1,5 +1,11 @@
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
-import { cleanDB, resetEntity, resetToken, testEnvironment } from '@test/helpers'
+import {
+  cleanDB,
+  resetEntity,
+  resetToken,
+  testEnvironment,
+  useFakeTimersForDrizzle,
+} from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
 import {
@@ -586,7 +592,8 @@ describe('TransactionLinkResolver', () => {
 
             describe('after one day', () => {
               beforeAll(async () => {
-                jest.useFakeTimers()
+                // The login below reads the member's confirmed addresses through Drizzle.
+                useFakeTimersForDrizzle()
                 setTimeout(jest.fn(), 1000 * 60 * 60 * 24)
                 jest.runAllTimers()
                 await mutate({

@@ -383,6 +383,54 @@ export const usersTable = mysqlTable(
 export type UserSelect = typeof usersTable.$inferSelect
 export type UserInsert = typeof usersTable.$inferInsert
 
+// A member's addresses - every one they ever held stays; `users.email_id` marks the one in
+// force (see queries/userContacts.typeorm.ts for the life of a row). Mirrors the table as
+// the migrations leave it, not the TypeORM entity: `email_opt_in_type_id` is nullable here
+// and `type` is not, the other way round from the entity.
+//
+// ⚠️ The verification and veto codes are unsigned 64 bit words: mode 'bigint' and
+// unsigned, for the reason users.password gives - as a JS number almost every code would
+// come back as a different one. (The entity reads them as strings.)
+// `updated_at` carries `ON UPDATE current_timestamp(3)` in the table itself; Drizzle's
+// onUpdateNow() only describes DDL and knows no precision, so it is left out.
+export const userContactsTable = mysqlTable(
+  'user_contacts',
+  {
+    id: int({ unsigned: true }).autoincrement().notNull(),
+    type: varchar({ length: 100 }).notNull(),
+    userId: int('user_id', { unsigned: true }).notNull(),
+    email: varchar({ length: 255 }).notNull(),
+    emailVerificationCode: bigint('email_verification_code', {
+      mode: 'bigint',
+      unsigned: true,
+    }).default(sql`NULL`),
+    changeVetoCode: bigint('change_veto_code', { mode: 'bigint', unsigned: true }).default(
+      sql`NULL`,
+    ),
+    emailOptInTypeId: int('email_opt_in_type_id').default(sql`NULL`),
+    emailResendCount: int('email_resend_count').default(0),
+    emailChecked: tinyint('email_checked').default(0).notNull(),
+    gmsPublishEmail: tinyint('gms_publish_email').default(0).notNull(),
+    countryCode: varchar('country_code', { length: 255 }).default(sql`NULL`),
+    phone: varchar({ length: 255 }).default(sql`NULL`),
+    gmsPublishPhone: int('gms_publish_phone', { unsigned: true }).default(0).notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    deletedAt: datetime('deleted_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+  },
+  (table) => [
+    unique('email').on(table.email),
+    unique('email_verification_code').on(table.emailVerificationCode),
+    unique('IDX_user_contacts_change_veto_code').on(table.changeVetoCode),
+    index('IDX_user_contacts_user_created').on(table.userId, table.createdAt),
+  ],
+)
+
+export type UserContactSelect = typeof userContactsTable.$inferSelect
+export type UserContactInsert = typeof userContactsTable.$inferInsert
+
 // The member's own profile picture. A side table rather than a column on `users`,
 // because `users` is read on nearly every request and an image would weigh every one
 // of those reads down. user_id is the primary key: one member, one picture, so a

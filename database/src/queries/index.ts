@@ -22,6 +22,7 @@ export * from './user'
 export * from './user.typeorm'
 export * from './userAliases'
 export * from './userAvatars'
+export * from './userContacts'
 export * from './userContacts.typeorm'
 export * from './userFavorites'
 
