@@ -15,6 +15,11 @@ function joinRelationsRecursive(
   currentPath: string,
 ): void {
   for (const key in relations) {
+    // `false` means "not asked for". It used to be joined all the same, so every relation
+    // the caller named came along whether it was wanted or not.
+    if (!relations[key]) {
+      continue
+    }
     queryBuilder.leftJoinAndSelect(`${currentPath}.${key}`, key)
     if (typeof relations[key] === 'object') {
       // If it's a nested relation

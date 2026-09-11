@@ -1,6 +1,8 @@
 import { ContributionMessageType } from '@enum/ContributionMessageType'
 import { ContributionStatus } from '@enum/ContributionStatus'
+import { OptInType } from '@enum/OptInType'
 import { Order } from '@enum/Order'
+import { UserContactType } from '@enum/UserContactType'
 import {
   cleanDB,
   contributionDateFormatter,
@@ -22,11 +24,12 @@ import {
   Event as DbEvent,
   Transaction as DbTransaction,
   User,
+  UserContact,
 } from 'database'
 import { GraphQLError } from 'graphql'
 import { getLogger as originalGetLogger } from 'log4js'
 import { GradidoUnit } from 'shared'
-import { Equal } from 'typeorm'
+import { Equal, IsNull, Not } from 'typeorm'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { EventType } from '@/event/Events'
 import { creations } from '@/seeds/creation/index'
@@ -46,7 +49,9 @@ import {
   updateContribution,
 } from '@/seeds/graphql/mutations'
 import {
+  adminListContributionIds,
   adminListContributions,
+  contributionById,
   listAllContributions,
   listContributions,
 } from '@/seeds/graphql/queries'
@@ -56,6 +61,17 @@ import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
+import { findContributions } from './util/findContributions'
+
+// Passes every call through - the tests only read which relations the list asked for.
+jest.mock('./util/findContributions', () => {
+  const originalModule = jest.requireActual('./util/findContributions')
+  return {
+    __esModule: true,
+    ...originalModule,
+    findContributions: jest.fn(originalModule.findContributions),
+  }
+})
 
 jest.mock('core', () => {
   const originalModule = jest.requireActual('core')
@@ -2656,6 +2672,96 @@ describe('ContributionResolver', () => {
               contributionStatus: 'IN_PROGRESS',
             }),
           ]),
+        })
+      })
+
+      // A member keeps a row for every address they ever held. Without a search text the
+      // list used to leave the address to the field resolver, which asked by `user_id`: after
+      // a change MySQL picked one - in practice the oldest, the address the member had left.
+      it('shows the address in force for a member who changed it', async () => {
+        const peter = await User.findOneOrFail({
+          where: { emailContact: { email: 'peter@lustig.de' } },
+        })
+        const newer = await UserContact.save(
+          UserContact.create({
+            userId: peter.id,
+            email: 'peter-neu@lustig.de',
+            type: UserContactType.USER_CONTACT_EMAIL,
+            emailChecked: true,
+            emailOptInTypeId: OptInType.EMAIL_OPT_IN_REGISTER,
+            emailVerificationCode: '4711471147114711',
+          }),
+        )
+        await User.update({ id: peter.id }, { emailId: newer.id })
+        try {
+          const {
+            data: { adminListContributions: contributionListObject },
+          } = await query({
+            query: adminListContributions,
+            variables: { paginated: { pageSize: 20 } },
+          })
+          const petersEmails = contributionListObject.contributionList
+            .filter((contribution: { user: { firstName: string } }) => {
+              return contribution.user.firstName === 'Peter'
+            })
+            .map(
+              (contribution: { user: { emailContact: { email: string } } }) =>
+                contribution.user.emailContact.email,
+            )
+          expect(petersEmails.length).toBeGreaterThan(0)
+          expect(new Set(petersEmails)).toEqual(new Set(['peter-neu@lustig.de']))
+        } finally {
+          await User.update({ id: peter.id }, { emailId: peter.emailId })
+          await UserContact.delete({ id: newer.id })
+        }
+      })
+
+      // The address comes with the list's own query, not one lookup per row. The page asks for
+      // the relations one level down, inside contributionList - that level used to go unread,
+      // so they were never requested by name, and the field resolver looked the address up
+      // once for every row. And a relation that was not requested used to be joined anyway.
+      it('asks its query for exactly the relations the page asks for', async () => {
+        const spy = findContributions as jest.MockedFunction<typeof findContributions>
+        const lastRelations = () => spy.mock.calls[spy.mock.calls.length - 1][3]
+        await query({ query: adminListContributions, variables: { paginated: { pageSize: 20 } } })
+        expect(lastRelations()).toEqual({ user: { emailContact: true }, messages: true })
+
+        await query({ query: adminListContributionIds })
+        expect(lastRelations()).toEqual({ user: false, messages: false })
+        const [rows] = await spy.mock.results[spy.mock.results.length - 1].value
+        expect(rows.length).toBeGreaterThan(0)
+        for (const row of rows) {
+          expect(row.user).toBeUndefined()
+          expect(row.messages).toBeUndefined()
+        }
+      })
+
+      // One row of the list, reloaded after the moderator acted on it: the admin replaces the
+      // row with this answer, so it has to carry the member too. It came back with `user: null`.
+      describe('contribution by id', () => {
+        it('returns the member with the address in force', async () => {
+          const bibi = await User.findOneOrFail({
+            where: { emailContact: { email: 'bibi@bloxberg.de' } },
+          })
+          const bibisContribution = await Contribution.findOneOrFail({ where: { userId: bibi.id } })
+          const res = await query({
+            query: contributionById,
+            variables: { id: bibisContribution.id },
+          })
+          expect(res.errors).toBeUndefined()
+          expect(res.data.contribution).toMatchObject({
+            id: bibisContribution.id,
+            user: { gradidoID: bibi.gradidoID, emailContact: { email: 'bibi@bloxberg.de' } },
+          })
+        })
+
+        it('still refuses a deleted contribution', async () => {
+          const deleted = await Contribution.findOneOrFail({
+            where: { deletedAt: Not(IsNull()) },
+            withDeleted: true,
+          })
+          const res = await query({ query: contributionById, variables: { id: deleted.id } })
+          expect(res.errors).toEqual([new GraphQLError('Contribution not found')])
         })
       })
 

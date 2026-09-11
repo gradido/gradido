@@ -58,7 +58,7 @@ import {
 } from './util/contributions'
 import { createUserContribution } from './util/createUserContribution'
 import { getOpenCreations, getUserCreation, validateContribution } from './util/creations'
-import { extractGraphQLFields } from './util/extractGraphQLFields'
+import { extractGraphQLFieldPaths, extractGraphQLFields } from './util/extractGraphQLFields'
 import { findContributions, parseModeratorScope } from './util/findContributions'
 import {
   assertContributionInModeratorScope,
@@ -88,7 +88,14 @@ export class ContributionResolver {
     // Reading one contribution by id is a way past the list, so it carries the same group
     // scope as the list and as every action taken by id.
     await assertContributionInModeratorScope(id, context.user?.userRoles?.[0])
-    const dbContribution = await DbContribution.findOne({ where: { id } })
+    // The member comes along, with the address in force: the admin replaces a list row with
+    // this answer, and without the relation the row came back with `user: null`. Deleted
+    // members stay out, as they do in the list - its joins are built before its
+    // `withDeleted()`, so they keep their `deleted_at IS NULL`.
+    const dbContribution = await DbContribution.findOne({
+      where: { id },
+      relations: { user: { emailContact: true } },
+    })
     if (!dbContribution) {
       throw new LogError('Contribution not found', id)
     }
@@ -406,15 +413,23 @@ export class ContributionResolver {
   ): Promise<ContributionListResult> {
     // Check if only count was requested (without contributionList)
     const fields = Object.keys(extractGraphQLFields(info))
-    // console.log(`fields: ${fields}`)
     const countOnly: boolean = fields.includes('contributionCount') && fields.length === 1
+    // The relations below are asked for one level down, inside contributionList - the list
+    // of the first level alone never contains them. It used to be read for them anyway, so
+    // the address was never joined and the `emailContact` field resolver ran once per row.
+    const fieldPaths = extractGraphQLFieldPaths(info)
     // check if related user was requested
     const userRequested =
-      fields.includes('user') || filter.userId !== undefined || filter.query !== undefined
+      fieldPaths.has('contributionList.user') ||
+      filter.userId !== undefined ||
+      filter.query !== undefined
     // check if related emailContact was requested
-    const emailContactRequested = fields.includes('user.emailContact') || filter.query !== undefined
+    const emailContactRequested =
+      fieldPaths.has('contributionList.user.emailContact') || filter.query !== undefined
     // check if related messages were requested
-    const messagesRequested = ['messagesCount', 'messages'].some((field) => fields.includes(field))
+    const messagesRequested = ['messagesCount', 'messages'].some((field) =>
+      fieldPaths.has(`contributionList.${field}`),
+    )
     // Group functions: a group moderator only sees the contributions of their tags. This
     // covers BOTH moderator kinds — a MODERATOR_AI is a moderator who may additionally use
     // Crea, so the same visibility scope applies (see isScopedModeratorRole).

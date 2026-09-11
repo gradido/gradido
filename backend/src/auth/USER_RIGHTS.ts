@@ -41,7 +41,11 @@ export const USER_RIGHTS = [
   RIGHTS.HUMHUB_AUTO_LOGIN,
   RIGHTS.PROJECT_BRANDING_VIEW,
   RIGHTS.LIST_HUMHUB_SPACES,
-  RIGHTS.VIEW_USER_CONTACT,
+  // The member's OWN address (the wallet reads it through verifyLogin). Somebody else's
+  // is VIEW_USER_CONTACT, which is moderation only: it stood here until 11.09.2026 and let
+  // every member read the address of anybody they could reach through a User - a
+  // counterparty, a contact, the creator of a link.
+  RIGHTS.VIEW_OWN_USER_CONTACT,
   RIGHTS.LIST_CREATION_GROUPS,
   RIGHTS.MANAGE_OWN_CREATION_GROUPS,
   // One right for the whole of "paying with a printed card", because every call it

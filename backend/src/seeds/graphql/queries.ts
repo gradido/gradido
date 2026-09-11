@@ -328,6 +328,33 @@ query ($pagination: Paginated!) {
 `
 // from admin interface
 
+export const contributionById = gql`
+  query ($id: Int!) {
+    contribution(id: $id) {
+      id
+      user {
+        gradidoID
+        emailContact {
+          email
+        }
+      }
+    }
+  }
+`
+
+// The list without any relation: what adminListContributions asks its query for when the
+// page wants no member and no messages.
+export const adminListContributionIds = gql`
+  query {
+    adminListContributions {
+      contributionCount
+      contributionList {
+        id
+      }
+    }
+  }
+`
+
 export const adminListContributions = gql`
   query ($filter: SearchContributionsFilterArgs, $paginated: Paginated) {
     adminListContributions(filter: $filter, paginated: $paginated) {
@@ -559,6 +586,29 @@ export const userAvatar = gql`
     user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
       gradidoID
       avatar
+    }
+  }
+`
+
+// Same reasoning for the address: asked for on its own, for the emailContact guard.
+export const verifyLoginEmailContact = gql`
+  query {
+    verifyLogin {
+      gradidoID
+      emailContact {
+        email
+      }
+    }
+  }
+`
+
+export const userEmailContact = gql`
+  query ($identifier: String!, $communityIdentifier: String!) {
+    user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
+      gradidoID
+      emailContact {
+        email
+      }
     }
   }
 `

@@ -11,7 +11,8 @@ import { DBDuplicateEntryError, DBNotFoundError, isDuplicateEntry } from '../err
  *
  * The ones that stood in `./userContacts` come first. Those after them were collected from
  * the backend - step one of the query migration AGENTS.md describes, and step one only:
- * moved, still TypeORM, same options, same result.
+ * moved, still TypeORM, same options, same result. Except the last one, which was fixed
+ * after the move and says why.
  */
 
 /**
@@ -379,19 +380,26 @@ export async function dbFindUserContactWithUserByEmail(
 }
 
 /**
- * A member's contact row, as a builder: the caller narrows the columns to the requested
- * GraphQL fields before it runs it. Moved from the `emailContact` field resolver in
- * `backend/src/graphql/resolver/UserResolver.ts`.
+ * The address in force for a member - the row `users.email_id` points at, the same row the
+ * `User.emailContact` relation loads - as a builder: the caller narrows the columns to the
+ * requested GraphQL fields before it runs it. For the `emailContact` field resolver in
+ * `backend/src/graphql/resolver/UserResolver.ts`, which asks when the relation was not
+ * loaded.
+ *
+ * ⛔ Not `user_id`. A member keeps a row for every address they ever held, and the lookup
+ * that stood here asked by `user_id` without an order: with more than one row, MySQL chose -
+ * and the admin's contribution list showed a member's former address.
+ *
+ * A subquery rather than a join on `users`: TypeORM adds `deleted_at IS NULL` to a joined
+ * entity, and the admin lists deleted members' contributions too. Deleted CONTACT rows stay
+ * out, as they always did here.
  *
  * The alias stays `userContact`: `extractGraphQLFieldsForSelect` derives the entity name
  * from it.
- *
- * ⚠️ Filters by `user_id` alone and orders nothing, while a member keeps a row for every
- * address they ever held - with more than one row, which one comes back is up to MySQL, not
- * necessarily the current address. Kept as it was; moving it is not the place to change it.
  */
-export function userContactByUserIdQuery(userId: number): SelectQueryBuilder<DbUserContact> {
-  return DbUserContact.createQueryBuilder('userContact').where('userContact.userId = :userId', {
-    userId,
-  })
+export function emailContactByUserIdQuery(userId: number): SelectQueryBuilder<DbUserContact> {
+  return DbUserContact.createQueryBuilder('userContact').where(
+    'userContact.id = (SELECT users.email_id FROM users WHERE users.id = :userId)',
+    { userId },
+  )
 }

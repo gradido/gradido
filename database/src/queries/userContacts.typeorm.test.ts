@@ -27,7 +27,7 @@ import {
   dbPurgeExpiredEmailChanges,
   dbReleasePendingEmailChange,
   dbReleaseUnconfirmedEmailChangeFor,
-  userContactByUserIdQuery,
+  emailContactByUserIdQuery,
 } from './userContacts.typeorm'
 
 const db = AppDatabase.getInstance()
@@ -446,11 +446,36 @@ describe('userContacts.typeorm.queries', () => {
       expect(await dbFindUserContactWithUserByEmail('nobody@example.org')).toBeNull()
     })
 
-    it('build the rows of one member under the alias the field selection reads', async () => {
-      const query = userContactByUserIdQuery(peter.id)
+    it('build the address in force, under the alias the field selection reads', async () => {
+      const query = emailContactByUserIdQuery(peter.id)
       expect(query.alias).toBe('userContact')
-      const rows = await query.getMany()
-      expect(rows.map((row) => row.id).sort((a, b) => a - b)).toEqual([current.id, change.id])
+      // What the field resolver does with it: narrow the columns, then run it.
+      query.select(['userContact.id', 'userContact.email'])
+      // peter holds the pending change as well - the lookup by user_id found both rows.
+      expect(await query.getMany()).toEqual([
+        expect.objectContaining({ id: current.id, email: 'peter@lustig.de' }),
+      ])
+      expect(await emailContactByUserIdQuery(999999).getOne()).toBeNull()
+    })
+
+    // The case the lookup by user_id got wrong: after a confirmed change the address in
+    // force is NOT the member's oldest row.
+    it('follow users.email_id when the address in force is a newer row', async () => {
+      await DbUser.update({ id: peter.id }, { emailId: change.id })
+      try {
+        expect((await emailContactByUserIdQuery(peter.id).getOneOrFail()).id).toBe(change.id)
+      } finally {
+        await DbUser.update({ id: peter.id }, { emailId: current.id })
+      }
+    })
+
+    it('still find the address of a deleted member', async () => {
+      await DbUser.update({ id: peter.id }, { deletedAt: new Date() })
+      try {
+        expect((await emailContactByUserIdQuery(peter.id).getOneOrFail()).id).toBe(current.id)
+      } finally {
+        await DbUser.update({ id: peter.id }, { deletedAt: null })
+      }
     })
   })
 })

@@ -1,5 +1,5 @@
 import { createTestClient } from 'apollo-server-testing'
-import { entities } from 'database'
+import { AppDatabase, drizzleOnlyTableNames, entities } from 'database'
 
 import { createServer } from '@/server/createServer'
 
@@ -24,6 +24,14 @@ export const cleanDB = async () => {
     if (entity.name !== 'Migration') {
       await resetEntity(entity)
     }
+  }
+  // The tables without a TypeORM entity: `entities` does not know them, so their rows used
+  // to outlive the test file that wrote them. The list lives next to the schema.
+  // Over the TypeORM connection, not Drizzle's pool: that pool opens its first connection
+  // on first use, and dht-node runs cleanDB under fake timers, where that never completes.
+  const dataSource = AppDatabase.getInstance().getDataSource()
+  for (const tableName of drizzleOnlyTableNames) {
+    await dataSource.query(`DELETE FROM \`${tableName}\``)
   }
 }
 

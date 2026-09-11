@@ -63,11 +63,11 @@ import {
   dbPurgeExpiredAssistedRegistrations,
   dbReleaseUnconfirmedEmailChangeFor,
   dbUpsertUserAvatar,
+  emailContactByUserIdQuery,
   findUserByIdentifier,
   getHomeCommunity,
   ProjectBrandingSelect,
   UserLoggingView,
-  userContactByUserIdQuery,
 } from 'database'
 import { GraphQLResolveInfo } from 'graphql'
 import { getLogger, Logger } from 'log4js'
@@ -1518,7 +1518,7 @@ export class UserResolver {
     }
     let userContact = user.emailContact
     if (!userContact) {
-      const queryBuilder = userContactByUserIdQuery(user.id)
+      const queryBuilder = emailContactByUserIdQuery(user.id)
       extractGraphQLFieldsForSelect(info, queryBuilder, queryBuilder.alias)
       userContact = await queryBuilder.getOneOrFail()
     }
