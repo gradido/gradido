@@ -2,7 +2,7 @@
 <template>
   <BRow align-v="center" class="contact-row py-2" data-test="contact-row">
     <BCol cols="auto">
-      <app-avatar :size="42" :color="'#fff'" v-bind="avatar" />
+      <app-avatar :size="LIST_AVATAR_SIZE" :color="'#fff'" v-bind="avatar" />
     </BCol>
     <BCol class="min-w-0">
       <!-- ⛔ A button, and the name inside it is not a second one (KF-010). A tap on a
@@ -56,6 +56,7 @@ import AppAvatar from '@/components/AppAvatar.vue'
 import FavoriteHeart from '@/components/FavoriteHeart.vue'
 import Name from '@/components/TransactionRows/Name'
 import { contactBookingsMeta, contactDisplay } from '@/components/Contacts/contactDisplay'
+import { LIST_AVATAR_SIZE } from '@/constants'
 
 /**
  * One person in the contact list: face, name, how long and how often, and the heart.

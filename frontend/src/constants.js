@@ -40,16 +40,23 @@ export const CONTACTS_PANEL_PAGE_SIZE = 20
 export const CONTACTS_PANEL_ROWS = 5
 
 /**
- * The face beside each row of the right-hand column, in both positions of its switch: the
- * bookings and the contacts (KF-009).
+ * The face beside a person in every list of people in the wallet: the transactions page, the
+ * contacts page, both positions of the right-hand column, and the favourites' tiles on the
+ * desk and on the phone. The chat's list of conversations is meant to take it too.
  *
- * ⛔ ONE number for the two panels, because they are one column: flicking the switch above
- * them should change the people, not the size of their faces. They were 64 and 36, and 50 is
- * the middle of the two (Bernd, 11.09.2026). The stored picture is 128 across, so 50 points
- * on a 2x screen (100 pixels) is still drawn from more than it shows -- the condition AS-008
- * set when the booking column came down from 72 to 64.
+ * ⛔ ONE number, because the same person should not change size from one list to the next.
+ * They were 42, 44, 36 and 64 in these places; Bernd wanted one size for all of them and
+ * found 42 too small (11.09.2026). 48, and not less:
+ *   - the face is a control of its own -- where there is a picture, a tap opens it at full
+ *     size (AS-018) -- and 44 is the smallest tap target this wallet gives anything (the map's
+ *     markers, F-10), Apple's minimum and WCAG's enhanced target size;
+ *   - the stored picture is 128 across, so 48 points on a 2x screen (96 pixels) is still drawn
+ *     from more than it shows (AS-008).
+ *
+ * Not a list, and keeping their own size: the contact window (64). Faces beside single
+ * messages -- the contribution threads today, the chat later -- are a decision of their own.
  */
-export const RIGHT_COLUMN_AVATAR_SIZE = 50
+export const LIST_AVATAR_SIZE = 48
 
 /**
  * Where this wallet's layout changes from a phone to a desk, in pixels.

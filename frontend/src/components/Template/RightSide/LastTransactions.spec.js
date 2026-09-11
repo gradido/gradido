@@ -6,11 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import LastTransactions from './LastTransactions'
 import { forgetAllMemberAvatars, rememberMemberAvatars } from '@/composables/useMemberAvatars'
-import {
-  LAST_TRANSACTIONS_PAGE_SIZE,
-  LAST_TRANSACTIONS_ROWS,
-  RIGHT_COLUMN_AVATAR_SIZE,
-} from '@/constants'
+import { LAST_TRANSACTIONS_PAGE_SIZE, LAST_TRANSACTIONS_ROWS, LIST_AVATAR_SIZE } from '@/constants'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -252,14 +248,16 @@ describe('LastTransactions', () => {
       forgetAllMemberAvatars()
     })
 
-    // ⛔ The size the contacts use in the other position of the switch (their spec proves
-    // their half), and never more than the stored picture covers: it is 128 across and a 2x
-    // screen asks for twice the points. At 72 this column was visibly soft (AS-008); at 50
-    // it is drawn from more than it shows.
-    it('is the size the contacts beside it use, and no larger than the picture', () => {
+    // ⛔ The size every list of people uses (each of the other lists' specs proves its own
+    // half), and inside both bounds that one number answers to: at least the smallest tap
+    // target this wallet gives anything, because the face opens the picture (AS-018) -- and
+    // at most what the stored picture covers on a 2x screen, which asks for twice the points
+    // of a picture 128 across. At 72 this column was visibly soft (AS-008).
+    it('is the size every list of people uses, inside both of its bounds', () => {
       wrapper = mountRows([NAPOLI])
-      expect(avatar().props().size).toBe(RIGHT_COLUMN_AVATAR_SIZE)
-      expect(RIGHT_COLUMN_AVATAR_SIZE * 2).toBeLessThanOrEqual(128)
+      expect(avatar().props().size).toBe(LIST_AVATAR_SIZE)
+      expect(LIST_AVATAR_SIZE).toBeGreaterThanOrEqual(44)
+      expect(LIST_AVATAR_SIZE * 2).toBeLessThanOrEqual(128)
     })
 
     it('shows the alias letters and keeps the colour on the real initials', () => {

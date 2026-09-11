@@ -119,6 +119,7 @@ import AppAvatar from '@/components/AppAvatar.vue'
 import { avatarZoomBindings } from '@/composables/useAvatarZoom'
 import { memberAvatarProps } from '@/composables/useMemberAvatars'
 import { memberAlias } from '@/utils/gradidoAddress'
+import { LIST_AVATAR_SIZE } from '@/constants'
 
 const props = defineProps({
   transaction: {
@@ -157,9 +158,11 @@ const avatarComponent = computed(() => {
 })
 
 const avatarProps = computed(() => {
+  // Both kinds of row stand in one list, so the gift takes the size the faces take
+  // (LIST_AVATAR_SIZE -- see the constant for why 48).
   if (isCreationType.value) {
     return {
-      size: 42,
+      size: LIST_AVATAR_SIZE,
       rounded: 'lg',
       variant: 'success',
     }
@@ -183,7 +186,7 @@ const avatarProps = computed(() => {
       // are exactly how the button and the overlay come to name different people.
       ...avatarZoomBindings(props.transaction?.linkedUser, memberAvatar.value),
       color: '#fff',
-      size: 42,
+      size: LIST_AVATAR_SIZE,
     }
   }
 })

@@ -3,6 +3,7 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import ContactRow from './ContactRow.vue'
 import { forgetAllMemberAvatars } from '@/composables/useMemberAvatars'
+import { LIST_AVATAR_SIZE } from '@/constants'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -54,8 +55,8 @@ describe('ContactRow', () => {
           BRow: { template: '<div><slot /></div>' },
           BCol: { template: '<div><slot /></div>' },
           AppAvatar: {
-            props: ['initials', 'src'],
-            template: '<i data-test="avatar" :data-initials="initials" />',
+            props: ['initials', 'src', 'size'],
+            template: '<i data-test="avatar" :data-initials="initials" :data-size="size" />',
           },
           // Does what the real one does: appends the community, unless told not to.
           Name: {
@@ -116,6 +117,15 @@ describe('ContactRow', () => {
   it('draws the face from the alias, like the booking row', () => {
     mountWith()
     expect(wrapper.find('[data-test="avatar"]').attributes('data-initials')).toBe('CA')
+  })
+
+  // One size for every list of people in the wallet, and this list was 42 -- too small for a
+  // face that is itself a control (Bernd, 11.09.2026). See LIST_AVATAR_SIZE.
+  it('draws the face at the size every list of people uses', () => {
+    mountWith()
+    expect(wrapper.find('[data-test="avatar"]').attributes('data-size')).toBe(
+      String(LIST_AVATAR_SIZE),
+    )
   })
 
   /**

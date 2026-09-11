@@ -6,7 +6,7 @@ import ContactsPanel from './ContactsPanel.vue'
 import { contactsPanelState, forgetContactsPanel } from '@/composables/useContactsPanel'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import { forgetFavorites, rememberFavorites } from '@/composables/useFavorites'
-import { CONTACTS_PANEL_ROWS, RIGHT_COLUMN_AVATAR_SIZE } from '@/constants'
+import { CONTACTS_PANEL_ROWS, LIST_AVATAR_SIZE } from '@/constants'
 
 const apolloQuery = vi.fn()
 
@@ -274,18 +274,17 @@ describe('ContactsPanel', () => {
   })
 
   /**
-   * ⛔ The faces the bookings show in the other position of the switch are the same size, so
-   * flicking it changes the people and not their faces (Bernd, 11.09.2026: 36 here was too
-   * small, 64 there too large). One constant for both; this and `LastTransactions.spec`
-   * each prove their half reads it.
+   * ⛔ The size every list of people in the wallet uses -- the bookings in the other position
+   * of the switch included, so flicking it changes the people and not their faces (Bernd,
+   * 11.09.2026). One constant for all of them; each list's spec proves its own half reads it.
    */
-  it('draws each face at the size the bookings beside it use', async () => {
+  it('draws each face at the size every list of people uses', async () => {
     givenPage([person(1)])
     mountPanel()
     await nextTick()
 
     const face = wrapper.find('[data-test="contacts-panel-row-id-1"] [data-test="avatar"]')
-    expect(face.attributes('data-size')).toBe(String(RIGHT_COLUMN_AVATAR_SIZE))
+    expect(face.attributes('data-size')).toBe(String(LIST_AVATAR_SIZE))
   })
 
   it('opens the window on the person that was tapped, and the name opens none of its own', async () => {
