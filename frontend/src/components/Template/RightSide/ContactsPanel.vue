@@ -72,7 +72,8 @@
           class="contacts-panel-row"
           :data-test="`contacts-panel-row-${row.contact.user.gradidoID}`"
         >
-          <app-avatar :size="36" :color="'#fff'" v-bind="row.avatar" />
+          <!-- The size the bookings use in the other position of the switch above. -->
+          <app-avatar :size="RIGHT_COLUMN_AVATAR_SIZE" :color="'#fff'" v-bind="row.avatar" />
           <button
             type="button"
             class="contacts-panel-open"
@@ -128,7 +129,7 @@ import { contactsPanelState, searchContactsPanel } from '@/composables/useContac
 import { useContactsPanelHost } from '@/composables/useContactsPanelHost'
 import { useContactWindow } from '@/composables/useContactWindow'
 import { isFavorite } from '@/composables/useFavorites'
-import { CONTACTS_PANEL_ROWS } from '@/constants'
+import { CONTACTS_PANEL_ROWS, RIGHT_COLUMN_AVATAR_SIZE } from '@/constants'
 
 /**
  * The contacts beside the page, on the three routes that carry a switchable column
@@ -236,6 +237,9 @@ const { windowOpen, selected, open } = useContactWindow()
   margin: 0.75rem 0 0.35rem;
 }
 
+/* ⚠️ The bookings in the other position of the switch are drawn to these numbers -- this
+   row's padding, gap and line, the name's size and the second line's -- and
+   `LastTransactions.spec` holds the two files together. Change one, change both. */
 .contacts-panel-row {
   display: flex;
   align-items: center;

@@ -40,6 +40,18 @@ export const CONTACTS_PANEL_PAGE_SIZE = 20
 export const CONTACTS_PANEL_ROWS = 5
 
 /**
+ * The face beside each row of the right-hand column, in both positions of its switch: the
+ * bookings and the contacts (KF-009).
+ *
+ * ⛔ ONE number for the two panels, because they are one column: flicking the switch above
+ * them should change the people, not the size of their faces. They were 64 and 36, and 50 is
+ * the middle of the two (Bernd, 11.09.2026). The stored picture is 128 across, so 50 points
+ * on a 2x screen (100 pixels) is still drawn from more than it shows -- the condition AS-008
+ * set when the booking column came down from 72 to 64.
+ */
+export const RIGHT_COLUMN_AVATAR_SIZE = 50
+
+/**
  * Where this wallet's layout changes from a phone to a desk, in pixels.
  *
  * ⛔ 1025, NOT Bootstrap's own 992. `assets/scss/custom/gradido-custom/_grid-breakpoint.scss`
