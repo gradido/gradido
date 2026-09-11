@@ -40,7 +40,11 @@
         <span class="small">{{ $d(new Date(props.transaction.balanceDate), 'short') }}</span>
         <span class="ms-4 small">{{ $d(new Date(props.transaction.balanceDate), 'time') }}</span>
       </BCol>
-      <BCol cols="8" lg="3" md="3" sm="8" offset="3" offset-md="0" offset-lg="0">
+      <!-- On the phone the amount and the arrow start a line of their own, together -- this
+           break is what makes them one line rather than two. From `md` on it is gone and
+           everything stands in one line, as before. -->
+      <div class="w-100 d-md-none" />
+      <BCol offset="3" md="3" lg="3" offset-md="0" offset-lg="0">
         <div class="small mb-2">
           {{ $t(`decay.types.${props.transaction.typeId.toLowerCase()}`) }}
         </div>
@@ -87,19 +91,37 @@
           <variant-icon icon="cards" variant="muted" class="m-mb-1" />
         </div>
       </BCol>
-      <!-- The arrow alone now; the heart moved up beside the name. `auto` rather than one
-           twelfth, and still flex-and-end, so the symbol keeps its place at the row's
-           right edge at every width. -->
-      <BCol cols="12" md="auto" lg="auto" class="d-flex justify-content-end align-items-center">
+      <!-- The arrow alone now; the heart moved up beside the name. `auto` at EVERY width,
+           beside the amount: on the phone it used to take a line of its own (`cols="12"`)
+           under everything else, where nobody looks for it -- on the desk it always stood at
+           the amount's height, and now it does there too (Bernd, 11.09.2026). -->
+      <BCol cols="auto" class="d-flex justify-content-end align-items-center">
         <collapse-icon class="text-end" :visible="visible" />
       </BCol>
+      <!-- ⛔ The memo belongs to the row, not to the opened part: its first line is readable
+           without opening the booking, and opening it shows the whole memo in the same place
+           rather than a second copy further down (Bernd, 11.09.2026). No heading over it --
+           italics and the muted colour say what it is.
+
+           Opened, a click on it does nothing, as it did in the old place: somebody selecting
+           the text to copy it should not close the booking under their hand. Closed, it is
+           part of the row like everything else, and a click opens it. -->
+      <BCol v-if="props.transaction.memo" cols="9" offset="3" md="10" offset-md="2" class="mt-1">
+        <div
+          class="transaction-memo"
+          :class="{ 'transaction-memo-clamped': !visible }"
+          data-test="transaction-memo"
+          @click="visible && $event.stopPropagation()"
+        >
+          <memo-text :memo="props.transaction.memo" />
+        </div>
+      </BCol>
     </BRow>
-    <BCollapse :model-value="visible" class="pb-4 pt-lg-3">
+    <BCollapse :model-value="visible" class="pb-4 pt-3">
       <decay-information
         :type-id="props.transaction.typeId"
         :decay="props.transaction.decay"
         :amount="props.transaction.amount"
-        :memo="props.transaction.memo"
         :balance="props.transaction.balance"
         :previous-balance="props.transaction.previousBalance"
       />
@@ -114,6 +136,7 @@ import CollapseIcon from '../TransactionRows/CollapseIcon'
 import Name from '../TransactionRows/Name'
 import FavoriteHeart from '@/components/FavoriteHeart.vue'
 import DecayInformation from '../DecayInformations/DecayInformation'
+import MemoText from '@/components/TransactionRows/MemoText'
 import { BAvatar, BRow } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
 import { avatarZoomBindings } from '@/composables/useAvatarZoom'
@@ -256,6 +279,23 @@ watch(
 </script>
 
 <style lang="scss" scoped>
+/* The memo, marked as something somebody wrote by italics and the muted colour of the row's
+   other secondary lines -- the heading "Nachricht" that used to stand over it is gone
+   (Bernd, 11.09.2026: variant a of three). `--bs-secondary-color` is defined in both modes. */
+.transaction-memo {
+  font-style: italic;
+  color: var(--bs-secondary-color, #6c757d);
+  overflow-wrap: anywhere;
+}
+
+/* Closed, the first line and an ellipsis; the arrow opens the rest. The column is a fixed
+   share of the row, so the line can be cut where it ends. */
+.transaction-memo-clamped {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 :deep(.b-avatar-custom > svg) {
   height: 2em;
   width: 2em;

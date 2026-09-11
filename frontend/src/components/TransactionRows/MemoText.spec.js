@@ -30,6 +30,33 @@ describe('MemoText', () => {
     expect(wrapper.find('a').attributes('href')).toBe('mailto:info@gradido.net')
   })
 
+  // The memo stands inside a booking row that opens and closes on a click; following a link
+  // must not also do that.
+  it('keeps the click on a link to the link', async () => {
+    const outer = { clicks: 0 }
+    const wrapper = mount(
+      {
+        components: { MemoText },
+        template:
+          '<div @click="clicks += 1"><memo-text memo="see https://x.org and a@b.org" /></div>',
+        data: () => outer,
+      },
+      { attachTo: document.body },
+    )
+
+    // jsdom cannot navigate and says so on every followed link; stopped before it tries.
+    const noNavigation = (event) => event.preventDefault()
+    document.addEventListener('click', noNavigation, true)
+    for (const link of wrapper.findAll('a')) await link.trigger('click')
+    document.removeEventListener('click', noNavigation, true)
+    expect(outer.clicks).toBe(0)
+
+    // The fixture proves itself: a click on the text beside the links does reach the row.
+    await wrapper.find('.memo-text').trigger('click')
+    expect(outer.clicks).toBe(1)
+    wrapper.unmount()
+  })
+
   // The pieces stand side by side with nothing between them -- no space before or after a
   // link that the memo did not have.
   it('adds no space around a link', () => {

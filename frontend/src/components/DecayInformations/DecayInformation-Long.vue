@@ -1,9 +1,5 @@
 <template>
   <div class="decayinformation-long px-1">
-    <div class="word-break mb-5 mt-lg-3">
-      <div class="fw-bold pb-2">{{ $t('form.memo') }}</div>
-      <div @click.stop><memo-text :memo="memo" /></div>
-    </div>
     <div class="mb-3">
       <IBiDropletHalf class="me-2" />
       <b>{{ $t('decay.calculation_decay') }}</b>
@@ -73,20 +69,17 @@
 </template>
 <script>
 import DurationRow from '@/components/TransactionRows/DurationRow'
-import MemoText from '@/components/TransactionRows/MemoText'
 
 export default {
   name: 'DecayInformationLong',
   components: {
     DurationRow,
-    MemoText,
   },
   props: {
     balance: { type: String, default: '0' },
     previousBalance: { type: String, default: '0' },
     amount: { type: String, default: '0' },
     typeId: { type: String, default: '' },
-    memo: { type: String, default: '' },
     decay: {
       type: Object,
     },
