@@ -287,6 +287,27 @@ describe('Matching', () => {
     })
   })
 
+  // Bernd, 11.09.2026: the community's own point is gone from this map - nobody needs its
+  // centre here, and it confused wherever a home stood right on it. It still decides
+  // where the map opens for a member who has no home on it yet.
+  describe("the community's point", () => {
+    it('is not handed to the map, but still opens it for a member without a home', async () => {
+      const page = mountPage('position')
+      fire(userLocationQuery, {
+        userLocation: {
+          userLocation: null,
+          communityLocation: { latitude: 48.1, longitude: 11.5 },
+        },
+      })
+      await page.vm.$nextTick()
+
+      const map = page.findComponent(UserLocationMapStub)
+      expect(map.exists()).toBe(true)
+      expect(map.props('communityMarkerCoords')).toBeUndefined()
+      expect(map.props('userMarkerCoords')).toEqual({ lat: 48.1, lng: 11.5 })
+    })
+  })
+
   // The second reader of the map's settings, and the one a change like this leaves behind:
   // it decides whether the button offers the map or the list. Keyed by the member since
   // 10.09.2026, or it would show this member the look the previous one left on the device.

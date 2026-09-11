@@ -75,15 +75,28 @@ describe('UserLocationMap', () => {
     })
   })
 
-  // The matching page asks for the home house, which puts the community label in
-  // a pane of its own so it can never sit over the house.
+  // The matching page asks for the home house and gives no community point (Bernd,
+  // 11.09.2026: its centre only confused there) - so the house stands alone.
   describe('the matching page (userIcon=home)', () => {
-    it('shows the community label and finishes wiring the map', async () => {
-      await mountAndSettle({ userIcon: 'home' })
+    it('shows the house alone and finishes wiring the map', async () => {
+      await mountAndSettle({ userIcon: 'home', communityMarkerCoords: undefined })
 
-      expect(document.body.textContent).toContain('settings.GMS.map.communityLocationLabel')
+      expect(document.querySelectorAll('.leaflet-marker-icon')).toHaveLength(1)
+      expect(document.body.textContent).not.toContain('settings.GMS.map.communityLocationLabel')
       // The home house explains itself; only the pin carries a label.
       expect(document.body.textContent).not.toContain('settings.GMS.map.userLocationLabel')
+      expect(searchControlAdded).toBe(1)
+    })
+  })
+
+  // Left out, there is no community pin at all - not one at the 0/0 the map starts from.
+  describe('without a community point', () => {
+    it('draws only the pin that was asked for', async () => {
+      await mountAndSettle({ communityMarkerCoords: undefined })
+
+      expect(document.querySelectorAll('.leaflet-marker-icon')).toHaveLength(1)
+      expect(document.body.textContent).toContain('settings.GMS.map.userLocationLabel')
+      expect(document.body.textContent).not.toContain('settings.GMS.map.communityLocationLabel')
       expect(searchControlAdded).toBe(1)
     })
   })
@@ -102,7 +115,7 @@ describe('UserLocationMap', () => {
     })
 
     it('can actually be dragged on the matching page', async () => {
-      await mountAndSettle({ userIcon: 'home' })
+      await mountAndSettle({ userIcon: 'home', communityMarkerCoords: undefined })
 
       expect(markers()).toHaveLength(1)
     })

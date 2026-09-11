@@ -1637,18 +1637,22 @@ watch(mode, (value) => {
     min-height: 0;
   }
 
-  /* The full width of the screen, which on a phone is the whole point of a map.
-     Two column gutters stand between this page and the edge - a `col` inside a `row`
-     inside a `col-12` in DashboardLayout, half a gutter each - and 24px on either
-     side of a 390px screen is an eighth of it, spent on nothing. Only the map breaks
-     out; the search field and the controls keep the inset, because text against the
-     bezel is harder to read, not easier. */
+  /* The full width of the screen, which on a phone is the whole point of a map. The
+     page stands 30px in from the edge there (the wallet nests two #app of 15px each -
+     measured 11.09.2026), and a gutter's worth of break-out leaves 6px, which reads as
+     edge to edge and keeps the rounded corners (26px, `gradido-border-radius`) off the
+     bezel. The search line and the controls break out alike, so the three stand in one
+     column (Bernd, 11.09.2026); their text keeps its distance through their own padding. */
+  .query-row,
+  .map-shell,
+  .map-controls {
+    margin-right: calc(var(--bs-gutter-x, 1.5rem) * -1);
+    margin-left: calc(var(--bs-gutter-x, 1.5rem) * -1);
+  }
+
   .map-shell {
     flex: 0 1 55dvh;
     min-height: 0;
-    margin-right: calc(var(--bs-gutter-x, 1.5rem) * -1);
-    margin-left: calc(var(--bs-gutter-x, 1.5rem) * -1);
-    border-radius: 0;
   }
 
   /* Held to a share of the screen rather than to whatever is left over. Portrait,
@@ -1661,9 +1665,10 @@ watch(mode, (value) => {
     min-height: 0;
   }
 
+  /* A few pixels of air under the map, the same as its distance from the edge: enough
+     to read as an element of its own, little enough to cost a small phone nothing. */
   .map-controls {
-    border-radius: 0;
-    margin-top: 0 !important;
+    margin-top: 6px !important;
   }
 }
 
