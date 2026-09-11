@@ -27,8 +27,9 @@ export const cleanDB = async () => {
   }
   // The tables without a TypeORM entity: `entities` does not know them, so their rows used
   // to outlive the test file that wrote them. The list lives next to the schema.
-  // Over the TypeORM connection, not Drizzle's pool: that pool opens its first connection
-  // on first use, and dht-node runs cleanDB under fake timers, where that never completes.
+  // Over the TypeORM connection, not Drizzle's: dht-node runs cleanDB under Jest's fake
+  // timers, which fake `process.nextTick` - and mysql2, Drizzle's driver, hands every result
+  // over through it. TypeORM runs on the `mysql` package and is not affected.
   const dataSource = AppDatabase.getInstance().getDataSource()
   for (const tableName of drizzleOnlyTableNames) {
     await dataSource.query(`DELETE FROM \`${tableName}\``)
@@ -50,6 +51,21 @@ export const resetEntity = async (entity: any) => {
     const ids = items.map((e: any) => e.id)
     await entity.delete(ids)
   }
+}
+
+// Taken while it is still the real one - see useFakeTimersForDrizzle.
+const realNextTick = process.nextTick
+
+/**
+ * `jest.useFakeTimers()` for code that reaches a Drizzle query. Jest 27's modern timers fake
+ * `process.nextTick` along with the rest, and mysql2 - Drizzle's driver - hands every result
+ * over through it: under the plain call a Drizzle query waits forever, and the test dies on
+ * the hook timeout. TypeORM runs on the `mysql` package and does not notice, which is why
+ * this only shows once a query moves to Drizzle. Undone as usual by `jest.useRealTimers()`.
+ */
+export const useFakeTimersForDrizzle = () => {
+  jest.useFakeTimers()
+  process.nextTick = realNextTick
 }
 
 export const resetToken = () => {

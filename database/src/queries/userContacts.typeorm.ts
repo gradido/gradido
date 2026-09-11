@@ -1,13 +1,17 @@
 // AI-GENERATED — not an architecture reference
 import { OptInType, Order, Result, UserContactType, VoidResult } from 'shared'
-import { EntityManager, Like, Not, SelectQueryBuilder } from 'typeorm'
+import { EntityManager, Not, SelectQueryBuilder } from 'typeorm'
 import { UserContact as DbUserContact } from '../entity'
 import { DBDuplicateEntryError, DBNotFoundError, isDuplicateEntry } from '../errorTypes'
 
 /*
- * The TypeORM queries that select `from user_contacts`. None of them is translated to
- * Drizzle yet; once one is, it moves to `./userContacts`, which will hold only Drizzle
- * queries - the same split as `./user` and `./user.typeorm`.
+ * The TypeORM queries that select `from user_contacts`: the ones that take or return the
+ * entity, and the ones that join a caller's TypeORM transaction (`dbDeleteUserContact`).
+ * Once one is translated it moves to `./userContacts`, which holds only Drizzle queries -
+ * the same split as `./user` and `./user.typeorm`.
+ *
+ * `dbEmailTaken` would qualify by its signature, but it asks `dbFindUserContactByEmail` on
+ * purpose, so that "taken" and "whose" share one visibility (see there). It moves with it.
  *
  * The ones that stood in `./userContacts` come first. Those after them were collected from
  * the backend - step one of the query migration AGENTS.md describes, and step one only:
@@ -48,34 +52,6 @@ const UserContactNotFound = (where: string) => new DBNotFoundError('user_contact
 /** The oldest living address of this member - the one the GDT server is asked with. */
 export async function dbFindOldestUserContact(userId: number): Promise<DbUserContact | null> {
   return DbUserContact.findOne({ where: { userId }, order: { createdAt: Order.ASC } })
-}
-
-/**
- * Every address this member has CONFIRMED, oldest first. A pending change is left out on
- * purpose: an address that was merely typed in must not answer anything on the member's
- * behalf - not even whether it ever bought something.
- */
-export async function dbFindConfirmedUserContactEmails(userId: number): Promise<string[]> {
-  const rows = await DbUserContact.find({
-    where: { userId, emailChecked: true },
-    order: { createdAt: Order.ASC },
-  })
-  return rows.map((row) => row.email)
-}
-
-/**
- * The members who hold an address containing this text - under ANY of their rows, current,
- * earlier or pending - each id once. This is how the admin search finds somebody by the
- * address the GDT server still knows them by. Not a join: `User.userContacts` has no
- * usable join column (its inverse side is the `email_id` relation), so the ids are looked
- * up here and handed to the user query.
- */
-export async function dbFindUserIdsByEmailLike(searchCriteria: string): Promise<number[]> {
-  const rows = await DbUserContact.find({
-    select: { userId: true },
-    where: { email: Like(`%${searchCriteria}%`) },
-  })
-  return [...new Set(rows.map((row) => row.userId))]
 }
 
 /** The change this member has under way, if any. */
@@ -160,56 +136,6 @@ export async function dbFindUserContactByEmail(
 ): Promise<DbUserContact | null> {
   const options = { where: { email }, withDeleted: true }
   return manager ? manager.findOne(DbUserContact, options) : DbUserContact.findOne(options)
-}
-
-/**
- * Remove the pending changes that ran past their window, so the addresses they hold are
- * free again - for one address, or for everybody when none is given. The window is
- * counted from the last time a code went out, which is `updated_at` once the row was
- * touched and `created_at` before. Hard delete, see the file comment. Returns how many
- * rows went.
- */
-export async function dbPurgeExpiredEmailChanges(olderThan: Date, email?: string): Promise<number> {
-  const query = DbUserContact.createQueryBuilder()
-    .delete()
-    .from(DbUserContact)
-    .where('email_opt_in_type_id = :type', { type: OptInType.EMAIL_OPT_IN_CHANGE })
-    // Only fresh rows. A take-back is one of the member's own confirmed addresses and is
-    // never deleted; it is restored by the paths that know whose it is.
-    .andWhere('email_checked = 0')
-    .andWhere('COALESCE(updated_at, created_at) < :before', { before: olderThan })
-  if (email) {
-    query.andWhere('email = :email', { email })
-  }
-  const result = await query.execute()
-  return result.affected ?? 0
-}
-
-/**
- * Give up every never-confirmed change that is holding this address - however young.
- *
- * ⛔ This is NOT the same question as `dbPurgeExpiredEmailChanges`, and the difference is
- * the whole point. That one tidies away claims that ran out of time. This one settles a
- * conflict between two claims on the SAME address: a pending change is somebody who TYPED
- * the address in, a registration is somebody who is about to be sent mail at it and has to
- * answer it. The typed claim yields.
- *
- * Without that, the typed claim wins - silently, and for as long as it is renewed. It kept
- * the address from whoever actually holds the mailbox, and it closed the Elopage webhook for
- * a paying buyer whose address a stranger had once typed into a change form.
- *
- * A CONFIRMED row is never touched: that address is proven, and it stays its owner's - which
- * is also why a take-back (a member's own earlier address, borrowed) survives this.
- */
-export async function dbReleaseUnconfirmedEmailChangeFor(email: string): Promise<number> {
-  const result = await DbUserContact.createQueryBuilder()
-    .delete()
-    .from(DbUserContact)
-    .where('email_opt_in_type_id = :type', { type: OptInType.EMAIL_OPT_IN_CHANGE })
-    .andWhere('email_checked = 0')
-    .andWhere('email = :email', { email })
-    .execute()
-  return result.affected ?? 0
 }
 
 /**

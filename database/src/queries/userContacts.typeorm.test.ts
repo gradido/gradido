@@ -9,9 +9,14 @@ import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import {
+  dbFindConfirmedUserContactEmails,
+  dbFindUserIdsByEmailLike,
+  dbPurgeExpiredEmailChanges,
+  dbReleaseUnconfirmedEmailChangeFor,
+} from './userContacts'
+import {
   dbDeleteUserContact,
   dbEmailTaken,
-  dbFindConfirmedUserContactEmails,
   dbFindOldestUserContact,
   dbFindPendingEmailChange,
   dbFindPendingEmailChangeByCode,
@@ -21,12 +26,9 @@ import {
   dbFindUserContactByCodeOrFail,
   dbFindUserContactByEmail,
   dbFindUserContactWithUserByEmail,
-  dbFindUserIdsByEmailLike,
   dbInsertPendingEmailChange,
   dbMarkUserContactPending,
-  dbPurgeExpiredEmailChanges,
   dbReleasePendingEmailChange,
-  dbReleaseUnconfirmedEmailChangeFor,
   emailContactByUserIdQuery,
 } from './userContacts.typeorm'
 

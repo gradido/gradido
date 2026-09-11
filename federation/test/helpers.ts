@@ -27,8 +27,9 @@ export const cleanDB = async () => {
   }
   // The tables without a TypeORM entity: `entities` does not know them, so their rows used
   // to outlive the test file that wrote them. The list lives next to the schema.
-  // Over the TypeORM connection, not Drizzle's pool: that pool opens its first connection
-  // on first use, and dht-node runs cleanDB under fake timers, where that never completes.
+  // Over the TypeORM connection, not Drizzle's: dht-node runs cleanDB under Jest's fake
+  // timers, which fake `process.nextTick` - and mysql2, Drizzle's driver, hands every result
+  // over through it. TypeORM runs on the `mysql` package and is not affected.
   const dataSource = AppDatabase.getInstance().getDataSource()
   for (const tableName of drizzleOnlyTableNames) {
     await dataSource.query(`DELETE FROM \`${tableName}\``)
