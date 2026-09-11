@@ -244,6 +244,99 @@ describe('GddTransaction', () => {
     expect(arrowColumn.classList).not.toContain('col-12')
   })
 
+  /**
+   * ⛔ Two things about the memo's width, both about the desk (Bernd, 11.09.2026, with pictures),
+   * and both written in the stylesheet, where jsdom cannot see them work -- so they are read where
+   * they are written, and the numbers they rest on are held against the markup and the grid.
+   *
+   * 1. A long memo broke the whole page: one unbroken line counted its full length as the least
+   *    width of every flex parent up to the layout's content column, which never shrinks below
+   *    it -- so the content column fell under the menu and the right column under that.
+   *    `contain: inline-size` on the memo is what stops it (measured at 1250 and 1025 points in
+   *    the dashboard's own column structure).
+   * 2. From `md` on the memo ends where the amount begins, not at the row's end.
+   */
+  describe('the width of the memo on the desk', () => {
+    const here = dirname(fileURLToPath(import.meta.url))
+    // ⚠️ Comments out first: the rule's own comment names `contain: inline-size`, and a check
+    // that reads the comment stays green with the declaration gone (it did, once).
+    const source = readFileSync(join(here, 'GddTransaction.vue'), 'utf8').replace(
+      /\/\*[\s\S]*?\*\//g,
+      '',
+    )
+    const rule = (selector) => {
+      const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      return new RegExp(`\\n\\s*${escaped} \\{([^}]*)\\}`).exec(source)?.[1]
+    }
+
+    it('lets no memo count for width of its own, so a long one cannot widen the page', () => {
+      expect(rule('.transaction-memo')).toContain('contain: inline-size')
+    })
+
+    it('ends the memo where the amount begins, from the grid switch of the row on', () => {
+      // The width: what the face (2) and the amount (3) leave of twelve, less the arrow.
+      const query = /@media \(width >= (\d+)px\) \{\s*\.transaction-memo-col \{([^}]*)\}/.exec(
+        source,
+      )
+      expect(query, 'no md rule for .transaction-memo-col').not.toBeNull()
+      expect(query[2]).toContain('width: calc(100% * 7 / 12 - var(--transaction-arrow-col))')
+      expect(rule('.transaction-arrow-col')).toContain('width: var(--transaction-arrow-col)')
+      expect(rule('.gdd-transaction-row')).toMatch(/--transaction-arrow-col: [\d.]+rem/)
+
+      // ...and the switch is the one the row's own `md` columns use in this wallet.
+      const grid = readFileSync(
+        join(
+          here,
+          '..',
+          '..',
+          'assets',
+          'scss',
+          'custom',
+          'gradido-custom',
+          '_grid-breakpoint.scss',
+        ),
+        'utf8',
+      )
+      expect(`${query[1]}px`).toBe(/md: (\d+px)/.exec(grid)[1])
+    })
+
+    // The seven twelfths hold only while the face takes two and the amount three -- read off the
+    // real grid components, since a stub cannot say which classes they hand out.
+    it('rests on the face taking two twelfths and the amount three, and on nothing else', () => {
+      wrapper = mount(GddTransaction, {
+        props: { transaction: { ...BOOKING } },
+        global: {
+          components: { BRow, BCol, BCollapse },
+          mocks: { $t: (key) => key, $d: (d) => String(d), $filters: { GDD: (a) => String(a) } },
+          stubs: {
+            BAvatar: true,
+            AppAvatar: true,
+            Name: true,
+            CollapseIcon: true,
+            DecayInformation: true,
+            VariantIcon: true,
+            FavoriteHeart: true,
+          },
+        },
+      })
+      const row = wrapper.find('.gdd-transaction-row').element
+      const face = row.firstElementChild
+      const amount = wrapper.find('[data-test="transaction-amount"]').element.parentElement
+      const memoColumn = wrapper.find('[data-test="transaction-memo"]').element.parentElement
+      const arrow = wrapper.findComponent({ name: 'CollapseIcon' }).element.parentElement
+
+      expect(face.classList).toContain('col-md-2')
+      expect(amount.classList).toContain('col-md-3')
+      expect(arrow.classList).toContain('transaction-arrow-col')
+      expect(memoColumn.classList).toContain('transaction-memo-col')
+      // No `col-md-*` width of the grid's own on the memo -- the stylesheet sets it from md on.
+      expect([...memoColumn.classList].filter((name) => /^col-md-\d+$/.test(name))).toEqual([])
+      expect([...memoColumn.classList]).toEqual(
+        expect.arrayContaining(['col-9', 'offset-3', 'offset-md-2']),
+      )
+    })
+  })
+
   it('says nothing under the amount for a plain transfer', () => {
     mountWith({})
 

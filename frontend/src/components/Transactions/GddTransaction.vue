@@ -6,7 +6,7 @@
     :data-transaction-id="`transaction-${props.transaction.id}`"
     @click="toggleVisible"
   >
-    <BRow class="align-items-center">
+    <BRow class="align-items-center gdd-transaction-row">
       <BCol cols="3" lg="2" md="2">
         <component :is="avatarComponent" v-bind="avatarProps">
           <variant-icon v-if="isCreationType" icon="gift" variant="white" />
@@ -101,7 +101,7 @@
            beside the amount: on the phone it used to take a line of its own (`cols="12"`)
            under everything else, where nobody looks for it -- on the desk it always stood at
            the amount's height, and now it does there too (Bernd, 11.09.2026). -->
-      <BCol cols="auto" class="d-flex justify-content-end align-items-center">
+      <BCol cols="auto" class="d-flex justify-content-end align-items-center transaction-arrow-col">
         <collapse-icon class="text-end" :visible="visible" />
       </BCol>
       <!-- ⛔ The memo belongs to the row, not to the opened part: its first line is readable
@@ -111,8 +111,18 @@
 
            Opened, a click on it does nothing, as it did in the old place: somebody selecting
            the text to copy it should not close the booking under their hand. Closed, it is
-           part of the row like everything else, and a click opens it. -->
-      <BCol v-if="props.transaction.memo" cols="9" offset="3" md="10" offset-md="2" class="mt-1">
+           part of the row like everything else, and a click opens it.
+
+           From `md` on its width is set in the stylesheet: it ends where the amount begins,
+           under the name and the date rather than under the whole row (Bernd, 11.09.2026: "nicht
+           so breit … wie die Spalte"). On the phone it stays three quarters, under the amount. -->
+      <BCol
+        v-if="props.transaction.memo"
+        cols="9"
+        offset="3"
+        offset-md="2"
+        class="mt-1 transaction-memo-col"
+      >
         <div
           class="transaction-memo"
           :class="{ 'transaction-memo-clamped': !visible }"
@@ -292,6 +302,16 @@ watch(
   font-style: italic;
   color: var(--bs-secondary-color, #6c757d);
   overflow-wrap: anywhere;
+
+  /* ⛔ Not decoration. Closed, the memo is one unbroken line, and without this its FULL length
+     counts as the least width of every flex parent up to the layout's content column -- a
+     Bootstrap `.col` (`flex: 1 0 0%`, `min-width: auto`) that never shrinks below that. A long
+     memo pushed the content column under the menu, full width, with the right column stuck
+     underneath (Bernd, 11.09.2026; the column's own percentage width does not stop it, a
+     percentage counts as `auto` when the parents work out their least width). Measured at
+     1250 and 1025 points in the dashboard's own column structure: with this the three columns
+     keep their places. Same guard as the map's search field (`contain: inline-size`). */
+  contain: inline-size;
 }
 
 /* Closed, the first line and an ellipsis; the arrow opens the rest. The column is a fixed
@@ -300,6 +320,27 @@ watch(
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* The arrow's column gets a width of its own, so the memo below can be told where the amount
+   begins: the arrow is 1.2em of the `h1` size (48 points at most), plus the column's gutters. */
+.gdd-transaction-row {
+  --transaction-arrow-col: 4.5rem;
+}
+
+.transaction-arrow-col {
+  width: var(--transaction-arrow-col);
+}
+
+/* From `md` on -- the switch the row's own `md` columns use, 768 in this wallet's
+   `_grid-breakpoint.scss` -- the memo spans what the name column spans: twelve twelfths less
+   the face (2), the amount (3) and the arrow. Beyond that it was as wide as the whole row, which
+   Bernd found out of balance ("nicht mehr harmonisch"). On the phone the memo stands under the
+   amount and keeps its three quarters. */
+@media (width >= 768px) {
+  .transaction-memo-col {
+    width: calc(100% * 7 / 12 - var(--transaction-arrow-col));
+  }
 }
 
 :deep(.b-avatar-custom > svg) {
