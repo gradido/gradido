@@ -72,8 +72,9 @@
           class="contacts-panel-row"
           :data-test="`contacts-panel-row-${row.contact.user.gradidoID}`"
         >
-          <!-- The size the bookings use in the other position of the switch above. -->
-          <app-avatar :size="RIGHT_COLUMN_AVATAR_SIZE" :color="'#fff'" v-bind="row.avatar" />
+          <!-- The size every list of people in the wallet uses, the bookings in the other
+               position of the switch above included. -->
+          <app-avatar :size="LIST_AVATAR_SIZE" :color="'#fff'" v-bind="row.avatar" />
           <button
             type="button"
             class="contacts-panel-open"
@@ -129,7 +130,7 @@ import { contactsPanelState, searchContactsPanel } from '@/composables/useContac
 import { useContactsPanelHost } from '@/composables/useContactsPanelHost'
 import { useContactWindow } from '@/composables/useContactWindow'
 import { isFavorite } from '@/composables/useFavorites'
-import { CONTACTS_PANEL_ROWS, RIGHT_COLUMN_AVATAR_SIZE } from '@/constants'
+import { CONTACTS_PANEL_ROWS, LIST_AVATAR_SIZE } from '@/constants'
 
 /**
  * The contacts beside the page, on the three routes that carry a switchable column

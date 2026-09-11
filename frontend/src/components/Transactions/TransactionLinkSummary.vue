@@ -2,7 +2,8 @@
   <div class="transaction-slot-link" @click="showTransactionLinks">
     <BRow class="align-items-center">
       <BCol id="transaction-link-summary-avatar" cols="3" lg="2" md="2">
-        <BAvatar icon="link" variant="light" :size="42">
+        <!-- It stands where the bookings around it have a face, so at their size. -->
+        <BAvatar icon="link" variant="light" :size="LIST_AVATAR_SIZE">
           <variant-icon icon="link" />
         </BAvatar>
       </BCol>
@@ -39,6 +40,7 @@ import CollapseIcon from '../TransactionRows/CollapseIcon'
 import CollapseLinksList from '../DecayInformations/CollapseLinksList'
 import { useAppToast } from '@/composables/useToast'
 import { listTransactionLinks } from '@/graphql/queries'
+import { LIST_AVATAR_SIZE } from '@/constants'
 
 const props = defineProps({
   amount: {

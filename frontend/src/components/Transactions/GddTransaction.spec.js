@@ -4,6 +4,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest'
 import { nextTick } from 'vue'
 import GddTransaction from './GddTransaction.vue'
 import { forgetAllMemberAvatars, rememberMemberAvatars } from '@/composables/useMemberAvatars'
+import { LIST_AVATAR_SIZE } from '@/constants'
 
 /**
  * The row every booking in the wallet is drawn with.
@@ -182,6 +183,13 @@ describe('GddTransaction', () => {
 
       expect(wrapper.text()).toContain('11111111-2222-4333-4444-55555555')
     })
+
+    // The gift stands where the other rows have a face, in the same list -- so at their size.
+    it('draws the gift at the size of the faces in the rows around it', () => {
+      mountWith(CREATION)
+
+      expect(wrapper.findComponent({ name: 'BAvatar' }).props().size).toBe(LIST_AVATAR_SIZE)
+    })
   })
 
   // A link and a card are mutually exclusive, and the link wins the branch. Pinned so that
@@ -205,6 +213,13 @@ describe('GddTransaction', () => {
 
     afterEach(() => {
       forgetAllMemberAvatars()
+    })
+
+    // One size for every list of people in the wallet, and this list was 42 -- too small for
+    // a face that is itself a control (Bernd, 11.09.2026). See LIST_AVATAR_SIZE.
+    it('is the size every list of people uses', () => {
+      mountWith({})
+      expect(avatarProps().size).toBe(LIST_AVATAR_SIZE)
     })
 
     it('shows the first two letters of the alias, not the real initials', () => {

@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import ContactTiles from './ContactTiles.vue'
+import { LIST_AVATAR_SIZE } from '@/constants'
 
 const LINK_STUB = { props: ['to'], template: '<a :href="to"><slot /></a>' }
 
@@ -23,9 +24,9 @@ const mountTiles = (props) =>
       stubs: {
         RouterLink: LINK_STUB,
         AppAvatar: {
-          props: ['initials', 'zoomable'],
+          props: ['initials', 'zoomable', 'size'],
           template:
-            '<i data-test="avatar" :data-initials="initials" :data-zoomable="String(!!zoomable)" />',
+            '<i data-test="avatar" :data-initials="initials" :data-zoomable="String(!!zoomable)" :data-size="size" />',
         },
       },
     },
@@ -38,6 +39,23 @@ describe('ContactTiles', () => {
 
     expect(wrapper.findAll('[data-test^="contact-tile-id-"]')).toHaveLength(2)
     expect(names).toEqual(['Alias1', 'Alias2'])
+    wrapper.unmount()
+  })
+
+  /**
+   * One size for every list of people in the wallet (Bernd, 11.09.2026), and the circle that
+   * ends the row on the phone -- the way to everybody else -- with it: at a size of its own
+   * it would stand out of line beside the faces.
+   */
+  it('draws the faces, and the circle that ends the row, at the size every list uses', () => {
+    const wrapper = mountTiles({ withAllLink: true })
+    const sizes = wrapper
+      .findAll('[data-test="avatar"]')
+      .map((node) => node.attributes('data-size'))
+    const more = wrapper.find('.contact-tile-more').element.style
+
+    expect(sizes).toEqual([String(LIST_AVATAR_SIZE), String(LIST_AVATAR_SIZE)])
+    expect([more.width, more.height]).toEqual([`${LIST_AVATAR_SIZE}px`, `${LIST_AVATAR_SIZE}px`])
     wrapper.unmount()
   })
 

@@ -12,7 +12,7 @@
       <!-- ⛔ Not zoomable here (contactDisplay's default). A zoomable avatar renders its
            own button and stops the click, so the face -- most of the tile -- would open
            the picture instead of the person, and only for members who have one. -->
-      <app-avatar :size="44" :color="'#fff'" v-bind="row.avatar" />
+      <app-avatar :size="LIST_AVATAR_SIZE" :color="'#fff'" v-bind="row.avatar" />
       <span class="contact-tile-name">{{ row.alias }}</span>
     </button>
 
@@ -25,7 +25,13 @@
       class="contact-tile"
       data-test="contact-tiles-all"
     >
-      <span class="contact-tile-more" aria-hidden="true">
+      <!-- The size of the faces beside it, from the same constant: a circle of its own size
+           would stand out of line at the end of the row. -->
+      <span
+        class="contact-tile-more"
+        :style="{ width: `${LIST_AVATAR_SIZE}px`, height: `${LIST_AVATAR_SIZE}px` }"
+        aria-hidden="true"
+      >
         <i-mdi-chevron-right />
       </span>
       <span class="contact-tile-name">{{ $t('contacts.allShort') }}</span>
@@ -35,6 +41,7 @@
 
 <script setup>
 import AppAvatar from '@/components/AppAvatar.vue'
+import { LIST_AVATAR_SIZE } from '@/constants'
 
 /**
  * A row of faces, sideways: the favourites, in the column and on the phone strip.
@@ -89,8 +96,6 @@ const emit = defineEmits(['open'])
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
   border-radius: 50%;
   border: 1px dashed var(--bs-border-color, #dee2e6);
   color: var(--bs-secondary-color, #6c757d);

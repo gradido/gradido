@@ -4,6 +4,7 @@ import TransactionLinkSummary from './TransactionLinkSummary'
 import CollapseIcon from '../TransactionRows/CollapseIcon'
 import CollapseLinksList from '../DecayInformations/CollapseLinksList'
 import { BAvatar, BCol, BCollapse, BRow } from 'bootstrap-vue-next'
+import { LIST_AVATAR_SIZE } from '@/constants'
 
 vi.mock('../TransactionRows/CollapseIcon', () => ({
   default: {
@@ -113,6 +114,12 @@ describe('TransactionLinkSummary', () => {
   // It was wrong for months without anyone noticing, so the heading is gone for good.
   it('puts no heading over the amount', () => {
     expect(wrapper.text()).not.toContain('send_per_link')
+  })
+
+  // This row stands in the list of bookings, where every other row has a face -- so its
+  // symbol takes the size every list of people uses (LIST_AVATAR_SIZE, 11.09.2026).
+  it('draws its symbol at the size of the faces in the rows around it', () => {
+    expect(wrapper.findComponent(BAvatar).props().size).toBe(LIST_AVATAR_SIZE)
   })
 
   it('has a CollapseIcon component', () => {

@@ -28,10 +28,9 @@
       class="g-0 last-transactions-row"
     >
       <BCol cols="auto">
-        <!-- The same size as the faces in the contacts, the other position of the switch
-             above: 50, the middle of this column's old 64 and their 36. See the constant for
-             why that is still sharp (AS-008). -->
-        <app-avatar :size="RIGHT_COLUMN_AVATAR_SIZE" :color="'#fff'" v-bind="row.avatar" />
+        <!-- The size every list of people in the wallet uses, the contacts in the other
+             position of the switch above included. See the constant for why 48. -->
+        <app-avatar :size="LIST_AVATAR_SIZE" :color="'#fff'" v-bind="row.avatar" />
       </BCol>
       <BCol class="min-w-0">
         <!-- The name opens the contact window (KF-010), the same one the contact list
@@ -100,7 +99,7 @@ import AppAvatar from '@/components/AppAvatar.vue'
 import { avatarZoomBindings } from '@/composables/useAvatarZoom'
 import { useContactWindow } from '@/composables/useContactWindow'
 import { memberAvatarProps } from '@/composables/useMemberAvatars'
-import { LAST_TRANSACTIONS_ROWS, RIGHT_COLUMN_AVATAR_SIZE } from '@/constants'
+import { LAST_TRANSACTIONS_ROWS, LIST_AVATAR_SIZE } from '@/constants'
 
 const props = defineProps({
   transactions: {
