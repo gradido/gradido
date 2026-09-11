@@ -9,17 +9,18 @@
  * markup it carried was built into the recipient's page as markup. Cut into parts, every
  * piece reaches the page as text or as an attribute value, and Vue escapes both.
  *
- * The two patterns are the ones those components used, unchanged, so what counted as a link
- * before still does: web addresses only with http, https or ftp -- never `javascript:` -- and
- * e-mail addresses. E-mail addresses are looked for only BETWEEN web addresses; the old code
- * ran its second pattern over its own output and could cut an address out of a link it had
- * just built.
+ * The two patterns are the ones those components used, so what counted as a link before
+ * still does: web addresses only with http, https or ftp -- never `javascript:` -- and e-mail
+ * addresses. One correction: the old e-mail pattern wrote its ending as `[A-Z|a-z]`, which
+ * lets a `|` in, so `user@example.c|m` became a mail link (coderabbit, #3884). E-mail
+ * addresses are looked for only BETWEEN web addresses; the old code ran its second pattern
+ * over its own output and could cut an address out of a link it had just built.
  *
  * @param {string} text
  * @returns {{ type: 'text' | 'url' | 'email', value: string }[]}
  */
 const URL_PATTERN = /\b(?:https?|ftp):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|]/gi
-const EMAIL_PATTERN = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g
+const EMAIL_PATTERN = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g
 
 const plain = (text) => [{ type: 'text', value: text }]
 

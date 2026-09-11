@@ -40,6 +40,11 @@ describe('memoParts', () => {
     ])
   })
 
+  // The old pattern wrote the ending as `[A-Z|a-z]` and let a `|` through (coderabbit, #3884).
+  it('makes no mail link of an address with a stray character in its ending', () => {
+    expect(memoParts('user@example.c|m')).toEqual([{ type: 'text', value: 'user@example.c|m' }])
+  })
+
   it('makes no link of anything but http, https and ftp', () => {
     expect(memoParts('javascript://alert')).toEqual([{ type: 'text', value: 'javascript://alert' }])
   })
