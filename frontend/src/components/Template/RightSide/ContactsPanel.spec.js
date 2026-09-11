@@ -6,7 +6,7 @@ import ContactsPanel from './ContactsPanel.vue'
 import { contactsPanelState, forgetContactsPanel } from '@/composables/useContactsPanel'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import { forgetFavorites, rememberFavorites } from '@/composables/useFavorites'
-import { CONTACTS_PANEL_ROWS } from '@/constants'
+import { CONTACTS_PANEL_ROWS, RIGHT_COLUMN_AVATAR_SIZE } from '@/constants'
 
 const apolloQuery = vi.fn()
 
@@ -85,8 +85,8 @@ describe('ContactsPanel', () => {
               '<input :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
           },
           AppAvatar: {
-            props: ['initials'],
-            template: '<i data-test="avatar" :data-initials="initials" />',
+            props: ['initials', 'size'],
+            template: '<i data-test="avatar" :data-initials="initials" :data-size="size" />',
           },
           FavoriteHeart: { props: ['member'], template: '<i data-test="heart" />' },
           Name: {
@@ -271,6 +271,21 @@ describe('ContactsPanel', () => {
     expect(row.findAll('button')).toHaveLength(1)
     expect(row.find('button [data-test="avatar"]').exists()).toBe(false)
     expect(row.find('button [data-test="heart"]').exists()).toBe(false)
+  })
+
+  /**
+   * ⛔ The faces the bookings show in the other position of the switch are the same size, so
+   * flicking it changes the people and not their faces (Bernd, 11.09.2026: 36 here was too
+   * small, 64 there too large). One constant for both; this and `LastTransactions.spec`
+   * each prove their half reads it.
+   */
+  it('draws each face at the size the bookings beside it use', async () => {
+    givenPage([person(1)])
+    mountPanel()
+    await nextTick()
+
+    const face = wrapper.find('[data-test="contacts-panel-row-id-1"] [data-test="avatar"]')
+    expect(face.attributes('data-size')).toBe(String(RIGHT_COLUMN_AVATAR_SIZE))
   })
 
   it('opens the window on the person that was tapped, and the name opens none of its own', async () => {
