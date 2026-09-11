@@ -21,20 +21,24 @@
          and being in a second row is what let it wrap away from the booking it belongs to.
          (Measured in a browser on this component's own rendered markup against the built
          Bootstrap, at column widths from 220 to 340 points.) -->
-    <BRow v-for="row in rows" :key="row.transaction.id" align-v="center" class="mb-4">
+    <BRow
+      v-for="row in rows"
+      :key="row.transaction.id"
+      align-v="center"
+      class="g-0 last-transactions-row"
+    >
       <BCol cols="auto">
-        <!-- 64 rather than the 72 this used to be: the stored picture is 128 across, and
-             72 points on a 2x screen asks for 144 -- more than there is, so it was visibly
-             soft at the most prominent avatar in the wallet. At 64 the two match exactly
-             (AS-008). -->
-        <app-avatar :size="64" :color="'#fff'" v-bind="row.avatar" />
+        <!-- The same size as the faces in the contacts, the other position of the switch
+             above: 50, the middle of this column's old 64 and their 36. See the constant for
+             why that is still sharp (AS-008). -->
+        <app-avatar :size="RIGHT_COLUMN_AVATAR_SIZE" :color="'#fff'" v-bind="row.avatar" />
       </BCol>
       <BCol class="min-w-0">
         <!-- The name opens the contact window (KF-010), the same one the contact list
              opens -- it is not a way into the send form any more, here as little as
              anywhere else. The button under it still leads to the booking itself, so the
              two things this row can mean stay two controls. -->
-        <div class="fw-bold">
+        <div class="fw-bold last-transactions-name">
           <name
             :linked-user="row.transaction.linkedUser"
             font-color="text-dark"
@@ -42,7 +46,7 @@
           />
         </div>
         <button
-          class="transaction-details-link d-flex mt-3"
+          class="transaction-details-link d-flex"
           role="link"
           :data-href="`/transactions#transaction-${row.transaction.id}`"
           @click="handleRedirect(row.transaction.id)"
@@ -60,7 +64,7 @@
                next thinks the plus is noise should know that removing it leaves
                nothing. (Bernd, 27.08.2026) -->
           <span
-            class="small transaction-amount"
+            class="transaction-amount"
             :class="{ 'received-amount': Number(row.transaction.amount) > 0 }"
           >
             {{ $filters.signedAmount(row.transaction.amount) }}
@@ -68,7 +72,7 @@
           <!-- ⚠️ The gap to the amount is a `column-gap` on the button, not a margin here:
                where this line has to wrap, a margin would leave the date indented under
                nothing. -->
-          <span class="small text-end">
+          <span class="text-end">
             {{ $d(new Date(row.transaction.balanceDate), 'short') }}
           </span>
         </button>
@@ -96,7 +100,7 @@ import AppAvatar from '@/components/AppAvatar.vue'
 import { avatarZoomBindings } from '@/composables/useAvatarZoom'
 import { useContactWindow } from '@/composables/useContactWindow'
 import { memberAvatarProps } from '@/composables/useMemberAvatars'
-import { LAST_TRANSACTIONS_ROWS } from '@/constants'
+import { LAST_TRANSACTIONS_ROWS, RIGHT_COLUMN_AVATAR_SIZE } from '@/constants'
 
 const props = defineProps({
   transactions: {
@@ -162,6 +166,30 @@ const rows = computed(() =>
 </script>
 
 <style scoped lang="scss">
+/* ⛔ Drawn to the measure of the contacts beside it (`ContactsPanel`, `.contacts-panel-row`),
+   because the two are the two positions of one column: flicking the switch above them should
+   change the people, not the type size, the spacing or the lines. The bookings were set
+   larger and roomier, and Bernd wanted the contacts' measure for both (11.09.2026).
+   `LastTransactions.spec` holds this file's numbers against that one's.
+
+   `g-0` on the row takes Bootstrap's gutters out: with them the row runs 12 points past the
+   column on both sides, and so would the line between two bookings. `column-gap` then puts
+   back the contacts' 8 points between face, text and heart. */
+.last-transactions-row {
+  column-gap: 0.5rem;
+  padding: 0.4rem 0;
+}
+
+/* The line BETWEEN two bookings, as between two contacts -- none above the first, none under
+   the last. */
+.last-transactions-row + .last-transactions-row {
+  border-top: 1px solid var(--bs-border-color, #dee2e6);
+}
+
+.last-transactions-name {
+  font-size: 0.85rem;
+}
+
 /* ⛔ The column that grows has to be allowed to SHRINK, or the heart beside it drops onto a
    line of its own. A Bootstrap `.col` is `flex: 1 0 0%` with the default `min-width: auto`,
    so its floor is its widest unbreakable content -- the name, and the amount-and-date line
@@ -185,9 +213,11 @@ const rows = computed(() =>
    makes that impossible rather than unlikely -- it binds the button to the column it sits
    in, and the heart is in a column of its own beside that one, so there is no width at
    which the two can meet. `flex-wrap` then decides what gives instead: the date drops
-   under the amount (measured on the rendered markup: one line at a 300-point column, two
-   lines at 260). At the narrowest desktop the column can be -- a quarter of a 992-point
-   window -- it is the two-line form. */
+   under the amount, never over the heart.
+
+   The type is the contacts' second line (0.72rem), set here once rather than as `.small` on
+   each half; `padding: 0` takes away the browser's own button padding, which set this line
+   6 points in from the name above it. */
 .transaction-details-link {
   color: var(--bs-body-color) !important;
   border: none;
@@ -197,6 +227,8 @@ const rows = computed(() =>
   max-width: 100%;
   flex-wrap: wrap;
   column-gap: 1rem;
+  padding: 0;
+  font-size: 0.72rem;
 }
 
 .transaction-details-link:hover {

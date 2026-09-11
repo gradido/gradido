@@ -1,9 +1,16 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { nextTick } from 'vue'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
 import LastTransactions from './LastTransactions'
 import { forgetAllMemberAvatars, rememberMemberAvatars } from '@/composables/useMemberAvatars'
-import { LAST_TRANSACTIONS_PAGE_SIZE, LAST_TRANSACTIONS_ROWS } from '@/constants'
+import {
+  LAST_TRANSACTIONS_PAGE_SIZE,
+  LAST_TRANSACTIONS_ROWS,
+  RIGHT_COLUMN_AVATAR_SIZE,
+} from '@/constants'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -130,7 +137,7 @@ describe('LastTransactions', () => {
     ]
     wrapper = createWrapper({ transactions })
     await wrapper.vm.$nextTick()
-    expect(wrapper.findAll('.mb-4').length).toBe(2)
+    expect(wrapper.findAll('.last-transactions-row').length).toBe(2)
   })
 
   it('does not render DECAY, LINK_SUMMARY, or CREATION transactions', async () => {
@@ -166,7 +173,7 @@ describe('LastTransactions', () => {
     ]
     wrapper = createWrapper({ transactions })
     await wrapper.vm.$nextTick()
-    expect(wrapper.findAll('.mb-4').length).toBe(1)
+    expect(wrapper.findAll('.last-transactions-row').length).toBe(1)
   })
 
   /**
@@ -205,11 +212,11 @@ describe('LastTransactions', () => {
     wrapper = createWrapper({ transactions: page })
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.findAll('.mb-4').length).toBe(LAST_TRANSACTIONS_ROWS)
+    expect(wrapper.findAll('.last-transactions-row').length).toBe(LAST_TRANSACTIONS_ROWS)
   })
 
   /**
-   * The most prominent avatar in the wallet, and the one carrying decision AS-008.
+   * The avatar beside each booking, and the one carrying decision AS-008.
    *
    * ⛔ Written because nothing measured either half: the size was a decision nobody could
    * see in a test, and the letters-from-alias rule is passed by this call site rather than
@@ -245,11 +252,14 @@ describe('LastTransactions', () => {
       forgetAllMemberAvatars()
     })
 
-    // 64, not 72: the stored picture is 128 across, and 72 points on a 2x screen asks for
-    // 144 -- more than exists, so it was visibly soft exactly where it is largest (AS-008).
-    it('is 64 points, which is what the stored picture actually covers', () => {
+    // ⛔ The size the contacts use in the other position of the switch (their spec proves
+    // their half), and never more than the stored picture covers: it is 128 across and a 2x
+    // screen asks for twice the points. At 72 this column was visibly soft (AS-008); at 50
+    // it is drawn from more than it shows.
+    it('is the size the contacts beside it use, and no larger than the picture', () => {
       wrapper = mountRows([NAPOLI])
-      expect(avatar().props().size).toBe(64)
+      expect(avatar().props().size).toBe(RIGHT_COLUMN_AVATAR_SIZE)
+      expect(RIGHT_COLUMN_AVATAR_SIZE * 2).toBeLessThanOrEqual(128)
     })
 
     it('shows the alias letters and keeps the colour on the real initials', () => {
@@ -380,6 +390,121 @@ describe('LastTransactions', () => {
 
     // And the name's column is the one allowed to give way.
     expect(nameColumn.className).toContain('min-w-0')
+  })
+
+  /**
+   * ⛔ The two positions of the switch over this column are drawn to ONE measure: the
+   * contacts' (Bernd, 11.09.2026 -- the bookings were larger and roomier, and he wanted
+   * theirs for both). Most of that measure is CSS, and jsdom lays nothing out, so the numbers
+   * are read where they are written and held against the contacts' own. A change to either
+   * file alone turns this red, which is the point: the two only look alike while they agree.
+   */
+  describe('drawn to the measure of the contacts beside it', () => {
+    // ⚠️ `fileURLToPath`, not `new URL(...)`: jsdom brings its own `URL` class and node
+    // rejects an instance of it as coming from another realm.
+    const here = dirname(fileURLToPath(import.meta.url))
+    const styleOf = (file) => {
+      const source = readFileSync(join(here, file), 'utf8')
+      return source.slice(source.indexOf('<style'))
+    }
+    const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    /** What one rule gives one property -- undefined if either is missing. */
+    const declared = (css, selector, property) => {
+      const rule = new RegExp(`(?:^|\\n)${escape(selector)}\\s*\\{([^}]*)\\}`).exec(css)
+      if (!rule) return undefined
+      const value = new RegExp(`(?:^|[\\s;])${escape(property)}\\s*:\\s*([^;]+);`).exec(rule[1])
+      return value?.[1].trim()
+    }
+
+    const bookings = styleOf('LastTransactions.vue')
+    const contacts = styleOf('ContactsPanel.vue')
+
+    it.each([
+      [
+        'the name',
+        ['.last-transactions-name', 'font-size'],
+        ['.contacts-panel-who-name', 'font-size'],
+      ],
+      [
+        'the line under the name',
+        ['.transaction-details-link', 'font-size'],
+        ['.contacts-panel-who-community', 'font-size'],
+      ],
+      [
+        'the room above and below a row',
+        ['.last-transactions-row', 'padding'],
+        ['.contacts-panel-row', 'padding'],
+      ],
+      [
+        'the room between face, text and heart',
+        ['.last-transactions-row', 'column-gap'],
+        ['.contacts-panel-row', 'gap'],
+      ],
+      [
+        'the line between two rows',
+        ['.last-transactions-row + .last-transactions-row', 'border-top'],
+        ['.contacts-panel-row', 'border-bottom'],
+      ],
+    ])('%s', (_, [ourRule, ourProperty], [theirRule, theirProperty]) => {
+      const ours = declared(bookings, ourRule, ourProperty)
+      const theirs = declared(contacts, theirRule, theirProperty)
+      // ⚠️ Both found FIRST: two missing values are equal too, and would pass for a match.
+      expect(ours).toBeTruthy()
+      expect(theirs).toBeTruthy()
+      expect(ours).toBe(theirs)
+    })
+
+    // The parts of the measure that live in the markup rather than the stylesheet.
+    const mountRow = () =>
+      mount(LastTransactions, {
+        props: {
+          transactions: [
+            {
+              id: 7,
+              typeId: 'SEND',
+              linkedUser: { alias: 'paula', gradidoID: 'u-7' },
+              amount: -45,
+              balanceDate: '2026-08-26',
+            },
+          ],
+        },
+        global: {
+          mocks: {
+            $t: (key) => key,
+            $d: (date) => String(date),
+            $filters: { signedAmount: (amount) => String(amount) },
+          },
+          stubs: {
+            BRow: { template: '<div class="row-stub"><slot /></div>' },
+            BCol: { template: '<div class="col-stub"><slot /></div>' },
+            ...contactWindowStub,
+          },
+        },
+      })
+
+    // Bootstrap's gutters would run the row -- and the line between two rows -- 12 points
+    // past the column on both sides, and put 24 points between face and name where the
+    // contacts have 8.
+    it('takes the gutters out of the row', () => {
+      wrapper = mountRow()
+      expect(wrapper.find('.last-transactions-row').classes()).toContain('g-0')
+    })
+
+    // The contacts' second line stands directly under the name; this one had a margin of a
+    // whole line-height between them.
+    it('sets the line under the name directly beneath it', () => {
+      wrapper = mountRow()
+      const line = wrapper.find('.transaction-details-link')
+      expect(line.exists()).toBe(true)
+      expect(line.classes().filter((name) => /^m[ty]-/.test(name))).toEqual([])
+    })
+
+    // `.small` on either half would shrink it again, to 0.8 of the line's own size.
+    it('gives both halves of that line the one size the line sets', () => {
+      wrapper = mountRow()
+      expect(wrapper.findAll('.transaction-details-link span')).toHaveLength(2)
+      expect(wrapper.findAll('.transaction-details-link .small')).toHaveLength(0)
+    })
   })
 
   it('draws a heart beside every row that has a counterparty, and none where there is none', async () => {
