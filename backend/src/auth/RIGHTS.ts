@@ -86,7 +86,7 @@ export enum RIGHTS {
   // only, plus the member themselves -- the owner exception is spelled out in the field
   // resolver, not modelled as a second right (NU-019). ⛔ Never add this to USER_RIGHTS:
   // a guard whose key everybody holds guards nothing, which is exactly what happened to
-  // VIEW_USER_CONTACT next door.
+  // VIEW_USER_CONTACT next door until it left USER_RIGHTS on 11.09.2026.
   VIEW_USER_REAL_NAME = 'VIEW_USER_REAL_NAME',
   // Which address the GDT server knows a member by, and whether a change is pending - the
   // support needs it to merge addresses on the GDT server by hand.

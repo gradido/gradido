@@ -21,6 +21,30 @@ export function extractGraphQLFields(info: GraphQLResolveInfo): object {
 }
 
 /**
+ * Every requested field below the resolver's own, at any depth, as a dotted path by field
+ * name (not alias): `contributionList`, `contributionList.user`,
+ * `contributionList.user.emailContact`. `extractGraphQLFields` only sees the first level.
+ */
+export function extractGraphQLFieldPaths(info: GraphQLResolveInfo): Set<string> {
+  const parsedInfo = parseResolveInfo(info)
+  if (!parsedInfo) {
+    throw new Error('Could not parse resolve info')
+  }
+  const paths = new Set<string>()
+  const collect = (tree: ResolveTree, prefix: string) => {
+    for (const fields of Object.values(tree.fieldsByTypeName)) {
+      for (const field of Object.values(fields)) {
+        const path = prefix ? `${prefix}.${field.name}` : field.name
+        paths.add(path)
+        collect(field, path)
+      }
+    }
+  }
+  collect(parsedInfo as ResolveTree, '')
+  return paths
+}
+
+/**
  * Extracts the requested fields from GraphQL and applies them to a TypeORM query.
  * @param info GraphQLResolveInfo
  * @param queryBuilder TypeORM QueryBuilder

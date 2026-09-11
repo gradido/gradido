@@ -1,8 +1,19 @@
 // AI-GENERATED — not an architecture reference
 import { OptInType, Order, Result, UserContactType, VoidResult } from 'shared'
-import { EntityManager, Like } from 'typeorm'
+import { EntityManager, Like, Not, SelectQueryBuilder } from 'typeorm'
 import { UserContact as DbUserContact } from '../entity'
 import { DBDuplicateEntryError, DBNotFoundError, isDuplicateEntry } from '../errorTypes'
+
+/*
+ * The TypeORM queries that select `from user_contacts`. None of them is translated to
+ * Drizzle yet; once one is, it moves to `./userContacts`, which will hold only Drizzle
+ * queries - the same split as `./user` and `./user.typeorm`.
+ *
+ * The ones that stood in `./userContacts` come first. Those after them were collected from
+ * the backend - step one of the query migration AGENTS.md describes, and step one only:
+ * moved, still TypeORM, same options, same result. Except the last one, which was fixed
+ * after the move and says why.
+ */
 
 /**
  * A member's addresses. `users.email_id` marks the one that counts; every row that ever
@@ -304,4 +315,91 @@ export async function dbDeleteUserContact(
     return { success: true }
   }
   return { success: false, error: UserContactNotFound(`id = ${id}`) }
+}
+
+/*
+ * The three lookups by `emailVerificationCode` below all load `user` - and `UserContact.user`
+ * is the inverse of `users.email_id`, so it is EMPTY for every row that is not the member's
+ * current address. Such a row keeps its code when the member moves on to another address.
+ * Each caller has to check `user` before it reads it.
+ *
+ * They throw TypeORM's `EntityNotFoundError` when no row matches, as they did in the
+ * resolvers; the callers catch it.
+ */
+
+/**
+ * The row behind a code, whatever its opt-in type. Moved from `queryOptIn` in
+ * `backend/src/graphql/resolver/UserResolver.ts`, which refuses a change code itself.
+ */
+export async function dbFindUserContactByCodeOrFail(code: string): Promise<DbUserContact> {
+  return DbUserContact.findOneOrFail({
+    where: { emailVerificationCode: code },
+    relations: ['user'],
+  })
+}
+
+/**
+ * The row behind a code, unless it is a pending e-mail change: that code confirms an
+ * address and must not set a password. Moved from `setPassword` in
+ * `backend/src/graphql/resolver/UserResolver.ts`.
+ */
+export async function dbFindUserContactByCodeExceptChangeOrFail(
+  code: string,
+): Promise<DbUserContact> {
+  return DbUserContact.findOneOrFail({
+    where: { emailVerificationCode: code, emailOptInTypeId: Not(OptInType.EMAIL_OPT_IN_CHANGE) },
+    relations: ['user'],
+  })
+}
+
+/**
+ * The row behind a code, only if it is of the REGISTER type. Moved from `confirmEmail` in
+ * `backend/src/graphql/resolver/AssistedRegistrationResolver.ts`. A settled row carries
+ * REGISTER again, so the type does not keep out a former address - see above.
+ */
+export async function dbFindRegisterUserContactByCodeOrFail(code: string): Promise<DbUserContact> {
+  return DbUserContact.findOneOrFail({
+    where: { emailVerificationCode: code, emailOptInTypeId: OptInType.EMAIL_OPT_IN_REGISTER },
+    relations: ['user'],
+  })
+}
+
+/**
+ * `dbFindUserContactByEmail` with the member loaded - deleted rows included here too. Moved
+ * from `adminCreateContribution` in `backend/src/graphql/resolver/ContributionResolver.ts`.
+ * `user` is empty when the address is not the member's current one.
+ */
+export async function dbFindUserContactWithUserByEmail(
+  email: string,
+): Promise<DbUserContact | null> {
+  return DbUserContact.findOne({
+    where: { email },
+    withDeleted: true,
+    relations: ['user'],
+  })
+}
+
+/**
+ * The address in force for a member - the row `users.email_id` points at, the same row the
+ * `User.emailContact` relation loads - as a builder: the caller narrows the columns to the
+ * requested GraphQL fields before it runs it. For the `emailContact` field resolver in
+ * `backend/src/graphql/resolver/UserResolver.ts`, which asks when the relation was not
+ * loaded.
+ *
+ * ⛔ Not `user_id`. A member keeps a row for every address they ever held, and the lookup
+ * that stood here asked by `user_id` without an order: with more than one row, MySQL chose -
+ * and the admin's contribution list showed a member's former address.
+ *
+ * A subquery rather than a join on `users`: TypeORM adds `deleted_at IS NULL` to a joined
+ * entity, and the admin lists deleted members' contributions too. Deleted CONTACT rows stay
+ * out, as they always did here.
+ *
+ * The alias stays `userContact`: `extractGraphQLFieldsForSelect` derives the entity name
+ * from it.
+ */
+export function emailContactByUserIdQuery(userId: number): SelectQueryBuilder<DbUserContact> {
+  return DbUserContact.createQueryBuilder('userContact').where(
+    'userContact.id = (SELECT users.email_id FROM users WHERE users.id = :userId)',
+    { userId },
+  )
 }

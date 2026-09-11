@@ -74,10 +74,12 @@ import {
   searchUsers,
   userAboutMe,
   userAvatar,
+  userEmailContact,
   user as userQuery,
   verifyLogin,
   verifyLoginAboutMe,
   verifyLoginAvatar,
+  verifyLoginEmailContact,
 } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
@@ -2882,6 +2884,65 @@ describe('UserResolver', () => {
       // and not a lookup that failed.
       expect(res.data.user.gradidoID).toBe(author.gradidoID)
       expect(res.data.user.aboutMe).toBeNull()
+    })
+  })
+
+  // The address is the member's own - and the moderation's, which needs it to reach people.
+  // Until 11.09.2026 every member held VIEW_USER_CONTACT, so `user()` handed anybody's
+  // address to anyone logged in.
+  describe('emailContact visibility', () => {
+    let homeCom: DbCommunity
+    let bibi: User
+
+    beforeAll(async () => {
+      await cleanDB()
+      homeCom = await writeHomeCommunityEntry()
+      bibi = await userFactory(testEnv, bibiBloxberg)
+      await userFactory(testEnv, bobBaumeister)
+      await userFactory(testEnv, peterLustig)
+    })
+
+    afterAll(async () => {
+      resetToken()
+      await cleanDB()
+    })
+
+    const asksForBibi = () =>
+      query({
+        query: userEmailContact,
+        variables: { identifier: bibi.gradidoID, communityIdentifier: homeCom.communityUuid },
+      })
+
+    it('shows a member their own address', async () => {
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+      const own: any = await query({ query: verifyLoginEmailContact })
+      expect(own.data.verifyLogin.emailContact.email).toBe('bibi@bloxberg.de')
+      const throughUser: any = await asksForBibi()
+      expect(throughUser.data.user.emailContact.email).toBe('bibi@bloxberg.de')
+    })
+
+    it('refuses the address to another member', async () => {
+      await mutate({
+        mutation: login,
+        variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
+      })
+      const res: any = await asksForBibi()
+      expect(res.errors).toEqual([
+        new GraphQLError('User does not have permission to view this user contact'),
+      ])
+      expect(JSON.stringify(res.data)).not.toContain('bibi@bloxberg.de')
+    })
+
+    it('shows the address to the moderation', async () => {
+      await mutate({
+        mutation: login,
+        variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+      })
+      const res: any = await asksForBibi()
+      expect(res.data.user.emailContact.email).toBe('bibi@bloxberg.de')
     })
   })
 

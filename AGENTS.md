@@ -92,6 +92,7 @@ Turbo and `bun run` automatically invoke the correct test runner defined in the 
 - Validation: valibot schemas in `*.schema.ts`, kept next to what they validate. Validate at the boundary, then trust the parsed type inward. Export both `v.InferInput` and `v.InferOutput` types where a schema transforms.
 - Enums: `src/data/[Name].enum.ts`.
 - Tests: co-located `*.test.ts`, run with `bun test`.
+- New tables: a table without a TypeORM entity — which is every new one, since new code uses Drizzle — must be added to `drizzleOnlyTables` in `database/src/schemas/drizzleOnlyTables.ts`. `cleanDB` in the test helpers (`backend`, `federation`, `dht-node`) empties TypeORM's `entities` and that list, nothing else; a table on neither keeps its rows from one test file to the next. The same applies when the migration removes a table's TypeORM entity: the table moves to `drizzleOnlyTables`.
 
 # Error handling
 

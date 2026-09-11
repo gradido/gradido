@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { OptInType, UserContactType } from 'shared'
+import { EntityNotFoundError } from 'typeorm'
 import { Community as DbCommunity, User as DbUser, UserContact as DbUserContact } from '..'
 import { AppDatabase } from '../AppDatabase'
 import { DBDuplicateEntryError } from '../errorTypes'
@@ -15,14 +16,19 @@ import {
   dbFindPendingEmailChange,
   dbFindPendingEmailChangeByCode,
   dbFindPendingEmailChangeByVetoCode,
+  dbFindRegisterUserContactByCodeOrFail,
+  dbFindUserContactByCodeExceptChangeOrFail,
+  dbFindUserContactByCodeOrFail,
   dbFindUserContactByEmail,
+  dbFindUserContactWithUserByEmail,
   dbFindUserIdsByEmailLike,
   dbInsertPendingEmailChange,
   dbMarkUserContactPending,
   dbPurgeExpiredEmailChanges,
   dbReleasePendingEmailChange,
   dbReleaseUnconfirmedEmailChangeFor,
-} from './userContacts'
+  emailContactByUserIdQuery,
+} from './userContacts.typeorm'
 
 const db = AppDatabase.getInstance()
 
@@ -43,7 +49,7 @@ afterAll(async () => {
   await db.destroy()
 })
 
-describe('userContacts.queries', () => {
+describe('userContacts.typeorm.queries', () => {
   let bibi: DbUser
   let peter: DbUser
 
@@ -335,6 +341,141 @@ describe('userContacts.queries', () => {
       expect((await dbFindPendingEmailChange(bibi.id))?.id).toBe(earlierBack.id)
 
       await dbReleasePendingEmailChange(earlierBack, '9105')
+    })
+  })
+
+  /**
+   * The lookups that stood in the backend resolvers, moved unchanged. These pin what they
+   * did there: which rows a code reaches, and that the member comes along only with the
+   * address in force.
+   */
+  describe('the lookups moved from the backend', () => {
+    let current: DbUserContact
+    let change: DbUserContact
+    // bibi's taken-back address from above, restored with code 9105: a confirmed REGISTER
+    // row that is not the one in force.
+    const formerCode = '9105'
+
+    beforeAll(async () => {
+      current = await DbUserContact.findOneByOrFail({ email: 'peter@lustig.de' })
+      const inserted = await dbInsertPendingEmailChange({
+        userId: peter.id,
+        email: 'peter-next@lustig.de',
+        verificationCode: '9201',
+        vetoCode: '9202',
+      })
+      if (!inserted.success) {
+        throw inserted.error
+      }
+      change = inserted.value
+    })
+
+    afterAll(async () => {
+      await DbUserContact.delete({ email: 'peter-next@lustig.de' })
+      await DbUserContact.delete({ email: 'bibi-gone@bloxberg.de' })
+    })
+
+    it('find the address in force by its code, with its member', async () => {
+      const code = current.emailVerificationCode
+      for (const row of [
+        await dbFindUserContactByCodeOrFail(code),
+        await dbFindUserContactByCodeExceptChangeOrFail(code),
+        await dbFindRegisterUserContactByCodeOrFail(code),
+      ]) {
+        expect(row.id).toBe(current.id)
+        expect(row.user?.id).toBe(peter.id)
+      }
+    })
+
+    // The trap every caller has to check for: the row is found, its member is not.
+    it('find a former address by its code too, but without its member', async () => {
+      for (const row of [
+        await dbFindUserContactByCodeOrFail(formerCode),
+        await dbFindUserContactByCodeExceptChangeOrFail(formerCode),
+        await dbFindRegisterUserContactByCodeOrFail(formerCode),
+      ]) {
+        expect(row.userId).toBe(bibi.id)
+        expect(row.user).toBeNull()
+      }
+    })
+
+    it('reach a change code only through the lookup that takes any type', async () => {
+      expect((await dbFindUserContactByCodeOrFail('9201')).id).toBe(change.id)
+      await expect(dbFindUserContactByCodeExceptChangeOrFail('9201')).rejects.toBeInstanceOf(
+        EntityNotFoundError,
+      )
+      await expect(dbFindRegisterUserContactByCodeOrFail('9201')).rejects.toBeInstanceOf(
+        EntityNotFoundError,
+      )
+    })
+
+    it('throw on a code nobody has', async () => {
+      await expect(dbFindUserContactByCodeOrFail('9999')).rejects.toBeInstanceOf(
+        EntityNotFoundError,
+      )
+      await expect(dbFindUserContactByCodeExceptChangeOrFail('9999')).rejects.toBeInstanceOf(
+        EntityNotFoundError,
+      )
+      await expect(dbFindRegisterUserContactByCodeOrFail('9999')).rejects.toBeInstanceOf(
+        EntityNotFoundError,
+      )
+    })
+
+    it('find an address with its member, deleted rows included', async () => {
+      const found = await dbFindUserContactWithUserByEmail('peter@lustig.de')
+      expect(found?.id).toBe(current.id)
+      expect(found?.user?.id).toBe(peter.id)
+
+      expect((await dbFindUserContactWithUserByEmail('bibi-earlier@bloxberg.de'))?.user).toBeNull()
+
+      const gone = await DbUserContact.save(
+        DbUserContact.create({
+          userId: bibi.id,
+          email: 'bibi-gone@bloxberg.de',
+          type: UserContactType.USER_CONTACT_EMAIL,
+          emailChecked: true,
+          emailOptInTypeId: OptInType.EMAIL_OPT_IN_REGISTER,
+          emailVerificationCode: '9203',
+        }),
+      )
+      await DbUserContact.softRemove(gone)
+      const deleted = await dbFindUserContactWithUserByEmail('bibi-gone@bloxberg.de')
+      expect(deleted?.id).toBe(gone.id)
+      expect(deleted?.deletedAt).not.toBeNull()
+
+      expect(await dbFindUserContactWithUserByEmail('nobody@example.org')).toBeNull()
+    })
+
+    it('build the address in force, under the alias the field selection reads', async () => {
+      const query = emailContactByUserIdQuery(peter.id)
+      expect(query.alias).toBe('userContact')
+      // What the field resolver does with it: narrow the columns, then run it.
+      query.select(['userContact.id', 'userContact.email'])
+      // peter holds the pending change as well - the lookup by user_id found both rows.
+      expect(await query.getMany()).toEqual([
+        expect.objectContaining({ id: current.id, email: 'peter@lustig.de' }),
+      ])
+      expect(await emailContactByUserIdQuery(999999).getOne()).toBeNull()
+    })
+
+    // The case the lookup by user_id got wrong: after a confirmed change the address in
+    // force is NOT the member's oldest row.
+    it('follow users.email_id when the address in force is a newer row', async () => {
+      await DbUser.update({ id: peter.id }, { emailId: change.id })
+      try {
+        expect((await emailContactByUserIdQuery(peter.id).getOneOrFail()).id).toBe(change.id)
+      } finally {
+        await DbUser.update({ id: peter.id }, { emailId: current.id })
+      }
+    })
+
+    it('still find the address of a deleted member', async () => {
+      await DbUser.update({ id: peter.id }, { deletedAt: new Date() })
+      try {
+        expect((await emailContactByUserIdQuery(peter.id).getOneOrFail()).id).toBe(current.id)
+      } finally {
+        await DbUser.update({ id: peter.id }, { deletedAt: null })
+      }
     })
   })
 })
