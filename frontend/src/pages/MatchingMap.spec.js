@@ -171,6 +171,25 @@ describe('MatchingMap', () => {
     expect(wrapper.findComponent({ name: 'MatchQuery' }).props('suggest')).toBe(suggest)
   })
 
+  // Bernd, 11.09.2026: the way back left the map for the search line, on the map and in
+  // the list alike, so the map's own controls can take the corner.
+  it('puts the way back at the start of the search line, off the map, and leads to the entries', async () => {
+    const onMap = mountMap()
+    await flushPromises()
+    expect(onMap.find('.query-row > .map-back + .query-field').exists()).toBe(true)
+    expect(onMap.find('.map-shell .map-back').exists()).toBe(false)
+
+    await onMap.find('.map-back').trigger('click')
+    expect(push).toHaveBeenCalledWith('/matching/entries')
+    onMap.unmount()
+
+    window.localStorage.setItem(`${KEY}mode`, JSON.stringify('liste'))
+    const inList = mountMap()
+    await flushPromises()
+    expect(inList.find('.query-row > .map-back').exists()).toBe(true)
+    expect(inList.find('.map-shell .map-back').exists()).toBe(false)
+  })
+
   describe('when findability is off', () => {
     // The location query is switched off with it, so the redirect that lives in
     // that query's result — the one for "no pin yet" — can never speak. Without an

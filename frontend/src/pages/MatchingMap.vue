@@ -6,20 +6,36 @@
   <div class="matching-map-page">
     <!-- No heading row. It named the page a second time (the menu already says
          Matching) and cost the desktop the height the map wants, while the phone
-         never had it. The way back rides the map on both, so the two now differ
-         only in width. -->
+         never had it. The way back opens the search line on both, so the two now
+         differ only in width. -->
     <div class="map-frame mx-lg-5">
       <!-- One place for one question — "what am I looking for right now?" — and it
            sits here, above the frame, in BOTH modes. Were it inside the map in one
            mode and inside the list in the other, it would move under the member
            every time they switch. The WHERE stays a map tool (the lens and the home
-           button on the canvas); this is the WHAT, and it says so in words. -->
-      <MatchQuery
-        :entries="myEntries"
-        :selection="selection"
-        :suggest="suggest"
-        @update:selection="onSelection"
-      />
+           button on the canvas); this is the WHAT, and it says so in words.
+
+           The way out opens the same line, in every view - the three looks and the
+           list. On the map it had to push the map's own controls down; here it costs
+           the map nothing, and it stands on the page, so it takes the page's colour
+           rather than the map's (Bernd, 11.09.2026). -->
+      <div class="query-row">
+        <button
+          type="button"
+          class="map-back"
+          :aria-label="$t('matching.map.back')"
+          @click="goBack"
+        >
+          <i-bi-arrow-left />
+        </button>
+        <MatchQuery
+          class="query-field"
+          :entries="myEntries"
+          :selection="selection"
+          :suggest="suggest"
+          @update:selection="onSelection"
+        />
+      </div>
 
       <div
         class="map-shell gradido-border-radius app-box-shadow"
@@ -60,19 +76,6 @@
           @open="openProfile"
           @close="closeCluster"
         />
-
-        <!-- With the heading row gone this is the only way out on either device, so
-             it sits on the map, where the eye already is. It stays in list mode too
-             (a phone has no other way back), pinned over the scrolling list like the
-             Karte switch. -->
-        <button
-          type="button"
-          class="map-back"
-          :aria-label="$t('matching.map.back')"
-          @click="goBack"
-        >
-          <i-bi-arrow-left />
-        </button>
 
         <!-- The crosshair marks the map's centre, and the centre is what the next
              search will use. Hollow and half-transparent on purpose: on the first
@@ -1438,8 +1441,9 @@ function initMap() {
   map.addControl(searchControl)
 
   // A way home under the search lens: a gold heart-house button that frames your own
-  // place again, wherever you have panned. It joins the Leaflet controls (white, round)
-  // and, sitting in the same corner after the lens, stacks directly below it.
+  // place again, wherever you have panned. It joins the Leaflet controls (their chrome,
+  // dark on the dark map) and, sitting in the same corner after the lens, stacks
+  // directly below it.
   const HomeControl = L.Control.extend({
     options: { position: 'topleft' },
     onAdd() {
@@ -1567,8 +1571,8 @@ watch(mode, (value) => {
   display: none;
 }
 
-/* The home button rides Leaflet's white, rounded control chrome; only the gold
-   house inside needs centring and a marker-ish size. */
+/* The home button rides Leaflet's rounded control chrome (white, or dark on the dark
+   map); only the gold house inside needs centring and a marker-ish size. */
 :deep(.gk-home a) {
   display: flex;
   align-items: center;
@@ -1601,7 +1605,7 @@ watch(mode, (value) => {
 }
 
 /* The list sits over the map (which stays mounted and sized beneath it), under
-   the look switch and the way back so both stay reachable to switch away. */
+   the look switch so it stays reachable to switch away. */
 .list-cover {
   position: absolute;
   inset: 0;
@@ -1657,12 +1661,6 @@ watch(mode, (value) => {
   }
 }
 
-/* Leaflet parks its zoom buttons top-left, exactly where the way back sits — on
-   both devices now that the heading row is gone. */
-.map-shell :deep(.leaflet-top.leaflet-left) {
-  margin-top: 44px;
-}
-
 /* Leaflet gives its corner panes z-index 1000, which put the attribution over the
    keep offer and made the sentence unreadable. The attribution has to stay legible
    and reachable, but it is the map's small print — it belongs under a band that was
@@ -1675,22 +1673,34 @@ watch(mode, (value) => {
    column, and padding here would leave the menu column glued to the top on its
    own. See bareChrome in DashboardLayout. */
 
-.map-back {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 500;
+/* The way back and the question share a line. Aligned to its top, not its middle: the
+   question grows downwards while a sentence is typed (the stances come in under it),
+   and the arrow belongs to its first line. */
+.query-row {
   display: flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.query-field {
+  flex: 1;
+  min-width: 0;
+}
+
+/* A bare arrow in the page's own text colour - light on the dark wallet, dark on the
+   light one - and as tall as the closed search bar, so it stands centred beside it. */
+.map-back {
+  display: flex;
+  flex: none;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 2.25rem;
+  height: 2.625rem;
   padding: 0;
-  color: #383838;
-  background: rgb(255 255 255 / 90%);
+  font-size: 1.5rem;
+  color: var(--text);
+  background: transparent;
   border: 0;
-  border-radius: 50%;
-  box-shadow: 0 1px 5px rgb(0 0 0 / 40%);
 }
 
 /* Appearance. The filter belongs on the tile layer alone — put it on the map and
@@ -1756,8 +1766,8 @@ watch(mode, (value) => {
   }
 }
 
-/* Sits under the look switch and the way back (z-index 500), because those are
-   controls and this belongs to the map underneath them. */
+/* Sits under the look switch (z-index 500), because that is a control and this
+   belongs to the map underneath it. */
 .map-crosshair {
   position: absolute;
   top: 50%;
@@ -2032,13 +2042,103 @@ watch(mode, (value) => {
    overlay or its close cross. Placed last, after the plain control selectors, to
    keep specificity ascending. */
 .map-shell.is-cluster .look-switch,
-.map-shell.is-cluster .map-back,
 .map-shell.is-cluster .map-crosshair {
   display: none;
 }
 
 .map-shell.is-cluster :deep(.leaflet-control-container) {
   display: none;
+}
+
+/* The dark map, and only the dark map (Bernd, 11.09.2026): its white buttons were the
+   loudest thing on it. The controls go dark with light marks, and where the other looks
+   draw a dark rim round them this one draws a light rim; the gold house keeps its gold.
+   The field the lens opens and the map's small print go dark with them, or they would
+   be the last white patches left. The list covers the map, so the switch keeps its
+   usual face there. Last in the file, after the plain control rules and the cluster
+   rule, to keep specificity ascending. */
+.map-shell.look-dunkel {
+  --dark-chrome: #16181d;
+  --dark-hover: #262a31;
+  --dark-mark: #e8eaed;
+  --dark-rim: rgb(255 255 255 / 35%);
+  --dark-line: rgb(255 255 255 / 20%);
+
+  :deep(.leaflet-bar) {
+    border-color: var(--dark-rim);
+  }
+
+  :deep(.leaflet-bar a),
+  :deep(.leaflet-control-geosearch form),
+  :deep(.leaflet-control-geosearch .results),
+  :deep(.leaflet-control-geosearch button.reset) {
+    color: var(--dark-mark);
+    background-color: var(--dark-chrome);
+  }
+
+  :deep(.leaflet-bar a) {
+    border-bottom-color: var(--dark-line);
+  }
+
+  :deep(.leaflet-bar a:hover),
+  :deep(.leaflet-bar a:focus),
+  :deep(.leaflet-control-geosearch .results > .active),
+  :deep(.leaflet-control-geosearch .results > :hover),
+  :deep(.leaflet-control-geosearch button.reset:hover) {
+    background-color: var(--dark-hover);
+  }
+
+  :deep(.leaflet-bar a.leaflet-disabled) {
+    color: var(--dark-line);
+    background-color: var(--dark-chrome);
+  }
+
+  /* The lens is drawn from two lines, a handle and a ring. */
+  :deep(.leaflet-control-geosearch a.leaflet-bar-part::before) {
+    border-top-color: var(--dark-mark);
+  }
+
+  :deep(.leaflet-control-geosearch a.leaflet-bar-part::after) {
+    border-color: var(--dark-mark);
+  }
+
+  :deep(.leaflet-control-geosearch.pending a.leaflet-bar-part::after) {
+    border-color: var(--dark-line);
+    border-top-color: var(--dark-mark);
+  }
+
+  :deep(.leaflet-control-geosearch form input) {
+    color: var(--dark-mark);
+    background: transparent;
+  }
+
+  :deep(.leaflet-control-geosearch .results.active),
+  :deep(.leaflet-control-geosearch .results > .active),
+  :deep(.leaflet-control-geosearch .results > :hover) {
+    border-color: var(--dark-line);
+  }
+
+  :deep(.leaflet-control-attribution) {
+    color: rgb(255 255 255 / 60%);
+    background: rgb(22 24 29 / 80%);
+  }
+
+  :deep(.leaflet-control-attribution a) {
+    color: rgb(255 255 255 / 80%);
+  }
+}
+
+.map-shell.look-dunkel:not(.is-list) .look-switch {
+  background: rgb(22 24 29 / 92%);
+  box-shadow: 0 0 0 2px var(--dark-rim);
+}
+
+.map-shell.look-dunkel:not(.is-list) .look-btn:not(.is-on) {
+  color: var(--dark-mark);
+}
+
+.map-shell.look-dunkel:not(.is-list) .look-divide {
+  background: var(--dark-line);
 }
 </style>
 
