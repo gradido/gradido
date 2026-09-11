@@ -24,8 +24,8 @@ import {
   AppDatabase,
   Contribution as DbContribution,
   User as DbUser,
+  dbFindUserContactWithUserByEmail,
   findUserNamesByIds,
-  UserContact,
 } from 'database'
 import { GraphQLResolveInfo } from 'graphql'
 import { getLogger } from 'log4js'
@@ -267,11 +267,7 @@ export class ContributionResolver {
       `adminCreateContribution(email=${email}, amount=${amount.toString(0)}, memo=${memo}, creationDate=${creationDate})`,
     )
     const clientTimezoneOffset = getClientTimezoneOffset(context)
-    const emailContact = await UserContact.findOne({
-      where: { email },
-      withDeleted: true,
-      relations: ['user'],
-    })
+    const emailContact = await dbFindUserContactWithUserByEmail(email)
     if (!emailContact?.user) {
       throw new LogError('Could not find user', email)
     }

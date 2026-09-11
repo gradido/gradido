@@ -54,6 +54,8 @@ import {
   dbFindUserAvatarFull,
   dbFindUserAvatarSmall,
   dbFindUserByEmailOrFail,
+  dbFindUserContactByCodeExceptChangeOrFail,
+  dbFindUserContactByCodeOrFail,
   dbFindUsers,
   dbInsertAssistedRegistration,
   dbInsertUserAlias,
@@ -65,6 +67,7 @@ import {
   getHomeCommunity,
   ProjectBrandingSelect,
   UserLoggingView,
+  userContactByUserIdQuery,
 } from 'database'
 import { GraphQLResolveInfo } from 'graphql'
 import { getLogger, Logger } from 'log4js'
@@ -96,7 +99,7 @@ import {
   Root,
 } from 'type-graphql'
 import { IRestResponse } from 'typed-rest-client'
-import { EntityNotFoundError, Not, Point } from 'typeorm'
+import { EntityNotFoundError, Point } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { Account as HumhubAccount } from '@/apis/humhub/model/Account'
@@ -533,10 +536,7 @@ export class UserResolver {
     // load code
     // A pending e-mail change carries a code of the same kind, but that code confirms an
     // address - it must not log anybody in. Its row is excluded here by its opt-in type.
-    const userContact = await DbUserContact.findOneOrFail({
-      where: { emailVerificationCode: code, emailOptInTypeId: Not(OptInType.EMAIL_OPT_IN_CHANGE) },
-      relations: ['user'],
-    }).catch(() => {
+    const userContact = await dbFindUserContactByCodeExceptChangeOrFail(code).catch(() => {
       // code wasn't in db, so we can write it into log without hesitation
       logger.warn(`invalid emailVerificationCode=${code}`)
       throw new Error('Could not login with emailVerificationCode')
@@ -625,10 +625,7 @@ export class UserResolver {
     // own three cases into one sentence.
     const unknownCode = () =>
       new EntityNotFoundError(DbUserContact, { where: { emailVerificationCode: optIn } })
-    const userContact = await DbUserContact.findOneOrFail({
-      where: { emailVerificationCode: optIn },
-      relations: ['user'],
-    }).catch((e) => {
+    const userContact = await dbFindUserContactByCodeOrFail(optIn).catch((e) => {
       // Only the miss is rewritten. A connection error rewritten into "unknown code" would
       // send whoever reads the log looking for a code that was never the problem.
       if (e instanceof EntityNotFoundError) {
@@ -1521,9 +1518,8 @@ export class UserResolver {
     }
     let userContact = user.emailContact
     if (!userContact) {
-      const queryBuilder = DbUserContact.createQueryBuilder('userContact')
-      queryBuilder.where('userContact.userId = :userId', { userId: user.id })
-      extractGraphQLFieldsForSelect(info, queryBuilder, 'userContact')
+      const queryBuilder = userContactByUserIdQuery(user.id)
+      extractGraphQLFieldsForSelect(info, queryBuilder, queryBuilder.alias)
       userContact = await queryBuilder.getOneOrFail()
     }
     return new UserContact(userContact)

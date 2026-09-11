@@ -6,9 +6,9 @@ import { sendAssistedRegistrationConfirmEmail } from 'core'
 import {
   AssistedRegistrationSelect,
   User as DbUser,
-  UserContact as DbUserContact,
   dbDeleteAssistedRegistration,
   dbFindAssistedRegistrationByCode,
+  dbFindRegisterUserContactByCodeOrFail,
 } from 'database'
 import { getLogger, Logger } from 'log4js'
 import random from 'random-bigint'
@@ -156,10 +156,7 @@ export class AssistedRegistrationResolver {
   async confirmEmail(@Arg('code') code: string): Promise<boolean> {
     const logger = createLogger('confirmEmail')
     logger.info('confirmEmail...')
-    const userContact = await DbUserContact.findOneOrFail({
-      where: { emailVerificationCode: code, emailOptInTypeId: OptInType.EMAIL_OPT_IN_REGISTER },
-      relations: ['user'],
-    }).catch(() => {
+    const userContact = await dbFindRegisterUserContactByCodeOrFail(code).catch(() => {
       logger.warn('invalid emailVerificationCode')
       throw new Error('Could not confirm with this code')
     })

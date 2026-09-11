@@ -22,7 +22,7 @@ export * from './user'
 export * from './user.typeorm'
 export * from './userAliases'
 export * from './userAvatars'
-export * from './userContacts'
+export * from './userContacts.typeorm'
 export * from './userFavorites'
 
 export const LOG4JS_QUERIES_CATEGORY_NAME = `${LOG4JS_BASE_CATEGORY_NAME}.queries`

@@ -9,7 +9,7 @@ import { RoleNames } from '../enum'
 import { DBNotFoundError } from '../errorTypes'
 import { findWithCommunityIdentifier, LOG4JS_QUERIES_CATEGORY_NAME } from './index'
 import { dbFindAliasOwner } from './userAliases'
-import { dbFindUserIdsByEmailLike } from './userContacts'
+import { dbFindUserIdsByEmailLike } from './userContacts.typeorm'
 
 /*
  * The TypeORM queries that select `from users`: the ones not yet translated to Drizzle, and
