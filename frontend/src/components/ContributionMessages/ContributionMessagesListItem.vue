@@ -16,11 +16,16 @@
           <parse-message v-bind="message" data-test="message" class="p-2"></parse-message>
         </BCol>
         <BCol cols="2">
+          <!-- ⛔ The same branch the name above takes. A history entry is written by whoever
+               made the change -- the member or the moderation -- and this circle used to be
+               the member's own either way. While both sides were lettered circles that was
+               a detail nobody could see; with real faces it puts the member's own portrait
+               next to "the moderation edited this". -->
           <app-avatar
             class="vue3-avatar"
             :size="LIST_AVATAR_SIZE"
             :color="'#fff'"
-            v-bind="ownAvatar"
+            v-bind="isNotModerator ? ownAvatar : moderationAvatar"
           />
         </BCol>
       </BRow>
@@ -116,12 +121,16 @@ export default {
      * the login (`state.avatar`) -- which is also the one a member sees when they have
      * hidden their picture from everybody else.
      *
-     * ⚠️ The zoom of one's own picture asks for the full size the same way it does for
-     * anybody else's, and that query answers only for members whose picture may be shown to
-     * members (`mayBeShownToMembers`). For a member who switched that off, the zoom shows
-     * this small rendition enlarged instead of the full one -- no error, a little softer.
-     * The backend has an own-picture query for the full size; using it here would be a
-     * change to the zoom, and it is not part of this one (Bernd, 12.09.2026).
+     * ⚠️ The zoom asks for the full size the way it does for anybody else -- by the uuid
+     * PAIR. Both halves have to be here: `users` is unique on (gradido_id, community_uuid),
+     * and a missing uuid is read as `IS NULL`, which matches no member that ever registered
+     * normally (RegisterAccount sets it from the home community). Handing over the gradidoID
+     * alone left every member's own zoom on the small rendition -- found by the review of
+     * 12.09.2026, and the reason `communityUuid` now travels in the store.
+     *
+     * ⚠️ It still answers only for pictures that may be shown to members
+     * (`mayBeShownToMembers`): a member who switched that off sees their own small rendition
+     * enlarged rather than the full one. No error, a little softer.
      */
     ownAvatar() {
       const avatar = this.$store.state.avatar
@@ -134,7 +143,11 @@ export default {
       return {
         ...props,
         ...avatarZoomBindings(
-          { gradidoID: this.$store.state.gradidoID, alias: this.storeName.username },
+          {
+            gradidoID: this.$store.state.gradidoID,
+            communityUuid: this.$store.state.communityUuid,
+            alias: this.storeName.username,
+          },
           props,
         ),
       }

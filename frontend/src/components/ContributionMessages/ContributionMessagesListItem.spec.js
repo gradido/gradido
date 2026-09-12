@@ -6,6 +6,7 @@ import message from '../Message/Message.vue'
 import { defineComponent, nextTick } from 'vue'
 import { BCol, BRow } from 'bootstrap-vue-next'
 import { forgetAllMemberAvatars, rememberMemberAvatars } from '@/composables/useMemberAvatars'
+import { avatarZoomState, closeAvatarZoom } from '@/composables/useAvatarZoom'
 import { LIST_AVATAR_SIZE } from '@/constants'
 
 export default defineComponent({
@@ -259,6 +260,72 @@ describe('ContributionMessagesListItem', () => {
       expect(avatar().props('src')).toBe('data:image/jpeg;base64,the-face')
       expect(avatar().props('zoomable')).toBe(true)
       expect(avatar().props('zoomLabel')).toContain('moderator')
+    })
+
+    /**
+     * ⛔ A history entry is written by whoever made the change. The name beside it has always
+     * said which of the two it was; the circle showed the member's own either way, which
+     * with real faces puts the member's portrait next to "the moderation edited this"
+     * (found by the review of 12.09.2026).
+     */
+    it('gives a history entry the face of whoever made the change', async () => {
+      rememberMemberAvatars([
+        {
+          gradidoID: 'g-moderator',
+          communityUuid: null,
+          avatar: 'the-face',
+          avatarUpdatedAt: when,
+        },
+      ])
+
+      const byModeration = createWrapper(
+        { message: { ...moderatorMessage, type: 'HISTORY' } },
+        { avatar: 'my-own-picture', gradidoID: 'g-peter' },
+      )
+      const byMember = createWrapper(
+        { message: { ...moderatorMessage, type: 'HISTORY', userAlias: 'peterl' } },
+        { avatar: 'my-own-picture', gradidoID: 'g-peter' },
+      )
+      await nextTick()
+
+      expect(byModeration.find('[data-test="moderator-name"]').exists()).toBe(true)
+      expect(byModeration.findComponent(AppAvatar).props('src')).toBe(
+        'data:image/jpeg;base64,the-face',
+      )
+      // And the member's own change still carries the member's own face.
+      expect(byMember.find('[data-test="username"]').exists()).toBe(true)
+      expect(byMember.findComponent(AppAvatar).props('src')).toBe(
+        'data:image/jpeg;base64,my-own-picture',
+      )
+    })
+
+    /**
+     * ⛔ BOTH halves of the pair. `users` is unique on (gradido_id, community_uuid), and a
+     * missing uuid is read as IS NULL -- which matches nobody who registered normally, so
+     * the full-size picture never arrives and the zoom stays on the small rendition. The
+     * binding is opened for real here rather than asserted as a prop: what the uuid is
+     * needed for happens inside `onZoom`.
+     */
+    it('opens the own picture by the whole pair that names a member', async () => {
+      const wrapper = createWrapper(
+        { message: { ...moderatorMessage, userAlias: 'peterl' } },
+        { avatar: 'my-own-picture', gradidoID: 'g-peter', communityUuid: 'home-uuid' },
+      )
+
+      // `onZoom` is what the binding adds; on a component that is the listener for its
+      // `zoom` event, so the way to open it is to let the circle raise that event.
+      // The circle raises `zoom` with the rectangle it currently occupies; the overlay needs
+      // it to grow out of the right place, and without it `openAvatarZoom` does nothing.
+      wrapper
+        .findComponent(AppAvatar)
+        .vm.$emit('zoom', { top: 0, left: 0, width: LIST_AVATAR_SIZE, height: LIST_AVATAR_SIZE })
+      await nextTick()
+
+      expect(avatarZoomState.value.member).toMatchObject({
+        gradidoID: 'g-peter',
+        communityUuid: 'home-uuid',
+      })
+      closeAvatarZoom()
     })
 
     // A moderation that shows no picture looks exactly as it did before this.

@@ -243,6 +243,9 @@ export const login = gql`
   mutation ($email: String!, $password: String!, $publisherId: Int, $project: String) {
     login(email: $email, password: $password, publisherId: $publisherId, project: $project) {
       gradidoID
+      # The other half of the pair that names a member: every query about a member asks
+      # about both, the member's own picture included.
+      communityUuid
       alias
       emailChecked
       createdAt

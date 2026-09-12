@@ -184,9 +184,29 @@ describe('Vuex store', () => {
         darkMode: true,
       }
 
-      it('calls twenty-one commits', () => {
+      it('calls twenty-two commits', () => {
         login({ commit, state }, commitedData)
-        expect(commit).toHaveBeenCalledTimes(21)
+        expect(commit).toHaveBeenCalledTimes(22)
+      })
+
+      /**
+       * ⛔ BOTH halves of the pair that names a member. `users` is unique on
+       * (gradido_id, community_uuid) and every query about a member asks for both -- the
+       * member's OWN picture at full size included, which is asked for exactly the way
+       * anybody else's is. With the uuid missing that query reads it as IS NULL and matches
+       * nobody who registered normally (review of 12.09.2026).
+       *
+       * `?? null` for the same reason as the fields below: a caller that does not select it
+       * must write null rather than undefined, or the persisted store keeps the PREVIOUS
+       * member's uuid.
+       */
+      it('stores the community the member belongs to, and null where the answer does not say', () => {
+        const localCommit = vi.fn()
+        login({ commit: localCommit, state: {} }, { ...commitedData, communityUuid: 'home-uuid' })
+        expect(localCommit).toHaveBeenCalledWith('communityUuid', 'home-uuid')
+        localCommit.mockClear()
+        login({ commit: localCommit, state: {} }, commitedData)
+        expect(localCommit).toHaveBeenCalledWith('communityUuid', null)
       })
 
       // ES-021: the "Create" menu item hangs on this. A login answer carries no such field,
@@ -288,7 +308,7 @@ describe('Vuex store', () => {
 
       it('calls twenty-three commits', () => {
         logout({ commit, state, dispatch })
-        expect(commit).toHaveBeenCalledTimes(24)
+        expect(commit).toHaveBeenCalledTimes(25)
       })
 
       // ... (other logout action tests remain largely the same)
