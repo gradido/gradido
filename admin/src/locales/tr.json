@@ -24,6 +24,12 @@
     "reload": "Yenile",
     "text": "Daha yeni bir sürüm mevcut."
   },
+  "avatar": {
+    "zoom-open": "{name} resmini büyüt",
+    "zoom-open-plain": "Resmi büyüt",
+    "zoom-picture": "{name} resmi",
+    "zoom-picture-plain": "Profil resmi"
+  },
   "back": "geri",
   "bulkResubmission": {
     "cancel": "Do not apply",

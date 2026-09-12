@@ -10,9 +10,16 @@
       <span class="ms-2 me-2 no-select" data-test="moderator-name">
         {{ message.userAlias }}
       </span>
-      <BAvatar square variant="warning">
-        <variant-icon icon="person-fill" variant="black" />
-      </BAvatar>
+      <!-- The face of whoever wrote it, where they show one -- the moderation and the member
+           alike (Bernd, 12.09.2026). Without a picture the circle carries their letters, as
+           every other list of people does; the generic person icon said nothing about
+           anybody. -->
+      <member-avatar
+        :size="LIST_AVATAR_SIZE"
+        :name="authorName"
+        v-bind="authorAvatar"
+        @zoom="openPicture"
+      />
       <small v-if="isHistory">
         <hr />
         {{ $t('moderator.history') }}
@@ -25,9 +32,12 @@
       </small>
     </div>
     <div v-else class="text-start p-2 rounded-sm mb-3" :class="boxClass">
-      <BAvatar variant="info">
-        <variant-icon icon="person-fill" variant="white" />
-      </BAvatar>
+      <member-avatar
+        :size="LIST_AVATAR_SIZE"
+        :name="authorName"
+        v-bind="authorAvatar"
+        @zoom="openPicture"
+      />
       <span class="ms-2 me-2 no-select" data-test="user-name">
         {{ message.userAlias }}
       </span>
@@ -45,11 +55,16 @@
 </template>
 <script>
 import ParseMessage from '@/components/ContributionMessages/ParseMessage'
+import MemberAvatar from '@/components/MemberAvatar.vue'
+import { memberAvatarProps } from '@/composables/useMemberAvatars'
+import { openMemberAvatarZoom } from '@/composables/useMemberAvatarZoom'
+import { LIST_AVATAR_SIZE } from '@/constants'
 
 export default {
   name: 'ContributionMessagesListItem',
   components: {
     ParseMessage,
+    MemberAvatar,
   },
   props: {
     message: {
@@ -61,7 +76,34 @@ export default {
       required: true,
     },
   },
+  data() {
+    // The one size a face has in this interface, the same as in the wallet.
+    return { LIST_AVATAR_SIZE }
+  },
   computed: {
+    /**
+     * The author of THIS message, as a member is named everywhere: the pair, the alias, and
+     * the colour digit the server computed from the real initials.
+     *
+     * ⛔ Not the contribution's member and not the signed-in moderator -- the message says
+     * who wrote it, and a thread carries both sides. Taking it from anywhere else is how a
+     * face ends up next to somebody else's words.
+     */
+    author() {
+      return {
+        alias: this.message.userAlias,
+        avatarColorIndex: this.message.userAvatarColorIndex,
+        gradidoID: this.message.userGradidoID,
+        communityUuid: this.message.userCommunityUuid,
+        avatarUpdatedAt: this.message.userAvatarUpdatedAt,
+      }
+    },
+    authorAvatar() {
+      return memberAvatarProps(this.author)
+    },
+    authorName() {
+      return this.message.userAlias ?? ''
+    },
     isModeratorMessage() {
       return this.contributionUserId !== this.message.userId
     },
@@ -76,6 +118,18 @@ export default {
       if (this.isHistory) return 'is-user is-user-history-message'
       if (this.isModeratorMessage) return 'is-moderator is-moderator-message'
       return 'is-user is-user-message'
+    },
+  },
+  methods: {
+    openPicture() {
+      // Without an alias the plain wording -- see the same spot in the contributions table.
+      openMemberAvatarZoom({
+        member: this.author,
+        src: this.authorAvatar.src,
+        label: this.authorName
+          ? this.$t('avatar.zoom-picture', { name: this.authorName })
+          : this.$t('avatar.zoom-picture-plain'),
+      })
     },
   },
 }

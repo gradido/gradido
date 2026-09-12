@@ -4,6 +4,10 @@
     <AppOutdatedBar />
     <default-layout v-if="$store.state.token" />
     <router-view v-else></router-view>
+    <!-- ONE window for every face in this interface (a modal per row would build one per
+         contribution and per message). Only while signed in: it asks the server for the
+         full-size picture, and there is nobody to ask for before the moderator is. -->
+    <member-avatar-zoom v-if="$store.state.token" />
     <BModalOrchestrator />
   </div>
 </template>
@@ -11,6 +15,7 @@
 <script setup>
 import defaultLayout from '@/layouts/defaultLayout'
 import AppOutdatedBar from '@/components/AppOutdatedBar'
+import MemberAvatarZoom from '@/components/MemberAvatarZoom.vue'
 import { BModalOrchestrator } from 'bootstrap-vue-next'
 </script>
 <style>

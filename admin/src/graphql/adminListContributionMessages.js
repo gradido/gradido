@@ -17,6 +17,10 @@ export const adminListContributionMessages = gql`
         type
         userAlias
         userId
+        userAvatarColorIndex
+        userGradidoID
+        userCommunityUuid
+        userAvatarUpdatedAt
         isModerator
       }
     }
