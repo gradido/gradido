@@ -51,7 +51,8 @@ import {
   listContributions,
   myContributionCreationGroups as creationGroupsQuery,
 } from '@/graphql/contributions.graphql'
-import { useQuery } from '@vue/apollo-composable'
+import { useApolloClient, useQuery } from '@vue/apollo-composable'
+import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import { PAGE_SIZE } from '@/constants'
 import { useI18n } from 'vue-i18n'
 import CONFIG from '@/config'
@@ -64,6 +65,7 @@ const router = useRouter()
 
 // composables
 const { t } = useI18n()
+const { client: apolloClient } = useApolloClient()
 
 // constants
 const pageSize = PAGE_SIZE
@@ -147,6 +149,31 @@ const contributionCount = computed(() => {
 })
 const items = computed(() => {
   return [...(result.value?.listContributions.contributionList || [])]
+})
+
+/**
+ * The faces of everybody who wrote in one of these threads, fetched once for the page.
+ *
+ * Each message carries a date, not a picture (`userAvatarUpdatedAt`). Everything the wallet
+ * already holds under that date needs nothing; on a second visit that is usually all of
+ * them, and nothing is requested at all. Entries without a member behind them are dropped
+ * by the composable.
+ *
+ * ⛔ HERE rather than in the thread component: the whole page's threads arrive in one
+ * answer, and a fetch per opened thread would ask again for a moderator who wrote in three
+ * of them. Same place, same reason, as the booking column's fetch in DashboardLayout.
+ */
+onResult((answer) => {
+  const authors = (answer?.data?.listContributions?.contributionList ?? []).flatMap(
+    (contribution) =>
+      (contribution.messages ?? []).map((message) => ({
+        gradidoID: message.userGradidoID,
+        communityUuid: message.userCommunityUuid,
+        avatarUpdatedAt: message.userAvatarUpdatedAt,
+      })),
+  )
+  // Best effort, as everywhere: nobody loses their contribution list over a portrait.
+  fetchMemberAvatars(apolloClient, authors)
 })
 
 // callbacks

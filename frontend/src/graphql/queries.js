@@ -30,6 +30,9 @@ export const verifyLogin = gql`
   query {
     verifyLogin {
       gradidoID
+      # The other half of the pair that names a member: every query about a member asks
+      # about both, the member's own picture included.
+      communityUuid
       alias
       emailChecked
       # The address that is IN FORCE. The settings page reads it from the store, and the

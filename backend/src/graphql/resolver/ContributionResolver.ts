@@ -48,6 +48,7 @@ import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUncon
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { attachContributionCreationGroups } from './util/attachContributionCreationGroups'
+import { attachMessageAvatarDates } from './util/attachMessageAvatarDates'
 import { confirmContributionAs } from './util/confirmContributionAs'
 import { setContributionCreationGroups } from './util/contributionCreationGroups'
 import {
@@ -205,6 +206,11 @@ export class ContributionResolver {
       }),
     )
     await attachContributionCreationGroups(result.contributionList)
+    // ⛔ HERE, and not only in listContributionMessages: this is the query the wallet's
+    // contribution page really uses -- the thread arrives embedded in the contribution, and
+    // the other one is called by nothing. A picture date put only there would have been
+    // written, tested and shipped without a single screen ever reading it.
+    await attachMessageAvatarDates(result.contributionList.flatMap((item) => item.messages ?? []))
     return result
   }
 

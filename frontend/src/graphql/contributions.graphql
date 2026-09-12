@@ -30,6 +30,12 @@ fragment contributionMessageFields on ContributionMessage {
   userAlias
   userAvatarColorIndex
   userId
+  # The author as the wallet names a member everywhere else (the uuid pair) and the date of
+  # the picture they show — so the thread can carry faces the way every list of people does.
+  # null here means there is nothing to show, and the wallet must not ask why.
+  userGradidoID
+  userCommunityUuid
+  userAvatarUpdatedAt
 }
 
 query listContributions ($pagination: Paginated!, $filter: ContributionFilterArgs) {

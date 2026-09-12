@@ -297,6 +297,13 @@ export const listContributions = gql`
         updatedAt
         deletedAt
         moderatorId
+        messages {
+          id
+          userAlias
+          userGradidoID
+          userCommunityUuid
+          userAvatarUpdatedAt
+        }
       }
     }
   }
@@ -472,6 +479,9 @@ export const listContributionMessages = gql`
         userAlias
         userAvatarColorIndex
         userId
+        userGradidoID
+        userCommunityUuid
+        userAvatarUpdatedAt
       }
     }
   }

@@ -31,6 +31,13 @@ export const mutations = {
   gradidoID: (state, gradidoID) => {
     state.gradidoID = gradidoID
   },
+  // ⛔ The other half of the pair that names a member. `users` is unique on (gradido_id,
+  // community_uuid), and every query that asks about a member asks about both -- a missing
+  // uuid is read as IS NULL and matches nobody who registered normally. Kept here because
+  // the member's OWN picture is asked for the same way anybody else's is.
+  communityUuid: (state, communityUuid) => {
+    state.communityUuid = communityUuid
+  },
   username: (state, username) => {
     state.username = username
   },
@@ -123,6 +130,9 @@ export const mutations = {
 export const actions = {
   login: ({ commit, state }, data) => {
     commit('gradidoID', data.gradidoID)
+    // ?? null, like the fields below: a caller that does not select it must write null
+    // rather than undefined, or the persisted store keeps the PREVIOUS member's uuid.
+    commit('communityUuid', data.communityUuid ?? null)
     // A language deliberately chosen on the login page wins over the account
     // language, then is cleared once consumed. Browser auto-detection does not set
     // preLoginLanguage, so it never overrides the account language here.
@@ -172,6 +182,7 @@ export const actions = {
     commit('token', null)
     commit('username', '')
     commit('gradidoID', null)
+    commit('communityUuid', null)
     commit('firstName', '')
     commit('lastName', '')
     commit('newsletterState', null)
@@ -289,6 +300,7 @@ try {
       language: null,
       preLoginLanguage: null,
       gradidoID: null,
+      communityUuid: null,
       firstName: '',
       lastName: '',
       username: '',

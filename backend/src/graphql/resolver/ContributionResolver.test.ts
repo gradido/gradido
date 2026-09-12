@@ -1125,6 +1125,18 @@ describe('ContributionResolver', () => {
                 memo: 'Test PENDING contribution update',
                 amount: '10',
                 messagesCount: 1,
+                // ⛔ The thread arrives HERE, embedded in the contribution -- this is the
+                // query the wallet's contribution page uses, and the one that has to carry
+                // what a face needs: who wrote it, and when they last changed the picture
+                // they show. `null` for the date because nobody in the seeds has a picture;
+                // what is measured is that the field is filled in at all on this path.
+                messages: expect.arrayContaining([
+                  expect.objectContaining({
+                    userAlias: expect.any(String),
+                    userGradidoID: expect.any(String),
+                    userAvatarUpdatedAt: null,
+                  }),
+                ]),
               }),
               expect.objectContaining({
                 id: contributionToDeny.data.createContribution.id,
