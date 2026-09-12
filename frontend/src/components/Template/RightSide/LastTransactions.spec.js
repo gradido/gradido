@@ -52,6 +52,24 @@ vi.mock('@vue/apollo-composable', () => ({
 }))
 
 /**
+ * The column's OTHER way into a booking -- the one the name does not take.
+ *
+ * ⚠️ Mocked module-wide rather than per mount, and that is what makes a click measurable
+ * here at all: without a store and a router the component's `handleRedirect` throws on the
+ * first line, so every test that taps anything but the name would be reporting the
+ * exception rather than the behaviour.
+ */
+const { mockDispatch, mockReplace } = vi.hoisted(() => ({
+  mockDispatch: vi.fn(),
+  mockReplace: vi.fn(),
+}))
+vi.mock('vuex', () => ({ useStore: () => ({ dispatch: mockDispatch }) }))
+vi.mock('vue-router', () => ({
+  useRouter: () => ({ replace: mockReplace }),
+  useRoute: () => ({ name: 'Overview' }),
+}))
+
+/**
  * ⚠️ In EVERY mount in this file, not only the ones that ask about it. Four mounts here
  * carry their own stubs, and the three that left this one out pulled the real modal in --
  * `BModal` then went looking for a router-link and a modal-manager injection that no test
@@ -73,6 +91,23 @@ vi.mock('@/components/FavoriteHeart.vue', () => ({
     template: '<i class="heart-stub" />',
   },
 }))
+
+/**
+ * ⚠️ `VariantIcon` is auto-imported by the build (unplugin-vue-components) and by nothing at
+ * all under vitest, so a creation row would render it as an unknown element and warn. Its
+ * own icons come from unplugin-icons and are just as absent here.
+ *
+ * ⛔ `BAvatar` is deliberately NOT stubbed anywhere in this file: `rounded` and `variant` are
+ * names bootstrap-vue-next gives, and a stub answers to any name one cares to write. What
+ * the gift row asserts is what the real component MAKES of them.
+ */
+const variantIconStub = {
+  VariantIcon: {
+    name: 'VariantIcon',
+    props: ['icon'],
+    template: '<i class="icon-stub" :data-icon="icon" />',
+  },
+}
 
 describe('LastTransactions', () => {
   let wrapper
@@ -136,7 +171,7 @@ describe('LastTransactions', () => {
     expect(wrapper.findAll('.last-transactions-row').length).toBe(2)
   })
 
-  it('does not render DECAY, LINK_SUMMARY, or CREATION transactions', async () => {
+  it('does not render DECAY or LINK_SUMMARY transactions, and does render creations', async () => {
     const transactions = [
       {
         id: 1,
@@ -162,14 +197,16 @@ describe('LastTransactions', () => {
       {
         id: 4,
         typeId: 'CREATION',
-        linkedUser: { firstName: 'Alice', lastName: 'Brown' },
+        linkedUser: { alias: 'Gradido Akademie', gradidoID: 'community-stand-in' },
         amount: 400,
         balanceDate: '2023-01-04',
       },
     ]
     wrapper = createWrapper({ transactions })
     await wrapper.vm.$nextTick()
-    expect(wrapper.findAll('.last-transactions-row').length).toBe(1)
+    // The transfer and the creation: the two virtual rows are dropped, the creation stays
+    // (12.09.2026).
+    expect(wrapper.findAll('.last-transactions-row').length).toBe(2)
   })
 
   /**
@@ -177,9 +214,13 @@ describe('LastTransactions', () => {
    *
    * `LAST_TRANSACTIONS_PAGE_SIZE` exists ONLY to make `LAST_TRANSACTIONS_ROWS` reachable:
    * the layout asks for that many bookings, and this column then drops the two virtual rows
-   * page one always carries plus every creation before it cuts to eight. Asserting one
-   * constant against the other would be a tautology -- so this builds the page the server
-   * really sends and counts what a member ends up seeing.
+   * page one always carries before it cuts to eight. Asserting one constant against the
+   * other would be a tautology -- so this builds the page the server really sends and counts
+   * what a member ends up seeing.
+   *
+   * Since creations stand here too (12.09.2026) the page is no longer bigger than the cut;
+   * what this still measures is that the two virtual rows do not eat a place, because the
+   * backend adds them ON TOP of the page it was asked for.
    *
    * The review of 30.08.2026 found this uncovered by setting the fetch size to 1: every test
    * in this file and in the layout's stayed green while the column would have shown one row.
@@ -192,8 +233,8 @@ describe('LastTransactions', () => {
       amount: 100,
       balanceDate: '2023-01-01',
     })
-    // Two creations among the newest is the normal case, not the exception -- that is the
-    // whole reason the fetch is bigger than the cut.
+    // Two creations among the newest is the normal case, not the exception -- and they now
+    // take their place in the column like any other booking.
     const page = [
       ...Array.from({ length: LAST_TRANSACTIONS_PAGE_SIZE - 2 }, (_, i) =>
         booking(i + 1, 'TRANSFER'),
@@ -401,9 +442,13 @@ describe('LastTransactions', () => {
     // ⚠️ `fileURLToPath`, not `new URL(...)`: jsdom brings its own `URL` class and node
     // rejects an instance of it as coming from another realm.
     const here = dirname(fileURLToPath(import.meta.url))
+    // ⚠️ Comments OUT first. These files explain themselves at length, and a note that names
+    // the very declaration below it would answer this search instead of the code -- an
+    // injection that deleted `contain: inline-size` stayed green on 11.09.2026 for exactly
+    // that reason, in the booking list's spec.
     const styleOf = (file) => {
       const source = readFileSync(join(here, file), 'utf8')
-      return source.slice(source.indexOf('<style'))
+      return source.slice(source.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
     }
     const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     /** What one rule gives one property -- undefined if either is missing. */
@@ -503,6 +548,66 @@ describe('LastTransactions', () => {
       expect(wrapper.findAll('.transaction-details-link span')).toHaveLength(2)
       expect(wrapper.findAll('.transaction-details-link .small')).toHaveLength(0)
     })
+
+    /**
+     * ⛔ The load-bearing line of the memo change, and nothing else holds it.
+     *
+     * A row is as tall as the taller of its two sides, and the face is 48 points. With the
+     * memo the text beside it became three lines, and at the wallet's 1.5 they add up to
+     * more than that -- the bookings would grow taller than the contacts in the other
+     * position of the switch, which is the one thing the measure above exists to prevent.
+     * The column therefore sets a tighter line-height, and this holds the arithmetic:
+     * three type sizes times that line-height, plus the transparent border under the amount
+     * line, against the face.
+     *
+     * Delete the `line-height` rule and this is red; raise a type size past what the face
+     * allows and it is red too -- which is what a test for a number nobody can see has to do.
+     */
+    it('keeps the three lines together shorter than the face beside them', () => {
+      const ROOT_FONT_SIZE = 16
+      const points = (rule) => parseFloat(declared(bookings, rule, 'font-size')) * ROOT_FONT_SIZE
+      const lineHeight = Number(declared(bookings, '.last-transactions-text', 'line-height'))
+
+      expect(lineHeight).toBeGreaterThan(0)
+
+      const textBlock =
+        (points('.last-transactions-name') +
+          points('.transaction-details-link') +
+          points('.last-transactions-memo')) *
+          lineHeight +
+        // the transparent border the amount line carries for its hover
+        1
+
+      expect(textBlock).toBeLessThanOrEqual(LIST_AVATAR_SIZE)
+    })
+
+    /**
+     * The memo is one line and is cut, rather than growing the row to two or three -- it is
+     * the only line here written by somebody else, so it is the only one that can be long.
+     *
+     * ⚠️ `contain` is asserted with them because it belongs to `nowrap` wherever that is
+     * written (#3886), NOT because it was found to do something here: taken away in the
+     * dashboard's own columns at 1250 and 1440 points, the page and this column kept their
+     * width to the point. This column is a fixed share of the row, so nothing above it is
+     * sized by its content. The pair is kept together so a later move of this row cannot
+     * separate them.
+     */
+    it('keeps the memo to one cut line', () => {
+      expect(declared(bookings, '.last-transactions-memo', 'white-space')).toBe('nowrap')
+      expect(declared(bookings, '.last-transactions-memo', 'text-overflow')).toBe('ellipsis')
+      expect(declared(bookings, '.last-transactions-memo', 'contain')).toBe('inline-size')
+    })
+
+    // ⚠️ The rule above is worth nothing if the column it sets does not reach the markup --
+    // and a class in a template is exactly the kind of wiring no test usually covers.
+    it('sets that line-height on the column the three lines stand in', () => {
+      wrapper = mountRow()
+      const text = wrapper.find('.last-transactions-text')
+
+      expect(text.exists()).toBe(true)
+      expect(text.find('.last-transactions-name').exists()).toBe(true)
+      expect(text.find('.transaction-details-link').exists()).toBe(true)
+    })
   })
 
   it('draws a heart beside every row that has a counterparty, and none where there is none', async () => {
@@ -521,6 +626,17 @@ describe('LastTransactions', () => {
         amount: 2,
         balanceDate: '2026-01-02',
       },
+      // ⛔ A creation, and its stand-in carries a gradidoID exactly as a member does
+      // (backend/src/util/communityUser.ts). Reading that field alone -- as this column did
+      // until creations were let in -- puts a heart here and lets a member mark "the
+      // community" as a favourite.
+      {
+        id: 3,
+        typeId: 'CREATION',
+        linkedUser: { alias: 'Gradido Akademie', gradidoID: 'community-stand-in' },
+        amount: 400,
+        balanceDate: '2026-01-03',
+      },
     ]
     // Slot-rendering stubs: the plain `true` stubs above swallow the columns' content.
     wrapper = mount(LastTransactions, {
@@ -536,11 +652,204 @@ describe('LastTransactions', () => {
           BRow: { template: '<div><slot /></div>' },
           BCol: { template: '<div><slot /></div>' },
           ...contactWindowStub,
+          ...variantIconStub,
         },
       },
     })
     await nextTick()
     expect(wrapper.findAll('.heart-stub')).toHaveLength(1)
+  })
+
+  /**
+   * The memo in the row (Bernd, 12.09.2026) -- what the booking list has carried since
+   * 11.09.2026, in this column's measure: the first line, italic and muted, cut with an
+   * ellipsis, and no heading over it.
+   */
+  describe('the memo under a booking', () => {
+    const booking = (memo) => ({
+      id: 12,
+      typeId: 'SEND',
+      amount: '-12',
+      balanceDate: '2026-01-01',
+      linkedUser: { alias: 'margret', gradidoID: 'id-margret' },
+      memo,
+    })
+
+    // Slot-rendering stubs: the shared helper's `true` stubs swallow the columns, and the
+    // memo lives inside one.
+    const mountRow = (transaction) =>
+      mount(LastTransactions, {
+        props: { transactions: [transaction] },
+        global: {
+          mocks: {
+            $t: (key) => key,
+            $d: (date) => String(date),
+            $filters: { signedAmount: (amount) => String(amount) },
+          },
+          stubs: {
+            BRow: { template: '<div><slot /></div>' },
+            BCol: { template: '<div><slot /></div>' },
+            ...contactWindowStub,
+            ...variantIconStub,
+          },
+        },
+      })
+
+    const memoLine = () => wrapper.find('[data-test="last-transactions-memo"]')
+
+    beforeEach(() => {
+      mockDispatch.mockReset()
+      mockReplace.mockReset()
+    })
+
+    it('shows what the sender wrote', () => {
+      wrapper = mountRow(booking('Danke fuer die Suppe'))
+
+      expect(memoLine().exists()).toBe(true)
+      expect(memoLine().text()).toBe('Danke fuer die Suppe')
+    })
+
+    // Practically never: `memo` cannot be null in the database and every path that books
+    // demands at least five characters. The line goes away rather than standing empty.
+    it('leaves the line out where a booking carries no memo', () => {
+      wrapper = mountRow(booking(''))
+
+      expect(memoLine().exists()).toBe(false)
+    })
+
+    /**
+     * ⛔ Never as markup. A memo is written by the OTHER side of the booking, and three
+     * components used to hand it to the page as HTML (#3884). `MemoText` cuts it into text
+     * and addresses; both reach the page through Vue, which escapes them.
+     */
+    it('renders an address in it as a link, and its markup as text', () => {
+      wrapper = mountRow(booking('<b>hi</b> see https://gradido.net'))
+
+      const link = memoLine().find('a')
+      expect(link.exists()).toBe(true)
+      expect(link.attributes('href')).toBe('https://gradido.net')
+      expect(memoLine().html()).not.toContain('<b>')
+      expect(memoLine().text()).toContain('<b>hi</b>')
+    })
+
+    /**
+     * A tap leads to the booking, exactly as the amount line above it does -- and there the
+     * whole memo stands, so the cut line has somewhere to be read out.
+     */
+    it('takes a tap to the booking', async () => {
+      wrapper = mountRow(booking('Danke fuer die Suppe'))
+
+      await memoLine().trigger('click')
+
+      expect(mockDispatch).toHaveBeenCalledWith('changeTransactionToHighlightId', 12)
+      expect(mockReplace).toHaveBeenCalledWith({ name: 'Transactions' })
+    })
+
+    // ⚠️ A link inside the memo keeps its own click (MemoText). Without that, following an
+    // address in a memo would ALSO navigate to the booking -- and the booking would win.
+    it('lets a link in it keep its own click', async () => {
+      wrapper = mountRow(booking('see https://gradido.net'))
+
+      // jsdom cannot navigate and says so on every followed link; stopped before it tries.
+      const noNavigation = (event) => event.preventDefault()
+      document.addEventListener('click', noNavigation, true)
+      await memoLine().find('a').trigger('click')
+      document.removeEventListener('click', noNavigation, true)
+
+      expect(mockDispatch).not.toHaveBeenCalled()
+      expect(mockReplace).not.toHaveBeenCalled()
+    })
+  })
+
+  /**
+   * Creations in the column (Bernd, 12.09.2026). They were filtered out from the start, and
+   * every one of the three things below is the reason it was not merely a filter to delete:
+   * the row names a community, and the community's stand-in looks like a member.
+   */
+  describe('a creation among the bookings', () => {
+    const creation = {
+      id: 21,
+      typeId: 'CREATION',
+      amount: '400',
+      balanceDate: '2026-01-03',
+      memo: 'Gartenarbeit im Gemeinschaftsgarten',
+      // What the backend really sends: the community's stand-in, gradidoID and all
+      // (backend/src/util/communityUser.ts).
+      linkedUser: {
+        alias: 'Gradido Akademie',
+        gradidoID: '11111111-2222-4333-4444-55555555',
+        communityName: 'Gradido Akademie',
+      },
+    }
+
+    const mountCreation = () =>
+      mount(LastTransactions, {
+        props: { transactions: [creation] },
+        global: {
+          mocks: {
+            $t: (key) => key,
+            $d: (date) => String(date),
+            $filters: { signedAmount: (amount) => String(amount) },
+          },
+          stubs: {
+            BRow: { template: '<div><slot /></div>' },
+            BCol: { template: '<div><slot /></div>' },
+            ...contactWindowStub,
+            ...variantIconStub,
+          },
+        },
+      })
+
+    /**
+     * ⛔ Measured at the REAL `BAvatar`, not at a stub: `rounded` and `variant` are its own
+     * prop names, and a stub declares whatever one writes into it. What is asserted is what
+     * the component MAKES of them -- a green square instead of the grey circle it draws
+     * without them.
+     */
+    it('wears the gift square instead of a face', () => {
+      wrapper = mountCreation()
+
+      const gift = wrapper.find('[data-test="creation-gift"]')
+      expect(gift.exists()).toBe(true)
+      expect(gift.classes()).toContain('text-bg-success')
+      expect(gift.classes()).not.toContain('rounded-circle')
+      expect(gift.attributes('style')).toContain(`width: ${LIST_AVATAR_SIZE}px`)
+      expect(gift.find('[data-icon="gift"]').exists()).toBe(true)
+      // And no member's circle beside it.
+      expect(wrapper.find('.app-avatar').exists()).toBe(false)
+    })
+
+    /**
+     * ⛔ The name is TEXT here. `Name` turns itself into a button for anybody with a
+     * gradidoID, and the stand-in has one -- so handed over it would offer a contact window
+     * about "the community", and the lookup behind it would ask about a member who does not
+     * exist.
+     */
+    it('names the community without offering a contact window about it', async () => {
+      wrapper = mountCreation()
+
+      expect(wrapper.find('.last-transactions-community').text()).toBe('Gradido Akademie')
+      expect(wrapper.find('[data-test="name-open"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="contact-window"]').attributes()['data-open']).toBe('false')
+      expect(mockApolloQuery).not.toHaveBeenCalled()
+    })
+
+    // Nobody to mark: a community is not a favourite. The gradidoID of the stand-in must
+    // not be read as "there is a person here" -- see the heart test above.
+    it('carries no heart', () => {
+      wrapper = mountCreation()
+
+      expect(wrapper.find('.heart-stub').exists()).toBe(false)
+    })
+
+    // The creation's own words -- the contribution text -- in the row like any other memo.
+    it('shows the contribution text as its memo', () => {
+      wrapper = mountCreation()
+
+      expect(wrapper.find('[data-test="last-transactions-memo"]').text()).toBe(
+        'Gartenarbeit im Gemeinschaftsgarten',
+      )
+    })
   })
 
   /**

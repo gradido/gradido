@@ -81,7 +81,13 @@ export default {
   emits: ['open'],
   computed: {
     // Nobody to open a window about: a row whose counterparty the backend could not
-    // resolve, and the creation rows, which name the community and not a member.
+    // resolve.
+    //
+    // ⛔ NOT the creation rows, although they name a community rather than a member: the
+    // stand-in the backend links them to carries a gradidoID like anybody else
+    // (backend/src/util/communityUser.ts), so this condition says yes for them. Both lists
+    // that show creations keep them away from this component instead, and print the
+    // community's name as plain text (GddTransaction, RightSide/LastTransactions).
     opensWindow() {
       return this.opens && Boolean(this.linkedUser?.gradidoID)
     },
