@@ -1,4 +1,7 @@
 // AI-GENERATED — not an architecture reference
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
@@ -7,6 +10,7 @@ import {
   memberAvatarZoomState,
   openMemberAvatarZoom,
 } from '@/composables/useMemberAvatarZoom'
+import { BModal } from 'bootstrap-vue-next'
 import MemberAvatarZoom from './MemberAvatarZoom.vue'
 
 const { mockQuery } = vi.hoisted(() => ({ mockQuery: vi.fn() }))
@@ -153,6 +157,59 @@ describe('MemberAvatarZoom', () => {
 
     expect(wrapper.findAll('img')).toHaveLength(1)
     expect(wrapper.find('img').attributes('src')).toBe('data:image/jpeg;base64,small')
+  })
+
+  /**
+   * ⛔ Measured at the REAL modal, because what is measured is a NAME the library gives.
+   * `hide-footer` is not a prop of bootstrap-vue-next -- it declares `noFooter` -- and a prop
+   * it does not know is dropped in silence: the picture opened with a Cancel and an OK button
+   * behind it, and no stub could ever have said so (Bernd, 12.09.2026).
+   */
+  it('opens as a picture and nothing else: no title bar, no buttons', async () => {
+    mockQuery.mockResolvedValue({ data: { memberAvatarFull: null } })
+    wrapper = mount(MemberAvatarZoom, {
+      attachTo: document.body,
+      global: { mocks: { $t: (key) => key }, components: { BModal } },
+    })
+
+    openMemberAvatarZoom({ member: margret, src: 'data:image/jpeg;base64,small' })
+    await nextTick()
+    await nextTick()
+
+    const modal = document.body.querySelector('.modal')
+    expect(modal).not.toBeNull()
+    expect(modal.querySelector('.modal-footer')).toBeNull()
+    expect(modal.querySelector('.modal-header')).toBeNull()
+    // The picture is there, and it is the only thing that is.
+    expect(modal.querySelector('[data-test="member-avatar-zoom-small"]')).not.toBeNull()
+    expect(modal.querySelectorAll('button')).toHaveLength(0)
+  })
+
+  /**
+   * The picture is shown ROUND and whole (Bernd, 12.09.2026): a square box of a fixed size,
+   * the face filling it, the corners taken off. jsdom lays nothing out, so the rule is read
+   * where it is written -- with the comments stripped first, or a note that names the very
+   * declaration below it would answer this search instead of the code.
+   */
+  it('shows the face round, in a box that cannot overflow', () => {
+    const here = dirname(fileURLToPath(import.meta.url))
+    const source = readFileSync(join(here, 'MemberAvatarZoom.vue'), 'utf8').replace(
+      /\/\*[\s\S]*?\*\/|<!--[\s\S]*?-->/g,
+      '',
+    )
+    const ruleOf = (selector) =>
+      new RegExp(`(?:^|\\n)\\${selector}\\s*\\{([^}]*)\\}`).exec(source)?.[1] ?? ''
+
+    const image = ruleOf('.member-avatar-zoom-image')
+    expect(image).toContain('border-radius: 50%')
+    expect(image).toContain('object-fit: cover')
+
+    // A box of its own, square, and never wider than the window -- the old layout centred the
+    // full size on a box the size of the SMALL rendition, and it spilled over the modal's
+    // edges, above and below.
+    const stage = ruleOf('.member-avatar-zoom-stage')
+    expect(stage).toContain('aspect-ratio: 1')
+    expect(stage).toMatch(/width:\s*min\(/)
   })
 
   // Nothing to open without a picture on this device -- enlarging letters is not a thing.
