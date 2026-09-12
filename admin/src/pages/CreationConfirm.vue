@@ -116,7 +116,8 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { useQuery, useMutation } from '@vue/apollo-composable'
+import { useApolloClient, useQuery, useMutation } from '@vue/apollo-composable'
+import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { useModal } from 'bootstrap-vue-next'
@@ -151,6 +152,7 @@ const { t } = useI18n()
 const { toastError, toastSuccess, toastWarning } = useAppToast()
 
 const tabIndex = ref(0)
+const { client: apolloClient } = useApolloClient()
 const items = ref([])
 const overlay = ref(false)
 const item = ref({})
@@ -451,6 +453,13 @@ onError((error) => {
 onResult(() => {
   rows.value = result.value.adminListContributions.contributionCount
   items.value = result.value.adminListContributions.contributionList
+  // The faces of the members whose contributions are on this page, in one round trip. Each
+  // row carries a DATE, not a picture; everything already held under that date needs
+  // nothing, so paging back and forth asks for nothing at all.
+  fetchMemberAvatars(
+    apolloClient,
+    items.value.map((contribution) => contribution.user).filter(Boolean),
+  )
   if (statusFilter.value.toString() === FILTER_TAB_MAP[0].toString()) {
     store.commit('setOpenCreations', result.value.adminListContributions.contributionCount)
   }

@@ -24,6 +24,7 @@ import {
   AppDatabase,
   Contribution as DbContribution,
   User as DbUser,
+  dbFindMemberAvatarTimestamps,
   dbFindUserContactWithUserByEmail,
   findUserNamesByIds,
 } from 'database'
@@ -479,6 +480,28 @@ export class ContributionResolver {
       contribution.moderatorUserName = getNameById(contribution.moderatorId)
       contribution.closedByUserName = getNameById(contribution.closedBy)
     }
+
+    // When the member whose contribution this is last changed the picture other members may
+    // see -- one query for the page, the way the booking list and the contact list fill the
+    // same field. The moderation sees a face where the member shows one, and initials where
+    // they do not; `dbFindMemberAvatarTimestamps` decides that, not this loop.
+    //
+    // ⚠️ Only where the list was asked for its members at all: without `user` in the
+    // selection the rows carry none, and asking the database about an empty set of ids is a
+    // round trip for nothing.
+    const contributionUsers = result.contributionList
+      .map((contribution) => contribution.user)
+      .filter((user): user is NonNullable<typeof user> => user !== null && user !== undefined)
+    const avatarDates = await dbFindMemberAvatarTimestamps(contributionUsers.map((user) => user.id))
+    for (const user of contributionUsers) {
+      user.avatarUpdatedAt = avatarDates.get(user.id) ?? null
+    }
+
+    // The threads of the page, where they were asked for: their authors carry the same date,
+    // filled the same way (attachMessageAvatarDates).
+    await attachMessageAvatarDates(
+      result.contributionList.flatMap((contribution) => contribution.messages ?? []),
+    )
     return result
   }
 

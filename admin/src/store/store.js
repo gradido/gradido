@@ -1,6 +1,7 @@
 import { createStore } from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
 import CONFIG from '../config'
+import { forgetAllMemberAvatars } from '@/composables/useMemberAvatars'
 
 export const mutations = {
   openCreationsPlus: (state, i) => {
@@ -27,6 +28,10 @@ export const actions = {
   logout: ({ commit, state }) => {
     commit('token', null)
     commit('moderator', null)
+    // The member pictures this session fetched. They are other people's faces, held only to
+    // save round trips -- whoever signs in next has no business with them, and the same
+    // browser is routinely used by more than one moderator.
+    forgetAllMemberAvatars()
     // Remove only the admin's own persisted state (its token lives in this blob).
     // The wallet and admin share one origin, so localStorage.clear() would also wipe
     // the wallet's session and the shared dark-mode theme key.

@@ -64,7 +64,8 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { useQuery } from '@vue/apollo-composable'
+import { useApolloClient, useQuery } from '@vue/apollo-composable'
+import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import { adminListContributionMessages } from '../../graphql/adminListContributionMessages.js'
 import { useAppToast } from '@/composables/useToast'
 import { BListGroupItem } from 'bootstrap-vue-next'
@@ -113,6 +114,8 @@ const humhubProfileLink = computed(() => {
   return `${url}/u/${props.contribution.user.userIdentifier}`
 })
 
+const { client: apolloClient } = useApolloClient()
+
 const messages = ref([])
 
 const { onResult, onError, result, refetch } = useQuery(
@@ -131,6 +134,17 @@ onError((error) => {
 
 onResult(() => {
   messages.value = result.value.adminListContributionMessages.messages
+  // The faces of everybody who wrote in this thread, in one round trip. Each message carries
+  // a DATE, not a picture: everything already held under that date needs nothing, so opening
+  // the same thread twice asks for nothing at all.
+  fetchMemberAvatars(
+    apolloClient,
+    messages.value.map((message) => ({
+      gradidoID: message.userGradidoID,
+      communityUuid: message.userCommunityUuid,
+      avatarUpdatedAt: message.userAvatarUpdatedAt,
+    })),
+  )
 })
 
 const updateStatus = (id) => {

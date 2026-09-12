@@ -24,6 +24,12 @@
     "reload": "Recharger",
     "text": "Nouvelle version disponible."
   },
+  "avatar": {
+    "zoom-open": "Enlarge picture of {name}",
+    "zoom-open-plain": "Enlarge picture",
+    "zoom-picture": "Picture of {name}",
+    "zoom-picture-plain": "Profile picture"
+  },
   "back": "retour",
   "bulkResubmission": {
     "cancel": "Do not apply",
