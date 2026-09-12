@@ -1057,7 +1057,7 @@
     "lastTransactions": "Últimas transacciones",
     "noneWithMember": "Todavía no hay movimientos con este miembro.",
     "nullTransactions": "Todavía no tienes ninguna transacción en tu cuenta.",
-    "onlyWith": "Solo movimientos con {name}",
+    "onlyWith": "{n} movimiento con {name} | {n} movimientos con {name}",
     "onlyWithSomeone": "Solo movimientos con un miembro",
     "receiverDeleted": "La cuenta del destinatario ha sido eliminada.",
     "receiverNotFound": "Destinatario no encontrado",

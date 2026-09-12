@@ -1057,7 +1057,7 @@
     "lastTransactions": "Последние транзакции",
     "noneWithMember": "С этим участником пока нет операций.",
     "nullTransactions": "На вашем счету еще нет ни одной транзакции.",
-    "onlyWith": "Только операции с {name}",
+    "onlyWith": "{n} операция с {name} | {n} операции с {name} | {n} операций с {name}",
     "onlyWithSomeone": "Только операции с участником",
     "receiverDeleted": "Счет получателя был удален",
     "receiverNotFound": "Получатель не найден",
