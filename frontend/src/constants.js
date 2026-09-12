@@ -5,18 +5,18 @@ export const PAGE_SIZE = 25
  * The booking column beside the overview.
  *
  * `LAST_TRANSACTIONS_ROWS` is what the column shows; `LAST_TRANSACTIONS_PAGE_SIZE` is what
- * the layout has to ask for to fill it. The two are not the same number because the column
- * draws from the same list as the transactions page and then drops three kinds of row it
- * does not show: the two virtual ones the backend adds to page one (decay, open links) and
- * every creation. At a page size of eight the column would run short as soon as a member had
- * a creation among their newest bookings -- which is the normal case, not the exception.
+ * the layout asks the server for. They are ONE number since the column shows creations too
+ * (12.09.2026): the only rows it still drops are the two virtual ones -- the decay and the
+ * summary of open links -- and the backend puts those on TOP of the page it was asked for
+ * ("first page can contain 26 due to virtual decay transaction", TransactionResolver). A
+ * page of eight therefore really carries eight bookings.
  *
- * ⚠️ The headroom is an estimate, not a guarantee: a member with five creations in a row
- * still sees fewer than eight. Raise the fetch if the column looks sparse; it is a page of
- * bookings, not a promise of eight.
+ * ⚠️ Until then the fetch was larger than the cut, because every creation was thrown away
+ * after it had been fetched -- and that headroom was an estimate that a member with several
+ * creations in a row could still outrun. Now the cut takes what the page brings.
  */
 export const LAST_TRANSACTIONS_ROWS = 8
-export const LAST_TRANSACTIONS_PAGE_SIZE = 12
+export const LAST_TRANSACTIONS_PAGE_SIZE = LAST_TRANSACTIONS_ROWS
 // compound interest factor (decay reversed) for 14 days (hard coded backend link timeout)
 // 365.2425 days per year (gregorian calendar year)
 export const LINK_COMPOUND_INTEREST_FACTOR = Math.pow(2, 14 / 365.2425)

@@ -28,17 +28,38 @@
       class="g-0 last-transactions-row"
     >
       <BCol cols="auto">
+        <!-- A creation has no face, because there is no person on the other side: the
+             community is. The gift square is the booking list's own (GddTransaction), at
+             the size every face in this column has. -->
+        <BAvatar
+          v-if="row.isCreation"
+          :size="LIST_AVATAR_SIZE"
+          rounded="lg"
+          variant="success"
+          data-test="creation-gift"
+        >
+          <variant-icon icon="gift" variant="white" />
+        </BAvatar>
         <!-- The size every list of people in the wallet uses, the contacts in the other
              position of the switch above included. See the constant for why 48. -->
-        <app-avatar :size="LIST_AVATAR_SIZE" :color="'#fff'" v-bind="row.avatar" />
+        <app-avatar v-else :size="LIST_AVATAR_SIZE" :color="'#fff'" v-bind="row.avatar" />
       </BCol>
-      <BCol class="min-w-0">
+      <BCol class="min-w-0 last-transactions-text">
         <!-- The name opens the contact window (KF-010), the same one the contact list
              opens -- it is not a way into the send form any more, here as little as
              anywhere else. The button under it still leads to the booking itself, so the
              two things this row can mean stay two controls. -->
         <div class="fw-bold last-transactions-name">
+          <!-- ⛔ A creation's name is NOT handed to `Name`, and not because of the words it
+               would print. `Name` makes itself a button wherever it is given a member with
+               a gradidoID -- and the community's stand-in carries one
+               (backend/src/util/communityUser.ts), so it would offer a contact window about
+               "the community". The booking list keeps the two apart in the same way. -->
+          <span v-if="row.isCreation" class="last-transactions-community">
+            {{ row.communityName }}
+          </span>
           <name
+            v-else
             :linked-user="row.transaction.linkedUser"
             font-color="text-dark"
             @open="openMember"
@@ -75,10 +96,29 @@
             {{ $d(new Date(row.transaction.balanceDate), 'short') }}
           </span>
         </button>
+        <!-- ⛔ The memo's first line, readable without leaving the overview -- the booking
+             list has shown it in its rows since 11.09.2026, and this column is the same
+             list in short. No heading over it: the italics and the muted colour say what it
+             is. A tap leads to the booking, as the line above does, and there the whole
+             memo stands.
+
+             Never `v-html`: a memo is written by the OTHER side of the booking. `MemoText`
+             cuts it into text and addresses and renders both through Vue, which escapes
+             them (see utils/memoParts). A link inside it keeps its own click, so following
+             it does not also navigate. -->
+        <div
+          v-if="row.transaction.memo"
+          class="last-transactions-memo"
+          data-test="last-transactions-memo"
+          @click="handleRedirect(row.transaction.id)"
+        >
+          <memo-text :memo="row.transaction.memo" />
+        </div>
       </BCol>
-      <!-- The heart at the row's end (KF-005); every row here has a counterparty,
-           creations are filtered out of `rows` below. -->
-      <BCol v-if="row.transaction.linkedUser?.gradidoID" cols="auto">
+      <!-- The heart at the row's end (KF-005), where there is somebody to mark. A creation
+           names the community's stand-in, which carries a gradidoID like any member -- so
+           "has a counterparty" is worked out in `rows` below and not from that field. -->
+      <BCol v-if="row.hasCounterparty" cols="auto">
         <favorite-heart :member="row.transaction.linkedUser" />
       </BCol>
     </BRow>
@@ -89,6 +129,14 @@
 </template>
 <script setup>
 import Name from '@/components/TransactionRows/Name'
+import MemoText from '@/components/TransactionRows/MemoText'
+// ⚠️ Imported, although the build auto-imports both (unplugin-vue-components) and the rows
+// around them get `BRow`/`BCol` that way. Under vitest there is no such plugin: a component
+// that arrives only through it renders as an unknown element, and a stub cannot stand in for
+// a name that was never resolved. The gift square is measured at the real `BAvatar`, so it
+// has to be the real one that the test mounts.
+import { BAvatar } from 'bootstrap-vue-next'
+import VariantIcon from '@/components/VariantIcon.vue'
 import ContactWindow from '@/components/Contacts/ContactWindow.vue'
 import FavoriteHeart from '@/components/FavoriteHeart.vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -99,6 +147,7 @@ import AppAvatar from '@/components/AppAvatar.vue'
 import { avatarZoomBindings } from '@/composables/useAvatarZoom'
 import { useContactWindow } from '@/composables/useContactWindow'
 import { memberAvatarProps } from '@/composables/useMemberAvatars'
+import { memberAlias } from '@/utils/gradidoAddress'
 import { LAST_TRANSACTIONS_ROWS, LIST_AVATAR_SIZE } from '@/constants'
 
 const props = defineProps({
@@ -140,25 +189,45 @@ const handleRedirect = (id) => {
 // and everything downstream of here is written for that.
 const rows = computed(() =>
   props.transactions
+    // The two rows the backend puts on top of page one and this column does not show: the
+    // decay of the member's own balance, and the summary of their open links. Both are
+    // about the whole account rather than a booking, and neither has a memo.
+    //
+    // ⛔ Creations DO stand here, since 12.09.2026. They are bookings like any other, and
+    // dropping them made "the newest bookings" a list with holes in it -- a member who had
+    // just been given a creation found it missing from the column beside the overview.
     .filter(
-      (transaction) =>
-        transaction.typeId !== 'DECAY' &&
-        transaction.typeId !== 'LINK_SUMMARY' &&
-        transaction.typeId !== 'CREATION',
+      (transaction) => transaction.typeId !== 'DECAY' && transaction.typeId !== 'LINK_SUMMARY',
     )
-    // ⚠️ The fetch that feeds this is sized in `constants.js` for exactly this cut, and it
-    // is deliberately larger: three kinds of row are dropped above and never reach the
-    // count. Change the number here and the fetch has to grow with it, or the column simply
-    // shows fewer rows than it asks for.
+    // ⚠️ The fetch that feeds this is sized in `constants.js` for exactly this cut. Change
+    // the number here and the fetch has to grow with it, or the column simply shows fewer
+    // rows than it asks for.
     .slice(0, LAST_TRANSACTIONS_ROWS)
     .map((transaction) => {
-      const avatar = memberAvatarProps(transaction.linkedUser)
+      const isCreation = transaction.typeId === 'CREATION'
+      const avatar = isCreation ? null : memberAvatarProps(transaction.linkedUser)
       return {
         transaction,
+        isCreation,
+        // ⛔ Worked out here, once per row, rather than from `linkedUser.gradidoID` in the
+        // template: a creation is linked to the community's STAND-IN, and that stand-in
+        // carries a gradidoID like any member. Asking the field would put a heart beside
+        // every creation and let a member mark the community as a favourite. Same
+        // condition, same reason, as `hasCounterparty` in the booking list.
+        hasCounterparty: !isCreation && Boolean(transaction.linkedUser?.gradidoID),
+        // The COMMUNITY's name (NU-020) -- a creation is approved by a moderator, but it
+        // is the community that gives, and the backend swaps its stand-in in for exactly
+        // that reason. `memberAlias` falls back to the gradidoID, as everywhere else.
+        communityName: isCreation
+          ? memberAlias(transaction.linkedUser?.alias, transaction.linkedUser?.gradidoID)
+          : '',
         // Spread into one object, so the template still binds a single `row.avatar`. The
         // zoom half is empty for a member without a picture, which leaves that circle
-        // exactly as it was (AS-018).
-        avatar: { ...avatar, ...avatarZoomBindings(transaction.linkedUser, avatar) },
+        // exactly as it was (AS-018). A creation has no face at all, so nothing is worked
+        // out for it -- not even the letters of the community's name.
+        avatar: isCreation
+          ? null
+          : { ...avatar, ...avatarZoomBindings(transaction.linkedUser, avatar) },
       }
     }),
 )
@@ -187,6 +256,58 @@ const rows = computed(() =>
 
 .last-transactions-name {
   font-size: 0.85rem;
+}
+
+/* ⛔ The three lines are set tighter than the wallet's 1.5, and that is a rule about the
+   ROW, not about the type: together they have to stay under the 48-point face beside them,
+   because the face is what decides how tall a row is. At 1.5 the memo's line pushed the
+   text block past the face and the bookings grew taller than the contacts in the other
+   position of the switch -- the one thing H was built to make the same (Bernd, 12.09.2026,
+   asked and answered before this was written).
+
+   The type sizes are untouched, so the two positions still agree on those; what differs is
+   the space BETWEEN the lines of one row. */
+.last-transactions-text {
+  line-height: 1.2;
+}
+
+/* The community's name on a creation row, where a member's name stands otherwise. Clipped
+   the same way `Name` clips (a community may be called anything), and `contain` for the
+   reason the memo below gives. */
+.last-transactions-community {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  contain: inline-size;
+}
+
+/* The memo, marked as somebody else's words by italics and the muted colour -- no heading
+   over it, exactly as in the booking list. `--bs-secondary-color` is defined in both modes.
+   The size is Bernd's (12.09.2026): a step under the amount and date above it, because the
+   memo is the third thing this row says, not the second. `cursor` because the line leads to
+   the booking; a link inside it keeps its own click (MemoText). */
+.last-transactions-memo {
+  font-size: 0.65rem;
+  font-style: italic;
+  color: var(--bs-secondary-color, #6c757d);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  /* The guard that belongs to `white-space: nowrap`, not to this place: a line that cannot
+     break counts with its FULL length as the least width of every parent that works its own
+     out, and that is what pushed the page apart when the booking list got this memo (#3886).
+
+     ⚠️ Measured here, in the dashboard's own three columns at 1250 and 1440 points, with
+     the longest memo in the fixture: taking it away changed NOTHING -- page 1262 points
+     either way, column 319 either way. This column is a fixed share of the row (col-3), so
+     its width is not worked out from its content the way the content column's is. It stays
+     because the guard travels with the `nowrap` line: whoever moves this row somewhere that
+     does size to content would otherwise meet #3886 again, and would have no reason to look
+     here for the cause. */
+  contain: inline-size;
 }
 
 /* ⛔ The column that grows has to be allowed to SHRINK, or the heart beside it drops onto a
