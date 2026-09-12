@@ -58,6 +58,8 @@
           :center="lensOrigin"
           :center-label="centerLabel"
           :my-precision="MY_PRECISION"
+          :reach="reach"
+          :radius-km="radius"
           :sort-mode="sortMode"
           :lens-mode="lensMode"
           :show-lens="showLens"
@@ -136,6 +138,22 @@
           <BCol cols="12" md="7">
             <!-- The radius asks, the count answers — so they stand together. -->
             <div class="controls-heading radius-row">
+              <!-- How far the question travels. It stands in front of the radius
+                   because it decides what the radius means: each reach owns its own
+                   circle, so switching here moves the number beside it. -->
+              <div class="reach-switch" role="group" :aria-label="$t('matching.map.reach.label')">
+                <button
+                  v-for="option in REACHES"
+                  :key="option"
+                  type="button"
+                  class="reach-btn"
+                  :class="{ 'is-on': reach === option }"
+                  :aria-pressed="reach === option"
+                  @click="setReach(option)"
+                >
+                  {{ $t(`matching.map.reach.${option}`) }}
+                </button>
+              </div>
               <span>{{ $t('matching.map.radius') }}</span>
               <button type="button" class="radius-field" @click="openRadius">{{ radius }}</button>
               <span>{{ $t('matching.map.km') }}</span>
@@ -157,12 +175,22 @@
                 <span class="swatch" :style="swatchStyle(channel)" />
                 {{ $t(`matching.map.channels.${channel}`) }}
               </label>
-              <label v-for="bucket in OTHERS" :key="bucket" class="map-check">
-                <input v-model="visible[bucket]" type="checkbox" />
-                <span class="box" />
-                <span class="swatch" :style="swatchStyle(bucket)" />
-                {{ $t(`matching.map.channels.${bucket}`) }}
-              </label>
+              <!-- The two grey buckets are the presence rings, and the wide search
+                   draws none: a ring is the neighbour you could walk up to. They step
+                   back rather than sit there dead - and rather than being unticked,
+                   which would make the way back a chore nobody performs. -->
+              <template v-if="reach === 'regional'">
+                <label v-for="bucket in OTHERS" :key="bucket" class="map-check">
+                  <input v-model="visible[bucket]" type="checkbox" />
+                  <span class="box" />
+                  <span class="swatch" :style="swatchStyle(bucket)" />
+                  {{ $t(`matching.map.channels.${bucket}`) }}
+                </label>
+              </template>
+            </div>
+            <!-- Explanation, not instruction — the first thing to give up for room. -->
+            <div v-if="reach === 'fern'" class="small text-muted mt-1 d-none d-lg-block">
+              {{ $t('matching.map.reach.fernHint') }}
             </div>
           </BCol>
           <!-- The amplifier is the map's reveal tool; in the list it becomes the
@@ -229,7 +257,9 @@
          That is what buys the map its freedom to be panned and zoomed for free. -->
     <BModal
       v-model="radiusModal"
-      :title="$t('matching.map.radiusTitle')"
+      :title="
+        reach === 'fern' ? $t('matching.map.radiusTitleFern') : $t('matching.map.radiusTitle')
+      "
       :ok-title="$t('form.save')"
       ok-variant="gradido"
       :cancel-title="$t('form.cancel')"
@@ -237,16 +267,22 @@
       :ok-disabled="!radiusValid"
       centered
       @ok="applyRadius"
+      @shown="selectRadius"
     >
       <label class="form-label" for="map-radius-input">{{ $t('matching.map.radiusLabel') }}</label>
       <BFormInput
         id="map-radius-input"
+        ref="radiusInput"
         v-model.number="radiusDraft"
         type="number"
         min="1"
         :max="MAX_RADIUS"
         @keyup.enter="submitRadius"
       />
+      <!-- Which of the two circles this is, and where the other one stays. The dialog
+           looks the same in both reaches, and a number typed into the wrong one is not
+           noticed here - only later, when the map shows something nobody asked for. -->
+      <div class="small text-muted mt-2">{{ radiusHint }}</div>
     </BModal>
 
     <!-- The profile of whoever was clicked. One window: a person with no matches
@@ -325,7 +361,12 @@ const MY_PRECISION = 'genau'
 // street name of the one before it. The prefix carries the gradidoID now; see
 // utils/matchingPrefs.
 const DEFAULT_RADIUS = 25
+// The wide reach starts wider: 500 km reaches Hamburg from Kuenzelsau and stops short
+// of Vienna, which is about the size of a question somebody would still travel for.
+const DEFAULT_RADIUS_FERN = 500
 const MAX_RADIUS = 20000
+// Regional first: the switch opens where the map has always stood.
+const REACHES = ['regional', 'fern']
 // Leaflet wants a zoom to construct with. The real one arrives a tick later,
 // from the remembered view or from the circle.
 const BOOTSTRAP_ZOOM = 8
@@ -392,7 +433,13 @@ const lensMode = ref(readLens())
 const breite = ref(readBreite())
 const visible = reactive(readVisible())
 
-const radius = ref(readRadius())
+const reach = ref(readReach())
+const radiusRegional = ref(readRadiusFor('regional'))
+const radiusFern = ref(readRadiusFor('fern'))
+// One number for the whole page — the one the standing reach owns. Everything that
+// reads the radius (the circle, the framing, the search, the list) reads this, so the
+// two radii stay an implementation detail of the switch.
+const radius = computed(() => (reach.value === 'fern' ? radiusFern.value : radiusRegional.value))
 const searchCenter = ref(readCenter())
 // The place name of the current centre, for the list's confirmation line. Kept in
 // `pref` so it survives a mode switch, another page, and the logout — the label was
@@ -637,8 +684,20 @@ const visibleMatches = computed(() => {
 })
 
 // The presence rings the filter lets through, split by whether they have entries.
+//
+// Empty in the wide reach, and decided HERE rather than waited for: the answer clears
+// `presence`, but only after a token fetch and a round trip, and until then the rings of
+// the 25 km circle would sit inside the 500 km one, be counted in the found line and
+// listed under "others nearby" - with the two boxes that would hide them gone from the
+// controls at that very moment. Everything that shows a ring reads this one computed
+// (the map's drawPresence, foundCount, the list's sortedPresence), so saying it once
+// here covers all three.
 const visiblePresence = computed(() =>
-  presence.value.filter((person) => (person.hasEntries ? visible.andereMit : visible.andereOhne)),
+  reach.value === 'fern'
+    ? []
+    : presence.value.filter((person) =>
+        person.hasEntries ? visible.andereMit : visible.andereOhne,
+      ),
 )
 
 // Everyone the map is showing — the glowing matches plus the grey rings. They are
@@ -781,9 +840,20 @@ function readSelection() {
   return sanitizeSelection(readPref('query', null))
 }
 
-function readRadius() {
-  const stored = readPref('radius', null)
-  return Number.isFinite(stored) && stored >= 1 && stored <= MAX_RADIUS ? stored : DEFAULT_RADIUS
+// Two radii, two keys, because each reach owns its own: switching the reach must not
+// drag the other circle along, and coming back must find the number one left there.
+// `radius` stays the REGIONAL key — renaming it would silently reset the circle of
+// every member who already set one.
+function readRadiusFor(which) {
+  const wide = which === 'fern'
+  const stored = readPref(wide ? 'radiusFern' : 'radius', null)
+  const fallback = wide ? DEFAULT_RADIUS_FERN : DEFAULT_RADIUS
+  return Number.isFinite(stored) && stored >= 1 && stored <= MAX_RADIUS ? stored : fallback
+}
+
+// A standing preference like the mode, not a switch to flip each visit.
+function readReach() {
+  return readPref('reach', null) === 'fern' ? 'fern' : 'regional'
 }
 
 function readCenter() {
@@ -833,6 +903,21 @@ function setMode(next) {
   writePref('mode', next)
 }
 
+// Switching the reach swaps the radius with it, so the circle jumps — and the jump is
+// the answer to "which reach am I in", given before anybody has to read a label. Same
+// three steps as applyRadius: redraw, frame, search.
+function setReach(next) {
+  if (!REACHES.includes(next) || next === reach.value) return
+  reach.value = next
+  writePref('reach', next)
+  drawCircle()
+  // The rings are drawn imperatively and nothing watches the reach, so the layer has
+  // to be told; the computed above has already emptied what it draws from.
+  drawPresence()
+  zoomToCircle({ fly: true })
+  runSearch()
+}
+
 function setSort(next) {
   if (!['naehe', 'passung', 'breite'].includes(next)) return
   sortMode.value = next
@@ -864,6 +949,7 @@ function runSearch() {
     radius: radius.value,
     query: searchQuery.value,
     mineUuids: myEntries.value.map((entry) => entry.uuid),
+    remoteOnly: reach.value === 'fern',
   })
 }
 
@@ -948,6 +1034,29 @@ function searchHere() {
   moveSearchTo({ lat: centre.lat, lng: centre.lng })
 }
 
+const radiusInput = ref(null)
+
+/**
+ * Open with the number selected, so the first keystroke replaces it instead of
+ * appending to it - today it has to be deleted by hand.
+ *
+ * On `shown` rather than with the `autofocus` prop: `shown` fires on every opening and
+ * after the transition, which is the first moment the field can take focus, and
+ * `select()` focuses as well as selects - one mechanism instead of two that have to
+ * agree. `element` is what BFormInput hands out (measured: it exposes blur, element,
+ * focus); the optional chain is for the test, where the component is not resolved.
+ */
+function selectRadius() {
+  radiusInput.value?.element?.select()
+}
+
+/** Which circle the dialog is setting, and what the other one keeps. */
+const radiusHint = computed(() =>
+  reach.value === 'fern'
+    ? t('matching.map.radiusHintFern', { km: radiusRegional.value })
+    : t('matching.map.radiusHintRegional', { km: radiusFern.value }),
+)
+
 function openRadius() {
   radiusDraft.value = radius.value
   radiusModal.value = true
@@ -967,8 +1076,16 @@ function submitRadius() {
 
 function applyRadius() {
   if (!radiusValid.value) return
-  radius.value = Math.round(radiusDraft.value)
-  writePref('radius', radius.value)
+  const next = Math.round(radiusDraft.value)
+  // Into the key of the reach that is standing. Setting the wide circle must leave the
+  // regional one where it was, and the other way round.
+  if (reach.value === 'fern') {
+    radiusFern.value = next
+    writePref('radiusFern', next)
+  } else {
+    radiusRegional.value = next
+    writePref('radius', next)
+  }
   drawCircle()
   // Frame the new circle: a radius you cannot see is a number without an answer.
   zoomToCircle()
@@ -1976,7 +2093,47 @@ watch(mode, (value) => {
   display: flex;
   align-items: center;
   gap: 7px;
-  white-space: nowrap;
+
+  /* It must be allowed to break: with the reach switch in front of it the row no
+     longer fits a 375 px phone on one line. Switch and radius stay together, the
+     count moves underneath. */
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+/* The two reaches, in the form language of the radius field and the look switch:
+   one pill holding both, the standing one filled. */
+.reach-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 26px;
+  background: rgb(23 141 129 / 12%);
+}
+
+.reach-btn {
+  padding: 2px 10px;
+  border: 0;
+  border-radius: 24px;
+  background: transparent;
+  color: #178d81;
+
+  /* `font: inherit` for the page's own family - and then the weight back down by
+     hand. The shorthand inherits EVERYTHING, and this switch sits inside
+     .controls-heading, which is bold: without the line below both buttons come out
+     at 700 and the is-on rule underneath changes nothing at all. `.look-btn`, the
+     switch this one is modelled on, avoids the trap by not using the shorthand. */
+  font: inherit;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.reach-btn.is-on {
+  background: #178d81;
+  color: #fff;
+  font-weight: 700;
 }
 
 .radius-field {

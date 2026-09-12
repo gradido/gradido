@@ -815,6 +815,47 @@ describe('useMatches', () => {
       expect(presence.value).toHaveLength(1)
     })
 
+    it('carries the reach on whichever match route is asked, and never on the rings', async () => {
+      const { load } = useMatches()
+      await load({ ...SEARCH, remoteOnly: true })
+      await load({ ...SEARCH, remoteOnly: true, query: { text: 'Geige', matchingType: 'gesuch' } })
+
+      const urls = fetchMock.mock.calls.map(([url]) => new URL(url))
+      // Both match routes carry it - the typed one by construction, because its
+      // parameters are built on the same function.
+      expect(urls.map((url) => url.pathname)).toEqual([
+        '/gms/community-user/matches',
+        '/gms/community-user/typed-matches',
+      ])
+      expect(urls.map((url) => url.searchParams.get('remote'))).toEqual(['true', 'true'])
+      // And the gegenprobe: without the reach the parameter is absent, not 'false'.
+      fetchMock.mockClear()
+      await load(SEARCH)
+      const plain = new URL(fetchMock.mock.calls[0][0])
+      expect(plain.searchParams.has('remote')).toBe(false)
+    })
+
+    it('draws no rings in the wide reach: the route is not asked at all', async () => {
+      const { load, presence, matches } = useMatches()
+      await load({ ...SEARCH, remoteOnly: true })
+
+      const paths = fetchMock.mock.calls.map(([url]) => new URL(url).pathname)
+      expect(paths).not.toContain('/gms/community-user/user-locations')
+      // Not asked AND nothing left standing from a search before it: everything
+      // downstream reads an empty list, which is a shape it already handles.
+      expect(presence.value).toEqual([])
+      // The matches themselves are untouched by the reach on this side.
+      expect(matches.value.map((match) => match.uuid)).toEqual([matchedUser().uuid])
+
+      // Back to the regional reach and the rings come with it - the same load, so a
+      // green half above cannot be the route simply never being asked.
+      await load(SEARCH)
+      expect(fetchMock.mock.calls.map(([url]) => new URL(url).pathname)).toContain(
+        '/gms/community-user/user-locations',
+      )
+      expect(presence.value).toHaveLength(1)
+    })
+
     it('cuts a typed question at what the route reads', async () => {
       const { load } = useMatches()
       await load({ ...SEARCH, query: { text: 'x'.repeat(250), matchingType: 'angebot' } })
