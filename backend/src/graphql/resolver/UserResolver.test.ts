@@ -765,9 +765,13 @@ describe('UserResolver', () => {
         )
       })
 
+      // The `login` logger, not `findUserByEmail`'s: the login reads the account itself
+      // now (dbFindUserLoginByEmail) instead of borrowing that helper, so the warning is
+      // its own. findUserByEmail is still what forgotPassword and the rest go through,
+      // and its own logging is asserted there.
       it('logs the error found', () => {
-        expect(findUserByEmailLogger.warn).toBeCalledWith(
-          `findUserByEmail failed, user with email=${variables.email} not found`,
+        expect(loginLogger.warn).toBeCalledWith(
+          `login failed, user with email=${variables.email} not found`,
         )
       })
     })
@@ -807,6 +811,12 @@ describe('UserResolver', () => {
                 publisherId: 1234,
                 roles: [],
                 userLocation: null,
+                // Own view only, and answered here because the login names the member it
+                // has just authenticated before it returns. Null for the picture -- bibi
+                // has not set one -- and the two column defaults for the rest.
+                avatar: null,
+                avatarVisibleToMembers: true,
+                creationAllowed: true,
               },
             },
           }),
@@ -1744,6 +1754,11 @@ describe('UserResolver', () => {
                 publisherId: 1234,
                 roles: [],
                 userLocation: null,
+                // Same three as in the login block above: this literal lists every
+                // selected field, so it has to grow with the document.
+                avatar: null,
+                avatarVisibleToMembers: true,
+                creationAllowed: true,
               },
             },
           }),
@@ -2993,6 +3008,46 @@ describe('UserResolver', () => {
 
       const res: any = await query({ query: verifyLoginAvatar })
       expect(res.data.verifyLogin.avatar).toBe(JPEG_BASE64)
+    })
+
+    // The other way in. The login joins the picture onto the user row it reads, so a
+    // member sees their own face on the first screen instead of watching initials turn
+    // into a picture while a second query flies. Two things have to hold at once for this
+    // to answer: the join, and the owner guard on the field -- the login names the member
+    // it has just authenticated before it returns, which is what lets the guard match.
+    it('hands the same picture over with the login itself', async () => {
+      await mutate({ mutation: setUserAvatar, variables: bothPictures })
+
+      const res: any = await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+      expect(res.data.login.avatar).toBe(JPEG_BASE64)
+      // The switch beside it, from the same answer and through the same guard.
+      expect(res.data.login.avatarVisibleToMembers).toBe(true)
+    })
+
+    // ⛔ The login reads the WHOLE `users` row, `location` with it. A member who had saved
+    // a position could not sign in at all: mysql2 parses a geometry column into `{ x, y }`
+    // and the geometry type handed that to wkx, which refuses anything but a string or a
+    // Buffer -- so the read threw and the member was told "no user with this credentials".
+    // Nothing in that message points at a pin on a map, which is why it is held down here
+    // and not only in the database package.
+    it('lets a member who has saved a position sign in', async () => {
+      await User.update(
+        { id: owner.id },
+        { location: Location2Point({ longitude: 8.6821, latitude: 50.1109 }) },
+      )
+      try {
+        const res: any = await mutate({
+          mutation: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.login.gradidoID).toEqual(expect.any(String))
+      } finally {
+        await User.update({ id: owner.id }, { location: null })
+      }
     })
 
     // The payload coderabbit found: ff d8 00 passes an opening-marker check on its own.

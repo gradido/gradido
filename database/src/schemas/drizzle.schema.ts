@@ -336,7 +336,7 @@ export const usersTable = mysqlTable(
     id: int().autoincrement().primaryKey().notNull(),
     foreign: boolean().default(false).notNull(),
     gradidoId: char('gradido_id', { length: 36 }).notNull(),
-    communityUuid: varchar('community_uuid', { length: 36 }).notNull(),
+    communityUuid: char('community_uuid', { length: 36 }).default(sql`NULL`),
     alias: varchar({ length: 20 }).default(sql`NULL`),
     emailId: int('email_id').default(sql`NULL`),
     firstName: varchar('first_name', { length: 255 }).default(sql`NULL`),
@@ -361,6 +361,11 @@ export const usersTable = mysqlTable(
     hideAmountGdd: boolean().default(false),
     hideAmountGdt: boolean().default(false),
     gmsAllowed: boolean('gms_allowed').default(true).notNull(),
+    // The member's own position, as a POINT. Readable at last -- the line that used to
+    // stand here said "Can't parse geometry from database", which is what drizzle-kit
+    // writes when it meets a spatial column. What it takes is in customGeometry; the
+    // short version is that mysql2 hands a point over as `{ x, y }` and a write has to
+    // go through ST_GeomFromText().
     location: customGeometry().default(null),
     gmsPublishLocation: int('gms_publish_location').default(2).notNull(),
     aboutMe: text('about_me').default(sql`NULL`),
@@ -461,17 +466,33 @@ export const userAvatarsTable = mysqlTable('user_avatars', {
 export type UserAvatarSelect = typeof userAvatarsTable.$inferSelect
 export type UserAvatarInsert = typeof userAvatarsTable.$inferInsert
 
-// TODO: update db schema for mirror app logic that every user can have 0 or 1 user_roles
+// What a member is allowed to do beyond being a member: ADMIN, MODERATOR and the rest of
+// ROLES.ts. No row at all is the normal case -- that is an ordinary member.
+//
+// ⚠️ The application allows every member 0 or 1 of these (see modifyUserRole, which
+// overwrites `userRoles[0]` rather than adding a second), but the TABLE does not say so:
+// the primary key is `id` and nothing is unique on `user_id`. So a reader that joins this
+// table can be handed two rows for one member, and silently taking the first would make
+// the answer depend on insertion order. Whoever joins it either says what it does with a
+// second row or refuses it outright -- dbFindUserLoginByEmail refuses.
+//
+// TODO: put the app's rule into the schema (a unique key on user_id), then this join is
+// 0..1 by shape and the refusal above can go.
 export const userRolesTable = mysqlTable(
   'user_roles',
   {
-    id: int().autoincrement().notNull(),
+    id: int().autoincrement().primaryKey().notNull(),
     userId: int('user_id').notNull(),
     role: varchar({ length: 40 }).notNull(),
-    createdAt: datetime('created_at', { mode: 'string', fsp: 3 })
+    // A moderator's visibility scope: a JSON array of creation-group names plus the
+    // sentinels '*all' / '*untagged', as text. NULL is no restriction, which is what
+    // every moderator from before the column had. Read through
+    // describeModeratorCreationGroups, never on its own.
+    visibleCreationGroups: text('visible_creation_groups').default(sql`NULL`),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),
-    updatedAt: datetime('updated_at', { mode: 'string', fsp: 3 }).default(sql`NULL`),
+    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
   },
   (table) => [index('user_id').on(table.userId)],
 )

@@ -38,15 +38,6 @@ export class DBInsertFailed<T> extends DomainError {
   }
 }
 
-export class DBUpdateFailed<T> extends DomainError {
-  constructor(
-    public readonly table: string,
-    public readonly row: T,
-  ) {
-    super(`DB_UPDATE_FAILED in ${table}`)
-  }
-}
-
 /**
  * Whether a driver error is a unique-key violation. TypeORM hands the driver error on as
  * `driverError`, drizzle wraps it in a DrizzleQueryError with the original as `cause`, and

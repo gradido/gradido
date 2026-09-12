@@ -5,6 +5,7 @@ import { DbUser, User } from 'database'
 import { crypto_shorthash_KEYBYTES } from 'sodium-native'
 import { Pool, pool } from 'workerpool'
 import { CONFIG } from '@/config'
+import { gradidoIdOf } from '@/data/UserLogic'
 import { LogError } from '@/server/LogError'
 
 import { SecretKeyCryptographyCreateKeyFunc } from './EncryptionWorker.js'
@@ -74,7 +75,7 @@ export const getUserCryptographicSalt = (dbUser: User | DbUser): string => {
     case PasswordEncryptionType.EMAIL:
       return dbUser.emailContact.email
     case PasswordEncryptionType.GRADIDO_ID:
-      return dbUser instanceof User ? dbUser.gradidoID : dbUser.gradidoId
+      return gradidoIdOf(dbUser)
     default:
       throw new LogError('Unknown password encryption type', dbUser.passwordEncryptionType)
   }

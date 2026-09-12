@@ -1,8 +1,8 @@
 import { DbUser, User } from 'database'
 import { ALIAS_MIN_CHARS, publicAlias } from 'shared'
 import XRegExp from 'xregexp'
-
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
+import { gradidoIdOf } from './UserLogic'
 
 export class PublishNameLogic {
   // allowed characters for humhub usernames
@@ -10,8 +10,8 @@ export class PublishNameLogic {
 
   constructor(private user: DbUser | User) {}
 
-  private get gradidoId() {
-    return this.user instanceof User ? this.user.gradidoID : this.user.gradidoId
+  private get gradidoId(): string {
+    return gradidoIdOf(this.user)
   }
 
   // remove character which are invalid for humhub username

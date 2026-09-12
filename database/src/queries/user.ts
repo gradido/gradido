@@ -24,8 +24,28 @@ import { dbAliasHeldByOther } from './userAliases'
 // spell that condition out.
 
 /**
- * The member whose CURRENT address this is, deleted accounts included, with roles and
- * address and avatar.
+ * Everything the login needs about the member signing in, in one round trip.
+ *
+ * "In one round trip" is the reason this query exists rather than four. The login is the
+ * one request path every member and every test takes, and it used to walk it four times
+ * over: the user row, the role, the contact, and the avatar each on their own. The joins
+ * below are cheap -- one row by a unique address, 0..1 role, 0..1 avatar -- and the
+ * picture rides along so the wallet can show a member their own face on the first screen
+ * instead of initials until some later query happens to refill it.
+ *
+ * ⛔ Deleted accounts INCLUDED, deliberately, and this one must not grow a
+ * `deleted_at IS NULL`: the login has to tell "this account was deleted" apart from "no
+ * such address", because the two get different answers (see the resolver). Everything the
+ * caller must still refuse -- deletion, an unconfirmed address, a missing password -- is
+ * checked there, on the row this hands back.
+ *
+ * The address is matched on `user_contacts`, not on `users`: `users.email_id` names the
+ * address that is IN FORCE, so someone who changed their address signs in with the new
+ * one and not with an old row that still carries their name.
+ *
+ * A second `user_roles` row for the same member is refused rather than resolved. The
+ * application allows 0 or 1 (see the table's own note), so a second one is a broken row,
+ * and picking the first would make who is an admin depend on insertion order.
  */
 export async function dbFindUserLoginByEmail(
   email: string,
@@ -38,9 +58,10 @@ export async function dbFindUserLoginByEmail(
       avatar: userAvatarsTable.avatarSmall,
     })
     .from(usersTable)
-    // should be only exist 0..1 user_roles per user
+    // 0..1 per member by the application's rule, 0..n by the table's -- see below.
     .leftJoin(userRolesTable, eq(usersTable.id, userRolesTable.userId))
     .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))
+    // 0..1 by shape: user_avatars is keyed by user_id.
     .leftJoin(userAvatarsTable, eq(usersTable.id, userAvatarsTable.userId))
     .where(eq(userContactsTable.email, email))
 
@@ -61,11 +82,22 @@ export async function dbFindUserLoginByEmail(
   }
 }
 
-// mostly used in app is user with contact
+/**
+ * A `users` row together with the address in force for it -- the shape almost everything
+ * above the database means when it says "the user". The TypeORM entity carries the same
+ * pair as `User` + `User.emailContact`, which is why the consumers of both take
+ * `DbUser | User` while the translation is under way.
+ *
+ * ⚠️ The two spell the id differently: the entity has `gradidoID`, the row `gradidoId`.
+ * Whoever accepts both reads it through `gradidoIdOf` rather than picking one.
+ */
 export type DbUser = UserSelect & {
   emailContact: UserContactSelect
 }
 
+/** What {@link dbFindUserLoginByEmail} hands back: a {@link DbUser} plus the two things
+ * the login answer needs and the row cannot carry -- the member's role and the small
+ * rendition of their picture. Both null where there is none. */
 export type DbLoginUser = DbUser & {
   role: UserRoleSelect | null
   avatar: Buffer | null
@@ -196,7 +228,11 @@ export async function dbFindGmsAllowedLocalUserIds(): Promise<{ id: number }[]> 
     .select({ id: usersTable.id })
     .from(usersTable)
     .where(
-      and(eq(usersTable.foreign, false), eq(usersTable.gmsAllowed, true), isNull(usersTable.deletedAt)),
+      and(
+        eq(usersTable.foreign, false),
+        eq(usersTable.gmsAllowed, true),
+        isNull(usersTable.deletedAt),
+      ),
     )
 }
 
@@ -249,6 +285,19 @@ export async function dbMarkUsersGmsRegistered(userIds: number[]): Promise<void>
     .where(inArray(usersTable.id, userIds))
 }
 
+/**
+ * Store a freshly derived password together with the scheme it was derived under.
+ *
+ * The two always travel together, and that is the whole reason this is one function
+ * rather than two calls to `dbUserUpdateField` below: the hash means nothing without the
+ * salt rule that produced it, so a row that carries the new hash under the old scheme can
+ * no longer be signed in to. The login writes here when it meets an account still on the
+ * EMAIL scheme and has just verified the password, so it can rewrite it under
+ * GRADIDO_ID -- which is why the salt must not change under a hash already written.
+ *
+ * No `deleted_at` condition and no report of what was matched: the caller has the row in
+ * hand, having just read and checked it.
+ */
 export async function dbUserUpdatePassword(
   userId: number,
   passwordEncryptionType: PasswordEncryptionType,
@@ -260,6 +309,18 @@ export async function dbUserUpdatePassword(
     .where(eq(usersTable.id, userId))
 }
 
+/**
+ * One column of one `users` row, by name.
+ *
+ * For the single-field writes that used to be `dbUser.field = x; await dbUser.save()` --
+ * which sent the WHOLE row back, every column of it, and so could carry along anything
+ * another request had changed in between. Named columns only: `K extends keyof UserInsert`
+ * makes a typo a compile error and gives the value the column's own type.
+ *
+ * Deliberately not a general-purpose updater. Two fields that only make sense together
+ * belong in a function of their own, the way the password above does; whoever reaches for
+ * two calls of this in a row should write that function instead.
+ */
 export async function dbUserUpdateField<K extends keyof UserInsert>(
   userId: number,
   field: K,

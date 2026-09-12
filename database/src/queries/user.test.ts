@@ -1,4 +1,4 @@
-import { GradidoUnit, Order } from 'shared'
+import { GradidoUnit, Order, PasswordEncryptionType } from 'shared'
 import { clearDatabase } from '../../migration/clear'
 import {
   ALIAS_ORIGIN_CHOSEN,
@@ -7,8 +7,10 @@ import {
   User as DbUser,
   UserAlias as DbUserAlias,
   UserContact as DbUserContact,
+  UserRole as DbUserRole,
 } from '..'
-import { AppDatabase } from '../AppDatabase'
+import { AppDatabase, drizzleDb } from '../AppDatabase'
+import { userAvatarsTable } from '../schemas/drizzle.schema'
 import { createCommunity } from '../seeds/community'
 import { creationFactory, nMonthsBefore } from '../seeds/factory/creation'
 import { foreignReceive, transferGradidos } from '../seeds/factory/transaction'
@@ -22,11 +24,15 @@ import {
   dbClearGmsRegistration,
   dbFindGmsAllowedLocalUserIds,
   dbFindUserIdByUuids,
+  dbFindUserLoginByEmail,
   dbMarkUsersGmsRegistered,
   dbSelectLatestUserBalances,
+  dbUserUpdateField,
+  dbUserUpdatePassword,
   findUserNamesByIds,
 } from './user'
 import { dbInsertUserAlias } from './userAliases'
+import { dbUpsertUserAvatar } from './userAvatars'
 
 const db = AppDatabase.getInstance()
 
@@ -106,6 +112,225 @@ describe('user.queries', () => {
       expect(await aliasExists('bibi-was', bibi.id)).toBe(false)
       // ...and it stays blocked for everybody else.
       expect(await aliasExists('bibi-was')).toBe(true)
+    })
+  })
+
+  describe('dbFindUserLoginByEmail', () => {
+    const smallPicture = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x07, 0x08])
+    let bibi: DbUser
+    let bob: DbUser
+    let home: string
+
+    beforeAll(async () => {
+      await DbUserRole.clear()
+      await drizzleDb().delete(userAvatarsTable)
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await DbCommunity.clear()
+      const community = await createCommunity(false)
+      home = community.communityUuid as string
+      bibi = await userFactory({ ...bibiBloxberg, role: 'ADMIN' })
+      bob = await userFactory(bobBaumeister)
+      await dbUpsertUserAvatar({
+        userId: bibi.id,
+        avatarSmall: smallPicture,
+        avatarFull: smallPicture,
+        mimeType: 'image/jpeg',
+      })
+    })
+
+    it('answers the row, the role, the address in force and the picture in one go', async () => {
+      const result = await dbFindUserLoginByEmail('bibi@bloxberg.de')
+
+      expect(result.success).toBe(true)
+      if (!result.success) {
+        return
+      }
+      expect(result.value.id).toBe(bibi.id)
+      expect(result.value.gradidoId).toBe(bibi.gradidoID)
+      expect(result.value.communityUuid).toBe(home)
+      expect(result.value.emailContact.email).toBe('bibi@bloxberg.de')
+      expect(result.value.role?.role).toBe('ADMIN')
+      expect(Buffer.from(result.value.avatar as Buffer).equals(smallPicture)).toBe(true)
+    })
+
+    // 0..1 for both joins, so the member without either has to come back all the same --
+    // an inner join on one of them would have shut the ordinary member out of the wallet.
+    it('answers a member who has neither role nor picture', async () => {
+      const result = await dbFindUserLoginByEmail('bob@baumeister.de')
+
+      expect(result.success).toBe(true)
+      if (!result.success) {
+        return
+      }
+      expect(result.value.id).toBe(bob.id)
+      expect(result.value.role).toBeNull()
+      expect(result.value.avatar).toBeNull()
+    })
+
+    it('reports an address nobody holds', async () => {
+      const result = await dbFindUserLoginByEmail('nobody@bloxberg.de')
+
+      expect(result.success).toBe(false)
+    })
+
+    // ⛔ The login has to tell "this account was deleted" apart from "no such address":
+    // the two get different answers, and only the caller can decide that. A
+    // `deleted_at IS NULL` here would turn a deleted member into an unknown one and the
+    // message they were meant to read into "no user with this credentials".
+    it('answers a deleted account, so the caller can say that it was deleted', async () => {
+      await DbUser.update({ id: bob.id }, { deletedAt: new Date() })
+      try {
+        const result = await dbFindUserLoginByEmail('bob@baumeister.de')
+
+        expect(result.success).toBe(true)
+        if (!result.success) {
+          return
+        }
+        expect(result.value.deletedAt).toBeInstanceOf(Date)
+      } finally {
+        await DbUser.update({ id: bob.id }, { deletedAt: null })
+      }
+    })
+
+    // ⛔ The whole `users` row is read here, `location` with it. mysql2 parses a geometry
+    // column into `{ x, y }` before drizzle sees it, and wkx refuses that with "first
+    // argument must be a string or Buffer" -- so every member who had ever saved a
+    // position was answered with an exception rather than a session, and nothing about
+    // the failure named the picture on a map. See customGeometry.
+    it('answers a member who has saved a position, and reads it back as a point', async () => {
+      await DbUser.update(
+        { id: bibi.id },
+        { location: { type: 'Point', coordinates: [8.6821, 50.1109] } },
+      )
+      try {
+        const result = await dbFindUserLoginByEmail('bibi@bloxberg.de')
+
+        expect(result.success).toBe(true)
+        if (!result.success) {
+          return
+        }
+        expect(result.value.location).toEqual({ type: 'Point', coordinates: [8.6821, 50.1109] })
+      } finally {
+        await DbUser.update({ id: bibi.id }, { location: null })
+      }
+    })
+
+    // The table allows a member several roles, the application allows one. Refused rather
+    // than resolved: picking the first would make who is an admin depend on insertion
+    // order, and a login that silently drops a role is worse than one that fails loudly.
+    it('refuses a member carrying two roles rather than picking one', async () => {
+      const second = DbUserRole.create()
+      second.userId = bibi.id
+      second.role = 'MODERATOR'
+      await DbUserRole.save(second)
+      try {
+        await expect(dbFindUserLoginByEmail('bibi@bloxberg.de')).rejects.toThrow(
+          'DB_DUPLICATE_ENTRY',
+        )
+      } finally {
+        await DbUserRole.delete({ id: second.id })
+      }
+    })
+
+    // The address IN FORCE, which is what `users.email_id` names -- not any row that
+    // carries the member's name. Signing in with an address they have moved away from
+    // must not work, or a member who changed their address after a leak has changed
+    // nothing.
+    it('does not answer for an address the member no longer holds', async () => {
+      const former = DbUserContact.create()
+      former.userId = bibi.id
+      former.type = bibi.emailContact.type
+      former.email = 'bibi-was@bloxberg.de'
+      former.emailChecked = true
+      await DbUserContact.save(former)
+      try {
+        expect((await dbFindUserLoginByEmail('bibi-was@bloxberg.de')).success).toBe(false)
+      } finally {
+        await DbUserContact.delete({ id: former.id })
+      }
+    })
+  })
+
+  describe('dbUserUpdatePassword and dbUserUpdateField', () => {
+    let bibi: DbUser
+
+    beforeAll(async () => {
+      await DbUser.clear()
+      await DbUserContact.clear()
+      bibi = await userFactory(bibiBloxberg)
+    })
+
+    // Both columns, in one write. A row holding a hash derived under one scheme while the
+    // column names another cannot be signed in to at all, so the two must never be able
+    // to disagree.
+    it('stores the password together with the scheme it was derived under', async () => {
+      await dbUserUpdatePassword(bibi.id, PasswordEncryptionType.GRADIDO_ID, 4711n)
+
+      const stored = await DbUser.findOneByOrFail({ id: bibi.id })
+      expect(stored.password.toString()).toBe('4711')
+      expect(stored.passwordEncryptionType).toBe(PasswordEncryptionType.GRADIDO_ID)
+    })
+
+    it('writes the one named column and leaves the rest of the row alone', async () => {
+      const before = await DbUser.findOneByOrFail({ id: bibi.id })
+
+      await dbUserUpdateField(bibi.id, 'publisherId', 9876)
+
+      const stored = await DbUser.findOneByOrFail({ id: bibi.id })
+      expect(stored.publisherId).toBe(9876)
+      expect(stored.firstName).toBe(before.firstName)
+      expect(stored.alias).toBe(before.alias)
+      expect(stored.password.toString()).toBe(before.password.toString())
+    })
+
+    // ⛔ The write half of customGeometry. A geometry column refuses a plain WKT string
+    // ("Cannot get geometry object from data you send to the GEOMETRY field"): TypeORM
+    // wrapped the parameter in ST_GeomFromText() itself and Drizzle does not, so the
+    // custom type has to. `location` is reachable through this function -- it is a column
+    // of `users` like any other -- which is what makes it worth holding down here.
+    it('stores a position through the geometry column and reads it back', async () => {
+      await dbUserUpdateField(bibi.id, 'location', {
+        type: 'Point',
+        coordinates: [8.6821, 50.1109],
+      })
+
+      const result = await dbFindUserLoginByEmail('bibi@bloxberg.de')
+      expect(result.success).toBe(true)
+      if (!result.success) {
+        return
+      }
+      expect(result.value.location).toEqual({ type: 'Point', coordinates: [8.6821, 50.1109] })
+      // ...and the TypeORM side reads the same row the same way, which is the point of
+      // porting the transformer rather than inventing a second encoding.
+      expect((await DbUser.findOneByOrFail({ id: bibi.id })).location).toEqual({
+        type: 'Point',
+        coordinates: [8.6821, 50.1109],
+      })
+    })
+
+    // What Location2Point writes for "no position": a point with no coordinates. wkx turns
+    // it into `POINT EMPTY`, which MariaDB accepts and stores as NULL -- the same "unset"
+    // the column holds for every member who never set a pin. It must not raise.
+    it('accepts a point without coordinates as "no position"', async () => {
+      await dbUserUpdateField(bibi.id, 'location', { type: 'Point', coordinates: [] })
+
+      const result = await dbFindUserLoginByEmail('bibi@bloxberg.de')
+      expect(result.success).toBe(true)
+      if (!result.success) {
+        return
+      }
+      expect(result.value.location).toBeNull()
+    })
+
+    it('touches nobody else', async () => {
+      const peter = await userFactory(peterLustig)
+
+      await dbUserUpdateField(bibi.id, 'publisherId', 1111)
+
+      expect((await DbUser.findOneByOrFail({ id: peter.id })).publisherId).toBe(
+        peterLustig.publisherId ?? 0,
+      )
     })
   })
 

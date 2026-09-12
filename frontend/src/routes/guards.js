@@ -27,22 +27,16 @@ const addNavigationGuards = (router, store, apollo) => {
           fetchPolicy: 'network-only',
         })
         .then((result) => {
+          // The picture and its visibility switch are part of the login action now -- both
+          // answers carry them, so dispatching one is enough and the two commits that
+          // used to stand here would only write the same values again.
           store.dispatch('login', result.data.verifyLogin)
-          // The picture is not part of the login action, because the login mutation cannot
-          // carry it -- verifyLogin is the only query that hands it over. Whoever holds a
-          // verifyLogin result puts it in the store; here that is free, since the result
-          // is already in hand.
-          store.commit('avatar', result.data.verifyLogin.avatar ?? null)
-          store.commit(
-            'avatarVisibleToMembers',
-            result.data.verifyLogin.avatarVisibleToMembers ?? null,
-          )
-          // Same reasoning, and this is what makes the settings page tell the truth after
-          // an address change: the store's copy is only ever written where somebody holds
-          // a fresh answer from the server, and this guard is the one place a member
-          // passes through regularly without signing in again. Without it the page shows
-          // the address of the last sign-in until the next one - a reload does not help,
-          // because the store is persisted.
+          // The address is not: no login answer selects it. This is what makes the
+          // settings page tell the truth after an address change, because the store's copy
+          // is only ever written where somebody holds a fresh answer from the server, and
+          // this guard is the one place a member passes through regularly without signing
+          // in again. Without it the page shows the address of the last sign-in until the
+          // next one - a reload does not help, because the store is persisted.
           store.commit('email', result.data.verifyLogin.emailContact?.email ?? '')
           next({ path: '/overview' })
         })

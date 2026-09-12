@@ -40,10 +40,16 @@ export const verifyLogin = gql`
       # address you last signed in with" and nothing renewed it. A member who changed
       # their address and confirmed it kept seeing the old one, through a reload as well,
       # because the store is persisted; only signing in again with the new address helped,
-      # and that was the one thing that ever could. Deliberately NOT on the login mutation
-      # next to it: that runs on an inalienable right, so it has no authenticated caller,
-      # and the field resolver hands a contact row to nobody but its owner - the same
-      # reason the avatar is not there either.
+      # and that was the one thing that ever could. Read HERE because this is the query a
+      # member passes through regularly without signing in again - guards.js asks it on
+      # every /authenticate - so it is the one place the store's copy can be renewed at
+      # all.
+      #
+      # ⚠️ It used to say the login mutation could not carry this, having no authenticated
+      # caller of its own. That reason is gone: the login puts the member it has just
+      # authenticated on the context before it answers, which is why it now carries the
+      # avatar, the visibility switch and creationAllowed. The contact row is simply not
+      # asked for there, because signing in is not the moment the address changes.
       #
       # (No backticks in here: this is a GraphQL comment inside a gql template literal, so
       # one would end the literal. Nothing warns about it - the file simply becomes a
@@ -71,8 +77,9 @@ export const verifyLogin = gql`
       avatar
       avatarVisibleToMembers
       # ES-021: whether this account creates (a person) or receives thanks only (a project
-      # account). The "Create" menu item hangs on it. Read here and not on the login
-      # mutation, like everything else the wallet learns after signing in (G 5.5).
+      # account). The "Create" menu item hangs on it. Asked for here AND on the login
+      # mutation: whichever of the two a member arrives through has to be able to answer
+      # the menu, and one of them is always the first thing they arrive through.
       creationAllowed
     }
   }

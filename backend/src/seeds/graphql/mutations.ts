@@ -453,6 +453,12 @@ export const login = gql`
       roles
       hideAmountGDD
       hideAmountGDT
+      # Own view only, both of them, and the login can answer them because it names the
+      # member it has just authenticated as the owner of the request before it returns.
+      # The wallet reads all three off this answer -- see the frontend's queries.test.js.
+      avatar
+      avatarVisibleToMembers
+      creationAllowed
     }
   }
 `

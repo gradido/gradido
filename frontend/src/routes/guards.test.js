@@ -106,16 +106,22 @@ describe('navigation guards', () => {
       expect(router.currentRoute.value.path).toBe('/overview')
     })
 
-    // Two fields the login store action deliberately does not read off its payload,
-    // because the other caller of that action feeds it a login result, which cannot carry
-    // either. Whoever holds a verifyLogin result puts them in the store -- here that is
-    // free, the result is already in hand. Nothing held these two commits before, and the
-    // one for the setting is the repair for a switch that showed every member "hidden".
-    it('puts the picture and its visibility setting in the store', async () => {
+    // The picture and its visibility setting reach the store through the login ACTION now
+    // -- both answers that feed that action carry them -- so this guard hands the whole
+    // verifyLogin result over (asserted above) and commits neither itself. The two commits
+    // that used to stand here wrote the same values a second time.
+    //
+    // Kept as a test of its own because "the action gets them" is the guarantee, not "the
+    // guard commits them": what the action then does with them is store.test.js's.
+    it('leaves the picture and its visibility setting to the login action', async () => {
       await router.push({ path: '/authenticate', query: { token: 'valid-token' } })
 
-      expect(storeCommitMock).toHaveBeenCalledWith('avatar', 'base64-picture')
-      expect(storeCommitMock).toHaveBeenCalledWith('avatarVisibleToMembers', false)
+      expect(storeDispatchMock).toHaveBeenCalledWith(
+        'login',
+        expect.objectContaining({ avatar: 'base64-picture', avatarVisibleToMembers: false }),
+      )
+      expect(storeCommitMock).not.toHaveBeenCalledWith('avatar', expect.anything())
+      expect(storeCommitMock).not.toHaveBeenCalledWith('avatarVisibleToMembers', expect.anything())
     })
 
     it('handles server error correctly', async () => {

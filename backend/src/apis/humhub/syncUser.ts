@@ -1,6 +1,7 @@
 import { DbUser, User } from 'database'
 import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { gradidoIdOf } from '@/data/UserLogic'
 import { LogError } from '@/server/LogError'
 import { isHumhubUserIdenticalToDbUser } from './compareHumhubUserDbUser'
 import { HumHubClient } from './HumHubClient'
@@ -53,7 +54,7 @@ export async function syncUser(
   let humhubUser = humhubUsers.get(postUser.account.username)
   if (!humhubUser) {
     // fallback for legacy users
-    humhubUser = humhubUsers.get(user instanceof User ? user.gradidoID : user.gradidoId)
+    humhubUser = humhubUsers.get(gradidoIdOf(user))
   }
   const humHubClient = HumHubClient.getInstance()
   if (!humHubClient) {

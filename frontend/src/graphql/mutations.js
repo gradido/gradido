@@ -244,7 +244,7 @@ export const login = gql`
     login(email: $email, password: $password, publisherId: $publisherId, project: $project) {
       gradidoID
       # The other half of the pair that names a member: every query about a member asks
-      # about both
+      # about both, the member's own picture included.
       communityUuid
       alias
       emailChecked
@@ -261,8 +261,16 @@ export const login = gql`
       userLocation
       hasElopage
       publisherId
+      # The three fields the wallet used to fetch with a verifyLogin of its own right
+      # after signing in. They are here now because the login resolver reads them in the
+      # same breath as the user row (the picture is joined onto it) and puts the member it
+      # has just authenticated on the context before it answers -- so the own-view-only
+      # guards on the first two recognise the owner and hand the values over. One request
+      # instead of two, and no screen that shows initials until the second one lands.
       avatar
       avatarVisibleToMembers
+      # ES-021: whether this account creates (a person) or receives thanks only (a project
+      # account). The "Create" menu item hangs on it.
       creationAllowed
       roles
       hideAmountGDD

@@ -67,7 +67,7 @@ import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
 import { useForm } from 'vee-validate'
-import { useApolloClient, useMutation } from '@vue/apollo-composable'
+import { useMutation } from '@vue/apollo-composable'
 import { useAppToast } from '@/composables/useToast'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import CONFIG from '@/config'
@@ -78,7 +78,6 @@ const router = useRouter()
 const route = useRoute()
 const store = useStore()
 const { t } = useI18n()
-const { client } = useApolloClient()
 const { mutate } = useMutation(login)
 const { mutate: mutateHumhubAutoLogin } = useMutation(authenticateHumhubAutoLoginProject)
 const { mutate: mutateUpdateUserInfos } = useMutation(updateUserInfos)
@@ -116,6 +115,11 @@ const onSubmit = handleSubmit(async (values) => {
     // Capture a deliberate login-page language choice before the login action
     // consumes it, then persist it to the account so it sticks everywhere.
     const preLoginLanguage = store.state.preLoginLanguage
+    // Everything the wallet needs from signing in is in this one answer, the member's own
+    // picture, its visibility switch and creationAllowed included -- the login resolver
+    // reads them with the user row. A verifyLogin of its own used to follow right here to
+    // fetch those three; it is gone, and with it a second connection pool in the one
+    // request path every member takes.
     await store.dispatch('login', loginResponse)
 
     if (preLoginLanguage && preLoginLanguage !== loginResponse.language) {
@@ -126,7 +130,7 @@ const onSubmit = handleSubmit(async (values) => {
       }
     }
     // ⚠️ Correct here, and only because signing in requires the address that is IN FORCE:
-    // `findUserByEmail` joins through `users.email_id`, so a former address cannot get
+    // `dbFindUserLoginByEmail` joins through `users.email_id`, so a former address cannot get
     // anybody through this form, and what was typed IS the current address. That is a fact
     // about another file, not about this line - if a former address is ever allowed to sign
     // in (the alias already works that way, deliberately), this quietly starts writing a
