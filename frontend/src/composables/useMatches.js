@@ -45,8 +45,17 @@ import { isPlace } from '@/utils/matchingPosition'
  * circle, the same token. The
  * GMS folds the words like every keyed word and answers in the same shape; nothing
  * of the member's stored entries is consulted, and every answer carries a null
- * `matchedEntryUuid`, because no entry of mine is behind it. The rings load beside
- * it either way; they do not depend on the question.
+ * `matchedEntryUuid`, because no entry of mine is behind it.
+ *
+ * `remoteOnly` — the reach — is the member's switch, not a property of anybody's
+ * entry: it puts `remote=true` on whichever of the two match routes is asked, and
+ * only the entries their owners released for the wide search answer. The circle
+ * still holds; the wide search has its own, wider radius (MatchingMap keeps two).
+ *
+ * The rings do not depend on the question — but in the wide search they are not
+ * asked for at all: a ring is the neighbour you could walk up to, and eight hundred
+ * kilometres away it is not one. So `user-locations` is skipped and `presence` stays
+ * empty, which is what everything downstream already knows how to read.
  *
  * A match, as the map AND the detail window want it:
  *
@@ -399,6 +408,18 @@ function whereParams({ center, radius }) {
   })
 }
 
+/**
+ * The circle, plus the reach if one was switched. Both match routes go through here,
+ * so the flag reaches the typed search by construction rather than by remembering to
+ * add it in two places. The presence route deliberately does NOT use this: it knows
+ * nothing of the reach, and in the wide search it is not asked at all (load, below).
+ */
+function matchParams(search) {
+  const params = whereParams(search)
+  if (search.remoteOnly) params.set('remote', 'true')
+  return params
+}
+
 /** The most characters the typed route reads; what the field holds beyond it is cut, not refused. */
 const TYPED_TEXT_MAX = 200
 
@@ -430,7 +451,7 @@ const KEPT_ACCESS_MAX_AGE_MS = 5 * 60 * 1000
  * words (entryType), which names the channel to search.
  */
 function typedParams(search) {
-  const params = whereParams(search)
+  const params = matchParams(search)
   const { text, matchingType } = search.query
   params.set('text', (text ?? '').trim().slice(0, TYPED_TEXT_MAX))
   params.set('matchingType', entryType(matchingType))
@@ -501,6 +522,8 @@ export function useMatches() {
    *   a question typed on the spot instead of read from the member's entries
    * @param {string[]} [search.mineUuids] the member's own entry uuids — not sent, the
    *   GMS knows them from the token
+   * @param {boolean} [search.remoteOnly] the reach: ask only for the entries released
+   *   for the wide search, and draw no rings
    */
   async function load(search) {
     if (!search?.center || !(search.radius > 0)) return
@@ -527,12 +550,18 @@ export function useMatches() {
     try {
       const { url, token } = await gmsAccess(client)
       const base = apiBaseOf(url)
-      const where = whereParams(search)
       const [people, others] = await Promise.all([
         search.query
           ? gmsGet(base, 'community-user/typed-matches', typedParams(search), token)
-          : gmsGet(base, 'community-user/matches', where, token),
-        gmsGet(base, 'community-user/user-locations', where, token),
+          : gmsGet(base, 'community-user/matches', matchParams(search), token),
+        // Not asked for in the wide search, rather than asked for and thrown away:
+        // over a 500 km circle that is hundreds of rings nobody can walk up to, and
+        // one request that pays for nothing. An empty list is a shape everything
+        // downstream already handles — withoutMatched, the count line, the section
+        // of quiet people — so nothing below needs to know which reach it is in.
+        search.remoteOnly
+          ? Promise.resolve([])
+          : gmsGet(base, 'community-user/user-locations', whereParams(search), token),
       ])
       if (request !== latest) return
       // ⛔ Filtered before withoutMatched, not after. That function reads `location[0]` on
