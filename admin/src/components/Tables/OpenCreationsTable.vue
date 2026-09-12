@@ -66,6 +66,20 @@
           </small>
         </span>
       </template>
+      <!-- The member's face under the amount, where the row has room (Bernd, 12.09.2026).
+           The moderation talks to a person, and a name plus a number reads like a case. It
+           opens the picture at full size on a tap, where there is one to open. -->
+      <template #cell(amount)="row">
+        <div>{{ row.value }}</div>
+        <member-avatar
+          v-if="row.item.user"
+          class="mt-2"
+          :size="LIST_AVATAR_SIZE"
+          :name="memberName(row.item.user)"
+          v-bind="avatarFor(row.item.user)"
+          @zoom="openPicture(row.item.user)"
+        />
+      </template>
       <template #cell(memo)="row">
         <div class="mb-1">
           <ThemedSelect
@@ -224,8 +238,12 @@
 <script>
 import RowDetails from '../RowDetails'
 import ContributionMessagesList from '../ContributionMessages/ContributionMessagesList'
+import MemberAvatar from '@/components/MemberAvatar.vue'
 import { useDateFormatter } from '@/composables/useDateFormatter'
+import { memberAvatarProps } from '@/composables/useMemberAvatars'
+import { openMemberAvatarZoom } from '@/composables/useMemberAvatarZoom'
 import { creationGroupLabels, creationGroupOption } from '@/utils/creationGroupLabel'
+import { LIST_AVATAR_SIZE } from '@/constants'
 
 const iconMap = {
   IN_PROGRESS: 'question-square',
@@ -240,6 +258,7 @@ export default {
   components: {
     RowDetails,
     ContributionMessagesList,
+    MemberAvatar,
   },
   props: {
     items: {
@@ -287,6 +306,8 @@ export default {
   ],
   data() {
     return {
+      // The one size a face has in this interface, the same as in the wallet.
+      LIST_AVATAR_SIZE,
       slotIndex: 0,
       openRow: null,
       groupChangeModal: false,
@@ -324,6 +345,30 @@ export default {
     this.removeClipboardListener()
   },
   methods: {
+    /**
+     * Everything the circle needs about this member, from ONE call -- letters, colour and
+     * the picture where this device holds it (see the composable for why one call).
+     */
+    avatarFor(user) {
+      return memberAvatarProps(user)
+    },
+    // What the picture is called for a screen reader: the alias, because that is what the
+    // row shows beside it.
+    memberName(user) {
+      return user?.alias || `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim()
+    },
+    openPicture(user) {
+      // Without a name the plain wording: `avatar.zoom-picture` would otherwise read
+      // "Picture of " with a hole where the member should be (coderabbit, #3890).
+      const name = this.memberName(user)
+      openMemberAvatarZoom({
+        member: user,
+        src: memberAvatarProps(user).src,
+        label: name
+          ? this.$t('avatar.zoom-picture', { name })
+          : this.$t('avatar.zoom-picture-plain'),
+      })
+    },
     ...useDateFormatter(),
     myself(item) {
       return item.userId === this.$store.state.moderator.id

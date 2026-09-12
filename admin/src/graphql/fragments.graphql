@@ -35,4 +35,10 @@ fragment UserCommonFields on User {
   lastName
   alias
   salutation
+  # The pair that names a member everywhere, plus the date of the picture they show -- a
+  # date, not the picture. null means there is nothing to show, and this side never learns
+  # why (no picture, switch off, deleted, another community).
+  gradidoID
+  communityUuid
+  avatarUpdatedAt
 }

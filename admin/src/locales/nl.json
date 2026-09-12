@@ -24,6 +24,12 @@
     "reload": "Opnieuw laden",
     "text": "Nieuwe versie beschikbaar."
   },
+  "avatar": {
+    "zoom-open": "Foto van {name} vergroten",
+    "zoom-open-plain": "Foto vergroten",
+    "zoom-picture": "Foto van {name}",
+    "zoom-picture-plain": "Profielfoto"
+  },
   "back": "terug",
   "bulkResubmission": {
     "cancel": "Do not apply",

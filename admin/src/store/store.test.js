@@ -91,6 +91,41 @@ describe('Vuex Store', () => {
       expect(localStorageMock.clear).not.toHaveBeenCalled()
     })
 
+    /**
+     * ⛔ The faces this session fetched, and the one that is OPEN -- two different things.
+     * The zoom window hangs on the token and unmounts at logout, but the state it reads lives
+     * in a module: without this the next moderator on the same browser would find the
+     * previous one's face open in their first second. (coderabbit, #3890.)
+     */
+    it("takes other people's faces with it, the open one included", async () => {
+      const { fetchMemberAvatars, memberAvatarSource } =
+        await import('@/composables/useMemberAvatars')
+      const { memberAvatarZoomState, openMemberAvatarZoom } =
+        await import('@/composables/useMemberAvatarZoom')
+      const margret = {
+        gradidoID: 'g-margret',
+        communityUuid: 'home',
+        avatarUpdatedAt: '2026-09-12T04:00:00.000Z',
+      }
+      await fetchMemberAvatars(
+        {
+          query: vi.fn().mockResolvedValue({
+            data: {
+              memberAvatars: [{ ...margret, avatar: 'face' }],
+            },
+          }),
+        },
+        [margret],
+      )
+      openMemberAvatarZoom({ member: margret, src: memberAvatarSource(margret) })
+      expect(memberAvatarZoomState.value).not.toBeNull()
+
+      testStore.dispatch('logout')
+
+      expect(memberAvatarSource(margret)).toBe('')
+      expect(memberAvatarZoomState.value).toBeNull()
+    })
+
     it('preserves the wallet dark-mode theme across logout', () => {
       // The wallet owns 'gradido-theme-mode' but shares this origin's storage;
       // the admin logout must not wipe it (regression: dark mode lost on

@@ -639,6 +639,8 @@
     },
     "list": {
       "centeredOn": "Umkreis um {place}",
+      "centeredOnFern": "Überregional · {km} km um {place}",
+      "centeredOnFernNoPlace": "Überregional · {km} km",
       "controlsHeading": "Suche und Sortierung",
       "dir": {
         "e": "östlich",
@@ -696,8 +698,17 @@
         "normal": "normal"
       },
       "radius": "Radius",
+      "radiusHintFern": "Gilt für die überregionale Suche. Der regionale Radius bleibt bei {km} km.",
+      "radiusHintRegional": "Gilt für die regionale Suche. Der überregionale Radius bleibt bei {km} km.",
       "radiusLabel": "In welchem Umkreis suchst Du? (km)",
       "radiusTitle": "Suchradius",
+      "radiusTitleFern": "Suchradius überregional",
+      "reach": {
+        "fern": "Überregional",
+        "fernHint": "Überregional zeigt nur Einträge, die dafür freigegeben sind.",
+        "label": "Reichweite",
+        "regional": "Regional"
+      },
       "search": "Ort oder Adresse suchen",
       "searchFailed": "Die Suche ist gerade nicht erreichbar.",
       "searchHere": "Hier suchen",
@@ -707,7 +718,8 @@
       "cancel": "Abbrechen",
       "completeSentence": "Vervollständige diesen Satz:",
       "detailsHeading": "Details — damit die Richtigen Dich finden:",
-      "remote": "Auch überregional / online verfügbar"
+      "remote": "Auch überregional / online verfügbar",
+      "remoteHint": "Du erscheinst dann auch in der überregionalen Suche."
     },
     "position": {
       "accuracyApprox": "Eine leicht veränderte Position wird angezeigt",

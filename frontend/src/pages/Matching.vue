@@ -280,6 +280,11 @@
         <BFormCheckbox v-model="newRemote" class="mt-3">
           {{ $t('matching.new.remote') }}
         </BFormCheckbox>
+        <!-- What it now DOES, said where it is set. Since the map has a reach switch,
+             this box is the gate: an entry without it is never found in the wide
+             search, however well it fits. It used to be a label on an entry and
+             nothing more, so nobody had to be told. -->
+        <div class="small text-muted ms-4 ps-1">{{ $t('matching.new.remoteHint') }}</div>
       </template>
       <template #footer>
         <BButton variant="secondary" @click="showNew = false">

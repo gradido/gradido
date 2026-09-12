@@ -2,13 +2,22 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
 import CreationConfirm from './CreationConfirm.vue'
-import { useQuery, useMutation } from '@vue/apollo-composable'
+import { useApolloClient, useQuery, useMutation } from '@vue/apollo-composable'
 import { createStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
 import { BBadge, BPagination, BTab, BTabs } from 'bootstrap-vue-next'
 
 vi.mock('@vue/apollo-composable')
+
+// The page asks for the faces of the members it shows, once per answer. The client comes
+// from the composable, and the automock above hands back undefined for it -- so it is given
+// here, and the fetching itself is mocked away: what it does has its own tests.
+const { mockFetchMemberAvatars } = vi.hoisted(() => ({ mockFetchMemberAvatars: vi.fn() }))
+vi.mock('@/composables/useMemberAvatars', async (importOriginal) => ({
+  ...(await importOriginal()),
+  fetchMemberAvatars: mockFetchMemberAvatars,
+}))
 vi.mock('vue-i18n')
 vi.mock('@/composables/useToast')
 
@@ -49,6 +58,7 @@ describe('CreationConfirm', () => {
     mockRefetch = vi.fn()
     mockOnResultCallback = null
 
+    useApolloClient.mockReturnValue({ client: { query: vi.fn() } })
     useQuery.mockReturnValue({
       onResult: (callback) => {
         mockOnResultCallback = callback
@@ -133,6 +143,32 @@ describe('CreationConfirm', () => {
     expect(store.commit).toHaveBeenCalledWith('setOpenCreations', 5)
     expect(wrapper.vm.rows).toBe(5)
     expect(wrapper.vm.items).toEqual(mockData.adminListContributions.contributionList)
+  })
+
+  /**
+   * ⛔ ONE round trip for the page, with the members whose contributions are on it -- not one
+   * per row, and not one per opened thread. Rows without a member (the list can carry them)
+   * are left out rather than sent as holes.
+   */
+  it('asks for the faces of the members on this page', async () => {
+    mockFetchMemberAvatars.mockClear()
+    const margret = {
+      id: 42,
+      alias: 'margret',
+      gradidoID: 'g-margret',
+      communityUuid: 'home',
+      avatarUpdatedAt: '2026-09-12T04:00:00.000Z',
+    }
+
+    await simulateQueryResult({
+      adminListContributions: {
+        contributionCount: 2,
+        contributionList: [{ id: 1, user: margret }, { id: 2 }],
+      },
+    })
+
+    expect(mockFetchMemberAvatars).toHaveBeenCalledTimes(1)
+    expect(mockFetchMemberAvatars.mock.calls[0][1]).toEqual([margret])
   })
 
   it('does not update store when not on the open tab', async () => {

@@ -374,6 +374,9 @@ export const adminListContributions = gql`
           }
           firstName
           lastName
+          gradidoID
+          communityUuid
+          avatarUpdatedAt
         }
         amount
         memo

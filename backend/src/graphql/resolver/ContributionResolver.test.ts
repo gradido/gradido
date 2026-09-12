@@ -2364,6 +2364,17 @@ describe('ContributionResolver', () => {
         })
 
         expect(contributionListObject.contributionList).toHaveLength(18)
+        // ⛔ What a face needs, on the path the moderation interface really uses: the member
+        // named by the whole pair, and the date of the picture they show. `null` for the date
+        // because nobody in the seeds has a picture -- what is measured is that the field is
+        // filled in at all here, and that the pair travels with it.
+        const withMember = contributionListObject.contributionList.find(
+          (contribution: { user: unknown }) => contribution.user,
+        )
+        expect(withMember.user).toMatchObject({
+          gradidoID: expect.any(String),
+          avatarUpdatedAt: null,
+        })
         expect(contributionListObject).toMatchObject({
           contributionCount: 18,
           contributionList: expect.arrayContaining([

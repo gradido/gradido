@@ -80,8 +80,22 @@
       <!-- Confirmation that the search took hold: the place stays named (and is
            announced). Its own full-width row inside the controls; on a phone it is
            ordered directly under the search field, not under the sort. -->
-      <p v-if="centerLabel" class="center-label" role="status" aria-live="polite">
-        {{ $t('matching.list.centeredOn', { place: centerLabel }) }}
+      <!-- In the wide reach the line says so and names the circle: the same list shape
+           is answering a different question, and only the sentence can tell you which.
+           The regional line stays as it was - the radius there is the one the member
+           has always had, and repeating it would be noise.
+
+           ⚠️ And it shows WITHOUT a place name, where the regional one does not. The
+           label is reverse-geocoded, and a lookup that fails leaves it empty for the
+           rest of the session (setCenterLabel writes `label || ''`) - "centred on
+           nothing" is worth hiding, but the reach and the circle are not. -->
+      <p
+        v-if="centerLabel || reach === 'fern'"
+        class="center-label"
+        role="status"
+        aria-live="polite"
+      >
+        {{ centreLine }}
       </p>
     </div>
 
@@ -184,6 +198,12 @@ const props = defineProps({
   // reverse lookup) and persisted there — so it survives a mode switch or a reload.
   centerLabel: { type: String, default: '' },
   myPrecision: { type: String, default: 'genau' },
+  // How far the search reaches: 'regional' or 'fern'. The list draws the same rows
+  // either way — only the confirmation line above them changes, because the reach is
+  // the one thing about a wide search that the rows themselves cannot show.
+  reach: { type: String, default: 'regional' },
+  // The radius of the STANDING reach, km — named in the wide line.
+  radiusKm: { type: Number, default: 0 },
   sortMode: { type: String, default: 'naehe' },
   // The travel lens: 'suchpunkt' (distances from the search point) or 'wohnort'
   // (from home). showLens is true only once the two are different places.
@@ -194,6 +214,14 @@ const props = defineProps({
 const emit = defineEmits(['open', 'sort', 'lens', 'recenter'])
 
 const { t, locale } = useI18n()
+
+/** What the search took hold of: the reach, the circle where it is wide, the place. */
+const centreLine = computed(() => {
+  if (props.reach !== 'fern') return t('matching.list.centeredOn', { place: props.centerLabel })
+  return props.centerLabel
+    ? t('matching.list.centeredOnFern', { km: props.radiusKm, place: props.centerLabel })
+    : t('matching.list.centeredOnFernNoPlace', { km: props.radiusKm })
+})
 
 // ThemedSelect emits `change` with the chosen value directly (not a DOM event).
 function onSort(value) {

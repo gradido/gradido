@@ -24,6 +24,12 @@
     "reload": "Ανανέωση",
     "text": "Υπάρχει νεότερη έκδοση."
   },
+  "avatar": {
+    "zoom-open": "Μεγέθυνση φωτογραφίας: {name}",
+    "zoom-open-plain": "Μεγέθυνση φωτογραφίας",
+    "zoom-picture": "Φωτογραφία: {name}",
+    "zoom-picture-plain": "Φωτογραφία προφίλ"
+  },
   "back": "πίσω",
   "bulkResubmission": {
     "cancel": "Do not apply",

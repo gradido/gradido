@@ -24,6 +24,12 @@
     "reload": "Обновить",
     "text": "Доступна более новая версия."
   },
+  "avatar": {
+    "zoom-open": "Увеличить фото {name}",
+    "zoom-open-plain": "Увеличить фото",
+    "zoom-picture": "Фото {name}",
+    "zoom-picture-plain": "Фото профиля"
+  },
   "back": "назад",
   "bulkResubmission": {
     "cancel": "Do not apply",

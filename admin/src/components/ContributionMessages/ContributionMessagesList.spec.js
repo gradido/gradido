@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { ref } from 'vue'
 import ContributionMessagesList from './ContributionMessagesList.vue'
-import { useQuery } from '@vue/apollo-composable'
+import { useApolloClient, useQuery } from '@vue/apollo-composable'
 import { useAppToast } from '@/composables/useToast'
 import { BContainer } from 'bootstrap-vue-next'
 
@@ -14,6 +14,15 @@ vi.mock('vue', async () => {
   }
 })
 vi.mock('@vue/apollo-composable')
+
+// The page asks for the faces of the members it shows, once per answer. The client comes
+// from the composable, and the automock above hands back undefined for it -- so it is given
+// here, and the fetching itself is mocked away: what it does has its own tests.
+const { mockFetchMemberAvatars } = vi.hoisted(() => ({ mockFetchMemberAvatars: vi.fn() }))
+vi.mock('@/composables/useMemberAvatars', async (importOriginal) => ({
+  ...(await importOriginal()),
+  fetchMemberAvatars: mockFetchMemberAvatars,
+}))
 vi.mock('@/composables/useToast')
 
 const defaultData = {
@@ -28,6 +37,9 @@ const defaultData = {
         type: 'DIALOG',
         userAlias: 'peterl',
         userId: 1,
+        userGradidoID: 'g-peter',
+        userCommunityUuid: 'home',
+        userAvatarUpdatedAt: '2026-09-12T04:00:00.000Z',
         isModerator: true,
       },
       {
@@ -90,6 +102,7 @@ describe('ContributionMessagesList', () => {
     mockMessages = ref([])
     ref.mockReturnValueOnce(mockMessages)
 
+    useApolloClient.mockReturnValue({ client: { query: vi.fn() } })
     useQuery.mockReturnValue({
       onResult: vi.fn((callback) => callback({ result: defaultData })),
       onError: vi.fn(),
@@ -181,5 +194,19 @@ describe('ContributionMessagesList', () => {
   it('emits update-contributions event', async () => {
     await wrapper.vm.updateContributions()
     expect(wrapper.emitted('update-contributions')).toBeTruthy()
+  })
+  /**
+   * ⛔ ONE round trip for the whole thread, with every author in it -- not one per message.
+   * A moderator who wrote three of them is one member, and the picture store keys by member.
+   */
+  it('asks for the faces of everybody who wrote in this thread', () => {
+    expect(mockFetchMemberAvatars).toHaveBeenCalledTimes(1)
+    const asked = mockFetchMemberAvatars.mock.calls[0][1]
+    expect(asked[0]).toEqual({
+      gradidoID: 'g-peter',
+      communityUuid: 'home',
+      avatarUpdatedAt: '2026-09-12T04:00:00.000Z',
+    })
+    expect(asked).toHaveLength(defaultData.adminListContributionMessages.messages.length)
   })
 })
