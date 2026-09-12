@@ -434,6 +434,44 @@ describe('MatchingMap', () => {
       expect(page.text()).toContain(de.matching.map.found.replace('{n}', '0'))
     })
 
+    // Today the number has to be deleted by hand before a new one can be typed.
+    it('opens the radius dialog with the number selected, so a keystroke replaces it', async () => {
+      const page = await settle(mountMap())
+      // The binding first, before it is replaced below: without `ref` on the field
+      // there would be nothing to select, and handing one in would hide that.
+      expect(page.vm.radiusInput?.id).toBe('map-radius-input')
+
+      const select = vi.fn()
+      // BFormInput hands out { blur, element, focus } (measured in the installed
+      // package); this spec does not resolve it, so what it would expose is handed in.
+      page.vm.radiusInput = { element: { select } }
+
+      // The wiring itself: the dialog's own `shown`, dispatched on the element the
+      // unresolved BModal leaves behind. `shown` fires on every opening and after the
+      // transition - the first moment the field can take focus.
+      page.element.querySelector('bmodal').dispatchEvent(new CustomEvent('shown'))
+      await page.vm.$nextTick()
+
+      expect(select).toHaveBeenCalled()
+    })
+
+    // The dialog looks the same in both reaches; only this line says which circle is
+    // being set - and a number typed into the wrong one is noticed much later.
+    it('says which of the two circles the dialog is setting, and where the other stays', async () => {
+      seed('radius', 30)
+      seed('radiusFern', 700)
+      const page = await settle(mountMap())
+
+      // Regional standing: the line names the regional search and the WIDE number as
+      // the one that stays - so the two halves cannot be swapped without this failing.
+      expect(page.text()).toContain(de.matching.map.radiusHintRegional.replace('{km}', '700'))
+
+      await reachButtons(page)[1].trigger('click')
+      await flushPromises()
+
+      expect(page.text()).toContain(de.matching.map.radiusHintFern.replace('{km}', '30'))
+    })
+
     // Wiring, not behaviour, and wiring is what nothing tests by itself: the list's
     // own spec is handed these props, so deleting them HERE left every test green.
     it('tells the list which reach it is showing, and on what circle', async () => {

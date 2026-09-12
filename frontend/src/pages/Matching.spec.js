@@ -336,6 +336,14 @@ describe('Matching', () => {
   describe('the entry form', () => {
     // The column behind the summary is varchar(160) and the resolver passes the
     // value through untouched.
+    // Since the map has a reach switch the box is a gate, not a label: an entry without
+    // it is never found in the wide search. That has to be said where it is ticked.
+    it('says what the supra-regional box now does, under the box', () => {
+      const page = mountPage('entries', openModals)
+
+      expect(page.text()).toContain(de.matching.new.remoteHint)
+    })
+
     it('stops the summary at the length its column can hold', () => {
       const page = mountPage('entries', openModals)
       const summary = page.findAll('input').find((i) => i.attributes('maxlength'))
