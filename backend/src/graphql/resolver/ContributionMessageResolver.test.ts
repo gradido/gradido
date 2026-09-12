@@ -505,32 +505,38 @@ describe('ContributionMessageResolver', () => {
        * asks for.
        */
       it('refuses the thread of another member, in the same words as for an id that does not exist', async () => {
-        await mutate({
-          mutation: login,
-          variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
-        })
+        // ⚠️ `finally`, because the client is shared: a failing assertion here would
+        // otherwise leave the session on Bob, and the test after this one would fall over
+        // the guard rather than over its own subject -- one fault, two symptoms, and the
+        // second one at the wrong address (coderabbit, #3888).
+        try {
+          await mutate({
+            mutation: login,
+            variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
+          })
 
-        const foreign = await mutate({
-          mutation: listContributionMessages,
-          variables: { contributionId: result.data.createContribution.id },
-        })
-        const unknown = await mutate({
-          mutation: listContributionMessages,
-          variables: { contributionId: 424242 },
-        })
+          const foreign = await mutate({
+            mutation: listContributionMessages,
+            variables: { contributionId: result.data.createContribution.id },
+          })
+          const unknown = await mutate({
+            mutation: listContributionMessages,
+            variables: { contributionId: 424242 },
+          })
 
-        expect(foreign).toEqual(
-          expect.objectContaining({
-            errors: [new GraphQLError('Can not list the messages of another user')],
-          }),
-        )
-        // The same answer, so the error cannot be read as "this id exists".
-        expect(unknown).toEqual(foreign)
-
-        await mutate({
-          mutation: login,
-          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
-        })
+          expect(foreign).toEqual(
+            expect.objectContaining({
+              errors: [new GraphQLError('Can not list the messages of another user')],
+            }),
+          )
+          // The same answer, so the error cannot be read as "this id exists".
+          expect(unknown).toEqual(foreign)
+        } finally {
+          await mutate({
+            mutation: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
+        }
       })
 
       it('returns a list of contributionmessages without type MODERATOR', async () => {
