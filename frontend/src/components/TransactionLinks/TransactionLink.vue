@@ -1,60 +1,93 @@
 <template>
-  <div class="transaction-link gradido-custom-background">
-    <BRow :class="{ 'light-gray-text': !validLink }" class="mb-2 pt-2 pb-2">
-      <BCol cols="1">
-        <variant-icon icon="link45deg" variant="danger" />
-      </BCol>
-      <BCol cols="11">
-        <BRow>
-          <BCol>
-            <amount-and-name-row :amount="amount" :text="$t('form.amount')" />
-            <memo-row :memo="memo" />
-            <date-row :date="validUntil" :diff-now="true" :valid-link="validLink" />
-            <decay-row :decay="decay" />
-          </BCol>
-          <BCol cols="12" lg="1" md="1" class="text-center text-md-right pe-5 pe-lg-4">
-            <BDropdown no-caret right aria-expanded="false" size="sm">
-              <template #button-content>
-                <IBiThreeDotsVertical class="link-menu-opener" />
-              </template>
+  <div class="transaction-link gradido-custom-background mb-2">
+    <!-- ⛔ One line at every width, and that is only possible because the link's own circle
+         is gone (Bernd, 12.09.2026: "Der Kreis mit dem schrägen Link kann komplett wegfallen.
+         Damit wird die Zeilenbreite größer, und damit passt auch mehr in eine Zeile rein.").
+         The row it replaces was a label table -- amount, memo, date and decay each in a
+         5/12 + 7/12 pair -- which on a phone left the labels 100 points to work with: the
+         amount broke across two lines, the memo read as a ragged block, and the menu, on
+         `cols=12`, dropped onto a line of its own at the bottom (Bernd, 12.09.2026, with
+         pictures). Measured against the served stylesheet in the wallet's own column
+         structure: at 375 and 390 points every row is one line and 81 points high, even
+         with "+ 1.000,00 GDD" standing beside "Abgelaufen am"; at 320 the state word takes
+         two lines and nothing leaves the window. -->
+    <div
+      class="row align-items-center transaction-link-row pt-2 pb-2"
+      :class="{ 'light-gray-text': !validLink }"
+    >
+      <!-- Where a booking carries the counterparty's name, a link carries the only thing it
+           can be about: whether it can still be redeemed, and until when. `min-w-0` for the
+           same reason as in the booking row -- a `col` floors at its own content, so without
+           it a long state word would push the amount and the menu off the line. -->
+      <div class="col min-w-0">
+        <div class="fw-bold min-w-0" data-test="link-validity">{{ validityLabel }}</div>
+        <span class="small">{{ $d(new Date(validUntil), 'short') }}</span>
+        <span class="ms-4 small">{{ $d(new Date(validUntil), 'time') }}</span>
+      </div>
+      <!-- `col-auto`, so the amount takes what it needs and no more; the state column beside
+           it grows into the rest. No heading over it -- the same decision the summary row one
+           level up already carries: the amount says its own sign and unit. -->
+      <div class="col-auto">
+        <div class="fw-bold" data-test="link-amount">{{ $filters.GDD(amount) }}</div>
+        <div v-if="decay" class="small" data-test="link-decay">
+          <IBiDropletHalf height="13" class="mb-1" />
+          {{ $filters.GDD(decay) }}
+        </div>
+      </div>
+      <div class="col-auto d-flex justify-content-end align-items-center">
+        <BDropdown no-caret right aria-expanded="false" size="sm">
+          <template #button-content>
+            <!-- ⚠️ `link-menu-opener` is read by the summary row above: a tap on the menu
+                 must not also close the list it stands in. -->
+            <IBiThreeDotsVertical class="link-menu-opener" />
+          </template>
 
-              <BDropdownItem v-if="validLink" class="test-copy-link" @click.stop="copyLink">
-                <IBiClipboard />
-                {{ $t('gdd_per_link.copy-link') }}
-              </BDropdownItem>
-              <BDropdownItem
-                v-if="validLink"
-                class="pt-3 test-copy-text"
-                @click.stop="copyLinkWithText"
-              >
-                <IBiClipboardPlus />
-                {{ $t('gdd_per_link.copy-link-with-text') }}
-              </BDropdownItem>
-              <BDropdownItem
-                v-if="validLink"
-                class="pt-3 test-download-cheque"
-                @click.stop="downloadThankYouCheque()"
-              >
-                <IBiDownload />
-                {{ $t('thank-you-cheque.download') }}
-              </BDropdownItem>
-              <BDropdownItem
-                v-if="validLink"
-                class="pt-3 pb-3 test-qr-code"
-                @click.stop="toggleQrModal"
-              >
-                <IBiQrCode class="filter"></IBiQrCode>
-                {{ $t('qrCode') }}
-              </BDropdownItem>
-              <BDropdownItem class="test-delete-link" @click.stop="toggleDeleteModal">
-                <IBiTrash />
-                {{ $t('delete') }}
-              </BDropdownItem>
-            </BDropdown>
-          </BCol>
-        </BRow>
-      </BCol>
-    </BRow>
+          <BDropdownItem v-if="validLink" class="test-copy-link" @click.stop="copyLink">
+            <IBiClipboard />
+            {{ $t('gdd_per_link.copy-link') }}
+          </BDropdownItem>
+          <BDropdownItem
+            v-if="validLink"
+            class="pt-3 test-copy-text"
+            @click.stop="copyLinkWithText"
+          >
+            <IBiClipboardPlus />
+            {{ $t('gdd_per_link.copy-link-with-text') }}
+          </BDropdownItem>
+          <BDropdownItem
+            v-if="validLink"
+            class="pt-3 test-download-cheque"
+            @click.stop="downloadThankYouCheque()"
+          >
+            <IBiDownload />
+            {{ $t('thank-you-cheque.download') }}
+          </BDropdownItem>
+          <BDropdownItem
+            v-if="validLink"
+            class="pt-3 pb-3 test-qr-code"
+            @click.stop="toggleQrModal"
+          >
+            <IBiQrCode class="filter"></IBiQrCode>
+            {{ $t('qrCode') }}
+          </BDropdownItem>
+          <BDropdownItem class="test-delete-link" @click.stop="toggleDeleteModal">
+            <IBiTrash />
+            {{ $t('delete') }}
+          </BDropdownItem>
+        </BDropdown>
+      </div>
+      <!-- ⛔ The break has to be SAID here. The booking row gets one for free from the
+           `offset` under its face: offset plus width push the memo past the line. This row
+           has no face and no offset, so without this the memo sits BESIDE the row on the
+           desk -- measured, it did, before this div existed. -->
+      <div class="w-100" />
+      <!-- No heading over the memo -- italics and the muted colour say what it is, as in the
+           booking row. It stands whole rather than cut to one line: a booking can be opened
+           to read the rest, a link row cannot, so a clipped memo would be readable nowhere. -->
+      <div class="col-12 mt-1 transaction-link-memo-col">
+        <div class="transaction-link-memo" data-test="link-memo"><memo-text :memo="memo" /></div>
+      </div>
+    </div>
     <app-modal :model-value="showQrModal" @update:model-value="toggleQrModal">
       <BCard header-tag="header" footer-tag="footer">
         <template #header>
@@ -92,14 +125,9 @@ import { useAppToast } from '@/composables/useToast'
 import { useCopyLinks } from '@/composables/useCopyLinks'
 import { useThankYouCheque } from '@/composables/useThankYouCheque'
 import { deleteTransactionLink } from '@/graphql/mutations'
-import TypeIcon from '../TransactionRows/TypeIcon'
-import AmountAndNameRow from '../TransactionRows/AmountAndNameRow'
-import MemoRow from '../TransactionRows/MemoRow'
-import DateRow from '../TransactionRows/DateRow'
-import DecayRow from '../TransactionRows/DecayRow'
+import MemoText from '@/components/TransactionRows/MemoText'
 import AppModal from '@/components/AppModal'
 import FigureQrCode from '@/components/QrCode/FigureQrCode'
-import VariantIcon from '@/components/VariantIcon.vue'
 
 const props = defineProps({
   holdAvailableAmount: { type: String, required: true },
@@ -136,6 +164,11 @@ const { mutate: deleteTransactionLinkMutation } = useMutation(deleteTransactionL
 
 const decay = computed(() => `${props.amount - props.holdAvailableAmount}`)
 const validLink = computed(() => new Date(props.validUntil) > new Date())
+// The two words the row can lead with, and they are the ones this wallet already says about
+// a link -- taken over from the date row this template replaces, not invented here.
+const validityLabel = computed(() =>
+  validLink.value ? t('gdd_per_link.validUntil') : t('gdd_per_link.expiredOn'),
+)
 
 async function deleteLink() {
   try {
@@ -165,15 +198,42 @@ const toggleQrModal = () => {
   filter: opacity(0.6);
 }
 </style>
-<style scoped>
-:deep(.col-1 .icon-variant) {
-  margin-top: 1.5rem;
-  margin-left: 0.5rem;
-  width: 1.5rem;
-  height: 1.5rem;
-}
-
+<style scoped lang="scss">
 .light-gray-text {
   color: #adb5bd !important;
+}
+
+/* See the note at the state column: a Bootstrap `col` floors at its own content, so the
+   name column of the booking row carries the same guard under the same name. */
+.min-w-0 {
+  min-width: 0;
+}
+
+.transaction-link-row {
+  /* The menu column is the button plus the row's gutters. Measured at 56 points, not the
+     4.5rem the booking row reserves for its collapse arrow -- that arrow is bigger, and
+     copying its figure here cost the state word exactly the 16 points it needs to stay on
+     one line at 375. */
+  --link-menu-col: 3.5rem;
+}
+
+.transaction-link-memo {
+  font-style: italic;
+  color: var(--bs-secondary-color, #6c757d);
+
+  /* A memo may hold a web address, and an address is one unbreakable run. Without this it
+     would decide how wide the row has to be. */
+  overflow-wrap: anywhere;
+}
+
+/* From `md` on the memo stops short of the amount instead of running the whole width, which
+   Bernd found out of balance in the booking row on 11.09.2026 ("nicht so breit ... wie die
+   Spalte"). A floor, not an exact meeting point: the amount's column is as wide as its
+   content, so this leaves air rather than touching it. On the phone the memo keeps the whole
+   width -- there is nothing beside it. */
+@media (width >= 768px) {
+  .transaction-link-memo-col {
+    width: calc(100% * 9 / 12 - var(--link-menu-col));
+  }
 }
 </style>
