@@ -314,6 +314,163 @@ describe('MatchingMap', () => {
   // The router guard turns such a member away before this page is built at all. These
   // measure the belt: the answer that arrives AFTER the guard let somebody through,
   // because the store said yes and the server says no.
+  // How far the question travels. Two reaches, and each owns its own radius: the
+  // switch is useless if getting back means re-setting the circle by hand.
+  describe('the reach', () => {
+    const seed = (name, value) =>
+      window.localStorage.setItem(`${KEY}${name}`, JSON.stringify(value))
+    const reachButtons = (page) => page.findAll('.reach-btn')
+    const settle = async (page) => {
+      fire(userLocationQuery, { userLocation: location })
+      await flushPromises()
+      return page
+    }
+    const lastSearch = () => load.mock.calls.at(-1)[0]
+
+    it("opens in the reach it was left in, with that reach's own circle", async () => {
+      seed('reach', 'fern')
+      seed('radiusFern', 700)
+      // The regional circle is stored too, and must NOT be the one used.
+      seed('radius', 30)
+
+      const page = await settle(mountMap())
+
+      expect(lastSearch()).toMatchObject({ radius: 700, remoteOnly: true })
+      const [regional, wide] = reachButtons(page)
+      expect(wide.attributes('aria-pressed')).toBe('true')
+      expect(regional.attributes('aria-pressed')).toBe('false')
+    })
+
+    it('searches the wide reach on its own radius when the switch is used', async () => {
+      const page = await settle(mountMap())
+      // The control: it starts regional, on the regional default.
+      expect(lastSearch()).toMatchObject({ radius: 25, remoteOnly: false })
+
+      await reachButtons(page)[1].trigger('click')
+      await flushPromises()
+
+      expect(lastSearch()).toMatchObject({ radius: 500, remoteOnly: true })
+      expect(JSON.parse(window.localStorage.getItem(`${KEY}reach`))).toBe('fern')
+    })
+
+    it('brings the regional circle back, untouched, on the way back', async () => {
+      seed('radius', 30)
+      const page = await settle(mountMap())
+
+      await reachButtons(page)[1].trigger('click')
+      await flushPromises()
+      expect(lastSearch()).toMatchObject({ radius: 500, remoteOnly: true })
+
+      await reachButtons(page)[0].trigger('click')
+      await flushPromises()
+
+      // The number the member had before the detour, not the default and not 500.
+      expect(lastSearch()).toMatchObject({ radius: 30, remoteOnly: false })
+    })
+
+    it('sets the circle of the reach that is standing, and leaves the other one alone', async () => {
+      seed('radius', 30)
+      const page = await settle(mountMap())
+      await reachButtons(page)[1].trigger('click')
+      await flushPromises()
+
+      // The dialog's field is bootstrap-vue-next's, which this spec does not resolve -
+      // so the draft is set where the field would set it, and the key that submits is
+      // the real one on the real element.
+      page.vm.radiusDraft = 800
+      await page.find('#map-radius-input').trigger('keyup.enter')
+      await flushPromises()
+
+      expect(JSON.parse(window.localStorage.getItem(`${KEY}radiusFern`))).toBe(800)
+      // The regional key is the one every member already has a number in. Writing the
+      // wide circle into it would move a setting nobody touched.
+      expect(JSON.parse(window.localStorage.getItem(`${KEY}radius`))).toBe(30)
+      expect(lastSearch()).toMatchObject({ radius: 800, remoteOnly: true })
+    })
+
+    // Wiring, not behaviour, and wiring is what nothing tests by itself: the list's
+    // own spec is handed these props, so deleting them HERE left every test green.
+    it('tells the list which reach it is showing, and on what circle', async () => {
+      // The list covers the map rather than replacing it, so the reach switch is still
+      // there to be pressed while it is showing.
+      seed('mode', 'liste')
+      const page = await settle(mountMap())
+      const list = () => page.findComponent({ name: 'MatchList' })
+      expect(list().props('reach')).toBe('regional')
+      expect(list().props('radiusKm')).toBe(25)
+
+      await reachButtons(page)[1].trigger('click')
+      await flushPromises()
+
+      expect(list().props('reach')).toBe('fern')
+      expect(list().props('radiusKm')).toBe(500)
+    })
+
+    // The switch sits inside .controls-heading, which is bold, and `font: inherit` on
+    // a button pulls that weight down with everything else - so without a weight of
+    // its own the resting button comes out bold too and the is-on rule changes
+    // nothing. vitest applies no scoped component CSS, so the rules are read in the
+    // source; all three of them, because the finding is the RELATION between them.
+    it('leaves the standing reach as the only bold one', () => {
+      const here = dirname(fileURLToPath(import.meta.url))
+      const source = readFileSync(join(here, 'MatchingMap.vue'), 'utf8').replace(
+        /\/\*[\s\S]*?\*\//g,
+        '',
+      )
+      const ruleOf = (name) => source.match(new RegExp(`\\n\\${name} \\{([^}]*)\\}`))?.[1]
+
+      // Why the reset is needed at all - if this ever stops being bold, the reset may go.
+      expect(ruleOf('.controls-heading'), 'no .controls-heading rule').toMatch(/font-weight: 700;/)
+      // What the standing button is supposed to be.
+      expect(ruleOf('.reach-btn.is-on'), 'no .reach-btn.is-on rule').toMatch(/font-weight: 700;/)
+
+      // ...and the reset itself. Anything at 700 here makes the line above dead.
+      const resting = ruleOf('.reach-btn')
+      expect(resting, 'no .reach-btn rule').toBeDefined()
+      const weight = resting.match(/font-weight: (\d+);/)
+      expect(weight, '.reach-btn sets no weight of its own').not.toBeNull()
+      expect(Number(weight[1])).toBeLessThan(700)
+    })
+
+    // jsdom lays nothing out, so the wrap cannot be measured here; the rule that
+    // allows it is read in the source instead. Before the switch stood in front of
+    // it the row was `nowrap`, which on a 375 px phone would now run off the card.
+    it('lets the radius row break rather than run off a phone', () => {
+      const here = dirname(fileURLToPath(import.meta.url))
+      // Comments first: one of them names flex-wrap, and a guard that reads its own
+      // explanation proves nothing.
+      const source = readFileSync(join(here, 'MatchingMap.vue'), 'utf8').replace(
+        /\/\*[\s\S]*?\*\//g,
+        '',
+      )
+      const rule = source.match(/\n\.radius-row \{([^}]*)\}/)
+
+      expect(rule, 'no .radius-row rule in the page').not.toBeNull()
+      expect(rule[1]).toMatch(/flex-wrap: wrap;/)
+      expect(rule[1]).not.toMatch(/white-space: nowrap;/)
+    })
+
+    // The two grey buckets are the presence rings, and the wide search draws none.
+    it('puts the two grey boxes away in the wide reach, and keeps the three channels', async () => {
+      const page = await settle(mountMap())
+      // The amplifier is a .map-check as well; the five that answer to the reach are
+      // the ones carrying a colour swatch.
+      const boxes = () => page.findAll('.map-check .swatch').length
+      expect(boxes()).toBe(5)
+
+      await reachButtons(page)[1].trigger('click')
+      await flushPromises()
+
+      expect(boxes()).toBe(3)
+      // And the sentence that says why they went.
+      expect(page.text()).toContain(de.matching.map.reach.fernHint)
+
+      await reachButtons(page)[0].trigger('click')
+      await flushPromises()
+      expect(boxes()).toBe(5)
+    })
+  })
+
   describe('when the position is not two numbers', () => {
     const centreStored = () => window.localStorage.getItem(`${KEY}center`)
 

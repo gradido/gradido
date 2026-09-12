@@ -639,6 +639,7 @@
     },
     "list": {
       "centeredOn": "Umkreis um {place}",
+      "centeredOnFern": "Überregional · {km} km um {place}",
       "controlsHeading": "Suche und Sortierung",
       "dir": {
         "e": "östlich",
@@ -698,6 +699,13 @@
       "radius": "Radius",
       "radiusLabel": "In welchem Umkreis suchst Du? (km)",
       "radiusTitle": "Suchradius",
+      "radiusTitleFern": "Suchradius überregional",
+      "reach": {
+        "fern": "Überregional",
+        "fernHint": "Überregional zeigt nur Einträge, die dafür freigegeben sind.",
+        "label": "Reichweite",
+        "regional": "Regional"
+      },
       "search": "Ort oder Adresse suchen",
       "searchFailed": "Die Suche ist gerade nicht erreichbar.",
       "searchHere": "Hier suchen",

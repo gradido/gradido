@@ -81,7 +81,14 @@
            announced). Its own full-width row inside the controls; on a phone it is
            ordered directly under the search field, not under the sort. -->
       <p v-if="centerLabel" class="center-label" role="status" aria-live="polite">
-        {{ $t('matching.list.centeredOn', { place: centerLabel }) }}
+        <!-- In the wide reach the line says so and names the circle: the same list
+             shape is answering a different question, and only the sentence can tell
+             you which. The regional line stays as it was - the radius there is the
+             one the member has always had, and repeating it would be noise. -->
+        <template v-if="reach === 'fern'">
+          {{ $t('matching.list.centeredOnFern', { km: radiusKm, place: centerLabel }) }}
+        </template>
+        <template v-else>{{ $t('matching.list.centeredOn', { place: centerLabel }) }}</template>
       </p>
     </div>
 
@@ -184,6 +191,12 @@ const props = defineProps({
   // reverse lookup) and persisted there — so it survives a mode switch or a reload.
   centerLabel: { type: String, default: '' },
   myPrecision: { type: String, default: 'genau' },
+  // How far the search reaches: 'regional' or 'fern'. The list draws the same rows
+  // either way — only the confirmation line above them changes, because the reach is
+  // the one thing about a wide search that the rows themselves cannot show.
+  reach: { type: String, default: 'regional' },
+  // The radius of the STANDING reach, km — named in the wide line.
+  radiusKm: { type: Number, default: 0 },
   sortMode: { type: String, default: 'naehe' },
   // The travel lens: 'suchpunkt' (distances from the search point) or 'wohnort'
   // (from home). showLens is true only once the two are different places.

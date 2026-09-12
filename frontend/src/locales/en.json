@@ -608,7 +608,7 @@
       "noDetails": "(no details)",
       "pause": "Pause",
       "pausedBadge": "Paused · not in search",
-      "remote": "Nationwide"
+      "remote": "Supra-regional"
     },
     "find": {
       "gateText": "Once you have set your position and made yourself visible on the map, you can also find others near you.",
@@ -639,6 +639,7 @@
     },
     "list": {
       "centeredOn": "Centred on {place}",
+      "centeredOnFern": "Supra-regional · {km} km around {place}",
       "controlsHeading": "Search and sort",
       "dir": {
         "e": "east",
@@ -698,6 +699,13 @@
       "radius": "Radius",
       "radiusLabel": "How far out do you want to search? (km)",
       "radiusTitle": "Search radius",
+      "radiusTitleFern": "Supra-regional search radius",
+      "reach": {
+        "fern": "Supra-regional",
+        "fernHint": "Supra-regional shows only entries released for it.",
+        "label": "Reach",
+        "regional": "Regional"
+      },
       "search": "Search for a place or address",
       "searchFailed": "The search is not reachable right now.",
       "searchHere": "Search here",
@@ -707,7 +715,7 @@
       "cancel": "Cancel",
       "completeSentence": "Complete this sentence:",
       "detailsHeading": "Details — so the right people find you:",
-      "remote": "Also available nationwide / online"
+      "remote": "Also available supra-regionally / online"
     },
     "position": {
       "accuracyApprox": "A slightly shifted location is shown",
