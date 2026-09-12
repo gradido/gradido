@@ -83,8 +83,8 @@ export async function dbFindUserAvatarSmall(
  */
 const mayBeShownToMembers = () =>
   and(
-    eq(usersTable.foreign, 0),
-    eq(usersTable.avatarVisibleToMembers, 1),
+    eq(usersTable.foreign, false),
+    eq(usersTable.avatarVisibleToMembers, true),
     isNull(usersTable.deletedAt),
   )
 

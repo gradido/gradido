@@ -1,9 +1,9 @@
-import { UserContact as DbUserContact } from 'database'
+import { UserContact as DbUserContact, UserContactSelect } from 'database'
 import { Field, Int, ObjectType } from 'type-graphql'
 
 @ObjectType()
 export class UserContact {
-  constructor(userContact: DbUserContact) {
+  constructor(userContact: DbUserContact | UserContactSelect) {
     Object.assign(this, userContact)
   }
 

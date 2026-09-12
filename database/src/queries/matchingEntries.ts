@@ -242,9 +242,9 @@ export async function dbWriteMatchingEntryKeying(
 const mayReachTheGms = () =>
   and(
     eq(matchingEntriesTable.active, true),
-    eq(usersTable.gmsAllowed, 1),
+    eq(usersTable.gmsAllowed, true),
     isNull(usersTable.deletedAt),
-    eq(usersTable.foreign, 0),
+    eq(usersTable.foreign, false),
   )
 
 /** An entry waiting to be keyed, with the two things about its owner the run needs. */

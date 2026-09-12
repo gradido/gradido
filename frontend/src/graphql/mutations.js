@@ -244,7 +244,7 @@ export const login = gql`
     login(email: $email, password: $password, publisherId: $publisherId, project: $project) {
       gradidoID
       # The other half of the pair that names a member: every query about a member asks
-      # about both, the member's own picture included.
+      # about both
       communityUuid
       alias
       emailChecked
@@ -261,6 +261,9 @@ export const login = gql`
       userLocation
       hasElopage
       publisherId
+      avatar
+      avatarVisibleToMembers
+      creationAllowed
       roles
       hideAmountGDD
       hideAmountGDT

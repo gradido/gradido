@@ -1,7 +1,7 @@
 import { cpus } from 'node:os'
 import path from 'node:path'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
-import { User } from 'database'
+import { DbUser, User } from 'database'
 import { crypto_shorthash_KEYBYTES } from 'sodium-native'
 import { Pool, pool } from 'workerpool'
 import { CONFIG } from '@/config'
@@ -67,14 +67,14 @@ export const SecretKeyCryptographyCreateKey = async (
   }
 }
 
-export const getUserCryptographicSalt = (dbUser: User): string => {
+export const getUserCryptographicSalt = (dbUser: User | DbUser): string => {
   switch (dbUser.passwordEncryptionType) {
     case PasswordEncryptionType.NO_PASSWORD:
       throw new LogError('User has no password set', dbUser.id)
     case PasswordEncryptionType.EMAIL:
       return dbUser.emailContact.email
     case PasswordEncryptionType.GRADIDO_ID:
-      return dbUser.gradidoID
+      return dbUser instanceof User ? dbUser.gradidoID : dbUser.gradidoId
     default:
       throw new LogError('Unknown password encryption type', dbUser.passwordEncryptionType)
   }

@@ -1,9 +1,19 @@
 import { and, desc, eq, inArray, isNull, or } from 'drizzle-orm'
 import { alias as aliasedTable } from 'drizzle-orm/mysql-core'
-import { GradidoUnit, VoidResult } from 'shared'
+import { GradidoUnit, PasswordEncryptionType, Result, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
-import { DBNotFoundError } from '../errorTypes'
-import { transactionsTable, usersTable } from '../schemas/drizzle.schema'
+import { DBDuplicateEntryError, DBNotFoundError } from '../errorTypes'
+import {
+  transactionsTable,
+  UserContactSelect,
+  UserInsert,
+  UserRoleSelect,
+  UserSelect,
+  userAvatarsTable,
+  userContactsTable,
+  userRolesTable,
+  usersTable,
+} from '../schemas/drizzle.schema'
 import { dbAliasHeldByOther } from './userAliases'
 
 // Drizzle only. The `users` queries still on TypeORM live in `./user.typeorm` until they
@@ -12,6 +22,54 @@ import { dbAliasHeldByOther } from './userAliases'
 // Wherever TypeORM read `users` as its main table it added `deleted_at IS NULL` on its own
 // (the entity has a `@DeleteDateColumn`); Drizzle adds nothing, so the translations below
 // spell that condition out.
+
+/**
+ * The member whose CURRENT address this is, deleted accounts included, with roles and
+ * address and avatar.
+ */
+export async function dbFindUserLoginByEmail(
+  email: string,
+): Promise<Result<DbLoginUser, DBNotFoundError>> {
+  const rows = await drizzleDb()
+    .select({
+      user: usersTable,
+      role: userRolesTable,
+      emailContact: userContactsTable,
+      avatar: userAvatarsTable.avatarSmall,
+    })
+    .from(usersTable)
+    // should be only exist 0..1 user_roles per user
+    .leftJoin(userRolesTable, eq(usersTable.id, userRolesTable.userId))
+    .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))
+    .leftJoin(userAvatarsTable, eq(usersTable.id, userAvatarsTable.userId))
+    .where(eq(userContactsTable.email, email))
+
+  if (!rows.length) {
+    return { success: false, error: new DBNotFoundError('user_contacts', `email: ${email}`) }
+  }
+  if (rows.length > 1) {
+    throw new DBDuplicateEntryError(
+      'user_contacts join user_roles join users join user_avatars',
+      'email',
+      email,
+    )
+  }
+  const item = rows[0]
+  return {
+    success: true,
+    value: { ...item.user, role: item.role, emailContact: item.emailContact, avatar: item.avatar },
+  }
+}
+
+// mostly used in app is user with contact
+export type DbUser = UserSelect & {
+  emailContact: UserContactSelect
+}
+
+export type DbLoginUser = DbUser & {
+  role: UserRoleSelect | null
+  avatar: Buffer | null
+}
 
 /**
  * The id of the `users` row carrying this pair, or null when there is none.
@@ -44,7 +102,7 @@ export async function dbFindUserIdByUuids(
       ? or(
           exactPair,
           and(
-            eq(usersTable.foreign, 0),
+            eq(usersTable.foreign, false),
             isNull(usersTable.communityUuid),
             eq(usersTable.gradidoId, gradidoID),
           ),
@@ -69,7 +127,7 @@ export async function dbFindUserIdByUuids(
 export async function dbClearGmsRegistration(userId: number): Promise<VoidResult<DBNotFoundError>> {
   const result = await drizzleDb()
     .update(usersTable)
-    .set({ gmsRegistered: 0, gmsRegisteredAt: null })
+    .set({ gmsRegistered: false, gmsRegisteredAt: null })
     .where(eq(usersTable.id, userId))
 
   const firstRow = result[0]
@@ -88,7 +146,7 @@ export async function aliasExists(alias: string, userId?: number): Promise<boole
     .select({ id: usersTable.id })
     .from(usersTable)
     .where(
-      and(eq(usersTable.alias, alias), eq(usersTable.foreign, 0), isNull(usersTable.deletedAt)),
+      and(eq(usersTable.alias, alias), eq(usersTable.foreign, false), isNull(usersTable.deletedAt)),
     )
     .limit(1)
   if (user !== undefined && (userId === undefined || user.id !== userId)) {
@@ -138,7 +196,7 @@ export async function dbFindGmsAllowedLocalUserIds(): Promise<{ id: number }[]> 
     .select({ id: usersTable.id })
     .from(usersTable)
     .where(
-      and(eq(usersTable.foreign, 0), eq(usersTable.gmsAllowed, 1), isNull(usersTable.deletedAt)),
+      and(eq(usersTable.foreign, false), eq(usersTable.gmsAllowed, true), isNull(usersTable.deletedAt)),
     )
 }
 
@@ -187,6 +245,30 @@ export async function dbSelectLatestUserBalances(): Promise<
 export async function dbMarkUsersGmsRegistered(userIds: number[]): Promise<void> {
   await drizzleDb()
     .update(usersTable)
-    .set({ gmsRegistered: 1, gmsRegisteredAt: new Date() })
+    .set({ gmsRegistered: true, gmsRegisteredAt: new Date() })
     .where(inArray(usersTable.id, userIds))
+}
+
+export async function dbUserUpdatePassword(
+  userId: number,
+  passwordEncryptionType: PasswordEncryptionType,
+  password: bigint,
+): Promise<void> {
+  await drizzleDb()
+    .update(usersTable)
+    .set({ password, passwordEncryptionType })
+    .where(eq(usersTable.id, userId))
+}
+
+export async function dbUserUpdateField<K extends keyof UserInsert>(
+  userId: number,
+  field: K,
+  value: UserInsert[K],
+): Promise<void> {
+  await drizzleDb()
+    .update(usersTable)
+    .set({
+      [field]: value,
+    })
+    .where(eq(usersTable.id, userId))
 }

@@ -1,4 +1,4 @@
-import { User } from 'database'
+import { DbUser, User } from 'database'
 import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'
@@ -43,7 +43,7 @@ function isValid(postUser: PostUser, userId: number): boolean {
  * @returns
  */
 export async function syncUser(
-  user: User,
+  user: DbUser | User,
   humhubUsers: Map<string, GetUser>,
 ): Promise<ExecutedHumhubAction> {
   const postUser = new PostUser(user)
@@ -53,7 +53,7 @@ export async function syncUser(
   let humhubUser = humhubUsers.get(postUser.account.username)
   if (!humhubUser) {
     // fallback for legacy users
-    humhubUser = humhubUsers.get(user.gradidoID)
+    humhubUser = humhubUsers.get(user instanceof User ? user.gradidoID : user.gradidoId)
   }
   const humHubClient = HumHubClient.getInstance()
   if (!humHubClient) {

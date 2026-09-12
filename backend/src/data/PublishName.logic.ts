@@ -1,4 +1,4 @@
-import { User } from 'database'
+import { DbUser, User } from 'database'
 import { ALIAS_MIN_CHARS, publicAlias } from 'shared'
 import XRegExp from 'xregexp'
 
@@ -8,7 +8,11 @@ export class PublishNameLogic {
   // allowed characters for humhub usernames
   private usernameRegex: RegExp = XRegExp('[\\p{L}\\d_\\-@\\.]', 'g')
 
-  constructor(private user: User) {}
+  constructor(private user: DbUser | User) {}
+
+  private get gradidoId() {
+    return this.user instanceof User ? this.user.gradidoID : this.user.gradidoId
+  }
 
   // remove character which are invalid for humhub username
   private filterOutInvalidChar(name: string) {
@@ -59,7 +63,7 @@ export class PublishNameLogic {
    * to model.
    */
   public getPublicAlias(): string {
-    return publicAlias(this.user.alias, this.user.gradidoID)
+    return publicAlias(this.user.alias, this.gradidoId)
   }
 
   /**
@@ -70,13 +74,11 @@ export class PublishNameLogic {
    * else return gradido id
    */
   public getUserIdentifier(publishNameType: PublishNameType): string {
-    return this.isUsernameFromAlias(publishNameType)
-      ? this.getUsernameFromAlias()
-      : this.user.gradidoID
+    return this.isUsernameFromAlias(publishNameType) ? this.getUsernameFromAlias() : this.gradidoId
   }
 
   public getUsernameFromAlias(): string {
-    return this.filterOutInvalidChar(this.user.alias)
+    return this.filterOutInvalidChar(this.user.alias || '')
   }
 
   public isUsernameFromAlias(publishNameType: PublishNameType): boolean {

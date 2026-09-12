@@ -36,6 +36,7 @@ import {
   aliasExists,
   aliasOriginIsSettled,
   ContributionLink as DbContributionLink,
+  DbLoginUser,
   TransactionLink as DbTransactionLink,
   User as DbUser,
   UserContact as DbUserContact,
@@ -56,6 +57,7 @@ import {
   dbFindUserByEmailOrFail,
   dbFindUserContactByCodeExceptChangeOrFail,
   dbFindUserContactByCodeOrFail,
+  dbFindUserLoginByEmail,
   dbFindUsers,
   dbInsertAssistedRegistration,
   dbInsertUserAlias,
@@ -63,9 +65,13 @@ import {
   dbPurgeExpiredAssistedRegistrations,
   dbReleaseUnconfirmedEmailChangeFor,
   dbUpsertUserAvatar,
+  dbUserUpdateField,
+  dbUserUpdatePassword,
   emailContactByUserIdQuery,
   findUserByIdentifier,
+  getCommunityByUuid,
   getHomeCommunity,
+  getHomeCommunityDrizzle,
   ProjectBrandingSelect,
   UserLoggingView,
 } from 'database'
@@ -197,11 +203,6 @@ export class UserResolver {
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage(context)
 
-    // The member's own profile picture. Sent along with the login so the wallet can show
-    // it immediately instead of jumping from initials to picture on every page load.
-    const avatar = await dbFindUserAvatarSmall(userEntity.id)
-    user.avatar = avatar.success ? avatar.value.toString('base64') : null
-
     logger.debug(`verifyLogin... successful`)
     user.klickTipp = await getKlicktippState(userEntity.emailContact.email)
     return user
@@ -216,22 +217,27 @@ export class UserResolver {
     const logger = createLogger('login')
     logger.info(`login with ${email.substring(0, 3)}..., project=${project} ...`)
     email = email.trim().toLowerCase()
-    let dbUser: DbUser
+    let dbUser: DbLoginUser
 
     try {
-      dbUser = await findUserByEmail(email)
+      const loginUserResult = await dbFindUserLoginByEmail(email)
+      if (!loginUserResult.success) {
+        await delay(650 + Math.floor(Math.random() * 101) - 50)
+        logger.warn(`findUserByEmail failed, user with email=${email} not found`)
+        throw new Error('No user with this credentials')
+      }
+      dbUser = loginUserResult.value
       // add technical user identifier in logger-context for layout-pattern X{user} to print it in each logging message
       logger.addContext('user', dbUser.id)
-      logger.trace('user before login', new UserLoggingView(dbUser))
     } catch (e) {
-      // simulate delay which occur on password encryption 650 ms +- 50 rnd
-      await delay(650 + Math.floor(Math.random() * 101) - 50)
-      throw e
+      logger.error(`findUserByEmail failed, unknown error: ${e}`)
+      throw new Error('No user with this credentials')
     }
     if (dbUser.deletedAt) {
       logger.warn('login failed, user was deleted')
       throw new Error('This user was permanently deleted. Contact support for questions')
     }
+
     // An unconfirmed address only bars the login while the account has no password —
     // that is every classic registration before its mail link was clicked. An account
     // that IS unconfirmed but holds a password came through the assisted registration
@@ -277,18 +283,22 @@ export class UserResolver {
       (dbUser.passwordEncryptionType as PasswordEncryptionType) !==
       PasswordEncryptionType.GRADIDO_ID
     ) {
-      dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-      dbUser.password = await encryptPassword(dbUser, password)
-      await dbUser.save()
+      await dbUserUpdatePassword(
+        dbUser.id,
+        PasswordEncryptionType.GRADIDO_ID,
+        await encryptPassword(dbUser, password),
+      )
     }
     logger.debug('validation of login credentials successful...')
 
+    // needed as long as context user weren't updated to DrizzleOrm
+    const legacyUser = await DbUser.findOneOrFail({ where: { id: dbUser.id } })
     // Login runs on an inalienable right, so no authenticated caller exists while this
     // answer is serialised -- but the member HAS just proven who they are, and from here
     // on everything below is entitled to know it. Without this line the
     // firstName/lastName field resolvers would read the owner exception as "not you" and
     // the wallet's own store would fill with null names.
-    context.user = dbUser
+    context.user = legacyUser
 
     const user = new User(dbUser)
 
@@ -296,17 +306,15 @@ export class UserResolver {
     user.hasElopage = await this.hasElopage(context)
     logger.debug('user.hasElopage', user.hasElopage)
     if (!user.hasElopage && publisherId) {
-      user.publisherId = publisherId
-      dbUser.publisherId = publisherId
-      await DbUser.save(dbUser)
+      await dbUserUpdateField(user.id, 'publisherId', publisherId)
     }
 
     context.setHeaders.push({
       key: 'token',
-      value: await encode(dbUser.gradidoID),
+      value: await encode(dbUser.gradidoId),
     })
 
-    await EVENT_USER_LOGIN(dbUser)
+    await EVENT_USER_LOGIN(legacyUser)
     const projectBrandingSpaceId = await projectBrandingSpaceIdPromise
     logger.debug('project branding: ', projectBrandingSpaceId)
     // load humhub state
@@ -324,7 +332,6 @@ export class UserResolver {
     }
     user.klickTipp = await klicktippStatePromise
     logger.info('successful Login')
-    logger.trace('user after login', new UserLoggingView(dbUser))
     return user
   }
 
@@ -1639,6 +1646,14 @@ export class UserResolver {
       return null
     }
     return user.avatarVisibleToMembers ?? null
+  }
+
+  @FieldResolver(() => String, { nullable: true })
+  async communityName(@Root() user: User, @Ctx() context: Context): Promise<string | null> {
+    const community = !user.foreign
+      ? await getHomeCommunityDrizzle()
+      : await getCommunityByUuid(user.communityUuid)
+    return community && community.name ? community.name : null
   }
 }
 

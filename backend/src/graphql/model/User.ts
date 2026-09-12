@@ -1,6 +1,6 @@
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
 import { PublishNameType } from '@enum/PublishNameType'
-import { User as DbUser } from 'database'
+import { DbLoginUser, User as LegacyUser } from 'database'
 import { Field, Int, ObjectType } from 'type-graphql'
 import { Point } from 'typeorm'
 
@@ -14,16 +14,26 @@ import { UserContact } from './UserContact'
 
 @ObjectType()
 export class User {
-  constructor(dbUser: DbUser | null) {
+  constructor(dbUser: DbLoginUser | LegacyUser | null) {
     if (dbUser) {
       this.id = dbUser.id
       this.foreign = dbUser.foreign
       this.communityUuid = dbUser.communityUuid
-      if (dbUser.community) {
-        this.communityName = dbUser.community.name
-      }
-      this.gradidoID = dbUser.gradidoID
+
       this.alias = dbUser.alias
+
+      if (dbUser instanceof LegacyUser) {
+        this.gradidoID = dbUser.gradidoID
+        this.hideAmountGDD = dbUser.hideAmountGDD
+        this.hideAmountGDT = dbUser.hideAmountGDT
+        this.roles = dbUser.userRoles ? [dbUser.userRoles[0].role] : []
+      } else {
+        this.gradidoID = dbUser.gradidoId
+        this.hideAmountGDD = dbUser.hideAmountGdd || false
+        this.hideAmountGDT = dbUser.hideAmountGdt || false
+        this.roles = dbUser.role?.role ? [dbUser.role?.role] : []
+        this.avatar = dbUser.avatar?.toString('base64') ?? null
+      }
 
       const publishNameLogic = new PublishNameLogic(dbUser)
       const publishNameType = dbUser.humhubPublishName as PublishNameType
@@ -47,11 +57,9 @@ export class User {
       this.createdAt = dbUser.createdAt
       this.language = dbUser.language
       this.publisherId = dbUser.publisherId
-      this.roles = dbUser.userRoles?.map((userRole) => userRole.role) ?? []
+
       this.klickTipp = null
       this.hasElopage = null
-      this.hideAmountGDD = dbUser.hideAmountGDD
-      this.hideAmountGDT = dbUser.hideAmountGDT
       this.humhubAllowed = dbUser.humhubAllowed
       this.gmsAllowed = dbUser.gmsAllowed
       this.gmsPublishName = dbUser.gmsPublishName
@@ -60,10 +68,7 @@ export class User {
       this.aboutMe = dbUser.aboutMe
       this.avatarVisibleToMembers = dbUser.avatarVisibleToMembers
       this.creationAllowed = dbUser.creationAllowed
-      // Lives in its own table, so the user row cannot carry it; verifyLogin fills it.
-      // This is the small rendition -- the full one is fetched on demand, see avatarFull.
-      this.avatar = null
-      // Same: not on the user row. Whoever assembles a list of members fills it in one
+      // not on the user row. Whoever assembles a list of members fills it in one
       // batch; null until then, and null for good where there is nothing to show.
       this.avatarUpdatedAt = null
       // No second check in front of it: Point2Location answers the whole question now --

@@ -19,7 +19,7 @@ import {
   varchar,
 } from 'drizzle-orm/mysql-core'
 
-import { customGradidoUnit, customMediumBlob } from './customTypes'
+import { customGeometry, customGradidoUnit, customMediumBlob } from './customTypes'
 
 export const communitiesTable = mysqlTable(
   'communities',
@@ -334,9 +334,9 @@ export const usersTable = mysqlTable(
   'users',
   {
     id: int().autoincrement().primaryKey().notNull(),
-    foreign: tinyint().default(0).notNull(),
+    foreign: boolean().default(false).notNull(),
     gradidoId: char('gradido_id', { length: 36 }).notNull(),
-    communityUuid: varchar('community_uuid', { length: 36 }).default(sql`NULL`),
+    communityUuid: varchar('community_uuid', { length: 36 }).notNull(),
     alias: varchar({ length: 20 }).default(sql`NULL`),
     emailId: int('email_id').default(sql`NULL`),
     firstName: varchar('first_name', { length: 255 }).default(sql`NULL`),
@@ -358,20 +358,20 @@ export const usersTable = mysqlTable(
     referrerId: int('referrer_id').default(sql`NULL`),
     contributionLinkId: int('contribution_link_id').default(sql`NULL`),
     publisherId: int('publisher_id').default(0),
-    hideAmountGdd: tinyint().default(0),
-    hideAmountGdt: tinyint().default(0),
-    gmsAllowed: tinyint('gms_allowed').default(1).notNull(),
-    // Warning: Can't parse geometry from database
-    // geometryType: geometry("location"),
+    hideAmountGdd: boolean().default(false),
+    hideAmountGdt: boolean().default(false),
+    gmsAllowed: boolean('gms_allowed').default(true).notNull(),
+    location: customGeometry().default(null),
     gmsPublishLocation: int('gms_publish_location').default(2).notNull(),
     aboutMe: text('about_me').default(sql`NULL`),
-    avatarVisibleToMembers: tinyint('avatar_visible_to_members').default(1).notNull(),
+    avatarVisibleToMembers: boolean('avatar_visible_to_members').default(true).notNull(),
     // ES-021: a person may create, a project account may not. 1 for every account that
     // exists today - the distinction is made by the holder, never by a migration.
-    creationAllowed: tinyint('creation_allowed').default(1).notNull(),
-    gmsRegistered: tinyint('gms_registered').default(0).notNull(),
+    creationAllowed: boolean('creation_allowed').default(true).notNull(),
+    salutation: varchar({ length: 255 }).default(sql`NULL`),
+    gmsRegistered: boolean('gms_registered').default(false).notNull(),
     gmsRegisteredAt: datetime('gms_registered_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
-    humhubAllowed: tinyint('humhub_allowed').default(0).notNull(),
+    humhubAllowed: boolean('humhub_allowed').default(false).notNull(),
   },
   (table) => [
     index('idx_users_created_id_uuid').on(table.createdAt, table.id, table.communityUuid),
@@ -409,8 +409,8 @@ export const userContactsTable = mysqlTable(
     ),
     emailOptInTypeId: int('email_opt_in_type_id').default(sql`NULL`),
     emailResendCount: int('email_resend_count').default(0),
-    emailChecked: tinyint('email_checked').default(0).notNull(),
-    gmsPublishEmail: tinyint('gms_publish_email').default(0).notNull(),
+    emailChecked: boolean('email_checked').default(false).notNull(),
+    gmsPublishEmail: boolean('gms_publish_email').default(false).notNull(),
     countryCode: varchar('country_code', { length: 255 }).default(sql`NULL`),
     phone: varchar({ length: 255 }).default(sql`NULL`),
     gmsPublishPhone: int('gms_publish_phone', { unsigned: true }).default(0).notNull(),
@@ -460,6 +460,24 @@ export const userAvatarsTable = mysqlTable('user_avatars', {
 
 export type UserAvatarSelect = typeof userAvatarsTable.$inferSelect
 export type UserAvatarInsert = typeof userAvatarsTable.$inferInsert
+
+// TODO: update db schema for mirror app logic that every user can have 0 or 1 user_roles
+export const userRolesTable = mysqlTable(
+  'user_roles',
+  {
+    id: int().autoincrement().notNull(),
+    userId: int('user_id').notNull(),
+    role: varchar({ length: 40 }).notNull(),
+    createdAt: datetime('created_at', { mode: 'string', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    updatedAt: datetime('updated_at', { mode: 'string', fsp: 3 }).default(sql`NULL`),
+  },
+  (table) => [index('user_id').on(table.userId)],
+)
+
+export type UserRoleSelect = typeof userRolesTable.$inferSelect
+export type UserRoleInsert = typeof userRolesTable.$inferInsert
 
 // A member's favourites: the people they marked with the heart (see migration 0128).
 //
