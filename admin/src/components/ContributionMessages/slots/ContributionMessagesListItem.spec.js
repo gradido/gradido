@@ -236,6 +236,25 @@ describe('the face beside a message', () => {
     expect(avatar.props('colorIndex')).toBe(4)
   })
 
+  // The same rule on the other side of the interface: no alias, no hole in the label.
+  it('names the picture plainly where the author has no alias', async () => {
+    const client = clientAnswering([
+      { gradidoID: 'g-margret', communityUuid: 'home', avatar: 'her-face', avatarUpdatedAt: WHEN },
+    ])
+    await fetchMemberAvatars(client, [
+      { gradidoID: 'g-margret', communityUuid: 'home', avatarUpdatedAt: WHEN },
+    ])
+    const wrapper = createWrapper({
+      contributionUserId: 108,
+      message: { ...message, userAlias: null },
+    })
+
+    await wrapper.findComponent(MemberAvatar).trigger('click')
+
+    expect(memberAvatarZoomState.value.label).toBe('avatar.zoom-picture-plain')
+    wrapper.unmount()
+  })
+
   it('opens the picture at full size on a tap', async () => {
     const client = clientAnswering([
       { gradidoID: 'g-margret', communityUuid: 'home', avatar: 'her-face', avatarUpdatedAt: WHEN },

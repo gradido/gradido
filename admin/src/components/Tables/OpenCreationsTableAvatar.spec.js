@@ -96,6 +96,57 @@ describe('the member behind a contribution', () => {
     expect(wrapper.find('td').findComponent(MemberAvatar).exists()).toBe(true)
   })
 
+  /**
+   * ⛔ A row whose member has neither alias nor name still gets a label that says what the
+   * button does: "Profile picture", not "Picture of " with a hole where somebody should be.
+   * (coderabbit, #3890.)
+   */
+  it('names the picture plainly where the member has no name at all', async () => {
+    const nameless = {
+      id: 43,
+      gradidoID: 'g-nameless',
+      communityUuid: 'home',
+      avatarUpdatedAt: WHEN,
+    }
+    const client = {
+      query: vi.fn().mockResolvedValue({
+        data: {
+          memberAvatars: [{ ...nameless, avatar: 'a-face' }],
+        },
+      }),
+    }
+    wrapper = mount(OpenCreationsTable, {
+      props: {
+        items: [
+          {
+            id: 1,
+            amount: '260',
+            memo: 'x',
+            contributionStatus: 'PENDING',
+            contributionDate: new Date('2026-08-05T10:00:00.000Z'),
+            createdAt: new Date('2026-08-05T10:00:00.000Z'),
+            messagesCount: 0,
+            user: nameless,
+          },
+        ],
+        fields: [{ key: 'amount', label: 'creation', formatter: (value) => `${value} GDD` }],
+        hideResubmission: false,
+      },
+      global: {
+        plugins: [createStore({ state: { moderator: {} } })],
+        components: { BTableLite },
+        mocks: { $t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) },
+        stubs: { BModal: true },
+      },
+    })
+    await fetchMemberAvatars(client, [nameless])
+    await wrapper.vm.$nextTick()
+
+    await wrapper.findComponent(MemberAvatar).trigger('click')
+
+    expect(memberAvatarZoomState.value.label).toBe('avatar.zoom-picture-plain')
+  })
+
   it('shows the face once the page has fetched it, and opens it on a tap', async () => {
     const client = {
       query: vi.fn().mockResolvedValue({
