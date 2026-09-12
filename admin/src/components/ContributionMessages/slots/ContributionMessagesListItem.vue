@@ -122,10 +122,13 @@ export default {
   },
   methods: {
     openPicture() {
+      // Without an alias the plain wording -- see the same spot in the contributions table.
       openMemberAvatarZoom({
         member: this.author,
         src: this.authorAvatar.src,
-        label: this.$t('avatar.zoom-picture', { name: this.authorName }),
+        label: this.authorName
+          ? this.$t('avatar.zoom-picture', { name: this.authorName })
+          : this.$t('avatar.zoom-picture-plain'),
       })
     },
   },

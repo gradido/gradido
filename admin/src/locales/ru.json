@@ -25,10 +25,10 @@
     "text": "Доступна более новая версия."
   },
   "avatar": {
-    "zoom-open": "Enlarge picture of {name}",
-    "zoom-open-plain": "Enlarge picture",
-    "zoom-picture": "Picture of {name}",
-    "zoom-picture-plain": "Profile picture"
+    "zoom-open": "Увеличить фото {name}",
+    "zoom-open-plain": "Увеличить фото",
+    "zoom-picture": "Фото {name}",
+    "zoom-picture-plain": "Фото профиля"
   },
   "back": "назад",
   "bulkResubmission": {

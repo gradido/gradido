@@ -110,6 +110,38 @@ describe('MemberAvatarZoom', () => {
     expect(sources).not.toContain('data:image/jpeg;base64,margrets-big-one')
   })
 
+  /**
+   * ⛔ The pair, not half of it. `users` is unique on (gradido_id, community_uuid), so the
+   * SAME gradidoID can belong to two members of different communities -- and half a
+   * comparison would let one of them answer for the other, under the right name.
+   * (coderabbit, #3890.)
+   */
+  it('drops an answer from the same id in another community', async () => {
+    const settlers = []
+    mockQuery.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          settlers.push(resolve)
+        }),
+    )
+    const wrapper = mountZoom()
+
+    openMemberAvatarZoom({ member: margret, src: 'data:image/jpeg;base64,small' })
+    await nextTick()
+    openMemberAvatarZoom({
+      member: { gradidoID: 'g-margret', communityUuid: 'elsewhere' },
+      src: 'data:image/jpeg;base64,other',
+    })
+    await nextTick()
+
+    settlers[0]({ data: { memberAvatarFull: 'the-other-margret' } })
+    await flushPromises()
+    await nextTick()
+
+    const sources = wrapper.findAll('img').map((image) => image.attributes('src'))
+    expect(sources).not.toContain('data:image/jpeg;base64,the-other-margret')
+  })
+
   // A failure says nothing: the small rendition is already showing the face.
   it('keeps the small picture when the full size cannot be had', async () => {
     mockQuery.mockRejectedValue(new Error('no'))

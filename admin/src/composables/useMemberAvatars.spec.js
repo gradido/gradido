@@ -92,6 +92,36 @@ describe('useMemberAvatars (admin)', () => {
     expect(memberAvatarSource(margret)).toBe('')
   })
 
+  /**
+   * ⛔ A request already on its way must not write its faces into a store that was emptied
+   * while it travelled. Without this the next moderator to sign in on the same browser would
+   * find the previous one's people waiting -- other people's faces, after a logout that was
+   * supposed to clear them. (coderabbit, #3890.)
+   */
+  it('drops an answer that arrives after a logout', async () => {
+    let settle
+    const client = {
+      query: vi.fn().mockReturnValue(
+        new Promise((resolve) => {
+          settle = resolve
+        }),
+      ),
+    }
+
+    const pending = fetchMemberAvatars(client, [margret])
+    forgetAllMemberAvatars()
+    settle({
+      data: {
+        memberAvatars: [
+          { gradidoID: 'g-margret', communityUuid: 'home', avatar: 'face', avatarUpdatedAt: WHEN },
+        ],
+      },
+    })
+    await pending
+
+    expect(memberAvatarSource(margret)).toBe('')
+  })
+
   // Other people's faces do not outlive the session that fetched them.
   it('forgets everything on demand', async () => {
     const client = clientAnswering([

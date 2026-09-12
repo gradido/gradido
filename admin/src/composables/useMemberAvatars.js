@@ -59,11 +59,25 @@ export const memberAvatarSource = (member) => {
   return held && version >= 0 ? `data:image/jpeg;base64,${held.avatar}` : ''
 }
 
-/** Everything the moderator's screen no longer needs -- called at logout. */
+/**
+ * Everything the moderator's screen no longer needs -- called at logout.
+ *
+ * ⛔ `generation` is bumped as well, and that is not bookkeeping: a request already on its
+ * way would otherwise write the faces it brings back into a store that was just emptied, and
+ * the next moderator would find the previous one's people waiting for them.
+ */
 export const forgetAllMemberAvatars = () => {
   pictures.clear()
+  generation++
   epoch.value++
 }
+
+/**
+ * Which emptying the store is on. Read before a request goes out and compared when its answer
+ * arrives; anything older than the current one is dropped. (coderabbit, #3890 -- the wallet
+ * has the same guard, under the name `memberAvatarStoreEpoch`.)
+ */
+let generation = 0
 
 /**
  * Fetches what these members' rows are missing, in one round trip.
@@ -87,6 +101,9 @@ export const fetchMemberAvatars = async (apolloClient, members) => {
   }
   if (wanted.size === 0) return
 
+  // Read BEFORE the request, compared after it: the one thing a late answer must never
+  // survive is a logout in between.
+  const asked = generation
   try {
     const { data } = await apolloClient.query({
       query: memberAvatars,
@@ -97,6 +114,7 @@ export const fetchMemberAvatars = async (apolloClient, members) => {
       // decision is made against the date on the list, before we get here.
       fetchPolicy: 'no-cache',
     })
+    if (asked !== generation) return
     for (const answer of data?.memberAvatars ?? []) {
       pictures.set(memberKey(answer), {
         avatar: answer.avatar,

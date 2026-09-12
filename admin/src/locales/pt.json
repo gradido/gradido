@@ -25,10 +25,10 @@
     "text": "Existe uma versão mais recente."
   },
   "avatar": {
-    "zoom-open": "Enlarge picture of {name}",
-    "zoom-open-plain": "Enlarge picture",
-    "zoom-picture": "Picture of {name}",
-    "zoom-picture-plain": "Profile picture"
+    "zoom-open": "Ampliar a imagem de {name}",
+    "zoom-open-plain": "Ampliar a imagem",
+    "zoom-picture": "Imagem de {name}",
+    "zoom-picture-plain": "Imagem de perfil"
   },
   "back": "voltar",
   "bulkResubmission": {

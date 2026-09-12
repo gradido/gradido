@@ -25,10 +25,10 @@
     "text": "Nouvelle version disponible."
   },
   "avatar": {
-    "zoom-open": "Enlarge picture of {name}",
-    "zoom-open-plain": "Enlarge picture",
-    "zoom-picture": "Picture of {name}",
-    "zoom-picture-plain": "Profile picture"
+    "zoom-open": "Agrandir la photo de {name}",
+    "zoom-open-plain": "Agrandir la photo",
+    "zoom-picture": "Photo de {name}",
+    "zoom-picture-plain": "Photo de profil"
   },
   "back": "retour",
   "bulkResubmission": {

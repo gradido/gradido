@@ -358,10 +358,15 @@ export default {
       return user?.alias || `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim()
     },
     openPicture(user) {
+      // Without a name the plain wording: `avatar.zoom-picture` would otherwise read
+      // "Picture of " with a hole where the member should be (coderabbit, #3890).
+      const name = this.memberName(user)
       openMemberAvatarZoom({
         member: user,
         src: memberAvatarProps(user).src,
-        label: this.$t('avatar.zoom-picture', { name: this.memberName(user) }),
+        label: name
+          ? this.$t('avatar.zoom-picture', { name })
+          : this.$t('avatar.zoom-picture-plain'),
       })
     },
     ...useDateFormatter(),

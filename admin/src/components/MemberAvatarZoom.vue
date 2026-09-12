@@ -63,7 +63,16 @@ watch(
         fetchPolicy: 'no-cache',
       })
       const still = memberAvatarZoomState.value?.member
-      if (!still || still.gradidoID !== asked.gradidoID) return
+      // ⛔ BOTH halves. `users` is unique on (gradido_id, community_uuid), so two members of
+      // different communities can carry the same gradidoID -- and half a comparison would let
+      // one of them answer for the other, under the right name. (coderabbit, #3890.)
+      if (
+        !still ||
+        still.gradidoID !== asked.gradidoID ||
+        still.communityUuid !== asked.communityUuid
+      ) {
+        return
+      }
       if (!data?.memberAvatarFull) return
       fullSource.value = `data:image/jpeg;base64,${data.memberAvatarFull}`
     } catch {
