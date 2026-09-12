@@ -31,6 +31,7 @@ const i18n = createI18n({
           // measures, and the regional one is its control.
           centeredOn: 'Umkreis um {place}',
           centeredOnFern: 'Überregional · {km} km um {place}',
+          centeredOnFernNoPlace: 'Überregional · {km} km',
           othersHeading: 'Weitere Menschen in Deiner Nähe',
           near: 'im Nahbereich',
           kmEtwa: 'etwa {n} km',
@@ -139,6 +140,17 @@ describe('MatchList', () => {
 
     const wide = mountList({ centerLabel: 'Kuenzelsau', reach: 'fern', radiusKm: 500 })
     expect(wide.find('.center-label').text()).toBe('Überregional · 500 km um Kuenzelsau')
+  })
+
+  // The label is reverse-geocoded and a failed lookup leaves it empty for the session.
+  // "Centred on nothing" is worth hiding; the reach and its circle are not.
+  it('still names the wide circle when no place name could be resolved', () => {
+    const wide = mountList({ centerLabel: '', reach: 'fern', radiusKm: 500 })
+    expect(wide.find('.center-label').text()).toBe('Überregional · 500 km')
+
+    // The regional line says nothing without a place, so it stays hidden.
+    const regional = mountList({ centerLabel: '', reach: 'regional' })
+    expect(regional.find('.center-label').exists()).toBe(false)
   })
 
   it('names the group, the person and their community', () => {

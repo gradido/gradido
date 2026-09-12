@@ -27,6 +27,19 @@ vi.hoisted(() => {
     new Proxy({}, { get: (target, name) => (name in target ? target[name] : () => {}) })
 })
 
+// A pending canvas redraw that arrives after its renderer is gone. Leaflet cancels the
+// frame when the renderer is removed; in jsdom the frame runs anyway, and `_clear` then
+// reads `save` off a context that `_destroyContainer` has deleted. Measured on
+// 12.09.2026: ANY click that redraws while grey rings are on the canvas raises it,
+// `applyRadius` included - it is the environment, not the page. Guarded exactly as
+// Leaflet guards it and no wider: a redraw WITH a context still runs, so a test that
+// expects something drawn can still fail. Below the imports, not in vi.hoisted, because
+// that block runs before `L` exists.
+const redrawCanvas = L.Canvas.prototype._redraw
+L.Canvas.prototype._redraw = function guardedRedraw() {
+  if (this._ctx) redrawCanvas.call(this)
+}
+
 const replace = vi.fn()
 const push = vi.fn()
 vi.mock('vue-router', () => ({
@@ -386,6 +399,39 @@ describe('MatchingMap', () => {
       // wide circle into it would move a setting nobody touched.
       expect(JSON.parse(window.localStorage.getItem(`${KEY}radius`))).toBe(30)
       expect(lastSearch()).toMatchObject({ radius: 800, remoteOnly: true })
+    })
+
+    // Found by coderabbit on 12.09.2026, and it is the gap between the click and the
+    // answer: `load` clears presence, but only after a token fetch and a round trip.
+    // Until then the rings of the 25 km circle would sit inside the 500 km one - and
+    // the two boxes that would hide them have just left the controls.
+    it('drops the rings the moment the reach changes, not when the answer comes', async () => {
+      seed('mode', 'liste')
+      const page = await settle(mountMap())
+      presence.value = [
+        {
+          id: 2,
+          uuid: 'r-1',
+          name: 'Paul',
+          community: { uuid: 'c-1', name: 'Muenchen' },
+          hasEntries: false,
+          position: { lat: 48.2, lng: 11.6 },
+          precision: 'ungefaehr',
+        },
+      ]
+      await page.vm.$nextTick()
+      // The control: regional, and the ring is counted and listed.
+      expect(page.text()).toContain(de.matching.map.found.replace('{n}', '1'))
+      expect(page.findComponent({ name: 'MatchList' }).props('silent')).toHaveLength(1)
+
+      await reachButtons(page)[1].trigger('click')
+      await page.vm.$nextTick()
+
+      // `presence` still holds Paul - the search has not answered, and load is a spy
+      // that never answers at all. The page must not be showing him all the same.
+      expect(presence.value).toHaveLength(1)
+      expect(page.findComponent({ name: 'MatchList' }).props('silent')).toEqual([])
+      expect(page.text()).toContain(de.matching.map.found.replace('{n}', '0'))
     })
 
     // Wiring, not behaviour, and wiring is what nothing tests by itself: the list's
@@ -1025,6 +1071,26 @@ describe('MatchingMap', () => {
         tapCanvas(page, 30)
         await page.vm.$nextTick()
 
+        expect(profileOpen(page)).toBe(false)
+      })
+
+      // Found by the injection round on 12.09.2026. The reactive half of the reach
+      // switch (the count, the list) went with it, but the rings are drawn
+      // imperatively and nothing watches `reach` - so without drawPresence() in
+      // setReach they stayed on the canvas, and tappable, until the answer came.
+      // The test above is this one's control: same ring, same 15 px, and it opens.
+      it('goes from the canvas the moment the reach changes, not when the answer comes', async () => {
+        presence.value = [ring()]
+        const page = await buildMap('hell', [])
+
+        await page.findAll('.reach-btn')[1].trigger('click')
+        await page.vm.$nextTick()
+        tapCanvas(page, 15)
+        await page.vm.$nextTick()
+
+        // `load` is a spy, so presence still holds Paul: only the redraw can have
+        // taken him off the canvas.
+        expect(presence.value).toHaveLength(1)
         expect(profileOpen(page)).toBe(false)
       })
     })

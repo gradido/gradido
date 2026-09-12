@@ -640,6 +640,7 @@
     "list": {
       "centeredOn": "Centred on {place}",
       "centeredOnFern": "Supra-regional · {km} km around {place}",
+      "centeredOnFernNoPlace": "Supra-regional · {km} km",
       "controlsHeading": "Search and sort",
       "dir": {
         "e": "east",

@@ -678,8 +678,20 @@ const visibleMatches = computed(() => {
 })
 
 // The presence rings the filter lets through, split by whether they have entries.
+//
+// Empty in the wide reach, and decided HERE rather than waited for: the answer clears
+// `presence`, but only after a token fetch and a round trip, and until then the rings of
+// the 25 km circle would sit inside the 500 km one, be counted in the found line and
+// listed under "others nearby" - with the two boxes that would hide them gone from the
+// controls at that very moment. Everything that shows a ring reads this one computed
+// (the map's drawPresence, foundCount, the list's sortedPresence), so saying it once
+// here covers all three.
 const visiblePresence = computed(() =>
-  presence.value.filter((person) => (person.hasEntries ? visible.andereMit : visible.andereOhne)),
+  reach.value === 'fern'
+    ? []
+    : presence.value.filter((person) =>
+        person.hasEntries ? visible.andereMit : visible.andereOhne,
+      ),
 )
 
 // Everyone the map is showing — the glowing matches plus the grey rings. They are
@@ -893,6 +905,9 @@ function setReach(next) {
   reach.value = next
   writePref('reach', next)
   drawCircle()
+  // The rings are drawn imperatively and nothing watches the reach, so the layer has
+  // to be told; the computed above has already emptied what it draws from.
+  drawPresence()
   zoomToCircle({ fly: true })
   runSearch()
 }

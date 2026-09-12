@@ -640,6 +640,7 @@
     "list": {
       "centeredOn": "Umkreis um {place}",
       "centeredOnFern": "Überregional · {km} km um {place}",
+      "centeredOnFernNoPlace": "Überregional · {km} km",
       "controlsHeading": "Suche und Sortierung",
       "dir": {
         "e": "östlich",
