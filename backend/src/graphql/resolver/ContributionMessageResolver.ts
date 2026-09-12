@@ -17,6 +17,7 @@ import { Context, getClientTimezoneOffset, getRole, getUser } from '@/server/con
 import { LogError } from '@/server/LogError'
 
 import { addModeratorMessageAs } from './util/addModeratorMessageAs'
+import { attachMessageAvatarDates } from './util/attachMessageAvatarDates'
 import { findContributionMessages } from './util/findContributionMessages'
 import { assertContributionInModeratorScope } from './util/moderatorCreationGroupScope'
 
@@ -109,10 +110,12 @@ export class ContributionMessageResolver {
       pagination: { currentPage, pageSize, order },
     })
 
-    return {
-      count,
-      messages: contributionMessages.map((message) => new ContributionMessage(message)),
-    }
+    const messages = contributionMessages.map((message) => new ContributionMessage(message))
+    // The same field, filled the same way, wherever a list of messages is built -- so that
+    // `userAvatarUpdatedAt` means one thing and never "the path you came by forgot it".
+    await attachMessageAvatarDates(messages)
+
+    return { count, messages }
   }
 
   @Authorized([RIGHTS.ADMIN_LIST_ALL_CONTRIBUTION_MESSAGES])
@@ -130,9 +133,12 @@ export class ContributionMessageResolver {
       showModeratorType: true,
     })
 
+    const messages = contributionMessages.map((message) => new ContributionMessage(message))
+    await attachMessageAvatarDates(messages)
+
     return {
       count,
-      messages: contributionMessages.map((message) => new ContributionMessage(message)),
+      messages,
     }
   }
 

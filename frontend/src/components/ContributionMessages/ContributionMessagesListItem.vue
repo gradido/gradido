@@ -18,9 +18,9 @@
         <BCol cols="2">
           <app-avatar
             class="vue3-avatar"
-            :name="storeName.username"
-            :initials="storeName.initials"
-            :color-seed="storeName.colorSeed"
+            :size="LIST_AVATAR_SIZE"
+            :color="'#fff'"
+            v-bind="ownAvatar"
           />
         </BCol>
       </BRow>
@@ -35,9 +35,9 @@
         <BCol cols="2">
           <app-avatar
             class="vue3-avatar"
-            :name="storeName.username"
-            :initials="storeName.initials"
-            :color-seed="storeName.colorSeed"
+            :size="LIST_AVATAR_SIZE"
+            :color="'#fff'"
+            v-bind="ownAvatar"
           />
         </BCol>
       </BRow>
@@ -45,11 +45,7 @@
     <div v-else>
       <BRow class="mb-3 p-2 is-moderator">
         <BCol cols="2">
-          <app-avatar
-            :name="moderationName.username"
-            :initials="moderationName.initials"
-            :color-index="moderationName.colorIndex"
-          />
+          <app-avatar :size="LIST_AVATAR_SIZE" :color="'#fff'" v-bind="moderationAvatar" />
         </BCol>
         <BCol cols="10">
           <div class="font-weight-bold">
@@ -70,6 +66,9 @@
 import ParseMessage from '@/components/ContributionMessages/ParseMessage'
 import AppAvatar from '@/components/AppAvatar.vue'
 import { avatarLettering } from '@/utils/avatarLettering'
+import { avatarZoomBindings } from '@/composables/useAvatarZoom'
+import { memberAvatarProps } from '@/composables/useMemberAvatars'
+import { LIST_AVATAR_SIZE } from '@/constants'
 
 export default {
   name: 'ContributionMessagesListItem',
@@ -82,6 +81,11 @@ export default {
       type: Object,
       required: true,
     },
+  },
+  data() {
+    // The size every list of people in the wallet uses, the booking rows and both positions
+    // of the right-hand column included. A dialogue is a list of people too (ES-028).
+    return { LIST_AVATAR_SIZE }
   },
   computed: {
     // Aliases, not assembled names (NU-020): the alias is unique per community, so two
@@ -104,6 +108,37 @@ export default {
         colorSeed,
       }
     },
+    /**
+     * The member's own face beside their own messages.
+     *
+     * ⛔ The picture comes from the STORE, not from the member-avatar store: that one holds
+     * what other members show each other, and the wallet has its own small rendition from
+     * the login (`state.avatar`) -- which is also the one a member sees when they have
+     * hidden their picture from everybody else.
+     *
+     * ⚠️ The zoom of one's own picture asks for the full size the same way it does for
+     * anybody else's, and that query answers only for members whose picture may be shown to
+     * members (`mayBeShownToMembers`). For a member who switched that off, the zoom shows
+     * this small rendition enlarged instead of the full one -- no error, a little softer.
+     * The backend has an own-picture query for the full size; using it here would be a
+     * change to the zoom, and it is not part of this one (Bernd, 12.09.2026).
+     */
+    ownAvatar() {
+      const avatar = this.$store.state.avatar
+      const props = {
+        name: this.storeName.username,
+        initials: this.storeName.initials,
+        colorSeed: this.storeName.colorSeed,
+        src: avatar ? `data:image/jpeg;base64,${avatar}` : '',
+      }
+      return {
+        ...props,
+        ...avatarZoomBindings(
+          { gradidoID: this.$store.state.gradidoID, alias: this.storeName.username },
+          props,
+        ),
+      }
+    },
     // The message author's side -- for moderation messages the moderator, under their
     // alias (NU-020). The real name no longer travels on the message at all: the server
     // sends the finished colour digit instead (NU-017), so the circle keeps the colour
@@ -118,6 +153,28 @@ export default {
         initials: letters,
         colorIndex,
       }
+    },
+    /**
+     * The moderator's face, if they show one.
+     *
+     * The picture is read from the store the page filled in one round trip
+     * (ContributionList) -- this component never fetches. `memberAvatarProps` answers with
+     * the letters alone while there is nothing to show, so a moderation without a picture
+     * looks exactly as it did before.
+     *
+     * ⚠️ Worked out in ONE call, letters, colour and picture together: calling the helper
+     * once per prop is the split it exists to prevent (AS-010).
+     */
+    moderationAvatar() {
+      const member = {
+        alias: this.message.userAlias,
+        avatarColorIndex: this.message.userAvatarColorIndex,
+        gradidoID: this.message.userGradidoID,
+        communityUuid: this.message.userCommunityUuid,
+        avatarUpdatedAt: this.message.userAvatarUpdatedAt,
+      }
+      const props = memberAvatarProps(member)
+      return { ...props, ...avatarZoomBindings(member, props) }
     },
   },
 }

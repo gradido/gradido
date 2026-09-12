@@ -574,6 +574,11 @@ describe('ContributionMessageResolver', () => {
                     userAlias: 'BBB',
                     userId: expect.any(Number),
                     userAvatarColorIndex: 2,
+                    // The author as the wallet names a member, plus the date of the picture
+                    // they show -- `null` here because nobody in the seeds has one, which is
+                    // exactly what a member without a picture hands a thread.
+                    userGradidoID: expect.any(String),
+                    userAvatarUpdatedAt: null,
                   }),
                 ]),
               },

@@ -53,6 +53,15 @@ vi.mock('@/components/Contributions/ContributionListItem.vue', () => ({
 
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: vi.fn(),
+  useApolloClient: () => ({ client: { query: vi.fn() } }),
+}))
+
+// The page fetches the faces of everybody who wrote in one of its threads, once for the
+// whole answer. Mocked, because what is measured here is WHO it asks about -- the fetching
+// itself has its own tests in useMemberAvatars.
+const { mockFetchMemberAvatars } = vi.hoisted(() => ({ mockFetchMemberAvatars: vi.fn() }))
+vi.mock('@/composables/useMemberAvatars', () => ({
+  fetchMemberAvatars: mockFetchMemberAvatars,
 }))
 
 describe('ContributionList', () => {
@@ -146,6 +155,55 @@ describe('ContributionList', () => {
     describe('mount as user contributions list', () => {
       it('fetches initial data', () => {
         expect(mockListContributionsQuery).toHaveBeenCalled()
+      })
+
+      /**
+       * ⛔ ONE fetch for the whole answer, with every author of every thread on the page --
+       * not one per thread, and not one per message: a moderator who wrote in three of them
+       * is one member, and the picture store keys by member.
+       *
+       * ⚠️ Every registered handler is called rather than the first one: this component
+       * registers two, and picking one by its position would pass while measuring the other.
+       */
+      it('asks for the faces of everybody who wrote in one of the threads', () => {
+        const answer = {
+          data: {
+            listContributions: {
+              contributionList: [
+                {
+                  id: 1,
+                  messages: [
+                    {
+                      userGradidoID: 'g-moderator',
+                      userCommunityUuid: null,
+                      userAvatarUpdatedAt: '2026-09-12T04:00:00.000Z',
+                    },
+                    {
+                      userGradidoID: 'g-member',
+                      userCommunityUuid: 'home',
+                      userAvatarUpdatedAt: null,
+                    },
+                  ],
+                },
+                { id: 2, messages: null },
+              ],
+            },
+          },
+        }
+
+        for (const [handler] of mockListContributionsQuery.mock.calls) {
+          handler(answer)
+        }
+
+        expect(mockFetchMemberAvatars).toHaveBeenCalledTimes(1)
+        expect(mockFetchMemberAvatars.mock.calls[0][1]).toEqual([
+          {
+            gradidoID: 'g-moderator',
+            communityUuid: null,
+            avatarUpdatedAt: '2026-09-12T04:00:00.000Z',
+          },
+          { gradidoID: 'g-member', communityUuid: 'home', avatarUpdatedAt: null },
+        ])
       })
     })
 
