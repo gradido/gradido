@@ -11,13 +11,23 @@
         <div>{{ $t('gdd_per_link.links_sum') }}</div>
         <div class="small">{{ $t('gdd_per_link.links_open', { n: openLinkCount }) }}</div>
       </BCol>
-      <BCol cols="8" lg="3" md="3" sm="8" offset="3" offset-md="0" offset-lg="0">
+      <!-- On the phone the amount and the arrow start a line of their own, together -- this
+           break is what makes them one line rather than two. From `md` on it is gone and
+           everything stands in one line, as before. Taken from the booking row, which was
+           given the same treatment on 11.09.2026 for the same fault: on `cols=12` the arrow
+           dropped onto a line of its own at the bottom, where nobody looks for it. -->
+      <div class="w-100 d-md-none" />
+      <!-- ⛔ `col` has to be SAID. bootstrap-vue-next adds the plain `col` class only to a
+           column that has no breakpoint sizes at all; with `md`/`lg` given, the phone would
+           get no width class and Bootstrap's `.row > *` would make the amount 100% wide
+           beside its 25% offset -- past the row's right edge. -->
+      <BCol col offset="3" md="3" lg="3" offset-md="0" offset-lg="0">
         <!-- No heading over the amount. The one that stood here was the label of the send
              button, which describes no sum, and it went wrong unnoticed the moment that
              button was renamed. The amount carries its own sign and unit. -->
         <div class="fw-bold">{{ $filters.GDD(amount) }}</div>
       </BCol>
-      <BCol cols="12" md="1" lg="1" class="text-end">
+      <BCol cols="auto" class="d-flex justify-content-end align-items-center">
         <collapse-icon class="text-end" :visible="visible" />
       </BCol>
     </BRow>
