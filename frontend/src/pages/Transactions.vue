@@ -212,23 +212,36 @@ const forgetList = () => {
 watch(() => memberQueryKey(counterparty.value), forgetList)
 
 /**
- * Whose bookings these are.
+ * Whose bookings these are, and HOW MANY -- the mark says "117 bookings with Margret", so
+ * the size of the narrowed list can be read without counting the rows or turning to the
+ * last page (Bernd, 12.09.2026).
+ *
+ * ⚠️ The figure is `transactionCount`, the count of the WHOLE narrowed list, not of the
+ * page on screen. The backend already narrows it: `dbSelectTransactionsByUserId` is asked
+ * with `narrowedTo`, and the paginator beneath divides by the same number. Nothing is
+ * fetched for this.
  *
  * ⚠️ The name comes off the ROWS, not out of the address. A Gradido id is not a name, and
  * putting one in the label would tell the member nothing; every row in a narrowed list has
  * the same counterparty, so the first one with a counterparty answers it -- named the way
  * every row and the contact window name them (`memberAlias`: a legacy alias too short to
- * count falls back to the id, which is what the rows beneath show as well). Where the
- * filter matched nothing there is no row and no name -- and then the shorter sentence is
- * also the true one.
+ * count falls back to the id, which is what the rows beneath show as well).
+ *
+ * Where the filter matched nothing -- and while the answer is still on its way -- there is
+ * no row, no name, and no count worth stating: the shorter sentence is the true one there,
+ * as it was before. A "0 bookings" under a name nobody knows would say less, not more.
  */
 const filterLabel = computed(() => {
   const named = transactions.value.find((row) => row.linkedUser?.gradidoID)
-  return named
-    ? t('transaction.onlyWith', {
-        name: memberAlias(named.linkedUser.alias, named.linkedUser.gradidoID),
-      })
-    : t('transaction.onlyWithSomeone')
+  if (!named) return t('transaction.onlyWithSomeone')
+  const count = transactionCount.value
+  // The count twice: once as the word the sentence is built from, once as the form to
+  // choose. German and English part at one, Russian at one/few/many (slavicPlural).
+  return t(
+    'transaction.onlyWith',
+    { n: count, name: memberAlias(named.linkedUser.alias, named.linkedUser.gradidoID) },
+    count,
+  )
 })
 
 const variables = ref({

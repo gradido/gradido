@@ -53,10 +53,35 @@ describe('the Russian keys through the real i18n instance', () => {
     expect(t('settings.username.quota-left', 3)).toContain('ещё 3')
   })
 
+  /**
+   * The mark over a narrowed booking list carries a count since 12.09.2026, so this key has
+   * forms now -- three of them in Russian, which means it goes through the rule above. The
+   * name travels with it, so the call passes named values AND the count: `t(key, {n, name}, n)`.
+   */
+  it('declines the mark over a list narrowed to one member', () => {
+    // ⚠️ `{ plural, locale }` as options -- measured: a FOURTH positional argument is
+    // swallowed, the message comes back in the default language and the test would pin
+    // English while claiming Russian.
+    const mark = (n) =>
+      i18n.global.t('transaction.onlyWith', { n, name: 'Margret' }, { plural: n, locale: 'ru' })
+    expect(mark(1)).toBe('1 операция с Margret')
+    expect(mark(3)).toBe('3 операции с Margret')
+    expect(mark(117)).toBe('117 операций с Margret')
+  })
+
   it('does not touch German', () => {
     expect(i18n.global.t('contacts.bookings', 1, { locale: 'de' })).toBe('1 Buchung')
     expect(i18n.global.t('contacts.bookings', 0, { locale: 'de' })).toBe('0 Buchungen')
     // And the count the link button now passes reads as the singular here too.
     expect(i18n.global.t('link-load', 1, { locale: 'de' })).toBe('den letzten Link nachladen')
+    // The mark over a narrowed list, in the language Bernd reads it in.
+    const mark = (n, locale) =>
+      i18n.global.t('transaction.onlyWith', { n, name: 'Margret' }, { plural: n, locale })
+    expect(mark(117, 'de')).toBe('117 Buchungen mit Margret')
+    expect(mark(1, 'de')).toBe('1 Buchung mit Margret')
+    expect(mark(117, 'en')).toBe('117 bookings with Margret')
+    expect(mark(1, 'en')).toBe('1 booking with Margret')
+    // Turkish counts without a plural ending and puts the name first -- both forms alike.
+    expect(mark(117, 'tr')).toBe('Margret ile 117 işlem')
   })
 })

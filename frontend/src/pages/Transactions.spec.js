@@ -26,7 +26,11 @@ vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     // The key, and the name after it where one was handed in -- so the label can be read
     // for which sentence it chose AND whom it named.
-    t: (key, params) => (params?.name ? `${key}:${params.name}` : key),
+    // ⚠️ The count travels twice -- as the word the sentence is built from and as the
+    // form to choose -- so a mock that drops either could not tell a mark with a count
+    // from one without. What the real message makes of it is pinned in pluralRules.spec.
+    t: (key, params, plural) =>
+      params?.name ? `${key}:${params.n}:${params.name}:${plural}` : key,
     d: (date) => String(date),
   }),
 }))
@@ -340,7 +344,21 @@ describe('Transactions', () => {
       listResultHandler(answer([{ id: 2, typeId: 'SEND', linkedUser: MARGRET }]))
       await nextTick()
       expect(wrapper.find('[data-test="transactions-filter"]').text()).toContain(
-        'transaction.onlyWith:Margret',
+        'transaction.onlyWith:1:Margret:1',
+      )
+    })
+
+    /**
+     * ⛔ The figure is the size of the WHOLE narrowed list, not of the page in front of the
+     * member -- that is the point of putting it there (Bernd, 12.09.2026: "Dann sieht man
+     * gleich in der Liste, wie viel das sind."). One row on this page, 117 in the list.
+     */
+    it('states the size of the whole narrowed list, not of the page on screen', async () => {
+      wrapper = createWrapper()
+      listResultHandler(answer([{ id: 2, typeId: 'SEND', linkedUser: MARGRET }], { count: 117 }))
+      await nextTick()
+      expect(wrapper.find('[data-test="transactions-filter"]').text()).toContain(
+        'transaction.onlyWith:117:Margret:117',
       )
     })
 
@@ -353,7 +371,7 @@ describe('Transactions', () => {
       )
       await nextTick()
       expect(wrapper.find('[data-test="transactions-filter"]').text()).toContain(
-        'transaction.onlyWith:margret-id',
+        'transaction.onlyWith:1:margret-id:1',
       )
     })
 
