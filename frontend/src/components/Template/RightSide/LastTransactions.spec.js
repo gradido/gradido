@@ -733,6 +733,22 @@ describe('LastTransactions', () => {
     })
 
     /**
+     * ⛔ A memo written on several lines stands here as ONE line, its breaks read as spaces
+     * -- it is not cut at the first break. A decision, not an oversight (coderabbit, #3887):
+     * the booking list has done exactly this since #3884, and this column is that list in
+     * short. Cutting at the break would leave a short line with empty room beside it and
+     * hide words that fit; what a member sees is the first line ON SCREEN either way.
+     *
+     * Whoever changes this changes it in both places, and this test is where it says so.
+     */
+    it('reads a line break as a space rather than cutting the memo there', () => {
+      wrapper = mountRow(booking('Rechnung September\n45 GDD, danke!'))
+
+      expect(memoLine().text()).toContain('Rechnung September')
+      expect(memoLine().text()).toContain('45 GDD, danke!')
+    })
+
+    /**
      * A tap leads to the booking, exactly as the amount line above it does -- and there the
      * whole memo stands, so the cut line has somewhere to be read out.
      */
