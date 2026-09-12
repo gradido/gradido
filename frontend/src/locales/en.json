@@ -698,6 +698,8 @@
         "normal": "normal"
       },
       "radius": "Radius",
+      "radiusHintFern": "Applies to the supra-regional search. The regional radius stays at {km} km.",
+      "radiusHintRegional": "Applies to the regional search. The supra-regional radius stays at {km} km.",
       "radiusLabel": "How far out do you want to search? (km)",
       "radiusTitle": "Search radius",
       "radiusTitleFern": "Supra-regional search radius",
@@ -716,7 +718,8 @@
       "cancel": "Cancel",
       "completeSentence": "Complete this sentence:",
       "detailsHeading": "Details — so the right people find you:",
-      "remote": "Also available supra-regionally / online"
+      "remote": "Also available supra-regionally / online",
+      "remoteHint": "You then also appear in the supra-regional search."
     },
     "position": {
       "accuracyApprox": "A slightly shifted location is shown",

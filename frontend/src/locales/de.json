@@ -698,6 +698,8 @@
         "normal": "normal"
       },
       "radius": "Radius",
+      "radiusHintFern": "Gilt für die überregionale Suche. Der regionale Radius bleibt bei {km} km.",
+      "radiusHintRegional": "Gilt für die regionale Suche. Der überregionale Radius bleibt bei {km} km.",
       "radiusLabel": "In welchem Umkreis suchst Du? (km)",
       "radiusTitle": "Suchradius",
       "radiusTitleFern": "Suchradius überregional",
@@ -716,7 +718,8 @@
       "cancel": "Abbrechen",
       "completeSentence": "Vervollständige diesen Satz:",
       "detailsHeading": "Details — damit die Richtigen Dich finden:",
-      "remote": "Auch überregional / online verfügbar"
+      "remote": "Auch überregional / online verfügbar",
+      "remoteHint": "Du erscheinst dann auch in der überregionalen Suche."
     },
     "position": {
       "accuracyApprox": "Eine leicht veränderte Position wird angezeigt",

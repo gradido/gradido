@@ -267,16 +267,22 @@
       :ok-disabled="!radiusValid"
       centered
       @ok="applyRadius"
+      @shown="selectRadius"
     >
       <label class="form-label" for="map-radius-input">{{ $t('matching.map.radiusLabel') }}</label>
       <BFormInput
         id="map-radius-input"
+        ref="radiusInput"
         v-model.number="radiusDraft"
         type="number"
         min="1"
         :max="MAX_RADIUS"
         @keyup.enter="submitRadius"
       />
+      <!-- Which of the two circles this is, and where the other one stays. The dialog
+           looks the same in both reaches, and a number typed into the wrong one is not
+           noticed here - only later, when the map shows something nobody asked for. -->
+      <div class="small text-muted mt-2">{{ radiusHint }}</div>
     </BModal>
 
     <!-- The profile of whoever was clicked. One window: a person with no matches
@@ -1027,6 +1033,29 @@ function searchHere() {
   const centre = map.getCenter()
   moveSearchTo({ lat: centre.lat, lng: centre.lng })
 }
+
+const radiusInput = ref(null)
+
+/**
+ * Open with the number selected, so the first keystroke replaces it instead of
+ * appending to it - today it has to be deleted by hand.
+ *
+ * On `shown` rather than with the `autofocus` prop: `shown` fires on every opening and
+ * after the transition, which is the first moment the field can take focus, and
+ * `select()` focuses as well as selects - one mechanism instead of two that have to
+ * agree. `element` is what BFormInput hands out (measured: it exposes blur, element,
+ * focus); the optional chain is for the test, where the component is not resolved.
+ */
+function selectRadius() {
+  radiusInput.value?.element?.select()
+}
+
+/** Which circle the dialog is setting, and what the other one keeps. */
+const radiusHint = computed(() =>
+  reach.value === 'fern'
+    ? t('matching.map.radiusHintFern', { km: radiusRegional.value })
+    : t('matching.map.radiusHintRegional', { km: radiusFern.value }),
+)
 
 function openRadius() {
   radiusDraft.value = radius.value
