@@ -87,3 +87,23 @@ export async function dbSelectFirstCreationEntriesByIds(
     return row ? [row] : []
   })
 }
+
+/**
+ * Whose contribution this is -- `null` when there is no such row.
+ *
+ * ⛔ The one thing a member-facing reader of a contribution's thread needs, and it exists
+ * because that reader had nothing: `listContributionMessages` took a contribution id and
+ * filtered by it alone, so any signed-in member could read any contribution's dialogue by
+ * counting up from one.
+ *
+ * ⚠️ Deleted rows answer with their owner, deliberately: a member who removed a
+ * contribution still owns its thread, and the endpoint showed it to them before this. The
+ * guard is about WHOSE it is, nothing else.
+ */
+export async function dbSelectContributionUserId(contributionId: number): Promise<number | null> {
+  const rows = await drizzleDb()
+    .select({ userId: contributionsTable.userId })
+    .from(contributionsTable)
+    .where(eq(contributionsTable.id, contributionId))
+  return rows[0]?.userId ?? null
+}

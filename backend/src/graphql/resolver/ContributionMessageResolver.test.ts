@@ -495,6 +495,44 @@ describe('ContributionMessageResolver', () => {
         resetToken()
       })
 
+      /**
+       * ⛔ The thread belongs to the member whose contribution it is. Before the guard this
+       * query filtered by the contribution id alone, so counting ids up from one handed any
+       * signed-in member somebody else's dialogue.
+       *
+       * ⚠️ Bob asks for BIBI's contribution -- the one created at the top of this file --
+       * and that is the point: he is a perfectly ordinary member with the right this query
+       * asks for.
+       */
+      it('refuses the thread of another member, in the same words as for an id that does not exist', async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
+        })
+
+        const foreign = await mutate({
+          mutation: listContributionMessages,
+          variables: { contributionId: result.data.createContribution.id },
+        })
+        const unknown = await mutate({
+          mutation: listContributionMessages,
+          variables: { contributionId: 424242 },
+        })
+
+        expect(foreign).toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('Can not list the messages of another user')],
+          }),
+        )
+        // The same answer, so the error cannot be read as "this id exists".
+        expect(unknown).toEqual(foreign)
+
+        await mutate({
+          mutation: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+      })
+
       it('returns a list of contributionmessages without type MODERATOR', async () => {
         await expect(
           mutate({

@@ -6,6 +6,7 @@ import {
   AppDatabase,
   Contribution as DbContribution,
   ContributionMessage as DbContributionMessage,
+  dbSelectContributionUserId,
 } from 'database'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { EntityManager } from 'typeorm'
@@ -75,13 +76,34 @@ export class ContributionMessageResolver {
     return new ContributionMessage(finalContributionMessage)
   }
 
+  /**
+   * The thread of ONE of the member's own contributions.
+   *
+   * ⛔ The ownership check is the whole point of this being here. The query below filters by
+   * the contribution id and nothing else, and the right is a member right -- so before this,
+   * any signed-in member could read any contribution's dialogue by counting ids up from one:
+   * what somebody wrote about their own doing, what the moderation asked back, and under
+   * which alias. The internal MODERATOR notes were never part of it (see
+   * findContributionMessages), and that stays as it is.
+   *
+   * ⚠️ ONE answer for "there is no such contribution" and "it is not yours". Telling those
+   * apart would hand back whether a given id exists, which is the same enumeration by a
+   * smaller door.
+   */
   @Authorized([RIGHTS.LIST_ALL_CONTRIBUTION_MESSAGES])
   @Query(() => ContributionMessageListResult)
   async listContributionMessages(
     @Arg('contributionId', () => Int) contributionId: number,
     @Args()
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
+    @Ctx() context: Context,
   ): Promise<ContributionMessageListResult> {
+    const user = getUser(context)
+    const ownerId = await dbSelectContributionUserId(contributionId)
+    if (ownerId !== user.id) {
+      throw new LogError('Can not list the messages of another user', contributionId, user.id)
+    }
+
     const [contributionMessages, count] = await findContributionMessages({
       contributionId,
       pagination: { currentPage, pageSize, order },

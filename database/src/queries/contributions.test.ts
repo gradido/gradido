@@ -7,6 +7,7 @@ import { contributionsTable } from '../schemas'
 import {
   dbCountOpenContributionsByUserId,
   dbCountUserTypedContributionsByUserId,
+  dbSelectContributionUserId,
   dbSelectFirstCreationEntriesByIds,
 } from './contributions'
 
@@ -103,5 +104,17 @@ describe('contributions query test', () => {
   it('leaves out ids that do not exist and answers an empty list without a query', async () => {
     expect(await dbSelectFirstCreationEntriesByIds([ids[0], 424242])).toHaveLength(1)
     expect(await dbSelectFirstCreationEntriesByIds([])).toEqual([])
+  })
+
+  it('names the owner of a contribution, and nobody for an id that does not exist', async () => {
+    expect(await dbSelectContributionUserId(ids[0])).toBe(ALICE)
+    expect(await dbSelectContributionUserId(424242)).toBeNull()
+  })
+
+  // ⚠️ A deleted contribution still has its owner. The thread of one a member removed was
+  // readable to them before the guard, and it stays that way -- what the guard decides is
+  // whose it is, not whether it still stands.
+  it('names the owner of a deleted contribution too', async () => {
+    expect(await dbSelectContributionUserId(ids[2])).toBe(ALICE)
   })
 })
