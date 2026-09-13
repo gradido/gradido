@@ -551,6 +551,15 @@ export const user = gql`
   }
 `
 
+export const matchingMapSwitches = gql`
+  query {
+    matchingMapSwitches {
+      mapEngine
+      geoProvider
+    }
+  }
+`
+
 export const listMatchingEntries = gql`
   query {
     listMatchingEntries {
@@ -661,6 +670,10 @@ export const creaSettings = gql`
       defaultModel
       fastMode
       matchingKeyingActive
+      matchingMapSwitches {
+        mapEngine
+        geoProvider
+      }
       firstCreationSigner {
         userId
         firstName

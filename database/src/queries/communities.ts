@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm'
 import { Ed25519PublicKey, urlSchema, uuidv4Schema, VoidResult } from 'shared'
 import { FindOptionsOrder, FindOptionsWhere, IsNull, MoreThanOrEqual, Not } from 'typeorm'
 import { drizzleDb } from '../AppDatabase'
+import { MatchingGeoProvider, MatchingMapEngine } from '../data/MatchingMapSwitches.enum'
 import { Community as DbCommunity } from '../entity'
 import { DBNotFoundError } from '../errorTypes'
 import { CommunitiesSelect, communitiesTable } from '../schemas'
@@ -93,6 +94,74 @@ export async function dbSetMatchingKeyingActive(
   // own. Nothing reads the switch through it today - the schema comment tells the next
   // reader not to - but a warning in prose is weaker than a cache that is simply
   // correct, and the natural thing to reach for is the cached community.
+  homeCommunityDrizzleCache = null
+
+  const firstRow = result[0]
+  if (firstRow && firstRow.affectedRows > 0) {
+    return { success: true }
+  }
+  return { success: false, error: HomeCommunityNotFound }
+}
+
+/** The two build-phase switches of the matching map (K-008), read and written together. */
+export type MatchingMapSwitchValues = {
+  mapEngine: MatchingMapEngine
+  geoProvider: MatchingGeoProvider
+}
+
+const knownOr = <T extends string>(
+  known: Record<string, T>,
+  value: string | undefined,
+  fallback: T,
+): T =>
+  value !== undefined && (Object.values(known) as string[]).includes(value)
+    ? (value as T)
+    : fallback
+
+/**
+ * Which map the wallet draws and which place search it asks, for the home community.
+ *
+ * ⚠️ Read fresh on every call, for the reason `dbIsMatchingKeyingActive` gives: the
+ * cached `getHomeCommunityDrizzle` would keep answering with the first read, and a switch
+ * an admin flips has to reach the next wallet that asks, without a restart.
+ *
+ * ⛔ Anything that is not a known value answers with the OLD one: a missing home community,
+ * and a column somebody set by hand to a word this code does not know. The old pair is the
+ * state before anybody decided, and a wallet could do nothing better with an error than
+ * fall back to it. It also keeps a stray value from reaching the GraphQL enum, which would
+ * refuse to serialize it.
+ */
+export async function dbSelectMatchingMapSwitches(): Promise<MatchingMapSwitchValues> {
+  const rows = await drizzleDb()
+    .select({
+      mapEngine: communitiesTable.matchingMapEngine,
+      geoProvider: communitiesTable.matchingGeoProvider,
+    })
+    .from(communitiesTable)
+    .where(eq(communitiesTable.foreign, 0))
+    .limit(1)
+  return {
+    mapEngine: knownOr(MatchingMapEngine, rows[0]?.mapEngine, MatchingMapEngine.LEAFLET),
+    geoProvider: knownOr(MatchingGeoProvider, rows[0]?.geoProvider, MatchingGeoProvider.NOMINATIM),
+  }
+}
+
+/**
+ * Set both switches of the home community; the admin panel saves them together.
+ *
+ * `VoidResult` and column-targeted, for the reasons `dbSetMatchingKeyingActive` gives: an
+ * UPDATE that matches no row is an expected failure the caller has to report, and a
+ * whole-entity write would carry back whatever the caller happened to hold.
+ */
+export async function dbUpdateMatchingMapSwitches(
+  values: MatchingMapSwitchValues,
+): Promise<VoidResult<DBNotFoundError>> {
+  const result = await drizzleDb()
+    .update(communitiesTable)
+    .set({ matchingMapEngine: values.mapEngine, matchingGeoProvider: values.geoProvider })
+    .where(eq(communitiesTable.foreign, 0))
+
+  // The cached row carries these columns too.
   homeCommunityDrizzleCache = null
 
   const firstRow = result[0]

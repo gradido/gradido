@@ -2,6 +2,7 @@ import { latestDbVersion } from './detectLastDBVersion'
 export { latestDbVersion }
 
 export { AppDatabase } from './AppDatabase'
+export * from './data/MatchingMapSwitches.enum'
 export * from './entity'
 export * from './enum'
 export * from './errorTypes'
