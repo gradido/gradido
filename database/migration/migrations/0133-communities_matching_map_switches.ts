@@ -8,14 +8,15 @@
 // until an admin switches in the admin panel. No deploy is needed to switch, and none
 // is needed to switch back.
 //
-// Switching by hand is one statement:
-//   UPDATE communities SET matching_geo_provider = 'gms' WHERE foreign = 0;
+// Switching by hand is one statement (`foreign` is a reserved word and needs the quotes):
+//   UPDATE communities SET matching_geo_provider = 'gms' WHERE `foreign` = 0;
 //
 // Temporary on purpose: once the new map and search are accepted everywhere, a later
 // migration drops both columns again.
 //
-// `IF NOT EXISTS`, one statement per column, same reason as 0126 and 0127: DDL does not
-// roll back, and start.sh has already stopped the services when this runs.
+// `IF NOT EXISTS`, one statement per column: DDL does not roll back, and start.sh has
+// already stopped the services when this runs. A retry after a connection dropped halfway
+// must not die on a column that already exists while the server sits on the waiting page.
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
   await queryFn(
     "ALTER TABLE `communities` ADD COLUMN IF NOT EXISTS `matching_map_engine` VARCHAR(16) NOT NULL DEFAULT 'leaflet';",
