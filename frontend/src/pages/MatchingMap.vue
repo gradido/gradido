@@ -56,7 +56,8 @@
           :matches="sortedMatches"
           :silent="sortedPresence"
           :center="lensOrigin"
-          :center-label="centerLabel"
+          :search-center="searchCenter"
+          :center-label="centerLabelShown"
           :my-precision="MY_PRECISION"
           :reach="reach"
           :radius-km="radius"
@@ -303,9 +304,13 @@ import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { GeoSearchControl, OpenStreetMapProvider } from 'leaflet-geosearch'
+import { GeoSearchControl } from 'leaflet-geosearch'
 import 'leaflet-geosearch/dist/geosearch.css'
 import { listMatchingEntries, userLocationQuery } from '@/graphql/queries'
+import { useGmsBase } from '@/composables/useGmsBase'
+import { useMapSwitches } from '@/composables/useMapSwitches'
+import { makeGeoProvider } from '@/utils/geoSearchProvider'
+import { reverseName } from '@/utils/reverseGeocode'
 import {
   useMatches,
   distanceKm,
@@ -415,6 +420,11 @@ const router = useRouter()
 const entryDraft = useEntryDraft()
 const store = useStore()
 const { toastError } = useAppToast()
+// Which place search the admin switch names (K-008), and the address the GMS search answers
+// under. Asked for here because both need the Apollo client, which only setup can reach -
+// the control that searches with them is built a quarter second after mounting.
+const { mapSwitches } = useMapSwitches()
+const { gmsBase } = useGmsBase()
 
 // The prefix that belongs to whoever is signed in. Null where the store cannot say -- then
 // nothing is read and nothing is written, because a map on its defaults is the honest
@@ -717,13 +727,37 @@ const lensOrigin = computed(() =>
   lensMode.value === 'wohnort' && ownPosition.value ? ownPosition.value : searchCenter.value,
 )
 
+// How far from home a point may lie and still count as home, in km. A small distance, not
+// an exact match, so float and snap noise at home never makes it somewhere else.
+const HOME_KM = 0.1
+
+/** Whether a point is the member's own home, within that noise. */
+function isHomePoint(point) {
+  if (!ownPosition.value || !point) return false
+  return distanceKm(ownPosition.value, point) <= HOME_KM
+}
+
 // The lens only says something once the search has left home; until then both
 // origins give the same reading, so the switch stays out of the way (and off a
-// phone). A small distance threshold, not an exact match, so float and snap noise
-// at home never conjures it.
+// phone).
 const showLens = computed(() => {
   if (!ownPosition.value || !searchCenter.value) return false
-  return distanceKm(ownPosition.value, searchCenter.value) > 0.1
+  return distanceKm(ownPosition.value, searchCenter.value) > HOME_KM
+})
+
+/**
+ * The name the list's line gives the centre (K-002). The member's home is their home, named
+ * without asking anybody - also where a name is stored for it: until K-002 the first visit and
+ * the home button stored the reverse lookup of the home, and that street name would otherwise
+ * go on naming it. Any other centre keeps the name it came with (typed, or looked up for a
+ * point set on the map), or is the point the member chose. Empty only while the home is not
+ * known yet, so the line cannot call a point "chosen" that turns out to be the home.
+ */
+const centerLabelShown = computed(() => {
+  if (isHomePoint(searchCenter.value)) return t('matching.map.centreHome')
+  if (centerLabel.value) return centerLabel.value
+  if (!ownPosition.value || !searchCenter.value) return ''
+  return t('matching.map.centrePoint')
 })
 
 function centreDistance(person) {
@@ -783,10 +817,11 @@ onResult(({ data }) => {
   }
   // First visit ever: the search starts where the member is. That is the normal
   // search — who is near me — and the only moment we get to choose it for them.
+  // Nothing is looked up for its name: the list calls it the member's home
+  // (centerLabelShown), so the home position is not sent to a reverse lookup (K-002).
   if (!searchCenter.value) {
     searchCenter.value = { ...ownPosition.value }
     writePref('center', searchCenter.value)
-    if (!centerLabel.value) resolveCenterLabel({ ...ownPosition.value })
   }
   drawOwn()
   drawCircle()
@@ -979,12 +1014,7 @@ function moveSearchTo(next, { fly = false } = {}) {
   resolveCenterLabel(next)
 }
 
-/**
- * Name the centre for the list's confirmation line. A typed search already carries
- * its name; a point set on the map (and the first home centre) is looked up in
- * reverse. Privacy-safe: the search centre is a point you chose for yourself, never
- * a member's blurred position — this only ever geocodes your own search point.
- */
+/** Keep the centre's own name for the list's line - '' where it has none. */
 function setCenterLabel(label) {
   centerLabel.value = label || ''
   writePref('centerLabel', centerLabel.value)
@@ -992,39 +1022,33 @@ function setCenterLabel(label) {
 
 let labelRequest = 0
 
+/**
+ * Name the centre for the list's confirmation line (K-002). Three cases:
+ * - a typed search carries its name;
+ * - the member's home needs none: the list calls it their home (centerLabelShown), so
+ *   nothing is asked - the home button lands here. A crosshair does only within HOME_KM of
+ *   the house, and at the zoom that frames the circle that is about one pixel, so a crosshair
+ *   set on the house by eye is usually looked up like any other point;
+ * - any other point set on the map is named behind the admin switch (utils/reverseGeocode):
+ *   by Nominatim in the old position, by nobody in the new one.
+ * Only ever the member's own search point, never anybody else's position.
+ */
 async function resolveCenterLabel(next) {
+  // Every new centre makes an older lookup stale, the two cases that ask nothing included.
+  // Counted before them: a lookup still out for the point before would otherwise answer
+  // after them and name a place the search has already left.
+  const mine = ++labelRequest
   if (next.label) {
     setCenterLabel(next.label)
     return
   }
-  // Two centre changes in quick succession start two lookups, and the first one
-  // may well answer last. Only the newest may write, or the bar would name a place
-  // the search has already left.
-  const mine = ++labelRequest
-  const label = await reverseGeocode(next.lat, next.lng)
-  if (mine === labelRequest) setCenterLabel(label)
-}
-
-/**
- * Coordinates → a concise place name, finest available first: the street when there
- * is one, the region when there is not (the tool returns whatever the point has).
- * Nominatim — the same OSM service the address search already speaks to.
- */
-async function reverseGeocode(lat, lng) {
-  try {
-    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=16&lat=${lat}&lon=${lng}&accept-language=${locale.value}`
-    const res = await fetch(url, { headers: { Accept: 'application/json' } })
-    if (!res.ok) return ''
-    const data = await res.json()
-    const a = data?.address || {}
-    const fine =
-      a.road || a.pedestrian || a.neighbourhood || a.suburb || a.city_district || a.hamlet
-    const place = a.suburb || a.city || a.town || a.village || a.municipality || a.county || a.state
-    const parts = [...new Set([fine, place].filter(Boolean))]
-    return parts.slice(0, 2).join(', ') || data?.name || ''
-  } catch {
-    return ''
+  if (isHomePoint(next)) {
+    setCenterLabel('')
+    return
   }
+  const { geoProvider } = await mapSwitches()
+  const label = await reverseName(geoProvider, next.lat, next.lng, locale.value)
+  if (mine === labelRequest) setCenterLabel(label)
 }
 
 /** The crosshair: make the map's centre the search's centre, and look there. */
@@ -1547,7 +1571,13 @@ function initMap() {
   canvasRenderer = L.canvas({ padding: 0.5, tolerance: RING_TOLERANCE })
 
   const searchControl = new GeoSearchControl({
-    provider: new OpenStreetMapProvider(),
+    // The switch decides at each search which service answers (utils/geoSearchProvider).
+    provider: makeGeoProvider({
+      mapSwitches,
+      gmsBase,
+      viewpoint: () => map?.getCenter() ?? null,
+      language: () => locale.value,
+    }),
     style: 'button',
     showMarker: false,
     showPopup: false,

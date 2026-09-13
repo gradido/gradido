@@ -1,18 +1,27 @@
 // AI-GENERATED — not an architecture reference
-import { mount } from '@vue/test-utils'
-import { describe, it, expect, vi } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
 import MatchList from './MatchList.vue'
 
-// The address search reaches OpenStreetMap; the list's own logic does not need it,
-// so we hand it a provider that answers nothing.
-vi.mock('leaflet-geosearch', () => ({
-  OpenStreetMapProvider: class {
-    async search() {
-      return []
-    }
-  },
+// The address search goes through the real provider and its switch; only the network ends
+// are replaced: the GMS search itself, the address it answers under, and the admin switch -
+// in the new position, so a search here would reach the GMS and nothing else.
+const GMS = 'https://ki-playground-gms.gradido.net/gms/'
+const { searchPlaces } = vi.hoisted(() => ({ searchPlaces: vi.fn(async () => []) }))
+vi.mock('@/utils/geoSearch', () => ({ searchPlaces }))
+vi.mock('@/composables/useGmsBase', () => ({
+  useGmsBase: () => ({ gmsBase: async () => GMS }),
 }))
+vi.mock('@/composables/useMapSwitches', async () => {
+  const actual = await vi.importActual('@/composables/useMapSwitches')
+  return {
+    ...actual,
+    useMapSwitches: () => ({
+      mapSwitches: async () => ({ mapEngine: 'LEAFLET', geoProvider: actual.GEO_PROVIDER.GMS }),
+    }),
+  }
+})
 
 const i18n = createI18n({
   legacy: false,
@@ -142,8 +151,8 @@ describe('MatchList', () => {
     expect(wide.find('.center-label').text()).toBe('Überregional · 500 km um Kuenzelsau')
   })
 
-  // The label is reverse-geocoded and a failed lookup leaves it empty for the session.
-  // "Centred on nothing" is worth hiding; the reach and its circle are not.
+  // The map names every centre once it knows the member's home, so the label is empty only
+  // before that. "Centred on nothing" is worth hiding; the reach and its circle are not.
   it('still names the wide circle when no place name could be resolved', () => {
     const wide = mountList({ centerLabel: '', reach: 'fern', radiusKm: 500 })
     expect(wide.find('.center-label').text()).toBe('Überregional · 500 km')
@@ -277,5 +286,118 @@ describe('MatchList', () => {
   it('says so plainly when there is no one', () => {
     const wrapper = mountList()
     expect(wrapper.find('.list-empty').text()).toBe('Hier ist gerade niemand.')
+  })
+
+  // The blind member's only way to set the centre.
+  describe('the address search', () => {
+    const PFARRWEG = {
+      lat: 49.2816472,
+      lng: 9.7405781,
+      label: 'Pfarrweg 2, 74653 Künzelsau',
+      raw: { name: 'Pfarrweg', number: '2', postcode: '74653', city: 'Künzelsau' },
+    }
+    const KUENZELSAU = {
+      lat: 49.2803765,
+      lng: 9.6901512,
+      label: '74653 Künzelsau',
+      raw: { name: 'Künzelsau', number: null, postcode: '74653', city: 'Künzelsau' },
+    }
+
+    const PRAGUE = { lat: 50.0874654, lng: 14.4212535 }
+
+    const type = async (wrapper, text) => {
+      await wrapper.find('#match-list-search').setValue(text)
+      // The field waits 300 ms after the last key.
+      vi.advanceTimersByTime(300)
+      await flushPromises()
+    }
+    const rows = (wrapper) => wrapper.findAll('.search-result').map((row) => row.text())
+    // A question that stays out until the test answers it.
+    const heldAnswer = () => {
+      const held = {}
+      searchPlaces.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            held.answer = resolve
+          }),
+      )
+      return held
+    }
+
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+      searchPlaces.mockReset()
+      searchPlaces.mockResolvedValue([PFARRWEG, KUENZELSAU])
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    // `center` is where distances are measured from - the member's home, under the travel
+    // lens. The address search belongs to where the search is.
+    it('asks the GMS near the search centre, in the wallet language, in the new position', async () => {
+      const wrapper = mountList({ center: CENTRE, searchCenter: PRAGUE })
+
+      await type(wrapper, 'Pfarrweg 2')
+
+      expect(searchPlaces).toHaveBeenCalledWith(GMS, 'Pfarrweg 2', {
+        near: PRAGUE,
+        language: 'de',
+      })
+      expect(rows(wrapper)).toEqual(['Pfarrweg 2, 74653 Künzelsau', '74653 Künzelsau'])
+    })
+
+    it('shows the answer to the words typed last, also when an earlier question answers later', async () => {
+      const earlier = heldAnswer()
+      searchPlaces.mockResolvedValueOnce([PFARRWEG])
+      const wrapper = mountList({ searchCenter: PRAGUE })
+
+      await type(wrapper, 'Pfar')
+      await type(wrapper, 'Pfarrweg 2')
+      expect(rows(wrapper)).toEqual(['Pfarrweg 2, 74653 Künzelsau'])
+
+      earlier.answer([KUENZELSAU])
+      await flushPromises()
+
+      expect(rows(wrapper)).toEqual(['Pfarrweg 2, 74653 Künzelsau'])
+    })
+
+    it('lets a search that was still waiting reopen nothing after a place is picked', async () => {
+      const wrapper = mountList({ searchCenter: PRAGUE })
+      await type(wrapper, 'Pfarrweg 2')
+
+      // Typed on, and picked before the field has waited its 300 ms.
+      await wrapper.find('#match-list-search').setValue('Pfarrweg 2,')
+      await wrapper.findAll('.search-result')[0].trigger('mousedown')
+      vi.advanceTimersByTime(300)
+      await flushPromises()
+
+      expect(rows(wrapper)).toEqual([])
+      expect(searchPlaces).toHaveBeenCalledTimes(1)
+    })
+
+    it('lets a search that was still out reopen nothing after the list was closed', async () => {
+      const out = heldAnswer()
+      const wrapper = mountList({ searchCenter: PRAGUE })
+      await type(wrapper, 'Pfarrweg 2')
+
+      await wrapper.find('#match-list-search').trigger('keydown.esc')
+      out.answer([PFARRWEG])
+      await flushPromises()
+
+      expect(rows(wrapper)).toEqual([])
+    })
+
+    it('moves the search to the place picked, with its name', async () => {
+      const wrapper = mountList()
+      await type(wrapper, 'Pfarrweg 2')
+
+      await wrapper.findAll('.search-result')[0].trigger('mousedown')
+
+      expect(wrapper.emitted('recenter')).toEqual([
+        [{ lat: 49.2816472, lng: 9.7405781, label: 'Pfarrweg 2, 74653 Künzelsau' }],
+      ])
+    })
   })
 })

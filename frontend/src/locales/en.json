@@ -678,6 +678,8 @@
       "back": "Back",
       "breite": "Who fits more than once",
       "breiteHint": "Highlights people who answer several of your entries.",
+      "centreHome": "your home",
+      "centrePoint": "the chosen point",
       "channels": {
         "andere": "everyone else",
         "andereMit": "others with entries",
