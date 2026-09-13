@@ -156,12 +156,8 @@ describe('Login', () => {
         await wrapper.find('#password-input-field').setValue('1234')
         mockMutate.mockResolvedValue({
           data: {
-            login: 'token',
-          },
-        })
-        mockQuery.mockResolvedValue({
-          data: {
-            verifyLogin: {
+            login: {
+              language: 'en',
               avatar: 'base64-picture',
               avatarVisibleToMembers: false,
               creationAllowed: false,
@@ -181,7 +177,7 @@ describe('Login', () => {
       })
 
       it('dispatches server response to store', () => {
-        expect(store.dispatch).toHaveBeenCalledWith('login', 'token')
+        expect(store.dispatch).toHaveBeenCalledWith('login', expect.objectContaining({}))
       })
 
       it('commits email to store', () => {
@@ -192,52 +188,28 @@ describe('Login', () => {
         expect(router.currentRoute.value.path).toBe('/overview')
       })
 
-      // The login mutation cannot carry the picture, so without this fetch the member
-      // sees initials until some later session renewal happens to refill the store -- and
-      // on the ordinary path nothing does.
-      it('fetches the picture and commits it', () => {
-        expect(store.commit).toHaveBeenCalledWith('avatar', 'base64-picture')
+      // ⛔ The picture, its visibility switch and creationAllowed ride ON the login answer
+      // and reach the store through the action, not through commits of this page's own. A
+      // verifyLogin of its own used to follow the sign-in right here to fetch those three,
+      // and this page is where it must not come back: it put a second connection pool into
+      // the one request path every member and every test takes, and the member watched
+      // their initials turn into a face while it flew.
+      //
+      // What the fields then DO is store.test.js's business -- the action is a mock here.
+      // What is checked here is that they arrive at all, and that nothing is asked twice.
+      it('hands the picture and its two own-view companions to the store action', () => {
+        expect(store.dispatch).toHaveBeenCalledWith(
+          'login',
+          expect.objectContaining({
+            avatar: 'base64-picture',
+            avatarVisibleToMembers: false,
+            creationAllowed: false,
+          }),
+        )
       })
 
-      // The same fetch carries the switch that says who may see that picture, and it
-      // cannot ride on the login mutation either -- own-view only, and login has no
-      // authenticated caller. Miss this commit and the settings page shows every member
-      // "not visible" while the column says otherwise, which is the wrong direction for a
-      // switch a member consults to check that they are hidden.
-      it('commits the picture-visibility setting from the same fetch', () => {
-        expect(store.commit).toHaveBeenCalledWith('avatarVisibleToMembers', false)
-      })
-
-      // ES-021: the "Create" menu item hangs on this, and the login answer does not carry
-      // it. Miss this commit and a project account sees "Create" until the next session
-      // renewal -- and a tap on it earns a page of refusals.
-      it('commits whether the account may create, from the same fetch', () => {
-        expect(store.commit).toHaveBeenCalledWith('creationAllowed', false)
-      })
-    })
-
-    // Best effort: a member who is logged in must not be thrown back over a picture.
-    describe('valid data, but the picture cannot be fetched', () => {
-      beforeEach(async () => {
-        await wrapper.find('#email-input-field').setValue('user@example.org')
-        await wrapper.find('#password-input-field').setValue('1234')
-        mockMutate.mockResolvedValue({ data: { login: 'token' } })
-        mockQuery.mockRejectedValue(new Error('network'))
-        await wrapper.find('form').trigger('submit')
-        await flushPromises()
-      })
-
-      it('logs the member in anyway', () => {
-        expect(store.dispatch).toHaveBeenCalledWith('login', 'token')
-        expect(router.currentRoute.value.path).toBe('/overview')
-      })
-
-      // Only half the guarantee, and the half that is observable from here: a failed
-      // fetch writes no picture. The other half -- that the previous member's picture is
-      // actively forgotten -- lives in the login store action, which is a mock in this
-      // spec, and is guarded in store.test.js instead.
-      it('writes no picture when the fetch failed', () => {
-        expect(store.commit).not.toHaveBeenCalledWith('avatar', expect.any(String))
+      it('asks nothing else after signing in', () => {
+        expect(mockQuery).not.toHaveBeenCalled()
       })
     })
 

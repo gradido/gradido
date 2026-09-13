@@ -125,9 +125,11 @@ const isContactCounterparty = (row: ContactRow, counterparty: BookingCounterpart
  * worse than either answer alone. The duplication predates the narrowing; the narrowing is
  * what made it state a wrong NUMBER instead of an extra row. (coderabbit, PR #3842.)
  *
- * ⚠️ Rows without a community uuid are left alone: those are members of THIS community
- * (migration 0129's scope is `foreign = 0`), already unique by their `users` row, and there
- * is nothing to match them against -- a pair is the only key both shapes carry.
+ * ⚠️ Rows without a community uuid are left alone -- there is nothing to match them against,
+ * a pair is the only key both shapes carry. None should exist: a local row takes the uuid
+ * from `users` (NOT NULL since migration 0134), and a booking with another community always
+ * records theirs, because a community without a uuid is unverified and cannot take part in
+ * one. The `null` check is what the column's type demands, not a case that occurs.
  *
  * ★ And the merge is safe even where the assumption behind it does not hold. The pair is
  * what `users.uuid_key` makes unique (migration 0073), so two rows carrying it ARE one

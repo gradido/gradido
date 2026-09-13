@@ -41,7 +41,7 @@ export class User extends BaseEntity {
     name: 'community_uuid',
     type: 'char',
     length: 36,
-    nullable: true,
+    nullable: false,
     collation: 'utf8mb4_unicode_ci',
   })
   communityUuid: string

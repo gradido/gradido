@@ -1,5 +1,5 @@
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
-import { User } from 'database'
+import { DbUser, User } from 'database'
 import { getLogger } from 'log4js'
 import {
   crypto_box_SEEDBYTES,
@@ -19,6 +19,7 @@ import {
 import { CONFIG } from '@/config'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { gradidoIdOf } from '@/data/UserLogic'
 import { LogError } from '@/server/LogError'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.password.EncryptorUtils`)
@@ -97,14 +98,25 @@ export const SecretKeyCryptographyCreateKey = async (
   }
 }
 
-export const getUserCryptographicSalt = (dbUser: User): string => {
+/**
+ * ⛔ The same rule as the real one, and it has to STAY the same: this decides which string
+ * a password was derived from, so a mock that picks a different salt does not make the
+ * tests weaker -- it makes them pass on hashes no production login could ever reproduce.
+ * The cheap derivation above is the only thing the mock is here for.
+ *
+ * That is not theory. When the login was moved to a Drizzle row, `gradidoID` became
+ * `gradidoId` here and the salt came out `undefined`, and the whole login suite failed
+ * with "Server is full, please try again in 10 minutes." -- the error a salt that cannot
+ * be turned into a Buffer surfaces as.
+ */
+export const getUserCryptographicSalt = (dbUser: User | DbUser): string => {
   switch (dbUser.passwordEncryptionType) {
     case PasswordEncryptionType.NO_PASSWORD:
       throw new LogError('User has no password set', dbUser.id)
     case PasswordEncryptionType.EMAIL:
       return dbUser.emailContact.email
     case PasswordEncryptionType.GRADIDO_ID:
-      return dbUser.gradidoID
+      return gradidoIdOf(dbUser)
     default:
       throw new LogError('Unknown password encryption type', dbUser.passwordEncryptionType)
   }

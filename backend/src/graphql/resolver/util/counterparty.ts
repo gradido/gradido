@@ -162,23 +162,14 @@ export const remoteUserFromBooking = async (
  * almost certainly, no bookings: the list comes back empty under its own heading, and that
  * is the true answer. What it can NOT do is widen the list: `bookingsWhere` keeps the
  * caller's own id in every branch, whatever arrives here.
- *
- * The home community is read as well as resolved: the lookup needs its uuid to recognise
- * a pair that names this community, whose oldest rows may still carry none (see
- * dbFindUserIdByUuids). Both reads are independent, so they go out together.
  */
 export const bookingCounterparty = async (ref: {
   gradidoID: string
   communityUuid?: string | null
 }): Promise<BookingCounterparty> => {
-  const [communityUuid, home] = await Promise.all([
-    resolveCommunityUuid(ref.communityUuid),
-    getHomeCommunity(),
-  ])
+  const communityUuid = await resolveCommunityUuid(ref.communityUuid)
   return {
-    localUserId: await dbFindUserIdByUuids(communityUuid, ref.gradidoID, {
-      homeCommunityUuid: home?.communityUuid ?? null,
-    }),
+    localUserId: await dbFindUserIdByUuids(communityUuid, ref.gradidoID),
     gradidoId: ref.gradidoID,
     communityUuid,
   }

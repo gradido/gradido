@@ -14,9 +14,12 @@ import { Field, InputType } from 'type-graphql'
  * communities, keyed by this pair, and the booking filter matches them by it; a plain id
  * would have needed a second query name and two paths in the wallet the day they arrived.
  *
- * Nullable because a local member registered before the home community had a uuid has
- * none stored either (see UserResolver.createUser), and rejecting those would hide
- * exactly the oldest members.
+ * ⚠️ `communityUuid` is nullable for historical reasons only, and nothing legitimately sends
+ * null: every uuid a client holds came from the server, where `User.communityUuid` is
+ * `String!` and `users.community_uuid` NOT NULL (0134), and a booking with another
+ * community always records theirs -- a community without a uuid is unverified and takes
+ * part in none. A null that arrives anyway is read as this community (resolveCommunityUuid).
+ * Candidate for `String!` once no caller passes one.
  */
 @InputType()
 export class MemberAvatarRefInput {

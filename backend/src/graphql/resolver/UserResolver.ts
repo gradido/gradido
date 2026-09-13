@@ -21,7 +21,6 @@ import { SearchUsersResult, UserAdmin } from '@model/UserAdmin'
 import { UserContact } from '@model/UserContact'
 import { UserLocationResult } from '@model/UserLocationResult'
 import {
-  delay,
   registerAddressTransaction,
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
@@ -35,7 +34,9 @@ import {
   AppDatabase,
   aliasExists,
   aliasOriginIsSettled,
+  DBNotFoundError,
   ContributionLink as DbContributionLink,
+  DbLoginUser,
   TransactionLink as DbTransactionLink,
   User as DbUser,
   UserContact as DbUserContact,
@@ -56,6 +57,7 @@ import {
   dbFindUserByEmailOrFail,
   dbFindUserContactByCodeExceptChangeOrFail,
   dbFindUserContactByCodeOrFail,
+  dbFindUserLoginByEmail,
   dbFindUsers,
   dbInsertAssistedRegistration,
   dbInsertUserAlias,
@@ -63,9 +65,13 @@ import {
   dbPurgeExpiredAssistedRegistrations,
   dbReleaseUnconfirmedEmailChangeFor,
   dbUpsertUserAvatar,
+  dbUserUpdateField,
+  dbUserUpdatePassword,
   emailContactByUserIdQuery,
   findUserByIdentifier,
+  getCommunityByUuid,
   getHomeCommunity,
+  getHomeCommunityDrizzle,
   ProjectBrandingSelect,
   UserLoggingView,
 } from 'database'
@@ -82,6 +88,7 @@ import {
   JPEG_END_BYTES,
   JPEG_MAGIC_BYTES,
   pickFreeAlias,
+  Result,
   updateAllDefinedAndChanged,
 } from 'shared'
 import { randombytes_random } from 'sodium-native'
@@ -138,13 +145,14 @@ import {
 } from '@/event/Events'
 import { registerAccount } from '@/interactions/registerAccount/RegisterAccount.context'
 import { isValidPassword } from '@/password/EncryptorUtils'
-import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
+import { encryptPassword, fakeVerifyPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { communityDbUser } from '@/util/communityUser'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { durationInMinutesFromDates, getTimeDurationObject, printTimeDuration } from '@/util/time'
 import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlayground'
+import { resolveCommunityUuid } from './util/communities'
 import { compareGmsRelevantUserSettings } from './util/compareGmsRelevantUserSettings'
 import { getFullUserCreation, getUserCreations } from './util/creations'
 import { extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
@@ -197,8 +205,17 @@ export class UserResolver {
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage(context)
 
-    // The member's own profile picture. Sent along with the login so the wallet can show
-    // it immediately instead of jumping from initials to picture on every page load.
+    // The member's own profile picture. The login gets it joined onto the user row
+    // (dbFindUserLoginByEmail); here the row comes off the context, which is the TypeORM
+    // entity and cannot carry it, so it is read on its own.
+    //
+    // ⛔ Not optional, and MORE load-bearing than before: the wallet's `/authenticate`
+    // handoff (routes/guards.js) feeds this answer straight into the login store action,
+    // and that action now commits `data.avatar ?? null`. So a verifyLogin that leaves the
+    // field null no longer merely fails to fill the store -- it CLEARS a picture that was
+    // there, and the member arrives from the token link with initials. The two other
+    // callers of that query document (the session-renewal modal, the matching page) ask
+    // for the field because they share the document and ignore what comes back.
     const avatar = await dbFindUserAvatarSmall(userEntity.id)
     user.avatar = avatar.success ? avatar.value.toString('base64') : null
 
@@ -216,22 +233,36 @@ export class UserResolver {
     const logger = createLogger('login')
     logger.info(`login with ${email.substring(0, 3)}..., project=${project} ...`)
     email = email.trim().toLowerCase()
-    let dbUser: DbUser
-
+    // Everything about the member in one read -- row, role, address and picture. The
+    // four separate reads this replaces are described at dbFindUserLoginByEmail.
+    let loginUserResult: Result<DbLoginUser, DBNotFoundError>
     try {
-      dbUser = await findUserByEmail(email)
-      // add technical user identifier in logger-context for layout-pattern X{user} to print it in each logging message
-      logger.addContext('user', dbUser.id)
-      logger.trace('user before login', new UserLoggingView(dbUser))
+      loginUserResult = await dbFindUserLoginByEmail(email)
     } catch (e) {
-      // simulate delay which occur on password encryption 650 ms +- 50 rnd
-      await delay(650 + Math.floor(Math.random() * 101) - 50)
-      throw e
+      // Not "no such address": the read itself went wrong (a broken row, the database
+      // away). Logged as the error it is, and answered like an unknown address, because
+      // an error message is not something an unauthenticated caller gets to see.
+      await fakeVerifyPassword()
+      logger.error(`login failed, reading the account raised: ${e}`)
+      throw new Error('No user with this credentials')
     }
+    if (!loginUserResult.success) {
+      await fakeVerifyPassword()
+      // don't log email any longer because of CWE-532
+      logger.warn(`login failed, user not found`)
+      throw new Error('No user with this credentials')
+    }
+    const dbUser: DbLoginUser = loginUserResult.value
+    // add technical user identifier in logger-context for layout-pattern X{user} to print it in each logging message
+    logger.addContext('user', dbUser.id)
+
     if (dbUser.deletedAt) {
+      await fakeVerifyPassword()
       logger.warn('login failed, user was deleted')
-      throw new Error('This user was permanently deleted. Contact support for questions')
+      // answear the same for preventing CWE-203
+      throw new Error('No user with this credentials')
     }
+
     // An unconfirmed address only bars the login while the account has no password —
     // that is every classic registration before its mail link was clicked. An account
     // that IS unconfirmed but holds a password came through the assisted registration
@@ -277,18 +308,34 @@ export class UserResolver {
       (dbUser.passwordEncryptionType as PasswordEncryptionType) !==
       PasswordEncryptionType.GRADIDO_ID
     ) {
+      // ⛔ The SCHEME on the row first, the hash second, and in that order. The salt is
+      // not a parameter of encryptPassword -- getUserCryptographicSalt reads the scheme
+      // off the row it is handed -- so encrypting before this line derives the hash from
+      // the e-mail address and then stores it as GRADIDO_ID. That row cannot be signed in
+      // to again, by anybody, ever: the next login derives from the gradido id and
+      // compares it against a hash of an address. Written by the very sign-in that was
+      // meant to bring the account up to date, and silent -- the login it happens on
+      // succeeds.
       dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-      dbUser.password = await encryptPassword(dbUser, password)
-      await dbUser.save()
+      await dbUserUpdatePassword(
+        dbUser.id,
+        PasswordEncryptionType.GRADIDO_ID,
+        await encryptPassword(dbUser, password),
+      )
     }
     logger.debug('validation of login credentials successful...')
 
+    // One entity, read once, for the two things that still insist on one: the context
+    // below and the login event. Needed only as long as those are on TypeORM.
+    const legacyUser = await DbUser.findOneOrFail({ where: { id: dbUser.id } })
     // Login runs on an inalienable right, so no authenticated caller exists while this
     // answer is serialised -- but the member HAS just proven who they are, and from here
     // on everything below is entitled to know it. Without this line the
     // firstName/lastName field resolvers would read the owner exception as "not you" and
-    // the wallet's own store would fill with null names.
-    context.user = dbUser
+    // the wallet's own store would fill with null names. Same for the own-view-only
+    // fields: the picture and its visibility switch travel with the login answer because
+    // this line is what lets their guards recognise the owner.
+    context.user = legacyUser
 
     const user = new User(dbUser)
 
@@ -296,17 +343,16 @@ export class UserResolver {
     user.hasElopage = await this.hasElopage(context)
     logger.debug('user.hasElopage', user.hasElopage)
     if (!user.hasElopage && publisherId) {
+      await dbUserUpdateField(user.id, 'publisherId', publisherId)
       user.publisherId = publisherId
-      dbUser.publisherId = publisherId
-      await DbUser.save(dbUser)
     }
 
     context.setHeaders.push({
       key: 'token',
-      value: await encode(dbUser.gradidoID),
+      value: await encode(dbUser.gradidoId),
     })
 
-    await EVENT_USER_LOGIN(dbUser)
+    await EVENT_USER_LOGIN(legacyUser)
     const projectBrandingSpaceId = await projectBrandingSpaceIdPromise
     logger.debug('project branding: ', projectBrandingSpaceId)
     // load humhub state
@@ -324,7 +370,6 @@ export class UserResolver {
     }
     user.klickTipp = await klicktippStatePromise
     logger.info('successful Login')
-    logger.trace('user after login', new UserLoggingView(dbUser))
     return user
   }
 
@@ -1079,8 +1124,12 @@ export class UserResolver {
 
     // Both halves of the pair. `users` is unique on (gradido_id, community_uuid), so the
     // id alone does not identify one person -- see the query for why matching only it
-    // would hand back whoever the database reached first.
-    const avatar = await dbFindMemberAvatarFull(ref.gradidoID, ref.communityUuid ?? null)
+    // would hand back whoever the database reached first. The input still admits a ref
+    // without a uuid (see MemberAvatarRefInput); it is read as THIS community.
+    const avatar = await dbFindMemberAvatarFull(
+      ref.gradidoID,
+      await resolveCommunityUuid(ref.communityUuid),
+    )
     return avatar ? avatar.toString('base64') : null
   }
 
@@ -1405,7 +1454,10 @@ export class UserResolver {
     }
     await EVENT_ADMIN_USER_ROLE_SET(user, moderator)
     const newUser = await DbUser.findOne({ where: { id: userId }, relations: ['userRoles'] })
-    return newUser?.userRoles ? newUser.userRoles[0].role : null
+    // ⛔ `?.[0]?.`, not `userRoles ? userRoles[0].role`: after a removal the relation is an
+    // EMPTY array, which is truthy, and `[][0].role` threw -- so removing a role answered
+    // with an error although the role was gone, and the admin saw a failure for a success.
+    return newUser?.userRoles?.[0]?.role ?? null
   }
 
   @Authorized([RIGHTS.DELETE_USER])
@@ -1609,11 +1661,12 @@ export class UserResolver {
    * community user, and anyone deleted before the column existed. The owner test is what
    * keeps those from reading as consent.
    *
-   * Today nothing would leak without this guard either - only verifyLogin fills the
-   * field, so `user` hands out a User whose avatar is null anyway. That is exactly why
-   * the guard is here: a property that holds only because no other code path happens to
-   * set the field is not a rule, it is an accident, and the next person to fill it
-   * somewhere else would open the door without noticing.
+   * ⚠️ "Nothing would leak without this guard either" was true while verifyLogin was the
+   * only place that filled the field. It is not true any more: the login joins the
+   * picture onto the user row it reads (dbFindUserLoginByEmail), so a User with a real
+   * avatar on it now exists on a second path -- and that is precisely the case this
+   * comment used to predict. The guard is what makes the difference between the two paths
+   * a rule rather than an accident of which query happens to load what.
    */
   @FieldResolver(() => String, { nullable: true })
   avatar(@Root() user: User, @Ctx() context: Context): string | null {
@@ -1639,6 +1692,27 @@ export class UserResolver {
       return null
     }
     return user.avatarVisibleToMembers ?? null
+  }
+
+  /**
+   * The name of the community this member belongs to.
+   *
+   * A field resolver rather than something the constructor fills, because the name is not
+   * on the user row: it used to come from the `community` RELATION, so it was there only
+   * when whoever loaded the user happened to ask for it -- the login did not, and the
+   * same member therefore had a community name on one query and null on another. Asked
+   * for here instead, on the one query that wants it.
+   *
+   * A local member is asked about by far the most often, and for them the answer is one
+   * community, so it comes from the cached home community rather than from a lookup by
+   * their uuid. Only a member cached by the federation is looked up by uuid.
+   */
+  @FieldResolver(() => String, { nullable: true })
+  async communityName(@Root() user: User): Promise<string | null> {
+    const community = !user.foreign
+      ? await getHomeCommunityDrizzle()
+      : await getCommunityByUuid(user.communityUuid)
+    return community?.name ?? null
   }
 }
 

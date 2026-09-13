@@ -1,11 +1,12 @@
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
 import { PublishNameType } from '@enum/PublishNameType'
-import { User as DbUser } from 'database'
+import { DbLoginUser, User as LegacyUser } from 'database'
 import { Field, Int, ObjectType } from 'type-graphql'
 import { Point } from 'typeorm'
 
 import { avatarColorIndex } from '@/data/AvatarColor.logic'
 import { PublishNameLogic } from '@/data/PublishName.logic'
+import { isLegacyUser } from '@/data/UserLogic'
 import { Point2Location } from '@/graphql/resolver/util/Location2Point'
 
 import { KlickTipp } from './KlickTipp'
@@ -14,16 +15,43 @@ import { UserContact } from './UserContact'
 
 @ObjectType()
 export class User {
-  constructor(dbUser: DbUser | null) {
+  constructor(dbUser: DbLoginUser | LegacyUser | null) {
     if (dbUser) {
       this.id = dbUser.id
       this.foreign = dbUser.foreign
       this.communityUuid = dbUser.communityUuid
-      if (dbUser.community) {
-        this.communityName = dbUser.community.name
-      }
-      this.gradidoID = dbUser.gradidoID
       this.alias = dbUser.alias
+
+      // The two sources spell three things differently, and nothing else. Everything
+      // outside this block reads the same on both, which is what keeps the branch small
+      // -- it goes away with the entity, not with a rewrite of the constructor.
+      //
+      // ⛔ isLegacyUser, not `instanceof LegacyUser`: half the entity-shaped users that
+      // reach this constructor are object literals cast to the entity type and never
+      // built through it. The community's stand-in is one, in production, and
+      // `instanceof` sent it down the Drizzle branch and left its gradidoID undefined --
+      // on the linkedUser of every CREATION row, where the field is `String!`. See the
+      // note on isLegacyUser.
+      if (isLegacyUser(dbUser)) {
+        this.gradidoID = dbUser.gradidoID
+        this.hideAmountGDD = dbUser.hideAmountGDD
+        this.hideAmountGDT = dbUser.hideAmountGDT
+        this.roles = dbUser.userRoles?.map((userRole) => userRole.role) ?? []
+        // Lives in its own table, so the user row cannot carry it. Null rather than
+        // undefined, and set on THIS path too: whoever fills it does so after
+        // construction (verifyLogin does), and a field that is sometimes absent and
+        // sometimes null is a field every reader has to guess about.
+        this.avatar = null
+      } else {
+        this.gradidoID = dbUser.gradidoId
+        this.hideAmountGDD = dbUser.hideAmountGdd ?? false
+        this.hideAmountGDT = dbUser.hideAmountGdt ?? false
+        // 0..1 role by shape: user_roles.user_id is UNIQUE (migration 0135).
+        this.roles = dbUser.role ? [dbUser.role.role] : []
+        // Joined in by the same query, so the login answer carries the member's own face
+        // without a second read. Base64 without a data URI prefix, like the field says.
+        this.avatar = dbUser.avatar?.toString('base64') ?? null
+      }
 
       const publishNameLogic = new PublishNameLogic(dbUser)
       const publishNameType = dbUser.humhubPublishName as PublishNameType
@@ -47,11 +75,9 @@ export class User {
       this.createdAt = dbUser.createdAt
       this.language = dbUser.language
       this.publisherId = dbUser.publisherId
-      this.roles = dbUser.userRoles?.map((userRole) => userRole.role) ?? []
+
       this.klickTipp = null
       this.hasElopage = null
-      this.hideAmountGDD = dbUser.hideAmountGDD
-      this.hideAmountGDT = dbUser.hideAmountGDT
       this.humhubAllowed = dbUser.humhubAllowed
       this.gmsAllowed = dbUser.gmsAllowed
       this.gmsPublishName = dbUser.gmsPublishName
@@ -60,10 +86,7 @@ export class User {
       this.aboutMe = dbUser.aboutMe
       this.avatarVisibleToMembers = dbUser.avatarVisibleToMembers
       this.creationAllowed = dbUser.creationAllowed
-      // Lives in its own table, so the user row cannot carry it; verifyLogin fills it.
-      // This is the small rendition -- the full one is fetched on demand, see avatarFull.
-      this.avatar = null
-      // Same: not on the user row. Whoever assembles a list of members fills it in one
+      // Not on the user row either. Whoever assembles a list of members fills it in one
       // batch; null until then, and null for good where there is nothing to show.
       this.avatarUpdatedAt = null
       // No second check in front of it: Point2Location answers the whole question now --
@@ -163,8 +186,12 @@ export class User {
   // Nullable for that reason alone. The column is NOT NULL, so a member reading their own
   // setting always gets a boolean; null here means "not yours to know", never "undecided".
   //
-  // verifyLogin is where the wallet reads it -- not the login mutation, which runs on an
-  // inalienable right and therefore has no authenticated caller for the guard to match.
+  // ⚠️ The login mutation answers it now, and so does verifyLogin. It used to come back
+  // null from the login on the grounds that the mutation runs on an inalienable right and
+  // therefore has no authenticated caller -- but the login has proven who is asking by
+  // the time it returns, and it puts them on the context before it does. The guard below
+  // then matches, so the field resolver hands the setting over. Nothing was loosened: the
+  // guard is the same one, and it is still the owner it matches.
   @Field(() => Boolean, { nullable: true })
   avatarVisibleToMembers: boolean
 
@@ -196,7 +223,9 @@ export class User {
 
   // The member's own profile picture as base64, without a data URI prefix, or null when
   // they have not set one. It does not come from the user row — it lives in its own
-  // table and is filled in by verifyLogin, the way hasElopage and klickTipp are.
+  // table, so somebody has to put it here: the login joins it in with the row
+  // (dbFindUserLoginByEmail), verifyLogin reads it separately, the way hasElopage and
+  // klickTipp are read there.
   //
   // The SMALL rendition, 128x128 -- the everyday picture, the one every list and booking
   // row shows. The full 512x512 crop is not a field on this type at all, and that has not

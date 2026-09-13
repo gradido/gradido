@@ -1,7 +1,18 @@
-import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
+import {
+  BaseEntity,
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm'
 import { User } from './User'
 
 @Entity('user_roles', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
+// 0 or 1 role per member (migration 0135). The relation on User is still `userRoles[]`;
+// the array just cannot hold more than one element any more.
+@Index('user_id', ['userId'], { unique: true })
 export class UserRole extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number

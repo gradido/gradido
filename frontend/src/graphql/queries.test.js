@@ -49,41 +49,27 @@ describe.each([
     'roles',
     'hideAmountGDD',
     'hideAmountGDT',
+    // ⛔ These three moved ONTO this shared list. They used to be verifyLogin's alone,
+    // on the grounds that the login mutation runs on an inalienable right and so has no
+    // authenticated caller for an own-view guard to match. The login names the member it
+    // has just authenticated as the owner of the request now, and it reads the picture
+    // with the user row rather than in a second query, so both documents can answer all
+    // three -- and BOTH have to, because the store action reads them off whichever
+    // payload it is handed. Whichever document drops one lets the action write undefined
+    // over a stored value: a member back to initials, a visibility switch that says
+    // "hidden" when it is not, and a project account offered "Create".
+    'avatar',
+    'avatarVisibleToMembers',
+    'creationAllowed',
   ])('requests the "%s" field consumed by the login action', (field) => {
     expect([...fields]).toContain(field)
   })
 })
 
-// Two fields are deliberately not on that list: verifyLogin is the only place the wallet
-// reads them. Two callers do exactly that: guards.js on the token handoff, and Login.vue
-// right after a form login. Drop a field here and both of them leave the store empty,
-// silently, which is the failure this whole guard exists for.
-//
-// Both are kept off the login answer by DESIGN, not by inability -- login now names the
-// member it just authenticated as the owner of the request, so an own-view field resolver
-// would answer it. What still argues against them is cost: filling the avatar would mean
-// a database read on the one request every member and every test makes, and
-// avatarVisibleToMembers travels beside it.
-//
-//   * the avatar;
-//   * avatarVisibleToMembers, which is own-view only -- a field resolver hands it to
-//     nobody but its owner.
-//   * creationAllowed (ES-021), which the "Create" menu item hangs on. Deliberately not on
-//     the login mutation either (G 5.5): everything the wallet learns after signing in
-//     arrives through verifyLogin, and Login.vue fills it from there right after the login.
-describe('verifyLogin query', () => {
-  it.each(['avatar', 'avatarVisibleToMembers', 'creationAllowed'])(
-    'requests "%s", which is the only place the wallet can read it',
-    (field) => {
-      expect([...requestedFields(verifyLogin)]).toContain(field)
-    },
-  )
-})
-
-// The other half of the same contract: neither field may be read off the login payload by
-// the login store action, because guards.js feeds that action a verifyLogin result while
-// Login.vue feeds it a login result. A field read there is right for one caller and
-// undefined for the other -- see store.test.js, which holds the action to clearing both.
+// The cost that used to argue for reading the picture in a query of its own is gone: it is
+// joined onto the user row the login already reads (dbFindUserLoginByEmail), not fetched
+// in a second round trip. What the fields then do in the store is store.test.js's
+// business; that they are asked for at all is this file's.
 
 // Data protection: the community list is open to every member and shows denied
 // contributions too, so it names nobody. The backend refuses to send a person either

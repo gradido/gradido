@@ -143,12 +143,12 @@ describe('member avatars for the booking list', () => {
   const DELETED = 9003
   const NO_PICTURE = 9004
   const FOREIGN = 9005
-  // A local member who DOES carry a community uuid. Every other fixture here leaves the
-  // column null, which is a real state -- members who registered before the home community
-  // had one -- but it means the uuid the answer carries back is never anything but null,
-  // and a column that is only ever asserted as null is not asserted at all.
+  // A local member with nothing special about them but a picture. Every fixture carries a
+  // community uuid since migration 0134 made the column NOT NULL; this one is kept as the
+  // member the "community comes back" assertion below reads.
   const WITH_COMMUNITY = 9006
   const HOME_COMMUNITY = '11111111-1111-4111-8111-111111111111'
+  const FOREIGN_COMMUNITY = '99999999-9999-4999-8999-999999999999'
   const gid = (id: number) => `00000000-0000-4000-8000-0000000${id}`
 
   const picture = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x42])
@@ -158,14 +158,36 @@ describe('member avatars for the booking list', () => {
   // apart, and both would have passed.
   const pictureFull = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x43, 0x44, 0x45, 0x46])
   const ALL = [SHOWN, SWITCHED_OFF, DELETED, NO_PICTURE, FOREIGN, WITH_COMMUNITY]
-
+  // TODO: build these through the seeding functions instead of raw rows -- every column the
+  // schema makes required (community_uuid since 0134) has to be repeated here by hand.
   beforeAll(async () => {
     await db.delete(usersTable).where(inArray(usersTable.id, ALL))
     await db.insert(usersTable).values([
-      { id: SHOWN, gradidoId: gid(SHOWN), avatarVisibleToMembers: 1 },
-      { id: SWITCHED_OFF, gradidoId: gid(SWITCHED_OFF), avatarVisibleToMembers: 0 },
-      { id: DELETED, gradidoId: gid(DELETED), avatarVisibleToMembers: 1, deletedAt: new Date() },
-      { id: NO_PICTURE, gradidoId: gid(NO_PICTURE), avatarVisibleToMembers: 1 },
+      {
+        id: SHOWN,
+        gradidoId: gid(SHOWN),
+        avatarVisibleToMembers: 1,
+        communityUuid: HOME_COMMUNITY,
+      },
+      {
+        id: SWITCHED_OFF,
+        gradidoId: gid(SWITCHED_OFF),
+        avatarVisibleToMembers: 0,
+        communityUuid: HOME_COMMUNITY,
+      },
+      {
+        id: DELETED,
+        gradidoId: gid(DELETED),
+        avatarVisibleToMembers: 1,
+        deletedAt: new Date(),
+        communityUuid: HOME_COMMUNITY,
+      },
+      {
+        id: NO_PICTURE,
+        gradidoId: gid(NO_PICTURE),
+        avatarVisibleToMembers: 1,
+        communityUuid: HOME_COMMUNITY,
+      },
       // A member of ANOTHER community, exactly as the federation stores them: same table,
       // same shape, allowed and undeleted. Production cannot give such a row a picture
       // today -- only setUserAvatar writes one, and only for its own caller -- so this
@@ -175,7 +197,7 @@ describe('member avatars for the booking list', () => {
         gradidoId: gid(FOREIGN),
         avatarVisibleToMembers: 1,
         foreign: 1,
-        communityUuid: '99999999-9999-4999-8999-999999999999',
+        communityUuid: FOREIGN_COMMUNITY,
       },
       {
         id: WITH_COMMUNITY,
@@ -222,15 +244,6 @@ describe('member avatars for the booking list', () => {
     expect(rows).toHaveLength(1)
     expect(rows[0].gradidoId).toBe(gid(WITH_COMMUNITY))
     expect(rows[0].communityUuid).toBe(HOME_COMMUNITY)
-  })
-
-  // ...and null is a real answer too, not an absent one: a member who registered before
-  // the home community had a uuid has none stored, and matching on the pair in SQL would
-  // drop exactly those.
-  it('carries a null community back rather than dropping the member', async () => {
-    const rows = await dbFindMemberAvatarsSmall([gid(SHOWN)])
-    expect(rows).toHaveLength(1)
-    expect(rows[0].communityUuid).toBeNull()
   })
 
   // AS-003. The row and the picture both exist; only the switch differs from the case
@@ -301,7 +314,7 @@ describe('member avatars for the booking list', () => {
   // face, so a gap here is the same leak, only more of it.
   describe('the full rendition of another member', () => {
     it('hands out the full crop of a member who allows it', async () => {
-      const full = await dbFindMemberAvatarFull(gid(SHOWN), null)
+      const full = await dbFindMemberAvatarFull(gid(SHOWN), HOME_COMMUNITY)
       expect(full).not.toBeNull()
       expect(Buffer.from(full as Buffer).equals(pictureFull)).toBe(true)
     })
@@ -309,19 +322,22 @@ describe('member avatars for the booking list', () => {
     // Two columns, both Buffers, and nothing in the types keeps them apart. Asserted
     // rather than assumed, exactly as it is for the owner's own two readers above.
     it('does not hand the small rendition out as the full one', async () => {
-      const full = await dbFindMemberAvatarFull(gid(SHOWN), null)
+      const full = await dbFindMemberAvatarFull(gid(SHOWN), HOME_COMMUNITY)
       expect(Buffer.from(full as Buffer).equals(picture)).toBe(false)
     })
 
     // AS-003, AS-009 and the community scope, one per case, each differing from the
     // permitted one in exactly one column. A single "returns null" test would stay green
     // if the whole guard died.
+    //
+    // ⛔ Asked with the member's REAL pair, every one of them. With a wrong uuid the row is
+    // missed on the key and the test goes green without the guard ever being consulted.
     it('hands out nothing for a member who switched it off', async () => {
-      expect(await dbFindMemberAvatarFull(gid(SWITCHED_OFF), null)).toBeNull()
+      expect(await dbFindMemberAvatarFull(gid(SWITCHED_OFF), HOME_COMMUNITY)).toBeNull()
     })
 
     it('hands out nothing for a deleted member, switch or no switch', async () => {
-      expect(await dbFindMemberAvatarFull(gid(DELETED), null)).toBeNull()
+      expect(await dbFindMemberAvatarFull(gid(DELETED), HOME_COMMUNITY)).toBeNull()
     })
 
     it('hands out nothing for a member of another community', async () => {
@@ -335,32 +351,22 @@ describe('member avatars for the booking list', () => {
     })
 
     it('hands out nothing for a member who has no picture', async () => {
-      expect(await dbFindMemberAvatarFull(gid(NO_PICTURE), null)).toBeNull()
+      expect(await dbFindMemberAvatarFull(gid(NO_PICTURE), HOME_COMMUNITY)).toBeNull()
     })
 
     // One answer for "no such member" and for "not allowed", so that asking cannot be
     // used to find out which accounts exist.
     it('says nothing about a member it does not know', async () => {
-      expect(await dbFindMemberAvatarFull('00000000-0000-4000-8000-00000009999', null)).toBeNull()
+      expect(
+        await dbFindMemberAvatarFull('00000000-0000-4000-8000-00000009999', HOME_COMMUNITY),
+      ).toBeNull()
     })
 
     /**
      * The identity is the PAIR. `users` is unique on (gradido_id, community_uuid), so an id
      * on its own does not name one person -- and a reader that ignores the second half
      * hands back whoever the database reached first.
-     *
-     * ⛔ The NULL case is the one that breaks if somebody "tidies" the query into a plain
-     * `eq`: in SQL nothing equals NULL, so `eq(col, null)` would answer "no such member"
-     * for every account that registered before the home community had a uuid. Both
-     * directions are asserted, because each on its own is satisfied by a reader that always
-     * returns null.
      */
-    it('finds the member whose community uuid is null', async () => {
-      const full = await dbFindMemberAvatarFull(gid(SHOWN), null)
-      expect(full).not.toBeNull()
-      expect(Buffer.from(full as Buffer).equals(pictureFull)).toBe(true)
-    })
-
     it('finds the member whose community uuid is set', async () => {
       const full = await dbFindMemberAvatarFull(gid(WITH_COMMUNITY), HOME_COMMUNITY)
       expect(full).not.toBeNull()
@@ -370,8 +376,8 @@ describe('member avatars for the booking list', () => {
     // ...and each of them is refused under the OTHER community, which is what makes the two
     // above assertions about the pair rather than about the id.
     it('refuses the same member under a community they are not in', async () => {
-      expect(await dbFindMemberAvatarFull(gid(SHOWN), HOME_COMMUNITY)).toBeNull()
-      expect(await dbFindMemberAvatarFull(gid(WITH_COMMUNITY), null)).toBeNull()
+      expect(await dbFindMemberAvatarFull(gid(SHOWN), FOREIGN_COMMUNITY)).toBeNull()
+      expect(await dbFindMemberAvatarFull(gid(WITH_COMMUNITY), FOREIGN_COMMUNITY)).toBeNull()
     })
   })
 })

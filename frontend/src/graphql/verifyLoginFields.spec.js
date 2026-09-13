@@ -38,10 +38,13 @@ describe('verifyLogin', () => {
     expect(guards).toMatch(/commit\(\s*'email',[^)]*verifyLogin\.emailContact/)
   })
 
-  it('does not ask the login mutation for it, which cannot answer', () => {
-    // `login` runs on an inalienable right, so it has no authenticated caller, and the
-    // field resolver hands a contact row to nobody but its owner. Asking there would not
-    // fail loudly - it would answer null and look like a member without an address.
+  it('does not ask the login mutation for it, which is not where it changes', () => {
+    // Not "cannot answer" any more -- the login names the member it has just
+    // authenticated, so the owner guard on the contact row would match there too, which
+    // is why the picture and the visibility switch DO travel with it. The address is left
+    // off because signing in is not the moment it changes: the address typed into the
+    // form is the one in force, and what keeps the store fresh afterwards is the guard
+    // above, not the sign-in.
     const loginMutation = read('./mutations.js').match(/login = gql`([\s\S]*?)`/)[1]
     expect(loginMutation).not.toMatch(/emailContact/)
   })

@@ -1,19 +1,14 @@
-import { User as DbUser, UserRole } from 'database'
+import { User as DbUser, dbUpsertUserRole, UserRole } from 'database'
 
 import { LogError } from '@/server/LogError'
 
+// One upsert on the unique `user_id` (migration 0135) rather than "create one if the loaded
+// relation is empty, then save it": two admins granting a role at the same moment both saw
+// an empty relation, and the member got two rows. The in-memory `userRoles` is not updated
+// here; the resolver reads the member back after the write.
 export async function setUserRole(user: DbUser, role: string | null | undefined): Promise<void> {
-  // if role should be set
   if (role) {
-    // in case user has still no associated userRole
-    if (user.userRoles.length < 1) {
-      // instanciate a userRole
-      user.userRoles.push(UserRole.create())
-    }
-    // and initialize the userRole
-    user.userRoles[0].role = role
-    user.userRoles[0].userId = user.id
-    await UserRole.save(user.userRoles[0])
+    await dbUpsertUserRole(user.id, role)
   }
 }
 

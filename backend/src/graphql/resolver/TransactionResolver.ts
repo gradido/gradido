@@ -381,28 +381,6 @@ export class TransactionResolver {
       relations: ['emailContact'],
     })
     const involvedUsers = involvedDbUsers.map((u) => new User(u))
-    // A member of this community whose row still carries no community uuid: migration 0129
-    // filled those, but was a no-op wherever the home community had no row yet when it
-    // ran. `User.communityUuid` is non-null in the schema, so one such counterparty on a
-    // page used to null the WHOLE list. The contact list stands in the home uuid for them
-    // (ContactResolver); so does this list now -- and only then does it ask which community
-    // is home, because every other page has nothing to fill.
-    const unfilledLocals = involvedDbUsers.filter((u) => !u.foreign && !u.communityUuid)
-    if (unfilledLocals.length > 0) {
-      const home = await getHomeCommunity()
-      if (!home?.communityUuid) {
-        // Without a home uuid there is nothing to stand in, and the field is non-null: the
-        // list would fail on that row anyway, with a message that names no cause. The same
-        // error the contact list raises for the same state (resolveCommunityUuid).
-        throw new LogError('Home community has no uuid, cannot name a member without one')
-      }
-      for (const row of unfilledLocals) {
-        const model = involvedUsers.find((u) => u.id === row.id)
-        if (model) {
-          model.communityUuid = home.communityUuid
-        }
-      }
-    }
 
     // When each of these members last changed the picture other members may see. One
     // query for the whole list, right here where the list already exists -- a field

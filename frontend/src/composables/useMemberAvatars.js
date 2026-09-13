@@ -49,8 +49,9 @@ const MAX_ENTRIES = 200
 // still deletes what is already on the device; see forgetAllMemberAvatars.
 const PERSIST = true
 
-// communityUuid is nullable for members who registered before the home community had one,
-// and it is part of the identity as soon as other communities arrive (AS-004), so it is in
+// communityUuid is always set on what the server hands out (`User.communityUuid` is
+// `String!`); the `?? null` in this file only turns a caller that left it out into null
+// rather than undefined, which would build a different key. It is part of the identity as soon as other communities arrive (AS-004), so it is in
 // the key from the start rather than bolted on later.
 export const memberAvatarKey = memberKey
 

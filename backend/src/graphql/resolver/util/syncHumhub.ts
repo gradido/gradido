@@ -1,4 +1,4 @@
-import { User } from 'database'
+import { DbUser, User } from 'database'
 import { getLogger } from 'log4js'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { GetUser } from '@/apis/humhub/model/GetUser'
@@ -20,7 +20,7 @@ const createLogger = () =>
  */
 export async function syncHumhub(
   updateUserInfosArg: UpdateUserInfosArgs | null,
-  user: User,
+  user: User | DbUser,
   oldHumhubUsername: string,
   spaceId?: number | null | undefined,
 ): Promise<GetUser | null | undefined> {
