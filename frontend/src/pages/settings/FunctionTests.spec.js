@@ -25,7 +25,7 @@ vi.mock('bootstrap-vue-next', () => ({
 }))
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key) => key }) }))
 
-const storeState = { roles: [] }
+const storeState = { role: null }
 vi.mock('vuex', () => ({ useStore: () => ({ state: storeState }) }))
 
 const pushed = []
@@ -89,7 +89,7 @@ const status = (over = {}) => ({
 const area = (wrapper) => wrapper.find('[data-test="function-tests-first-creation"]')
 
 beforeEach(() => {
-  storeState.roles = ['ADMIN']
+  storeState.role = 'ADMIN'
   statusMock.value = status()
   startMock.mockReset()
   startMock.mockResolvedValue({})
@@ -107,7 +107,7 @@ describe('the function-test area', () => {
     })
 
     it('sends a member back to the settings', () => {
-      storeState.roles = []
+      storeState.role = null
       const wrapper = mountArea()
 
       expect(area(wrapper).exists()).toBe(false)

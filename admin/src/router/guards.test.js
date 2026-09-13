@@ -67,7 +67,7 @@ describe('Navigation Guards', () => {
         apolloQueryMock.mockResolvedValue({
           data: {
             verifyLogin: {
-              roles: ['ADMIN'],
+              role: 'ADMIN',
               language: 'de',
             },
           },
@@ -95,7 +95,7 @@ describe('Navigation Guards', () => {
       it('commits moderator to store', async () => {
         await firstGuard({ path: '/authenticate', query: { token: 'valid-token' } }, {}, next)
         expect(storeCommitMock).toHaveBeenCalledWith('moderator', {
-          roles: ['ADMIN'],
+          role: 'ADMIN',
           language: 'de',
         })
       })
@@ -105,11 +105,11 @@ describe('Navigation Guards', () => {
         expect(next).toHaveBeenCalledWith({ path: '/' })
       })
 
-      it('redirects to not-found if no roles', async () => {
+      it('redirects to not-found if no role', async () => {
         apolloQueryMock.mockResolvedValue({
           data: {
             verifyLogin: {
-              roles: [],
+              role: null,
               language: 'de',
             },
           },
@@ -152,16 +152,16 @@ describe('Navigation Guards', () => {
       expect(next).toHaveBeenCalledWith({ path: '/not-found' })
     })
 
-    it('redirects to not-found when moderator has no roles', () => {
+    it('redirects to not-found when moderator has no role', () => {
       store.state.token = 'valid-token'
-      store.state.moderator = { roles: [] }
+      store.state.moderator = { role: null }
       secondGuard({ path: '/' }, {}, next)
       expect(next).toHaveBeenCalledWith({ path: '/not-found' })
     })
 
     it('allows navigation for authenticated admin', () => {
       store.state.token = 'valid-token'
-      store.state.moderator = { roles: ['ADMIN'] }
+      store.state.moderator = { role: 'ADMIN' }
       secondGuard({ path: '/' }, {}, next)
       expect(next).toHaveBeenCalledWith()
     })
@@ -189,38 +189,38 @@ describe('Navigation Guards', () => {
     })
 
     it('lets an administrator in', () => {
-      store.state.moderator = { roles: ['ADMIN'] }
+      store.state.moderator = { role: 'ADMIN' }
       thirdGuard({ path: '/contribution-links', meta: { requiresAdmin: true } }, {}, next)
       expect(next).toHaveBeenCalledWith()
     })
 
     it('turns a moderator away', () => {
-      store.state.moderator = { roles: ['MODERATOR'] }
+      store.state.moderator = { role: 'MODERATOR' }
       thirdGuard({ path: '/contribution-links', meta: { requiresAdmin: true } }, {}, next)
       expect(next).toHaveBeenCalledWith({ path: '/not-found' })
     })
 
     it('turns a KI-Moderator away just the same', () => {
-      store.state.moderator = { roles: ['MODERATOR_AI'] }
+      store.state.moderator = { role: 'MODERATOR_AI' }
       thirdGuard({ path: '/projectBranding', meta: { requiresAdmin: true } }, {}, next)
       expect(next).toHaveBeenCalledWith({ path: '/not-found' })
     })
 
     it('leaves the ordinary routes alone', () => {
-      store.state.moderator = { roles: ['MODERATOR'] }
+      store.state.moderator = { role: 'MODERATOR' }
       thirdGuard({ path: '/creation-confirm', meta: {} }, {}, next)
       expect(next).toHaveBeenCalledWith()
     })
 
     it('leaves a route without meta alone', () => {
-      store.state.moderator = { roles: ['MODERATOR'] }
+      store.state.moderator = { role: 'MODERATOR' }
       thirdGuard({ path: '/user' }, {}, next)
       expect(next).toHaveBeenCalledWith()
     })
 
     it('allows navigation when auth is disabled for debug', () => {
       CONFIG.DEBUG_DISABLE_AUTH = true
-      store.state.moderator = { roles: ['MODERATOR'] }
+      store.state.moderator = { role: 'MODERATOR' }
       thirdGuard({ path: '/contribution-links', meta: { requiresAdmin: true } }, {}, next)
       expect(next).toHaveBeenCalledWith()
       CONFIG.DEBUG_DISABLE_AUTH = false

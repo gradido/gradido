@@ -7,6 +7,7 @@ import { userFactory } from '@/seeds/factory/user'
 import { login } from '@/seeds/graphql/mutations'
 import { searchAdminUsers } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
+import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
@@ -88,6 +89,7 @@ describe('searchAdminUsers — groups shown on the community info page', () => {
     await userFactory(testEnv, { ...peterLustig, alias: 'peterl' }) // administrator
     scopedModerator = await userFactory(testEnv, bibiBloxberg) // seed alias 'BBB'
     aiModerator = await userFactory(testEnv, { ...garrickOllivander, alias: 'garrick' })
+    await userFactory(testEnv, { ...bobBaumeister, alias: 'bob' }) // a usual member, no role
 
     await setRole(scopedModerator.id, RoleNames.MODERATOR, JSON.stringify(['firefighter']))
     await setRole(aiModerator.id, RoleNames.MODERATOR_AI, null)
@@ -101,6 +103,13 @@ describe('searchAdminUsers — groups shown on the community info page', () => {
 
   afterAll(() => {
     resetToken()
+  })
+
+  // AdminUser.role is `String!` and the constructor refuses a member without a role: this
+  // is what makes that safe. Nobody without an assignable role reaches the list.
+  it('lists the members with a role and nobody else', async () => {
+    const users = await listAdminUsers()
+    expect(users.map((user) => user.alias).sort()).toEqual([AI_MODERATOR, MODERATOR, ADMIN].sort())
   })
 
   it('lists a KI-Moderator alongside the plain moderators', async () => {

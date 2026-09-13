@@ -70,7 +70,7 @@ export const verifyLogin = gql`
       userLocation
       hasElopage
       publisherId
-      roles
+      role
       hideAmountGDD
       hideAmountGDT
       aboutMe

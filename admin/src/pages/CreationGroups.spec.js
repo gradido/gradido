@@ -40,7 +40,7 @@ vi.mock('vuex', () => ({
       moderator: {
         id: 0,
         name: 'test moderator',
-        roles: ['ADMIN'],
+        role: 'ADMIN',
       },
     },
   })),

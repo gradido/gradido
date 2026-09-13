@@ -36,7 +36,7 @@ export class User {
         this.gradidoID = dbUser.gradidoID
         this.hideAmountGDD = dbUser.hideAmountGDD
         this.hideAmountGDT = dbUser.hideAmountGDT
-        this.roles = dbUser.userRoles?.map((userRole) => userRole.role) ?? []
+        this.role = dbUser.userRole?.role ?? null
         // Lives in its own table, so the user row cannot carry it. Null rather than
         // undefined, and set on THIS path too: whoever fills it does so after
         // construction (verifyLogin does), and a field that is sometimes absent and
@@ -46,8 +46,7 @@ export class User {
         this.gradidoID = dbUser.gradidoId
         this.hideAmountGDD = dbUser.hideAmountGdd ?? false
         this.hideAmountGDT = dbUser.hideAmountGdt ?? false
-        // 0..1 role by shape: user_roles.user_id is UNIQUE (migration 0135).
-        this.roles = dbUser.role ? [dbUser.role.role] : []
+        this.role = dbUser.role?.role ?? null
         // Joined in by the same query, so the login answer carries the member's own face
         // without a second read. Base64 without a data URI prefix, like the field says.
         this.avatar = dbUser.avatar?.toString('base64') ?? null
@@ -275,8 +274,9 @@ export class User {
   @Field(() => Boolean, { nullable: true })
   hasElopage: boolean | null
 
-  @Field(() => [String])
-  roles: string[]
+  // 0..1 role: user_roles.user_id is UNIQUE (migration 0135). Null for a usual member.
+  @Field(() => String, { nullable: true })
+  role: string | null
 
   // Group functions: the signed-in moderator's visibility scope, so the admin
   // interface can offer only the groups they may actually work in. Derived the same way as

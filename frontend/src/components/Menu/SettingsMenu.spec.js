@@ -42,7 +42,7 @@ const mountMenu = async ({
   avatar = true,
   newsletter = false,
   path = '/settings',
-  roles = [],
+  role = null,
 } = {}) => {
   vi.resetModules()
   const { default: SettingsMenu } = await import('./SettingsMenu.vue')
@@ -50,7 +50,7 @@ const mountMenu = async ({
     global: {
       plugins: [
         createStore({
-          state: () => ({ avatarVisibleToMembers: avatar, newsletterState: newsletter, roles }),
+          state: () => ({ avatarVisibleToMembers: avatar, newsletterState: newsletter, role }),
         }),
       ],
       stubs: { RouterLink: RouterLinkStub, 'settings-menu-icon': true },
@@ -106,21 +106,21 @@ describe('the settings menu', () => {
 
     it('is there for an admin where the server offers it', async () => {
       setSwitch(true)
-      const wrapper = await mountMenu({ roles: ['ADMIN'] })
+      const wrapper = await mountMenu({ role: 'ADMIN' })
 
       expect(wrapper.find('[data-test="settings-menu-function-tests"]').exists()).toBe(true)
     })
 
     it('is not there for a member, however the server stands', async () => {
       setSwitch(true)
-      const wrapper = await mountMenu({ roles: [] })
+      const wrapper = await mountMenu({ role: null })
 
       expect(wrapper.find('[data-test="settings-menu-function-tests"]').exists()).toBe(false)
     })
 
     it('is not there for an admin where the server switched it off', async () => {
       setSwitch(false)
-      const wrapper = await mountMenu({ roles: ['ADMIN'] })
+      const wrapper = await mountMenu({ role: 'ADMIN' })
 
       expect(wrapper.find('[data-test="settings-menu-function-tests"]').exists()).toBe(false)
     })
@@ -129,7 +129,7 @@ describe('the settings menu', () => {
     // and out is worse than one that arrives a moment late.
     it('waits for the answer rather than guessing', async () => {
       firstCreation = { value: null }
-      const wrapper = await mountMenu({ roles: ['ADMIN'] })
+      const wrapper = await mountMenu({ role: 'ADMIN' })
 
       expect(wrapper.find('[data-test="settings-menu-function-tests"]').exists()).toBe(false)
     })

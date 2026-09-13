@@ -126,7 +126,7 @@ export class ContributionMessageResolver {
     { currentPage = 1, pageSize = 5, order = Order.DESC }: Paginated,
     @Ctx() context: Context,
   ): Promise<ContributionMessageListResult> {
-    await assertContributionInModeratorScope(contributionId, context.user?.userRoles?.[0])
+    await assertContributionInModeratorScope(contributionId, context.user?.userRole)
     const [contributionMessages, count] = await findContributionMessages({
       contributionId,
       pagination: { currentPage, pageSize, order },
@@ -150,7 +150,7 @@ export class ContributionMessageResolver {
   ): Promise<ContributionMessage> {
     await assertContributionInModeratorScope(
       contributionMessageArgs.contributionId,
-      context.user?.userRoles?.[0],
+      context.user?.userRole,
     )
     const moderator = getUser(context)
     const moderatorRole = getRole(context)

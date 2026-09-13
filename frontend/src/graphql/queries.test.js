@@ -13,7 +13,7 @@ import { listAllContributions } from './contributions.graphql'
 //
 // Read from the query tree, not from its printed text, for the reason spelled out at
 // listAllContributions below: a substring match is also satisfied by a longer field name
-// that happens to contain it ("roles" inside "userRoles").
+// that happens to contain it ("role" inside "roles").
 const fieldNames = (node, into = new Set()) => {
   for (const selection of node.selectionSet?.selections ?? []) {
     if (selection.kind === 'Field') {
@@ -46,7 +46,7 @@ describe.each([
     'userLocation',
     'hasElopage',
     'publisherId',
-    'roles',
+    'role',
     'hideAmountGDD',
     'hideAmountGDT',
     // ⛔ These three moved ONTO this shared list. They used to be verifyLogin's alone,

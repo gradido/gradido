@@ -28,7 +28,7 @@
       type="PageUserSearch"
       :items="searchResult"
       :fields="fields"
-      @update-roles="updateRoles"
+      @update-role="updateRole"
       @update-deleted-at="updateDeletedAt"
     />
     <BPagination
@@ -88,8 +88,8 @@ watchEffect(() => {
   }
 })
 
-const updateRoles = (userId, roles) => {
-  searchResult.value.find((obj) => obj.userId === userId).roles = roles
+const updateRole = (userId, role) => {
+  searchResult.value.find((obj) => obj.userId === userId).role = role
 }
 
 const updateDeletedAt = (userId, deletedAt) => {

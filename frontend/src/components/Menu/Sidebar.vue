@@ -91,7 +91,7 @@
             </div>
           </BNavItem>
           <BNavItem
-            v-if="$store.state.roles && $store.state.roles.length > 0"
+            v-if="$store.state.role"
             class="mb-3 text-light"
             active-class="active-route"
             @click="$emit('admin')"

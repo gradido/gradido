@@ -33,7 +33,7 @@
           </BListGroupItem>
           <BListGroupItem v-if="!item.foreign">
             <editable-group
-              :allow-edit="$store.state.moderator.roles.includes('ADMIN')"
+              :allow-edit="$store.state.moderator.role === 'ADMIN'"
               @save="handleUpdateHomeCommunity"
               @reset="resetHomeCommunityEditable"
             >

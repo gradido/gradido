@@ -52,6 +52,6 @@ describe('communityUser', () => {
   it('keeps the settings the literal spells out', () => {
     expect(communityUser.avatarVisibleToMembers).toBe(false)
     expect(communityUser.creationAllowed).toBe(false)
-    expect(communityUser.roles).toEqual([])
+    expect(communityUser.role).toBeNull()
   })
 })

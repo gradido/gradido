@@ -93,7 +93,7 @@ const { result: firstCreation } = useQuery(firstCreationStatus, null, {
 })
 const showFunctionTests = computed(
   () =>
-    (store.state.roles ?? []).includes('ADMIN') &&
+    store.state.role === 'ADMIN' &&
     firstCreation.value?.firstCreationStatus?.functionTestsEnabled === true,
 )
 

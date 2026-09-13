@@ -89,7 +89,7 @@ export class ContributionResolver {
   ): Promise<Contribution> {
     // Reading one contribution by id is a way past the list, so it carries the same group
     // scope as the list and as every action taken by id.
-    await assertContributionInModeratorScope(id, context.user?.userRoles?.[0])
+    await assertContributionInModeratorScope(id, context.user?.userRole)
     // The member comes along, with the address in force: the admin replaces a list row with
     // this answer, and without the relation the row came back with `user: null`. Deleted
     // members stay out, as they do in the list - its joins are built before its
@@ -129,7 +129,7 @@ export class ContributionResolver {
     @Arg('tags', () => [String]) tags: string[],
     @Ctx() context: Context,
   ): Promise<boolean> {
-    await assertContributionInModeratorScope(contributionId, context.user?.userRoles?.[0])
+    await assertContributionInModeratorScope(contributionId, context.user?.userRole)
     const contribution = await DbContribution.findOne({ where: { id: contributionId } })
     if (!contribution) {
       throw new LogError('Contribution not found', contributionId)
@@ -337,10 +337,7 @@ export class ContributionResolver {
     @Args() adminUpdateContributionArgs: AdminUpdateContributionArgs,
     @Ctx() context: Context,
   ): Promise<AdminUpdateContribution> {
-    await assertContributionInModeratorScope(
-      adminUpdateContributionArgs.id,
-      context.user?.userRoles?.[0],
-    )
+    await assertContributionInModeratorScope(adminUpdateContributionArgs.id, context.user?.userRole)
     const logger = createLogger()
     logger.addContext('contribution', adminUpdateContributionArgs.id)
     const updateUnconfirmedContributionContext = new UpdateUnconfirmedContributionContext(
@@ -441,7 +438,7 @@ export class ContributionResolver {
     // covers BOTH moderator kinds — a MODERATOR_AI is a moderator who may additionally use
     // Crea, so the same visibility scope applies (see isScopedModeratorRole).
     // Admins (and other roles) are unrestricted -> scope null.
-    const activeRole = context.user?.userRoles?.[0]
+    const activeRole = context.user?.userRole
     const moderatorScope =
       activeRole && isScopedModeratorRole(activeRole.role)
         ? parseModeratorScope(activeRole.visibleCreationGroups)
@@ -511,7 +508,7 @@ export class ContributionResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    await assertContributionInModeratorScope(id, context.user?.userRoles?.[0])
+    await assertContributionInModeratorScope(id, context.user?.userRole)
     const contribution = await DbContribution.findOne({ where: { id } })
     if (!contribution) {
       throw new LogError('Contribution not found', id)
@@ -562,7 +559,7 @@ export class ContributionResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    await assertContributionInModeratorScope(id, context.user?.userRoles?.[0])
+    await assertContributionInModeratorScope(id, context.user?.userRole)
     const moderatorUser = getUser(context)
     const clientTimezoneOffset = getClientTimezoneOffset(context)
     await confirmContributionAs(id, moderatorUser, clientTimezoneOffset)
@@ -590,7 +587,7 @@ export class ContributionResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    await assertContributionInModeratorScope(id, context.user?.userRoles?.[0])
+    await assertContributionInModeratorScope(id, context.user?.userRole)
     const contributionToUpdate = await DbContribution.findOne({
       where: {
         id,

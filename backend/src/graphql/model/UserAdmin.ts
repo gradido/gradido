@@ -20,7 +20,7 @@ export class UserAdmin {
     this.deletedAt = user.deletedAt
     this.createdAt = user.createdAt
     this.emailConfirmationSend = emailConfirmationSend
-    this.roles = user.userRoles?.map((userRole) => userRole.role) ?? []
+    this.role = user.userRole?.role ?? null
     this.creationAllowed = user.creationAllowed
   }
 
@@ -54,8 +54,9 @@ export class UserAdmin {
   @Field(() => String, { nullable: true })
   emailConfirmationSend: string | null
 
-  @Field(() => [String])
-  roles: string[]
+  // 0..1 role: user_roles.user_id is UNIQUE (migration 0135). Null for a usual member.
+  @Field(() => String, { nullable: true })
+  role: string | null
 
   // ES-021: the admin's "may create" switch reads its position from here.
   @Field(() => Boolean)

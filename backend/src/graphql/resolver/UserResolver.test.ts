@@ -200,7 +200,7 @@ describe('UserResolver', () => {
     describe('valid input data', () => {
       // let loginEmailOptIn: LoginEmailOptIn[]
       beforeAll(async () => {
-        user = await User.find({ relations: ['emailContact', 'userRoles'] })
+        user = await User.find({ relations: ['emailContact', 'userRole'] })
         // loginEmailOptIn = await LoginEmailOptIn.find()
         emailVerificationCode = user[0].emailContact.emailVerificationCode.toString()
       })
@@ -235,7 +235,7 @@ describe('UserResolver', () => {
               createdAt: expect.any(Date),
               // emailChecked: false,
               language: 'de',
-              userRoles: [],
+              userRole: null,
               deletedAt: null,
               publisherId: 1234,
               referrerId: null,
@@ -429,14 +429,13 @@ describe('UserResolver', () => {
           // make Peter Lustig Admin
           const peter = await User.findOneOrFail({
             where: { id: user[0].id },
-            relations: ['userRoles'],
+            relations: ['userRole'],
           })
-          peter.userRoles = [] as UserRole[]
-          peter.userRoles[0] = UserRole.create()
-          peter.userRoles[0].createdAt = new Date()
-          peter.userRoles[0].role = RoleNames.ADMIN
-          peter.userRoles[0].userId = peter.id
-          await peter.userRoles[0].save()
+          peter.userRole = UserRole.create()
+          peter.userRole.createdAt = new Date()
+          peter.userRole.role = RoleNames.ADMIN
+          peter.userRole.userId = peter.id
+          await peter.userRole.save()
 
           // date statement
           const actualDate = new Date()
@@ -809,7 +808,7 @@ describe('UserResolver', () => {
                 language: 'de',
                 lastName: 'Bloxberg',
                 publisherId: 1234,
-                roles: [],
+                role: null,
                 userLocation: null,
                 // Own view only, and answered here because the login names the member it
                 // has just authenticated before it returns. Null for the picture -- bibi
@@ -1049,7 +1048,7 @@ describe('UserResolver', () => {
 
         beforeAll(async () => {
           await mutate({ mutation: login, variables })
-          user = await User.find({ relations: ['userRoles'] })
+          user = await User.find({ relations: ['userRole'] })
         })
 
         afterAll(() => {
@@ -1070,7 +1069,7 @@ describe('UserResolver', () => {
                   },
                   hasElopage: false,
                   publisherId: 1234,
-                  roles: [],
+                  role: null,
                 },
               },
             }),
@@ -1753,7 +1752,7 @@ describe('UserResolver', () => {
                 language: 'de',
                 lastName: 'Bloxberg',
                 publisherId: 1234,
-                roles: [],
+                role: null,
                 userLocation: null,
                 // Same three as in the login block above: this literal lists every
                 // selected field, so it has to grow with the document.
@@ -1934,6 +1933,7 @@ describe('UserResolver', () => {
                   mutation: setUserRole,
                   variables: { userId: user.id, role: RoleNames.ADMIN },
                 })
+                expect(result.errors).toBeUndefined()
                 expect(result).toEqual(
                   expect.objectContaining({
                     data: {
@@ -1960,6 +1960,7 @@ describe('UserResolver', () => {
                   mutation: setUserRole,
                   variables: { userId: user.id, role: RoleNames.MODERATOR },
                 })
+                expect(result.errors).toBeUndefined()
                 expect(result).toEqual(
                   expect.objectContaining({
                     data: {
@@ -2060,6 +2061,29 @@ describe('UserResolver', () => {
                   ],
                 }),
               )
+            })
+          })
+
+          // RoleNames also carries the roles that are no row: USER is the absence of a role,
+          // UNAUTHORIZED and DLT_CONNECTOR only exist on a request. The admin form used to send
+          // USER to take a role away, and it was stored. The variable carries the enum's GraphQL
+          // name, the resolver gets its value (DLT_CONNECTOR arrives as 'DLT_CONNECTOR_ROLE').
+          describe.each([
+            ['USER', RoleNames.USER],
+            ['UNAUTHORIZED', RoleNames.UNAUTHORIZED],
+            ['DLT_CONNECTOR', RoleNames.DLT_CONNECTOR],
+          ])('to %s', (name, value) => {
+            it('throws an error and writes no role row', async () => {
+              jest.clearAllMocks()
+              await expect(
+                mutate({ mutation: setUserRole, variables: { userId: user.id, role: name } }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  errors: [new GraphQLError('Role can not be assigned=')],
+                }),
+              )
+              await expect(UserRole.find({ where: { userId: user.id } })).resolves.toEqual([])
+              expect(logErrorLogger.error).toBeCalledWith('Role can not be assigned=', value)
             })
           })
 

@@ -196,8 +196,8 @@ export async function readFirstCreationStatus(
  * the signer question cost two more reads apiece, so they are asked only for an account
  * that actually holds the key — which is every reader of that area and nobody else.
  *
- * The role is read off the user's own `userRoles`, the same relation isAuthorized loads
- * onto the context user (`relations: ['emailContact', 'userRoles']`) and the same mapping
+ * The role is read off the user's own `userRole`, the same relation isAuthorized loads
+ * onto the context user (`relations: ['emailContact', 'userRole']`) and the same mapping
  * it applies. A user handed in without that relation falls to ROLE_USER through
  * roleByName's default branch, so the two extra reads are skipped and the fields say
  * nothing — the direction a mistake has to fail in.
@@ -209,7 +209,7 @@ async function functionTestView(
   Pick<FirstCreationView, 'functionTestsEnabled' | 'testRunsLeft' | 'isFirstCreationSigner'>
 > {
   const enabled = CONFIG.FUNCTION_TESTS_ENABLED
-  const mayRunFunctionTests = roleByName(user.userRoles?.[0]?.role).hasRight(RIGHTS.FUNCTION_TESTS)
+  const mayRunFunctionTests = roleByName(user.userRole?.role).hasRight(RIGHTS.FUNCTION_TESTS)
   if (!enabled || !mayRunFunctionTests) {
     return { functionTestsEnabled: enabled, testRunsLeft: null, isFirstCreationSigner: null }
   }

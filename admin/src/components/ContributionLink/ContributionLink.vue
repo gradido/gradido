@@ -75,7 +75,7 @@ export default {
     // Creating a starting balance is an administrator's job. Moderators may look the links
     // up and pass them on, so they keep the list and the QR-code view.
     isAdmin() {
-      return this.$store.state.moderator?.roles?.includes('ADMIN') ?? false
+      return this.$store.state.moderator?.role === 'ADMIN'
     },
   },
   methods: {

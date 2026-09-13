@@ -73,7 +73,7 @@ const router = useRouter()
 const { result } = useQuery(firstCreationStatus, null, { fetchPolicy: 'cache-and-network' })
 const status = computed(() => result.value?.firstCreationStatus ?? null)
 
-const isAdmin = computed(() => (store.state.roles ?? []).includes('ADMIN'))
+const isAdmin = computed(() => store.state.role === 'ADMIN')
 
 /**
  * Both halves, the same two the menu entry hangs on. The route itself is registered

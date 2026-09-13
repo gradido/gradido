@@ -4,7 +4,7 @@
       <span class="h2">{{ $t('projectBranding.title') }}</span>
       <div>
         <BButton
-          v-if="store.state.moderator.roles.includes('ADMIN')"
+          v-if="store.state.moderator.role === 'ADMIN'"
           variant="primary"
           data-test="project-branding-add-btn"
           font-scale="2"
@@ -33,7 +33,7 @@
           {{ $t('projectBranding.newUserToSpace') }}
         </BCol>
         <BCol cols="3">{{ $t('logo') }}</BCol>
-        <BCol v-if="store.state.moderator.roles.includes('ADMIN')" cols="1">
+        <BCol v-if="store.state.moderator.role === 'ADMIN'" cols="1">
           {{ $t('actions') }}
         </BCol>
       </BRow>

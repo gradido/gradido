@@ -105,12 +105,12 @@
               <change-user-role-formular
                 ref="userChangeForm"
                 :item="row.item"
-                @update-roles="updateRoles"
+                @update-role="updateRole"
                 @show-modal="showModal"
                 @update-creation-allowed="row.item.creationAllowed = $event.creationAllowed"
               />
             </BTab>
-            <BTab v-if="store.state.moderator.roles.includes('ADMIN')" :title="$t('delete_user')">
+            <BTab v-if="store.state.moderator.role === 'ADMIN'" :title="$t('delete_user')">
               <deleted-user-formular
                 v-if="!row.item.deletedAt"
                 ref="deletedUserForm"
@@ -276,15 +276,15 @@ const updateUserData = (rowItem, newCreation) => {
   rowItem.creation = newCreation
 }
 
-const updateRoles = ({ userId, roles }) => {
-  emit('update-roles', userId, roles)
+const updateRole = ({ userId, role }) => {
+  emit('update-role', userId, role)
 }
 
 const updateDeletedAt = ({ userId, deletedAt }) => {
   emit('update-deleted-at', userId, deletedAt)
 }
 
-const emit = defineEmits(['update-roles', 'update-deleted-at'])
+const emit = defineEmits(['update-role', 'update-deleted-at'])
 
 const selectedRow = computed(() => {
   return myItems.value.find((obj) => obj._showDetails)

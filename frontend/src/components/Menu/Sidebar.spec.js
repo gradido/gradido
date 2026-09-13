@@ -49,11 +49,11 @@ const createVuexStore = (state = {}) =>
   createStore({
     state: () => ({
       hasElopage: true,
-      roles: [],
+      role: null,
       ...state,
     }),
     getters: {
-      isAdmin: (state) => state.roles.includes('admin'),
+      isAdmin: (state) => state.role === 'ADMIN',
     },
   })
 
@@ -142,7 +142,7 @@ describe('Sidebar', () => {
     describe('the specific section', () => {
       describe('for standard users', () => {
         beforeEach(() => {
-          wrapper = mountComponent({ roles: [] })
+          wrapper = mountComponent({ role: null })
         })
 
         it('has two nav-items', () => {
@@ -160,7 +160,7 @@ describe('Sidebar', () => {
 
       describe('for admin users', () => {
         beforeEach(() => {
-          wrapper = mountComponent({ roles: ['admin'] })
+          wrapper = mountComponent({ role: 'ADMIN' })
         })
 
         it('has three nav-items', () => {

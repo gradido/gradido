@@ -29,7 +29,7 @@ export async function userFactory(
 
   const userRole = user.role as RoleNames
   if (userRole && (userRole === RoleNames.ADMIN || userRole === RoleNames.MODERATOR)) {
-    dbUser.userRoles = [await createUserRole(dbUser.id, userRole)]
+    dbUser.userRole = await createUserRole(dbUser.id, userRole)
   }
 
   return dbUser

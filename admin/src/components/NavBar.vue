@@ -44,7 +44,7 @@
             {{ $t('navbar.crea') }}
           </BNavItem>
           <BNavItem
-            v-if="store.state.moderator?.roles?.includes('ADMIN')"
+            v-if="store.state.moderator?.role === 'ADMIN'"
             to="/creation-groups"
             :active="isActive('creation-groups')"
           >
@@ -94,7 +94,7 @@ const openCreations = computed(() => store.state.openCreations)
 
 // Entries whose pages create or change things only an administrator may touch. Menu
 // visibility is a convenience; the route guard and the backend rights are the boundary.
-const isAdmin = computed(() => store.state.moderator?.roles?.includes('ADMIN') ?? false)
+const isAdmin = computed(() => store.state.moderator?.role === 'ADMIN')
 
 const currentRouteName = computed(() => {
   return route.name

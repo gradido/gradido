@@ -83,8 +83,8 @@ export const mutations = {
     if (isNaN(pubId)) pubId = null
     state.publisherId = pubId
   },
-  roles(state, roles) {
-    state.roles = roles
+  role(state, role) {
+    state.role = role
   },
   hasElopage: (state, hasElopage) => {
     state.hasElopage = hasElopage
@@ -157,7 +157,7 @@ export const actions = {
     commit('gmsPublishLocation', data.gmsPublishLocation)
     commit('hasElopage', data.hasElopage)
     commit('publisherId', data.publisherId)
-    commit('roles', data.roles)
+    commit('role', data.role ?? null)
     commit('hideAmountGDD', data.hideAmountGDD)
     commit('hideAmountGDT', data.hideAmountGDT)
     // ?? null keeps a caller that does not select the two fields from writing undefined
@@ -190,7 +190,7 @@ export const actions = {
     commit('hasElopage', false)
     commit('project', null)
     commit('publisherId', null)
-    commit('roles', null)
+    commit('role', null)
     commit('hideAmountGDD', false)
     commit('hideAmountGDT', true)
     commit('emailChecked', null)
@@ -302,7 +302,7 @@ try {
       username: '',
       token: null,
       tokenTime: null,
-      roles: [],
+      role: null,
       newsletterState: null,
       gmsAllowed: null,
       avatarVisibleToMembers: null,

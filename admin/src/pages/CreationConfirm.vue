@@ -193,9 +193,9 @@ const baseFields = {
   },
 }
 
-const roles = computed(() => store.state.moderator?.roles ?? [])
-const isAdmin = computed(() => roles.value.includes('ADMIN'))
-const isAiUser = computed(() => isAdmin.value || roles.value.includes('MODERATOR_AI'))
+const role = computed(() => store.state.moderator?.role ?? null)
+const isAdmin = computed(() => role.value === 'ADMIN')
+const isAiUser = computed(() => isAdmin.value || role.value === 'MODERATOR_AI')
 // Who sees the Crea button: AI moderators on the open tab (0) and on the "all" tab (4) --
 // there only on still-open contributions (see creaOpenOnly), so they can jump straight
 // from a participant's history to an open item. Administrators additionally see it on the
