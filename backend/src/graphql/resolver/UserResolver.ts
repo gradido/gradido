@@ -1454,7 +1454,10 @@ export class UserResolver {
     }
     await EVENT_ADMIN_USER_ROLE_SET(user, moderator)
     const newUser = await DbUser.findOne({ where: { id: userId }, relations: ['userRoles'] })
-    return newUser?.userRoles ? newUser.userRoles[0].role : null
+    // ⛔ `?.[0]?.`, not `userRoles ? userRoles[0].role`: after a removal the relation is an
+    // EMPTY array, which is truthy, and `[][0].role` threw -- so removing a role answered
+    // with an error although the role was gone, and the admin saw a failure for a success.
+    return newUser?.userRoles?.[0]?.role ?? null
   }
 
   @Authorized([RIGHTS.DELETE_USER])

@@ -1990,16 +1990,21 @@ describe('UserResolver', () => {
             })
 
             describe('to usual user', () => {
-              it('returns null', async () => {
-                await expect(
-                  mutate({ mutation: setUserRole, variables: { userId: user.id, role: null } }),
-                ).resolves.toEqual(
-                  expect.objectContaining({
-                    data: {
-                      setUserRole: null,
-                    },
-                  }),
-                )
+              // ⛔ `errors` asserted, not only `data`. The field is nullable, so an exception
+              // in the resolver ALSO answers `setUserRole: null` -- and it did: the removal
+              // read `[][0].role` and threw after the role was already gone, while this test,
+              // checking `data` alone, stayed green.
+              it('returns null, and no error', async () => {
+                const result: any = await mutate({
+                  mutation: setUserRole,
+                  variables: { userId: user.id, role: null },
+                })
+                expect(result.errors).toBeUndefined()
+                expect(result.data).toEqual({ setUserRole: null })
+              })
+
+              it('leaves the member without a role row', async () => {
+                await expect(UserRole.find({ where: { userId: user.id } })).resolves.toEqual([])
               })
             })
           })
