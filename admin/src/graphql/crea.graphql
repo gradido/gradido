@@ -74,6 +74,10 @@ query creaSettings {
     defaultModel
     fastMode
     matchingKeyingActive
+    matchingMapSwitches {
+      mapEngine
+      geoProvider
+    }
     firstCreationSigner {
       userId
       firstName
@@ -111,6 +115,15 @@ mutation setCreaSettings ($input: CreaSettingsInput!) {
 
 mutation setCreaMatchingKeying ($active: Boolean!) {
   setCreaMatchingKeying(active: $active)
+}
+
+# Which map and which place search the wallet uses (K-008, build phase). Its own mutation
+# and its own Save button, like the keying switch.
+mutation setMatchingMapSwitches($mapEngine: MatchingMapEngine!, $geoProvider: MatchingGeoProvider!) {
+  setMatchingMapSwitches(mapEngine: $mapEngine, geoProvider: $geoProvider) {
+    mapEngine
+    geoProvider
+  }
 }
 
 mutation testCreaModel($input: CreaSettingsInput!) {

@@ -110,6 +110,15 @@ export const authenticateGmsUserSearch = gql`
   }
 `
 
+export const matchingMapSwitches = gql`
+  query {
+    matchingMapSwitches {
+      mapEngine
+      geoProvider
+    }
+  }
+`
+
 export const userLocationQuery = gql`
   query {
     userLocation {

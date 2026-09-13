@@ -2,7 +2,15 @@
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
-import { AppDatabase, dbSelectMatchingEntryByUuid, MatchingEntrySelect, User } from 'database'
+import {
+  AppDatabase,
+  dbSelectMatchingEntryByUuid,
+  dbUpdateMatchingMapSwitches,
+  MatchingEntrySelect,
+  MatchingGeoProvider,
+  MatchingMapEngine,
+  User,
+} from 'database'
 import { GraphQLError } from 'graphql'
 import { MATCHING_ENTRY_DETAILS_MAX_CHARS } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -14,7 +22,7 @@ import {
   setMatchingEntryActive,
   updateMatchingEntry,
 } from '@/seeds/graphql/mutations'
-import { listMatchingEntries } from '@/seeds/graphql/queries'
+import { listMatchingEntries, matchingMapSwitches } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 
@@ -100,6 +108,50 @@ afterAll(async () => {
 })
 
 describe('MatchingEntryResolver', () => {
+  describe('matchingMapSwitches', () => {
+    describe('unauthenticated', () => {
+      it('returns an error', async () => {
+        resetToken()
+        const { errors: errorObjects } = await query({ query: matchingMapSwitches })
+        expect(errorObjects).toEqual([new GraphQLError('401 Unauthorized')])
+      })
+    })
+
+    describe('authenticated as a plain member', () => {
+      beforeAll(async () => {
+        await loginBibi()
+      })
+
+      afterAll(async () => {
+        await dbUpdateMatchingMapSwitches({
+          mapEngine: MatchingMapEngine.LEAFLET,
+          geoProvider: MatchingGeoProvider.NOMINATIM,
+        })
+      })
+
+      it('answers the old map and search until an admin switches', async () => {
+        const res: any = await query({ query: matchingMapSwitches })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.matchingMapSwitches).toEqual({
+          mapEngine: 'LEAFLET',
+          geoProvider: 'NOMINATIM',
+        })
+      })
+
+      it('answers what an admin stored, on the very next request', async () => {
+        // The promise of the switch: no restart and no deploy between the admin's save
+        // and the next wallet that asks.
+        await dbUpdateMatchingMapSwitches({
+          mapEngine: MatchingMapEngine.MAPLIBRE,
+          geoProvider: MatchingGeoProvider.GMS,
+        })
+        const res: any = await query({ query: matchingMapSwitches })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.matchingMapSwitches).toEqual({ mapEngine: 'MAPLIBRE', geoProvider: 'GMS' })
+      })
+    })
+  })
+
   describe('createMatchingEntry', () => {
     describe('unauthenticated', () => {
       it('returns an error', async () => {

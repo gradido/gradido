@@ -2,11 +2,15 @@ import { eq } from 'drizzle-orm'
 import { Ed25519PublicKey } from 'shared'
 import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
+import { MatchingGeoProvider, MatchingMapEngine } from '../data/MatchingMapSwitches.enum'
+import { DBNotFoundError } from '../errorTypes'
 import { communitiesTable } from '../schemas'
 import { createCommunity, createVerifiedFederatedCommunity } from '../seeds/community'
 import {
   dbIsMatchingKeyingActive,
+  dbSelectMatchingMapSwitches,
   dbSetMatchingKeyingActive,
+  dbUpdateMatchingMapSwitches,
   getCommunityByPublicKeyOrFail,
   getHomeCommunity,
   getHomeCommunityWithFederatedCommunityOrFail,
@@ -121,6 +125,87 @@ describe('community.queries', () => {
       // a timer.
       await createCommunity(true)
       expect(await dbIsMatchingKeyingActive()).toBe(false)
+    })
+  })
+  describe('dbSelectMatchingMapSwitches and dbUpdateMatchingMapSwitches', () => {
+    const OLD = { mapEngine: MatchingMapEngine.LEAFLET, geoProvider: MatchingGeoProvider.NOMINATIM }
+    const NEW = { mapEngine: MatchingMapEngine.MAPLIBRE, geoProvider: MatchingGeoProvider.GMS }
+
+    // Written by hand through drizzle, the way an admin would with one UPDATE, so the
+    // read is measured against the column and not against its own write.
+    const setColumns = async (id: number, mapEngine: string, geoProvider: string) =>
+      await drizzleDb()
+        .update(communitiesTable)
+        .set({ matchingMapEngine: mapEngine, matchingGeoProvider: geoProvider })
+        .where(eq(communitiesTable.id, id))
+
+    it('answers the old map and search for a community nobody switched', async () => {
+      // The defaults of migration 0133, and the promise of the deploy: nothing changes
+      // until an admin switches.
+      await createCommunity(false)
+      expect(await dbSelectMatchingMapSwitches()).toEqual(OLD)
+    })
+
+    it('reads the columns again rather than answering from the first read', async () => {
+      const homeCom = await createCommunity(false)
+      await setColumns(homeCom.id, 'maplibre', 'gms')
+      expect(await dbSelectMatchingMapSwitches()).toEqual(NEW)
+
+      await setColumns(homeCom.id, 'leaflet', 'nominatim')
+      expect(await dbSelectMatchingMapSwitches()).toEqual(OLD)
+    })
+
+    it('saves both switches through its own write', async () => {
+      await createCommunity(false)
+      expect(await dbUpdateMatchingMapSwitches(NEW)).toEqual({ success: true })
+      expect(await dbSelectMatchingMapSwitches()).toEqual(NEW)
+
+      expect(await dbUpdateMatchingMapSwitches(OLD)).toEqual({ success: true })
+      expect(await dbSelectMatchingMapSwitches()).toEqual(OLD)
+    })
+
+    it('counts saving the same pair again as saved', async () => {
+      // An admin pressing Save without changing anything is the most common save of
+      // all. It must not come back as "no home community".
+      await createCommunity(false)
+      await dbUpdateMatchingMapSwitches(NEW)
+      expect(await dbUpdateMatchingMapSwitches(NEW)).toEqual({ success: true })
+    })
+
+    it('leaves a foreign community alone', async () => {
+      const foreign = await createCommunity(true)
+      await createCommunity(false)
+
+      await dbUpdateMatchingMapSwitches(NEW)
+
+      const [row] = await drizzleDb()
+        .select({
+          mapEngine: communitiesTable.matchingMapEngine,
+          geoProvider: communitiesTable.matchingGeoProvider,
+        })
+        .from(communitiesTable)
+        .where(eq(communitiesTable.id, foreign.id))
+      expect(row).toEqual({ mapEngine: 'leaflet', geoProvider: 'nominatim' })
+    })
+
+    it('answers the old one for a value this code does not know', async () => {
+      // A column set by hand to a word that is not a switch position. The GraphQL enum
+      // could not serialize it, and the old pair is the state before anybody decided.
+      const homeCom = await createCommunity(false)
+      await setColumns(homeCom.id, 'mapbox', 'gms')
+      expect(await dbSelectMatchingMapSwitches()).toEqual({
+        mapEngine: MatchingMapEngine.LEAFLET,
+        geoProvider: MatchingGeoProvider.GMS,
+      })
+    })
+
+    it('answers the old pair without a home community, and the write says it wrote nothing', async () => {
+      await createCommunity(true)
+      expect(await dbSelectMatchingMapSwitches()).toEqual(OLD)
+
+      const result = await dbUpdateMatchingMapSwitches(NEW)
+      expect(result.success).toBe(false)
+      expect(result.success ? null : result.error).toBeInstanceOf(DBNotFoundError)
     })
   })
 

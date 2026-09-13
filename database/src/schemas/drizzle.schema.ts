@@ -60,6 +60,20 @@ export const communitiesTable = mysqlTable(
      * do. `dbIsMatchingKeyingActive` is the read that belongs here.
      */
     matchingKeyingActive: tinyint('matching_keying_active').default(0).notNull(),
+    /**
+     * Build-phase switches for the matching map (K-008, migration 0133): which map the
+     * wallet draws and which place search it asks. Values are `MatchingMapEngine` and
+     * `MatchingGeoProvider`; the defaults are the old pair, so nothing changes until an
+     * admin switches.
+     *
+     * Plain `varchar` on purpose: the column can hold whatever somebody typed into it by
+     * hand, and `dbSelectMatchingMapSwitches` is where that becomes a known value. Read
+     * them there, fresh - not through the cached `getHomeCommunityDrizzle`.
+     */
+    matchingMapEngine: varchar('matching_map_engine', { length: 16 }).default('leaflet').notNull(),
+    matchingGeoProvider: varchar('matching_geo_provider', { length: 16 })
+      .default('nominatim')
+      .notNull(),
     publicJwtKey: varchar('public_jwt_key', { length: 512 }).default(sql`NULL`),
     privateJwtKey: varchar('private_jwt_key', { length: 2048 }).default(sql`NULL`),
     // Warning: Can't parse geometry from database

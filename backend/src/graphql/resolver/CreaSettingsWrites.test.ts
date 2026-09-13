@@ -15,6 +15,8 @@ jest.mock('database', () => ({
   ...jest.requireActual('database'),
   dbIsMatchingKeyingActive: jest.fn(),
   dbSetMatchingKeyingActive: jest.fn(),
+  dbSelectMatchingMapSwitches: jest.fn(),
+  dbUpdateMatchingMapSwitches: jest.fn(),
   dbGetFirstCreationSignerUserId: jest.fn(),
   dbGetUserWithRolesById: jest.fn(),
   dbSetFirstCreationSignerUserId: jest.fn(),
@@ -29,13 +31,24 @@ jest.mock('@/apis/anthropic/crea/settings', () => ({
 import {
   dbGetFirstCreationSignerUserId,
   dbIsMatchingKeyingActive,
+  dbSelectMatchingMapSwitches,
   dbSetMatchingKeyingActive,
+  dbUpdateMatchingMapSwitches,
+  MatchingGeoProvider,
+  MatchingMapEngine,
 } from 'database'
 import { readCreaSettings, writeCreaSettings } from '@/apis/anthropic/crea/settings'
 
 const isActive = dbIsMatchingKeyingActive as jest.Mock
 const setActive = dbSetMatchingKeyingActive as jest.Mock
 const signerId = dbGetFirstCreationSignerUserId as jest.Mock
+const readSwitches = dbSelectMatchingMapSwitches as jest.Mock
+const writeSwitches = dbUpdateMatchingMapSwitches as jest.Mock
+const OLD_SWITCHES = {
+  mapEngine: MatchingMapEngine.LEAFLET,
+  geoProvider: MatchingGeoProvider.NOMINATIM,
+}
+const NEW_SWITCHES = { mapEngine: MatchingMapEngine.MAPLIBRE, geoProvider: MatchingGeoProvider.GMS }
 const readSettings = readCreaSettings as jest.Mock
 const writeSettings = writeCreaSettings as jest.Mock
 
@@ -56,6 +69,8 @@ describe('the two writes behind the Crea settings', () => {
     setActive.mockResolvedValue({ success: true })
     isActive.mockResolvedValue(true)
     signerId.mockResolvedValue(null)
+    readSwitches.mockResolvedValue(OLD_SWITCHES)
+    writeSwitches.mockResolvedValue({ success: true })
   })
 
   it('does not touch the keying switch when the moderation settings are saved', async () => {
@@ -161,5 +176,47 @@ describe('the two writes behind the Crea settings', () => {
     await resolver.setCreaSettings(input())
 
     expect(order).toEqual(['read', 'write'])
+  })
+
+  it('does not touch the map switches when the moderation settings are saved', async () => {
+    await resolver.setCreaSettings(input())
+
+    expect(writeSettings).toHaveBeenCalled()
+    expect(writeSwitches).not.toHaveBeenCalled()
+  })
+
+  it('reports the stored map switches alongside the settings, read before the write', async () => {
+    readSwitches.mockResolvedValue(NEW_SWITCHES)
+
+    const answer = await resolver.setCreaSettings(input())
+
+    expect(answer.matchingMapSwitches).toEqual(NEW_SWITCHES)
+    expect(readSwitches.mock.invocationCallOrder[0]).toBeLessThan(
+      writeSettings.mock.invocationCallOrder[0],
+    )
+  })
+
+  it('stores both map switches with what it was asked for', async () => {
+    await resolver.setMatchingMapSwitches(MatchingMapEngine.MAPLIBRE, MatchingGeoProvider.GMS)
+
+    expect(writeSwitches).toHaveBeenCalledWith(NEW_SWITCHES)
+    expect(setActive).not.toHaveBeenCalled()
+    expect(writeSettings).not.toHaveBeenCalled()
+  })
+
+  it('answers the map switches mutation with what is stored, not with what it was handed', async () => {
+    readSwitches.mockResolvedValue(OLD_SWITCHES)
+
+    expect(
+      await resolver.setMatchingMapSwitches(MatchingMapEngine.MAPLIBRE, MatchingGeoProvider.GMS),
+    ).toEqual(OLD_SWITCHES)
+  })
+
+  it('fails the map switches mutation when the write reported nothing', async () => {
+    writeSwitches.mockResolvedValue({ success: false, error: new Error('no home community') })
+
+    await expect(
+      resolver.setMatchingMapSwitches(MatchingMapEngine.MAPLIBRE, MatchingGeoProvider.GMS),
+    ).rejects.toThrow()
   })
 })
