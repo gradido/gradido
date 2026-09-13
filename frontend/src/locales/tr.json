@@ -598,6 +598,8 @@
       "back": "Geri",
       "breite": "Birden çok kez uyanlar",
       "breiteHint": "Girişlerinden birkaçına birden yanıt veren insanları öne çıkarır.",
+      "centreHome": "your home",
+      "centrePoint": "the chosen point",
       "channels": {
         "andere": "diğer herkes",
         "andereMit": "girişi olan diğerleri",

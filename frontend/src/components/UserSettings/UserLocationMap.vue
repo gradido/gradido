@@ -18,10 +18,13 @@ import L from 'leaflet'
 // embeds this component directly, where the missing CSS left the tiles static
 // and scattered).
 import 'leaflet/dist/leaflet.css'
-import { GeoSearchControl, OpenStreetMapProvider } from 'leaflet-geosearch'
+import { GeoSearchControl } from 'leaflet-geosearch'
 import 'leaflet-geosearch/dist/geosearch.css'
 import CoordinatesDisplay from '@/components/UserSettings/CoordinatesDisplay.vue'
 import { useI18n } from 'vue-i18n'
+import { useGmsBase } from '@/composables/useGmsBase'
+import { useMapSwitches } from '@/composables/useMapSwitches'
+import { makeGeoProvider } from '@/utils/geoSearchProvider'
 
 const mapContainer = ref(null)
 const map = ref(null)
@@ -51,7 +54,11 @@ const props = defineProps({
   userIcon: { type: String, default: 'pin' },
 })
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+// For the address search: the admin switch and the GMS address need the Apollo client,
+// which only setup can reach - the control is built a quarter second after mounting.
+const { mapSwitches } = useMapSwitches()
+const { gmsBase } = useGmsBase()
 
 onMounted(async () => {
   if (props.userMarkerCoords) {
@@ -170,8 +177,14 @@ function initMap() {
     map.value.on('click', onMapClick)
     userMarker.value.on('dragend', onMarkerDragEnd)
 
-    // GeoSearch control
-    const provider = new OpenStreetMapProvider()
+    // GeoSearch control. The switch decides at each search which service answers
+    // (utils/geoSearchProvider).
+    const provider = makeGeoProvider({
+      mapSwitches,
+      gmsBase,
+      viewpoint: () => map.value?.getCenter() ?? null,
+      language: () => locale.value,
+    })
     const searchControl = new GeoSearchControl({
       provider,
       style: 'button',
