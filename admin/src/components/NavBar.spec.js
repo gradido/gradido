@@ -17,12 +17,12 @@ vi.mock('vue-router', async () => {
   }
 })
 
-const createVuexStore = (roles = ['ADMIN']) =>
+const createVuexStore = (role = 'ADMIN') =>
   createStore({
     state: {
       openCreations: 1,
       token: 'valid-token',
-      moderator: { roles },
+      moderator: { role },
     },
     actions: {
       logout: vi.fn(),
@@ -124,7 +124,7 @@ describe('NavBar', () => {
     // boundary.
     describe('as a moderator', () => {
       beforeEach(() => {
-        store = createVuexStore(['MODERATOR'])
+        store = createVuexStore('MODERATOR')
         wrapper = createWrapper()
       })
 
@@ -144,7 +144,7 @@ describe('NavBar', () => {
 
     describe('as a KI-Moderator', () => {
       beforeEach(() => {
-        store = createVuexStore(['MODERATOR_AI'])
+        store = createVuexStore('MODERATOR_AI')
         wrapper = createWrapper()
       })
 

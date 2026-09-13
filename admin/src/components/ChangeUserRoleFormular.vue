@@ -109,14 +109,14 @@ const props = defineProps({
   },
 })
 const getCurrentRole = () => {
-  if (props.item.roles.length) return rolesValues[props.item.roles[0]]
+  if (props.item.role) return rolesValues[props.item.role]
   return rolesValues.USER
 }
 const currentRole = ref(getCurrentRole())
 const roleSelected = ref(getCurrentRole())
 
-const emit = defineEmits(['update-roles', 'show-modal', 'select-role', 'update-creation-allowed'])
-const isModeratorRoleAdmin = computed(() => store.state.moderator.roles.includes('ADMIN'))
+const emit = defineEmits(['update-role', 'show-modal', 'select-role', 'update-creation-allowed'])
+const isModeratorRoleAdmin = computed(() => store.state.moderator.role === 'ADMIN')
 const moderatorId = computed(() => store.state.moderator.id)
 
 const roles = computed(() => [
@@ -142,16 +142,17 @@ const { mutate: setUserRole } = useMutation(setUserRoleMutation)
 const updateUserRole = (newRole, oldRole) => {
   const role = roles.value.find((role) => role.value === newRole)
   const roleText = role.text
-  const roleValue = role.value
+  // A usual member has no role: USER is the absence of one, and that is null on the wire.
+  const roleValue = role.value === rolesValues.USER ? null : role.value
 
   setUserRole({
     userId: props.item.userId,
-    role: role.value,
+    role: roleValue,
   })
     .then(() => {
-      emit('update-roles', {
+      emit('update-role', {
         userId: props.item.userId,
-        roles: roleValue === 'USER' ? [] : [roleValue],
+        role: roleValue,
       })
       toastSuccess(
         t('userRole.successfullyChangedTo', {

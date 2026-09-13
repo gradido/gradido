@@ -5,7 +5,7 @@ import {
   ContributionMessage as DbContributionMessage,
   User as DbUser,
   dbGetFirstCreationSignerUserId,
-  dbGetUserWithRolesById,
+  dbGetUserWithRoleById,
 } from 'database'
 import { DomainError, Result } from 'shared'
 import { roleByName } from '@/auth/ROLES'
@@ -56,7 +56,7 @@ export function checkSignerAccount(user: DbUser): Result<Signer, SignerUnavailab
   if (user.deletedAt) {
     return { success: false, error: new SignerUnavailable('DELETED', user) }
   }
-  const userRole = user.userRoles?.[0] ?? null
+  const userRole = user.userRole ?? null
   const roleName = userRole?.role ?? null
   const isModeration =
     roleName === RoleNames.ADMIN ||
@@ -76,7 +76,7 @@ export function checkSignerAccount(user: DbUser): Result<Signer, SignerUnavailab
 export async function resolveSigner(
   signerUserId: number,
 ): Promise<Result<Signer, SignerUnavailable>> {
-  const found = await dbGetUserWithRolesById(signerUserId)
+  const found = await dbGetUserWithRoleById(signerUserId)
   if (!found.success) {
     return { success: false, error: new SignerUnavailable('NOT_FOUND') }
   }

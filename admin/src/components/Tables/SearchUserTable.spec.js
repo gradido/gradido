@@ -35,10 +35,10 @@ vi.mock('../TransactionLinkList.vue', () => ({
 vi.mock('../ChangeUserRoleFormular.vue', () => ({
   default: {
     template:
-      '<div class="change-user-role-formular"><button @click="emitUpdateRoles">Update Roles</button></div>',
+      '<div class="change-user-role-formular"><button @click="emitUpdateRole">Update Role</button></div>',
     methods: {
-      emitUpdateRoles() {
-        this.$emit('updateRoles', { userId: 1, roles: ['ADMIN'] })
+      emitUpdateRole() {
+        this.$emit('updateRole', { userId: 1, role: 'ADMIN' })
       },
     },
   },
@@ -64,7 +64,7 @@ const propsData = {
       email: 'bibi@bloxberg.de',
       creation: [200, 400, 600],
       emailChecked: true,
-      roles: [],
+      role: null,
     },
     {
       userId: 2,
@@ -73,7 +73,7 @@ const propsData = {
       email: 'benjamin@bluemchen.de',
       creation: [1000, 1000, 1000],
       emailChecked: true,
-      roles: [],
+      role: null,
     },
     {
       userId: 3,
@@ -82,7 +82,7 @@ const propsData = {
       email: 'peter@lustig.de',
       creation: [0, 0, 0],
       emailChecked: true,
-      roles: ['ADMIN'],
+      role: 'ADMIN',
     },
     {
       userId: 4,
@@ -91,7 +91,7 @@ const propsData = {
       email: 'new@user.ch',
       creation: [1000, 1000, 1000],
       emailChecked: false,
-      roles: [],
+      role: null,
     },
   ],
   fields: [
@@ -121,7 +121,7 @@ describe('SearchUserTable', () => {
         moderator: {
           id: 0,
           name: 'test moderator',
-          roles: ['ADMIN'],
+          role: 'ADMIN',
         },
       },
     })
@@ -155,12 +155,12 @@ describe('SearchUserTable', () => {
     })
 
     describe('isAdmin', () => {
-      it('emits updateRoles', async () => {
+      it('emits updateRole', async () => {
         const changeUserRoleFormular = wrapper.find('.change-user-role-formular')
         await changeUserRoleFormular.find('button').trigger('click')
 
-        expect(wrapper.emitted('update-roles')).toBeTruthy()
-        expect(wrapper.emitted('update-roles')[0]).toEqual([1, ['ADMIN']])
+        expect(wrapper.emitted('update-role')).toBeTruthy()
+        expect(wrapper.emitted('update-role')[0]).toEqual([1, 'ADMIN'])
       })
     })
 

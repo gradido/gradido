@@ -30,7 +30,7 @@ let testEnv: {
 const verifyLoginScope = gql`
   query {
     verifyLogin {
-      roles
+      role
       visibleCreationGroups
       seesAllCreationGroups
       seesUntagged
@@ -69,7 +69,7 @@ const setScope = async (userId: number, role: RoleNames, scope: string[] | null)
 }
 
 const scopeOf = async (): Promise<{
-  roles: string[]
+  role: string | null
   visibleCreationGroups: string[]
   seesAllCreationGroups: boolean
   seesUntagged: boolean
@@ -101,7 +101,7 @@ describe('verifyLogin — moderator group visibility scope', () => {
     await setScope(moderator.id, RoleNames.MODERATOR, null)
     await loginAs('bibi@bloxberg.de')
     expect(await scopeOf()).toEqual({
-      roles: ['MODERATOR'],
+      role: 'MODERATOR',
       visibleCreationGroups: [],
       seesAllCreationGroups: true,
       seesUntagged: true,
@@ -112,7 +112,7 @@ describe('verifyLogin — moderator group visibility scope', () => {
     await setScope(moderator.id, RoleNames.MODERATOR, ['firefighter', 'garden'])
     await loginAs('bibi@bloxberg.de')
     expect(await scopeOf()).toEqual({
-      roles: ['MODERATOR'],
+      role: 'MODERATOR',
       visibleCreationGroups: ['firefighter', 'garden'],
       seesAllCreationGroups: false,
       seesUntagged: false,
@@ -123,7 +123,7 @@ describe('verifyLogin — moderator group visibility scope', () => {
     await setScope(moderator.id, RoleNames.MODERATOR_AI, ['firefighter'])
     await loginAs('bibi@bloxberg.de')
     expect(await scopeOf()).toEqual({
-      roles: ['MODERATOR_AI'],
+      role: 'MODERATOR_AI',
       visibleCreationGroups: ['firefighter'],
       seesAllCreationGroups: false,
       seesUntagged: false,
@@ -134,7 +134,7 @@ describe('verifyLogin — moderator group visibility scope', () => {
     await setScope(moderator.id, RoleNames.MODERATOR, ['*untagged'])
     await loginAs('bibi@bloxberg.de')
     expect(await scopeOf()).toEqual({
-      roles: ['MODERATOR'],
+      role: 'MODERATOR',
       visibleCreationGroups: [],
       seesAllCreationGroups: false,
       seesUntagged: true,
@@ -148,7 +148,7 @@ describe('verifyLogin — moderator group visibility scope', () => {
     await setScope(moderator.id, RoleNames.MODERATOR, ['firefighter', '*untagged'])
     await loginAs('bibi@bloxberg.de')
     expect(await scopeOf()).toEqual({
-      roles: ['MODERATOR'],
+      role: 'MODERATOR',
       visibleCreationGroups: ['firefighter'],
       seesAllCreationGroups: false,
       seesUntagged: true,

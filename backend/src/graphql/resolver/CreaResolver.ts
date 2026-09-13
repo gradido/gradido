@@ -355,7 +355,7 @@ function describeSigner(user: DbUser, reason: string): FirstCreationSigner {
     firstName: user.firstName ?? null,
     lastName: user.lastName ?? null,
     alias: user.alias ?? null,
-    role: user.userRoles?.[0]?.role ?? null,
+    role: user.userRole?.role ?? null,
     eligible: reason === '',
     reason,
   }

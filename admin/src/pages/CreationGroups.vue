@@ -128,7 +128,7 @@ const { t, d } = useI18n()
 const store = useStore()
 const { toastSuccess, toastError } = useAppToast()
 
-const isAdmin = computed(() => store.state.moderator.roles.includes('ADMIN'))
+const isAdmin = computed(() => store.state.moderator.role === 'ADMIN')
 
 const { result, error, refetch } = useQuery(creationGroupsQuery, null, {
   fetchPolicy: 'network-only',

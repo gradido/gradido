@@ -18,7 +18,7 @@ jest.mock('database', () => ({
   dbSelectMatchingMapSwitches: jest.fn(),
   dbUpdateMatchingMapSwitches: jest.fn(),
   dbGetFirstCreationSignerUserId: jest.fn(),
-  dbGetUserWithRolesById: jest.fn(),
+  dbGetUserWithRoleById: jest.fn(),
   dbSetFirstCreationSignerUserId: jest.fn(),
 }))
 jest.mock('@/apis/anthropic/crea/settings', () => ({

@@ -13,7 +13,7 @@ const addNavigationGuards = (router, store, apollo, i18n) => {
         })
         .then((result) => {
           const moderator = result.data.verifyLogin
-          if (moderator.roles?.length) {
+          if (moderator.role) {
             i18n.global.locale.value = moderator.language
             store.commit('moderator', moderator)
             next({ path: '/' })
@@ -35,7 +35,7 @@ const addNavigationGuards = (router, store, apollo, i18n) => {
       !CONFIG.DEBUG_DISABLE_AUTH && // we did not disabled the auth module for debug purposes
       (!store.state.token || // we do not have a token
         !store.state.moderator || // no moderator set in store
-        !store.state.moderator.roles.length) && // user is no admin
+        !store.state.moderator.role) && // user is no admin
       to.path !== '/not-found' && // we are not on `not-found`
       to.path !== '/logout' // we are not on `logout`
     ) {
@@ -52,7 +52,7 @@ const addNavigationGuards = (router, store, apollo, i18n) => {
     if (
       !CONFIG.DEBUG_DISABLE_AUTH &&
       to.meta?.requiresAdmin &&
-      !store.state.moderator?.roles?.includes('ADMIN')
+      store.state.moderator?.role !== 'ADMIN'
     ) {
       next({ path: '/not-found' })
     } else {

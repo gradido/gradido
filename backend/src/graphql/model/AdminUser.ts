@@ -6,10 +6,16 @@ import { describeModeratorCreationGroups } from '@/graphql/resolver/util/moderat
 @ObjectType()
 export class AdminUser {
   constructor(user: User) {
-    const role = user.userRoles.length > 0 ? user.userRoles[0] : null
+    // Only built from dbFindAdminUsersPage, which lists members with an assignable role
+    // and nobody else. A member without one reaching this is a bug in the caller, not a
+    // row to show with an empty role.
+    const role = user.userRole
+    if (!role) {
+      throw new Error(`AdminUser without a role: user ${user.id}`)
+    }
     const groups = describeModeratorCreationGroups(role)
     this.alias = new PublishNameLogic(user).getPublicAlias()
-    this.role = role ? role.role : ''
+    this.role = role.role
     this.visibleCreationGroups = groups.tags
     this.seesAllCreationGroups = groups.seesAllCreationGroups
     this.seesUntagged = groups.seesUntagged

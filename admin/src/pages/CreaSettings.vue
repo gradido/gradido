@@ -167,7 +167,7 @@ const { t } = useI18n()
 const store = useStore()
 const { toastSuccess, toastError } = useAppToast()
 
-const isAdmin = computed(() => store.state.moderator.roles.includes('ADMIN'))
+const isAdmin = computed(() => store.state.moderator.role === 'ADMIN')
 
 // The form holds display defaults until the query answers, never the server's values, and
 // setCreaSettings overwrites all FOUR settings at once - the fourth being the one that
@@ -305,10 +305,10 @@ const signerOptions = computed(() => {
   if (!signerSearchEnabled.value) return []
   const list = signerSearchResult.value?.searchUsers?.userList ?? []
   return list
-    .filter((user) => (user.roles ?? []).some((role) => SIGNER_ROLES.includes(role)))
+    .filter((user) => SIGNER_ROLES.includes(user.role))
     .map((user) => ({
       value: user.userId,
-      text: `${user.firstName} ${user.lastName} · ${(user.roles ?? []).join(', ')}`,
+      text: `${user.firstName} ${user.lastName} · ${user.role}`,
     }))
 })
 

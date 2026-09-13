@@ -4,14 +4,13 @@ import {
   Entity,
   Index,
   JoinColumn,
-  ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm'
 import { User } from './User'
 
 @Entity('user_roles', { engine: 'InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci' })
-// 0 or 1 role per member (migration 0135). The relation on User is still `userRoles[]`;
-// the array just cannot hold more than one element any more.
+// 0 or 1 role per member (migration 0135), hence `User.userRole` and not a list.
 @Index('user_id', ['userId'], { unique: true })
 export class UserRole extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
@@ -41,9 +40,9 @@ export class UserRole extends BaseEntity {
   @Column({ name: 'updated_at', type: 'datetime', precision: 3, nullable: true, default: null })
   updatedAt: Date | null
 
-  @ManyToOne(
+  @OneToOne(
     () => User,
-    (user) => user.userRoles,
+    (user) => user.userRole,
   )
   @JoinColumn({ name: 'user_id' })
   user: User

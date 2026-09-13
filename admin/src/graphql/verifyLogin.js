@@ -6,7 +6,7 @@ export const verifyLogin = gql`
       firstName
       lastName
       alias
-      roles
+      role
       id
       language
       visibleCreationGroups

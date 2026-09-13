@@ -36,7 +36,7 @@ const mockSearchUsers = {
       email: 'new@user.ch',
       creation: [1000, 1000, 1000],
       emailChecked: false,
-      roles: [],
+      role: null,
       deletedAt: null,
     },
     {
@@ -45,7 +45,7 @@ const mockSearchUsers = {
       lastName: 'Lustig',
       email: 'peter@lustig.de',
       creation: [0, 0, 0],
-      roles: ['ADMIN'],
+      role: 'ADMIN',
       emailChecked: true,
       deletedAt: null,
     },
@@ -55,7 +55,7 @@ const mockSearchUsers = {
       lastName: 'Blümchen',
       email: 'benjamin@bluemchen.de',
       creation: [1000, 1000, 1000],
-      roles: [],
+      role: null,
       emailChecked: true,
       deletedAt: new Date(),
     },
@@ -65,7 +65,7 @@ const mockSearchUsers = {
       lastName: 'Bloxberg',
       email: 'bibi@bloxberg.de',
       creation: [200, 400, 600],
-      roles: [],
+      role: null,
       emailChecked: true,
       deletedAt: null,
     },
@@ -77,9 +77,10 @@ describe('UserSearch', () => {
   const mockT = vi.fn((key) => key) // Mock translation function
 
   beforeEach(() => {
-    // Mock the useQuery composable
+    // Mock the useQuery composable, with a copy per test: the page writes role changes into
+    // the list it was handed.
     useQuery.mockReturnValue({
-      result: { value: { searchUsers: mockSearchUsers } },
+      result: { value: { searchUsers: structuredClone(mockSearchUsers) } },
       refetch: vi.fn(),
     })
 
@@ -131,5 +132,35 @@ describe('UserSearch', () => {
     const button = wrapper.find('.deletedUserSearch')
     await button.trigger('click')
     expect(useQuery().refetch).toHaveBeenCalled()
+  })
+
+  // SearchUserTable re-emits ChangeUserRoleFormular's `{ userId, role }` as two arguments,
+  // so this page receives them positionally.
+  describe('update-role from the table', () => {
+    const roleOf = (userId) =>
+      wrapper
+        .findComponent({ name: 'SearchUserTable' })
+        .props('items')
+        .find((user) => user.userId === userId).role
+
+    it('gives the member the new role', async () => {
+      await wrapper
+        .findComponent({ name: 'SearchUserTable' })
+        .vm.$emit('update-role', 1, 'MODERATOR')
+      expect(roleOf(1)).toBe('MODERATOR')
+    })
+
+    it('takes the role away with null', async () => {
+      await wrapper.findComponent({ name: 'SearchUserTable' }).vm.$emit('update-role', 3, null)
+      expect(roleOf(3)).toBeNull()
+    })
+
+    it('leaves the other members as they were', async () => {
+      await wrapper
+        .findComponent({ name: 'SearchUserTable' })
+        .vm.$emit('update-role', 1, 'MODERATOR')
+      expect(roleOf(3)).toBe('ADMIN')
+      expect(roleOf(4)).toBeNull()
+    })
   })
 })

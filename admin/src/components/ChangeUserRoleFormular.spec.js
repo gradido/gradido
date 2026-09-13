@@ -29,7 +29,7 @@ vi.mock('vuex', () => ({
       moderator: {
         id: 0,
         name: 'test moderator',
-        roles: ['ADMIN'],
+        role: 'ADMIN',
       },
     },
   })),
@@ -89,7 +89,7 @@ describe('ChangeUserRoleFormular', () => {
       propsData = {
         item: {
           userId: 1,
-          roles: [],
+          role: null,
         },
       }
       wrapper = createWrapper()
@@ -105,7 +105,7 @@ describe('ChangeUserRoleFormular', () => {
       propsData = {
         item: {
           userId: 0,
-          roles: ['ADMIN'],
+          role: 'ADMIN',
         },
       }
       wrapper = createWrapper()
@@ -129,7 +129,7 @@ describe('ChangeUserRoleFormular', () => {
       propsData = {
         item: {
           userId: 1,
-          roles: [],
+          role: null,
         },
       }
       wrapper = createWrapper()
@@ -177,7 +177,7 @@ describe('ChangeUserRoleFormular', () => {
 
     describe('user has role "usual user"', () => {
       beforeEach(() => {
-        propsData.item.roles = ['USER']
+        propsData.item.role = null
         wrapper = createWrapper()
       })
 
@@ -216,14 +216,14 @@ describe('ChangeUserRoleFormular', () => {
           moderator: {
             id: 0,
             name: 'test moderator',
-            roles: ['MODERATOR'],
+            role: 'MODERATOR',
           },
         },
       })
       propsData = {
         item: {
           userId: 1,
-          roles: [],
+          role: null,
         },
       }
       wrapper = createWrapper()
@@ -243,13 +243,13 @@ describe('ChangeUserRoleFormular', () => {
     let creationMutate
     const asAdmin = () =>
       vi.mocked(useStore).mockReturnValue({
-        state: { moderator: { id: 0, name: 'test moderator', roles: ['ADMIN'] } },
+        state: { moderator: { id: 0, name: 'test moderator', role: 'ADMIN' } },
       })
     const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
 
     beforeEach(() => {
       creationMutate = vi.fn()
-      // The roles mutation and this one share useMutation; tell them apart by document.
+      // The role mutation and this one share useMutation; tell them apart by document.
       useMutation.mockImplementation((document) => ({
         mutate: document === setCreationAllowedMutation ? creationMutate : vi.fn(),
       }))
@@ -257,7 +257,7 @@ describe('ChangeUserRoleFormular', () => {
     })
 
     it('shows an administrator the switch, on for an account that may create', () => {
-      propsData = { item: { userId: 1, roles: [], creationAllowed: true } }
+      propsData = { item: { userId: 1, role: null, creationAllowed: true } }
       wrapper = createWrapper()
       const box = wrapper.find('[data-testid="mock-switch"]')
       expect(box.exists()).toBe(true)
@@ -266,17 +266,17 @@ describe('ChangeUserRoleFormular', () => {
     })
 
     it('shows it off for a project account, and on where the row does not say', () => {
-      propsData = { item: { userId: 1, roles: [], creationAllowed: false } }
+      propsData = { item: { userId: 1, role: null, creationAllowed: false } }
       expect(createWrapper().find('[data-testid="mock-switch"]').element.checked).toBe(false)
-      propsData = { item: { userId: 1, roles: [] } }
+      propsData = { item: { userId: 1, role: null } }
       expect(createWrapper().find('[data-testid="mock-switch"]').element.checked).toBe(true)
     })
 
     it('shows a moderator where the switch stands, without a switch', () => {
       vi.mocked(useStore).mockReturnValue({
-        state: { moderator: { id: 0, name: 'test moderator', roles: ['MODERATOR'] } },
+        state: { moderator: { id: 0, name: 'test moderator', role: 'MODERATOR' } },
       })
-      propsData = { item: { userId: 1, roles: [], creationAllowed: false } }
+      propsData = { item: { userId: 1, role: null, creationAllowed: false } }
       wrapper = createWrapper()
       expect(wrapper.find('[data-testid="mock-switch"]').exists()).toBe(false)
       const readonly = wrapper.find('[data-test="creation-allowed-readonly"]')
@@ -286,7 +286,7 @@ describe('ChangeUserRoleFormular', () => {
 
     it('switches creation off, tells the table and stays off', async () => {
       creationMutate.mockResolvedValue({ data: { setCreationAllowed: false } })
-      propsData = { item: { userId: 7, roles: [], creationAllowed: true } }
+      propsData = { item: { userId: 7, role: null, creationAllowed: true } }
       wrapper = createWrapper()
       await wrapper.find('[data-testid="mock-switch"]').setValue(false)
       await flush()
@@ -299,7 +299,7 @@ describe('ChangeUserRoleFormular', () => {
 
     it('switches it back on the same way', async () => {
       creationMutate.mockResolvedValue({ data: { setCreationAllowed: true } })
-      propsData = { item: { userId: 7, roles: [], creationAllowed: false } }
+      propsData = { item: { userId: 7, role: null, creationAllowed: false } }
       wrapper = createWrapper()
       await wrapper.find('[data-testid="mock-switch"]').setValue(true)
       await flush()
@@ -310,7 +310,7 @@ describe('ChangeUserRoleFormular', () => {
     it('sends one request however often the switch is flipped while the first is out', async () => {
       let release
       creationMutate.mockImplementation(() => new Promise((resolve) => (release = resolve)))
-      propsData = { item: { userId: 7, roles: [], creationAllowed: true } }
+      propsData = { item: { userId: 7, role: null, creationAllowed: true } }
       wrapper = createWrapper()
       const box = wrapper.find('[data-testid="mock-switch"]')
       await box.setValue(false)
@@ -325,7 +325,7 @@ describe('ChangeUserRoleFormular', () => {
 
     it('springs back where the server refuses', async () => {
       creationMutate.mockRejectedValue(new Error('401 Unauthorized'))
-      propsData = { item: { userId: 7, roles: [], creationAllowed: true } }
+      propsData = { item: { userId: 7, role: null, creationAllowed: true } }
       wrapper = createWrapper()
       await wrapper.find('[data-testid="mock-switch"]').setValue(false)
       await flush()
@@ -346,13 +346,13 @@ describe('ChangeUserRoleFormular', () => {
       propsData = {
         item: {
           userId: 1,
-          roles: ['USER'],
+          role: null,
         },
       }
       wrapper = createWrapper()
     })
 
-    it('calls setUserRole mutation and emits update-roles on success', async () => {
+    it('calls setUserRole mutation and emits update-role on success', async () => {
       mockMutate.mockResolvedValue({ data: { setUserRole: 'MODERATOR' } })
 
       await wrapper.vm.updateUserRole('MODERATOR', 'USER')
@@ -361,11 +361,30 @@ describe('ChangeUserRoleFormular', () => {
         userId: 1,
         role: 'MODERATOR',
       })
-      expect(wrapper.emitted('update-roles')).toBeTruthy()
-      expect(wrapper.emitted('update-roles')[0]).toEqual([
+      expect(wrapper.emitted('update-role')).toBeTruthy()
+      expect(wrapper.emitted('update-role')[0]).toEqual([
         {
           userId: 1,
-          roles: ['MODERATOR'],
+          role: 'MODERATOR',
+        },
+      ])
+    })
+
+    it('sends null, not USER, when the role is taken away', async () => {
+      propsData.item.role = 'MODERATOR'
+      wrapper = createWrapper()
+      mockMutate.mockResolvedValue({ data: { setUserRole: null } })
+
+      await wrapper.vm.updateUserRole('USER', 'MODERATOR')
+
+      expect(mockMutate).toHaveBeenCalledWith({
+        userId: 1,
+        role: null,
+      })
+      expect(wrapper.emitted('update-role')[0]).toEqual([
+        {
+          userId: 1,
+          role: null,
         },
       ])
     })
@@ -377,7 +396,7 @@ describe('ChangeUserRoleFormular', () => {
 
       expect(mockMutate).toHaveBeenCalled()
       expect(wrapper.vm.roleSelected).toBe('USER')
-      expect(wrapper.emitted('update-roles')).toBeFalsy()
+      expect(wrapper.emitted('update-role')).toBeFalsy()
     })
   })
 })

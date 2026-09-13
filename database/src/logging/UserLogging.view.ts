@@ -37,8 +37,8 @@ export class UserLoggingView extends AbstractLoggingView {
       language: this.self.language,
       hideAmountGDD: this.self.hideAmountGDD,
       hideAmountGDT: this.self.hideAmountGDT,
-      userRoles: this.self.userRoles
-        ? this.self.userRoles.map((userRole) => new UserRoleLoggingView(userRole, false).toJSON())
+      userRole: this.self.userRole
+        ? new UserRoleLoggingView(this.self.userRole, false).toJSON()
         : undefined,
       referrerId: this.self.referrerId,
       contributionLinkId: this.self.contributionLinkId,

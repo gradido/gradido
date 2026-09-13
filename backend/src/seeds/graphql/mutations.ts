@@ -450,7 +450,7 @@ export const login = gql`
       userLocation
       hasElopage
       publisherId
-      roles
+      role
       hideAmountGDD
       hideAmountGDT
       # Own view only, both of them, and the login can answer them because it names the

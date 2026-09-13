@@ -22,7 +22,7 @@
 // const store = new Vuex.Store({
 //   state: {
 //     moderator: {
-//       roles: ['ADMIN'],
+//       role: 'ADMIN',
 //     },
 //   },
 // })
@@ -448,7 +448,7 @@ describe('CommunityVisualizeItem', () => {
     store = createStore({
       state: {
         moderator: {
-          roles: ['ADMIN'],
+          role: 'ADMIN',
         },
       },
     })
