@@ -292,18 +292,30 @@ export async function dbUserUpdatePassword(
 }
 
 /**
+ * The `users` columns that must never be written one at a time: each only means something
+ * together with the other. A hash stored without its scheme -- or a scheme changed under a
+ * stored hash -- leaves an account nobody can sign in to. Written through
+ * dbUserUpdatePassword, and only there.
+ */
+type UserCoupledColumn = 'password' | 'passwordEncryptionType'
+
+/** Every `users` column dbUserUpdateField may write on its own. */
+export type UserSingleColumn = Exclude<keyof UserInsert, UserCoupledColumn>
+
+/**
  * One column of one `users` row, by name.
  *
  * For the single-field writes that used to be `dbUser.field = x; await dbUser.save()` --
  * which sent the WHOLE row back, every column of it, and so could carry along anything
- * another request had changed in between. Named columns only: `K extends keyof UserInsert`
+ * another request had changed in between. Named columns only: `K extends UserSingleColumn`
  * makes a typo a compile error and gives the value the column's own type.
  *
- * Deliberately not a general-purpose updater. Two fields that only make sense together
- * belong in a function of their own, the way the password above does; whoever reaches for
- * two calls of this in a row should write that function instead.
+ * ⛔ Not the password columns: `UserSingleColumn` leaves them out, so
+ * `dbUserUpdateField(id, 'password', …)` does not compile. Two fields that only make sense
+ * together belong in a function of their own, the way dbUserUpdatePassword is one; whoever
+ * reaches for two calls of this in a row should write that function instead.
  */
-export async function dbUserUpdateField<K extends keyof UserInsert>(
+export async function dbUserUpdateField<K extends UserSingleColumn>(
   userId: number,
   field: K,
   value: UserInsert[K],
