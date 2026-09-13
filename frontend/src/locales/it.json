@@ -598,6 +598,8 @@
       "back": "Indietro",
       "breite": "Chi corrisponde più volte",
       "breiteHint": "Mette in evidenza le persone che rispondono a più di una delle tue voci.",
+      "centreHome": "your home",
+      "centrePoint": "the chosen point",
       "channels": {
         "andere": "tutti gli altri",
         "andereMit": "altri con voci",

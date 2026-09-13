@@ -598,6 +598,8 @@
       "back": "Retour",
       "breite": "Qui correspond plusieurs fois",
       "breiteHint": "Met en avant les personnes qui répondent à plusieurs de tes entrées.",
+      "centreHome": "your home",
+      "centrePoint": "the chosen point",
       "channels": {
         "andere": "tous les autres",
         "andereMit": "autres avec des entrées",
