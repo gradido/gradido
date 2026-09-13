@@ -248,7 +248,8 @@ export class UserResolver {
     }
     if (!loginUserResult.success) {
       await fakeVerifyPassword()
-      logger.warn(`login failed, user with email=${email} not found`)
+      // don't log email any longer because of CWE-532 
+      logger.warn(`login failed, user not found`)
       throw new Error('No user with this credentials')
     }
     const dbUser: DbLoginUser = loginUserResult.value
