@@ -27,7 +27,7 @@ export const searchUsers = gql`
         emailConfirmationSend
         deletedAt
         createdAt
-        roles
+        role
         creationAllowed
       }
     }

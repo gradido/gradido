@@ -4,7 +4,7 @@ import { createStore } from 'vuex'
 import ContributionLink from './ContributionLink.vue'
 import { BButton, BCard, BCardText, BCollapse } from 'bootstrap-vue-next'
 
-const createVuexStore = (roles = ['ADMIN']) => createStore({ state: { moderator: { roles } } })
+const createVuexStore = (role = 'ADMIN') => createStore({ state: { moderator: { role } } })
 
 const mockItems = [
   {
@@ -24,14 +24,14 @@ const mockItems = [
 describe('ContributionLink', () => {
   let wrapper
 
-  const createWrapper = (roles = ['ADMIN']) => {
+  const createWrapper = (role = 'ADMIN') => {
     return mount(ContributionLink, {
       props: {
         items: mockItems,
         count: 1,
       },
       global: {
-        plugins: [createVuexStore(roles)],
+        plugins: [createVuexStore(role)],
         mocks: {
           $t: (key) => key,
           $d: (d) => d,
@@ -131,7 +131,7 @@ describe('ContributionLink', () => {
   // produce a 401 from the backend.
   describe('as a moderator', () => {
     beforeEach(() => {
-      wrapper = createWrapper(['MODERATOR'])
+      wrapper = createWrapper('MODERATOR')
     })
 
     it('does not offer the new-contribution-link button', () => {
@@ -141,7 +141,7 @@ describe('ContributionLink', () => {
 
   describe('as an administrator', () => {
     beforeEach(() => {
-      wrapper = createWrapper(['ADMIN'])
+      wrapper = createWrapper('ADMIN')
     })
 
     it('offers the new-contribution-link button', () => {

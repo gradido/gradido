@@ -27,7 +27,7 @@
       <BCol cols="3" class="me-2">
         <img class="img-fluid" :src="item.logoUrl" :alt="item.logoUrl" />
       </BCol>
-      <BCol v-if="store.state.moderator.roles.includes('ADMIN')" cols="1">
+      <BCol v-if="store.state.moderator.role === 'ADMIN'" cols="1">
         <BButton v-b-tooltip.hover variant="danger" :title="$t('delete')" @click.stop="deleteItem">
           <i class="fas fa-trash-alt"></i>
         </BButton>
@@ -81,7 +81,7 @@ async function copyToClipboard(text) {
 }
 
 function toggleDetails() {
-  if (store.state.moderator.roles.includes('ADMIN')) {
+  if (store.state.moderator.role === 'ADMIN') {
     details.value = !details.value
   }
 }

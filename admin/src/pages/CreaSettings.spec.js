@@ -145,7 +145,7 @@ vi.mock('@vue/apollo-composable', () => ({
 
 vi.mock('vuex', () => ({
   useStore: vi.fn(() => ({
-    state: { moderator: { id: 0, name: 'test moderator', roles: ['ADMIN'] } },
+    state: { moderator: { id: 0, name: 'test moderator', role: 'ADMIN' } },
   })),
 }))
 
@@ -591,9 +591,9 @@ describe('CreaSettings', () => {
         searchUsers: {
           userCount: 3,
           userList: [
-            { userId: 3, firstName: 'Bibi', lastName: 'Bloxberg', roles: [] },
-            { userId: 5, firstName: 'Bob', lastName: 'Baumeister', roles: ['MODERATOR'] },
-            { userId: 7, firstName: 'Peter', lastName: 'Lustig', roles: ['ADMIN'] },
+            { userId: 3, firstName: 'Bibi', lastName: 'Bloxberg', role: null },
+            { userId: 5, firstName: 'Bob', lastName: 'Baumeister', role: 'MODERATOR' },
+            { userId: 7, firstName: 'Peter', lastName: 'Lustig', role: 'ADMIN' },
           ],
         },
       }
@@ -625,8 +625,8 @@ describe('CreaSettings', () => {
         searchUsers: {
           userCount: 2,
           userList: [
-            { userId: 5, firstName: 'Bob', lastName: 'Baumeister', roles: ['MODERATOR'] },
-            { userId: 7, firstName: 'Peter', lastName: 'Lustig', roles: ['ADMIN'] },
+            { userId: 5, firstName: 'Bob', lastName: 'Baumeister', role: 'MODERATOR' },
+            { userId: 7, firstName: 'Peter', lastName: 'Lustig', role: 'ADMIN' },
           ],
         },
       }
@@ -640,7 +640,7 @@ describe('CreaSettings', () => {
       signerSearchResult.value = {
         searchUsers: {
           userCount: 1,
-          userList: [{ userId: 7, firstName: 'Peter', lastName: 'Lustig', roles: ['ADMIN'] }],
+          userList: [{ userId: 7, firstName: 'Peter', lastName: 'Lustig', role: 'ADMIN' }],
         },
       }
       await nextTick()

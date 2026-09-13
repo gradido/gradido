@@ -6,7 +6,7 @@ import { describeModeratorCreationGroups } from '@/graphql/resolver/util/moderat
 @ObjectType()
 export class AdminUser {
   constructor(user: User) {
-    const role = user.userRoles.length > 0 ? user.userRoles[0] : null
+    const role = user.userRole ?? null
     const groups = describeModeratorCreationGroups(role)
     this.alias = new PublishNameLogic(user).getPublicAlias()
     this.role = role ? role.role : ''

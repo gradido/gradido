@@ -109,14 +109,14 @@ const props = defineProps({
   },
 })
 const getCurrentRole = () => {
-  if (props.item.roles.length) return rolesValues[props.item.roles[0]]
+  if (props.item.role) return rolesValues[props.item.role]
   return rolesValues.USER
 }
 const currentRole = ref(getCurrentRole())
 const roleSelected = ref(getCurrentRole())
 
-const emit = defineEmits(['update-roles', 'show-modal', 'select-role', 'update-creation-allowed'])
-const isModeratorRoleAdmin = computed(() => store.state.moderator.roles.includes('ADMIN'))
+const emit = defineEmits(['update-role', 'show-modal', 'select-role', 'update-creation-allowed'])
+const isModeratorRoleAdmin = computed(() => store.state.moderator.role === 'ADMIN')
 const moderatorId = computed(() => store.state.moderator.id)
 
 const roles = computed(() => [
@@ -149,9 +149,9 @@ const updateUserRole = (newRole, oldRole) => {
     role: role.value,
   })
     .then(() => {
-      emit('update-roles', {
+      emit('update-role', {
         userId: props.item.userId,
-        roles: roleValue === 'USER' ? [] : [roleValue],
+        role: roleValue === 'USER' ? null : roleValue,
       })
       toastSuccess(
         t('userRole.successfullyChangedTo', {

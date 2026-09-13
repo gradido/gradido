@@ -279,7 +279,7 @@ describe('CreationConfirm', () => {
 
     it('offers only "all my groups" and the moderator\'s own groups', () => {
       const scoped = mountWithModerator({
-        roles: ['MODERATOR'],
+        role: 'MODERATOR',
         seesAllCreationGroups: false,
         visibleCreationGroups: ['firefighter', 'garden'],
       })
@@ -292,7 +292,7 @@ describe('CreationConfirm', () => {
 
     it('defaults the selection to "all my groups"', () => {
       const scoped = mountWithModerator({
-        roles: ['MODERATOR'],
+        role: 'MODERATOR',
         seesAllCreationGroups: false,
         visibleCreationGroups: ['firefighter', 'garden'],
       })
@@ -308,7 +308,7 @@ describe('CreationConfirm', () => {
     // until no such session can exist any more.
     it('still respects a scope stored under the pre-rename field names', () => {
       const scoped = mountWithModerator({
-        roles: ['MODERATOR'],
+        role: 'MODERATOR',
         seesAllGroups: false,
         visibleGroupTags: ['firefighter', 'garden'],
       })
@@ -322,7 +322,7 @@ describe('CreationConfirm', () => {
 
     it('offers only "no group" to a moderator scoped to untagged contributions', () => {
       const scoped = mountWithModerator({
-        roles: ['MODERATOR'],
+        role: 'MODERATOR',
         seesAllCreationGroups: false,
         visibleCreationGroups: [],
       })
@@ -338,7 +338,7 @@ describe('CreationConfirm', () => {
     // are assigned to would have no reachable filter at all.
     it('offers "no group" too when the scope covers the ungrouped contributions', () => {
       const scoped = mountWithModerator({
-        roles: ['MODERATOR'],
+        role: 'MODERATOR',
         seesAllCreationGroups: false,
         seesUntagged: true,
         visibleCreationGroups: ['firefighter'],
@@ -352,7 +352,7 @@ describe('CreationConfirm', () => {
 
     it('leaves an administrator the full set', () => {
       const scoped = mountWithModerator({
-        roles: ['ADMIN'],
+        role: 'ADMIN',
         seesAllCreationGroups: true,
         visibleCreationGroups: [],
       })

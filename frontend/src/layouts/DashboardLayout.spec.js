@@ -98,7 +98,7 @@ describe('DashboardLayout', () => {
         firstName: 'User',
         lastName: 'Example',
         token: 'valid-token',
-        roles: [],
+        role: null,
         gradidoID,
       },
       actions: {

@@ -5,7 +5,7 @@ import ContributionLinkList from './ContributionLinkList.vue'
 import { BButton, BCard, BCardText, BModal, BTable } from 'bootstrap-vue-next'
 import * as apolloComposable from '@vue/apollo-composable'
 
-const createVuexStore = (roles = ['ADMIN']) => createStore({ state: { moderator: { roles } } })
+const createVuexStore = (role = 'ADMIN') => createStore({ state: { moderator: { role } } })
 
 vi.mock('vue-i18n', () => ({
   useI18n: vi.fn(() => ({
@@ -50,7 +50,7 @@ describe('ContributionLinkList', () => {
   let wrapper
   let mutateMock
 
-  const createWrapper = (roles = ['ADMIN']) => {
+  const createWrapper = (role = 'ADMIN') => {
     return mount(ContributionLinkList, {
       props: {
         items: [
@@ -69,7 +69,7 @@ describe('ContributionLinkList', () => {
         ],
       },
       global: {
-        plugins: [createVuexStore(roles)],
+        plugins: [createVuexStore(role)],
         components: {
           BTable,
           BButton,
@@ -146,7 +146,7 @@ describe('ContributionLinkList', () => {
   // which reveals the link and its QR code — that is what they pass on to members.
   describe('as a moderator', () => {
     beforeEach(() => {
-      wrapper = createWrapper(['MODERATOR'])
+      wrapper = createWrapper('MODERATOR')
     })
 
     it('leaves out the delete and edit columns', () => {
@@ -195,7 +195,7 @@ describe('ContributionLinkList', () => {
 
     it('offers the button in every row, to moderators as well', () => {
       expect(wrapper.find('.test-download-cheque').exists()).toBe(true)
-      expect(createWrapper(['MODERATOR']).vm.fields).toContain('cheque')
+      expect(createWrapper('MODERATOR').vm.fields).toContain('cheque')
     })
 
     it('draws the code of the link that was clicked', async () => {

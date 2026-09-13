@@ -12,7 +12,7 @@ export const verifyLogin = gql`
       }
       hasElopage
       publisherId
-      roles
+      role
     }
   }
 `
@@ -167,7 +167,7 @@ export const searchUsers = gql`
         hasElopage
         emailConfirmationSend
         deletedAt
-        roles
+        role
         creationAllowed
       }
     }

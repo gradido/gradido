@@ -196,7 +196,7 @@ export class UserResolver {
     // Group functions: hand the admin interface the moderator's visibility scope
     // so its group filter can offer only the groups they may work in. Loaded from the role
     // directly (like loadModeratorScope), so it does not depend on how the context happened
-    // to load the user's roles. Same derivation as the community info page.
+    // to load the user's role. Same derivation as the community info page.
     const role = await DbUserRole.findOne({ where: { userId: userEntity.id } })
     const moderatorCreationGroups = describeModeratorCreationGroups(role)
     user.visibleCreationGroups = moderatorCreationGroups.tags
@@ -1433,7 +1433,7 @@ export class UserResolver {
   ): Promise<string | null> {
     const user = await DbUser.findOne({
       where: { id: userId },
-      relations: ['userRoles'],
+      relations: ['userRole'],
     })
     // user exists ?
     if (!user) {
@@ -1444,20 +1444,17 @@ export class UserResolver {
     if (moderator.id === userId) {
       throw new LogError('Administrator can not change his own role')
     }
-    // if user role(s) should be deleted by role=null as parameter
+    // role=null as parameter removes the user's role
+    let newRole: string | null = null
     if (role === null) {
       await deleteUserRole(user)
-    } else if (isUserInRole(user, role)) {
+    } else if (role && user.userRole?.role === role) {
       throw new LogError('User already has role=', role)
     } else {
-      await setUserRole(user, role)
+      newRole = await setUserRole(user, role)
     }
     await EVENT_ADMIN_USER_ROLE_SET(user, moderator)
-    const newUser = await DbUser.findOne({ where: { id: userId }, relations: ['userRoles'] })
-    // ⛔ `?.[0]?.`, not `userRoles ? userRoles[0].role`: after a removal the relation is an
-    // EMPTY array, which is truthy, and `[][0].role` threw -- so removing a role answered
-    // with an error although the role was gone, and the admin saw a failure for a success.
-    return newUser?.userRoles?.[0]?.role ?? null
+    return newRole
   }
 
   @Authorized([RIGHTS.DELETE_USER])
@@ -1749,15 +1746,4 @@ export async function checkEmailExists(email: string): Promise<boolean> {
   // row is untouched, so this never takes an address away from the member it belongs to.
   await dbReleaseUnconfirmedEmailChangeFor(email)
   return dbEmailTaken(email)
-}
-
-export function isUserInRole(user: DbUser, role: string | null | undefined): boolean {
-  if (user && role) {
-    for (const userRole of user.userRoles) {
-      if (userRole.role === role) {
-        return true
-      }
-    }
-  }
-  return false
 }

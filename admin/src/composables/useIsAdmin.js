@@ -6,5 +6,5 @@ import { useStore } from 'vuex'
 // keeps the interface from offering buttons that would come back with a 401.
 export const useIsAdmin = () => {
   const store = useStore()
-  return computed(() => store.state.moderator?.roles?.includes('ADMIN') ?? false)
+  return computed(() => store.state.moderator?.role === 'ADMIN')
 }

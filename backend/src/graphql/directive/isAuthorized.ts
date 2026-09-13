@@ -51,24 +51,21 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
       const user = await User.findOneOrFail({
         where: { gradidoID: decoded.gradidoID },
         withDeleted: true,
-        relations: ['emailContact', 'userRoles'],
+        relations: ['emailContact', 'userRole'],
       })
       context.user = user
-      context.role = ROLE_USER
-      if (user.userRoles?.length > 0) {
-        switch (user.userRoles[0].role) {
-          case RoleNames.ADMIN:
-            context.role = ROLE_ADMIN
-            break
-          case RoleNames.MODERATOR:
-            context.role = ROLE_MODERATOR
-            break
-          case RoleNames.MODERATOR_AI:
-            context.role = ROLE_MODERATOR_AI
-            break
-          default:
-            context.role = ROLE_USER
-        }
+      switch (user.userRole?.role) {
+        case RoleNames.ADMIN:
+          context.role = ROLE_ADMIN
+          break
+        case RoleNames.MODERATOR:
+          context.role = ROLE_MODERATOR
+          break
+        case RoleNames.MODERATOR_AI:
+          context.role = ROLE_MODERATOR_AI
+          break
+        default:
+          context.role = ROLE_USER
       }
     } catch {
       // in case the database query fails (user deleted)

@@ -57,11 +57,11 @@ export async function dbGetUserById(
  * Not found IS an expected outcome here: the stored id may point at an account that has
  * since been removed for good.
  */
-export async function dbGetUserWithRolesById(id: number): Promise<Result<DbUser, DBNotFoundError>> {
+export async function dbGetUserWithRoleById(id: number): Promise<Result<DbUser, DBNotFoundError>> {
   const user = await DbUser.findOne({
     where: { id },
     withDeleted: true,
-    relations: { userRoles: true, emailContact: true },
+    relations: { userRole: true, emailContact: true },
   })
   return user
     ? { success: true, value: user }
@@ -314,9 +314,9 @@ export async function dbFindAdminUsersPage(
   // Crea, so leaving the role out would drop real moderators from the community info page
   // and leave their groups without a contact.
   return DbUser.findAndCount({
-    relations: ['userRoles'],
+    relations: ['userRole'],
     where: {
-      userRoles: { role: In([RoleNames.ADMIN, RoleNames.MODERATOR, RoleNames.MODERATOR_AI]) },
+      userRole: { role: In([RoleNames.ADMIN, RoleNames.MODERATOR, RoleNames.MODERATOR_AI]) },
     },
     order: {
       createdAt: order,
@@ -328,7 +328,7 @@ export async function dbFindAdminUsersPage(
 }
 
 /**
- * The member whose CURRENT address this is, deleted accounts included, with roles and
+ * The member whose CURRENT address this is, deleted accounts included, with role and
  * address. Throws TypeORM's `EntityNotFoundError` when there is none - the caller
  * (`findUserByEmail` in `backend/src/graphql/resolver/UserResolver.ts`, where this was
  * moved from) catches exactly that.
@@ -339,7 +339,7 @@ export async function dbFindUserByEmailOrFail(email: string): Promise<DbUser> {
       emailContact: { email },
     },
     withDeleted: true,
-    relations: { userRoles: true, emailContact: true },
+    relations: { userRole: true, emailContact: true },
   })
 }
 
@@ -415,7 +415,7 @@ export const dbFindUsers = async (
       : []),
   ]
   const selectFind = Object.fromEntries(select.map((item) => [item, true]))
-  const relations = ['emailContact', 'userRoles']
+  const relations = ['emailContact', 'userRole']
   const orderFind = {
     id: order,
   }

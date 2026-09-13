@@ -5,7 +5,7 @@ import {
   User as DbUser,
   dbCountOpenContributionsByUserId,
   dbFindLatestEventForAffectedUser,
-  dbGetUserWithRolesById,
+  dbGetUserWithRoleById,
   dbSetCreationAllowed,
 } from 'database'
 import { getLogger } from 'log4js'
@@ -95,7 +95,7 @@ export class ProjectAccountResolver {
   ): Promise<boolean> {
     const logger = createLogger('setCreationAllowed')
     const moderator = getUser(context)
-    const target = await dbGetUserWithRolesById(userId)
+    const target = await dbGetUserWithRoleById(userId)
     if (!target.success) {
       throw new LogError('Could not find user with given ID', userId)
     }

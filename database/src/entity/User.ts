@@ -138,12 +138,14 @@ export class User extends BaseEntity {
   @Column({ type: 'bool', default: false })
   hideAmountGDT: boolean
 
-  @OneToMany(
+  // 0 or 1: user_roles.user_id is UNIQUE (migration 0135). The join column sits on
+  // UserRole; null when the relation was loaded and the member has no role, undefined when
+  // it was not loaded at all.
+  @OneToOne(
     () => require('./UserRole').UserRole,
     (userRole: UserRoleType) => userRole.user,
   )
-  @JoinColumn({ name: 'user_id' })
-  userRoles: UserRoleType[]
+  userRole: UserRoleType | null
 
   @Column({ name: 'referrer_id', type: 'bigint', unsigned: true, nullable: true, default: null })
   referrerId?: number | null

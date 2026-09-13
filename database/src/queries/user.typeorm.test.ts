@@ -23,7 +23,7 @@ import {
   dbFindForeignUsersByGradidoIds,
   dbFindUsersByIds,
   dbFindUsersWithEmailContactPage,
-  dbGetUserWithRolesById,
+  dbGetUserWithRoleById,
   dbLockUserRow,
   dbSaveUser,
   dbSetCreationAllowed,
@@ -436,7 +436,7 @@ describe('user.typeorm.queries', () => {
     })
   })
 
-  describe('dbGetUserWithRolesById', () => {
+  describe('dbGetUserWithRoleById', () => {
     let peter: DbUser
     let bibi: DbUser
 
@@ -451,22 +451,22 @@ describe('user.typeorm.queries', () => {
     })
 
     it('brings the role row along, so a stored id can be checked without a request', async () => {
-      const found = await dbGetUserWithRolesById(peter.id)
+      const found = await dbGetUserWithRoleById(peter.id)
       expect(found.success).toBe(true)
       if (found.success) {
         expect(found.value.id).toBe(peter.id)
-        expect(found.value.userRoles.map((role) => role.role)).toEqual(['ADMIN'])
+        expect(found.value.userRole?.role).toBe('ADMIN')
         expect(found.value.emailContact).toBeDefined()
       }
     })
 
-    it('answers an empty role list for a plain member', async () => {
-      const found = await dbGetUserWithRolesById(bibi.id)
-      expect(found.success && found.value.userRoles).toEqual([])
+    it('answers no role for a plain member', async () => {
+      const found = await dbGetUserWithRoleById(bibi.id)
+      expect(found.success && found.value.userRole).toBeNull()
     })
 
     it('reports an id nobody has as not found rather than throwing', async () => {
-      const missing = await dbGetUserWithRolesById(999999)
+      const missing = await dbGetUserWithRoleById(999999)
       expect(missing.success).toBe(false)
       if (!missing.success) {
         expect(missing.error.name).toBe('DBNotFoundError')
