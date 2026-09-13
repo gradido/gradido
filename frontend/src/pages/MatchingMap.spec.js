@@ -1334,6 +1334,33 @@ describe('MatchingMap', () => {
       },
     )
 
+    // Until K-002 the first visit and the home button stored the reverse lookup of the home,
+    // and that name is still on the devices of everybody who used the map before.
+    it('calls the home the home, also where the old lookup stored a street name for it', async () => {
+      window.localStorage.setItem(`${KEY}center`, JSON.stringify(HOME))
+      window.localStorage.setItem(`${KEY}centerLabel`, JSON.stringify('Pfarrweg, Künzelsau'))
+      const page = mountMap()
+      fire(userLocationQuery, { userLocation: location })
+      await flushPromises()
+
+      expect(listLabel(page)).toBe(de.matching.map.centreHome)
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    // The travel lens moves where the distances are measured from, not where the search is -
+    // and the list's address search asks near the search.
+    it('hands the list where the search is apart from where it measures from', async () => {
+      window.localStorage.setItem(`${KEY}center`, JSON.stringify(ELSEWHERE))
+      window.localStorage.setItem(`${KEY}lens`, JSON.stringify('wohnort'))
+      const page = mountMap()
+      fire(userLocationQuery, { userLocation: location })
+      await flushPromises()
+
+      const list = page.findComponent({ name: 'MatchList' })
+      expect(list.props('center')).toEqual(HOME)
+      expect(list.props('searchCenter')).toEqual(ELSEWHERE)
+    })
+
     it.each(['NOMINATIM', 'GMS'])(
       'calls the home the home again when the home button brings the search back, and asks nobody (switch on %s)',
       async (position) => {

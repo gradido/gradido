@@ -56,6 +56,7 @@
           :matches="sortedMatches"
           :silent="sortedPresence"
           :center="lensOrigin"
+          :search-center="searchCenter"
           :center-label="centerLabelShown"
           :my-precision="MY_PRECISION"
           :reach="reach"
@@ -745,18 +746,18 @@ const showLens = computed(() => {
 })
 
 /**
- * The name the list's line gives the centre (K-002). A name the centre came with - typed, or
- * looked up for a point set on the map - stands as it is. Without one the line still says
- * where the search is: around the member's home, named without asking anybody, or around the
- * point they chose. Empty only while the home is not known yet, so the line cannot call a
- * point "chosen" that turns out to be the home a moment later.
+ * The name the list's line gives the centre (K-002). The member's home is their home, named
+ * without asking anybody - also where a name is stored for it: until K-002 the first visit and
+ * the home button stored the reverse lookup of the home, and that street name would otherwise
+ * go on naming it. Any other centre keeps the name it came with (typed, or looked up for a
+ * point set on the map), or is the point the member chose. Empty only while the home is not
+ * known yet, so the line cannot call a point "chosen" that turns out to be the home.
  */
 const centerLabelShown = computed(() => {
+  if (isHomePoint(searchCenter.value)) return t('matching.map.centreHome')
   if (centerLabel.value) return centerLabel.value
   if (!ownPosition.value || !searchCenter.value) return ''
-  return isHomePoint(searchCenter.value)
-    ? t('matching.map.centreHome')
-    : t('matching.map.centrePoint')
+  return t('matching.map.centrePoint')
 })
 
 function centreDistance(person) {
@@ -1025,7 +1026,9 @@ let labelRequest = 0
  * Name the centre for the list's confirmation line (K-002). Three cases:
  * - a typed search carries its name;
  * - the member's home needs none: the list calls it their home (centerLabelShown), so
- *   nothing is asked - the home button lands here, and so does a crosshair set on the house;
+ *   nothing is asked - the home button lands here. A crosshair does only within HOME_KM of
+ *   the house, and at the zoom that frames the circle that is about one pixel, so a crosshair
+ *   set on the house by eye is usually looked up like any other point;
  * - any other point set on the map is named behind the admin switch (utils/reverseGeocode):
  *   by Nominatim in the old position, by nobody in the new one.
  * Only ever the member's own search point, never anybody else's position.

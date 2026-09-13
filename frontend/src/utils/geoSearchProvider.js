@@ -22,7 +22,12 @@ export class GeoIndexProvider extends JsonProvider {
     this.language = language
   }
 
-  async search({ query }) {
+  async search({ query, data }) {
+    // A row picked from the control's list arrives as `data`, and the control searches its
+    // label again and shows the first answer. GMS labels are short and not unique - "Paris"
+    // is France and Texas - so the first answer can be another place: hand back the row
+    // itself. Only while the words still are the row's label; typed on, it is a new search.
+    if (data && data.label === query) return [data]
     const places = await searchPlaces(await this.base(), query, {
       near: this.viewpoint(),
       language: this.language(),

@@ -303,11 +303,25 @@ describe('MatchList', () => {
       raw: { name: 'Künzelsau', number: null, postcode: '74653', city: 'Künzelsau' },
     }
 
+    const PRAGUE = { lat: 50.0874654, lng: 14.4212535 }
+
     const type = async (wrapper, text) => {
       await wrapper.find('#match-list-search').setValue(text)
       // The field waits 300 ms after the last key.
       vi.advanceTimersByTime(300)
       await flushPromises()
+    }
+    const rows = (wrapper) => wrapper.findAll('.search-result').map((row) => row.text())
+    // A question that stays out until the test answers it.
+    const heldAnswer = () => {
+      const held = {}
+      searchPlaces.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            held.answer = resolve
+          }),
+      )
+      return held
     }
 
     beforeEach(() => {
@@ -320,19 +334,59 @@ describe('MatchList', () => {
       vi.useRealTimers()
     })
 
-    it('asks the GMS near the centre of the list, in the wallet language, in the new position', async () => {
-      const wrapper = mountList()
+    // `center` is where distances are measured from - the member's home, under the travel
+    // lens. The address search belongs to where the search is.
+    it('asks the GMS near the search centre, in the wallet language, in the new position', async () => {
+      const wrapper = mountList({ center: CENTRE, searchCenter: PRAGUE })
 
       await type(wrapper, 'Pfarrweg 2')
 
       expect(searchPlaces).toHaveBeenCalledWith(GMS, 'Pfarrweg 2', {
-        near: CENTRE,
+        near: PRAGUE,
         language: 'de',
       })
-      expect(wrapper.findAll('.search-result').map((row) => row.text())).toEqual([
-        'Pfarrweg 2, 74653 Künzelsau',
-        '74653 Künzelsau',
-      ])
+      expect(rows(wrapper)).toEqual(['Pfarrweg 2, 74653 Künzelsau', '74653 Künzelsau'])
+    })
+
+    it('shows the answer to the words typed last, also when an earlier question answers later', async () => {
+      const earlier = heldAnswer()
+      searchPlaces.mockResolvedValueOnce([PFARRWEG])
+      const wrapper = mountList({ searchCenter: PRAGUE })
+
+      await type(wrapper, 'Pfar')
+      await type(wrapper, 'Pfarrweg 2')
+      expect(rows(wrapper)).toEqual(['Pfarrweg 2, 74653 Künzelsau'])
+
+      earlier.answer([KUENZELSAU])
+      await flushPromises()
+
+      expect(rows(wrapper)).toEqual(['Pfarrweg 2, 74653 Künzelsau'])
+    })
+
+    it('lets a search that was still waiting reopen nothing after a place is picked', async () => {
+      const wrapper = mountList({ searchCenter: PRAGUE })
+      await type(wrapper, 'Pfarrweg 2')
+
+      // Typed on, and picked before the field has waited its 300 ms.
+      await wrapper.find('#match-list-search').setValue('Pfarrweg 2,')
+      await wrapper.findAll('.search-result')[0].trigger('mousedown')
+      vi.advanceTimersByTime(300)
+      await flushPromises()
+
+      expect(rows(wrapper)).toEqual([])
+      expect(searchPlaces).toHaveBeenCalledTimes(1)
+    })
+
+    it('lets a search that was still out reopen nothing after the list was closed', async () => {
+      const out = heldAnswer()
+      const wrapper = mountList({ searchCenter: PRAGUE })
+      await type(wrapper, 'Pfarrweg 2')
+
+      await wrapper.find('#match-list-search').trigger('keydown.esc')
+      out.answer([PFARRWEG])
+      await flushPromises()
+
+      expect(rows(wrapper)).toEqual([])
     })
 
     it('moves the search to the place picked, with its name', async () => {
