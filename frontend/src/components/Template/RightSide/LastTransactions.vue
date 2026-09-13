@@ -44,7 +44,7 @@
              position of the switch above included. See the constant for why 48. -->
         <app-avatar v-else :size="LIST_AVATAR_SIZE" :color="'#fff'" v-bind="row.avatar" />
       </BCol>
-      <BCol class="min-w-0 last-transactions-text">
+      <BCol class="min-w-0">
         <!-- The name opens the contact window (KF-010), the same one the contact list
              opens -- it is not a way into the send form any more, here as little as
              anywhere else. The button under it still leads to the booking itself, so the
@@ -258,18 +258,18 @@ const rows = computed(() =>
   font-size: 0.85rem;
 }
 
-/* ⛔ The three lines are set tighter than the wallet's 1.5, and that is a rule about the
-   ROW, not about the type: together they have to stay under the 48-point face beside them,
-   because the face is what decides how tall a row is. At 1.5 the memo's line pushed the
-   text block past the face and the bookings grew taller than the contacts in the other
-   position of the switch -- the one thing H was built to make the same (Bernd, 12.09.2026,
-   asked and answered before this was written).
+/* ⛔ No line-height of its own, and that is the decision, not an omission. The contacts set
+   none either: both positions of the switch take the wallet's 1.5, so a name and the line
+   under it stand exactly as far apart here as there.
 
-   The type sizes are untouched, so the two positions still agree on those; what differs is
-   the space BETWEEN the lines of one row. */
-.last-transactions-text {
-  line-height: 1.2;
-}
+   Until 13.09.2026 this column set 1.2, to keep its three lines under the 48-point face so a
+   booking row stayed as tall as a contact row. Bernd reversed that when he saw it: the rows
+   looked squeezed, and "in den Schriftgrößen und in den Abständen genau den Kontakten
+   entsprechen" weighs more than an equal row height. A booking row is now some 8 points
+   taller than a contact row (69.8 against 61.8, measured against the served stylesheet at a
+   360-point column) -- the memo is a third line the contacts do not have, and it is given
+   room rather than squeezed in. Whoever wants the rows level again has to take that up with
+   the measure, not add a line-height back here. `LastTransactions.spec` holds it. */
 
 /* The community's name on a creation row, where a member's name stands otherwise. Clipped
    the same way `Name` clips (a community may be called anything), and `contain` for the
@@ -284,11 +284,14 @@ const rows = computed(() =>
 
 /* The memo, marked as somebody else's words by italics and the muted colour -- no heading
    over it, exactly as in the booking list. `--bs-secondary-color` is defined in both modes.
-   The size is Bernd's (12.09.2026): a step under the amount and date above it, because the
-   memo is the third thing this row says, not the second. `cursor` because the line leads to
-   the booking; a link inside it keeps its own click (MemoText). */
+
+   The size is the contacts' second line (0.72rem), not a size of its own: the column has two
+   positions, and a type size that exists in only one of them is the kind of difference that
+   reads as "squeezed" without anyone being able to say why (Bernd, 13.09.2026 -- it was
+   0.65rem, a step smaller than anything the contacts use). `cursor` because the line leads
+   to the booking; a link inside it keeps its own click (MemoText). */
 .last-transactions-memo {
-  font-size: 0.65rem;
+  font-size: 0.72rem;
   font-style: italic;
   color: var(--bs-secondary-color, #6c757d);
   cursor: pointer;
