@@ -5,7 +5,7 @@ import { getLogger } from 'log4js'
 import { aliasSchema, emailSchema, Order, Result, uuidv4Schema, VoidResult } from 'shared'
 import { EntityManager, In, IsNull, Like, Not, Raw } from 'typeorm'
 import { User as DbUser, UserContact as DbUserContact } from '../entity'
-import { RoleNames } from '../enum'
+import { ASSIGNABLE_ROLE_NAMES } from '../enum'
 import { DBNotFoundError } from '../errorTypes'
 import { findWithCommunityIdentifier, LOG4JS_QUERIES_CATEGORY_NAME } from './index'
 import { dbFindAliasOwner } from './userAliases'
@@ -316,7 +316,7 @@ export async function dbFindAdminUsersPage(
   return DbUser.findAndCount({
     relations: ['userRole'],
     where: {
-      userRole: { role: In([RoleNames.ADMIN, RoleNames.MODERATOR, RoleNames.MODERATOR_AI]) },
+      userRole: { role: In(ASSIGNABLE_ROLE_NAMES) },
     },
     order: {
       createdAt: order,

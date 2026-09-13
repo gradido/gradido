@@ -32,6 +32,7 @@ import {
   ALIAS_ORIGIN_CHOSEN,
   type AliasOrigin,
   AppDatabase,
+  ASSIGNABLE_ROLE_NAMES,
   aliasExists,
   aliasOriginIsSettled,
   DBNotFoundError,
@@ -1448,6 +1449,9 @@ export class UserResolver {
     let newRole: string | null = null
     if (role === null) {
       await deleteUserRole(user)
+    } else if (role && !ASSIGNABLE_ROLE_NAMES.includes(role)) {
+      // USER in particular: a usual member has no row, and removing a role is role=null.
+      throw new LogError('Role can not be assigned=', role)
     } else if (role && user.userRole?.role === role) {
       throw new LogError('User already has role=', role)
     } else {

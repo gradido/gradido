@@ -2064,6 +2064,29 @@ describe('UserResolver', () => {
             })
           })
 
+          // RoleNames also carries the roles that are no row: USER is the absence of a role,
+          // UNAUTHORIZED and DLT_CONNECTOR only exist on a request. The admin form used to send
+          // USER to take a role away, and it was stored. The variable carries the enum's GraphQL
+          // name, the resolver gets its value (DLT_CONNECTOR arrives as 'DLT_CONNECTOR_ROLE').
+          describe.each([
+            ['USER', RoleNames.USER],
+            ['UNAUTHORIZED', RoleNames.UNAUTHORIZED],
+            ['DLT_CONNECTOR', RoleNames.DLT_CONNECTOR],
+          ])('to %s', (name, value) => {
+            it('throws an error and writes no role row', async () => {
+              jest.clearAllMocks()
+              await expect(
+                mutate({ mutation: setUserRole, variables: { userId: user.id, role: name } }),
+              ).resolves.toEqual(
+                expect.objectContaining({
+                  errors: [new GraphQLError('Role can not be assigned=')],
+                }),
+              )
+              await expect(UserRole.find({ where: { userId: user.id } })).resolves.toEqual([])
+              expect(logErrorLogger.error).toBeCalledWith('Role can not be assigned=', value)
+            })
+          })
+
           describe('user has already role to be set', () => {
             describe('to admin', () => {
               it('throws an error', async () => {

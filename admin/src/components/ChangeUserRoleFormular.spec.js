@@ -370,6 +370,25 @@ describe('ChangeUserRoleFormular', () => {
       ])
     })
 
+    it('sends null, not USER, when the role is taken away', async () => {
+      propsData.item.role = 'MODERATOR'
+      wrapper = createWrapper()
+      mockMutate.mockResolvedValue({ data: { setUserRole: null } })
+
+      await wrapper.vm.updateUserRole('USER', 'MODERATOR')
+
+      expect(mockMutate).toHaveBeenCalledWith({
+        userId: 1,
+        role: null,
+      })
+      expect(wrapper.emitted('update-role')[0]).toEqual([
+        {
+          userId: 1,
+          role: null,
+        },
+      ])
+    })
+
     it('handles error and resets role on failure', async () => {
       mockMutate.mockRejectedValue(new Error('API Error'))
 

@@ -142,16 +142,17 @@ const { mutate: setUserRole } = useMutation(setUserRoleMutation)
 const updateUserRole = (newRole, oldRole) => {
   const role = roles.value.find((role) => role.value === newRole)
   const roleText = role.text
-  const roleValue = role.value
+  // A usual member has no role: USER is the absence of one, and that is null on the wire.
+  const roleValue = role.value === rolesValues.USER ? null : role.value
 
   setUserRole({
     userId: props.item.userId,
-    role: role.value,
+    role: roleValue,
   })
     .then(() => {
       emit('update-role', {
         userId: props.item.userId,
-        role: roleValue === 'USER' ? null : roleValue,
+        role: roleValue,
       })
       toastSuccess(
         t('userRole.successfullyChangedTo', {
