@@ -1,3 +1,4 @@
+import { MatchingMapSwitches } from '@model/MatchingMapSwitches'
 import { Field, Int, ObjectType } from 'type-graphql'
 
 // The global Crea runtime settings shown in the admin panel (DO-4). `model` is the
@@ -34,6 +35,14 @@ export class CreaSettings {
    */
   @Field()
   matchingKeyingActive: boolean
+
+  /**
+   * Which map the wallet draws and which place search it asks (K-008). Build-phase
+   * switches, on `communities` like the keying switch, with their own mutation and their
+   * own Save button for the same reason.
+   */
+  @Field(() => MatchingMapSwitches)
+  matchingMapSwitches: MatchingMapSwitches
 
   /**
    * Who signs the first creation (ES-005), or null when nobody is configured — and null

@@ -581,6 +581,10 @@ export const setCreaSettings = gql`
       defaultModel
       fastMode
       matchingKeyingActive
+      matchingMapSwitches {
+        mapEngine
+        geoProvider
+      }
     }
   }
 `
@@ -588,6 +592,15 @@ export const setCreaSettings = gql`
 export const setCreaMatchingKeying = gql`
   mutation ($active: Boolean!) {
     setCreaMatchingKeying(active: $active)
+  }
+`
+
+export const setMatchingMapSwitches = gql`
+  mutation ($mapEngine: MatchingMapEngine!, $geoProvider: MatchingGeoProvider!) {
+    setMatchingMapSwitches(mapEngine: $mapEngine, geoProvider: $geoProvider) {
+      mapEngine
+      geoProvider
+    }
   }
 `
 

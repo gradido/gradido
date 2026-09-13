@@ -10,6 +10,7 @@ import {
   login,
   setCreaMatchingKeying,
   setCreaSettings,
+  setMatchingMapSwitches,
   testCreaModel,
 } from '@/seeds/graphql/mutations'
 import { adminListContributions, creaSettings } from '@/seeds/graphql/queries'
@@ -142,6 +143,16 @@ describe('the Crea settings — only administrators', () => {
     ).resolves.toEqual(unauthorized)
   })
 
+  it('refuses to let a moderator set the map switches', async () => {
+    await loginAs('bibi@bloxberg.de')
+    await expect(
+      mutate({
+        mutation: setMatchingMapSwitches,
+        variables: { mapEngine: 'MAPLIBRE', geoProvider: 'GMS' },
+      }),
+    ).resolves.toEqual(unauthorized)
+  })
+
   it('refuses to let a moderator spend a probe call', async () => {
     // ⚠️ The fourth AI_SETTINGS operation, and it reaches the Anthropic API - so this
     // file asserts only the REFUSAL for it. The guard runs as middleware, before the
@@ -204,5 +215,42 @@ describe('the Crea settings — only administrators', () => {
     const off = await mutate({ mutation: setCreaMatchingKeying, variables: { active: false } })
     expect(off.errors).toBeUndefined()
     expect(off.data?.setCreaMatchingKeying).toBe(false)
+  })
+
+  it('lets an administrator set the map switches, and the settings read them back', async () => {
+    await loginAs('peter@lustig.de')
+    const OLD = { mapEngine: 'LEAFLET', geoProvider: 'NOMINATIM' }
+    const NEW = { mapEngine: 'MAPLIBRE', geoProvider: 'GMS' }
+
+    // The defaults of migration 0133: nothing changes until somebody switches.
+    const before = await query({ query: creaSettings })
+    expect(before.data?.creaSettings.matchingMapSwitches).toEqual(OLD)
+
+    const set = await mutate({ mutation: setMatchingMapSwitches, variables: NEW })
+    expect(set.errors).toBeUndefined()
+    expect(set.data?.setMatchingMapSwitches).toEqual(NEW)
+    const stored = await query({ query: creaSettings })
+    expect(stored.data?.creaSettings.matchingMapSwitches).toEqual(NEW)
+
+    const back = await mutate({ mutation: setMatchingMapSwitches, variables: OLD })
+    expect(back.errors).toBeUndefined()
+    expect(back.data?.setMatchingMapSwitches).toEqual(OLD)
+  })
+
+  it('refuses a map switch position that does not exist, before anything is stored', async () => {
+    // The GraphQL enum is the boundary check for these two columns (no valibot before
+    // TypeScript 5, AGENTS.md). A word that is not a position never reaches the resolver.
+    await loginAs('peter@lustig.de')
+    const { errors } = await mutate({
+      mutation: setMatchingMapSwitches,
+      variables: { mapEngine: 'MAPBOX', geoProvider: 'GMS' },
+    })
+    expect(errors).toBeDefined()
+
+    const stored = await query({ query: creaSettings })
+    expect(stored.data?.creaSettings.matchingMapSwitches).toEqual({
+      mapEngine: 'LEAFLET',
+      geoProvider: 'NOMINATIM',
+    })
   })
 })

@@ -1,3 +1,4 @@
+import { MatchingGeoProvider, MatchingMapEngine } from '@enum/MatchingMapSwitches'
 import { CreaBatchInput } from '@input/CreaBatchInput'
 import { CreaContributionInput } from '@input/CreaContributionInput'
 import { CreaSettingsInput } from '@input/CreaSettingsInput'
@@ -5,12 +6,15 @@ import { CreaBatchEvaluation } from '@model/CreaBatchEvaluation'
 import { CreaEvaluation } from '@model/CreaEvaluation'
 import { CreaRewriteResult } from '@model/CreaRewriteResult'
 import { CreaModelTestResult, CreaSettings, FirstCreationSigner } from '@model/CreaSettings'
+import { MatchingMapSwitches } from '@model/MatchingMapSwitches'
 import {
   User as DbUser,
   dbGetFirstCreationSignerUserId,
   dbIsMatchingKeyingActive,
+  dbSelectMatchingMapSwitches,
   dbSetFirstCreationSignerUserId,
   dbSetMatchingKeyingActive,
+  dbUpdateMatchingMapSwitches,
 } from 'database'
 import { SALUTATION_MAX_LENGTH } from 'shared'
 import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
@@ -181,6 +185,7 @@ export class CreaResolver {
       // thinks are one setting for the whole instance, but who pays for keying belongs
       // to the community that has the members.
       matchingKeyingActive: await dbIsMatchingKeyingActive(),
+      matchingMapSwitches: await dbSelectMatchingMapSwitches(),
       firstCreationSigner: await readFirstCreationSigner(),
     }
   }
@@ -204,8 +209,9 @@ export class CreaResolver {
     // first: then a failure here means nothing was written, which is what the error
     // toast says.
     const matchingKeyingActive = await dbIsMatchingKeyingActive()
-    // Same rule for the signer: read before the write, so a failing read cannot turn a
-    // save that has already committed into an error toast.
+    // Same rule for the map switches and the signer: read before the write, so a failing
+    // read cannot turn a save that has already committed into an error toast.
+    const matchingMapSwitches = await dbSelectMatchingMapSwitches()
     const firstCreationSigner = await readFirstCreationSigner()
     const settings = await writeCreaSettings(
       input.model ?? null,
@@ -218,6 +224,7 @@ export class CreaResolver {
       defaultModel: defaultCreaModel(),
       fastMode: settings.fastMode,
       matchingKeyingActive,
+      matchingMapSwitches,
       firstCreationSigner,
     }
   }
@@ -277,6 +284,27 @@ export class CreaResolver {
       throw new LogError('could not store the matching keying switch', written.error)
     }
     return await dbIsMatchingKeyingActive()
+  }
+
+  /**
+   * Which map the wallet draws and which place search it asks (K-008), switched without
+   * a deploy. Both at once, because the page saves them with one button.
+   *
+   * Its own mutation for the reason the keying switch has one: saving a model must not be
+   * able to move them. Answers with what is STORED, like `setCreaMatchingKeying`, so the
+   * page shows what is true when a second admin wrote in between.
+   */
+  @Authorized([RIGHTS.AI_SETTINGS])
+  @Mutation(() => MatchingMapSwitches)
+  async setMatchingMapSwitches(
+    @Arg('mapEngine', () => MatchingMapEngine) mapEngine: MatchingMapEngine,
+    @Arg('geoProvider', () => MatchingGeoProvider) geoProvider: MatchingGeoProvider,
+  ): Promise<MatchingMapSwitches> {
+    const written = await dbUpdateMatchingMapSwitches({ mapEngine, geoProvider })
+    if (!written.success) {
+      throw new LogError('could not store the matching map switches', written.error)
+    }
+    return await dbSelectMatchingMapSwitches()
   }
 
   /**
