@@ -279,6 +279,8 @@ describe('the keying of a matching entry', () => {
   }
 
   beforeAll(async () => {
+    const HOME_COMMUNITY = '11111111-1111-4111-8111-111111111111'
+
     await db
       .delete(usersTable)
       .where(inArray(usersTable.id, [KEYED, NOT_ALLOWED, DELETED, FOREIGN]))
@@ -288,6 +290,7 @@ describe('the keying of a matching entry', () => {
         gradidoId: '90000000-0000-4000-8000-000000000901',
         language: 'de',
         gmsAllowed: 1,
+        communityUuid: HOME_COMMUNITY,
       },
       // A member who has NOT agreed to take part in the GMS. Their entries stay in
       // their own list and must never be keyed: the words would land in a table every
@@ -297,6 +300,7 @@ describe('the keying of a matching entry', () => {
         gradidoId: '90000000-0000-4000-8000-000000000902',
         language: 'de',
         gmsAllowed: 0,
+        communityUuid: HOME_COMMUNITY,
       },
       // A member who deleted their account. Only soft-deleted, so nothing but the
       // query itself stops their entries from being worked out.
@@ -306,6 +310,7 @@ describe('the keying of a matching entry', () => {
         language: 'de',
         gmsAllowed: 1,
         deletedAt: new Date(),
+        communityUuid: HOME_COMMUNITY,
       },
       // A member of ANOTHER community, as the federation stores them: same table,
       // same shape. No local path gives such a row an entry - this builds the state

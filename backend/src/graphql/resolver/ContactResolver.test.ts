@@ -181,8 +181,8 @@ describe('ContactResolver', () => {
      *
      * ⚠️ Only ONE shape is exercised, and that is a measurement rather than an omission. A
      * first version of this test also drove a foreign row with a NULL `community_uuid`,
-     * reasoning that migration 0129 fills `foreign = 0` rows only -- but no writer produces
-     * that state: both `core/graphql/logic/storeForeignUser` and
+     * reasoning that migration 0129 filled `foreign = 0` rows only -- but no writer produced
+     * that state, and since migration 0134 the column refuses it outright: both `core/graphql/logic/storeForeignUser` and
      * `federation/graphql/api/1_0/util/storeForeignUser` assign the uuid, and the first is
      * guarded on `communityUuid !== null` before it even builds the row. The fixture was
      * inventing a state the real path does not allow, and the list's pre-existing rule for
@@ -258,36 +258,6 @@ describe('ContactResolver', () => {
     it('refuses a page that is not a page', async () => {
       const res: any = await query({ query: contactList, variables: { currentPage: 0 } })
       expect(res.errors?.[0]?.message).toContain('Argument Validation Error')
-    })
-
-    it('stands in with the home community for a member whose row carries no uuid', async () => {
-      // A member registered before the home community had a uuid: the row says null. The
-      // list must still answer -- the field is non-null in the schema -- and name the pair
-      // the favourite will be stored under.
-      await db
-        .getDataSource()
-        .query('UPDATE users SET community_uuid = NULL WHERE id = ?', [peter.id])
-      try {
-        const res: any = await query({ query: contactList })
-        expect(res.errors).toBeUndefined()
-        const peterRow = res.data.contactList.contacts.find(
-          (c: any) => c.user.gradidoID === peter.gradidoID,
-        )
-        expect(peterRow.user.communityUuid).toBe(bibi.communityUuid)
-        // ⛔ And the link the window builds from that stand-in must find him: the list is
-        // looked up by the pair, and his row carries none. Without the home fallback in
-        // dbFindUserIdByUuids the window said one booking and the list showed nothing.
-        const bookings = await narrowed(peterRow.user)
-        expect(bookings.balance.count).toBe(1)
-        expect(bookings.transactions[0].linkedUser.gradidoID).toBe(peter.gradidoID)
-      } finally {
-        // ⚠️ Restored: this is the state migration 0129 removed, and the narrowed booking
-        // list below looks the row up by the filled pair. Left null, that list would find
-        // no row for peter and the two ends would disagree for a reason nothing states.
-        await db
-          .getDataSource()
-          .query('UPDATE users SET community_uuid = ? WHERE id = ?', [bibi.communityUuid, peter.id])
-      }
     })
 
     it('starts with no favourites', async () => {

@@ -765,10 +765,14 @@ describe('UserResolver', () => {
         )
       })
 
+      // The `login` logger, not `findUserByEmail`'s: the login reads the account itself
+      // now (dbFindUserLoginByEmail) instead of borrowing that helper, so the warning is
+      // its own. findUserByEmail is still what forgotPassword and the rest go through,
+      // and its own logging is asserted there.
       it('logs the error found', () => {
-        expect(findUserByEmailLogger.warn).toBeCalledWith(
-          `findUserByEmail failed, user with email=${variables.email} not found`,
-        )
+        // Without the address: an address typed into the login form is personal data
+        // whether or not an account exists for it, so it does not go into the log.
+        expect(loginLogger.warn).toBeCalledWith('login failed, user not found')
       })
     })
 
@@ -807,6 +811,12 @@ describe('UserResolver', () => {
                 publisherId: 1234,
                 roles: [],
                 userLocation: null,
+                // Own view only, and answered here because the login names the member it
+                // has just authenticated before it returns. Null for the picture -- bibi
+                // has not set one -- and the two column defaults for the rest.
+                avatar: null,
+                avatarVisibleToMembers: true,
+                creationAllowed: true,
               },
             },
           }),
@@ -871,12 +881,13 @@ describe('UserResolver', () => {
         await cleanDB()
       })
 
-      it('returns an error', () => {
+      // ⛔ The SAME answer as for an unknown address (CWE-203). A message of its own told
+      // anybody who typed an address whether an account had ever existed behind it. Only
+      // the log still tells the two apart -- asserted below.
+      it('answers like an unknown address', () => {
         expect(result).toEqual(
           expect.objectContaining({
-            errors: [
-              new GraphQLError('This user was permanently deleted. Contact support for questions'),
-            ],
+            errors: [new GraphQLError('No user with this credentials')],
           }),
         )
       })
@@ -1744,6 +1755,11 @@ describe('UserResolver', () => {
                 publisherId: 1234,
                 roles: [],
                 userLocation: null,
+                // Same three as in the login block above: this literal lists every
+                // selected field, so it has to grow with the document.
+                avatar: null,
+                avatarVisibleToMembers: true,
+                creationAllowed: true,
               },
             },
           }),
@@ -1954,6 +1970,14 @@ describe('UserResolver', () => {
                 expect(new Date(result.data.setUserRole)).toEqual(expect.any(Date))
               })
 
+              // ADMIN first, MODERATOR now: the second grant changed the member's one row
+              // instead of adding a second (dbUpsertUserRole on the unique user_id, 0135).
+              it('keeps exactly one role row for the member', async () => {
+                const rows = await UserRole.find({ where: { userId: user.id } })
+                expect(rows).toHaveLength(1)
+                expect(rows[0].role).toBe(RoleNames.MODERATOR)
+              })
+
               it('stores the ADMIN_USER_ROLE_SET event in the database', async () => {
                 await expect(DbEvent.find()).resolves.toContainEqual(
                   expect.objectContaining({
@@ -1966,16 +1990,21 @@ describe('UserResolver', () => {
             })
 
             describe('to usual user', () => {
-              it('returns null', async () => {
-                await expect(
-                  mutate({ mutation: setUserRole, variables: { userId: user.id, role: null } }),
-                ).resolves.toEqual(
-                  expect.objectContaining({
-                    data: {
-                      setUserRole: null,
-                    },
-                  }),
-                )
+              // ⛔ `errors` asserted, not only `data`. The field is nullable, so an exception
+              // in the resolver ALSO answers `setUserRole: null` -- and it did: the removal
+              // read `[][0].role` and threw after the role was already gone, while this test,
+              // checking `data` alone, stayed green.
+              it('returns null, and no error', async () => {
+                const result: any = await mutate({
+                  mutation: setUserRole,
+                  variables: { userId: user.id, role: null },
+                })
+                expect(result.errors).toBeUndefined()
+                expect(result.data).toEqual({ setUserRole: null })
+              })
+
+              it('leaves the member without a role row', async () => {
+                await expect(UserRole.find({ where: { userId: user.id } })).resolves.toEqual([])
               })
             })
           })
@@ -2995,6 +3024,46 @@ describe('UserResolver', () => {
       expect(res.data.verifyLogin.avatar).toBe(JPEG_BASE64)
     })
 
+    // The other way in. The login joins the picture onto the user row it reads, so a
+    // member sees their own face on the first screen instead of watching initials turn
+    // into a picture while a second query flies. Two things have to hold at once for this
+    // to answer: the join, and the owner guard on the field -- the login names the member
+    // it has just authenticated before it returns, which is what lets the guard match.
+    it('hands the same picture over with the login itself', async () => {
+      await mutate({ mutation: setUserAvatar, variables: bothPictures })
+
+      const res: any = await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+      expect(res.data.login.avatar).toBe(JPEG_BASE64)
+      // The switch beside it, from the same answer and through the same guard.
+      expect(res.data.login.avatarVisibleToMembers).toBe(true)
+    })
+
+    // ⛔ The login reads the WHOLE `users` row, `location` with it. A member who had saved
+    // a position could not sign in at all: mysql2 parses a geometry column into `{ x, y }`
+    // and the geometry type handed that to wkx, which refuses anything but a string or a
+    // Buffer -- so the read threw and the member was told "no user with this credentials".
+    // Nothing in that message points at a pin on a map, which is why it is held down here
+    // and not only in the database package.
+    it('lets a member who has saved a position sign in', async () => {
+      await User.update(
+        { id: owner.id },
+        { location: Location2Point({ longitude: 8.6821, latitude: 50.1109 }) },
+      )
+      try {
+        const res: any = await mutate({
+          mutation: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.login.gradidoID).toEqual(expect.any(String))
+      } finally {
+        await User.update({ id: owner.id }, { location: null })
+      }
+    })
+
     // The payload coderabbit found: ff d8 00 passes an opening-marker check on its own.
     it('refuses a payload that only starts like a JPEG', async () => {
       const res: any = await mutate({
@@ -3271,6 +3340,18 @@ describe('UserResolver', () => {
 
       it("hands bibi's full crop to bob", async () => {
         const res: any = await query({ query: memberAvatarFull, variables: refToOwner() })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.memberAvatarFull).toBe(JPEG_FULL_BASE64)
+      })
+
+      // The input type still admits a null uuid, and the query matches the exact pair only.
+      // This pins the one reading the API gives a null -- THIS community -- as long as the
+      // field stays nullable; it goes when MemberAvatarRefInput becomes `String!`.
+      it('reads a ref without a community uuid as this community', async () => {
+        const res: any = await query({
+          query: memberAvatarFull,
+          variables: { ref: { gradidoID: owner.gradidoID, communityUuid: null } },
+        })
         expect(res.errors).toBeUndefined()
         expect(res.data.memberAvatarFull).toBe(JPEG_FULL_BASE64)
       })

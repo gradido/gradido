@@ -1,9 +1,19 @@
 import { and, desc, eq, inArray, isNull, or } from 'drizzle-orm'
 import { alias as aliasedTable } from 'drizzle-orm/mysql-core'
-import { GradidoUnit, VoidResult } from 'shared'
+import { GradidoUnit, PasswordEncryptionType, Result, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
-import { DBNotFoundError } from '../errorTypes'
-import { transactionsTable, usersTable } from '../schemas/drizzle.schema'
+import { DBDuplicateEntryError, DBNotFoundError } from '../errorTypes'
+import {
+  transactionsTable,
+  UserContactSelect,
+  UserInsert,
+  UserRoleSelect,
+  UserSelect,
+  userAvatarsTable,
+  userContactsTable,
+  userRolesTable,
+  usersTable,
+} from '../schemas/drizzle.schema'
 import { dbAliasHeldByOther } from './userAliases'
 
 // Drizzle only. The `users` queries still on TypeORM live in `./user.typeorm` until they
@@ -12,6 +22,85 @@ import { dbAliasHeldByOther } from './userAliases'
 // Wherever TypeORM read `users` as its main table it added `deleted_at IS NULL` on its own
 // (the entity has a `@DeleteDateColumn`); Drizzle adds nothing, so the translations below
 // spell that condition out.
+
+/**
+ * Everything the login needs about the member signing in, in one round trip.
+ *
+ * "In one round trip" is the reason this query exists rather than four. The login is the
+ * one request path every member and every test takes, and it used to walk it four times
+ * over: the user row, the role, the contact, and the avatar each on their own. The joins
+ * below are cheap -- one row by a unique address, 0..1 role, 0..1 avatar -- and the
+ * picture rides along so the wallet can show a member their own face on the first screen
+ * instead of initials until some later query happens to refill it.
+ *
+ * ⛔ Deleted accounts INCLUDED, deliberately, and this one must not grow a
+ * `deleted_at IS NULL`. The caller answers a deleted account exactly like an unknown
+ * address (CWE-203: the answer must not confirm that an account exists), but it still has
+ * to KNOW which of the two it met -- to log it as what it is. Everything the caller must
+ * refuse -- deletion, an unconfirmed address, a missing password -- is checked there, on
+ * the row this hands back.
+ *
+ * The address is matched on `user_contacts`, not on `users`: `users.email_id` names the
+ * address that is IN FORCE, so someone who changed their address signs in with the new
+ * one and not with an old row that still carries their name.
+ *
+ * Every join is 0..1 by shape: the address by `user_contacts.email` (UNIQUE), the role by
+ * `user_roles.user_id` (UNIQUE since migration 0135), the picture by `user_avatars.user_id`
+ * (primary key). More than one row can only mean two `users` rows naming the same address
+ * row through `email_id` -- a broken state, refused rather than resolved, because picking
+ * one would sign somebody in as whichever member the database reached first.
+ */
+export async function dbFindUserLoginByEmail(
+  email: string,
+): Promise<Result<DbLoginUser, DBNotFoundError>> {
+  const rows = await drizzleDb()
+    .select({
+      user: usersTable,
+      role: userRolesTable,
+      emailContact: userContactsTable,
+      avatar: userAvatarsTable.avatarSmall,
+    })
+    .from(usersTable)
+    // 0..1 by shape: user_roles.user_id is UNIQUE (migration 0135).
+    .leftJoin(userRolesTable, eq(usersTable.id, userRolesTable.userId))
+    .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))
+    // 0..1 by shape: user_avatars is keyed by user_id.
+    .leftJoin(userAvatarsTable, eq(usersTable.id, userAvatarsTable.userId))
+    .where(eq(userContactsTable.email, email))
+
+  if (!rows.length) {
+    return { success: false, error: new DBNotFoundError('user_contacts', `email: ${email}`) }
+  }
+  if (rows.length > 1) {
+    throw new DBDuplicateEntryError('users by email_id', 'email', email)
+  }
+  const item = rows[0]
+  return {
+    success: true,
+    value: { ...item.user, role: item.role, emailContact: item.emailContact, avatar: item.avatar },
+  }
+}
+
+/**
+ * A `users` row together with the address in force for it -- the shape almost everything
+ * above the database means when it says "the user". The TypeORM entity carries the same
+ * pair as `User` + `User.emailContact`, which is why the consumers of both take
+ * `DbUser | User` while the translation is under way.
+ *
+ * ⚠️ The two spell the id differently: the entity has `gradidoID`, the row `gradidoId`.
+ * Whoever accepts both reads it through `gradidoIdOf` rather than picking one.
+ */
+export type DbUser = UserSelect & {
+  emailContact: UserContactSelect
+}
+
+/** What {@link dbFindUserLoginByEmail} hands back: a {@link DbUser} plus the two things
+ * the login answer needs and the row cannot carry -- the member's role and the small
+ * rendition of their picture. Both null where there is none. */
+export type DbLoginUser = DbUser & {
+  role: UserRoleSelect | null
+  avatar: Buffer | null
+}
 
 /**
  * The id of the `users` row carrying this pair, or null when there is none.
@@ -23,37 +112,18 @@ import { dbAliasHeldByOther } from './userAliases'
  * `linked_user_id` without asking. No `deletedAt` condition either: a booking keeps naming
  * a member whose account is gone, so their bookings stay filterable.
  *
- * `homeCommunityUuid`: when the pair names THIS community, a `foreign = 0` row that still
- * carries no community uuid counts as well. Migration 0129 filled those rows, but it was a
- * no-op wherever the home community had no row yet when it ran -- and the contact list
- * stands in the home uuid for exactly these members (ContactResolver), so the pair it
- * hands out has to find them here too, or the window would count bookings the list then
- * cannot show.
+ * The exact pair and nothing else. This used to take the home community's uuid as well and
+ * let a local row WITHOUT a uuid count for it -- the state migration 0129 could leave
+ * behind. Migration 0134 made `users.community_uuid` NOT NULL, so that row cannot exist.
  */
 export async function dbFindUserIdByUuids(
   communityUuid: string,
   gradidoID: string,
-  options: { homeCommunityUuid?: string | null } = {},
 ): Promise<number | null> {
-  const exactPair = and(
-    eq(usersTable.communityUuid, communityUuid),
-    eq(usersTable.gradidoId, gradidoID),
-  )
-  const where =
-    options.homeCommunityUuid && options.homeCommunityUuid === communityUuid
-      ? or(
-          exactPair,
-          and(
-            eq(usersTable.foreign, 0),
-            isNull(usersTable.communityUuid),
-            eq(usersTable.gradidoId, gradidoID),
-          ),
-        )
-      : exactPair
   const rows = await drizzleDb()
     .select({ id: usersTable.id })
     .from(usersTable)
-    .where(where)
+    .where(and(eq(usersTable.communityUuid, communityUuid), eq(usersTable.gradidoId, gradidoID)))
     .limit(1)
   return rows[0]?.id ?? null
 }
@@ -69,7 +139,7 @@ export async function dbFindUserIdByUuids(
 export async function dbClearGmsRegistration(userId: number): Promise<VoidResult<DBNotFoundError>> {
   const result = await drizzleDb()
     .update(usersTable)
-    .set({ gmsRegistered: 0, gmsRegisteredAt: null })
+    .set({ gmsRegistered: false, gmsRegisteredAt: null })
     .where(eq(usersTable.id, userId))
 
   const firstRow = result[0]
@@ -88,7 +158,7 @@ export async function aliasExists(alias: string, userId?: number): Promise<boole
     .select({ id: usersTable.id })
     .from(usersTable)
     .where(
-      and(eq(usersTable.alias, alias), eq(usersTable.foreign, 0), isNull(usersTable.deletedAt)),
+      and(eq(usersTable.alias, alias), eq(usersTable.foreign, false), isNull(usersTable.deletedAt)),
     )
     .limit(1)
   if (user !== undefined && (userId === undefined || user.id !== userId)) {
@@ -138,7 +208,11 @@ export async function dbFindGmsAllowedLocalUserIds(): Promise<{ id: number }[]> 
     .select({ id: usersTable.id })
     .from(usersTable)
     .where(
-      and(eq(usersTable.foreign, 0), eq(usersTable.gmsAllowed, 1), isNull(usersTable.deletedAt)),
+      and(
+        eq(usersTable.foreign, false),
+        eq(usersTable.gmsAllowed, true),
+        isNull(usersTable.deletedAt),
+      ),
     )
 }
 
@@ -187,6 +261,67 @@ export async function dbSelectLatestUserBalances(): Promise<
 export async function dbMarkUsersGmsRegistered(userIds: number[]): Promise<void> {
   await drizzleDb()
     .update(usersTable)
-    .set({ gmsRegistered: 1, gmsRegisteredAt: new Date() })
+    .set({ gmsRegistered: true, gmsRegisteredAt: new Date() })
     .where(inArray(usersTable.id, userIds))
+}
+
+/**
+ * Store a freshly derived password together with the scheme it was derived under.
+ *
+ * The two always travel together, and that is the whole reason this is one function
+ * rather than two calls to `dbUserUpdateField` below: the hash means nothing without the
+ * salt rule that produced it, so a row that carries the new hash under the old scheme can
+ * no longer be signed in to. The login writes here when it meets an account still on the
+ * EMAIL scheme and has just verified the password, so it can rewrite it under
+ * GRADIDO_ID -- which is why the salt must not change under a hash already written.
+ *
+ * No `deleted_at` condition and no report of what was matched: the caller has the row in
+ * hand, having just read and checked it.
+ */
+export async function dbUserUpdatePassword(
+  userId: number,
+  passwordEncryptionType: PasswordEncryptionType,
+  password: bigint,
+): Promise<void> {
+  await drizzleDb()
+    .update(usersTable)
+    .set({ password, passwordEncryptionType })
+    .where(eq(usersTable.id, userId))
+}
+
+/**
+ * The `users` columns that must never be written one at a time: each only means something
+ * together with the other. A hash stored without its scheme -- or a scheme changed under a
+ * stored hash -- leaves an account nobody can sign in to. Written through
+ * dbUserUpdatePassword, and only there.
+ */
+type UserCoupledColumn = 'password' | 'passwordEncryptionType'
+
+/** Every `users` column dbUserUpdateField may write on its own. */
+export type UserSingleColumn = Exclude<keyof UserInsert, UserCoupledColumn>
+
+/**
+ * One column of one `users` row, by name.
+ *
+ * For the single-field writes that used to be `dbUser.field = x; await dbUser.save()` --
+ * which sent the WHOLE row back, every column of it, and so could carry along anything
+ * another request had changed in between. Named columns only: `K extends UserSingleColumn`
+ * makes a typo a compile error and gives the value the column's own type.
+ *
+ * ⛔ Not the password columns: `UserSingleColumn` leaves them out, so
+ * `dbUserUpdateField(id, 'password', …)` does not compile. Two fields that only make sense
+ * together belong in a function of their own, the way dbUserUpdatePassword is one; whoever
+ * reaches for two calls of this in a row should write that function instead.
+ */
+export async function dbUserUpdateField<K extends UserSingleColumn>(
+  userId: number,
+  field: K,
+  value: UserInsert[K],
+): Promise<void> {
+  await drizzleDb()
+    .update(usersTable)
+    .set({
+      [field]: value,
+    })
+    .where(eq(usersTable.id, userId))
 }

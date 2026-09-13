@@ -1,10 +1,10 @@
-import { User } from 'database'
+import { DbUser, User } from 'database'
 
 import { CONFIG } from '@/config'
 import { PublishNameLogic } from '@/data/PublishName.logic'
 
 export class Profile {
-  public constructor(user: User) {
+  public constructor(user: DbUser | User) {
     const publishNameLogic = new PublishNameLogic(user)
 
     // The DISPLAY is the alias (NU-024): what a person reads in HumHub. In humhub the

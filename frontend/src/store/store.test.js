@@ -234,24 +234,48 @@ describe('Vuex store', () => {
         expect(localCommit).toHaveBeenCalledWith('accountCreatedAt', '2026-08-25T06:00:00.000Z')
       })
 
-      // Not read from the payload -- the login mutation cannot carry a picture -- but
-      // cleared, because the persisted store routinely still holds the previous member's
-      // avatar when the next one logs in on the same browser.
-      it("forgets the previous member's picture", () => {
+      // Read from the payload now -- BOTH answers that reach this action carry the
+      // picture: guards.js hands in a verifyLogin result, Login.vue a login result, and
+      // the login joins the picture onto the user row it reads.
+      it("stores the member's own picture", () => {
+        const localCommit = vi.fn()
+        login({ commit: localCommit, state: {} }, { ...commitedData, avatar: 'base64-picture' })
+        expect(localCommit).toHaveBeenCalledWith('avatar', 'base64-picture')
+      })
+
+      // ⛔ And null, never undefined, where the answer does not say. A session expires
+      // after ten minutes without anyone logging out, so the persisted store routinely
+      // still holds the LAST member's picture when the next one signs in on the same
+      // browser; `data.avatar` alone would leave it standing and show one member another
+      // member's face.
+      it("forgets the previous member's picture when the answer carries none", () => {
         const localCommit = vi.fn()
         login({ commit: localCommit, state: {} }, commitedData)
         expect(localCommit).toHaveBeenCalledWith('avatar', null)
       })
 
-      // Same treatment, same reason, and one more of its own: the login mutation is
-      // answered without an authenticated caller, so an own-view-only field comes back
-      // null there. Reading it off the payload would be right for guards.js, which hands
-      // this action a verifyLogin result, and wrong for Login.vue, which hands it a login
-      // result -- the switch would then show "hidden" to every member whose picture is in
-      // fact shown. Both callers fill it from verifyLogin instead; see queries.test.js.
-      it("forgets the previous member's picture setting rather than reading a login payload", () => {
+      // The switch that says who may see that picture. Own-view only -- a field resolver
+      // hands it to nobody but its owner -- and it comes back from the login as well now,
+      // because the login puts the member it has just authenticated on the context before
+      // it answers, so that guard matches.
+      //
+      // ⛔ `?? null`, and the difference matters in BOTH directions: reading a stored
+      // `false` as null would show a member "not visible" when they are (the wrong
+      // direction for a switch somebody consults to check that they are hidden), and
+      // letting an absent field through as undefined would leave the previous member's
+      // setting in the persisted store.
+      it("stores the member's picture-visibility setting, false included", () => {
         const localCommit = vi.fn()
         login({ commit: localCommit, state: {} }, { ...commitedData, avatarVisibleToMembers: true })
+        expect(localCommit).toHaveBeenCalledWith('avatarVisibleToMembers', true)
+        localCommit.mockClear()
+        login(
+          { commit: localCommit, state: {} },
+          { ...commitedData, avatarVisibleToMembers: false },
+        )
+        expect(localCommit).toHaveBeenCalledWith('avatarVisibleToMembers', false)
+        localCommit.mockClear()
+        login({ commit: localCommit, state: {} }, commitedData)
         expect(localCommit).toHaveBeenCalledWith('avatarVisibleToMembers', null)
       })
 

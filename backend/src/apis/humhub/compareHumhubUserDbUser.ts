@@ -1,10 +1,10 @@
-import { User } from 'database'
+import { DbUser, User } from 'database'
 
 import { Account } from './model/Account'
 import { GetUser } from './model/GetUser'
 import { Profile } from './model/Profile'
 
-function profileIsTheSame(profile: Profile, user: User): boolean {
+function profileIsTheSame(profile: Profile, user: DbUser | User): boolean {
   const gradidoUserProfile = new Profile(user)
   if (profile.firstname !== gradidoUserProfile.firstname) {
     return false
@@ -18,7 +18,7 @@ function profileIsTheSame(profile: Profile, user: User): boolean {
   return true
 }
 
-function accountIsTheSame(account: Account, user: User): boolean {
+function accountIsTheSame(account: Account, user: DbUser | User): boolean {
   const gradidoUserAccount = new Account(user)
   if (account.username !== gradidoUserAccount.username) {
     return false
@@ -41,7 +41,10 @@ function accountIsTheSame(account: Account, user: User): boolean {
  * @param gradidoUse
  * @return true if no differences
  */
-export function isHumhubUserIdenticalToDbUser(humhubUser: GetUser, gradidoUser: User): boolean {
+export function isHumhubUserIdenticalToDbUser(
+  humhubUser: GetUser,
+  gradidoUser: DbUser | User,
+): boolean {
   return (
     profileIsTheSame(humhubUser.profile, gradidoUser) &&
     accountIsTheSame(humhubUser.account, gradidoUser)

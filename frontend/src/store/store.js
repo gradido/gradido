@@ -143,17 +143,15 @@ export const actions = {
     commit('lastName', data.lastName)
     commit('newsletterState', data.klickTipp.newsletterState)
     commit('gmsAllowed', data.gmsAllowed)
-    // Cleared, not read from the payload, for the same two reasons as the avatar below.
-    // It is own-view only -- a field resolver hands it to nobody but its owner -- and the
-    // login mutation runs on an inalienable right, so it has no authenticated caller and
-    // would be answered with null. verifyLogin is where it can be read, and whoever holds
-    // a verifyLogin result puts it in the store. Clearing matters because the persisted
-    // store still holds the previous member's setting when the next one signs in here.
-    commit('avatarVisibleToMembers', null)
-    // ?? null, like emailChecked below: guards.js hands this action a verifyLogin answer
-    // that carries the field, Login.vue a login answer that does not. Null reads as "not
-    // known", and the menu shows "Create" for not-known -- the default every existing
-    // account has anyway. Login.vue fills it from its own verifyLogin right afterwards.
+    // Own-view only -- a field resolver hands it to nobody but its owner -- and read off
+    // the payload now that BOTH callers carry it: guards.js hands this action a
+    // verifyLogin answer, Login.vue a login answer, and since the login puts the member
+    // it has just authenticated on the context before it answers, its own guard matches
+    // too. `?? null` because null means "not known" and undefined would leave the
+    // PREVIOUS member's setting in the persisted store -- a session expires after ten
+    // minutes without anyone logging out, so the next member routinely arrives on a store
+    // that still holds the last one's.
+    commit('avatarVisibleToMembers', data.avatarVisibleToMembers ?? null)
     commit('creationAllowed', data.creationAllowed ?? null)
     commit('humhubAllowed', data.humhubAllowed)
     commit('gmsPublishLocation', data.gmsPublishLocation)
@@ -166,13 +164,11 @@ export const actions = {
     commit('emailChecked', data.emailChecked ?? null)
     commit('accountCreatedAt', data.createdAt ?? null)
     commit('userLocation', data.userLocation)
-    // Forget the previous member's picture. Not read from `data` -- the login mutation
-    // cannot carry it -- but cleared unconditionally, because whoever logs in here is not
-    // necessarily who was here before. A session expires after ten minutes without anyone
-    // logging out, so the persisted store routinely still holds the last member's avatar
-    // when the next one arrives. Both callers fill it back in from their own verifyLogin
-    // result; until then the wallet shows initials, which is the honest answer.
-    commit('avatar', null)
+    // The member's own picture, from the same answer -- the login joins it onto the user
+    // row it reads, so the wallet shows a face from the first screen instead of jumping
+    // from initials to picture. `?? null` clears the previous member's, for the reason
+    // above: not read is not the same as nobody there.
+    commit('avatar', data.avatar ?? null)
   },
   logout: async ({ commit, state, dispatch }) => {
     // ⛔ Held before the commits below, not read after them: the parked amount is keyed by

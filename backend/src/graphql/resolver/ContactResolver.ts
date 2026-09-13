@@ -130,12 +130,6 @@ export class ContactResolver {
         // request, and these rows are rare -- a federated member with a stored row.
         foreignLocals.push(model)
       } else {
-        // A row that predates the home community's uuid carries none, and the GraphQL
-        // field is non-null. Migration 0129 fills those rows -- it fills `foreign = 0`
-        // rows only, which is why this stands inside the local branch and not above it.
-        if (!model.communityUuid && home?.communityUuid) {
-          model.communityUuid = home.communityUuid
-        }
         // The booking list leaves communityName empty for a member of this community (it
         // loads no community relation). The contact row shows the community, as the
         // mockup does, in a line of its own -- so the name is set here, and the row keeps
@@ -159,10 +153,11 @@ export class ContactResolver {
         continue
       }
       if (!model.communityUuid) {
-        // Only a member of another community can still get here: a booking that carries no
-        // community uuid and no stored `users` row. `User.communityUuid` is non-null, so
-        // delivering them would null the WHOLE answer -- one unnameable contact must not
-        // cost the member their contact list.
+        // Should be unreachable: a member with a `users` row carries a uuid (NOT NULL since
+        // migration 0134), and a booking with another community always records theirs -- a
+        // community without one is unverified and cannot send or receive. Kept as a guard
+        // because `User.communityUuid` is non-null: one broken row would otherwise null the
+        // WHOLE answer, and one unnameable contact must not cost the member their list.
         logger.warn(`contact ${row.gradidoId} has no community uuid, left out of the list`)
         continue
       }

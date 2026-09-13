@@ -110,15 +110,14 @@ export const registerAccount = async (
   )
   let dbUser = new DbUser()
   const homeCom = await getHomeCommunity()
-  if (!homeCom) {
-    logger.error('no home community found, please start the dht-node first')
+  if (!homeCom || !homeCom.communityUuid) {
+    logger.error('no valid home community found, please start the dht-node first')
     throw new Error(
       `Error creating user, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`,
     )
   }
-  if (homeCom.communityUuid) {
-    dbUser.communityUuid = homeCom.communityUuid
-  }
+
+  dbUser.communityUuid = homeCom.communityUuid
 
   dbUser.gradidoID = gradidoID
   dbUser.firstName = firstName

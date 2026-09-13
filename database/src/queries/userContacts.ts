@@ -25,7 +25,7 @@ export async function dbFindConfirmedUserContactEmails(userId: number): Promise<
     .where(
       and(
         eq(userContactsTable.userId, userId),
-        eq(userContactsTable.emailChecked, 1),
+        eq(userContactsTable.emailChecked, true),
         isNull(userContactsTable.deletedAt),
       ),
     )
@@ -74,7 +74,7 @@ export async function dbPurgeExpiredEmailChanges(olderThan: Date, email?: string
         eq(userContactsTable.emailOptInTypeId, OptInType.EMAIL_OPT_IN_CHANGE),
         // Only fresh rows. A take-back is one of the member's own confirmed addresses and is
         // never deleted; it is restored by the paths that know whose it is.
-        eq(userContactsTable.emailChecked, 0),
+        eq(userContactsTable.emailChecked, false),
         sql`COALESCE(${userContactsTable.updatedAt}, ${userContactsTable.createdAt}) < ${olderThan}`,
         email ? eq(userContactsTable.email, email) : undefined,
       ),
@@ -104,7 +104,7 @@ export async function dbReleaseUnconfirmedEmailChangeFor(email: string): Promise
     .where(
       and(
         eq(userContactsTable.emailOptInTypeId, OptInType.EMAIL_OPT_IN_CHANGE),
-        eq(userContactsTable.emailChecked, 0),
+        eq(userContactsTable.emailChecked, false),
         eq(userContactsTable.email, email),
       ),
     )
