@@ -483,15 +483,9 @@ export type UserAvatarInsert = typeof userAvatarsTable.$inferInsert
 // What a member is allowed to do beyond being a member: ADMIN, MODERATOR and the rest of
 // ROLES.ts. No row at all is the normal case -- that is an ordinary member.
 //
-// ⚠️ The application allows every member 0 or 1 of these (see modifyUserRole, which
-// overwrites `userRoles[0]` rather than adding a second), but the TABLE does not say so:
-// the primary key is `id` and nothing is unique on `user_id`. So a reader that joins this
-// table can be handed two rows for one member, and silently taking the first would make
-// the answer depend on insertion order. Whoever joins it either says what it does with a
-// second row or refuses it outright -- dbFindUserLoginByEmail refuses.
-//
-// TODO: put the app's rule into the schema (a unique key on user_id), then this join is
-// 0..1 by shape and the refusal above can go.
+// 0 or 1 per member, by shape: `user_id` is UNIQUE since migration 0135. A join on it
+// cannot multiply a member's row, and a second role for the same member is refused by the
+// database -- which is why writes go through dbUpsertUserRole rather than an insert.
 export const userRolesTable = mysqlTable(
   'user_roles',
   {
@@ -508,7 +502,7 @@ export const userRolesTable = mysqlTable(
       .notNull(),
     updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
   },
-  (table) => [index('user_id').on(table.userId)],
+  (table) => [uniqueIndex('user_id').on(table.userId)],
 )
 
 export type UserRoleSelect = typeof userRolesTable.$inferSelect

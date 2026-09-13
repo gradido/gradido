@@ -9,7 +9,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   // came out of its very first migration run with two creations of a user 275 that never
   // existed -- migration 0056 then invented that user ("DELETED USER") for them, without a
   // community uuid and before any home community could exist, which is exactly the row
-  // 0133 (users.community_uuid NOT NULL) refused.
+  // 0134 (users.community_uuid NOT NULL) refused.
   //
   // Changing an applied migration is safe here: the migrations table records version and
   // file name only, so no installation that already ran this runs it again.

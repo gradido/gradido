@@ -144,7 +144,7 @@ describe('member avatars for the booking list', () => {
   const NO_PICTURE = 9004
   const FOREIGN = 9005
   // A local member with nothing special about them but a picture. Every fixture carries a
-  // community uuid since migration 0133 made the column NOT NULL; this one is kept as the
+  // community uuid since migration 0134 made the column NOT NULL; this one is kept as the
   // member the "community comes back" assertion below reads.
   const WITH_COMMUNITY = 9006
   const HOME_COMMUNITY = '11111111-1111-4111-8111-111111111111'
@@ -159,7 +159,7 @@ describe('member avatars for the booking list', () => {
   const pictureFull = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x43, 0x44, 0x45, 0x46])
   const ALL = [SHOWN, SWITCHED_OFF, DELETED, NO_PICTURE, FOREIGN, WITH_COMMUNITY]
   // TODO: build these through the seeding functions instead of raw rows -- every column the
-  // schema makes required (community_uuid since 0133) has to be repeated here by hand.
+  // schema makes required (community_uuid since 0134) has to be repeated here by hand.
   beforeAll(async () => {
     await db.delete(usersTable).where(inArray(usersTable.id, ALL))
     await db.insert(usersTable).values([

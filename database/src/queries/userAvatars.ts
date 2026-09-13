@@ -204,7 +204,7 @@ export async function dbFindMemberAvatarFull(
     .where(
       and(
         eq(usersTable.gradidoId, gradidoId),
-        // A plain `eq` is enough since migration 0133 made the column NOT NULL. A wallet
+        // A plain `eq` is enough since migration 0134 made the column NOT NULL. A wallet
         // that still sends no uuid is resolved to the home community by the resolver,
         // before it gets here.
         eq(usersTable.communityUuid, communityUuid),

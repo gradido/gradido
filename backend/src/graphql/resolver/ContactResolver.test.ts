@@ -182,7 +182,7 @@ describe('ContactResolver', () => {
      * ⚠️ Only ONE shape is exercised, and that is a measurement rather than an omission. A
      * first version of this test also drove a foreign row with a NULL `community_uuid`,
      * reasoning that migration 0129 filled `foreign = 0` rows only -- but no writer produced
-     * that state, and since migration 0133 the column refuses it outright: both `core/graphql/logic/storeForeignUser` and
+     * that state, and since migration 0134 the column refuses it outright: both `core/graphql/logic/storeForeignUser` and
      * `federation/graphql/api/1_0/util/storeForeignUser` assign the uuid, and the first is
      * guarded on `communityUuid !== null` before it even builds the row. The fixture was
      * inventing a state the real path does not allow, and the list's pre-existing rule for

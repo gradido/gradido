@@ -31,7 +31,7 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   if (count > 0) {
     const foreignCount = Number(empty[0].foreignCount ?? 0)
     throw new Error(
-      `0133: ${count} users row(s) without community_uuid (${foreignCount} of them foreign). ` +
+      `0134: ${count} users row(s) without community_uuid (${foreignCount} of them foreign). ` +
         (homeCommunityUuid
           ? 'Local rows were filled with the home community uuid; the rest belong to other communities and need their uuid set by hand.'
           : 'There is no home community to fill them from, and the dht-node that creates one cannot start before the migrations have run: set users.community_uuid for these rows by hand.'),

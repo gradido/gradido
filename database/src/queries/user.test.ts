@@ -218,20 +218,19 @@ describe('user.queries', () => {
       }
     })
 
-    // The table allows a member several roles, the application allows one. Refused rather
-    // than resolved: picking the first would make who is an admin depend on insertion
-    // order, and a login that silently drops a role is worse than one that fails loudly.
-    it('refuses a member carrying two roles rather than picking one', async () => {
-      const second = DbUserRole.create()
-      second.userId = bibi.id
-      second.role = 'MODERATOR'
-      await DbUserRole.save(second)
+    // ⛔ The one state the row count still guards: two `users` rows naming the same address
+    // row. Refused rather than resolved -- picking one would sign somebody in as whichever
+    // member the database reached first. (A second role can no longer cause it:
+    // user_roles.user_id is UNIQUE since migration 0135, see userRoles.test.ts.)
+    it('refuses an address that two accounts point at rather than picking one', async () => {
+      const bobBefore = await DbUser.findOneByOrFail({ id: bob.id })
+      await DbUser.update({ id: bob.id }, { emailId: bibi.emailId })
       try {
         await expect(dbFindUserLoginByEmail('bibi@bloxberg.de')).rejects.toThrow(
           'DB_DUPLICATE_ENTRY',
         )
       } finally {
-        await DbUserRole.delete({ id: second.id })
+        await DbUser.update({ id: bob.id }, { emailId: bobBefore.emailId })
       }
     })
 

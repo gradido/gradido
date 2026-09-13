@@ -770,9 +770,9 @@ describe('UserResolver', () => {
       // its own. findUserByEmail is still what forgotPassword and the rest go through,
       // and its own logging is asserted there.
       it('logs the error found', () => {
-        expect(loginLogger.warn).toBeCalledWith(
-          `login failed, user with email=${variables.email} not found`,
-        )
+        // Without the address: an address typed into the login form is personal data
+        // whether or not an account exists for it, so it does not go into the log.
+        expect(loginLogger.warn).toBeCalledWith('login failed, user not found')
       })
     })
 
@@ -1968,6 +1968,14 @@ describe('UserResolver', () => {
                   }),
                 )
                 expect(new Date(result.data.setUserRole)).toEqual(expect.any(Date))
+              })
+
+              // ADMIN first, MODERATOR now: the second grant changed the member's one row
+              // instead of adding a second (dbUpsertUserRole on the unique user_id, 0135).
+              it('keeps exactly one role row for the member', async () => {
+                const rows = await UserRole.find({ where: { userId: user.id } })
+                expect(rows).toHaveLength(1)
+                expect(rows[0].role).toBe(RoleNames.MODERATOR)
               })
 
               it('stores the ADMIN_USER_ROLE_SET event in the database', async () => {

@@ -127,7 +127,7 @@ const isContactCounterparty = (row: ContactRow, counterparty: BookingCounterpart
  *
  * ⚠️ Rows without a community uuid are left alone -- there is nothing to match them against,
  * a pair is the only key both shapes carry. None should exist: a local row takes the uuid
- * from `users` (NOT NULL since migration 0133), and a booking with another community always
+ * from `users` (NOT NULL since migration 0134), and a booking with another community always
  * records theirs, because a community without a uuid is unverified and cannot take part in
  * one. The `null` check is what the column's type demands, not a case that occurs.
  *

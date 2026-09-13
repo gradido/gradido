@@ -154,7 +154,7 @@ export class ContactResolver {
       }
       if (!model.communityUuid) {
         // Should be unreachable: a member with a `users` row carries a uuid (NOT NULL since
-        // migration 0133), and a booking with another community always records theirs -- a
+        // migration 0134), and a booking with another community always records theirs -- a
         // community without one is unverified and cannot send or receive. Kept as a guard
         // because `User.communityUuid` is non-null: one broken row would otherwise null the
         // WHOLE answer, and one unnameable contact must not cost the member their list.

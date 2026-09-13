@@ -46,8 +46,7 @@ export class User {
         this.gradidoID = dbUser.gradidoId
         this.hideAmountGDD = dbUser.hideAmountGdd ?? false
         this.hideAmountGDT = dbUser.hideAmountGdt ?? false
-        // 0..1 role, already resolved by the query -- see dbFindUserLoginByEmail, which
-        // refuses a member with two rather than picking one.
+        // 0..1 role by shape: user_roles.user_id is UNIQUE (migration 0135).
         this.roles = dbUser.role ? [dbUser.role.role] : []
         // Joined in by the same query, so the login answer carries the member's own face
         // without a second read. Base64 without a data URI prefix, like the field says.

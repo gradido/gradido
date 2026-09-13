@@ -44,9 +44,11 @@ import { dbAliasHeldByOther } from './userAliases'
  * address that is IN FORCE, so someone who changed their address signs in with the new
  * one and not with an old row that still carries their name.
  *
- * A second `user_roles` row for the same member is refused rather than resolved. The
- * application allows 0 or 1 (see the table's own note), so a second one is a broken row,
- * and picking the first would make who is an admin depend on insertion order.
+ * Every join is 0..1 by shape: the address by `user_contacts.email` (UNIQUE), the role by
+ * `user_roles.user_id` (UNIQUE since migration 0135), the picture by `user_avatars.user_id`
+ * (primary key). More than one row can only mean two `users` rows naming the same address
+ * row through `email_id` -- a broken state, refused rather than resolved, because picking
+ * one would sign somebody in as whichever member the database reached first.
  */
 export async function dbFindUserLoginByEmail(
   email: string,
@@ -59,7 +61,7 @@ export async function dbFindUserLoginByEmail(
       avatar: userAvatarsTable.avatarSmall,
     })
     .from(usersTable)
-    // 0..1 per member by the application's rule, 0..n by the table's -- see below.
+    // 0..1 by shape: user_roles.user_id is UNIQUE (migration 0135).
     .leftJoin(userRolesTable, eq(usersTable.id, userRolesTable.userId))
     .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))
     // 0..1 by shape: user_avatars is keyed by user_id.
@@ -70,11 +72,7 @@ export async function dbFindUserLoginByEmail(
     return { success: false, error: new DBNotFoundError('user_contacts', `email: ${email}`) }
   }
   if (rows.length > 1) {
-    throw new DBDuplicateEntryError(
-      'user_contacts join user_roles join users join user_avatars',
-      'email',
-      email,
-    )
+    throw new DBDuplicateEntryError('users by email_id', 'email', email)
   }
   const item = rows[0]
   return {
@@ -116,7 +114,7 @@ export type DbLoginUser = DbUser & {
  *
  * The exact pair and nothing else. This used to take the home community's uuid as well and
  * let a local row WITHOUT a uuid count for it -- the state migration 0129 could leave
- * behind. Migration 0133 made `users.community_uuid` NOT NULL, so that row cannot exist.
+ * behind. Migration 0134 made `users.community_uuid` NOT NULL, so that row cannot exist.
  */
 export async function dbFindUserIdByUuids(
   communityUuid: string,
