@@ -52,8 +52,8 @@ describe('useAvatarZoom', () => {
       ])
     })
 
-    // A member registered before the home community had a uuid has none, and that has to
-    // survive as null rather than as undefined: it is half the key the wallet stores
+    // A caller that leaves the uuid out (the server never sends a member without one) has
+    // to produce null rather than undefined: it is half the key the wallet stores
     // pictures under, and `undefined` and `null` build different keys.
     it('turns a missing community into an explicit null', () => {
       openAvatarZoom({ member: { gradidoID: 'g-old' }, src: SRC, origin: ORIGIN })

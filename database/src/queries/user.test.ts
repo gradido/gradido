@@ -48,10 +48,12 @@ describe('user.queries', () => {
     beforeAll(async () => {
       await DbUser.clear()
       await DbUserContact.clear()
+      await DbCommunity.clear()
 
+      const homeCom = await createCommunity(false)
       const bibi = bibiBloxberg
       bibi.alias = 'b-b'
-      await userFactory(bibi)
+      await userFactory(bibi, homeCom)
     })
 
     it('should return true if alias exists', async () => {
@@ -395,28 +397,6 @@ describe('user.queries', () => {
         await dbFindUserIdByUuids('99999999-9999-9999-9999-999999999999', bibi.gradidoID),
       ).toBeNull()
       expect(await dbFindUserIdByUuids(home, '00000000-0000-0000-0000-000000000000')).toBeNull()
-    })
-
-    // The state migration 0129 left behind wherever the home community had no row yet
-    // when it ran: a member of this community whose row carries no uuid. The contact list
-    // hands out the home uuid for them, so the home uuid has to find them here too.
-    it('finds a member whose row still carries no community uuid, by the home uuid', async () => {
-      await DbUser.update({ id: bibi.id }, { communityUuid: null })
-      try {
-        expect(await dbFindUserIdByUuids(home, bibi.gradidoID)).toBeNull()
-        expect(await dbFindUserIdByUuids(home, bibi.gradidoID, { homeCommunityUuid: home })).toBe(
-          bibi.id,
-        )
-        // Only for the home community: another community's uuid does not reach a row
-        // without one, whatever the option says.
-        expect(
-          await dbFindUserIdByUuids('99999999-9999-9999-9999-999999999999', bibi.gradidoID, {
-            homeCommunityUuid: home,
-          }),
-        ).toBeNull()
-      } finally {
-        await DbUser.update({ id: bibi.id }, { communityUuid: home })
-      }
     })
   })
 

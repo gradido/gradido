@@ -22,10 +22,10 @@ function findWithCommunityIdentifier(communityIdentifier: string): FindOneOption
 /**
  * The community uuid a member reference is meant for.
  *
- * The wallet passes on what the booking or the contact row gave it, and that may be
- * nothing: a member of this community whose `users` row predates the home community's uuid
- * carries none. Migration 0129 fills those rows, so this is the belt rather than the braces
- * -- and it is also what answers a wallet that is older than the migration.
+ * The wallet passes on what the booking or the contact row gave it, and that is always a
+ * uuid -- the server hands out no member without one. The member ref inputs still declare
+ * the field nullable, though, and this is the one reading of a null they get: THIS
+ * community, the only one a member could ever have been without a uuid in.
  */
 export async function resolveCommunityUuid(
   communityUuid: string | null | undefined,

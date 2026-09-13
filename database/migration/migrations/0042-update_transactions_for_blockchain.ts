@@ -1,6 +1,25 @@
 /* MIGRATION for updating transactions from the past to follow the blockchain rules */
 
 export async function upgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
+  // ⛔ A repair of ONE database -- the original Gradido production data -- written against
+  // its row ids. Everything below assumes transaction 150 of user 275 is there to split.
+  //
+  // On any other database this must do nothing, and it did not: the UPDATEs by id miss,
+  // but the two INSERTs below write their rows regardless. A brand-new community therefore
+  // came out of its very first migration run with two creations of a user 275 that never
+  // existed -- migration 0056 then invented that user ("DELETED USER") for them, without a
+  // community uuid and before any home community could exist, which is exactly the row
+  // 0133 (users.community_uuid NOT NULL) refused.
+  //
+  // Changing an applied migration is safe here: the migrations table records version and
+  // file name only, so no installation that already ran this runs it again.
+  const toSplit = await queryFn(
+    'SELECT `id` FROM `transactions` WHERE `id` = 150 AND `user_id` = 275',
+  )
+  if (!toSplit.length) {
+    return
+  }
+
   // split creation transaction with 3000 GDD created in one transaction what isn't allowed
   const transactionMemos: string[] = [
     'Aktives Grundeinkommen für GL. Dez',

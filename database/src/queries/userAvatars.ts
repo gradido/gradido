@@ -195,7 +195,7 @@ export async function dbFindMemberAvatarTimestamps(userIds: number[]): Promise<M
  */
 export async function dbFindMemberAvatarFull(
   gradidoId: string,
-  communityUuid: string | null,
+  communityUuid: string,
 ): Promise<Buffer | null> {
   const rows = await drizzleDb()
     .select({ avatarFull: userAvatarsTable.avatarFull })
@@ -204,13 +204,10 @@ export async function dbFindMemberAvatarFull(
     .where(
       and(
         eq(usersTable.gradidoId, gradidoId),
-        // ⛔ `isNull`, not `eq(col, null)`. In SQL nothing equals NULL, not even NULL, so
-        // `eq` here would silently answer "no such member" for every member who registered
-        // before the home community had a uuid -- and those are the oldest accounts, the
-        // ones least likely to be the reporter of the bug.
-        communityUuid === null
-          ? isNull(usersTable.communityUuid)
-          : eq(usersTable.communityUuid, communityUuid),
+        // A plain `eq` is enough since migration 0133 made the column NOT NULL. A wallet
+        // that still sends no uuid is resolved to the home community by the resolver,
+        // before it gets here.
+        eq(usersTable.communityUuid, communityUuid),
         mayBeShownToMembers(),
       ),
     )

@@ -19,13 +19,7 @@ export class User {
     if (dbUser) {
       this.id = dbUser.id
       this.foreign = dbUser.foreign
-      // The entity types this `string` although the column is nullable, so a User has
-      // always been able to carry no uuid here -- the Drizzle row is only honest about
-      // it. Left as a non-null field rather than widened: it is one half of the pair that
-      // names a member, every query asks for both, and the rows without one are what
-      // migration 0129 left behind rather than a state anything creates.
-      this.communityUuid = dbUser.communityUuid as string
-
+      this.communityUuid = dbUser.communityUuid
       this.alias = dbUser.alias
 
       // The two sources spell three things differently, and nothing else. Everything

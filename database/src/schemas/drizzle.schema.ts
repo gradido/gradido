@@ -336,7 +336,7 @@ export const usersTable = mysqlTable(
     id: int().autoincrement().primaryKey().notNull(),
     foreign: boolean().default(false).notNull(),
     gradidoId: char('gradido_id', { length: 36 }).notNull(),
-    communityUuid: char('community_uuid', { length: 36 }).default(sql`NULL`),
+    communityUuid: char('community_uuid', { length: 36 }).notNull(),
     alias: varchar({ length: 20 }).default(sql`NULL`),
     emailId: int('email_id').default(sql`NULL`),
     firstName: varchar('first_name', { length: 255 }).default(sql`NULL`),

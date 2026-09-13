@@ -105,10 +105,12 @@ export async function createUser(
   if (!homeCommunity) {
     homeCommunity = await getHomeCommunity()
   }
-  if (homeCommunity) {
-    dbUser.community = homeCommunity
-    dbUser.communityUuid = homeCommunity.communityUuid!
+  if (!homeCommunity || !homeCommunity.communityUuid) {
+    throw new Error('missing home community, please call createCommunity(false) first')
   }
+
+  dbUser.community = homeCommunity
+  dbUser.communityUuid = homeCommunity.communityUuid!
 
   return store ? dbUser.save() : dbUser
 }

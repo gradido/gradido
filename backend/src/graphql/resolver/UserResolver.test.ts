@@ -881,12 +881,13 @@ describe('UserResolver', () => {
         await cleanDB()
       })
 
-      it('returns an error', () => {
+      // ⛔ The SAME answer as for an unknown address (CWE-203). A message of its own told
+      // anybody who typed an address whether an account had ever existed behind it. Only
+      // the log still tells the two apart -- asserted below.
+      it('answers like an unknown address', () => {
         expect(result).toEqual(
           expect.objectContaining({
-            errors: [
-              new GraphQLError('This user was permanently deleted. Contact support for questions'),
-            ],
+            errors: [new GraphQLError('No user with this credentials')],
           }),
         )
       })
@@ -3326,6 +3327,18 @@ describe('UserResolver', () => {
 
       it("hands bibi's full crop to bob", async () => {
         const res: any = await query({ query: memberAvatarFull, variables: refToOwner() })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.memberAvatarFull).toBe(JPEG_FULL_BASE64)
+      })
+
+      // The input type still admits a null uuid, and the query matches the exact pair only.
+      // This pins the one reading the API gives a null -- THIS community -- as long as the
+      // field stays nullable; it goes when MemberAvatarRefInput becomes `String!`.
+      it('reads a ref without a community uuid as this community', async () => {
+        const res: any = await query({
+          query: memberAvatarFull,
+          variables: { ref: { gradidoID: owner.gradidoID, communityUuid: null } },
+        })
         expect(res.errors).toBeUndefined()
         expect(res.data.memberAvatarFull).toBe(JPEG_FULL_BASE64)
       })

@@ -34,10 +34,11 @@ import { dbAliasHeldByOther } from './userAliases'
  * instead of initials until some later query happens to refill it.
  *
  * ⛔ Deleted accounts INCLUDED, deliberately, and this one must not grow a
- * `deleted_at IS NULL`: the login has to tell "this account was deleted" apart from "no
- * such address", because the two get different answers (see the resolver). Everything the
- * caller must still refuse -- deletion, an unconfirmed address, a missing password -- is
- * checked there, on the row this hands back.
+ * `deleted_at IS NULL`. The caller answers a deleted account exactly like an unknown
+ * address (CWE-203: the answer must not confirm that an account exists), but it still has
+ * to KNOW which of the two it met -- to log it as what it is. Everything the caller must
+ * refuse -- deletion, an unconfirmed address, a missing password -- is checked there, on
+ * the row this hands back.
  *
  * The address is matched on `user_contacts`, not on `users`: `users.email_id` names the
  * address that is IN FORCE, so someone who changed their address signs in with the new
@@ -113,37 +114,18 @@ export type DbLoginUser = DbUser & {
  * `linked_user_id` without asking. No `deletedAt` condition either: a booking keeps naming
  * a member whose account is gone, so their bookings stay filterable.
  *
- * `homeCommunityUuid`: when the pair names THIS community, a `foreign = 0` row that still
- * carries no community uuid counts as well. Migration 0129 filled those rows, but it was a
- * no-op wherever the home community had no row yet when it ran -- and the contact list
- * stands in the home uuid for exactly these members (ContactResolver), so the pair it
- * hands out has to find them here too, or the window would count bookings the list then
- * cannot show.
+ * The exact pair and nothing else. This used to take the home community's uuid as well and
+ * let a local row WITHOUT a uuid count for it -- the state migration 0129 could leave
+ * behind. Migration 0133 made `users.community_uuid` NOT NULL, so that row cannot exist.
  */
 export async function dbFindUserIdByUuids(
   communityUuid: string,
   gradidoID: string,
-  options: { homeCommunityUuid?: string | null } = {},
 ): Promise<number | null> {
-  const exactPair = and(
-    eq(usersTable.communityUuid, communityUuid),
-    eq(usersTable.gradidoId, gradidoID),
-  )
-  const where =
-    options.homeCommunityUuid && options.homeCommunityUuid === communityUuid
-      ? or(
-          exactPair,
-          and(
-            eq(usersTable.foreign, false),
-            isNull(usersTable.communityUuid),
-            eq(usersTable.gradidoId, gradidoID),
-          ),
-        )
-      : exactPair
   const rows = await drizzleDb()
     .select({ id: usersTable.id })
     .from(usersTable)
-    .where(where)
+    .where(and(eq(usersTable.communityUuid, communityUuid), eq(usersTable.gradidoId, gradidoID)))
     .limit(1)
   return rows[0]?.id ?? null
 }

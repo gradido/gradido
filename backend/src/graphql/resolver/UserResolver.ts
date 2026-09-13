@@ -21,7 +21,6 @@ import { SearchUsersResult, UserAdmin } from '@model/UserAdmin'
 import { UserContact } from '@model/UserContact'
 import { UserLocationResult } from '@model/UserLocationResult'
 import {
-  delay,
   registerAddressTransaction,
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
@@ -146,13 +145,14 @@ import {
 } from '@/event/Events'
 import { registerAccount } from '@/interactions/registerAccount/RegisterAccount.context'
 import { isValidPassword } from '@/password/EncryptorUtils'
-import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
+import { encryptPassword, fakeVerifyPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { communityDbUser } from '@/util/communityUser'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { durationInMinutesFromDates, getTimeDurationObject, printTimeDuration } from '@/util/time'
 import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlayground'
+import { resolveCommunityUuid } from './util/communities'
 import { compareGmsRelevantUserSettings } from './util/compareGmsRelevantUserSettings'
 import { getFullUserCreation, getUserCreations } from './util/creations'
 import { extractGraphQLFieldsForSelect } from './util/extractGraphQLFields'
@@ -242,23 +242,24 @@ export class UserResolver {
       // Not "no such address": the read itself went wrong (a broken row, the database
       // away). Logged as the error it is, and answered like an unknown address, because
       // an error message is not something an unauthenticated caller gets to see.
+      await fakeVerifyPassword()
       logger.error(`login failed, reading the account raised: ${e}`)
       throw new Error('No user with this credentials')
     }
     if (!loginUserResult.success) {
-      // Simulate the delay password encryption would have cost, 650 ms +- 50 rnd. Without
-      // it an unknown address answers measurably faster than a wrong password, which
-      // turns this mutation into a way to ask whether somebody has an account here.
-      await delay(650 + Math.floor(Math.random() * 101) - 50)
+      await fakeVerifyPassword()
       logger.warn(`login failed, user with email=${email} not found`)
       throw new Error('No user with this credentials')
     }
     const dbUser: DbLoginUser = loginUserResult.value
     // add technical user identifier in logger-context for layout-pattern X{user} to print it in each logging message
     logger.addContext('user', dbUser.id)
+
     if (dbUser.deletedAt) {
+      await fakeVerifyPassword()
       logger.warn('login failed, user was deleted')
-      throw new Error('This user was permanently deleted. Contact support for questions')
+      // answear the same for preventing CWE-203
+      throw new Error('No user with this credentials')
     }
 
     // An unconfirmed address only bars the login while the account has no password —
@@ -1122,8 +1123,12 @@ export class UserResolver {
 
     // Both halves of the pair. `users` is unique on (gradido_id, community_uuid), so the
     // id alone does not identify one person -- see the query for why matching only it
-    // would hand back whoever the database reached first.
-    const avatar = await dbFindMemberAvatarFull(ref.gradidoID, ref.communityUuid ?? null)
+    // would hand back whoever the database reached first. The input still admits a ref
+    // without a uuid (see MemberAvatarRefInput); it is read as THIS community.
+    const avatar = await dbFindMemberAvatarFull(
+      ref.gradidoID,
+      await resolveCommunityUuid(ref.communityUuid),
+    )
     return avatar ? avatar.toString('base64') : null
   }
 
@@ -1695,9 +1700,8 @@ export class UserResolver {
    * for here instead, on the one query that wants it.
    *
    * A local member is asked about by far the most often, and for them the answer is one
-   * community, so it is fetched as such instead of by their own uuid -- rows that migration
-   * 0129 left without one (see the schema) would otherwise find nothing. Only a member
-   * cached by the federation is looked up by uuid.
+   * community, so it comes from the cached home community rather than from a lookup by
+   * their uuid. Only a member cached by the federation is looked up by uuid.
    */
   @FieldResolver(() => String, { nullable: true })
   async communityName(@Root() user: User): Promise<string | null> {
