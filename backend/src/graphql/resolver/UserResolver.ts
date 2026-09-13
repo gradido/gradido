@@ -248,7 +248,7 @@ export class UserResolver {
     }
     if (!loginUserResult.success) {
       await fakeVerifyPassword()
-      // don't log email any longer because of CWE-532 
+      // don't log email any longer because of CWE-532
       logger.warn(`login failed, user not found`)
       throw new Error('No user with this credentials')
     }
