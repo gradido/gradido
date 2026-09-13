@@ -473,6 +473,13 @@ describe('LastTransactions', () => {
         ['.transaction-details-link', 'font-size'],
         ['.contacts-panel-who-community', 'font-size'],
       ],
+      // A third line the contacts do not have, set at the size of their second one -- not at a
+      // size of its own, which is what read as squeezed (Bernd, 13.09.2026).
+      [
+        'the memo',
+        ['.last-transactions-memo', 'font-size'],
+        ['.contacts-panel-who-community', 'font-size'],
+      ],
       [
         'the room above and below a row',
         ['.last-transactions-row', 'padding'],
@@ -550,35 +557,26 @@ describe('LastTransactions', () => {
     })
 
     /**
-     * ⛔ The load-bearing line of the memo change, and nothing else holds it.
+     * ⛔ No line-height of its own, in either position of the switch -- both take the wallet's.
      *
-     * A row is as tall as the taller of its two sides, and the face is 48 points. With the
-     * memo the text beside it became three lines, and at the wallet's 1.5 they add up to
-     * more than that -- the bookings would grow taller than the contacts in the other
-     * position of the switch, which is the one thing the measure above exists to prevent.
-     * The column therefore sets a tighter line-height, and this holds the arithmetic:
-     * three type sizes times that line-height, plus the transparent border under the amount
-     * line, against the face.
+     * Until 13.09.2026 this column set 1.2 and a test here held the arithmetic that kept its
+     * three lines under the 48-point face, so a booking row stayed as tall as a contact row.
+     * Bernd reversed it: the rows looked squeezed, and the type and the spacing of the
+     * contacts weigh more than an equal row height. The rows are allowed to differ in height
+     * now (69.8 against 61.8 points, measured); what must not come back is a line-height the
+     * contacts do not have.
      *
-     * Delete the `line-height` rule and this is red; raise a type size past what the face
-     * allows and it is red too -- which is what a test for a number nobody can see has to do.
+     * ⚠️ An absence is only a finding when the search can find a presence: the same search
+     * has to see the `font-size` both files certainly declare, or an empty read would pass.
      */
-    it('keeps the three lines together shorter than the face beside them', () => {
-      const ROOT_FONT_SIZE = 16
-      const points = (rule) => parseFloat(declared(bookings, rule, 'font-size')) * ROOT_FONT_SIZE
-      const lineHeight = Number(declared(bookings, '.last-transactions-text', 'line-height'))
+    it('sets no line-height of its own, just as the contacts set none', () => {
+      const lineHeights = (css) => css.match(/(?:^|[\s;{])line-height\s*:/g) ?? []
+      const fontSizes = (css) => css.match(/(?:^|[\s;{])font-size\s*:/g) ?? []
 
-      expect(lineHeight).toBeGreaterThan(0)
-
-      const textBlock =
-        (points('.last-transactions-name') +
-          points('.transaction-details-link') +
-          points('.last-transactions-memo')) *
-          lineHeight +
-        // the transparent border the amount line carries for its hover
-        1
-
-      expect(textBlock).toBeLessThanOrEqual(LIST_AVATAR_SIZE)
+      expect(fontSizes(bookings).length).toBeGreaterThan(0)
+      expect(fontSizes(contacts).length).toBeGreaterThan(0)
+      expect(lineHeights(bookings)).toEqual([])
+      expect(lineHeights(contacts)).toEqual([])
     })
 
     /**
@@ -596,17 +594,6 @@ describe('LastTransactions', () => {
       expect(declared(bookings, '.last-transactions-memo', 'white-space')).toBe('nowrap')
       expect(declared(bookings, '.last-transactions-memo', 'text-overflow')).toBe('ellipsis')
       expect(declared(bookings, '.last-transactions-memo', 'contain')).toBe('inline-size')
-    })
-
-    // ⚠️ The rule above is worth nothing if the column it sets does not reach the markup --
-    // and a class in a template is exactly the kind of wiring no test usually covers.
-    it('sets that line-height on the column the three lines stand in', () => {
-      wrapper = mountRow()
-      const text = wrapper.find('.last-transactions-text')
-
-      expect(text.exists()).toBe(true)
-      expect(text.find('.last-transactions-name').exists()).toBe(true)
-      expect(text.find('.transaction-details-link').exists()).toBe(true)
     })
   })
 

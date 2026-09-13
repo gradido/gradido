@@ -1057,7 +1057,7 @@
     "lastTransactions": "Son İşlemler",
     "noneWithMember": "Bu üyeyle henüz işlem yok.",
     "nullTransactions": "Henüz hesabınında herhangi bir işlem yok.",
-    "onlyWith": "Yalnızca {name} ile işlemler",
+    "onlyWith": "{name} ile {n} işlem | {name} ile {n} işlem",
     "onlyWithSomeone": "Yalnızca bir üyeyle işlemler",
     "receiverDeleted": "Alıcı hesabı silindi",
     "receiverNotFound": "Alıcı bulunamadı",

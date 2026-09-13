@@ -1182,7 +1182,7 @@
     "lastTransactions": "Letzte Transaktionen",
     "noneWithMember": "Mit diesem Mitglied gibt es noch keine Buchungen.",
     "nullTransactions": "Du hast noch keine Transaktionen auf deinem Konto.",
-    "onlyWith": "Nur Buchungen mit {name}",
+    "onlyWith": "{n} Buchung mit {name} | {n} Buchungen mit {name}",
     "onlyWithSomeone": "Nur Buchungen mit einem Mitglied",
     "receiverDeleted": "Das Empfängerkonto wurde gelöscht",
     "receiverNotFound": "Empfänger nicht gefunden",
