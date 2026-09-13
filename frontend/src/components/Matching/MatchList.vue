@@ -85,9 +85,9 @@
            The regional line stays as it was - the radius there is the one the member
            has always had, and repeating it would be noise.
 
-           ⚠️ And it shows WITHOUT a place name, where the regional one does not. The
-           label is reverse-geocoded, and a lookup that fails leaves it empty for the
-           rest of the session (setCenterLabel writes `label || ''`) - "centred on
+           ⚠️ And it shows WITHOUT a place name, where the regional one does not. The map
+           names every centre once it knows the member's home (a typed name, "your home"
+           or "the chosen point"), so the name is only missing before that - "centred on
            nothing" is worth hiding, but the reach and the circle are not. -->
       <p
         v-if="centerLabel || reach === 'fern'"
@@ -177,8 +177,10 @@
 <script setup>
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { OpenStreetMapProvider } from 'leaflet-geosearch'
 import { distanceKm } from '@/composables/useMatches'
+import { useGmsBase } from '@/composables/useGmsBase'
+import { useMapSwitches } from '@/composables/useMapSwitches'
+import { makeGeoProvider } from '@/utils/geoSearchProvider'
 import {
   CHANNELS,
   COMPASS8,
@@ -193,9 +195,14 @@ const props = defineProps({
   matches: { type: Array, default: () => [] },
   // Presence people, filtered and sorted by the parent. Names are a stub today.
   silent: { type: Array, default: () => [] },
+  // Where the distances are measured from: the search centre, or home under the travel lens.
   center: { type: Object, default: null },
-  // The place name of the search centre, resolved by the parent (typed name or a
-  // reverse lookup) and persisted there — so it survives a mode switch or a reload.
+  // Where the search is. The address search asks near it - not near `center`, which is the
+  // member's home while the lens measures from there.
+  searchCenter: { type: Object, default: null },
+  // The place name of the search centre, resolved by the parent (a typed name, a
+  // reverse lookup, "your home" or "the chosen point") and persisted there — so it
+  // survives a mode switch or a reload.
   centerLabel: { type: String, default: '' },
   myPrecision: { type: String, default: 'genau' },
   // How far the search reaches: 'regional' or 'fern'. The list draws the same rows
@@ -353,30 +360,52 @@ const PlaceText = {
 
 // --- address search (the blind member's only way to set the centre) --------
 
-const provider = new OpenStreetMapProvider()
+// Made here, in setup, and the admin switch is read at each search rather than now: its
+// position arrives asynchronously (utils/geoSearchProvider).
+const { mapSwitches } = useMapSwitches()
+const { gmsBase } = useGmsBase()
+const provider = makeGeoProvider({
+  mapSwitches,
+  gmsBase,
+  viewpoint: () => props.searchCenter,
+  language: () => locale.value,
+})
 const searchInput = ref(null)
 const query = ref('')
 const results = ref([])
 const activeResult = ref(-1)
 let searchTimer = null
+// The number of the search asked for last. A search still out when the member types on, picks
+// a place or closes the list must not write its answer afterwards: an older, broader question
+// could replace the answer to the newer one, or reopen a list the member has just closed.
+let searchRequest = 0
+
+/** Nothing that is waiting or out may write the list any more. */
+function stopSearch() {
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = null
+  searchRequest += 1
+}
 
 function onQuery() {
-  if (searchTimer) clearTimeout(searchTimer)
+  stopSearch()
   const term = query.value.trim()
   if (term.length < 3) {
     results.value = []
     activeResult.value = -1
     return
   }
+  const mine = searchRequest
   searchTimer = setTimeout(async () => {
+    let found
     try {
-      const found = await provider.search({ query: term })
-      results.value = found.slice(0, 6)
-      activeResult.value = results.value.length ? 0 : -1
+      found = (await provider.search({ query: term })).slice(0, 6)
     } catch {
-      results.value = []
-      activeResult.value = -1
+      found = []
     }
+    if (mine !== searchRequest) return
+    results.value = found
+    activeResult.value = found.length ? 0 : -1
   }, 300)
 }
 
@@ -389,6 +418,7 @@ function moveResult(step) {
 function choose(index) {
   const result = results.value[index]
   if (!result) return
+  stopSearch()
   // Pass the chosen name up: the parent names the confirmation without a reverse
   // lookup. The field clears, ready for the next search.
   emit('recenter', { lat: result.y, lng: result.x, label: result.label })
@@ -402,6 +432,7 @@ function chooseActive() {
 }
 
 function closeResults() {
+  stopSearch()
   results.value = []
   activeResult.value = -1
 }

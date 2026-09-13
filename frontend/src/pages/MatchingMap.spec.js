@@ -12,6 +12,7 @@ import de from '@/locales/de.json'
 import MatchingMap from './MatchingMap.vue'
 import { listMatchingEntries, userLocationQuery } from '@/graphql/queries'
 import { GMS_REJECTED, GMS_UNAVAILABLE } from '@/composables/useMatches'
+import { NOMINATIM_REVERSE_URL } from '@/utils/reverseGeocode'
 
 // jsdom has no SVG geometry, and Leaflet decides once, when it is imported, whether it
 // may draw SVG at all - by looking for createSVGRect. Without it Leaflet finds no
@@ -100,17 +101,42 @@ vi.mock('@/composables/useToast', () => ({
   useAppToast: () => ({ toastError, toastSuccess: vi.fn() }),
 }))
 
+// The search control is leaflet-geosearch's own and searches nothing here. What the page
+// decides is the provider it hands the control, so the options each control was built with
+// are kept.
+const controls = []
 vi.mock('leaflet-geosearch', () => ({
-  OpenStreetMapProvider: class {
-    async search() {
-      return []
-    }
-  },
   GeoSearchControl: class {
+    constructor(options) {
+      controls.push(options)
+    }
+
     addTo() {
       return this
     }
   },
+}))
+
+// The admin switch for the place search (K-008), in whatever position a test puts it. The
+// old one by default, as on a server nobody has switched.
+const switchPosition = { geoProvider: 'NOMINATIM' }
+const mapSwitches = vi.fn(async () => ({ mapEngine: 'LEAFLET', ...switchPosition }))
+vi.mock('@/composables/useMapSwitches', async () => {
+  const actual = await vi.importActual('@/composables/useMapSwitches')
+  return { ...actual, useMapSwitches: () => ({ mapSwitches }) }
+})
+
+const gmsBase = vi.fn(async () => 'https://ki-playground-gms.gradido.net/gms/')
+vi.mock('@/composables/useGmsBase', () => ({
+  useGmsBase: () => ({ gmsBase }),
+}))
+
+// The provider is measured in its own spec (utils/geoSearchProvider); here only what the
+// page makes it with and hands on.
+const madeProvider = { search: vi.fn(async () => []) }
+const makeGeoProvider = vi.fn(() => madeProvider)
+vi.mock('@/utils/geoSearchProvider', () => ({
+  makeGeoProvider: (options) => makeGeoProvider(options),
 }))
 
 const i18n = createI18n({ legacy: false, locale: 'de', messages: { de } })
@@ -631,7 +657,7 @@ describe('MatchingMap', () => {
 
     // Refused where the centre is born: guarding only the write would leave the live
     // centre poisoned while storage kept the old one, and everything drawn from it --
-    // circle, crosshair, the reverse-geocoded label -- would run on `undefined`.
+    // circle, crosshair, the name the list gives the centre -- would run on `undefined`.
     it('turns a centre that is not two numbers away entirely', async () => {
       const page = mountMap()
       fire(userLocationQuery, { userLocation: location })
@@ -1243,6 +1269,187 @@ describe('MatchingMap', () => {
 
       // The one thing the stored answer has to survive: a fresh page.
       expect(wrapper.find('.keep-offer').exists()).toBe(false)
+    })
+  })
+
+  // K-002: the list names where it searches - and the member's home goes to no place search
+  // for that, in either position of the admin switch. Before, the first visit sent the exact
+  // home position to Nominatim, at zoom 16.
+  describe('naming the centre in the list', () => {
+    const HOME = { lat: 48.2, lng: 11.6 }
+    // About 17 km from home: well clear of "home within 100 m".
+    const ELSEWHERE = { lat: 48.3, lng: 11.8 }
+    const PRAG = { lat: 50.0874654, lng: 14.4212535, label: 'Prag' }
+    const NOMINATIM_ANSWER = { address: { road: 'Marktplatz', town: 'Freising' } }
+    const listLabel = (page) => page.findComponent({ name: 'MatchList' }).props('centerLabel')
+    const recenter = (page, next) =>
+      page.findComponent({ name: 'MatchList' }).vm.$emit('recenter', next)
+    let fetchMock
+
+    // Leaflet itself, for the two controls that live on the map - the crosshair and the home
+    // button. The 250 ms timer is run by hand, and the view is seeded where the map opens.
+    const openMap = async (view) => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+      window.localStorage.setItem(`${KEY}view`, JSON.stringify({ ...view, zoom: 12 }))
+      const page = mountMap()
+      fire(userLocationQuery, { userLocation: location })
+      await page.vm.$nextTick()
+      vi.advanceTimersByTime(250)
+      vi.useRealTimers()
+      await flushPromises()
+      return page
+    }
+    const tapHomeButton = (page) =>
+      page
+        .find('.gk-home a')
+        .element.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
+
+    beforeEach(() => {
+      // The list is what shows the name.
+      window.localStorage.setItem(`${KEY}mode`, JSON.stringify('liste'))
+      switchPosition.geoProvider = 'NOMINATIM'
+      mapSwitches.mockClear()
+      makeGeoProvider.mockClear()
+      controls.length = 0
+      fetchMock = vi.fn(async () => ({ ok: true, json: async () => NOMINATIM_ANSWER }))
+      vi.stubGlobal('fetch', fetchMock)
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+      vi.unstubAllGlobals()
+    })
+
+    it.each(['NOMINATIM', 'GMS'])(
+      'calls the centre of a first visit the home and asks nobody (switch on %s)',
+      async (position) => {
+        switchPosition.geoProvider = position
+        const page = mountMap()
+        fire(userLocationQuery, { userLocation: location })
+        await flushPromises()
+
+        expect(JSON.parse(window.localStorage.getItem(`${KEY}center`))).toEqual(HOME)
+        expect(listLabel(page)).toBe(de.matching.map.centreHome)
+        expect(fetchMock).not.toHaveBeenCalled()
+      },
+    )
+
+    // Until K-002 the first visit and the home button stored the reverse lookup of the home,
+    // and that name is still on the devices of everybody who used the map before.
+    it('calls the home the home, also where the old lookup stored a street name for it', async () => {
+      window.localStorage.setItem(`${KEY}center`, JSON.stringify(HOME))
+      window.localStorage.setItem(`${KEY}centerLabel`, JSON.stringify('Pfarrweg, Künzelsau'))
+      const page = mountMap()
+      fire(userLocationQuery, { userLocation: location })
+      await flushPromises()
+
+      expect(listLabel(page)).toBe(de.matching.map.centreHome)
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    // The travel lens moves where the distances are measured from, not where the search is -
+    // and the list's address search asks near the search.
+    it('hands the list where the search is apart from where it measures from', async () => {
+      window.localStorage.setItem(`${KEY}center`, JSON.stringify(ELSEWHERE))
+      window.localStorage.setItem(`${KEY}lens`, JSON.stringify('wohnort'))
+      const page = mountMap()
+      fire(userLocationQuery, { userLocation: location })
+      await flushPromises()
+
+      const list = page.findComponent({ name: 'MatchList' })
+      expect(list.props('center')).toEqual(HOME)
+      expect(list.props('searchCenter')).toEqual(ELSEWHERE)
+    })
+
+    it.each(['NOMINATIM', 'GMS'])(
+      'calls the home the home again when the home button brings the search back, and asks nobody (switch on %s)',
+      async (position) => {
+        switchPosition.geoProvider = position
+        const page = await openMap(ELSEWHERE)
+        recenter(page, PRAG)
+        await flushPromises()
+        expect(listLabel(page)).toBe('Prag')
+
+        tapHomeButton(page)
+        await flushPromises()
+
+        expect(JSON.parse(window.localStorage.getItem(`${KEY}center`))).toEqual(HOME)
+        expect(listLabel(page)).toBe(de.matching.map.centreHome)
+        expect(fetchMock).not.toHaveBeenCalled()
+      },
+    )
+
+    it('names a point set with the crosshair by the old reverse lookup in the old position', async () => {
+      const page = await openMap(ELSEWHERE)
+
+      await page.find('.map-crosshair').trigger('click')
+      await flushPromises()
+
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+      expect(fetchMock.mock.calls[0][0].startsWith(`${NOMINATIM_REVERSE_URL}?`)).toBe(true)
+      expect(listLabel(page)).toBe('Marktplatz, Freising')
+    })
+
+    // Until the name comes from the map's own tiles (B3).
+    it('calls a point set with the crosshair "the chosen point" in the new position, and asks nobody', async () => {
+      switchPosition.geoProvider = 'GMS'
+      const page = await openMap(ELSEWHERE)
+
+      await page.find('.map-crosshair').trigger('click')
+      await flushPromises()
+
+      expect(fetchMock).not.toHaveBeenCalled()
+      expect(listLabel(page)).toBe(de.matching.map.centrePoint)
+    })
+
+    it('names a place picked from a search by its own name, and asks nobody', async () => {
+      const page = mountMap()
+      fire(userLocationQuery, { userLocation: location })
+      await flushPromises()
+
+      recenter(page, PRAG)
+      await flushPromises()
+
+      expect(listLabel(page)).toBe('Prag')
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    // Two centres in quick succession: a lookup still out for the first must not rename the
+    // second, also when the second one needs no lookup at all.
+    it('lets a lookup still out rename nothing once the search has moved on', async () => {
+      let answerLookup
+      fetchMock.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            answerLookup = resolve
+          }),
+      )
+      const page = mountMap()
+      fire(userLocationQuery, { userLocation: location })
+      await flushPromises()
+
+      recenter(page, ELSEWHERE)
+      await flushPromises()
+      recenter(page, PRAG)
+      await flushPromises()
+      answerLookup({ ok: true, json: async () => NOMINATIM_ANSWER })
+      await flushPromises()
+
+      expect(listLabel(page)).toBe('Prag')
+    })
+
+    it('hands the search control a provider made with the admin switch and the GMS address', async () => {
+      await openMap(ELSEWHERE)
+
+      expect(makeGeoProvider).toHaveBeenCalledTimes(1)
+      const made = makeGeoProvider.mock.calls[0][0]
+      expect(made.mapSwitches).toBe(mapSwitches)
+      expect(made.gmsBase).toBe(gmsBase)
+      // Read at the moment of a search: where the map looks, in the wallet's language.
+      expect(made.viewpoint().lat).toBeCloseTo(ELSEWHERE.lat, 6)
+      expect(made.viewpoint().lng).toBeCloseTo(ELSEWHERE.lng, 6)
+      expect(made.language()).toBe('de')
+      expect(controls.at(-1).provider).toBe(madeProvider)
     })
   })
 })

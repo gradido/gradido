@@ -4,16 +4,28 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import UserLocationMap from './UserLocationMap.vue'
 
 vi.mock('vue-i18n', () => ({
-  useI18n: () => ({ t: (key) => key }),
+  useI18n: () => ({ t: (key) => key, locale: { value: 'de' } }),
 }))
+
+// The provider is measured in its own spec (utils/geoSearchProvider); here only what the map
+// makes it with and hands to the control.
+const { makeGeoProvider, mapSwitches, gmsBase } = vi.hoisted(() => ({
+  makeGeoProvider: vi.fn(() => ({ search: async () => [] })),
+  mapSwitches: async () => ({ mapEngine: 'LEAFLET', geoProvider: 'GMS' }),
+  gmsBase: async () => null,
+}))
+vi.mock('@/utils/geoSearchProvider', () => ({ makeGeoProvider }))
+vi.mock('@/composables/useMapSwitches', () => ({ useMapSwitches: () => ({ mapSwitches }) }))
+vi.mock('@/composables/useGmsBase', () => ({ useGmsBase: () => ({ gmsBase }) }))
 
 // The search control is the last thing initMap adds, so a call to addTo proves
 // the function ran to its end rather than dying somewhere in the middle.
 let searchControlAdded = 0
+const searchControlOptions = []
 vi.mock('leaflet-geosearch', () => ({
-  OpenStreetMapProvider: class {},
   GeoSearchControl: class {
-    constructor() {
+    constructor(options) {
+      searchControlOptions.push(options)
       this.options = { position: 'topleft' }
     }
 
@@ -53,6 +65,8 @@ const mountAndSettle = async (props) => {
 describe('UserLocationMap', () => {
   beforeEach(() => {
     searchControlAdded = 0
+    searchControlOptions.length = 0
+    makeGeoProvider.mockClear()
   })
 
   afterEach(() => {
@@ -118,6 +132,24 @@ describe('UserLocationMap', () => {
       await mountAndSettle({ userIcon: 'home', communityMarkerCoords: undefined })
 
       expect(markers()).toHaveLength(1)
+    })
+  })
+
+  // The admin switch decides at each search which service answers (K-008) - on this map as
+  // on the big one.
+  describe('the address search', () => {
+    it('hands the control a provider made with the admin switch and the GMS address', async () => {
+      await mountAndSettle({ userIcon: 'home', communityMarkerCoords: undefined })
+
+      expect(makeGeoProvider).toHaveBeenCalledTimes(1)
+      const made = makeGeoProvider.mock.calls[0][0]
+      expect(made.mapSwitches).toBe(mapSwitches)
+      expect(made.gmsBase).toBe(gmsBase)
+      // Read at the moment of a search: where the map looks, in the wallet's language.
+      expect(made.viewpoint().lat).toBeCloseTo(coords.lat, 6)
+      expect(made.viewpoint().lng).toBeCloseTo(coords.lng, 6)
+      expect(made.language()).toBe('de')
+      expect(searchControlOptions[0].provider).toBe(makeGeoProvider.mock.results[0].value)
     })
   })
 })

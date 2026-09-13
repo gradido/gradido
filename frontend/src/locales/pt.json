@@ -598,6 +598,8 @@
       "back": "Voltar",
       "breite": "Quem corresponde várias vezes",
       "breiteHint": "Destaca as pessoas que respondem a várias das tuas entradas.",
+      "centreHome": "your home",
+      "centrePoint": "the chosen point",
       "channels": {
         "andere": "todos os outros",
         "andereMit": "outros com entradas",

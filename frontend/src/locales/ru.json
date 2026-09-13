@@ -598,6 +598,8 @@
       "back": "Вернуться",
       "breite": "Кто подходит несколько раз",
       "breiteHint": "Выделяет людей, которые отвечают нескольким вашим записям.",
+      "centreHome": "your home",
+      "centrePoint": "the chosen point",
       "channels": {
         "andere": "все остальные",
         "andereMit": "другие с записями",
