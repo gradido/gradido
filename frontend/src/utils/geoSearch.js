@@ -73,11 +73,11 @@ export async function searchPlaces(
 
   try {
     const response = await fetch(`${base}geo/search?${params}`)
-    // Anything but a list of places is no answer: an installation without an index says
-    // 503 in plain text, a refused question 400 with an error object, a GMS that is down
-    // nothing at all. The search stays empty; the failed request shows in the network tab.
+    // Anything but a list of places is no answer, and each such answer ends in the catch: an
+    // installation without an index says 503 in plain text (no JSON), a refused question 400
+    // with an error object (no `filter`), a GMS that is down nothing at all. The search stays
+    // empty; the failed request shows in the network tab.
     const data = await response.json()
-    if (!Array.isArray(data)) return []
     return (
       data
         // A place without a coordinate cannot move a map.
