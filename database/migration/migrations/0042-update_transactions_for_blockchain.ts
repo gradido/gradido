@@ -1249,6 +1249,19 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
 }
 
 export async function downgrade(queryFn: (query: string, values?: any[]) => Promise<Array<any>>) {
+  // ⛔ The same test as the upgrade, for the same reason. Everything below writes by row id
+  // -- about two hundred creation dates, a DELETE for user 275, transactions 150 and 278 --
+  // and only means something on the database the upgrade actually split. Where the upgrade
+  // returned early, these writes would rewrite whatever transactions happen to carry those
+  // ids. The upgrade changes amount and memo of transaction 150, never its owner, so the
+  // test holds after a real split and fails after a skipped one.
+  const splitDone = await queryFn(
+    'SELECT `id` FROM `transactions` WHERE `id` = 150 AND `user_id` = 275',
+  )
+  if (!splitDone.length) {
+    return
+  }
+
   // reverse creation date changes
 
   await queryFn(
