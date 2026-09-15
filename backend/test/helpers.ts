@@ -1,6 +1,7 @@
 import { createTestClient } from 'apollo-server-testing'
 import { AppDatabase, drizzleOnlyTableNames, entities } from 'database'
 
+import { newRequestBudget } from '@/server/context'
 import { createServer } from '@/server/createServer'
 
 import { getLogger } from 'log4js'
@@ -16,6 +17,13 @@ const context = {
     forEach: jest.fn(),
   },
   clientTimezoneOffset: 0,
+  // A getter, because Apollo copies this object for every operation and the copy reads each
+  // property once: every operation of the test client gets a budget of its own, as every
+  // HTTP request does from the context function. A plain object here would be ONE budget
+  // for a whole test file, and the tenth full-size picture of the file would be its last.
+  get requestBudget() {
+    return newRequestBudget()
+  },
 }
 
 export const cleanDB = async () => {

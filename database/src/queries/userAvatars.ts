@@ -203,8 +203,9 @@ export async function dbFindMemberAvatarTimestampsByGradidoIds(
  * this answers a click. A batch here would be an invitation to prefetch the whole page at
  * ten times the weight of the list it decorates, and the small rendition exists precisely
  * so that nothing has to. ⚠️ The cap that makes that hold is NOT here and cannot be --
- * GraphQL aliasing puts any number of these in one request, so it is counted per request
- * at the API layer (MEMBER_AVATARS_FULL_MAX_PER_REQUEST). The second caller, the
+ * GraphQL aliasing puts any number of these in one request, so it is counted per HTTP
+ * request at the API layer (MEMBER_AVATARS_FULL_MAX_PER_REQUEST, kept in a budget that
+ * every operation of a batched request shares). The second caller, the
  * federation MemberAvatarsResolver, takes exactly one id per field and counts nothing per
  * request; federation/src/data/MemberAvatars.logic.ts says what bounds one there.
  *
