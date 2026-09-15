@@ -373,6 +373,31 @@ describe('useMemberAvatars', () => {
       // And nobody stays marked as in flight: the next list may ask again.
       expect(claimMissingMemberAvatars([member(1)]).refs).toHaveLength(1)
     })
+
+    // ⛔ The server asks another community for its members' faces and waits for it, so a
+    // request that mixed both communities would tie this community's faces to the other
+    // one's answer. One request per community keeps a slow or failing one to its own faces.
+    it("keeps this community's faces when the request for another community's fails", async () => {
+      const OTHER = '22222222-2222-4222-8222-222222222222'
+      const own = member(1)
+      const foreign = { ...member(2), communityUuid: OTHER }
+      const apollo = {
+        query: vi.fn(async ({ variables }) => {
+          if (variables.refs.some((ref) => ref.communityUuid === OTHER)) {
+            throw new Error('the other community did not answer in time')
+          }
+          return { data: { memberAvatars: answered(own, 'data:own', MONDAY) } }
+        }),
+      }
+
+      await fetchMemberAvatars(apollo, [foreign, own])
+
+      expect(storedMemberAvatar(own, MONDAY)).toBe('data:own')
+      const communitiesPerRequest = apollo.query.mock.calls.map(([{ variables }]) => [
+        ...new Set(variables.refs.map((ref) => ref.communityUuid)),
+      ])
+      expect(communitiesPerRequest).toEqual([[OTHER], [COMMUNITY]])
+    })
   })
 
   describe('an answer that arrives late', () => {
