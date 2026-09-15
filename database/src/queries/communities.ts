@@ -257,6 +257,28 @@ export async function getNotReachableCommunities(
   })
 }
 
+/**
+ * The other communities this one may ask about their members' pictures: foreign, through the
+ * authentication handshake, with a JWT key to seal the question for, and a uuid to file the
+ * answers under. The same condition the relay checks before it asks
+ * (backend UserResolver relayMemberAvatars) -- the other side refuses a community that has
+ * not completed the handshake with it, so asking any other would only cost the time limit.
+ *
+ * TypeORM, like its neighbours here: the caller hands each row to `xcomMemberAvatars`, which
+ * takes the entity.
+ */
+export async function dbSelectAuthenticatedForeignCommunities(): Promise<DbCommunity[]> {
+  return await DbCommunity.find({
+    where: {
+      foreign: true,
+      authenticatedAt: Not(IsNull()),
+      publicJwtKey: Not(IsNull()),
+      communityUuid: Not(IsNull()),
+    },
+    order: { id: 'ASC' },
+  })
+}
+
 // return the home community and all communities which had at least once make it through the first handshake
 export async function getAuthorizedCommunities(
   order?: FindOptionsOrder<DbCommunity>,

@@ -59,11 +59,20 @@ export const XCOM_MEMBER_AVATARS_TIMEOUT_MS = 5000
 export const MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST = 10
 
 /**
- * For the refresh of picture dates from other communities (AS-019), which is not built yet:
- * nobody waits on that run, so it may wait longer for one community than a member's request.
- * A constant for the same reason as the one above.
+ * How long the refresh of picture dates (AS-019, refreshForeignMemberAvatarDates) waits for
+ * one block of answers from another community. Nobody waits on that run, so it may wait longer
+ * than a member's request. A constant for the same reason as the one above.
  */
 export const XCOM_MEMBER_AVATAR_DATES_TIMEOUT_MS = 10000
+
+/**
+ * How often the picture dates of other communities' members are asked again (AS-019,
+ * refreshForeignMemberAvatarDates). This is how long a changed or withdrawn picture over there
+ * takes, at most, to reach the lists here -- and, after a deploy, how long until the first run.
+ *
+ * ⛔ A constant, not an environment name, for the reason XCOM_MEMBER_AVATARS_TIMEOUT_MS gives.
+ */
+export const FOREIGN_AVATAR_DATES_REFRESH_MS = 10 * 60 * 1000
 
 /**
  * Which of the refs this community answers itself, and which belong to another community.
