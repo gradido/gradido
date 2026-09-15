@@ -52,10 +52,16 @@ export function startRefreshForeignMemberAvatarDates(intervalMs: number): void {
  * ★ A member the answer does not name is stored as null -- no picture, switch off, deleted,
  * all the same to this side. That is how a withdrawal over there arrives here.
  *
- * ⛔ A community that fails -- no answer in time, a refusal, an answer that does not hold up --
- * gets nothing written, and the rest of its blocks are not asked this run: what was stored
- * stays, until it answers again. Writing null instead would take every face of that community
- * off the lists whenever it is briefly away.
+ * ⛔ A block that fails -- no answer in time, a refusal, an answer that does not hold up -- gets
+ * nothing written, and the rest of that community's blocks are not asked this run: what was
+ * stored for them stays, until the community answers again. Writing null instead would take
+ * every face of that community off the lists whenever it is briefly away.
+ *
+ * ★ The blocks answered before the failing one keep what they brought, on purpose. Each row is
+ * true for its own member as of its own check, so a community refreshed in part holds no row
+ * that contradicts another. Holding those answers back until every block has succeeded would
+ * hold back the withdrawals in them as well -- and a community that fails somewhere on every
+ * run would never be refreshed at all.
  *
  * One request at a time, each waiting for its answer, with at most MEMBER_AVATARS_MAX_REFS
  * members in it: ⌈stored members / MEMBER_AVATARS_MAX_REFS⌉ requests per community per run.

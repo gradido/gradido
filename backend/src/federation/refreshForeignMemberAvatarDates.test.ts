@@ -307,6 +307,57 @@ describe('refreshForeignMemberAvatarDates', () => {
       expect(rawRequest).toHaveBeenCalledTimes(1)
       expect(await storedDates()).toEqual({})
     })
+
+    /**
+     * ★ A decision, not an accident (see the run's docblock): the blocks answered before a
+     * failing one keep what they brought. Each row is true for its own member, and holding the
+     * answers back until every block succeeds would hold back the withdrawals in them as well --
+     * a community that failed somewhere on every run would never be refreshed.
+     */
+    it('keeps the answers of the blocks before a failing one, and the failing block as it was', async () => {
+      const [lastStored] = await DbUser.find({
+        where: { foreign: true, communityUuid: peerUuid },
+        order: { id: 'DESC' },
+        take: 1,
+      })
+      // The member asked about in the second block, with a date from an earlier run.
+      await dbUpsertForeignMemberAvatarDates([
+        {
+          communityUuid: peerUuid,
+          gradidoId: lastStored.gradidoID,
+          avatarUpdatedAt: new Date(PICTURE),
+          checkedAt: LONG_AGO,
+        },
+      ])
+      let asked = 0
+      peerAnswers((question) => {
+        asked += 1
+        if (asked > 1) {
+          throw new Error('connect ECONNREFUSED 192.0.2.1:443')
+        }
+        return question.gradidoIDs.map((gradidoID) => ({
+          gradidoID,
+          avatarUpdatedAt: NEWER,
+          avatar: null,
+        }))
+      })
+
+      await refreshForeignMemberAvatarDates()
+
+      expect(questions.map((question) => question.gradidoIDs.length)).toEqual([
+        MEMBER_AVATARS_MAX_REFS,
+        1,
+      ])
+      const stored = await storedDates()
+      expect(Object.keys(stored)).toHaveLength(MEMBER_AVATARS_MAX_REFS + 1)
+      expect(Object.values(stored).filter((row) => row.avatarUpdatedAt === NEWER)).toHaveLength(
+        MEMBER_AVATARS_MAX_REFS,
+      )
+      expect(stored[pair(peerUuid, lastStored.gradidoID)]).toEqual({
+        avatarUpdatedAt: PICTURE,
+        checkedAt: LONG_AGO.toISOString(),
+      })
+    })
   })
 
   describe('whom it does not ask', () => {
