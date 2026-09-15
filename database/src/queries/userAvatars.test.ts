@@ -6,6 +6,7 @@ import { userAvatarsTable, usersTable } from '../schemas'
 import {
   dbDeleteUserAvatar,
   dbFindMemberAvatarFull,
+  dbFindMemberAvatarFullWithDate,
   dbFindMemberAvatarsSmall,
   dbFindMemberAvatarTimestamps,
   dbFindMemberAvatarTimestampsByGradidoIds,
@@ -380,6 +381,23 @@ describe('member avatars for the booking list', () => {
       const full = await dbFindMemberAvatarFull(gid(SHOWN), HOME_COMMUNITY)
       expect(full).not.toBeNull()
       expect(Buffer.from(full as Buffer).equals(pictureFull)).toBe(true)
+    })
+
+    // Another community's zoom gets the crop together with its date (federation). The date
+    // has to be the picture's own: the id-keyed reader is the reference for the column.
+    it('hands out the date of the crop with it', async () => {
+      const row = await dbFindMemberAvatarFullWithDate(gid(SHOWN), HOME_COMMUNITY)
+      const dates = await dbFindMemberAvatarTimestamps([SHOWN])
+      expect(Buffer.from(row?.avatarFull as Buffer).equals(pictureFull)).toBe(true)
+      expect(dates.get(SHOWN)).toBeInstanceOf(Date)
+      expect(row?.updatedAt.getTime()).toBe(dates.get(SHOWN)?.getTime())
+    })
+
+    // The reader without the date goes through this one, so the refusals below hold for
+    // both; two of them are asked here directly as well.
+    it('refuses with the date exactly what it refuses without', async () => {
+      expect(await dbFindMemberAvatarFullWithDate(gid(SWITCHED_OFF), HOME_COMMUNITY)).toBeNull()
+      expect(await dbFindMemberAvatarFullWithDate(gid(FOREIGN), FOREIGN_COMMUNITY)).toBeNull()
     })
 
     // Two columns, both Buffers, and nothing in the types keeps them apart. Asserted

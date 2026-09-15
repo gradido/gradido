@@ -95,6 +95,11 @@ export interface MemberAvatarRow {
   updatedAt: Date
 }
 
+export interface MemberAvatarFullRow {
+  avatarFull: Buffer
+  updatedAt: Date
+}
+
 /**
  * The pictures of several members at once, for showing them next to shared bookings.
  *
@@ -160,8 +165,8 @@ export async function dbFindMemberAvatarTimestamps(userIds: number[]): Promise<M
 
 /**
  * The same dates, keyed by gradidoId: the form in which ANOTHER community asks about this
- * community's members (federation MemberAvatarsResolver, kinds `dates` and `full`). The
- * internal user id means nothing on another server; the gradidoId is what it has.
+ * community's members (federation MemberAvatarsResolver, kind `dates`). The internal user id
+ * means nothing on another server; the gradidoId is what it has.
  *
  * Same guard, same answer shape: a member with nothing to show is missing from the map, and
  * an id this community does not know is missing the same way. No picture data is selected.
@@ -220,13 +225,16 @@ export async function dbFindMemberAvatarTimestampsByGradidoIds(
  * dbFindMemberAvatarsSmall above never errors. That is also why this returns a bare null
  * where the own-view reader below returns a Result: there, "not found" is information the
  * caller owns; here it is information about somebody else.
+ *
+ * The date comes from the same row as the crop. Read in a second query, a new picture saved
+ * in between would travel with the old date.
  */
-export async function dbFindMemberAvatarFull(
+export async function dbFindMemberAvatarFullWithDate(
   gradidoId: string,
   communityUuid: string,
-): Promise<Buffer | null> {
+): Promise<MemberAvatarFullRow | null> {
   const rows = await drizzleDb()
-    .select({ avatarFull: userAvatarsTable.avatarFull })
+    .select({ avatarFull: userAvatarsTable.avatarFull, updatedAt: userAvatarsTable.updatedAt })
     .from(userAvatarsTable)
     .innerJoin(usersTable, eq(usersTable.id, userAvatarsTable.userId))
     .where(
@@ -241,7 +249,19 @@ export async function dbFindMemberAvatarFull(
     )
     .limit(1)
 
-  return rows.at(0)?.avatarFull ?? null
+  return rows.at(0) ?? null
+}
+
+/**
+ * The same crop without its date, for the backend's zoom (UserResolver.memberAvatarFull),
+ * which answers with the picture alone. Read through the reader above, so the guarded query
+ * exists once.
+ */
+export async function dbFindMemberAvatarFull(
+  gradidoId: string,
+  communityUuid: string,
+): Promise<Buffer | null> {
+  return (await dbFindMemberAvatarFullWithDate(gradidoId, communityUuid))?.avatarFull ?? null
 }
 
 /**
