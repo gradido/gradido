@@ -525,8 +525,13 @@ export class TransactionResolver {
         linkedUser = involvedUsers.find((u) => u.id === userTransaction.linkedUserId)
         logger.debug(`local linkedUser=${linkedUser?.id}`)
       } else if (userTransaction.linkedUserCommunityUuid) {
+        // ⛔ By the whole pair: the same gradido id in two communities is two people (`users`
+        // is unique on the pair), each with their own name and picture date. Every model here
+        // carries the booking's community uuid -- built from it, or found by it.
         linkedUser = involvedRemoteUsers.find(
-          (u) => u.gradidoID === userTransaction.linkedUserGradidoID,
+          (u) =>
+            u.communityUuid === userTransaction.linkedUserCommunityUuid &&
+            u.gradidoID === userTransaction.linkedUserGradidoID,
         )
         logger.debug(`remote linkedUser=${linkedUser?.id}`)
       }

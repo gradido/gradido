@@ -653,16 +653,24 @@ describe('send coins', () => {
           const ANNA = uuidv4()
           const OTTO = uuidv4()
           const NOBODY = uuidv4()
+          // A third community with a member under ANNA's very gradido id: another person.
+          const FARTHER = uuidv4()
           const ANNAS_PICTURE = new Date('2026-09-14T16:58:37.124Z')
           const OTTOS_PICTURE = new Date('2026-09-15T08:01:02.345Z')
+          const NAMESAKES_PICTURE = new Date('2026-09-15T09:30:00.678Z')
+          let far: string
           let bookings: any[]
 
-          const rowWith = (gradidoID: string) =>
-            bookings.find((booking) => booking.linkedUser?.gradidoID === gradidoID)
+          const rowWith = (communityUuid: string, gradidoID: string) =>
+            bookings.find(
+              (booking) =>
+                booking.linkedUser?.communityUuid === communityUuid &&
+                booking.linkedUser?.gradidoID === gradidoID,
+            )
 
           beforeAll(async () => {
             const bibi = await userFactory(testEnv, bibiBloxberg)
-            const far = foreignCom.communityUuid as string
+            far = foreignCom.communityUuid as string
             const ottosRow = await User.create({
               foreign: true,
               communityUuid: far,
@@ -686,6 +694,11 @@ describe('send coins', () => {
               { communityUuid: far, gradidoID: NOBODY, name: 'nobody' },
               new Date(now - 1000),
             )
+            await foreignReceive(
+              bibi,
+              { communityUuid: FARTHER, gradidoID: ANNA, name: 'namesake' },
+              new Date(now - 500),
+            )
             await dbUpsertForeignMemberAvatarDates([
               {
                 communityUuid: far,
@@ -697,6 +710,12 @@ describe('send coins', () => {
                 communityUuid: far,
                 gradidoId: OTTO,
                 avatarUpdatedAt: OTTOS_PICTURE,
+                checkedAt: new Date(),
+              },
+              {
+                communityUuid: FARTHER,
+                gradidoId: ANNA,
+                avatarUpdatedAt: NAMESAKES_PICTURE,
                 checkedAt: new Date(),
               },
             ])
@@ -717,17 +736,34 @@ describe('send coins', () => {
           })
 
           it('carries the date their community reported for a member named only by the pair', () => {
-            expect(rowWith(ANNA).linkedUser.avatarUpdatedAt).toBe(ANNAS_PICTURE.toISOString())
+            expect(rowWith(far, ANNA).linkedUser.avatarUpdatedAt).toBe(ANNAS_PICTURE.toISOString())
           })
 
           it('carries it too when the booking names the row the federation stored for them', () => {
-            expect(rowWith(OTTO).linkedUser.avatarUpdatedAt).toBe(OTTOS_PICTURE.toISOString())
+            expect(rowWith(far, OTTO).linkedUser.avatarUpdatedAt).toBe(OTTOS_PICTURE.toISOString())
           })
 
           it('carries null for a member their community reported no date for', () => {
             // The fixture proves itself: the row is there, only its date is not.
-            expect(rowWith(NOBODY)).toBeDefined()
-            expect(rowWith(NOBODY).linkedUser.avatarUpdatedAt).toBeNull()
+            expect(rowWith(far, NOBODY)).toBeDefined()
+            expect(rowWith(far, NOBODY).linkedUser.avatarUpdatedAt).toBeNull()
+          })
+
+          /**
+           * ⛔ The same gradido id in two communities is two people. Each booking row names its
+           * own member -- community, id and picture date -- and not whichever of the two the
+           * page happened to resolve first.
+           */
+          it('tells two members with the same gradido id in two communities apart', () => {
+            const namesakes = bookings
+              .filter((booking) => booking.linkedUser?.gradidoID === ANNA)
+              .map((booking) => [
+                booking.linkedUser.communityUuid,
+                booking.linkedUser.avatarUpdatedAt,
+              ])
+            expect(namesakes).toHaveLength(2)
+            expect(namesakes).toContainEqual([far, ANNAS_PICTURE.toISOString()])
+            expect(namesakes).toContainEqual([FARTHER, NAMESAKES_PICTURE.toISOString()])
           })
         })
       })
