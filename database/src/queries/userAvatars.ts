@@ -46,8 +46,8 @@ export async function dbFindUserAvatarSmall(
  *
  * ⚠️ It lives here, in the query, and not at the call site. A disclosure rule that every
  * reader has to remember to apply is not a rule; the first caller who forgets it publishes
- * a face, and nothing about the code says they were wrong. All three member-facing queries
- * below share this, so there is one place to read and one place to change.
+ * a face, and nothing about the code says they were wrong. All member-facing queries below
+ * share this, so there is one place to read and one place to change.
  *
  * ★ That it now also guards the FULL rendition (AS-018) is the argument for having put it
  * here in the first place: opening a second rendition to members was one reader calling an
@@ -159,6 +159,30 @@ export async function dbFindMemberAvatarTimestamps(userIds: number[]): Promise<M
 }
 
 /**
+ * The same dates, keyed by gradidoId: the form in which ANOTHER community asks about this
+ * community's members (federation MemberAvatarsResolver, kinds `dates` and `full`). The
+ * internal user id means nothing on another server; the gradidoId is what it has.
+ *
+ * Same guard, same answer shape: a member with nothing to show is missing from the map, and
+ * an id this community does not know is missing the same way. No picture data is selected.
+ */
+export async function dbFindMemberAvatarTimestampsByGradidoIds(
+  gradidoIds: string[],
+): Promise<Map<string, Date>> {
+  if (gradidoIds.length === 0) {
+    return new Map()
+  }
+
+  const rows = await drizzleDb()
+    .select({ gradidoId: usersTable.gradidoId, updatedAt: userAvatarsTable.updatedAt })
+    .from(userAvatarsTable)
+    .innerJoin(usersTable, eq(usersTable.id, userAvatarsTable.userId))
+    .where(and(inArray(usersTable.gradidoId, gradidoIds), mayBeShownToMembers()))
+
+  return new Map(rows.map((row) => [row.gradidoId, row.updatedAt]))
+}
+
+/**
  * ONE other member's full crop, 512x512, for looking at their face at a size a thumbnail
  * cannot carry (AS-018).
  *
@@ -175,7 +199,9 @@ export async function dbFindMemberAvatarTimestamps(userIds: number[]): Promise<M
  * ten times the weight of the list it decorates, and the small rendition exists precisely
  * so that nothing has to. ⚠️ The cap that makes that hold is NOT here and cannot be --
  * GraphQL aliasing puts any number of these in one request, so it is counted per request
- * at the API layer (MEMBER_AVATARS_FULL_MAX_PER_REQUEST).
+ * at the API layer (MEMBER_AVATARS_FULL_MAX_PER_REQUEST). The second caller, the
+ * federation MemberAvatarsResolver, takes exactly one id per field and counts nothing per
+ * request; federation/src/data/MemberAvatars.logic.ts says what bounds one there.
  *
  * ⛔ Takes the PAIR, and both halves are used. The batched reader above matches on the id
  * alone and hands the pair back so the caller can sort the answer out; that is right for a
@@ -183,8 +209,10 @@ export async function dbFindMemberAvatarTimestamps(userIds: number[]): Promise<M
  * nothing attached that a caller could check it against. `users` is unique on
  * (gradido_id, community_uuid) -- the id ALONE is not a key -- so matching both is what
  * makes this reader answer about the member that was asked about rather than about whoever
- * the database reached first. Today `foreign = 0` hides the difference; AS-004 is the
- * delivery that removes exactly that term.
+ * the database reached first. `foreign = 0` hides the difference, and it stays: a member of
+ * another community is asked about at THEIR home community, which reads its own members
+ * with this same function (federation MemberAvatarsResolver). The way across the border
+ * opens in front of the query, not inside it.
  *
  * Null for a member who has no picture, keeps it to themselves, is deleted, or does not
  * exist -- one answer for all four, deliberately. A distinguishable "no such member" would
