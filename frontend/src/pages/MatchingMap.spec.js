@@ -139,6 +139,13 @@ vi.mock('@/utils/geoSearchProvider', () => ({
   makeGeoProvider: (options) => makeGeoProvider(options),
 }))
 
+// The name from the map's own tile file, measured in its own spec (utils/placeName); here
+// only which point the page asks about and what the list then says. Nothing is fetched.
+const placeNameAt = vi.fn(async () => null)
+vi.mock('@/utils/placeName', () => ({
+  placeNameAt: (...args) => placeNameAt(...args),
+}))
+
 const i18n = createI18n({ legacy: false, locale: 'de', messages: { de } })
 
 // Since 10.09.2026 every map setting hangs under the member, not under the browser -- so
@@ -1309,6 +1316,8 @@ describe('MatchingMap', () => {
       window.localStorage.setItem(`${KEY}mode`, JSON.stringify('liste'))
       switchPosition.geoProvider = 'NOMINATIM'
       mapSwitches.mockClear()
+      placeNameAt.mockReset()
+      placeNameAt.mockImplementation(async () => null)
       makeGeoProvider.mockClear()
       controls.length = 0
       fetchMock = vi.fn(async () => ({ ok: true, json: async () => NOMINATIM_ANSWER }))
@@ -1331,6 +1340,7 @@ describe('MatchingMap', () => {
         expect(JSON.parse(window.localStorage.getItem(`${KEY}center`))).toEqual(HOME)
         expect(listLabel(page)).toBe(de.matching.map.centreHome)
         expect(fetchMock).not.toHaveBeenCalled()
+        expect(placeNameAt).not.toHaveBeenCalled()
       },
     )
 
@@ -1376,6 +1386,7 @@ describe('MatchingMap', () => {
         expect(JSON.parse(window.localStorage.getItem(`${KEY}center`))).toEqual(HOME)
         expect(listLabel(page)).toBe(de.matching.map.centreHome)
         expect(fetchMock).not.toHaveBeenCalled()
+        expect(placeNameAt).not.toHaveBeenCalled()
       },
     )
 
@@ -1390,14 +1401,31 @@ describe('MatchingMap', () => {
       expect(listLabel(page)).toBe('Marktplatz, Freising')
     })
 
-    // Until the name comes from the map's own tiles (B3).
-    it('calls a point set with the crosshair "the chosen point" in the new position, and asks nobody', async () => {
+    it('names a point set with the crosshair from the tiles of the map in the new position, and asks nobody else', async () => {
+      switchPosition.geoProvider = 'GMS'
+      placeNameAt.mockImplementation(async () => ({ place: 'Freising', context: 'München' }))
+      const page = await openMap(ELSEWHERE)
+
+      await page.find('.map-crosshair').trigger('click')
+      await flushPromises()
+
+      expect(placeNameAt).toHaveBeenCalledTimes(1)
+      const [, lat, lng, locale] = placeNameAt.mock.calls[0]
+      expect(lat).toBeCloseTo(ELSEWHERE.lat, 6)
+      expect(lng).toBeCloseTo(ELSEWHERE.lng, 6)
+      expect(locale).toBe('de')
+      expect(fetchMock).not.toHaveBeenCalled()
+      expect(listLabel(page)).toBe('Freising, München')
+    })
+
+    it('calls a point set with the crosshair "the chosen point" in the new position where the tiles name nothing', async () => {
       switchPosition.geoProvider = 'GMS'
       const page = await openMap(ELSEWHERE)
 
       await page.find('.map-crosshair').trigger('click')
       await flushPromises()
 
+      expect(placeNameAt).toHaveBeenCalledTimes(1)
       expect(fetchMock).not.toHaveBeenCalled()
       expect(listLabel(page)).toBe(de.matching.map.centrePoint)
     })
@@ -1436,6 +1464,34 @@ describe('MatchingMap', () => {
       await flushPromises()
 
       expect(listLabel(page)).toBe('Prag')
+    })
+
+    // The tiles can take a while on a slow link. Meanwhile the list must not go on naming the
+    // place the search has left, and that name must not be stored with the new centre.
+    it('calls a point "the chosen point" while its name is still out, and stores no old name with it', async () => {
+      switchPosition.geoProvider = 'GMS'
+      let answerLookup
+      placeNameAt.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            answerLookup = resolve
+          }),
+      )
+      const page = mountMap()
+      fire(userLocationQuery, { userLocation: location })
+      await flushPromises()
+      recenter(page, PRAG)
+      await flushPromises()
+      expect(listLabel(page)).toBe('Prag')
+
+      recenter(page, ELSEWHERE)
+      await flushPromises()
+
+      expect(listLabel(page)).toBe(de.matching.map.centrePoint)
+      expect(JSON.parse(window.localStorage.getItem(`${KEY}centerLabel`))).toBe('')
+      answerLookup({ place: 'Freising', context: 'München' })
+      await flushPromises()
+      expect(listLabel(page)).toBe('Freising, München')
     })
 
     it('hands the search control a provider made with the admin switch and the GMS address', async () => {
