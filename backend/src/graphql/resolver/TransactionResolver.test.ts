@@ -6,6 +6,8 @@ import {
   AppDatabase,
   Community as DbCommunity,
   Event as DbEvent,
+  dbUpsertForeignMemberAvatarDates,
+  foreignReceive,
   Transaction,
   User,
 } from 'database'
@@ -30,6 +32,7 @@ import {
   updateUserInfos,
 } from '@/seeds/graphql/mutations'
 import { transactionsQuery } from '@/seeds/graphql/queries'
+import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
@@ -633,6 +636,99 @@ describe('send coins', () => {
             variables: { avatarVisibleToMembers: true },
           })
           await mutate({ mutation: login, variables: peterData })
+        })
+
+        /**
+         * ★ A member of ANOTHER community carries the date their community last reported
+         * (AS-019), as refreshForeignMemberAvatarDates stored it. Without it the wallet never
+         * asks for their face, and with a stale one it would keep a withdrawn face.
+         *
+         * Two shapes of booking reach the list by two different paths, and both are here: one
+         * that names the member only by the pair, and one that carries the id of the `users`
+         * row the federation stored for them.
+         *
+         * Bibi's own bookings, so peter's list above stays exactly as it was.
+         */
+        describe('for a member of another community', () => {
+          const ANNA = uuidv4()
+          const OTTO = uuidv4()
+          const NOBODY = uuidv4()
+          const ANNAS_PICTURE = new Date('2026-09-14T16:58:37.124Z')
+          const OTTOS_PICTURE = new Date('2026-09-15T08:01:02.345Z')
+          let bookings: any[]
+
+          const rowWith = (gradidoID: string) =>
+            bookings.find((booking) => booking.linkedUser?.gradidoID === gradidoID)
+
+          beforeAll(async () => {
+            const bibi = await userFactory(testEnv, bibiBloxberg)
+            const far = foreignCom.communityUuid as string
+            const ottosRow = await User.create({
+              foreign: true,
+              communityUuid: far,
+              gradidoID: OTTO,
+              alias: 'otto',
+            }).save()
+            // Oldest first: a seeded booking computes its decay from the one before.
+            const now = Date.now()
+            await foreignReceive(
+              bibi,
+              { communityUuid: far, gradidoID: ANNA, name: 'anna' },
+              new Date(now - 3000),
+            )
+            await foreignReceive(
+              bibi,
+              { communityUuid: far, gradidoID: OTTO, name: 'otto', linkedUserId: ottosRow.id },
+              new Date(now - 2000),
+            )
+            await foreignReceive(
+              bibi,
+              { communityUuid: far, gradidoID: NOBODY, name: 'nobody' },
+              new Date(now - 1000),
+            )
+            await dbUpsertForeignMemberAvatarDates([
+              {
+                communityUuid: far,
+                gradidoId: ANNA,
+                avatarUpdatedAt: ANNAS_PICTURE,
+                checkedAt: new Date(),
+              },
+              {
+                communityUuid: far,
+                gradidoId: OTTO,
+                avatarUpdatedAt: OTTOS_PICTURE,
+                checkedAt: new Date(),
+              },
+            ])
+
+            await mutate({
+              mutation: login,
+              variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+            })
+            const res: any = await query({ query: transactionsQuery })
+            if (res.errors) {
+              throw new Error(`the booking list failed: ${JSON.stringify(res.errors)}`)
+            }
+            bookings = res.data.transactionList.transactions
+          })
+
+          afterAll(async () => {
+            await mutate({ mutation: login, variables: peterData })
+          })
+
+          it('carries the date their community reported for a member named only by the pair', () => {
+            expect(rowWith(ANNA).linkedUser.avatarUpdatedAt).toBe(ANNAS_PICTURE.toISOString())
+          })
+
+          it('carries it too when the booking names the row the federation stored for them', () => {
+            expect(rowWith(OTTO).linkedUser.avatarUpdatedAt).toBe(OTTOS_PICTURE.toISOString())
+          })
+
+          it('carries null for a member their community reported no date for', () => {
+            // The fixture proves itself: the row is there, only its date is not.
+            expect(rowWith(NOBODY)).toBeDefined()
+            expect(rowWith(NOBODY).linkedUser.avatarUpdatedAt).toBeNull()
+          })
         })
       })
     })

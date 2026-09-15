@@ -2,7 +2,13 @@
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
-import { AppDatabase, foreignReceive, transferGradidos, User } from 'database'
+import {
+  AppDatabase,
+  dbUpsertForeignMemberAvatarDates,
+  foreignReceive,
+  transferGradidos,
+  User,
+} from 'database'
 import { GraphQLError } from 'graphql'
 import { GradidoUnit } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
@@ -340,6 +346,104 @@ describe('ContactResolver', () => {
         (c: any) => c.user.gradidoID === bob.gradidoID,
       )
       expect(bobRow.favorite).toBe(false)
+    })
+
+    /**
+     * ★ A contact from another community carries the date their community last reported for
+     * their picture (AS-019, stored by refreshForeignMemberAvatarDates) -- the contact known
+     * only from the booking, and the one whose `users` row the federation stored. Without it
+     * the wallet never asks for their face; with a stale one it would keep a withdrawn face.
+     */
+    describe('the picture dates of contacts from another community', () => {
+      const ANNAS_PICTURE = new Date('2026-09-14T16:58:37.124Z')
+      const BOBS_PICTURE = new Date('2026-09-15T08:01:02.345Z')
+
+      const contactOf = async (gradidoID: string) => {
+        const res: any = await query({ query: contactList })
+        expect(res.errors).toBeUndefined()
+        return res.data.contactList.contacts.find((c: any) => c.user.gradidoID === gradidoID)
+      }
+
+      afterEach(async () => {
+        await db.getDataSource().query('DELETE FROM foreign_member_avatar_dates')
+      })
+
+      it('carries no date before their community reported one', async () => {
+        expect((await contactOf(ANNA)).user.avatarUpdatedAt).toBeNull()
+      })
+
+      it('carries the date their community reported', async () => {
+        await dbUpsertForeignMemberAvatarDates([
+          {
+            communityUuid: FOREIGN_COMMUNITY,
+            gradidoId: ANNA,
+            avatarUpdatedAt: ANNAS_PICTURE,
+            checkedAt: new Date(),
+          },
+        ])
+        expect((await contactOf(ANNA)).user.avatarUpdatedAt).toBe(ANNAS_PICTURE.toISOString())
+      })
+
+      it('carries null when their community has nothing to show', async () => {
+        await dbUpsertForeignMemberAvatarDates([
+          {
+            communityUuid: FOREIGN_COMMUNITY,
+            gradidoId: ANNA,
+            avatarUpdatedAt: null,
+            checkedAt: new Date(),
+          },
+        ])
+        expect((await contactOf(ANNA)).user.avatarUpdatedAt).toBeNull()
+      })
+
+      it('carries it for a contact whose users row the federation stored', async () => {
+        await db
+          .getDataSource()
+          .query('UPDATE users SET `foreign` = 1, community_uuid = ? WHERE id = ?', [
+            FOREIGN_COMMUNITY,
+            bob.id,
+          ])
+        try {
+          await dbUpsertForeignMemberAvatarDates([
+            {
+              communityUuid: FOREIGN_COMMUNITY,
+              gradidoId: bob.gradidoID,
+              avatarUpdatedAt: BOBS_PICTURE,
+              checkedAt: new Date(),
+            },
+          ])
+          const bobRow = await contactOf(bob.gradidoID)
+          // The fixture proves itself: bob is on the path of a stored foreign row.
+          expect(bobRow.homeCommunity).toBe(false)
+          expect(bobRow.user.avatarUpdatedAt).toBe(BOBS_PICTURE.toISOString())
+        } finally {
+          await db
+            .getDataSource()
+            .query('UPDATE users SET `foreign` = 0, community_uuid = ? WHERE id = ?', [
+              bibi.communityUuid,
+              bob.id,
+            ])
+        }
+      })
+
+      /**
+       * ⛔ A member of THIS community takes their date from their own picture, never from this
+       * table. The refresh writes no row under our own uuid -- so one planted here must not
+       * reach peter, or a list that handed its own members to the lookup would pass unnoticed.
+       */
+      it('gives a contact of this community no date from there, whatever is stored', async () => {
+        await dbUpsertForeignMemberAvatarDates([
+          {
+            communityUuid: peter.communityUuid,
+            gradidoId: peter.gradidoID,
+            avatarUpdatedAt: BOBS_PICTURE,
+            checkedAt: new Date(),
+          },
+        ])
+        const peterRow = await contactOf(peter.gradidoID)
+        expect(peterRow.homeCommunity).toBe(true)
+        expect(peterRow.user.avatarUpdatedAt).toBeNull()
+      })
     })
   })
 

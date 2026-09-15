@@ -57,7 +57,12 @@ import { SendEmailArgs } from '../arg/SendEmailArgs'
 import { BalanceResolver } from './BalanceResolver'
 import { GdtResolver } from './GdtResolver'
 import { getCommunityName, isHomeCommunity } from './util/communities'
-import { bookingCounterparty, prefetchedLookups, remoteUserFromBooking } from './util/counterparty'
+import {
+  bookingCounterparty,
+  fillForeignMemberAvatarDates,
+  prefetchedLookups,
+  remoteUserFromBooking,
+} from './util/counterparty'
 
 const db = AppDatabase.getInstance()
 const createLogger = () =>
@@ -393,8 +398,9 @@ export class TransactionResolver {
     // query decides that -- switch off, deleted, or no picture at all. Deciding it here
     // would mean every future reader of the list has to remember the same rule.
     //
-    // involvedRemoteUsers are deliberately left out: they belong to another community,
-    // whose members' pictures are a separate delivery (AS-004).
+    // Members of another community get their date below, from what their community last
+    // said about them (fillForeignMemberAvatarDates) -- the query here only answers for
+    // this community's own members.
     //
     // ⚠️ Without the caller's own id, which involvedUserIds carries because the row fetch
     // above needs it. Their own date is never read -- `Transaction.user` is built from
@@ -408,6 +414,15 @@ export class TransactionResolver {
     for (const involvedUser of involvedUsers) {
       involvedUser.avatarUpdatedAt = avatarDates.get(involvedUser.id) ?? null
     }
+    // The members of other communities on this page: the counterparties a booking only names
+    // by their pair, and those whose `users` row the federation stored (a booking may carry
+    // that row's id, and then the member came in with the rows above). One query for all of
+    // them, asked of the dates their communities last reported (AS-019); none when there are
+    // none. ⚠️ After the loop above, which leaves the stored rows at null.
+    await fillForeignMemberAvatarDates([
+      ...involvedRemoteUsers,
+      ...involvedUsers.filter((involvedUser) => involvedUser.foreign),
+    ])
 
     logger.debug(
       `involvedUsers=`,

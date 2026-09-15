@@ -5,7 +5,9 @@ import {
   User as DbUser,
   dbFindForeignUsersByGradidoIds,
   dbFindUserIdByUuids,
+  dbSelectForeignMemberAvatarDates,
   findForeignUserByUuids,
+  foreignMemberAvatarDateKey,
   getHomeCommunity,
 } from 'database'
 import { Logger } from 'log4js'
@@ -152,6 +154,37 @@ export const remoteUserFromBooking = async (
     ? await lookups.communityName(remoteUser.communityUuid)
     : null
   return remoteUser
+}
+
+/**
+ * When each of these members of OTHER communities last changed the picture their community
+ * lets members see -- as the refresh last heard it (refreshForeignMemberAvatarDates, AS-019).
+ * The booking list and the contact list both call this, with every such member of the page,
+ * and it asks once for all of them.
+ *
+ * ⛔ Only members of other communities. A member of this community has their date from their
+ * own picture (dbFindMemberAvatarTimestamps) and must not be handed in: they are not asked
+ * about over there, so this would set their date to null.
+ *
+ * Null where the refresh stored "nothing to show", where it has no answer yet (the pair has no
+ * row), and for a member without a uuid to look up by -- the wallet shows letters for all.
+ */
+export const fillForeignMemberAvatarDates = async (users: User[]): Promise<void> => {
+  const dates = await dbSelectForeignMemberAvatarDates(
+    users
+      .filter((user) => user.communityUuid)
+      .map((user) => ({ communityUuid: user.communityUuid, gradidoId: user.gradidoID })),
+  )
+  for (const user of users) {
+    user.avatarUpdatedAt = user.communityUuid
+      ? (dates.get(
+          foreignMemberAvatarDateKey({
+            communityUuid: user.communityUuid,
+            gradidoId: user.gradidoID,
+          }),
+        ) ?? null)
+      : null
+  }
 }
 
 /**
