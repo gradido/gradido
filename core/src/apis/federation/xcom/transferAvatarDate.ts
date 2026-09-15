@@ -19,9 +19,15 @@ export const TRANSFER_AVATAR_DATE_MAX_AHEAD_MS = 24 * 60 * 60 * 1000
 
 /**
  * A picture date as another server wrote it. It arrives as parsed JSON, so this checks what
- * came: a string Date.parse understands, not before TRANSFER_AVATAR_DATE_EARLIEST and at most
- * TRANSFER_AVATAR_DATE_MAX_AHEAD_MS after `now`. Anything else is null -- a missing field, null,
- * a number, an object, text that is no date, the year 1 or 9999.
+ * came: a string exactly as `toISOString()` writes it (`2026-09-15T06:00:00.000Z`, the form both
+ * senders use -- MemberAvatarsResolver and memberAvatarDateForTransfer), not before
+ * TRANSFER_AVATAR_DATE_EARLIEST and at most TRANSFER_AVATAR_DATE_MAX_AHEAD_MS after `now`.
+ * Anything else is null -- a missing field, null, a number, an object, text that is no date, the
+ * year 1 or 9999.
+ *
+ * Only that one form, because Date.parse takes more: it rolls an impossible day over (February
+ * 30th becomes March 2nd) and reads a string without an offset in the time zone of the server
+ * reading it. A date that does not print back as the very same string is not taken.
  *
  * The window exists because a stored date goes out again: the booking list and the contact list
  * hand it to every wallet that shows the member (`avatarUpdatedAt`). The dates in an answer to
@@ -40,7 +46,9 @@ export const readTransferAvatarDate = (value: unknown, now = new Date()): Date |
   ) {
     return null
   }
-  return new Date(time)
+  // After the checks above: toISOString throws for an invalid date, and this one is valid.
+  const date = new Date(time)
+  return date.toISOString() === value ? date : null
 }
 
 /**

@@ -37,6 +37,23 @@ describe('readTransferAvatarDate', () => {
     }
   })
 
+  // Date.parse would take all four -- the first as March 2nd, the third in this server's time
+  // zone. The same moment written the way toISOString writes it is taken.
+  it('discards a date that does not print back as the same string', () => {
+    for (const value of [
+      '2026-02-30T00:00:00.000Z',
+      '2026-09-15T06:00:00Z',
+      '2026-09-15 06:00:00',
+      '2026-09-15T08:00:00.000+02:00',
+    ]) {
+      expect(Number.isNaN(Date.parse(value))).toBe(false)
+      expect(readTransferAvatarDate(value, NOW)).toBeNull()
+    }
+    expect(readTransferAvatarDate('2026-09-15T06:00:00.000Z', NOW)).toEqual(
+      new Date('2026-09-15T06:00:00.000Z'),
+    )
+  })
+
   it('discards a date before 2020 and one more than a day ahead', () => {
     expect(readTransferAvatarDate('2020-01-01T00:00:00.000Z', NOW)).toEqual(
       new Date('2020-01-01T00:00:00.000Z'),
