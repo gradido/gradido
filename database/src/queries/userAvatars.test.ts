@@ -6,8 +6,10 @@ import { userAvatarsTable, usersTable } from '../schemas'
 import {
   dbDeleteUserAvatar,
   dbFindMemberAvatarFull,
+  dbFindMemberAvatarFullWithDate,
   dbFindMemberAvatarsSmall,
   dbFindMemberAvatarTimestamps,
+  dbFindMemberAvatarTimestampsByGradidoIds,
   dbFindUserAvatarFull,
   dbFindUserAvatarSmall,
   dbUpsertUserAvatar,
@@ -309,6 +311,68 @@ describe('member avatars for the booking list', () => {
     expect(dates.get(SHOWN)).toBeInstanceOf(Date)
   })
 
+  // What ANOTHER community asks by (federation, kinds `dates` and `full`): gradidoIds, since
+  // our internal ids mean nothing there. A member missing from this map is a member whose
+  // face the other community stops showing, so every refusal is made here as well -- one
+  // per case, each differing from the permitted one in a single column.
+  describe('the dates by gradidoId, for another community', () => {
+    it('dates a member who allows it, under their gradidoId', async () => {
+      const dates = await dbFindMemberAvatarTimestampsByGradidoIds([gid(SHOWN)])
+      expect([...dates.keys()]).toEqual([gid(SHOWN)])
+    })
+
+    // Two Dates are indistinguishable by type. The id-keyed reader is the reference for
+    // which column this is -- a projection of, say, users.created_at would pass the test
+    // above and fail this one.
+    it('reports the same date as the reader keyed by internal id', async () => {
+      const byGradidoId = await dbFindMemberAvatarTimestampsByGradidoIds([gid(SHOWN)])
+      const byUserId = await dbFindMemberAvatarTimestamps([SHOWN])
+      expect(byUserId.get(SHOWN)).toBeInstanceOf(Date)
+      expect(byGradidoId.get(gid(SHOWN))?.getTime()).toBe(byUserId.get(SHOWN)?.getTime())
+    })
+
+    it('dates nobody who switched it off', async () => {
+      expect(await dbFindMemberAvatarTimestampsByGradidoIds([gid(SWITCHED_OFF)])).toEqual(new Map())
+    })
+
+    it('dates nobody who is deleted, switch or no switch', async () => {
+      expect(await dbFindMemberAvatarTimestampsByGradidoIds([gid(DELETED)])).toEqual(new Map())
+    })
+
+    // ⛔ The mirror row a community keeps for another community's member, with a picture row
+    // forced onto it. Only the `foreign = 0` term refuses it, which is the proof that a
+    // community answers for its own members and never for somebody else's.
+    it('dates nobody who is a member of another community', async () => {
+      expect(await dbFindMemberAvatarTimestampsByGradidoIds([gid(FOREIGN)])).toEqual(new Map())
+    })
+
+    it('dates nobody who has no picture', async () => {
+      expect(await dbFindMemberAvatarTimestampsByGradidoIds([gid(NO_PICTURE)])).toEqual(new Map())
+    })
+
+    it('says nothing about a member it does not know', async () => {
+      expect(
+        await dbFindMemberAvatarTimestampsByGradidoIds(['00000000-0000-4000-8000-00000009999']),
+      ).toEqual(new Map())
+    })
+
+    it('answers for a mixed list without letting the refusals swallow the rest', async () => {
+      const dates = await dbFindMemberAvatarTimestampsByGradidoIds([
+        gid(SHOWN),
+        gid(SWITCHED_OFF),
+        gid(DELETED),
+        gid(NO_PICTURE),
+        gid(FOREIGN),
+        '00000000-0000-4000-8000-00000009999',
+      ])
+      expect([...dates.keys()]).toEqual([gid(SHOWN)])
+    })
+
+    it('asks nothing at all for an empty list', async () => {
+      expect(await dbFindMemberAvatarTimestampsByGradidoIds([])).toEqual(new Map())
+    })
+  })
+
   // AS-018: the 512 crop, for ONE member, on a click. Every refusal the small rendition
   // makes has to be made here too -- this reader hands out a bigger picture of the same
   // face, so a gap here is the same leak, only more of it.
@@ -317,6 +381,23 @@ describe('member avatars for the booking list', () => {
       const full = await dbFindMemberAvatarFull(gid(SHOWN), HOME_COMMUNITY)
       expect(full).not.toBeNull()
       expect(Buffer.from(full as Buffer).equals(pictureFull)).toBe(true)
+    })
+
+    // Another community's zoom gets the crop together with its date (federation). The date
+    // has to be the picture's own: the id-keyed reader is the reference for the column.
+    it('hands out the date of the crop with it', async () => {
+      const row = await dbFindMemberAvatarFullWithDate(gid(SHOWN), HOME_COMMUNITY)
+      const dates = await dbFindMemberAvatarTimestamps([SHOWN])
+      expect(Buffer.from(row?.avatarFull as Buffer).equals(pictureFull)).toBe(true)
+      expect(dates.get(SHOWN)).toBeInstanceOf(Date)
+      expect(row?.updatedAt.getTime()).toBe(dates.get(SHOWN)?.getTime())
+    })
+
+    // The reader without the date goes through this one, so the refusals below hold for
+    // both; two of them are asked here directly as well.
+    it('refuses with the date exactly what it refuses without', async () => {
+      expect(await dbFindMemberAvatarFullWithDate(gid(SWITCHED_OFF), HOME_COMMUNITY)).toBeNull()
+      expect(await dbFindMemberAvatarFullWithDate(gid(FOREIGN), FOREIGN_COMMUNITY)).toBeNull()
     })
 
     // Two columns, both Buffers, and nothing in the types keeps them apart. Asserted
