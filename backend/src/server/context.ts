@@ -21,10 +21,15 @@ import { LogError } from './LogError'
 export interface RequestBudget {
   // Full-size member pictures, capped at MEMBER_AVATARS_FULL_MAX_PER_REQUEST.
   memberAvatarsFullServed: number
+  // Other communities asked by memberAvatars, capped at MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST.
+  memberAvatarsRelayed: number
 }
 
 /** A budget with nothing spent. The context function creates one per HTTP request. */
-export const newRequestBudget = (): RequestBudget => ({ memberAvatarsFullServed: 0 })
+export const newRequestBudget = (): RequestBudget => ({
+  memberAvatarsFullServed: 0,
+  memberAvatarsRelayed: 0,
+})
 
 export interface Context {
   token: string | null

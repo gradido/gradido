@@ -26,6 +26,7 @@ import {
   sendAccountMultiRegistrationEmail,
   sendResetPasswordEmail,
   validateAlias,
+  xcomMemberAvatars,
 } from 'core'
 import {
   ALIAS_ORIGIN_ASSIGNED,
@@ -88,6 +89,7 @@ import {
   aliasSchema,
   JPEG_END_BYTES,
   JPEG_MAGIC_BYTES,
+  MemberAvatarPayload,
   pickFreeAlias,
   Result,
   updateAllDefinedAndChanged,
@@ -126,6 +128,9 @@ import {
 import {
   MEMBER_AVATARS_FULL_MAX_PER_REQUEST,
   MEMBER_AVATARS_MAX_REFS,
+  MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST,
+  splitMemberRefsByCommunity,
+  XCOM_MEMBER_AVATARS_TIMEOUT_MS,
 } from '@/data/MemberAvatars.logic'
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import {
@@ -181,6 +186,48 @@ const isLanguage = (language: string): boolean => {
 export const activationLink = (verificationCode: string, logger: Logger): string => {
   logger.debug(`activationLink(${verificationCode})...`)
   return CONFIG.EMAIL_LINK_SETPASSWORD + verificationCode.toString()
+}
+
+/**
+ * The pictures of another community's members, asked of that community. This server stores
+ * none of them (AS-004), and the other side decides with its own rule who may be shown
+ * (federation MemberAvatarsResolver, mayBeShownToMembers).
+ *
+ * ★ Nothing the other community does becomes an error here: an unknown community, one the
+ * handshake has not completed with, no answer within XCOM_MEMBER_AVATARS_TIMEOUT_MS, a
+ * refusal, an answer that does not hold up -- the member gets no faces from there this time,
+ * and the rest of their request is untouched.
+ */
+const relayMemberAvatars = async (
+  communityUuid: string,
+  kind: 'small' | 'full',
+  gradidoIDs: string[],
+): Promise<MemberAvatarPayload[]> => {
+  const community = await getCommunityByUuid(communityUuid)
+  // The other side refuses a community that has not completed the handshake with it, so
+  // asking without one would only cost the member the time limit.
+  if (!community?.foreign || !community.authenticatedAt || !community.publicJwtKey) {
+    return []
+  }
+  const homeCom = await getHomeCommunity()
+  if (!homeCom) {
+    return []
+  }
+  const answer = await xcomMemberAvatars(
+    homeCom,
+    community,
+    kind,
+    gradidoIDs,
+    XCOM_MEMBER_AVATARS_TIMEOUT_MS,
+  )
+  if (!answer.success) {
+    createLogger('relayMemberAvatars').warn(
+      'no member pictures from another community',
+      answer.error.message,
+    )
+    return []
+  }
+  return answer.value
 }
 
 @Resolver(() => User)
@@ -1058,11 +1105,15 @@ export class UserResolver {
    *
    * A member who has nothing to show is simply absent from the answer, never an error.
    * See MemberAvatar for why that is the smaller surface.
+   *
+   * ★ Members of ANOTHER community are asked of that community (relayMemberAvatars) and come
+   * back with its uuid. Its own rule decides there; nothing of theirs is stored here (AS-004).
    */
   @Authorized([RIGHTS.VERIFY_LOGIN])
   @Query(() => [MemberAvatar])
   async memberAvatars(
     @Args(() => MemberAvatarsArgs) { refs }: MemberAvatarsArgs,
+    @Ctx() context: Context,
   ): Promise<MemberAvatar[]> {
     // A cap, because without one this is a bulk download of every face in the community.
     // Sized as one page of bookings plus room for a list that happens to name a different
@@ -1071,8 +1122,10 @@ export class UserResolver {
       throw new LogError('Too many members requested at once', refs.length)
     }
 
-    const rows = await dbFindMemberAvatarsSmall(refs.map((ref) => ref.gradidoID))
-    return rows.map((row) => {
+    const { home, foreign } = splitMemberRefsByCommunity(refs, await resolveCommunityUuid(null))
+
+    const rows = await dbFindMemberAvatarsSmall(home)
+    const avatars = rows.map((row) => {
       const avatar = new MemberAvatar()
       avatar.gradidoID = row.gradidoId
       avatar.communityUuid = row.communityUuid
@@ -1080,6 +1133,38 @@ export class UserResolver {
       avatar.avatarUpdatedAt = row.updatedAt
       return avatar
     })
+
+    // Every other community is asked at the same time, each within the time limit. Expected
+    // failures already arrive as an empty list; `allSettled` keeps a throw nobody expected in
+    // one of them from taking this community's faces with it.
+    const relayed = await Promise.allSettled(
+      [...foreign].map(async ([communityUuid, gradidoIDs]) => {
+        // ⛔ Counted in the HTTP request's budget before anything is looked up or sent, like
+        // the full pictures below: aliases repeat this field inside one document.
+        context.requestBudget.memberAvatarsRelayed += 1
+        if (context.requestBudget.memberAvatarsRelayed > MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST) {
+          return []
+        }
+        return (await relayMemberAvatars(communityUuid, 'small', gradidoIDs)).flatMap((member) => {
+          if (member.avatar === null) {
+            return []
+          }
+          const avatar = new MemberAvatar()
+          avatar.gradidoID = member.gradidoID
+          // ⛔ The community that was asked: the wallet keys a face by the pair it asked about.
+          avatar.communityUuid = communityUuid
+          avatar.avatar = member.avatar
+          avatar.avatarUpdatedAt = new Date(member.avatarUpdatedAt)
+          return [avatar]
+        })
+      }),
+    )
+    for (const answer of relayed) {
+      if (answer.status === 'fulfilled') {
+        avatars.push(...answer.value)
+      }
+    }
+    return avatars
   }
 
   /**
@@ -1103,10 +1188,12 @@ export class UserResolver {
    * the deletion and the community scope answer identically for both renditions. Until
    * AS-018 this column was own-view only; what changed is the SIZE shown to a circle that
    * already sees the face, not who is in the circle (AS-006: one switch per audience, not
-   * per screen).
+   * per screen). A member of another community is asked of that community, where the same
+   * rule decides (AS-020, relayMemberAvatars).
    *
-   * Null for no picture, switch off, deleted, another community, and no such member alike
-   * -- see MemberAvatar for why one answer for all of them is the smaller surface.
+   * Null for no picture, switch off, deleted, a community that does not answer, and no such
+   * member alike -- see MemberAvatar for why one answer for all of them is the smaller
+   * surface.
    */
   @Authorized([RIGHTS.VERIFY_LOGIN])
   @Query(() => String, { nullable: true })
@@ -1128,10 +1215,16 @@ export class UserResolver {
     // id alone does not identify one person -- see the query for why matching only it
     // would hand back whoever the database reached first. The input still admits a ref
     // without a uuid (see MemberAvatarRefInput); it is read as THIS community.
-    const avatar = await dbFindMemberAvatarFull(
-      ref.gradidoID,
-      await resolveCommunityUuid(ref.communityUuid),
-    )
+    const communityUuid = await resolveCommunityUuid(ref.communityUuid)
+
+    // Another community's member: that community holds the picture (AS-020). Counted in the
+    // budget above before anything is asked, like a picture of this community.
+    if (communityUuid !== (await resolveCommunityUuid(null))) {
+      const [member] = await relayMemberAvatars(communityUuid, 'full', [ref.gradidoID])
+      return member?.avatar ?? null
+    }
+
+    const avatar = await dbFindMemberAvatarFull(ref.gradidoID, communityUuid)
     return avatar ? avatar.toString('base64') : null
   }
 
