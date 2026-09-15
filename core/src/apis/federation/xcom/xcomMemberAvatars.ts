@@ -26,6 +26,10 @@ import { MemberAvatarsClientFactory } from '../client/MemberAvatarsClientFactory
  * `memberAvatars` request with `data: null` (measured with type-graphql 1.1.1) -- this
  * community's own faces included. And a member nobody asked about must not come back in the
  * place of one who was: the zoom shows the first entry as the face that was tapped.
+ *
+ * Each member at most once, which also bounds the answer by the question: without it one
+ * member asked about could come back any number of times, each with a picture, and the
+ * backend would hand every copy on to the wallet.
  */
 const readAnswer = (
   payload: JwtPayloadType,
@@ -40,11 +44,16 @@ const readAnswer = (
     return { success: false, error: 'members in the answer is not a list' }
   }
   const asked = new Set(gradidoIDs)
+  const answered = new Set<string>()
   for (const member of members) {
     const { gradidoID, avatarUpdatedAt, avatar } = (member ?? {}) as Record<string, unknown>
     if (typeof gradidoID !== 'string' || !asked.has(gradidoID)) {
       return { success: false, error: 'the answer names a member nobody asked about' }
     }
+    if (answered.has(gradidoID)) {
+      return { success: false, error: 'the answer names a member more than once' }
+    }
+    answered.add(gradidoID)
     if (typeof avatarUpdatedAt !== 'string' || Number.isNaN(Date.parse(avatarUpdatedAt))) {
       return { success: false, error: 'the answer carries a date that does not parse' }
     }

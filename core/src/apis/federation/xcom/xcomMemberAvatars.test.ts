@@ -236,6 +236,21 @@ describe('xcomMemberAvatars', () => {
     )
   })
 
+  // The answer is bounded by the question: one member asked about, one entry at most.
+  it('does not take an answer that names the same member twice', async () => {
+    peerAnswers((handshakeID) =>
+      answerWith(handshakeID, [
+        { gradidoID: ANNA, avatarUpdatedAt: MONDAY, avatar: FACE },
+        { gradidoID: ANNA, avatarUpdatedAt: MONDAY, avatar: FACE },
+      ]),
+    )
+
+    expectFailure(
+      await xcomMemberAvatars(homeCom, peerCom, 'small', [ANNA, BEN], 5000),
+      'more than once',
+    )
+  })
+
   // One date that does not parse would make GraphQL throw away the backend's whole answer --
   // this community's own faces with it.
   it('does not take an answer with a date that does not parse', async () => {
