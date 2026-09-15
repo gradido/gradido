@@ -1,3 +1,4 @@
+import { once } from 'node:events'
 import { request as httpRequest } from 'node:http'
 import { AddressInfo } from 'node:net'
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
@@ -3483,7 +3484,10 @@ describe('UserResolver', () => {
         const token = await encode(requester.gradidoID)
 
         const { app } = await createServer(getLogger('apollo'))
-        const httpServer = app.listen(0)
+        // On the loopback interface only, and read the port once it is bound: with a host
+        // given, listen() resolves it first and address() is null until 'listening'.
+        const httpServer = app.listen(0, '127.0.0.1')
+        await once(httpServer, 'listening')
         try {
           const { port } = httpServer.address() as AddressInfo
           const text = await new Promise<string>((resolve, reject) => {
