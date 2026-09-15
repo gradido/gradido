@@ -16,7 +16,7 @@ import { PublishNameLogic } from '@/data/PublishName.logic'
 import { EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE } from '@/event/Events'
 import { ContributionMessageArgs } from '@/graphql/arg/ContributionMessageArgs'
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
-import { Context } from '@/server/context'
+import { Context, newRequestBudget } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
 import { contributionFrontendLink } from './contributions'
@@ -68,6 +68,7 @@ export const addModeratorMessageAs = async (
     user: signer,
     role: signerRole,
     clientTimezoneOffset,
+    requestBudget: newRequestBudget(),
   }
   const updateUnconfirmedContributionContext = new UpdateUnconfirmedContributionContext(
     contributionId,

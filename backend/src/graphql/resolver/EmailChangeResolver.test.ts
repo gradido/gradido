@@ -22,7 +22,7 @@ import { adminEmailStatus, pendingEmailChange, queryOptIn } from '@/seeds/graphq
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-import { Context } from '@/server/context'
+import { Context, newRequestBudget } from '@/server/context'
 import { EmailChangeResolver } from './EmailChangeResolver'
 
 // The mock derives the key the same way (salt by encryption type, gradido id for the
@@ -951,7 +951,12 @@ describe('EmailChangeResolver', () => {
     let stale: DbUser
 
     const resolver = new EmailChangeResolver()
-    const staleContext = (): Context => ({ token: null, setHeaders: [], user: stale })
+    const staleContext = (): Context => ({
+      token: null,
+      setHeaders: [],
+      user: stale,
+      requestBudget: newRequestBudget(),
+    })
 
     beforeAll(async () => {
       resetToken()

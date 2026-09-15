@@ -6,6 +6,26 @@ import { Role } from '@/auth/Role'
 
 import { LogError } from './LogError'
 
+/**
+ * What one HTTP request has been served so far, across every operation it carries.
+ *
+ * ⛔ An OBJECT on the context, and that is the mechanism rather than a matter of style.
+ * Apollo calls the context function once per HTTP request and gives every operation of a
+ * batched POST (a body that is an array of operations) a SHALLOW copy of what it returned
+ * (apollo-server-core 2.26: runHttpQuery -> buildRequestContext -> cloneObject). A number
+ * on the context is copied by value, so each operation would count from zero and a batch
+ * would multiply every cap kept there; this object is copied by reference, so all
+ * operations of one request count in the same place. Aliases, which repeat a field inside
+ * one operation, count here as well.
+ */
+export interface RequestBudget {
+  // Full-size member pictures, capped at MEMBER_AVATARS_FULL_MAX_PER_REQUEST.
+  memberAvatarsFullServed: number
+}
+
+/** A budget with nothing spent. The context function creates one per HTTP request. */
+export const newRequestBudget = (): RequestBudget => ({ memberAvatarsFullServed: 0 })
+
 export interface Context {
   token: string | null
   setHeaders: { key: string; value: string }[]
@@ -19,14 +39,13 @@ export interface Context {
   transactionCount?: number
   linkCount?: number
   sumHoldAvailableDecayedAmount?: GradidoUnit
-  // How many full-size member pictures this ONE request has already been served.
-  //
-  // ⛔ Per request, not per field. GraphQL lets a single document ask for the same field
-  // any number of times under different aliases, so a cap written inside one resolver call
-  // counts to one every time and bounds nothing. The batched reader next to it caps the
-  // LIST it is handed, which is a cap on the same axis and therefore has the same hole
-  // filled by MEMBER_AVATARS_MAX_REFS only because the list travels as one argument.
-  memberAvatarsFullServed?: number
+  // ⛔ Per HTTP request, not per field and not per operation -- see RequestBudget. A cap
+  // written inside one resolver call counts to one every time, because a document may ask
+  // for the same field under any number of aliases; a count kept as a number on the context
+  // restarts for every operation of a batch. The batched reader next to it caps the LIST it
+  // is handed instead (MEMBER_AVATARS_MAX_REFS), which holds only because the list travels
+  // as one argument.
+  requestBudget: RequestBudget
 }
 
 export const context = (args: ExpressContext): Context => {
@@ -35,6 +54,7 @@ export const context = (args: ExpressContext): Context => {
   const context: Context = {
     token: null,
     setHeaders: [],
+    requestBudget: newRequestBudget(),
   }
   if (authorization) {
     context.token = authorization.replace(/^Bearer /, '')

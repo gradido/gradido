@@ -1,3 +1,6 @@
+import { once } from 'node:events'
+import { request as httpRequest } from 'node:http'
+import { AddressInfo } from 'node:net'
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
 import { OptInType } from '@enum/OptInType'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
@@ -35,6 +38,7 @@ import { QueryRunner } from 'typeorm'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 import { deleteGmsUser, putGmsMatchingEntrySnapshots, upsertGmsUsers } from '@/apis/gms/GmsClient'
 import { subscribe } from '@/apis/KlicktippController'
+import { encode } from '@/auth/JWT'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { MEMBER_AVATARS_FULL_MAX_PER_REQUEST } from '@/data/MemberAvatars.logic'
@@ -86,6 +90,7 @@ import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
+import { createServer } from '@/server/createServer'
 import { printTimeDuration } from '@/util/time'
 import { Location2Point } from './util/Location2Point'
 
@@ -3016,12 +3021,13 @@ describe('UserResolver', () => {
 
     let homeCom: DbCommunity
     let owner: User
+    let requester: User
 
     beforeAll(async () => {
       await cleanDB()
       homeCom = await writeHomeCommunityEntry()
       owner = await userFactory(testEnv, bibiBloxberg)
-      await userFactory(testEnv, bobBaumeister)
+      requester = await userFactory(testEnv, bobBaumeister)
       await mutate({
         mutation: login,
         variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
@@ -3451,6 +3457,82 @@ describe('UserResolver', () => {
         const res: any = await query({ query: gql`query { ${aliases} }` })
         expect(res.errors).toBeUndefined()
         expect(res.data.a0).toBe(JPEG_FULL_BASE64)
+      })
+
+      /**
+       * ⛔ The same cap across the operations of ONE batched HTTP request. Apollo accepts a
+       * POST whose body is an array of operations and hands each of them a shallow copy of
+       * the request's context (apollo-server-core, runHttpQuery -> buildRequestContext ->
+       * cloneObject). A counter that lives as a plain number on the context is copied by
+       * value, so every operation counts from zero and a batch multiplies the cap.
+       *
+       * Through a real HTTP request, on a server with the production context function: the
+       * test client above cannot send a batch, and this file's context is an object of its
+       * own, so neither says what the context function does.
+       */
+      it('counts the cap across the operations of one batched HTTP request', async () => {
+        const ref = `{ gradidoID: "${owner.gradidoID}", communityUuid: ${
+          homeCom.communityUuid ? `"${homeCom.communityUuid}"` : 'null'
+        } }`
+        const operation = {
+          query: `query { ${Array.from(
+            { length: 6 },
+            (_unused, index) => `a${index}: memberAvatarFull(ref: ${ref})`,
+          ).join('\n')} }`,
+        }
+        const payload = JSON.stringify([operation, operation])
+        const token = await encode(requester.gradidoID)
+
+        const { app } = await createServer(getLogger('apollo'))
+        // On the loopback interface only, and read the port once it is bound: with a host
+        // given, listen() resolves it first and address() is null until 'listening'.
+        const httpServer = app.listen(0, '127.0.0.1')
+        await once(httpServer, 'listening')
+        try {
+          const { port } = httpServer.address() as AddressInfo
+          const text = await new Promise<string>((resolve, reject) => {
+            const req = httpRequest(
+              {
+                host: '127.0.0.1',
+                port,
+                path: '/',
+                method: 'POST',
+                headers: {
+                  'content-type': 'application/json',
+                  'content-length': Buffer.byteLength(payload),
+                  authorization: `Bearer ${token}`,
+                },
+              },
+              (res) => {
+                let body = ''
+                res.setEncoding('utf8')
+                res.on('data', (chunk) => {
+                  body += chunk
+                })
+                res.on('end', () => resolve(body))
+              },
+            )
+            req.on('error', reject)
+            req.end(payload)
+          })
+
+          const results: {
+            data?: Record<string, string | null>
+            errors?: { message: string }[]
+          }[] = JSON.parse(text)
+          // Two answers, or the server did not read the body as a batch at all.
+          expect(results).toHaveLength(2)
+          const served = results
+            .flatMap((result) => Object.values(result.data ?? {}))
+            .filter((avatar) => avatar === JPEG_FULL_BASE64)
+          const refused = results
+            .flatMap((result) => result.errors ?? [])
+            .filter((error) => error.message.includes('Too many full-size pictures'))
+          expect(served).toHaveLength(MEMBER_AVATARS_FULL_MAX_PER_REQUEST)
+          expect(refused).toHaveLength(2 * 6 - MEMBER_AVATARS_FULL_MAX_PER_REQUEST)
+        } finally {
+          await new Promise((resolve) => httpServer.close(resolve))
+        }
       })
 
       // The one switch, both renditions (AS-006). If this ever diverges from the batched

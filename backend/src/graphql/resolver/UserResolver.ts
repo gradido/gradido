@@ -1114,11 +1114,12 @@ export class UserResolver {
     @Arg('ref', () => MemberAvatarRefInput) ref: MemberAvatarRefInput,
     @Ctx() context: Context,
   ): Promise<string | null> {
-    // ⛔ Counted on the REQUEST, not in this call. One document may carry this field any
-    // number of times under different aliases, so a counter local to the resolver counts
-    // to one every time and bounds nothing.
-    const served = (context.memberAvatarsFullServed ?? 0) + 1
-    context.memberAvatarsFullServed = served
+    // ⛔ Counted in the HTTP request's budget, not in this call and not on the context
+    // itself. One document may carry this field under any number of aliases, and one POST
+    // may carry any number of documents, each with its own copy of the context; the budget
+    // is the one object they all share (RequestBudget in server/context.ts).
+    context.requestBudget.memberAvatarsFullServed += 1
+    const served = context.requestBudget.memberAvatarsFullServed
     if (served > MEMBER_AVATARS_FULL_MAX_PER_REQUEST) {
       throw new LogError('Too many full-size pictures requested at once', served)
     }
