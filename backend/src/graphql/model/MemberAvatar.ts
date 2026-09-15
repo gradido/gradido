@@ -12,8 +12,9 @@ import { Field, ObjectType } from 'type-graphql'
  * picture endpoint quietly becomes a directory.
  *
  * The consequence for the caller is the useful one: everything it asked about and did not
- * get back has nothing to show, for whatever reason -- no picture, switch off, deleted,
- * another community. Those reasons are somebody else's business and stay behind the query.
+ * get back has nothing to show, for whatever reason -- no picture, switch off, deleted, or a
+ * community that did not answer. Those reasons are somebody else's business and stay behind
+ * the query.
  */
 @ObjectType()
 export class MemberAvatar {

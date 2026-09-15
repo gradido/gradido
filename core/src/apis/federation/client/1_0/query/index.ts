@@ -1,3 +1,4 @@
+export * from './memberAvatars'
 export * from './revertSendCoins'
 export * from './revertSettledSendCoins'
 export * from './sendCommand'

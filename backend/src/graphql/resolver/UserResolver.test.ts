@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto'
 import { once } from 'node:events'
 import { request as httpRequest } from 'node:http'
 import { AddressInfo } from 'node:net'
@@ -13,6 +14,7 @@ import { UserInputError } from 'apollo-server-express'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
 import {
+  CONFIG as CORE_CONFIG,
   objectValuesToArray,
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
@@ -24,6 +26,7 @@ import {
   AppDatabase,
   Community as DbCommunity,
   Event as DbEvent,
+  FederatedCommunity as DbFederatedCommunity,
   dbInsertMatchingEntry,
   TransactionLink,
   User,
@@ -32,8 +35,18 @@ import {
   UserRole,
 } from 'database'
 import { GraphQLError } from 'graphql'
+import { GraphQLClient } from 'graphql-request'
 import { gql } from 'graphql-tag'
-import { AVATAR_FULL_MAX_BYTES, AVATAR_SMALL_MAX_BYTES } from 'shared'
+import {
+  AVATAR_FULL_MAX_BYTES,
+  AVATAR_SMALL_MAX_BYTES,
+  createKeyPair,
+  encryptAndSign,
+  MemberAvatarPayload,
+  MemberAvatarsJwtPayloadType,
+  MemberAvatarsResponseJwtPayloadType,
+  verifyAndDecrypt,
+} from 'shared'
 import { QueryRunner } from 'typeorm'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
 import { deleteGmsUser, putGmsMatchingEntrySnapshots, upsertGmsUsers } from '@/apis/gms/GmsClient'
@@ -41,7 +54,10 @@ import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { MEMBER_AVATARS_FULL_MAX_PER_REQUEST } from '@/data/MemberAvatars.logic'
+import {
+  MEMBER_AVATARS_FULL_MAX_PER_REQUEST,
+  MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST,
+} from '@/data/MemberAvatars.logic'
 import { EventType } from '@/event/Events'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
@@ -3329,6 +3345,234 @@ describe('UserResolver', () => {
         await mutate({
           mutation: login,
           variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
+        })
+      })
+
+      /**
+       * AS-004 / AS-020: members of ANOTHER community. Their pictures live over there, and
+       * this server asks for them the way it asks for anything across the border -- the
+       * question encrypted for that community's JWT key and signed with this one's -- and
+       * stores none of them.
+       *
+       * ⛔ The stand-in for the other community opens the question with ITS key and seals a
+       * REAL answer for this community's. Anything less would leave verifyAndDecrypt and the
+       * tokentype check out of these cases: a made-up peer only confirms itself.
+       *
+       * No fake timers (drizzle is on the path); the time limit is proven in core,
+       * xcomMemberAvatars.test.ts.
+       *
+       * State on arrival: bob is logged in and bibi's switch is OFF (turned off above). It is
+       * turned on for these cases and off again afterwards, so the block below finds the
+       * state it describes.
+       */
+      describe('members of another community', () => {
+        const peerUuid = uuidv4()
+        const peerMember = uuidv4()
+        const PEER_SMALL = Buffer.from('a face from over there').toString('base64')
+        const PEER_FULL = Buffer.from('the same face, larger').toString('base64')
+        const PICTURE_DATE = '2026-09-14T10:00:00.000Z'
+        const relayLogger = resolverLogger('relayMemberAvatars')
+        const refs = () => [
+          { gradidoID: owner.gradidoID, communityUuid: homeCom.communityUuid },
+          { gradidoID: peerMember, communityUuid: peerUuid },
+        ]
+
+        let homeKeys: { publicKey: string; privateKey: string }
+        let peerKeys: { publicKey: string; privateKey: string }
+        let peer: DbCommunity
+        let peerEntry: DbFederatedCommunity
+        let questions: MemberAvatarsJwtPayloadType[] = []
+        let rawRequest: jest.SpyInstance | undefined
+
+        const setSwitch = async (avatarVisibleToMembers: boolean) => {
+          await mutate({
+            mutation: login,
+            variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+          })
+          const switched: any = await mutate({
+            mutation: updateUserInfos,
+            variables: { avatarVisibleToMembers },
+          })
+          // The fixture proves itself: with the switch silently left off, the cases below
+          // would find no face of bibi's for a reason that has nothing to do with the relay.
+          if (switched.errors) {
+            throw new Error(`could not set the switch: ${JSON.stringify(switched.errors)}`)
+          }
+          await mutate({
+            mutation: login,
+            variables: { email: 'bob@baumeister.de', password: 'Aa12345_' },
+          })
+        }
+
+        /** The other community: opens the question with its key, answers sealed for ours. */
+        const peerAnswers = (
+          answer: (question: MemberAvatarsJwtPayloadType) => MemberAvatarPayload[],
+        ) => {
+          rawRequest = jest
+            .spyOn(GraphQLClient.prototype, 'rawRequest')
+            .mockImplementation((async (options: {
+              variables: { args: { handshakeID: string; jwt: string } }
+            }) => {
+              const { args } = options.variables
+              const question = (await verifyAndDecrypt(
+                args.handshakeID,
+                args.jwt,
+                peerKeys.privateKey,
+                homeKeys.publicKey,
+              )) as MemberAvatarsJwtPayloadType | null
+              if (!question) {
+                throw new Error('the question does not verify with the key of this community')
+              }
+              questions.push(question)
+              const token = await encryptAndSign(
+                new MemberAvatarsResponseJwtPayloadType(args.handshakeID, answer(question)),
+                peerKeys.privateKey,
+                homeKeys.publicKey,
+              )
+              return { data: { memberAvatars: token }, status: 200 }
+            }) as any)
+        }
+
+        beforeAll(async () => {
+          homeKeys = await createKeyPair()
+          peerKeys = await createKeyPair()
+          await DbCommunity.update(
+            { foreign: false },
+            { publicJwtKey: homeKeys.publicKey, privateJwtKey: homeKeys.privateKey },
+          )
+          peer = await DbCommunity.create({
+            foreign: true,
+            url: 'http://peer.invalid/api/',
+            publicKey: randomBytes(32),
+            communityUuid: peerUuid,
+            authenticatedAt: new Date(),
+            name: 'Peer community',
+            description: 'the other side of the border',
+            creationDate: new Date(),
+            publicJwtKey: peerKeys.publicKey,
+          }).save()
+          peerEntry = await DbFederatedCommunity.create({
+            foreign: true,
+            publicKey: peer.publicKey,
+            apiVersion: CORE_CONFIG.FEDERATION_BACKEND_SEND_ON_API,
+            endPoint: 'http://peer.invalid/api/',
+          }).save()
+          await setSwitch(true)
+        })
+
+        beforeEach(() => {
+          questions = []
+          jest.clearAllMocks()
+        })
+
+        afterEach(() => {
+          rawRequest?.mockRestore()
+          rawRequest = undefined
+        })
+
+        afterAll(async () => {
+          await setSwitch(false)
+          await DbFederatedCommunity.delete({ id: peerEntry.id })
+          await DbCommunity.delete({ id: peer.id })
+          await DbCommunity.update({ foreign: false }, { publicJwtKey: null, privateJwtKey: null })
+        })
+
+        it("hands back another community's faces under that community's uuid", async () => {
+          peerAnswers((question) =>
+            question.gradidoIDs.map((gradidoID) => ({
+              gradidoID,
+              avatarUpdatedAt: PICTURE_DATE,
+              avatar: PEER_SMALL,
+            })),
+          )
+
+          const res: any = await query({ query: memberAvatars, variables: { refs: refs() } })
+
+          expect(res.errors).toBeUndefined()
+          expect(res.data.memberAvatars).toHaveLength(2)
+          expect(res.data.memberAvatars).toContainEqual({
+            gradidoID: peerMember,
+            communityUuid: peerUuid,
+            avatar: PEER_SMALL,
+            avatarUpdatedAt: PICTURE_DATE,
+          })
+          expect(res.data.memberAvatars).toContainEqual(
+            expect.objectContaining({
+              gradidoID: owner.gradidoID,
+              communityUuid: homeCom.communityUuid,
+              avatar: JPEG_BASE64,
+            }),
+          )
+          // ⛔ Only the other community's member was asked about over there: bibi's id never
+          // left this server.
+          expect(questions).toEqual([
+            expect.objectContaining({ kind: 'small', gradidoIDs: [peerMember] }),
+          ])
+        })
+
+        it('still hands out its own faces when the other community does not answer', async () => {
+          rawRequest = jest
+            .spyOn(GraphQLClient.prototype, 'rawRequest')
+            .mockRejectedValue(new Error('connect ECONNREFUSED 192.0.2.1:443'))
+
+          const res: any = await query({ query: memberAvatars, variables: { refs: refs() } })
+
+          expect(res.errors).toBeUndefined()
+          expect(res.data.memberAvatars).toEqual([
+            expect.objectContaining({
+              gradidoID: owner.gradidoID,
+              communityUuid: homeCom.communityUuid,
+              avatar: JPEG_BASE64,
+            }),
+          ])
+          // The one trace an admin has of a relay that stays empty, naming the community.
+          expect(relayLogger.warn).toHaveBeenCalledWith(
+            'no member pictures from another community',
+            expect.stringContaining(peerUuid),
+          )
+        })
+
+        // AS-020: the zoom crosses the border too, counted in the same budget as at home.
+        it("passes the zoom on to the member's own community", async () => {
+          peerAnswers((question) =>
+            question.gradidoIDs.map((gradidoID) => ({
+              gradidoID,
+              avatarUpdatedAt: PICTURE_DATE,
+              avatar: PEER_FULL,
+            })),
+          )
+
+          const res: any = await query({
+            query: memberAvatarFull,
+            variables: { ref: { gradidoID: peerMember, communityUuid: peerUuid } },
+          })
+
+          expect(res.errors).toBeUndefined()
+          expect(res.data.memberAvatarFull).toBe(PEER_FULL)
+          expect(questions).toEqual([
+            expect.objectContaining({ kind: 'full', gradidoIDs: [peerMember] }),
+          ])
+        })
+
+        /**
+         * ⛔ The cap on asking other communities, and it has to be measured through ALIASES:
+         * one document may repeat the field hundreds of times, each repetition an outgoing
+         * request. Sending the query that many TIMES would pass without the counter, because
+         * every call would be an HTTP request of its own. Exactly the cap gets through --
+         * neither fewer nor more.
+         */
+        it('asks other communities no more often than one request allows', async () => {
+          peerAnswers(() => [])
+          const ref = `{ gradidoID: "${peerMember}", communityUuid: "${peerUuid}" }`
+          const aliases = Array.from(
+            { length: MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST + 2 },
+            (_unused, index) => `a${index}: memberAvatars(refs: [${ref}]) { gradidoID }`,
+          ).join('\n')
+
+          const res: any = await query({ query: gql`query { ${aliases} }` })
+
+          expect(res.errors).toBeUndefined()
+          expect(questions).toHaveLength(MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST)
         })
       })
     })

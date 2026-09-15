@@ -429,12 +429,23 @@ export const fetchMemberAvatars = async (apolloClient, users) => {
   // survive is a logout in between -- see memberAvatarStoreEpoch.
   const epoch = memberAvatarStoreEpoch()
   try {
-    // In blocks of what the server accepts per request: the contact list asks for all
+    // One community per request first: the server asks another community for its members'
+    // faces and waits for that answer (up to its time limit), so a request that mixed them
+    // would hold this community's faces back until the other one answered -- or gave up.
+    const byCommunity = new Map()
+    for (const ref of refs) {
+      const group = byCommunity.get(ref.communityUuid) ?? []
+      group.push(ref)
+      byCommunity.set(ref.communityUuid, group)
+    }
+    // Then in blocks of what the server accepts per request: the contact list asks for all
     // favourites plus a page at once, and a member with many pictured favourites would
     // otherwise send one request the server refuses whole -- and get no faces at all.
     const chunks = []
-    for (let start = 0; start < refs.length; start += MEMBER_AVATARS_MAX_REFS) {
-      chunks.push(refs.slice(start, start + MEMBER_AVATARS_MAX_REFS))
+    for (const group of byCommunity.values()) {
+      for (let start = 0; start < group.length; start += MEMBER_AVATARS_MAX_REFS) {
+        chunks.push(group.slice(start, start + MEMBER_AVATARS_MAX_REFS))
+      }
     }
     // `async` on the mapper, so that a synchronous throw from the client becomes a settled
     // rejection like any other -- outside it, it would escape past this function.
