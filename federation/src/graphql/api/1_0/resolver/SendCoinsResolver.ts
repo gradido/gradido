@@ -1,8 +1,10 @@
 import {
   EncryptedTransferArgs,
   interpretEncryptedTransferArgs,
+  memberAvatarDateForTransfer,
   SendCoinsArgs,
   SendCoinsArgsLoggingView,
+  storeTransferSenderAvatarDate,
 } from 'core'
 import {
   countOpenPendingTransactions,
@@ -122,6 +124,10 @@ export class SendCoinsResolver {
       pendingTx.userName = receiverUser.alias // fullName(receiverUser.firstName, receiverUser.lastName)
       pendingTx.transactionLinkId = authArgs.transactionLinkId
 
+      // The recipient's picture date for the sender's lists, read before the pending
+      // transaction is written. Null when the recipient has nothing members may see;
+      // memberAvatarDateForTransfer answers null for a failed read as well.
+      const recipAvatarUpdatedAt = await memberAvatarDateForTransfer(receiverUser.id)
       await DbPendingTransaction.insert(pendingTx)
       const responseArgs = new SendCoinsResponseJwtPayloadType(
         authArgs.handshakeID,
@@ -130,6 +136,7 @@ export class SendCoinsResolver {
         receiverUser.firstName,
         receiverUser.lastName,
         receiverUser.alias,
+        recipAvatarUpdatedAt,
       )
       const responseJwt = await encryptAndSign(
         responseArgs,
@@ -302,6 +309,12 @@ export class SendCoinsResolver {
           authArgs.senderUserUuid,
         )
       }
+      // The money is booked and storeForeignUser has run. The sender's picture date is filed
+      // under the community that signed `args`, not the one the payload names. The helper logs
+      // its failures and returns instead of throwing: a throw here would answer the settle with
+      // an error after this side has booked, and the sender (processXComCommittingSendCoins)
+      // would then leave its own side unsettled.
+      await storeTransferSenderAvatarDate(args, authArgs)
 
       methodLogger.debug(`XCom: settlePendingReceiveTransaction()-1_0... successful`)
       return true

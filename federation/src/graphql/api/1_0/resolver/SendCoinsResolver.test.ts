@@ -4,8 +4,12 @@ import { EncryptedTransferArgs } from 'core'
 import {
   AppDatabase,
   Community as DbCommunity,
+  PendingTransaction as DbPendingTransaction,
   User as DbUser,
   UserContact as DbUserContact,
+  dbSelectForeignMemberAvatarDates,
+  foreignMemberAvatarDateKey,
+  userAvatarsTable,
 } from 'database'
 import { GraphQLError } from 'graphql'
 import { getLogger } from 'log4js'
@@ -851,6 +855,246 @@ describe('SendCoinsResolver', () => {
           }),
         )
       })
+    })
+  })
+
+  describe('the picture date that travels with the transfer', () => {
+    const creationDate = new Date()
+    const PICTURE_DATE = new Date('2026-09-15T06:00:00.000Z')
+    const THIRD_UUID = '56a55482-909e-46a4-bfa2-cd025e894ebe'
+
+    const giveRecipientAPicture = async () => {
+      await AppDatabase.getInstance()
+        .getDrizzleDataSource()
+        .insert(userAvatarsTable)
+        .values({
+          userId: recipUser.id,
+          avatarSmall: Buffer.from([0xff, 0xd8, 0x01]),
+          avatarFull: Buffer.from([0xff, 0xd8, 0x02]),
+          mimeType: 'image/jpeg',
+          updatedAt: PICTURE_DATE,
+        })
+    }
+
+    // What the authentication handshake sets. The fixture above leaves it null.
+    const completeHandshake = async (community: DbCommunity) => {
+      await DbCommunity.update({ id: community.id }, { authenticatedAt: new Date() })
+    }
+
+    /** A community that exists here, so that a payload may name it as the sender's. */
+    const createThirdCommunity = async () => {
+      const { publicKey, privateKey } = await createKeyPair()
+      const third = DbCommunity.create()
+      third.foreign = true
+      third.url = 'thirdCom-url'
+      third.name = 'thirdCom-Name'
+      third.description = 'thirdCom-Description'
+      third.creationDate = new Date()
+      third.publicKey = Buffer.from(
+        '15F92F8EC2EA685D5FD51EE3588F5B4805EBD330EF9EDD16043F3BA9C35C0D93',
+        'hex',
+      )
+      third.publicJwtKey = publicKey
+      third.privateJwtKey = privateKey
+      third.communityUuid = THIRD_UUID
+      // Authenticated as well: if no row appears under this community, it is not for the lack
+      // of a handshake.
+      third.authenticatedAt = new Date()
+      await DbCommunity.insert(third)
+    }
+
+    /**
+     * The transfer as the sending community builds it. Without `senderAvatarUpdatedAt` the
+     * payload carries no such key, like the vote and like a server that does not know the field.
+     */
+    const transfer = ({
+      senderCommunityUuid = senderCom.communityUuid!,
+      amount = '100',
+      senderAvatarUpdatedAt,
+    }: {
+      senderCommunityUuid?: string
+      amount?: string
+      senderAvatarUpdatedAt?: string
+    } = {}) =>
+      new SendCoinsJwtPayloadType(
+        'handshakeID',
+        recipientCom.communityUuid!,
+        recipUser.gradidoID,
+        creationDate.toISOString(),
+        amount,
+        'X-Com-TX memo',
+        senderCommunityUuid,
+        sendUser.gradidoID,
+        fullName(sendUser.firstName, sendUser.lastName),
+        sendUser.alias,
+        undefined,
+        senderAvatarUpdatedAt,
+      )
+
+    /** Always signed by senderCom and encrypted for recipientCom, whatever the payload names. */
+    const sealed = async (payload: SendCoinsJwtPayloadType) => {
+      const args = new EncryptedTransferArgs()
+      args.publicKey = senderCom.publicKey.toString('hex')
+      args.jwt = await encryptAndSign(payload, senderCom.privateJwtKey!, recipientCom.publicJwtKey!)
+      args.handshakeID = 'handshakeID'
+      return args
+    }
+
+    const vote = async (payload: SendCoinsJwtPayloadType) =>
+      await mutate({
+        mutation: voteForSendCoinsMutation,
+        variables: { args: await sealed(payload) },
+      })
+
+    const settle = async (payload: SendCoinsJwtPayloadType) =>
+      await mutate({
+        mutation: settleSendCoinsMutation,
+        variables: { args: await sealed(payload) },
+      })
+
+    const openAnswer = async (response: Awaited<ReturnType<typeof vote>>) => {
+      expect(response.errors).toBeUndefined()
+      return (await verifyAndDecrypt(
+        'handshakeID',
+        response.data.voteForSendCoins,
+        senderCom.privateJwtKey!,
+        recipientCom.publicJwtKey!,
+      )) as SendCoinsResponseJwtPayloadType
+    }
+
+    /** What the booking list would read for the sender under `communityUuid`. */
+    const storedDates = async (communityUuid: string) =>
+      await dbSelectForeignMemberAvatarDates([{ communityUuid, gradidoId: sendUser.gradidoID }])
+
+    const pictureDateUnder = (communityUuid: string) =>
+      new Map([
+        [
+          foreignMemberAvatarDateKey({ communityUuid, gradidoId: sendUser.gradidoID }),
+          PICTURE_DATE,
+        ],
+      ])
+
+    const settled = { settleSendCoins: true }
+
+    it("votes with the recipient's picture date when members may see it", async () => {
+      await giveRecipientAPicture()
+
+      expect(await openAnswer(await vote(transfer()))).toEqual(
+        expect.objectContaining({
+          vote: true,
+          recipGradidoID: recipUser.gradidoID,
+          recipAvatarUpdatedAt: PICTURE_DATE.toISOString(),
+        }),
+      )
+    })
+
+    it('votes with null when the recipient keeps the picture to themselves', async () => {
+      await giveRecipientAPicture()
+      await DbUser.update({ id: recipUser.id }, { avatarVisibleToMembers: false })
+
+      expect(await openAnswer(await vote(transfer()))).toEqual(
+        expect.objectContaining({ vote: true, recipAvatarUpdatedAt: null }),
+      )
+    })
+
+    it("files the sender's date under the signing community after the settle", async () => {
+      await completeHandshake(senderCom)
+      await vote(transfer())
+
+      const response = await settle(transfer({ senderAvatarUpdatedAt: PICTURE_DATE.toISOString() }))
+
+      expect(response.data).toEqual(settled)
+      expect(await storedDates(senderCom.communityUuid!)).toEqual(
+        pictureDateUnder(senderCom.communityUuid!),
+      )
+    })
+
+    // The envelope is senderCom's; the payload names a third community that exists here, so the
+    // vote and the settle go through as they always did.
+    it('files it under the community that signed, not the one the payload names', async () => {
+      await completeHandshake(senderCom)
+      await createThirdCommunity()
+      await vote(transfer({ senderCommunityUuid: THIRD_UUID }))
+
+      const response = await settle(
+        transfer({
+          senderCommunityUuid: THIRD_UUID,
+          senderAvatarUpdatedAt: PICTURE_DATE.toISOString(),
+        }),
+      )
+
+      expect(response.data).toEqual(settled)
+      expect(await storedDates(senderCom.communityUuid!)).toEqual(
+        pictureDateUnder(senderCom.communityUuid!),
+      )
+      expect(await storedDates(THIRD_UUID)).toEqual(new Map())
+    })
+
+    // ⛔ Two ways for a settle to fail: before the booking (no pending transaction matches the
+    // amount) and in the booking itself (settlePendingReceiveTransaction refuses). The second one
+    // is what tells writing after the money from writing just before it.
+    it('files nothing when the settle itself fails', async () => {
+      await completeHandshake(senderCom)
+      await vote(transfer())
+      const withDate = { senderAvatarUpdatedAt: PICTURE_DATE.toISOString() }
+
+      const otherAmount = await settle(transfer({ ...withDate, amount: '99' }))
+      expect(otherAmount.errors?.[0]?.message).toContain(
+        "Can't find in settlePendingReceiveTransaction",
+      )
+      expect(await storedDates(senderCom.communityUuid!)).toEqual(new Map())
+
+      // A second open transfer between the same members: settlePendingReceiveTransaction counts
+      // the open pending transactions and rolls back. Its own balance date keeps settleSendCoins'
+      // lookup on the first one.
+      const open = await DbPendingTransaction.findOneByOrFail({
+        userGradidoID: recipUser.gradidoID,
+      })
+      await DbPendingTransaction.insert(
+        DbPendingTransaction.create({
+          ...open,
+          id: undefined,
+          memo: 'a second open transfer',
+          balanceDate: new Date(creationDate.getTime() - 60_000),
+        }),
+      )
+      const refusedBooking = await settle(transfer(withDate))
+      expect(refusedBooking.errors?.[0]?.message).toBe(
+        'X-Com: recipient Transaction was not successful',
+      )
+      expect(await storedDates(senderCom.communityUuid!)).toEqual(new Map())
+
+      // And the same settle files the date once the booking goes through.
+      await DbPendingTransaction.delete({ memo: 'a second open transfer' })
+      expect((await settle(transfer(withDate))).data).toEqual(settled)
+      expect(await storedDates(senderCom.communityUuid!)).toEqual(
+        pictureDateUnder(senderCom.communityUuid!),
+      )
+    })
+
+    it('files nothing for a signer that has not completed the handshake', async () => {
+      await vote(transfer())
+
+      const response = await settle(transfer({ senderAvatarUpdatedAt: PICTURE_DATE.toISOString() }))
+
+      expect(response.data).toEqual(settled)
+      expect(await storedDates(senderCom.communityUuid!)).toEqual(new Map())
+    })
+
+    it('settles as before when the payload carries no date', async () => {
+      await completeHandshake(senderCom)
+      await vote(transfer())
+
+      expect((await settle(transfer())).data).toEqual(settled)
+      expect(await storedDates(senderCom.communityUuid!)).toEqual(new Map())
+    })
+
+    it('settles as before when the payload carries a date that does not parse', async () => {
+      await completeHandshake(senderCom)
+      await vote(transfer())
+
+      expect((await settle(transfer({ senderAvatarUpdatedAt: 'gestern' }))).data).toEqual(settled)
+      expect(await storedDates(senderCom.communityUuid!)).toEqual(new Map())
     })
   })
 })
