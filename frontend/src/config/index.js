@@ -73,6 +73,12 @@ const community = {
   COMMUNITY_LOCATION: process.env.COMMUNITY_LOCATION ?? '49.280377, 9.690151',
 }
 
+// Gradido's own map server: the tile file, and its fonts and sprites next to it
+const map = {
+  MAP_TILES_URL: process.env.MAP_TILES_URL ?? 'https://maptiles.gradido.net/planet.pmtiles',
+  MAP_ASSETS_URL: process.env.MAP_ASSETS_URL ?? 'https://maptiles.gradido.net',
+}
+
 const meta = {
   META_URL: process.env.META_URL ?? 'http://localhost',
   META_TITLE_DE: process.env.META_TITLE_DE ?? 'Gradido – Dein Dankbarkeitskonto',
@@ -98,6 +104,7 @@ const CONFIG = {
   ...environment,
   ...endpoints,
   ...community,
+  ...map,
   ...meta,
   ...constants,
   FRONTEND_MODULE_URL,
