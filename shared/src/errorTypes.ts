@@ -39,6 +39,21 @@ export class UnhandledEnum extends DomainError {
   }
 }
 
+/**
+ * A request to another community's federation API that produced no usable answer: the
+ * community could not be reached, did not answer in time, refused, or answered something
+ * that does not hold up. That server is outside this one's control, so this is an
+ * expected failure -- returned, never thrown.
+ */
+export class XComRequestError extends DomainError {
+  constructor(
+    public readonly communityUuid: string,
+    public readonly reason: string,
+  ) {
+    super(`XCOM_REQUEST_FAILED for community ${communityUuid}: ${reason}`)
+  }
+}
+
 // general Result Type Template
 export type Result<T, E = Error> = { success: true; value: T } | { success: false; error: E }
 
