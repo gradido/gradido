@@ -15,6 +15,7 @@ import { randombytes_random } from 'sodium-native'
 import { CONFIG as CONFIG_CORE } from '../../../config'
 import { EncryptedTransferArgs } from '../../../graphql/model/EncryptedTransferArgs'
 import { MemberAvatarsClientFactory } from '../client/MemberAvatarsClientFactory'
+import { readTransferAvatarDate } from './transferAvatarDate'
 
 // TODO: replace with a valibot schema after update to typescript 5 is possible
 /**
@@ -54,8 +55,8 @@ const readAnswer = (
       return { success: false, error: 'the answer names a member more than once' }
     }
     answered.add(gradidoID)
-    if (typeof avatarUpdatedAt !== 'string' || Number.isNaN(Date.parse(avatarUpdatedAt))) {
-      return { success: false, error: 'the answer carries a date that does not parse' }
+    if (readTransferAvatarDate(avatarUpdatedAt) === null) {
+      return { success: false, error: 'the answer carries an unusable date' }
     }
     if (kind === 'dates' ? avatar !== null : typeof avatar !== 'string') {
       return {
