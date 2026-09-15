@@ -64,9 +64,10 @@ const createCommunity = async (
   const { publicKey, privateKey } = await createKeyPair()
   const community = DbCommunity.create()
   community.foreign = foreign
-  community.url = `${communityUuid}-url`
-  community.name = `${communityUuid}-name`
-  community.description = `${communityUuid}-description`
+  // `name` is varchar(40), a uuid with a suffix does not fit.
+  community.url = foreign ? 'peerCom-url' : 'homeCom-url'
+  community.name = foreign ? 'peerCom-Name' : 'homeCom-Name'
+  community.description = foreign ? 'peerCom-Description' : 'homeCom-Description'
   community.creationDate = new Date()
   community.publicKey = Buffer.from(publicKeyHex, 'hex')
   community.publicJwtKey = publicKey
