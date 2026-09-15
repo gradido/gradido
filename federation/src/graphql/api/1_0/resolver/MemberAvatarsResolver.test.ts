@@ -74,6 +74,8 @@ const createCommunity = async (
   // The peer's private key is kept here only because the test plays the peer as well.
   community.privateJwtKey = privateKey
   community.communityUuid = communityUuid
+  // What the authentication handshake sets. The home community's own value is never read.
+  community.authenticatedAt = foreign ? new Date() : null
   await DbCommunity.insert(community)
   return community
 }
@@ -218,8 +220,8 @@ describe('MemberAvatarsResolver', () => {
       expect((await openAnswer(await askFor('full', [SWITCHED_OFF]))).members).toEqual([])
     })
 
-    // Refused twice over here: the date lookup carries `foreign = 0`, and the crop is read by
-    // the pair with THIS community's uuid, which a mirror row does not carry.
+    // Refused by the key already: the crop is read by the pair with THIS community's uuid,
+    // which a mirror row does not carry. `foreign = 0` in the same query would refuse it too.
     it('hands out nothing for the mirror row of another community member', async () => {
       expect((await openAnswer(await askFor('full', [MIRRORED]))).members).toEqual([])
     })
@@ -272,6 +274,15 @@ describe('MemberAvatarsResolver', () => {
       const payload = new MemberAvatarsJwtPayloadType('handshakeID', 'small', [SHOWN])
       payload.tokentype = MemberAvatarsResponseJwtPayloadType.MEMBER_AVATARS_RESPONSE_TYPE
       expect(refusal(await ask(payload))).toBe('memberAvatars refused: unexpected tokentype')
+    })
+
+    // A community whose JWT key is stored but whose handshake never completed. The envelope
+    // is valid -- the key is what validateCommunities stores before the handshake starts.
+    it('refuses a community that has not completed the authentication', async () => {
+      await DbCommunity.update({ id: peerCom.id }, { authenticatedAt: null })
+      expect(refusal(await askFor('small', [SHOWN]))).toBe(
+        'memberAvatars refused: requesting community is not authenticated',
+      )
     })
 
     it('refuses a community it does not know', async () => {

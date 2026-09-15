@@ -1,13 +1,13 @@
 // AI-GENERATED — not an architecture reference
 import { EncryptedTransferArgs, interpretEncryptedTransferArgs } from 'core'
 import {
-  dbFindMemberAvatarFull,
+  dbFindMemberAvatarFullWithDate,
   dbFindMemberAvatarsSmall,
   dbFindMemberAvatarTimestampsByGradidoIds,
   getCommunityByPublicKeyOrFail,
   getHomeCommunity,
 } from 'database'
-import { getLogger } from 'log4js'
+import { getLogger, Logger } from 'log4js'
 import {
   Ed25519PublicKey,
   encryptAndSign,
@@ -25,6 +25,13 @@ import { MEMBER_AVATARS_MAX_REFS } from '@/data/MemberAvatars.logic'
 
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.resolver.MemberAvatarsResolver.${method}`)
+
+/** Logged here, thrown to the peer. Every reason is about the peer, never about a member. */
+const refusal = (logger: Logger, reason: string): Error => {
+  const errmsg = `memberAvatars refused: ${reason}`
+  logger.warn(errmsg)
+  return new Error(errmsg)
+}
 
 interface MemberAvatarsQuestion {
   kind: MemberAvatarsKind
@@ -81,8 +88,8 @@ const findMembers = async (
     }))
   }
 
-  const dates = await dbFindMemberAvatarTimestampsByGradidoIds(gradidoIDs)
   if (kind === 'dates') {
+    const dates = await dbFindMemberAvatarTimestampsByGradidoIds(gradidoIDs)
     return [...dates].map(([gradidoID, updatedAt]) => ({
       gradidoID,
       avatarUpdatedAt: updatedAt.toISOString(),
@@ -90,17 +97,18 @@ const findMembers = async (
     }))
   }
 
-  // kind 'full': the date first, because it costs no picture data, then the 512 crop by the
-  // pair -- this community is the member's home, so its uuid is the other half. Both readers
-  // carry the same guard; if either says no, there is no entry.
+  // kind 'full': the 512 crop by the pair -- this community is the member's home, so its uuid
+  // is the other half -- with the date of the same row.
   const [gradidoID] = gradidoIDs
-  const updatedAt = dates.get(gradidoID)
-  if (!updatedAt) {
-    return []
-  }
-  const avatar = await dbFindMemberAvatarFull(gradidoID, homeCommunityUuid)
-  return avatar
-    ? [{ gradidoID, avatarUpdatedAt: updatedAt.toISOString(), avatar: avatar.toString('base64') }]
+  const row = await dbFindMemberAvatarFullWithDate(gradidoID, homeCommunityUuid)
+  return row
+    ? [
+        {
+          gradidoID,
+          avatarUpdatedAt: row.updatedAt.toISOString(),
+          avatar: row.avatarFull.toString('base64'),
+        },
+      ]
     : []
 }
 
@@ -112,9 +120,10 @@ export class MemberAvatarsResolver {
    *
    * Who can ask: interpretEncryptedTransferArgs throws unless the publicKey names a community
    * this one knows, that community has a JWT key here, and the envelope verifies with that key
-   * and decrypts with ours -- the same door voteForSendCoins goes through. Neither consults
-   * `authenticated_at`: the backend's validateCommunities stores the JWT key of every
-   * community it verifies and starts the authentication right after.
+   * and decrypts with ours -- the door voteForSendCoins goes through. On top of that, the
+   * community must have completed the authentication handshake (`authenticated_at`): the
+   * backend's validateCommunities stores a community's JWT key BEFORE it starts that
+   * handshake, so a verified envelope alone says nothing about whether it ever succeeded.
    *
    * The answer goes back the same way round: encrypted for the asking community's JWT key,
    * signed with ours.
@@ -130,22 +139,25 @@ export class MemberAvatarsResolver {
     const methodLogger = createLogger('memberAvatars')
     methodLogger.addContext('handshakeID', args.handshakeID)
 
-    const question = readQuestion(await interpretEncryptedTransferArgs(args))
-    if (!question.success) {
-      const errmsg = `memberAvatars refused: ${question.error}`
-      methodLogger.warn(errmsg)
-      throw new Error(errmsg)
+    // Throws for an unknown community, a missing JWT key and an envelope that does not verify
+    // or decrypt.
+    const payload = await interpretEncryptedTransferArgs(args)
+
+    const requestingCom = await getCommunityByPublicKeyOrFail(new Ed25519PublicKey(args.publicKey))
+    if (!requestingCom.authenticatedAt || !requestingCom.publicJwtKey) {
+      throw refusal(methodLogger, 'requesting community is not authenticated')
     }
 
-    // interpretEncryptedTransferArgs has just read both rows and decrypted with the home
-    // key, so a missing value here is a broken community row, not something the peer did.
+    const question = readQuestion(payload)
+    if (!question.success) {
+      throw refusal(methodLogger, question.error)
+    }
+
+    // interpretEncryptedTransferArgs has just decrypted with the home key, so a missing value
+    // here is a broken community row, not something the peer did.
     const homeCom = await getHomeCommunity()
     if (!homeCom?.privateJwtKey || !homeCom.communityUuid) {
       throw new Error('home community without JWT key or community uuid')
-    }
-    const requestingCom = await getCommunityByPublicKeyOrFail(new Ed25519PublicKey(args.publicKey))
-    if (!requestingCom.publicJwtKey) {
-      throw new Error('requesting community without JWT key')
     }
 
     const members = await findMembers(question.value, homeCom.communityUuid)
