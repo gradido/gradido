@@ -1030,7 +1030,7 @@ let labelRequest = 0
  *   the house, and at the zoom that frames the circle that is about one pixel, so a crosshair
  *   set on the house by eye is usually looked up like any other point;
  * - any other point set on the map is named behind the admin switch (utils/reverseGeocode):
- *   by Nominatim in the old position, by nobody in the new one.
+ *   by Nominatim in the old position, from the map's own tile file in the new one.
  * Only ever the member's own search point, never anybody else's position.
  */
 async function resolveCenterLabel(next) {
@@ -1046,6 +1046,9 @@ async function resolveCenterLabel(next) {
     setCenterLabel('')
     return
   }
+  // "The chosen point" while the lookup is out: the previous centre's name must not stand for
+  // this one meanwhile, nor stay stored with it when the page is left before the answer.
+  setCenterLabel('')
   const { geoProvider } = await mapSwitches()
   const label = await reverseName(geoProvider, next.lat, next.lng, locale.value)
   if (mine === labelRequest) setCenterLabel(label)

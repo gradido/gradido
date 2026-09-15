@@ -132,6 +132,18 @@ module.exports = Joi.object({
       otherwise: Joi.optional(),
     }),
 
+  MAP_ASSETS_URL: Joi.string()
+    .uri({ scheme: ['http', 'https'] })
+    .description('Base URL of the fonts/ and sprites/ that belong to the map tiles')
+    .default('https://maptiles.gradido.net')
+    .required(),
+
+  MAP_TILES_URL: Joi.string()
+    .uri({ scheme: ['http', 'https'] })
+    .description('URL of the PMTiles file the wallet reads place names from')
+    .default('https://maptiles.gradido.net/planet.pmtiles')
+    .required(),
+
   META_URL: Joi.string()
     .uri({ scheme: ['http', 'https'] })
     .description('The base URL for the meta tags.')

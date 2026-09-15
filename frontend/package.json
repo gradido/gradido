@@ -24,6 +24,7 @@
     "watch-scss-sass": "bun ./scripts/scss.mjs watch sass"
   },
   "dependencies": {
+    "@mapbox/vector-tile": "^3.0.0",
     "@morev/vue-transitions": "^3.0.2",
     "@types/leaflet": "^1.9.12",
     "@vee-validate/i18n": "^4.15.0",
@@ -44,6 +45,8 @@
     "jwt-decode": "^3.1.2",
     "leaflet": "^1.9.4",
     "leaflet-geosearch": "^4.0.0",
+    "pbf": "^5.1.2",
+    "pmtiles": "^4.5.0",
     "portal-vue": "^3.0.0",
     "qrcanvas": "^3.1.2",
     "qrcanvas-vue": "3",
