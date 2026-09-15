@@ -261,6 +261,20 @@ describe('xcomMemberAvatars', () => {
     expectFailure(await xcomMemberAvatars(homeCom, peerCom, 'small', [ANNA], 5000), 'date')
   })
 
+  // The same window as for a date that travels with a transfer (readTransferAvatarDate): a
+  // stored date goes out to every wallet that shows the member.
+  it('rejects an answer whose date lies outside the window', async () => {
+    const twoDaysAhead = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString()
+    const dates = ['1999-12-31T23:59:59.000Z', twoDaysAhead]
+    peerAnswers((handshakeID) =>
+      answerWith(handshakeID, [{ gradidoID: ANNA, avatarUpdatedAt: dates.shift(), avatar: FACE }]),
+    )
+
+    expectFailure(await xcomMemberAvatars(homeCom, peerCom, 'small', [ANNA], 5000), 'date')
+    expectFailure(await xcomMemberAvatars(homeCom, peerCom, 'small', [ANNA], 5000), 'date')
+    expect(dates).toEqual([])
+  })
+
   // The same for a picture that is not a string: GraphQL cannot serialise it as one.
   it('does not take an answer whose picture is not a picture', async () => {
     peerAnswers((handshakeID) =>
