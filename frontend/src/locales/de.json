@@ -699,6 +699,7 @@
         "liste": "Liste",
         "normal": "normal"
       },
+      "noWebgl": "Diese Karte braucht WebGL 2. Dein Browser hat es nicht — die Liste zeigt dieselben Treffer.",
       "radius": "Radius",
       "radiusHintFern": "Gilt für die überregionale Suche. Der regionale Radius bleibt bei {km} km.",
       "radiusHintRegional": "Gilt für die regionale Suche. Der überregionale Radius bleibt bei {km} km.",

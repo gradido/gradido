@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { flushPromises, mount } from '@vue/test-utils'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -14,6 +14,7 @@ import GeoSearchField from '@/components/Matching/GeoSearchField.vue'
 import { listMatchingEntries, userLocationQuery } from '@/graphql/queries'
 import { GMS_REJECTED, GMS_UNAVAILABLE } from '@/composables/useMatches'
 import { NOMINATIM_REVERSE_URL } from '@/utils/reverseGeocode'
+import { created } from '@test/maplibreMock'
 
 // jsdom has no SVG geometry, and Leaflet decides once, when it is imported, whether it
 // may draw SVG at all - by looking for createSVGRect. Without it Leaflet finds no
@@ -41,6 +42,31 @@ const redrawCanvas = L.Canvas.prototype._redraw
 L.Canvas.prototype._redraw = function guardedRedraw() {
   if (this._ctx) redrawCanvas.call(this)
 }
+
+// The context every canvas gets in this file - also the WebGL 2 one MapLibre asks for, so the
+// MapLibre stand-in builds. Held here so a test can take WebGL 2 away and give it back.
+const drawingContext = HTMLCanvasElement.prototype.getContext
+
+// Never the real MapLibre in jsdom: it needs WebGL 2 and would die deep in drawing. The stand-in
+// keeps what MapLibre does where the engine can see it (test/maplibreMock.js).
+vi.mock('maplibre-gl', () => import('@test/maplibreMock'))
+vi.mock('@/utils/mapEngine/maplibreWorkerUrl', () => ({ default: 'worker.js' }))
+
+// The engines, loaded the way the page loads them - unless a test holds the next one back until
+// it opens `gate`, hands over an `engine` of its own, or says it does not arrive at all, as a
+// file does not when the connection drops or a deploy has renamed it.
+const engineLoad = { fails: false, gate: null, engine: null }
+vi.mock('@/utils/mapEngine', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    loadMapEngine: async (name) => {
+      if (engineLoad.gate) await engineLoad.gate
+      if (engineLoad.fails) throw new Error('Failed to fetch dynamically imported module')
+      return engineLoad.engine ?? actual.loadMapEngine(name)
+    },
+  }
+})
 
 const replace = vi.fn()
 const push = vi.fn()
@@ -566,7 +592,8 @@ describe('MatchingMap', () => {
         '',
       )
 
-      expect(source).toMatch(/\n\.gk-search:not\(\.leaflet-control\) \{[^}]*display: none;/)
+      // `gk-placed` rather than Leaflet's own class: both engines set it on what they take.
+      expect(source).toMatch(/\n\.gk-search:not\(\.gk-placed\) \{[^}]*display: none;/)
 
       const chrome = source.match(/\n\.gk-search \{([^}]*)\}/)
       expect(chrome, 'no .gk-search rule in the page').not.toBeNull()
@@ -1552,6 +1579,291 @@ describe('MatchingMap', () => {
       expect(listLabel(page)).toBe('Prag')
       expect(fetchMock).not.toHaveBeenCalled()
       expect(placeNameAt).not.toHaveBeenCalled()
+    })
+  })
+
+  // K-008: the admin switch picks the engine the map is drawn with. Every test above draws with
+  // Leaflet, as a server does that nobody has switched; these draw with MapLibre's stand-in.
+  describe('on the MapLibre engine', () => {
+    // About 17 km from home, so nothing snaps the view onto the search centre.
+    const VIEW = { lat: 48.3, lng: 11.8, zoom: 12 }
+    const anna = {
+      uuid: 'anna',
+      name: 'Anna',
+      position: { lat: 48.31, lng: 11.81 },
+      community: { name: 'Muenchen' },
+      aboutMe: '',
+      channels: {
+        gesuch: [{ uuid: 'anna-entry', strength: 0.73, matchedEntryUuid: 'mine' }],
+      },
+      scores: { gesuch: [{ strength: 0.73, entry: 'mine', subject: 'x' }] },
+      precision: 'genau',
+    }
+    /** The MapLibre map behind the page's handle. */
+    const library = () => created.at(-1)
+    const cornerOf = (page, corner) =>
+      page.findAll(`${corner} > *`).map((box) => box.classes().join(' '))
+
+    // Mounted and located, the quarter second run by hand; the map is not built yet.
+    const mountLocated = async (look) => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+      window.localStorage.setItem(`${KEY}look`, JSON.stringify(look))
+      window.localStorage.setItem(`${KEY}view`, JSON.stringify(VIEW))
+      const page = mountMap()
+      fire(userLocationQuery, { userLocation: location })
+      await page.vm.$nextTick()
+      vi.advanceTimersByTime(250)
+      vi.useRealTimers()
+      return page
+    }
+    // The engine is fetched after the quarter second, and its first style loads a moment after
+    // the map is built - only then are the circle and the rings on it.
+    const settle = async () => {
+      await flushPromises()
+      await flushPromises()
+    }
+    const openMapLibre = async ({ look = 'normal', people = [] } = {}) => {
+      const page = await mountLocated(look)
+      await settle()
+      matches.value = people
+      await flushPromises()
+      return page
+    }
+
+    // The first import of the engine transforms its whole module tree, which takes longer than
+    // any number of flushed promises; after that the page's own import finds it loaded.
+    beforeAll(async () => {
+      await import('@/utils/mapEngine/maplibre')
+    })
+
+    beforeEach(() => {
+      switchPosition.mapEngine = 'MAPLIBRE'
+      created.length = 0
+      mapSwitches.mockClear()
+      placeNameAt.mockReset()
+      placeNameAt.mockImplementation(async () => null)
+    })
+
+    afterEach(() => {
+      delete switchPosition.mapEngine
+      switchPosition.geoProvider = 'NOMINATIM'
+      engineLoad.fails = false
+      engineLoad.gate = null
+      engineLoad.engine = null
+      HTMLCanvasElement.prototype.getContext = drawingContext
+      vi.useRealTimers()
+    })
+
+    it('builds the map with MapLibre, where the member left it, in its look and language', async () => {
+      const page = await openMapLibre({ look: 'dunkel' })
+
+      expect(created).toHaveLength(1)
+      expect(page.find('.map-canvas').classes()).toContain('maplibregl-map')
+      expect(page.find('.leaflet-container').exists()).toBe(false)
+      // The stored view counts Leaflet's zoom; MapLibre's tiles are twice as wide.
+      expect(library().getZoom()).toBe(VIEW.zoom - 1)
+      expect(library().getCenter().lat).toBeCloseTo(VIEW.lat, 6)
+      expect(library().getCenter().lng).toBeCloseTo(VIEW.lng, 6)
+      // Built in the member's look, with the places named in the wallet's language - on Leaflet
+      // neither reached the engine, so nothing else would notice them missing.
+      expect(library().options.style.sprite).toMatch(/\/black$/)
+      expect(JSON.stringify(library().options.style.layers)).toContain('name:de')
+      // The whole corner came up, in the order it always had.
+      expect(cornerOf(page, '.maplibregl-ctrl-top-left')).toEqual([
+        expect.stringContaining('maplibregl-ctrl-group'),
+        expect.stringContaining('gk-search'),
+        expect.stringContaining('gk-home'),
+      ])
+      expect(page.find('.map-note').exists()).toBe(false)
+    })
+
+    it('stands the house, the search centre and a match on the map as markers', async () => {
+      const page = await openMapLibre({ look: 'hell', people: [anna] })
+
+      expect(page.findAll('.maplibregl-marker')).toHaveLength(3)
+      expect(page.find('.maplibregl-marker .gk-own').exists()).toBe(true)
+      expect(page.find('.maplibregl-marker .gk-centre').exists()).toBe(true)
+      expect(page.find('.maplibregl-marker.gk-clickable .gk-hit').exists()).toBe(true)
+    })
+
+    it('veils the world outside the search circle, in the look of the map', async () => {
+      await openMapLibre({ look: 'normal' })
+
+      expect(library().getSource('gk-circle')).toBeDefined()
+      expect(library().getLayer('gk-circle-edge')).toBeDefined()
+      expect(library().getLayer('gk-circle-veil').paint['fill-color']).toBe('#000000')
+    })
+
+    // On Leaflet a look is a CSS filter and the engine has nothing to do; MapLibre draws a
+    // style of its own for each look, and the veil changes with it.
+    it('changes the style of the map with the look', async () => {
+      const page = await openMapLibre({ look: 'normal' })
+      expect(library().style.sprite).toMatch(/\/light$/)
+
+      // The first of the three looks is the dark one.
+      await page.findAll('.look-group .look-btn')[0].trigger('click')
+      await flushPromises()
+
+      expect(library().style.sprite).toMatch(/\/black$/)
+      expect(library().getLayer('gk-circle-veil').paint['fill-color']).toBe('#ffffff')
+    })
+
+    it("names a point set with the crosshair from the tiles, at the MapLibre map's middle", async () => {
+      switchPosition.geoProvider = 'GMS'
+      const page = await openMapLibre()
+
+      await page.find('.map-crosshair').trigger('click')
+      await flushPromises()
+
+      // The middle comes from MapLibre - the old map would give the same answer.
+      expect(created).toHaveLength(1)
+      expect(placeNameAt).toHaveBeenCalledTimes(1)
+      const [, lat, lng] = placeNameAt.mock.calls[0]
+      expect(lat).toBeCloseTo(VIEW.lat, 6)
+      expect(lng).toBeCloseTo(VIEW.lng, 6)
+    })
+
+    // The engine takes a moment to arrive, and the member may have left the page by then.
+    it('builds nothing once the page is left while the engine is on its way', async () => {
+      let arrive
+      engineLoad.gate = new Promise((resolve) => {
+        arrive = resolve
+      })
+      engineLoad.engine = { createMap: vi.fn(() => ({ success: false, error: new Error('gone') })) }
+      const page = await mountLocated('normal')
+
+      page.unmount()
+      wrapper = null
+      arrive()
+      await settle()
+
+      expect(engineLoad.engine.createMap).not.toHaveBeenCalled()
+    })
+
+    // K-013: MapLibre needs WebGL 2. Until the old engine goes (D) such a device keeps the old
+    // map - and a line under it says why, so nobody mistakes it for the new one.
+    it('draws the old map where the device has no WebGL 2, and says so under it', async () => {
+      HTMLCanvasElement.prototype.getContext = function (kind, ...rest) {
+        return kind === 'webgl2' ? null : drawingContext.call(this, kind, ...rest)
+      }
+
+      const page = await openMapLibre()
+
+      expect(created).toHaveLength(0)
+      expect(page.find('.map-canvas').classes()).toContain('leaflet-container')
+      expect(page.find('.map-canvas').classes()).not.toContain('maplibregl-map')
+      expect(cornerOf(page, '.leaflet-top.leaflet-left')).toEqual([
+        expect.stringContaining('leaflet-control-zoom'),
+        expect.stringContaining('gk-search'),
+        expect.stringContaining('gk-home'),
+      ])
+      const note = page.find('.map-shell + .map-note')
+      expect(note.exists()).toBe(true)
+      expect(note.text()).toBe(de.matching.map.noWebgl)
+    })
+
+    // Not the device: the file did not come. The old map is here already, and the line about
+    // WebGL 2 would be untrue.
+    it('draws the old map when the new engine does not arrive, and blames nothing', async () => {
+      engineLoad.fails = true
+
+      const page = await openMapLibre()
+
+      expect(created).toHaveLength(0)
+      expect(page.find('.map-canvas').classes()).toContain('leaflet-container')
+      expect(page.find('.map-note').exists()).toBe(false)
+    })
+
+    // jsdom lays nothing out and applies no scoped styles, so the rules MapLibre needs are read in
+    // the source - comments first, they name the rules. Measured in a browser on 16.09.2026, on a
+    // static copy of the map wearing the built stylesheets: with master's stylesheet the house
+    // stood on the list cover and over the crosshair, the centre disc over the zoom buttons, the
+    // crosshair over the search field's list of places, and a tap on the glow beside a match went
+    // to the match; with these rules each of them came out as it does on Leaflet.
+    const sourceRules = () =>
+      readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), 'MatchingMap.vue'),
+        'utf8',
+      ).replace(/\/\*[\s\S]*?\*\//g, '')
+    const ruleOf = (source, selectors) =>
+      source.match(
+        new RegExp(`\\n${selectors.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\{([^}]*)\\}`),
+      )?.[1]
+
+    it("keeps MapLibre's markers and controls in the layers Leaflet's have", () => {
+      const source = sourceRules()
+
+      expect(ruleOf(source, '.map-shell :deep(.maplibregl-canvas-container)')).toMatch(
+        /isolation: isolate;/,
+      )
+      expect(ruleOf(source, '.map-shell :deep(.maplibregl-ctrl-top-left)')).toMatch(
+        /z-index: 1000;/,
+      )
+      expect(
+        ruleOf(
+          source,
+          '.leaflet-interactive.gk-marker.gk-clickable,\n.maplibregl-marker.gk-marker.gk-clickable',
+        ),
+      ).toMatch(/pointer-events: none;/)
+      for (const mode of ['is-list', 'is-cluster']) {
+        expect(
+          ruleOf(
+            source,
+            `.map-shell.${mode} :deep(.leaflet-control-container),\n.map-shell.${mode} :deep(.maplibregl-control-container)`,
+          ),
+          `the map's controls stay over the ${mode} cover`,
+        ).toMatch(/display: none;/)
+      }
+    })
+
+    // In that copy the corner measured the same on both engines: zoom 34 x 64, the lens and the
+    // way home 34 x 34, at 10 px from the edge and from each other. Without these rules the way
+    // home was an 18 px square - too small for a finger - and the zoom buttons 29 px wide.
+    it("gives MapLibre's corner the measure of Leaflet's, on the light map and on the dark one", () => {
+      const source = sourceRules()
+
+      const group = ruleOf(source, '.map-shell :deep(.maplibregl-ctrl-group)')
+      expect(group).toMatch(/border: 2px solid rgb\(0 0 0 \/ 20%\);/)
+      expect(group).toMatch(/box-shadow: none;/)
+      const buttons = ruleOf(
+        source,
+        '.map-shell :deep(.maplibregl-ctrl-group button),\n.map-shell :deep(.maplibregl-ctrl-group a)',
+      )
+      expect(buttons).toMatch(/width: 30px;/)
+      expect(buttons).toMatch(/height: 30px;/)
+
+      const darkGroup = ruleOf(source, '  :deep(.maplibregl-ctrl-group)')
+      expect(darkGroup).toMatch(/border-color: var\(--dark-rim\);/)
+      expect(darkGroup).toMatch(/background-color: var\(--dark-chrome\);/)
+      expect(ruleOf(source, '  :deep(.maplibregl-ctrl-group .maplibregl-ctrl-icon)')).toMatch(
+        /filter: invert\(1\) brightness\(1\.14\);/,
+      )
+      expect(ruleOf(source, '  :deep(.maplibregl-ctrl-attrib)')).toMatch(
+        /background-color: rgb\(22 24 29 \/ 80%\);/,
+      )
+    })
+
+    // A slow connection must not decide which map somebody sees: a switch that answers after
+    // the quarter second is waited for, and the map it names is the one built.
+    it('waits for a switch that answers late, and builds the map it names', async () => {
+      let answer
+      mapSwitches.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            answer = resolve
+          }),
+      )
+      const page = await mountLocated('normal')
+      await settle()
+
+      expect(page.find('.map-canvas').classes()).not.toContain('leaflet-container')
+      expect(created).toHaveLength(0)
+
+      answer({ mapEngine: 'MAPLIBRE', geoProvider: 'NOMINATIM' })
+      await settle()
+
+      expect(created).toHaveLength(1)
+      expect(page.find('.map-canvas').classes()).not.toContain('leaflet-container')
     })
   })
 })

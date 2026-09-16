@@ -1,23 +1,56 @@
 // AI-GENERATED — not an architecture reference
-import { mount } from '@vue/test-utils'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import UserLocationMap from './UserLocationMap.vue'
 import GeoSearchField from '@/components/Matching/GeoSearchField.vue'
+import { created } from '@test/maplibreMock'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (key) => key, locale: { value: 'de' } }),
 }))
 
 // The provider is measured in its own spec (utils/geoSearchProvider); here only what the map
-// makes it with and hands to the control.
-const { makeGeoProvider, mapSwitches, gmsBase } = vi.hoisted(() => ({
-  makeGeoProvider: vi.fn(() => ({ search: async () => [] })),
-  mapSwitches: async () => ({ mapEngine: 'LEAFLET', geoProvider: 'GMS' }),
-  gmsBase: async () => null,
-}))
+// makes it with and hands to the control. The admin switch draws with Leaflet unless a test
+// says otherwise, as on a server nobody has switched.
+const { makeGeoProvider, mapSwitches, gmsBase, switchPosition } = vi.hoisted(() => {
+  const position = { mapEngine: 'LEAFLET' }
+  return {
+    makeGeoProvider: vi.fn(() => ({ search: async () => [] })),
+    mapSwitches: vi.fn(async () => ({ ...position, geoProvider: 'GMS' })),
+    gmsBase: async () => null,
+    switchPosition: position,
+  }
+})
 vi.mock('@/utils/geoSearchProvider', () => ({ makeGeoProvider }))
-vi.mock('@/composables/useMapSwitches', () => ({ useMapSwitches: () => ({ mapSwitches }) }))
+vi.mock('@/composables/useMapSwitches', async (importOriginal) => ({
+  ...(await importOriginal()),
+  useMapSwitches: () => ({ mapSwitches }),
+}))
 vi.mock('@/composables/useGmsBase', () => ({ useGmsBase: () => ({ gmsBase }) }))
+
+// Never the real MapLibre in jsdom: it needs WebGL 2 and would die deep in drawing. The stand-in
+// keeps what MapLibre does where the engine can see it (test/maplibreMock.js).
+vi.mock('maplibre-gl', () => import('@test/maplibreMock'))
+vi.mock('@/utils/mapEngine/maplibreWorkerUrl', () => ({ default: 'worker.js' }))
+
+// The engines, loaded the way the component loads them - unless a test holds the next one back
+// until it opens `gate`, hands over an `engine` of its own, or says it does not arrive at all, as
+// a file does not when the connection drops or a deploy has renamed it.
+const engineLoad = { fails: false, gate: null, engine: null }
+vi.mock('@/utils/mapEngine', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    loadMapEngine: async (name) => {
+      if (engineLoad.gate) await engineLoad.gate
+      if (engineLoad.fails) throw new Error('Failed to fetch dynamically imported module')
+      return engineLoad.engine ?? actual.loadMapEngine(name)
+    },
+  }
+})
 
 // The search field is the page's own element, in the template from the first tick - so
 // finding the component proves nothing. Leaflet marks what it has taken into a corner with
@@ -162,6 +195,152 @@ describe('UserLocationMap', () => {
       await wrapper.findComponent(GeoSearchField).vm.$emit('pick', PRAGUE)
 
       expect(map.getZoom()).toBe(17)
+    })
+  })
+
+  // K-008: the admin switch picks the engine this map is drawn with, as it does for the big one.
+  describe('on the MapLibre engine', () => {
+    const leafletMaps = () => document.querySelectorAll('.leaflet-container')
+    const mapLibreMaps = () => document.querySelectorAll('.maplibregl-map')
+    // The pin the member moves: the only marker that can be dragged.
+    const ownPin = () => document.querySelector('.maplibregl-marker-draggable')
+    const pointer = (type, element, x) =>
+      element.dispatchEvent(new MouseEvent(type, { bubbles: true, clientX: x, clientY: 0 }))
+
+    // The first import of the engine transforms its whole module tree, which can take longer
+    // than the wait below; after that the component's own import finds it loaded.
+    beforeAll(async () => {
+      await import('@/utils/mapEngine/maplibre')
+    })
+
+    beforeEach(() => {
+      switchPosition.mapEngine = 'MAPLIBRE'
+      created.length = 0
+      // MapLibre asks the canvas for a WebGL 2 context and for nothing else.
+      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation((kind) =>
+        kind === 'webgl2' ? {} : null,
+      )
+    })
+
+    afterEach(() => {
+      switchPosition.mapEngine = 'LEAFLET'
+      engineLoad.fails = false
+      engineLoad.gate = null
+      engineLoad.engine = null
+      vi.restoreAllMocks()
+    })
+
+    // The engine takes a moment to arrive, and the settings dialog may be closed by then.
+    it('builds nothing once the component is gone while the engine is on its way', async () => {
+      let arrive
+      engineLoad.gate = new Promise((resolve) => {
+        arrive = resolve
+      })
+      engineLoad.engine = { createMap: vi.fn(() => ({ success: false, error: new Error('gone') })) }
+      await mountAndSettle({})
+
+      wrapper.unmount()
+      wrapper = null
+      arrive()
+      await flushPromises()
+      await flushPromises()
+
+      expect(engineLoad.engine.createMap).not.toHaveBeenCalled()
+    })
+
+    it('stands the house as a MapLibre marker and finishes wiring the map', async () => {
+      await mountAndSettle({ userIcon: 'home', communityMarkerCoords: undefined })
+
+      expect(mapLibreMaps()).toHaveLength(1)
+      expect(leafletMaps()).toHaveLength(0)
+      expect(document.querySelectorAll('.maplibregl-marker')).toHaveLength(1)
+      expect(document.querySelector('.maplibregl-marker.own-home svg')).not.toBeNull()
+      expect(document.querySelectorAll('.maplibregl-ctrl-top-left .gk-search')).toHaveLength(1)
+    })
+
+    it('sets the position where the pin is dragged to', async () => {
+      await mountAndSettle({})
+
+      pointer('mousedown', ownPin(), 0)
+      const canvas = document.querySelector('.maplibregl-canvas')
+      pointer('mousemove', canvas, 30)
+      pointer('mouseup', canvas, 30)
+
+      const [position] = wrapper.emitted('update:userPosition').at(-1)
+      expect(position.lng).toBeGreaterThan(coords.lng)
+      expect(position.lat).toBeCloseTo(coords.lat, 6)
+    })
+
+    // This map has no looks; MapLibre still draws a style, and names its places in the wallet's
+    // language only when it is told which - otherwise in English.
+    it("draws the normal style, with the places named in the wallet's language", async () => {
+      await mountAndSettle({})
+
+      const { style } = created.at(-1)
+      expect(style.sprite).toMatch(/\/light$/)
+      expect(JSON.stringify(style.layers)).toContain('name:de')
+    })
+
+    // K-013: until the old engine goes, a device without WebGL 2 keeps the old map.
+    it('draws the old map where the device has no WebGL 2', async () => {
+      HTMLCanvasElement.prototype.getContext.mockImplementation(() => null)
+
+      await mountAndSettle({})
+
+      expect(created).toHaveLength(0)
+      expect(leafletMaps()).toHaveLength(1)
+      expect(searchInCorner()).toHaveLength(1)
+    })
+
+    it('draws the old map when the new engine does not arrive', async () => {
+      engineLoad.fails = true
+
+      await mountAndSettle({})
+
+      expect(created).toHaveLength(0)
+      expect(leafletMaps()).toHaveLength(1)
+    })
+
+    // jsdom applies no scoped styles, so these rules are read in the source, comments first. The
+    // first keeps the field out of sight until an engine has taken it - both mark that with
+    // `gk-placed`; the other two give MapLibre's zoom buttons the lens's measure.
+    it('hides the search field until the map takes it, and sizes the zoom buttons like the lens', () => {
+      const source = readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), 'UserLocationMap.vue'),
+        'utf8',
+      ).replace(/\/\*[\s\S]*?\*\//g, '')
+
+      expect(source).toMatch(/\n\.gk-search:not\(\.gk-placed\) \{[^}]*display: none;/)
+      const group = source.match(/\n\.map-container :deep\(\.maplibregl-ctrl-group\) \{([^}]*)\}/)
+      expect(group?.[1]).toMatch(/border: 2px solid rgb\(0 0 0 \/ 20%\);/)
+      expect(group?.[1]).toMatch(/box-shadow: none;/)
+      const buttons = source.match(
+        /\n\.map-container :deep\(\.maplibregl-ctrl-group button\) \{([^}]*)\}/,
+      )
+      expect(buttons?.[1]).toMatch(/width: 30px;/)
+      expect(buttons?.[1]).toMatch(/height: 30px;/)
+    })
+
+    // A slow connection must not decide which map somebody sees.
+    it('waits for a switch that answers late, and builds the map it names', async () => {
+      let answer
+      mapSwitches.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            answer = resolve
+          }),
+      )
+      await mountAndSettle({})
+
+      expect(leafletMaps()).toHaveLength(0)
+      expect(mapLibreMaps()).toHaveLength(0)
+
+      answer({ mapEngine: 'MAPLIBRE', geoProvider: 'GMS' })
+      await flushPromises()
+      await flushPromises()
+
+      expect(mapLibreMaps()).toHaveLength(1)
+      expect(leafletMaps()).toHaveLength(0)
     })
   })
 })

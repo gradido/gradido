@@ -619,6 +619,7 @@
         "liste": "Liste",
         "normal": "normal"
       },
+      "noWebgl": "This map needs WebGL 2. Your browser does not have it — the list shows the same matches.",
       "radius": "Yarıçap",
       "radiusLabel": "Hangi yarıçapta aramak istiyorsun? (km)",
       "radiusTitle": "Arama yarıçapı",
