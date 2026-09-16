@@ -82,7 +82,6 @@ function serveFile(plan = []) {
   const fetchMock = vi.fn(async (url, { headers }) => {
     const step = plan.shift()
     if (step === 'fail') throw new TypeError('Failed to fetch')
-    if (step === 'hang') return new Promise(() => {})
     const [, from, to] = headers.get('range').match(/bytes=(\d+)-(\d+)/)
     const body = FILE.slice(Number(from), Math.min(Number(to) + 1, FILE.length))
     return new Response(body, {
@@ -140,14 +139,30 @@ describe('archiveFor', () => {
     expect(fetchMock.mock.calls.length).toBe(4)
   })
 
-  it('asks again while an earlier read of the file hangs, instead of waiting on it', async () => {
-    const fetchMock = serveFile(['hang'])
+  // The failure the cache forgets can also be a directory's: the header came back, the leaf
+  // directory did not.
+  it('asks again after a failed read of a directory, instead of keeping the failure', async () => {
+    const fetchMock = serveFile(['serve', 'fail'])
     const archive = archiveFor(freshUrl())
 
-    archive.getZxy(Z, X, Y)
-    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
+    await expect(archive.getZxy(Z, X, Y)).rejects.toThrow('Failed to fetch')
     const tile = await archive.getZxy(Z, X, Y)
 
     expect(new Uint8Array(tile.data)).toEqual(TILE)
+    // header, the failed directory, the directory again, the tile
+    expect(fetchMock.mock.calls.length).toBe(4)
+  })
+
+  // A map opening cold asks for a whole view of tiles at once. They share the reads of the
+  // header and the directory that are still under way - each tile is read on its own.
+  it('reads the header and the directory once for lookups made at the same moment', async () => {
+    const fetchMock = serveFile()
+    const archive = archiveFor(freshUrl())
+
+    const tiles = await Promise.all([archive.getZxy(Z, X, Y), archive.getZxy(Z, X, Y)])
+
+    for (const tile of tiles) expect(new Uint8Array(tile.data)).toEqual(TILE)
+    // header, directory, and the two tiles
+    expect(fetchMock.mock.calls.length).toBe(4)
   })
 })
