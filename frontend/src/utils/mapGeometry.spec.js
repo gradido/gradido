@@ -60,18 +60,102 @@ describe('ringPoints', () => {
 })
 
 describe('boundsOfRadius', () => {
-  // Within a thousandth of the radius, and knowingly so: the box counts degrees of the
-  // equator, as Leaflet's own `toBounds` does, while the ring walks the mean sphere. That
-  // is 28 m on a 25 km circle - under one pixel until the map is closer than a street, and
-  // the same as before the seam, because the same arithmetic drew the frame then too.
-  it('holds the circle: as far north, south, east and west as the radius', () => {
-    const { south, west, north, east } = boundsOfRadius(KUENZELSAU, 25000)
+  const holdsRing = (box, centre, metres) =>
+    ringPoints(centre, metres).every(
+      ([lat, lng]) => lat >= box.south && lat <= box.north && lng >= box.west && lng <= box.east,
+    )
 
-    expect(metresBetween(KUENZELSAU, { lat: north, lng: KUENZELSAU.lng })).toBeCloseTo(25000, -2)
-    expect(metresBetween(KUENZELSAU, { lat: south, lng: KUENZELSAU.lng })).toBeCloseTo(25000, -2)
-    expect(metresBetween(KUENZELSAU, { lat: KUENZELSAU.lat, lng: east })).toBeCloseTo(25000, -2)
-    expect(metresBetween(KUENZELSAU, { lat: KUENZELSAU.lat, lng: west })).toBeCloseTo(25000, -2)
+  // The view is fitted to this box, and the circle drawn is this ring - so every point of
+  // it has to be inside, or the view cuts the circle off.
+  it('holds every point of the ring that is drawn', () => {
+    const metres = 2000000
+
+    expect(holdsRing(boundsOfRadius(KUENZELSAU, metres), KUENZELSAU, metres)).toBe(true)
   })
+
+  it('reaches exactly the radius north and south, on the sphere the ring walks', () => {
+    const { south, north } = boundsOfRadius(KUENZELSAU, 25000)
+
+    expect(metresBetween(KUENZELSAU, { lat: north, lng: KUENZELSAU.lng })).toBeCloseTo(25000, 0)
+    expect(metresBetween(KUENZELSAU, { lat: south, lng: KUENZELSAU.lng })).toBeCloseTo(25000, 0)
+  })
+
+  // F-11, measured on 16.09.2026: how far east (and west) the drawn ring reaches, in degrees
+  // of longitude from its centre. The box of degrees stopped short of it - 0.1 % at 25 km,
+  // 0.2 % at 500 km, 2.5 % at 2,000 km, 5.8 % at 2,000 km on the 60th parallel.
+  it.each([
+    [25, KUENZELSAU.lat, 0.345],
+    [500, KUENZELSAU.lat, 6.9],
+    [2000, KUENZELSAU.lat, 28.252],
+    [2000, 60, 38.138],
+  ])('reaches as far east and west as the ring of %i km at latitude %f', (km, lat, degrees) => {
+    const centre = { lat, lng: KUENZELSAU.lng }
+    const { west, east } = boundsOfRadius(centre, km * 1000)
+
+    expect(east - centre.lng).toBeCloseTo(degrees, 3)
+    expect(centre.lng - west).toBeCloseTo(degrees, 3)
+  })
+
+  // The ring's longitudes run on past 180, so the box does too: one box across the date
+  // line, not two halves at either end of the world.
+  it('keeps a circle across the date line in one box', () => {
+    const fiji = { lat: -17.7, lng: 178.1 }
+    const box = boundsOfRadius(fiji, 1500000)
+
+    expect(box.west).toBeLessThan(180)
+    expect(box.east).toBeGreaterThan(180)
+    expect(holdsRing(box, fiji, 1500000)).toBe(true)
+  })
+
+  // A circle round a pole contains every longitude near it, and the ring's far side comes
+  // back south of the pole - its corners would frame a band without the pole side.
+  it('frames a circle round a pole from its edge up to the pole, at every longitude', () => {
+    const { south, west, north, east } = boundsOfRadius(KUENZELSAU, 5000000)
+
+    expect(north).toBe(90)
+    expect(south).toBeCloseTo(KUENZELSAU.lat - (5000000 / 6371008.8) * (180 / Math.PI), 9)
+    expect(east - west).toBeCloseTo(360, 9)
+  })
+
+  // Every longitude comes in with the pole, not before: a metre short of it the box still
+  // frames the circle's own longitudes, a metre past it all of them - on either side.
+  it.each([
+    ['north', KUENZELSAU.lat, 'north', 90],
+    ['south', -KUENZELSAU.lat, 'south', -90],
+  ])('takes every longitude only once the %s pole is inside', (_pole, lat, side, pole) => {
+    const centre = { lat, lng: KUENZELSAU.lng }
+    const toPole = (90 - Math.abs(lat)) * (Math.PI / 180) * 6371008.8
+
+    const short = boundsOfRadius(centre, toPole - 1)
+    const past = boundsOfRadius(centre, toPole + 1)
+
+    expect(short.east - short.west).toBeLessThan(180)
+    expect(past.east - past.west).toBeCloseTo(360, 9)
+    expect(past[side]).toBe(pole)
+  })
+
+  it('frames the whole world for a circle round both poles', () => {
+    expect(boundsOfRadius(KUENZELSAU, 20000000)).toEqual({
+      south: -90,
+      west: KUENZELSAU.lng - 180,
+      north: 90,
+      east: KUENZELSAU.lng + 180,
+    })
+  })
+
+  // The distance search reaches 20,000 km. A ring wider than a hemisphere closes round the
+  // far side of the earth, so a box from its corners would leave out the member's own place.
+  it.each([25, 500, 2000, 4500, 5000, 10000, 15000, 20000])(
+    'keeps the centre inside the frame at %i km',
+    (km) => {
+      const { south, west, north, east } = boundsOfRadius(KUENZELSAU, km * 1000)
+
+      expect(KUENZELSAU.lat).toBeGreaterThanOrEqual(south)
+      expect(KUENZELSAU.lat).toBeLessThanOrEqual(north)
+      expect(KUENZELSAU.lng).toBeGreaterThanOrEqual(west)
+      expect(KUENZELSAU.lng).toBeLessThanOrEqual(east)
+    },
+  )
 
   // Degrees of longitude shrink towards the poles, so the same circle needs a wider box
   // the further north it is. Without that the view would cut the circle off east and west.

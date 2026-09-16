@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import L from 'leaflet'
-import { boundsOfRadius } from '@/utils/mapGeometry'
+import { ringPoints } from '@/utils/mapGeometry'
 import { createMap } from './leaflet'
 
 // jsdom has no SVG geometry, and Leaflet decides once, when it is imported, whether it
@@ -92,19 +92,29 @@ describe('the Leaflet map engine', () => {
       expect(map.getZoom()).toBe(9)
     })
 
-    // What the view frames is the circle, whatever its radius. The box is the arithmetic
-    // both engines have to share, so it is held against Leaflet's own - a box wide enough
-    // to hold a circle of `metres` is the one Leaflet builds for a size of two of them.
-    it('builds exactly the box Leaflet builds', () => {
-      const metres = 25000
+    // What the view frames is the circle `setCircle` draws, whatever its radius. Leaflet's
+    // own `LatLng.toBounds` - the arithmetic the frame copied until F-11 - is a box of
+    // degrees, narrower east and west than the round ring: on a view exactly as wide as
+    // that box at zoom 3, the view landed at zoom 3 and cut a 2,000 km ring off both sides.
+    it('holds the whole drawn ring', () => {
+      const metres = 2000000
+      const crs = L.CRS.EPSG3857
+      const degrees = L.latLng(CENTRE.lat, CENTRE.lng).toBounds(metres * 2)
+      const width = Math.ceil(
+        crs.latLngToPoint(degrees.getNorthEast(), 3).x -
+          crs.latLngToPoint(degrees.getSouthWest(), 3).x,
+      )
+      build({ size: [width, 600] })
 
-      const mine = boundsOfRadius(CENTRE, metres)
+      map.fitRadius(CENTRE, metres)
 
-      const theirs = L.latLng(CENTRE.lat, CENTRE.lng).toBounds(metres * 2)
-      expect(mine.south).toBeCloseTo(theirs.getSouth(), 10)
-      expect(mine.north).toBeCloseTo(theirs.getNorth(), 10)
-      expect(mine.west).toBeCloseTo(theirs.getWest(), 10)
-      expect(mine.east).toBeCloseTo(theirs.getEast(), 10)
+      for (const [lat, lng] of ringPoints(CENTRE, metres)) {
+        const { x, y } = map.project({ lat, lng })
+        expect(x).toBeGreaterThanOrEqual(0)
+        expect(x).toBeLessThanOrEqual(width)
+        expect(y).toBeGreaterThanOrEqual(0)
+        expect(y).toBeLessThanOrEqual(600)
+      }
     })
 
     it('moves the view onto that box, however far away it was looking', () => {
@@ -114,7 +124,7 @@ describe('the Leaflet map engine', () => {
       map.fitRadius(CENTRE, 25000)
 
       // Within half a kilometre, which at this zoom is a couple of pixels: the view lands
-      // on whole pixels, the box is exact - and the box is what the test above measures.
+      // on whole pixels, and what it holds is what the test above measures.
       expect(map.getCenter().lat).toBeCloseTo(CENTRE.lat, 2)
       expect(map.getCenter().lng).toBeCloseTo(CENTRE.lng, 2)
       // A 25 km circle on an 800 px view is a good deal closer than three.

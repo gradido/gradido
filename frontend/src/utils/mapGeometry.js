@@ -11,9 +11,6 @@
 /** Mean Earth radius in metres, as WGS 84 gives it. */
 const EARTH_RADIUS_M = 6371008.8
 
-/** The equator in metres - what a degree of longitude is worth there. */
-const EARTH_CIRCUMFERENCE_M = 40075017
-
 /**
  * A point of the seam, in one form: `{ lat, lng }`.
  *
@@ -56,19 +53,45 @@ export function ringPoints(centre, metres, steps = 96) {
 }
 
 /**
- * The square box that just holds a circle of `metres` around `centre`.
+ * The box that just holds a circle of `metres` around `centre`.
  *
  * This is the box a view is fitted to, so that the whole circle is on the screen
- * whatever its radius. It is the same arithmetic Leaflet's `LatLng.toBounds(2 * metres)`
- * does — deliberately, so that both engines frame identically; `leaflet.spec.js` holds
- * the two against each other.
+ * whatever its radius. It is taken from the ring `ringPoints` gives - the one `setCircle`
+ * draws in both engines - so the view holds exactly what is drawn. A box of degrees
+ * (`latSpan / cos φ`, which is what Leaflet's `LatLng.toBounds` does) is narrower than
+ * the round circle and cut it off east and west: 2.5 % of a 2,000 km circle at
+ * Künzelsau's latitude (F-11).
+ *
+ * The longitudes of the ring run on without a jump across the date line (`east` can be
+ * beyond 180), so a circle there keeps one box. They jump only where a pole lies inside
+ * the circle - the ring then goes round the pole, every longitude is in the circle, and
+ * its far side comes back south of the pole. So a pole in the circle gives the box that
+ * pole and all longitudes, not the ring's corners: those would frame a band that leaves
+ * out the pole side, and for a circle wider than a hemisphere a speck round the far side
+ * of the earth.
  */
 export function boundsOfRadius(centre, metres) {
   const { lat, lng } = latLngOf(centre)
-  // The box is as wide as the circle, so it reaches the radius in each direction: the
-  // 180 degrees of half a turn are worth half the equator, and it is a whole diameter
-  // that has to fit between the two sides.
-  const latSpan = (180 * 2 * metres) / EARTH_CIRCUMFERENCE_M
-  const lngSpan = latSpan / Math.cos((Math.PI / 180) * lat)
-  return { south: lat - latSpan, west: lng - lngSpan, north: lat + latSpan, east: lng + lngSpan }
+  // How far the circle reaches along the meridian, in degrees of the same sphere.
+  const reach = (metres / EARTH_RADIUS_M) * (180 / Math.PI)
+  const northPoleInside = reach >= 90 - lat
+  const southPoleInside = reach >= 90 + lat
+  if (northPoleInside || southPoleInside) {
+    return {
+      south: southPoleInside ? -90 : lat - reach,
+      west: lng - 180,
+      north: northPoleInside ? 90 : lat + reach,
+      east: lng + 180,
+    }
+  }
+
+  const ring = ringPoints({ lat, lng }, metres)
+  const lats = ring.map(([pointLat]) => pointLat)
+  const lngs = ring.map(([, pointLng]) => pointLng)
+  return {
+    south: Math.min(...lats),
+    west: Math.min(...lngs),
+    north: Math.max(...lats),
+    east: Math.max(...lngs),
+  }
 }
