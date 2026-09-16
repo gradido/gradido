@@ -124,9 +124,6 @@ function initMap() {
       center: userPosition.value,
       zoom: defaultZoom,
       maxZoom: 19,
-      // Both pins carry a label that belongs to them; a click on the map is how the
-      // member sets their place, and it must not take the labels away.
-      keepPopupsOpen: true,
     })
     // A map that could not be built leaves the readout and the address search standing;
     // everything below asks for `map.value` first.

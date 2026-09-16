@@ -262,14 +262,33 @@ describe('the Leaflet map engine', () => {
     })
 
     // Both pins of the settings map carry a label that belongs to them: it is opened at
-    // once, and a click on the map - which is how a place is set there - leaves it alone.
-    it('opens a label that belongs to it and keeps it through a click on the map', () => {
-      build({ keepPopupsOpen: true })
+    // once, and neither the other pin's label nor a click on the map - which is how a
+    // place is set there - takes it away again.
+    it('opens a label that belongs to it', () => {
+      build()
+
       map.marker({ ...CENTRE, html: HTML, size: [25, 41], popup: 'Dein Standort' })
 
       expect(document.body.textContent).toContain('Dein Standort')
+    })
 
-      map.marker({ lat: 49.3, lng: 9.8, html: HTML, size: [25, 41] }).openPopup()
+    it('keeps that label when a second one opens', () => {
+      build()
+      map.marker({ ...CENTRE, html: HTML, size: [25, 41], popup: 'Dein Standort' })
+
+      map.marker({ lat: 49.3, lng: 9.8, html: HTML, size: [25, 41], popup: 'Die Gemeinschaft' })
+
+      expect(document.body.textContent).toContain('Dein Standort')
+      expect(document.body.textContent).toContain('Die Gemeinschaft')
+    })
+
+    it('keeps that label when the map is clicked', () => {
+      build()
+      map.marker({ ...CENTRE, html: HTML, size: [25, 41], popup: 'Dein Standort' })
+
+      document
+        .querySelector('.leaflet-container')
+        .dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: 0, clientY: 0 }))
 
       expect(document.body.textContent).toContain('Dein Standort')
     })

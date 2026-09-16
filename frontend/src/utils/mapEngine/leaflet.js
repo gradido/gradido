@@ -78,8 +78,10 @@ function makeMarker(target, options) {
     zIndexOffset: zIndex,
   })
 
-  // A label that belongs to the marker and stays with it: it is opened at once and no
-  // click anywhere takes it away again, because it is what the pin says about itself.
+  // A label that belongs to the marker and stays with it: it is opened at once, another
+  // marker's label does not close it (`autoClose`), a click on the map does not either
+  // (`closeOnClick`) - on the settings map a click is how a place is set - and it carries
+  // no close button, because it is not a message but what the pin says about itself.
   if (popup) {
     marker.bindPopup(popup, { autoClose: false, closeOnClick: false, closeButton: false })
   }
@@ -112,7 +114,7 @@ function makeMarker(target, options) {
  * the tiles carry whatever names their own file carries.
  */
 export function createMap(container, options = {}) {
-  const { center, zoom, maxZoom, keepPopupsOpen = false } = options
+  const { center, zoom, maxZoom } = options
 
   let map
   try {
@@ -120,7 +122,6 @@ export function createMap(container, options = {}) {
       center: pairOf(center),
       zoom,
       zoomControl: false,
-      closePopupOnClick: !keepPopupsOpen,
     })
   } catch (error) {
     return { success: false, error }
