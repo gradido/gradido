@@ -372,6 +372,32 @@ describe('the Leaflet map engine', () => {
       expect(hoverTheRing()).toBe(false)
     })
 
+    // How far beside a ring still counts as on it comes with each call, not with the
+    // first one - the canvas behind them is built once and kept.
+    it('takes the tap tolerance of the call it was given', () => {
+      build()
+      const tight = vi.fn()
+      map.setPresence([{ ...CENTRE, filled: true, onClick: tight }], {
+        ...ringOptions,
+        tolerance: 0,
+      })
+
+      tapCanvas(15)
+
+      // 15 px out is far beyond the ring's own 5 px and half its 2 px line.
+      expect(tight).not.toHaveBeenCalled()
+
+      const wide = vi.fn()
+      map.setPresence([{ ...CENTRE, filled: true, onClick: wide }], {
+        ...ringOptions,
+        tolerance: 15,
+      })
+
+      tapCanvas(15)
+
+      expect(wide).toHaveBeenCalledTimes(1)
+    })
+
     it('replaces the whole set on the next call', () => {
       build()
       const first = vi.fn()

@@ -132,8 +132,9 @@ export function createMap(container, options = {}) {
     maxZoom,
   }).addTo(map)
 
-  // Only the grey rings are drawn on a canvas, so its click tolerance is theirs alone;
-  // the first setPresence brings the number and the renderer is kept from then on.
+  // Only the grey rings are drawn on a canvas, so its click tolerance is theirs alone.
+  // The canvas is built once and kept; the tolerance is read from it at every hit test,
+  // so it is set on every call rather than frozen at the first.
   let canvasRenderer = null
   let presenceLayer = null
   let circleLayer = null
@@ -237,6 +238,7 @@ export function createMap(container, options = {}) {
         if (presenceLayer) presenceLayer.remove()
         presenceLayer = L.layerGroup()
         if (!canvasRenderer) canvasRenderer = L.canvas({ padding: 0.5, tolerance })
+        canvasRenderer.options.tolerance = tolerance
         for (const point of points) {
           const ring = L.circleMarker(pairOf(point), {
             renderer: canvasRenderer,
