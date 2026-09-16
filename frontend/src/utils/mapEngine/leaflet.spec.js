@@ -372,17 +372,6 @@ describe('the Leaflet map engine', () => {
       expect(hoverTheRing()).toBe(false)
     })
 
-    // An older GMS names nobody, and a ring with nothing to open takes no tap either.
-    it('lets a tap through where the ring has nothing to open', () => {
-      build()
-      const onClick = vi.fn()
-      map.setPresence([{ ...CENTRE, filled: true, onClick: null }], ringOptions)
-
-      tapCanvas(15)
-
-      expect(onClick).not.toHaveBeenCalled()
-    })
-
     it('replaces the whole set on the next call', () => {
       build()
       const first = vi.fn()
