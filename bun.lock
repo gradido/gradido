@@ -361,7 +361,6 @@
         "@mapbox/vector-tile": "^3.0.0",
         "@morev/vue-transitions": "^3.0.2",
         "@protomaps/basemaps": "5.7.2",
-        "@types/leaflet": "^1.9.12",
         "@vee-validate/i18n": "^4.15.0",
         "@vee-validate/rules": "^4.14.1",
         "@vitejs/plugin-vue": "^5.2.3",
@@ -378,8 +377,6 @@
         "graphql-tag": "^2.12.6",
         "identity-obj-proxy": "^3.0.0",
         "jwt-decode": "^3.1.2",
-        "leaflet": "^1.9.4",
-        "leaflet-geosearch": "^4.0.0",
         "maplibre-gl": "6.10.0",
         "pbf": "^5.1.2",
         "pmtiles": "^4.5.0",
@@ -693,8 +690,6 @@
     "@eslint/eslintrc": ["@eslint/eslintrc@1.4.1", "", { "dependencies": { "ajv": "^6.12.4", "debug": "^4.3.2", "espree": "^9.4.0", "globals": "^13.19.0", "ignore": "^5.2.0", "import-fresh": "^3.2.1", "js-yaml": "^4.1.0", "minimatch": "^3.1.2", "strip-json-comments": "^3.1.1" } }, "sha512-XXrH9Uarn0stsyldqDYq8r++mROmWRI1xKMXa640Bb//SY1+ECYX6VzT6Lcx5frD0V30XieqJ0oX9I2Xj5aoMA=="],
 
     "@eslint/js": ["@eslint/js@8.57.1", "", {}, "sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q=="],
-
-    "@googlemaps/js-api-loader": ["@googlemaps/js-api-loader@1.16.10", "", {}, "sha512-c2erv2k7P2ilYzMmtYcMgAR21AULosQuUHJbStnrvRk2dG93k5cqptDrh9A8p+ZNlyhiqEOgHW7N9PAizdUM7Q=="],
 
     "@graphql-typed-document-node/core": ["@graphql-typed-document-node/core@3.2.0", "", { "peerDependencies": { "graphql": "^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0" } }, "sha512-mB9oAsNCm9aM3/SOv4YtBMqZbYj10R7dkq8byBqxGY/ncFwhf2oQzMV+LCRlWoDSEBJ3COiR1yeDvMtsoOsuFQ=="],
 
@@ -1151,8 +1146,6 @@
     "@types/koa": ["@types/koa@3.0.3", "", { "dependencies": { "@types/accepts": "*", "@types/content-disposition": "*", "@types/cookies": "*", "@types/http-assert": "*", "@types/http-errors": "^2", "@types/keygrip": "*", "@types/koa-compose": "*", "@types/node": "*" } }, "sha512-TdtNEJ7sYSrFQcVuS2ySsVqnq5EyE3oJbnfFJvkC9UtGP4Kpem5KE7r+ivHIbIAQAofSqnlB5D3vkfYO69TQpg=="],
 
     "@types/koa-compose": ["@types/koa-compose@3.2.9", "", { "dependencies": { "@types/koa": "*" } }, "sha512-BroAZ9FTvPiCy0Pi8tjD1OfJ7bgU1gQf0eR6e1Vm+JJATy9eKOG3hQMFtMciMawiSOVnLMdmUOC46s7HBhSTsA=="],
-
-    "@types/leaflet": ["@types/leaflet@1.9.22", "", { "dependencies": { "@types/geojson": "*" } }, "sha512-h3lhECYEKDasG7LFHu+GiHqAvsgLuQvlJvVZzJDGONo3sEL+wUOqSFLnwkZlK0qVxnxbuGFW8iBlJNYs5wgndA=="],
 
     "@types/lodash": ["@types/lodash@4.17.25", "", {}, "sha512-+K1NIO8I+F9/wNulfVvu23QYd0Pe9/OCqRrim4NoYIf1VoEDL90Ve4ClzpyqBLc7NpGGWRvYNCKZ1BE/Jpf8dQ=="],
 
@@ -2485,10 +2478,6 @@
     "kolorist": ["kolorist@1.8.0", "", {}, "sha512-Y+60/zizpJ3HRH8DCss+q95yr6145JXZo46OTpFvDZWLfRCE4qChOyk1b26nMaNpfHHgxagk9dXT5OP0Tfe+dQ=="],
 
     "leac": ["leac@0.6.0", "", {}, "sha512-y+SqErxb8h7nE/fiEX07jsbuhrpO9lL8eca7/Y1nuWV2moNlXhyd59iDGcRf6moVyDMbmTNzL40SUyrFU/yDpg=="],
-
-    "leaflet": ["leaflet@1.9.4", "", {}, "sha512-nxS1ynzJOmOlHp+iL3FyWqK89GtNL8U8rvlMOsQdTTssxZwCXh8N2NB3GDQOL+YR3XnWyZAxwQixURb+FA74PA=="],
-
-    "leaflet-geosearch": ["leaflet-geosearch@4.4.0", "", { "optionalDependencies": { "@googlemaps/js-api-loader": "^1.16.6", "leaflet": "^1.6.0" } }, "sha512-Pt/3JU0Oxvk+5ccGChNOV8yxk+Vl+3P83drGwW8/6ugF+K7zKPkx3naGDbPdhfeUmy+QuSCeVdvjN1jLCgwbaQ=="],
 
     "leven": ["leven@3.1.0", "", {}, "sha512-qsda+H8jTaUaN/x5vzW2rzc+8Rw4TAQ/4KjB46IwK5VH+IlVeeeje/EoZRpiXvIqjFgK84QffqPztGI3VBLG1A=="],
 

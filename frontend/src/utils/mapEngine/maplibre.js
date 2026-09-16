@@ -1,7 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import * as maplibregl from 'maplibre-gl'
-// The stylesheet belongs to the engine, as Leaflet's does to its own: it arrives wherever this
-// map is built and nowhere else.
+// The stylesheet belongs to the engine: it arrives wherever this map is built and nowhere else.
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
 import CONFIG from '@/config'
@@ -11,7 +10,11 @@ import { archiveFor } from '@/utils/mapTiles'
 import workerUrl from '@/utils/mapEngine/maplibreWorkerUrl'
 
 /**
- * The map seam, with MapLibre behind it - the same handle as `./leaflet.js`, read there.
+ * The map seam, with MapLibre behind it.
+ *
+ * Everything the two map pages ask of a map goes through the handle `createMap` returns. What
+ * stays with the pages: the sizes and tolerances of the markers (displayCore, F-10) and every
+ * decision about what to draw. What lives here: how it is drawn.
  *
  * The pages speak in `{ lat, lng }` and in Leaflet's zoom numbers, the numbers their stored
  * views carry. MapLibre counts zoom with tiles of 512 px, Leaflet with tiles of 256 px, so the
@@ -47,8 +50,7 @@ const EDGE = 'gk-circle-edge'
 /**
  * The outer ring of the mask: the whole world as Web Mercator draws it, wound the other way from
  * the circle (`ringPoints` runs clockwise), so the circle is a hole in it. The map is not
- * repeated east and west (`renderWorldCopies: false`), so one world is enough - Leaflet's
- * three-and-a-half turns covered its copies.
+ * repeated east and west (`renderWorldCopies: false`), so one world is enough.
  */
 const WORLD_RING = [
   [-180, -MAX_LATITUDE],

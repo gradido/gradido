@@ -13,22 +13,12 @@ vi.mock('vue-i18n', () => ({
 }))
 
 // The provider is measured in its own spec (utils/geoSearchProvider); here only what the map
-// makes it with and hands to the control. The admin switch draws with Leaflet unless a test
-// says otherwise, as on a server nobody has switched.
-const { makeGeoProvider, mapSwitches, gmsBase, switchPosition } = vi.hoisted(() => {
-  const position = { mapEngine: 'LEAFLET' }
-  return {
-    makeGeoProvider: vi.fn(() => ({ search: async () => [] })),
-    mapSwitches: vi.fn(async () => ({ ...position, geoProvider: 'GMS' })),
-    gmsBase: async () => null,
-    switchPosition: position,
-  }
-})
-vi.mock('@/utils/geoSearchProvider', () => ({ makeGeoProvider }))
-vi.mock('@/composables/useMapSwitches', async (importOriginal) => ({
-  ...(await importOriginal()),
-  useMapSwitches: () => ({ mapSwitches }),
+// makes it with and hands to the control.
+const { makeGeoProvider, gmsBase } = vi.hoisted(() => ({
+  makeGeoProvider: vi.fn(() => ({ search: async () => [] })),
+  gmsBase: async () => null,
 }))
+vi.mock('@/utils/geoSearchProvider', () => ({ makeGeoProvider }))
 vi.mock('@/composables/useGmsBase', () => ({ useGmsBase: () => ({ gmsBase }) }))
 
 // Never the real MapLibre in jsdom: it needs WebGL 2 and would die deep in drawing. The stand-in
@@ -36,27 +26,28 @@ vi.mock('@/composables/useGmsBase', () => ({ useGmsBase: () => ({ gmsBase }) }))
 vi.mock('maplibre-gl', () => import('@test/maplibreMock'))
 vi.mock('@/utils/mapEngine/maplibreWorkerUrl', () => ({ default: 'worker.js' }))
 
-// The engines, loaded the way the component loads them - unless a test holds the next one back
-// until it opens `gate`, hands over an `engine` of its own, or says it does not arrive at all, as
-// a file does not when the connection drops or a deploy has renamed it.
+// The engine, loaded the way the component loads it - unless a test holds it back until it opens
+// `gate`, hands over an `engine` of its own, or says it does not arrive at all, as a file does not
+// when the connection drops or a deploy has renamed it.
 const engineLoad = { fails: false, gate: null, engine: null }
 vi.mock('@/utils/mapEngine', async (importOriginal) => {
   const actual = await importOriginal()
   return {
     ...actual,
-    loadMapEngine: async (name) => {
+    loadMapEngine: async () => {
       if (engineLoad.gate) await engineLoad.gate
       if (engineLoad.fails) throw new Error('Failed to fetch dynamically imported module')
-      return engineLoad.engine ?? actual.loadMapEngine(name)
+      return engineLoad.engine ?? actual.loadMapEngine()
     },
   }
 })
 
 // The search field is the page's own element, in the template from the first tick - so
-// finding the component proves nothing. Leaflet marks what it has taken into a corner with
-// `leaflet-control`, and hanging the field there is the last thing initMap does: finding it
-// in the corner proves the function ran to its end rather than dying somewhere in the middle.
-const searchInCorner = () => document.querySelectorAll('.leaflet-top.leaflet-left .gk-search')
+// finding the component proves nothing. The engine hangs it into the map's corner, and that is
+// the last thing initMap does: finding it in the corner proves the function ran to its end
+// rather than dying somewhere in the middle.
+const searchInCorner = () => document.querySelectorAll('.maplibregl-ctrl-top-left .gk-search')
+const maps = () => document.querySelectorAll('.maplibregl-map')
 
 vi.mock('@/components/UserSettings/CoordinatesDisplay.vue', () => ({
   default: { template: '<div />' },
@@ -70,8 +61,8 @@ const PRAGUE = { lat: 50.0874654, lng: 14.4212535, label: 'Prag' }
 // next one reads them as its own.
 let wrapper = null
 
-// initMap is scheduled with setTimeout(..., 250), so the map is not there on the
-// tick after mount. Everything inside initMap is synchronous once it starts.
+// initMap is scheduled with setTimeout(..., 250) and then waits for the engine, so the map is
+// not there on the tick after mount.
 const mountAndSettle = async (props) => {
   wrapper = mount(UserLocationMap, {
     props: { userMarkerCoords: coords, communityMarkerCoords: coords, ...props },
@@ -81,20 +72,36 @@ const mountAndSettle = async (props) => {
 }
 
 describe('UserLocationMap', () => {
+  let context = null
+
+  // The first import of the engine transforms its whole module tree, which can take longer than
+  // the wait above; after that the component's own import finds it loaded.
+  beforeAll(async () => {
+    await import('@/utils/mapEngine/maplibre')
+  })
+
   beforeEach(() => {
     makeGeoProvider.mockClear()
+    created.length = 0
+    // MapLibre asks the canvas for a WebGL 2 context and for nothing else.
+    context = vi
+      .spyOn(HTMLCanvasElement.prototype, 'getContext')
+      .mockImplementation((kind) => (kind === 'webgl2' ? {} : null))
   })
 
   afterEach(() => {
     wrapper?.unmount()
     wrapper = null
     document.body.innerHTML = ''
+    engineLoad.fails = false
+    engineLoad.gate = null
+    engineLoad.engine = null
+    context.mockRestore()
   })
 
-  // Both markers bind a popup, and a popup with no pane to attach to takes the
-  // rest of initMap down with it: the map click that sets your location, the
-  // marker drag and the address search all sit below the popup and never get
-  // wired. The map still paints, so it looks whole and answers nothing.
+  // Both markers bind a popup, and a popup that takes the rest of initMap down with it leaves
+  // the map click that sets your location, the marker drag and the address search unwired. The
+  // map still paints, so it looks whole and answers nothing.
   describe('the settings page (default props)', () => {
     it('shows both labels and finishes wiring the map', async () => {
       await mountAndSettle({})
@@ -111,7 +118,9 @@ describe('UserLocationMap', () => {
     it('shows the house alone and finishes wiring the map', async () => {
       await mountAndSettle({ userIcon: 'home', communityMarkerCoords: undefined })
 
-      expect(document.querySelectorAll('.leaflet-marker-icon')).toHaveLength(1)
+      expect(maps()).toHaveLength(1)
+      expect(document.querySelectorAll('.maplibregl-marker')).toHaveLength(1)
+      expect(document.querySelector('.maplibregl-marker.own-home svg')).not.toBeNull()
       expect(document.body.textContent).not.toContain('settings.GMS.map.communityLocationLabel')
       // The home house explains itself; only the pin carries a label.
       expect(document.body.textContent).not.toContain('settings.GMS.map.userLocationLabel')
@@ -124,42 +133,42 @@ describe('UserLocationMap', () => {
     it('draws only the pin that was asked for', async () => {
       await mountAndSettle({ communityMarkerCoords: undefined })
 
-      expect(document.querySelectorAll('.leaflet-marker-icon')).toHaveLength(1)
+      expect(document.querySelectorAll('.maplibregl-marker')).toHaveLength(1)
       expect(document.body.textContent).toContain('settings.GMS.map.userLocationLabel')
       expect(document.body.textContent).not.toContain('settings.GMS.map.communityLocationLabel')
       expect(searchInCorner()).toHaveLength(1)
     })
   })
 
-  // Leaflet builds MarkerDrag inside _initInteraction, which returns early when
-  // interactive is false - so `draggable: true` beside it is a promise the marker
-  // cannot keep, and the dragend handler can never run. Clicking the map still
-  // moved the pin, which is why this read as a working map for so long.
+  // `draggable: true` is a promise the pin has to be able to keep: a marker that takes no tap
+  // lets it through to the map, so it cannot be picked up either, and the dragend handler would
+  // never run. Clicking the map would still move the pin, which is why such a pin once read as a
+  // working map for so long. Exactly one marker is the member's own, and only it can be dragged.
   describe('the pin', () => {
-    const markers = () => document.querySelectorAll('.leaflet-marker-draggable')
+    const markers = () => document.querySelectorAll('.maplibregl-marker-draggable')
 
     it('can actually be dragged on the settings page', async () => {
       await mountAndSettle({})
 
       expect(markers()).toHaveLength(1)
+      expect(markers()[0].style.pointerEvents).not.toBe('none')
     })
 
     it('can actually be dragged on the matching page', async () => {
       await mountAndSettle({ userIcon: 'home', communityMarkerCoords: undefined })
 
       expect(markers()).toHaveLength(1)
+      expect(markers()[0].style.pointerEvents).not.toBe('none')
     })
   })
 
-  // The admin switch decides at each search which service answers (K-008) - on this map as
-  // on the big one.
   describe('the address search', () => {
-    it('hands the field a provider made with the admin switch and the GMS address', async () => {
+    it('hands the field a provider made with the GMS address', async () => {
       await mountAndSettle({ userIcon: 'home', communityMarkerCoords: undefined })
 
       expect(makeGeoProvider).toHaveBeenCalledTimes(1)
       const made = makeGeoProvider.mock.calls[0][0]
-      expect(made.mapSwitches).toBe(mapSwitches)
+      expect(Object.keys(made).sort()).toEqual(['gmsBase', 'language', 'viewpoint'])
       expect(made.gmsBase).toBe(gmsBase)
       // Read at the moment of a search: where the map looks, in the wallet's language.
       expect(made.viewpoint().lat).toBeCloseTo(coords.lat, 6)
@@ -198,37 +207,11 @@ describe('UserLocationMap', () => {
     })
   })
 
-  // K-008: the admin switch picks the engine this map is drawn with, as it does for the big one.
   describe('on the MapLibre engine', () => {
-    const leafletMaps = () => document.querySelectorAll('.leaflet-container')
-    const mapLibreMaps = () => document.querySelectorAll('.maplibregl-map')
     // The pin the member moves: the only marker that can be dragged.
     const ownPin = () => document.querySelector('.maplibregl-marker-draggable')
     const pointer = (type, element, x) =>
       element.dispatchEvent(new MouseEvent(type, { bubbles: true, clientX: x, clientY: 0 }))
-
-    // The first import of the engine transforms its whole module tree, which can take longer
-    // than the wait below; after that the component's own import finds it loaded.
-    beforeAll(async () => {
-      await import('@/utils/mapEngine/maplibre')
-    })
-
-    beforeEach(() => {
-      switchPosition.mapEngine = 'MAPLIBRE'
-      created.length = 0
-      // MapLibre asks the canvas for a WebGL 2 context and for nothing else.
-      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation((kind) =>
-        kind === 'webgl2' ? {} : null,
-      )
-    })
-
-    afterEach(() => {
-      switchPosition.mapEngine = 'LEAFLET'
-      engineLoad.fails = false
-      engineLoad.gate = null
-      engineLoad.engine = null
-      vi.restoreAllMocks()
-    })
 
     // The engine takes a moment to arrive, and the settings dialog may be closed by then.
     it('builds nothing once the component is gone while the engine is on its way', async () => {
@@ -246,16 +229,6 @@ describe('UserLocationMap', () => {
       await flushPromises()
 
       expect(engineLoad.engine.createMap).not.toHaveBeenCalled()
-    })
-
-    it('stands the house as a MapLibre marker and finishes wiring the map', async () => {
-      await mountAndSettle({ userIcon: 'home', communityMarkerCoords: undefined })
-
-      expect(mapLibreMaps()).toHaveLength(1)
-      expect(leafletMaps()).toHaveLength(0)
-      expect(document.querySelectorAll('.maplibregl-marker')).toHaveLength(1)
-      expect(document.querySelector('.maplibregl-marker.own-home svg')).not.toBeNull()
-      expect(document.querySelectorAll('.maplibregl-ctrl-top-left .gk-search')).toHaveLength(1)
     })
 
     it('sets the position where the pin is dragged to', async () => {
@@ -281,28 +254,32 @@ describe('UserLocationMap', () => {
       expect(JSON.stringify(style.layers)).toContain('name:de')
     })
 
-    // K-013: until the old engine goes, a device without WebGL 2 keeps the old map.
-    it('draws the old map where the device has no WebGL 2', async () => {
-      HTMLCanvasElement.prototype.getContext.mockImplementation(() => null)
+    // K-013: MapLibre needs WebGL 2. Without it there is no map, and the address search is not
+    // hung anywhere - it stays out of sight (the rule read in the source below). The same mount
+    // with a context builds the map (the settings page case above), so this is the device.
+    it('draws no map where the device has no WebGL 2', async () => {
+      context.mockImplementation(() => null)
 
       await mountAndSettle({})
 
       expect(created).toHaveLength(0)
-      expect(leafletMaps()).toHaveLength(1)
-      expect(searchInCorner()).toHaveLength(1)
+      expect(maps()).toHaveLength(0)
+      expect(searchInCorner()).toHaveLength(0)
+      expect(document.querySelector('.gk-search').classList.contains('gk-placed')).toBe(false)
     })
 
-    it('draws the old map when the new engine does not arrive', async () => {
+    // Not the device: the file did not come.
+    it('draws no map when the engine does not arrive', async () => {
       engineLoad.fails = true
 
       await mountAndSettle({})
 
       expect(created).toHaveLength(0)
-      expect(leafletMaps()).toHaveLength(1)
+      expect(maps()).toHaveLength(0)
     })
 
     // jsdom applies no scoped styles, so these rules are read in the source, comments first. The
-    // first keeps the field out of sight until an engine has taken it - both mark that with
+    // first keeps the field out of sight until the engine has taken it - it marks that with
     // `gk-placed`; the other two give MapLibre's zoom buttons the lens's measure.
     it('hides the search field until the map takes it, and sizes the zoom buttons like the lens', () => {
       const source = readFileSync(
@@ -319,28 +296,6 @@ describe('UserLocationMap', () => {
       )
       expect(buttons?.[1]).toMatch(/width: 30px;/)
       expect(buttons?.[1]).toMatch(/height: 30px;/)
-    })
-
-    // A slow connection must not decide which map somebody sees.
-    it('waits for a switch that answers late, and builds the map it names', async () => {
-      let answer
-      mapSwitches.mockImplementationOnce(
-        () =>
-          new Promise((resolve) => {
-            answer = resolve
-          }),
-      )
-      await mountAndSettle({})
-
-      expect(leafletMaps()).toHaveLength(0)
-      expect(mapLibreMaps()).toHaveLength(0)
-
-      answer({ mapEngine: 'MAPLIBRE', geoProvider: 'GMS' })
-      await flushPromises()
-      await flushPromises()
-
-      expect(mapLibreMaps()).toHaveLength(1)
-      expect(leafletMaps()).toHaveLength(0)
     })
   })
 })

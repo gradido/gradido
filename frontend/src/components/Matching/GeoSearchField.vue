@@ -177,9 +177,9 @@ function toggle() {
 }
 
 /* The lens takes the shape of the map controls it stands with - 34 square with a 2px
-   rim and a 4px radius, which is what Leaflet's own bar measures on a touch-capable
-   browser, and that is nearly every one. Its colours are the field's (--surface,
-   --border); the dark map hands it other ones from outside (MatchingMap). */
+   rim and a 4px radius, the touch measure both maps give their zoom buttons (MatchingMap,
+   UserLocationMap). Its colours are the field's (--surface, --border); the dark map
+   hands it other ones from outside (MatchingMap). */
 .gk-search-toggle {
   flex: none;
   display: flex;

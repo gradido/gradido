@@ -19,7 +19,7 @@ export const TILE_SOURCE = 'protomaps'
 
 /**
  * The credit the OpenStreetMap licence (ODbL) asks for: in German where the wallet speaks
- * German, and everywhere else in English, as the Leaflet map has always shown it.
+ * German, and everywhere else in English.
  */
 const ATTRIBUTION = { de: '© OpenStreetMap-Mitwirkende' }
 const ATTRIBUTION_ELSE = '© OpenStreetMap contributors'
