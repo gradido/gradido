@@ -289,6 +289,35 @@ describe('the Leaflet map engine', () => {
       expect(onClick).toHaveBeenCalledTimes(1)
     })
 
+    // A ring that opens nothing must not offer itself either: Leaflet marks the canvas
+    // as interactive while the pointer is over a ring it would hand a click to, and that
+    // is the hand cursor. One hover per test, because Leaflet lets only one through every
+    // 32 ms and a second in the same tick would measure the throttle.
+    const hoverTheRing = () => {
+      document
+        .querySelector('.leaflet-overlay-pane canvas')
+        .dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: 0, clientY: 0 }))
+      return document
+        .querySelector('.leaflet-overlay-pane canvas')
+        .classList.contains('leaflet-interactive')
+    }
+
+    it('shows a hand over a ring that opens something', () => {
+      build()
+
+      map.setPresence([{ ...CENTRE, filled: true, onClick: vi.fn() }], ringOptions)
+
+      expect(hoverTheRing()).toBe(true)
+    })
+
+    it('shows none over a ring that opens nothing', () => {
+      build()
+
+      map.setPresence([{ ...CENTRE, filled: true, onClick: null }], ringOptions)
+
+      expect(hoverTheRing()).toBe(false)
+    })
+
     // An older GMS names nobody, and a ring with nothing to open takes no tap either.
     it('lets a tap through where the ring has nothing to open', () => {
       build()
