@@ -4,7 +4,6 @@ import {
   dbInsertMatchingEntry,
   dbSelectMatchingEntriesByUserId,
   dbSelectMatchingEntryByUuid,
-  dbSelectMatchingMapSwitches,
   dbSetMatchingEntryActive,
   dbUpdateMatchingEntry,
   MatchingEntrySelect,
@@ -15,7 +14,6 @@ import { matchingKeyingRun } from '@/apis/anthropic/matching/keyingRun'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { MatchingEntryInput } from '@/graphql/input/MatchingEntryInput'
 import { MatchingEntry } from '@/graphql/model/MatchingEntry'
-import { MatchingMapSwitches } from '@/graphql/model/MatchingMapSwitches'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { removeMatchingEntryFromGms, syncMatchingEntryToGms } from './util/syncMatchingEntryToGms'
@@ -55,16 +53,6 @@ const readBackEntry = async (uuid: string): Promise<MatchingEntrySelect> => {
 
 @Resolver(() => MatchingEntry)
 export class MatchingEntryResolver {
-  /**
-   * Which map the wallet draws and which place search it asks (K-008), as an admin set
-   * them. Read fresh on every call, so a switch reaches the next wallet that asks.
-   */
-  @Authorized([RIGHTS.MATCHING_MAP_SWITCHES])
-  @Query(() => MatchingMapSwitches)
-  async matchingMapSwitches(): Promise<MatchingMapSwitches> {
-    return await dbSelectMatchingMapSwitches()
-  }
-
   @Authorized([RIGHTS.LIST_MATCHING_ENTRY])
   @Query(() => [MatchingEntry])
   async listMatchingEntries(@Ctx() context: Context): Promise<MatchingEntry[]> {

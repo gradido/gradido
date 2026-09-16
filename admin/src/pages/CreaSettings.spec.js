@@ -55,9 +55,6 @@ const ANSWER = {
     // told apart by DIRECTION rather than by value - the checkbox test below toggles
     // one and asserts the other did not move.
     matchingKeyingActive: true,
-    // Both differ from the form's display defaults (LEAFLET, NOMINATIM), so "read from the
-    // server" can be told apart from "never read at all".
-    matchingMapSwitches: { mapEngine: 'MAPLIBRE', geoProvider: 'GMS' },
     firstCreationSigner: PETER,
   },
 }
@@ -75,62 +72,51 @@ const ANSWER = {
 // means the success path of both saves was dead code as far as this file was
 // concerned. Measured: with bare mocks, deleting the `...form.value` spread or the
 // read-back assignment left all twelve green.
-const {
-  saveMutate,
-  testMutate,
-  keyingMutate,
-  signerMutate,
-  mapSwitchesMutate,
-  mutations,
-  queries,
-} = vi.hoisted(() => ({
-  saveMutate: vi.fn(() =>
-    Promise.resolve({
-      data: {
-        setCreaSettings: {
-          model: 'claude-opus-5',
-          effort: 'high',
-          defaultModel: 'claude-sonnet-5',
-          fastMode: true,
+const { saveMutate, testMutate, keyingMutate, signerMutate, mutations, queries } = vi.hoisted(
+  () => ({
+    saveMutate: vi.fn(() =>
+      Promise.resolve({
+        data: {
+          setCreaSettings: {
+            model: 'claude-opus-5',
+            effort: 'high',
+            defaultModel: 'claude-sonnet-5',
+            fastMode: true,
+          },
         },
-      },
-    }),
-  ),
-  testMutate: vi.fn(() =>
-    Promise.resolve({ data: { testCreaModel: { ok: true, code: 'ok', message: 'hi' } } }),
-  ),
-  keyingMutate: vi.fn(() => Promise.resolve({ data: { setCreaMatchingKeying: true } })),
-  signerMutate: vi.fn(({ userId }) =>
-    Promise.resolve({
-      data: {
-        setFirstCreationSigner:
-          userId === null
-            ? null
-            : {
-                userId,
-                firstName: 'Bob',
-                lastName: 'Baumeister',
-                alias: 'bob',
-                role: 'MODERATOR',
-                eligible: true,
-                reason: '',
-              },
-      },
-    }),
-  ),
-  mapSwitchesMutate: vi.fn((variables) =>
-    Promise.resolve({ data: { setMatchingMapSwitches: { ...variables } } }),
-  ),
-  mutations: { asked: 0 },
-  queries: { searchOptions: null },
-}))
+      }),
+    ),
+    testMutate: vi.fn(() =>
+      Promise.resolve({ data: { testCreaModel: { ok: true, code: 'ok', message: 'hi' } } }),
+    ),
+    keyingMutate: vi.fn(() => Promise.resolve({ data: { setCreaMatchingKeying: true } })),
+    signerMutate: vi.fn(({ userId }) =>
+      Promise.resolve({
+        data: {
+          setFirstCreationSigner:
+            userId === null
+              ? null
+              : {
+                  userId,
+                  firstName: 'Bob',
+                  lastName: 'Baumeister',
+                  alias: 'bob',
+                  role: 'MODERATOR',
+                  eligible: true,
+                  reason: '',
+                },
+        },
+      }),
+    ),
+    mutations: { asked: 0 },
+    queries: { searchOptions: null },
+  }),
+)
 vi.mock('@vue/apollo-composable', () => ({
   // In the order the component asks: the moderation save, the model probe, the keying
-  // switch, the signer, the map switches. Five now, one per Save.
+  // switch, the signer. Four now.
   useMutation: vi.fn(() => ({
-    mutate: [saveMutate, testMutate, keyingMutate, signerMutate, mapSwitchesMutate][
-      mutations.asked++
-    ],
+    mutate: [saveMutate, testMutate, keyingMutate, signerMutate][mutations.asked++],
   })),
   // Two queries on the page, told apart by their document: the settings and the member
   // search behind the signer picker.
@@ -184,11 +170,6 @@ const mockBButton = {
 describe('CreaSettings', () => {
   let wrapper
   const keyingSave = () => wrapper.find('[data-test="matching-keying-save"]')
-  const mapSwitchesSave = () => wrapper.find('[data-test="map-switches-save"]')
-  const mapSelect = (name) =>
-    wrapper
-      .findAllComponents({ name: 'BFormSelect' })
-      .find((select) => select.attributes('data-test') === name)
 
   const createWrapper = () =>
     mount(CreaSettings, {
@@ -225,13 +206,12 @@ describe('CreaSettings', () => {
     })
 
     it('shuts every button, including the one that spends', () => {
-      // Three now, one per thing that can be done: save moderation, probe the model,
-      // save matching. ⛔ Counted rather than indexed, so a fourth button arriving
-      // ungated cannot slip through - the gate exists because the form holds display
-      // defaults until the query answers, and submitting those would write a switch
-      // value nobody chose.
+      // Five now: save moderation, probe the model, save signer, remove signer, save
+      // matching. ⛔ Counted rather than indexed, so a button arriving ungated cannot slip
+      // through - the gate exists because the form holds display defaults until the query
+      // answers, and submitting those would write a switch value nobody chose.
       const buttons = wrapper.findAll('button')
-      expect(buttons).toHaveLength(6)
+      expect(buttons).toHaveLength(5)
       for (const button of buttons) {
         expect(button.attributes('disabled')).toBeDefined()
       }
@@ -256,7 +236,7 @@ describe('CreaSettings', () => {
       // defaults, and one click would then send `active: false` for a community that
       // had it on.
       const buttons = wrapper.findAll('button')
-      expect(buttons).toHaveLength(6)
+      expect(buttons).toHaveLength(5)
       for (const button of buttons) {
         expect(button.attributes('disabled')).toBeDefined()
       }
@@ -271,10 +251,9 @@ describe('CreaSettings', () => {
     })
 
     it('releases every button except the signer Save, which waits for a choice', () => {
-      // Order on the page: save moderation, probe, save signer, remove signer, save matching,
-      // save map and search.
+      // Order on the page: save moderation, probe, save signer, remove signer, save matching.
       const buttons = wrapper.findAll('button')
-      expect(buttons).toHaveLength(6)
+      expect(buttons).toHaveLength(5)
       for (const [index, button] of buttons.entries()) {
         if (index === 2) {
           expect(button.attributes('disabled')).toBeDefined()
@@ -401,7 +380,6 @@ describe('CreaSettings', () => {
 
       expect(keyingSave().attributes('disabled')).toBeDefined()
       expect(wrapper.findAll('button')[0].attributes('disabled')).toBeUndefined()
-      expect(mapSwitchesSave().attributes('disabled')).toBeUndefined()
       release({ data: { setCreaMatchingKeying: true } })
     })
 
@@ -431,9 +409,9 @@ describe('CreaSettings', () => {
     })
 
     it('gives each section its own Save', () => {
-      // Six buttons: save moderation, probe the model, save signer, remove signer, save
-      // matching, save map and search.
-      expect(wrapper.findAll('button')).toHaveLength(6)
+      // Five buttons: save moderation, probe the model, save signer, remove signer, save
+      // matching.
+      expect(wrapper.findAll('button')).toHaveLength(5)
       expect(wrapper.text()).toMatch(/sectionFirstCreation(?!Hint)/)
       // ⚠️ Negative lookahead, not `toContain`: `sectionMatchingHint` carries the
       // heading's key as a prefix, so `toContain` was satisfied by the hint below it
@@ -450,95 +428,6 @@ describe('CreaSettings', () => {
 
       expect(testMutate).toHaveBeenCalledWith({
         input: { model: 'claude-opus-5', effort: 'high', fastMode: true },
-      })
-    })
-
-    describe('the map and search switches', () => {
-      it('shows what the server stored', () => {
-        expect(wrapper.vm.mapForm).toEqual({ mapEngine: 'MAPLIBRE', geoProvider: 'GMS' })
-        expect(mapSelect('map-engine').props('modelValue')).toBe('MAPLIBRE')
-        expect(mapSelect('geo-provider').props('modelValue')).toBe('GMS')
-      })
-
-      it('offers the old and the new position of each, by the names the server knows', () => {
-        // The values are the GraphQL enum names; anything else dies on validation.
-        expect(
-          mapSelect('map-engine')
-            .props('options')
-            .map((o) => o.value),
-        ).toEqual(['LEAFLET', 'MAPLIBRE'])
-        expect(
-          mapSelect('geo-provider')
-            .props('options')
-            .map((o) => o.value),
-        ).toEqual(['NOMINATIM', 'GMS'])
-        expect(wrapper.text()).toMatch(/crea\.settings\.mapSwitches(?!Hint)/)
-      })
-
-      it('sends both switches when their Save is pressed, and nothing else', async () => {
-        // ⛔ One select moved, the other not, so the payload is told apart by direction:
-        // a mutation fed from the wrong field would send GMS where LEAFLET belongs.
-        mapSelect('map-engine').vm.$emit('update:modelValue', 'LEAFLET')
-        await nextTick()
-
-        await mapSwitchesSave().trigger('click')
-
-        expect(mapSwitchesMutate).toHaveBeenCalledWith({ mapEngine: 'LEAFLET', geoProvider: 'GMS' })
-        expect(keyingMutate).not.toHaveBeenCalled()
-        expect(saveMutate).not.toHaveBeenCalled()
-        expect(toastSuccess).toHaveBeenCalledWith('crea.settings.savedMapSwitches')
-      })
-
-      it('follows the stored switches and says so when somebody else changed them', async () => {
-        mapSwitchesMutate.mockResolvedValueOnce({
-          data: { setMatchingMapSwitches: { mapEngine: 'LEAFLET', geoProvider: 'NOMINATIM' } },
-        })
-
-        await mapSwitchesSave().trigger('click')
-
-        expect(toastError).toHaveBeenCalledWith('crea.settings.mapSwitchesChangedElsewhere')
-        expect(toastSuccess).not.toHaveBeenCalled()
-        expect(wrapper.vm.mapForm).toEqual({ mapEngine: 'LEAFLET', geoProvider: 'NOMINATIM' })
-      })
-
-      it('keeps the switches across the other two saves', async () => {
-        await wrapper.findAll('button')[0].trigger('click')
-        await keyingSave().trigger('click')
-
-        expect(wrapper.vm.mapForm).toEqual({ mapEngine: 'MAPLIBRE', geoProvider: 'GMS' })
-        expect(mapSwitchesMutate).not.toHaveBeenCalled()
-      })
-
-      it('shuts its own Save while its save is in flight, and only that one', async () => {
-        let release
-        mapSwitchesMutate.mockReturnValueOnce(new Promise((resolve) => (release = resolve)))
-
-        mapSwitchesSave().trigger('click')
-        await nextTick()
-
-        expect(mapSwitchesSave().attributes('disabled')).toBeDefined()
-        expect(keyingSave().attributes('disabled')).toBeUndefined()
-        release({ data: { setMatchingMapSwitches: { mapEngine: 'MAPLIBRE', geoProvider: 'GMS' } } })
-      })
-
-      it('keeps a choice made while the save was in flight', async () => {
-        let release
-        mapSwitchesMutate.mockReturnValueOnce(new Promise((resolve) => (release = resolve)))
-        mapSwitchesSave().trigger('click')
-        await nextTick()
-
-        // The admin changes their mind while the request is out.
-        mapSelect('geo-provider').vm.$emit('update:modelValue', 'NOMINATIM')
-        release({ data: { setMatchingMapSwitches: { mapEngine: 'MAPLIBRE', geoProvider: 'GMS' } } })
-        await nextTick()
-        await nextTick()
-
-        expect(mapSwitchesMutate).toHaveBeenCalledWith({
-          mapEngine: 'MAPLIBRE',
-          geoProvider: 'GMS',
-        })
-        expect(toastError).not.toHaveBeenCalled()
-        expect(wrapper.vm.mapForm).toEqual({ mapEngine: 'MAPLIBRE', geoProvider: 'NOMINATIM' })
       })
     })
   })

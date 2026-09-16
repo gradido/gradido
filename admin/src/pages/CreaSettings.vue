@@ -114,31 +114,6 @@
         {{ $t('save') }}
       </BButton>
 
-      <div class="h5 mt-4 mb-1">{{ $t('crea.settings.mapSwitches') }}</div>
-      <small class="text-muted d-block mb-3">{{ $t('crea.settings.mapSwitchesHint') }}</small>
-      <BFormGroup :label="$t('crea.settings.mapEngine')" class="mb-3">
-        <BFormSelect
-          v-model="mapForm.mapEngine"
-          :options="mapEngineOptions"
-          data-test="map-engine"
-        />
-      </BFormGroup>
-      <BFormGroup :label="$t('crea.settings.geoProvider')" class="mb-3">
-        <BFormSelect
-          v-model="mapForm.geoProvider"
-          :options="geoProviderOptions"
-          data-test="geo-provider"
-        />
-      </BFormGroup>
-      <BButton
-        variant="primary"
-        :disabled="savingMapSwitches || !settingsLoaded"
-        data-test="map-switches-save"
-        @click="saveMapSwitches"
-      >
-        {{ $t('save') }}
-      </BButton>
-
       <small v-if="!settingsLoaded" class="text-muted d-block mt-2">
         {{ $t('crea.settings.unavailable') }}
       </small>
@@ -158,7 +133,6 @@ import {
   setCreaMatchingKeying,
   setCreaSettings,
   setFirstCreationSigner,
-  setMatchingMapSwitches,
   testCreaModel,
 } from '@/graphql/crea.graphql'
 import { searchUsers } from '@/graphql/searchUsers.js'
@@ -183,14 +157,6 @@ const saving = ref(false)
 const savingKeying = ref(false)
 const testing = ref(false)
 
-// The two build-phase switches of the matching map (K-008): which map and which place
-// search this server's wallet uses. Their own form and their own Save, like the keying
-// switch, so no other save can carry them. The display defaults are the old pair, and like
-// the form above they are never submitted before settingsLoaded.
-const mapForm = ref({ mapEngine: 'LEAFLET', geoProvider: 'NOMINATIM' })
-const savingMapSwitches = ref(false)
-const sameMapSwitches = (a, b) => a.mapEngine === b.mapEngine && a.geoProvider === b.geoProvider
-
 // The first-creation signer (ES-005): shown as stored, picked from the member search. Only
 // accounts that could sign are offered - an admin, or a moderator - and the server has the
 // last word (a moderator with a group scope is refused there, with a reason).
@@ -208,16 +174,6 @@ const modelPresetOptions = computed(() => [
   { value: 'claude-fable-5', text: 'claude-fable-5' },
   { value: 'claude-opus-4-8', text: 'claude-opus-4-8' },
   { value: 'claude-sonnet-4-6', text: 'claude-sonnet-4-6' },
-])
-
-const mapEngineOptions = computed(() => [
-  { value: 'LEAFLET', text: t('crea.settings.mapEngineLeaflet') },
-  { value: 'MAPLIBRE', text: t('crea.settings.mapEngineMaplibre') },
-])
-
-const geoProviderOptions = computed(() => [
-  { value: 'NOMINATIM', text: t('crea.settings.geoProviderNominatim') },
-  { value: 'GMS', text: t('crea.settings.geoProviderGms') },
 ])
 
 const effortOptions = computed(() => [
@@ -244,10 +200,6 @@ watch(
         effort: settings.effort ?? 'disabled',
         fastMode: settings.fastMode ?? false,
         matchingKeyingActive: settings.matchingKeyingActive ?? false,
-      }
-      mapForm.value = {
-        mapEngine: settings.matchingMapSwitches.mapEngine,
-        geoProvider: settings.matchingMapSwitches.geoProvider,
       }
       defaultModel.value = settings.defaultModel
       signer.value = settings.firstCreationSigner ?? null
@@ -331,7 +283,6 @@ const { mutate: saveMutation } = useMutation(setCreaSettings)
 const { mutate: testMutation } = useMutation(testCreaModel)
 const { mutate: saveKeyingMutation } = useMutation(setCreaMatchingKeying)
 const { mutate: signerMutation } = useMutation(setFirstCreationSigner)
-const { mutate: mapSwitchesMutation } = useMutation(setMatchingMapSwitches)
 
 function apiInput() {
   const model = form.value.model.trim()
@@ -409,31 +360,6 @@ async function saveKeying() {
     toastError(e.message)
   } finally {
     savingKeying.value = false
-  }
-}
-
-async function saveMapSwitches() {
-  savingMapSwitches.value = true
-  try {
-    // Read BEFORE the await and sent from the same copy, for the reason `saveKeying` gives:
-    // the selects stay editable while the request is out.
-    const asked = { ...mapForm.value }
-    const { data } = await mapSwitchesMutation(asked)
-    const stored = data.setMatchingMapSwitches
-    // Follow what the server stored only where the form still holds what was sent; a newer
-    // choice is unsaved, not wrong.
-    if (sameMapSwitches(mapForm.value, asked)) {
-      mapForm.value = { mapEngine: stored.mapEngine, geoProvider: stored.geoProvider }
-    }
-    if (sameMapSwitches(stored, asked)) {
-      toastSuccess(t('crea.settings.savedMapSwitches'))
-    } else {
-      toastError(t('crea.settings.mapSwitchesChangedElsewhere'))
-    }
-  } catch (e) {
-    toastError(e.message)
-  } finally {
-    savingMapSwitches.value = false
   }
 }
 
