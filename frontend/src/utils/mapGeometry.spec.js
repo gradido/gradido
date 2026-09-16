@@ -117,6 +117,23 @@ describe('boundsOfRadius', () => {
     expect(east - west).toBeCloseTo(360, 9)
   })
 
+  // Every longitude comes in with the pole, not before: a metre short of it the box still
+  // frames the circle's own longitudes, a metre past it all of them - on either side.
+  it.each([
+    ['north', KUENZELSAU.lat, 'north', 90],
+    ['south', -KUENZELSAU.lat, 'south', -90],
+  ])('takes every longitude only once the %s pole is inside', (_pole, lat, side, pole) => {
+    const centre = { lat, lng: KUENZELSAU.lng }
+    const toPole = (90 - Math.abs(lat)) * (Math.PI / 180) * 6371008.8
+
+    const short = boundsOfRadius(centre, toPole - 1)
+    const past = boundsOfRadius(centre, toPole + 1)
+
+    expect(short.east - short.west).toBeLessThan(180)
+    expect(past.east - past.west).toBeCloseTo(360, 9)
+    expect(past[side]).toBe(pole)
+  })
+
   it('frames the whole world for a circle round both poles', () => {
     expect(boundsOfRadius(KUENZELSAU, 20000000)).toEqual({
       south: -90,
