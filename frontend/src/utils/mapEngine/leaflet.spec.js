@@ -142,6 +142,41 @@ describe('the Leaflet map engine', () => {
     expect(map.getSize()).toEqual({ width: 0, height: 0 })
   })
 
+  // The tap areas of the markers and the fading crosshair are measured from the corner of
+  // the screen. The map pane underneath slides as the map is dragged, so a place counted
+  // from it would drift away from where the finger actually is.
+  it('counts from the corner of the screen, not from the pane a drag has slid', () => {
+    build()
+    const elsewhere = { lat: 49.3, lng: 9.8 }
+    const before = map.project(elsewhere)
+
+    // What a drag leaves behind.
+    L.DomUtil.setPosition(document.querySelector('.leaflet-map-pane'), L.point(30, 20))
+
+    const after = map.project(elsewhere)
+    expect(after.x - before.x).toBe(30)
+    expect(after.y - before.y).toBe(20)
+  })
+
+  // The settings map sets the member's place from this, so what arrives has to be a place
+  // and not the browser event that carried it.
+  it('hands a click on the map the place that was clicked, in the seam form', () => {
+    build()
+    const onMapClick = vi.fn()
+    map.on('click', onMapClick)
+
+    document
+      .querySelector('.leaflet-container')
+      .dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: 0, clientY: 0 }))
+
+    expect(onMapClick).toHaveBeenCalledTimes(1)
+    const [place] = onMapClick.mock.calls[0]
+    expect(Object.keys(place).sort()).toEqual(['lat', 'lng'])
+    // The middle of a view jsdom lays out at no size, to within the pixel a screen has.
+    expect(place.lat).toBeCloseTo(CENTRE.lat, 3)
+    expect(place.lng).toBeCloseTo(CENTRE.lng, 3)
+  })
+
   describe('the elements a page hands over', () => {
     it("marks what it has taken, in Leaflet words and in the seam's own", () => {
       build()
