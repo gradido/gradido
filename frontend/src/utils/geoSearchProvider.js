@@ -1,46 +1,38 @@
 // AI-GENERATED — not an architecture reference
-import { JsonProvider, OpenStreetMapProvider } from 'leaflet-geosearch'
+import { OpenStreetMapProvider } from 'leaflet-geosearch'
 import { GEO_PROVIDER } from '@/composables/useMapSwitches'
 import { searchPlaces } from '@/utils/geoSearch'
 
 /**
- * The GMS address search as a leaflet-geosearch provider - the port of the GMS dashboard's
- * `GeoIndexProvider` (gms_workspace, frontend/src/services/geoIndexProvider.ts).
+ * The GMS address search - the port of the GMS dashboard's `GeoIndexProvider`
+ * (gms_workspace, frontend/src/services/geoIndexProvider.ts).
  *
  * Where the map looks and which language the wallet reads are functions, read at the moment
- * of the search: the control lives as long as the map does, and the view and the language
+ * of the search: the provider lives as long as the page does, and the view and the language
  * move under it. The base is one too, because the wallet learns it asynchronously.
  *
- * Only `search` is implemented. The control and the list call nothing else, and the base
- * class's `endpoint`/`parse` pair would need the base synchronously.
+ * Until 16.09.2026 this was a leaflet-geosearch provider, because leaflet-geosearch's control
+ * asked it. The wallet's own field (components/Matching/GeoSearchField) asks it now, in the
+ * wallet's own shape - the one `searchPlaces` already answers in.
  */
-export class GeoIndexProvider extends JsonProvider {
+export class GeoIndexProvider {
   constructor({ base, viewpoint = () => null, language = () => null }) {
-    super()
     this.base = base
     this.viewpoint = viewpoint
     this.language = language
   }
 
-  async search({ query, data }) {
-    // A row picked from the control's list arrives as `data`, and the control searches its
-    // label again and shows the first answer. GMS labels are short and not unique - "Paris"
-    // is France and Texas - so the first answer can be another place: hand back the row
-    // itself. Only while the words still are the row's label; typed on, it is a new search.
-    if (data && data.label === query) return [data]
-    const places = await searchPlaces(await this.base(), query, {
+  async search({ query }) {
+    return searchPlaces(await this.base(), query, {
       near: this.viewpoint(),
       language: this.language(),
     })
-    // The shape of a leaflet-geosearch result: x is the longitude, y the latitude. No box
-    // comes back, so the control centres on the point and keeps its zoom.
-    return places.map(({ lat, lng, label, raw }) => ({ x: lng, y: lat, label, bounds: null, raw }))
   }
 }
 
 /**
  * The place search the admin switch names (K-008), for every place the wallet searches
- * from: the big map's control, the list's field and the control on the home map.
+ * from: the big map's field, the list's field and the one on the home map.
  *
  * The switch is read at each search, not when the provider is made. Its position arrives
  * asynchronously, while the list makes its provider synchronously in setup - and read per
@@ -54,15 +46,20 @@ export class GeoIndexProvider extends JsonProvider {
  * @param {() => Promise<?string>} options.gmsBase from useGmsBase, in setup
  * @param {() => ?{lat: number, lng: number}} [options.viewpoint] where the map looks
  * @param {() => ?string} [options.language] the wallet's language
- * @returns {{search: (options: {query: string}) => Promise<object[]>}}
+ * @returns {{search: (options: {query: string}) => Promise<{lat: number, lng: number, label: string}[]>}}
  */
 export function makeGeoProvider({ mapSwitches, gmsBase, viewpoint, language }) {
   const gms = new GeoIndexProvider({ base: gmsBase, viewpoint, language })
   const osm = new OpenStreetMapProvider()
   return {
-    async search(options) {
+    async search({ query }) {
       const { geoProvider } = await mapSwitches()
-      return geoProvider === GEO_PROVIDER.GMS ? gms.search(options) : osm.search(options)
+      if (geoProvider === GEO_PROVIDER.GMS) return gms.search({ query })
+      // leaflet-geosearch answers in its own shape: x is the longitude, y the latitude.
+      // Turned here, so both positions hand the field the same thing and the field never
+      // has to know which service answered.
+      const found = await osm.search({ query })
+      return found.map(({ x, y, label, raw }) => ({ lat: y, lng: x, label, raw }))
     },
   }
 }

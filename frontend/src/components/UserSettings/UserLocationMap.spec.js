@@ -2,6 +2,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import UserLocationMap from './UserLocationMap.vue'
+import GeoSearchField from '@/components/Matching/GeoSearchField.vue'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (key) => key, locale: { value: 'de' } }),
@@ -18,34 +19,18 @@ vi.mock('@/utils/geoSearchProvider', () => ({ makeGeoProvider }))
 vi.mock('@/composables/useMapSwitches', () => ({ useMapSwitches: () => ({ mapSwitches }) }))
 vi.mock('@/composables/useGmsBase', () => ({ useGmsBase: () => ({ gmsBase }) }))
 
-// The search control is the last thing initMap adds, so a call to addTo proves
-// the function ran to its end rather than dying somewhere in the middle.
-let searchControlAdded = 0
-const searchControlOptions = []
-vi.mock('leaflet-geosearch', () => ({
-  GeoSearchControl: class {
-    constructor(options) {
-      searchControlOptions.push(options)
-      this.options = { position: 'topleft' }
-    }
-
-    onAdd() {
-      return document.createElement('div')
-    }
-
-    // map.addControl(control) calls control.addTo(map).
-    addTo() {
-      searchControlAdded += 1
-      return this
-    }
-  },
-}))
+// The search field is the page's own element, in the template from the first tick - so
+// finding the component proves nothing. Leaflet marks what it has taken into a corner with
+// `leaflet-control`, and hanging the field there is the last thing initMap does: finding it
+// in the corner proves the function ran to its end rather than dying somewhere in the middle.
+const searchInCorner = () => document.querySelectorAll('.leaflet-top.leaflet-left .gk-search')
 
 vi.mock('@/components/UserSettings/CoordinatesDisplay.vue', () => ({
   default: { template: '<div />' },
 }))
 
 const coords = { lat: 48.2, lng: 11.6 }
+const PRAGUE = { lat: 50.0874654, lng: 14.4212535, label: 'Prag' }
 
 // These mount into document.body, so the teardown has to run even when an
 // assertion throws — otherwise a failing case leaves its markers behind and the
@@ -64,8 +49,6 @@ const mountAndSettle = async (props) => {
 
 describe('UserLocationMap', () => {
   beforeEach(() => {
-    searchControlAdded = 0
-    searchControlOptions.length = 0
     makeGeoProvider.mockClear()
   })
 
@@ -85,7 +68,7 @@ describe('UserLocationMap', () => {
 
       expect(document.body.textContent).toContain('settings.GMS.map.userLocationLabel')
       expect(document.body.textContent).toContain('settings.GMS.map.communityLocationLabel')
-      expect(searchControlAdded).toBe(1)
+      expect(searchInCorner()).toHaveLength(1)
     })
   })
 
@@ -99,7 +82,7 @@ describe('UserLocationMap', () => {
       expect(document.body.textContent).not.toContain('settings.GMS.map.communityLocationLabel')
       // The home house explains itself; only the pin carries a label.
       expect(document.body.textContent).not.toContain('settings.GMS.map.userLocationLabel')
-      expect(searchControlAdded).toBe(1)
+      expect(searchInCorner()).toHaveLength(1)
     })
   })
 
@@ -111,7 +94,7 @@ describe('UserLocationMap', () => {
       expect(document.querySelectorAll('.leaflet-marker-icon')).toHaveLength(1)
       expect(document.body.textContent).toContain('settings.GMS.map.userLocationLabel')
       expect(document.body.textContent).not.toContain('settings.GMS.map.communityLocationLabel')
-      expect(searchControlAdded).toBe(1)
+      expect(searchInCorner()).toHaveLength(1)
     })
   })
 
@@ -138,7 +121,7 @@ describe('UserLocationMap', () => {
   // The admin switch decides at each search which service answers (K-008) - on this map as
   // on the big one.
   describe('the address search', () => {
-    it('hands the control a provider made with the admin switch and the GMS address', async () => {
+    it('hands the field a provider made with the admin switch and the GMS address', async () => {
       await mountAndSettle({ userIcon: 'home', communityMarkerCoords: undefined })
 
       expect(makeGeoProvider).toHaveBeenCalledTimes(1)
@@ -149,7 +132,36 @@ describe('UserLocationMap', () => {
       expect(made.viewpoint().lat).toBeCloseTo(coords.lat, 6)
       expect(made.viewpoint().lng).toBeCloseTo(coords.lng, 6)
       expect(made.language()).toBe('de')
-      expect(searchControlOptions[0].provider).toBe(makeGeoProvider.mock.results[0].value)
+      expect(wrapper.findComponent(GeoSearchField).props('provider')).toBe(
+        makeGeoProvider.mock.results[0].value,
+      )
+    })
+
+    // Searching an address is how somebody who cannot point at their house sets it. The
+    // pin follows, and the map comes close enough to see what it landed on - a map that
+    // was already closer keeps its own zoom (K-010).
+    it('moves the pin to the place picked and comes at least that close', async () => {
+      await mountAndSettle({})
+      const map = wrapper.vm.map
+
+      map.setView([coords.lat, coords.lng], 6)
+      await wrapper.findComponent(GeoSearchField).vm.$emit('pick', PRAGUE)
+
+      expect(wrapper.emitted('update:userPosition').at(-1)).toEqual([
+        { lat: PRAGUE.lat, lng: PRAGUE.lng },
+      ])
+      expect(map.getZoom()).toBe(15)
+      expect(map.getCenter().lat).toBeCloseTo(PRAGUE.lat, 4)
+    })
+
+    it('leaves a map that is already closer at its own zoom', async () => {
+      await mountAndSettle({})
+      const map = wrapper.vm.map
+
+      map.setView([coords.lat, coords.lng], 17)
+      await wrapper.findComponent(GeoSearchField).vm.$emit('pick', PRAGUE)
+
+      expect(map.getZoom()).toBe(17)
     })
   })
 })

@@ -15,44 +15,7 @@
            for consistency. -->
       <div class="list-search">
         <label class="control-label" for="match-list-search">{{ $t('matching.map.search') }}</label>
-        <div class="search-box">
-          <input
-            id="match-list-search"
-            ref="searchInput"
-            v-model="query"
-            type="text"
-            role="combobox"
-            autocomplete="off"
-            aria-autocomplete="list"
-            :aria-expanded="String(results.length > 0)"
-            aria-controls="match-list-search-results"
-            class="search-input"
-            @input="onQuery"
-            @keydown.down.prevent="moveResult(1)"
-            @keydown.up.prevent="moveResult(-1)"
-            @keydown.enter.prevent="chooseActive"
-            @keydown.esc="closeResults"
-          />
-          <ul
-            v-if="results.length"
-            id="match-list-search-results"
-            class="search-results"
-            role="listbox"
-          >
-            <li
-              v-for="(result, index) in results"
-              :id="`match-list-result-${index}`"
-              :key="result.label + index"
-              role="option"
-              :aria-selected="String(index === activeResult)"
-              class="search-result"
-              :class="{ 'is-active': index === activeResult }"
-              @mousedown.prevent="choose(index)"
-            >
-              {{ result.label }}
-            </li>
-          </ul>
-        </div>
+        <GeoSearchField id="match-list-search" :provider="provider" @pick="onPick" />
       </div>
 
       <div class="list-sort">
@@ -175,12 +138,13 @@
 </template>
 
 <script setup>
-import { computed, h, ref } from 'vue'
+import { computed, h } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { distanceKm } from '@/composables/useMatches'
 import { useGmsBase } from '@/composables/useGmsBase'
 import { useMapSwitches } from '@/composables/useMapSwitches'
 import { makeGeoProvider } from '@/utils/geoSearchProvider'
+import GeoSearchField from '@/components/Matching/GeoSearchField.vue'
 import {
   CHANNELS,
   COMPASS8,
@@ -370,71 +334,10 @@ const provider = makeGeoProvider({
   viewpoint: () => props.searchCenter,
   language: () => locale.value,
 })
-const searchInput = ref(null)
-const query = ref('')
-const results = ref([])
-const activeResult = ref(-1)
-let searchTimer = null
-// The number of the search asked for last. A search still out when the member types on, picks
-// a place or closes the list must not write its answer afterwards: an older, broader question
-// could replace the answer to the newer one, or reopen a list the member has just closed.
-let searchRequest = 0
 
-/** Nothing that is waiting or out may write the list any more. */
-function stopSearch() {
-  if (searchTimer) clearTimeout(searchTimer)
-  searchTimer = null
-  searchRequest += 1
-}
-
-function onQuery() {
-  stopSearch()
-  const term = query.value.trim()
-  if (term.length < 3) {
-    results.value = []
-    activeResult.value = -1
-    return
-  }
-  const mine = searchRequest
-  searchTimer = setTimeout(async () => {
-    let found
-    try {
-      found = (await provider.search({ query: term })).slice(0, 6)
-    } catch {
-      found = []
-    }
-    if (mine !== searchRequest) return
-    results.value = found
-    activeResult.value = found.length ? 0 : -1
-  }, 300)
-}
-
-function moveResult(step) {
-  if (!results.value.length) return
-  const next = activeResult.value + step
-  activeResult.value = (next + results.value.length) % results.value.length
-}
-
-function choose(index) {
-  const result = results.value[index]
-  if (!result) return
-  stopSearch()
-  // Pass the chosen name up: the parent names the confirmation without a reverse
-  // lookup. The field clears, ready for the next search.
-  emit('recenter', { lat: result.y, lng: result.x, label: result.label })
-  query.value = ''
-  results.value = []
-  activeResult.value = -1
-}
-
-function chooseActive() {
-  if (activeResult.value >= 0) choose(activeResult.value)
-}
-
-function closeResults() {
-  stopSearch()
-  results.value = []
-  activeResult.value = -1
+/** A place picked in the field is where the parent searches from next. */
+function onPick(place) {
+  emit('recenter', place)
 }
 </script>
 
@@ -517,47 +420,6 @@ function closeResults() {
   font-weight: 600;
   opacity: 0.75;
   margin-bottom: 3px;
-}
-
-.search-input {
-  font: inherit;
-  font-size: 14px;
-  padding: 6px 10px;
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface);
-  color: inherit;
-  min-width: 220px;
-}
-
-.search-box {
-  position: relative;
-}
-
-.search-results {
-  position: absolute;
-  z-index: 20;
-  top: calc(100% + 2px);
-  left: 0;
-  right: 0;
-  margin: 0;
-  padding: 4px;
-  list-style: none;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  box-shadow: 0 6px 20px rgb(0 0 0 / 18%);
-}
-
-.search-result {
-  padding: 7px 9px;
-  border-radius: 6px;
-  font-size: 14px;
-  cursor: pointer;
-
-  &.is-active {
-    background: rgb(23 141 129 / 12%);
-  }
 }
 
 .section-head {
