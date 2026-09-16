@@ -33,6 +33,7 @@
         aria-autocomplete="list"
         :aria-expanded="String(results.length > 0)"
         :aria-controls="`${id}-results`"
+        :aria-activedescendant="activeResult >= 0 ? `${id}-result-${activeResult}` : null"
         :aria-label="collapsible ? label : null"
         :placeholder="collapsible ? label : null"
         class="search-input"

@@ -171,6 +171,25 @@ describe('GeoSearchField', () => {
     expect(wrapper.emitted('pick')).toEqual([[KUENZELSAU]])
   })
 
+  // A marked row that only LOOKS marked is no use to somebody who hears the page rather
+  // than sees it - and this field is their only way to set the centre. The input has to
+  // name the row it is standing on, by the id the row carries.
+  it('names the row it is standing on, so it can be heard and not only seen', async () => {
+    const wrapper = mountField()
+    expect(input(wrapper).attributes('aria-activedescendant')).toBeUndefined()
+
+    await type(wrapper, 'Pfarrweg 2')
+    expect(input(wrapper).attributes('aria-activedescendant')).toBe('field-result-0')
+    expect(wrapper.find('#field-result-0').exists()).toBe(true)
+
+    await input(wrapper).trigger('keydown.down')
+    expect(input(wrapper).attributes('aria-activedescendant')).toBe('field-result-1')
+    expect(wrapper.find('#field-result-1').exists()).toBe(true)
+
+    await input(wrapper).trigger('keydown.esc')
+    expect(input(wrapper).attributes('aria-activedescendant')).toBeUndefined()
+  })
+
   describe('in the list, where it stands open', () => {
     it('shows the field itself and no lens', () => {
       const wrapper = mountField()
