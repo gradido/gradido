@@ -10,6 +10,7 @@ import { createI18n } from 'vue-i18n'
 import L from 'leaflet'
 import de from '@/locales/de.json'
 import MatchingMap from './MatchingMap.vue'
+import GeoSearchField from '@/components/Matching/GeoSearchField.vue'
 import { listMatchingEntries, userLocationQuery } from '@/graphql/queries'
 import { GMS_REJECTED, GMS_UNAVAILABLE } from '@/composables/useMatches'
 import { NOMINATIM_REVERSE_URL } from '@/utils/reverseGeocode'
@@ -101,22 +102,6 @@ vi.mock('@/composables/useToast', () => ({
   useAppToast: () => ({ toastError, toastSuccess: vi.fn() }),
 }))
 
-// The search control is leaflet-geosearch's own and searches nothing here. What the page
-// decides is the provider it hands the control, so the options each control was built with
-// are kept.
-const controls = []
-vi.mock('leaflet-geosearch', () => ({
-  GeoSearchControl: class {
-    constructor(options) {
-      controls.push(options)
-    }
-
-    addTo() {
-      return this
-    }
-  },
-}))
-
 // The admin switch for the place search (K-008), in whatever position a test puts it. The
 // old one by default, as on a server nobody has switched.
 const switchPosition = { geoProvider: 'NOMINATIM' }
@@ -137,6 +122,13 @@ const madeProvider = { search: vi.fn(async () => []) }
 const makeGeoProvider = vi.fn(() => madeProvider)
 vi.mock('@/utils/geoSearchProvider', () => ({
   makeGeoProvider: (options) => makeGeoProvider(options),
+}))
+
+// The name from the map's own tile file, measured in its own spec (utils/placeName); here
+// only which point the page asks about and what the list then says. Nothing is fetched.
+const placeNameAt = vi.fn(async () => null)
+vi.mock('@/utils/placeName', () => ({
+  placeNameAt: (...args) => placeNameAt(...args),
 }))
 
 const i18n = createI18n({ legacy: false, locale: 'de', messages: { de } })
@@ -558,6 +550,35 @@ describe('MatchingMap', () => {
       expect(rule, 'no .radius-row rule in the page').not.toBeNull()
       expect(rule[1]).toMatch(/flex-wrap: wrap;/)
       expect(rule[1]).not.toMatch(/white-space: nowrap;/)
+    })
+
+    // jsdom applies no scoped styles, so the three rules the search field leans on are read
+    // in the source. Without the first the lens would stand under the canvas for the quarter
+    // second before initMap, and on a page that never builds a map it would stay there for
+    // good; without the other two the field would follow the wallet's theme and turn up dark
+    // among the white zoom buttons, or white on the dark map.
+    it('keeps the search field out of sight until the map takes it, and paints it map chrome', () => {
+      const here = dirname(fileURLToPath(import.meta.url))
+      // Comments first: they name all three, and a guard that reads its own explanation
+      // proves nothing.
+      const source = readFileSync(join(here, 'MatchingMap.vue'), 'utf8').replace(
+        /\/\*[\s\S]*?\*\//g,
+        '',
+      )
+
+      expect(source).toMatch(/\n\.gk-search:not\(\.leaflet-control\) \{[^}]*display: none;/)
+
+      const chrome = source.match(/\n\.gk-search \{([^}]*)\}/)
+      expect(chrome, 'no .gk-search rule in the page').not.toBeNull()
+      expect(chrome[1]).toMatch(/--surface: #fff;/)
+      expect(chrome[1]).toMatch(/--border: rgb\(0 0 0 \/ 20%\);/)
+
+      // And on the dark map the same two tokens carry the chrome of its own controls -
+      // this is what replaced the thirteen rules that dressed leaflet-geosearch there.
+      const dark = source.match(/\n {2}\.gk-search \{([^}]*)\}/)
+      expect(dark, 'no .gk-search rule in the dark block').not.toBeNull()
+      expect(dark[1]).toMatch(/--surface: var\(--dark-chrome\);/)
+      expect(dark[1]).toMatch(/--border: var\(--dark-rim\);/)
     })
 
     // The two grey buckets are the presence rings, and the wide search draws none.
@@ -1309,8 +1330,9 @@ describe('MatchingMap', () => {
       window.localStorage.setItem(`${KEY}mode`, JSON.stringify('liste'))
       switchPosition.geoProvider = 'NOMINATIM'
       mapSwitches.mockClear()
+      placeNameAt.mockReset()
+      placeNameAt.mockImplementation(async () => null)
       makeGeoProvider.mockClear()
-      controls.length = 0
       fetchMock = vi.fn(async () => ({ ok: true, json: async () => NOMINATIM_ANSWER }))
       vi.stubGlobal('fetch', fetchMock)
     })
@@ -1331,6 +1353,7 @@ describe('MatchingMap', () => {
         expect(JSON.parse(window.localStorage.getItem(`${KEY}center`))).toEqual(HOME)
         expect(listLabel(page)).toBe(de.matching.map.centreHome)
         expect(fetchMock).not.toHaveBeenCalled()
+        expect(placeNameAt).not.toHaveBeenCalled()
       },
     )
 
@@ -1376,6 +1399,7 @@ describe('MatchingMap', () => {
         expect(JSON.parse(window.localStorage.getItem(`${KEY}center`))).toEqual(HOME)
         expect(listLabel(page)).toBe(de.matching.map.centreHome)
         expect(fetchMock).not.toHaveBeenCalled()
+        expect(placeNameAt).not.toHaveBeenCalled()
       },
     )
 
@@ -1390,14 +1414,31 @@ describe('MatchingMap', () => {
       expect(listLabel(page)).toBe('Marktplatz, Freising')
     })
 
-    // Until the name comes from the map's own tiles (B3).
-    it('calls a point set with the crosshair "the chosen point" in the new position, and asks nobody', async () => {
+    it('names a point set with the crosshair from the tiles of the map in the new position, and asks nobody else', async () => {
+      switchPosition.geoProvider = 'GMS'
+      placeNameAt.mockImplementation(async () => ({ place: 'Freising', context: 'München' }))
+      const page = await openMap(ELSEWHERE)
+
+      await page.find('.map-crosshair').trigger('click')
+      await flushPromises()
+
+      expect(placeNameAt).toHaveBeenCalledTimes(1)
+      const [, lat, lng, locale] = placeNameAt.mock.calls[0]
+      expect(lat).toBeCloseTo(ELSEWHERE.lat, 6)
+      expect(lng).toBeCloseTo(ELSEWHERE.lng, 6)
+      expect(locale).toBe('de')
+      expect(fetchMock).not.toHaveBeenCalled()
+      expect(listLabel(page)).toBe('Freising, München')
+    })
+
+    it('calls a point set with the crosshair "the chosen point" in the new position where the tiles name nothing', async () => {
       switchPosition.geoProvider = 'GMS'
       const page = await openMap(ELSEWHERE)
 
       await page.find('.map-crosshair').trigger('click')
       await flushPromises()
 
+      expect(placeNameAt).toHaveBeenCalledTimes(1)
       expect(fetchMock).not.toHaveBeenCalled()
       expect(listLabel(page)).toBe(de.matching.map.centrePoint)
     })
@@ -1438,8 +1479,36 @@ describe('MatchingMap', () => {
       expect(listLabel(page)).toBe('Prag')
     })
 
-    it('hands the search control a provider made with the admin switch and the GMS address', async () => {
-      await openMap(ELSEWHERE)
+    // The tiles can take a while on a slow link. Meanwhile the list must not go on naming the
+    // place the search has left, and that name must not be stored with the new centre.
+    it('calls a point "the chosen point" while its name is still out, and stores no old name with it', async () => {
+      switchPosition.geoProvider = 'GMS'
+      let answerLookup
+      placeNameAt.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            answerLookup = resolve
+          }),
+      )
+      const page = mountMap()
+      fire(userLocationQuery, { userLocation: location })
+      await flushPromises()
+      recenter(page, PRAG)
+      await flushPromises()
+      expect(listLabel(page)).toBe('Prag')
+
+      recenter(page, ELSEWHERE)
+      await flushPromises()
+
+      expect(listLabel(page)).toBe(de.matching.map.centrePoint)
+      expect(JSON.parse(window.localStorage.getItem(`${KEY}centerLabel`))).toBe('')
+      answerLookup({ place: 'Freising', context: 'München' })
+      await flushPromises()
+      expect(listLabel(page)).toBe('Freising, München')
+    })
+
+    it('hands the search field a provider made with the admin switch and the GMS address', async () => {
+      const page = await openMap(ELSEWHERE)
 
       expect(makeGeoProvider).toHaveBeenCalledTimes(1)
       const made = makeGeoProvider.mock.calls[0][0]
@@ -1449,7 +1518,40 @@ describe('MatchingMap', () => {
       expect(made.viewpoint().lat).toBeCloseTo(ELSEWHERE.lat, 6)
       expect(made.viewpoint().lng).toBeCloseTo(ELSEWHERE.lng, 6)
       expect(made.language()).toBe('de')
-      expect(controls.at(-1).provider).toBe(madeProvider)
+      expect(page.findComponent(GeoSearchField).props('provider')).toBe(madeProvider)
+    })
+
+    // The field is the page's own element; initMap hangs it on the map as a control, which
+    // is what puts it in the corner and what the rules hiding the map's controls under the
+    // list and the cluster reach. It is in the template from the first tick, so finding the
+    // component says nothing - finding it in Leaflet's corner does.
+    it('hangs the field on the map, between the zoom buttons and the way home', async () => {
+      const page = await openMap(ELSEWHERE)
+
+      const corner = page.findAll('.leaflet-top.leaflet-left > *')
+      expect(corner.map((box) => box.classes().join(' '))).toEqual([
+        expect.stringContaining('leaflet-control-zoom'),
+        expect.stringContaining('gk-search'),
+        expect.stringContaining('gk-home'),
+      ])
+    })
+
+    // No reverse lookup and no second search: the field hands over the place it was given,
+    // name and all. The old control also jumped to zoom 18, which put a whole town's circle
+    // off the screen - now the view frames the circle, as every other recentring does.
+    it('moves the search to a place picked in the map field, with its name, and asks nobody', async () => {
+      const page = await openMap(ELSEWHERE)
+
+      await page.findComponent(GeoSearchField).vm.$emit('pick', PRAG)
+      await flushPromises()
+
+      expect(JSON.parse(window.localStorage.getItem(`${KEY}center`))).toEqual({
+        lat: PRAG.lat,
+        lng: PRAG.lng,
+      })
+      expect(listLabel(page)).toBe('Prag')
+      expect(fetchMock).not.toHaveBeenCalled()
+      expect(placeNameAt).not.toHaveBeenCalled()
     })
   })
 })

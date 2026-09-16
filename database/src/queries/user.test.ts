@@ -26,6 +26,7 @@ import {
   dbFindUserIdByUuids,
   dbFindUserLoginByEmail,
   dbMarkUsersGmsRegistered,
+  dbSelectForeignMemberGradidoIds,
   dbSelectLatestUserBalances,
   dbUserUpdateField,
   dbUserUpdatePassword,
@@ -396,6 +397,50 @@ describe('user.queries', () => {
         await dbFindUserIdByUuids('99999999-9999-9999-9999-999999999999', bibi.gradidoID),
       ).toBeNull()
       expect(await dbFindUserIdByUuids(home, '00000000-0000-0000-0000-000000000000')).toBeNull()
+    })
+  })
+
+  describe('dbSelectForeignMemberGradidoIds', () => {
+    const PEER = '33333333-3333-4333-8333-333333333333'
+    const OTHER_PEER = '44444444-4444-4444-8444-444444444444'
+    const FIRST = '55555555-5555-4555-8555-555555555551'
+    const SECOND = '55555555-5555-4555-8555-555555555552'
+    const ELSEWHERE = '55555555-5555-4555-8555-555555555553'
+    const NOT_FOREIGN = '55555555-5555-4555-8555-555555555554'
+    const DELETED = '55555555-5555-4555-8555-555555555555'
+
+    /** A `users` row the way core and federation `storeForeignUser` write one: no contact. */
+    const storedRow = async (communityUuid: string, gradidoID: string, foreign = true) => {
+      const row = DbUser.create()
+      row.foreign = foreign
+      row.communityUuid = communityUuid
+      row.gradidoID = gradidoID
+      return await row.save()
+    }
+
+    beforeAll(async () => {
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await storedRow(PEER, FIRST)
+      await storedRow(OTHER_PEER, ELSEWHERE)
+      await storedRow(PEER, SECOND)
+      // Not a state the code writes -- this community's members carry the home uuid -- but
+      // the dates of a member of THIS community must never be asked of another one, and a
+      // query that only looked at the uuid would do exactly that.
+      await storedRow(PEER, NOT_FOREIGN, false)
+      const deleted = await storedRow(PEER, DELETED)
+      await DbUser.update({ id: deleted.id }, { deletedAt: new Date() })
+    })
+
+    it('names the stored members of that community, in the order they were stored', async () => {
+      expect(await dbSelectForeignMemberGradidoIds(PEER)).toEqual([FIRST, SECOND])
+      expect(await dbSelectForeignMemberGradidoIds(OTHER_PEER)).toEqual([ELSEWHERE])
+    })
+
+    it('names nobody for a community it holds no rows for', async () => {
+      expect(await dbSelectForeignMemberGradidoIds('66666666-6666-4666-8666-666666666666')).toEqual(
+        [],
+      )
     })
   })
 

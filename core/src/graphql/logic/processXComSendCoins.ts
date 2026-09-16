@@ -27,9 +27,11 @@ import {
 import { randombytes_random } from 'sodium-native'
 import {
   CommandClientFactory,
+  memberAvatarDateForTransfer,
   SendCoinsClientFactory,
   SendCoinsResult,
   SendCoinsResultLoggingView,
+  storeForeignMemberAvatarDate,
   V1_0_CommandClient,
   V1_0_SendCoinsClient,
 } from '../../apis'
@@ -157,6 +159,16 @@ export async function processXComCompleteTransaction(
           'X-Com: new foreign user inserted successfully...',
           recipientCom.communityUuid,
           committingResult.recipGradidoID,
+        )
+        // The recipient's picture date came with the answer to the vote, and that answer was
+        // verified with recipientCom's JWT key (processXComPendingSendCoins) -- so the date is
+        // filed under recipientCom's uuid, with the id the mirror row was just stored or found
+        // under. storeForeignMemberAvatarDate logs a failed write and returns; an answer without
+        // the field (a recipient server that does not send it) writes nothing.
+        await storeForeignMemberAvatarDate(
+          recipientCom.communityUuid,
+          foreignUser.gradidoID,
+          pendingResult.recipAvatarUpdatedAt,
         )
       } else {
         const errmsg = `X-Com: Error storing foreign user for ${recipientCom.communityUuid} ${committingResult.recipGradidoID}`
@@ -450,6 +462,11 @@ export async function processXComCommittingSendCoins(
       const client = SendCoinsClientFactory.getInstance(receiverFCom)
 
       if (client instanceof V1_0_SendCoinsClient) {
+        // The sender's picture date travels with the settle, not with the vote: the recipient's
+        // server stores the booking and the sender's mirror row when it settles. Null when the
+        // sender has nothing members may see; memberAvatarDateForTransfer answers null for a
+        // failed read as well.
+        const senderAvatarUpdatedAt = await memberAvatarDateForTransfer(sender.id)
         const payload = new SendCoinsJwtPayloadType(
           handshakeID,
           pendingTx.linkedUserCommunityUuid
@@ -464,6 +481,7 @@ export async function processXComCommittingSendCoins(
           pendingTx.userName!,
           sender.alias,
           pendingTx.transactionLinkId,
+          senderAvatarUpdatedAt,
         )
         payload.recipientCommunityUuid = pendingTx.linkedUserCommunityUuid
           ? pendingTx.linkedUserCommunityUuid

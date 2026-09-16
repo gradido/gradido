@@ -26,6 +26,7 @@ import { resolveCommunityUuid } from './util/communities'
 import {
   bookingCounterparty,
   CounterpartyLookups,
+  fillForeignMemberAvatarDates,
   prefetchedLookups,
   remoteUserFromBooking,
 } from './util/counterparty'
@@ -146,7 +147,9 @@ export class ContactResolver {
       }),
     )
 
-    const contacts: Contact[] = []
+    const people: { row: ContactRow; model: User }[] = []
+    /** Contacts known only from their bookings: members of another community. */
+    const remoteUsers: User[] = []
     for (const row of page.contacts) {
       const model = await this.userForContact(row, localUsers, lookups, logger)
       if (!model) {
@@ -161,18 +164,28 @@ export class ContactResolver {
         logger.warn(`contact ${row.gradidoId} has no community uuid, left out of the list`)
         continue
       }
-      const key = favoriteKey(model.communityUuid, model.gradidoID)
-      contacts.push(
+      if (row.linkedUserId === null) {
+        remoteUsers.push(model)
+      }
+      people.push({ row, model })
+    }
+
+    // The members of other communities on this page, with the date their community last
+    // reported for their picture (AS-019) -- one query for the page, as the booking list does.
+    // ⚠️ After the local dates above, which leave a stored foreign row at null.
+    await fillForeignMemberAvatarDates([...foreignLocals, ...remoteUsers])
+
+    const contacts = people.map(
+      ({ row, model }) =>
         new Contact(
           model,
           row.firstAt,
           row.lastAt,
           row.bookings,
-          favorites.has(key),
+          favorites.has(favoriteKey(model.communityUuid, model.gradidoID)),
           isSameCommunity(model.communityUuid, home?.communityUuid),
         ),
-      )
-    }
+    )
     return new ContactList(contacts, page.count)
   }
 

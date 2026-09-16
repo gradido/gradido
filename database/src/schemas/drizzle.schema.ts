@@ -539,6 +539,31 @@ export const userFavoritesTable = mysqlTable(
 export type UserFavoriteSelect = typeof userFavoritesTable.$inferSelect
 export type UserFavoriteInsert = typeof userFavoritesTable.$inferInsert
 
+// When a member of ANOTHER community last changed the picture their community lets members
+// see, as this community last heard it (see migration 0137, AS-019). Written by the backend
+// timer refreshForeignMemberAvatarDates, read by the booking list and the contact list.
+//
+// Keyed by the uuid PAIR, like the wallet's picture store and `user_favorites`: a booking can
+// name a member of another community whose `users` row was never stored.
+//
+// `avatarUpdatedAt` null: asked, and nothing to show there (no picture, switch off, deleted)
+// -- the way a withdrawal arrives. A pair without a row has no answer yet. Existing members
+// of other communities have no row until the timer's first answer and show letters until
+// then, as before.
+export const foreignMemberAvatarDatesTable = mysqlTable(
+  'foreign_member_avatar_dates',
+  {
+    communityUuid: varchar('community_uuid', { length: 36 }).notNull(),
+    gradidoId: varchar('gradido_id', { length: 36 }).notNull(),
+    avatarUpdatedAt: datetime('avatar_updated_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    checkedAt: datetime('checked_at', { mode: 'date', fsp: 3 }).notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.communityUuid, table.gradidoId] })],
+)
+
+export type ForeignMemberAvatarDateSelect = typeof foreignMemberAvatarDatesTable.$inferSelect
+export type ForeignMemberAvatarDateInsert = typeof foreignMemberAvatarDatesTable.$inferInsert
+
 // A registration attempt that rang an existing member's doorbell (see migration 0124).
 // Parked only when the attempt carried a redeem code; the member's multi-registration
 // mail then offers "I am helping someone set up a Gradido account". Rows expire after

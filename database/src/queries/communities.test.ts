@@ -8,6 +8,7 @@ import { communitiesTable } from '../schemas'
 import { createCommunity, createVerifiedFederatedCommunity } from '../seeds/community'
 import {
   dbIsMatchingKeyingActive,
+  dbSelectAuthenticatedForeignCommunities,
   dbSelectMatchingMapSwitches,
   dbSetMatchingKeyingActive,
   dbUpdateMatchingMapSwitches,
@@ -206,6 +207,42 @@ describe('community.queries', () => {
       const result = await dbUpdateMatchingMapSwitches(NEW)
       expect(result.success).toBe(false)
       expect(result.success ? null : result.error).toBeInstanceOf(DBNotFoundError)
+    })
+  })
+
+  describe('dbSelectAuthenticatedForeignCommunities', () => {
+    const withJwtKey = async (community: DbCommunity): Promise<DbCommunity> => {
+      community.publicJwtKey = 'a public jwt key'
+      return await community.save()
+    }
+
+    it('finds the foreign communities through the handshake with a key and a uuid, and no other', async () => {
+      // `createCommunity(true)` is already authenticated and has a uuid; each of the others
+      // lacks exactly one part.
+      const first = await withJwtKey(await createCommunity(true))
+      await createCommunity(true) // no JWT key: nothing to seal a question with
+      const notAuthenticated = await createCommunity(true)
+      notAuthenticated.authenticatedAt = null
+      await withJwtKey(notAuthenticated)
+      const withoutUuid = await createCommunity(true)
+      withoutUuid.communityUuid = null
+      await withJwtKey(withoutUuid)
+      const home = await createCommunity(false)
+      home.authenticatedAt = new Date()
+      await withJwtKey(home)
+      const second = await withJwtKey(await createCommunity(true))
+
+      const found = await dbSelectAuthenticatedForeignCommunities()
+
+      expect(found.map((community) => community.id)).toEqual([first.id, second.id])
+      // The entity itself, with what the question needs.
+      expect(found[0].publicJwtKey).toBe('a public jwt key')
+      expect(found[0].communityUuid).toBe(first.communityUuid)
+    })
+
+    it('finds none without such a community', async () => {
+      await createCommunity(false)
+      expect(await dbSelectAuthenticatedForeignCommunities()).toEqual([])
     })
   })
 

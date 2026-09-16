@@ -7,6 +7,19 @@
       @centerMap="handleMapCenter"
     />
     <div ref="mapContainer" class="map-container" :style="{ height }" />
+
+    <!-- The address search. It is this component's own element, and initMap hangs it on
+         the map as a control. Until the map takes it, it is still standing in the page
+         flow here and the style block below keeps it out of sight. -->
+    <div ref="searchHost" class="gk-search">
+      <GeoSearchField
+        id="user-location-search"
+        collapsible
+        :provider="provider"
+        :label="t('settings.GMS.map.search')"
+        @pick="onPick"
+      />
+    </div>
   </div>
 </template>
 
@@ -18,15 +31,15 @@ import L from 'leaflet'
 // embeds this component directly, where the missing CSS left the tiles static
 // and scattered).
 import 'leaflet/dist/leaflet.css'
-import { GeoSearchControl } from 'leaflet-geosearch'
-import 'leaflet-geosearch/dist/geosearch.css'
 import CoordinatesDisplay from '@/components/UserSettings/CoordinatesDisplay.vue'
+import GeoSearchField from '@/components/Matching/GeoSearchField.vue'
 import { useI18n } from 'vue-i18n'
 import { useGmsBase } from '@/composables/useGmsBase'
 import { useMapSwitches } from '@/composables/useMapSwitches'
 import { makeGeoProvider } from '@/utils/geoSearchProvider'
 
 const mapContainer = ref(null)
+const searchHost = ref(null)
 const map = ref(null)
 const userMarker = ref(null)
 const communityMarker = ref(null)
@@ -56,9 +69,16 @@ const props = defineProps({
 
 const { t, locale } = useI18n()
 // For the address search: the admin switch and the GMS address need the Apollo client,
-// which only setup can reach - the control is built a quarter second after mounting.
+// which only setup can reach - the map itself is built a quarter second after mounting.
+// The switch is read at each search rather than now (utils/geoSearchProvider).
 const { mapSwitches } = useMapSwitches()
 const { gmsBase } = useGmsBase()
+const provider = makeGeoProvider({
+  mapSwitches,
+  gmsBase,
+  viewpoint: () => map.value?.getCenter() ?? null,
+  language: () => locale.value,
+})
 
 onMounted(async () => {
   if (props.userMarkerCoords) {
@@ -177,31 +197,19 @@ function initMap() {
     map.value.on('click', onMapClick)
     userMarker.value.on('dragend', onMarkerDragEnd)
 
-    // GeoSearch control. The switch decides at each search which service answers
-    // (utils/geoSearchProvider).
-    const provider = makeGeoProvider({
-      mapSwitches,
-      gmsBase,
-      viewpoint: () => map.value?.getCenter() ?? null,
-      language: () => locale.value,
+    // The search field this component built, hung on the map as a control of its own.
+    // Taps and wheel turns inside it stay inside it: without that, a click into the
+    // field would reach map.on('click') below and move the member's pin to wherever
+    // the field happens to lie, and scrolling its results would zoom the map.
+    const SearchControl = L.Control.extend({
+      options: { position: 'topleft' },
+      onAdd() {
+        L.DomEvent.disableClickPropagation(searchHost.value)
+        L.DomEvent.disableScrollPropagation(searchHost.value)
+        return searchHost.value
+      },
     })
-    const searchControl = new GeoSearchControl({
-      provider,
-      style: 'button',
-      showMarker: false,
-      showPopup: false,
-      autoClose: true,
-      retainZoomLevel: false,
-      animateZoom: true,
-      keepResult: false,
-      searchLabel: t('settings.GMS.map.search'),
-    })
-    map.value.addControl(searchControl)
-
-    map.value.on('geosearch/showlocation', (result) => {
-      const { x, y, label } = result.location
-      updateUserPosition({ lat: y, lng: x })
-    })
+    map.value.addControl(new SearchControl())
 
     // Center map on user position
     centerMapOnUser()
@@ -217,6 +225,19 @@ function handleResize() {
 
 function onMapClick(e) {
   updateUserPosition(e.latlng)
+}
+
+function onPick(place) {
+  const position = { lat: place.lat, lng: place.lng }
+  updateUserPosition(position)
+  // Somebody who searched an address wants to see the house, and updateUserPosition only
+  // recentres at whatever zoom the map already had - on a map still showing the whole
+  // country the pin would land somewhere in the middle of it. Closer stays closer (K-010).
+  if (map.value) {
+    map.value.setView([position.lat, position.lng], Math.max(map.value.getZoom(), 15), {
+      animate: true,
+    })
+  }
 }
 
 function onMarkerDragEnd() {
@@ -282,6 +303,25 @@ watch(userPosition, (newPosition) => {
 :deep(.own-home) {
   background: transparent;
   border: 0;
+}
+
+/* The field rides the map, so it wears the map's chrome and not the wallet's theme: white
+   with a translucent rim and black marks, like the zoom buttons beside it, whichever theme
+   the wallet is in. It paints itself out of --surface and --border (GeoSearchField), and
+   both are inherited, so the lens, the field and its result list all follow. */
+.gk-search {
+  --surface: #fff;
+  --border: rgb(0 0 0 / 20%);
+
+  color: #212529;
+}
+
+/* The search field belongs in the map's control corner, and initMap moves it there —
+   Leaflet marks what it has taken with `leaflet-control`. Until then the element is
+   still standing in the page flow under the map; and where no map is ever built, it
+   stays away. */
+.gk-search:not(.leaflet-control) {
+  display: none;
 }
 
 .leaflet-control-custom a {

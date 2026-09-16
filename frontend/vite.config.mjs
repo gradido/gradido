@@ -132,6 +132,8 @@ export default defineConfig(async ({ command }) => {
         COMMUNITY_REGISTER_URL: null,
         COMMUNITY_DESCRIPTION: null,
         COMMUNITY_SUPPORT_MAIL: null,
+        MAP_TILES_URL: CONFIG.MAP_TILES_URL,
+        MAP_ASSETS_URL: CONFIG.MAP_ASSETS_URL,
         META_URL: null,
         META_TITLE_DE: null,
         META_TITLE_EN: null,

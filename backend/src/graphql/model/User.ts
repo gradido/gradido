@@ -256,8 +256,9 @@ export class User {
   // matches this one, and a changed date invalidates exactly the one member who changed.
   //
   // null carries one meaning only -- there is nothing to show. No picture, the switch is
-  // off, the member is deleted, or they belong to another community. The wallet does not
-  // need to tell those apart, and it must not: each of them is somebody else's business.
+  // off, the member is deleted, or -- for a member of another community -- their community
+  // has not reported a date for them (AS-019, fillForeignMemberAvatarDates). The wallet does
+  // not need to tell those apart, and it must not: each of them is somebody else's business.
   //
   // ⛔ Filled in one batch by whoever builds the list, never by a field resolver. A field
   // resolver here would turn one booking list into one database round trip per row.

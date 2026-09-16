@@ -139,17 +139,6 @@ html:has(body.dark-mode) {
   background-position: center !important;
 }
 
-// Address search on the location map (leaflet-geosearch, used on the Settings and
-// Matching position maps). Its results dropdown keeps a hardcoded white background
-// (geosearch.css: .results { background: #fff }) while the result items set no
-// colour of their own, so in dark mode they inherit the light --text and render as
-// light-grey on white = unreadable. The map itself is the bright OSM map, so the
-// white dropdown is correct here -- only restore a dark text colour for the results
-// (matching the search input, which keeps its native dark colour).
-#app.dark-mode .leaflet-control-geosearch .results > * {
-  color: #212529;
-}
-
 // Overview watermark cards (Kreise / Community-News) use the same near-white
 // leaves SVG -> dark variant so they are not bright shapes on the dark canvas.
 #app.dark-mode .card-circles .card,

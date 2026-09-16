@@ -47,6 +47,21 @@
              and the keyboard, so a blind member meets the list, not the map's leftovers. -->
         <div ref="mapContainer" class="map-canvas" :inert="mode === 'liste'" />
 
+        <!-- The address search. It is the page's own element, and initMap hangs it on the
+             map as a control, between the zoom buttons and the way home — so it keeps the
+             corner it has always had, and the rules that hide the map's controls under the
+             list and the cluster hide it too. Until the map takes it, it is still standing
+             in the page flow here and the style block below keeps it out of sight. -->
+        <div ref="searchHost" class="gk-search">
+          <GeoSearchField
+            id="matching-map-search"
+            collapsible
+            :provider="geoProvider"
+            :label="$t('matching.map.search')"
+            @pick="moveSearchTo"
+          />
+        </div>
+
         <!-- The same search, read as a line instead of lit as a field. It covers
              the map rather than unmounting it, so Leaflet keeps its size and the
              way back is instant. -->
@@ -304,8 +319,6 @@ import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { GeoSearchControl } from 'leaflet-geosearch'
-import 'leaflet-geosearch/dist/geosearch.css'
 import { listMatchingEntries, userLocationQuery } from '@/graphql/queries'
 import { useGmsBase } from '@/composables/useGmsBase'
 import { useMapSwitches } from '@/composables/useMapSwitches'
@@ -323,6 +336,7 @@ import { hasPosition as isPositionSet, isPlace } from '@/utils/matchingPosition'
 import { mapPrefPrefix } from '@/utils/matchingPrefs'
 import { useEntryDraft } from '@/composables/useEntryDraft'
 import MatchQuery from '@/components/Matching/MatchQuery'
+import GeoSearchField from '@/components/Matching/GeoSearchField.vue'
 import { useAppToast } from '@/composables/useToast'
 import {
   LABEL_COLORS,
@@ -436,6 +450,8 @@ const { gmsBase } = useGmsBase()
 const prefPrefix = mapPrefPrefix(store.state.gradidoID)
 
 const mapContainer = ref(null)
+// The element initMap hangs on the map as the search control.
+const searchHost = ref(null)
 const look = ref(readLook())
 const mode = ref(readMode())
 const sortMode = ref(readSort())
@@ -628,6 +644,15 @@ let clusterZoomBase = 0
 let map = null
 // Held so unmounting can call it off; initMap runs a quarter second after mount.
 let initTimer = null
+// What the search field asks. Made here rather than in initMap, because the field is in
+// the template from the first tick - and the admin switch is read at each search rather
+// than now: its position arrives asynchronously (utils/geoSearchProvider).
+const geoProvider = makeGeoProvider({
+  mapSwitches,
+  gmsBase,
+  viewpoint: () => map?.getCenter() ?? null,
+  language: () => locale.value,
+})
 let matchLayer = null
 let presenceLayer = null
 let ownLayer = null
@@ -993,8 +1018,8 @@ function moveSearchTo(next, { fly = false } = {}) {
   // numbers is not a place: guarding only the write would leave the live centre poisoned
   // while storage kept the old one, so drawCircle and drawCentre would run on `undefined`
   // (Leaflet: "Invalid LatLng object"), the label would be reverse-geocoded from nothing,
-  // and the two would disagree until the next reload. The list's recenter hands this
-  // straight from a geosearch provider, unchecked -- the map's own handler checks.
+  // and the two would disagree until the next reload. Both search fields hand their pick
+  // straight from an address service, unchecked -- this is where it is checked.
   if (!isPlace(next)) return
   inClusterZoom = false
   closeCluster()
@@ -1005,9 +1030,11 @@ function moveSearchTo(next, { fly = false } = {}) {
   writePref('center', searchCenter.value)
   drawCircle()
   drawCentre()
-  // Move the view to the new centre too. On the map the geosearch control pans
-  // itself, but a search from the list has no map to move — without this the map
-  // would still sit on the old place when you switch back to it. The home button
+  // Move the view to the new centre too: nothing else does it now that the map's own
+  // field is ours as well, and a search from the list has no map to move at all —
+  // without this the map would still sit on the old place when you switch back to it.
+  // What the view frames is the circle, whatever its radius; the old control's fixed
+  // zoom 18 landed on a rooftop and left the circle off the screen. The home button
   // asks to fly there.
   zoomToCircle({ fly })
   runSearch()
@@ -1030,7 +1057,7 @@ let labelRequest = 0
  *   the house, and at the zoom that frames the circle that is about one pixel, so a crosshair
  *   set on the house by eye is usually looked up like any other point;
  * - any other point set on the map is named behind the admin switch (utils/reverseGeocode):
- *   by Nominatim in the old position, by nobody in the new one.
+ *   by Nominatim in the old position, from the map's own tile file in the new one.
  * Only ever the member's own search point, never anybody else's position.
  */
 async function resolveCenterLabel(next) {
@@ -1046,6 +1073,9 @@ async function resolveCenterLabel(next) {
     setCenterLabel('')
     return
   }
+  // "The chosen point" while the lookup is out: the previous centre's name must not stand for
+  // this one meanwhile, nor stay stored with it when the page is left before the answer.
+  setCenterLabel('')
   const { geoProvider } = await mapSwitches()
   const label = await reverseName(geoProvider, next.lat, next.lng, locale.value)
   if (mine === labelRequest) setCenterLabel(label)
@@ -1570,22 +1600,19 @@ function initMap() {
   // Only the grey rings are drawn on this renderer, so its tolerance is theirs alone.
   canvasRenderer = L.canvas({ padding: 0.5, tolerance: RING_TOLERANCE })
 
-  const searchControl = new GeoSearchControl({
-    // The switch decides at each search which service answers (utils/geoSearchProvider).
-    provider: makeGeoProvider({
-      mapSwitches,
-      gmsBase,
-      viewpoint: () => map?.getCenter() ?? null,
-      language: () => locale.value,
-    }),
-    style: 'button',
-    showMarker: false,
-    showPopup: false,
-    autoClose: true,
-    keepResult: false,
-    searchLabel: t('matching.map.search'),
+  // The search field the page built, hung on the map as a control of its own. It goes on
+  // after the zoom buttons and before the way home, which is the order the corner has
+  // always read in. Taps and wheel turns inside it stay inside it: without that, opening
+  // the field would drag the map and scrolling its results would zoom.
+  const SearchControl = L.Control.extend({
+    options: { position: 'topleft' },
+    onAdd() {
+      L.DomEvent.disableClickPropagation(searchHost.value)
+      L.DomEvent.disableScrollPropagation(searchHost.value)
+      return searchHost.value
+    },
   })
-  map.addControl(searchControl)
+  map.addControl(new SearchControl())
 
   // A way home under the search lens: a gold heart-house button that frames your own
   // place again, wherever you have panned. It joins the Leaflet controls (their chrome,
@@ -1607,16 +1634,6 @@ function initMap() {
     },
   })
   map.addControl(new HomeControl())
-
-  // Looking up a town takes the search with it. Typing an address is a
-  // deliberate act — and it is what stands in for a reset button: type where you
-  // live and you are home, circle and all.
-  map.on('geosearch/showlocation', (result) => {
-    const lat = result?.location?.y
-    const lng = result?.location?.x
-    const label = result?.location?.label
-    if (Number.isFinite(lat) && Number.isFinite(lng)) moveSearchTo({ lat, lng, label })
-  })
 
   // Remembering where you looked is what lets you leave and come back to it. And the
   // crosshair answers the middle: it fades as the middle nears the centre, and a rest
@@ -1729,6 +1746,26 @@ watch(mode, (value) => {
 :deep(.gk-home a svg) {
   width: 18px;
   height: 18px;
+}
+
+/* The field rides the map, so it wears the map's chrome and not the wallet's theme: white
+   with a translucent rim and black marks, like the zoom buttons beside it, whichever theme
+   the wallet is in. It paints itself out of --surface and --border (GeoSearchField), and
+   both are inherited, so the lens, the field and its result list all follow. The dark map
+   hands it other values at the end of this file. */
+.gk-search {
+  --surface: #fff;
+  --border: rgb(0 0 0 / 20%);
+
+  color: #212529;
+}
+
+/* The search field belongs in the map's control corner, and initMap moves it there —
+   Leaflet marks what it has taken with `leaflet-control`. Until then the element is
+   still standing in the page flow under the canvas, where a lens would only push the
+   shell taller for a quarter second; and where no map is ever built, it stays away. */
+.gk-search:not(.leaflet-control) {
+  display: none;
 }
 
 .map-canvas {
@@ -2274,23 +2311,14 @@ watch(mode, (value) => {
     border-color: var(--dark-rim);
   }
 
-  :deep(.leaflet-bar a),
-  :deep(.leaflet-control-geosearch form),
-  :deep(.leaflet-control-geosearch .results),
-  :deep(.leaflet-control-geosearch button.reset) {
+  :deep(.leaflet-bar a) {
     color: var(--dark-mark);
     background-color: var(--dark-chrome);
-  }
-
-  :deep(.leaflet-bar a) {
     border-bottom-color: var(--dark-line);
   }
 
   :deep(.leaflet-bar a:hover),
-  :deep(.leaflet-bar a:focus),
-  :deep(.leaflet-control-geosearch .results > .active),
-  :deep(.leaflet-control-geosearch .results > :hover),
-  :deep(.leaflet-control-geosearch button.reset:hover) {
+  :deep(.leaflet-bar a:focus) {
     background-color: var(--dark-hover);
   }
 
@@ -2299,29 +2327,12 @@ watch(mode, (value) => {
     background-color: var(--dark-chrome);
   }
 
-  /* The lens is drawn from two lines, a handle and a ring. */
-  :deep(.leaflet-control-geosearch a.leaflet-bar-part::before) {
-    border-top-color: var(--dark-mark);
-  }
+  /* On the dark map the field takes the chrome the other controls take there. */
+  .gk-search {
+    --surface: var(--dark-chrome);
+    --border: var(--dark-rim);
 
-  :deep(.leaflet-control-geosearch a.leaflet-bar-part::after) {
-    border-color: var(--dark-mark);
-  }
-
-  :deep(.leaflet-control-geosearch.pending a.leaflet-bar-part::after) {
-    border-color: var(--dark-line);
-    border-top-color: var(--dark-mark);
-  }
-
-  :deep(.leaflet-control-geosearch form input) {
     color: var(--dark-mark);
-    background: transparent;
-  }
-
-  :deep(.leaflet-control-geosearch .results.active),
-  :deep(.leaflet-control-geosearch .results > .active),
-  :deep(.leaflet-control-geosearch .results > :hover) {
-    border-color: var(--dark-line);
   }
 
   :deep(.leaflet-control-attribution) {

@@ -217,6 +217,32 @@ export async function dbFindGmsAllowedLocalUserIds(): Promise<{ id: number }[]> 
 }
 
 /**
+ * The members of one other community that this community holds a `users` row for -- the rows
+ * the federation stores for the counterparty of a transfer (`foreign = 1`, core and federation
+ * `storeForeignUser`). What the refresh of picture dates asks that community about (AS-019,
+ * backend refreshForeignMemberAvatarDates).
+ *
+ * Only `foreign = 1`: this community's own members carry the home community's uuid, and their
+ * dates come from their own pictures, never from another community.
+ *
+ * Ordered by id, so the blocks the caller cuts are the same from one run to the next.
+ */
+export async function dbSelectForeignMemberGradidoIds(communityUuid: string): Promise<string[]> {
+  const rows = await drizzleDb()
+    .select({ gradidoId: usersTable.gradidoId })
+    .from(usersTable)
+    .where(
+      and(
+        eq(usersTable.foreign, true),
+        eq(usersTable.communityUuid, communityUuid),
+        isNull(usersTable.deletedAt),
+      ),
+    )
+    .orderBy(usersTable.id)
+  return rows.map((row) => row.gradidoId)
+}
+
+/**
  * The latest balance of every member who has one - one row per member, from their most
  * recent booking. Moved from `backend/src/graphql/resolver/StatisticsResolver.ts`.
  *

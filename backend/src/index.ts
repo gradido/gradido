@@ -3,6 +3,8 @@ import 'source-map-support/register'
 import { getLogger } from 'log4js'
 import { matchingKeyingRun } from './apis/anthropic/matching/keyingRun'
 import { CONFIG } from './config'
+import { FOREIGN_AVATAR_DATES_REFRESH_MS } from './data/MemberAvatars.logic'
+import { startRefreshForeignMemberAvatarDates } from './federation/refreshForeignMemberAvatarDates'
 import {
   startValidateCommunities,
   writeJwtKeyPairInHomeCommunity,
@@ -24,6 +26,9 @@ async function main() {
     }
   })
   await startValidateCommunities(Number(CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER))
+  // When the members of other communities last changed their pictures (AS-019): what lets the
+  // lists show their faces. The first run comes one interval after the start.
+  startRefreshForeignMemberAvatarDates(FOREIGN_AVATAR_DATES_REFRESH_MS)
   // Works out the words a matching entry can be found under, in the background. Does
   // nothing at all without an Anthropic key or without the GMS, and nothing is lost
   // by that: entries are stored and served either way, they are just not yet

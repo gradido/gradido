@@ -732,6 +732,7 @@ export const contactList = gql`
           alias
           firstName
           lastName
+          avatarUpdatedAt
         }
         firstAt
         lastAt
