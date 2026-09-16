@@ -27,6 +27,8 @@ describe('PublicCommunityInfoResolver', () => {
         description
         creationDate
         publicKey
+        publicJwtKey
+        hieroTopicId
       }
     }
   `
@@ -55,6 +57,8 @@ describe('PublicCommunityInfoResolver', () => {
             description: 'Community-Description',
             creationDate: homeCom.creationDate?.toISOString(),
             publicKey: '316f2951501f27c664e188d5128505917e8673e8bebce141f86e70907e782a08',
+            publicJwtKey: null,
+            hieroTopicId: null,
           },
         },
       })
