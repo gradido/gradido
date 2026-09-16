@@ -36,17 +36,19 @@ vi.mock('@/composables/useGmsBase', () => ({ useGmsBase: () => ({ gmsBase }) }))
 vi.mock('maplibre-gl', () => import('@test/maplibreMock'))
 vi.mock('@/utils/mapEngine/maplibreWorkerUrl', () => ({ default: 'worker.js' }))
 
-// The engines, loaded the way the component loads them - unless a test says the next one does
-// not arrive, as a file does not when the connection drops or a deploy has renamed it.
-const engineLoad = { fails: false }
+// The engines, loaded the way the component loads them - unless a test holds the next one back
+// until it opens `gate`, hands over an `engine` of its own, or says it does not arrive at all, as
+// a file does not when the connection drops or a deploy has renamed it.
+const engineLoad = { fails: false, gate: null, engine: null }
 vi.mock('@/utils/mapEngine', async (importOriginal) => {
   const actual = await importOriginal()
   return {
     ...actual,
-    loadMapEngine: (name) =>
-      engineLoad.fails
-        ? Promise.reject(new Error('Failed to fetch dynamically imported module'))
-        : actual.loadMapEngine(name),
+    loadMapEngine: async (name) => {
+      if (engineLoad.gate) await engineLoad.gate
+      if (engineLoad.fails) throw new Error('Failed to fetch dynamically imported module')
+      return engineLoad.engine ?? actual.loadMapEngine(name)
+    },
   }
 })
 
@@ -223,7 +225,27 @@ describe('UserLocationMap', () => {
     afterEach(() => {
       switchPosition.mapEngine = 'LEAFLET'
       engineLoad.fails = false
+      engineLoad.gate = null
+      engineLoad.engine = null
       vi.restoreAllMocks()
+    })
+
+    // The engine takes a moment to arrive, and the settings dialog may be closed by then.
+    it('builds nothing once the component is gone while the engine is on its way', async () => {
+      let arrive
+      engineLoad.gate = new Promise((resolve) => {
+        arrive = resolve
+      })
+      engineLoad.engine = { createMap: vi.fn(() => ({ success: false, error: new Error('gone') })) }
+      await mountAndSettle({})
+
+      wrapper.unmount()
+      wrapper = null
+      arrive()
+      await flushPromises()
+      await flushPromises()
+
+      expect(engineLoad.engine.createMap).not.toHaveBeenCalled()
     })
 
     it('stands the house as a MapLibre marker and finishes wiring the map', async () => {

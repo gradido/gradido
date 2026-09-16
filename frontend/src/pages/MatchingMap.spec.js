@@ -52,17 +52,19 @@ const drawingContext = HTMLCanvasElement.prototype.getContext
 vi.mock('maplibre-gl', () => import('@test/maplibreMock'))
 vi.mock('@/utils/mapEngine/maplibreWorkerUrl', () => ({ default: 'worker.js' }))
 
-// The engines, loaded the way the page loads them - unless a test says the next one does not
-// arrive, as a file does not when the connection drops or a deploy has renamed it.
-const engineLoad = { fails: false }
+// The engines, loaded the way the page loads them - unless a test holds the next one back until
+// it opens `gate`, hands over an `engine` of its own, or says it does not arrive at all, as a
+// file does not when the connection drops or a deploy has renamed it.
+const engineLoad = { fails: false, gate: null, engine: null }
 vi.mock('@/utils/mapEngine', async (importOriginal) => {
   const actual = await importOriginal()
   return {
     ...actual,
-    loadMapEngine: (name) =>
-      engineLoad.fails
-        ? Promise.reject(new Error('Failed to fetch dynamically imported module'))
-        : actual.loadMapEngine(name),
+    loadMapEngine: async (name) => {
+      if (engineLoad.gate) await engineLoad.gate
+      if (engineLoad.fails) throw new Error('Failed to fetch dynamically imported module')
+      return engineLoad.engine ?? actual.loadMapEngine(name)
+    },
   }
 })
 
@@ -1646,12 +1648,14 @@ describe('MatchingMap', () => {
       delete switchPosition.mapEngine
       switchPosition.geoProvider = 'NOMINATIM'
       engineLoad.fails = false
+      engineLoad.gate = null
+      engineLoad.engine = null
       HTMLCanvasElement.prototype.getContext = drawingContext
       vi.useRealTimers()
     })
 
-    it('builds the map with MapLibre, where the member left it, in Leaflet zoom', async () => {
-      const page = await openMapLibre()
+    it('builds the map with MapLibre, where the member left it, in its look and language', async () => {
+      const page = await openMapLibre({ look: 'dunkel' })
 
       expect(created).toHaveLength(1)
       expect(page.find('.map-canvas').classes()).toContain('maplibregl-map')
@@ -1660,6 +1664,10 @@ describe('MatchingMap', () => {
       expect(library().getZoom()).toBe(VIEW.zoom - 1)
       expect(library().getCenter().lat).toBeCloseTo(VIEW.lat, 6)
       expect(library().getCenter().lng).toBeCloseTo(VIEW.lng, 6)
+      // Built in the member's look, with the places named in the wallet's language - on Leaflet
+      // neither reached the engine, so nothing else would notice them missing.
+      expect(library().options.style.sprite).toMatch(/\/black$/)
+      expect(JSON.stringify(library().options.style.layers)).toContain('name:de')
       // The whole corner came up, in the order it always had.
       expect(cornerOf(page, '.maplibregl-ctrl-top-left')).toEqual([
         expect.stringContaining('maplibregl-ctrl-group'),
@@ -1707,10 +1715,29 @@ describe('MatchingMap', () => {
       await page.find('.map-crosshair').trigger('click')
       await flushPromises()
 
+      // The middle comes from MapLibre - the old map would give the same answer.
+      expect(created).toHaveLength(1)
       expect(placeNameAt).toHaveBeenCalledTimes(1)
       const [, lat, lng] = placeNameAt.mock.calls[0]
       expect(lat).toBeCloseTo(VIEW.lat, 6)
       expect(lng).toBeCloseTo(VIEW.lng, 6)
+    })
+
+    // The engine takes a moment to arrive, and the member may have left the page by then.
+    it('builds nothing once the page is left while the engine is on its way', async () => {
+      let arrive
+      engineLoad.gate = new Promise((resolve) => {
+        arrive = resolve
+      })
+      engineLoad.engine = { createMap: vi.fn(() => ({ success: false, error: new Error('gone') })) }
+      const page = await mountLocated('normal')
+
+      page.unmount()
+      wrapper = null
+      arrive()
+      await settle()
+
+      expect(engineLoad.engine.createMap).not.toHaveBeenCalled()
     })
 
     // K-013: MapLibre needs WebGL 2. Until the old engine goes (D) such a device keeps the old

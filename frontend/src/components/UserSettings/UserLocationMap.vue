@@ -150,8 +150,8 @@ function initMap() {
 }
 
 function buildMap(createMap) {
-  // Left while the engine was on its way, or built by a call that came first.
-  if (mapContainer.value && !map.value) {
+  // The component may be gone by the time the engine has arrived.
+  if (mapContainer.value) {
     // MapLibre draws a style and labels it; this map has one look, and its place names are in
     // the wallet's language - without one the style would name them in English.
     const options = {

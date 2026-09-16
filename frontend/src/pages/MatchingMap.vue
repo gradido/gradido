@@ -1612,8 +1612,8 @@ function initMap() {
 }
 
 function buildMap(createMap) {
-  // Left while the engine was on its way, or built by a call that came first.
-  if (!mapContainer.value || map) return
+  // The page may have been left while the engine was on its way.
+  if (!mapContainer.value) return
   const options = {
     center: { lat: 0, lng: 0 },
     zoom: BOOTSTRAP_ZOOM,
