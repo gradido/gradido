@@ -25,12 +25,15 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import { createMap } from '@/utils/mapEngine/leaflet'
+import { loadMapEngine } from '@/utils/mapEngine'
+// Imported here rather than loaded like the other engine: a map drawn with Leaflet is built in
+// the same tick as before, and it is also the one that stands in where MapLibre cannot draw.
+import { createMap as createLeafletMap } from '@/utils/mapEngine/leaflet'
 import CoordinatesDisplay from '@/components/UserSettings/CoordinatesDisplay.vue'
 import GeoSearchField from '@/components/Matching/GeoSearchField.vue'
 import { useI18n } from 'vue-i18n'
 import { useGmsBase } from '@/composables/useGmsBase'
-import { useMapSwitches } from '@/composables/useMapSwitches'
+import { MAP_ENGINE, useMapSwitches } from '@/composables/useMapSwitches'
 import { makeGeoProvider } from '@/utils/geoSearchProvider'
 
 const mapContainer = ref(null)
@@ -95,6 +98,12 @@ const provider = makeGeoProvider({
   viewpoint: () => map.value?.getCenter() ?? null,
   language: () => locale.value,
 })
+// Which engine draws the map, by the same switch (K-008) - asked at once, so the answer is
+// usually in by the time initMap runs. Null until it is.
+const engineName = ref(null)
+const engineAnswered = mapSwitches().then(({ mapEngine }) => {
+  engineName.value = mapEngine
+})
 
 onMounted(async () => {
   if (props.userMarkerCoords) {
@@ -118,13 +127,46 @@ onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
 })
 
+/**
+ * Build the map with the engine the admin switch names, as the matching map does: Leaflet at
+ * once, MapLibre once its file has arrived. A switch that has not answered yet is waited for
+ * rather than guessed, and a question that fails is answered with the old map (useMapSwitches).
+ */
 function initMap() {
+  if (!mapContainer.value || map.value) return
+  if (engineName.value === null) {
+    engineAnswered.then(initMap)
+    return
+  }
+  if (engineName.value !== MAP_ENGINE.MAPLIBRE) {
+    buildMap(createLeafletMap)
+    return
+  }
+  loadMapEngine(MAP_ENGINE.MAPLIBRE).then(
+    (engine) => buildMap(engine.createMap),
+    // The engine did not arrive: the map this component already holds is better than none.
+    () => buildMap(createLeafletMap),
+  )
+}
+
+function buildMap(createMap) {
+  // Left while the engine was on its way, or built by a call that came first.
   if (mapContainer.value && !map.value) {
-    const built = createMap(mapContainer.value, {
+    // MapLibre draws a style and labels it; this map has one look, and its place names are in
+    // the wallet's language - without one the style would name them in English.
+    const options = {
       center: userPosition.value,
       zoom: defaultZoom,
       maxZoom: 19,
-    })
+      look: 'normal',
+      locale: locale.value,
+    }
+    let built = createMap(mapContainer.value, options)
+    // Only MapLibre turns a device away (no WebGL 2, K-013); until the old engine is removed
+    // that device keeps the old map.
+    if (!built.success && createMap !== createLeafletMap) {
+      built = createLeafletMap(mapContainer.value, options)
+    }
     // A map that could not be built leaves the readout and the address search standing;
     // everything below asks for `map.value` first.
     if (!built.success) return
@@ -287,14 +329,29 @@ watch(userPosition, (newPosition) => {
 }
 
 /* The search field belongs in the map's control corner, and initMap moves it there —
-   Leaflet marks what it has taken with `leaflet-control`. Until then the element is
+   both engines mark what they have taken with `gk-placed`. Until then the element is
    still standing in the page flow under the map; and where no map is ever built, it
    stays away. */
-.gk-search:not(.leaflet-control) {
+.gk-search:not(.gk-placed) {
   display: none;
 }
 
 :deep(.leaflet-control-zoom > a) {
   color: #555 !important;
+}
+
+/* MapLibre's zoom buttons, held to the measure of Leaflet's on a touch screen - 30 px buttons
+   in a 2 px rim, 34 px in all - which is the measure the lens under them is built to
+   (GeoSearchField). The big map does the same. Behind `.map-container`, because MapLibre's
+   own stylesheet arrives with the engine, after this one, and would win a tie. */
+.map-container :deep(.maplibregl-ctrl-group) {
+  border: 2px solid rgb(0 0 0 / 20%);
+  background-clip: padding-box;
+  box-shadow: none;
+}
+
+.map-container :deep(.maplibregl-ctrl-group button) {
+  width: 30px;
+  height: 30px;
 }
 </style>

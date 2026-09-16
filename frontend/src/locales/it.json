@@ -619,6 +619,7 @@
         "liste": "Lista",
         "normal": "normale"
       },
+      "noWebgl": "This map needs WebGL 2. Your browser does not have it — the list shows the same matches.",
       "radius": "Raggio",
       "radiusLabel": "In quale raggio vuoi cercare? (km)",
       "radiusTitle": "Raggio di ricerca",

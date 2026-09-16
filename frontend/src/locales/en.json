@@ -699,6 +699,7 @@
         "liste": "List",
         "normal": "normal"
       },
+      "noWebgl": "This map needs WebGL 2. Your browser does not have it — the list shows the same matches.",
       "radius": "Radius",
       "radiusHintFern": "Applies to the supra-regional search. The regional radius stays at {km} km.",
       "radiusHintRegional": "Applies to the regional search. The supra-regional radius stays at {km} km.",

@@ -619,6 +619,7 @@
         "liste": "Lijst",
         "normal": "normaal"
       },
+      "noWebgl": "This map needs WebGL 2. Your browser does not have it — the list shows the same matches.",
       "radius": "Straal",
       "radiusLabel": "Binnen welke straal wil je zoeken? (km)",
       "radiusTitle": "Zoekstraal",
