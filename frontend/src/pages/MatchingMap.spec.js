@@ -7,63 +7,36 @@ import { fileURLToPath } from 'node:url'
 import { ref } from 'vue'
 import { createStore } from 'vuex'
 import { createI18n } from 'vue-i18n'
-import L from 'leaflet'
 import de from '@/locales/de.json'
 import MatchingMap from './MatchingMap.vue'
 import GeoSearchField from '@/components/Matching/GeoSearchField.vue'
 import { listMatchingEntries, userLocationQuery } from '@/graphql/queries'
 import { GMS_REJECTED, GMS_UNAVAILABLE } from '@/composables/useMatches'
-import { NOMINATIM_REVERSE_URL } from '@/utils/reverseGeocode'
 import { created } from '@test/maplibreMock'
 
-// jsdom has no SVG geometry, and Leaflet decides once, when it is imported, whether it
-// may draw SVG at all - by looking for createSVGRect. Without it Leaflet finds no
-// renderer and the map dies at its first circle, before a single marker is drawn. This
-// is only that feature test: the SVG Leaflet then writes is plain DOM, which jsdom has.
-//
-// The grey rings are drawn on a canvas, which jsdom does not paint either. Leaflet only
-// needs a 2D context that takes every call; its own hit test - how near a tap has to be
-// to a ring - is plain arithmetic and runs as it does in a browser.
-vi.hoisted(() => {
-  window.SVGSVGElement.prototype.createSVGRect = () => ({})
-  window.HTMLCanvasElement.prototype.getContext = () =>
-    new Proxy({}, { get: (target, name) => (name in target ? target[name] : () => {}) })
-})
-
-// A pending canvas redraw that arrives after its renderer is gone. Leaflet cancels the
-// frame when the renderer is removed; in jsdom the frame runs anyway, and `_clear` then
-// reads `save` off a context that `_destroyContainer` has deleted. Measured on
-// 12.09.2026: ANY click that redraws while grey rings are on the canvas raises it,
-// `applyRadius` included - it is the environment, not the page. Guarded exactly as
-// Leaflet guards it and no wider: a redraw WITH a context still runs, so a test that
-// expects something drawn can still fail. Below the imports, not in vi.hoisted, because
-// that block runs before `L` exists.
-const redrawCanvas = L.Canvas.prototype._redraw
-L.Canvas.prototype._redraw = function guardedRedraw() {
-  if (this._ctx) redrawCanvas.call(this)
-}
-
-// The context every canvas gets in this file - also the WebGL 2 one MapLibre asks for, so the
-// MapLibre stand-in builds. Held here so a test can take WebGL 2 away and give it back.
-const drawingContext = HTMLCanvasElement.prototype.getContext
+// jsdom has no WebGL. MapLibre asks the canvas for a WebGL 2 context and for nothing else, and
+// its stand-in builds a map wherever it gets one - so every canvas in this file hands one out,
+// and a test that takes it away (K-013) has it put back after it.
+const webgl2 = (kind) => (kind === 'webgl2' ? {} : null)
+HTMLCanvasElement.prototype.getContext = webgl2
 
 // Never the real MapLibre in jsdom: it needs WebGL 2 and would die deep in drawing. The stand-in
 // keeps what MapLibre does where the engine can see it (test/maplibreMock.js).
 vi.mock('maplibre-gl', () => import('@test/maplibreMock'))
 vi.mock('@/utils/mapEngine/maplibreWorkerUrl', () => ({ default: 'worker.js' }))
 
-// The engines, loaded the way the page loads them - unless a test holds the next one back until
-// it opens `gate`, hands over an `engine` of its own, or says it does not arrive at all, as a
-// file does not when the connection drops or a deploy has renamed it.
+// The engine, loaded the way the page loads it - unless a test holds it back until it opens
+// `gate`, hands over an `engine` of its own, or says it does not arrive at all, as a file does
+// not when the connection drops or a deploy has renamed it.
 const engineLoad = { fails: false, gate: null, engine: null }
 vi.mock('@/utils/mapEngine', async (importOriginal) => {
   const actual = await importOriginal()
   return {
     ...actual,
-    loadMapEngine: async (name) => {
+    loadMapEngine: async () => {
       if (engineLoad.gate) await engineLoad.gate
       if (engineLoad.fails) throw new Error('Failed to fetch dynamically imported module')
-      return engineLoad.engine ?? actual.loadMapEngine(name)
+      return engineLoad.engine ?? actual.loadMapEngine()
     },
   }
 })
@@ -127,15 +100,6 @@ const toastError = vi.fn()
 vi.mock('@/composables/useToast', () => ({
   useAppToast: () => ({ toastError, toastSuccess: vi.fn() }),
 }))
-
-// The admin switch for the place search (K-008), in whatever position a test puts it. The
-// old one by default, as on a server nobody has switched.
-const switchPosition = { geoProvider: 'NOMINATIM' }
-const mapSwitches = vi.fn(async () => ({ mapEngine: 'LEAFLET', ...switchPosition }))
-vi.mock('@/composables/useMapSwitches', async () => {
-  const actual = await vi.importActual('@/composables/useMapSwitches')
-  return { ...actual, useMapSwitches: () => ({ mapSwitches }) }
-})
 
 const gmsBase = vi.fn(async () => 'https://ki-playground-gms.gradido.net/gms/')
 vi.mock('@/composables/useGmsBase', () => ({
@@ -203,6 +167,7 @@ const mountMap = ({ gmsAllowed = true, store = makeStore(gmsAllowed) } = {}) => 
 
 beforeEach(() => {
   handlers.clear()
+  created.length = 0
   replace.mockClear()
   push.mockClear()
   load.mockClear()
@@ -219,9 +184,19 @@ beforeEach(() => {
 afterEach(() => {
   wrapper?.unmount()
   wrapper = null
+  engineLoad.fails = false
+  engineLoad.gate = null
+  engineLoad.engine = null
+  HTMLCanvasElement.prototype.getContext = webgl2
 })
 
 describe('MatchingMap', () => {
+  // The first import of the engine transforms its whole module tree, which takes longer than
+  // any number of flushed promises; after that the page's own import finds it loaded.
+  beforeAll(async () => {
+    await import('@/utils/mapEngine/maplibre')
+  })
+
   it('hands the search field the offers, so a half-typed word can be finished', async () => {
     const wrapper = mountMap()
     await flushPromises()
@@ -592,7 +567,7 @@ describe('MatchingMap', () => {
         '',
       )
 
-      // `gk-placed` rather than Leaflet's own class: both engines set it on what they take.
+      // `gk-placed`: the engine sets it on what it takes.
       expect(source).toMatch(/\n\.gk-search:not\(\.gk-placed\) \{[^}]*display: none;/)
 
       const chrome = source.match(/\n\.gk-search \{([^}]*)\}/)
@@ -600,8 +575,7 @@ describe('MatchingMap', () => {
       expect(chrome[1]).toMatch(/--surface: #fff;/)
       expect(chrome[1]).toMatch(/--border: rgb\(0 0 0 \/ 20%\);/)
 
-      // And on the dark map the same two tokens carry the chrome of its own controls -
-      // this is what replaced the thirteen rules that dressed leaflet-geosearch there.
+      // And on the dark map the same two tokens carry the chrome of its own controls.
       const dark = source.match(/\n {2}\.gk-search \{([^}]*)\}/)
       expect(dark, 'no .gk-search rule in the dark block').not.toBeNull()
       expect(dark[1]).toMatch(/--surface: var\(--dark-chrome\);/)
@@ -659,7 +633,7 @@ describe('MatchingMap', () => {
       expect(replace).toHaveBeenCalledWith('/matching/position')
       // No search, and no centre. Both statements sit AFTER the redirect in the same
       // straight run as the marker being drawn, so their absence is the marker's absence
-      // too -- Leaflet itself is not built in this test, the 250 ms timer never runs
+      // too -- the map itself is not built in this test, the 250 ms timer never runs
       // here, so it cannot be asked directly.
       expect(load).not.toHaveBeenCalled()
       expect(centreStored()).toBeNull()
@@ -1019,9 +993,9 @@ describe('MatchingMap', () => {
     })
   })
 
-  // F-10, Bernd at his iPhone: the small discs could hardly be hit. Leaflet is built here
-  // on purpose, unlike everywhere above - the 250 ms timer is run by hand and the view is
-  // seeded, so the zoom and with it every pixel between two people are known.
+  // F-10, Bernd at his iPhone: the small discs could hardly be hit. The map is built here on
+  // purpose, unlike everywhere above - the 250 ms timer is run by hand and the view is seeded,
+  // so the zoom and with it every pixel between two people are known.
   describe('the tap area of a coloured marker', () => {
     const VIEW = { lat: 48.2, lng: 11.6, zoom: 12 }
     // 0.46 is the dimmest brightness the GMS sends: step 1, the smallest disc there is.
@@ -1039,15 +1013,16 @@ describe('MatchingMap', () => {
       scores: { gesuch: [{ strength: 0.46, entry: 'mine', subject: 'x' }] },
       precision: 'genau',
     })
-    // The point `px` screen pixels east of the seeded view's middle.
+    // The point `px` screen pixels east of the middle of the map that was built, by the map's own
+    // projection. jsdom lays the container out at no size, so the middle is container point (0, 0).
     const east = (px) => {
-      const centre = L.CRS.EPSG3857.latLngToPoint(L.latLng(VIEW.lat, VIEW.lng), VIEW.zoom)
-      const { lat, lng } = L.CRS.EPSG3857.pointToLatLng(centre.add([px, 0]), VIEW.zoom)
+      const { lat, lng } = created.at(-1).unproject({ x: px, y: 0 })
       return { lat, lng }
     }
     const px = (element, property) => element.style[property]
 
-    const buildMap = async (look, people) => {
+    // The people are asked for once the map is there: where they stand is counted from its middle.
+    const buildMap = async (look, people = () => []) => {
       vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
       window.localStorage.setItem(`${KEY}look`, JSON.stringify(look))
       window.localStorage.setItem(`${KEY}view`, JSON.stringify(VIEW))
@@ -1055,8 +1030,13 @@ describe('MatchingMap', () => {
       fire(userLocationQuery, { userLocation: location })
       await page.vm.$nextTick()
       vi.advanceTimersByTime(250)
-      matches.value = people
-      await page.vm.$nextTick()
+      vi.useRealTimers()
+      // The engine is fetched after the quarter second, and its first style loads a moment after
+      // the map is built - only then are the rings on it.
+      await flushPromises()
+      await flushPromises()
+      matches.value = people()
+      await flushPromises()
       return page
     }
     const tap = (element) => element.dispatchEvent(new MouseEvent('click', { bubbles: true }))
@@ -1068,21 +1048,19 @@ describe('MatchingMap', () => {
     })
 
     it('keeps a step-1 disc at 20 px on the light map and gives it 44 px to tap', async () => {
-      const page = await buildMap('hell', [person('anna', east(0))])
+      const page = await buildMap('hell', () => [person('anna', east(0))])
 
       const box = page.find('.gk-clickable').element
       expect(px(page.find('.gk-disc').element, 'width')).toBe('20px')
       expect(px(page.find('.gk-hit').element, 'width')).toBe('44px')
-      // The box is as big as the tap area, and still centred on the person.
-      expect([px(box, 'width'), px(box, 'height'), px(box, 'marginLeft')]).toEqual([
-        '44px',
-        '44px',
-        '-22px',
-      ])
+      // The box is as big as the tap area, and still centred on the person: its top left corner
+      // stands half the area left of and above the person's place.
+      expect([px(box, 'width'), px(box, 'height')]).toEqual(['44px', '44px'])
+      expect(box.style.transform).toContain('translate(-22px, -22px)')
     })
 
     it('gives the same person 44 px to tap inside the glow on the dark map', async () => {
-      const page = await buildMap('dunkel', [person('anna', east(0))])
+      const page = await buildMap('dunkel', () => [person('anna', east(0))])
 
       expect(px(page.find('.gk-hit').element, 'width')).toBe('44px')
       expect(px(page.find('.gk-clickable').element, 'width')).toBe('48px')
@@ -1091,7 +1069,7 @@ describe('MatchingMap', () => {
     // 40 px apart, two tap areas of 44 px overlap: a finger there could mean either, so the
     // map steps in rather than opening whichever area happened to lie on top.
     it('zooms in when two tap areas overlap instead of opening one of them', async () => {
-      const page = await buildMap('hell', [person('anna', east(0)), person('ben', east(40))])
+      const page = await buildMap('hell', () => [person('anna', east(0)), person('ben', east(40))])
 
       tap(page.findAll('.gk-hit')[0].element)
       await page.vm.$nextTick()
@@ -1104,7 +1082,7 @@ describe('MatchingMap', () => {
     // so the zoom there is the overlap speaking, not every tap zooming. 70 px is beyond the
     // largest tap area there is - 60 px since the fifth step - so beyond the crowd radius.
     it('opens the person when no other tap area reaches theirs', async () => {
-      const page = await buildMap('hell', [person('anna', east(0)), person('ben', east(70))])
+      const page = await buildMap('hell', () => [person('anna', east(0)), person('ben', east(70))])
 
       tap(page.findAll('.gk-hit')[0].element)
       await page.vm.$nextTick()
@@ -1128,20 +1106,20 @@ describe('MatchingMap', () => {
 
       it('draws the fifth size on the dark map and on the light one', async () => {
         window.localStorage.setItem(`${KEY}breite`, JSON.stringify(true))
-        const dark = await buildMap('dunkel', [broad('clara')])
+        const dark = await buildMap('dunkel', () => [broad('clara')])
         expect(px(dark.find('.gk-clickable').element, 'width')).toBe('130px')
         expect(px(dark.find('.gk-hit').element, 'width')).toBe('60px')
         dark.unmount()
         wrapper = null
 
-        const light = await buildMap('hell', [broad('clara')])
+        const light = await buildMap('hell', () => [broad('clara')])
         expect(px(light.find('.gk-disc').element, 'width')).toBe('60px')
         expect(px(light.find('.gk-clickable').element, 'width')).toBe('60px')
       })
 
       // The control: the same person without breadth is a step-4 match, sized as one.
       it('stays on the fourth size while breadth is off', async () => {
-        const dark = await buildMap('dunkel', [broad('clara')])
+        const dark = await buildMap('dunkel', () => [broad('clara')])
         expect(px(dark.find('.gk-clickable').element, 'width')).toBe('104px')
       })
     })
@@ -1161,13 +1139,19 @@ describe('MatchingMap', () => {
       })
       const tapCanvas = (page, x) =>
         page
-          .find('.leaflet-overlay-pane canvas')
+          .find('.maplibregl-canvas')
           .element.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: x, clientY: 0 }))
+      // The ring counts from the middle of the map, so it is placed once the map is there.
+      const buildMapWithRing = async () => {
+        const page = await buildMap('hell')
+        presence.value = [ring()]
+        await flushPromises()
+        return page
+      }
 
       // 15 px out is far beside the ring's own 6 px, and well inside the 22 px of a 44 px area.
       it('opens from anywhere in a 44 px tap area around it', async () => {
-        presence.value = [ring()]
-        const page = await buildMap('hell', [])
+        const page = await buildMapWithRing()
 
         tapCanvas(page, 15)
         await page.vm.$nextTick()
@@ -1177,8 +1161,7 @@ describe('MatchingMap', () => {
       })
 
       it('does not open from beyond that area', async () => {
-        presence.value = [ring()]
-        const page = await buildMap('hell', [])
+        const page = await buildMapWithRing()
 
         tapCanvas(page, 30)
         await page.vm.$nextTick()
@@ -1189,11 +1172,11 @@ describe('MatchingMap', () => {
       // Found by the injection round on 12.09.2026. The reactive half of the reach
       // switch (the count, the list) went with it, but the rings are drawn
       // imperatively and nothing watches `reach` - so without drawPresence() in
-      // setReach they stayed on the canvas, and tappable, until the answer came.
-      // The test above is this one's control: same ring, same 15 px, and it opens.
+      // setReach they stayed on the map, and tappable, until the answer came.
+      // "opens from anywhere in a 44 px tap area" is this one's control: same ring, same
+      // 15 px, and it opens.
       it('goes from the canvas the moment the reach changes, not when the answer comes', async () => {
-        presence.value = [ring()]
-        const page = await buildMap('hell', [])
+        const page = await buildMapWithRing()
 
         await page.findAll('.reach-btn')[1].trigger('click')
         await page.vm.$nextTick()
@@ -1201,7 +1184,7 @@ describe('MatchingMap', () => {
         await page.vm.$nextTick()
 
         // `load` is a spy, so presence still holds Paul: only the redraw can have
-        // taken him off the canvas.
+        // taken him off the map.
         expect(presence.value).toHaveLength(1)
         expect(profileOpen(page)).toBe(false)
       })
@@ -1320,22 +1303,23 @@ describe('MatchingMap', () => {
     })
   })
 
-  // K-002: the list names where it searches - and the member's home goes to no place search
-  // for that, in either position of the admin switch. Before, the first visit sent the exact
-  // home position to Nominatim, at zoom 16.
+  // K-002: the list names where it searches - and the member's home goes to no place search for
+  // that. Before, the first visit sent the exact home position to Nominatim, at zoom 16.
   describe('naming the centre in the list', () => {
     const HOME = { lat: 48.2, lng: 11.6 }
     // About 17 km from home: well clear of "home within 100 m".
     const ELSEWHERE = { lat: 48.3, lng: 11.8 }
     const PRAG = { lat: 50.0874654, lng: 14.4212535, label: 'Prag' }
-    const NOMINATIM_ANSWER = { address: { road: 'Marktplatz', town: 'Freising' } }
     const listLabel = (page) => page.findComponent({ name: 'MatchList' }).props('centerLabel')
     const recenter = (page, next) =>
       page.findComponent({ name: 'MatchList' }).vm.$emit('recenter', next)
+    // Nothing on this page may fetch anything to name a centre: the names come from the tile
+    // file, which placeNameAt reads, and placeNameAt is replaced in this file.
     let fetchMock
 
-    // Leaflet itself, for the two controls that live on the map - the crosshair and the home
-    // button. The 250 ms timer is run by hand, and the view is seeded where the map opens.
+    // The map itself, for the two controls that live on it - the crosshair and the home button.
+    // The 250 ms timer is run by hand, and the view is seeded where the map opens; the engine is
+    // fetched after it.
     const openMap = async (view) => {
       vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
       window.localStorage.setItem(`${KEY}view`, JSON.stringify({ ...view, zoom: 12 }))
@@ -1344,6 +1328,7 @@ describe('MatchingMap', () => {
       await page.vm.$nextTick()
       vi.advanceTimersByTime(250)
       vi.useRealTimers()
+      await flushPromises()
       await flushPromises()
       return page
     }
@@ -1355,12 +1340,10 @@ describe('MatchingMap', () => {
     beforeEach(() => {
       // The list is what shows the name.
       window.localStorage.setItem(`${KEY}mode`, JSON.stringify('liste'))
-      switchPosition.geoProvider = 'NOMINATIM'
-      mapSwitches.mockClear()
       placeNameAt.mockReset()
       placeNameAt.mockImplementation(async () => null)
       makeGeoProvider.mockClear()
-      fetchMock = vi.fn(async () => ({ ok: true, json: async () => NOMINATIM_ANSWER }))
+      fetchMock = vi.fn()
       vi.stubGlobal('fetch', fetchMock)
     })
 
@@ -1369,20 +1352,16 @@ describe('MatchingMap', () => {
       vi.unstubAllGlobals()
     })
 
-    it.each(['NOMINATIM', 'GMS'])(
-      'calls the centre of a first visit the home and asks nobody (switch on %s)',
-      async (position) => {
-        switchPosition.geoProvider = position
-        const page = mountMap()
-        fire(userLocationQuery, { userLocation: location })
-        await flushPromises()
+    it('calls the centre of a first visit the home and asks nobody', async () => {
+      const page = mountMap()
+      fire(userLocationQuery, { userLocation: location })
+      await flushPromises()
 
-        expect(JSON.parse(window.localStorage.getItem(`${KEY}center`))).toEqual(HOME)
-        expect(listLabel(page)).toBe(de.matching.map.centreHome)
-        expect(fetchMock).not.toHaveBeenCalled()
-        expect(placeNameAt).not.toHaveBeenCalled()
-      },
-    )
+      expect(JSON.parse(window.localStorage.getItem(`${KEY}center`))).toEqual(HOME)
+      expect(listLabel(page)).toBe(de.matching.map.centreHome)
+      expect(fetchMock).not.toHaveBeenCalled()
+      expect(placeNameAt).not.toHaveBeenCalled()
+    })
 
     // Until K-002 the first visit and the home button stored the reverse lookup of the home,
     // and that name is still on the devices of everybody who used the map before.
@@ -1411,44 +1390,30 @@ describe('MatchingMap', () => {
       expect(list.props('searchCenter')).toEqual(ELSEWHERE)
     })
 
-    it.each(['NOMINATIM', 'GMS'])(
-      'calls the home the home again when the home button brings the search back, and asks nobody (switch on %s)',
-      async (position) => {
-        switchPosition.geoProvider = position
-        const page = await openMap(ELSEWHERE)
-        recenter(page, PRAG)
-        await flushPromises()
-        expect(listLabel(page)).toBe('Prag')
-
-        tapHomeButton(page)
-        await flushPromises()
-
-        expect(JSON.parse(window.localStorage.getItem(`${KEY}center`))).toEqual(HOME)
-        expect(listLabel(page)).toBe(de.matching.map.centreHome)
-        expect(fetchMock).not.toHaveBeenCalled()
-        expect(placeNameAt).not.toHaveBeenCalled()
-      },
-    )
-
-    it('names a point set with the crosshair by the old reverse lookup in the old position', async () => {
+    it('calls the home the home again when the home button brings the search back, and asks nobody', async () => {
       const page = await openMap(ELSEWHERE)
+      recenter(page, PRAG)
+      await flushPromises()
+      expect(listLabel(page)).toBe('Prag')
 
-      await page.find('.map-crosshair').trigger('click')
+      tapHomeButton(page)
       await flushPromises()
 
-      expect(fetchMock).toHaveBeenCalledTimes(1)
-      expect(fetchMock.mock.calls[0][0].startsWith(`${NOMINATIM_REVERSE_URL}?`)).toBe(true)
-      expect(listLabel(page)).toBe('Marktplatz, Freising')
+      expect(JSON.parse(window.localStorage.getItem(`${KEY}center`))).toEqual(HOME)
+      expect(listLabel(page)).toBe(de.matching.map.centreHome)
+      expect(fetchMock).not.toHaveBeenCalled()
+      expect(placeNameAt).not.toHaveBeenCalled()
     })
 
-    it('names a point set with the crosshair from the tiles of the map in the new position, and asks nobody else', async () => {
-      switchPosition.geoProvider = 'GMS'
+    it('names a point set with the crosshair from the tiles of the map, and asks nobody else', async () => {
       placeNameAt.mockImplementation(async () => ({ place: 'Freising', context: 'München' }))
       const page = await openMap(ELSEWHERE)
 
       await page.find('.map-crosshair').trigger('click')
       await flushPromises()
 
+      // The middle comes from the map that was built.
+      expect(created).toHaveLength(1)
       expect(placeNameAt).toHaveBeenCalledTimes(1)
       const [, lat, lng, locale] = placeNameAt.mock.calls[0]
       expect(lat).toBeCloseTo(ELSEWHERE.lat, 6)
@@ -1458,8 +1423,7 @@ describe('MatchingMap', () => {
       expect(listLabel(page)).toBe('Freising, München')
     })
 
-    it('calls a point set with the crosshair "the chosen point" in the new position where the tiles name nothing', async () => {
-      switchPosition.geoProvider = 'GMS'
+    it('calls a point set with the crosshair "the chosen point" where the tiles name nothing', async () => {
       const page = await openMap(ELSEWHERE)
 
       await page.find('.map-crosshair').trigger('click')
@@ -1486,7 +1450,7 @@ describe('MatchingMap', () => {
     // second, also when the second one needs no lookup at all.
     it('lets a lookup still out rename nothing once the search has moved on', async () => {
       let answerLookup
-      fetchMock.mockImplementationOnce(
+      placeNameAt.mockImplementationOnce(
         () =>
           new Promise((resolve) => {
             answerLookup = resolve
@@ -1500,7 +1464,7 @@ describe('MatchingMap', () => {
       await flushPromises()
       recenter(page, PRAG)
       await flushPromises()
-      answerLookup({ ok: true, json: async () => NOMINATIM_ANSWER })
+      answerLookup({ place: 'Freising', context: 'München' })
       await flushPromises()
 
       expect(listLabel(page)).toBe('Prag')
@@ -1509,7 +1473,6 @@ describe('MatchingMap', () => {
     // The tiles can take a while on a slow link. Meanwhile the list must not go on naming the
     // place the search has left, and that name must not be stored with the new centre.
     it('calls a point "the chosen point" while its name is still out, and stores no old name with it', async () => {
-      switchPosition.geoProvider = 'GMS'
       let answerLookup
       placeNameAt.mockImplementation(
         () =>
@@ -1534,33 +1497,18 @@ describe('MatchingMap', () => {
       expect(listLabel(page)).toBe('Freising, München')
     })
 
-    it('hands the search field a provider made with the admin switch and the GMS address', async () => {
+    it('hands the search field a provider made with the GMS address', async () => {
       const page = await openMap(ELSEWHERE)
 
       expect(makeGeoProvider).toHaveBeenCalledTimes(1)
       const made = makeGeoProvider.mock.calls[0][0]
-      expect(made.mapSwitches).toBe(mapSwitches)
+      expect(Object.keys(made).sort()).toEqual(['gmsBase', 'language', 'viewpoint'])
       expect(made.gmsBase).toBe(gmsBase)
       // Read at the moment of a search: where the map looks, in the wallet's language.
       expect(made.viewpoint().lat).toBeCloseTo(ELSEWHERE.lat, 6)
       expect(made.viewpoint().lng).toBeCloseTo(ELSEWHERE.lng, 6)
       expect(made.language()).toBe('de')
       expect(page.findComponent(GeoSearchField).props('provider')).toBe(madeProvider)
-    })
-
-    // The field is the page's own element; initMap hangs it on the map as a control, which
-    // is what puts it in the corner and what the rules hiding the map's controls under the
-    // list and the cluster reach. It is in the template from the first tick, so finding the
-    // component says nothing - finding it in Leaflet's corner does.
-    it('hangs the field on the map, between the zoom buttons and the way home', async () => {
-      const page = await openMap(ELSEWHERE)
-
-      const corner = page.findAll('.leaflet-top.leaflet-left > *')
-      expect(corner.map((box) => box.classes().join(' '))).toEqual([
-        expect.stringContaining('leaflet-control-zoom'),
-        expect.stringContaining('gk-search'),
-        expect.stringContaining('gk-home'),
-      ])
     })
 
     // No reverse lookup and no second search: the field hands over the place it was given,
@@ -1582,8 +1530,8 @@ describe('MatchingMap', () => {
     })
   })
 
-  // K-008: the admin switch picks the engine the map is drawn with. Every test above draws with
-  // Leaflet, as a server does that nobody has switched; these draw with MapLibre's stand-in.
+  // The map on MapLibre's stand-in: what it builds and draws, and what the page does where it
+  // cannot build one (K-013).
   describe('on the MapLibre engine', () => {
     // About 17 km from home, so nothing snaps the view onto the search centre.
     const VIEW = { lat: 48.3, lng: 11.8, zoom: 12 }
@@ -1630,42 +1578,25 @@ describe('MatchingMap', () => {
       return page
     }
 
-    // The first import of the engine transforms its whole module tree, which takes longer than
-    // any number of flushed promises; after that the page's own import finds it loaded.
-    beforeAll(async () => {
-      await import('@/utils/mapEngine/maplibre')
-    })
-
-    beforeEach(() => {
-      switchPosition.mapEngine = 'MAPLIBRE'
-      created.length = 0
-      mapSwitches.mockClear()
-      placeNameAt.mockReset()
-      placeNameAt.mockImplementation(async () => null)
-    })
-
     afterEach(() => {
-      delete switchPosition.mapEngine
-      switchPosition.geoProvider = 'NOMINATIM'
-      engineLoad.fails = false
-      engineLoad.gate = null
-      engineLoad.engine = null
-      HTMLCanvasElement.prototype.getContext = drawingContext
       vi.useRealTimers()
     })
 
+    // The search field is in the template from the first tick, so finding the component says
+    // nothing - finding it in the map's corner, between the zoom buttons and the way home, does:
+    // initMap hangs it there, which is what puts it in the corner and what the rules hiding the
+    // map's controls under the list and the cluster reach.
     it('builds the map with MapLibre, where the member left it, in its look and language', async () => {
       const page = await openMapLibre({ look: 'dunkel' })
 
       expect(created).toHaveLength(1)
       expect(page.find('.map-canvas').classes()).toContain('maplibregl-map')
-      expect(page.find('.leaflet-container').exists()).toBe(false)
       // The stored view counts Leaflet's zoom; MapLibre's tiles are twice as wide.
       expect(library().getZoom()).toBe(VIEW.zoom - 1)
       expect(library().getCenter().lat).toBeCloseTo(VIEW.lat, 6)
       expect(library().getCenter().lng).toBeCloseTo(VIEW.lng, 6)
-      // Built in the member's look, with the places named in the wallet's language - on Leaflet
-      // neither reached the engine, so nothing else would notice them missing.
+      // Built in the member's look, with the places named in the wallet's language - nothing
+      // else would notice them missing.
       expect(library().options.style.sprite).toMatch(/\/black$/)
       expect(JSON.stringify(library().options.style.layers)).toContain('name:de')
       // The whole corner came up, in the order it always had.
@@ -1694,8 +1625,7 @@ describe('MatchingMap', () => {
       expect(library().getLayer('gk-circle-veil').paint['fill-color']).toBe('#000000')
     })
 
-    // On Leaflet a look is a CSS filter and the engine has nothing to do; MapLibre draws a
-    // style of its own for each look, and the veil changes with it.
+    // MapLibre draws a style of its own for each look, and the veil changes with it.
     it('changes the style of the map with the look', async () => {
       const page = await openMapLibre({ look: 'normal' })
       expect(library().style.sprite).toMatch(/\/light$/)
@@ -1706,21 +1636,6 @@ describe('MatchingMap', () => {
 
       expect(library().style.sprite).toMatch(/\/black$/)
       expect(library().getLayer('gk-circle-veil').paint['fill-color']).toBe('#ffffff')
-    })
-
-    it("names a point set with the crosshair from the tiles, at the MapLibre map's middle", async () => {
-      switchPosition.geoProvider = 'GMS'
-      const page = await openMapLibre()
-
-      await page.find('.map-crosshair').trigger('click')
-      await flushPromises()
-
-      // The middle comes from MapLibre - the old map would give the same answer.
-      expect(created).toHaveLength(1)
-      expect(placeNameAt).toHaveBeenCalledTimes(1)
-      const [, lat, lng] = placeNameAt.mock.calls[0]
-      expect(lat).toBeCloseTo(VIEW.lat, 6)
-      expect(lng).toBeCloseTo(VIEW.lng, 6)
     })
 
     // The engine takes a moment to arrive, and the member may have left the page by then.
@@ -1740,46 +1655,40 @@ describe('MatchingMap', () => {
       expect(engineLoad.engine.createMap).not.toHaveBeenCalled()
     })
 
-    // K-013: MapLibre needs WebGL 2. Until the old engine goes (D) such a device keeps the old
-    // map - and a line under it says why, so nobody mistakes it for the new one.
-    it('draws the old map where the device has no WebGL 2, and says so under it', async () => {
-      HTMLCanvasElement.prototype.getContext = function (kind, ...rest) {
-        return kind === 'webgl2' ? null : drawingContext.call(this, kind, ...rest)
-      }
+    // K-013: MapLibre needs WebGL 2. A device without it gets no map, and a line under the map
+    // says why - the list shows the same matches.
+    it('draws no map where the device has no WebGL 2, and says so under it', async () => {
+      HTMLCanvasElement.prototype.getContext = () => null
 
       const page = await openMapLibre()
 
       expect(created).toHaveLength(0)
-      expect(page.find('.map-canvas').classes()).toContain('leaflet-container')
       expect(page.find('.map-canvas').classes()).not.toContain('maplibregl-map')
-      expect(cornerOf(page, '.leaflet-top.leaflet-left')).toEqual([
-        expect.stringContaining('leaflet-control-zoom'),
-        expect.stringContaining('gk-search'),
-        expect.stringContaining('gk-home'),
-      ])
+      expect(page.find('.maplibregl-ctrl-top-left').exists()).toBe(false)
+      // Not hung anywhere, the search field stays out of sight (the rule read in the source).
+      expect(page.find('.gk-search').classes()).not.toContain('gk-placed')
       const note = page.find('.map-shell + .map-note')
       expect(note.exists()).toBe(true)
       expect(note.text()).toBe(de.matching.map.noWebgl)
     })
 
-    // Not the device: the file did not come. The old map is here already, and the line about
-    // WebGL 2 would be untrue.
-    it('draws the old map when the new engine does not arrive, and blames nothing', async () => {
+    // Not the device: the file did not come. The line about WebGL 2 would be untrue.
+    it('draws no map when the engine does not arrive, and blames nothing', async () => {
       engineLoad.fails = true
 
       const page = await openMapLibre()
 
       expect(created).toHaveLength(0)
-      expect(page.find('.map-canvas').classes()).toContain('leaflet-container')
+      expect(page.find('.map-canvas').classes()).not.toContain('maplibregl-map')
       expect(page.find('.map-note').exists()).toBe(false)
     })
 
     // jsdom lays nothing out and applies no scoped styles, so the rules MapLibre needs are read in
     // the source - comments first, they name the rules. Measured in a browser on 16.09.2026, on a
-    // static copy of the map wearing the built stylesheets: with master's stylesheet the house
-    // stood on the list cover and over the crosshair, the centre disc over the zoom buttons, the
-    // crosshair over the search field's list of places, and a tap on the glow beside a match went
-    // to the match; with these rules each of them came out as it does on Leaflet.
+    // static copy of the map wearing the built stylesheets: without these rules the house stood on
+    // the list cover and over the crosshair, the centre disc over the zoom buttons, the crosshair
+    // over the search field's list of places, and a tap on the glow beside a match went to the
+    // match; with them none of that happened.
     const sourceRules = () =>
       readFileSync(
         join(dirname(fileURLToPath(import.meta.url)), 'MatchingMap.vue'),
@@ -1790,7 +1699,7 @@ describe('MatchingMap', () => {
         new RegExp(`\\n${selectors.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\{([^}]*)\\}`),
       )?.[1]
 
-    it("keeps MapLibre's markers and controls in the layers Leaflet's have", () => {
+    it("keeps MapLibre's markers and controls in their layers", () => {
       const source = sourceRules()
 
       expect(ruleOf(source, '.map-shell :deep(.maplibregl-canvas-container)')).toMatch(
@@ -1799,27 +1708,22 @@ describe('MatchingMap', () => {
       expect(ruleOf(source, '.map-shell :deep(.maplibregl-ctrl-top-left)')).toMatch(
         /z-index: 1000;/,
       )
-      expect(
-        ruleOf(
-          source,
-          '.leaflet-interactive.gk-marker.gk-clickable,\n.maplibregl-marker.gk-marker.gk-clickable',
-        ),
-      ).toMatch(/pointer-events: none;/)
+      expect(ruleOf(source, '.maplibregl-marker.gk-marker.gk-clickable')).toMatch(
+        /pointer-events: none;/,
+      )
       for (const mode of ['is-list', 'is-cluster']) {
         expect(
-          ruleOf(
-            source,
-            `.map-shell.${mode} :deep(.leaflet-control-container),\n.map-shell.${mode} :deep(.maplibregl-control-container)`,
-          ),
+          ruleOf(source, `.map-shell.${mode} :deep(.maplibregl-control-container)`),
           `the map's controls stay over the ${mode} cover`,
         ).toMatch(/display: none;/)
       }
     })
 
-    // In that copy the corner measured the same on both engines: zoom 34 x 64, the lens and the
-    // way home 34 x 34, at 10 px from the edge and from each other. Without these rules the way
-    // home was an 18 px square - too small for a finger - and the zoom buttons 29 px wide.
-    it("gives MapLibre's corner the measure of Leaflet's, on the light map and on the dark one", () => {
+    // In that copy the corner measured zoom 34 x 64, the lens and the way home 34 x 34, at 10 px
+    // from the edge and from each other - the measure the old map's corner had. Without these
+    // rules the way home was an 18 px square - too small for a finger - and the zoom buttons 29 px
+    // wide.
+    it("gives MapLibre's corner its touch measure, on the light map and on the dark one", () => {
       const source = sourceRules()
 
       const group = ruleOf(source, '.map-shell :deep(.maplibregl-ctrl-group)')
@@ -1841,29 +1745,6 @@ describe('MatchingMap', () => {
       expect(ruleOf(source, '  :deep(.maplibregl-ctrl-attrib)')).toMatch(
         /background-color: rgb\(22 24 29 \/ 80%\);/,
       )
-    })
-
-    // A slow connection must not decide which map somebody sees: a switch that answers after
-    // the quarter second is waited for, and the map it names is the one built.
-    it('waits for a switch that answers late, and builds the map it names', async () => {
-      let answer
-      mapSwitches.mockImplementationOnce(
-        () =>
-          new Promise((resolve) => {
-            answer = resolve
-          }),
-      )
-      const page = await mountLocated('normal')
-      await settle()
-
-      expect(page.find('.map-canvas').classes()).not.toContain('leaflet-container')
-      expect(created).toHaveLength(0)
-
-      answer({ mapEngine: 'MAPLIBRE', geoProvider: 'NOMINATIM' })
-      await settle()
-
-      expect(created).toHaveLength(1)
-      expect(page.find('.map-canvas').classes()).not.toContain('leaflet-container')
     })
   })
 })

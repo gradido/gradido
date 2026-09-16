@@ -42,7 +42,7 @@
         :class="[`look-${look}`, { 'is-list': mode === 'liste', 'is-cluster': clusterOpen }]"
       >
         <!-- In list mode the map is only decoration behind the list, but it stays in
-             the DOM (so Leaflet keeps its size). inert drops the whole map — its
+             the DOM (so the map keeps its size). inert drops the whole map — its
              focusable container, its controls, its markers — out of the screen reader
              and the keyboard, so a blind member meets the list, not the map's leftovers. -->
         <div ref="mapContainer" class="map-canvas" :inert="mode === 'liste'" />
@@ -63,7 +63,7 @@
         </div>
 
         <!-- The same search, read as a line instead of lit as a field. It covers
-             the map rather than unmounting it, so Leaflet keeps its size and the
+             the map rather than unmounting it, so the map keeps its size and the
              way back is instant. -->
         <MatchList
           v-if="mode === 'liste'"
@@ -149,8 +149,8 @@
         </div>
       </div>
 
-      <!-- Where the new map was asked for and this device cannot draw it (no WebGL 2, K-013).
-           Under the map, not over it: it explains the map, and the list is the way out. -->
+      <!-- Where this device cannot draw the map (no WebGL 2, K-013). Under the map, not over
+           it: it explains the empty map, and the list is the way out. -->
       <p v-if="noWebgl" class="map-note small text-muted mt-2 mb-0">
         {{ $t('matching.map.noWebgl') }}
       </p>
@@ -325,7 +325,6 @@ import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
 import { listMatchingEntries, userLocationQuery } from '@/graphql/queries'
 import { useGmsBase } from '@/composables/useGmsBase'
-import { MAP_ENGINE, useMapSwitches } from '@/composables/useMapSwitches'
 import { makeGeoProvider } from '@/utils/geoSearchProvider'
 import { reverseName } from '@/utils/reverseGeocode'
 import {
@@ -337,9 +336,6 @@ import {
   GMS_REJECTED,
 } from '@/composables/useMatches'
 import { loadMapEngine } from '@/utils/mapEngine'
-// Imported here rather than loaded like the other engine: a map drawn with Leaflet is built in
-// the same tick as today, and it is also the one that stands in where MapLibre cannot draw.
-import { createMap as createLeafletMap } from '@/utils/mapEngine/leaflet'
 import { hasPosition as isPositionSet, isPlace } from '@/utils/matchingPosition'
 import { mapPrefPrefix } from '@/utils/matchingPrefs'
 import { useEntryDraft } from '@/composables/useEntryDraft'
@@ -394,8 +390,8 @@ const DEFAULT_RADIUS_FERN = 500
 const MAX_RADIUS = 20000
 // Regional first: the switch opens where the map has always stood.
 const REACHES = ['regional', 'fern']
-// Leaflet wants a zoom to construct with. The real one arrives a tick later,
-// from the remembered view or from the circle.
+// The zoom the map is built with. The real one arrives a tick later, from the
+// remembered view or from the circle.
 const BOOTSTRAP_ZOOM = 8
 
 // Marker sizes in screen pixels per step. They stay constant while zooming, the
@@ -430,9 +426,9 @@ const SNAP_TOL = 24
 const CROWD_PX = crowdRadiusOf(DISC_SIZE)
 
 // The grey rings: small on purpose - they are many, and they are not matches. Their tap
-// area is the markers' all the same (HIT_MIN, F-10), reached through the canvas's click
-// tolerance: Leaflet counts a tap as on a ring within radius + half the line + tolerance
-// of its centre (Path._clickTolerance, CircleMarker._containsPoint in Leaflet 1.9).
+// area is the markers' all the same (HIT_MIN, F-10), reached through the engine's tap
+// tolerance: a tap counts as on a ring within radius + half the line + tolerance of its
+// centre (`ringAt` in utils/mapEngine/maplibre).
 const RING_RADIUS = 5
 const RING_WEIGHT = 2
 const RING_TOLERANCE = HIT_MIN / 2 - RING_RADIUS - RING_WEIGHT / 2
@@ -442,20 +438,12 @@ const router = useRouter()
 const entryDraft = useEntryDraft()
 const store = useStore()
 const { toastError } = useAppToast()
-// Which place search the admin switch names (K-008), and the address the GMS search answers
-// under. Asked for here because both need the Apollo client, which only setup can reach -
-// the control that searches with them is built a quarter second after mounting.
-const { mapSwitches } = useMapSwitches()
+// The address the GMS search answers under. Asked for here because it needs the Apollo client,
+// which only setup can reach - the control that searches with it is built a quarter second
+// after mounting.
 const { gmsBase } = useGmsBase()
 
-// Which engine draws the map, by the same switch (K-008) - asked at once, so the answer is
-// usually in by the time initMap runs a quarter second after mounting. Null until it is.
-const engineName = ref(null)
-const engineAnswered = mapSwitches().then(({ mapEngine }) => {
-  engineName.value = mapEngine
-})
-// True where MapLibre was asked for and this device cannot draw it (K-013): the old map stands
-// in, and a line under it says why.
+// True where this device cannot draw the map (no WebGL 2, K-013): a line under it says why.
 const noWebgl = ref(false)
 
 // The prefix that belongs to whoever is signed in. Null where the store cannot say -- then
@@ -663,10 +651,9 @@ let map = null
 // Held so unmounting can call it off; initMap runs a quarter second after mount.
 let initTimer = null
 // What the search field asks. Made here rather than in initMap, because the field is in
-// the template from the first tick - and the admin switch is read at each search rather
-// than now: its position arrives asynchronously (utils/geoSearchProvider).
+// the template from the first tick - and the GMS address is read at each search rather
+// than now: it arrives asynchronously (utils/geoSearchProvider).
 const geoProvider = makeGeoProvider({
-  mapSwitches,
   gmsBase,
   viewpoint: () => map?.getCenter() ?? null,
   language: () => locale.value,
@@ -1035,7 +1022,7 @@ function moveSearchTo(next, { fly = false } = {}) {
   // Refused where the centre is born, not where it is stored. A centre that is not two
   // numbers is not a place: guarding only the write would leave the live centre poisoned
   // while storage kept the old one, so drawCircle and drawCentre would run on `undefined`
-  // (Leaflet: "Invalid LatLng object"), the label would be reverse-geocoded from nothing,
+  // (MapLibre: "Invalid LngLat object"), the label would be looked up for nothing,
   // and the two would disagree until the next reload. Both search fields hand their pick
   // straight from an address service, unchecked -- this is where it is checked.
   if (!isPlace(next)) return
@@ -1074,8 +1061,8 @@ let labelRequest = 0
  *   nothing is asked - the home button lands here. A crosshair does only within HOME_KM of
  *   the house, and at the zoom that frames the circle that is about one pixel, so a crosshair
  *   set on the house by eye is usually looked up like any other point;
- * - any other point set on the map is named behind the admin switch (utils/reverseGeocode):
- *   by Nominatim in the old position, from the map's own tile file in the new one.
+ * - any other point set on the map is named from the map's own tile file
+ *   (utils/reverseGeocode), and nobody else is asked.
  * Only ever the member's own search point, never anybody else's position.
  */
 async function resolveCenterLabel(next) {
@@ -1094,8 +1081,7 @@ async function resolveCenterLabel(next) {
   // "The chosen point" while the lookup is out: the previous centre's name must not stand for
   // this one meanwhile, nor stay stored with it when the page is left before the answer.
   setCenterLabel('')
-  const { geoProvider } = await mapSwitches()
-  const label = await reverseName(geoProvider, next.lat, next.lng, locale.value)
+  const label = await reverseName(next.lat, next.lng, locale.value)
   if (mine === labelRequest) setCenterLabel(label)
 }
 
@@ -1585,29 +1571,16 @@ function homeButton() {
 }
 
 /**
- * Build the map with the engine the admin switch names (K-008).
- *
- * Leaflet is built at once, as it always was. MapLibre is fetched first - it is several times
- * Leaflet's weight, and nobody on the old map should download it. A switch that has not answered
- * by the quarter second is waited for rather than guessed: on a slow connection a guess would
- * decide which of the two maps somebody sees. A question that fails is answered with the old map
- * (useMapSwitches), so it ends in a map as well.
+ * Build the map once its engine has arrived. The engine is loaded rather than imported
+ * (utils/mapEngine says why), so the map comes a moment after the quarter second.
  */
 function initMap() {
   if (!mapContainer.value || map) return
-  if (engineName.value === null) {
-    engineAnswered.then(initMap)
-    return
-  }
-  if (engineName.value !== MAP_ENGINE.MAPLIBRE) {
-    buildMap(createLeafletMap)
-    return
-  }
-  loadMapEngine(MAP_ENGINE.MAPLIBRE).then(
+  loadMapEngine().then(
     (engine) => buildMap(engine.createMap),
     // The engine did not arrive - a dropped connection, or a deploy since the page was loaded
-    // renamed its file. The map this page already holds is better than none.
-    () => buildMap(createLeafletMap),
+    // renamed its file. There is no map then; the list shows the same matches.
+    () => {},
   )
 }
 
@@ -1621,16 +1594,14 @@ function buildMap(createMap) {
     look: look.value,
     locale: locale.value,
   }
-  let built = createMap(mapContainer.value, options)
-  // Only MapLibre turns a device away: it needs WebGL 2 and leaves the container as it found it.
-  // Until the old engine is removed (D) that device keeps the old map, and is told why (K-013).
-  if (!built.success && createMap !== createLeafletMap) {
+  const built = createMap(mapContainer.value, options)
+  // MapLibre needs WebGL 2 and leaves the container as it found it where the device has none
+  // (K-013). The page stays as it is: the shell, the crosshair and the whole list beside it keep
+  // working, every draw below asks for `map` first, and a line under the map says why.
+  if (!built.success) {
     noWebgl.value = true
-    built = createLeafletMap(mapContainer.value, options)
+    return
   }
-  // A map that could not be built leaves the page as it is: the shell, the crosshair and
-  // the whole list beside it keep working, and every draw below asks for `map` first.
-  if (!built.success) return
   map = built.value
 
   // The corner reads zoom buttons, then the search lens, then the way home - the order it
@@ -1719,8 +1690,7 @@ watch(breite, (value) => writePref('breite', value))
 watch(visible, redraw, { deep: true })
 watch(visible, () => writePref('filters', { ...visible }), { deep: true })
 watch(look, () => {
-  // The three looks of the Leaflet engine are CSS filters on the tile pane, which follow
-  // the class on the shell; MapLibre paints its own tiles and changes its style.
+  // A look is a style of its own: MapLibre paints its own tiles (utils/mapStyle).
   if (map) map.setLook(look.value)
   redraw()
 })
@@ -1737,12 +1707,10 @@ watch(mode, (value) => {
   overflow: hidden;
 }
 
-/* In list mode the map stays mounted underneath (kept sized), but Leaflet's own
-   controls — the zoom buttons, the search button, the attribution — carry a high
-   z-index and would poke through the list cover and sit on its text. The list has
-   its own address search up top, so hide the map's controls while it is showing.
-   MapLibre's are raised to Leaflet's height below, so they would poke through alike. */
-.map-shell.is-list :deep(.leaflet-control-container),
+/* In list mode the map stays mounted underneath (kept sized), but its controls — the
+   zoom buttons, the search button, the way home — are raised above the map below, and
+   would poke through the list cover and sit on its text. The list has its own address
+   search up top, so hide the map's controls while it is showing. */
 .map-shell.is-list :deep(.maplibregl-control-container) {
   display: none;
 }
@@ -1750,16 +1718,16 @@ watch(mode, (value) => {
 /* MapLibre hangs its markers straight into the container that holds its canvas, and nothing
    there makes a layer of its own, so the z-index a marker carries (the house 500, the centre
    400) would count against the page: the house would stand on the list cover and over the
-   crosshair, and both would cover the zoom buttons. Leaflet keeps every marker inside its map
-   pane. Isolated, the container is one layer again, with the markers ordered inside it. */
+   crosshair, and both would cover the zoom buttons. Isolated, the container is one layer, with
+   the markers ordered inside it. */
 .map-shell :deep(.maplibregl-canvas-container) {
   isolation: isolate;
 }
 
-/* ...and the controls go above everything on the map, as Leaflet's corners (z-index 1000) do.
-   MapLibre's corners stand at 2, where the crosshair (450) would cover the search field's list
-   of places wherever the two meet - on a phone they do. The bottom corners stay where they
-   are: under the keep offer, like Leaflet's after the rule further down. */
+/* ...and the controls go above everything on the map, at 1000. MapLibre's corners stand at 2,
+   where the crosshair (450) would cover the search field's list of places wherever the two
+   meet - on a phone they do. The bottom corners stay at 2: the map's small print there
+   belongs under the keep offer (900), which is put there deliberately. */
 .map-shell :deep(.maplibregl-ctrl-top-left) {
   z-index: 1000;
 }
@@ -1777,10 +1745,9 @@ watch(mode, (value) => {
   height: 18px;
 }
 
-/* MapLibre's button chrome, held to the measure of Leaflet's on a touch screen - 30 px buttons
-   in a 2 px rim, 34 px in all - which is the measure the lens between them is built to
-   (GeoSearchField), so the corner reads the same on either engine. The way home is a link, and
-   MapLibre gives a size to buttons only. */
+/* MapLibre's button chrome, held to a touch measure - 30 px buttons in a 2 px rim, 34 px in
+   all - which is the measure the lens between them is built to (GeoSearchField), so the corner
+   reads as one. The way home is a link, and MapLibre gives a size to buttons only. */
 .map-shell :deep(.maplibregl-ctrl-group) {
   border: 2px solid rgb(0 0 0 / 20%);
   background-clip: padding-box;
@@ -1810,7 +1777,7 @@ watch(mode, (value) => {
 }
 
 /* The search field belongs in the map's control corner, and initMap moves it there —
-   both engines mark what they have taken with `gk-placed`. Until then the element is
+   the engine marks what it has taken with `gk-placed`. Until then the element is
    still standing in the page flow under the canvas, where a lens would only push the
    shell taller for a quarter second; and where no map is ever built, it stays away. */
 .gk-search:not(.gk-placed) {
@@ -1905,14 +1872,6 @@ watch(mode, (value) => {
   }
 }
 
-/* Leaflet gives its corner panes z-index 1000, which put the attribution over the
-   keep offer and made the sentence unreadable. The attribution has to stay legible
-   and reachable, but it is the map's small print — it belongs under a band that was
-   put there deliberately. */
-.map-shell :deep(.leaflet-bottom) {
-  z-index: 500;
-}
-
 /* The air above belongs to the layout, not here: this page sits in the content
    column, and padding here would leave the menu column glued to the top on its
    own. See bareChrome in DashboardLayout. */
@@ -1952,28 +1911,6 @@ watch(mode, (value) => {
   color: var(--text);
   background: transparent;
   border: 0;
-}
-
-/* Appearance. The filter belongs on the tile layer alone — put it on the map and
-   it takes the zoom buttons, the attribution and our markers down with it. */
-.map-shell.look-dunkel :deep(.leaflet-container) {
-  background: #0b0c0f;
-}
-
-.map-shell.look-dunkel :deep(.leaflet-tile-pane) {
-  filter: invert(1) hue-rotate(180deg) brightness(0.32) saturate(0) contrast(1.12);
-}
-
-.map-shell.look-hell :deep(.leaflet-container) {
-  background: #fff;
-}
-
-.map-shell.look-hell :deep(.leaflet-tile-pane) {
-  filter: saturate(0) brightness(1.16) contrast(0.94);
-
-  /* A white veil cannot be written as a filter chain; half-transparent tiles over
-     a white ground are exactly the same thing and need no extra layer. */
-  opacity: 0.5;
 }
 
 .look-switch {
@@ -2338,7 +2275,6 @@ watch(mode, (value) => {
   display: none;
 }
 
-.map-shell.is-cluster :deep(.leaflet-control-container),
 .map-shell.is-cluster :deep(.maplibregl-control-container) {
   display: none;
 }
@@ -2357,26 +2293,6 @@ watch(mode, (value) => {
   --dark-rim: rgb(255 255 255 / 35%);
   --dark-line: rgb(255 255 255 / 20%);
 
-  :deep(.leaflet-bar) {
-    border-color: var(--dark-rim);
-  }
-
-  :deep(.leaflet-bar a) {
-    color: var(--dark-mark);
-    background-color: var(--dark-chrome);
-    border-bottom-color: var(--dark-line);
-  }
-
-  :deep(.leaflet-bar a:hover),
-  :deep(.leaflet-bar a:focus) {
-    background-color: var(--dark-hover);
-  }
-
-  :deep(.leaflet-bar a.leaflet-disabled) {
-    color: var(--dark-line);
-    background-color: var(--dark-chrome);
-  }
-
   /* On the dark map the field takes the chrome the other controls take there. */
   .gk-search {
     --surface: var(--dark-chrome);
@@ -2385,19 +2301,10 @@ watch(mode, (value) => {
     color: var(--dark-mark);
   }
 
-  :deep(.leaflet-control-attribution) {
-    color: rgb(255 255 255 / 60%);
-    background: rgb(22 24 29 / 80%);
-  }
-
-  :deep(.leaflet-control-attribution a) {
-    color: rgb(255 255 255 / 80%);
-  }
-
-  /* The same for MapLibre's controls. Its zoom marks and the sign that opens its small print
-     are pictures, not letters, so they are turned light instead of coloured: the marks are
-     #333, inverted #ccc, and brightened by 1.14 they come to the light of --dark-mark that
-     Leaflet's letters wear (compared side by side in a browser, 16.09.2026). */
+  /* MapLibre's zoom marks and the sign that opens its small print are pictures, not letters,
+     so they are turned light instead of coloured: the marks are #333, inverted #ccc, and
+     brightened by 1.14 they come to the light of --dark-mark (compared side by side in a
+     browser, 16.09.2026). */
   :deep(.maplibregl-ctrl-group) {
     border-color: var(--dark-rim);
     background-color: var(--dark-chrome);
@@ -2510,14 +2417,11 @@ watch(mode, (value) => {
   }
 }
 
-/* Leaflet gives an interactive marker icon pointer-events:auto at 0,2,0 specificity;
-   beating it needs 0,3,0. The coloured match markers hand their click to the core
-   inside (pointer-events:auto), so the icon box around them — much of it invisible
-   glow on the dark map — is click-through and cannot steal a tap. MapLibre sets no
-   pointer-events on a marker at all, so there the box takes every tap unless told the
-   same. Kept at the end of the block so specificity only ever ascends
-   (no-descending-specificity). */
-.leaflet-interactive.gk-marker.gk-clickable,
+/* The coloured match markers hand their click to the core inside (pointer-events:auto),
+   so the box around them — much of it invisible glow on the dark map — is click-through
+   and cannot steal a tap. MapLibre sets no pointer-events on a marker at all, so the box
+   would take every tap unless told otherwise. Kept at the end of the block so specificity
+   only ever ascends (no-descending-specificity). */
 .maplibregl-marker.gk-marker.gk-clickable {
   pointer-events: none;
 }

@@ -26,14 +26,10 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { loadMapEngine } from '@/utils/mapEngine'
-// Imported here rather than loaded like the other engine: a map drawn with Leaflet is built in
-// the same tick as before, and it is also the one that stands in where MapLibre cannot draw.
-import { createMap as createLeafletMap } from '@/utils/mapEngine/leaflet'
 import CoordinatesDisplay from '@/components/UserSettings/CoordinatesDisplay.vue'
 import GeoSearchField from '@/components/Matching/GeoSearchField.vue'
 import { useI18n } from 'vue-i18n'
 import { useGmsBase } from '@/composables/useGmsBase'
-import { MAP_ENGINE, useMapSwitches } from '@/composables/useMapSwitches'
 import { makeGeoProvider } from '@/utils/geoSearchProvider'
 
 const mapContainer = ref(null)
@@ -87,22 +83,14 @@ const props = defineProps({
 })
 
 const { t, locale } = useI18n()
-// For the address search: the admin switch and the GMS address need the Apollo client,
-// which only setup can reach - the map itself is built a quarter second after mounting.
-// The switch is read at each search rather than now (utils/geoSearchProvider).
-const { mapSwitches } = useMapSwitches()
+// For the address search: the GMS address needs the Apollo client, which only setup can
+// reach - the map itself is built a quarter second after mounting. The address is read at each
+// search rather than now (utils/geoSearchProvider).
 const { gmsBase } = useGmsBase()
 const provider = makeGeoProvider({
-  mapSwitches,
   gmsBase,
   viewpoint: () => map.value?.getCenter() ?? null,
   language: () => locale.value,
-})
-// Which engine draws the map, by the same switch (K-008) - asked at once, so the answer is
-// usually in by the time initMap runs. Null until it is.
-const engineName = ref(null)
-const engineAnswered = mapSwitches().then(({ mapEngine }) => {
-  engineName.value = mapEngine
 })
 
 onMounted(async () => {
@@ -128,24 +116,16 @@ onUnmounted(() => {
 })
 
 /**
- * Build the map with the engine the admin switch names, as the matching map does: Leaflet at
- * once, MapLibre once its file has arrived. A switch that has not answered yet is waited for
- * rather than guessed, and a question that fails is answered with the old map (useMapSwitches).
+ * Build the map once its engine has arrived - loaded here rather than imported, so the pages
+ * that hold this map on one tab do not download it with themselves (utils/mapEngine).
  */
 function initMap() {
   if (!mapContainer.value || map.value) return
-  if (engineName.value === null) {
-    engineAnswered.then(initMap)
-    return
-  }
-  if (engineName.value !== MAP_ENGINE.MAPLIBRE) {
-    buildMap(createLeafletMap)
-    return
-  }
-  loadMapEngine(MAP_ENGINE.MAPLIBRE).then(
+  loadMapEngine().then(
     (engine) => buildMap(engine.createMap),
-    // The engine did not arrive: the map this component already holds is better than none.
-    () => buildMap(createLeafletMap),
+    // The engine did not arrive - a dropped connection, or a deploy since the page was loaded
+    // renamed its file. There is no map then; the rest of the page keeps working.
+    () => {},
   )
 }
 
@@ -161,14 +141,9 @@ function buildMap(createMap) {
       look: 'normal',
       locale: locale.value,
     }
-    let built = createMap(mapContainer.value, options)
-    // Only MapLibre turns a device away (no WebGL 2, K-013); until the old engine is removed
-    // that device keeps the old map.
-    if (!built.success && createMap !== createLeafletMap) {
-      built = createLeafletMap(mapContainer.value, options)
-    }
-    // A map that could not be built leaves the readout and the address search standing;
-    // everything below asks for `map.value` first.
+    const built = createMap(mapContainer.value, options)
+    // A device without WebGL 2 gets no map (K-013). What is left stands as it is: everything
+    // below asks for `map.value` first, and the readout and the address search wait for one.
     if (!built.success) return
     map.value = built.value
 
@@ -197,12 +172,11 @@ function buildMap(createMap) {
           popupAnchor: [1, -34],
         }
 
-    // Interactive, because draggable alone is not enough: Marker._initInteraction
-    // returns before it builds MarkerDrag when interactive is false, so the marker
-    // had `draggable: true` and no way to be dragged, and the dragend handler below
-    // could never run. Setting the position by clicking the map still worked, which
-    // is why it read as a working map. The community marker stays non-interactive -
-    // it is a label, not a control.
+    // Interactive (the engine's default), because draggable alone is not enough: a marker
+    // that takes no tap lets it through to the map, so it cannot be picked up either, and
+    // the dragend handler below would never run. Setting the position by clicking the map
+    // would still work, which is why such a pin once read as a working map. The community
+    // marker stays non-interactive - it is a label, not a control.
     //
     // The home house needs no label; the pin explains itself with a popup.
     userMarker.value = map.value.marker({
@@ -310,13 +284,6 @@ watch(userPosition, (newPosition) => {
   width: 100%;
 }
 
-/* Leaflet paints div-icons on a white bordered box by default; the home house
-   rides transparent, the way the big map's markers do. */
-:deep(.own-home) {
-  background: transparent;
-  border: 0;
-}
-
 /* The field rides the map, so it wears the map's chrome and not the wallet's theme: white
    with a translucent rim and black marks, like the zoom buttons beside it, whichever theme
    the wallet is in. It paints itself out of --surface and --border (GeoSearchField), and
@@ -329,21 +296,17 @@ watch(userPosition, (newPosition) => {
 }
 
 /* The search field belongs in the map's control corner, and initMap moves it there —
-   both engines mark what they have taken with `gk-placed`. Until then the element is
+   the engine marks what it has taken with `gk-placed`. Until then the element is
    still standing in the page flow under the map; and where no map is ever built, it
    stays away. */
 .gk-search:not(.gk-placed) {
   display: none;
 }
 
-:deep(.leaflet-control-zoom > a) {
-  color: #555 !important;
-}
-
-/* MapLibre's zoom buttons, held to the measure of Leaflet's on a touch screen - 30 px buttons
-   in a 2 px rim, 34 px in all - which is the measure the lens under them is built to
-   (GeoSearchField). The big map does the same. Behind `.map-container`, because MapLibre's
-   own stylesheet arrives with the engine, after this one, and would win a tie. */
+/* MapLibre's zoom buttons, held to a touch measure - 30 px buttons in a 2 px rim, 34 px in
+   all - which is the measure the lens under them is built to (GeoSearchField). The big map
+   does the same. Behind `.map-container`, because MapLibre's own stylesheet arrives with the
+   engine, after this one, and would win a tie. */
 .map-container :deep(.maplibregl-ctrl-group) {
   border: 2px solid rgb(0 0 0 / 20%);
   background-clip: padding-box;

@@ -57,7 +57,7 @@ export function ringPoints(centre, metres, steps = 96) {
  *
  * This is the box a view is fitted to, so that the whole circle is on the screen
  * whatever its radius. It is taken from the ring `ringPoints` gives - the one `setCircle`
- * draws in both engines - so the view holds exactly what is drawn. A box of degrees
+ * draws - so the view holds exactly what is drawn. A box of degrees
  * (`latSpan / cos φ`, which is what Leaflet's `LatLng.toBounds` does) is narrower than
  * the round circle and cut it off east and west: 2.5 % of a 2,000 km circle at
  * Künzelsau's latitude (F-11).

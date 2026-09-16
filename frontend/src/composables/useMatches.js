@@ -159,7 +159,7 @@ export function apiBaseOf(pageUrl) {
 
 /**
  * The GMS sends `[lng, lat]` — a PostGIS point, x before y (`ST_MakePoint(lng, lat)`
- * in its queries). Leaflet and this map say `{ lat, lng }`.
+ * in its queries). This map says `{ lat, lng }`.
  */
 export function positionOf(location) {
   return { lat: location[1], lng: location[0] }

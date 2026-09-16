@@ -26,7 +26,6 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMutation, useQuery } from '@vue/apollo-composable'
-import 'leaflet/dist/leaflet.css'
 import { updateUserInfos } from '@/graphql/mutations'
 import { useAppToast } from '@/composables/useToast'
 import UserLocationMap from '@/components/UserSettings/UserLocationMap'

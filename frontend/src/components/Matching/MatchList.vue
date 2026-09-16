@@ -142,7 +142,6 @@ import { computed, h } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { distanceKm } from '@/composables/useMatches'
 import { useGmsBase } from '@/composables/useGmsBase'
-import { useMapSwitches } from '@/composables/useMapSwitches'
 import { makeGeoProvider } from '@/utils/geoSearchProvider'
 import GeoSearchField from '@/components/Matching/GeoSearchField.vue'
 import {
@@ -324,12 +323,10 @@ const PlaceText = {
 
 // --- address search (the blind member's only way to set the centre) --------
 
-// Made here, in setup, and the admin switch is read at each search rather than now: its
-// position arrives asynchronously (utils/geoSearchProvider).
-const { mapSwitches } = useMapSwitches()
+// Made here, in setup, and the GMS address is read at each search rather than now: it arrives
+// asynchronously (utils/geoSearchProvider).
 const { gmsBase } = useGmsBase()
 const provider = makeGeoProvider({
-  mapSwitches,
   gmsBase,
   viewpoint: () => props.searchCenter,
   language: () => locale.value,

@@ -5,24 +5,14 @@ import { createI18n } from 'vue-i18n'
 import MatchList from './MatchList.vue'
 import GeoSearchField from './GeoSearchField.vue'
 
-// The address search goes through the real provider and its switch; only the network ends
-// are replaced: the GMS search itself, the address it answers under, and the admin switch -
-// in the new position, so a search here would reach the GMS and nothing else.
+// The address search goes through the real provider; only the network ends are replaced: the
+// GMS search itself and the address it answers under.
 const GMS = 'https://ki-playground-gms.gradido.net/gms/'
 const { searchPlaces } = vi.hoisted(() => ({ searchPlaces: vi.fn(async () => []) }))
 vi.mock('@/utils/geoSearch', () => ({ searchPlaces }))
 vi.mock('@/composables/useGmsBase', () => ({
   useGmsBase: () => ({ gmsBase: async () => GMS }),
 }))
-vi.mock('@/composables/useMapSwitches', async () => {
-  const actual = await vi.importActual('@/composables/useMapSwitches')
-  return {
-    ...actual,
-    useMapSwitches: () => ({
-      mapSwitches: async () => ({ mapEngine: 'LEAFLET', geoProvider: actual.GEO_PROVIDER.GMS }),
-    }),
-  }
-})
 
 const i18n = createI18n({
   legacy: false,
