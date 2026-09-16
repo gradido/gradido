@@ -162,4 +162,34 @@ describe('the two writes behind the Crea settings', () => {
 
     expect(order).toEqual(['read', 'write'])
   })
+
+  // ⛔ The whole answer, for the read and for the save: every setting the page shows, each
+  // filled from where it lives. The type already refuses a missing or an extra field - what
+  // it cannot see is a field filled from the wrong source, and nothing else asserts the value
+  // of `defaultModel` or of the keying switch in the read.
+  it('reads every setting the page shows, each from where it lives', async () => {
+    // Off here and on in the save below, so neither answer can be a constant.
+    isActive.mockResolvedValue(false)
+
+    expect(await resolver.creaSettings()).toStrictEqual({
+      model: 'claude-opus-5',
+      effort: 'high',
+      defaultModel: 'claude-sonnet-5',
+      fastMode: true,
+      matchingKeyingActive: false,
+      firstCreationSigner: null,
+    })
+  })
+
+  it('answers a save with every setting the page shows', async () => {
+    // Asked for `max`, stored `high`: the answer is what the write returned, not the input.
+    expect(await resolver.setCreaSettings(input({ effort: 'max' }))).toStrictEqual({
+      model: 'claude-opus-5',
+      effort: 'high',
+      defaultModel: 'claude-sonnet-5',
+      fastMode: true,
+      matchingKeyingActive: true,
+      firstCreationSigner: null,
+    })
+  })
 })
