@@ -166,6 +166,16 @@ describe('the MapLibre map engine', () => {
       expect(library().getZoom()).toBe(8)
     })
 
+    // The settings map's spec hands the handle a pair, as every map library hands one out.
+    it('takes a place as a pair too, latitude first', async () => {
+      await build()
+
+      map.setView([50.0874654, 14.4212535], 9)
+
+      expect(map.getCenter().lat).toBeCloseTo(50.0874654, 6)
+      expect(map.getCenter().lng).toBeCloseTo(14.4212535, 6)
+    })
+
     // What the view frames is the circle `setCircle` draws, whatever its radius. MapLibre fits
     // a box exactly, without rounding the zoom - so a box narrower than the ring (F-11) would
     // cut it off at once.
@@ -245,6 +255,18 @@ describe('the MapLibre map engine', () => {
     expect(here.x).toBeCloseTo(place.x - middle.x, 6)
     expect(here.y).toBeCloseTo(place.y - middle.y, 6)
     expect(map.getSize()).toEqual({ width: 0, height: 0 })
+  })
+
+  // MapLibre counts a container laid out at no size as 400 x 300 and projects with that
+  // (Map._containerDimensions), writing it onto its canvas. The middle of the screen the page
+  // measures from has to be the middle MapLibre projects from.
+  it('counts the screen as MapLibre projects onto it, from its canvas', async () => {
+    await build()
+
+    canvas().style.width = '400px'
+    canvas().style.height = '300px'
+
+    expect(map.getSize()).toEqual({ width: 400, height: 300 })
   })
 
   // The settings map sets the member's place from this, so what arrives has to be a place and
@@ -572,6 +594,40 @@ describe('the MapLibre map engine', () => {
       expect(wide).toHaveBeenCalledTimes(1)
     })
 
+    // The page gives the rings the markers' tap area by this sum (RING_TOLERANCE in the page):
+    // radius 5, half the line 1, tolerance 15 - a tap 21 px out is on the ring, 22 px is not.
+    it('counts a tap as on a ring up to its radius, half its line and the tolerance', async () => {
+      await build()
+      const onClick = vi.fn()
+      map.setPresence([{ ...CENTRE, filled: true, onClick }], ringOptions)
+
+      tapAt(22)
+      expect(onClick).not.toHaveBeenCalled()
+
+      tapAt(21)
+      expect(onClick).toHaveBeenCalledTimes(1)
+    })
+
+    // A coloured marker stands above the rings; a tap on it is the marker's alone.
+    it('leaves a tap on a marker standing on a ring to the marker', async () => {
+      await build()
+      const onRing = vi.fn()
+      const onMarker = vi.fn()
+      map.setPresence([{ ...CENTRE, filled: true, onClick: onRing }], ringOptions)
+      map.marker({
+        ...CENTRE,
+        html: '<i></i>',
+        className: 'gk-probe',
+        size: [44, 44],
+        onClick: onMarker,
+      })
+
+      tap(container.querySelector('.gk-probe'))
+
+      expect(onMarker).toHaveBeenCalledTimes(1)
+      expect(onRing).not.toHaveBeenCalled()
+    })
+
     it('replaces the whole set on the next call', async () => {
       await build()
       const first = vi.fn()
@@ -641,6 +697,37 @@ describe('the MapLibre map engine', () => {
         'line-color': 'rgb(0 0 0 / 35%)',
         'line-width': 1,
       })
+    })
+
+    // GeoJSON wants a ring to end where it starts, to the last digit; the ring of points ends a
+    // rounding error away from its start for many circles - this one included.
+    it('closes the ring exactly', async () => {
+      await build()
+      const points = ringPoints(CENTRE, 500000)
+      expect(points.at(-1)).not.toEqual(points[0])
+
+      map.setCircle(CENTRE, 500000, look)
+
+      const [, hole] = library().getSource('gk-circle').data.features[0].geometry.coordinates
+      expect(hole.at(-1)).toEqual(hole[0])
+    })
+
+    // The circle changes with the radius while the rings stay; the veil must not cover them.
+    it('keeps the veil under the rings that are already there', async () => {
+      await build()
+      map.setPresence([{ ...CENTRE, filled: true, onClick: null }], {
+        radius: 5,
+        weight: 2,
+        stroke: 'grey',
+        fill: 'grey',
+        tolerance: 15,
+      })
+
+      map.setCircle(CENTRE, 25000, look)
+
+      const order = library().layers.map((layer) => layer.id)
+      expect(order.indexOf('gk-circle-veil')).toBeLessThan(order.indexOf('gk-presence'))
+      expect(order.indexOf('gk-circle-edge')).toBeLessThan(order.indexOf('gk-presence'))
     })
 
     // The page asks for this where a circle would be wider than the globe: there is no outside
