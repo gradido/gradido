@@ -6,30 +6,28 @@ import { Field, ObjectType } from 'type-graphql'
 export class GetPublicCommunityInfoResult {
   constructor(dbCom: DbCommunity) {
     this.publicKey = dbCom.publicKey.toString('hex')
-    if (dbCom.publicJwtKey) {
-      this.publicJwtKey = dbCom.publicJwtKey
-    }
+    this.publicJwtKey = dbCom.publicJwtKey
     this.name = dbCom.name
     this.description = dbCom.description
     this.creationDate = dbCom.creationDate
     this.hieroTopicId = dbCom.hieroTopicId
   }
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   name: string | null
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   description: string | null
 
-  @Field(() => Date)
+  @Field(() => Date, { nullable: true })
   creationDate: Date | null
 
   @Field(() => String)
   publicKey: string
 
-  @Field(() => String)
-  publicJwtKey: string
+  @Field(() => String, { nullable: true })
+  publicJwtKey: string | null
 
-  @Field(() => String)
+  @Field(() => String, { nullable: true })
   hieroTopicId: string | null
 }
