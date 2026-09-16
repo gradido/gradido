@@ -317,8 +317,6 @@ import { useRouter } from 'vue-router'
 import { useQuery } from '@vue/apollo-composable'
 import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
 import { listMatchingEntries, userLocationQuery } from '@/graphql/queries'
 import { useGmsBase } from '@/composables/useGmsBase'
 import { useMapSwitches } from '@/composables/useMapSwitches'
@@ -332,6 +330,7 @@ import {
   withProfile,
   GMS_REJECTED,
 } from '@/composables/useMatches'
+import { createMap } from '@/utils/mapEngine/leaflet'
 import { hasPosition as isPositionSet, isPlace } from '@/utils/matchingPosition'
 import { mapPrefPrefix } from '@/utils/matchingPrefs'
 import { useEntryDraft } from '@/composables/useEntryDraft'
@@ -653,13 +652,13 @@ const geoProvider = makeGeoProvider({
   viewpoint: () => map?.getCenter() ?? null,
   language: () => locale.value,
 })
+// The markers of the matches come and go together, so they share a group; the house
+// and the centre disc are single markers. The grey rings and the mask belong to the
+// engine, which keeps one of each (setPresence, setCircle).
 let matchLayer = null
-let presenceLayer = null
 let ownLayer = null
-let circleLayer = null
 let centreLayer = null
 let snapping = false
-let canvasRenderer = null
 
 const ownPosition = ref(null)
 // 0 when the map's middle sits on the search centre — the crosshair fades out then,
@@ -1084,8 +1083,7 @@ async function resolveCenterLabel(next) {
 /** The crosshair: make the map's centre the search's centre, and look there. */
 function searchHere() {
   if (!map) return
-  const centre = map.getCenter()
-  moveSearchTo({ lat: centre.lat, lng: centre.lng })
+  moveSearchTo(map.getCenter())
 }
 
 const radiusInput = ref(null)
@@ -1190,7 +1188,7 @@ function discHtml(colour, size, hit) {
 function drawMatches() {
   if (!map) return
   if (matchLayer) matchLayer.remove()
-  matchLayer = L.layerGroup().addTo(map)
+  matchLayer = map.group()
 
   const glowing = look.value === 'dunkel'
   for (const { match, stages, peak } of visibleMatches.value) {
@@ -1205,18 +1203,17 @@ function drawMatches() {
 
     // A coloured marker is a match: a tap opens their profile, or resolves a crowd
     // first (handleMatchClick). The grey rings open the same window (drawPresence).
-    L.marker([match.position.lat, match.position.lng], {
-      icon: L.divIcon({
-        className: 'gk-marker gk-clickable',
-        html,
-        iconSize: [size, size],
-        iconAnchor: [size / 2, size / 2],
-      }),
+    matchLayer.marker({
+      lat: match.position.lat,
+      lng: match.position.lng,
+      className: 'gk-marker gk-clickable',
+      html,
+      size: [size, size],
+      anchor: [size / 2, size / 2],
       interactive: true,
-      keyboard: false,
+      focusable: false,
+      onClick: () => handleMatchClick(match),
     })
-      .on('click', () => handleMatchClick(match))
-      .addTo(matchLayer)
   }
 }
 
@@ -1290,69 +1287,37 @@ function syncProfile() {
 
 function drawPresence() {
   if (!map) return
-  if (presenceLayer) presenceLayer.remove()
-  presenceLayer = L.layerGroup()
 
-  // Thousands of rings would choke the DOM, so these go on a canvas. The handful
-  // of matches above stay divIcons — they are few and they carry real CSS.
+  // Thousands of rings would choke the DOM, so the engine draws these on a canvas. The
+  // handful of matches above stay markers — they are few and they carry real CSS.
   //
   // A ring opens the same window as a match (GMS-111), with the markers' tap area
-  // (RING_TOLERANCE). Two rings under one finger: whichever Leaflet finds opens - no
+  // (RING_TOLERANCE). Two rings under one finger: whichever the engine finds opens - no
   // crowd zoom for rings, on purpose; they are many and they are silent.
   const dark = look.value === 'dunkel'
   const stroke = dark ? 'rgb(116, 121, 131)' : 'rgb(95, 99, 107)'
   const fill = dark ? 'rgb(80, 84, 94)' : 'rgb(150, 154, 162)'
-  for (const person of visiblePresence.value) {
-    // Only somebody the GMS names can be asked about; an older GMS names nobody.
-    const opens = Boolean(person.uuid && person.community?.uuid)
-    const ring = L.circleMarker([person.position.lat, person.position.lng], {
-      renderer: canvasRenderer,
+  map.setPresence(
+    visiblePresence.value.map((person) => ({
+      lat: person.position.lat,
+      lng: person.position.lng,
+      filled: person.hasEntries,
+      // Only somebody the GMS names can be asked about; an older GMS names nobody, and
+      // a ring with nothing to open takes no tap either.
+      onClick: person.uuid && person.community?.uuid ? () => openProfile(person) : null,
+    })),
+    {
       radius: RING_RADIUS,
       weight: RING_WEIGHT,
-      color: stroke,
-      fillColor: fill,
-      fillOpacity: person.hasEntries ? 1 : 0,
-      interactive: opens,
-    })
-    if (opens) ring.on('click', () => openProfile(person))
-    ring.addTo(presenceLayer)
-  }
-  presenceLayer.addTo(map)
-}
-
-/**
- * A ring of real metres around a point.
- *
- * The backend measures with ST_DistanceSphere, so the circle the member sees has
- * to walk the same sphere. A box of degrees would drift from it — imperceptibly
- * at 25 km, visibly at the radius you use to look across a continent.
- */
-function ringPoints(centre, metres, steps = 96) {
-  const R = 6371008.8
-  const d = metres / R
-  const lat1 = (centre.lat * Math.PI) / 180
-  const lng1 = (centre.lng * Math.PI) / 180
-  const points = []
-  for (let i = 0; i <= steps; i++) {
-    const bearing = (i / steps) * 2 * Math.PI
-    const lat2 = Math.asin(
-      Math.sin(lat1) * Math.cos(d) + Math.cos(lat1) * Math.sin(d) * Math.cos(bearing),
-    )
-    const lng2 =
-      lng1 +
-      Math.atan2(
-        Math.sin(bearing) * Math.sin(d) * Math.cos(lat1),
-        Math.cos(d) - Math.sin(lat1) * Math.sin(lat2),
-      )
-    points.push([(lat2 * 180) / Math.PI, (lng2 * 180) / Math.PI])
-  }
-  return points
+      stroke,
+      fill,
+      tolerance: RING_TOLERANCE,
+    },
+  )
 }
 
 function drawCircle() {
   if (!map || !searchCenter.value) return
-  if (circleLayer) circleLayer.remove()
-  circleLayer = L.layerGroup().addTo(map)
 
   const metres = radius.value * 1000
   // A circle wide enough to swallow a pole has no outside left to dim, and its
@@ -1360,50 +1325,29 @@ function drawCircle() {
   // At that size the count in the heading is the whole answer anyway; the circle
   // was never the point of a search across half the world.
   const toPole = (90 - Math.abs(searchCenter.value.lat)) * 111320
-  if (metres >= toPole) return
+  if (metres >= toPole) {
+    map.setCircle(null)
+    return
+  }
 
-  const ring = ringPoints(searchCenter.value, metres)
-  const mask = MASK[look.value]
-
-  // The world with a hole in it. It has to be a polygon on the map, not a veil
-  // over the container: it belongs to the ground and moves with it.
-  const world = [
-    [-89.9, -359.9],
-    [-89.9, 359.9],
-    [89.9, 359.9],
-    [89.9, -359.9],
-  ]
-  L.polygon([world, ring], {
-    stroke: false,
-    fillColor: mask.fill,
-    fillOpacity: mask.opacity,
-    fillRule: 'evenodd',
-    interactive: false,
-  }).addTo(circleLayer)
-
-  // A line, not a ring: a ring would read as one of the grey circles.
-  L.polygon(ring, {
-    fill: false,
-    weight: 1,
-    color: mask.edge,
-    interactive: false,
-  }).addTo(circleLayer)
+  map.setCircle(searchCenter.value, metres, MASK[look.value])
 }
 
 function zoomToCircle({ fly = false } = {}) {
   if (!map || !searchCenter.value) return
-  const centre = L.latLng(searchCenter.value.lat, searchCenter.value.lng)
-  const bounds = centre.toBounds(radius.value * 2000)
+  const metres = radius.value * 1000
   if (!fly) {
-    map.fitBounds(bounds)
+    map.fitRadius(searchCenter.value, metres)
     return
   }
   // The way home flies in a smooth arc; every other reframe is an instant fit. Over a
-  // long distance Leaflet's own timing turns theatrical, so cap it there — coming home
+  // long distance the map's own timing turns theatrical, so cap it there — coming home
   // stays brisk however far you had wandered, while a short hop keeps its easy pace.
-  const from = map.getCenter()
-  const km = distanceKm({ lat: from.lat, lng: from.lng }, { lat: centre.lat, lng: centre.lng })
-  map.flyToBounds(bounds, km > 300 ? { duration: 1.5 } : {})
+  const km = distanceKm(map.getCenter(), searchCenter.value)
+  map.fitRadius(searchCenter.value, metres, {
+    fly: true,
+    duration: km > 300 ? 1.5 : undefined,
+  })
 }
 
 // Home again: put the search itself back on your own place — the same as clicking
@@ -1426,11 +1370,16 @@ function drawOwn() {
         <g fill="#c69130"><path d="M7.293 1.5a1 1 0 0 1 1.414 0L11 3.793V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v3.293l2.354 2.353a.5.5 0 0 1-.708.707L8 2.207L1.354 8.853a.5.5 0 1 1-.708-.707z"/><path d="m14 9.293l-6-6l-6 6V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5zm-6-.811c1.664-1.673 5.825 1.254 0 5.018c-5.825-3.764-1.664-6.691 0-5.018"/></g>
       </svg>
     </div>`
-  ownLayer = L.marker([ownPosition.value.lat, ownPosition.value.lng], {
-    icon: L.divIcon({ className: 'gk-marker', html, iconSize: [34, 34], iconAnchor: [17, 17.5] }),
+  ownLayer = map.marker({
+    lat: ownPosition.value.lat,
+    lng: ownPosition.value.lng,
+    className: 'gk-marker',
+    html,
+    size: [34, 34],
+    anchor: [17, 17.5],
     interactive: false,
-    zIndexOffset: 500,
-  }).addTo(map)
+    zIndex: 500,
+  })
 }
 
 function drawCentre() {
@@ -1441,16 +1390,16 @@ function drawCentre() {
   if (!map || !searchCenter.value) return
   // A quiet disc under the house: it marks where the search is centred, so that when
   // the house wanders off — a search point away from home — the centre stays shown.
-  centreLayer = L.marker([searchCenter.value.lat, searchCenter.value.lng], {
-    icon: L.divIcon({
-      className: 'gk-marker',
-      html: '<div class="gk-centre"></div>',
-      iconSize: [40, 40],
-      iconAnchor: [20, 20],
-    }),
+  centreLayer = map.marker({
+    lat: searchCenter.value.lat,
+    lng: searchCenter.value.lng,
+    className: 'gk-marker',
+    html: '<div class="gk-centre"></div>',
+    size: [40, 40],
+    anchor: [20, 20],
     interactive: false,
-    zIndexOffset: 400,
-  }).addTo(map)
+    zIndex: 400,
+  })
 }
 
 // The crosshair sets the centre; it says nothing about where the centre already is. So
@@ -1467,21 +1416,24 @@ function updateCentreCover() {
     crosshairOpacity.value = 0
     return
   }
-  const here = map.latLngToContainerPoint([searchCenter.value.lat, searchCenter.value.lng])
-  const middle = map.getSize().divideBy(2)
-  const gap = here.distanceTo(middle)
+  const gap = gapToMiddle(searchCenter.value)
   crosshairOpacity.value = Math.max(0, Math.min(1, (gap - COVER_TOL) / (COVER_FADE - COVER_TOL)))
+}
+
+/** How far a place is from the middle of the view, in screen pixels. */
+function gapToMiddle(place) {
+  const here = map.project(place)
+  const { width, height } = map.getSize()
+  return Math.hypot(here.x - width / 2, here.y - height / 2)
 }
 
 // Coming to rest just off the centre eases the last pixels onto it, so it lands exact
 // at any zoom. The flag keeps the snap's own moveend from snapping again.
 function snapToCentre() {
   if (snapping || !map || !searchCenter.value) return
-  const here = map.latLngToContainerPoint([searchCenter.value.lat, searchCenter.value.lng])
-  const middle = map.getSize().divideBy(2)
-  if (here.distanceTo(middle) < SNAP_TOL) {
+  if (gapToMiddle(searchCenter.value) < SNAP_TOL) {
     snapping = true
-    map.panTo([searchCenter.value.lat, searchCenter.value.lng], { animate: true, duration: 0.25 })
+    map.panTo(searchCenter.value, { animate: true, duration: 0.25 })
   }
 }
 
@@ -1490,10 +1442,10 @@ function snapToCentre() {
 // can (identical coordinates), falls through to the cluster list.
 function handleMatchClick(match) {
   if (!map) return
-  const here = map.latLngToContainerPoint([match.position.lat, match.position.lng])
+  const here = map.project(match.position)
   const crowd = visibleMatches.value.filter(({ match: other }) => {
-    const point = map.latLngToContainerPoint([other.position.lat, other.position.lng])
-    return here.distanceTo(point) <= CROWD_PX
+    const point = map.project(other.position)
+    return Math.hypot(here.x - point.x, here.y - point.y) <= CROWD_PX
   })
   if (crowd.length <= 1) {
     openProfile(match)
@@ -1520,7 +1472,7 @@ function zoomToCluster(crowd) {
   const lng = crowd.reduce((sum, { match: other }) => sum + other.position.lng, 0) / crowd.length
   inClusterZoom = true
   clusterZoomBase = map.getZoom()
-  map.setView([lat, lng], Math.min(clusterZoomBase + 2, map.getMaxZoom()), { animate: true })
+  map.setView({ lat, lng }, Math.min(clusterZoomBase + 2, map.getMaxZoom()), { animate: true })
 }
 
 // The list of a spot no zoom can open: the crowd, sorted by fit (distance says
@@ -1582,58 +1534,57 @@ function restoreView() {
     Number.isFinite(saved.lng) &&
     Number.isFinite(saved.zoom)
   ) {
-    map.setView([saved.lat, saved.lng], saved.zoom)
+    map.setView({ lat: saved.lat, lng: saved.lng }, saved.zoom)
     return
   }
   zoomToCircle()
 }
 
+/**
+ * A way home under the search lens: a gold heart-house button that frames your own place
+ * again, wherever you have panned. The page builds it, the engine hangs it in the corner
+ * and gives it the button chrome the zoom buttons wear (dark on the dark map).
+ */
+function homeButton() {
+  const bar = document.createElement('div')
+  bar.className = 'gk-home'
+  const link = document.createElement('a')
+  link.href = '#'
+  link.setAttribute('role', 'button')
+  link.title = t('matching.map.home')
+  link.setAttribute('aria-label', t('matching.map.home'))
+  link.innerHTML =
+    '<svg viewBox="0 0 16 16" aria-hidden="true"><g fill="#c69130"><path d="M7.293 1.5a1 1 0 0 1 1.414 0L11 3.793V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v3.293l2.354 2.353a.5.5 0 0 1-.708.707L8 2.207L1.354 8.853a.5.5 0 1 1-.708-.707z"/><path d="m14 9.293l-6-6l-6 6V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5zm-6-.811c1.664-1.673 5.825 1.254 0 5.018c-5.825-3.764-1.664-6.691 0-5.018"/></g></svg>'
+  link.addEventListener('click', (event) => {
+    // The href is there so the button can be reached by keyboard; following it would
+    // put a bare # in the address bar and nothing else.
+    event.preventDefault()
+    recenterHome()
+  })
+  bar.appendChild(link)
+  return bar
+}
+
 function initMap() {
   if (!mapContainer.value || map) return
-  map = L.map(mapContainer.value, { center: [0, 0], zoom: BOOTSTRAP_ZOOM, zoomControl: false })
-  L.control.zoom({ position: 'topleft' }).addTo(map)
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors',
+  const built = createMap(mapContainer.value, {
+    center: { lat: 0, lng: 0 },
+    zoom: BOOTSTRAP_ZOOM,
     maxZoom: 19,
-  }).addTo(map)
-
-  // Only the grey rings are drawn on this renderer, so its tolerance is theirs alone.
-  canvasRenderer = L.canvas({ padding: 0.5, tolerance: RING_TOLERANCE })
-
-  // The search field the page built, hung on the map as a control of its own. It goes on
-  // after the zoom buttons and before the way home, which is the order the corner has
-  // always read in. Taps and wheel turns inside it stay inside it: without that, opening
-  // the field would drag the map and scrolling its results would zoom.
-  const SearchControl = L.Control.extend({
-    options: { position: 'topleft' },
-    onAdd() {
-      L.DomEvent.disableClickPropagation(searchHost.value)
-      L.DomEvent.disableScrollPropagation(searchHost.value)
-      return searchHost.value
-    },
+    look: look.value,
+    locale: locale.value,
   })
-  map.addControl(new SearchControl())
+  // A map that could not be built leaves the page as it is: the shell, the crosshair and
+  // the whole list beside it keep working, and every draw below asks for `map` first.
+  if (!built.success) return
+  map = built.value
 
-  // A way home under the search lens: a gold heart-house button that frames your own
-  // place again, wherever you have panned. It joins the Leaflet controls (their chrome,
-  // dark on the dark map) and, sitting in the same corner after the lens, stacks
-  // directly below it.
-  const HomeControl = L.Control.extend({
-    options: { position: 'topleft' },
-    onAdd() {
-      const bar = L.DomUtil.create('div', 'leaflet-bar gk-home')
-      const link = L.DomUtil.create('a', '', bar)
-      link.href = '#'
-      link.setAttribute('role', 'button')
-      link.title = t('matching.map.home')
-      link.setAttribute('aria-label', t('matching.map.home'))
-      link.innerHTML =
-        '<svg viewBox="0 0 16 16" aria-hidden="true"><g fill="#c69130"><path d="M7.293 1.5a1 1 0 0 1 1.414 0L11 3.793V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v3.293l2.354 2.353a.5.5 0 0 1-.708.707L8 2.207L1.354 8.853a.5.5 0 1 1-.708-.707z"/><path d="m14 9.293l-6-6l-6 6V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5zm-6-.811c1.664-1.673 5.825 1.254 0 5.018c-5.825-3.764-1.664-6.691 0-5.018"/></g></svg>'
-      L.DomEvent.on(link, 'click', L.DomEvent.stop).on(link, 'click', recenterHome)
-      return bar
-    },
-  })
-  map.addControl(new HomeControl())
+  // The corner reads zoom buttons, then the search lens, then the way home - the order it
+  // has always read in. Both of the page's own elements are handed over the same way; the
+  // engine keeps taps and wheel turns inside them.
+  map.addZoomControl('topleft')
+  map.addControl(searchHost.value, 'topleft')
+  map.addControl(homeButton(), 'topleft', { bar: true })
 
   // Remembering where you looked is what lets you leave and come back to it. And the
   // crosshair answers the middle: it fades as the middle nears the centre, and a rest
@@ -1666,7 +1617,7 @@ function redraw() {
 }
 
 function handleResize() {
-  if (map) map.invalidateSize()
+  if (map) map.resize()
 }
 
 onMounted(() => {
@@ -1679,7 +1630,7 @@ onMounted(() => {
     router.replace('/matching/position')
     return
   }
-  // Leaflet needs its container to have a size before it measures itself.
+  // The map needs its container to have a size before it measures itself.
   initTimer = setTimeout(initMap, 250)
   window.addEventListener('resize', handleResize)
 })
@@ -1713,11 +1664,16 @@ watch(breite, drawMatches)
 watch(breite, (value) => writePref('breite', value))
 watch(visible, redraw, { deep: true })
 watch(visible, () => writePref('filters', { ...visible }), { deep: true })
-watch(look, redraw)
+watch(look, () => {
+  // The three looks of the Leaflet engine are CSS filters on the tile pane, which follow
+  // the class on the shell; an engine that paints its own tiles answers this by restyling.
+  if (map) map.setLook(look.value)
+  redraw()
+})
 // Coming back to the map: it kept its size under the cover, but a resize tick
-// re-lays Leaflet's panes cleanly once the list lifts off.
+// re-lays its panes cleanly once the list lifts off.
 watch(mode, (value) => {
-  if (value === 'karte' && map) nextTick(() => map && map.invalidateSize())
+  if (value === 'karte' && map) nextTick(() => map && map.resize())
 })
 </script>
 

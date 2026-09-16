@@ -25,12 +25,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import L from 'leaflet'
-// Own the Leaflet base stylesheet here so the map renders correctly wherever it
-// is embedded (the settings page imported it in a wrapper; the matching page
-// embeds this component directly, where the missing CSS left the tiles static
-// and scattered).
-import 'leaflet/dist/leaflet.css'
+import { createMap } from '@/utils/mapEngine/leaflet'
 import CoordinatesDisplay from '@/components/UserSettings/CoordinatesDisplay.vue'
 import GeoSearchField from '@/components/Matching/GeoSearchField.vue'
 import { useI18n } from 'vue-i18n'
@@ -48,6 +43,27 @@ const communityPosition = ref({ lat: 0, lng: 0 })
 const defaultZoom = 13
 // Held so unmounting can call it off; initMap runs a quarter second after mount.
 let initTimer = null
+
+/**
+ * The classic map pin, drawn here rather than fetched.
+ *
+ * Until now the two pins were PNGs from raw.githubusercontent.com and cdnjs, so opening
+ * the settings page told two foreign servers about it; and the map seam takes a marker as
+ * markup, which is what every other marker of both maps already is. Same size and same
+ * point as the images they replace (25 x 41, the tip at 12/41), so nothing moves.
+ */
+function pinHtml(colour) {
+  return `<div style="width:25px;height:41px;filter:drop-shadow(1px 2px 2px rgba(0,0,0,.4))">
+      <svg viewBox="0 0 25 41" width="25" height="41" style="display:block" aria-hidden="true">
+        <path d="M12.5 0.5a12 12 0 0 0-12 12c0 9.3 12 27.9 12 27.9s12-18.6 12-27.9a12 12 0 0 0-12-12z" fill="${colour}" stroke="#fff" stroke-width="1"/>
+        <circle cx="12.5" cy="12.5" r="4.2" fill="#fff"/>
+      </svg>
+    </div>`
+}
+
+// The colours of the images they replace: the member's own place red, the community's blue.
+const USER_PIN = '#cb2b3e'
+const COMMUNITY_PIN = '#2a81cb'
 
 const emit = defineEmits(['update:userPosition'])
 
@@ -104,45 +120,43 @@ onUnmounted(() => {
 
 function initMap() {
   if (mapContainer.value && !map.value) {
-    map.value = L.map(mapContainer.value, {
-      center: [userPosition.value.lat, userPosition.value.lng],
+    const built = createMap(mapContainer.value, {
+      center: userPosition.value,
       zoom: defaultZoom,
-      zoomControl: false,
-      closePopupOnClick: false,
-    })
-
-    L.control.zoom({ position: 'topleft' }).addTo(map.value)
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
       maxZoom: 19,
-    }).addTo(map.value)
+      // Both pins carry a label that belongs to them; a click on the map is how the
+      // member sets their place, and it must not take the labels away.
+      keepPopupsOpen: true,
+    })
+    // A map that could not be built leaves the readout and the address search standing;
+    // everything below asks for `map.value` first.
+    if (!built.success) return
+    map.value = built.value
+
+    map.value.addZoomControl('topleft')
 
     // User marker (movable). The matching tab asks for the home house — the same
     // "you" as the big map; the settings page keeps the classic pin.
     const homeIcon = props.userIcon === 'home'
 
     const userIconDef = homeIcon
-      ? L.divIcon({
+      ? {
           className: 'own-home',
           html: `<div style="width:34px;height:34px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5))">
               <svg viewBox="0 0 16 16" width="34" height="34" style="display:block" aria-hidden="true">
                 <g fill="#c69130"><path d="M7.293 1.5a1 1 0 0 1 1.414 0L11 3.793V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v3.293l2.354 2.353a.5.5 0 0 1-.708.707L8 2.207L1.354 8.853a.5.5 0 1 1-.708-.707z"/><path d="m14 9.293l-6-6l-6 6V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5zm-6-.811c1.664-1.673 5.825 1.254 0 5.018c-5.825-3.764-1.664-6.691 0-5.018"/></g>
               </svg>
             </div>`,
-          iconSize: [34, 34],
-          iconAnchor: [17, 32],
-        })
-      : L.icon({
-          iconUrl:
-            'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-          shadowUrl:
-            'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-          iconSize: [25, 41],
-          iconAnchor: [12, 41],
+          size: [34, 34],
+          anchor: [17, 32],
+        }
+      : {
+          className: 'gk-pin',
+          html: pinHtml(USER_PIN),
+          size: [25, 41],
+          anchor: [12, 41],
           popupAnchor: [1, -34],
-          shadowSize: [41, 41],
-        })
+        }
 
     // Interactive, because draggable alone is not enough: Marker._initInteraction
     // returns before it builds MarkerDrag when interactive is false, so the marker
@@ -150,66 +164,41 @@ function initMap() {
     // could never run. Setting the position by clicking the map still worked, which
     // is why it read as a working map. The community marker stays non-interactive -
     // it is a label, not a control.
-    userMarker.value = L.marker([userPosition.value.lat, userPosition.value.lng], {
-      draggable: true,
-      icon: userIconDef,
-    }).addTo(map.value)
-
+    //
     // The home house needs no label; the pin explains itself with a popup.
-    if (!homeIcon) {
-      userMarker.value
-        .bindPopup(t('settings.GMS.map.userLocationLabel'), {
-          autoClose: false,
-          closeOnClick: false,
-          closeButton: false,
-        })
-        .openPopup()
-    }
+    userMarker.value = map.value.marker({
+      lat: userPosition.value.lat,
+      lng: userPosition.value.lng,
+      ...userIconDef,
+      draggable: true,
+      popup: homeIcon ? null : t('settings.GMS.map.userLocationLabel'),
+      onDragEnd: onMarkerDragEnd,
+    })
 
     // Community marker (fixed), only where one was given: the settings page shows
     // the community's pin with its label; the matching tab gives none. Without the
     // guard it would stand at the 0/0 this component starts from.
     if (props.communityMarkerCoords) {
-      communityMarker.value = L.marker([communityPosition.value.lat, communityPosition.value.lng], {
-        draggable: false,
+      communityMarker.value = map.value.marker({
+        lat: communityPosition.value.lat,
+        lng: communityPosition.value.lng,
+        className: 'gk-pin',
+        html: pinHtml(COMMUNITY_PIN),
+        size: [25, 41],
+        anchor: [12, 41],
+        popupAnchor: [1, -34],
         interactive: false,
-        icon: L.icon({
-          iconUrl:
-            'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-          shadowUrl:
-            'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-          iconSize: [25, 41],
-          iconAnchor: [12, 41],
-          popupAnchor: [1, -34],
-          shadowSize: [41, 41],
-        }),
-      }).addTo(map.value)
-
-      communityMarker.value
-        .bindPopup(t('settings.GMS.map.communityLocationLabel'), {
-          autoClose: false,
-          closeOnClick: false,
-          closeButton: false,
-        })
-        .openPopup()
+        popup: t('settings.GMS.map.communityLocationLabel'),
+      })
     }
 
-    map.value.on('click', onMapClick)
-    userMarker.value.on('dragend', onMarkerDragEnd)
+    map.value.on('click', updateUserPosition)
 
     // The search field this component built, hung on the map as a control of its own.
-    // Taps and wheel turns inside it stay inside it: without that, a click into the
-    // field would reach map.on('click') below and move the member's pin to wherever
-    // the field happens to lie, and scrolling its results would zoom the map.
-    const SearchControl = L.Control.extend({
-      options: { position: 'topleft' },
-      onAdd() {
-        L.DomEvent.disableClickPropagation(searchHost.value)
-        L.DomEvent.disableScrollPropagation(searchHost.value)
-        return searchHost.value
-      },
-    })
-    map.value.addControl(new SearchControl())
+    // The engine keeps taps and wheel turns inside it: without that, a click into the
+    // field would reach the map click above and move the member's pin to wherever the
+    // field happens to lie, and scrolling its results would zoom the map.
+    map.value.addControl(searchHost.value, 'topleft')
 
     // Center map on user position
     centerMapOnUser()
@@ -218,13 +207,9 @@ function initMap() {
 
 function handleResize() {
   if (map.value) {
-    map.value.invalidateSize()
+    map.value.resize()
     centerMapOnUser()
   }
-}
-
-function onMapClick(e) {
-  updateUserPosition(e.latlng)
 }
 
 function onPick(place) {
@@ -234,22 +219,18 @@ function onPick(place) {
   // recentres at whatever zoom the map already had - on a map still showing the whole
   // country the pin would land somewhere in the middle of it. Closer stays closer (K-010).
   if (map.value) {
-    map.value.setView([position.lat, position.lng], Math.max(map.value.getZoom(), 15), {
-      animate: true,
-    })
+    map.value.setView(position, Math.max(map.value.getZoom(), 15), { animate: true })
   }
 }
 
-function onMarkerDragEnd() {
-  if (userMarker.value) {
-    updateUserPosition(userMarker.value.getLatLng())
-  }
+function onMarkerDragEnd(position) {
+  updateUserPosition(position)
 }
 
 function updateUserPosition(latlng) {
   userPosition.value = { lat: latlng.lat, lng: latlng.lng }
   if (userMarker.value) {
-    userMarker.value.setLatLng(latlng)
+    userMarker.value.setPosition(latlng)
     userMarker.value.openPopup()
   }
   centerMapOnUser()
@@ -258,27 +239,19 @@ function updateUserPosition(latlng) {
 
 function centerMapOnUser() {
   if (map.value && userPosition.value) {
-    map.value.setView([userPosition.value.lat, userPosition.value.lng], map.value.getZoom(), {
+    map.value.setView(userPosition.value, map.value.getZoom(), {
       animate: true,
-      pan: {
-        duration: 0.5,
-      },
+      duration: 0.5,
     })
   }
 }
 
 function centerMapOnCommunity() {
   if (map.value && communityPosition.value) {
-    map.value.setView(
-      [communityPosition.value.lat, communityPosition.value.lng],
-      map.value.getZoom(),
-      {
-        animate: true,
-        pan: {
-          duration: 0.5,
-        },
-      },
-    )
+    map.value.setView(communityPosition.value, map.value.getZoom(), {
+      animate: true,
+      duration: 0.5,
+    })
   }
 }
 
@@ -322,20 +295,6 @@ watch(userPosition, (newPosition) => {
    stays away. */
 .gk-search:not(.leaflet-control) {
   display: none;
-}
-
-.leaflet-control-custom a {
-  background-color: #fff;
-  width: 30px;
-  height: 30px;
-  line-height: 30px;
-  text-align: center;
-  text-decoration: none;
-  color: black;
-}
-
-.leaflet-control-custom a:hover {
-  background-color: #f4f4f4;
 }
 
 :deep(.leaflet-control-zoom > a) {
