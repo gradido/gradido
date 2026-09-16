@@ -552,6 +552,35 @@ describe('MatchingMap', () => {
       expect(rule[1]).not.toMatch(/white-space: nowrap;/)
     })
 
+    // jsdom applies no scoped styles, so the three rules the search field leans on are read
+    // in the source. Without the first the lens would stand under the canvas for the quarter
+    // second before initMap, and on a page that never builds a map it would stay there for
+    // good; without the other two the field would follow the wallet's theme and turn up dark
+    // among the white zoom buttons, or white on the dark map.
+    it('keeps the search field out of sight until the map takes it, and paints it map chrome', () => {
+      const here = dirname(fileURLToPath(import.meta.url))
+      // Comments first: they name all three, and a guard that reads its own explanation
+      // proves nothing.
+      const source = readFileSync(join(here, 'MatchingMap.vue'), 'utf8').replace(
+        /\/\*[\s\S]*?\*\//g,
+        '',
+      )
+
+      expect(source).toMatch(/\n\.gk-search:not\(\.leaflet-control\) \{[^}]*display: none;/)
+
+      const chrome = source.match(/\n\.gk-search \{([^}]*)\}/)
+      expect(chrome, 'no .gk-search rule in the page').not.toBeNull()
+      expect(chrome[1]).toMatch(/--surface: #fff;/)
+      expect(chrome[1]).toMatch(/--border: rgb\(0 0 0 \/ 20%\);/)
+
+      // And on the dark map the same two tokens carry the chrome of its own controls -
+      // this is what replaced the thirteen rules that dressed leaflet-geosearch there.
+      const dark = source.match(/\n {2}\.gk-search \{([^}]*)\}/)
+      expect(dark, 'no .gk-search rule in the dark block').not.toBeNull()
+      expect(dark[1]).toMatch(/--surface: var\(--dark-chrome\);/)
+      expect(dark[1]).toMatch(/--border: var\(--dark-rim\);/)
+    })
+
     // The two grey buckets are the presence rings, and the wide search draws none.
     it('puts the two grey boxes away in the wide reach, and keeps the three channels', async () => {
       const page = await settle(mountMap())
