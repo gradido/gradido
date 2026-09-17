@@ -703,6 +703,8 @@ describe('UserThankYouCard', () => {
         expect.objectContaining({
           url: `${window.location.origin}/dk/${ACTIVE_CARD.code}`,
           label: 'Portemonnaie',
+          slogan:
+            'translated:auth.triads.slogan.help translated:auth.triads.slogan.give translated:auth.triads.slogan.thank',
         }),
       )
     })

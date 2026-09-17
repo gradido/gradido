@@ -299,6 +299,7 @@ import {
   unblockThankYouCard,
 } from '@/graphql/thankYouCard.graphql'
 import { useAppToast } from '@/composables/useToast'
+import { cardSlogan } from '@/utils/cardSlogan'
 import { printThankYouCardSheet } from '@/utils/thankYouCard'
 import { PIN_MASK_CLASS, pinInputType } from '@/utils/pinMasking'
 import CONFIG from '@/config'
@@ -493,6 +494,7 @@ const cardOptions = () => ({
   label: activeCard.value.label,
   community: CONFIG.COMMUNITY_NAME ?? store.state.community?.name ?? '',
   title: t('thank-you-card.name'),
+  slogan: cardSlogan(t),
 })
 
 const printSheet = async () => {
