@@ -1,7 +1,7 @@
 <template>
   <div class="login-form">
     <BContainer v-if="enterData">
-      <div class="pb-5" align="center">{{ $t('gdd_per_link.isFree') }}</div>
+      <auth-triads class="pb-5" />
       <form @submit.prevent="onSubmit">
         <BRow>
           <BCol sm="12" md="12" lg="6">
@@ -58,6 +58,7 @@
 </template>
 
 <script setup>
+import AuthTriads from '@/components/Auth/AuthTriads'
 import InputPassword from '@/components/Inputs/InputPassword'
 import InputEmail from '@/components/Inputs/InputEmail'
 import Message from '@/components/Message/Message'

@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import Login from './Login.vue'
+import AuthTriads from '@/components/Auth/AuthTriads.vue'
 import flushPromises from 'flush-promises'
 import { createRouter, createWebHistory } from 'vue-router'
 import { createStore } from 'vuex'
@@ -112,6 +113,7 @@ describe('Login', () => {
           InputEmail,
           InputPassword,
           Message: true,
+          AuthTriads: true,
         },
       },
     })
@@ -123,6 +125,11 @@ describe('Login', () => {
 
   it('renders the Login form', () => {
     expect(wrapper.find('div.login-form').exists()).toBe(true)
+  })
+
+  it('shows the rotating triads above the form, in place of the old fixed line', () => {
+    expect(wrapper.findComponent(AuthTriads).exists()).toBe(true)
+    expect(wrapper.text()).not.toContain('gdd_per_link.isFree')
   })
 
   describe('links', () => {

@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import Register from './Register.vue'
+import AuthTriads from '@/components/Auth/AuthTriads.vue'
 import flushPromises from 'flush-promises'
 import { createRouter, createWebHistory } from 'vue-router'
 import { createStore } from 'vuex'
@@ -95,6 +96,7 @@ describe('Register', () => {
           BButton,
           InputEmail,
           Message: true,
+          AuthTriads: true,
         },
       },
     })
@@ -106,6 +108,11 @@ describe('Register', () => {
 
   it('renders the Register form', () => {
     expect(wrapper.find('div#registerform').exists()).toBe(true)
+  })
+
+  it('shows the rotating triads above the form, in place of the old fixed line', () => {
+    expect(wrapper.findComponent(AuthTriads).exists()).toBe(true)
+    expect(wrapper.text()).not.toContain('gdd_per_link.isFree')
   })
 
   describe('Register form', () => {
@@ -272,6 +279,7 @@ describe('Register', () => {
               BButton,
               InputEmail,
               Message: true,
+              AuthTriads: true,
             },
           },
         })
