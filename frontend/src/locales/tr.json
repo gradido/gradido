@@ -52,6 +52,23 @@
       "oneDignity": "Gradidoyla birbirimize armağan verip teşekkür ediyoruz",
       "oneDonation": "Sen toplum için bir armağansın. Bizimle olduğun için 1000lerce teşekkürler.",
       "oneGratitude": "Birbirimiz, tüm insanlar ve doğa için."
+    },
+    "triads": {
+      "design": {
+        "communityBased": "Topluluk temelli.",
+        "decentralized": "Merkeziyetsiz.",
+        "openSource": "Açık kaynaklı."
+      },
+      "purpose": {
+        "community": "Topluluk için.",
+        "nature": "Doğa için.",
+        "youAndMe": "Senin ve benim için."
+      },
+      "slogan": {
+        "give": "Hediye et.",
+        "help": "Yardım et.",
+        "thank": "Teşekkür et."
+      }
     }
   },
   "avatar": {
@@ -437,7 +454,6 @@
     "expiredOn": "Geçerlilik süresi",
     "has-account": "Halihazırda bir Gradido hesabın var mı?",
     "header": "Link, çek ve QR kodu oluştur",
-    "isFree": "Gradido dünya çapında ücretsizdir.",
     "link-and-text-copied": "Link ve mesajın panoya kopyalandı. Artık bunu bir e-postaya veya mesaja ekleyebilirsin.",
     "link-copied": "Link panoya kopyalandı. Artık bir e-postaya veya mesaja yapıştırabilirsin.",
     "link-deleted": "Link {date} tarihinde silindi.",

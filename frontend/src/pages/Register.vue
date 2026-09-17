@@ -1,7 +1,7 @@
 <template>
   <div id="registerform">
     <BContainer v-if="enterData">
-      <div class="pb-5" align="center">{{ $t('gdd_per_link.isFree') }}</div>
+      <auth-triads class="pb-5" />
       <BForm role="form" @submit.prevent="onSubmit">
         <BRow>
           <BCol sm="12" md="6">
@@ -93,6 +93,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useMutation } from '@vue/apollo-composable'
+import AuthTriads from '@/components/Auth/AuthTriads'
 import InputEmail from '@/components/Inputs/InputEmail'
 import Message from '@/components/Message/Message'
 import { useAppToast } from '@/composables/useToast'

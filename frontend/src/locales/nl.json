@@ -52,6 +52,23 @@
       "oneDignity": "We geven aan elkaar en bedanken met Gradido.",
       "oneDonation": "Jij bent een geschenk voor de gemeenschap. 1000 dank dat je bij ons bent.",
       "oneGratitude": "Voor elkaar, voor alle mensen, voor de natuur."
+    },
+    "triads": {
+      "design": {
+        "communityBased": "Gemeenschapsgericht.",
+        "decentralized": "Decentraal.",
+        "openSource": "Open Source."
+      },
+      "purpose": {
+        "community": "Voor de gemeenschap.",
+        "nature": "Voor de natuur.",
+        "youAndMe": "Voor jou en mij."
+      },
+      "slogan": {
+        "give": "Schenken.",
+        "help": "Helpen.",
+        "thank": "Danken."
+      }
     }
   },
   "avatar": {
@@ -437,7 +454,6 @@
     "expiredOn": "Afgelopen op",
     "has-account": "Heb je al een Gradido rekening?",
     "header": "Link, cheque en QR-code aanmaken",
-    "isFree": "Gemeenschappelijk – Decentraal – Open Source",
     "link-and-text-copied": "De link en jouw bericht werden naar het klembord gekopieerd. Je kunt ze nu in een email of bericht invoegen.",
     "link-copied": "Link werd naar het klembord gekopieerd. Je kunt deze nu in een email of bericht invoegen.",
     "link-deleted": "De link werd op {date} verwijderd.",

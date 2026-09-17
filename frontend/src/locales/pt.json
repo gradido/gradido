@@ -52,6 +52,23 @@
       "oneDignity": "Presenteamo-nos uns aos outros e agradecemos com Gradido.",
       "oneDonation": "És um presente para a comunidade. 1000 obrigado por estares connosco.",
       "oneGratitude": "Uns pelos outros, por todas as pessoas, pela natureza."
+    },
+    "triads": {
+      "design": {
+        "communityBased": "Baseado na comunidade.",
+        "decentralized": "Descentralizado.",
+        "openSource": "Open Source."
+      },
+      "purpose": {
+        "community": "Para a comunidade.",
+        "nature": "Para a natureza.",
+        "youAndMe": "Para ti e para mim."
+      },
+      "slogan": {
+        "give": "Oferecer.",
+        "help": "Ajudar.",
+        "thank": "Agradecer."
+      }
     }
   },
   "avatar": {
@@ -437,7 +454,6 @@
     "expiredOn": "Expirou em",
     "has-account": "Já tens uma conta Gradido?",
     "header": "Criar link, cheque e código QR",
-    "isFree": "Baseado na comunidade – Descentralizado – Open Source",
     "link-and-text-copied": "O link e a tua mensagem foram copiados para a área de transferência. Podes agora inseri-los num e-mail ou mensagem.",
     "link-copied": "O link foi copiado para a área de transferência. Podes agora colá-lo num e-mail ou mensagem.",
     "link-deleted": "O link foi eliminado em {date}.",
