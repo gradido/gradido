@@ -1,6 +1,7 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
   <div class="public-profile text-center">
+    <auth-triads class="pb-5" />
     <!-- Full width on a phone, where a big target is easier to hit with a thumb; as wide as
          its own label everywhere else. Grid fractions were tried first and cannot do this:
          the card is not widest on the widest screen -- from 1025px the layout puts the
@@ -86,6 +87,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { BButton, BLink } from 'bootstrap-vue-next'
+import AuthTriads from '@/components/Auth/AuthTriads'
 import GradidoAddressCopy from '@/components/GradidoAddressCopy'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import CONFIG from '@/config'

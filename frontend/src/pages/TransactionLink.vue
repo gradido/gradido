@@ -1,6 +1,10 @@
 <template>
   <div class="show-transaction-link-informations">
-    <div v-if="isTransactionLinkLoaded" class="mt-4">
+    <!-- Outside the v-if: the triads stand while the link is still loading and above every
+         state it turns out to have. Their own bottom padding is the gap to the cards below,
+         as it is to the form on the login and register pages. -->
+    <auth-triads class="pb-5" />
+    <div v-if="isTransactionLinkLoaded">
       <transaction-link-item :type="itemTypeExt">
         <template #LOGGED_OUT>
           <redeem-logged-out :link-data="linkData" :is-contribution-link="isContributionLink" />
@@ -42,6 +46,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { useQuery, useMutation } from '@vue/apollo-composable'
+import AuthTriads from '@/components/Auth/AuthTriads'
 import TransactionLinkItem from '@/components/TransactionLinkItem'
 import RedeemLoggedOut from '@/components/LinkInformations/RedeemLoggedOut'
 import RedeemSelectCommunity from '@/components/LinkInformations/RedeemSelectCommunity'

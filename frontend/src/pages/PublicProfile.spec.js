@@ -5,6 +5,7 @@ import { createI18n } from 'vue-i18n'
 import { createRouter, createWebHistory } from 'vue-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import PublicProfile from './PublicProfile.vue'
+import AuthTriads from '@/components/Auth/AuthTriads.vue'
 
 vi.mock('@/config', () => ({
   default: { COMMUNITY_URL: 'https://ki-playground.gradido.net', COMMUNITY_NAME: 'KI Playground' },
@@ -47,13 +48,24 @@ const wrapperFor = async (alias) => {
   await router.push(`/u/${alias}`)
   await router.isReady()
   return mount(PublicProfile, {
-    global: { plugins: [i18n, router] },
+    global: { plugins: [i18n, router], stubs: { AuthTriads: true } },
   })
 }
 
 describe('PublicProfile', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+  })
+
+  // A door like the login and the register page, so the same greeting at the same place: first
+  // on the page, with the same bottom padding as there.
+  it('opens with the rotating triads, as the login and register pages do', async () => {
+    const wrapper = await wrapperFor('bernd')
+
+    const triads = wrapper.findComponent(AuthTriads)
+    expect(triads.exists()).toBe(true)
+    expect(wrapper.element.firstElementChild).toBe(triads.element)
+    expect(triads.classes()).toContain('pb-5')
   })
 
   it('shows the address that was opened', async () => {

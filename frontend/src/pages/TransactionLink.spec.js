@@ -6,6 +6,7 @@ import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { useAppToast } from '@/composables/useToast'
 import TransactionLinkItem from '@/components/TransactionLinkItem.vue'
+import AuthTriads from '@/components/Auth/AuthTriads.vue'
 
 vi.mock('vue-router', () => ({
   useRoute: vi.fn(() => ({
@@ -105,6 +106,7 @@ describe('TransactionLink', () => {
           RedeemSelfCreator: true,
           RedeemValid: true,
           RedeemedTextBox: true,
+          AuthTriads: true,
         },
       },
     })
@@ -116,6 +118,16 @@ describe('TransactionLink', () => {
 
   it('renders the component', () => {
     expect(wrapper.find('div.show-transaction-link-informations').exists()).toBe(true)
+  })
+
+  // A door like the login and the register page: the triads come first, with the padding that
+  // is the gap to the cards below. And they are there before the link has loaded, or when it
+  // never does -- this wrapper's query answers with nothing.
+  it('opens with the rotating triads before the link has loaded', () => {
+    const triads = wrapper.findComponent(AuthTriads)
+    expect(triads.exists()).toBe(true)
+    expect(wrapper.element.firstElementChild).toBe(triads.element)
+    expect(triads.classes()).toContain('pb-5')
   })
 
   it('calls the queryTransactionLink query', () => {
@@ -155,6 +167,7 @@ describe('TransactionLink', () => {
             RedeemSelfCreator: true,
             RedeemValid: true,
             RedeemedTextBox: true,
+            AuthTriads: true,
           },
         },
       })
@@ -162,6 +175,12 @@ describe('TransactionLink', () => {
 
     it('has a component RedeemedTextBox', () => {
       expect(wrapper.findComponent({ name: 'RedeemedTextBox' }).exists()).toBe(true)
+    })
+
+    it('keeps the triads above the state the link turned out to have', () => {
+      const triads = wrapper.findComponent(AuthTriads)
+      expect(triads.exists()).toBe(true)
+      expect(wrapper.element.firstElementChild).toBe(triads.element)
     })
 
     it('has a link deleted text in text box', () => {
