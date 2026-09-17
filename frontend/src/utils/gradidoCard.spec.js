@@ -5,6 +5,7 @@ import { avatarPaletteEntry } from './avatarColor'
 import {
   CONTACT_MAX_LINES,
   QR_SOURCE_CELL,
+  WEBSITE,
   cardFileName,
   contactLines,
   drawGradidoCard,
@@ -43,6 +44,9 @@ const recordingContext = () => {
         fillStyle: ctx.fillStyle,
         font: ctx.font,
         smoothing: ctx.imageSmoothingEnabled,
+        // A centred block drawn before left-aligned text is harmless only if it hands the
+        // alignment back; on a real canvas every later line would otherwise be centred on its x.
+        textAlign: ctx.textAlign,
       })
     }
   for (const name of [
@@ -593,6 +597,184 @@ describe('drawGradidoCard', () => {
       await drawGradidoCard(QUIET)
 
       expect(qrDraw().args[3]).toBe(withLine)
+    })
+  })
+
+  /**
+   * "Helfen. Schenken. Danken." under the logo, `gradido.net` under that (Bernd, 17.09.2026).
+   *
+   * The widths below are the recording context's -- half the font size per character -- so the
+   * slogan is 25 x 12.5 = 312.5 wide and the block is as wide as the slogan.
+   */
+  describe('the slogan under the logo', () => {
+    const SLOGAN = 'Helfen. Schenken. Danken.'
+    const SLOGAN_WIDTH = SLOGAN.length * 0.5 * mm(2.1)
+    const WITH_SLOGAN = { ...CARD, slogan: SLOGAN }
+
+    const logoDraw = () =>
+      ctx.calls.find(
+        (call) => call.name === 'drawImage' && call.args[0].src === '/img/brand/gradido-logo.png',
+      )
+    const textDraw = (text) =>
+      ctx.calls.find((call) => call.name === 'fillText' && call.args[0] === text)
+    const sizeOf = (call) => Number(/(\d+)px/.exec(call.font)[1])
+    const qrDraw = () =>
+      ctx.calls.find((call) => call.name === 'drawImage' && call.args[0] === CARD.qrCanvas)
+    const hairlineTop = () => ctx.calls.filter((call) => call.name === 'fillRect').at(-1).args[1]
+    // The slogan is drawn centred, so its x is the middle of the block.
+    const sloganLeft = () => textDraw(SLOGAN).args[1] - SLOGAN_WIDTH / 2
+
+    it('prints nothing of it without a slogan, and keeps the logo as it was', async () => {
+      await drawGradidoCard(CARD)
+
+      expect(textsDrawn(ctx)).not.toContain(WEBSITE)
+      expect(logoDraw().args[4]).toBe(mm(4.4))
+    })
+
+    it('prints the slogan and the website in the green and the size of the labelled lines', async () => {
+      await drawGradidoCard(WITH_SLOGAN)
+
+      const slogan = textDraw(SLOGAN)
+      const website = textDraw(WEBSITE)
+      expect(slogan.fillStyle).toBe(textDraw('KI Playground').fillStyle)
+      expect(website.fillStyle).toBe(slogan.fillStyle)
+      // The size of the labels: the smallest type the card already uses.
+      expect(sizeOf(slogan)).toBe(sizeOf(textDraw('Gemeinschaft')))
+      expect(sizeOf(website)).toBe(sizeOf(textDraw('Gemeinschaft')))
+    })
+
+    // The card has rows, and the block keeps to them.
+    it('sets the slogan on the community row and the website on the user-name row', async () => {
+      await drawGradidoCard(WITH_SLOGAN)
+
+      expect(textDraw(SLOGAN).args[2]).toBe(textDraw('KI Playground').args[2])
+      // The first 'bernd' is the labelled line; the address at the foot repeats it.
+      expect(textDraw(WEBSITE).args[2]).toBe(textDraw('bernd').args[2])
+    })
+
+    it('grows the logo to 5 mm and centres it over the slogan, against the right margin', async () => {
+      await drawGradidoCard(WITH_SLOGAN)
+
+      const [, x, y, width, height] = logoDraw().args
+      expect(height).toBe(mm(5))
+      expect(y).toBe(mm(3.2))
+      expect(x + width / 2).toBeCloseTo(textDraw(SLOGAN).args[1], 6)
+      expect(textDraw(WEBSITE).args[1]).toBe(textDraw(SLOGAN).args[1])
+      // The slogan is the widest part of the block, so it is the slogan that meets the margin.
+      expect(sloganLeft() + SLOGAN_WIDTH).toBeCloseTo(1011 - mm(3.2), 6)
+    })
+
+    it('hands the alignment back, so everything after the block is drawn from its left edge', async () => {
+      await drawGradidoCard(WITH_SLOGAN)
+
+      const block = [SLOGAN, WEBSITE]
+      const afterBlock = ctx.calls.filter(
+        (call) =>
+          call.name === 'fillText' &&
+          !block.includes(call.args[0]) &&
+          // The initials are centred in their disc on purpose.
+          call.args[0] !== 'BH',
+      )
+      expect(textDraw(SLOGAN).textAlign).toBe('center')
+      expect(afterBlock.length).toBeGreaterThan(0)
+      expect(afterBlock.every((call) => call.textAlign === 'left')).toBe(true)
+    })
+
+    // The name is clipped to the room beside the logo -- which is now the bigger logo's.
+    it('lets the name run up to the bigger logo and no further', async () => {
+      const name = 'x'.repeat(300)
+      await drawGradidoCard({ ...WITH_SLOGAN, name })
+
+      const nameAt = ctx.calls.findIndex(
+        (call) => call.name === 'fillText' && call.args[0] === name,
+      )
+      const [left, , width] = ctx.calls[nameAt - 2].args
+      expect(left + width).toBeCloseTo(logoDraw().args[1] - mm(1.2), 6)
+    })
+
+    // Both lines have a place to be; the one to move is the band, not the rows.
+    it('leaves picture and code where they were while both labelled lines are printed', async () => {
+      await drawGradidoCard(CARD)
+      const before = qrDraw().args[2]
+
+      ctx = recordingContext()
+      await drawGradidoCard(WITH_SLOGAN)
+
+      expect(qrDraw().args[2]).toBe(before)
+    })
+
+    /**
+     * Without the user-name line the band would rise into the row `gradido.net` still stands
+     * on. It starts under the website instead, and its foot stays where it is -- so the code
+     * moves down a little rather than up.
+     */
+    it('starts the band under the website when the user-name line is left off', async () => {
+      const quiet = { name: 'bernd', showAliasLine: false, initials: 'BE', colorSeed: 'BH' }
+      await drawGradidoCard({ ...CARD, ...quiet })
+      const without = { qr: qrDraw().args[2], hairline: hairlineTop() }
+
+      ctx = recordingContext()
+      await drawGradidoCard({ ...WITH_SLOGAN, ...quiet })
+
+      const websiteBottom = textDraw(WEBSITE).args[2] + Math.round(mm(2.1) * 0.24)
+      expect(qrDraw().args[2]).toBeGreaterThanOrEqual(websiteBottom + mm(1.2))
+      expect(qrDraw().args[2]).toBeGreaterThan(without.qr)
+      expect(hairlineTop()).toBe(without.hairline)
+    })
+
+    it('shrinks a slogan wider than 34 mm down to its floor, and clips it there', async () => {
+      const slogan = 'x'.repeat(100)
+      await drawGradidoCard({ ...WITH_SLOGAN, slogan })
+
+      const line = textDraw(slogan)
+      expect(sizeOf(line)).toBe(mm(1.8))
+      const at = ctx.calls.indexOf(line)
+      expect(ctx.calls.slice(at - 3, at).map((call) => call.name)).toEqual([
+        'beginPath',
+        'rect',
+        'clip',
+      ])
+      expect(ctx.calls[at - 2].args[2]).toBe(mm(34))
+    })
+
+    /**
+     * ⛔ The labelled lines are the two inputs of the send form, and a community cut short is a
+     * wrong community. So they come first: a line shrinks down to the contact lines' size, and
+     * if it still does not fit, the slogan goes -- not the line.
+     */
+    describe('the labelled lines come first', () => {
+      it('shrinks a long community and keeps the card margin between it and the slogan', async () => {
+        const community = 'x'.repeat(26)
+        await drawGradidoCard({ ...WITH_SLOGAN, communityName: community })
+
+        const line = textDraw(community)
+        expect(sizeOf(line)).toBeLessThan(mm(2.8))
+        expect(sizeOf(line)).toBeGreaterThanOrEqual(mm(2.4))
+        const right = line.args[1] + community.length * 0.5 * sizeOf(line)
+        expect(right).toBeLessThanOrEqual(sloganLeft() - mm(3.2))
+        expect(textsDrawn(ctx)).toContain(SLOGAN)
+      })
+
+      it('drops slogan and website when the community does not fit even at its floor', async () => {
+        const community = 'x'.repeat(29)
+        await drawGradidoCard({ ...WITH_SLOGAN, communityName: community })
+
+        expect(textsDrawn(ctx)).not.toContain(SLOGAN)
+        expect(textsDrawn(ctx)).not.toContain(WEBSITE)
+        // ... and the card is the one it was before it had a slogan.
+        expect(logoDraw().args[4]).toBe(mm(4.4))
+        expect(sizeOf(textDraw(community))).toBe(mm(2.8))
+      })
+
+      // A stored user name of one or two characters predates the rule and falls back to the
+      // 36-character Gradido ID; that one does not fit beside the website.
+      it('counts the user-name line too', async () => {
+        const alias = '8f3a1c7e-42b9-4d61-9c07-1e5a2b8d3f40'
+        await drawGradidoCard({ ...WITH_SLOGAN, alias })
+
+        expect(textsDrawn(ctx)).not.toContain(SLOGAN)
+        expect(logoDraw().args[4]).toBe(mm(4.4))
+      })
     })
   })
 })

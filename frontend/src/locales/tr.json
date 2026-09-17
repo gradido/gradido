@@ -512,7 +512,8 @@
     "real-name-print": "onu da yazdır",
     "sheet": "10 kartlık sayfa",
     "sheet-hint": "Bir A4 sayfada orijinal boyutta 10 kartvizit. Yazdırma penceresinde PDF olarak da kaydedebilirsin.",
-    "title": "Kartvizitin"
+    "title": "Kartvizitin",
+    "username-label": "Kullanıcı adı"
   },
   "gradidoid-copied-to-clipboard": "Gradido ID panoya kopyalandı.",
   "gradidoid-not-copied": "Cihazın kopyalamaya izin vermiyor. Lütfen adresi seçip elle kopyala.",

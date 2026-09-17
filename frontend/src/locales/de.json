@@ -590,7 +590,8 @@
     "real-name-print": "mitdrucken",
     "sheet": "Bogen mit 10 Karten",
     "sheet-hint": "10 Visitenkarten in Originalgröße auf einer A4-Seite. Im Druckfenster kannst Du sie auch als PDF sichern.",
-    "title": "Deine Visitenkarte"
+    "title": "Deine Visitenkarte",
+    "username-label": "Benutzername"
   },
   "gradidoid-copied-to-clipboard": "Gradido-Adresse wurde in die Zwischenablage kopiert.",
   "gradidoid-not-copied": "Dein Gerät lässt das Kopieren leider nicht zu. Bitte markiere die Adresse und kopiere sie von Hand.",

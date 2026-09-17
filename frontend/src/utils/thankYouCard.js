@@ -28,6 +28,18 @@ import { chequeFileName } from './thankYouCheque'
  *
  * The community name is not a finding aid, so it goes under the QR.
  *
+ * With a slogan, it stands directly under the logo, in the size and the green it has on the
+ * business card, and everything from the gold lines down moves 2.3 mm lower (Bernd, 17.09.2026,
+ * version D1 of a mockup drawn with this function). The space was there: between the label and
+ * the code 11.3 mm were free, and the code does not move.
+ *
+ * ## The title fits between the gold lines in every language
+ *
+ * "DANK-KARTE" takes 21 mm of the 44 the lines are long. Its translations do not all fit:
+ * Spanish measured 49.4 mm, Portuguese 48.4, Italian 46.1, running past both ends. So the title
+ * shrinks until it stands inside the lines with a millimetre to spare on either side, and never
+ * below the smallest type on the card, the community line under the code.
+ *
  * ## No solid areas, anywhere
  *
  * This is printed at home on an inkjet, not at a print shop, where a filled band bleeds. The
@@ -52,9 +64,25 @@ const LABEL_SIZE = mm(4.6)
 const COMMUNITY_SIZE = mm(2.6)
 const HAIRLINE = Math.max(2, mm(0.25))
 
+// The title's room: the gold lines, less a millimetre at either end.
+const TITLE_INSET = mm(1)
+// Open Sans capitals are 0.714 of the font size high. A title that had to shrink is moved up
+// by half of what its capitals lost, so they stay centred between the lines.
+const CAP_HEIGHT = 0.714
+
+// The slogan: the business card's size and green, so the two cards carry it alike.
+const SLOGAN_SIZE = mm(2.1)
+const SLOGAN_MIN_SIZE = mm(1.8)
+// From the logo down to the top of the slogan's capitals and ascenders.
+const SLOGAN_GAP = mm(1.2)
+const SLOGAN_ASCENT = 0.76
+// From the slogan's baseline down to the first gold line.
+const SLOGAN_RULE_GAP = mm(3.5)
+
 const FONT = '"Open Sans", Helvetica, Arial, sans-serif'
 const COLOR_TEXT = 'rgb(56, 56, 56)'
 const COLOR_GOLD = '#c58d38'
+const COLOR_GREEN = '#4a6741'
 const COLOR_MUTED = '#8a8a8a'
 const COLOR_BORDER = '#d8d8d8'
 
@@ -71,6 +99,20 @@ const loadImage = (source) =>
 // Canvas has no line box, so a baseline is placed by hand. 0.85 of the font size is close
 // enough to the ascent of the fonts in use, and every block is measured from its own top.
 const baselineOf = (top, fontSize) => top + Math.round(fontSize * 0.85)
+
+/**
+ * The largest size, from `size` down to `floor`, at which `text` is no wider than `room`. It
+ * stops at the floor whether or not the text fits.
+ */
+const sizeToFit = (ctx, { text, weight, size, floor, room }) => {
+  let fitted = size
+  ctx.font = `${weight} ${fitted}px ${FONT}`
+  while (fitted > floor && ctx.measureText(text).width > room) {
+    fitted -= 1
+    ctx.font = `${weight} ${fitted}px ${FONT}`
+  }
+  return fitted
+}
 
 /**
  * The file name of a downloaded card. The label leads, so somebody who has had several over
@@ -97,9 +139,10 @@ export const thankYouCardFileName = (label) => {
  * @param {string} options.label     the owner's own word for this card
  * @param {string} options.community the community name, printed under the code
  * @param {string} options.title     the words "Dank-Karte" in the reader's language
+ * @param {string} [options.slogan]  the slogan under the logo; without one the head is as before
  * @returns {Promise<string>} a PNG data URL
  */
-export const drawThankYouCard = async ({ url, label, community, title }) => {
+export const drawThankYouCard = async ({ url, label, community, title, slogan }) => {
   const [logo, qr] = await Promise.all([loadImage(LOGO_PATH), renderQrCodeCanvas(url)])
 
   const canvas = document.createElement('canvas')
@@ -114,20 +157,47 @@ export const drawThankYouCard = async ({ url, label, community, title }) => {
   const logoWidth = logo.width * (LOGO_HEIGHT / logo.height)
   ctx.drawImage(logo, Math.round((WIDTH - logoWidth) / 2), PADDING, logoWidth, LOGO_HEIGHT)
 
-  const rulesTop = PADDING + LOGO_HEIGHT + mm(4)
+  let rulesTop = PADDING + LOGO_HEIGHT + mm(4)
+  if (slogan) {
+    // The baseline comes from the full size and a fixed share of it, not from the text: the
+    // gold lines then stand at the same height in every language.
+    const sloganBaseline =
+      PADDING + LOGO_HEIGHT + SLOGAN_GAP + Math.round(SLOGAN_SIZE * SLOGAN_ASCENT)
+    const sloganSize = sizeToFit(ctx, {
+      text: slogan,
+      weight: 400,
+      size: SLOGAN_SIZE,
+      floor: SLOGAN_MIN_SIZE,
+      room: WIDTH - 2 * PADDING,
+    })
+    ctx.font = `400 ${sloganSize}px ${FONT}`
+    ctx.textAlign = 'center'
+    ctx.fillStyle = COLOR_GREEN
+    ctx.fillText(slogan, Math.round(WIDTH / 2), sloganBaseline)
+    rulesTop = sloganBaseline + SLOGAN_RULE_GAP
+  }
   const titleBlock = TITLE_SIZE + mm(2.4)
 
   ctx.fillStyle = COLOR_GOLD
   ctx.fillRect(PADDING, rulesTop, WIDTH - 2 * PADDING, HAIRLINE)
   ctx.fillRect(PADDING, rulesTop + titleBlock, WIDTH - 2 * PADDING, HAIRLINE)
 
-  ctx.font = `600 ${TITLE_SIZE}px ${FONT}`
+  const titleText = String(title).toUpperCase()
+  const titleSize = sizeToFit(ctx, {
+    text: titleText,
+    weight: 600,
+    size: TITLE_SIZE,
+    floor: COMMUNITY_SIZE,
+    room: WIDTH - 2 * PADDING - 2 * TITLE_INSET,
+  })
+  ctx.font = `600 ${titleSize}px ${FONT}`
   ctx.textAlign = 'center'
   ctx.fillStyle = COLOR_GOLD
   ctx.fillText(
-    String(title).toUpperCase(),
+    titleText,
     Math.round(WIDTH / 2),
-    baselineOf(rulesTop + mm(1.2), TITLE_SIZE),
+    baselineOf(rulesTop + mm(1.2), TITLE_SIZE) -
+      Math.round(((TITLE_SIZE - titleSize) * CAP_HEIGHT) / 2),
   )
 
   const labelTop = rulesTop + titleBlock + mm(5)

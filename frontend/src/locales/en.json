@@ -590,7 +590,8 @@
     "real-name-print": "print it",
     "sheet": "Sheet with 10 cards",
     "sheet-hint": "10 business cards at original size on one A4 page. In the print dialogue you can also save it as a PDF.",
-    "title": "Your business card"
+    "title": "Your business card",
+    "username-label": "Username"
   },
   "gradidoid-copied-to-clipboard": "Gradido address copied to clipboard.",
   "gradidoid-not-copied": "Your device does not allow copying. Please select the address and copy it by hand.",

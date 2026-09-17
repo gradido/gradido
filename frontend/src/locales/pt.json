@@ -512,7 +512,8 @@
     "real-name-print": "imprimir",
     "sheet": "Folha com 10 cartões",
     "sheet-hint": "10 cartões de visita em tamanho original numa página A4. Na janela de impressão também podes guardá-la como PDF.",
-    "title": "O teu cartão de visita"
+    "title": "O teu cartão de visita",
+    "username-label": "Nome"
   },
   "gradidoid-copied-to-clipboard": "O ID Gradido foi copiado para a área de transferência.",
   "gradidoid-not-copied": "O teu dispositivo não permite copiar. Seleciona o endereço e copia-o à mão.",
