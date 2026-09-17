@@ -113,8 +113,8 @@ export const useGradidoCard = () => {
    * name comes back in by a side door. Two of those doors are easy to miss:
    *
    * - **the initials disc**, when there is no picture. "BH" beside an alias is the real name
-   *   in two letters, handed to the same stranger. So the letters follow the name line
-   *   (AS-010) while the COLOUR keeps hashing the real initials, so nobody's disc changes.
+   *   in two letters, handed to the same stranger. That door is shut on every card: the disc
+   *   shows the user name's letters with the real name or without it (see drawCard).
    * - **the file name of the download**, which is what a print shop reads off the file.
    */
   const printedName = (realName) => {
@@ -144,13 +144,18 @@ export const useGradidoCard = () => {
     const { firstName, lastName, username, gradidoID } = store.state
     const alias = memberAlias(username, gradidoID)
     const { host, link } = gradidoAddress(alias)
-    // Letters from the alias, colour from the real initials -- the wallet's split (AS-010).
-    // Which of the two the card shows follows the name line above the disc, see printedName.
+    // The disc's letters are the first two of the user name, whether the real name is printed
+    // or not (Bernd, 17.09.2026). Whoever is handed the card meets the same two letters in
+    // their own wallet after the first booking, and in every list after that. The COLOUR
+    // keeps hashing the real initials (AS-010), so a new user name changes the letters and
+    // leaves the colour, on paper as on screen.
     //
-    // ⚠️ The RESOLVED alias, not the raw user name. They differ for a stored name of one or
-    // two characters, which predates the rule and falls back to the Gradido ID -- and the
-    // disc has to agree with the line printed beside it, which is that same resolved value.
-    const { letters, colorSeed } = avatarLettering({ alias, firstName, lastName })
+    // ⚠️ The STORED user name, not the resolved alias the address line prints. The two differ
+    // for a name of one or two characters, which predates the length rule: the address falls
+    // back to the Gradido ID, while the server hands that very name to every other member's
+    // wallet (`User.alias`), and their circles are lettered from it. The cheque and the
+    // member's own messages take the stored name as well.
+    const { letters, colorSeed } = avatarLettering({ alias: username, firstName, lastName })
 
     return drawGradidoCard({
       qrCanvas: await renderQrCodeCanvas(link),
@@ -169,9 +174,9 @@ export const useGradidoCard = () => {
       // again two lines below would only repeat it.
       showAliasLine: realName,
       host,
-      // Raw, not uppercased: this is a hash seed as well as two letters, and
-      // `avatarPaletteEntry` is case-sensitive. `drawPicture` uppercases what it draws.
-      initials: realName ? colorSeed : letters,
+      initials: letters,
+      // Raw, not uppercased: `avatarPaletteEntry` is case-sensitive, so the seed has to be the
+      // real initials exactly as they are stored.
       colorSeed,
       picture: preview ? storedPicture() : await fetchPicture(),
       // The same word stands over the field the member types into. The field looks like

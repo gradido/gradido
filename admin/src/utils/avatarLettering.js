@@ -6,7 +6,8 @@
  *
  * The two halves come from different sources on purpose:
  *
- *   * the LETTERS from the alias, because the line beside the circle shows the alias;
+ *   * the LETTERS from the alias, as on every circle the wallet draws, the member's own and
+ *     the printed card included (Bernd, 17.09.2026);
  *   * the COLOUR from the real initials, so no existing member's colour moves — and where
  *     the server sends the finished digit (`avatarColorIndex`, NU-017) that one wins, which
  *     is how a circle keeps its colour where the real name is not delivered at all.
