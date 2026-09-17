@@ -1,10 +1,12 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { nextTick } from 'vue'
 import { createRouter, createWebHistory, RouterLink } from 'vue-router'
 import { createStore } from 'vuex'
 import Navbar from './Navbar.vue'
 import { BImg, BNavbar, BNavbarBrand, BNavbarNav } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
+import AvatarButton from '@/components/Avatar/AvatarButton.vue'
 import { createI18n } from 'vue-i18n'
 import CONFIG from '@/config'
 import { communityHost } from '@/utils/gradidoAddress'
@@ -14,6 +16,12 @@ import { communityHost } from '@/utils/gradidoAddress'
 const mockToastSuccess = vi.fn()
 vi.mock('@/composables/useToast', () => ({
   useAppToast: () => ({ toastSuccess: mockToastSuccess }),
+}))
+
+// The avatar button sets up its two picture mutations when it mounts. Only the tests that
+// mount the real button reach this; none of them saves a picture.
+vi.mock('@vue/apollo-composable', () => ({
+  useMutation: () => ({ mutate: vi.fn() }),
 }))
 
 // Mock vue-avatar
@@ -66,10 +74,11 @@ describe('Navbar', () => {
         stubs: {
           IBiClipboard: true,
           // The avatar button brings its own apollo and toast dependencies. What matters
-          // here is what the navbar hands it; the button itself has its own spec.
+          // here is what the navbar hands it; the circle's letters are measured through the
+          // real button further down.
           AvatarButton: {
             name: 'AvatarButton',
-            props: ['name', 'initials', 'color', 'size'],
+            props: ['name', 'initials', 'colorSeed', 'color', 'size'],
             template: '<div class="avatar-button-stub"></div>',
           },
         },
@@ -151,10 +160,50 @@ describe('Navbar', () => {
     it('is rendered', () => {
       expect(wrapper.findComponent({ name: 'AvatarButton' }).exists()).toBe(true)
     })
+  })
 
-    it("has the user's initials", () => {
-      const avatar = wrapper.findComponent({ name: 'AvatarButton' })
-      expect(avatar.props('initials')).toBe('TU')
+  /**
+   * The letters are the user name's, as on the printed card, on the cheque and in every other
+   * member's lists; the colour keeps hashing the real initials (Bernd, 17.09.2026).
+   *
+   * ⛔ Measured through the REAL AvatarButton down to AppAvatar, not at the stub above. A stub
+   * declares whatever props it is given, so it would accept a name the button does not have,
+   * and the seed would stop one component short of the circle with every test still green.
+   * The button is registered by hand: the app resolves it through the components plugin,
+   * which the test configuration does not load.
+   */
+  describe('the letters in the circle', () => {
+    const mountWithRealButton = () => {
+      store = createVuexStore({ firstName: 'Bernd', lastName: 'Hückstädt', username: 'bernd' })
+      return mount(Navbar, {
+        global: {
+          plugins: [store, router, i18n],
+          stubs: { IBiClipboard: true, IBiCameraFill: true, AvatarCropper: true },
+          mocks: { $t: (msg) => msg },
+          components: { BNavbar, BNavbarNav, BNavbarBrand, BImg, RouterLink, AvatarButton },
+        },
+        props: { balance: 1234 },
+      })
+    }
+
+    it('takes the letters from the user name and the colour from the real initials', () => {
+      const circle = mountWithRealButton().findComponent(AppAvatar)
+
+      expect(circle.text()).toBe('BE')
+      expect(circle.props('colorSeed')).toBe('BH')
+    })
+
+    it('changes the letters with a new user name and keeps the colour', async () => {
+      const navbar = mountWithRealButton()
+
+      store.state.username = 'sonnenblume'
+      await nextTick()
+
+      const circle = navbar.findComponent(AppAvatar)
+      expect(circle.text()).toBe('SO')
+      expect(circle.props('colorSeed')).toBe('BH')
+      // The member's own name beside the circle is not part of this.
+      expect(navbar.find('[data-test="navbar-item-username"]').text()).toBe('Bernd Hückstädt')
     })
   })
 

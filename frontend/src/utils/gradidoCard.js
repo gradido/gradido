@@ -272,10 +272,10 @@ const drawPicture = (ctx, { image, initials, colorSeed, x, y }) => {
   // handed away, the same shape reads as a gap, because the beholder is somebody else.
   //
   // ⛔ Letters and colour come from two different places, and that is decision AS-010, not
-  // an oversight: the letters follow the line the disc stands next to (the real initials
-  // while the card carries the real name, the alias once it does not), and the colour keeps
-  // hashing the real initials so that nobody's disc changes colour when they hide their
-  // name. The cheque does the same, for the same reason.
+  // an oversight: the letters are the first two of the user name, on every card as on every
+  // circle in the wallet (Bernd, 17.09.2026), and the colour keeps hashing the real initials
+  // so that nobody's disc changes colour when they pick a new user name or leave their real
+  // name off the card. The cheque does the same, for the same reason.
   const palette = avatarPaletteEntry(colorSeed ?? initials)
   ctx.beginPath()
   ctx.arc(x + radius, y + radius, radius, 0, Math.PI * 2)

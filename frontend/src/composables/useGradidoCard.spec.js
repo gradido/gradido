@@ -80,7 +80,8 @@ describe('useGradidoCard', () => {
         communityName: 'KI Playground',
         alias: 'bernd',
         host: 'ki-playground.gradido.net',
-        initials: 'BH',
+        initials: 'BE',
+        colorSeed: 'BH',
         picture: 'data:image/jpeg;base64,BASE64PICTURE',
         qrCanvas: mockQrCanvas,
         // The user name has a word of its own on the card; in five languages it is shorter
@@ -312,14 +313,6 @@ describe('useGradidoCard', () => {
       )
     })
 
-    it('keeps the real initials on the disc while the real name is printed', async () => {
-      await useGradidoCard().drawCard()
-
-      expect(mockDrawGradidoCard).toHaveBeenCalledWith(
-        expect.objectContaining({ initials: 'BH', colorSeed: 'BH' }),
-      )
-    })
-
     // The file name is what a print shop reads off the file, so it follows the card.
     it('names the downloaded file after the alias, not after the member', async () => {
       await useGradidoCard().downloadCard({ realName: false })
@@ -332,6 +325,54 @@ describe('useGradidoCard', () => {
 
       expect(mockDrawGradidoCard).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'bernd', showAliasLine: false }),
+      )
+    })
+  })
+
+  /**
+   * The disc shows the first two letters of the user name on every card, with the real name
+   * printed or without it: whoever is handed the card meets those two letters in their own
+   * wallet after the first booking (Bernd, 17.09.2026). The colour keeps hashing the real
+   * initials (AS-010), so a new user name changes the letters and leaves the colour.
+   *
+   * Until then the card showed the real initials while it printed the real name. The test
+   * that held that rule went with it.
+   */
+  describe('the disc without a picture', () => {
+    it('shows the user name letters while the real name is printed, too', async () => {
+      await useGradidoCard().drawCard()
+
+      expect(mockDrawGradidoCard).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'Bernd Hückstädt', initials: 'BE', colorSeed: 'BH' }),
+      )
+    })
+
+    it('follows a new user name and keeps its colour', async () => {
+      storeState.username = 'sonnenblume'
+      try {
+        await useGradidoCard().drawCard()
+      } finally {
+        storeState.username = 'bernd'
+      }
+
+      expect(mockDrawGradidoCard).toHaveBeenCalledWith(
+        expect.objectContaining({ initials: 'SO', colorSeed: 'BH' }),
+      )
+    })
+
+    // A name of one or two characters predates the length rule. The address falls back to the
+    // Gradido ID, while every other member's wallet letters the circle from the name as
+    // stored -- and the card has to show what they see.
+    it('letters a short stored name from the name, not from the address fallback', async () => {
+      storeState.username = 'Bo'
+      try {
+        await useGradidoCard().drawCard()
+      } finally {
+        storeState.username = 'bernd'
+      }
+
+      expect(mockDrawGradidoCard).toHaveBeenCalledWith(
+        expect.objectContaining({ alias: 'uuid-1', initials: 'BO', colorSeed: 'BH' }),
       )
     })
   })

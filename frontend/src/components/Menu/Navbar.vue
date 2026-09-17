@@ -73,6 +73,7 @@
                   class="vue3-avatar"
                   :name="username.username"
                   :initials="username.initials"
+                  :color-seed="username.colorSeed"
                   :color="'#fff'"
                   :size="61"
                 />
@@ -124,6 +125,7 @@
 </template>
 
 <script>
+import { avatarLettering } from '@/utils/avatarLettering'
 import { memberAlias } from '@/utils/gradidoAddress'
 import GradidoAddressCopy from '@/components/GradidoAddressCopy'
 import QuickCodeIcon from '@/components/Menu/QuickCodeIcon'
@@ -145,9 +147,21 @@ export default {
   },
   computed: {
     username() {
+      // The circle's letters are the first two of the user name, here as on the printed
+      // card, on the cheque and in every other member's lists (Bernd, 17.09.2026): a card
+      // handed to somebody must not show two letters that the member's circle in their
+      // wallet does not. The colour keeps hashing the real initials (AS-010), so a new user
+      // name changes the letters and not the colour. The name beside the circle stays the
+      // member's own.
+      const { letters, colorSeed } = avatarLettering({
+        alias: this.$store.state.username,
+        firstName: this.$store.state.firstName,
+        lastName: this.$store.state.lastName,
+      })
       return {
         username: `${this.$store.state.firstName} ${this.$store.state.lastName}`,
-        initials: `${this.$store.state.firstName[0]}${this.$store.state.lastName[0]}`,
+        initials: letters,
+        colorSeed,
       }
     },
     alias() {

@@ -6,9 +6,11 @@
  * ★ The two are deliberately NOT the same source, and that is the whole reason this file
  * exists (decision AS-010):
  *
- *   * the LETTERS come from the alias, because the line next to the avatar shows the alias.
- *     A circle reading "BH" beside a line reading "berndh" is the real name coming back in
- *     through the picture that the line was chosen to avoid.
+ *   * the LETTERS come from the alias, wherever a circle stands: in every list, on the
+ *     member's own circle, on the printed card and on the cheque (Bernd, 17.09.2026). A card
+ *     handed to somebody has to show the two letters that person meets in their own wallet
+ *     after the first booking. And a circle reading "BH" beside a line reading "berndh"
+ *     would be the real name coming back in through the picture the line was chosen to avoid.
  *   * the COLOUR keeps coming from the real initials, so not one existing member's colour
  *     changes -- and so the printed card and the cheque, which seed from initials on a
  *     canvas that cannot ask a Vue component, stay in step with the screen.

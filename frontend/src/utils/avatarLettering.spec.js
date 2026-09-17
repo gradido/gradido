@@ -7,7 +7,7 @@ import { avatarPaletteEntry } from './avatarColor'
 const BERND = { alias: 'berndh', firstName: 'Bernd', lastName: 'Hueckstaedt' }
 
 describe('avatarLettering', () => {
-  it('takes the letters from the alias, because that is what the line beside it says', () => {
+  it('takes the letters from the alias, the same on every circle and every card', () => {
     expect(avatarLettering(BERND).letters).toBe('BE')
   })
 

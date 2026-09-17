@@ -12,6 +12,7 @@
         :size="size"
         :name="name"
         :initials="initials"
+        :color-seed="colorSeed"
         :color="color"
         :src="avatarSource"
         :quiet="!avatar"
@@ -55,6 +56,13 @@ defineProps({
   initials: {
     type: String,
     default: '',
+  },
+  // What the circle's colour hashes, handed straight to AppAvatar -- see its prop of the
+  // same name. The navbar passes the real initials here and letters from the user name, so
+  // a new user name leaves the colour alone. null, not '', means not given.
+  colorSeed: {
+    type: String,
+    default: null,
   },
   color: {
     type: String,
