@@ -4,6 +4,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { ref } from 'vue'
 import { createI18n } from 'vue-i18n'
 import RegisterAssist from './RegisterAssist.vue'
+import AuthTriads from '@/components/Auth/AuthTriads.vue'
 
 vi.mock('bootstrap-vue-next', () => ({
   BButton: {
@@ -92,11 +93,31 @@ const i18n = createI18n({
   },
 })
 
-const mountPage = () => mount(RegisterAssist, { global: { plugins: [i18n] } })
+const mountPage = () =>
+  mount(RegisterAssist, { global: { plugins: [i18n], stubs: { AuthTriads: true } } })
 
 describe('RegisterAssist page', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+  })
+
+  // A registration page like /register, so the same greeting at the same place: first, above
+  // the heading, with the same bottom padding as there.
+  it('opens with the rotating triads above the form, as the register page does', () => {
+    const wrapper = mountPage()
+    const triads = wrapper.findComponent(AuthTriads)
+    expect(triads.exists()).toBe(true)
+    expect(wrapper.find('.register-assist').element.firstElementChild).toBe(triads.element)
+    expect(triads.classes()).toContain('pb-5')
+  })
+
+  // And as there, a page-level message takes the whole place, the triads included.
+  it('leaves the triads out of a page-level message', async () => {
+    const wrapper = mountPage()
+    infoErrorHandler()
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('[data-test="message"]').exists()).toBe(true)
+    expect(wrapper.findComponent(AuthTriads).exists()).toBe(false)
   })
 
   it('greets with the guest name from the parked attempt', () => {

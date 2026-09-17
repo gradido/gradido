@@ -5,6 +5,7 @@
        from the parked attempt; what is entered here is the guest's OWN address — and the
        guest types their password themselves. -->
   <div v-if="!showPageMessage" class="register-assist">
+    <auth-triads class="pb-5" />
     <div class="h3 pb-3">{{ $t('assistedRegistration.assist.title') }}</div>
     <p v-if="guestName" class="pb-2" data-test="assist-guest-name">
       {{ $t('assistedRegistration.assist.intro', { name: guestName }) }}
@@ -47,6 +48,7 @@ import { BButton, BCol, BForm, BRow } from 'bootstrap-vue-next'
 import { useForm } from 'vee-validate'
 import { completeAssistedRegistration } from '@/graphql/mutations'
 import { assistedRegistrationInfo } from '@/graphql/queries'
+import AuthTriads from '@/components/Auth/AuthTriads.vue'
 import InputEmail from '@/components/Inputs/InputEmail.vue'
 import InputPasswordConfirmation from '@/components/Inputs/InputPasswordConfirmation.vue'
 import Message from '@/components/Message/Message.vue'
