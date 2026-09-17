@@ -155,11 +155,15 @@ export const useGradidoCard = () => {
     return drawGradidoCard({
       qrCanvas: await renderQrCodeCanvas(link),
       name: printedName(realName),
-      // The two labels the wallet already uses for these fields. Printing a different word
-      // than the send form shows would make the card harder to follow, not easier.
+      // The words the wallet uses for these fields, so the card reads like the send form.
+      //
+      // ⚠️ The user name has a word of its own on the card, because in five languages the
+      // form's word does not fit the 16.6 mm the card has for a label: Spanish and Russian
+      // measured 19.2 mm, Portuguese 18.9, French 17.1, and Dutch touched the value at 16.5.
+      // There the card says only "name" (Bernd, 17.09.2026); the other five keep the form's word.
       communityLabel: t('community.community'),
       communityName: CONFIG.COMMUNITY_NAME,
-      aliasLabel: t('form.username'),
+      aliasLabel: t('gradido-card.username-label'),
       alias,
       // Without the real name the alias is already the name line; a labelled line saying it
       // again two lines below would only repeat it.

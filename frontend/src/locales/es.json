@@ -512,7 +512,8 @@
     "real-name-print": "imprimirlo",
     "sheet": "Hoja con 10 tarjetas",
     "sheet-hint": "10 tarjetas de visita a tamaño original en una página A4. En la ventana de impresión también puedes guardarla como PDF.",
-    "title": "Tu tarjeta de visita"
+    "title": "Tu tarjeta de visita",
+    "username-label": "Nombre"
   },
   "gradidoid-copied-to-clipboard": "Gradido ID copiado al portapapeles.",
   "gradidoid-not-copied": "Tu dispositivo no permite copiar. Marca la dirección y cópiala a mano.",

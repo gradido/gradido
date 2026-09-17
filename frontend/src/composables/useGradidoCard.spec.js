@@ -83,6 +83,9 @@ describe('useGradidoCard', () => {
         initials: 'BH',
         picture: 'data:image/jpeg;base64,BASE64PICTURE',
         qrCanvas: mockQrCanvas,
+        // The user name has a word of its own on the card; in five languages it is shorter
+        // than the send form's, which does not fit the card's label column.
+        aliasLabel: 'gradido-card.username-label',
         slogan: 'auth.triads.slogan.help auth.triads.slogan.give auth.triads.slogan.thank',
       }),
     )
