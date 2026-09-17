@@ -83,6 +83,7 @@ describe('useGradidoCard', () => {
         initials: 'BH',
         picture: 'data:image/jpeg;base64,BASE64PICTURE',
         qrCanvas: mockQrCanvas,
+        slogan: 'auth.triads.slogan.help auth.triads.slogan.give auth.triads.slogan.thank',
       }),
     )
   })

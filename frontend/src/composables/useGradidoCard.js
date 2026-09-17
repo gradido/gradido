@@ -7,6 +7,7 @@ import CONFIG from '@/config'
 import { useAppToast } from '@/composables/useToast'
 import { avatarFull } from '@/graphql/queries'
 import { avatarLettering } from '@/utils/avatarLettering'
+import { cardSlogan } from '@/utils/cardSlogan'
 import { gradidoAddress, memberAlias } from '@/utils/gradidoAddress'
 import { cardFileName, drawGradidoCard } from '@/utils/gradidoCard'
 import { printSheet } from '@/utils/printSheet'
@@ -176,6 +177,7 @@ export const useGradidoCard = () => {
       // invitation, and that is a judgement only the person holding the card can make.
       contactHeading: heading ? t('gradido-card.contact') : '',
       contact,
+      slogan: cardSlogan(t),
     })
   }
 

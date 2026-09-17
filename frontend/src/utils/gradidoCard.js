@@ -8,6 +8,7 @@
  *   card 85.6 x 54 -- the size of a bank card, with a thin grey cutting line
  *   |- the name, and under it the labelled lines: community, and the user name unless the
  *   |  member prints no real name -- then the alias IS the name line and the second one goes
+ *   |- top right the logo, and with a slogan the slogan and `gradido.net` under it
  *   |- the picture 20 (or an initials disc) on the left, the QR on the right, and
  *   |  between them the contact block: a heading and up to five lines the member types
  *   `- the address line at the bottom, under a hairline
@@ -35,6 +36,24 @@
  * They are typed for a print run rather than stored on the server. That is what makes a
  * printed card a decision per recipient instead of a setting made in advance, and it is
  * why nothing here needs a release switch: printing is the release.
+ *
+ * ## The slogan under the logo, and why it gives way
+ *
+ * "Helfen. Schenken. Danken." stands under the logo in one line (Bernd, 17.09.2026, chosen at a
+ * mockup drawn with this very function). It is set in the size of the labels, the smallest type
+ * the card already uses, and in the green of the community line. At that size the German slogan
+ * is 26.4 mm wide against a logo of 15, so the logo grows a little, to 5 mm, and stands centred
+ * over the slogan -- which moves it to the left. `gradido.net` sits under the slogan. Both lines
+ * share their baselines with the labelled lines beside them, so the card keeps its rows.
+ *
+ * ⛔ The block takes room from the labelled lines, and those are the two inputs of the send form:
+ * a community cut short is a wrong community. So a labelled line shrinks first, down to the size
+ * of the contact lines -- and if it still does not fit beside the slogan, the SLOGAN goes, and the
+ * card is drawn as it was before it had one. The database allows 40 characters for a community
+ * name; in German the slogan stays up to about 26.
+ *
+ * Between a labelled line and the slogan stays as much as the card's own margin. With the 1.2 mm
+ * the name keeps from the logo, a long green community and the green slogan read as one line.
  *
  * ## Every piece of text on the card has a rule for fitting -- including the name
  *
@@ -122,6 +141,27 @@ const VALUE_SIZE = mm(2.8)
 const ROW_HEIGHT = Math.round(VALUE_SIZE * 1.25)
 const VALUE_OFFSET = mm(16.6) // label column plus the gap after it
 const LOGO_HEIGHT = mm(4.4)
+
+// The block top right when the card carries the slogan; see "The slogan under the logo" above.
+const BRAND_LOGO_HEIGHT = mm(5)
+const SLOGAN_SIZE = LABEL_SIZE
+// Up to this width the slogan keeps its size, and all ten languages fit: the widest, Russian,
+// measured 33.4 mm in a browser with Open Sans loaded. A longer one shrinks like the address
+// line does, and is clipped behind its floor.
+const SLOGAN_MAX_WIDTH = mm(34)
+const SLOGAN_MIN_SIZE = mm(1.8)
+export const WEBSITE = 'gradido.net'
+// How small a labelled line may get beside the slogan before the slogan gives way: the size of
+// the contact lines, still larger than the label in front of it.
+const ROW_MIN_SIZE = mm(2.4)
+// Air between a labelled line and a line of the block. The card's own margin, because at the
+// 1.2 mm the name keeps from the logo a long green community and the green slogan read as one.
+const TEXT_GAP = PADDING
+// Canvas knows no line box, so how far a line of the block reaches above and below its
+// baseline is taken as a share of its size -- a capital or an ascender up, a g or a p down.
+// Fixed rather than measured, so the block stands the same in every language.
+const ASCENT = 0.76
+const DESCENT = 0.24
 
 const BLOCK_GAP = mm(1.2)
 const PICTURE = mm(20)
@@ -251,16 +291,127 @@ const drawPicture = (ctx, { image, initials, colorSeed, x, y }) => {
   ctx.textBaseline = 'alphabetic'
 }
 
-const drawLabelledLine = (ctx, { label, value, valueColor, top }) => {
+/**
+ * The size a labelled line's value is drawn at in `room`: full size unless it does not fit, and
+ * never below ROW_MIN_SIZE.
+ */
+const valueSizeFor = (ctx, value, room) => {
+  let size = VALUE_SIZE
+  ctx.font = `600 ${size}px ${FONT}`
+  while (size > ROW_MIN_SIZE && ctx.measureText(value).width > room) {
+    size -= 1
+    ctx.font = `600 ${size}px ${FONT}`
+  }
+  return size
+}
+
+/**
+ * `room` is how wide the value may run: beside the slogan the room the block leaves, without it
+ * the card's edge, as before.
+ *
+ * No clip behind the shrinking, unlike the name. Beside the slogan a line that does not fit at
+ * ROW_MIN_SIZE has already made the slogan give way, so the size found here always fits; without
+ * the slogan nothing stands to the right of the line that a clip could protect.
+ */
+const drawLabelledLine = (ctx, { label, value, valueColor, top, room }) => {
   const baseline = baselineOf(top, VALUE_SIZE)
 
   ctx.fillStyle = COLOR_LABEL
   ctx.font = `400 ${LABEL_SIZE}px ${FONT}`
   ctx.fillText(label ?? '', PADDING, baseline)
 
+  const text = value ?? ''
   ctx.fillStyle = valueColor
-  ctx.font = `600 ${VALUE_SIZE}px ${FONT}`
-  ctx.fillText(value ?? '', PADDING + VALUE_OFFSET, baseline)
+  // The baseline stays the one of the full size, as on the address line: a value that had to
+  // shrink fills less of its row, it does not move it.
+  ctx.font = `600 ${valueSizeFor(ctx, text, room)}px ${FONT}`
+  ctx.fillText(text, PADDING + VALUE_OFFSET, baseline)
+}
+
+/**
+ * Where the logo goes, and with a slogan the two lines under it.
+ *
+ * The block is as wide as its widest part and stands against the right margin; logo and lines
+ * are centred in it. What comes back are the boxes it covers, because the room the name and the
+ * labelled lines may use is what those boxes leave.
+ *
+ * Without a slogan this is the card as it was before it could carry one: the logo alone in the
+ * corner, 4.4 mm high.
+ */
+const brandLayout = (ctx, { logo, slogan, rowBaselines }) => {
+  if (!slogan) {
+    const width = logo.width * (LOGO_HEIGHT / logo.height)
+    const box = { x: WIDTH - PADDING - width, y: PADDING, width, height: LOGO_HEIGHT, text: false }
+    return { logo: box, lines: [], boxes: [box] }
+  }
+
+  let sloganSize = SLOGAN_SIZE
+  ctx.font = `400 ${sloganSize}px ${FONT}`
+  while (sloganSize > SLOGAN_MIN_SIZE && ctx.measureText(slogan).width > SLOGAN_MAX_WIDTH) {
+    sloganSize -= 1
+    ctx.font = `400 ${sloganSize}px ${FONT}`
+  }
+
+  const line = (text, size, baseline) => {
+    ctx.font = `400 ${size}px ${FONT}`
+    const natural = ctx.measureText(text).width
+    const width = Math.min(natural, SLOGAN_MAX_WIDTH)
+    return { text, size, baseline, width, clipped: natural > width }
+  }
+  const lines = [
+    line(slogan, sloganSize, rowBaselines.community),
+    line(WEBSITE, SLOGAN_SIZE, rowBaselines.alias),
+  ]
+
+  const logoWidth = logo.width * (BRAND_LOGO_HEIGHT / logo.height)
+  const centre = WIDTH - PADDING - Math.max(logoWidth, ...lines.map((l) => l.width)) / 2
+  const logoBox = {
+    x: centre - logoWidth / 2,
+    y: PADDING,
+    width: logoWidth,
+    height: BRAND_LOGO_HEIGHT,
+    text: false,
+  }
+  const lineBoxes = lines.map((l) => ({
+    x: centre - l.width / 2,
+    y: l.baseline - Math.round(l.size * ASCENT),
+    width: l.width,
+    height: Math.round(l.size * (ASCENT + DESCENT)),
+    text: true,
+  }))
+  return { logo: logoBox, lines, centre, boxes: [logoBox, ...lineBoxes] }
+}
+
+/**
+ * The right edge of what may stand between `top` and `bottom`: the card's margin, or the gap
+ * before the first box of the block that reaches into that band.
+ */
+const rightEdgeBeside = (boxes, top, bottom) =>
+  boxes
+    .filter((box) => box.y < bottom && box.y + box.height > top)
+    .reduce(
+      (right, box) => Math.min(right, box.x - (box.text ? TEXT_GAP : NAME_LOGO_GAP)),
+      WIDTH - PADDING,
+    )
+
+const drawBrand = (ctx, { logo, brand }) => {
+  ctx.drawImage(logo, brand.logo.x, brand.logo.y, brand.logo.width, brand.logo.height)
+  if (!brand.lines.length) return
+
+  ctx.fillStyle = COLOR_GREEN
+  ctx.textAlign = 'center'
+  for (const line of brand.lines) {
+    ctx.font = `400 ${line.size}px ${FONT}`
+    if (line.clipped) {
+      ctx.save()
+      ctx.beginPath()
+      ctx.rect(brand.centre - line.width / 2, 0, line.width, HEIGHT)
+      ctx.clip()
+    }
+    ctx.fillText(line.text, brand.centre, line.baseline)
+    if (line.clipped) ctx.restore()
+  }
+  ctx.textAlign = 'left'
 }
 
 /**
@@ -432,6 +583,8 @@ const drawAddress = (ctx, { host, alias, top }) => {
  * @param {string} [data.picture]            the crop as a data URI, if there is one
  * @param {string} [data.contactHeading]     the word above the contact lines
  * @param {string[]} [data.contact]          up to five lines the member typed
+ * @param {string} [data.slogan]             the slogan under the logo, with `gradido.net` under
+ *                                           it; without one the card is drawn as before
  * @returns {Promise<string>} the PNG as a data URL
  */
 export const drawGradidoCard = async (data) => {
@@ -463,14 +616,51 @@ export const drawGradidoCard = async (data) => {
   ctx.textBaseline = 'alphabetic'
   ctx.textAlign = 'left'
 
-  // The logo first, because the room left for the name is what it does not take. Its width
-  // comes from the loaded image rather than from a constant, so a different logo cannot
-  // quietly make the name overlap it.
-  const logoWidth = logo.width * (LOGO_HEIGHT / logo.height)
-  ctx.drawImage(logo, WIDTH - PADDING - logoWidth, PADDING, logoWidth, LOGO_HEIGHT)
+  const firstRow = PADDING + NAME_BLOCK + LINES_GAP
+  // ⛔ The user-name line is left off when the member prints no real name. The alias then
+  // stands in the name's place at the top, and a labelled line repeating it two lines below
+  // would say the same word twice -- which is what makes this a missing line rather than an
+  // empty one.
+  const showAliasLine = data.showAliasLine !== false
+  const rows = [
+    {
+      label: data.communityLabel,
+      value: data.communityName,
+      valueColor: COLOR_GREEN,
+      top: firstRow,
+    },
+  ]
+  if (showAliasLine) {
+    rows.push({
+      label: data.aliasLabel,
+      value: data.alias,
+      valueColor: COLOR_TEXT,
+      top: firstRow + ROW_HEIGHT,
+    })
+  }
+  const rowBaselines = {
+    community: baselineOf(firstRow, VALUE_SIZE),
+    alias: baselineOf(firstRow + ROW_HEIGHT, VALUE_SIZE),
+  }
+  const valueRoom = (boxes, row) =>
+    rightEdgeBeside(boxes, row.top, row.top + ROW_HEIGHT) - (PADDING + VALUE_OFFSET)
+
+  // The logo first, because the room left for the name and the labelled lines is what it does
+  // not take. Its width comes from the loaded image rather than from a constant, so a different
+  // logo cannot quietly make the name overlap it.
+  let brand = brandLayout(ctx, { logo, slogan: data.slogan, rowBaselines })
+  // ⛔ The labelled lines come first -- see "The slogan under the logo" at the top.
+  const fitsBesideTheBlock = (row) => {
+    ctx.font = `600 ${ROW_MIN_SIZE}px ${FONT}`
+    return ctx.measureText(row.value ?? '').width <= valueRoom(brand.boxes, row)
+  }
+  if (brand.lines.length && !rows.every(fitsBesideTheBlock)) {
+    brand = brandLayout(ctx, { logo, slogan: null, rowBaselines })
+  }
+  drawBrand(ctx, { logo, brand })
 
   const nameText = data.name ?? ''
-  const nameRoom = WIDTH - 2 * PADDING - logoWidth - NAME_LOGO_GAP
+  const nameRoom = rightEdgeBeside(brand.boxes, PADDING, PADDING + NAME_BLOCK) - PADDING
   ctx.fillStyle = COLOR_TEXT
   ctx.font = `700 ${nameSizeFor(ctx, nameText, nameRoom)}px ${FONT}`
   // ⛔ The clip is the last resort behind the shrinking, exactly as it is for the contact
@@ -489,24 +679,8 @@ export const drawGradidoCard = async (data) => {
   ctx.fillText(nameText, PADDING, baselineOf(PADDING, NAME_SIZE))
   ctx.restore()
 
-  const firstRow = PADDING + NAME_BLOCK + LINES_GAP
-  drawLabelledLine(ctx, {
-    label: data.communityLabel,
-    value: data.communityName,
-    valueColor: COLOR_GREEN,
-    top: firstRow,
-  })
-  // ⛔ Left off when the member prints no real name. The alias then stands in the name's
-  // place at the top, and a labelled line repeating it two lines below would say the same
-  // word twice -- which is what makes this a missing line rather than an empty one.
-  const showAliasLine = data.showAliasLine !== false
-  if (showAliasLine) {
-    drawLabelledLine(ctx, {
-      label: data.aliasLabel,
-      value: data.alias,
-      valueColor: COLOR_TEXT,
-      top: firstRow + ROW_HEIGHT,
-    })
+  for (const row of rows) {
+    drawLabelledLine(ctx, { ...row, room: valueRoom(brand.boxes, row) })
   }
 
   // The freed row goes to the band below rather than staying a hole under the community
@@ -514,9 +688,15 @@ export const drawGradidoCard = async (data) => {
   // little air, and the address line keeps its place at the foot of the card. Nothing about
   // the QR changes -- its size follows the address and is capped at QR_MAX, never at the
   // height of the band it sits in.
-  const labelledLines = showAliasLine ? 2 : 1
-  const middleTop = firstRow + labelledLines * ROW_HEIGHT + BLOCK_GAP
-  const middleRow = MIDDLE_ROW + (2 - labelledLines) * ROW_HEIGHT
+  //
+  // The band starts under whichever reaches lower: the labelled lines on the left or the block
+  // on the right. With both lines printed that is always the lines, and nothing moves. Without
+  // the user-name line, `gradido.net` still stands on that row, and the code must not rise
+  // into it -- then the band starts under it, and its foot stays where it is.
+  const middleBottom = firstRow + 2 * ROW_HEIGHT + BLOCK_GAP + MIDDLE_ROW
+  const blockBottom = Math.max(...brand.boxes.map((box) => box.y + box.height))
+  const middleTop = Math.max(firstRow + rows.length * ROW_HEIGHT, blockBottom) + BLOCK_GAP
+  const middleRow = middleBottom - middleTop
   drawPicture(ctx, {
     image: picture,
     initials: data.initials,
