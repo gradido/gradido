@@ -1,5 +1,19 @@
 <template>
   <div class="clipboard-copy">
+    <!-- Handing the link on is what this page is for, so it leads: one button for the
+         device's own share sheet (it copies where the device has none), and under it the one
+         sentence meant for the sender, not for the person the link goes to. The two copy rows
+         below stay for whoever wants to paste it somewhere themselves. -->
+    <div class="mb-4">
+      <BButton variant="gradido" class="w-100" data-test="shareButton" @click="share">
+        <IBiShare class="me-2" />
+        {{ $t('gdd_per_link.share') }}
+      </BButton>
+      <div class="share-hint small mt-2" data-test="linkHint">
+        <IBiLock class="share-hint-icon" />
+        <span>{{ $t('gdd_per_link.link-hint') }}</span>
+      </div>
+    </div>
     <div v-if="canCopyLink">
       <div class="mb-4">
         <label class="copy-label">
@@ -29,7 +43,7 @@
           </BButton>
         </label>
         <div
-          class="copy-link-card pointer text-center gradido-border-radius p-3"
+          class="copy-link-card copy-link-text pointer text-center gradido-border-radius p-3"
           data-test="copyLinkWithText"
           @click="copyLinkWithText"
         >
@@ -53,7 +67,7 @@ const props = defineProps({
   validUntil: { type: String, required: true },
 })
 
-const { copyLink, copyLinkWithText, linkText, canCopyLink } = useCopyLinks({ ...props })
+const { copyLink, copyLinkWithText, linkText, canCopyLink, share } = useCopyLinks({ ...props })
 </script>
 
 <style lang="scss">
@@ -78,5 +92,25 @@ const { copyLink, copyLinkWithText, linkText, canCopyLink } = useCopyLinks({ ...
 .copy-icon {
   padding: 0.15rem 0.45rem;
   line-height: 1;
+}
+</style>
+
+<style scoped lang="scss">
+/* The text goes out as lines, so it is shown as lines: what the member reads here is what
+   arrives. */
+.copy-link-text {
+  white-space: pre-line;
+}
+
+.share-hint {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  color: var(--bs-secondary-color, #6c757d);
+}
+
+.share-hint-icon {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
 }
 </style>
