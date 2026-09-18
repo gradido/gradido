@@ -96,6 +96,12 @@ const { copyLink, copyLinkWithText, linkText, canCopyLink, share } = useCopyLink
 </style>
 
 <style scoped lang="scss">
+/* A link is one unbreakable run, and the cards hide what overflows: on a phone the last
+   72 points of a redeem link were cut off (measured at 390). */
+.copy-link-card {
+  overflow-wrap: anywhere;
+}
+
 /* The text goes out as lines, so it is shown as lines: what the member reads here is what
    arrives. */
 .copy-link-text {
