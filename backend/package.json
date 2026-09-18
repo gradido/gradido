@@ -1,6 +1,6 @@
 {
   "name": "backend",
-  "version": "2.11.3",
+  "version": "2.11.4",
   "private": false,
   "description": "Gradido unified backend providing an API-Service for Gradido Transactions",
   "repository": "https://github.com/gradido/gradido/backend",
