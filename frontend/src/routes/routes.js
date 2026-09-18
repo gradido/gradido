@@ -114,7 +114,7 @@ const settingsRoutes = [
   // The area exists only where one of the two services is switched on -- otherwise the page
   // would stand empty and still be reachable by typing the address. Same reason the matching
   // routes above are not registered without their flag.
-  ...(CONFIG.GMS_ACTIVE || CONFIG.HUMHUB_ACTIVE
+  ...(CONFIG.GMS_LEGACY_ACTIVE || CONFIG.HUMHUB_ACTIVE
     ? [
         {
           path: '/settings/communities',
@@ -130,7 +130,7 @@ const settingsRoutes = [
   {
     path: '/settings/extern',
     redirect: () => ({
-      path: CONFIG.GMS_ACTIVE || CONFIG.HUMHUB_ACTIVE ? '/settings/communities' : '/settings',
+      path: CONFIG.GMS_LEGACY_ACTIVE || CONFIG.HUMHUB_ACTIVE ? '/settings/communities' : '/settings',
     }),
   },
 ]
