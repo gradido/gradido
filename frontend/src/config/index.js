@@ -40,6 +40,7 @@ if (process.env.FRONTEND_HOSTING === 'nodejs') {
 const features = {
   DLT_ACTIVE: process.env.DLT_ACTIVE === 'true',
   GMS_ACTIVE: process.env.GMS_ACTIVE === 'true',
+  GMS_LEGACY_ACTIVE: process.env.GMS_LEGACY_ACTIVE === 'true',
   MATCHING_ACTIVE: process.env.MATCHING_ACTIVE === 'true',
   HUMHUB_ACTIVE: process.env.HUMHUB_ACTIVE === 'true',
   AUTO_POLL_INTERVAL: Number.parseInt(process.env.AUTO_POLL_INTERVAL ?? 0),

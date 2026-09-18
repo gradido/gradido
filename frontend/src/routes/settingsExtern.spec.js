@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { describe, it, expect, vi } from 'vitest'
 
-const mockConfig = { GMS_ACTIVE: false, HUMHUB_ACTIVE: false, MATCHING_ACTIVE: false }
+const mockConfig = { GMS_LEGACY_ACTIVE: false, HUMHUB_ACTIVE: false, MATCHING_ACTIVE: false }
 vi.mock('@/config', () => ({
   default: new Proxy({}, { get: (_target, key) => mockConfig[key] }),
 }))

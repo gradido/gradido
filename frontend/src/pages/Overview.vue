@@ -28,7 +28,7 @@ export default {
   },
   computed: {
     isGmsActive() {
-      return CONFIG.GMS_ACTIVE === true
+      return CONFIG.GMS_LEGACY_ACTIVE === true
     },
     isHumhubActive() {
       return CONFIG.HUMHUB_ACTIVE === true
