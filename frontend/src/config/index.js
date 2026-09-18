@@ -81,20 +81,20 @@ const map = {
 
 const meta = {
   META_URL: process.env.META_URL ?? 'http://localhost',
-  META_TITLE_DE: process.env.META_TITLE_DE ?? 'Gradido – Dein Dankbarkeitskonto',
-  META_TITLE_EN: process.env.META_TITLE_EN ?? 'Gradido - Your gratitude account',
+  META_TITLE_DE: process.env.META_TITLE_DE ?? 'Gradido – Helfen. Schenken. Danken.',
+  META_TITLE_EN: process.env.META_TITLE_EN ?? 'Gradido – Help. Give. Thank.',
   META_DESCRIPTION_DE:
     process.env.META_DESCRIPTION_DE ??
-    'Dankbarkeit ist die Währung der neuen Zeit. Immer mehr Menschen entfalten ihr Potenzial und gestalten eine gute Zukunft für alle.',
+    'Ein Netzwerk von Menschen, die einander helfen, beschenken und danken. Kostenfrei. Gemeinschaftsbasiert. Open Source.',
   META_DESCRIPTION_EN:
     process.env.META_DESCRIPTION_EN ??
-    'Gratitude is the currency of the new age. More and more people are unleashing their potential and shaping a good future for all.',
+    'A network of people who help, give to and thank each other. Free of charge. Community-based. Open source.',
   META_KEYWORDS_DE:
     process.env.META_KEYWORDS_DE ??
-    'Grundeinkommen, Währung, Dankbarkeit, Schenk-Ökonomie, Natürliche Ökonomie des Lebens, Ökonomie, Ökologie, Potenzialentfaltung, Schenken und Danken, Kreislauf des Lebens, Geldsystem',
+    'Helfen, Schenken, Danken, Gemeinschaft, Nachbarschaft, Ehrenamt, Gemeinwohl, Dankbarkeit',
   META_KEYWORDS_EN:
     process.env.META_KEYWORDS_EN ??
-    'Basic Income, Currency, Gratitude, Gift Economy, Natural Economy of Life, Economy, Ecology, Potential Development, Giving and Thanking, Cycle of Life, Monetary System',
+    'Helping, Giving, Thanking, Community, Neighbourhood, Volunteering, Common Good, Gratitude',
   META_AUTHOR: process.env.META_AUTHOR ?? 'Bernd Hückstädt - Gradido-Akademie',
 }
 
