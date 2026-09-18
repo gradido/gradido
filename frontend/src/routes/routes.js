@@ -130,7 +130,8 @@ const settingsRoutes = [
   {
     path: '/settings/extern',
     redirect: () => ({
-      path: CONFIG.GMS_LEGACY_ACTIVE || CONFIG.HUMHUB_ACTIVE ? '/settings/communities' : '/settings',
+      path:
+        CONFIG.GMS_LEGACY_ACTIVE || CONFIG.HUMHUB_ACTIVE ? '/settings/communities' : '/settings',
     }),
   },
 ]
