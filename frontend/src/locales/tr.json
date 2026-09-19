@@ -792,6 +792,7 @@
   "public-profile": {
     "address": "Gradido adresi",
     "duration": "{communityName} topluluğunda hesap açmak yaklaşık on dakika sürer. Hesap sana son zamanlarda ne gibi iyilikler yaptığını sorar.",
+    "echoHint": "{name}, senin aramıza katıldığını öğrenecek.",
     "join": "Hesap aç",
     "lead": "Birbirine yardım eden, armağan veren ve teşekkür eden insanlardan oluşan bir ağ. Ücretsiz. Topluluk temelli. Açık kaynak.",
     "send": "Gradido gönder",
@@ -1025,6 +1026,7 @@
       "minimum": "Minimum 8 karakter.",
       "no-whitespace": "Boşluk ve sekme yok",
       "one_number": "Numara gerekli.",
+      "shownBy": "{name} sana Gradido'yu gösterdi. İyi ki buradasın.",
       "special-char": "Özel karakter gerekli (_ yada ä vb)",
       "uppercase": "Büyük bir harf gerekli."
     }

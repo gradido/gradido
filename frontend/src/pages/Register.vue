@@ -2,6 +2,11 @@
   <div id="registerform">
     <BContainer v-if="enterData">
       <auth-triads class="pb-5" />
+      <!-- Somebody showed Gradido to this newcomer: the name from their address came along
+           (/u/<name>, "create account"). Their own input read back, as text. -->
+      <p v-if="referrerAlias" class="alert gradido-border-radius" data-test="register-shown-by">
+        {{ $t('site.signup.shownBy', { name: referrerAlias }) }}
+      </p>
       <BForm role="form" @submit.prevent="onSubmit">
         <BRow>
           <BCol sm="12" md="6">
@@ -104,6 +109,7 @@ import { useStore } from 'vuex'
 import { useRoute } from 'vue-router'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import CONFIG from '@/config'
+import { USERNAME_REGEX } from '@/validationSchemas'
 
 const { toastError } = useAppToast()
 const { routeWithParamsAndQuery } = useAuthLinks()
@@ -129,11 +135,18 @@ const { meta: agreeMeta } = useField('agree', 'required')
 
 const { t } = useI18n()
 const store = useStore()
-const { params } = useRoute()
+const { params, query } = useRoute()
 
 const showPageMessage = ref(false)
 const publisherId = ref(store.state.publisherId)
 const redeemCode = ref(params.code)
+// The user name from the Gradido address the registration started at: its owner becomes the
+// referrer, and the strip above the form names them. Only a user name is taken - the page
+// shows it, so anything else would put a stranger's text above the form, and the server
+// ignores anything else anyway.
+const referrerAlias = USERNAME_REGEX.test(String(query.referrer ?? ''))
+  ? String(query.referrer)
+  : null
 
 const enterData = computed(() => {
   return !showPageMessage.value
@@ -149,6 +162,8 @@ async function onSubmit() {
       publisherId: publisherId.value,
       redeemCode: redeemCode.value,
       project: store.state.project,
+      // Without an address to come from, the field stays out of the request.
+      ...(referrerAlias ? { referrerAlias } : {}),
     })
     showPageMessage.value = true
   } catch (error) {

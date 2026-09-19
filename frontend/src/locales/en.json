@@ -882,6 +882,7 @@
   "public-profile": {
     "address": "Gradido address",
     "duration": "An account with {communityName} takes about ten minutes to set up. It asks you what good you have done lately.",
+    "echoHint": "{name} will learn that you have arrived.",
     "join": "Create an account",
     "lead": "A network of people who help, give to and thank each other. Free of charge. Community-based. Open source.",
     "send": "Send Gradido",
@@ -1150,6 +1151,7 @@
       "minimum": "8 characters minimum.",
       "no-whitespace": "No white spaces and tabs",
       "one_number": "One number required.",
+      "shownBy": "{name} showed you Gradido. Good to have you here.",
       "special-char": "One special character required (e.g. _ or ä)",
       "uppercase": "One uppercase letter required."
     }

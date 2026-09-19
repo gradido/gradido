@@ -26,7 +26,7 @@
       <BButton
         class="fs-7 profile-action"
         variant="gradido"
-        :to="routeWithParamsAndQuery('Register')"
+        :to="registerRoute"
         data-test="public-profile-register"
       >
         {{ $t('public-profile.join') }}
@@ -43,6 +43,11 @@
          to four with a long community name (measured against the built stylesheets). -->
     <p class="small mt-4 mb-0" data-test="public-profile-duration">
       {{ $t('public-profile.duration', { communityName }) }}
+    </p>
+    <!-- Read before anybody registers, because an account opened from here tells the person
+         in the address about it (ZE-005). Only where there is such a trace to leave. -->
+    <p v-if="leavesTrace" class="small mt-2 mb-0" data-test="public-profile-echo-hint">
+      {{ $t('public-profile.echoHint', { name: alias }) }}
     </p>
   </div>
 </template>
@@ -105,6 +110,18 @@
  * The line under the address names the community for the same reason, and for the newcomer
  * it says where the account would be opened. The second button leads where the registration
  * link below the card used to lead.
+ *
+ * ## The second button carries the name, and the page says so
+ *
+ * "Create account" takes the user name from the address along (`?referrer=<name>`), and the
+ * registration hands it to the server, which makes its owner the referrer of the new account
+ * - silently, and only if the name belongs to somebody; nothing comes back either way, so
+ * the page still asks nothing. Because the person in the address learns of the arrival, the
+ * newcomer reads that here, before registering (ZE-005).
+ *
+ * Only for a user name. A Gradido ID leaves no trace (the server takes names only), and a
+ * page that greets "somebody" should not promise that somebody hears of it; anything else in
+ * the address is no name at all. The shape decides, as for the greeting.
  */
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
@@ -115,6 +132,7 @@ import GradidoAddressCopy from '@/components/GradidoAddressCopy'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import CONFIG from '@/config'
 import { isGradidoId } from '@/utils/gradidoAddress'
+import { USERNAME_REGEX } from '@/validationSchemas'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -136,6 +154,14 @@ const sendRoute = computed(() => ({
   name: 'Send',
   params: { communityIdentifier: communityName, userIdentifier: alias.value },
 }))
+
+const leavesTrace = computed(() => USERNAME_REGEX.test(alias.value))
+
+const registerRoute = computed(() =>
+  leavesTrace.value
+    ? routeWithParamsAndQuery('Register', { query: { referrer: alias.value } })
+    : routeWithParamsAndQuery('Register'),
+)
 </script>
 
 <style lang="scss" scoped>
