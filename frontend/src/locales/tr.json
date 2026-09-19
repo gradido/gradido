@@ -790,8 +790,8 @@
   },
   "public-profile": {
     "address": "Gradido adresi",
-    "duration": "Hesap açmak yaklaşık on dakika sürer. Hesap sana son zamanlarda ne gibi iyilikler yaptığını sorar.",
-    "join": "{communityName} topluluğunda hesap aç",
+    "duration": "{communityName} topluluğunda hesap açmak yaklaşık on dakika sürer. Hesap sana son zamanlarda ne gibi iyilikler yaptığını sorar.",
+    "join": "Hesap aç",
     "lead": "Birbirine yardım eden, armağan veren ve teşekkür eden insanlardan oluşan bir ağ. Ücretsiz. Topluluk temelli. Açık kaynak.",
     "send": "Gradido gönder",
     "shows": "{name} sana Gradido'yu gösteriyor",

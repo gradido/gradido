@@ -880,8 +880,8 @@
   },
   "public-profile": {
     "address": "Gradido address",
-    "duration": "An account takes about ten minutes to set up. It asks you what good you have done lately.",
-    "join": "Create an account with {communityName}",
+    "duration": "An account with {communityName} takes about ten minutes to set up. It asks you what good you have done lately.",
+    "join": "Create an account",
     "lead": "A network of people who help, give to and thank each other. Free of charge. Community-based. Open source.",
     "send": "Send Gradido",
     "shows": "{name} is showing you Gradido",

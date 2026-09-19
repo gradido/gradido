@@ -29,7 +29,7 @@
         :to="routeWithParamsAndQuery('Register')"
         data-test="public-profile-register"
       >
-        {{ $t('public-profile.join', { communityName }) }}
+        {{ $t('public-profile.join') }}
       </BButton>
     </div>
 
@@ -38,8 +38,11 @@
       <gradido-address-copy :alias="alias" />
     </div>
 
+    <!-- The community is named here and not in the button: "Create an account with
+         <community>" broke onto two lines on every phone in all ten languages, and onto up
+         to four with a long community name (measured against the built stylesheets). -->
     <p class="small mt-4 mb-0" data-test="public-profile-duration">
-      {{ $t('public-profile.duration') }}
+      {{ $t('public-profile.duration', { communityName }) }}
     </p>
   </div>
 </template>
@@ -99,9 +102,9 @@
  * the address into their own wallet, where it carries money, e-mail and later a chat thread.
  * The button leads; copying catches whoever the button cannot serve.
  *
- * The second button names the community for the same reason, and for the newcomer it says
- * where the account would be opened. It leads where the registration link below the card
- * used to lead.
+ * The line under the address names the community for the same reason, and for the newcomer
+ * it says where the account would be opened. The second button leads where the registration
+ * link below the card used to lead.
  */
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
@@ -155,10 +158,18 @@ const sendRoute = computed(() => ({
   width: 100%;
 }
 
-/* The thumb gets the whole width. */
+/* The thumb gets the whole width. There the house button's 50px of side padding only takes
+   room from the label: on a 390px phone it leaves 150px, and the French "Envoyer des
+   Gradido" needs 155px, so the first button broke onto two lines beside a second one that did
+   not. Same override as on the matching map. */
 @media screen and (width <= 767px) {
   .profile-actions {
     display: grid;
+  }
+
+  .profile-actions :deep(.profile-action) {
+    padding-right: 1.25rem !important;
+    padding-left: 1.25rem !important;
   }
 }
 </style>

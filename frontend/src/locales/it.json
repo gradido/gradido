@@ -790,8 +790,8 @@
   },
   "public-profile": {
     "address": "Indirizzo Gradido",
-    "duration": "Creare un account richiede circa dieci minuti. Ti chiede che cosa hai fatto di buono ultimamente.",
-    "join": "Crea un account presso {communityName}",
+    "duration": "Creare un account presso {communityName} richiede circa dieci minuti. Ti chiede che cosa hai fatto di buono ultimamente.",
+    "join": "Crea un account",
     "lead": "Una rete di persone che si aiutano, si fanno doni e si ringraziano a vicenda. Gratuita. Basata sulla comunità. Open source.",
     "send": "Invia Gradido",
     "shows": "{name} ti mostra Gradido",

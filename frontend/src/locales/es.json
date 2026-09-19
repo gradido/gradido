@@ -790,8 +790,8 @@
   },
   "public-profile": {
     "address": "Dirección Gradido",
-    "duration": "Crear una cuenta lleva unos diez minutos. Te pregunta qué has hecho de bueno últimamente.",
-    "join": "Crear una cuenta en {communityName}",
+    "duration": "Crear una cuenta en {communityName} lleva unos diez minutos. Te pregunta qué has hecho de bueno últimamente.",
+    "join": "Crear una cuenta",
     "lead": "Una red de personas que se ayudan, se regalan cosas y se dan las gracias unas a otras. Gratis. Basada en la comunidad. Código abierto.",
     "send": "Enviar Gradido",
     "shows": "{name} te muestra Gradido",

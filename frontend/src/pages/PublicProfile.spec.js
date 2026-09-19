@@ -151,14 +151,30 @@ describe('PublicProfile', () => {
   })
 
   // The way onward for somebody who has no account yet, where the registration link below
-  // the card used to be. The community is named on purpose: whoever belongs somewhere else is
-  // told so without the page ever having to ask which community they are in.
-  it('offers to open an account, naming the community, where the registration link led', async () => {
+  // the card used to be.
+  it('offers to open an account where the registration link led', async () => {
     const wrapper = await wrapperFor('bernd')
 
     const join = wrapper.find('[data-test="public-profile-register"]')
-    expect(join.text()).toBe(en['public-profile'].join.replace('{communityName}', 'KI Playground'))
+    expect(join.text()).toBe(en['public-profile'].join)
     expect(join.attributes('href')).toBe('/register')
+  })
+
+  /**
+   * The community is named on purpose -- whoever belongs somewhere else is told so without
+   * the page ever having to ask which community they are in -- and it is named under the
+   * address, not in the button: there it broke the label onto up to four lines on a phone
+   * (Bernd, 19.09.2026, after the measurement).
+   */
+  it('names the community in the line about opening an account', async () => {
+    const wrapper = await wrapperFor('bernd')
+
+    expect(wrapper.find('[data-test="public-profile-duration"]').text()).toBe(
+      en['public-profile'].duration.replace('{communityName}', 'KI Playground'),
+    )
+    expect(wrapper.find('[data-test="public-profile-register"]').text()).not.toContain(
+      'KI Playground',
+    )
   })
 
   // The name comes from the address, not from the database: the visitor's own input read back.
@@ -183,13 +199,10 @@ describe('PublicProfile', () => {
     expect(wrapper.text()).toContain(`ki-playground.gradido.net/u/${GRADIDO_ID}`)
   })
 
-  it('says what Gradido is, and what opening an account takes', async () => {
+  it('says what Gradido is', async () => {
     const wrapper = await wrapperFor('bernd')
 
     expect(wrapper.find('[data-test="public-profile-lead"]').text()).toBe(en['public-profile'].lead)
-    expect(wrapper.find('[data-test="public-profile-duration"]').text()).toBe(
-      en['public-profile'].duration,
-    )
   })
 
   // The heart of it: from the outside it must not be possible to tell whether somebody is
