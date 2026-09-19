@@ -28,6 +28,7 @@ import {
   Event as DbEvent,
   FederatedCommunity as DbFederatedCommunity,
   dbInsertMatchingEntry,
+  userFactory as dbUserFactory,
   TransactionLink,
   User,
   UserAlias,
@@ -638,8 +639,125 @@ describe('UserResolver', () => {
           }))
         })
       })
-    
+
       */
+    })
+
+    describe('the Gradido address the registration started at (referrerAlias)', () => {
+      // "Konto anlegen" on /u/<alias> carries the alias into createUser, and its owner
+      // becomes the referrer - silently: nothing in the answer tells whether it happened.
+      let bob: User
+      let link: ContributionLink
+      const results: Record<string, any> = {}
+
+      const register = async (email: string, extra: Record<string, string>) => {
+        results[email] = await mutate({
+          mutation: createUser,
+          variables: { firstName: 'Carla', lastName: 'Neu', language: 'de', email, ...extra },
+        })
+      }
+
+      const registered = async (email: string): Promise<User> =>
+        (await UserContact.findOneOrFail({ where: { email }, relations: ['user'] })).user
+
+      beforeAll(async () => {
+        await cleanDB()
+        bob = await userFactory(testEnv, bobBaumeister)
+        // A deleted member who still holds a name.
+        await userFactory(testEnv, { ...stephenHawking, alias: 'BlackHoles' })
+        // A member of another community, whose name exists only over there.
+        const otherCommunity = await DbCommunity.create({
+          foreign: true,
+          url: 'http://other.invalid/api/',
+          publicKey: randomBytes(32),
+          communityUuid: uuidv4(),
+          authenticatedAt: new Date(),
+          name: 'Other community',
+          description: 'a name that exists only over there',
+          creationDate: new Date(),
+        }).save()
+        await dbUserFactory(
+          {
+            alias: 'FarAway',
+            email: 'far@away.invalid',
+            firstName: 'Far',
+            lastName: 'Away',
+            emailChecked: true,
+            language: 'de',
+          },
+          otherCommunity,
+        )
+        const tomorrow = new Date()
+        tomorrow.setDate(tomorrow.getDate() + 1)
+        link = await contributionLinkFactory(testEnv, {
+          name: 'Market day',
+          memo: 'Thank you for coming to the market day',
+          amount: 200,
+          validFrom: new Date(),
+          validTo: tomorrow,
+        })
+        resetToken()
+
+        await register('by@alias.de', { referrerAlias: 'MeisterBob' })
+        await register('by@unknown-alias.de', { referrerAlias: 'NobodyHere' })
+        await register('by@gradido-id.de', { referrerAlias: bob.gradidoID })
+        await register('by@deleted-member.de', { referrerAlias: 'BlackHoles' })
+        await register('by@other-community.de', { referrerAlias: 'FarAway' })
+        await register('by@link-and-alias.de', {
+          referrerAlias: 'MeisterBob',
+          redeemCode: 'CL-' + link.code,
+        })
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+      })
+
+      it('makes the owner of the alias the referrer', async () => {
+        await expect(registered('by@alias.de')).resolves.toEqual(
+          expect.objectContaining({ referrerId: bob.id }),
+        )
+      })
+
+      it('leaves no trace for an alias nobody holds', async () => {
+        await expect(registered('by@unknown-alias.de')).resolves.toEqual(
+          expect.objectContaining({ referrerId: null }),
+        )
+      })
+
+      it('leaves no trace for a gradido ID, although its owner exists', async () => {
+        await expect(registered('by@gradido-id.de')).resolves.toEqual(
+          expect.objectContaining({ referrerId: null }),
+        )
+      })
+
+      it('leaves no trace for the name of a deleted member', async () => {
+        await expect(registered('by@deleted-member.de')).resolves.toEqual(
+          expect.objectContaining({ referrerId: null }),
+        )
+      })
+
+      it('leaves no trace for a name that exists only in another community', async () => {
+        await expect(registered('by@other-community.de')).resolves.toEqual(
+          expect.objectContaining({ referrerId: null }),
+        )
+      })
+
+      it('lets a redeem code win over the address', async () => {
+        await expect(registered('by@link-and-alias.de')).resolves.toEqual(
+          expect.objectContaining({ referrerId: null, contributionLinkId: link.id }),
+        )
+      })
+
+      it('answers every one of them the same way - no error, the same shape', () => {
+        expect(Object.keys(results)).toHaveLength(6)
+        for (const result of Object.values(results)) {
+          expect({ data: result.data, errors: result.errors }).toEqual({
+            data: { createUser: { id: expect.any(Number) } },
+            errors: undefined,
+          })
+        }
+      })
     })
   })
 
