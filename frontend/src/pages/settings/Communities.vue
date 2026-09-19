@@ -90,7 +90,7 @@ const humhubAllowed = ref(state.humhubAllowed)
 const isHumhubActivated = computed(() => humhubAllowed.value === true)
 
 // setting if gms and/or humhub are enabled in frontend config .env
-const isGMS = CONFIG.GMS_ACTIVE
+const isGMS = CONFIG.GMS_LEGACY_ACTIVE
 const isHumhub = CONFIG.HUMHUB_ACTIVE
 
 const gmsStateSwitch = (eventData) => {

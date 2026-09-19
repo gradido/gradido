@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull, or } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNull, ne, or } from 'drizzle-orm'
 import { alias as aliasedTable } from 'drizzle-orm/mysql-core'
 import { GradidoUnit, PasswordEncryptionType, Result, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
@@ -212,6 +212,7 @@ export async function dbFindGmsAllowedLocalUserIds(): Promise<{ id: number }[]> 
         eq(usersTable.foreign, false),
         eq(usersTable.gmsAllowed, true),
         isNull(usersTable.deletedAt),
+        ne(usersTable.gmsPublishLocation, 2), // GMS_LOCATION_TYPE_RANDOM = 2 but enum is defined in backend, so I cannot access
       ),
     )
 }

@@ -160,6 +160,7 @@
       "matchingChangedElsewhere": "No se ha guardado: otra persona ha movido el interruptor mientras tanto. Ahora se muestra el estado guardado.",
       "matchingKeying": "Palabras clave para las entradas de matching",
       "matchingKeyingHint": "Para cada entrada de matching, Crea busca las palabras con las que otras personas la encuentran. Cada entrada tiene un coste: al activarlo, Crea procesa las entradas que no tienen palabras, hasta cien por pasada y aproximadamente una pasada por minuto, hasta que no quede nada pendiente. Al desactivarlo, el efecto llega después del lote en curso: como mucho diez entradas más.",
+      "matchingKeyingOff": "Desactivado: las entradas de matching no reciben palabras clave. Si el matching está activado, los miembros ven sus entradas, pero nada coincide.",
       "model": "Modelo de IA",
       "modelHint": "Dejar vacío = modelo por defecto ({model}). Puedes escribir un modelo nuevo directamente.",
       "modelPlaceholder": "Por defecto: {model}",

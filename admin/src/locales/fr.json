@@ -160,6 +160,7 @@
       "matchingChangedElsewhere": "Non enregistré : quelqu'un d'autre a basculé l'interrupteur entre-temps. C'est l'état enregistré qui s'affiche maintenant.",
       "matchingKeying": "Mots-clés pour les entrées de matching",
       "matchingKeyingHint": "Pour chaque entrée de matching, Crea détermine les mots par lesquels les autres la trouveront. Chaque entrée a un coût : après l'activation, Crea traite les entrées sans mots, jusqu'à cent par passage et environ un passage par minute, jusqu'à ce que le retard soit rattrapé. La désactivation prend effet après le lot en cours — au maximum dix entrées de plus.",
+      "matchingKeyingOff": "Désactivé : les entrées de matching ne reçoivent pas de mots-clés. Si le matching est activé, les membres voient leurs entrées, mais rien ne correspond.",
       "model": "Modèle d'IA",
       "modelHint": "Laisser vide = modèle par défaut ({model}). Tu peux saisir directement un nouveau modèle.",
       "modelPlaceholder": "Par défaut : {model}",
