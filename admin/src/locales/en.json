@@ -160,6 +160,7 @@
       "matchingChangedElsewhere": "Not saved: somebody else moved the switch in the meantime. What you see now is the stored state.",
       "matchingKeying": "Key words for matching entries",
       "matchingKeyingHint": "Crea works out the words each matching entry can be found under. It costs per entry: after switching on, Crea works through the entries that have no words, up to a hundred per pass and about a pass a minute, until the backlog is gone. Switching off takes effect after the batch that is running — at most ten more entries.",
+      "matchingKeyingOff": "Off: matching entries get no key words. Where the matching is switched on, members see their entries, but nothing matches.",
       "model": "AI model",
       "modelHint": "Leave empty = default model ({model}). You can type a new model directly.",
       "modelPlaceholder": "Default: {model}",

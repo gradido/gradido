@@ -25,6 +25,12 @@ export const authenticateGmsUserSearch = gql`
   }
 `
 
+export const gmsDashboardUrl = gql`
+  query {
+    gmsDashboardUrl
+  }
+`
+
 export const userLocationQuery = gql`
   query {
     userLocation {

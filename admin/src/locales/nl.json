@@ -160,6 +160,7 @@
       "matchingChangedElsewhere": "Niet opgeslagen: iemand anders heeft de schakelaar intussen omgezet. Je ziet nu de opgeslagen stand.",
       "matchingKeying": "Trefwoorden voor matching-vermeldingen",
       "matchingKeyingHint": "Crea zoekt bij elke matching-vermelding de woorden waarmee anderen die kunnen vinden. Elke vermelding kost geld: na het inschakelen werkt Crea de vermeldingen zonder woorden af, tot honderd per ronde en ongeveer één ronde per minuut, tot de achterstand weg is. Uitschakelen gaat pas in na de batch die nu draait — hooguit nog tien vermeldingen.",
+      "matchingKeyingOff": "Uit: matching-vermeldingen krijgen geen trefwoorden. Staat matching aan, dan zien leden hun vermeldingen, maar er zijn geen matches.",
       "model": "AI-model",
       "modelHint": "Leeg laten = standaardmodel ({model}). Je kunt een nieuw model direct invoeren.",
       "modelPlaceholder": "Standaard: {model}",

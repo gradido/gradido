@@ -160,6 +160,7 @@
       "matchingChangedElsewhere": "Nicht gespeichert: jemand anders hat den Schalter inzwischen umgelegt. Angezeigt wird jetzt der gespeicherte Stand.",
       "matchingKeying": "Schlüsselwörter für Matching-Einträge",
       "matchingKeyingHint": "Crea sucht zu jedem Matching-Eintrag die Wörter, unter denen andere ihn finden. Kostet pro Eintrag: nach dem Einschalten arbeitet Crea die Einträge ohne Wörter ab, bis zu hundert je Durchgang und etwa ein Durchgang pro Minute, bis der Rückstand weg ist. Ausschalten wirkt nach dem gerade laufenden Stapel — höchstens zehn weitere Einträge.",
+      "matchingKeyingOff": "Aus: Matching-Einträge bekommen keine Schlüsselwörter. Ist das Matching eingeschaltet, sehen Mitglieder ihre Einträge, aber nichts matcht.",
       "model": "KI-Modell",
       "modelHint": "Leer lassen = Standardmodell ({model}). Ein neues Modell kannst Du direkt eintragen.",
       "modelPlaceholder": "Standard: {model}",

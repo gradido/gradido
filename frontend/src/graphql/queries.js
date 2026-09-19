@@ -117,6 +117,13 @@ export const authenticateGmsUserSearch = gql`
   }
 `
 
+// The GMS address without a member token - see composables/useGmsBase.
+export const gmsDashboardUrl = gql`
+  query {
+    gmsDashboardUrl
+  }
+`
+
 export const userLocationQuery = gql`
   query {
     userLocation {

@@ -1,27 +1,31 @@
 // AI-GENERATED — not an architecture reference
 import { useApolloClient } from '@vue/apollo-composable'
-import { useStore } from 'vuex'
-import { authenticateGmsUserSearch } from '@/graphql/queries'
+import { gmsDashboardUrl } from '@/graphql/queries'
 import { apiBaseOf } from '@/composables/useMatches'
 
 /**
  * Where the community's GMS answers - `https://…/gms/` - for the address search.
  *
- * The wallet learns that address only from `authenticateGmsUserSearch`, and that query mints
- * a member token on the way: the wallet backend sends the member's gradidoID to the GMS. So
- * it is only asked for a member who takes part in the GMS (`gmsAllowed`). Somebody who
- * switched "findable" off has been deleted over there, would be answered 400, and asking
- * would send their id to a service they left. They get no address, and in the new position
- * of the switch the address search stays empty for them (Bernd, 13.09.2026) - until the
- * address comes from somewhere that needs no token.
+ * That address is server configuration, the same for everybody on this server, and the wallet
+ * asks the backend for exactly that (`gmsDashboardUrl`): the query contacts nobody and says
+ * nothing about the member. So every member gets it - the one who switched "findable" off as
+ * well, and the one the GMS has never been sent. They are who the router sends to the home
+ * tab, and the search on the map there is how they set their home (Bernd, 18.09.2026).
  *
- * Only the address is kept, never the token: it is the same for everybody on this server.
+ * ⛔ Not `authenticateGmsUserSearch`, which carries the same address next to a member token.
+ * Minting that token sends the member's gradidoID to the GMS, and the GMS answers 400 for a
+ * member it does not hold. While it was the only source, those members were not asked about
+ * at all, and their search stayed empty without a word.
+ *
+ * What a search then sends to the GMS is the text typed, where the map looks and the wallet's
+ * language - no token and nothing that names the member (utils/geoSearch).
  */
 
 /** How long the address is kept, like the GMS access in `useMatches`. */
 const KEPT_MAX_AGE_MS = 5 * 60 * 1000
 
-// Module-wide: the address belongs to the community server, not to a component.
+// Module-wide: the address belongs to the community server, not to a component - and not to a
+// member either, so somebody else signing in on this device reads the same one rightly.
 let kept = null
 let keptAt = 0
 let pending = null
@@ -29,10 +33,12 @@ let pending = null
 async function ask(client) {
   try {
     const { data } = await client.query({
-      query: authenticateGmsUserSearch,
+      query: gmsDashboardUrl,
       fetchPolicy: 'network-only',
     })
-    kept = apiBaseOf(data.authenticateGmsUserSearch.url)
+    // `null` where this server has no GMS.
+    if (!data.gmsDashboardUrl) return null
+    kept = apiBaseOf(data.gmsDashboardUrl)
     keptAt = Date.now()
     return kept
   } catch {
@@ -43,16 +49,12 @@ async function ask(client) {
 
 export function useGmsBase() {
   const { client } = useApolloClient()
-  const store = useStore()
 
   /**
    * @returns {Promise<?string>} the address of the GMS API, or null where there is none to
    *   use; never rejects
    */
   function gmsBase() {
-    // Before the kept address, and every time: a member who switched "findable" off gets the
-    // same answer whether or not somebody else on this device asked a minute ago.
-    if (!store.state.gmsAllowed) return Promise.resolve(null)
     if (kept && Date.now() - keptAt < KEPT_MAX_AGE_MS) {
       return Promise.resolve(kept)
     }

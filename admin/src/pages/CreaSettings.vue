@@ -99,6 +99,12 @@
       <small class="text-muted d-block mb-3">
         {{ $t('crea.settings.sectionMatchingHint') }}
       </small>
+      <!-- What the SERVER holds, not what the box shows: a box ticked and not yet saved has not
+           bought a single word. Nothing while that is unknown - the form's `false` before the
+           query answers is a display default, not a state. -->
+      <div v-if="keyingStored === false" class="text-warning mb-3" data-test="matching-keying-off">
+        {{ $t('crea.settings.matchingKeyingOff') }}
+      </div>
       <BFormGroup class="mb-3">
         <BFormCheckbox v-model="form.matchingKeyingActive">
           {{ $t('crea.settings.matchingKeying') }}
@@ -156,6 +162,11 @@ const settingsLoaded = ref(false)
 const saving = ref(false)
 const savingKeying = ref(false)
 const testing = ref(false)
+// The keying switch as the server holds it, apart from the box above it, which a click moves
+// at once. `null` until the query has answered. It is what the warning in the matching
+// section speaks about: on 2026-09-18 production showed entries on the map while nothing
+// matched, because this switch was still off - and nothing on this page said so.
+const keyingStored = ref(null)
 
 // The first-creation signer (ES-005): shown as stored, picked from the member search. Only
 // accounts that could sign are offered - an admin, or a moderator - and the server has the
@@ -203,6 +214,7 @@ watch(
       }
       defaultModel.value = settings.defaultModel
       signer.value = settings.firstCreationSigner ?? null
+      keyingStored.value = settings.matchingKeyingActive ?? false
       settingsLoaded.value = true
     }
   },
@@ -346,6 +358,8 @@ async function saveKeying() {
     // What the server stored, which differs from `asked` only when somebody else wrote
     // in between - the write throwing already covers the row-not-found case.
     const stored = data.setCreaMatchingKeying
+    // The warning follows the server whatever the box holds by now: it says what is stored.
+    keyingStored.value = stored
     // ⚠️ And only follow the server where the box still holds what was sent. A newer
     // click belongs to the person who made it; it is unsaved, not wrong.
     if (form.value.matchingKeyingActive === asked) {
