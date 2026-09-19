@@ -785,6 +785,7 @@
     "scanner": "Kod tara",
     "send": "Gradido ve e-posta gönder",
     "settings": "Ayarlar",
+    "show-friends": "Arkadaşlarına göster",
     "transactions": "İşlemlerin",
     "usersearch": "Coğrafi üye arama (beta)"
   },
@@ -976,6 +977,36 @@
       "first-title": "Kullanıcı adın",
       "quota-blocked": "Bu yıl için ad değişikliği hakkını doldurdun. {date} tarihinden itibaren yeniden mümkün.",
       "quota-left": "Kullanıcı adını bu yıl bir kez daha değiştirebilirsin. | Kullanıcı adını bu yıl {n} kez daha değiştirebilirsin."
+    }
+  },
+  "showFriends": {
+    "away": {
+      "addressLead": "Ya da sadece adresini, yanına bir cümleyle:",
+      "copied": "Cümle ve Gradido adresin kopyalandı. Şimdi bunları bir mesaja yapıştırabilirsin.",
+      "editHint": "Cümleyi göndermeden önce değiştirebilirsin — sonra mesajlaşma uygulamanda görünür.",
+      "shareButton": "Adresi paylaş",
+      "shareText": "Bak, bu Gradido — birbirimize yardım ettiğimiz, armağan verdiğimiz ve teşekkür ettiğimiz bir ağ. Beni burada bulabilirsin: {url}",
+      "thanks": "Bir teşekkür gönder.",
+      "thanksText": "Herkes teşekkür edebilir — Gradido ile bunu armağan edebilirsin.",
+      "title": "Başka yerdeki birine"
+    },
+    "here": {
+      "map": "Haritayı",
+      "step1": "{map} göster. Aradığı şeyi yazmasına izin ver.",
+      "step2": "Kamerasını bu koda tutar.",
+      "step3": "Hesap onu kendiliğinden karşılar. Hiçbir şey açıklamana gerek yok.",
+      "title": "Burada yanımdaki birine"
+    },
+    "page": {
+      "footer": "Göstermek yeterli.",
+      "footerLead": "Hiçbir şey açıklamana gerek yok.",
+      "lead": "Aramıza katılan her kişi diğer herkes için bir armağandır — ve diğer herkesle birlikte ağı armağan olarak alır.",
+      "question": "Kime göstermek istiyorsun?"
+    },
+    "tile": {
+      "go": "Nasıl yapılır",
+      "text": "Aramıza katılan her kişi herkes için bir armağandır — ve bütün ağı armağan olarak alır.",
+      "title": "Arkadaşlarına göster"
     }
   },
   "signin": "Giriş yap",

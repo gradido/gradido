@@ -875,6 +875,7 @@
     "scanner": "Code scannen",
     "send": "Gradido und E-Mail senden",
     "settings": "Einstellungen",
+    "show-friends": "Zeig es Deinen Freunden",
     "transactions": "Deine Transaktionen",
     "usersearch": "Geografische Mitgliedssuche (beta)"
   },
@@ -1101,6 +1102,36 @@
       "first-title": "Dein Nutzername",
       "quota-blocked": "Du hast Deine Namensänderungen für dieses Jahr aufgebraucht. Ab {date} geht es wieder.",
       "quota-left": "Du kannst Deinen Nutzernamen dieses Jahr noch einmal ändern. | Du kannst Deinen Nutzernamen dieses Jahr noch {n}-mal ändern."
+    }
+  },
+  "showFriends": {
+    "away": {
+      "addressLead": "Oder nur Deine Adresse, mit einem Satz dazu:",
+      "copied": "Der Satz und Deine Gradido-Adresse sind kopiert. Du kannst sie jetzt in eine Nachricht einfügen.",
+      "editHint": "Den Satz kannst Du vor dem Senden ändern — er steht dann in Deinem Messenger.",
+      "shareButton": "Adresse teilen",
+      "shareText": "Schau mal, das ist Gradido — ein Netzwerk, in dem wir einander helfen, schenken und danken. Hier findest Du mich: {url}",
+      "thanks": "Schick einen Dank.",
+      "thanksText": "Danke sagen kann jeder — mit Gradido kannst Du es schenken.",
+      "title": "Jemandem woanders"
+    },
+    "here": {
+      "map": "die Karte",
+      "step1": "Zeig {map}. Lass sie eintippen, was sie sucht.",
+      "step2": "Sie hält ihre Kamera auf diesen Code.",
+      "step3": "Das Konto begrüßt sie selbst. Du musst nichts erklären.",
+      "title": "Jemandem hier bei mir"
+    },
+    "page": {
+      "footer": "Zeigen genügt.",
+      "footerLead": "Du musst nichts erklären.",
+      "lead": "Jeder, der dazukommt, ist ein Geschenk für alle anderen — und bekommt als Geschenk das Netzwerk mit allen anderen.",
+      "question": "Wem möchtest Du es zeigen?"
+    },
+    "tile": {
+      "go": "So geht’s",
+      "text": "Jeder, der dazukommt, ist ein Geschenk für alle — und bekommt das ganze Netzwerk geschenkt.",
+      "title": "Zeig es Deinen Freunden"
     }
   },
   "signin": "Anmelden",

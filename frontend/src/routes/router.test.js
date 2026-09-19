@@ -84,8 +84,8 @@ describe('router', () => {
       expect(defaultRoute.redirect()).toEqual({ path: '/login' })
     })
 
-    it('has 42 routes defined', () => {
-      expect(routes).toHaveLength(42)
+    it('has 43 routes defined', () => {
+      expect(routes).toHaveLength(43)
     })
 
     // The settings are one route per area. That is what lets the same pages serve both
@@ -210,6 +210,14 @@ describe('router', () => {
     testRoute('/scan', 'Scanner')
     testRoute('/my-gradido-card', 'MyGradidoCard')
     testRoute('/my-thank-you-card', 'MyThankYouCard')
+    testRoute('/show-friends', 'ShowFriends')
+
+    // ⚠️ The breadcrumb prints `pageTitle.<key>`, and the raw key when there is no text -- the
+    // page has no heading of its own, so this one is its title.
+    it('gives the page for showing Gradido a title the breadcrumb can resolve', () => {
+      const route = routes.find((r) => r.path === '/show-friends')
+      expect(route.meta.pageTitle).toBe('show-friends')
+    })
 
     /**
      * ⛔ These two are the ONLY places a member's own codes are shown, and both must stay

@@ -785,6 +785,7 @@
     "scanner": "Scanner un code",
     "send": "Envoyer Gradido et e-mail",
     "settings": "Configuration",
+    "show-friends": "Montre-le à tes amis",
     "transactions": "Tes transactions",
     "usersearch": "Recherche géographique de membres (bèta)"
   },
@@ -976,6 +977,36 @@
       "first-title": "Ton nom d'utilisateur",
       "quota-blocked": "Tu as épuisé tes changements de nom pour cette année. Ce sera à nouveau possible à partir du {date}.",
       "quota-left": "Tu peux encore changer ton nom d'utilisateur une fois cette année. | Tu peux encore changer ton nom d'utilisateur {n} fois cette année."
+    }
+  },
+  "showFriends": {
+    "away": {
+      "addressLead": "Ou seulement ton adresse, avec une phrase :",
+      "copied": "La phrase et ton adresse Gradido ont été copiées. Tu peux maintenant les coller dans un message.",
+      "editHint": "Tu peux modifier la phrase avant l'envoi — elle apparaîtra alors dans ta messagerie.",
+      "shareButton": "Partager l'adresse",
+      "shareText": "Regarde, c'est Gradido — un réseau dans lequel nous nous aidons, nous nous offrons des choses et nous nous remercions les uns les autres. Tu me trouves ici : {url}",
+      "thanks": "Envoie un remerciement.",
+      "thanksText": "Tout le monde peut dire merci — avec Gradido, tu peux l'offrir.",
+      "title": "À quelqu'un qui est ailleurs"
+    },
+    "here": {
+      "map": "la carte",
+      "step1": "Montre {map}. Laisse-la taper ce qu'elle cherche.",
+      "step2": "Elle pointe son appareil photo sur ce code.",
+      "step3": "Le compte l'accueille tout seul. Tu n'as rien à expliquer.",
+      "title": "À quelqu'un ici avec moi"
+    },
+    "page": {
+      "footer": "Montrer suffit.",
+      "footerLead": "Tu n'as rien à expliquer.",
+      "lead": "Chaque personne qui nous rejoint est un cadeau pour tous les autres — et reçoit en cadeau le réseau avec tous les autres.",
+      "question": "À qui veux-tu le montrer ?"
+    },
+    "tile": {
+      "go": "Comment faire",
+      "text": "Chaque personne qui nous rejoint est un cadeau pour tous — et reçoit en cadeau tout le réseau.",
+      "title": "Montre-le à tes amis"
     }
   },
   "signin": "S'identifier",

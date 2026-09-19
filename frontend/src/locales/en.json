@@ -875,6 +875,7 @@
     "scanner": "Scan code",
     "send": "Send Gradido and email",
     "settings": "Settings",
+    "show-friends": "Show it to your friends",
     "transactions": "Your transactions",
     "usersearch": "Geographic member search (beta)"
   },
@@ -1101,6 +1102,36 @@
       "first-title": "Your username",
       "quota-blocked": "You have used up your name changes for this year. It works again from {date}.",
       "quota-left": "You can change your username once more this year. | You can change your username {n} more times this year."
+    }
+  },
+  "showFriends": {
+    "away": {
+      "addressLead": "Or just your address, with a sentence to go with it:",
+      "copied": "The sentence and your Gradido address have been copied. You can now paste them into a message.",
+      "editHint": "You can change the sentence before sending — it will then be in your messenger.",
+      "shareButton": "Share address",
+      "shareText": "Look, this is Gradido — a network in which we help, give to and thank each other. You can find me here: {url}",
+      "thanks": "Send a thank-you.",
+      "thanksText": "Anyone can say thank you — with Gradido you can give it.",
+      "title": "Someone elsewhere"
+    },
+    "here": {
+      "map": "the map",
+      "step1": "Show {map}. Let her type in what she is looking for.",
+      "step2": "She holds her camera up to this code.",
+      "step3": "The account welcomes her by itself. You don't need to explain anything.",
+      "title": "Someone here with me"
+    },
+    "page": {
+      "footer": "Showing is enough.",
+      "footerLead": "You don't need to explain anything.",
+      "lead": "Everyone who joins is a gift to all the others — and receives the network with all the others as a gift.",
+      "question": "Who would you like to show it to?"
+    },
+    "tile": {
+      "go": "How it works",
+      "text": "Everyone who joins is a gift to all — and receives the whole network as a gift.",
+      "title": "Show it to your friends"
     }
   },
   "signin": "Sign in",
