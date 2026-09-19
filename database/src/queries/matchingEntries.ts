@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { and, asc, desc, eq, inArray, isNull, ne, notInArray, or } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, isNull, ne, notInArray, or, sql } from 'drizzle-orm'
 import { Result, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { DBInsertFailed, DBNotFoundError } from '../errorTypes'
@@ -222,10 +222,12 @@ function keyingDescribes(stored: MatchingEntrySelect, content: MatchingEntryCont
  * matched with IS NULL. Written with `eq` alone, every entry without details would be
  * refused on every pass - and its model call paid for again each time.
  *
- * The comparison is the column's, not JavaScript's: `utf8mb4_unicode_ci` does not tell
- * case or accents apart, for the details as for the sentence. An edit that changes
- * nothing but those while a call is out keeps the words the model gave for the other
- * spelling.
+ * The sentence and the details are compared byte for byte (`BINARY`), as `keyingDescribes`
+ * compares them in JavaScript. A plain `=` would use the column's collation,
+ * `utf8mb4_unicode_ci`, which tells neither case nor accents apart and ignores trailing
+ * spaces - an edit that changed only those while a call was out would have kept the
+ * words the model gave for the other spelling, and the entry would have dropped off the
+ * list with them. The channel is one of three fixed words and needs no such care.
  *
  * The entry is handed over whole rather than as three strings in a row, so that the
  * caller cannot mix them up.
@@ -242,11 +244,11 @@ export async function dbWriteMatchingEntryKeying(
     .where(
       and(
         eq(matchingEntriesTable.uuid, asRead.uuid),
-        eq(matchingEntriesTable.summary, asRead.summary),
+        sql`BINARY ${matchingEntriesTable.summary} = ${asRead.summary}`,
         eq(matchingEntriesTable.matchingType, asRead.matchingType),
         asRead.details === null
           ? isNull(matchingEntriesTable.details)
-          : eq(matchingEntriesTable.details, asRead.details),
+          : sql`BINARY ${matchingEntriesTable.details} = ${asRead.details}`,
       ),
     )
 

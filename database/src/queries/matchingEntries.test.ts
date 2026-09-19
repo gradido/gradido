@@ -419,6 +419,46 @@ describe('the keying of a matching entry', () => {
       },
     )
 
+    // ⛔ The column's collation, `utf8mb4_unicode_ci`, calls each of these pairs equal;
+    // JavaScript, and so `keyingDescribes`, does not - it has already cleared the keying.
+    // Compared by the collation, the words about the old spelling would be written onto
+    // the new one, and the entry would drop off the list with them.
+    it.each([
+      ['case', 'beim programmieren', 'Beim Programmieren'],
+      ['an accent', 'Cafe', 'Café'],
+      ['a trailing space', 'Beim Programmieren', 'Beim Programmieren '],
+    ])(
+      'refuses words computed from details that differ from today only in %s',
+      async (_what, shown, now) => {
+        await anEntry('uuid-key-1', KEYED, 'Performance-Optimierungen', { details: now })
+
+        const written = await dbWriteMatchingEntryKeying(
+          { ...(await asRead('uuid-key-1')), details: shown },
+          keying(),
+        )
+        expect(written.success).toBe(false)
+        expect((await rowOf('uuid-key-1'))!.keyWords).toBeNull()
+      },
+    )
+
+    it.each([
+      ['case', 'ich repariere fahrraeder', 'Ich repariere Fahrraeder'],
+      ['an accent', 'Ich repariere Fahrrader', 'Ich repariere Fahrräder'],
+      ['a trailing space', 'Ich repariere Fahrraeder', 'Ich repariere Fahrraeder '],
+    ])(
+      'refuses words about a sentence that differs from today only in %s',
+      async (_what, shown, now) => {
+        await anEntry('uuid-key-1', KEYED, now)
+
+        const written = await dbWriteMatchingEntryKeying(
+          { ...(await asRead('uuid-key-1')), summary: shown },
+          keying(),
+        )
+        expect(written.success).toBe(false)
+        expect((await rowOf('uuid-key-1'))!.keyWords).toBeNull()
+      },
+    )
+
     // ⛔ `details = NULL` is never true in SQL. A guard that compared a NULL with `=`
     // would refuse every entry without details, on every pass - and the run would pay
     // for its model call again each time.
