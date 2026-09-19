@@ -3,6 +3,7 @@ import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
 import { memberAlias } from '@/utils/gradidoAddress'
+import { shareText } from '@/utils/shareText'
 
 export const useCopyLinks = ({ link, amount, memo, validUntil }) => {
   const canCopyLink = ref(true)
@@ -46,23 +47,9 @@ export const useCopyLinks = ({ link, amount, memo, validUntil }) => {
     ].join('\n'),
   )
 
-  /**
-   * Hands the text to the device's own share sheet, and copies it where that does not work.
-   *
-   * Only `text` goes along, no `url`: the link is already in the text, and Chrome on Android
-   * joins text and url with a space (`ShareParams.getTextAndUrl`), so the message would carry
-   * the link twice. Closing the sheet rejects with an `AbortError` -- the member changed their
-   * mind, which is not an error and gets no message. Every other failure copies instead,
-   * including a browser without a share sheet: there `navigator.share` is missing and the
-   * call throws.
-   */
-  const share = async () => {
-    try {
-      await navigator.share({ text: linkText.value })
-    } catch (error) {
-      if (error?.name !== 'AbortError') await copyLinkWithText()
-    }
-  }
+  // The device's own share sheet, and a copy where that does not work. `utils/shareText` says
+  // why the link travels inside the text and not as `url`, and why closing the sheet is silent.
+  const share = () => shareText(linkText.value, copyLinkWithText)
 
   return {
     canCopyLink,

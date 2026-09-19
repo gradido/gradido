@@ -785,6 +785,7 @@
     "scanner": "Ler código",
     "send": "Enviar Gradido e e-mail",
     "settings": "Definições",
+    "show-friends": "Mostra aos teus amigos",
     "transactions": "As tuas transações",
     "usersearch": "Pesquisa geográfica de membros (beta)"
   },
@@ -971,6 +972,36 @@
       "first-title": "O teu nome de utilizador",
       "quota-blocked": "Esgotaste as mudanças de nome para este ano. A partir de {date} será possível novamente.",
       "quota-left": "Podes mudar o teu nome de utilizador mais uma vez este ano. | Podes mudar o teu nome de utilizador mais {n} vezes este ano."
+    }
+  },
+  "showFriends": {
+    "away": {
+      "addressLead": "Ou apenas o teu endereço, com uma frase:",
+      "copied": "A frase e o teu endereço Gradido foram copiados. Agora podes colá-los numa mensagem.",
+      "editHint": "Podes alterar a frase antes de a enviares — depois fica na tua aplicação de mensagens.",
+      "shareButton": "Partilhar endereço",
+      "shareText": "Olha, isto é o Gradido — uma rede em que nos ajudamos, oferecemos coisas e agradecemos uns aos outros. Encontras-me aqui: {url}",
+      "thanks": "Envia um agradecimento.",
+      "thanksText": "Qualquer pessoa pode dizer obrigado — com o Gradido podes oferecê-lo.",
+      "title": "A alguém noutro lugar"
+    },
+    "here": {
+      "map": "o mapa",
+      "step1": "Mostra {map}. Deixa-a escrever o que procura.",
+      "step2": "Ela aponta a câmara para este código.",
+      "step3": "A conta recebe-a sozinha. Não precisas de explicar nada.",
+      "title": "A alguém aqui comigo"
+    },
+    "page": {
+      "footer": "Basta mostrar.",
+      "footerLead": "Não precisas de explicar nada.",
+      "lead": "Cada pessoa que se junta é um presente para todos os outros — e recebe de presente a rede com todos os outros.",
+      "question": "A quem queres mostrar?"
+    },
+    "tile": {
+      "go": "Como funciona",
+      "text": "Cada pessoa que se junta é um presente para todos — e recebe de presente toda a rede.",
+      "title": "Mostra aos teus amigos"
     }
   },
   "signin": "Iniciar sessão",

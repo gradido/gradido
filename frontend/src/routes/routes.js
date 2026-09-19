@@ -298,6 +298,18 @@ const routes = [
     },
   },
   {
+    // Showing Gradido to somebody: one question, two doors. Reached from the overview tile and
+    // on purpose from nowhere in the menu. No right-hand column, like the contacts: the first
+    // door holds the member's own code, and a code handed across a table should not come with
+    // the last bookings beside it.
+    path: '/show-friends',
+    component: () => import('@/pages/ShowFriends'),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'show-friends',
+    },
+  },
+  {
     path: '/contributions',
     component: () => import('@/pages/Contributions'),
     meta: {

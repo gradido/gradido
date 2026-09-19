@@ -785,6 +785,7 @@
     "scanner": "Scansiona codice",
     "send": "Invia Gradido ed e-mail",
     "settings": "Impostazioni",
+    "show-friends": "Mostralo ai tuoi amici",
     "transactions": "Le tue transazioni",
     "usersearch": "Ricerca geografica dei membri (beta)"
   },
@@ -971,6 +972,36 @@
       "first-title": "Il tuo nome utente",
       "quota-blocked": "Hai esaurito i cambi di nome per quest'anno. Sarà di nuovo possibile dal {date}.",
       "quota-left": "Puoi cambiare il tuo nome utente ancora una volta quest'anno. | Puoi cambiare il tuo nome utente ancora {n} volte quest'anno."
+    }
+  },
+  "showFriends": {
+    "away": {
+      "addressLead": "Oppure solo il tuo indirizzo, con una frase:",
+      "copied": "La frase e il tuo indirizzo Gradido sono stati copiati. Ora puoi incollarli in un messaggio.",
+      "editHint": "Puoi modificare la frase prima dell'invio — poi comparirà nella tua app di messaggi.",
+      "shareButton": "Condividi indirizzo",
+      "shareText": "Guarda, questo è Gradido — una rete in cui ci aiutiamo, ci facciamo doni e ci ringraziamo a vicenda. Mi trovi qui: {url}",
+      "thanks": "Manda un ringraziamento.",
+      "thanksText": "Chiunque può dire grazie — con Gradido puoi regalarlo.",
+      "title": "A qualcuno altrove"
+    },
+    "here": {
+      "map": "la mappa",
+      "step1": "Mostra {map}. Lasciale scrivere ciò che cerca.",
+      "step2": "È lei a puntare la fotocamera su questo codice.",
+      "step3": "L'account la accoglie da solo. Non devi spiegare nulla.",
+      "title": "A qualcuno qui con me"
+    },
+    "page": {
+      "footer": "Basta mostrarlo.",
+      "footerLead": "Non devi spiegare nulla.",
+      "lead": "Ogni persona che si unisce è un dono per tutti gli altri — e riceve in dono la rete con tutti gli altri.",
+      "question": "A chi vuoi mostrarlo?"
+    },
+    "tile": {
+      "go": "Come funziona",
+      "text": "Ogni persona che si unisce è un dono per tutti — e riceve in dono l'intera rete.",
+      "title": "Mostralo ai tuoi amici"
     }
   },
   "signin": "Accedi",

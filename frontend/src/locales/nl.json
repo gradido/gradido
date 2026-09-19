@@ -785,6 +785,7 @@
     "scanner": "Code scannen",
     "send": "Gradido en e-mail versturen",
     "settings": "Instellingen",
+    "show-friends": "Laat het je vrienden zien",
     "transactions": "Your transactions",
     "usersearch": "Geografisch leden zoeken (bèta)"
   },
@@ -971,6 +972,36 @@
       "first-title": "Je gebruikersnaam",
       "quota-blocked": "Je hebt je naamswijzigingen voor dit jaar opgebruikt. Vanaf {date} kan het weer.",
       "quota-left": "Je kunt je gebruikersnaam dit jaar nog één keer wijzigen. | Je kunt je gebruikersnaam dit jaar nog {n} keer wijzigen."
+    }
+  },
+  "showFriends": {
+    "away": {
+      "addressLead": "Of alleen je adres, met een zin erbij:",
+      "copied": "De zin en je Gradido-adres zijn gekopieerd. Je kunt ze nu in een bericht plakken.",
+      "editHint": "Je kunt de zin vóór het versturen aanpassen — hij staat dan in je berichtenapp.",
+      "shareButton": "Adres delen",
+      "shareText": "Kijk, dit is Gradido — een netwerk waarin we elkaar helpen, iets schenken en bedanken. Hier vind je mij: {url}",
+      "thanks": "Stuur een bedankje.",
+      "thanksText": "Iedereen kan dankjewel zeggen — met Gradido kun je het schenken.",
+      "title": "Iemand ergens anders"
+    },
+    "here": {
+      "map": "de kaart",
+      "step1": "Laat {map} zien. Laat haar intypen wat ze zoekt.",
+      "step2": "Ze houdt haar camera op deze code.",
+      "step3": "Het account verwelkomt haar vanzelf. Je hoeft niets uit te leggen.",
+      "title": "Iemand hier bij mij"
+    },
+    "page": {
+      "footer": "Laten zien is genoeg.",
+      "footerLead": "Je hoeft niets uit te leggen.",
+      "lead": "Iedereen die erbij komt, is een geschenk voor alle anderen — en krijgt het netwerk met alle anderen cadeau.",
+      "question": "Aan wie wil je het laten zien?"
+    },
+    "tile": {
+      "go": "Zo werkt het",
+      "text": "Iedereen die erbij komt, is een geschenk voor iedereen — en krijgt het hele netwerk cadeau.",
+      "title": "Laat het je vrienden zien"
     }
   },
   "signin": "Aanmelden",
