@@ -8,6 +8,20 @@ import { FLAVOR_OF_LOOK, TILE_SOURCE, styleFor } from './mapStyle'
 const labelsOf = (style) =>
   JSON.stringify(style.layers.filter((layer) => layer.layout?.['text-field']))
 
+/** Protomaps' own layers for a flavor, which the wallet has not touched. */
+const untouched = (flavor) => layers(TILE_SOURCE, namedFlavor(flavor), { lang: 'de' })
+
+/** The ids of the layers a style draws differently from Protomaps' own. */
+const changedLayersOf = (style, flavor) => {
+  const own = untouched(flavor)
+  return style.layers
+    .filter((layer, index) => JSON.stringify(layer) !== JSON.stringify(own[index]))
+    .map((layer) => layer.id)
+}
+
+/** How bright a grey like '#5c5c5c' is, 0 to 255. */
+const brightnessOf = (hex) => parseInt(hex.slice(1, 3), 16)
+
 describe('styleFor', () => {
   // K-004: dark is black, normal is light, bright is white.
   it.each([
@@ -18,7 +32,60 @@ describe('styleFor', () => {
     const style = styleFor(look, 'de')
 
     expect(style.sprite).toBe(`${CONFIG.MAP_ASSETS_URL}/sprites/v4/${flavor}`)
-    expect(style.layers).toEqual(layers(TILE_SOURCE, namedFlavor(flavor), { lang: 'de' }))
+    expect(style.layers.map((layer) => layer.id)).toEqual(untouched(flavor).map(({ id }) => id))
+  })
+
+  // The home map draws the normal look, and there the place names are what a member finds
+  // their way by.
+  it.each([
+    ['normal', 'light'],
+    ['hell', 'white'],
+  ])('leaves the look %s exactly as Protomaps draws it', (look, flavor) => {
+    expect(styleFor(look, 'de').layers).toEqual(untouched(flavor))
+  })
+
+  describe('on the dark look, where the towns read as people', () => {
+    const places = (style) => style.layers.find((layer) => layer.id === 'places_locality')
+    const own = places({ layers: untouched('black') })
+
+    // Measured against the installed Protomaps, not against a name written down here: a
+    // flavor key or a layer id it no longer knows would change nothing, and this says so.
+    it('changes the towns and nothing else', () => {
+      expect(changedLayersOf(styleFor('dunkel', 'de'), 'black')).toEqual(['places_locality'])
+    })
+
+    it('writes the place names darker than Protomaps does', () => {
+      const color = places(styleFor('dunkel', 'de')).paint['text-color']
+
+      expect(color).toBe('#5c5c5c')
+      expect(brightnessOf(color)).toBeLessThan(brightnessOf(own.paint['text-color']))
+    })
+
+    it('dims the small circles that mark a place, which Protomaps draws at full strength', () => {
+      expect(own.paint['icon-opacity']).toBeUndefined()
+      expect(places(styleFor('dunkel', 'de')).paint['icon-opacity']).toBe(0.35)
+    })
+
+    // The circles are there to be dimmed: a layer without them would make the line above a
+    // statement about nothing.
+    it('still marks a place with its circle', () => {
+      expect(JSON.stringify(places(styleFor('dunkel', 'de')).layout['icon-image'])).toContain(
+        'townspot',
+      )
+    })
+
+    // With the two changes taken back, the layer is Protomaps' own again.
+    it('keeps everything else Protomaps set on the towns', () => {
+      const quiet = places(styleFor('dunkel', 'de'))
+      const takenBack = {
+        ...quiet.paint,
+        'text-color': own.paint['text-color'],
+        'icon-opacity': own.paint['icon-opacity'],
+      }
+
+      expect(takenBack).toEqual(own.paint)
+      expect(quiet.layout).toEqual(own.layout)
+    })
   })
 
   it('draws a look it does not know as the normal one', () => {
