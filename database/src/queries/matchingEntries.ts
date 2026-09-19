@@ -153,9 +153,10 @@ export async function dbUpdateMatchingEntry(
     .update(matchingEntriesTable)
     .set({
       ...content,
-      // A keying describes one sentence on one channel. Change either and what is
-      // stored describes something the member no longer wrote, so it goes - and the
-      // NULL is at the same time what puts the entry back on the keying run's list.
+      // A keying describes what the model was shown: one sentence on one channel, and
+      // the details the sentence is read with. Change any of them and what is stored
+      // describes something the member no longer wrote, so it goes - and the NULL is
+      // at the same time what puts the entry back on the keying run's list.
       // No dirty flag and no second table: the absence of a keying IS the to-do.
       //
       // It takes the stored row rather than the uuid so that it can see this at all.
@@ -174,9 +175,26 @@ export async function dbUpdateMatchingEntry(
   return { success: false, error: MatchingEntryNotFound(`uuid = ${stored.uuid}`) }
 }
 
-/** Whether a stored keying still describes what the member is now saving. */
+/**
+ * Whether a stored keying still describes what the member is now saving: the same
+ * channel, the same sentence, the same details.
+ *
+ * The details count like the sentence because the model reads them: they tell it how
+ * an ambiguous sentence is meant, so new details can give the same sentence other
+ * words. The cost is a model call for every edit of the details, a corrected price
+ * included.
+ *
+ * Compared as stored, not as the model reads them (on one line, cut short - see
+ * `keyingUserMessage` in the backend). An edit that only touches whitespace or text
+ * past the cut costs one call too many; comparing what the model reads would put the
+ * backend's message format into this file.
+ */
 function keyingDescribes(stored: MatchingEntrySelect, content: MatchingEntryContent): boolean {
-  return stored.summary === content.summary && stored.matchingType === content.matchingType
+  return (
+    stored.summary === content.summary &&
+    stored.matchingType === content.matchingType &&
+    stored.details === content.details
+  )
 }
 
 /**
@@ -186,25 +204,36 @@ function keyingDescribes(stored: MatchingEntrySelect, content: MatchingEntryCont
  * the answer, and it is read as such on both sides. Together with the instruction
  * version it is the witness that an entry has a keying at all.
  *
- * The uuid is checked against BOTH the sentence and the channel the keying was
- * computed from, and that is not belt and braces. Between reading an entry for the
- * keying run and writing the answer, the member may have changed either - and that
- * change already cleared the keying to schedule a fresh one. Writing anyway would pin
- * words about the old entry onto the new one, and nothing would ever notice: the row
- * would look keyed and would drop off the list for good.
+ * `asRead` is the entry as the keying run read it before asking the model, and the
+ * write goes through only while the row still has the same channel, sentence and
+ * details - checked against all three, and that is not belt and braces. Between the
+ * read and this write the member may have changed any of them - and that change
+ * already cleared the keying to schedule a fresh one. Writing anyway would pin words
+ * about the old entry onto the new one, and nothing would ever notice: the row would
+ * look keyed and would drop off the list for good.
  *
- * Both, because both change the answer. The channel is given to the model, and the
- * instruction fills `gesuchter_beruf` only on "sucht" - so an offer flipped to a need
- * without touching the sentence gets a different keying, and `keyingDescribes` above
- * treats it as invalidating for exactly that reason. Guarding on the sentence alone
- * would let the two disagree.
+ * All three, because all three change the answer. The channel is given to the model,
+ * and the instruction fills `gesuchter_beruf` only on "sucht" - so an offer flipped to
+ * a need without touching the sentence gets a different keying. The details tell the
+ * model how the sentence is meant. `keyingDescribes` above treats each of them as
+ * invalidating for exactly that reason; guarding on fewer would let the two disagree.
+ *
+ * ⚠️ `details` may be NULL, and `details = NULL` is never true in SQL, so a NULL is
+ * matched with IS NULL. Written with `eq` alone, every entry without details would be
+ * refused on every pass - and its model call paid for again each time.
+ *
+ * The comparison is the column's, not JavaScript's: `utf8mb4_unicode_ci` does not tell
+ * case or accents apart, for the details as for the sentence. An edit that changes
+ * nothing but those while a call is out keeps the words the model gave for the other
+ * spelling.
+ *
+ * The entry is handed over whole rather than as three strings in a row, so that the
+ * caller cannot mix them up.
  *
  * (The same guard, for the same reason, as `writeEmbedding` in the GMS.)
  */
 export async function dbWriteMatchingEntryKeying(
-  uuid: string,
-  summary: string,
-  matchingType: string,
+  asRead: Pick<MatchingEntrySelect, 'uuid' | 'matchingType' | 'summary' | 'details'>,
   keying: MatchingEntryKeying,
 ): Promise<VoidResult<DBNotFoundError>> {
   const result = await drizzleDb()
@@ -212,9 +241,12 @@ export async function dbWriteMatchingEntryKeying(
     .set({ ...keying, keyedAt: new Date() })
     .where(
       and(
-        eq(matchingEntriesTable.uuid, uuid),
-        eq(matchingEntriesTable.summary, summary),
-        eq(matchingEntriesTable.matchingType, matchingType),
+        eq(matchingEntriesTable.uuid, asRead.uuid),
+        eq(matchingEntriesTable.summary, asRead.summary),
+        eq(matchingEntriesTable.matchingType, asRead.matchingType),
+        asRead.details === null
+          ? isNull(matchingEntriesTable.details)
+          : eq(matchingEntriesTable.details, asRead.details),
       ),
     )
 
@@ -222,7 +254,10 @@ export async function dbWriteMatchingEntryKeying(
   if (firstRow && firstRow.affectedRows === 1) {
     return { success: true }
   }
-  return { success: false, error: MatchingEntryNotFound(`uuid = ${uuid} with this summary`) }
+  return {
+    success: false,
+    error: MatchingEntryNotFound(`uuid = ${asRead.uuid} as it was read for the keying`),
+  }
 }
 
 /**
@@ -289,7 +324,7 @@ export interface MatchingEntryToKey {
  * for the same reason: what may be published about a member.
  *
  * `skipUuids` are entries the caller has already given up on for now - the model
- * answered nothing usable for them, or the whole batch failed. They are excluded in
+ * answered nothing usable for them, or their call failed. They are excluded in
  * SQL, because the ordering and the limit make a caller-side filter useless: drop one
  * from the answer and the next call hands back the same row.
  *

@@ -458,12 +458,12 @@ export class MatchingKeyingRun {
       logger.warn(`matching keying of entry ${row.entry.uuid}: dropped ${reason}`)
     }
 
-    const written = await dbWriteMatchingEntryKeying(
-      row.entry.uuid,
-      row.entry.summary,
-      row.entry.matchingType,
-      { ...fields, instructionVersion: KEYING_INSTRUCTION_VERSION },
-    )
+    // The row as this pass read it, whole: the guard stores the words only while the
+    // entry still says what the model was shown.
+    const written = await dbWriteMatchingEntryKeying(row.entry, {
+      ...fields,
+      instructionVersion: KEYING_INSTRUCTION_VERSION,
+    })
     if (!written.success) {
       // ⛔ NOT added to `givenUpOn`. That set means "the model cannot key this"; a
       // refused write means the opposite - the member edited the entry while the
@@ -472,8 +472,8 @@ export class MatchingKeyingRun {
       // the run refuse, for the rest of the pass, the one entry it just proved
       // somebody is actively working on.
       // Almost always the member editing their entry while this call was out - the
-      // sentence or the channel no longer matches, so these words are about an
-      // entry that is gone. Their edit already put it back on the list.
+      // sentence, the channel or the details no longer match, so these words are
+      // about an entry that is gone. Their edit already put it back on the list.
       logger.info(
         `matching keying of entry ${row.entry.uuid} was not stored: ${written.error.message}`,
       )
@@ -511,9 +511,11 @@ export class MatchingKeyingRun {
    *   - the member pauses the entry. Pausing DELETES it from the GMS, so sending the
    *     row we hold would put it straight back into everyone's search - the one thing
    *     the whole pause/delete arrangement exists to prevent.
-   *   - the member corrects a price. That does not clear the keying (rightly - the
-   *     sentence is unchanged), and their correction has already gone to the GMS, so
-   *     sending our row would roll it back over there and leave it wrong.
+   *   - the member switches "from anywhere" on or off. That does not clear the keying
+   *     (rightly - the model is not told about it), and their change has already gone
+   *     to the GMS, so sending our row would roll it back over there and leave it
+   *     wrong. The same goes for new details saved after the words were stored;
+   *     saved before, they make the write guard refuse the words.
    *   - the member withdraws from the GMS, or deletes their account.
    *
    * `dbSelectPublishableMatchingEntry` answers all four in one read - as of the read,
