@@ -160,6 +160,7 @@
       "matchingChangedElsewhere": "Kaydedilmedi: bu arada başka biri düğmeyi değiştirdi. Şimdi kayıtlı durum gösteriliyor.",
       "matchingKeying": "Eşleşme girişleri için anahtar kelimeler",
       "matchingKeyingHint": "Crea her eşleşme girişi için, başkalarının onu bulabileceği kelimeleri belirler. Giriş başına ücretlendirilir: açtıktan sonra Crea kelimesi olmayan girişleri işler, tur başına en fazla yüz giriş ve dakikada yaklaşık bir tur, birikmiş iş bitene kadar. Kapatmak, işlenmekte olan gruptan sonra etkili olur — en fazla on giriş daha.",
+      "matchingKeyingOff": "Kapalı: eşleşme girişleri anahtar kelime almaz. Eşleşme açıksa üyeler girişlerini görür, ama hiçbir eşleşme oluşmaz.",
       "model": "Yapay zekâ modeli",
       "modelHint": "Boş bırak = varsayılan model ({model}). Yeni bir modeli doğrudan yazabilirsin.",
       "modelPlaceholder": "Varsayılan: {model}",
