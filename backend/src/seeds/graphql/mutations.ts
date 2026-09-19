@@ -139,6 +139,7 @@ export const createUser = gql`
     $language: String!
     $publisherId: Int
     $redeemCode: String
+    $referrerAlias: String
   ) {
     createUser(
       alias: $alias
@@ -148,6 +149,7 @@ export const createUser = gql`
       language: $language
       publisherId: $publisherId
       redeemCode: $redeemCode
+      referrerAlias: $referrerAlias
     ) {
       id
     }

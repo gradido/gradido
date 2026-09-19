@@ -442,6 +442,7 @@ export class UserResolver {
       publisherId = null,
       redeemCode = null,
       project = null,
+      referrerAlias = null,
     }: CreateUserArgs,
   ): Promise<User> {
     const logger = createLogger('createUser')
@@ -549,6 +550,7 @@ export class UserResolver {
         project,
         alias,
         passwordPlain: null,
+        referrerAlias,
       },
       logger,
     )
