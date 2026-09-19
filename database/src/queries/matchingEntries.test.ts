@@ -265,18 +265,26 @@ describe('the keying of a matching entry', () => {
     ...overrides,
   })
 
-  const anEntry = async (uuid: string, userId: number, summary: string, active = true) => {
+  const anEntry = async (
+    uuid: string,
+    userId: number,
+    summary: string,
+    { active = true, details = null }: { active?: boolean; details?: string | null } = {},
+  ) => {
     await dbDeleteMatchingEntryByUuid(uuid)
     await dbInsertMatchingEntry({
       uuid,
       userId,
       matchingType: 'OFFER',
       summary,
-      details: null,
+      details,
       remote: false,
       active,
     })
   }
+
+  /** The entry as the keying run reads it before asking the model - what the guard gets. */
+  const asRead = async (uuid: string) => (await rowOf(uuid))!
 
   beforeAll(async () => {
     const HOME_COMMUNITY = '11111111-1111-4111-8111-111111111111'
@@ -338,14 +346,11 @@ describe('the keying of a matching entry', () => {
 
   describe('dbWriteMatchingEntryKeying', () => {
     it('stores what the model worked out', async () => {
-      await anEntry('uuid-key-1', KEYED, 'Ich repariere Fahrraeder')
+      await anEntry('uuid-key-1', KEYED, 'Ich repariere Fahrraeder', {
+        details: 'Auch Lastenraeder',
+      })
 
-      const written = await dbWriteMatchingEntryKeying(
-        'uuid-key-1',
-        'Ich repariere Fahrraeder',
-        'OFFER',
-        keying(),
-      )
+      const written = await dbWriteMatchingEntryKeying(await asRead('uuid-key-1'), keying())
       expect(written.success).toBe(true)
 
       const row = await rowOf('uuid-key-1')
@@ -367,9 +372,7 @@ describe('the keying of a matching entry', () => {
       await anEntry('uuid-key-1', KEYED, 'Ich repariere Fahrraeder')
 
       const written = await dbWriteMatchingEntryKeying(
-        'uuid-key-1',
-        'Ich gebe Klavierunterricht',
-        'OFFER',
+        { ...(await asRead('uuid-key-1')), summary: 'Ich gebe Klavierunterricht' },
         keying(),
       )
       expect(written.success).toBe(false)
@@ -388,20 +391,90 @@ describe('the keying of a matching entry', () => {
       await anEntry('uuid-key-1', KEYED, 'Ich repariere Fahrraeder')
 
       const written = await dbWriteMatchingEntryKeying(
-        'uuid-key-1',
-        'Ich repariere Fahrraeder',
-        'NEED',
+        { ...(await asRead('uuid-key-1')), matchingType: 'NEED' },
         keying(),
       )
       expect(written.success).toBe(false)
       expect((await rowOf('uuid-key-1'))!.keyWords).toBeNull()
+    })
+
+    // The details tell the model how the sentence is meant, so new details can give
+    // the same sentence other words. What the model was shown, on the left; what the
+    // member has saved since, on the right.
+    it.each([
+      ['rewritten', 'Im Fitnessstudio', 'Beim Programmieren'],
+      ['added', null, 'Beim Programmieren'],
+      ['taken out', 'Beim Programmieren', null],
+    ])(
+      'refuses to write words computed from details the member has %s since',
+      async (_how, shown, now) => {
+        await anEntry('uuid-key-1', KEYED, 'Performance-Optimierungen', { details: now })
+
+        const written = await dbWriteMatchingEntryKeying(
+          { ...(await asRead('uuid-key-1')), details: shown },
+          keying(),
+        )
+        expect(written.success).toBe(false)
+        expect((await rowOf('uuid-key-1'))!.keyWords).toBeNull()
+      },
+    )
+
+    // ⛔ The column's collation, `utf8mb4_unicode_ci`, calls each of these pairs equal;
+    // JavaScript, and so `keyingDescribes`, does not - it has already cleared the keying.
+    // Compared by the collation, the words about the old spelling would be written onto
+    // the new one, and the entry would drop off the list with them.
+    it.each([
+      ['case', 'beim programmieren', 'Beim Programmieren'],
+      ['an accent', 'Cafe', 'Café'],
+      ['a trailing space', 'Beim Programmieren', 'Beim Programmieren '],
+    ])(
+      'refuses words computed from details that differ from today only in %s',
+      async (_what, shown, now) => {
+        await anEntry('uuid-key-1', KEYED, 'Performance-Optimierungen', { details: now })
+
+        const written = await dbWriteMatchingEntryKeying(
+          { ...(await asRead('uuid-key-1')), details: shown },
+          keying(),
+        )
+        expect(written.success).toBe(false)
+        expect((await rowOf('uuid-key-1'))!.keyWords).toBeNull()
+      },
+    )
+
+    it.each([
+      ['case', 'ich repariere fahrraeder', 'Ich repariere Fahrraeder'],
+      ['an accent', 'Ich repariere Fahrrader', 'Ich repariere Fahrräder'],
+      ['a trailing space', 'Ich repariere Fahrraeder', 'Ich repariere Fahrraeder '],
+    ])(
+      'refuses words about a sentence that differs from today only in %s',
+      async (_what, shown, now) => {
+        await anEntry('uuid-key-1', KEYED, now)
+
+        const written = await dbWriteMatchingEntryKeying(
+          { ...(await asRead('uuid-key-1')), summary: shown },
+          keying(),
+        )
+        expect(written.success).toBe(false)
+        expect((await rowOf('uuid-key-1'))!.keyWords).toBeNull()
+      },
+    )
+
+    // ⛔ `details = NULL` is never true in SQL. A guard that compared a NULL with `=`
+    // would refuse every entry without details, on every pass - and the run would pay
+    // for its model call again each time.
+    it('stores it for an entry that had no details then and has none now', async () => {
+      await anEntry('uuid-key-1', KEYED, 'Ich repariere Fahrraeder', { details: null })
+
+      const written = await dbWriteMatchingEntryKeying(await asRead('uuid-key-1'), keying())
+      expect(written.success).toBe(true)
+      expect((await rowOf('uuid-key-1'))!.keyWords).toEqual(['fahrradreparatur', 'fahrrad'])
     })
   })
 
   describe('dbUpdateMatchingEntry and the keying', () => {
     it('clears the keying when the member rewrites the sentence', async () => {
       await anEntry('uuid-key-1', KEYED, 'Ich repariere Fahrraeder')
-      await dbWriteMatchingEntryKeying('uuid-key-1', 'Ich repariere Fahrraeder', 'OFFER', keying())
+      await dbWriteMatchingEntryKeying(await asRead('uuid-key-1'), keying())
 
       const stored = (await rowOf('uuid-key-1'))!
       await dbUpdateMatchingEntry(stored, {
@@ -443,7 +516,7 @@ describe('the keying of a matching entry', () => {
 
     it('clears it on a change of channel too, which the model is told about', async () => {
       await anEntry('uuid-key-1', KEYED, 'Ich repariere Fahrraeder')
-      await dbWriteMatchingEntryKeying('uuid-key-1', 'Ich repariere Fahrraeder', 'OFFER', keying())
+      await dbWriteMatchingEntryKeying(await asRead('uuid-key-1'), keying())
 
       const stored = (await rowOf('uuid-key-1'))!
       await dbUpdateMatchingEntry(stored, {
@@ -456,21 +529,52 @@ describe('the keying of a matching entry', () => {
       expect((await rowOf('uuid-key-1'))!.keyWords).toBeNull()
     })
 
-    it('keeps it when only something beside the sentence changed', async () => {
-      await anEntry('uuid-key-1', KEYED, 'Ich repariere Fahrraeder')
-      await dbWriteMatchingEntryKeying('uuid-key-1', 'Ich repariere Fahrraeder', 'OFFER', keying())
+    // The model reads the details as the key to an ambiguous sentence, so a keying
+    // made with other details may describe something else - "Performance-Optimierungen"
+    // is software with "Beim Programmieren" and sport with "Im Fitnessstudio".
+    it.each([
+      ['rewritten', 'Beim Programmieren', 'Im Fitnessstudio'],
+      ['added', null, 'Beim Programmieren'],
+      ['taken out', 'Beim Programmieren', null],
+    ])('clears it when the member has %s the details', async (_how, before, after) => {
+      await anEntry('uuid-key-1', KEYED, 'Performance-Optimierungen', { details: before })
+      await dbWriteMatchingEntryKeying(await asRead('uuid-key-1'), keying())
+
+      const stored = (await rowOf('uuid-key-1'))!
+      // Keyed before the change - without this the test would pass on an entry the
+      // write never reached.
+      expect(stored.keyWords).not.toBeNull()
+      await dbUpdateMatchingEntry(stored, {
+        matchingType: stored.matchingType,
+        summary: stored.summary,
+        details: after,
+        remote: false,
+      })
+
+      const row = await rowOf('uuid-key-1')
+      expect(row!.details).toBe(after)
+      expect(row!.keyWords).toBeNull()
+      expect(row!.instructionVersion).toBeNull()
+    })
+
+    it('keeps it when nothing the model is shown has changed', async () => {
+      await anEntry('uuid-key-1', KEYED, 'Ich repariere Fahrraeder', {
+        details: 'Auch Lastenraeder',
+      })
+      await dbWriteMatchingEntryKeying(await asRead('uuid-key-1'), keying())
 
       const stored = (await rowOf('uuid-key-1'))!
       await dbUpdateMatchingEntry(stored, {
         matchingType: stored.matchingType,
         summary: stored.summary,
-        details: 'Jetzt auch Lastenraeder',
+        details: stored.details,
         remote: true,
       })
 
-      // A corrected price must not cost a model call.
+      // "From anywhere" is not something the model is told about, so switching it
+      // must not cost a model call - and the same details, saved again, neither.
       const row = await rowOf('uuid-key-1')
-      expect(row!.details).toBe('Jetzt auch Lastenraeder')
+      expect(row!.remote).toBe(true)
       expect(row!.keyWords).toEqual(['fahrradreparatur', 'fahrrad'])
       expect(row!.instructionVersion).toBe('gms176-1')
     })
@@ -484,18 +588,18 @@ describe('the keying of a matching entry', () => {
       await anEntry('uuid-key-1', KEYED, 'Ich repariere Fahrraeder')
       const before = (await rowOf('uuid-key-1'))!
 
-      // The member corrects a price while the model call is out. That does not clear
-      // the keying - rightly, the sentence is unchanged - so nothing else would stop
-      // the run from publishing the old text over the correction.
+      // The member switches "from anywhere" on while the model call is out. That does
+      // not clear the keying - rightly, the model is not told about it - so nothing
+      // else would stop the run from publishing the old row over the change.
       await dbUpdateMatchingEntry(before, {
         matchingType: before.matchingType,
         summary: before.summary,
-        details: 'Jetzt 20 Euro die Stunde',
-        remote: false,
+        details: before.details,
+        remote: true,
       })
 
       const fresh = await dbSelectPublishableMatchingEntry('uuid-key-1')
-      expect(fresh?.entry.details).toBe('Jetzt 20 Euro die Stunde')
+      expect(fresh?.entry.remote).toBe(true)
       expect(fresh?.userGradidoId).toBe('90000000-0000-4000-8000-000000000901')
     })
 
@@ -533,17 +637,23 @@ describe('the keying of a matching entry', () => {
 
   describe('dbSelectMatchingEntriesNeedingKeying', () => {
     it('finds an entry that was never keyed', async () => {
-      await anEntry('uuid-key-1', KEYED, 'Ich repariere Fahrraeder')
+      await anEntry('uuid-key-1', KEYED, 'Performance-Optimierungen', {
+        details: 'Beim Programmieren',
+      })
 
       const pending = await dbSelectMatchingEntriesNeedingKeying('gms176-1', 10)
       expect(pending.map((row) => row.entry.uuid)).toEqual(['uuid-key-1'])
       expect(pending[0].userLanguage).toBe('de')
       expect(pending[0].userGradidoId).toBe('90000000-0000-4000-8000-000000000901')
+      // The model is shown the details, and the run takes them from here. Its own tests
+      // hand it made-up rows and cannot see a select that stops carrying them: the
+      // entries would simply be keyed without their details, and nothing would fail.
+      expect(pending[0].entry.details).toBe('Beim Programmieren')
     })
 
     it('leaves an entry alone once it carries the current instruction', async () => {
       await anEntry('uuid-key-1', KEYED, 'Ich repariere Fahrraeder')
-      await dbWriteMatchingEntryKeying('uuid-key-1', 'Ich repariere Fahrraeder', 'OFFER', keying())
+      await dbWriteMatchingEntryKeying(await asRead('uuid-key-1'), keying())
 
       expect(await dbSelectMatchingEntriesNeedingKeying('gms176-1', 10)).toEqual([])
     })
@@ -552,14 +662,14 @@ describe('the keying of a matching entry', () => {
     // than a one-way street: raise the version and every entry is work again.
     it('finds an entry again when the instruction has moved on', async () => {
       await anEntry('uuid-key-1', KEYED, 'Ich repariere Fahrraeder')
-      await dbWriteMatchingEntryKeying('uuid-key-1', 'Ich repariere Fahrraeder', 'OFFER', keying())
+      await dbWriteMatchingEntryKeying(await asRead('uuid-key-1'), keying())
 
       const pending = await dbSelectMatchingEntriesNeedingKeying('gms176-2', 10)
       expect(pending.map((row) => row.entry.uuid)).toEqual(['uuid-key-1'])
     })
 
     it('leaves out a paused entry, which nobody can find anyway', async () => {
-      await anEntry('uuid-key-1', KEYED, 'Ich repariere Fahrraeder', false)
+      await anEntry('uuid-key-1', KEYED, 'Ich repariere Fahrraeder', { active: false })
 
       expect(await dbSelectMatchingEntriesNeedingKeying('gms176-1', 10)).toEqual([])
     })

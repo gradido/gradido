@@ -8,7 +8,7 @@ import {
   vocabularyAppendix,
 } from './instruction'
 
-const entry = { matchingType: 'offer', summary: 'Ich repariere Fahrraeder' }
+const entry = { matchingType: 'offer', summary: 'Ich repariere Fahrraeder', details: null }
 
 const record = (nr: number, wort: string): KeyingAnswerRecord => ({
   nr,
@@ -156,12 +156,11 @@ describe('mapping a keying answer back to the one entry it was asked about', () 
  *
  * The keying numbers are numbers about THIS request - the instruction and the
  * vocabulary as one system block, one entry as the message. A different message or a
- * split system text would be a new experiment, and the one-entry message has to stay
- * the one the everyday keying always sent, or the entries keyed so far would have to
- * be keyed again (GMS-215).
+ * split system text would be a new experiment, and it needs a new instruction version,
+ * which keys every entry again - as the details line did (gms214-1).
  */
 describe('what a keying call sends', () => {
-  it('sends the one entry, in the message the everyday keying has always sent', async () => {
+  it('sends an entry without details in the message the keying has always sent', async () => {
     const { client, sent } = answering([record(1, 'fahrrad')])
 
     await client.keyMatchingEntry(entry, [], alone)
@@ -171,6 +170,24 @@ describe('what a keying call sends', () => {
     // Spelled out once, because a change here would need a new instruction version.
     expect(sent[0].messages[0].content).toBe(
       'EINTRAG 1\nKanal: bietet an\nSatz: Ich repariere Fahrraeder',
+    )
+  })
+
+  it('sends the details along, as the fourth line of the one entry', async () => {
+    const { client, sent } = answering([record(1, 'programmierung')])
+
+    await client.keyMatchingEntry(
+      {
+        matchingType: 'interest',
+        summary: 'Performance-Optimierungen',
+        details: 'Beim Programmieren',
+      },
+      [],
+      alone,
+    )
+
+    expect(sent[0].messages[0].content).toBe(
+      'EINTRAG 1\nKanal: interessiert sich fuer\nSatz: Performance-Optimierungen\nDetails: Beim Programmieren',
     )
   })
 

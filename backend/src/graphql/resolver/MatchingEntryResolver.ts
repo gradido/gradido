@@ -101,9 +101,9 @@ export class MatchingEntryResolver {
   ): Promise<MatchingEntry> {
     const user = getUser(context)
     const stored = await findOwnEntry(uuid, user.id)
-    // The stored row goes in, not just the uuid: an edit to the sentence or the
-    // channel makes the keying describe something the member no longer wrote, and
-    // clearing it is what puts the entry back on the keying run's list.
+    // The stored row goes in, not just the uuid: an edit to the sentence, the channel
+    // or the details makes the keying describe something the member no longer wrote,
+    // and clearing it is what puts the entry back on the keying run's list.
     const updated = await dbUpdateMatchingEntry(stored, {
       matchingType: input.matchingType,
       summary: input.summary,

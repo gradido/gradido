@@ -74,7 +74,12 @@ const oneEntryWaiting = (...waiting: ReturnType<typeof waitingEntry>[]) => {
  * characters could not tell whether the cut happens.
  */
 const waitingEntry = (uuid: string, overrides: Record<string, unknown> = {}) => ({
-  entry: { uuid, summary: `Satz zu ${uuid}`, matchingType: 'offer' },
+  entry: {
+    uuid,
+    summary: `Satz zu ${uuid}`,
+    matchingType: 'offer',
+    details: null as string | null,
+  },
   userGradidoId: `u-${uuid}`,
   userLanguage: 'de-DE',
   ...overrides,
@@ -351,11 +356,12 @@ describe('the matching keying run and the switch it hangs on', () => {
     })
 
     it('sends the entry as it stands at that moment, not as the pass read it', async () => {
-      // The row the pass started with said `details: null`. The member corrected a
-      // price while the model was thinking, and the correction has already gone to the
-      // GMS - sending the old row would roll it back over there and leave it wrong.
+      // The row the pass started with said `remote: false`. The member switched "from
+      // anywhere" on while the model was thinking - which the model is not told about,
+      // so it clears no keying - and the change has already gone to the GMS. Sending
+      // the old row would roll it back over there and leave it wrong.
       publishable.mockResolvedValue({
-        entry: storedEntry({ details: 'Jetzt 20 Euro die Stunde' }),
+        entry: storedEntry({ remote: true }),
         userGradidoId: 'u-1',
       })
 
@@ -363,7 +369,7 @@ describe('the matching keying run and the switch it hangs on', () => {
 
       expect(putEntry).toHaveBeenCalledTimes(1)
       const [, payload] = putEntry.mock.calls[0]
-      expect(payload.details).toBe('Jetzt 20 Euro die Stunde')
+      expect(payload.remote).toBe(true)
       expect(payload.userUuid).toBe('u-1')
     })
 
@@ -508,6 +514,55 @@ describe('the matching keying run and the switch it hangs on', () => {
 
       expect(putEntry).not.toHaveBeenCalled()
     })
+
+    // ⛔ What the guard compares against has to be what the model was shown. Handed
+    // anything else - the details left out, say - it would let words about old
+    // details stand on new ones, and the entry would drop off the list for good.
+    it('stores the words against the entry as it read it, details included', async () => {
+      const read = waitingEntry('e-1')
+      read.entry = {
+        ...read.entry,
+        matchingType: 'interest',
+        summary: 'Performance-Optimierungen',
+        details: 'Beim Programmieren',
+      }
+      oneEntryWaiting(read)
+
+      await new MatchingKeyingRun().run()
+
+      expect(writeKeying).toHaveBeenCalledTimes(1)
+      expect(writeKeying.mock.calls[0][0]).toEqual(
+        expect.objectContaining({
+          uuid: 'e-1',
+          matchingType: 'interest',
+          summary: 'Performance-Optimierungen',
+          details: 'Beim Programmieren',
+        }),
+      )
+    })
+
+    // ⭐ What the details are read for: the member's own words, saying which of two
+    // things an ambiguous sentence means. The message itself is built and tested in
+    // `instruction`; what the run has to do is hand them over.
+    it('asks the model with the details of the entry it read', async () => {
+      const read = waitingEntry('e-1')
+      read.entry = {
+        ...read.entry,
+        matchingType: 'interest',
+        summary: 'Performance-Optimierungen',
+        details: 'Beim Programmieren',
+      }
+      oneEntryWaiting(read)
+
+      await new MatchingKeyingRun().run()
+
+      expect(keyEntry).toHaveBeenCalledTimes(1)
+      expect(keyEntry.mock.calls[0][0]).toEqual({
+        matchingType: 'interest',
+        summary: 'Performance-Optimierungen',
+        details: 'Beim Programmieren',
+      })
+    })
   })
 
   /**
@@ -542,9 +597,9 @@ describe('the matching keying run and the switch it hangs on', () => {
 
       // One call per entry, and each carries exactly that one entry.
       expect(keyEntry.mock.calls.map(([entry]) => entry)).toEqual([
-        { matchingType: 'offer', summary: 'Satz zu e-1' },
-        { matchingType: 'offer', summary: 'Satz zu e-2' },
-        { matchingType: 'offer', summary: 'Satz zu e-3' },
+        { matchingType: 'offer', summary: 'Satz zu e-1', details: null },
+        { matchingType: 'offer', summary: 'Satz zu e-2', details: null },
+        { matchingType: 'offer', summary: 'Satz zu e-3', details: null },
       ])
       // ⛔ And all three against the same list: what the first entry coined does not
       // reach the second. Refreshed per entry, the system text would change with
@@ -572,7 +627,7 @@ describe('the matching keying run and the switch it hangs on', () => {
 
       // The entry after the throw is still asked about, and both others are stored.
       expect(keyEntry).toHaveBeenCalledTimes(3)
-      expect(writeKeying.mock.calls.map(([uuid]) => uuid)).toEqual(['e-1', 'e-3'])
+      expect(writeKeying.mock.calls.map(([asRead]) => asRead.uuid)).toEqual(['e-1', 'e-3'])
       // ⛔ And the words of the entry BEFORE the throw are reported. It is stored and
       // published; left unreported, the next group would not be shown its words and
       // would coin its own for the same things.
