@@ -160,17 +160,24 @@ ${[...words].sort().join(' · ')}`
  * word the model was measured with.
  *
  * Numbered from 1, and the number comes back in `nr`, which is what the answer is
- * matched by. Matching by position instead would mean that a model dropping the third
- * record hands the fourth entry's words to the third entry - keys that look right and
- * are about somebody else's sentence.
+ * matched by - not its position. A call carries one entry, so its number is 1, and a
+ * record with any other number belongs to nobody: that is how the record the model
+ * makes out of an entry header inside the member's own sentence is dropped (see
+ * below).
  *
- * ⛔ And the sentence is put on ONE line, whatever the member typed. It is their own
- * free text, it sits inside a structure whose blocks are separated by blank lines,
- * and `nr` is the only thing tying an answer back to an entry - so a member who
- * writes a newline followed by their own `EINTRAG 2` block can hand a second member's
- * entry whatever words they like. Those words then go into the vocabulary EVERY
- * community feeds to its own model. Collapsing the whitespace costs nothing: a
- * summary is one short sentence, and the model reads it the same way.
+ * ⛔ The sentence is put on ONE line, whatever the member typed - and that guards
+ * against one thing only: a newline in their text opening a block of its own. It does
+ * NOT stop an entry header written inline. The model reads the structure, not the
+ * line breaks: with ten entries in a call, a sentence carrying an entry header of its
+ * own took over the next member's entry at every place, 27 times out of 27
+ * (GMS-215), and the words went into the vocabulary every community feeds to its own
+ * model. What protects the other members is that a call never carries more than one
+ * entry - see `AnthropicClient.keyMatchingEntry`. With nobody else in the call, the
+ * smuggled block came back as a record numbered 2 in the measurement, and is dropped
+ * there.
+ *
+ * Collapsing the whitespace stays anyway: it costs nothing, a summary is one short
+ * sentence, and the model reads it the same way.
  */
 export const CHANNEL_LABEL: Record<string, string> = {
   offer: 'bietet an',
