@@ -7,21 +7,19 @@ vi.mock('@vue/apollo-composable', () => ({
   useApolloClient: () => ({ client: { query } }),
 }))
 
+// The composable no longer reads the store. The mock stays so that a gate on `gmsAllowed`,
+// put back, finds a store to read from and the test below can say so - without it such a gate
+// would throw, and every test would fail for a reason that names nothing.
 vi.mock('vuex', () => ({
   useStore: () => ({ state }),
 }))
 
-// The page the backend mints the token for (GMS_DASHBOARD_URL + the user search route); the
-// API answers under the same origin at /gms/.
-const PAGE = 'https://ki-playground-gms.gradido.net/user-search'
+// What the backend hands out (the operator's GMS_DASHBOARD_URL, closed with a slash); the API
+// answers under the same origin at /gms/.
+const DASHBOARD = 'https://ki-playground-gms.gradido.net/'
 const BASE = 'https://ki-playground-gms.gradido.net/gms/'
 
-const access = (url = PAGE) =>
-  Promise.resolve({
-    data: {
-      authenticateGmsUserSearch: { __typename: 'GmsUserAuthenticationResult', url, token: 't' },
-    },
-  })
+const answer = (gmsDashboardUrl = DASHBOARD) => Promise.resolve({ data: { gmsDashboardUrl } })
 
 // The kept address lives in the module, so every test starts from a fresh copy of it.
 const freshModule = async () => {
@@ -41,43 +39,59 @@ describe('useGmsBase', () => {
     vi.useRealTimers()
   })
 
-  it('asks for the access of a member who takes part, fresh, and answers the API address', async () => {
+  it('asks the backend for the dashboard address, fresh, and answers the API address', async () => {
     const { useGmsBase } = await freshModule()
-    const { authenticateGmsUserSearch } = await import('@/graphql/queries')
-    query.mockReturnValueOnce(access())
+    const { gmsDashboardUrl } = await import('@/graphql/queries')
+    query.mockReturnValueOnce(answer())
 
     expect(await useGmsBase().gmsBase()).toBe(BASE)
+    expect(query).toHaveBeenCalledTimes(1)
     expect(query).toHaveBeenCalledWith({
-      query: authenticateGmsUserSearch,
+      query: gmsDashboardUrl,
       fetchPolicy: 'network-only',
     })
   })
 
-  // Bernd, 13.09.2026: a member who switched "findable" off is not in the GMS, and asking
-  // would send their id there.
-  it('asks nothing for a member who switched findable off', async () => {
+  // ⛔ The reason the address has a query of its own. The token query mints a member token on
+  // the way, which sends the member's gradidoID to the GMS - for a place search that needs
+  // neither, and for members the GMS then answers 400.
+  it('never asks for a member token to get it', async () => {
     const { useGmsBase } = await freshModule()
-    state.gmsAllowed = false
+    const { authenticateGmsUserSearch } = await import('@/graphql/queries')
+    query.mockReturnValue(answer())
 
-    expect(await useGmsBase().gmsBase()).toBeNull()
-    expect(query).not.toHaveBeenCalled()
+    await useGmsBase().gmsBase()
+
+    expect(query).not.toHaveBeenCalledWith(
+      expect.objectContaining({ query: authenticateGmsUserSearch }),
+    )
   })
 
-  it('gives such a member no address, even with one kept from somebody who takes part', async () => {
+  // Bernd, 18.09.2026, taking back his decision of 13.09.: the router sends a member without
+  // "findable" to the home tab, and the search on the map there is how they set their home.
+  it('gives a member who switched findable off the address as well', async () => {
     const { useGmsBase } = await freshModule()
-    query.mockReturnValue(access())
-    const { gmsBase } = useGmsBase()
-    expect(await gmsBase()).toBe(BASE)
-
     state.gmsAllowed = false
+    query.mockReturnValueOnce(answer())
+
+    expect(await useGmsBase().gmsBase()).toBe(BASE)
+    expect(query).toHaveBeenCalledTimes(1)
+  })
+
+  it('answers no address where the server has no GMS', async () => {
+    const { useGmsBase } = await freshModule()
+    query.mockReturnValue(answer(null))
+    const { gmsBase } = useGmsBase()
 
     expect(await gmsBase()).toBeNull()
-    expect(query).toHaveBeenCalledTimes(1)
+    // Nothing was kept, so the next search asks again.
+    expect(await gmsBase()).toBeNull()
+    expect(query).toHaveBeenCalledTimes(2)
   })
 
   it('asks once for every search that starts while the question is out or the address is young', async () => {
     const { useGmsBase } = await freshModule()
-    query.mockReturnValue(access())
+    query.mockReturnValue(answer())
 
     const both = await Promise.all([useGmsBase().gmsBase(), useGmsBase().gmsBase()])
     vi.setSystemTime(new Date('2026-09-13T08:04:59Z'))
@@ -90,7 +104,7 @@ describe('useGmsBase', () => {
 
   it('asks again once the address is five minutes old', async () => {
     const { useGmsBase } = await freshModule()
-    query.mockReturnValue(access())
+    query.mockReturnValue(answer())
     const { gmsBase } = useGmsBase()
     await gmsBase()
 
@@ -103,11 +117,11 @@ describe('useGmsBase', () => {
     expect(query).toHaveBeenCalledTimes(2)
   })
 
-  // The GMS answers 400 for a member it does not hold, and the backend passes that on.
+  // A backend that is away, or one that does not know the query yet.
   it('answers no address when the question fails, and asks again next time', async () => {
     const { useGmsBase } = await freshModule()
-    query.mockReturnValueOnce(Promise.reject(new Error('Request failed with status code 400')))
-    query.mockReturnValueOnce(access())
+    query.mockReturnValueOnce(Promise.reject(new Error('Network error')))
+    query.mockReturnValueOnce(answer())
     const { gmsBase } = useGmsBase()
 
     expect(await gmsBase()).toBeNull()
@@ -121,16 +135,16 @@ describe('useGmsBase', () => {
     query.mockImplementationOnce(() => {
       throw new Error('no client')
     })
-    query.mockReturnValueOnce(access())
+    query.mockReturnValueOnce(answer())
     const { gmsBase } = useGmsBase()
 
     expect(await gmsBase()).toBeNull()
     expect(await gmsBase()).toBe(BASE)
   })
 
-  it('answers no address for a page that is no absolute URL', async () => {
+  it('answers no address for a dashboard that is no absolute URL', async () => {
     const { useGmsBase } = await freshModule()
-    query.mockReturnValueOnce(access('user-search'))
+    query.mockReturnValueOnce(answer('user-search'))
 
     expect(await useGmsBase().gmsBase()).toBeNull()
   })

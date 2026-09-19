@@ -49,7 +49,12 @@ import {
 } from 'shared'
 import { QueryRunner } from 'typeorm'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
-import { deleteGmsUser, putGmsMatchingEntrySnapshots, upsertGmsUsers } from '@/apis/gms/GmsClient'
+import {
+  deleteGmsUser,
+  putGmsMatchingEntrySnapshots,
+  upsertGmsUsers,
+  verifyAuthToken,
+} from '@/apis/gms/GmsClient'
 import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { CONFIG } from '@/config'
@@ -85,8 +90,10 @@ import {
 } from '@/seeds/graphql/mutations'
 import {
   aliasStatus,
+  authenticateGmsUserSearch,
   avatarFull,
   checkUsername,
+  gmsDashboardUrl,
   memberAvatarFull,
   memberAvatars,
   queryOptIn,
@@ -123,6 +130,8 @@ jest.mock('@/apis/gms/GmsClient', () => {
     upsertGmsUsers: jest.fn(),
     putGmsMatchingEntrySnapshots: jest.fn(),
     deleteGmsUser: jest.fn(),
+    // Watched by the dashboard-url tests: the one call that mints a member token over there.
+    verifyAuthToken: jest.fn(),
   }
 })
 
@@ -4049,6 +4058,95 @@ describe('UserResolver', () => {
       expect(upsertMock).not.toHaveBeenCalled()
       const stored = await User.findOneOrFail({ where: { id: member.id } })
       expect(stored.gmsRegistered).toBe(false)
+    })
+  })
+
+  // Where the GMS answers, for the wallet's place search on the home map. It has to reach
+  // exactly the members the token query turns away: whoever switched "findable" off, and
+  // whoever the GMS has never been sent. Without the search they cannot set their home.
+  describe('gms dashboard url', () => {
+    const verifyMock = verifyAuthToken as jest.Mock
+    const dashboardUrlBefore = CONFIG.GMS_DASHBOARD_URL
+    let member: User
+
+    beforeAll(async () => {
+      await cleanDB()
+      const homeCom = await writeHomeCommunityEntry()
+      homeCom.gmsApiKey = 'gms-test-key'
+      await DbCommunity.save(homeCom)
+
+      member = await userFactory(testEnv, bibiBloxberg)
+      await User.update({ id: member.id }, { gmsAllowed: false, gmsRegistered: false })
+    })
+
+    afterAll(async () => {
+      CONFIG.GMS_ACTIVE = false
+      CONFIG.GMS_DASHBOARD_URL = dashboardUrlBefore
+      resetToken()
+      await cleanDB()
+    })
+
+    describe('unauthenticated', () => {
+      it('throws an error', async () => {
+        resetToken()
+        CONFIG.GMS_ACTIVE = true
+        await expect(query({ query: gmsDashboardUrl })).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated, as a member who does not take part in the GMS', () => {
+      beforeAll(async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+      })
+
+      beforeEach(() => {
+        verifyMock.mockReset()
+        CONFIG.GMS_ACTIVE = true
+        CONFIG.GMS_DASHBOARD_URL = 'https://gms.example.org'
+      })
+
+      it('hands out the configured address, closed with a slash', async () => {
+        // The fixture itself, or the line below would hold for any member.
+        const stored = await User.findOneOrFail({ where: { id: member.id } })
+        expect(stored.gmsAllowed).toBe(false)
+
+        await expect(query({ query: gmsDashboardUrl })).resolves.toMatchObject({
+          errors: undefined,
+          data: { gmsDashboardUrl: 'https://gms.example.org/' },
+        })
+      })
+
+      it('asks the GMS nothing to do so', async () => {
+        await query({ query: gmsDashboardUrl })
+
+        expect(verifyMock).not.toHaveBeenCalled()
+      })
+
+      // The same fixture, the query next to it: that one does mint a token, with this
+      // member's id. So the silence above is the new query's, not the mock's.
+      it('while the token query next to it does ask', async () => {
+        verifyMock.mockResolvedValue('a-token')
+
+        await query({ query: authenticateGmsUserSearch })
+
+        expect(verifyMock).toHaveBeenCalledWith('gms-test-key', expect.any(String))
+      })
+
+      it('answers null where this server has no GMS', async () => {
+        CONFIG.GMS_ACTIVE = false
+
+        await expect(query({ query: gmsDashboardUrl })).resolves.toMatchObject({
+          errors: undefined,
+          data: { gmsDashboardUrl: null },
+        })
+      })
     })
   })
 
