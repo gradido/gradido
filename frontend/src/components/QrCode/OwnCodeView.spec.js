@@ -112,6 +112,29 @@ describe('OwnCodeView', () => {
     expect(wrapper.find('[data-test="own-code-back"]').exists()).toBe(true)
   })
 
+  /**
+   * The page for showing Gradido to somebody opens this view in its first door, under a
+   * heading of its own. The head goes there; the picture and its alternative text stay, and
+   * that is the half this checks -- a head-less view that also lost its code would pass a
+   * test that only looked for the missing arrow.
+   */
+  it('leaves its head out where the page around it has one, and still draws the code', async () => {
+    const wrapper = mountView({ link: 'https://example.test/u/alice', showHead: false })
+    await flushPromises()
+
+    expect(wrapper.find('[data-test="own-code-head"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="own-code-back"]').exists()).toBe(false)
+    const picture = wrapper.find('[data-test="own-code-picture"]')
+    expect(picture.attributes('src')).toBe('drawn:https://example.test/u/alice')
+    expect(picture.attributes('alt')).toBe('My card')
+  })
+
+  it('brings its head by default', () => {
+    const wrapper = mountView({ link: '' })
+
+    expect(wrapper.find('[data-test="own-code-head"]').text()).toContain('My card')
+  })
+
   it('goes back where it came from', async () => {
     await router.push('/somewhere')
     await router.isReady()

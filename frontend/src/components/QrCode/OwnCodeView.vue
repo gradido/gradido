@@ -3,7 +3,7 @@
   <div class="own-code-view">
     <!-- The page's own chrome, like the scanner's and the calculator's: the route is
          bareChrome, so on a phone this arrow is the only way out. 44px target. -->
-    <div class="own-code-head">
+    <div v-if="showHead" class="own-code-head" data-test="own-code-head">
       <button
         type="button"
         class="own-code-back"
@@ -63,6 +63,11 @@ const props = defineProps({
   // May be empty: the thank-you card has none until its card is known, and none at all
   // while the card function is switched off.
   link: { type: String, default: '' },
+  // Off where the code stands inside another page rather than being the page: the page for
+  // showing Gradido to somebody opens it in its first door, under its own heading, and a
+  // second heading with a back arrow there would lead out of a page nobody wants to leave.
+  // The title stays either way -- it is the picture's alternative text.
+  showHead: { type: Boolean, default: true },
 })
 
 const router = useRouter()

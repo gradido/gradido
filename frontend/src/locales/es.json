@@ -785,6 +785,7 @@
     "scanner": "Escanear código",
     "send": "Enviar Gradido y correo electrónico",
     "settings": "Configuración",
+    "show-friends": "Muéstraselo a tus amigos",
     "transactions": "Tu Transacciones",
     "usersearch": "Búsqueda geográfica de miembros (beta)"
   },
@@ -971,6 +972,36 @@
       "first-title": "Tu nombre de usuario",
       "quota-blocked": "Has agotado los cambios de nombre para este año. Podrás volver a hacerlo a partir del {date}.",
       "quota-left": "Puedes cambiar tu nombre de usuario una vez más este año. | Puedes cambiar tu nombre de usuario {n} veces más este año."
+    }
+  },
+  "showFriends": {
+    "away": {
+      "addressLead": "O solo tu dirección, con una frase:",
+      "copied": "La frase y tu dirección Gradido se han copiado. Ahora puedes pegarlas en un mensaje.",
+      "editHint": "Puedes cambiar la frase antes de enviarla — después aparecerá en tu aplicación de mensajería.",
+      "shareButton": "Compartir dirección",
+      "shareText": "Mira, esto es Gradido — una red en la que nos ayudamos, nos regalamos cosas y nos damos las gracias unos a otros. Aquí me encuentras: {url}",
+      "thanks": "Envía un agradecimiento.",
+      "thanksText": "Cualquiera puede dar las gracias — con Gradido puedes regalarlo.",
+      "title": "A alguien en otro lugar"
+    },
+    "here": {
+      "map": "el mapa",
+      "step1": "Muestra {map}. Deja que escriba lo que busca.",
+      "step2": "Ella apunta con su cámara a este código.",
+      "step3": "La cuenta la recibe por sí sola. No tienes que explicar nada.",
+      "title": "A alguien aquí conmigo"
+    },
+    "page": {
+      "footer": "Con mostrarlo basta.",
+      "footerLead": "No tienes que explicar nada.",
+      "lead": "Cada persona que se une es un regalo para todos los demás — y recibe de regalo la red con todos los demás.",
+      "question": "¿A quién quieres mostrárselo?"
+    },
+    "tile": {
+      "go": "Cómo funciona",
+      "text": "Cada persona que se une es un regalo para todos — y recibe de regalo toda la red.",
+      "title": "Muéstraselo a tus amigos"
     }
   },
   "signin": "Iniciar sesión",

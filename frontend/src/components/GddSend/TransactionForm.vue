@@ -254,14 +254,18 @@ const userName = ref('')
 /**
  * The mode a link asks for, or null when it asks for none.
  *
- * ⛔ Only the two the query may name. An unknown word must not put this form into a state
- * no button can produce, and `link` is deliberately not reachable from outside: a link
- * that hands out links is not a flow anybody offers.
+ * ⛔ Only the three the buttons above can produce. An unknown word must not put this form into
+ * a state no button can reach.
+ *
+ * `link` used to be left out on purpose, as a flow nobody offered. The page for showing Gradido
+ * to somebody offers it now: its second door says "send a thank-you" and leads here, onto the
+ * link, cheque and QR tab, until the thank-you greeting has a form of its own.
  */
 function sendTypeFromQuery() {
   const art = route.query.art
   if (art === SEND_TYPES.email) return SEND_TYPES.email
   if (art === SEND_TYPES.send) return SEND_TYPES.send
+  if (art === SEND_TYPES.link) return SEND_TYPES.link
   return null
 }
 
