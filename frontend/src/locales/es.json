@@ -792,6 +792,7 @@
   "public-profile": {
     "address": "Dirección Gradido",
     "duration": "Crear una cuenta en {communityName} lleva unos diez minutos. Te pregunta qué has hecho de bueno últimamente.",
+    "echoHint": "{name} sabrá que has llegado.",
     "join": "Crear una cuenta",
     "lead": "Una red de personas que se ayudan, se regalan cosas y se dan las gracias unas a otras. Gratis. Basada en la comunidad. Código abierto.",
     "send": "Enviar Gradido",
@@ -1025,6 +1026,7 @@
       "minimum": "Al menos 8 caracteres.",
       "no-whitespace": "Sin espacios ni tabulaciones.",
       "one_number": "Se requiere un número.",
+      "shownBy": "{name} te ha mostrado Gradido. Nos alegra que estés aquí.",
       "special-char": "Caracteres especiales requeridos (por ejemplo, _ o &)",
       "uppercase": "Letra mayúscula requerida."
     }

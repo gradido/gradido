@@ -155,6 +155,7 @@ export const createUser = gql`
     $publisherId: Int
     $redeemCode: String
     $project: String
+    $referrerAlias: String
   ) {
     createUser(
       email: $email
@@ -164,6 +165,7 @@ export const createUser = gql`
       publisherId: $publisherId
       redeemCode: $redeemCode
       project: $project
+      referrerAlias: $referrerAlias
     ) {
       id
     }

@@ -20,6 +20,8 @@ import {
 import { configure, defineRule } from 'vee-validate'
 import { email, min, required } from '@vee-validate/rules'
 import InputEmail from '@/components/Inputs/InputEmail.vue'
+import { createUser } from '@/graphql/mutations'
+import en from '@/locales/en.json'
 
 defineRule('required', required)
 defineRule('email', email)
@@ -302,6 +304,110 @@ describe('Register', () => {
           }),
         )
       })
+    })
+  })
+
+  // "Create account" on /u/<name> carries the name as ?referrer=<name>. The page greets with
+  // it above the form and hands it to createUser, where its owner becomes the referrer.
+  describe('the address the registration started at', () => {
+    // The real English texts: the strip carries a placeholder, and only the language file can
+    // say whether the page fills the one it names.
+    const pageAt = async (query) => {
+      const addressRouter = createRouter({
+        history: createWebHistory(),
+        routes: [
+          { path: '/register/:code?', name: 'Register', component: { template: '<div />' } },
+        ],
+      })
+      await addressRouter.push({ name: 'Register', query })
+      await addressRouter.isReady()
+      return mount(Register, {
+        global: {
+          plugins: [
+            addressRouter,
+            store,
+            createI18n({ legacy: false, locale: 'en', messages: { en } }),
+          ],
+          stubs: {
+            BContainer,
+            BForm,
+            BRow,
+            BCol,
+            BFormGroup,
+            BFormInput,
+            BFormInvalidFeedback,
+            BFormCheckbox,
+            BButton,
+            InputEmail,
+            Message: true,
+            AuthTriads: true,
+          },
+        },
+      })
+    }
+
+    const submit = async (page) => {
+      mockMutate.mockResolvedValue({ data: { createUser: { id: 1 } } })
+      await page.find('#registerFirstname').setValue('Max')
+      await page.find('#registerLastname').setValue('Mustermann')
+      await page.find('#email-input-field').setValue('max.mustermann@gradido.net')
+      await page.find('#registerCheckbox').setValue(true)
+      await page.find('form').trigger('submit')
+      await flushPromises()
+      expect(mockMutate).toHaveBeenCalledTimes(1)
+      return mockMutate.mock.calls[0][0]
+    }
+
+    it('names the person who showed Gradido, above the form', async () => {
+      const page = await pageAt({ referrer: 'MeisterBob' })
+
+      const strip = page.find('[data-test="register-shown-by"]')
+      expect(strip.text()).toBe(en.site.signup.shownBy.replace('{name}', 'MeisterBob'))
+      expect(
+        strip.element.compareDocumentPosition(page.find('form').element) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+    })
+
+    it('hands the name to createUser', async () => {
+      const page = await pageAt({ referrer: 'MeisterBob' })
+
+      expect(await submit(page)).toEqual(expect.objectContaining({ referrerAlias: 'MeisterBob' }))
+    })
+
+    // Not an empty value but no field at all: a registration that did not start at an address
+    // sends exactly what it sent before.
+    it('shows no strip and sends no referrer without an address to come from', async () => {
+      const page = await pageAt({})
+
+      expect(page.find('[data-test="register-shown-by"]').exists()).toBe(false)
+      expect(await submit(page)).not.toHaveProperty('referrerAlias')
+    })
+
+    // The strip reads back what came in the address, so only a user name is taken -- anything
+    // else would put a stranger's text above the form. The server would ignore it anyway.
+    it('takes nothing that is not a user name', async () => {
+      const page = await pageAt({ referrer: '<b>Your bank</b>' })
+
+      expect(page.find('[data-test="register-shown-by"]').exists()).toBe(false)
+      expect(page.find('b').exists()).toBe(false)
+      expect(await submit(page)).not.toHaveProperty('referrerAlias')
+    })
+
+    // A GraphQL document carries only the variables it declares; an undeclared one is dropped
+    // on the way out without an error, and the account would open without its referrer. The
+    // component tests cannot see that -- they replace the mutation -- so this holds the real
+    // document the page imports: declared, and handed to the argument of that name.
+    it('sends a document that declares the name and hands it to createUser', () => {
+      const operation = createUser.definitions[0]
+      const field = operation.selectionSet.selections[0]
+
+      expect(operation.variableDefinitions.map((v) => v.variable.name.value)).toContain(
+        'referrerAlias',
+      )
+      const argument = field.arguments.find((a) => a.name.value === 'referrerAlias')
+      expect(argument?.value.kind).toBe('Variable')
+      expect(argument?.value.name.value).toBe('referrerAlias')
     })
   })
 })

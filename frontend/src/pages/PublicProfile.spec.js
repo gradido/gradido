@@ -151,13 +151,61 @@ describe('PublicProfile', () => {
   })
 
   // The way onward for somebody who has no account yet, where the registration link below
-  // the card used to be.
-  it('offers to open an account where the registration link led', async () => {
+  // the card used to be -- now carrying the name in the address along, so that the person who
+  // showed Gradido becomes the referrer of the new account.
+  it('offers to open an account, and takes the name in the address along', async () => {
     const wrapper = await wrapperFor('bernd')
 
     const join = wrapper.find('[data-test="public-profile-register"]')
     expect(join.text()).toBe(en['public-profile'].join)
-    expect(join.attributes('href')).toBe('/register')
+    expect(join.attributes('href')).toBe('/register?referrer=bernd')
+  })
+
+  // ZE-005: the person in the address learns of the arrival, so the newcomer reads it here,
+  // before registering -- on the same page as the button that starts the trace.
+  it('tells the newcomer that the person in the address learns of the arrival', async () => {
+    const wrapper = await wrapperFor('bernd')
+
+    expect(wrapper.find('[data-test="public-profile-echo-hint"]').text()).toBe(
+      en['public-profile'].echoHint.replace('{name}', 'bernd'),
+    )
+  })
+
+  // Nothing is looked up for this either: a made-up name is carried and named just the same.
+  // Whether it belongs to anybody is decided by the server, silently, after the registration.
+  it('carries a made-up name along and names it the same way', async () => {
+    const wrapper = await wrapperFor('xyzabc')
+
+    expect(wrapper.find('[data-test="public-profile-register"]').attributes('href')).toBe(
+      '/register?referrer=xyzabc',
+    )
+    expect(wrapper.find('[data-test="public-profile-echo-hint"]').text()).toBe(
+      en['public-profile'].echoHint.replace('{name}', 'xyzabc'),
+    )
+  })
+
+  // A Gradido ID leaves no trace -- the server takes user names only -- and a page that
+  // greets "somebody" does not promise that somebody hears of it.
+  it('carries nothing along and promises nothing where the address holds a Gradido ID', async () => {
+    const wrapper = await wrapperFor(GRADIDO_ID)
+
+    expect(wrapper.find('[data-test="public-profile-register"]').attributes('href')).toBe(
+      '/register',
+    )
+    expect(wrapper.find('[data-test="public-profile-echo-hint"]').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain(en['public-profile'].echoHint.replace('{name}', ''))
+  })
+
+  // Not being a Gradido ID does not make something a user name: two characters are neither,
+  // and the server would ignore them. The shape of a user name decides, not the absence of
+  // the other shape.
+  it('carries nothing along where the address holds no user name at all', async () => {
+    const wrapper = await wrapperFor('ab')
+
+    expect(wrapper.find('[data-test="public-profile-register"]').attributes('href')).toBe(
+      '/register',
+    )
+    expect(wrapper.find('[data-test="public-profile-echo-hint"]').exists()).toBe(false)
   })
 
   /**

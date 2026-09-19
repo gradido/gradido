@@ -792,6 +792,7 @@
   "public-profile": {
     "address": "Gradido-adres",
     "duration": "Een account bij {communityName} aanmaken duurt ongeveer tien minuten. Het vraagt je wat je de laatste tijd voor goeds hebt gedaan.",
+    "echoHint": "{name} krijgt te weten dat je erbij bent.",
     "join": "Account aanmaken",
     "lead": "Een netwerk van mensen die elkaar helpen, iets schenken en bedanken. Gratis. Gemeenschapsgericht. Open source.",
     "send": "Gradido versturen",
@@ -1025,6 +1026,7 @@
       "minimum": "Minstens 8 tekens.",
       "no-whitespace": "Geen spaties en tabs",
       "one_number": "Getal noodzakelijk.",
+      "shownBy": "{name} heeft je Gradido laten zien. Fijn dat je er bent.",
       "special-char": "Speciaal teken noodzakelijk (bijv. _ of é)",
       "uppercase": "Hoofdletter noodzakelijk."
     }
