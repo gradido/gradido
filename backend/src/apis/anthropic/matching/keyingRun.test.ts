@@ -44,24 +44,25 @@ const writeKeying = dbWriteMatchingEntryKeying as jest.Mock
 const putEntry = putGmsMatchingEntry as jest.Mock
 const postWords = postGmsMatchingVocabulary as jest.Mock
 
-// What "spending" means: the one call in the whole run that costs money. Every test
-// below that says "does not spend" asserts on this, not on a step before it.
-const keyEntries = jest.fn()
+// What "spending" means: the one call in the whole run that costs money, made once
+// per entry. Every test below that says "does not spend" asserts on this, not on a
+// step before it.
+const keyEntry = jest.fn()
 
 /**
  * One entry waiting to be keyed, and gone from the list once it has been.
  *
  * Twice, because a pass asks twice: once to find out whether there is any work at all,
- * and once for the batch itself. After that the real query no longer returns it - its
- * instruction version is current - and modelling that is what lets the batch loop
+ * and once for the group itself. After that the real query no longer returns it - its
+ * instruction version is current - and modelling that is what lets the group loop
  * terminate the way it does in production.
  */
 const oneEntryWaiting = (...waiting: ReturnType<typeof waitingEntry>[]) => {
-  const batch = waiting.length ? waiting : [waitingEntry('e-1')]
+  const group = waiting.length ? waiting : [waitingEntry('e-1')]
   // Reset first, so that a test naming its own entries replaces the default rather
   // than queueing behind it - `…Once` values do not overwrite, they stack.
   pending.mockReset()
-  pending.mockResolvedValueOnce(batch).mockResolvedValueOnce(batch).mockResolvedValue([])
+  pending.mockResolvedValueOnce(group).mockResolvedValueOnce(group).mockResolvedValue([])
 }
 
 /**
@@ -69,7 +70,7 @@ const oneEntryWaiting = (...waiting: ReturnType<typeof waitingEntry>[]) => {
  *
  * `userLanguage` is a full locale on purpose. The GMS's column holds two characters
  * and its schema demands exactly two, so a stored `de-DE` reaching the report would
- * 400 it and lose a whole batch's words - and a fixture that was already two
+ * 400 it and lose a whole group's words - and a fixture that was already two
  * characters could not tell whether the cut happens.
  */
 const waitingEntry = (uuid: string, overrides: Record<string, unknown> = {}) => ({
@@ -107,8 +108,8 @@ describe('the matching keying run and the switch it hangs on', () => {
     homeCommunity.mockResolvedValue({ id: 1, gmsApiKey: 'key' })
     pending.mockResolvedValue([])
     vocabulary.mockResolvedValue({ words: [], hasMore: false })
-    keyEntries.mockResolvedValue(new Map())
-    client.mockReturnValue({ keyMatchingEntries: keyEntries })
+    keyEntry.mockResolvedValue(undefined)
+    client.mockReturnValue({ keyMatchingEntry: keyEntry })
     writeKeying.mockResolvedValue({ success: true })
     publishable.mockResolvedValue({ entry: storedEntry(), userGradidoId: 'u-1' })
     putEntry.mockResolvedValue(true)
@@ -155,8 +156,8 @@ describe('the matching keying run and the switch it hangs on', () => {
     gesuchter_beruf: '',
   })
 
-  /** A model that answers the one waiting entry. */
-  const modelAnswers = () => keyEntries.mockResolvedValue(new Map([[0, modelRecord()]]))
+  /** A model that answers every entry it is asked about. */
+  const modelAnswers = () => keyEntry.mockResolvedValue(modelRecord())
 
   afterEach(() => {
     CONFIG.MATCHING_ACTIVE = wasMatchingActive
@@ -195,7 +196,7 @@ describe('the matching keying run and the switch it hangs on', () => {
     // ⛔ The case this switch exists for, and it is not hypothetical: a server that
     // shows the matching to its members while the decision about the model bill is
     // still open. MATCHING_ACTIVE is on, an entry is waiting, and nothing is bought.
-    expect(keyEntries).not.toHaveBeenCalled()
+    expect(keyEntry).not.toHaveBeenCalled()
     // Not even the entry list: the switch answers before the run looks at member data.
     expect(pending).not.toHaveBeenCalled()
   })
@@ -206,10 +207,10 @@ describe('the matching keying run and the switch it hangs on', () => {
     const run = new MatchingKeyingRun()
 
     await run.run()
-    expect(keyEntries).toHaveBeenCalledTimes(1)
+    expect(keyEntry).toHaveBeenCalledTimes(1)
 
     // ⛔ The entry has to be waiting for the SECOND pass too, or this test proves
-    // nothing: `oneEntryWaiting` queues its batch for one pass and then hands back an
+    // nothing: `oneEntryWaiting` queues its group for one pass and then hands back an
     // empty list for ever, so a second pass would stop at "nothing to do" whether the
     // switch is read or not. Measured, not assumed - with the guard deleted and
     // without this line the test stayed green.
@@ -220,7 +221,7 @@ describe('the matching keying run and the switch it hangs on', () => {
     keyingActive.mockResolvedValue(false)
     await run.run()
 
-    expect(keyEntries).toHaveBeenCalledTimes(1)
+    expect(keyEntry).toHaveBeenCalledTimes(1)
     expect(keyingActive).toHaveBeenCalledTimes(2)
     // ⭐ Sharper than counting model calls, and it costs nothing: `oneEntryWaiting`
     // resets this mock, so the count above is the SECOND pass alone. The switch
@@ -229,25 +230,27 @@ describe('the matching keying run and the switch it hangs on', () => {
     expect(pending).not.toHaveBeenCalled()
   })
 
-  it('stops mid-pass when the switch goes off between batches', async () => {
+  it('stops mid-pass when the switch goes off between groups', async () => {
     CONFIG.MATCHING_ACTIVE = true
-    // Enough waiting entries that the pass would take a second batch.
+    // Enough waiting entries that the pass would take a second group.
     const waiting = Array.from({ length: 2 }, (_, i) => waitingEntry(`m-${i}`))
     pending.mockReset()
     pending.mockResolvedValue(waiting)
-    keyEntries.mockResolvedValue(new Map([[0, modelRecord()]]))
-    // On for the pass's own check and the first batch, off from the second on.
+    keyEntry.mockResolvedValue(modelRecord())
+    // On for the pass's own check and the first group, off from the second on.
     keyingActive.mockResolvedValueOnce(true).mockResolvedValue(false)
 
     await new MatchingKeyingRun().run()
 
-    // ⛔ Without the re-read the loop would run all MAX_BATCHES_PER_PASS batches and
+    // ⛔ Without the re-read the loop would run all MAX_GROUPS_PER_PASS groups and
     // buy them, because the switch was only ever read before the loop. An admin who
     // unticks the box to stop a bill would have paid for the rest of the pass.
-    expect(keyEntries).toHaveBeenCalledTimes(1)
-    // ⚠️ And the guard has to sit BEFORE the entry read of the batch it refuses, so a
+    // Two calls, because the first group has two entries and each is a call of its
+    // own - "off" means from the next group on, not from the next call.
+    expect(keyEntry).toHaveBeenCalledTimes(2)
+    // ⚠️ And the guard has to sit BEFORE the entry read of the group it refuses, so a
     // pass that is stopping does not touch member data on its way out. Two reads
-    // belong to the first batch - the "is there work" probe and its own - and none to
+    // belong to the first group - the "is there work" probe and its own - and none to
     // the second. Without this line, moving the guard below the read stays green.
     expect(pending).toHaveBeenCalledTimes(2)
   })
@@ -260,7 +263,7 @@ describe('the matching keying run and the switch it hangs on', () => {
 
     // The counterpart to the first test: without this one, "does nothing" would keep
     // passing after the run stopped working for an entirely different reason.
-    expect(keyEntries).toHaveBeenCalled()
+    expect(keyEntry).toHaveBeenCalled()
   })
 
   it('spends nothing when there is nothing waiting', async () => {
@@ -271,7 +274,7 @@ describe('the matching keying run and the switch it hangs on', () => {
     // A pass fires on every member save as well as on the timer, and almost every one
     // of them finds nothing - so "nothing to do" must cost neither a model call nor a
     // GMS round trip.
-    expect(keyEntries).not.toHaveBeenCalled()
+    expect(keyEntry).not.toHaveBeenCalled()
     expect(vocabulary).not.toHaveBeenCalled()
   })
 
@@ -319,7 +322,7 @@ describe('the matching keying run and the switch it hangs on', () => {
 
     // Keying against an empty list would have every entry coin its own word for
     // something that already has one - paying a model to manufacture duplicates.
-    expect(keyEntries).not.toHaveBeenCalled()
+    expect(keyEntry).not.toHaveBeenCalled()
   })
 
   it('keys anyway when the refresh fails but a list is already in hand', async () => {
@@ -329,7 +332,7 @@ describe('the matching keying run and the switch it hangs on', () => {
     // A first pass that fills the list, then a GMS that goes away.
     vocabulary.mockResolvedValue({ words: [{ id: 1, word: 'fahrrad' }], hasMore: false })
     await run.run()
-    keyEntries.mockClear()
+    keyEntry.mockClear()
     vocabulary.mockRejectedValue(new Error('GMS unreachable'))
     // A second entry arrives, so the second pass has something to do.
     oneEntryWaiting()
@@ -337,7 +340,7 @@ describe('the matching keying run and the switch it hangs on', () => {
     await run.run()
 
     // A list one pass old costs at worst a duplicate word; stalling costs every entry.
-    expect(keyEntries).toHaveBeenCalled()
+    expect(keyEntry).toHaveBeenCalled()
   })
 
   describe('what it sends to the GMS after a keying', () => {
@@ -410,17 +413,11 @@ describe('the matching keying run and the switch it hangs on', () => {
       )
     })
 
-    // ⛔ One member withdrawing must not cost the rest of the batch their words. With
-    // a single-entry fixture "the batch carries on" and "the batch stops here" look
+    // ⛔ One member withdrawing must not cost the rest of the group their words. With
+    // a single-entry fixture "the group carries on" and "the group stops here" look
     // exactly the same.
-    it('carries on with the rest of the batch when one entry may not go', async () => {
+    it('carries on with the rest of the group when one entry may not go', async () => {
       oneEntryWaiting(waitingEntry('e-1'), waitingEntry('e-2'))
-      keyEntries.mockResolvedValue(
-        new Map([
-          [0, modelRecord()],
-          [1, modelRecord()],
-        ]),
-      )
       publishable
         .mockResolvedValueOnce(undefined)
         .mockResolvedValue({ entry: storedEntry({ uuid: 'e-2' }), userGradidoId: 'u-e-2' })
@@ -434,12 +431,6 @@ describe('the matching keying run and the switch it hangs on', () => {
 
     it('keeps on going when one publish throws', async () => {
       oneEntryWaiting(waitingEntry('e-1'), waitingEntry('e-2'))
-      keyEntries.mockResolvedValue(
-        new Map([
-          [0, modelRecord()],
-          [1, modelRecord()],
-        ]),
-      )
       putEntry.mockRejectedValueOnce(new Error('GMS unreachable')).mockResolvedValue(true)
 
       await new MatchingKeyingRun().run()
@@ -453,18 +444,20 @@ describe('the matching keying run and the switch it hangs on', () => {
 
     it('groups the words by the language of each member', async () => {
       oneEntryWaiting(waitingEntry('e-1'), waitingEntry('e-2', { userLanguage: 'es' }))
-      keyEntries.mockResolvedValue(
-        new Map([
-          [0, modelRecord()],
-          // Different words on purpose: identical ones are reported once and the
-          // second report would rightly be skipped, which would hide the grouping.
-          [1, { ...modelRecord(), schluessel: ['brotbacken'], sache: 'brot', wer: 'baecker' }],
-        ]),
-      )
+      keyEntry
+        .mockResolvedValueOnce(modelRecord())
+        // Different words on purpose: identical ones are reported once and the
+        // second report would rightly be skipped, which would hide the grouping.
+        .mockResolvedValueOnce({
+          ...modelRecord(),
+          schluessel: ['brotbacken'],
+          sache: 'brot',
+          wer: 'baecker',
+        })
 
       await new MatchingKeyingRun().run()
 
-      // The language is what the GMS records against a word, and one batch can hold
+      // The language is what the GMS records against a word, and one group can hold
       // members of several. Reporting them together would mark one language's words
       // with another's.
       const byLanguage = new Map(
@@ -487,12 +480,10 @@ describe('the matching keying run and the switch it hangs on', () => {
       expect(writeKeying).toHaveBeenCalled()
     })
 
-    // The repair that catches a throwing model call had no test at all: remove the
-    // try/catch and every other test here still passes, while the regression - the
-    // throw escaping through nudge()'s catch and the same ten entries standing first
-    // in line at full price on every pass - comes back silently.
+    // A throwing model call must not escape the pass: through nudge()'s catch, the
+    // same entries would stand first in line again, at full price, on every pass.
     it('survives a model call that throws, without writing anything', async () => {
-      keyEntries.mockRejectedValue(new Error('the answer was truncated'))
+      keyEntry.mockRejectedValue(new Error('the answer was truncated'))
 
       await expect(new MatchingKeyingRun().run()).resolves.toBeUndefined()
       expect(writeKeying).not.toHaveBeenCalled()
@@ -519,6 +510,142 @@ describe('the matching keying run and the switch it hangs on', () => {
     })
   })
 
+  /**
+   * ⛔ One entry per model call - the whole protection against an entry header written
+   * into a member's sentence (GMS-215). With ten entries in a call, such a header took
+   * over the next member's entry 27 times out of 27; with one, there is nobody else in
+   * the call to take over.
+   */
+  describe('one entry per model call', () => {
+    beforeEach(() => {
+      CONFIG.MATCHING_ACTIVE = true
+    })
+
+    /** A record whose key word says which call it came from. */
+    const recordWith = (word: string) => ({ ...modelRecord(), schluessel: [word] })
+
+    it('asks about each entry in a call of its own, the whole group against one vocabulary', async () => {
+      oneEntryWaiting(waitingEntry('e-1'), waitingEntry('e-2'), waitingEntry('e-3'))
+      vocabulary.mockResolvedValue({ words: [{ id: 1, word: 'fahrrad' }], hasMore: false })
+      // What each call was shown, copied at the moment of the call. The mock keeps
+      // references, and a list that grew afterwards would look the same in all three.
+      const shown: string[][] = []
+      const coins = ['amsel', 'buche', 'clown']
+      keyEntry.mockImplementation(async (_entry: unknown, words: readonly string[]) => {
+        shown.push([...words])
+        // Every entry coins a word of its own, so a list refreshed between two calls
+        // would show it.
+        return recordWith(coins[shown.length - 1])
+      })
+
+      await new MatchingKeyingRun().run()
+
+      // One call per entry, and each carries exactly that one entry.
+      expect(keyEntry.mock.calls.map(([entry]) => entry)).toEqual([
+        { matchingType: 'offer', summary: 'Satz zu e-1' },
+        { matchingType: 'offer', summary: 'Satz zu e-2' },
+        { matchingType: 'offer', summary: 'Satz zu e-3' },
+      ])
+      // ⛔ And all three against the same list: what the first entry coined does not
+      // reach the second. Refreshed per entry, the system text would change with
+      // nearly every call, and the cache would be written every time and never read.
+      expect(shown).toEqual([['fahrrad'], ['fahrrad'], ['fahrrad']])
+      // A copy, not the live list: `report` appends to that one after the group, and a
+      // snapshot that is the live array is only a snapshot as long as nobody reports.
+      expect(keyEntry.mock.calls[0][1]).toEqual(['fahrrad'])
+      // Reported once, after the group, with the words of all three.
+      expect(postWords).toHaveBeenCalledTimes(1)
+      expect(postWords.mock.invocationCallOrder[0]).toBeGreaterThan(
+        Math.max(...keyEntry.mock.invocationCallOrder),
+      )
+      expect(postWords.mock.calls[0][2]).toEqual(expect.arrayContaining(coins))
+    })
+
+    it('sets aside only the entry whose call throws, and still reports the words of the others', async () => {
+      oneEntryWaiting(waitingEntry('e-1'), waitingEntry('e-2'), waitingEntry('e-3'))
+      keyEntry
+        .mockResolvedValueOnce(recordWith('vorher'))
+        .mockRejectedValueOnce(new Error('the answer was truncated'))
+        .mockResolvedValueOnce(recordWith('nachher'))
+
+      await new MatchingKeyingRun().run()
+
+      // The entry after the throw is still asked about, and both others are stored.
+      expect(keyEntry).toHaveBeenCalledTimes(3)
+      expect(writeKeying.mock.calls.map(([uuid]) => uuid)).toEqual(['e-1', 'e-3'])
+      // ⛔ And the words of the entry BEFORE the throw are reported. It is stored and
+      // published; left unreported, the next group would not be shown its words and
+      // would coin its own for the same things.
+      expect(postWords).toHaveBeenCalledTimes(1)
+      expect(postWords.mock.calls[0][2]).toEqual(expect.arrayContaining(['vorher', 'nachher']))
+      // Only the one that failed is set aside for the rest of the pass: the next look
+      // for work skips it and nothing else.
+      expect(pending.mock.calls[2][2]).toEqual(['e-2'])
+    })
+
+    it('ends the pass after two failed calls in a row, and counts again after one that gets through', async () => {
+      oneEntryWaiting(...['e-1', 'e-2', 'e-3', 'e-4', 'e-5'].map((uuid) => waitingEntry(uuid)))
+      keyEntry
+        .mockRejectedValueOnce(new Error('overloaded'))
+        .mockResolvedValueOnce(recordWith('dazwischen'))
+        .mockRejectedValueOnce(new Error('overloaded'))
+        .mockRejectedValueOnce(new Error('overloaded'))
+        .mockResolvedValue(modelRecord())
+
+      await new MatchingKeyingRun().run()
+
+      // Failed, through, failed, failed - and the fifth is never asked. Two in a row is
+      // the API, and walking the rest to find that out costs a call per entry. A count
+      // that did not start again after the second call would have stopped at the third.
+      expect(keyEntry).toHaveBeenCalledTimes(4)
+      // The pass ends there: no look for another group.
+      expect(pending).toHaveBeenCalledTimes(2)
+      // And the one that got through still has its words reported.
+      expect(postWords.mock.calls[0][2]).toEqual(expect.arrayContaining(['dazwischen']))
+    })
+
+    it('counts the failures in a row across the end of a group', async () => {
+      pending.mockReset()
+      pending
+        // is there work at all
+        .mockResolvedValueOnce([waitingEntry('e-1')])
+        .mockResolvedValueOnce([waitingEntry('e-1'), waitingEntry('e-2')])
+        .mockResolvedValueOnce([waitingEntry('e-3'), waitingEntry('e-4')])
+        .mockResolvedValue([])
+      keyEntry
+        .mockResolvedValueOnce(modelRecord())
+        .mockRejectedValueOnce(new Error('overloaded'))
+        .mockRejectedValueOnce(new Error('overloaded'))
+        .mockResolvedValue(modelRecord())
+
+      await new MatchingKeyingRun().run()
+
+      // The last call of one group and the first of the next are two in a row like any
+      // other two: e-4 is never asked.
+      expect(keyEntry).toHaveBeenCalledTimes(3)
+    })
+
+    it('marks the vocabulary for the cache exactly when more than one call reads it', async () => {
+      // A group of one - the everyday case, a member just saved.
+      oneEntryWaiting(waitingEntry('e-1'))
+      modelAnswers()
+      await new MatchingKeyingRun().run()
+      // A single call would pay 1.25 times the input price for a cache nobody reads.
+      expect(keyEntry.mock.calls.map(([, , options]) => options)).toEqual([{ cacheSystem: false }])
+
+      keyEntry.mockClear()
+      oneEntryWaiting(waitingEntry('e-1'), waitingEntry('e-2'), waitingEntry('e-3'))
+      await new MatchingKeyingRun().run()
+      // ALL calls of the group, the last one included: the first writes the cache, and
+      // a call reads it only if it carries the marker too.
+      expect(keyEntry.mock.calls.map(([, , options]) => options)).toEqual([
+        { cacheSystem: true },
+        { cacheSystem: true },
+        { cacheSystem: true },
+      ])
+    })
+  })
+
   it('runs one pass at a time', async () => {
     CONFIG.MATCHING_ACTIVE = true
     oneEntryWaiting()
@@ -527,6 +654,6 @@ describe('the matching keying run and the switch it hangs on', () => {
     await Promise.all([run.run(), run.run(), run.run()])
 
     // Two passes would read the same entries and pay for the same words twice.
-    expect(keyEntries).toHaveBeenCalledTimes(1)
+    expect(keyEntry).toHaveBeenCalledTimes(1)
   })
 })

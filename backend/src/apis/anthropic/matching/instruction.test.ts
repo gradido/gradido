@@ -116,10 +116,11 @@ describe('keyingUserMessage', () => {
     expect(message.indexOf('erster satz')).toBeLessThan(message.indexOf('zweiter satz'))
   })
 
-  // ⛔ A member's own text, inside a structure the model reads as blocks, with `nr`
-  // as the only thread back to an entry. Without this, one member can write a second
-  // EINTRAG block into their summary and put words of their choosing on somebody
-  // else's entry - and from there into the vocabulary every community uses.
+  // A member's own text, inside a structure the model reads as blocks. This guards
+  // against one thing only: a newline in their text opening a block of its own. It
+  // does not stop an entry header written inline - the model reads that as an entry
+  // too (GMS-215). What keeps such words off somebody else's entry is that a call
+  // carries one entry only; see `keyMatchingEntry`.
   it('puts the sentence on one line, whatever the member typed', () => {
     const message = keyingUserMessage([
       {
@@ -129,8 +130,7 @@ describe('keyingUserMessage', () => {
     ])
 
     // One block, three lines. The words themselves still reach the model - nothing is
-    // censored - they simply cannot pose as a block of their own, which is the only
-    // thing that makes them dangerous.
+    // censored - they simply cannot open a block of their own with a line break.
     expect(message.split('\n').filter((line) => line.startsWith('EINTRAG '))).toHaveLength(1)
     expect(message.split('\n')).toHaveLength(3)
     expect(message).toContain('gratisgeld')
