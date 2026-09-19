@@ -881,7 +881,12 @@
   },
   "public-profile": {
     "address": "Gradido-Adresse",
-    "send": "Gradido senden"
+    "duration": "Ein Konto bei {communityName} ist in etwa zehn Minuten angelegt. Es fragt Dich, was Du in letzter Zeit Gutes getan hast.",
+    "join": "Konto anlegen",
+    "lead": "Ein Netzwerk von Menschen, die einander helfen, beschenken und danken. Kostenfrei. Gemeinschaftsbasiert. Open Source.",
+    "send": "Gradido senden",
+    "shows": "{name} zeigt Dir Gradido",
+    "showsSomebody": "Jemand zeigt Dir Gradido"
   },
   "qrCode": "QR Code",
   "rightSide": {

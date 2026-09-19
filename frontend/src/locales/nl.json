@@ -791,7 +791,12 @@
   },
   "public-profile": {
     "address": "Gradido-adres",
-    "send": "Gradido versturen"
+    "duration": "Een account bij {communityName} aanmaken duurt ongeveer tien minuten. Het vraagt je wat je de laatste tijd voor goeds hebt gedaan.",
+    "join": "Account aanmaken",
+    "lead": "Een netwerk van mensen die elkaar helpen, iets schenken en bedanken. Gratis. Gemeenschapsgericht. Open source.",
+    "send": "Gradido versturen",
+    "shows": "{name} laat je Gradido zien",
+    "showsSomebody": "Iemand laat je Gradido zien"
   },
   "qrCode": "QR Code",
   "rightSide": {

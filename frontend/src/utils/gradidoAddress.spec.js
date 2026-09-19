@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   communityHost,
   gradidoAddress,
+  isGradidoId,
   memberAlias,
   memberKey,
   sameHost,
@@ -31,6 +32,26 @@ describe('memberAlias', () => {
   it('says nothing rather than "undefined" when there is neither', () => {
     expect(memberAlias(undefined, undefined)).toBe('')
     expect(memberAlias(null, null)).toBe('')
+  })
+})
+
+describe('isGradidoId', () => {
+  it('knows the Gradido ID that stands in for a missing user name', () => {
+    expect(isGradidoId('76378cbb-5a5c-4e4b-9a3b-1f2d3c4b5a69')).toBe(true)
+    expect(isGradidoId('76378CBB-5A5C-4E4B-9A3B-1F2D3C4B5A69')).toBe(true)
+  })
+
+  // A user name can never be taken for one: at most 20 characters, a UUID has 36.
+  it('takes a user name for a user name, even one with hyphens', () => {
+    expect(isGradidoId('bernd')).toBe(false)
+    expect(isGradidoId('anna-lena_berg')).toBe(false)
+    expect(isGradidoId('76378cbb-5a5c-4e4b-9a3b')).toBe(false)
+  })
+
+  it('says no to nothing', () => {
+    expect(isGradidoId('')).toBe(false)
+    expect(isGradidoId(undefined)).toBe(false)
+    expect(isGradidoId(null)).toBe(false)
   })
 })
 
