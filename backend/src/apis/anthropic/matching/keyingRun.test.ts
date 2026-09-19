@@ -540,6 +540,29 @@ describe('the matching keying run and the switch it hangs on', () => {
         }),
       )
     })
+
+    // ⭐ What the details are read for: the member's own words, saying which of two
+    // things an ambiguous sentence means. The message itself is built and tested in
+    // `instruction`; what the run has to do is hand them over.
+    it('asks the model with the details of the entry it read', async () => {
+      const read = waitingEntry('e-1')
+      read.entry = {
+        ...read.entry,
+        matchingType: 'interest',
+        summary: 'Performance-Optimierungen',
+        details: 'Beim Programmieren',
+      }
+      oneEntryWaiting(read)
+
+      await new MatchingKeyingRun().run()
+
+      expect(keyEntry).toHaveBeenCalledTimes(1)
+      expect(keyEntry.mock.calls[0][0]).toEqual({
+        matchingType: 'interest',
+        summary: 'Performance-Optimierungen',
+        details: 'Beim Programmieren',
+      })
+    })
   })
 
   /**
@@ -574,9 +597,9 @@ describe('the matching keying run and the switch it hangs on', () => {
 
       // One call per entry, and each carries exactly that one entry.
       expect(keyEntry.mock.calls.map(([entry]) => entry)).toEqual([
-        { matchingType: 'offer', summary: 'Satz zu e-1' },
-        { matchingType: 'offer', summary: 'Satz zu e-2' },
-        { matchingType: 'offer', summary: 'Satz zu e-3' },
+        { matchingType: 'offer', summary: 'Satz zu e-1', details: null },
+        { matchingType: 'offer', summary: 'Satz zu e-2', details: null },
+        { matchingType: 'offer', summary: 'Satz zu e-3', details: null },
       ])
       // ⛔ And all three against the same list: what the first entry coined does not
       // reach the second. Refreshed per entry, the system text would change with

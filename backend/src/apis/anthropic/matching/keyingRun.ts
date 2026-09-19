@@ -440,8 +440,14 @@ export class MatchingKeyingRun {
     cacheSystem: boolean,
     givenUpOn: Set<string>,
   ): Promise<{ stored: boolean; words: string[] }> {
+    // Field by field, so that what goes to the model can be read here: the channel, the
+    // sentence, and the details it reads the sentence with (cut short in the message).
     const record = await client.keyMatchingEntry(
-      { matchingType: row.entry.matchingType, summary: row.entry.summary },
+      {
+        matchingType: row.entry.matchingType,
+        summary: row.entry.summary,
+        details: row.entry.details,
+      },
       vocabulary,
       { cacheSystem },
     )

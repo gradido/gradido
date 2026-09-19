@@ -560,18 +560,18 @@ export class AnthropicClient {
    * Works out ONE matching entry: the words it can be found under and seven fields
    * saying what it is about.
    *
-   * ⛔ One entry per call, and the signature is what keeps it that way. The sentence is
-   * the member's own free text, and the model reads an entry header written into it as
-   * an entry of its own. Measured with ten entries in a call: a summary carrying such a
-   * header on its one line took over the next member's entry at every place, 27 times
-   * out of 27, and often shifted everybody behind it by one - all of it stored
-   * with a valid version and fed into the vocabulary every community uses (GMS-215).
-   * Removing the markers, quoting the sentence and checking the answer were measured
-   * as well, and each of them was got round. A call with one entry has nobody else in
-   * it to take over. Measured, the smuggled block then came back as a second record,
-   * numbered 2, which the `nr` check below drops (3 of 3); at worst its words would
-   * stay on the writer's own entry - stuffing one's own key words, which the 160
-   * characters of a summary bound.
+   * ⛔ One entry per call, and the signature is what keeps it that way. The sentence and
+   * the details are the member's own free text, and the model reads an entry header
+   * written into them as an entry of its own. Measured with ten entries in a call: a
+   * summary carrying such a header on its one line took over the next member's entry at
+   * every place, 27 times out of 27, and often shifted everybody behind it by one - all
+   * of it stored with a valid version and fed into the vocabulary every community uses
+   * (GMS-215). Removing the markers, quoting the sentence and checking the answer were
+   * measured as well, and each of them was got round. A call with one entry has nobody
+   * else in it to take over. Measured, the smuggled block then came back as a second
+   * record, numbered 2, which the `nr` check below drops (3 of 3); at worst its words
+   * would stay on the writer's own entry - stuffing one's own key words, which the 160
+   * characters of a summary and the first 300 of the details bound.
    *
    * The vocabulary is handed in rather than fetched here, because what makes the whole
    * mechanism work is that it is CURRENT - a word another community coined has to be

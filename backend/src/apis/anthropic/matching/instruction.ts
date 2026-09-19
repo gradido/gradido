@@ -14,18 +14,21 @@ import { KEY_CATEGORIES } from '@/data/MatchingKey.enum'
  * ⚠️ A re-keying changes who matches whom. Somebody who saw twelve people light up on
  * the map yesterday may see nine today. Deliberate and rare, not by the way.
  *
- * `gms176` is the measurement this text comes from - one call per entry, with the
- * profession question folded in rather than asked separately.
+ * `gms214` is the measurement this text comes from - the `gms176` text (one call per
+ * entry, the profession question folded in rather than asked separately), with the
+ * details added as a reading aid in three checked replacements, and a message that
+ * carries them.
  */
-export const KEYING_INSTRUCTION_VERSION = 'gms176-1'
+export const KEYING_INSTRUCTION_VERSION = 'gms214-1'
 
 /**
  * What the model is asked to do with one entry.
  *
  * ⛔ This text is not to be tidied. It is the wording that was measured over 588
- * offer/need pairs, and the numbers the whole plan rests on - 89 % of pairs found
- * when the two halves arrive months apart - are numbers about THIS text. Any edit is
- * a new experiment and needs a new version above.
+ * offer/need pairs and, for the details, over 53 entries that carry some (GMS-214),
+ * and the numbers the whole plan rests on - 89 % of pairs found when the two halves
+ * arrive months apart - are numbers about THIS text. Any edit is a new experiment and
+ * needs a new version above.
  *
  * German, and that is a decision rather than an oversight (plan decision E-1). The
  * shared vocabulary is German because German hands out the compound word instead of
@@ -45,13 +48,33 @@ export const KEYING_INSTRUCTION_VERSION = 'gms176-1'
  *    never meet.
  *  - the model fills `wer` even when the sentence does not name a person. That is what
  *    makes an entry findable by somebody typing a trade - which is what people type.
+ *
+ * The details are a reading aid: they tell the model how an ambiguous or vague
+ * sentence is meant. With them, such sentences found their partner in 59 of 63 cases
+ * instead of 21, and the wrong reading fell from 27 hits to 10 (GMS-214). Measured with
+ * ten entries in a call; keyed one per call, as now, it has not been measured.
+ *
+ * ⚠️ The paragraph about them asks the model to key the SENTENCE only, and that
+ * boundary does not hold - a request is not a boundary. Measured, the more precise kind
+ * of thing named in the details lands in the keys anyway, and carries part of the gain;
+ * other words from the details reach the keys of 59 to 68 of 159 entries, and a typed
+ * search finds an entry by such a word faintly at most (stage 1 or 2). Accepted rather
+ * than filtered: a word filter has not been measured. What bounds it is how much of the
+ * details the model gets to read - see `KEYING_DETAILS_MAX_CHARS`.
  */
 export const KEYING_INSTRUCTION = `Du arbeitest Eintraege einer Nachbarschafts-Plattform zu Suchdatensaetzen aus.
 Jeder Eintrag ist ein Satz, den ein Mensch geschrieben hat, dazu ein Kanal
-(bietet an / sucht / interessiert sich fuer).
+(bietet an / sucht / interessiert sich fuer) und meist Details, die er zu
+seinem Satz dazugeschrieben hat.
 
 Auf dieser Plattform suchen Menschen einander. Wer Hilfe braucht, tippt fast
 immer die Bezeichnung des MENSCHEN, den er sucht — nicht die der Taetigkeit.
+
+Die Details sind eine Lesehilfe. Sie zeigen dir, wie der Satz gemeint ist,
+wenn er mehrdeutig ist. Alle Felder beschreiben nur die Sache des SATZES — so,
+wie du ihn mit Hilfe der Details verstehst. Was nur in den Details vorkommt,
+verschluesselst du nicht: weitere Dinge, Preise, Bedingungen, Orte, Zeiten,
+Erlebnisse, und auch eine genauere Art der Sache.
 
 Erzeuge je Eintrag genau einen Datensatz mit diesen Feldern:
 
@@ -118,7 +141,7 @@ Regeln:
 - Davon ausgenommen sind "wer", "gesuchter_beruf" und "schluessel". Dort traegst du auch ein, was
   der Satz nicht woertlich sagt, aber sicher meint. Erfinde keine
   Eigenschaften — benenne den Menschen und die Woerter, unter denen man sucht.
-- Bietet ein Eintrag MEHRERE Dinge an, muessen alle in den Schluesseln stehen.
+- Bietet der SATZ MEHRERE Dinge an, muessen alle in den Schluesseln stehen.
 - Antworte in derselben Reihenfolge, in der die Eintraege kommen, und mit
   genau so vielen Datensaetzen wie Eintraegen.`
 
@@ -165,19 +188,25 @@ ${[...words].sort().join(' · ')}`
  * makes out of an entry header inside the member's own sentence is dropped (see
  * below).
  *
- * ⛔ The sentence is put on ONE line, whatever the member typed - and that guards
- * against one thing only: a newline in their text opening a block of its own. It does
- * NOT stop an entry header written inline. The model reads the structure, not the
- * line breaks: with ten entries in a call, a sentence carrying an entry header of its
- * own took over the next member's entry at every place, 27 times out of 27
- * (GMS-215), and the words went into the vocabulary every community feeds to its own
- * model. What protects the other members is that a call never carries more than one
- * entry - see `AnthropicClient.keyMatchingEntry`. With nobody else in the call, the
- * smuggled block came back as a record numbered 2 in the measurement, and is dropped
- * there.
+ * The details follow as a fourth line when the member wrote any - the reading aid the
+ * instruction talks about: "Performance-Optimierungen" alone may as well be about
+ * sport, and "Beim Programmieren" beside it makes it software. Blank details leave the
+ * line out, and the message is then, byte for byte, the one every entry got before the
+ * details were read - the one the bank without details was measured with.
  *
- * Collapsing the whitespace stays anyway: it costs nothing, a summary is one short
- * sentence, and the model reads it the same way.
+ * ⛔ The sentence and the details are put on ONE line each, whatever the member typed -
+ * and that guards against one thing only: a newline in their text opening a block of
+ * its own. It does NOT stop an entry header written inline. The model reads the
+ * structure, not the line breaks: with ten entries in a call, a sentence carrying an
+ * entry header of its own took over the next member's entry at every place, 27 times
+ * out of 27 (GMS-215), and the words went into the vocabulary every community feeds to
+ * its own model. What protects the other members is that a call never carries more
+ * than one entry - see `AnthropicClient.keyMatchingEntry` - so the details line only
+ * ever stands in its own member's call. With nobody else in the call, the smuggled
+ * block came back as a record numbered 2 in the measurement, and is dropped there.
+ *
+ * Collapsing the whitespace stays anyway: it costs nothing, and the model reads the
+ * text the same way.
  */
 export const CHANNEL_LABEL: Record<string, string> = {
   offer: 'bietet an',
@@ -185,23 +214,61 @@ export const CHANNEL_LABEL: Record<string, string> = {
   interest: 'interessiert sich fuer',
 }
 
+/**
+ * How much of the details the model reads: the first 300 characters, once they are on
+ * one line. The form takes `MATCHING_ENTRY_DETAILS_MAX_CHARS`, and members still see all
+ * of what they wrote; this bounds only what goes into the call.
+ *
+ * ⚠️ 300 is a decision, not a measurement - no run compared caps. Every gain the details
+ * brought in GMS-214 came from details of up to 172 characters, and the longest there
+ * ran to a little over 300. The cap bounds the room for stuffing: key words packed into
+ * the details are keyed like the sentence's own, which works through the sentence as
+ * well - the details only give it more room, and 500 would have nearly doubled it.
+ */
+const KEYING_DETAILS_MAX_CHARS = 300
+
 export interface KeyableEntry {
   matchingType: string
   summary: string
+  /** What the member wrote beside the sentence. NULL or blank when nothing. */
+  details: string | null
 }
 
 export function keyingUserMessage(entries: readonly KeyableEntry[]): string {
   return entries
-    .map(
-      (entry, index) =>
-        `EINTRAG ${index + 1}\nKanal: ${CHANNEL_LABEL[entry.matchingType] ?? entry.matchingType}\nSatz: ${oneLine(entry.summary)}`,
-    )
+    .map((entry, index) => {
+      const lines = [
+        `EINTRAG ${index + 1}`,
+        `Kanal: ${CHANNEL_LABEL[entry.matchingType] ?? entry.matchingType}`,
+        `Satz: ${oneLine(entry.summary)}`,
+      ]
+      const details = detailsForTheModel(entry.details)
+      if (details) {
+        lines.push(`Details: ${details}`)
+      }
+      return lines.join('\n')
+    })
     .join('\n\n')
 }
 
 /** Every run of whitespace, newlines included, becomes one space. */
-function oneLine(summary: string): string {
-  return summary.replace(/\s+/g, ' ').trim()
+function oneLine(text: string): string {
+  return text.replace(/\s+/g, ' ').trim()
+}
+
+/**
+ * The details as the model reads them: on one line, cut to `KEYING_DETAILS_MAX_CHARS`,
+ * trimmed after the cut. Empty when there are none.
+ *
+ * Cut at a code point, not at a UTF-16 unit: `Array.from` takes an emoji at the cut
+ * whole or not at all, where `slice` on the string would leave half of it behind. The
+ * measurement cut the same way.
+ */
+function detailsForTheModel(details: string | null): string {
+  return Array.from(oneLine(details ?? ''))
+    .slice(0, KEYING_DETAILS_MAX_CHARS)
+    .join('')
+    .trim()
 }
 
 /**
