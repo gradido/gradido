@@ -164,6 +164,7 @@
     "transactionLinkRedeemed": {
       "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) has just redeemed your link.",
       "memo": "Message: {transactionMemo}",
+      "newMember": "— and is new to Gradido. How lovely that you showed it.",
       "subject": "{senderAlias} has redeemed your Gradido link",
       "title": "{senderAlias} has redeemed your Gradido link"
     },
