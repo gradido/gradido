@@ -612,12 +612,14 @@ describe('user.queries', () => {
     let stranger: DbUser
     let older: DbUser
     let newer: DbUser
+    // The one home community of this block. ⚠️ Created once: `createCommunity` inserts,
+    // and `communities.url` is unique, so a second call inside a test fails the insert.
+    let homeCom: DbCommunity | null
 
     /** A member who arrived over `host`, with the address state and age the case needs. */
     async function arrival(
       seed: { email?: string; alias?: string; emailChecked?: boolean },
       createdAt: Date,
-      homeCom: DbCommunity,
     ): Promise<DbUser> {
       const user = await userFactory({ ...seed, createdAt }, homeCom)
       user.referrerId = host.id
@@ -629,18 +631,16 @@ describe('user.queries', () => {
       await DbUserContact.clear()
       await DbCommunity.clear()
 
-      const homeCom = await createCommunity(false)
+      homeCom = await createCommunity(false)
       host = await userFactory({ ...bibiBloxberg, alias: 'host-bibi' }, homeCom)
       stranger = await userFactory(peterLustig, homeCom)
       older = await arrival(
         { email: 'older@arrival.de', alias: 'olderone', emailChecked: true },
         new Date('2026-01-10T10:00:00Z'),
-        homeCom,
       )
       newer = await arrival(
         { email: 'newer@arrival.de', alias: 'newerone', emailChecked: true },
         new Date('2026-02-10T10:00:00Z'),
-        homeCom,
       )
     })
 
@@ -690,11 +690,9 @@ describe('user.queries', () => {
       })
 
       it('does not count an address nobody confirmed', async () => {
-        const homeCom = await createCommunity(false)
         const unconfirmed = await arrival(
           { email: 'unconfirmed@arrival.de', alias: 'unconfirmd', emailChecked: false },
           new Date('2026-03-10T10:00:00Z'),
-          homeCom,
         )
         // Younger than both confirmed ones, so it would win if it counted at all.
         expect(unconfirmed.createdAt.getTime()).toBeGreaterThan(newer.createdAt.getTime())
