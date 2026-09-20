@@ -823,9 +823,8 @@ describe('TransactionLinkResolver', () => {
                 data: { redeemTransactionLink: true },
                 errors: undefined,
               })
-            })
-
-            it('tells the creator that the account is not new', async () => {
+              // In the same test as the redemption, not in one of its own: this block's
+              // `beforeEach` clears every mock, so a later `it` would always see no calls.
               expect(sendTransactionLinkRedeemedEmail).toHaveBeenCalledWith(
                 expect.objectContaining({ newMember: false }),
               )
@@ -889,7 +888,6 @@ describe('TransactionLinkResolver', () => {
                 mutation: login,
                 variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
               })
-              jest.clearAllMocks()
             })
 
             it('tells the creator that the account is new', async () => {
