@@ -3,9 +3,11 @@ import { Field, ObjectType } from 'type-graphql'
 
 /**
  * Somebody who arrived over this member: their public name, when they got here, and
- * whether they are the first ever. `first` carries "only first times" (ZE-006) - the warm
- * sentence belongs to the first arrival in the life of an account, every further one is
- * reported plainly.
+ * whether they are the only one. `first` carries "only first times" (ZE-006) - the warm
+ * sentence belongs to the first arrival, every further one is reported plainly.
+ *
+ * ⚠️ Measured on the arrivals still there. An arrival who has since deleted their account
+ * leaves none, so a later one is greeted as the first - see `dbFindLatestArrival`.
  */
 @ObjectType()
 export class ShowFriendsArrival {

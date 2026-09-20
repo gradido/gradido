@@ -713,6 +713,18 @@ describe('user.queries', () => {
         await DbUser.update(newer.id, { deletedAt: null })
       })
 
+      it('greets a later arrival as the first once the earlier one is gone', async () => {
+        // The decided reading of `first`: the arrivals still there, not everyone who ever
+        // arrived. A closed account leaves no trace to be counted against a third party.
+        await DbUser.update(older.id, { deletedAt: new Date() })
+        await expect(dbFindLatestArrival(host.id)).resolves.toEqual({
+          alias: 'newerone',
+          createdAt: newer.createdAt,
+          first: true,
+        })
+        await DbUser.update(older.id, { deletedAt: null })
+      })
+
       it('does not count a member of another community', async () => {
         await DbUser.update(newer.id, { foreign: true })
         await expect(dbFindLatestArrival(host.id)).resolves.toMatchObject({

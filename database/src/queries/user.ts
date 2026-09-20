@@ -386,8 +386,8 @@ export async function dbFindReferrerAlias(userId: number): Promise<string | null
 }
 
 /**
- * The most recent person who arrived over this member, and whether they are the first
- * ever - what the tile mirrors back.
+ * The most recent person who arrived over this member, and whether they are the only one
+ * - what the tile mirrors back.
  *
  * ⛔ Only CONFIRMED addresses count. The trace is written at registration, before the
  * address is confirmed, so counting every row would let anybody raise an echo at a
@@ -395,9 +395,16 @@ export async function dbFindReferrerAlias(userId: number): Promise<string | null
  * (G §11.10). A confirmed address is a door somebody had to walk through.
  *
  * `first` is what carries "only first times" (ZE-006): the warm sentence belongs to the
- * first arrival in the life of an account, every further one is reported plainly. Two
- * rows are enough to answer it, which is why the limit is 2 and there is no count - one
- * row back means this is the only one.
+ * first arrival, every further one is reported plainly. Two rows are enough to answer it,
+ * which is why the limit is 2 and there is no count - one row back means this is the only
+ * one.
+ *
+ * ⚠️ `first` is measured on the arrivals that are still there, not on everyone who ever
+ * arrived. Somebody who came over this member and has since deleted their account leaves
+ * no trace here, so a later arrival is greeted as the first - which is what the member
+ * sees anyway, because the deleted one disappeared from the tile when it was deleted.
+ * Reading deleted rows to decide what a third party is told would give a closed account
+ * an after-life it was closed to end (AGENTS.md, Pillar 2). The test below pins this.
  */
 export async function dbFindLatestArrival(referrerId: number): Promise<ReferralArrival | null> {
   const rows = await drizzleDb()
@@ -428,7 +435,7 @@ export async function dbFindLatestArrival(referrerId: number): Promise<ReferralA
   }
 }
 
-/** One arrival as the tile shows it: who, when, and whether it is the first ever. */
+/** One arrival as the tile shows it: who, when, and whether it is the only one. */
 export type ReferralArrival = {
   alias: string
   createdAt: Date
