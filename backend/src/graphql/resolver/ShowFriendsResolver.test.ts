@@ -3,6 +3,7 @@ import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { AppDatabase, User as DbUser } from 'database'
 import { GraphQLError } from 'graphql'
+import { avatarColorIndex } from '@/data/AvatarColor.logic'
 import { userFactory } from '@/seeds/factory/user'
 import { login } from '@/seeds/graphql/mutations'
 import { showFriends } from '@/seeds/graphql/queries'
@@ -107,7 +108,19 @@ describe('ShowFriendsResolver', () => {
       await expect(query({ query: showFriends })).resolves.toMatchObject({
         data: {
           showFriends: {
-            latestArrival: { gradidoID: namedArrival.gradidoID, alias: 'carla-sonne' },
+            latestArrival: {
+              gradidoID: namedArrival.gradidoID,
+              alias: 'carla-sonne',
+              // The colour digit is the one the contact list gives for the same member:
+              // hashed here from the real names, which do not leave this side (NU-019).
+              avatarColorIndex: avatarColorIndex(
+                garrickOllivander.firstName,
+                garrickOllivander.lastName,
+              ),
+              // Nobody has a picture in this fixture, so the date is the answer "none" --
+              // which is exactly what the wallet's picture store reads as "show letters".
+              avatarUpdatedAt: null,
+            },
           },
         },
         errors: undefined,

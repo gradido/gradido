@@ -715,6 +715,8 @@ export const showFriends = gql`
       latestArrival {
         gradidoID
         alias
+        avatarColorIndex
+        avatarUpdatedAt
         createdAt
         first
       }

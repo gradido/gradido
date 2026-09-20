@@ -473,8 +473,11 @@ export async function dbFindReferrerAlias(userId: number): Promise<string | null
 export async function dbFindLatestArrival(referrerId: number): Promise<ReferralArrival | null> {
   const rows = await drizzleDb()
     .select({
+      id: usersTable.id,
       alias: usersTable.alias,
       gradidoId: usersTable.gradidoId,
+      firstName: usersTable.firstName,
+      lastName: usersTable.lastName,
       createdAt: usersTable.createdAt,
     })
     .from(usersTable)
@@ -491,8 +494,11 @@ export async function dbFindLatestArrival(referrerId: number): Promise<ReferralA
     return null
   }
   return {
+    userId: rows[0].id,
     gradidoId: rows[0].gradidoId,
     alias: publicAlias(rows[0].alias, rows[0].gradidoId),
+    firstName: rows[0].firstName,
+    lastName: rows[0].lastName,
     createdAt: rows[0].createdAt,
     first: rows.length === 1,
   }
@@ -513,8 +519,20 @@ export async function dbFindLatestArrival(referrerId: number): Promise<ReferralA
  * person is a mirror, a list of them with a number over it is a score.
  */
 export type ReferralArrival = {
+  /** This community's own row id -- what the avatar's date is looked up by. */
+  userId: number
   gradidoId: string
   alias: string
+  /**
+   * ⛔ The REAL names, and they exist here for exactly one purpose: the backend hashes
+   * them into the avatar's colour digit (`avatarColorIndex`, NU-017) so the circle on the
+   * tile is the colour that member has everywhere else. They must never be put in an
+   * answer -- the public name is `alias` above, and NU-019 is what says so. The same rule
+   * the `User` model follows, which computes the digit in its constructor and delivers
+   * only the digit.
+   */
+  firstName: string | null
+  lastName: string | null
   createdAt: Date
   first: boolean
 }
