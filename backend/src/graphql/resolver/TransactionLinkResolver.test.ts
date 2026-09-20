@@ -8,6 +8,7 @@ import {
 } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
+import { sendTransactionLinkRedeemedEmail } from 'core'
 import {
   AppDatabase,
   ContributionLink as DbContributionLink,
@@ -44,6 +45,15 @@ import { transactionLinkCode } from './TransactionLinkResolver'
 
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
+// Only the one mail this file makes assertions about; everything else in `core` stays real.
+jest.mock('core', () => {
+  const originalModule = jest.requireActual('core')
+  return {
+    __esModule: true,
+    ...originalModule,
+    sendTransactionLinkRedeemedEmail: jest.fn(),
+  }
+})
 jest.mock('@/password/EncryptorUtils')
 
 CONFIG.DLT_ACTIVE = false
@@ -815,6 +825,12 @@ describe('TransactionLinkResolver', () => {
               })
             })
 
+            it('tells the creator that the account is not new', async () => {
+              expect(sendTransactionLinkRedeemedEmail).toHaveBeenCalledWith(
+                expect.objectContaining({ newMember: false }),
+              )
+            })
+
             it('stores the TRANSACTION_LINK_REDEEM event in the database', async () => {
               const creator = await UserContact.findOneOrFail({
                 where: { email: 'bibi@bloxberg.de' },
@@ -833,6 +849,63 @@ describe('TransactionLinkResolver', () => {
                   involvedTransactionLinkId: myId,
                   amount: GradidoUnit.fromNumber(200),
                 }),
+              )
+            })
+          })
+
+          describe('a link the redeemer once registered with', () => {
+            let arrivalCode: string
+
+            beforeAll(async () => {
+              await mutate({
+                mutation: login,
+                variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+              })
+              const {
+                data: {
+                  createTransactionLink: { id, code },
+                },
+              } = await mutate({
+                mutation: createTransactionLink,
+                variables: {
+                  amount: '200',
+                  memo: 'This is a transaction link from bibi',
+                },
+              })
+              arrivalCode = code
+              const redeemer = await UserContact.findOneOrFail({
+                where: { email: 'peter@lustig.de' },
+                relations: ['user'],
+              })
+              // The registration event, in the shape `registerAccount` writes it when the
+              // account was opened with a redeem code.
+              await DbEvent.create({
+                type: EventType.USER_REGISTER_REDEEM,
+                affectedUserId: redeemer.user.id,
+                actingUserId: redeemer.user.id,
+                involvedTransactionLinkId: id,
+              }).save()
+              await mutate({
+                mutation: login,
+                variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+              })
+              jest.clearAllMocks()
+            })
+
+            it('tells the creator that the account is new', async () => {
+              await expect(
+                mutate({
+                  mutation: redeemTransactionLink,
+                  variables: {
+                    code: arrivalCode,
+                  },
+                }),
+              ).resolves.toMatchObject({
+                data: { redeemTransactionLink: true },
+                errors: undefined,
+              })
+              expect(sendTransactionLinkRedeemedEmail).toHaveBeenCalledWith(
+                expect.objectContaining({ newMember: true }),
               )
             })
           })

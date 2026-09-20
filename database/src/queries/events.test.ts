@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+import { IsNull } from 'typeorm'
 import {
   Community as DbCommunity,
   Event as DbEvent,
@@ -10,7 +11,7 @@ import { createCommunity } from '../seeds/community'
 import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
-import { dbFindLatestEventForAffectedUser } from './events'
+import { dbFindLatestEventForAffectedUser, dbHasRegisterRedeemEvent } from './events'
 
 const db = AppDatabase.getInstance()
 
@@ -27,6 +28,22 @@ async function recordEvent(
   await db
     .getDataSource()
     .query('UPDATE events SET created_at = ? WHERE id = ?', [createdAt, event.id])
+  return event
+}
+
+/** A registration through a redeem code: the event the half-sentence in the mail reads. */
+async function recordRegisterRedeem(affectedUserId: number, transactionLinkId: number) {
+  return recordLinkEvent('USER_REGISTER_REDEEM', affectedUserId, transactionLinkId)
+}
+
+async function recordLinkEvent(type: string, affectedUserId: number, transactionLinkId: number) {
+  const event = DbEvent.create({
+    type,
+    affectedUserId,
+    actingUserId: affectedUserId,
+    involvedTransactionLinkId: transactionLinkId,
+  })
+  await event.save()
   return event
 }
 
@@ -71,6 +88,60 @@ describe('events.queries', () => {
       expect(
         await dbFindLatestEventForAffectedUser('EMAIL_CHANGE_REQUEST', bibi.id + 1000),
       ).toBeNull()
+    })
+  })
+
+  describe('dbHasRegisterRedeemEvent', () => {
+    let bibi: DbUser
+    let peter: DbUser
+    const MY_LINK = 4711
+    const OTHER_LINK = 4712
+
+    beforeAll(async () => {
+      await DbEvent.clear()
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await DbCommunity.clear()
+
+      await createCommunity(false)
+      bibi = await userFactory(bibiBloxberg)
+      peter = await userFactory(peterLustig)
+
+      await recordRegisterRedeem(bibi.id, MY_LINK)
+      // A registration that found no link behind its redeem code: the event is written
+      // all the same, with nothing in the link column.
+      await recordEvent('USER_REGISTER_REDEEM', peter.id, new Date())
+      await recordRegisterRedeem(peter.id, OTHER_LINK)
+    })
+
+    it('is true for the link the account was registered with', async () => {
+      expect(await dbHasRegisterRedeemEvent(bibi.id, MY_LINK)).toBe(true)
+    })
+
+    it('is false for another link of the same member', async () => {
+      expect(await dbHasRegisterRedeemEvent(bibi.id, OTHER_LINK)).toBe(false)
+    })
+
+    it('is false for another member on that link', async () => {
+      expect(await dbHasRegisterRedeemEvent(peter.id, MY_LINK)).toBe(false)
+    })
+
+    it('is false for a registration whose event carries no link', async () => {
+      const withoutLink = await DbEvent.findOne({
+        where: {
+          type: 'USER_REGISTER_REDEEM',
+          affectedUserId: peter.id,
+          involvedTransactionLinkId: IsNull(),
+        },
+      })
+      // The fixture has to be the thing the assertion is about, or it proves nothing.
+      expect(withoutLink).not.toBeNull()
+      expect(await dbHasRegisterRedeemEvent(peter.id, 0)).toBe(false)
+    })
+
+    it('is false for an event of another type on that link', async () => {
+      await recordLinkEvent('USER_REGISTER', peter.id, MY_LINK)
+      expect(await dbHasRegisterRedeemEvent(peter.id, MY_LINK)).toBe(false)
     })
   })
 })

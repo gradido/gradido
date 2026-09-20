@@ -164,6 +164,7 @@
     "transactionLinkRedeemed": {
       "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) μόλις εξαργύρωσε τον σύνδεσμό σου.",
       "memo": "Μήνυμα: {transactionMemo}",
+      "newMember": "Ένα νέο μέλος στο Gradido. Ωραία που το έδειξες.",
       "subject": "{senderAlias} εξαργύρωσε τον σύνδεσμό σου Gradido",
       "title": "{senderAlias} εξαργύρωσε τον σύνδεσμό σου Gradido"
     },

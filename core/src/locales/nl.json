@@ -164,6 +164,7 @@
     "transactionLinkRedeemed": {
       "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) heeft zojuist je link ingewisseld.",
       "memo": "Bericht: {transactionMemo}",
+      "newMember": "Nieuw bij Gradido. Fijn dat je het hebt laten zien.",
       "subject": "{senderAlias} heeft je Gradido-link ingewisseld",
       "title": "{senderAlias} heeft je Gradido-link ingewisseld"
     },
