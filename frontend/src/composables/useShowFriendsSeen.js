@@ -32,18 +32,41 @@ export const useShowFriendsSeen = () => {
   const store = useStore()
   const seen = ref(false)
 
+  /**
+   * A visit made while nobody was named yet.
+   *
+   * ⛔ Without it the visit was undone under the member's hand: the route guard admits on
+   * the token while `gradidoID` arrives with the login answer, and a visit inside that gap
+   * could not be written -- the watch below then ran `read()` the moment the id landed,
+   * found nothing stored and set `seen` back to false. `useRightSidePref` carries the same
+   * mechanism for the same reason, and there it was a measured symptom.
+   *
+   * ⚠️ Per instance, never at module scope: one shared flag would hand the next member on
+   * this device a visit they never made.
+   */
+  let pendingVisit = false
+
   const read = () => {
     const key = storageKey(store.state.gradidoID)
     if (!key) {
-      seen.value = false
+      // Nobody named: nothing can be read, and a visit made in this gap is all there is.
+      seen.value = pendingVisit
       return
     }
     try {
+      if (pendingVisit) {
+        // The visit is older than the name, and it is written now under the key it was
+        // always meant for.
+        window.localStorage.setItem(key, '1')
+        pendingVisit = false
+        seen.value = true
+        return
+      }
       seen.value = window.localStorage.getItem(key) === '1'
     } catch {
       // Storage switched off, or full. Not remembering means the tile stays large, which
       // is the harmless end of the mistake.
-      seen.value = false
+      seen.value = pendingVisit
     }
   }
 
@@ -58,6 +81,7 @@ export const useShowFriendsSeen = () => {
     const key = storageKey(store.state.gradidoID)
     seen.value = true
     if (!key) {
+      pendingVisit = true
       return
     }
     try {

@@ -83,6 +83,25 @@ describe('useShowFriendsSeen', () => {
     expect(window.localStorage.length).toBe(0)
   })
 
+  /**
+   * ⛔ The route guard admits on the token, and `gradidoID` arrives with the login answer.
+   * A visit made in that gap has no key to go under -- and it must not be undone the
+   * moment the name lands.
+   */
+  it('writes a visit made before the name arrived, once it does', async () => {
+    const store = storeWith(null)
+    const { wrapper, api } = host(store)
+
+    api().markSeen()
+    expect(api().seen.value).toBe(true)
+
+    store.commit('gradidoID', 'member-1')
+    await wrapper.vm.$nextTick()
+
+    expect(api().seen.value).toBe(true)
+    expect(window.localStorage.getItem(`${KEY}member-1`)).toBe('1')
+  })
+
   it('survives storage being switched off', () => {
     const blow = () => {
       throw new Error('storage disabled')
