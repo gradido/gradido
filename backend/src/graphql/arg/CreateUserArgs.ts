@@ -34,4 +34,12 @@ export class CreateUserArgs {
   @Field(() => String, { nullable: true })
   @IsString()
   project?: string | null
+
+  // The alias from the Gradido address the registration started at (/u/<alias>).
+  // Deliberately without a length check: the address may carry a gradido ID instead,
+  // and a validation error here would fail the whole registration. Whatever is not
+  // alias-shaped is ignored where it is resolved (registerAccount).
+  @Field(() => String, { nullable: true })
+  @IsString()
+  referrerAlias?: string | null
 }

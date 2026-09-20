@@ -26,6 +26,7 @@ import {
   countOpenPendingTransactions,
   DltTransaction as DbDltTransaction,
   dbFindMemberAvatarTimestamps,
+  dbHasRegisterRedeemEvent,
   dbSelectThankYouCardLabels,
   dbSelectTransactionsByUserId,
   Transaction as dbTransaction,
@@ -255,6 +256,10 @@ export const executeTransaction = async (
     })
     if (transactionLink) {
       const recipientCom = await getCommunityName(recipient.communityUuid)
+      // Whether this account came into being by redeeming THIS link -- asked of the
+      // registration event, not of `recipient.referrerId`: that column stays set for every
+      // later link between the same two people, so it would call somebody new for years.
+      const newMember = await dbHasRegisterRedeemEvent(recipient.id, transactionLink.id)
       await sendTransactionLinkRedeemedEmail({
         firstName: sender.firstName,
         lastName: sender.lastName,
@@ -268,6 +273,7 @@ export const executeTransaction = async (
         senderCommunity: recipientCom,
         transactionAmount: amount,
         transactionMemo: memo,
+        newMember,
       })
     }
     logger.info(`finished executeTransaction successfully`)

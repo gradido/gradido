@@ -26,10 +26,11 @@ vi.mock('@/composables/useToast', () => ({
   }),
 }))
 
+const mockShare = vi.fn()
 vi.mock('@/composables/useCopyLinks', () => ({
   useCopyLinks: () => ({
     copyLink: vi.fn(),
-    copyLinkWithText: vi.fn(),
+    share: (...args) => mockShare(...args),
   }),
 }))
 
@@ -75,7 +76,7 @@ describe('TransactionLink.vue', () => {
         'thank-you-cheque': { download: 'Download cheque' },
         gdd_per_link: {
           'copy-link': 'Copy Link',
-          'copy-link-with-text': 'Copy Link with Text',
+          share: 'Share',
           'delete-the-link': 'Delete the Link',
           deleted: 'Link Deleted',
           validUntil: 'Valid until',
@@ -101,7 +102,7 @@ describe('TransactionLink.vue', () => {
           BCardText: true,
           IBiThreeDotsVertical: true,
           IBiClipboard: true,
-          IBiClipboardPlus: true,
+          IBiShare: true,
           IBiQrCode: true,
           IBiDownload: true,
           IBiDropletHalf: true,
@@ -256,10 +257,10 @@ describe('TransactionLink.vue', () => {
 
     const entries = () => wrapper.findAll('.dropdown-item').map((item) => item.classes())
 
-    it('offers copying, the cheque, the code and deleting, in that order', () => {
+    it('offers copying, sharing, the cheque, the code and deleting, in that order', () => {
       const order = [
         'test-copy-link',
-        'test-copy-text',
+        'test-share-link',
         'test-download-cheque',
         'test-qr-code',
         'test-delete-link',
@@ -267,6 +268,15 @@ describe('TransactionLink.vue', () => {
       expect(entries().map((classes) => order.find((name) => classes.includes(name)))).toEqual(
         order,
       )
+    })
+
+    // "Share" took the place of "copy link and text": the share sheet where the device has
+    // one, and copying the same text where it has none (useCopyLinks.spec.js).
+    it('hands the link to the share sheet on one click', async () => {
+      mockShare.mockClear()
+      await wrapper.find('.test-share-link').trigger('click')
+
+      expect(mockShare).toHaveBeenCalledTimes(1)
     })
 
     it('hands the cheque out on one click, without opening the code first', async () => {

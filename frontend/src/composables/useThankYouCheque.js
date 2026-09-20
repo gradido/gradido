@@ -52,8 +52,9 @@ export const useThankYouCheque = ({ link, amount, memo, validUntil }) => {
       portrait: avatar ? `data:image/jpeg;base64,${avatar}` : null,
       initials: letters,
       colorSeed,
-      // The same sentence the copy text and the redeem page build, so the three never
-      // disagree about who is giving: the alias (NU-021/KLAR-07).
+      // The same giver the shared text and the redeem page name, so the three never disagree
+      // about who is giving: the alias (NU-021/KLAR-07). The shared text thanks where this
+      // sentence sends; whether the paper follows is still open.
       headline: `${alias} ${t('transaction-link.send_you')} ${amount} Gradido.`,
       memo,
       hintLine: t('thank-you-cheque.scan-qr'),

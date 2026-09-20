@@ -107,6 +107,14 @@ describe('TransactionForm', () => {
       expect(w.vm.radioSelected).toBe(SEND_TYPES.email)
     })
 
+    // The page for showing Gradido to somebody sends a thank-you as a link, and lands here on
+    // the link tab. Until 19.09.2026 nothing asked for it, and the word was turned away.
+    it('opens on the link tab when ?art=link', () => {
+      useRoute.mockReturnValueOnce({ params: {}, query: { art: 'link' } })
+      const w = createWrapper({ balance: 100 })
+      expect(w.vm.radioSelected).toBe(SEND_TYPES.link)
+    })
+
     it('keeps the default for any other art value', () => {
       useRoute.mockReturnValueOnce({ params: {}, query: { art: 'nonsense' } })
       const w = createWrapper({ balance: 100 })

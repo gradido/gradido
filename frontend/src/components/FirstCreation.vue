@@ -337,6 +337,7 @@ import {
   skipFirstCreation,
   submitFirstCreation,
 } from '@/graphql/firstCreation.graphql'
+import { showFriends } from '@/graphql/showFriends.graphql'
 import { declareProjectAccount } from '@/graphql/user.graphql'
 import ProjectAccountConfirm from '@/components/UserSettings/ProjectAccountConfirm.vue'
 import {
@@ -393,6 +394,15 @@ const { t } = useI18n()
 const { result, refetch } = useQuery(firstCreationStatus, null, {
   fetchPolicy: 'cache-and-network',
 })
+
+/**
+ * Who brought this member here, for "now thank somebody" below. ⚠️ Same reason for
+ * `cache-and-network` as the query above: no arguments, so one cache key for everybody.
+ */
+const { result: friendsResult } = useQuery(showFriends, null, {
+  fetchPolicy: 'cache-and-network',
+})
+const referrerAlias = computed(() => friendsResult.value?.showFriends?.referrerAlias ?? null)
 const { mutate: sendEntries } = useMutation(submitFirstCreation)
 const { mutate: sendSkip } = useMutation(skipFirstCreation)
 const { mutate: sendDeclare } = useMutation(declareProjectAccount)
@@ -879,8 +889,28 @@ const close = () => {
   dismissed.value = true
 }
 
+/**
+ * ⛔ The recipient only, never an amount and never a booking (ZE-007): a thank-you that
+ * the software fills in is not a thank-you. Whoever came in over somebody's invitation
+ * finds that somebody already in the field; whoever came in by themselves finds the form
+ * as it has always been.
+ *
+ * The route form is the one `PublicProfile` uses -- `Send` takes the pair of params, and
+ * the form fills its field from them (`TransactionForm`, `userIdentifier`); it needs both
+ * or it ignores them.
+ */
 const thankSomeone = () => {
   dismissed.value = true
+  if (referrerAlias.value) {
+    router.push({
+      name: 'Send',
+      params: {
+        communityIdentifier: CONFIG.COMMUNITY_NAME,
+        userIdentifier: referrerAlias.value,
+      },
+    })
+    return
+  }
   router.push('/send')
 }
 

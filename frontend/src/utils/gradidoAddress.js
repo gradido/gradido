@@ -80,6 +80,21 @@ export const memberAlias = (username, gradidoID) =>
   (username && username.trim().length >= ALIAS_MIN_CHARS ? username : gradidoID) || ''
 
 /**
+ * Whether an alias is the Gradido ID that stands in for a user name.
+ *
+ * `memberAlias` falls back to it for members without a user name, so `…/u/<uuid>` is a real
+ * address. A user name can never take that shape: VALID_ALIAS_REGEX caps it at 20 characters,
+ * and a UUID has 36. So the shape alone answers the question and nothing has to be looked up
+ * -- which matters on the public profile page, where nothing may be.
+ *
+ * @param {string} alias
+ * @returns {boolean}
+ */
+const GRADIDO_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+export const isGradidoId = (alias) => GRADIDO_ID.test(String(alias ?? ''))
+
+/**
  * One member as one string: the uuid pair, the way the server stores a heart and the
  * avatar store keys a face. Both composables key by this, so they cannot come to mean
  * different people by the same fields.

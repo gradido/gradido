@@ -41,8 +41,9 @@ const favoriteKey = (communityUuid: string, gradidoID: string): string =>
 @Resolver()
 export class ContactResolver {
   /**
-   * Everyone the caller has exchanged Gradido with -- a view on their own bookings, each
-   * person once, newest first. Not a table: see dbSelectContactsByUserId.
+   * Everyone the caller shares an event with -- a view on their own bookings AND on the
+   * referral trace, each person once, newest first. Not a table: see
+   * dbSelectContactsByUserId.
    *
    * Every user in the answer is the same `User` model the booking row carries, so the
    * wallet reads the list by the fields it already knows. And by the same rule: nothing
@@ -184,6 +185,7 @@ export class ContactResolver {
           row.bookings,
           favorites.has(favoriteKey(model.communityUuid, model.gradidoID)),
           isSameCommunity(model.communityUuid, home?.communityUuid),
+          row.origin,
         ),
     )
     return new ContactList(contacts, page.count)
@@ -233,10 +235,16 @@ export class ContactResolver {
   /**
    * Gives the heart. Twice is the same heart, not an error (a double tap on a phone).
    *
-   * Not checked against the booking list on purpose: a heart on somebody the caller has
-   * no booking with is a row nobody ever sees -- the contact list is built from bookings,
-   * and the favourites in it are the contacts that carry a heart. Private and silent
-   * either way; the person marked is never told.
+   * Not checked against the contact list on purpose. A heart on somebody who is not on it
+   * is a row nobody ever sees: the list is a view over the bookings and the referral trace,
+   * and the favourites in it are the contacts that carry a heart. Private and silent either
+   * way; the person marked is never told.
+   *
+   * ⚠️ This used to say "no booking" and "built from bookings", which stopped being true
+   * when the trace became the second source (KF-012): a member with no booking at all can
+   * now be on the list and be given a heart that shows. The rule here did not change, the
+   * reason for it did -- and a sentence that names a condition the code no longer has is
+   * worse than none, because the next reader stops looking.
    */
   @Authorized([RIGHTS.MANAGE_OWN_CONTACTS])
   @Mutation(() => Boolean)

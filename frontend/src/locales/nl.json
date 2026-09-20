@@ -173,7 +173,7 @@
     "bookings": "{n} boeking | {n} boekingen",
     "chatLater": "Gespreksgeschiedenis — komt met de chat",
     "count": "{n} contact | {n} contacten",
-    "empty": "Nog geen contacten. Wie jou Gradido stuurt of van jou ontvangt, verschijnt hier.",
+    "empty": "Nog geen contacten. Hier verschijnt wie Gradido met je uitwisselt — of wie via jou binnenkomt.",
     "favorites": "Favorieten",
     "heart": {
       "add": "Aan favorieten toevoegen",
@@ -184,6 +184,10 @@
     "matches": "Resultaten",
     "noFavorites": "Nog geen favorieten. Tik op het hartje bij een contact.",
     "notReachable": "De contacten konden niet worden geladen.",
+    "origin": {
+      "arrival": "kent Gradido via jou",
+      "referrer": "heeft je Gradido laten zien"
+    },
     "recent": "Recent",
     "remove": {
       "body": "{name} blijft in je contacten. Je kunt {name} altijd weer favoriet maken.",
@@ -447,7 +451,6 @@
     "copy-link": "Link kopiëren",
     "copy-link-with-text": "Link en tekst kopiëren",
     "created": "Link, cheque en QR-code zijn aangemaakt.",
-    "credit-your-gradido": "Om de Gradidos bijgeschreven te krijgen, klik op de link!",
     "delete-the-link": "De link verwijderen?",
     "deleted": "De link werd verwijderd!",
     "disbured": "De uitbetaling van het linktegoed is succesvol gestart! Het bedrag van {n} GDD wordt binnenkort op je rekening bijgeschreven.",
@@ -458,7 +461,7 @@
     "link-copied": "Link werd naar het klembord gekopieerd. Je kunt deze nu in een email of bericht invoegen.",
     "link-deleted": "De link werd op {date} verwijderd.",
     "link-expired": "De link is niet meer geldig. De geldigheid is op {date} afgelopen.",
-    "link-hint": "Attentie: Ledereen kan deze link inwisselen. Wees er voorzichtig mee!",
+    "link-hint": "Wie de link heeft, kan hem inwisselen. Stuur hem alleen naar de persoon voor wie hij bedoeld is.",
     "link-overview": "Overzicht links",
     "links_count": "Actieve links",
     "links_open": "{n} open",
@@ -473,11 +476,15 @@
     "redeemed": "Succesvol ingewisseld! Op jouw rekening werden {n} GDD bijgeschreven.",
     "redeemed-at": "De link werd al op {date} ingewisseld.",
     "redeemlink-error": "Deze inwissel-link is niet volledig.",
+    "share": "Delen",
+    "share-line1": "{name} bedankt jou met {amount} Gradido:",
+    "share-line2": "‘{memo}’",
+    "share-line3": "Wil je dit bedankje aannemen?",
+    "share-line4": "Het wacht tot {date} op je. Neem je het niet aan, dan gebeurt er niets.",
     "to-login": "Inloggen",
     "to-register": "Registreer een nieuwe rekening.",
     "to-switch": "Nu doorsturen",
-    "validUntil": "Geldig tot",
-    "validUntilDate": "De link is geldig tot {date}."
+    "validUntil": "Geldig tot"
   },
   "gdt": {
     "calculation": "Berekening van de Gradido Transform",
@@ -782,12 +789,19 @@
     "scanner": "Code scannen",
     "send": "Gradido en e-mail versturen",
     "settings": "Instellingen",
+    "show-friends": "Laat het je vrienden zien",
     "transactions": "Your transactions",
     "usersearch": "Geografisch leden zoeken (bèta)"
   },
   "public-profile": {
     "address": "Gradido-adres",
-    "send": "Gradido versturen"
+    "duration": "Een account bij {communityName} aanmaken duurt ongeveer tien minuten. Het vraagt je wat je de laatste tijd voor goeds hebt gedaan.",
+    "echoHint": "{name} krijgt te weten dat je erbij bent.",
+    "join": "Account aanmaken",
+    "lead": "Een netwerk van mensen die elkaar helpen, iets schenken en bedanken. Gratis. Gemeenschapsgericht. Open source.",
+    "send": "Gradido versturen",
+    "shows": "{name} laat je Gradido zien",
+    "showsSomebody": "Iemand laat je Gradido zien"
   },
   "qrCode": "QR Code",
   "rightSide": {
@@ -970,6 +984,42 @@
       "quota-left": "Je kunt je gebruikersnaam dit jaar nog één keer wijzigen. | Je kunt je gebruikersnaam dit jaar nog {n} keer wijzigen."
     }
   },
+  "showFriends": {
+    "away": {
+      "addressLead": "Of alleen je adres, met een zin erbij:",
+      "copied": "De zin en je Gradido-adres zijn gekopieerd. Je kunt ze nu in een bericht plakken.",
+      "editHint": "Je kunt de zin vóór het versturen aanpassen — hij staat dan in je berichtenapp.",
+      "shareButton": "Adres delen",
+      "shareText": "Kijk, dit is Gradido — een netwerk waarin we elkaar helpen, iets schenken en bedanken. Hier vind je mij: {url}",
+      "thanks": "Stuur een bedankje.",
+      "thanksText": "Iedereen kan dankjewel zeggen — met Gradido kun je het schenken.",
+      "title": "Iemand ergens anders"
+    },
+    "here": {
+      "map": "de kaart",
+      "step1": "Laat {map} zien. Laat haar intypen wat ze zoekt.",
+      "step2": "Ze houdt haar camera op deze code.",
+      "step3": "Het account verwelkomt haar vanzelf. Je hoeft niets uit te leggen.",
+      "title": "Iemand hier bij mij"
+    },
+    "mirror": {
+      "go": "Laat het aan iemand anders zien",
+      "since": "Erbij sinds {date}.",
+      "text": "Fijn dat je het hebt laten zien.",
+      "title": "{name} is er."
+    },
+    "page": {
+      "footer": "Laten zien is genoeg.",
+      "footerLead": "Je hoeft niets uit te leggen.",
+      "lead": "Iedereen die erbij komt, is een geschenk voor alle anderen — en krijgt het netwerk met alle anderen cadeau.",
+      "question": "Aan wie wil je het laten zien?"
+    },
+    "tile": {
+      "go": "Zo werkt het",
+      "text": "Iedereen die erbij komt, is een geschenk voor iedereen — en krijgt het hele netwerk cadeau.",
+      "title": "Laat het je vrienden zien"
+    }
+  },
   "signin": "Aanmelden",
   "signup": "Registreren",
   "site": {
@@ -986,6 +1036,7 @@
       "minimum": "Minstens 8 tekens.",
       "no-whitespace": "Geen spaties en tabs",
       "one_number": "Getal noodzakelijk.",
+      "shownBy": "{name} heeft je Gradido laten zien. Fijn dat je er bent.",
       "special-char": "Speciaal teken noodzakelijk (bijv. _ of é)",
       "uppercase": "Hoofdletter noodzakelijk."
     }

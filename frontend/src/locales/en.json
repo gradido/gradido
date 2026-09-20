@@ -173,7 +173,7 @@
     "bookings": "{n} booking | {n} bookings",
     "chatLater": "Conversation history — comes with the chat",
     "count": "{n} contact | {n} contacts",
-    "empty": "No contacts yet. Whoever sends you Gradido or receives it from you appears here.",
+    "empty": "No contacts yet. Whoever exchanges Gradido with you — or joins through you — appears here.",
     "favorites": "Favourites",
     "heart": {
       "add": "Add to favourites",
@@ -184,6 +184,10 @@
     "matches": "Matches",
     "noFavorites": "No favourites yet. Tap the heart beside a contact.",
     "notReachable": "The contacts could not be loaded.",
+    "origin": {
+      "arrival": "knows Gradido through you",
+      "referrer": "showed you Gradido"
+    },
     "recent": "Recent",
     "remove": {
       "body": "{name} stays in your contacts. You can make {name} a favourite again at any time.",
@@ -525,7 +529,6 @@
     "copy-link": "Copy link",
     "copy-link-with-text": "Copy link and text",
     "created": "Link, cheque and QR code have been created.",
-    "credit-your-gradido": "For the Gradido to be credited, click on the link!",
     "delete-the-link": "Delete the link?",
     "deleted": "The link was deleted!",
     "disbured": "Disbursement of the link amount initiated! The transfer of {n} GDD into your account will be completed shortly.",
@@ -536,7 +539,7 @@
     "link-copied": "Link has been copied to the clipboard. You can now paste it into an email or message.",
     "link-deleted": "The link was deleted on {date}.",
     "link-expired": "The link is no longer valid. The validity expired on {date}.",
-    "link-hint": "Attention: Anyone can redeem this link. Please be careful with it!",
+    "link-hint": "Whoever has the link can redeem it. Only send it to the person it is meant for.",
     "link-overview": "Link overview",
     "links_count": "Active links",
     "links_open": "{n} open",
@@ -551,11 +554,15 @@
     "redeemed": "Successfully redeemed! Your account has been credited with {n} GDD.",
     "redeemed-at": "The link was already redeemed on {date}.",
     "redeemlink-error": "This redemption link is not complete.",
+    "share": "Share",
+    "share-line1": "{name} thanks you with {amount} Gradido:",
+    "share-line2": "“{memo}”",
+    "share-line3": "Would you like to accept this thank-you?",
+    "share-line4": "It will wait for you until {date}. If you don't accept it, nothing happens.",
     "to-login": "Log in",
     "to-register": "Register a new account.",
     "to-switch": "Redirect now",
-    "validUntil": "Valid until",
-    "validUntilDate": "The link is valid until {date}."
+    "validUntil": "Valid until"
   },
   "gdt": {
     "calculation": "Calculation of Gradido Transform",
@@ -872,12 +879,19 @@
     "scanner": "Scan code",
     "send": "Send Gradido and email",
     "settings": "Settings",
+    "show-friends": "Show it to your friends",
     "transactions": "Your transactions",
     "usersearch": "Geographic member search (beta)"
   },
   "public-profile": {
     "address": "Gradido address",
-    "send": "Send Gradido"
+    "duration": "An account with {communityName} takes about ten minutes to set up. It asks you what good you have done lately.",
+    "echoHint": "{name} will learn that you have arrived.",
+    "join": "Create an account",
+    "lead": "A network of people who help, give to and thank each other. Free of charge. Community-based. Open source.",
+    "send": "Send Gradido",
+    "shows": "{name} is showing you Gradido",
+    "showsSomebody": "Somebody is showing you Gradido"
   },
   "qrCode": "QR Code",
   "rightSide": {
@@ -1095,6 +1109,42 @@
       "quota-left": "You can change your username once more this year. | You can change your username {n} more times this year."
     }
   },
+  "showFriends": {
+    "away": {
+      "addressLead": "Or just your address, with a sentence to go with it:",
+      "copied": "The sentence and your Gradido address have been copied. You can now paste them into a message.",
+      "editHint": "You can change the sentence before sending — it will then be in your messenger.",
+      "shareButton": "Share address",
+      "shareText": "Look, this is Gradido — a network in which we help, give to and thank each other. You can find me here: {url}",
+      "thanks": "Send a thank-you.",
+      "thanksText": "Anyone can say thank you — with Gradido you can give it.",
+      "title": "Someone elsewhere"
+    },
+    "here": {
+      "map": "the map",
+      "step1": "Show {map}. Let her type in what she is looking for.",
+      "step2": "She holds her camera up to this code.",
+      "step3": "The account welcomes her by itself. You don't need to explain anything.",
+      "title": "Someone here with me"
+    },
+    "mirror": {
+      "go": "Show it to somebody else",
+      "since": "With us since {date}.",
+      "text": "How lovely that you showed it.",
+      "title": "{name} is here."
+    },
+    "page": {
+      "footer": "Showing is enough.",
+      "footerLead": "You don't need to explain anything.",
+      "lead": "Everyone who joins is a gift to all the others — and receives the network with all the others as a gift.",
+      "question": "Who would you like to show it to?"
+    },
+    "tile": {
+      "go": "How it works",
+      "text": "Everyone who joins is a gift to all — and receives the whole network as a gift.",
+      "title": "Show it to your friends"
+    }
+  },
   "signin": "Sign in",
   "signup": "Sign up",
   "site": {
@@ -1111,6 +1161,7 @@
       "minimum": "8 characters minimum.",
       "no-whitespace": "No white spaces and tabs",
       "one_number": "One number required.",
+      "shownBy": "{name} showed you Gradido. Good to have you here.",
       "special-char": "One special character required (e.g. _ or ä)",
       "uppercase": "One uppercase letter required."
     }

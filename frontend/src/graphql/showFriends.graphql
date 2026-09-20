@@ -1,0 +1,24 @@
+# AI-GENERATED — not an architecture reference
+
+# Whom to offer thanks to, and whose arrival to mirror back. No arguments, so the cache
+# holds one entry for everybody -- `cache-and-network` at the call sites, and the store is
+# cleared on logout, keeps a member from seeing the previous one's arrival.
+query showFriends {
+  showFriends {
+    referrerAlias
+    latestArrival {
+      # Who they are, so the tile can offer a way to REACH them and not only name them
+      # (ZE-010): it hands this to the contact window. The community is not asked for --
+      # an arrival is by construction a member of this one.
+      gradidoID
+      alias
+      # The face, in the two pieces every list here asks for: the finished colour digit
+      # (NU-017) and the date the picture last changed -- the key the wallet's own picture
+      # store answers by. Never the picture itself.
+      avatarColorIndex
+      avatarUpdatedAt
+      createdAt
+      first
+    }
+  }
+}

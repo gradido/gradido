@@ -98,6 +98,9 @@ export enum RIGHTS {
   // entries, skipping the window. Every call reaches the caller's own process only; the
   // confirmation in the SIGNER's name happens inside the interaction, not behind this key.
   FIRST_CREATION = 'FIRST_CREATION',
+  // "Show it to your friends" (ZE-005): who brought the caller here, and who arrived over
+  // them last. Reading only, and only about the caller - the query takes no argument.
+  SHOW_FRIENDS = 'SHOW_FRIENDS',
   // ES-021, the project account. Both act on the caller's OWN account only: declaring it a
   // project account (switches creation off, at once) and asking for the creation right
   // back (a mail to the support — it switches nothing; an administrator does that).

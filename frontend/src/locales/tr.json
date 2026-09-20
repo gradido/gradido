@@ -173,7 +173,7 @@
     "bookings": "{n} işlem | {n} işlem",
     "chatLater": "Konuşma geçmişi — sohbetle birlikte gelecek",
     "count": "{n} kişi | {n} kişi",
-    "empty": "Henüz kişi yok. Sana Gradido gönderen veya senden alan herkes burada görünür.",
+    "empty": "Henüz kişi yok. Seninle Gradido alışverişi yapan — ya da senin sayende gelen — herkes burada görünür.",
     "favorites": "Favoriler",
     "heart": {
       "add": "Favorilere ekle",
@@ -184,6 +184,10 @@
     "matches": "Sonuçlar",
     "noFavorites": "Henüz favori yok. Bir kişinin yanındaki kalbe dokun.",
     "notReachable": "Kişiler yüklenemedi.",
+    "origin": {
+      "arrival": "Gradido'yu senin sayende tanıyor",
+      "referrer": "sana Gradido'yu gösterdi"
+    },
     "recent": "Son",
     "remove": {
       "body": "{name} kişilerinde kalır. {name} kişisini istediğin zaman yeniden favori yapabilirsin.",
@@ -447,7 +451,6 @@
     "copy-link": "Linki kopyala ",
     "copy-link-with-text": "Linki ve metni kopyala",
     "created": "Link, çek ve QR kodu oluşturuldu.",
-    "credit-your-gradido": "Senin hesabına Gradido transferi için linke tıklayın!",
     "delete-the-link": "Link silinsin mi?",
     "deleted": "Link silindi!",
     "disbured": "Bağlantı bakiyesinin ödemesi başarıyla başlatıldı! {n} GDD kısa süre içinde hesabına alacak olarak işlenecek",
@@ -458,7 +461,7 @@
     "link-copied": "Link panoya kopyalandı. Artık bir e-postaya veya mesaja yapıştırabilirsin.",
     "link-deleted": "Link {date} tarihinde silindi.",
     "link-expired": "Bağlantı artık geçerli değil. Geçerlilik süresi {date} tarihinde doldu.",
-    "link-hint": "Dikkat: Bu bağlantıyı herkes kullanabilir. Lütfen onunla özenli ol!",
+    "link-hint": "Bağlantıya sahip olan herkes onu kullanabilir. Bağlantıyı yalnızca kimin için oluşturduysan ona gönder.",
     "link-overview": "Linke toplu bakış",
     "links_count": "Aktif linkler",
     "links_open": "{n} açık",
@@ -473,11 +476,15 @@
     "redeemed": "Başarıyla dönüştürüldü! Hesabına {n} GDD yatırıldı.",
     "redeemed-at": "Link  {date} tarihinde paraya dönüştürüldü.",
     "redeemlink-error": "Bu kullanım bağlantısı tam değil.",
+    "share": "Paylaş",
+    "share-line1": "{name}, {amount} Gradido ile sana teşekkür ediyor:",
+    "share-line2": "“{memo}”",
+    "share-line3": "Bu teşekkürü kabul etmek ister misin?",
+    "share-line4": "{date} tarihine kadar seni bekliyor. Kabul etmezsen hiçbir şey olmaz.",
     "to-login": "Giriş yap",
     "to-register": "Yeni hesap aç.",
     "to-switch": "Şimdi yönlendir",
-    "validUntil": "Geçerlilik süresi",
-    "validUntilDate": "Link {date} tarihine kadar geçerli."
+    "validUntil": "Geçerlilik süresi"
   },
   "gdt": {
     "calculation": "Gradido Transform (GDT) Hesaplanması",
@@ -782,12 +789,19 @@
     "scanner": "Kod tara",
     "send": "Gradido ve e-posta gönder",
     "settings": "Ayarlar",
+    "show-friends": "Arkadaşlarına göster",
     "transactions": "İşlemlerin",
     "usersearch": "Coğrafi üye arama (beta)"
   },
   "public-profile": {
     "address": "Gradido adresi",
-    "send": "Gradido gönder"
+    "duration": "{communityName} topluluğunda hesap açmak yaklaşık on dakika sürer. Hesap sana son zamanlarda ne gibi iyilikler yaptığını sorar.",
+    "echoHint": "{name}, senin aramıza katıldığını öğrenecek.",
+    "join": "Hesap aç",
+    "lead": "Birbirine yardım eden, armağan veren ve teşekkür eden insanlardan oluşan bir ağ. Ücretsiz. Topluluk temelli. Açık kaynak.",
+    "send": "Gradido gönder",
+    "shows": "{name} sana Gradido'yu gösteriyor",
+    "showsSomebody": "Biri sana Gradido'yu gösteriyor"
   },
   "qrCode": "QR Kodu",
   "rightSide": {
@@ -970,6 +984,42 @@
       "quota-left": "Kullanıcı adını bu yıl bir kez daha değiştirebilirsin. | Kullanıcı adını bu yıl {n} kez daha değiştirebilirsin."
     }
   },
+  "showFriends": {
+    "away": {
+      "addressLead": "Ya da sadece adresini, yanına bir cümleyle:",
+      "copied": "Cümle ve Gradido adresin kopyalandı. Şimdi bunları bir mesaja yapıştırabilirsin.",
+      "editHint": "Cümleyi göndermeden önce değiştirebilirsin — sonra mesajlaşma uygulamanda görünür.",
+      "shareButton": "Adresi paylaş",
+      "shareText": "Bak, bu Gradido — birbirimize yardım ettiğimiz, armağan verdiğimiz ve teşekkür ettiğimiz bir ağ. Beni burada bulabilirsin: {url}",
+      "thanks": "Bir teşekkür gönder.",
+      "thanksText": "Herkes teşekkür edebilir — Gradido ile bunu armağan edebilirsin.",
+      "title": "Başka yerdeki birine"
+    },
+    "here": {
+      "map": "Haritayı",
+      "step1": "{map} göster. Aradığı şeyi yazmasına izin ver.",
+      "step2": "Kamerasını bu koda tutar.",
+      "step3": "Hesap onu kendiliğinden karşılar. Hiçbir şey açıklamana gerek yok.",
+      "title": "Burada yanımdaki birine"
+    },
+    "mirror": {
+      "go": "Bir başkasına da göster",
+      "since": "{date} tarihinden beri bizimle.",
+      "text": "Göstermen çok güzel.",
+      "title": "{name} aramızda."
+    },
+    "page": {
+      "footer": "Göstermek yeterli.",
+      "footerLead": "Hiçbir şey açıklamana gerek yok.",
+      "lead": "Aramıza katılan her kişi diğer herkes için bir armağandır — ve diğer herkesle birlikte ağı armağan olarak alır.",
+      "question": "Kime göstermek istiyorsun?"
+    },
+    "tile": {
+      "go": "Nasıl yapılır",
+      "text": "Aramıza katılan her kişi herkes için bir armağandır — ve bütün ağı armağan olarak alır.",
+      "title": "Arkadaşlarına göster"
+    }
+  },
   "signin": "Giriş yap",
   "signup": "Kayıt ol",
   "site": {
@@ -986,6 +1036,7 @@
       "minimum": "Minimum 8 karakter.",
       "no-whitespace": "Boşluk ve sekme yok",
       "one_number": "Numara gerekli.",
+      "shownBy": "{name} sana Gradido'yu gösterdi. İyi ki buradasın.",
       "special-char": "Özel karakter gerekli (_ yada ä vb)",
       "uppercase": "Büyük bir harf gerekli."
     }

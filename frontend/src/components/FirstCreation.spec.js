@@ -83,13 +83,20 @@ vi.mock('vue-router', () => ({
 }))
 
 const statusMock = ref(null)
+const friendsMock = ref(null)
 const refetchMock = vi.fn()
 const submitMock = vi.fn()
 const skipMock = vi.fn()
 const declareMock = vi.fn()
 
+// ⚠️ The document decides which answer comes back. A mock that hands the same `result` to
+// every caller cannot tell whether the component asked the right question -- and this
+// component now asks two.
 vi.mock('@vue/apollo-composable', () => ({
-  useQuery: () => ({ result: statusMock, refetch: refetchMock }),
+  useQuery: (document) =>
+    document === 'SHOW_FRIENDS'
+      ? { result: friendsMock, refetch: vi.fn() }
+      : { result: statusMock, refetch: refetchMock },
   useMutation: (document) => ({
     mutate: (variables) => {
       if (document === 'SUBMIT_FIRST_CREATION') return submitMock(variables)
@@ -103,6 +110,9 @@ vi.mock('@/graphql/firstCreation.graphql', () => ({
   firstCreationStatus: 'FIRST_CREATION_STATUS',
   submitFirstCreation: 'SUBMIT_FIRST_CREATION',
   skipFirstCreation: 'SKIP_FIRST_CREATION',
+}))
+vi.mock('@/graphql/showFriends.graphql', () => ({
+  showFriends: 'SHOW_FRIENDS',
 }))
 vi.mock('@/graphql/user.graphql', () => ({
   declareProjectAccount: 'DECLARE_PROJECT_ACCOUNT',
@@ -195,6 +205,7 @@ beforeEach(() => {
   focused.length = 0
   pushed.length = 0
   statusMock.value = { firstCreationStatus: status() }
+  friendsMock.value = null
   refetchMock.mockReset()
   answerRefetchWith(status())
   submitMock.mockReset().mockResolvedValue(settled('DONE', [entry('eins')], 'Danke.'))
@@ -1359,6 +1370,25 @@ describe('FirstCreation', () => {
       expect(pushed).toEqual(['/send'])
       expect(wrapper.find('[data-test="first-creation"]').exists()).toBe(false)
       expect(firstLoginWindow.value).toBe(null)
+    })
+
+    /**
+     * ⛔ The recipient only, never an amount (ZE-007). The form needs BOTH params or it
+     * ignores them, which is why the community travels along.
+     */
+    it('puts whoever brought them here in the recipient field', async () => {
+      friendsMock.value = { showFriends: { referrerAlias: 'alice', latestArrival: null } }
+      const wrapper = build()
+      await sendThree(wrapper)
+      await vi.runAllTimersAsync()
+      await wrapper.find('[data-test="first-creation-thank"]').trigger('click')
+      expect(pushed).toEqual([
+        {
+          name: 'Send',
+          params: { communityIdentifier: 'Gradido Entwicklung', userIdentifier: 'alice' },
+        },
+      ])
+      expect(wrapper.find('[data-test="first-creation"]').exists()).toBe(false)
     })
   })
 

@@ -431,6 +431,103 @@ describe('CreaSettings', () => {
       })
     })
   })
+  // The matching is switched on in the server's .env and keyed only where an admin said yes to
+  // the bill here. On 2026-09-18 production had the first without the second: entries on the
+  // map, nothing matching, and nothing on this page that said why.
+  describe('the warning while entries get no key words', () => {
+    const warning = () => wrapper.find('[data-test="matching-keying-off"]')
+    const keyingBox = () => wrapper.findAllComponents({ name: 'BFormCheckbox' })[1].find('input')
+    const answerWith = (matchingKeyingActive) => ({
+      creaSettings: { ...ANSWER.creaSettings, matchingKeyingActive },
+    })
+
+    it('stands in the matching section while the server holds the switch off', async () => {
+      creaSettingsResult.value = answerWith(false)
+      wrapper = createWrapper()
+      await nextTick()
+
+      expect(warning().exists()).toBe(true)
+      expect(warning().text()).toBe('crea.settings.matchingKeyingOff')
+    })
+
+    it('is gone where the server holds the switch on', async () => {
+      creaSettingsResult.value = answerWith(true)
+      wrapper = createWrapper()
+      await nextTick()
+
+      expect(warning().exists()).toBe(false)
+    })
+
+    // The form starts from `false` as a display default. Read as a state, it would warn every
+    // admin for the moment the page loads - and for as long as it is open, if the query fails.
+    it('says nothing before the server has answered', async () => {
+      wrapper = createWrapper()
+      await nextTick()
+
+      expect(wrapper.vm.form.matchingKeyingActive).toBe(false)
+      expect(warning().exists()).toBe(false)
+    })
+
+    // A ticked box has not bought a single word: the warning is about what is stored.
+    it('stays when the box is ticked, and goes when the save has come back', async () => {
+      creaSettingsResult.value = answerWith(false)
+      wrapper = createWrapper()
+      await nextTick()
+
+      await keyingBox().setValue(true)
+      expect(wrapper.vm.form.matchingKeyingActive).toBe(true)
+      expect(warning().exists()).toBe(true)
+
+      await keyingSave().trigger('click')
+      await nextTick()
+      expect(keyingMutate).toHaveBeenCalledWith({ active: true })
+      expect(warning().exists()).toBe(false)
+    })
+
+    it('comes back when the switch is saved off', async () => {
+      creaSettingsResult.value = answerWith(true)
+      wrapper = createWrapper()
+      await nextTick()
+      keyingMutate.mockResolvedValueOnce({ data: { setCreaMatchingKeying: false } })
+
+      await keyingBox().setValue(false)
+      expect(warning().exists()).toBe(false)
+
+      await keyingSave().trigger('click')
+      await nextTick()
+      expect(warning().exists()).toBe(true)
+    })
+
+    // Somebody else wrote in between: the server's answer is what is true, not the click.
+    it('follows the server when the save came back with the other value', async () => {
+      creaSettingsResult.value = answerWith(false)
+      wrapper = createWrapper()
+      await nextTick()
+      keyingMutate.mockResolvedValueOnce({ data: { setCreaMatchingKeying: false } })
+
+      await keyingBox().setValue(true)
+      await keyingSave().trigger('click')
+      await nextTick()
+
+      expect(toastError).toHaveBeenCalledWith('crea.settings.matchingChangedElsewhere')
+      expect(warning().exists()).toBe(true)
+    })
+
+    it('stays as it was when the save fails', async () => {
+      creaSettingsResult.value = answerWith(false)
+      wrapper = createWrapper()
+      await nextTick()
+      keyingMutate.mockRejectedValueOnce(new Error('no connection'))
+
+      await keyingBox().setValue(true)
+      await keyingSave().trigger('click')
+      await nextTick()
+
+      expect(toastError).toHaveBeenCalledWith('no connection')
+      expect(warning().exists()).toBe(true)
+    })
+  })
+
   describe('the first-creation signer', () => {
     const signerSave = () => wrapper.findAll('button')[2]
     const signerRemove = () => wrapper.findAll('button')[3]

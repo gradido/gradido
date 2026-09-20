@@ -21,6 +21,7 @@ import { SearchUsersResult, UserAdmin } from '@model/UserAdmin'
 import { UserContact } from '@model/UserContact'
 import { UserLocationResult } from '@model/UserLocationResult'
 import {
+  ensureUrlEndsWithSlash,
   registerAddressTransaction,
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
@@ -441,6 +442,7 @@ export class UserResolver {
       publisherId = null,
       redeemCode = null,
       project = null,
+      referrerAlias = null,
     }: CreateUserArgs,
   ): Promise<User> {
     const logger = createLogger('createUser')
@@ -548,6 +550,7 @@ export class UserResolver {
         project,
         alias,
         passwordPlain: null,
+        referrerAlias,
       },
       logger,
     )
@@ -1353,6 +1356,29 @@ export class UserResolver {
       throw new LogError('authenticateGmsUserSearch missing valid user login-token')
     }
     return result
+  }
+
+  /**
+   * Where this community's GMS dashboard lives - the operator's GMS_DASHBOARD_URL, and nothing
+   * else. The wallet takes the address of the GMS API from its origin, for the place search on
+   * the home map.
+   *
+   * ⛔ Deliberately NOT `authenticateGmsUserSearch`, which hands out the same address next to a
+   * member token: minting that token sends the member's gradidoID to the GMS, and the GMS
+   * answers 400 for a member it does not hold. So a member who has switched "findable" off -
+   * or whom the GMS has never been sent - got no address, and the search that would let them
+   * set their home stayed empty (Bernd, 18.09.2026). The address is server configuration, the
+   * same for everybody here; reading it contacts nobody and sends nothing about the member.
+   *
+   * `null` where this server has no GMS.
+   */
+  @Authorized([RIGHTS.GMS_USER_PLAYGROUND])
+  @Query(() => String, { nullable: true })
+  gmsDashboardUrl(): string | null {
+    if (!CONFIG.GMS_ACTIVE) {
+      return null
+    }
+    return ensureUrlEndsWithSlash(CONFIG.GMS_DASHBOARD_URL)
   }
 
   @Authorized([RIGHTS.GMS_USER_PLAYGROUND])

@@ -173,7 +173,7 @@
     "bookings": "{n} movimiento | {n} movimientos",
     "chatLater": "Historial de conversación — llegará con el chat",
     "count": "{n} contacto | {n} contactos",
-    "empty": "Aún no hay contactos. Quien te envíe Gradido o lo reciba de ti aparecerá aquí.",
+    "empty": "Aún no hay contactos. Aquí aparece quien intercambia Gradido contigo — o quien llega gracias a ti.",
     "favorites": "Favoritos",
     "heart": {
       "add": "Añadir a favoritos",
@@ -184,6 +184,10 @@
     "matches": "Resultados",
     "noFavorites": "Aún sin favoritos. Toca el corazón junto a un contacto.",
     "notReachable": "No se pudieron cargar los contactos.",
+    "origin": {
+      "arrival": "conoce Gradido gracias a ti",
+      "referrer": "te ha mostrado Gradido"
+    },
     "recent": "Recientes",
     "remove": {
       "body": "{name} sigue en tus contactos. Puedes volver a añadir a {name} a tus favoritos cuando quieras.",
@@ -447,7 +451,6 @@
     "copy-link": "Copiar enlace",
     "copy-link-with-text": "Copiar texto y enlace",
     "created": "Se han creado el enlace, el cheque y el código QR.",
-    "credit-your-gradido": "¡Para que se te acrediten los Gradidos, haz clic en el enlace!",
     "delete-the-link": "¿Eliminar el enlace?",
     "deleted": "¡El enlace ha sido eliminado!",
     "disbured": "¡El desembolso del saldo del enlace se ha iniciado con éxito! El abono de {n} GDD se registrará pronto en tu cuenta.",
@@ -458,7 +461,7 @@
     "link-copied": "El enlace se ha copiado en el portapapeles. Ahora puedes pegarlo en un correo electrónico o mensaje.",
     "link-deleted": "El enlace se eliminó el {date}.",
     "link-expired": "El enlace ya no es válido. La validez expiró el {date}.",
-    "link-hint": "Atención: cualquiera puede canjear este enlace. Por favor, ¡ten cuidado con él!",
+    "link-hint": "Quien tenga el enlace puede canjearlo. Envíalo solo a la persona a la que va dirigido.",
     "link-overview": "Resumen de enlaces",
     "links_count": "Enlaces activos",
     "links_open": "{n} abiertos",
@@ -473,11 +476,15 @@
     "redeemed": "¡Canjeado con éxito! Tu cuenta ha sido acreditada con {n} GDD.",
     "redeemed-at": "El enlace ya se canjeó el {date}.",
     "redeemlink-error": "Este enlace de canje no está completo.",
+    "share": "Compartir",
+    "share-line1": "{name} te agradece con {amount} Gradido:",
+    "share-line2": "«{memo}»",
+    "share-line3": "¿Quieres aceptar el agradecimiento?",
+    "share-line4": "Te espera hasta el {date}. Si no lo aceptas, no pasa nada.",
     "to-login": "iniciar sesión",
     "to-register": "Registre una nueva cuenta.",
     "to-switch": "Redirigir ahora",
-    "validUntil": "Válido hasta",
-    "validUntilDate": "El enlace es válido hasta el {date} ."
+    "validUntil": "Válido hasta"
   },
   "gdt": {
     "calculation": "Cálculo del Gradido Transform",
@@ -782,12 +789,19 @@
     "scanner": "Escanear código",
     "send": "Enviar Gradido y correo electrónico",
     "settings": "Configuración",
+    "show-friends": "Muéstraselo a tus amigos",
     "transactions": "Tu Transacciones",
     "usersearch": "Búsqueda geográfica de miembros (beta)"
   },
   "public-profile": {
     "address": "Dirección Gradido",
-    "send": "Enviar Gradido"
+    "duration": "Crear una cuenta en {communityName} lleva unos diez minutos. Te pregunta qué has hecho de bueno últimamente.",
+    "echoHint": "{name} sabrá que has llegado.",
+    "join": "Crear una cuenta",
+    "lead": "Una red de personas que se ayudan, se regalan cosas y se dan las gracias unas a otras. Gratis. Basada en la comunidad. Código abierto.",
+    "send": "Enviar Gradido",
+    "shows": "{name} te muestra Gradido",
+    "showsSomebody": "Alguien te muestra Gradido"
   },
   "qrCode": "Código QR",
   "rightSide": {
@@ -970,6 +984,42 @@
       "quota-left": "Puedes cambiar tu nombre de usuario una vez más este año. | Puedes cambiar tu nombre de usuario {n} veces más este año."
     }
   },
+  "showFriends": {
+    "away": {
+      "addressLead": "O solo tu dirección, con una frase:",
+      "copied": "La frase y tu dirección Gradido se han copiado. Ahora puedes pegarlas en un mensaje.",
+      "editHint": "Puedes cambiar la frase antes de enviarla — después aparecerá en tu aplicación de mensajería.",
+      "shareButton": "Compartir dirección",
+      "shareText": "Mira, esto es Gradido — una red en la que nos ayudamos, nos regalamos cosas y nos damos las gracias unos a otros. Aquí me encuentras: {url}",
+      "thanks": "Envía un agradecimiento.",
+      "thanksText": "Cualquiera puede dar las gracias — con Gradido puedes regalarlo.",
+      "title": "A alguien en otro lugar"
+    },
+    "here": {
+      "map": "el mapa",
+      "step1": "Muestra {map}. Deja que escriba lo que busca.",
+      "step2": "Ella apunta con su cámara a este código.",
+      "step3": "La cuenta la recibe por sí sola. No tienes que explicar nada.",
+      "title": "A alguien aquí conmigo"
+    },
+    "mirror": {
+      "go": "Muéstraselo a alguien más",
+      "since": "Con nosotros desde el {date}.",
+      "text": "Qué bonito que lo hayas mostrado.",
+      "title": "{name} ya está aquí."
+    },
+    "page": {
+      "footer": "Con mostrarlo basta.",
+      "footerLead": "No tienes que explicar nada.",
+      "lead": "Cada persona que se une es un regalo para todos los demás — y recibe de regalo la red con todos los demás.",
+      "question": "¿A quién quieres mostrárselo?"
+    },
+    "tile": {
+      "go": "Cómo funciona",
+      "text": "Cada persona que se une es un regalo para todos — y recibe de regalo toda la red.",
+      "title": "Muéstraselo a tus amigos"
+    }
+  },
   "signin": "Iniciar sesión",
   "signup": "Registrarse",
   "site": {
@@ -986,6 +1036,7 @@
       "minimum": "Al menos 8 caracteres.",
       "no-whitespace": "Sin espacios ni tabulaciones.",
       "one_number": "Se requiere un número.",
+      "shownBy": "{name} te ha mostrado Gradido. Nos alegra que estés aquí.",
       "special-char": "Caracteres especiales requeridos (por ejemplo, _ o &)",
       "uppercase": "Letra mayúscula requerida."
     }

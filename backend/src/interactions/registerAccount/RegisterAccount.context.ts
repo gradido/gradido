@@ -20,6 +20,7 @@ import {
   UserContact as DbUserContact,
   dbFindProjectBrandingByAlias,
   dbInsertUserAlias,
+  findUserByIdentifier,
   getHomeCommunity,
   ProjectBrandingSelect,
   UserLoggingView,
@@ -63,6 +64,9 @@ export interface RegisterAccountInput {
   project: string | null
   alias: string | null
   passwordPlain: string | null
+  // The alias from the Gradido address the registration started at. Optional because
+  // only the classic registration has an address to come from; the assisted one does not.
+  referrerAlias?: string | null
 }
 
 const newEmailContact = (email: string, userId: number, logger: Logger): DbUserContact => {
@@ -156,6 +160,23 @@ export const registerAccount = async (
         logger.info('redeemCode found transactionLink', transactionLink.id)
         dbUser.referrerId = transactionLink.userId
         eventRegisterRedeem.involvedTransactionLink = transactionLink
+      }
+    }
+  } else {
+    // The registration started at somebody's Gradido address (/u/<alias>): they become
+    // the referrer. A redeem code beats the address - that is why this is the else.
+    // Silence rule: an unknown alias, a gradido ID or anything else that is not
+    // alias-shaped changes nothing - no error, no log line carrying the value, and the
+    // answer of createUser is the same either way. The alias check comes first so that
+    // only the alias branch of findUserByIdentifier can run (a gradido ID would
+    // otherwise find its owner), and the home community keeps a member of another
+    // community from matching; deleted members are not found (soft delete).
+    const referrerAlias = aliasSchema.safeParse(input.referrerAlias)
+    if (referrerAlias.success) {
+      const referrer = await findUserByIdentifier(referrerAlias.data, homeCom.communityUuid)
+      if (referrer) {
+        logger.info('address of the registration found its owner', referrer.id)
+        dbUser.referrerId = referrer.id
       }
     }
   }

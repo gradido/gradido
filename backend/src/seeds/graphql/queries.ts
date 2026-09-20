@@ -25,6 +25,12 @@ export const authenticateGmsUserSearch = gql`
   }
 `
 
+export const gmsDashboardUrl = gql`
+  query {
+    gmsDashboardUrl
+  }
+`
+
 export const userLocationQuery = gql`
   query {
     userLocation {
@@ -702,6 +708,22 @@ export const firstCreationStatus = gql`
   }
 `
 
+export const showFriends = gql`
+  query {
+    showFriends {
+      referrerAlias
+      latestArrival {
+        gradidoID
+        alias
+        avatarColorIndex
+        avatarUpdatedAt
+        createdAt
+        first
+      }
+    }
+  }
+`
+
 export const contactList = gql`
   query (
     $currentPage: Int = 1
@@ -726,6 +748,7 @@ export const contactList = gql`
         bookings
         favorite
         homeCommunity
+        origin
       }
     }
   }

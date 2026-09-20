@@ -132,6 +132,10 @@ module.exports = Joi.object({
       otherwise: Joi.optional(),
     }),
 
+  GMS_LEGACY_ACTIVE: Joi.bool()
+    .default(false)
+    .description('if legacy gradido mapping service should be used'),
+
   MAP_ASSETS_URL: Joi.string()
     .uri({ scheme: ['http', 'https'] })
     .description('Base URL of the fonts/ and sprites/ that belong to the map tiles')

@@ -68,6 +68,10 @@ export const USER_RIGHTS = [
   // on RESTRICTED_WHILE_UNCONFIRMED: inside the 24-hour window (EM-013) it is open, after
   // it the whole window closes with the other value-creating rights.
   RIGHTS.FIRST_CREATION,
+  // Reading one's own referral trace. Not on any RESTRICTED_* list: it writes nothing and
+  // reaches nobody else's data, so there is nothing an unconfirmed or a project account
+  // could do with it that anybody else could not.
+  RIGHTS.SHOW_FRIENDS,
   // ES-021: both reach the caller's own account and nothing else. Neither is on
   // RESTRICTED_FOR_PROJECT_ACCOUNT — the way back (a request to the support) has to stay
   // open to the very account that is locked out of creating.

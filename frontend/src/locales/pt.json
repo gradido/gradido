@@ -173,7 +173,7 @@
     "bookings": "{n} movimento | {n} movimentos",
     "chatLater": "Histórico da conversa — chegará com o chat",
     "count": "{n} contacto | {n} contactos",
-    "empty": "Ainda não há contactos. Quem te envia Gradido ou os recebe de ti aparece aqui.",
+    "empty": "Ainda não há contactos. Aqui aparece quem troca Gradido contigo — ou quem chega graças a ti.",
     "favorites": "Favoritos",
     "heart": {
       "add": "Adicionar aos favoritos",
@@ -184,6 +184,10 @@
     "matches": "Resultados",
     "noFavorites": "Ainda sem favoritos. Toca no coração ao lado de um contacto.",
     "notReachable": "Não foi possível carregar os contactos.",
+    "origin": {
+      "arrival": "conhece o Gradido graças a ti",
+      "referrer": "mostrou-te o Gradido"
+    },
     "recent": "Recentes",
     "remove": {
       "body": "{name} continua nos teus contactos. Podes voltar a tornar {name} favorito a qualquer momento.",
@@ -447,7 +451,6 @@
     "copy-link": "Copiar link",
     "copy-link-with-text": "Copiar link e texto",
     "created": "O link, o cheque e o código QR foram criados.",
-    "credit-your-gradido": "Para que os Gradido sejam creditados, clica no link!",
     "delete-the-link": "Eliminar o link?",
     "deleted": "O link foi eliminado!",
     "disbured": "Pagamento do saldo do link iniciado com sucesso! O crédito de {n} GDD será lançado em breve na tua conta",
@@ -458,7 +461,7 @@
     "link-copied": "O link foi copiado para a área de transferência. Podes agora colá-lo num e-mail ou mensagem.",
     "link-deleted": "O link foi eliminado em {date}.",
     "link-expired": "O link já não é válido. A validade expirou em {date}.",
-    "link-hint": "Atenção: qualquer pessoa pode resgatar este link. Por favor, usa-o com cuidado!",
+    "link-hint": "Quem tiver o link pode resgatá-lo. Envia-o só à pessoa a quem se destina.",
     "link-overview": "Vista geral dos links",
     "links_count": "Links ativos",
     "links_open": "{n} em aberto",
@@ -473,11 +476,15 @@
     "redeemed": "Resgatado com sucesso! A tua conta foi creditada com {n} GDD.",
     "redeemed-at": "O link já foi resgatado em {date}.",
     "redeemlink-error": "Este link de resgate não está completo.",
+    "share": "Partilhar",
+    "share-line1": "{name} agradece-te com {amount} Gradido:",
+    "share-line2": "«{memo}»",
+    "share-line3": "Queres aceitar o agradecimento?",
+    "share-line4": "Fica à tua espera até {date}. Se não o aceitares, não acontece nada.",
     "to-login": "Inicia sessão",
     "to-register": "Regista uma nova conta.",
     "to-switch": "Reencaminhar agora",
-    "validUntil": "Válido até",
-    "validUntilDate": "O link é válido até {date}."
+    "validUntil": "Válido até"
   },
   "gdt": {
     "calculation": "Cálculo do Gradido Transform",
@@ -782,12 +789,19 @@
     "scanner": "Ler código",
     "send": "Enviar Gradido e e-mail",
     "settings": "Definições",
+    "show-friends": "Mostra aos teus amigos",
     "transactions": "As tuas transações",
     "usersearch": "Pesquisa geográfica de membros (beta)"
   },
   "public-profile": {
     "address": "Endereço Gradido",
-    "send": "Enviar Gradido"
+    "duration": "Criar uma conta em {communityName} demora cerca de dez minutos. Ela pergunta-te o que fizeste de bom ultimamente.",
+    "echoHint": "{name} vai saber que chegaste.",
+    "join": "Criar conta",
+    "lead": "Uma rede de pessoas que se ajudam, oferecem coisas e agradecem umas às outras. Gratuita. Baseada na comunidade. Código aberto.",
+    "send": "Enviar Gradido",
+    "shows": "{name} mostra-te o Gradido",
+    "showsSomebody": "Alguém te mostra o Gradido"
   },
   "qrCode": "Código QR",
   "rightSide": {
@@ -970,6 +984,42 @@
       "quota-left": "Podes mudar o teu nome de utilizador mais uma vez este ano. | Podes mudar o teu nome de utilizador mais {n} vezes este ano."
     }
   },
+  "showFriends": {
+    "away": {
+      "addressLead": "Ou apenas o teu endereço, com uma frase:",
+      "copied": "A frase e o teu endereço Gradido foram copiados. Agora podes colá-los numa mensagem.",
+      "editHint": "Podes alterar a frase antes de a enviares — depois fica na tua aplicação de mensagens.",
+      "shareButton": "Partilhar endereço",
+      "shareText": "Olha, isto é o Gradido — uma rede em que nos ajudamos, oferecemos coisas e agradecemos uns aos outros. Encontras-me aqui: {url}",
+      "thanks": "Envia um agradecimento.",
+      "thanksText": "Qualquer pessoa pode dizer obrigado — com o Gradido podes oferecê-lo.",
+      "title": "A alguém noutro lugar"
+    },
+    "here": {
+      "map": "o mapa",
+      "step1": "Mostra {map}. Deixa-a escrever o que procura.",
+      "step2": "Ela aponta a câmara para este código.",
+      "step3": "A conta recebe-a sozinha. Não precisas de explicar nada.",
+      "title": "A alguém aqui comigo"
+    },
+    "mirror": {
+      "go": "Mostra-o a mais alguém",
+      "since": "Connosco desde {date}.",
+      "text": "Que bom que o mostraste.",
+      "title": "{name} está aqui."
+    },
+    "page": {
+      "footer": "Basta mostrar.",
+      "footerLead": "Não precisas de explicar nada.",
+      "lead": "Cada pessoa que se junta é um presente para todos os outros — e recebe de presente a rede com todos os outros.",
+      "question": "A quem queres mostrar?"
+    },
+    "tile": {
+      "go": "Como funciona",
+      "text": "Cada pessoa que se junta é um presente para todos — e recebe de presente toda a rede.",
+      "title": "Mostra aos teus amigos"
+    }
+  },
   "signin": "Iniciar sessão",
   "signup": "Registar",
   "site": {
@@ -986,6 +1036,7 @@
       "minimum": "Mínimo de 8 caracteres.",
       "no-whitespace": "Sem espaços nem tabulações",
       "one_number": "É necessário um número.",
+      "shownBy": "{name} mostrou-te o Gradido. Ainda bem que estás aqui.",
       "special-char": "É necessário um caractere especial (p. ex. _ ou ä)",
       "uppercase": "É necessária uma letra maiúscula."
     }

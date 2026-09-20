@@ -71,7 +71,11 @@ const FAST_MODE_BETA = 'fast-mode-2026-02-01'
  */
 const KEYING_MODEL = 'claude-haiku-4-5'
 
-/** Room for a full batch's answer. The measurement used the same number. */
+/**
+ * The cap on one answer - the number the measurements used, with ten entries in a call
+ * and with one. A single entry's answer needs a fraction of it, and only what is
+ * produced is billed.
+ */
 const KEYING_MAX_TOKENS = 8000
 
 /**
@@ -553,8 +557,21 @@ export class AnthropicClient {
   }
 
   /**
-   * Works out a batch of matching entries: for each one, the words it can be found
-   * under and seven fields saying what it is about.
+   * Works out ONE matching entry: the words it can be found under and seven fields
+   * saying what it is about.
+   *
+   * ⛔ One entry per call, and the signature is what keeps it that way. The sentence and
+   * the details are the member's own free text, and the model reads an entry header
+   * written into them as an entry of its own. Measured with ten entries in a call: a
+   * summary carrying such a header on its one line took over the next member's entry at
+   * every place, 27 times out of 27, and often shifted everybody behind it by one - all
+   * of it stored with a valid version and fed into the vocabulary every community uses
+   * (GMS-215). Removing the markers, quoting the sentence and checking the answer were
+   * measured as well, and each of them was got round. A call with one entry has nobody
+   * else in it to take over. Measured, the smuggled block then came back as a second
+   * record, numbered 2, which the `nr` check below drops (3 of 3); at worst its words
+   * would stay on the writer's own entry - stuffing one's own key words, which the 160
+   * characters of a summary and the first 300 of the details bound.
    *
    * The vocabulary is handed in rather than fetched here, because what makes the whole
    * mechanism work is that it is CURRENT - a word another community coined has to be
@@ -562,37 +579,41 @@ export class AnthropicClient {
    * members never meet. Keeping it current is the keying run's job; this method passes
    * it on unchanged.
    *
-   * Several entries per call, because that is what the numbers come from and because
-   * of what the list costs: the instruction is around a thousand tokens and the
-   * vocabulary was 8000 after 739 entries, so a call carries that whether it works out
-   * one entry or ten. Ten at a time is the difference between the ~11 $ per ten
-   * thousand entries the plan budgeted and roughly eight times that.
+   * `cacheSystem` puts the system text - instruction and vocabulary - into the API's
+   * prompt cache. The caller sets it on every call of a group that shares one
+   * vocabulary, the last one included: the first writes the cache at 1.25 times the
+   * input price, each later one reads it at a tenth - and reads it only if it carries
+   * the marker too. A single call would pay for the write and never read it.
+   * Measured for a re-keying of ten thousand entries in groups of ten: about 30 $ with
+   * the cache, against about 16 $ for the old calls of ten entries and about 120 $ for
+   * single calls without the cache (GMS-215). Below 4,096 tokens - a young vocabulary -
+   * Haiku caches nothing, and says so with zeros in the usage line, not with an error.
    *
-   * The price of a batch is that its ten entries share one vocabulary snapshot, so a
-   * word coined by the first cannot reach the second. That is exactly how the 89 %
-   * was measured, and it is also not the live case: entries arrive one at a time, so
-   * a batch only fills up when there is a backlog - a new community, or a re-keying.
-   *
-   * Records come back keyed by `nr`, which is the number each entry was given in the
-   * message. A record with no usable `nr` is dropped rather than guessed at: matching
-   * by position would hand one member's words to another member's entry the moment
-   * the model returns nine records for ten entries. A dropped one costs nothing - its
-   * entry keeps no keying and the next pass picks it up again.
+   * Answers with the record numbered 1, or with nothing. A record with any other number
+   * belongs to no entry and is dropped rather than guessed at. A missing one costs
+   * nothing - the entry keeps no keying and the next pass picks it up again.
    */
-  public async keyMatchingEntries(
-    entries: readonly KeyableEntry[],
+  public async keyMatchingEntry(
+    entry: KeyableEntry,
     vocabulary: readonly string[],
-  ): Promise<Map<number, KeyingAnswerRecord>> {
+    options: { cacheSystem: boolean },
+  ): Promise<KeyingAnswerRecord | undefined> {
     const message = await this.createMessage(
       {
         model: KEYING_MODEL,
         max_tokens: KEYING_MAX_TOKENS,
-        // One string, instruction and vocabulary together, because that is the shape
-        // that was measured. It also means no prompt cache: the vocabulary grows, so
-        // the prefix changes. That cost is the one the plan budgeted - it is not an
-        // oversight to be fixed by splitting the two apart without measuring again.
-        system: KEYING_INSTRUCTION + vocabularyAppendix(vocabulary),
-        messages: [{ role: 'user', content: keyingUserMessage(entries) }],
+        // One block, instruction and vocabulary together, because that is the shape
+        // that was measured, with the cache and without it. Not to be split into two
+        // so the instruction could be cached on its own - that is a different prompt,
+        // and it has not been measured. The cache marker goes on this one block.
+        system: [
+          {
+            type: 'text',
+            text: KEYING_INSTRUCTION + vocabularyAppendix(vocabulary),
+            ...(options.cacheSystem ? { cache_control: { type: 'ephemeral' } } : {}),
+          },
+        ],
+        messages: [{ role: 'user', content: keyingUserMessage([entry]) }],
         output_config: { format: { type: 'json_schema', schema: KEYING_SCHEMA } },
       },
       // Fast mode is a premium price for a faster answer, and nobody is waiting for
@@ -601,29 +622,26 @@ export class AnthropicClient {
     )
 
     logger.info(
-      `matching keying usage: entries=${entries.length} input=${message.usage.input_tokens} output=${message.usage.output_tokens}`,
+      `matching keying usage: input=${message.usage.input_tokens} cacheRead=${message.usage.cache_read_input_tokens} cacheWrite=${message.usage.cache_creation_input_tokens} output=${message.usage.output_tokens}`,
     )
     this.assertNotTruncated(message, KEYING_MAX_TOKENS)
 
     const answer = JSON.parse(this.firstTextBlock(message)) as KeyingAnswer
-    const byIndex = new Map<number, KeyingAnswerRecord>()
+    let mine: KeyingAnswerRecord | undefined
     for (const record of answer.eintraege ?? []) {
-      const index = (record.nr ?? 0) - 1
-      if (!Number.isInteger(index) || index < 0 || index >= entries.length) {
-        logger.warn(`matching keying: record with unusable nr ${record.nr}, dropped`)
+      if (record.nr !== 1) {
+        logger.warn(
+          `matching keying: a record numbered ${record.nr} in a call for one entry, dropped`,
+        )
         continue
       }
-      if (byIndex.has(index)) {
-        logger.warn(`matching keying: two records claim entry ${record.nr}, keeping the first`)
+      if (mine) {
+        logger.warn('matching keying: two records claim the entry, keeping the first')
         continue
       }
-      byIndex.set(index, record)
+      mine = record
     }
-    if (byIndex.size !== entries.length) {
-      // Not an error: what is missing simply stays unkeyed and comes round again.
-      logger.warn(`matching keying: ${byIndex.size} records for ${entries.length} entries`)
-    }
-    return byIndex
+    return mine
   }
 
   // Structural on purpose: the probe reads the same text block from either the normal

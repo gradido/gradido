@@ -160,6 +160,7 @@
       "matchingChangedElsewhere": "Non salvato: nel frattempo qualcun altro ha cambiato l'impostazione. Ora viene mostrato lo stato salvato.",
       "matchingKeying": "Parole chiave per le voci di matching",
       "matchingKeyingHint": "Per ogni voce di matching, Crea cerca le parole con cui gli altri la trovano. Ogni voce ha un costo: dopo l'attivazione Crea elabora le voci senza parole, fino a cento per passaggio e circa un passaggio al minuto, finché l'arretrato non è smaltito. La disattivazione ha effetto dopo il lotto in corso — al massimo dieci voci in più.",
+      "matchingKeyingOff": "Disattivato: le voci di matching non ricevono parole chiave. Se il matching è attivo, i membri vedono le loro voci, ma nulla corrisponde.",
       "model": "Modello di IA",
       "modelHint": "Lasciare vuoto = modello predefinito ({model}). Puoi inserire direttamente un nuovo modello.",
       "modelPlaceholder": "Predefinito: {model}",

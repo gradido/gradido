@@ -114,7 +114,7 @@ const settingsRoutes = [
   // The area exists only where one of the two services is switched on -- otherwise the page
   // would stand empty and still be reachable by typing the address. Same reason the matching
   // routes above are not registered without their flag.
-  ...(CONFIG.GMS_ACTIVE || CONFIG.HUMHUB_ACTIVE
+  ...(CONFIG.GMS_LEGACY_ACTIVE || CONFIG.HUMHUB_ACTIVE
     ? [
         {
           path: '/settings/communities',
@@ -130,7 +130,8 @@ const settingsRoutes = [
   {
     path: '/settings/extern',
     redirect: () => ({
-      path: CONFIG.GMS_ACTIVE || CONFIG.HUMHUB_ACTIVE ? '/settings/communities' : '/settings',
+      path:
+        CONFIG.GMS_LEGACY_ACTIVE || CONFIG.HUMHUB_ACTIVE ? '/settings/communities' : '/settings',
     }),
   },
 ]
@@ -294,6 +295,18 @@ const routes = [
     meta: {
       requiresAuth: true,
       pageTitle: 'contacts',
+    },
+  },
+  {
+    // Showing Gradido to somebody: one question, two doors. Reached from the overview tile and
+    // on purpose from nowhere in the menu. No right-hand column, like the contacts: the first
+    // door holds the member's own code, and a code handed across a table should not come with
+    // the last bookings beside it.
+    path: '/show-friends',
+    component: () => import('@/pages/ShowFriends'),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'show-friends',
     },
   },
   {

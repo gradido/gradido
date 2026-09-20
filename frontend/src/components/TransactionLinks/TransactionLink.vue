@@ -46,13 +46,11 @@
             <IBiClipboard />
             {{ $t('gdd_per_link.copy-link') }}
           </BDropdownItem>
-          <BDropdownItem
-            v-if="validLink"
-            class="pt-3 test-copy-text"
-            @click.stop="copyLinkWithText"
-          >
-            <IBiClipboardPlus />
-            {{ $t('gdd_per_link.copy-link-with-text') }}
+          <!-- The device's share sheet where it has one; elsewhere this copies the text, which
+               is what the entry it replaces did. -->
+          <BDropdownItem v-if="validLink" class="pt-3 test-share-link" @click.stop="share">
+            <IBiShare />
+            {{ $t('gdd_per_link.share') }}
           </BDropdownItem>
           <BDropdownItem
             v-if="validLink"
@@ -145,7 +143,7 @@ const emit = defineEmits(['reset-transaction-link-list'])
 
 const { t } = useI18n()
 const { toastSuccess, toastError } = useAppToast()
-const { copyLink, copyLinkWithText } = useCopyLinks({
+const { copyLink, share } = useCopyLinks({
   amount: props.amount,
   validUntil: props.validUntil,
   link: props.link,

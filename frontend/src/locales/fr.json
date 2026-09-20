@@ -173,7 +173,7 @@
     "bookings": "{n} opération | {n} opérations",
     "chatLater": "Historique de conversation — arrivera avec le chat",
     "count": "{n} contact | {n} contacts",
-    "empty": "Pas encore de contacts. Toute personne qui t’envoie des Gradido ou en reçoit de toi apparaît ici.",
+    "empty": "Pas encore de contacts. Ici apparaît toute personne qui échange des Gradido avec toi — ou qui arrive grâce à toi.",
     "favorites": "Favoris",
     "heart": {
       "add": "Ajouter aux favoris",
@@ -184,6 +184,10 @@
     "matches": "Résultats",
     "noFavorites": "Pas encore de favoris. Touche le cœur à côté d’un contact.",
     "notReachable": "Les contacts n’ont pas pu être chargés.",
+    "origin": {
+      "arrival": "connaît Gradido grâce à toi",
+      "referrer": "t’a montré Gradido"
+    },
     "recent": "Récents",
     "remove": {
       "body": "{name} reste dans tes contacts. Tu peux à tout moment remettre {name} en favori.",
@@ -447,7 +451,6 @@
     "copy-link": "Copier le lien",
     "copy-link-with-text": "Copier le lien et le texte",
     "created": "Le lien, le chèque et le QR code ont été créés.",
-    "credit-your-gradido": "Pour l'accréditation du Gradido, cliquer sur le lien!",
     "delete-the-link": "Supprimer le lien?",
     "deleted": "Le lien a été supprimé!",
     "disbured": "Le versement du solde du lien a été initié avec succès ! Le crédit de {n} GDD sera prochainement comptabilisé sur ton compte.",
@@ -458,7 +461,7 @@
     "link-copied": "Le lien a été copié dans le presse-papier. Tu peux désormais le coller dans ton e-mail ou ton message.",
     "link-deleted": "Le lien a été supprimé le on {date}.",
     "link-expired": "Le lien n'est plus valide. Sa validité a expiré le {date}.",
-    "link-hint": "Attention : tout le monde peut utiliser ce lien. Prends-en soin !",
+    "link-hint": "Quiconque a le lien peut l'utiliser. Envoie-le uniquement à la personne à qui il est destiné.",
     "link-overview": "Aperçu du lien",
     "links_count": "Liens actifs",
     "links_open": "{n} ouverts",
@@ -473,11 +476,15 @@
     "redeemed": "Encaissé avec succès ! Ton compte est crédité de {n} GDD.",
     "redeemed-at": "Le lien a déjà été perçu le {date}.",
     "redeemlink-error": "Ce lien d'encaissement n'est pas complet.",
+    "share": "Partager",
+    "share-line1": "{name} te remercie avec {amount} Gradido :",
+    "share-line2": "« {memo} »",
+    "share-line3": "Veux-tu accepter ce remerciement ?",
+    "share-line4": "Il t'attend jusqu'au {date}. Si tu ne l'acceptes pas, il ne se passe rien.",
     "to-login": "Connexion",
     "to-register": "Enregistrer un nouveau compte.",
     "to-switch": "Rediriger maintenant",
-    "validUntil": "Valide jusqu'au",
-    "validUntilDate": "Le lien est valide jusqu'au {date}."
+    "validUntil": "Valide jusqu'au"
   },
   "gdt": {
     "calculation": "Calcul de Gradido Transform",
@@ -782,12 +789,19 @@
     "scanner": "Scanner un code",
     "send": "Envoyer Gradido et e-mail",
     "settings": "Configuration",
+    "show-friends": "Montre-le à tes amis",
     "transactions": "Tes transactions",
     "usersearch": "Recherche géographique de membres (bèta)"
   },
   "public-profile": {
     "address": "Adresse Gradido",
-    "send": "Envoyer des Gradido"
+    "duration": "Un compte chez {communityName} se crée en dix minutes environ. Il te demande ce que tu as fait de bien ces derniers temps.",
+    "echoHint": "{name} apprendra ton arrivée.",
+    "join": "Créer un compte",
+    "lead": "Un réseau de personnes qui s'entraident, s'offrent des choses et se remercient. Gratuit. Communautaire. Open source.",
+    "send": "Envoyer des Gradido",
+    "shows": "{name} te montre Gradido",
+    "showsSomebody": "Quelqu'un te montre Gradido"
   },
   "qrCode": "QR Code",
   "rightSide": {
@@ -970,6 +984,42 @@
       "quota-left": "Tu peux encore changer ton nom d'utilisateur une fois cette année. | Tu peux encore changer ton nom d'utilisateur {n} fois cette année."
     }
   },
+  "showFriends": {
+    "away": {
+      "addressLead": "Ou seulement ton adresse, avec une phrase :",
+      "copied": "La phrase et ton adresse Gradido ont été copiées. Tu peux maintenant les coller dans un message.",
+      "editHint": "Tu peux modifier la phrase avant l'envoi — elle apparaîtra alors dans ta messagerie.",
+      "shareButton": "Partager l'adresse",
+      "shareText": "Regarde, c'est Gradido — un réseau dans lequel nous nous aidons, nous nous offrons des choses et nous nous remercions les uns les autres. Tu me trouves ici : {url}",
+      "thanks": "Envoie un remerciement.",
+      "thanksText": "Tout le monde peut dire merci — avec Gradido, tu peux l'offrir.",
+      "title": "À quelqu'un qui est ailleurs"
+    },
+    "here": {
+      "map": "la carte",
+      "step1": "Montre {map}. Laisse-la taper ce qu'elle cherche.",
+      "step2": "Elle pointe son appareil photo sur ce code.",
+      "step3": "Le compte l'accueille tout seul. Tu n'as rien à expliquer.",
+      "title": "À quelqu'un ici avec moi"
+    },
+    "mirror": {
+      "go": "Montre-le à quelqu'un d'autre",
+      "since": "Parmi nous depuis le {date}.",
+      "text": "C'est beau que tu l'aies montré.",
+      "title": "{name} est là."
+    },
+    "page": {
+      "footer": "Montrer suffit.",
+      "footerLead": "Tu n'as rien à expliquer.",
+      "lead": "Chaque personne qui nous rejoint est un cadeau pour tous les autres — et reçoit en cadeau le réseau avec tous les autres.",
+      "question": "À qui veux-tu le montrer ?"
+    },
+    "tile": {
+      "go": "Comment faire",
+      "text": "Chaque personne qui nous rejoint est un cadeau pour tous — et reçoit en cadeau tout le réseau.",
+      "title": "Montre-le à tes amis"
+    }
+  },
   "signin": "S'identifier",
   "signup": "S'inscrire",
   "site": {
@@ -986,6 +1036,7 @@
       "minimum": "8 caractères minimum.",
       "no-whitespace": "Pas d'espace ni d'onglet",
       "one_number": "Un chiffre requis.",
+      "shownBy": "{name} t'a montré Gradido. Ça fait plaisir que tu sois là.",
       "special-char": "Un caractère spécial requis (e.g. _ or ä)",
       "uppercase": "Une lettre majuscule requise."
     }

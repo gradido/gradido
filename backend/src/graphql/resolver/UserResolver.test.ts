@@ -28,6 +28,7 @@ import {
   Event as DbEvent,
   FederatedCommunity as DbFederatedCommunity,
   dbInsertMatchingEntry,
+  userFactory as dbUserFactory,
   TransactionLink,
   User,
   UserAlias,
@@ -49,7 +50,12 @@ import {
 } from 'shared'
 import { QueryRunner } from 'typeorm'
 import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
-import { deleteGmsUser, putGmsMatchingEntrySnapshots, upsertGmsUsers } from '@/apis/gms/GmsClient'
+import {
+  deleteGmsUser,
+  putGmsMatchingEntrySnapshots,
+  upsertGmsUsers,
+  verifyAuthToken,
+} from '@/apis/gms/GmsClient'
 import { subscribe } from '@/apis/KlicktippController'
 import { encode } from '@/auth/JWT'
 import { CONFIG } from '@/config'
@@ -85,8 +91,10 @@ import {
 } from '@/seeds/graphql/mutations'
 import {
   aliasStatus,
+  authenticateGmsUserSearch,
   avatarFull,
   checkUsername,
+  gmsDashboardUrl,
   memberAvatarFull,
   memberAvatars,
   queryOptIn,
@@ -123,6 +131,8 @@ jest.mock('@/apis/gms/GmsClient', () => {
     upsertGmsUsers: jest.fn(),
     putGmsMatchingEntrySnapshots: jest.fn(),
     deleteGmsUser: jest.fn(),
+    // Watched by the dashboard-url tests: the one call that mints a member token over there.
+    verifyAuthToken: jest.fn(),
   }
 })
 
@@ -629,8 +639,125 @@ describe('UserResolver', () => {
           }))
         })
       })
-    
+
       */
+    })
+
+    describe('the Gradido address the registration started at (referrerAlias)', () => {
+      // "Konto anlegen" on /u/<alias> carries the alias into createUser, and its owner
+      // becomes the referrer - silently: nothing in the answer tells whether it happened.
+      let bob: User
+      let link: ContributionLink
+      const results: Record<string, any> = {}
+
+      const register = async (email: string, extra: Record<string, string>) => {
+        results[email] = await mutate({
+          mutation: createUser,
+          variables: { firstName: 'Carla', lastName: 'Neu', language: 'de', email, ...extra },
+        })
+      }
+
+      const registered = async (email: string): Promise<User> =>
+        (await UserContact.findOneOrFail({ where: { email }, relations: ['user'] })).user
+
+      beforeAll(async () => {
+        await cleanDB()
+        bob = await userFactory(testEnv, bobBaumeister)
+        // A deleted member who still holds a name.
+        await userFactory(testEnv, { ...stephenHawking, alias: 'BlackHoles' })
+        // A member of another community, whose name exists only over there.
+        const otherCommunity = await DbCommunity.create({
+          foreign: true,
+          url: 'http://other.invalid/api/',
+          publicKey: randomBytes(32),
+          communityUuid: uuidv4(),
+          authenticatedAt: new Date(),
+          name: 'Other community',
+          description: 'a name that exists only over there',
+          creationDate: new Date(),
+        }).save()
+        await dbUserFactory(
+          {
+            alias: 'FarAway',
+            email: 'far@away.invalid',
+            firstName: 'Far',
+            lastName: 'Away',
+            emailChecked: true,
+            language: 'de',
+          },
+          otherCommunity,
+        )
+        const tomorrow = new Date()
+        tomorrow.setDate(tomorrow.getDate() + 1)
+        link = await contributionLinkFactory(testEnv, {
+          name: 'Market day',
+          memo: 'Thank you for coming to the market day',
+          amount: 200,
+          validFrom: new Date(),
+          validTo: tomorrow,
+        })
+        resetToken()
+
+        await register('by@alias.de', { referrerAlias: 'MeisterBob' })
+        await register('by@unknown-alias.de', { referrerAlias: 'NobodyHere' })
+        await register('by@gradido-id.de', { referrerAlias: bob.gradidoID })
+        await register('by@deleted-member.de', { referrerAlias: 'BlackHoles' })
+        await register('by@other-community.de', { referrerAlias: 'FarAway' })
+        await register('by@link-and-alias.de', {
+          referrerAlias: 'MeisterBob',
+          redeemCode: 'CL-' + link.code,
+        })
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+      })
+
+      it('makes the owner of the alias the referrer', async () => {
+        await expect(registered('by@alias.de')).resolves.toEqual(
+          expect.objectContaining({ referrerId: bob.id }),
+        )
+      })
+
+      it('leaves no trace for an alias nobody holds', async () => {
+        await expect(registered('by@unknown-alias.de')).resolves.toEqual(
+          expect.objectContaining({ referrerId: null }),
+        )
+      })
+
+      it('leaves no trace for a gradido ID, although its owner exists', async () => {
+        await expect(registered('by@gradido-id.de')).resolves.toEqual(
+          expect.objectContaining({ referrerId: null }),
+        )
+      })
+
+      it('leaves no trace for the name of a deleted member', async () => {
+        await expect(registered('by@deleted-member.de')).resolves.toEqual(
+          expect.objectContaining({ referrerId: null }),
+        )
+      })
+
+      it('leaves no trace for a name that exists only in another community', async () => {
+        await expect(registered('by@other-community.de')).resolves.toEqual(
+          expect.objectContaining({ referrerId: null }),
+        )
+      })
+
+      it('lets a redeem code win over the address', async () => {
+        await expect(registered('by@link-and-alias.de')).resolves.toEqual(
+          expect.objectContaining({ referrerId: null, contributionLinkId: link.id }),
+        )
+      })
+
+      it('answers every one of them the same way - no error, the same shape', () => {
+        expect(Object.keys(results)).toHaveLength(6)
+        for (const result of Object.values(results)) {
+          expect({ data: result.data, errors: result.errors }).toEqual({
+            data: { createUser: { id: expect.any(Number) } },
+            errors: undefined,
+          })
+        }
+      })
     })
   })
 
@@ -4049,6 +4176,95 @@ describe('UserResolver', () => {
       expect(upsertMock).not.toHaveBeenCalled()
       const stored = await User.findOneOrFail({ where: { id: member.id } })
       expect(stored.gmsRegistered).toBe(false)
+    })
+  })
+
+  // Where the GMS answers, for the wallet's place search on the home map. It has to reach
+  // exactly the members the token query turns away: whoever switched "findable" off, and
+  // whoever the GMS has never been sent. Without the search they cannot set their home.
+  describe('gms dashboard url', () => {
+    const verifyMock = verifyAuthToken as jest.Mock
+    const dashboardUrlBefore = CONFIG.GMS_DASHBOARD_URL
+    let member: User
+
+    beforeAll(async () => {
+      await cleanDB()
+      const homeCom = await writeHomeCommunityEntry()
+      homeCom.gmsApiKey = 'gms-test-key'
+      await DbCommunity.save(homeCom)
+
+      member = await userFactory(testEnv, bibiBloxberg)
+      await User.update({ id: member.id }, { gmsAllowed: false, gmsRegistered: false })
+    })
+
+    afterAll(async () => {
+      CONFIG.GMS_ACTIVE = false
+      CONFIG.GMS_DASHBOARD_URL = dashboardUrlBefore
+      resetToken()
+      await cleanDB()
+    })
+
+    describe('unauthenticated', () => {
+      it('throws an error', async () => {
+        resetToken()
+        CONFIG.GMS_ACTIVE = true
+        await expect(query({ query: gmsDashboardUrl })).resolves.toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('401 Unauthorized')],
+          }),
+        )
+      })
+    })
+
+    describe('authenticated, as a member who does not take part in the GMS', () => {
+      beforeAll(async () => {
+        await mutate({
+          mutation: login,
+          variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+        })
+      })
+
+      beforeEach(() => {
+        verifyMock.mockReset()
+        CONFIG.GMS_ACTIVE = true
+        CONFIG.GMS_DASHBOARD_URL = 'https://gms.example.org'
+      })
+
+      it('hands out the configured address, closed with a slash', async () => {
+        // The fixture itself, or the line below would hold for any member.
+        const stored = await User.findOneOrFail({ where: { id: member.id } })
+        expect(stored.gmsAllowed).toBe(false)
+
+        await expect(query({ query: gmsDashboardUrl })).resolves.toMatchObject({
+          errors: undefined,
+          data: { gmsDashboardUrl: 'https://gms.example.org/' },
+        })
+      })
+
+      it('asks the GMS nothing to do so', async () => {
+        await query({ query: gmsDashboardUrl })
+
+        expect(verifyMock).not.toHaveBeenCalled()
+      })
+
+      // The same fixture, the query next to it: that one does mint a token, with this
+      // member's id. So the silence above is the new query's, not the mock's.
+      it('while the token query next to it does ask', async () => {
+        verifyMock.mockResolvedValue('a-token')
+
+        await query({ query: authenticateGmsUserSearch })
+
+        expect(verifyMock).toHaveBeenCalledWith('gms-test-key', expect.any(String))
+      })
+
+      it('answers null where this server has no GMS', async () => {
+        CONFIG.GMS_ACTIVE = false
+
+        await expect(query({ query: gmsDashboardUrl })).resolves.toMatchObject({
+          errors: undefined,
+          data: { gmsDashboardUrl: null },
+        })
+      })
     })
   })
 

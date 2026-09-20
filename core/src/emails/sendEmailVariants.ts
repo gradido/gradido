@@ -341,12 +341,18 @@ export const sendThankYouCardPaidEmail = (
   })
 }
 
+/**
+ * `newMember` adds a half-sentence: the person who redeemed the link opened their account
+ * with it. Optional because the cross-community caller cannot know - there the account was
+ * registered in the other community, and the event that would say so is in its database.
+ */
 export const sendTransactionLinkRedeemedEmail = (
   data: EmailCommonData & {
     senderAlias: string
     senderCommunity: string
     transactionMemo: string
     transactionAmount: GradidoUnit
+    newMember?: boolean
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({

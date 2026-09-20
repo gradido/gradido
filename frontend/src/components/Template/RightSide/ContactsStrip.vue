@@ -19,7 +19,11 @@
          posture declares its own four states now: loading, failed, empty, content. -->
     <template v-else>
       <div v-if="!favorites.length" class="small text-muted mb-2" data-test="contacts-strip-empty">
-        {{ page.count === 0 ? $t('contacts.empty') : $t('contacts.noFavorites') }}
+        <!-- ⛔ Two different nothings, and only the first one gets the way out. A member
+             who HAS contacts but no hearts is not looking for somebody to show Gradido
+             to -- they are looking for the heart. -->
+        <contacts-empty v-if="page.count === 0" />
+        <template v-else>{{ $t('contacts.noFavorites') }}</template>
       </div>
       <!-- The tiles stand even with nobody in them: the trailing tile is the only way from
            here to the full list. -->
@@ -35,6 +39,7 @@ import { computed } from 'vue'
 import { useApolloClient } from '@vue/apollo-composable'
 import { BSpinner } from 'bootstrap-vue-next'
 import ContactTiles from '@/components/Contacts/ContactTiles.vue'
+import ContactsEmpty from '@/components/Contacts/ContactsEmpty.vue'
 import ContactWindow from '@/components/Contacts/ContactWindow.vue'
 import { contactDisplay } from '@/components/Contacts/contactDisplay'
 import { contactsPanelState } from '@/composables/useContactsPanel'
