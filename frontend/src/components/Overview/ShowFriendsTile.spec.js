@@ -8,6 +8,16 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import ShowFriendsTile from './ShowFriendsTile.vue'
 import ContactWindow from '@/components/Contacts/ContactWindow.vue'
+import { avatarZoomState, closeAvatarZoom } from '@/composables/useAvatarZoom'
+import {
+  fetchMemberAvatars,
+  forgetAllMemberAvatars,
+  rememberMemberAvatars,
+} from '@/composables/useMemberAvatars'
+import { AVATAR_COLOR_PALETTE } from '@/utils/avatarColor'
+import { readFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import en from '@/locales/en.json'
 
 const queryResult = ref(undefined)
@@ -22,6 +32,14 @@ vi.mock('@/composables/useShowFriendsSeen', () => ({
   useShowFriendsSeen: () => ({ seen, markSeen: vi.fn() }),
 }))
 
+// ⛔ A PARTIAL mock: only the round trip is replaced. The picture store itself stays real,
+// because the face this file is about is drawn out of it -- a whole-module mock would make
+// every assertion below about the mock instead of about the tile.
+vi.mock('@/composables/useMemberAvatars', async (importOriginal) => ({
+  ...(await importOriginal()),
+  fetchMemberAvatars: vi.fn(),
+}))
+
 const i18n = createI18n({ legacy: false, locale: 'en', messages: { en } })
 
 // The real route path, so the link is resolved by a router rather than read off a prop.
@@ -31,6 +49,26 @@ const router = createRouter({
 })
 
 const DAY_MS = 24 * 60 * 60 * 1000
+
+/** When this member's picture last changed -- the key their face is stored under. */
+const PICTURE_DATE = new Date('2026-09-01T10:00:00.000Z')
+
+/** A palette entry as the browser writes it back in a computed style. */
+const asRgb = (hex) => {
+  const n = Number.parseInt(hex.slice(1), 16)
+  return `rgb(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255})`
+}
+
+/** Puts a picture on this device for the arrival, the way a fetched answer does. */
+const deviceHasThePicture = () =>
+  rememberMemberAvatars([
+    {
+      communityUuid: 'home-uuid',
+      gradidoID: 'g-carla',
+      avatar: 'carla-picture',
+      avatarUpdatedAt: PICTURE_DATE,
+    },
+  ])
 
 /**
  * ⚠️ The date is an INGREDIENT, not a clock: the fixture says how long ago the arrival
@@ -43,6 +81,8 @@ const arrival = (daysAgo, first) => ({
     latestArrival: {
       gradidoID: 'g-carla',
       alias: 'carla-sonne',
+      avatarColorIndex: 4,
+      avatarUpdatedAt: PICTURE_DATE.toISOString(),
       createdAt: new Date(Date.now() - daysAgo * DAY_MS).toISOString(),
       first,
     },
@@ -64,7 +104,11 @@ const mountTile = () =>
 beforeEach(() => {
   queryResult.value = undefined
   seen.value = false
+  localStorage.clear()
+  forgetAllMemberAvatars()
+  closeAvatarZoom()
   apolloQuery.mockReset()
+  fetchMemberAvatars.mockReset()
   // Nobody found: the window then stands on what the tile handed it, which is the half
   // this file is about. What a found contact adds is useContactWindow's own spec.
   apolloQuery.mockResolvedValue({ data: { contactList: { contacts: [] } } })
@@ -185,10 +229,14 @@ describe('ShowFriendsTile', () => {
       const window = (await tapName()).findComponent(ContactWindow)
 
       expect(window.props('modelValue')).toBe(true)
+      // The WHOLE member, face included: the window opens at once on what it is handed,
+      // so the circle it shows must be the one the tile already shows.
       expect(window.props('contact').user).toEqual({
         gradidoID: 'g-carla',
         communityUuid: 'home-uuid',
         alias: 'carla-sonne',
+        avatarColorIndex: 4,
+        avatarUpdatedAt: PICTURE_DATE.toISOString(),
       })
     })
 
@@ -216,6 +264,112 @@ describe('ShowFriendsTile', () => {
       seen.value = false
       queryResult.value = undefined
       expect(mountTile().find('[data-test="show-friends-tile-name"]').exists()).toBe(false)
+    })
+  })
+  /**
+   * The face beside the news, at the size the contact window shows it (variant D, Bernd
+   * 20.09.2026): the tile is a preview of the very thing the tap opens.
+   */
+  describe('the face', () => {
+    const mirror = () => {
+      queryResult.value = arrival(1, false)
+      return mountTile()
+    }
+
+    it('draws the arrival with the letters and the colour the answer carries', () => {
+      const avatar = mirror().find('.app-avatar')
+
+      expect(avatar.text()).toBe('CA')
+      // The server's digit, not a colour worked out here: 4 is what the fixture sends.
+      // Read out of the palette rather than written down, so it follows a palette change
+      // instead of pinning a hex nobody would think to update.
+      expect(avatar.attributes('style')).toContain(asRgb(AVATAR_COLOR_PALETTE[4].bg))
+    })
+
+    it('asks for the picture with the date the answer carries', () => {
+      mirror()
+
+      expect(fetchMemberAvatars).toHaveBeenCalledWith(expect.anything(), [
+        expect.objectContaining({
+          gradidoID: 'g-carla',
+          communityUuid: 'home-uuid',
+          avatarUpdatedAt: PICTURE_DATE.toISOString(),
+        }),
+      ])
+    })
+
+    /**
+     * ⛔ With the REAL AppAvatar, and that is the point. A zoomable avatar renders its own
+     * `<button>` and stops the click -- nested inside the name button it would swallow the
+     * tap meant for the contact window, and only for members who happen to have a picture,
+     * which would make one circle behave two ways.
+     *
+     * Measured: with a picture on the device the tile has TWO buttons, neither inside the
+     * other. The count proves the fixture too -- without a picture the second one does not
+     * exist at all, so a test that only counted nesting would pass for the wrong reason.
+     */
+    it('makes the picture open big without swallowing the tap on the name', async () => {
+      deviceHasThePicture()
+      const wrapper = mirror()
+
+      expect(wrapper.findAll('button')).toHaveLength(2)
+      expect(wrapper.findAll('button button')).toHaveLength(0)
+
+      await wrapper.find('.app-avatar').trigger('click')
+      expect(avatarZoomState.value?.member?.gradidoID).toBe('g-carla')
+    })
+
+    it('leaves the circle plain where there is no picture', () => {
+      const wrapper = mirror()
+
+      // Only the name is a button: `avatarZoomBindings` hands back nothing for a member
+      // without a picture, so the circle stays the plain, unclickable one it always was.
+      expect(wrapper.findAll('button')).toHaveLength(1)
+    })
+  })
+  /**
+   * The two spacing rules the mockup settled, read out of the source.
+   *
+   * ⛔ A value handed to the browser cannot be measured here: jsdom lays nothing out, so
+   * `margin-bottom` is a string no rendered assertion can see. The house answer is a drift
+   * test over the SOURCE (`useViewport.drift.spec.js`), and it has to read CODE -- the
+   * comments come out first, or a rule's own explanation would go on satisfying the search
+   * after the declaration had been deleted. Measured in a browser at the built component:
+   * 24px below the switch, 16px above it.
+   */
+  describe('the spacing settled at the mockup', () => {
+    const here = dirname(fileURLToPath(import.meta.url))
+    const source = readFileSync(resolve(here, 'ShowFriendsTile.vue'), 'utf8')
+    const code = source
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/^\s*\/\/.*$/gm, '')
+
+    // The stripper took the comments and not the file.
+    it('reads code, not the notes beside it', () => {
+      expect(source).toContain('klebt das so aneinander')
+      expect(code).not.toContain('klebt das so aneinander')
+      expect(code).toContain('.show-friends-mirror {')
+    })
+
+    /**
+     * Below the layout's own switch the button stops being right-aligned and lies full
+     * width directly under the block, where the desk's 16px reads as stuck to it (Bernd,
+     * 20.09.2026). ⛔ 1025, never Bootstrap's 992 -- useViewport.drift.spec.js rejects
+     * that number across the whole tree for the same reason.
+     */
+    it('gives the block more air above the button on a narrow screen', () => {
+      const narrow = code.match(/@media \(width <= 1024\.98px\) \{([\s\S]*?)\n\}/)
+
+      expect(narrow).not.toBeNull()
+      expect(narrow[1]).toContain('.show-friends-mirror')
+      expect(narrow[1]).toContain('margin-bottom: 1.5rem')
+    })
+
+    // A user name may be twenty characters, and a flex item's default minimum is its
+    // content: without this the heading widens the row instead of wrapping inside the card.
+    it('lets the heading wrap rather than widen the row', () => {
+      expect(code).toMatch(/\.show-friends-mirror-text \{[^}]*min-width: 0/)
     })
   })
 })

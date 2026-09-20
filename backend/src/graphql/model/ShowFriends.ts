@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { Field, ObjectType } from 'type-graphql'
+import { Field, Int, ObjectType } from 'type-graphql'
 
 /**
  * Somebody who arrived over this member: who they are, their public name, when they got
@@ -31,6 +31,30 @@ export class ShowFriendsArrival {
 
   @Field()
   alias: string
+
+  /**
+   * The circle's colour as a finished palette digit, the same one the contact list and
+   * the booking rows carry (NU-017): the backend hashes the real initials and hands out
+   * only the result, so the arrival's circle on the tile is the colour that member has
+   * everywhere else -- without this side ever learning their name (NU-019).
+   *
+   * Null where it cannot be worked out, and everything then falls back to the seed path
+   * `AppAvatar` uses for members whose names this browser still receives.
+   */
+  @Field(() => Int, { nullable: true })
+  avatarColorIndex: number | null
+
+  /**
+   * When this member's picture last changed, or null where they have none to show.
+   *
+   * ⛔ The DATE, never the picture. It is what the wallet's own picture store is keyed by:
+   * a date that matches what the device already holds means nothing has to be fetched, and
+   * a null means "no picture" -- which is also how a member who switched theirs off leaves
+   * this device. The same shape the booking list and the contact list deliver, and
+   * `dbFindMemberAvatarTimestamps` is the one query that answers it, guard included.
+   */
+  @Field(() => Date, { nullable: true })
+  avatarUpdatedAt: Date | null
 
   @Field(() => Date)
   createdAt: Date

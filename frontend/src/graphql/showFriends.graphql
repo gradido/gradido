@@ -12,6 +12,11 @@ query showFriends {
       # an arrival is by construction a member of this one.
       gradidoID
       alias
+      # The face, in the two pieces every list here asks for: the finished colour digit
+      # (NU-017) and the date the picture last changed -- the key the wallet's own picture
+      # store answers by. Never the picture itself.
+      avatarColorIndex
+      avatarUpdatedAt
       createdAt
       first
     }
