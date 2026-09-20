@@ -412,10 +412,11 @@ const confirmedArrival = (member: TraceMemberColumns, address: TraceAddressColum
 /**
  * The public name of whoever brought this member here, or null when nobody did.
  *
- * `users.referrer_id` has been written since 2022 and never read; this is the first
- * reader. Through `publicAlias`, because the wallet puts the answer in front of the
- * member and a stored alias of one or two characters is not a name (the rule lives in
- * `shared` so all three packages give the same answer).
+ * `users.referrer_id` has been written since 2022 and this was its first reader; the
+ * contact list is the second and third (`dbSelectReferralContactsByUserId` below).
+ * Through `publicAlias`, because the wallet puts the answer in front of the member and a
+ * stored alias of one or two characters is not a name (the rule lives in `shared` so all
+ * three packages give the same answer).
  *
  * A referrer whose account is gone is no answer: the wallet would offer to thank somebody
  * who cannot receive anything. That condition is `reachableOnTrace` above, shared with
@@ -534,8 +535,10 @@ export type ReferralContact = {
  * over both and the contact carries its bookings AND its origin.
  *
  * ⛔ The conditions are `reachableOnTrace` and `confirmedArrival` above, the same two the
- * overview tile stands on. Only confirmed arrivals appear, which is what keeps this from
- * being a way to plant yourself in a stranger's list (KF-013).
+ * overview tile stands on. Only confirmed arrivals appear -- which does not make planting
+ * yourself in a stranger's list impossible, it makes it exactly as hard as raising an echo
+ * at them: a confirmed address, one per person. With a booking anybody can do the same
+ * today, which is the measured reason KF-015 leaves removal for later.
  *
  * ⛔ `alias` is the stored one, raw, exactly as the booking branch of the contact list
  * hands it over -- NOT `publicAlias`. The list searches on this field, and the fallback to

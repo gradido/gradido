@@ -84,8 +84,9 @@ export class Contact {
    * wallet ever says out loud -- there the line under the name is the number of bookings.
    * A contact can carry both a count and an origin; both lines are then shown.
    *
-   * ⛔ There is no count of the people who came over this member, here or anywhere else. A
-   * line on one person is a mirror, a sum over them is a score (KF-014, ZE-007).
+   * ⛔ And it stays a line on ONE person. No field here counts how many came over this
+   * member, and none should be added: a line on one person is a mirror, a sum over them is
+   * a score (KF-014, ZE-007). The same decision keeps `ShowFriends` without a count.
    */
   @Field(() => ContactOrigin, { nullable: true })
   origin: ContactOrigin | null
