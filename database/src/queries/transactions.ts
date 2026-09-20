@@ -1,11 +1,12 @@
 import { and, eq, inArray, isNotNull, isNull, ne, sql } from 'drizzle-orm'
-import { GradidoUnit, isAliasEraName, Order, VoidResult } from 'shared'
+import { ContactOrigin, GradidoUnit, isAliasEraName, Order, VoidResult } from 'shared'
 import { FindOptionsWhere, In, IsNull } from 'typeorm'
 import { drizzleDb } from '../AppDatabase'
 import { Transaction as DbTransaction } from '../entity'
 import { TransactionTypeId } from '../enum'
 import { DBNotFoundError } from '../errorTypes'
 import { transactionsTable, usersTable } from '../schemas'
+import { dbSelectReferralContactsByUserId } from './user'
 
 export const getLastTransaction = async (
   userId: number,
@@ -103,6 +104,11 @@ export const bookingsWhere = (
  * carry no pair at all. Where the asked-about pair resolved to no row (`localUserId` null),
  * no local contact can match, which is the closed answer and the same one the where clause
  * gives by leaving its id branch out.
+ *
+ * ⚠️ A contact off the referral trace alone matches here too, through its `users` row, and
+ * answers with a count of 0 over an empty booking list -- which is the two rules agreeing,
+ * not drifting. What must not happen is a LINK to that empty list, and the window does not
+ * draw one where the count is 0 (ContactWindow.vue).
  */
 const isContactCounterparty = (row: ContactRow, counterparty: BookingCounterparty): boolean =>
   row.linkedUserId !== null
@@ -110,7 +116,8 @@ const isContactCounterparty = (row: ContactRow, counterparty: BookingCounterpart
     : row.gradidoId === counterparty.gradidoId && row.communityUuid === counterparty.communityUuid
 
 /**
- * The two groupings can describe the SAME person twice -- joined back into one contact.
+ * The three bundles can describe the SAME person more than once -- joined back into one
+ * contact, which carries whatever each of them knew.
  *
  * A member of another community whose `users` row the federation stored at some point has
  * bookings of BOTH shapes: the older ones carry no `linked_user_id` and are grouped by the
@@ -130,6 +137,11 @@ const isContactCounterparty = (row: ContactRow, counterparty: BookingCounterpart
  * from `users` (NOT NULL since migration 0134), and a booking with another community always
  * records theirs, because a community without a uuid is unverified and cannot take part in
  * one. The `null` check is what the column's type demands, not a case that occurs.
+ *
+ * ⚠️ The referral bundle joins the same way and for the same reason: somebody who came
+ * here over this member and has since sent them Gradido is ONE contact, with the count
+ * from the booking and the origin from the trace. Its rows always carry the pair (a `users`
+ * row has both columns), so they are never the ones left alone below.
  *
  * ★ And the merge is safe even where the assumption behind it does not hold. The pair is
  * what `users.uuid_key` makes unique (migration 0073), so two rows carrying it ARE one
@@ -157,6 +169,11 @@ const mergeSamePerson = (rows: ContactRow[]): ContactRow[] => {
       seen.alias = row.alias
       seen.deletedAt = row.deletedAt
     }
+    // The origin survives the join: a booking row carries none, so a person who is both a
+    // counterparty and on the referral trace keeps the trace's word whichever of the two
+    // rows was seen first. Two origins for one person cannot arise -- the trace has one row
+    // per direction and a person is at one end of it, not both.
+    seen.origin = seen.origin ?? row.origin
     // Exactly what `bookingsWhere` would count over both branches together.
     if (row.firstAt < seen.firstAt) {
       seen.firstAt = row.firstAt
@@ -248,11 +265,26 @@ export interface ContactRow {
   firstAt: Date
   lastAt: Date
   bookings: number
+  /**
+   * What made the two of them contacts where it was not a booking -- null for a row that
+   * came out of the bookings, which is what the list was built on and needs no name for.
+   *
+   * A contact can carry both: somebody who came here over this member and has since sent
+   * them Gradido is one contact with a count AND an origin, joined by `mergeSamePerson`.
+   */
+  origin: ContactOrigin | null
 }
 
 export interface ContactsPage {
   contacts: ContactRow[]
-  /** The number of PEOPLE this member has exchanged Gradido with, not of bookings. */
+  /**
+   * The number of PEOPLE in the list, not of bookings -- everyone the member has exchanged
+   * Gradido with plus everyone the referral trace puts beside them, each counted once.
+   *
+   * ⛔ One number for the whole list. There is deliberately no count of the people who
+   * came over this member: a line on one person is a mirror, a sum over them is a score
+   * (KF-014, ZE-007).
+   */
   count: number
 }
 
@@ -279,12 +311,14 @@ const aliasOrNull = (stored: unknown): string | null => {
 }
 
 /**
- * Everyone this member has ever exchanged Gradido with -- each person once, newest contact
- * first, with the dates of the first and the latest booking and how many there were.
+ * Everyone this member shares an event with -- each person once, newest contact first, with
+ * the dates of the first and the latest of those events and how many bookings there were.
  *
- * A grouping over `transactions`, not a table of its own: the counterparty already sits on
- * every SEND and RECEIVE row (four columns, written by executeTransaction), so the list is
- * a VIEW on the bookings and needs neither a migration nor a second truth.
+ * A VIEW, not a table of its own, and that is what lets it have TWO sources without a
+ * second truth to keep in step (KF-012). The counterparty of a booking already sits on
+ * every SEND and RECEIVE row (four columns, written by executeTransaction); who brought
+ * whom here already sits in `users.referrer_id`. Neither needed a migration and neither
+ * needs a process that writes a contact somewhere when something happens.
  *
  * ★ Two groupings, one list. A member of this community is grouped by `linked_user_id`
  * (old rows may lack the uuid pair; grouping by the pair would split one person into
@@ -368,6 +402,14 @@ export async function dbSelectContactsByUserId(
     )
     .groupBy(transactionsTable.linkedUserCommunityUuid, transactionsTable.linkedUserGradidoId)
 
+  // The third bundle: the people this member is a contact of through the referral trace,
+  // with no bookings behind them yet (KF-012). Fetched HERE rather than handed in by the
+  // caller, and that is deliberate -- "everybody, each once" is this function's promise,
+  // and the contact window reads its figures through the very same function. A caller who
+  // forgot to pass the bundle would hold a list of a different length than the window over
+  // it, with nothing on either screen to say which was right.
+  const referrals = await dbSelectReferralContactsByUserId(userId)
+
   const rows: ContactRow[] = [
     ...local.map((row) => ({
       linkedUserId: row.linkedUserId,
@@ -378,6 +420,7 @@ export async function dbSelectContactsByUserId(
       firstAt: row.firstAt,
       lastAt: row.lastAt,
       bookings: row.bookings,
+      origin: null,
     })),
     ...remote.map((row) => ({
       linkedUserId: null,
@@ -389,7 +432,12 @@ export async function dbSelectContactsByUserId(
       firstAt: row.firstAt,
       lastAt: row.lastAt,
       bookings: row.bookings,
+      origin: null,
     })),
+    // ⛔ BEHIND the two booking bundles, so that where the same person is in both, the
+    // booking row is the one `mergeSamePerson` keeps the identity of -- it is the one that
+    // carries a deletion mark and the name off the newest booking.
+    ...referrals,
   ]
 
   // Each person once, whichever of the two groupings found them -- before anything counts,

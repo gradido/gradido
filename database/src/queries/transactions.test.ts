@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { GradidoUnit, Order } from 'shared'
+import { ContactOrigin, GradidoUnit, Order } from 'shared'
 import { clearDatabase } from '../../migration/clear'
 import { User as DbUser } from '..'
 import { AppDatabase } from '../AppDatabase'
@@ -419,5 +419,131 @@ describe('dbSelectTransactionsByUserId narrowed to one counterparty', () => {
     const [rows, count] = await page(bibi.id, nobody)
     expect(count).toBe(0)
     expect(rows).toEqual([])
+  })
+})
+
+/**
+ * The second source: people the referral trace puts beside this member, with and without
+ * bookings behind them (KF-012).
+ *
+ * ⚠️ LAST in the file and it puts every column it touches back, because it writes
+ * `referrer_id` onto members the blocks above count and order. Its own member is created
+ * here rather than in the shared fixture for the same reason -- an extra row in `users`
+ * would move the counts those blocks assert.
+ */
+describe('dbSelectContactsByUserId with the referral trace', () => {
+  let carla: DbUser
+
+  beforeAll(async () => {
+    // Nobody has exchanged anything with her: the whole reason she is a contact is that she
+    // came here over bibi.
+    carla = await userFactory({
+      email: 'carla@arrival.de',
+      alias: 'carlaSunshine',
+      emailChecked: true,
+      createdAt: day(10),
+    })
+    await DbUser.update(carla.id, { referrerId: bibi.id })
+    // bob came over bibi AND has two bookings with her: one contact, both truths. His
+    // registration is dated after both of them, so the joined span has to reach forward.
+    await DbUser.update(bob.id, { referrerId: bibi.id, createdAt: day(11) })
+    // The other direction: peter showed bibi Gradido, and they have booked three times.
+    await DbUser.update(bibi.id, { referrerId: peter.id })
+  })
+
+  afterAll(async () => {
+    await DbUser.update([carla.id, bob.id, bibi.id], { referrerId: null })
+    await DbUser.update(bob.id, { createdAt: bob.createdAt })
+  })
+
+  const contactsOf = async (userId: number) =>
+    (await dbSelectContactsByUserId(userId, { limit: 25, offset: 0 })).contacts
+
+  it('adds somebody with no bookings at all as a contact of their own', async () => {
+    const carlaRow = (await contactsOf(bibi.id)).find((c) => c.linkedUserId === carla.id)
+    expect(carlaRow).toMatchObject({
+      linkedUserId: carla.id,
+      gradidoId: carla.gradidoID,
+      alias: 'carlaSunshine',
+      bookings: 0,
+      origin: ContactOrigin.ARRIVAL,
+      deletedAt: null,
+    })
+    // One moment, not a span: an arrival happened once.
+    expect(carlaRow?.firstAt.getTime()).toBe(day(10).getTime())
+    expect(carlaRow?.lastAt.getTime()).toBe(day(10).getTime())
+  })
+
+  it('joins a booking counterparty and an arrival into ONE contact', async () => {
+    const rows = (await contactsOf(bibi.id)).filter((c) => c.linkedUserId === bob.id)
+    expect(rows).toHaveLength(1)
+    // The bookings are untouched by the second source, and the origin came along.
+    expect(rows[0]).toMatchObject({ bookings: 2, origin: ContactOrigin.ARRIVAL })
+    // Oldest of both sources, newest of both -- not one source's pair of dates.
+    expect(rows[0].firstAt.getTime()).toBe(day(2).getTime())
+    expect(rows[0].lastAt.getTime()).toBe(day(11).getTime())
+  })
+
+  it("joins the other direction too, and dates it with the asking member's arrival", async () => {
+    const rows = (await contactsOf(bibi.id)).filter((c) => c.linkedUserId === peter.id)
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toMatchObject({ bookings: 3, origin: ContactOrigin.REFERRER })
+    // bibi registered in 2021, long before the first booking with peter.
+    expect(rows[0].firstAt.getTime()).toBe(bibi.createdAt.getTime())
+    expect(rows[0].lastAt.getTime()).toBe(day(4).getTime())
+  })
+
+  it('leaves a contact that is only a booking without an origin', async () => {
+    const anna = (await contactsOf(bibi.id)).find((c) => c.gradidoId === ANNA)
+    expect(anna).toMatchObject({ bookings: 1, origin: null })
+  })
+
+  it('counts the new person once, and nobody twice', async () => {
+    const page = await dbSelectContactsByUserId(bibi.id, { limit: 25, offset: 0 })
+    // The five from the bookings plus carla; bob and peter were contacts already.
+    expect(page.count).toBe(6)
+    expect(page.contacts).toHaveLength(6)
+    expect(new Set(page.contacts.map((c) => c.gradidoId)).size).toBe(6)
+  })
+
+  it('pages over the joined list without a duplicate or a gap', async () => {
+    const first = await dbSelectContactsByUserId(bibi.id, { limit: 3, offset: 0 })
+    const second = await dbSelectContactsByUserId(bibi.id, { limit: 3, offset: 3 })
+    const seen = [...first.contacts, ...second.contacts].map((c) => c.gradidoId)
+    expect(seen).toHaveLength(6)
+    expect(new Set(seen).size).toBe(6)
+  })
+
+  it('finds her by her alias, like any other contact', async () => {
+    const page = await dbSelectContactsByUserId(bibi.id, {
+      search: 'sunshine',
+      limit: 25,
+      offset: 0,
+    })
+    expect(page.count).toBe(1)
+    expect(page.contacts[0].linkedUserId).toBe(carla.id)
+  })
+
+  it('answers her by the pair, which is what the contact window asks with', async () => {
+    const carlaRef = await withMember(carla.communityUuid as string, carla.gradidoID)
+    expect(carlaRef.localUserId).toBe(carla.id)
+    const page = await dbSelectContactsByUserId(bibi.id, {
+      counterparty: carlaRef,
+      limit: 25,
+      offset: 0,
+    })
+    expect(page.count).toBe(1)
+    expect(page.contacts[0]).toMatchObject({ bookings: 0, origin: ContactOrigin.ARRIVAL })
+    // ⛔ And the booking list behind it is empty, which is the two rules agreeing. The
+    // window must therefore not draw a link to it -- see ContactWindow.vue.
+    const [, bookings] = await dbSelectTransactionsByUserId(bibi.id, 25, 0, Order.DESC, carlaRef)
+    expect(bookings).toBe(0)
+  })
+
+  it('is not a contact of somebody who only shares the referrer', async () => {
+    // carla and bob both came over bibi. That makes each of them a contact of BIBI, not of
+    // each other -- they share no event.
+    const carlaSees = (await contactsOf(carla.id)).map((c) => c.linkedUserId)
+    expect(carlaSees).toEqual([bibi.id])
   })
 })
