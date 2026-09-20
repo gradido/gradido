@@ -557,14 +557,32 @@ export type ReferralContact = {
  * at them: a confirmed address, one per person. With a booking anybody can do the same
  * today, which is the measured reason KF-015 leaves removal for later.
  *
+ * ⚠️ The two directions are therefore NOT alike while an address is unconfirmed, and that
+ * is deliberate. The arriving member sees their referrer here with no address condition,
+ * because they already read that name off the overview tile (`dbFindReferrerAlias`, which
+ * has never asked about the address either) -- a condition here would make the list say
+ * less than the tile. The referrer's side stays closed until the address is confirmed, and
+ * then both sides open at once. It is a window, not a state; an account can be inside it
+ * and signed in, because assisted registration (EM-013) sets a password before the address
+ * is confirmed.
+ *
  * ⛔ `alias` is the stored one, raw, exactly as the booking branch of the contact list
  * hands it over -- NOT `publicAlias`. The list searches on this field, and the fallback to
  * the gradidoID would let a search for a member's id match a person no booking would match.
  * The resolver builds the name from the `users` row it loads anyway.
  *
- * ⚠️ No cap. The trace is bounded by the same order of magnitude as the bookings the
- * caller already holds in memory (713 counterparties for the busiest account measured), and
- * a cap here would silently drop people from a list whose promise is "everybody, once".
+ * ⚠️ No cap, and NOTHING measured bounds this set. The 713 counterparties measured for the
+ * busiest account were counted on `transactions`; arrivals are an independent quantity, and
+ * this feature exists precisely for the people who arrived without ever booking -- an
+ * address on a flyer or in a newsletter collects them without limit. A cap would silently
+ * drop people from a list whose promise is "everybody, once", so the answer is a
+ * measurement rather than a number picked here:
+ * `SELECT referrer_id, count(*) FROM users WHERE referrer_id IS NOT NULL GROUP BY
+ * referrer_id ORDER BY 2 DESC LIMIT 10` on production says whether this needs a cap at all.
+ *
+ * ⛔ And it needs the index. `referrer_id` carried none until migration 0139; without it
+ * every call here is a full scan of `users`, on a path the wallet takes on every contact
+ * list, every page of it and every tap on a member's name.
  *
  * ⚠️ A row naming itself as its own referrer is refused by `reachableOnTrace`, which means
  * the overview tile refuses it too -- see there.

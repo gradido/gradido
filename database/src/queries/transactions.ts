@@ -171,8 +171,14 @@ const mergeSamePerson = (rows: ContactRow[]): ContactRow[] => {
     }
     // The origin survives the join: a booking row carries none, so a person who is both a
     // counterparty and on the referral trace keeps the trace's word whichever of the two
-    // rows was seen first. Two origins for one person cannot arise -- the trace has one row
-    // per direction and a person is at one end of it, not both.
+    // rows was seen first.
+    //
+    // ⚠️ Where two rows both carry one, the FIRST one wins, and that is the order of the
+    // bundles below rather than a rule. It cannot arise from registration -- `referrer_id`
+    // is written once, for a new account -- but a data fix that makes two members each
+    // other's referrer would put the same person at both ends of the trace, and then which
+    // origin the wallet shows is decided by an array position. Whoever adds a third source
+    // has to decide it properly; today the case needs a write that no code path makes.
     seen.origin = seen.origin ?? row.origin
     // Exactly what `bookingsWhere` would count over both branches together.
     if (row.firstAt < seen.firstAt) {
@@ -434,9 +440,23 @@ export async function dbSelectContactsByUserId(
       bookings: row.bookings,
       origin: null,
     })),
-    // ⛔ BEHIND the two booking bundles, so that where the same person is in both, the
-    // booking row is the one `mergeSamePerson` keeps the identity of -- it is the one that
-    // carries a deletion mark and the name off the newest booking.
+    // ⛔ BEHIND the two booking bundles, and that buys LESS than it looks like. Against a
+    // `local` row it does decide identity: the local row is seen first and keeps it. Against
+    // a `remote` row it decides nothing -- remote rows carry no `linked_user_id` and referral
+    // rows do, so the transfer branch in `mergeSamePerson` fires on the referral row
+    // whatever the order is. That branch was unreachable before this bundle existed (local
+    // always preceded remote), so a person known only from legacy bookings and also on the
+    // trace now takes their name from their `users` row instead of from the newest booking.
+    // That is the rule the branch states, and the better answer -- `users.alias` is what the
+    // resolver builds the model from anyway -- but it is a change, and the ordering is not
+    // what makes it safe.
+    //
+    // ⚠️ The dates in this bundle come from the COLUMN, which Drizzle reads as UTC, while
+    // the booking bundles above go through `asDate`, which reads the same string as local
+    // time. Measured: `TZ=Europe/Berlin` puts them an hour apart, `TZ=UTC` makes them equal
+    // -- and `TZ=UTC` is pinned in the start script and in every package test script, which
+    // is the only reason the two can be compared here at all. A process that loses that pin
+    // sorts this bundle wrongly against the other two.
     ...referrals,
   ]
 

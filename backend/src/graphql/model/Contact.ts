@@ -33,11 +33,24 @@ export class Contact {
   @Field(() => User)
   user: User
 
-  /** When the first booking with them was. */
+  /**
+   * When this contact began: the older of the first booking with them and the day the
+   * referral trace put them beside this member.
+   *
+   * ⚠️ Not "the first booking" any more. For somebody who came here over this member it is
+   * their registration, and for a contact who is both it reaches back past every booking --
+   * which is what "Kontakt seit" means and why the wallet shows it as plain text rather
+   * than as a way into the booking list.
+   */
   @Field(() => Date)
   firstAt: Date
 
-  /** When the latest was -- the list is ordered by this. */
+  /**
+   * The latest of those events -- the list is ordered by this.
+   *
+   * In practice always the last booking where there is one: an account has to exist before
+   * it can book, so a registration date can never be the later of the two.
+   */
   @Field(() => Date)
   lastAt: Date
 
