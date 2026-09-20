@@ -554,6 +554,38 @@ describe('dbSelectContactsByUserId with the referral trace', () => {
     expect(bookings).toBe(0)
   })
 
+  it('answers the other direction by the pair as well', async () => {
+    // ⛔ Guards the narrowed REFERRER look specifically: peter is reached through the
+    // aliased side of the join, so a narrowing put on the wrong column of that join
+    // answers nobody here while every un-narrowed test stays green.
+    const peterRef = await withMember(peter.communityUuid as string, peter.gradidoID)
+    const page = await dbSelectContactsByUserId(bibi.id, {
+      counterparty: peterRef,
+      limit: 25,
+      offset: 0,
+    })
+    expect(page.count).toBe(1)
+    expect(page.contacts[0]).toMatchObject({
+      linkedUserId: peter.id,
+      bookings: 3,
+      origin: ContactOrigin.REFERRER,
+    })
+  })
+
+  it('still answers about a member of another community, who is on no trace', async () => {
+    // The pair resolves to no local row, so the referral bundle cannot contribute and is
+    // not asked for at all -- the booking half must still answer.
+    const annaRef = await withMember(FOREIGN_COMMUNITY, ANNA)
+    expect(annaRef.localUserId).toBeNull()
+    const page = await dbSelectContactsByUserId(bibi.id, {
+      counterparty: annaRef,
+      limit: 25,
+      offset: 0,
+    })
+    expect(page.count).toBe(1)
+    expect(page.contacts[0]).toMatchObject({ gradidoId: ANNA, bookings: 1, origin: null })
+  })
+
   it('is not a contact of somebody who only shares the referrer', async () => {
     // carla and bob both came over bibi. That makes each of them a contact of BIBI, not of
     // each other -- they share no event.

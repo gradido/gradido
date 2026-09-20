@@ -586,12 +586,23 @@ export type ReferralContact = {
  *
  * ⚠️ A row naming itself as its own referrer is refused by `reachableOnTrace`, which means
  * the overview tile refuses it too -- see there.
+ *
+ * `onlyMemberId` narrows both looks to ONE member, for the caller that asks about one
+ * person rather than a page (the contact window over a booking row). It is not an
+ * optimisation bolted on: every row here carries a `users` id, and `isContactCounterparty`
+ * matches such a row by that id alone, so asking the database for that member returns
+ * exactly what the in-memory filter would have left -- while turning a scan of the trace
+ * into a primary-key lookup. Without it an account that has brought thousands of people
+ * here pulled all of them over the wire to answer about one.
  */
-export async function dbSelectReferralContactsByUserId(userId: number): Promise<ReferralContact[]> {
+export async function dbSelectReferralContactsByUserId(
+  userId: number,
+  onlyMemberId?: number,
+): Promise<ReferralContact[]> {
   const db = drizzleDb()
   const referrer = aliasedTable(usersTable, 'referrer')
 
-  const showedMe = await db
+  const showedMeQuery = db
     .select({
       linkedUserId: referrer.id,
       communityUuid: referrer.communityUuid,
@@ -607,11 +618,12 @@ export async function dbSelectReferralContactsByUserId(userId: number): Promise<
         eq(usersTable.id, userId),
         isNull(usersTable.deletedAt),
         reachableOnTrace(referrer, userId),
+        onlyMemberId === undefined ? undefined : eq(referrer.id, onlyMemberId),
       ),
     )
     .limit(1)
 
-  const cameOverMe = await db
+  const cameOverMeQuery = db
     .select({
       linkedUserId: usersTable.id,
       communityUuid: usersTable.communityUuid,
@@ -625,8 +637,12 @@ export async function dbSelectReferralContactsByUserId(userId: number): Promise<
       and(
         eq(usersTable.referrerId, userId),
         confirmedArrival(usersTable, userContactsTable, userId),
+        onlyMemberId === undefined ? undefined : eq(usersTable.id, onlyMemberId),
       ),
     )
+
+  // One wave, not two: the two looks share nothing but the id they are asked about.
+  const [showedMe, cameOverMe] = await Promise.all([showedMeQuery, cameOverMeQuery])
 
   const asContact = (
     row: {

@@ -354,12 +354,14 @@ export async function dbSelectContactsByUserId(
   },
 ): Promise<ContactsPage> {
   const db = drizzleDb()
+  // Read up here because the referral bundle below is asked for narrowed where this is set.
+  const { counterparty } = options
   const withCounterparty = and(
     eq(transactionsTable.userId, userId),
     inArray(transactionsTable.typeId, COUNTERPARTY_TYPES),
   )
 
-  const local = await db
+  const localQuery = db
     .select({
       linkedUserId: transactionsTable.linkedUserId,
       communityUuid: usersTable.communityUuid,
@@ -384,7 +386,7 @@ export async function dbSelectContactsByUserId(
   // The name off the NEWEST booking of the group: group_concat ordered by date, first
   // element. A newline as the separator, because neither an alias nor an assembled name
   // can contain one, and MySQL's \n escape is a literal here, not a bound parameter.
-  const remote = await db
+  const remoteQuery = db
     .select({
       communityUuid: transactionsTable.linkedUserCommunityUuid,
       gradidoId: transactionsTable.linkedUserGradidoId,
@@ -408,13 +410,31 @@ export async function dbSelectContactsByUserId(
     )
     .groupBy(transactionsTable.linkedUserCommunityUuid, transactionsTable.linkedUserGradidoId)
 
-  // The third bundle: the people this member is a contact of through the referral trace,
-  // with no bookings behind them yet (KF-012). Fetched HERE rather than handed in by the
-  // caller, and that is deliberate -- "everybody, each once" is this function's promise,
-  // and the contact window reads its figures through the very same function. A caller who
-  // forgot to pass the bundle would hold a list of a different length than the window over
-  // it, with nothing on either screen to say which was right.
-  const referrals = await dbSelectReferralContactsByUserId(userId)
+  /**
+   * The third bundle: the people this member is a contact of through the referral trace,
+   * with no bookings behind them yet (KF-012). Fetched HERE rather than handed in by the
+   * caller, and that is deliberate -- "everybody, each once" is this function's promise,
+   * and the contact window reads its figures through the very same function. A caller who
+   * forgot to pass the bundle would hold a list of a different length than the window over
+   * it, with nothing on either screen to say which was right.
+   *
+   * Narrowed where the caller asked about one member, which is what the window does on
+   * every tap on a name: a referral row always carries a `users` id and
+   * `isContactCounterparty` matches it by that id alone, so the database returns exactly
+   * what the filter below would have left. A pair that resolved to no row can match no
+   * referral row at all, so there is nothing to ask for.
+   */
+  const referralsPromise = counterparty
+    ? counterparty.localUserId === null
+      ? Promise.resolve<ContactRow[]>([])
+      : dbSelectReferralContactsByUserId(userId, counterparty.localUserId)
+    : dbSelectReferralContactsByUserId(userId)
+
+  // ⛔ One wave, not three. The three bundles share nothing -- they are only concatenated
+  // below -- and this function sits on the path the wallet takes for every contact list,
+  // every page of one, and every tap on a member's name. Three sequential round trips
+  // where one does is the kind of cost that only shows up as "the wallet feels slow".
+  const [local, remote, referrals] = await Promise.all([localQuery, remoteQuery, referralsPromise])
 
   const rows: ContactRow[] = [
     ...local.map((row) => ({
@@ -467,7 +487,6 @@ export async function dbSelectContactsByUserId(
   // One member rather than the page: what the wallet asks when a booking row is tapped and
   // the window over it has to state the same figures the contact list states. Narrowed
   // before the search, which then has one row to look at -- the two are independent.
-  const { counterparty } = options
   const narrowed = counterparty
     ? contacts.filter((row) => isContactCounterparty(row, counterparty))
     : contacts
