@@ -30,6 +30,11 @@ vi.mock('@/composables/useToast', () => ({
   })),
 }))
 
+const { clearApolloCacheMock } = vi.hoisted(() => ({ clearApolloCacheMock: vi.fn() }))
+vi.mock('@/plugins/apolloCache', () => ({
+  clearApolloCache: clearApolloCacheMock,
+}))
+
 const mockMutate = vi.fn()
 const mockQuery = vi.fn()
 vi.mock('@vue/apollo-composable', () => ({
@@ -77,6 +82,7 @@ describe('Login', () => {
     })
 
     store = createVuexStore()
+    clearApolloCacheMock.mockClear()
 
     vi.spyOn(store, 'dispatch')
     vi.spyOn(store, 'commit')
@@ -185,6 +191,24 @@ describe('Login', () => {
 
       it('dispatches server response to store', () => {
         expect(store.dispatch).toHaveBeenCalledWith('login', expect.objectContaining({}))
+      })
+
+      /**
+       * ⛔ `/login` carries no `requiresAuth`, so it opens while somebody is signed in,
+       * and nothing here reloads the page. Every answer the PREVIOUS member's queries
+       * returned would still be in the cache -- and a query without variables sits under
+       * one key for everybody, so the new member would be shown the old one's data until
+       * the network caught up. Logging out has cleared the cache since #3759; this is the
+       * other way in.
+       *
+       * BEFORE the store learns who is here now, so nothing can read the new member's
+       * name and the old member's answer in the same tick.
+       */
+      it('empties the cache of whoever was signed in before, first', () => {
+        expect(clearApolloCacheMock).toHaveBeenCalled()
+        expect(clearApolloCacheMock.mock.invocationCallOrder[0]).toBeLessThan(
+          store.dispatch.mock.invocationCallOrder[0],
+        )
       })
 
       it('commits email to store', () => {

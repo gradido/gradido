@@ -71,6 +71,7 @@ import { useForm } from 'vee-validate'
 import { useMutation } from '@vue/apollo-composable'
 import { useAppToast } from '@/composables/useToast'
 import { useAuthLinks } from '@/composables/useAuthLinks'
+import { clearApolloCache } from '@/plugins/apolloCache'
 import CONFIG from '@/config'
 
 // import { useLoading } from 'vue-loading-overlay'
@@ -113,6 +114,19 @@ const onSubmit = handleSubmit(async (values) => {
       project: store.state.project,
     })
     const { login: loginResponse } = result.data
+    // ⛔ Before this member is written into the store, and it is the same reason the
+    // `/authenticate` guard gives: nothing here reloads the page, so every answer the
+    // PREVIOUS member's queries returned is still lying in the Apollo cache. Signing in
+    // over an open session is a couple of keystrokes away -- `/login` carries no
+    // `requiresAuth`, so it opens while somebody is signed in -- and a query that takes no
+    // variables sits under a single key for everybody. `showFriends` would hand the new
+    // member the previous one's arrival BY NAME until the network caught up;
+    // `firstCreationStatus` and `aliasStatus` stand on the same ground.
+    //
+    // At the root rather than at each query: a fetch policy can only make one reader
+    // careful, and the next query written without variables would open the hole again.
+    // Logging out has cleared the cache since #3759; this is the other way in.
+    await clearApolloCache()
     // Capture a deliberate login-page language choice before the login action
     // consumes it, then persist it to the account so it sticks everywhere.
     const preLoginLanguage = store.state.preLoginLanguage
