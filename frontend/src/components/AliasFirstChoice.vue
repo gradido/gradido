@@ -4,7 +4,7 @@
     id="modal-alias-first-choice"
     v-model="visible"
     centered
-    hide-header
+    no-header
     data-test="alias-first-choice"
   >
     <div v-if="!choosing" class="text-center px-2 pt-3">

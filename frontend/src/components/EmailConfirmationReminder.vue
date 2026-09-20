@@ -10,7 +10,7 @@
     id="modal-email-confirmation-reminder"
     v-model="visible"
     centered
-    hide-header
+    no-header
     :no-close-on-backdrop="overdue"
     :no-close-on-esc="overdue"
     data-test="email-confirmation-reminder"

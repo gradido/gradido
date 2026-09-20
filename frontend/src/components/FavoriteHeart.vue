@@ -27,7 +27,7 @@
       v-model="confirming"
       lazy
       centered
-      hide-header
+      no-header
       :cancel-title="$t('form.cancel')"
       :ok-title="$t('contacts.remove.confirm')"
       ok-variant="danger"

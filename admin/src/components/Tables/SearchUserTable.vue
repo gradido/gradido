@@ -201,7 +201,7 @@ const showModal = async () => {
     props: {
       cancelTitle: t('overlay.cancel'),
       centered: true,
-      hideHeaderClose: true,
+      noHeaderClose: true,
       title: t('overlay.changeUserRole.title'),
       okTitle: t('overlay.changeUserRole.yes'),
       okVariant: 'danger',
@@ -226,7 +226,7 @@ const showDeleteModal = async () => {
     props: {
       cancelTitle: t('overlay.cancel'),
       centered: true,
-      hideHeaderClose: true,
+      noHeaderClose: true,
       title: t('overlay.deleteUser.title'),
       okTitle: t('overlay.deleteUser.yes'),
       okVariant: 'danger',
@@ -252,7 +252,7 @@ const showUndeleteModal = async () => {
     props: {
       cancelTitle: t('overlay.cancel'),
       centered: true,
-      hideHeaderClose: true,
+      noHeaderClose: true,
       title: t('overlay.undeleteUser.title'),
       okTitle: t('overlay.undeleteUser.yes'),
       okVariant: 'success',
