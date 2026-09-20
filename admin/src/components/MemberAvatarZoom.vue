@@ -130,14 +130,23 @@ watch(
    elements, which do not carry this component's scope attribute -- a scoped rule would
    compile to `.member-avatar-zoom-content[data-v-…]` and match nothing. `:deep()` does not
    help either, because the modal teleports its content out of this component's subtree.
-   Both names are prefixed for exactly that reason: they are global. */
-.member-avatar-zoom-content {
+   Both names are prefixed for exactly that reason: they are global.
+
+   ⛔⛔ And each one names BOTH classes, which is the whole reason the picture is round.
+   Written as one class these rules tie with Bootstrap's own `.modal-content` and
+   `.modal-body` -- and a tie is decided by ORDER, which this side loses: measured in the
+   built stylesheet, ours sit at byte 705 and 772 while Bootstrap's background and padding
+   sit at 121028 and 122342. So the modal kept its white panel and its padding, and the
+   round face was shown on a white square with a border (Bernd, 20.09.2026). Naming both
+   classes makes it 0,2,0 against 0,1,0 -- decided by specificity, where order cannot
+   reach it. Same trap the map pages hit when MapLibre's stylesheet arrived after theirs. */
+.modal-content.member-avatar-zoom-content {
   background: transparent;
   border: 0;
   box-shadow: none;
 }
 
-.member-avatar-zoom-body {
+.modal-body.member-avatar-zoom-body {
   display: flex;
   justify-content: center;
   padding: 0;
