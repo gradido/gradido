@@ -46,7 +46,7 @@
       ref="my-modal"
       v-model="qrLinkModal"
       ok-only
-      hide-header-close
+      no-header-close
     >
       <BCard header-tag="header" footer-tag="footer">
         <template #header>

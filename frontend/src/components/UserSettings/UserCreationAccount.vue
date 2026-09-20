@@ -30,8 +30,8 @@
     <BModal
       id="modal-project-account"
       v-model="confirming"
-      hide-header
-      hide-footer
+      no-header
+      no-footer
       centered
       no-close-on-backdrop
       data-test="creation-account-modal"

@@ -6,7 +6,7 @@
     centered
     scrollable
     size="lg"
-    hide-header
+    no-header
     fullscreen="md"
     :no-footer="footerMode === 'none'"
     :no-close-on-backdrop="sending"

@@ -541,7 +541,6 @@
     "link-expired": "The link is no longer valid. The validity expired on {date}.",
     "link-hint": "Whoever has the link can redeem it. Only send it to the person it is meant for.",
     "link-overview": "Link overview",
-    "links_count": "Active links",
     "links_open": "{n} open",
     "links_sum": "Links, cheques, QR codes",
     "no-account": "You don't have a Gradido account yet?",

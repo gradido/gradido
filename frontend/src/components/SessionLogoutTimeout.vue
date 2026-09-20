@@ -3,8 +3,8 @@
     <BModal
       id="modalSessionTimeOut"
       class="bg-variant-danger"
-      hide-header-close
-      hide-header
+      no-header-close
+      no-header
       no-close-on-backdrop
       :model-value="sessionModalModel"
       @update:modelValue="sessionModalModel = $event"
