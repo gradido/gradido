@@ -35,3 +35,31 @@ export async function dbFindLatestEventForAffectedUser(
   }
   return manager ? manager.findOne(DbEvent, options) : DbEvent.findOne(options)
 }
+
+/**
+ * Was this member's account created by redeeming this very link?
+ *
+ * `USER_REGISTER_REDEEM` is written once, during registration, and only when a redeem
+ * code was used; it carries the link that code belonged to
+ * (`backend/src/interactions/registerAccount/RegisterAccount.context.ts`). Asking for the
+ * pair is what separates "redeemed my link and is new here" from "somebody I brought
+ * along once" - `users.referrer_id` cannot tell those apart, because it stays set for
+ * every later link between the same two people.
+ *
+ * The index added in migration 0122 (`type`, `affected_user_id`, `created_at`) covers the
+ * first two of the three conditions, so the lookup goes straight to that member's events
+ * of that type.
+ */
+export async function dbHasRegisterRedeemEvent(
+  affectedUserId: number,
+  transactionLinkId: number,
+): Promise<boolean> {
+  return DbEvent.exists({
+    where: {
+      // todo: move event types into db
+      type: 'USER_REGISTER_REDEEM',
+      affectedUserId,
+      involvedTransactionLinkId: transactionLinkId,
+    },
+  })
+}

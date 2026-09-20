@@ -164,6 +164,7 @@
     "transactionLinkRedeemed": {
       "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) az önce bağlantını kullandı.",
       "memo": "Mesaj: {transactionMemo}",
+      "newMember": "— ve Gradido'da yeni. Göstermen çok güzel.",
       "subject": "{senderAlias} Gradido bağlantını kullandı",
       "title": "{senderAlias} Gradido bağlantını kullandı"
     },

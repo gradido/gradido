@@ -164,6 +164,7 @@
     "transactionLinkRedeemed": {
       "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) ha appena riscattato il tuo link.",
       "memo": "Messaggio: {transactionMemo}",
+      "newMember": "— un nuovo arrivo su Gradido. Che bello che tu gliel'abbia mostrato.",
       "subject": "{senderAlias} ha riscattato il tuo link Gradido",
       "title": "{senderAlias} ha riscattato il tuo link Gradido"
     },

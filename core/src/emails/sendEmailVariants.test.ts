@@ -777,6 +777,38 @@ describe('sendEmailVariants', () => {
       it('has the correct html as snapshot', () => {
         expect(result.originalMessage.html).toMatchSnapshot()
       })
+
+      it('says nothing about a new member', () => {
+        expect(result.originalMessage.html).not.toContain('new to Gradido')
+      })
+    })
+  })
+
+  describe('sendTransactionLinkRedeemedEmail with a newly registered member', () => {
+    beforeAll(async () => {
+      result = await sendTransactionLinkRedeemedEmail({
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        senderAlias: 'bibi',
+        senderCommunity: 'Bloxberg',
+        transactionMemo: 'You deserve it! 🙏🏼',
+        transactionAmount: GradidoUnit.fromNumber(17.65),
+        newMember: true,
+      })
+    })
+
+    describe('result', () => {
+      it('carries the half-sentence behind the first one, in the same paragraph', () => {
+        expect(result.originalMessage.html).toContain(
+          'bibi (Bloxberg) has just redeemed your link. — and is new to Gradido.',
+        )
+      })
+
+      it('has the correct html as snapshot', () => {
+        expect(result.originalMessage.html).toMatchSnapshot()
+      })
     })
   })
 

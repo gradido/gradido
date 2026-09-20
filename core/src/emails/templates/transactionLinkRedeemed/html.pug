@@ -4,7 +4,11 @@ block content
   h2=  t('emails.transactionLinkRedeemed.title', { senderAlias })
   .text-block
     include ../includes/salutation.pug
-    p= t('emails.transactionLinkRedeemed.hasRedeemedYourLink', { senderAlias, senderCommunity })
+    //- The arrival joins the first sentence instead of taking a paragraph of its own: one
+    //- paragraph is one piece of news. Joined inside the expression, not by an `if` block,
+    //- because a block would put the sentence on its own line and change the whitespace of
+    //- every mail that has no arrival to report.
+    p= t('emails.transactionLinkRedeemed.hasRedeemedYourLink', { senderAlias, senderCommunity }) + (newMember ? ' ' + t('emails.transactionLinkRedeemed.newMember') : '')
   .content
     h2= t('emails.general.transactionDetails')
     div(class="p_content")= t('emails.general.amountGDD', { amountGDD: transactionAmount })
