@@ -173,7 +173,7 @@
     "bookings": "{n} boeking | {n} boekingen",
     "chatLater": "Gespreksgeschiedenis — komt met de chat",
     "count": "{n} contact | {n} contacten",
-    "empty": "Nog geen contacten. Wie jou Gradido stuurt of van jou ontvangt, verschijnt hier.",
+    "empty": "Nog geen contacten. Hier verschijnt wie Gradido met je uitwisselt — of wie via jou binnenkomt.",
     "favorites": "Favorieten",
     "heart": {
       "add": "Aan favorieten toevoegen",
@@ -184,6 +184,10 @@
     "matches": "Resultaten",
     "noFavorites": "Nog geen favorieten. Tik op het hartje bij een contact.",
     "notReachable": "De contacten konden niet worden geladen.",
+    "origin": {
+      "arrival": "kent Gradido via jou",
+      "referrer": "heeft je Gradido laten zien"
+    },
     "recent": "Recent",
     "remove": {
       "body": "{name} blijft in je contacten. Je kunt {name} altijd weer favoriet maken.",
