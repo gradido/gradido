@@ -173,7 +173,7 @@
     "bookings": "{n} movimento | {n} movimentos",
     "chatLater": "Histórico da conversa — chegará com o chat",
     "count": "{n} contacto | {n} contactos",
-    "empty": "Ainda não há contactos. Quem te envia Gradido ou os recebe de ti aparece aqui.",
+    "empty": "Ainda não há contactos. Aqui aparece quem troca Gradido contigo — ou quem chega graças a ti.",
     "favorites": "Favoritos",
     "heart": {
       "add": "Adicionar aos favoritos",
@@ -184,6 +184,10 @@
     "matches": "Resultados",
     "noFavorites": "Ainda sem favoritos. Toca no coração ao lado de um contacto.",
     "notReachable": "Não foi possível carregar os contactos.",
+    "origin": {
+      "arrival": "conhece o Gradido graças a ti",
+      "referrer": "mostrou-te o Gradido"
+    },
     "recent": "Recentes",
     "remove": {
       "body": "{name} continua nos teus contactos. Podes voltar a tornar {name} favorito a qualquer momento.",

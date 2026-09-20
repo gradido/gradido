@@ -173,7 +173,7 @@
     "bookings": "{n} işlem | {n} işlem",
     "chatLater": "Konuşma geçmişi — sohbetle birlikte gelecek",
     "count": "{n} kişi | {n} kişi",
-    "empty": "Henüz kişi yok. Sana Gradido gönderen veya senden alan herkes burada görünür.",
+    "empty": "Henüz kişi yok. Seninle Gradido alışverişi yapan — ya da senin sayende gelen — herkes burada görünür.",
     "favorites": "Favoriler",
     "heart": {
       "add": "Favorilere ekle",
@@ -184,6 +184,10 @@
     "matches": "Sonuçlar",
     "noFavorites": "Henüz favori yok. Bir kişinin yanındaki kalbe dokun.",
     "notReachable": "Kişiler yüklenemedi.",
+    "origin": {
+      "arrival": "Gradido'yu senin sayende tanıyor",
+      "referrer": "sana Gradido'yu gösterdi"
+    },
     "recent": "Son",
     "remove": {
       "body": "{name} kişilerinde kalır. {name} kişisini istediğin zaman yeniden favori yapabilirsin.",

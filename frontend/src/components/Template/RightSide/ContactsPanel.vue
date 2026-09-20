@@ -45,7 +45,7 @@
       {{ $t('contacts.count', 0) }}
     </div>
     <div v-else-if="!rows.length" class="small text-muted" data-test="contacts-panel-empty">
-      {{ $t('contacts.empty') }}
+      <contacts-empty />
     </div>
 
     <template v-else>
@@ -122,6 +122,7 @@ import { useApolloClient } from '@vue/apollo-composable'
 import { BFormInput, BSpinner } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
 import ContactTiles from '@/components/Contacts/ContactTiles.vue'
+import ContactsEmpty from '@/components/Contacts/ContactsEmpty.vue'
 import ContactWindow from '@/components/Contacts/ContactWindow.vue'
 import FavoriteHeart from '@/components/FavoriteHeart.vue'
 import Name from '@/components/TransactionRows/Name'

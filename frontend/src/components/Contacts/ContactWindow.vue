@@ -96,16 +96,27 @@
       <div class="contact-window-meta" data-test="contact-window-meta">
         <template v-if="counted">
           <span>{{ metaSince }}</span>
-          <span>{{ CONTACT_META_SEPARATOR }}</span>
-          <router-link
-            :to="bookingsRoute"
-            class="contact-window-bookings"
-            data-test="contact-window-bookings"
-            @click="closeWhenNavigating"
-          >
-            {{ metaBookings }}
-          </router-link>
+          <!-- ⛔ Only where there are bookings. Somebody who came here over this member is
+               a contact from that moment, and the list behind this link would be EMPTY --
+               a door onto nothing, under a number that would have read "0 bookings". The
+               server agrees: narrowed to that person the booking list has no rows. -->
+          <template v-if="hasBookings">
+            <span>{{ CONTACT_META_SEPARATOR }}</span>
+            <router-link
+              :to="bookingsRoute"
+              class="contact-window-bookings"
+              data-test="contact-window-bookings"
+              @click="closeWhenNavigating"
+            >
+              {{ metaBookings }}
+            </router-link>
+          </template>
         </template>
+        <!-- What made the two of them contacts, where it was not a booking -- a quiet line
+             of its own UNDER the figures, not instead of them. A contact can have both. -->
+        <div v-if="originLine" class="contact-window-origin" data-test="contact-window-origin">
+          {{ originLine }}
+        </div>
       </div>
 
       <BButton
@@ -152,6 +163,7 @@ import {
   CONTACT_META_SEPARATOR,
   contactBookingsMeta,
   contactDisplay,
+  contactOriginLine,
 } from '@/components/Contacts/contactDisplay'
 import { gradidoAddress } from '@/utils/gradidoAddress'
 import { SEND_TYPES } from '@/utils/sendTypes'
@@ -227,10 +239,28 @@ const metaSince = computed(() =>
     : '',
 )
 
+/**
+ * Whether there is a booking list to lead to at all.
+ *
+ * ⛔ Asked separately from `counted`, which only says the figures have ARRIVED. A contact
+ * off the referral trace alone has arrived figures AND a count of zero, and a link over
+ * that count would open a list with nothing in it.
+ */
+const hasBookings = computed(() => counted.value && props.contact.bookings > 0)
+
 /** How many and how recently -- the part that leads to those bookings; the row's line. */
 const metaBookings = computed(() =>
   counted.value ? contactBookingsMeta(props.contact, { t, d }) : '',
 )
+
+/**
+ * What made the two of them contacts, where it was not a booking.
+ *
+ * Not behind `counted`: the origin travels with the row and does not have to wait for the
+ * figures. Where both are there both lines are shown -- somebody who came here over this
+ * member and has since sent them Gradido is one contact with a count and an origin.
+ */
+const originLine = computed(() => (props.contact ? contactOriginLine(props.contact, { t }) : ''))
 
 /**
  * The booking list, narrowed to this member. Built by the same module the transactions
@@ -354,6 +384,14 @@ const toSend = (art) => {
   color: var(--bs-secondary-color, #6c757d);
   margin: 0.75rem 0 1rem;
   min-height: 1.5em;
+}
+
+/* A line of its own under the figures. ⚠️ The container keeps its `min-height` above, which
+   is what stops the block collapsing while the figures are still on their way and moving
+   both buttons under a finger already reaching for one. What it cannot promise is one
+   line: a contact with bookings AND an origin has two, and both arrive together. */
+.contact-window-origin {
+  margin-top: 0.15rem;
 }
 
 /* The link sits inside the muted meta line, so it takes that line's size and colour rather

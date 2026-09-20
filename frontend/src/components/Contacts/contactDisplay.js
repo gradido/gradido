@@ -49,3 +49,42 @@ export const contactBookingsMeta = (contact, { t, d }) =>
     t('contacts.bookings', contact.bookings),
     t('contacts.last', { date: d(new Date(contact.lastAt), 'short') }),
   ].join(CONTACT_META_SEPARATOR)
+
+/**
+ * How the two of them became contacts, where it was not a booking -- '' where it was.
+ *
+ * ⛔ The keys written out, not built from the value (`contacts.origin.${value}`), for two
+ * reasons. A server one version ahead could name an origin this wallet has no word for, and
+ * a built key would put the raw string `contacts.origin.something_new` under somebody's
+ * name; here an unknown origin says nothing instead. And the i18n lint counts only LITERAL
+ * keys -- a key reached through a variable is reported as unused and eventually deleted.
+ *
+ * The values are the GraphQL enum `ContactOrigin` as it arrives over the wire. The wallet
+ * does not import `shared`, so they are strings here, pinned by the specs on both sides.
+ */
+export const contactOriginLine = (contact, { t }) => {
+  switch (contact.origin) {
+    case 'REFERRER':
+      return t('contacts.origin.referrer')
+    case 'ARRIVAL':
+      return t('contacts.origin.arrival')
+    default:
+      return ''
+  }
+}
+
+/**
+ * The line under a contact's name: how often and how recently, or -- where there has been
+ * nothing to count yet -- what made the two of them contacts.
+ *
+ * ⛔ The branch stands BEFORE the plural rule, and that is the whole reason this builder
+ * exists next to `contactBookingsMeta`. Somebody who came here over this member is a
+ * contact from that moment, with no bookings behind them: handed to the plural rule that
+ * number writes "0 bookings · last on …" under their name, which is both true and the
+ * wrong thing to say to somebody who has just arrived.
+ *
+ * Where there are bookings the line is exactly what it always was, origin or no origin.
+ * The window under the name shows both (ContactWindow.vue); a row has one line.
+ */
+export const contactMeta = (contact, { t, d }) =>
+  contact.bookings > 0 ? contactBookingsMeta(contact, { t, d }) : contactOriginLine(contact, { t })
