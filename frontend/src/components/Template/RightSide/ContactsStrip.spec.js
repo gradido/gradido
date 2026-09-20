@@ -54,6 +54,10 @@ describe('ContactsStrip', () => {
         mocks: { $t: (key) => key },
         stubs: {
           BSpinner: true,
+          // ⛔ Needed since the empty state offers a way out: without it the link inside
+          // ContactsEmpty resolves to nothing and the test below would measure its absence
+          // as a decision.
+          RouterLink: { props: ['to'], template: '<a :href="to"><slot /></a>' },
           ContactTiles: {
             props: { rows: Array, withAllLink: { type: Boolean, default: false } },
             emits: ['open'],
@@ -126,6 +130,9 @@ describe('ContactsStrip', () => {
 
     expect(wrapper.find('[data-test="contacts-strip-empty"]').text()).toBe('contacts.noFavorites')
     expect(wrapper.find('[data-test="tiles"]').attributes('data-all')).toBe('true')
+    // ⛔ And no invitation to show Gradido to somebody. This member HAS contacts; what
+    // they are missing is a heart, and the way to one is not a new person (KF-016 A3).
+    expect(wrapper.find('[data-test="contacts-empty-link"]').exists()).toBe(false)
   })
 
   // Two different nothings: no contacts at all is not the same as no hearts given.
@@ -134,7 +141,12 @@ describe('ContactsStrip', () => {
     mountStrip()
     await nextTick()
 
-    expect(wrapper.find('[data-test="contacts-strip-empty"]').text()).toBe('contacts.empty')
+    const empty = wrapper.find('[data-test="contacts-strip-empty"]')
+    expect(empty.find('[data-test="contacts-empty-text"]').text()).toBe('contacts.empty')
+    // The one quiet way out, and only here.
+    const link = empty.find('[data-test="contacts-empty-link"]')
+    expect(link.exists()).toBe(true)
+    expect(link.attributes('href')).toBe('/show-friends')
   })
 
   /**

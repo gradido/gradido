@@ -20,6 +20,9 @@ fragment contactFields on Contact {
   }
   firstAt
   lastAt
+  # May be 0 since the referral trace became a second source: somebody who came here over
+  # this member is a contact from that moment. Whoever renders it must not reach for a
+  # plural rule with a 0 in it, nor link into a booking list that has nothing in it.
   bookings
   favorite
   # Whether this person belongs to the community this wallet serves -- answered by the
@@ -27,6 +30,11 @@ fragment contactFields on Contact {
   # own community by a name out of its own configuration, while the name on a contact
   # was written from the backend's. See Contact.homeCommunity.
   homeCommunity
+  # What made the two of them contacts where it was not a booking -- REFERRER for whoever
+  # showed this member Gradido, ARRIVAL for whoever came here over them; null for a contact
+  # out of the bookings. Asked for in the FRAGMENT, so the list and the single lookup behind
+  # the window cannot come to know it in one place and not the other.
+  origin
 }
 
 # Everyone this member has exchanged Gradido with, each once (KF-004).

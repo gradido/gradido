@@ -19,8 +19,11 @@
       {{ $t('contacts.notReachable') }}
     </div>
 
+    <!-- ⚠️ The same sentence stands here for an unmatched SEARCH, which it has always done
+         and which is a defect of its own. The link is kept out of that case rather than
+         made part of it: "show it to your friends" is no answer to "nobody called that". -->
     <div v-else-if="contacts.length === 0" class="text-muted" data-test="contacts-empty">
-      {{ $t('contacts.empty') }}
+      <contacts-empty :with-link="!search.trim()" />
     </div>
 
     <template v-else>
@@ -106,6 +109,7 @@ import { computed, ref, watch } from 'vue'
 import { useApolloClient, useQuery } from '@vue/apollo-composable'
 import { BFormInput, BPagination, BSpinner } from 'bootstrap-vue-next'
 import ContactRow from '@/components/Contacts/ContactRow.vue'
+import ContactsEmpty from '@/components/Contacts/ContactsEmpty.vue'
 import ContactWindow from '@/components/Contacts/ContactWindow.vue'
 import { useContactWindow } from '@/composables/useContactWindow'
 import { contactListQuery } from '@/graphql/contacts.graphql'

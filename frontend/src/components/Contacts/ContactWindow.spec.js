@@ -211,6 +211,91 @@ describe('ContactWindow', () => {
     })
   })
 
+  /**
+   * The second source of the contact list (KF-012): somebody who came here over this member,
+   * or who showed it to them. The window has the room the row does not, so where there are
+   * both a count and an origin it says both.
+   */
+  describe('a contact off the referral trace', () => {
+    const ARRIVED = { ...CONTACT, bookings: 0, origin: 'ARRIVAL' }
+
+    it('says since when and how they met, and nothing about bookings', () => {
+      mountWindow(ARRIVED)
+      const meta = wrapper.find('[data-test="contact-window-meta"]').text()
+
+      expect(meta).toContain('contacts.since')
+      expect(wrapper.find('[data-test="contact-window-origin"]').text()).toBe(
+        'contacts.origin.arrival',
+      )
+      expect(meta).not.toContain('contacts.bookings')
+      expect(meta).not.toContain('contacts.last')
+    })
+
+    /**
+     * ⛔ And no door onto an empty room. Narrowed to somebody with no bookings the list
+     * behind this link has no rows -- the server says so in ContactResolver.test -- so the
+     * link would open a page that says "nothing here" about a person one is looking at.
+     */
+    it('offers no way into a booking list that has nothing in it', () => {
+      mountWindow(ARRIVED)
+      expect(wrapper.find('[data-test="contact-window-bookings"]').exists()).toBe(false)
+      // Gegenprobe: the same window WITH bookings does offer it, so the assertion above
+      // measures the zero and not a link that has gone missing everywhere.
+      wrapper.unmount()
+      mountWindow({ ...CONTACT, origin: 'ARRIVAL' })
+      expect(wrapper.find('[data-test="contact-window-bookings"]').exists()).toBe(true)
+    })
+
+    it('shows BOTH lines for somebody who is a counterparty and an arrival', () => {
+      mountWindow({ ...CONTACT, origin: 'ARRIVAL' })
+      const meta = wrapper.find('[data-test="contact-window-meta"]').text()
+
+      expect(meta).toContain('contacts.since')
+      expect(meta).toContain('contacts.bookings:12')
+      expect(wrapper.find('[data-test="contact-window-origin"]').text()).toBe(
+        'contacts.origin.arrival',
+      )
+    })
+
+    it('says it the other way round for whoever showed this member Gradido', () => {
+      mountWindow({ ...CONTACT, bookings: 0, origin: 'REFERRER' })
+      expect(wrapper.find('[data-test="contact-window-origin"]').text()).toBe(
+        'contacts.origin.referrer',
+      )
+    })
+
+    // ⚠️ A server one version ahead could name an origin this wallet has no word for.
+    it('draws no origin line for a value it does not know', () => {
+      mountWindow({ ...CONTACT, bookings: 0, origin: 'SOMETHING_NEW' })
+      expect(wrapper.find('[data-test="contact-window-origin"]').exists()).toBe(false)
+    })
+  })
+
+  /**
+   * ⛔ The meta block must not COLLAPSE while the figures are on their way: it used to move
+   * both buttons up a line and drop them back down under a finger already reaching for one.
+   * The reservation lives in the stylesheet, which is the only place jsdom lets it be seen,
+   * and nothing else holds it -- the empty-line test above passes with or without the rule.
+   *
+   * ⚠️ Comments stripped first. The rule is explained in prose right beside it, and a search
+   * over the raw text would find its own explanation and survive the deletion.
+   */
+  it('reserves the height of the meta line in the stylesheet', () => {
+    const source = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'ContactWindow.vue'),
+      'utf8',
+    )
+    const code = source.replace(/\/\*[\s\S]*?\*\//g, '')
+    const meta = code.match(/\.contact-window-meta\s*\{[^}]*\}/)
+
+    expect(meta, '.contact-window-meta no longer exists').not.toBeNull()
+    expect(meta[0]).toMatch(/min-height:\s*[\d.]+em/)
+    // Gegenprobe on the stripping itself: the phrase is in the source twice (rule and
+    // comment) and exactly once after the comments are gone.
+    expect(source.match(/min-height/g).length).toBeGreaterThan(1)
+    expect(code.match(/min-height/g)).toHaveLength(1)
+  })
+
   it('closes on the way into the bookings, as it does for the send form', async () => {
     mountWindow()
     await wrapper.find('[data-test="contact-window-bookings"]').trigger('click')
