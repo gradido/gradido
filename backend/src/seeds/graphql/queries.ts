@@ -708,6 +708,19 @@ export const firstCreationStatus = gql`
   }
 `
 
+export const showFriends = gql`
+  query {
+    showFriends {
+      referrerAlias
+      latestArrival {
+        alias
+        createdAt
+        first
+      }
+    }
+  }
+`
+
 export const contactList = gql`
   query (
     $currentPage: Int = 1
