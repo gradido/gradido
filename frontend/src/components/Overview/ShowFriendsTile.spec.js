@@ -15,6 +15,9 @@ import {
   rememberMemberAvatars,
 } from '@/composables/useMemberAvatars'
 import { AVATAR_COLOR_PALETTE } from '@/utils/avatarColor'
+import { readFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import en from '@/locales/en.json'
 
 const queryResult = ref(undefined)
@@ -322,6 +325,51 @@ describe('ShowFriendsTile', () => {
       // Only the name is a button: `avatarZoomBindings` hands back nothing for a member
       // without a picture, so the circle stays the plain, unclickable one it always was.
       expect(wrapper.findAll('button')).toHaveLength(1)
+    })
+  })
+  /**
+   * The two spacing rules the mockup settled, read out of the source.
+   *
+   * ⛔ A value handed to the browser cannot be measured here: jsdom lays nothing out, so
+   * `margin-bottom` is a string no rendered assertion can see. The house answer is a drift
+   * test over the SOURCE (`useViewport.drift.spec.js`), and it has to read CODE -- the
+   * comments come out first, or a rule's own explanation would go on satisfying the search
+   * after the declaration had been deleted. Measured in a browser at the built component:
+   * 24px below the switch, 16px above it.
+   */
+  describe('the spacing settled at the mockup', () => {
+    const here = dirname(fileURLToPath(import.meta.url))
+    const source = readFileSync(resolve(here, 'ShowFriendsTile.vue'), 'utf8')
+    const code = source
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/^\s*\/\/.*$/gm, '')
+
+    // The stripper took the comments and not the file.
+    it('reads code, not the notes beside it', () => {
+      expect(source).toContain('klebt das so aneinander')
+      expect(code).not.toContain('klebt das so aneinander')
+      expect(code).toContain('.show-friends-mirror {')
+    })
+
+    /**
+     * Below the layout's own switch the button stops being right-aligned and lies full
+     * width directly under the block, where the desk's 16px reads as stuck to it (Bernd,
+     * 20.09.2026). ⛔ 1025, never Bootstrap's 992 -- useViewport.drift.spec.js rejects
+     * that number across the whole tree for the same reason.
+     */
+    it('gives the block more air above the button on a narrow screen', () => {
+      const narrow = code.match(/@media \(width <= 1024\.98px\) \{([\s\S]*?)\n\}/)
+
+      expect(narrow).not.toBeNull()
+      expect(narrow[1]).toContain('.show-friends-mirror')
+      expect(narrow[1]).toContain('margin-bottom: 1.5rem')
+    })
+
+    // A user name may be twenty characters, and a flex item's default minimum is its
+    // content: without this the heading widens the row instead of wrapping inside the card.
+    it('lets the heading wrap rather than widen the row', () => {
+      expect(code).toMatch(/\.show-friends-mirror-text \{[^}]*min-width: 0/)
     })
   })
 })
