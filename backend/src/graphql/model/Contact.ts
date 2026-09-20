@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+import { ContactOrigin } from '@enum/ContactOrigin'
 import { Field, Int, ObjectType } from 'type-graphql'
 import { User } from './User'
 
@@ -18,6 +19,7 @@ export class Contact {
     bookings: number,
     favorite: boolean,
     homeCommunity: boolean,
+    origin: ContactOrigin | null,
   ) {
     this.user = user
     this.firstAt = firstAt
@@ -25,6 +27,7 @@ export class Contact {
     this.bookings = bookings
     this.favorite = favorite
     this.homeCommunity = homeCommunity
+    this.origin = origin
   }
 
   @Field(() => User)
@@ -38,7 +41,14 @@ export class Contact {
   @Field(() => Date)
   lastAt: Date
 
-  /** How many bookings there were with them, both directions counted. */
+  /**
+   * How many bookings there were with them, both directions counted.
+   *
+   * ⚠️ May be 0 since the referral trace became a second source: somebody who came here
+   * over this member is a contact from that moment, before anything has been exchanged.
+   * Whoever renders this must not reach for a plural rule with a 0 in it, and must not
+   * offer a link into a booking list that has nothing in it.
+   */
   @Field(() => Int)
   bookings: number
 
@@ -62,4 +72,21 @@ export class Contact {
    */
   @Field(() => Boolean)
   homeCommunity: boolean
+
+  /**
+   * What made the two of them contacts where it was not a booking -- null where it was one.
+   *
+   * A contact arises from a shared event, and the invitation is the second such event
+   * (KF-012). The two values are the two directions of one trace, seen from the asking
+   * member: REFERRER is whoever showed them Gradido, ARRIVAL whoever came here over them.
+   *
+   * Nullable rather than a third value for "a booking", because that is not an origin the
+   * wallet ever says out loud -- there the line under the name is the number of bookings.
+   * A contact can carry both a count and an origin; both lines are then shown.
+   *
+   * ⛔ There is no count of the people who came over this member, here or anywhere else. A
+   * line on one person is a mirror, a sum over them is a score (KF-014, ZE-007).
+   */
+  @Field(() => ContactOrigin, { nullable: true })
+  origin: ContactOrigin | null
 }

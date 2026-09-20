@@ -745,6 +745,7 @@ export const contactList = gql`
         bookings
         favorite
         homeCommunity
+        origin
       }
     }
   }
