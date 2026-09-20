@@ -164,7 +164,7 @@
     "transactionLinkRedeemed": {
       "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) acaba de canjear tu enlace.",
       "memo": "Mensaje: {transactionMemo}",
-      "newMember": "Alguien nuevo en Gradido. Qué bonito que se lo hayas mostrado.",
+      "newMember": "— y acaba de llegar a Gradido. Qué bonito que se lo hayas mostrado.",
       "subject": "{senderAlias} ha canjeado tu enlace de Gradido",
       "title": "{senderAlias} ha canjeado tu enlace de Gradido"
     },

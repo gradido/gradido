@@ -779,7 +779,7 @@ describe('sendEmailVariants', () => {
       })
 
       it('says nothing about a new member', () => {
-        expect(result.originalMessage.html).not.toContain('New to Gradido')
+        expect(result.originalMessage.html).not.toContain('new to Gradido')
       })
     })
   })
@@ -802,7 +802,7 @@ describe('sendEmailVariants', () => {
     describe('result', () => {
       it('carries the half-sentence behind the first one, in the same paragraph', () => {
         expect(result.originalMessage.html).toContain(
-          'bibi (Bloxberg) has just redeemed your link. New to Gradido.',
+          'bibi (Bloxberg) has just redeemed your link. — and is new to Gradido.',
         )
       })
 

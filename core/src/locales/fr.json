@@ -164,7 +164,7 @@
     "transactionLinkRedeemed": {
       "hasRedeemedYourLink": "{senderAlias} ({senderCommunity}) vient d'utiliser ton lien.",
       "memo": "Message : {transactionMemo}",
-      "newMember": "Une nouvelle personne sur Gradido. C'est beau que tu le lui aies montré.",
+      "newMember": "— et vient d'arriver sur Gradido. C'est beau que tu le lui aies montré.",
       "subject": "{senderAlias} a utilisé ton lien Gradido",
       "title": "{senderAlias} a utilisé ton lien Gradido"
     },
