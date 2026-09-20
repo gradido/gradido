@@ -701,6 +701,7 @@ describe('user.queries', () => {
 
       it('is the youngest arrival, and not the first one', async () => {
         await expect(dbFindLatestArrival(host.id)).resolves.toEqual({
+          gradidoId: newer.gradidoID,
           alias: 'newerone',
           createdAt: newer.createdAt,
           first: false,
@@ -710,6 +711,7 @@ describe('user.queries', () => {
       it('says `first` when there is exactly one', async () => {
         await DbUser.update(newer.id, { referrerId: null })
         await expect(dbFindLatestArrival(host.id)).resolves.toEqual({
+          gradidoId: older.gradidoID,
           alias: 'olderone',
           createdAt: older.createdAt,
           first: true,
@@ -734,6 +736,7 @@ describe('user.queries', () => {
       it('does not count a deleted account', async () => {
         await DbUser.update(newer.id, { deletedAt: new Date() })
         await expect(dbFindLatestArrival(host.id)).resolves.toEqual({
+          gradidoId: older.gradidoID,
           alias: 'olderone',
           createdAt: older.createdAt,
           first: true,
@@ -746,6 +749,7 @@ describe('user.queries', () => {
         // arrived. A closed account leaves no trace to be counted against a third party.
         await DbUser.update(older.id, { deletedAt: new Date() })
         await expect(dbFindLatestArrival(host.id)).resolves.toEqual({
+          gradidoId: newer.gradidoID,
           alias: 'newerone',
           createdAt: newer.createdAt,
           first: true,

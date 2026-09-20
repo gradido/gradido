@@ -491,14 +491,29 @@ export async function dbFindLatestArrival(referrerId: number): Promise<ReferralA
     return null
   }
   return {
+    gradidoId: rows[0].gradidoId,
     alias: publicAlias(rows[0].alias, rows[0].gradidoId),
     createdAt: rows[0].createdAt,
     first: rows.length === 1,
   }
 }
 
-/** One arrival as the tile shows it: who, when, and whether it is the only one. */
+/**
+ * One arrival as the tile shows it: who they are, who they are called, when they got
+ * here, and whether it is the only one.
+ *
+ * `gradidoId` was already being selected -- `publicAlias` needs it -- and is now handed
+ * on, so the tile can offer a way to REACH this person rather than only name them
+ * (ZE-010). It tells the caller nothing they were not being told already: where there is
+ * no user name, `publicAlias` puts the identifier itself in `alias`, and the contact list
+ * has been naming the same arrival to the same member since the referral trace became its
+ * second source.
+ *
+ * ⛔ Still no count, and still only the one latest arrival (ZE-007): a way to reach one
+ * person is a mirror, a list of them with a number over it is a score.
+ */
 export type ReferralArrival = {
+  gradidoId: string
   alias: string
   createdAt: Date
   first: boolean
