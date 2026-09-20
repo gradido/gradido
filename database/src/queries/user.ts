@@ -1,6 +1,6 @@
 import { and, desc, eq, inArray, isNull, ne, or } from 'drizzle-orm'
 import { alias as aliasedTable } from 'drizzle-orm/mysql-core'
-import { GradidoUnit, PasswordEncryptionType, Result, VoidResult } from 'shared'
+import { GradidoUnit, PasswordEncryptionType, publicAlias, Result, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { DBDuplicateEntryError, DBNotFoundError } from '../errorTypes'
 import {
@@ -351,4 +351,93 @@ export async function dbUserUpdateField<K extends UserSingleColumn>(
       [field]: value,
     })
     .where(eq(usersTable.id, userId))
+}
+
+/**
+ * The public name of whoever brought this member here, or null when nobody did.
+ *
+ * `users.referrer_id` has been written since 2022 and never read; this is the first
+ * reader. Through `publicAlias`, because the wallet puts the answer in front of the
+ * member and a stored alias of one or two characters is not a name (the rule lives in
+ * `shared` so all three packages give the same answer).
+ *
+ * A referrer whose account is gone is no answer: the wallet would offer to thank
+ * somebody who cannot receive anything. `foreign = false` is not derived from that -
+ * a referrer is always local by the way the column is written (a transaction link of
+ * this community, or an address on this community's server), and spelling it out keeps
+ * the query true if that ever changes.
+ */
+export async function dbFindReferrerAlias(userId: number): Promise<string | null> {
+  const referrer = aliasedTable(usersTable, 'referrer')
+  const rows = await drizzleDb()
+    .select({ alias: referrer.alias, gradidoId: referrer.gradidoId })
+    .from(usersTable)
+    .innerJoin(referrer, eq(usersTable.referrerId, referrer.id))
+    .where(
+      and(
+        eq(usersTable.id, userId),
+        isNull(usersTable.deletedAt),
+        isNull(referrer.deletedAt),
+        eq(referrer.foreign, false),
+      ),
+    )
+    .limit(1)
+  return rows.length ? publicAlias(rows[0].alias, rows[0].gradidoId) : null
+}
+
+/**
+ * The most recent person who arrived over this member, and whether they are the only one
+ * - what the tile mirrors back.
+ *
+ * ⛔ Only CONFIRMED addresses count. The trace is written at registration, before the
+ * address is confirmed, so counting every row would let anybody raise an echo at a
+ * stranger by registering made-up accounts under that stranger's name in the address
+ * (G §11.10). A confirmed address is a door somebody had to walk through.
+ *
+ * `first` is what carries "only first times" (ZE-006): the warm sentence belongs to the
+ * first arrival, every further one is reported plainly. Two rows are enough to answer it,
+ * which is why the limit is 2 and there is no count - one row back means this is the only
+ * one.
+ *
+ * ⚠️ `first` is measured on the arrivals that are still there, not on everyone who ever
+ * arrived. Somebody who came over this member and has since deleted their account leaves
+ * no trace here, so a later arrival is greeted as the first - which is what the member
+ * sees anyway, because the deleted one disappeared from the tile when it was deleted.
+ * Reading deleted rows to decide what a third party is told would give a closed account
+ * an after-life it was closed to end (AGENTS.md, Pillar 2). The test below pins this.
+ */
+export async function dbFindLatestArrival(referrerId: number): Promise<ReferralArrival | null> {
+  const rows = await drizzleDb()
+    .select({
+      alias: usersTable.alias,
+      gradidoId: usersTable.gradidoId,
+      createdAt: usersTable.createdAt,
+    })
+    .from(usersTable)
+    .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))
+    .where(
+      and(
+        eq(usersTable.referrerId, referrerId),
+        isNull(usersTable.deletedAt),
+        eq(usersTable.foreign, false),
+        eq(userContactsTable.emailChecked, true),
+      ),
+    )
+    .orderBy(desc(usersTable.createdAt))
+    .limit(2)
+  if (!rows.length) {
+    return null
+  }
+  return {
+    alias: publicAlias(rows[0].alias, rows[0].gradidoId),
+    createdAt: rows[0].createdAt,
+    first: rows.length === 1,
+  }
+}
+
+/** One arrival as the tile shows it: who, when, and whether it is the only one. */
+export type ReferralArrival = {
+  alias: string
+  createdAt: Date
+  first: boolean
 }

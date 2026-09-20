@@ -23,6 +23,8 @@ import {
   aliasExists,
   dbClearGmsRegistration,
   dbFindGmsAllowedLocalUserIds,
+  dbFindLatestArrival,
+  dbFindReferrerAlias,
   dbFindUserIdByUuids,
   dbFindUserLoginByEmail,
   dbMarkUsersGmsRegistered,
@@ -602,6 +604,135 @@ describe('user.queries', () => {
       expect(rows).toHaveLength(1)
       expect(rows[0].balanceDate).toEqual(moment)
       expect(rows[0].balance?.gddCent).toBe(latest?.balance.gddCent)
+    })
+  })
+
+  describe('the referral trace', () => {
+    let host: DbUser
+    let stranger: DbUser
+    let older: DbUser
+    let newer: DbUser
+    // The one home community of this block. ⚠️ Created once: `createCommunity` inserts,
+    // and `communities.url` is unique, so a second call inside a test fails the insert.
+    let homeCom: DbCommunity | null
+
+    /** A member who arrived over `host`, with the address state and age the case needs. */
+    async function arrival(
+      seed: { email?: string; alias?: string; emailChecked?: boolean },
+      createdAt: Date,
+    ): Promise<DbUser> {
+      const user = await userFactory({ ...seed, createdAt }, homeCom)
+      user.referrerId = host.id
+      return user.save()
+    }
+
+    beforeAll(async () => {
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await DbCommunity.clear()
+
+      homeCom = await createCommunity(false)
+      host = await userFactory({ ...bibiBloxberg, alias: 'host-bibi' }, homeCom)
+      stranger = await userFactory(peterLustig, homeCom)
+      older = await arrival(
+        { email: 'older@arrival.de', alias: 'olderone', emailChecked: true },
+        new Date('2026-01-10T10:00:00Z'),
+      )
+      newer = await arrival(
+        { email: 'newer@arrival.de', alias: 'newerone', emailChecked: true },
+        new Date('2026-02-10T10:00:00Z'),
+      )
+    })
+
+    describe('dbFindReferrerAlias', () => {
+      it('is the public name of whoever brought this member here', async () => {
+        await expect(dbFindReferrerAlias(newer.id)).resolves.toBe('host-bibi')
+      })
+
+      it('is null for a member nobody brought', async () => {
+        await expect(dbFindReferrerAlias(stranger.id)).resolves.toBeNull()
+      })
+
+      it('falls back to the gradidoID when the name is too short to be one', async () => {
+        await DbUser.update(host.id, { alias: 'ab' })
+        await expect(dbFindReferrerAlias(newer.id)).resolves.toBe(host.gradidoID)
+        await DbUser.update(host.id, { alias: 'host-bibi' })
+      })
+
+      it('is null when the referrer has deleted their account', async () => {
+        await DbUser.update(host.id, { deletedAt: new Date() })
+        await expect(dbFindReferrerAlias(newer.id)).resolves.toBeNull()
+        await DbUser.update(host.id, { deletedAt: null })
+      })
+    })
+
+    describe('dbFindLatestArrival', () => {
+      it('is null for a member nobody arrived over', async () => {
+        await expect(dbFindLatestArrival(stranger.id)).resolves.toBeNull()
+      })
+
+      it('is the youngest arrival, and not the first one', async () => {
+        await expect(dbFindLatestArrival(host.id)).resolves.toEqual({
+          alias: 'newerone',
+          createdAt: newer.createdAt,
+          first: false,
+        })
+      })
+
+      it('says `first` when there is exactly one', async () => {
+        await DbUser.update(newer.id, { referrerId: null })
+        await expect(dbFindLatestArrival(host.id)).resolves.toEqual({
+          alias: 'olderone',
+          createdAt: older.createdAt,
+          first: true,
+        })
+        await DbUser.update(newer.id, { referrerId: host.id })
+      })
+
+      it('does not count an address nobody confirmed', async () => {
+        const unconfirmed = await arrival(
+          { email: 'unconfirmed@arrival.de', alias: 'unconfirmd', emailChecked: false },
+          new Date('2026-03-10T10:00:00Z'),
+        )
+        // Younger than both confirmed ones, so it would win if it counted at all.
+        expect(unconfirmed.createdAt.getTime()).toBeGreaterThan(newer.createdAt.getTime())
+        await expect(dbFindLatestArrival(host.id)).resolves.toMatchObject({
+          alias: 'newerone',
+          first: false,
+        })
+        await DbUser.update(unconfirmed.id, { referrerId: null })
+      })
+
+      it('does not count a deleted account', async () => {
+        await DbUser.update(newer.id, { deletedAt: new Date() })
+        await expect(dbFindLatestArrival(host.id)).resolves.toEqual({
+          alias: 'olderone',
+          createdAt: older.createdAt,
+          first: true,
+        })
+        await DbUser.update(newer.id, { deletedAt: null })
+      })
+
+      it('greets a later arrival as the first once the earlier one is gone', async () => {
+        // The decided reading of `first`: the arrivals still there, not everyone who ever
+        // arrived. A closed account leaves no trace to be counted against a third party.
+        await DbUser.update(older.id, { deletedAt: new Date() })
+        await expect(dbFindLatestArrival(host.id)).resolves.toEqual({
+          alias: 'newerone',
+          createdAt: newer.createdAt,
+          first: true,
+        })
+        await DbUser.update(older.id, { deletedAt: null })
+      })
+
+      it('does not count a member of another community', async () => {
+        await DbUser.update(newer.id, { foreign: true })
+        await expect(dbFindLatestArrival(host.id)).resolves.toMatchObject({
+          alias: 'olderone',
+          first: true,
+        })
+        await DbUser.update(newer.id, { foreign: false })
+      })
     })
   })
 })
