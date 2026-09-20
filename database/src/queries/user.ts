@@ -1,5 +1,5 @@
 import { and, desc, eq, inArray, isNull, ne, or } from 'drizzle-orm'
-import { alias as aliasedTable } from 'drizzle-orm/mysql-core'
+import { type AnyMySqlColumn, alias as aliasedTable } from 'drizzle-orm/mysql-core'
 import { GradidoUnit, PasswordEncryptionType, publicAlias, Result, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { DBDuplicateEntryError, DBNotFoundError } from '../errorTypes'
@@ -353,6 +353,55 @@ export async function dbUserUpdateField<K extends UserSingleColumn>(
     .where(eq(usersTable.id, userId))
 }
 
+/** The `users` columns the trace conditions below read -- see the note on `reachableOnTrace`. */
+type TraceMemberColumns = {
+  deletedAt: AnyMySqlColumn<{ data: Date }>
+  foreign: AnyMySqlColumn<{ data: boolean }>
+}
+
+/** The `user_contacts` column that says the address was confirmed. */
+type TraceAddressColumns = {
+  emailChecked: AnyMySqlColumn<{ data: boolean }>
+}
+
+/**
+ * Whether a member on the referral trace can still be reached: their account is there, and
+ * it belongs to this community.
+ *
+ * ⛔ ONE rule, used by everything that reads the trace, and that is the whole point of it
+ * being a function. The overview tile mirrors an arrival back and the contact list holds
+ * the same people permanently; two copies of this condition would be two locks that drift,
+ * and the drift shows up as the tile naming somebody the list does not know, or the other
+ * way round -- with nothing on either screen to say which of them is wrong.
+ *
+ * `foreign = false` is not derived from the deletion mark: a member on this trace is always
+ * local by the way `referrer_id` is written (a transaction link of this community, or an
+ * address on this community's server), and spelling it out keeps the condition true if that
+ * ever changes.
+ *
+ * ⚠️ Typed by the two COLUMNS it reads rather than by `typeof usersTable`, because half the
+ * callers hand it an aliased copy of that table (`alias(usersTable, 'referrer')`), whose
+ * type carries the alias as its table name and is therefore not the same type.
+ */
+const reachableOnTrace = (member: TraceMemberColumns) =>
+  and(isNull(member.deletedAt), eq(member.foreign, false))
+
+/**
+ * Whether an arrival counts: reachable as above, and somebody walked through the door of
+ * the confirmation mail.
+ *
+ * ⛔ The address condition belongs HERE rather than at each caller. The trace is written at
+ * registration, before the address is confirmed, so counting every row would let anybody
+ * raise an echo at a stranger -- or plant themselves in a stranger's contact list -- by
+ * registering made-up accounts under that stranger's name in the address (G §11.10,
+ * KF-013). A confirmed address is a door somebody had to walk through.
+ *
+ * `address` is the `user_contacts` row `users.email_id` points at, which is the address in
+ * force; the caller joins it.
+ */
+const confirmedArrival = (member: TraceMemberColumns, address: TraceAddressColumns) =>
+  and(reachableOnTrace(member), eq(address.emailChecked, true))
+
 /**
  * The public name of whoever brought this member here, or null when nobody did.
  *
@@ -361,11 +410,12 @@ export async function dbUserUpdateField<K extends UserSingleColumn>(
  * member and a stored alias of one or two characters is not a name (the rule lives in
  * `shared` so all three packages give the same answer).
  *
- * A referrer whose account is gone is no answer: the wallet would offer to thank
- * somebody who cannot receive anything. `foreign = false` is not derived from that -
- * a referrer is always local by the way the column is written (a transaction link of
- * this community, or an address on this community's server), and spelling it out keeps
- * the query true if that ever changes.
+ * A referrer whose account is gone is no answer: the wallet would offer to thank somebody
+ * who cannot receive anything. That condition is `reachableOnTrace` above, shared with
+ * everything else that reads this trace.
+ *
+ * ⚠️ The asking member's own deletion mark is a separate matter and stays here: it is
+ * about who is asking, not about who is being named.
  */
 export async function dbFindReferrerAlias(userId: number): Promise<string | null> {
   const referrer = aliasedTable(usersTable, 'referrer')
@@ -373,14 +423,7 @@ export async function dbFindReferrerAlias(userId: number): Promise<string | null
     .select({ alias: referrer.alias, gradidoId: referrer.gradidoId })
     .from(usersTable)
     .innerJoin(referrer, eq(usersTable.referrerId, referrer.id))
-    .where(
-      and(
-        eq(usersTable.id, userId),
-        isNull(usersTable.deletedAt),
-        isNull(referrer.deletedAt),
-        eq(referrer.foreign, false),
-      ),
-    )
+    .where(and(eq(usersTable.id, userId), isNull(usersTable.deletedAt), reachableOnTrace(referrer)))
     .limit(1)
   return rows.length ? publicAlias(rows[0].alias, rows[0].gradidoId) : null
 }
@@ -389,10 +432,9 @@ export async function dbFindReferrerAlias(userId: number): Promise<string | null
  * The most recent person who arrived over this member, and whether they are the only one
  * - what the tile mirrors back.
  *
- * ⛔ Only CONFIRMED addresses count. The trace is written at registration, before the
- * address is confirmed, so counting every row would let anybody raise an echo at a
- * stranger by registering made-up accounts under that stranger's name in the address
- * (G §11.10). A confirmed address is a door somebody had to walk through.
+ * ⛔ Only CONFIRMED addresses count, and only accounts that are still there -- that whole
+ * condition is `confirmedArrival` above, shared with the contact list so the tile and the
+ * list can never name different people.
  *
  * `first` is what carries "only first times" (ZE-006): the warm sentence belongs to the
  * first arrival, every further one is reported plainly. Two rows are enough to answer it,
@@ -416,12 +458,7 @@ export async function dbFindLatestArrival(referrerId: number): Promise<ReferralA
     .from(usersTable)
     .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))
     .where(
-      and(
-        eq(usersTable.referrerId, referrerId),
-        isNull(usersTable.deletedAt),
-        eq(usersTable.foreign, false),
-        eq(userContactsTable.emailChecked, true),
-      ),
+      and(eq(usersTable.referrerId, referrerId), confirmedArrival(usersTable, userContactsTable)),
     )
     .orderBy(desc(usersTable.createdAt))
     .limit(2)
