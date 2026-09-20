@@ -8,6 +8,7 @@ import {
   foreignReceive,
   transferGradidos,
   User,
+  UserContact,
 } from 'database'
 import { GraphQLError } from 'graphql'
 import { ContactOrigin, GradidoUnit } from 'shared'
@@ -592,11 +593,22 @@ describe('ContactResolver', () => {
   })
 
   /**
-   * The second source: the referral trace (KF-012). Last in the file and it puts every
-   * column it writes back, because the blocks above count and order the same members.
+   * The second source: the referral trace (KF-012).
+   *
+   * ⚠️ LAST in the file, and it undoes everything it does -- the columns it writes onto
+   * members the blocks above count and order, and the member it creates of its own. Both,
+   * so that the next person can add a describe below this one.
+   *
+   * ⛔ Every registration date here is EARLIER than the bookings of the same member: an
+   * account has to exist before it can book, so a fixture that registers somebody after
+   * their bookings pins a state production cannot reach -- and hides the one the merge
+   * really does, `firstAt` reaching BACK to the registration.
    */
   describe('the referral trace as a second source', () => {
     let carla: User
+
+    /** Before day(0), so bob's registration is older than every booking of his. */
+    const bobArrived = new Date(Date.UTC(2026, 6, 20, 12, 0, 0))
 
     /** One contact out of bibi's list, by the member it names. */
     const contactFor = async (member: User) => {
@@ -620,9 +632,9 @@ describe('ContactResolver', () => {
         createdAt: day(10),
       })
       await User.update(carla.id, { referrerId: bibi.id })
-      // bob came over bibi AND has two bookings with her: one contact, both truths. Dated
-      // after both bookings, so the joined span has to reach forward.
-      await User.update(bob.id, { referrerId: bibi.id, createdAt: day(11) })
+      // bob came over bibi AND has two bookings with her: one contact, both truths. He
+      // registered before he could book, so the joined span reaches BACK to that day.
+      await User.update(bob.id, { referrerId: bibi.id, createdAt: bobArrived })
       // The other direction: peter showed bibi Gradido, and they have booked once.
       await User.update(bibi.id, { referrerId: peter.id })
       await loginAs('bibi@bloxberg.de')
@@ -630,6 +642,10 @@ describe('ContactResolver', () => {
 
     afterAll(async () => {
       await User.update([carla.id, bob.id, bibi.id], { referrerId: null })
+      await User.update(bob.id, { createdAt: bob.createdAt })
+      // The member this block created, and the address row that came with her.
+      await User.delete(carla.id)
+      await UserContact.delete({ userId: carla.id })
       await clearFavorites()
       await resetToken()
     })
@@ -657,9 +673,10 @@ describe('ContactResolver', () => {
       const { list, row } = await contactFor(bob)
       expect(list.contacts.filter((c: any) => c.user.gradidoID === bob.gradidoID)).toHaveLength(1)
       expect(row).toMatchObject({ bookings: 2, origin: ContactOrigin.ARRIVAL })
-      // Oldest of both sources, newest of both.
-      expect(new Date(row.firstAt).getTime()).toBe(day(1).getTime())
-      expect(new Date(row.lastAt).getTime()).toBe(day(11).getTime())
+      // Oldest of both sources, newest of both: the registration reaches back before the
+      // first booking, the last booking stays the last.
+      expect(new Date(row.firstAt).getTime()).toBe(bobArrived.getTime())
+      expect(new Date(row.lastAt).getTime()).toBe(day(2).getTime())
     })
 
     it('names the other direction from the asking member, and dates it with her own arrival', async () => {

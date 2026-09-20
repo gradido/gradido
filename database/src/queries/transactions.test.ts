@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { ContactOrigin, GradidoUnit, Order } from 'shared'
 import { clearDatabase } from '../../migration/clear'
-import { User as DbUser } from '..'
+import { User as DbUser, UserContact as DbUserContact } from '..'
 import { AppDatabase } from '../AppDatabase'
 import { TransactionTypeId } from '../enum'
 import { createCommunity } from '../seeds/community'
@@ -426,13 +426,23 @@ describe('dbSelectTransactionsByUserId narrowed to one counterparty', () => {
  * The second source: people the referral trace puts beside this member, with and without
  * bookings behind them (KF-012).
  *
- * ⚠️ LAST in the file and it puts every column it touches back, because it writes
- * `referrer_id` onto members the blocks above count and order. Its own member is created
- * here rather than in the shared fixture for the same reason -- an extra row in `users`
- * would move the counts those blocks assert.
+ * ⚠️ LAST in the file, and it undoes everything it does: it writes `referrer_id` and
+ * `created_at` onto members the blocks above count and order, and it creates a member of
+ * its own rather than adding one to the shared fixture -- an extra row in `users` would
+ * move the counts those blocks assert. Both are put back in `afterAll`, which is what lets
+ * the next person add a describe below this one.
+ *
+ * ⛔ Every registration date here is EARLIER than the bookings of the same member, because
+ * that is the only order production can produce: an account has to exist before it can
+ * book. A fixture that registers somebody after their bookings pins a state that cannot
+ * occur -- and hides the one the merge really does, which is `firstAt` reaching BACK to
+ * the registration while `lastAt` stays on the last booking.
  */
 describe('dbSelectContactsByUserId with the referral trace', () => {
   let carla: DbUser
+
+  /** Before day(0), so bob's registration is older than every booking of his. */
+  const bobArrived = new Date(Date.UTC(2026, 6, 20, 12, 0, 0))
 
   beforeAll(async () => {
     // Nobody has exchanged anything with her: the whole reason she is a contact is that she
@@ -444,9 +454,9 @@ describe('dbSelectContactsByUserId with the referral trace', () => {
       createdAt: day(10),
     })
     await DbUser.update(carla.id, { referrerId: bibi.id })
-    // bob came over bibi AND has two bookings with her: one contact, both truths. His
-    // registration is dated after both of them, so the joined span has to reach forward.
-    await DbUser.update(bob.id, { referrerId: bibi.id, createdAt: day(11) })
+    // bob came over bibi AND has two bookings with her: one contact, both truths. He
+    // registered before he could book, so the joined span reaches BACK to that day.
+    await DbUser.update(bob.id, { referrerId: bibi.id, createdAt: bobArrived })
     // The other direction: peter showed bibi Gradido, and they have booked three times.
     await DbUser.update(bibi.id, { referrerId: peter.id })
   })
@@ -454,6 +464,9 @@ describe('dbSelectContactsByUserId with the referral trace', () => {
   afterAll(async () => {
     await DbUser.update([carla.id, bob.id, bibi.id], { referrerId: null })
     await DbUser.update(bob.id, { createdAt: bob.createdAt })
+    // The member this block created, and the address row that came with her.
+    await DbUser.delete(carla.id)
+    await DbUserContact.delete({ userId: carla.id })
   })
 
   const contactsOf = async (userId: number) =>
@@ -479,9 +492,10 @@ describe('dbSelectContactsByUserId with the referral trace', () => {
     expect(rows).toHaveLength(1)
     // The bookings are untouched by the second source, and the origin came along.
     expect(rows[0]).toMatchObject({ bookings: 2, origin: ContactOrigin.ARRIVAL })
-    // Oldest of both sources, newest of both -- not one source's pair of dates.
-    expect(rows[0].firstAt.getTime()).toBe(day(2).getTime())
-    expect(rows[0].lastAt.getTime()).toBe(day(11).getTime())
+    // Oldest of both sources, newest of both -- not one source's pair of dates. The
+    // registration reaches back before the first booking; the last booking stays the last.
+    expect(rows[0].firstAt.getTime()).toBe(bobArrived.getTime())
+    expect(rows[0].lastAt.getTime()).toBe(day(5).getTime())
   })
 
   it("joins the other direction too, and dates it with the asking member's arrival", async () => {

@@ -737,10 +737,17 @@ describe('user.queries', () => {
     })
 
     describe('dbSelectReferralContactsByUserId', () => {
-      /** The rows for one member, in a fixed order, so a test can name them. */
+      /**
+       * The rows for one member, oldest arrival first.
+       *
+       * ⛔ Ordered by the DATE, not by the gradidoID: the ids are fresh uuids per run
+       * (`userFactory`), so a test that sorts by them and compares against a list written
+       * in any other order passes or fails by coin flip. The dates are the fixture's own
+       * and are what the assertions below are written in terms of.
+       */
       const traceOf = async (userId: number) =>
-        (await dbSelectReferralContactsByUserId(userId)).sort((a, b) =>
-          a.gradidoId < b.gradidoId ? -1 : 1,
+        (await dbSelectReferralContactsByUserId(userId)).sort(
+          (a, b) => a.firstAt.getTime() - b.firstAt.getTime(),
         )
 
       it("names whoever showed this member Gradido, dated with the asking member's own arrival", async () => {
@@ -764,15 +771,17 @@ describe('user.queries', () => {
       it('names everybody who came over this member, each with their own arrival date', async () => {
         const rows = await traceOf(host.id)
         expect(rows).toHaveLength(2)
-        expect(rows.map((row) => [row.alias, row.origin, row.bookings])).toEqual(
-          [
-            ['olderone', ContactOrigin.ARRIVAL, 0],
-            ['newerone', ContactOrigin.ARRIVAL, 0],
-          ].sort((a, b) => ((a[0] as string) < (b[0] as string) ? -1 : 1)),
-        )
-        const olderRow = rows.find((row) => row.linkedUserId === older.id)
-        expect(olderRow?.firstAt).toEqual(older.createdAt)
-        expect(olderRow?.lastAt).toEqual(older.createdAt)
+        // Oldest arrival first, by the order traceOf imposes -- so the pairs below say
+        // which row is which without depending on a uuid.
+        expect(rows.map((row) => [row.alias, row.origin, row.bookings])).toEqual([
+          ['olderone', ContactOrigin.ARRIVAL, 0],
+          ['newerone', ContactOrigin.ARRIVAL, 0],
+        ])
+        expect(rows.map((row) => row.linkedUserId)).toEqual([older.id, newer.id])
+        // One moment, not a span: each arrival carries its own registration, twice.
+        expect(rows[0].firstAt).toEqual(older.createdAt)
+        expect(rows[0].lastAt).toEqual(older.createdAt)
+        expect(rows[1].firstAt).toEqual(newer.createdAt)
       })
 
       it('hands the alias over RAW, not through publicAlias', async () => {
@@ -790,18 +799,48 @@ describe('user.queries', () => {
         await expect(dbSelectReferralContactsByUserId(stranger.id)).resolves.toEqual([])
       })
 
-      it('leaves out an arrival whose address nobody confirmed', async () => {
+      /**
+       * ⛔ The confirmation window, and the two directions are NOT alike in it.
+       *
+       * Only a confirmed arrival reaches the member who showed them Gradido (KF-013) --
+       * otherwise anybody could plant themselves in a stranger's list by registering under
+       * that stranger's address. The other direction has no such condition, deliberately:
+       * the arriving member already reads their referrer's name off the overview tile
+       * (`dbFindReferrerAlias`, which has never asked about the address either), so a
+       * condition here would make the list say less than the tile -- the exact drift the
+       * shared conditions exist to prevent, in the other direction.
+       *
+       * So the trace is one-sided while an address is unconfirmed, and the moment it is
+       * confirmed both sides see each other. That is a window, not a state: an account can
+       * be in it and signed in, because assisted registration (EM-013) sets a password
+       * before the address is confirmed.
+       */
+      it('reaches the member who was shown Gradido, but not yet the one who showed it', async () => {
         const unconfirmed = await arrival(
           { email: 'unconfirmed-contact@arrival.de', alias: 'noconfirm', emailChecked: false },
           new Date('2026-03-10T10:00:00Z'),
         )
+        // The inviter's side stays closed.
         const rows = await traceOf(host.id)
         expect(rows.map((row) => row.linkedUserId)).not.toContain(unconfirmed.id)
         expect(rows).toHaveLength(2)
-        // And the other direction is closed too: an unconfirmed arrival is not yet a
-        // contact of the member who showed them Gradido, so neither side sees the other.
-        await expect(dbSelectReferralContactsByUserId(unconfirmed.id)).resolves.toEqual([])
+        // The arriving member's side is open, as the tile already is.
+        const theirs = await traceOf(unconfirmed.id)
+        expect(theirs.map((row) => [row.linkedUserId, row.origin])).toEqual([
+          [host.id, ContactOrigin.REFERRER],
+        ])
         await DbUser.update(unconfirmed.id, { referrerId: null })
+      })
+
+      it('opens the inviter side the moment the address is confirmed', async () => {
+        const confirming = await arrival(
+          { email: 'confirming@arrival.de', alias: 'willconfirm', emailChecked: false },
+          new Date('2026-04-10T10:00:00Z'),
+        )
+        expect((await traceOf(host.id)).map((row) => row.linkedUserId)).not.toContain(confirming.id)
+        await DbUserContact.update({ userId: confirming.id }, { emailChecked: true })
+        expect((await traceOf(host.id)).map((row) => row.linkedUserId)).toContain(confirming.id)
+        await DbUser.update(confirming.id, { referrerId: null })
       })
 
       it('leaves out an arrival who has deleted their account', async () => {
