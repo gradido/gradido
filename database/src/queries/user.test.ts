@@ -645,6 +645,33 @@ describe('user.queries', () => {
       )
     })
 
+    /**
+     * ⛔ One rule, so one test per reader of it. The guard lives in `reachableOnTrace`,
+     * which all three readers stand on -- a test only on the contact list would leave the
+     * tile free to name a member as their own referrer while the list left them out, which
+     * is the drift the shared condition exists to prevent.
+     */
+    describe('a row that names itself as its own referrer', () => {
+      beforeAll(async () => {
+        await DbUser.update(stranger.id, { referrerId: stranger.id })
+      })
+      afterAll(async () => {
+        await DbUser.update(stranger.id, { referrerId: null })
+      })
+
+      it('is nobody to the tile that names who showed this member Gradido', async () => {
+        await expect(dbFindReferrerAlias(stranger.id)).resolves.toBeNull()
+      })
+
+      it('is nobody to the tile that mirrors an arrival back', async () => {
+        await expect(dbFindLatestArrival(stranger.id)).resolves.toBeNull()
+      })
+
+      it('is nobody to the contact list', async () => {
+        await expect(dbSelectReferralContactsByUserId(stranger.id)).resolves.toEqual([])
+      })
+    })
+
     describe('dbFindReferrerAlias', () => {
       it('is the public name of whoever brought this member here', async () => {
         await expect(dbFindReferrerAlias(newer.id)).resolves.toBe('host-bibi')
@@ -861,14 +888,6 @@ describe('user.queries', () => {
         await DbUser.update(host.id, { deletedAt: new Date() })
         await expect(dbSelectReferralContactsByUserId(newer.id)).resolves.toEqual([])
         await DbUser.update(host.id, { deletedAt: null })
-      })
-
-      it('never puts a member into their own list', async () => {
-        // Cannot arise from registration; it would offer a member a button to send Gradido
-        // to themselves, which addFavorite already refuses in words.
-        await DbUser.update(stranger.id, { referrerId: stranger.id })
-        await expect(dbSelectReferralContactsByUserId(stranger.id)).resolves.toEqual([])
-        await DbUser.update(stranger.id, { referrerId: null })
       })
     })
   })

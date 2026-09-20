@@ -1,5 +1,5 @@
 import { and, desc, eq, inArray, isNull, ne, or } from 'drizzle-orm'
-import { type AnyMySqlColumn, alias as aliasedTable } from 'drizzle-orm/mysql-core'
+import { alias as aliasedTable, type BuildAliasTable } from 'drizzle-orm/mysql-core'
 import {
   ContactOrigin,
   GradidoUnit,
@@ -360,16 +360,20 @@ export async function dbUserUpdateField<K extends UserSingleColumn>(
     .where(eq(usersTable.id, userId))
 }
 
-/** The `users` columns the trace conditions below read -- see the note on `reachableOnTrace`. */
-type TraceMemberColumns = {
-  deletedAt: AnyMySqlColumn<{ data: Date }>
-  foreign: AnyMySqlColumn<{ data: boolean }>
-}
+/**
+ * A `users` row on the trace: the table itself, or an aliased copy of it.
+ *
+ * ⚠️ The alias is why this is a union rather than `typeof usersTable`: `alias(usersTable,
+ * 'referrer')` carries the alias as its table name and is therefore not the same type.
+ * Spelling it as the two whole TABLES rather than as the columns they have in common is
+ * deliberate -- a structural `{ deletedAt, foreign }` would also accept a table the query
+ * has not joined, and Drizzle would then emit a column nobody put in scope: an error the
+ * compiler cannot see and MariaDB answers with 1054 at request time.
+ */
+type TraceMember = typeof usersTable | BuildAliasTable<typeof usersTable, string>
 
-/** The `user_contacts` column that says the address was confirmed. */
-type TraceAddressColumns = {
-  emailChecked: AnyMySqlColumn<{ data: boolean }>
-}
+/** The address row `users.email_id` points at, likewise as the table or an alias of it. */
+type TraceAddress = typeof userContactsTable | BuildAliasTable<typeof userContactsTable, string>
 
 /**
  * Whether a member on the referral trace can still be reached: their account is there, and
@@ -386,12 +390,16 @@ type TraceAddressColumns = {
  * address on this community's server), and spelling it out keeps the condition true if that
  * ever changes.
  *
- * ⚠️ Typed by the two COLUMNS it reads rather than by `typeof usersTable`, because half the
- * callers hand it an aliased copy of that table (`alias(usersTable, 'referrer')`), whose
- * type carries the alias as its table name and is therefore not the same type.
+ * ⛔ And nobody is their own contact. A row with `referrer_id = id` cannot come out of
+ * registration, but an import or a data fix can write one, and every reader of the trace
+ * has to refuse it alike: without this the overview tile would mirror a member back at
+ * themselves as the person who showed them Gradido, while the contact list left them out
+ * -- two screens, different people, which is exactly what this function exists to prevent.
+ * The caller passes whoever is asking; on the arrival side that is the referrer, on the
+ * referrer side the arriving member.
  */
-const reachableOnTrace = (member: TraceMemberColumns) =>
-  and(isNull(member.deletedAt), eq(member.foreign, false))
+const reachableOnTrace = (member: TraceMember, notThisMember: number) =>
+  and(isNull(member.deletedAt), eq(member.foreign, false), ne(member.id, notThisMember))
 
 /**
  * Whether an arrival counts: reachable as above, and somebody walked through the door of
@@ -406,8 +414,8 @@ const reachableOnTrace = (member: TraceMemberColumns) =>
  * `address` is the `user_contacts` row `users.email_id` points at, which is the address in
  * force; the caller joins it.
  */
-const confirmedArrival = (member: TraceMemberColumns, address: TraceAddressColumns) =>
-  and(reachableOnTrace(member), eq(address.emailChecked, true))
+const confirmedArrival = (member: TraceMember, address: TraceAddress, notThisMember: number) =>
+  and(reachableOnTrace(member, notThisMember), eq(address.emailChecked, true))
 
 /**
  * The public name of whoever brought this member here, or null when nobody did.
@@ -431,7 +439,13 @@ export async function dbFindReferrerAlias(userId: number): Promise<string | null
     .select({ alias: referrer.alias, gradidoId: referrer.gradidoId })
     .from(usersTable)
     .innerJoin(referrer, eq(usersTable.referrerId, referrer.id))
-    .where(and(eq(usersTable.id, userId), isNull(usersTable.deletedAt), reachableOnTrace(referrer)))
+    .where(
+      and(
+        eq(usersTable.id, userId),
+        isNull(usersTable.deletedAt),
+        reachableOnTrace(referrer, userId),
+      ),
+    )
     .limit(1)
   return rows.length ? publicAlias(rows[0].alias, rows[0].gradidoId) : null
 }
@@ -466,7 +480,10 @@ export async function dbFindLatestArrival(referrerId: number): Promise<ReferralA
     .from(usersTable)
     .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))
     .where(
-      and(eq(usersTable.referrerId, referrerId), confirmedArrival(usersTable, userContactsTable)),
+      and(
+        eq(usersTable.referrerId, referrerId),
+        confirmedArrival(usersTable, userContactsTable, referrerId),
+      ),
     )
     .orderBy(desc(usersTable.createdAt))
     .limit(2)
@@ -549,9 +566,8 @@ export type ReferralContact = {
  * caller already holds in memory (713 counterparties for the busiest account measured), and
  * a cap here would silently drop people from a list whose promise is "everybody, once".
  *
- * ⚠️ A row naming itself as its own referrer is left out of both looks. It cannot arise from
- * registration, but it would put the member into their own contact list with a button
- * offering to send Gradido to themselves -- which `addFavorite` already refuses in words.
+ * ⚠️ A row naming itself as its own referrer is refused by `reachableOnTrace`, which means
+ * the overview tile refuses it too -- see there.
  */
 export async function dbSelectReferralContactsByUserId(userId: number): Promise<ReferralContact[]> {
   const db = drizzleDb()
@@ -572,8 +588,7 @@ export async function dbSelectReferralContactsByUserId(userId: number): Promise<
       and(
         eq(usersTable.id, userId),
         isNull(usersTable.deletedAt),
-        ne(referrer.id, userId),
-        reachableOnTrace(referrer),
+        reachableOnTrace(referrer, userId),
       ),
     )
     .limit(1)
@@ -591,8 +606,7 @@ export async function dbSelectReferralContactsByUserId(userId: number): Promise<
     .where(
       and(
         eq(usersTable.referrerId, userId),
-        ne(usersTable.id, userId),
-        confirmedArrival(usersTable, userContactsTable),
+        confirmedArrival(usersTable, userContactsTable, userId),
       ),
     )
 
