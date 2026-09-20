@@ -463,7 +463,6 @@
     "link-expired": "Bağlantı artık geçerli değil. Geçerlilik süresi {date} tarihinde doldu.",
     "link-hint": "Bağlantıya sahip olan herkes onu kullanabilir. Bağlantıyı yalnızca kimin için oluşturduysan ona gönder.",
     "link-overview": "Linke toplu bakış",
-    "links_count": "Aktif linkler",
     "links_open": "{n} açık",
     "links_sum": "Linkler, çekler, QR kodları",
     "no-account": "Henüz bir Gradido hesabınız yok mu?",

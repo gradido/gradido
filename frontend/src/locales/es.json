@@ -463,7 +463,6 @@
     "link-expired": "El enlace ya no es válido. La validez expiró el {date}.",
     "link-hint": "Quien tenga el enlace puede canjearlo. Envíalo solo a la persona a la que va dirigido.",
     "link-overview": "Resumen de enlaces",
-    "links_count": "Enlaces activos",
     "links_open": "{n} abiertos",
     "links_sum": "Enlaces, cheques, códigos QR",
     "no-account": "¿Aún no tienes una cuenta de Gradido?",
