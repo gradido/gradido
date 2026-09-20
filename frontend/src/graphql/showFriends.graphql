@@ -7,6 +7,10 @@ query showFriends {
   showFriends {
     referrerAlias
     latestArrival {
+      # Who they are, so the tile can offer a way to REACH them and not only name them
+      # (ZE-010): it hands this to the contact window. The community is not asked for --
+      # an arrival is by construction a member of this one.
+      gradidoID
       alias
       createdAt
       first
