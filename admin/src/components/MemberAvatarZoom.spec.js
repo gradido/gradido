@@ -259,6 +259,12 @@ describe('MemberAvatarZoom', () => {
 
       expect(panel).toContain('background: transparent')
       expect(panel).toContain('border: 0')
+      // ⚠️ Inert today -- measured, `.modal-content` carries no shadow in bootstrap-vue-next
+      // 0.26.8, so the rendered value is `none` with and without this line. It is guarded
+      // BECAUSE of that: an inert declaration is the easiest one to delete, and it is what
+      // keeps the picture frameless the day the library gives its panel a shadow.
+      // (coderabbit, PR #3943.)
+      expect(panel).toContain('box-shadow: none')
       expect(body).toContain('padding: 0')
     })
   })
