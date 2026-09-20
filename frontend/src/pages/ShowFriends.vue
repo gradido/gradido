@@ -119,13 +119,14 @@
  * Nothing here is stored and nothing is asked of the server. The page reads the member's name
  * from the store like the card page does.
  */
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { BButton } from 'bootstrap-vue-next'
 import OwnCodeView from '@/components/QrCode/OwnCodeView'
 import GradidoAddressCopy from '@/components/GradidoAddressCopy'
 import { useAppToast } from '@/composables/useToast'
+import { useShowFriendsSeen } from '@/composables/useShowFriendsSeen'
 import CONFIG from '@/config'
 import { gradidoAddress, memberAlias } from '@/utils/gradidoAddress'
 import { SEND_TYPES } from '@/utils/sendTypes'
@@ -136,6 +137,14 @@ const AWAY = 'away'
 
 const store = useStore()
 const { t } = useI18n()
+
+/**
+ * Having been here once is what turns the tile on the overview from the large invitation
+ * into a quiet row (ZE-008 W5). Remembered on opening rather than on any action taken
+ * here: the member came, looked and decided -- that is the answer the tile asked for.
+ */
+const { markSeen } = useShowFriendsSeen()
+onMounted(markSeen)
 const toast = useAppToast()
 
 const hasMap = CONFIG.MATCHING_ACTIVE === true

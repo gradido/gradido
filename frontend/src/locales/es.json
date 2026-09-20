@@ -998,6 +998,12 @@
       "step3": "La cuenta la recibe por sí sola. No tienes que explicar nada.",
       "title": "A alguien aquí conmigo"
     },
+    "mirror": {
+      "go": "Muéstraselo a alguien más",
+      "since": "Con nosotros desde el {date}.",
+      "text": "Qué bonito que lo hayas mostrado.",
+      "title": "{name} ya está aquí."
+    },
     "page": {
       "footer": "Con mostrarlo basta.",
       "footerLead": "No tienes que explicar nada.",

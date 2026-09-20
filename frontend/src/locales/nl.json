@@ -998,6 +998,12 @@
       "step3": "Het account verwelkomt haar vanzelf. Je hoeft niets uit te leggen.",
       "title": "Iemand hier bij mij"
     },
+    "mirror": {
+      "go": "Laat het aan iemand anders zien",
+      "since": "Erbij sinds {date}.",
+      "text": "Fijn dat je het hebt laten zien.",
+      "title": "{name} is er."
+    },
     "page": {
       "footer": "Laten zien is genoeg.",
       "footerLead": "Je hoeft niets uit te leggen.",

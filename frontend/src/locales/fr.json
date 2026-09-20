@@ -998,6 +998,12 @@
       "step3": "Le compte l'accueille tout seul. Tu n'as rien à expliquer.",
       "title": "À quelqu'un ici avec moi"
     },
+    "mirror": {
+      "go": "Montre-le à quelqu'un d'autre",
+      "since": "Parmi nous depuis le {date}.",
+      "text": "C'est beau que tu l'aies montré.",
+      "title": "{name} est là."
+    },
     "page": {
       "footer": "Montrer suffit.",
       "footerLead": "Tu n'as rien à expliquer.",

@@ -1123,6 +1123,12 @@
       "step3": "Das Konto begrüßt sie selbst. Du musst nichts erklären.",
       "title": "Jemandem hier bei mir"
     },
+    "mirror": {
+      "go": "Zeig es noch jemandem",
+      "since": "Seit {date} dabei.",
+      "text": "Schön, dass Du es gezeigt hast.",
+      "title": "{name} ist da."
+    },
     "page": {
       "footer": "Zeigen genügt.",
       "footerLead": "Du musst nichts erklären.",

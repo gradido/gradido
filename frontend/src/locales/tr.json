@@ -998,6 +998,12 @@
       "step3": "Hesap onu kendiliğinden karşılar. Hiçbir şey açıklamana gerek yok.",
       "title": "Burada yanımdaki birine"
     },
+    "mirror": {
+      "go": "Bir başkasına da göster",
+      "since": "{date} tarihinden beri bizimle.",
+      "text": "Göstermen çok güzel.",
+      "title": "{name} aramızda."
+    },
     "page": {
       "footer": "Göstermek yeterli.",
       "footerLead": "Hiçbir şey açıklamana gerek yok.",

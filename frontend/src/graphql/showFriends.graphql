@@ -1,0 +1,15 @@
+# AI-GENERATED — not an architecture reference
+
+# Whom to offer thanks to, and whose arrival to mirror back. No arguments, so the cache
+# holds one entry for everybody -- `cache-and-network` at the call sites, and the store is
+# cleared on logout, keeps a member from seeing the previous one's arrival.
+query showFriends {
+  showFriends {
+    referrerAlias
+    latestArrival {
+      alias
+      createdAt
+      first
+    }
+  }
+}
