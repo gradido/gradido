@@ -1,4 +1,4 @@
-import { GradidoUnit, Order, PasswordEncryptionType } from 'shared'
+import { ContactOrigin, GradidoUnit, Order, PasswordEncryptionType } from 'shared'
 import { clearDatabase } from '../../migration/clear'
 import {
   ALIAS_ORIGIN_CHOSEN,
@@ -30,6 +30,7 @@ import {
   dbMarkUsersGmsRegistered,
   dbSelectForeignMemberGradidoIds,
   dbSelectLatestUserBalances,
+  dbSelectReferralContactsByUserId,
   dbUserUpdateField,
   dbUserUpdatePassword,
   findUserNamesByIds,
@@ -732,6 +733,103 @@ describe('user.queries', () => {
           first: true,
         })
         await DbUser.update(newer.id, { foreign: false })
+      })
+    })
+
+    describe('dbSelectReferralContactsByUserId', () => {
+      /** The rows for one member, in a fixed order, so a test can name them. */
+      const traceOf = async (userId: number) =>
+        (await dbSelectReferralContactsByUserId(userId)).sort((a, b) =>
+          a.gradidoId < b.gradidoId ? -1 : 1,
+        )
+
+      it("names whoever showed this member Gradido, dated with the asking member's own arrival", async () => {
+        const rows = await traceOf(newer.id)
+        expect(rows).toHaveLength(1)
+        expect(rows[0]).toEqual({
+          linkedUserId: host.id,
+          communityUuid: host.communityUuid,
+          gradidoId: host.gradidoID,
+          alias: 'host-bibi',
+          deletedAt: null,
+          // The day THIS contact began is the day the asking member registered, not the
+          // day the other one did -- host is older than both arrivals.
+          firstAt: newer.createdAt,
+          lastAt: newer.createdAt,
+          bookings: 0,
+          origin: ContactOrigin.REFERRER,
+        })
+      })
+
+      it('names everybody who came over this member, each with their own arrival date', async () => {
+        const rows = await traceOf(host.id)
+        expect(rows).toHaveLength(2)
+        expect(rows.map((row) => [row.alias, row.origin, row.bookings])).toEqual(
+          [
+            ['olderone', ContactOrigin.ARRIVAL, 0],
+            ['newerone', ContactOrigin.ARRIVAL, 0],
+          ].sort((a, b) => ((a[0] as string) < (b[0] as string) ? -1 : 1)),
+        )
+        const olderRow = rows.find((row) => row.linkedUserId === older.id)
+        expect(olderRow?.firstAt).toEqual(older.createdAt)
+        expect(olderRow?.lastAt).toEqual(older.createdAt)
+      })
+
+      it('hands the alias over RAW, not through publicAlias', async () => {
+        // ⛔ Deliberately different from dbFindReferrerAlias, which falls back to the
+        // gradidoID for a name too short to be one. The contact list SEARCHES this field,
+        // and the fallback would let a search for an id match a person no booking matches.
+        await DbUser.update(host.id, { alias: 'ab' })
+        const rows = await traceOf(newer.id)
+        expect(rows[0].alias).toBe('ab')
+        expect(rows[0].alias).not.toBe(host.gradidoID)
+        await DbUser.update(host.id, { alias: 'host-bibi' })
+      })
+
+      it('answers nobody for a member at neither end of the trace', async () => {
+        await expect(dbSelectReferralContactsByUserId(stranger.id)).resolves.toEqual([])
+      })
+
+      it('leaves out an arrival whose address nobody confirmed', async () => {
+        const unconfirmed = await arrival(
+          { email: 'unconfirmed-contact@arrival.de', alias: 'noconfirm', emailChecked: false },
+          new Date('2026-03-10T10:00:00Z'),
+        )
+        const rows = await traceOf(host.id)
+        expect(rows.map((row) => row.linkedUserId)).not.toContain(unconfirmed.id)
+        expect(rows).toHaveLength(2)
+        // And the other direction is closed too: an unconfirmed arrival is not yet a
+        // contact of the member who showed them Gradido, so neither side sees the other.
+        await expect(dbSelectReferralContactsByUserId(unconfirmed.id)).resolves.toEqual([])
+        await DbUser.update(unconfirmed.id, { referrerId: null })
+      })
+
+      it('leaves out an arrival who has deleted their account', async () => {
+        await DbUser.update(newer.id, { deletedAt: new Date() })
+        const rows = await traceOf(host.id)
+        expect(rows.map((row) => row.linkedUserId)).toEqual([older.id])
+        await DbUser.update(newer.id, { deletedAt: null })
+      })
+
+      it('leaves out an arrival who belongs to another community', async () => {
+        await DbUser.update(newer.id, { foreign: true })
+        const rows = await traceOf(host.id)
+        expect(rows.map((row) => row.linkedUserId)).toEqual([older.id])
+        await DbUser.update(newer.id, { foreign: false })
+      })
+
+      it('leaves out a referrer who has deleted their account', async () => {
+        await DbUser.update(host.id, { deletedAt: new Date() })
+        await expect(dbSelectReferralContactsByUserId(newer.id)).resolves.toEqual([])
+        await DbUser.update(host.id, { deletedAt: null })
+      })
+
+      it('never puts a member into their own list', async () => {
+        // Cannot arise from registration; it would offer a member a button to send Gradido
+        // to themselves, which addFavorite already refuses in words.
+        await DbUser.update(stranger.id, { referrerId: stranger.id })
+        await expect(dbSelectReferralContactsByUserId(stranger.id)).resolves.toEqual([])
+        await DbUser.update(stranger.id, { referrerId: null })
       })
     })
   })

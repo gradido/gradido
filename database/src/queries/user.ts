@@ -1,6 +1,13 @@
 import { and, desc, eq, inArray, isNull, ne, or } from 'drizzle-orm'
 import { type AnyMySqlColumn, alias as aliasedTable } from 'drizzle-orm/mysql-core'
-import { GradidoUnit, PasswordEncryptionType, publicAlias, Result, VoidResult } from 'shared'
+import {
+  ContactOrigin,
+  GradidoUnit,
+  PasswordEncryptionType,
+  publicAlias,
+  Result,
+  VoidResult,
+} from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { DBDuplicateEntryError, DBNotFoundError } from '../errorTypes'
 import {
@@ -477,4 +484,138 @@ export type ReferralArrival = {
   alias: string
   createdAt: Date
   first: boolean
+}
+
+/**
+ * One row of the referral trace, in the shape the contact list groups by.
+ *
+ * ⛔ Structurally `ContactRow` (queries/transactions.ts), and NOT its declared type: that
+ * type lives in the file that calls this one, so importing it here would close a circle
+ * between the two query modules. The caller assigns these rows to `ContactRow[]`, and that
+ * assignment is where the compiler checks the two shapes still agree -- the check is there
+ * rather than here on purpose, because that is the place the agreement matters.
+ *
+ * `bookings` is 0 and `deletedAt` is null by construction: nobody has exchanged anything
+ * with this person yet, and a deleted account is not on this list at all.
+ */
+export type ReferralContact = {
+  linkedUserId: number
+  communityUuid: string
+  gradidoId: string
+  alias: string | null
+  deletedAt: null
+  firstAt: Date
+  lastAt: Date
+  bookings: number
+  origin: ContactOrigin
+}
+
+/**
+ * The people this member is a contact of through the referral trace: whoever showed them
+ * Gradido, and whoever came here over them.
+ *
+ * The second source of the contact list (KF-012, decided 20.09.2026). A contact arises from
+ * a shared event and is therefore mutual and never added by hand -- a booking was the only
+ * such event the list knew, and the invitation is the other one. It is already written:
+ * `users.referrer_id` since 2022, so this reads a trace rather than starting to keep one.
+ * No table, no write, no process that could fall out of step.
+ *
+ * Two looks at `users`, one per direction:
+ *
+ *   - ONE row at most for whoever brought the asking member here, dated with the asking
+ *     member's OWN `created_at` -- the day this contact began is the day they registered,
+ *     not the day the other person did;
+ *   - one row per person who came over them, dated with THAT person's `created_at` -- the
+ *     same date the overview tile shows, so the list and the tile sort a person to the same
+ *     place (A6).
+ *
+ * `firstAt` and `lastAt` are that one date twice: an arrival is a single moment, not a span.
+ * Where the same person is also a booking counterparty, `mergeSamePerson` widens the span
+ * over both and the contact carries its bookings AND its origin.
+ *
+ * ⛔ The conditions are `reachableOnTrace` and `confirmedArrival` above, the same two the
+ * overview tile stands on. Only confirmed arrivals appear, which is what keeps this from
+ * being a way to plant yourself in a stranger's list (KF-013).
+ *
+ * ⛔ `alias` is the stored one, raw, exactly as the booking branch of the contact list
+ * hands it over -- NOT `publicAlias`. The list searches on this field, and the fallback to
+ * the gradidoID would let a search for a member's id match a person no booking would match.
+ * The resolver builds the name from the `users` row it loads anyway.
+ *
+ * ⚠️ No cap. The trace is bounded by the same order of magnitude as the bookings the
+ * caller already holds in memory (713 counterparties for the busiest account measured), and
+ * a cap here would silently drop people from a list whose promise is "everybody, once".
+ *
+ * ⚠️ A row naming itself as its own referrer is left out of both looks. It cannot arise from
+ * registration, but it would put the member into their own contact list with a button
+ * offering to send Gradido to themselves -- which `addFavorite` already refuses in words.
+ */
+export async function dbSelectReferralContactsByUserId(userId: number): Promise<ReferralContact[]> {
+  const db = drizzleDb()
+  const referrer = aliasedTable(usersTable, 'referrer')
+
+  const showedMe = await db
+    .select({
+      linkedUserId: referrer.id,
+      communityUuid: referrer.communityUuid,
+      gradidoId: referrer.gradidoId,
+      alias: referrer.alias,
+      // The asking member's own registration: the day THIS contact began.
+      at: usersTable.createdAt,
+    })
+    .from(usersTable)
+    .innerJoin(referrer, eq(usersTable.referrerId, referrer.id))
+    .where(
+      and(
+        eq(usersTable.id, userId),
+        isNull(usersTable.deletedAt),
+        ne(referrer.id, userId),
+        reachableOnTrace(referrer),
+      ),
+    )
+    .limit(1)
+
+  const cameOverMe = await db
+    .select({
+      linkedUserId: usersTable.id,
+      communityUuid: usersTable.communityUuid,
+      gradidoId: usersTable.gradidoId,
+      alias: usersTable.alias,
+      at: usersTable.createdAt,
+    })
+    .from(usersTable)
+    .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))
+    .where(
+      and(
+        eq(usersTable.referrerId, userId),
+        ne(usersTable.id, userId),
+        confirmedArrival(usersTable, userContactsTable),
+      ),
+    )
+
+  const asContact = (
+    row: {
+      linkedUserId: number
+      communityUuid: string
+      gradidoId: string
+      alias: string | null
+      at: Date
+    },
+    origin: ContactOrigin,
+  ): ReferralContact => ({
+    linkedUserId: row.linkedUserId,
+    communityUuid: row.communityUuid,
+    gradidoId: row.gradidoId,
+    alias: row.alias,
+    deletedAt: null,
+    firstAt: row.at,
+    lastAt: row.at,
+    bookings: 0,
+    origin,
+  })
+
+  return [
+    ...showedMe.map((row) => asContact(row, ContactOrigin.REFERRER)),
+    ...cameOverMe.map((row) => asContact(row, ContactOrigin.ARRIVAL)),
+  ]
 }

@@ -1,3 +1,4 @@
+export * from './ContactOrigin'
 export * from './DecayCalculationType'
 export * from './OptInType'
 export * from './Order'
