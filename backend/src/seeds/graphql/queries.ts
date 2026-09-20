@@ -713,6 +713,7 @@ export const showFriends = gql`
     showFriends {
       referrerAlias
       latestArrival {
+        gradidoID
         alias
         createdAt
         first

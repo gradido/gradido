@@ -16,10 +16,25 @@ export class ShowFriendsResolver {
   @Query(() => ShowFriends)
   async showFriends(@Ctx() context: Context): Promise<ShowFriends> {
     const user = getUser(context)
-    const [referrerAlias, latestArrival] = await Promise.all([
+    const [referrerAlias, arrival] = await Promise.all([
       dbFindReferrerAlias(user.id),
       dbFindLatestArrival(user.id),
     ])
-    return { referrerAlias, latestArrival }
+    return {
+      referrerAlias,
+      // Written out rather than spread, for the one name the two layers spell
+      // differently: the column is `gradidoId`, the schema `gradidoID` -- the same
+      // translation `ContactResolver` makes for a contact row. Spelling every field means
+      // the compiler names this place the day `ShowFriendsArrival` gains another one,
+      // instead of quietly handing the query a field it will not serialise.
+      latestArrival: arrival
+        ? {
+            gradidoID: arrival.gradidoId,
+            alias: arrival.alias,
+            createdAt: arrival.createdAt,
+            first: arrival.first,
+          }
+        : null,
+    }
   }
 }
