@@ -299,6 +299,26 @@ describe('ShowFriends', () => {
     })
   })
 
+  /**
+   * ⛔ Wiring with nothing else to notice its absence: without this line the tile on the
+   * overview would stay large for ever, which is exactly what W5 rejects.
+   */
+  it('remembers that this member has been here, on this device', () => {
+    window.localStorage.clear()
+
+    mountPage()
+
+    expect(window.localStorage.getItem('show-friends-seen:uuid-1')).toBe('1')
+  })
+
+  it('remembers nothing while nobody is named', () => {
+    window.localStorage.clear()
+
+    mountPage({ username: '', gradidoID: null })
+
+    expect(window.localStorage.length).toBe(0)
+  })
+
   // Two sentences, the first in bold -- and a space between them, which the template
   // formatter decides and the source does not show.
   it('ends with the two sentences, set apart by a space', () => {

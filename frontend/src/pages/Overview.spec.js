@@ -1,5 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { ref } from 'vue'
+import { createStore } from 'vuex'
 import Overview from './Overview.vue'
 import ShowFriendsTile from '@/components/Overview/ShowFriendsTile'
 import { createRouter, createWebHistory } from 'vue-router'
@@ -17,8 +19,13 @@ vi.mock('@/components/Overview/CommunityNews', () => ({
   },
 }))
 
+// ⚠️ `result` included: the tile reads the referral trace off it. Without it the tile
+// throws, and the two cases below would fail for a reason that has nothing to do with
+// what they are about.
+const queryResult = vi.hoisted(() => ({ value: undefined }))
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: vi.fn().mockReturnValue({
+    result: queryResult,
     onResult: vi.fn(),
     onError: vi.fn(),
     loading: { value: false },
@@ -45,11 +52,12 @@ describe('Overview', () => {
   let wrapper
   let router
   let i18n
+  let store
 
   const mountOverview = () =>
     mount(Overview, {
       global: {
-        plugins: [router, i18n],
+        plugins: [router, i18n, store],
         stubs: {
           RouterLink: true,
           IMdiChevronRight: true,
@@ -64,6 +72,8 @@ describe('Overview', () => {
       history: createWebHistory(),
       routes: [],
     })
+    // The tile remembers per member, so it needs somebody to be named.
+    store = createStore({ state: { gradidoID: 'member-1' } })
 
     i18n = createI18n({
       legacy: false,

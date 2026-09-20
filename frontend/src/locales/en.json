@@ -1123,6 +1123,12 @@
       "step3": "The account welcomes her by itself. You don't need to explain anything.",
       "title": "Someone here with me"
     },
+    "mirror": {
+      "go": "Show it to somebody else",
+      "since": "With us since {date}.",
+      "text": "How lovely that you showed it.",
+      "title": "{name} is here."
+    },
     "page": {
       "footer": "Showing is enough.",
       "footerLead": "You don't need to explain anything.",
