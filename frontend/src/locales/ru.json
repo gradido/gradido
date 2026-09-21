@@ -366,7 +366,7 @@
     "ok": "Ок",
     "password": "Пароль",
     "passwordRepeat": "Повторите пароль",
-    "password_new": "Новый Пароль",
+    "password_new": "Новый пароль",
     "password_new_repeat": "Повторите новый пароль",
     "password_old": "Старый пароль",
     "recipient": "Получатель",
@@ -1033,7 +1033,7 @@
       "heading": "Введите пароль и повторите его."
     },
     "signup": {
-      "agree": "Я согласен с <a href='https://gradido.net/de/datenschutz/' target='_blank' >Datenschutzerklärung</a>.",
+      "agree": "Я соглашаюсь с <a href='https://gradido.net/ru/datenschutz/' target='_blank' >политикой конфиденциальности</a>.",
       "dont_match": "Пароли не совпадают.",
       "lowercase": "Требуется одна строчная буква.",
       "minimum": "Не менее 8 знаков.",
