@@ -46,6 +46,13 @@ const mediaBodies = (css, condition) => {
   return bodies
 }
 
+/** The stylesheet with every `@media` block cut out: what applies at every width. */
+const everyWidth = (css) => {
+  let rest = css
+  for (const body of mediaBodies(css, '')) rest = rest.replace(body, '')
+  return rest
+}
+
 /** The declarations of the rule written for exactly `selector`, or null. */
 const rule = (css, selector) => {
   for (const [, written, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
@@ -77,10 +84,11 @@ describe('the page edge on a phone', () => {
     expect(bare.filter((body) => /padding/.test(body))).toEqual([])
   })
 
-  it('clips the grid rather than letting the page be pushed sideways', () => {
-    // Rows reach half a gutter (12px) past their parent; with a 6px edge that is 6px off
-    // the screen, empty but scrollable.
-    expect(rule(phone, '#app > #app')).toContain('overflow-x: clip')
+  it('clips the grid on every width rather than letting the page be pushed sideways', () => {
+    // Rows reach half a gutter (12px) past their parent: with a 6px edge on a phone that is
+    // 6px off the screen, and on the desk -- no edge at all -- 12px from 1025px until the
+    // content stops widening. Empty, but scrollable.
+    expect(rule(everyWidth(app), '#app > #app')).toContain('overflow-x: clip')
   })
 
   it('puts text that stands on the page where the text inside a box starts', () => {
@@ -107,6 +115,23 @@ describe('the page edge on a phone', () => {
     const narrow = mediaBodies(styles(layout), '767.98px').join('\n')
     expect(rule(narrow, '.card-body :deep(.container)')).toContain('padding-left: 0')
     expect(rule(narrow, '.card-body :deep(.container)')).toContain('padding-right: 0')
+  })
+})
+
+describe('the overview tiles', () => {
+  // Each stands straight in a BRow of Overview.vue, which reaches 12px past each side and
+  // gives it back as the padding of whatever stands in it. A horizontal padding of the
+  // tile's own replaces that 12px: p-3 made it 16px, and the tile stood 4px inside the
+  // cards above it on every width.
+  const tiles = ['ShowFriendsTile.vue', 'CardUserSearch.vue', 'CardCircles.vue']
+
+  it.each(tiles)('%s leaves the sides of its root to the row', (file) => {
+    const template = live(source('components', 'Overview', file))
+    const root = template.match(/<template>\s*<div class="([^"]*)"/)
+    expect(root).not.toBeNull()
+    const classes = root[1].split(/\s+/)
+    expect(classes).toContain('py-3')
+    expect(classes.filter((name) => /^(p|px|ps|pe)-\d$/.test(name))).toEqual([])
   })
 })
 

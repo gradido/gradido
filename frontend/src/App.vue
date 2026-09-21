@@ -99,6 +99,20 @@ export default {
   margin-left: auto;
 }
 
+/* ⚠️ `clip`, on every width: the grid assumes 12px of room at the edge -- every row reaches
+   half a gutter past its parent and its columns pad it back. On a phone the page edge is
+   6px (below), so the rows' empty padding stood 6px off the screen; on the desk the page
+   has no edge at all, and from 1025px until `.app-content` stops at 1320px and centres
+   (about 1344px) the rows stood 12px off the right edge. Either way the page could be
+   pushed sideways, and nothing that is drawn lies out there.
+   `clip`, not `hidden`: it opens no scroll container, so the sticky headers keep sticking.
+   It also means a page that really is too wide gets cut at the edge instead of scrolling,
+   so the document's `scrollWidth` no longer shows it: measure the elements against the
+   viewport (getBoundingClientRect) instead. */
+#app > #app {
+  overflow-x: clip;
+}
+
 @media screen and (width <= 500px) {
   #app {
     font-size: 0.85rem;
@@ -114,14 +128,6 @@ export default {
    `#app` here reached both and every page stood 30px in from the edge -- twice the
    15px anyone had written.
 
-   ⚠️ `clip`: the grid assumes 12px of room at the edge -- every row reaches half a
-   gutter past its parent and its columns pad it back -- so with 6px the rows' empty
-   padding stood 6px off the screen and the page could be pushed sideways. Nothing that
-   is drawn lies out there. `clip`, not `hidden`: it opens no scroll container, so the
-   sticky headers keep sticking. It also means a page that really is too wide gets cut
-   at the edge instead of scrolling, so the document's `scrollWidth` no longer shows it:
-   measure the elements against the viewport (getBoundingClientRect) instead.
-
    `page-text` is for what stands on the page rather than in a box -- a section label, an
    empty list's sentence, a count above a list. It takes the 24px a box would have given
    it, so it lines up with the text inside the boxes instead of sitting 6px from the bezel.
@@ -133,7 +139,6 @@ export default {
 
     padding-left: 6px;
     padding-right: 6px;
-    overflow-x: clip;
   }
 
   .page-text {
