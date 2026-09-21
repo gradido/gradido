@@ -5,18 +5,26 @@ export const PAGE_SIZE = 25
  * The booking column beside the overview.
  *
  * `LAST_TRANSACTIONS_ROWS` is what the column shows; `LAST_TRANSACTIONS_PAGE_SIZE` is what
- * the layout asks the server for. They are ONE number since the column shows creations too
- * (12.09.2026): the only rows it still drops are the two virtual ones -- the decay and the
- * summary of open links -- and the backend puts those on TOP of the page it was asked for
- * ("first page can contain 26 due to virtual decay transaction", TransactionResolver). A
- * page of eight therefore really carries eight bookings.
+ * the layout asks the server for. They were one number from 12.09.2026, when the column began
+ * to show creations too: the only rows it still drops are the two virtual ones -- the decay
+ * and the summary of open links -- and the backend puts those on TOP of the page it was asked
+ * for ("first page can contain 26 due to virtual decay transaction", TransactionResolver). A
+ * page therefore really carries as many bookings as it was asked for, and the fetch need not
+ * be larger than the cut. Since 21.09.2026 it is, for a reason of its own (below).
  *
  * ⚠️ Until then the fetch was larger than the cut, because every creation was thrown away
  * after it had been fetched -- and that headroom was an estimate that a member with several
  * creations in a row could still outrun. Now the cut takes what the page brings.
  */
-export const LAST_TRANSACTIONS_ROWS = 8
-export const LAST_TRANSACTIONS_PAGE_SIZE = LAST_TRANSACTIONS_ROWS
+export const LAST_TRANSACTIONS_ROWS = 5
+/**
+ * ⚠️ Eight, and on purpose larger than the five the column shows: since 21.09.2026 each
+ * booking there has a line more (the community under the name), so the column shows five --
+ * and Bernd wanted that tried in the display first, with the question to the server left as
+ * it was, to see how the column feels beside the contacts ("Lass ruhig die Datenbankabfrage
+ * bei den 8"). Once the five are settled this can be `LAST_TRANSACTIONS_ROWS` again.
+ */
+export const LAST_TRANSACTIONS_PAGE_SIZE = 8
 // compound interest factor (decay reversed) for 14 days (hard coded backend link timeout)
 // 365.2425 days per year (gregorian calendar year)
 export const LINK_COMPOUND_INTEREST_FACTOR = Math.pow(2, 14 / 365.2425)

@@ -173,7 +173,7 @@
     "bookings": "{n} booking | {n} bookings",
     "chatLater": "Conversation history — comes with the chat",
     "count": "{n} contact | {n} contacts",
-    "empty": "No contacts yet. Whoever sends you Gradido or receives it from you appears here.",
+    "empty": "No contacts yet. Whoever exchanges Gradido with you — or joins through you — appears here.",
     "favorites": "Favourites",
     "heart": {
       "add": "Add to favourites",
@@ -184,6 +184,10 @@
     "matches": "Matches",
     "noFavorites": "No favourites yet. Tap the heart beside a contact.",
     "notReachable": "The contacts could not be loaded.",
+    "origin": {
+      "arrival": "knows Gradido through you",
+      "referrer": "showed you Gradido"
+    },
     "recent": "Recent",
     "remove": {
       "body": "{name} stays in your contacts. You can make {name} a favourite again at any time.",
@@ -424,6 +428,7 @@
     "firstname": "Firstname",
     "from": "from",
     "generate_now": "Generate now",
+    "hidePassword": "Hide password",
     "hours": "Hours",
     "identifier": "Email, username or Gradido address",
     "lastname": "Lastname",
@@ -464,6 +469,7 @@
       "youCannotSendEmailToYourself": "You cannot send an email to yourself."
     },
     "sender": "Sender",
+    "showPassword": "Show password",
     "sorry": "Sorry",
     "subject": "Subject",
     "thx": "Thank you",
@@ -537,7 +543,6 @@
     "link-expired": "The link is no longer valid. The validity expired on {date}.",
     "link-hint": "Whoever has the link can redeem it. Only send it to the person it is meant for.",
     "link-overview": "Link overview",
-    "links_count": "Active links",
     "links_open": "{n} open",
     "links_sum": "Links, cheques, QR codes",
     "no-account": "You don't have a Gradido account yet?",

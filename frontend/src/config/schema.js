@@ -156,39 +156,39 @@ module.exports = Joi.object({
 
   META_TITLE_DE: Joi.string()
     .description('Meta title in German.')
-    .default('Gradido – Dein Dankbarkeitskonto')
+    .default('Gradido – Helfen. Schenken. Danken.')
     .required(),
 
   META_TITLE_EN: Joi.string()
     .description('Meta title in English.')
-    .default('Gradido - Your gratitude account')
+    .default('Gradido – Help. Give. Thank.')
     .required(),
 
   META_DESCRIPTION_DE: Joi.string()
     .description('Meta description in German.')
     .default(
-      'Dankbarkeit ist die Währung der neuen Zeit. Immer mehr Menschen entfalten ihr Potenzial und gestalten eine gute Zukunft für alle.',
+      'Ein Netzwerk von Menschen, die einander helfen, beschenken und danken. Kostenfrei. Gemeinschaftsbasiert. Open Source.',
     )
     .required(),
 
   META_DESCRIPTION_EN: Joi.string()
     .description('Meta description in English.')
     .default(
-      'Gratitude is the currency of the new age. More and more people are unleashing their potential and shaping a good future for all.',
+      'A network of people who help, give to and thank each other. Free of charge. Community-based. Open source.',
     )
     .required(),
 
   META_KEYWORDS_DE: Joi.string()
     .description('Meta keywords in German.')
     .default(
-      'Grundeinkommen, Währung, Dankbarkeit, Schenk-Ökonomie, Natürliche Ökonomie des Lebens, Ökonomie, Ökologie, Potenzialentfaltung, Schenken und Danken, Kreislauf des Lebens, Geldsystem',
+      'Helfen, Schenken, Danken, Gemeinschaft, Nachbarschaft, Ehrenamt, Gemeinwohl, Dankbarkeit',
     )
     .required(),
 
   META_KEYWORDS_EN: Joi.string()
     .description('Meta keywords in English.')
     .default(
-      'Basic Income, Currency, Gratitude, Gift Economy, Natural Economy of Life, Economy, Ecology, Potential Development, Giving and Thanking, Cycle of Life, Monetary System',
+      'Helping, Giving, Thanking, Community, Neighbourhood, Volunteering, Common Good, Gratitude',
     )
     .required(),
 

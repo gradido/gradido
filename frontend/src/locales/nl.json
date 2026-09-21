@@ -173,7 +173,7 @@
     "bookings": "{n} boeking | {n} boekingen",
     "chatLater": "Gespreksgeschiedenis — komt met de chat",
     "count": "{n} contact | {n} contacten",
-    "empty": "Nog geen contacten. Wie jou Gradido stuurt of van jou ontvangt, verschijnt hier.",
+    "empty": "Nog geen contacten. Hier verschijnt wie Gradido met je uitwisselt — of wie via jou binnenkomt.",
     "favorites": "Favorieten",
     "heart": {
       "add": "Aan favorieten toevoegen",
@@ -184,6 +184,10 @@
     "matches": "Resultaten",
     "noFavorites": "Nog geen favorieten. Tik op het hartje bij een contact.",
     "notReachable": "De contacten konden niet worden geladen.",
+    "origin": {
+      "arrival": "kent Gradido via jou",
+      "referrer": "heeft je Gradido laten zien"
+    },
     "recent": "Recent",
     "remove": {
       "body": "{name} blijft in je contacten. Je kunt {name} altijd weer favoriet maken.",
@@ -346,6 +350,7 @@
     "firstname": "Voornaam",
     "from": "Van",
     "generate_now": "Nu genereren",
+    "hidePassword": "Wachtwoord verbergen",
     "hours": "Uren",
     "identifier": "E-mail, gebruikersnaam of Gradido-ID",
     "lastname": "Achternaam",
@@ -386,6 +391,7 @@
       "youCannotSendEmailToYourself": "Je kunt geen e-mail naar jezelf versturen."
     },
     "sender": "Afzender",
+    "showPassword": "Wachtwoord tonen",
     "sorry": "Sorry",
     "subject": "Onderwerp",
     "thx": "Dankjewel",
@@ -459,7 +465,6 @@
     "link-expired": "De link is niet meer geldig. De geldigheid is op {date} afgelopen.",
     "link-hint": "Wie de link heeft, kan hem inwisselen. Stuur hem alleen naar de persoon voor wie hij bedoeld is.",
     "link-overview": "Overzicht links",
-    "links_count": "Actieve links",
     "links_open": "{n} open",
     "links_sum": "Links, cheques, QR-codes",
     "no-account": "Je hebt nog geen Gradido rekening?",

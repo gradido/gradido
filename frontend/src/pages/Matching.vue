@@ -56,7 +56,7 @@
     <!-- Entries -->
     <div v-if="tab === 'entries'">
       <template v-if="entries.length">
-        <div class="d-flex align-items-center justify-content-between mb-3 mx-2">
+        <div class="d-flex align-items-center justify-content-between mb-3 mx-lg-2 page-text">
           <span class="small text-muted">
             {{
               $t('matching.entries.count', {
@@ -136,7 +136,7 @@
         </div>
       </template>
 
-      <div v-else class="text-center text-muted py-5">
+      <div v-else class="text-center text-muted py-5 page-text">
         <i-bi-hearts class="empty-icon" />
         <p class="mt-3 mb-3">
           <strong>{{ $t('matching.entries.emptyTitle') }}</strong>
@@ -151,15 +151,15 @@
     </div>
 
     <!-- About -->
-    <div v-if="tab === 'about'" class="mx-2">
-      <label class="fw-bold mb-2 d-block">{{ $t('matching.about.label') }}</label>
+    <div v-if="tab === 'about'" class="mx-lg-2">
+      <label class="fw-bold mb-2 d-block page-text">{{ $t('matching.about.label') }}</label>
       <textarea
         v-model="aboutMe"
         class="form-control matching-textarea"
         rows="10"
         :placeholder="$t('matching.about.placeholder')"
       ></textarea>
-      <div class="d-flex justify-content-between align-items-center mt-2">
+      <div class="d-flex justify-content-between align-items-center mt-2 page-text">
         <span class="small text-muted">
           {{ $t('matching.about.counter', { count: aboutMe.length }) }}
         </span>
@@ -168,8 +168,8 @@
     </div>
 
     <!-- Position -->
-    <div v-if="tab === 'position'" class="mx-2">
-      <p class="small text-muted ps-2">{{ $t('matching.position.intro') }}</p>
+    <div v-if="tab === 'position'" class="mx-lg-2">
+      <p class="small text-muted ps-lg-2 page-text">{{ $t('matching.position.intro') }}</p>
 
       <!-- Inline map: address search (lupe) + draggable marker, reused from the
            settings page. Coordinates readout hidden to keep the map compact.
@@ -188,7 +188,7 @@
 
       <!-- Accuracy — right-aligned below the map (self-explanatory: "exact" /
            "approximate", so no label needed). Deferred like everything here. -->
-      <div class="d-flex justify-content-end mt-3">
+      <div class="d-flex justify-content-end mt-3 page-text">
         <UserGMSLocationFormat
           defer
           :exact-toast="$t('matching.position.accuracyExact')"
@@ -198,7 +198,7 @@
       </div>
 
       <!-- Findable toggle — title on the switch's line, hint below as explanation -->
-      <div class="border-top mt-4 pt-3">
+      <div class="border-top mt-4 pt-3 page-text">
         <div class="d-flex align-items-center justify-content-end gap-3">
           <span class="fw-bold">{{ $t('matching.position.findable') }}</span>
           <UserSettingsSwitch
@@ -216,7 +216,7 @@
       </div>
 
       <!-- Nothing on this tab reaches the server until this is pressed. -->
-      <div class="d-flex justify-content-end align-items-center gap-3 mt-4">
+      <div class="d-flex justify-content-end align-items-center gap-3 mt-4 page-text">
         <span v-if="positionDirty" class="small text-muted">
           {{ $t('matching.position.unsaved') }}
         </span>
@@ -827,6 +827,19 @@ function goPositionFromFind() {
 /* keep a multi-word tab label together; it wraps below the icon as a unit */
 .matching-nav-label {
   white-space: nowrap;
+}
+
+/* ⛔ On a phone the word goes under the icon in all three tabs, not only where it happens
+   not to fit. Left to wrap on its own, each tab decided alone: at 375px "Zuhause" stood
+   beside its icon while "Einträge" and "Über mich" stood under theirs, and before the page
+   edge moved to 6px (App.vue) the same happened at 430px. Another language only moves the
+   width where it happens, so the rule is not a width at which words fit. From sm up each
+   tab is 185px or wider, and there the longest labels -- French and Greek, fifteen
+   letters -- were measured beside their icons. */
+@media (width <= 575.98px) {
+  .matching-nav-label {
+    display: block;
+  }
 }
 
 /* "New entry" — subtle grey text action (not a CTA) */

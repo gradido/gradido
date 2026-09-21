@@ -109,6 +109,49 @@ describe('ContactRow', () => {
     expect(meta).toContain('2026-09-01T18:42:00.000Z')
   })
 
+  /**
+   * ⛔ The one line the second source exists for. Somebody who came here over this member
+   * is a contact from that moment, with nothing counted yet -- and the plural rule handed
+   * that zero writes "0 bookings · last on …" under their name, which is true and is the
+   * wrong thing to say to somebody who has just arrived (KF-016 A1).
+   */
+  describe('a contact with nothing counted yet', () => {
+    const ARRIVED = { ...CONTACT, bookings: 0, origin: 'ARRIVAL' }
+
+    it('says what made them contacts instead of how often', () => {
+      mountWith(ARRIVED)
+      expect(wrapper.find('[data-test="contact-meta"]').text()).toBe('contacts.origin.arrival')
+    })
+
+    it('never puts the zero through the plural rule', () => {
+      mountWith(ARRIVED)
+      const meta = wrapper.find('[data-test="contact-meta"]').text()
+      expect(meta).not.toContain('contacts.bookings')
+      expect(meta).not.toContain('contacts.last')
+    })
+
+    it('says it the other way round for whoever showed this member Gradido', () => {
+      mountWith({ ...CONTACT, bookings: 0, origin: 'REFERRER' })
+      expect(wrapper.find('[data-test="contact-meta"]').text()).toBe('contacts.origin.referrer')
+    })
+
+    // ⚠️ A server one version ahead could name an origin this wallet has no word for.
+    // Saying nothing is the answer; a raw translation key under somebody's name is not.
+    it('says nothing at all for an origin it does not know', () => {
+      mountWith({ ...CONTACT, bookings: 0, origin: 'SOMETHING_NEW' })
+      expect(wrapper.find('[data-test="contact-meta"]').text()).toBe('')
+    })
+
+    // The row has ONE line: where there are bookings it stays the bookings, origin or not.
+    // Both are shown in the window, which has the room (ContactWindow.vue).
+    it('keeps the bookings line for somebody who is both', () => {
+      mountWith({ ...CONTACT, origin: 'ARRIVAL' })
+      const meta = wrapper.find('[data-test="contact-meta"]').text()
+      expect(meta).toContain('contacts.bookings:12')
+      expect(meta).not.toContain('contacts.origin')
+    })
+  })
+
   it('hands the member to the heart', () => {
     mountWith()
     expect(wrapper.find('[data-test="heart"]').attributes('data-id')).toBe('carla')

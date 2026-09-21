@@ -1,6 +1,13 @@
 import { and, desc, eq, inArray, isNull, ne, or } from 'drizzle-orm'
-import { alias as aliasedTable } from 'drizzle-orm/mysql-core'
-import { GradidoUnit, PasswordEncryptionType, publicAlias, Result, VoidResult } from 'shared'
+import { alias as aliasedTable, type BuildAliasTable } from 'drizzle-orm/mysql-core'
+import {
+  ContactOrigin,
+  GradidoUnit,
+  PasswordEncryptionType,
+  publicAlias,
+  Result,
+  VoidResult,
+} from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { DBDuplicateEntryError, DBNotFoundError } from '../errorTypes'
 import {
@@ -354,18 +361,77 @@ export async function dbUserUpdateField<K extends UserSingleColumn>(
 }
 
 /**
+ * A `users` row on the trace: the table itself, or an aliased copy of it.
+ *
+ * ⚠️ The alias is why this is a union rather than `typeof usersTable`: `alias(usersTable,
+ * 'referrer')` carries the alias as its table name and is therefore not the same type.
+ * Spelling it as the two whole TABLES rather than as the columns they have in common is
+ * deliberate -- a structural `{ deletedAt, foreign }` would also accept a table the query
+ * has not joined, and Drizzle would then emit a column nobody put in scope: an error the
+ * compiler cannot see and MariaDB answers with 1054 at request time.
+ */
+type TraceMember = typeof usersTable | BuildAliasTable<typeof usersTable, string>
+
+/** The address row `users.email_id` points at, likewise as the table or an alias of it. */
+type TraceAddress = typeof userContactsTable | BuildAliasTable<typeof userContactsTable, string>
+
+/**
+ * Whether a member on the referral trace can still be reached: their account is there, and
+ * it belongs to this community.
+ *
+ * ⛔ ONE rule, used by everything that reads the trace, and that is the whole point of it
+ * being a function. The overview tile mirrors an arrival back and the contact list holds
+ * the same people permanently; two copies of this condition would be two locks that drift,
+ * and the drift shows up as the tile naming somebody the list does not know, or the other
+ * way round -- with nothing on either screen to say which of them is wrong.
+ *
+ * `foreign = false` is not derived from the deletion mark: a member on this trace is always
+ * local by the way `referrer_id` is written (a transaction link of this community, or an
+ * address on this community's server), and spelling it out keeps the condition true if that
+ * ever changes.
+ *
+ * ⛔ And nobody is their own contact. A row with `referrer_id = id` cannot come out of
+ * registration, but an import or a data fix can write one, and every reader of the trace
+ * has to refuse it alike: without this the overview tile would mirror a member back at
+ * themselves as the person who showed them Gradido, while the contact list left them out
+ * -- two screens, different people, which is exactly what this function exists to prevent.
+ * The caller passes whoever is asking; on the arrival side that is the referrer, on the
+ * referrer side the arriving member.
+ */
+const reachableOnTrace = (member: TraceMember, notThisMember: number) =>
+  and(isNull(member.deletedAt), eq(member.foreign, false), ne(member.id, notThisMember))
+
+/**
+ * Whether an arrival counts: reachable as above, and somebody walked through the door of
+ * the confirmation mail.
+ *
+ * ⛔ The address condition belongs HERE rather than at each caller. The trace is written at
+ * registration, before the address is confirmed, so counting every row would let anybody
+ * raise an echo at a stranger -- or plant themselves in a stranger's contact list -- by
+ * registering made-up accounts under that stranger's name in the address (G §11.10,
+ * KF-013). A confirmed address is a door somebody had to walk through.
+ *
+ * `address` is the `user_contacts` row `users.email_id` points at, which is the address in
+ * force; the caller joins it.
+ */
+const confirmedArrival = (member: TraceMember, address: TraceAddress, notThisMember: number) =>
+  and(reachableOnTrace(member, notThisMember), eq(address.emailChecked, true))
+
+/**
  * The public name of whoever brought this member here, or null when nobody did.
  *
- * `users.referrer_id` has been written since 2022 and never read; this is the first
- * reader. Through `publicAlias`, because the wallet puts the answer in front of the
- * member and a stored alias of one or two characters is not a name (the rule lives in
- * `shared` so all three packages give the same answer).
+ * `users.referrer_id` has been written since 2022 and this was its first reader; the
+ * contact list is the second and third (`dbSelectReferralContactsByUserId` below).
+ * Through `publicAlias`, because the wallet puts the answer in front of the member and a
+ * stored alias of one or two characters is not a name (the rule lives in `shared` so all
+ * three packages give the same answer).
  *
- * A referrer whose account is gone is no answer: the wallet would offer to thank
- * somebody who cannot receive anything. `foreign = false` is not derived from that -
- * a referrer is always local by the way the column is written (a transaction link of
- * this community, or an address on this community's server), and spelling it out keeps
- * the query true if that ever changes.
+ * A referrer whose account is gone is no answer: the wallet would offer to thank somebody
+ * who cannot receive anything. That condition is `reachableOnTrace` above, shared with
+ * everything else that reads this trace.
+ *
+ * ⚠️ The asking member's own deletion mark is a separate matter and stays here: it is
+ * about who is asking, not about who is being named.
  */
 export async function dbFindReferrerAlias(userId: number): Promise<string | null> {
   const referrer = aliasedTable(usersTable, 'referrer')
@@ -377,8 +443,7 @@ export async function dbFindReferrerAlias(userId: number): Promise<string | null
       and(
         eq(usersTable.id, userId),
         isNull(usersTable.deletedAt),
-        isNull(referrer.deletedAt),
-        eq(referrer.foreign, false),
+        reachableOnTrace(referrer, userId),
       ),
     )
     .limit(1)
@@ -389,10 +454,9 @@ export async function dbFindReferrerAlias(userId: number): Promise<string | null
  * The most recent person who arrived over this member, and whether they are the only one
  * - what the tile mirrors back.
  *
- * ⛔ Only CONFIRMED addresses count. The trace is written at registration, before the
- * address is confirmed, so counting every row would let anybody raise an echo at a
- * stranger by registering made-up accounts under that stranger's name in the address
- * (G §11.10). A confirmed address is a door somebody had to walk through.
+ * ⛔ Only CONFIRMED addresses count, and only accounts that are still there -- that whole
+ * condition is `confirmedArrival` above, shared with the contact list so the tile and the
+ * list can never name different people.
  *
  * `first` is what carries "only first times" (ZE-006): the warm sentence belongs to the
  * first arrival, every further one is reported plainly. Two rows are enough to answer it,
@@ -409,8 +473,11 @@ export async function dbFindReferrerAlias(userId: number): Promise<string | null
 export async function dbFindLatestArrival(referrerId: number): Promise<ReferralArrival | null> {
   const rows = await drizzleDb()
     .select({
+      id: usersTable.id,
       alias: usersTable.alias,
       gradidoId: usersTable.gradidoId,
+      firstName: usersTable.firstName,
+      lastName: usersTable.lastName,
       createdAt: usersTable.createdAt,
     })
     .from(usersTable)
@@ -418,9 +485,7 @@ export async function dbFindLatestArrival(referrerId: number): Promise<ReferralA
     .where(
       and(
         eq(usersTable.referrerId, referrerId),
-        isNull(usersTable.deletedAt),
-        eq(usersTable.foreign, false),
-        eq(userContactsTable.emailChecked, true),
+        confirmedArrival(usersTable, userContactsTable, referrerId),
       ),
     )
     .orderBy(desc(usersTable.createdAt))
@@ -429,15 +494,212 @@ export async function dbFindLatestArrival(referrerId: number): Promise<ReferralA
     return null
   }
   return {
+    userId: rows[0].id,
+    gradidoId: rows[0].gradidoId,
     alias: publicAlias(rows[0].alias, rows[0].gradidoId),
+    firstName: rows[0].firstName,
+    lastName: rows[0].lastName,
     createdAt: rows[0].createdAt,
     first: rows.length === 1,
   }
 }
 
-/** One arrival as the tile shows it: who, when, and whether it is the only one. */
+/**
+ * One arrival as the tile shows it: who they are, who they are called, when they got
+ * here, and whether it is the only one.
+ *
+ * `gradidoId` was already being selected -- `publicAlias` needs it -- and is now handed
+ * on, so the tile can offer a way to REACH this person rather than only name them
+ * (ZE-010). It tells the caller nothing they were not being told already: where there is
+ * no user name, `publicAlias` puts the identifier itself in `alias`, and the contact list
+ * has been naming the same arrival to the same member since the referral trace became its
+ * second source.
+ *
+ * ⛔ Still no count, and still only the one latest arrival (ZE-007): a way to reach one
+ * person is a mirror, a list of them with a number over it is a score.
+ */
 export type ReferralArrival = {
+  /** This community's own row id -- what the avatar's date is looked up by. */
+  userId: number
+  gradidoId: string
   alias: string
+  /**
+   * ⛔ The REAL names, and they exist here for exactly one purpose: the backend hashes
+   * them into the avatar's colour digit (`avatarColorIndex`, NU-017) so the circle on the
+   * tile is the colour that member has everywhere else. They must never be put in an
+   * answer -- the public name is `alias` above, and NU-019 is what says so. The same rule
+   * the `User` model follows, which computes the digit in its constructor and delivers
+   * only the digit.
+   */
+  firstName: string | null
+  lastName: string | null
   createdAt: Date
   first: boolean
+}
+
+/**
+ * One row of the referral trace, in the shape the contact list groups by.
+ *
+ * ⛔ Structurally `ContactRow` (queries/transactions.ts), and NOT its declared type: that
+ * type lives in the file that calls this one, so importing it here would close a circle
+ * between the two query modules. The caller assigns these rows to `ContactRow[]`, and that
+ * assignment is where the compiler checks the two shapes still agree -- the check is there
+ * rather than here on purpose, because that is the place the agreement matters.
+ *
+ * `bookings` is 0 and `deletedAt` is null by construction: nobody has exchanged anything
+ * with this person yet, and a deleted account is not on this list at all.
+ */
+export type ReferralContact = {
+  linkedUserId: number
+  communityUuid: string
+  gradidoId: string
+  alias: string | null
+  deletedAt: null
+  firstAt: Date
+  lastAt: Date
+  bookings: number
+  origin: ContactOrigin
+}
+
+/**
+ * The people this member is a contact of through the referral trace: whoever showed them
+ * Gradido, and whoever came here over them.
+ *
+ * The second source of the contact list (KF-012, decided 20.09.2026). A contact arises from
+ * a shared event and is therefore mutual and never added by hand -- a booking was the only
+ * such event the list knew, and the invitation is the other one. It is already written:
+ * `users.referrer_id` since 2022, so this reads a trace rather than starting to keep one.
+ * No table, no write, no process that could fall out of step.
+ *
+ * Two looks at `users`, one per direction:
+ *
+ *   - ONE row at most for whoever brought the asking member here, dated with the asking
+ *     member's OWN `created_at` -- the day this contact began is the day they registered,
+ *     not the day the other person did;
+ *   - one row per person who came over them, dated with THAT person's `created_at` -- the
+ *     same date the overview tile shows, so the list and the tile sort a person to the same
+ *     place (A6).
+ *
+ * `firstAt` and `lastAt` are that one date twice: an arrival is a single moment, not a span.
+ * Where the same person is also a booking counterparty, `mergeSamePerson` widens the span
+ * over both and the contact carries its bookings AND its origin.
+ *
+ * ⛔ The conditions are `reachableOnTrace` and `confirmedArrival` above, the same two the
+ * overview tile stands on. Only confirmed arrivals appear -- which does not make planting
+ * yourself in a stranger's list impossible, it makes it exactly as hard as raising an echo
+ * at them: a confirmed address, one per person. With a booking anybody can do the same
+ * today, which is the measured reason KF-015 leaves removal for later.
+ *
+ * ⚠️ The two directions are therefore NOT alike while an address is unconfirmed, and that
+ * is deliberate. The arriving member sees their referrer here with no address condition,
+ * because they already read that name off the overview tile (`dbFindReferrerAlias`, which
+ * has never asked about the address either) -- a condition here would make the list say
+ * less than the tile. The referrer's side stays closed until the address is confirmed, and
+ * then both sides open at once. It is a window, not a state; an account can be inside it
+ * and signed in, because assisted registration (EM-013) sets a password before the address
+ * is confirmed.
+ *
+ * ⛔ `alias` is the stored one, raw, exactly as the booking branch of the contact list
+ * hands it over -- NOT `publicAlias`. The list searches on this field, and the fallback to
+ * the gradidoID would let a search for a member's id match a person no booking would match.
+ * The resolver builds the name from the `users` row it loads anyway.
+ *
+ * ⚠️ No cap, and NOTHING measured bounds this set. The 713 counterparties measured for the
+ * busiest account were counted on `transactions`; arrivals are an independent quantity, and
+ * this feature exists precisely for the people who arrived without ever booking -- an
+ * address on a flyer or in a newsletter collects them without limit. A cap would silently
+ * drop people from a list whose promise is "everybody, once", so the answer is a
+ * measurement rather than a number picked here:
+ * `SELECT referrer_id, count(*) FROM users WHERE referrer_id IS NOT NULL GROUP BY
+ * referrer_id ORDER BY 2 DESC LIMIT 10` on production says whether this needs a cap at all.
+ *
+ * ⛔ And it needs the index. `referrer_id` carried none until migration 0139; without it
+ * every call here is a full scan of `users`, on a path the wallet takes on every contact
+ * list, every page of it and every tap on a member's name.
+ *
+ * ⚠️ A row naming itself as its own referrer is refused by `reachableOnTrace`, which means
+ * the overview tile refuses it too -- see there.
+ *
+ * `onlyMemberId` narrows both looks to ONE member, for the caller that asks about one
+ * person rather than a page (the contact window over a booking row). It is not an
+ * optimisation bolted on: every row here carries a `users` id, and `isContactCounterparty`
+ * matches such a row by that id alone, so asking the database for that member returns
+ * exactly what the in-memory filter would have left -- while turning a scan of the trace
+ * into a primary-key lookup. Without it an account that has brought thousands of people
+ * here pulled all of them over the wire to answer about one.
+ */
+export async function dbSelectReferralContactsByUserId(
+  userId: number,
+  onlyMemberId?: number,
+): Promise<ReferralContact[]> {
+  const db = drizzleDb()
+  const referrer = aliasedTable(usersTable, 'referrer')
+
+  const showedMeQuery = db
+    .select({
+      linkedUserId: referrer.id,
+      communityUuid: referrer.communityUuid,
+      gradidoId: referrer.gradidoId,
+      alias: referrer.alias,
+      // The asking member's own registration: the day THIS contact began.
+      at: usersTable.createdAt,
+    })
+    .from(usersTable)
+    .innerJoin(referrer, eq(usersTable.referrerId, referrer.id))
+    .where(
+      and(
+        eq(usersTable.id, userId),
+        isNull(usersTable.deletedAt),
+        reachableOnTrace(referrer, userId),
+        onlyMemberId === undefined ? undefined : eq(referrer.id, onlyMemberId),
+      ),
+    )
+    .limit(1)
+
+  const cameOverMeQuery = db
+    .select({
+      linkedUserId: usersTable.id,
+      communityUuid: usersTable.communityUuid,
+      gradidoId: usersTable.gradidoId,
+      alias: usersTable.alias,
+      at: usersTable.createdAt,
+    })
+    .from(usersTable)
+    .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))
+    .where(
+      and(
+        eq(usersTable.referrerId, userId),
+        confirmedArrival(usersTable, userContactsTable, userId),
+        onlyMemberId === undefined ? undefined : eq(usersTable.id, onlyMemberId),
+      ),
+    )
+
+  // One wave, not two: the two looks share nothing but the id they are asked about.
+  const [showedMe, cameOverMe] = await Promise.all([showedMeQuery, cameOverMeQuery])
+
+  const asContact = (
+    row: {
+      linkedUserId: number
+      communityUuid: string
+      gradidoId: string
+      alias: string | null
+      at: Date
+    },
+    origin: ContactOrigin,
+  ): ReferralContact => ({
+    linkedUserId: row.linkedUserId,
+    communityUuid: row.communityUuid,
+    gradidoId: row.gradidoId,
+    alias: row.alias,
+    deletedAt: null,
+    firstAt: row.at,
+    lastAt: row.at,
+    bookings: 0,
+    origin,
+  })
+
+  return [
+    ...showedMe.map((row) => asContact(row, ContactOrigin.REFERRER)),
+    ...cameOverMe.map((row) => asContact(row, ContactOrigin.ARRIVAL)),
+  ]
 }

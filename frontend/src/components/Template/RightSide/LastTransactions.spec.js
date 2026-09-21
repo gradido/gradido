@@ -39,7 +39,7 @@ vi.mock('vue-avatar', () => ({
 vi.mock('@/components/TransactionRows/Name', () => ({
   default: {
     name: 'Name',
-    props: ['linkedUser'],
+    props: ['linkedUser', 'withCommunity'],
     emits: ['open'],
     template:
       '<div class="name"><button data-test="name-open" @click="$emit(\'open\', linkedUser)" /></div>',
@@ -214,7 +214,7 @@ describe('LastTransactions', () => {
    *
    * `LAST_TRANSACTIONS_PAGE_SIZE` exists ONLY to make `LAST_TRANSACTIONS_ROWS` reachable:
    * the layout asks for that many bookings, and this column then drops the two virtual rows
-   * page one always carries before it cuts to eight. Asserting one constant against the
+   * page one always carries before it cuts to what it shows. Asserting one constant against the
    * other would be a tautology -- so this builds the page the server really sends and counts
    * what a member ends up seeing.
    *
@@ -250,6 +250,62 @@ describe('LastTransactions', () => {
     await wrapper.vm.$nextTick()
 
     expect(wrapper.findAll('.last-transactions-row').length).toBe(LAST_TRANSACTIONS_ROWS)
+  })
+
+  /**
+   * ⛔ The community on a line of its own under the name, small and thin, as the contacts in
+   * the other position of the switch have it -- no longer behind the name after a slash
+   * (Bernd, 21.09.2026). The name is told to leave it off; the line under it says it.
+   */
+  describe('the community under the name', () => {
+    const mountRows = (transactions) =>
+      mount(LastTransactions, {
+        props: { transactions },
+        global: {
+          mocks: {
+            $t: (key) => key,
+            $d: (date) => String(date),
+            $filters: { signedAmount: (amount) => String(amount) },
+          },
+          stubs: {
+            BRow: { template: '<div class="row-stub"><slot /></div>' },
+            BCol: { template: '<div class="col-stub"><slot /></div>' },
+            ...contactWindowStub,
+          },
+        },
+      })
+    const booking = (extra) => ({
+      id: 7,
+      typeId: 'SEND',
+      linkedUser: { alias: 'paula', gradidoID: 'u-7', communityName: 'KI Playground' },
+      amount: -45,
+      balanceDate: '2026-08-26',
+      ...extra,
+    })
+
+    it("stands on the line under the member's name", () => {
+      wrapper = mountRows([booking()])
+
+      expect(wrapper.find('[data-test="last-transactions-community"]').text()).toBe('KI Playground')
+      expect(wrapper.findComponent({ name: 'Name' }).props('withCommunity')).toBe(false)
+    })
+
+    it('is not said twice on a creation, whose name line is the community', () => {
+      wrapper = mountRows([
+        booking({
+          typeId: 'CREATION',
+          linkedUser: { alias: 'KI Playground', gradidoID: 'c-1', communityName: 'KI Playground' },
+        }),
+      ])
+
+      expect(wrapper.find('[data-test="last-transactions-community"]').exists()).toBe(false)
+    })
+
+    it('leaves no empty line where the booking brought no community', () => {
+      wrapper = mountRows([booking({ linkedUser: { alias: 'paula', gradidoID: 'u-7' } })])
+
+      expect(wrapper.find('[data-test="last-transactions-community"]').exists()).toBe(false)
+    })
   })
 
   /**
@@ -479,6 +535,18 @@ describe('LastTransactions', () => {
         'the memo',
         ['.last-transactions-memo', 'font-size'],
         ['.contacts-panel-who-community', 'font-size'],
+      ],
+      // The member's community on a line of its own, as the contacts have it -- no longer
+      // behind the name after a slash (Bernd, 21.09.2026: "in kleiner, dünner Schrift").
+      [
+        'the community under the name',
+        ['.last-transactions-member-community', 'font-size'],
+        ['.contacts-panel-who-community', 'font-size'],
+      ],
+      [
+        'the colour of the community',
+        ['.last-transactions-member-community', 'color'],
+        ['.contacts-panel-who-community', 'color'],
       ],
       [
         'the room above and below a row',

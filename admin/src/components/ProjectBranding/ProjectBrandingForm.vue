@@ -66,7 +66,7 @@
         <BButton type="reset" variant="secondary" @click="resetForm">{{ $t('reset') }}</BButton>
       </div>
     </BForm>
-    <BModal v-model="isModalVisible" title="Select Space" hide-footer>
+    <BModal v-model="isModalVisible" title="Select Space" no-footer>
       <ListHumhubSpaces :model-value="spaceId" @choose-space="chooseSpace" />
     </BModal>
   </div>

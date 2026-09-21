@@ -173,7 +173,7 @@
     "bookings": "{n} movimento | {n} movimenti",
     "chatLater": "Cronologia della conversazione — arriverà con la chat",
     "count": "{n} contatto | {n} contatti",
-    "empty": "Ancora nessun contatto. Chi ti invia Gradido o li riceve da te compare qui.",
+    "empty": "Ancora nessun contatto. Qui compare chi scambia Gradido con te — o chi arriva grazie a te.",
     "favorites": "Preferiti",
     "heart": {
       "add": "Aggiungi ai preferiti",
@@ -184,6 +184,10 @@
     "matches": "Risultati",
     "noFavorites": "Ancora nessun preferito. Tocca il cuore accanto a un contatto.",
     "notReachable": "Impossibile caricare i contatti.",
+    "origin": {
+      "arrival": "conosce Gradido grazie a te",
+      "referrer": "ti ha mostrato Gradido"
+    },
     "recent": "Recenti",
     "remove": {
       "body": "{name} resta nei tuoi contatti. Puoi rendere {name} di nuovo un preferito in qualsiasi momento.",
@@ -346,6 +350,7 @@
     "firstname": "Nome",
     "from": "Da",
     "generate_now": "Genera ora",
+    "hidePassword": "Nascondere la password",
     "hours": "Ore",
     "identifier": "E-mail, nome utente o ID Gradido",
     "lastname": "Cognome",
@@ -386,6 +391,7 @@
       "youCannotSendEmailToYourself": "Non puoi inviare un'e-mail a te stesso."
     },
     "sender": "Mittente",
+    "showPassword": "Mostrare la password",
     "sorry": "Scusa",
     "subject": "Oggetto",
     "thx": "Grazie",
@@ -459,7 +465,6 @@
     "link-expired": "Il link non è più valido. La validità è scaduta il {date}.",
     "link-hint": "Chi ha il link può riscattarlo. Invialo solo alla persona a cui è destinato.",
     "link-overview": "Panoramica dei link",
-    "links_count": "Link attivi",
     "links_open": "{n} aperti",
     "links_sum": "Link, assegni, codici QR",
     "no-account": "Non hai ancora un account Gradido?",

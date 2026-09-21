@@ -33,3 +33,15 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+/* On a phone this panel stands in the page, above or below its content, and the page edge
+   there is App.vue's 6px. The container's own 12px would set it apart from every box
+   around it; whatever is text inside takes `page-text` instead, as it does elsewhere. */
+@media (width <= 1024.98px) {
+  .right-side :deep(.container) {
+    padding-right: 0;
+    padding-left: 0;
+  }
+}
+</style>

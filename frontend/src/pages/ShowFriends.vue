@@ -1,8 +1,10 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
   <div class="show-friends">
-    <p class="mb-4" data-test="show-friends-lead">{{ $t('showFriends.page.lead') }}</p>
-    <h2 class="h4 mb-3" data-test="show-friends-question">{{ $t('showFriends.page.question') }}</h2>
+    <p class="mb-4 page-text" data-test="show-friends-lead">{{ $t('showFriends.page.lead') }}</p>
+    <h2 class="h4 mb-3 page-text" data-test="show-friends-question">
+      {{ $t('showFriends.page.question') }}
+    </h2>
 
     <section class="door bg-white app-box-shadow gradido-border-radius mb-3">
       <button
@@ -88,7 +90,7 @@
       </div>
     </section>
 
-    <p class="mt-4" data-test="show-friends-footer">
+    <p class="mt-4 page-text" data-test="show-friends-footer">
       <strong>{{ $t('showFriends.page.footerLead') }}</strong>
       {{ $t('showFriends.page.footer') }}
     </p>

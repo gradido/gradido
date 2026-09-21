@@ -32,6 +32,10 @@ vi.mock('@vue/apollo-composable', () => ({
     error: { value: null },
     refetch: vi.fn(),
   }),
+  // ⚠️ Here for the same reason `result` is: the tile takes a client to look a tapped
+  // arrival up with, and a mock that answers fewer things than the module tears the
+  // whole page down at setup -- with an error about apollo, in two cases about tiles.
+  useApolloClient: () => ({ client: { query: vi.fn() } }),
 }))
 
 vi.mock('@/components/Overview/CardCircles', () => ({
@@ -61,6 +65,9 @@ describe('Overview', () => {
         stubs: {
           RouterLink: true,
           IMdiChevronRight: true,
+          // The window the tile opens is its own component with its own spec; this file
+          // is about which tiles the page shows and in what order.
+          ContactWindow: true,
         },
       },
     })

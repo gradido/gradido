@@ -16,7 +16,9 @@
         </div>
       </BCol>
       <BCol class="col-12 col-md-12 col-lg-6 mt-4 mb-4 mt-lg-0 mb-lg-0">
-        <div class="d-flex align-items-center ms-3 ms-lg-0 text-lg-end pt-1">
+        <!-- ms-4 on a phone: the page edge there is 6px (App.vue), and 6 + 24 puts this
+             line where the text inside the card above it starts. -->
+        <div class="d-flex align-items-center ms-4 ms-md-3 ms-lg-0 text-lg-end pt-1">
           {{ $t('followUs') }}
           <BLink href="https://www.facebook.com/groups/Gradido/" target="_blank">
             <IBiFacebook class="ms-3 me-3 c-grey" />
