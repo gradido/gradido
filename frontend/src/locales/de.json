@@ -413,6 +413,7 @@
     "whitepaper": "Whitepaper"
   },
   "form": {
+    "agree": "Zustimmung zur Datenschutzerklärung",
     "amount": "Betrag",
     "at": "am",
     "available_after": "Verfügbar nach Bestätigung",
@@ -436,6 +437,7 @@
     "link_decay_description": "Der Link-Betrag wird zusammen mit der maximalen Vergänglichkeit blockiert. Nach Einlösen, Verfallen oder Löschen des Links wird der Rest wieder freigegeben.",
     "memo": "Nachricht",
     "message": "Nachricht",
+    "newPassword": "Neues Passwort",
     "newPasswordRepeat": "Neues Passwort wiederholen",
     "new_balance": "Neuer Kontostand nach Bestätigung",
     "no_gdd_available": "Du hast keine GDD zum versenden.",

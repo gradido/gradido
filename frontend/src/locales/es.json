@@ -335,6 +335,7 @@
     "whitepaper": "Whitepaper"
   },
   "form": {
+    "agree": "Aceptación de la política de privacidad",
     "amount": "Importe",
     "at": "am",
     "available_after": "Disponible tras la confirmación",
@@ -358,6 +359,7 @@
     "link_decay_description": "El importe del enlace se bloquea junto con la ransience máxima. Una vez que el enlace se ha canjeado, caducado o eliminado, el resto se libera de nuevo.",
     "memo": "Mensaje",
     "message": "Noticia",
+    "newPassword": "Contraseña nueva",
     "newPasswordRepeat": "Repetir contraseña nueva",
     "new_balance": "Saldo de cuenta nuevo depués de confirmación",
     "no_gdd_available": "No dispones de GDD para enviar.",

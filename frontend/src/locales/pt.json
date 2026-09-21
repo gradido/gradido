@@ -335,6 +335,7 @@
     "whitepaper": "Whitepaper"
   },
   "form": {
+    "agree": "Aceitação da política de privacidade",
     "amount": "Montante",
     "at": "em",
     "available_after": "Disponível após confirmação",
@@ -358,6 +359,7 @@
     "link_decay_description": "O montante do link é bloqueado juntamente com o decaimento máximo. Depois de o link ser resgatado, expirar ou ser eliminado, o restante é novamente libertado.",
     "memo": "Mensagem",
     "message": "Mensagem",
+    "newPassword": "Nova palavra-passe",
     "newPasswordRepeat": "Repetir a nova palavra-passe",
     "new_balance": "Saldo da conta após confirmação",
     "no_gdd_available": "Não tens GDD para enviar.",
