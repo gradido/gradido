@@ -23,7 +23,10 @@
           </template>
         </transaction-list-item>
       </div>
-      <div class="mt-3">
+      <!-- The 16px under the decay row, and only there. Without one -- from page 2, and on a
+           list narrowed to one member -- the page above already keeps its distance, and
+           this margin doubled it: 32px on the desk, where page 1 has 16. -->
+      <div :class="{ 'mt-3': hasDecayRow }" data-test="transaction-rows">
         <div v-for="transaction in transactions" :key="`l2-` + transaction.id">
           <transaction-list-item
             v-if="transaction.typeId !== 'DECAY'"
@@ -123,6 +126,13 @@ export default {
   computed: {
     isPaginationVisible() {
       return this.showPagination && this.pageSize < this.transactionCount
+    },
+    hasDecayRow() {
+      // `transactions` can be false or null: "no list from the server" is shown further up.
+      return (
+        Array.isArray(this.transactions) &&
+        this.transactions.some(({ typeId }) => typeId === 'DECAY')
+      )
     },
   },
   watch: {
