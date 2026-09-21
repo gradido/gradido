@@ -162,6 +162,23 @@ describe('InputPassword', () => {
         expect(wrapper.find('input').classes()).toContain('rounded-input')
         expect(wrapper.find('button').classes()).not.toContain('btn-outline-light')
       })
+
+      // coderabbit on #3948: out of the tab order, the only way to check a typed password
+      // was a mouse. A native button turns Enter and Space into the click tested above, so
+      // what the keyboard needs is to reach it -- and not to submit the form on the way.
+      it('can be reached from the keyboard, and does not submit the form', () => {
+        const eye = wrapper.find('[data-test="password-eye"]')
+        expect(eye.element.tagName).toBe('BUTTON')
+        expect(eye.attributes('tabindex')).toBeUndefined()
+        expect(eye.attributes('type')).toBe('button')
+      })
+
+      it('says what it will do, for a screen reader', async () => {
+        const eye = wrapper.find('[data-test="password-eye"]')
+        expect(eye.attributes('aria-label')).toBe('form.showPassword')
+        await eye.trigger('click')
+        expect(eye.attributes('aria-label')).toBe('form.hidePassword')
+      })
     })
   })
 
@@ -178,6 +195,10 @@ describe('InputPassword', () => {
       const at = css.indexOf(`${selector} {`)
       return at < 0 ? '' : css.slice(at, css.indexOf('}', at))
     }
+
+    it('shows where the focus is when the keyboard lands on the eye', () => {
+      expect(rule('.password-eye:focus-visible')).toMatch(/outline:\s*2px solid/)
+    })
 
     it('lays the eye over the right end of the input', () => {
       const eye = rule('.password-eye')

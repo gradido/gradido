@@ -350,6 +350,7 @@
     "firstname": " Prénom",
     "from": "de",
     "generate_now": "Produire maintenant",
+    "hidePassword": "Masquer le mot de passe",
     "hours": "Heures",
     "identifier": "E-mail, nom d'utilisateur ou ID Gradido",
     "lastname": "Nom",
@@ -390,6 +391,7 @@
       "youCannotSendEmailToYourself": "Tu ne peux pas envoyer d'e-mail à toi-même."
     },
     "sender": "Expéditeur",
+    "showPassword": "Afficher le mot de passe",
     "sorry": "Désolé",
     "subject": "Objet",
     "thx": "Merci",

@@ -350,6 +350,7 @@
     "firstname": "Nome",
     "from": "Da",
     "generate_now": "Genera ora",
+    "hidePassword": "Nascondere la password",
     "hours": "Ore",
     "identifier": "E-mail, nome utente o ID Gradido",
     "lastname": "Cognome",
@@ -390,6 +391,7 @@
       "youCannotSendEmailToYourself": "Non puoi inviare un'e-mail a te stesso."
     },
     "sender": "Mittente",
+    "showPassword": "Mostrare la password",
     "sorry": "Scusa",
     "subject": "Oggetto",
     "thx": "Grazie",

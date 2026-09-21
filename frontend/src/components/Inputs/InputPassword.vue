@@ -20,10 +20,12 @@
           v-bind="ariaInput"
           @update:modelValue="value = $event"
         />
+        <!-- A control like any other: reachable with the tab key, where a native button turns
+             Enter and Space into the click, and named for a screen reader by what it will do. -->
         <BButton
           :variant="null"
           class="password-eye"
-          tabindex="-1"
+          :aria-label="showPassword ? $t('form.hidePassword') : $t('form.showPassword')"
           data-test="password-eye"
           @click="toggleShowPassword"
         >
@@ -110,7 +112,8 @@ const labelFor = computed(() => `${props.name}-input-field`)
 </script>
 
 <style scoped>
-/* The eye takes the field's right end, a finger wide and the field's full height. */
+/* The eye takes the field's right end, a finger wide and the field's full height, and its
+   corners, so that the focus ring below follows them. */
 .password-eye {
   position: absolute;
   top: 0;
@@ -119,8 +122,15 @@ const labelFor = computed(() => `${props.name}-input-field`)
   width: var(--password-eye);
   padding: 0;
   border: 0;
+  border-radius: 0 17px 17px 0;
   background: transparent;
   box-shadow: none;
+}
+
+/* Without a variant the button has no focus ring of its own; this one stays inside the field. */
+.password-eye:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: -6px;
 }
 
 .password-field {

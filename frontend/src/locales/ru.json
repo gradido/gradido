@@ -350,6 +350,7 @@
     "firstname": "Имя",
     "from": "От",
     "generate_now": "Генерировать (создать)",
+    "hidePassword": "Скрыть пароль",
     "hours": "Часы",
     "identifier": "Эл. почта, имя пользователя или Gradido ID",
     "lastname": "Фамилия",
@@ -390,6 +391,7 @@
       "youCannotSendEmailToYourself": "Вы не можете отправить письмо самому себе."
     },
     "sender": "Отправитель",
+    "showPassword": "Показать пароль",
     "sorry": "Извините",
     "subject": "Тема",
     "thx": "Спасибо",

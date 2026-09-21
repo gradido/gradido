@@ -350,6 +350,7 @@
     "firstname": "Voornaam",
     "from": "Van",
     "generate_now": "Nu genereren",
+    "hidePassword": "Wachtwoord verbergen",
     "hours": "Uren",
     "identifier": "E-mail, gebruikersnaam of Gradido-ID",
     "lastname": "Achternaam",
@@ -390,6 +391,7 @@
       "youCannotSendEmailToYourself": "Je kunt geen e-mail naar jezelf versturen."
     },
     "sender": "Afzender",
+    "showPassword": "Wachtwoord tonen",
     "sorry": "Sorry",
     "subject": "Onderwerp",
     "thx": "Dankjewel",
