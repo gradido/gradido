@@ -1,4 +1,7 @@
 import { mount } from '@vue/test-utils'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { nextTick, ref } from 'vue'
 import DashboardLayout from './DashboardLayout'
@@ -12,6 +15,9 @@ import { forgetViewport } from '@/composables/useViewport'
 import { transactionsUserCountQuery } from '@/graphql/transactions.graphql'
 import { LAST_TRANSACTIONS_PAGE_SIZE } from '@/constants'
 import FirstCreation from '@/components/FirstCreation.vue'
+
+// `fileURLToPath`, not `new URL(...)`: jsdom brings its own `URL`, which node rejects.
+const here = dirname(fileURLToPath(import.meta.url))
 
 const toastErrorSpy = vi.fn()
 
@@ -745,6 +751,62 @@ describe('DashboardLayout', () => {
 
   it('renders DIV .main-page', () => {
     expect(wrapper.find('div.main-page').exists()).toBe(true)
+  })
+
+  /**
+   * ⛔ The air between the balance cards and the page (Bernd, 21.09.2026). The desk always
+   * had it through `mt-lg-3`. On a phone the two cards stand one above the other, the second
+   * brings 16px above itself and none below, and a page whose first box has no margin of its
+   * own ran straight into it. So on every width under the cards -- and nowhere else, where
+   * the phone keeps the page close under its heading.
+   */
+  describe('the space between the balance cards and the page', () => {
+    const gapOn = async (path) => {
+      wrapper.vm.skeleton = false
+      await router.push(path)
+      await nextTick()
+      return wrapper.find('.main-content').classes()
+    }
+
+    it.each(['/overview', '/send', '/transactions', '/gdt'])(
+      'is there on every width under the cards of %s',
+      async (path) => {
+        const classes = await gapOn(path)
+        expect(classes).toContain('mt-3')
+        expect(classes).not.toContain('mt-0')
+      },
+    )
+
+    it.each(['/contacts', '/settings', '/information', '/contributions/contribute'])(
+      'is left to the desk on %s, which shows no cards',
+      async (path) => {
+        const classes = await gapOn(path)
+        expect(classes).toContain('mt-0')
+        expect(classes).toContain('mt-lg-3')
+      },
+    )
+
+    /**
+     * The layout names the sections in a list, and the cards live in the slots of
+     * `<content-header>` in its own template. A slot that gets cards without the list learning
+     * of it would be the missing gap all over again, so the two are held against each other.
+     */
+    it('names exactly the sections whose header slot shows something', () => {
+      const source = readFileSync(join(here, 'DashboardLayout.vue'), 'utf8')
+      // Comments out first: a slot written into a note is not a slot.
+      const template = source.replace(/<!--[\s\S]*?-->/g, '')
+      const header = template.match(/<content-header[\s\S]*?<\/content-header>/)[0]
+      const filled = [...header.matchAll(/<template #(\w+)>([\s\S]*?)<\/template>/g)]
+        .filter(([, , body]) => body.trim() !== '')
+        .map(([, name]) => name)
+      const listed = source
+        .match(/const BALANCE_SECTIONS = \[([^\]]*)\]/)[1]
+        .match(/'([^']+)'/g)
+        .map((quoted) => quoted.slice(1, -1))
+
+      expect(filled.length).toBeGreaterThan(0)
+      expect([...listed].sort()).toEqual([...filled].sort())
+    })
   })
 
   describe('at first', () => {
