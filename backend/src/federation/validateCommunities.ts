@@ -99,47 +99,6 @@ export async function validateCommunities(): Promise<void> {
   }
 }
 
-export async function writeJwtKeyPairInHomeCommunity(): Promise<DbCommunity> {
-  logger.debug(`Federation: writeJwtKeyPairInHomeCommunity`)
-  try {
-    // check for existing homeCommunity entry
-    const homeCom = await getHomeCommunity()
-    if (homeCom) {
-      if (!homeCom.publicJwtKey && !homeCom.privateJwtKey) {
-        // Generate key pair using jose library
-        const { publicKey, privateKey } = await createKeyPair()
-        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity publicKey=`, publicKey)
-        logger.debug(
-          `Federation: writeJwtKeyPairInHomeCommunity privateKey=`,
-          privateKey.slice(0, 20),
-        )
-
-        homeCom.publicJwtKey = publicKey
-        logger.debug(
-          `Federation: writeJwtKeyPairInHomeCommunity publicJwtKey.length=`,
-          homeCom.publicJwtKey.length,
-        )
-        homeCom.privateJwtKey = privateKey
-        logger.debug(
-          `Federation: writeJwtKeyPairInHomeCommunity privateJwtKey.length=`,
-          homeCom.privateJwtKey.length,
-        )
-        await DbCommunity.save(homeCom)
-        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity done`)
-      } else {
-        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity: keypair already exists`)
-      }
-    } else {
-      throw new Error(
-        `Error! A HomeCommunity-Entry still not exist! Please start the DHT-Modul first.`,
-      )
-    }
-    return homeCom
-  } catch (err) {
-    throw new Error(`Error writing JwtKeyPair in HomeCommunity-Entry: ${err}`)
-  }
-}
-
 async function writeForeignCommunity(
   dbCom: DbFederatedCommunity,
   pubInfo: PublicCommunityInfo,

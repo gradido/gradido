@@ -1,10 +1,17 @@
 import { eq } from 'drizzle-orm'
-import { Ed25519PublicKey, urlSchema, uuidv4Schema, VoidResult } from 'shared'
+import {
+  Ed25519PublicKey,
+  HomeCommunityInsertInput,
+  homeCommunityInsertSchema,
+  urlSchema,
+  uuidv4Schema,
+  VoidResult,
+} from 'shared'
 import { FindOptionsOrder, FindOptionsWhere, IsNull, MoreThanOrEqual, Not } from 'typeorm'
 import { drizzleDb } from '../AppDatabase'
 import { Community as DbCommunity } from '../entity'
 import { DBNotFoundError } from '../errorTypes'
-import { CommunitiesSelect, communitiesTable } from '../schemas'
+import { CommunitiesInsert, CommunitiesSelect, communitiesTable } from '../schemas'
 
 const HomeCommunityNotFound = new DBNotFoundError('communities', 'foreign = 0')
 
@@ -28,12 +35,25 @@ export async function getHomeCommunityDrizzle(): Promise<CommunitiesSelect | nul
     const resultRows = await drizzleDb()
       .select()
       .from(communitiesTable)
-      .where(eq(communitiesTable.foreign, 0))
+      .where(eq(communitiesTable.foreign, false))
     if (resultRows[0]) {
       homeCommunityDrizzleCache = resultRows[0]
     }
   }
   return homeCommunityDrizzleCache
+}
+
+export async function dbInsertHomeCommunity(
+  homeCommunity: HomeCommunityInsertInput,
+): Promise<void> {
+  await drizzleDb().insert(communitiesTable).values(homeCommunityInsertSchema.parse(homeCommunity))
+}
+
+export async function dbUpdateHomeCommunity(
+  communityId: number,
+  values: Partial<CommunitiesInsert>,
+) {
+  await drizzleDb().update(communitiesTable).set(values).where(eq(communitiesTable.id, communityId))
 }
 
 /**
@@ -54,7 +74,7 @@ export async function dbIsMatchingKeyingActive(): Promise<boolean> {
   const rows = await drizzleDb()
     .select({ active: communitiesTable.matchingKeyingActive })
     .from(communitiesTable)
-    .where(eq(communitiesTable.foreign, 0))
+    .where(eq(communitiesTable.foreign, false))
     .limit(1)
   return Boolean(rows[0]?.active)
 }
@@ -87,7 +107,7 @@ export async function dbSetMatchingKeyingActive(
   const result = await drizzleDb()
     .update(communitiesTable)
     .set({ matchingKeyingActive: active ? 1 : 0 })
-    .where(eq(communitiesTable.foreign, 0))
+    .where(eq(communitiesTable.foreign, false))
 
   // ⚠️ The cached row above holds this column too, and it is never invalidated on its
   // own. Nothing reads the switch through it today - the schema comment tells the next

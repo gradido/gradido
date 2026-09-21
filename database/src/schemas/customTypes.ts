@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm'
-import { customType } from 'drizzle-orm/mysql-core'
+import { customType, MySqlVarbinaryOptions } from 'drizzle-orm/mysql-core'
 import { type Geometry } from 'geojson'
 import { GradidoUnit } from 'shared'
 import { Geometry as WkxGeometry } from 'wkx'
@@ -92,3 +92,50 @@ export const customGeometry = customType<{
     return WkxGeometry.parse(value).toGeoJSON() as Geometry
   },
 })
+
+export const customVarbinary = <T extends Buffer = Buffer>(
+  columnName: string,
+  options: Pick<MySqlVarbinaryOptions, 'length'>,
+) => {
+  return (
+    customType<{
+      data: Buffer
+      driverData: Buffer
+    }>({
+      dataType: () => {
+        return `varbinary(${options.length})`
+      },
+      // # WORKAROUND
+      // By not implementing unnecessary conversion processes in `fromDriver` and `toDriver`, we can save and retrieve values in the DB without corruption.
+      fromDriver: (value) => {
+        return value
+      },
+      toDriver: (value) => {
+        return value
+      },
+    })(columnName)
+      // The following line is a workaround for the issue with varbinary/binary type
+      // [[BUG]: MySQL2 binary/varbinary types are incorrectly typed as strings instead of buffers · Issue #1188 · drizzle-team/drizzle-orm](https://github.com/drizzle-team/drizzle-orm/issues/1188)
+      .$type<T>()
+  )
+}
+
+export const customBinary = <T extends Buffer = Buffer>(
+  columnName: string,
+  options: Pick<MySqlVarbinaryOptions, 'length'>,
+) => {
+  return customType<{
+    data: Buffer
+    driverData: Buffer
+  }>({
+    dataType: () => {
+      return `varbinary(${options.length})`
+    },
+    fromDriver: (value) => {
+      return value
+    },
+    toDriver: (value) => {
+      return value
+    },
+  })(columnName).$type<T>()
+}

@@ -19,16 +19,16 @@ import {
   varchar,
 } from 'drizzle-orm/mysql-core'
 
-import { customGeometry, customGradidoUnit, customMediumBlob } from './customTypes'
+import { customBinary, customGeometry, customGradidoUnit, customMediumBlob } from './customTypes'
 
 export const communitiesTable = mysqlTable(
   'communities',
   {
     id: int().autoincrement().primaryKey().notNull(),
-    foreign: tinyint().default(1).notNull(),
+    foreign: boolean().default(true).notNull(),
     url: varchar({ length: 255 }).notNull(),
-    publicKey: binary('public_key', { length: 32 }).notNull(),
-    privateKey: binary('private_key', { length: 64 }).default(sql`NULL`),
+    publicKey: customBinary('public_key', { length: 32 }).notNull(),
+    privateKey: customBinary('private_key', { length: 64 }).default(sql`NULL`),
     communityUuid: char('community_uuid', { length: 36 }).default(sql`NULL`),
     authenticatedAt: datetime('authenticated_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     name: varchar({ length: 40 }).default(sql`NULL`),

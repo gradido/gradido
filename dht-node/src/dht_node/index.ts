@@ -1,11 +1,15 @@
 import DHT from '@hyperswarm/dht'
 import {
+  CommunitiesInsert,
   CommunityLoggingView,
   Community as DbCommunity,
   FederatedCommunity as DbFederatedCommunity,
-  getHomeCommunity,
+  dbInsertHomeCommunity,
+  dbUpdateHomeCommunity,
+  getHomeCommunityDrizzle,
 } from 'database'
 import { getLogger } from 'log4js'
+import { createKeyPair as createJWTKeyPair, getChangedFields } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -231,30 +235,36 @@ async function writeFederatedHomeCommunityEntries(pubKey: string): Promise<Commu
 
 async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
   try {
-    // check for existing homeCommunity entry
-    let homeCom = await getHomeCommunity()
+    // fields set in update and in insert
+    const upsertFields = {
+      publicKey: keyPair.publicKey,
+      privateKey: keyPair.secretKey,
+      url: `${CONFIG.FEDERATION_COMMUNITY_URL}/api/`,
+      name: CONFIG.COMMUNITY_NAME,
+      description: CONFIG.COMMUNITY_DESCRIPTION,
+    } satisfies Partial<CommunitiesInsert>
+
+    const homeCom = await getHomeCommunityDrizzle()
     if (homeCom) {
-      // simply update the existing entry, but it MUST keep the ID and UUID because of possible relations
-      homeCom.publicKey = keyPair.publicKey
-      homeCom.privateKey = keyPair.secretKey
-      homeCom.url = CONFIG.FEDERATION_COMMUNITY_URL + '/api/'
-      homeCom.name = CONFIG.COMMUNITY_NAME
-      homeCom.description = CONFIG.COMMUNITY_DESCRIPTION
-      await DbCommunity.save(homeCom)
-      logger.info(`home-community updated successfully:`, new CommunityLoggingView(homeCom))
+      const updateFields = getChangedFields(homeCom, upsertFields)
+      if (updateFields.changed) {
+        // simply update the existing entry, but it MUST keep the ID and UUID because of possible relations
+        await dbUpdateHomeCommunity(homeCom.id, updateFields.value)
+        logger.info('home-community updated successfully')
+      } else {
+        logger.debug("home-community don't need update")
+      }
     } else {
-      // insert a new homecommunity entry including a new ID and a new but ensured unique UUID
-      homeCom = new DbCommunity()
-      homeCom.foreign = false
-      homeCom.publicKey = keyPair.publicKey
-      homeCom.privateKey = keyPair.secretKey
-      homeCom.communityUuid = await newCommunityUuid()
-      homeCom.url = CONFIG.FEDERATION_COMMUNITY_URL + '/api/'
-      homeCom.name = CONFIG.COMMUNITY_NAME
-      homeCom.description = CONFIG.COMMUNITY_DESCRIPTION
-      homeCom.creationDate = new Date()
-      await DbCommunity.insert(homeCom)
-      logger.info(`home-community inserted successfully:`, new CommunityLoggingView(homeCom))
+      // Generate key pair using jose library
+      const jwtKeyPair = await createJWTKeyPair()
+      await dbInsertHomeCommunity({
+        ...upsertFields,
+        communityUuid: await newCommunityUuid(),
+        creationDate: new Date(),
+        publicJwtKey: jwtKeyPair.publicKey,
+        privateJwtKey: jwtKeyPair.privateKey,
+      })
+      logger.info('home-community inserted successfully')
     }
   } catch (err) {
     throw new Error(`Federation: Error writing HomeCommunity-Entry: ${err}`)

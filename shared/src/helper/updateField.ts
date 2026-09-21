@@ -1,3 +1,5 @@
+import { ResultChanged } from '../'
+
 /**
  * Updates a field if the incoming value is not undefined and not equal to the current value.
  * So basically undefined means don't touch value, null means set value to null.
@@ -39,4 +41,34 @@ export function updateAllDefinedAndChanged<T extends object>(
     }
   }
   return updated
+}
+
+/*
+ * incoming only contain keys with values, no undefined or null
+ */
+export function getChangedFields<T extends object>(
+  current: T,
+  incoming: Partial<T>,
+): ResultChanged<Partial<T>> {
+  const changedFields: Partial<T> = {}
+
+  let changed = false
+  for (const [field, incomingValue] of Object.entries(incoming)) {
+    const currentValue = current[field as keyof T]
+
+    const equal =
+      Buffer.isBuffer(currentValue) && Buffer.isBuffer(incomingValue)
+        ? currentValue.equals(incomingValue)
+        : Object.is(currentValue, incomingValue)
+
+    if (!equal) {
+      Object.assign(changedFields, { [field]: incomingValue })
+      changed = true
+    }
+  }
+
+  if (changed) {
+    return { changed: true, value: changedFields }
+  }
+  return { changed: false }
 }
