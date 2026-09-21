@@ -127,11 +127,14 @@ describe('AuthLayout', () => {
     it('test size in setTextSize', async () => {
       const mockEl = { style: {} }
       const querySelector = vi.spyOn(document, 'querySelector').mockReturnValue(mockEl)
-
-      await wrapper.vm.setTextSize(0.85)
-      expect(mockEl.style.fontSize).toBe('0.85rem')
-      // Left in place, it hands every later mount's popover this object for its target.
-      querySelector.mockRestore()
+      // Left in place, it hands every later mount's popover this object for its target --
+      // so it goes back even when the assertion fails.
+      try {
+        await wrapper.vm.setTextSize(0.85)
+        expect(mockEl.style.fontSize).toBe('0.85rem')
+      } finally {
+        querySelector.mockRestore()
+      }
     })
   })
 
