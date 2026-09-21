@@ -1,6 +1,6 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
-  <div class="contacts-strip" data-test="contacts-strip">
+  <div class="contacts-strip page-text" data-test="contacts-strip">
     <div class="contacts-strip-label">{{ $t('contacts.favorites') }}</div>
 
     <div v-if="!page.loaded" class="text-center py-2" data-test="contacts-strip-loading">
