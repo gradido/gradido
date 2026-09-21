@@ -7,9 +7,10 @@
     @click="toggleVisible"
   >
     <!-- The face takes what it needs and no more, as in the contact list: the text starts one
-         gutter to its right. It used to take two twelfths of the row -- 170 points and more on
-         the desk for a 48-point face -- and every point of that was missing from the memo,
-         which cut off early (Bernd, 21.09.2026: "genau so wie bei den Kontakten"). The width
+         gutter to its right. It used to take two twelfths of the row -- 91 to 120 points on the
+         desk for a 48-point face, measured at 1025 and 1440 -- and every point of that was
+         missing from the memo, which cut off early (Bernd, 21.09.2026: "genau so wie bei den
+         Kontakten"). Now it is 72: the face and one gutter. The width
          it takes is `--transaction-face-col`, and the amount and the memo below are indented
          by exactly that, so they keep standing under the name. -->
     <BRow class="align-items-center gdd-transaction-row" :style="faceWidth">
