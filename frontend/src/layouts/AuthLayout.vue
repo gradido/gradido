@@ -22,11 +22,6 @@
                to 82px from each edge of a 375px phone: 211px of width for an address.
                Now the card stands on the page edge like every box in the wallet. -->
           <div class="mx-0 mx-md-4">
-            <BRow class="d-none d-md-block d-lg-none">
-              <BCol>
-                <auth-navbar-small />
-              </BCol>
-            </BRow>
             <BRow v-if="projectBannerResult || projectBannerLoading" class="d-none d-md-block">
               <BCol>
                 <BImg
@@ -77,25 +72,17 @@
                   </BPopover>
                 </BCol>
               </BRow>
-              <BRow class="d-inline d-sm-inline d-md-none d-lg-none mb-3">
+              <!-- ⛔ No coin and no links in here any more. Below md the coin slid into the
+                   card, and the two links with it, 176px above the form; the logo top left
+                   carries the coin and the links stand beside it (AuthNavbar). A project's
+                   banner still stands here on a phone, where the greeting is not shown. -->
+              <BRow v-if="projectBannerResult" class="d-md-none mb-3">
                 <BCol class="text-center">
                   <BImg
-                    v-if="projectBannerResult"
                     :src="projectBannerResult.projectBrandingBanner"
                     class="img-fluid ms-1 me-1 col-10 col-sm-10 rounded-20"
                     alt="project banner"
                   />
-                  <BAvatar
-                    v-else
-                    src="/img/brand/gradido_coin_128x128.png"
-                    size="6rem"
-                    bg-variant="transparent"
-                  ></BAvatar>
-                  <BRow>
-                    <BCol class="zindex1000 d-flex justify-content-center">
-                      <auth-navbar-small />
-                    </BCol>
-                  </BRow>
                 </BCol>
               </BRow>
               <BCardBody class="">
@@ -115,7 +102,6 @@ import { onBeforeMount, computed, watchEffect } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
 import { projectBrandingBanner } from '@/graphql/projectBranding.graphql'
 import AuthNavbar from '@/components/Auth/AuthNavbar'
-import AuthNavbarSmall from '@/components/Auth/AuthNavbarSmall'
 import AuthCarousel from '@/components/Auth/AuthCarousel'
 import AuthFooter from '@/components/Auth/AuthFooter'
 import CONFIG from '@/config'
