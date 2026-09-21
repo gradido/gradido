@@ -61,9 +61,22 @@
           <name
             v-else
             :linked-user="row.transaction.linkedUser"
+            :with-community="false"
             font-color="text-dark"
             @open="openMember"
           />
+        </div>
+        <!-- The community on a line of its own, small and thin, as the contacts in the other
+             position of the switch have it -- no longer behind the name after a slash
+             (Bernd, 21.09.2026). A creation names the community already, one line up. The
+             line costs height, which is why the column shows five bookings now
+             (LAST_TRANSACTIONS_ROWS). -->
+        <div
+          v-if="row.memberCommunity"
+          class="last-transactions-member-community"
+          data-test="last-transactions-community"
+        >
+          {{ row.memberCommunity }}
         </div>
         <button
           class="transaction-details-link d-flex"
@@ -199,9 +212,9 @@ const rows = computed(() =>
     .filter(
       (transaction) => transaction.typeId !== 'DECAY' && transaction.typeId !== 'LINK_SUMMARY',
     )
-    // ⚠️ The fetch that feeds this is sized in `constants.js` for exactly this cut. Change
-    // the number here and the fetch has to grow with it, or the column simply shows fewer
-    // rows than it asks for.
+    // ⚠️ The fetch that feeds this is sized in `constants.js` and must never be smaller than
+    // this cut, or the column simply shows fewer rows than it means to. Since 21.09.2026 it
+    // is larger (eight fetched, five shown) -- see the constant.
     .slice(0, LAST_TRANSACTIONS_ROWS)
     .map((transaction) => {
       const isCreation = transaction.typeId === 'CREATION'
@@ -221,6 +234,9 @@ const rows = computed(() =>
         communityName: isCreation
           ? memberAlias(transaction.linkedUser?.alias, transaction.linkedUser?.gradidoID)
           : '',
+        // The member's community, for the line under the name. Not on a creation, whose name
+        // line is the community's already.
+        memberCommunity: isCreation ? '' : (transaction.linkedUser?.communityName ?? ''),
         // Spread into one object, so the template still binds a single `row.avatar`. The
         // zoom half is empty for a member without a picture, which leaves that circle
         // exactly as it was (AS-018). A creation has no face at all, so nothing is worked
@@ -270,6 +286,17 @@ const rows = computed(() =>
    360-point column) -- the memo is a third line the contacts do not have, and it is given
    room rather than squeezed in. Whoever wants the rows level again has to take that up with
    the measure, not add a line-height back here. `LastTransactions.spec` holds it. */
+
+/* The member's community, under the name: the contacts' second line in size and colour, and
+   clipped like it. `LastTransactions.spec` holds the numbers against `ContactsPanel`. */
+.last-transactions-member-community {
+  font-size: 0.72rem;
+  color: var(--bs-secondary-color, #6c757d);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  contain: inline-size;
+}
 
 /* The community's name on a creation row, where a member's name stands otherwise. Clipped
    the same way `Name` clips (a community may be called anything), and `contain` for the
