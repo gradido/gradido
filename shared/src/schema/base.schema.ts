@@ -38,3 +38,11 @@ export const ed25519PrivateKeySchema = z.instanceof(Buffer).superRefine((value, 
     })
   }
 })
+
+export const locationPointSchema = z.object({
+  type: z.literal('Point'),
+  coordinates: z.array(z.number()).length(2),
+})
+
+export type LocationPointInput = z.input<typeof locationPointSchema>
+export type LocationPoint = z.output<typeof locationPointSchema>

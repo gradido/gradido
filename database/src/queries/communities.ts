@@ -1,23 +1,25 @@
 import { eq } from 'drizzle-orm'
 import {
+  DEFAULT_CACHE_TIMEOUT_MS,
   Ed25519PublicKey,
   HomeCommunityInsertInput,
   homeCommunityInsertSchema,
+  MissingHomeCommunityError,
   urlSchema,
   uuidv4Schema,
-  VoidResult,
 } from 'shared'
 import { FindOptionsOrder, FindOptionsWhere, IsNull, MoreThanOrEqual, Not } from 'typeorm'
 import { drizzleDb } from '../AppDatabase'
 import { Community as DbCommunity } from '../entity'
-import { DBNotFoundError } from '../errorTypes'
 import { CommunitiesInsert, CommunitiesSelect, communitiesTable } from '../schemas'
-
-const HomeCommunityNotFound = new DBNotFoundError('communities', 'foreign = 0')
 
 // cheap cache
 //let homeCommunityCache: DbCommunity | null = null
-let homeCommunityDrizzleCache: CommunitiesSelect | null = null
+let homeCommunityDrizzleCache: {
+  homeCom: CommunitiesSelect
+  lastUpdated: Date
+} | null = null
+
 /**
  * Retrieves the home community, i.e., a community that is not foreign.
  * @returns A promise that resolves to the home community, or null if no home community was found
@@ -30,11 +32,27 @@ export async function getHomeCommunity(): Promise<DbCommunity | null> {
   })
 }
 
-export async function getHomeCommunityDrizzle(): Promise<CommunitiesSelect | null> {
-  if (!homeCommunityDrizzleCache) {
-    homeCommunityDrizzleCache = await dbSelectHomeCommunity()
+/**
+ * Forgets the cached home community. For tests, which empty the table between cases
+ * and would otherwise read the row of a previous case.
+ */
+export function resetHomeCommunityCache(): void {
+  homeCommunityDrizzleCache = null
+}
+
+export async function getHomeCommunityDrizzle(): Promise<CommunitiesSelect> {
+  if (
+    !homeCommunityDrizzleCache ||
+    new Date().getTime() - homeCommunityDrizzleCache.lastUpdated.getTime() >
+      DEFAULT_CACHE_TIMEOUT_MS
+  ) {
+    const homeCom = await dbSelectHomeCommunity()
+    if (!homeCom) {
+      throw new MissingHomeCommunityError()
+    }
+    homeCommunityDrizzleCache = { homeCom, lastUpdated: new Date() }
   }
-  return homeCommunityDrizzleCache
+  return homeCommunityDrizzleCache.homeCom
 }
 
 /**
@@ -58,82 +76,38 @@ export async function dbInsertHomeCommunity(
   await drizzleDb().insert(communitiesTable).values(homeCommunityInsertSchema.parse(homeCommunity))
 }
 
-export async function dbUpdateHomeCommunity(
-  communityId: number,
-  values: Partial<CommunitiesInsert>,
-): Promise<void> {
+export async function dbUpdateHomeCommunity(values: Partial<CommunitiesInsert>): Promise<void> {
   // updatedAt: the TypeORM entity sets it via @UpdateDateColumn, the column itself has no ON UPDATE
-  await drizzleDb()
+  const result = await drizzleDb()
     .update(communitiesTable)
     .set({ ...values, updatedAt: new Date() })
-    .where(eq(communitiesTable.id, communityId))
-  homeCommunityDrizzleCache = null
+    .where(eq(communitiesTable.foreign, false))
+  resetHomeCommunityCache()
+  if (!result[0].affectedRows) {
+    throw new MissingHomeCommunityError()
+  }
+}
+
+export async function dbGetCommunityByUuid(
+  communityUuid: string,
+): Promise<CommunitiesSelect | null> {
+  const resultRows = await drizzleDb()
+    .select()
+    .from(communitiesTable)
+    .where(eq(communitiesTable.communityUuid, communityUuid))
+  return resultRows[0] ?? null
 }
 
 /**
  * Whether the home community pays a language model to key its matching entries.
  *
- * ⚠️ Read fresh on every call, and that is the whole reason this is its own function
- * rather than a field off `getHomeCommunityDrizzle`. That one caches the community for
- * the life of the process and never invalidates, so it would answer with whatever was
- * true when the process started - and a switch that only changes on restart is not a
- * switch. The keying run asks once per pass, which is a single indexed read against
- * one row, against a run that is about to spend money per entry.
- *
- * ⛔ Missing home community answers `false`, deliberately. "There is nobody to bill and
- * nobody who decided" is the same answer as "not switched on", and the alternative -
- * throwing - would turn a run that should quietly stay off into an error on a timer.
+ * Read through the cached home community: `dbUpdateHomeCommunity` clears the cache,
+ * so a switch written in this process is seen on the next call, a write from another
+ * process after `DEFAULT_CACHE_TIMEOUT_MS` at the latest.
  */
 export async function dbIsMatchingKeyingActive(): Promise<boolean> {
-  const rows = await drizzleDb()
-    .select({ active: communitiesTable.matchingKeyingActive })
-    .from(communitiesTable)
-    .where(eq(communitiesTable.foreign, false))
-    .limit(1)
-  return Boolean(rows[0]?.active)
-}
-
-/**
- * Turn the keying of matching entries on or off for the home community.
- *
- * ⛔ Switching it ON is what starts the spending: the run then works through the
- * entries that have no words, up to a hundred per pass and a pass a minute, until the
- * backlog is gone. That is not a preference, it is a decision about a bill.
- *
- * Switching it OFF is read again before every batch, so a pass in flight stops after
- * the batch it is in - at most BATCH_SIZE more entries, not a whole pass. ⚠️ "At most
- * one batch", not "nothing more": the batch already running is paid for, and the very
- * first batch of a pass is not re-checked, because the pass just read the column.
- *
- * `VoidResult` rather than `void`, and the reason is the whole point of the function:
- * an UPDATE that matches no row is an expected runtime failure here, not an
- * impossibility - the read beside this one answers `false` for exactly that state. A
- * `Promise<void>` cannot tell the caller it wrote nothing, and the caller would then
- * report a save that did not happen for the one setting that costs money.
- *
- * Column-targeted rather than a `save()` of the community, because the row is read
- * and written all over this codebase and a whole-entity write would carry back
- * whatever the caller happened to be holding.
- */
-export async function dbSetMatchingKeyingActive(
-  active: boolean,
-): Promise<VoidResult<DBNotFoundError>> {
-  const result = await drizzleDb()
-    .update(communitiesTable)
-    .set({ matchingKeyingActive: active ? 1 : 0 })
-    .where(eq(communitiesTable.foreign, false))
-
-  // ⚠️ The cached row above holds this column too, and it is never invalidated on its
-  // own. Nothing reads the switch through it today - the schema comment tells the next
-  // reader not to - but a warning in prose is weaker than a cache that is simply
-  // correct, and the natural thing to reach for is the cached community.
-  homeCommunityDrizzleCache = null
-
-  const firstRow = result[0]
-  if (firstRow && firstRow.affectedRows > 0) {
-    return { success: true }
-  }
-  return { success: false, error: HomeCommunityNotFound }
+  const homeCom = await getHomeCommunityDrizzle()
+  return homeCom.matchingKeyingActive
 }
 
 export async function getHomeCommunityWithFederatedCommunityOrFail(

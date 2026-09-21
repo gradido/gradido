@@ -4,15 +4,6 @@ import { type Geometry } from 'geojson'
 import { GradidoUnit } from 'shared'
 import { Geometry as WkxGeometry } from 'wkx'
 
-// What mysql2 makes of a POINT before drizzle ever sees the column.
-type DriverPoint = { x: number; y: number }
-
-const isDriverPoint = (value: unknown): value is DriverPoint =>
-  typeof value === 'object' &&
-  value !== null &&
-  typeof (value as DriverPoint).x === 'number' &&
-  typeof (value as DriverPoint).y === 'number'
-
 export const customGradidoUnit = customType<{ data: GradidoUnit; driverData: bigint }>({
   dataType() {
     return 'bigint'
@@ -60,6 +51,16 @@ export const customMediumBlob = customType<{ data: Buffer; driverData: Buffer }>
  * driver hands a line or a polygon over as nested arrays with the geometry type lost, so
  * one is refused rather than guessed at.
  */
+
+// What mysql2 makes of a POINT before drizzle ever sees the column.
+type DriverPoint = { x: number; y: number }
+
+const isDriverPoint = (value: unknown): value is DriverPoint =>
+  typeof value === 'object' &&
+  value !== null &&
+  typeof (value as DriverPoint).x === 'number' &&
+  typeof (value as DriverPoint).y === 'number'
+
 export const customGeometry = customType<{
   data: Geometry | null
   driverData: string | Buffer | DriverPoint | null

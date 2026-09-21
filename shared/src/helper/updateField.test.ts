@@ -75,34 +75,34 @@ describe('getChangedFields', () => {
     const current = { field1: 'current', field2: 'current', field3: 'current' }
     const incoming = { field1: 'incoming', field2: 'current' }
     expect(getChangedFields(current, incoming)).toEqual({
-      changed: true,
+      success: true,
       value: { field1: 'incoming' },
     })
   })
   it('reports no change if all incoming fields are equal', () => {
     const current = { field1: 'current', field2: 2 }
     const incoming = { field1: 'current', field2: 2 }
-    expect(getChangedFields(current, incoming)).toEqual({ changed: false })
+    expect(getChangedFields(current, incoming)).toEqual({ success: false })
   })
   it('reports no change for empty incoming', () => {
-    expect(getChangedFields({ field1: 'current' }, {})).toEqual({ changed: false })
+    expect(getChangedFields({ field1: 'current' }, {})).toEqual({ success: false })
   })
   it('compares buffers by content, not by reference', () => {
     const current = { key: Buffer.from('same') }
-    expect(getChangedFields(current, { key: Buffer.from('same') })).toEqual({ changed: false })
+    expect(getChangedFields(current, { key: Buffer.from('same') })).toEqual({ success: false })
   })
   it('detects changed buffer content', () => {
     const current = { key: Buffer.from('current') }
     const incoming = { key: Buffer.from('incoming') }
     expect(getChangedFields(current, incoming)).toEqual({
-      changed: true,
+      success: true,
       value: { key: Buffer.from('incoming') },
     })
   })
   it('detects a change from null to a value', () => {
     const current: { field: string | null } = { field: null }
     expect(getChangedFields(current, { field: 'incoming' })).toEqual({
-      changed: true,
+      success: true,
       value: { field: 'incoming' },
     })
   })

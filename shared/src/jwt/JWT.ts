@@ -1,4 +1,4 @@
-import { createPrivateKey, createPublicKey, KeyObject, generateKeyPair } from 'node:crypto'
+import { createPrivateKey, createPublicKey, generateKeyPair, KeyObject } from 'node:crypto'
 import { promisify } from 'node:util'
 import {
   CompactEncrypt,
@@ -41,10 +41,10 @@ export const createKeyPair = async (): Promise<{ publicKey: string; privateKey: 
 const generateKeyPairAsync = promisify(generateKeyPair)
 export async function createKeyPair(): Promise<{ publicKey: string; privateKey: string }> {
   const { publicKey, privateKey } = await generateKeyPairAsync('rsa', {
-      modulusLength: 2048,
-      publicExponent: 0x10001,
-    })
-  
+    modulusLength: 2048,
+    publicExponent: 0x10001,
+  })
+
   return {
     publicKey: publicKey
       .export({

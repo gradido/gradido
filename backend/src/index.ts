@@ -14,11 +14,8 @@ async function main() {
   initLogging()
   const { app } = await createServer(getLogger('apollo'))
 
-  if (!(await getHomeCommunityDrizzle())) {
-    throw new Error(
-      `Error! A HomeCommunity-Entry still not exist! Please start the DHT-Modul first.`,
-    )
-  }
+  // will throw if a home community is missing
+  await getHomeCommunityDrizzle()
 
   app.listen(CONFIG.BACKEND_PORT, () => {
     // biome-ignore lint/suspicious/noConsole: no need for logging the start message

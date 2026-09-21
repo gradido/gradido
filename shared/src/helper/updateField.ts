@@ -43,8 +43,10 @@ export function updateAllDefinedAndChanged<T extends object>(
   return updated
 }
 
-/*
- * incoming only contain keys with values, no undefined or null
+/**
+ * Collects the fields of incoming which differ from current, Buffers compared by content.
+ * incoming should contain only keys with values: an undefined value counts as a change.
+ * @returns success: true with the changed fields, success: false if nothing changed
  */
 export function getChangedFields<T extends object>(
   current: T,
@@ -56,10 +58,13 @@ export function getChangedFields<T extends object>(
   for (const [field, incomingValue] of Object.entries(incoming)) {
     const currentValue = current[field as keyof T]
 
-    const equal =
-      Buffer.isBuffer(currentValue) && Buffer.isBuffer(incomingValue)
-        ? currentValue.equals(incomingValue)
-        : Object.is(currentValue, incomingValue)
+    let equal = true
+
+    if (Buffer.isBuffer(currentValue) && Buffer.isBuffer(incomingValue)) {
+      equal = currentValue.equals(incomingValue)
+    } else {
+      equal = Object.is(currentValue, incomingValue)
+    }
 
     if (!equal) {
       Object.assign(changedFields, { [field]: incomingValue })

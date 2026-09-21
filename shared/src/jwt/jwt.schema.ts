@@ -17,7 +17,7 @@ export const privateJwtKeySchema = z.string().superRefine((value, ctx) => {
 })
 
 export const publicJwtKeySchema = z.string().superRefine((value, ctx) => {
-  // createPublicKey also accepts a private key and derives the public key from it,
+  // getPublicKeyObject (createPublicKey) also accepts a private key and derives the public key from it,
   // but the public key is shared with other communities
   if (getPrivateKeyObjekt(value).success) {
     ctx.addIssue({

@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto'
 import { eq } from 'drizzle-orm'
-import { createKeyPair, Ed25519PublicKey } from 'shared'
+import { createKeyPair, Ed25519PublicKey, MissingHomeCommunityError } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
@@ -11,13 +11,13 @@ import {
   dbIsMatchingKeyingActive,
   dbSelectAuthenticatedForeignCommunities,
   dbSelectHomeCommunity,
-  dbSetMatchingKeyingActive,
   dbUpdateHomeCommunity,
   getCommunityByPublicKeyOrFail,
   getHomeCommunity,
   getHomeCommunityDrizzle,
   getHomeCommunityWithFederatedCommunityOrFail,
   getReachableCommunities,
+  resetHomeCommunityCache,
 } from './communities'
 
 const db = AppDatabase.getInstance()
@@ -34,6 +34,7 @@ describe('community.queries', () => {
   beforeEach(async () => {
     await DbCommunity.clear()
     await DbFederatedCommunity.clear()
+    resetHomeCommunityCache()
   })
   describe('getHomeCommunity', () => {
     it('should return null if no home community exists', async () => {
@@ -109,8 +110,8 @@ describe('community.queries', () => {
       expect(await DbCommunity.count()).toBe(0)
     })
     it('is visible through the cached getter afterwards', async () => {
-      // fills the cache with "no home community"
-      expect(await getHomeCommunityDrizzle()).toBeNull()
+      // "no home community" is not cached, the next call reads again
+      await expect(getHomeCommunityDrizzle()).rejects.toBeInstanceOf(MissingHomeCommunityError)
       const input = await homeCommunityInput()
       await dbInsertHomeCommunity(input)
       expect(await getHomeCommunityDrizzle()).toMatchObject({
@@ -121,7 +122,7 @@ describe('community.queries', () => {
   describe('dbUpdateHomeCommunity', () => {
     it('updates only the given fields and sets updatedAt', async () => {
       const homeCom = await createCommunity(false)
-      await dbUpdateHomeCommunity(homeCom.id, { name: 'new name', url: 'http://new/api/' })
+      await dbUpdateHomeCommunity({ name: 'new name', url: 'http://new/api/' })
       const updated = await DbCommunity.findOneByOrFail({ id: homeCom.id })
       expect(updated).toEqual({
         ...homeCom,
@@ -132,28 +133,32 @@ describe('community.queries', () => {
     })
     it('leaves other communities alone', async () => {
       const foreign = await createCommunity(true)
-      const homeCom = await createCommunity(false)
-      await dbUpdateHomeCommunity(homeCom.id, { name: 'new name' })
+      await createCommunity(false)
+      await dbUpdateHomeCommunity({ name: 'new name' })
       expect(await DbCommunity.findOneByOrFail({ id: foreign.id })).toEqual(foreign)
     })
+    it('throws MissingHomeCommunityError without a home community', async () => {
+      await createCommunity(true)
+      await expect(dbUpdateHomeCommunity({ name: 'new name' })).rejects.toBeInstanceOf(
+        MissingHomeCommunityError,
+      )
+    })
+    it('writes a location and reads it back as GeoJSON point', async () => {
+      await createCommunity(false)
+      await dbUpdateHomeCommunity({ location: { type: 'Point', coordinates: [13.4, 52.5] } })
+      expect((await dbSelectHomeCommunity())?.location).toEqual({
+        type: 'Point',
+        coordinates: [13.4, 52.5],
+      })
+    })
     it('invalidates the cached home community', async () => {
-      const homeCom = await createCommunity(false)
+      await createCommunity(false)
       expect((await getHomeCommunityDrizzle())?.name).toBe('HomeCommunity-name')
-      await dbUpdateHomeCommunity(homeCom.id, { name: 'new name' })
+      await dbUpdateHomeCommunity({ name: 'new name' })
       expect((await getHomeCommunityDrizzle())?.name).toBe('new name')
     })
   })
   describe('dbIsMatchingKeyingActive', () => {
-    // Flipped through drizzle, not through the TypeORM entity: the entity does not map
-    // this column (new code goes to drizzle, AGENTS.md), and `synchronize: false` means
-    // it never notices. Writing it the same way it is read is also what makes the test
-    // exercise the real mapping.
-    const setSwitch = async (id: number, on: boolean) =>
-      await drizzleDb()
-        .update(communitiesTable)
-        .set({ matchingKeyingActive: on ? 1 : 0 })
-        .where(eq(communitiesTable.id, id))
-
     it('is off for a community that was never switched on', async () => {
       // The state every existing row is in after migration 0127, and the reason the
       // column exists: the first keying run works through the whole backlog and pays
@@ -162,36 +167,16 @@ describe('community.queries', () => {
       expect(await dbIsMatchingKeyingActive()).toBe(false)
     })
 
-    it('is on once the community says so', async () => {
-      const homeCom = await createCommunity(false)
-      await setSwitch(homeCom.id, true)
-      expect(await dbIsMatchingKeyingActive()).toBe(true)
-    })
-
-    it('reads it again rather than answering from the first read', async () => {
-      // ⚠️ The whole point of the column. `getHomeCommunityDrizzle` caches the
-      // community for the life of the process and never invalidates, so a value read
-      // through it would answer with whatever was true at startup - and a switch that
-      // only changes on restart is not a switch.
-      const homeCom = await createCommunity(false)
-      await setSwitch(homeCom.id, true)
-      expect(await dbIsMatchingKeyingActive()).toBe(true)
-
-      await setSwitch(homeCom.id, false)
-      expect(await dbIsMatchingKeyingActive()).toBe(false)
-    })
-
-    it('is turned on and off again through its own write', async () => {
-      // The write the admin panel uses. Column-targeted rather than a `save()` of the
-      // community: the row is read and written all over the codebase, and a
-      // whole-entity write would carry back whatever the caller happened to hold.
+    it('is turned on and off again through dbUpdateHomeCommunity', async () => {
+      // The write the admin panel uses. It clears the cached home community, which
+      // dbIsMatchingKeyingActive reads through.
       await createCommunity(false)
       expect(await dbIsMatchingKeyingActive()).toBe(false)
 
-      await dbSetMatchingKeyingActive(true)
+      await dbUpdateHomeCommunity({ matchingKeyingActive: true })
       expect(await dbIsMatchingKeyingActive()).toBe(true)
 
-      await dbSetMatchingKeyingActive(false)
+      await dbUpdateHomeCommunity({ matchingKeyingActive: false })
       expect(await dbIsMatchingKeyingActive()).toBe(false)
     })
 
@@ -201,21 +186,20 @@ describe('community.queries', () => {
       const foreign = await createCommunity(true)
       await createCommunity(false)
 
-      await dbSetMatchingKeyingActive(true)
+      await dbUpdateHomeCommunity({ matchingKeyingActive: true })
 
       const [row] = await drizzleDb()
         .select({ active: communitiesTable.matchingKeyingActive })
         .from(communitiesTable)
         .where(eq(communitiesTable.id, foreign.id))
-      expect(row.active).toBe(0)
+      expect(row.active).toBe(false)
     })
 
-    it('is off when there is no home community at all', async () => {
-      // Nobody to bill and nobody who decided reads the same as "not switched on".
-      // Throwing here would turn a run that should quietly stay off into an error on
-      // a timer.
+    it('throws MissingHomeCommunityError when there is no home community at all', async () => {
+      // Not answered as "off": without a home community the backend does not start
+      // (backend/src/index.ts), so this is not a state the keying run meets.
       await createCommunity(true)
-      expect(await dbIsMatchingKeyingActive()).toBe(false)
+      await expect(dbIsMatchingKeyingActive()).rejects.toBeInstanceOf(MissingHomeCommunityError)
     })
   })
   describe('dbSelectAuthenticatedForeignCommunities', () => {

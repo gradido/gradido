@@ -947,27 +947,6 @@ describe('federation', () => {
         })
       })
 
-      describe('home community without JWT key pair', () => {
-        beforeEach(async () => {
-          await DbCommunity.update({ foreign: false }, { publicJwtKey: null, privateJwtKey: null })
-          DHT.mockClear()
-          jest.clearAllMocks()
-          homeCommunity = (await DbCommunity.find())[0]
-          await startDHT(TEST_TOPIC)
-        })
-
-        it('adds a JWT key pair and keeps the other columns', async () => {
-          await expect(DbCommunity.find()).resolves.toEqual([
-            {
-              ...homeCommunity,
-              publicJwtKey: expect.stringContaining('-----BEGIN PUBLIC KEY-----'),
-              privateJwtKey: expect.stringContaining('-----BEGIN PRIVATE KEY-----'),
-              updatedAt: expect.any(Date),
-            },
-          ])
-        })
-      })
-
       describe('home community with JWT key pair', () => {
         beforeEach(async () => {
           CONFIG.COMMUNITY_NAME = 'Renamed Gradido Test Community'

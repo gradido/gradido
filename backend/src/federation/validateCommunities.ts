@@ -107,7 +107,7 @@ async function writeForeignCommunity(
       )}`,
     )
   } else {
-    let com = await DbCommunity.findOneBy({ publicKey: dbCom.publicKey })
+    let com = await DbCommunity.findOneBy({ publicKey: dbCom.publicKey, foreign: true })
     if (!com) {
       com = DbCommunity.create()
     }

@@ -248,7 +248,7 @@ async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
       const updateFields = getChangedFields(homeCom, upsertFields)
       if (updateFields.success) {
         // simply update the existing entry, but it MUST keep the ID and UUID because of possible relations
-        await dbUpdateHomeCommunity(homeCom.id, updateFields.value)
+        await dbUpdateHomeCommunity(updateFields.value)
         logger.info('home-community updated successfully')
       } else {
         logger.debug("home-community don't need update")
