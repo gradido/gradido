@@ -413,6 +413,7 @@
     "whitepaper": "Whitepaper"
   },
   "form": {
+    "agree": "Privacy policy consent",
     "amount": "Amount",
     "at": "at",
     "available_after": "Available after confirmation",
@@ -436,6 +437,7 @@
     "link_decay_description": "The link amount is blocked along with the maximum decay. After the link has been redeemed, expired, or deleted, the rest is released again.",
     "memo": "Message",
     "message": "Message",
+    "newPassword": "New password",
     "newPasswordRepeat": "Repeat new password",
     "new_balance": "Account balance after confirmation",
     "no_gdd_available": "You do not have GDD to send.",

@@ -335,6 +335,7 @@
     "whitepaper": "Whitepaper"
   },
   "form": {
+    "agree": "Accettazione dell'informativa sulla privacy",
     "amount": "Importo",
     "at": "il",
     "available_after": "Disponibile dopo la conferma",
@@ -358,6 +359,7 @@
     "link_decay_description": "L'importo del link viene bloccato insieme al deperimento massimo. Dopo il riscatto, la scadenza o l'eliminazione del link, il resto viene di nuovo sbloccato.",
     "memo": "Messaggio",
     "message": "Messaggio",
+    "newPassword": "Nuova password",
     "newPasswordRepeat": "Ripeti la nuova password",
     "new_balance": "Nuovo saldo dopo la conferma",
     "no_gdd_available": "Non hai GDD da inviare.",
