@@ -829,6 +829,19 @@ function goPositionFromFind() {
   white-space: nowrap;
 }
 
+/* ⛔ On a phone the word goes under the icon in all three tabs, not only where it happens
+   not to fit. Left to wrap on its own, each tab decided alone: at 375px "Zuhause" stood
+   beside its icon while "Einträge" and "Über mich" stood under theirs, and before the page
+   edge moved to 6px (App.vue) the same happened at 430px. Another language only moves the
+   width where it happens, so the rule is not a width at which words fit. From sm up each
+   tab is 185px or wider, and there the longest labels -- French and Greek, fifteen
+   letters -- were measured beside their icons. */
+@media (width <= 575.98px) {
+  .matching-nav-label {
+    display: block;
+  }
+}
+
 /* "New entry" — subtle grey text action (not a CTA) */
 .btn-add {
   border: none;

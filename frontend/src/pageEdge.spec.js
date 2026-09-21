@@ -109,3 +109,12 @@ describe('the page edge on a phone', () => {
     expect(rule(narrow, '.card-body :deep(.container)')).toContain('padding-right: 0')
   })
 })
+
+describe('what the wider page changed around it', () => {
+  it('puts the word under the icon in all three matching tabs on a phone', () => {
+    // 24px more tab bar let "Zuhause" fit beside its icon at 375px while the other two words
+    // still wrapped under theirs. On a phone all three go under, whatever the language.
+    const narrow = mediaBodies(styles(source('pages', 'Matching.vue')), '575.98px').join('\n')
+    expect(rule(narrow, '.matching-nav-label')).toContain('display: block')
+  })
+})
