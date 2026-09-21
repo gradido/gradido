@@ -1,5 +1,8 @@
 <template>
-  <div class="mb-3 p-3 card-user-search">
+  <!-- py-3, not p-3. Overview.vue puts this tile straight into a BRow, which reaches 12px
+       past each side and gives it back as the padding of whatever stands in it. p-3 turned
+       that 12px into 16px, so the tile stood 4px inside the cards above it on every width. -->
+  <div class="mb-3 py-3 card-user-search">
     <BContainer class="bg-white app-box-shadow gradido-border-radius p-4 mt--3 container">
       <div class="h3">{{ $t('card-user-search.headline') }}</div>
       <div v-if="gmsUserLocationExists" class="my-3 small">

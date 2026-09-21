@@ -118,6 +118,23 @@ describe('the page edge on a phone', () => {
   })
 })
 
+describe('the overview tiles', () => {
+  // Each stands straight in a BRow of Overview.vue, which reaches 12px past each side and
+  // gives it back as the padding of whatever stands in it. A horizontal padding of the
+  // tile's own replaces that 12px: p-3 made it 16px, and the tile stood 4px inside the
+  // cards above it on every width.
+  const tiles = ['ShowFriendsTile.vue', 'CardUserSearch.vue', 'CardCircles.vue']
+
+  it.each(tiles)('%s leaves the sides of its root to the row', (file) => {
+    const template = live(source('components', 'Overview', file))
+    const root = template.match(/<template>\s*<div class="([^"]*)"/)
+    expect(root).not.toBeNull()
+    const classes = root[1].split(/\s+/)
+    expect(classes).toContain('py-3')
+    expect(classes.filter((name) => /^(p|px|ps|pe)-\d$/.test(name))).toEqual([])
+  })
+})
+
 describe('what the wider page changed around it', () => {
   it('puts the word under the icon in all three matching tabs on a phone', () => {
     // 24px more tab bar let "Zuhause" fit beside its icon at 375px while the other two words
