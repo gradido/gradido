@@ -11,17 +11,19 @@ import de from '@/locales/de.json'
 import en from '@/locales/en.json'
 
 /**
- * A field that fails its `required` rule is named in the message by the key `form.<name>`,
- * where <name> is the name the field registers with vee-validate (`generateMessage` in
- * `validation-rules.js`). Without that key the key itself is the name: "form.newPassword
- * ist ein Pflichtfeld" stood under every new-password field of the wallet (reset password,
- * first password, change password in the settings, assisted registration) until 21.09.2026.
+ * A validation message names a field by the label its component hands to vee-validate, and
+ * where there is none by the key `form.<name>`, <name> being the name the field registers
+ * with (`generateMessage` in `validation-rules.js`). Without that key the key itself is the
+ * name: "form.newPassword ist ein Pflichtfeld" stood under every new-password field of the
+ * wallet (reset password, first password, change password in the settings, assisted
+ * registration) until 21.09.2026.
  *
  * The i18n lint cannot see this, because the key is put together at run time, and until
- * this file no spec loaded `validation-rules.js` at all.
+ * that day no spec loaded `validation-rules.js` at all.
  *
- * So this reads the names from the code and builds the message for each of them, in
- * German and in English, through the real rules. A name comes from one of two places:
+ * So this reads the names from the code and builds the message for each of them without a
+ * label, in German and in English, through the real rules. A name comes from one of two
+ * places:
  * - a string handed to `useField` (`useField('firstname', …)`), or
  * - a component that registers the name it is given (`useField(props.name, …)`): then the
  *   `name` attribute of every tag that uses it, or its prop default where a tag sets none.
