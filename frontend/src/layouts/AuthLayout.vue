@@ -17,7 +17,11 @@
       </div>
       <BRow class="justify-content-md-center justify-content-lg-end">
         <BCol sm="12" md="8" lg="6" class="zindex1000">
-          <div class="ms-3 ms-sm-4 me-3 me-sm-4">
+          <!-- ⛔ No margin of its own below md. It stood 16px inside the page edge, the card
+               body and the form's container added 24px and 12px more, and the fields came
+               to 82px from each edge of a 375px phone: 211px of width for an address.
+               Now the card stands on the page edge like every box in the wallet. -->
+          <div class="mx-0 mx-md-4">
             <BRow class="d-none d-md-block d-lg-none">
               <BCol>
                 <auth-navbar-small />
@@ -33,7 +37,9 @@
                 />
               </BCol>
             </BRow>
-            <BRow v-else class="mt-0 mt-md-5 ps-2 ps-md-0 ps-lg-0">
+            <!-- ps-4 on the phone: the greeting stands on the page, not in the card, so it
+                 takes the card's 24px itself and lines up with the text inside it. -->
+            <BRow v-else class="mt-0 mt-md-5 ps-4 ps-md-0">
               <BCol lg="9" md="9" sm="12">
                 <div class="mb--2">{{ $t('welcome') }}</div>
                 <div class="h1 mb-0">{{ communityName }}</div>
@@ -166,6 +172,17 @@ watchEffect(() => {
 
 .page-font-size {
   font-size: 1rem;
+}
+
+/* The card body already keeps the fields 24px off the card's edge, as every box in the
+   wallet does. The pages inside it wrap their form in a BContainer, whose own 12px came
+   on top -- the second margin inside the card. Below md it goes; from md up the card
+   stands in a narrower column and the old measure is left alone. */
+@media (width <= 767.98px) {
+  .card-body :deep(.container) {
+    padding-right: 0;
+    padding-left: 0;
+  }
 }
 
 .auth-template {

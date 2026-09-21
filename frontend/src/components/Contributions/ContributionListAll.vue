@@ -18,7 +18,7 @@
       :aria-label="$t('contribution.filter.byGroup')"
     />
   </div>
-  <div v-if="items.length === 0 && !loading">
+  <div v-if="items.length === 0 && !loading" class="page-text">
     <div v-if="isFiltered">
       {{ $t('contribution.filter.noResults') }}
     </div>
