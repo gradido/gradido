@@ -350,6 +350,7 @@
     "firstname": "Ad",
     "from": "Gönderen",
     "generate_now": "Şimdi oluştur",
+    "hidePassword": "Şifreyi gizle",
     "hours": "Saat",
     "identifier": "E-posta, kullanıcı adı veya Gradido ID",
     "lastname": "Soyadı",
@@ -390,6 +391,7 @@
       "youCannotSendEmailToYourself": "Kendine e-posta gönderemezsin."
     },
     "sender": "Gönderen",
+    "showPassword": "Şifreyi göster",
     "sorry": "Üzgünüz",
     "subject": "Konu",
     "thx": "Teşekkür ederiz",

@@ -7,7 +7,6 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import AuthTriads from './AuthTriads.vue'
 import de from '@/locales/de.json'
-import { LG_BREAKPOINT_PX } from '@/constants'
 
 const INTERVAL_MS = 7000
 
@@ -147,13 +146,19 @@ describe('AuthTriads', () => {
       expect(css).toMatch(/\.triad-sizer\s*\{[^}]*visibility:\s*hidden;/)
     })
 
-    it('stacks the parts below lg and lines them up from lg on, where the picture is', () => {
-      expect(css).toMatch(/\n\.triad\s*\{[^}]*flex-direction:\s*column;/)
-      expect(css).toMatch(
-        new RegExp(
-          `@media \\(width >= ${LG_BREAKPOINT_PX}px\\)\\s*\\{\\s*\\.triad\\s*\\{[^}]*flex-flow:\\s*row wrap;`,
-        ),
-      )
+    // Bernd, 21.09.2026: with the wider card a phone has room for a triad on one line. Where
+    // one does not fit, it breaks between two parts, and the stage keeps the tallest one's
+    // height: two lines on a phone instead of three.
+    it('lines the parts up on every width and breaks only between them', () => {
+      const triad = css.match(/\n\.triad\s*\{([^}]*)\}/)
+      expect(triad).not.toBeNull()
+      expect(triad[1]).toMatch(/flex-flow:\s*row wrap;/)
+      expect(triad[1]).toMatch(/column-gap:\s*0\.3em;/)
+      // Wrapped lines stay together in the middle of a stage made for a taller triad.
+      expect(triad[1]).toMatch(/place-content:\s*center;/)
+      expect(css).not.toMatch(/flex-direction:\s*column/)
+      // No width switches the shape any more.
+      expect(css).not.toMatch(/@media[^{]*\{\s*\.triad\s*\{/)
     })
 
     it('fades instead of sliding when the device asks for less motion', () => {

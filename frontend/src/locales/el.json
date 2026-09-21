@@ -350,6 +350,7 @@
     "firstname": "Όνομα",
     "from": "Από",
     "generate_now": "Δημιούργησε τώρα",
+    "hidePassword": "Απόκρυψη κωδικού πρόσβασης",
     "hours": "Ώρες",
     "identifier": "Email, όνομα χρήστη ή Gradido ID",
     "lastname": "Επώνυμο",
@@ -390,6 +391,7 @@
       "youCannotSendEmailToYourself": "Δεν μπορείς να στείλεις email στον εαυτό σου."
     },
     "sender": "Αποστολέας",
+    "showPassword": "Εμφάνιση κωδικού πρόσβασης",
     "sorry": "Συγγνώμη",
     "subject": "Θέμα",
     "thx": "Ευχαριστώ",

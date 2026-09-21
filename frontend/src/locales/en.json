@@ -428,6 +428,7 @@
     "firstname": "Firstname",
     "from": "from",
     "generate_now": "Generate now",
+    "hidePassword": "Hide password",
     "hours": "Hours",
     "identifier": "Email, username or Gradido address",
     "lastname": "Lastname",
@@ -468,6 +469,7 @@
       "youCannotSendEmailToYourself": "You cannot send an email to yourself."
     },
     "sender": "Sender",
+    "showPassword": "Show password",
     "sorry": "Sorry",
     "subject": "Subject",
     "thx": "Thank you",
