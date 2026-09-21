@@ -6,8 +6,15 @@
     :data-transaction-id="`transaction-${props.transaction.id}`"
     @click="toggleVisible"
   >
-    <BRow class="align-items-center gdd-transaction-row">
-      <BCol cols="3" lg="2" md="2">
+    <!-- The face takes what it needs and no more, as in the contact list: the text starts one
+         gutter to its right. It used to take two twelfths of the row -- 91 to 120 points on the
+         desk for a 48-point face, measured at 1025 and 1440 -- and every point of that was
+         missing from the memo, which cut off early (Bernd, 21.09.2026: "genau so wie bei den
+         Kontakten"). Now it is 72: the face and one gutter. The width
+         it takes is `--transaction-face-col`, and the amount and the memo below are indented
+         by exactly that, so they keep standing under the name. -->
+    <BRow class="align-items-center gdd-transaction-row" :style="faceWidth">
+      <BCol cols="auto">
         <component :is="avatarComponent" v-bind="avatarProps">
           <variant-icon v-if="isCreationType" icon="gift" variant="white" />
         </component>
@@ -37,6 +44,12 @@
           </div>
           <favorite-heart v-if="hasCounterparty" :member="props.transaction.linkedUser" />
         </div>
+        <!-- The community on a line of its own, as the contacts have it -- not behind the name
+             after a slash. One line more, and a quieter row (Bernd, 21.09.2026). A creation
+             names the community already, in the line above. -->
+        <div v-if="communityName" class="small text-muted" data-test="transaction-community">
+          {{ communityName }}
+        </div>
         <span class="small">{{ $d(new Date(props.transaction.balanceDate), 'short') }}</span>
         <span class="ms-4 small">{{ $d(new Date(props.transaction.balanceDate), 'time') }}</span>
       </BCol>
@@ -46,11 +59,13 @@
       <div class="w-100 d-md-none" />
       <!-- ⛔ `col` has to be SAID here. bootstrap-vue-next adds the plain `col` class only to a
            column that has no breakpoint sizes at all; with `md`/`lg` given, the phone got no
-           width class, so Bootstrap's `.row > *` made the amount 100% wide beside its 25%
-           offset -- past the row's right edge -- and the arrow wrapped onto a line of its own,
+           width class, so Bootstrap's `.row > *` made the amount 100% wide beside its
+           indent -- past the row's right edge -- and the arrow wrapped onto a line of its own,
            at the left. Measured at 390 points against the served stylesheet: with `col` the
-           amount takes what the arrow leaves, and the page is exactly as wide as the screen. -->
-      <BCol col offset="3" md="3" lg="3" offset-md="0" offset-lg="0">
+           amount takes what the arrow leaves, and the page is exactly as wide as the screen.
+           The indent on the phone is the face's column (`.transaction-amount-col`), so the
+           amount stands under the name. -->
+      <BCol col md="3" lg="3" class="transaction-amount-col">
         <div class="small mb-2">
           {{ $t(`decay.types.${props.transaction.typeId.toLowerCase()}`) }}
         </div>
@@ -115,14 +130,12 @@
 
            From `md` on its width is set in the stylesheet: it ends where the amount begins,
            under the name and the date rather than under the whole row (Bernd, 11.09.2026: "nicht
-           so breit … wie die Spalte"). On the phone it stays three quarters, under the amount. -->
-      <BCol
-        v-if="props.transaction.memo"
-        cols="9"
-        offset="3"
-        offset-md="2"
-        class="mt-1 transaction-memo-col"
-      >
+           so breit … wie die Spalte"). On the phone it runs from under the name to the row's
+           end, under the amount. -->
+      <!-- A line of its own, said: sized from the stylesheet rather than the grid, the memo
+           would otherwise take a place in the line above wherever there is room left. -->
+      <div v-if="props.transaction.memo" class="w-100" />
+      <BCol v-if="props.transaction.memo" cols="12" class="mt-1 transaction-memo-col">
         <div
           class="transaction-memo"
           :class="{ 'transaction-memo-clamped': !visible }"
@@ -234,6 +247,16 @@ const useNameComponent = computed(() => {
   return !isCreationType.value
 })
 
+// The width the face takes, handed to the stylesheet so the indents below it are worked out
+// from the same number the face is drawn at.
+const faceWidth = { '--transaction-face': `${LIST_AVATAR_SIZE}px` }
+
+// The counterparty's community, for the line under the name. Not on a creation: that row's
+// name IS the community (NU-020).
+const communityName = computed(() =>
+  isCreationType.value ? '' : (props.transaction.linkedUser?.communityName ?? ''),
+)
+
 // Same condition Name.vue uses to make the name a link -- and the one this row uses for
 // the heart. Held in one place so the two cannot drift apart.
 const hasCounterparty = computed(
@@ -262,6 +285,8 @@ const nameProps = computed(() => {
       amount: props.transaction.amount,
       linkedUser: props.transaction.linkedUser,
       linkId: props.transaction.linkId,
+      // The community stands on the line below (see `communityName`), not behind the name.
+      withCommunity: false,
     }
   }
 })
@@ -323,9 +348,25 @@ watch(
 }
 
 /* The arrow's column gets a width of its own, so the memo below can be told where the amount
-   begins: the arrow is 1.2em of the `h1` size (48 points at most), plus the column's gutters. */
+   begins: the arrow is 1.2em of the `h1` size (48 points at most), plus the column's gutters.
+
+   The face's column is what the face needs and the gutter: `--transaction-face` comes in from
+   the template as LIST_AVATAR_SIZE, so the number lives in one place. The amount on the phone
+   and the memo on every width are indented by this, which puts them under the name. */
 .gdd-transaction-row {
   --transaction-arrow-col: 4.5rem;
+  --transaction-face-col: calc(var(--transaction-face) + var(--bs-gutter-x, 1.5rem));
+}
+
+@media (width <= 767.98px) {
+  .transaction-amount-col {
+    margin-left: var(--transaction-face-col);
+  }
+}
+
+.transaction-memo-col {
+  margin-left: var(--transaction-face-col);
+  width: calc(100% - var(--transaction-face-col));
 }
 
 .transaction-arrow-col {
@@ -333,13 +374,13 @@ watch(
 }
 
 /* From `md` on -- the switch the row's own `md` columns use, 768 in this wallet's
-   `_grid-breakpoint.scss` -- the memo spans what the name column spans: twelve twelfths less
-   the face (2), the amount (3) and the arrow. Beyond that it was as wide as the whole row, which
-   Bernd found out of balance ("nicht mehr harmonisch"). On the phone the memo stands under the
-   amount and keeps its three quarters. */
+   `_grid-breakpoint.scss` -- the memo spans what the name column spans: the row less the face,
+   the amount (3 of 12) and the arrow. Beyond that it was as wide as the whole row, which Bernd
+   found out of balance ("nicht mehr harmonisch"). On the phone the memo stands under the
+   amount and runs to the row's end. */
 @media (width >= 768px) {
   .transaction-memo-col {
-    width: calc(100% * 7 / 12 - var(--transaction-arrow-col));
+    width: calc(100% * 9 / 12 - var(--transaction-face-col) - var(--transaction-arrow-col));
   }
 }
 

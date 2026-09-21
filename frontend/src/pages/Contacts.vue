@@ -15,18 +15,21 @@
 
     <!-- A failed request is not an empty list: "no contacts yet" would tell a member with
          a hundred of them that they have none. -->
-    <div v-else-if="failed" class="text-muted" data-test="contacts-error">
+    <div v-else-if="failed" class="text-muted page-text" data-test="contacts-error">
       {{ $t('contacts.notReachable') }}
     </div>
 
-    <div v-else-if="contacts.length === 0" class="text-muted" data-test="contacts-empty">
-      {{ $t('contacts.empty') }}
+    <!-- ⚠️ The same sentence stands here for an unmatched SEARCH, which it has always done
+         and which is a defect of its own. The link is kept out of that case rather than
+         made part of it: "show it to your friends" is no answer to "nobody called that". -->
+    <div v-else-if="contacts.length === 0" class="text-muted page-text" data-test="contacts-empty">
+      <contacts-empty :with-link="!search.trim()" />
     </div>
 
     <template v-else>
       <!-- Favourites first (L §8.14), all of them, whatever page the rest is on. -->
       <section v-if="favoriteRows.length" class="mb-4" data-test="contacts-favorites">
-        <h2 class="h6 text-uppercase text-muted mb-2">{{ $t('contacts.favorites') }}</h2>
+        <h2 class="h6 text-uppercase text-muted mb-2 page-text">{{ $t('contacts.favorites') }}</h2>
         <div class="bg-white gradido-border-radius app-box-shadow px-3">
           <contact-row
             v-for="contact in favoriteRows"
@@ -38,7 +41,7 @@
       </section>
 
       <section data-test="contacts-all">
-        <h2 class="h6 text-uppercase text-muted mb-2">
+        <h2 class="h6 text-uppercase text-muted mb-2 page-text">
           {{ $t('contacts.all') }}
           <span class="fw-normal ms-2" data-test="contacts-count">
             {{ $t('contacts.count', otherRows.length) }}
@@ -56,7 +59,7 @@
             @open="open"
           />
         </div>
-        <div v-else class="text-muted small" data-test="contacts-none-match">
+        <div v-else class="text-muted small page-text" data-test="contacts-none-match">
           {{ $t('contacts.count', 0) }}
         </div>
         <!-- ⛔ `no-ellipsis` does NOT make this pager narrower, and an earlier note here
@@ -106,6 +109,7 @@ import { computed, ref, watch } from 'vue'
 import { useApolloClient, useQuery } from '@vue/apollo-composable'
 import { BFormInput, BPagination, BSpinner } from 'bootstrap-vue-next'
 import ContactRow from '@/components/Contacts/ContactRow.vue'
+import ContactsEmpty from '@/components/Contacts/ContactsEmpty.vue'
 import ContactWindow from '@/components/Contacts/ContactWindow.vue'
 import { useContactWindow } from '@/composables/useContactWindow'
 import { contactListQuery } from '@/graphql/contacts.graphql'

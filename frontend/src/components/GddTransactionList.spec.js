@@ -255,6 +255,28 @@ describe('GddTransactionList', () => {
       it('renders 4 transactions', () => {
         expect(wrapper.findAll('.test-list-group-item')).toHaveLength(4)
       })
+
+      it('keeps 16px between the decay row and the bookings under it', () => {
+        expect(wrapper.find('[data-test="transaction-rows"]').classes()).toContain('mt-3')
+      })
+    })
+
+    /**
+     * ⛔ Without a decay row -- from page 2, and on a list narrowed to one member -- the
+     * bookings are the first thing on the page, and the page above them already keeps its
+     * distance. This margin on top of it made 32px there, where page 1 has 16.
+     */
+    describe('with bookings and no decay row', () => {
+      beforeEach(async () => {
+        await wrapper.setProps({
+          transactions: [{ id: 7, typeId: 'SEND', amount: '-1', balance: '1' }],
+          transactionCount: 30,
+        })
+      })
+
+      it('adds no space above the first booking', () => {
+        expect(wrapper.find('[data-test="transaction-rows"]').classes()).not.toContain('mt-3')
+      })
     })
 
     describe('pagination buttons', () => {

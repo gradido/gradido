@@ -231,6 +231,9 @@ describe('ContactsPanel', () => {
 
     expect(wrapper.find('[data-test="contacts-panel-no-match"]').exists()).toBe(true)
     expect(wrapper.find('[data-test="contacts-panel-empty"]').exists()).toBe(false)
+    // ⛔ And no invitation either: "show it to your friends" is no answer to "nobody is
+    // called that".
+    expect(wrapper.find('[data-test="contacts-empty-link"]').exists()).toBe(false)
   })
 
   it('says the list is empty only when it really is', async () => {
@@ -240,6 +243,10 @@ describe('ContactsPanel', () => {
 
     expect(wrapper.find('[data-test="contacts-panel-empty"]').exists()).toBe(true)
     expect(wrapper.find('[data-test="contacts-panel-no-match"]').exists()).toBe(false)
+    // One quiet way out of the empty list, and it leads to the page that answers it.
+    const link = wrapper.find('[data-test="contacts-empty-link"]')
+    expect(link.exists()).toBe(true)
+    expect(link.attributes('href')).toBe('/show-friends')
   })
 
   // The matches are one list: splitting six results into "favourites" and "the rest" says

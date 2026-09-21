@@ -79,7 +79,7 @@
     <BModal
       id="modal-confirm-username"
       v-model="showConfirm"
-      hide-header
+      no-header
       centered
       data-test="confirm-username-modal"
     >

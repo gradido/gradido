@@ -121,6 +121,55 @@ describe('GddTransaction', () => {
   })
 
   /**
+   * ⛔ The community on a line of its own under the name, as the contact list has it -- not
+   * behind the name after a slash (Bernd, 21.09.2026: one line more, and a quieter row).
+   * Measured with the REAL name component, because that is the one that prints the slash.
+   */
+  describe('the community', () => {
+    const MEMBER = { alias: 'napoli', gradidoID: 'g-1', communityName: 'KI Playground' }
+    const mountReal = (extra) =>
+      mount(GddTransaction, {
+        props: { transaction: { ...BOOKING, linkedUser: MEMBER, ...extra } },
+        global: {
+          mocks: { $t: (key) => key, $d: (d) => String(d), $filters: { GDD: (a) => String(a) } },
+          stubs: {
+            BRow: { template: '<div><slot /></div>' },
+            BCol: { template: '<div><slot /></div>' },
+            BCollapse: { template: '<div><slot /></div>' },
+            BAvatar: true,
+            AppAvatar: true,
+            CollapseIcon: true,
+            DecayInformation: true,
+            VariantIcon: true,
+            FavoriteHeart: true,
+          },
+        },
+      })
+
+    it('stands on the line under the name, and not behind it', () => {
+      wrapper = mountReal({})
+
+      expect(wrapper.find('[data-test="member-name-open"]').text()).toBe('napoli')
+      expect(wrapper.find('[data-test="transaction-community"]').text()).toBe('KI Playground')
+    })
+
+    it('is not said twice on a creation, whose name is the community', () => {
+      wrapper = mountReal({
+        typeId: 'CREATION',
+        linkedUser: { alias: 'KI Playground', gradidoID: 'c-1', communityName: 'KI Playground' },
+      })
+
+      expect(wrapper.find('[data-test="transaction-community"]').exists()).toBe(false)
+    })
+
+    it('leaves no empty line where the booking brought no community', () => {
+      wrapper = mountReal({ linkedUser: { alias: 'napoli', gradidoID: 'g-1' } })
+
+      expect(wrapper.find('[data-test="transaction-community"]').exists()).toBe(false)
+    })
+  })
+
+  /**
    * ⛔ The memo belongs to the row (Bernd, 11.09.2026): its first line is readable before the
    * booking is opened, and opening it shows the whole memo in the same place -- not a second
    * copy in the opened part, and under no heading. Italics and the muted colour say what it is.
@@ -214,9 +263,10 @@ describe('GddTransaction', () => {
    * cannot say which classes the library hands out -- and that is where it went wrong once:
    * bootstrap-vue-next gives a column the plain `col` class only when it has no breakpoint
    * sizes, so the amount column (`md`/`lg`) got no width class on the phone. Bootstrap's
-   * `.row > *` then made it 100% wide beside its offset, and the arrow wrapped under it,
+   * `.row > *` then made it 100% wide beside its indent, and the arrow wrapped under it,
    * at the left -- live on both test servers until this test existed. (Measured at 390 points
-   * against the served stylesheet.)
+   * against the served stylesheet.) The indent is the face's column now, from the stylesheet
+   * (`.transaction-amount-col`), not a grid offset.
    */
   it('gives the amount a share of the phone line, so the arrow fits beside it', () => {
     wrapper = mount(GddTransaction, {
@@ -238,8 +288,10 @@ describe('GddTransaction', () => {
     const amountColumn = wrapper.find('[data-test="transaction-amount"]').element.parentElement
     const arrowColumn = wrapper.findComponent({ name: 'CollapseIcon' }).element.parentElement
 
-    expect([...amountColumn.classList]).toEqual(expect.arrayContaining(['col', 'offset-3']))
-    expect(amountColumn.classList).toContain('col-md-3')
+    expect([...amountColumn.classList]).toEqual(
+      expect.arrayContaining(['col', 'col-md-3', 'transaction-amount-col']),
+    )
+    expect([...amountColumn.classList].filter((name) => name.startsWith('offset'))).toEqual([])
     expect(arrowColumn.classList).toContain('col-auto')
     expect(arrowColumn.classList).not.toContain('col-12')
   })
@@ -255,6 +307,10 @@ describe('GddTransaction', () => {
    *    `contain: inline-size` on the memo is what stops it (measured at 1250 and 1025 points in
    *    the dashboard's own column structure).
    * 2. From `md` on the memo ends where the amount begins, not at the row's end.
+   *
+   * And since 21.09.2026 the face takes what it needs, as in the contact list, rather than two
+   * twelfths of the row; the amount on the phone and the memo everywhere are indented by the
+   * face's column, so they keep standing under the name.
    */
   describe('the width of the memo on the desk', () => {
     const here = dirname(fileURLToPath(import.meta.url))
@@ -274,12 +330,14 @@ describe('GddTransaction', () => {
     })
 
     it('ends the memo where the amount begins, from the grid switch of the row on', () => {
-      // The width: what the face (2) and the amount (3) leave of twelve, less the arrow.
+      // The width: what the amount (3 of 12) leaves of the row, less the face and the arrow.
       const query = /@media \(width >= (\d+)px\) \{\s*\.transaction-memo-col \{([^}]*)\}/.exec(
         source,
       )
       expect(query, 'no md rule for .transaction-memo-col').not.toBeNull()
-      expect(query[2]).toContain('width: calc(100% * 7 / 12 - var(--transaction-arrow-col))')
+      expect(query[2]).toContain(
+        'width: calc(100% * 9 / 12 - var(--transaction-face-col) - var(--transaction-arrow-col))',
+      )
       expect(rule('.transaction-arrow-col')).toContain('width: var(--transaction-arrow-col)')
       expect(rule('.gdd-transaction-row')).toMatch(/--transaction-arrow-col: [\d.]+rem/)
 
@@ -300,9 +358,22 @@ describe('GddTransaction', () => {
       expect(`${query[1]}px`).toBe(/md: (\d+px)/.exec(grid)[1])
     })
 
-    // The seven twelfths hold only while the face takes two and the amount three -- read off the
-    // real grid components, since a stub cannot say which classes they hand out.
-    it('rests on the face taking two twelfths and the amount three, and on nothing else', () => {
+    it('starts the memo under the name, as far in as the face column reaches', () => {
+      expect(rule('.transaction-memo-col')).toContain('margin-left: var(--transaction-face-col)')
+      expect(rule('.gdd-transaction-row')).toContain(
+        '--transaction-face-col: calc(var(--transaction-face) + var(--bs-gutter-x, 1.5rem))',
+      )
+      // On the phone the amount starts a line of its own, and there it stands under the name too.
+      const phone = /@media \(width <= 767\.98px\) \{\s*\.transaction-amount-col \{([^}]*)\}/.exec(
+        source,
+      )
+      expect(phone, 'no phone rule for .transaction-amount-col').not.toBeNull()
+      expect(phone[1]).toContain('margin-left: var(--transaction-face-col)')
+    })
+
+    // The nine twelfths hold only while the amount takes three and the face its own width --
+    // read off the real grid components, since a stub cannot say which classes they hand out.
+    it('rests on the face taking its own width and the amount three twelfths', () => {
       wrapper = mount(GddTransaction, {
         props: { transaction: { ...BOOKING } },
         global: {
@@ -325,15 +396,21 @@ describe('GddTransaction', () => {
       const memoColumn = wrapper.find('[data-test="transaction-memo"]').element.parentElement
       const arrow = wrapper.findComponent({ name: 'CollapseIcon' }).element.parentElement
 
-      expect(face.classList).toContain('col-md-2')
+      // What the face needs, as in the contact list -- no share of the row (Bernd, 21.09.2026).
+      expect(face.classList).toContain('col-auto')
+      expect([...face.classList].filter((name) => /^col-(md|lg)-\d+$/.test(name))).toEqual([])
+      // ...and the width it is drawn at is what the indents are worked out from.
+      expect(row.style.getPropertyValue('--transaction-face')).toBe(`${LIST_AVATAR_SIZE}px`)
       expect(amount.classList).toContain('col-md-3')
       expect(arrow.classList).toContain('transaction-arrow-col')
       expect(memoColumn.classList).toContain('transaction-memo-col')
       // No `col-md-*` width of the grid's own on the memo -- the stylesheet sets it from md on.
       expect([...memoColumn.classList].filter((name) => /^col-md-\d+$/.test(name))).toEqual([])
-      expect([...memoColumn.classList]).toEqual(
-        expect.arrayContaining(['col-9', 'offset-3', 'offset-md-2']),
-      )
+      expect([...memoColumn.classList].filter((name) => name.startsWith('offset'))).toEqual([])
+      // A line of its own, said in the markup: without the break the memo would take a place in
+      // the line above wherever room is left there.
+      expect(memoColumn.previousElementSibling.classList).toContain('w-100')
+      expect(memoColumn.previousElementSibling.classList).not.toContain('d-md-none')
     })
   })
 

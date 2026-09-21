@@ -60,6 +60,10 @@ describe('Contacts page', () => {
           $d: (date) => String(date),
         },
         stubs: {
+          // ⛔ Needed since the empty state offers a way out: without it the link inside
+          // ContactsEmpty resolves to nothing and a test would measure its absence as a
+          // decision.
+          RouterLink: { props: ['to'], template: '<a :href="to"><slot /></a>' },
           BFormInput: {
             props: ['modelValue'],
             emits: ['update:modelValue'],
@@ -120,6 +124,30 @@ describe('Contacts page', () => {
     await nextTick()
     expect(wrapper.find('[data-test="contacts-empty"]').exists()).toBe(true)
     expect(wrapper.find('[data-test="contacts-error"]').exists()).toBe(false)
+    // One quiet way out, and it leads to the page that answers an empty list (KF-016 A3).
+    const link = wrapper.find('[data-test="contacts-empty-link"]')
+    expect(link.exists()).toBe(true)
+    expect(link.attributes('href')).toBe('/show-friends')
+  })
+
+  /**
+   * ⚠️ This page shows the SAME sentence when a search has matched nobody -- it has always
+   * done that, and it is a defect of its own. The link is kept out of that case rather than
+   * made part of it: "show it to your friends" is no answer to "nobody is called that".
+   */
+  it('offers no way out while a search is what emptied the list', async () => {
+    mountPage()
+    fire('contactListQuery', { contactList: { count: 0, contacts: [] } })
+    await nextTick()
+    // Gegenprobe: it IS there before anything is typed.
+    expect(wrapper.find('[data-test="contacts-empty-link"]').exists()).toBe(true)
+
+    await wrapper.find('[data-test="contacts-search"]').setValue('nobody')
+    fire('contactListQuery', { contactList: { count: 0, contacts: [] } })
+    await nextTick()
+
+    expect(wrapper.find('[data-test="contacts-empty"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="contacts-empty-link"]').exists()).toBe(false)
   })
 
   // A failed request is not an empty list: the member is told the list could not be

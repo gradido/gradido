@@ -391,6 +391,9 @@ export const usersTable = mysqlTable(
   },
   (table) => [
     index('idx_users_created_id_uuid').on(table.createdAt, table.id, table.communityUuid),
+    // Who brought a member here. Read by the overview tile and, from the contact list on,
+    // by every page of contacts and every tap on a name -- see migration 0139.
+    index('idx_users_referrer_id').on(table.referrerId),
     unique('uuid_key').on(table.gradidoId, table.communityUuid),
     unique('alias_key').on(table.alias, table.communityUuid),
   ],

@@ -207,7 +207,7 @@
             </BCol>
             <BCol cols="12">
               <!-- router-view -->
-              <div class="main-content mt-lg-3 mt-0">
+              <div class="main-content" :class="contentGap">
                 <transition-fade :duration="200" mode="out-in">
                   <router-view
                     ref="router-view"
@@ -333,6 +333,7 @@ import { ensureFavorites } from '@/composables/useFavorites'
 import { refreshContactsPanel } from '@/composables/useContactsPanel'
 import { useRightSidePref } from '@/composables/useRightSidePref'
 import { useViewport } from '@/composables/useViewport'
+import { routeSection } from '@/utils/routeSection'
 import CONFIG from '@/config'
 import { LAST_TRANSACTIONS_PAGE_SIZE } from '@/constants'
 import { useAppToast } from '@/composables/useToast'
@@ -490,6 +491,24 @@ const showMobilePanel = computed(() => Boolean(mobilePanelSlot.value))
 const chromeHidden = computed(() => (bareChrome.value ? 'd-none' : ''))
 const mobileHidden = computed(() => (bareChrome.value ? 'd-none d-lg-block' : ''))
 const bareTopSpace = computed(() => (bareChrome.value ? 'pt-lg-4' : ''))
+
+/**
+ * The sections whose content header shows the balance cards -- the slots of
+ * `<content-header>` above that have something in them. `pageEdge.spec.js` holds the two
+ * together.
+ */
+const BALANCE_SECTIONS = ['overview', 'send', 'transactions', 'gdt']
+/**
+ * The air between the balance cards and the page. The desk always had it (`mt-lg-3`); the
+ * phone had not. There the two cards stand one above the other, the second brings its 16px
+ * above itself and nothing below, and a page whose first box has no margin of its own ran
+ * straight into it: the tile under "Du bist aktives Mitglied", the decay row under the GDT
+ * card, the first GDT entry (Bernd, 21.09.2026). Only under the cards -- everywhere else
+ * the phone keeps the page close under its heading, as it did.
+ */
+const contentGap = computed(() =>
+  BALANCE_SECTIONS.includes(routeSection(route.path)) ? 'mt-3' : 'mt-0 mt-lg-3',
+)
 const router = useRouter()
 
 /**

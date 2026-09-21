@@ -713,7 +713,10 @@ export const showFriends = gql`
     showFriends {
       referrerAlias
       latestArrival {
+        gradidoID
         alias
+        avatarColorIndex
+        avatarUpdatedAt
         createdAt
         first
       }
@@ -745,6 +748,7 @@ export const contactList = gql`
         bookings
         favorite
         homeCommunity
+        origin
       }
     }
   }

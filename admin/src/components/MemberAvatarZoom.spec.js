@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { readFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -217,5 +217,55 @@ describe('MemberAvatarZoom', () => {
     openMemberAvatarZoom({ member: margret, src: '' })
 
     expect(memberAvatarZoomState.value).toBeNull()
+  })
+  /**
+   * The picture is shown round and frameless, the way the wallet shows it and the way Bernd
+   * asked for it -- and what carries that is not the declarations but the SELECTORS.
+   *
+   * ⛔ Written with one class each, these rules tie with Bootstrap's own `.modal-content`
+   * and `.modal-body`, and a tie is decided by order. This side loses that: measured in the
+   * built stylesheet on 20.09.2026, ours sat at byte 705 and 772 while Bootstrap's white
+   * background and its 16px padding sat at 121028 and 122342. So the face came up on a white
+   * square with a border and a ring of padding around it, while the stylesheet said
+   * `background: transparent`. Naming both classes makes it 0,2,0 against 0,1,0 -- decided
+   * by specificity, where order cannot reach it.
+   *
+   * A rendered assertion cannot see this: jsdom applies no stylesheet and the modal teleports
+   * away. So the guard reads the source, with the comments stripped -- the block above
+   * explains the trap in prose and would otherwise keep the search green after somebody had
+   * simplified the selector back.
+   */
+  describe('the round, frameless presentation', () => {
+    const here = dirname(fileURLToPath(import.meta.url))
+    const code = readFileSync(resolve(here, 'MemberAvatarZoom.vue'), 'utf8')
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+
+    // The stripper took the comments and not the file.
+    it('reads code, not the note beside it', () => {
+      expect(code).toContain('member-avatar-zoom-content')
+      expect(code).not.toContain('a tie is decided by order')
+    })
+
+    it('outranks the modal instead of racing it', () => {
+      expect(code).toMatch(/\.modal-content\.member-avatar-zoom-content\s*\{/)
+      expect(code).toMatch(/\.modal-body\.member-avatar-zoom-body\s*\{/)
+    })
+
+    // What those two selectors are for, so a later reader sees the point and not just a rule.
+    it('takes the panel, its border and its padding away', () => {
+      const panel = code.match(/\.modal-content\.member-avatar-zoom-content\s*\{([^}]*)\}/)[1]
+      const body = code.match(/\.modal-body\.member-avatar-zoom-body\s*\{([^}]*)\}/)[1]
+
+      expect(panel).toContain('background: transparent')
+      expect(panel).toContain('border: 0')
+      // ⚠️ Inert today -- measured, `.modal-content` carries no shadow in bootstrap-vue-next
+      // 0.26.8, so the rendered value is `none` with and without this line. It is guarded
+      // BECAUSE of that: an inert declaration is the easiest one to delete, and it is what
+      // keeps the picture frameless the day the library gives its panel a shadow.
+      // (coderabbit, PR #3943.)
+      expect(panel).toContain('box-shadow: none')
+      expect(body).toContain('padding: 0')
+    })
   })
 })
