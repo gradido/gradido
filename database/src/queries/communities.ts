@@ -32,28 +32,42 @@ export async function getHomeCommunity(): Promise<DbCommunity | null> {
 
 export async function getHomeCommunityDrizzle(): Promise<CommunitiesSelect | null> {
   if (!homeCommunityDrizzleCache) {
-    const resultRows = await drizzleDb()
-      .select()
-      .from(communitiesTable)
-      .where(eq(communitiesTable.foreign, false))
-    if (resultRows[0]) {
-      homeCommunityDrizzleCache = resultRows[0]
-    }
+    homeCommunityDrizzleCache = await dbSelectHomeCommunity()
   }
   return homeCommunityDrizzleCache
+}
+
+/**
+ * The home community as it is in the database right now, bypassing the cache.
+ * For whoever writes the row and must not decide on a stale copy of it.
+ */
+export async function dbSelectHomeCommunity(): Promise<CommunitiesSelect | null> {
+  const resultRows = await drizzleDb()
+    .select()
+    .from(communitiesTable)
+    .where(eq(communitiesTable.foreign, false))
+  return resultRows[0] ?? null
 }
 
 export async function dbInsertHomeCommunity(
   homeCommunity: HomeCommunityInsertInput,
 ): Promise<void> {
+  if (homeCommunityDrizzleCache) {
+    throw new Error('home community already exist, only one is allowed')
+  }
   await drizzleDb().insert(communitiesTable).values(homeCommunityInsertSchema.parse(homeCommunity))
 }
 
 export async function dbUpdateHomeCommunity(
   communityId: number,
   values: Partial<CommunitiesInsert>,
-) {
-  await drizzleDb().update(communitiesTable).set(values).where(eq(communitiesTable.id, communityId))
+): Promise<void> {
+  // updatedAt: the TypeORM entity sets it via @UpdateDateColumn, the column itself has no ON UPDATE
+  await drizzleDb()
+    .update(communitiesTable)
+    .set({ ...values, updatedAt: new Date() })
+    .where(eq(communitiesTable.id, communityId))
+  homeCommunityDrizzleCache = null
 }
 
 /**

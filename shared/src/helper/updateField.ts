@@ -1,4 +1,4 @@
-import { ResultChanged } from '../'
+import { ResultNoError } from '../errorTypes'
 
 /**
  * Updates a field if the incoming value is not undefined and not equal to the current value.
@@ -49,7 +49,7 @@ export function updateAllDefinedAndChanged<T extends object>(
 export function getChangedFields<T extends object>(
   current: T,
   incoming: Partial<T>,
-): ResultChanged<Partial<T>> {
+): ResultNoError<Partial<T>> {
   const changedFields: Partial<T> = {}
 
   let changed = false
@@ -68,7 +68,7 @@ export function getChangedFields<T extends object>(
   }
 
   if (changed) {
-    return { changed: true, value: changedFields }
+    return { success: true, value: changedFields }
   }
-  return { changed: false }
+  return { success: false }
 }

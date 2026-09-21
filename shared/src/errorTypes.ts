@@ -56,6 +56,6 @@ export class XComRequestError extends DomainError {
 
 // general Result Type Template
 export type Result<T, E = Error> = { success: true; value: T } | { success: false; error: E }
-export type ResultChanged<T> = { changed: true; value: T } | { changed: false }
+export type ResultNoError<T> = { success: true; value: T } | { success: false }
 
 export type VoidResult<E = Error> = { success: true } | { success: false; error: E }

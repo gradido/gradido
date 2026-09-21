@@ -1,15 +1,21 @@
+import { randomBytes } from 'node:crypto'
 import { eq } from 'drizzle-orm'
-import { Ed25519PublicKey } from 'shared'
+import { createKeyPair, Ed25519PublicKey } from 'shared'
+import { v4 as uuidv4 } from 'uuid'
 import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { communitiesTable } from '../schemas'
 import { createCommunity, createVerifiedFederatedCommunity } from '../seeds/community'
 import {
+  dbInsertHomeCommunity,
   dbIsMatchingKeyingActive,
   dbSelectAuthenticatedForeignCommunities,
+  dbSelectHomeCommunity,
   dbSetMatchingKeyingActive,
+  dbUpdateHomeCommunity,
   getCommunityByPublicKeyOrFail,
   getHomeCommunity,
+  getHomeCommunityDrizzle,
   getHomeCommunityWithFederatedCommunityOrFail,
   getReachableCommunities,
 } from './communities'
@@ -47,6 +53,94 @@ describe('community.queries', () => {
       expect(community?.foreign).toBe(homeCom.foreign)
       expect(community?.publicKey).toStrictEqual(homeCom.publicKey)
       expect(community?.privateKey).toStrictEqual(homeCom.privateKey)
+    })
+  })
+  describe('dbSelectHomeCommunity', () => {
+    it('returns null if no home community exists', async () => {
+      await createCommunity(true)
+      expect(await dbSelectHomeCommunity()).toBeNull()
+    })
+    it('returns the home community', async () => {
+      const homeCom = await createCommunity(false)
+      expect(await dbSelectHomeCommunity()).toMatchObject({
+        id: homeCom.id,
+        foreign: false,
+        communityUuid: homeCom.communityUuid,
+        publicKey: homeCom.publicKey,
+        privateKey: homeCom.privateKey,
+      })
+    })
+  })
+  describe('dbInsertHomeCommunity', () => {
+    const homeCommunityInput = async () => {
+      const jwtKeyPair = await createKeyPair()
+      return {
+        publicKey: randomBytes(32),
+        privateKey: randomBytes(64),
+        communityUuid: uuidv4(),
+        url: 'http://localhost/api/',
+        name: 'HomeCommunity-name',
+        description: 'HomeCommunity-description',
+        creationDate: new Date('2026-01-01T12:00:00.000Z'),
+        publicJwtKey: jwtKeyPair.publicKey,
+        privateJwtKey: jwtKeyPair.privateKey,
+      }
+    }
+
+    it('inserts the home community as not foreign', async () => {
+      const input = await homeCommunityInput()
+      await dbInsertHomeCommunity(input)
+      const rows = await DbCommunity.find()
+      expect(rows).toEqual([
+        expect.objectContaining({
+          ...input,
+          id: expect.any(Number),
+          foreign: false,
+          createdAt: expect.any(Date),
+          updatedAt: null,
+        }),
+      ])
+    })
+    it('throws on invalid input and inserts nothing', async () => {
+      const input = await homeCommunityInput()
+      await expect(
+        dbInsertHomeCommunity({ ...input, publicKey: randomBytes(16) }),
+      ).rejects.toThrow()
+      expect(await DbCommunity.count()).toBe(0)
+    })
+    it('is visible through the cached getter afterwards', async () => {
+      // fills the cache with "no home community"
+      expect(await getHomeCommunityDrizzle()).toBeNull()
+      const input = await homeCommunityInput()
+      await dbInsertHomeCommunity(input)
+      expect(await getHomeCommunityDrizzle()).toMatchObject({
+        communityUuid: input.communityUuid,
+      })
+    })
+  })
+  describe('dbUpdateHomeCommunity', () => {
+    it('updates only the given fields and sets updatedAt', async () => {
+      const homeCom = await createCommunity(false)
+      await dbUpdateHomeCommunity(homeCom.id, { name: 'new name', url: 'http://new/api/' })
+      const updated = await DbCommunity.findOneByOrFail({ id: homeCom.id })
+      expect(updated).toEqual({
+        ...homeCom,
+        name: 'new name',
+        url: 'http://new/api/',
+        updatedAt: expect.any(Date),
+      })
+    })
+    it('leaves other communities alone', async () => {
+      const foreign = await createCommunity(true)
+      const homeCom = await createCommunity(false)
+      await dbUpdateHomeCommunity(homeCom.id, { name: 'new name' })
+      expect(await DbCommunity.findOneByOrFail({ id: foreign.id })).toEqual(foreign)
+    })
+    it('invalidates the cached home community', async () => {
+      const homeCom = await createCommunity(false)
+      expect((await getHomeCommunityDrizzle())?.name).toBe('HomeCommunity-name')
+      await dbUpdateHomeCommunity(homeCom.id, { name: 'new name' })
+      expect((await getHomeCommunityDrizzle())?.name).toBe('new name')
     })
   })
   describe('dbIsMatchingKeyingActive', () => {

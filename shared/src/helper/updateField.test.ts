@@ -1,4 +1,8 @@
-import { updateAllDefinedAndChanged, updateIfDefinedAndChanged } from './updateField'
+import {
+  getChangedFields,
+  updateAllDefinedAndChanged,
+  updateIfDefinedAndChanged,
+} from './updateField'
 
 describe('updateIfDefinedAndChanged', () => {
   it('should update field if incoming is different from current', () => {
@@ -63,5 +67,48 @@ describe('updateAllDefinedAndChanged', () => {
     const result = updateAllDefinedAndChanged(current, incoming)
     expect(result).toBe(true)
     expect(current).toEqual({ field1: null, field2: 'current' })
+  })
+})
+
+describe('getChangedFields', () => {
+  it('returns only the fields that differ from current', () => {
+    const current = { field1: 'current', field2: 'current', field3: 'current' }
+    const incoming = { field1: 'incoming', field2: 'current' }
+    expect(getChangedFields(current, incoming)).toEqual({
+      changed: true,
+      value: { field1: 'incoming' },
+    })
+  })
+  it('reports no change if all incoming fields are equal', () => {
+    const current = { field1: 'current', field2: 2 }
+    const incoming = { field1: 'current', field2: 2 }
+    expect(getChangedFields(current, incoming)).toEqual({ changed: false })
+  })
+  it('reports no change for empty incoming', () => {
+    expect(getChangedFields({ field1: 'current' }, {})).toEqual({ changed: false })
+  })
+  it('compares buffers by content, not by reference', () => {
+    const current = { key: Buffer.from('same') }
+    expect(getChangedFields(current, { key: Buffer.from('same') })).toEqual({ changed: false })
+  })
+  it('detects changed buffer content', () => {
+    const current = { key: Buffer.from('current') }
+    const incoming = { key: Buffer.from('incoming') }
+    expect(getChangedFields(current, incoming)).toEqual({
+      changed: true,
+      value: { key: Buffer.from('incoming') },
+    })
+  })
+  it('detects a change from null to a value', () => {
+    const current: { field: string | null } = { field: null }
+    expect(getChangedFields(current, { field: 'incoming' })).toEqual({
+      changed: true,
+      value: { field: 'incoming' },
+    })
+  })
+  it('does not modify current', () => {
+    const current = { field: 'current' }
+    getChangedFields(current, { field: 'incoming' })
+    expect(current).toEqual({ field: 'current' })
   })
 })

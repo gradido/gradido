@@ -1,23 +1,28 @@
+import { createPrivateKey, createPublicKey, KeyObject, generateKeyPair } from 'node:crypto'
+import { promisify } from 'node:util'
 import {
   CompactEncrypt,
   compactDecrypt,
   decodeJwt,
   exportPKCS8,
   exportSPKI,
-  generateKeyPair,
+  // generateKeyPair,
   importPKCS8,
   importSPKI,
   jwtVerify,
   SignJWT,
 } from 'jose'
 import { getLogger } from 'log4js'
+import { ResultNoError } from '../'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../const'
 
-const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.auth.jwt.JWT`)
+const _logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.auth.jwt.JWT`)
 
 import { EncryptedJWEJwtPayloadType } from './payloadtypes/EncryptedJWEJwtPayloadType'
 import { JwtPayloadType } from './payloadtypes/JwtPayloadType'
 
+// jose variant, slower
+/* 
 export const createKeyPair = async (): Promise<{ publicKey: string; privateKey: string }> => {
   // Generate key pair using jose library
   const keyPair = await generateKeyPair('RS256', {
@@ -30,6 +35,47 @@ export const createKeyPair = async (): Promise<{ publicKey: string; privateKey: 
   const publicKeyPem = await exportSPKI(keyPair.publicKey)
   const privateKeyPem = await exportPKCS8(keyPair.privateKey)
   return { publicKey: publicKeyPem, privateKey: privateKeyPem }
+}
+*/
+// node crytpo native variant, faster
+const generateKeyPairAsync = promisify(generateKeyPair)
+export async function createKeyPair(): Promise<{ publicKey: string; privateKey: string }> {
+  const { publicKey, privateKey } = await generateKeyPairAsync('rsa', {
+      modulusLength: 2048,
+      publicExponent: 0x10001,
+    })
+  
+  return {
+    publicKey: publicKey
+      .export({
+        type: 'spki',
+        format: 'pem',
+      })
+      .toString(),
+
+    privateKey: privateKey
+      .export({
+        type: 'pkcs8',
+        format: 'pem',
+      })
+      .toString(),
+  }
+}
+
+export function getPrivateKeyObjekt(value: string): ResultNoError<KeyObject> {
+  try {
+    return { success: true, value: createPrivateKey(value) }
+  } catch {
+    return { success: false }
+  }
+}
+
+export function getPublicKeyObject(value: string): ResultNoError<KeyObject> {
+  try {
+    return { success: true, value: createPublicKey(value) }
+  } catch {
+    return { success: false }
+  }
 }
 
 export const verify = async (

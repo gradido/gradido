@@ -1,11 +1,7 @@
 import { ApiVersionType } from 'core'
-import {
-  Community as DbCommunity,
-  FederatedCommunity as DbFederatedCommunity,
-  getHomeCommunity,
-} from 'database'
+import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
 import { getLogger } from 'log4js'
-import { createKeyPair, Ed25519PublicKey } from 'shared'
+import { Ed25519PublicKey } from 'shared'
 import { IsNull } from 'typeorm'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { FederationClient as V1_0_FederationClient } from '@/federation/client/1_0/FederationClient'

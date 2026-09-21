@@ -1,12 +1,11 @@
 import DHT from '@hyperswarm/dht'
 import {
   CommunitiesInsert,
-  CommunityLoggingView,
   Community as DbCommunity,
   FederatedCommunity as DbFederatedCommunity,
   dbInsertHomeCommunity,
+  dbSelectHomeCommunity,
   dbUpdateHomeCommunity,
-  getHomeCommunityDrizzle,
 } from 'database'
 import { getLogger } from 'log4js'
 import { createKeyPair as createJWTKeyPair, getChangedFields } from 'shared'
@@ -244,10 +243,10 @@ async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
       description: CONFIG.COMMUNITY_DESCRIPTION,
     } satisfies Partial<CommunitiesInsert>
 
-    const homeCom = await getHomeCommunityDrizzle()
+    const homeCom = await dbSelectHomeCommunity()
     if (homeCom) {
       const updateFields = getChangedFields(homeCom, upsertFields)
-      if (updateFields.changed) {
+      if (updateFields.success) {
         // simply update the existing entry, but it MUST keep the ID and UUID because of possible relations
         await dbUpdateHomeCommunity(homeCom.id, updateFields.value)
         logger.info('home-community updated successfully')
@@ -255,7 +254,6 @@ async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
         logger.debug("home-community don't need update")
       }
     } else {
-      // Generate key pair using jose library
       const jwtKeyPair = await createJWTKeyPair()
       await dbInsertHomeCommunity({
         ...upsertFields,

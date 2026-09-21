@@ -129,7 +129,7 @@ export const customBinary = <T extends Buffer = Buffer>(
     driverData: Buffer
   }>({
     dataType: () => {
-      return `varbinary(${options.length})`
+      return `binary(${options.length})`
     },
     fromDriver: (value) => {
       return value
