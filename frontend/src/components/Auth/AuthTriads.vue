@@ -117,29 +117,28 @@ onBeforeUnmount(stop)
   grid-area: 1 / 1;
 }
 
-/* Phone: one part per line, so all three triads have the same shape. */
+/*
+  A triad on one line wherever it fits, on every width (Bernd, 21.09.2026: the card is wider
+  on a phone now). Where it does not, it breaks between two parts, not inside one -- no part
+  is wider than a 320px phone's card in any of the ten languages -- and the stage takes the
+  tallest triad's height: in German two lines on every phone instead of three.
+
+  Measured in the built stylesheet, 16px: "Helfen. Schenken. Danken." is 196px wide and fits
+  every phone in every language (Russian, the widest, 246px). "Für Dich und mich. Für die
+  Gemeinschaft. Für die Natur." is 399px, where a 375px phone gives 315 -- and still 349 at
+  14px, which is why the letters kept their size.
+*/
 .triad {
   display: flex;
-  flex-direction: column;
+  flex-flow: row wrap;
+  place-content: center;
   align-items: center;
-  justify-content: center;
+  column-gap: 0.3em;
   text-align: center;
 }
 
 .triad-sizer {
   visibility: hidden;
-}
-
-/*
-  From lg on (see $grid-breakpoints) the picture carousel stands beside the form, and the column
-  is wide enough for a triad on one line. Below that, tablets included, three lines: on a tablet
-  a triad on one line would break at whatever part happens not to fit.
-*/
-@media (width >= 1025px) {
-  .triad {
-    flex-flow: row wrap;
-    column-gap: 0.3em;
-  }
 }
 
 /* The same movement and timing as the picture carousel on the desk. */
