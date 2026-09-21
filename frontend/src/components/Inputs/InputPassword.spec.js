@@ -1,5 +1,8 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import InputPassword from './InputPassword'
 import {
   BButton,
@@ -40,6 +43,8 @@ describe('InputPassword', () => {
   const global = {
     components: {
       BFormGroup,
+      // Not used any more; registered so that a box brought back around the eye would draw
+      // its .input-group here as it does in the app.
       BInputGroup,
       BFormInput,
       BButton,
@@ -140,6 +145,55 @@ describe('InputPassword', () => {
         expect(wrapper.find('i-bi-eye-slash-stub').exists()).toBe(true)
         expect(wrapper.find('i-bi-eye-stub').exists()).toBe(false)
       })
+    })
+
+    // Bernd, 21.09.2026: the field's rounded frame was missing on the right, over the eye.
+    // The eye was a box of its own beside the input, in a variant this template does not
+    // build: all it drew was a dark shadow, which the dark card swallows.
+    describe('the eye', () => {
+      it('stands in the field, with the input, and not in a box beside it', () => {
+        const field = wrapper.find('.password-field')
+        expect(field.find('input').exists()).toBe(true)
+        expect(field.find('[data-test="password-eye"]').exists()).toBe(true)
+        expect(wrapper.find('.input-group').exists()).toBe(false)
+      })
+
+      it('leaves the frame to the input, rounded as the e-mail field is', () => {
+        expect(wrapper.find('input').classes()).toContain('rounded-input')
+        expect(wrapper.find('button').classes()).not.toContain('btn-outline-light')
+      })
+    })
+  })
+
+  describe('the stylesheet', () => {
+    const source = readFileSync(
+      resolve(dirname(fileURLToPath(import.meta.url)), 'InputPassword.vue'),
+      'utf8',
+    )
+    // Comments name the same properties; only declarations may count.
+    const css = source
+      .slice(source.indexOf('<style'), source.indexOf('</style>'))
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+    const rule = (selector) => {
+      const at = css.indexOf(`${selector} {`)
+      return at < 0 ? '' : css.slice(at, css.indexOf('}', at))
+    }
+
+    it('lays the eye over the right end of the input', () => {
+      const eye = rule('.password-eye')
+      expect(eye).toMatch(/position:\s*absolute;/)
+      expect(eye).toMatch(/right:\s*0;/)
+      expect(eye).toMatch(/border:\s*0;/)
+      expect(eye).toMatch(/width:\s*var\(--password-eye\);/)
+    })
+
+    it('keeps the typed text and the warning sign clear of it', () => {
+      expect(rule('.password-input')).toMatch(/padding-right:\s*var\(--password-eye\);/)
+      const signs = rule('.password-input.is-valid,\n.password-input.is-invalid')
+      expect(signs).toMatch(/padding-right:\s*calc\([^;]*\+ var\(--password-eye\)\);/)
+      expect(signs).toMatch(
+        /background-position:\s*right calc\([^;]*\+ var\(--password-eye\)\) center;/,
+      )
     })
   })
 })
