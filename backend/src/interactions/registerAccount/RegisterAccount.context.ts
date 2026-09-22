@@ -262,7 +262,11 @@ export const registerAccount = async (
       logger.info('sendAccountActivationEmail')
     }
 
-    await EVENT_EMAIL_CONFIRMATION(dbUser)
+    // Over this transaction's connection, like every write above. The pool has ten
+    // connections, and the pool's waiting has no time limit: registrations that each held
+    // their own while waiting for a second one could use them all up, with nobody left to
+    // give one back.
+    await EVENT_EMAIL_CONFIRMATION(dbUser, queryRunner.manager)
 
     await queryRunner.commitTransaction()
     logger.addContext('user', dbUser.id)
