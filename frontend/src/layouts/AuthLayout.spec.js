@@ -1,4 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { mount } from '@vue/test-utils'
 import { createStore } from 'vuex'
 import { __bannerResult } from '@vue/apollo-composable'
@@ -176,7 +179,7 @@ describe('AuthLayout', () => {
   })
 
   // Bernd, 21.09.2026: below md the coin slid into the card with the two links under it, 176px
-  // above the form. The logo top left carries the coin, and the links stand beside it.
+  // above the form. The logo top left carries the coin, and the links stand up there with it.
   describe('the card', () => {
     beforeEach(() => {
       __bannerResult.value = null
@@ -197,6 +200,55 @@ describe('AuthLayout', () => {
       expect(banner.exists()).toBe(true)
       expect(banner.attributes('src')).toBe('/banner.jpg')
       expect(banner.element.closest('.row').classList).toContain('d-md-none')
+    })
+  })
+
+  // Bernd, 22.09.2026: on a phone the greeting stood pressed between the top row and the card,
+  // at 13.6px, although it carries the page's message. jsdom lays nothing out, so the measures
+  // are read from the stylesheet -- with the comments stripped, which name them as well.
+  describe('the greeting', () => {
+    const sfc = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'AuthLayout.vue'),
+      'utf8',
+    )
+    const css = sfc
+      .slice(sfc.indexOf('<style'), sfc.indexOf('</style>'))
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+    // A media block holds rules one level deep; what stands outside all of them holds on
+    // every width.
+    const mediaBlock = /@media([^{]*)\{((?:[^{}]*\{[^{}]*\})*[^{}]*)\}/g
+    const phone = [...css.matchAll(mediaBlock)]
+      .filter(([, condition]) => condition.includes('767.98px'))
+      .map(([, , body]) => body)
+      .join('\n')
+    const everyWidth = css.replace(mediaBlock, '')
+    const rule = (text, selector) =>
+      [...text.matchAll(/([^{}]+)\{([^{}]*)\}/g)].find(
+        ([, written]) => written.trim() === selector,
+      )?.[2]
+
+    beforeEach(() => {
+      __bannerResult.value = null
+      wrapper = createWrapper()
+    })
+
+    it('stands 16px below the top row on a phone, as far below it as before from md up', () => {
+      expect(wrapper.find('.auth-greeting').classes()).toEqual(
+        expect.arrayContaining(['mt-3', 'mt-md-5']),
+      )
+    })
+
+    it('keeps its 16px letters where #app shrinks the text of a phone to 0.85rem', () => {
+      expect(rule(everyWidth, '.auth-greeting')).toMatch(/font-size:\s*1rem;/)
+    })
+
+    it('stands 24px above the card, 40px on a phone', () => {
+      const card = wrapper.find('.card')
+      expect(card.classes()).toContain('auth-card')
+      // No margin utility on the card: its !important would beat the stylesheet.
+      expect(card.classes().filter((name) => /^m[tbyse]?-/.test(name))).toEqual([])
+      expect(rule(everyWidth, '.auth-card')).toMatch(/margin-top:\s*1\.5rem;/)
+      expect(rule(phone, '.auth-card')).toMatch(/margin-top:\s*2\.5rem;/)
     })
   })
 })

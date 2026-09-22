@@ -21,7 +21,7 @@ function member(gmsAllowed: boolean): dbUser {
     lastName: 'Bloxberg',
     gmsPublishName: PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS,
     gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE,
-    location: null,
+    location: { type: 'Point', coordinates: [9.69, 49.28] },
     emailContact: { email: 'bibi@bloxberg.de', gmsPublishEmail: true },
   } as unknown as dbUser
 }
@@ -70,22 +70,13 @@ describe('GmsUser', () => {
     it.each([
       ['a point with no coordinates -- the case that happened', [] as number[]],
       ['half a pair', [9.69]],
-    ])('sends no place at all for %s, and asks to be placed at random', (_name, coordinates) => {
-      const sent = new GmsUser(withPoint(coordinates))
-
-      expect(sent.location).toBeUndefined()
-      expect(sent.type).toBe(
-        GmsPublishLocationType[GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM],
-      )
+    ])('refuses to send a member without a place: %s', (_name, coordinates) => {
+      expect(() => new GmsUser(withPoint(coordinates))).toThrow('Missing Location')
     })
 
-    it('asks to be placed at random when there is no point at all', () => {
-      const sent = new GmsUser(member(true))
-
-      expect(sent.location).toBeUndefined()
-      expect(sent.type).toBe(
-        GmsPublishLocationType[GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM],
-      )
+    it('refuses to send a member without a point at all', () => {
+      const pointless = { ...member(true), location: null } as unknown as dbUser
+      expect(() => new GmsUser(pointless)).toThrow('Missing Location')
     })
   })
 

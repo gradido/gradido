@@ -134,8 +134,11 @@ describe('Login', () => {
   })
 
   it('shows the rotating triads above the form, in place of the old fixed line', () => {
-    expect(wrapper.findComponent(AuthTriads).exists()).toBe(true)
+    const triads = wrapper.findComponent(AuthTriads)
+    expect(triads.exists()).toBe(true)
     expect(wrapper.text()).not.toContain('gdd_per_link.isFree')
+    // The gap below is the triads' own, the same on every door: no spacing from the page.
+    expect(triads.classes().filter((name) => /^[mp][tbsexy]?-/.test(name))).toEqual([])
   })
 
   describe('links', () => {

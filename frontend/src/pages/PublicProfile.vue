@@ -1,7 +1,7 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
   <div class="public-profile text-center">
-    <auth-triads class="pb-5" />
+    <auth-triads />
     <h2 class="h4 mb-2" data-test="public-profile-shows">{{ greeting }}</h2>
     <p class="small mb-4" data-test="public-profile-lead">{{ $t('public-profile.lead') }}</p>
 

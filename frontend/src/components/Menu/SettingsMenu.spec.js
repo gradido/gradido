@@ -86,9 +86,9 @@ describe('the settings menu', () => {
   })
 
   it('shows the circles where one of them is', async () => {
-    mockConfig.GMS_ACTIVE = true
+    mockConfig.GMS_LEGACY_ACTIVE = true
     const wrapper = await mountMenu()
-    mockConfig.GMS_ACTIVE = false
+    mockConfig.GMS_LEGACY_ACTIVE = false
 
     expect(wrapper.find('[data-test="settings-menu-communities"]').exists()).toBe(true)
   })

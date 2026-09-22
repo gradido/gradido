@@ -274,11 +274,11 @@ describe('UserResolver', () => {
               passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
               communityUuid: homeCom.communityUuid,
               foreign: false,
-              gmsAllowed: true,
+              gmsAllowed: false,
               humhubAllowed: true,
               gmsPublishName: 0,
               humhubPublishName: 0,
-              gmsPublishLocation: 2,
+              gmsPublishLocation: 1,
               location: null,
               gmsRegistered: false,
               gmsRegisteredAt: null,
@@ -941,8 +941,8 @@ describe('UserResolver', () => {
                 alias: 'BBB',
                 emailChecked: true,
                 firstName: 'Bibi',
-                gmsAllowed: true,
-                gmsPublishLocation: 'GMS_LOCATION_TYPE_RANDOM',
+                gmsAllowed: false,
+                gmsPublishLocation: 'GMS_LOCATION_TYPE_APPROXIMATE',
                 gmsPublishName: 'PUBLISH_NAME_ALIAS_OR_INITALS',
                 gradidoID: expect.any(String),
                 hasElopage: false,
@@ -1467,9 +1467,9 @@ describe('UserResolver', () => {
               firstName: 'Benjamin',
               lastName: 'Blümchen',
               language: 'en',
-              gmsAllowed: true,
+              gmsAllowed: false,
               gmsPublishName: PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS,
-              gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
+              gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE,
             }),
           ])
         })
@@ -1508,9 +1508,9 @@ describe('UserResolver', () => {
             await expect(User.find()).resolves.toEqual([
               expect.objectContaining({
                 alias: 'bibi_Bloxberg',
-                gmsAllowed: true,
+                gmsAllowed: false,
                 gmsPublishName: PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS,
-                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
+                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE,
               }),
             ])
           })
@@ -1530,9 +1530,9 @@ describe('UserResolver', () => {
             })
             await expect(User.find()).resolves.toEqual([
               expect.objectContaining({
-                gmsAllowed: true,
+                gmsAllowed: false,
                 gmsPublishName: PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS,
-                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
+                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE,
               }),
             ])
           })
@@ -1571,7 +1571,7 @@ describe('UserResolver', () => {
                 gmsPublishName: PublishNameType[PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS],
                 gmsLocation: loc,
                 gmsPublishLocation:
-                  GmsPublishLocationType[GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM],
+                  GmsPublishLocationType[GmsPublishLocationType.GMS_LOCATION_TYPE_EXACT],
               },
             })
             await expect(User.find()).resolves.toEqual([
@@ -1579,7 +1579,7 @@ describe('UserResolver', () => {
                 gmsAllowed: true,
                 gmsPublishName: PublishNameType.PUBLISH_NAME_ALIAS_OR_INITALS,
                 location: Location2Point(loc),
-                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM,
+                gmsPublishLocation: GmsPublishLocationType.GMS_LOCATION_TYPE_EXACT,
               }),
             ])
           })
@@ -1885,8 +1885,8 @@ describe('UserResolver', () => {
                 alias: 'BBB',
                 emailChecked: true,
                 firstName: 'Bibi',
-                gmsAllowed: true,
-                gmsPublishLocation: 'GMS_LOCATION_TYPE_RANDOM',
+                gmsAllowed: false,
+                gmsPublishLocation: 'GMS_LOCATION_TYPE_APPROXIMATE',
                 gmsPublishName: 'PUBLISH_NAME_ALIAS_OR_INITALS',
                 gradidoID: expect.any(String),
                 hasElopage: false,
@@ -3970,6 +3970,14 @@ describe('UserResolver', () => {
   // Leaving the GMS removes the member and everything of theirs over there. Joining again
   // therefore has to hand the GMS a whole member, entries included - the two mutations
   // below are one story and run in order.
+  // Only a member with a place is sent to the GMS; without one GmsUser refuses.
+  const gmsMemberLocation = () => {
+    const loc = new Location()
+    loc.longitude = 9.573224
+    loc.latitude = 49.679437
+    return Location2Point(loc)
+  }
+
   describe('gms consent withdrawn and given again', () => {
     const ENTRY_UUID = 'b6f0c1d2-3e4a-4b5c-8d9e-0f1a2b3c4d5e'
     const upsertMock = upsertGmsUsers as jest.Mock
@@ -3985,7 +3993,15 @@ describe('UserResolver', () => {
 
       member = await userFactory(testEnv, bibiBloxberg)
       // The member is already published over there, and has one live entry with them.
-      await User.update({ id: member.id }, { gmsRegistered: true, gmsRegisteredAt: new Date() })
+      await User.update(
+        { id: member.id },
+        {
+          gmsAllowed: true,
+          location: gmsMemberLocation(),
+          gmsRegistered: true,
+          gmsRegisteredAt: new Date(),
+        },
+      )
       const inserted = await dbInsertMatchingEntry({
         uuid: ENTRY_UUID,
         userId: member.id,
@@ -4068,6 +4084,7 @@ describe('UserResolver', () => {
         { id: member.id },
         {
           gmsAllowed: true,
+          location: gmsMemberLocation(),
           gmsRegistered: true,
           gmsRegisteredAt: new Date(),
           aboutMe: 'Ich baue Moebel aus Altholz.',

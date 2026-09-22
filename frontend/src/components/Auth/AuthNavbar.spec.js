@@ -79,8 +79,23 @@ describe('AuthNavbar', () => {
       expect(media('1024.98px')).toMatch(/\.auth-header > nav\s*\{[^}]*flex-wrap:\s*wrap;/)
     })
 
-    it('makes the logo 32px high on a phone, so the links fit beside it', () => {
-      expect(media('767.98px')).toMatch(/\.auth-logo-small\s*\{[^}]*height:\s*32px;/)
+    // Bernd, 22.09.2026: on a phone the logo had become too small. It takes the size halfway
+    // to the desk's, and the links go to the row below it -- on every phone, not only where
+    // they no longer fit beside it.
+    it('makes the logo 45px high on a phone', () => {
+      expect(media('767.98px')).toMatch(/\.auth-logo-small\s*\{[^}]*height:\s*45px;/)
+    })
+
+    it('puts the links in a row of their own below the logo on a phone', () => {
+      expect(media('767.98px')).toMatch(/:deep\(#nav-collapse\)\s*\{[^}]*flex-basis:\s*100%;/)
+      // ... and from md up beside it, as before.
+      expect(media('1024.98px')).not.toMatch(/flex-basis/)
+    })
+
+    it('keeps the links on the right, below the logo as beside it', () => {
+      const everyWidth = css.slice(0, css.indexOf('@media'))
+      expect(everyWidth).toMatch(/:deep\(#nav-collapse\)\s*\{[^}]*justify-content:\s*flex-end;/)
+      expect(mountWith(true).find('.navbar-nav').classes()).toContain('ms-auto')
     })
   })
 })

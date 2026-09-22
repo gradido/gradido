@@ -370,14 +370,14 @@ export const usersTable = mysqlTable(
     publisherId: int('publisher_id').default(0),
     hideAmountGdd: boolean().default(false),
     hideAmountGdt: boolean().default(false),
-    gmsAllowed: boolean('gms_allowed').default(true).notNull(),
+    gmsAllowed: boolean('gms_allowed').default(false).notNull(),
     // The member's own position, as a POINT. Readable at last -- the line that used to
     // stand here said "Can't parse geometry from database", which is what drizzle-kit
     // writes when it meets a spatial column. What it takes is in customGeometry; the
     // short version is that mysql2 hands a point over as `{ x, y }` and a write has to
     // go through ST_GeomFromText().
     location: customGeometry().default(null),
-    gmsPublishLocation: int('gms_publish_location').default(2).notNull(),
+    gmsPublishLocation: int('gms_publish_location').default(1).notNull(),
     aboutMe: text('about_me').default(sql`NULL`),
     avatarVisibleToMembers: boolean('avatar_visible_to_members').default(true).notNull(),
     // ES-021: a person may create, a project account may not. 1 for every account that

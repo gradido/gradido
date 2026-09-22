@@ -108,7 +108,8 @@ describe('RegisterAssist page', () => {
     const triads = wrapper.findComponent(AuthTriads)
     expect(triads.exists()).toBe(true)
     expect(wrapper.find('.register-assist').element.firstElementChild).toBe(triads.element)
-    expect(triads.classes()).toContain('pb-5')
+    // The gap below is the triads' own, the same on every door: no spacing from the page.
+    expect(triads.classes().filter((name) => /^[mp][tbsexy]?-/.test(name))).toEqual([])
   })
 
   // And as there, a page-level message takes the whole place, the triads included.
