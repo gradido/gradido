@@ -335,6 +335,7 @@
     "whitepaper": "Papier blanc"
   },
   "form": {
+    "agree": "Acceptation de la politique de confidentialité",
     "amount": "Montant",
     "at": "à",
     "available_after": "Disponible après confirmation",
@@ -358,6 +359,7 @@
     "link_decay_description": "Le montant du lien est bloqué avec le dépérissement maximale. Une fois le lien utilisé, expiré ou supprimé, le reste est à nouveau débloqué.",
     "memo": "Note",
     "message": "Message",
+    "newPassword": "Nouveau mot de passe",
     "newPasswordRepeat": "Répète le nouveau mot de passe",
     "new_balance": "Montant du solde après confirmation",
     "no_gdd_available": "Tu n'as pas de GDD à envoyer.",

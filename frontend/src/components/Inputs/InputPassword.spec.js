@@ -152,10 +152,19 @@ describe('InputPassword', () => {
     // build: all it drew was a dark shadow, which the dark card swallows.
     describe('the eye', () => {
       it('stands in the field, with the input, and not in a box beside it', () => {
-        const field = wrapper.find('.password-field')
+        const field = wrapper.find('.reveal-field')
         expect(field.find('input').exists()).toBe(true)
         expect(field.find('[data-test="password-eye"]').exists()).toBe(true)
         expect(wrapper.find('.input-group').exists()).toBe(false)
+      })
+
+      // The eye is drawn by the rules it shares with the thank-you card's PIN
+      // (assets/scss/_reveal-field.scss, checked in src/revealField.spec.js). They are written
+      // for these two selectors, children and all: one wrapper more, and none of them applies.
+      it('is reached by the rules it shares with the PIN', () => {
+        expect(wrapper.find('input').element.matches('.reveal-field > .form-control')).toBe(true)
+        const eye = wrapper.find('[data-test="password-eye"]')
+        expect(eye.element.matches('.reveal-field > .reveal-eye')).toBe(true)
       })
 
       it('leaves the frame to the input, rounded as the e-mail field is', () => {
@@ -182,6 +191,8 @@ describe('InputPassword', () => {
     })
   })
 
+  // The eye's place, its frame and its focus ring are shared with the PIN and checked in
+  // src/revealField.spec.js. What stays here is the password's own: Bootstrap's signs.
   describe('the stylesheet', () => {
     const source = readFileSync(
       resolve(dirname(fileURLToPath(import.meta.url)), 'InputPassword.vue'),
@@ -196,24 +207,11 @@ describe('InputPassword', () => {
       return at < 0 ? '' : css.slice(at, css.indexOf('}', at))
     }
 
-    it('shows where the focus is when the keyboard lands on the eye', () => {
-      expect(rule('.password-eye:focus-visible')).toMatch(/outline:\s*2px solid/)
-    })
-
-    it('lays the eye over the right end of the input', () => {
-      const eye = rule('.password-eye')
-      expect(eye).toMatch(/position:\s*absolute;/)
-      expect(eye).toMatch(/right:\s*0;/)
-      expect(eye).toMatch(/border:\s*0;/)
-      expect(eye).toMatch(/width:\s*var\(--password-eye\);/)
-    })
-
-    it('keeps the typed text and the warning sign clear of it', () => {
-      expect(rule('.password-input')).toMatch(/padding-right:\s*var\(--password-eye\);/)
+    it('keeps the warning and the check sign clear of the eye', () => {
       const signs = rule('.password-input.is-valid,\n.password-input.is-invalid')
-      expect(signs).toMatch(/padding-right:\s*calc\([^;]*\+ var\(--password-eye\)\);/)
+      expect(signs).toMatch(/padding-right:\s*calc\([^;]*\+ var\(--reveal-eye\)\);/)
       expect(signs).toMatch(
-        /background-position:\s*right calc\([^;]*\+ var\(--password-eye\)\) center;/,
+        /background-position:\s*right calc\([^;]*\+ var\(--reveal-eye\)\) center;/,
       )
     })
   })

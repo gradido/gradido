@@ -365,8 +365,12 @@ html > body {
   color: #2c2c2c;
 }
 
+// The e-mail and password fields, and the thank-you card's PIN. The eye inside the password
+// field and the PIN takes the same corners (_reveal-field.scss).
+$rounded-input-radius: 17px;
+
 input.rounded-input {
-  border-radius: 17px;
+  border-radius: $rounded-input-radius;
 }
 
 .fs-7 {

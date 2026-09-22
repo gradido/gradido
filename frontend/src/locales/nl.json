@@ -335,6 +335,7 @@
     "whitepaper": "Witboek"
   },
   "form": {
+    "agree": "Akkoord met het privacybeleid",
     "amount": "Bedrag",
     "at": "op",
     "available_after": "Beschikbaar na bevestiging",
@@ -358,6 +359,7 @@
     "link_decay_description": "Het linkbedrag wordt geblokkeerd samen met de maximale vergankelijkheid. Nadat de link is ingewisseld, verlopen of verwijderd, wordt het resterende bedrag weer vrijgegeven.",
     "memo": "Memo",
     "message": "Bericht",
+    "newPassword": "Nieuw wachtwoord",
     "newPasswordRepeat": "Nieuw wachtwoord herhalen",
     "new_balance": "Nieuw banksaldo na bevestiging",
     "no_gdd_available": "Je hebt geen GDD om te versturen.",
