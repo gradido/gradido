@@ -1,7 +1,7 @@
 <template>
   <div id="registerform">
     <BContainer v-if="enterData">
-      <auth-triads class="pb-5" />
+      <auth-triads />
       <!-- Somebody showed Gradido to this newcomer: the name from their address came along
            (/u/<name>, "create account"). Their own input read back, as text. -->
       <p v-if="referrerAlias" class="alert gradido-border-radius" data-test="register-shown-by">

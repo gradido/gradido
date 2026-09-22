@@ -161,6 +161,20 @@ describe('AuthTriads', () => {
       expect(css).not.toMatch(/@media[^{]*\{\s*\.triad\s*\{/)
     })
 
+    // Bernd, 22.09.2026: less space above and below the triads on a phone, so that the card
+    // gets shorter. The gap to what follows is theirs, so it is the same on all five doors.
+    it("keeps 48px to what follows, 24px on a phone, and there gives up the card body's padding above", () => {
+      const everyWidth = css.slice(0, css.indexOf('@media'))
+      expect(everyWidth).toMatch(/\.auth-triads\s*\{[^}]*padding-bottom:\s*3rem;/)
+      const at = css.indexOf('(width <= 767.98px)')
+      expect(at).toBeGreaterThan(-1)
+      const phone = css.slice(at, css.indexOf('\n}', at))
+      expect(phone).toMatch(/\.auth-triads\s*\{[^}]*padding-bottom:\s*1\.5rem;/)
+      expect(phone).toMatch(
+        /\.auth-triads\s*\{[^}]*margin-top:\s*calc\(-1 \* var\(--bs-card-spacer-y\)\);/,
+      )
+    })
+
     it('fades instead of sliding when the device asks for less motion', () => {
       expect(css).toMatch(
         /@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?transform:\s*none;\s*opacity:\s*0;/,

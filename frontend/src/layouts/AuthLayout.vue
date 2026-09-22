@@ -33,8 +33,9 @@
               </BCol>
             </BRow>
             <!-- ps-4 on the phone: the greeting stands on the page, not in the card, so it
-                 takes the card's 24px itself and lines up with the text inside it. -->
-            <BRow v-else class="mt-0 mt-md-5 ps-4 ps-md-0">
+                 takes the card's 24px itself and lines up with the text inside it. mt-3: 16px
+                 of air below the top row, which it stood pressed against (Bernd, 22.09.2026). -->
+            <BRow v-else class="auth-greeting mt-3 mt-md-5 ps-4 ps-md-0">
               <BCol lg="9" md="9" sm="12">
                 <div class="mb--2">{{ $t('welcome') }}</div>
                 <div class="h1 mb-0">{{ communityName }}</div>
@@ -44,7 +45,7 @@
                 <BAvatar src="/img/brand/gradido_coin_128x128.png" size="6rem" />
               </BCol>
             </BRow>
-            <BCard no-body class="border-0 mt-4 gradido-custom-background page-font-size">
+            <BCard no-body class="auth-card border-0 gradido-custom-background page-font-size">
               <BRow class="p-4">
                 <BCol cols="10">
                   <language-switch-2 class="ms-3" />
@@ -74,7 +75,7 @@
               </BRow>
               <!-- ⛔ No coin and no links in here any more. Below md the coin slid into the
                    card, and the two links with it, 176px above the form; the logo top left
-                   carries the coin and the links stand beside it (AuthNavbar). A project's
+                   carries the coin and the links stand up there with it (AuthNavbar). A project's
                    banner still stands here on a phone, where the greeting is not shown. -->
               <BRow v-if="projectBannerResult" class="d-md-none mb-3">
                 <BCol class="text-center">
@@ -158,6 +159,26 @@ watchEffect(() => {
 
 .page-font-size {
   font-size: 1rem;
+}
+
+/* The greeting is the page's message. App.vue sets `#app` to 0.85rem up to 500px -- on every
+   phone -- so there it stood at 13.6px, smaller than in any wider window. It keeps its 16px
+   (Bernd, 22.09.2026). The community's name has a size of its own (.h1). */
+.auth-greeting {
+  font-size: 1rem;
+}
+
+/* The gap between the greeting and the card: 24px, and 40px on a phone, where the greeting
+   stood pressed between the top row and the card (Bernd, 22.09.2026). Here rather than as a
+   utility class on the card: there is no 40px one, and its !important would beat this. */
+.auth-card {
+  margin-top: 1.5rem;
+}
+
+@media (width <= 767.98px) {
+  .auth-card {
+    margin-top: 2.5rem;
+  }
 }
 
 /* The card body already keeps the fields 24px off the card's edge, as every box in the

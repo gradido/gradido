@@ -208,11 +208,42 @@ describe('TransactionLink.vue', () => {
       expect(small[1].text()).toMatch(/^\d{2}:\d{2}$/)
     })
 
-    it('carries the amount and the decay in one column that takes only its own width', () => {
+    it('carries the amount and the decay in one column that takes only its own width', async () => {
+      // the decay stands only under a link that can still be redeemed
+      await wrapper.setProps({ validUntil: new Date(Date.now() + 1000000).toISOString() })
       const amount = wrapper.find('[data-test="link-amount"]')
       expect(amount.text()).toBe('+ 200.00 GDD')
       expect(amount.element.parentElement.classList.contains('col-auto')).toBe(true)
       expect(wrapper.find('[data-test="link-decay"]').text()).toBe('+ 100.00 GDD')
+    })
+
+    /**
+     * Bernd, 22.09.2026: an expired link shows no decay. The server reports its hold as the
+     * amount itself, so the line could only say 0 -- the fixture's 100 is there to show that
+     * the row does not merely hide a zero.
+     */
+    it('shows no decay under an expired link', () => {
+      expect(wrapper.find('[data-test="link-validity"]').text()).toBe('Expired on')
+      expect(wrapper.find('[data-test="link-amount"]').text()).toBe('+ 200.00 GDD')
+      expect(wrapper.find('[data-test="link-decay"]').exists()).toBe(false)
+    })
+
+    /**
+     * ⛔ A wiring line with nothing else holding it. The row centres its columns, so the
+     * second line is what keeps the amount level with the state word: without it the amount
+     * dropped 9.6 points on the desk. An expired link keeps the line, empty and of the same
+     * class, so its amount stands where an open link's does.
+     */
+    it("keeps an expired link's amount column two lines high, the second one empty", async () => {
+      const amountCol = () => wrapper.find('[data-test="link-amount"]').element.parentElement
+      const spacer = wrapper.find('[data-test="link-decay-spacer"]')
+      expect(amountCol().children).toHaveLength(2)
+      expect(spacer.exists()).toBe(true)
+      expect(spacer.classes()).toContain('small')
+      expect(spacer.text()).toBe('')
+      await wrapper.setProps({ validUntil: new Date(Date.now() + 1000000).toISOString() })
+      expect(amountCol().children).toHaveLength(2)
+      expect(wrapper.find('[data-test="link-decay-spacer"]').exists()).toBe(false)
     })
 
     /**
