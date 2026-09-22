@@ -229,16 +229,21 @@ describe('TransactionLink.vue', () => {
     })
 
     /**
-     * ⛔ Without the decay line the amount column is one line high, and the row's
-     * `align-items-center` would drop it between the state word and the date. An expired
-     * link's amount stays on the state word's line; an open link's column is two lines high
-     * and needs nothing.
+     * ⛔ A wiring line with nothing else holding it. The row centres its columns, so the
+     * second line is what keeps the amount level with the state word: without it the amount
+     * dropped 9.6 points on the desk. An expired link keeps the line, empty and of the same
+     * class, so its amount stands where an open link's does.
      */
-    it("keeps an expired link's amount on the line of its state word", async () => {
+    it("keeps an expired link's amount column two lines high, the second one empty", async () => {
       const amountCol = () => wrapper.find('[data-test="link-amount"]').element.parentElement
-      expect(amountCol().classList.contains('align-self-start')).toBe(true)
+      const spacer = wrapper.find('[data-test="link-decay-spacer"]')
+      expect(amountCol().children).toHaveLength(2)
+      expect(spacer.exists()).toBe(true)
+      expect(spacer.classes()).toContain('small')
+      expect(spacer.text()).toBe('')
       await wrapper.setProps({ validUntil: new Date(Date.now() + 1000000).toISOString() })
-      expect(amountCol().classList.contains('align-self-start')).toBe(false)
+      expect(amountCol().children).toHaveLength(2)
+      expect(wrapper.find('[data-test="link-decay-spacer"]').exists()).toBe(false)
     })
 
     /**
