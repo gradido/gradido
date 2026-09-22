@@ -16,6 +16,10 @@ export class AppDatabase {
   private drizzleDataSource: MySql2Database | undefined
   private drizzlePool: Pool | undefined
   private redisClient: Redis | undefined
+  // A connection which has subscribed to a channel may only send subscribe commands, so
+  // pub/sub needs its own. One for all channels, the messages are dispatched per channel.
+  private redisSubscriber: Redis | undefined
+  private readonly channelHandlers = new Map<string, Set<(message: string) => void>>()
   private defaultBatchSize: number = 100
 
   /**
@@ -112,6 +116,12 @@ export class AppDatabase {
 
     this.redisClient = new Redis(CONFIG.REDIS_URL)
     logger.info('Redis status=', this.redisClient.status)
+    this.redisSubscriber = this.redisClient.duplicate()
+    this.redisSubscriber.on('message', (channel: string, message: string) => {
+      for (const handler of this.channelHandlers.get(channel) ?? []) {
+        handler(message)
+      }
+    })
 
     if (!this.drizzleDataSource) {
       this.drizzlePool = createPool({
@@ -155,6 +165,11 @@ export class AppDatabase {
       await this.redisClient.quit()
       this.redisClient = undefined
     }
+    if (this.redisSubscriber) {
+      await this.redisSubscriber.quit()
+      this.redisSubscriber = undefined
+    }
+    this.channelHandlers.clear()
   }
 
   public getRedisClient(): Redis {
@@ -162,6 +177,37 @@ export class AppDatabase {
       throw new Error('Redis client not initialized')
     }
     return this.redisClient
+  }
+
+  /**
+   * Calls handler for every message published on channel, by any process, until destroy().
+   * Subscribing the same handler to the same channel again changes nothing.
+   */
+  public subscribe(channel: string, handler: (message: string) => void): void {
+    if (!this.redisSubscriber) {
+      throw new Error('Redis subscriber not initialized')
+    }
+    const handlers = this.channelHandlers.get(channel)
+    if (handlers) {
+      handlers.add(handler)
+      return
+    }
+    this.channelHandlers.set(channel, new Set([handler]))
+    // not awaited: while Redis is unreachable ioredis queues the command
+    this.redisSubscriber
+      .subscribe(channel)
+      .catch((error) => logger.error(`Redis subscribe to channel ${channel} failed:`, error))
+  }
+
+  /**
+   * Publishes message on channel to every subscribed process, this one included.
+   * Best effort: not awaited and a failure is only logged, pub/sub does not guarantee
+   * delivery anyway. Whoever relies on it needs a fallback, like the timeout of a cache.
+   */
+  public publish(channel: string, message: string = ''): void {
+    this.getRedisClient()
+      .publish(channel, message)
+      .catch((error) => logger.error(`Redis publish on channel ${channel} failed:`, error))
   }
 
   // ######################################

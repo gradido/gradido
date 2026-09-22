@@ -151,6 +151,27 @@ describe('community.queries', () => {
         coordinates: [13.4, 52.5],
       })
     })
+    it('invalidates the cached home community in other processes too', async () => {
+      // Another process changes the row and publishes the change. Simulated: the row is
+      // written past dbUpdateHomeCommunity, then the message is published by hand.
+      const homeCom = await createCommunity(false)
+      expect((await getHomeCommunityDrizzle()).name).toBe('HomeCommunity-name')
+      await drizzleDb()
+        .update(communitiesTable)
+        .set({ name: 'changed elsewhere' })
+        .where(eq(communitiesTable.id, homeCom.id))
+      expect((await getHomeCommunityDrizzle()).name).toBe('HomeCommunity-name')
+
+      AppDatabase.getInstance().publish('home_community_changed')
+      // pub/sub runs over Redis, the message arrives asynchronously
+      for (let attempt = 0; attempt < 50; attempt++) {
+        if ((await getHomeCommunityDrizzle()).name === 'changed elsewhere') {
+          break
+        }
+        await new Promise((resolve) => setTimeout(resolve, 20))
+      }
+      expect((await getHomeCommunityDrizzle()).name).toBe('changed elsewhere')
+    })
     it('invalidates the cached home community', async () => {
       await createCommunity(false)
       expect((await getHomeCommunityDrizzle())?.name).toBe('HomeCommunity-name')

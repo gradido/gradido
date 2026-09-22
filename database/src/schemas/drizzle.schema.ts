@@ -52,9 +52,10 @@ export const communitiesTable = mysqlTable(
      * first group of a pass is not re-checked, because the pass just read the column.
      *
      * Read through the cached home community (`dbIsMatchingKeyingActive`). The switch is
-     * written by the backend via `dbUpdateHomeCommunity`, which clears the cache of that
-     * process, so the next read sees it. A write from anywhere else is only seen once the
-     * cache has timed out (`DEFAULT_CACHE_TIMEOUT_MS`).
+     * written via `dbUpdateHomeCommunity`, which invalidates that cache in every process
+     * (Redis pub/sub), so the next read sees it. Should the message get lost, or the row be
+     * written some other way, it is seen once the cache has timed out
+     * (`DEFAULT_CACHE_TIMEOUT_MS`).
      *
      * Separate from `MATCHING_ACTIVE` on purpose. That one answers "do members see the
      * matching at all" - the menu entry and the routes - and it is compiled into the

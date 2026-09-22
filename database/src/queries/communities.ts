@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm'
 import {
-  DEFAULT_CACHE_TIMEOUT_MS,
+  CachedValue,
   Ed25519PublicKey,
   HomeCommunityInsertInput,
   homeCommunityInsertSchema,
@@ -9,16 +9,36 @@ import {
   uuidv4Schema,
 } from 'shared'
 import { FindOptionsOrder, FindOptionsWhere, IsNull, MoreThanOrEqual, Not } from 'typeorm'
-import { drizzleDb } from '../AppDatabase'
+import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { Community as DbCommunity } from '../entity'
 import { CommunitiesInsert, CommunitiesSelect, communitiesTable } from '../schemas'
 
-// cheap cache
-//let homeCommunityCache: DbCommunity | null = null
-let homeCommunityDrizzleCache: {
-  homeCom: CommunitiesSelect
-  lastUpdated: Date
-} | null = null
+// Published after every write of the home community. The dht-node rewrites the row at
+// startup, backend and federation each hold their own cached copy.
+const HOME_COMMUNITY_CHANGED_CHANNEL = 'home_community_changed'
+
+// one function object, so subscribing it again on every load changes nothing
+function invalidateHomeCommunityCache(): void {
+  homeCommunityCache.invalidate()
+}
+
+const homeCommunityCache = new CachedValue(async () => {
+  // On every load rather than once at module level: AppDatabase and the queries import each
+  // other, and destroy() drops all subscriptions. Before a load there is nothing cached which
+  // a change could make stale.
+  AppDatabase.getInstance().subscribe(HOME_COMMUNITY_CHANGED_CHANNEL, invalidateHomeCommunityCache)
+  const homeCom = await dbSelectHomeCommunity()
+  if (!homeCom) {
+    throw new MissingHomeCommunityError()
+  }
+  return homeCom
+})
+
+// invalidates this process at once, the others as soon as the message arrives
+const homeCommunityChanged = (): void => {
+  homeCommunityCache.invalidate()
+  AppDatabase.getInstance().publish(HOME_COMMUNITY_CHANGED_CHANNEL)
+}
 
 /**
  * Retrieves the home community, i.e., a community that is not foreign.
@@ -37,22 +57,17 @@ export async function getHomeCommunity(): Promise<DbCommunity | null> {
  * and would otherwise read the row of a previous case.
  */
 export function resetHomeCommunityCache(): void {
-  homeCommunityDrizzleCache = null
+  homeCommunityCache.invalidate()
 }
 
+/**
+ * The home community, cached. Invalidated by every write through dbInsertHomeCommunity or
+ * dbUpdateHomeCommunity, in any process; a write that bypasses both is seen once the cache
+ * has timed out (DEFAULT_CACHE_TIMEOUT_MS).
+ * @throws MissingHomeCommunityError if there is none
+ */
 export async function getHomeCommunityDrizzle(): Promise<CommunitiesSelect> {
-  if (
-    !homeCommunityDrizzleCache ||
-    new Date().getTime() - homeCommunityDrizzleCache.lastUpdated.getTime() >
-      DEFAULT_CACHE_TIMEOUT_MS
-  ) {
-    const homeCom = await dbSelectHomeCommunity()
-    if (!homeCom) {
-      throw new MissingHomeCommunityError()
-    }
-    homeCommunityDrizzleCache = { homeCom, lastUpdated: new Date() }
-  }
-  return homeCommunityDrizzleCache.homeCom
+  return await homeCommunityCache.get()
 }
 
 /**
@@ -74,6 +89,7 @@ export async function dbInsertHomeCommunity(
     throw new Error('home community already exist, only one is allowed')
   }
   await drizzleDb().insert(communitiesTable).values(homeCommunityInsertSchema.parse(homeCommunity))
+  homeCommunityChanged()
 }
 
 export async function dbUpdateHomeCommunity(values: Partial<CommunitiesInsert>): Promise<void> {
@@ -82,7 +98,7 @@ export async function dbUpdateHomeCommunity(values: Partial<CommunitiesInsert>):
     .update(communitiesTable)
     .set({ ...values, updatedAt: new Date() })
     .where(eq(communitiesTable.foreign, false))
-  resetHomeCommunityCache()
+  homeCommunityChanged()
   if (!result[0].affectedRows) {
     throw new MissingHomeCommunityError()
   }
@@ -101,9 +117,9 @@ export async function dbGetCommunityByUuid(
 /**
  * Whether the home community pays a language model to key its matching entries.
  *
- * Read through the cached home community: `dbUpdateHomeCommunity` clears the cache,
- * so a switch written in this process is seen on the next call, a write from another
- * process after `DEFAULT_CACHE_TIMEOUT_MS` at the latest.
+ * Read through the cached home community: `dbUpdateHomeCommunity` invalidates the cache in
+ * every process, so a switch is seen on the next call. Should that message get lost, after
+ * `DEFAULT_CACHE_TIMEOUT_MS` at the latest.
  */
 export async function dbIsMatchingKeyingActive(): Promise<boolean> {
   const homeCom = await getHomeCommunityDrizzle()
