@@ -70,7 +70,7 @@ export async function dbSelectHomeCommunity(): Promise<CommunitiesSelect | null>
 export async function dbInsertHomeCommunity(
   homeCommunity: HomeCommunityInsertInput,
 ): Promise<void> {
-  if (homeCommunityDrizzleCache) {
+  if (await dbSelectHomeCommunity()) {
     throw new Error('home community already exist, only one is allowed')
   }
   await drizzleDb().insert(communitiesTable).values(homeCommunityInsertSchema.parse(homeCommunity))
