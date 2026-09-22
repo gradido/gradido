@@ -31,10 +31,16 @@
       </div>
       <!-- `col-auto`, so the amount takes what it needs and no more; the state column beside
            it grows into the rest. No heading over it -- the same decision the summary row one
-           level up already carries: the amount says its own sign and unit. -->
-      <div class="col-auto">
+           level up already carries: the amount says its own sign and unit.
+           An expired link shows no decay (Bernd, 22.09.2026). Once it has expired, the server
+           reports its hold as the amount itself (`transactionLinkListDecayed`), so the line
+           could only ever say 0, and a 0 there only confused. Without that second line the
+           row's `align-items-center` would drop the amount between the state word and the
+           date; `align-self-start` keeps it on the state word's line, where the amount of an
+           open link stands too. -->
+      <div class="col-auto" :class="{ 'align-self-start': !validLink }">
         <div class="fw-bold" data-test="link-amount">{{ $filters.GDD(amount) }}</div>
-        <div v-if="decay" class="small" data-test="link-decay">
+        <div v-if="validLink" class="small" data-test="link-decay">
           <IBiDropletHalf height="13" class="mb-1" />
           {{ $filters.GDD(decay) }}
         </div>
