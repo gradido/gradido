@@ -228,12 +228,19 @@
         eye is not a convenience: it is the only chance to check what was typed. It stays
         hidden by default all the same, because "at home" is also a kitchen table with
         somebody sitting across it.
+
+        The eye stands inside the field, over its right end, drawn by the same rules as the
+        password field's (assets/scss/_reveal-field.scss): one field, one rounded frame. As a
+        box of its own beside the input it drew no frame -- outline-light is a variant this
+        template does not build -- and it was out of the keyboard's reach. A native button in
+        the tab order turns Enter and Space into the click.
       -->
-      <BInputGroup>
+      <div class="reveal-field">
         <BFormInput
           id="thank-you-card-new-pin"
           v-model="newPin"
           :type="pinInputType(showPin)"
+          class="rounded-input"
           :class="{ [PIN_MASK_CLASS]: !showPin }"
           autocomplete="off"
           inputmode="numeric"
@@ -242,24 +249,21 @@
           aria-describedby="thank-you-card-pin-rules"
           data-test="thank-you-card-new-pin"
         />
-        <template #append>
-          <BButton
-            variant="outline-light"
-            class="border-start-0 rounded-end"
-            tabindex="-1"
-            :aria-label="
-              showPin
-                ? $t('thank-you-card.settings.pin-hide')
-                : $t('thank-you-card.settings.pin-show')
-            "
-            data-test="thank-you-card-pin-eye"
-            @click="showPin = !showPin"
-          >
-            <IBiEye v-if="showPin" class="eye-icon" />
-            <IBiEyeSlash v-else class="eye-icon" />
-          </BButton>
-        </template>
-      </BInputGroup>
+        <BButton
+          :variant="null"
+          class="reveal-eye"
+          :aria-label="
+            showPin
+              ? $t('thank-you-card.settings.pin-hide')
+              : $t('thank-you-card.settings.pin-show')
+          "
+          data-test="thank-you-card-pin-eye"
+          @click="showPin = !showPin"
+        >
+          <IBiEye v-if="showPin" class="eye-icon" />
+          <IBiEyeSlash v-else class="eye-icon" />
+        </BButton>
+      </div>
     </BModal>
   </div>
 </template>
@@ -281,7 +285,7 @@
  * There is no on/off control. Enabling means setting a PIN and disabling means deleting it,
  * so the state "on but without a PIN" cannot be reached, not even by a half-finished form.
  */
-import { BButton, BFormInput, BInputGroup, BModal } from 'bootstrap-vue-next'
+import { BButton, BFormInput, BModal } from 'bootstrap-vue-next'
 import AppModal from '@/components/AppModal'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
