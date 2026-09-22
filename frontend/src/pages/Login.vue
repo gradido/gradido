@@ -1,7 +1,7 @@
 <template>
   <div class="login-form">
     <BContainer v-if="enterData">
-      <auth-triads class="pb-5" />
+      <auth-triads />
       <form @submit.prevent="onSubmit">
         <BRow>
           <BCol sm="12" md="12" lg="6">

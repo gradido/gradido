@@ -102,6 +102,25 @@ onBeforeUnmount(stop)
 
 <style lang="scss" scoped>
 /*
+  The gap between the triads and what follows them is theirs, the same on all five doors:
+  48px, and 24px on a phone. The gap above them is cut to 24px there as well. They come first
+  in the card body, under the card's language row, whose own 24px of padding already stand
+  between them -- the card body's padding on top of that made it 44px (Bernd, 22.09.2026:
+  less space above and below, so that the card gets shorter). The margin is the card's own
+  variable: outside a card it is undefined, and the rule drops out.
+*/
+.auth-triads {
+  padding-bottom: 3rem;
+}
+
+@media (width <= 767.98px) {
+  .auth-triads {
+    margin-top: calc(-1 * var(--bs-card-spacer-y));
+    padding-bottom: 1.5rem;
+  }
+}
+
+/*
   The stage reaches 0.75rem into the padding of the surrounding container before it clips: a
   word longer than the column (Russian on a 320px phone) may stick out a little instead of
   being cut, and a triad sliding in still appears inside the card, not across its edge.

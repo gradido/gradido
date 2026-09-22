@@ -127,7 +127,8 @@ describe('TransactionLink', () => {
     const triads = wrapper.findComponent(AuthTriads)
     expect(triads.exists()).toBe(true)
     expect(wrapper.element.firstElementChild).toBe(triads.element)
-    expect(triads.classes()).toContain('pb-5')
+    // The gap below is the triads' own, the same on every door: no spacing from the page.
+    expect(triads.classes().filter((name) => /^[mp][tbsexy]?-/.test(name))).toEqual([])
   })
 
   it('calls the queryTransactionLink query', () => {
