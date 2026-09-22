@@ -39,11 +39,20 @@ export async function dbFindAliasOwner(alias: string): Promise<DbUserAlias | nul
 
 /**
  * Is this name spoken for by somebody else? `userId` exempts the member's own names,
- * which is what lets them reclaim one they held before.
+ * which is what lets them reclaim one they held before. With a manager, over the caller's
+ * transaction: registerAccount picks a name while it holds its connection, and must not take
+ * a second one from the pool meanwhile.
  */
-export async function dbAliasHeldByOther(alias: string, userId?: number): Promise<boolean> {
+export async function dbAliasHeldByOther(
+  alias: string,
+  userId?: number,
+  manager?: EntityManager,
+): Promise<boolean> {
   const where = userId === undefined ? { alias } : { alias, userId: Not(userId) }
-  return (await DbUserAlias.findOne({ where })) !== null
+  const row = manager
+    ? await manager.findOne(DbUserAlias, { where })
+    : await DbUserAlias.findOne({ where })
+  return row !== null
 }
 
 /**

@@ -213,7 +213,8 @@ export const registerAccount = async (
       dbUser.alias = await pickFreeAlias(
         aliasCandidates(dbUser.firstName, dbUser.lastName, email),
         dbUser.id,
-        aliasExists,
+        // Over this transaction's connection, as the event below - see there.
+        (candidate) => aliasExists(candidate, undefined, queryRunner.manager),
       )
       // The ladder decides what to offer, the schema decides what may be written.
       aliasSchema.parse(dbUser.alias)
@@ -262,10 +263,10 @@ export const registerAccount = async (
       logger.info('sendAccountActivationEmail')
     }
 
-    // Over this transaction's connection, like every write above. The pool has ten
-    // connections, and the pool's waiting has no time limit: registrations that each held
-    // their own while waiting for a second one could use them all up, with nobody left to
-    // give one back.
+    // Over this transaction's connection, like every query above: the transaction holds one
+    // of the pool's ten until it commits, and the pool's waiting has no time limit.
+    // Registrations that each held their own while waiting for a second one could use them
+    // all up, with nobody left to give one back.
     await EVENT_EMAIL_CONFIRMATION(dbUser, queryRunner.manager)
 
     await queryRunner.commitTransaction()
