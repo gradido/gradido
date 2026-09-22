@@ -343,8 +343,15 @@ html:has(body.dark-mode) {
   );
 }
 
-.dark-mode .light-gray-text {
-  color: #6b6c6f !important; // fainter than --text-muted so expired links clearly recede
+// Expired links (TransactionLink.vue) recede here as they do in light mode, fainter than
+// --text-muted: 2.7:1 on the card, where light mode has #adb5bd on white at 2.1:1 (Bernd
+// chose this at a picture on 22.09.2026, over keeping #adb5bd and over --text-muted).
+// #app.dark-mode, not .dark-mode: the component's own rule comes out as
+// .light-gray-text[data-v-…] with !important, 0,2,0, in a route chunk that loads after this
+// stylesheet. A .dark-mode rule has the same weight and loses that tie -- it did, and the
+// rows stayed #adb5bd, barely dimmer than a valid link.
+#app.dark-mode .light-gray-text {
+  color: #6b6c6f !important;
 }
 
 // Settings tabs (BTabs .nav-tabs): the strip's bottom border is light grey and
