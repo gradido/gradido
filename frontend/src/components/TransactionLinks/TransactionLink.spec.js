@@ -243,6 +243,16 @@ describe('TransactionLink.vue', () => {
       // the booking row clamps its memo because it can be opened; this one cannot be
       expect(memo.classes()).not.toContain('transaction-memo-clamped')
     })
+
+    /**
+     * Bernd, 22.09.2026: the grey rounded card under the row goes. It has no side padding,
+     * so in light mode the text ran into its rounded corners; in dark mode it took the
+     * list's colour and was never seen.
+     */
+    it('stands on the list without a surface of its own', () => {
+      expect(wrapper.classes()).toContain('transaction-link')
+      expect(wrapper.classes()).not.toContain('gradido-custom-background')
+    })
   })
 
   // The cheque used to be reachable only by opening the QR window first. It is a menu
