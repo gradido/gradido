@@ -119,6 +119,24 @@ describe('user.queries', () => {
       // ...and it stays blocked for everybody else.
       expect(await aliasExists('bibi-was')).toBe(true)
     })
+
+    // registerAccount picks a name while its transaction holds a connection. Given the
+    // transaction's manager, the check asks over it - which shows in a name the transaction
+    // has written and not yet committed: seen through the manager, not beside it.
+    it('asks over the transaction it is given', async () => {
+      await db.getDataSource().transaction(async (manager) => {
+        await dbInsertUserAlias(
+          bibi.id,
+          'bibi-pending',
+          communityUuid,
+          ALIAS_ORIGIN_CHOSEN,
+          manager,
+        )
+
+        expect(await aliasExists('bibi-pending', undefined, manager)).toBe(true)
+        expect(await aliasExists('bibi-pending')).toBe(false)
+      })
+    })
   })
 
   describe('dbFindUserLoginByEmail', () => {

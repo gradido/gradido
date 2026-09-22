@@ -8,6 +8,7 @@ import {
   Result,
   VoidResult,
 } from 'shared'
+import { EntityManager } from 'typeorm'
 import { drizzleDb } from '../AppDatabase'
 import { DBDuplicateEntryError, DBNotFoundError } from '../errorTypes'
 import {
@@ -156,7 +157,16 @@ export async function dbClearGmsRegistration(userId: number): Promise<VoidResult
   return { success: false, error: new DBNotFoundError('users', `id = ${userId}`) }
 }
 
-export async function aliasExists(alias: string, userId?: number): Promise<boolean> {
+/**
+ * `manager` goes to the half that still asks TypeORM, so that a caller inside a transaction
+ * (registerAccount) takes no second connection from the pool; the half on `users` runs on
+ * Drizzle's own pool.
+ */
+export async function aliasExists(
+  alias: string,
+  userId?: number,
+  manager?: EntityManager,
+): Promise<boolean> {
   // Only local users count. Aliases are unique per community, not globally: migration
   // 0073 dropped the global UNIQUE on users.alias in favour of UNIQUE(alias, community_uuid).
   // Rows with foreign = 1 are cached copies of members of other communities, so an alias
@@ -173,7 +183,7 @@ export async function aliasExists(alias: string, userId?: number): Promise<boole
   }
   // A name somebody left behind stays theirs, so it stays blocked - except for its own
   // owner, who may take it back.
-  return dbAliasHeldByOther(alias, userId)
+  return dbAliasHeldByOther(alias, userId, manager)
 }
 
 /**
