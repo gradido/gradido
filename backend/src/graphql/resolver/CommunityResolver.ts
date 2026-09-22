@@ -110,7 +110,7 @@ export class CommunityResolver {
     if (changedFieldsResult.success) {
       await dbUpdateHomeCommunity(changedFieldsResult.value)
     }
-    
+
     // The admin frontend selects only the uuid, and only because a mutation needs a return type.
     // The changes went to the database directly, so they are applied to the row read above as
     // well, to keep answering with the full view the existing tests check.

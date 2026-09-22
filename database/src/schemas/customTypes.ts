@@ -82,7 +82,7 @@ export const customGeometry = customType<{
     if (!value) {
       return null
     }
-    
+
     if (isDriverPoint(value)) {
       return { type: 'Point', coordinates: [value.x, value.y] }
     }
