@@ -31,13 +31,25 @@
       </div>
       <!-- `col-auto`, so the amount takes what it needs and no more; the state column beside
            it grows into the rest. No heading over it -- the same decision the summary row one
-           level up already carries: the amount says its own sign and unit. -->
+           level up already carries: the amount says its own sign and unit.
+           An expired link shows no decay (Bernd, 22.09.2026). Once it has expired, the server
+           reports its hold as the amount itself (`transactionLinkListDecayed`), so the line
+           could only ever say 0, and a 0 there only confused. -->
       <div class="col-auto">
         <div class="fw-bold" data-test="link-amount">{{ $filters.GDD(amount) }}</div>
-        <div v-if="decay" class="small" data-test="link-decay">
+        <div v-if="validLink" class="small" data-test="link-decay">
           <IBiDropletHalf height="13" class="mb-1" />
           {{ $filters.GDD(decay) }}
         </div>
+        <!-- ⛔ The line stays, empty. The row centres its columns, so the decay line is what
+             holds the amount level with the state word. Without it the amount dropped 9.6
+             points on the desk, between the state word and the date. Moving it up with
+             `align-self-start` missed by 3.4 there: the menu is the row's tallest column at 50
+             points, so no column top is the state word's top. With an empty line of the same
+             class the amount stands where an open link's does -- measured the same at 1280,
+             and 0.4 points lower at 375, where the droplet makes the decay line a little
+             taller than a line of text. -->
+        <div v-else class="small" aria-hidden="true" data-test="link-decay-spacer">&nbsp;</div>
       </div>
       <div class="col-auto d-flex justify-content-end align-items-center">
         <BDropdown no-caret right aria-expanded="false" size="sm">
