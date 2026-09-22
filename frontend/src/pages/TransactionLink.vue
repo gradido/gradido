@@ -3,7 +3,7 @@
     <!-- Outside the v-if: the triads stand while the link is still loading and above every
          state it turns out to have. Their own bottom padding is the gap to the cards below,
          as it is to the form on the login and register pages. -->
-    <auth-triads class="pb-5" />
+    <auth-triads />
     <div v-if="isTransactionLinkLoaded">
       <transaction-link-item :type="itemTypeExt">
         <template #LOGGED_OUT>
