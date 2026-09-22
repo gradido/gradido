@@ -1,5 +1,6 @@
 export * from './AuthenticationJwtPayloadType'
 export * from './AuthenticationResponseJwtPayloadType'
+export * from './CommandJwtPayloadType'
 export * from './DisburseJwtPayloadType'
 export * from './EncryptedJWEJwtPayloadType'
 export * from './JwtPayloadType'

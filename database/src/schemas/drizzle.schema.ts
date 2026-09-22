@@ -74,8 +74,6 @@ export const communitiesTable = mysqlTable(
     publicJwtKey: varchar('public_jwt_key', { length: 512 }).default(sql`NULL`),
     privateJwtKey: varchar('private_jwt_key', { length: 2048 }).default(sql`NULL`),
     location: customGeometry().default(null),
-    // Warning: Can't parse geometry from database
-    // geometryType: geometry("location"),
     hieroTopicId: varchar('hiero_topic_id', { length: 512 }).default(sql`NULL`),
     creationDate: datetime('creation_date', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })

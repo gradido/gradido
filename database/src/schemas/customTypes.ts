@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm'
 import { customType, MySqlVarbinaryOptions } from 'drizzle-orm/mysql-core'
 import { type Geometry } from 'geojson'
-import { GradidoUnit } from 'shared'
+import { GradidoUnit, locationPointSchema } from 'shared'
 import { Geometry as WkxGeometry } from 'wkx'
 
 export const customGradidoUnit = customType<{ data: GradidoUnit; driverData: bigint }>({
@@ -24,6 +24,9 @@ export const customMediumBlob = customType<{ data: Buffer; driverData: Buffer }>
     return 'mediumblob'
   },
 })
+
+// What mysql2 makes of a POINT before drizzle ever sees the column.
+type DriverPoint = { x: number; y: number }
 
 /**
  * `users.location` and `communities.location` hold a MySQL POINT; everything above the
@@ -51,10 +54,6 @@ export const customMediumBlob = customType<{ data: Buffer; driverData: Buffer }>
  * driver hands a line or a polygon over as nested arrays with the geometry type lost, so
  * one is refused rather than guessed at.
  */
-
-// What mysql2 makes of a POINT before drizzle ever sees the column.
-type DriverPoint = { x: number; y: number }
-
 const isDriverPoint = (value: unknown): value is DriverPoint =>
   typeof value === 'object' &&
   value !== null &&
@@ -83,6 +82,7 @@ export const customGeometry = customType<{
     if (!value) {
       return null
     }
+    
     if (isDriverPoint(value)) {
       return { type: 'Point', coordinates: [value.x, value.y] }
     }

@@ -4,40 +4,19 @@ import {
   CompactEncrypt,
   compactDecrypt,
   decodeJwt,
-  exportPKCS8,
-  exportSPKI,
-  // generateKeyPair,
   importPKCS8,
   importSPKI,
   jwtVerify,
   SignJWT,
 } from 'jose'
 import { getLogger } from 'log4js'
-import { ResultNoError } from '../'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../const'
-
-const _logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.auth.jwt.JWT`)
+import { ResultNoError } from '../errorTypes'
 
 import { EncryptedJWEJwtPayloadType } from './payloadtypes/EncryptedJWEJwtPayloadType'
 import { JwtPayloadType } from './payloadtypes/JwtPayloadType'
 
-// jose variant, slower
-/* 
-export const createKeyPair = async (): Promise<{ publicKey: string; privateKey: string }> => {
-  // Generate key pair using jose library
-  const keyPair = await generateKeyPair('RS256', {
-    modulusLength: 2048, // recommended key size
-    extractable: true,
-  })
-  logger.debug(`Federation: writeJwtKeyPairInHomeCommunity generated keypair...`)
-
-  // Convert keys to PEM format for storage in database
-  const publicKeyPem = await exportSPKI(keyPair.publicKey)
-  const privateKeyPem = await exportPKCS8(keyPair.privateKey)
-  return { publicKey: publicKeyPem, privateKey: privateKeyPem }
-}
-*/
-// node crytpo native variant, faster
+// node crypto native variant, faster
 const generateKeyPairAsync = promisify(generateKeyPair)
 export async function createKeyPair(): Promise<{ publicKey: string; privateKey: string }> {
   const { publicKey, privateKey } = await generateKeyPairAsync('rsa', {

@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { afterEach, describe, expect, it, mock, setSystemTime } from 'bun:test'
-import { CachedValue } from './CachedValue'
+import { CachedValue, PubSub } from './CachedValue'
 
 // a load which only finishes when the test says so
 const deferred = <T>() => {
@@ -11,6 +11,22 @@ const deferred = <T>() => {
     reject = rej
   })
   return { promise, resolve, reject }
+}
+
+// what AppDatabase does over Redis, in memory: a message reaches every subscriber, the sender included
+const inMemoryPubSub = () => {
+  const handlers = new Map<string, Set<(message: string) => void>>()
+  const pubSub: PubSub = {
+    subscribe: mock((channel: string, handler: (message: string) => void) => {
+      handlers.set(channel, (handlers.get(channel) ?? new Set()).add(handler))
+    }),
+    publish: mock((channel: string, message = '') => {
+      for (const handler of handlers.get(channel) ?? []) {
+        handler(message)
+      }
+    }),
+  }
+  return { pubSub, handlers }
 }
 
 describe('CachedValue', () => {
@@ -37,7 +53,7 @@ describe('CachedValue', () => {
   it('loads again once the timeout has passed', async () => {
     setSystemTime(new Date('2026-01-01T12:00:00.000Z'))
     let counter = 0
-    const cache = new CachedValue(async () => ++counter, 1000)
+    const cache = new CachedValue(async () => ++counter, { timeoutMs: 1000 })
     expect(await cache.get()).toBe(1)
 
     setSystemTime(new Date('2026-01-01T12:00:01.000Z'))
@@ -88,11 +104,12 @@ describe('CachedValue', () => {
     const load = mock(() => loads.shift()!())
     const cache = new CachedValue(load)
 
-    cache.get()
+    const before = cache.get()
     cache.invalidate()
     const after = cache.get()
     outdated.resolve('old')
-    await Promise.resolve()
+    // the outdated load has settled completely
+    expect(await before).toBe('old')
 
     // still shares the current load instead of starting a third one
     const later = cache.get()
@@ -112,5 +129,107 @@ describe('CachedValue', () => {
     const cache = new CachedValue(() => loads.shift()!())
     await expect(cache.get()).rejects.toThrow('load failed')
     expect(await cache.get()).toBe('value')
+  })
+
+  describe('shared between processes', () => {
+    it('subscribes on load, with the same handler every time', async () => {
+      const { pubSub, handlers } = inMemoryPubSub()
+      const cache = new CachedValue(async () => 'value', {
+        shared: { channel: 'changed', pubSub: () => pubSub },
+      })
+      // nothing cached yet, nothing to subscribe for
+      expect(pubSub.subscribe).not.toHaveBeenCalled()
+
+      await cache.get()
+      cache.invalidate()
+      await cache.get()
+
+      expect(pubSub.subscribe).toHaveBeenCalledTimes(2)
+      expect(handlers.get('changed')?.size).toBe(1)
+    })
+
+    it('invalidates when another process announces a change', async () => {
+      const { pubSub } = inMemoryPubSub()
+      let counter = 0
+      const cache = new CachedValue(async () => ++counter, {
+        shared: { channel: 'changed', pubSub: () => pubSub },
+      })
+      expect(await cache.get()).toBe(1)
+
+      pubSub.publish('changed')
+      expect(await cache.get()).toBe(2)
+    })
+
+    it('ignores other channels', async () => {
+      const { pubSub } = inMemoryPubSub()
+      let counter = 0
+      const cache = new CachedValue(async () => ++counter, {
+        shared: { channel: 'changed', pubSub: () => pubSub },
+      })
+      expect(await cache.get()).toBe(1)
+
+      pubSub.publish('something else')
+      expect(await cache.get()).toBe(1)
+    })
+
+    it('invalidateEverywhere invalidates this process and publishes the change', async () => {
+      const { pubSub } = inMemoryPubSub()
+      let counter = 0
+      const cache = new CachedValue(async () => ++counter, {
+        shared: { channel: 'changed', pubSub: () => pubSub },
+      })
+      expect(await cache.get()).toBe(1)
+
+      cache.invalidateEverywhere()
+      expect(pubSub.publish).toHaveBeenCalledWith('changed')
+      expect(await cache.get()).toBe(2)
+    })
+
+    it('invalidates this process at once, without waiting for its own message', async () => {
+      // a pub/sub which delivers nothing, like Redis while unreachable
+      const pubSub: PubSub = { subscribe: mock(() => undefined), publish: mock(() => undefined) }
+      let counter = 0
+      const cache = new CachedValue(async () => ++counter, {
+        shared: { channel: 'changed', pubSub: () => pubSub },
+      })
+      expect(await cache.get()).toBe(1)
+
+      cache.invalidateEverywhere()
+      expect(await cache.get()).toBe(2)
+    })
+
+    it('invalidate only forgets the value here, it announces nothing', async () => {
+      const { pubSub } = inMemoryPubSub()
+      const cache = new CachedValue(async () => 'value', {
+        shared: { channel: 'changed', pubSub: () => pubSub },
+      })
+      await cache.get()
+      cache.invalidate()
+      expect(pubSub.publish).not.toHaveBeenCalled()
+    })
+
+    it('does not stay stuck when subscribing fails', async () => {
+      const pubSub: PubSub = {
+        subscribe: mock(() => {
+          throw new Error('Redis subscriber not initialized')
+        }),
+        publish: mock(() => undefined),
+      }
+      const cache = new CachedValue(async () => 'value', {
+        shared: { channel: 'changed', pubSub: () => pubSub },
+      })
+      await expect(cache.get()).rejects.toThrow('Redis subscriber not initialized')
+
+      pubSub.subscribe = mock(() => undefined)
+      expect(await cache.get()).toBe('value')
+    })
+
+    it('without shared, invalidateEverywhere is a plain invalidate', async () => {
+      let counter = 0
+      const cache = new CachedValue(async () => ++counter)
+      expect(await cache.get()).toBe(1)
+      cache.invalidateEverywhere()
+      expect(await cache.get()).toBe(2)
+    })
   })
 })

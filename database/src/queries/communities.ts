@@ -13,31 +13,27 @@ import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { Community as DbCommunity } from '../entity'
 import { CommunitiesInsert, CommunitiesSelect, communitiesTable } from '../schemas'
 
-// Published after every write of the home community. The dht-node rewrites the row at
-// startup, backend and federation each hold their own cached copy.
-const HOME_COMMUNITY_CHANGED_CHANNEL = 'home_community_changed'
+// Shared between processes: the dht-node rewrites the row at startup, backend and federation
+// each hold their own cached copy.
+const homeCommunityCache = new CachedValue(
+  async () => {
+    const homeCom = await dbSelectHomeCommunity()
+    if (!homeCom) {
+      throw new MissingHomeCommunityError()
+    }
+    return homeCom
+  },
+  // a getter, because AppDatabase and the queries import each other
+  { shared: { channel: 'home_community_changed', pubSub: () => AppDatabase.getInstance() } },
+)
 
-// one function object, so subscribing it again on every load changes nothing
-function invalidateHomeCommunityCache(): void {
+/**
+ * Forgets the cached home community of this process. For tests, which empty the table
+ * between cases and would otherwise read the row of a previous case.
+ * TODO: remove after updating all tests and seeds to use drizzle db functions
+ */
+export function resetHomeCommunityCache(): void {
   homeCommunityCache.invalidate()
-}
-
-const homeCommunityCache = new CachedValue(async () => {
-  // On every load rather than once at module level: AppDatabase and the queries import each
-  // other, and destroy() drops all subscriptions. Before a load there is nothing cached which
-  // a change could make stale.
-  AppDatabase.getInstance().subscribe(HOME_COMMUNITY_CHANGED_CHANNEL, invalidateHomeCommunityCache)
-  const homeCom = await dbSelectHomeCommunity()
-  if (!homeCom) {
-    throw new MissingHomeCommunityError()
-  }
-  return homeCom
-})
-
-// invalidates this process at once, the others as soon as the message arrives
-const homeCommunityChanged = (): void => {
-  homeCommunityCache.invalidate()
-  AppDatabase.getInstance().publish(HOME_COMMUNITY_CHANGED_CHANNEL)
 }
 
 /**
@@ -50,14 +46,6 @@ export async function getHomeCommunity(): Promise<DbCommunity | null> {
   return await DbCommunity.findOne({
     where: { foreign: false },
   })
-}
-
-/**
- * Forgets the cached home community. For tests, which empty the table between cases
- * and would otherwise read the row of a previous case.
- */
-export function resetHomeCommunityCache(): void {
-  homeCommunityCache.invalidate()
 }
 
 /**
@@ -89,7 +77,7 @@ export async function dbInsertHomeCommunity(
     throw new Error('home community already exist, only one is allowed')
   }
   await drizzleDb().insert(communitiesTable).values(homeCommunityInsertSchema.parse(homeCommunity))
-  homeCommunityChanged()
+  homeCommunityCache.invalidateEverywhere()
 }
 
 export async function dbUpdateHomeCommunity(values: Partial<CommunitiesInsert>): Promise<void> {
@@ -98,7 +86,7 @@ export async function dbUpdateHomeCommunity(values: Partial<CommunitiesInsert>):
     .update(communitiesTable)
     .set({ ...values, updatedAt: new Date() })
     .where(eq(communitiesTable.foreign, false))
-  homeCommunityChanged()
+  homeCommunityCache.invalidateEverywhere()
   if (!result[0].affectedRows) {
     throw new MissingHomeCommunityError()
   }
