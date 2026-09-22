@@ -46,7 +46,7 @@ const { t } = useI18n()
 const store = useStore()
 
 // Read once: the flags are baked in at build time, they cannot change while the app runs.
-const isCommunityService = CONFIG.GMS_ACTIVE || CONFIG.HUMHUB_ACTIVE
+const isCommunityService = CONFIG.GMS_LEGACY_ACTIVE || CONFIG.HUMHUB_ACTIVE
 
 /**
  * The only state that is not already in the store. Two small queries, asked once when the

@@ -162,7 +162,7 @@ export class User extends BaseEntity {
   @Column({ name: 'publisher_id', type: 'bigint', unsigned: true, default: 0 })
   publisherId: number
 
-  @Column({ name: 'gms_allowed', type: 'bool', default: true })
+  @Column({ name: 'gms_allowed', type: 'bool', default: false })
   gmsAllowed: boolean
 
   @Column({
@@ -179,7 +179,7 @@ export class User extends BaseEntity {
     type: 'int',
     unsigned: true,
     nullable: false,
-    default: 2,
+    default: 1,
   })
   gmsPublishLocation: number
 

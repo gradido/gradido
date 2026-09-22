@@ -3,7 +3,6 @@ import { registerEnumType } from 'type-graphql'
 export enum GmsPublishLocationType {
   GMS_LOCATION_TYPE_EXACT = 0,
   GMS_LOCATION_TYPE_APPROXIMATE = 1,
-  GMS_LOCATION_TYPE_RANDOM = 2,
 }
 
 registerEnumType(GmsPublishLocationType, {

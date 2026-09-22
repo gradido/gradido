@@ -69,7 +69,7 @@ function member(): GmsUser {
     lastName: 'Bloxberg',
     gmsPublishName: 0,
     gmsPublishLocation: 0,
-    location: null,
+    location: { type: 'Point', coordinates: [9.69, 49.28] },
     emailContact: { email: 'bibi@bloxberg.de', gmsPublishEmail: true },
   } as any)
 }
