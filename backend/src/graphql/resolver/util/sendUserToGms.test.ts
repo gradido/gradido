@@ -42,7 +42,7 @@ function member(id: number, gradidoID: string): DbUser {
     lastName: 'Bloxberg',
     gmsPublishName: 0,
     gmsPublishLocation: 0,
-    location: null,
+    location: { type: 'Point', coordinates: [9.69, 49.28] },
     emailContact: { email: `member-${id}@example.org`, gmsPublishEmail: true },
   } as unknown as DbUser
 }

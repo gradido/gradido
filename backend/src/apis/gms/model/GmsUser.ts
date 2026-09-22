@@ -34,16 +34,11 @@ export class GmsUser {
     const location = Point2Location(user.location as Point)
     if (location) {
       this.location = [location.longitude, location.latitude]
-    }
-    let publishLocationType: GmsPublishLocationType = user.gmsPublishLocation
-    if (publishLocationType === GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM) {
-      publishLocationType = GmsPublishLocationType.GMS_LOCATION_TYPE_APPROXIMATE
-    }
-    if (!this.location) {
-      publishLocationType = GmsPublishLocationType.GMS_LOCATION_TYPE_RANDOM
+    } else {
+      throw new Error('Missing Location')
     }
     // use string for http transfer to make sure the correct value reachs the target
-    this.type = GmsPublishLocationType[publishLocationType]
+    this.type = GmsPublishLocationType[user.gmsPublishLocation]
   }
 
   id: number

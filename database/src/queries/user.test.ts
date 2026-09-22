@@ -486,9 +486,8 @@ describe('user.queries', () => {
     })
 
     it('finds the local members who allow the GMS, and nobody deleted', async () => {
-      await DbUser.update({ id: peter.id }, { gmsAllowed: false, gmsPublishLocation: 1 })
-      await DbUser.update({ id: bob.id }, { deletedAt: new Date(), gmsPublishLocation: 1 })
-      await DbUser.update({ id: bibi.id }, { gmsPublishLocation: 1 })
+      await DbUser.update({ id: bob.id }, { deletedAt: new Date() })
+      await DbUser.update({ id: bibi.id }, { gmsAllowed: true })
       try {
         expect(await dbFindGmsAllowedLocalUserIds()).toEqual([{ id: bibi.id }])
         await DbUser.update({ id: bibi.id }, { foreign: true })

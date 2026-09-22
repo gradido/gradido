@@ -69,10 +69,9 @@ const logo = computed(() =>
 
 /*
   Below lg: the logo on the line the greeting and the card's text start on, the links
-  ending on the line the card's text ends on. The row is as tall as its links, 44px each,
-  the height of a finger. Where the two words do not fit beside the logo -- on a 320px
-  phone in seven of the ten languages, in Russian below 390px -- they take a row of their
-  own below it, still on the right, rather than running across it.
+  ending on the line the card's text ends on. The links are 44px high each, the height of
+  a finger. From md up they stand beside the logo; on a phone they take the row below it
+  (see the last block).
 */
 @media screen and (width <= 1024.98px) {
   .auth-header {
@@ -85,8 +84,7 @@ const logo = computed(() =>
     gap: 4px 12px;
   }
 
-  /* The desk's 200px wherever the width has room for it; on a phone 32px high, so that
-     "Registrieren | Anmelden" fits beside it from 360px on. */
+  /* The desk's 200px wherever the width has room for it; smaller on a phone (below). */
   .auth-logo-small {
     width: 200px;
     height: auto;
@@ -105,10 +103,22 @@ const logo = computed(() =>
   }
 }
 
+/*
+  On a phone the logo is 45px high, 153px wide: halfway between the 109px it had here and
+  the desk's 200px (Bernd, 22.09.2026 -- it had become too small). The two words take the
+  row below it, still on the right, on every phone and in every language alike. Beside the
+  larger logo they would fit only on the wider phones (German from 391px), and the top of
+  the page would change from one phone to the next -- as it did before, when they went down
+  only where they did not fit: at 320px in seven languages, in Russian below 390px.
+*/
 @media screen and (width <= 767.98px) {
   .auth-logo-small {
     width: auto;
-    height: 32px;
+    height: 45px;
+  }
+
+  :deep(#nav-collapse) {
+    flex-basis: 100%;
   }
 }
 </style>

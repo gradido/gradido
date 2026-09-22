@@ -295,21 +295,6 @@ export const registerAccount = async (
     await EVENT_USER_REGISTER(dbUser)
   }
 
-  if (!CONFIG.GMS_ACTIVE) {
-    logger.info('GMS deactivated per configuration! New user is not published to GMS.')
-  } else {
-    try {
-      if (dbUser.gmsAllowed && !dbUser.gmsRegistered) {
-        await sendUsersToGms([dbUser], homeCom)
-      }
-    } catch (err) {
-      if (CONFIG.GMS_CREATE_USER_THROW_ERRORS) {
-        throw new LogError('Error publishing new created user to GMS:', err)
-      } else {
-        logger.error('Error publishing new created user to GMS:', err)
-      }
-    }
-  }
   // wait for finishing dlt transaction
   const startTime = new Date()
   await dltTransactionPromise
