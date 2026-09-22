@@ -1,0 +1,48 @@
+// AI-GENERATED — not an architecture reference
+
+// A field with an eye inside its right end: the password field (`InputPassword.vue`) and the
+// thank-you card's PIN (`UserThankYouCard.vue`). One input, one frame: the eye stands over the
+// input's right end, as the warning sign does in the e-mail field. As a box of its own beside
+// the input it had no frame at all -- its variant, outline-light, is one this template does
+// not build (Bernd, 21.09.2026).
+
+// ⚠️ One set of rules for both, and that is the point of this file: the PIN's eye began as a
+// copy of the password's (17.08.2026), and when the password's was fixed (#3948) the copy kept
+// every fault. Checked in `src/revealField.spec.js`.
+
+// ⛔ Imported AFTER Bootstrap in gradido.scss, where these rules stood before, in
+// InputPassword's own stylesheet: `.btn:hover` and `.btn:focus-visible` weigh as much as the
+// rules below, and a tie goes to the rule that comes later. (Without a variant, what those two
+// set comes out transparent or none today; the order keeps the eye from depending on that.)
+
+.reveal-field {
+  --reveal-eye: 3rem;
+
+  position: relative;
+}
+
+// The typed text stops before the eye.
+.reveal-field > .form-control {
+  padding-right: var(--reveal-eye);
+}
+
+// The eye takes the field's right end, a finger wide and the field's full height, and its
+// corners -- those of `input.rounded-input` -- so that the focus ring below follows them.
+.reveal-field > .reveal-eye {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--reveal-eye);
+  padding: 0;
+  border: 0;
+  border-radius: 0 $rounded-input-radius $rounded-input-radius 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+// Without a variant the button has no focus ring of its own; this one stays inside the field.
+.reveal-field > .reveal-eye:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: -6px;
+}

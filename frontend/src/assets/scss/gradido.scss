@@ -22,6 +22,10 @@
 @import "auth-navbar";
 @import "navbar";
 
+// The eye inside the password field and the PIN. After Bootstrap, or its button states win
+// every tie with the eye's rules (see the file's head).
+@import "reveal-field";
+
 // Map Bootstrap's native dark color mode onto our tokens. Must stay last so it
 // wins the cascade over Bootstrap's own [data-bs-theme=dark] block.
 @import "color-mode-bridge";

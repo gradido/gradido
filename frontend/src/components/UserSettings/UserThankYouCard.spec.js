@@ -352,6 +352,57 @@ describe('UserThankYouCard', () => {
       expect(field('pin-eye').attributes('aria-label')).toBe('thank-you-card.settings.pin-hide')
     })
 
+    // Bernd, 21.09.2026: the field's frame stopped short of the eye. The eye was the password
+    // field's old one, copied on 17.08. -- a box of its own beside the field, in a variant this
+    // template does not build, and out of the tab order. #3948 fixed the password's only.
+    describe('the eye', () => {
+      const openDialog = async () => {
+        await mountWith({ settings: null, cards: [] })
+        await field('enable').trigger('click')
+      }
+
+      it('stands in the field, with the pin, and not in a box beside it', async () => {
+        await openDialog()
+        const box = wrapper.find('.reveal-field')
+        expect(box.find('[data-test="thank-you-card-new-pin"]').exists()).toBe(true)
+        expect(box.find('[data-test="thank-you-card-pin-eye"]').exists()).toBe(true)
+        expect(wrapper.find('.modal-stub .input-group').exists()).toBe(false)
+      })
+
+      // The rules it shares with the password field (assets/scss/_reveal-field.scss, checked
+      // in src/revealField.spec.js) are written for these selectors, children and all: one
+      // wrapper more, and none of them applies.
+      it('is reached by the rules it shares with the password field', async () => {
+        await openDialog()
+        expect(field('new-pin').element.matches('.reveal-field > .form-control')).toBe(true)
+        expect(field('pin-eye').element.matches('.reveal-field > .reveal-eye')).toBe(true)
+      })
+
+      it('leaves the frame to the field, rounded as the password field is', async () => {
+        await openDialog()
+        expect(field('new-pin').classes()).toContain('rounded-input')
+        expect(field('pin-eye').classes()).not.toContain('btn-outline-light')
+      })
+
+      // Out of the tab order, a typed PIN could only be checked with a mouse or a finger. A
+      // native button turns Enter and Space into the click tested above.
+      it('can be reached from the keyboard', async () => {
+        await openDialog()
+        const eye = field('pin-eye')
+        expect(eye.element.tagName).toBe('BUTTON')
+        expect(eye.attributes('tabindex')).toBeUndefined()
+        expect(eye.attributes('type')).toBe('button')
+      })
+
+      it('leaves the pin its mask, its keypad and its six digits', async () => {
+        await openDialog()
+        const pin = field('new-pin')
+        expect(pin.classes()).toContain('pin-masked')
+        expect(pin.attributes('inputmode')).toBe('numeric')
+        expect(pin.attributes('maxlength')).toBe('6')
+      })
+    })
+
     it('saves the pin with the limits, then empties the field and closes', async () => {
       await mountWith()
       await buttonWith('thank-you-card.settings.change-pin').trigger('click')
