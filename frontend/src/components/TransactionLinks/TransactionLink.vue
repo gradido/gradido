@@ -1,5 +1,10 @@
 <template>
-  <div class="transaction-link gradido-custom-background mb-2">
+  <div class="transaction-link mb-2">
+    <!-- No surface of its own (Bernd, 22.09.2026). The row stood on the grey rounded card of
+         `gradido-custom-background`, which has no side padding: once the link's circle was
+         gone (below), the text began right at the card's edge and ran into its rounded
+         corners in light mode. In dark mode that card took the list's own colour and was
+         never seen. Without it both modes look alike. -->
     <!-- ⛔ One line at every width, and that is only possible because the link's own circle
          is gone (Bernd, 12.09.2026: "Der Kreis mit dem schrägen Link kann komplett wegfallen.
          Damit wird die Zeilenbreite größer, und damit passt auch mehr in eine Zeile rein.").

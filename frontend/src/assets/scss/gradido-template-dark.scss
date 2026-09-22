@@ -310,11 +310,9 @@ html:has(body.dark-mode) {
   --bs-pagination-disabled-border-color: var(--border);
 }
 
-// Transaction-link cards (Offene Links / QR-Codes) use a near-white translucent
-// background (#ebebeba3) -> dark surface in dark mode so the active card is not a
-// bright block. Expired links carry .light-gray-text (#adb5bd, a dim-out in light
-// mode); on the dark card that reads brighter than the active ones, so map it to
-// muted text -> expired links look greyed-out, active ones stay full-contrast.
+// The auth card (AuthLayout) uses a near-white translucent background (#ebebeba3)
+// -> dark surface in dark mode so it is not a bright block. The transaction-link rows
+// carried the same class until 22.09.2026; they have no surface of their own now.
 .dark-mode .gradido-custom-background {
   background-color: var(--surface) !important;
 }
