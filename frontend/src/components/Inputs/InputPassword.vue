@@ -64,7 +64,7 @@ const props = defineProps({
     default: false,
   },
   rules: {
-    type: Object || String,
+    type: [Object, String],
     default: 'required',
   },
   allowFullValidation: {
@@ -81,18 +81,22 @@ const props = defineProps({
   },
 })
 
-const name = toRef(props, 'name')
-const { value, errorMessage, meta, errors, validate } = useField(name, props.rules, {
-  bails: !props.allowFullValidation,
-  validateOnMount: props.immediate,
-})
-
 const { t } = useI18n()
 
 const defaultTranslations = computed(() => ({
   label: props.label || t('form.password'),
   placeholder: props.placeholder || t('form.password'),
 }))
+
+const name = toRef(props, 'name')
+const { value, errorMessage, meta, errors, validate } = useField(name, props.rules, {
+  bails: !props.allowFullValidation,
+  validateOnMount: props.immediate,
+  // The message names the field as the label above it does. The field name alone cannot:
+  // `password` is the old password in the settings, `newPassword` reads "Passwort" where
+  // an account gets its first one and "Neues Passwort" where it changes it.
+  label: () => defaultTranslations.value.label,
+})
 
 const showPassword = ref(false)
 

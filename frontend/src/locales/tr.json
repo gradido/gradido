@@ -335,6 +335,7 @@
     "whitepaper": "Whitepaper"
   },
   "form": {
+    "agree": "Gizlilik politikası onayı",
     "amount": "Miktar",
     "at": "",
     "available_after": "Onaydan sonra kullanılabilir",
@@ -358,6 +359,7 @@
     "link_decay_description": "Bağlantı tutarı, azami erimeyle birlikte bloke edilir. Bağlantı kullanıldıktan, süresi dolduktan veya silindikten sonra kalan kısım tekrar serbest bırakılır.",
     "memo": "Mesaj",
     "message": "Mesaj",
+    "newPassword": "Yeni şifre",
     "newPasswordRepeat": "Yeni şifreyi tekrarla",
     "new_balance": "Onay sonrası hesap bakiyesi",
     "no_gdd_available": "Göndermek için GDD'niz yok.",

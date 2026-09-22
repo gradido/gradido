@@ -2,7 +2,8 @@ import { configure, defineRule } from 'vee-validate'
 import { required, email, min, max } from '@vee-validate/rules'
 import { checkUsername } from '@/graphql/queries'
 import { validate as validateUuid, version as versionUuid } from 'uuid'
-import { localize } from '@vee-validate/i18n'
+import { unref } from 'vue'
+import { localize, setLocale } from '@vee-validate/i18n'
 import en from '@vee-validate/i18n/dist/locale/en.json'
 import de from '@vee-validate/i18n/dist/locale/de.json'
 import es from '@vee-validate/i18n/dist/locale/es.json'
@@ -19,27 +20,37 @@ import { useI18n } from 'vue-i18n'
 const USERNAME_REGEX = /^(?=.{3,20}$)[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)*$/
 
 export const loadAllRules = (i18nCallback, apollo) => {
+  // vee-validate's own rules (email, min, max) take their sentences from its dictionary.
+  const ruleMessage = localize({
+    en,
+    de,
+    es,
+    fr,
+    nl,
+    tr,
+    it,
+    ru,
+    pt,
+    el,
+  })
   configure({
     generateMessage: (context) => {
-      const { t } = i18nCallback || useI18n()
+      const { t, locale } = i18nCallback || useI18n()
 
-      const translationKey = `form.${context.name}`
+      // A message names the field as its label does where the component hands the label over
+      // (InputPassword: "Altes Passwort", or plain "Passwort" where an account gets its first),
+      // and by `form.<name>` everywhere else - validationFieldNames.drift.spec.js holds that
+      // key for every name.
+      // eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys
+      const fieldName = context.label || t(`form.${context.name}`)
       if (context.rule.name === 'required') {
-        // eslint-disable-next-line @intlify/vue-i18n/no-dynamic-keys
-        return t('form.validation.requiredField', { fieldName: t(translationKey) })
+        return t('form.validation.requiredField', { fieldName })
       }
-      return localize({
-        en,
-        de,
-        es,
-        fr,
-        nl,
-        tr,
-        it,
-        ru,
-        pt,
-        el,
-      })(context)
+      // The dictionary keeps a language of its own and starts in English; only the language
+      // switch used to move it, so a German wallet read "The email field must be a valid
+      // email". It is set to the wallet's language with every message instead.
+      setLocale(unref(locale))
+      return ruleMessage({ ...context, label: fieldName })
     },
     validateOnBlur: true,
     validateOnChange: true,
