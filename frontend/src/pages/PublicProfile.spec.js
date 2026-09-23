@@ -37,8 +37,8 @@ const router = createRouter({
   ],
 })
 
-const wrapperFor = async (alias) => {
-  await router.push(`/u/${alias}`)
+const wrapperFor = async (alias, query = {}) => {
+  await router.push({ path: `/u/${alias}`, query })
   await router.isReady()
   return mount(PublicProfile, {
     global: { plugins: [i18n, router], stubs: { AuthTriads: true, IBiCopy: true } },
@@ -160,6 +160,22 @@ describe('PublicProfile', () => {
     const join = wrapper.find('[data-test="public-profile-register"]')
     expect(join.text()).toBe(en['public-profile'].join)
     expect(join.attributes('href')).toBe('/register?referrer=bernd')
+  })
+
+  // E-017: the table code in the link of a live card goes on to the registration together with
+  // the name it is sealed for. The page itself checks nothing about it (PS-011).
+  it('hands a table code on to the registration, with the name', async () => {
+    const wrapper = await wrapperFor('bernd', { presence: '1790000600.seal-AAAA_BBBB' })
+
+    const join = new URL(
+      wrapper.find('[data-test="public-profile-register"]').attributes('href'),
+      'https://x',
+    )
+    expect(join.pathname).toBe('/register')
+    expect(Object.fromEntries(join.searchParams)).toEqual({
+      referrer: 'bernd',
+      presence: '1790000600.seal-AAAA_BBBB',
+    })
   })
 
   // ZE-005: the person in the address learns of the arrival, so the newcomer reads it here,
