@@ -96,6 +96,36 @@ describe('gradidoAddress', () => {
       user: 'bernd',
     })
   })
+
+  // The table code (E-017) rides on the link and nowhere else: the shown line is what gets
+  // printed and copied, and the code belongs on the screen only.
+  it('puts the table code on the link only', () => {
+    expect(gradidoAddress('bernd', { presence: '1790000000.Ab-_9' })).toEqual({
+      host: 'ki-playground.gradido.net',
+      display: 'ki-playground.gradido.net/u/bernd',
+      link: 'https://ki-playground.gradido.net/u/bernd?presence=1790000000.Ab-_9',
+    })
+  })
+
+  it('writes no empty query, and no empty value into one', () => {
+    expect(gradidoAddress('bernd', {}).link).toBe('https://ki-playground.gradido.net/u/bernd')
+    expect(gradidoAddress('bernd', { presence: '' }).link).toBe(
+      'https://ki-playground.gradido.net/u/bernd',
+    )
+    expect(gradidoAddress('bernd', { presence: undefined }).link).toBe(
+      'https://ki-playground.gradido.net/u/bernd',
+    )
+    expect(gradidoAddress('bernd', { presence: null }).link).toBe(
+      'https://ki-playground.gradido.net/u/bernd',
+    )
+  })
+
+  // The address page reads the alias out of the path; a query after it must not change that.
+  it('keeps a link with a code one the address page reads the same person from', () => {
+    const { pathname, searchParams } = new URL(gradidoAddress('a?b', { presence: '1.x' }).link)
+    expect(decodeURIComponent(pathname)).toBe('/u/a?b')
+    expect(searchParams.get('presence')).toBe('1.x')
+  })
 })
 
 describe('communityHost', () => {

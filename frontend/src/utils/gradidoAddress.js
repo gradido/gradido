@@ -112,21 +112,28 @@ export const memberKey = ({ communityUuid, gradidoID }) => `${communityUuid ?? '
  * Handing both out of one call is what keeps the card, the cheque and the navigation bar
  * from ever saying different things about the same person.
  *
+ * The optional query goes onto the link only: the table code travels as `?presence=` (E-017)
+ * and is never printed, so the shown line stays the address and nothing else. Empty values are
+ * left out rather than written as "undefined" or "null".
+ *
  * @param {string} alias
+ * @param {Record<string, string>} [query]
  * @returns {{host: string, display: string, link: string}}
  */
-export const gradidoAddress = (alias) => {
+export const gradidoAddress = (alias, query = {}) => {
   const host = communityHost(CONFIG.COMMUNITY_URL)
+  // The alias is encoded although no valid one needs it: VALID_ALIAS_REGEX allows letters,
+  // digits, hyphen and underscore only, and the fallback is a UUID. It is here because this
+  // link is printed. An unencoded '?' or '#' would silently become a query or a fragment, and
+  // a wrong link on paper cannot be corrected -- so the guarantee is worth one call that
+  // does nothing today, especially while the rules around user names are still moving.
+  const link = new URL(`/${USER_NAMESPACE}/${encodeURIComponent(alias)}`, CONFIG.COMMUNITY_URL)
+  link.search = new URLSearchParams(Object.entries(query).filter(([, value]) => value)).toString()
   return {
     host,
     // Unencoded on purpose -- this one is read by a human and never navigated to.
     display: `${host}/${USER_NAMESPACE}/${alias}`,
-    // The alias is encoded although no valid one needs it: VALID_ALIAS_REGEX allows letters,
-    // digits, hyphen and underscore only, and the fallback is a UUID. It is here because this
-    // link is printed. An unencoded '?' or '#' would silently become a query or a fragment, and
-    // a wrong link on paper cannot be corrected -- so the guarantee is worth one call that
-    // does nothing today, especially while the rules around user names are still moving.
-    link: new URL(`/${USER_NAMESPACE}/${encodeURIComponent(alias)}`, CONFIG.COMMUNITY_URL).href,
+    link: link.href,
   }
 }
 

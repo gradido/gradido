@@ -830,6 +830,7 @@
     "email": "We have sent you an email.",
     "errorTitle": "Attention!",
     "register": "You are registered now, please check your emails and click the activation link.",
+    "registerPresence": "Your account is ready. A confirmation mail is on its way to your address. Sign in now. If signing in fails, you may already have an account with this address: then use “Forgot password”.",
     "reply": "Thank you, your reply has been sent.",
     "reset": "Your password has been changed.",
     "title": "Thank you!",
@@ -1124,11 +1125,23 @@
       "title": "Someone elsewhere"
     },
     "here": {
+      "codeHint": "The code is good for ten minutes, a new one for each guest. Whoever scans it can use their account right away.",
+      "confirmFirst": "Once your e-mail address is confirmed, you can open accounts at the table here as well. Until then this code shows your card.",
+      "expired": "The code has expired.",
+      "limitReached": "All places are taken: {n} of your guests have not confirmed their e-mail address yet. As soon as one of them has, you can show a code again. If you get stuck, support will help you.",
       "map": "the map",
+      "newCode": "Show a new code",
+      "noAnswer": "The code did not arrive just now. Try again.",
+      "noPhone": "No phone at hand? Open your guest's account here on this device.",
+      "noPhoneHint": "You will be signed out for this. When your guest is done, they sign out and you sign in again.",
       "step1": "Show {map}. Let her type in what she is looking for.",
       "step2": "She holds her camera up to this code.",
       "step3": "The account welcomes her by itself. You don't need to explain anything.",
-      "title": "Someone here with me"
+      "title": "Someone here with me",
+      "unconfirmedGuest": "{firstName} {lastName} · {alias} · since {date}",
+      "unconfirmedGuests": "One of your guests has not confirmed their e-mail address yet: | {n} of your guests have not confirmed their e-mail address yet:",
+      "unconfirmedHint": "Feel free to remind them of the link in their mail. If support has to delete an account, send them this line.",
+      "validFor": "Valid for one more minute | Valid for {n} more minutes"
     },
     "mirror": {
       "go": "Show it to somebody else",
@@ -1164,6 +1177,10 @@
       "minimum": "8 characters minimum.",
       "no-whitespace": "No white spaces and tabs",
       "one_number": "One number required.",
+      "presenceExpired": "This code has expired. Ask for a new one and you can use your account right away. Or register here as usual and set your password through the link in the e-mail.",
+      "presenceFailed": "The code has expired. Ask for a new one and scan it again.",
+      "presenceHint": "You can use your account right away. Confirm your e-mail address by this time tomorrow, the mail is on its way. Until then {name} can see that your confirmation is still missing.",
+      "presenceLimit": "No further account can be opened with this code right now: {name} is already vouching for guests who have not confirmed their address yet. As soon as one of them has confirmed, try again. Or register here as usual and the link comes by e-mail.",
       "shownBy": "{name} showed you Gradido. Good to have you here.",
       "special-char": "One special character required (e.g. _ or ä)",
       "uppercase": "One uppercase letter required."
