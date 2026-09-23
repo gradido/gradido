@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { eq } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
+import { v4 as uuidv4 } from 'uuid'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { chatConversationMembersTable, chatConversationsTable } from '../schemas'
 import {
@@ -109,21 +110,31 @@ describe('chatConversations query test', () => {
   })
 
   // Two first messages at the same moment, one from each side: the unique key on the pair
-  // key is the only thing between them and two conversations.
+  // key keeps them to one conversation, and a statement per member keeps the two inserts of
+  // the same members in opposite order from deadlocking (database CI, 23.09.2026). A race
+  // that was lost once in seven runs needs more than one chance, so twenty more pairs follow.
   it('opens one conversation for two first messages written at the same moment', async () => {
-    const [one, other] = await Promise.all([
-      dbEnsureDirectChatConversation(ANNA_OVER_THERE, BEN),
-      dbEnsureDirectChatConversation(BEN, ANNA_OVER_THERE),
-    ])
-    expect(other.id).toBe(one.id)
-    const pairKey = directChatPairKey(ANNA_OVER_THERE, BEN)
-    expect(
-      await db
-        .select()
-        .from(chatConversationsTable)
-        .where(eq(chatConversationsTable.directPairKey, pairKey)),
-    ).toHaveLength(1)
-    expect(await membersOf(one.id)).toHaveLength(2)
+    const pairs = [
+      [ANNA_OVER_THERE, BEN],
+      ...Array.from({ length: 20 }, () => [
+        { communityUuid: OTHER, gradidoId: uuidv4() },
+        { communityUuid: HOME, gradidoId: uuidv4() },
+      ]),
+    ]
+    for (const [left, right] of pairs) {
+      const [one, other] = await Promise.all([
+        dbEnsureDirectChatConversation(left, right),
+        dbEnsureDirectChatConversation(right, left),
+      ])
+      expect(other.id).toBe(one.id)
+      expect(
+        await db
+          .select()
+          .from(chatConversationsTable)
+          .where(eq(chatConversationsTable.directPairKey, directChatPairKey(left, right))),
+      ).toHaveLength(1)
+      expect(await membersOf(one.id)).toHaveLength(2)
+    }
   })
 
   it('opens another conversation for another pair', async () => {

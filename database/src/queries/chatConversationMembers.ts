@@ -19,6 +19,12 @@ export interface ChatMemberRef {
  * changes nothing -- their role, joined_at and read pointer included. That is what lets this
  * run with every message and not only with the first.
  *
+ * One statement per member, not one for all of them. Two first messages written at the same
+ * moment, one from each side, put the same two members in -- in opposite order. A single
+ * statement takes its row locks in the order of its rows, so the two statements waited for
+ * each other and InnoDB ended one of them as a deadlock (database CI, 23.09.2026). A
+ * statement per row holds the lock of that one row and commits before the next.
+ *
  * Plain `void`: with valid input this always succeeds (AGENTS.md, "functions that always
  * succeed on valid input").
  */
@@ -26,16 +32,16 @@ export async function dbInsertChatConversationMembers(
   conversationId: number,
   members: ChatMemberRef[],
 ): Promise<void> {
-  await drizzleDb()
-    .insert(chatConversationMembersTable)
-    .values(
-      members.map((member) => ({
+  for (const member of members) {
+    await drizzleDb()
+      .insert(chatConversationMembersTable)
+      .values({
         conversationId,
         communityUuid: member.communityUuid,
         gradidoId: member.gradidoId,
-      })),
-    )
-    .onDuplicateKeyUpdate({
-      set: { conversationId: sql`${chatConversationMembersTable.conversationId}` },
-    })
+      })
+      .onDuplicateKeyUpdate({
+        set: { conversationId: sql`${chatConversationMembersTable.conversationId}` },
+      })
+  }
 }
