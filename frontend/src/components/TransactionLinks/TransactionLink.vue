@@ -241,6 +241,16 @@ const toggleQrModal = () => {
   overflow-wrap: anywhere;
 }
 
+/* An expired row recedes as a whole, the memo with it (Bernd, 23.09.2026). The memo's own
+   colour above beats the grey the row hands down -- a colour set on an element always beats an
+   inherited one, however !important it was where it came from -- so it stayed muted: darker
+   than the rest of the row in light mode, brighter in dark mode. Inheriting gives it the row's
+   grey in both, the dark one too, since that is set on the row itself. A web address in the
+   memo keeps its link colour: links here are not underlined, so a grey one would read as text. */
+.light-gray-text .transaction-link-memo {
+  color: inherit;
+}
+
 /* From `md` on the memo stops short of the amount instead of running the whole width, which
    Bernd found out of balance in the booking row on 11.09.2026 ("nicht so breit ... wie die
    Spalte"). A floor, not an exact meeting point: the amount's column is as wide as its
