@@ -33,7 +33,11 @@ async function dbSelectChatMessageByUuid(messageUuid: string): Promise<ChatMessa
  * that came twice -- is not a failure but the same message: the unique key catches the
  * second row, the no-op update leaves the first as it is, and the first comes back.
  *
- * DBInsertFailed only if no row with that uuid is there afterwards either.
+ * DBInsertFailed if no row with that uuid is there afterwards, or if the one there is not
+ * this message. A delivery that came twice has the same conversation and the same sender; a
+ * row with another one means the uuid was used again -- it comes from the sending server's
+ * payload -- and this message is not filed under it. The sender is compared the way the
+ * column compares it, without regard to case.
  */
 export async function dbInsertChatMessage(
   row: ChatMessageInsert,
@@ -43,7 +47,12 @@ export async function dbInsertChatMessage(
     .values(row)
     .onDuplicateKeyUpdate({ set: { messageUuid: sql`${chatMessagesTable.messageUuid}` } })
   const message = await dbSelectChatMessageByUuid(row.messageUuid)
-  if (message) {
+  if (
+    message &&
+    message.conversationId === row.conversationId &&
+    message.senderCommunityUuid.toLowerCase() === row.senderCommunityUuid.toLowerCase() &&
+    message.senderGradidoId.toLowerCase() === row.senderGradidoId.toLowerCase()
+  ) {
     return { success: true, value: message }
   }
   return { success: false, error: ChatMessageInsertFailed(row) }

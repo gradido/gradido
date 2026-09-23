@@ -95,6 +95,33 @@ describe('chatMessages query test', () => {
     expect(await dbSelectChatMessagesByConversationId(CONVERSATION)).toHaveLength(2)
   })
 
+  // The uuid comes from the sending server's payload. Used again for another conversation or
+  // by another sender, it names another message: nothing is filed, and the first row stays.
+  it('refuses a uuid that is used again for another conversation or by another sender', async () => {
+    const before = await dbSelectChatMessagesByConversationId(CONVERSATION)
+
+    const elsewhere = await dbInsertChatMessage(
+      message(FIRST, { conversationId: OTHER_CONVERSATION }),
+    )
+    const someoneElse = await dbInsertChatMessage(
+      message(FIRST, { senderGradidoId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc' }),
+    )
+
+    for (const result of [elsewhere, someoneElse]) {
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.error.name).toBe('DBInsertFailed')
+      }
+    }
+    expect(await dbSelectChatMessagesByConversationId(CONVERSATION)).toEqual(before)
+    expect(await dbSelectChatMessagesByConversationId(OTHER_CONVERSATION)).toEqual([])
+  })
+
+  it('takes a delivery that came twice as the same message whatever the case of its sender', async () => {
+    const again = await dbInsertChatMessage(message(FIRST, { senderGradidoId: ANNA.toUpperCase() }))
+    expect(again.success).toBe(true)
+  })
+
   it('reads a conversation in the order the messages arrived, and only that conversation', async () => {
     await dbInsertChatMessage(message(THIRD, { conversationId: OTHER_CONVERSATION }))
     const messages = await dbSelectChatMessagesByConversationId(CONVERSATION)
