@@ -42,4 +42,18 @@ export class CreateUserArgs {
   @Field(() => String, { nullable: true })
   @IsString()
   referrerAlias?: string | null
+
+  // The table code (E-017) from the card the guest scanned, `?presence=` on the address.
+  // Checked in the resolver against `referrerAlias`, because that is whose code it must be.
+  @Field(() => String, { nullable: true })
+  @IsString()
+  presenceCode?: string | null
+
+  // Only together with a valid table code; without one the resolver refuses it rather than
+  // dropping it. Length and strength are checked there too (`isValidPassword`), not by a
+  // validator here: the resolver answers with the message the form knows, a validator on the
+  // argument with a raw "Argument Validation Error".
+  @Field(() => String, { nullable: true })
+  @IsString()
+  password?: string | null
 }

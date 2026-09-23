@@ -74,7 +74,6 @@ describe('user.queries', () => {
   })
 
   describe('aliasExists across communities and across time', () => {
-    let communityUuid: string
     let bibi: DbUser
 
     beforeAll(async () => {
@@ -83,8 +82,7 @@ describe('user.queries', () => {
       await DbUserContact.clear()
       await DbCommunity.clear()
 
-      const homeCom = await createCommunity(false)
-      communityUuid = homeCom.communityUuid!
+      await createCommunity(false)
       bibi = await userFactory({ ...bibiBloxberg, alias: 'bibi-now' })
     })
 
@@ -107,13 +105,13 @@ describe('user.queries', () => {
 
     it('refuses a name another member left behind', async () => {
       const peter = await userFactory({ ...peterLustig, alias: 'peter-now' })
-      await dbInsertUserAlias(peter.id, 'peter-was', communityUuid, ALIAS_ORIGIN_CHOSEN)
+      await dbInsertUserAlias(peter.id, 'peter-was', ALIAS_ORIGIN_CHOSEN)
 
       expect(await aliasExists('peter-was', bibi.id)).toBe(true)
     })
 
     it('lets a member take back a name of their own', async () => {
-      await dbInsertUserAlias(bibi.id, 'bibi-was', communityUuid, ALIAS_ORIGIN_CHOSEN)
+      await dbInsertUserAlias(bibi.id, 'bibi-was', ALIAS_ORIGIN_CHOSEN)
 
       expect(await aliasExists('bibi-was', bibi.id)).toBe(false)
       // ...and it stays blocked for everybody else.
@@ -125,13 +123,7 @@ describe('user.queries', () => {
     // has written and not yet committed: seen through the manager, not beside it.
     it('asks over the transaction it is given', async () => {
       await db.getDataSource().transaction(async (manager) => {
-        await dbInsertUserAlias(
-          bibi.id,
-          'bibi-pending',
-          communityUuid,
-          ALIAS_ORIGIN_CHOSEN,
-          manager,
-        )
+        await dbInsertUserAlias(bibi.id, 'bibi-pending', ALIAS_ORIGIN_CHOSEN, manager)
 
         expect(await aliasExists('bibi-pending', undefined, manager)).toBe(true)
         expect(await aliasExists('bibi-pending')).toBe(false)

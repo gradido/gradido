@@ -26,6 +26,9 @@ const filterVariables = (variables: any) => {
   if (vars?.passwordNew) {
     vars.passwordNew = '***'
   }
+  if (vars?.presenceCode) {
+    vars.presenceCode = '***'
+  }
   return vars
 }
 
@@ -34,7 +37,7 @@ const logPlugin = {
     const { logger } = requestContext
     const { query, mutation, variables, operationName } = requestContext.request
     if (operationName !== 'IntrospectionQuery') {
-      logger.debug('requestDidStart:', requestContext)
+      logger.debug('requestDidStart:', { operationName, variables: filterVariables(variables) })
       logger.info(`Request:
 ${mutation || query}variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
     }

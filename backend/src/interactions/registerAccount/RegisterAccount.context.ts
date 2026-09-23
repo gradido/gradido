@@ -41,15 +41,19 @@ const db = AppDatabase.getInstance()
 
 /**
  * Everything a new account is made of. Moved verbatim out of `createUser` so the
- * assisted registration (EM-013) does not grow a second copy of this flow — the two
- * callers differ in exactly two places, both switched by `passwordPlain`:
+ * assisted registration (EM-013) does not grow a second copy of this flow — the
+ * registrations differ in exactly two places, both switched by `passwordPlain`:
  *
  *   - `passwordPlain: null` — the classic registration: the account has no password
  *     yet, the activation mail carries the set-password link. Behaviour is 1:1 what
  *     `createUser` always did; its existing tests are the proof.
- *   - `passwordPlain` set — an assisted registration: the guest typed their password
- *     at the table, so it is set right away and the mail only asks them to CONFIRM
- *     the address (a confirm-only link, not the set-password page).
+ *   - `passwordPlain` set — the guest chose their password at registration, so it is set
+ *     right away and the mail only asks them to CONFIRM the address (a confirm-only link,
+ *     not the set-password page). Two callers do this: the assisted registration
+ *     (`completeAssistedRegistration`, no address to come from) and `createUser` with a
+ *     valid table code (E-017), which hands the member over already resolved as
+ *     `referrerId` - it counted their unconfirmed guests in their line (`inMemberLine`),
+ *     and the row has to name the same member.
  *
  * The caller has already normalised the input: email trimmed and lowercased, language
  * validated, and the address checked to be free.
@@ -65,8 +69,17 @@ export interface RegisterAccountInput {
   alias: string | null
   passwordPlain: string | null
   // The alias from the Gradido address the registration started at. Optional because
-  // only the classic registration has an address to come from; the assisted one does not.
+  // the assisted registration has no address to come from; the classic one and the one
+  // with a table code (E-017) do.
   referrerAlias?: string | null
+  // The member already resolved by the caller, which beats the alias below. The table code
+  // (E-019) counts a member's unconfirmed guests in that member's line and then opens the
+  // account: the row that is written has to name the member who was counted, and a second
+  // lookup of the same alias can answer differently - it excludes soft-deleted members, and
+  // support can delete one while a guest waits in the member's line. The account would then
+  // be opened with a password and `referrer_id` null: counted against nobody's limit, on
+  // nobody's list of guests, and without the USER_REGISTER_PRESENCE event.
+  referrerId?: number | null
 }
 
 const newEmailContact = (email: string, userId: number, logger: Logger): DbUserContact => {
@@ -135,8 +148,8 @@ export const registerAccount = async (
   dbUser.publisherId = publisherId ?? 0
   dbUser.passwordEncryptionType = PasswordEncryptionType.NO_PASSWORD
   if (input.passwordPlain) {
-    // Assisted registration: the guest chose their password at the table. Type first,
-    // then encrypt — the derivation salts by the gradidoID, which is set above.
+    // Assisted registration or table code: the guest chose their password at the table.
+    // Type first, then encrypt — the derivation salts by the gradidoID, which is set above.
     dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
     dbUser.password = await encryptPassword(dbUser, input.passwordPlain)
   }
@@ -162,6 +175,10 @@ export const registerAccount = async (
         eventRegisterRedeem.involvedTransactionLink = transactionLink
       }
     }
+  } else if (input.referrerId) {
+    // Resolved by the caller and already held to account for it - see `referrerId` above.
+    logger.info('the member the caller resolved becomes the referrer', input.referrerId)
+    dbUser.referrerId = input.referrerId
   } else {
     // The registration started at somebody's Gradido address (/u/<alias>): they become
     // the referrer. A redeem code beats the address - that is why this is the else.
@@ -222,13 +239,7 @@ export const registerAccount = async (
         throw new LogError('Error while storing the generated alias', error)
       })
     }
-    await dbInsertUserAlias(
-      dbUser.id,
-      dbUser.alias,
-      dbUser.communityUuid,
-      aliasOrigin,
-      queryRunner.manager,
-    )
+    await dbInsertUserAlias(dbUser.id, dbUser.alias, aliasOrigin, queryRunner.manager)
 
     projectBranding = projectBrandingPromise ? await projectBrandingPromise : undefined
     if (input.passwordPlain) {
