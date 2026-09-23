@@ -94,6 +94,10 @@ export enum RIGHTS {
   // The contact list and the hearts on it -- one right, because every call reaches the
   // caller's own bookings, conversations and favourites, nothing else.
   MANAGE_OWN_CONTACTS = 'MANAGE_OWN_CONTACTS',
+  // The chat (E-023): reading the messages of a conversation the caller is a member of, and
+  // moving the caller's own read pointer in it. It reaches no conversation the caller is not
+  // in -- ChatResolver finds the conversation by the pair of the caller and the other member.
+  READ_OWN_CHAT = 'READ_OWN_CHAT',
   // The first creation (ES-002..ES-011): reading one's own state, saving one's own
   // entries, skipping the window. Every call reaches the caller's own process only; the
   // confirmation in the SIGNER's name happens inside the interaction, not behind this key.

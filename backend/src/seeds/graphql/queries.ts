@@ -773,6 +773,29 @@ export const contactList = gql`
   }
 `
 
+export const chatMessagesWithMember = gql`
+  query ($ref: MemberAvatarRefInput!, $before: Int, $limit: Int) {
+    chatMessagesWithMember(ref: $ref, before: $before, limit: $limit) {
+      hasMore
+      messages {
+        id
+        messageUuid
+        conversationId
+        sender {
+          communityUuid
+          gradidoID
+        }
+        mine
+        subject
+        body
+        createdAt
+        deliveryState
+        notify
+      }
+    }
+  }
+`
+
 export const favoriteList = gql`
   query {
     favoriteList {
