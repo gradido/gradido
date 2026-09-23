@@ -53,7 +53,7 @@ describe('chatConversationMembers query test', () => {
     const mutedAt = new Date('2026-09-23T12:00:00.000Z')
     await db
       .update(chatConversationMembersTable)
-      .set({ lastReadMessageId: 42, mutedAt })
+      .set({ role: 'owner', lastReadMessageId: 42, mutedAt })
       .where(annaOnly)
     const [before] = await db.select().from(chatConversationMembersTable).where(annaOnly)
 
@@ -62,6 +62,7 @@ describe('chatConversationMembers query test', () => {
 
     expect(await members()).toHaveLength(2)
     const [after] = await db.select().from(chatConversationMembersTable).where(annaOnly)
+    expect(after.role).toBe('owner')
     expect(after.lastReadMessageId).toBe(42)
     expect(after.mutedAt?.getTime()).toBe(mutedAt.getTime())
     expect(after.joinedAt.getTime()).toBe(before.joinedAt.getTime())

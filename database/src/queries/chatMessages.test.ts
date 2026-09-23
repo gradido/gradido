@@ -75,7 +75,7 @@ describe('chatMessages query test', () => {
   })
 
   it('files a message without a subject', async () => {
-    const stored = await dbInsertChatMessage(message(SECOND, { subject: null, body: 'Ja' }))
+    const stored = await dbInsertChatMessage(message(SECOND, { subject: null, body: 'Yes' }))
     expect(stored.success && stored.value.subject).toBeNull()
   })
 
