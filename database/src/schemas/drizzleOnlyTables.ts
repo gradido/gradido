@@ -2,6 +2,9 @@
 import { getTableName } from 'drizzle-orm'
 import {
   assistedRegistrationsTable,
+  chatConversationMembersTable,
+  chatConversationsTable,
+  chatMessagesTable,
   creachatThreadsTable,
   firstCreationsTable,
   foreignMemberAvatarDatesTable,
@@ -26,6 +29,9 @@ import {
  */
 export const drizzleOnlyTables = [
   assistedRegistrationsTable,
+  chatConversationMembersTable,
+  chatConversationsTable,
+  chatMessagesTable,
   creachatThreadsTable,
   firstCreationsTable,
   foreignMemberAvatarDatesTable,
