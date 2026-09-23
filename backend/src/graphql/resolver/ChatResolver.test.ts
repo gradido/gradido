@@ -188,6 +188,23 @@ describe('ChatResolver', () => {
         }
       })
 
+      // ⛔ `limit` caps one page, not how often one document repeats the field under aliases
+      // -- that is what the request's budget counts (CHAT_MESSAGE_PAGES_MAX_PER_REQUEST).
+      it('answers ten pages in one request, and refuses the eleventh', async () => {
+        const pages = (count: number) =>
+          `query ($ref: MemberAvatarRefInput!) { ${Array.from(
+            { length: count },
+            (_, n) => `page${n}: chatMessagesWithMember(ref: $ref, limit: 1) { hasMore }`,
+          ).join(' ')} }`
+        const ten: any = await query({ query: pages(10), variables: { ref: ref(bob) } })
+        expect(ten.errors).toBeUndefined()
+        expect(Object.keys(ten.data)).toHaveLength(10)
+        const eleven: any = await query({ query: pages(11), variables: { ref: ref(bob) } })
+        expect(eleven.errors?.map((error: any) => error.message)).toEqual([
+          'Too many chat pages requested at once',
+        ])
+      })
+
       it('fills in the home community for a member named without one', async () => {
         const page = await threadWith(bob)
         const res: any = await query({

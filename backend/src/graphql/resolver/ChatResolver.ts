@@ -13,8 +13,13 @@ import {
 } from 'database'
 import { Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { CHAT_MESSAGES_PAGE_DEFAULT, isSameChatMember } from '@/data/ChatConversation.logic'
+import {
+  CHAT_MESSAGE_PAGES_MAX_PER_REQUEST,
+  CHAT_MESSAGES_PAGE_DEFAULT,
+  isSameChatMember,
+} from '@/data/ChatConversation.logic'
 import { Context, getUser } from '@/server/context'
+import { LogError } from '@/server/LogError'
 import { resolveCommunityUuid } from './util/communities'
 
 /** The caller as a conversation member knows them: the pair, never users.id. */
@@ -50,7 +55,8 @@ const directChatConversationWith = async (
  * The chat, read side (P2a): the thread with one contact, and the caller's read pointer in
  * it. Writing still goes through sendEmail (P1 files every message it sends).
  *
- * Neither logs a subject or a text; nothing here logs at all.
+ * No subject and no text reaches a log: the one line written here is a refused page budget,
+ * with its count.
  */
 @Resolver()
 export class ChatResolver {
@@ -65,6 +71,14 @@ export class ChatResolver {
     @Args() { ref, before, limit }: ChatMessagesWithMemberArgs,
     @Ctx() context: Context,
   ): Promise<ChatMessagePage> {
+    // ⛔ Counted in the HTTP request's budget before anything is looked up: a document may
+    // repeat this field under any number of aliases, and `limit` caps one page, not how many
+    // (RequestBudget in server/context.ts).
+    context.requestBudget.chatMessagePagesServed += 1
+    const served = context.requestBudget.chatMessagePagesServed
+    if (served > CHAT_MESSAGE_PAGES_MAX_PER_REQUEST) {
+      throw new LogError('Too many chat pages requested at once', served)
+    }
     const caller = callerOf(context)
     const conversation = await directChatConversationWith(caller, ref)
     if (!conversation) {
