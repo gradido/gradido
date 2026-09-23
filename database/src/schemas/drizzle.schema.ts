@@ -439,6 +439,26 @@ export const userContactsTable = mysqlTable(
 export type UserContactSelect = typeof userContactsTable.$inferSelect
 export type UserContactInsert = typeof userContactsTable.$inferInsert
 
+// Every name a member owns; `users.alias` marks the current one (see migration 0116).
+// `origin` is one of the AliasOrigin values next to the UserAlias entity. The table has
+// a TypeORM entity as well, so it is not in drizzleOnlyTables.
+export const userAliasesTable = mysqlTable(
+  'user_aliases',
+  {
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    userId: int('user_id', { unsigned: true }).notNull(),
+    alias: varchar({ length: 20 }).notNull(),
+    origin: varchar({ length: 8 }).default('chosen').notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [unique('alias').on(table.alias), index('user_id').on(table.userId)],
+)
+
+export type UserAliasSelect = typeof userAliasesTable.$inferSelect
+export type UserAliasInsert = typeof userAliasesTable.$inferInsert
+
 // The member's own profile picture. A side table rather than a column on `users`,
 // because `users` is read on nearly every request and an image would weigh every one
 // of those reads down. user_id is the primary key: one member, one picture, so a

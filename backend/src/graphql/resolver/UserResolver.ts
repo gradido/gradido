@@ -949,8 +949,7 @@ export class UserResolver {
       // often somebody chose, and why coming back to an earlier name is free.
       if (alias && alias !== user.alias) {
         await validateAlias(alias, user.id)
-        const communityUuid = user.communityUuid
-        const ownAlready = await dbFindOwnAlias(user.id, alias, communityUuid, queryRunner.manager)
+        const ownAlready = await dbFindOwnAlias(user.id, alias, queryRunner.manager)
         if (!ownAlready) {
           const since = new Date(Date.now() - ALIAS_QUOTA_WINDOW_MS)
           const picked = await dbCountChosenAliasesSince(user.id, since, queryRunner.manager)
@@ -958,13 +957,7 @@ export class UserResolver {
             logger.warn('alias quota exhausted', picked)
             throw new LogError('ALIAS_QUOTA_EXHAUSTED')
           }
-          await dbInsertUserAlias(
-            user.id,
-            alias,
-            communityUuid,
-            ALIAS_ORIGIN_CHOSEN,
-            queryRunner.manager,
-          )
+          await dbInsertUserAlias(user.id, alias, ALIAS_ORIGIN_CHOSEN, queryRunner.manager)
           logger.debug('member took a new alias')
         } else {
           logger.debug('member reclaimed an alias they already owned')
@@ -1404,7 +1397,7 @@ export class UserResolver {
     const logger = createLogger('adoptAlias')
     logger.addContext('user', user.id)
 
-    const row = await dbFindOwnAlias(user.id, user.alias, user.communityUuid)
+    const row = await dbFindOwnAlias(user.id, user.alias)
     if (!row) {
       logger.warn('no row for the alias the member holds')
       throw new LogError('ALIAS_NOT_FOUND')
