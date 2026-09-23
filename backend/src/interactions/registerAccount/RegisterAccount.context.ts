@@ -222,13 +222,7 @@ export const registerAccount = async (
         throw new LogError('Error while storing the generated alias', error)
       })
     }
-    await dbInsertUserAlias(
-      dbUser.id,
-      dbUser.alias,
-      dbUser.communityUuid,
-      aliasOrigin,
-      queryRunner.manager,
-    )
+    await dbInsertUserAlias(dbUser.id, dbUser.alias, aliasOrigin, queryRunner.manager)
 
     projectBranding = projectBrandingPromise ? await projectBrandingPromise : undefined
     if (input.passwordPlain) {

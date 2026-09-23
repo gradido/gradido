@@ -25,14 +25,13 @@ import {
 export async function dbFindOwnAlias(
   userId: number,
   alias: string,
-  communityUuid: string,
   manager?: EntityManager,
 ): Promise<DbUserAlias | null> {
-  const where = { userId, alias, communityUuid }
+  const where = { userId, alias }
   return manager ? manager.findOne(DbUserAlias, { where }) : DbUserAlias.findOne({ where })
 }
 
-/** Whoever owns this name in this community, or null. */
+/** Whoever owns this name, or null. */
 export async function dbFindAliasOwner(alias: string): Promise<DbUserAlias | null> {
   return DbUserAlias.findOne({ where: { alias } })
 }
@@ -94,11 +93,10 @@ export async function dbFindOldestChosenAliasSince(
 export async function dbInsertUserAlias(
   userId: number,
   alias: string,
-  communityUuid: string,
   origin: AliasOrigin,
   manager?: EntityManager,
 ): Promise<DbUserAlias> {
-  const row = DbUserAlias.create({ userId, alias, communityUuid, origin })
+  const row = DbUserAlias.create({ userId, alias, origin })
   return manager ? manager.save(row) : DbUserAlias.save(row)
 }
 

@@ -4422,7 +4422,6 @@ describe('UserResolver', () => {
         UserAlias.create({
           userId: member.id,
           alias: 'BBB',
-          communityUuid: member.communityUuid,
           origin: ALIAS_ORIGIN_ASSIGNED,
         }),
       )
@@ -4440,7 +4439,6 @@ describe('UserResolver', () => {
         UserAlias.create({
           userId: member.id,
           alias: 'BBB',
-          communityUuid: member.communityUuid,
           origin: ALIAS_ORIGIN_ASSIGNED,
         }),
       )

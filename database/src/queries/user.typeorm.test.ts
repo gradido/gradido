@@ -158,7 +158,7 @@ describe('user.typeorm.queries', () => {
       communityUuid = homeCom.communityUuid!
       communityName = homeCom.name!
       bibi = await userFactory({ ...bibiBloxberg, alias: 'newname' })
-      await dbInsertUserAlias(bibi.id, 'oldname', communityUuid, ALIAS_ORIGIN_CHOSEN)
+      await dbInsertUserAlias(bibi.id, 'oldname', ALIAS_ORIGIN_CHOSEN)
     })
 
     it('finds them by the name they hold now', async () => {
