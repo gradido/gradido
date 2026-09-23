@@ -724,6 +724,23 @@ export const showFriends = gql`
   }
 `
 
+export const presenceCode = gql`
+  query {
+    presenceCode {
+      code
+      alias
+      expiresAt
+      remainingMs
+      unconfirmedGuests {
+        firstName
+        lastName
+        alias
+        createdAt
+      }
+    }
+  }
+`
+
 export const contactList = gql`
   query (
     $currentPage: Int = 1

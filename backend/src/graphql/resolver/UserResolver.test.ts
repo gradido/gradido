@@ -18,6 +18,7 @@ import {
   objectValuesToArray,
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
+  sendAssistedRegistrationConfirmEmail,
   sendResetPasswordEmail,
 } from 'core'
 import {
@@ -64,6 +65,7 @@ import {
   MEMBER_AVATARS_FULL_MAX_PER_REQUEST,
   MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST,
 } from '@/data/MemberAvatars.logic'
+import { mintPresenceCode } from '@/data/PresenceCode.logic'
 import { EventType } from '@/event/Events'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
@@ -143,6 +145,7 @@ jest.mock('core', () => {
     ...originalModule,
     sendAccountActivationEmail: jest.fn(),
     sendAccountMultiRegistrationEmail: jest.fn(),
+    sendAssistedRegistrationConfirmEmail: jest.fn(),
     sendResetPasswordEmail: jest.fn(),
     sendEmailTranslated: jest.fn(),
   }
@@ -757,6 +760,386 @@ describe('UserResolver', () => {
             errors: undefined,
           })
         }
+      })
+    })
+
+    /**
+     * The table code (E-017): a guest who scanned a member's live card may choose a password
+     * in the form, and the account is usable at once. Without the code nothing changes - every
+     * test above runs as it did, and that is the proof.
+     */
+    describe('the table code (presenceCode)', () => {
+      const PASSWORD = 'Aa12345_'
+      let bob: User
+      let homeCom: DbCommunity
+
+      const code = (alias = 'MeisterBob', now = new Date()): string =>
+        mintPresenceCode(alias, homeCom.communityUuid as string, now).code
+
+      const register = (email: string, extra: Record<string, string>) =>
+        mutate({
+          mutation: createUser,
+          variables: { firstName: 'Carla', lastName: 'Neu', language: 'de', email, ...extra },
+        })
+
+      const registered = async (email: string): Promise<User> =>
+        (await UserContact.findOneOrFail({ where: { email }, relations: ['user'] })).user
+
+      const noAccount = (email: string) =>
+        expect(UserContact.findOne({ where: { email } })).resolves.toBeNull()
+
+      beforeAll(async () => {
+        await cleanDB()
+        homeCom = await writeHomeCommunityEntry()
+        bob = await userFactory(testEnv, bobBaumeister)
+        // A deleted member who still holds a name.
+        await userFactory(testEnv, { ...stephenHawking, alias: 'BlackHoles' })
+        jest.clearAllMocks()
+        resetToken()
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+      })
+
+      describe('with a valid code and a password', () => {
+        let result: any
+        let carla: User
+
+        beforeAll(async () => {
+          result = await register('carla@table.de', {
+            referrerAlias: 'MeisterBob',
+            presenceCode: code(),
+            password: PASSWORD,
+          })
+          carla = await registered('carla@table.de')
+        })
+
+        it('answers like every registration', () => {
+          expect({ data: result.data, errors: result.errors }).toEqual({
+            data: { createUser: { id: expect.any(Number) } },
+            errors: undefined,
+          })
+        })
+
+        it('opens the account with the password, the address unconfirmed, the member as referrer', async () => {
+          const contact = await UserContact.findOneOrFail({ where: { email: 'carla@table.de' } })
+          expect(carla).toEqual(
+            expect.objectContaining({
+              passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
+              referrerId: bob.id,
+            }),
+          )
+          expect(contact.emailChecked).toBe(false)
+        })
+
+        it('counts it as a table registration, acted by the member who showed the code', async () => {
+          await expect(DbEvent.find()).resolves.toContainEqual(
+            expect.objectContaining({
+              type: EventType.USER_REGISTER_PRESENCE,
+              affectedUserId: carla.id,
+              actingUserId: bob.id,
+            }),
+          )
+        })
+
+        // The password exists already, so the set-password link would be the wrong door.
+        it('sends the confirm-only mail, not the activation mail', () => {
+          expect(sendAssistedRegistrationConfirmEmail).toBeCalledWith(
+            expect.objectContaining({
+              email: 'carla@table.de',
+              firstName: 'Carla',
+              lastName: 'Neu',
+              language: 'de',
+              confirmLink: expect.stringContaining(CONFIG.EMAIL_LINK_CONFIRM_EMAIL),
+            }),
+          )
+          expect(sendAccountActivationEmail).not.toBeCalledWith(
+            expect.objectContaining({ email: 'carla@table.de' }),
+          )
+        })
+
+        it('lets the guest sign in at once, before the address is confirmed', async () => {
+          resetToken()
+          const signedIn = await mutate({
+            mutation: login,
+            variables: { email: 'carla@table.de', password: PASSWORD },
+          })
+          expect(signedIn.errors).toBeUndefined()
+          resetToken()
+        })
+      })
+
+      it('refuses an expired code and opens no account', async () => {
+        const elevenMinutesAgo = new Date(Date.now() - 11 * 60 * 1000)
+        const result = await register('late@table.de', {
+          referrerAlias: 'MeisterBob',
+          presenceCode: code('MeisterBob', elevenMinutesAgo),
+          password: PASSWORD,
+        })
+
+        expect(result.errors).toEqual([new GraphQLError('Presence code invalid or expired')])
+        await noAccount('late@table.de')
+      })
+
+      // The code is checked against the address the guest came from: it has to be the code
+      // of that member, and there has to be one.
+      it('refuses the code of another member, and a code without an address to come from', async () => {
+        const elsewhere = await register('elsewhere@table.de', {
+          referrerAlias: 'SomebodyElse',
+          presenceCode: code('MeisterBob'),
+          password: PASSWORD,
+        })
+        const nowhere = await register('nowhere@table.de', {
+          presenceCode: code('MeisterBob'),
+          password: PASSWORD,
+        })
+
+        for (const result of [elsewhere, nowhere]) {
+          expect(result.errors).toEqual([new GraphQLError('Presence code invalid or expired')])
+        }
+        await noAccount('elsewhere@table.de')
+        await noAccount('nowhere@table.de')
+      })
+
+      it('refuses a password without a code rather than dropping it', async () => {
+        const result = await register('nocode@table.de', {
+          referrerAlias: 'MeisterBob',
+          password: PASSWORD,
+        })
+
+        expect(result.errors).toEqual([new GraphQLError('Password requires a presence code')])
+        await noAccount('nocode@table.de')
+      })
+
+      // With a redeem code, registerAccount takes the referrer from the link and never looks
+      // at the address: a made-up one would leave a password account nobody vouched for.
+      it('refuses a code together with a redeem code, a made-up one or a contribution link', async () => {
+        for (const redeemCode of ['x', 'CL-x']) {
+          const email = `redeem-${redeemCode.toLowerCase()}@table.de`
+          const result = await register(email, {
+            referrerAlias: 'MeisterBob',
+            presenceCode: code(),
+            password: PASSWORD,
+            redeemCode,
+          })
+
+          expect(result.errors).toEqual([
+            new GraphQLError('Presence code together with a redeem code'),
+          ])
+          await noAccount(email)
+        }
+      })
+
+      it('refuses a weak password, also with a valid code', async () => {
+        const result = await register('weak@table.de', {
+          referrerAlias: 'MeisterBob',
+          presenceCode: code(),
+          password: 'weak',
+        })
+
+        expect(result.errors).toEqual([
+          new GraphQLError(
+            'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+          ),
+        ])
+        await noAccount('weak@table.de')
+      })
+
+      /**
+       * Silence, as without the code (H §8, trap 2): the answer, the mail to the owner and the
+       * untouched account are those of a registration without it. A member can mint as many
+       * codes as they like, so an open answer here would tell them who has an account.
+       */
+      describe('with a valid code and an address that is taken', () => {
+        let before: User
+        let withCode: any
+        let withoutCode: any
+
+        beforeAll(async () => {
+          before = await User.findOneOrFail({ where: { id: bob.id } })
+          jest.clearAllMocks()
+          withCode = await register('bob@baumeister.de', {
+            referrerAlias: 'MeisterBob',
+            presenceCode: code(),
+            password: PASSWORD,
+          })
+          withoutCode = await register('bob@baumeister.de', {})
+        })
+
+        it('answers exactly as without the code', () => {
+          for (const result of [withCode, withoutCode]) {
+            expect({ data: result.data, errors: result.errors }).toEqual({
+              data: { createUser: { id: expect.any(Number) } },
+              errors: undefined,
+            })
+          }
+        })
+
+        it('writes the owner the usual mail, without the helper branch', () => {
+          const usual = {
+            firstName: 'Bob',
+            lastName: 'der Baumeister',
+            email: 'bob@baumeister.de',
+            language: 'de',
+            helperLink: null,
+          }
+          expect(sendAccountMultiRegistrationEmail).toHaveBeenCalledTimes(2)
+          expect(sendAccountMultiRegistrationEmail).toHaveBeenNthCalledWith(1, usual)
+          expect(sendAccountMultiRegistrationEmail).toHaveBeenNthCalledWith(2, usual)
+          expect(sendAssistedRegistrationConfirmEmail).not.toBeCalled()
+        })
+
+        it("leaves the owner's account as it was", async () => {
+          const after = await User.findOneOrFail({ where: { id: bob.id } })
+          expect(after.password).toEqual(before.password)
+          expect(after.passwordEncryptionType).toEqual(before.passwordEncryptionType)
+        })
+
+        it('counts no table registration', async () => {
+          await expect(
+            DbEvent.find({
+              where: { type: EventType.USER_REGISTER_PRESENCE, affectedUserId: bob.id },
+            }),
+          ).resolves.toHaveLength(0)
+        })
+      })
+
+      // The guest left both password fields empty: a classic account, with its referrer.
+      it('opens a classic account when the code comes without a password', async () => {
+        jest.clearAllMocks()
+        await register('nopassword@table.de', { referrerAlias: 'MeisterBob', presenceCode: code() })
+
+        await expect(registered('nopassword@table.de')).resolves.toEqual(
+          expect.objectContaining({
+            passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
+            referrerId: bob.id,
+          }),
+        )
+        expect(sendAccountActivationEmail).toBeCalledWith(
+          expect.objectContaining({ email: 'nopassword@table.de' }),
+        )
+        expect(sendAssistedRegistrationConfirmEmail).not.toBeCalled()
+      })
+
+      // The member who showed the code deleted their account inside the ten minutes: the seal
+      // still holds, but nobody is left who vouches (E-019) - so no account with a password.
+      // The member is looked up before the address, so a taken one gets the same answer.
+      it('refuses the code of a member who has gone meanwhile, whatever the address, and opens no account', async () => {
+        jest.clearAllMocks()
+        const orphan = { referrerAlias: 'BlackHoles', presenceCode: code('BlackHoles') }
+        const free = await register('orphan@table.de', { ...orphan, password: PASSWORD })
+        const taken = await register('bob@baumeister.de', { ...orphan, password: PASSWORD })
+
+        for (const result of [free, taken]) {
+          expect(result.errors).toEqual([new GraphQLError('Presence code invalid or expired')])
+        }
+        await noAccount('orphan@table.de')
+        expect(sendAccountMultiRegistrationEmail).not.toBeCalled()
+      })
+
+      /**
+       * E-019: a member vouches for at most PRESENCE_MAX_UNCONFIRMED accounts that can act
+       * without a mailbox - with a password, unconfirmed, not deleted - with no time window.
+       * Bob already vouches for carla@table.de from above; nopassword@table.de is his too, but
+       * without a password it can do nothing without the mail and does not count.
+       */
+      describe('the vouching limit', () => {
+        const tableGuest = (n: number) =>
+          register(`limit${n}@table.de`, {
+            firstName: `Guest${n}`,
+            referrerAlias: 'MeisterBob',
+            presenceCode: code(),
+            password: PASSWORD,
+          })
+
+        beforeAll(async () => {
+          for (const n of [2, 3, 4]) {
+            expect((await tableGuest(n)).errors).toBeUndefined()
+          }
+        })
+
+        // Below the limit the silence answers a taken address, and no account comes of it: at
+        // four, the fifth still goes through.
+        it('lets the silent answer to a taken address count for nothing', async () => {
+          const taken = await register('bob@baumeister.de', {
+            referrerAlias: 'MeisterBob',
+            presenceCode: code(),
+            password: PASSWORD,
+          })
+          expect(taken.errors).toBeUndefined()
+
+          expect((await tableGuest(5)).errors).toBeUndefined()
+        })
+
+        it('refuses a sixth account while five are unconfirmed, and opens none', async () => {
+          expect((await tableGuest(6)).errors).toEqual([new GraphQLError('Vouching limit reached')])
+          await noAccount('limit6@table.de')
+        })
+
+        // Counted before the address is looked at: at the limit a taken address gets the same
+        // refusal as a free one - the silence would tell them apart - and its owner no mail.
+        it('refuses a taken address at the limit just like a free one, and writes its owner no mail', async () => {
+          jest.clearAllMocks()
+          const taken = await register('bob@baumeister.de', {
+            referrerAlias: 'MeisterBob',
+            presenceCode: code(),
+            password: PASSWORD,
+          })
+
+          expect(taken.errors).toEqual([new GraphQLError('Vouching limit reached')])
+          expect(sendAccountMultiRegistrationEmail).not.toBeCalled()
+        })
+
+        // No time window: a guest who has not confirmed for weeks still holds the place.
+        it('keeps counting a guest who has not confirmed for weeks', async () => {
+          const weeksAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
+          await User.update((await registered('limit2@table.de')).id, { createdAt: weeksAgo })
+
+          expect((await tableGuest(6)).errors).toEqual([new GraphQLError('Vouching limit reached')])
+        })
+
+        // With carla confirmed, four with a password are left - and the classic account of the
+        // same member would make it five again if it counted.
+        it('opens the sixth once one of the five confirms', async () => {
+          const carla = await UserContact.findOneOrFail({ where: { email: 'carla@table.de' } })
+          await UserContact.update(carla.id, { emailChecked: true })
+
+          expect((await tableGuest(6)).errors).toBeUndefined()
+          await expect(registered('limit6@table.de')).resolves.toEqual(
+            expect.objectContaining({ referrerId: bob.id }),
+          )
+          expect((await tableGuest(7)).errors).toEqual([new GraphQLError('Vouching limit reached')])
+        })
+
+        // The way back through support: a dead guest account deleted in the admin frees a place.
+        it('opens the next once a dead guest account is deleted', async () => {
+          await User.update((await registered('limit3@table.de')).id, { deletedAt: new Date() })
+
+          expect((await tableGuest(7)).errors).toBeUndefined()
+        })
+
+        // Two guests at the table in the same moment, one place left: both can read "four"
+        // before either account exists, so only the second count - one after another in the
+        // member's line (inMemberLine) - keeps it at five.
+        it('lets only one of two guests who register at the same moment take the last place', async () => {
+          const limit4 = await UserContact.findOneOrFail({ where: { email: 'limit4@table.de' } })
+          await UserContact.update(limit4.id, { emailChecked: true })
+
+          const results = await Promise.all([tableGuest(8), tableGuest(9)])
+
+          const errors = results.map((result) => result.errors)
+          expect(errors.filter((error) => error === undefined)).toHaveLength(1)
+          expect(errors.filter((error) => error !== undefined)).toEqual([
+            [new GraphQLError('Vouching limit reached')],
+          ])
+          const opened = await Promise.all(
+            ['limit8@table.de', 'limit9@table.de'].map((email) =>
+              UserContact.findOne({ where: { email } }),
+            ),
+          )
+          expect(opened.filter(Boolean)).toHaveLength(1)
+        })
       })
     })
 
@@ -4422,7 +4805,6 @@ describe('UserResolver', () => {
         UserAlias.create({
           userId: member.id,
           alias: 'BBB',
-          communityUuid: member.communityUuid,
           origin: ALIAS_ORIGIN_ASSIGNED,
         }),
       )
@@ -4440,7 +4822,6 @@ describe('UserResolver', () => {
         UserAlias.create({
           userId: member.id,
           alias: 'BBB',
-          communityUuid: member.communityUuid,
           origin: ALIAS_ORIGIN_ASSIGNED,
         }),
       )

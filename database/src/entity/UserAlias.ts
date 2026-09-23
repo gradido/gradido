@@ -68,15 +68,6 @@ export class UserAlias extends BaseEntity {
   alias: string
 
   @Column({
-    name: 'community_uuid',
-    type: 'varchar',
-    length: 36,
-    nullable: false,
-    collation: 'utf8mb4_unicode_ci',
-  })
-  communityUuid: string
-
-  @Column({
     name: 'origin',
     type: 'varchar',
     length: 8,

@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { Order } from 'shared'
+import { Order, PasswordEncryptionType } from 'shared'
 import { clearLogs, getLogger, printLogs } from '../../../config-schema/test/testSetup.bun'
 import {
   ALIAS_ORIGIN_CHOSEN,
@@ -21,6 +21,7 @@ import { LOG4JS_QUERIES_CATEGORY_NAME } from '.'
 import {
   dbFindAdminUsersPage,
   dbFindForeignUsersByGradidoIds,
+  dbFindUnconfirmedVouchedAccounts,
   dbFindUsersByIds,
   dbFindUsersWithEmailContactPage,
   dbGetUserWithRoleById,
@@ -157,7 +158,7 @@ describe('user.typeorm.queries', () => {
       communityUuid = homeCom.communityUuid!
       communityName = homeCom.name!
       bibi = await userFactory({ ...bibiBloxberg, alias: 'newname' })
-      await dbInsertUserAlias(bibi.id, 'oldname', communityUuid, ALIAS_ORIGIN_CHOSEN)
+      await dbInsertUserAlias(bibi.id, 'oldname', ALIAS_ORIGIN_CHOSEN)
     })
 
     it('finds them by the name they hold now', async () => {
@@ -311,6 +312,119 @@ describe('user.typeorm.queries', () => {
       await runner.release()
 
       expect((await DbUser.findOneByOrFail({ id: bibi.id })).alias).toBe(bibi.alias)
+    })
+  })
+
+  describe('dbFindUnconfirmedVouchedAccounts', () => {
+    let bob: DbUser
+    let peter: DbUser
+    const guests: DbUser[] = []
+
+    // A guest who opened an account at bob's table: bob is the referrer, a password is set,
+    // the address is not confirmed.
+    const tableGuest = async (n: number, referrer: DbUser): Promise<DbUser> => {
+      const guest = await userFactory({
+        email: `guest${n}@table.example`,
+        firstName: `First${n}`,
+        lastName: `Last${n}`,
+        alias: `guest${n}`,
+        emailChecked: false,
+        createdAt: new Date(Date.UTC(2026, 8, n, 12)),
+      })
+      await DbUser.update(guest.id, {
+        referrerId: referrer.id,
+        passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
+      })
+      return guest
+    }
+
+    beforeAll(async () => {
+      await DbUserAlias.clear()
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await DbCommunity.clear()
+
+      await createCommunity(false)
+      bob = await userFactory(bobBaumeister)
+      peter = await userFactory(peterLustig)
+    })
+
+    it('finds nobody for a member who vouches for nobody', async () => {
+      await expect(dbFindUnconfirmedVouchedAccounts(bob.id)).resolves.toEqual([])
+    })
+
+    describe('with five unconfirmed guests at the table', () => {
+      beforeAll(async () => {
+        for (const n of [1, 2, 3, 4, 5]) {
+          guests.push(await tableGuest(n, bob))
+        }
+      })
+
+      it('finds all five, oldest first, with their names', async () => {
+        const found = await dbFindUnconfirmedVouchedAccounts(bob.id)
+
+        expect(found.map((guest) => guest.id)).toEqual(guests.map((guest) => guest.id))
+        expect(found[0]).toEqual(
+          expect.objectContaining({
+            firstName: 'First1',
+            lastName: 'Last1',
+            alias: 'guest1',
+            createdAt: new Date(Date.UTC(2026, 8, 1, 12)),
+          }),
+        )
+      })
+
+      // No time window: an account from months ago counts until it confirms (E-019).
+      it('keeps counting a guest who has not confirmed for months', async () => {
+        await DbUser.update(guests[0].id, { createdAt: new Date(Date.UTC(2026, 0, 1)) })
+
+        expect((await dbFindUnconfirmedVouchedAccounts(bob.id)).map((guest) => guest.id)).toContain(
+          guests[0].id,
+        )
+      })
+
+      it('counts neither an account without a password nor the guests of another member', async () => {
+        const classic = await userFactory({
+          email: 'classic@table.example',
+          firstName: 'Classic',
+          lastName: 'Guest',
+          emailChecked: false,
+        })
+        await DbUser.update(classic.id, { referrerId: bob.id })
+        const petersGuest = await tableGuest(6, peter)
+
+        const found = (await dbFindUnconfirmedVouchedAccounts(bob.id)).map((guest) => guest.id)
+        expect(found).toHaveLength(5)
+        expect(found).not.toContain(classic.id)
+        expect(found).not.toContain(petersGuest.id)
+        expect((await dbFindUnconfirmedVouchedAccounts(peter.id)).map((g) => g.id)).toEqual([
+          petersGuest.id,
+        ])
+      })
+
+      it('lets a guest go who confirms, and one who is deleted', async () => {
+        await DbUserContact.update(guests[1].emailId!, { emailChecked: true })
+        expect(await dbFindUnconfirmedVouchedAccounts(bob.id)).toHaveLength(4)
+
+        await DbUser.update(guests[2].id, { deletedAt: new Date() })
+        const found = (await dbFindUnconfirmedVouchedAccounts(bob.id)).map((guest) => guest.id)
+        expect(found).toHaveLength(3)
+        expect(found).not.toContain(guests[1].id)
+        expect(found).not.toContain(guests[2].id)
+      })
+
+      // A caller inside a transaction passes its manager: the count reads through it.
+      it('answers the same through the manager of a transaction', async () => {
+        const inside = await db
+          .getDataSource()
+          .transaction('REPEATABLE READ', (manager) =>
+            dbFindUnconfirmedVouchedAccounts(bob.id, manager),
+          )
+
+        expect(inside.map((guest) => guest.id)).toEqual(
+          (await dbFindUnconfirmedVouchedAccounts(bob.id)).map((guest) => guest.id),
+        )
+      })
     })
   })
 
