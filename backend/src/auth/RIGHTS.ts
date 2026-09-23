@@ -101,6 +101,10 @@ export enum RIGHTS {
   // "Show it to your friends" (ZE-005): who brought the caller here, and who arrived over
   // them last. Reading only, and only about the caller - the query takes no argument.
   SHOW_FRIENDS = 'SHOW_FRIENDS',
+  // The table code (E-017): a fresh signed code for the caller's own card, so that a guest
+  // who scans it may choose a password at once. It vouches for somebody - see
+  // RESTRICTED_WHILE_UNCONFIRMED.
+  PRESENCE_CODE = 'PRESENCE_CODE',
   // ES-021, the project account. Both act on the caller's OWN account only: declaring it a
   // project account (switches creation off, at once) and asking for the creation right
   // back (a mail to the support — it switches nothing; an administrator does that).

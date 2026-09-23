@@ -32,4 +32,9 @@ export const RESTRICTED_WHILE_UNCONFIRMED = [
   // The first creation books Gradido through its own interaction, not through
   // createContribution, so the CREATE_CONTRIBUTION entry above does not reach it.
   RIGHTS.FIRST_CREATION,
+  // A table code vouches for a guest (E-017), and only a confirmed member vouches (E-018):
+  // the presenceCode query refuses an unconfirmed address at once, inside the 24 hours as
+  // well, because this list only takes hold once they are over. The entry stays as the second
+  // bolt for the time after them.
+  RIGHTS.PRESENCE_CODE,
 ]
