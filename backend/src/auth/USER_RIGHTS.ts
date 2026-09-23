@@ -72,6 +72,8 @@ export const USER_RIGHTS = [
   // reaches nobody else's data, so there is nothing an unconfirmed or a project account
   // could do with it that anybody else could not.
   RIGHTS.SHOW_FRIENDS,
+  // The table code: minted in the caller's own name only, the query takes no argument.
+  RIGHTS.PRESENCE_CODE,
   // ES-021: both reach the caller's own account and nothing else. Neither is on
   // RESTRICTED_FOR_PROJECT_ACCOUNT — the way back (a request to the support) has to stay
   // open to the very account that is locked out of creating.

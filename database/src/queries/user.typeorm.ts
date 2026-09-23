@@ -2,7 +2,15 @@
 // legacy code, not a architecture reference
 
 import { getLogger } from 'log4js'
-import { aliasSchema, emailSchema, Order, Result, uuidv4Schema, VoidResult } from 'shared'
+import {
+  aliasSchema,
+  emailSchema,
+  Order,
+  PasswordEncryptionType,
+  Result,
+  uuidv4Schema,
+  VoidResult,
+} from 'shared'
 import { EntityManager, In, IsNull, Like, Not, Raw } from 'typeorm'
 import { User as DbUser, UserContact as DbUserContact } from '../entity'
 import { ASSIGNABLE_ROLE_NAMES } from '../enum'
@@ -266,6 +274,42 @@ export async function dbUpdateUserPassword(
  */
 export async function dbLockUserRow(userId: number, manager: EntityManager): Promise<void> {
   await manager.findOne(DbUser, { where: { id: userId }, lock: { mode: 'pessimistic_write' } })
+}
+
+/** One unconfirmed account a member vouches for, as the member sees it (E-020). */
+export type UnconfirmedVouchedAccount = Pick<
+  DbUser,
+  'id' | 'firstName' | 'lastName' | 'alias' | 'createdAt'
+>
+
+/**
+ * The accounts a member vouches for that can act without a mailbox (E-018, E-019): the member
+ * is their referrer, they chose a password at registration, their address is not confirmed,
+ * and they are not deleted. No time window - an account from months ago counts until it
+ * confirms or support deletes it. Oldest first.
+ *
+ * One query for both uses: the list on the member's "show it to your friends" page (E-020),
+ * and the count before one more table-code account is opened. A caller inside a transaction
+ * passes its manager, so that the count reads through that transaction.
+ */
+export async function dbFindUnconfirmedVouchedAccounts(
+  referrerId: number,
+  manager?: EntityManager,
+): Promise<UnconfirmedVouchedAccount[]> {
+  const repository = manager ? manager.getRepository(DbUser) : DbUser.getRepository()
+  return repository
+    .createQueryBuilder('user')
+    .innerJoin('user.emailContact', 'contact')
+    .select(['user.id', 'user.firstName', 'user.lastName', 'user.alias', 'user.createdAt'])
+    .where('user.referrerId = :referrerId', { referrerId })
+    .andWhere('contact.emailChecked = :emailChecked', { emailChecked: false })
+    .andWhere('user.passwordEncryptionType <> :noPassword', {
+      noPassword: PasswordEncryptionType.NO_PASSWORD,
+    })
+    .andWhere('user.deletedAt IS NULL')
+    .orderBy('user.createdAt', 'ASC')
+    .addOrderBy('user.id', 'ASC')
+    .getMany()
 }
 
 /** Moved from `backend/src/apis/gms/ExportUsers.ts`. */

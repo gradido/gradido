@@ -19,6 +19,7 @@ import { FirstCreationResolver } from './resolver/FirstCreationResolver'
 import { GdtResolver } from './resolver/GdtResolver'
 import { KlicktippResolver } from './resolver/KlicktippResolver'
 import { MatchingEntryResolver } from './resolver/MatchingEntryResolver'
+import { PresenceCodeResolver } from './resolver/PresenceCodeResolver'
 import { ProjectAccountResolver } from './resolver/ProjectAccountResolver'
 import { ProjectBrandingResolver } from './resolver/ProjectBrandingResolver'
 import { ShowFriendsResolver } from './resolver/ShowFriendsResolver'
@@ -50,6 +51,7 @@ export const schema = async (): Promise<GraphQLSchema> => {
       CreationGroupResolver,
       MatchingEntryResolver,
       KlicktippResolver,
+      PresenceCodeResolver,
       ProjectAccountResolver,
       ProjectBrandingResolver,
       ShowFriendsResolver,
