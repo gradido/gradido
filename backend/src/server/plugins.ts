@@ -26,6 +26,9 @@ const filterVariables = (variables: any) => {
   if (vars?.passwordNew) {
     vars.passwordNew = '***'
   }
+  if (vars?.presenceCode) {
+    vars.presenceCode = '***'
+  }
   return vars
 }
 

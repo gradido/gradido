@@ -30,8 +30,8 @@ export class PresenceCodeResolver {
    *
    * With the member's own unconfirmed table guests (E-020). Once they are
    * `PRESENCE_MAX_UNCONFIRMED` there is no code (E-019): the member sees it here, before a
-   * guest scans. Nothing takes the code yet: `createUser` does not know it, so no account is
-   * opened with one until it does - and then it has to count again.
+   * guest scans. `createUser` takes the code and counts again right before it opens an account,
+   * one registration after another per member (`inMemberLine`).
    */
   @Authorized([RIGHTS.PRESENCE_CODE])
   @Query(() => PresenceCode, { nullable: true })
