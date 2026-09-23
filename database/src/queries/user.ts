@@ -137,6 +137,55 @@ export async function dbFindUserIdByUuids(
 }
 
 /**
+ * The `users` rows carrying these pairs -- id, the pair as the row spells it, alias and
+ * deletion mark -- for a list of people known by their pair alone (the chat's conversation
+ * members). Deleted members included, and members of other communities the federation
+ * stored, for the reasons `dbFindUserIdByUuids` gives; a pair without a row is simply not in
+ * the answer. At most one row per pair: `uuid_key` (migration 0073).
+ *
+ * ⛔ The pairs go in as PARAMETERS, and that is the reason this is a query of its own rather
+ * than a join. `users` and the chat tables do not share a collation everywhere (the database
+ * CI has `users` in utf8mb4_general_ci, the chat tables are created utf8mb4_unicode_ci), and
+ * comparing two columns of different collations is an error ("Illegal mix of collations").
+ * A parameter takes the collation of the column it is compared with -- so this compares the
+ * way `users` compares, case-insensitively either way, and `uuid_key` stays usable.
+ */
+export async function dbSelectUsersByUuids(
+  pairs: { communityUuid: string; gradidoId: string }[],
+): Promise<
+  {
+    id: number
+    communityUuid: string
+    gradidoId: string
+    alias: string | null
+    deletedAt: Date | null
+  }[]
+> {
+  if (pairs.length === 0) {
+    return []
+  }
+  return drizzleDb()
+    .select({
+      id: usersTable.id,
+      communityUuid: usersTable.communityUuid,
+      gradidoId: usersTable.gradidoId,
+      alias: usersTable.alias,
+      deletedAt: usersTable.deletedAt,
+    })
+    .from(usersTable)
+    .where(
+      or(
+        ...pairs.map((pair) =>
+          and(
+            eq(usersTable.gradidoId, pair.gradidoId),
+            eq(usersTable.communityUuid, pair.communityUuid),
+          ),
+        ),
+      ),
+    )
+}
+
+/**
  * Forget that the GMS holds a copy of this member - because it has just been removed.
  *
  * Nothing else ever clears this flag: it is only ever set, by the run that publishes a

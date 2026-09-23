@@ -8,9 +8,9 @@ import {
   chatConversationMembersTable,
   chatConversationsTable,
   chatMessagesTable,
-  usersTable,
 } from '../schemas/drizzle.schema'
 import { ChatMemberRef, dbInsertChatConversationMembers } from './chatConversationMembers'
+import { dbSelectUsersByUuids } from './user'
 
 /**
  * The key of the direct conversation between two members: each as `communityUuid/gradidoId`,
@@ -100,19 +100,20 @@ export async function dbEnsureDirectChatConversation(
  * missing: nothing to name.
  *
  * Direct conversations only: a group (P5) is not a person.
+ *
+ * ⛔ Two statements, not one join. The `users` rows are looked up by the pairs as parameters
+ * (`dbSelectUsersByUuids`): joining `users` to the chat tables compares columns of two
+ * collations, which the database refuses where they differ -- as it does in the database CI.
  */
 export async function dbSelectDirectChatContactsByMember(member: ChatMemberRef) {
   const me = aliasedTable(chatConversationMembersTable, 'me')
   const partner = aliasedTable(chatConversationMembersTable, 'partner')
   const writtenByMe = sql`${chatMessagesTable.senderCommunityUuid} = ${me.communityUuid} and ${chatMessagesTable.senderGradidoId} = ${me.gradidoId}`
   const aboveMyPointer = sql`${chatMessagesTable.id} > coalesce(${me.lastReadMessageId}, 0)`
-  return drizzleDb()
+  const conversations = await drizzleDb()
     .select({
-      linkedUserId: usersTable.id,
-      communityUuid: sql<string>`coalesce(${usersTable.communityUuid}, ${partner.communityUuid})`,
-      gradidoId: sql<string>`coalesce(${usersTable.gradidoId}, ${partner.gradidoId})`,
-      alias: usersTable.alias,
-      deletedAt: usersTable.deletedAt,
+      communityUuid: partner.communityUuid,
+      gradidoId: partner.gradidoId,
       firstAt: sql`min(${chatMessagesTable.createdAt})`.mapWith(chatMessagesTable.createdAt),
       lastAt: sql`max(${chatMessagesTable.createdAt})`.mapWith(chatMessagesTable.createdAt),
       unreadChatMessages:
@@ -141,22 +142,25 @@ export async function dbSelectDirectChatContactsByMember(member: ChatMemberRef) 
         isNull(chatMessagesTable.deletedAt),
       ),
     )
-    .leftJoin(
-      usersTable,
-      and(
-        eq(usersTable.communityUuid, partner.communityUuid),
-        eq(usersTable.gradidoId, partner.gradidoId),
-      ),
-    )
     .where(eq(chatConversationsTable.kind, 'direct'))
-    .groupBy(
-      chatConversationsTable.id,
-      partner.communityUuid,
-      partner.gradidoId,
-      usersTable.id,
-      usersTable.communityUuid,
-      usersTable.gradidoId,
-      usersTable.alias,
-      usersTable.deletedAt,
-    )
+    .groupBy(chatConversationsTable.id, partner.communityUuid, partner.gradidoId)
+
+  // Matched without regard to case, the way both tables compare (see directChatPairKey).
+  const pairKey = (pair: ChatMemberRef) => `${pair.communityUuid}/${pair.gradidoId}`.toLowerCase()
+  const usersByPair = new Map(
+    (await dbSelectUsersByUuids(conversations)).map((user) => [pairKey(user), user]),
+  )
+  return conversations.map((conversation) => {
+    const user = usersByPair.get(pairKey(conversation))
+    return {
+      linkedUserId: user?.id ?? null,
+      communityUuid: user?.communityUuid ?? conversation.communityUuid,
+      gradidoId: user?.gradidoId ?? conversation.gradidoId,
+      alias: user?.alias ?? null,
+      deletedAt: user?.deletedAt ?? null,
+      firstAt: conversation.firstAt,
+      lastAt: conversation.lastAt,
+      unreadChatMessages: conversation.unreadChatMessages,
+    }
+  })
 }
