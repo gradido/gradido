@@ -24,8 +24,9 @@ export const PRESENCE_CODE_VALID_MINUTES = 10
 /**
  * How many unconfirmed table-code accounts one member may vouch for at a time (E-019): the
  * same for everybody, with no time window. A place frees up when a guest confirms, or when
- * support deletes a dead guest account - never on its own. Counted when a code is minted. No
- * registration takes a code yet; once one does, it has to count again before it opens an account.
+ * support deletes a dead guest account - never on its own. Counted when a code is minted, and
+ * again by `createUser`, which takes the code: right before it opens an account, one
+ * registration after another per member (`inMemberLine`).
  */
 export const PRESENCE_MAX_UNCONFIRMED = 5
 
