@@ -65,7 +65,7 @@ export function aliasCandidates(
 
   const first = transliterateForAlias(firstName ?? '')
   const last = transliterateForAlias(lastName ?? '')
-  
+
   for (let taken = 1; taken <= last.length; taken++) {
     push(first + last.slice(0, taken))
   }
