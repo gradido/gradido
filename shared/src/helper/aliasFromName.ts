@@ -1,10 +1,6 @@
 // AI-GENERATED — not an architecture reference
-import {
-  ALIAS_MAX_CHARS,
-  ALIAS_MIN_CHARS,
-  RESERVED_ALIAS,
-  VALID_ALIAS_REGEX,
-} from '../schema/user.schema'
+import { ALIAS_MAX_CHARS, aliasSchema } from '../schema/user.schema'
+import { transliterateToLatin } from './transliterate'
 
 /**
  * Turning a person's name into a proposal for their gradido address.
@@ -15,12 +11,9 @@ import {
  * leave a member with a Greek or Cyrillic name holding nothing, and a member with a
  * Chinese name holding nothing at all.
  *
- * Writing a name in latin letters is transliteration, not extraction - you cannot pull
- * a letter out of `张三`, you have to know that 张 reads "Zhang". For Greek and Cyrillic
- * that is a fixed table of some forty entries. For CJK it is a dictionary of thousands
- * with ambiguous readings, which is why there is no table for it here and no library
- * either: the fallback for those names is the email local part, the one latin thing
- * that already belongs to them.
+ * For CJK names `transliterateToLatin` has nothing to give (see there why), so the
+ * fallback for those is the email local part, the one latin thing that already belongs
+ * to them.
  *
  * ⚠️ Nothing here promises a usable result. The caller checks each candidate against
  * `aliasSchema` before writing it - a migration that stores an invalid alias is worse
@@ -29,130 +22,12 @@ import {
  * address.
  */
 
-/** Written out before accents are stripped, or `ö` would arrive as `o`. */
-const GERMAN: Record<string, string> = {
-  ä: 'ae',
-  ö: 'oe',
-  ü: 'ue',
-  ß: 'ss',
-}
-
-/** Latin letters that carry no combining mark to strip, so NFD leaves them whole. */
-const LATIN_SOLID: Record<string, string> = {
-  ø: 'o',
-  ł: 'l',
-  đ: 'd',
-  ð: 'd',
-  þ: 'th',
-  æ: 'ae',
-  œ: 'oe',
-  ı: 'i',
-  ŋ: 'n',
-  ħ: 'h',
-}
-
-const GREEK: Record<string, string> = {
-  α: 'a',
-  β: 'v',
-  γ: 'g',
-  δ: 'd',
-  ε: 'e',
-  ζ: 'z',
-  η: 'i',
-  θ: 'th',
-  ι: 'i',
-  κ: 'k',
-  λ: 'l',
-  μ: 'm',
-  ν: 'n',
-  ξ: 'x',
-  ο: 'o',
-  π: 'p',
-  ρ: 'r',
-  σ: 's',
-  ς: 's',
-  τ: 't',
-  υ: 'y',
-  φ: 'f',
-  χ: 'ch',
-  ψ: 'ps',
-  ω: 'o',
-}
-
-const CYRILLIC: Record<string, string> = {
-  а: 'a',
-  б: 'b',
-  в: 'v',
-  г: 'g',
-  д: 'd',
-  е: 'e',
-  ж: 'zh',
-  з: 'z',
-  и: 'i',
-  й: 'y',
-  к: 'k',
-  л: 'l',
-  м: 'm',
-  н: 'n',
-  о: 'o',
-  п: 'p',
-  р: 'r',
-  с: 's',
-  т: 't',
-  у: 'u',
-  ф: 'f',
-  х: 'h',
-  ц: 'ts',
-  ч: 'ch',
-  ш: 'sh',
-  щ: 'shch',
-  ъ: '',
-  ы: 'y',
-  ь: '',
-  э: 'e',
-  ю: 'yu',
-  я: 'ya',
-  ё: 'e',
-  і: 'i',
-  ї: 'i',
-  є: 'e',
-  ґ: 'g',
-}
-
-/** Keeps `Müller` reading as `Mueller` rather than `MUeller`. */
-function matchCase(source: string, mapped: string): string {
-  if (mapped.length === 0 || source === source.toLowerCase()) {
-    return mapped
-  }
-  return mapped.charAt(0).toUpperCase() + mapped.slice(1)
-}
-
-function mapWith(table: Record<string, string>, text: string): string {
-  let out = ''
-  for (const char of text) {
-    const mapped = table[char.toLowerCase()]
-    out += mapped === undefined ? char : matchCase(char, mapped)
-  }
-  return out
-}
-
 /**
- * The rungs, in order. German first, because stripping accents would otherwise turn
- * `ö` into `o` and lose the `e` that belongs to it.
+ * The name in latin letters, reduced to what an alias can hold. A script with no table
+ * in `transliterateToLatin` comes back empty.
  */
 export function transliterateForAlias(text: string): string {
-  if (!text) {
-    return ''
-  }
-  let out = mapWith(GERMAN, text)
-  out = mapWith(LATIN_SOLID, out)
-  // NFD splits `é` into `e` + accent, and the accent falls to the class below. It also
-  // strips the accents Greek vowels carry, which is why the Greek table needs no
-  // accented entries of its own.
-  out = out.normalize('NFD').replace(/\p{Mn}/gu, '')
-  out = mapWith(GREEK, out)
-  out = mapWith(CYRILLIC, out)
-  return out.replace(/[^a-zA-Z0-9]/g, '')
+  return transliterateToLatin(text).replace(/[^a-zA-Z0-9]/g, '')
 }
 
 /** What a member typed before the `@`, minus any `+tag` they added for themselves. */
@@ -162,14 +37,6 @@ export function aliasStemFromEmail(email?: string | null): string {
   }
   const local = email.split('@')[0] ?? ''
   return transliterateForAlias(local.split('+')[0] ?? '')
-}
-
-function isUsable(candidate: string): boolean {
-  return (
-    candidate.length >= ALIAS_MIN_CHARS &&
-    VALID_ALIAS_REGEX.test(candidate) &&
-    !RESERVED_ALIAS.includes(candidate.toLowerCase())
-  )
 }
 
 /**
@@ -188,17 +55,17 @@ export function aliasCandidates(
   lastName?: string | null,
   email?: string | null,
 ): string[] {
-  const first = transliterateForAlias(firstName ?? '')
-  const last = transliterateForAlias(lastName ?? '')
   const candidates: string[] = []
-
   const push = (value: string) => {
     const trimmed = value.slice(0, ALIAS_MAX_CHARS)
-    if (isUsable(trimmed) && !candidates.includes(trimmed)) {
+    if (value.length && !candidates.includes(trimmed) && aliasSchema.safeParse(trimmed).success) {
       candidates.push(trimmed)
     }
   }
 
+  const first = transliterateForAlias(firstName ?? '')
+  const last = transliterateForAlias(lastName ?? '')
+  
   for (let taken = 1; taken <= last.length; taken++) {
     push(first + last.slice(0, taken))
   }

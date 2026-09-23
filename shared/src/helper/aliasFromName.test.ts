@@ -6,8 +6,28 @@ describe('transliterateForAlias', () => {
     expect(transliterateForAlias('Weiß')).toBe('Weiss')
   })
 
+  it('reads a decomposed umlaut as the umlaut it is, not as a stripped accent', () => {
+    expect(transliterateForAlias('Mu\u0308ller')).toBe('Mueller')
+  })
+
   it('capitalises only the first letter of what an umlaut becomes', () => {
     expect(transliterateForAlias('Über')).toBe('Ueber')
+    expect(transliterateForAlias('Ü')).toBe('Ue')
+  })
+
+  it('keeps a name written in capitals in capitals', () => {
+    expect(transliterateForAlias('MÜLLER')).toBe('MUELLER')
+    expect(transliterateForAlias('HÜCKSTÄDT')).toBe('HUECKSTAEDT')
+    expect(transliterateForAlias('ЩЕРБАКОВ')).toBe('SHCHERBAKOV')
+    expect(transliterateForAlias('ΘΕΟΔΩΡΟΣ')).toBe('THEODOROS')
+  })
+
+  it('writes ß in capitals only between capitals', () => {
+    expect(transliterateForAlias('GROß')).toBe('GROSS')
+    expect(transliterateForAlias('STRAßE')).toBe('STRASSE')
+    expect(transliterateForAlias('GROẞ')).toBe('GROSS')
+    expect(transliterateForAlias('Weiß')).toBe('Weiss')
+    expect(transliterateForAlias('Straße')).toBe('Strasse')
   })
 
   it('strips the accents that a latin letter merely carries', () => {

@@ -13,6 +13,7 @@
 // PII stays local: the recipient's name is only used here to build the salutation;
 // it never reaches the Anthropic API (E-012).
 
+import { foldGermanLetters } from 'shared'
 import { FEMALE_NAMES, MALE_NAMES } from './nameGenderData'
 
 export type NameGender = 'male' | 'female' | null
@@ -21,13 +22,8 @@ export type NameGender = 'male' | 'female' | null
 // German ASCII form, then strip remaining diacritics and non-letters, so
 // "Guenther" / "Gunther" all reach the same key as "Guenther" from "Günther".
 export function normalizeName(name: string): string {
-  return name
-    .trim()
+  return foldGermanLetters(name.trim())
     .toLowerCase()
-    .replace(/ä/g, 'ae')
-    .replace(/ö/g, 'oe')
-    .replace(/ü/g, 'ue')
-    .replace(/ß/g, 'ss')
     .normalize('NFD')
     .replace(/\p{M}/gu, '')
     .replace(/[^a-z]/g, '')
