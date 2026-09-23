@@ -1,10 +1,12 @@
 // AI-GENERATED — not an architecture reference
+import { eq } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
-import { ChatMessageInsert, chatMessagesTable } from '../schemas'
+import { ChatMessageInsert, ChatMessageSelect, chatMessagesTable } from '../schemas'
 import {
   dbInsertChatMessage,
   dbSelectChatMessagesByConversationId,
+  dbSelectChatMessagesPage,
   dbUpdateChatMessageDelivery,
 } from './chatMessages'
 
@@ -185,5 +187,83 @@ describe('chatMessages query test', () => {
     if (!result.success) {
       expect(result.error.name).toBe('DBNotFoundError')
     }
+  })
+})
+
+describe('dbSelectChatMessagesPage', () => {
+  const PAGED = 817
+  // Five messages in the order they arrive, the third of them deleted later on.
+  const PAGED_UUIDS = [1, 2, 3, 4, 5].map((n) => `30000000-0000-4000-8000-00000000000${n}`)
+  let filed: ChatMessageSelect[]
+
+  const uuidsOf = (messages: ChatMessageSelect[]) => messages.map((m) => m.messageUuid)
+
+  beforeAll(async () => {
+    filed = []
+    for (const uuid of PAGED_UUIDS) {
+      const stored = await dbInsertChatMessage(message(uuid, { conversationId: PAGED }))
+      if (!stored.success) {
+        throw new Error(`fixture: ${uuid} was not filed`)
+      }
+      filed.push(stored.value)
+    }
+    // Another conversation's message in between, which no page of this one may carry.
+    await dbInsertChatMessage(
+      message('30000000-0000-4000-8000-000000000009', { conversationId: PAGED + 1 }),
+    )
+    await db
+      .update(chatMessagesTable)
+      .set({ deletedAt: new Date() })
+      .where(eq(chatMessagesTable.id, filed[2].id))
+  })
+
+  it('hands out the newest messages without a cursor, oldest of them first', async () => {
+    const page = await dbSelectChatMessagesPage(PAGED, { limit: 2 })
+    expect(uuidsOf(page.messages)).toEqual([PAGED_UUIDS[3], PAGED_UUIDS[4]])
+    expect(page.messages[0].id).toBeLessThan(page.messages[1].id)
+    expect(page.hasMore).toBe(true)
+  })
+
+  it('hands out the older ones before the cursor, and leaves the deleted one out', async () => {
+    const page = await dbSelectChatMessagesPage(PAGED, { before: filed[3].id, limit: 2 })
+    expect(uuidsOf(page.messages)).toEqual([PAGED_UUIDS[0], PAGED_UUIDS[1]])
+    // Exactly two left below the cursor, and a page of two: nothing more to load.
+    expect(page.hasMore).toBe(false)
+  })
+
+  it('says there is more exactly when one message did not fit', async () => {
+    // Four messages are left once the deleted one is gone.
+    const all = await dbSelectChatMessagesPage(PAGED, { limit: 4 })
+    expect(uuidsOf(all.messages)).toEqual([
+      PAGED_UUIDS[0],
+      PAGED_UUIDS[1],
+      PAGED_UUIDS[3],
+      PAGED_UUIDS[4],
+    ])
+    expect(all.hasMore).toBe(false)
+    const oneShort = await dbSelectChatMessagesPage(PAGED, { limit: 3 })
+    expect(uuidsOf(oneShort.messages)).toEqual([PAGED_UUIDS[1], PAGED_UUIDS[3], PAGED_UUIDS[4]])
+    expect(oneShort.hasMore).toBe(true)
+  })
+
+  it('never shows a deleted message, whatever the page', async () => {
+    const around = await dbSelectChatMessagesPage(PAGED, { before: filed[4].id, limit: 10 })
+    expect(uuidsOf(around.messages)).not.toContain(PAGED_UUIDS[2])
+    expect(uuidsOf(around.messages)).toEqual([PAGED_UUIDS[0], PAGED_UUIDS[1], PAGED_UUIDS[3]])
+  })
+
+  it('answers an empty page for a conversation without messages, and below its first one', async () => {
+    expect(await dbSelectChatMessagesPage(4242, { limit: 50 })).toEqual({
+      messages: [],
+      hasMore: false,
+    })
+    expect(await dbSelectChatMessagesPage(PAGED, { before: filed[0].id, limit: 50 })).toEqual({
+      messages: [],
+      hasMore: false,
+    })
+  })
+
+  it('refuses a page size below one', async () => {
+    await expect(dbSelectChatMessagesPage(PAGED, { limit: 0 })).rejects.toThrow('page size')
   })
 })

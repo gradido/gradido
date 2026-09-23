@@ -748,12 +748,26 @@ export type FirstCreationInsert = typeof firstCreationsTable.$inferInsert
 // are uuid PAIRS (community + member), never users.id -- a member of another community has
 // no users row here. The states are plain varchar columns; the unions are what the code
 // may write into them.
+//
+// The two states a sender reads about their own message are an object AND a union of the
+// same name. The object is the one list of values: the columns below are typed by it, and
+// the backend registers that very object as a GraphQL enum (graphql/enum/ChatMessageNotify.ts
+// and ChatMessageDeliveryState.ts), so the schema offers the values the code may write, and
+// a value added here reaches both. The union is what the writers need: they write plain
+// strings (`'delivered'`, in core and in sendEmail), which a TypeScript enum would refuse.
 export type ChatConversationKind = 'direct' | 'group'
 export type ChatConversationMemberRole = 'owner' | 'moderator' | 'member'
 /** What the sender asked for: 'email' means the message goes out as a mail as well. */
-export type ChatMessageNotify = 'email' | 'none'
+export const ChatMessageNotify = { EMAIL: 'email', NONE: 'none' } as const
+export type ChatMessageNotify = (typeof ChatMessageNotify)[keyof typeof ChatMessageNotify]
 /** Whether the own copy reached the other server; a local one is delivered on arrival. */
-export type ChatMessageDeliveryState = 'delivered' | 'pending' | 'failed'
+export const ChatMessageDeliveryState = {
+  DELIVERED: 'delivered',
+  PENDING: 'pending',
+  FAILED: 'failed',
+} as const
+export type ChatMessageDeliveryState =
+  (typeof ChatMessageDeliveryState)[keyof typeof ChatMessageDeliveryState]
 
 export const chatConversationsTable = mysqlTable(
   'chat_conversations',

@@ -1,7 +1,12 @@
 // AI-GENERATED — not an architecture reference
-import { sql } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
+import { VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
+import { DBNotFoundError } from '../errorTypes'
 import { chatConversationMembersTable } from '../schemas/drizzle.schema'
+
+const ChatConversationMemberNotFound = (where: string) =>
+  new DBNotFoundError('chat_conversation_members', where)
 
 /**
  * A member of a conversation, named the way every server can name them: the uuid pair of
@@ -43,5 +48,54 @@ export async function dbInsertChatConversationMembers(
       .onDuplicateKeyUpdate({
         set: { conversationId: sql`${chatConversationMembersTable.conversationId}` },
       })
+  }
+}
+
+/**
+ * Moves the member's read pointer up to `messageId` -- up only: the pointer becomes the larger
+ * of the two, so an older id, sent late, leaves it where it is.
+ *
+ * `messageId` is the highest id the member has been SHOWN, handed in by the caller. The
+ * highest id in the conversation would be the wrong number: a message that arrived between
+ * loading the page and marking it would count as read without ever having been on screen.
+ *
+ * Writes the row of the member named here and no other -- the pair is part of the where
+ * clause. ChatResolver names the caller, so what a member marks read is only ever their own.
+ *
+ * DBNotFoundError when the member is not in the conversation. Writing the value the row has
+ * already is a success: mysql2 connects with FOUND_ROWS, so `affectedRows` counts the matched
+ * row. Throws for an id below 1: no message has one, so the caller has a bug.
+ */
+export async function dbUpdateChatConversationMemberLastRead(
+  conversationId: number,
+  member: ChatMemberRef,
+  messageId: number,
+): Promise<VoidResult<DBNotFoundError>> {
+  if (!Number.isInteger(messageId) || messageId < 1) {
+    throw new Error(`dbUpdateChatConversationMemberLastRead: ${messageId} is not a message id`)
+  }
+  const result = await drizzleDb()
+    .update(chatConversationMembersTable)
+    .set({
+      // COALESCE because GREATEST with a NULL is NULL: a member who has read nothing yet
+      // would otherwise keep reading nothing.
+      lastReadMessageId: sql`greatest(coalesce(${chatConversationMembersTable.lastReadMessageId}, 0), ${messageId})`,
+    })
+    .where(
+      and(
+        eq(chatConversationMembersTable.conversationId, conversationId),
+        eq(chatConversationMembersTable.communityUuid, member.communityUuid),
+        eq(chatConversationMembersTable.gradidoId, member.gradidoId),
+      ),
+    )
+  const firstRow = result[0]
+  if (firstRow && firstRow.affectedRows === 1) {
+    return { success: true }
+  }
+  return {
+    success: false,
+    error: ChatConversationMemberNotFound(
+      `conversation_id = ${conversationId} and member = ${member.communityUuid}/${member.gradidoId}`,
+    ),
   }
 }
