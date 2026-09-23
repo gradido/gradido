@@ -1104,15 +1104,20 @@ describe('sendEmail', () => {
     let peerEntry: DbFederatedCommunity
     let rawRequest: jest.SpyInstance | undefined
     let commands: Record<string, unknown>[] = []
+    // What this server had filed for each command while it was on its way.
+    let inFlight: (string | undefined)[] = []
 
     /** The other community: opens each command with its key and answers as it is told. */
     const peerAnswers = (answer: { success: boolean; error?: string }) => {
       rawRequest = jest
         .spyOn(GraphQLClient.prototype, 'rawRequest')
-        .mockImplementation((async (options: {
-          variables: { args: { handshakeID: string; jwt: string } }
-        }) => {
-          const { args } = options.variables
+        // CommandClient.sendCommand calls rawRequest(document, variables) -- two arguments,
+        // not the options object the member-avatar client hands over.
+        .mockImplementation((async (
+          _document: unknown,
+          variables: { args: { handshakeID: string; jwt: string } },
+        ) => {
+          const { args } = variables
           const command = (await verifyAndDecrypt(
             args.handshakeID,
             args.jwt,
@@ -1122,7 +1127,11 @@ describe('sendEmail', () => {
           if (!command) {
             throw new Error('the command does not verify with the key of this community')
           }
-          commands.push(JSON.parse(command.commandArgs[0]))
+          const sent = JSON.parse(command.commandArgs[0])
+          commands.push(sent)
+          inFlight.push(
+            (await messages()).find((m) => m.messageUuid === sent.messageUuid)?.deliveryState,
+          )
           return { data: { sendCommand: answer }, status: 200 }
         }) as any)
     }
@@ -1169,6 +1178,7 @@ describe('sendEmail', () => {
 
     beforeEach(() => {
       commands = []
+      inFlight = []
     })
 
     afterEach(() => {
@@ -1212,6 +1222,8 @@ describe('sendEmail', () => {
         deliveryState: 'delivered',
       })
       expect(ownCopy.lastAttemptAt).toBeInstanceOf(Date)
+      // The own copy comes first, as not yet delivered, and only the answer delivers it.
+      expect(inFlight).toEqual(['pending'])
       const [conversation] = (await conversations()).filter((c) => c.id === ownCopy.conversationId)
       expect(conversation.directPairKey).toContain(`${peerUuid}/${peerMember}`)
     })
@@ -1228,6 +1240,7 @@ describe('sendEmail', () => {
       expect(ownCopy.messageUuid).toBe(commands[0].messageUuid)
       expect(ownCopy.deliveryState).toBe('failed')
       expect(ownCopy.lastAttemptAt).toBeInstanceOf(Date)
+      expect(inFlight).toEqual(['pending'])
     })
 
     // The other server looks a recipient up by gradido id and nothing else.
@@ -1239,6 +1252,7 @@ describe('sendEmail', () => {
 
       expect(result.errors).toHaveLength(1)
       expect(commands).toHaveLength(1)
+      expect(inFlight).toEqual([undefined])
       expect(await messages()).toEqual(before)
     })
 
