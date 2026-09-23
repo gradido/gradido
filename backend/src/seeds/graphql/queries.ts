@@ -766,6 +766,8 @@ export const contactList = gql`
         favorite
         homeCommunity
         origin
+        unreadChatMessages
+        lastChatMessageAt
       }
     }
   }

@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { ContactOrigin, GradidoUnit, Order } from 'shared'
+import { v4 as uuidv4 } from 'uuid'
 import { clearDatabase } from '../../migration/clear'
 import { User as DbUser, UserContact as DbUserContact } from '..'
 import { AppDatabase } from '../AppDatabase'
@@ -11,6 +12,9 @@ import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { peterLustig } from '../seeds/users/peter-lustig'
+import { dbUpdateChatConversationMemberLastRead } from './chatConversationMembers'
+import { dbEnsureDirectChatConversation } from './chatConversations'
+import { dbInsertChatMessage } from './chatMessages'
 import { dbSelectContactsByUserId, dbSelectTransactionsByUserId } from './transactions'
 import { dbFindUserIdByUuids } from './user'
 
@@ -50,6 +54,16 @@ const withMember = async (communityUuid: string, gradidoId: string) => ({
   localUserId: await dbFindUserIdByUuids(communityUuid, gradidoId),
   gradidoId,
   communityUuid,
+})
+
+/**
+ * The asking member's own pair -- what the contact query asks the chat bundle with, beside
+ * the id it asks everything else with. The same person, in the form conversation members
+ * are stored in.
+ */
+const memberOf = (user: DbUser) => ({
+  communityUuid: user.communityUuid as string,
+  gradidoId: user.gradidoID,
 })
 
 /** The counterparty of a foreign booking, as the seed factory takes it. */
@@ -119,7 +133,11 @@ afterAll(async () => {
 
 describe('dbSelectContactsByUserId', () => {
   it('lists every counterparty once, newest contact first, with dates and counts', async () => {
-    const page = await dbSelectContactsByUserId(bibi.id, { limit: 25, offset: 0 })
+    const page = await dbSelectContactsByUserId(bibi.id, {
+      member: memberOf(bibi),
+      limit: 25,
+      offset: 0,
+    })
     expect(page.count).toBe(5)
     // Tina and Sarah share the newest date; the uuid pair decides between them, descending
     // with the rest.
@@ -150,7 +168,12 @@ describe('dbSelectContactsByUserId', () => {
   })
 
   it('turns the order around when asked, oldest contact first', async () => {
-    const page = await dbSelectContactsByUserId(bibi.id, { limit: 25, offset: 0, order: Order.ASC })
+    const page = await dbSelectContactsByUserId(bibi.id, {
+      member: memberOf(bibi),
+      limit: 25,
+      offset: 0,
+      order: Order.ASC,
+    })
     // The exact reverse of the default order, tie included.
     expect(page.contacts.map((c) => c.gradidoId)).toEqual([
       ANNA,
@@ -160,18 +183,31 @@ describe('dbSelectContactsByUserId', () => {
       TINA,
     ])
     // And the page is taken off the reversed list, not off the default one.
-    const first = await dbSelectContactsByUserId(bibi.id, { limit: 1, offset: 0, order: Order.ASC })
+    const first = await dbSelectContactsByUserId(bibi.id, {
+      member: memberOf(bibi),
+      limit: 1,
+      offset: 0,
+      order: Order.ASC,
+    })
     expect(first.contacts[0].gradidoId).toBe(ANNA)
   })
 
   it('does not count the creation as a contact', async () => {
-    const page = await dbSelectContactsByUserId(bibi.id, { limit: 25, offset: 0 })
+    const page = await dbSelectContactsByUserId(bibi.id, {
+      member: memberOf(bibi),
+      limit: 25,
+      offset: 0,
+    })
     expect(page.contacts.some((c) => c.bookings > 3)).toBe(false)
     expect(page.count).toBe(5)
   })
 
   it('keeps a stored real name out of the list and out of the search (NU-019)', async () => {
-    const page = await dbSelectContactsByUserId(bibi.id, { limit: 25, offset: 0 })
+    const page = await dbSelectContactsByUserId(bibi.id, {
+      member: memberOf(bibi),
+      limit: 25,
+      offset: 0,
+    })
     const anna = page.contacts.find((c) => c.gradidoId === ANNA)
     // She is a contact -- the booking is real -- but the row names her by nothing.
     expect(anna).toMatchObject({
@@ -180,13 +216,22 @@ describe('dbSelectContactsByUserId', () => {
       alias: null,
     })
     // And the search cannot be used as an oracle on what the row does not show.
-    const probe = await dbSelectContactsByUserId(bibi.id, { search: 'müll', limit: 25, offset: 0 })
+    const probe = await dbSelectContactsByUserId(bibi.id, {
+      member: memberOf(bibi),
+      search: 'müll',
+      limit: 25,
+      offset: 0,
+    })
     expect(probe.count).toBe(0)
     expect(probe.contacts).toEqual([])
   })
 
   it('shows the other side the same booking, from their view', async () => {
-    const page = await dbSelectContactsByUserId(bob.id, { limit: 25, offset: 0 })
+    const page = await dbSelectContactsByUserId(bob.id, {
+      member: memberOf(bob),
+      limit: 25,
+      offset: 0,
+    })
     expect(page.count).toBe(1)
     expect(page.contacts[0]).toMatchObject({ linkedUserId: bibi.id, bookings: 2 })
   })
@@ -195,8 +240,16 @@ describe('dbSelectContactsByUserId', () => {
   // order that leaves a tie to the storage engine puts such a contact on both pages or on
   // neither -- which is why the pair breaks the tie.
   it('pages without repeating or dropping anybody, tie included', async () => {
-    const first = await dbSelectContactsByUserId(bibi.id, { limit: 3, offset: 0 })
-    const second = await dbSelectContactsByUserId(bibi.id, { limit: 3, offset: 3 })
+    const first = await dbSelectContactsByUserId(bibi.id, {
+      member: memberOf(bibi),
+      limit: 3,
+      offset: 0,
+    })
+    const second = await dbSelectContactsByUserId(bibi.id, {
+      member: memberOf(bibi),
+      limit: 3,
+      offset: 3,
+    })
     expect(first.count).toBe(5)
     expect(first.contacts).toHaveLength(3)
     expect(second.contacts).toHaveLength(2)
@@ -208,19 +261,32 @@ describe('dbSelectContactsByUserId', () => {
 
   it('searches the alias, case-insensitively, and counts only what matches', async () => {
     const page = await dbSelectContactsByUserId(bibi.id, {
+      member: memberOf(bibi),
       search: 'sarah',
       limit: 25,
       offset: 0,
     })
     expect(page.count).toBe(1)
     expect(page.contacts[0].gradidoId).toBe(SARAH)
-    const nobody = await dbSelectContactsByUserId(bibi.id, { search: 'zzz', limit: 25, offset: 0 })
+    const nobody = await dbSelectContactsByUserId(bibi.id, {
+      member: memberOf(bibi),
+      search: 'zzz',
+      limit: 25,
+      offset: 0,
+    })
     expect(nobody.count).toBe(0)
     expect(nobody.contacts).toEqual([])
   })
 
   it('answers an empty list for a member without any booking', async () => {
-    const page = await dbSelectContactsByUserId(999999, { limit: 25, offset: 0 })
+    const page = await dbSelectContactsByUserId(999999, {
+      member: {
+        communityUuid: FOREIGN_COMMUNITY,
+        gradidoId: 'bbbbbbbb-0000-4000-8000-000000000000',
+      },
+      limit: 25,
+      offset: 0,
+    })
     expect(page).toEqual({ contacts: [], count: 0 })
   })
 })
@@ -235,7 +301,11 @@ describe('dbSelectContactsByUserId', () => {
  */
 describe('dbSelectContactsByUserId with a person both groupings found', () => {
   it('lists her once, with every booking counted', async () => {
-    const page = await dbSelectContactsByUserId(peter.id, { limit: 25, offset: 0 })
+    const page = await dbSelectContactsByUserId(peter.id, {
+      member: memberOf(peter),
+      limit: 25,
+      offset: 0,
+    })
 
     const lotte = page.contacts.filter((c) => c.gradidoId === LOTTE)
     expect(lotte).toHaveLength(1)
@@ -253,7 +323,11 @@ describe('dbSelectContactsByUserId with a person both groupings found', () => {
   })
 
   it('counts her once in the page count as well', async () => {
-    const page = await dbSelectContactsByUserId(peter.id, { limit: 25, offset: 0 })
+    const page = await dbSelectContactsByUserId(peter.id, {
+      member: memberOf(peter),
+      limit: 25,
+      offset: 0,
+    })
     // bibi and Lotte. Three rows before merging, which is what a page of 25 would have
     // shown and what every later page would have been off by.
     expect(page.count).toBe(2)
@@ -267,6 +341,7 @@ describe('dbSelectContactsByUserId with a person both groupings found', () => {
     expect(counterparty.localUserId).toBe(lotteRowId)
 
     const contacts = await dbSelectContactsByUserId(peter.id, {
+      member: memberOf(peter),
       counterparty,
       limit: 25,
       offset: 0,
@@ -286,13 +361,18 @@ describe('dbSelectContactsByUserId with a person both groupings found', () => {
 })
 
 describe('dbSelectContactsByUserId narrowed to one counterparty', () => {
-  const contactFor = (userId: number, counterparty: Awaited<ReturnType<typeof withMember>>) =>
-    dbSelectContactsByUserId(userId, { counterparty, limit: 25, offset: 0 })
+  const contactFor = (user: DbUser, counterparty: Awaited<ReturnType<typeof withMember>>) =>
+    dbSelectContactsByUserId(user.id, {
+      member: memberOf(user),
+      counterparty,
+      limit: 25,
+      offset: 0,
+    })
 
   it('answers one contact for a member of this community, by their users row', async () => {
     const peterRef = await withMember(peter.communityUuid as string, peter.gradidoID)
     expect(peterRef.localUserId).toBe(peter.id)
-    const page = await contactFor(bibi.id, peterRef)
+    const page = await contactFor(bibi, peterRef)
     expect(page.count).toBe(1)
     expect(page.contacts[0]).toMatchObject({ linkedUserId: peter.id, bookings: 3 })
     expect(page.contacts[0].firstAt.getTime()).toBe(day(1).getTime())
@@ -302,7 +382,7 @@ describe('dbSelectContactsByUserId narrowed to one counterparty', () => {
   it('answers one contact for a member of another community, by the pair', async () => {
     const sarah = await withMember(FOREIGN_COMMUNITY, SARAH)
     expect(sarah.localUserId).toBeNull()
-    const page = await contactFor(bibi.id, sarah)
+    const page = await contactFor(bibi, sarah)
     expect(page.count).toBe(1)
     expect(page.contacts[0]).toMatchObject({
       linkedUserId: null,
@@ -314,7 +394,7 @@ describe('dbSelectContactsByUserId narrowed to one counterparty', () => {
 
   it('answers nothing for a pair nobody booked with', async () => {
     const nobody = await withMember(FOREIGN_COMMUNITY, '00000000-0000-0000-0000-000000000000')
-    const page = await contactFor(bibi.id, nobody)
+    const page = await contactFor(bibi, nobody)
     expect(page).toEqual({ contacts: [], count: 0 })
   })
 
@@ -322,7 +402,7 @@ describe('dbSelectContactsByUserId narrowed to one counterparty', () => {
   // from the CALLER's own bookings and nobody else's. bibi booked with peter, bob did not.
   it("does not answer about another member's contact", async () => {
     const peterRef = await withMember(peter.communityUuid as string, peter.gradidoID)
-    const page = await contactFor(bob.id, peterRef)
+    const page = await contactFor(bob, peterRef)
     expect(page).toEqual({ contacts: [], count: 0 })
   })
 
@@ -341,7 +421,7 @@ describe('dbSelectContactsByUserId narrowed to one counterparty', () => {
     ]
     for (const [communityUuid, gradidoId] of everyone) {
       const counterparty = await withMember(communityUuid, gradidoId)
-      const contacts = await contactFor(bibi.id, counterparty)
+      const contacts = await contactFor(bibi, counterparty)
       const [, bookings] = await dbSelectTransactionsByUserId(
         bibi.id,
         25,
@@ -469,11 +549,12 @@ describe('dbSelectContactsByUserId with the referral trace', () => {
     await DbUserContact.delete({ userId: carla.id })
   })
 
-  const contactsOf = async (userId: number) =>
-    (await dbSelectContactsByUserId(userId, { limit: 25, offset: 0 })).contacts
+  const contactsOf = async (user: DbUser) =>
+    (await dbSelectContactsByUserId(user.id, { member: memberOf(user), limit: 25, offset: 0 }))
+      .contacts
 
   it('adds somebody with no bookings at all as a contact of their own', async () => {
-    const carlaRow = (await contactsOf(bibi.id)).find((c) => c.linkedUserId === carla.id)
+    const carlaRow = (await contactsOf(bibi)).find((c) => c.linkedUserId === carla.id)
     expect(carlaRow).toMatchObject({
       linkedUserId: carla.id,
       gradidoId: carla.gradidoID,
@@ -488,7 +569,7 @@ describe('dbSelectContactsByUserId with the referral trace', () => {
   })
 
   it('joins a booking counterparty and an arrival into ONE contact', async () => {
-    const rows = (await contactsOf(bibi.id)).filter((c) => c.linkedUserId === bob.id)
+    const rows = (await contactsOf(bibi)).filter((c) => c.linkedUserId === bob.id)
     expect(rows).toHaveLength(1)
     // The bookings are untouched by the second source, and the origin came along.
     expect(rows[0]).toMatchObject({ bookings: 2, origin: ContactOrigin.ARRIVAL })
@@ -499,7 +580,7 @@ describe('dbSelectContactsByUserId with the referral trace', () => {
   })
 
   it("joins the other direction too, and dates it with the asking member's arrival", async () => {
-    const rows = (await contactsOf(bibi.id)).filter((c) => c.linkedUserId === peter.id)
+    const rows = (await contactsOf(bibi)).filter((c) => c.linkedUserId === peter.id)
     expect(rows).toHaveLength(1)
     expect(rows[0]).toMatchObject({ bookings: 3, origin: ContactOrigin.REFERRER })
     // bibi registered in 2021, long before the first booking with peter.
@@ -508,12 +589,16 @@ describe('dbSelectContactsByUserId with the referral trace', () => {
   })
 
   it('leaves a contact that is only a booking without an origin', async () => {
-    const anna = (await contactsOf(bibi.id)).find((c) => c.gradidoId === ANNA)
+    const anna = (await contactsOf(bibi)).find((c) => c.gradidoId === ANNA)
     expect(anna).toMatchObject({ bookings: 1, origin: null })
   })
 
   it('counts the new person once, and nobody twice', async () => {
-    const page = await dbSelectContactsByUserId(bibi.id, { limit: 25, offset: 0 })
+    const page = await dbSelectContactsByUserId(bibi.id, {
+      member: memberOf(bibi),
+      limit: 25,
+      offset: 0,
+    })
     // The five from the bookings plus carla; bob and peter were contacts already.
     expect(page.count).toBe(6)
     expect(page.contacts).toHaveLength(6)
@@ -521,8 +606,16 @@ describe('dbSelectContactsByUserId with the referral trace', () => {
   })
 
   it('pages over the joined list without a duplicate or a gap', async () => {
-    const first = await dbSelectContactsByUserId(bibi.id, { limit: 3, offset: 0 })
-    const second = await dbSelectContactsByUserId(bibi.id, { limit: 3, offset: 3 })
+    const first = await dbSelectContactsByUserId(bibi.id, {
+      member: memberOf(bibi),
+      limit: 3,
+      offset: 0,
+    })
+    const second = await dbSelectContactsByUserId(bibi.id, {
+      member: memberOf(bibi),
+      limit: 3,
+      offset: 3,
+    })
     const seen = [...first.contacts, ...second.contacts].map((c) => c.gradidoId)
     expect(seen).toHaveLength(6)
     expect(new Set(seen).size).toBe(6)
@@ -530,6 +623,7 @@ describe('dbSelectContactsByUserId with the referral trace', () => {
 
   it('finds her by her alias, like any other contact', async () => {
     const page = await dbSelectContactsByUserId(bibi.id, {
+      member: memberOf(bibi),
       search: 'sunshine',
       limit: 25,
       offset: 0,
@@ -542,6 +636,7 @@ describe('dbSelectContactsByUserId with the referral trace', () => {
     const carlaRef = await withMember(carla.communityUuid as string, carla.gradidoID)
     expect(carlaRef.localUserId).toBe(carla.id)
     const page = await dbSelectContactsByUserId(bibi.id, {
+      member: memberOf(bibi),
       counterparty: carlaRef,
       limit: 25,
       offset: 0,
@@ -560,6 +655,7 @@ describe('dbSelectContactsByUserId with the referral trace', () => {
     // answers nobody here while every un-narrowed test stays green.
     const peterRef = await withMember(peter.communityUuid as string, peter.gradidoID)
     const page = await dbSelectContactsByUserId(bibi.id, {
+      member: memberOf(bibi),
       counterparty: peterRef,
       limit: 25,
       offset: 0,
@@ -578,6 +674,7 @@ describe('dbSelectContactsByUserId with the referral trace', () => {
     const annaRef = await withMember(FOREIGN_COMMUNITY, ANNA)
     expect(annaRef.localUserId).toBeNull()
     const page = await dbSelectContactsByUserId(bibi.id, {
+      member: memberOf(bibi),
       counterparty: annaRef,
       limit: 25,
       offset: 0,
@@ -589,7 +686,179 @@ describe('dbSelectContactsByUserId with the referral trace', () => {
   it('is not a contact of somebody who only shares the referrer', async () => {
     // carla and bob both came over bibi. That makes each of them a contact of BIBI, not of
     // each other -- they share no event.
-    const carlaSees = (await contactsOf(carla.id)).map((c) => c.linkedUserId)
+    const carlaSees = (await contactsOf(carla)).map((c) => c.linkedUserId)
     expect(carlaSees).toEqual([bibi.id])
+  })
+})
+
+/**
+ * The fourth source: the people this member has a conversation with (E-023, KF-012).
+ *
+ * ⚠️ LAST in the file and undoing what it does, like the referral block above it: the
+ * conversations, bob's arrival over bibi and the member it creates all go in `afterAll`.
+ *
+ * bob is the person all three kinds of event meet in -- two bookings with bibi, his arrival
+ * over her, and a conversation -- so ONE contact has to carry the booking count, the origin
+ * and the chat fields, dated from the oldest of the three to the youngest.
+ */
+describe('dbSelectContactsByUserId with conversations', () => {
+  // A member of another community bibi wrote to, who never booked with anybody here. bibi's
+  // own copy names her by the pair alone; an answer from her would need a users row here
+  // (the receiving server finds the sender by it), so without one this is the shape there is.
+  const FRIDA = {
+    communityUuid: FOREIGN_COMMUNITY,
+    gradidoId: 'f1f1f1f1-0000-4000-8000-000000000001',
+  }
+  const bobArrived = new Date(Date.UTC(2026, 6, 20, 12, 0, 0))
+  let dora: DbUser
+  let bobsMessage: number
+
+  const write = async (
+    conversationId: number,
+    sender: { communityUuid: string; gradidoId: string },
+    at: Date,
+  ) => {
+    const stored = await dbInsertChatMessage({
+      messageUuid: uuidv4(),
+      conversationId,
+      senderCommunityUuid: sender.communityUuid,
+      senderGradidoId: sender.gradidoId,
+      subject: null,
+      body: 'hello',
+      notify: 'email',
+      deliveryState: 'delivered',
+      createdAt: at,
+    })
+    if (!stored.success) {
+      throw new Error('fixture: a message was not filed')
+    }
+    return stored.value.id
+  }
+
+  const contactsOf = async (user: DbUser) =>
+    (await dbSelectContactsByUserId(user.id, { member: memberOf(user), limit: 25, offset: 0 }))
+      .contacts
+
+  beforeAll(async () => {
+    // A member of this community who only ever wrote -- no booking, no trace.
+    dora = await userFactory({ email: 'dora@writes.de', alias: 'doraWrites', emailChecked: true })
+
+    await DbUser.update(bob.id, { referrerId: bibi.id, createdAt: bobArrived })
+    const withBob = await dbEnsureDirectChatConversation(memberOf(bibi), memberOf(bob))
+    await write(withBob.id, memberOf(bibi), day(20))
+    bobsMessage = await write(withBob.id, memberOf(bob), day(21))
+
+    const withFrida = await dbEnsureDirectChatConversation(memberOf(bibi), FRIDA)
+    await write(withFrida.id, memberOf(bibi), day(12))
+
+    const withDora = await dbEnsureDirectChatConversation(memberOf(dora), memberOf(bibi))
+    await write(withDora.id, memberOf(dora), day(15))
+  })
+
+  afterAll(async () => {
+    const db = AppDatabase.getInstance().getDataSource()
+    for (const table of ['chat_messages', 'chat_conversation_members', 'chat_conversations']) {
+      await db.query(`DELETE FROM \`${table}\``)
+    }
+    await DbUser.update(bob.id, { referrerId: null, createdAt: bob.createdAt })
+    await DbUser.delete(dora.id)
+    await DbUserContact.delete({ userId: dora.id })
+  })
+
+  it('brings somebody the member only wrote with, with no bookings', async () => {
+    const frida = (await contactsOf(bibi)).find((c) => c.gradidoId === FRIDA.gradidoId)
+    expect(frida).toMatchObject({
+      linkedUserId: null,
+      communityUuid: FOREIGN_COMMUNITY,
+      alias: null,
+      bookings: 0,
+      origin: null,
+      // bibi's own message: nothing unread.
+      unreadChatMessages: 0,
+    })
+    expect(frida?.firstAt.getTime()).toBe(day(12).getTime())
+    expect(frida?.lastAt.getTime()).toBe(day(12).getTime())
+    expect(frida?.lastChatMessageAt?.getTime()).toBe(day(12).getTime())
+  })
+
+  it('joins bookings, the trace and a conversation with one person into ONE contact', async () => {
+    const rows = (await contactsOf(bibi)).filter((c) => c.linkedUserId === bob.id)
+    expect(rows).toHaveLength(1)
+    // The count is the bookings' alone: a conversation brings none.
+    expect(rows[0]).toMatchObject({
+      bookings: 2,
+      origin: ContactOrigin.ARRIVAL,
+      unreadChatMessages: 1,
+    })
+    expect(rows[0].lastChatMessageAt?.getTime()).toBe(day(21).getTime())
+    // The oldest of the three events -- his arrival -- to the youngest, his message.
+    expect(rows[0].firstAt.getTime()).toBe(bobArrived.getTime())
+    expect(rows[0].lastAt.getTime()).toBe(day(21).getTime())
+  })
+
+  it('puts a fresh message at the top of the list, and counts people once', async () => {
+    const page = await dbSelectContactsByUserId(bibi.id, {
+      member: memberOf(bibi),
+      limit: 25,
+      offset: 0,
+    })
+    expect(page.contacts.map((c) => c.gradidoId)).toEqual([
+      bob.gradidoID,
+      dora.gradidoID,
+      FRIDA.gradidoId,
+      TINA,
+      SARAH,
+      peter.gradidoID,
+      ANNA,
+    ])
+    expect(page.count).toBe(7)
+  })
+
+  it('leaves nothing unread and no last message on a contact without a conversation', async () => {
+    const peterRow = (await contactsOf(bibi)).find((c) => c.linkedUserId === peter.id)
+    expect(peterRow).toMatchObject({ unreadChatMessages: 0, lastChatMessageAt: null })
+  })
+
+  it('finds a partner with a users row by the alias', async () => {
+    const page = await dbSelectContactsByUserId(bibi.id, {
+      member: memberOf(bibi),
+      search: 'writes',
+      limit: 25,
+      offset: 0,
+    })
+    expect(page.count).toBe(1)
+    expect(page.contacts[0]).toMatchObject({ linkedUserId: dora.id, bookings: 0 })
+  })
+
+  it('answers about a partner by the pair, with the chat fields, both shapes', async () => {
+    for (const [who, localUserId, unread] of [
+      [FRIDA, null, 0],
+      [memberOf(dora), dora.id, 1],
+    ] as const) {
+      const counterparty = await withMember(who.communityUuid, who.gradidoId)
+      expect(counterparty.localUserId).toBe(localUserId)
+      const page = await dbSelectContactsByUserId(bibi.id, {
+        member: memberOf(bibi),
+        counterparty,
+        limit: 25,
+        offset: 0,
+      })
+      expect(page.count).toBe(1)
+      expect(page.contacts[0]).toMatchObject({
+        gradidoId: who.gradidoId,
+        bookings: 0,
+        unreadChatMessages: unread,
+      })
+    }
+  })
+
+  it("counts what the member has not read, and the other side's count is their own", async () => {
+    const withBob = await dbEnsureDirectChatConversation(memberOf(bibi), memberOf(bob))
+    await dbUpdateChatConversationMemberLastRead(withBob.id, memberOf(bibi), bobsMessage)
+    const bobRow = (await contactsOf(bibi)).find((c) => c.linkedUserId === bob.id)
+    expect(bobRow?.unreadChatMessages).toBe(0)
+    // bibi's message is still unread to bob: her pointer is not his.
+    const bibiRow = (await contactsOf(bob)).find((c) => c.linkedUserId === bibi.id)
+    expect(bibiRow?.unreadChatMessages).toBe(1)
   })
 })

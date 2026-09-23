@@ -6,7 +6,9 @@ import { Transaction as DbTransaction } from '../entity'
 import { TransactionTypeId } from '../enum'
 import { DBNotFoundError } from '../errorTypes'
 import { transactionsTable, usersTable } from '../schemas'
-import { dbSelectReferralContactsByUserId } from './user'
+import { ChatMemberRef } from './chatConversationMembers'
+import { dbSelectDirectChatContactsByMember } from './chatConversations'
+import { dbSelectReferralContactsByUserId, ReferralContact } from './user'
 
 export const getLastTransaction = async (
   userId: number,
@@ -116,7 +118,7 @@ const isContactCounterparty = (row: ContactRow, counterparty: BookingCounterpart
     : row.gradidoId === counterparty.gradidoId && row.communityUuid === counterparty.communityUuid
 
 /**
- * The three bundles can describe the SAME person more than once -- joined back into one
+ * The four bundles can describe the SAME person more than once -- joined back into one
  * contact, which carries whatever each of them knew.
  *
  * A member of another community whose `users` row the federation stored at some point has
@@ -148,6 +150,13 @@ const isContactCounterparty = (row: ContactRow, counterparty: BookingCounterpart
  * person, whichever grouping found them -- the merge does not depend on remote rows only
  * ever naming another community. Were a home member somehow to turn up on both sides, the
  * two would be joined, which is the right answer for them too.
+ *
+ * ⚠️ The chat bundle joins for the same reason: somebody this member has booked with AND
+ * written to is ONE contact, with the count from the bookings and the unread number and the
+ * time of the last message from the conversation. It brings one row per person (one direct
+ * conversation per pair, `dbSelectDirectChatContactsByMember`), and the two chat fields are
+ * joined by sum and by maximum all the same, like the bookings and the dates: those give
+ * the same answer in any order and for any number of rows, so no row has to win.
  */
 const mergeSamePerson = (rows: ContactRow[]): ContactRow[] => {
   const byPair = new Map<string, ContactRow>()
@@ -177,8 +186,9 @@ const mergeSamePerson = (rows: ContactRow[]): ContactRow[] => {
     // bundles below rather than a rule. It cannot arise from registration -- `referrer_id`
     // is written once, for a new account -- but a data fix that makes two members each
     // other's referrer would put the same person at both ends of the trace, and then which
-    // origin the wallet shows is decided by an array position. Whoever adds a third source
-    // has to decide it properly; today the case needs a write that no code path makes.
+    // origin the wallet shows is decided by an array position. Whoever adds a source that
+    // carries an origin has to decide it properly (the chat bundle carries none); today the
+    // case needs a write that no code path makes.
     seen.origin = seen.origin ?? row.origin
     // Exactly what `bookingsWhere` would count over both branches together.
     if (row.firstAt < seen.firstAt) {
@@ -188,6 +198,13 @@ const mergeSamePerson = (rows: ContactRow[]): ContactRow[] => {
       seen.lastAt = row.lastAt
     }
     seen.bookings += row.bookings
+    seen.unreadChatMessages += row.unreadChatMessages
+    if (
+      row.lastChatMessageAt !== null &&
+      (seen.lastChatMessageAt === null || row.lastChatMessageAt > seen.lastChatMessageAt)
+    ) {
+      seen.lastChatMessageAt = row.lastChatMessageAt
+    }
   }
   return contacts
 }
@@ -243,9 +260,10 @@ export async function dbUpdateBalanceAndDate(txPart: {
 }
 
 /**
- * One counterparty of a member's bookings, as the contact list shows it.
+ * One person in a member's contact list -- from the bookings, the referral trace or a
+ * conversation, joined by `mergeSamePerson` where they are the same person.
  *
- * Two kinds of row come out of the same query, told apart by `linkedUserId`:
+ * Two kinds of booking row come out of the same query, told apart by `linkedUserId`:
  *
  *   - a member of THIS community: `linkedUserId` is set, and `communityUuid`, `gradidoId`,
  *     `alias` and `deletedAt` come from their `users` row (joined, so a renamed member
@@ -279,13 +297,21 @@ export interface ContactRow {
    * them Gradido is one contact with a count AND an origin, joined by `mergeSamePerson`.
    */
   origin: ContactOrigin | null
+  /**
+   * The messages in the conversation with them that this member has not read yet: above
+   * their own read pointer, written by the other side. 0 where there is no conversation.
+   */
+  unreadChatMessages: number
+  /** When the latest message of that conversation arrived here; null where there is none. */
+  lastChatMessageAt: Date | null
 }
 
 export interface ContactsPage {
   contacts: ContactRow[]
   /**
    * The number of PEOPLE in the list, not of bookings -- everyone the member has exchanged
-   * Gradido with plus everyone the referral trace puts beside them, each counted once.
+   * Gradido with, everyone the referral trace puts beside them and everyone they have a
+   * conversation with, each counted once.
    *
    * ⛔ One number for the whole list. There is deliberately no count of the people who
    * came over this member: a line on one person is a mirror, a sum over them is a score
@@ -319,12 +345,20 @@ const aliasOrNull = (stored: unknown): string | null => {
 /**
  * Everyone this member shares an event with -- each person once, newest contact first, with
  * the dates of the first and the latest of those events and how many bookings there were.
+ * Three kinds of event: a booking, the referral trace, a message (E-023).
  *
- * A VIEW, not a table of its own, and that is what lets it have TWO sources without a
+ * A VIEW, not a table of its own, and that is what lets it have THREE sources without a
  * second truth to keep in step (KF-012). The counterparty of a booking already sits on
  * every SEND and RECEIVE row (four columns, written by executeTransaction); who brought
- * whom here already sits in `users.referrer_id`. Neither needed a migration and neither
- * needs a process that writes a contact somewhere when something happens.
+ * whom here already sits in `users.referrer_id`; who wrote to whom sits in the members of a
+ * direct conversation. None needed a migration for this and none needs a process that
+ * writes a contact somewhere when something happens.
+ *
+ * ⚠️ `member` is the asking member's own pair, the same person as `userId`. It is what the
+ * chat bundle is asked with -- conversation members are pairs, never `users.id` -- and it
+ * is required rather than optional for the reason the referral bundle is fetched here: a
+ * caller who could leave it out would get a list without the people they only wrote to,
+ * shorter than the window over it and with nothing on either screen to say so.
  *
  * ★ Two groupings, one list. A member of this community is grouped by `linked_user_id`
  * (old rows may lack the uuid pair; grouping by the pair would split one person into
@@ -346,6 +380,7 @@ const aliasOrNull = (stored: unknown): string | null => {
 export async function dbSelectContactsByUserId(
   userId: number,
   options: {
+    member: ChatMemberRef
     search?: string
     counterparty?: BookingCounterparty
     limit: number
@@ -424,17 +459,26 @@ export async function dbSelectContactsByUserId(
    * what the filter below would have left. A pair that resolved to no row can match no
    * referral row at all, so there is nothing to ask for.
    */
-  const referralsPromise = counterparty
+  const referralsPromise: Promise<ReferralContact[]> = counterparty
     ? counterparty.localUserId === null
-      ? Promise.resolve<ContactRow[]>([])
+      ? Promise.resolve([])
       : dbSelectReferralContactsByUserId(userId, counterparty.localUserId)
     : dbSelectReferralContactsByUserId(userId)
 
-  // ⛔ One wave, not three. The three bundles share nothing -- they are only concatenated
+  // ⛔ One wave, not four. The four bundles share nothing -- they are only concatenated
   // below -- and this function sits on the path the wallet takes for every contact list,
-  // every page of one, and every tap on a member's name. Three sequential round trips
+  // every page of one, and every tap on a member's name. Four sequential round trips
   // where one does is the kind of cost that only shows up as "the wallet feels slow".
-  const [local, remote, referrals] = await Promise.all([localQuery, remoteQuery, referralsPromise])
+  const [local, remote, referrals, chats] = await Promise.all([
+    localQuery,
+    remoteQuery,
+    referralsPromise,
+    dbSelectDirectChatContactsByMember(options.member),
+  ])
+
+  // What a row out of the bookings or the trace knows about a conversation: nothing, which
+  // is no unread message and no last one. The chat bundle says otherwise where there is one.
+  const noChat = { unreadChatMessages: 0, lastChatMessageAt: null }
 
   const rows: ContactRow[] = [
     ...local.map((row) => ({
@@ -447,6 +491,7 @@ export async function dbSelectContactsByUserId(
       lastAt: row.lastAt,
       bookings: row.bookings,
       origin: null,
+      ...noChat,
     })),
     ...remote.map((row) => ({
       linkedUserId: null,
@@ -459,6 +504,7 @@ export async function dbSelectContactsByUserId(
       lastAt: row.lastAt,
       bookings: row.bookings,
       origin: null,
+      ...noChat,
     })),
     // ⛔ BEHIND the two booking bundles, and that buys LESS than it looks like. Against a
     // `local` row it does decide identity: the local row is seen first and keeps it. Against
@@ -471,13 +517,35 @@ export async function dbSelectContactsByUserId(
     // resolver builds the model from anyway -- but it is a change, and the ordering is not
     // what makes it safe.
     //
-    // ⚠️ The dates in this bundle come from the COLUMN, which Drizzle reads as UTC, while
-    // the booking bundles above go through `asDate`, which reads the same string as local
-    // time. Measured: `TZ=Europe/Berlin` puts them an hour apart, `TZ=UTC` makes them equal
-    // -- and `TZ=UTC` is pinned in the start script and in every package test script, which
-    // is the only reason the two can be compared here at all. A process that loses that pin
-    // sorts this bundle wrongly against the other two.
-    ...referrals,
+    // ⚠️ The dates in this bundle and in the chat bundle below come from the COLUMN, which
+    // Drizzle reads as UTC, while the booking bundles above go through `asDate`, which reads
+    // the same string as local time. Measured: `TZ=Europe/Berlin` puts them an hour apart,
+    // `TZ=UTC` makes them equal -- and `TZ=UTC` is pinned in the start script and in every
+    // package test script, which is the only reason the two can be compared here at all. A
+    // process that loses that pin sorts these bundles wrongly against the booking bundles.
+    ...referrals.map((row) => ({ ...row, ...noChat })),
+    // The people this member has a conversation with: no bookings of their own (a booking
+    // with them is its own row, joined by `mergeSamePerson`), the dates of the first and the
+    // latest message, and what is unread. `lastAt` of this row IS the last message, which is
+    // how a fresh message puts somebody at the top of a list sorted by `lastAt` (E-023).
+    //
+    // Behind the other three for the same reason and with the same limit as the referral
+    // bundle: a chat row carries the `users` id wherever this server has a row for the
+    // person, so against a `remote` row the transfer branch in `mergeSamePerson` hands the
+    // contact that row's current alias, whatever the order.
+    ...chats.map((row) => ({
+      linkedUserId: row.linkedUserId,
+      communityUuid: row.communityUuid,
+      gradidoId: row.gradidoId,
+      alias: row.alias,
+      deletedAt: row.deletedAt,
+      firstAt: row.firstAt,
+      lastAt: row.lastAt,
+      bookings: 0,
+      origin: null,
+      unreadChatMessages: row.unreadChatMessages,
+      lastChatMessageAt: row.lastAt,
+    })),
   ]
 
   // Each person once, whichever of the two groupings found them -- before anything counts,

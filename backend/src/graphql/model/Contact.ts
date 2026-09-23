@@ -4,11 +4,12 @@ import { Field, Int, ObjectType } from 'type-graphql'
 import { User } from './User'
 
 /**
- * Somebody this member has exchanged Gradido with, once, however many bookings there were.
+ * Somebody this member shares an event with -- a booking, the referral trace or a message --
+ * once, however many events there were.
  *
  * `user` is the same model the booking row carries, so the contact list reads by the same
  * fields -- alias, community, colour digit, avatar date -- and by the same rule: no real
- * name (NU-019). The three numbers come from the same grouping that found the person.
+ * name (NU-019). The figures come from the same grouping that found the person.
  */
 @ObjectType()
 export class Contact {
@@ -20,6 +21,8 @@ export class Contact {
     favorite: boolean,
     homeCommunity: boolean,
     origin: ContactOrigin | null,
+    unreadChatMessages: number,
+    lastChatMessageAt: Date | null,
   ) {
     this.user = user
     this.firstAt = firstAt
@@ -28,28 +31,34 @@ export class Contact {
     this.favorite = favorite
     this.homeCommunity = homeCommunity
     this.origin = origin
+    this.unreadChatMessages = unreadChatMessages
+    this.lastChatMessageAt = lastChatMessageAt
   }
 
   @Field(() => User)
   user: User
 
   /**
-   * When this contact began: the older of the first booking with them and the day the
-   * referral trace put them beside this member.
+   * When this contact began: the oldest of three kinds of event -- the first booking with
+   * them, the day the referral trace put them beside this member, and the first message
+   * between the two (as it arrived here).
    *
    * ⚠️ Not "the first booking" any more. For somebody who came here over this member it is
-   * their registration, and for a contact who is both it reaches back past every booking --
-   * which is what "Kontakt seit" means and why the wallet shows it as plain text rather
-   * than as a way into the booking list.
+   * their registration, for somebody they only wrote with it is the first message, and for a
+   * contact who is several of these it reaches back past every booking -- which is what
+   * "Kontakt seit" means and why the wallet shows it as plain text rather than as a way into
+   * the booking list.
    */
   @Field(() => Date)
   firstAt: Date
 
   /**
-   * The latest of those events -- the list is ordered by this.
+   * The latest of those events -- the list is ordered by this, so a contact with a fresh
+   * message stands at the top (E-023).
    *
-   * In practice always the last booking where there is one: an account has to exist before
-   * it can book, so a registration date can never be the later of the two.
+   * Where there is a booking, a registration date is never the latest (an account has to
+   * exist before it can book); a message can be, and then this is the time it arrived here,
+   * the same as `lastChatMessageAt`.
    */
   @Field(() => Date)
   lastAt: Date
@@ -103,4 +112,19 @@ export class Contact {
    */
   @Field(() => ContactOrigin, { nullable: true })
   origin: ContactOrigin | null
+
+  /**
+   * How many messages in the conversation with them the asking member has not read: those
+   * above the member's OWN read pointer, written by the other side. 0 where there is no
+   * conversation.
+   *
+   * ⛔ About the asking member only. Nothing on this type says whether the other side has
+   * read anything -- their pointer is their own (E-008, invariant 2: no read receipt).
+   */
+  @Field(() => Int)
+  unreadChatMessages: number
+
+  /** When the latest message between the two arrived here; null where there is none. */
+  @Field(() => Date, { nullable: true })
+  lastChatMessageAt: Date | null
 }

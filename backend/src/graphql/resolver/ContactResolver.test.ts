@@ -2,8 +2,11 @@
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
+import { CONFIG as CORE_CONFIG } from 'core'
 import {
   AppDatabase,
+  dbEnsureDirectChatConversation,
+  dbInsertChatMessage,
   dbUpsertForeignMemberAvatarDates,
   foreignReceive,
   transferGradidos,
@@ -15,7 +18,7 @@ import { ContactOrigin, GradidoUnit } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { userFactory } from '@/seeds/factory/user'
-import { addFavorite, login, removeFavorite } from '@/seeds/graphql/mutations'
+import { addFavorite, login, removeFavorite, sendEmail } from '@/seeds/graphql/mutations'
 import { contactList, favoriteList, transactionsQuery } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
@@ -24,6 +27,9 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
 jest.mock('@/password/EncryptorUtils')
+
+// A member writes to bibi below, through sendEmail; no mail has to go out for that.
+CORE_CONFIG.EMAIL = false
 
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
@@ -718,6 +724,155 @@ describe('ContactResolver', () => {
       expect(given).toMatchObject({ data: { addFavorite: true } })
       const { row } = await contactFor(carla)
       expect(row).toMatchObject({ favorite: true, bookings: 0, origin: ContactOrigin.ARRIVAL })
+    })
+  })
+
+  /**
+   * The fourth source: the people bibi has a conversation with (E-023, KF-012).
+   *
+   * ⚠️ LAST, and it undoes what it does, like the block above.
+   *
+   * dora is a member of this community who only ever wrote to bibi -- no booking, no trace --
+   * and she writes through sendEmail, as a member does. Frida is a member of another community
+   * bibi wrote to: this server has no users row for her and knows her pair alone. Her
+   * conversation is seeded as bibi's own copy of that message, through the queries -- writing
+   * across the border needs the other community's server, which TransactionResolver.test.ts
+   * stands in for and this file does not. A message FROM Frida could not be filed here without
+   * a users row for her (the receiving server finds the sender by it), so this is the shape a
+   * partner without a row has.
+   */
+  describe('conversations as a source', () => {
+    const FRIDA = 'f1f1f1f1-0000-4000-8000-000000000001'
+    let dora: User
+
+    const contacts = async (variables: Record<string, unknown> = { pageSize: 25 }) => {
+      const res: any = await query({ query: contactList, variables })
+      expect(res.errors).toBeUndefined()
+      return res.data.contactList
+    }
+
+    beforeAll(async () => {
+      dora = await userFactory(testEnv, {
+        email: 'dora@writes.de',
+        firstName: 'Dora',
+        lastName: 'Schreibt',
+        alias: 'doraWrites',
+        emailChecked: true,
+      })
+      await loginAs('dora@writes.de')
+      const sent = await mutate({
+        mutation: sendEmail,
+        variables: {
+          recipientCommunityIdentifier: bibi.communityUuid,
+          recipientIdentifier: bibi.gradidoID,
+          subject: 'A ladder',
+          memo: 'Do you still have the ladder?',
+        },
+      })
+      expect(sent.errors).toBeUndefined()
+
+      const bibiPair = { communityUuid: bibi.communityUuid, gradidoId: bibi.gradidoID }
+      const withFrida = await dbEnsureDirectChatConversation(bibiPair, {
+        communityUuid: FOREIGN_COMMUNITY,
+        gradidoId: FRIDA,
+      })
+      const filed = await dbInsertChatMessage({
+        messageUuid: uuidv4(),
+        conversationId: withFrida.id,
+        senderCommunityUuid: bibi.communityUuid,
+        senderGradidoId: bibi.gradidoID,
+        subject: null,
+        body: 'Greetings from over here',
+        notify: 'email',
+        deliveryState: 'delivered',
+      })
+      expect(filed.success).toBe(true)
+      await loginAs('bibi@bloxberg.de')
+    })
+
+    afterAll(async () => {
+      for (const table of ['chat_messages', 'chat_conversation_members', 'chat_conversations']) {
+        await db.getDataSource().query(`DELETE FROM \`${table}\``)
+      }
+      await User.delete(dora.id)
+      await UserContact.delete({ userId: dora.id })
+      await resetToken()
+    })
+
+    it('brings somebody who only wrote, with no bookings and the chat fields', async () => {
+      const list = await contacts()
+      const row = list.contacts.find((c: any) => c.user.gradidoID === dora.gradidoID)
+      expect(row).toMatchObject({
+        bookings: 0,
+        origin: null,
+        homeCommunity: true,
+        unreadChatMessages: 1,
+      })
+      expect(row.user.alias).toBe('doraWrites')
+      // NU-019 holds on this path too: the real name reaches nobody.
+      expect(row.user.firstName).toBeNull()
+      expect(row.user.lastName).toBeNull()
+      // Her message is the one event: when it arrived is when the contact began and last moved.
+      expect(row.lastChatMessageAt).not.toBeNull()
+      expect(row.firstAt).toBe(row.lastChatMessageAt)
+      expect(row.lastAt).toBe(row.lastChatMessageAt)
+    })
+
+    it('names a partner from another community without a users row by what is known', async () => {
+      const row = (await contacts()).contacts.find((c: any) => c.user.gradidoID === FRIDA)
+      expect(row).toMatchObject({
+        bookings: 0,
+        origin: null,
+        homeCommunity: false,
+        // bibi's own message: nothing unread.
+        unreadChatMessages: 0,
+      })
+      // No alias is known for her anywhere on this server: the wallet shows the gradido ID
+      // (memberAlias), and this list hands it out, as it does for a booking without a name.
+      expect(row.user).toMatchObject({
+        communityUuid: FOREIGN_COMMUNITY,
+        gradidoID: FRIDA,
+        alias: null,
+        firstName: null,
+        lastName: null,
+      })
+      expect(row.lastChatMessageAt).not.toBeNull()
+    })
+
+    it('counts both as people, and puts the fresh conversations above the older bookings', async () => {
+      const list = await contacts()
+      expect(list.count).toBe(5)
+      const order = list.contacts.map((c: any) => c.user.gradidoID)
+      // Both messages were written a moment ago, the bookings in August.
+      expect(order.slice(0, 2).sort()).toEqual([dora.gradidoID, FRIDA].sort())
+      expect(order.slice(2)).toEqual([peter.gradidoID, bob.gradidoID, ANNA])
+    })
+
+    it('leaves nothing unread and no last message on a contact without a conversation', async () => {
+      const row = (await contacts()).contacts.find((c: any) => c.user.gradidoID === bob.gradidoID)
+      expect(row).toMatchObject({ unreadChatMessages: 0, lastChatMessageAt: null })
+    })
+
+    it('finds the partner with a users row by the alias', async () => {
+      const list = await contacts({ search: 'writes', pageSize: 25 })
+      expect(list.count).toBe(1)
+      expect(list.contacts[0].user.gradidoID).toBe(dora.gradidoID)
+    })
+
+    // The contact window asks exactly this (contactByMemberQuery): one person by the pair.
+    it('answers about each of them alone, with the chat fields, when the window asks by the pair', async () => {
+      const doraAlone = await contacts({ pageSize: 1, ref: ref(dora) })
+      expect(doraAlone.count).toBe(1)
+      expect(doraAlone.contacts[0]).toMatchObject({ bookings: 0, unreadChatMessages: 1 })
+      expect(doraAlone.contacts[0].lastChatMessageAt).not.toBeNull()
+
+      const fridaAlone = await contacts({
+        pageSize: 1,
+        ref: { communityUuid: FOREIGN_COMMUNITY, gradidoID: FRIDA },
+      })
+      expect(fridaAlone.count).toBe(1)
+      expect(fridaAlone.contacts[0]).toMatchObject({ bookings: 0, unreadChatMessages: 0 })
+      expect(fridaAlone.contacts[0].lastChatMessageAt).not.toBeNull()
     })
   })
 })

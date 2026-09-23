@@ -92,7 +92,7 @@ export enum RIGHTS {
   // support needs it to merge addresses on the GDT server by hand.
   VIEW_USER_EMAIL_STATUS = 'VIEW_USER_EMAIL_STATUS',
   // The contact list and the hearts on it -- one right, because every call reaches the
-  // caller's own bookings and the caller's own favourites, nothing else.
+  // caller's own bookings, conversations and favourites, nothing else.
   MANAGE_OWN_CONTACTS = 'MANAGE_OWN_CONTACTS',
   // The first creation (ES-002..ES-011): reading one's own state, saving one's own
   // entries, skipping the window. Every call reaches the caller's own process only; the

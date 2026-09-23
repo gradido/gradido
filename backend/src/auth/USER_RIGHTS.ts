@@ -61,8 +61,8 @@ export const USER_RIGHTS = [
   // Asking for a new address, cancelling that request and seeing whether one is pending -
   // one right, because every call reaches the caller's own contact rows and nothing else.
   RIGHTS.MANAGE_OWN_EMAIL,
-  // The contact list is a view on the caller's own bookings, the hearts are the caller's
-  // own rows; there is nothing here that reaches anybody else's data.
+  // The contact list is a view on the caller's own bookings and conversations, the hearts
+  // are the caller's own rows; there is nothing here that reaches anybody else's data.
   RIGHTS.MANAGE_OWN_CONTACTS,
   // The first creation: status, submit and skip all act on the caller's own process. Also
   // on RESTRICTED_WHILE_UNCONFIRMED: inside the 24-hour window (EM-013) it is open, after
