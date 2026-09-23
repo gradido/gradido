@@ -1,8 +1,10 @@
+import { randomUUID } from 'node:crypto'
 import { findUserByUuids } from 'database'
 import { getLogger } from 'log4js'
-import { GradidoUnit, publicAlias } from 'shared'
+import { GradidoUnit, publicAlias, uuidv4Schema } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { sendCustomEmail, sendTransactionReceivedEmail } from '../../emails/sendEmailVariants'
+import { storeChatMessage } from '../../logic/ChatMessage.logic'
 import { BaseCommand } from '../BaseCommand'
 
 const createLogger = (method: string) =>
@@ -17,6 +19,9 @@ export interface SendEmailCommandParams {
   subject?: string
   memo?: string
   amount?: string
+  // The uuid the sending server filed its own copy of a message under, so that both copies
+  // carry the same one. Servers from before the chat send none.
+  messageUuid?: string
 }
 export class SendEmailCommand extends BaseCommand<
   Record<string, unknown> | boolean | null | Error
@@ -105,6 +110,26 @@ export class SendEmailCommand extends BaseCommand<
     methodLogger.debug(`emailParams=${JSON.stringify(emailParams)}`)
     switch (this.sendEmailCommandParams.mailType) {
       case 'sendCustomEmail': {
+        // The receiving copy of the chat, filed before it is mailed and never instead of it
+        // (storeChatMessage does not throw). The pairs come from the rows just found, in the
+        // spelling this server stores them in. A sender's uuid that is none is replaced, like
+        // a missing one from an older server.
+        const sentUuid = uuidv4Schema.safeParse(this.sendEmailCommandParams.messageUuid)
+        await storeChatMessage(
+          {
+            messageUuid: sentUuid.success ? sentUuid.data : randomUUID(),
+            sender: { communityUuid: senderUser.communityUuid, gradidoId: senderUser.gradidoID },
+            recipient: {
+              communityUuid: recipientUser.communityUuid,
+              gradidoId: recipientUser.gradidoID,
+            },
+            subject: this.sendEmailCommandParams.subject || null,
+            body: this.sendEmailCommandParams.memo || '',
+            notify: 'email',
+            deliveryState: 'delivered',
+          },
+          'incoming',
+        )
         const emailResult = await sendCustomEmail(emailParams)
         result = this.getEmailResult(emailResult)
         break

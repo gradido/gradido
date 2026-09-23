@@ -194,6 +194,23 @@ export const sendCoins = gql`
   }
 `
 
+// The same document the wallet sends (frontend/src/graphql/mutations.js).
+export const sendEmail = gql`
+  mutation (
+    $recipientCommunityIdentifier: String!
+    $recipientIdentifier: String!
+    $subject: String!
+    $memo: String!
+  ) {
+    sendEmail(
+      recipientCommunityIdentifier: $recipientCommunityIdentifier
+      recipientIdentifier: $recipientIdentifier
+      subject: $subject
+      memo: $memo
+    )
+  }
+`
+
 export const createTransactionLink = gql`
   mutation ($amount: GradidoUnit!, $memo: String!) {
     createTransactionLink(amount: $amount, memo: $memo) {

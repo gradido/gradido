@@ -11,11 +11,13 @@ import {
   EncryptedTransferArgs,
   fullName,
   processXComCompleteTransaction,
+  recordChatMessageDelivery,
   redeemDeferredTransferTransaction,
   SendEmailCommand,
   sendCustomEmail,
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
+  storeChatMessage,
   TransactionTypeId,
   transactionLinksDecayed,
   transferTransaction,
@@ -40,10 +42,17 @@ import {
 } from 'database'
 import { getLogger, Logger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
-import { CommandJwtPayloadType, DecayCalculationType, encryptAndSign, GradidoUnit } from 'shared'
+import {
+  CommandJwtPayloadType,
+  DecayCalculationType,
+  encryptAndSign,
+  GradidoUnit,
+  uuidv4Schema,
+} from 'shared'
 import { randombytes_random } from 'sodium-native'
 import { Arg, Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import { In, IsNull } from 'typeorm'
+import { v4 as uuidv4 } from 'uuid'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -715,6 +724,23 @@ export class TransactionResolver {
         logger.error(errmsg)
         throw new Error(errmsg)
       }
+      // The chat keeps the message as well: one row, which both members read. Filed before
+      // the mail goes out, and never instead of it (storeChatMessage does not throw).
+      await storeChatMessage(
+        {
+          messageUuid: uuidv4(),
+          sender: { communityUuid: senderUser.communityUuid, gradidoId: senderUser.gradidoID },
+          recipient: {
+            communityUuid: recipientUser.communityUuid,
+            gradidoId: recipientUser.gradidoID,
+          },
+          subject: subject || null,
+          body: memo,
+          notify: 'email',
+          deliveryState: 'delivered',
+        },
+        'local',
+      )
       sendCustomEmail({
         firstName: recipientUser.firstName,
         lastName: recipientUser.lastName,
@@ -762,6 +788,9 @@ export class TransactionResolver {
       const cmdClient = CommandClientFactory.getInstance(receiverFCom)
 
       if (cmdClient instanceof V1_0_CommandClient) {
+        // The id both copies of the message are filed under: this server's below, the
+        // receiving server's from the payload.
+        const messageUuid = uuidv4()
         const handshakeID = randombytes_random().toString()
 
         const payload = new CommandJwtPayloadType(
@@ -777,6 +806,7 @@ export class TransactionResolver {
               receiverGradidoId: recipientIdentifier,
               subject: subject,
               memo: memo,
+              messageUuid,
             }),
           ],
         )
@@ -789,7 +819,41 @@ export class TransactionResolver {
         args.publicKey = senderCom.publicKey.toString('hex')
         args.jwt = jws
         args.handshakeID = handshakeID
+        // The own copy, as not yet delivered, filed right before the command goes out: after
+        // the encryption, so that a missing key leaves no row waiting for a delivery that
+        // never starts. Only for a recipient named by gradido id -- the receiving server looks
+        // the recipient up by nothing else and refuses any other name, so there would be
+        // nobody to file the message with.
+        const ownCopy =
+          receiverCom.communityUuid &&
+          uuidv4Schema.safeParse(receiverCom.communityUuid).success &&
+          uuidv4Schema.safeParse(recipientIdentifier).success
+            ? await storeChatMessage(
+                {
+                  messageUuid,
+                  sender: {
+                    communityUuid: senderUser.communityUuid,
+                    gradidoId: senderUser.gradidoID,
+                  },
+                  recipient: {
+                    communityUuid: receiverCom.communityUuid,
+                    gradidoId: recipientIdentifier,
+                  },
+                  subject: subject || null,
+                  body: memo,
+                  notify: 'email',
+                  deliveryState: 'pending',
+                },
+                'outgoing',
+              )
+            : null
         const result = await cmdClient.sendCommand(args)
+        if (ownCopy) {
+          await recordChatMessageDelivery(
+            ownCopy.id,
+            typeof result === 'string' ? 'failed' : 'delivered',
+          )
+        }
         if (typeof result === 'string') {
           const errmsg = 'Failed to send command to federated community with error: ' + result
           logger.error(errmsg)
