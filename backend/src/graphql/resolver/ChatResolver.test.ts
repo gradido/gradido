@@ -283,6 +283,16 @@ describe('ChatResolver', () => {
         })
         expect(res.errors?.[0]?.message).toContain('Argument Validation Error')
       })
+
+      // ⛔ Taken, an id that is no message of this conversation would put the pointer past
+      // every message to come -- and bibi's next message would never count as unread.
+      it('answers false for an id that is no message of the conversation, and moves nothing', async () => {
+        expect(await markRead(bibi, ids[2] + 1000)).toBe(false)
+        await loginAs('bibi@bloxberg.de')
+        await write(bob, '', 'One more thing.')
+        await loginAs('bob@baumeister.de')
+        expect(await unreadFrom(bibi)).toBe(1)
+      })
     })
   })
 })

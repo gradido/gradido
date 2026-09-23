@@ -1,9 +1,9 @@
 // AI-GENERATED — not an architecture reference
-import { and, eq, sql } from 'drizzle-orm'
+import { and, eq, exists, sql } from 'drizzle-orm'
 import { VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { DBNotFoundError } from '../errorTypes'
-import { chatConversationMembersTable } from '../schemas/drizzle.schema'
+import { chatConversationMembersTable, chatMessagesTable } from '../schemas/drizzle.schema'
 
 const ChatConversationMemberNotFound = (where: string) =>
   new DBNotFoundError('chat_conversation_members', where)
@@ -62,9 +62,17 @@ export async function dbInsertChatConversationMembers(
  * Writes the row of the member named here and no other -- the pair is part of the where
  * clause. ChatResolver names the caller, so what a member marks read is only ever their own.
  *
- * DBNotFoundError when the member is not in the conversation. Writing the value the row has
- * already is a success: mysql2 connects with FOUND_ROWS, so `affectedRows` counts the matched
- * row. Throws for an id below 1: no message has one, so the caller has a bug.
+ * ⛔ `messageId` has to be a message OF THIS CONVERSATION -- a condition in the same statement,
+ * so nothing can come between the check and the write. Message ids are counted across all
+ * conversations, and the pointer never moves back: an id from another conversation, or one no
+ * message has, would push it past every message still to come, and the conversation would
+ * show nothing unread for good, without an error anywhere (coderabbit on #3965). A message
+ * marked deleted still counts: it had its place in the conversation when it was shown.
+ *
+ * DBNotFoundError when the member is not in the conversation or the message is not in it;
+ * nothing is written then. Writing the value the row has already is a success: mysql2
+ * connects with FOUND_ROWS, so `affectedRows` counts the matched row. Throws for an id below
+ * 1: no message has one, so the caller has a bug.
  */
 export async function dbUpdateChatConversationMemberLastRead(
   conversationId: number,
@@ -86,6 +94,17 @@ export async function dbUpdateChatConversationMemberLastRead(
         eq(chatConversationMembersTable.conversationId, conversationId),
         eq(chatConversationMembersTable.communityUuid, member.communityUuid),
         eq(chatConversationMembersTable.gradidoId, member.gradidoId),
+        exists(
+          drizzleDb()
+            .select({ id: chatMessagesTable.id })
+            .from(chatMessagesTable)
+            .where(
+              and(
+                eq(chatMessagesTable.id, messageId),
+                eq(chatMessagesTable.conversationId, conversationId),
+              ),
+            ),
+        ),
       ),
     )
   const firstRow = result[0]
@@ -95,7 +114,7 @@ export async function dbUpdateChatConversationMemberLastRead(
   return {
     success: false,
     error: ChatConversationMemberNotFound(
-      `conversation_id = ${conversationId} and member = ${member.communityUuid}/${member.gradidoId}`,
+      `conversation_id = ${conversationId} and member = ${member.communityUuid}/${member.gradidoId} and message ${messageId} in it`,
     ),
   }
 }
