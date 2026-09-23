@@ -7,7 +7,8 @@ import * as chatMessage from '../../logic/ChatMessage.logic'
 import { SendEmailCommand, SendEmailCommandParams } from './SendEmailCommand'
 
 // ⛔ spyOn, not mock.module: Bun cannot restore a module mock, and a replaced module stays
-// replaced for every test file that runs after this one -- sendEmailVariants.test.ts among them.
+// replaced for every test file that runs after this one. Bun takes the order from the file
+// system, so that can be sendEmailVariants.test.ts, which tests the real mail functions.
 
 const SENDER_COMMUNITY = '22222222-2222-4222-8222-222222222222'
 const HOME = '11111111-1111-4111-8111-111111111111'
