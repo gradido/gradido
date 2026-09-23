@@ -322,6 +322,84 @@
     "unknown-error": "Onbekende fout: "
   },
   "existingGradidoAccount": "Heb je al een {communityName}-account?",
+  "firstCreation": {
+    "again": "+ Er was nog meer",
+    "alsoFound": "Dit bericht vind je ook bij je bijdragen en in je postvak.",
+    "balance": "Op je rekening",
+    "catalog": {
+      "accompaniedHardTime": "Ik heb iemand in een moeilijke tijd bijgestaan",
+      "animalShelter": "Ik heb geholpen in een dierenasiel of op een opvangboerderij",
+      "animalsOrNature": "Ik heb iets gedaan voor dieren of de natuur",
+      "caredForChildren": "Ik heb voor mijn kinderen gezorgd en ze op weg geholpen in het leven",
+      "communityProject": "Ik heb me ingezet voor een gemeenschapsproject (feest, CSA-boerderij, gemeenschapstuin …)",
+      "fireBrigadeRescue": "Ik heb meegewerkt bij de vrijwillige brandweer of een hulpdienst",
+      "helpedAtHome": "Ik heb thuis geholpen",
+      "helpedElderlyPerson": "Ik heb een oudere geholpen",
+      "helpedFellowStudents": "Ik heb mijn klasgenoten of medestudenten geholpen",
+      "helpedNeighbourhood": "Ik heb in de buurt geholpen waar hulp nodig was,",
+      "helpedOldPerson": "Ik heb een oud mens geholpen",
+      "helpedParish": "Ik heb geholpen in mijn gemeente of parochie",
+      "helpedSickPerson": "Ik heb een ziek mens geholpen",
+      "lookedAfterGrandchildren": "Ik heb op mijn kleinkinderen gepast",
+      "lookedAfterOrTaught": "Ik heb op iemand gepast of iemand iets geleerd",
+      "madeSomeoneHappy": "Ik heb iemand blij gemaakt",
+      "musicChoirCulture": "Ik heb bijgedragen aan muziek, koor of cultuur in de gemeenschap",
+      "natureEnvironment": "Ik heb iets gedaan voor natuur en milieu",
+      "nursedRelative": "Ik heb een familielid verzorgd",
+      "sharedKnowledge": "Ik heb mijn kennis doorgegeven (bijles, cursus, begeleiding)",
+      "supportedClub": "Ik heb mijn vereniging gesteund",
+      "supportedDisabledPerson": "Ik heb iemand met een beperking ondersteund"
+    },
+    "categories": {
+      "animalsNature": "Dieren, natuur en milieu",
+      "cannotThemselves": "Voor mensen die het nu zelf niet kunnen",
+      "communityVolunteering": "Gemeenschap en vrijwilligerswerk",
+      "familyCare": "Familie en zorg",
+      "forChildren": "Voor kinderen",
+      "knowledgeCulture": "Kennis en cultuur"
+    },
+    "checkHints": {
+      "child": "Ook jouw tijd telt.",
+      "retiree": "Je levenswerk telt."
+    },
+    "checks": {
+      "child": "Ik ben een kind.",
+      "retiree": "Ik ben gepensioneerd."
+    },
+    "confirmedFor": "Bevestigd namens de gemeenschap {community}",
+    "connector": "door",
+    "entries": "één vermelding | {n} vermeldingen",
+    "failed": "Dat lukte zojuist niet. Probeer het nog eens.",
+    "intro": "Gradido ontstaan uit wat mensen doen voor het algemeen belang — ook uit wat jij doet. Het begin hebben we al voor je klaargezet.",
+    "maxEntries": "Meer dan {max} vermeldingen kan hier niet — je kunt er later altijd zelf meer toevoegen.",
+    "nothing": "Op dit moment schiet me niets te binnen",
+    "placeholder": "Schrijf het in je eigen woorden.",
+    "projectAsk": {
+      "later": "Later",
+      "project": "Dit is een projectaccount",
+      "text": "Ieder mens kan bij Gradido creëren: voor wat hij of zij voor anderen doet. Is dit account geen mens maar een vereniging, een project of een bedrijf, laat het ons dan hier weten — een projectaccount creëert niet, het ontvangt dank.",
+      "title": "Geen probleem — de vraag komt de volgende keer terug."
+    },
+    "question": "Wat heb je de afgelopen weken al voor goeds gedaan?",
+    "remove": "Vermelding verwijderen",
+    "review": "Een mens kijkt nog naar je vermeldingen. Je hoort van ons.",
+    "showLess": "Minder tonen",
+    "showMore": "Meer tonen ({count})",
+    "subtitle": "Kies zinnen die passen — een paar is genoeg. Je kunt ze aanvullen, omvormen of helemaal eigen zinnen schrijven.",
+    "thankSomeone": "Nu iemand bedanken",
+    "toAccount": "Naar mijn rekening",
+    "tooShort": "Nog een paar woorden, dan kun je opslaan.",
+    "unbooked": "Testrun zonder boeking — de bijdragen liggen ter controle in de beheeromgeving.",
+    "waiting": "De gemeenschap leest wat je hebt geschreven.",
+    "waitingHint": "Dit duurt even — ongeveer een halve minuut. Je kunt het venster open laten.",
+    "welcome": "Welkom, {name}!",
+    "welcomeAnonymous": "Welkom!",
+    "whyConfirmed": "Dit eerste bedankje heeft de software meteen bevestigd, zodat je direct aan de slag kunt. Bij alles wat je vanaf nu invoert, leest een mens mee — moderatoren bekijken elke bijdrage zorgvuldig en bevestigen die naar eer en geweten.",
+    "whyHundred": "De honderd zijn voor het begin, om kennis te maken. Vanaf nu komen er elke maand bij — tot 1.000 Gradido voor het goede dat je doet voor het algemeen belang.",
+    "whyHundredTitle": "Waarom honderd?",
+    "whyMore": "Meer informatie vind je {link}.",
+    "whyMoreLink": "hier"
+  },
   "followUs": "volg ons:",
   "footer": {
     "app_version": "app versie {version}",
@@ -588,6 +666,8 @@
     },
     "list": {
       "centeredOn": "Rondom {place}",
+      "centeredOnFern": "Bovenregionaal · {km} km rondom {place}",
+      "centeredOnFernNoPlace": "Bovenregionaal · {km} km",
       "controlsHeading": "Zoeken en sorteren",
       "dir": {
         "e": "ten oosten",
@@ -648,8 +728,17 @@
       },
       "noWebgl": "This map needs WebGL 2. Your browser does not have it — the list shows the same matches.",
       "radius": "Straal",
+      "radiusHintFern": "Geldt voor het bovenregionale zoeken. De regionale straal blijft op {km} km.",
+      "radiusHintRegional": "Geldt voor het regionale zoeken. De bovenregionale straal blijft op {km} km.",
       "radiusLabel": "Binnen welke straal wil je zoeken? (km)",
       "radiusTitle": "Zoekstraal",
+      "radiusTitleFern": "Zoekstraal bovenregionaal",
+      "reach": {
+        "fern": "Bovenregionaal",
+        "fernHint": "Bovenregionaal toont alleen vermeldingen die daarvoor zijn vrijgegeven.",
+        "label": "Bereik",
+        "regional": "Regionaal"
+      },
       "search": "Zoek een plaats of adres",
       "searchFailed": "Het zoeken is op dit moment niet bereikbaar.",
       "searchHere": "Hier zoeken",
@@ -659,7 +748,8 @@
       "cancel": "Annuleren",
       "completeSentence": "Maak deze zin af:",
       "detailsHeading": "Details — zodat de juiste mensen je vinden:",
-      "remote": "Ook bovenregionaal / online beschikbaar"
+      "remote": "Ook bovenregionaal / online beschikbaar",
+      "remoteHint": "Je verschijnt dan ook in de bovenregionale zoekresultaten."
     },
     "position": {
       "accuracyApprox": "Een iets gewijzigde locatie wordt getoond",
@@ -740,6 +830,7 @@
     "email": "We hebben jou een email gestuurd.",
     "errorTitle": "Opgelet!",
     "register": "Je bent nu geregistreerd. Controleer alsjeblieft je emails en klik op de activeringslink.",
+    "registerPresence": "Je account is aangemaakt. Een bevestigingsmail is onderweg naar je adres. Meld je nu aan. Lukt het aanmelden niet, dan had je misschien al een account met dit adres: gebruik dan “Wachtwoord vergeten”.",
     "reply": "Bedankt, je antwoord is verzonden.",
     "reset": "Jouw wachtwoord werd gewijzigd.",
     "title": "Dankjewel!",
@@ -885,6 +976,27 @@
       "visibilityInfo": "Andere leden zien jouw afbeelding, bijvoorbeeld naast de boekingen die jullie delen. Wanneer de instelling is uitgeschakeld, verschijnen zoals tot nu toe jouw initialen."
     },
     "community": "Kringen en ledenzoeker",
+    "creationAccount": {
+      "confirm": {
+        "declare": "Omzetten naar projectaccount",
+        "declareText": "Een projectaccount creëert niet meer. Het onderdeel “Creatie” verdwijnt uit je account, en alleen de support kan het creëren weer inschakelen.",
+        "declareTitle": "Wil je dit account echt omzetten naar een projectaccount?",
+        "next": "Verder",
+        "requestText": "De overstap terug naar creëren wordt door een mens gecontroleerd. We sturen de support een bericht; die controleert je account en schakelt het creëren zo nodig met de hand weer in. Je hoort van ons.",
+        "requestTitle": "Wil je weer creëren?",
+        "send": "Bericht naar de support sturen",
+        "typeWord": "Om over te stappen op een projectaccount dat niet kan creëren, typ je: {word}",
+        "word": "PROJECTACCOUNT"
+      },
+      "declared": "Dit account is nu een projectaccount. Het onderdeel “Creatie” is verborgen.",
+      "mailFailed": "Het bericht aan de support kon zojuist niet worden verstuurd. Probeer het later nog eens.",
+      "openContributions": "Zolang er nog bijdragen van je openstaan, kan het account geen projectaccount worden. Wacht tot ze bevestigd zijn, of trek ze in.",
+      "person": "Dit account is van een mens. Ik creëer Gradido voor wat ik voor anderen doe.",
+      "project": "Dit account is van een project, vereniging of bedrijf. Het creëert niet — het ontvangt dank.",
+      "rateLimited": "We hebben de support het afgelopen etmaal al een bericht gestuurd — je hoort van ons.",
+      "requested": "De overstap terug naar creëren wordt door een mens gecontroleerd. We hebben de support zojuist een bericht gestuurd — je hoort van ons.",
+      "title": "Creatie"
+    },
     "email": {
       "cancel": "Annuleren",
       "cancelled": "De wijziging is verworpen.",
@@ -904,6 +1016,19 @@
       "sent": "We hebben een bevestigingsmail gestuurd naar {email}."
     },
     "emailInfo": "Een nieuw adres geldt zodra je het via de link in de bevestigingsmail hebt bevestigd.",
+    "functionTests": {
+      "firstCreation": {
+        "failed": "Dat is niet gelukt. Laad de pagina opnieuw en probeer het nog eens.",
+        "intro": "De eerste creatie verschijnt maar één keer per account — voor een account dat al heeft gecreëerd, komt ze nooit meer terug. Hier kun je haar voor je eigen account opnieuw openen en het hele proces echt doorlopen.",
+        "noRunsLeft": "Het quotum van deze maand is op — nog 0 van {total} testruns.",
+        "runsLeft": "Nog {left} van {total} testruns deze maand",
+        "signerHint": "Je bent ingesteld als ondertekenaar van de eerste creatie. Niemand kan zijn eigen bijdrage bevestigen, daarom werkt de test niet op je account — neem een ander beheerdersaccount.",
+        "title": "Eerste creatie",
+        "unbookedHint": "Zonder boeking blijven de bijdragen als openstaande bijdragen in de beheeromgeving staan. Daar kun je ze met de hand bevestigen of verwijderen — zolang ze er staan, tellen ze mee voor je maandquotum.",
+        "withBooking": "Eerste creatie opnieuw doorlopen – met boeking",
+        "withoutBooking": "Eerste creatie opnieuw doorlopen – zonder boeking"
+      }
+    },
     "hide-amount": "{currency}-bedrag verbergen",
     "humhub": {
       "delete-disabled": "Het gebruikersaccount kan alleen worden verwijderd in het profielmenu van het samenwerkingsplatform.",
@@ -922,6 +1047,7 @@
     "menu": {
       "account": "Mijn rekening",
       "appearance": "Vormgeving",
+      "function-tests": "Functietest",
       "gradido-card": "Visitekaartje",
       "notifications": "Berichten",
       "state": {
@@ -999,11 +1125,23 @@
       "title": "Iemand ergens anders"
     },
     "here": {
+      "codeHint": "De code is tien minuten geldig, voor elke gast een nieuwe. Wie hem scant, kan zijn account meteen gebruiken.",
+      "confirmFirst": "Zodra je e-mailadres is bevestigd, kun je hier ook accounts aan tafel openen. Tot die tijd toont deze code je visitekaartje.",
+      "expired": "De code is verlopen.",
+      "limitReached": "Alle plaatsen zijn bezet: {n} van je gasten hebben hun e-mailadres nog niet bevestigd. Zodra er één heeft bevestigd, kun je weer een code laten zien. Kom je er niet uit, dan helpt de support je.",
       "map": "de kaart",
+      "newCode": "Nieuwe code laten zien",
+      "noAnswer": "De code kwam zojuist niet aan. Probeer het nog eens.",
+      "noPhone": "Geen telefoon bij de hand? Maak hier op dit apparaat een account voor je gast aan.",
+      "noPhoneHint": "Je wordt daarvoor afgemeld. Als je gast klaar is, meldt die zich af en meld jij je weer aan.",
       "step1": "Laat {map} zien. Laat haar intypen wat ze zoekt.",
       "step2": "Ze houdt haar camera op deze code.",
       "step3": "Het account verwelkomt haar vanzelf. Je hoeft niets uit te leggen.",
-      "title": "Iemand hier bij mij"
+      "title": "Iemand hier bij mij",
+      "unconfirmedGuest": "{firstName} {lastName} · {alias} · sinds {date}",
+      "unconfirmedGuests": "Een gast van je heeft zijn e-mailadres nog niet bevestigd: | {n} van je gasten hebben hun e-mailadres nog niet bevestigd:",
+      "unconfirmedHint": "Herinner ze gerust aan de link in hun mail. Moet je een account door de support laten verwijderen, stuur de support dan deze regel.",
+      "validFor": "Nog één minuut geldig | Nog {n} minuten geldig"
     },
     "mirror": {
       "go": "Laat het aan iemand anders zien",
@@ -1039,6 +1177,10 @@
       "minimum": "Minstens 8 tekens.",
       "no-whitespace": "Geen spaties en tabs",
       "one_number": "Getal noodzakelijk.",
+      "presenceExpired": "Deze code is verlopen. Vraag om een nieuwe, dan kun je je account meteen gebruiken. Of registreer je hier op de gewone manier en stel je wachtwoord in via de link in de e-mail.",
+      "presenceFailed": "De code is verlopen. Vraag om een nieuwe en scan die opnieuw.",
+      "presenceHint": "Je kunt je account meteen gebruiken. Bevestig je e-mailadres vóór morgen om deze tijd, de mail komt zo. Tot dan ziet {name} dat je bevestiging nog ontbreekt.",
+      "presenceLimit": "Via deze code kan op dit moment geen nieuw account worden geopend: {name} staat al borg voor gasten die hun adres nog niet hebben bevestigd. Zodra een van hen heeft bevestigd, probeer het dan opnieuw. Of registreer je hier op de gewone manier, dan komt de link per e-mail.",
       "shownBy": "{name} heeft je Gradido laten zien. Fijn dat je er bent.",
       "special-char": "Speciaal teken noodzakelijk (bijv. _ of é)",
       "uppercase": "Hoofdletter noodzakelijk."
