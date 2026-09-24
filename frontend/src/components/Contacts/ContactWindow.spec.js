@@ -633,6 +633,29 @@ describe('ContactWindow', () => {
       expect(toastSuccess).not.toHaveBeenCalled()
     })
 
+    // The window knows the conversation by the pair the thread is keyed by (KF-004): the same
+    // id in another community is another conversation (coderabbit, PR #3974).
+    it('takes the same id in another community for another conversation', async () => {
+      const answers = []
+      serverMutes.mockImplementation(
+        () => new Promise((resolve, reject) => answers.push({ resolve, reject })),
+      )
+      mountWindow()
+      await threadSays({ exists: true, mutedByMe: true })
+      await bell().trigger('click')
+
+      await wrapper.setProps({
+        contact: { ...CONTACT, user: { ...CONTACT.user, communityUuid: 'provence-uuid' } },
+      })
+      expect(bell().exists()).toBe(false)
+      await threadSays({ exists: true, mutedByMe: false })
+      answers[0].reject(new Error('Network error'))
+      await flushPromises()
+
+      expect(bell().attributes('aria-pressed')).toBe('false')
+      expect(toastError).not.toHaveBeenCalled()
+    })
+
     /**
      * ⚠️ A window that only closed lets the contact go (useContactWindow), and that is no other
      * person: the hint still says what became of the person just seen.

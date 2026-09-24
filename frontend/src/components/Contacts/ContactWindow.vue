@@ -395,22 +395,26 @@ const takeChatConversation = ({ exists, mutedByMe }) => {
 }
 
 /**
- * Counted up with every person the window comes to. The window stays while the person in it
- * changes (only the thread is made anew), so an answer about the bell that comes back after
- * the window moved to someone else is about someone else: it changes nothing here and holds
- * up nothing here (coderabbit, PR #3974).
+ * Counted up with every conversation the window comes to. The window stays while the person
+ * in it changes (only the thread is made anew), so an answer about the bell that comes back
+ * after the window moved to someone else is about someone else: it changes nothing here and
+ * holds up nothing here (coderabbit, PR #3974).
  */
 let contactGeneration = 0
 let mutingInFlight = false
 
-// Another person, another conversation: nothing of the last one's bell stays up while the
-// new thread is asking. ⚠️ A window that only closed (useContactWindow lets the contact go)
-// is no other person: the answer on its way still says what became of the person just seen.
+// Another conversation -- the pair the thread is keyed by (`threadKey`), so the same id in
+// another community is another one: nothing of the last one's bell stays up while the new
+// thread is asking. A `communityUuid` that arrives later makes a new key as well; the new
+// thread says the bell's state anew, and as the bell sends the state it wants and not a flip,
+// a second press after a dropped answer does no harm.
+// ⚠️ A window that only closed (useContactWindow lets the contact go) is no other person: the
+// answer on its way still says what became of the person just seen.
 watch(
-  () => props.contact?.user?.gradidoID,
-  (gradidoID) => {
+  () => threadKey.value,
+  () => {
     takeChatConversation({ exists: false, mutedByMe: false })
-    if (!gradidoID) return
+    if (!props.contact?.user?.gradidoID) return
     contactGeneration += 1
     mutingInFlight = false
   },
