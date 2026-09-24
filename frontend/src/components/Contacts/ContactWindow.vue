@@ -1,9 +1,19 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
   <!-- A window over the list, not a jump into the send form (KF-010). A tap on a contact
-       is somebody saying "this person", and what follows is a choice between two ways of
-       reaching them -- the same shape the profile window on the map already has. -->
-  <!-- ⛔ `no-header` / `no-footer`, NOT `hide-header` / `hide-footer`. bootstrap-vue-next
+       is somebody saying "this person", and what follows is the conversation with them, with
+       the way to send them Gradido behind their name (E-031). -->
+  <!-- ⛔ Not `centered`: a window in the middle grows in both directions when the thread lands,
+       and what was under a finger moves up. At the top of the screen it grows downwards
+       only (E-031).
+
+       `fullscreen="sm"`: below Bootstrap's `sm` (576 px) the window is a sheet over the whole
+       screen -- the head at the top, the compose bar at the bottom, the thread in between
+       taking what is left (see the stylesheet). Measured in the installed bootstrap-vue-next:
+       a string gives the dialog `modal-fullscreen-${value}-down`, and the wallet's CSS has
+       `.modal-fullscreen-sm-down` under `(max-width: 575.98px)`.
+
+       ⛔ `no-header` / `no-footer`, NOT `hide-header` / `hide-footer`. bootstrap-vue-next
        renamed both; the old names are accepted silently as plain attributes and do
        nothing, so the window came up with an empty header bar and an untranslated
        Cancel / OK pair under its own two buttons. Measured in the installed package:
@@ -19,7 +29,7 @@
        "dialog" and nothing else, while the person's name existed only inside the body. -->
   <BModal
     :model-value="modelValue"
-    centered
+    fullscreen="sm"
     lazy
     no-header
     no-footer
@@ -51,13 +61,59 @@
       <div class="contact-window-head">
         <app-avatar :size="64" :color="'#fff'" v-bind="avatar" />
         <div class="contact-window-who">
-          <!-- The heart behind the name, as it stands in every list of the wallet: the same
-               component, the same look, the same question before it is taken away (Bernd,
-               24.09.2026). Favouring somebody is not a way of reaching them, so it does not
-               stand among the two ways out below. -->
+          <!-- Behind the name, in this order (Bernd, E-031): the heart and the bell, two marks
+               of one's own on this person that say how they stand, then the coin, the one
+               thing here that goes somewhere. All three in the measure of the booking row
+               (`gap-2`), and the name gives way (ellipsis) before any of them does.
+
+               The heart is the one of every list: the same component, the same look, the same
+               question before it is taken away (E-030). -->
           <div class="contact-window-name-line">
             <div class="contact-window-name" data-test="contact-window-name">{{ alias }}</div>
-            <favorite-heart :member="contact.user" />
+            <favorite-heart class="contact-window-heart" :member="contact.user" />
+            <!-- The bell: mutes this conversation for oneself -- no mails about their
+                 messages; the thread shows them as before (E-024). Only where there is a
+                 conversation: before the first message there is nothing to mute, and the
+                 thread says when there is one. No question before switching, in either
+                 direction: nothing is lost either way, and it switches back as easily
+                 (unlike the heart, KF-003). -->
+            <button
+              v-if="chatConversation.exists"
+              type="button"
+              class="contact-window-mark contact-window-bell"
+              :class="{ 'is-muted': muted }"
+              :aria-pressed="muted ? 'true' : 'false'"
+              :aria-label="bellName"
+              :title="bellName"
+              data-test="contact-window-bell"
+              @click="toggleMute"
+            >
+              <i-mdi-bell-off-outline
+                v-if="muted"
+                class="contact-window-bell-icon"
+                aria-hidden="true"
+              />
+              <i-mdi-bell-outline v-else class="contact-window-bell-icon" aria-hidden="true" />
+            </button>
+            <!-- The coin: sending Gradido, where the two big buttons stood before. A button
+                 with its name, for the ear and -- at the desk -- under the pointer; gold, and
+                 last, because it is an action and not a state. The e-mail with a subject is
+                 one tab away in the form it opens; the short one is the compose bar's box. -->
+            <button
+              type="button"
+              class="contact-window-mark contact-window-coin"
+              :aria-label="$t('contacts.sendGradido')"
+              :title="$t('contacts.sendGradido')"
+              data-test="contact-window-coin"
+              @click="toSend"
+            >
+              <img
+                src="/img/svg/gdd_coin_sw.svg"
+                class="contact-window-coin-glyph"
+                alt=""
+                aria-hidden="true"
+              />
+            </button>
           </div>
           <div
             v-if="contact.user.communityName"
@@ -88,8 +144,8 @@
            undefined)` prints "Invalid Date" and a plural rule handed no number throws.
 
            ⚠️ And the line keeps its HEIGHT while it is empty -- see the stylesheet. Letting
-           it collapse moved both buttons up by a line and then dropped them back down as
-           the answer landed, under a finger already on its way to one of them.
+           it collapse moved what stands under it up by a line and then dropped it back down
+           as the answer landed, under a finger already on its way there.
 
            ⛔ ONE link over the two figures, not one each. Narrowed to this member the
            newest booking IS the top row of the list, so "how many" and "when was the last"
@@ -126,39 +182,11 @@
         </div>
       </div>
 
-      <!-- The two ways out, as the profile window on the map shows them (MatchProfile): the
-           same buttons, the same glyphs, the same colours -- both of them sending, so they
-           stand together, and nothing else stands with them (Bernd, 24.09.2026).
-
-           ⚠️ Side by side where both fit, one under the other where they do not. Not the map
-           window's fixed switch at 420 px: this window is narrower than the screen, and in a
-           long language the two labels do not fit side by side above that switch -- measured
-           at 430 px in es, fr, nl, ru and el, and in ru still at 500. A row that wraps decides
-           it by the labels themselves; nothing runs past the window in any of the ten. -->
-      <div class="contact-window-send" data-test="contact-window-send-ways">
-        <button
-          type="button"
-          class="send-btn send-gradido"
-          data-test="contact-window-send"
-          @click="toSend('send')"
-        >
-          <img src="/img/svg/gdd_coin_sw.svg" class="send-coin" alt="" aria-hidden="true" />
-          {{ $t('contacts.sendGradido') }}
-        </button>
-        <button
-          type="button"
-          class="send-btn send-email"
-          data-test="contact-window-email"
-          @click="toSend('email')"
-        >
-          <i-mdi-email-fast-outline class="send-mail-icon" aria-hidden="true" />
-          {{ $t('contacts.sendEmail') }}
-        </button>
-      </div>
-
       <!-- The conversation, where "conversation history -- comes with the chat" stood
-           (E-023, KF-010). There as soon as the pair is: opened from a booking row, before
-           the lookup for the figures answers (useContactWindow.openMember).
+           (E-023, KF-010), with the line to write in under it (P3). There as soon as the pair
+           is: opened from a booking row, before the lookup for the figures answers
+           (useContactWindow.openMember). It tells the window what it learned about the
+           conversation -- whether there is one, and whether it is muted -- for the bell.
 
            ⛔ Keyed by the pair. The thread takes its person once, when it is made; should the
            window ever be handed another person while it stands open, a new key makes a new
@@ -166,17 +194,20 @@
       <chat-thread
         v-if="contact.user?.gradidoID"
         :key="threadKey"
+        class="contact-window-thread"
         :member="contact.user"
         :alias="alias"
+        @chat-conversation="takeChatConversation"
       />
     </div>
   </BModal>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { useMutation } from '@vue/apollo-composable'
 import { BModal } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
 import ChatThread from '@/components/Chat/ChatThread.vue'
@@ -187,6 +218,8 @@ import {
   contactDisplay,
   contactOriginLine,
 } from '@/components/Contacts/contactDisplay'
+import { setChatConversationMuted } from '@/graphql/chat.graphql'
+import { useAppToast } from '@/composables/useToast'
 import { gradidoAddress } from '@/utils/gradidoAddress'
 import { SEND_TYPES } from '@/utils/sendTypes'
 import { bookingsWithMemberRoute } from '@/utils/bookingsRoute'
@@ -208,6 +241,8 @@ const emit = defineEmits(['update:modelValue'])
 
 const { t, d } = useI18n()
 const router = useRouter()
+const { toastSuccess, toastError } = useAppToast()
+const { mutate: saveMuted } = useMutation(setChatConversationMuted)
 
 /**
  * Name and face through the shared helper, not by hand.
@@ -321,26 +356,88 @@ const closeWhenNavigating = (event) => {
 }
 
 /**
- * The two ways out, both of them the send form -- the second with the mode that opens the
- * e-mail half (`?art=email`), exactly as the profile window on the map does it.
+ * The coin: the send form with this person already named, as the profile window on the map
+ * opens it. The e-mail with a subject is the form's other tab (E-031).
  *
  * ⚠️ A member of another community goes down the same road: the send form is what knows
  * the federation branch, and a second way of reaching it here would be a second place for
  * that knowledge to drift.
  */
-const toSend = (art) => {
+const toSend = () => {
   const community = props.contact?.user?.communityUuid
   const user = props.contact?.user?.gradidoID
   if (!community || !user) return
   emit('update:modelValue', false)
-  // ⛔ BOTH ways say which, and that is not symmetry for its own sake. This window stands
-  // beside /send, so a tap here changes only the params and the query -- the form is
-  // patched, not rebuilt. Naming only the e-mail half left the OTHER button unable to
-  // bring a form that was already in e-mail mode back to sending Gradido.
-  router.push({
-    path: `/send/${community}/${user}`,
-    query: { art: art === 'email' ? SEND_TYPES.email : SEND_TYPES.send },
-  })
+  // ⛔ The mode is named although there is only this one way left. This window stands beside
+  // /send, so a tap here changes only the params and the query -- the form is patched, not
+  // rebuilt -- and without `art` a form that was already in e-mail mode would stay there.
+  router.push({ path: `/send/${community}/${user}`, query: { art: SEND_TYPES.send } })
+}
+
+/**
+ * What the thread has learned about the conversation (`ChatThread`, event `chatConversation`).
+ * Nothing is known before it has: no bell until then.
+ */
+const chatConversation = ref({ exists: false, mutedByMe: false })
+
+/** The bell's state: one's own mark on this conversation, as the member switched it last. */
+const muted = ref(false)
+
+const takeChatConversation = ({ exists, mutedByMe }) => {
+  chatConversation.value = { exists, mutedByMe }
+  muted.value = mutedByMe
+}
+
+// Another person, another conversation: nothing of the last one's bell stays up while the
+// new thread is asking.
+watch(
+  () => props.contact?.user?.gradidoID,
+  () => takeChatConversation({ exists: false, mutedByMe: false }),
+)
+
+const bellName = computed(() =>
+  muted.value ? t('chatThread.muteOff', { name: alias.value }) : t('chatThread.muteOn'),
+)
+
+/** The pair the thread asks with (KF-004): a missing community is this one. */
+const memberRef = computed(() => ({
+  gradidoID: props.contact?.user?.gradidoID,
+  communityUuid: props.contact?.user?.communityUuid ?? null,
+}))
+
+let mutingInFlight = false
+
+/**
+ * Switched on this device first and confirmed by the server after, put back where it fails
+ * -- as the heart does it. What it means is said once, as a hint, in both directions (E-031).
+ *
+ * ⚠️ `false` from the server is no error but no change either: there was no conversation to
+ * mark (it can only happen where one vanished while the window stood open). The bell goes
+ * back and says nothing -- a hint would claim a change that did not happen.
+ */
+const toggleMute = async () => {
+  if (mutingInFlight) return
+  mutingInFlight = true
+  const wanted = !muted.value
+  const name = alias.value
+  muted.value = wanted
+  try {
+    const answer = await saveMuted({ ref: memberRef.value, muted: wanted })
+    if (answer?.data?.setChatConversationMuted) {
+      // Two written-out keys, not one chosen by a condition: the i18n lint counts only keys
+      // it can read, and would call both unused.
+      toastSuccess(
+        wanted ? t('chatThread.mutedHint', { name }) : t('chatThread.unmutedHint', { name }),
+      )
+    } else {
+      muted.value = !wanted
+    }
+  } catch (error) {
+    muted.value = !wanted
+    toastError(error.message)
+  } finally {
+    mutingInFlight = false
+  }
 }
 </script>
 
@@ -384,8 +481,11 @@ const toSend = (art) => {
   align-items: center;
   gap: 0.75rem;
 
-  /* The room the cross needs: 0.65rem from the right edge plus its own box. */
-  padding-right: 2rem;
+  /* The room the cross needs: 0.65rem from the right edge, its own box (a 1.15rem glyph and
+     0.25rem padding on either side: 1.65rem) and the marks' gap before it. ⚠️ It was 2rem,
+     less than the cross itself -- unseen while only the heart stood behind the name, and
+     the coin ran up against the cross (measured at 320 px and with a thirty-character name). */
+  padding-right: 2.8rem;
 }
 
 .contact-window-who {
@@ -413,9 +513,10 @@ const toSend = (art) => {
 }
 
 /* ⚠️ `min-height`, and it is not decoration: the line is empty while the figures behind it
-   are still being fetched (see the template). Without a reserved line the two buttons under
-   it sat a line higher and jumped down the moment the answer arrived -- past a finger
-   already reaching for "send Gradido". One line of this element's own line-height. */
+   are still being fetched (see the template). Without a reserved line everything under it
+   sat a line higher and jumped down the moment the answer arrived -- past a finger already
+   reaching for it (the two send buttons, when they stood there; the thread and its compose
+   bar now). One line of this element's own line-height. */
 .contact-window-meta {
   font-size: 0.8rem;
   color: var(--bs-secondary-color, #6c757d);
@@ -425,8 +526,8 @@ const toSend = (art) => {
 
 /* A line of its own under the figures. ⚠️ The container keeps its `min-height` above, which
    is what stops the block collapsing while the figures are still on their way and moving
-   both buttons under a finger already reaching for one. What it cannot promise is one
-   line: a contact with bookings AND an origin has two, and both arrive together. */
+   what is under it. What it cannot promise is one line: a contact with bookings AND an
+   origin has two, and both arrive together. */
 .contact-window-origin {
   margin-top: 0.15rem;
 }
@@ -439,8 +540,9 @@ const toSend = (art) => {
   text-underline-offset: 2px;
 }
 
-/* The heart right behind the name, as the booking row has it (`gap-2` there, the same
-   0.5rem): the name gives way (ellipsis) before the heart does. */
+/* The name and the three marks behind it, in the measure of the booking row (`gap-2` there,
+   the same 0.5rem). The name gives way (ellipsis) before a mark does: it may shrink to
+   nothing, the marks may not shrink at all. */
 .contact-window-name-line {
   display: flex;
   align-items: center;
@@ -448,59 +550,77 @@ const toSend = (art) => {
   min-width: 0;
 }
 
-/* The two ways out, side by side where both labels fit, each on a line of its own where
-   they do not -- decided by the labels, not by a width (see the template). */
-.contact-window-send {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+.contact-window-heart {
+  flex: 0 0 auto;
 }
 
-/* ⛔ From here to the focus rule: the rules of the map's profile window (MatchProfile.vue),
-   word for word -- the same two buttons in both places. ContactWindow.spec holds the two
-   files against each other, so one cannot change without the other. */
-.send-btn {
+/* The bell and the coin: round, one size, the heart's glyph size inside (1.35em, as
+   FavoriteHeart draws it). Plain buttons, so each carries its own focus ring. */
+.contact-window-mark {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  flex: 1;
-  padding: 10px 14px;
-  border-radius: 26px;
-  font-size: 15px;
-  font-weight: 700;
-  border: 1.5px solid #178d81;
-  white-space: nowrap;
-}
-
-.send-gradido {
-  background: #178d81;
-  color: #fff;
-}
-
-.send-email {
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 50%;
   background: transparent;
-  color: #178d81;
+  color: var(--text-muted, #6c757d);
+  line-height: 1;
 }
 
-.send-coin {
-  width: 20px;
-  height: 20px;
-  flex: 0 0 auto;
+.contact-window-mark:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+.contact-window-bell-icon {
+  width: 1.35em;
+  height: 1.35em;
+}
+
+/* Muted: struck through AND set on a ground, so the state shows without a word -- the light
+   gold of one's own messages with its gold rim; the glyph in the body colour, which is what
+   reads on that ground in both modes. */
+.contact-window-bell.is-muted {
+  border-color: var(--gold, #c58d38);
+  background: rgb(197 141 56 / 18%);
+  color: var(--bs-body-color);
+}
+
+/* The coin on the wallet's gold, white, as it stood on the green button before. */
+.contact-window-coin {
+  border-color: var(--gold, #c58d38);
+  background: var(--gold, #c58d38);
+}
+
+.contact-window-coin-glyph {
+  width: 1.1rem;
+  height: 1.1rem;
   filter: brightness(0) invert(1);
 }
 
-.send-mail-icon {
-  width: 20px;
-  height: 20px;
-  flex: 0 0 auto;
-}
+/* ⛔ The sheet (below `sm`, where BModal makes the window fullscreen -- the same 575.98px as
+   Bootstrap's `.modal-fullscreen-sm-down`): the window's inside becomes one column over the
+   whole height -- head, figures, then the thread taking what is left, with the compose bar at
+   its bottom -- so nothing hangs below the screen and the page behind never scrolls. The
+   thread grows upwards from the bar and scrolls inside. `height: 100%` resolves against the
+   modal body, which is a flexed item of a column of definite height. */
+@media (width <= 575.98px) {
+  .contact-window-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
 
-/* Without Bootstrap's `.btn` a plain button has no focus ring of its own, and these are the
-   window's two ways out. (The map's window has none either -- a keyboard sees nothing
-   there.) */
-.send-btn:focus-visible {
-  outline: 2px solid var(--success, #047006);
-  outline-offset: 2px;
+  .contact-window-thread {
+    flex: 1 1 auto;
+  }
+
+  .contact-window-thread :deep(.chat-thread-scroll) {
+    max-height: none;
+  }
 }
 </style>
