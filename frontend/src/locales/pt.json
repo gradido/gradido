@@ -28,7 +28,7 @@
       "button": "Criar conta",
       "done": "A conta está pronta! Um e-mail de confirmação vai a caminho da nova caixa de correio. Inicia sessão agora e resgata o cheque:",
       "emailHint": "Introduz aqui o endereço de e-mail próprio do novo membro — não o teu. A palavra-passe é o novo membro que a escreve.",
-      "emailTaken": "Este endereço de e-mail já tem uma conta Gradido. Usa \"Esqueci-me da palavra-passe\" para voltar a entrar.",
+      "emailTaken": "Este endereço de e-mail já tem uma conta Gradido. Usa «Esqueceste-te da palavra-passe?» para voltar a entrar.",
       "intro": "{name} quer começar uma conta Gradido.",
       "invalid": "Esta ligação é inválida ou expirou.",
       "loginButton": "Iniciar sessão e resgatar o cheque",
@@ -535,7 +535,7 @@
     "created": "O link, o cheque e o código QR foram criados.",
     "delete-the-link": "Eliminar o link?",
     "deleted": "O link foi eliminado!",
-    "disbured": "Pagamento do saldo do link iniciado com sucesso! O crédito de {n} GDD será lançado em breve na tua conta",
+    "disbured": "Transferência do saldo do link iniciada com sucesso! O crédito de {n} GDD será lançado em breve na tua conta",
     "expiredOn": "Expirou em",
     "has-account": "Já tens uma conta Gradido?",
     "header": "Criar link, cheque e código QR",
@@ -705,8 +705,8 @@
       "back": "Voltar",
       "breite": "Quem corresponde várias vezes",
       "breiteHint": "Destaca as pessoas que respondem a várias das tuas entradas.",
-      "centreHome": "your home",
-      "centrePoint": "the chosen point",
+      "centreHome": "casa",
+      "centrePoint": "um ponto escolhido por ti",
       "channels": {
         "andere": "todos os outros",
         "andereMit": "outros com entradas",
@@ -726,7 +726,7 @@
         "liste": "Lista",
         "normal": "normal"
       },
-      "noWebgl": "This map needs WebGL 2. Your browser does not have it — the list shows the same matches.",
+      "noWebgl": "Este mapa precisa de WebGL 2. O teu navegador não o suporta — a lista mostra os mesmos resultados.",
       "radius": "Raio",
       "radiusHintFern": "Aplica-se à pesquisa supra-regional. O raio regional mantém-se em {km} km.",
       "radiusHintRegional": "Aplica-se à pesquisa regional. O raio supra-regional mantém-se em {km} km.",
@@ -804,7 +804,7 @@
       "gesuch": {
         "desc": "o que procuras",
         "detailsPlaceholder": "A porta de entrada emperra, cilindro antigo",
-        "placeholder": "um chaveiro",
+        "placeholder": "um serralheiro",
         "prefix": "Procuro",
         "word": "Pedido"
       },
@@ -829,7 +829,7 @@
     "checkEmail": "O teu e-mail foi verificado com sucesso. Podes iniciar sessão agora.",
     "email": "Enviámos-te um e-mail.",
     "errorTitle": "Atenção!",
-    "register": "Estás agora registado, por favor verifica os teus e-mails e clica no link de ativação.",
+    "register": "O teu registo está concluído; por favor, verifica os teus e-mails e clica no link de ativação.",
     "registerPresence": "A tua conta está pronta. Um e-mail de confirmação vai a caminho do teu endereço. Inicia sessão agora. Se não conseguires iniciar sessão, talvez já tivesses uma conta com este endereço: nesse caso, usa «Esqueceste-te da palavra-passe?».",
     "reply": "Obrigado, a tua resposta foi enviada.",
     "reset": "A tua palavra-passe foi alterada.",
@@ -879,7 +879,7 @@
     "matching": "Matching",
     "my-gradido-card": "Código QR do meu cartão de visita",
     "my-thank-you-card": "Código QR do meu cartão de agradecimento",
-    "overview": "Bem-vindo {name}",
+    "overview": "Damos-te as boas-vindas, {name}",
     "scanner": "Ler código",
     "send": "Enviar Gradido e e-mail",
     "settings": "Definições",
@@ -1171,7 +1171,7 @@
       "heading": "Por favor, introduz a tua palavra-passe e repete-a."
     },
     "signup": {
-      "agree": "Concordo com a <a href='https://gradido.net/datenschutz/' target='_blank' >política de privacidade</a>.",
+      "agree": "Concordo com a <a href='https://gradido.net/pt/datenschutz/' target='_blank' >política de privacidade</a>.",
       "dont_match": "As palavras-passe não coincidem.",
       "lowercase": "É necessária uma letra minúscula.",
       "minimum": "Mínimo de 8 caracteres.",
@@ -1182,7 +1182,7 @@
       "presenceHint": "Podes usar a tua conta de imediato. Confirma o teu endereço de e-mail até amanhã a esta hora; o e-mail vai já a caminho. Até lá, {name} vê que a tua confirmação ainda falta.",
       "presenceLimit": "Com este código não é possível abrir outra conta neste momento: {name} já se responsabiliza por convidados que ainda não confirmaram o endereço. Assim que um deles o confirmar, tenta outra vez. Ou regista-te aqui da forma habitual, e a ligação chega por e-mail.",
       "shownBy": "{name} mostrou-te o Gradido. Ainda bem que estás aqui.",
-      "special-char": "É necessário um caractere especial (p. ex. _ ou ä)",
+      "special-char": "É necessário um carácter especial (p. ex. _ ou ä)",
       "uppercase": "É necessária uma letra maiúscula."
     }
   },
@@ -1289,5 +1289,5 @@
   },
   "via_card": "através de um cartão",
   "via_link": "através de um link",
-  "welcome": "Bem-vindo à comunidade"
+  "welcome": "Damos-te as boas-vindas à comunidade"
 }

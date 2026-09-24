@@ -382,7 +382,7 @@
     },
     "question": "Che cosa hai già fatto di buono nelle ultime settimane?",
     "remove": "Rimuovi voce",
-    "review": "Una persona darà ancora un'occhiata alle tue voci. Ti faremo sapere.",
+    "review": "Una persona deve ancora dare un'occhiata alle tue voci. Ti faremo sapere.",
     "showLess": "Mostra meno",
     "showMore": "Mostra altro ({count})",
     "subtitle": "Scegli alcune frasi adatte — ne bastano poche. Puoi completarle, riformularle o scriverne di tutte tue.",
@@ -535,7 +535,7 @@
     "created": "Link, assegno e codice QR sono stati creati.",
     "delete-the-link": "Eliminare il link?",
     "deleted": "Il link è stato eliminato!",
-    "disbured": "Il pagamento del credito del link è stato avviato con successo! L'accredito di {n} GDD sarà registrato a breve sul tuo conto.",
+    "disbured": "L'erogazione del credito del link è stata avviata con successo! L'accredito di {n} GDD sarà registrato a breve sul tuo conto.",
     "expiredOn": "Scaduto il",
     "has-account": "Hai già un account Gradido?",
     "header": "Crea link, assegno e codice QR",
@@ -589,16 +589,16 @@
     "contact-hint": "Quello che scrivi qui viene stampato. Resta su questo dispositivo e non viene inviato al server: su un computer condiviso è meglio lasciarlo vuoto.",
     "contact-placeholder": "E-mail, telefono, sito web … — una voce per riga",
     "contact-print-heading": "stampa questa parola",
-    "contact-too-many": "Più di {max} righe: sulla tessera compaiono solo le prime {max}.",
-    "description": "Da stampare e distribuire: il tuo nome, la tua comunità, il tuo nome utente, il tuo codice QR e le tue righe di contatto su una tessera delle dimensioni di una carta bancaria. Chi la riceve può inviarti Gradido e mettersi in contatto con te.",
+    "contact-too-many": "Più di {max} righe: sul biglietto da visita compaiono solo le prime {max}.",
+    "description": "Da stampare e distribuire: il tuo nome, la tua comunità, il tuo nome utente, il tuo codice QR e le tue righe di contatto su un biglietto da visita delle dimensioni di una carta bancaria. Chi lo riceve può inviarti Gradido e mettersi in contatto con te.",
     "download": "Scarica il biglietto da visita",
     "download-hint": "Una singola immagine in qualità di stampa — per una tipografia o da consegnare.",
-    "needs-username": "La tua tessera porta il tuo indirizzo Gradido, e quell'indirizzo nasce dal tuo nome utente. Scegline uno prima: il campo si trova in «Il mio conto». Poi potrai stampare la tua tessera e consegnarla.",
+    "needs-username": "Il tuo biglietto da visita riporta il tuo indirizzo Gradido, e quell'indirizzo nasce dal tuo nome utente. Scegline uno prima: il campo si trova in «Il mio conto». Poi potrai stamparlo e consegnarlo.",
     "needs-username-title": "Prima il nome utente",
     "real-name": "Nome reale",
     "real-name-hint": "Senza la spunta, in alto compare il tuo nome utente: il tuo nome non appare allora da nessuna parte sul biglietto.",
     "real-name-print": "stamparlo",
-    "sheet": "Foglio con 10 tessere",
+    "sheet": "Foglio con 10 biglietti da visita",
     "sheet-hint": "10 biglietti da visita a grandezza originale su una pagina A4. Nella finestra di stampa puoi anche salvarla come PDF.",
     "title": "Il tuo biglietto da visita",
     "username-label": "Nome utente"
@@ -705,8 +705,8 @@
       "back": "Indietro",
       "breite": "Chi corrisponde più volte",
       "breiteHint": "Mette in evidenza le persone che rispondono a più di una delle tue voci.",
-      "centreHome": "your home",
-      "centrePoint": "the chosen point",
+      "centreHome": "casa tua",
+      "centrePoint": "un punto scelto da te",
       "channels": {
         "andere": "tutti gli altri",
         "andereMit": "altri con voci",
@@ -726,7 +726,7 @@
         "liste": "Lista",
         "normal": "normale"
       },
-      "noWebgl": "This map needs WebGL 2. Your browser does not have it — the list shows the same matches.",
+      "noWebgl": "Questa mappa ha bisogno di WebGL 2. Il tuo browser non lo supporta — la lista mostra gli stessi risultati.",
       "radius": "Raggio",
       "radiusHintFern": "Vale per la ricerca sovraregionale. Il raggio regionale resta a {km} km.",
       "radiusHintRegional": "Vale per la ricerca regionale. Il raggio sovraregionale resta a {km} km.",
@@ -829,7 +829,7 @@
     "checkEmail": "La tua e-mail è stata verificata con successo. Ora puoi accedere.",
     "email": "Ti abbiamo inviato un'e-mail.",
     "errorTitle": "Attenzione!",
-    "register": "Ora sei registrato; controlla la tua e-mail e clicca sul link di attivazione.",
+    "register": "Registrazione completata: controlla la tua e-mail e clicca sul link di attivazione.",
     "registerPresence": "Il tuo account è pronto. Una mail di conferma è in viaggio verso il tuo indirizzo. Accedi ora. Se l'accesso non riesce, forse avevi già un account con questo indirizzo: in tal caso usa «Password dimenticata».",
     "reply": "Grazie, la tua risposta è stata inviata.",
     "reset": "La tua password è stata modificata.",
@@ -879,7 +879,7 @@
     "matching": "Matching",
     "my-gradido-card": "Codice QR del mio biglietto da visita",
     "my-thank-you-card": "Codice QR della mia carta di ringraziamento",
-    "overview": "Benvenuto {name}",
+    "overview": "Ti diamo il benvenuto, {name}",
     "scanner": "Scansiona codice",
     "send": "Invia Gradido ed e-mail",
     "settings": "Impostazioni",
@@ -1165,13 +1165,13 @@
   "signup": "Registrati",
   "site": {
     "forgotPassword": {
-      "heading": "Inserisci l'indirizzo e-mail con cui sei registrato su Gradido."
+      "heading": "Inserisci l'indirizzo e-mail che hai usato per registrarti su Gradido."
     },
     "resetPassword": {
       "heading": "Inserisci la tua password e ripetila."
     },
     "signup": {
-      "agree": "Accetto l'<a href='https://gradido.net/datenschutz/' target='_blank'>informativa sulla privacy</a>.",
+      "agree": "Accetto l'<a href='https://gradido.net/it/datenschutz/' target='_blank'>informativa sulla privacy</a>.",
       "dont_match": "Le password non coincidono.",
       "lowercase": "È richiesta una lettera minuscola.",
       "minimum": "Almeno 8 caratteri.",
@@ -1289,5 +1289,5 @@
   },
   "via_card": "tramite una carta",
   "via_link": "tramite un link",
-  "welcome": "Benvenuto nella comunità"
+  "welcome": "Ti diamo il benvenuto nella comunità"
 }

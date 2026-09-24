@@ -174,6 +174,52 @@
       "title": "{senderAlias} t'a envoyé {transactionAmount} Gradido"
     }
   },
+  "firstCreation": {
+    "catalog": {
+      "accompaniedHardTime": "J'ai accompagné quelqu'un dans une période difficile en {text}",
+      "animalShelter": "J'ai aidé dans un refuge ou un sanctuaire pour animaux en {text}",
+      "animalsOrNature": "J'ai fait quelque chose pour les animaux ou la nature en {text}",
+      "caredForChildren": "J'ai pris soin de mes enfants et je les ai accompagnés dans la vie en {text}",
+      "communityProject": "J'ai contribué à porter un projet collectif (fête, agriculture solidaire, jardin partagé …) en {text}",
+      "fireBrigadeRescue": "J'ai participé aux missions des pompiers volontaires ou d'un service de secours en {text}",
+      "helpedAtHome": "J'ai aidé à la maison en {text}",
+      "helpedElderlyPerson": "J'ai aidé une personne plus âgée en {text}",
+      "helpedFellowStudents": "J'ai aidé mes camarades de classe ou d'études en {text}",
+      "helpedNeighbourhood": "J'ai donné un coup de main là où il le fallait dans mon quartier en {text}",
+      "helpedOldPerson": "J'ai aidé une personne âgée en {text}",
+      "helpedParish": "J'ai aidé dans ma commune ou ma paroisse en {text}",
+      "helpedSickPerson": "J'ai aidé une personne malade en {text}",
+      "lookedAfterGrandchildren": "J'ai gardé mes petits-enfants en {text}",
+      "lookedAfterOrTaught": "J'ai veillé sur quelqu'un ou appris quelque chose à quelqu'un en {text}",
+      "madeSomeoneHappy": "J'ai fait plaisir à quelqu'un en {text}",
+      "musicChoirCulture": "J'ai contribué à la musique, à la chorale ou à la vie culturelle de la communauté en {text}",
+      "natureEnvironment": "J'ai fait quelque chose pour la nature et l'environnement en {text}",
+      "nursedRelative": "J'ai soigné un proche en {text}",
+      "sharedKnowledge": "J'ai transmis mon savoir (soutien scolaire, cours, initiation) en {text}",
+      "supportedClub": "J'ai soutenu mon association en {text}",
+      "supportedDisabledPerson": "J'ai soutenu une personne en situation de handicap en {text}"
+    },
+    "checks": {
+      "child": "Je suis un enfant.",
+      "retiree": "Je suis retraitée / retraité."
+    },
+    "message": {
+      "checkConflictNote": "Cette première création a été mise en pause : des cases qui s'excluent sont cochées — {checks} Merci de vérifier et de confirmer, modifier ou refuser à la main.",
+      "childLine": "d'être là et de voir le monde avec tes yeux à toi",
+      "closing": "Nous sommes heureux que tu sois là.",
+      "greetingAnonymous": "Bienvenue !",
+      "greetingFemale": "Chère {name}, bienvenue !",
+      "greetingMale": "Cher {name}, bienvenue !",
+      "greetingNeutral": "Bienvenue, {name} !",
+      "internalNote": "Crea a mis cette première création en pause : {reason}. Merci de vérifier et de confirmer, modifier ou refuser à la main.",
+      "retireeLine": "pour l'œuvre de ta vie : toutes ces années où tu as été là pour les autres",
+      "review": "Une personne doit encore regarder tes entrées. Tu auras de nos nouvelles.",
+      "thanks": "La communauté te remercie — {lines}.",
+      "thanksOnlyCheck": "La communauté te remercie — {checkLine}.",
+      "thanksWithCheck": "La communauté te remercie — {lines}. Et {checkLine}.",
+      "w1": "Tes 100 premiers Gradido sont un remerciement pour tout ce que tu as déjà fait."
+    }
+  },
   "general": {
     "decimalSeparator": ","
   }

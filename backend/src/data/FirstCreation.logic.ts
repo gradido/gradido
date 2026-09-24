@@ -79,8 +79,9 @@ export type FirstCreationCatalogKey = (typeof FIRST_CREATION_CATALOG_KEYS)[numbe
 /**
  * Whether the member's language has the sentence stems — asked of core, because core is
  * the copy both packages can be measured against. A language without them gets no window
- * rather than a box that opens in English under a German heading. de and en today; the
- * others follow through the localisation work, not through a fallback.
+ * rather than a box that opens in English under a German heading. All ten languages of the
+ * wallet carry them since 24.09.2026; a language added later follows through the
+ * localisation work, not through a fallback.
  */
 export function hasFirstCreationCatalog(language: string): boolean {
   return FIRST_CREATION_CATALOG_KEYS.every((key) =>

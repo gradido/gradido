@@ -174,6 +174,52 @@
       "title": "{senderAlias} sana {transactionAmount} Gradido gönderdi"
     }
   },
+  "firstCreation": {
+    "catalog": {
+      "accompaniedHardTime": "Zor bir dönemde birinin yanında oldum ve {text}",
+      "animalShelter": "Bir hayvan barınağında ya da bir hayvan koruma çiftliğinde yardım ettim ve {text}",
+      "animalsOrNature": "Hayvanlar ya da doğa için bir şey yaptım ve {text}",
+      "caredForChildren": "Çocuklarımı büyütüp hayata hazırladım ve {text}",
+      "communityProject": "Bir topluluk projesine destek verdim (şenlik, dayanışmacı tarım, topluluk bahçesi …) ve {text}",
+      "fireBrigadeRescue": "Gönüllü itfaiyede ya da bir kurtarma ekibinde görev aldım ve {text}",
+      "helpedAtHome": "Evde yardım ettim ve {text}",
+      "helpedElderlyPerson": "Bir büyüğüme yardım ettim ve {text}",
+      "helpedFellowStudents": "Sınıf ya da üniversite arkadaşlarıma yardım ettim ve {text}",
+      "helpedNeighbourhood": "Mahallede ihtiyaç olan yerde el uzattım ve {text}",
+      "helpedOldPerson": "Yaşlı birine yardım ettim ve {text}",
+      "helpedParish": "Yaşadığım yerde ya da inanç topluluğumda yardım ettim ve {text}",
+      "helpedSickPerson": "Hasta birine yardım ettim ve {text}",
+      "lookedAfterGrandchildren": "Torunlarıma baktım ve {text}",
+      "lookedAfterOrTaught": "Birine göz kulak oldum ya da birine bir şey öğrettim ve {text}",
+      "madeSomeoneHappy": "Birini sevindirdim ve {text}",
+      "musicChoirCulture": "Toplulukta müziğe, koroya ya da kültüre katkıda bulundum ve {text}",
+      "natureEnvironment": "Doğa ve çevre için bir şey yaptım ve {text}",
+      "nursedRelative": "Bir yakınımın bakımını üstlendim ve {text}",
+      "sharedKnowledge": "Bilgimi başkalarına aktardım (özel ders, kurs, rehberlik) ve {text}",
+      "supportedClub": "Derneğimi destekledim ve {text}",
+      "supportedDisabledPerson": "Engelli bir insanı destekledim ve {text}"
+    },
+    "checks": {
+      "child": "Ben bir çocuğum.",
+      "retiree": "Emekliyim."
+    },
+    "message": {
+      "checkConflictNote": "Bu ilk yaratım askıya alındı: birbirini dışlayan kutucuklar işaretli — {checks} Lütfen kontrol et ve elle onayla, değiştir ya da reddet.",
+      "childLine": "burada olduğun, dünyayı kendi gözlerinle gördüğün için",
+      "closing": "İyi ki buradasın.",
+      "greetingAnonymous": "Hoş geldin!",
+      "greetingFemale": "Sevgili {name}, hoş geldin!",
+      "greetingMale": "Sevgili {name}, hoş geldin!",
+      "greetingNeutral": "Hoş geldin, {name}!",
+      "internalNote": "Crea bu ilk yaratımı askıya aldı: {reason}. Lütfen kontrol et ve elle onayla, değiştir ya da reddet.",
+      "retireeLine": "ömür boyu emeğin için: başkalarının yanında olduğun onca yıl için",
+      "review": "Girişlerine bir insan da bakacak. Sana haber vereceğiz.",
+      "thanks": "Topluluk sana teşekkür ediyor — {lines}.",
+      "thanksOnlyCheck": "Topluluk sana teşekkür ediyor — {checkLine}.",
+      "thanksWithCheck": "Topluluk sana teşekkür ediyor — {lines}. Ve {checkLine}.",
+      "w1": "İlk 100 Gradido'n, çoktan yaptıkların için bir teşekkür."
+    }
+  },
   "general": {
     "decimalSeparator": ","
   }

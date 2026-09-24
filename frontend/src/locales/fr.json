@@ -4,7 +4,7 @@
   "125": "125%",
   "(": "(",
   ")": ")",
-  "1000thanks": "1000 mercis d'être avec nous!",
+  "1000thanks": "1000 mercis d'être avec nous !",
   "Chat": "Chat",
   "GDD": "GDD",
   "GDD-long": "Gradido",
@@ -18,7 +18,7 @@
     "title": "Cercles Gradido"
   },
   "advanced-calculation": "Calcul avancé",
-  "answerNow": "→ Répondre maintenant!",
+  "answerNow": "→ Répondre maintenant !",
   "appOutdated": {
     "reload": "Recharger",
     "text": "Nouvelle version disponible."
@@ -147,7 +147,7 @@
     "info": "Comment ça marche",
     "not-allowed": {
       "button": "Indiquer ta position...",
-      "text": "Pour trouver d'autres membres près de chez toi, indique dès maintenant ta position sur la carte!"
+      "text": "Pour trouver d'autres membres près de chez toi, indique dès maintenant ta position sur la carte !"
     }
   },
   "community": {
@@ -208,7 +208,7 @@
       "confirm": "Approuvé",
       "deleted": "Supprimé",
       "denied": "supprimé",
-      "in_progress": "Il y a une question du modérateur.",
+      "in_progress": "Il y a une question des modérateurs.",
       "myContributionNoteList": "À tout moment tu peux éditer ou supprimer les données qui n'ont pas été confirmées.",
       "pending": "Inscription en attente de validation"
     },
@@ -267,9 +267,9 @@
     "calculation_decay": "Calcul de la décroissance",
     "calculation_total": "Calcul du montant total",
     "decay": "Décroissance",
-    "decay_introduced": "Décroissance engagée le:",
+    "decay_introduced": "Décroissance engagée le :",
     "decay_since_last_transaction": "Décroissance depuis la dernière transaction",
-    "last_transaction": "Dernière transaction:",
+    "last_transaction": "Dernière transaction :",
     "new_balance": "Nouveau solde",
     "old_balance": "Solde précédent",
     "past_time": "Le temps a expiré",
@@ -319,7 +319,7 @@
     "no-user": "Pas d'utilisateur pour cet identifiant.",
     "session-expired": "La session a expiré pour des raisons de sécurité.",
     "session-renewal-failed": "Ta session n'a pas pu être prolongée. Reconnecte-toi.",
-    "unknown-error": "Erreur inconnue: "
+    "unknown-error": "Erreur inconnue : "
   },
   "existingGradidoAccount": "Tu as déjà un compte {communityName} ?",
   "firstCreation": {
@@ -382,7 +382,7 @@
     },
     "question": "Qu'as-tu déjà fait de bien ces dernières semaines ?",
     "remove": "Retirer l'entrée",
-    "review": "Une personne va encore regarder tes entrées. Tu auras de nos nouvelles.",
+    "review": "Une personne doit encore regarder tes entrées. Tu auras de nos nouvelles.",
     "showLess": "Afficher moins",
     "showMore": "Afficher plus ({count})",
     "subtitle": "Prends quelques phrases qui te correspondent — il en faut peu. Tu peux les compléter, les reformuler ou écrire tes propres phrases.",
@@ -458,7 +458,7 @@
     "send_email_error": "Malheureusement, ton e-mail n'a pas pu être envoyé !",
     "send_email_success": "Ton e-mail a été envoyé avec succès",
     "send_now": "Envoie maintenant",
-    "send_transaction_error": "Malheureusement, la transaction n'a pas pu être effectuée!",
+    "send_transaction_error": "Malheureusement, la transaction n'a pas pu être effectuée !",
     "send_transaction_success": "Ta transaction a été effectuée avec succès",
     "sendemailerror": {
       "failedToSendCommandToFederatedCommunity": "Lors de l'envoi de ton e-mail, une erreur s'est produite dans la communauté de ton destinataire : ",
@@ -504,7 +504,7 @@
         "typeError": "Les heures doivent être un nombre compris entre {min} et {max}, avec au maximum deux décimales."
       },
       "identifier": {
-        "communityIsReachable": "Communauté non joignable!",
+        "communityIsReachable": "Communauté introuvable ou injoignable !",
         "formatError": "Ce destinataire est illisible. Sont possibles : nom d’utilisateur, e-mail, communauté/nom d’utilisateur ou une adresse Gradido comme communaute.net/u/nomdutilisateur.",
         "required": "Le destinataire est un champ obligatoire.",
         "typeError": "Le destinataire doit être un email, un nom d'utilisateur ou un Gradido ID."
@@ -533,8 +533,8 @@
     "copy-link": "Copier le lien",
     "copy-link-with-text": "Copier le lien et le texte",
     "created": "Le lien, le chèque et le QR code ont été créés.",
-    "delete-the-link": "Supprimer le lien?",
-    "deleted": "Le lien a été supprimé!",
+    "delete-the-link": "Supprimer le lien ?",
+    "deleted": "Le lien a été supprimé !",
     "disbured": "Le versement du solde du lien a été initié avec succès ! Le crédit de {n} GDD sera prochainement comptabilisé sur ton compte.",
     "expiredOn": "A expiré le",
     "has-account": "Tu as déjà un compte Gradido ?",
@@ -550,7 +550,7 @@
     "no-account": "Tu n'as pas encore de compte Gradido ?",
     "no-redeem": "Tu n'es pas autorisé à percevoir ton propre lien !",
     "not-copied": "Malheureusement, ton appareil ne permet pas de copier ! Copie le lien manuellement, s'il te plaît !",
-    "recipientCommunityRedirection": "Pour créditer, rediriger vers:",
+    "recipientCommunityRedirection": "Pour créditer, rediriger vers :",
     "recipientCommunitySelection": "Choisir la communauté Gradido :",
     "redeem": "Encaisser",
     "redeem-community": "Créditer dans ",
@@ -705,8 +705,8 @@
       "back": "Retour",
       "breite": "Qui correspond plusieurs fois",
       "breiteHint": "Met en avant les personnes qui répondent à plusieurs de tes entrées.",
-      "centreHome": "your home",
-      "centrePoint": "the chosen point",
+      "centreHome": "chez toi",
+      "centrePoint": "l'endroit choisi",
       "channels": {
         "andere": "tous les autres",
         "andereMit": "autres avec des entrées",
@@ -726,7 +726,7 @@
         "liste": "Liste",
         "normal": "normal"
       },
-      "noWebgl": "This map needs WebGL 2. Your browser does not have it — the list shows the same matches.",
+      "noWebgl": "Cette carte a besoin de WebGL 2. Ton navigateur ne le prend pas en charge — la liste montre les mêmes résultats.",
       "radius": "Rayon",
       "radiusHintFern": "S'applique à la recherche suprarégionale. Le rayon régional reste à {km} km.",
       "radiusHintRegional": "S'applique à la recherche régionale. Le rayon suprarégional reste à {km} km.",
@@ -826,14 +826,14 @@
   "member": "Membre",
   "message": {
     "activateEmail": "Ton compte n'a pas encore été activé. Vérifie tes e-mails et clique sur le lien d'activation, ou fais la demande d'un nouveau lien en utilisant la page qui permet de générer un nouveau mot de passe.",
-    "checkEmail": "Ton e-mail a bien été vérifié. Tu peux t'enregistrer maintenant.",
+    "checkEmail": "Ton e-mail a bien été vérifié. Tu peux te connecter maintenant.",
     "email": "Nous t'avons envoyé un e-mail.",
-    "errorTitle": "Attention!",
-    "register": "Tu es enregistré maintenant, merci de vérifier ta boîte mail et de cliquer sur le lien d'activation.",
+    "errorTitle": "Attention !",
+    "register": "Ton inscription est enregistrée, merci de vérifier ta boîte mail et de cliquer sur le lien d'activation.",
     "registerPresence": "Ton compte est prêt. Un e-mail de confirmation est en route vers ton adresse. Connecte-toi maintenant. Si la connexion échoue, tu avais peut-être déjà un compte avec cette adresse : utilise alors « Mot de passe oublié ».",
     "reply": "Merci, ta réponse a été envoyée.",
     "reset": "Ton mot de passe a été modifié.",
-    "title": "Merci!",
+    "title": "Merci !",
     "unsetPassword": "Ton mot de passe n'a pas été accepté. Merci de le réinitialiser."
   },
   "missingGradidoAccount": "Pas encore de compte {communityName} ?",
@@ -868,12 +868,12 @@
     "support": "Aide",
     "transactions": "Transactions"
   },
-  "openHours": "Heures ouverte",
+  "openHours": "Heures disponibles",
   "pageTitle": {
     "calculator": "Calculatrice",
     "circles": "Cercles Gradido",
     "contacts": "Tes contacts",
-    "contributions": "Ma communauté",
+    "contributions": "Créer des Gradido",
     "gdt": "Tes transactions GDT",
     "information": "{community}",
     "matching": "Matching",
@@ -939,10 +939,10 @@
   "send_gdd": "Envoyer GDD",
   "send_per_link": "Lien, chèque, QR",
   "session": {
-    "extend": "Rester connecter",
+    "extend": "Prolonger la session",
     "lightText": "S'il n'apparaît aucune activité pendant plus de 10 minutes, la session expirera pour des raisons de sécurité.",
-    "logoutIn": "Se déconnecter ",
-    "warningText": "Es-tu toujours connecté ?"
+    "logoutIn": "Déconnexion dans ",
+    "warningText": "Es-tu toujours là ?"
   },
   "settings": {
     "GMS": {
@@ -1069,7 +1069,7 @@
     },
     "password": {
       "change-password": "Changer le mot de passe",
-      "forgot_pwd": "Mot de passe oublié?",
+      "forgot_pwd": "Mot de passe oublié ?",
       "resend_subtitle": "Ton lien d'activation a expiré, tu peux en obtenir un nouveau ici.",
       "reset": "Réinitialiser le mot de passe",
       "reset-password": {
@@ -1165,13 +1165,13 @@
   "signup": "S'inscrire",
   "site": {
     "forgotPassword": {
-      "heading": "Saisis ici l'adresse e-mail sous laquelle tu es enregistré, s'il te plaît."
+      "heading": "Saisis l'adresse e-mail utilisée lors de ton inscription."
     },
     "resetPassword": {
       "heading": "Entre ton mot de passe et répète l'action, s'il te plaît."
     },
     "signup": {
-      "agree": "J'accepte la <a href='https://gradido.net/datenschutz/' target='_blank'>politique de confidentialité</a>.",
+      "agree": "J'accepte la <a href='https://gradido.net/fr/datenschutz/' target='_blank'>politique de confidentialité</a>.",
       "dont_match": "Les mots de passe ne correspondent pas.",
       "lowercase": "Une lettre minuscule est requise.",
       "minimum": "8 caractères minimum.",
@@ -1186,7 +1186,7 @@
       "uppercase": "Une lettre majuscule requise."
     }
   },
-  "status": "Statu",
+  "status": "Statut",
   "submitted": "Envoyé",
   "success": "Avec succès",
   "thank-you-card": {
@@ -1289,5 +1289,5 @@
   },
   "via_card": "par carte",
   "via_link": "par lien",
-  "welcome": "Bienvenu dans la communauté"
+  "welcome": "Bienvenue dans la communauté"
 }
