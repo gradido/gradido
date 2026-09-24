@@ -609,7 +609,7 @@ export class UserResolver {
     } else {
       dbUser = await openAccount()
     }
-    // Only the id goes into the event, like the doorbell's: no lookup of the member.
+    // Only the id goes into the event: no lookup of the member.
     if (presenceValid && dbUser.referrerId) {
       await dbInsertEvent({
         type: EventType.USER_REGISTER_PRESENCE,

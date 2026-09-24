@@ -147,7 +147,7 @@ export const registerAccount = async (
   dbUser.publisherId = publisherId ?? 0
   dbUser.passwordEncryptionType = PasswordEncryptionType.NO_PASSWORD
   if (input.passwordPlain) {
-    // Assisted registration or table code: the guest chose their password at the table.
+    // Table code (E-017): the guest chose their password at the table.
     // Type first, then encrypt — the derivation salts by the gradidoID, which is set above.
     dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
     dbUser.password = await encryptPassword(dbUser, input.passwordPlain)
