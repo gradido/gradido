@@ -284,4 +284,31 @@ describe('ChatComposeBar', () => {
     expect(rule('\\.chat-compose-send:focus-visible')).toMatch(/outline:\s*2px solid/)
     expect(rule('\\.chat-compose-check-box:focus-visible')).toMatch(/outline:\s*2px solid/)
   })
+
+  /**
+   * ⛔ The white arrow on the button's gold reaches the 3:1 a symbol needs to be made out
+   * (WCAG 1.4.11). The house gold #c58d38 falls just short of it (2.9:1), so the button has a
+   * gold of its own, a touch darker (Bernd, 24.09.2026).
+   */
+  it('shows the white arrow on a gold it can be made out on', () => {
+    const rule = style().match(/\n\.chat-compose-send\s*\{([^}]*)\}/)?.[1] ?? ''
+    const colour = (property) =>
+      rule.match(new RegExp(`(?:^|\\s)${property}:\\s*(#[0-9a-f]{3}(?:[0-9a-f]{3})?);`, 'i'))?.[1]
+    const luminance = (hex) => {
+      const digits =
+        hex.length === 4 ? [...hex.slice(1)].map((d) => d + d) : hex.slice(1).match(/../g)
+      const [r, g, b] = digits.map((d) => {
+        const c = parseInt(d, 16) / 255
+        return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+      })
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b
+    }
+    const ground = colour('background')
+    const arrow = colour('color')
+
+    expect(ground, 'no plain gold on the button to measure').toBeDefined()
+    expect(arrow, 'no plain colour on the arrow to measure').toBeDefined()
+    const [lighter, darker] = [luminance(arrow), luminance(ground)].sort((x, y) => y - x)
+    expect((lighter + 0.05) / (darker + 0.05)).toBeGreaterThanOrEqual(3)
+  })
 })

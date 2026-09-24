@@ -291,7 +291,10 @@ watch(
 }
 
 /* Round and gold, like one's own messages; the paper plane says what it does, the name says
-   it to a screen reader. */
+   it to a screen reader. ⚠️ A touch darker than the house gold (`--gold`, #c58d38): white on
+   that is 2.9:1, under the 3:1 a symbol needs to be made out (WCAG 1.4.11); #c08935 is 3.06:1,
+   and beside the house gold hardly to be told apart (Bernd, 24.09.2026). The spec holds the
+   contrast. */
 .chat-compose-send {
   display: inline-flex;
   flex: 0 0 auto;
@@ -302,7 +305,7 @@ watch(
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: var(--gold, #c58d38);
+  background: #c08935;
   color: #fff;
 }
 
