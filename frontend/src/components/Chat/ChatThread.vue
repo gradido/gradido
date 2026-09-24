@@ -2,9 +2,9 @@
 <template>
   <div class="chat-thread" data-test="chat-thread">
     <!-- The conversation with one person, in the contact window where the placeholder stood
-         (E-023). Read only: writing still goes through "send e-mail" until the compose bar
-         comes (P3). Nothing here says anything about the other side -- no "read", no
-         "online" -- because the server says nothing, and the wallet adds nothing to it. -->
+         (E-023), and the line to write to them under it (P3). Nothing here says anything
+         about the other side -- no "read", no "online", no "the mail arrived" -- because the
+         server says nothing, and the wallet adds nothing to it. -->
     <p
       v-if="state === 'error'"
       class="chat-thread-box chat-thread-quiet"
@@ -23,9 +23,10 @@
     </div>
 
     <!-- ⛔ A named region, not a live one. `role="log"` announces what is added to it, and in
-         this step the only thing ever added is an older page, put in front at the reader's
-         own request -- up to fifty chat messages read aloud after one press (coderabbit,
-         #3970). The log comes back when new chat messages can arrive at the bottom (P3).
+         this step what is added is an older page, put in front at the reader's own request --
+         up to fifty chat messages read aloud after one press (coderabbit, #3970) -- or one's
+         own message, which the status below says in a word. The log comes back when the
+         other side's messages can arrive at the bottom by themselves (P4).
 
          Focusable, because it scrolls and a keyboard has to be able to scroll it -- and
          what can be focused needs a name, which is what the label is for. -->
@@ -83,9 +84,26 @@
       </div>
     </div>
 
-    <!-- Loading: the box keeps its height, so nothing in the window moves when the page
-         lands. -->
-    <div v-else class="chat-thread-box" data-test="chat-thread-loading" />
+    <!-- Loading: a small box of its own height, so the line under it does not travel far
+         when the page lands. -->
+    <div v-else class="chat-thread-box chat-thread-loading" data-test="chat-thread-loading" />
+
+    <!-- ⛔ One bar, standing through the change from "nothing written yet" to "a thread": the
+         condition holds for both, so it is not made anew when the first message turns the
+         one into the other, and the keyboard stays in its field. Not while loading and not
+         where the thread could not be loaded -- there is nothing to answer yet. -->
+    <chat-compose-bar
+      v-if="state === 'thread' || state === 'empty'"
+      :name="alias"
+      :first="state === 'empty'"
+      :sending="sending"
+      :failed="sendFailed"
+      @send="send"
+    />
+
+    <!-- "Sent", for the ear only. Always in the page, so the word is announced when it is put
+         in -- a live region that appears together with its text is not. -->
+    <p class="visually-hidden" role="status" data-test="chat-thread-sent">{{ sentNotice }}</p>
   </div>
 </template>
 
@@ -94,7 +112,12 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import ChatBubble from '@/components/Chat/ChatBubble.vue'
-import { chatMessagesWithMemberQuery, markChatConversationRead } from '@/graphql/chat.graphql'
+import ChatComposeBar from '@/components/Chat/ChatComposeBar.vue'
+import {
+  chatMessagesWithMemberQuery,
+  markChatConversationRead,
+  sendChatMessage,
+} from '@/graphql/chat.graphql'
 
 /** How many messages a page holds -- the server's own default, written out. */
 const PAGE_SIZE = 50
@@ -105,6 +128,14 @@ const props = defineProps({
   /** Their name, for the thread's accessible name and the writer of their messages. */
   alias: { type: String, default: '' },
 })
+
+/**
+ * `chatConversation`: what the thread knows about the conversation once its first page is in --
+ * `{ exists, mutedByMe }`, and again whenever either changes (the first message makes it
+ * exist). The window draws its bell from it: one question on opening answers both the thread
+ * and the bell (E-017), the window does not ask a second time.
+ */
+const emit = defineEmits(['chatConversation'])
 
 const { t, d } = useI18n()
 
@@ -126,12 +157,12 @@ const memberRef = {
  * cache, and that is what `fetchMore` merges older pages into; the cache is emptied at
  * logout, so nothing of it reaches the next member on this device.
  */
-const { result, error, fetchMore } = useQuery(
-  chatMessagesWithMemberQuery,
-  { ref: memberRef, limit: PAGE_SIZE },
-  { fetchPolicy: 'network-only' },
-)
+const threadVariables = { ref: memberRef, limit: PAGE_SIZE }
+const { result, error, fetchMore } = useQuery(chatMessagesWithMemberQuery, threadVariables, {
+  fetchPolicy: 'network-only',
+})
 const { mutate: markRead } = useMutation(markChatConversationRead)
+const { mutate: sendToServer } = useMutation(sendChatMessage)
 
 const page = computed(() => result.value?.chatMessagesWithMember ?? null)
 const messages = computed(() => page.value?.messages ?? [])
@@ -178,18 +209,39 @@ const days = computed(() => {
 /**
  * The read pointer, moved ONCE per opening, to the highest id the first page brought
  * (E-017: the marker is the row number). Not for an empty thread -- there is nothing to have
- * read -- and not for an older page, which holds only what lies below the pointer anyway.
- * The server never moves it back.
+ * read -- not for an older page, which holds only what lies below the pointer anyway, and
+ * not for one's own message: one's own never count as unread. The server never moves it
+ * back.
+ *
+ * ⛔ Decided on the FIRST PAGE, not on the list: a message sent from here lands in the same
+ * list, and a thread that opened empty would otherwise move the pointer to one's own message
+ * the moment it is there.
  *
  * A failure is let go: it leaves these messages counted as unread until the next opening,
  * which is nothing the member is waiting on.
  */
 let marked = false
-watch(messages, (list) => {
-  if (marked || list.length === 0) return
+watch(page, (firstPage) => {
+  if (marked || !firstPage) return
   marked = true
-  const upToMessageId = Math.max(...list.map((message) => message.id))
+  if (firstPage.messages.length === 0) return
+  const upToMessageId = Math.max(...firstPage.messages.map((message) => message.id))
   markRead({ ref: memberRef, upToMessageId }).catch(() => {})
+})
+
+/**
+ * What the thread knows about the conversation, told to the window (see `emit` above).
+ *
+ * ⚠️ Three values watched one by one, not one object: the window keeps the bell's state
+ * itself once it is known, and an object made anew on every page would tell it the opening's
+ * `mutedByMe` again after every message sent -- undoing a bell the member has just switched.
+ * The conversation exists where the thread has messages; the first one sent makes it so.
+ */
+const chatConversationKnown = computed(() => state.value !== 'loading')
+const chatConversationExists = computed(() => state.value === 'thread')
+const mutedByMe = computed(() => Boolean(page.value?.mutedByMe))
+watch([chatConversationKnown, chatConversationExists, mutedByMe], ([known, exists, muted]) => {
+  if (known) emit('chatConversation', { exists, mutedByMe: muted })
 })
 
 /** The scrolling box and what it holds, once the thread is on screen. */
@@ -282,8 +334,14 @@ let focusWasOnOlder = false
 watch(
   messages,
   () => {
-    if (placeFromBottom === null) return
     const box = scroller.value
+    // One's own message, at the bottom: the thread goes down to it (the sender asked it to
+    // follow, see `send`). Without this the new bubble would wait for the browser to report
+    // a new size, which a test cannot see and a slow phone reports late.
+    if (placeFromBottom === null) {
+      if (followNewest) scrollToNewest()
+      return
+    }
     if (box) box.scrollTop = box.scrollHeight - placeFromBottom
     placeFromBottom = null
     // The button goes once the first message is in. Focus that stood on it would fall out
@@ -330,24 +388,119 @@ const loadOlder = async (event) => {
     loadingOlder.value = false
   }
 }
+
+/**
+ * One's own copy at the bottom of the page already on screen. Its id is the highest on this
+ * server -- it was stored a moment ago -- so the order stays the order of arrival (E-018)
+ * without sorting anything. Not twice, should the same copy ever be handed in again.
+ */
+const withOwnCopy = (current, own) => {
+  const thread = current?.chatMessagesWithMember
+  if (!thread || thread.messages.some((message) => message.id === own.id)) return undefined
+  return {
+    ...current,
+    chatMessagesWithMember: { ...thread, messages: [...thread.messages, own] },
+  }
+}
+
+/** While a message is on its way; the bar's button waits for it. */
+const sending = ref(false)
+/** The last message did not go through; the bar keeps its text and says so. */
+const sendFailed = ref(false)
+/** What the status says to a screen reader once a message has gone. */
+const sentNotice = ref('')
+
+/**
+ * "Sent" -- or the same word the bubble shows where the copy came back not delivered (E-019):
+ * whoever cannot see the bubble would otherwise hear "sent" over a message that did not arrive.
+ * The enum NAMES, as ChatBubble compares them.
+ */
+const noticeFor = (own) => {
+  if (own?.deliveryState === 'FAILED') return t('chatThread.failed')
+  if (own?.deliveryState === 'PENDING') return t('chatThread.pending')
+  return t('chatThread.sent')
+}
+
+/**
+ * Sends what the bar asks for, and hangs the answer -- one's own copy -- under the thread.
+ *
+ * ⛔ Into the query's own answer in the cache, not a list of its own and not by asking the
+ * server again. Measured with Apollo 3.14 and vue-apollo 4.2 before building: a `network-only`
+ * query takes a write to its cache entry without a second request, also after older pages
+ * were put in front. So older pages and one's own messages stand in the one list the days are
+ * made of, and the page can never hold a message twice or in two orders.
+ *
+ * ⚠️ `sending` is this thread's own, not the mutation's `loading`: vue-apollo clears `loading`
+ * a tick before `mutate` settles, and the bar would read "no longer sending, not failed" in
+ * that tick -- as a success, emptying the text of a message that did not go through. Here both
+ * flags change together, in one synchronous step.
+ *
+ * A delivery that failed across the border is no error: the copy comes back FAILED and the
+ * bubble says "not delivered" (E-019). Only an error from the server leaves the text in the
+ * bar.
+ */
+const send = async ({ body, notify }) => {
+  if (sending.value) return
+  sending.value = true
+  sendFailed.value = false
+  sentNotice.value = ''
+  // Whoever writes wants to see what they wrote: back to the bottom, even from further up.
+  followNewest = true
+  try {
+    const answer = await sendToServer(
+      { ref: memberRef, body, notify },
+      {
+        update: (cache, { data }) => {
+          const own = data?.sendChatMessage
+          if (!own) return
+          cache.updateQuery(
+            { query: chatMessagesWithMemberQuery, variables: threadVariables },
+            (current) => withOwnCopy(current, own),
+          )
+        },
+      },
+    )
+    sentNotice.value = noticeFor(answer?.data?.sendChatMessage)
+  } catch {
+    sendFailed.value = true
+  } finally {
+    sending.value = false
+  }
+}
 </script>
 
 <style lang="scss" scoped>
-/* Under the grips, over the whole width of the window, set apart by a line. */
+/* Under the head, over the whole width of the window, set apart by a line.
+
+   A column -- the thread, then the bar -- which does nothing where the window gives it no
+   height of its own (at the desk it is as high as what it holds) and lets the thread take
+   the height between the head and the bar where the window does (the sheet on a phone,
+   ContactWindow). `position: relative` keeps the status for screen readers (Bootstrap's
+   `.visually-hidden` is `position: absolute`) inside the thread, where a bubble's hidden name
+   once hung below the window and made it scroll (see ChatBubble). */
 .chat-thread {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   margin-top: 0.75rem;
   padding-top: 0.5rem;
   border-top: 1px solid var(--bs-border-color, #dee2e6);
 }
 
-/* ⚠️ The SAME height in every state -- loading, empty, not reachable, a thread -- so the
-   window does not grow or shrink under a finger when the page lands. Big enough for a
-   conversation, small enough that on a phone the head, the grips and the thread fit on
-   the screen without the page itself scrolling: measured at 390 x 844 and 375 x 667 in
-   the probe, see the PR. */
+/* ⛔ No fixed height any more. P2b gave every state `height: min(45vh, 30rem)` so the window
+   would not grow under a finger when the page landed -- and a thread of one message stood at
+   the bottom of an empty box, the hole in Bernd's picture (E-031). Now the window sits at the
+   top of the screen and grows downwards only (ContactWindow), each state is as high as what
+   it shows, and the thread stops growing at its cap and scrolls inside. */
 .chat-thread-box {
-  height: min(45vh, 30rem);
-  min-height: 12rem;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Loading: small, so the bar that comes with the page does not land far below it. */
+.chat-thread-loading {
+  height: 4rem;
 }
 
 .chat-thread-quiet {
@@ -377,6 +530,12 @@ const loadOlder = async (event) => {
 .chat-thread-scroll {
   display: flex;
   flex-direction: column;
+
+  /* The cap at the desk: as high as its messages, up to here. dvh with vh before it, as
+     Scanner and MatchingMap do it: an engine without dvh drops the second line and keeps the
+     first. */
+  max-height: min(45vh, 30rem);
+  max-height: min(45dvh, 30rem);
   overflow-y: auto;
   overflow-anchor: none;
   overscroll-behavior: contain;

@@ -80,6 +80,26 @@ describe('ContactWindow and the modal it opens', () => {
   })
 
   /**
+   * ⛔ The sheet on a phone (E-031): below Bootstrap's `sm` the window covers the screen, the
+   * compose bar at the bottom. The installed BModal turns a string into
+   * `modal-fullscreen-${value}-down`, and the wallet's CSS has `.modal-fullscreen-sm-down`
+   * under `(max-width: 575.98px)` -- so the VALUE is held here, not only the name, which the
+   * first test holds against the package.
+   */
+  it('is a sheet below sm', () => {
+    expect(modalAttributes()).toContain('fullscreen')
+    expect(source.match(/<BModal\b[\s\S]*?>/)[0]).toMatch(/\sfullscreen="sm"/)
+  })
+
+  /**
+   * ⛔ At the top, not in the middle: a centred window grows in both directions when the
+   * thread lands, and what was under a finger moves (E-031).
+   */
+  it('sits at the top of the screen, not in the middle', () => {
+    expect(modalAttributes()).not.toContain('centered')
+  })
+
+  /**
    * ⛔ A dialog with no header labels itself by nothing: `aria-labelledby` is bound only
    * where a header exists. Dropping the header and stopping there left this window
    * announcing itself as "dialog" and no more, with the person's name only inside the body.

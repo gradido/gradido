@@ -7,14 +7,21 @@
 # `before` is the smallest id already on screen: the page it returns lies right before it.
 # Without it, the newest page. `limit` defaults to 50 on the server and stops at 100.
 #
-# ⛔ The fields are the ones backend/src/seeds/graphql/queries.ts asks for, one for one, and
+# ⛔ The fields are the ones the backend's seeds ask for, one for one -- this query's in
+# backend/src/seeds/graphql/queries.ts, the two mutations' below in mutations.ts -- and
 # `documents.test.ts` holds this document against the schema. `deliveryState` and `notify`
 # come back only on one's OWN messages, as the enum NAMES (DELIVERED, PENDING, FAILED;
 # EMAIL, NONE) -- on the other side's messages they are null, because the server says
 # nothing about how the other side's mail went.
+#
+# `mutedByMe` is one's OWN mark on this conversation (E-024): no mails about the other
+# person's messages while it is set; false where there is no conversation yet. It comes
+# with the thread, so the bell needs no question of its own (E-017: one question on
+# opening).
 query chatMessagesWithMemberQuery($ref: MemberAvatarRefInput!, $before: Int, $limit: Int) {
   chatMessagesWithMember(ref: $ref, before: $before, limit: $limit) {
     hasMore
+    mutedByMe
     messages {
       id
       messageUuid
@@ -37,4 +44,38 @@ query chatMessagesWithMemberQuery($ref: MemberAvatarRefInput!, $before: Int, $li
 # never moves it back and takes only an id of this conversation.
 mutation markChatConversationRead($ref: MemberAvatarRefInput!, $upToMessageId: Int!) {
   markChatConversationRead(ref: $ref, upToMessageId: $upToMessageId)
+}
+
+# Writes one message to the person named by the pair, and answers with one's OWN copy -- the
+# same fields a message of the thread has, so the answer is a bubble as it stands.
+#
+# `notify` is the sender's wish, and it is required: EMAIL where the box is ticked, NONE where
+# it is not. The server decides the rest (E-024): the first message of a pair goes out as a
+# mail whatever was asked, and a recipient who muted the conversation gets none. A delivery
+# that failed across the border is NOT an error -- the copy comes back with `deliveryState`
+# FAILED (E-019). An error is one of CHAT_MESSAGE_NOT_SENT: TO_ONESELF | UNKNOWN_RECIPIENT |
+# NO_WAY_TO_DELIVER | NOT_STORED, and nothing was sent.
+mutation sendChatMessage($ref: MemberAvatarRefInput!, $body: String!, $notify: ChatMessageNotify!) {
+  sendChatMessage(ref: $ref, body: $body, notify: $notify) {
+    id
+    messageUuid
+    conversationId
+    sender {
+      communityUuid
+      gradidoID
+    }
+    mine
+    subject
+    body
+    createdAt
+    deliveryState
+    notify
+  }
+}
+
+# Mutes the conversation with the person named by the pair for oneself, or lifts it (E-024):
+# no mails about their messages while it is muted; the thread shows them as before. Only
+# one's own row -- the other side is not told. False where there is no conversation yet.
+mutation setChatConversationMuted($ref: MemberAvatarRefInput!, $muted: Boolean!) {
+  setChatConversationMuted(ref: $ref, muted: $muted)
 }

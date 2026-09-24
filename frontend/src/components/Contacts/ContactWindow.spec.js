@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import ContactWindow from './ContactWindow.vue'
 
@@ -30,6 +30,18 @@ vi.mock('@/composables/useMemberAvatars', () => ({
 }))
 vi.mock('@/config', () => ({
   default: { COMMUNITY_URL: 'https://gradido.test' },
+}))
+
+/** What the server answers to `setChatConversationMuted`; a test decides, or makes it throw. */
+const serverMutes = vi.fn()
+vi.mock('@vue/apollo-composable', () => ({
+  useMutation: () => ({ mutate: (variables) => serverMutes(variables) }),
+}))
+
+const toastSuccess = vi.fn()
+const toastError = vi.fn()
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: () => ({ toastSuccess, toastError }),
 }))
 
 const CONTACT = {
@@ -84,12 +96,14 @@ describe('ContactWindow', () => {
             template:
               '<a :data-to="JSON.stringify(to)" @click="$event.metaKey || $event.preventDefault()"><slot /></a>',
           },
-          IMdiEmailFastOutline: true,
+          IMdiBellOutline: true,
+          IMdiBellOffOutline: true,
           // The thread reads the server; its own spec is about that. Here it only has to say
           // whom it was made for, and count how often it was made.
           ChatThread: {
             name: 'ChatThread',
             props: { member: Object, alias: String },
+            emits: ['chatConversation'],
             mounted() {
               threadsMade.push(this.member.gradidoID)
             },
@@ -113,8 +127,19 @@ describe('ContactWindow', () => {
   afterEach(() => {
     wrapper?.unmount()
     pushSpy.mockClear()
+    serverMutes.mockReset()
+    toastSuccess.mockClear()
+    toastError.mockClear()
     threadsMade = []
   })
+
+  /** What the thread tells the window once its first page is in (ChatThread, `chatConversation`). */
+  const threadSays = async (conversation) => {
+    wrapper.findComponent({ name: 'ChatThread' }).vm.$emit('chatConversation', conversation)
+    await flushPromises()
+  }
+  const bell = () => wrapper.find('[data-test="contact-window-bell"]')
+  const coin = () => wrapper.find('[data-test="contact-window-coin"]')
 
   it('names the person, their community and their face', () => {
     mountWindow()
@@ -198,12 +223,11 @@ describe('ContactWindow', () => {
       expect(wrapper.find('[data-test="contact-window-meta"]').exists()).toBe(true)
     })
 
-    it('still names the member and still offers both ways to reach them', () => {
+    it('still names the member and still offers to send them Gradido', () => {
       mountWindow(justTheMember)
 
       expect(wrapper.find('[data-test="contact-window-name"]').text()).toBe('Carla-Sonne')
-      expect(wrapper.find('[data-test="contact-window-send"]').exists()).toBe(true)
-      expect(wrapper.find('[data-test="contact-window-email"]').exists()).toBe(true)
+      expect(coin().exists()).toBe(true)
     })
 
     // The address hangs off `homeCommunity`, which a booking row does not carry either --
@@ -343,38 +367,47 @@ describe('ContactWindow', () => {
     expect(wrapper.emitted('update:modelValue')).toBeUndefined()
   })
 
+  // The coin: the send form with the person already named, as the map's profile window opens it.
   it('sends Gradido to the send form, with the person already named', async () => {
     mountWindow()
-    await wrapper.find('[data-test="contact-window-send"]').trigger('click')
+    await coin().trigger('click')
 
-    // ⛔ The mode is named in BOTH directions. This window stands beside /send, so a tap
-    // only changes the params and the query -- the form is patched, not rebuilt -- and
-    // naming only the e-mail half left this button unable to bring a form that was already
-    // in e-mail mode back to sending Gradido.
+    // ⛔ The mode is named although only this way is left. This window stands beside /send,
+    // so a tap only changes the params and the query -- the form is patched, not rebuilt --
+    // and without it a form already in e-mail mode would stay there.
     expect(pushSpy).toHaveBeenCalledWith({
       path: '/send/home-uuid/carla-id',
       query: { art: 'send' },
     })
   })
 
-  // The e-mail half of the same form, carrying its mode -- the way the profile window on
-  // the map already does it. ⛔ Not a second route and not a second piece of federation
-  // knowledge: the send form is what knows the foreign branch.
-  it('sends an e-mail through the same form, in its e-mail mode', async () => {
+  it('sends a member of another community down the same road', async () => {
     mountWindow(STRANGER)
-    await wrapper.find('[data-test="contact-window-email"]').trigger('click')
+    await coin().trigger('click')
 
     expect(pushSpy).toHaveBeenCalledWith({
       path: '/send/provence-uuid/sarah-id',
-      query: { art: 'email' },
+      query: { art: 'send' },
     })
   })
 
   it('closes itself on the way out, so it is not standing open behind the form', async () => {
     mountWindow()
-    await wrapper.find('[data-test="contact-window-send"]').trigger('click')
+    await coin().trigger('click')
 
     expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
+  })
+
+  /**
+   * ⛔ No "send e-mail" in the window any more (E-031): the short mail is the compose bar's
+   * box, the long one the send form's tab. The key is gone with the button -- read in the
+   * source, comments stripped, so a leftover in a comment does not count and one in code does.
+   */
+  it('has no e-mail button and no word for one', () => {
+    mountWindow()
+    expect(wrapper.find('[data-test="contact-window-email"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="contact-window-send-ways"]').exists()).toBe(false)
+    expect(styleOf('ContactWindow.vue')).not.toContain('contacts.sendEmail')
   })
 
   /**
@@ -391,27 +424,271 @@ describe('ContactWindow', () => {
     expect(heart.getAttribute('data-id')).toBe('carla-id')
   })
 
-  // The two ways out, and only those two: both of them send, "Send Gradido" first.
-  it('offers the two ways out together, and nothing else with them', () => {
+  /**
+   * Behind the name, in Bernd's order (E-031): the heart and the bell, two marks of one's own
+   * on this person, then the coin, the one thing that goes somewhere.
+   */
+  it('puts heart, bell and coin behind the name, in this order', async () => {
     mountWindow()
-    const ways = wrapper.find('[data-test="contact-window-send-ways"]').element.children
+    await threadSays({ exists: true, mutedByMe: false })
 
-    expect(ways).toHaveLength(2)
-    expect(ways[0].getAttribute('data-test')).toBe('contact-window-send')
-    expect(ways[0].textContent.trim()).toBe('contacts.sendGradido')
-    expect(ways[1].getAttribute('data-test')).toBe('contact-window-email')
-    expect(ways[1].textContent.trim()).toBe('contacts.sendEmail')
+    const marks = [...wrapper.find('.contact-window-name-line').element.children].map((e) =>
+      e.getAttribute('data-test'),
+    )
+    expect(marks).toEqual([
+      'contact-window-name',
+      'heart',
+      'contact-window-bell',
+      'contact-window-coin',
+    ])
+  })
+
+  // Before the first message there is nothing to mute (E-024), and nothing is known before the
+  // thread has said so.
+  it('shows the bell only where there is a conversation', async () => {
+    mountWindow()
+    expect(bell().exists()).toBe(false)
+
+    await threadSays({ exists: false, mutedByMe: false })
+    expect(bell().exists()).toBe(false)
+
+    await threadSays({ exists: true, mutedByMe: false })
+    expect(bell().exists()).toBe(true)
+  })
+
+  // Another person is another conversation: nothing of the last one's bell stays up.
+  it('forgets the bell of the person before', async () => {
+    mountWindow()
+    await threadSays({ exists: true, mutedByMe: true })
+    expect(bell().exists()).toBe(true)
+
+    await wrapper.setProps({ contact: STRANGER })
+
+    expect(bell().exists()).toBe(false)
+  })
+
+  it('gives the coin its name, for the ear and under the pointer', () => {
+    mountWindow()
+    expect(coin().attributes('aria-label')).toBe('contacts.sendGradido')
+    expect(coin().attributes('title')).toBe('contacts.sendGradido')
+    expect(coin().find('img').attributes('alt')).toBe('')
+  })
+
+  // Gradido's own golden coin, the one on the sign-in page (Bernd, 24.09.2026) -- not a glyph
+  // on a disc of its own.
+  it("shows Gradido's golden coin, as on the sign-in page", () => {
+    mountWindow()
+    expect(coin().find('img').attributes('src')).toBe('/img/brand/gradido_coin_128x128.png')
+  })
+
+  describe('the bell', () => {
+    it('says whether the conversation is muted, in state and in name', async () => {
+      mountWindow()
+      await threadSays({ exists: true, mutedByMe: true })
+      expect(bell().attributes('aria-pressed')).toBe('true')
+      expect(bell().attributes('aria-label')).toBe('chatThread.muteOff {"name":"Carla-Sonne"}')
+      expect(bell().attributes('title')).toBe('chatThread.muteOff {"name":"Carla-Sonne"}')
+      expect(bell().classes()).toContain('is-muted')
+      wrapper.unmount()
+
+      mountWindow()
+      await threadSays({ exists: true, mutedByMe: false })
+      expect(bell().attributes('aria-pressed')).toBe('false')
+      expect(bell().attributes('aria-label')).toBe('chatThread.muteOn')
+      expect(bell().classes()).not.toContain('is-muted')
+    })
+
+    /**
+     * Switched here first and confirmed by the server after, as the heart does it; what it
+     * means is said once, as a hint (E-031). The pair as the thread asks with it.
+     */
+    it('mutes by the pair, switches at once and says what it means', async () => {
+      let answer
+      serverMutes.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            answer = resolve
+          }),
+      )
+      mountWindow()
+      await threadSays({ exists: true, mutedByMe: false })
+
+      await bell().trigger('click')
+      expect(bell().attributes('aria-pressed')).toBe('true')
+      expect(serverMutes).toHaveBeenCalledWith({
+        ref: { gradidoID: 'carla-id', communityUuid: 'home-uuid' },
+        muted: true,
+      })
+
+      answer({ data: { setChatConversationMuted: true } })
+      await flushPromises()
+      expect(toastSuccess).toHaveBeenCalledWith('chatThread.mutedHint {"name":"Carla-Sonne"}')
+      expect(bell().attributes('aria-pressed')).toBe('true')
+    })
+
+    it('lifts it the same way, and says that too', async () => {
+      serverMutes.mockResolvedValue({ data: { setChatConversationMuted: true } })
+      mountWindow({ ...CONTACT, user: { ...CONTACT.user, communityUuid: null } })
+      await threadSays({ exists: true, mutedByMe: true })
+
+      await bell().trigger('click')
+      await flushPromises()
+
+      expect(serverMutes).toHaveBeenCalledWith({
+        ref: { gradidoID: 'carla-id', communityUuid: null },
+        muted: false,
+      })
+      expect(bell().attributes('aria-pressed')).toBe('false')
+      expect(toastSuccess).toHaveBeenCalledWith('chatThread.unmutedHint {"name":"Carla-Sonne"}')
+    })
+
+    it('goes back and says so where the server fails', async () => {
+      serverMutes.mockRejectedValue(new Error('Network error'))
+      mountWindow()
+      await threadSays({ exists: true, mutedByMe: false })
+
+      await bell().trigger('click')
+      await flushPromises()
+
+      expect(bell().attributes('aria-pressed')).toBe('false')
+      expect(toastError).toHaveBeenCalledWith('Network error')
+      expect(toastSuccess).not.toHaveBeenCalled()
+    })
+
+    // `false` is no error but no change: there was no conversation to mark. Back, without a
+    // hint that would claim a change.
+    it('goes back without a word where the server changed nothing', async () => {
+      serverMutes.mockResolvedValue({ data: { setChatConversationMuted: false } })
+      mountWindow()
+      await threadSays({ exists: true, mutedByMe: false })
+
+      await bell().trigger('click')
+      await flushPromises()
+
+      expect(bell().attributes('aria-pressed')).toBe('false')
+      expect(toastSuccess).not.toHaveBeenCalled()
+      expect(toastError).not.toHaveBeenCalled()
+    })
+
+    // One switch at a time: a second tap while the first is on its way is turned away.
+    it('takes no second tap while the first is on its way', async () => {
+      serverMutes.mockImplementation(() => new Promise(() => {}))
+      mountWindow()
+      await threadSays({ exists: true, mutedByMe: false })
+
+      await bell().trigger('click')
+      await bell().trigger('click')
+
+      expect(serverMutes).toHaveBeenCalledTimes(1)
+      expect(bell().attributes('aria-pressed')).toBe('true')
+    })
+
+    /**
+     * The window stays and the person in it changes: an answer about the bell of the person
+     * before that comes back late changes nothing here, neither the bell nor a word
+     * (coderabbit, PR #3974).
+     */
+    it('lets a late answer for the person before change nothing', async () => {
+      const answers = []
+      serverMutes.mockImplementation(
+        () => new Promise((resolve, reject) => answers.push({ resolve, reject })),
+      )
+      mountWindow()
+      await threadSays({ exists: true, mutedByMe: true })
+      await bell().trigger('click')
+
+      await wrapper.setProps({ contact: STRANGER })
+      await threadSays({ exists: true, mutedByMe: false })
+      answers[0].reject(new Error('Network error'))
+      await flushPromises()
+
+      expect(bell().attributes('aria-pressed')).toBe('false')
+      expect(toastError).not.toHaveBeenCalled()
+      expect(toastSuccess).not.toHaveBeenCalled()
+    })
+
+    // …and it holds up nothing here, nor lets go of the one switch at a time for the next person.
+    it('is not held up by the answer for the person before, nor let go by it', async () => {
+      const answers = []
+      serverMutes.mockImplementation(() => new Promise((resolve) => answers.push(resolve)))
+      mountWindow()
+      await threadSays({ exists: true, mutedByMe: false })
+      await bell().trigger('click')
+
+      await wrapper.setProps({ contact: STRANGER })
+      await threadSays({ exists: true, mutedByMe: false })
+      await bell().trigger('click')
+      expect(serverMutes).toHaveBeenCalledTimes(2)
+      expect(serverMutes).toHaveBeenLastCalledWith({
+        ref: { gradidoID: 'sarah-id', communityUuid: 'provence-uuid' },
+        muted: true,
+      })
+
+      answers[0]({ data: { setChatConversationMuted: true } })
+      await flushPromises()
+      await bell().trigger('click')
+
+      expect(serverMutes).toHaveBeenCalledTimes(2)
+      expect(bell().attributes('aria-pressed')).toBe('true')
+      expect(toastSuccess).not.toHaveBeenCalled()
+    })
+
+    // The window knows the conversation by the pair the thread is keyed by (KF-004): the same
+    // id in another community is another conversation (coderabbit, PR #3974).
+    it('takes the same id in another community for another conversation', async () => {
+      const answers = []
+      serverMutes.mockImplementation(
+        () => new Promise((resolve, reject) => answers.push({ resolve, reject })),
+      )
+      mountWindow()
+      await threadSays({ exists: true, mutedByMe: true })
+      await bell().trigger('click')
+
+      await wrapper.setProps({
+        contact: { ...CONTACT, user: { ...CONTACT.user, communityUuid: 'provence-uuid' } },
+      })
+      expect(bell().exists()).toBe(false)
+      await threadSays({ exists: true, mutedByMe: false })
+      answers[0].reject(new Error('Network error'))
+      await flushPromises()
+
+      expect(bell().attributes('aria-pressed')).toBe('false')
+      expect(toastError).not.toHaveBeenCalled()
+    })
+
+    /**
+     * ⚠️ A window that only closed lets the contact go (useContactWindow), and that is no other
+     * person: the hint still says what became of the person just seen.
+     */
+    it('still says what became of the bell when the window only closed', async () => {
+      let answer
+      serverMutes.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            answer = resolve
+          }),
+      )
+      mountWindow()
+      await threadSays({ exists: true, mutedByMe: false })
+      await bell().trigger('click')
+
+      await wrapper.setProps({ contact: null })
+      answer({ data: { setChatConversationMuted: true } })
+      await flushPromises()
+
+      expect(toastSuccess).toHaveBeenCalledWith('chatThread.mutedHint {"name":"Carla-Sonne"}')
+    })
   })
 
   // Real buttons that do not send a form, and none taken out of the tab order: a keyboard
-  // reaches every way out of this window.
-  it('makes both ways out buttons a keyboard reaches', () => {
+  // reaches the bell and the coin.
+  it('makes the bell and the coin buttons a keyboard reaches', async () => {
     mountWindow()
-    for (const test of ['contact-window-send', 'contact-window-email']) {
-      const button = wrapper.find(`[data-test="${test}"]`)
-      expect(button.element.tagName).toBe('BUTTON')
-      expect(button.attributes('type')).toBe('button')
-      expect(button.attributes('tabindex')).toBeUndefined()
+    await threadSays({ exists: true, mutedByMe: false })
+    for (const mark of [bell(), coin()]) {
+      expect(mark.element.tagName).toBe('BUTTON')
+      expect(mark.attributes('type')).toBe('button')
+      expect(mark.attributes('tabindex')).toBeUndefined()
     }
   })
 
@@ -421,51 +698,48 @@ describe('ContactWindow', () => {
       .replace(/<!--[\s\S]*?-->/g, '')
 
   /**
-   * ⛔ Without Bootstrap's `.btn` a plain button has no focus ring of its own, and nothing but
-   * the stylesheet can say it has one -- jsdom draws no outlines. Comments stripped first, so
-   * the explanation beside the rule cannot stand in for it.
+   * ⛔ Plain buttons have no focus ring of their own, and nothing but the stylesheet can say
+   * they have one -- jsdom draws no outlines. Comments stripped first, so the explanation
+   * beside the rule cannot stand in for it.
    */
-  it('gives the two ways out a visible focus ring, in the stylesheet', () => {
-    const rule = styleOf('ContactWindow.vue').match(/\.send-btn:focus-visible\s*\{[^}]*\}/)
+  it('gives the bell and the coin a visible focus ring, in the stylesheet', () => {
+    const rule = styleOf('ContactWindow.vue').match(
+      /\.contact-window-mark:focus-visible\s*\{[^}]*\}/,
+    )
 
-    expect(rule, 'the buttons lost their focus rule').not.toBeNull()
+    expect(rule, 'the marks lost their focus rule').not.toBeNull()
     expect(rule[0]).toMatch(/outline:\s*2px solid/)
   })
 
   /**
-   * ⚠️ The one place this window parts from the map's: a row that wraps, instead of the map
-   * window's switch at 420 px. This window is narrower than the screen, and at 430 px the two
-   * labels ran past it in es, fr, nl, ru and el (measured). jsdom lays nothing out, so only
-   * the stylesheet can say the row wraps.
+   * ⛔ The name gives way before the marks do (E-031): the marks may not shrink, the name may.
+   * jsdom lays nothing out, so only the stylesheet can say it.
    */
-  it('puts the two ways out one under the other where they do not fit side by side', () => {
-    const rule = styleOf('ContactWindow.vue').match(/\.contact-window-send\s*\{[^}]*\}/)
+  it('lets the name give way before the marks, in the stylesheet', () => {
+    const code = styleOf('ContactWindow.vue')
+    const rule = (selector) => code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
 
-    expect(rule, 'the row of the two ways out lost its rule').not.toBeNull()
-    expect(rule[0]).toMatch(/flex-wrap:\s*wrap/)
+    expect(rule('\\.contact-window-name')).toMatch(/min-width:\s*0/)
+    expect(rule('\\.contact-window-mark')).toMatch(/flex:\s*0 0 auto/)
+    expect(rule('\\.contact-window-heart')).toMatch(/flex:\s*0 0 auto/)
   })
 
   /**
-   * ⛔ "Exactly the two buttons we have elsewhere, on the map for instance" (Bernd, 24.09.2026).
-   * The map's profile window (MatchProfile.vue) and this one each carry the rules, so the
-   * spec holds them against each other: a colour, a radius or a size changed in one place
-   * and not the other fails here, rather than two send buttons drifting apart unnoticed.
+   * ⛔ The sheet (below `sm`, where BModal makes the window fullscreen): the window's inside
+   * one column over the whole height, the thread taking what is left and scrolling inside,
+   * the compose bar at the bottom. Without these rules the sheet would hang its content from
+   * the top and scroll as a whole -- and every spec would stay green.
    */
-  it('sends with the very buttons of the map profile window', () => {
-    const rules = (file) => {
-      const code = styleOf(file)
-      return Object.fromEntries(
-        ['send-btn', 'send-gradido', 'send-email', 'send-coin', 'send-mail-icon'].map((name) => {
-          const found = code.match(new RegExp(`\\n\\.${name}\\s*\\{([^}]*)\\}`))
-          return [name, found && found[1].replace(/\s+/g, ' ').trim()]
-        }),
-      )
-    }
-    const here = rules('ContactWindow.vue')
-    const there = rules('../Matching/MatchProfile.vue')
+  it('makes the window one column over the whole screen on a phone, in the stylesheet', () => {
+    const code = styleOf('ContactWindow.vue')
+    const sheet = code.match(/@media \(width <= 575\.98px\)\s*\{([\s\S]*?)\n\}/)?.[1] ?? ''
 
-    expect(Object.values(there).every(Boolean), 'MatchProfile lost one of the rules').toBe(true)
-    expect(here).toEqual(there)
+    expect(sheet, 'the sheet lost its rules').not.toBe('')
+    expect(sheet).toMatch(
+      /\.contact-window-inner\s*\{[^}]*flex-direction:\s*column[^}]*height:\s*100%/,
+    )
+    expect(sheet).toMatch(/\.contact-window-thread\s*\{[^}]*flex:\s*1 1 auto/)
+    expect(sheet).toMatch(/\.chat-thread-scroll\)\s*\{[^}]*max-height:\s*none/)
   })
 
   /**
@@ -533,15 +807,42 @@ describe('ContactWindow', () => {
    * this reservation for a week while no rule made it -- so it is measured in the
    * STYLESHEET, which is the only place jsdom lets it be seen at all.
    */
-  it('reserves the room the cross takes, in the stylesheet', () => {
-    const source = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'ContactWindow.vue'),
-      'utf8',
-    )
-    const head = source.match(/\.contact-window-head\s*\{[^}]*\}/)
+  it('puts the cross on a line of its own, above the name', () => {
+    mountWindow()
+    const top = wrapper.find('.contact-window-top')
+    const head = wrapper.find('.contact-window-head')
 
-    expect(head, '.contact-window-head no longer exists').not.toBeNull()
-    expect(head[0]).toMatch(/padding-right:\s*[\d.]+rem/)
+    expect(top.find('[data-test="contact-window-close"]').exists()).toBe(true)
+    expect(head.find('[data-test="contact-window-close"]').exists()).toBe(false)
+    // The line of the cross comes first, the head after it.
+    expect(
+      top.element.compareDocumentPosition(head.element) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+    // In the flow, so the head needs no room kept free at its right -- jsdom lays nothing out,
+    // so the stylesheet says it.
+    const code = styleOf('ContactWindow.vue')
+    const rule = (selector) => code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+    expect(rule('\\.contact-window-close')).not.toMatch(/position:\s*absolute/)
+    expect(rule('\\.contact-window-head')).not.toMatch(/padding-right/)
+  })
+
+  // The coin midway between the other marks and the compose bar's send button (Bernd,
+  // 24.09.2026): at the marks' size it looked smaller than the button below, at the button's
+  // size a touch too large. Held in both stylesheets.
+  it('makes the coin midway between the other marks and the send button', () => {
+    const rems = (file, selector) => {
+      const body = styleOf(file).match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+      return ['width', 'height'].map((side) =>
+        Number(body.match(new RegExp(`(?:^|\\s)${side}:\\s*([\\d.]+)rem;`))?.[1] ?? NaN),
+      )
+    }
+    const mark = rems('ContactWindow.vue', '\\.contact-window-mark')
+    const send = rems('../Chat/ChatComposeBar.vue', '\\.chat-compose-send')
+    const coin = rems('ContactWindow.vue', '\\.contact-window-coin')
+
+    expect([...mark, ...send].every(Number.isFinite), 'a size went missing').toBe(true)
+    expect(coin[0]).toBeCloseTo((mark[0] + send[0]) / 2, 4)
+    expect(coin[1]).toBeCloseTo((mark[1] + send[1]) / 2, 4)
   })
 
   it('closes from a cross that says what it is', async () => {

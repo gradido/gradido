@@ -151,13 +151,25 @@
     }
   },
   "chatThread": {
+    "alsoByEmail": "Auch per E-Mail",
+    "alsoByEmailTo": "Auch per E-Mail an {name}",
     "empty": "Noch keine Nachrichten. Hier beginnt Euer Gespräch.",
     "failed": "Nicht zugestellt",
+    "firstGoesByEmail": "Die erste Nachricht geht auch per E-Mail an {name}.",
     "label": "Gesprächsverlauf mit {name}",
     "loadOlder": "Ältere Nachrichten laden",
     "mailed": "Auch per E-Mail",
+    "muteOff": "Stumm — keine E-Mails zu Nachrichten von {name}",
+    "muteOn": "Stummschalten",
+    "mutedHint": "Stumm: keine E-Mails mehr zu Nachrichten von {name}. Neue Nachrichten siehst Du hier.",
     "notReachable": "Der Gesprächsverlauf konnte nicht geladen werden.",
+    "notSent": "Die Nachricht konnte nicht gesendet werden. Dein Text bleibt hier stehen.",
     "pending": "Noch nicht zugestellt",
+    "placeholder": "Nachricht an {name} …",
+    "remaining": "noch {n} Zeichen",
+    "send": "Senden",
+    "sent": "Gesendet",
+    "unmutedHint": "Nicht mehr stumm: Du bekommst wieder E-Mails zu Nachrichten von {name}.",
     "you": "Du"
   },
   "community": {
@@ -202,7 +214,6 @@
       "title": "{name} aus Deinen Favoriten entfernen?"
     },
     "search": "Kontakt suchen …",
-    "sendEmail": "E-Mail senden",
     "sendGradido": "Gradido senden",
     "since": "Kontakt seit {date}"
   },

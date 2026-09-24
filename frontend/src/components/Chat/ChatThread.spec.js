@@ -5,7 +5,12 @@ import { dirname, join } from 'node:path'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest'
 import ChatThread from './ChatThread.vue'
-import { chatMessagesWithMemberQuery, markChatConversationRead } from '@/graphql/chat.graphql'
+import ChatComposeBar from './ChatComposeBar.vue'
+import {
+  chatMessagesWithMemberQuery,
+  markChatConversationRead,
+  sendChatMessage,
+} from '@/graphql/chat.graphql'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -28,6 +33,30 @@ let server
 // Like the original `mutate`, it answers with a promise -- the thread lets a failure go
 // through `.catch`, which needs one to hang on.
 const markRead = vi.fn(async () => ({ data: { markChatConversationRead: true } }))
+
+/**
+ * What the server answers to `sendChatMessage`: a test sets the copy it comes back with, or
+ * makes it throw. Called with the variables, so a test can say what was asked.
+ */
+const serverSends = vi.fn()
+
+/**
+ * The cache as `update` sees it, as far as the thread uses it.
+ *
+ * ⛔ The stand-in does what Apollo's cache does besides answering (skill null-q3): it writes
+ * what the function returns into the answer of the query it names -- and only where query AND
+ * variables are the ones the thread asked with, as the real cache keys its entries by them. A
+ * function that returns nothing writes nothing.
+ */
+const cache = {
+  updateQuery: ({ query, variables }, change) => {
+    if (query !== chatMessagesWithMemberQuery) return null
+    if (JSON.stringify(variables) !== JSON.stringify(server.variables)) return null
+    const next = change(server.result.value)
+    if (next) server.result.value = next
+    return next ?? null
+  },
+}
 
 vi.mock('@vue/apollo-composable', async () => {
   const { ref } = await import('vue')
@@ -59,9 +88,33 @@ vi.mock('@vue/apollo-composable', async () => {
       server.olderPages = []
       return { result, loading, error, fetchMore, refetch }
     },
-    useMutation: (document) => ({
-      mutate: (variables) => markRead(document, variables),
-    }),
+    /**
+     * `mutate`, `loading` and `error`, as the original has them. The send mutation hands its
+     * answer to `update` with the cache above before it settles, as Apollo does; it throws where
+     * the server answered with an error, as vue-apollo does without an error handler.
+     */
+    useMutation: (document) => {
+      const loading = ref(false)
+      const error = ref(null)
+      if (document !== sendChatMessage) {
+        return { loading, error, mutate: (variables) => markRead(document, variables) }
+      }
+      const mutate = async (variables, options = {}) => {
+        loading.value = true
+        error.value = null
+        try {
+          const data = { sendChatMessage: await serverSends(variables) }
+          options.update?.(cache, { data })
+          return { data }
+        } catch (failure) {
+          error.value = failure
+          throw failure
+        } finally {
+          loading.value = false
+        }
+      }
+      return { loading, error, mutate }
+    },
   }
 })
 
@@ -81,9 +134,18 @@ const message = (n, { day = '2026-09-22', mine = n % 2 === 0 } = {}) => ({
   notify: mine ? 'NONE' : null,
 })
 
-const page = (ids, { hasMore = false, day } = {}) => ({
+const page = (ids, { hasMore = false, day, mutedByMe = false } = {}) => ({
   hasMore,
+  mutedByMe,
   messages: ids.map((n) => message(n, { day })),
+})
+
+/** One's own copy, as `sendChatMessage` answers: the highest id on this server. */
+const ownCopy = (n, body, { deliveryState = 'DELIVERED', notify = 'NONE' } = {}) => ({
+  ...message(n, { day: '2026-09-24', mine: true }),
+  body,
+  deliveryState,
+  notify,
 })
 
 /**
@@ -167,7 +229,7 @@ describe('ChatThread', () => {
     wrapper = mount(ChatThread, {
       props: { member, alias: 'Lena' },
       global: {
-        stubs: { IMdiChatOutline: true, IMdiEmailOutline: true },
+        stubs: { IMdiChatOutline: true, IMdiEmailOutline: true, IMdiSend: true },
       },
       ...options,
     })
@@ -189,9 +251,21 @@ describe('ChatThread', () => {
   afterEach(() => {
     wrapper?.unmount()
     markRead.mockClear()
+    serverSends.mockReset()
     layout.hidden = false
     layout.extra = 0
   })
+
+  const bar = () => wrapper.findComponent(ChatComposeBar)
+  const field = () => wrapper.find('[data-test="chat-compose-field"]')
+
+  /** Types into the bar and presses its button, as a member does. */
+  const write = async (text, { tick = false } = {}) => {
+    await field().setValue(text)
+    if (tick) await wrapper.find('[data-test="chat-compose-email"]').setValue(true)
+    await wrapper.find('[data-test="chat-compose-send"]').trigger('click')
+    await flushPromises()
+  }
 
   describe('the question it asks', () => {
     // KF-004: the person is named by the pair; the page is the server's own default of 50.
@@ -226,6 +300,8 @@ describe('ChatThread', () => {
       expect(log().exists()).toBe(false)
       expect(wrapper.find('[data-test="chat-thread-empty"]').exists()).toBe(false)
       expect(wrapper.find('[data-test="chat-thread-error"]').exists()).toBe(false)
+      // Nothing to answer yet.
+      expect(bar().exists()).toBe(false)
     })
 
     // Mockup view 2: nothing written yet between the two.
@@ -536,6 +612,308 @@ describe('ChatThread', () => {
       expect(older().exists()).toBe(false)
       expect(document.activeElement).toBe(log().element)
     })
+  })
+
+  describe('the compose bar', () => {
+    // Under a thread and under a thread that has nothing yet -- and there it is the first
+    // message, which goes by mail in any case (E-024).
+    it('stands under a thread, and under an empty one as the first message', async () => {
+      mountThread()
+      await arrive(page([1, 2]))
+      expect(bar().exists()).toBe(true)
+      expect(bar().props('first')).toBe(false)
+      expect(bar().props('name')).toBe('Lena')
+      wrapper.unmount()
+
+      mountThread()
+      await arrive(page([]))
+      expect(bar().exists()).toBe(true)
+      expect(bar().props('first')).toBe(true)
+    })
+
+    // Where the thread could not be loaded there is nothing to answer, and nothing to know
+    // about whether this would be the first message.
+    it('does not stand where the thread could not be loaded', async () => {
+      mountThread()
+      server.error.value = new Error('Network error')
+      server.loading.value = false
+      await flushPromises()
+
+      expect(bar().exists()).toBe(false)
+    })
+  })
+
+  describe('writing', () => {
+    // KF-004: the person by the pair, as the thread asks; the text and the wish as the bar
+    // hands them over.
+    it('sends by the pair, with the text and the wish', async () => {
+      serverSends.mockResolvedValue(ownCopy(99, 'Hallo Lena'))
+      mountThread()
+      await arrive(page([1, 2]))
+
+      await write('Hallo Lena', { tick: true })
+
+      expect(serverSends).toHaveBeenCalledWith({
+        ref: { gradidoID: 'lena-id', communityUuid: 'home-uuid' },
+        body: 'Hallo Lena',
+        notify: 'EMAIL',
+      })
+    })
+
+    it('sends a null community where the member carries none', async () => {
+      serverSends.mockResolvedValue(ownCopy(99, 'Hallo'))
+      mountThread({ gradidoID: 'lena-id' })
+      await arrive(page([1, 2]))
+
+      await write('Hallo')
+
+      expect(serverSends.mock.calls[0][0].ref).toEqual({
+        gradidoID: 'lena-id',
+        communityUuid: null,
+      })
+    })
+
+    /**
+     * The answer is one's own copy, and it goes under the thread without asking the server
+     * again: the page on screen gets it at the bottom -- the highest id, the order of arrival
+     * (E-018) -- and the thread goes down to it.
+     */
+    it('hangs the own copy under the thread and goes down to it', async () => {
+      serverSends.mockResolvedValue(ownCopy(99, 'Bis Samstag!'))
+      mountThread()
+      await arrive(page([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
+      const box = log().element
+      box.scrollTop = 0
+      await log().trigger('scroll') // the reader had scrolled up
+
+      await write('Bis Samstag!')
+
+      expect(bubbleTexts().at(-1)).toBe('Bis Samstag!')
+      expect(bubbleTexts()).toHaveLength(11)
+      expect(server.result.value.chatMessagesWithMember.messages.at(-1).id).toBe(99)
+      expect(box.scrollTop).toBe(box.scrollHeight - box.clientHeight)
+      // Nothing asked a second time.
+      expect(server.fetchMore).not.toHaveBeenCalled()
+      expect(server.refetch).not.toHaveBeenCalled()
+    })
+
+    // The first message makes the conversation: the sentence gives way to the box.
+    it('turns an empty thread into a thread with the first message', async () => {
+      serverSends.mockResolvedValue(ownCopy(99, 'Hallo Lena', { notify: 'EMAIL' }))
+      mountThread()
+      await arrive(page([]))
+
+      await write('Hallo Lena')
+
+      expect(log().exists()).toBe(true)
+      expect(bubbleTexts()).toEqual(['Hallo Lena'])
+      expect(bar().props('first')).toBe(false)
+      expect(wrapper.find('[data-test="chat-compose-email"]').exists()).toBe(true)
+    })
+
+    /**
+     * ⛔ A delivery that failed across the border is no error (E-019): the copy comes back
+     * FAILED and is a bubble with its word; the bar lets go of its text as for any message
+     * that went out.
+     */
+    it('shows a copy that came back not delivered as a bubble with its word', async () => {
+      serverSends.mockResolvedValue(ownCopy(99, 'Kommt sie an?', { deliveryState: 'FAILED' }))
+      mountThread()
+      await arrive(page([1, 2]))
+
+      await write('Kommt sie an?')
+
+      const last = wrapper.findAll('[data-test="chat-bubble"]').at(-1)
+      expect(last.find('[data-test="chat-bubble-state"]').text()).toBe('chatThread.failed')
+      expect(wrapper.find('[data-test="chat-compose-failed"]').exists()).toBe(false)
+      expect(field().element.value).toBe('')
+    })
+
+    // Only an error from the server is an error: the text stays, a line says so, and the
+    // thread gets nothing.
+    it('keeps the text and adds nothing where the server says no', async () => {
+      serverSends.mockRejectedValue(new Error('CHAT_MESSAGE_NOT_SENT: NOT_STORED'))
+      mountThread()
+      await arrive(page([1, 2]))
+
+      await write('Geht nicht durch')
+
+      expect(bubbleTexts()).toEqual(['message 1', 'message 2'])
+      expect(field().element.value).toBe('Geht nicht durch')
+      expect(wrapper.find('[data-test="chat-compose-failed"]').attributes('role')).toBe('alert')
+      expect(wrapper.find('[data-test="chat-thread-sent"]').text()).toBe('')
+    })
+
+    // A second message waits for the first: the bar hears it is on its way.
+    it('tells the bar while a message is on its way', async () => {
+      let letGo
+      serverSends.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            letGo = () => resolve(ownCopy(99, 'Eins'))
+          }),
+      )
+      mountThread()
+      await arrive(page([1, 2]))
+
+      await field().setValue('Eins')
+      await wrapper.find('[data-test="chat-compose-send"]').trigger('click')
+      expect(bar().props('sending')).toBe(true)
+      letGo()
+      await flushPromises()
+
+      expect(bar().props('sending')).toBe(false)
+      expect(serverSends).toHaveBeenCalledTimes(1)
+    })
+
+    /**
+     * "Sent", for the ear: a status that is always in the page, so the word is announced when
+     * it is put in. Where the copy came back not delivered it says what the bubble says.
+     */
+    it('says "sent" for a screen reader, and "not delivered" where it was not', async () => {
+      serverSends.mockResolvedValueOnce(ownCopy(99, 'Eins'))
+      serverSends.mockResolvedValueOnce(ownCopy(100, 'Zwei', { deliveryState: 'FAILED' }))
+      mountThread()
+      await arrive(page([1, 2]))
+      const status = wrapper.find('[data-test="chat-thread-sent"]')
+      expect(status.attributes('role')).toBe('status')
+      expect(status.text()).toBe('')
+
+      await write('Eins')
+      expect(status.text()).toBe('chatThread.sent')
+
+      await write('Zwei')
+      expect(status.text()).toBe('chatThread.failed')
+    })
+
+    // ⛔ One's own messages never count as unread: sending moves no pointer -- not from an
+    // empty thread, not from a thread whose pointer was moved on opening.
+    it("does not move the read pointer for one's own message", async () => {
+      serverSends.mockResolvedValue(ownCopy(99, 'Hallo'))
+      mountThread()
+      await arrive(page([]))
+      await write('Hallo')
+      expect(markRead).not.toHaveBeenCalled()
+      wrapper.unmount()
+
+      serverSends.mockResolvedValue(ownCopy(99, 'Hallo'))
+      mountThread()
+      await arrive(page([4, 5]))
+      await write('Hallo')
+      expect(markRead).toHaveBeenCalledTimes(1)
+      expect(markRead.mock.calls[0][1].upToMessageId).toBe(5)
+    })
+  })
+
+  describe('what it tells the window', () => {
+    // E-017: one question on opening answers the thread and the bell.
+    it('says whether there is a conversation and whether it is muted, once the page is in', async () => {
+      mountThread()
+      expect(wrapper.emitted('chatConversation')).toBeUndefined()
+
+      await arrive(page([1, 2], { mutedByMe: true }))
+
+      expect(wrapper.emitted('chatConversation')).toEqual([[{ exists: true, mutedByMe: true }]])
+    })
+
+    it('says there is none where nothing has been written, or the thread is out of reach', async () => {
+      mountThread()
+      await arrive(page([]))
+      expect(wrapper.emitted('chatConversation')).toEqual([[{ exists: false, mutedByMe: false }]])
+      wrapper.unmount()
+
+      mountThread()
+      server.error.value = new Error('Network error')
+      server.loading.value = false
+      await flushPromises()
+      expect(wrapper.emitted('chatConversation')).toEqual([[{ exists: false, mutedByMe: false }]])
+    })
+
+    // The first message makes it exist -- and from then on the bell has something to mute.
+    it('says so once the first message has made the conversation', async () => {
+      serverSends.mockResolvedValue(ownCopy(99, 'Hallo'))
+      mountThread()
+      await arrive(page([]))
+
+      await write('Hallo')
+
+      expect(wrapper.emitted('chatConversation')).toEqual([
+        [{ exists: false, mutedByMe: false }],
+        [{ exists: true, mutedByMe: false }],
+      ])
+    })
+
+    /**
+     * ⛔ And nothing more after a message into a thread that exists: the window keeps the
+     * bell itself once it knows, and the opening's `mutedByMe` told again after every message
+     * would undo a bell the member has just switched.
+     */
+    it('does not repeat itself after a message into a thread that exists', async () => {
+      serverSends.mockResolvedValue(ownCopy(99, 'Hallo'))
+      mountThread()
+      await arrive(page([1, 2]))
+
+      await write('Hallo')
+
+      expect(wrapper.emitted('chatConversation')).toHaveLength(1)
+    })
+  })
+
+  /**
+   * ⛔ The stand-ins above answer whatever is asked, so no test here could see a field missing
+   * from the document (skill null-d). These two read the documents themselves: what the thread
+   * reads off the page must be asked for, and the answer to a message sent must have the very
+   * fields a message of the thread has -- it is hung into the same list and drawn by the same
+   * bubble.
+   */
+  describe('the questions it sends', () => {
+    const top = (document) =>
+      document.definitions.find((definition) => definition.kind === 'OperationDefinition')
+        .selectionSet.selections[0]
+    const shape = (selectionSet) =>
+      selectionSet.selections
+        .map((field) =>
+          field.selectionSet
+            ? `${field.name.value}{${shape(field.selectionSet)}}`
+            : field.name.value,
+        )
+        .join(' ')
+
+    it('asks the page for what the thread and the bell read', () => {
+      const fields = top(chatMessagesWithMemberQuery).selectionSet.selections.map(
+        (field) => field.name.value,
+      )
+      expect(fields).toEqual(expect.arrayContaining(['hasMore', 'mutedByMe', 'messages']))
+    })
+
+    it('asks the answer to a message for the fields of a message of the thread', () => {
+      const messages = top(chatMessagesWithMemberQuery).selectionSet.selections.find(
+        (field) => field.name.value === 'messages',
+      )
+      expect(shape(top(sendChatMessage).selectionSet)).toBe(shape(messages.selectionSet))
+      // Gegenprobe: the shape is not empty on either side.
+      expect(shape(messages.selectionSet)).toContain('deliveryState')
+    })
+  })
+
+  const code = (file) =>
+    readFileSync(join(dirname(fileURLToPath(import.meta.url)), file), 'utf8')
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/^\s*\/\/.*$/gm, '')
+
+  /**
+   * ⛔ No fixed height: P2b's `height: min(45vh, 30rem)` left a thread of one message at the
+   * bottom of an empty box (E-031). The thread is as high as its messages, up to a cap, and
+   * loading is a small box of its own. Only the stylesheet can say so -- jsdom lays nothing out.
+   */
+  it('is as high as its messages, up to a cap, and loads in a small box', () => {
+    const style = code('ChatThread.vue')
+    const rule = (selector) => style.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+
+    expect(rule('\\.chat-thread-box')).not.toMatch(/(^|[^-])height:/)
+    expect(rule('\\.chat-thread-scroll')).toMatch(/max-height:\s*min\(45dvh,\s*30rem\)/)
+    expect(rule('\\.chat-thread-loading')).toMatch(/height:\s*4rem/)
   })
 
   /**
