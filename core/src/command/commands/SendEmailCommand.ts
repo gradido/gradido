@@ -16,14 +16,16 @@ const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.command.commands.SendEmailCommand.${method}`)
 
 /**
- * What the command answers for a message, whether a mail went out or not.
+ * What the command answers -- for a message and for the mail about received Gradido alike,
+ * whether a mail went out or not.
  *
  * ⛔ The answer travels back: the sending server's command client asks for `data`, and it is
  * what execute() returns. So it must not depend on the mail. The transport's result would tell
  * the sending server whether the recipient muted the conversation (E-024: the sender learns
- * nothing about it), and more about the mail than is its business.
+ * nothing about it), and more about the mail than is its business. What the transport reported
+ * stays in this server's debug log.
  */
-export const CHAT_MESSAGE_RECEIVED = 'chat message received'
+export const SEND_MAIL_COMMAND_ANSWER = 'received'
 
 export interface SendEmailCommandParams {
   mailType: string
@@ -164,12 +166,13 @@ export class SendEmailCommand extends BaseCommand<
         } else {
           methodLogger.debug(`not mailed: message_uuid=${stored.messageUuid}`)
         }
-        result = CHAT_MESSAGE_RECEIVED
+        result = SEND_MAIL_COMMAND_ANSWER
         break
       }
       case 'sendTransactionReceivedEmail': {
         const emailResult = await sendTransactionReceivedEmail(emailParams)
-        result = this.getEmailResult(emailResult)
+        methodLogger.debug(`mailed: ${this.getEmailResult(emailResult)}`)
+        result = SEND_MAIL_COMMAND_ANSWER
         break
       }
       default:

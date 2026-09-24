@@ -5,7 +5,11 @@ import { uuidv4Schema } from 'shared'
 import * as mails from '../../emails/sendEmailVariants'
 import * as chatMessage from '../../logic/ChatMessage.logic'
 import { CommandExecutor } from '../CommandExecutor'
-import { CHAT_MESSAGE_RECEIVED, SendEmailCommand, SendEmailCommandParams } from './SendEmailCommand'
+import {
+  SEND_MAIL_COMMAND_ANSWER,
+  SendEmailCommand,
+  SendEmailCommandParams,
+} from './SendEmailCommand'
 
 // ⛔ spyOn, not mock.module: Bun cannot restore a module mock, and a replaced module stays
 // replaced for every test file that runs after this one. Bun takes the order from the file
@@ -153,7 +157,7 @@ describe('SendEmailCommand, a message from another community', () => {
     )
     spies.push(ensure)
 
-    await expect(run(params({ messageUuid: MESSAGE_UUID }))).resolves.toBe(CHAT_MESSAGE_RECEIVED)
+    await expect(run(params({ messageUuid: MESSAGE_UUID }))).resolves.toBe(SEND_MAIL_COMMAND_ANSWER)
 
     expect(ensure).toHaveBeenCalledTimes(1)
     expect(customMail).toHaveBeenCalledTimes(1)
@@ -224,7 +228,7 @@ describe('SendEmailCommand, the wish and the quiet', () => {
     recipientHas(MUTED)
 
     await expect(run(params({ messageUuid: MESSAGE_UUID, notify: 'email' }))).resolves.toBe(
-      CHAT_MESSAGE_RECEIVED,
+      SEND_MAIL_COMMAND_ANSWER,
     )
 
     expect(store).toHaveBeenCalledTimes(1)
@@ -279,7 +283,45 @@ describe('SendEmailCommand, the wish and the quiet', () => {
 
     expect(customMail).toHaveBeenCalledTimes(2)
     expect(answers).toEqual(
-      Array.from({ length: 4 }, () => ({ success: true, data: CHAT_MESSAGE_RECEIVED })),
+      Array.from({ length: 4 }, () => ({ success: true, data: SEND_MAIL_COMMAND_ANSWER })),
     )
+  })
+})
+
+/**
+ * What a mail transport reports names the mail's recipient. It stays on this server: the
+ * sending server asks for `data` as well, and gets the same fixed value for both kinds of mail.
+ */
+describe('SendEmailCommand, what the sending server is answered', () => {
+  const reported = {
+    accepted: ['ben@example.org'],
+    rejected: [],
+    envelope: { from: 'info@gradido.net', to: ['ben@example.org'] },
+    messageSize: 37478,
+    response: '250 2.0.0 Ok: queued',
+  }
+  const answerTo = (commandParams: object) =>
+    new CommandExecutor().executeCommand(new SendEmailCommand([JSON.stringify(commandParams)]))
+
+  it('answers the mail about received Gradido with the fixed value, not with the report', async () => {
+    receivedMail.mockImplementation(async () => reported)
+
+    const answer = await answerTo(
+      params({ mailType: 'sendTransactionReceivedEmail', amount: '10', subject: undefined }),
+    )
+
+    expect(receivedMail).toHaveBeenCalledTimes(1)
+    expect(answer).toEqual({ success: true, data: SEND_MAIL_COMMAND_ANSWER })
+    expect(JSON.stringify(answer)).not.toContain('ben@example.org')
+  })
+
+  it('answers a message the same way, whatever the transport reported', async () => {
+    customMail.mockImplementation(async () => reported)
+
+    const answer = await answerTo(params({ messageUuid: MESSAGE_UUID }))
+
+    expect(customMail).toHaveBeenCalledTimes(1)
+    expect(answer).toEqual({ success: true, data: SEND_MAIL_COMMAND_ANSWER })
+    expect(JSON.stringify(answer)).not.toContain('ben@example.org')
   })
 })
