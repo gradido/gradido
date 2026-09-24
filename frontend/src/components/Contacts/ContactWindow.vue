@@ -95,10 +95,11 @@
               />
               <i-mdi-bell-outline v-else class="contact-window-bell-icon" aria-hidden="true" />
             </button>
-            <!-- The coin: sending Gradido, where the two big buttons stood before. A button
-                 with its name, for the ear and -- at the desk -- under the pointer; gold, and
-                 last, because it is an action and not a state. The e-mail with a subject is
-                 one tab away in the form it opens; the short one is the compose bar's box. -->
+            <!-- The coin: sending Gradido, where the two big buttons stood before -- Gradido's
+                 own golden coin, the one on the sign-in page (Bernd, 24.09.2026). A button with
+                 its name, for the ear and -- at the desk -- under the pointer; last, because it
+                 is an action and not a state. The e-mail with a subject is one tab away in the
+                 form it opens; the short one is the compose bar's box. -->
             <button
               type="button"
               class="contact-window-mark contact-window-coin"
@@ -108,7 +109,7 @@
               @click="toSend"
             >
               <img
-                src="/img/svg/gdd_coin_sw.svg"
+                src="/img/brand/gradido_coin_128x128.png"
                 class="contact-window-coin-glyph"
                 alt=""
                 aria-hidden="true"
@@ -590,16 +591,16 @@ const toggleMute = async () => {
   color: var(--bs-body-color);
 }
 
-/* The coin on the wallet's gold, white, as it stood on the green button before. */
+/* The coin is its own picture -- the golden Gradido coin, round in itself -- so it fills the
+   mark and needs no ground or rim of its own. */
 .contact-window-coin {
-  border-color: var(--gold, #c58d38);
-  background: var(--gold, #c58d38);
+  border: 0;
 }
 
 .contact-window-coin-glyph {
-  width: 1.1rem;
-  height: 1.1rem;
-  filter: brightness(0) invert(1);
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 /* ⛔ The sheet (below `sm`, where BModal makes the window fullscreen -- the same 575.98px as

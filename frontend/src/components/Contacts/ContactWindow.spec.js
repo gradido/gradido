@@ -474,6 +474,13 @@ describe('ContactWindow', () => {
     expect(coin().find('img').attributes('alt')).toBe('')
   })
 
+  // Gradido's own golden coin, the one on the sign-in page (Bernd, 24.09.2026) -- not a glyph
+  // on a disc of its own.
+  it("shows Gradido's golden coin, as on the sign-in page", () => {
+    mountWindow()
+    expect(coin().find('img').attributes('src')).toBe('/img/brand/gradido_coin_128x128.png')
+  })
+
   describe('the bell', () => {
     it('says whether the conversation is muted, in state and in name', async () => {
       mountWindow()
