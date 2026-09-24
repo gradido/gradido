@@ -208,14 +208,14 @@
       "confirm": "bevestigt",
       "deleted": "verwijderd",
       "denied": "afgewezen",
-      "in_progress": "There is a question from the moderators.",
+      "in_progress": "Er is een vraag van de moderators.",
       "myContributionNoteList": "Ingediende bijdragen, die nog niet bevestigd zijn, kun je op elk moment wijzigen of verwijderen.",
       "pending": "Ingediend en wacht op bevestiging"
     },
     "communityWindow": "Bijdragen van de laatste {months} maanden",
     "creationGroup": {
       "help": "Optioneel. Het werkt ook zonder groep. Een #woord in de tekst stelt geen groep in — daarvoor is dit veld.",
-      "label": "Scheppingsgroep",
+      "label": "Creatiegroep",
       "none": "(zonder groep)"
     },
     "delete": "Bijdrage echt verwijderen? Daarna is ze alleen nog zichtbaar voor jou en de moderatoren, onzichtbaar voor de gemeenschap.",
@@ -535,7 +535,7 @@
     "created": "Link, cheque en QR-code zijn aangemaakt.",
     "delete-the-link": "De link verwijderen?",
     "deleted": "De link werd verwijderd!",
-    "disbured": "De uitbetaling van het linktegoed is succesvol gestart! Het bedrag van {n} GDD wordt binnenkort op je rekening bijgeschreven.",
+    "disbured": "De overdracht van het linktegoed is succesvol gestart! Het bedrag van {n} GDD wordt binnenkort op je rekening bijgeschreven.",
     "expiredOn": "Afgelopen op",
     "has-account": "Heb je al een Gradido rekening?",
     "header": "Link, cheque en QR-code aanmaken",
@@ -705,8 +705,8 @@
       "back": "Terug",
       "breite": "Wie meerdere keren past",
       "breiteHint": "Licht mensen uit die op meerdere van jouw vermeldingen antwoorden.",
-      "centreHome": "your home",
-      "centrePoint": "the chosen point",
+      "centreHome": "je huis",
+      "centrePoint": "het gekozen punt",
       "channels": {
         "andere": "alle anderen",
         "andereMit": "anderen met vermeldingen",
@@ -726,7 +726,7 @@
         "liste": "Lijst",
         "normal": "normaal"
       },
-      "noWebgl": "This map needs WebGL 2. Your browser does not have it — the list shows the same matches.",
+      "noWebgl": "Deze kaart heeft WebGL 2 nodig. Je browser ondersteunt het niet — de lijst toont dezelfde resultaten.",
       "radius": "Straal",
       "radiusHintFern": "Geldt voor het bovenregionale zoeken. De regionale straal blijft op {km} km.",
       "radiusHintRegional": "Geldt voor het regionale zoeken. De bovenregionale straal blijft op {km} km.",
@@ -853,7 +853,7 @@
     }
   },
   "navigation": {
-    "admin_area": "Beheerder",
+    "admin_area": "Beheeromgeving",
     "back-to-account": "Terug naar de rekening",
     "back-to-settings": "Terug naar instellingen",
     "calculator": "Rekenmachine",
@@ -868,23 +868,23 @@
     "support": "Support",
     "transactions": "Transacties"
   },
-  "openHours": "Open Hours",
+  "openHours": "Beschikbare uren",
   "pageTitle": {
     "calculator": "Rekenmachine",
     "circles": "Gradido Kringen",
     "contacts": "Je contacten",
-    "contributions": "Gradido scoop",
-    "gdt": "Your GDT transactions",
+    "contributions": "Gradido creëren",
+    "gdt": "Jouw GDT-transacties",
     "information": "{community}",
     "matching": "Matching",
     "my-gradido-card": "QR-code van mijn visitekaartje",
     "my-thank-you-card": "QR-code van mijn dankkaart",
-    "overview": "Welcome {name}",
+    "overview": "Welkom, {name}",
     "scanner": "Code scannen",
     "send": "Gradido en e-mail versturen",
     "settings": "Instellingen",
     "show-friends": "Laat het je vrienden zien",
-    "transactions": "Your transactions",
+    "transactions": "Jouw transacties",
     "usersearch": "Geografisch leden zoeken (bèta)"
   },
   "public-profile": {

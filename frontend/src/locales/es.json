@@ -4,7 +4,7 @@
   "125": "125%",
   "(": "(",
   ")": ")",
-  "1000thanks": "¡1000 Gracias, por estar con nosotros!",
+  "1000thanks": "¡1000 gracias por estar con nosotros!",
   "Chat": "Chat",
   "GDD": "GDD",
   "GDD-long": "Gradido",
@@ -28,7 +28,7 @@
       "button": "Crear cuenta",
       "done": "¡La cuenta está lista! Un correo de confirmación va de camino al nuevo buzón. Inicia sesión ahora y canjea el cheque:",
       "emailHint": "Introduce aquí la dirección de correo propia del nuevo miembro — no la tuya. La contraseña la escribe el nuevo miembro.",
-      "emailTaken": "Esta dirección de correo ya tiene una cuenta de Gradido. Usa «He olvidado mi contraseña» para volver a entrar.",
+      "emailTaken": "Esta dirección de correo ya tiene una cuenta de Gradido. Usa «¿Has olvidado tu contraseña?» para volver a entrar.",
       "intro": "{name} quiere empezar una cuenta de Gradido.",
       "invalid": "Este enlace no es válido o ha caducado.",
       "loginButton": "Iniciar sesión y canjear el cheque",
@@ -208,7 +208,7 @@
       "confirm": "confirmado",
       "deleted": "eliminado",
       "denied": "rechazado",
-      "in_progress": "Hay una pregunta de los moderatores.",
+      "in_progress": "Hay una pregunta de los moderadores.",
       "myContributionNoteList": "Puedes editar o eliminar las contribuciones enviadas que aún no han sido confirmadas en cualquier momento.",
       "pending": "Enviado y a la espera de confirmación"
     },
@@ -705,8 +705,8 @@
       "back": "Volver",
       "breite": "Quién encaja varias veces",
       "breiteHint": "Destaca a las personas que responden a varias de tus entradas.",
-      "centreHome": "your home",
-      "centrePoint": "the chosen point",
+      "centreHome": "tu casa",
+      "centrePoint": "la ubicación elegida",
       "channels": {
         "andere": "todos los demás",
         "andereMit": "otros con entradas",
@@ -726,7 +726,7 @@
         "liste": "Lista",
         "normal": "normal"
       },
-      "noWebgl": "This map needs WebGL 2. Your browser does not have it — the list shows the same matches.",
+      "noWebgl": "Este mapa necesita WebGL 2. Tu navegador no lo admite — la lista muestra los mismos resultados.",
       "radius": "Radio",
       "radiusHintFern": "Se aplica a la búsqueda suprarregional. El radio regional se mantiene en {km} km.",
       "radiusHintRegional": "Se aplica a la búsqueda regional. El radio suprarregional se mantiene en {km} km.",
@@ -826,10 +826,10 @@
   "member": "Miembro",
   "message": {
     "activateEmail": "Tu cuenta aún no ha sido activada. Por favor revisa tu correo electrónico y haz clic en el enlace de activación o solicita uno nuevo enlace de activación a través de la página  restablecer contraseña.",
-    "checkEmail": "Tu correo electrónico ha sido verificado con éxito. Puedes registrarte ahora.",
+    "checkEmail": "Tu correo electrónico ha sido verificado con éxito. Ya puedes iniciar sesión.",
     "email": "Te hemos enviado un correo electrónico.",
     "errorTitle": "¡Atención!",
-    "register": "Ya estás registrado, por favor revisa tu correo electrónico y haz clic en el enlace de activación.",
+    "register": "Registro completado: revisa tu correo electrónico y haz clic en el enlace de activación.",
     "registerPresence": "Tu cuenta está lista. Un correo de confirmación va de camino a tu dirección. Inicia sesión ahora. Si no puedes iniciar sesión, quizá ya tenías una cuenta con esta dirección: entonces usa «¿Has olvidado tu contraseña?».",
     "reply": "Gracias, tu respuesta ha sido enviada.",
     "reset": "Tu contraseña ha sido cambiada.",
@@ -868,23 +868,23 @@
     "support": "Soporte",
     "transactions": "Transacciones"
   },
-  "openHours": "Open Hours",
+  "openHours": "Horas disponibles",
   "pageTitle": {
     "calculator": "Calculadora",
     "circles": "Círculos Gradido",
     "contacts": "Tus contactos",
-    "contributions": "Cuchara Gradido",
-    "gdt": "Tu GDT Transacciones",
+    "contributions": "Crear Gradido",
+    "gdt": "Tus transacciones GDT",
     "information": "{community}",
     "matching": "Matching",
     "my-gradido-card": "Código QR de mi tarjeta de visita",
     "my-thank-you-card": "Código QR de mi tarjeta de agradecimiento",
-    "overview": "Welcome {name}",
+    "overview": "Te damos la bienvenida, {name}",
     "scanner": "Escanear código",
     "send": "Enviar Gradido y correo electrónico",
     "settings": "Configuración",
     "show-friends": "Muéstraselo a tus amigos",
-    "transactions": "Tu Transacciones",
+    "transactions": "Tus transacciones",
     "usersearch": "Búsqueda geográfica de miembros (beta)"
   },
   "public-profile": {
@@ -942,7 +942,7 @@
     "extend": "Permanecer en sesión iniciada",
     "lightText": "Si no has realizado ninguna acción durante más de 10 minutos, se cerrará tu sesión por razones de seguridad.",
     "logoutIn": "Cerrar sesión en ",
-    "warningText": "¿Aún estás?"
+    "warningText": "¿Sigues ahí?"
   },
   "settings": {
     "GMS": {
@@ -1165,7 +1165,7 @@
   "signup": "Registrarse",
   "site": {
     "forgotPassword": {
-      "heading": "Por favor, introduce la dirección de correo electrónico con la que estas registrado en Gradido."
+      "heading": "Por favor, introduce la dirección de correo electrónico con la que te registraste en Gradido."
     },
     "resetPassword": {
       "heading": "Por favor, introduce tu contraseña y repítela."
@@ -1200,7 +1200,7 @@
       "next-payment": "Siguiente transacción",
       "pin-title": "Tu PIN, por favor",
       "remember-memo": "Recordar este concepto",
-      "rest-note": "se paga por separado.",
+      "rest-note": "se salda por separado.",
       "sent-from-to": "enviado por {from} a {to}",
       "subtitle": "Se ha escaneado una tarjeta de agradecimiento.",
       "thanks": "¡Muchas gracias!"
@@ -1289,5 +1289,5 @@
   },
   "via_card": "con una tarjeta",
   "via_link": "atraves de un enlace",
-  "welcome": "Bienvenido a la comunidad."
+  "welcome": "Te damos la bienvenida a la comunidad"
 }

@@ -26,12 +26,12 @@
   "assistedRegistration": {
     "assist": {
       "button": "Hesap aç",
-      "done": "Hesap hazır! Bir onay e-postası yeni posta kutusuna doğru yolda. Şimdi giriş yap ve çeki bozdur:",
+      "done": "Hesap hazır! Bir onay e-postası yeni posta kutusuna doğru yolda. Şimdi giriş yap ve çeki kullan:",
       "emailHint": "Buraya yeni üyenin kendi e-posta adresini gir — seninkini değil. Şifreyi yeni üye kendisi yazar.",
-      "emailTaken": "Bu e-posta adresinin zaten bir Gradido hesabı var. Tekrar girmek için \"Şifremi unuttum\" yolunu kullan.",
+      "emailTaken": "Bu e-posta adresinin zaten bir Gradido hesabı var. Yeniden giriş yapmak için «Şifreni mi unuttun?» bağlantısını kullan.",
       "intro": "{name} bir Gradido hesabı başlatmak istiyor.",
       "invalid": "Bu bağlantı geçersiz veya süresi dolmuş.",
-      "loginButton": "Giriş yap ve çeki bozdur",
+      "loginButton": "Giriş yap ve çeki kullan",
       "title": "Birlikte bir Gradido hesabı açmak"
     },
     "confirm": {
@@ -152,7 +152,7 @@
   },
   "community": {
     "admins": "Yöneticiler",
-    "choose-another-community": "Başka bir topluluk seçin",
+    "choose-another-community": "Başka bir topluluk seç",
     "community": "Topluluk",
     "communityMember": "Aktif bir üyesin",
     "continue-to-registration": "Kayıt işlemine devam et",
@@ -251,10 +251,10 @@
     "number": "Katkı no. {number}",
     "oldContribution": "Önceki sürüm",
     "selectDate": "Hizmet ne zaman verildi?",
-    "submit": "Başvuru yapıldı",
+    "submit": "Gönder",
     "submitted": "Hizmet gönderildi.",
     "updated": "Hizmet değiştirildi.",
-    "yourActivity": "Lütfen bir aktivite girin!"
+    "yourActivity": "Lütfen bir aktivite gir!"
   },
   "contribution-link": {
     "thanksYouWith": "Sana gönderiyor"
@@ -440,7 +440,7 @@
     "newPassword": "Yeni şifre",
     "newPasswordRepeat": "Yeni şifreyi tekrarla",
     "new_balance": "Onay sonrası hesap bakiyesi",
-    "no_gdd_available": "Göndermek için GDD'niz yok.",
+    "no_gdd_available": "Göndermek için GDD'n yok.",
     "ok": "Tamam",
     "password": "Şifre",
     "passwordRepeat": "Şifreyi tekrarla",
@@ -452,14 +452,14 @@
     "reply": "Yanıtla",
     "reset": "Sıfırla",
     "save": "Kaydet",
-    "scann_code": "<strong>QR Code Scanner</strong> - Ortağınızın QR Kodunu tarayın",
+    "scann_code": "<strong>QR Code Scanner</strong> - Ortağının QR kodunu tara",
     "sendEmail": "E-posta gönder",
     "send_check": "İşlemi onayla. Lütfen tüm verileri tekrar kontrol et!",
     "send_email_error": "Maalesef e-postan gönderilemedi!",
     "send_email_success": "E-postan başarıyla gönderildi",
     "send_now": "Şimdi gönder",
     "send_transaction_error": "Ne yazık ki işlem gerçekleştirilemedi!",
-    "send_transaction_success": "İşleminiz başarıyla tamamlandı",
+    "send_transaction_success": "İşlemin başarıyla tamamlandı",
     "sendemailerror": {
       "failedToSendCommandToFederatedCommunity": "E-postanı gönderirken e-posta alıcının topluluğunda şu hata oluştu: ",
       "federatedCommunityOfReceiverCommunityNotFound": "E-posta alıcının topluluğu için geçerli bir federasyon bulunmuyor",
@@ -535,7 +535,7 @@
     "created": "Link, çek ve QR kodu oluşturuldu.",
     "delete-the-link": "Link silinsin mi?",
     "deleted": "Link silindi!",
-    "disbured": "Bağlantı bakiyesinin ödemesi başarıyla başlatıldı! {n} GDD kısa süre içinde hesabına alacak olarak işlenecek",
+    "disbured": "Bağlantı bakiyesinin aktarımı başarıyla başlatıldı! {n} GDD kısa süre içinde hesabına alacak olarak işlenecek",
     "expiredOn": "Geçerlilik süresi",
     "has-account": "Halihazırda bir Gradido hesabın var mı?",
     "header": "Link, çek ve QR kodu oluştur",
@@ -547,15 +547,15 @@
     "link-overview": "Linke toplu bakış",
     "links_open": "{n} açık",
     "links_sum": "Linkler, çekler, QR kodları",
-    "no-account": "Henüz bir Gradido hesabınız yok mu?",
-    "no-redeem": "Kendi linkini kullanarak GDD'lerini paraya dönüştüremezsin!",
+    "no-account": "Henüz bir Gradido hesabın yok mu?",
+    "no-redeem": "Kendi linkini kullanamazsın!",
     "not-copied": "Maalesef cihazın kopyalamaya izin vermiyor! Lütfen bağlantıyı elle kopyala!",
     "recipientCommunityRedirection": "Hesaba işlemek için şuraya yönlendir:",
     "recipientCommunitySelection": "Gradido topluluğunu seç:",
-    "redeem": "Paraya dönüştürme",
+    "redeem": "Kullan",
     "redeem-community": "Şuraya işle: ",
-    "redeemed": "Başarıyla dönüştürüldü! Hesabına {n} GDD yatırıldı.",
-    "redeemed-at": "Link  {date} tarihinde paraya dönüştürüldü.",
+    "redeemed": "Başarıyla kullanıldı! Hesabına {n} GDD yatırıldı.",
+    "redeemed-at": "Link {date} tarihinde zaten kullanıldı.",
     "redeemlink-error": "Bu kullanım bağlantısı tam değil.",
     "share": "Paylaş",
     "share-line1": "{name}, {amount} Gradido ile sana teşekkür ediyor:",
@@ -705,8 +705,8 @@
       "back": "Geri",
       "breite": "Birden çok kez uyanlar",
       "breiteHint": "Girişlerinden birkaçına birden yanıt veren insanları öne çıkarır.",
-      "centreHome": "your home",
-      "centrePoint": "the chosen point",
+      "centreHome": "Evinin",
+      "centrePoint": "Seçtiğin noktanın",
       "channels": {
         "andere": "diğer herkes",
         "andereMit": "girişi olan diğerleri",
@@ -726,7 +726,7 @@
         "liste": "Liste",
         "normal": "normal"
       },
-      "noWebgl": "This map needs WebGL 2. Your browser does not have it — the list shows the same matches.",
+      "noWebgl": "Bu harita WebGL 2 gerektiriyor. Tarayıcın bunu desteklemiyor — liste aynı eşleşmeleri gösterir.",
       "radius": "Yarıçap",
       "radiusHintFern": "Bölge üstü arama için geçerli. Bölgesel yarıçap {km} km olarak kalır.",
       "radiusHintRegional": "Bölgesel arama için geçerli. Bölge üstü yarıçap {km} km olarak kalır.",
@@ -829,12 +829,12 @@
     "checkEmail": "E-posta adresin başarıyla doğrulandı. Şimdi giriş yapabilirsin.",
     "email": "Sana bir e-posta gönderdik.",
     "errorTitle": "Dikkat!",
-    "register": "Şİmdi kayıt oldun, lütfen e-postalarını kontrol et ve aktivasyon linkine tıkla.",
+    "register": "Şimdi kayıt oldun, lütfen e-postalarını kontrol et ve aktivasyon linkine tıkla.",
     "registerPresence": "Hesabın hazır. Bir onay e-postası adresine doğru yolda. Şimdi giriş yap. Giriş olmazsa, bu adresle belki zaten bir hesabın vardı: o zaman «Şifreni mi unuttun?» bağlantısını kullan.",
     "reply": "Teşekkürler, yanıtın gönderildi.",
     "reset": "Şifren değiştirildi.",
     "title": "Teşekkürler!",
-    "unsetPassword": "Şifre henüz olışturulmadı. Lütfen tekrar ayarla."
+    "unsetPassword": "Şifren henüz belirlenmedi. Lütfen bir şifre belirle."
   },
   "missingGradidoAccount": "Henüz bir {communityName} hesabın yok mu?",
   "moderatorChangedMemo": "Metin moderatör tarafından düzenlendi",
@@ -940,7 +940,7 @@
   "send_per_link": "Link, çek, QR",
   "session": {
     "extend": "Oturumunu açık tut",
-    "lightText": "10 dakikadan daha uzun bir süre herhangi bir işlem yapmadıysanız, güvenlik nedeniyle oturum kapatılacaktır.",
+    "lightText": "10 dakikadan daha uzun bir süre herhangi bir işlem yapmadıysan, güvenlik nedeniyle oturumun kapatılacak.",
     "logoutIn": "Oturumu kapat ",
     "warningText": "Hala orada mısın?"
   },
@@ -949,7 +949,7 @@
       "disabled": "Veriler GMS'e aktarılmıyor",
       "enabled": "Veriler GMS'e aktarılıyor",
       "location": {
-        "button": "Buraya tıklayın!",
+        "button": "Haritayı aç",
         "label": "Tam konum",
         "saveLocation": "Konumu Kaydet",
         "updateSuccess": "Konum başarıyla kaydedildi"
@@ -1272,7 +1272,7 @@
     "allBookings": "Tüm işlemleri göster",
     "lastTransactions": "Son İşlemler",
     "noneWithMember": "Bu üyeyle henüz işlem yok.",
-    "nullTransactions": "Henüz hesabınında herhangi bir işlem yok.",
+    "nullTransactions": "Henüz hesabında hiç işlem yok.",
     "onlyWith": "{name} ile {n} işlem | {name} ile {n} işlem",
     "onlyWithSomeone": "Yalnızca bir üyeyle işlemler",
     "receiverDeleted": "Alıcı hesabı silindi",
@@ -1289,5 +1289,5 @@
   },
   "via_card": "kart ile",
   "via_link": "link yoluyla",
-  "welcome": "Topluluğa hoşgeldin"
+  "welcome": "Topluluğa hoş geldin"
 }

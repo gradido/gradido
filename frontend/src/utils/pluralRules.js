@@ -7,7 +7,8 @@
  * "2 операций" reach the screen.
  *
  * Two-form messages keep the default reading (1 → first form, everything else → second),
- * so the Russian keys that already exist with two forms stand as they are.
+ * so a Russian key written with two forms reads the way it was written. (The last two,
+ * the name changes left, have three forms since 24.09.2026: "ещё 3 раз" was wrong.)
  *
  * ⚠️ It applies to EVERY Russian message with forms, the existing ones included. There was
  * one three-form key before this (`link-load`), and it was written for the default reading:

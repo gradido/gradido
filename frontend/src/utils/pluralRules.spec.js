@@ -45,12 +45,17 @@ describe('the Russian keys through the real i18n instance', () => {
     expect(t('link-load', { n: 3 })).toBe('перезагрузить последние 3 ссылки')
   })
 
-  // Two forms, so the default reading: 1 is the first, everything else the second. Which
-  // form is chosen is what this asserts -- the wording of the second one is a question for
-  // the locale files (Russian wants a different case for 2-4), not for the rule.
-  it('leaves the two-form keys as they were', () => {
+  /**
+   * These two had two forms, read the default way, so every count above one got the second
+   * -- "ещё 3 раз", where Russian says "ещё 3 раза". A name changes at most four times a
+   * year, so the count is 1 to 4 and 2-4 is the very case the second form got wrong. Three
+   * forms since 24.09.2026, and the rule above declines them.
+   */
+  it('declines the name changes that are left', () => {
     expect(t('settings.username.quota-left', 1)).toContain('ещё один раз')
-    expect(t('settings.username.quota-left', 3)).toContain('ещё 3')
+    expect(t('settings.username.quota-left', 3)).toContain('ещё 3 раза.')
+    expect(t('settings.username.confirm-left', 2)).toContain('ещё 2 раза в этом году')
+    expect(t('settings.username.confirm-left', 5)).toContain('ещё 5 раз в этом году')
   })
 
   /**
