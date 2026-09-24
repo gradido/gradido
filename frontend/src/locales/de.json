@@ -177,7 +177,6 @@
   "communityInfo": "Gemeinschaft Information",
   "contact": "Kontakt",
   "contacts": {
-    "addFavorite": "Zu Favoriten",
     "all": "Alle Kontakte",
     "allShort": "Alle",
     "bookings": "{n} Buchung | {n} Buchungen",
@@ -188,7 +187,6 @@
       "add": "Zu Favoriten hinzufügen",
       "remove": "Aus Favoriten entfernen"
     },
-    "isFavorite": "Favorit",
     "last": "zuletzt {date}",
     "matches": "Treffer",
     "noFavorites": "Noch keine Favoriten. Tippe das Herz bei einem Kontakt.",

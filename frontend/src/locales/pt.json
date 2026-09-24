@@ -177,7 +177,6 @@
   "communityInfo": "Informação da comunidade",
   "contact": "Contacto",
   "contacts": {
-    "addFavorite": "Adicionar aos favoritos",
     "all": "Todos os contactos",
     "allShort": "Todos",
     "bookings": "{n} movimento | {n} movimentos",
@@ -188,7 +187,6 @@
       "add": "Adicionar aos favoritos",
       "remove": "Remover dos favoritos"
     },
-    "isFavorite": "Favorito",
     "last": "último {date}",
     "matches": "Resultados",
     "noFavorites": "Ainda sem favoritos. Toca no coração ao lado de um contacto.",

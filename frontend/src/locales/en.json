@@ -177,7 +177,6 @@
   "communityInfo": "Community Information",
   "contact": "Contact",
   "contacts": {
-    "addFavorite": "Add to favourites",
     "all": "All contacts",
     "allShort": "All",
     "bookings": "{n} booking | {n} bookings",
@@ -188,7 +187,6 @@
       "add": "Add to favourites",
       "remove": "Remove from favourites"
     },
-    "isFavorite": "Favourite",
     "last": "last {date}",
     "matches": "Matches",
     "noFavorites": "No favourites yet. Tap the heart beside a contact.",

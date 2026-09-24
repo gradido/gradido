@@ -177,7 +177,6 @@
   "communityInfo": "Informatie over de gemeenschap",
   "contact": "Contact",
   "contacts": {
-    "addFavorite": "Aan favorieten toevoegen",
     "all": "Alle contacten",
     "allShort": "Alle",
     "bookings": "{n} boeking | {n} boekingen",
@@ -188,7 +187,6 @@
       "add": "Aan favorieten toevoegen",
       "remove": "Uit favorieten verwijderen"
     },
-    "isFavorite": "Favoriet",
     "last": "laatst {date}",
     "matches": "Resultaten",
     "noFavorites": "Nog geen favorieten. Tik op het hartje bij een contact.",

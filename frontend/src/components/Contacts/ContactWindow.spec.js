@@ -100,13 +100,9 @@ describe('ContactWindow', () => {
             props: ['initials'],
             template: '<i data-test="avatar" :data-initials="initials" />',
           },
-          // ⚠️ `label` declared as a Boolean, as the real heart declares it. Without the
-          // type, Vue hands the shorthand attribute through as the empty STRING and the
-          // stub reports '' -- which would read as "the word was not asked for".
           FavoriteHeart: {
-            props: { member: Object, label: { type: Boolean, default: false } },
-            template:
-              '<i data-test="heart" :data-label="String(label)" :data-id="member.gradidoID" />',
+            props: { member: Object },
+            template: '<i data-test="heart" :data-id="member.gradidoID" />',
           },
         },
       },
@@ -383,7 +379,7 @@ describe('ContactWindow', () => {
 
   /**
    * The heart behind the name, as it stands in every list of the wallet (Bernd, 24.09.2026):
-   * the same component, without a word -- favouring somebody is not one of the ways out.
+   * the same component -- favouring somebody is not one of the ways out.
    */
   it('puts the heart behind the name, as in every list', () => {
     mountWindow()
@@ -393,7 +389,6 @@ describe('ContactWindow', () => {
     expect(name.getAttribute('data-test')).toBe('contact-window-name')
     expect(heart.getAttribute('data-test')).toBe('heart')
     expect(heart.getAttribute('data-id')).toBe('carla-id')
-    expect(heart.getAttribute('data-label')).toBe('false')
   })
 
   // The two ways out, and only those two: both of them send, "Send Gradido" first.

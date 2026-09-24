@@ -177,7 +177,6 @@
   "communityInfo": "Topluluk Bilgisi",
   "contact": "İletişim",
   "contacts": {
-    "addFavorite": "Favorilere ekle",
     "all": "Tüm kişiler",
     "allShort": "Tümü",
     "bookings": "{n} işlem | {n} işlem",
@@ -188,7 +187,6 @@
       "add": "Favorilere ekle",
       "remove": "Favorilerden çıkar"
     },
-    "isFavorite": "Favori",
     "last": "son {date}",
     "matches": "Sonuçlar",
     "noFavorites": "Henüz favori yok. Bir kişinin yanındaki kalbe dokun.",
