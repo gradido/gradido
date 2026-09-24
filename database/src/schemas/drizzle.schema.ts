@@ -168,19 +168,19 @@ export type DltTransactionSelect = typeof dltTransactionsTable.$inferSelect
 export type DltTransactionInsert = typeof dltTransactionsTable.$inferInsert
 
 export const eventsTable = mysqlTable('events', {
-  id: int().autoincrement().primaryKey().notNull(),
+  id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
   type: varchar({ length: 100 }).notNull(),
   createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
     .default(sql`current_timestamp(3)`)
     .notNull(),
-  affectedUserId: int('affected_user_id').notNull(),
-  actingUserId: int('acting_user_id').notNull(),
-  involvedUserId: int('involved_user_id').default(sql`NULL`),
-  involvedTransactionId: int('involved_transaction_id').default(sql`NULL`),
-  involvedContributionId: int('involved_contribution_id').default(sql`NULL`),
-  involvedContributionMessageId: int('involved_contribution_message_id').default(sql`NULL`),
-  involvedTransactionLinkId: int('involved_transaction_link_id').default(sql`NULL`),
-  involvedContributionLinkId: int('involved_contribution_link_id').default(sql`NULL`),
+  affectedUserId: int('affected_user_id', { unsigned: true }).notNull(),
+  actingUserId: int('acting_user_id', { unsigned: true }).notNull(),
+  involvedUserId: int('involved_user_id', { unsigned: true }).default(sql`NULL`),
+  involvedTransactionId: int('involved_transaction_id', { unsigned: true }).default(sql`NULL`),
+  involvedContributionId: int('involved_contribution_id', { unsigned: true }).default(sql`NULL`),
+  involvedContributionMessageId: int('involved_contribution_message_id', { unsigned: true }).default(sql`NULL`),
+  involvedTransactionLinkId: int('involved_transaction_link_id', { unsigned: true }).default(sql`NULL`),
+  involvedContributionLinkId: int('involved_contribution_link_id', { unsigned: true }).default(sql`NULL`),
   amountLegacy: customGradidoUnit('amount_legacy').default(sql`NULL`),
   amountGdd4: customGradidoUnit('amount_gdd4').default(sql`NULL`),
 })
