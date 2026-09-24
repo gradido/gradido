@@ -81,10 +81,7 @@ export const sendAccountActivationEmail = (
 }
 
 export const sendAccountMultiRegistrationEmail = (
-  // helperLink (EM-013): set only when the registration attempt carried a redeem code —
-  // the mail then offers "I am helping someone set up a Gradido account". Absent, the
-  // mail renders exactly as it always has.
-  data: EmailCommonData & { helperLink?: string | null },
+  data: EmailCommonData,
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   return sendEmailTranslated({
     receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },

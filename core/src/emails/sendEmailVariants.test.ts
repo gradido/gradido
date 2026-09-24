@@ -264,35 +264,6 @@ describe('sendEmailVariants', () => {
         it('has the correct html as snapshot', () => {
           expect(result.originalMessage.html).toMatchSnapshot()
         })
-
-        // The doorbell branch (EM-013). Substance assertions rather than a snapshot on
-        // purpose: these tests only run in the CI, so a new snapshot could never be
-        // written from a locally verified render.
-        it('renders no helper branch without a helper link', () => {
-          expect(result.originalMessage.html).not.toContain('register-assist')
-        })
-      })
-    })
-
-    describe('with a helper link (the attempt carried a redeem code)', () => {
-      let helperResult: any
-      beforeAll(async () => {
-        helperResult = await sendAccountMultiRegistrationEmail({
-          firstName: 'Peter',
-          lastName: 'Lustig',
-          email: 'peter@lustig.de',
-          language: 'en',
-          helperLink: 'http://localhost/register-assist/1234567890',
-        })
-      })
-
-      it('offers the helper branch with its link', () => {
-        expect(helperResult.originalMessage.html).toContain(
-          'http://localhost/register-assist/1234567890',
-        )
-        expect(helperResult.originalMessage.html).toContain(
-          'I am helping someone set up an account',
-        )
       })
     })
   })

@@ -40,14 +40,6 @@ export const confirmEmailChange = gql`
   }
 `
 
-export const completeAssistedRegistration = gql`
-  mutation ($assistCode: String!, $email: String!, $password: String!) {
-    completeAssistedRegistration(assistCode: $assistCode, email: $email, password: $password) {
-      redeemCode
-    }
-  }
-`
-
 export const confirmEmail = gql`
   mutation ($code: String!) {
     confirmEmail(code: $code)

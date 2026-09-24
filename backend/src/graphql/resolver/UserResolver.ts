@@ -63,11 +63,9 @@ import {
   dbFindUserContactByCodeOrFail,
   dbFindUserLoginByEmail,
   dbFindUsers,
-  dbInsertAssistedRegistration,
   dbInsertEvent,
   dbInsertUserAlias,
   dbMarkAliasAdopted,
-  dbPurgeExpiredAssistedRegistrations,
   dbReleaseUnconfirmedEmailChangeFor,
   dbUpsertUserAvatar,
   dbUserUpdateField,
@@ -124,11 +122,7 @@ import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import {
-  canEmailResend,
-  emailChangeExpiryCutoff,
-  isEmailVerificationCodeValid,
-} from '@/data/EmailVerificationCode.logic'
+import { canEmailResend, isEmailVerificationCodeValid } from '@/data/EmailVerificationCode.logic'
 import {
   MEMBER_AVATARS_FULL_MAX_PER_REQUEST,
   MEMBER_AVATARS_MAX_REFS,
@@ -560,34 +554,11 @@ export class UserResolver {
         }
         logger.debug('partly faked user', { id: user.id, gradidoID: user.gradidoID })
 
-        // EM-013, the doorbell: only when the attempt carried a redeem code (the café
-        // case) is it parked and the mail offers the helper branch. Without one, the
-        // mail — and everything the form ever sees — stays byte-identical to before.
-        // The answer to the form does not change in either case (silence rule).
-        let helperLink: string | null = null
-        if (redeemCode) {
-          // Same validity window as every other mail code; expired rows go lazily here.
-          await dbPurgeExpiredAssistedRegistrations(emailChangeExpiryCutoff())
-          const assistCode = random(64) as bigint
-          await dbInsertAssistedRegistration({
-            firstName,
-            lastName,
-            language,
-            redeemCode,
-            publisherId,
-            project,
-            hostUserId: foundUser.id,
-            assistCode,
-          })
-          helperLink = CONFIG.EMAIL_LINK_REGISTER_ASSIST + assistCode.toString()
-        }
-
         await sendAccountMultiRegistrationEmail({
           firstName: foundUser.firstName, // this is the real name of the email owner, but just "firstName" would be the name of the new registrant which shall not be passed to the outside
           lastName: foundUser.lastName, // this is the real name of the email owner, but just "lastName" would be the name of the new registrant which shall not be passed to the outside
           email,
           language: foundUser.language, // use language of the emails owner for sending
-          helperLink,
         })
         await dbInsertEvent({
           type: EventType.EMAIL_ACCOUNT_MULTIREGISTRATION,
@@ -1978,9 +1949,9 @@ export async function checkEmailExists(email: string): Promise<boolean> {
   // running either. Whoever registers will have to answer mail at the address; whoever typed
   // it in has answered nothing, and could hold it for as long as they kept asking again.
   //
-  // The three callers are the registration, the assisted registration and the Elopage
-  // webhook - every door through which an address becomes somebody's account. A confirmed
-  // row is untouched, so this never takes an address away from the member it belongs to.
+  // The two callers are the registration and the Elopage webhook - every door through which
+  // an address becomes somebody's account. A confirmed row is untouched, so this never takes
+  // an address away from the member it belongs to.
   await dbReleaseUnconfirmedEmailChangeFor(email)
   return dbEmailTaken(email)
 }
