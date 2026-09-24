@@ -868,7 +868,7 @@
     "support": "Поддержка",
     "transactions": "Транзакции"
   },
-  "openHours": "Открытые часы",
+  "openHours": "Доступные часы",
   "pageTitle": {
     "calculator": "Калькулятор",
     "circles": "Gradido Круги",
@@ -1264,7 +1264,7 @@
     "hours": "Часы",
     "minutes": "Минуты",
     "month": "Месяц",
-    "months": "Месяцев",
+    "months": "Месяц",
     "seconds": "Секунды",
     "years": "Год"
   },
