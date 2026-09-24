@@ -59,6 +59,12 @@ const STRANGER = {
   homeCommunity: false,
 }
 
+/**
+ * Every thread the window made, in order -- one entry per MOUNT, so a test can tell a thread
+ * that was kept from one that was made anew.
+ */
+let threadsMade = []
+
 describe('ContactWindow', () => {
   let wrapper
 
@@ -78,7 +84,18 @@ describe('ContactWindow', () => {
             template:
               '<a :data-to="JSON.stringify(to)" @click="$event.metaKey || $event.preventDefault()"><slot /></a>',
           },
-          BButton: { template: '<button><slot /></button>' },
+          IMdiEmailFastOutline: true,
+          // The thread reads the server; its own spec is about that. Here it only has to say
+          // whom it was made for, and count how often it was made.
+          ChatThread: {
+            name: 'ChatThread',
+            props: { member: Object, alias: String },
+            mounted() {
+              threadsMade.push(this.member.gradidoID)
+            },
+            template:
+              '<div data-test="chat-thread" :data-who="member.gradidoID" :data-community="String(member.communityUuid)" :data-alias="alias" />',
+          },
           AppAvatar: {
             props: ['initials'],
             template: '<i data-test="avatar" :data-initials="initials" />',
@@ -100,6 +117,7 @@ describe('ContactWindow', () => {
   afterEach(() => {
     wrapper?.unmount()
     pushSpy.mockClear()
+    threadsMade = []
   })
 
   it('names the person, their community and their face', () => {
@@ -209,6 +227,25 @@ describe('ContactWindow', () => {
       )
       expect(wrapper.find('[data-test="contact-window-bookings"]').exists()).toBe(true)
     })
+
+    // The thread needs the pair and nothing else, so it does not wait for the lookup that
+    // brings the figures -- the member reads while the line above is still empty.
+    it('already has the thread, before the figures are in', () => {
+      mountWindow(justTheMember)
+      const thread = wrapper.find('[data-test="chat-thread"]')
+
+      expect(thread.exists()).toBe(true)
+      expect(thread.attributes('data-who')).toBe('carla-id')
+    })
+
+    // ⛔ And it is the SAME thread afterwards: the figures landing is not a new person, and a
+    // new thread would ask the server again and flash an empty box under a reading eye.
+    it('keeps that thread when the figures land', async () => {
+      mountWindow(justTheMember)
+      await wrapper.setProps({ contact: CONTACT })
+
+      expect(threadsMade).toEqual(['carla-id'])
+    })
   })
 
   /**
@@ -290,10 +327,10 @@ describe('ContactWindow', () => {
 
     expect(meta, '.contact-window-meta no longer exists').not.toBeNull()
     expect(meta[0]).toMatch(/min-height:\s*[\d.]+em/)
-    // Gegenprobe on the stripping itself: the phrase is in the source twice (rule and
-    // comment) and exactly once after the comments are gone.
-    expect(source.match(/min-height/g).length).toBeGreaterThan(1)
-    expect(code.match(/min-height/g)).toHaveLength(1)
+    // Gegenprobe on the stripping itself: the phrase stands in comments as well as in rules,
+    // so there are fewer of it once the comments are gone. (Counted against the raw text
+    // rather than as "exactly one": the grips have a `min-height` of their own now.)
+    expect(source.match(/min-height/g).length).toBeGreaterThan(code.match(/min-height/g).length)
   })
 
   it('closes on the way into the bookings, as it does for the send form', async () => {
@@ -344,20 +381,124 @@ describe('ContactWindow', () => {
     expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
   })
 
-  // The heart wears its word here: in a window with two named buttons it would otherwise be
-  // the only unnamed control (KF-010).
-  it('gives the heart its word', () => {
+  /**
+   * The heart behind the name, as it stands in every list of the wallet (Bernd, 24.09.2026):
+   * the same component, without a word -- favouring somebody is not one of the ways out.
+   */
+  it('puts the heart behind the name, as in every list', () => {
     mountWindow()
-    const heart = wrapper.find('[data-test="heart"]')
+    const line = wrapper.find('.contact-window-name-line')
+    const [name, heart] = line.element.children
 
-    expect(heart.attributes('data-label')).toBe('true')
-    expect(heart.attributes('data-id')).toBe('carla-id')
+    expect(name.getAttribute('data-test')).toBe('contact-window-name')
+    expect(heart.getAttribute('data-test')).toBe('heart')
+    expect(heart.getAttribute('data-id')).toBe('carla-id')
+    expect(heart.getAttribute('data-label')).toBe('false')
   })
 
-  it('keeps a place for the chat, visibly not yet there', () => {
-    expect(mountWindow().find('[data-test="contact-window-later"]').text()).toBe(
-      'contacts.chatLater',
-    )
+  // The two ways out, and only those two: both of them send, "Send Gradido" first.
+  it('offers the two ways out together, and nothing else with them', () => {
+    mountWindow()
+    const ways = wrapper.find('[data-test="contact-window-send-ways"]').element.children
+
+    expect(ways).toHaveLength(2)
+    expect(ways[0].getAttribute('data-test')).toBe('contact-window-send')
+    expect(ways[0].textContent.trim()).toBe('contacts.sendGradido')
+    expect(ways[1].getAttribute('data-test')).toBe('contact-window-email')
+    expect(ways[1].textContent.trim()).toBe('contacts.sendEmail')
+  })
+
+  // Real buttons that do not send a form, and none taken out of the tab order: a keyboard
+  // reaches every way out of this window.
+  it('makes both ways out buttons a keyboard reaches', () => {
+    mountWindow()
+    for (const test of ['contact-window-send', 'contact-window-email']) {
+      const button = wrapper.find(`[data-test="${test}"]`)
+      expect(button.element.tagName).toBe('BUTTON')
+      expect(button.attributes('type')).toBe('button')
+      expect(button.attributes('tabindex')).toBeUndefined()
+    }
+  })
+
+  const styleOf = (file) =>
+    readFileSync(join(dirname(fileURLToPath(import.meta.url)), file), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/<!--[\s\S]*?-->/g, '')
+
+  /**
+   * ⛔ Without Bootstrap's `.btn` a plain button has no focus ring of its own, and nothing but
+   * the stylesheet can say it has one -- jsdom draws no outlines. Comments stripped first, so
+   * the explanation beside the rule cannot stand in for it.
+   */
+  it('gives the two ways out a visible focus ring, in the stylesheet', () => {
+    const rule = styleOf('ContactWindow.vue').match(/\.send-btn:focus-visible\s*\{[^}]*\}/)
+
+    expect(rule, 'the buttons lost their focus rule').not.toBeNull()
+    expect(rule[0]).toMatch(/outline:\s*2px solid/)
+  })
+
+  /**
+   * ⚠️ The one place this window parts from the map's: a row that wraps, instead of the map
+   * window's switch at 420 px. This window is narrower than the screen, and at 430 px the two
+   * labels ran past it in es, fr, nl, ru and el (measured). jsdom lays nothing out, so only
+   * the stylesheet can say the row wraps.
+   */
+  it('puts the two ways out one under the other where they do not fit side by side', () => {
+    const rule = styleOf('ContactWindow.vue').match(/\.contact-window-send\s*\{[^}]*\}/)
+
+    expect(rule, 'the row of the two ways out lost its rule').not.toBeNull()
+    expect(rule[0]).toMatch(/flex-wrap:\s*wrap/)
+  })
+
+  /**
+   * ⛔ "Exactly the two buttons we have elsewhere, on the map for instance" (Bernd, 24.09.2026).
+   * The map's profile window (MatchProfile.vue) and this one each carry the rules, so the
+   * spec holds them against each other: a colour, a radius or a size changed in one place
+   * and not the other fails here, rather than two send buttons drifting apart unnoticed.
+   */
+  it('sends with the very buttons of the map profile window', () => {
+    const rules = (file) => {
+      const code = styleOf(file)
+      return Object.fromEntries(
+        ['send-btn', 'send-gradido', 'send-email', 'send-coin', 'send-mail-icon'].map((name) => {
+          const found = code.match(new RegExp(`\\n\\.${name}\\s*\\{([^}]*)\\}`))
+          return [name, found && found[1].replace(/\s+/g, ' ').trim()]
+        }),
+      )
+    }
+    const here = rules('ContactWindow.vue')
+    const there = rules('../Matching/MatchProfile.vue')
+
+    expect(Object.values(there).every(Boolean), 'MatchProfile lost one of the rules').toBe(true)
+    expect(here).toEqual(there)
+  })
+
+  /**
+   * The conversation stands where the placeholder "conversation history -- comes with the
+   * chat" stood (E-023), made for the person the window shows: their pair, and their name
+   * for what a screen reader hears.
+   */
+  it('shows the thread with this person, where the placeholder stood', () => {
+    mountWindow()
+    const thread = wrapper.find('[data-test="chat-thread"]')
+
+    expect(thread.attributes('data-who')).toBe('carla-id')
+    expect(thread.attributes('data-community')).toBe('home-uuid')
+    expect(thread.attributes('data-alias')).toBe('Carla-Sonne')
+    expect(wrapper.find('[data-test="contact-window-later"]').exists()).toBe(false)
+  })
+
+  /**
+   * ⛔ A new person is a new thread. The thread takes its pair once, when it is made; if the
+   * window were ever handed somebody else while it stands open, keeping the old thread
+   * would show one person's messages under another's name.
+   */
+  it('makes a new thread for another person', async () => {
+    mountWindow()
+    await wrapper.setProps({ contact: STRANGER })
+
+    expect(threadsMade).toEqual(['carla-id', 'sarah-id'])
+    expect(wrapper.find('[data-test="chat-thread"]').attributes('data-who')).toBe('sarah-id')
   })
 
   /**
