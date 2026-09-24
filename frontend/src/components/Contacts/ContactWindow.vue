@@ -51,7 +51,14 @@
       <div class="contact-window-head">
         <app-avatar :size="64" :color="'#fff'" v-bind="avatar" />
         <div class="contact-window-who">
-          <div class="contact-window-name" data-test="contact-window-name">{{ alias }}</div>
+          <!-- The heart behind the name, as it stands in every list of the wallet: the same
+               component, the same look, the same question before it is taken away (Bernd,
+               24.09.2026). Favouring somebody is not a way of reaching them, so it does not
+               stand among the two ways out below. -->
+          <div class="contact-window-name-line">
+            <div class="contact-window-name" data-test="contact-window-name">{{ alias }}</div>
+            <favorite-heart :member="contact.user" />
+          </div>
           <div
             v-if="contact.user.communityName"
             class="contact-window-community"
@@ -119,35 +126,49 @@
         </div>
       </div>
 
-      <BButton
-        variant="primary"
-        class="w-100 mb-2"
-        data-test="contact-window-send"
-        @click="toSend('send')"
-      >
-        {{ $t('contacts.sendGradido') }}
-      </BButton>
-      <BButton
-        variant="secondary"
-        class="w-100 mb-2"
-        data-test="contact-window-email"
-        @click="toSend('email')"
-      >
-        {{ $t('contacts.sendEmail') }}
-      </BButton>
+      <!-- The two ways out, as the profile window on the map shows them (MatchProfile): the
+           same buttons, the same glyphs, the same colours -- both of them sending, so they
+           stand together, and nothing else stands with them (Bernd, 24.09.2026).
 
-      <!-- The heart with its word beside it, which is what the `label` prop is for: in a
-           list the symbol is enough, in a window with two named buttons it would be the
-           only unnamed control. -->
-      <div class="contact-window-heart">
-        <favorite-heart :member="contact.user" label />
+           ⚠️ Side by side where both fit, one under the other where they do not. Not the map
+           window's fixed switch at 420 px: this window is narrower than the screen, and in a
+           long language the two labels do not fit side by side above that switch -- measured
+           at 430 px in es, fr, nl, ru and el, and in ru still at 500. A row that wraps decides
+           it by the labels themselves; nothing runs past the window in any of the ten. -->
+      <div class="contact-window-send" data-test="contact-window-send-ways">
+        <button
+          type="button"
+          class="send-btn send-gradido"
+          data-test="contact-window-send"
+          @click="toSend('send')"
+        >
+          <img src="/img/svg/gdd_coin_sw.svg" class="send-coin" alt="" aria-hidden="true" />
+          {{ $t('contacts.sendGradido') }}
+        </button>
+        <button
+          type="button"
+          class="send-btn send-email"
+          data-test="contact-window-email"
+          @click="toSend('email')"
+        >
+          <i-mdi-email-fast-outline class="send-mail-icon" aria-hidden="true" />
+          {{ $t('contacts.sendEmail') }}
+        </button>
       </div>
 
-      <!-- Reserved, and visibly not yet there: the contacts become the chat later (KF-008),
-           and this is the place it will take. -->
-      <div class="contact-window-later" data-test="contact-window-later">
-        {{ $t('contacts.chatLater') }}
-      </div>
+      <!-- The conversation, where "conversation history -- comes with the chat" stood
+           (E-023, KF-010). There as soon as the pair is: opened from a booking row, before
+           the lookup for the figures answers (useContactWindow.openMember).
+
+           ⛔ Keyed by the pair. The thread takes its person once, when it is made; should the
+           window ever be handed another person while it stands open, a new key makes a new
+           thread instead of leaving one person's messages under another's name. -->
+      <chat-thread
+        v-if="contact.user?.gradidoID"
+        :key="threadKey"
+        :member="contact.user"
+        :alias="alias"
+      />
     </div>
   </BModal>
 </template>
@@ -156,8 +177,9 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { BButton, BModal } from 'bootstrap-vue-next'
+import { BModal } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
+import ChatThread from '@/components/Chat/ChatThread.vue'
 import FavoriteHeart from '@/components/FavoriteHeart.vue'
 import {
   CONTACT_META_SEPARATOR,
@@ -199,6 +221,20 @@ const display = computed(() =>
 )
 const alias = computed(() => display.value?.alias ?? '')
 const avatar = computed(() => display.value?.avatar ?? {})
+
+/**
+ * Which person the thread belongs to -- the pair (KF-004), in lower case, as the server
+ * compares it.
+ *
+ * ⚠️ A `communityUuid` that arrives later than the member (null from the row, the uuid from
+ * the lookup) makes a new key, so the thread is asked for once more. That is the server's
+ * same conversation both times -- null IS this community there -- and moving the read
+ * pointer twice to the same place changes nothing.
+ */
+const threadKey = computed(() => {
+  const user = props.contact?.user
+  return `${(user?.communityUuid ?? '').toLowerCase()}/${(user?.gradidoID ?? '').toLowerCase()}`
+})
 
 /**
  * The member's address, and only where this wallet is the one that can name the host.
@@ -358,6 +394,7 @@ const toSend = (art) => {
 }
 
 .contact-window-name {
+  min-width: 0;
   font-weight: 700;
   font-size: 1.1rem;
   line-height: 1.2;
@@ -402,21 +439,68 @@ const toSend = (art) => {
   text-underline-offset: 2px;
 }
 
-.contact-window-heart {
+/* The heart right behind the name, as the booking row has it (`gap-2` there, the same
+   0.5rem): the name gives way (ellipsis) before the heart does. */
+.contact-window-name-line {
   display: flex;
-  justify-content: center;
-  padding: 0.25rem 0;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
 }
 
-/* Dashed, because it is a place and not a control: the chat is not here yet, and a solid
-   button that does nothing would be a promise. */
-.contact-window-later {
-  margin-top: 0.75rem;
-  padding: 0.6rem;
-  border: 1px dashed var(--bs-border-color, #dee2e6);
-  border-radius: 0.5rem;
-  text-align: center;
-  font-size: 0.8rem;
-  color: var(--bs-secondary-color, #6c757d);
+/* The two ways out, side by side where both labels fit, each on a line of its own where
+   they do not -- decided by the labels, not by a width (see the template). */
+.contact-window-send {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* ⛔ From here to the focus rule: the rules of the map's profile window (MatchProfile.vue),
+   word for word -- the same two buttons in both places. ContactWindow.spec holds the two
+   files against each other, so one cannot change without the other. */
+.send-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 26px;
+  font-size: 15px;
+  font-weight: 700;
+  border: 1.5px solid #178d81;
+  white-space: nowrap;
+}
+
+.send-gradido {
+  background: #178d81;
+  color: #fff;
+}
+
+.send-email {
+  background: transparent;
+  color: #178d81;
+}
+
+.send-coin {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  filter: brightness(0) invert(1);
+}
+
+.send-mail-icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+
+/* Without Bootstrap's `.btn` a plain button has no focus ring of its own, and these are the
+   window's two ways out. (The map's window has none either -- a keyboard sees nothing
+   there.) */
+.send-btn:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
 }
 </style>

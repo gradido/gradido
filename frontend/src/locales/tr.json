@@ -150,6 +150,16 @@
       "text": "Çevrendeki diğer üyeleri bulmak için şimdi konumunu haritaya gir!"
     }
   },
+  "chatThread": {
+    "empty": "Henüz mesaj yok. Sohbet burada başlıyor.",
+    "failed": "İletilemedi",
+    "label": "{name} ile konuşma geçmişi",
+    "loadOlder": "Daha eski mesajları yükle",
+    "mailed": "Ayrıca e-posta ile",
+    "notReachable": "Konuşma geçmişi yüklenemedi.",
+    "pending": "Henüz iletilmedi",
+    "you": "Sen"
+  },
   "community": {
     "admins": "Yöneticiler",
     "choose-another-community": "Başka bir topluluk seç",
@@ -167,11 +177,9 @@
   "communityInfo": "Topluluk Bilgisi",
   "contact": "İletişim",
   "contacts": {
-    "addFavorite": "Favorilere ekle",
     "all": "Tüm kişiler",
     "allShort": "Tümü",
     "bookings": "{n} işlem | {n} işlem",
-    "chatLater": "Konuşma geçmişi — sohbetle birlikte gelecek",
     "count": "{n} kişi | {n} kişi",
     "empty": "Henüz kişi yok. Seninle Gradido alışverişi yapan — ya da senin sayende gelen — herkes burada görünür.",
     "favorites": "Favoriler",
@@ -179,7 +187,6 @@
       "add": "Favorilere ekle",
       "remove": "Favorilerden çıkar"
     },
-    "isFavorite": "Favori",
     "last": "son {date}",
     "matches": "Sonuçlar",
     "noFavorites": "Henüz favori yok. Bir kişinin yanındaki kalbe dokun.",
