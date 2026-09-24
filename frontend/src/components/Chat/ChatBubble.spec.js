@@ -1,0 +1,210 @@
+// AI-GENERATED — not an architecture reference
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
+import { mount } from '@vue/test-utils'
+import { describe, it, expect, afterEach, vi } from 'vitest'
+import ChatBubble from './ChatBubble.vue'
+
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key) => key,
+    d: (date, format) => `${format}(${date.toISOString()})`,
+  }),
+}))
+
+/**
+ * A message as chatMessagesWithMemberQuery delivers it. ⚠️ The enum fields carry the NAMES
+ * (EMAIL, PENDING …): that is what goes over the wire, measured with the backend's own
+ * type-graphql and graphql. A fixture with the lower-case column values would test a server
+ * that does not exist.
+ */
+const OWN = {
+  id: 7,
+  messageUuid: 'uuid-7',
+  conversationId: 3,
+  sender: { communityUuid: 'home-uuid', gradidoID: 'me-id' },
+  mine: true,
+  subject: null,
+  body: 'Gern! Ich bringe Samstag ein paar Töpfe mit.',
+  createdAt: '2026-09-22T14:30:00.000Z',
+  deliveryState: 'DELIVERED',
+  notify: 'NONE',
+}
+
+const THEIRS = {
+  ...OWN,
+  id: 6,
+  messageUuid: 'uuid-6',
+  sender: { communityUuid: 'home-uuid', gradidoID: 'lena-id' },
+  mine: false,
+  body: 'Hättest Du noch Rosmarin übrig?',
+  createdAt: '2026-09-22T14:02:00.000Z',
+  // The server fills neither for somebody else's message.
+  deliveryState: null,
+  notify: null,
+}
+
+describe('ChatBubble', () => {
+  let wrapper
+
+  const mountBubble = (message, alias = 'Lena') => {
+    wrapper = mount(ChatBubble, {
+      props: { message, alias },
+      global: { stubs: { IMdiEmailOutline: { template: '<i data-test="envelope" />' } } },
+    })
+    return wrapper
+  }
+
+  const bubble = () => wrapper.find('[data-test="chat-bubble"]')
+
+  afterEach(() => {
+    wrapper?.unmount()
+  })
+
+  // E-014: one's own on the right, the other person's on the left.
+  it("puts one's own message on the right and the other person's on the left", () => {
+    mountBubble(OWN)
+    expect(bubble().classes()).toContain('chat-bubble-mine')
+    expect(bubble().classes()).not.toContain('chat-bubble-theirs')
+    wrapper.unmount()
+
+    mountBubble(THEIRS)
+    expect(bubble().classes()).toContain('chat-bubble-theirs')
+    expect(bubble().classes()).not.toContain('chat-bubble-mine')
+  })
+
+  // It is a list item: the thread is a list.
+  it("is an item of the thread's list", () => {
+    expect(mountBubble(OWN).element.tagName).toBe('LI')
+  })
+
+  /**
+   * E-013: a message written with the e-mail form carries its subject, bold over the text. A
+   * message without one has no line for it -- not an empty one.
+   */
+  it('shows the subject over the text only where there is one', () => {
+    mountBubble({ ...THEIRS, subject: 'Kräuter vom Markt' })
+    expect(wrapper.find('[data-test="chat-bubble-subject"]').text()).toBe('Kräuter vom Markt')
+    wrapper.unmount()
+
+    mountBubble(THEIRS)
+    expect(wrapper.find('[data-test="chat-bubble-subject"]').exists()).toBe(false)
+    wrapper.unmount()
+
+    mountBubble({ ...THEIRS, subject: '' })
+    expect(wrapper.find('[data-test="chat-bubble-subject"]').exists()).toBe(false)
+  })
+
+  it("shows the text, with its bold runs, through the chat's own text component", () => {
+    mountBubble({ ...THEIRS, body: 'Das ist **wichtig**.' })
+    expect(wrapper.find('.chat-message-text strong').text()).toBe('wichtig')
+  })
+
+  // E-018: the time is when it arrived here, as a machine-readable <time> and a short one to
+  // read.
+  it('says when it arrived, as a time of day', () => {
+    mountBubble(OWN)
+    const time = wrapper.find('[data-test="chat-bubble-time"]')
+
+    expect(time.element.tagName).toBe('TIME')
+    expect(time.attributes('datetime')).toBe('2026-09-22T14:30:00.000Z')
+    expect(time.text()).toBe('time(2026-09-22T14:30:00.000Z)')
+  })
+
+  describe('the envelope', () => {
+    // Mockup view 1: on one's own message, where one asked for a mail as well (E-019).
+    it("marks one's own message that was to go out as a mail too, with a name", () => {
+      mountBubble({ ...OWN, notify: 'EMAIL' })
+      const envelope = wrapper.find('[data-test="chat-bubble-mailed"]')
+
+      expect(envelope.exists()).toBe(true)
+      expect(envelope.attributes('role')).toBe('img')
+      expect(envelope.attributes('aria-label')).toBe('chatThread.mailed')
+    })
+
+    it('is not there where one did not ask for a mail', () => {
+      mountBubble({ ...OWN, notify: 'NONE' })
+      expect(wrapper.find('[data-test="chat-bubble-mailed"]').exists()).toBe(false)
+    })
+
+    // ⛔ Nothing about the other side's mail: the server sends nothing for it, and a stray
+    // value would still draw nothing.
+    it("is never on the other person's message", () => {
+      mountBubble({ ...THEIRS, notify: 'EMAIL' })
+      expect(wrapper.find('[data-test="chat-bubble-mailed"]').exists()).toBe(false)
+    })
+
+    /**
+     * ⛔ The enum NAME is what arrives. A comparison against the column value ('email') would
+     * never be true on the real server -- this is the test that says which one is meant.
+     */
+    it('answers to the enum name, not to the column value', () => {
+      mountBubble({ ...OWN, notify: 'email' })
+      expect(wrapper.find('[data-test="chat-bubble-mailed"]').exists()).toBe(false)
+    })
+  })
+
+  describe("the word under one's own message", () => {
+    it('says "not delivered yet" while it is pending', () => {
+      mountBubble({ ...OWN, deliveryState: 'PENDING' })
+      expect(wrapper.find('[data-test="chat-bubble-state"]').text()).toBe('chatThread.pending')
+    })
+
+    it('says "not delivered" where it failed', () => {
+      mountBubble({ ...OWN, deliveryState: 'FAILED' })
+      expect(wrapper.find('[data-test="chat-bubble-state"]').text()).toBe('chatThread.failed')
+    })
+
+    // ⛔ Only the exception is information; "delivered" under every message would be noise.
+    it('says nothing where it was delivered', () => {
+      mountBubble({ ...OWN, deliveryState: 'DELIVERED' })
+      expect(wrapper.find('[data-test="chat-bubble-state"]').exists()).toBe(false)
+    })
+
+    it("says nothing under the other person's message, whatever it carries", () => {
+      mountBubble({ ...THEIRS, deliveryState: 'FAILED' })
+      expect(wrapper.find('[data-test="chat-bubble-state"]').exists()).toBe(false)
+    })
+
+    it('answers to the enum name here too', () => {
+      mountBubble({ ...OWN, deliveryState: 'pending' })
+      expect(wrapper.find('[data-test="chat-bubble-state"]').exists()).toBe(false)
+    })
+  })
+
+  /**
+   * ⛔ Which side a bubble stands on is the only thing that says who wrote it, and a screen
+   * reader does not see sides. The writer is named in words that are hidden from the eye.
+   */
+  it('names the writer for a screen reader, hidden from the eye', () => {
+    mountBubble(OWN)
+    const own = wrapper.find('[data-test="chat-bubble-writer"]')
+    expect(own.classes()).toContain('visually-hidden')
+    expect(own.text()).toBe('chatThread.you:')
+    wrapper.unmount()
+
+    mountBubble(THEIRS, 'Lena')
+    expect(wrapper.find('[data-test="chat-bubble-writer"]').text()).toBe('Lena:')
+  })
+
+  /**
+   * ⛔ The hidden name is `position: absolute` (Bootstrap's `.visually-hidden`), so it is laid
+   * out against the nearest positioned ancestor. Without one in the bubble it hung below the
+   * window and made the whole window scroll on a phone -- measured, 987 px of modal on an
+   * 844 px screen. jsdom lays nothing out, so the stylesheet is what can be read: the bubble
+   * has to be that ancestor. Comments stripped first, since the rule's explanation names it.
+   */
+  it('keeps the hidden name inside the bubble, in the stylesheet', () => {
+    const source = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
+      'utf8',
+    )
+    const code = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/<!--[\s\S]*?-->/g, '')
+    const rule = code.match(/\n\.chat-bubble\s*\{[^}]*\}/)
+
+    expect(rule, '.chat-bubble no longer has a rule of its own').not.toBeNull()
+    expect(rule[0]).toMatch(/position:\s*relative/)
+    expect(code).toMatch(/class="visually-hidden"/)
+  })
+})
