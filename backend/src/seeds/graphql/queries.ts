@@ -777,6 +777,7 @@ export const chatMessagesWithMember = gql`
   query ($ref: MemberAvatarRefInput!, $before: Int, $limit: Int) {
     chatMessagesWithMember(ref: $ref, before: $before, limit: $limit) {
       hasMore
+      mutedByMe
       messages {
         id
         messageUuid

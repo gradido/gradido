@@ -6,6 +6,10 @@ import { getLogger } from '../../../config-schema/test/testSetup.bun'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import {
   ChatMessageToStore,
+  chatMailWanted,
+  chatMessageNotify,
+  parseChatMessageNotify,
+  readChatMemberMutedAt,
   recordChatMessageDelivery,
   storeChatMessage,
 } from './ChatMessage.logic'
@@ -206,5 +210,128 @@ describe('recordChatMessageDelivery', () => {
     expect(logger.error).toHaveBeenCalledWith(
       'chat message delivery not recorded: id=99 state=delivered (PROTOCOL_CONNECTION_LOST)',
     )
+  })
+})
+
+describe('recordChatMessageDelivery, what it hands back', () => {
+  it('the moment it recorded, the one the row was given', async () => {
+    const update = spyOn(database, 'dbUpdateChatMessageDelivery').mockResolvedValue({
+      success: true,
+    })
+    spies = [update]
+
+    const recorded = await recordChatMessageDelivery(99, 'delivered')
+
+    expect(recorded).toBeInstanceOf(Date)
+    expect(recorded).toBe(update.mock.calls[0][2])
+  })
+
+  it('null for a row that is not there, and when the database throws', async () => {
+    const update = spyOn(database, 'dbUpdateChatMessageDelivery').mockResolvedValue({
+      success: false,
+      error: new database.DBNotFoundError('chat_messages', 'id = 99'),
+    })
+    spies = [update]
+    expect(await recordChatMessageDelivery(99, 'failed')).toBeNull()
+
+    update.mockRejectedValue(Object.assign(new Error('lost'), { code: 'PROTOCOL_CONNECTION_LOST' }))
+    expect(await recordChatMessageDelivery(99, 'failed')).toBeNull()
+  })
+})
+
+describe('readChatMemberMutedAt', () => {
+  const memberRow = (mutedAt: Date | null) =>
+    ({
+      conversationId: 7,
+      communityUuid: HOME,
+      gradidoId: BEN.gradidoId,
+      role: 'member',
+      joinedAt: new Date(),
+      lastReadMessageId: null,
+      mutedAt,
+    }) as database.ChatConversationMemberSelect
+
+  it("reads the member's own mark, in the conversation named", async () => {
+    const at = new Date('2026-09-24T12:00:00.000Z')
+    const select = spyOn(database, 'dbSelectChatConversationMember').mockResolvedValue(
+      memberRow(at),
+    )
+    spies = [select]
+
+    expect(await readChatMemberMutedAt(7, BEN)).toBe(at)
+    expect(select.mock.calls).toEqual([[7, BEN]])
+  })
+
+  it('null for a member without a mark, and for one who is not in the conversation', async () => {
+    const select = spyOn(database, 'dbSelectChatConversationMember').mockResolvedValue(
+      memberRow(null),
+    )
+    spies = [select]
+    expect(await readChatMemberMutedAt(7, BEN)).toBeNull()
+
+    select.mockResolvedValue(null)
+    expect(await readChatMemberMutedAt(7, BEN)).toBeNull()
+  })
+
+  // A mail too many is better than silence: a read that fails counts as not muted.
+  it('does not throw when the database does, and counts that as not muted', async () => {
+    spies = [spyOn(database, 'dbSelectChatConversationMember').mockRejectedValue(failedQuery())]
+
+    expect(await readChatMemberMutedAt(7, BEN)).toBeNull()
+
+    expect(logger.error).toHaveBeenCalledWith(
+      'chat mute mark not read: conversation_id=7 (ER_DATA_TOO_LONG)',
+    )
+    expect(everythingLogged()).not.toContain(BODY)
+  })
+})
+
+// E-024, the wake-up call: the first message of two members is always mailed.
+describe('chatMessageNotify', () => {
+  it('mails the first message between two members, whatever was asked for', () => {
+    expect(chatMessageNotify('none', false)).toBe('email')
+    expect(chatMessageNotify('email', false)).toBe('email')
+  })
+
+  it('carries the wish of the sender for every message after it', () => {
+    expect(chatMessageNotify('none', true)).toBe('none')
+    expect(chatMessageNotify('email', true)).toBe('email')
+  })
+})
+
+// E-024: mute beats the tick.
+describe('chatMailWanted', () => {
+  const at = new Date('2026-09-24T12:00:00.000Z')
+
+  it('mails what the sender asked to be mailed, to a recipient who has not muted', () => {
+    expect(chatMailWanted('email', null)).toBe(true)
+  })
+
+  it('mails nothing to a muted recipient, whatever the sender asked for', () => {
+    expect(chatMailWanted('email', at)).toBe(false)
+    expect(chatMailWanted('none', at)).toBe(false)
+  })
+
+  it('mails nothing the sender did not ask for', () => {
+    expect(chatMailWanted('none', null)).toBe(false)
+  })
+})
+
+// The receiving server takes only 'none' at its word: anything else is a mail.
+describe('parseChatMessageNotify', () => {
+  it("takes 'none' as none, and 'email' as a mail", () => {
+    expect(parseChatMessageNotify('none')).toBe('none')
+    expect(parseChatMessageNotify('email')).toBe('email')
+  })
+
+  it('reads a missing wish -- a server from before the chat -- as a mail', () => {
+    expect(parseChatMessageNotify(undefined)).toBe('email')
+    expect(parseChatMessageNotify(null)).toBe('email')
+  })
+
+  it('reads anything it does not know as a mail, the GraphQL name included', () => {
+    for (const value of ['NONE', 'nothing', '', 0, false, {}, ['none']]) {
+      expect(parseChatMessageNotify(value)).toBe('email')
+    }
   })
 })

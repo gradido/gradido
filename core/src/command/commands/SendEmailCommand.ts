@@ -4,11 +4,28 @@ import { getLogger } from 'log4js'
 import { GradidoUnit, publicAlias, uuidv4Schema } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { sendCustomEmail, sendTransactionReceivedEmail } from '../../emails/sendEmailVariants'
-import { storeChatMessage } from '../../logic/ChatMessage.logic'
+import {
+  chatMailWanted,
+  parseChatMessageNotify,
+  readChatMemberMutedAt,
+  storeChatMessage,
+} from '../../logic/ChatMessage.logic'
 import { BaseCommand } from '../BaseCommand'
 
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.command.commands.SendEmailCommand.${method}`)
+
+/**
+ * What the command answers -- for a message and for the mail about received Gradido alike,
+ * whether a mail went out or not.
+ *
+ * ⛔ The answer travels back: the sending server's command client asks for `data`, and it is
+ * what execute() returns. So it must not depend on the mail. The transport's result would tell
+ * the sending server whether the recipient muted the conversation (E-024: the sender learns
+ * nothing about it), and more about the mail than is its business. What the transport reported
+ * stays in this server's debug log.
+ */
+export const SEND_MAIL_COMMAND_ANSWER = 'received'
 
 export interface SendEmailCommandParams {
   mailType: string
@@ -22,6 +39,10 @@ export interface SendEmailCommandParams {
   // The uuid the sending server filed its own copy of a message under, so that both copies
   // carry the same one. Servers from before the chat send none.
   messageUuid?: string
+  // The sender's wish for a message (E-024): 'none' when they asked for no mail. Only that value
+  // is sent; servers from before the chat send nothing, nor does the form "send an e-mail" --
+  // and nothing means a mail (parseChatMessageNotify).
+  notify?: string
 }
 export class SendEmailCommand extends BaseCommand<
   Record<string, unknown> | boolean | null | Error
@@ -115,28 +136,43 @@ export class SendEmailCommand extends BaseCommand<
         // spelling this server stores them in. A sender's uuid that is none is replaced, like
         // a missing one from an older server.
         const sentUuid = uuidv4Schema.safeParse(this.sendEmailCommandParams.messageUuid)
-        await storeChatMessage(
+        const notify = parseChatMessageNotify(this.sendEmailCommandParams.notify)
+        const recipient = {
+          communityUuid: recipientUser.communityUuid,
+          gradidoId: recipientUser.gradidoID,
+        }
+        const stored = await storeChatMessage(
           {
             messageUuid: sentUuid.success ? sentUuid.data : randomUUID(),
             sender: { communityUuid: senderUser.communityUuid, gradidoId: senderUser.gradidoID },
-            recipient: {
-              communityUuid: recipientUser.communityUuid,
-              gradidoId: recipientUser.gradidoID,
-            },
+            recipient,
             subject: this.sendEmailCommandParams.subject || null,
             body: this.sendEmailCommandParams.memo || '',
-            notify: 'email',
+            notify,
             deliveryState: 'delivered',
           },
           'incoming',
         )
-        const emailResult = await sendCustomEmail(emailParams)
-        result = this.getEmailResult(emailResult)
+        // Mailed when the sender asked for it and the recipient has not muted the conversation
+        // (E-024), read here, on the recipient's own server. A message that could not be filed
+        // is mailed as before the chat: the mail is then all the recipient gets of it, and
+        // without the conversation there is no mute mark to read.
+        const mutedAt = stored
+          ? await readChatMemberMutedAt(stored.conversationId, recipient)
+          : null
+        if (!stored || chatMailWanted(notify, mutedAt)) {
+          const emailResult = await sendCustomEmail(emailParams)
+          methodLogger.debug(`mailed: ${this.getEmailResult(emailResult)}`)
+        } else {
+          methodLogger.debug(`not mailed: message_uuid=${stored.messageUuid}`)
+        }
+        result = SEND_MAIL_COMMAND_ANSWER
         break
       }
       case 'sendTransactionReceivedEmail': {
         const emailResult = await sendTransactionReceivedEmail(emailParams)
-        result = this.getEmailResult(emailResult)
+        methodLogger.debug(`mailed: ${this.getEmailResult(emailResult)}`)
+        result = SEND_MAIL_COMMAND_ANSWER
         break
       }
       default:

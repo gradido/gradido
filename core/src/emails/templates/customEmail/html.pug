@@ -6,8 +6,11 @@ block content
     p
       = t('emails.customEmail.haveReceivedMessageFrom', { senderAlias })
 
-  .subject-block
-    div(class="p_content human-text")= subject
+  //- A message written in the chat has no subject (E-013): no block then, rather than an
+      empty box above the text.
+  if subject
+    .subject-block
+      div(class="p_content human-text")= subject
 
   .memo-block
     div(class="p_content human-text")= memo

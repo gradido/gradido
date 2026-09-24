@@ -4,7 +4,12 @@ import * as database from 'database'
 import { uuidv4Schema } from 'shared'
 import * as mails from '../../emails/sendEmailVariants'
 import * as chatMessage from '../../logic/ChatMessage.logic'
-import { SendEmailCommand, SendEmailCommandParams } from './SendEmailCommand'
+import { CommandExecutor } from '../CommandExecutor'
+import {
+  SEND_MAIL_COMMAND_ANSWER,
+  SendEmailCommand,
+  SendEmailCommandParams,
+} from './SendEmailCommand'
 
 // ⛔ spyOn, not mock.module: Bun cannot restore a module mock, and a replaced module stays
 // replaced for every test file that runs after this one. Bun takes the order from the file
@@ -152,9 +157,171 @@ describe('SendEmailCommand, a message from another community', () => {
     )
     spies.push(ensure)
 
-    await expect(run(params({ messageUuid: MESSAGE_UUID }))).resolves.toBe('result is true')
+    await expect(run(params({ messageUuid: MESSAGE_UUID }))).resolves.toBe(SEND_MAIL_COMMAND_ANSWER)
 
     expect(ensure).toHaveBeenCalledTimes(1)
     expect(customMail).toHaveBeenCalledTimes(1)
+  })
+})
+
+/**
+ * E-024 on the receiving server: the sender's wish travels, the recipient's quiet stays here.
+ * A mail goes out only when the sender asked for one and the recipient has not muted the
+ * conversation -- and the sending server learns nothing of which it was.
+ */
+describe('SendEmailCommand, the wish and the quiet', () => {
+  const filed = {
+    id: 5,
+    messageUuid: MESSAGE_UUID,
+    conversationId: 3,
+    senderCommunityUuid: SENDER_COMMUNITY,
+    senderGradidoId: SENDER.gradidoID,
+    subject: null,
+    body: 'Shall we meet at ten?',
+    notify: 'email',
+    deliveryState: 'delivered',
+    lastAttemptAt: null,
+    delaySeconds: null,
+    createdAt: new Date(),
+    deletedAt: null,
+  } as database.ChatMessageSelect
+  const MUTED = new Date('2026-09-24T12:00:00.000Z')
+  let mutedAt: ReturnType<typeof spyOn>
+
+  /** Files the message as the database would, and reads the recipient's mark as `mark`. */
+  const recipientHas = (mark: Date | null) => {
+    store.mockImplementation(async () => {
+      happened.push('store')
+      return filed
+    })
+    mutedAt.mockResolvedValue(mark)
+  }
+
+  beforeEach(() => {
+    mutedAt = spyOn(chatMessage, 'readChatMemberMutedAt').mockResolvedValue(null)
+    spies.push(mutedAt)
+  })
+
+  it('files a message sent without a mail as such, and mails nothing', async () => {
+    recipientHas(null)
+
+    await run(params({ messageUuid: MESSAGE_UUID, notify: 'none' }))
+
+    const [[message]] = store.mock.calls as [chatMessage.ChatMessageToStore][]
+    expect(message.notify).toBe('none')
+    expect(customMail).not.toHaveBeenCalled()
+  })
+
+  // A server from before the chat, and the form "send an e-mail", send no wish at all.
+  it('reads a command without a wish as one that asks for a mail, and mails it', async () => {
+    recipientHas(null)
+
+    await run(params({ messageUuid: MESSAGE_UUID }))
+
+    const [[message]] = store.mock.calls as [chatMessage.ChatMessageToStore][]
+    expect(message.notify).toBe('email')
+    expect(customMail).toHaveBeenCalledTimes(1)
+    expect(happened).toEqual(['store', 'mail'])
+  })
+
+  it('files a message to a muted recipient and mails nothing, without an error', async () => {
+    recipientHas(MUTED)
+
+    await expect(run(params({ messageUuid: MESSAGE_UUID, notify: 'email' }))).resolves.toBe(
+      SEND_MAIL_COMMAND_ANSWER,
+    )
+
+    expect(store).toHaveBeenCalledTimes(1)
+    // The quiet read is the recipient's own, in the conversation the message was filed in.
+    expect(mutedAt.mock.calls).toEqual([
+      [filed.conversationId, { communityUuid: HOME, gradidoId: RECIPIENT.gradidoID }],
+    ])
+    expect(customMail).not.toHaveBeenCalled()
+  })
+
+  it('mails a recipient who has not muted the conversation', async () => {
+    recipientHas(null)
+
+    await run(params({ messageUuid: MESSAGE_UUID, notify: 'email' }))
+
+    expect(customMail).toHaveBeenCalledTimes(1)
+  })
+
+  // The mail is what the recipient had before the chat; without the row it is all they get,
+  // and there is no conversation to have muted.
+  it('mails a message it could not file, even one sent without a mail', async () => {
+    await run(params({ messageUuid: MESSAGE_UUID, notify: 'none' }))
+
+    expect(mutedAt).not.toHaveBeenCalled()
+    expect(customMail).toHaveBeenCalledTimes(1)
+  })
+
+  /**
+   * ⛔ What the sending server receives is what the executor makes of execute(): the command
+   * client asks for `data` as well. Measured through the executor, the way the command
+   * resolver answers: one answer for a mail, for none, for a muted recipient and for a message
+   * that could not be filed.
+   */
+  it('answers the sending server the same, whether a mail went out or not', async () => {
+    const answers = []
+    for (const [mark, notify, files] of [
+      [null, 'email', true],
+      [null, 'none', true],
+      [MUTED, 'email', true],
+      [null, 'none', false],
+    ] as [Date | null, string, boolean][]) {
+      if (files) {
+        recipientHas(mark)
+      } else {
+        store.mockImplementation(async () => null)
+      }
+      const command = new SendEmailCommand([
+        JSON.stringify(params({ messageUuid: MESSAGE_UUID, notify })),
+      ])
+      answers.push(await new CommandExecutor().executeCommand(command))
+    }
+
+    expect(customMail).toHaveBeenCalledTimes(2)
+    expect(answers).toEqual(
+      Array.from({ length: 4 }, () => ({ success: true, data: SEND_MAIL_COMMAND_ANSWER })),
+    )
+  })
+})
+
+/**
+ * What a mail transport reports names the mail's recipient. It stays on this server: the
+ * sending server asks for `data` as well, and gets the same fixed value for both kinds of mail.
+ */
+describe('SendEmailCommand, what the sending server is answered', () => {
+  const reported = {
+    accepted: ['ben@example.org'],
+    rejected: [],
+    envelope: { from: 'info@gradido.net', to: ['ben@example.org'] },
+    messageSize: 37478,
+    response: '250 2.0.0 Ok: queued',
+  }
+  const answerTo = (commandParams: object) =>
+    new CommandExecutor().executeCommand(new SendEmailCommand([JSON.stringify(commandParams)]))
+
+  it('answers the mail about received Gradido with the fixed value, not with the report', async () => {
+    receivedMail.mockImplementation(async () => reported)
+
+    const answer = await answerTo(
+      params({ mailType: 'sendTransactionReceivedEmail', amount: '10', subject: undefined }),
+    )
+
+    expect(receivedMail).toHaveBeenCalledTimes(1)
+    expect(answer).toEqual({ success: true, data: SEND_MAIL_COMMAND_ANSWER })
+    expect(JSON.stringify(answer)).not.toContain('ben@example.org')
+  })
+
+  it('answers a message the same way, whatever the transport reported', async () => {
+    customMail.mockImplementation(async () => reported)
+
+    const answer = await answerTo(params({ messageUuid: MESSAGE_UUID }))
+
+    expect(customMail).toHaveBeenCalledTimes(1)
+    expect(answer).toEqual({ success: true, data: SEND_MAIL_COMMAND_ANSWER })
+    expect(JSON.stringify(answer)).not.toContain('ben@example.org')
   })
 })

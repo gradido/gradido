@@ -6,7 +6,9 @@ import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { chatConversationMembersTable, chatMessagesTable } from '../schemas'
 import {
   dbInsertChatConversationMembers,
+  dbSelectChatConversationMember,
   dbUpdateChatConversationMemberLastRead,
+  dbUpdateChatConversationMemberMuted,
 } from './chatConversationMembers'
 import { dbInsertChatMessage } from './chatMessages'
 
@@ -208,5 +210,97 @@ describe('dbUpdateChatConversationMemberLastRead', () => {
     await expect(dbUpdateChatConversationMemberLastRead(READ, ANNA, 0)).rejects.toThrow(
       'not a message id',
     )
+  })
+})
+
+describe('dbSelectChatConversationMember', () => {
+  const OWN = 4721
+  const CARL = { communityUuid: HOME, gradidoId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc' }
+
+  beforeAll(async () => {
+    await dbInsertChatConversationMembers(OWN, [ANNA, BEN])
+    await db
+      .update(chatConversationMembersTable)
+      .set({ lastReadMessageId: 17 })
+      .where(
+        and(
+          eq(chatConversationMembersTable.conversationId, OWN),
+          eq(chatConversationMembersTable.gradidoId, ANNA.gradidoId),
+        ),
+      )
+  })
+
+  it("hands out the named member's own row, read pointer and mute mark", async () => {
+    expect(await dbSelectChatConversationMember(OWN, ANNA)).toMatchObject({
+      conversationId: OWN,
+      communityUuid: ANNA.communityUuid,
+      gradidoId: ANNA.gradidoId,
+      lastReadMessageId: 17,
+      mutedAt: null,
+    })
+    expect(await dbSelectChatConversationMember(OWN, BEN)).toMatchObject({
+      gradidoId: BEN.gradidoId,
+      lastReadMessageId: null,
+    })
+  })
+
+  it('finds a member named in capitals, as the column compares', async () => {
+    const shouting = { communityUuid: HOME.toUpperCase(), gradidoId: ANNA.gradidoId.toUpperCase() }
+    expect((await dbSelectChatConversationMember(OWN, shouting))?.lastReadMessageId).toBe(17)
+  })
+
+  it('answers null for somebody not in the conversation, and in a conversation that is none', async () => {
+    expect(await dbSelectChatConversationMember(OWN, CARL)).toBeNull()
+    expect(await dbSelectChatConversationMember(OWN + 1, ANNA)).toBeNull()
+  })
+})
+
+describe('dbUpdateChatConversationMemberMuted', () => {
+  const QUIET = 4722
+  const CARL = { communityUuid: HOME, gradidoId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc' }
+  const muted = async (member: { communityUuid: string; gradidoId: string }) =>
+    (await dbSelectChatConversationMember(QUIET, member))?.mutedAt
+
+  beforeAll(async () => {
+    await dbInsertChatConversationMembers(QUIET, [ANNA, BEN])
+  })
+
+  it("marks the named member's row muted, with the moment given", async () => {
+    const at = new Date('2026-09-24T12:00:00.123Z')
+    expect(await dbUpdateChatConversationMemberMuted(QUIET, ANNA, at)).toEqual({ success: true })
+    expect((await muted(ANNA))?.getTime()).toBe(at.getTime())
+  })
+
+  // E-024: the quiet is the one member's own. What the other hears stays as it is.
+  it("leaves the other member's row as it is", async () => {
+    expect(await muted(BEN)).toBeNull()
+  })
+
+  it('lifts the mark again, and takes lifting it twice as a success (FOUND_ROWS)', async () => {
+    expect(await dbUpdateChatConversationMemberMuted(QUIET, ANNA, null)).toEqual({ success: true })
+    expect(await muted(ANNA)).toBeNull()
+    expect(await dbUpdateChatConversationMemberMuted(QUIET, ANNA, null)).toEqual({ success: true })
+    expect(await muted(ANNA)).toBeNull()
+  })
+
+  it('finds a member named in capitals, as the column compares', async () => {
+    const shouting = { communityUuid: HOME.toUpperCase(), gradidoId: BEN.gradidoId.toUpperCase() }
+    const at = new Date('2026-09-24T13:00:00.000Z')
+    expect(await dbUpdateChatConversationMemberMuted(QUIET, shouting, at)).toEqual({
+      success: true,
+    })
+    expect((await muted(BEN))?.getTime()).toBe(at.getTime())
+  })
+
+  it('reports a member who is not in the conversation as not found, and writes no row', async () => {
+    const result = await dbUpdateChatConversationMemberMuted(QUIET, CARL, new Date())
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.name).toBe('DBNotFoundError')
+    }
+    expect(await dbSelectChatConversationMember(QUIET, CARL)).toBeNull()
+    // Nor in a conversation that does not exist.
+    const nowhere = await dbUpdateChatConversationMemberMuted(QUIET + 1, ANNA, new Date())
+    expect(nowhere.success).toBe(false)
   })
 })

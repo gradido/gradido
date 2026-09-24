@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto'
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
-import { CONFIG as CORE_CONFIG } from 'core'
+import { CONFIG as CORE_CONFIG, sendCustomEmail } from 'core'
 import {
   AppDatabase,
   chatConversationMembersTable,
@@ -41,6 +41,7 @@ import {
   removeUserAvatar,
   sendCoins,
   sendEmail,
+  setChatConversationMuted,
   setUserAvatar,
   updateUserInfos,
 } from '@/seeds/graphql/mutations'
@@ -52,6 +53,16 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 
 jest.mock('@/password/EncryptorUtils')
+// The mail stays the real function -- with mail switched off it sends nothing -- and is
+// watched, to see whether a message goes out as one.
+jest.mock('core', () => {
+  const originalModule = jest.requireActual('core')
+  return {
+    __esModule: true,
+    ...originalModule,
+    sendCustomEmail: jest.fn(originalModule.sendCustomEmail),
+  }
+})
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 CONFIG.DLT_ACTIVE = false
@@ -1086,6 +1097,50 @@ describe('sendEmail', () => {
 
       expect(result.errors).toEqual([new GraphQLError('You cannot send an email to yourself')])
       expect(await messages()).toEqual(before)
+    })
+
+    // E-024: mute beats the tick -- for the form as well, as it does across the border, where
+    // the receiving server decides. The one change to sendEmail, and the sender is not told.
+    it('files the message but mails nothing to a recipient who muted the conversation, and answers as ever', async () => {
+      const mailed = sendCustomEmail as jest.Mock
+      const writeToPeter = (memo: string) =>
+        mutate({
+          mutation: sendEmail,
+          variables: {
+            recipientCommunityIdentifier: bobMember.communityUuid,
+            recipientIdentifier: peterMember.gradidoID,
+            subject: SUBJECT,
+            memo,
+          },
+        })
+
+      await loginAs('bob@baumeister.de')
+      mailed.mockClear()
+      await expect(writeToPeter('Before the quiet.')).resolves.toMatchObject({
+        data: { sendEmail: true },
+        errors: undefined,
+      })
+      expect(mailed.mock.calls.map(([mail]) => mail.email)).toEqual(['peter@lustig.de'])
+
+      await loginAs('peter@lustig.de')
+      await expect(
+        mutate({
+          mutation: setChatConversationMuted,
+          variables: {
+            ref: { communityUuid: bobMember.communityUuid, gradidoID: bobMember.gradidoID },
+            muted: true,
+          },
+        }),
+      ).resolves.toMatchObject({ data: { setChatConversationMuted: true }, errors: undefined })
+
+      await loginAs('bob@baumeister.de')
+      mailed.mockClear()
+      await expect(writeToPeter('During the quiet.')).resolves.toMatchObject({
+        data: { sendEmail: true },
+        errors: undefined,
+      })
+      expect(mailed).not.toHaveBeenCalled()
+      expect((await messages()).map((m) => m.body)).toContain('During the quiet.')
     })
   })
 
