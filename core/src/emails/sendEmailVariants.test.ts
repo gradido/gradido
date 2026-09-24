@@ -12,6 +12,7 @@ import {
   sendContributionDeletedEmail,
   sendContributionDeniedEmail,
   sendCreationRightRequestSupportEmail,
+  sendCustomEmail,
   sendEmailChangeSupportEmail,
   sendResetPasswordEmail,
   sendTransactionLinkRedeemedEmail,
@@ -869,6 +870,67 @@ describe('sendEmailVariants', () => {
       it('has the correct html as snapshot', () => {
         expect(result.originalMessage.html).toMatchSnapshot()
       })
+    })
+  })
+
+  /**
+   * The mail of a message between two members -- from the form "send an e-mail", and from the
+   * chat, which has no subject (E-013).
+   *
+   * ⛔ Measured at the RENDERED mail: whether the subject block is there is a question about the
+   * template, and only the html can answer it. The block is looked for as an attribute: its class
+   * name alone is also in the stylesheet the layout puts in every mail.
+   */
+  describe('sendCustomEmail', () => {
+    const message = {
+      firstName: 'Peter',
+      lastName: 'Lustig',
+      email: 'peter@lustig.de',
+      language: 'en',
+      senderAlias: 'bibi',
+      memo: 'Shall we meet at ten?',
+      senderUuid: '3f9a1e2c-1111-4a2b-9c3d-000000000001',
+      senderCommunityUuid: 'aaaa1111-2222-4333-8444-555566667777',
+    }
+    const answerLink = `${CONFIG.COMMUNITY_URL}/send/aaaa1111-2222-4333-8444-555566667777/3f9a1e2c-1111-4a2b-9c3d-000000000001?art=email`
+    let withSubject: any
+    let withoutSubject: any
+
+    beforeAll(async () => {
+      withSubject = await sendCustomEmail({ ...message, subject: 'About Saturday' })
+      withoutSubject = await sendCustomEmail({ ...message, subject: '' })
+    })
+
+    it('renders the template of a message for the recipient', () => {
+      expect(sendEmailTranslatedSpy).toBeCalledWith({
+        receiver: { to: 'Peter Lustig <peter@lustig.de>' },
+        template: 'customEmail',
+        locals: expect.objectContaining({
+          senderAlias: 'bibi',
+          subject: 'About Saturday',
+          memo: 'Shall we meet at ten?',
+        }),
+      })
+      expect(withSubject.originalMessage.subject).toBe('bibi has sent you a message')
+    })
+
+    it('shows the subject in its block where the message has one', () => {
+      const html = withSubject.originalMessage.html
+      expect(html).toContain('class="subject-block"')
+      expect(html).toContain('About Saturday')
+    })
+
+    it('leaves the block out where the message has none, rather than an empty box', () => {
+      expect(withoutSubject.originalMessage.html).not.toContain('class="subject-block"')
+    })
+
+    it('carries the text and the reply button either way', () => {
+      for (const sent of [withSubject, withoutSubject]) {
+        const html = sent.originalMessage.html
+        expect(html).toContain('class="memo-block"')
+        expect(html).toContain('Shall we meet at ten?')
+        expect(html).toContain(answerLink)
+      }
     })
   })
 })
