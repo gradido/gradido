@@ -637,6 +637,32 @@ export const markChatConversationRead = gql`
   }
 `
 
+export const sendChatMessage = gql`
+  mutation ($ref: MemberAvatarRefInput!, $body: String!, $notify: ChatMessageNotify!) {
+    sendChatMessage(ref: $ref, body: $body, notify: $notify) {
+      id
+      messageUuid
+      conversationId
+      sender {
+        communityUuid
+        gradidoID
+      }
+      mine
+      subject
+      body
+      createdAt
+      deliveryState
+      notify
+    }
+  }
+`
+
+export const setChatConversationMuted = gql`
+  mutation ($ref: MemberAvatarRefInput!, $muted: Boolean!) {
+    setChatConversationMuted(ref: $ref, muted: $muted)
+  }
+`
+
 export const addFavorite = gql`
   mutation ($ref: MemberAvatarRefInput!) {
     addFavorite(ref: $ref)
