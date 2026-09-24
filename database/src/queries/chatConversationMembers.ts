@@ -3,7 +3,11 @@ import { and, eq, exists, sql } from 'drizzle-orm'
 import { VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { DBNotFoundError } from '../errorTypes'
-import { chatConversationMembersTable, chatMessagesTable } from '../schemas/drizzle.schema'
+import {
+  ChatConversationMemberSelect,
+  chatConversationMembersTable,
+  chatMessagesTable,
+} from '../schemas/drizzle.schema'
 
 const ChatConversationMemberNotFound = (where: string) =>
   new DBNotFoundError('chat_conversation_members', where)
@@ -16,6 +20,31 @@ const ChatConversationMemberNotFound = (where: string) =>
 export interface ChatMemberRef {
   communityUuid: string
   gradidoId: string
+}
+
+/** The condition that names one member's row: the conversation and the pair. */
+const memberRow = (conversationId: number, member: ChatMemberRef) =>
+  and(
+    eq(chatConversationMembersTable.conversationId, conversationId),
+    eq(chatConversationMembersTable.communityUuid, member.communityUuid),
+    eq(chatConversationMembersTable.gradidoId, member.gradidoId),
+  )
+
+/**
+ * One member's row of a conversation -- their read pointer and their mute mark -- or null
+ * when they are not in it. The pair is compared the way the columns compare it, without
+ * regard to case.
+ */
+export async function dbSelectChatConversationMember(
+  conversationId: number,
+  member: ChatMemberRef,
+): Promise<ChatConversationMemberSelect | null> {
+  const rows = await drizzleDb()
+    .select()
+    .from(chatConversationMembersTable)
+    .where(memberRow(conversationId, member))
+    .limit(1)
+  return rows.at(0) ?? null
 }
 
 /**
@@ -91,9 +120,7 @@ export async function dbUpdateChatConversationMemberLastRead(
     })
     .where(
       and(
-        eq(chatConversationMembersTable.conversationId, conversationId),
-        eq(chatConversationMembersTable.communityUuid, member.communityUuid),
-        eq(chatConversationMembersTable.gradidoId, member.gradidoId),
+        memberRow(conversationId, member),
         exists(
           drizzleDb()
             .select({ id: chatMessagesTable.id })
@@ -115,6 +142,41 @@ export async function dbUpdateChatConversationMemberLastRead(
     success: false,
     error: ChatConversationMemberNotFound(
       `conversation_id = ${conversationId} and member = ${member.communityUuid}/${member.gradidoId} and message ${messageId} in it`,
+    ),
+  }
+}
+
+/**
+ * Sets the member's mute mark in the conversation: the moment they asked for quiet, or null to
+ * lift it. A muted member gets no mail about the conversation, whatever the sender asked for
+ * (E-024) -- the mark is read on the member's own server, where the mail would go out.
+ *
+ * Writes the row of the member named here and no other -- the pair is part of the where
+ * clause, as for the read pointer. ChatResolver names the caller, so a member only ever mutes
+ * for themselves; the other member's row, and so whether the other member is mailed, stays as
+ * it is.
+ *
+ * DBNotFoundError when the member is not in the conversation; nothing is written then. Writing
+ * the value the row has already is a success: mysql2 connects with FOUND_ROWS, so
+ * `affectedRows` counts the matched row.
+ */
+export async function dbUpdateChatConversationMemberMuted(
+  conversationId: number,
+  member: ChatMemberRef,
+  mutedAt: Date | null,
+): Promise<VoidResult<DBNotFoundError>> {
+  const result = await drizzleDb()
+    .update(chatConversationMembersTable)
+    .set({ mutedAt })
+    .where(memberRow(conversationId, member))
+  const firstRow = result[0]
+  if (firstRow && firstRow.affectedRows === 1) {
+    return { success: true }
+  }
+  return {
+    success: false,
+    error: ChatConversationMemberNotFound(
+      `conversation_id = ${conversationId} and member = ${member.communityUuid}/${member.gradidoId}`,
     ),
   }
 }
