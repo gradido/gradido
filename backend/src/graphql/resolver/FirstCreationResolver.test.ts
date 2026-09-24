@@ -1209,14 +1209,16 @@ describe('FirstCreationResolver', () => {
 
     beforeAll(async () => {
       // Confirmed so that a password exists; the two tests below change what they need.
+      // Polish: none of the ten wallet languages lacks the catalog any more, and this is the
+      // member whose language core does not carry.
       garrick = await userFactory(testEnv, {
         ...garrickOllivander,
         emailChecked: true,
-        language: 'fr',
+        language: 'pl',
       })
     })
 
-    it('a member whose language has no catalog yet sees no window', async () => {
+    it('a member whose language has no catalog sees no window', async () => {
       await loginAs('garrick@ollivander.com')
       const { data } = await query({ query: firstCreationStatus })
       expect(data.firstCreationStatus).toMatchObject({ state: 'NONE', eligible: false })

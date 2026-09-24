@@ -21,8 +21,10 @@ import {
 } from './FirstCreation.logic'
 
 // The locale files of core, read as files: what is under test is that every key the code
-// names exists in BOTH languages the first creation ships in, and a mocked translator
+// names exists in EVERY language the first creation ships in, and a mocked translator
 // could not tell.
+const FIRST_CREATION_LANGUAGES = ['de', 'en', 'el', 'es', 'fr', 'it', 'nl', 'pt', 'ru', 'tr']
+
 const coreLocale = (lang: string) =>
   JSON.parse(
     readFileSync(
@@ -32,20 +34,23 @@ const coreLocale = (lang: string) =>
   ) as { firstCreation: Record<string, Record<string, string>> }
 
 describe('first creation catalog keys', () => {
-  it.each(['de', 'en'])('names only phrases that exist in %s, and all of them', (lang) => {
-    const { catalog, checks, message } = coreLocale(lang).firstCreation
-    expect([...FIRST_CREATION_CATALOG_KEYS].sort()).toEqual(Object.keys(catalog).sort())
-    expect([...FIRST_CREATION_CHECK_KEYS].sort()).toEqual(Object.keys(checks).sort())
-    for (const check of FIRST_CREATION_CHECK_KEYS) {
-      expect(message[`${check}Line`]).toBeDefined()
-    }
-    for (const key of FIRST_CREATION_CATALOG_KEYS) {
-      // ⚠️ Nothing fills this placeholder any more — the wallet carries the opening now and
-      // sends the whole sentence. It is kept as the mark of a completable stem, and asserted
-      // so that core's copy and the wallet's stay recognisably the same list.
-      expect(catalog[key]).toContain('{text}')
-    }
-  })
+  it.each(FIRST_CREATION_LANGUAGES)(
+    'names only phrases that exist in %s, and all of them',
+    (lang) => {
+      const { catalog, checks, message } = coreLocale(lang).firstCreation
+      expect([...FIRST_CREATION_CATALOG_KEYS].sort()).toEqual(Object.keys(catalog).sort())
+      expect([...FIRST_CREATION_CHECK_KEYS].sort()).toEqual(Object.keys(checks).sort())
+      for (const check of FIRST_CREATION_CHECK_KEYS) {
+        expect(message[`${check}Line`]).toBeDefined()
+      }
+      for (const key of FIRST_CREATION_CATALOG_KEYS) {
+        // ⚠️ Nothing fills this placeholder any more — the wallet carries the opening now and
+        // sends the whole sentence. It is kept as the mark of a completable stem, and asserted
+        // so that core's copy and the wallet's stay recognisably the same list.
+        expect(catalog[key]).toContain('{text}')
+      }
+    },
+  )
 })
 
 describe('buildFirstCreationMemo', () => {
@@ -287,11 +292,14 @@ describe('the four-line message', () => {
       'Deine Einträge schaut sich noch ein Mensch an. Du hörst von uns.',
     )
     expect(composeFirstCreationReviewMessage('en')).toBe(
-      'A person is still looking at your entries. You will hear from us.',
+      'A person will take a look at your entries. You will hear from us.',
     )
-    // French has no first-creation keys yet: English, not the key.
     expect(composeFirstCreationReviewMessage('fr')).toBe(
-      'A person is still looking at your entries. You will hear from us.',
+      'Une personne doit encore regarder tes entrées. Tu auras de nos nouvelles.',
+    )
+    // A language core does not carry: English, not the key.
+    expect(composeFirstCreationReviewMessage('pl')).toBe(
+      'A person will take a look at your entries. You will hear from us.',
     )
     expect(composeFirstCreationInternalNote('Gewaltverherrlichung in Eintrag 2')).toBe(
       'Crea hat bei der Erst-Schöpfung angehalten: Gewaltverherrlichung in Eintrag 2. Bitte prüfen und von Hand bestätigen, ändern oder ablehnen.',
@@ -300,12 +308,12 @@ describe('the four-line message', () => {
 })
 
 describe('the catalog gate and the member’s calendar day', () => {
-  it('has the catalog for de and en only, until the localisation work ships the rest', () => {
-    expect(hasFirstCreationCatalog('de')).toBe(true)
-    expect(hasFirstCreationCatalog('en')).toBe(true)
-    for (const language of ['fr', 'es', 'it', 'nl', 'pt', 'ru', 'tr', 'el']) {
-      expect(hasFirstCreationCatalog(language)).toBe(false)
+  it('has the catalog in all ten languages of the wallet, and in no other', () => {
+    for (const language of FIRST_CREATION_LANGUAGES) {
+      expect(hasFirstCreationCatalog(language)).toBe(true)
     }
+    // A language the wallet might add later gets no window until its stems are in core.
+    expect(hasFirstCreationCatalog('pl')).toBe(false)
   })
 
   it('dates the bundle with the member’s calendar day, not the server’s instant', () => {
