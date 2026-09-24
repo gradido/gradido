@@ -204,7 +204,7 @@
     "search": "Αναζήτηση επαφής …",
     "sendEmail": "Αποστολή email",
     "sendGradido": "Αποστολή Gradido",
-    "since": "Επαφή από {date}"
+    "since": "Πρώτη επαφή: {date}"
   },
   "contribution": {
     "activity": "Δραστηριότητα",

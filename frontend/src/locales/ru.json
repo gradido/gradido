@@ -204,7 +204,7 @@
     "search": "Поиск контакта …",
     "sendEmail": "Отправить эл. письмо",
     "sendGradido": "Отправить Gradido",
-    "since": "Контакт с {date}"
+    "since": "Первый контакт: {date}"
   },
   "contribution": {
     "activity": "Деятельность",
