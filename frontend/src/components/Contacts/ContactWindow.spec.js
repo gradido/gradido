@@ -582,6 +582,79 @@ describe('ContactWindow', () => {
       expect(serverMutes).toHaveBeenCalledTimes(1)
       expect(bell().attributes('aria-pressed')).toBe('true')
     })
+
+    /**
+     * The window stays and the person in it changes: an answer about the bell of the person
+     * before that comes back late changes nothing here, neither the bell nor a word
+     * (coderabbit, PR #3974).
+     */
+    it('lets a late answer for the person before change nothing', async () => {
+      const answers = []
+      serverMutes.mockImplementation(
+        () => new Promise((resolve, reject) => answers.push({ resolve, reject })),
+      )
+      mountWindow()
+      await threadSays({ exists: true, mutedByMe: true })
+      await bell().trigger('click')
+
+      await wrapper.setProps({ contact: STRANGER })
+      await threadSays({ exists: true, mutedByMe: false })
+      answers[0].reject(new Error('Network error'))
+      await flushPromises()
+
+      expect(bell().attributes('aria-pressed')).toBe('false')
+      expect(toastError).not.toHaveBeenCalled()
+      expect(toastSuccess).not.toHaveBeenCalled()
+    })
+
+    // …and it holds up nothing here, nor lets go of the one switch at a time for the next person.
+    it('is not held up by the answer for the person before, nor let go by it', async () => {
+      const answers = []
+      serverMutes.mockImplementation(() => new Promise((resolve) => answers.push(resolve)))
+      mountWindow()
+      await threadSays({ exists: true, mutedByMe: false })
+      await bell().trigger('click')
+
+      await wrapper.setProps({ contact: STRANGER })
+      await threadSays({ exists: true, mutedByMe: false })
+      await bell().trigger('click')
+      expect(serverMutes).toHaveBeenCalledTimes(2)
+      expect(serverMutes).toHaveBeenLastCalledWith({
+        ref: { gradidoID: 'sarah-id', communityUuid: 'provence-uuid' },
+        muted: true,
+      })
+
+      answers[0]({ data: { setChatConversationMuted: true } })
+      await flushPromises()
+      await bell().trigger('click')
+
+      expect(serverMutes).toHaveBeenCalledTimes(2)
+      expect(bell().attributes('aria-pressed')).toBe('true')
+      expect(toastSuccess).not.toHaveBeenCalled()
+    })
+
+    /**
+     * ⚠️ A window that only closed lets the contact go (useContactWindow), and that is no other
+     * person: the hint still says what became of the person just seen.
+     */
+    it('still says what became of the bell when the window only closed', async () => {
+      let answer
+      serverMutes.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            answer = resolve
+          }),
+      )
+      mountWindow()
+      await threadSays({ exists: true, mutedByMe: false })
+      await bell().trigger('click')
+
+      await wrapper.setProps({ contact: null })
+      answer({ data: { setChatConversationMuted: true } })
+      await flushPromises()
+
+      expect(toastSuccess).toHaveBeenCalledWith('chatThread.mutedHint {"name":"Carla-Sonne"}')
+    })
   })
 
   // Real buttons that do not send a form, and none taken out of the tab order: a keyboard

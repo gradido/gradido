@@ -394,11 +394,26 @@ const takeChatConversation = ({ exists, mutedByMe }) => {
   muted.value = mutedByMe
 }
 
+/**
+ * Counted up with every person the window comes to. The window stays while the person in it
+ * changes (only the thread is made anew), so an answer about the bell that comes back after
+ * the window moved to someone else is about someone else: it changes nothing here and holds
+ * up nothing here (coderabbit, PR #3974).
+ */
+let contactGeneration = 0
+let mutingInFlight = false
+
 // Another person, another conversation: nothing of the last one's bell stays up while the
-// new thread is asking.
+// new thread is asking. ⚠️ A window that only closed (useContactWindow lets the contact go)
+// is no other person: the answer on its way still says what became of the person just seen.
 watch(
   () => props.contact?.user?.gradidoID,
-  () => takeChatConversation({ exists: false, mutedByMe: false }),
+  (gradidoID) => {
+    takeChatConversation({ exists: false, mutedByMe: false })
+    if (!gradidoID) return
+    contactGeneration += 1
+    mutingInFlight = false
+  },
 )
 
 const bellName = computed(() =>
@@ -411,8 +426,6 @@ const memberRef = computed(() => ({
   communityUuid: props.contact?.user?.communityUuid ?? null,
 }))
 
-let mutingInFlight = false
-
 /**
  * Switched on this device first and confirmed by the server after, put back where it fails
  * -- as the heart does it. What it means is said once, as a hint, in both directions (E-031).
@@ -424,11 +437,13 @@ let mutingInFlight = false
 const toggleMute = async () => {
   if (mutingInFlight) return
   mutingInFlight = true
+  const generation = contactGeneration
   const wanted = !muted.value
   const name = alias.value
   muted.value = wanted
   try {
     const answer = await saveMuted({ ref: memberRef.value, muted: wanted })
+    if (generation !== contactGeneration) return
     if (answer?.data?.setChatConversationMuted) {
       // Two written-out keys, not one chosen by a condition: the i18n lint counts only keys
       // it can read, and would call both unused.
@@ -439,10 +454,11 @@ const toggleMute = async () => {
       muted.value = !wanted
     }
   } catch (error) {
+    if (generation !== contactGeneration) return
     muted.value = !wanted
     toastError(error.message)
   } finally {
-    mutingInFlight = false
+    if (generation === contactGeneration) mutingInFlight = false
   }
 }
 </script>
