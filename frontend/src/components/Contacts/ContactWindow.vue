@@ -586,13 +586,13 @@ const toggleMute = async () => {
 }
 
 /* The coin is its own picture -- the golden Gradido coin, round in itself -- so it fills the
-   mark and needs no ground or rim of its own. As large as the compose bar's send button
-   (ChatComposeBar, `.chat-compose-send`): the window's two round gold controls in one
-   measure (Bernd, 24.09.2026: at the bells' 1.75rem it looked smaller than the button
-   below). The spec holds the two sizes together. */
+   mark and needs no ground or rim of its own. Midway between the other marks' 1.75rem and the
+   compose bar's send button (ChatComposeBar, `.chat-compose-send`, 2.4rem): at the marks' size
+   it looked smaller than the button below, at the button's size a touch too large (Bernd,
+   24.09.2026). The spec holds it midway. */
 .contact-window-coin {
-  width: 2.4rem;
-  height: 2.4rem;
+  width: 2.075rem;
+  height: 2.075rem;
   border: 0;
 }
 

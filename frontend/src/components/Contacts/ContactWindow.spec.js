@@ -730,21 +730,23 @@ describe('ContactWindow', () => {
     expect(rule('\\.contact-window-head')).not.toMatch(/padding-right/)
   })
 
-  // The window's two round gold controls in one measure (Bernd, 24.09.2026): the coin as large
-  // as the compose bar's send button, held in both stylesheets.
-  it('makes the coin as large as the send button of the compose bar', () => {
-    const size = (file, selector) => {
+  // The coin midway between the other marks and the compose bar's send button (Bernd,
+  // 24.09.2026): at the marks' size it looked smaller than the button below, at the button's
+  // size a touch too large. Held in both stylesheets.
+  it('makes the coin midway between the other marks and the send button', () => {
+    const rems = (file, selector) => {
       const body = styleOf(file).match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
-      return [
-        body.match(/(?:^|\s)width:\s*([^;]+);/)?.[1],
-        body.match(/(?:^|\s)height:\s*([^;]+);/)?.[1],
-      ]
+      return ['width', 'height'].map((side) =>
+        Number(body.match(new RegExp(`(?:^|\\s)${side}:\\s*([\\d.]+)rem;`))?.[1] ?? NaN),
+      )
     }
-    const coin = size('ContactWindow.vue', '\\.contact-window-coin')
-    const send = size('../Chat/ChatComposeBar.vue', '\\.chat-compose-send')
+    const mark = rems('ContactWindow.vue', '\\.contact-window-mark')
+    const send = rems('../Chat/ChatComposeBar.vue', '\\.chat-compose-send')
+    const coin = rems('ContactWindow.vue', '\\.contact-window-coin')
 
-    expect(send.every(Boolean), 'the send button lost its size').toBe(true)
-    expect(coin).toEqual(send)
+    expect([...mark, ...send].every(Number.isFinite), 'a size went missing').toBe(true)
+    expect(coin[0]).toBeCloseTo((mark[0] + send[0]) / 2, 4)
+    expect(coin[1]).toBeCloseTo((mark[1] + send[1]) / 2, 4)
   })
 
   it('closes from a cross that says what it is', async () => {
