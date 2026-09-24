@@ -150,6 +150,16 @@
       "text": "Para encontrar otros miembros cerca de ti, ¡introduce ahora tu ubicación en el mapa!"
     }
   },
+  "chatThread": {
+    "empty": "Aún no hay mensajes. Aquí empieza vuestra conversación.",
+    "failed": "No entregado",
+    "label": "Historial de conversación con {name}",
+    "loadOlder": "Cargar mensajes anteriores",
+    "mailed": "También por correo electrónico",
+    "notReachable": "No se pudo cargar el historial de conversación.",
+    "pending": "Aún no entregado",
+    "you": "Tú"
+  },
   "community": {
     "admins": "Administradores",
     "choose-another-community": "Escoger otra comunidad",

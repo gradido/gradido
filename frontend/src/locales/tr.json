@@ -150,6 +150,16 @@
       "text": "Çevrendeki diğer üyeleri bulmak için şimdi konumunu haritaya gir!"
     }
   },
+  "chatThread": {
+    "empty": "Henüz mesaj yok. Sohbet burada başlıyor.",
+    "failed": "İletilemedi",
+    "label": "{name} ile konuşma geçmişi",
+    "loadOlder": "Daha eski mesajları yükle",
+    "mailed": "Ayrıca e-posta ile",
+    "notReachable": "Konuşma geçmişi yüklenemedi.",
+    "pending": "Henüz iletilmedi",
+    "you": "Sen"
+  },
   "community": {
     "admins": "Yöneticiler",
     "choose-another-community": "Başka bir topluluk seç",

@@ -150,6 +150,16 @@
       "text": "Om andere leden in jouw omgeving te vinden, voer nu je locatie in op de kaart!"
     }
   },
+  "chatThread": {
+    "empty": "Nog geen berichten. Hier begint jullie gesprek.",
+    "failed": "Niet afgeleverd",
+    "label": "Gespreksgeschiedenis met {name}",
+    "loadOlder": "Oudere berichten laden",
+    "mailed": "Ook per e-mail",
+    "notReachable": "De gespreksgeschiedenis kon niet worden geladen.",
+    "pending": "Nog niet afgeleverd",
+    "you": "Jij"
+  },
   "community": {
     "admins": "Beheerders",
     "choose-another-community": "Kies een andere gemeenschap",

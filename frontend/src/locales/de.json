@@ -150,6 +150,16 @@
       "text": "Um andere Mitglieder in deinem Umkreis zu finden, trage jetzt deinen Standort auf der Karte ein!"
     }
   },
+  "chatThread": {
+    "empty": "Noch keine Nachrichten. Hier beginnt Euer Gespräch.",
+    "failed": "Nicht zugestellt",
+    "label": "Gesprächsverlauf mit {name}",
+    "loadOlder": "Ältere Nachrichten laden",
+    "mailed": "Auch per E-Mail",
+    "notReachable": "Der Gesprächsverlauf konnte nicht geladen werden.",
+    "pending": "Noch nicht zugestellt",
+    "you": "Du"
+  },
   "community": {
     "admins": "Administratoren",
     "choose-another-community": "Eine andere Gemeinschaft auswählen",

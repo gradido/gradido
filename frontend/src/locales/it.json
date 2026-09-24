@@ -150,6 +150,16 @@
       "text": "Per trovare altri membri vicino a te, inserisci ora la tua posizione sulla mappa!"
     }
   },
+  "chatThread": {
+    "empty": "Ancora nessun messaggio. Qui inizia la vostra conversazione.",
+    "failed": "Non consegnato",
+    "label": "Cronologia della conversazione con {name}",
+    "loadOlder": "Carica i messaggi precedenti",
+    "mailed": "Anche via e-mail",
+    "notReachable": "Non è stato possibile caricare la cronologia della conversazione.",
+    "pending": "Non ancora consegnato",
+    "you": "Tu"
+  },
   "community": {
     "admins": "Amministratori",
     "choose-another-community": "Scegli un'altra comunità",

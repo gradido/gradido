@@ -150,6 +150,16 @@
       "text": "To find other members in your area, enter your location on the map now!"
     }
   },
+  "chatThread": {
+    "empty": "No messages yet. This is where your conversation begins.",
+    "failed": "Not delivered",
+    "label": "Conversation history with {name}",
+    "loadOlder": "Load older messages",
+    "mailed": "Also by e-mail",
+    "notReachable": "The conversation history could not be loaded.",
+    "pending": "Not delivered yet",
+    "you": "You"
+  },
   "community": {
     "admins": "Administrators",
     "choose-another-community": "Choose another community",
