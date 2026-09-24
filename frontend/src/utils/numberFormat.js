@@ -24,7 +24,8 @@ const DEFAULT_LOCALE = 'en'
  *
  * ⚠️ Read from Intl rather than kept in a table of our own. A table would be a second source
  * of truth next to `numberFormats` in i18n.js, and the two would drift the first time a
- * language is added -- Turkish is already missing from that one.
+ * language is added -- Turkish was missing from that one until `i18n.spec.js` started
+ * holding its languages to the ones in `messages`.
  *
  * ★ The separator and the grouping are built TOGETHER, from the same resolved language. That
  * is what makes the fallback safe: if one fell back to English while the other did not, the
