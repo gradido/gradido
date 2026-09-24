@@ -41,7 +41,7 @@
     <div v-if="contact" class="contact-window-inner">
       <!-- The cross at the very top, in a line of its own, and the name with its marks one
            line below it (Bernd, 24.09.2026): beside the name the cross took the room the name
-           and its three marks need -- on a phone the name was down to a few letters. The
+           and its marks need -- on a phone the name was down to a few letters. The
            window could always be closed by clicking beside it, but that is a thing one has to
            know -- a cross is the one control everybody looks for (Bernd, 04.09.2026).
 
@@ -67,9 +67,10 @@
         <app-avatar :size="64" :color="'#fff'" v-bind="avatar" />
         <div class="contact-window-who">
           <!-- Behind the name, in this order (Bernd, E-031): the heart and the bell, two marks
-               of one's own on this person that say how they stand, then the coin, the one
-               thing here that goes somewhere. All three in the measure of the booking row
-               (`gap-2`), and the name gives way (ellipsis) before any of them does.
+               of one's own on this person that say how they stand. Both in the measure of the
+               booking row (`gap-2`), and the name gives way (ellipsis) before either does. The
+               coin that stood here third went under the figures, as a button with its word
+               (Bernd, 24.09.2026, at the device: the coin alone was not taken for a button).
 
                The heart is the one of every list: the same component, the same look, the same
                question before it is taken away (E-030). -->
@@ -99,26 +100,6 @@
                 aria-hidden="true"
               />
               <i-mdi-bell-outline v-else class="contact-window-bell-icon" aria-hidden="true" />
-            </button>
-            <!-- The coin: sending Gradido, where the two big buttons stood before -- Gradido's
-                 own golden coin, the one on the sign-in page (Bernd, 24.09.2026). A button with
-                 its name, for the ear and -- at the desk -- under the pointer; last, because it
-                 is an action and not a state. The e-mail with a subject is one tab away in the
-                 form it opens; the short one is the compose bar's box. -->
-            <button
-              type="button"
-              class="contact-window-mark contact-window-coin"
-              :aria-label="$t('contacts.sendGradido')"
-              :title="$t('contacts.sendGradido')"
-              data-test="contact-window-coin"
-              @click="toSend"
-            >
-              <img
-                src="/img/brand/gradido_coin_128x128.png"
-                class="contact-window-coin-glyph"
-                alt=""
-                aria-hidden="true"
-              />
             </button>
           </div>
           <div
@@ -186,6 +167,23 @@
         <div v-if="originLine" class="contact-window-origin" data-test="contact-window-origin">
           {{ originLine }}
         </div>
+      </div>
+
+      <!-- Sending Gradido, the one way out of this window: the map profile's button
+           (MatchProfile) with its word and its white coin, in the gold of the compose bar's
+           send button instead of the map's teal (Bernd, 24.09.2026). Under the figures and
+           above the line where the thread begins. No "Send e-mail" beside it: the short mail is
+           the compose bar's box, the one with a subject the send form's other tab (E-031). -->
+      <div class="contact-window-send">
+        <button
+          type="button"
+          class="send-btn send-gradido"
+          data-test="contact-window-send"
+          @click="toSend"
+        >
+          <img src="/img/svg/gdd_coin_sw.svg" class="send-coin" alt="" aria-hidden="true" />
+          {{ $t('contacts.sendGradido') }}
+        </button>
       </div>
 
       <!-- The conversation, where "conversation history -- comes with the chat" stood
@@ -362,7 +360,7 @@ const closeWhenNavigating = (event) => {
 }
 
 /**
- * The coin: the send form with this person already named, as the profile window on the map
+ * The button: the send form with this person already named, as the profile window on the map
  * opens it. The e-mail with a subject is the form's other tab (E-031).
  *
  * ⚠️ A member of another community goes down the same road: the send form is what knows
@@ -555,7 +553,7 @@ const toggleMute = async () => {
   text-underline-offset: 2px;
 }
 
-/* The name and the three marks behind it, in the measure of the booking row (`gap-2` there,
+/* The name and the marks behind it, in the measure of the booking row (`gap-2` there,
    the same 0.5rem). The name gives way (ellipsis) before a mark does: it may shrink to
    nothing, the marks may not shrink at all. */
 .contact-window-name-line {
@@ -569,8 +567,8 @@ const toggleMute = async () => {
   flex: 0 0 auto;
 }
 
-/* The bell and the coin: round, one size, the heart's glyph size inside (1.35em, as
-   FavoriteHeart draws it). Plain buttons, so each carries its own focus ring. */
+/* The bell: round, the heart's glyph size inside (1.35em, as FavoriteHeart draws it). A
+   plain button, so it carries its own focus ring. */
 .contact-window-mark {
   display: inline-flex;
   flex: 0 0 auto;
@@ -605,29 +603,69 @@ const toggleMute = async () => {
   color: var(--bs-body-color);
 }
 
-/* The coin is its own picture -- the golden Gradido coin, round in itself -- so it fills the
-   mark and needs no ground or rim of its own. Midway between the other marks' 1.75rem and the
-   compose bar's send button (ChatComposeBar, `.chat-compose-send`, 2.4rem): at the marks' size
-   it looked smaller than the button below, at the button's size a touch too large (Bernd,
-   24.09.2026). The spec holds it midway. */
-.contact-window-coin {
-  width: 2.075rem;
-  height: 2.075rem;
-  border: 0;
+/* The one way out, under the figures and above the line where the thread begins. */
+.contact-window-send {
+  display: flex;
+  gap: 10px;
 }
 
-.contact-window-coin-glyph {
-  display: block;
-  width: 100%;
-  height: 100%;
+/* ⛔ From here to the focus rule: the map profile's button (MatchProfile.vue), rule for rule,
+   in the compose bar's gold instead of the map's teal (Bernd, 24.09.2026) -- the one
+   difference. ContactWindow.spec holds both: the rules against MatchProfile with the colour
+   swapped, the colour against ChatComposeBar's send button. */
+.send-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 26px;
+  font-size: 15px;
+  font-weight: 700;
+  border: 1.5px solid #c08935;
+  white-space: nowrap;
+}
+
+.send-gradido {
+  background: #c08935;
+  color: #fff;
+}
+
+.send-coin {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  filter: brightness(0) invert(1);
+}
+
+/* Without Bootstrap's `.btn` a plain button has no focus ring of its own, and this is the
+   window's one way out. */
+.send-btn:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+/* ⚠️ The second difference from the map, and the reason it stands outside the map's rules:
+   the button keeps the width of its word instead of filling the row (Bernd, 24.09.2026,
+   "schmal"), so something can stand beside it later -- a camera for a video call, perhaps.
+   Measured: it fits beside a second one in the longest labels too (ru, el). */
+.contact-window-send .send-btn {
+  flex: 0 1 auto;
 }
 
 /* ⛔ The sheet (below `sm`, where BModal makes the window fullscreen -- the same 575.98px as
    Bootstrap's `.modal-fullscreen-sm-down`): the window's inside becomes one column over the
-   whole height -- head, figures, then the thread taking what is left, with the compose bar at
-   its bottom -- so nothing hangs below the screen and the page behind never scrolls. The
-   thread grows upwards from the bar and scrolls inside. `height: 100%` resolves against the
-   modal body, which is a flexed item of a column of definite height. */
+   whole height -- head, figures, then the thread -- so nothing hangs below the screen and the
+   page behind never scrolls. `height: 100%` resolves against the modal body, which is a flexed
+   item of a column of definite height.
+
+   ⛔ The thread is as high as its content and no higher than what is left, as at the desk: a
+   thread of one message sits right under the figures with the compose bar under it, and what
+   the sheet has to spare stays empty below the bar. It took what was left before, grew
+   upwards from the bar, and one message stood at the bottom under a gap the height of the
+   screen (Bernd, 24.09.2026, at the device). A long thread shrinks to what is left and scrolls
+   inside, the bar at the bottom. */
 @media (width <= 575.98px) {
   .contact-window-inner {
     display: flex;
@@ -635,8 +673,18 @@ const toggleMute = async () => {
     height: 100%;
   }
 
+  /* ⚠️ Only the thread gives way. The blocks above it keep their height: with a long thread
+     the figures' line shrank to the one line it reserves (`min-height`, above) and its
+     second line ran under the button (measured at 390 px, two lines of figures). */
+  .contact-window-top,
+  .contact-window-head,
+  .contact-window-meta,
+  .contact-window-send {
+    flex-shrink: 0;
+  }
+
   .contact-window-thread {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
   }
 
   .contact-window-thread :deep(.chat-thread-scroll) {
