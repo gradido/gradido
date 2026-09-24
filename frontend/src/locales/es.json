@@ -322,6 +322,84 @@
     "unknown-error": "Error desconocido: "
   },
   "existingGradidoAccount": "¿Ya tienes una cuenta de {communityName}?",
+  "firstCreation": {
+    "again": "+ Había algo más",
+    "alsoFound": "Este mensaje también lo encontrarás en tus contribuciones y en tu buzón.",
+    "balance": "En tu cuenta",
+    "catalog": {
+      "accompaniedHardTime": "He acompañado a alguien en un momento difícil",
+      "animalShelter": "He ayudado en una protectora o en un santuario de animales",
+      "animalsOrNature": "He hecho algo por los animales o la naturaleza",
+      "caredForChildren": "He criado a mis hijos, los he acompañado en la vida",
+      "communityProject": "He ayudado a sacar adelante un proyecto comunitario (fiesta, agricultura solidaria, huerto comunitario …)",
+      "fireBrigadeRescue": "He colaborado con los bomberos voluntarios o en un servicio de rescate",
+      "helpedAtHome": "He ayudado en casa",
+      "helpedElderlyPerson": "He ayudado a una persona mayor",
+      "helpedFellowStudents": "He ayudado a mis compañeros de clase o de estudios",
+      "helpedNeighbourhood": "He echado una mano donde hacía falta en mi barrio",
+      "helpedOldPerson": "He ayudado a una persona anciana",
+      "helpedParish": "He ayudado en mi municipio o en mi parroquia",
+      "helpedSickPerson": "He ayudado a una persona enferma",
+      "lookedAfterGrandchildren": "Me he ocupado de mis nietos",
+      "lookedAfterOrTaught": "He cuidado de alguien o le he enseñado algo a alguien",
+      "madeSomeoneHappy": "Le he dado una alegría a alguien",
+      "musicChoirCulture": "He contribuido a la música, al coro o a la vida cultural de la comunidad",
+      "natureEnvironment": "He hecho algo por la naturaleza y el medio ambiente",
+      "nursedRelative": "He cuidado a un familiar",
+      "sharedKnowledge": "He transmitido mis conocimientos (clases particulares, curso, orientación)",
+      "supportedClub": "He apoyado a mi asociación",
+      "supportedDisabledPerson": "He apoyado a una persona con discapacidad"
+    },
+    "categories": {
+      "animalsNature": "Animales, naturaleza y medio ambiente",
+      "cannotThemselves": "Para personas que ahora mismo no pueden valerse por sí mismas",
+      "communityVolunteering": "Comunidad y voluntariado",
+      "familyCare": "Familia y cuidados",
+      "forChildren": "Para niños",
+      "knowledgeCulture": "Saber y cultura"
+    },
+    "checkHints": {
+      "child": "Tu tiempo también cuenta.",
+      "retiree": "La obra de tu vida cuenta."
+    },
+    "checks": {
+      "child": "Soy una niña / un niño.",
+      "retiree": "Soy jubilada / jubilado."
+    },
+    "confirmedFor": "Confirmado en nombre de la comunidad {community}",
+    "connector": "y",
+    "entries": "una entrada | {n} entradas",
+    "failed": "Eso no ha funcionado ahora mismo. Inténtalo de nuevo, por favor.",
+    "intro": "Los Gradido nacen de lo que las personas hacen por el bien común — también de lo que haces tú. Tu comienzo ya te lo hemos preparado.",
+    "maxEntries": "Aquí no caben más de {max} entradas — más adelante puedes añadir otras por tu cuenta cuando quieras.",
+    "nothing": "Ahora mismo no se me ocurre nada",
+    "placeholder": "Escríbelo con tus propias palabras.",
+    "projectAsk": {
+      "later": "Más tarde",
+      "project": "Esta es una cuenta de proyecto",
+      "text": "Cada persona puede crear en Gradido: por lo que hace por los demás. Si esta cuenta no es una persona, sino una asociación, un proyecto o un negocio, dínoslo aquí — una cuenta de proyecto no crea, recibe agradecimiento.",
+      "title": "No pasa nada — la pregunta volverá la próxima vez."
+    },
+    "question": "¿Qué cosas buenas has hecho ya en las últimas semanas?",
+    "remove": "Quitar entrada",
+    "review": "Falta que una persona revise tus entradas. Tendrás noticias nuestras.",
+    "showLess": "Mostrar menos",
+    "showMore": "Mostrar más ({count})",
+    "subtitle": "Elige algunas frases que encajen — bastan unas pocas. Puedes completarlas, cambiarlas o escribir otras totalmente tuyas.",
+    "thankSomeone": "Dar las gracias a alguien ahora",
+    "toAccount": "Ir a mi cuenta",
+    "tooShort": "Unas palabras más y podrás guardar.",
+    "unbooked": "Prueba sin abono — las contribuciones esperan revisión en el área de administración.",
+    "waiting": "La comunidad está leyendo lo que has escrito.",
+    "waitingHint": "Esto tarda un momento — alrededor de medio minuto. Puedes dejar la ventana abierta.",
+    "welcome": "¡Te damos la bienvenida, {name}!",
+    "welcomeAnonymous": "¡Te damos la bienvenida!",
+    "whyConfirmed": "Este primer agradecimiento lo ha confirmado el software al momento, para que puedas empezar enseguida. Todo lo que registres a partir de ahora lo lee también una persona — las moderadoras y los moderadores revisan cada contribución con cuidado y la confirman según su leal saber y entender.",
+    "whyHundred": "Los cien son para empezar, para conocernos. A partir de ahora hay más cada mes — hasta 1.000 Gradido por lo bueno que haces por el bien común.",
+    "whyHundredTitle": "¿Por qué cien?",
+    "whyMore": "Encontrarás información más detallada {link}.",
+    "whyMoreLink": "aquí"
+  },
   "followUs": "sigue nos:",
   "footer": {
     "app_version": "App versión {version}",
@@ -588,6 +666,8 @@
     },
     "list": {
       "centeredOn": "Alrededor de {place}",
+      "centeredOnFern": "Suprarregional · {km} km alrededor de {place}",
+      "centeredOnFernNoPlace": "Suprarregional · {km} km",
       "controlsHeading": "Búsqueda y orden",
       "dir": {
         "e": "al este",
@@ -648,8 +728,17 @@
       },
       "noWebgl": "This map needs WebGL 2. Your browser does not have it — the list shows the same matches.",
       "radius": "Radio",
+      "radiusHintFern": "Se aplica a la búsqueda suprarregional. El radio regional se mantiene en {km} km.",
+      "radiusHintRegional": "Se aplica a la búsqueda regional. El radio suprarregional se mantiene en {km} km.",
       "radiusLabel": "¿En qué radio quieres buscar? (km)",
       "radiusTitle": "Radio de búsqueda",
+      "radiusTitleFern": "Radio de búsqueda suprarregional",
+      "reach": {
+        "fern": "Suprarregional",
+        "fernHint": "La búsqueda suprarregional solo muestra entradas habilitadas para ello.",
+        "label": "Alcance",
+        "regional": "Regional"
+      },
       "search": "Buscar un lugar o una dirección",
       "searchFailed": "La búsqueda no está disponible en este momento.",
       "searchHere": "Buscar aquí",
@@ -659,7 +748,8 @@
       "cancel": "Cancelar",
       "completeSentence": "Completa esta frase:",
       "detailsHeading": "Detalles — para que las personas adecuadas te encuentren:",
-      "remote": "También disponible de forma suprarregional / en línea"
+      "remote": "También disponible de forma suprarregional / en línea",
+      "remoteHint": "Así también apareces en la búsqueda suprarregional."
     },
     "position": {
       "accuracyApprox": "Se muestra una ubicación ligeramente modificada",
@@ -740,6 +830,7 @@
     "email": "Te hemos enviado un correo electrónico.",
     "errorTitle": "¡Atención!",
     "register": "Ya estás registrado, por favor revisa tu correo electrónico y haz clic en el enlace de activación.",
+    "registerPresence": "Tu cuenta está lista. Un correo de confirmación va de camino a tu dirección. Inicia sesión ahora. Si no puedes iniciar sesión, quizá ya tenías una cuenta con esta dirección: entonces usa «¿Has olvidado tu contraseña?».",
     "reply": "Gracias, tu respuesta ha sido enviada.",
     "reset": "Tu contraseña ha sido cambiada.",
     "title": "¡Gracias!",
@@ -885,6 +976,27 @@
       "visibilityInfo": "Otros miembros ven tu imagen, por ejemplo junto a las transacciones que compartís. Cuando la opción está desactivada, aparecen tus iniciales, como hasta ahora."
     },
     "community": "Círculos y búsqueda de miembros",
+    "creationAccount": {
+      "confirm": {
+        "declare": "Cambiar a cuenta de proyecto",
+        "declareText": "Una cuenta de proyecto ya no crea. El apartado «Creación» desaparece de tu cuenta, y solo el soporte puede volver a activar la creación.",
+        "declareTitle": "¿De verdad quieres convertir esta cuenta en una cuenta de proyecto?",
+        "next": "Continuar",
+        "requestText": "La vuelta a la creación la revisa una persona. Enviamos un mensaje al soporte, que revisará tu cuenta y, si procede, la volverá a activar a mano. Tendrás noticias nuestras.",
+        "requestTitle": "¿Quieres volver a crear?",
+        "send": "Enviar el mensaje al soporte",
+        "typeWord": "Para cambiar a una cuenta de proyecto, que no puede crear, escribe: {word}",
+        "word": "PROYECTO"
+      },
+      "declared": "Esta cuenta es ahora una cuenta de proyecto. El apartado «Creación» está oculto.",
+      "mailFailed": "Ahora mismo no se ha podido enviar el mensaje al soporte. Inténtalo de nuevo más tarde.",
+      "openContributions": "Mientras tengas contribuciones abiertas, la cuenta no puede convertirse en cuenta de proyecto. Espera a que se confirmen o retíralas.",
+      "person": "Esta cuenta pertenece a una persona. Creo Gradido por lo que hago por los demás.",
+      "project": "Esta cuenta pertenece a un proyecto, una asociación o un negocio. No crea — recibe agradecimiento.",
+      "rateLimited": "Ya hemos enviado un mensaje al soporte en las últimas 24 horas — tendrás noticias nuestras.",
+      "requested": "La vuelta a la creación la revisa una persona. Acabamos de enviar un mensaje al soporte — tendrás noticias nuestras.",
+      "title": "Creación"
+    },
     "email": {
       "cancel": "Cancelar",
       "cancelled": "El cambio se ha descartado.",
@@ -904,6 +1016,19 @@
       "sent": "Hemos enviado un correo de confirmación a {email}."
     },
     "emailInfo": "Una nueva dirección es válida en cuanto la confirmes a través del enlace del correo de confirmación.",
+    "functionTests": {
+      "firstCreation": {
+        "failed": "Eso no ha funcionado. Recarga la página e inténtalo de nuevo.",
+        "intro": "La primera creación aparece solo una vez por cuenta — para una cuenta que ya ha creado, no vuelve nunca. Aquí puedes abrirla de nuevo para tu propia cuenta y recorrer todo el proceso de verdad.",
+        "noRunsLeft": "El cupo de este mes está agotado — quedan 0 de {total} pruebas.",
+        "runsLeft": "Pruebas restantes este mes: {left} de {total}",
+        "signerHint": "Tu cuenta está configurada como firmante de la primera creación. Nadie puede confirmar su propia contribución, por eso la prueba no funciona en tu cuenta — usa otra cuenta de administrador.",
+        "title": "Primera creación",
+        "unbookedHint": "Sin abono, las contribuciones quedan como contribuciones abiertas en el área de administración. Allí puedes confirmarlas o eliminarlas a mano — mientras sigan ahí, cuentan para tu cupo mensual.",
+        "withBooking": "Repetir la primera creación – con abono",
+        "withoutBooking": "Repetir la primera creación – sin abono"
+      }
+    },
     "hide-amount": "Ocultar el importe en {currency}",
     "humhub": {
       "delete-disabled": "La cuenta de usuario solo puede eliminarse en el menú de perfil de la plataforma de cooperación.",
@@ -922,6 +1047,7 @@
     "menu": {
       "account": "Mi cuenta",
       "appearance": "Visualización",
+      "function-tests": "Prueba de funcionamiento",
       "gradido-card": "Tarjeta de visita",
       "notifications": "Mensajes",
       "state": {
@@ -999,11 +1125,23 @@
       "title": "A alguien en otro lugar"
     },
     "here": {
+      "codeHint": "El código vale diez minutos, uno nuevo para cada invitado. Quien lo escanee puede usar su cuenta enseguida.",
+      "confirmFirst": "En cuanto tu dirección de correo esté confirmada, también podrás abrir cuentas aquí en la mesa. Hasta entonces, este código muestra tu tarjeta.",
+      "expired": "El código ha caducado.",
+      "limitReached": "Todas las plazas están ocupadas: {n} de tus invitados aún no han confirmado su dirección de correo. En cuanto uno de ellos la confirme, podrás volver a mostrar un código. Si no sabes cómo seguir, el soporte te ayuda.",
       "map": "el mapa",
+      "newCode": "Mostrar un código nuevo",
+      "noAnswer": "El código no ha llegado ahora mismo. Inténtalo de nuevo.",
+      "noPhone": "¿Sin móvil a mano? Abre aquí, en este dispositivo, la cuenta de tu invitado.",
+      "noPhoneHint": "Para ello se cerrará tu sesión. Cuando tu invitado termine, cerrará la suya y tú volverás a iniciar sesión.",
       "step1": "Muestra {map}. Deja que escriba lo que busca.",
       "step2": "Ella apunta con su cámara a este código.",
       "step3": "La cuenta la recibe por sí sola. No tienes que explicar nada.",
-      "title": "A alguien aquí conmigo"
+      "title": "A alguien aquí conmigo",
+      "unconfirmedGuest": "{firstName} {lastName} · {alias} · desde el {date}",
+      "unconfirmedGuests": "Un invitado tuyo aún no ha confirmado su dirección de correo: | {n} de tus invitados aún no han confirmado su dirección de correo:",
+      "unconfirmedHint": "Puedes recordarles el enlace de su correo. Si tienes que pedir al soporte que elimine una cuenta, envíale esta línea.",
+      "validFor": "Válido un minuto más | Válido {n} minutos más"
     },
     "mirror": {
       "go": "Muéstraselo a alguien más",
@@ -1039,6 +1177,10 @@
       "minimum": "Al menos 8 caracteres.",
       "no-whitespace": "Sin espacios ni tabulaciones.",
       "one_number": "Se requiere un número.",
+      "presenceExpired": "Este código ha caducado. Pide que te muestren uno nuevo y podrás usar tu cuenta enseguida. O regístrate aquí de la forma habitual y establece tu contraseña con el enlace del correo.",
+      "presenceFailed": "El código ha caducado. Pide que te muestren uno nuevo y escanéalo otra vez.",
+      "presenceHint": "Puedes usar tu cuenta enseguida. Confirma tu dirección de correo antes de mañana a esta hora; el correo sale en un momento. Hasta entonces, {name} verá que aún falta tu confirmación.",
+      "presenceLimit": "Con este código no se puede abrir otra cuenta ahora mismo: {name} ya avala a invitados que aún no han confirmado su dirección. En cuanto uno de ellos la confirme, vuelve a intentarlo. O regístrate aquí de la forma habitual y te llegará el enlace por correo.",
       "shownBy": "{name} te ha mostrado Gradido. Nos alegra que estés aquí.",
       "special-char": "Caracteres especiales requeridos (por ejemplo, _ o &)",
       "uppercase": "Letra mayúscula requerida."
