@@ -56,6 +56,46 @@ export const FIRST_CREATION_SCHEMA = {
 } as const
 
 /**
+ * How the member is addressed and how a line of thanks opens, in each language the window
+ * speaks (the ten of the wallet). A line is set behind that language's own "Die
+ * Gemeinschaft dankt Dir —" (core, `firstCreation.message.thanks`), so its first words
+ * have to continue exactly that sentence.
+ *
+ * ⚠️ Russian is addressed formally, like the whole Russian wallet: "вы" is the unmarked
+ * form towards an adult there, and its past tense needs no gender. Turkish puts its "for"
+ * at the END of the line ("... için").
+ */
+export const FIRST_CREATION_LINE_FORMS: Readonly<
+  Record<string, { address: string; opening: string }>
+> = {
+  de: { address: 'in der zweiten Person (Du)', opening: 'sie beginnt mit "für ..."' },
+  en: { address: 'in der zweiten Person (you)', opening: 'sie beginnt mit "for ..."' },
+  el: { address: 'in der zweiten Person Singular (εσύ)', opening: 'sie beginnt mit "για ..."' },
+  es: { address: 'in der zweiten Person Singular (tú)', opening: 'sie beginnt mit "por ..."' },
+  fr: { address: 'in der zweiten Person Singular (tu)', opening: 'sie beginnt mit "pour ..."' },
+  it: { address: 'in der zweiten Person Singular (tu)', opening: 'sie beginnt mit "per ..."' },
+  nl: { address: 'in der zweiten Person Singular (je)', opening: 'sie beginnt mit "voor ..."' },
+  pt: {
+    address: 'in der zweiten Person Singular (tu), europäisches Portugiesisch',
+    opening: 'sie beginnt mit "por ..."',
+  },
+  ru: {
+    address: 'in der Höflichkeitsform (вы, klein geschrieben)',
+    opening: 'sie beginnt mit "за ..."',
+  },
+  tr: { address: 'in der zweiten Person Singular (sen)', opening: 'sie endet mit "... için"' },
+}
+
+/**
+ * For a language outside the ten. None reaches the model today — without a catalog the
+ * window stays shut — but the task must still read sensibly if one ever did.
+ */
+const FALLBACK_LINE_FORM = {
+  address: 'in der zweiten Person (Du)',
+  opening: 'sie beginnt so, wie in dieser Sprache ein Dank "für ..." anschließt',
+}
+
+/**
  * The first-creation task, as the USER block of the request. The system prompt stays
  * `buildCreaSystemPrompt()` byte for byte, so this call shares the moderation Crea's
  * prompt cache (ES-007); everything the first creation adds lives here.
@@ -67,16 +107,18 @@ export function buildFirstCreationUserMessage(
   entries: FirstCreationModelEntry[],
   language: string,
 ): string {
+  const form = FIRST_CREATION_LINE_FORMS[language] ?? FALLBACK_LINE_FORM
   const lines: string[] = [
     '## Aufgabe: Erst-Schöpfung (Dank-Zeilen)',
     'Ein neues Mitglied hat beim ersten Öffnen seines Kontos die folgenden Sätze vervollständigt. Das Urteil steht fest: alle Beiträge werden bestätigt. Du bewertest NICHT und empfiehlst NICHT.',
     '',
     'Schreibe zu JEDEM Eintrag genau EINE Dank-Zeile:',
-    `- in der Sprache "${language}", in der zweiten Person (Du),`,
-    '- so gebaut, dass sie hinter "Die Gemeinschaft dankt Dir -" passt: im Deutschen beginnt sie mit "für ...", im Englischen mit "for ...", in anderen Sprachen entsprechend,',
+    `- in der Sprache "${language}", ${form.address},`,
+    `- so gebaut, dass sie hinter "Die Gemeinschaft dankt Dir -" in dieser Sprache passt: ${form.opening},`,
+    '- ohne Wortformen, die ein Geschlecht des Mitglieds festlegen: es ist nicht bekannt und wird nicht erraten,',
     '- umformuliert, nie wörtlich zitiert, ohne Einzelheiten, die nicht im Eintrag stehen,',
     '- Rechtschreibung und Grammatik des Eintrags weder korrigiert noch erwähnt,',
-    '- vorlesbar: kurze Worte, keine Oberflächen-Begriffe, kein Betrag, kein "Zahlung",',
+    '- vorlesbar: kurze Worte, keine Oberflächen-Begriffe, kein Betrag, kein Wort für "Zahlung" (in keiner Sprache),',
     `- höchstens ${FIRST_CREATION_LINE_MAX_CHARS} Zeichen, ohne Punkt am Ende.`,
     '',
     'Beispiele (deutsch):',
