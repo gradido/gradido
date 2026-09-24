@@ -22,10 +22,10 @@
       <p class="mb-0">{{ t('chatThread.empty') }}</p>
     </div>
 
-    <!-- ⛔ A log (role="log" is polite by default; aria-live spells it out) that exists only
-         once the first page is IN. A live region announces what is added to it; one that
-         stood empty while the page loaded would have read fifty messages aloud the moment
-         they landed.
+    <!-- ⛔ A named region, not a live one. `role="log"` announces what is added to it, and in
+         this step the only thing ever added is an older page, put in front at the reader's
+         own request -- up to fifty chat messages read aloud after one press (coderabbit,
+         #3970). The log comes back when new chat messages can arrive at the bottom (P3).
 
          Focusable, because it scrolls and a keyboard has to be able to scroll it -- and
          what can be focused needs a name, which is what the label is for. -->
@@ -33,8 +33,7 @@
       v-else-if="state === 'thread'"
       ref="scroller"
       class="chat-thread-box chat-thread-scroll"
-      role="log"
-      aria-live="polite"
+      role="region"
       :aria-label="t('chatThread.label', { name: alias })"
       tabindex="0"
       data-test="chat-thread-log"
@@ -54,9 +53,12 @@
           >
             {{ t('chatThread.loadOlder') }}
           </button>
+          <!-- `role="alert"`: the region around it announces nothing (see above), and a press
+               that brought nothing would pass in silence for whoever cannot see the line. -->
           <p
             v-if="olderFailed"
             class="chat-thread-older-failed"
+            role="alert"
             data-test="chat-thread-older-failed"
           >
             {{ t('chatThread.notReachable') }}

@@ -280,15 +280,18 @@ describe('ChatThread', () => {
     })
 
     /**
-     * A log a screen reader follows, named after the person, and focusable so a keyboard can
-     * scroll it.
+     * A region named after the person, focusable so a keyboard can scroll it.
+     *
+     * ⛔ And NOT a live one. The only thing ever added to it in this step is an older page, at
+     * the reader's own request -- a live region would read up to fifty chat messages aloud
+     * after one press (coderabbit, #3970).
      */
-    it('is a named log that a keyboard can reach', async () => {
+    it('is a named region that a keyboard can reach, and reads nothing aloud', async () => {
       mountThread()
       await arrive(page([1, 2]))
 
-      expect(log().attributes('role')).toBe('log')
-      expect(log().attributes('aria-live')).toBe('polite')
+      expect(log().attributes('role')).toBe('region')
+      expect(log().attributes('aria-live')).toBeUndefined()
       expect(log().attributes('aria-label')).toBe('chatThread.label {"name":"Lena"}')
       expect(log().attributes('tabindex')).toBe('0')
     })
@@ -491,9 +494,10 @@ describe('ChatThread', () => {
 
       expect(server.loading.value).toBe(true)
       expect(bubbleTexts()).toEqual(['message 5', 'message 6'])
-      expect(wrapper.find('[data-test="chat-thread-older-failed"]').text()).toBe(
-        'chatThread.notReachable',
-      )
+      const failed = wrapper.find('[data-test="chat-thread-older-failed"]')
+      expect(failed.text()).toBe('chatThread.notReachable')
+      // Said aloud on its own: the region around it announces nothing.
+      expect(failed.attributes('role')).toBe('alert')
       expect(older().attributes('aria-disabled')).toBe('false')
     })
 
