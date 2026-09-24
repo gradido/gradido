@@ -367,14 +367,6 @@ export const removeUserAvatar = gql`
   }
 `
 
-export const completeAssistedRegistration = gql`
-  mutation ($assistCode: String!, $email: String!, $password: String!) {
-    completeAssistedRegistration(assistCode: $assistCode, email: $email, password: $password) {
-      redeemCode
-    }
-  }
-`
-
 export const confirmEmailMutation = gql`
   mutation ($code: String!) {
     confirmEmail(code: $code)

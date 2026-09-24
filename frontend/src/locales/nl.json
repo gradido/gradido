@@ -24,16 +24,6 @@
     "text": "Nieuwe versie beschikbaar."
   },
   "assistedRegistration": {
-    "assist": {
-      "button": "Account aanmaken",
-      "done": "Het account is klaar! Een bevestigingsmail is onderweg naar het nieuwe postvak. Meld je nu aan en verzilver de cheque:",
-      "emailHint": "Voer hier het eigen e-mailadres van het nieuwe lid in — niet dat van jou. Het wachtwoord typt het nieuwe lid zelf.",
-      "emailTaken": "Dit e-mailadres heeft al een Gradido-account. Gebruik \"Wachtwoord vergeten\" om weer binnen te komen.",
-      "intro": "{name} wil een Gradido-account beginnen.",
-      "invalid": "Deze link is ongeldig of verlopen.",
-      "loginButton": "Aanmelden en cheque verzilveren",
-      "title": "Samen een Gradido-account aanmaken"
-    },
     "confirm": {
       "button": "Adres bevestigen",
       "done": "Je e-mailadres is bevestigd. Je account staat nu blijvend voor je open.",

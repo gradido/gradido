@@ -24,16 +24,6 @@
     "text": "A newer version is available."
   },
   "assistedRegistration": {
-    "assist": {
-      "button": "Set up account",
-      "done": "The account is ready! A confirmation mail is on its way to the new mailbox. Sign in now and redeem the cheque:",
-      "emailHint": "Enter the new member's own e-mail address here — not yours. The new member types the password themselves.",
-      "emailTaken": "This e-mail address already has a Gradido account. Use \"Forgot password\" to get back in.",
-      "intro": "{name} would like to start a Gradido account.",
-      "invalid": "This link is invalid or has expired.",
-      "loginButton": "Sign in and redeem the cheque",
-      "title": "Setting up a Gradido account together"
-    },
     "confirm": {
       "button": "Confirm address",
       "done": "Your e-mail address is confirmed. Your account is now open to you for good.",

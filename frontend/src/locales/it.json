@@ -24,16 +24,6 @@
     "text": "Nuova versione disponibile."
   },
   "assistedRegistration": {
-    "assist": {
-      "button": "Crea account",
-      "done": "L'account è pronto! Una mail di conferma è in viaggio verso la nuova casella. Accedi ora e incassa l'assegno:",
-      "emailHint": "Inserisci qui l'indirizzo e-mail del nuovo membro — non il tuo. La password la digita il nuovo membro.",
-      "emailTaken": "Questo indirizzo e-mail ha già un account Gradido. Usa \"Password dimenticata\" per rientrare.",
-      "intro": "{name} vuole iniziare un account Gradido.",
-      "invalid": "Questo link non è valido o è scaduto.",
-      "loginButton": "Accedi e incassa l'assegno",
-      "title": "Creare insieme un account Gradido"
-    },
     "confirm": {
       "button": "Conferma indirizzo",
       "done": "Il tuo indirizzo e-mail è confermato. Il tuo account ora ti resta aperto stabilmente.",

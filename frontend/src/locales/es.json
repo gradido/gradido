@@ -24,16 +24,6 @@
     "text": "Hay una versión más reciente."
   },
   "assistedRegistration": {
-    "assist": {
-      "button": "Crear cuenta",
-      "done": "¡La cuenta está lista! Un correo de confirmación va de camino al nuevo buzón. Inicia sesión ahora y canjea el cheque:",
-      "emailHint": "Introduce aquí la dirección de correo propia del nuevo miembro — no la tuya. La contraseña la escribe el nuevo miembro.",
-      "emailTaken": "Esta dirección de correo ya tiene una cuenta de Gradido. Usa «¿Has olvidado tu contraseña?» para volver a entrar.",
-      "intro": "{name} quiere empezar una cuenta de Gradido.",
-      "invalid": "Este enlace no es válido o ha caducado.",
-      "loginButton": "Iniciar sesión y canjear el cheque",
-      "title": "Crear juntos una cuenta de Gradido"
-    },
     "confirm": {
       "button": "Confirmar dirección",
       "done": "Tu dirección de correo está confirmada. Tu cuenta queda abierta para ti de forma permanente.",
