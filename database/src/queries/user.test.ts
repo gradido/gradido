@@ -31,6 +31,7 @@ import {
   dbSelectForeignMemberGradidoIds,
   dbSelectLatestUserBalances,
   dbSelectReferralContactsByUserId,
+  dbSelectUsersByUuids,
   dbUserUpdateField,
   dbUserUpdatePassword,
   findUserNamesByIds,
@@ -410,6 +411,72 @@ describe('user.queries', () => {
         await dbFindUserIdByUuids('99999999-9999-9999-9999-999999999999', bibi.gradidoID),
       ).toBeNull()
       expect(await dbFindUserIdByUuids(home, '00000000-0000-0000-0000-000000000000')).toBeNull()
+    })
+  })
+
+  describe('dbSelectUsersByUuids', () => {
+    const OTHER = '99999999-9999-9999-9999-999999999999'
+    let bibi: DbUser
+    let bob: DbUser
+    let stored: DbUser
+    let home: string
+
+    beforeAll(async () => {
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await DbCommunity.clear()
+      const community = await createCommunity(false)
+      home = community.communityUuid as string
+      bibi = await userFactory(bibiBloxberg)
+      bob = await userFactory(bobBaumeister)
+      await DbUser.update({ id: bob.id }, { deletedAt: new Date() })
+      // A member of another community the federation stored a row for.
+      stored = new DbUser()
+      stored.gradidoID = 'aaaaaaaa-1111-2222-3333-444444444444'
+      stored.communityUuid = OTHER
+      stored.alias = 'storedOne'
+      stored.foreign = true
+      stored = await stored.save()
+    })
+
+    const pairOf = (user: DbUser) => ({
+      communityUuid: user.communityUuid as string,
+      gradidoId: user.gradidoID,
+    })
+
+    it('finds the rows of the pairs, deleted and stored members included', async () => {
+      const rows = await dbSelectUsersByUuids([pairOf(bibi), pairOf(bob), pairOf(stored)])
+      expect(rows.map((row) => row.id).sort((a, b) => a - b)).toEqual(
+        [bibi.id, bob.id, stored.id].sort((a, b) => a - b),
+      )
+      const bobRow = rows.find((row) => row.id === bob.id)
+      expect(bobRow?.deletedAt).toBeInstanceOf(Date)
+      expect(rows.find((row) => row.id === stored.id)).toMatchObject({
+        communityUuid: OTHER,
+        alias: 'storedOne',
+        deletedAt: null,
+      })
+    })
+
+    it('finds a pair written in capitals, and hands it back as the row spells it', async () => {
+      const [row] = await dbSelectUsersByUuids([
+        { communityUuid: home.toUpperCase(), gradidoId: bibi.gradidoID.toUpperCase() },
+      ])
+      expect(row).toMatchObject({ id: bibi.id, communityUuid: home, gradidoId: bibi.gradidoID })
+    })
+
+    it('leaves out a pair without a row, and takes the whole pair', async () => {
+      expect(
+        await dbSelectUsersByUuids([
+          { communityUuid: home, gradidoId: '00000000-0000-0000-0000-000000000000' },
+          // bibi's id in another community is another person, and nobody.
+          { communityUuid: OTHER, gradidoId: bibi.gradidoID },
+        ]),
+      ).toEqual([])
+    })
+
+    it('answers nothing for no pairs', async () => {
+      expect(await dbSelectUsersByUuids([])).toEqual([])
     })
   })
 

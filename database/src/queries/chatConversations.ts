@@ -1,9 +1,16 @@
 // AI-GENERATED — not an architecture reference
-import { eq, sql } from 'drizzle-orm'
+import { and, eq, isNull, ne, or, sql } from 'drizzle-orm'
+import { alias as aliasedTable } from 'drizzle-orm/mysql-core'
 import { v4 as uuidv4 } from 'uuid'
 import { drizzleDb } from '../AppDatabase'
-import { ChatConversationSelect, chatConversationsTable } from '../schemas/drizzle.schema'
+import {
+  ChatConversationSelect,
+  chatConversationMembersTable,
+  chatConversationsTable,
+  chatMessagesTable,
+} from '../schemas/drizzle.schema'
 import { ChatMemberRef, dbInsertChatConversationMembers } from './chatConversationMembers'
+import { dbSelectUsersByUuids } from './user'
 
 /**
  * The key of the direct conversation between two members: each as `communityUuid/gradidoId`,
@@ -71,4 +78,89 @@ export async function dbEnsureDirectChatConversation(
   }
   await dbInsertChatConversationMembers(conversation.id, [sender, recipient])
   return conversation
+}
+
+/**
+ * Everybody this member has a direct conversation with: one row per conversation, and so
+ * one per person -- `direct_pair_key` is unique, so two members share at most one of them.
+ * The fourth source of the contact list (E-023, KF-012): a message is a shared event, so the
+ * two of them are contacts of each other without either adding the other.
+ *
+ * Per person: the pair and, where this server has a `users` row for it, that row's id, alias
+ * and deletion mark -- a member of another community who never booked with anybody here has
+ * none, and then only the pair is known. The pair is the row's own spelling where there is a
+ * row, so that it is the same string the booking and referral bundles key the person by.
+ *
+ * `firstAt` and `lastAt` are when the first and the latest message arrived HERE (E-018).
+ * `unreadChatMessages` counts the messages with an id above the member's own read pointer
+ * that somebody else wrote -- the member's own messages are never unread to them.
+ *
+ * Messages marked deleted count for none of the three, as they are on no page of the thread;
+ * a conversation left without a message has no row. So has one whose other member is
+ * missing: nothing to name.
+ *
+ * Direct conversations only: a group (P5) is not a person.
+ *
+ * ⛔ Two statements, not one join. The `users` rows are looked up by the pairs as parameters
+ * (`dbSelectUsersByUuids`): joining `users` to the chat tables compares columns of two
+ * collations, which the database refuses where they differ -- as it does in the database CI.
+ */
+export async function dbSelectDirectChatContactsByMember(member: ChatMemberRef) {
+  const me = aliasedTable(chatConversationMembersTable, 'me')
+  const partner = aliasedTable(chatConversationMembersTable, 'partner')
+  const writtenByMe = sql`${chatMessagesTable.senderCommunityUuid} = ${me.communityUuid} and ${chatMessagesTable.senderGradidoId} = ${me.gradidoId}`
+  const aboveMyPointer = sql`${chatMessagesTable.id} > coalesce(${me.lastReadMessageId}, 0)`
+  const conversations = await drizzleDb()
+    .select({
+      communityUuid: partner.communityUuid,
+      gradidoId: partner.gradidoId,
+      firstAt: sql`min(${chatMessagesTable.createdAt})`.mapWith(chatMessagesTable.createdAt),
+      lastAt: sql`max(${chatMessagesTable.createdAt})`.mapWith(chatMessagesTable.createdAt),
+      unreadChatMessages:
+        sql`count(case when ${aboveMyPointer} and not (${writtenByMe}) then 1 end)`.mapWith(Number),
+    })
+    .from(chatConversationsTable)
+    .innerJoin(
+      me,
+      and(
+        eq(me.conversationId, chatConversationsTable.id),
+        eq(me.communityUuid, member.communityUuid),
+        eq(me.gradidoId, member.gradidoId),
+      ),
+    )
+    .innerJoin(
+      partner,
+      and(
+        eq(partner.conversationId, chatConversationsTable.id),
+        or(ne(partner.communityUuid, me.communityUuid), ne(partner.gradidoId, me.gradidoId)),
+      ),
+    )
+    .innerJoin(
+      chatMessagesTable,
+      and(
+        eq(chatMessagesTable.conversationId, chatConversationsTable.id),
+        isNull(chatMessagesTable.deletedAt),
+      ),
+    )
+    .where(eq(chatConversationsTable.kind, 'direct'))
+    .groupBy(chatConversationsTable.id, partner.communityUuid, partner.gradidoId)
+
+  // Matched without regard to case, the way both tables compare (see directChatPairKey).
+  const pairKey = (pair: ChatMemberRef) => `${pair.communityUuid}/${pair.gradidoId}`.toLowerCase()
+  const usersByPair = new Map(
+    (await dbSelectUsersByUuids(conversations)).map((user) => [pairKey(user), user]),
+  )
+  return conversations.map((conversation) => {
+    const user = usersByPair.get(pairKey(conversation))
+    return {
+      linkedUserId: user?.id ?? null,
+      communityUuid: user?.communityUuid ?? conversation.communityUuid,
+      gradidoId: user?.gradidoId ?? conversation.gradidoId,
+      alias: user?.alias ?? null,
+      deletedAt: user?.deletedAt ?? null,
+      firstAt: conversation.firstAt,
+      lastAt: conversation.lastAt,
+      unreadChatMessages: conversation.unreadChatMessages,
+    }
+  })
 }

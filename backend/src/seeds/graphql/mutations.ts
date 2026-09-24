@@ -631,6 +631,12 @@ export const testCreaModel = gql`
   }
 `
 
+export const markChatConversationRead = gql`
+  mutation ($ref: MemberAvatarRefInput!, $upToMessageId: Int!) {
+    markChatConversationRead(ref: $ref, upToMessageId: $upToMessageId)
+  }
+`
+
 export const addFavorite = gql`
   mutation ($ref: MemberAvatarRefInput!) {
     addFavorite(ref: $ref)

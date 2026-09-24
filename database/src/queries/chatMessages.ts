@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { asc, eq, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, isNull, lt, sql } from 'drizzle-orm'
 import { Result, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { DBInsertFailed, DBNotFoundError } from '../errorTypes'
@@ -80,6 +80,47 @@ export async function dbUpdateChatMessageDelivery(
     return { success: true }
   }
   return { success: false, error: ChatMessageNotFound(`id = ${id}`) }
+}
+
+/**
+ * One page of a conversation: the newest `limit` messages with an id below `before` (all of
+ * them when `before` is not given), in the order they arrived, and whether older ones are
+ * left.
+ *
+ * Paged by the row id rather than by a page number. A conversation grows at the bottom while
+ * somebody reads it, so a page counted from the newest end shifts with every arrival and
+ * shows a message twice or skips one at its edge. The id of the oldest message on screen
+ * stays where it is, and it is the order itself (E-018): the next page asks for ids strictly
+ * below it, and the id is the primary key, so there is no tie for a boundary to split.
+ *
+ * Read newest first, `limit + 1` rows: the one row over the limit answers `hasMore` without
+ * a second query, and is not handed back. Messages marked deleted are not on any page.
+ *
+ * Throws for a limit below 1: that is a caller's bug, not a page (AGENTS.md).
+ */
+export async function dbSelectChatMessagesPage(
+  conversationId: number,
+  options: { before?: number; limit: number },
+): Promise<{ messages: ChatMessageSelect[]; hasMore: boolean }> {
+  if (!Number.isInteger(options.limit) || options.limit < 1) {
+    throw new Error(`dbSelectChatMessagesPage: ${options.limit} is not a page size`)
+  }
+  const newestFirst = await drizzleDb()
+    .select()
+    .from(chatMessagesTable)
+    .where(
+      and(
+        eq(chatMessagesTable.conversationId, conversationId),
+        isNull(chatMessagesTable.deletedAt),
+        options.before === undefined ? undefined : lt(chatMessagesTable.id, options.before),
+      ),
+    )
+    .orderBy(desc(chatMessagesTable.id))
+    .limit(options.limit + 1)
+  return {
+    messages: newestFirst.slice(0, options.limit).reverse(),
+    hasMore: newestFirst.length > options.limit,
+  }
 }
 
 /**

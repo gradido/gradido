@@ -41,9 +41,9 @@ const favoriteKey = (communityUuid: string, gradidoID: string): string =>
 @Resolver()
 export class ContactResolver {
   /**
-   * Everyone the caller shares an event with -- a view on their own bookings AND on the
-   * referral trace, each person once, newest first. Not a table: see
-   * dbSelectContactsByUserId.
+   * Everyone the caller shares an event with -- a view on their own bookings, the referral
+   * trace and their own conversations, each person once, newest first. Not a table: see
+   * dbSelectContactsByUserId. Ordered there, by the latest event; nothing here orders again.
    *
    * Every user in the answer is the same `User` model the booking row carries, so the
    * wallet reads the list by the fields it already knows. And by the same rule: nothing
@@ -88,6 +88,9 @@ export class ContactResolver {
     // nothing; everything below depends only on the page.
     const [page, home, favoriteRows] = await Promise.all([
       dbSelectContactsByUserId(user.id, {
+        // The same person as `user.id`, as a conversation member: the chat bundle is asked
+        // with the pair, never with users.id.
+        member: { communityUuid: user.communityUuid, gradidoId: user.gradidoID },
         search: search ?? undefined,
         counterparty,
         limit: pageSize,
@@ -186,6 +189,8 @@ export class ContactResolver {
           favorites.has(favoriteKey(model.communityUuid, model.gradidoID)),
           isSameCommunity(model.communityUuid, home?.communityUuid),
           row.origin,
+          row.unreadChatMessages,
+          row.lastChatMessageAt,
         ),
     )
     return new ContactList(contacts, page.count)
