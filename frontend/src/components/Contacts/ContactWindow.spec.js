@@ -139,7 +139,7 @@ describe('ContactWindow', () => {
     await flushPromises()
   }
   const bell = () => wrapper.find('[data-test="contact-window-bell"]')
-  const coin = () => wrapper.find('[data-test="contact-window-coin"]')
+  const sendButton = () => wrapper.find('[data-test="contact-window-send"]')
 
   it('names the person, their community and their face', () => {
     mountWindow()
@@ -227,7 +227,7 @@ describe('ContactWindow', () => {
       mountWindow(justTheMember)
 
       expect(wrapper.find('[data-test="contact-window-name"]').text()).toBe('Carla-Sonne')
-      expect(coin().exists()).toBe(true)
+      expect(sendButton().exists()).toBe(true)
     })
 
     // The address hangs off `homeCommunity`, which a booking row does not carry either --
@@ -367,10 +367,10 @@ describe('ContactWindow', () => {
     expect(wrapper.emitted('update:modelValue')).toBeUndefined()
   })
 
-  // The coin: the send form with the person already named, as the map's profile window opens it.
+  // The button: the send form with the person already named, as the map's profile window opens it.
   it('sends Gradido to the send form, with the person already named', async () => {
     mountWindow()
-    await coin().trigger('click')
+    await sendButton().trigger('click')
 
     // ⛔ The mode is named although only this way is left. This window stands beside /send,
     // so a tap only changes the params and the query -- the form is patched, not rebuilt --
@@ -383,7 +383,7 @@ describe('ContactWindow', () => {
 
   it('sends a member of another community down the same road', async () => {
     mountWindow(STRANGER)
-    await coin().trigger('click')
+    await sendButton().trigger('click')
 
     expect(pushSpy).toHaveBeenCalledWith({
       path: '/send/provence-uuid/sarah-id',
@@ -393,7 +393,7 @@ describe('ContactWindow', () => {
 
   it('closes itself on the way out, so it is not standing open behind the form', async () => {
     mountWindow()
-    await coin().trigger('click')
+    await sendButton().trigger('click')
 
     expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
   })
@@ -426,21 +426,17 @@ describe('ContactWindow', () => {
 
   /**
    * Behind the name, in Bernd's order (E-031): the heart and the bell, two marks of one's own
-   * on this person, then the coin, the one thing that goes somewhere.
+   * on this person. The coin that stood third went under the figures as a button with its word
+   * (Bernd, 24.09.2026).
    */
-  it('puts heart, bell and coin behind the name, in this order', async () => {
+  it('puts heart and bell behind the name, in this order', async () => {
     mountWindow()
     await threadSays({ exists: true, mutedByMe: false })
 
     const marks = [...wrapper.find('.contact-window-name-line').element.children].map((e) =>
       e.getAttribute('data-test'),
     )
-    expect(marks).toEqual([
-      'contact-window-name',
-      'heart',
-      'contact-window-bell',
-      'contact-window-coin',
-    ])
+    expect(marks).toEqual(['contact-window-name', 'heart', 'contact-window-bell'])
   })
 
   // Before the first message there is nothing to mute (E-024), and nothing is known before the
@@ -467,18 +463,37 @@ describe('ContactWindow', () => {
     expect(bell().exists()).toBe(false)
   })
 
-  it('gives the coin its name, for the ear and under the pointer', () => {
+  /**
+   * One way out, with its word (Bernd, 24.09.2026, at the device: the coin alone behind the
+   * name was not taken for a button), under the figures and above the line where the thread
+   * begins -- and no "Send e-mail" beside it.
+   */
+  it('offers one way out, with its word, under the figures and above the thread', () => {
     mountWindow()
-    expect(coin().attributes('aria-label')).toBe('contacts.sendGradido')
-    expect(coin().attributes('title')).toBe('contacts.sendGradido')
-    expect(coin().find('img').attributes('alt')).toBe('')
+    const row = wrapper.find('.contact-window-send')
+    const meta = wrapper.find('[data-test="contact-window-meta"]').element
+    const thread = wrapper.find('[data-test="chat-thread"]').element
+
+    expect(row.element.children).toHaveLength(1)
+    expect(sendButton().text()).toBe('contacts.sendGradido')
+    expect(meta.compareDocumentPosition(row.element) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    )
+    expect(row.element.compareDocumentPosition(thread) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    )
+    expect(wrapper.find('[data-test="contact-window-coin"]').exists()).toBe(false)
   })
 
-  // Gradido's own golden coin, the one on the sign-in page (Bernd, 24.09.2026) -- not a glyph
-  // on a disc of its own.
-  it("shows Gradido's golden coin, as on the sign-in page", () => {
+  // The send form's own white coin, as on the map's button; the word says it, so the glyph is
+  // hidden from a screen reader.
+  it('shows the white coin of the send form on it', () => {
     mountWindow()
-    expect(coin().find('img').attributes('src')).toBe('/img/brand/gradido_coin_128x128.png')
+    const glyph = sendButton().find('img')
+
+    expect(glyph.attributes('src')).toBe('/img/svg/gdd_coin_sw.svg')
+    expect(glyph.attributes('alt')).toBe('')
+    expect(glyph.attributes('aria-hidden')).toBe('true')
   })
 
   describe('the bell', () => {
@@ -681,11 +696,11 @@ describe('ContactWindow', () => {
   })
 
   // Real buttons that do not send a form, and none taken out of the tab order: a keyboard
-  // reaches the bell and the coin.
-  it('makes the bell and the coin buttons a keyboard reaches', async () => {
+  // reaches the bell and the way out.
+  it('makes the bell and the send button buttons a keyboard reaches', async () => {
     mountWindow()
     await threadSays({ exists: true, mutedByMe: false })
-    for (const mark of [bell(), coin()]) {
+    for (const mark of [bell(), sendButton()]) {
       expect(mark.element.tagName).toBe('BUTTON')
       expect(mark.attributes('type')).toBe('button')
       expect(mark.attributes('tabindex')).toBeUndefined()
@@ -702,13 +717,15 @@ describe('ContactWindow', () => {
    * they have one -- jsdom draws no outlines. Comments stripped first, so the explanation
    * beside the rule cannot stand in for it.
    */
-  it('gives the bell and the coin a visible focus ring, in the stylesheet', () => {
-    const rule = styleOf('ContactWindow.vue').match(
-      /\.contact-window-mark:focus-visible\s*\{[^}]*\}/,
-    )
+  it('gives the bell and the send button a visible focus ring, in the stylesheet', () => {
+    const code = styleOf('ContactWindow.vue')
+    const mark = code.match(/\.contact-window-mark:focus-visible\s*\{[^}]*\}/)
+    const send = code.match(/\.send-btn:focus-visible\s*\{[^}]*\}/)
 
-    expect(rule, 'the marks lost their focus rule').not.toBeNull()
-    expect(rule[0]).toMatch(/outline:\s*2px solid/)
+    expect(mark, 'the marks lost their focus rule').not.toBeNull()
+    expect(mark[0]).toMatch(/outline:\s*2px solid/)
+    expect(send, 'the send button lost its focus rule').not.toBeNull()
+    expect(send[0]).toMatch(/outline:\s*2px solid/)
   })
 
   /**
@@ -826,23 +843,29 @@ describe('ContactWindow', () => {
     expect(rule('\\.contact-window-head')).not.toMatch(/padding-right/)
   })
 
-  // The coin midway between the other marks and the compose bar's send button (Bernd,
-  // 24.09.2026): at the marks' size it looked smaller than the button below, at the button's
-  // size a touch too large. Held in both stylesheets.
-  it('makes the coin midway between the other marks and the send button', () => {
-    const rems = (file, selector) => {
-      const body = styleOf(file).match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
-      return ['width', 'height'].map((side) =>
-        Number(body.match(new RegExp(`(?:^|\\s)${side}:\\s*([\\d.]+)rem;`))?.[1] ?? NaN),
-      )
-    }
-    const mark = rems('ContactWindow.vue', '\\.contact-window-mark')
-    const send = rems('../Chat/ChatComposeBar.vue', '\\.chat-compose-send')
-    const coin = rems('ContactWindow.vue', '\\.contact-window-coin')
+  /**
+   * ⛔ "Im Prinzip genauso wie im Matching, nur … in diesem dunkleren Goldton" (Bernd,
+   * 24.09.2026). The map's profile window (MatchProfile.vue) and this one each carry the rules,
+   * so the spec holds them against each other with the one difference swapped in -- the gold,
+   * which it takes from the compose bar's send button, so the window's two gold buttons cannot
+   * drift apart either.
+   */
+  it("sends with the map profile's button, in the gold of the compose bar's send button", () => {
+    const rule = (file, name) =>
+      styleOf(file)
+        .match(new RegExp(`\\n\\.${name}\\s*\\{([^}]*)\\}`))?.[1]
+        ?.replace(/\s+/g, ' ')
+        .trim()
+    const gold = styleOf('../Chat/ChatComposeBar.vue').match(
+      /\n\.chat-compose-send\s*\{[^}]*\sbackground:\s*(#[0-9a-f]{6});/i,
+    )?.[1]
 
-    expect([...mark, ...send].every(Number.isFinite), 'a size went missing').toBe(true)
-    expect(coin[0]).toBeCloseTo((mark[0] + send[0]) / 2, 4)
-    expect(coin[1]).toBeCloseTo((mark[1] + send[1]) / 2, 4)
+    expect(gold, 'the send button lost its gold').toBeDefined()
+    for (const name of ['send-btn', 'send-gradido', 'send-coin']) {
+      const there = rule('../Matching/MatchProfile.vue', name)
+      expect(there, `MatchProfile lost .${name}`).toBeDefined()
+      expect(rule('ContactWindow.vue', name), `.${name}`).toBe(there.replaceAll('#178d81', gold))
+    }
   })
 
   it('closes from a cross that says what it is', async () => {
