@@ -862,3 +862,77 @@ describe('dbSelectContactsByUserId with conversations', () => {
     expect(bibiRow?.unreadChatMessages).toBe(1)
   })
 })
+
+/**
+ * One person spelled two ways (coderabbit on #3965): a member of another community with no
+ * `users` row here, whose booking stored the pair in small letters, and whose conversation
+ * member row holds it in capitals -- a gradido id typed in capitals passes the uuid check the
+ * chat files by. The contact list must still name her once.
+ *
+ * ⚠️ LAST in the file, and it leaves its booking behind: a seeded booking cannot be taken
+ * back, and nothing runs after this block (the file ends with clearDatabase).
+ */
+describe('dbSelectContactsByUserId with one person spelled two ways', () => {
+  const GRETA = 'abcdef00-0000-4000-8000-0000000000aa'
+  const GRETA_SHOUTING = { communityUuid: FOREIGN_COMMUNITY, gradidoId: GRETA.toUpperCase() }
+
+  beforeAll(async () => {
+    // After every booking bibi has, so the seeded balance only moves forward.
+    await foreignReceive(bibi, fromAfar(GRETA, 'GretaG'), day(14))
+    const withGreta = await dbEnsureDirectChatConversation(memberOf(bibi), GRETA_SHOUTING)
+    const stored = await dbInsertChatMessage({
+      messageUuid: uuidv4(),
+      conversationId: withGreta.id,
+      senderCommunityUuid: bibi.communityUuid as string,
+      senderGradidoId: bibi.gradidoID,
+      subject: null,
+      body: 'hello',
+      notify: 'email',
+      deliveryState: 'delivered',
+      createdAt: day(15),
+    })
+    if (!stored.success) {
+      throw new Error('fixture: the message was not filed')
+    }
+  })
+
+  afterAll(async () => {
+    const db = AppDatabase.getInstance().getDataSource()
+    for (const table of ['chat_messages', 'chat_conversation_members', 'chat_conversations']) {
+      await db.query(`DELETE FROM \`${table}\``)
+    }
+  })
+
+  const gretaRows = <T extends { gradidoId: string }>(contacts: T[]): T[] =>
+    contacts.filter((c) => c.gradidoId.toLowerCase() === GRETA)
+
+  it('lists her once, with the booking and the conversation', async () => {
+    const page = await dbSelectContactsByUserId(bibi.id, {
+      member: memberOf(bibi),
+      limit: 25,
+      offset: 0,
+    })
+    const [greta, ...more] = gretaRows(page.contacts)
+    expect(more).toEqual([])
+    expect(greta).toMatchObject({ gradidoId: GRETA, bookings: 1, unreadChatMessages: 0 })
+    expect(greta.lastChatMessageAt?.getTime()).toBe(day(15).getTime())
+    expect(greta.lastAt.getTime()).toBe(day(15).getTime())
+    // Counted once as well.
+    expect(new Set(page.contacts.map((c) => c.gradidoId.toLowerCase())).size).toBe(page.count)
+  })
+
+  it('answers about her by the pair in either spelling', async () => {
+    for (const gradidoId of [GRETA, GRETA.toUpperCase()]) {
+      const counterparty = await withMember(FOREIGN_COMMUNITY, gradidoId)
+      const page = await dbSelectContactsByUserId(bibi.id, {
+        member: memberOf(bibi),
+        counterparty,
+        limit: 25,
+        offset: 0,
+      })
+      expect(page.count).toBe(1)
+      expect(page.contacts[0]).toMatchObject({ bookings: 1, unreadChatMessages: 0 })
+      expect(page.contacts[0].lastChatMessageAt?.getTime()).toBe(day(15).getTime())
+    }
+  })
+})

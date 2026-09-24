@@ -111,11 +111,17 @@ export const bookingsWhere = (
  * answers with a count of 0 over an empty booking list -- which is the two rules agreeing,
  * not drifting. What must not happen is a LINK to that empty list, and the window does not
  * draw one where the count is 0 (ContactWindow.vue).
+ *
+ * The pair branch compares without regard to case: a uuid in capitals is the same uuid. A
+ * chat row keeps the spelling of its conversation member where this server has no `users`
+ * row for the person, and a gradido id typed in capitals passes the uuid check the chat
+ * files by -- so the same person can arrive here spelled two ways (coderabbit on #3965).
  */
 const isContactCounterparty = (row: ContactRow, counterparty: BookingCounterparty): boolean =>
   row.linkedUserId !== null
     ? row.linkedUserId === counterparty.localUserId
-    : row.gradidoId === counterparty.gradidoId && row.communityUuid === counterparty.communityUuid
+    : row.gradidoId.toLowerCase() === counterparty.gradidoId.toLowerCase() &&
+      row.communityUuid?.toLowerCase() === counterparty.communityUuid.toLowerCase()
 
 /**
  * The four bundles can describe the SAME person more than once -- joined back into one
@@ -162,7 +168,9 @@ const mergeSamePerson = (rows: ContactRow[]): ContactRow[] => {
   const byPair = new Map<string, ContactRow>()
   const contacts: ContactRow[] = []
   for (const row of rows) {
-    const key = row.communityUuid === null ? null : `${row.communityUuid}/${row.gradidoId}`
+    // Lower-cased: one person may arrive spelled two ways -- see isContactCounterparty.
+    const key =
+      row.communityUuid === null ? null : `${row.communityUuid}/${row.gradidoId}`.toLowerCase()
     const seen = key === null ? undefined : byPair.get(key)
     if (seen === undefined) {
       if (key !== null) {
