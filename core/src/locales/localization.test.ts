@@ -26,9 +26,17 @@ describe('translateForLocale', () => {
     ).toBe('Ich habe einem kranken Menschen geholfen, indem ich Suppe gekocht habe')
   })
 
-  it('falls back to English for a locale that has no translation yet', () => {
-    // The first-creation keys exist in de and en only for now (L1).
-    expect(translateForLocale('fr', 'firstCreation.message.closing')).toBe('Good to have you here.')
+  it('falls back to English for a locale it does not carry', () => {
+    // All ten languages of the wallet carry the first-creation keys; Polish stands for a
+    // language that might be added to the wallet before its texts reach core.
+    expect(translateForLocale('pl', 'firstCreation.message.closing')).toBe('Good to have you here.')
+  })
+
+  it('answers in each of the languages the first creation ships in', () => {
+    expect(translateForLocale('fr', 'firstCreation.message.greetingNeutral', { name: 'Zoé' })).toBe(
+      'Bienvenue, Zoé !',
+    )
+    expect(translateForLocale('ru', 'firstCreation.message.closing')).toBe('Хорошо, что вы с нами.')
   })
 
   it('inserts the values as they are - no HTML escaping of apostrophes, ampersands, slashes', () => {
@@ -48,7 +56,9 @@ describe('translateForLocale', () => {
 
   it('says whether a locale carries a phrase itself, without counting the fallback', () => {
     expect(hasPhraseInLocale('de', 'firstCreation.catalog.helpedAtHome')).toBe(true)
-    expect(hasPhraseInLocale('fr', 'firstCreation.catalog.helpedAtHome')).toBe(false)
+    expect(hasPhraseInLocale('fr', 'firstCreation.catalog.helpedAtHome')).toBe(true)
+    // English has the phrase, Polish does not: the fallback is not counted.
+    expect(hasPhraseInLocale('pl', 'firstCreation.catalog.helpedAtHome')).toBe(false)
     expect(hasPhraseInLocale('fr', 'emails.accountMultiRegistration.contactSupport')).toBe(true)
   })
 

@@ -213,7 +213,7 @@
       "greetingNeutral": "Welcome, {name}!",
       "internalNote": "Crea paused this first creation: {reason}. Please review and confirm, change or deny it by hand.",
       "retireeLine": "for your life's work: all the years you were there for others",
-      "review": "A person is still looking at your entries. You will hear from us.",
+      "review": "A person will take a look at your entries. You will hear from us.",
       "thanks": "The community thanks you — {lines}.",
       "thanksOnlyCheck": "The community thanks you — {checkLine}.",
       "thanksWithCheck": "The community thanks you — {lines}. And {checkLine}.",

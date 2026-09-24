@@ -63,7 +63,7 @@
                  and only its tail was in the box. The sentence is IN the box now, editable
                  from its first word — echoing it here would print it twice, and the second
                  copy would be the one nobody can change (Bernd, 06.09.). -->
-            <span class="fc-row-text">{{ $t(`firstCreation.catalog.${stem}`) }}</span>
+            <span class="fc-row-text">{{ rowLabel(stem) }}</span>
           </button>
 
           <!-- Every entry made from this stem, in the order they were opened. The same
@@ -505,6 +505,15 @@ const wordCount = (text) => (text ?? '').trim().split(/\s+/).filter(Boolean).len
  */
 const prefillFor = (stem) =>
   `${t(`firstCreation.catalog.${stem}`)} ${t('firstCreation.connector')} `
+
+/**
+ * The stem as the ROW shows it: without a trailing comma. The German stems end in one
+ * ("Ich habe einem kranken Menschen geholfen,") because in the box the connector follows
+ * ("…, indem ich"); on the button nothing follows, and the comma hung there alone (Bernd,
+ * 24.09.). The box keeps the stem as it is — `prefillFor` above is untouched, and so is
+ * `ownWords`, which measures against it.
+ */
+const rowLabel = (stem) => t(`firstCreation.catalog.${stem}`).replace(/,\s*$/, '')
 
 /**
  * How much of this entry is the MEMBER'S. While the text still begins with the opening, it

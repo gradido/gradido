@@ -26,10 +26,11 @@ vi.mock('bootstrap-vue-next', () => ({
   },
 }))
 // The word comes from the locale, so the test names it here rather than reading de.json:
-// what is under test is the gate, not the translation.
+// what is under test is the gate, not the translation. One test swaps in the Greek word.
+const locale = vi.hoisted(() => ({ word: 'PROJEKTKONTO' }))
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
-    t: (key) => (key === 'settings.creationAccount.confirm.word' ? 'PROJEKTKONTO' : key),
+    t: (key) => (key === 'settings.creationAccount.confirm.word' ? locale.word : key),
   }),
 }))
 
@@ -66,6 +67,29 @@ describe('ProjectAccountConfirm', () => {
       expect(declareButton(wrapper).attributes('disabled')).toBeUndefined()
       await wrapper.find('form').trigger('submit')
       expect(wrapper.emitted('confirm')).toHaveLength(1)
+    })
+
+    /**
+     * Greek capitals carry no accent, so the word is "ΕΡΓΟ" — and the member types
+     * "έργο", or "Έργο" when the phone capitalises the first letter. Upper-cased, both
+     * keep their accent ("ΈΡΓΟ") and never matched; the button stayed pale for everybody
+     * who wrote the word correctly.
+     */
+    it('takes the word with or without accents', async () => {
+      locale.word = 'ΕΡΓΟ'
+      try {
+        const wrapper = build('declare')
+        await wrapper.find('[data-test="project-account-confirm-next"]').trigger('click')
+        const input = wrapper.find('[data-test="project-account-confirm-word"]')
+        for (const typed of ['έργο', 'Έργο', 'εργο', 'ΕΡΓΟ']) {
+          await input.setValue(typed)
+          expect(declareButton(wrapper).attributes('disabled'), typed).toBeUndefined()
+        }
+        await input.setValue('έργα')
+        expect(declareButton(wrapper).attributes('disabled')).toBeDefined()
+      } finally {
+        locale.word = 'PROJEKTKONTO'
+      }
     })
 
     it('confirms on Enter (a form submit) only with the word typed', async () => {
