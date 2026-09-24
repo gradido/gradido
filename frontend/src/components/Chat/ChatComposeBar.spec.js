@@ -200,6 +200,7 @@ describe('ChatComposeBar', () => {
       await field().setValue('Hallo')
       await box().setValue(true)
       field().element.focus()
+      await button().trigger('click')
 
       await wrapper.setProps({ sending: true })
       await wrapper.setProps({ sending: false })
@@ -217,6 +218,7 @@ describe('ChatComposeBar', () => {
       document.body.appendChild(elsewhere)
       mountBar({}, { attachTo: document.body })
       await field().setValue('Hallo')
+      await button().trigger('click')
 
       await wrapper.setProps({ sending: true })
       elsewhere.focus()
@@ -236,6 +238,7 @@ describe('ChatComposeBar', () => {
       mountBar()
       await field().setValue('Hallo')
       await box().setValue(true)
+      await button().trigger('click')
 
       await wrapper.setProps({ sending: true })
       await wrapper.setProps({ sending: false, failed: true })
@@ -246,6 +249,41 @@ describe('ChatComposeBar', () => {
       const line = wrapper.find('[data-test="chat-compose-failed"]')
       expect(line.text()).toBe('chatThread.notSent')
       expect(line.attributes('role')).toBe('alert')
+    })
+
+    /**
+     * ⛔ Only what went out is cleared. The field stays writable while the message is on its
+     * way, and what the member typed meanwhile is theirs (coderabbit, PR #3974); the box
+     * belonged to the message that went out.
+     */
+    it('keeps text typed while the message was on its way', async () => {
+      mountBar()
+      await field().setValue('Hallo')
+      await box().setValue(true)
+      await button().trigger('click')
+      await wrapper.setProps({ sending: true })
+
+      await field().setValue('Hallo\nUnd noch etwas')
+      await wrapper.setProps({ sending: false })
+      await flushPromises()
+
+      expect(field().element.value).toBe('Hallo\nUnd noch etwas')
+      expect(box().element.checked).toBe(false)
+    })
+
+    // …and a box ticked while the message was on its way is a wish for the next one.
+    it('keeps a box ticked while the message was on its way', async () => {
+      mountBar()
+      await field().setValue('Hallo')
+      await button().trigger('click')
+      await wrapper.setProps({ sending: true })
+
+      await box().setValue(true)
+      await wrapper.setProps({ sending: false })
+      await flushPromises()
+
+      expect(field().element.value).toBe('')
+      expect(box().element.checked).toBe(true)
     })
   })
 

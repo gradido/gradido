@@ -169,8 +169,15 @@ const grow = () => {
   box.style.height = `${box.scrollHeight + box.offsetHeight - box.clientHeight}px`
 }
 
+/**
+ * What went out with the last press. The field stays writable while a message is on its way,
+ * so what is cleared afterwards is only what went out (coderabbit, PR #3974).
+ */
+let submitted = null
+
 const submit = () => {
   if (!canSend.value) return
+  submitted = { text: text.value, alsoByEmail: alsoByEmail.value }
   emit('send', {
     body: body.value,
     // The first message mails whatever is asked (the server sets it); asking for it as well
@@ -199,13 +206,21 @@ const focusStaysHere = () => {
  * A message went through: the field empties, the box is empty again (E-024: the wish is for
  * one message) and the keyboard stays in the field for the next one. A message that did not
  * go through leaves all of it as it was.
+ *
+ * ⛔ Only what went out is cleared. Text typed while the message was on its way stays, and so
+ * does a box the member changed meanwhile: the text in the field is never lost but by sending
+ * it.
  */
 watch(
   () => props.sending,
   async (now, before) => {
-    if (!before || now || props.failed) return
+    if (!before || now) return
+    const sent = submitted
+    submitted = null
+    if (props.failed || !sent) return
+    if (alsoByEmail.value === sent.alsoByEmail) alsoByEmail.value = false
+    if (text.value !== sent.text) return
     text.value = ''
-    alsoByEmail.value = false
     await nextTick()
     grow()
     if (focusStaysHere()) field.value?.focus({ preventScroll: true })
