@@ -55,7 +55,7 @@ export class ContributionLinkResolver {
       affectedUserId: 0,
       actingUserId: getUser(context).id,
       involvedContributionLinkId: dbContributionLink.id,
-      amountGdd4: amount.gddCent,
+      amountGdd4: amount,
     })
 
     return new ContributionLink(dbContributionLink)
@@ -139,7 +139,7 @@ export class ContributionLinkResolver {
       affectedUserId: 0,
       actingUserId: getUser(context).id,
       involvedContributionLinkId: dbContributionLink.id,
-      amountGdd4: amount.gddCent,
+      amountGdd4: amount,
     })
 
     return new ContributionLink(dbContributionLink)

@@ -181,8 +181,8 @@ export const eventsTable = mysqlTable('events', {
   involvedContributionMessageId: int('involved_contribution_message_id').default(sql`NULL`),
   involvedTransactionLinkId: int('involved_transaction_link_id').default(sql`NULL`),
   involvedContributionLinkId: int('involved_contribution_link_id').default(sql`NULL`),
-  amountLegacy: bigint('amount_legacy', { mode: 'bigint' }).default(sql`NULL`),
-  amountGdd4: bigint('amount_gdd4', { mode: 'bigint' }).default(sql`NULL`),
+  amountLegacy: customGradidoUnit('amount_legacy').default(sql`NULL`),
+  amountGdd4: customGradidoUnit('amount_gdd4').default(sql`NULL`),
 })
 
 export type EventSelect = typeof eventsTable.$inferSelect

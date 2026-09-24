@@ -1,5 +1,5 @@
 import { and, eq } from 'drizzle-orm'
-import { GradidoUnit, Order } from 'shared'
+import { Order } from 'shared'
 import { EntityManager } from 'typeorm'
 import { drizzleDb } from '../AppDatabase'
 import { ContributionLink as DbContributionLink, Event as DbEvent, User as DbUser } from '../entity'
@@ -86,8 +86,5 @@ export async function dbInsertEventInTransaction(
   event: Omit<EventInsert, 'amountLegacy'>,
 ): Promise<void> {
   const { amountGdd4, ...columns } = event
-  await manager.insert(DbEvent, {
-    ...columns,
-    amount: amountGdd4 == null ? null : GradidoUnit.fromGradidoCent(amountGdd4),
-  })
+  await manager.insert(DbEvent, { ...columns, amount: amountGdd4 ?? null })
 }

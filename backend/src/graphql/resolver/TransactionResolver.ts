@@ -232,7 +232,7 @@ export const executeTransaction = async (
         actingUserId: sender.id,
         involvedUserId: recipient.id,
         involvedTransactionId: transactionSend.id,
-        amountGdd4: transactionSend.amount.gddCent,
+        amountGdd4: transactionSend.amount,
       })
 
       await dbInsertEvent({
@@ -241,7 +241,7 @@ export const executeTransaction = async (
         actingUserId: sender.id,
         involvedUserId: sender.id,
         involvedTransactionId: transactionReceive.id,
-        amountGdd4: transactionReceive.amount.gddCent,
+        amountGdd4: transactionReceive.amount,
       })
       // update dltTransaction with transactionId
       const startTime = new Date()

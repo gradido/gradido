@@ -170,7 +170,7 @@ export class ContributionResolver {
       affectedUserId: user.id,
       actingUserId: user.id,
       involvedContributionId: contribution.id,
-      amountGdd4: contribution.amount.gddCent,
+      amountGdd4: contribution.amount,
     })
 
     const res = await contribution.softRemove()
@@ -269,7 +269,7 @@ export class ContributionResolver {
       affectedUserId: user.id,
       actingUserId: user.id,
       involvedContributionId: contribution.id,
-      amountGdd4: contributionArgs.amount.gddCent,
+      amountGdd4: contributionArgs.amount,
     })
 
     return new UnconfirmedContribution(contribution)
@@ -337,7 +337,7 @@ export class ContributionResolver {
       affectedUserId: emailContact.user.id,
       actingUserId: moderator.id,
       involvedContributionId: contribution.id,
-      amountGdd4: amount.gddCent,
+      amountGdd4: amount,
     })
 
     return getUserCreation(emailContact.userId, clientTimezoneOffset)
@@ -391,7 +391,7 @@ export class ContributionResolver {
       affectedUserId: contribution.userId,
       actingUserId: moderator.id,
       involvedContributionId: contribution.id,
-      amountGdd4: contribution.amount.gddCent,
+      amountGdd4: contribution.amount,
     })
     if (createdByUserChangedByModerator && adminUpdateContributionArgs.memo) {
       const user = await DbUser.findOneOrFail({
@@ -549,7 +549,7 @@ export class ContributionResolver {
       affectedUserId: contribution.userId,
       actingUserId: moderator.id,
       involvedContributionId: contribution.id,
-      amountGdd4: contribution.amount.gddCent,
+      amountGdd4: contribution.amount,
     })
     await sendContributionDeletedEmail({
       firstName: user.firstName,
@@ -640,7 +640,7 @@ export class ContributionResolver {
       affectedUserId: user.id,
       actingUserId: moderator.id,
       involvedContributionId: contributionToUpdate.id,
-      amountGdd4: contributionToUpdate.amount.gddCent,
+      amountGdd4: contributionToUpdate.amount,
     })
 
     await sendContributionDeniedEmail({

@@ -176,7 +176,7 @@ export const confirmContributionAs = async (
       affectedUserId: user.id,
       actingUserId: signer.id,
       involvedContributionId: contribution.id,
-      amountGdd4: contribution.amount.gddCent,
+      amountGdd4: contribution.amount,
     })
   } finally {
     // releaseLock()

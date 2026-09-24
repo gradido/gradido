@@ -65,7 +65,7 @@ export const createUserContribution = async (
     affectedUserId: user.id,
     actingUserId: user.id,
     involvedContributionId: contribution.id,
-    amountGdd4: amount.gddCent,
+    amountGdd4: amount,
   })
 
   return contribution

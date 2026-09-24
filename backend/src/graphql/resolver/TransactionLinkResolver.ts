@@ -125,7 +125,7 @@ export class TransactionLinkResolver {
       affectedUserId: user.id,
       actingUserId: user.id,
       involvedTransactionLinkId: transactionLink.id,
-      amountGdd4: amount.gddCent,
+      amountGdd4: amount,
     })
     // wait for dlt transaction to be created
     const startTime = Date.now()
@@ -407,7 +407,7 @@ export class TransactionLinkResolver {
             involvedTransactionId: transaction.id,
             involvedContributionId: contribution.id,
             involvedContributionLinkId: contributionLink.id,
-            amountGdd4: contributionLink.amount.gddCent,
+            amountGdd4: contributionLink.amount,
           })
           if (dltTransactionPromise) {
             const startTime = new Date()
@@ -479,7 +479,7 @@ export class TransactionLinkResolver {
           actingUserId: user.id,
           involvedUserId: transactionLink.userId,
           involvedTransactionLinkId: transactionLink.id,
-          amountGdd4: transactionLink.amount.gddCent,
+          amountGdd4: transactionLink.amount,
         })
       } finally {
         // releaseLinkLock()
