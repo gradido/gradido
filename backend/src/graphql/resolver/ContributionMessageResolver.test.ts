@@ -3,10 +3,9 @@ import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
 import { sendAddedContributionMessageEmail } from 'core'
-import { AppDatabase, Contribution as DbContribution, Event as DbEvent } from 'database'
+import { AppDatabase, Contribution as DbContribution, Event as DbEvent, EventType } from 'database'
 import { GraphQLError } from 'graphql'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { EventType } from '@/event/Events'
 import { userFactory } from '@/seeds/factory/user'
 import {
   adminCreateContributionMessage,

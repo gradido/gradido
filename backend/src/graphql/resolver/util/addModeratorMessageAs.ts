@@ -6,6 +6,8 @@ import {
   Contribution as DbContribution,
   ContributionMessage as DbContributionMessage,
   User as DbUser,
+  dbInsertEvent,
+  EventType,
 } from 'database'
 import { getLogger } from 'log4js'
 import { EntityManager, FindOptionsRelations } from 'typeorm'
@@ -13,7 +15,6 @@ import { EntityManager, FindOptionsRelations } from 'typeorm'
 import { Role } from '@/auth/Role'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { PublishNameLogic } from '@/data/PublishName.logic'
-import { EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE } from '@/event/Events'
 import { ContributionMessageArgs } from '@/graphql/arg/ContributionMessageArgs'
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
 import { Context, newRequestBudget } from '@/server/context'
@@ -131,11 +132,12 @@ export const addModeratorMessageAs = async (
     })
   }
 
-  await EVENT_ADMIN_CONTRIBUTION_MESSAGE_CREATE(
-    { id: finalContribution.userId } as DbUser,
-    signer,
-    finalContribution,
-    finalContributionMessage,
-  )
+  await dbInsertEvent({
+    type: EventType.ADMIN_CONTRIBUTION_MESSAGE_CREATE,
+    affectedUserId: finalContribution.userId,
+    actingUserId: signer.id,
+    involvedContributionId: finalContribution.id,
+    involvedContributionMessageId: finalContributionMessage.id,
+  })
   return finalContributionMessage
 }

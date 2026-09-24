@@ -24,6 +24,8 @@ import {
   dbFindPendingEmailChangeByVetoCode,
   dbFindUserContactByEmail,
   dbGetUserById,
+  dbInsertEvent,
+  dbInsertEventInTransaction,
   dbInsertPendingEmailChange,
   dbLockUserRow,
   dbMarkUserContactPending,
@@ -32,6 +34,7 @@ import {
   dbSaveUser,
   dbSaveUserContact,
   dbUpdateUserPassword,
+  EventType,
 } from 'database'
 import { getLogger } from 'log4js'
 import random from 'random-bigint'
@@ -48,12 +51,6 @@ import {
   isEmailVerificationCodeValid,
   resendAllowedAt,
 } from '@/data/EmailVerificationCode.logic'
-import {
-  EVENT_EMAIL_ADMIN_CONFIRMATION,
-  EVENT_EMAIL_CHANGE_CONFIRMED,
-  EVENT_EMAIL_CHANGE_REQUEST,
-  EventType,
-} from '@/event/Events'
 import { encryptPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
@@ -370,7 +367,13 @@ export class EmailChangeResolver {
         row = inserted.value
       }
 
-      await EVENT_EMAIL_CHANGE_REQUEST(user, manager)
+      // Also the rate limit: the pending row can be cancelled and recreated, this cannot.
+      // Written under the same lock it is read under.
+      await dbInsertEventInTransaction(manager, {
+        type: EventType.EMAIL_CHANGE_REQUEST,
+        affectedUserId: user.id,
+        actingUserId: user.id,
+      })
       return { row, currentContact: lockedUser.emailContact }
     })
 
@@ -468,7 +471,11 @@ export class EmailChangeResolver {
       const lockedUser = await dbGetUserById(user.id, false, true, manager).catch((e) => {
         throw new LogError('Error resending the email change', e)
       })
-      await EVENT_EMAIL_CHANGE_REQUEST(user, manager)
+      await dbInsertEventInTransaction(manager, {
+        type: EventType.EMAIL_CHANGE_REQUEST,
+        affectedUserId: user.id,
+        actingUserId: user.id,
+      })
       return { row: found, currentContact: lockedUser.emailContact }
     })
     if (!resent) {
@@ -597,7 +604,11 @@ export class EmailChangeResolver {
       }
 
       // The record belongs to the change: neither without the other.
-      await EVENT_EMAIL_CHANGE_CONFIRMED(user, manager)
+      await dbInsertEventInTransaction(manager, {
+        type: EventType.EMAIL_CHANGE_CONFIRMED,
+        affectedUserId: user.id,
+        actingUserId: user.id,
+      })
 
       return { user, newEmail: pending.email, oldEmail, oldWasConfirmed, takeBack }
     }).catch((e) => {
@@ -801,7 +812,11 @@ export class EmailChangeResolver {
       activationLink: `${CONFIG.EMAIL_LINK_SETPASSWORD}${contact.emailVerificationCode}`,
       timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
-    await EVENT_EMAIL_ADMIN_CONFIRMATION(user, moderator)
+    await dbInsertEvent({
+      type: EventType.EMAIL_ADMIN_CONFIRMATION,
+      affectedUserId: user.id,
+      actingUserId: moderator.id,
+    })
     logger.info('adminReplaceUnconfirmedEmail... corrected and activation mail sent')
     return email
   }

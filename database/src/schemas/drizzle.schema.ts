@@ -167,6 +167,33 @@ export const dltTransactionsTable = mysqlTable(
 export type DltTransactionSelect = typeof dltTransactionsTable.$inferSelect
 export type DltTransactionInsert = typeof dltTransactionsTable.$inferInsert
 
+export const eventsTable = mysqlTable('events', {
+  id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+  type: varchar({ length: 100 }).notNull(),
+  createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+    .default(sql`current_timestamp(3)`)
+    .notNull(),
+  affectedUserId: int('affected_user_id', { unsigned: true }).notNull(),
+  actingUserId: int('acting_user_id', { unsigned: true }).notNull(),
+  involvedUserId: int('involved_user_id', { unsigned: true }).default(sql`NULL`),
+  involvedTransactionId: int('involved_transaction_id', { unsigned: true }).default(sql`NULL`),
+  involvedContributionId: int('involved_contribution_id', { unsigned: true }).default(sql`NULL`),
+  involvedContributionMessageId: int('involved_contribution_message_id', {
+    unsigned: true,
+  }).default(sql`NULL`),
+  involvedTransactionLinkId: int('involved_transaction_link_id', { unsigned: true }).default(
+    sql`NULL`,
+  ),
+  involvedContributionLinkId: int('involved_contribution_link_id', { unsigned: true }).default(
+    sql`NULL`,
+  ),
+  amountLegacy: customGradidoUnit('amount_legacy').default(sql`NULL`),
+  amountGdd4: customGradidoUnit('amount_gdd4').default(sql`NULL`),
+})
+
+export type EventSelect = typeof eventsTable.$inferSelect
+export type EventInsert = typeof eventsTable.$inferInsert
+
 export const matchingEntriesTable = mysqlTable(
   'matching_entries',
   {

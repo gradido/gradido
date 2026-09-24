@@ -64,6 +64,7 @@ import {
   dbFindUserLoginByEmail,
   dbFindUsers,
   dbInsertAssistedRegistration,
+  dbInsertEvent,
   dbInsertUserAlias,
   dbMarkAliasAdopted,
   dbPurgeExpiredAssistedRegistrations,
@@ -71,6 +72,7 @@ import {
   dbUpsertUserAvatar,
   dbUserUpdateField,
   dbUserUpdatePassword,
+  EventType,
   emailContactByUserIdQuery,
   findUserByIdentifier,
   getCommunityByUuid,
@@ -137,23 +139,6 @@ import {
 import { inMemberLine } from '@/data/MemberLine.logic'
 import { PRESENCE_MAX_UNCONFIRMED, verifyPresenceCode } from '@/data/PresenceCode.logic'
 import { PublishNameLogic } from '@/data/PublishName.logic'
-import {
-  EVENT_ADMIN_USER_DELETE,
-  EVENT_ADMIN_USER_ROLE_SET,
-  EVENT_ADMIN_USER_UNDELETE,
-  EVENT_EMAIL_ACCOUNT_MULTIREGISTRATION,
-  EVENT_EMAIL_ADMIN_CONFIRMATION,
-  EVENT_EMAIL_CONFIRMATION,
-  EVENT_EMAIL_FORGOT_PASSWORD,
-  EVENT_USER_ACTIVATE_ACCOUNT,
-  EVENT_USER_INFO_UPDATE,
-  EVENT_USER_LOGIN,
-  EVENT_USER_LOGOUT,
-  EVENT_USER_REGISTER,
-  EVENT_USER_REGISTER_PRESENCE,
-  Event,
-  EventType,
-} from '@/event/Events'
 import { registerAccount } from '@/interactions/registerAccount/RegisterAccount.context'
 import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, fakeVerifyPassword, verifyPassword } from '@/password/PasswordEncryptor'
@@ -405,7 +390,11 @@ export class UserResolver {
       value: await encode(dbUser.gradidoId),
     })
 
-    await EVENT_USER_LOGIN(legacyUser)
+    await dbInsertEvent({
+      type: EventType.USER_LOGIN,
+      affectedUserId: legacyUser.id,
+      actingUserId: legacyUser.id,
+    })
     const projectBrandingSpaceId = await projectBrandingSpaceIdPromise
     logger.debug('project branding: ', projectBrandingSpaceId)
     // load humhub state
@@ -429,7 +418,11 @@ export class UserResolver {
   @Authorized([RIGHTS.LOGOUT])
   @Mutation(() => Boolean)
   async logout(@Ctx() context: Context): Promise<boolean> {
-    await EVENT_USER_LOGOUT(getUser(context))
+    await dbInsertEvent({
+      type: EventType.USER_LOGOUT,
+      affectedUserId: getUser(context).id,
+      actingUserId: getUser(context).id,
+    })
     return true
   }
 
@@ -596,7 +589,11 @@ export class UserResolver {
           language: foundUser.language, // use language of the emails owner for sending
           helperLink,
         })
-        await EVENT_EMAIL_ACCOUNT_MULTIREGISTRATION(foundUser)
+        await dbInsertEvent({
+          type: EventType.EMAIL_ACCOUNT_MULTIREGISTRATION,
+          affectedUserId: foundUser.id,
+          actingUserId: 0,
+        })
 
         /* uncomment this, when you need the activation link on the console */
         // In case EMails are disabled log the activation link for the user
@@ -643,7 +640,11 @@ export class UserResolver {
     }
     // Only the id goes into the event, like the doorbell's: no lookup of the member.
     if (presenceValid && dbUser.referrerId) {
-      await EVENT_USER_REGISTER_PRESENCE(dbUser, { id: dbUser.referrerId } as DbUser)
+      await dbInsertEvent({
+        type: EventType.USER_REGISTER_PRESENCE,
+        affectedUserId: dbUser.id,
+        actingUserId: dbUser.referrerId,
+      })
     }
     return new User(dbUser)
   }
@@ -701,7 +702,11 @@ export class UserResolver {
     })
 
     logger.info(`forgotPassword successful...`)
-    await EVENT_EMAIL_FORGOT_PASSWORD(user)
+    await dbInsertEvent({
+      type: EventType.EMAIL_FORGOT_PASSWORD,
+      affectedUserId: user.id,
+      actingUserId: 0,
+    })
 
     return true
   }
@@ -793,7 +798,11 @@ export class UserResolver {
         logger.error('Error subscribing to klicktipp', e)
       }
     }
-    await EVENT_USER_ACTIVATE_ACCOUNT(user)
+    await dbInsertEvent({
+      type: EventType.USER_ACTIVATE_ACCOUNT,
+      affectedUserId: user.id,
+      actingUserId: user.id,
+    })
 
     return true
   }
@@ -1034,7 +1043,11 @@ export class UserResolver {
     }
     logger.info('updateUserInfos() successfully finished...')
     logger.debug('writing User data successful...', new UserLoggingView(user))
-    await EVENT_USER_INFO_UPDATE(user)
+    await dbInsertEvent({
+      type: EventType.USER_INFO_UPDATE,
+      affectedUserId: user.id,
+      actingUserId: user.id,
+    })
 
     // validate if user settings are changed with relevance to update gms-user
     try {
@@ -1661,7 +1674,11 @@ export class UserResolver {
     } else {
       newRole = await setUserRole(user, role)
     }
-    await EVENT_ADMIN_USER_ROLE_SET(user, moderator)
+    await dbInsertEvent({
+      type: EventType.ADMIN_USER_ROLE_SET,
+      affectedUserId: user.id,
+      actingUserId: moderator.id,
+    })
     return newRole
   }
 
@@ -1683,7 +1700,11 @@ export class UserResolver {
     }
     // soft-delete user
     await user.softRemove()
-    await EVENT_ADMIN_USER_DELETE(user, moderator)
+    await dbInsertEvent({
+      type: EventType.ADMIN_USER_DELETE,
+      affectedUserId: user.id,
+      actingUserId: moderator.id,
+    })
     const newUser = await DbUser.findOne({ where: { id: userId }, withDeleted: true })
     return newUser ? newUser.deletedAt : null
   }
@@ -1702,7 +1723,11 @@ export class UserResolver {
       throw new LogError('User is not deleted')
     }
     await user.recover()
-    await EVENT_ADMIN_USER_UNDELETE(user, getUser(context))
+    await dbInsertEvent({
+      type: EventType.ADMIN_USER_UNDELETE,
+      affectedUserId: user.id,
+      actingUserId: getUser(context).id,
+    })
     return null
   }
 
@@ -1734,7 +1759,11 @@ export class UserResolver {
       timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
-    await EVENT_EMAIL_ADMIN_CONFIRMATION(user, getUser(context))
+    await dbInsertEvent({
+      type: EventType.EMAIL_ADMIN_CONFIRMATION,
+      affectedUserId: user.id,
+      actingUserId: getUser(context).id,
+    })
 
     return true
   }

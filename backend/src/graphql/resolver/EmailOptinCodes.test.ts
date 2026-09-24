@@ -1,4 +1,4 @@
-import { cleanDB, testEnvironment } from '@test/helpers'
+import { cleanDB, testEnvironment, useFakeTimersForDrizzle } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { CONFIG as CORE_CONFIG } from 'core'
 import { AppDatabase, User as DbUser } from 'database'
@@ -110,7 +110,7 @@ describe('EmailOptinCodes', () => {
 
     describe('run time forward until code can be resent', () => {
       beforeAll(() => {
-        jest.useFakeTimers()
+        useFakeTimersForDrizzle()
         setTimeout(jest.fn(), CONFIG.EMAIL_CODE_REQUEST_TIME * 60 * 1000)
         jest.runAllTimers()
       })

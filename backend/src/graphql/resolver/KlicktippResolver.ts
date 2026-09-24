@@ -1,8 +1,8 @@
+import { dbInsertEvent, EventType } from 'database'
 import { Authorized, Ctx, Mutation, Resolver } from 'type-graphql'
 
 import { subscribe, unsubscribe } from '@/apis/KlicktippController'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { EVENT_NEWSLETTER_SUBSCRIBE, EVENT_NEWSLETTER_UNSUBSCRIBE } from '@/event/Events'
 import { Context, getUser } from '@/server/context'
 
 @Resolver()
@@ -11,7 +11,11 @@ export class KlicktippResolver {
   @Mutation(() => Boolean)
   async unsubscribeNewsletter(@Ctx() context: Context): Promise<boolean> {
     const user = getUser(context)
-    await EVENT_NEWSLETTER_UNSUBSCRIBE(user)
+    await dbInsertEvent({
+      type: EventType.NEWSLETTER_UNSUBSCRIBE,
+      affectedUserId: user.id,
+      actingUserId: user.id,
+    })
     return unsubscribe(user.emailContact.email)
   }
 
@@ -19,7 +23,11 @@ export class KlicktippResolver {
   @Mutation(() => Boolean)
   async subscribeNewsletter(@Ctx() context: Context): Promise<boolean> {
     const user = getUser(context)
-    await EVENT_NEWSLETTER_SUBSCRIBE(user)
+    await dbInsertEvent({
+      type: EventType.NEWSLETTER_SUBSCRIBE,
+      affectedUserId: user.id,
+      actingUserId: user.id,
+    })
     return subscribe(user.emailContact.email, user.language)
   }
 }

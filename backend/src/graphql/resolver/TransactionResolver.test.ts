@@ -12,6 +12,7 @@ import {
   Event as DbEvent,
   FederatedCommunity as DbFederatedCommunity,
   dbUpsertForeignMemberAvatarDates,
+  EventType,
   foreignReceive,
   Transaction,
   User,
@@ -29,7 +30,6 @@ import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
 // import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { EventType } from '@/event/Events'
 // import { V1_0_SendCoinsClient } from 'core'
 // import { SendCoinsArgs } from 'core'
 // import { SendCoinsResult } from 'core'

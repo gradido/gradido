@@ -13,6 +13,8 @@ import {
   AppDatabase,
   ContributionLink as DbContributionLink,
   Event as DbEvent,
+  dbInsertEvent,
+  EventType,
   Transaction,
   User,
   UserContact,
@@ -22,7 +24,6 @@ import { GradidoUnit } from 'shared'
 import { DataSource } from 'typeorm'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { EventType } from '@/event/Events'
 import { creations } from '@/seeds/creation/index'
 import { creationFactory } from '@/seeds/factory/creation'
 import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
@@ -878,12 +879,12 @@ describe('TransactionLinkResolver', () => {
               })
               // The registration event, in the shape `registerAccount` writes it when the
               // account was opened with a redeem code.
-              await DbEvent.create({
+              await dbInsertEvent({
                 type: EventType.USER_REGISTER_REDEEM,
                 affectedUserId: redeemer.user.id,
                 actingUserId: redeemer.user.id,
                 involvedTransactionLinkId: id,
-              }).save()
+              })
               await mutate({
                 mutation: login,
                 variables: { email: 'peter@lustig.de', password: 'Aa12345_' },

@@ -19,7 +19,11 @@ import {
   User as DbUser,
   UserContact as DbUserContact,
   dbFindProjectBrandingByAlias,
+  dbInsertEvent,
+  dbInsertEventInTransaction,
   dbInsertUserAlias,
+  EventInsert,
+  EventType,
   findUserByIdentifier,
   getHomeCommunity,
   ProjectBrandingSelect,
@@ -30,7 +34,6 @@ import random from 'random-bigint'
 import { aliasCandidates, aliasSchema, pickFreeAlias } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
-import { EVENT_EMAIL_CONFIRMATION, EVENT_USER_REGISTER, Event, EventType } from '@/event/Events'
 import { sendUsersToGms } from '@/graphql/resolver/util/sendUserToGms'
 import { syncHumhub } from '@/graphql/resolver/util/syncHumhub'
 import { encryptPassword } from '@/password/PasswordEncryptor'
@@ -120,11 +123,9 @@ export const registerAccount = async (
   }
   const gradidoID = await newGradidoID(logger)
 
-  const eventRegisterRedeem = Event(
-    EventType.USER_REGISTER_REDEEM,
-    { id: 0 } as DbUser,
-    { id: 0 } as DbUser,
-  )
+  // What the redeem code turned out to be; written as USER_REGISTER_REDEEM once the user exists.
+  let redeemedLink: Pick<EventInsert, 'involvedContributionLinkId' | 'involvedTransactionLinkId'> =
+    {}
   let dbUser = new DbUser()
   const homeCom = await getHomeCommunity()
   if (!homeCom || !homeCom.communityUuid) {
@@ -165,14 +166,14 @@ export const registerAccount = async (
       if (contributionLink) {
         logger.info('redeemCode found contributionLink', contributionLink.id)
         dbUser.contributionLinkId = contributionLink.id
-        eventRegisterRedeem.involvedContributionLink = contributionLink
+        redeemedLink = { involvedContributionLinkId: contributionLink.id }
       }
     } else {
       const transactionLink = await DbTransactionLink.findOne({ where: { code: redeemCode } })
       if (transactionLink) {
         logger.info('redeemCode found transactionLink', transactionLink.id)
         dbUser.referrerId = transactionLink.userId
-        eventRegisterRedeem.involvedTransactionLink = transactionLink
+        redeemedLink = { involvedTransactionLinkId: transactionLink.id }
       }
     }
   } else if (input.referrerId) {
@@ -278,7 +279,11 @@ export const registerAccount = async (
     // of the pool's ten until it commits, and the pool's waiting has no time limit.
     // Registrations that each held their own while waiting for a second one could use them
     // all up, with nobody left to give one back.
-    await EVENT_EMAIL_CONFIRMATION(dbUser, queryRunner.manager)
+    await dbInsertEventInTransaction(queryRunner.manager, {
+      type: EventType.EMAIL_CONFIRMATION,
+      affectedUserId: dbUser.id,
+      actingUserId: dbUser.id,
+    })
 
     await queryRunner.commitTransaction()
     logger.addContext('user', dbUser.id)
@@ -304,11 +309,18 @@ export const registerAccount = async (
   }
 
   if (redeemCode) {
-    eventRegisterRedeem.affectedUser = dbUser
-    eventRegisterRedeem.actingUser = dbUser
-    await eventRegisterRedeem.save()
+    await dbInsertEvent({
+      type: EventType.USER_REGISTER_REDEEM,
+      affectedUserId: dbUser.id,
+      actingUserId: dbUser.id,
+      ...redeemedLink,
+    })
   } else {
-    await EVENT_USER_REGISTER(dbUser)
+    await dbInsertEvent({
+      type: EventType.USER_REGISTER,
+      affectedUserId: dbUser.id,
+      actingUserId: dbUser.id,
+    })
   }
 
   // wait for finishing dlt transaction
