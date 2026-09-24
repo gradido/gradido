@@ -152,7 +152,6 @@
   },
   "chatThread": {
     "alsoByEmail": "Και μέσω email",
-    "alsoByEmailHint": "Διαφορετικά δεν θα σταλεί email προς {name} για αυτό το μήνυμα",
     "alsoByEmailTo": "Και μέσω email προς {name}",
     "empty": "Δεν υπάρχουν ακόμη μηνύματα. Εδώ ξεκινά η συνομιλία σας.",
     "failed": "Δεν παραδόθηκε",

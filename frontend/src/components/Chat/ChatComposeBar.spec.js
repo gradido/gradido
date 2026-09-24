@@ -66,20 +66,22 @@ describe('ChatComposeBar', () => {
       expect(field().attributes('aria-describedby')).toContain(sentence.attributes('id'))
     })
 
-    // Ticked, the word names who gets the mail; the hint on what an empty box means goes.
-    it('names the person once the box is ticked', async () => {
+    /**
+     * Ticked, the word names who gets the mail. And the box carries its word and nothing
+     * else, at the desk as on the phone (Bernd, 24.09.2026): no sentence beside it on what an
+     * empty box means.
+     */
+    it('names the person once the box is ticked, and says nothing more', async () => {
       mountBar()
-      const hint = wrapper.find('[data-test="chat-compose-hint"]')
-      expect(hint.text()).toBe('chatThread.alsoByEmailHint {"name":"Lena"}')
-      // At the desk only: Bootstrap's display classes, below md it is not drawn.
-      expect(hint.classes()).toEqual(expect.arrayContaining(['d-none', 'd-md-inline']))
+      const options = wrapper.find('.chat-compose-options')
+      expect(options.text()).toBe('chatThread.alsoByEmail')
 
       await box().setValue(true)
 
       expect(wrapper.find('[data-test="chat-compose-email-label"]').text()).toBe(
         'chatThread.alsoByEmailTo {"name":"Lena"}',
       )
-      expect(wrapper.find('[data-test="chat-compose-hint"]').exists()).toBe(false)
+      expect(options.text()).toBe('chatThread.alsoByEmailTo {"name":"Lena"}')
     })
 
     it('stops at the length the server takes', () => {

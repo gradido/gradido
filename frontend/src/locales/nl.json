@@ -152,7 +152,6 @@
   },
   "chatThread": {
     "alsoByEmail": "Ook per e-mail",
-    "alsoByEmailHint": "Anders krijgt {name} geen e-mail over dit bericht",
     "alsoByEmailTo": "Ook per e-mail aan {name}",
     "empty": "Nog geen berichten. Hier begint jullie gesprek.",
     "failed": "Niet afgeleverd",

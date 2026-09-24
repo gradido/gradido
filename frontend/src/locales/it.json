@@ -152,7 +152,6 @@
   },
   "chatThread": {
     "alsoByEmail": "Anche via e-mail",
-    "alsoByEmailHint": "Altrimenti {name} non riceverà nessuna e-mail per questo messaggio",
     "alsoByEmailTo": "Anche via e-mail a {name}",
     "empty": "Ancora nessun messaggio. Qui inizia la vostra conversazione.",
     "failed": "Non consegnato",

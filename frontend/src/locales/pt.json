@@ -152,7 +152,6 @@
   },
   "chatThread": {
     "alsoByEmail": "Também por e-mail",
-    "alsoByEmailHint": "Caso contrário, {name} não recebe nenhum e-mail sobre esta mensagem",
     "alsoByEmailTo": "Também por e-mail para {name}",
     "empty": "Ainda não há mensagens. Aqui começa a vossa conversa.",
     "failed": "Não entregue",

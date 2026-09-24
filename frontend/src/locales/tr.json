@@ -152,7 +152,6 @@
   },
   "chatThread": {
     "alsoByEmail": "Ayrıca e-posta ile",
-    "alsoByEmailHint": "Aksi halde {name} bu mesaj için e-posta almaz",
     "alsoByEmailTo": "{name} kişisine ayrıca e-posta ile",
     "empty": "Henüz mesaj yok. Sohbet burada başlıyor.",
     "failed": "İletilemedi",

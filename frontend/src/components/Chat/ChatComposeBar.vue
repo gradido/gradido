@@ -66,15 +66,9 @@
           {{ alsoByEmail ? t('chatThread.alsoByEmailTo', { name }) : t('chatThread.alsoByEmail') }}
         </span>
       </label>
-      <!-- What the empty box means, where there is room for it: at the desk, not on the sheet.
-           It says "otherwise", so it stands only while the box is empty. -->
-      <span
-        v-if="!alsoByEmail"
-        class="chat-compose-hint d-none d-md-inline"
-        data-test="chat-compose-hint"
-      >
-        {{ t('chatThread.alsoByEmailHint', { name }) }}
-      </span>
+      <!-- No sentence beside it on what an empty box means: the desk has the phone's label and
+           nothing else (Bernd, 24.09.2026) -- in a window 500 px wide the sentence mostly fell
+           to a line of its own. -->
     </div>
 
     <p
@@ -327,8 +321,8 @@ watch(
   height: 1.2rem;
 }
 
-/* The box, its word and -- at the desk -- what the empty box means. The row wraps rather than
-   running past the window in a long language. */
+/* The box and its word; the word wraps beside the box rather than running past the window in
+   a long language. */
 .chat-compose-options {
   display: flex;
   flex-wrap: wrap;
@@ -365,11 +359,6 @@ watch(
 
 .chat-compose-check-box:checked + .chat-compose-check-text {
   color: var(--bs-body-color);
-}
-
-.chat-compose-hint {
-  margin-left: auto;
-  font-size: 0.75rem;
 }
 
 .chat-compose-note {
