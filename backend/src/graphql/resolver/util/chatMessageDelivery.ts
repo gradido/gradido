@@ -23,8 +23,11 @@ import { PublishNameLogic } from '@/data/PublishName.logic'
 
 /*
  * The two ways a message between two members leaves this server, shared by the form "send an
- * e-mail" (TransactionResolver.sendEmail) and the chat (ChatResolver.sendChatMessage): the
- * wish, the quiet and the command's payload are decided here and nowhere else.
+ * e-mail" (TransactionResolver.sendEmail) and the chat (ChatResolver.sendChatMessage), so that
+ * both file it, mail it and build its command the same way. The wish comes in decided -- the
+ * wake-up rule (chatMessageNotify) is the caller's. Whether it becomes a mail is decided here
+ * for a recipient of this community, and by the recipient's server for one of another
+ * (SendEmailCommand).
  *
  * What differs between the two callers is what the message IS, and `requireStored` says which:
  * - for the form it is the mail -- all there was before the chat; the row is an extra (P1), and
