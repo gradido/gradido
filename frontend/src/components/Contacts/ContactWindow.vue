@@ -656,10 +656,16 @@ const toggleMute = async () => {
 
 /* ⛔ The sheet (below `sm`, where BModal makes the window fullscreen -- the same 575.98px as
    Bootstrap's `.modal-fullscreen-sm-down`): the window's inside becomes one column over the
-   whole height -- head, figures, then the thread taking what is left, with the compose bar at
-   its bottom -- so nothing hangs below the screen and the page behind never scrolls. The
-   thread grows upwards from the bar and scrolls inside. `height: 100%` resolves against the
-   modal body, which is a flexed item of a column of definite height. */
+   whole height -- head, figures, then the thread -- so nothing hangs below the screen and the
+   page behind never scrolls. `height: 100%` resolves against the modal body, which is a flexed
+   item of a column of definite height.
+
+   ⛔ The thread is as high as its content and no higher than what is left, as at the desk: a
+   thread of one message sits right under the figures with the compose bar under it, and what
+   the sheet has to spare stays empty below the bar. It took what was left before, grew
+   upwards from the bar, and one message stood at the bottom under a gap the height of the
+   screen (Bernd, 24.09.2026, at the device). A long thread shrinks to what is left and scrolls
+   inside, the bar at the bottom. */
 @media (width <= 575.98px) {
   .contact-window-inner {
     display: flex;
@@ -667,8 +673,18 @@ const toggleMute = async () => {
     height: 100%;
   }
 
+  /* ⚠️ Only the thread gives way. The blocks above it keep their height: with a long thread
+     the figures' line shrank to the one line it reserves (`min-height`, above) and its
+     second line ran under the button (measured at 390 px, two lines of figures). */
+  .contact-window-top,
+  .contact-window-head,
+  .contact-window-meta,
+  .contact-window-send {
+    flex-shrink: 0;
+  }
+
   .contact-window-thread {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
   }
 
   .contact-window-thread :deep(.chat-thread-scroll) {

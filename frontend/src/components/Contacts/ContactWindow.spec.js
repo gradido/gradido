@@ -743,9 +743,10 @@ describe('ContactWindow', () => {
 
   /**
    * ⛔ The sheet (below `sm`, where BModal makes the window fullscreen): the window's inside
-   * one column over the whole height, the thread taking what is left and scrolling inside,
-   * the compose bar at the bottom. Without these rules the sheet would hang its content from
-   * the top and scroll as a whole -- and every spec would stay green.
+   * one column over the whole height; the thread as high as its content and no higher than what
+   * is left, scrolling inside. Without these rules the sheet would scroll as a whole -- and
+   * every spec would stay green. ⛔ Not `flex: 1`: a thread that takes what is left puts one
+   * message at the bottom under a gap the height of the screen (Bernd, 24.09.2026).
    */
   it('makes the window one column over the whole screen on a phone, in the stylesheet', () => {
     const code = styleOf('ContactWindow.vue')
@@ -755,7 +756,11 @@ describe('ContactWindow', () => {
     expect(sheet).toMatch(
       /\.contact-window-inner\s*\{[^}]*flex-direction:\s*column[^}]*height:\s*100%/,
     )
-    expect(sheet).toMatch(/\.contact-window-thread\s*\{[^}]*flex:\s*1 1 auto/)
+    expect(sheet).toMatch(/\.contact-window-thread\s*\{[^}]*flex:\s*0 1 auto/)
+    // Only the thread gives way: the blocks above it keep their height.
+    expect(sheet).toMatch(
+      /\.contact-window-top,\s*\.contact-window-head,\s*\.contact-window-meta,\s*\.contact-window-send\s*\{[^}]*flex-shrink:\s*0/,
+    )
     expect(sheet).toMatch(/\.chat-thread-scroll\)\s*\{[^}]*max-height:\s*none/)
   })
 
