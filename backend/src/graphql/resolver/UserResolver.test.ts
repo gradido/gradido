@@ -373,15 +373,12 @@ describe('UserResolver', () => {
         expect(createUserLogger.addContext).toBeCalledWith('user', user[0].id)
       })
 
-      it('sends an account multi registration email without the helper branch', () => {
-        // No redeem code on this attempt, so no helper link (EM-013): the mail renders
-        // exactly as it always has.
+      it('sends an account multi registration email', () => {
         expect(sendAccountMultiRegistrationEmail).toBeCalledWith({
           firstName: 'Peter',
           lastName: 'Lustig',
           email: 'peter@lustig.de',
           language: 'de',
-          helperLink: null,
         })
       })
 
@@ -976,13 +973,12 @@ describe('UserResolver', () => {
           }
         })
 
-        it('writes the owner the usual mail, without the helper branch', () => {
+        it('writes the owner the usual mail', () => {
           const usual = {
             firstName: 'Bob',
             lastName: 'der Baumeister',
             email: 'bob@baumeister.de',
             language: 'de',
-            helperLink: null,
           }
           expect(sendAccountMultiRegistrationEmail).toHaveBeenCalledTimes(2)
           expect(sendAccountMultiRegistrationEmail).toHaveBeenNthCalledWith(1, usual)

@@ -52,11 +52,10 @@ const db = AppDatabase.getInstance()
  *     `createUser` always did; its existing tests are the proof.
  *   - `passwordPlain` set — the guest chose their password at registration, so it is set
  *     right away and the mail only asks them to CONFIRM the address (a confirm-only link,
- *     not the set-password page). Two callers do this: the assisted registration
- *     (`completeAssistedRegistration`, no address to come from) and `createUser` with a
- *     valid table code (E-017), which hands the member over already resolved as
- *     `referrerId` - it counted their unconfirmed guests in their line (`inMemberLine`),
- *     and the row has to name the same member.
+ *     not the set-password page). `createUser` does this with a valid table code (E-017),
+ *     and hands the member over already resolved as `referrerId` - it counted their
+ *     unconfirmed guests in their line (`inMemberLine`), and the row has to name the same
+ *     member.
  *
  * The caller has already normalised the input: email trimmed and lowercased, language
  * validated, and the address checked to be free.
@@ -71,9 +70,8 @@ export interface RegisterAccountInput {
   project: string | null
   alias: string | null
   passwordPlain: string | null
-  // The alias from the Gradido address the registration started at. Optional because
-  // the assisted registration has no address to come from; the classic one and the one
-  // with a table code (E-017) do.
+  // The alias from the Gradido address the registration started at. Optional because a
+  // classic registration need not start at one; one with a table code (E-017) always does.
   referrerAlias?: string | null
   // The member already resolved by the caller, which beats the alias below. The table code
   // (E-019) counts a member's unconfirmed guests in that member's line and then opens the
@@ -149,7 +147,7 @@ export const registerAccount = async (
   dbUser.publisherId = publisherId ?? 0
   dbUser.passwordEncryptionType = PasswordEncryptionType.NO_PASSWORD
   if (input.passwordPlain) {
-    // Assisted registration or table code: the guest chose their password at the table.
+    // Table code (E-017): the guest chose their password at the table.
     // Type first, then encrypt — the derivation salts by the gradidoID, which is set above.
     dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
     dbUser.password = await encryptPassword(dbUser, input.passwordPlain)

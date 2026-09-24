@@ -1,27 +1,24 @@
 // AI-GENERATED — not an architecture reference
+import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import {
-  sendAccountMultiRegistrationEmail,
-  sendAssistedRegistrationConfirmEmail,
   sendEmailChangeConfirmEmail,
   sendEmailChangeNoticeEmail,
   sendEmailChangeSupportEmail,
 } from 'core'
 import {
   AppDatabase,
-  assistedRegistrationsTable,
   User as DbUser,
   UserContact as DbUserContact,
   dbFindOldestUserContact,
-  EventType,
 } from 'database'
 import { GraphQLError } from 'graphql'
-import { OptInType } from 'shared'
 import { CONFIG } from '@/config'
+import { mintPresenceCode } from '@/data/PresenceCode.logic'
+import { writeHomeCommunityEntry } from '@/seeds/community'
 import { userFactory } from '@/seeds/factory/user'
 import {
-  completeAssistedRegistration,
   confirmEmail,
   confirmEmailChange,
   createContribution,
@@ -30,8 +27,7 @@ import {
   requestEmailChange,
   resendConfirmationEmail,
 } from '@/seeds/graphql/mutations'
-import { assistedRegistrationInfo } from '@/seeds/graphql/queries'
-import { peterLustig } from '@/seeds/users/peter-lustig'
+import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 
 jest.mock('@/password/EncryptorUtils')
 
@@ -41,7 +37,6 @@ jest.mock('core', () => {
     __esModule: true,
     ...originalModule,
     sendAccountActivationEmail: jest.fn(),
-    sendAccountMultiRegistrationEmail: jest.fn(),
     sendAssistedRegistrationConfirmEmail: jest.fn(),
     sendEmailChangeConfirmEmail: jest.fn(),
     sendEmailChangeNoticeEmail: jest.fn(),
@@ -63,30 +58,43 @@ CONFIG.EMAIL_CODE_VALID_TIME = 1440
 CONFIG.EMAIL_CODE_REQUEST_TIME = 10
 
 const PASSWORD = 'Aa12345_'
-const NEUTRAL = 'Assist code invalid or expired'
 
 let mutate: ApolloServerTestClient['mutate']
-let query: ApolloServerTestClient['query']
 let db: AppDatabase
+let communityUuid: string
 
 const loginAs = (email: string, password = PASSWORD) =>
   mutate({ mutation: login, variables: { email, password } })
 
-const parkedRows = () =>
-  AppDatabase.getInstance().getDrizzleDataSource().select().from(assistedRegistrationsTable)
-
-/** The doorbell: registering with an existing member's address parks the attempt. */
-const ringDoorbell = (redeemCode: string | null = 'CL-cafe') =>
-  mutate({
+/**
+ * An account that holds a password while its address is unconfirmed - the state this
+ * resolver works on. It is opened the one way there is: at the table, where a guest who
+ * scanned Bob's live card chooses a password in the registration form (createUser with a
+ * presence code). Checked rather than trusted: a taken address would get the silent answer
+ * of every registration, and no account.
+ */
+const openAtTheTable = async (email: string): Promise<DbUser> => {
+  const result = await mutate({
     mutation: createUser,
     variables: {
-      email: 'peter@lustig.de',
+      email,
       firstName: 'Guest',
       lastName: 'Person',
       language: 'de',
-      redeemCode,
+      referrerAlias: 'MeisterBob',
+      presenceCode: mintPresenceCode('MeisterBob', communityUuid).code,
+      password: PASSWORD,
     },
   })
+  expect(result.errors).toBeUndefined()
+  const guest = await DbUser.findOneOrFail({
+    where: { emailContact: { email } },
+    relations: ['emailContact'],
+  })
+  expect(guest.passwordEncryptionType).toBe(PasswordEncryptionType.GRADIDO_ID)
+  expect(guest.emailContact.emailChecked).toBe(false)
+  return guest
+}
 
 const ageUserRow = async (userId: number, hoursAgo: number) => {
   const then = new Date(Date.now() - hoursAgo * 60 * 60 * 1000)
@@ -103,16 +111,14 @@ const ageContactRow = async (id: number, hoursAgo: number) => {
 beforeAll(async () => {
   const testEnv = await testEnvironment()
   mutate = testEnv.mutate
-  query = testEnv.query
   db = testEnv.db
   await cleanDB()
-  await AppDatabase.getInstance().getDrizzleDataSource().delete(assistedRegistrationsTable)
-  await userFactory(testEnv, peterLustig)
+  communityUuid = (await writeHomeCommunityEntry()).communityUuid as string
+  await userFactory(testEnv, bobBaumeister)
 })
 
 afterAll(async () => {
   await cleanDB()
-  await AppDatabase.getInstance().getDrizzleDataSource().delete(assistedRegistrationsTable)
   await db.destroy()
 })
 
@@ -121,156 +127,9 @@ afterEach(() => {
 })
 
 describe('AssistedRegistrationResolver', () => {
-  describe('the doorbell: createUser with an existing address', () => {
-    it('parks the attempt and offers the helper branch when a redeem code is present', async () => {
-      const before = (await parkedRows()).length
-      const result = await ringDoorbell('CL-cafe')
-      // The answer to the form is the fake success — byte-identical to the case
-      // without a redeem code (silence rule).
-      expect(result.data.createUser.id).toEqual(expect.any(Number))
-      const rows = await parkedRows()
-      expect(rows.length).toBe(before + 1)
-      const row = rows[rows.length - 1]
-      expect(row.firstName).toBe('Guest')
-      expect(row.redeemCode).toBe('CL-cafe')
-      expect(sendAccountMultiRegistrationEmail).toBeCalledWith(
-        expect.objectContaining({
-          email: 'peter@lustig.de',
-          helperLink: expect.stringContaining('/register-assist/'),
-        }),
-      )
-    })
-
-    it('parks nothing without a redeem code — the mail stays as it always was', async () => {
-      const before = (await parkedRows()).length
-      await ringDoorbell(null)
-      expect((await parkedRows()).length).toBe(before)
-      expect(sendAccountMultiRegistrationEmail).toBeCalledWith(
-        expect.objectContaining({ helperLink: null }),
-      )
-    })
-  })
-
-  describe('assistedRegistrationInfo', () => {
-    it('answers with the guest name for a valid code', async () => {
-      const rows = await parkedRows()
-      const code = rows[rows.length - 1].assistCode.toString()
-      const result = await query({
-        query: assistedRegistrationInfo,
-        variables: { assistCode: code },
-      })
-      expect(result.data.assistedRegistrationInfo).toEqual({
-        firstName: 'Guest',
-        lastName: 'Person',
-      })
-    })
-
-    it('gives one neutral answer for an unknown and for a malformed code alike', async () => {
-      const unknown = await query({
-        query: assistedRegistrationInfo,
-        variables: { assistCode: '12345' },
-      })
-      expect(unknown.errors).toEqual([new GraphQLError(NEUTRAL)])
-      const malformed = await query({
-        query: assistedRegistrationInfo,
-        variables: { assistCode: 'not-a-code' },
-      })
-      expect(malformed.errors).toEqual([new GraphQLError(NEUTRAL)])
-    })
-
-    it('gives the same neutral answer for an expired code', async () => {
-      const rows = await parkedRows()
-      const row = rows[rows.length - 1]
-      const then = new Date(Date.now() - 25 * 60 * 60 * 1000)
-      await db
-        .getDataSource()
-        .query('UPDATE assisted_registrations SET created_at = ? WHERE id = ?', [then, row.id])
-      const result = await query({
-        query: assistedRegistrationInfo,
-        variables: { assistCode: row.assistCode.toString() },
-      })
-      expect(result.errors).toEqual([new GraphQLError(NEUTRAL)])
-      // fresh again for the tests below
-      await db
-        .getDataSource()
-        .query('UPDATE assisted_registrations SET created_at = ? WHERE id = ?', [
-          new Date(),
-          row.id,
-        ])
-    })
-  })
-
-  describe('completeAssistedRegistration', () => {
-    let assistCode: string
-
+  describe('an account opened at the table', () => {
     beforeAll(async () => {
-      const rows = await parkedRows()
-      assistCode = rows[rows.length - 1].assistCode.toString()
-    })
-
-    it('refuses a weak password', async () => {
-      const result = await mutate({
-        mutation: completeAssistedRegistration,
-        variables: { assistCode, email: 'guest@example.org', password: 'weak' },
-      })
-      expect(result.errors?.[0]?.message).toContain('valid password')
-    })
-
-    it('says openly when the address already has an account', async () => {
-      const result = await mutate({
-        mutation: completeAssistedRegistration,
-        variables: { assistCode, email: 'peter@lustig.de', password: PASSWORD },
-      })
-      expect(result.errors).toEqual([new GraphQLError('Email address already in use')])
-    })
-
-    it('creates the account with the guest address, unconfirmed, password set — and hands back the redeem code', async () => {
-      const result = await mutate({
-        mutation: completeAssistedRegistration,
-        variables: { assistCode, email: 'guest@example.org', password: PASSWORD },
-      })
-      expect(result.errors).toBeUndefined()
-      expect(result.data.completeAssistedRegistration.redeemCode).toBe('CL-cafe')
-
-      const guest = await DbUser.findOneOrFail({
-        where: { emailContact: { email: 'guest@example.org' } },
-        relations: ['emailContact'],
-      })
-      expect(guest.emailContact.emailChecked).toBe(false)
-      expect(guest.emailContact.emailOptInTypeId).toBe(OptInType.EMAIL_OPT_IN_REGISTER)
-      expect(guest.password).not.toBe(BigInt(0))
-      // the confirm-only mail went to the guest's own address
-      expect(sendAssistedRegistrationConfirmEmail).toBeCalledWith(
-        expect.objectContaining({
-          email: 'guest@example.org',
-          confirmLink: expect.stringContaining('/confirm-email/'),
-        }),
-      )
-    })
-
-    it('records who helped whom', async () => {
-      const guest = await DbUser.findOneOrFail({
-        where: { emailContact: { email: 'guest@example.org' } },
-      })
-      const host = await DbUser.findOneOrFail({
-        where: { emailContact: { email: 'peter@lustig.de' } },
-      })
-      const events = await db
-        .getDataSource()
-        .query('SELECT affected_user_id, acting_user_id FROM events WHERE type = ?', [
-          EventType.USER_REGISTER_ASSISTED,
-        ])
-      // bigint columns arrive as strings from a raw query — compare as numbers
-      const pairs = events.map((e: { affected_user_id: unknown; acting_user_id: unknown }) => ({
-        affected: Number(e.affected_user_id),
-        acting: Number(e.acting_user_id),
-      }))
-      expect(pairs).toContainEqual({ affected: guest.id, acting: host.id })
-    })
-
-    it('deletes the parked attempt: its code stops answering', async () => {
-      const result = await query({ query: assistedRegistrationInfo, variables: { assistCode } })
-      expect(result.errors).toEqual([new GraphQLError(NEUTRAL)])
+      await openAtTheTable('guest@example.org')
     })
 
     it('lets the guest sign in right away — unconfirmed, but holding a password', async () => {
@@ -334,18 +193,7 @@ describe('AssistedRegistrationResolver', () => {
     const guest2Email = 'guest2@example.org'
 
     beforeAll(async () => {
-      await ringDoorbell('CL-cafe2')
-      const rows = await parkedRows()
-      const assistCode = rows[rows.length - 1].assistCode.toString()
-      const created = await mutate({
-        mutation: completeAssistedRegistration,
-        variables: { assistCode, email: guest2Email, password: PASSWORD },
-      })
-      expect(created.errors).toBeUndefined()
-      const guest2 = await DbUser.findOneOrFail({
-        where: { emailContact: { email: guest2Email } },
-        relations: ['emailContact'],
-      })
+      const guest2 = await openAtTheTable(guest2Email)
       // past the grace period: account and contact row both aged
       await ageUserRow(guest2.id, 25)
       await ageContactRow(guest2.emailContact.id, 25)
@@ -402,14 +250,7 @@ describe('AssistedRegistrationResolver', () => {
     const realEmail = 'guest3-real@example.org'
 
     beforeAll(async () => {
-      await ringDoorbell('CL-cafe3')
-      const rows = await parkedRows()
-      const assistCode = rows[rows.length - 1].assistCode.toString()
-      const created = await mutate({
-        mutation: completeAssistedRegistration,
-        variables: { assistCode, email: typoEmail, password: PASSWORD },
-      })
-      expect(created.errors).toBeUndefined()
+      await openAtTheTable(typoEmail)
     })
 
     it('sends NO veto to a never-confirmed address when the guest corrects a typo', async () => {

@@ -24,16 +24,6 @@
     "text": "Existe uma versão mais recente."
   },
   "assistedRegistration": {
-    "assist": {
-      "button": "Criar conta",
-      "done": "A conta está pronta! Um e-mail de confirmação vai a caminho da nova caixa de correio. Inicia sessão agora e resgata o cheque:",
-      "emailHint": "Introduz aqui o endereço de e-mail próprio do novo membro — não o teu. A palavra-passe é o novo membro que a escreve.",
-      "emailTaken": "Este endereço de e-mail já tem uma conta Gradido. Usa «Esqueceste-te da palavra-passe?» para voltar a entrar.",
-      "intro": "{name} quer começar uma conta Gradido.",
-      "invalid": "Esta ligação é inválida ou expirou.",
-      "loginButton": "Iniciar sessão e resgatar o cheque",
-      "title": "Criar juntos uma conta Gradido"
-    },
     "confirm": {
       "button": "Confirmar endereço",
       "done": "O teu endereço de e-mail está confirmado. A tua conta fica agora aberta para ti de forma permanente.",

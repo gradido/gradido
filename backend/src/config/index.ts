@@ -85,7 +85,6 @@ const email = {
   // seen is left as a literal `$NAME` by start.sh and takes the frontend build down.
   EMAIL_LINK_EMAIL_CHANGE: COMMUNITY_URL + '/email-change/',
   // Same reasoning as above — derived, no environment variable (EM-013).
-  EMAIL_LINK_REGISTER_ASSIST: COMMUNITY_URL + '/register-assist/',
   EMAIL_LINK_CONFIRM_EMAIL: COMMUNITY_URL + '/confirm-email/',
   // time in minutes a optin code is valid
   EMAIL_CODE_VALID_TIME: process.env.EMAIL_CODE_VALID_TIME

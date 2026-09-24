@@ -24,16 +24,6 @@
     "text": "Daha yeni bir sürüm mevcut."
   },
   "assistedRegistration": {
-    "assist": {
-      "button": "Hesap aç",
-      "done": "Hesap hazır! Bir onay e-postası yeni posta kutusuna doğru yolda. Şimdi giriş yap ve çeki kullan:",
-      "emailHint": "Buraya yeni üyenin kendi e-posta adresini gir — seninkini değil. Şifreyi yeni üye kendisi yazar.",
-      "emailTaken": "Bu e-posta adresinin zaten bir Gradido hesabı var. Yeniden giriş yapmak için «Şifreni mi unuttun?» bağlantısını kullan.",
-      "intro": "{name} bir Gradido hesabı başlatmak istiyor.",
-      "invalid": "Bu bağlantı geçersiz veya süresi dolmuş.",
-      "loginButton": "Giriş yap ve çeki kullan",
-      "title": "Birlikte bir Gradido hesabı açmak"
-    },
     "confirm": {
       "button": "Adresi onayla",
       "done": "E-posta adresin onaylandı. Hesabın artık kalıcı olarak sana açık.",

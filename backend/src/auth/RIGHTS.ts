@@ -12,10 +12,8 @@ export enum RIGHTS {
   // Both arrive from a mail link, so nobody is logged in; the code is what authorises.
   CONFIRM_EMAIL_CHANGE = 'CONFIRM_EMAIL_CHANGE',
   REVOKE_EMAIL_CHANGE = 'REVOKE_EMAIL_CHANGE',
-  // Assisted registration (EM-013): all three arrive from a mail link before anybody
-  // can be logged in — the assist code, respectively the confirmation code, authorises.
-  ASSISTED_REGISTRATION_INFO = 'ASSISTED_REGISTRATION_INFO',
-  COMPLETE_ASSISTED_REGISTRATION = 'COMPLETE_ASSISTED_REGISTRATION',
+  // Assisted registration (EM-013): the guest's confirm-only link arrives from a mail
+  // before anybody can be logged in — the confirmation code authorises.
   CONFIRM_EMAIL = 'CONFIRM_EMAIL',
   // User
   CHECK_USERNAME = 'CHECK_USERNAME',

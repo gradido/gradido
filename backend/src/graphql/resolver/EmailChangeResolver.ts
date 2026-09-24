@@ -110,7 +110,7 @@ const freshCodes = () => ({
  * NINE writers of `user_contacts` stand outside this lock.
  *  - Two hard DELETEs that cannot even be brought in, because neither takes an
  *    `EntityManager`: `dbReleaseUnconfirmedEmailChangeFor` (via `checkEmailExists`, from the
- *    registration, the assisted registration and the Elopage webhook) and
+ *    registration and the Elopage webhook) and
  *    `dbPurgeExpiredEmailChanges` (from `requestEmailChange` just before the lock, and from
  *    `adminReplaceUnconfirmedEmail`).
  *  - Six read-modify-writes that `save()` an entity read outside any transaction:
