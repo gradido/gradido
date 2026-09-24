@@ -1,0 +1,40 @@
+# AI-GENERATED — not an architecture reference
+
+# The thread with one person, one page at a time, oldest first within the page (E-018: the
+# order of arrival on this server; nothing is sorted). The person is named by the PAIR the
+# contact window holds (KF-004) -- there is no conversation id to ask by, and none is needed.
+#
+# `before` is the smallest id already on screen: the page it returns lies right before it.
+# Without it, the newest page. `limit` defaults to 50 on the server and stops at 100.
+#
+# ⛔ The fields are the ones backend/src/seeds/graphql/queries.ts asks for, one for one, and
+# `documents.test.ts` holds this document against the schema. `deliveryState` and `notify`
+# come back only on one's OWN messages, as the enum NAMES (DELIVERED, PENDING, FAILED;
+# EMAIL, NONE) -- on the other side's messages they are null, because the server says
+# nothing about how the other side's mail went.
+query chatMessagesWithMemberQuery($ref: MemberAvatarRefInput!, $before: Int, $limit: Int) {
+  chatMessagesWithMember(ref: $ref, before: $before, limit: $limit) {
+    hasMore
+    messages {
+      id
+      messageUuid
+      conversationId
+      sender {
+        communityUuid
+        gradidoID
+      }
+      mine
+      subject
+      body
+      createdAt
+      deliveryState
+      notify
+    }
+  }
+}
+
+# Moves one's OWN read pointer up to the highest id the thread has shown (E-017). The server
+# never moves it back and takes only an id of this conversation.
+mutation markChatConversationRead($ref: MemberAvatarRefInput!, $upToMessageId: Int!) {
+  markChatConversationRead(ref: $ref, upToMessageId: $upToMessageId)
+}

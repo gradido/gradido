@@ -135,14 +135,6 @@ describe('FavoriteHeart', () => {
     expect(toastError).toHaveBeenCalledWith('nope')
   })
 
-  it('shows the word beside the heart only when asked to', () => {
-    mountWith({ label: true })
-    expect(wrapper.text()).toContain('contacts.addFavorite')
-    wrapper.unmount()
-    mountWith()
-    expect(wrapper.text()).not.toContain('contacts.addFavorite')
-  })
-
   it('does not let its click reach the row around it', async () => {
     const outer = vi.fn()
     const Host = {

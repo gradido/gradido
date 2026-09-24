@@ -4,7 +4,7 @@
     <BButton
       variant="link"
       class="favorite-heart-button p-0 border-0"
-      :class="{ 'is-favorite': favorite, 'with-label': label }"
+      :class="{ 'is-favorite': favorite }"
       :aria-label="favorite ? $t('contacts.heart.remove') : $t('contacts.heart.add')"
       :aria-pressed="favorite ? 'true' : 'false'"
       :disabled="busy"
@@ -13,9 +13,6 @@
     >
       <i-mdi-heart v-if="favorite" class="favorite-heart-icon" aria-hidden="true" />
       <i-mdi-heart-outline v-else class="favorite-heart-icon" aria-hidden="true" />
-      <span v-if="label" class="ms-2 favorite-heart-label">
-        {{ favorite ? $t('contacts.isFavorite') : $t('contacts.addFavorite') }}
-      </span>
     </BButton>
 
     <!-- The question is asked in ONE direction only (KF-003). Giving the heart by mistake
@@ -53,7 +50,9 @@ import { memberAlias } from '@/utils/gradidoAddress'
 
 /**
  * The heart, wherever a member is named: booking rows, the last-bookings column, the
- * contact list. One component, so the three places cannot come to behave differently.
+ * contact lists, the contact window. One component, so these places cannot come to behave
+ * differently -- and a heart only, never with a word beside it: the contact window, the one
+ * place that had the word, puts the heart behind the name like every list (Bernd, 24.09.2026).
  *
  * ★ It sits exactly where the name is a link -- the same condition (a gradidoID on the
  * counterparty) decides both, and a creation row, which has no counterparty, gets
@@ -65,8 +64,6 @@ import { memberAlias } from '@/utils/gradidoAddress'
 const props = defineProps({
   /** { communityUuid, gradidoID, alias } -- the counterparty as the booking carries it. */
   member: { type: Object, required: true },
-  /** Show the word beside the heart (the contact window does; the rows do not). */
-  label: { type: Boolean, default: false },
 })
 
 const { toastError } = useAppToast()
@@ -134,9 +131,5 @@ const remove = async () => {
 .favorite-heart-icon {
   width: 1.35em;
   height: 1.35em;
-}
-
-.favorite-heart-label {
-  font-size: 0.9rem;
 }
 </style>

@@ -150,6 +150,16 @@
       "text": "Um andere Mitglieder in deinem Umkreis zu finden, trage jetzt deinen Standort auf der Karte ein!"
     }
   },
+  "chatThread": {
+    "empty": "Noch keine Nachrichten. Hier beginnt Euer Gespräch.",
+    "failed": "Nicht zugestellt",
+    "label": "Gesprächsverlauf mit {name}",
+    "loadOlder": "Ältere Nachrichten laden",
+    "mailed": "Auch per E-Mail",
+    "notReachable": "Der Gesprächsverlauf konnte nicht geladen werden.",
+    "pending": "Noch nicht zugestellt",
+    "you": "Du"
+  },
   "community": {
     "admins": "Administratoren",
     "choose-another-community": "Eine andere Gemeinschaft auswählen",
@@ -167,11 +177,9 @@
   "communityInfo": "Gemeinschaft Information",
   "contact": "Kontakt",
   "contacts": {
-    "addFavorite": "Zu Favoriten",
     "all": "Alle Kontakte",
     "allShort": "Alle",
     "bookings": "{n} Buchung | {n} Buchungen",
-    "chatLater": "Gesprächsverlauf — kommt mit dem Chat",
     "count": "{n} Kontakt | {n} Kontakte",
     "empty": "Noch keine Kontakte. Hier erscheint, wer mit Dir Gradido tauscht — oder durch Dich dazukommt.",
     "favorites": "Favoriten",
@@ -179,7 +187,6 @@
       "add": "Zu Favoriten hinzufügen",
       "remove": "Aus Favoriten entfernen"
     },
-    "isFavorite": "Favorit",
     "last": "zuletzt {date}",
     "matches": "Treffer",
     "noFavorites": "Noch keine Favoriten. Tippe das Herz bei einem Kontakt.",

@@ -150,6 +150,16 @@
       "text": "Para encontrares outros membros na tua área, introduz agora a tua localização no mapa!"
     }
   },
+  "chatThread": {
+    "empty": "Ainda não há mensagens. Aqui começa a vossa conversa.",
+    "failed": "Não entregue",
+    "label": "Histórico da conversa com {name}",
+    "loadOlder": "Carregar mensagens anteriores",
+    "mailed": "Também por e-mail",
+    "notReachable": "Não foi possível carregar o histórico da conversa.",
+    "pending": "Ainda não entregue",
+    "you": "Tu"
+  },
   "community": {
     "admins": "Administradores",
     "choose-another-community": "Escolher outra comunidade",
@@ -167,11 +177,9 @@
   "communityInfo": "Informação da comunidade",
   "contact": "Contacto",
   "contacts": {
-    "addFavorite": "Adicionar aos favoritos",
     "all": "Todos os contactos",
     "allShort": "Todos",
     "bookings": "{n} movimento | {n} movimentos",
-    "chatLater": "Histórico da conversa — chegará com o chat",
     "count": "{n} contacto | {n} contactos",
     "empty": "Ainda não há contactos. Aqui aparece quem troca Gradido contigo — ou quem chega graças a ti.",
     "favorites": "Favoritos",
@@ -179,7 +187,6 @@
       "add": "Adicionar aos favoritos",
       "remove": "Remover dos favoritos"
     },
-    "isFavorite": "Favorito",
     "last": "último {date}",
     "matches": "Resultados",
     "noFavorites": "Ainda sem favoritos. Toca no coração ao lado de um contacto.",

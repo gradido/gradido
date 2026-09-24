@@ -150,6 +150,16 @@
       "text": "To find other members in your area, enter your location on the map now!"
     }
   },
+  "chatThread": {
+    "empty": "No messages yet. This is where your conversation begins.",
+    "failed": "Not delivered",
+    "label": "Conversation history with {name}",
+    "loadOlder": "Load older messages",
+    "mailed": "Also by e-mail",
+    "notReachable": "The conversation history could not be loaded.",
+    "pending": "Not delivered yet",
+    "you": "You"
+  },
   "community": {
     "admins": "Administrators",
     "choose-another-community": "Choose another community",
@@ -167,11 +177,9 @@
   "communityInfo": "Community Information",
   "contact": "Contact",
   "contacts": {
-    "addFavorite": "Add to favourites",
     "all": "All contacts",
     "allShort": "All",
     "bookings": "{n} booking | {n} bookings",
-    "chatLater": "Conversation history — comes with the chat",
     "count": "{n} contact | {n} contacts",
     "empty": "No contacts yet. Whoever exchanges Gradido with you — or joins through you — appears here.",
     "favorites": "Favourites",
@@ -179,7 +187,6 @@
       "add": "Add to favourites",
       "remove": "Remove from favourites"
     },
-    "isFavorite": "Favourite",
     "last": "last {date}",
     "matches": "Matches",
     "noFavorites": "No favourites yet. Tap the heart beside a contact.",
