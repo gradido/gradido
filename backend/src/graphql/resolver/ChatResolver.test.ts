@@ -813,6 +813,24 @@ describe('sendChatMessage to a member of another community', () => {
     expect(await allMessages()).toEqual(before)
   })
 
+  // A community this server knows, before the two have exchanged keys: the command could not be
+  // sealed, and that is the same refusal as any other missing way.
+  it('refuses a community whose keys are not exchanged yet, and files and sends nothing', async () => {
+    await DbCommunity.update({ id: peer.id }, { publicJwtKey: null })
+    try {
+      peerAnswers({ success: true })
+      const before = await allMessages()
+
+      const res = await say(peerRef, 'Before the keys', 'EMAIL')
+
+      expect(res.errors).toEqual([new GraphQLError('CHAT_MESSAGE_NOT_SENT: NO_WAY_TO_DELIVER')])
+      expect(rawRequest).not.toHaveBeenCalled()
+      expect(await allMessages()).toEqual(before)
+    } finally {
+      await DbCommunity.update({ id: peer.id }, { publicJwtKey: peerKeys.publicKey })
+    }
+  })
+
   it('refuses a community it does not know, and files and sends nothing', async () => {
     peerAnswers({ success: true })
     const before = await allMessages()

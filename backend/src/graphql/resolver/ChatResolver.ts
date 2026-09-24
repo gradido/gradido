@@ -155,8 +155,9 @@ export class ChatResolver {
    *
    * A delivery to another community that failed is not an error for the sender: the copy comes
    * back FAILED (E-019: written first, then delivered), and the wallet says so under it. An error
-   * is that there is no way to deliver at all -- no V1_0 entry, no client for it, no uuid to name
-   * the recipient by -- and then nothing is filed. No silent true (D V03, section 1).
+   * is that there is no way to deliver at all -- no V1_0 entry, no client for it, no keys
+   * exchanged to seal the command with, no uuid to name the recipient by -- and then nothing is
+   * filed. No silent true (D V03, section 1).
    */
   @Authorized([RIGHTS.SEND_CHAT_MESSAGE])
   @Mutation(() => ChatMessage)
@@ -205,7 +206,9 @@ export class ChatResolver {
     const cmdClient = receiverFCom ? CommandClientFactory.getInstance(receiverFCom) : null
     if (
       !senderCom ||
+      !senderCom.privateJwtKey ||
       !receiverCom?.communityUuid ||
+      !receiverCom.publicJwtKey ||
       !uuidv4Schema.safeParse(receiverCom.communityUuid).success ||
       !uuidv4Schema.safeParse(other.gradidoId).success ||
       !(cmdClient instanceof V1_0_CommandClient)
