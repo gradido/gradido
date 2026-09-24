@@ -39,24 +39,29 @@
     @update:model-value="emit('update:modelValue', $event)"
   >
     <div v-if="contact" class="contact-window-inner">
-      <!-- ⛔ In the body, not by turning the header back on. `no-header` is what keeps the
-           person's name as the first thing in the window; a header would put an empty bar
-           above it and push the face down. The window could always be closed by clicking
-           beside it, but that is a thing one has to know -- a cross is the one control
-           everybody looks for. (Bernd, 04.09.2026.)
+      <!-- The cross at the very top, in a line of its own, and the name with its marks one
+           line below it (Bernd, 24.09.2026): beside the name the cross took the room the name
+           and its three marks need -- on a phone the name was down to a few letters. The
+           window could always be closed by clicking beside it, but that is a thing one has to
+           know -- a cross is the one control everybody looks for (Bernd, 04.09.2026).
+
+           ⛔ In the body, not by turning the header back on: BModal's header would bring a
+           bar with a rule under it and its own padding.
 
            ⚠️ `$t('form.close')` as the accessible name, not the glyph: a screen reader
            reading "times" or nothing at all is what a bare × amounts to. -->
-      <button
-        type="button"
-        class="contact-window-close"
-        :aria-label="$t('form.close')"
-        :title="$t('form.close')"
-        data-test="contact-window-close"
-        @click="emit('update:modelValue', false)"
-      >
-        <IBiX />
-      </button>
+      <div class="contact-window-top">
+        <button
+          type="button"
+          class="contact-window-close"
+          :aria-label="$t('form.close')"
+          :title="$t('form.close')"
+          data-test="contact-window-close"
+          @click="emit('update:modelValue', false)"
+        >
+          <IBiX />
+        </button>
+      </div>
 
       <div class="contact-window-head">
         <app-avatar :size="64" :color="'#fff'" v-bind="avatar" />
@@ -443,24 +448,18 @@ const toggleMute = async () => {
 </script>
 
 <style lang="scss" scoped>
-/* ⛔ The cross is positioned against THIS, not against Bootstrap's `.modal-body`. That
-   element does carry `position: relative` today, but it belongs to bootstrap-vue-next --
-   borrowing it would make this window's layout depend on a detail of somebody else's
-   stylesheet, which is how a class name from another component put an invisible sheet over
-   the whole wallet on 03.09. */
-.contact-window-inner {
-  position: relative;
+/* The cross's own line, at the top right. ⚠️ In the flow, not absolutely positioned: out of
+   the flow the name beside it laid out straight through the space the cross took, and the
+   head had to reserve that space at its right (2.8rem at the end, more than a phone could
+   spare). Pulled up and right into the body's padding, so it sits near the corner and the
+   line costs little height. */
+.contact-window-top {
+  display: flex;
+  justify-content: flex-end;
+  margin: -0.5rem -0.5rem 0.25rem 0;
 }
 
-/* Top right of the body. ⚠️ Absolutely positioned, so it is OUT of the flow and the name
-   beside it lays out straight through the space it occupies -- the head has to reserve that
-   space itself, which is what the `padding-right` below does. This comment used to claim
-   that reservation while no rule made it, and a long alias ran under the cross.
-   (coderabbit, PR #3840.) */
 .contact-window-close {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.65rem;
   appearance: none;
   border: 0;
   background: transparent;
@@ -477,16 +476,11 @@ const toggleMute = async () => {
   color: var(--bs-body-color);
 }
 
+/* To the right edge: the cross stands on the line above. */
 .contact-window-head {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-
-  /* The room the cross needs: 0.65rem from the right edge, its own box (a 1.15rem glyph and
-     0.25rem padding on either side: 1.65rem) and the marks' gap before it. ⚠️ It was 2rem,
-     less than the cross itself -- unseen while only the heart stood behind the name, and
-     the coin ran up against the cross (measured at 320 px and with a thirty-character name). */
-  padding-right: 2.8rem;
 }
 
 .contact-window-who {
@@ -592,8 +586,13 @@ const toggleMute = async () => {
 }
 
 /* The coin is its own picture -- the golden Gradido coin, round in itself -- so it fills the
-   mark and needs no ground or rim of its own. */
+   mark and needs no ground or rim of its own. As large as the compose bar's send button
+   (ChatComposeBar, `.chat-compose-send`): the window's two round gold controls in one
+   measure (Bernd, 24.09.2026: at the bells' 1.75rem it looked smaller than the button
+   below). The spec holds the two sizes together. */
 .contact-window-coin {
+  width: 2.4rem;
+  height: 2.4rem;
   border: 0;
 }
 

@@ -711,15 +711,40 @@ describe('ContactWindow', () => {
    * this reservation for a week while no rule made it -- so it is measured in the
    * STYLESHEET, which is the only place jsdom lets it be seen at all.
    */
-  it('reserves the room the cross takes, in the stylesheet', () => {
-    const source = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'ContactWindow.vue'),
-      'utf8',
-    )
-    const head = source.match(/\.contact-window-head\s*\{[^}]*\}/)
+  it('puts the cross on a line of its own, above the name', () => {
+    mountWindow()
+    const top = wrapper.find('.contact-window-top')
+    const head = wrapper.find('.contact-window-head')
 
-    expect(head, '.contact-window-head no longer exists').not.toBeNull()
-    expect(head[0]).toMatch(/padding-right:\s*[\d.]+rem/)
+    expect(top.find('[data-test="contact-window-close"]').exists()).toBe(true)
+    expect(head.find('[data-test="contact-window-close"]').exists()).toBe(false)
+    // The line of the cross comes first, the head after it.
+    expect(
+      top.element.compareDocumentPosition(head.element) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+    // In the flow, so the head needs no room kept free at its right -- jsdom lays nothing out,
+    // so the stylesheet says it.
+    const code = styleOf('ContactWindow.vue')
+    const rule = (selector) => code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+    expect(rule('\\.contact-window-close')).not.toMatch(/position:\s*absolute/)
+    expect(rule('\\.contact-window-head')).not.toMatch(/padding-right/)
+  })
+
+  // The window's two round gold controls in one measure (Bernd, 24.09.2026): the coin as large
+  // as the compose bar's send button, held in both stylesheets.
+  it('makes the coin as large as the send button of the compose bar', () => {
+    const size = (file, selector) => {
+      const body = styleOf(file).match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+      return [
+        body.match(/(?:^|\s)width:\s*([^;]+);/)?.[1],
+        body.match(/(?:^|\s)height:\s*([^;]+);/)?.[1],
+      ]
+    }
+    const coin = size('ContactWindow.vue', '\\.contact-window-coin')
+    const send = size('../Chat/ChatComposeBar.vue', '\\.chat-compose-send')
+
+    expect(send.every(Boolean), 'the send button lost its size').toBe(true)
+    expect(coin).toEqual(send)
   })
 
   it('closes from a cross that says what it is', async () => {
