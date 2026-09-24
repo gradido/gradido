@@ -151,13 +151,26 @@
     }
   },
   "chatThread": {
+    "alsoByEmail": "Também por e-mail",
+    "alsoByEmailHint": "Caso contrário, {name} não recebe nenhum e-mail sobre esta mensagem",
+    "alsoByEmailTo": "Também por e-mail para {name}",
     "empty": "Ainda não há mensagens. Aqui começa a vossa conversa.",
     "failed": "Não entregue",
+    "firstGoesByEmail": "A primeira mensagem segue também por e-mail para {name}.",
     "label": "Histórico da conversa com {name}",
     "loadOlder": "Carregar mensagens anteriores",
     "mailed": "Também por e-mail",
+    "muteOff": "Conversa silenciada — sem e-mails sobre as mensagens de {name}",
+    "muteOn": "Silenciar",
+    "mutedHint": "Conversa silenciada: deixas de receber e-mails sobre as mensagens de {name}. As novas mensagens vês aqui.",
     "notReachable": "Não foi possível carregar o histórico da conversa.",
+    "notSent": "Não foi possível enviar a mensagem. O teu texto fica aqui.",
     "pending": "Ainda não entregue",
+    "placeholder": "Mensagem para {name} …",
+    "remaining": "Resta {n} carácter | Restam {n} caracteres",
+    "send": "Enviar",
+    "sent": "Enviada",
+    "unmutedHint": "Conversa já não silenciada: voltas a receber e-mails sobre as mensagens de {name}.",
     "you": "Tu"
   },
   "community": {
@@ -202,7 +215,6 @@
       "title": "Remover {name} dos teus favoritos?"
     },
     "search": "Procurar contacto …",
-    "sendEmail": "Enviar e-mail",
     "sendGradido": "Enviar Gradido",
     "since": "Contacto desde {date}"
   },

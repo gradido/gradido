@@ -151,13 +151,26 @@
     }
   },
   "chatThread": {
+    "alsoByEmail": "Ook per e-mail",
+    "alsoByEmailHint": "Anders krijgt {name} geen e-mail over dit bericht",
+    "alsoByEmailTo": "Ook per e-mail aan {name}",
     "empty": "Nog geen berichten. Hier begint jullie gesprek.",
     "failed": "Niet afgeleverd",
+    "firstGoesByEmail": "Het eerste bericht gaat ook per e-mail naar {name}.",
     "label": "Gespreksgeschiedenis met {name}",
     "loadOlder": "Oudere berichten laden",
     "mailed": "Ook per e-mail",
+    "muteOff": "Gesprek gedempt — geen e-mails over berichten van {name}",
+    "muteOn": "Dempen",
+    "mutedHint": "Gesprek gedempt: geen e-mails meer over berichten van {name}. Nieuwe berichten zie je hier.",
     "notReachable": "De gespreksgeschiedenis kon niet worden geladen.",
+    "notSent": "Het bericht kon niet worden verstuurd. Je tekst blijft hier staan.",
     "pending": "Nog niet afgeleverd",
+    "placeholder": "Bericht aan {name} …",
+    "remaining": "Nog {n} teken | Nog {n} tekens",
+    "send": "Versturen",
+    "sent": "Verstuurd",
+    "unmutedHint": "Gesprek niet meer gedempt: je krijgt weer e-mails over berichten van {name}.",
     "you": "Jij"
   },
   "community": {
@@ -202,7 +215,6 @@
       "title": "{name} uit je favorieten verwijderen?"
     },
     "search": "Contact zoeken …",
-    "sendEmail": "E-mail versturen",
     "sendGradido": "Gradido versturen",
     "since": "Contact sinds {date}"
   },

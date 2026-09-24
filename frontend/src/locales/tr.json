@@ -151,13 +151,26 @@
     }
   },
   "chatThread": {
+    "alsoByEmail": "Ayrıca e-posta ile",
+    "alsoByEmailHint": "Aksi halde {name} bu mesaj için e-posta almaz",
+    "alsoByEmailTo": "{name} kişisine ayrıca e-posta ile",
     "empty": "Henüz mesaj yok. Sohbet burada başlıyor.",
     "failed": "İletilemedi",
+    "firstGoesByEmail": "İlk mesaj {name} kişisine e-posta ile de gider.",
     "label": "{name} ile konuşma geçmişi",
     "loadOlder": "Daha eski mesajları yükle",
     "mailed": "Ayrıca e-posta ile",
+    "muteOff": "Sessizde — {name} kişisinin mesajları için e-posta yok",
+    "muteOn": "Sessize al",
+    "mutedHint": "Sessize alındı: {name} kişisinin mesajları için artık e-posta gelmeyecek. Yeni mesajları burada görürsün.",
     "notReachable": "Konuşma geçmişi yüklenemedi.",
+    "notSent": "Mesaj gönderilemedi. Metnin burada kalıyor.",
     "pending": "Henüz iletilmedi",
+    "placeholder": "{name} kişisine mesaj …",
+    "remaining": "{n} karakter kaldı",
+    "send": "Gönder",
+    "sent": "Gönderildi",
+    "unmutedHint": "Artık sessizde değil: {name} kişisinin mesajları için yine e-posta alacaksın.",
     "you": "Sen"
   },
   "community": {
@@ -202,7 +215,6 @@
       "title": "{name} favorilerinden çıkarılsın mı?"
     },
     "search": "Kişi ara …",
-    "sendEmail": "E-posta gönder",
     "sendGradido": "Gradido gönder",
     "since": "{date} tarihinden beri kişi"
   },

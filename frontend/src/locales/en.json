@@ -151,13 +151,26 @@
     }
   },
   "chatThread": {
+    "alsoByEmail": "Also by e-mail",
+    "alsoByEmailHint": "Otherwise {name} gets no e-mail about this message",
+    "alsoByEmailTo": "Also by e-mail to {name}",
     "empty": "No messages yet. This is where your conversation begins.",
     "failed": "Not delivered",
+    "firstGoesByEmail": "The first message also goes to {name} by e-mail.",
     "label": "Conversation history with {name}",
     "loadOlder": "Load older messages",
     "mailed": "Also by e-mail",
+    "muteOff": "Muted — no e-mails about messages from {name}",
+    "muteOn": "Mute",
+    "mutedHint": "Muted: no more e-mails about messages from {name}. You will see new messages here.",
     "notReachable": "The conversation history could not be loaded.",
+    "notSent": "The message could not be sent. Your text stays here.",
     "pending": "Not delivered yet",
+    "placeholder": "Message to {name} …",
+    "remaining": "{n} character left | {n} characters left",
+    "send": "Send",
+    "sent": "Sent",
+    "unmutedHint": "No longer muted: you will get e-mails about messages from {name} again.",
     "you": "You"
   },
   "community": {
@@ -202,7 +215,6 @@
       "title": "Remove {name} from your favourites?"
     },
     "search": "Search contacts …",
-    "sendEmail": "Send e-mail",
     "sendGradido": "Send Gradido",
     "since": "Contact since {date}"
   },

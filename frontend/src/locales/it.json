@@ -151,13 +151,26 @@
     }
   },
   "chatThread": {
+    "alsoByEmail": "Anche via e-mail",
+    "alsoByEmailHint": "Altrimenti {name} non riceverà nessuna e-mail per questo messaggio",
+    "alsoByEmailTo": "Anche via e-mail a {name}",
     "empty": "Ancora nessun messaggio. Qui inizia la vostra conversazione.",
     "failed": "Non consegnato",
+    "firstGoesByEmail": "Il primo messaggio arriva anche via e-mail a {name}.",
     "label": "Cronologia della conversazione con {name}",
     "loadOlder": "Carica i messaggi precedenti",
     "mailed": "Anche via e-mail",
+    "muteOff": "Conversazione silenziata — nessuna e-mail per i messaggi di {name}",
+    "muteOn": "Silenzia",
+    "mutedHint": "Conversazione silenziata: niente più e-mail per i messaggi di {name}. I nuovi messaggi li vedi qui.",
     "notReachable": "Non è stato possibile caricare la cronologia della conversazione.",
+    "notSent": "Non è stato possibile inviare il messaggio. Il tuo testo resta qui.",
     "pending": "Non ancora consegnato",
+    "placeholder": "Messaggio a {name} …",
+    "remaining": "Resta {n} carattere | Restano {n} caratteri",
+    "send": "Invia",
+    "sent": "Inviato",
+    "unmutedHint": "Conversazione non più silenziata: ricevi di nuovo le e-mail per i messaggi di {name}.",
     "you": "Tu"
   },
   "community": {
@@ -202,7 +215,6 @@
       "title": "Rimuovere {name} dai tuoi preferiti?"
     },
     "search": "Cerca contatto …",
-    "sendEmail": "Invia e-mail",
     "sendGradido": "Invia Gradido",
     "since": "Contatto da {date}"
   },
