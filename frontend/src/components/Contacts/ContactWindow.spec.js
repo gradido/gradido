@@ -868,6 +868,17 @@ describe('ContactWindow', () => {
     }
   })
 
+  // "Schmal" (Bernd, 24.09.2026): the button keeps the width of its word, so something can
+  // stand beside it later -- a rule of its own, outside the map's rules held above.
+  it('keeps the button as wide as its word, in the stylesheet', () => {
+    const rule = styleOf('ContactWindow.vue').match(
+      /\n\.contact-window-send \.send-btn\s*\{([^}]*)\}/,
+    )?.[1]
+
+    expect(rule, 'the button lost its own width').toBeDefined()
+    expect(rule).toMatch(/flex:\s*0 1 auto/)
+  })
+
   it('closes from a cross that says what it is', async () => {
     mountWindow()
     const cross = wrapper.find('[data-test="contact-window-close"]')

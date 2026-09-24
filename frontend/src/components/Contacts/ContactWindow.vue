@@ -606,6 +606,7 @@ const toggleMute = async () => {
 /* The one way out, under the figures and above the line where the thread begins. */
 .contact-window-send {
   display: flex;
+  gap: 10px;
 }
 
 /* ⛔ From here to the focus rule: the map profile's button (MatchProfile.vue), rule for rule,
@@ -643,6 +644,14 @@ const toggleMute = async () => {
 .send-btn:focus-visible {
   outline: 2px solid var(--success, #047006);
   outline-offset: 2px;
+}
+
+/* ⚠️ The second difference from the map, and the reason it stands outside the map's rules:
+   the button keeps the width of its word instead of filling the row (Bernd, 24.09.2026,
+   "schmal"), so something can stand beside it later -- a camera for a video call, perhaps.
+   Measured: it fits beside a second one in the longest labels too (ru, el). */
+.contact-window-send .send-btn {
+  flex: 0 1 auto;
 }
 
 /* ⛔ The sheet (below `sm`, where BModal makes the window fullscreen -- the same 575.98px as
