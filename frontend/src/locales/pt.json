@@ -1171,7 +1171,7 @@
       "heading": "Por favor, introduz a tua palavra-passe e repete-a."
     },
     "signup": {
-      "agree": "Concordo com a <a href='https://gradido.net/datenschutz/' target='_blank' >política de privacidade</a>.",
+      "agree": "Concordo com a <a href='https://gradido.net/pt/datenschutz/' target='_blank' >política de privacidade</a>.",
       "dont_match": "As palavras-passe não coincidem.",
       "lowercase": "É necessária uma letra minúscula.",
       "minimum": "Mínimo de 8 caracteres.",

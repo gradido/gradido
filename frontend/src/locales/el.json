@@ -1171,7 +1171,7 @@
       "heading": "Παρακαλώ συμπλήρωσε τον κωδικό πρόσβασής σου και επανάλαβέ τον."
     },
     "signup": {
-      "agree": "Συμφωνώ με την <a href='https://gradido.net/datenschutz/' target='_blank' >πολιτική απορρήτου</a>.",
+      "agree": "Συμφωνώ με την <a href='https://gradido.net/el/datenschutz/' target='_blank' >πολιτική απορρήτου</a>.",
       "dont_match": "Οι κωδικοί πρόσβασης δεν ταιριάζουν.",
       "lowercase": "Απαιτείται ένα πεζό γράμμα.",
       "minimum": "Τουλάχιστον 8 χαρακτήρες.",

@@ -1171,7 +1171,7 @@
       "heading": "Vul alsjeblieft jouw wachtwoord in, en herhaal het."
     },
     "signup": {
-      "agree": "Ik ga akkoord met het <a href='https://gradido.net/datenschutz/' target='_blank'>privacybeleid</a>.",
+      "agree": "Ik ga akkoord met het <a href='https://gradido.net/nl/datenschutz/' target='_blank'>privacybeleid</a>.",
       "dont_match": "De wachtwoorden zijn niet gelijk.",
       "lowercase": "Een kleine letter is noodzakelijk.",
       "minimum": "Minstens 8 tekens.",

@@ -1171,7 +1171,7 @@
       "heading": "Lütfen şifreni gir ve tekrarla."
     },
     "signup": {
-      "agree": "<a href='https://gradido.net/en/datenschutz/' target='_blank' > gizlilik politikasını</a> kabul ediyorum.",
+      "agree": "<a href='https://gradido.net/tr/datenschutz/' target='_blank' > gizlilik politikasını</a> kabul ediyorum.",
       "dont_match": "Şifreler eşleşmiyor.",
       "lowercase": "Küçük bir harf gerekli.",
       "minimum": "Minimum 8 karakter.",

@@ -1171,7 +1171,7 @@
       "heading": "Inserisci la tua password e ripetila."
     },
     "signup": {
-      "agree": "Accetto l'<a href='https://gradido.net/datenschutz/' target='_blank'>informativa sulla privacy</a>.",
+      "agree": "Accetto l'<a href='https://gradido.net/it/datenschutz/' target='_blank'>informativa sulla privacy</a>.",
       "dont_match": "Le password non coincidono.",
       "lowercase": "È richiesta una lettera minuscola.",
       "minimum": "Almeno 8 caratteri.",

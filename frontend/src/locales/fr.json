@@ -1171,7 +1171,7 @@
       "heading": "Entre ton mot de passe et répète l'action, s'il te plaît."
     },
     "signup": {
-      "agree": "J'accepte la <a href='https://gradido.net/datenschutz/' target='_blank'>politique de confidentialité</a>.",
+      "agree": "J'accepte la <a href='https://gradido.net/fr/datenschutz/' target='_blank'>politique de confidentialité</a>.",
       "dont_match": "Les mots de passe ne correspondent pas.",
       "lowercase": "Une lettre minuscule est requise.",
       "minimum": "8 caractères minimum.",

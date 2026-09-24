@@ -425,10 +425,10 @@
     "current_balance": "Saldo de cuenta actual",
     "date": "Fecha",
     "description": "Descripción",
-    "email": "E-Mail",
+    "email": "Correo electrónico",
     "firstname": "Nombre",
     "from": "De",
-    "generate_now": "crear ahora",
+    "generate_now": "Crear ahora",
     "hidePassword": "Ocultar contraseña",
     "hours": "Horas",
     "identifier": "Correo electrónico, nombre de usuario o ID de Gradido",
@@ -1171,7 +1171,7 @@
       "heading": "Por favor, introduce tu contraseña y repítela."
     },
     "signup": {
-      "agree": "Acepto la <a href='https://gradido.net/datenschutz/' target='_blank'>Política de privacidad</a>.",
+      "agree": "Acepto la <a href='https://gradido.net/es/datenschutz/' target='_blank'>Política de privacidad</a>.",
       "dont_match": "Las contraseñas no coinciden.",
       "lowercase": "Se requiere una letra minúscula.",
       "minimum": "Al menos 8 caracteres.",
