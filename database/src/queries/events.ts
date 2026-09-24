@@ -1,6 +1,10 @@
-import { Order } from 'shared'
+import { and, eq } from 'drizzle-orm'
+import { GradidoUnit, Order } from 'shared'
 import { EntityManager } from 'typeorm'
+import { drizzleDb } from '../AppDatabase'
 import { ContributionLink as DbContributionLink, Event as DbEvent, User as DbUser } from '../entity'
+import { EventType } from '../enum/EventType'
+import { EventInsert, eventsTable } from '../schemas'
 
 export async function findModeratorCreatingContributionLink(
   contributionLink: DbContributionLink,
@@ -54,12 +58,36 @@ export async function dbHasRegisterRedeemEvent(
   affectedUserId: number,
   transactionLinkId: number,
 ): Promise<boolean> {
-  return DbEvent.exists({
-    where: {
-      // todo: move event types into db
-      type: 'USER_REGISTER_REDEEM',
-      affectedUserId,
-      involvedTransactionLinkId: transactionLinkId,
-    },
+  const rows = await drizzleDb()
+    .select({ id: eventsTable.id })
+    .from(eventsTable)
+    .where(
+      and(
+        eq(eventsTable.type, EventType.USER_REGISTER_REDEEM),
+        eq(eventsTable.affectedUserId, affectedUserId),
+        eq(eventsTable.involvedTransactionLinkId, transactionLinkId),
+      ),
+    )
+  return rows.length !== 0
+}
+
+export async function dbInsertEvent(event: EventInsert): Promise<void> {
+  await drizzleDb().insert(eventsTable).values(event)
+}
+
+/**
+ * `dbInsertEvent` inside the caller's TypeORM transaction. Drizzle writes over a pool of its
+ * own, so an event that has to commit or roll back together with TypeORM writes - or that is
+ * read and written under the same lock - cannot go through `dbInsertEvent` yet.
+ * TODO: remove once those transactions have moved to Drizzle.
+ */
+export async function dbInsertEventInTransaction(
+  manager: EntityManager,
+  event: Omit<EventInsert, 'amountLegacy'>,
+): Promise<void> {
+  const { amountGdd4, ...columns } = event
+  await manager.insert(DbEvent, {
+    ...columns,
+    amount: amountGdd4 == null ? null : GradidoUnit.fromGradidoCent(amountGdd4),
   })
 }

@@ -1,11 +1,15 @@
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
-import { AppDatabase, ContributionLink as DbContributionLink, Event as DbEvent } from 'database'
+import {
+  AppDatabase,
+  ContributionLink as DbContributionLink,
+  Event as DbEvent,
+  EventType,
+} from 'database'
 import { GraphQLError } from 'graphql'
 import { GradidoUnit } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { EventType } from '@/event/Events'
 import { userFactory } from '@/seeds/factory/user'
 import {
   createContributionLink,

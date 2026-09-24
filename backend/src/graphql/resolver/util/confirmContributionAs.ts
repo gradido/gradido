@@ -6,6 +6,8 @@ import {
   Contribution as DbContribution,
   Transaction as DbTransaction,
   User as DbUser,
+  dbInsertEvent,
+  EventType,
   getLastTransaction,
 } from 'database'
 import { getLogger } from 'log4js'
@@ -14,7 +16,6 @@ import { Decay, DecayCalculationType, GradidoUnit } from 'shared'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { PublishNameLogic } from '@/data/PublishName.logic'
-import { EVENT_ADMIN_CONTRIBUTION_CONFIRM } from '@/event/Events'
 import { LogError } from '@/server/LogError'
 
 import { contributionFrontendLink } from './contributions'
@@ -170,7 +171,13 @@ export const confirmContributionAs = async (
     } finally {
       await queryRunner.release()
     }
-    await EVENT_ADMIN_CONTRIBUTION_CONFIRM(user, signer, contribution, contribution.amount)
+    await dbInsertEvent({
+      type: EventType.ADMIN_CONTRIBUTION_CONFIRM,
+      affectedUserId: user.id,
+      actingUserId: signer.id,
+      involvedContributionId: contribution.id,
+      amountGdd4: contribution.amount.gddCent,
+    })
   } finally {
     // releaseLock()
     await mutex.release()

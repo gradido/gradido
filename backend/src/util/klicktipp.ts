@@ -1,7 +1,6 @@
-import { User } from 'database'
+import { EventType, User } from 'database'
 
 import { addFieldsToSubscriber, getKlickTippUser } from '@/apis/KlicktippController'
-import { EventType } from '@/event/EventType'
 import { lastDateTimeEvents } from '@/graphql/resolver/util/eventList'
 
 export async function retrieveNotRegisteredEmails(): Promise<string[]> {

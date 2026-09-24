@@ -9,6 +9,8 @@ import {
   dbDeleteAssistedRegistration,
   dbFindAssistedRegistrationByCode,
   dbFindRegisterUserContactByCodeOrFail,
+  dbInsertEvent,
+  EventType,
 } from 'database'
 import { getLogger, Logger } from 'log4js'
 import random from 'random-bigint'
@@ -18,7 +20,6 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { canEmailResend, isEmailVerificationCodeValid } from '@/data/EmailVerificationCode.logic'
-import { EVENT_USER_ACTIVATE_ACCOUNT, EVENT_USER_REGISTER_ASSISTED } from '@/event/Events'
 import { CompleteAssistedRegistrationArgs } from '@/graphql/arg/CompleteAssistedRegistrationArgs'
 import { registerAccount } from '@/interactions/registerAccount/RegisterAccount.context'
 import { isValidPassword } from '@/password/EncryptorUtils'
@@ -139,7 +140,11 @@ export class AssistedRegistrationResolver {
     // Only the id goes into the event, so no lookup: a host soft-deleted inside the
     // 24h window still keeps "who helped whom" answerable (same placeholder pattern
     // as registerAccount).
-    await EVENT_USER_REGISTER_ASSISTED(dbUser, { id: row.hostUserId } as DbUser)
+    await dbInsertEvent({
+      type: EventType.USER_REGISTER_ASSISTED,
+      affectedUserId: dbUser.id,
+      actingUserId: row.hostUserId,
+    })
     logger.info('completeAssistedRegistration... successful')
 
     return { redeemCode: row.redeemCode }
@@ -199,7 +204,11 @@ export class AssistedRegistrationResolver {
     } catch (e) {
       logger.error('Error subscribing to klicktipp', e)
     }
-    await EVENT_USER_ACTIVATE_ACCOUNT(user)
+    await dbInsertEvent({
+      type: EventType.USER_ACTIVATE_ACCOUNT,
+      affectedUserId: user.id,
+      actingUserId: user.id,
+    })
     logger.info('confirmEmail... successful')
     return true
   }

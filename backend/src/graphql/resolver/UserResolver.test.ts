@@ -30,6 +30,7 @@ import {
   FederatedCommunity as DbFederatedCommunity,
   dbInsertMatchingEntry,
   userFactory as dbUserFactory,
+  EventType,
   TransactionLink,
   User,
   UserAlias,
@@ -66,7 +67,6 @@ import {
   MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST,
 } from '@/data/MemberAvatars.logic'
 import { mintPresenceCode } from '@/data/PresenceCode.logic'
-import { EventType } from '@/event/Events'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 import { encryptPassword } from '@/password/PasswordEncryptor'

@@ -23,6 +23,7 @@ import {
   Contribution,
   Event as DbEvent,
   Transaction as DbTransaction,
+  EventType,
   User,
   UserContact,
 } from 'database'
@@ -31,7 +32,6 @@ import { getLogger as originalGetLogger } from 'log4js'
 import { GradidoUnit } from 'shared'
 import { Equal, IsNull, Not } from 'typeorm'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { EventType } from '@/event/Events'
 import { creations } from '@/seeds/creation/index'
 import { creationFactory } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'

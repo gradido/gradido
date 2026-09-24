@@ -29,11 +29,13 @@ import {
   DltTransaction as DbDltTransaction,
   dbFindMemberAvatarTimestamps,
   dbHasRegisterRedeemEvent,
+  dbInsertEvent,
   dbSelectThankYouCardLabels,
   dbSelectTransactionsByUserId,
   Transaction as dbTransaction,
   TransactionLink as dbTransactionLink,
   User as dbUser,
+  EventType,
   findUserByIdentifier,
   getCommunityByUuid,
   getCommunityWithFederatedCommunityByIdentifier,
@@ -57,7 +59,6 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { PublishNameLogic } from '@/data/PublishName.logic'
-import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { communityUser } from '@/util/communityUser'
@@ -225,14 +226,23 @@ export const executeTransaction = async (
       await queryRunner.commitTransaction()
       logger.info(`commit Transaction successful...`)
 
-      await EVENT_TRANSACTION_SEND(sender, recipient, transactionSend, transactionSend.amount)
+      await dbInsertEvent({
+        type: EventType.TRANSACTION_SEND,
+        affectedUserId: sender.id,
+        actingUserId: sender.id,
+        involvedUserId: recipient.id,
+        involvedTransactionId: transactionSend.id,
+        amountGdd4: transactionSend.amount.gddCent,
+      })
 
-      await EVENT_TRANSACTION_RECEIVE(
-        recipient,
-        sender,
-        transactionReceive,
-        transactionReceive.amount,
-      )
+      await dbInsertEvent({
+        type: EventType.TRANSACTION_RECEIVE,
+        affectedUserId: recipient.id,
+        actingUserId: sender.id,
+        involvedUserId: sender.id,
+        involvedTransactionId: transactionReceive.id,
+        amountGdd4: transactionReceive.amount.gddCent,
+      })
       // update dltTransaction with transactionId
       const startTime = new Date()
       const dltTransaction = await dltTransactionPromise

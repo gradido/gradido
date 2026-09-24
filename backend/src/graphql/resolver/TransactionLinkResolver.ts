@@ -28,6 +28,8 @@ import {
   Transaction as DbTransaction,
   TransactionLink as DbTransactionLink,
   User as DbUser,
+  dbInsertEvent,
+  EventType,
   findModeratorCreatingContributionLink,
   findTransactionLinkByCode,
   getHomeCommunity,
@@ -55,12 +57,6 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { CREATION_NOT_ALLOWED } from '@/data/ProjectAccount.logic'
 import { PublishNameLogic } from '@/data/PublishName.logic'
-import {
-  EVENT_CONTRIBUTION_LINK_REDEEM,
-  EVENT_TRANSACTION_LINK_CREATE,
-  EVENT_TRANSACTION_LINK_DELETE,
-  EVENT_TRANSACTION_LINK_REDEEM,
-} from '@/event/Events'
 import { DisbursementClient as V1_0_DisbursementClient } from '@/federation/client/1_0/DisbursementClient'
 import { DisbursementClientFactory } from '@/federation/client/DisbursementClientFactory'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
@@ -124,7 +120,13 @@ export class TransactionLinkResolver {
     await DbTransactionLink.save(transactionLink).catch((e) => {
       throw new LogError('Unable to save transaction link', e)
     })
-    await EVENT_TRANSACTION_LINK_CREATE(user, transactionLink, amount)
+    await dbInsertEvent({
+      type: EventType.TRANSACTION_LINK_CREATE,
+      affectedUserId: user.id,
+      actingUserId: user.id,
+      involvedTransactionLinkId: transactionLink.id,
+      amountGdd4: amount.gddCent,
+    })
     // wait for dlt transaction to be created
     const startTime = Date.now()
     const dltTransaction = await dltTransactionPromise
@@ -176,7 +178,12 @@ export class TransactionLinkResolver {
       true,
     )
 
-    await EVENT_TRANSACTION_LINK_DELETE(user, transactionLink)
+    await dbInsertEvent({
+      type: EventType.TRANSACTION_LINK_DELETE,
+      affectedUserId: user.id,
+      actingUserId: user.id,
+      involvedTransactionLinkId: transactionLink.id,
+    })
     // wait for dlt transaction to be created
     const startTime = Date.now()
     const dltTransaction = await dltTransactionPromise
@@ -393,13 +400,15 @@ export class TransactionLinkResolver {
 
           await queryRunner.commitTransaction()
 
-          await EVENT_CONTRIBUTION_LINK_REDEEM(
-            user,
-            transaction,
-            contribution,
-            contributionLink,
-            contributionLink.amount,
-          )
+          await dbInsertEvent({
+            type: EventType.CONTRIBUTION_LINK_REDEEM,
+            affectedUserId: user.id,
+            actingUserId: user.id,
+            involvedTransactionId: transaction.id,
+            involvedContributionId: contribution.id,
+            involvedContributionLinkId: contributionLink.id,
+            amountGdd4: contributionLink.amount.gddCent,
+          })
           if (dltTransactionPromise) {
             const startTime = new Date()
             const dltTransaction = await dltTransactionPromise
@@ -464,12 +473,14 @@ export class TransactionLinkResolver {
           methodLogger,
           transactionLink,
         )
-        await EVENT_TRANSACTION_LINK_REDEEM(
-          user,
-          { id: transactionLink.userId } as DbUser,
-          transactionLink,
-          transactionLink.amount,
-        )
+        await dbInsertEvent({
+          type: EventType.TRANSACTION_LINK_REDEEM,
+          affectedUserId: user.id,
+          actingUserId: user.id,
+          involvedUserId: transactionLink.userId,
+          involvedTransactionLinkId: transactionLink.id,
+          amountGdd4: transactionLink.amount.gddCent,
+        })
       } finally {
         // releaseLinkLock()
         await mutex.release()

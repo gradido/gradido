@@ -6,7 +6,10 @@ import {
   dbCountOpenContributionsByUserId,
   dbFindLatestEventForAffectedUser,
   dbGetUserWithRoleById,
+  dbInsertEvent,
+  dbInsertEventInTransaction,
   dbSetCreationAllowed,
+  EventType,
 } from 'database'
 import { getLogger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
@@ -20,12 +23,6 @@ import {
   isCreationRightRequestTooSoon,
   ProjectAccountRefused,
 } from '@/data/ProjectAccount.logic'
-import {
-  EVENT_ADMIN_USER_CREATION_ALLOWED_SET,
-  EVENT_CREATION_RIGHT_REQUEST,
-  EVENT_PROJECT_ACCOUNT_DECLARE,
-  EventType,
-} from '@/event/Events'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
@@ -103,7 +100,11 @@ export class ProjectAccountResolver {
     if (!written.success) {
       throw new LogError('Could not find user with given ID', userId)
     }
-    await EVENT_ADMIN_USER_CREATION_ALLOWED_SET(target.value, moderator)
+    await dbInsertEvent({
+      type: EventType.ADMIN_USER_CREATION_ALLOWED_SET,
+      affectedUserId: target.value.id,
+      actingUserId: moderator.id,
+    })
     logger.info(`creation right of account ${userId} set to ${allowed} by ${moderator.id}`)
     return allowed
   }
@@ -128,7 +129,12 @@ async function declareProjectAccount(user: DbUser): Promise<VoidResult<ProjectAc
       // programmer error, not a runtime condition.
       throw new LogError('Could not find user with given ID', user.id)
     }
-    await EVENT_PROJECT_ACCOUNT_DECLARE(user, manager)
+    // Its timestamp is the "declared at" of the support mail, so it commits with the column.
+    await dbInsertEventInTransaction(manager, {
+      type: EventType.PROJECT_ACCOUNT_DECLARE,
+      affectedUserId: user.id,
+      actingUserId: user.id,
+    })
   })
   // The caller keeps acting on the snapshot in this request; keep it true to the row.
   user.creationAllowed = false
@@ -186,7 +192,12 @@ async function requestCreationRight(
     if (!accepted || accepted instanceof Error) {
       return { success: false, error: new CreationRightRequestRefused('MAIL_FAILED') }
     }
-    await EVENT_CREATION_RIGHT_REQUEST(user)
+    // Also the rate limit: the next request reads its timestamp.
+    await dbInsertEvent({
+      type: EventType.CREATION_RIGHT_REQUEST,
+      affectedUserId: user.id,
+      actingUserId: user.id,
+    })
   } finally {
     await mutex.release()
   }

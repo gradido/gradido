@@ -2,11 +2,10 @@
 import { ContributionArgs } from '@arg/ContributionArgs'
 import { ContributionStatus } from '@enum/ContributionStatus'
 import { ContributionType } from '@enum/ContributionType'
-import { Contribution as DbContribution, User as DbUser } from 'database'
+import { Contribution as DbContribution, User as DbUser, dbInsertEvent, EventType } from 'database'
 import { getLogger } from 'log4js'
 
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { EVENT_CONTRIBUTION_CREATE } from '@/event/Events'
 
 import {
   linkContributionCreationGroups,
@@ -61,7 +60,13 @@ export const createUserContribution = async (
   logger.trace('contribution to save', contribution)
   await DbContribution.save(contribution)
   await linkContributionCreationGroups(contribution.id, canonicalGroups)
-  await EVENT_CONTRIBUTION_CREATE(user, contribution, amount)
+  await dbInsertEvent({
+    type: EventType.CONTRIBUTION_CREATE,
+    affectedUserId: user.id,
+    actingUserId: user.id,
+    involvedContributionId: contribution.id,
+    amountGdd4: amount.gddCent,
+  })
 
   return contribution
 }

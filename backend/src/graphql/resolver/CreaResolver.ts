@@ -8,9 +8,11 @@ import { CreaModelTestResult, CreaSettings, FirstCreationSigner } from '@model/C
 import {
   User as DbUser,
   dbGetFirstCreationSignerUserId,
+  dbInsertEvent,
   dbIsMatchingKeyingActive,
   dbSetFirstCreationSignerUserId,
   dbSetMatchingKeyingActive,
+  EventType,
 } from 'database'
 import { SALUTATION_MAX_LENGTH } from 'shared'
 import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
@@ -30,7 +32,6 @@ import {
 } from '@/apis/anthropic/crea/stub'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
-import { EVENT_ADMIN_USER_SALUTATION_SET } from '@/event/Events'
 import { resolveSigner } from '@/interactions/firstCreation/Signer.role'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
@@ -159,7 +160,11 @@ export class CreaResolver {
     }
     user.salutation = value
     await DbUser.save(user)
-    await EVENT_ADMIN_USER_SALUTATION_SET(user, getUser(context))
+    await dbInsertEvent({
+      type: EventType.ADMIN_USER_SALUTATION_SET,
+      affectedUserId: user.id,
+      actingUserId: getUser(context).id,
+    })
     return true
   }
 

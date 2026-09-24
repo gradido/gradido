@@ -14,11 +14,11 @@ import {
   User as DbUser,
   UserContact as DbUserContact,
   dbFindOldestUserContact,
+  EventType,
 } from 'database'
 import { GraphQLError } from 'graphql'
 import { OptInType } from 'shared'
 import { CONFIG } from '@/config'
-import { EventType } from '@/event/EventType'
 import { userFactory } from '@/seeds/factory/user'
 import {
   completeAssistedRegistration,

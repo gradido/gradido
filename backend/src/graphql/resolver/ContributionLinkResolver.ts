@@ -3,16 +3,11 @@ import { Paginated } from '@arg/Paginated'
 import { Order } from '@enum/Order'
 import { ContributionLink } from '@model/ContributionLink'
 import { ContributionLinkList } from '@model/ContributionLinkList'
-import { ContributionLink as DbContributionLink } from 'database'
+import { ContributionLink as DbContributionLink, dbInsertEvent, EventType } from 'database'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { IsNull, MoreThan } from 'typeorm'
 
 import { RIGHTS } from '@/auth/RIGHTS'
-import {
-  EVENT_ADMIN_CONTRIBUTION_LINK_CREATE,
-  EVENT_ADMIN_CONTRIBUTION_LINK_DELETE,
-  EVENT_ADMIN_CONTRIBUTION_LINK_UPDATE,
-} from '@/event/Events'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 
@@ -55,7 +50,13 @@ export class ContributionLinkResolver {
     dbContributionLink.maxAmountPerMonth = maxAmountPerMonth || null
     dbContributionLink.maxPerCycle = maxPerCycle
     await dbContributionLink.save()
-    await EVENT_ADMIN_CONTRIBUTION_LINK_CREATE(getUser(context), dbContributionLink, amount)
+    await dbInsertEvent({
+      type: EventType.ADMIN_CONTRIBUTION_LINK_CREATE,
+      affectedUserId: 0,
+      actingUserId: getUser(context).id,
+      involvedContributionLinkId: dbContributionLink.id,
+      amountGdd4: amount.gddCent,
+    })
 
     return new ContributionLink(dbContributionLink)
   }
@@ -89,7 +90,12 @@ export class ContributionLinkResolver {
       throw new LogError('Contribution Link not found', id)
     }
     await dbContributionLink.softRemove()
-    await EVENT_ADMIN_CONTRIBUTION_LINK_DELETE(getUser(context), dbContributionLink)
+    await dbInsertEvent({
+      type: EventType.ADMIN_CONTRIBUTION_LINK_DELETE,
+      affectedUserId: 0,
+      actingUserId: getUser(context).id,
+      involvedContributionLinkId: dbContributionLink.id,
+    })
 
     return true
   }
@@ -128,7 +134,13 @@ export class ContributionLinkResolver {
     dbContributionLink.maxAmountPerMonth = maxAmountPerMonth || null
     dbContributionLink.maxPerCycle = maxPerCycle
     await dbContributionLink.save()
-    await EVENT_ADMIN_CONTRIBUTION_LINK_UPDATE(getUser(context), dbContributionLink, amount)
+    await dbInsertEvent({
+      type: EventType.ADMIN_CONTRIBUTION_LINK_UPDATE,
+      affectedUserId: 0,
+      actingUserId: getUser(context).id,
+      involvedContributionLinkId: dbContributionLink.id,
+      amountGdd4: amount.gddCent,
+    })
 
     return new ContributionLink(dbContributionLink)
   }

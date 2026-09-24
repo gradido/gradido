@@ -26,6 +26,8 @@ import {
   User as DbUser,
   dbFindMemberAvatarTimestamps,
   dbFindUserContactWithUserByEmail,
+  dbInsertEvent,
+  EventType,
   findUserNamesByIds,
 } from 'database'
 import { GraphQLResolveInfo } from 'graphql'
@@ -37,14 +39,6 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { CREATION_NOT_ALLOWED } from '@/data/ProjectAccount.logic'
 import { PublishNameLogic } from '@/data/PublishName.logic'
-import {
-  EVENT_ADMIN_CONTRIBUTION_CREATE,
-  EVENT_ADMIN_CONTRIBUTION_DELETE,
-  EVENT_ADMIN_CONTRIBUTION_DENY,
-  EVENT_ADMIN_CONTRIBUTION_UPDATE,
-  EVENT_CONTRIBUTION_DELETE,
-  EVENT_CONTRIBUTION_UPDATE,
-} from '@/event/Events'
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
@@ -171,7 +165,13 @@ export class ContributionResolver {
     contribution.deletedBy = user.id
     contribution.deletedAt = new Date()
     await contribution.save()
-    await EVENT_CONTRIBUTION_DELETE(user, contribution, contribution.amount)
+    await dbInsertEvent({
+      type: EventType.CONTRIBUTION_DELETE,
+      affectedUserId: user.id,
+      actingUserId: user.id,
+      involvedContributionId: contribution.id,
+      amountGdd4: contribution.amount.gddCent,
+    })
 
     const res = await contribution.softRemove()
     return !!res
@@ -264,7 +264,13 @@ export class ContributionResolver {
       }
     })
     const user = getUser(context)
-    await EVENT_CONTRIBUTION_UPDATE(user, contribution, contributionArgs.amount)
+    await dbInsertEvent({
+      type: EventType.CONTRIBUTION_UPDATE,
+      affectedUserId: user.id,
+      actingUserId: user.id,
+      involvedContributionId: contribution.id,
+      amountGdd4: contributionArgs.amount.gddCent,
+    })
 
     return new UnconfirmedContribution(contribution)
   }
@@ -326,7 +332,13 @@ export class ContributionResolver {
     contribution.creationGroupsSetAt = new Date()
     logger.trace('contribution to save', contribution)
     await DbContribution.save(contribution)
-    await EVENT_ADMIN_CONTRIBUTION_CREATE(emailContact.user, moderator, contribution, amount)
+    await dbInsertEvent({
+      type: EventType.ADMIN_CONTRIBUTION_CREATE,
+      affectedUserId: emailContact.user.id,
+      actingUserId: moderator.id,
+      involvedContributionId: contribution.id,
+      amountGdd4: amount.gddCent,
+    })
 
     return getUserCreation(emailContact.userId, clientTimezoneOffset)
   }
@@ -374,12 +386,13 @@ export class ContributionResolver {
     result.memo = contribution.memo
     result.date = contribution.contributionDate
 
-    await EVENT_ADMIN_CONTRIBUTION_UPDATE(
-      { id: contribution.userId } as DbUser,
-      moderator,
-      contribution,
-      contribution.amount,
-    )
+    await dbInsertEvent({
+      type: EventType.ADMIN_CONTRIBUTION_UPDATE,
+      affectedUserId: contribution.userId,
+      actingUserId: moderator.id,
+      involvedContributionId: contribution.id,
+      amountGdd4: contribution.amount.gddCent,
+    })
     if (createdByUserChangedByModerator && adminUpdateContributionArgs.memo) {
       const user = await DbUser.findOneOrFail({
         where: { id: contribution.userId },
@@ -531,12 +544,13 @@ export class ContributionResolver {
     contribution.deletedBy = moderator.id
     await contribution.save()
     const res = await contribution.softRemove()
-    await EVENT_ADMIN_CONTRIBUTION_DELETE(
-      { id: contribution.userId } as DbUser,
-      moderator,
-      contribution,
-      contribution.amount,
-    )
+    await dbInsertEvent({
+      type: EventType.ADMIN_CONTRIBUTION_DELETE,
+      affectedUserId: contribution.userId,
+      actingUserId: moderator.id,
+      involvedContributionId: contribution.id,
+      amountGdd4: contribution.amount.gddCent,
+    })
     await sendContributionDeletedEmail({
       firstName: user.firstName,
       lastName: user.lastName,
@@ -621,12 +635,13 @@ export class ContributionResolver {
     contributionToUpdate.deniedBy = moderator.id
     contributionToUpdate.deniedAt = new Date()
     const res = await contributionToUpdate.save()
-    await EVENT_ADMIN_CONTRIBUTION_DENY(
-      user,
-      moderator,
-      contributionToUpdate,
-      contributionToUpdate.amount,
-    )
+    await dbInsertEvent({
+      type: EventType.ADMIN_CONTRIBUTION_DENY,
+      affectedUserId: user.id,
+      actingUserId: moderator.id,
+      involvedContributionId: contributionToUpdate.id,
+      amountGdd4: contributionToUpdate.amount.gddCent,
+    })
 
     await sendContributionDeniedEmail({
       firstName: user.firstName,
