@@ -174,6 +174,52 @@
       "title": "{senderAlias} te ha enviado {transactionAmount} Gradido"
     }
   },
+  "firstCreation": {
+    "catalog": {
+      "accompaniedHardTime": "He acompañado a alguien en un momento difícil y {text}",
+      "animalShelter": "He ayudado en una protectora o en un santuario de animales y {text}",
+      "animalsOrNature": "He hecho algo por los animales o la naturaleza y {text}",
+      "caredForChildren": "He criado a mis hijos, los he acompañado en la vida y {text}",
+      "communityProject": "He ayudado a sacar adelante un proyecto comunitario (fiesta, agricultura solidaria, huerto comunitario …) y {text}",
+      "fireBrigadeRescue": "He colaborado con los bomberos voluntarios o en un servicio de rescate y {text}",
+      "helpedAtHome": "He ayudado en casa y {text}",
+      "helpedElderlyPerson": "He ayudado a una persona mayor y {text}",
+      "helpedFellowStudents": "He ayudado a mis compañeros de clase o de estudios y {text}",
+      "helpedNeighbourhood": "He echado una mano donde hacía falta en mi barrio y {text}",
+      "helpedOldPerson": "He ayudado a una persona anciana y {text}",
+      "helpedParish": "He ayudado en mi municipio o en mi parroquia y {text}",
+      "helpedSickPerson": "He ayudado a una persona enferma y {text}",
+      "lookedAfterGrandchildren": "Me he ocupado de mis nietos y {text}",
+      "lookedAfterOrTaught": "He cuidado de alguien o le he enseñado algo a alguien y {text}",
+      "madeSomeoneHappy": "Le he dado una alegría a alguien y {text}",
+      "musicChoirCulture": "He contribuido a la música, al coro o a la vida cultural de la comunidad y {text}",
+      "natureEnvironment": "He hecho algo por la naturaleza y el medio ambiente y {text}",
+      "nursedRelative": "He cuidado a un familiar y {text}",
+      "sharedKnowledge": "He transmitido mis conocimientos (clases particulares, curso, orientación) y {text}",
+      "supportedClub": "He apoyado a mi asociación y {text}",
+      "supportedDisabledPerson": "He apoyado a una persona con discapacidad y {text}"
+    },
+    "checks": {
+      "child": "Soy una niña / un niño.",
+      "retiree": "Soy jubilada / jubilado."
+    },
+    "message": {
+      "checkConflictNote": "Esta primera creación se ha detenido: hay casillas marcadas que se excluyen entre sí — {checks} Por favor, revisa y confirma, cambia o rechaza a mano.",
+      "childLine": "por estar aquí y ver el mundo con tu mirada",
+      "closing": "Nos alegra que estés aquí.",
+      "greetingAnonymous": "¡Te damos la bienvenida!",
+      "greetingFemale": "Querida {name}, ¡bienvenida!",
+      "greetingMale": "Querido {name}, ¡bienvenido!",
+      "greetingNeutral": "¡Te damos la bienvenida, {name}!",
+      "internalNote": "Crea ha detenido esta primera creación: {reason}. Por favor, revisa y confirma, cambia o rechaza a mano.",
+      "retireeLine": "por la obra de tu vida: todos esos años en los que estuviste ahí para los demás",
+      "review": "Falta que una persona revise tus entradas. Tendrás noticias nuestras.",
+      "thanks": "La comunidad te da las gracias — {lines}.",
+      "thanksOnlyCheck": "La comunidad te da las gracias — {checkLine}.",
+      "thanksWithCheck": "La comunidad te da las gracias — {lines}. Y {checkLine}.",
+      "w1": "Tus primeros 100 Gradido son un agradecimiento por todo lo que ya has hecho."
+    }
+  },
   "general": {
     "decimalSeparator": ","
   }

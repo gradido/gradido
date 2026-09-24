@@ -1,7 +1,16 @@
 // AI-GENERATED — not an architecture reference
 import { describe, it, expect } from 'vitest'
 import de from './de.json'
+import el from './el.json'
 import en from './en.json'
+import es from './es.json'
+import fr from './fr.json'
+// `it` is vitest's; the Italian file needs another name.
+import itLocale from './it.json'
+import nl from './nl.json'
+import pt from './pt.json'
+import ru from './ru.json'
+import tr from './tr.json'
 import {
   FIRST_CREATION_CATALOG_KEYS,
   FIRST_CREATION_CATEGORIES,
@@ -18,7 +27,7 @@ import {
  *      know (`UNKNOWN_KEY`).
  *   2. `utils/firstCreationCatalog.js` — the same keys, grouped, because the wallet cannot
  *      import from the backend or from `core` (it depends on neither).
- *   3. `locales/de.json` and `en.json` — the texts the window shows before anything is sent.
+ *   3. `locales/*.json`, all ten — the texts the window shows before anything is sent.
  *
  * ⛔ The linter cannot help here. Every one of these keys is reached as
  * `firstCreation.catalog.${key}`, so `no-unused-keys` never sees it — the four prefixes are
@@ -77,7 +86,12 @@ const BACKEND_CHECK_KEYS = ['retiree', 'child']
  */
 const BACKEND_EXCLUSIVE_CHECKS = ['retiree', 'child']
 
-const LANGUAGES = { de, en }
+/**
+ * All ten languages of the wallet: the window opens in each of them since core carries the
+ * catalog in each (`hasFirstCreationCatalog`), so a stem or a text missing in one of them
+ * is a window with a bare key path in it.
+ */
+const LANGUAGES = { de, en, el, es, fr, it: itLocale, nl, pt, ru, tr }
 
 describe('first creation catalog', () => {
   it('offers exactly the keys the backend accepts', () => {
