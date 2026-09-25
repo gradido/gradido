@@ -8,7 +8,7 @@ import { nextTick } from 'vue'
 import { createRouter, createWebHistory, RouterLink } from 'vue-router'
 import { createStore } from 'vuex'
 import Navbar from './Navbar.vue'
-import { BImg, BNavbar, BNavbarBrand, BNavbarNav, vBToggle } from 'bootstrap-vue-next'
+import { BImg, BNavbar, BNavbarBrand, BNavbarNav } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
 import AvatarButton from '@/components/Avatar/AvatarButton.vue'
 import { createI18n } from 'vue-i18n'
@@ -70,12 +70,11 @@ describe('Navbar', () => {
   let wrapper
   let store
 
-  const mountComponent = (storeState = {}, { directives = {} } = {}) => {
+  const mountComponent = (storeState = {}) => {
     store = createVuexStore(storeState)
     return mount(Navbar, {
       global: {
         plugins: [store, router, i18n],
-        directives,
         stubs: {
           IBiClipboard: true,
           // The avatar button brings its own apollo and toast dependencies. What matters
@@ -292,9 +291,26 @@ describe('Navbar', () => {
       expect(opener().attributes('type')).toBe('button')
     })
 
-    it('opens the drawer it names', () => {
-      wrapper = mountComponent({}, { directives: { bToggle: vBToggle } })
+    // It names the drawer and asks the layout to open or shut it; it does not keep the state.
+    it('names the drawer it opens, and asks the layout to open or shut it', async () => {
+      wrapper = mountComponent()
       expect(opener().attributes('aria-controls')).toBe('sidebar-mobile')
+      await opener().trigger('click')
+      expect(wrapper.emitted('toggle-menu')).toHaveLength(1)
+    })
+
+    /**
+     * ⛔ Says what the layout says -- open or shut however the menu got there. v-b-toggle set
+     * aria-expanded only on the element that was clicked, so a menu shut by the dark area beside
+     * it or by one of its entries left this button saying "expanded".
+     */
+    it('says whether the menu is open, as the layout keeps it', async () => {
+      wrapper = mountComponent()
+      expect(opener().attributes('aria-expanded')).toBe('false')
+      await wrapper.setProps({ menuOpen: true })
+      expect(opener().attributes('aria-expanded')).toBe('true')
+      await wrapper.setProps({ menuOpen: false })
+      expect(opener().attributes('aria-expanded')).toBe('false')
     })
 
     // Its name is its content: the hidden word first, then the dot's line where there is one.

@@ -627,6 +627,44 @@ describe('DashboardLayout', () => {
   })
 
   /**
+   * The phone's menu, open or shut, is kept here: the drawer follows it and the opener in the
+   * navbar says it -- one value for both, so the opener cannot say "expanded" over a menu that
+   * was shut by the dark area beside it or by one of its entries.
+   */
+  describe('the phone menu', () => {
+    const navbar = () => wrapper.findComponent({ name: 'Navbar' })
+    const drawer = () => wrapper.findComponent({ name: 'MobileSidebar' })
+
+    // The navbar stands once the skeleton has gone (1.5 s).
+    beforeEach(async () => {
+      vi.advanceTimersByTime(1500)
+      await nextTick()
+    })
+
+    it('starts shut, and tells the opener and the drawer the same', () => {
+      expect(navbar().props('menuOpen')).toBe(false)
+      expect(drawer().props('open')).toBe(false)
+    })
+
+    it('opens from the opener, shuts from the drawer, and the opener hears it', async () => {
+      await navbar().vm.$emit('toggle-menu')
+      expect(drawer().props('open')).toBe(true)
+      expect(navbar().props('menuOpen')).toBe(true)
+
+      await drawer().vm.$emit('update:open', false)
+      expect(navbar().props('menuOpen')).toBe(false)
+      expect(drawer().props('open')).toBe(false)
+    })
+
+    it('shuts from the opener too', async () => {
+      await navbar().vm.$emit('toggle-menu')
+      await navbar().vm.$emit('toggle-menu')
+      expect(drawer().props('open')).toBe(false)
+      expect(navbar().props('menuOpen')).toBe(false)
+    })
+  })
+
+  /**
    * The balance in the header is fetched once, when this layout mounts — and the layout
    * outlives every route change. Until this watch existed, only a page that said so kept it
    * current (`Send` after a transfer, `Transactions` on paging), so a payment made anywhere

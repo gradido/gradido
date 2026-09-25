@@ -7,10 +7,15 @@
       <!-- navbar -->
       <BRow :class="chromeHidden">
         <BCol>
-          <navbar class="main-navbar" :balance="balance"></navbar>
+          <navbar
+            class="main-navbar"
+            :balance="balance"
+            :menu-open="mobileMenuOpen"
+            @toggle-menu="mobileMenuOpen = !mobileMenuOpen"
+          ></navbar>
         </BCol>
       </BRow>
-      <mobile-sidebar @admin="admin" @logout="logoutUser" />
+      <mobile-sidebar v-model:open="mobileMenuOpen" @admin="admin" @logout="logoutUser" />
 
       <!-- Breadcrumb -->
       <BRow class="breadcrumb" :class="chromeHidden">
@@ -536,6 +541,9 @@ const { mutate: useLogoutMutation } = useMutation(logout)
 const { toastError } = useAppToast()
 
 const balance = ref(0)
+// The phone's menu, open or shut: here, where both the drawer (MobileSidebar) and its opener
+// in the navbar can see it -- the opener has to say which one it is.
+const mobileMenuOpen = ref(false)
 /**
  * Bumped every time the query above ANSWERS.
  *

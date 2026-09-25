@@ -61,12 +61,20 @@
 
                  A button, not a div: a div took the click but no Tab, no Enter and no name,
                  so the whole menu of a phone was out of a keyboard's reach. Its name is the
-                 hidden word "Menu", then the dot's line where there is one. -->
+                 hidden word "Menu", then the dot's line where there is one.
+
+                 ⛔ Open or shut is the layout's (DashboardLayout keeps it, MobileSidebar
+                 follows it), not v-b-toggle's. The directive (bootstrap-vue-next 0.26.8)
+                 sets aria-expanded only on the element that was clicked, so a menu closed by
+                 the dark area beside it or by one of its entries left this button saying
+                 "expanded" -- harmless on the div, read out on a button. -->
             <button
-              v-b-toggle.sidebar-mobile
               type="button"
               class="navbar-menu-opener"
+              aria-controls="sidebar-mobile"
+              :aria-expanded="menuOpen ? 'true' : 'false'"
               data-test="navbar-menu-opener"
+              @click="$emit('toggle-menu')"
             >
               <span class="visually-hidden">{{ $t('navigation.menu') }}</span>
               <span class="navbar-toggler-icon h2">
@@ -167,7 +175,10 @@ export default {
   },
   props: {
     balance: { type: Number, required: true },
+    /** Whether the phone's menu (MobileSidebar) is open -- the layout keeps it. */
+    menuOpen: { type: Boolean, default: false },
   },
+  emits: ['toggle-menu'],
   setup() {
     // How many conversations hold something unread, from the chat's beat -- for the dot.
     return { chatUnreadConversations }
