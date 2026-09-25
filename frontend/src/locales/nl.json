@@ -143,6 +143,7 @@
   "chatThread": {
     "alsoByEmail": "Ook per e-mail",
     "alsoByEmailTo": "Ook per e-mail aan {name}",
+    "arrived": "Nieuw bericht van {name}",
     "empty": "Nog geen berichten. Hier begint jullie gesprek.",
     "failed": "Niet afgeleverd",
     "firstGoesByEmail": "Het eerste bericht gaat ook per e-mail naar {name}.",
@@ -160,6 +161,8 @@
     "send": "Versturen",
     "sent": "Verstuurd",
     "unmutedHint": "Gesprek niet meer gedempt: je krijgt weer e-mails over berichten van {name}.",
+    "unreadBadge": "{n} gesprek met nieuwe berichten | {n} gesprekken met nieuwe berichten",
+    "unreadDot": "Nieuwe berichten in de chat",
     "you": "Jij"
   },
   "community": {
@@ -866,7 +869,7 @@
     "back-to-settings": "Terug naar instellingen",
     "calculator": "Rekenmachine",
     "community": "Gemeenschap",
-    "contacts": "Contacten",
+    "contacts": "Contacten en chat",
     "logout": "Afmelden",
     "matching": "Matching",
     "overview": "Overzicht",
@@ -880,7 +883,7 @@
   "pageTitle": {
     "calculator": "Rekenmachine",
     "circles": "Gradido Kringen",
-    "contacts": "Je contacten",
+    "contacts": "Contacten en chat",
     "contributions": "Gradido creëren",
     "gdt": "Jouw GDT-transacties",
     "information": "{community}",

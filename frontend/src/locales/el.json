@@ -143,6 +143,7 @@
   "chatThread": {
     "alsoByEmail": "Και μέσω email",
     "alsoByEmailTo": "Και μέσω email προς {name}",
+    "arrived": "Νέο μήνυμα από {name}",
     "empty": "Δεν υπάρχουν ακόμη μηνύματα. Εδώ ξεκινά η συνομιλία σας.",
     "failed": "Δεν παραδόθηκε",
     "firstGoesByEmail": "Το πρώτο μήνυμα στέλνεται και μέσω email προς {name}.",
@@ -160,6 +161,8 @@
     "send": "Αποστολή",
     "sent": "Στάλθηκε",
     "unmutedHint": "Χωρίς σίγαση: θα λαμβάνεις ξανά email για μηνύματα από {name}.",
+    "unreadBadge": "{n} συνομιλία με νέα μηνύματα | {n} συνομιλίες με νέα μηνύματα",
+    "unreadDot": "Νέα μηνύματα στο chat",
     "you": "Εσύ"
   },
   "community": {
@@ -866,7 +869,7 @@
     "back-to-settings": "Πίσω στις ρυθμίσεις",
     "calculator": "Αριθμομηχανή",
     "community": "Κοινότητα",
-    "contacts": "Επαφές",
+    "contacts": "Επαφές & chat",
     "logout": "Αποσύνδεση",
     "matching": "Matching",
     "overview": "Επισκόπηση",
@@ -880,7 +883,7 @@
   "pageTitle": {
     "calculator": "Αριθμομηχανή",
     "circles": "Κύκλοι Gradido",
-    "contacts": "Οι επαφές σου",
+    "contacts": "Επαφές & chat",
     "contributions": "Δημιουργία Gradido",
     "gdt": "Οι συναλλαγές σου GDT",
     "information": "{community}",

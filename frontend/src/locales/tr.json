@@ -143,6 +143,7 @@
   "chatThread": {
     "alsoByEmail": "Ayrıca e-posta ile",
     "alsoByEmailTo": "{name} kişisine ayrıca e-posta ile",
+    "arrived": "{name} kişisinden yeni mesaj",
     "empty": "Henüz mesaj yok. Sohbet burada başlıyor.",
     "failed": "İletilemedi",
     "firstGoesByEmail": "İlk mesaj {name} kişisine e-posta ile de gider.",
@@ -160,6 +161,8 @@
     "send": "Gönder",
     "sent": "Gönderildi",
     "unmutedHint": "Artık sessizde değil: {name} kişisinin mesajları için yine e-posta alacaksın.",
+    "unreadBadge": "{n} sohbette yeni mesaj var",
+    "unreadDot": "Sohbette yeni mesajlar var",
     "you": "Sen"
   },
   "community": {
@@ -866,7 +869,7 @@
     "back-to-settings": "Ayarlara dön",
     "calculator": "Hesap makinesi",
     "community": "Topluluk",
-    "contacts": "Kişiler",
+    "contacts": "Kişiler & Sohbet",
     "logout": "Çıkış",
     "matching": "Matching",
     "overview": "Toplu Bakış",
@@ -880,7 +883,7 @@
   "pageTitle": {
     "calculator": "Hesap makinesi",
     "circles": "Gradido Çemberleri",
-    "contacts": "Kişilerin",
+    "contacts": "Kişiler & Sohbet",
     "contributions": "Gradido yarat",
     "gdt": "GDT işlemlerin",
     "information": "{community}",

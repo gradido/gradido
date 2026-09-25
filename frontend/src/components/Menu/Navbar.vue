@@ -54,8 +54,26 @@
                 <quick-code-icon direction="in" />
               </router-link>
             </div>
-            <div v-b-toggle.sidebar-mobile variant="link">
-              <span class="navbar-toggler-icon h2"></span>
+            <!-- The menu opener, and on it a gold dot while conversations hold something unread
+                 -- a dot and not a figure: the opener is a symbol, and the figure is in the menu
+                 behind it (Sidebar). Laid over the symbol's corner, so nothing moves when it
+                 comes and goes. For screen readers a line of text instead. -->
+            <div v-b-toggle.sidebar-mobile variant="link" class="navbar-menu-opener">
+              <span class="navbar-toggler-icon h2">
+                <span
+                  v-if="chatUnreadConversations > 0"
+                  class="chat-unread-dot"
+                  aria-hidden="true"
+                  data-test="chat-unread-dot"
+                ></span>
+              </span>
+              <span
+                v-if="chatUnreadConversations > 0"
+                class="visually-hidden"
+                data-test="chat-unread-dot-label"
+              >
+                {{ $t('chatThread.unreadDot') }}
+              </span>
             </div>
           </div>
         </BNavbarBrand>
@@ -129,6 +147,7 @@ import { avatarLettering } from '@/utils/avatarLettering'
 import { memberAlias } from '@/utils/gradidoAddress'
 import GradidoAddressCopy from '@/components/GradidoAddressCopy'
 import QuickCodeIcon from '@/components/Menu/QuickCodeIcon'
+import { chatUnreadConversations } from '@/composables/useChatUpdates'
 
 export default {
   name: 'Navbar',
@@ -138,6 +157,10 @@ export default {
   },
   props: {
     balance: { type: Number, required: true },
+  },
+  setup() {
+    // How many conversations hold something unread, from the chat's beat -- for the dot.
+    return { chatUnreadConversations }
   },
   data() {
     return {
@@ -284,6 +307,25 @@ button.navbar-toggler > span.navbar-toggler-icon {
 <style scoped>
 :deep(.container-fluid) {
   padding: 0 !important;
+}
+
+/* The dot's corner. `position: relative` moves nothing -- the symbol keeps its place and its
+   size, with or without the dot. */
+.navbar-menu-opener .navbar-toggler-icon {
+  position: relative;
+}
+
+/* Gold B, as the mark in the menu, with a ring in the colour of the page around it, so it stands
+   off the green lines of the symbol it sits on. */
+.chat-unread-dot {
+  position: absolute;
+  top: -0.12em;
+  right: -0.16em;
+  width: 0.34em;
+  height: 0.34em;
+  border-radius: 50%;
+  background: #c08935;
+  box-shadow: 0 0 0 0.08em var(--bs-body-bg, #fff);
 }
 
 /* Name and wheel on one line, the wheel a shade quieter: it points, the name names. */

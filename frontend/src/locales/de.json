@@ -143,6 +143,7 @@
   "chatThread": {
     "alsoByEmail": "Auch per E-Mail",
     "alsoByEmailTo": "Auch per E-Mail an {name}",
+    "arrived": "Neue Nachricht von {name}",
     "empty": "Noch keine Nachrichten. Hier beginnt Euer Gespräch.",
     "failed": "Nicht zugestellt",
     "firstGoesByEmail": "Die erste Nachricht geht auch per E-Mail an {name}.",
@@ -160,6 +161,8 @@
     "send": "Senden",
     "sent": "Gesendet",
     "unmutedHint": "Nicht mehr stumm: Du bekommst wieder E-Mails zu Nachrichten von {name}.",
+    "unreadBadge": "{n} Gespräch mit neuen Nachrichten | {n} Gespräche mit neuen Nachrichten",
+    "unreadDot": "Neue Nachrichten im Chat",
     "you": "Du"
   },
   "community": {
@@ -866,7 +869,7 @@
     "back-to-settings": "Zurück zu den Einstellungen",
     "calculator": "Rechner",
     "community": "Gemeinschaft",
-    "contacts": "Kontakte",
+    "contacts": "Kontakte & Chat",
     "logout": "Abmelden",
     "matching": "Matching",
     "overview": "Übersicht",
@@ -880,7 +883,7 @@
   "pageTitle": {
     "calculator": "Rechner",
     "circles": "Gradido Kreise",
-    "contacts": "Deine Kontakte",
+    "contacts": "Kontakte & Chat",
     "contributions": "Gradido schöpfen",
     "gdt": "Deine GDT Transaktionen",
     "information": "{community}",

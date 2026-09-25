@@ -143,6 +143,7 @@
   "chatThread": {
     "alsoByEmail": "Également par e-mail",
     "alsoByEmailTo": "Également par e-mail à {name}",
+    "arrived": "Nouveau message de {name}",
     "empty": "Pas encore de messages. C'est ici que commence votre conversation.",
     "failed": "Non distribué",
     "firstGoesByEmail": "Le premier message part aussi par e-mail à {name}.",
@@ -160,6 +161,8 @@
     "send": "Envoyer",
     "sent": "Envoyé",
     "unmutedHint": "Sourdine désactivée : tu reçois de nouveau des e-mails pour les messages de {name}.",
+    "unreadBadge": "{n} conversation avec de nouveaux messages | {n} conversations avec de nouveaux messages",
+    "unreadDot": "Nouveaux messages dans le chat",
     "you": "Toi"
   },
   "community": {
@@ -866,7 +869,7 @@
     "back-to-settings": "Retour à la configuration",
     "calculator": "Calculatrice",
     "community": "Communauté",
-    "contacts": "Contacts",
+    "contacts": "Contacts et chat",
     "logout": "Déconnexion",
     "matching": "Matching",
     "overview": "Aperçu",
@@ -880,7 +883,7 @@
   "pageTitle": {
     "calculator": "Calculatrice",
     "circles": "Cercles Gradido",
-    "contacts": "Tes contacts",
+    "contacts": "Contacts et chat",
     "contributions": "Créer des Gradido",
     "gdt": "Tes transactions GDT",
     "information": "{community}",
