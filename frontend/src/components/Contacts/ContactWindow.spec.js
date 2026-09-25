@@ -795,7 +795,7 @@ describe('ContactWindow', () => {
     let room
     let opens
     const browserOpens = (answer) => {
-      room = { opener: window, location: { href: '' }, close: vi.fn() }
+      room = { opener: window, closed: false, location: { href: '' }, close: vi.fn() }
       opens = vi.spyOn(window, 'open').mockImplementation(() => (answer === null ? null : room))
     }
 
@@ -1099,6 +1099,26 @@ describe('ContactWindow', () => {
       expect(link.attributes('rel')).toBe('noopener noreferrer')
       expect(inDialog('start').exists()).toBe(false)
       expect(inDialog('close').text()).toBe('form.close')
+    })
+
+    // The member shut the empty window while the invitation was on its way: it has nothing to
+    // be sent to any more, and the dialog offers the room as it does for a blocked window.
+    it('offers the room as a link where the empty window was shut meanwhile', async () => {
+      browserOpens()
+      serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+      const delivery = held()
+      threadDelivers.mockReturnValue(delivery.promise)
+      await asked()
+      await inDialog('start').trigger('click')
+      await flushPromises()
+
+      room.closed = true
+      delivery.release(true)
+      await flushPromises()
+
+      expect(room.location.href).toBe('')
+      expect(inDialog('open').attributes('href')).toBe(ROOM.url)
+      expect(dialog().exists()).toBe(true)
     })
 
     it('forgets the link once the dialog is closed', async () => {

@@ -731,7 +731,10 @@ const startVideoCall = async () => {
   }
   // The member's now: letting the question go must not close it.
   videoRoomWindow = null
-  if (room) {
+  // ⚠️ `closed` too: a window the member shut while the invitation was on its way has no
+  // `location` to send anywhere. Then, as where the browser held it back, the dialog offers
+  // the room as a link.
+  if (room && !room.closed) {
     room.location.href = offered.url
     videoAsking.value = false
   } else {
