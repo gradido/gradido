@@ -150,6 +150,15 @@ export const schema = Joi.object({
     .description('Timer interval in milliseconds for community validation')
     .required(),
 
+  // Any string: chatVideoServers() reads it entry by entry and skips an unusable entry with a
+  // warning. A rule here would keep the whole backend from starting over one mistyped server.
+  CHAT_VIDEO_SERVERS: Joi.string()
+    .allow('')
+    .default('')
+    .description(
+      'Jitsi servers for chat video rooms, "base address|operator|room prefix" separated by ";" -- empty: the checked public servers built into the backend',
+    ),
+
   // Matching. Its own switch rather than part of the GMS or Anthropic blocks: it uses
   // both, and turning either of those on must not turn this on with them.
   MATCHING_ACTIVE: Joi.boolean()

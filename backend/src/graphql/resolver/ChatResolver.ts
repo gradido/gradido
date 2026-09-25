@@ -8,6 +8,7 @@ import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
 import { ChatMessage } from '@model/ChatMessage'
 import { ChatMessagePage } from '@model/ChatMessagePage'
 import { ChatUpdate } from '@model/ChatUpdate'
+import { ChatVideoRoom } from '@model/ChatVideoRoom'
 import { ApiVersionType, CommandClientFactory, chatMessageNotify, V1_0_CommandClient } from 'core'
 import {
   ChatConversationSelect,
@@ -26,6 +27,7 @@ import {
 import { getLogger } from 'log4js'
 import { uuidv4Schema } from 'shared'
 import { Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
+import { chatVideoServerPool } from '@/apis/jitsi/chatVideoServerPool'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
@@ -35,6 +37,7 @@ import {
   CHAT_UPDATES_MAX_PER_REQUEST,
   isSameChatMember,
 } from '@/data/ChatConversation.logic'
+import { CHAT_VIDEO_ROOMS_MAX_PER_REQUEST, chatVideoRoomName } from '@/data/ChatVideoServer.logic'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import {
@@ -76,13 +79,13 @@ const directChatConversationWith = async (
 
 /**
  * The chat: the thread with one contact and the caller's marks in it -- the read pointer and
- * the mute mark (P2a, P3a) --, writing to that contact (P3a), and what is new across all the
- * caller's conversations (P4a). The form "send an e-mail" still writes through sendEmail, into
- * the same conversation (P1).
+ * the mute mark (P2a, P3a) --, writing to that contact (P3a), what is new across all the
+ * caller's conversations (P4a), and a video room to send (V1). The form "send an e-mail" still
+ * writes through sendEmail, into the same conversation (P1).
  *
- * No subject and no text reaches a log: what is written here is a refused page or update budget
- * with its count, a refused message with its reason, and a failed delivery with the other
- * side's answer.
+ * What this resolver writes to the log carries no subject, no text and no room name: a refused
+ * page, update or room budget with its count, a refused message with its reason, a failed
+ * delivery with the other side's answer, and the host a room was handed out on.
  */
 @Resolver()
 export class ChatResolver {
@@ -335,5 +338,38 @@ export class ChatResolver {
       muted ? new Date() : null,
     )
     return result.success
+  }
+
+  /**
+   * A fresh video room for a call (V1): on one of the servers that passed the last check,
+   * each of them equally likely, named with the server's prefix and 12 random characters. The
+   * check runs in the process every ten minutes (chatVideoServerPool), never in this request.
+   * Nothing is stored and nobody is named: the wallet sends the address as an ordinary chat
+   * message (V2), and the room is open to whoever has it.
+   *
+   * Behind SEND_CHAT_MESSAGE, because the room is asked for to be sent: an account that may not
+   * write may not start a call either (RESTRICTED_WHILE_UNCONFIRMED).
+   *
+   * No server passed the last check, or the first check after a start is not through yet:
+   * CHAT_VIDEO_NO_SERVER. The log gets the host, never the room name -- whoever knows it can
+   * join the call.
+   */
+  @Authorized([RIGHTS.SEND_CHAT_MESSAGE])
+  @Query(() => ChatVideoRoom)
+  chatVideoRoom(@Ctx() context: Context): ChatVideoRoom {
+    // ⛔ Counted in the HTTP request's budget, as the pages are: a document may repeat this field
+    // under any number of aliases (RequestBudget).
+    context.requestBudget.chatVideoRoomsServed += 1
+    const served = context.requestBudget.chatVideoRoomsServed
+    if (served > CHAT_VIDEO_ROOMS_MAX_PER_REQUEST) {
+      throw new LogError('Too many chat video rooms requested at once', served)
+    }
+    const chosen = chatVideoServerPool.pick()
+    if (!chosen) {
+      throw new LogError('CHAT_VIDEO_NO_SERVER')
+    }
+    const { baseUrl, host, operator, prefix } = chosen.server
+    createLogger().trace(`chat video room handed out on ${host}`)
+    return new ChatVideoRoom(`${baseUrl}${chatVideoRoomName(prefix)}`, host, operator)
   }
 }

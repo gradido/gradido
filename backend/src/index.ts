@@ -2,6 +2,7 @@ import 'reflect-metadata'
 import 'source-map-support/register'
 import { getLogger } from 'log4js'
 import { matchingKeyingRun } from './apis/anthropic/matching/keyingRun'
+import { chatVideoServerPool } from './apis/jitsi/chatVideoServerPool'
 import { CONFIG } from './config'
 import { FOREIGN_AVATAR_DATES_REFRESH_MS } from './data/MemberAvatars.logic'
 import { startRefreshForeignMemberAvatarDates } from './federation/refreshForeignMemberAvatarDates'
@@ -34,6 +35,9 @@ async function main() {
   // by that: entries are stored and served either way, they are just not yet
   // findable by word.
   matchingKeyingRun.start()
+  // Checks the chat's video servers now and every ten minutes, in the background: the query
+  // chatVideoRoom only reads what the last check found and never waits for a server.
+  chatVideoServerPool.start()
 }
 
 main().catch((e) => {

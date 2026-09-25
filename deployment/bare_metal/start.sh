@@ -105,11 +105,17 @@ fi
 # makes the name always present; a server that sets its own value keeps it,
 # because := only fills what is unset or empty.
 : "${MATCHING_ACTIVE:=false}"
+# The Jitsi servers of the chat's video rooms. Empty is what most servers keep: the backend
+# then takes the public servers built into it. Defaulted here so that the line
+# CHAT_VIDEO_SERVERS=$CHAT_VIDEO_SERVERS in backend/.env.template never meets a server without
+# the name - left verbatim, the backend would read "$CHAT_VIDEO_SERVERS" as its one server.
+: "${CHAT_VIDEO_SERVERS:=}"
 
 # export env variables
 export NGINX_SSL_CERTIFICATE
 export NGINX_SSL_CERTIFICATE_KEY
 export MATCHING_ACTIVE
+export CHAT_VIDEO_SERVERS
 
 # lock start
 if [ -f $LOCK_FILE ] ; then
