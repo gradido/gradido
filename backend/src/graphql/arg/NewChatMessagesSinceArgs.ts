@@ -13,7 +13,7 @@ import {
 @ArgsType()
 export class NewChatMessagesSinceArgs {
   /**
-   * The id the last answer was complete up to (its `latestId`). Absent means "I stand nowhere
+   * Where the last answer said to go on from (its `latestId`). Absent means "I stand nowhere
    * yet": the answer then says where the caller stands and hands out no messages.
    */
   @Field(() => Int, { nullable: true })

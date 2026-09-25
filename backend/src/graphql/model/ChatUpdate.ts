@@ -25,10 +25,11 @@ export class ChatUpdate {
   }
 
   /**
-   * The id this answer is complete up to -- the `afterId` of the next call. With messages it is
-   * the id of the last one handed out, so under `hasMore` not the highest there is: the next
-   * call goes on right after it. Without messages it is the highest id of the caller's
-   * conversations, 0 without one.
+   * Where the next call goes on from -- its `afterId`. With messages it is the id of the last one
+   * handed out, so under `hasMore` not the highest there is: the next call goes on right after
+   * it. Without messages it is the highest id of the caller's conversations, 0 without one.
+   * Not a promise that nothing with a lower id comes later: see
+   * ChatResolver.newChatMessagesSince.
    */
   @Field(() => Int)
   latestId: number

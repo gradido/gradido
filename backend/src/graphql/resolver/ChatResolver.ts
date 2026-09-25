@@ -127,8 +127,8 @@ export class ChatResolver {
   /**
    * What is new in the chat for the caller since `afterId` -- the one query the wallet asks on
    * its beat (E-017): the new messages of all the caller's conversations, oldest first and the
-   * caller's own among them, the id the answer is complete up to, and in how many conversations
-   * something waits unread, for the mark in the menu.
+   * caller's own among them, the id to go on from, and in how many conversations something
+   * waits unread, for the mark in the menu.
    *
    * Without `afterId` the caller stands nowhere yet: the answer says where they stand and hands
    * out no messages -- the threads come with the contact window, as before.
@@ -138,6 +138,17 @@ export class ChatResolver {
    * from there. Side by side, the first read could see a message that arrived after the second
    * one had looked, and the wallet would move past it without ever getting it. One after the
    * other, the second read starts later and sees what the first one saw.
+   *
+   * ⚠️ What `latestId` does not promise: that nothing with a lower id comes later. InnoDB hands
+   * out the id when a row is inserted and shows the row when it is committed, and two messages
+   * written at the same moment can be committed in the other order. A call that runs in between
+   * hands out the higher one; the lower one lies below the cursor from then on and this query
+   * never hands it out. It is in the thread all the same (chatMessagesWithMember) and shows the
+   * next time the thread loads. Accepted as a known limit (#3977): measured, 1 message in 6,000
+   * with ten writers at once and a reader asking without pause -- the wallet asks every few
+   * seconds. Should groups (P5) make writing at the same moment common, `latestId` can be held
+   * back over messages younger than a minute. The wallet is to drop what comes twice by its id
+   * (P4b); then it needs no change for that.
    */
   @Authorized([RIGHTS.READ_OWN_CHAT])
   @Query(() => ChatUpdate)
