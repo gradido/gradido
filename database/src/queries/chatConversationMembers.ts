@@ -147,6 +147,65 @@ export async function dbUpdateChatConversationMemberLastRead(
 }
 
 /**
+ * Where a member stands in the chat (E-017): the highest message id in any conversation the
+ * member is in -- 0 without one -- and in how many of those conversations something waits
+ * unread. The mark in the menu comes from this, on the same beat as the threads.
+ *
+ * Unread as the contact list counts it (dbSelectDirectChatContactsByMember): above the member's
+ * own read pointer, written by somebody else, not marked deleted. But counted per CONVERSATION,
+ * not per message: three unread messages from Lena are one thing to see to. A muted
+ * conversation counts like any other; mute is about mail, not about seeing (E-024).
+ *
+ * The highest id takes every message, a deleted one too: it is where the wallet's cursor may
+ * stand, and no answer hands out a deleted message, so moving past one loses nothing.
+ *
+ * Every conversation the member is in, direct ones and groups (P5) alike: found through the
+ * member's own rows, as dbSelectChatMessagesSince finds them.
+ *
+ * One statement, and per conversation it reads what it needs rather than the whole history:
+ * the newest id is the top entry of that conversation in the index on (conversation_id, id),
+ * and "something unread" stops at the first message above the pointer that somebody else
+ * wrote. The wallet asks this on every beat; one call reads a few entries per conversation
+ * where a join over all messages would read every message of every conversation.
+ */
+export async function dbSelectChatUnreadSummary(
+  member: ChatMemberRef,
+): Promise<{ latestId: number; unreadConversations: number }> {
+  // Named pieces, each wrapped once more where it becomes a field: drizzle writes a column that
+  // stands directly in a field of a one-table select without its table, and in the subqueries
+  // below every column should say which table it belongs to.
+  const ofThisConversation = sql`${chatMessagesTable.conversationId} = ${chatConversationMembersTable.conversationId}`
+  const aboveThePointer = sql`${chatMessagesTable.id} > coalesce(${chatConversationMembersTable.lastReadMessageId}, 0)`
+  const writtenByTheMember = sql`${chatMessagesTable.senderCommunityUuid} = ${chatConversationMembersTable.communityUuid} and ${chatMessagesTable.senderGradidoId} = ${chatConversationMembersTable.gradidoId}`
+  // The top entry of the conversation in the index on (conversation_id, id), one step backwards
+  // from its end. Not max(): inside a correlated subquery MariaDB reads the conversation's
+  // whole range for it -- measured on 10.11, 200 index entries for a conversation of 200
+  // messages, against 1 this way.
+  const newestId = sql`(select ${chatMessagesTable.id} from ${chatMessagesTable} where ${ofThisConversation} order by ${chatMessagesTable.id} desc limit 1)`
+  const somethingUnread = sql`exists (select 1 from ${chatMessagesTable} where ${ofThisConversation} and ${aboveThePointer} and ${chatMessagesTable.deletedAt} is null and not (${writtenByTheMember}))`
+  const perConversation = drizzleDb()
+    .select({
+      newestId: sql<number | null>`${newestId}`.as('newest_id'),
+      unread: sql<number>`${somethingUnread}`.as('unread'),
+    })
+    .from(chatConversationMembersTable)
+    .where(
+      and(
+        eq(chatConversationMembersTable.communityUuid, member.communityUuid),
+        eq(chatConversationMembersTable.gradidoId, member.gradidoId),
+      ),
+    )
+    .as('per_conversation')
+  const [summary] = await drizzleDb()
+    .select({
+      latestId: sql`coalesce(max(${perConversation.newestId}), 0)`.mapWith(Number),
+      unreadConversations: sql`coalesce(sum(${perConversation.unread}), 0)`.mapWith(Number),
+    })
+    .from(perConversation)
+  return summary
+}
+
+/**
  * Sets the member's mute mark in the conversation: the moment they asked for quiet, or null to
  * lift it. A muted member gets no mail about the conversation, whatever the sender asked for
  * (E-024) -- the mark is read on the member's own server, where the mail would go out.

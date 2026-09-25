@@ -3,10 +3,12 @@ import { and, eq } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { v4 as uuidv4 } from 'uuid'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
-import { chatConversationMembersTable, chatMessagesTable } from '../schemas'
+import { ChatMessageSelect, chatConversationMembersTable, chatMessagesTable } from '../schemas'
 import {
+  ChatMemberRef,
   dbInsertChatConversationMembers,
   dbSelectChatConversationMember,
+  dbSelectChatUnreadSummary,
   dbUpdateChatConversationMemberLastRead,
   dbUpdateChatConversationMemberMuted,
 } from './chatConversationMembers'
@@ -302,5 +304,126 @@ describe('dbUpdateChatConversationMemberMuted', () => {
     // Nor in a conversation that does not exist.
     const nowhere = await dbUpdateChatConversationMemberMuted(QUIET + 1, ANNA, new Date())
     expect(nowhere.success).toBe(false)
+  })
+})
+
+/**
+ * Where a member stands (E-017): the highest id of their conversations and how many of them
+ * hold something unread. Its own people, with pairs made for this block, so that no
+ * conversation another block left behind has them in it.
+ */
+describe('dbSelectChatUnreadSummary', () => {
+  const pair = (): ChatMemberRef => ({ communityUuid: HOME, gradidoId: uuidv4() })
+  const LENA = pair()
+  const MAX = pair()
+  const NIKO = pair()
+  const OTTO = pair()
+  const PIA = pair()
+  const WITH_MAX = 4731
+  const WITH_NIKO = 4732
+  const WITH_OTTO = 4733
+  // A group of Lena, Max and Pia: members, and no pair key (P5).
+  const GROUP = 4734
+  const WITHOUT_LENA = 4735
+  // The messages in the order they arrive: conversation, sender.
+  const ARRIVALS: [number, ChatMemberRef][] = [
+    [WITH_MAX, MAX],
+    [WITH_NIKO, LENA],
+    [WITH_MAX, MAX],
+    [GROUP, PIA],
+    // Deleted later -- and the newest message of any conversation Lena is in.
+    [WITH_OTTO, OTTO],
+    // The newest of all, in a conversation Lena is not in.
+    [WITHOUT_LENA, NIKO],
+  ]
+  let filed: ChatMessageSelect[]
+
+  const lenasRow = (conversationId: number) =>
+    and(
+      eq(chatConversationMembersTable.conversationId, conversationId),
+      eq(chatConversationMembersTable.gradidoId, LENA.gradidoId),
+    )
+
+  beforeAll(async () => {
+    await dbInsertChatConversationMembers(WITH_MAX, [LENA, MAX])
+    await dbInsertChatConversationMembers(WITH_NIKO, [LENA, NIKO])
+    await dbInsertChatConversationMembers(WITH_OTTO, [LENA, OTTO])
+    await dbInsertChatConversationMembers(GROUP, [LENA, MAX, PIA])
+    await dbInsertChatConversationMembers(WITHOUT_LENA, [MAX, NIKO])
+    filed = []
+    for (const [conversationId, sender] of ARRIVALS) {
+      const stored = await dbInsertChatMessage({
+        messageUuid: uuidv4(),
+        conversationId,
+        senderCommunityUuid: sender.communityUuid,
+        senderGradidoId: sender.gradidoId,
+        subject: null,
+        body: 'hello',
+        notify: 'email',
+        deliveryState: 'delivered',
+      })
+      if (!stored.success) {
+        throw new Error('fixture: a message was not filed')
+      }
+      filed.push(stored.value)
+    }
+    await db
+      .update(chatMessagesTable)
+      .set({ deletedAt: new Date() })
+      .where(eq(chatMessagesTable.id, filed[4].id))
+  })
+
+  afterAll(async () => {
+    await db.delete(chatMessagesTable)
+  })
+
+  it('answers 0 and 0 for somebody in no conversation', async () => {
+    expect(await dbSelectChatUnreadSummary(pair())).toEqual({
+      latestId: 0,
+      unreadConversations: 0,
+    })
+  })
+
+  // A cursor may stand on a deleted message: no answer hands one out, so nothing is passed over.
+  it('names the highest id of her conversations, a deleted message included, and no higher one of somebody else', async () => {
+    expect((await dbSelectChatUnreadSummary(LENA)).latestId).toBe(filed[4].id)
+    expect((await dbSelectChatUnreadSummary(NIKO)).latestId).toBe(filed[5].id)
+  })
+
+  // Two unread from Max are one conversation; her own message, the deleted one and a
+  // conversation she is not in count for nothing; the group counts like any conversation.
+  it('counts the conversations with something unread, not the messages', async () => {
+    expect((await dbSelectChatUnreadSummary(LENA)).unreadConversations).toBe(2)
+  })
+
+  // E-024: mute is about mail, not about seeing.
+  it('counts a muted conversation like any other', async () => {
+    await db
+      .update(chatConversationMembersTable)
+      .set({ mutedAt: new Date() })
+      .where(lenasRow(WITH_MAX))
+    expect((await dbSelectChatUnreadSummary(LENA)).unreadConversations).toBe(2)
+  })
+
+  it('counts only what lies above her own pointer, and nothing once she has read it all', async () => {
+    // Max's first read, his second not yet: still something unread with him.
+    await dbUpdateChatConversationMemberLastRead(WITH_MAX, LENA, filed[0].id)
+    expect((await dbSelectChatUnreadSummary(LENA)).unreadConversations).toBe(2)
+
+    await dbUpdateChatConversationMemberLastRead(WITH_MAX, LENA, filed[2].id)
+    expect((await dbSelectChatUnreadSummary(LENA)).unreadConversations).toBe(1)
+
+    await dbUpdateChatConversationMemberLastRead(GROUP, LENA, filed[3].id)
+    expect(await dbSelectChatUnreadSummary(LENA)).toEqual({
+      latestId: filed[4].id,
+      unreadConversations: 0,
+    })
+    // Her pointers are hers: to Max, Pia's message in the group and Niko's are still unread.
+    expect((await dbSelectChatUnreadSummary(MAX)).unreadConversations).toBe(2)
+  })
+
+  it('answers the same for the member named in capitals, as the column compares', async () => {
+    const shouting = { communityUuid: HOME.toUpperCase(), gradidoId: MAX.gradidoId.toUpperCase() }
+    expect(await dbSelectChatUnreadSummary(shouting)).toEqual(await dbSelectChatUnreadSummary(MAX))
   })
 })
