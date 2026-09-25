@@ -61,13 +61,15 @@
     <BPagination
       v-if="isPaginationVisible"
       :model-value="currentPage"
-      class="mt-3"
+      class="mt-3 flex-wrap"
       pills
       size="lg"
       :per-page="pageSize"
       :total-rows="transactionCount"
       align="center"
       :no-ellipsis="true"
+      :limit="pagerLimit"
+      :no-goto-end-buttons="pagerNoEnds"
       @update:model-value="askForPage($event)"
     />
     <!-- Exactly zero, not "nothing positive": -1 is the failed request above, and a
@@ -89,6 +91,7 @@ import TransactionDecay from '@/components/Transactions/TransactionDecay'
 import TransactionLinkSummary from '@/components/Transactions/TransactionLinkSummary'
 import GddTransaction from '@/components/Transactions/GddTransaction.vue'
 import { PAGE_SIZE } from '@/constants'
+import { usePagerFit } from '@/composables/usePagerFit'
 
 export default {
   name: 'GddTransactionList',
@@ -123,6 +126,9 @@ export default {
   // Declared, so that the handler does not also land on the root element as a plain
   // attribute -- and so that the two events this list raises are readable in one place.
   emits: ['update-transactions', 'open-member'],
+  setup() {
+    return usePagerFit()
+  },
   computed: {
     isPaginationVisible() {
       return this.showPagination && this.pageSize < this.transactionCount

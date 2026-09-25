@@ -61,7 +61,9 @@ vi.mock('@/composables/useToast', () => ({
 vi.mock('@/composables/useMemberAvatars', () => ({
   fetchMemberAvatars: vi.fn(),
 }))
-vi.mock('@/constants', () => ({ PAGE_SIZE: 3 }))
+// The real constants, one page size smaller: the page reaches `LG_BREAKPOINT_PX` through
+// `usePagerFit` -> `useViewport`, and a mock without it fails the whole file at import.
+vi.mock('@/constants', async (importOriginal) => ({ ...(await importOriginal()), PAGE_SIZE: 3 }))
 
 const person = (n, extra = {}) => ({
   user: { communityUuid: 'home', gradidoID: `id-${n}`, alias: `Alias${n}`, ...extra },

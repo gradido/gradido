@@ -176,9 +176,14 @@
                   {{ $t(`matching.map.reach.${option}`) }}
                 </button>
               </div>
-              <span>{{ $t('matching.map.radius') }}</span>
-              <button type="button" class="radius-field" @click="openRadius">{{ radius }}</button>
-              <span>{{ $t('matching.map.km') }}</span>
+              <!-- Label, number and unit are one quantity, so they break as one. -->
+              <span class="radius-group">
+                <span>{{ $t('matching.map.radius') }}</span>
+                <button type="button" class="radius-field" @click="openRadius">
+                  {{ radius }}
+                </button>
+                <span>{{ $t('matching.map.km') }}</span>
+              </span>
               <span class="radius-dot" aria-hidden="true" />
               <span>{{ $t('matching.map.found', { n: foundCount }) }}</span>
             </div>
@@ -2139,10 +2144,22 @@ watch(mode, (value) => {
   gap: 7px;
 
   /* It must be allowed to break: with the reach switch in front of it the row no
-     longer fits a 375 px phone on one line. Switch and radius stay together, the
-     count moves underneath. */
+     longer fits a 375 px phone on one line. Switch and radius stay together where
+     they fit, the count moves underneath. */
   flex-wrap: wrap;
   row-gap: 6px;
+}
+
+/* ⛔ "Radius", the number and "km" break as one piece, never inside it. As three items
+   of the row above, each wrapped wherever the room ran out: already on master "km"
+   stood alone under the number at 320-340px in English, French, Spanish, Italian and
+   Dutch (Italian up to 360px), and "Радиус" alone in front of it up to 390px. Since the
+   page is no longer held at 330px on a 320px screen (App.vue), German joined them. */
+.radius-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
 }
 
 /* The two reaches, in the form language of the radius field and the look switch:
