@@ -1,10 +1,14 @@
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, beforeAll, vi } from 'vitest'
 import Sidebar from './Sidebar.vue'
+import { startChatUpdates, stopChatUpdates } from '@/composables/useChatUpdates'
 import { createStore } from 'vuex'
 import { createI18n } from 'vue-i18n'
 import CONFIG from '../../config'
 import { BBadge, BImg, BNav, BNavItem } from 'bootstrap-vue-next'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
 
 // Mock vue-router
 vi.mock('vue-router', () => ({
@@ -30,7 +34,7 @@ const i18n = createI18n({
         send: 'Send',
         calculator: 'Calculator',
         transactions: 'Transactions',
-        contacts: 'Contacts',
+        contacts: 'Contacts & Chat',
         matching: 'Matching',
         circles: 'Circles',
         usersearch: 'User Search',
@@ -40,6 +44,9 @@ const i18n = createI18n({
       },
       info: 'Info',
       creation: 'Creation',
+      chatThread: {
+        unreadBadge: '{n} conversation with new messages | {n} conversations with new messages',
+      },
     },
   },
 })
@@ -102,8 +109,28 @@ describe('Sidebar', () => {
         expect(wrapper.findAll('.nav-item').at(0).text()).toContain('Overview')
       })
 
-      it('has nav-item "navigation.send" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(1).text()).toContain('Send')
+      /**
+       * The order in three pairs (Bernd, E-031): what one has -- the overview, the transactions
+       * behind it; what one does -- creating before sending; the people -- matching finds
+       * them, "contacts & chat" keeps them.
+       */
+      it('lists the six in three pairs', () => {
+        const labels = wrapper
+          .findAll('ul')[0]
+          .findAll('.nav-item')
+          .map((item) => item.text())
+        expect(labels).toEqual([
+          'Overview',
+          'Transactions',
+          'Creation',
+          'Send',
+          'Matching',
+          'Contacts & Chat',
+        ])
+      })
+
+      it('has nav-item "navigation.transactions" right after the overview', () => {
+        expect(wrapper.findAll('.nav-item').at(1).text()).toContain('Transactions')
       })
 
       /**
@@ -116,22 +143,25 @@ describe('Sidebar', () => {
         expect(wrapper.text()).not.toContain('Calculator')
       })
 
-      it('has nav-item "navigation.transactions" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(2).text()).toContain('Transactions')
+      it('has nav-item "creation" third', () => {
+        expect(wrapper.findAll('.nav-item').at(2).text()).toContain('Creation')
+        expect(wrapper.findAll('.nav-item').at(2).attributes('data-test')).toBe('creation-menu')
       })
 
-      // Under "Transactions", because the contacts are a view on the bookings (KF-008).
-      it('has nav-item "navigation.contacts" right after the transactions', () => {
-        expect(wrapper.findAll('.nav-item').at(3).text()).toContain('Contacts')
-        expect(wrapper.findAll('.nav-item').at(3).find('a').attributes('href')).toBe('/contacts')
+      it('has nav-item "navigation.send" fourth, after creating', () => {
+        expect(wrapper.findAll('.nav-item').at(3).text()).toContain('Send')
+        expect(wrapper.findAll('.nav-item').at(3).find('a').attributes('href')).toBe('/send')
       })
 
-      it('has nav-item "creation" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(4).text()).toContain('Creation')
+      it('has nav-item "matching" fifth', () => {
+        expect(wrapper.findAll('.nav-item').at(4).text()).toContain('Matching')
       })
 
-      it('has nav-item "matching" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(5).text()).toContain('Matching')
+      // Beside matching, last of the six: with the chat the list is people more than bookings
+      // (E-031; it stood under the transactions before, KF-008).
+      it('has nav-item "navigation.contacts" last, beside matching', () => {
+        expect(wrapper.findAll('.nav-item').at(5).text()).toContain('Contacts & Chat')
+        expect(wrapper.findAll('.nav-item').at(5).find('a').attributes('href')).toBe('/contacts')
       })
 
       it('has nav-item "info" in navbar', () => {
@@ -215,6 +245,13 @@ describe('Sidebar and the project account', () => {
     for (const label of ['Overview', 'Send', 'Transactions', 'Contacts', 'Info', 'Settings']) {
       expect(wrapper.text()).toContain(label)
     }
+    // The pairs close up around the gap.
+    expect(
+      wrapper
+        .findAll('ul')[0]
+        .findAll('.nav-item')
+        .map((item) => item.text()),
+    ).toEqual(['Overview', 'Transactions', 'Send', 'Matching', 'Contacts & Chat'])
   })
 
   it('mounts without the contributions link the active-route watcher looks for', () => {
@@ -248,6 +285,13 @@ describe('Sidebar with MATCHING_ACTIVE off', () => {
   it('drops the item from the general section, leaving five', () => {
     const generalSection = mountSidebar().findAll('ul')[0]
     expect(generalSection.findAll('.nav-item')).toHaveLength(5)
+    expect(generalSection.findAll('.nav-item').map((item) => item.text())).toEqual([
+      'Overview',
+      'Transactions',
+      'Creation',
+      'Send',
+      'Contacts & Chat',
+    ])
   })
 
   it('keeps every other menu item', () => {
@@ -271,5 +315,135 @@ describe('Sidebar with MATCHING_ACTIVE off', () => {
     // syncNavActive runs on mount and reaches for matchingLink; with the item
     // gone the ref stays null. This asserts the guard in setLinkActive holds.
     expect(() => mountSidebar()).not.toThrow()
+  })
+})
+
+/**
+ * The gold mark on "contacts & chat": how many CONVERSATIONS hold something unread, from the
+ * chat's beat. Measured through the real module (useChatUpdates) with a server that answers --
+ * not through a stand-in for the figure, which would say nothing about where the menu reads it.
+ */
+describe('Sidebar and the chat', () => {
+  const answerWith = (unreadConversations) => ({
+    query: vi.fn(async () => ({
+      data: {
+        newChatMessagesSince: { latestId: 1, unreadConversations, messages: [], hasMore: false },
+      },
+    })),
+  })
+
+  const mountWithUnread = async (unread) => {
+    startChatUpdates(answerWith(unread))
+    await flushPromises()
+    return mount(Sidebar, {
+      global: {
+        plugins: [createVuexStore(), i18n],
+        stubs: ['router-link', 'i-bi-cash'],
+        components: { BNav, BBadge, BNavItem, BImg },
+      },
+    })
+  }
+  const contactsEntry = (wrapper) =>
+    wrapper.findAll('.nav-item').find((item) => item.find('a').attributes('href') === '/contacts')
+  const badge = (wrapper) => wrapper.find('[data-test="chat-unread-badge"]')
+  const sentence = (wrapper) => wrapper.find('[data-test="chat-unread-badge-label"]')
+
+  afterEach(() => {
+    stopChatUpdates()
+  })
+
+  it('shows no mark while nothing waits', async () => {
+    const wrapper = await mountWithUnread(0)
+    expect(badge(wrapper).exists()).toBe(false)
+    expect(sentence(wrapper).exists()).toBe(false)
+    expect(contactsEntry(wrapper).text()).toBe('Contacts & Chat')
+  })
+
+  /**
+   * ⛔ On the corner of the symbol, not beside the word: at the desk the card is 180 px and a
+   * mark beside the word was cut off at its edge in every language (measured in the probe).
+   */
+  it('shows the number of conversations on the symbol of the entry', async () => {
+    const wrapper = await mountWithUnread(3)
+    const link = contactsEntry(wrapper).find('a')
+
+    const holder = link.find('.chat-menu-icon')
+    // The symbol (an auto-imported icon, unresolved in this test: found by its class).
+    expect(holder.find('.svg-icon').exists()).toBe(true)
+    expect(holder.find('[data-test="chat-unread-badge"]').exists()).toBe(true)
+    // The figure is for the eye only.
+    expect(badge(wrapper).text()).toBe('3')
+    expect(badge(wrapper).attributes('aria-hidden')).toBe('true')
+  })
+
+  // The sentence is part of what the link is called, and it comes AFTER the word: a screen
+  // reader says "Contacts & Chat, 3 conversations with new messages".
+  it('says the number as a sentence after the word, for the ear', async () => {
+    const wrapper = await mountWithUnread(3)
+    const link = contactsEntry(wrapper).find('a')
+    const word = link.find('.chat-menu-label')
+
+    expect(link.find('[data-test="chat-unread-badge-label"]').exists()).toBe(true)
+    expect(sentence(wrapper).classes()).toContain('visually-hidden')
+    expect(sentence(wrapper).text()).toBe('3 conversations with new messages')
+    expect(
+      word.element.compareDocumentPosition(sentence(wrapper).element) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+  })
+
+  it('says one conversation in the singular', async () => {
+    const wrapper = await mountWithUnread(1)
+    expect(sentence(wrapper).text()).toBe('1 conversation with new messages')
+  })
+
+  // The mark is small: past 99 the figure stops, the sentence keeps the number.
+  it('stops the figure at 99+', async () => {
+    const wrapper = await mountWithUnread(120)
+    expect(badge(wrapper).text()).toBe('99+')
+    expect(sentence(wrapper).text()).toBe('120 conversations with new messages')
+  })
+
+  it('goes when the last conversation is read', async () => {
+    const wrapper = await mountWithUnread(2)
+    expect(badge(wrapper).exists()).toBe(true)
+
+    stopChatUpdates()
+    await flushPromises()
+
+    expect(badge(wrapper).exists()).toBe(false)
+  })
+
+  /**
+   * Gold B with white figures, the gold of the chat's send buttons (E-032 point 5). jsdom draws
+   * nothing, so the stylesheet says it -- read without its comments.
+   */
+  const wrapperClassOfTheEntry = () => {
+    const wrapper = mount(Sidebar, {
+      global: {
+        plugins: [createVuexStore(), i18n],
+        stubs: ['router-link', 'i-bi-cash'],
+        components: { BNav, BBadge, BNavItem, BImg },
+      },
+    })
+    return contactsEntry(wrapper).find('.sidebar-menu-item-wrapper').classes()
+  }
+
+  it('is gold with white figures, on the symbol, in the stylesheet', () => {
+    const style = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'Sidebar.vue'), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/<!--[\s\S]*?-->/g, '')
+    const rule = (selector) => style.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+
+    expect(rule('\\.chat-unread-badge')).toMatch(/background:\s*#c08935/)
+    expect(rule('\\.chat-unread-badge')).toMatch(/color:\s*#fff/)
+    // Hung on the symbol's corner: it takes no room in the row.
+    expect(rule('\\.chat-unread-badge')).toMatch(/position:\s*absolute/)
+    expect(rule('\\.chat-menu-icon')).toMatch(/position:\s*relative/)
+    // ⛔ Symbol and word in a row, the word on one line: as a line of text, the longest word
+    // ("Contacten en chat") dropped whole under its symbol (measured in the probe).
+    expect(rule('\\.chat-menu-item')).toMatch(/display:\s*flex/)
+    expect(rule('\\.chat-menu-label')).toMatch(/white-space:\s*nowrap/)
+    expect(wrapperClassOfTheEntry()).toContain('chat-menu-item')
   })
 })

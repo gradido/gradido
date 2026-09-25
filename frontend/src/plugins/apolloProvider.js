@@ -37,8 +37,13 @@ const authLink = new ApolloLink((operation, forward) => {
       if (router.currentRoute.path !== '/login') router.push('/login')
       return response
     }
-    const newToken = operation.getContext().response.headers.get('token')
-    if (newToken) store.commit('token', newToken)
+    // Every answer carries a fresh token, and taking it moves the idle logout ten minutes on.
+    // A question the member did not cause -- the chat's beat, a list asked again because a
+    // message arrived -- says `renewSession: false` and leaves the session clock where it was:
+    // otherwise a tab left open would never be signed out.
+    const context = operation.getContext()
+    const newToken = context.response.headers.get('token')
+    if (newToken && context.renewSession !== false) store.commit('token', newToken)
     return response
   })
 })

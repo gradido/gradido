@@ -105,13 +105,15 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useApolloClient, useQuery } from '@vue/apollo-composable'
 import { BFormInput, BPagination, BSpinner } from 'bootstrap-vue-next'
 import ContactRow from '@/components/Contacts/ContactRow.vue'
 import ContactsEmpty from '@/components/Contacts/ContactsEmpty.vue'
 import ContactWindow from '@/components/Contacts/ContactWindow.vue'
 import { useContactWindow } from '@/composables/useContactWindow'
+import { onContactListRefresh } from '@/composables/useContactsPanel'
 import { contactListQuery } from '@/graphql/contacts.graphql'
 import { ensureFavorites, isFavorite } from '@/composables/useFavorites'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
@@ -148,9 +150,11 @@ const failed = ref(false)
 const search = ref('')
 const currentPage = ref(1)
 
+const LIST_VARIABLES = { currentPage: 1, pageSize: CONTACTS_FETCH_MAX }
+
 const { onResult, onError } = useQuery(
   contactListQuery,
-  { currentPage: 1, pageSize: CONTACTS_FETCH_MAX },
+  LIST_VARIABLES,
   // `network-only`, as the booking list: a cached copy would replay last visit's dates
   // for the pictures before the fresh list arrives, and the avatar store takes the newest
   // list it is shown as the truth about who withdrew a picture.
@@ -168,12 +172,71 @@ onError((error) => {
   toastError(error.message)
 })
 
+/**
+ * The list asked again, because the right-hand column's is (useContactsPanel): a transfer went
+ * through, or chat messages arrived (useChatUpdates). The server orders the contacts by the last
+ * exchange, so somebody who just wrote comes to the top -- the wallet keeps no book of its own.
+ *
+ * ⛔ `renewSession: false`: nobody did anything on this page, and a list asked again must not
+ * keep an unattended wallet signed in (plugins/apolloProvider.js). Said nothing on a failure:
+ * the list on screen stays as it was, and the next news asks again.
+ *
+ * Only the newest answer counts: two of these can be on their way at once.
+ */
+let reloads = 0
+const reloadList = async () => {
+  const mine = ++reloads
+  try {
+    const { data } = await apolloClient.query({
+      query: contactListQuery,
+      variables: LIST_VARIABLES,
+      fetchPolicy: 'network-only',
+      context: { renewSession: false },
+    })
+    if (mine !== reloads || !data?.contactList) return
+    contacts.value = data.contactList.contacts
+    // What an answer of the page's own query says too: a list that failed at first, or had not
+    // answered yet, stands once a question again succeeds (coderabbit, PR #3980).
+    loaded.value = true
+    failed.value = false
+  } catch {
+    // The list as it was.
+  }
+}
+onBeforeUnmount(onContactListRefresh(reloadList))
+
 const rowKey = (contact) => memberKey(contact.user)
 
-// A tap on a row opens the contact window; the two ways on from there -- send Gradido,
-// send e-mail -- live inside it (KF-010). The state machine is shared with the column and
-// the phone strip, so the release-on-close rule is written once.
-const { windowOpen, selected, open } = useContactWindow()
+// A tap on a row opens the contact window; the ways on from there live inside it (KF-010). The
+// state machine is shared with the column and the phone strip, so the release-on-close rule is
+// written once.
+const { windowOpen, selected, open, openKnownMember } = useContactWindow(apolloClient)
+
+/**
+ * `/contacts?with=<gradidoID>[&community=<uuid>]` opens the conversation with that person -- the
+ * address the mail's reply button will point to (P4c); nothing in the wallet links here yet. A
+ * missing community is this one. Read once, when the page is built, and taken out of the
+ * address at once, so a reload shows the list and does not open the window again.
+ *
+ * Opened only for somebody the server knows as a contact (useContactWindow.openKnownMember): an
+ * unknown id, or somebody one never exchanged anything with, opens nothing and says nothing.
+ * Only plain values: `?with=a&with=b` is no person.
+ */
+const route = useRoute()
+const router = useRouter()
+const askedFor = route.query.with
+const askedCommunity = route.query.community
+if (askedFor !== undefined || askedCommunity !== undefined) {
+  const { with: _with, community: _community, ...rest } = route.query
+  router.replace({ query: rest })
+}
+if (typeof askedFor === 'string' && askedFor !== '') {
+  openKnownMember({
+    gradidoID: askedFor,
+    communityUuid:
+      typeof askedCommunity === 'string' && askedCommunity !== '' ? askedCommunity : null,
+  })
+}
 
 const needle = computed(() => search.value.trim().toLowerCase())
 const matches = (contact) =>

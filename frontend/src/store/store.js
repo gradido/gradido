@@ -9,6 +9,7 @@ import { closeAvatarZoom } from '../composables/useAvatarZoom'
 import { forgetAllMemberAvatars } from '../composables/useMemberAvatars'
 import { forgetFavorites } from '../composables/useFavorites'
 import { forgetContactsPanel } from '../composables/useContactsPanel'
+import { stopChatUpdates } from '../composables/useChatUpdates'
 import { forgetParkedAmount } from '../composables/useParkedAmount'
 import { forgetFirstLoginWindows } from '../composables/useFirstLoginWindow'
 import { forgetLegacyMapPrefs } from '../utils/matchingPrefs'
@@ -221,6 +222,11 @@ export const actions = {
     // And the contacts the right-hand column holds, which name the people this member has
     // exchanged Gradido with -- the next member on this browser must not be handed them.
     forgetContactsPanel()
+    // And the chat's beat, which holds where this member's chat stood and how many of their
+    // conversations wait. It lives outside this store and stops with the layout as well; here,
+    // because the way into the admin area signs out without leaving the layout first. An answer
+    // still on its way is dropped when it lands.
+    stopChatUpdates()
     // ⚠️ A picture that is OPEN at this moment lives somewhere else again: the zoom keeps
     // the one face being looked at in its own module, outside the store and outside the
     // avatar cache above. The idle-timeout logout is the realistic path -- it fires
