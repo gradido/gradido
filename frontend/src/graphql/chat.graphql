@@ -40,6 +40,48 @@ query chatMessagesWithMemberQuery($ref: MemberAvatarRefInput!, $before: Int, $li
   }
 }
 
+# What is new for me since a message id, in ALL my conversations at once -- the one question the
+# wallet asks in its beat (E-017; useChatUpdates). The browser sorts the messages into the
+# threads that are open; nothing else keeps them.
+#
+# Without `afterId` the answer only says where one stands: no messages, `latestId` the highest id
+# of one's own conversations, and how many conversations hold something unread. With it, the
+# messages above that id, ascending, one's own included (`mine`), deleted ones left out; `limit`
+# defaults to 50 on the server and stops at 100. `latestId` is where the next question goes on
+# from -- under `hasMore` the last message delivered, not the highest. `unreadConversations`
+# counts conversations, not messages, and a muted one still counts (E-024).
+#
+# ⚠️ A known limit, accepted (P4a, #3977): two messages written at the same moment can become
+# visible in the reverse order of their ids, and then the marker passes over the older one. It
+# is still in the thread (`chatMessagesWithMember`) and shows there on the next opening. The
+# threads drop a message whose id they already hold, so an answer that brings one twice does
+# no harm.
+#
+# The fields of `messages` are the ones of a message of the thread, one for one: an arrival is
+# hung into the same list and drawn by the same bubble.
+query newChatMessagesSince($afterId: Int, $limit: Int) {
+  newChatMessagesSince(afterId: $afterId, limit: $limit) {
+    latestId
+    unreadConversations
+    hasMore
+    messages {
+      id
+      messageUuid
+      conversationId
+      sender {
+        communityUuid
+        gradidoID
+      }
+      mine
+      subject
+      body
+      createdAt
+      deliveryState
+      notify
+    }
+  }
+}
+
 # Moves one's OWN read pointer up to the highest id the thread has shown (E-017). The server
 # never moves it back and takes only an id of this conversation.
 mutation markChatConversationRead($ref: MemberAvatarRefInput!, $upToMessageId: Int!) {
