@@ -39,6 +39,14 @@ describe('Message', () => {
       expect(wrapper.find('div.header').exists()).toBe(true)
     })
 
+    // Some subtitles run to four sentences: at half the card's width and in bold, the one after a
+    // table-code registration stood on twelve lines on a phone (measured in the built wallet).
+    it('gives the subtitle the whole width of the card, in regular weight', () => {
+      const container = wrapper.find('.header-body').element.parentElement
+      expect([...container.classList].filter((name) => /^w-\d+$/.test(name))).toEqual([])
+      expect(wrapper.find('.test-message-subtitle').classes()).toContain('fw-normal')
+    })
+
     describe('with button', () => {
       it('renders title, subtitle, and button text', () => {
         expect(wrapper.find('.test-message-headline').text()).toBe('Headline text')
