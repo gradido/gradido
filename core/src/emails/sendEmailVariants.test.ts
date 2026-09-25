@@ -863,7 +863,9 @@ describe('sendEmailVariants', () => {
       senderUuid: '3f9a1e2c-1111-4a2b-9c3d-000000000001',
       senderCommunityUuid: 'aaaa1111-2222-4333-8444-555566667777',
     }
-    const answerLink = `${CONFIG.COMMUNITY_URL}/send/aaaa1111-2222-4333-8444-555566667777/3f9a1e2c-1111-4a2b-9c3d-000000000001?art=email`
+    // P4c: the reply opens the thread with the sender (`/contacts?with=`, since P4b). In the
+    // rendered attribute the `&` is `&amp;`, which the mail client reads as `&`.
+    const answerLink = `${CONFIG.COMMUNITY_URL}/contacts?with=3f9a1e2c-1111-4a2b-9c3d-000000000001&amp;community=aaaa1111-2222-4333-8444-555566667777`
     let withSubject: any
     let withoutSubject: any
 
@@ -902,6 +904,13 @@ describe('sendEmailVariants', () => {
         expect(html).toContain('Shall we meet at ten?')
         expect(html).toContain(answerLink)
       }
+    })
+
+    // The send form in e-mail mode was the answer before the chat; the thread is now.
+    it('leads the reply into the thread, not into the send form', () => {
+      const html = withSubject.originalMessage.html
+      expect(html).not.toContain('/send/')
+      expect(html).not.toContain('art=email')
     })
   })
 })

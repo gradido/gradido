@@ -17,9 +17,11 @@ block content
     //- Green sits inside the card because that is where it is seen; the gold button
         below only offers the way into the account. Before, the single gold button led
         to the send form while saying "to account" - the label lied about its target.
+        The answer is written in the thread with the sender (P4c): the contact page opens
+        the window with the member `with` names, of the community `community` names.
     if senderCommunityUuid && senderUuid
       .child-right
-        a.button-5(href=`${communityURL}/send/${senderCommunityUuid}/${senderUuid}?art=email`)
+        a.button-5(href=`${communityURL}/contacts?with=${senderUuid}&community=${senderCommunityUuid}`)
           include ../includes/chatbox-icon.pug
           span #{t('emails.general.answerNow')}
 
