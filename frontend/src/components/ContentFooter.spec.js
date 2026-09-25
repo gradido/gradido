@@ -3,6 +3,9 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import ContentFooter from './ContentFooter'
 import CONFIG from '@/config'
 import { BCol, BNav, BNavItem, BRow } from 'bootstrap-vue-next'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
 
 describe('ContentFooter', () => {
   let wrapper
@@ -45,6 +48,39 @@ describe('ContentFooter', () => {
 
       it('renders a link to Gradido-Akademie', () => {
         expect(wrapper.find('div.copyright').find('a').text()).toBe('footer.copyright.link')
+      })
+
+      it('keeps the name on one line', () => {
+        // At 320px the line broke inside it, "Gradido-" over "Akademie"; in Turkish already at
+        // 360px.
+        const link = wrapper.find('div.copyright').find('a')
+        expect(link.find('.text-nowrap').text()).toBe('footer.copyright.link')
+      })
+
+      it('gives the line a place to break after the bar', () => {
+        // Vue drops the white space between these elements: without the <wbr> the whole of
+        // "Gradido-Akademie | App" had to move together, and "© 2026" stood alone above it.
+        // After the bar, so that the bar ends the first line rather than starting the second.
+        const bar = wrapper.find('div.copyright .separator-start')
+        expect(bar.exists()).toBe(true)
+        expect(bar.element.nextElementSibling.tagName).toBe('WBR')
+        expect(bar.element.nextElementSibling.nextElementSibling).toBe(
+          wrapper.find('div.copyright').findAll('a').at(1).element,
+        )
+      })
+
+      it('keeps the bar in the link colour it had as the version link border', () => {
+        // jsdom applies no scoped styles, so the rule is read in the source, comments first:
+        // the one above it names the colour too.
+        const source = readFileSync(
+          join(dirname(fileURLToPath(import.meta.url)), 'ContentFooter.vue'),
+          'utf8',
+        ).replace(/\/\*[\s\S]*?\*\//g, '')
+        const rule = source.match(/\n\.copyright \.separator-start \{([^}]*)\}/)
+        expect(rule, 'no rule for the bar').not.toBeNull()
+        expect(rule[1]).toMatch(
+          /color: rgba\(var\(--bs-link-color-rgb\), var\(--bs-link-opacity, 1\)\);/,
+        )
       })
 
       it('links to the login page when clicked on copyright', () => {
