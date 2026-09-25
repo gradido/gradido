@@ -57,8 +57,18 @@
             <!-- The menu opener, and on it a gold dot while conversations hold something unread
                  -- a dot and not a figure: the opener is a symbol, and the figure is in the menu
                  behind it (Sidebar). Laid over the symbol's corner, so nothing moves when it
-                 comes and goes. For screen readers a line of text instead. -->
-            <div v-b-toggle.sidebar-mobile variant="link" class="navbar-menu-opener">
+                 comes and goes. For screen readers a line of text instead.
+
+                 A button, not a div: a div took the click but no Tab, no Enter and no name,
+                 so the whole menu of a phone was out of a keyboard's reach. Its name is the
+                 hidden word "Menu", then the dot's line where there is one. -->
+            <button
+              v-b-toggle.sidebar-mobile
+              type="button"
+              class="navbar-menu-opener"
+              data-test="navbar-menu-opener"
+            >
+              <span class="visually-hidden">{{ $t('navigation.menu') }}</span>
               <span class="navbar-toggler-icon h2">
                 <span
                   v-if="chatUnreadConversations > 0"
@@ -74,7 +84,7 @@
               >
                 {{ $t('chatThread.unreadDot') }}
               </span>
-            </div>
+            </button>
           </div>
         </BNavbarBrand>
 
@@ -307,6 +317,19 @@ button.navbar-toggler > span.navbar-toggler-icon {
 <style scoped>
 :deep(.container-fluid) {
   padding: 0 !important;
+}
+
+/* A button that looks like the block it replaced: no chrome, the full width of the column
+   above it (the till tools' 88px, as the div had), the symbol at its left edge. The focus
+   ring stays -- it is what the change is for. */
+.navbar-menu-opener {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
 }
 
 /* The dot's corner. `position: relative` moves nothing -- the symbol keeps its place and its

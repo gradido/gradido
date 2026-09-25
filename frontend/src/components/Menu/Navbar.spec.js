@@ -8,7 +8,7 @@ import { nextTick } from 'vue'
 import { createRouter, createWebHistory, RouterLink } from 'vue-router'
 import { createStore } from 'vuex'
 import Navbar from './Navbar.vue'
-import { BImg, BNavbar, BNavbarBrand, BNavbarNav } from 'bootstrap-vue-next'
+import { BImg, BNavbar, BNavbarBrand, BNavbarNav, vBToggle } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
 import AvatarButton from '@/components/Avatar/AvatarButton.vue'
 import { createI18n } from 'vue-i18n'
@@ -70,11 +70,12 @@ describe('Navbar', () => {
   let wrapper
   let store
 
-  const mountComponent = (storeState = {}) => {
+  const mountComponent = (storeState = {}, { directives = {} } = {}) => {
     store = createVuexStore(storeState)
     return mount(Navbar, {
       global: {
         plugins: [store, router, i18n],
+        directives,
         stubs: {
           IBiClipboard: true,
           // The avatar button brings its own apollo and toast dependencies. What matters
@@ -277,6 +278,51 @@ describe('Navbar', () => {
       expect(html.indexOf('username')).toBeLessThan(html.indexOf('ibicopy'))
     })
   })
+  /**
+   * On a phone the whole menu lies behind this opener, and it was a div: it took a click, but
+   * no Tab, no Enter and no name -- the menu was out of a keyboard's reach. A button now, named
+   * by a hidden word, and looking like the block it replaced.
+   */
+  describe('the menu opener', () => {
+    const opener = () => wrapper.find('[data-test="navbar-menu-opener"]')
+
+    it('is a button, so a keyboard reaches it and Enter and Space press it', () => {
+      wrapper = mountComponent()
+      expect(opener().element.tagName).toBe('BUTTON')
+      expect(opener().attributes('type')).toBe('button')
+    })
+
+    it('opens the drawer it names', () => {
+      wrapper = mountComponent({}, { directives: { bToggle: vBToggle } })
+      expect(opener().attributes('aria-controls')).toBe('sidebar-mobile')
+    })
+
+    // Its name is its content: the hidden word first, then the dot's line where there is one.
+    it('is named "Menu" by a hidden word before the symbol', () => {
+      wrapper = mountComponent()
+      const word = opener().element.firstElementChild
+      expect(word.classList.contains('visually-hidden')).toBe(true)
+      expect(word.textContent.trim()).toBe('navigation.menu')
+      expect(opener().text()).toBe('navigation.menu')
+    })
+
+    // jsdom lays nothing out, so the stylesheet says it -- read without its comments.
+    it('looks like the block it replaced: no chrome, the full width', () => {
+      const style = readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), 'Navbar.vue'),
+        'utf8',
+      ).replace(/\/\*[\s\S]*?\*\//g, '')
+      const rule = style.match(/\n\.navbar-menu-opener\s*\{([^}]*)\}/)?.[1] ?? ''
+
+      expect(rule).toMatch(/display:\s*block/)
+      expect(rule).toMatch(/width:\s*100%/)
+      expect(rule).toMatch(/border:\s*0/)
+      expect(rule).toMatch(/background:\s*transparent/)
+      expect(rule).toMatch(/padding:\s*0/)
+      expect(rule).not.toMatch(/outline/)
+    })
+  })
+
   /**
    * On the phone the menu is behind this button, so a gold dot on it says that conversations
    * hold something unread -- a dot, not a figure: the button is a symbol. Measured through the
