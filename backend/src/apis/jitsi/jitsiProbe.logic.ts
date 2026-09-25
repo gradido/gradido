@@ -29,18 +29,54 @@ export class JitsiProbeError extends DomainError {
   }
 }
 
+const QUOTES = new Set(["'", '"', '`'])
+
 /**
- * config.js without what does not run: block comments, and lines that start with //. Jitsi's
- * own default config.js carries its settings commented out -- `// anonymousdomain:
- * 'guest.example.com'` among them -- and names `tokenAuthUrl` in a block comment; neither says
- * anything about the server (measured on 25.09.2026 at the nine default servers).
+ * config.js without its comments: what does not run says nothing about the server. Jitsi's own
+ * default config.js carries its settings commented out -- `// anonymousdomain:
+ * 'guest.example.com'` among them -- and names `tokenAuthUrl` in a block comment (measured on
+ * 25.09.2026 at the nine default servers).
+ *
+ * One pass that knows strings: `//` and `/*` inside quotes are text. `bosh: '//meet.x/http-bind'`
+ * stays, and a `/*` in one string cannot reach a closing mark in a later one and swallow the
+ * settings between them. A comment after code on the same line goes, the code stays. A quote that
+ * is not closed ends with its line (' and " cannot span lines), so a sign taken for a quote by
+ * mistake -- in a regular expression, say -- costs one line at most.
  */
-const activeCode = (text: string): string =>
-  text
-    .replace(/\/\*[\s\S]*?\*\//g, '')
-    .split('\n')
-    .filter((line) => !line.trimStart().startsWith('//'))
-    .join('\n')
+const activeCode = (text: string): string => {
+  let active = ''
+  let quote: string | null = null
+  let index = 0
+  while (index < text.length) {
+    const character = text[index]
+    const next = text[index + 1]
+    if (quote !== null) {
+      if (character === '\\') {
+        active += character + (next ?? '')
+        index += 2
+        continue
+      }
+      if (character === quote || (character === '\n' && quote !== '`')) {
+        quote = null
+      }
+      active += character
+      index += 1
+    } else if (character === '/' && next === '/') {
+      const end = text.indexOf('\n', index)
+      index = end === -1 ? text.length : end
+    } else if (character === '/' && next === '*') {
+      const end = text.indexOf('*/', index + 2)
+      index = end === -1 ? text.length : end + 2
+    } else {
+      if (QUOTES.has(character)) {
+        quote = character
+      }
+      active += character
+      index += 1
+    }
+  }
+  return active
+}
 
 // The two forms config.js comes in: `domain: '…'` inside `hosts: { … }` (the Debian package,
 // the nine default servers), and `config.hosts.domain = '…'` (the Docker images, fairmeeting.net).

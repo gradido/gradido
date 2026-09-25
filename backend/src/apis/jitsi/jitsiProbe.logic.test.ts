@@ -134,6 +134,50 @@ describe('evaluateJitsiConfig', () => {
     expect(evaluateJitsiConfig(commented).success).toBe(true)
   })
 
+  it('does not count a comment at the end of a line, and keeps the code before it', () => {
+    const trailing = `
+var config = {
+    hosts: { domain: 'meet.example.org', // anonymousdomain: 'guest.meet.example.org'
+    },
+    bosh: '//meet.example.org/http-bind', // tokenAuthUrl: 'https://login.example.org/{room}'
+};
+`
+    expect(evaluateJitsiConfig(trailing)).toEqual({
+      success: true,
+      value: { domain: 'meet.example.org' },
+    })
+  })
+
+  // ⛔ The dangerous direction: a server that wants a login must not pass as open.
+  it('reads // and /* inside a string as text -- a string cannot hide the setting after it', () => {
+    const quoted = `
+var config = {
+    hosts: { domain: 'meet.example.org' },
+    welcome: 'Rooms/*: open to all',
+    anonymousdomain: 'guest.meet.example.org',
+    footer: 'the end*/',
+};
+`
+    expect(evaluateJitsiConfig(quoted)).toEqual({ success: false, error: 'LOGIN_REQUIRED' })
+    expect(
+      evaluateJitsiConfig(
+        `${DOCKER_CONFIG}config.tokenAuthUrl = 'https://login.example.org//auth'; // a note\n`,
+      ),
+    ).toEqual({ success: false, error: 'LOGIN_REQUIRED' })
+  })
+
+  it('keeps an escaped quote inside its string, and the setting after it', () => {
+    // config.js holds: welcome: 'It\'s // open', anonymousdomain: 'guest.meet.example.org',
+    const escaped = `
+var config = {
+    hosts: { domain: 'meet.example.org' },
+    welcome: 'It\\'s // open', anonymousdomain: 'guest.meet.example.org',
+};
+`
+    expect(escaped).toContain("'It\\'s // open'")
+    expect(evaluateJitsiConfig(escaped)).toEqual({ success: false, error: 'LOGIN_REQUIRED' })
+  })
+
   it('names no domain where config.js names none, and the probe takes the host then', () => {
     expect(evaluateJitsiConfig("var config = { hosts: { muc: 'conference.x' } };")).toEqual({
       success: true,
