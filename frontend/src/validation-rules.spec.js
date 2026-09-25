@@ -94,16 +94,21 @@ describe('a validation message', () => {
  */
 describe('what a field shows of its check', () => {
   it('shows nothing while it has not been left and is not valid yet', () => {
-    expect(shownValidState({ touched: false, valid: false })).toBe(null)
+    expect(shownValidState({ touched: false, dirty: true, valid: false })).toBe(null)
   })
 
-  it('shows green as soon as it is valid, left or not', () => {
-    expect(shownValidState({ touched: false, valid: true })).toBe(true)
-    expect(shownValidState({ touched: true, valid: true })).toBe(true)
+  // vee-validate starts a field valid and checks it a moment later.
+  it('shows nothing while nothing has been typed, even where the field still counts as valid', () => {
+    expect(shownValidState({ touched: false, dirty: false, valid: true })).toBe(null)
+  })
+
+  it('shows green as soon as what was typed is valid, left or not', () => {
+    expect(shownValidState({ touched: false, dirty: true, valid: true })).toBe(true)
+    expect(shownValidState({ touched: true, dirty: true, valid: true })).toBe(true)
   })
 
   it('shows red once it has been left and is not valid', () => {
-    expect(shownValidState({ touched: true, valid: false })).toBe(false)
+    expect(shownValidState({ touched: true, dirty: false, valid: false })).toBe(false)
   })
 })
 
@@ -156,6 +161,12 @@ describe('the password fields', () => {
   })
 
   it('show nothing before they have been left', async () => {
+    // Also in the first moment, before vee-validate's silent check: it starts a field valid.
+    const first = mount(InputPasswordConfirmation, { props: { register: true }, global })
+    for (const input of first.findAll('input')) {
+      expect(input.classes()).not.toContain('is-valid')
+    }
+
     const wrapper = await mounted(InputPasswordConfirmation, { register: true })
 
     expect(messages(wrapper)).toEqual([])
@@ -219,19 +230,24 @@ describe('the password fields', () => {
 })
 
 describe('the e-mail field', () => {
-  const mounted = async () => {
-    const wrapper = mount(InputEmail, {
+  const mountEmail = () =>
+    mount(InputEmail, {
       global: {
         plugins: [i18n],
         components: { BFormGroup, BFormInput, BFormInvalidFeedback },
         mocks: { $route: { path: '/login' } },
       },
     })
+  const mounted = async () => {
+    const wrapper = mountEmail()
     await flushPromises()
     return wrapper
   }
 
   it('shows nothing before it has been left, and says it is not invalid', async () => {
+    // Also in the first moment, before vee-validate's silent check.
+    expect(mountEmail().find('input').classes()).not.toContain('is-valid')
+
     const input = (await mounted()).find('input')
 
     expect(input.classes()).not.toContain('is-invalid')
