@@ -13,6 +13,7 @@ import {
   UserContact as DbUserContact,
   User,
 } from 'database'
+import { eq } from 'drizzle-orm'
 import { GraphQLError } from 'graphql'
 import { GraphQLClient } from 'graphql-request'
 import { CommandJwtPayloadType, createKeyPair, verifyAndDecrypt } from 'shared'
@@ -26,7 +27,7 @@ import {
   sendEmail,
   setChatConversationMuted,
 } from '@/seeds/graphql/mutations'
-import { chatMessagesWithMember, contactList } from '@/seeds/graphql/queries'
+import { chatMessagesWithMember, contactList, newChatMessagesSince } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
@@ -840,5 +841,278 @@ describe('sendChatMessage to a member of another community', () => {
     expect(res.errors).toEqual([new GraphQLError('CHAT_MESSAGE_NOT_SENT: NO_WAY_TO_DELIVER')])
     expect(rawRequest).not.toHaveBeenCalled()
     expect(await allMessages()).toEqual(before)
+  })
+})
+
+/**
+ * P4a (E-017): what is new for a member since an id, the one query the wallet asks on its beat.
+ * The messages of the blocks above stay filed, so each block below starts from the highest id
+ * filed before it -- or from an account made for it, where the whole answer counts.
+ */
+describe('newChatMessagesSince', () => {
+  type Update = {
+    latestId: number
+    unreadConversations: number
+    hasMore: boolean
+    messages: { id: number; body: string; mine: boolean }[]
+  }
+
+  /** What is new for whoever is logged in. */
+  const update = async (
+    variables: { afterId?: number | null; limit?: number } = {},
+  ): Promise<Update> => {
+    const res: any = await query({ query: newChatMessagesSince, variables })
+    expect(res.errors).toBeUndefined()
+    return res.data.newChatMessagesSince
+  }
+
+  const bodiesOf = (news: Update) => news.messages.map((message) => message.body)
+
+  /** The highest id this server has filed so far. */
+  const highestFiled = async () => Math.max(0, ...(await allMessages()).map((m) => m.id))
+
+  describe('without a login', () => {
+    beforeAll(() => resetToken())
+
+    it('answers 401', async () => {
+      expect(await query({ query: newChatMessagesSince, variables: { afterId: 0 } })).toEqual(
+        expect.objectContaining({ errors: [new GraphQLError('401 Unauthorized')] }),
+      )
+    })
+  })
+
+  /**
+   * bibi writes to bob and to peter, bob to raeuber, peter answers bibi. Each of them gets what
+   * is new in their own conversations -- their own messages among it --, and a message between
+   * two others reaches no third.
+   */
+  describe('across the conversations of each member', () => {
+    let start: number
+
+    const newsOf = async (email: string) => {
+      await loginAs(email)
+      return update({ afterId: start })
+    }
+
+    beforeAll(async () => {
+      start = await highestFiled()
+      await loginAs('bibi@bloxberg.de')
+      await said(ref(bob), 'News for Bob.', 'NONE')
+      await said(ref(peter), 'News for Peter.', 'NONE')
+      await loginAs('bob@baumeister.de')
+      await said(ref(raeuber), 'Between Bob and Räuber.', 'NONE')
+      await loginAs('peter@lustig.de')
+      await said(ref(bibi), 'Peter answers Bibi.', 'NONE')
+    })
+    afterAll(() => resetToken())
+
+    it('hands bibi what is new in all her conversations, oldest first, her own messages among it', async () => {
+      const news = await newsOf('bibi@bloxberg.de')
+
+      expect(bodiesOf(news)).toEqual(['News for Bob.', 'News for Peter.', 'Peter answers Bibi.'])
+      expect(news.messages.map((m) => m.mine)).toEqual([true, true, false])
+      const ids = news.messages.map((m) => m.id)
+      expect([...ids].sort((a, b) => a - b)).toEqual(ids)
+      expect(news.hasMore).toBe(false)
+      expect(news.latestId).toBe(ids[2])
+    })
+
+    it('hands bob and peter what is new in their own conversations only', async () => {
+      expect(bodiesOf(await newsOf('bob@baumeister.de'))).toEqual([
+        'News for Bob.',
+        'Between Bob and Räuber.',
+      ])
+      expect(bodiesOf(await newsOf('peter@lustig.de'))).toEqual([
+        'News for Peter.',
+        'Peter answers Bibi.',
+      ])
+    })
+
+    // ⛔ The guard against a leak: the query reaches every conversation of the caller, and only
+    // those.
+    it('hands a message between two others to no third', async () => {
+      expect(bodiesOf(await newsOf('bibi@bloxberg.de'))).not.toContain('Between Bob and Räuber.')
+      expect(bodiesOf(await newsOf('peter@lustig.de'))).not.toContain('Between Bob and Räuber.')
+      expect(bodiesOf(await newsOf('raeuber@hotzenplotz.de'))).toEqual(['Between Bob and Räuber.'])
+    })
+
+    it('shows delivery and mail wish on the own messages only', async () => {
+      const [own, , theirs] = (await newsOf('bibi@bloxberg.de')).messages
+      expect(own).toMatchObject({ mine: true, deliveryState: 'DELIVERED', notify: 'NONE' })
+      expect(theirs).toMatchObject({ mine: false, deliveryState: null, notify: null })
+    })
+  })
+
+  /** Sixty messages from bibi to peter, and a cap of fifty. */
+  describe('over the cap', () => {
+    let start: number
+    let sent: number[]
+
+    beforeAll(async () => {
+      start = await highestFiled()
+      await loginAs('bibi@bloxberg.de')
+      sent = []
+      for (let n = 1; n <= 60; n++) {
+        sent.push((await said(ref(peter), `Message ${n}`, 'NONE')).id)
+      }
+      await loginAs('peter@lustig.de')
+    })
+    afterAll(() => resetToken())
+
+    // ⛔ latestId is the fiftieth, not the sixtieth: the wallet goes on from there, and with the
+    // highest id it would never get the other ten.
+    it('hands out fifty and names the fiftieth to go on from, and the other ten from there', async () => {
+      const first = await update({ afterId: start, limit: 50 })
+      expect(first.messages.map((m) => m.id)).toEqual(sent.slice(0, 50))
+      expect(first.hasMore).toBe(true)
+      expect(first.latestId).toBe(sent[49])
+
+      const second = await update({ afterId: first.latestId, limit: 50 })
+      expect(second.messages.map((m) => m.id)).toEqual(sent.slice(50))
+      expect(second.hasMore).toBe(false)
+      expect(second.latestId).toBe(sent[59])
+    })
+
+    it('hands out fifty when the caller names no number', async () => {
+      const unnamed = await update({ afterId: start })
+      expect(unnamed.messages).toHaveLength(50)
+      expect(unnamed.hasMore).toBe(true)
+    })
+
+    it('refuses more than a hundred, none at all, and an id below zero', async () => {
+      for (const variables of [
+        { afterId: start, limit: 101 },
+        { afterId: start, limit: 0 },
+        { afterId: -1 },
+      ]) {
+        const res: any = await query({ query: newChatMessagesSince, variables })
+        expect(res.errors?.[0]?.message).toContain('Argument Validation Error')
+      }
+    })
+  })
+
+  /**
+   * The mark in the menu, for somebody who starts with no conversation at all: lena, made for
+   * this block. bob writes to her twice, she writes to peter, peter answers her.
+   */
+  describe('the unread mark', () => {
+    let lena: User
+
+    const asLena = () => loginAs('lena@newchatmessages.de')
+
+    beforeAll(async () => {
+      lena = await userFactory(testEnv, {
+        email: 'lena@newchatmessages.de',
+        firstName: 'Lena',
+        lastName: 'Liest',
+        alias: 'lenaReads',
+        emailChecked: true,
+      })
+    })
+    afterAll(() => resetToken())
+
+    it('says 0 and 0 to somebody without a conversation, and hands out nothing', async () => {
+      await asLena()
+      expect(await update()).toEqual({
+        latestId: 0,
+        unreadConversations: 0,
+        hasMore: false,
+        messages: [],
+      })
+    })
+
+    it('counts two unread messages from bob as one, and names the highest id of her conversations', async () => {
+      await loginAs('bob@baumeister.de')
+      await said(ref(lena), 'Hello Lena.', 'NONE')
+      const second = await said(ref(lena), 'Are you there?', 'NONE')
+      await asLena()
+
+      expect(await update()).toEqual({
+        latestId: second.id,
+        unreadConversations: 1,
+        hasMore: false,
+        messages: [],
+      })
+    })
+
+    it('does not count her own messages', async () => {
+      await asLena()
+      const own = await said(ref(peter), 'Hello Peter.', 'NONE')
+
+      expect(await update()).toMatchObject({ latestId: own.id, unreadConversations: 1 })
+    })
+
+    it('counts every conversation with something unread', async () => {
+      await loginAs('peter@lustig.de')
+      await said(ref(lena), 'Hello Lena, here is Peter.', 'NONE')
+      await asLena()
+
+      expect((await update()).unreadConversations).toBe(2)
+    })
+
+    // E-024: mute is about mail, not about seeing.
+    it('counts a muted conversation like any other', async () => {
+      await asLena()
+      expect(await mute(ref(bob), true)).toBe(true)
+
+      expect((await update()).unreadConversations).toBe(2)
+    })
+
+    it('counts a conversation no more once she has read it', async () => {
+      await asLena()
+      const withBob = (await pageWith(ref(bob))).messages
+      expect(await markRead(bob, withBob[withBob.length - 1].id)).toBe(true)
+      expect((await update()).unreadConversations).toBe(1)
+
+      const withPeter = (await pageWith(ref(peter))).messages
+      expect(await markRead(peter, withPeter[withPeter.length - 1].id)).toBe(true)
+      expect((await update()).unreadConversations).toBe(0)
+    })
+
+    /** bob writes once more, and the message is marked deleted right in the database. */
+    describe('with a message marked deleted', () => {
+      let deletedId: number
+
+      beforeAll(async () => {
+        await loginAs('bob@baumeister.de')
+        deletedId = (await said(ref(lena), 'Never mind.', 'NONE')).id
+        await AppDatabase.getInstance()
+          .getDrizzleDataSource()
+          .update(chatMessagesTable)
+          .set({ deletedAt: new Date() })
+          .where(eq(chatMessagesTable.id, deletedId))
+        await asLena()
+      })
+
+      it('does not hand it out', async () => {
+        expect((await update({ afterId: deletedId - 1 })).messages).toEqual([])
+      })
+
+      it('does not count it as unread', async () => {
+        expect((await update()).unreadConversations).toBe(0)
+      })
+    })
+  })
+
+  describe('asked under many names in one document', () => {
+    beforeAll(() => loginAs('bibi@bloxberg.de'))
+    afterAll(() => resetToken())
+
+    // ⛔ `limit` caps one answer, not how often a document repeats the field under aliases --
+    // that is what the request's budget counts (CHAT_UPDATES_MAX_PER_REQUEST).
+    it('answers five in one request, and refuses the sixth', async () => {
+      const updates = (count: number) =>
+        `query { ${Array.from(
+          { length: count },
+          (_, n) => `update${n}: newChatMessagesSince { latestId }`,
+        ).join(' ')} }`
+      const five: any = await query({ query: updates(5) })
+      expect(five.errors).toBeUndefined()
+      expect(Object.keys(five.data)).toHaveLength(5)
+      const six: any = await query({ query: updates(6) })
+      expect(six.errors?.map((error: any) => error.message)).toEqual([
+        'Too many chat updates requested at once',
+      ])
+    })
   })
 })
