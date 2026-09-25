@@ -29,10 +29,21 @@ const filterVariables = (variables: any) => {
   if (vars?.presenceCode) {
     vars.presenceCode = '***'
   }
+  // What one member writes to another: a chat message (sendChatMessage, `$body` in the wallet's
+  // chat.graphql) and the subject of a letter (sendEmail, `$subject`). A chat message may carry
+  // the address of a video room, and whoever knows it can join the call. No other document of
+  // wallet or admin names a variable so. The letter's text travels as `memo`, like the text of
+  // every booking and contribution, and is still written.
+  if (vars?.body) {
+    vars.body = '***'
+  }
+  if (vars?.subject) {
+    vars.subject = '***'
+  }
   return vars
 }
 
-const logPlugin = {
+export const logPlugin = {
   requestDidStart(requestContext: any) {
     const { logger } = requestContext
     const { query, mutation, variables, operationName } = requestContext.request
