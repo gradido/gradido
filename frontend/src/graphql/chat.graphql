@@ -125,8 +125,10 @@ mutation sendChatMessage($ref: MemberAvatarRefInput!, $body: String!, $notify: C
 }
 
 # Mutes the conversation with the person named by the pair for oneself, or lifts it (E-024):
-# no mails about their messages while it is muted; the thread shows them as before. Only
-# one's own row -- the other side is not told. False where there is no conversation yet.
+# no mails about their chat messages while it is muted -- a letter from the form "send an
+# e-mail" still goes out (E-034, A3) -- and the thread shows them as before. Only one's own
+# row. The other side is not told when it is switched; it learns of it only where it asks for
+# a mail, from `mailState` MUTED on its own message. False where there is no conversation yet.
 mutation setChatConversationMuted($ref: MemberAvatarRefInput!, $muted: Boolean!) {
   setChatConversationMuted(ref: $ref, muted: $muted)
 }
