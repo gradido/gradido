@@ -1147,7 +1147,7 @@
       "step3": "The account welcomes her by itself. You don't need to explain anything.",
       "title": "Someone here with me",
       "unconfirmedGuest": "{firstName} {lastName} · {alias} · since {date}",
-      "unconfirmedGuests": "One of your guests has not confirmed their e-mail address yet: | {n} of your guests have not confirmed their e-mail address yet:",
+      "unconfirmedGuests": "One of your guests has not confirmed their e-mail address yet | {n} of your guests have not confirmed their e-mail address yet",
       "unconfirmedHint": "Feel free to remind them of the link in their mail. If support has to delete an account, send them this line.",
       "validFor": "Valid for one more minute | Valid for {n} more minutes"
     },

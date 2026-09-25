@@ -1147,7 +1147,7 @@
       "step3": "La cuenta la recibe por sí sola. No tienes que explicar nada.",
       "title": "A alguien aquí conmigo",
       "unconfirmedGuest": "{firstName} {lastName} · {alias} · desde el {date}",
-      "unconfirmedGuests": "Un invitado tuyo aún no ha confirmado su dirección de correo: | {n} de tus invitados aún no han confirmado su dirección de correo:",
+      "unconfirmedGuests": "Un invitado tuyo aún no ha confirmado su dirección de correo | {n} de tus invitados aún no han confirmado su dirección de correo",
       "unconfirmedHint": "Puedes recordarles el enlace de su correo. Si tienes que pedir al soporte que elimine una cuenta, envíale esta línea.",
       "validFor": "Válido un minuto más | Válido {n} minutos más"
     },

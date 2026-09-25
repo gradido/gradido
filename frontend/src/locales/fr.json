@@ -1147,7 +1147,7 @@
       "step3": "Le compte l'accueille tout seul. Tu n'as rien à expliquer.",
       "title": "À quelqu'un ici avec moi",
       "unconfirmedGuest": "{firstName} {lastName} · {alias} · depuis le {date}",
-      "unconfirmedGuests": "Un de tes invités n'a pas encore confirmé son adresse e-mail : | {n} de tes invités n'ont pas encore confirmé leur adresse e-mail :",
+      "unconfirmedGuests": "Un de tes invités n'a pas encore confirmé son adresse e-mail | {n} de tes invités n'ont pas encore confirmé leur adresse e-mail",
       "unconfirmedHint": "N'hésite pas à leur rappeler le lien dans leur e-mail. Si tu dois faire supprimer un compte par le support, envoie-lui cette ligne.",
       "validFor": "Encore valable une minute | Encore valable {n} minutes"
     },

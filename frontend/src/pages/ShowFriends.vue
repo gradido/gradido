@@ -83,34 +83,49 @@
             </template>
           </div>
           <!-- E-020: the member's own guests who have not confirmed yet, by name - who they are is
-               what the member needs to remind them, and what support needs to find a dead one. -->
+               what the member needs to remind them, and what support needs to find a dead one.
+               ZE-014: folded to their number, because this is the screen the member holds out to
+               a stranger. The names are not in the page until the member taps the line. -->
           <div
             v-if="unconfirmedGuests.length"
             class="door-guests small mt-3"
             data-test="show-friends-unconfirmed"
           >
-            <p class="mb-1">
-              {{ $t('showFriends.here.unconfirmedGuests', unconfirmedGuests.length) }}
-            </p>
-            <ul class="mb-1">
-              <li
-                v-for="guest in unconfirmedGuests"
-                :key="`${guest.alias}-${guest.createdAt}`"
-                data-test="show-friends-unconfirmed-guest"
-              >
-                {{
-                  $t('showFriends.here.unconfirmedGuest', {
-                    firstName: guest.firstName ?? '',
-                    lastName: guest.lastName ?? '',
-                    alias: guest.alias ?? '',
-                    date: d(new Date(guest.createdAt), 'short'),
-                  })
-                }}
-              </li>
-            </ul>
-            <p class="door-hint mb-0" data-test="show-friends-unconfirmed-hint">
-              {{ $t('showFriends.here.unconfirmedHint') }}
-            </p>
+            <button
+              type="button"
+              class="door-guests-head"
+              :aria-expanded="isGuestsOpen"
+              aria-controls="show-friends-unconfirmed-list"
+              data-test="show-friends-unconfirmed-toggle"
+              @click="isGuestsOpen = !isGuestsOpen"
+            >
+              <span class="door-guests-count">
+                {{ $t('showFriends.here.unconfirmedGuests', unconfirmedGuests.length) }}
+              </span>
+              <IMdiChevronUp v-if="isGuestsOpen" />
+              <IMdiChevronDown v-else />
+            </button>
+            <div v-if="isGuestsOpen" id="show-friends-unconfirmed-list">
+              <ul class="mb-1">
+                <li
+                  v-for="guest in unconfirmedGuests"
+                  :key="`${guest.alias}-${guest.createdAt}`"
+                  data-test="show-friends-unconfirmed-guest"
+                >
+                  {{
+                    $t('showFriends.here.unconfirmedGuest', {
+                      firstName: guest.firstName ?? '',
+                      lastName: guest.lastName ?? '',
+                      alias: guest.alias ?? '',
+                      date: d(new Date(guest.createdAt), 'short'),
+                    })
+                  }}
+                </li>
+              </ul>
+              <p class="door-hint mb-0" data-test="show-friends-unconfirmed-hint">
+                {{ $t('showFriends.here.unconfirmedHint') }}
+              </p>
+            </div>
           </div>
           <!-- The plain address, also under a code with a stamp: it is what a guest types or
                copies, and the stamp belongs on this screen only. -->
@@ -218,8 +233,8 @@
  * Only a confirmed member vouches (E-018): an unconfirmed one does not ask and shows the card
  * with a sentence saying why. A member vouches for a limited number of guests who have not
  * confirmed (E-019, `PRESENCE_MAX_UNCONFIRMED` in the backend); they are listed under the code by
- * name (E-020), and at the limit the server mints no code - the card, the reason, the list, and
- * the button to ask again.
+ * name (E-020), folded to their number until the member taps it (ZE-014), and at the limit the
+ * server mints no code - the card, the reason, the folded list, and the button to ask again.
  *
  * Under a code that is still good, a guest without a phone of their own is offered this device
  * (ZE-013): the member is signed out, and the form opens with a fresh code, as if it had been
@@ -379,6 +394,12 @@ const limitReached = computed(() => !!presence.value && !presence.value.code)
 const unconfirmedGuests = computed(() => presence.value?.unconfirmedGuests ?? [])
 
 /**
+ * ZE-014: the guests' names only on a tap, folded again on the next. Kept while the page stands -
+ * a new code leaves the list as it is - and stored nowhere: every visit starts folded.
+ */
+const isGuestsOpen = ref(false)
+
+/**
  * The first answer may hang -- a connection that neither answers nor fails. After a few seconds
  * the card of before steps in, as it does after a failure; a code that still arrives takes its
  * place. Measured with the ticker, so it needs no timer of its own.
@@ -527,6 +548,25 @@ const shareAddress = () => shareText(addressText.value, copyAddressText)
 
 .door-guests ul {
   padding-inline-start: 1.25rem;
+}
+
+/* ZE-014: the line with the number is the button that unfolds the names, built like the door
+   heads - it can be touched anywhere along it, and it brings none of a button's looks. */
+.door-guests-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.25rem 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+}
+
+.door-guests-count {
+  flex: 1;
 }
 
 /* The message as it goes out: its own lines, and a link that may break anywhere rather than
