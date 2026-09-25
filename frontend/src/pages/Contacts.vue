@@ -195,6 +195,10 @@ const reloadList = async () => {
     })
     if (mine !== reloads || !data?.contactList) return
     contacts.value = data.contactList.contacts
+    // What an answer of the page's own query says too: a list that failed at first, or had not
+    // answered yet, stands once a question again succeeds (coderabbit, PR #3980).
+    loaded.value = true
+    failed.value = false
   } catch {
     // The list as it was.
   }

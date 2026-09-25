@@ -423,6 +423,38 @@ describe('Contacts page', () => {
       expect(toastError).not.toHaveBeenCalled()
     })
 
+    // A list that failed at first stands once a question again succeeds -- not "not reachable"
+    // over rows that are there (coderabbit, PR #3980).
+    it('shows the list once a question again succeeds after the first one failed', async () => {
+      mountPage()
+      handlers.get('contactListQuery').error(new Error('offline'))
+      await nextTick()
+      expect(wrapper.find('[data-test="contacts-error"]').exists()).toBe(true)
+      answers.set('contactListQuery', () => ({
+        data: { contactList: { count: 2, contacts: [person(1), person(2)] } },
+      }))
+
+      refreshContactsPanel({ query: vi.fn() })
+      await flushPromises()
+
+      expect(wrapper.find('[data-test="contacts-error"]').exists()).toBe(false)
+      expect(rowsIn('contacts-page')).toEqual(['Alias1', 'Alias2'])
+    })
+
+    it('stops waiting when a question again answers before the first one', async () => {
+      mountPage()
+      expect(wrapper.find('[data-test="contacts-loading"]').exists()).toBe(true)
+      answers.set('contactListQuery', () => ({
+        data: { contactList: { count: 1, contacts: [person(1)] } },
+      }))
+
+      refreshContactsPanel({ query: vi.fn() })
+      await flushPromises()
+
+      expect(wrapper.find('[data-test="contacts-loading"]').exists()).toBe(false)
+      expect(rowsIn('contacts-page')).toEqual(['Alias1'])
+    })
+
     // Two on their way at once: the newer answer counts, whichever lands last.
     it('keeps the newest answer when two cross', async () => {
       mountPage()
