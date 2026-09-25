@@ -837,7 +837,7 @@
   "maxReached": "Máx. alcanzado",
   "member": "Miembro",
   "message": {
-    "activateEmail": "Tu cuenta aún no ha sido activada. Por favor revisa tu correo electrónico y haz clic en el enlace de activación o solicita uno nuevo enlace de activación a través de la página  restablecer contraseña.",
+    "activateEmail": "Tu cuenta aún no ha sido activada. Por favor revisa tu correo electrónico y haz clic en el enlace de activación o solicita un nuevo enlace de activación a través de la página «Restablecer contraseña».",
     "checkEmail": "Tu correo electrónico ha sido verificado con éxito. Ya puedes iniciar sesión.",
     "email": "Te hemos enviado un correo electrónico.",
     "errorTitle": "¡Atención!",

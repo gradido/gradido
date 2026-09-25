@@ -324,7 +324,7 @@
     "title": "E-posta adresini onayla"
   },
   "error": {
-    "email-already-sent": "Sana 10 dakikadan daha az sürede e-posta gönderdik .",
+    "email-already-sent": "Son 10 dakika içinde sana zaten bir e-posta gönderdik.",
     "empty-transactionlist": "İşlem sayısının iletiminde bir hata oluştu.",
     "no-account": "Ne yazık ki bu verilere ait (etkinleştirilmiş) bir hesap bulamadık.",
     "no-transactionlist": "Maalesef bir hata oluştu. Sunucudan hiçbir işlem gönderilmedi.",
@@ -508,7 +508,7 @@
         "min": "Faaliyet açıklaması en az {min} karakter olmalı.",
         "required": "Faaliyet açıklaması zorunlu bir alandır."
       },
-      "gddSendAmount": "Bu alan {_field_} {min}  {max} arasında ondalık noktadan sonra en fazla iki basamaklı bir sayı olmalıdır",
+      "gddSendAmount": "{_field_} alanı, {min} ile {max} arasında, en fazla iki ondalık basamaklı bir sayı olmalıdır.",
       "hours": {
         "decimal-places": "Saatler en fazla iki ondalık basamak içermeli.",
         "max": "Saatler en fazla {max} olmalı.",
