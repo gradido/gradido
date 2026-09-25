@@ -47,6 +47,7 @@ const fromMax = (id: number): ChatMessageSelect => ({
   subject: null,
   body: 'hello',
   notify: 'email',
+  mailState: null,
   deliveryState: 'delivered',
   lastAttemptAt: null,
   delaySeconds: null,

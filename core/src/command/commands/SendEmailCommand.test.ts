@@ -6,6 +6,7 @@ import * as mails from '../../emails/sendEmailVariants'
 import * as chatMessage from '../../logic/ChatMessage.logic'
 import { CommandExecutor } from '../CommandExecutor'
 import {
+  chatMessageMailStateOfAnswer,
   SEND_MAIL_COMMAND_ANSWER,
   SendEmailCommand,
   SendEmailCommandParams,
@@ -18,6 +19,7 @@ import {
 const SENDER_COMMUNITY = '22222222-2222-4222-8222-222222222222'
 const HOME = '11111111-1111-4111-8111-111111111111'
 const SENDER = {
+  id: 7,
   gradidoID: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
   communityUuid: SENDER_COMMUNITY,
   alias: 'anna',
@@ -54,16 +56,30 @@ const run = (commandParams: object) =>
 /** What happened, in order. The store counts when it is done, the mail when it starts. */
 let happened: string[] = []
 let spies: { mockRestore: () => void }[] = []
+let findUser: ReturnType<typeof spyOn>
 let store: ReturnType<typeof spyOn>
 let customMail: ReturnType<typeof spyOn>
 let receivedMail: ReturnType<typeof spyOn>
+let senderCommunity: ReturnType<typeof spyOn>
+let fileSender: ReturnType<typeof spyOn>
+let updateAlias: ReturnType<typeof spyOn>
 
 beforeEach(() => {
   happened = []
-  const findUser = spyOn(database, 'findUserByUuids').mockImplementation(
+  findUser = spyOn(database, 'findUserByUuids').mockImplementation(
     async (_communityUuid: string, gradidoId: string) =>
       gradidoId.toLowerCase() === SENDER.gradidoID ? SENDER : RECIPIENT,
   )
+  // A known sender needs none of these; a test that reaches one says so.
+  senderCommunity = spyOn(database, 'getCommunityByUuid').mockImplementation(async () => {
+    throw new Error('not asked about a community in this test')
+  })
+  fileSender = spyOn(database, 'dbInsertForeignUser').mockImplementation(async () => {
+    throw new Error('not filing a sender in this test')
+  })
+  updateAlias = spyOn(database, 'dbUpdateForeignUserAlias').mockImplementation(async () => {
+    throw new Error('not updating an alias in this test')
+  })
   store = spyOn(chatMessage, 'storeChatMessage').mockImplementation(async () => {
     await Promise.resolve()
     happened.push('store')
@@ -77,7 +93,7 @@ beforeEach(() => {
     happened.push('receipt')
     return true
   })
-  spies = [findUser, store, customMail, receivedMail]
+  spies = [findUser, store, customMail, receivedMail, senderCommunity, fileSender, updateAlias]
 })
 
 afterEach(() => {
@@ -157,7 +173,9 @@ describe('SendEmailCommand, a message from another community', () => {
     )
     spies.push(ensure)
 
-    await expect(run(params({ messageUuid: MESSAGE_UUID }))).resolves.toBe(SEND_MAIL_COMMAND_ANSWER)
+    await expect(run(params({ messageUuid: MESSAGE_UUID }))).resolves.toBe(
+      SEND_MAIL_COMMAND_ANSWER.MAILED,
+    )
 
     expect(ensure).toHaveBeenCalledTimes(1)
     expect(customMail).toHaveBeenCalledTimes(1)
@@ -165,9 +183,183 @@ describe('SendEmailCommand, a message from another community', () => {
 })
 
 /**
+ * E-034: a message from a member of another community who never sent Gradido here. The
+ * receiving side of a transfer files its sender; a message now does the same -- foreign, the
+ * pair, the alias -- where it used to fail with "Sender user not found".
+ */
+describe('SendEmailCommand, a sender this server does not know yet', () => {
+  const FILED_ID = 42
+  /** The sender's row as this server holds it: none until it is filed. */
+  let onFile: database.User | null
+
+  beforeEach(() => {
+    onFile = null
+    findUser.mockImplementation(async (_communityUuid: string, gradidoId: string) => {
+      switch (gradidoId.toLowerCase()) {
+        case RECIPIENT.gradidoID:
+          return RECIPIENT
+        case SENDER.gradidoID:
+          return onFile
+        default:
+          return null
+      }
+    })
+    senderCommunity.mockImplementation(
+      async () => ({ communityUuid: SENDER_COMMUNITY, foreign: true }) as database.Community,
+    )
+    fileSender.mockImplementation(async (member: { communityUuid: string; gradidoId: string }) => {
+      happened.push('file sender')
+      onFile = {
+        ...SENDER,
+        id: FILED_ID,
+        communityUuid: member.communityUuid,
+        gradidoID: member.gradidoId,
+        alias: null,
+        firstName: null,
+        lastName: null,
+      } as unknown as database.User
+      return { success: true, value: FILED_ID }
+    })
+    updateAlias.mockImplementation(async (_id: number, alias: string) => {
+      happened.push('alias')
+      if (onFile) {
+        onFile.alias = alias
+      }
+      return { success: true }
+    })
+  })
+
+  it('files the sender with the pair and the alias, then files and mails the message', async () => {
+    await expect(run(params({ messageUuid: MESSAGE_UUID, senderAlias: 'anna' }))).resolves.toBe(
+      SEND_MAIL_COMMAND_ANSWER.MAILED,
+    )
+
+    // The pair and nothing else -- no names travel, and none are filed.
+    expect(fileSender.mock.calls).toEqual([
+      [{ communityUuid: SENDER_COMMUNITY, gradidoId: SENDER.gradidoID }],
+    ])
+    expect(updateAlias.mock.calls).toEqual([[FILED_ID, 'anna']])
+    expect(senderCommunity.mock.calls).toEqual([[SENDER_COMMUNITY]])
+    const [[message]] = store.mock.calls as [chatMessage.ChatMessageToStore][]
+    expect(message.sender).toEqual({ communityUuid: SENDER_COMMUNITY, gradidoId: SENDER.gradidoID })
+    expect(customMail).toHaveBeenCalledWith(expect.objectContaining({ senderAlias: 'anna' }))
+    expect(happened).toEqual(['file sender', 'alias', 'store', 'mail'])
+  })
+
+  it('files a sender who has no alias without one, and names them by their id', async () => {
+    await run(params({ messageUuid: MESSAGE_UUID }))
+
+    expect(fileSender).toHaveBeenCalledTimes(1)
+    expect(updateAlias).not.toHaveBeenCalled()
+    expect(customMail).toHaveBeenCalledWith(
+      expect.objectContaining({ senderAlias: SENDER.gradidoID }),
+    )
+  })
+
+  it('brings the alias of a sender on file up to date', async () => {
+    onFile = { ...SENDER, alias: 'anna' } as unknown as database.User
+
+    await run(params({ messageUuid: MESSAGE_UUID, senderAlias: 'annaFar' }))
+
+    expect(fileSender).not.toHaveBeenCalled()
+    expect(updateAlias.mock.calls).toEqual([[SENDER.id, 'annaFar']])
+    expect(customMail).toHaveBeenCalledWith(expect.objectContaining({ senderAlias: 'annaFar' }))
+  })
+
+  // Silence is "nothing new to say", not "it is gone" -- as with a transfer.
+  it('keeps the alias on file when the command carries none, or the same one', async () => {
+    onFile = { ...SENDER, alias: 'anna' } as unknown as database.User
+
+    await run(params({ messageUuid: MESSAGE_UUID }))
+    await run(params({ messageUuid: MESSAGE_UUID, senderAlias: '' }))
+    await run(params({ messageUuid: MESSAGE_UUID, senderAlias: 'anna' }))
+
+    expect(updateAlias).not.toHaveBeenCalled()
+    expect(onFile.alias).toBe('anna')
+    expect(customMail).toHaveBeenCalledTimes(3)
+  })
+
+  it('takes no alias the column could not hold', async () => {
+    await run(params({ messageUuid: MESSAGE_UUID, senderAlias: 'a'.repeat(21) }))
+    await run({ ...params({ messageUuid: MESSAGE_UUID }), senderAlias: 42 })
+
+    expect(fileSender).toHaveBeenCalledTimes(1)
+    expect(updateAlias).not.toHaveBeenCalled()
+  })
+
+  // Another row of that community still holds the name: filed without it, and mailed.
+  it('files the sender without the alias where the alias cannot be set, and mails', async () => {
+    updateAlias.mockResolvedValue({ success: false, error: new Error('DB_DUPLICATE_ENTRY') })
+
+    await run(params({ messageUuid: MESSAGE_UUID, senderAlias: 'taken' }))
+
+    expect(store).toHaveBeenCalledTimes(1)
+    expect(customMail).toHaveBeenCalledWith(
+      expect.objectContaining({ senderAlias: SENDER.gradidoID }),
+    )
+  })
+
+  it('still refuses the mail about received Gradido from a sender it does not know', async () => {
+    await expect(
+      run(params({ mailType: 'sendTransactionReceivedEmail', amount: '10', senderAlias: 'anna' })),
+    ).rejects.toThrow('Sender user not found')
+
+    expect(fileSender).not.toHaveBeenCalled()
+    expect(senderCommunity).not.toHaveBeenCalled()
+    expect(receivedMail).not.toHaveBeenCalled()
+  })
+
+  // Never a row under this community's own uuid, and none for a community nobody here knows.
+  it('files nobody of a community it does not know as a foreign one', async () => {
+    for (const community of [
+      null,
+      { communityUuid: SENDER_COMMUNITY, foreign: false } as database.Community,
+    ]) {
+      senderCommunity.mockResolvedValue(community)
+
+      await expect(run(params({ messageUuid: MESSAGE_UUID, senderAlias: 'anna' }))).rejects.toThrow(
+        'Sender user not found',
+      )
+    }
+
+    expect(fileSender).not.toHaveBeenCalled()
+    expect(store).not.toHaveBeenCalled()
+    expect(customMail).not.toHaveBeenCalled()
+  })
+
+  it('files nobody for a pair that is no pair of uuids', async () => {
+    await expect(
+      run(params({ senderGradidoId: 'not-a-uuid', senderAlias: 'anna' })),
+    ).rejects.toThrow('Sender user not found')
+    await expect(run(params({ senderComUuid: 'not-a-uuid', senderAlias: 'anna' }))).rejects.toThrow(
+      'Sender user not found',
+    )
+
+    expect(fileSender).not.toHaveBeenCalled()
+  })
+
+  // What cannot be filed leaves the sender unknown: the command fails as it did before.
+  it('fails as before where the sender cannot be filed', async () => {
+    fileSender.mockResolvedValueOnce({ success: false, error: new Error('DB_INSERT_FAILED') })
+    await expect(run(params({ messageUuid: MESSAGE_UUID }))).rejects.toThrow(
+      'Sender user not found',
+    )
+    fileSender.mockRejectedValueOnce(
+      Object.assign(new Error('Connection lost'), { code: 'PROTOCOL_CONNECTION_LOST' }),
+    )
+    await expect(run(params({ messageUuid: MESSAGE_UUID }))).rejects.toThrow(
+      'Sender user not found',
+    )
+
+    expect(store).not.toHaveBeenCalled()
+    expect(customMail).not.toHaveBeenCalled()
+  })
+})
+
+/**
  * E-024 on the receiving server: the sender's wish travels, the recipient's quiet stays here.
  * A mail goes out only when the sender asked for one and the recipient has not muted the
- * conversation -- and the sending server learns nothing of which it was.
+ * conversation -- and since E-034 the sending server is answered which it was.
  */
 describe('SendEmailCommand, the wish and the quiet', () => {
   const filed = {
@@ -228,7 +420,7 @@ describe('SendEmailCommand, the wish and the quiet', () => {
     recipientHas(MUTED)
 
     await expect(run(params({ messageUuid: MESSAGE_UUID, notify: 'email' }))).resolves.toBe(
-      SEND_MAIL_COMMAND_ANSWER,
+      SEND_MAIL_COMMAND_ANSWER.MUTED,
     )
 
     expect(store).toHaveBeenCalledTimes(1)
@@ -247,6 +439,27 @@ describe('SendEmailCommand, the wish and the quiet', () => {
     expect(customMail).toHaveBeenCalledTimes(1)
   })
 
+  // E-034, A3: the form "send an e-mail" writes letters, and a letter is mailed whatever the
+  // quiet -- which is about chat messages. Filed as a wish for a mail.
+  it('mails a letter to a recipient who muted the conversation', async () => {
+    recipientHas(MUTED)
+
+    await run(params({ messageUuid: MESSAGE_UUID, notify: 'letter' }))
+
+    const [[message]] = store.mock.calls as [chatMessage.ChatMessageToStore][]
+    expect(message.notify).toBe('email')
+    expect(customMail).toHaveBeenCalledTimes(1)
+    expect(happened).toEqual(['store', 'mail'])
+  })
+
+  it('mails a letter to a recipient who has not muted the conversation', async () => {
+    recipientHas(null)
+
+    await run(params({ messageUuid: MESSAGE_UUID, notify: 'letter' }))
+
+    expect(customMail).toHaveBeenCalledTimes(1)
+  })
+
   // The mail is what the recipient had before the chat; without the row it is all they get,
   // and there is no conversation to have muted.
   it('mails a message it could not file, even one sent without a mail', async () => {
@@ -258,16 +471,18 @@ describe('SendEmailCommand, the wish and the quiet', () => {
 
   /**
    * ⛔ What the sending server receives is what the executor makes of execute(): the command
-   * client asks for `data` as well. Measured through the executor, the way the command
-   * resolver answers: one answer for a mail, for none, for a muted recipient and for a message
-   * that could not be filed.
+   * client asks for `data`. Measured through the executor, the way the command resolver
+   * answers (E-034): what became of the mail -- mailed, held back by the quiet, or none asked
+   * for. A message that could not be filed is mailed as before the chat, and says so.
    */
-  it('answers the sending server the same, whether a mail went out or not', async () => {
+  it('answers the sending server what became of the mail', async () => {
     const answers = []
     for (const [mark, notify, files] of [
       [null, 'email', true],
       [null, 'none', true],
       [MUTED, 'email', true],
+      [MUTED, 'none', true],
+      [MUTED, 'letter', true],
       [null, 'none', false],
     ] as [Date | null, string, boolean][]) {
       if (files) {
@@ -278,19 +493,17 @@ describe('SendEmailCommand, the wish and the quiet', () => {
       const command = new SendEmailCommand([
         JSON.stringify(params({ messageUuid: MESSAGE_UUID, notify })),
       ])
-      answers.push(await new CommandExecutor().executeCommand(command))
+      answers.push((await new CommandExecutor().executeCommand(command)).data)
     }
 
-    expect(customMail).toHaveBeenCalledTimes(2)
-    expect(answers).toEqual(
-      Array.from({ length: 4 }, () => ({ success: true, data: SEND_MAIL_COMMAND_ANSWER })),
-    )
+    expect(answers).toEqual(['mailed', 'received', 'muted', 'received', 'mailed', 'mailed'])
+    expect(customMail).toHaveBeenCalledTimes(3)
   })
 })
 
 /**
  * What a mail transport reports names the mail's recipient. It stays on this server: the
- * sending server asks for `data` as well, and gets the same fixed value for both kinds of mail.
+ * sending server asks for `data`, and gets one of three fixed values -- never the report.
  */
 describe('SendEmailCommand, what the sending server is answered', () => {
   const reported = {
@@ -303,7 +516,21 @@ describe('SendEmailCommand, what the sending server is answered', () => {
   const answerTo = (commandParams: object) =>
     new CommandExecutor().executeCommand(new SendEmailCommand([JSON.stringify(commandParams)]))
 
-  it('answers the mail about received Gradido with the fixed value, not with the report', async () => {
+  // coderabbit on #3982: a mail that did not go out is not answered as one. RECEIVED says
+  // nothing about a mail; the transport's report still stays here.
+  it('answers RECEIVED where the mail did not go out', async () => {
+    for (const failed of [undefined, null, new Error('Connection timeout')]) {
+      customMail.mockImplementation(async () => failed)
+
+      const answer = await answerTo(params({ messageUuid: MESSAGE_UUID }))
+
+      expect(answer).toEqual({ success: true, data: SEND_MAIL_COMMAND_ANSWER.RECEIVED })
+    }
+    expect(customMail).toHaveBeenCalledTimes(3)
+  })
+
+  // The mail about received Gradido is no message: it answers RECEIVED, mailed or not.
+  it('answers the mail about received Gradido with RECEIVED, not with the report', async () => {
     receivedMail.mockImplementation(async () => reported)
 
     const answer = await answerTo(
@@ -311,17 +538,32 @@ describe('SendEmailCommand, what the sending server is answered', () => {
     )
 
     expect(receivedMail).toHaveBeenCalledTimes(1)
-    expect(answer).toEqual({ success: true, data: SEND_MAIL_COMMAND_ANSWER })
+    expect(answer).toEqual({ success: true, data: SEND_MAIL_COMMAND_ANSWER.RECEIVED })
     expect(JSON.stringify(answer)).not.toContain('ben@example.org')
   })
 
-  it('answers a message the same way, whatever the transport reported', async () => {
+  it('answers a mailed message with MAILED, whatever the transport reported', async () => {
     customMail.mockImplementation(async () => reported)
 
     const answer = await answerTo(params({ messageUuid: MESSAGE_UUID }))
 
     expect(customMail).toHaveBeenCalledTimes(1)
-    expect(answer).toEqual({ success: true, data: SEND_MAIL_COMMAND_ANSWER })
+    expect(answer).toEqual({ success: true, data: SEND_MAIL_COMMAND_ANSWER.MAILED })
     expect(JSON.stringify(answer)).not.toContain('ben@example.org')
+  })
+})
+
+/** The answer as the sending server reads it back (E-034). */
+describe('chatMessageMailStateOfAnswer', () => {
+  it('reads MAILED and MUTED as what they say', () => {
+    expect(chatMessageMailStateOfAnswer(SEND_MAIL_COMMAND_ANSWER.MAILED)).toBe('mailed')
+    expect(chatMessageMailStateOfAnswer(SEND_MAIL_COMMAND_ANSWER.MUTED)).toBe('muted')
+  })
+
+  // A server from before P3c answers RECEIVED to every message, or the transport's report.
+  it('reads RECEIVED, and anything it does not know, as nothing known', () => {
+    for (const answer of ['received', 'MAILED', '', null, undefined, true, { accepted: [] }]) {
+      expect(chatMessageMailStateOfAnswer(answer)).toBeNull()
+    }
   })
 })

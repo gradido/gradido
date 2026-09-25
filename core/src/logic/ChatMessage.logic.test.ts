@@ -5,12 +5,15 @@ import * as database from 'database'
 import { getLogger } from '../../../config-schema/test/testSetup.bun'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import {
+  CHAT_MESSAGE_NOTIFY_LETTER,
   ChatMessageToStore,
-  chatMailWanted,
+  chatMailWentOut,
+  chatMessageMailState,
   chatMessageNotify,
   parseChatMessageNotify,
   readChatMemberMutedAt,
   recordChatMessageDelivery,
+  recordChatMessageMailState,
   storeChatMessage,
 } from './ChatMessage.logic'
 
@@ -178,12 +181,25 @@ describe('recordChatMessageDelivery', () => {
     spies = [update]
     const before = Date.now()
 
-    await recordChatMessageDelivery(99, 'failed')
+    await recordChatMessageDelivery(99, 'failed', null)
 
     expect(update).toHaveBeenCalledTimes(1)
-    const [id, state, attemptAt] = update.mock.calls[0]
-    expect([id, state]).toEqual([99, 'failed'])
+    const [id, state, attemptAt, mailState] = update.mock.calls[0]
+    expect([id, state, mailState]).toEqual([99, 'failed', null])
     expect(attemptAt.getTime()).toBeGreaterThanOrEqual(before)
+  })
+
+  // E-034: what the other server answered became of the mail, in the same statement.
+  it('records what became of the mail with the state', async () => {
+    const update = spyOn(database, 'dbUpdateChatMessageDelivery').mockResolvedValue({
+      success: true,
+    })
+    spies = [update]
+
+    await recordChatMessageDelivery(99, 'delivered', 'muted')
+
+    expect(update).toHaveBeenCalledTimes(1)
+    expect(update.mock.calls[0][3]).toBe('muted')
   })
 
   it('does not throw for a row that is not there', async () => {
@@ -194,7 +210,7 @@ describe('recordChatMessageDelivery', () => {
       }),
     ]
 
-    await recordChatMessageDelivery(99, 'delivered')
+    await recordChatMessageDelivery(99, 'delivered', null)
 
     expect(logger.warn).toHaveBeenCalledWith(
       'chat message delivery not recorded: id=99 state=delivered (DB_NOT_FOUND in chat_messages where: id = 99)',
@@ -205,7 +221,7 @@ describe('recordChatMessageDelivery', () => {
     const lost = Object.assign(new Error('Connection lost'), { code: 'PROTOCOL_CONNECTION_LOST' })
     spies = [spyOn(database, 'dbUpdateChatMessageDelivery').mockRejectedValue(lost)]
 
-    await recordChatMessageDelivery(99, 'delivered')
+    await recordChatMessageDelivery(99, 'delivered', null)
 
     expect(logger.error).toHaveBeenCalledWith(
       'chat message delivery not recorded: id=99 state=delivered (PROTOCOL_CONNECTION_LOST)',
@@ -220,7 +236,7 @@ describe('recordChatMessageDelivery, what it hands back', () => {
     })
     spies = [update]
 
-    const recorded = await recordChatMessageDelivery(99, 'delivered')
+    const recorded = await recordChatMessageDelivery(99, 'delivered', 'mailed')
 
     expect(recorded).toBeInstanceOf(Date)
     expect(recorded).toBe(update.mock.calls[0][2])
@@ -232,10 +248,42 @@ describe('recordChatMessageDelivery, what it hands back', () => {
       error: new database.DBNotFoundError('chat_messages', 'id = 99'),
     })
     spies = [update]
-    expect(await recordChatMessageDelivery(99, 'failed')).toBeNull()
+    expect(await recordChatMessageDelivery(99, 'failed', null)).toBeNull()
 
     update.mockRejectedValue(Object.assign(new Error('lost'), { code: 'PROTOCOL_CONNECTION_LOST' }))
-    expect(await recordChatMessageDelivery(99, 'failed')).toBeNull()
+    expect(await recordChatMessageDelivery(99, 'failed', null)).toBeNull()
+  })
+})
+
+// E-034: what became of the mail about a message within the community, on its one row.
+describe('recordChatMessageMailState', () => {
+  it('records it, and says so', async () => {
+    const update = spyOn(database, 'dbUpdateChatMessageMailState').mockResolvedValue({
+      success: true,
+    })
+    spies = [update]
+
+    expect(await recordChatMessageMailState(99, 'mailed')).toBe(true)
+
+    expect(update.mock.calls).toEqual([[99, 'mailed']])
+  })
+
+  it('does not throw for a row that is not there, nor when the database does', async () => {
+    const update = spyOn(database, 'dbUpdateChatMessageMailState').mockResolvedValue({
+      success: false,
+      error: new database.DBNotFoundError('chat_messages', 'id = 99'),
+    })
+    spies = [update]
+    expect(await recordChatMessageMailState(99, 'muted')).toBe(false)
+    expect(logger.warn).toHaveBeenCalledWith(
+      'chat mail state not recorded: id=99 state=muted (DB_NOT_FOUND in chat_messages where: id = 99)',
+    )
+
+    update.mockRejectedValue(Object.assign(new Error('lost'), { code: 'PROTOCOL_CONNECTION_LOST' }))
+    expect(await recordChatMessageMailState(99, 'muted')).toBe(false)
+    expect(logger.error).toHaveBeenCalledWith(
+      'chat mail state not recorded: id=99 state=muted (PROTOCOL_CONNECTION_LOST)',
+    )
   })
 })
 
@@ -299,21 +347,42 @@ describe('chatMessageNotify', () => {
   })
 })
 
-// E-024: mute beats the tick.
-describe('chatMailWanted', () => {
+// E-024: mute beats the tick -- for chat messages. E-034: a letter from the form is mailed, and
+// the sender learns which it was. MAILED is the one answer that sends a mail.
+describe('chatMessageMailState', () => {
   const at = new Date('2026-09-24T12:00:00.000Z')
 
   it('mails what the sender asked to be mailed, to a recipient who has not muted', () => {
-    expect(chatMailWanted('email', null)).toBe(true)
+    expect(chatMessageMailState('email', null, false)).toBe('mailed')
   })
 
-  it('mails nothing to a muted recipient, whatever the sender asked for', () => {
-    expect(chatMailWanted('email', at)).toBe(false)
-    expect(chatMailWanted('none', at)).toBe(false)
+  it('mails no chat message to a muted recipient, and says the quiet held it back', () => {
+    expect(chatMessageMailState('email', at, false)).toBe('muted')
   })
 
-  it('mails nothing the sender did not ask for', () => {
-    expect(chatMailWanted('none', null)).toBe(false)
+  it('has nothing to say where the sender asked for no mail, muted or not', () => {
+    expect(chatMessageMailState('none', null, false)).toBeNull()
+    expect(chatMessageMailState('none', at, false)).toBeNull()
+  })
+
+  it('mails a letter, to a muted recipient as to anybody else', () => {
+    expect(chatMessageMailState('email', at, true)).toBe('mailed')
+    expect(chatMessageMailState('email', null, true)).toBe('mailed')
+  })
+})
+
+// E-034: MAILED only for a mail that went out -- what the mail functions answer decides.
+describe('chatMailWentOut', () => {
+  it('takes the transport report as a mail that went out', () => {
+    expect(chatMailWentOut({ accepted: ['ben@example.org'], response: '250 Ok' })).toBe(true)
+    expect(chatMailWentOut(true)).toBe(true)
+  })
+
+  // null: mail switched off on this server · undefined: the transport failed (logged there).
+  it('takes nothing, null, false and an Error as no mail', () => {
+    for (const result of [undefined, null, false, new Error('Connection timeout')]) {
+      expect(chatMailWentOut(result)).toBe(false)
+    }
   })
 })
 
@@ -322,6 +391,11 @@ describe('parseChatMessageNotify', () => {
   it("takes 'none' as none, and 'email' as a mail", () => {
     expect(parseChatMessageNotify('none')).toBe('none')
     expect(parseChatMessageNotify('email')).toBe('email')
+  })
+
+  // A letter wishes a mail: it is filed as 'email', the column holds nothing else.
+  it('reads a letter as a mail', () => {
+    expect(parseChatMessageNotify(CHAT_MESSAGE_NOTIFY_LETTER)).toBe('email')
   })
 
   it('reads a missing wish -- a server from before the chat -- as a mail', () => {

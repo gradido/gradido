@@ -21,8 +21,9 @@ export class ChatMessagePage {
   hasMore: boolean
 
   /**
-   * Whether the READER muted the conversation (E-024): their own mark, and only theirs. Nothing
-   * on the page says whether the other member muted it -- that quiet is theirs alone.
+   * Whether the READER muted the conversation (E-024): their own mark, and only theirs. Whether
+   * the other member muted it shows only where that held back a mail the reader asked for: that
+   * message of the reader's says MUTED (ChatMessage.mailState, E-034).
    */
   @Field(() => Boolean)
   mutedByMe: boolean

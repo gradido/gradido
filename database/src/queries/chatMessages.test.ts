@@ -16,6 +16,7 @@ import {
   dbSelectChatMessagesPage,
   dbSelectChatMessagesSince,
   dbUpdateChatMessageDelivery,
+  dbUpdateChatMessageMailState,
 } from './chatMessages'
 
 const appDB = AppDatabase.getInstance()
@@ -142,7 +143,7 @@ describe('chatMessages query test', () => {
     ).toEqual([THIRD])
   })
 
-  it('moves a message from pending to delivered and stamps the attempt', async () => {
+  it('moves a message from pending to delivered, stamps the attempt and notes the mail', async () => {
     const pending = await dbInsertChatMessage(
       message('20000000-0000-4000-8000-000000000001', { deliveryState: 'pending' }),
     )
@@ -150,22 +151,25 @@ describe('chatMessages query test', () => {
       throw new Error('fixture: the pending message was not filed')
     }
     expect(pending.value.deliveryState).toBe('pending')
+    // E-034: nothing is known of a mail until the other server has answered.
+    expect(pending.value.mailState).toBeNull()
 
     const attempt = new Date('2026-09-23T12:00:00.000Z')
-    expect(await dbUpdateChatMessageDelivery(pending.value.id, 'delivered', attempt)).toEqual({
-      success: true,
-    })
+    expect(
+      await dbUpdateChatMessageDelivery(pending.value.id, 'delivered', attempt, 'mailed'),
+    ).toEqual({ success: true })
     const [row] = (await dbSelectChatMessagesByConversationId(CONVERSATION)).filter(
       (m) => m.id === pending.value.id,
     )
     expect(row.deliveryState).toBe('delivered')
     expect(row.lastAttemptAt?.getTime()).toBe(attempt.getTime())
+    expect(row.mailState).toBe('mailed')
 
     // The same state once more is still a success (FOUND_ROWS), and moves the stamp.
     const later = new Date('2026-09-23T12:05:00.000Z')
-    expect(await dbUpdateChatMessageDelivery(pending.value.id, 'delivered', later)).toEqual({
-      success: true,
-    })
+    expect(
+      await dbUpdateChatMessageDelivery(pending.value.id, 'delivered', later, 'mailed'),
+    ).toEqual({ success: true })
     const [again] = (await dbSelectChatMessagesByConversationId(CONVERSATION)).filter(
       (m) => m.id === pending.value.id,
     )
@@ -180,17 +184,42 @@ describe('chatMessages query test', () => {
       throw new Error('fixture: the pending message was not filed')
     }
 
-    await dbUpdateChatMessageDelivery(pending.value.id, 'failed', new Date())
+    await dbUpdateChatMessageDelivery(pending.value.id, 'failed', new Date(), null)
 
     const [row] = (await dbSelectChatMessagesByConversationId(CONVERSATION)).filter(
       (m) => m.id === pending.value.id,
     )
     expect(row.deliveryState).toBe('failed')
     expect(row.lastAttemptAt).toBeInstanceOf(Date)
+    expect(row.mailState).toBeNull()
   })
 
   it('reports an id without a row as not found', async () => {
-    const result = await dbUpdateChatMessageDelivery(999999999, 'delivered', new Date())
+    const result = await dbUpdateChatMessageDelivery(999999999, 'delivered', new Date(), null)
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.name).toBe('DBNotFoundError')
+    }
+  })
+
+  // E-034: a message within the community has no delivery; only what became of its mail.
+  it('notes what became of the mail of a local message, and changes nothing else', async () => {
+    const local = await dbInsertChatMessage(message('20000000-0000-4000-8000-000000000003'))
+    if (!local.success) {
+      throw new Error('fixture: the local message was not filed')
+    }
+
+    expect(await dbUpdateChatMessageMailState(local.value.id, 'muted')).toEqual({ success: true })
+    expect(await dbUpdateChatMessageMailState(local.value.id, 'muted')).toEqual({ success: true })
+
+    const [row] = (await dbSelectChatMessagesByConversationId(CONVERSATION)).filter(
+      (m) => m.id === local.value.id,
+    )
+    expect(row).toEqual({ ...local.value, mailState: 'muted' })
+  })
+
+  it('reports a mail state for an id without a row as not found', async () => {
+    const result = await dbUpdateChatMessageMailState(999999999, 'mailed')
     expect(result.success).toBe(false)
     if (!result.success) {
       expect(result.error.name).toBe('DBNotFoundError')

@@ -16,11 +16,19 @@ const annasMessage: ChatMessageSelect = {
   subject: null,
   body: 'Shall we meet at **ten**?',
   notify: 'email',
+  mailState: null,
   deliveryState: 'failed',
   lastAttemptAt: new Date('2026-09-23T12:00:05.000Z'),
   delaySeconds: null,
   createdAt: new Date('2026-09-23T12:00:00.000Z'),
   deletedAt: null,
+}
+
+/** The same message delivered, its mail held back: Ben has muted the conversation (E-034). */
+const annasMutedMessage: ChatMessageSelect = {
+  ...annasMessage,
+  deliveryState: 'delivered',
+  mailState: 'muted',
 }
 
 describe('ChatMessage', () => {
@@ -29,12 +37,28 @@ describe('ChatMessage', () => {
       mine: true,
       deliveryState: 'failed',
       notify: 'email',
+      mailState: null,
+    })
+  })
+
+  // E-034: whether the mail she asked for went out, and if not, that the quiet held it back.
+  it('tells the writer what became of the mail she asked for', () => {
+    expect(new ChatMessage(annasMutedMessage, ANNA)).toMatchObject({
+      mine: true,
+      notify: 'email',
+      mailState: 'muted',
     })
   })
 
   // ⛔ E-019, E-024: whether Anna's message reached a server and whether she wanted a mail is
   // hers to know. Ben reads the message, not what she decided about it.
-  it('tells the other side neither', () => {
+  it('tells the other side none of it', () => {
+    expect(new ChatMessage(annasMutedMessage, BEN)).toMatchObject({
+      mine: false,
+      deliveryState: null,
+      notify: null,
+      mailState: null,
+    })
     const message = new ChatMessage(annasMessage, BEN)
     expect(message).toMatchObject({ mine: false, deliveryState: null, notify: null })
     expect(message.sender).toEqual({ communityUuid: HOME, gradidoID: ANNA.gradidoId })

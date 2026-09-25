@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { ChatMessageDeliveryState } from '@enum/ChatMessageDeliveryState'
+import { ChatMessageMailState } from '@enum/ChatMessageMailState'
 import { ChatMessageNotify } from '@enum/ChatMessageNotify'
 import { ChatMemberRef, ChatMessageSelect } from 'database'
 import { Field, Int, ObjectType } from 'type-graphql'
@@ -10,11 +11,11 @@ import { MemberRef } from './MemberRef'
  * One message of a conversation, as the member reading it may see it.
  *
  * ⛔ What the sender knows about their own message, and nobody else: whether it reached the
- * other server and whether they asked for a mail. The constructor takes the reader for that
- * and fills both only where the reader wrote the message (`mine`); on the other side's
- * messages they are null (E-019, E-024). Nothing here says whether or when the other side
- * read anything, or whether a mail went out over there: there is no read receipt (E-008,
- * invariant 2).
+ * other server, whether they asked for a mail, and what became of that mail -- sent, or held back
+ * because the recipient muted the conversation (E-034). The constructor takes the reader for that
+ * and fills all three only where the reader wrote the message (`mine`); on the other side's
+ * messages they are null (E-019, E-024). Nothing here says whether or when the other side read
+ * anything: there is no read receipt (E-008, invariant 2).
  */
 @ObjectType()
 export class ChatMessage {
@@ -30,6 +31,7 @@ export class ChatMessage {
     this.createdAt = row.createdAt
     this.deliveryState = this.mine ? row.deliveryState : null
     this.notify = this.mine ? row.notify : null
+    this.mailState = this.mine ? (row.mailState ?? null) : null
   }
 
   /**
@@ -73,4 +75,13 @@ export class ChatMessage {
   /** Whether the reader asked for their own message to be mailed; null on everybody else's. */
   @Field(() => ChatMessageNotify, { nullable: true })
   notify: ChatMessageNotify | null
+
+  /**
+   * What became of the mail about the reader's own message (E-034): MAILED, or MUTED where they
+   * asked for one and the recipient has muted the conversation. Null where no mail was asked for,
+   * where the delivery failed, where it is not known (a message from before this field, an
+   * answer from a server from before it) -- and on everybody else's messages.
+   */
+  @Field(() => ChatMessageMailState, { nullable: true })
+  mailState: ChatMessageMailState | null
 }

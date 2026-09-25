@@ -749,11 +749,11 @@ export type FirstCreationInsert = typeof firstCreationsTable.$inferInsert
 // no users row here. The states are plain varchar columns; the unions are what the code
 // may write into them.
 //
-// The two states a sender reads about their own message are an object AND a union of the
+// The three states a sender reads about their own message are an object AND a union of the
 // same name. The object is the one list of values: the columns below are typed by it, and
-// the backend registers that very object as a GraphQL enum (graphql/enum/ChatMessageNotify.ts
-// and ChatMessageDeliveryState.ts), so the schema offers the values the code may write, and
-// a value added here reaches both. The union is what the writers need: they write plain
+// the backend registers that very object as a GraphQL enum (graphql/enum/ChatMessageNotify.ts,
+// ChatMessageDeliveryState.ts and ChatMessageMailState.ts), so the schema offers the values the
+// code may write, and a value added here reaches both. The union is what the writers need: they write plain
 // strings (`'delivered'`, in core and in sendEmail), which a TypeScript enum would refuse.
 export type ChatConversationKind = 'direct' | 'group'
 export type ChatConversationMemberRole = 'owner' | 'moderator' | 'member'
@@ -768,6 +768,13 @@ export const ChatMessageDeliveryState = {
 } as const
 export type ChatMessageDeliveryState =
   (typeof ChatMessageDeliveryState)[keyof typeof ChatMessageDeliveryState]
+/**
+ * What became of the mail about a message (E-034, migration 0144): mailed, or asked for and
+ * muted by the recipient. The column is NULL where no mail was asked for, or where it is not
+ * known (a row from before 0144, an answer from a server from before it).
+ */
+export const ChatMessageMailState = { MAILED: 'mailed', MUTED: 'muted' } as const
+export type ChatMessageMailState = (typeof ChatMessageMailState)[keyof typeof ChatMessageMailState]
 
 export const chatConversationsTable = mysqlTable(
   'chat_conversations',
@@ -831,6 +838,9 @@ export const chatMessagesTable = mysqlTable(
     subject: text().default(sql`NULL`),
     body: text().notNull(),
     notify: varchar({ length: 8 }).$type<ChatMessageNotify>().notNull(),
+    mailState: varchar('mail_state', { length: 8 })
+      .$type<ChatMessageMailState>()
+      .default(sql`NULL`),
     deliveryState: varchar('delivery_state', { length: 16 })
       .$type<ChatMessageDeliveryState>()
       .notNull(),

@@ -53,14 +53,15 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 
 jest.mock('@/password/EncryptorUtils')
-// The mail stays the real function -- with mail switched off it sends nothing -- and is
-// watched, to see whether a message goes out as one.
+// The mail is watched, to see whether a message goes out as one, and answers as a mail that
+// went out: the chat notes MAILED only for such a mail (E-034), and with mail switched off here
+// the real function would answer null. Nothing is sent either way.
 jest.mock('core', () => {
   const originalModule = jest.requireActual('core')
   return {
     __esModule: true,
     ...originalModule,
-    sendCustomEmail: jest.fn(originalModule.sendCustomEmail),
+    sendCustomEmail: jest.fn(async () => ({ accepted: ['watched'] })),
   }
 })
 
@@ -1099,9 +1100,9 @@ describe('sendEmail', () => {
       expect(await messages()).toEqual(before)
     })
 
-    // E-024: mute beats the tick -- for the form as well, as it does across the border, where
-    // the receiving server decides. The one change to sendEmail, and the sender is not told.
-    it('files the message but mails nothing to a recipient who muted the conversation, and answers as ever', async () => {
+    // E-034, A3: the form writes letters, and a letter is mailed whatever the quiet -- mute
+    // beats the tick of a chat message only (E-024). This test held the opposite until P3c.
+    it('files the message and mails it to a recipient who muted the conversation as well', async () => {
       const mailed = sendCustomEmail as jest.Mock
       const writeToPeter = (memo: string) =>
         mutate({
@@ -1139,8 +1140,10 @@ describe('sendEmail', () => {
         data: { sendEmail: true },
         errors: undefined,
       })
-      expect(mailed).not.toHaveBeenCalled()
-      expect((await messages()).map((m) => m.body)).toContain('During the quiet.')
+      expect(mailed.mock.calls.map(([mail]) => mail.email)).toEqual(['peter@lustig.de'])
+      // E-034, A2: and the row says it went out.
+      const [letter] = (await messages()).filter((m) => m.body === 'During the quiet.')
+      expect(letter.mailState).toBe('mailed')
     })
   })
 
@@ -1163,7 +1166,7 @@ describe('sendEmail', () => {
     let inFlight: (string | undefined)[] = []
 
     /** The other community: opens each command with its key and answers as it is told. */
-    const peerAnswers = (answer: { success: boolean; error?: string }) => {
+    const peerAnswers = (answer: { success: boolean; data?: string | null; error?: string }) => {
       rawRequest = jest
         .spyOn(GraphQLClient.prototype, 'rawRequest')
         // CommandClient.sendCommand calls rawRequest(document, variables) -- two arguments,
@@ -1247,7 +1250,7 @@ describe('sendEmail', () => {
     })
 
     it('files its own copy under the uuid the command carries, and marks it delivered', async () => {
-      peerAnswers({ success: true })
+      peerAnswers({ success: true, data: 'mailed' })
 
       await expect(sendToPeer(peerMember, 'Across the border')).resolves.toMatchObject({
         data: { sendEmail: true },
@@ -1264,6 +1267,10 @@ describe('sendEmail', () => {
           subject: SUBJECT,
           memo: 'Across the border',
           messageUuid: expect.any(String),
+          // E-034: what the other server files bob with, if it does not know him yet.
+          senderAlias: bobMember.alias,
+          // E-034, A3: the form writes a letter, which the other server mails whatever the quiet.
+          notify: 'letter',
         },
       ])
       const [ownCopy, ...more] = await filedWithBody('Across the border')
@@ -1275,6 +1282,8 @@ describe('sendEmail', () => {
         subject: SUBJECT,
         notify: 'email',
         deliveryState: 'delivered',
+        // E-034, A2: what the other server answered became of the letter.
+        mailState: 'mailed',
       })
       expect(ownCopy.lastAttemptAt).toBeInstanceOf(Date)
       // The own copy comes first, as not yet delivered, and only the answer delivers it.
