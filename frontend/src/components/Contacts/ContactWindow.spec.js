@@ -1166,6 +1166,32 @@ describe('ContactWindow', () => {
       expect(dialog().exists()).toBe(false)
     })
 
+    // Let go on the way and asked again: the new question does not wait for the old call, and
+    // the old call's late answer changes nothing.
+    it('can be started anew after the question was let go on the way', async () => {
+      browserOpens()
+      const first = held()
+      serverRooms.mockReturnValueOnce(first.promise)
+      serverRooms.mockResolvedValueOnce({ data: { chatVideoRoom: ROOM } })
+      threadDelivers.mockResolvedValue(true)
+      await asked()
+      await inDialog('start').trigger('click')
+      await inDialog('cancel').trigger('click')
+
+      await camera().trigger('click')
+      expect(inDialog('start').attributes('aria-disabled')).toBe('false')
+      await start()
+
+      expect(opens).toHaveBeenCalledTimes(2)
+      expect(threadDelivers).toHaveBeenCalledTimes(1)
+      expect(room.location.href).toBe(ROOM.url)
+
+      first.release({ data: { chatVideoRoom: { ...ROOM, url: 'https://meet.ffmuc.net/late' } } })
+      await flushPromises()
+      expect(threadDelivers).toHaveBeenCalledTimes(1)
+      expect(room.location.href).toBe(ROOM.url)
+    })
+
     // Another person is another conversation: a question about a call with the one before would
     // now read the new one's name.
     it('lets the question go when the window comes to another person', async () => {

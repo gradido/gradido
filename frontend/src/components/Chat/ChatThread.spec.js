@@ -1154,6 +1154,32 @@ describe('ChatThread', () => {
     })
 
     /**
+     * ⛔ The thread's own guard, not only the bar's: the bar asks nothing while a message is on
+     * its way (`canSend`), and that hides this line from every press. Asked twice all the same --
+     * as the bar's event -- the thread sends once.
+     */
+    it('sends one message at a time, however often it is asked', async () => {
+      let letGo
+      serverSends.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            letGo = () => resolve(ownCopy(99, 'Eins'))
+          }),
+      )
+      mountThread()
+      await arrive(page([1, 2]))
+
+      bar().vm.$emit('send', { body: 'Eins', notify: 'NONE' })
+      bar().vm.$emit('send', { body: 'Zwei', notify: 'NONE' })
+      await flushPromises()
+      letGo()
+      await flushPromises()
+
+      expect(serverSends).toHaveBeenCalledTimes(1)
+      expect(serverSends.mock.calls[0][0].body).toBe('Eins')
+    })
+
+    /**
      * "Sent", for the ear: a status that is always in the page, so the word is announced when
      * it is put in. Where the copy came back not delivered it says what the bubble says.
      */
