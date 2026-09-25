@@ -295,4 +295,36 @@ describe('ChatBubble', () => {
     expect(rule[0]).toMatch(/position:\s*relative/)
     expect(code).toMatch(/class="visually-hidden"/)
   })
+
+  /**
+   * E-034: the line where no mail went out is quiet -- the muted tone of the time, in both
+   * modes, by the same rules (each mode needs its own means, see the stylesheet). And it breaks
+   * a name without a space: a Gradido ID stands in for a missing user name, 36 characters, and
+   * would otherwise push past the window. jsdom lays nothing out, so the stylesheet is read,
+   * comments stripped first.
+   */
+  it('keeps the line where no mail went out in the tone of the time, and lets a long name break', () => {
+    const source = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
+      'utf8',
+    )
+    const style = source.slice(source.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
+    const rules = [...style.matchAll(/([^{}]+)\{([^}]*)\}/g)].map(([, selectors, body]) => ({
+      selectors: selectors.split(',').map((selector) => selector.trim()),
+      body,
+    }))
+    const colourOf = (selector) =>
+      rules.filter((rule) => rule.selectors.includes(selector) && /(^|[^-])color:/.test(rule.body))
+
+    for (const mode of ['', '.dark-mode ']) {
+      const time = colourOf(`${mode}.chat-bubble-meta`)
+      expect(time, `${mode}time`).toHaveLength(1)
+      expect(time[0].selectors, `${mode}line`).toContain(`${mode}.chat-bubble-not-mailed`)
+    }
+    const line = rules.find(
+      (rule) =>
+        rule.selectors.includes('.chat-bubble-not-mailed') && /overflow-wrap/.test(rule.body),
+    )
+    expect(line?.body).toMatch(/overflow-wrap:\s*anywhere/)
+  })
 })
