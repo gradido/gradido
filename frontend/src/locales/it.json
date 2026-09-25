@@ -161,6 +161,7 @@
     "remaining": "Resta {n} carattere | Restano {n} caratteri",
     "send": "Invia",
     "sent": "Inviato",
+    "sentWithNote": "Inviato. {note}",
     "unmutedHint": "Conversazione non più silenziata: ricevi di nuovo le e-mail per i messaggi di {name}.",
     "unreadBadge": "{n} conversazione con nuovi messaggi | {n} conversazioni con nuovi messaggi",
     "unreadDot": "Nuovi messaggi nella chat",

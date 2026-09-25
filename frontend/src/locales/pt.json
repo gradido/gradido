@@ -161,6 +161,7 @@
     "remaining": "Resta {n} carácter | Restam {n} caracteres",
     "send": "Enviar",
     "sent": "Enviada",
+    "sentWithNote": "Enviada. {note}",
     "unmutedHint": "Conversa já não silenciada: voltas a receber e-mails sobre as mensagens de {name}.",
     "unreadBadge": "{n} conversa com novas mensagens | {n} conversas com novas mensagens",
     "unreadDot": "Novas mensagens no chat",

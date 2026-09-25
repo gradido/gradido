@@ -161,6 +161,7 @@
     "remaining": "{n} karakter kaldı",
     "send": "Gönder",
     "sent": "Gönderildi",
+    "sentWithNote": "Gönderildi. {note}",
     "unmutedHint": "Artık sessizde değil: {name} kişisinin mesajları için yine e-posta alacaksın.",
     "unreadBadge": "{n} sohbette yeni mesaj var",
     "unreadDot": "Sohbette yeni mesajlar var",

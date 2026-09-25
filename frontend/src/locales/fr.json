@@ -161,6 +161,7 @@
     "remaining": "Il reste {n} caractère | Il reste {n} caractères",
     "send": "Envoyer",
     "sent": "Envoyé",
+    "sentWithNote": "Envoyé. {note}",
     "unmutedHint": "Sourdine désactivée : tu reçois de nouveau des e-mails pour les messages de {name}.",
     "unreadBadge": "{n} conversation avec de nouveaux messages | {n} conversations avec de nouveaux messages",
     "unreadDot": "Nouveaux messages dans le chat",

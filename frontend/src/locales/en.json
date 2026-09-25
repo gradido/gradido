@@ -161,6 +161,7 @@
     "remaining": "{n} character left | {n} characters left",
     "send": "Send",
     "sent": "Sent",
+    "sentWithNote": "Sent. {note}",
     "unmutedHint": "No longer muted: you will get e-mails about messages from {name} again.",
     "unreadBadge": "{n} conversation with new messages | {n} conversations with new messages",
     "unreadDot": "New chat messages",

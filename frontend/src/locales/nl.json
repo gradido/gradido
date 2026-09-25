@@ -161,6 +161,7 @@
     "remaining": "Nog {n} teken | Nog {n} tekens",
     "send": "Versturen",
     "sent": "Verstuurd",
+    "sentWithNote": "Verstuurd. {note}",
     "unmutedHint": "Gesprek niet meer gedempt: je krijgt weer e-mails over berichten van {name}.",
     "unreadBadge": "{n} gesprek met nieuwe berichten | {n} gesprekken met nieuwe berichten",
     "unreadDot": "Nieuwe berichten in de chat",

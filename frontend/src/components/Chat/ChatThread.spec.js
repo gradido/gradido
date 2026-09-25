@@ -727,6 +727,23 @@ describe('ChatThread', () => {
     })
 
     /**
+     * One's own message written on another device comes by the beat, and says what became of
+     * its mail as the page does (E-034) -- the beat's document asks for `mailState` too.
+     */
+    it("shows what became of the mail on one's own copy that arrives", async () => {
+      mountThread()
+      await arrive(page([1, 3]))
+
+      await beatBrings({ ...message(4, { mine: true }), notify: 'EMAIL', mailState: 'MUTED' })
+
+      const last = wrapper.findAll('[data-test="chat-bubble"]').at(-1)
+      expect(last.find('[data-test="chat-bubble-not-mailed"]').text()).toBe(
+        'chatThread.notMailedMuted {"name":"Lena"}',
+      )
+      expect(last.find('[data-test="chat-bubble-mailed"]').exists()).toBe(false)
+    })
+
+    /**
      * ⛔ The status line, not a live log: whoever cannot see the bubble hears "new message from
      * Lena", once, and a press on "load older" still reads nothing aloud (LOG-031).
      */
@@ -1154,6 +1171,52 @@ describe('ChatThread', () => {
 
       await write('Zwei')
       expect(status.text()).toBe('chatThread.failed')
+    })
+
+    /**
+     * E-034: where a mail was asked for and the recipient's mute held it back, "sent" and then
+     * the line the bubble shows, with the name. A mail that went out is just "sent" -- the
+     * envelope says the rest.
+     */
+    it('says "sent" and why no mail went out, where the recipient muted the conversation', async () => {
+      serverSends.mockResolvedValueOnce(
+        ownCopy(99, 'Eins', { notify: 'EMAIL', mailState: 'MUTED' }),
+      )
+      serverSends.mockResolvedValueOnce(
+        ownCopy(100, 'Zwei', { notify: 'EMAIL', mailState: 'MAILED' }),
+      )
+      mountThread()
+      await arrive(page([1, 2]))
+      const status = wrapper.find('[data-test="chat-thread-sent"]')
+
+      await write('Eins', { tick: true })
+      expect(status.text()).toBe(
+        `chatThread.sentWithNote ${JSON.stringify({ note: 'chatThread.notMailedMuted {"name":"Lena"}' })}`,
+      )
+
+      await write('Zwei', { tick: true })
+      expect(status.text()).toBe('chatThread.sent')
+    })
+
+    // The copy the answer brings is drawn as it came: its bubble says what became of the mail.
+    it('shows on the own copy what became of its mail, as the server said it', async () => {
+      serverSends.mockResolvedValueOnce(
+        ownCopy(99, 'Eins', { notify: 'EMAIL', mailState: 'MUTED' }),
+      )
+      serverSends.mockResolvedValueOnce(
+        ownCopy(100, 'Zwei', { notify: 'EMAIL', mailState: 'MAILED' }),
+      )
+      mountThread()
+      await arrive(page([1, 2]))
+      const bubble = (n) => wrapper.findAll('[data-test="chat-bubble"]').at(n)
+
+      await write('Eins', { tick: true })
+      expect(bubble(-1).find('[data-test="chat-bubble-not-mailed"]').exists()).toBe(true)
+      expect(bubble(-1).find('[data-test="chat-bubble-mailed"]').exists()).toBe(false)
+
+      await write('Zwei', { tick: true })
+      expect(bubble(-1).find('[data-test="chat-bubble-mailed"]').exists()).toBe(true)
+      expect(bubble(-1).find('[data-test="chat-bubble-not-mailed"]').exists()).toBe(false)
     })
 
     // ⛔ One's own messages never count as unread: sending moves no pointer -- not from an

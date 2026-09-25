@@ -3,8 +3,10 @@
   <div class="chat-thread" data-test="chat-thread">
     <!-- The conversation with one person, in the contact window where the placeholder stood
          (E-023), and the line to write to them under it (P3). Nothing here says anything
-         about the other side -- no "read", no "online", no "the mail arrived" -- because the
-         server says nothing, and the wallet adds nothing to it. -->
+         about the other side -- no "read", no "online", no "the mail arrived" -- beyond what
+         the server says about one's own message: whether it arrived there, and whether a mail
+         about it went out or the recipient's mute held it back (E-019, E-034). The wallet adds
+         nothing to it. -->
     <p
       v-if="state === 'error'"
       class="chat-thread-box chat-thread-quiet"
@@ -568,11 +570,18 @@ const announce = async (text) => {
 /**
  * "Sent" -- or the same word the bubble shows where the copy came back not delivered (E-019):
  * whoever cannot see the bubble would otherwise hear "sent" over a message that did not arrive.
- * The enum NAMES, as ChatBubble compares them.
+ * Where a mail was asked for and the recipient's mute held it back, "sent" and then the line the
+ * bubble shows (E-034): the thread is no live region, so the status is the only place a screen
+ * reader hears it at the moment it happens. The enum NAMES, as ChatBubble compares them.
  */
 const noticeFor = (own) => {
   if (own?.deliveryState === 'FAILED') return t('chatThread.failed')
   if (own?.deliveryState === 'PENDING') return t('chatThread.pending')
+  if (own?.mailState === 'MUTED') {
+    return t('chatThread.sentWithNote', {
+      note: t('chatThread.notMailedMuted', { name: props.alias }),
+    })
+  }
   return t('chatThread.sent')
 }
 
