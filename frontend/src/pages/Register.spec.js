@@ -142,6 +142,31 @@ describe('Register', () => {
       expect(wrapper.find('#registerCheckbox').exists()).toBe(true)
     })
 
+    // TISCH-05 point 2: a newcomer who opens the form has done nothing wrong yet. No frame is
+    // red before its field has been left once; one left empty turns red.
+    it('shows the name and address fields neutral until they are left, and red when left empty', async () => {
+      await flushPromises()
+      const fields = ['#registerFirstname', '#registerLastname', '#email-input-field']
+
+      for (const field of fields) {
+        expect(wrapper.find(field).classes()).not.toContain('is-invalid')
+        expect(wrapper.find(field).classes()).not.toContain('is-valid')
+      }
+
+      for (const field of fields) {
+        await wrapper.find(field).trigger('blur')
+      }
+      await flushPromises()
+
+      for (const field of fields) {
+        expect(wrapper.find(field).classes()).toContain('is-invalid')
+      }
+      // Left empty, each one says why: leaving a field checks it.
+      expect(wrapper.find('#registerFirstnameLiveFeedback').text()).not.toBe('')
+      expect(wrapper.find('#registerLastnameLiveFeedback').text()).not.toBe('')
+      expect(wrapper.find('#email-feedback').text()).not.toBe('')
+    })
+
     it('displays a message that firstname is required', async () => {
       // First set some value to make the field dirty
       await wrapper.find('#registerFirstname').setValue('test')
