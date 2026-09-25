@@ -3,9 +3,9 @@ import { Field, ObjectType } from 'type-graphql'
 
 /**
  * A fresh video room for a call the caller is about to start (V1): on a Jitsi server that passed
- * the check within the last ten minutes, under a name nobody else has. The wallet sends `url` as
- * an ordinary chat message and names who runs the server -- a suggestion, not a service of
- * Gradido's (V2).
+ * its last check (every ten minutes; how old one may be: CHAT_VIDEO_CHECK_MAX_AGE_MS), under a
+ * name nobody else has. The wallet sends `url` as an ordinary chat message and names who runs
+ * the server -- a suggestion, not a service of Gradido's (V2).
  *
  * ⚠️ Every call hands out another room. A client must not answer a second call from its cache
  * (Apollo: fetchPolicy 'no-cache'), or two conversations would share one room.

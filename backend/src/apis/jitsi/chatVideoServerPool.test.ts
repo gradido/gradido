@@ -2,7 +2,12 @@
 import { getLogger } from 'config-schema/test/testSetup'
 import { Result } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { ChatVideoServer, ChatVideoServerList } from '@/data/ChatVideoServer.logic'
+import {
+  CHAT_VIDEO_CHECK_INTERVAL_MS,
+  CHAT_VIDEO_CHECK_MAX_AGE_MS,
+  ChatVideoServer,
+  ChatVideoServerList,
+} from '@/data/ChatVideoServer.logic'
 import { ChatVideoServerPool } from './chatVideoServerPool'
 import { JitsiProbeAnswer } from './jitsiProbe'
 import { JitsiProbeError, JitsiProbeFailure } from './jitsiProbe.logic'
@@ -211,6 +216,25 @@ describe('ChatVideoServerPool', () => {
       expect(pool.pick()).toBeNull()
       await pool.refresh()
       expect(pool.pick()?.server).toEqual(A)
+    })
+
+    // Not the interval itself: during the seconds every regular check takes, the last check is a
+    // little older than that, and no server would be found.
+    it('hands out rooms on a check up to two intervals old, and none on an older one', async () => {
+      const pool = new ChatVideoServerPool(listOf(A), probeAnswering({ 'a.example': passes(30) }))
+      await pool.refresh()
+      const checkedAt = pool.state()[0].checkedAt.getTime()
+      const now = jest.spyOn(Date, 'now')
+      try {
+        now.mockReturnValue(checkedAt + CHAT_VIDEO_CHECK_INTERVAL_MS + 10_000)
+        expect(pool.pick()?.server).toEqual(A)
+        now.mockReturnValue(checkedAt + CHAT_VIDEO_CHECK_MAX_AGE_MS)
+        expect(pool.pick()?.server).toEqual(A)
+        now.mockReturnValue(checkedAt + CHAT_VIDEO_CHECK_MAX_AGE_MS + 1)
+        expect(pool.pick()).toBeNull()
+      } finally {
+        now.mockRestore()
+      }
     })
   })
 

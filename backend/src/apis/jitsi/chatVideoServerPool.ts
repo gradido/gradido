@@ -5,6 +5,7 @@ import { Result } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
   CHAT_VIDEO_CHECK_INTERVAL_MS,
+  CHAT_VIDEO_CHECK_MAX_AGE_MS,
   ChatVideoServer,
   ChatVideoServerList,
   chatVideoServers,
@@ -127,10 +128,14 @@ export class ChatVideoServerPool {
 
   /**
    * One of the servers that passed the last check, each of them equally likely, counted in its
-   * picks; null where none did -- before the first check is through as well.
+   * picks; null where none did -- before the first check is through as well, and where the last
+   * check is older than CHAT_VIDEO_CHECK_MAX_AGE_MS because the checks after it failed.
    */
   pick(): ChatVideoServerState | null {
-    const answering = this.states.filter((state) => state.ok)
+    const now = Date.now()
+    const answering = this.states.filter(
+      (state) => state.ok && now - state.checkedAt.getTime() <= CHAT_VIDEO_CHECK_MAX_AGE_MS,
+    )
     if (answering.length === 0) {
       return null
     }

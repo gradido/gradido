@@ -51,10 +51,21 @@ export interface ChatVideoServerList {
 
 /**
  * How often every server of the list is checked: every ten minutes, as the redirector
- * jitsi.random-redirect.de checks its own list (server.py, 600 s). An address handed out
- * points at a server that passed within the last ten minutes. A constant, not a setting (E-020).
+ * jitsi.random-redirect.de checks its own list (server.py, 600 s). A constant, not a setting
+ * (E-020).
  */
 export const CHAT_VIDEO_CHECK_INTERVAL_MS = 600_000
+
+/**
+ * How old a check may be for a room to be handed out on what it found. A check stands until the
+ * next one is through: ten minutes after it, plus the seconds the next one takes. A check that
+ * fails as a whole leaves the last one standing, for one more interval at most; after that no
+ * room is handed out until a check gets through again.
+ *
+ * Not the interval itself, as coderabbit suggested on #3985: during the seconds every regular
+ * check takes, the last one is a little older than that, and no server would be found.
+ */
+export const CHAT_VIDEO_CHECK_MAX_AGE_MS = 2 * CHAT_VIDEO_CHECK_INTERVAL_MS
 
 /**
  * How many video rooms one HTTP request may ask for, over every alias and every operation it
