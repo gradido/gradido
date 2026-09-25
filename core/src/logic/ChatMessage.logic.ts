@@ -33,7 +33,7 @@ export interface ChatMessageToStore {
  * carries its parameters in the message ("Failed query: ... params: ..."), and the parameters
  * of a chat message are its subject and its text.
  */
-const errorCode = (error: unknown): string => {
+export const databaseErrorCode = (error: unknown): string => {
   const failed = error as { code?: unknown; cause?: { code?: unknown }; name?: unknown } | null
   const code = failed?.cause?.code ?? failed?.code ?? failed?.name
   return typeof code === 'string' ? code : 'unknown'
@@ -82,7 +82,7 @@ export async function storeChatMessage(
     return stored.value
   } catch (error) {
     logger.error(
-      `chat message not stored: message_uuid=${message.messageUuid} branch=${branch} (${errorCode(error)})`,
+      `chat message not stored: message_uuid=${message.messageUuid} branch=${branch} (${databaseErrorCode(error)})`,
     )
     return null
   }
@@ -115,7 +115,7 @@ export async function recordChatMessageDelivery(
     return attemptedAt
   } catch (error) {
     logger.error(
-      `chat message delivery not recorded: id=${messageId} state=${deliveryState} (${errorCode(error)})`,
+      `chat message delivery not recorded: id=${messageId} state=${deliveryState} (${databaseErrorCode(error)})`,
     )
     return null
   }
@@ -139,7 +139,7 @@ export async function readChatMemberMutedAt(
     return row?.mutedAt ?? null
   } catch (error) {
     createLogger().error(
-      `chat mute mark not read: conversation_id=${conversationId} (${errorCode(error)})`,
+      `chat mute mark not read: conversation_id=${conversationId} (${databaseErrorCode(error)})`,
     )
     return null
   }

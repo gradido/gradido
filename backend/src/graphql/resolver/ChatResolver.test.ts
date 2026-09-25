@@ -770,6 +770,8 @@ describe('sendChatMessage to a member of another community', () => {
         subject: '',
         memo: 'Across the border',
         messageUuid: copy.messageUuid,
+        // E-034: what the other server files bob with, if it does not know him yet.
+        senderAlias: bob.alias,
       },
     ])
     // Written first, then delivered (E-019).

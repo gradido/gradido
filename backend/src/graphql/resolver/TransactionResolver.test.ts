@@ -1264,6 +1264,8 @@ describe('sendEmail', () => {
           subject: SUBJECT,
           memo: 'Across the border',
           messageUuid: expect.any(String),
+          // E-034: what the other server files bob with, if it does not know him yet.
+          senderAlias: bobMember.alias,
         },
       ])
       const [ownCopy, ...more] = await filedWithBody('Across the border')

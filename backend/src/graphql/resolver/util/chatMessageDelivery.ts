@@ -164,6 +164,10 @@ export async function deliverChatMessageAcrossBorder({
         subject: subject ?? '',
         memo: body,
         messageUuid,
+        // What the receiving server files a sender it does not know yet with (E-034): the alias,
+        // no names -- a transfer files its sender with no more than that (SendEmailCommandParams).
+        // Without an alias, no field.
+        ...(senderUser.alias ? { senderAlias: senderUser.alias } : {}),
         // Only a wish for no mail travels. A command without `notify` is mailed by every server,
         // one from before the chat included (parseChatMessageNotify), so 'email' needs no field
         // -- and the command of the form stays what it was.

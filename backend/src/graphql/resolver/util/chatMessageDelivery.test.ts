@@ -149,9 +149,13 @@ describe('deliverChatMessageAcrossBorder', () => {
     } as unknown as DbCommunity
   })
 
-  const across = (requireStored: boolean, notify: 'email' | 'none' = 'email') =>
+  const across = (
+    requireStored: boolean,
+    notify: 'email' | 'none' = 'email',
+    senderUser: DbUser = anna,
+  ) =>
     deliverChatMessageAcrossBorder({
-      senderUser: anna,
+      senderUser,
       senderCom,
       receiverCom,
       receiverComIdentifier: PEER,
@@ -238,5 +242,30 @@ describe('deliverChatMessageAcrossBorder', () => {
 
     await across(true, 'none')
     expect((await payload()).notify).toBe('none')
+  })
+
+  // E-034: the receiving server files a sender it does not know with the alias -- and with
+  // nothing more, as the receiving side of a transfer does. No first or last name travels.
+  it('carries the sender alias in the command, no field without one, and no names', async () => {
+    store.mockResolvedValue(row('pending'))
+    sendCommand.mockResolvedValue(true)
+    const fields = [
+      'mailType',
+      'memo',
+      'messageUuid',
+      'receiverComUuid',
+      'receiverGradidoId',
+      'senderComUuid',
+      'senderGradidoId',
+      'subject',
+    ]
+
+    await across(true)
+    const withAlias = await payload()
+    expect(withAlias.senderAlias).toBe('anna')
+    expect(Object.keys(withAlias).sort()).toEqual([...fields, 'senderAlias'].sort())
+
+    await across(true, 'email', { ...anna, alias: null } as unknown as DbUser)
+    expect(Object.keys(await payload()).sort()).toEqual(fields)
   })
 })
