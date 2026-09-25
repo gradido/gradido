@@ -297,7 +297,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -331,6 +331,7 @@ import { logout } from '@/graphql/mutations'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import { ensureFavorites } from '@/composables/useFavorites'
 import { refreshContactsPanel } from '@/composables/useContactsPanel'
+import { startChatUpdates, stopChatUpdates } from '@/composables/useChatUpdates'
 import { useRightSidePref } from '@/composables/useRightSidePref'
 import { useViewport } from '@/composables/useViewport'
 import { routeSection } from '@/utils/routeSection'
@@ -556,10 +557,16 @@ onMounted(() => {
   // The member's hearts, once per session -- the rows that carry a heart read them from
   // the composable, so no booking query has to ask for them.
   ensureFavorites(apolloClient)
+  // The chat's one beat (E-017), for as long as this layout -- the signed-in wallet -- stands:
+  // the mark in the menu, and the messages that arrive in an open thread. It stops with the
+  // layout, and the store's logout stops it as well.
+  startChatUpdates(apolloClient)
   setTimeout(() => {
     skeleton.value = false
   }, 1500)
 })
+
+onBeforeUnmount(stopChatUpdates)
 
 const logoutUser = async () => {
   try {

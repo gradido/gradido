@@ -72,7 +72,11 @@ export const releaseContactsPanel = () => {
 const owner = { page: null, matches: null }
 const inFlight = { page: null, matches: null }
 
-const load = (apolloClient, slotName, search) => {
+/**
+ * @param context Apollo's context for this one request -- `{ renewSession: false }` where
+ *   nobody asked for it (see `refreshContactsPanel`); left out otherwise.
+ */
+const load = (apolloClient, slotName, search, context) => {
   const token = {}
   owner[slotName] = token
   const slot = state[slotName]
@@ -92,6 +96,7 @@ const load = (apolloClient, slotName, search) => {
       // distinct search word would leave its own copy in the store until logout. The same
       // distinction is measured and written down in useMemberAvatars.
       fetchPolicy: 'no-cache',
+      ...(context ? { context } : {}),
     })
     .then(({ data }) => {
       if (owner[slotName] !== token) return
@@ -181,8 +186,10 @@ export const searchContactsPanel = (apolloClient, search) => {
 }
 
 /**
- * The contact list may have gained somebody -- called where the layout learns that a
- * transfer went through.
+ * The contact list may have gained somebody, or its order changed -- called where the layout
+ * learns that a transfer went through, and by the chat's beat when messages arrived
+ * (useChatUpdates): the server orders the list by the last exchange and counts what is unread,
+ * so the wallet asks again rather than keeping a book of its own.
  *
  * ⛔ Marks first, fetches second, and the mark is what makes this impossible to lose. With
  * no panel on screen there is nothing to fetch FOR, but the slot is now due, so the next
@@ -209,9 +216,15 @@ export const refreshContactsPanel = (apolloClient) => {
   }
   // ⛔ A fresh request, never the one already on the wire: that one left before the event
   // this refresh is about. The owner token makes the older answer harmless when it lands.
-  const jobs = [load(apolloClient, 'page', '')]
+  //
+  // ⛔ `renewSession: false`: a refresh is never the member's own doing. After a transfer the
+  // transfer itself has already moved the session clock; after a chat message arrived nobody
+  // did anything here, and a list asked again must not keep an unattended wallet signed in
+  // (plugins/apolloProvider.js).
+  const quiet = { renewSession: false }
+  const jobs = [load(apolloClient, 'page', '', quiet)]
   if (state.search !== '') {
-    jobs.push(load(apolloClient, 'matches', state.search))
+    jobs.push(load(apolloClient, 'matches', state.search, quiet))
   }
   return Promise.all(jobs)
 }
