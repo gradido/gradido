@@ -5,7 +5,7 @@
         v-bind="ariaInput"
         :id="labelFor"
         :model-value="value"
-        :state="meta.valid"
+        :state="shownState"
         data-test="input-email"
         :name="name"
         :placeholder="defaultTranslations.placeholder"
@@ -16,6 +16,7 @@
         :disabled="disabled"
         autocomplete="off"
         @update:modelValue="normalizeEmail($event)"
+        @blur="handleBlur($event, true)"
       />
       <BFormInvalidFeedback v-bind="ariaMsg">
         {{ errorMessage }}
@@ -28,6 +29,7 @@
 import { computed, defineProps, defineEmits } from 'vue'
 import { useField } from 'vee-validate'
 import { useI18n } from 'vue-i18n'
+import { shownValidState } from '@/validation-rules'
 
 const props = defineProps({
   name: {
@@ -42,7 +44,13 @@ const props = defineProps({
 
 const emit = defineEmits(['onValidation'])
 
-const { value, errorMessage, validate, meta } = useField(() => props.name, 'required|email')
+const { value, errorMessage, validate, meta, handleBlur } = useField(
+  () => props.name,
+  'required|email',
+)
+
+// Nothing red before the field has been left once (see shownValidState).
+const shownState = computed(() => shownValidState(meta))
 
 const { t } = useI18n()
 
@@ -57,7 +65,7 @@ const normalizeEmail = (emailAddress) => {
 }
 
 const ariaInput = computed(() => ({
-  'aria-invalid': errorMessage ? 'true' : false,
+  'aria-invalid': shownState.value === false ? 'true' : false,
   'aria-describedby': `${props.name}-feedback`,
 }))
 
