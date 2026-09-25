@@ -110,6 +110,13 @@ const federation = {
   ),
 }
 
+const chat = {
+  // The Jitsi servers the chat's video rooms are taken from, "base address|operator|room
+  // prefix" separated by ";". Empty: the checked public servers built into the backend
+  // (data/ChatVideoServers.default.ts). Read entry by entry in chatVideoServers().
+  CHAT_VIDEO_SERVERS: process.env.CHAT_VIDEO_SERVERS ?? '',
+}
+
 const gms = {
   GMS_ACTIVE: process.env.GMS_ACTIVE === 'true' || false,
   GMS_CREATE_USER_THROW_ERRORS: process.env.GMS_CREATE_USER_THROW_ERRORS === 'true' || false,
@@ -157,6 +164,7 @@ export const CONFIG = {
   ...loginServer,
   ...webhook,
   ...federation,
+  ...chat,
   ...gms,
   ...humhub,
   ...anthropic,
