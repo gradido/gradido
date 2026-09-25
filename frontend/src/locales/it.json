@@ -165,6 +165,15 @@
     "unmutedHint": "Conversazione non più silenziata: ricevi di nuovo le e-mail per i messaggi in chat di {name}.",
     "unreadBadge": "{n} conversazione con nuovi messaggi | {n} conversazioni con nuovi messaggi",
     "unreadDot": "Nuovi messaggi nella chat",
+    "videoAskBody": "{name} riceverà il link in un messaggio.",
+    "videoAskFirst": "{name} riceverà il link in un messaggio e via e-mail.",
+    "videoAskTitle": "Avviare una videochiamata con {name}?",
+    "videoCall": "Avvia una videochiamata con {name}",
+    "videoInvite": "📹 Videochiamata. La stanza si trova su un server Jitsi gestito da {operator} — un suggerimento, non un servizio di Gradido: {url}",
+    "videoNoServer": "Al momento nessun server video è raggiungibile. Riprova tra poco.",
+    "videoNotSent": "Non è stato possibile inviare l'invito.",
+    "videoOpen": "Apri la stanza",
+    "videoStart": "Avvia la chiamata",
     "you": "Tu"
   },
   "community": {

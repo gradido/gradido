@@ -90,6 +90,7 @@
 <script setup>
 import { computed, nextTick, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { chatNotifyFor } from '@/utils/chatNotify'
 import { MESSAGE_MAX_CHARS, message as messageSchema } from '@/validationSchemas'
 
 /**
@@ -114,10 +115,6 @@ const props = defineProps({
 const emit = defineEmits(['send'])
 
 const { t } = useI18n()
-
-/** The enum NAMES the server takes for `notify` (ChatMessageNotify). */
-const NOTIFY_EMAIL = 'EMAIL'
-const NOTIFY_NONE = 'NONE'
 
 /**
  * The count of what is left appears only near the end: under every message it would be a
@@ -180,9 +177,9 @@ const submit = () => {
   submitted = { text: text.value, alsoByEmail: alsoByEmail.value }
   emit('send', {
     body: body.value,
-    // The first message mails whatever is asked (the server sets it); asking for it as well
-    // keeps the request honest about what will happen.
-    notify: props.first || alsoByEmail.value ? NOTIFY_EMAIL : NOTIFY_NONE,
+    // The enum NAMES the server takes, by the rule the contact window's video invitation
+    // follows too (utils/chatNotify.js).
+    notify: chatNotifyFor({ first: props.first, alsoByEmail: alsoByEmail.value }),
   })
 }
 

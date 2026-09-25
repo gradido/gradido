@@ -165,6 +165,15 @@
     "unmutedHint": "Gesprek niet meer gedempt: je krijgt weer e-mails over chatberichten van {name}.",
     "unreadBadge": "{n} gesprek met nieuwe berichten | {n} gesprekken met nieuwe berichten",
     "unreadDot": "Nieuwe berichten in de chat",
+    "videoAskBody": "{name} krijgt de link als bericht.",
+    "videoAskFirst": "{name} krijgt de link als bericht en per e-mail.",
+    "videoAskTitle": "Videogesprek met {name} starten?",
+    "videoCall": "Videogesprek met {name} starten",
+    "videoInvite": "📹 Videogesprek. De vergaderruimte staat op een Jitsi-server van {operator} — een suggestie, geen dienst van Gradido: {url}",
+    "videoNoServer": "Er is op dit moment geen videoserver bereikbaar. Probeer het zo nog eens.",
+    "videoNotSent": "De uitnodiging kon niet worden verstuurd.",
+    "videoOpen": "Vergaderruimte openen",
+    "videoStart": "Videogesprek starten",
     "you": "Jij"
   },
   "community": {

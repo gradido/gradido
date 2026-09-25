@@ -165,6 +165,15 @@
     "unmutedHint": "No longer muted: you will get e-mails about chat messages from {name} again.",
     "unreadBadge": "{n} conversation with new messages | {n} conversations with new messages",
     "unreadDot": "New chat messages",
+    "videoAskBody": "{name} will get the link as a message.",
+    "videoAskFirst": "{name} will get the link as a message and by e-mail.",
+    "videoAskTitle": "Start a video call with {name}?",
+    "videoCall": "Start a video call with {name}",
+    "videoInvite": "📹 Video call. The room is on a Jitsi server run by {operator} — a suggestion, not a Gradido service: {url}",
+    "videoNoServer": "No video server can be reached right now. Try again in a moment.",
+    "videoNotSent": "The invitation could not be sent.",
+    "videoOpen": "Open room",
+    "videoStart": "Start call",
     "you": "You"
   },
   "community": {
