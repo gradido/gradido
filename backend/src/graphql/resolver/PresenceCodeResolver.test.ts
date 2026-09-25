@@ -265,13 +265,16 @@ describe('PresenceCodeResolver', () => {
     // caller. The other member needs guests of their own for the test to be able to fail - with
     // an empty fixture on the far side it passes with or without the referrer clause.
     it("never shows a member another member's guests", async () => {
-      await openGuest(9, 'MeisterBob')
+      // Numbered past the limit: the numbers up to it are Bibi's guests, and a name or address
+      // can be given only once.
+      const bobsGuest = PRESENCE_MAX_UNCONFIRMED + 1
+      await openGuest(bobsGuest, 'MeisterBob')
 
       const bobs = await askAs('bob@baumeister.de')
       const bibis = await askAs('bibi@bloxberg.de')
 
-      expect(aliases(bobs)).toEqual(['tischgast9'])
-      expect(aliases(bibis)).not.toContain('tischgast9')
+      expect(aliases(bobs)).toEqual([`tischgast${bobsGuest}`])
+      expect(aliases(bibis)).not.toContain(`tischgast${bobsGuest}`)
       expect(aliases(bibis).length).toBeGreaterThan(0)
     })
 
