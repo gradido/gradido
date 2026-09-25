@@ -1238,6 +1238,193 @@ describe('ChatThread', () => {
     })
   })
 
+  /**
+   * The window's way into the thread (V2): the invitation to a video call goes out as the bar's
+   * messages do -- `deliver`, exposed -- and says whether it reached the person.
+   */
+  describe('a message the window sends (deliver)', () => {
+    const INVITATION = '📹 Videoanruf … https://meet.ffmuc.net/k7m2x9q4t8wz'
+    const deliver = (message = { body: INVITATION, notify: 'NONE' }) => wrapper.vm.deliver(message)
+
+    it('sends by the pair, hangs the copy under the thread, says "sent" -- and answers true', async () => {
+      serverSends.mockResolvedValue(ownCopy(99, INVITATION))
+      mountThread()
+      await arrive(page([1, 2]))
+
+      const reached = await deliver({ body: INVITATION, notify: 'EMAIL' })
+      await flushPromises()
+
+      expect(reached).toBe(true)
+      expect(serverSends).toHaveBeenCalledWith({
+        ref: { gradidoID: 'lena-id', communityUuid: 'home-uuid' },
+        body: INVITATION,
+        notify: 'EMAIL',
+      })
+      expect(bubbleTexts().at(-1)).toBe(INVITATION)
+      expect(wrapper.find('[data-test="chat-thread-sent"]').text()).toBe('chatThread.sent')
+    })
+
+    // The first message makes the conversation, whoever sends it: the window hears of it.
+    it('turns an empty thread into a conversation, as a message of the bar does', async () => {
+      serverSends.mockResolvedValue(ownCopy(99, INVITATION, { notify: 'EMAIL' }))
+      mountThread()
+      await arrive(page([]))
+
+      await deliver({ body: INVITATION, notify: 'EMAIL' })
+      await flushPromises()
+
+      expect(wrapper.emitted('chatConversation').at(-1)).toEqual([
+        { exists: true, mutedByMe: false },
+      ])
+    })
+
+    it('answers false and adds nothing where the server says no', async () => {
+      serverSends.mockRejectedValue(new Error('CHAT_MESSAGE_NOT_SENT: NO_WAY_TO_DELIVER'))
+      mountThread()
+      await arrive(page([1, 2]))
+
+      const reached = await deliver()
+      await flushPromises()
+
+      expect(reached).toBe(false)
+      expect(bubbleTexts()).toEqual(['message 1', 'message 2'])
+      expect(wrapper.find('[data-test="chat-thread-sent"]').text()).toBe('')
+    })
+
+    /**
+     * ⛔ A copy that came back FAILED is stored and shown with its word (E-019) -- but nobody on
+     * the other side has the room, so the window must not open it: false.
+     */
+    it('answers false where the copy came back not delivered, and shows it with its word', async () => {
+      serverSends.mockResolvedValue(ownCopy(99, INVITATION, { deliveryState: 'FAILED' }))
+      mountThread()
+      await arrive(page([1, 2]))
+
+      const reached = await deliver()
+      await flushPromises()
+
+      expect(reached).toBe(false)
+      const last = wrapper.findAll('[data-test="chat-bubble"]').at(-1)
+      expect(last.find('[data-test="chat-bubble-state"]').text()).toBe('chatThread.failed')
+    })
+
+    // PENDING is what a copy says where the answer came back but could not be written down.
+    it('answers true where the copy says it is on its way', async () => {
+      serverSends.mockResolvedValue(ownCopy(99, INVITATION, { deliveryState: 'PENDING' }))
+      mountThread()
+      await arrive(page([1, 2]))
+
+      expect(await deliver()).toBe(true)
+    })
+
+    // The bar's line is about the bar's text: an invitation that did not go out leaves it alone.
+    it('says nothing under the bar where it did not go out', async () => {
+      serverSends.mockRejectedValue(new Error('CHAT_MESSAGE_NOT_SENT: NOT_STORED'))
+      mountThread()
+      await arrive(page([1, 2]))
+      await field().setValue('Mein Entwurf')
+
+      await deliver()
+      await flushPromises()
+
+      expect(wrapper.find('[data-test="chat-compose-failed"]').exists()).toBe(false)
+      expect(field().element.value).toBe('Mein Entwurf')
+    })
+
+    // It goes the bar's way, and the bar waits for it as for its own -- and keeps its own text.
+    it('holds the bar while it is on its way, and leaves the text in it alone', async () => {
+      let letGo
+      serverSends.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            letGo = () => resolve(ownCopy(99, INVITATION))
+          }),
+      )
+      mountThread()
+      await arrive(page([1, 2]))
+      await field().setValue('Mein Entwurf')
+
+      const reached = deliver()
+      await flushPromises()
+      expect(bar().props('sending')).toBe(true)
+
+      letGo()
+      expect(await reached).toBe(true)
+      await flushPromises()
+
+      expect(bar().props('sending')).toBe(false)
+      expect(field().element.value).toBe('Mein Entwurf')
+    })
+
+    /**
+     * ⛔ A message of the bar across the border takes its seconds, and a call may be started
+     * meanwhile: nothing of either is turned away, and the bar waits until both are through.
+     * What happened to its OWN message decides what it does with its text -- not the
+     * invitation's outcome, and not the moment the first of the two came back.
+     */
+    it('lets a message of the bar and an invitation be on their way together', async () => {
+      const answers = []
+      serverSends.mockImplementation(
+        () =>
+          new Promise((resolve, reject) => {
+            answers.push({ resolve, reject })
+          }),
+      )
+      mountThread()
+      await arrive(page([1, 2]))
+
+      await field().setValue('Eins')
+      await wrapper.find('[data-test="chat-compose-send"]').trigger('click')
+      const reached = deliver()
+      await flushPromises()
+      expect(serverSends).toHaveBeenCalledTimes(2)
+
+      // The bar's message fails first; the invitation is still on its way.
+      answers[0].reject(new Error('CHAT_MESSAGE_NOT_SENT: NOT_STORED'))
+      await flushPromises()
+      expect(bar().props('sending')).toBe(true)
+      expect(field().element.value).toBe('Eins')
+
+      answers[1].resolve(ownCopy(99, INVITATION))
+      expect(await reached).toBe(true)
+      await flushPromises()
+
+      expect(bar().props('sending')).toBe(false)
+      expect(field().element.value).toBe('Eins')
+      expect(wrapper.find('[data-test="chat-compose-failed"]').exists()).toBe(true)
+    })
+
+    it("empties the bar once both are through, where the bar's own message went out", async () => {
+      const answers = []
+      serverSends.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            answers.push(resolve)
+          }),
+      )
+      mountThread()
+      await arrive(page([1, 2]))
+
+      await field().setValue('Eins')
+      await wrapper.find('[data-test="chat-compose-send"]').trigger('click')
+      const reached = deliver()
+      await flushPromises()
+
+      answers[0](ownCopy(99, 'Eins'))
+      await flushPromises()
+      // Still waiting for the invitation: the text stays until the bar hears it is through.
+      expect(field().element.value).toBe('Eins')
+
+      answers[1](ownCopy(100, INVITATION))
+      await reached
+      await flushPromises()
+
+      expect(field().element.value).toBe('')
+      expect(wrapper.find('[data-test="chat-compose-failed"]').exists()).toBe(false)
+      expect(bubbleTexts().slice(-2)).toEqual(['Eins', INVITATION])
+    })
+  })
+
   describe('what it tells the window', () => {
     // E-017: one question on opening answers the thread and the bell.
     it('says whether there is a conversation and whether it is muted, once the page is in', async () => {

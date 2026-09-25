@@ -132,3 +132,28 @@ mutation sendChatMessage($ref: MemberAvatarRefInput!, $body: String!, $notify: C
 mutation setChatConversationMuted($ref: MemberAvatarRefInput!, $muted: Boolean!) {
   setChatConversationMuted(ref: $ref, muted: $muted)
 }
+
+# A fresh video room for a call (V2): on one of the Jitsi servers that passed the server's last
+# check, with who runs it -- `operator` as the server's list names them, null where it names
+# nobody, and then `host` is what the invitation names. The contact window sends `url` to the
+# person as an ordinary chat message (sendChatMessage above). The fields are the ones the
+# backend's seed asks for (backend/src/seeds/graphql/queries.ts).
+#
+# ⛔ No variable, and EVERY call hands out another room -- so it is always asked with
+# `fetchPolicy: 'no-cache'`. The cache keys an answer by query and variables; with none, a second
+# call would be answered out of the cache with the first room, and two conversations would share
+# one.
+#
+# ⛔ The address is the call's secret: whoever has it can join. It goes into the message and into
+# the window that opens the room -- into no log and no store (the vuex store is written whole
+# into localStorage).
+#
+# CHAT_VIDEO_NO_SERVER where no server passed the last check, or the first check after the
+# server started is not through yet.
+query chatVideoRoom {
+  chatVideoRoom {
+    url
+    host
+    operator
+  }
+}
