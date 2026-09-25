@@ -165,6 +165,15 @@
     "unmutedHint": "Sourdine désactivée : tu reçois de nouveau des e-mails pour les messages de chat de {name}.",
     "unreadBadge": "{n} conversation avec de nouveaux messages | {n} conversations avec de nouveaux messages",
     "unreadDot": "Nouveaux messages dans le chat",
+    "videoAskBody": "{name} recevra le lien par message.",
+    "videoAskFirst": "{name} recevra le lien par message et par e-mail.",
+    "videoAskTitle": "Lancer un appel vidéo avec {name} ?",
+    "videoCall": "Lancer un appel vidéo avec {name}",
+    "videoInvite": "📹 Appel vidéo. La salle se trouve sur un serveur Jitsi géré par {operator} — une suggestion, pas un service de Gradido : {url}",
+    "videoNoServer": "Aucun serveur vidéo n'est joignable pour le moment. Réessaie dans un instant.",
+    "videoNotSent": "L'invitation n'a pas pu être envoyée.",
+    "videoOpen": "Ouvrir la salle",
+    "videoStart": "Lancer l'appel",
     "you": "Toi"
   },
   "community": {
