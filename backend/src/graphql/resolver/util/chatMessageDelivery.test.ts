@@ -72,10 +72,14 @@ const record = recordChatMessageDelivery as jest.Mock
 const recordMail = recordChatMessageMailState as jest.Mock
 const mail = sendCustomEmail as jest.Mock
 
+/** What the transport reports for a mail that went out -- the mail functions pass it on. */
+const SENT = { accepted: ['ben@example.org'], response: '250 2.0.0 Ok: queued' }
+
 beforeEach(() => {
   jest.clearAllMocks()
   mutedAt.mockResolvedValue(null)
   recordMail.mockResolvedValue(true)
+  mail.mockResolvedValue(SENT)
 })
 
 describe('deliverChatMessageLocally', () => {
@@ -206,6 +210,18 @@ describe('deliverChatMessageLocally, what became of the mail', () => {
 
     expect((await local('email', false, withoutAddress))?.mailState).toBeNull()
     expect(mail).not.toHaveBeenCalled()
+    expect(recordMail).not.toHaveBeenCalled()
+  })
+
+  // coderabbit on #3982: MAILED only for a mail that went out -- mail switched off (null), the
+  // transport failed (nothing, logged there), or an Error.
+  it('nothing where the mail did not go out', async () => {
+    for (const failed of [null, undefined, new Error('Connection timeout')]) {
+      mail.mockResolvedValue(failed)
+
+      expect((await local('email'))?.mailState).toBeNull()
+    }
+    expect(mail).toHaveBeenCalledTimes(3)
     expect(recordMail).not.toHaveBeenCalled()
   })
 

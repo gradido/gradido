@@ -516,6 +516,19 @@ describe('SendEmailCommand, what the sending server is answered', () => {
   const answerTo = (commandParams: object) =>
     new CommandExecutor().executeCommand(new SendEmailCommand([JSON.stringify(commandParams)]))
 
+  // coderabbit on #3982: a mail that did not go out is not answered as one. RECEIVED says
+  // nothing about a mail; the transport's report still stays here.
+  it('answers RECEIVED where the mail did not go out', async () => {
+    for (const failed of [undefined, null, new Error('Connection timeout')]) {
+      customMail.mockImplementation(async () => failed)
+
+      const answer = await answerTo(params({ messageUuid: MESSAGE_UUID }))
+
+      expect(answer).toEqual({ success: true, data: SEND_MAIL_COMMAND_ANSWER.RECEIVED })
+    }
+    expect(customMail).toHaveBeenCalledTimes(3)
+  })
+
   // The mail about received Gradido is no message: it answers RECEIVED, mailed or not.
   it('answers the mail about received Gradido with RECEIVED, not with the report', async () => {
     receivedMail.mockImplementation(async () => reported)

@@ -225,6 +225,15 @@ export const chatMessageMailState = (
 }
 
 /**
+ * Whether a mail went out, read from what the mail functions answer (sendEmailTranslated): the
+ * transport's report where it did -- null where mail is switched off on this server, nothing
+ * where the transport failed (logged there), an Error or false where it did not. A message is
+ * MAILED only when its mail went out (E-034): a mail that failed is no mail to report.
+ */
+export const chatMailWentOut = (result: unknown): boolean =>
+  Boolean(result) && !(result instanceof Error)
+
+/**
  * What a command from the form "send an e-mail" carries as its `notify` (E-034, A3): the
  * message is a letter, mailed whatever the recipient's quiet. Only the command carries it. The
  * message is filed with the wish 'email' -- a letter wishes a mail, and the column holds

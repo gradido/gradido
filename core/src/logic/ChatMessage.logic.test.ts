@@ -7,6 +7,7 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import {
   CHAT_MESSAGE_NOTIFY_LETTER,
   ChatMessageToStore,
+  chatMailWentOut,
   chatMessageMailState,
   chatMessageNotify,
   parseChatMessageNotify,
@@ -367,6 +368,21 @@ describe('chatMessageMailState', () => {
   it('mails a letter, to a muted recipient as to anybody else', () => {
     expect(chatMessageMailState('email', at, true)).toBe('mailed')
     expect(chatMessageMailState('email', null, true)).toBe('mailed')
+  })
+})
+
+// E-034: MAILED only for a mail that went out -- what the mail functions answer decides.
+describe('chatMailWentOut', () => {
+  it('takes the transport report as a mail that went out', () => {
+    expect(chatMailWentOut({ accepted: ['ben@example.org'], response: '250 Ok' })).toBe(true)
+    expect(chatMailWentOut(true)).toBe(true)
+  })
+
+  // null: mail switched off on this server · undefined: the transport failed (logged there).
+  it('takes nothing, null, false and an Error as no mail', () => {
+    for (const result of [undefined, null, false, new Error('Connection timeout')]) {
+      expect(chatMailWentOut(result)).toBe(false)
+    }
   })
 })
 

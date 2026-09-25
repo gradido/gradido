@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import {
   CHAT_MESSAGE_NOTIFY_LETTER,
+  chatMailWentOut,
   chatMessageMailState,
   chatMessageMailStateOfAnswer,
   EncryptedTransferArgs,
@@ -60,14 +61,14 @@ export interface ChatMessageLocalDelivery {
 /**
  * Files a message between two members of this community -- one row, which both of them read --
  * and mails it when that is wanted: a letter always, a chat message when asked for and not
- * muted by the recipient (E-024, E-034). The mail goes out without being waited for, as it
- * always has.
+ * muted by the recipient (E-024, E-034). The mail is waited for, as every other mail of this
+ * server is: what the row says about it has to be what happened.
  *
  * Hands back the row, or null where it could not be filed. The chat's message was not sent then,
  * and nothing is mailed; the form's mail goes out regardless. The row says what became of the
  * mail (E-034, `mail_state`): MAILED where one went out, MUTED where one was asked for and the
- * recipient muted the conversation, nothing where none was asked for -- or where the recipient
- * has no address to mail to.
+ * recipient muted the conversation, nothing where none was asked for -- or where none went out:
+ * the recipient has no address, mail is switched off, or the transport failed.
  */
 export async function deliverChatMessageLocally({
   senderUser,
@@ -101,10 +102,10 @@ export async function deliverChatMessageLocally({
   const mutedAt = stored ? await readChatMemberMutedAt(stored.conversationId, recipient) : null
   const decided = chatMessageMailState(notify, mutedAt, letter)
   // A mail is only MAILED where one goes out: without an address, none does.
-  const mailState =
+  let mailState =
     decided === ChatMessageMailState.MAILED && !recipientUser.emailContact ? null : decided
   if (mailState === ChatMessageMailState.MAILED && recipientUser.emailContact) {
-    sendCustomEmail({
+    const sent = await sendCustomEmail({
       firstName: recipientUser.firstName,
       lastName: recipientUser.lastName,
       email: recipientUser.emailContact.email,
@@ -115,6 +116,10 @@ export async function deliverChatMessageLocally({
       senderUuid: senderUser.gradidoID,
       senderCommunityUuid: senderUser.communityUuid,
     })
+    // Nor where the transport did not take it (coderabbit on #3982).
+    if (!chatMailWentOut(sent)) {
+      mailState = null
+    }
   }
   if (!stored || mailState === null) {
     return stored

@@ -53,14 +53,15 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 
 jest.mock('@/password/EncryptorUtils')
-// The mail stays the real function -- with mail switched off it sends nothing -- and is
-// watched, to see whether a message goes out as one.
+// The mail is watched, to see whether a message goes out as one, and answers as a mail that
+// went out: the chat notes MAILED only for such a mail (E-034), and with mail switched off here
+// the real function would answer null. Nothing is sent either way.
 jest.mock('core', () => {
   const originalModule = jest.requireActual('core')
   return {
     __esModule: true,
     ...originalModule,
-    sendCustomEmail: jest.fn(originalModule.sendCustomEmail),
+    sendCustomEmail: jest.fn(async () => ({ accepted: ['watched'] })),
   }
 })
 

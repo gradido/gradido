@@ -13,6 +13,7 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { sendCustomEmail, sendTransactionReceivedEmail } from '../../emails/sendEmailVariants'
 import {
   CHAT_MESSAGE_NOTIFY_LETTER,
+  chatMailWentOut,
   chatMessageMailState,
   databaseErrorCode,
   parseChatMessageNotify,
@@ -209,12 +210,16 @@ export class SendEmailCommand extends BaseCommand<
         const mutedAt = stored
           ? await readChatMemberMutedAt(stored.conversationId, recipient)
           : null
-        const mailState = stored
+        let mailState = stored
           ? chatMessageMailState(notify, mutedAt, letter)
           : ChatMessageMailState.MAILED
         if (mailState === ChatMessageMailState.MAILED) {
           const emailResult = await sendCustomEmail(emailParams)
           methodLogger.debug(`mailed: ${this.getEmailResult(emailResult)}`)
+          // A mail that did not go out is not answered as one; the transport's report stays here.
+          if (!chatMailWentOut(emailResult)) {
+            mailState = null
+          }
         } else {
           methodLogger.debug(`not mailed: message_uuid=${stored?.messageUuid}`)
         }
