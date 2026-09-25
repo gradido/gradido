@@ -77,11 +77,12 @@
           <div class="contact-window-name-line">
             <div class="contact-window-name" data-test="contact-window-name">{{ alias }}</div>
             <favorite-heart class="contact-window-heart" :member="contact.user" />
-            <!-- The bell: mutes this conversation for oneself -- no mails about their
-                 messages; the thread shows them as before (E-024). Only where there is a
-                 conversation: before the first message there is nothing to mute, and the
-                 thread says when there is one. No question before switching, in either
-                 direction: nothing is lost either way, and it switches back as easily
+            <!-- The bell: mutes this conversation for oneself -- no mails about their chat
+                 messages; the thread shows them as before (E-024). A letter written with the
+                 form "send an e-mail" still comes as a mail, and the hint says so (E-034, A3).
+                 Only where there is a conversation: before the first message there is nothing
+                 to mute, and the thread says when there is one. No question before switching,
+                 in either direction: nothing is lost either way, and it switches back as easily
                  (unlike the heart, KF-003). -->
             <button
               v-if="chatConversation.exists"

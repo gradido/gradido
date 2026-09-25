@@ -20,9 +20,9 @@
       </div>
       <chat-message-text class="chat-bubble-text" :text="message.body" />
       <div class="chat-bubble-meta">
-        <!-- The sender's own choice, shown back to them only: this one was to go out as a
-             mail too (E-019). Whether a mail really went out on the other side is not
-             shown -- the server does not say, and a muted conversation stays unseen. -->
+        <!-- Shown to the sender only, on their own message: a mail about it went out too
+             (E-034). Where it did not because the recipient muted the conversation, the line
+             under the bubble says so instead (`notMailed`). -->
         <span
           v-if="mailed"
           class="chat-bubble-mailed"
@@ -46,6 +46,12 @@
     <div v-if="stateWord" class="chat-bubble-state" data-test="chat-bubble-state">
       {{ stateWord }}
     </div>
+    <!-- No mail, and why (E-034, A2): the sender asked for one and the recipient has muted the
+         conversation. A sentence, not a sign -- in the list item, so a screen reader reads it
+         with the message it belongs to. -->
+    <div v-if="notMailed" class="chat-bubble-not-mailed" data-test="chat-bubble-not-mailed">
+      {{ notMailed }}
+    </div>
   </li>
 </template>
 
@@ -64,6 +70,8 @@ import ChatMessageText from '@/components/Chat/ChatMessageText'
 const NOTIFY_EMAIL = 'EMAIL'
 const STATE_PENDING = 'PENDING'
 const STATE_FAILED = 'FAILED'
+const MAIL_MAILED = 'MAILED'
+const MAIL_MUTED = 'MUTED'
 
 const props = defineProps({
   /** One message of chatMessagesWithMemberQuery. */
@@ -80,13 +88,6 @@ const writer = computed(() => `${props.message.mine ? t('chatThread.you') : prop
 const arrived = computed(() => new Date(props.message.createdAt))
 const arrivedIso = computed(() => arrived.value.toISOString())
 
-/**
- * The envelope. `notify` is filled only on one's own messages -- the server says nothing about
- * the other side's -- so `mine` is asked as well, and a stray value on somebody else's message
- * would still draw nothing.
- */
-const mailed = computed(() => props.message.mine && props.message.notify === NOTIFY_EMAIL)
-
 /** The word under one's own message, where it did not reach the other server (E-019). */
 const stateWord = computed(() => {
   if (!props.message.mine) return ''
@@ -94,6 +95,38 @@ const stateWord = computed(() => {
   if (props.message.deliveryState === STATE_FAILED) return t('chatThread.failed')
   return ''
 })
+
+/**
+ * The envelope: a mail about one's own message went out (E-034). The server fills `mailState`
+ * only on one's own messages, so `mine` is asked as well, and a stray value on somebody else's
+ * message still draws nothing.
+ *
+ * MAILED is the server saying so. MUTED -- or a value this wallet does not know -- draws none.
+ *
+ * ⚠️ Null with the wish EMAIL keeps the envelope it had, the sender's wish (P3b). Null is also
+ * what the server answers where it knows nothing: a message from before `mailState`, a
+ * recipient's server from before it. Dropping the envelope there would take it off the whole
+ * history. The price: a new message whose mail was wanted but did not go out (mail switched
+ * off on the server, the transport failed) also shows it -- null cannot tell those apart.
+ * Not beside a word that says the message has not arrived: a message that did not reach the
+ * other server has not been mailed from there.
+ */
+const mailed = computed(() => {
+  if (!props.message.mine) return false
+  if (props.message.mailState === MAIL_MAILED) return true
+  if (props.message.mailState) return false
+  return props.message.notify === NOTIFY_EMAIL && !stateWord.value
+})
+
+/**
+ * The line where no mail went out because the recipient muted the conversation (E-034). There is
+ * no "notify anyway": the veto stays with the recipient (E-024), and the sender only learns of it.
+ */
+const notMailed = computed(() =>
+  props.message.mine && props.message.mailState === MAIL_MUTED
+    ? t('chatThread.notMailedMuted', { name: props.alias })
+    : '',
+)
 </script>
 
 <style lang="scss" scoped>
@@ -177,6 +210,18 @@ const stateWord = computed(() => {
   font-size: 0.7rem;
 }
 
+/* The line where no mail went out (E-034), in the size of the word above it. A sentence, so it
+   may take two lines: no wider than a bubble may be, flush with the bubble's side, and a name
+   without a space in it -- a Gradido ID stands in for a missing user name -- breaks inside. */
+.chat-bubble-not-mailed {
+  max-width: 80%;
+  margin-top: 0.15rem;
+  font-size: 0.7rem;
+  line-height: 1.35;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
 /* ⚠️ Muted, and in each mode by a different means, because one means does not carry both.
    Small text needs 4.5:1, measured in the probe on every surface these stand on (the two
    bubbles, the window):
@@ -185,12 +230,14 @@ const stateWord = computed(() => {
    - dark: the body colour at 75%, about 6:1. The dark muted grey (`--text-muted`, which is
      what `--bs-secondary-color` is in dark mode) reaches only about 4.2:1 on the bubbles. */
 .chat-bubble-meta,
-.chat-bubble-state {
+.chat-bubble-state,
+.chat-bubble-not-mailed {
   color: var(--bs-secondary-color, #6c757d);
 }
 
 .dark-mode .chat-bubble-meta,
-.dark-mode .chat-bubble-state {
+.dark-mode .chat-bubble-state,
+.dark-mode .chat-bubble-not-mailed {
   color: var(--bs-body-color);
   opacity: 0.75;
 }

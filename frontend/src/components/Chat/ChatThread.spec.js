@@ -9,6 +9,7 @@ import ChatComposeBar from './ChatComposeBar.vue'
 import {
   chatMessagesWithMemberQuery,
   markChatConversationRead,
+  newChatMessagesSince,
   sendChatMessage,
 } from '@/graphql/chat.graphql'
 
@@ -158,6 +159,8 @@ const message = (n, { day = '2026-09-22', mine = n % 2 === 0 } = {}) => ({
   createdAt: `${day}T10:${String(n % 60).padStart(2, '0')}:00.000Z`,
   deliveryState: mine ? 'DELIVERED' : null,
   notify: mine ? 'NONE' : null,
+  // No mail asked for, so nothing became of one (E-034); null on the other side's anyway.
+  mailState: null,
 })
 
 const page = (ids, { hasMore = false, day, mutedByMe = false } = {}) => ({
@@ -166,12 +169,20 @@ const page = (ids, { hasMore = false, day, mutedByMe = false } = {}) => ({
   messages: ids.map((n) => message(n, { day })),
 })
 
-/** One's own copy, as `sendChatMessage` answers: the highest id on this server. */
-const ownCopy = (n, body, { deliveryState = 'DELIVERED', notify = 'NONE' } = {}) => ({
+/**
+ * One's own copy, as `sendChatMessage` answers: the highest id on this server. `mailState` as the
+ * server fills it (E-034): MAILED, MUTED, or null where no mail was asked for.
+ */
+const ownCopy = (
+  n,
+  body,
+  { deliveryState = 'DELIVERED', notify = 'NONE', mailState = null } = {},
+) => ({
   ...message(n, { day: '2026-09-24', mine: true }),
   body,
   deliveryState,
   notify,
+  mailState,
 })
 
 /**
@@ -716,6 +727,23 @@ describe('ChatThread', () => {
     })
 
     /**
+     * One's own message written on another device comes by the beat, and says what became of
+     * its mail as the page does (E-034) -- the beat's document asks for `mailState` too.
+     */
+    it("shows what became of the mail on one's own copy that arrives", async () => {
+      mountThread()
+      await arrive(page([1, 3]))
+
+      await beatBrings({ ...message(4, { mine: true }), notify: 'EMAIL', mailState: 'MUTED' })
+
+      const last = wrapper.findAll('[data-test="chat-bubble"]').at(-1)
+      expect(last.find('[data-test="chat-bubble-not-mailed"]').text()).toBe(
+        'chatThread.notMailedMuted {"name":"Lena"}',
+      )
+      expect(last.find('[data-test="chat-bubble-mailed"]').exists()).toBe(false)
+    })
+
+    /**
      * ⛔ The status line, not a live log: whoever cannot see the bubble hears "new message from
      * Lena", once, and a press on "load older" still reads nothing aloud (LOG-031).
      */
@@ -1145,6 +1173,52 @@ describe('ChatThread', () => {
       expect(status.text()).toBe('chatThread.failed')
     })
 
+    /**
+     * E-034: where a mail was asked for and the recipient's mute held it back, "sent" and then
+     * the line the bubble shows, with the name. A mail that went out is just "sent" -- the
+     * envelope says the rest.
+     */
+    it('says "sent" and why no mail went out, where the recipient muted the conversation', async () => {
+      serverSends.mockResolvedValueOnce(
+        ownCopy(99, 'Eins', { notify: 'EMAIL', mailState: 'MUTED' }),
+      )
+      serverSends.mockResolvedValueOnce(
+        ownCopy(100, 'Zwei', { notify: 'EMAIL', mailState: 'MAILED' }),
+      )
+      mountThread()
+      await arrive(page([1, 2]))
+      const status = wrapper.find('[data-test="chat-thread-sent"]')
+
+      await write('Eins', { tick: true })
+      expect(status.text()).toBe(
+        `chatThread.sentWithNote ${JSON.stringify({ note: 'chatThread.notMailedMuted {"name":"Lena"}' })}`,
+      )
+
+      await write('Zwei', { tick: true })
+      expect(status.text()).toBe('chatThread.sent')
+    })
+
+    // The copy the answer brings is drawn as it came: its bubble says what became of the mail.
+    it('shows on the own copy what became of its mail, as the server said it', async () => {
+      serverSends.mockResolvedValueOnce(
+        ownCopy(99, 'Eins', { notify: 'EMAIL', mailState: 'MUTED' }),
+      )
+      serverSends.mockResolvedValueOnce(
+        ownCopy(100, 'Zwei', { notify: 'EMAIL', mailState: 'MAILED' }),
+      )
+      mountThread()
+      await arrive(page([1, 2]))
+      const bubble = (n) => wrapper.findAll('[data-test="chat-bubble"]').at(n)
+
+      await write('Eins', { tick: true })
+      expect(bubble(-1).find('[data-test="chat-bubble-not-mailed"]').exists()).toBe(true)
+      expect(bubble(-1).find('[data-test="chat-bubble-mailed"]').exists()).toBe(false)
+
+      await write('Zwei', { tick: true })
+      expect(bubble(-1).find('[data-test="chat-bubble-mailed"]').exists()).toBe(true)
+      expect(bubble(-1).find('[data-test="chat-bubble-not-mailed"]').exists()).toBe(false)
+    })
+
     // ⛔ One's own messages never count as unread: sending moves no pointer -- not from an
     // empty thread, not from a thread whose pointer was moved on opening.
     it("does not move the read pointer for one's own message", async () => {
@@ -1245,13 +1319,27 @@ describe('ChatThread', () => {
       expect(fields).toEqual(expect.arrayContaining(['hasMore', 'mutedByMe', 'messages']))
     })
 
+    const messagesOf = (document) =>
+      top(document).selectionSet.selections.find((field) => field.name.value === 'messages')
+
     it('asks the answer to a message for the fields of a message of the thread', () => {
-      const messages = top(chatMessagesWithMemberQuery).selectionSet.selections.find(
-        (field) => field.name.value === 'messages',
-      )
+      const messages = messagesOf(chatMessagesWithMemberQuery)
       expect(shape(top(sendChatMessage).selectionSet)).toBe(shape(messages.selectionSet))
       // Gegenprobe: the shape is not empty on either side.
       expect(shape(messages.selectionSet)).toContain('deliveryState')
+    })
+
+    /**
+     * ⛔ What became of the mail (E-034) is asked in all three: the page, the answer to a message
+     * sent, and the beat's messages. An arrival is hung into the same list as the page's messages
+     * (`takeWaitingArrivals`), so a field the beat did not ask for would be missing from a message
+     * in the thread -- one's own copy from a second device would lose its envelope.
+     */
+    it('asks all three for what became of the mail, in the one shape of a message', () => {
+      const thread = shape(messagesOf(chatMessagesWithMemberQuery).selectionSet)
+      expect(thread.split(' ')).toContain('mailState')
+      expect(shape(top(sendChatMessage).selectionSet)).toBe(thread)
+      expect(shape(messagesOf(newChatMessagesSince).selectionSet)).toBe(thread)
     })
   })
 
