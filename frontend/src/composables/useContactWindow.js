@@ -16,7 +16,8 @@ import { contactByMemberQuery } from '@/graphql/contacts.graphql'
  * life of the page -- and a person who may no longer be in the list at all after a search
  * or a refresh.
  *
- * @param apolloClient only for `openMember`; a list that hands whole contacts needs none.
+ * @param apolloClient only for `openMember` and `openKnownMember`; a list that hands whole
+ *   contacts needs none.
  */
 export const useContactWindow = (apolloClient = null) => {
   const windowOpen = ref(false)
@@ -52,14 +53,11 @@ export const useContactWindow = (apolloClient = null) => {
    * `ContactWindow` is written for. A toast over a missing grey line would be louder than
    * what it reports.
    */
-  const openMember = async (member) => {
-    if (!member?.gradidoID) return
-    // What the row knows, standing in until the lookup lands. Not a partial contact by
-    // accident: `ContactWindow` shows the meta line only where the figures are.
-    const mine = open({ user: member })
-    if (!apolloClient) return
-
-    let contact = null
+  /**
+   * The server's contact row for this member, or null -- where they are no contact of the one
+   * signed in, and where the question did not get through.
+   */
+  const lookUpContact = async (member) => {
     try {
       const { data } = await apolloClient.query({
         query: contactByMemberQuery,
@@ -71,11 +69,21 @@ export const useContactWindow = (apolloClient = null) => {
         // copy per pair in the store until logout, and nothing ever reads them back.
         fetchPolicy: 'no-cache',
       })
-      contact = data?.contactList?.contacts?.[0] ?? null
+      return data?.contactList?.contacts?.[0] ?? null
     } catch {
-      // Left as it opened -- see above.
-      return
+      return null
     }
+  }
+
+  const openMember = async (member) => {
+    if (!member?.gradidoID) return
+    // What the row knows, standing in until the lookup lands. Not a partial contact by
+    // accident: `ContactWindow` shows the meta line only where the figures are.
+    const mine = open({ user: member })
+    if (!apolloClient) return
+
+    // A failed lookup leaves the window as it opened -- see above.
+    const contact = await lookUpContact(member)
 
     // ⛔ `selected` directly, NOT `open`: filling in what was asked for is not a new
     // opening, and going through `open` would bump the counter this guard reads and make
@@ -84,11 +92,32 @@ export const useContactWindow = (apolloClient = null) => {
     selected.value = contact
   }
 
+  /**
+   * The same window for somebody named from OUTSIDE the lists -- an address like
+   * `/contacts?with=<gradidoID>` (the mail's reply button, P4c).
+   *
+   * ⛔ Asked FIRST, opened only when the server knows the person as a contact. Unlike a booking
+   * row there is nothing on screen that names them -- no face, no name -- so there is nothing
+   * to open on while the lookup runs; and a person the server does not know as a contact (an
+   * unknown id, somebody one never exchanged anything with) is nobody to open a window for.
+   * Nothing is said either: the page stands as it would without the address.
+   *
+   * And not over something the member opened in the meantime: a tap on a row while the lookup
+   * was on its way wins.
+   */
+  const openKnownMember = async (member) => {
+    if (!member?.gradidoID || !apolloClient) return
+    const before = opening
+    const contact = await lookUpContact(member)
+    if (!contact || opening !== before) return
+    open(contact)
+  }
+
   watch(windowOpen, (isOpen) => {
     if (!isOpen) {
       selected.value = null
     }
   })
 
-  return { windowOpen, selected, open, openMember }
+  return { windowOpen, selected, open, openMember, openKnownMember }
 }

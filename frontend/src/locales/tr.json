@@ -143,6 +143,7 @@
   "chatThread": {
     "alsoByEmail": "Ayrıca e-posta ile",
     "alsoByEmailTo": "{name} kişisine ayrıca e-posta ile",
+    "arrived": "{name} kişisinden yeni mesaj",
     "empty": "Henüz mesaj yok. Sohbet burada başlıyor.",
     "failed": "İletilemedi",
     "firstGoesByEmail": "İlk mesaj {name} kişisine e-posta ile de gider.",
@@ -160,6 +161,8 @@
     "send": "Gönder",
     "sent": "Gönderildi",
     "unmutedHint": "Artık sessizde değil: {name} kişisinin mesajları için yine e-posta alacaksın.",
+    "unreadBadge": "{n} sohbette yeni mesaj var",
+    "unreadDot": "Sohbette yeni mesajlar var",
     "you": "Sen"
   },
   "community": {
@@ -205,7 +208,8 @@
     },
     "search": "Kişi ara …",
     "sendGradido": "Gradido gönder",
-    "since": "{date} tarihinden beri kişi"
+    "since": "{date} tarihinden beri kişi",
+    "unreadChatMessages": "{n} yeni mesaj"
   },
   "contribution": {
     "activity": "Hizmet",
@@ -320,7 +324,7 @@
     "title": "E-posta adresini onayla"
   },
   "error": {
-    "email-already-sent": "Sana 10 dakikadan daha az sürede e-posta gönderdik .",
+    "email-already-sent": "Son 10 dakika içinde sana zaten bir e-posta gönderdik.",
     "empty-transactionlist": "İşlem sayısının iletiminde bir hata oluştu.",
     "no-account": "Ne yazık ki bu verilere ait (etkinleştirilmiş) bir hesap bulamadık.",
     "no-transactionlist": "Maalesef bir hata oluştu. Sunucudan hiçbir işlem gönderilmedi.",
@@ -504,7 +508,7 @@
         "min": "Faaliyet açıklaması en az {min} karakter olmalı.",
         "required": "Faaliyet açıklaması zorunlu bir alandır."
       },
-      "gddSendAmount": "Bu alan {_field_} {min}  {max} arasında ondalık noktadan sonra en fazla iki basamaklı bir sayı olmalıdır",
+      "gddSendAmount": "{_field_} alanı, {min} ile {max} arasında, en fazla iki ondalık basamaklı bir sayı olmalıdır.",
       "hours": {
         "decimal-places": "Saatler en fazla iki ondalık basamak içermeli.",
         "max": "Saatler en fazla {max} olmalı.",
@@ -866,9 +870,10 @@
     "back-to-settings": "Ayarlara dön",
     "calculator": "Hesap makinesi",
     "community": "Topluluk",
-    "contacts": "Kişiler",
+    "contacts": "Kişiler & Sohbet",
     "logout": "Çıkış",
     "matching": "Matching",
+    "menu": "Menü",
     "overview": "Toplu Bakış",
     "scanner": "Kod tara",
     "send": "Gönder",
@@ -880,7 +885,7 @@
   "pageTitle": {
     "calculator": "Hesap makinesi",
     "circles": "Gradido Çemberleri",
-    "contacts": "Kişilerin",
+    "contacts": "Kişiler & Sohbet",
     "contributions": "Gradido yarat",
     "gdt": "GDT işlemlerin",
     "information": "{community}",

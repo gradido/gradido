@@ -35,6 +35,11 @@ fragment contactFields on Contact {
   # out of the bookings. Asked for in the FRAGMENT, so the list and the single lookup behind
   # the window cannot come to know it in one place and not the other.
   origin
+  # How many messages from this person the member has not read -- the gold dot at the row
+  # (ChatUnreadDot). The server's count, above the member's OWN read pointer; nothing here
+  # says whether the other side has read anything (E-016). The list is asked again when the
+  # chat's beat sees the number of unread conversations move (useChatUpdates).
+  unreadChatMessages
 }
 
 # Everyone this member has exchanged Gradido with, each once (KF-004).

@@ -7,6 +7,10 @@
       :class="shadow ? 'app-box-shadow' : ''"
     >
       <div class="mb-3 mt-3">
+        <!-- In three pairs (Bernd, E-031): what one has -- the overview and the transactions
+             behind it; what one does -- creating before sending, as in Gradido the creating
+             comes before the giving; and the people -- matching finds them, "contacts & chat"
+             keeps them. -->
         <BNav vertical class="w-200">
           <BNavItem to="/overview" class="mb-3" active-class="active-route">
             <div class="sidebar-menu-item-wrapper">
@@ -14,25 +18,10 @@
               <span class="ms-2">{{ $t('navigation.overview') }}</span>
             </div>
           </BNavItem>
-          <BNavItem to="/send" class="mb-3" active-class="active-route">
-            <div class="sidebar-menu-item-wrapper">
-              <IBiSend class="svg-icon" />
-              <span class="ms-2">{{ $t('navigation.send') }}</span>
-            </div>
-          </BNavItem>
           <BNavItem to="/transactions" :class="transactionClass" active-class="active-route">
             <div class="sidebar-menu-item-wrapper">
               <i-ion-layers-sharp class="svg-icon" />
               <span class="ms-2">{{ $t('navigation.transactions') }}</span>
-            </div>
-          </BNavItem>
-          <!-- Under "Transactions", because the contacts come out of the bookings (KF-008).
-               The day the chat arrives this entry changes its name, it does not get a
-               neighbour. -->
-          <BNavItem to="/contacts" class="mb-3" active-class="active-route">
-            <div class="sidebar-menu-item-wrapper">
-              <i-mdi-account-box-outline class="svg-icon" />
-              <span class="ms-2">{{ $t('navigation.contacts') }}</span>
             </div>
           </BNavItem>
           <!-- ES-021: a project account does not create, so the whole area is gone from the
@@ -52,6 +41,12 @@
               <span class="ms-2">{{ $t('creation') }}</span>
             </div>
           </BNavItem>
+          <BNavItem to="/send" class="mb-3" active-class="active-route">
+            <div class="sidebar-menu-item-wrapper">
+              <IBiSend class="svg-icon" />
+              <span class="ms-2">{{ $t('navigation.send') }}</span>
+            </div>
+          </BNavItem>
           <BNavItem
             v-if="matchingActive"
             ref="matchingLink"
@@ -62,6 +57,51 @@
             <div class="sidebar-menu-item-wrapper">
               <i-tabler-heart-handshake class="svg-icon" />
               <span class="ms-2">{{ $t('navigation.matching') }}</span>
+            </div>
+          </BNavItem>
+          <!-- "Contacts & chat", last, beside matching: with the chat the list is people more
+               than bookings (E-031, which moved it from under the transactions, KF-008). The
+               page keeps its address; the entry changed its name and did not get a neighbour.
+
+               The gold mark: how many CONVERSATIONS hold something unread -- not messages
+               (E-017), from the chat's beat (useChatUpdates) -- only from 1.
+
+               ⛔ On the corner of the symbol, not to the right of the word. Measured in the
+               probe: at the desk the menu card is 180 px wide and the words take 103-130 px of
+               the 125 px it has for them, so a mark beside the word was cut off at the card's
+               edge in every language, and the column cannot grow (at 1025 px it is 175 px wide).
+               On the symbol it needs no width at all -- the phone's opener carries its dot the
+               same way.
+
+               The figure is for the eye; a screen reader hears the sentence after the word, as
+               part of the link, and not the bare figure. -->
+          <BNavItem to="/contacts" class="mb-3" active-class="active-route">
+            <div class="sidebar-menu-item-wrapper chat-menu-item">
+              <span class="chat-menu-icon">
+                <i-mdi-account-box-outline class="svg-icon" />
+                <span
+                  v-if="chatUnreadConversations > 0"
+                  class="chat-unread-badge"
+                  aria-hidden="true"
+                  data-test="chat-unread-badge"
+                >
+                  {{ chatUnreadFigure }}
+                </span>
+              </span>
+              <span class="ms-2 chat-menu-label">{{ $t('navigation.contacts') }}</span>
+              <span
+                v-if="chatUnreadConversations > 0"
+                class="visually-hidden"
+                data-test="chat-unread-badge-label"
+              >
+                {{
+                  $t(
+                    'chatThread.unreadBadge',
+                    { n: chatUnreadConversations },
+                    chatUnreadConversations,
+                  )
+                }}
+              </span>
             </div>
           </BNavItem>
         </BNav>
@@ -130,6 +170,7 @@
 import { useRoute } from 'vue-router'
 import { ref, watch, computed, onMounted } from 'vue'
 import CONFIG from '@/config'
+import { chatUnreadConversations } from '@/composables/useChatUpdates'
 
 // Read once: the flag is baked in at build time, it cannot change while the app runs.
 const matchingActive = CONFIG.MATCHING_ACTIVE
@@ -149,6 +190,14 @@ const emit = defineEmits(['closeSidebar'])
 const route = useRoute()
 const contributionsLink = ref(null)
 const matchingLink = ref(null)
+
+/**
+ * The figure on the mark: the number up to 99, then "99+". The menu is narrow, and past that
+ * the exact figure tells nobody anything the sentence for screen readers does not say.
+ */
+const chatUnreadFigure = computed(() =>
+  chatUnreadConversations.value > 99 ? '99+' : String(chatUnreadConversations.value),
+)
 
 const transactionClass = computed(() => {
   if (route.path === '/gdt') {
@@ -215,6 +264,47 @@ onMounted(syncNavActive)
 
 .sidebar-menu-item-wrapper {
   padding: 4px 12px;
+}
+
+/* Symbol and word in one row, and the word on one line. ⛔ A row and not a line of text: in a
+   line the longest word, "Contacten en chat", dropped whole under its symbol (measured in the
+   probe). In the row it runs into the entry's right padding and ends 7 px inside the 180 px card
+   at the desk; every other word has more room, and the drawer (220 px) has plenty. */
+.chat-menu-item {
+  display: flex;
+  align-items: center;
+}
+
+.chat-menu-label {
+  white-space: nowrap;
+}
+
+/* The symbol and its mark: the mark hangs on the symbol's corner and takes no room in the row,
+   so nothing moves when it comes and goes. */
+.chat-menu-icon {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Gold B with white figures, the gold of the chat's send buttons (E-032 point 5); round for one
+   figure, a pill for "99+", which grows to the left over the symbol and not into the word. A
+   ring in the colour of the menu card keeps it off the symbol's lines. */
+.chat-unread-badge {
+  position: absolute;
+  top: -0.5rem;
+  right: -0.4rem;
+  min-width: 1.05rem;
+  height: 1.05rem;
+  padding: 0 0.28rem;
+  border-radius: 0.525rem;
+  background: #c08935;
+  box-shadow: 0 0 0 2px var(--surface, #fff);
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1.05rem;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .svg-icon {

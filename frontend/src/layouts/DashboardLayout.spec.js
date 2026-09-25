@@ -82,6 +82,22 @@ vi.mock('vue-i18n', () => ({
   }),
 }))
 
+/**
+ * The chat's beat (useChatUpdates) -- its own spec measures what it asks and when. Here only
+ * the layout's half: it starts the beat with the layout and stops it when the layout goes.
+ */
+const chatBeat = vi.hoisted(() => ({ start: vi.fn(), stop: vi.fn() }))
+vi.mock('@/composables/useChatUpdates', async () => {
+  const { ref: vueRef } = await import('vue')
+  return {
+    startChatUpdates: (...args) => chatBeat.start(...args),
+    stopChatUpdates: (...args) => chatBeat.stop(...args),
+    chatUnreadConversations: vueRef(0),
+    onChatMessages: () => () => {},
+    pollChatNow: async () => {},
+  }
+})
+
 const router = createRouter({
   history: createWebHistory(),
   routes,
@@ -171,6 +187,25 @@ describe('DashboardLayout', () => {
     wrapper?.unmount()
     vi.clearAllMocks()
     vi.clearAllTimers()
+  })
+
+  /**
+   * The chat's one beat (E-017) runs for as long as the signed-in wallet stands -- this layout --
+   * and not a moment longer: a layout gone is a member gone, or on the way out.
+   */
+  describe('the chat beat', () => {
+    it("starts once with the layout, on the layout's own client", () => {
+      expect(chatBeat.start).toHaveBeenCalledTimes(1)
+      expect(chatBeat.start).toHaveBeenCalledWith({ query: mockApolloQuery })
+      expect(chatBeat.stop).not.toHaveBeenCalled()
+    })
+
+    it('stops when the layout goes', () => {
+      wrapper.unmount()
+      wrapper = null
+
+      expect(chatBeat.stop).toHaveBeenCalledTimes(1)
+    })
   })
 
   /**
@@ -588,6 +623,44 @@ describe('DashboardLayout', () => {
       await nextTick()
 
       expect(wrapper.findComponent({ name: 'MobileSidebar' }).exists()).toBe(true)
+    })
+  })
+
+  /**
+   * The phone's menu, open or shut, is kept here: the drawer follows it and the opener in the
+   * navbar says it -- one value for both, so the opener cannot say "expanded" over a menu that
+   * was shut by the dark area beside it or by one of its entries.
+   */
+  describe('the phone menu', () => {
+    const navbar = () => wrapper.findComponent({ name: 'Navbar' })
+    const drawer = () => wrapper.findComponent({ name: 'MobileSidebar' })
+
+    // The navbar stands once the skeleton has gone (1.5 s).
+    beforeEach(async () => {
+      vi.advanceTimersByTime(1500)
+      await nextTick()
+    })
+
+    it('starts shut, and tells the opener and the drawer the same', () => {
+      expect(navbar().props('menuOpen')).toBe(false)
+      expect(drawer().props('open')).toBe(false)
+    })
+
+    it('opens from the opener, shuts from the drawer, and the opener hears it', async () => {
+      await navbar().vm.$emit('toggle-menu')
+      expect(drawer().props('open')).toBe(true)
+      expect(navbar().props('menuOpen')).toBe(true)
+
+      await drawer().vm.$emit('update:open', false)
+      expect(navbar().props('menuOpen')).toBe(false)
+      expect(drawer().props('open')).toBe(false)
+    })
+
+    it('shuts from the opener too', async () => {
+      await navbar().vm.$emit('toggle-menu')
+      await navbar().vm.$emit('toggle-menu')
+      expect(drawer().props('open')).toBe(false)
+      expect(navbar().props('menuOpen')).toBe(false)
     })
   })
 

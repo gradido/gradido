@@ -22,11 +22,12 @@
       <p class="mb-0">{{ t('chatThread.empty') }}</p>
     </div>
 
-    <!-- ⛔ A named region, not a live one. `role="log"` announces what is added to it, and in
-         this step what is added is an older page, put in front at the reader's own request --
-         up to fifty chat messages read aloud after one press (coderabbit, #3970) -- or one's
-         own message, which the status below says in a word. The log comes back when the
-         other side's messages can arrive at the bottom by themselves (P4).
+    <!-- ⛔ A named region, not a live one -- and it stays one now that the other side's
+         messages arrive at the bottom by themselves (P4). `role="log"` announces whatever is
+         added to it, and an older page, put in front at the reader's own request, is up to
+         fifty chat messages read aloud after one press (coderabbit, #3970; LOG-031). What
+         arrives by itself is said in one line by the status below instead: "new message from
+         …", as one's own is "sent".
 
          Focusable, because it scrolls and a keyboard has to be able to scroll it -- and
          what can be focused needs a name, which is what the label is for. -->
@@ -101,23 +102,26 @@
       @send="send"
     />
 
-    <!-- "Sent", for the ear only. Always in the page, so the word is announced when it is put
-         in -- a live region that appears together with its text is not. -->
+    <!-- For the ear only: "sent", or "new message from …" when one arrived by itself. Always in
+         the page, so the words are announced when they are put in -- a live region that appears
+         together with its text is not. -->
     <p class="visually-hidden" role="status" data-test="chat-thread-sent">{{ sentNotice }}</p>
   </div>
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useMutation, useQuery } from '@vue/apollo-composable'
+import { useApolloClient, useMutation, useQuery } from '@vue/apollo-composable'
 import ChatBubble from '@/components/Chat/ChatBubble.vue'
 import ChatComposeBar from '@/components/Chat/ChatComposeBar.vue'
+import { onChatMessages, pollChatNow } from '@/composables/useChatUpdates'
 import {
   chatMessagesWithMemberQuery,
   markChatConversationRead,
   sendChatMessage,
 } from '@/graphql/chat.graphql'
+import { chatMemberKey } from '@/utils/chatMemberKey'
 
 /** How many messages a page holds -- the server's own default, written out. */
 const PAGE_SIZE = 50
@@ -127,6 +131,13 @@ const props = defineProps({
   member: { type: Object, required: true },
   /** Their name, for the thread's accessible name and the writer of their messages. */
   alias: { type: String, default: '' },
+  /**
+   * The pair as the window keys the thread (`chatMemberKey`: lower case, a missing community
+   * written as this one's). It is how the thread knows this person's FIRST message when it
+   * arrives in a thread that holds none yet -- there is no conversation id to go by then.
+   * Without it the key is made from `member` as it stands.
+   */
+  memberKey: { type: String, default: '' },
 })
 
 /**
@@ -163,6 +174,7 @@ const { result, error, fetchMore } = useQuery(chatMessagesWithMemberQuery, threa
 })
 const { mutate: markRead } = useMutation(markChatConversationRead)
 const { mutate: sendToServer } = useMutation(sendChatMessage)
+const { client: apolloClient } = useApolloClient()
 
 const page = computed(() => result.value?.chatMessagesWithMember ?? null)
 const messages = computed(() => page.value?.messages ?? [])
@@ -207,26 +219,65 @@ const days = computed(() => {
 })
 
 /**
- * The read pointer, moved ONCE per opening, to the highest id the first page brought
- * (E-017: the marker is the row number). Not for an empty thread -- there is nothing to have
- * read -- not for an older page, which holds only what lies below the pointer anyway, and
- * not for one's own message: one's own never count as unread. The server never moves it
- * back.
+ * The highest id that was on screen while the page was out of sight -- read by nobody yet, so
+ * the pointer waits for the page to come back into sight. 0 while nothing waits.
+ */
+let unseenUpTo = 0
+
+/**
+ * Moves the read pointer to the highest id on screen -- but only while the page is in sight
+ * (E-017: the pointer is the highest id SHOWN, and a thread in a tab in the background shows
+ * nothing to anybody). Otherwise it waits for the page to come back. The window is open, or
+ * this thread would not exist: it is made when the window opens and gone when it closes.
+ *
+ * Once the server has it, the beat asks at once (`pollChatNow`), so the mark in the menu is
+ * right within a second and not only with the next beat.
+ *
+ * `quiet`: the member did nothing to cause this one -- a message arrived, or the page came back
+ * into sight -- so it leaves the session clock alone (`renewSession`, plugins/apolloProvider.js).
+ *
+ * A failure is let go: it leaves these messages counted as unread until the next opening, which
+ * is nothing the member is waiting on.
+ */
+const markShown = (upToMessageId, { quiet = false } = {}) => {
+  if (document.hidden) {
+    unseenUpTo = Math.max(unseenUpTo, upToMessageId)
+    return
+  }
+  unseenUpTo = 0
+  const options = quiet ? { context: { renewSession: false } } : undefined
+  Promise.resolve(markRead({ ref: memberRef, upToMessageId }, options))
+    .then(() => pollChatNow())
+    .catch(() => {})
+}
+
+const onVisibility = () => {
+  if (document.hidden || unseenUpTo === 0) return
+  markShown(unseenUpTo, { quiet: true })
+}
+document.addEventListener('visibilitychange', onVisibility)
+onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisibility))
+
+/**
+ * The read pointer on opening, to the highest id the first page brought (E-017: the marker is
+ * the row number). Not for an empty thread -- there is nothing to have read -- not for an older
+ * page, which holds only what lies below the pointer anyway, and not for one's own message:
+ * one's own never count as unread. The server never moves it back. Messages that arrive later
+ * move it themselves (`takeChatArrivals`).
  *
  * ⛔ Decided on the FIRST PAGE, not on the list: a message sent from here lands in the same
  * list, and a thread that opened empty would otherwise move the pointer to one's own message
  * the moment it is there.
- *
- * A failure is let go: it leaves these messages counted as unread until the next opening,
- * which is nothing the member is waiting on.
  */
 let marked = false
 watch(page, (firstPage) => {
   if (marked || !firstPage) return
   marked = true
-  if (firstPage.messages.length === 0) return
-  const upToMessageId = Math.max(...firstPage.messages.map((message) => message.id))
-  markRead({ ref: memberRef, upToMessageId }).catch(() => {})
+  if (firstPage.messages.length > 0) {
+    markShown(Math.max(...firstPage.messages.map((message) => message.id)))
+  }
+  // Whatever arrived while the page was on its way.
+  takeWaitingArrivals()
 })
 
 /**
@@ -348,6 +399,8 @@ watch(
     // of the window; it goes to the thread instead, where the keyboard was.
     if (focusWasOnOlder && !hasMore.value) box?.focus({ preventScroll: true })
     focusWasOnOlder = false
+    // What arrived while the older page was on its way, now that the reader's place is kept.
+    takeWaitingArrivals()
   },
   { flush: 'post' },
 )
@@ -384,31 +437,133 @@ const loadOlder = async (event) => {
     olderFailed.value = true
     placeFromBottom = null
     focusWasOnOlder = false
+    takeWaitingArrivals()
   } finally {
     loadingOlder.value = false
   }
 }
 
 /**
- * One's own copy at the bottom of the page already on screen. Its id is the highest on this
- * server -- it was stored a moment ago -- so the order stays the order of arrival (E-018)
- * without sorting anything. Not twice, should the same copy ever be handed in again.
+ * Arrivals the page can take: not twice (an id the thread holds already -- one's own copy comes
+ * back with the next beat, and the known limit of the marker can bring one again), and not
+ * below the oldest message on screen while there are older pages: those belong to a page not
+ * loaded yet, and hung in here they would stand in front of a gap that "load older" could then
+ * never fill (it asks for what lies below the smallest id).
+ */
+const arrivalsFor = (thread, chatMessages) => {
+  const held = new Set(thread.messages.map((message) => message.id))
+  const oldest = thread.messages[0]?.id
+  return chatMessages.filter(
+    (message) =>
+      !held.has(message.id) && !(thread.hasMore && oldest !== undefined && message.id < oldest),
+  )
+}
+
+/**
+ * The arrivals in the page on screen, in the order of their ids -- the order in which they came
+ * to this server (E-018). The same way into the same list as one's own copy (`withOwnCopy`).
+ */
+const withArrivals = (current, arrivals) => {
+  const thread = current?.chatMessagesWithMember
+  if (!thread || arrivals.length === 0) return undefined
+  return {
+    ...current,
+    chatMessagesWithMember: {
+      ...thread,
+      messages: [...thread.messages, ...arrivals].sort((a, b) => a.id - b.id),
+    },
+  }
+}
+
+/**
+ * One's own copy into the page on screen, the way every arrival goes: by its id, and not twice
+ * -- the beat brings the same copy again a moment later. Its id is nearly always the highest
+ * on this server, it was stored a moment ago; a message of the other side that the beat brought
+ * while this one was on its way can have been stored first, and then stands before it.
  */
 const withOwnCopy = (current, own) => {
   const thread = current?.chatMessagesWithMember
-  if (!thread || thread.messages.some((message) => message.id === own.id)) return undefined
-  return {
-    ...current,
-    chatMessagesWithMember: { ...thread, messages: [...thread.messages, own] },
-  }
+  if (!thread) return undefined
+  return withArrivals(current, arrivalsFor(thread, [own]))
 }
+
+/**
+ * Which conversation the arrivals are to be looked for in: the one the messages on screen
+ * name, or -- in a thread that holds none yet -- the one this person's first message names,
+ * known by the pair of its writer.
+ *
+ * ⚠️ One's own message written into an empty thread from another device names no recipient,
+ * so it cannot be told from one to somebody else; it shows with the next opening.
+ */
+const chatConversationFor = (chatMessages) =>
+  messages.value[0]?.conversationId ??
+  chatMessages.find(
+    (message) =>
+      !message.mine &&
+      chatMemberKey(message.sender) === (props.memberKey || chatMemberKey(props.member)),
+  )?.conversationId ??
+  null
+
+/**
+ * Messages handed on by the beat, held until the page can take them: while the first page is
+ * on its way (it may or may not hold them) and while an older page is (its landing puts the
+ * reader's place back, and a message added in between would take that place for its own).
+ */
+let waitingArrivals = []
+
+const takeWaitingArrivals = () => {
+  if (!page.value || placeFromBottom !== null || waitingArrivals.length === 0) return
+  const chatMessages = waitingArrivals
+  waitingArrivals = []
+  const chatConversationId = chatConversationFor(chatMessages)
+  if (chatConversationId === null) return
+  const ours = chatMessages.filter((message) => message.conversationId === chatConversationId)
+  if (ours.length === 0) return
+
+  let added = []
+  apolloClient.cache.updateQuery(
+    { query: chatMessagesWithMemberQuery, variables: threadVariables },
+    (current) => {
+      if (!current?.chatMessagesWithMember) return undefined
+      added = arrivalsFor(current.chatMessagesWithMember, ours)
+      return withArrivals(current, added)
+    },
+  )
+  // Only what the other side wrote is news: one's own copies arrive too, and say nothing.
+  if (!added.some((message) => !message.mine)) return
+  announce(t('chatThread.arrived', { name: props.alias }))
+  markShown(Math.max(...added.map((message) => message.id)), { quiet: true })
+}
+
+/**
+ * The beat's messages (useChatUpdates), all conversations at once; this thread takes its own.
+ * Nothing while the thread could not be loaded -- there is no page to hang them into, and the
+ * next opening asks anew.
+ */
+const takeChatArrivals = (chatMessages) => {
+  if (state.value === 'error') return
+  waitingArrivals.push(...chatMessages)
+  takeWaitingArrivals()
+}
+const stopArrivals = onChatMessages(takeChatArrivals)
+onBeforeUnmount(stopArrivals)
 
 /** While a message is on its way; the bar's button waits for it. */
 const sending = ref(false)
 /** The last message did not go through; the bar keeps its text and says so. */
 const sendFailed = ref(false)
-/** What the status says to a screen reader once a message has gone. */
+/** What the status says to a screen reader: a message has gone, or one has arrived. */
 const sentNotice = ref('')
+
+/**
+ * Puts a line into the status, emptied first: the same words twice in a row -- two messages
+ * from the same person -- would otherwise change nothing in the page and be announced once.
+ */
+const announce = async (text) => {
+  sentNotice.value = ''
+  await nextTick()
+  sentNotice.value = text
+}
 
 /**
  * "Sent" -- or the same word the bubble shows where the copy came back not delivered (E-019):

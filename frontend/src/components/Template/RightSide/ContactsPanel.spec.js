@@ -2,6 +2,9 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { nextTick } from 'vue'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import ContactsPanel from './ContactsPanel.vue'
 import { contactsPanelState, forgetContactsPanel } from '@/composables/useContactsPanel'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
@@ -285,6 +288,53 @@ describe('ContactsPanel', () => {
    * of the switch included, so flicking it changes the people and not their faces (Bernd,
    * 11.09.2026). One constant for all of them; each list's spec proves its own half reads it.
    */
+  /**
+   * The gold dot at a person who wrote something not read yet: last in the row button, so the
+   * row's name carries the sentence -- and drawn on the face's upper corner, as on the tiles
+   * above (Bernd, 25.09.2026), where it takes no room from the name.
+   */
+  it('puts the dot last in the row button, where something waits unread', async () => {
+    givenPage([{ ...person(1), unreadChatMessages: 3 }, person(2)])
+    mountPanel()
+    await nextTick()
+
+    const button = wrapper.find('[data-test="contacts-panel-open-id-1"]')
+    const dot = button.find('[data-test="chat-unread-contact-dot"]')
+    expect(dot.exists()).toBe(true)
+    expect(dot.text()).toBe('contacts.unreadChatMessages')
+    expect(button.element.lastElementChild).toBe(dot.element)
+    expect(dot.classes()).toContain('contacts-panel-dot')
+    expect(
+      wrapper
+        .find('[data-test="contacts-panel-open-id-2"] [data-test="chat-unread-contact-dot"]')
+        .exists(),
+    ).toBe(false)
+  })
+
+  // jsdom lays nothing out, so the stylesheet says where the dot lies -- read without comments.
+  it('lays the dot over the face corner, placed by the size of the face', async () => {
+    givenPage([{ ...person(1), unreadChatMessages: 1 }])
+    mountPanel()
+    await nextTick()
+    const styles = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'ContactsPanel.vue'),
+      'utf8',
+    )
+      .split('<style lang="scss" scoped>')[1]
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+    const rule = (selector) => styles.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))[1]
+
+    expect(
+      wrapper
+        .find('[data-test="contacts-panel-recent"]')
+        .element.style.getPropertyValue('--contacts-panel-face'),
+    ).toBe(`${LIST_AVATAR_SIZE}px`)
+    expect(rule('\\.contacts-panel-row')).toMatch(/position:\s*relative/)
+    expect(rule('\\.contacts-panel-dot')).toMatch(/position:\s*absolute/)
+    expect(rule('\\.contacts-panel-dot')).toMatch(/left:\s*calc\(var\(--contacts-panel-face\)/)
+    expect(rule('\\.contacts-panel-dot')).toMatch(/box-shadow:[^;]*var\(--bg/)
+  })
+
   it('draws each face at the size every list of people uses', async () => {
     givenPage([person(1)])
     mountPanel()

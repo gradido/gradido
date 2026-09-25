@@ -1,5 +1,9 @@
-import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
+import { startChatUpdates, stopChatUpdates } from '@/composables/useChatUpdates'
 import { nextTick } from 'vue'
 import { createRouter, createWebHistory, RouterLink } from 'vue-router'
 import { createStore } from 'vuex'
@@ -273,6 +277,146 @@ describe('Navbar', () => {
       expect(html.indexOf('username')).toBeLessThan(html.indexOf('ibicopy'))
     })
   })
+  /**
+   * On a phone the whole menu lies behind this opener, and it was a div: it took a click, but
+   * no Tab, no Enter and no name -- the menu was out of a keyboard's reach. A button now, named
+   * by a hidden word, and looking like the block it replaced.
+   */
+  describe('the menu opener', () => {
+    const opener = () => wrapper.find('[data-test="navbar-menu-opener"]')
+
+    it('is a button, so a keyboard reaches it and Enter and Space press it', () => {
+      wrapper = mountComponent()
+      expect(opener().element.tagName).toBe('BUTTON')
+      expect(opener().attributes('type')).toBe('button')
+    })
+
+    // It names the drawer and asks the layout to open or shut it; it does not keep the state.
+    it('names the drawer it opens, and asks the layout to open or shut it', async () => {
+      wrapper = mountComponent()
+      expect(opener().attributes('aria-controls')).toBe('sidebar-mobile')
+      await opener().trigger('click')
+      expect(wrapper.emitted('toggle-menu')).toHaveLength(1)
+    })
+
+    /**
+     * ⛔ Says what the layout says -- open or shut however the menu got there. v-b-toggle set
+     * aria-expanded only on the element that was clicked, so a menu shut by the dark area beside
+     * it or by one of its entries left this button saying "expanded".
+     */
+    it('says whether the menu is open, as the layout keeps it', async () => {
+      wrapper = mountComponent()
+      expect(opener().attributes('aria-expanded')).toBe('false')
+      await wrapper.setProps({ menuOpen: true })
+      expect(opener().attributes('aria-expanded')).toBe('true')
+      await wrapper.setProps({ menuOpen: false })
+      expect(opener().attributes('aria-expanded')).toBe('false')
+    })
+
+    // Its name is its content: the hidden word first, then the dot's line where there is one.
+    it('is named "Menu" by a hidden word before the symbol', () => {
+      wrapper = mountComponent()
+      const word = opener().element.firstElementChild
+      expect(word.classList.contains('visually-hidden')).toBe(true)
+      expect(word.textContent.trim()).toBe('navigation.menu')
+      expect(opener().text()).toBe('navigation.menu')
+    })
+
+    // jsdom lays nothing out, so the stylesheet says it -- read without its comments.
+    it('looks like the block it replaced: no chrome, the full width', () => {
+      const style = readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), 'Navbar.vue'),
+        'utf8',
+      ).replace(/\/\*[\s\S]*?\*\//g, '')
+      const rule = style.match(/\n\.navbar-menu-opener\s*\{([^}]*)\}/)?.[1] ?? ''
+
+      expect(rule).toMatch(/display:\s*block/)
+      expect(rule).toMatch(/width:\s*100%/)
+      expect(rule).toMatch(/border:\s*0/)
+      expect(rule).toMatch(/background:\s*transparent/)
+      expect(rule).toMatch(/padding:\s*0/)
+      expect(rule).not.toMatch(/outline/)
+    })
+  })
+
+  /**
+   * On the phone the menu is behind this button, so a gold dot on it says that conversations
+   * hold something unread -- a dot, not a figure: the button is a symbol. Measured through the
+   * real chat beat (useChatUpdates) with a server that answers.
+   */
+  describe('the dot on the menu opener', () => {
+    const serverSays = async (unreadConversations) => {
+      startChatUpdates({
+        query: vi.fn(async () => ({
+          data: {
+            newChatMessagesSince: {
+              latestId: 1,
+              unreadConversations,
+              messages: [],
+              hasMore: false,
+            },
+          },
+        })),
+      })
+      await flushPromises()
+    }
+    const opener = () => wrapper.find('.navbar-menu-opener')
+
+    afterEach(() => {
+      stopChatUpdates()
+    })
+
+    it('is not there while nothing waits', async () => {
+      await serverSays(0)
+      wrapper = mountComponent()
+
+      expect(opener().find('[data-test="chat-unread-dot"]').exists()).toBe(false)
+      expect(opener().find('[data-test="chat-unread-dot-label"]').exists()).toBe(false)
+    })
+
+    it('sits on the opener while conversations hold something unread, with a line for the ear', async () => {
+      await serverSays(3)
+      wrapper = mountComponent()
+
+      // On the symbol itself, and no figure in it.
+      const dot = opener().find('.navbar-toggler-icon [data-test="chat-unread-dot"]')
+      expect(dot.exists()).toBe(true)
+      expect(dot.text()).toBe('')
+      expect(dot.attributes('aria-hidden')).toBe('true')
+      const label = opener().find('[data-test="chat-unread-dot-label"]')
+      expect(label.classes()).toContain('visually-hidden')
+      expect(label.text()).toBe('chatThread.unreadDot')
+    })
+
+    it('goes when nothing waits any more', async () => {
+      await serverSays(1)
+      wrapper = mountComponent()
+      expect(opener().find('[data-test="chat-unread-dot"]').exists()).toBe(true)
+
+      stopChatUpdates()
+      await flushPromises()
+
+      expect(opener().find('[data-test="chat-unread-dot"]').exists()).toBe(false)
+    })
+
+    /**
+     * ⛔ Laid over the symbol's corner: the bar must not move when the dot comes and goes. jsdom
+     * lays nothing out, so the stylesheet says it -- read without its comments.
+     */
+    it('lies over the corner and moves nothing, in the stylesheet', () => {
+      const style = readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), 'Navbar.vue'),
+        'utf8',
+      ).replace(/\/\*[\s\S]*?\*\//g, '')
+      const rule = (selector) =>
+        style.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+
+      expect(rule('\\.chat-unread-dot')).toMatch(/position:\s*absolute/)
+      expect(rule('\\.chat-unread-dot')).toMatch(/background:\s*#c08935/)
+      expect(rule('\\.navbar-menu-opener \\.navbar-toggler-icon')).toMatch(/position:\s*relative/)
+    })
+  })
+
   /**
    * The height of this navbar is somebody else's problem, and that is the whole point.
    *
