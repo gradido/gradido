@@ -25,6 +25,8 @@ export interface RequestBudget {
   memberAvatarsRelayed: number
   // Pages of a chat thread (chatMessagesWithMember), capped at CHAT_MESSAGE_PAGES_MAX_PER_REQUEST.
   chatMessagePagesServed: number
+  // What is new in the chat (newChatMessagesSince), capped at CHAT_UPDATES_MAX_PER_REQUEST.
+  chatUpdatesServed: number
 }
 
 /** A budget with nothing spent. The context function creates one per HTTP request. */
@@ -32,6 +34,7 @@ export const newRequestBudget = (): RequestBudget => ({
   memberAvatarsFullServed: 0,
   memberAvatarsRelayed: 0,
   chatMessagePagesServed: 0,
+  chatUpdatesServed: 0,
 })
 
 export interface Context {

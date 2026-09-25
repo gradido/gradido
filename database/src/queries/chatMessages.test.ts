@@ -1,12 +1,20 @@
 // AI-GENERATED — not an architecture reference
-import { eq } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
+import { v4 as uuidv4 } from 'uuid'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
-import { ChatMessageInsert, ChatMessageSelect, chatMessagesTable } from '../schemas'
+import {
+  ChatMessageInsert,
+  ChatMessageSelect,
+  chatConversationMembersTable,
+  chatMessagesTable,
+} from '../schemas'
+import { ChatMemberRef, dbInsertChatConversationMembers } from './chatConversationMembers'
 import {
   dbInsertChatMessage,
   dbSelectChatMessagesByConversationId,
   dbSelectChatMessagesPage,
+  dbSelectChatMessagesSince,
   dbUpdateChatMessageDelivery,
 } from './chatMessages'
 
@@ -265,5 +273,160 @@ describe('dbSelectChatMessagesPage', () => {
 
   it('refuses a page size below one', async () => {
     await expect(dbSelectChatMessagesPage(PAGED, { limit: 0 })).rejects.toThrow('page size')
+  })
+})
+
+/**
+ * What is new for one member, across every conversation the member is in (E-017). Its own
+ * people, with pairs made for this block: the query reaches every conversation a member is in,
+ * so a conversation another block left behind must not have them in it.
+ */
+describe('dbSelectChatMessagesSince', () => {
+  const pair = (): ChatMemberRef => ({ communityUuid: HOME, gradidoId: uuidv4() })
+  const LENA = pair()
+  const MAX = pair()
+  const NIKO = pair()
+  const OTTO = pair()
+  // Lena and Max; a group of Lena, Niko and Otto -- members, and no pair key (P5); and Max and
+  // Niko, which Lena is not in.
+  const WITH_MAX = 831
+  const GROUP = 832
+  const WITHOUT_LENA = 833
+  // The messages in the order they arrive: conversation, sender, text.
+  const ARRIVALS: [number, ChatMemberRef, string][] = [
+    [WITH_MAX, LENA, 'Lena to Max'],
+    [WITHOUT_LENA, MAX, 'Max to Niko'],
+    [GROUP, NIKO, 'Niko to the group'],
+    [WITH_MAX, MAX, 'Max to Lena'],
+    [WITHOUT_LENA, NIKO, 'Niko to Max'],
+    [GROUP, LENA, 'Lena to the group'],
+    [WITH_MAX, MAX, 'Max again, deleted later'],
+    [GROUP, OTTO, 'Otto to the group'],
+  ]
+  let filed: ChatMessageSelect[]
+
+  const bodiesOf = (messages: ChatMessageSelect[]) => messages.map((m) => m.body)
+  const since = (afterId: number, limit = 50) => dbSelectChatMessagesSince(LENA, { afterId, limit })
+
+  beforeAll(async () => {
+    await dbInsertChatConversationMembers(WITH_MAX, [LENA, MAX])
+    await dbInsertChatConversationMembers(GROUP, [LENA, NIKO, OTTO])
+    await dbInsertChatConversationMembers(WITHOUT_LENA, [MAX, NIKO])
+    filed = []
+    for (const [conversationId, sender, body] of ARRIVALS) {
+      const stored = await dbInsertChatMessage(
+        message(uuidv4(), {
+          conversationId,
+          senderCommunityUuid: sender.communityUuid,
+          senderGradidoId: sender.gradidoId,
+          subject: null,
+          body,
+        }),
+      )
+      if (!stored.success) {
+        throw new Error(`fixture: "${body}" was not filed`)
+      }
+      filed.push(stored.value)
+    }
+    await db
+      .update(chatMessagesTable)
+      .set({ deletedAt: new Date() })
+      .where(eq(chatMessagesTable.id, filed[6].id))
+  })
+
+  afterAll(async () => {
+    await db
+      .delete(chatConversationMembersTable)
+      .where(inArray(chatConversationMembersTable.conversationId, [WITH_MAX, GROUP, WITHOUT_LENA]))
+  })
+
+  it('hands out the messages of every conversation the member is in, in the order they arrived', async () => {
+    const news = await since(0)
+    expect(bodiesOf(news.messages)).toEqual([
+      'Lena to Max',
+      'Niko to the group',
+      'Max to Lena',
+      'Lena to the group',
+      'Otto to the group',
+    ])
+    const ids = news.messages.map((m) => m.id)
+    expect([...ids].sort((a, b) => a - b)).toEqual(ids)
+    expect(news.hasMore).toBe(false)
+  })
+
+  it('never hands out a message of a conversation the member is not in', async () => {
+    const ids = (await since(0)).messages.map((m) => m.id)
+    expect(ids).not.toContain(filed[1].id)
+    expect(ids).not.toContain(filed[4].id)
+    // Max gets them: he is in that conversation -- and in Lena's, but not in the group.
+    const maxs = await dbSelectChatMessagesSince(MAX, { afterId: 0, limit: 50 })
+    expect(bodiesOf(maxs.messages)).toEqual([
+      'Lena to Max',
+      'Max to Niko',
+      'Max to Lena',
+      'Niko to Max',
+    ])
+  })
+
+  // A second device or tab of the same person learns what was written elsewhere.
+  it("hands out the member's own messages as well", async () => {
+    const own = (await since(0)).messages.filter((m) => m.senderGradidoId === LENA.gradidoId)
+    expect(bodiesOf(own)).toEqual(['Lena to Max', 'Lena to the group'])
+  })
+
+  it('starts exactly after the id it is given', async () => {
+    expect(bodiesOf((await since(filed[3].id)).messages)).toEqual([
+      'Lena to the group',
+      'Otto to the group',
+    ])
+    expect(bodiesOf((await since(filed[3].id - 1)).messages)).toEqual([
+      'Max to Lena',
+      'Lena to the group',
+      'Otto to the group',
+    ])
+    expect(await since(filed[7].id)).toEqual({ messages: [], hasMore: false })
+  })
+
+  it('leaves out a message marked deleted', async () => {
+    expect(bodiesOf((await since(0)).messages)).not.toContain('Max again, deleted later')
+    // After Lena's message to the group come the deleted one and Otto's. With a cap of one it is
+    // Otto's, and nothing is left over the cap.
+    const afterIt = await since(filed[5].id, 1)
+    expect(bodiesOf(afterIt.messages)).toEqual(['Otto to the group'])
+    expect(afterIt.hasMore).toBe(false)
+  })
+
+  it('caps the answer, says there is more exactly when one did not fit, and goes on from there', async () => {
+    const first = await since(0, 2)
+    expect(bodiesOf(first.messages)).toEqual(['Lena to Max', 'Niko to the group'])
+    expect(first.hasMore).toBe(true)
+
+    const second = await since(first.messages[1].id, 2)
+    expect(bodiesOf(second.messages)).toEqual(['Max to Lena', 'Lena to the group'])
+    expect(second.hasMore).toBe(true)
+
+    // One left, and a cap of one: it fits, so there is nothing more.
+    const third = await since(second.messages[1].id, 1)
+    expect(bodiesOf(third.messages)).toEqual(['Otto to the group'])
+    expect(third.hasMore).toBe(false)
+  })
+
+  it('answers the same for the member named in capitals, as the column compares', async () => {
+    const shouting = { communityUuid: HOME.toUpperCase(), gradidoId: LENA.gradidoId.toUpperCase() }
+    expect(await dbSelectChatMessagesSince(shouting, { afterId: 0, limit: 50 })).toEqual(
+      await since(0),
+    )
+  })
+
+  it('answers nothing for somebody in no conversation', async () => {
+    expect(await dbSelectChatMessagesSince(pair(), { afterId: 0, limit: 50 })).toEqual({
+      messages: [],
+      hasMore: false,
+    })
+  })
+
+  it('refuses a cap below one and an id below zero', async () => {
+    await expect(since(0, 0)).rejects.toThrow('page size')
+    await expect(since(-1)).rejects.toThrow('message id')
   })
 })

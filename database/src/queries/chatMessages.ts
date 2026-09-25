@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { and, asc, desc, eq, isNull, lt, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, gt, isNull, lt, sql } from 'drizzle-orm'
 import { Result, VoidResult } from 'shared'
 import { drizzleDb } from '../AppDatabase'
 import { DBInsertFailed, DBNotFoundError } from '../errorTypes'
@@ -7,8 +7,10 @@ import {
   ChatMessageDeliveryState,
   ChatMessageInsert,
   ChatMessageSelect,
+  chatConversationMembersTable,
   chatMessagesTable,
 } from '../schemas/drizzle.schema'
+import { ChatMemberRef } from './chatConversationMembers'
 
 /** A message row without its subject and text: what an error about the row carries. */
 export type ChatMessageInsertWithoutText = Omit<ChatMessageInsert, 'subject' | 'body'>
@@ -120,6 +122,54 @@ export async function dbSelectChatMessagesPage(
   return {
     messages: newestFirst.slice(0, options.limit).reverse(),
     hasMore: newestFirst.length > options.limit,
+  }
+}
+
+/**
+ * What is new for a member: the messages with an id above `afterId` in every conversation the
+ * member is in, in the order they arrived (E-018), and whether more are left above the last one
+ * handed out. The one query the wallet asks on its beat (E-017).
+ *
+ * Every conversation the member is in is found through the member's own rows in
+ * chat_conversation_members, not through the pair key of a direct conversation: a group (P5)
+ * has members and no pair key, and comes along without a change here.
+ *
+ * The member's own messages are among them: written on another device or in another tab, they
+ * are new to this one. Messages marked deleted are not, as they are on no page of a thread.
+ *
+ * Read `limit + 1` rows, as dbSelectChatMessagesPage does: the one row over the limit answers
+ * `hasMore` without a second query, and is not handed back. The next call starts after the last
+ * id handed out, so what the cap leaves out comes with the next call.
+ *
+ * Throws for a limit below 1 and for an id below 0: that is a caller's bug (AGENTS.md).
+ */
+export async function dbSelectChatMessagesSince(
+  member: ChatMemberRef,
+  options: { afterId: number; limit: number },
+): Promise<{ messages: ChatMessageSelect[]; hasMore: boolean }> {
+  if (!Number.isInteger(options.limit) || options.limit < 1) {
+    throw new Error(`dbSelectChatMessagesSince: ${options.limit} is not a page size`)
+  }
+  if (!Number.isInteger(options.afterId) || options.afterId < 0) {
+    throw new Error(`dbSelectChatMessagesSince: ${options.afterId} is not a message id`)
+  }
+  const rows = await drizzleDb()
+    .select({ message: chatMessagesTable })
+    .from(chatMessagesTable)
+    .innerJoin(
+      chatConversationMembersTable,
+      and(
+        eq(chatConversationMembersTable.conversationId, chatMessagesTable.conversationId),
+        eq(chatConversationMembersTable.communityUuid, member.communityUuid),
+        eq(chatConversationMembersTable.gradidoId, member.gradidoId),
+      ),
+    )
+    .where(and(gt(chatMessagesTable.id, options.afterId), isNull(chatMessagesTable.deletedAt)))
+    .orderBy(asc(chatMessagesTable.id))
+    .limit(options.limit + 1)
+  return {
+    messages: rows.slice(0, options.limit).map((row) => row.message),
+    hasMore: rows.length > options.limit,
   }
 }
 
