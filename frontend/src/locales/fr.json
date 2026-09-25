@@ -551,7 +551,7 @@
     "expiredOn": "A expiré le",
     "has-account": "Tu as déjà un compte Gradido ?",
     "header": "Créer un lien, un chèque et un QR code",
-    "link-and-text-copied": "Le lien et ton message ont été copiés dans le presse-papier. Tu peux maintenant le joindre à un e-mail ou à un message..",
+    "link-and-text-copied": "Le lien et ton message ont été copiés dans le presse-papier. Tu peux maintenant le joindre à un e-mail ou à un message.",
     "link-copied": "Le lien a été copié dans le presse-papier. Tu peux désormais le coller dans ton e-mail ou ton message.",
     "link-deleted": "Le lien a été supprimé le on {date}.",
     "link-expired": "Le lien n'est plus valide. Sa validité a expiré le {date}.",
@@ -1086,7 +1086,7 @@
       "resend_subtitle": "Ton lien d'activation a expiré, tu peux en obtenir un nouveau ici.",
       "reset": "Réinitialiser le mot de passe",
       "reset-password": {
-        "text": "Entre un nouveau mot de passe que tu utiliseras dans le futur pour te connecter à ton compte Gradido.."
+        "text": "Entre un nouveau mot de passe que tu utiliseras dans le futur pour te connecter à ton compte Gradido."
       },
       "send_now": "Envoyer maintenant",
       "set": "Définir le mot de passe",

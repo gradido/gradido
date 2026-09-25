@@ -214,7 +214,7 @@
   "contribution": {
     "activity": "Actividad",
     "alert": {
-      "answerQuestion": "Hay una nueva noticia sobre esta contribución.",
+      "answerQuestion": "Hay un nuevo mensaje sobre esta contribución.",
       "answerQuestionToast": "Tienes mensajes nuevos.",
       "communityNoteList": "Aquí encontrarás todas las contribuciones enviadas y confirmadas de todos los miembros de esta comunidad.",
       "confirm": "confirmado",
@@ -325,7 +325,7 @@
   },
   "error": {
     "email-already-sent": "Ya te hemos enviado un correo electrónico hace menos de 10 minutos.",
-    "empty-transactionlist": "Ha habido un error en la transmisión del número de sus transacciones.",
+    "empty-transactionlist": "Ha habido un error en la transmisión del número de tus transacciones.",
     "no-account": "Lamentablemente no hemos podido encontrar una cuenta (activada) con estos datos.",
     "no-transactionlist": "Lamentablemente, hubo un error. No se ha transmitido ninguna transacción desde el servidor.",
     "no-user": "No hay usuario con estas referencias.",
@@ -448,7 +448,7 @@
     "link_amount": "Importe del enlace",
     "link_decay_description": "El importe del enlace se bloquea junto con la ransience máxima. Una vez que el enlace se ha canjeado, caducado o eliminado, el resto se libera de nuevo.",
     "memo": "Mensaje",
-    "message": "Noticia",
+    "message": "Mensaje",
     "newPassword": "Contraseña nueva",
     "newPasswordRepeat": "Repetir contraseña nueva",
     "new_balance": "Saldo de cuenta nuevo depués de confirmación",
@@ -471,7 +471,7 @@
     "send_email_success": "Tu correo electrónico se ha enviado correctamente",
     "send_now": "Enviar ahora",
     "send_transaction_error": "¡Desafortunadamente, la transacción no se pudo ejecutar!",
-    "send_transaction_success": "Su transacción fue ejecutada con éxito",
+    "send_transaction_success": "Tu transacción fue ejecutada con éxito",
     "sendemailerror": {
       "failedToSendCommandToFederatedCommunity": "Al enviar tu correo electrónico se produjo un error en la comunidad de tu destinatario: ",
       "federatedCommunityOfReceiverCommunityNotFound": "No existe una federación válida para la comunidad de tu destinatario",
@@ -551,7 +551,7 @@
     "expiredOn": "Vencido el:",
     "has-account": "¿Ya tienes una cuenta Gradido?",
     "header": "Crear enlace, cheque y código QR",
-    "link-and-text-copied": "El enlace y su mensaje se han copiado en el portapapeles. Ahora puedes ponerlo en un correo electrónico o mensaje.",
+    "link-and-text-copied": "El enlace y tu mensaje se han copiado en el portapapeles. Ahora puedes ponerlo en un correo electrónico o mensaje.",
     "link-copied": "El enlace se ha copiado en el portapapeles. Ahora puedes pegarlo en un correo electrónico o mensaje.",
     "link-deleted": "El enlace se eliminó el {date}.",
     "link-expired": "El enlace ya no es válido. La validez expiró el {date}.",
@@ -561,7 +561,7 @@
     "links_sum": "Enlaces, cheques, códigos QR",
     "no-account": "¿Aún no tienes una cuenta de Gradido?",
     "no-redeem": "¡No puedes canjear tu propio enlace!",
-    "not-copied": "¡Desafortunadamente, su dispositivo no permite copiar! Copie el enlace manualmente!",
+    "not-copied": "¡Desafortunadamente, tu dispositivo no permite copiar! ¡Copia el enlace manualmente!",
     "recipientCommunityRedirection": "Redirigir para abonar a:",
     "recipientCommunitySelection": "Seleccionar comunidad Gradido:",
     "redeem": "Canjear",
@@ -1083,10 +1083,10 @@
     "password": {
       "change-password": "Cambiar contraseña",
       "forgot_pwd": "¿Has olvidado tu contraseña?",
-      "resend_subtitle": "Su enlace de activación ha caducado. Puedes solicitar uno nuevo aquí.",
+      "resend_subtitle": "Tu enlace de activación ha caducado. Puedes solicitar uno nuevo aquí.",
       "reset": "Restablecer contraseña",
       "reset-password": {
-        "text": "Ahora introduce una nueva contraseña con la que quieras acceder a tu cuenta de Gradido en el futuro.."
+        "text": "Ahora introduce una nueva contraseña con la que quieras acceder a tu cuenta de Gradido en el futuro."
       },
       "send_now": "Enviar",
       "set": "Establecer contraseña",
