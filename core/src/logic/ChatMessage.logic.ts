@@ -160,18 +160,34 @@ export const chatMessageNotify = (
 ): ChatMessageNotify => (conversationExists ? requested : ChatMessageNotify.EMAIL)
 
 /**
- * Whether a message goes out as a mail as well: only when the sender asked for one AND the
- * recipient has not muted the conversation. Mute beats the tick (E-024) -- the importance is
- * the sender's to judge, the quiet the recipient's to ask for, and they meet here, on the
- * recipient's server.
+ * Whether a message goes out as a mail as well.
+ *
+ * A chat message only when the sender asked for one AND the recipient has not muted the
+ * conversation. Mute beats the tick (E-024) -- the importance is the sender's to judge, the
+ * quiet the recipient's to ask for, and they meet here, on the recipient's server.
+ *
+ * A letter -- a message written in the form "send an e-mail" -- always (E-034, A3): the form
+ * promises a mail, and the quiet is about chat messages.
  */
-export const chatMailWanted = (notify: ChatMessageNotify, mutedAt: Date | null): boolean =>
-  notify === ChatMessageNotify.EMAIL && mutedAt === null
+export const chatMailWanted = (
+  notify: ChatMessageNotify,
+  mutedAt: Date | null,
+  letter: boolean,
+): boolean => letter || (notify === ChatMessageNotify.EMAIL && mutedAt === null)
+
+/**
+ * What a command from the form "send an e-mail" carries as its `notify` (E-034, A3): the
+ * message is a letter, mailed whatever the recipient's quiet. Only the command carries it. The
+ * message is filed with the wish 'email' -- a letter wishes a mail, and the column holds
+ * 'email' or 'none' -- which is also what a server from before P3c makes of it
+ * (parseChatMessageNotify): a mail, unless the recipient muted the conversation.
+ */
+export const CHAT_MESSAGE_NOTIFY_LETTER = 'letter'
 
 /**
  * The sender's wish as a command from another server carries it. Only 'none' is taken at its
- * word; anything else -- missing, unknown, from a server that predates the chat -- means a
- * mail, as every message meant before: a mail too many is better than silence.
+ * word; anything else -- missing, unknown, from a server that predates the chat, a letter --
+ * means a mail, as every message meant before: a mail too many is better than silence.
  */
 export const parseChatMessageNotify = (value: unknown): ChatMessageNotify =>
   value === ChatMessageNotify.NONE ? ChatMessageNotify.NONE : ChatMessageNotify.EMAIL

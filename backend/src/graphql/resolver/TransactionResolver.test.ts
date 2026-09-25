@@ -1099,9 +1099,9 @@ describe('sendEmail', () => {
       expect(await messages()).toEqual(before)
     })
 
-    // E-024: mute beats the tick -- for the form as well, as it does across the border, where
-    // the receiving server decides. The one change to sendEmail, and the sender is not told.
-    it('files the message but mails nothing to a recipient who muted the conversation, and answers as ever', async () => {
+    // E-034, A3: the form writes letters, and a letter is mailed whatever the quiet -- mute
+    // beats the tick of a chat message only (E-024). This test held the opposite until P3c.
+    it('files the message and mails it to a recipient who muted the conversation as well', async () => {
       const mailed = sendCustomEmail as jest.Mock
       const writeToPeter = (memo: string) =>
         mutate({
@@ -1139,7 +1139,7 @@ describe('sendEmail', () => {
         data: { sendEmail: true },
         errors: undefined,
       })
-      expect(mailed).not.toHaveBeenCalled()
+      expect(mailed.mock.calls.map(([mail]) => mail.email)).toEqual(['peter@lustig.de'])
       expect((await messages()).map((m) => m.body)).toContain('During the quiet.')
     })
   })
@@ -1266,6 +1266,8 @@ describe('sendEmail', () => {
           messageUuid: expect.any(String),
           // E-034: what the other server files bob with, if it does not know him yet.
           senderAlias: bobMember.alias,
+          // E-034, A3: the form writes a letter, which the other server mails whatever the quiet.
+          notify: 'letter',
         },
       ])
       const [ownCopy, ...more] = await filedWithBody('Across the border')

@@ -436,6 +436,27 @@ describe('SendEmailCommand, the wish and the quiet', () => {
     expect(customMail).toHaveBeenCalledTimes(1)
   })
 
+  // E-034, A3: the form "send an e-mail" writes letters, and a letter is mailed whatever the
+  // quiet -- which is about chat messages. Filed as a wish for a mail.
+  it('mails a letter to a recipient who muted the conversation', async () => {
+    recipientHas(MUTED)
+
+    await run(params({ messageUuid: MESSAGE_UUID, notify: 'letter' }))
+
+    const [[message]] = store.mock.calls as [chatMessage.ChatMessageToStore][]
+    expect(message.notify).toBe('email')
+    expect(customMail).toHaveBeenCalledTimes(1)
+    expect(happened).toEqual(['store', 'mail'])
+  })
+
+  it('mails a letter to a recipient who has not muted the conversation', async () => {
+    recipientHas(null)
+
+    await run(params({ messageUuid: MESSAGE_UUID, notify: 'letter' }))
+
+    expect(customMail).toHaveBeenCalledTimes(1)
+  })
+
   // The mail is what the recipient had before the chat; without the row it is all they get,
   // and there is no conversation to have muted.
   it('mails a message it could not file, even one sent without a mail', async () => {

@@ -74,7 +74,8 @@ beforeEach(() => {
 })
 
 describe('deliverChatMessageLocally', () => {
-  const local = (requireStored: boolean, notify: 'email' | 'none' = 'email') =>
+  /** As the chat calls it: (true, …, false). As the form does: (false, 'email', true). */
+  const local = (requireStored: boolean, notify: 'email' | 'none' = 'email', letter = false) =>
     deliverChatMessageLocally({
       senderUser: anna,
       recipientUser: ben,
@@ -82,6 +83,7 @@ describe('deliverChatMessageLocally', () => {
       body: 'Shall we meet at ten?',
       notify,
       requireStored,
+      letter,
     })
 
   it('files the message and mails what was asked for to a recipient who did not mute', async () => {
@@ -122,7 +124,26 @@ describe('deliverChatMessageLocally', () => {
   it('mails the form message whether its row could be filed or not', async () => {
     store.mockResolvedValue(null)
 
-    expect(await local(false)).toBeNull()
+    expect(await local(false, 'email', true)).toBeNull()
+
+    expect(mail).toHaveBeenCalledTimes(1)
+  })
+
+  // E-034, A3: the form writes letters, and a letter is mailed whatever the quiet. The chat
+  // message with a tick to the same muted recipient mails nothing (above).
+  it('mails a letter to a recipient who muted the conversation', async () => {
+    store.mockResolvedValue(row('delivered'))
+    mutedAt.mockResolvedValue(new Date())
+
+    await local(false, 'email', true)
+
+    expect(mail).toHaveBeenCalledWith(expect.objectContaining({ email: 'ben@example.org' }))
+  })
+
+  it('mails a letter to a recipient who did not mute', async () => {
+    store.mockResolvedValue(row('delivered'))
+
+    await local(false, 'email', true)
 
     expect(mail).toHaveBeenCalledTimes(1)
   })
@@ -153,8 +174,10 @@ describe('deliverChatMessageAcrossBorder', () => {
     requireStored: boolean,
     notify: 'email' | 'none' = 'email',
     senderUser: DbUser = anna,
+    letter = false,
   ) =>
     deliverChatMessageAcrossBorder({
+      letter,
       senderUser,
       senderCom,
       receiverCom,
@@ -227,7 +250,7 @@ describe('deliverChatMessageAcrossBorder', () => {
     store.mockResolvedValue(null)
     sendCommand.mockResolvedValue(true)
 
-    expect(await across(false)).toEqual({ stored: null, error: null })
+    expect(await across(false, 'email', anna, true)).toEqual({ stored: null, error: null })
 
     expect(sendCommand).toHaveBeenCalledTimes(1)
   })
@@ -242,6 +265,17 @@ describe('deliverChatMessageAcrossBorder', () => {
 
     await across(true, 'none')
     expect((await payload()).notify).toBe('none')
+  })
+
+  // E-034, A3: the receiving server mails a letter whatever the quiet -- it has to know it is one.
+  it("carries notify 'letter' in the command of the form, and files the copy as a wish for a mail", async () => {
+    store.mockResolvedValue(row('pending'))
+    sendCommand.mockResolvedValue(true)
+
+    await across(false, 'email', anna, true)
+
+    expect((await payload()).notify).toBe('letter')
+    expect(store.mock.calls[0][0]).toMatchObject({ notify: 'email' })
   })
 
   // E-034: the receiving server files a sender it does not know with the alias -- and with

@@ -521,6 +521,18 @@ describe('a recipient who muted the conversation', () => {
     expect((await pageWith(ref(bob))).messages.map((m: any) => m.body)).toContain('Are you there?')
   })
 
+  // E-034, A3: the quiet is about chat messages. The form writes letters, which are mailed.
+  it('gets a letter from the form as a mail all the same', async () => {
+    await loginAs('bob@baumeister.de')
+    await write(raeuber, SUBJECT, 'A letter, in spite of the quiet.')
+
+    expect(mailed().map((mail) => mail.email)).toEqual(['raeuber@hotzenplotz.de'])
+    await loginAs('raeuber@hotzenplotz.de')
+    expect((await pageWith(ref(bob))).messages.map((m: any) => m.body)).toContain(
+      'A letter, in spite of the quiet.',
+    )
+  })
+
   it('mutes one side only: the one who muted still mails the other', async () => {
     await loginAs('raeuber@hotzenplotz.de')
     await said(ref(bob), 'I am.', 'EMAIL')

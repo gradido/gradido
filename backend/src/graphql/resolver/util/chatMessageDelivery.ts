@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import {
+  CHAT_MESSAGE_NOTIFY_LETTER,
   chatMailWanted,
   EncryptedTransferArgs,
   readChatMemberMutedAt,
@@ -34,6 +35,9 @@ import { PublishNameLogic } from '@/data/PublishName.logic'
  *   a row that could not be filed changes nothing about the mail or the command;
  * - for the chat it is the row: what could not be filed was not sent, and no mail goes out.
  *
+ * And whether the recipient's quiet applies, which `letter` says: the form writes letters, and a
+ * letter is mailed whatever the quiet (E-034, A3); the quiet is about chat messages (E-024).
+ *
  * Neither function writes the subject or the text into a log.
  */
 
@@ -46,12 +50,15 @@ export interface ChatMessageLocalDelivery {
   notify: ChatMessageNotify
   /** True where the row is the message (the chat), false where the mail is (the form). */
   requireStored: boolean
+  /** True for the form: a letter, mailed whatever the recipient's quiet (E-034, A3). */
+  letter: boolean
 }
 
 /**
  * Files a message between two members of this community -- one row, which both of them read --
- * and mails it when that is wanted: asked for, and not muted by the recipient (E-024). The mail
- * goes out without being waited for, as it always has.
+ * and mails it when that is wanted: a letter always, a chat message when asked for and not
+ * muted by the recipient (E-024, E-034). The mail goes out without being waited for, as it
+ * always has.
  *
  * Hands back the row, or null where it could not be filed. The chat's message was not sent then,
  * and nothing is mailed; the form's mail goes out regardless.
@@ -63,6 +70,7 @@ export async function deliverChatMessageLocally({
   body,
   notify,
   requireStored,
+  letter,
 }: ChatMessageLocalDelivery): Promise<ChatMessageSelect | null> {
   const recipient = {
     communityUuid: recipientUser.communityUuid,
@@ -85,7 +93,7 @@ export async function deliverChatMessageLocally({
   }
   // Without a row there is no conversation, and no mark to read: the form's mail goes out.
   const mutedAt = stored ? await readChatMemberMutedAt(stored.conversationId, recipient) : null
-  if (chatMailWanted(notify, mutedAt) && recipientUser.emailContact) {
+  if (chatMailWanted(notify, mutedAt, letter) && recipientUser.emailContact) {
     sendCustomEmail({
       firstName: recipientUser.firstName,
       lastName: recipientUser.lastName,
@@ -117,6 +125,8 @@ export interface ChatMessageBorderDelivery {
   notify: ChatMessageNotify
   /** True where the row is the message (the chat), false where the mail is (the form). */
   requireStored: boolean
+  /** True for the form: a letter, which the recipient's server mails whatever the quiet. */
+  letter: boolean
 }
 
 /**
@@ -145,6 +155,7 @@ export async function deliverChatMessageAcrossBorder({
   body,
   notify,
   requireStored,
+  letter,
 }: ChatMessageBorderDelivery): Promise<{ stored: ChatMessageSelect | null; error: string | null }> {
   // The id both copies are filed under: this server's below, the receiving server's from the
   // payload.
@@ -168,10 +179,16 @@ export async function deliverChatMessageAcrossBorder({
         // no names -- a transfer files its sender with no more than that (SendEmailCommandParams).
         // Without an alias, no field.
         ...(senderUser.alias ? { senderAlias: senderUser.alias } : {}),
-        // Only a wish for no mail travels. A command without `notify` is mailed by every server,
-        // one from before the chat included (parseChatMessageNotify), so 'email' needs no field
-        // -- and the command of the form stays what it was.
-        ...(notify === ChatMessageNotify.NONE ? { notify } : {}),
+        // A letter says so, and a chat message only a wish for no mail. A command without
+        // `notify` is mailed by every server, one from before the chat included
+        // (parseChatMessageNotify), so 'email' needs no field. A server from before P3c reads
+        // 'letter' as 'email' and asks the quiet, as it did for the form until now (accepted,
+        // E-034).
+        ...(letter
+          ? { notify: CHAT_MESSAGE_NOTIFY_LETTER }
+          : notify === ChatMessageNotify.NONE
+            ? { notify }
+            : {}),
       }),
     ],
   )

@@ -728,8 +728,8 @@ export class TransactionResolver {
       }
       // The chat keeps the message as well: one row, which both members read. Filed before
       // the mail goes out, and never instead of it -- the form's mail goes out whether the row
-      // could be filed or not. Only a recipient who muted the conversation gets none (E-024:
-      // mute beats the tick), and the sender is not told.
+      // could be filed or not. The form writes a letter: it is mailed whatever the recipient's
+      // quiet, which is about chat messages (E-034, A3).
       await deliverChatMessageLocally({
         senderUser,
         recipientUser,
@@ -737,6 +737,7 @@ export class TransactionResolver {
         body: memo,
         notify: ChatMessageNotify.EMAIL,
         requireStored: false,
+        letter: true,
       })
     } else {
       // sendEmail for foreign communities
@@ -775,7 +776,8 @@ export class TransactionResolver {
 
       if (cmdClient instanceof V1_0_CommandClient) {
         // The own copy is filed as not yet delivered right before the command goes out, and
-        // marked with the answer; the recipient's server decides about the mail.
+        // marked with the answer; the recipient's server sends the mail, for a letter whatever
+        // the quiet (E-034).
         const { error } = await deliverChatMessageAcrossBorder({
           senderUser,
           senderCom,
@@ -787,6 +789,7 @@ export class TransactionResolver {
           body: memo,
           notify: ChatMessageNotify.EMAIL,
           requireStored: false,
+          letter: true,
         })
         if (error !== null) {
           const errmsg = 'Failed to send command to federated community with error: ' + error

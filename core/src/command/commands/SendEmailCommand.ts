@@ -11,6 +11,7 @@ import { ALIAS_MAX_CHARS, GradidoUnit, publicAlias, uuidv4Schema } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { sendCustomEmail, sendTransactionReceivedEmail } from '../../emails/sendEmailVariants'
 import {
+  CHAT_MESSAGE_NOTIFY_LETTER,
   chatMailWanted,
   databaseErrorCode,
   parseChatMessageNotify,
@@ -46,9 +47,9 @@ export interface SendEmailCommandParams {
   // The uuid the sending server filed its own copy of a message under, so that both copies
   // carry the same one. Servers from before the chat send none.
   messageUuid?: string
-  // The sender's wish for a message (E-024): 'none' when they asked for no mail. Only that value
-  // is sent; servers from before the chat send nothing, nor does the form "send an e-mail" --
-  // and nothing means a mail (parseChatMessageNotify).
+  // The sender's wish for a message (E-024): 'none' when they asked for no mail, 'letter' from
+  // the form "send an e-mail" (CHAT_MESSAGE_NOTIFY_LETTER, E-034). Nothing else is sent; servers
+  // from before the chat send nothing, and nothing means a mail (parseChatMessageNotify).
   notify?: string
   // The sender's alias, where they have one: what this server files a sender it does not know
   // yet with, and brings a filed one up to date with (findSender). A transfer files its sender
@@ -146,6 +147,7 @@ export class SendEmailCommand extends BaseCommand<
         // a missing one from an older server.
         const sentUuid = uuidv4Schema.safeParse(this.sendEmailCommandParams.messageUuid)
         const notify = parseChatMessageNotify(this.sendEmailCommandParams.notify)
+        const letter = this.sendEmailCommandParams.notify === CHAT_MESSAGE_NOTIFY_LETTER
         const recipient = {
           communityUuid: recipientUser.communityUuid,
           gradidoId: recipientUser.gradidoID,
@@ -162,14 +164,15 @@ export class SendEmailCommand extends BaseCommand<
           },
           'incoming',
         )
-        // Mailed when the sender asked for it and the recipient has not muted the conversation
-        // (E-024), read here, on the recipient's own server. A message that could not be filed
-        // is mailed as before the chat: the mail is then all the recipient gets of it, and
-        // without the conversation there is no mute mark to read.
+        // A chat message is mailed when the sender asked for it and the recipient has not muted
+        // the conversation (E-024), read here, on the recipient's own server; a letter from the
+        // form whatever the quiet (E-034). A message that could not be filed is mailed as before
+        // the chat: the mail is then all the recipient gets of it, and without the conversation
+        // there is no mute mark to read.
         const mutedAt = stored
           ? await readChatMemberMutedAt(stored.conversationId, recipient)
           : null
-        if (!stored || chatMailWanted(notify, mutedAt)) {
+        if (!stored || chatMailWanted(notify, mutedAt, letter)) {
           const emailResult = await sendCustomEmail(emailParams)
           methodLogger.debug(`mailed: ${this.getEmailResult(emailResult)}`)
         } else {

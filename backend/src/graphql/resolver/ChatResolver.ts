@@ -258,6 +258,7 @@ export class ChatResolver {
         body,
         notify,
         requireStored: true,
+        letter: false,
       })
       if (!stored) {
         throw new LogError('CHAT_MESSAGE_NOT_SENT: NOT_STORED')
@@ -293,6 +294,7 @@ export class ChatResolver {
       body,
       notify,
       requireStored: true,
+      letter: false,
     })
     if (!stored) {
       throw new LogError('CHAT_MESSAGE_NOT_SENT: NOT_STORED')
@@ -307,8 +309,9 @@ export class ChatResolver {
 
   /**
    * Mutes the conversation with `ref` for the caller, or lifts it (E-024): while it is muted, no
-   * mail about it reaches the caller, whatever the other member asks for. The caller's own mark
-   * and nobody else's; the other member is not told.
+   * mail about a chat message in it reaches the caller, whatever the other member asks for. A
+   * letter from the form "send an e-mail" still does -- the quiet is about chat messages
+   * (E-034). The caller's own mark and nobody else's; the other member is not told.
    *
    * False where there is no conversation yet, and nothing is written: before the first message
    * there is nothing to mute -- and the first message goes out as a mail anyway.

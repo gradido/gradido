@@ -5,6 +5,7 @@ import * as database from 'database'
 import { getLogger } from '../../../config-schema/test/testSetup.bun'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import {
+  CHAT_MESSAGE_NOTIFY_LETTER,
   ChatMessageToStore,
   chatMailWanted,
   chatMessageNotify,
@@ -299,21 +300,26 @@ describe('chatMessageNotify', () => {
   })
 })
 
-// E-024: mute beats the tick.
+// E-024: mute beats the tick -- for chat messages. E-034: a letter from the form is mailed.
 describe('chatMailWanted', () => {
   const at = new Date('2026-09-24T12:00:00.000Z')
 
   it('mails what the sender asked to be mailed, to a recipient who has not muted', () => {
-    expect(chatMailWanted('email', null)).toBe(true)
+    expect(chatMailWanted('email', null, false)).toBe(true)
   })
 
-  it('mails nothing to a muted recipient, whatever the sender asked for', () => {
-    expect(chatMailWanted('email', at)).toBe(false)
-    expect(chatMailWanted('none', at)).toBe(false)
+  it('mails no chat message to a muted recipient, whatever the sender asked for', () => {
+    expect(chatMailWanted('email', at, false)).toBe(false)
+    expect(chatMailWanted('none', at, false)).toBe(false)
   })
 
   it('mails nothing the sender did not ask for', () => {
-    expect(chatMailWanted('none', null)).toBe(false)
+    expect(chatMailWanted('none', null, false)).toBe(false)
+  })
+
+  it('mails a letter, to a muted recipient as to anybody else', () => {
+    expect(chatMailWanted('email', at, true)).toBe(true)
+    expect(chatMailWanted('email', null, true)).toBe(true)
   })
 })
 
@@ -322,6 +328,11 @@ describe('parseChatMessageNotify', () => {
   it("takes 'none' as none, and 'email' as a mail", () => {
     expect(parseChatMessageNotify('none')).toBe('none')
     expect(parseChatMessageNotify('email')).toBe('email')
+  })
+
+  // A letter wishes a mail: it is filed as 'email', the column holds nothing else.
+  it('reads a letter as a mail', () => {
+    expect(parseChatMessageNotify(CHAT_MESSAGE_NOTIFY_LETTER)).toBe('email')
   })
 
   it('reads a missing wish -- a server from before the chat -- as a mail', () => {
