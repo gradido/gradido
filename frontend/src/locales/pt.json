@@ -152,7 +152,7 @@
     "mailed": "Também por e-mail",
     "muteOff": "Conversa silenciada — sem e-mails sobre as mensagens de chat de {name}",
     "muteOn": "Silenciar",
-    "mutedHint": "Conversa silenciada: deixas de receber e-mails sobre as mensagens de chat de {name}. As novas mensagens vês aqui. As cartas enviadas com «Enviar e-mail» continuam a chegar.",
+    "mutedHint": "Conversa silenciada: deixas de receber e-mails sobre as mensagens de chat de {name}. Vês as novas mensagens aqui. As cartas enviadas com «Enviar e-mail» continuam a chegar.",
     "notMailedMuted": "Sem e-mail — {name} desativou os e-mails da vossa conversa.",
     "notReachable": "Não foi possível carregar o histórico da conversa.",
     "notSent": "Não foi possível enviar a mensagem. O teu texto fica aqui.",
