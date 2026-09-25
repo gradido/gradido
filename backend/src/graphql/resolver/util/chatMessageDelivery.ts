@@ -1,10 +1,12 @@
 // AI-GENERATED — not an architecture reference
 import {
   CHAT_MESSAGE_NOTIFY_LETTER,
-  chatMailWanted,
+  chatMessageMailState,
+  chatMessageMailStateOfAnswer,
   EncryptedTransferArgs,
   readChatMemberMutedAt,
   recordChatMessageDelivery,
+  recordChatMessageMailState,
   SendEmailCommand,
   sendCustomEmail,
   storeChatMessage,
@@ -12,6 +14,7 @@ import {
 } from 'core'
 import {
   ChatMessageDeliveryState,
+  ChatMessageMailState,
   ChatMessageNotify,
   ChatMessageSelect,
   Community as DbCommunity,
@@ -61,7 +64,10 @@ export interface ChatMessageLocalDelivery {
  * always has.
  *
  * Hands back the row, or null where it could not be filed. The chat's message was not sent then,
- * and nothing is mailed; the form's mail goes out regardless.
+ * and nothing is mailed; the form's mail goes out regardless. The row says what became of the
+ * mail (E-034, `mail_state`): MAILED where one went out, MUTED where one was asked for and the
+ * recipient muted the conversation, nothing where none was asked for -- or where the recipient
+ * has no address to mail to.
  */
 export async function deliverChatMessageLocally({
   senderUser,
@@ -93,7 +99,11 @@ export async function deliverChatMessageLocally({
   }
   // Without a row there is no conversation, and no mark to read: the form's mail goes out.
   const mutedAt = stored ? await readChatMemberMutedAt(stored.conversationId, recipient) : null
-  if (chatMailWanted(notify, mutedAt, letter) && recipientUser.emailContact) {
+  const decided = chatMessageMailState(notify, mutedAt, letter)
+  // A mail is only MAILED where one goes out: without an address, none does.
+  const mailState =
+    decided === ChatMessageMailState.MAILED && !recipientUser.emailContact ? null : decided
+  if (mailState === ChatMessageMailState.MAILED && recipientUser.emailContact) {
     sendCustomEmail({
       firstName: recipientUser.firstName,
       lastName: recipientUser.lastName,
@@ -106,7 +116,13 @@ export async function deliverChatMessageLocally({
       senderCommunityUuid: senderUser.communityUuid,
     })
   }
-  return stored
+  if (!stored || mailState === null) {
+    return stored
+  }
+  // What the row says now: the state where it was recorded, the row as filed where not.
+  return (await recordChatMessageMailState(stored.id, mailState))
+    ? { ...stored, mailState }
+    : stored
 }
 
 export interface ChatMessageBorderDelivery {
@@ -140,9 +156,11 @@ export interface ChatMessageBorderDelivery {
  * with a uuid: the receiving server looks the recipient up by nothing else.
  *
  * Hands back the own copy with the state it has now, or null where none was filed, and the
- * error the other community answered with, or null. A failed delivery is not thrown: what to
- * make of it is the caller's. Throws only where the command cannot be sealed -- before anything
- * is filed or sent.
+ * error the other community answered with, or null. The copy says what the other server answered
+ * became of the mail (E-034, `mail_state`): MAILED or MUTED, nothing where it answered neither --
+ * no mail asked for, a server from before P3c, a failed delivery. A failed delivery is not
+ * thrown: what to make of it is the caller's. Throws only where the command cannot be sealed --
+ * before anything is filed or sent.
  */
 export async function deliverChatMessageAcrossBorder({
   senderUser,
@@ -218,17 +236,22 @@ export async function deliverChatMessageAcrossBorder({
   if (!ownCopy && requireStored) {
     return { stored: null, error: null }
   }
-  const result = await cmdClient.sendCommand(args)
-  const error = typeof result === 'string' ? result : null
+  // The answer, not only whether there was one: sendCommand would read every answer as an error.
+  const answer = await cmdClient.sendCommandForAnswer(args)
+  const error = answer.success ? null : answer.error
   if (!ownCopy) {
     return { stored: null, error }
   }
-  const deliveryState =
-    error === null ? ChatMessageDeliveryState.DELIVERED : ChatMessageDeliveryState.FAILED
-  const recordedAt = await recordChatMessageDelivery(ownCopy.id, deliveryState)
+  const deliveryState = answer.success
+    ? ChatMessageDeliveryState.DELIVERED
+    : ChatMessageDeliveryState.FAILED
+  const mailState = answer.success ? chatMessageMailStateOfAnswer(answer.value) : null
+  const recordedAt = await recordChatMessageDelivery(ownCopy.id, deliveryState, mailState)
   // What the row says now: the new state where it was recorded, the copy as filed where not.
   return {
-    stored: recordedAt ? { ...ownCopy, deliveryState, lastAttemptAt: recordedAt } : ownCopy,
+    stored: recordedAt
+      ? { ...ownCopy, deliveryState, lastAttemptAt: recordedAt, mailState }
+      : ownCopy,
     error,
   }
 }

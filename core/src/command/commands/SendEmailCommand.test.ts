@@ -6,6 +6,7 @@ import * as mails from '../../emails/sendEmailVariants'
 import * as chatMessage from '../../logic/ChatMessage.logic'
 import { CommandExecutor } from '../CommandExecutor'
 import {
+  chatMessageMailStateOfAnswer,
   SEND_MAIL_COMMAND_ANSWER,
   SendEmailCommand,
   SendEmailCommandParams,
@@ -172,7 +173,9 @@ describe('SendEmailCommand, a message from another community', () => {
     )
     spies.push(ensure)
 
-    await expect(run(params({ messageUuid: MESSAGE_UUID }))).resolves.toBe(SEND_MAIL_COMMAND_ANSWER)
+    await expect(run(params({ messageUuid: MESSAGE_UUID }))).resolves.toBe(
+      SEND_MAIL_COMMAND_ANSWER.MAILED,
+    )
 
     expect(ensure).toHaveBeenCalledTimes(1)
     expect(customMail).toHaveBeenCalledTimes(1)
@@ -228,7 +231,7 @@ describe('SendEmailCommand, a sender this server does not know yet', () => {
 
   it('files the sender with the pair and the alias, then files and mails the message', async () => {
     await expect(run(params({ messageUuid: MESSAGE_UUID, senderAlias: 'anna' }))).resolves.toBe(
-      SEND_MAIL_COMMAND_ANSWER,
+      SEND_MAIL_COMMAND_ANSWER.MAILED,
     )
 
     // The pair and nothing else -- no names travel, and none are filed.
@@ -356,7 +359,7 @@ describe('SendEmailCommand, a sender this server does not know yet', () => {
 /**
  * E-024 on the receiving server: the sender's wish travels, the recipient's quiet stays here.
  * A mail goes out only when the sender asked for one and the recipient has not muted the
- * conversation -- and the sending server learns nothing of which it was.
+ * conversation -- and since E-034 the sending server is answered which it was.
  */
 describe('SendEmailCommand, the wish and the quiet', () => {
   const filed = {
@@ -417,7 +420,7 @@ describe('SendEmailCommand, the wish and the quiet', () => {
     recipientHas(MUTED)
 
     await expect(run(params({ messageUuid: MESSAGE_UUID, notify: 'email' }))).resolves.toBe(
-      SEND_MAIL_COMMAND_ANSWER,
+      SEND_MAIL_COMMAND_ANSWER.MUTED,
     )
 
     expect(store).toHaveBeenCalledTimes(1)
@@ -468,16 +471,18 @@ describe('SendEmailCommand, the wish and the quiet', () => {
 
   /**
    * ⛔ What the sending server receives is what the executor makes of execute(): the command
-   * client asks for `data` as well. Measured through the executor, the way the command
-   * resolver answers: one answer for a mail, for none, for a muted recipient and for a message
-   * that could not be filed.
+   * client asks for `data`. Measured through the executor, the way the command resolver
+   * answers (E-034): what became of the mail -- mailed, held back by the quiet, or none asked
+   * for. A message that could not be filed is mailed as before the chat, and says so.
    */
-  it('answers the sending server the same, whether a mail went out or not', async () => {
+  it('answers the sending server what became of the mail', async () => {
     const answers = []
     for (const [mark, notify, files] of [
       [null, 'email', true],
       [null, 'none', true],
       [MUTED, 'email', true],
+      [MUTED, 'none', true],
+      [MUTED, 'letter', true],
       [null, 'none', false],
     ] as [Date | null, string, boolean][]) {
       if (files) {
@@ -488,19 +493,17 @@ describe('SendEmailCommand, the wish and the quiet', () => {
       const command = new SendEmailCommand([
         JSON.stringify(params({ messageUuid: MESSAGE_UUID, notify })),
       ])
-      answers.push(await new CommandExecutor().executeCommand(command))
+      answers.push((await new CommandExecutor().executeCommand(command)).data)
     }
 
-    expect(customMail).toHaveBeenCalledTimes(2)
-    expect(answers).toEqual(
-      Array.from({ length: 4 }, () => ({ success: true, data: SEND_MAIL_COMMAND_ANSWER })),
-    )
+    expect(answers).toEqual(['mailed', 'received', 'muted', 'received', 'mailed', 'mailed'])
+    expect(customMail).toHaveBeenCalledTimes(3)
   })
 })
 
 /**
  * What a mail transport reports names the mail's recipient. It stays on this server: the
- * sending server asks for `data` as well, and gets the same fixed value for both kinds of mail.
+ * sending server asks for `data`, and gets one of three fixed values -- never the report.
  */
 describe('SendEmailCommand, what the sending server is answered', () => {
   const reported = {
@@ -513,7 +516,8 @@ describe('SendEmailCommand, what the sending server is answered', () => {
   const answerTo = (commandParams: object) =>
     new CommandExecutor().executeCommand(new SendEmailCommand([JSON.stringify(commandParams)]))
 
-  it('answers the mail about received Gradido with the fixed value, not with the report', async () => {
+  // The mail about received Gradido is no message: it answers RECEIVED, mailed or not.
+  it('answers the mail about received Gradido with RECEIVED, not with the report', async () => {
     receivedMail.mockImplementation(async () => reported)
 
     const answer = await answerTo(
@@ -521,17 +525,32 @@ describe('SendEmailCommand, what the sending server is answered', () => {
     )
 
     expect(receivedMail).toHaveBeenCalledTimes(1)
-    expect(answer).toEqual({ success: true, data: SEND_MAIL_COMMAND_ANSWER })
+    expect(answer).toEqual({ success: true, data: SEND_MAIL_COMMAND_ANSWER.RECEIVED })
     expect(JSON.stringify(answer)).not.toContain('ben@example.org')
   })
 
-  it('answers a message the same way, whatever the transport reported', async () => {
+  it('answers a mailed message with MAILED, whatever the transport reported', async () => {
     customMail.mockImplementation(async () => reported)
 
     const answer = await answerTo(params({ messageUuid: MESSAGE_UUID }))
 
     expect(customMail).toHaveBeenCalledTimes(1)
-    expect(answer).toEqual({ success: true, data: SEND_MAIL_COMMAND_ANSWER })
+    expect(answer).toEqual({ success: true, data: SEND_MAIL_COMMAND_ANSWER.MAILED })
     expect(JSON.stringify(answer)).not.toContain('ben@example.org')
+  })
+})
+
+/** The answer as the sending server reads it back (E-034). */
+describe('chatMessageMailStateOfAnswer', () => {
+  it('reads MAILED and MUTED as what they say', () => {
+    expect(chatMessageMailStateOfAnswer(SEND_MAIL_COMMAND_ANSWER.MAILED)).toBe('mailed')
+    expect(chatMessageMailStateOfAnswer(SEND_MAIL_COMMAND_ANSWER.MUTED)).toBe('muted')
+  })
+
+  // A server from before P3c answers RECEIVED to every message, or the transport's report.
+  it('reads RECEIVED, and anything it does not know, as nothing known', () => {
+    for (const answer of ['received', 'MAILED', '', null, undefined, true, { accepted: [] }]) {
+      expect(chatMessageMailStateOfAnswer(answer)).toBeNull()
+    }
   })
 })

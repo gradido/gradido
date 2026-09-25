@@ -2,12 +2,14 @@
 import {
   ChatMemberRef,
   ChatMessageDeliveryState,
+  ChatMessageMailState,
   ChatMessageNotify,
   ChatMessageSelect,
   dbEnsureDirectChatConversation,
   dbInsertChatMessage,
   dbSelectChatConversationMember,
   dbUpdateChatMessageDelivery,
+  dbUpdateChatMessageMailState,
 } from 'database'
 import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
@@ -89,9 +91,10 @@ export async function storeChatMessage(
 }
 
 /**
- * Records whether the own copy of a message reached the other server, and when that was
- * tried. Hands back the moment it recorded, or null when nothing was recorded -- so the caller
- * can tell what the row says now.
+ * Records whether the own copy of a message reached the other server, when that was tried, and
+ * what the other server said became of the mail (E-034; null where it said nothing). Hands back
+ * the moment it recorded, or null when nothing was recorded -- so the caller can tell what the
+ * row says now.
  *
  * ⛔ Never throws, like storeChatMessage. It runs after the command has gone out: a throw here
  * would turn a delivered message into an error for the person who sent it, or replace the
@@ -100,11 +103,17 @@ export async function storeChatMessage(
 export async function recordChatMessageDelivery(
   messageId: number,
   deliveryState: ChatMessageDeliveryState,
+  mailState: ChatMessageMailState | null,
 ): Promise<Date | null> {
   const logger = createLogger()
   const attemptedAt = new Date()
   try {
-    const updated = await dbUpdateChatMessageDelivery(messageId, deliveryState, attemptedAt)
+    const updated = await dbUpdateChatMessageDelivery(
+      messageId,
+      deliveryState,
+      attemptedAt,
+      mailState,
+    )
     if (!updated.success) {
       logger.warn(
         `chat message delivery not recorded: id=${messageId} state=${deliveryState} (${updated.error.message})`,
@@ -118,6 +127,36 @@ export async function recordChatMessageDelivery(
       `chat message delivery not recorded: id=${messageId} state=${deliveryState} (${databaseErrorCode(error)})`,
     )
     return null
+  }
+}
+
+/**
+ * Records what became of the mail about a message within this community (E-034), on the row
+ * both members read. Hands back whether it was recorded, so the caller can tell what the row
+ * says now.
+ *
+ * ⛔ Never throws, like storeChatMessage. It runs after the message is filed and its mail has
+ * gone out: a throw here would turn a sent message into an error for the person who sent it.
+ */
+export async function recordChatMessageMailState(
+  messageId: number,
+  mailState: ChatMessageMailState,
+): Promise<boolean> {
+  const logger = createLogger()
+  try {
+    const updated = await dbUpdateChatMessageMailState(messageId, mailState)
+    if (!updated.success) {
+      logger.warn(
+        `chat mail state not recorded: id=${messageId} state=${mailState} (${updated.error.message})`,
+      )
+      return false
+    }
+    return true
+  } catch (error) {
+    logger.error(
+      `chat mail state not recorded: id=${messageId} state=${mailState} (${databaseErrorCode(error)})`,
+    )
+    return false
   }
 }
 
@@ -160,20 +199,30 @@ export const chatMessageNotify = (
 ): ChatMessageNotify => (conversationExists ? requested : ChatMessageNotify.EMAIL)
 
 /**
- * Whether a message goes out as a mail as well.
+ * What becomes of the mail about a message, decided on the recipient's server: MAILED -- the
+ * one answer that sends a mail --, MUTED, or null where no mail was asked for.
  *
- * A chat message only when the sender asked for one AND the recipient has not muted the
- * conversation. Mute beats the tick (E-024) -- the importance is the sender's to judge, the
- * quiet the recipient's to ask for, and they meet here, on the recipient's server.
+ * A chat message is mailed only when the sender asked for one AND the recipient has not muted
+ * the conversation. Mute beats the tick (E-024) -- the importance is the sender's to judge, the
+ * quiet the recipient's to ask for, and they meet here. The sender is told which it was (E-034,
+ * A2): mailed, or muted.
  *
- * A letter -- a message written in the form "send an e-mail" -- always (E-034, A3): the form
- * promises a mail, and the quiet is about chat messages.
+ * A letter -- a message written in the form "send an e-mail" -- is always mailed (E-034, A3):
+ * the form promises a mail, and the quiet is about chat messages.
  */
-export const chatMailWanted = (
+export const chatMessageMailState = (
   notify: ChatMessageNotify,
   mutedAt: Date | null,
   letter: boolean,
-): boolean => letter || (notify === ChatMessageNotify.EMAIL && mutedAt === null)
+): ChatMessageMailState | null => {
+  if (letter) {
+    return ChatMessageMailState.MAILED
+  }
+  if (notify !== ChatMessageNotify.EMAIL) {
+    return null
+  }
+  return mutedAt === null ? ChatMessageMailState.MAILED : ChatMessageMailState.MUTED
+}
 
 /**
  * What a command from the form "send an e-mail" carries as its `notify` (E-034, A3): the

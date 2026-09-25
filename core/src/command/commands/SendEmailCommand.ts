@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import {
+  ChatMessageMailState,
   User as DbUser,
   dbInsertForeignUser,
   dbUpdateForeignUserAlias,
@@ -12,7 +13,7 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { sendCustomEmail, sendTransactionReceivedEmail } from '../../emails/sendEmailVariants'
 import {
   CHAT_MESSAGE_NOTIFY_LETTER,
-  chatMailWanted,
+  chatMessageMailState,
   databaseErrorCode,
   parseChatMessageNotify,
   readChatMemberMutedAt,
@@ -24,16 +25,52 @@ const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.command.commands.SendEmailCommand.${method}`)
 
 /**
- * What the command answers -- for a message and for the mail about received Gradido alike,
- * whether a mail went out or not.
+ * What the command answers. It travels back: the sending server's command client asks for
+ * `data`, and `data` is what execute() returns.
  *
- * ⛔ The answer travels back: the sending server's command client asks for `data`, and it is
- * what execute() returns. So it must not depend on the mail. The transport's result would tell
- * the sending server whether the recipient muted the conversation (E-024: the sender learns
- * nothing about it), and more about the mail than is its business. What the transport reported
- * stays in this server's debug log.
+ * ⛔ The rule since E-034: what became of the mail about a message travels back -- MAILED, or
+ * MUTED where the sender asked for a mail and the recipient has muted the conversation -- so
+ * that the sender learns whether a mail went out, and if not, why. What the mail transport
+ * reported does NOT travel: it names the recipient's address and says more about the mail than
+ * is the sending server's business. It stays in this server's debug log. A message sent without
+ * a wish for a mail, and the mail about received Gradido, answer RECEIVED.
  */
-export const SEND_MAIL_COMMAND_ANSWER = 'received'
+export const SEND_MAIL_COMMAND_ANSWER = {
+  MAILED: 'mailed',
+  MUTED: 'muted',
+  RECEIVED: 'received',
+} as const
+export type SendMailCommandAnswer =
+  (typeof SEND_MAIL_COMMAND_ANSWER)[keyof typeof SEND_MAIL_COMMAND_ANSWER]
+
+const sendMailCommandAnswerFor = (
+  mailState: ChatMessageMailState | null,
+): SendMailCommandAnswer => {
+  switch (mailState) {
+    case ChatMessageMailState.MAILED:
+      return SEND_MAIL_COMMAND_ANSWER.MAILED
+    case ChatMessageMailState.MUTED:
+      return SEND_MAIL_COMMAND_ANSWER.MUTED
+    default:
+      return SEND_MAIL_COMMAND_ANSWER.RECEIVED
+  }
+}
+
+/**
+ * The answer as the sending server reads it: the mail state it names, or null -- for RECEIVED,
+ * and for anything else, such as what a server from before P3c answers: RECEIVED to every
+ * message since P3a, the transport's report before that.
+ */
+export const chatMessageMailStateOfAnswer = (answer: unknown): ChatMessageMailState | null => {
+  switch (answer) {
+    case SEND_MAIL_COMMAND_ANSWER.MAILED:
+      return ChatMessageMailState.MAILED
+    case SEND_MAIL_COMMAND_ANSWER.MUTED:
+      return ChatMessageMailState.MUTED
+    default:
+      return null
+  }
+}
 
 export interface SendEmailCommandParams {
   mailType: string
@@ -168,23 +205,26 @@ export class SendEmailCommand extends BaseCommand<
         // the conversation (E-024), read here, on the recipient's own server; a letter from the
         // form whatever the quiet (E-034). A message that could not be filed is mailed as before
         // the chat: the mail is then all the recipient gets of it, and without the conversation
-        // there is no mute mark to read.
+        // there is no mute mark to read. The sender is answered which it was (E-034).
         const mutedAt = stored
           ? await readChatMemberMutedAt(stored.conversationId, recipient)
           : null
-        if (!stored || chatMailWanted(notify, mutedAt, letter)) {
+        const mailState = stored
+          ? chatMessageMailState(notify, mutedAt, letter)
+          : ChatMessageMailState.MAILED
+        if (mailState === ChatMessageMailState.MAILED) {
           const emailResult = await sendCustomEmail(emailParams)
           methodLogger.debug(`mailed: ${this.getEmailResult(emailResult)}`)
         } else {
-          methodLogger.debug(`not mailed: message_uuid=${stored.messageUuid}`)
+          methodLogger.debug(`not mailed: message_uuid=${stored?.messageUuid}`)
         }
-        result = SEND_MAIL_COMMAND_ANSWER
+        result = sendMailCommandAnswerFor(mailState)
         break
       }
       case 'sendTransactionReceivedEmail': {
         const emailResult = await sendTransactionReceivedEmail(emailParams)
         methodLogger.debug(`mailed: ${this.getEmailResult(emailResult)}`)
-        result = SEND_MAIL_COMMAND_ANSWER
+        result = SEND_MAIL_COMMAND_ANSWER.RECEIVED
         break
       }
       default:

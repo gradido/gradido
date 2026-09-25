@@ -1140,7 +1140,9 @@ describe('sendEmail', () => {
         errors: undefined,
       })
       expect(mailed.mock.calls.map(([mail]) => mail.email)).toEqual(['peter@lustig.de'])
-      expect((await messages()).map((m) => m.body)).toContain('During the quiet.')
+      // E-034, A2: and the row says it went out.
+      const [letter] = (await messages()).filter((m) => m.body === 'During the quiet.')
+      expect(letter.mailState).toBe('mailed')
     })
   })
 
@@ -1163,7 +1165,7 @@ describe('sendEmail', () => {
     let inFlight: (string | undefined)[] = []
 
     /** The other community: opens each command with its key and answers as it is told. */
-    const peerAnswers = (answer: { success: boolean; error?: string }) => {
+    const peerAnswers = (answer: { success: boolean; data?: string | null; error?: string }) => {
       rawRequest = jest
         .spyOn(GraphQLClient.prototype, 'rawRequest')
         // CommandClient.sendCommand calls rawRequest(document, variables) -- two arguments,
@@ -1247,7 +1249,7 @@ describe('sendEmail', () => {
     })
 
     it('files its own copy under the uuid the command carries, and marks it delivered', async () => {
-      peerAnswers({ success: true })
+      peerAnswers({ success: true, data: 'mailed' })
 
       await expect(sendToPeer(peerMember, 'Across the border')).resolves.toMatchObject({
         data: { sendEmail: true },
@@ -1279,6 +1281,8 @@ describe('sendEmail', () => {
         subject: SUBJECT,
         notify: 'email',
         deliveryState: 'delivered',
+        // E-034, A2: what the other server answered became of the letter.
+        mailState: 'mailed',
       })
       expect(ownCopy.lastAttemptAt).toBeInstanceOf(Date)
       // The own copy comes first, as not yet delivered, and only the answer delivers it.

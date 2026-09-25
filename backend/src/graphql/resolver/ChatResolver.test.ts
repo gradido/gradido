@@ -414,6 +414,8 @@ describe('sendChatMessage within the community', () => {
       body: 'Hello, Räuber.',
       deliveryState: 'DELIVERED',
       notify: 'EMAIL',
+      // E-034: the mail went out.
+      mailState: 'MAILED',
     })
     const [filed] = (await pageWith(ref(raeuber))).messages
     expect(filed).toEqual(copy)
@@ -427,6 +429,7 @@ describe('sendChatMessage within the community', () => {
       mine: false,
       deliveryState: null,
       notify: null,
+      mailState: null,
     })
     await loginAs('peter@lustig.de')
   })
@@ -434,7 +437,7 @@ describe('sendChatMessage within the community', () => {
   it('mails no later message sent without a mail, and the copy says so', async () => {
     const copy = await said(ref(raeuber), 'No need to answer.', 'NONE')
 
-    expect(copy).toMatchObject({ notify: 'NONE', deliveryState: 'DELIVERED' })
+    expect(copy).toMatchObject({ notify: 'NONE', deliveryState: 'DELIVERED', mailState: null })
     expect(mailed()).toEqual([])
   })
 
@@ -442,6 +445,7 @@ describe('sendChatMessage within the community', () => {
     const copy = await said(ref(raeuber), 'Please answer.', 'EMAIL')
 
     expect(copy.notify).toBe('EMAIL')
+    expect(copy.mailState).toBe('MAILED')
     expect(mailed()).toEqual([
       expect.objectContaining({
         email: 'raeuber@hotzenplotz.de',
@@ -505,20 +509,32 @@ describe('a recipient who muted the conversation', () => {
   beforeEach(() => clearMails())
   afterAll(() => resetToken())
 
-  it('gets the message filed and no mail, and the sender learns nothing of it', async () => {
+  // E-034, A2: the sender learns whether the mail went out, and if not, why. This test held the
+  // opposite until P3c ("the sender learns nothing of it").
+  it('gets the message filed and no mail, and the sender learns that the quiet held it back', async () => {
     await loginAs('bob@baumeister.de')
     const toMuted = await said(ref(raeuber), 'Are you there?', 'EMAIL')
     const toOther = await said(ref(bibi), 'Are you there?', 'EMAIL')
 
     // One mail, to the one who did not mute.
     expect(mailed().map((mail) => mail.email)).toEqual(['bibi@bloxberg.de'])
-    // Both copies say the same: delivered, a mail asked for. Nothing says what became of it.
-    const told = ({ id, messageUuid, conversationId, createdAt, ...rest }: any) => rest
-    expect(told(toMuted)).toEqual(told(toOther))
-    expect(toMuted).toMatchObject({ deliveryState: 'DELIVERED', notify: 'EMAIL' })
+    expect(toMuted).toMatchObject({
+      deliveryState: 'DELIVERED',
+      notify: 'EMAIL',
+      mailState: 'MUTED',
+    })
+    expect(toOther).toMatchObject({
+      deliveryState: 'DELIVERED',
+      notify: 'EMAIL',
+      mailState: 'MAILED',
+    })
+    // The row says it too, to bob, and to nobody else.
+    const filed = (await pageWith(ref(raeuber))).messages.find((m: any) => m.id === toMuted.id)
+    expect(filed.mailState).toBe('MUTED')
 
     await loginAs('raeuber@hotzenplotz.de')
-    expect((await pageWith(ref(bob))).messages.map((m: any) => m.body)).toContain('Are you there?')
+    const received = (await pageWith(ref(bob))).messages.find((m: any) => m.id === toMuted.id)
+    expect(received).toMatchObject({ body: 'Are you there?', mine: false, mailState: null })
   })
 
   // E-034, A3: the quiet is about chat messages. The form writes letters, which are mailed.
@@ -527,6 +543,10 @@ describe('a recipient who muted the conversation', () => {
     await write(raeuber, SUBJECT, 'A letter, in spite of the quiet.')
 
     expect(mailed().map((mail) => mail.email)).toEqual(['raeuber@hotzenplotz.de'])
+    const [letter] = (await pageWith(ref(raeuber))).messages.filter(
+      (m: any) => m.body === 'A letter, in spite of the quiet.',
+    )
+    expect(letter.mailState).toBe('MAILED')
     await loginAs('raeuber@hotzenplotz.de')
     expect((await pageWith(ref(bob))).messages.map((m: any) => m.body)).toContain(
       'A letter, in spite of the quiet.',
@@ -676,7 +696,7 @@ describe('sendChatMessage to a member of another community', () => {
   // What this server had filed for each command while it was on its way.
   let inFlight: (string | undefined)[] = []
 
-  const peerAnswers = (answer: { success: boolean; error?: string }) => {
+  const peerAnswers = (answer: { success: boolean; data?: string | null; error?: string }) => {
     rawRequest = jest
       .spyOn(GraphQLClient.prototype, 'rawRequest')
       // CommandClient.sendCommand calls rawRequest(document, variables).
@@ -766,11 +786,17 @@ describe('sendChatMessage to a member of another community', () => {
   })
 
   it('sends the first message as a command that asks for nothing less than a mail, and hands back the copy DELIVERED', async () => {
-    peerAnswers({ success: true })
+    peerAnswers({ success: true, data: 'mailed' })
 
     const copy = await said(peerRef, 'Across the border', 'NONE')
 
-    expect(copy).toMatchObject({ mine: true, deliveryState: 'DELIVERED', notify: 'EMAIL' })
+    expect(copy).toMatchObject({
+      mine: true,
+      deliveryState: 'DELIVERED',
+      notify: 'EMAIL',
+      // E-034: what the other server answered became of the mail.
+      mailState: 'MAILED',
+    })
     // The first message is mailed over there: the command carries no wish at all.
     expect(commands).toEqual([
       {
@@ -801,6 +827,26 @@ describe('sendChatMessage to a member of another community', () => {
     expect(commands[0].messageUuid).toBe(copy.messageUuid)
   })
 
+  // E-034, A2: the other server's quiet held the mail back, and says so.
+  it('notes MUTED where the other server answers that the quiet held the mail back', async () => {
+    peerAnswers({ success: true, data: 'muted' })
+
+    const copy = await said(peerRef, 'Are you there?', 'EMAIL')
+
+    expect(copy).toMatchObject({ deliveryState: 'DELIVERED', notify: 'EMAIL', mailState: 'MUTED' })
+    const filed = (await pageWith(peerRef)).messages.find((m: any) => m.id === copy.id)
+    expect(filed.mailState).toBe('MUTED')
+  })
+
+  // A server from before P3c answers RECEIVED to every message: nothing known of the mail.
+  it('notes nothing of the mail where the other server answers RECEIVED', async () => {
+    peerAnswers({ success: true, data: 'received' })
+
+    const copy = await said(peerRef, 'From an older server', 'EMAIL')
+
+    expect(copy).toMatchObject({ deliveryState: 'DELIVERED', notify: 'EMAIL', mailState: null })
+  })
+
   // E-019: a failed delivery is no error for the sender -- the copy says it, under the bubble.
   it('hands back the copy FAILED when the other community refuses it, without an error', async () => {
     peerAnswers({ success: false, error: 'Recipient user not found' })
@@ -809,7 +855,12 @@ describe('sendChatMessage to a member of another community', () => {
 
     expect(res.errors).toBeUndefined()
     const copy = res.data.sendChatMessage
-    expect(copy).toMatchObject({ mine: true, deliveryState: 'FAILED', body: 'Refused over there' })
+    expect(copy).toMatchObject({
+      mine: true,
+      deliveryState: 'FAILED',
+      body: 'Refused over there',
+      mailState: null,
+    })
     expect(inFlight).toEqual(['pending'])
     // The row says the same.
     const filed = (await pageWith(peerRef)).messages.find((m: any) => m.id === copy.id)
