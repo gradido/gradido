@@ -208,7 +208,8 @@
     },
     "search": "Αναζήτηση επαφής …",
     "sendGradido": "Αποστολή Gradido",
-    "since": "Πρώτη επαφή: {date}"
+    "since": "Πρώτη επαφή: {date}",
+    "unreadChatMessages": "{n} νέο μήνυμα | {n} νέα μηνύματα"
   },
   "contribution": {
     "activity": "Δραστηριότητα",

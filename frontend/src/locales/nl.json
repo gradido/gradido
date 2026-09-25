@@ -208,7 +208,8 @@
     },
     "search": "Contact zoeken …",
     "sendGradido": "Gradido versturen",
-    "since": "Contact sinds {date}"
+    "since": "Contact sinds {date}",
+    "unreadChatMessages": "{n} nieuw bericht | {n} nieuwe berichten"
   },
   "contribution": {
     "activity": "Activiteit",

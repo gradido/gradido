@@ -285,6 +285,29 @@ describe('ContactsPanel', () => {
    * of the switch included, so flicking it changes the people and not their faces (Bernd,
    * 11.09.2026). One constant for all of them; each list's spec proves its own half reads it.
    */
+  /**
+   * The gold dot at a person who wrote something not read yet (mockup V03): after the date,
+   * inside the row button -- so the row's name carries the sentence -- and only there.
+   */
+  it('puts the dot after the date, inside the row button, where something waits unread', async () => {
+    givenPage([{ ...person(1), unreadChatMessages: 3 }, person(2)])
+    mountPanel()
+    await nextTick()
+
+    const button = wrapper.find('[data-test="contacts-panel-open-id-1"]')
+    const dot = button.find('[data-test="chat-unread-contact-dot"]')
+    expect(dot.exists()).toBe(true)
+    expect(dot.text()).toBe('contacts.unreadChatMessages')
+    const parts = [...button.element.children]
+    expect(parts.at(-1)).toBe(dot.element)
+    expect(parts.at(-2).classList.contains('contacts-panel-date')).toBe(true)
+    expect(
+      wrapper
+        .find('[data-test="contacts-panel-open-id-2"] [data-test="chat-unread-contact-dot"]')
+        .exists(),
+    ).toBe(false)
+  })
+
   it('draws each face at the size every list of people uses', async () => {
     givenPage([person(1)])
     mountPanel()

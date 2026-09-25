@@ -410,7 +410,7 @@ describe('useChatUpdates', () => {
     })
 
     // E-023: the list's order and numbers are the server's -- asked again, not kept in step here.
-    it('asks the contact list again when messages arrived, and only then', async () => {
+    it('asks the contact list again when messages arrived, not while nothing moved', async () => {
       server.answer(update({ latestId: 10 }), update({ latestId: 10 }))
       startChatUpdates(server.client)
       await vi.advanceTimersByTimeAsync(0)
@@ -421,6 +421,58 @@ describe('useChatUpdates', () => {
       await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
       expect(refreshContactsPanel).toHaveBeenCalledTimes(1)
       expect(refreshContactsPanel).toHaveBeenCalledWith(server.client)
+    })
+  })
+
+  /**
+   * The dots in the contact list follow the server's numbers, and a number can move without
+   * a message arriving: a conversation was read -- here, or on another device. Then the list
+   * is asked again, as for an arrival; the wallet does not take a dot away on its own.
+   */
+  describe('the contact list when something was read', () => {
+    it('asks the list again when the figure moved without a message', async () => {
+      server.answer(update({ latestId: 10, unread: 2 }), update({ latestId: 10, unread: 2 }))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      expect(refreshContactsPanel).not.toHaveBeenCalled()
+
+      server.answer(update({ latestId: 10, unread: 1 }))
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      expect(chatUnreadConversations.value).toBe(1)
+      expect(refreshContactsPanel).toHaveBeenCalledTimes(1)
+      expect(refreshContactsPanel).toHaveBeenCalledWith(server.client)
+    })
+
+    // What the thread does after its read pointer went out: ask now, and the smaller figure
+    // brings the list along -- the dot at the person goes within a second, not with the next
+    // message.
+    it('asks the list after a question out of turn brought the smaller figure', async () => {
+      server.answer(update({ latestId: 10, unread: 1 }))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+
+      server.answer(update({ latestId: 10, unread: 0 }))
+      await pollChatNow()
+      expect(chatUnreadConversations.value).toBe(0)
+      expect(refreshContactsPanel).toHaveBeenCalledTimes(1)
+    })
+
+    // The first answer only says where one stands, and the list was loaded a moment ago --
+    // with the layout, or with the next member after a logout.
+    it('does not ask the list for a first answer, however high its figure', async () => {
+      server.answer(update({ latestId: 10, unread: 3 }))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      expect(chatUnreadConversations.value).toBe(3)
+      expect(refreshContactsPanel).not.toHaveBeenCalled()
+
+      stopChatUpdates()
+      server.answer(update({ latestId: 10, unread: 5 }))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      expect(chatUnreadConversations.value).toBe(5)
+      expect(refreshContactsPanel).not.toHaveBeenCalled()
     })
   })
 

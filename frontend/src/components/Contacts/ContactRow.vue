@@ -22,24 +22,29 @@
         data-test="contact-row-open"
         @click="emit('open', contact)"
       >
-        <span class="fw-bold d-block">
-          <name
-            :linked-user="contact.user"
-            :with-community="false"
-            :opens="false"
-            font-color="text-dark"
-          />
+        <span class="contact-row-text">
+          <span class="fw-bold d-block">
+            <name
+              :linked-user="contact.user"
+              :with-community="false"
+              :opens="false"
+              font-color="text-dark"
+            />
+          </span>
+          <!-- The community in a line of its own (mockup V02) -- not behind the name, where
+               the booking row puts it for a member of ANOTHER community only. -->
+          <span
+            v-if="contact.user.communityName"
+            class="small text-muted d-block"
+            data-test="contact-community"
+          >
+            {{ contact.user.communityName }}
+          </span>
+          <span class="small text-muted d-block" data-test="contact-meta">{{ meta }}</span>
         </span>
-        <!-- The community in a line of its own (mockup V02) -- not behind the name, where
-             the booking row puts it for a member of ANOTHER community only. -->
-        <span
-          v-if="contact.user.communityName"
-          class="small text-muted d-block"
-          data-test="contact-community"
-        >
-          {{ contact.user.communityName }}
-        </span>
-        <span class="small text-muted d-block" data-test="contact-meta">{{ meta }}</span>
+        <!-- At the end of the row, as in mockup V03, and inside the button: its sentence
+             becomes part of the row's name. -->
+        <chat-unread-dot :count="contact.unreadChatMessages" class="ms-2" />
       </button>
     </BCol>
     <BCol cols="auto">
@@ -53,15 +58,18 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { BCol, BRow } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
+import ChatUnreadDot from '@/components/Chat/ChatUnreadDot.vue'
 import FavoriteHeart from '@/components/FavoriteHeart.vue'
 import Name from '@/components/TransactionRows/Name'
 import { contactDisplay, contactMeta } from '@/components/Contacts/contactDisplay'
 import { LIST_AVATAR_SIZE } from '@/constants'
 
 /**
- * One person in the contact list: face, name, how long and how often, and the heart.
+ * One person in the contact list: face, name, how long and how often, the heart -- and the
+ * gold dot while a message from them waits unread.
  *
- * `contact` is what contactListQuery delivers: { user, firstAt, lastAt, bookings }. The
+ * `contact` is what contactListQuery delivers: { user, firstAt, lastAt, bookings,
+ * unreadChatMessages }. The
  * user is the booking row's shape, so face and name are drawn by the same helpers the
  * booking row uses -- the list cannot come to name somebody differently.
  */
@@ -100,15 +108,23 @@ const avatar = computed(() => contactDisplay(props.contact, { zoomable: true }).
 }
 
 /* A button that looks like the block of text it replaced: no chrome, full width, left
-   aligned -- what changes is that it is reachable by keyboard and announces itself. */
+   aligned -- what changes is that it is reachable by keyboard and announces itself. A row of
+   two since the chat: the text, and the dot at its end while something waits unread. */
 .contact-row-open {
-  display: block;
+  display: flex;
+  align-items: center;
   width: 100%;
   border: none;
   background: transparent;
   padding: 0;
   text-align: left;
   color: inherit;
+  min-width: 0;
+}
+
+.contact-row-text {
+  display: block;
+  flex: 1;
   min-width: 0;
 }
 </style>

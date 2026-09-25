@@ -187,9 +187,9 @@ export const searchContactsPanel = (apolloClient, search) => {
 
 /**
  * The contact list may have gained somebody, or its order changed -- called where the layout
- * learns that a transfer went through, and by the chat's beat when messages arrived
- * (useChatUpdates): the server orders the list by the last exchange and counts what is unread,
- * so the wallet asks again rather than keeping a book of its own.
+ * learns that a transfer went through, and by the chat's beat when messages arrived or were
+ * read (useChatUpdates): the server orders the list by the last exchange and counts what is
+ * unread, so the wallet asks again rather than keeping a book of its own.
  *
  * ⛔ Marks first, fetches second, and the mark is what makes this impossible to lose. With
  * no panel on screen there is nothing to fetch FOR, but the slot is now due, so the next
@@ -239,7 +239,7 @@ const refreshListeners = new Set()
 
 /**
  * Calls `listener` whenever `refreshContactsPanel` runs: a transfer went through, or chat
- * messages arrived. Returns the function that ends it.
+ * messages arrived or were read. Returns the function that ends it.
  */
 export const onContactListRefresh = (listener) => {
   refreshListeners.add(listener)

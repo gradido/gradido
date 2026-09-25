@@ -97,6 +97,9 @@
             <span class="contacts-panel-date">
               {{ $d(new Date(row.contact.lastAt), 'short') }}
             </span>
+            <!-- After the date, as in mockup V03; inside the button, so the row's name says
+                 it too. -->
+            <chat-unread-dot :count="row.contact.unreadChatMessages" />
           </button>
           <favorite-heart :member="row.contact.user" />
         </div>
@@ -121,6 +124,7 @@ import { useI18n } from 'vue-i18n'
 import { useApolloClient } from '@vue/apollo-composable'
 import { BFormInput, BSpinner } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
+import ChatUnreadDot from '@/components/Chat/ChatUnreadDot.vue'
 import ContactTiles from '@/components/Contacts/ContactTiles.vue'
 import ContactsEmpty from '@/components/Contacts/ContactsEmpty.vue'
 import ContactWindow from '@/components/Contacts/ContactWindow.vue'

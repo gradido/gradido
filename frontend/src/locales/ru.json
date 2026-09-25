@@ -208,7 +208,8 @@
     },
     "search": "Поиск контакта …",
     "sendGradido": "Отправить Gradido",
-    "since": "Первый контакт: {date}"
+    "since": "Первый контакт: {date}",
+    "unreadChatMessages": "{n} новое сообщение | {n} новых сообщения | {n} новых сообщений"
   },
   "contribution": {
     "activity": "Деятельность",

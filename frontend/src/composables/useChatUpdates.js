@@ -115,12 +115,17 @@ const handOn = (chatMessages) => {
  */
 const cycle = async (mine) => {
   let arrived = false
+  let moved = false
   try {
     let rounds = 0
     let more = false
     do {
       const update = await ask(beat.marker)
       if (mine !== generation) return
+      // The number moved without anything arriving: a conversation was read -- here, after
+      // `pollChatNow`, or on another device -- and a dot in the contact list goes with it. The
+      // first answer only says where one stands; the list was loaded a moment ago.
+      if (beat.marker !== null && update.unreadConversations !== unread.value) moved = true
       beat.marker = update.latestId
       unread.value = update.unreadConversations
       if (update.messages.length > 0) {
@@ -135,9 +140,9 @@ const cycle = async (mine) => {
     if (mine !== generation) return
     beat.delay = Math.min(beat.delay * 2, CHAT_POLL_BACKOFF_MAX_MS)
   }
-  // Something arrived: the contact list, its order and its numbers, are the server's (E-023) --
-  // asked again rather than kept in step here.
-  if (arrived && mine === generation) {
+  // Something arrived, or was read: the contact list, its order and its dots, are the server's
+  // (E-023) -- asked again rather than kept in step here.
+  if ((arrived || moved) && mine === generation) {
     refreshContactsPanel(beat.client)
   }
 }

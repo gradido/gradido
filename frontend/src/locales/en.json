@@ -208,7 +208,8 @@
     },
     "search": "Search contacts …",
     "sendGradido": "Send Gradido",
-    "since": "Contact since {date}"
+    "since": "Contact since {date}",
+    "unreadChatMessages": "{n} new message | {n} new messages"
   },
   "contribution": {
     "activity": "Activity",

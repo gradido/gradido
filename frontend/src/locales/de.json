@@ -208,7 +208,8 @@
     },
     "search": "Kontakt suchen …",
     "sendGradido": "Gradido senden",
-    "since": "Kontakt seit {date}"
+    "since": "Kontakt seit {date}",
+    "unreadChatMessages": "{n} neue Nachricht | {n} neue Nachrichten"
   },
   "contribution": {
     "activity": "Tätigkeit",

@@ -208,7 +208,8 @@
     },
     "search": "Kişi ara …",
     "sendGradido": "Gradido gönder",
-    "since": "{date} tarihinden beri kişi"
+    "since": "{date} tarihinden beri kişi",
+    "unreadChatMessages": "{n} yeni mesaj"
   },
   "contribution": {
     "activity": "Hizmet",
