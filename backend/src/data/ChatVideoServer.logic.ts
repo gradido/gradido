@@ -56,6 +56,15 @@ export interface ChatVideoServerList {
  */
 export const CHAT_VIDEO_CHECK_INTERVAL_MS = 600_000
 
+/**
+ * How many video rooms one HTTP request may ask for, over every alias and every operation it
+ * carries -- counted in RequestBudget (server/context.ts): nothing in a single call keeps a
+ * document from repeating the field. The wallet asks for one room per call a member starts.
+ * Five rather than one for the reason MEMBER_AVATARS_FULL_MAX_PER_REQUEST gives: a limit that
+ * ordinary use can reach gets raised by whoever hits it, without the reasoning being read again.
+ */
+export const CHAT_VIDEO_ROOMS_MAX_PER_REQUEST = 5
+
 /** How long the random part of a room name is: 12 of 36 characters, about 62 bits. */
 export const CHAT_VIDEO_ROOM_RANDOM_LENGTH = 12
 

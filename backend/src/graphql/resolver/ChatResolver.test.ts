@@ -18,7 +18,11 @@ import { GraphQLError } from 'graphql'
 import { GraphQLClient } from 'graphql-request'
 import { CommandJwtPayloadType, createKeyPair, verifyAndDecrypt } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
+import { chatVideoServerPool } from '@/apis/jitsi/chatVideoServerPool'
+import { probeJitsiServer } from '@/apis/jitsi/jitsiProbe'
+import { JitsiProbeError } from '@/apis/jitsi/jitsiProbe.logic'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { CHAT_VIDEO_SERVERS_DEFAULT } from '@/data/ChatVideoServers.default'
 import { userFactory } from '@/seeds/factory/user'
 import {
   login,
@@ -27,7 +31,12 @@ import {
   sendEmail,
   setChatConversationMuted,
 } from '@/seeds/graphql/mutations'
-import { chatMessagesWithMember, contactList, newChatMessagesSince } from '@/seeds/graphql/queries'
+import {
+  chatMessagesWithMember,
+  chatVideoRoom,
+  contactList,
+  newChatMessagesSince,
+} from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
@@ -46,6 +55,21 @@ jest.mock('core', () => {
     sendCustomEmail: jest.fn(async () => ({ accepted: ['watched'] })),
   }
 })
+
+// The video servers are not asked: the probe answers as each test says. The pool is the one of
+// the process, and nothing starts its timer -- the tests check the servers with refresh().
+jest.mock('@/apis/jitsi/jitsiProbe', () => ({ probeJitsiServer: jest.fn() }))
+const probe = probeJitsiServer as jest.MockedFunction<typeof probeJitsiServer>
+
+/** The video servers after a check in which every one passed -- or none. */
+const videoServersChecked = async (pass: boolean): Promise<void> => {
+  probe.mockImplementation(async (server) =>
+    pass
+      ? { success: true, value: { latencyMs: 50 } }
+      : { success: false, error: new JitsiProbeError(server.host, 'UNREACHABLE', 'test') },
+  )
+  await chatVideoServerPool.refresh()
+}
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 // The messages are written through sendEmail, as a member writes them; no mail has to go out.
@@ -673,6 +697,13 @@ describe('an unconfirmed account past its grace period', () => {
   it('may still mute a conversation', async () => {
     expect(await mute(ref(peter), true)).toBe(true)
   })
+
+  it('may not ask for a video room either -- also while servers answer', async () => {
+    await videoServersChecked(true)
+    expect((await query({ query: chatVideoRoom })).errors).toEqual([
+      new GraphQLError('401 Unauthorized'),
+    ])
+  })
 })
 
 /**
@@ -1178,6 +1209,71 @@ describe('newChatMessagesSince', () => {
       const six: any = await query({ query: updates(6) })
       expect(six.errors?.map((error: any) => error.message)).toEqual([
         'Too many chat updates requested at once',
+      ])
+    })
+  })
+})
+
+/**
+ * V1: a fresh video room on a server that passed the last check. The servers are the default
+ * list (no CHAT_VIDEO_SERVERS here); the probe answers as each test says.
+ */
+describe('chatVideoRoom', () => {
+  describe('without a login', () => {
+    beforeAll(async () => {
+      resetToken()
+      await videoServersChecked(true)
+    })
+
+    it('answers 401', async () => {
+      expect(await query({ query: chatVideoRoom })).toEqual(
+        expect.objectContaining({ errors: [new GraphQLError('401 Unauthorized')] }),
+      )
+    })
+  })
+
+  describe('logged in', () => {
+    beforeAll(() => loginAs('bibi@bloxberg.de'))
+    afterAll(() => resetToken())
+
+    it('hands out a room on a server of the list, with its host and who runs it', async () => {
+      await videoServersChecked(true)
+      const res: any = await query({ query: chatVideoRoom })
+      expect(res.errors).toBeUndefined()
+      const { url, host, operator } = res.data.chatVideoRoom
+      const entry = CHAT_VIDEO_SERVERS_DEFAULT.find(
+        (server) => server.baseUrl === `https://${host}/`,
+      )
+      expect(entry).toBeDefined()
+      expect(url).toMatch(new RegExp(`^https://${host.replace(/\./g, '\\.')}/[a-z0-9]{12}$`))
+      expect(operator).toBe(entry?.operator)
+    })
+
+    it('names another room on every call', async () => {
+      await videoServersChecked(true)
+      const first: any = await query({ query: chatVideoRoom })
+      const second: any = await query({ query: chatVideoRoom })
+      expect(first.data.chatVideoRoom.url).not.toBe(second.data.chatVideoRoom.url)
+    })
+
+    it('answers CHAT_VIDEO_NO_SERVER where no server passed the last check', async () => {
+      await videoServersChecked(false)
+      const res: any = await query({ query: chatVideoRoom })
+      expect(res.errors?.map((error: any) => error.message)).toEqual(['CHAT_VIDEO_NO_SERVER'])
+    })
+
+    // ⛔ One call cannot limit how often a document repeats the field under aliases -- the
+    // request's budget does (CHAT_VIDEO_ROOMS_MAX_PER_REQUEST).
+    it('answers five in one request, and refuses the sixth', async () => {
+      await videoServersChecked(true)
+      const rooms = (count: number) =>
+        `query { ${Array.from({ length: count }, (_, n) => `room${n}: chatVideoRoom { url }`).join(' ')} }`
+      const five: any = await query({ query: rooms(5) })
+      expect(five.errors).toBeUndefined()
+      expect(Object.keys(five.data)).toHaveLength(5)
+      const six: any = await query({ query: rooms(6) })
+      expect(six.errors?.map((error: any) => error.message)).toEqual([
+        'Too many chat video rooms requested at once',
       ])
     })
   })
