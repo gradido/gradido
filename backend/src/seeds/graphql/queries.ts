@@ -788,6 +788,31 @@ export const chatMessagesWithMember = gql`
   }
 `
 
+export const newChatMessagesSince = gql`
+  query ($afterId: Int, $limit: Int) {
+    newChatMessagesSince(afterId: $afterId, limit: $limit) {
+      latestId
+      unreadConversations
+      hasMore
+      messages {
+        id
+        messageUuid
+        conversationId
+        sender {
+          communityUuid
+          gradidoID
+        }
+        mine
+        subject
+        body
+        createdAt
+        deliveryState
+        notify
+      }
+    }
+  }
+`
+
 export const favoriteList = gql`
   query {
     favoriteList {

@@ -1,11 +1,13 @@
 // AI-GENERATED — not an architecture reference
 import { ChatMessagesWithMemberArgs } from '@arg/ChatMessagesWithMemberArgs'
 import { MarkChatConversationReadArgs } from '@arg/MarkChatConversationReadArgs'
+import { NewChatMessagesSinceArgs } from '@arg/NewChatMessagesSinceArgs'
 import { SendChatMessageArgs } from '@arg/SendChatMessageArgs'
 import { SetChatConversationMutedArgs } from '@arg/SetChatConversationMutedArgs'
 import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
 import { ChatMessage } from '@model/ChatMessage'
 import { ChatMessagePage } from '@model/ChatMessagePage'
+import { ChatUpdate } from '@model/ChatUpdate'
 import { ApiVersionType, CommandClientFactory, chatMessageNotify, V1_0_CommandClient } from 'core'
 import {
   ChatConversationSelect,
@@ -13,6 +15,8 @@ import {
   dbFindDirectChatConversation,
   dbSelectChatConversationMember,
   dbSelectChatMessagesPage,
+  dbSelectChatMessagesSince,
+  dbSelectChatUnreadSummary,
   dbUpdateChatConversationMemberLastRead,
   dbUpdateChatConversationMemberMuted,
   findUserByUuids,
@@ -27,6 +31,8 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
   CHAT_MESSAGE_PAGES_MAX_PER_REQUEST,
   CHAT_MESSAGES_PAGE_DEFAULT,
+  CHAT_UPDATE_MESSAGES_DEFAULT,
+  CHAT_UPDATES_MAX_PER_REQUEST,
   isSameChatMember,
 } from '@/data/ChatConversation.logic'
 import { Context, getUser } from '@/server/context'
@@ -70,11 +76,13 @@ const directChatConversationWith = async (
 
 /**
  * The chat: the thread with one contact and the caller's marks in it -- the read pointer and
- * the mute mark (P2a, P3a) -- and writing to that contact (P3a). The form "send an e-mail"
- * still writes through sendEmail, into the same conversation (P1).
+ * the mute mark (P2a, P3a) --, writing to that contact (P3a), and what is new across all the
+ * caller's conversations (P4a). The form "send an e-mail" still writes through sendEmail, into
+ * the same conversation (P1).
  *
- * No subject and no text reaches a log: what is written here is a refused page budget with its
- * count, a refused message with its reason, and a failed delivery with the other side's answer.
+ * No subject and no text reaches a log: what is written here is a refused page or update budget
+ * with its count, a refused message with its reason, and a failed delivery with the other
+ * side's answer.
  */
 @Resolver()
 export class ChatResolver {
@@ -113,6 +121,54 @@ export class ChatResolver {
       page.messages.map((row) => new ChatMessage(row, caller)),
       page.hasMore,
       Boolean(me?.mutedAt),
+    )
+  }
+
+  /**
+   * What is new in the chat for the caller since `afterId` -- the one query the wallet asks on
+   * its beat (E-017): the new messages of all the caller's conversations, oldest first and the
+   * caller's own among them, the id the answer is complete up to, and in how many conversations
+   * something waits unread, for the mark in the menu.
+   *
+   * Without `afterId` the caller stands nowhere yet: the answer says where they stand and hands
+   * out no messages -- the threads come with the contact window, as before.
+   *
+   * ⛔ First where the caller stands, then what is new: one read after the other, not side by
+   * side. Without messages `latestId` is the highest id the first read saw, and the wallet goes on
+   * from there. Side by side, the first read could see a message that arrived after the second
+   * one had looked, and the wallet would move past it without ever getting it. One after the
+   * other, the second read starts later and sees what the first one saw.
+   */
+  @Authorized([RIGHTS.READ_OWN_CHAT])
+  @Query(() => ChatUpdate)
+  async newChatMessagesSince(
+    @Args() { afterId, limit }: NewChatMessagesSinceArgs,
+    @Ctx() context: Context,
+  ): Promise<ChatUpdate> {
+    // ⛔ Counted in the HTTP request's budget before anything is looked up, as the pages are: a
+    // document may repeat this field under any number of aliases (RequestBudget).
+    context.requestBudget.chatUpdatesServed += 1
+    const served = context.requestBudget.chatUpdatesServed
+    if (served > CHAT_UPDATES_MAX_PER_REQUEST) {
+      throw new LogError('Too many chat updates requested at once', served)
+    }
+    const caller = callerOf(context)
+    const summary = await dbSelectChatUnreadSummary(caller)
+    if (afterId === null || afterId === undefined) {
+      return new ChatUpdate(summary.latestId, summary.unreadConversations, [], false)
+    }
+    const news = await dbSelectChatMessagesSince(caller, {
+      afterId,
+      limit: limit ?? CHAT_UPDATE_MESSAGES_DEFAULT,
+    })
+    const last = news.messages[news.messages.length - 1]
+    return new ChatUpdate(
+      // The last one handed out -- under hasMore not the highest there is, so that the next call
+      // goes on right after it.
+      last ? last.id : summary.latestId,
+      summary.unreadConversations,
+      news.messages.map((row) => new ChatMessage(row, caller)),
+      news.hasMore,
     )
   }
 
