@@ -6,10 +6,12 @@ import {
   User as DbUser,
   dbFindLatestEventForAffectedUser,
   dbGetFirstCreationSignerUserId,
+  dbInsertEvent,
   dbInsertFirstCreation,
   dbSelectFirstCreationByUserId,
   dbSelectFirstCreationEntriesByIds,
   dbUpdateFirstCreationOutcome,
+  EventType,
   FirstCreationEntryRow,
   FirstCreationReviewReason,
   FirstCreationSelect,
@@ -35,14 +37,6 @@ import {
   FirstCreationEntryDraft,
   hasFirstCreationCatalog,
 } from '@/data/FirstCreation.logic'
-import {
-  EVENT_FIRST_CREATION_DONE,
-  EVENT_FIRST_CREATION_REVIEW,
-  EVENT_FIRST_CREATION_SKIP,
-  EVENT_FIRST_CREATION_TEST,
-  EVENT_FIRST_CREATION_UNBOOKED,
-  EventType,
-} from '@/event/Events'
 import {
   FirstCreationAlreadyRunning,
   FirstCreationError,
@@ -276,7 +270,11 @@ async function healSubmitted(
 export async function skipFirstCreation(user: DbUser): Promise<void> {
   const row = await dbSelectFirstCreationByUserId(user.id)
   if (await isEligible(user, row)) {
-    await EVENT_FIRST_CREATION_SKIP(user)
+    await dbInsertEvent({
+      type: EventType.FIRST_CREATION_SKIP,
+      affectedUserId: user.id,
+      actingUserId: user.id,
+    })
   }
 }
 
@@ -339,7 +337,11 @@ export async function startFirstCreationTest(
   // logged, never turned into an answer that says the press did not work while the window
   // is in fact armed — the same rule the outcome events downstream follow.
   try {
-    await EVENT_FIRST_CREATION_TEST(user)
+    await dbInsertEvent({
+      type: EventType.FIRST_CREATION_TEST,
+      affectedUserId: user.id,
+      actingUserId: user.id,
+    })
   } catch (error) {
     logger.error(`first creation test: event failed for user ${user.id}`, error)
   }
@@ -724,9 +726,19 @@ async function settleAsThanked(
     // contradicting note over a thanked and booked bundle.
     try {
       if (withoutBooking) {
-        await EVENT_FIRST_CREATION_UNBOOKED(user, signer.user, first)
+        await dbInsertEvent({
+          type: EventType.FIRST_CREATION_UNBOOKED,
+          affectedUserId: user.id,
+          actingUserId: signer.user.id,
+          involvedContributionId: first.id,
+        })
       } else {
-        await EVENT_FIRST_CREATION_DONE(user, signer.user, first)
+        await dbInsertEvent({
+          type: EventType.FIRST_CREATION_DONE,
+          affectedUserId: user.id,
+          actingUserId: signer.user.id,
+          involvedContributionId: first.id,
+        })
       }
     } catch (eventError) {
       logger.error(`first creation ${row.id}: outcome event failed`, eventError)
@@ -821,7 +833,12 @@ async function settleInReview(settlement: ReviewSettlement): Promise<FirstCreati
   try {
     const first = contributionIds[0]
     if (signer && first !== undefined) {
-      await EVENT_FIRST_CREATION_REVIEW(user, signer.user, { id: first } as DbContribution)
+      await dbInsertEvent({
+        type: EventType.FIRST_CREATION_REVIEW,
+        affectedUserId: user.id,
+        actingUserId: signer.user.id,
+        involvedContributionId: first,
+      })
     }
   } catch (error) {
     logger.error(`first creation ${row.id}: review event failed`, error)

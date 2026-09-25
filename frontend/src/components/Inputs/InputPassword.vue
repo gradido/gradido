@@ -15,11 +15,12 @@
           :name="name"
           :placeholder="defaultTranslations.placeholder"
           :type="showPassword ? 'text' : 'password'"
-          :state="meta.valid"
+          :state="shownState"
           class="rounded-input password-input"
           data-test="password-input-field"
           v-bind="ariaInput"
           @update:modelValue="value = $event"
+          @blur="handleBlur($event, true)"
         />
         <!-- A control like any other: reachable with the tab key, where a native button turns
              Enter and Space into the click, and named for a screen reader by what it will do. -->
@@ -34,7 +35,11 @@
           <IBiEyeSlash v-else class="eye-icon" />
         </BButton>
       </div>
-      <BFormInvalidFeedback v-if="errorMessage || errors.length" force-show v-bind="ariaMsg">
+      <BFormInvalidFeedback
+        v-if="shownState === false && (errorMessage || errors.length)"
+        force-show
+        v-bind="ariaMsg"
+      >
         <template #default>
           <div v-if="allowFullValidation">
             <span v-for="error in errors" :key="error">
@@ -53,15 +58,12 @@
 import { ref, computed, watch, defineProps, defineEmits, toRef, onMounted, nextTick } from 'vue'
 import { useField } from 'vee-validate'
 import { useI18n } from 'vue-i18n'
+import { shownValidState } from '@/validation-rules'
 
 const props = defineProps({
   name: {
     type: String,
     default: 'password',
-  },
-  immediate: {
-    type: Boolean,
-    default: false,
   },
   rules: {
     type: [Object, String],
@@ -89,14 +91,17 @@ const defaultTranslations = computed(() => ({
 }))
 
 const name = toRef(props, 'name')
-const { value, errorMessage, meta, errors, validate } = useField(name, props.rules, {
+const { value, errorMessage, meta, errors, validate, handleBlur } = useField(name, props.rules, {
   bails: !props.allowFullValidation,
-  validateOnMount: props.immediate,
   // The message names the field as the label above it does. The field name alone cannot:
   // `password` is the old password in the settings, `newPassword` reads "Passwort" where
   // an account gets its first one and "Neues Passwort" where it changes it.
   label: () => defaultTranslations.value.label,
 })
+
+// Nothing red before the field has been left once: a guest who opens the form has done nothing
+// wrong yet. The rules a password still misses appear when it is left unfinished.
+const shownState = computed(() => shownValidState(meta))
 
 const showPassword = ref(false)
 
@@ -105,7 +110,7 @@ const toggleShowPassword = () => {
 }
 
 const ariaInput = computed(() => ({
-  'aria-invalid': meta.valid ? false : 'true',
+  'aria-invalid': shownState.value === false ? 'true' : false,
   'aria-describedby': `${props.name}-feedback`,
 }))
 

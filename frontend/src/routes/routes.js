@@ -288,8 +288,10 @@ const routes = [
     },
   },
   {
-    // Everyone this member has exchanged Gradido with -- a view on the bookings, so it
-    // stands beside them in the menu (KF-008). No right-hand column: the list is the page.
+    // Everyone this member has exchanged Gradido or messages with -- "contacts & chat" in the
+    // menu, beside matching (E-031); the conversations live in the window a row opens.
+    // `?with=<gradidoID>[&community=<uuid>]` opens one from outside (pages/Contacts.vue). No
+    // right-hand column: the list is the page.
     path: '/contacts',
     component: () => import('@/pages/Contacts'),
     meta: {
@@ -422,13 +424,8 @@ const routes = [
     path: '/email-change/:changeCode',
     component: () => import('@/pages/EmailChange'),
   },
-  // EM-013, the doorbell flow. Own parameter names on purpose — never :code, which
+  // EM-013, the guest's confirm-only link. Own parameter name on purpose — never :code, which
   // /login/:code? reads as a redeem code (the collision that bit PR #3798).
-  {
-    name: 'RegisterAssist',
-    path: '/register-assist/:assistCode',
-    component: () => import('@/pages/RegisterAssist'),
-  },
   {
     name: 'ConfirmEmail',
     path: '/confirm-email/:confirmationCode',

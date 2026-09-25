@@ -19,6 +19,9 @@ import { RIGHTS } from './RIGHTS'
  */
 export const RESTRICTED_WHILE_UNCONFIRMED = [
   RIGHTS.SEND_COINS,
+  // A chat message acts outward, as the form "send an e-mail" does behind SEND_COINS. Muting a
+  // conversation stays open (READ_OWN_CHAT): asking for quiet is self-management.
+  RIGHTS.SEND_CHAT_MESSAGE,
   RIGHTS.CREATE_TRANSACTION_LINK,
   RIGHTS.REDEEM_TRANSACTION_LINK,
   RIGHTS.DISBURSE_TRANSACTION_LINK,

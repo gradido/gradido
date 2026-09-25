@@ -8,12 +8,9 @@ import { User } from '@model/User'
 import {
   ApiVersionType,
   CommandClientFactory,
-  EncryptedTransferArgs,
   fullName,
   processXComCompleteTransaction,
   redeemDeferredTransferTransaction,
-  SendEmailCommand,
-  sendCustomEmail,
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
   TransactionTypeId,
@@ -23,15 +20,18 @@ import {
 } from 'core'
 import {
   AppDatabase,
+  ChatMessageNotify,
   countOpenPendingTransactions,
   DltTransaction as DbDltTransaction,
   dbFindMemberAvatarTimestamps,
   dbHasRegisterRedeemEvent,
+  dbInsertEvent,
   dbSelectThankYouCardLabels,
   dbSelectTransactionsByUserId,
   Transaction as dbTransaction,
   TransactionLink as dbTransactionLink,
   User as dbUser,
+  EventType,
   findUserByIdentifier,
   getCommunityByUuid,
   getCommunityWithFederatedCommunityByIdentifier,
@@ -40,15 +40,13 @@ import {
 } from 'database'
 import { getLogger, Logger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
-import { CommandJwtPayloadType, DecayCalculationType, encryptAndSign, GradidoUnit } from 'shared'
-import { randombytes_random } from 'sodium-native'
+import { DecayCalculationType, GradidoUnit } from 'shared'
 import { Arg, Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import { In, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { PublishNameLogic } from '@/data/PublishName.logic'
-import { EVENT_TRANSACTION_RECEIVE, EVENT_TRANSACTION_SEND } from '@/event/Events'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { communityUser } from '@/util/communityUser'
@@ -57,6 +55,10 @@ import { virtualDecayTransaction, virtualLinkTransaction } from '@/util/virtualT
 import { SendEmailArgs } from '../arg/SendEmailArgs'
 import { BalanceResolver } from './BalanceResolver'
 import { GdtResolver } from './GdtResolver'
+import {
+  deliverChatMessageAcrossBorder,
+  deliverChatMessageLocally,
+} from './util/chatMessageDelivery'
 import { getCommunityName, isHomeCommunity } from './util/communities'
 import {
   bookingCounterparty,
@@ -216,14 +218,23 @@ export const executeTransaction = async (
       await queryRunner.commitTransaction()
       logger.info(`commit Transaction successful...`)
 
-      await EVENT_TRANSACTION_SEND(sender, recipient, transactionSend, transactionSend.amount)
+      await dbInsertEvent({
+        type: EventType.TRANSACTION_SEND,
+        affectedUserId: sender.id,
+        actingUserId: sender.id,
+        involvedUserId: recipient.id,
+        involvedTransactionId: transactionSend.id,
+        amountGdd4: transactionSend.amount,
+      })
 
-      await EVENT_TRANSACTION_RECEIVE(
-        recipient,
-        sender,
-        transactionReceive,
-        transactionReceive.amount,
-      )
+      await dbInsertEvent({
+        type: EventType.TRANSACTION_RECEIVE,
+        affectedUserId: recipient.id,
+        actingUserId: sender.id,
+        involvedUserId: sender.id,
+        involvedTransactionId: transactionReceive.id,
+        amountGdd4: transactionReceive.amount,
+      })
       // update dltTransaction with transactionId
       const startTime = new Date()
       const dltTransaction = await dltTransactionPromise
@@ -715,16 +726,18 @@ export class TransactionResolver {
         logger.error(errmsg)
         throw new Error(errmsg)
       }
-      sendCustomEmail({
-        firstName: recipientUser.firstName,
-        lastName: recipientUser.lastName,
-        email: recipientUser.emailContact.email,
-        language: recipientUser.language,
-        senderAlias: new PublishNameLogic(senderUser).getPublicAlias(),
-        subject: subject,
-        memo: memo,
-        senderUuid: senderUser.gradidoID,
-        senderCommunityUuid: senderUser.communityUuid,
+      // The chat keeps the message as well: one row, which both members read. Filed before
+      // the mail goes out, and never instead of it -- the form's mail goes out whether the row
+      // could be filed or not. The form writes a letter: it is mailed whatever the recipient's
+      // quiet, which is about chat messages (E-034, A3).
+      await deliverChatMessageLocally({
+        senderUser,
+        recipientUser,
+        subject: subject || null,
+        body: memo,
+        notify: ChatMessageNotify.EMAIL,
+        requireStored: false,
+        letter: true,
       })
     } else {
       // sendEmail for foreign communities
@@ -762,38 +775,26 @@ export class TransactionResolver {
       const cmdClient = CommandClientFactory.getInstance(receiverFCom)
 
       if (cmdClient instanceof V1_0_CommandClient) {
-        const handshakeID = randombytes_random().toString()
-
-        const payload = new CommandJwtPayloadType(
-          handshakeID,
-          SendEmailCommand.SEND_MAIL_COMMAND,
-          SendEmailCommand.name,
-          [
-            JSON.stringify({
-              mailType: 'sendCustomEmail',
-              senderComUuid: senderUser.communityUuid,
-              senderGradidoId: senderUser.gradidoID,
-              receiverComUuid: recipientCommunityIdentifier,
-              receiverGradidoId: recipientIdentifier,
-              subject: subject,
-              memo: memo,
-            }),
-          ],
-        )
-        const jws = await encryptAndSign(
-          payload,
-          senderCom.privateJwtKey!,
-          receiverCom.publicJwtKey!,
-        )
-        const args = new EncryptedTransferArgs()
-        args.publicKey = senderCom.publicKey.toString('hex')
-        args.jwt = jws
-        args.handshakeID = handshakeID
-        const result = await cmdClient.sendCommand(args)
-        if (typeof result === 'string') {
-          const errmsg = 'Failed to send command to federated community with error: ' + result
+        // The own copy is filed as not yet delivered right before the command goes out, and
+        // marked with the answer; the recipient's server sends the mail, for a letter whatever
+        // the quiet (E-034).
+        const { error } = await deliverChatMessageAcrossBorder({
+          senderUser,
+          senderCom,
+          receiverCom,
+          receiverComIdentifier: recipientCommunityIdentifier,
+          cmdClient,
+          recipientGradidoId: recipientIdentifier,
+          subject: subject || null,
+          body: memo,
+          notify: ChatMessageNotify.EMAIL,
+          requireStored: false,
+          letter: true,
+        })
+        if (error !== null) {
+          const errmsg = 'Failed to send command to federated community with error: ' + error
           logger.error(errmsg)
-          throw new Error(result)
+          throw new Error(error)
         }
       }
     }

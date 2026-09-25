@@ -2,6 +2,7 @@
 import {
   buildFirstCreationUserMessage,
   checkFirstCreationAnswer,
+  FIRST_CREATION_LINE_FORMS,
   FIRST_CREATION_LINE_MAX_CHARS,
   FIRST_CREATION_SCHEMA,
 } from './firstCreation'
@@ -79,6 +80,36 @@ describe('first creation user message', () => {
     // No placeholder for a name and no name field: the salutation is built locally.
     expect(message).not.toContain('[ANREDE]')
     expect(message).not.toMatch(/Vorname|firstName|E-Mail|Alias/)
+  })
+
+  it('asks for the address and the opening of the member’s language', () => {
+    const russian = buildFirstCreationUserMessage([{ memo: 'Я помогаю соседке' }], 'ru')
+    // Formal like the whole Russian wallet; a "Du" here would make the model write "ты".
+    expect(russian).toContain('in der Höflichkeitsform (вы')
+    expect(russian).not.toContain('(Du)')
+    expect(russian).toContain('"за ..."')
+    const turkish = buildFirstCreationUserMessage([{ memo: 'Komşuma yardım ettim' }], 'tr')
+    expect(turkish).toContain('endet mit "... için"')
+    const german = buildFirstCreationUserMessage([{ memo: 'Ich habe vorgelesen' }], 'de')
+    expect(german).toContain('in der zweiten Person (Du)')
+    expect(german).toContain('beginnt mit "für ..."')
+    // Every line, in every language, stays clear of the member's gender.
+    expect(german).toContain('ohne Wortformen, die ein Geschlecht des Mitglieds festlegen')
+  })
+
+  it('has a form for each of the ten languages the window speaks', () => {
+    expect(Object.keys(FIRST_CREATION_LINE_FORMS).sort()).toEqual([
+      'de',
+      'el',
+      'en',
+      'es',
+      'fr',
+      'it',
+      'nl',
+      'pt',
+      'ru',
+      'tr',
+    ])
   })
 
   it('pins the schema the API is constrained to', () => {

@@ -12,10 +12,8 @@ export enum RIGHTS {
   // Both arrive from a mail link, so nobody is logged in; the code is what authorises.
   CONFIRM_EMAIL_CHANGE = 'CONFIRM_EMAIL_CHANGE',
   REVOKE_EMAIL_CHANGE = 'REVOKE_EMAIL_CHANGE',
-  // Assisted registration (EM-013): all three arrive from a mail link before anybody
-  // can be logged in — the assist code, respectively the confirmation code, authorises.
-  ASSISTED_REGISTRATION_INFO = 'ASSISTED_REGISTRATION_INFO',
-  COMPLETE_ASSISTED_REGISTRATION = 'COMPLETE_ASSISTED_REGISTRATION',
+  // Assisted registration (EM-013): the guest's confirm-only link arrives from a mail
+  // before anybody can be logged in — the confirmation code authorises.
   CONFIRM_EMAIL = 'CONFIRM_EMAIL',
   // User
   CHECK_USERNAME = 'CHECK_USERNAME',
@@ -92,8 +90,17 @@ export enum RIGHTS {
   // support needs it to merge addresses on the GDT server by hand.
   VIEW_USER_EMAIL_STATUS = 'VIEW_USER_EMAIL_STATUS',
   // The contact list and the hearts on it -- one right, because every call reaches the
-  // caller's own bookings and the caller's own favourites, nothing else.
+  // caller's own bookings, conversations and favourites, nothing else.
   MANAGE_OWN_CONTACTS = 'MANAGE_OWN_CONTACTS',
+  // The chat (E-023): reading the messages of a conversation the caller is a member of, and
+  // writing two marks on the caller's own member row in it -- the read pointer and the mute
+  // mark (E-024). It reaches no conversation the caller is not in -- ChatResolver finds the
+  // conversation by the pair of the caller and the other member.
+  READ_OWN_CHAT = 'READ_OWN_CHAT',
+  // Writing a chat message to ONE other member, here or in another community. It acts
+  // outward -- the counterpart of SEND_COINS, which guards the form "send an e-mail" -- and so
+  // it is on RESTRICTED_WHILE_UNCONFIRMED as well.
+  SEND_CHAT_MESSAGE = 'SEND_CHAT_MESSAGE',
   // The first creation (ES-002..ES-011): reading one's own state, saving one's own
   // entries, skipping the window. Every call reaches the caller's own process only; the
   // confirmation in the SIGNER's name happens inside the interaction, not behind this key.

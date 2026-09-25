@@ -40,14 +40,6 @@ export const confirmEmailChange = gql`
   }
 `
 
-export const completeAssistedRegistration = gql`
-  mutation ($assistCode: String!, $email: String!, $password: String!) {
-    completeAssistedRegistration(assistCode: $assistCode, email: $email, password: $password) {
-      redeemCode
-    }
-  }
-`
-
 export const confirmEmail = gql`
   mutation ($code: String!) {
     confirmEmail(code: $code)
@@ -189,6 +181,23 @@ export const sendCoins = gql`
       recipientCommunityIdentifier: $recipientCommunityIdentifier
       recipientIdentifier: $recipientIdentifier
       amount: $amount
+      memo: $memo
+    )
+  }
+`
+
+// The same document the wallet sends (frontend/src/graphql/mutations.js).
+export const sendEmail = gql`
+  mutation (
+    $recipientCommunityIdentifier: String!
+    $recipientIdentifier: String!
+    $subject: String!
+    $memo: String!
+  ) {
+    sendEmail(
+      recipientCommunityIdentifier: $recipientCommunityIdentifier
+      recipientIdentifier: $recipientIdentifier
+      subject: $subject
       memo: $memo
     )
   }
@@ -611,6 +620,39 @@ export const testCreaModel = gql`
       message
       fastMode
     }
+  }
+`
+
+export const markChatConversationRead = gql`
+  mutation ($ref: MemberAvatarRefInput!, $upToMessageId: Int!) {
+    markChatConversationRead(ref: $ref, upToMessageId: $upToMessageId)
+  }
+`
+
+export const sendChatMessage = gql`
+  mutation ($ref: MemberAvatarRefInput!, $body: String!, $notify: ChatMessageNotify!) {
+    sendChatMessage(ref: $ref, body: $body, notify: $notify) {
+      id
+      messageUuid
+      conversationId
+      sender {
+        communityUuid
+        gradidoID
+      }
+      mine
+      subject
+      body
+      createdAt
+      deliveryState
+      notify
+      mailState
+    }
+  }
+`
+
+export const setChatConversationMuted = gql`
+  mutation ($ref: MemberAvatarRefInput!, $muted: Boolean!) {
+    setChatConversationMuted(ref: $ref, muted: $muted)
   }
 `
 

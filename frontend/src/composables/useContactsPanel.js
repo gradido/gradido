@@ -72,7 +72,11 @@ export const releaseContactsPanel = () => {
 const owner = { page: null, matches: null }
 const inFlight = { page: null, matches: null }
 
-const load = (apolloClient, slotName, search) => {
+/**
+ * @param context Apollo's context for this one request -- `{ renewSession: false }` where
+ *   nobody asked for it (see `refreshContactsPanel`); left out otherwise.
+ */
+const load = (apolloClient, slotName, search, context) => {
   const token = {}
   owner[slotName] = token
   const slot = state[slotName]
@@ -92,6 +96,7 @@ const load = (apolloClient, slotName, search) => {
       // distinct search word would leave its own copy in the store until logout. The same
       // distinction is measured and written down in useMemberAvatars.
       fetchPolicy: 'no-cache',
+      ...(context ? { context } : {}),
     })
     .then(({ data }) => {
       if (owner[slotName] !== token) return
@@ -181,8 +186,10 @@ export const searchContactsPanel = (apolloClient, search) => {
 }
 
 /**
- * The contact list may have gained somebody -- called where the layout learns that a
- * transfer went through.
+ * The contact list may have gained somebody, or its order changed -- called where the layout
+ * learns that a transfer went through, and by the chat's beat when messages arrived or were
+ * read (useChatUpdates): the server orders the list by the last exchange and counts what is
+ * unread, so the wallet asks again rather than keeping a book of its own.
  *
  * ⛔ Marks first, fetches second, and the mark is what makes this impossible to lose. With
  * no panel on screen there is nothing to fetch FOR, but the slot is now due, so the next
@@ -192,6 +199,8 @@ export const searchContactsPanel = (apolloClient, search) => {
  * saw them in it.
  */
 export const refreshContactsPanel = (apolloClient) => {
+  // The contacts page keeps a list of its own (pages/Contacts.vue); it asks again as well.
+  for (const listener of [...refreshListeners]) listener()
   // ⛔ The mark comes FIRST, before any reason not to fetch. Standing behind a
   // `!state.page.loaded` gate lost the very case this exists for: a member completes a
   // transfer while the first request is still on the wire -- a first visit to /send with the
@@ -209,11 +218,34 @@ export const refreshContactsPanel = (apolloClient) => {
   }
   // ⛔ A fresh request, never the one already on the wire: that one left before the event
   // this refresh is about. The owner token makes the older answer harmless when it lands.
-  const jobs = [load(apolloClient, 'page', '')]
+  //
+  // ⛔ `renewSession: false`: a refresh is never the member's own doing. After a transfer the
+  // transfer itself has already moved the session clock; after a chat message arrived nobody
+  // did anything here, and a list asked again must not keep an unattended wallet signed in
+  // (plugins/apolloProvider.js).
+  const quiet = { renewSession: false }
+  const jobs = [load(apolloClient, 'page', '', quiet)]
   if (state.search !== '') {
-    jobs.push(load(apolloClient, 'matches', state.search))
+    jobs.push(load(apolloClient, 'matches', state.search, quiet))
   }
   return Promise.all(jobs)
+}
+
+/**
+ * Lists of contacts that are not this panel -- the contacts page asks for its own whole list --
+ * and want to know when the panel is asked again.
+ */
+const refreshListeners = new Set()
+
+/**
+ * Calls `listener` whenever `refreshContactsPanel` runs: a transfer went through, or chat
+ * messages arrived or were read. Returns the function that ends it.
+ */
+export const onContactListRefresh = (listener) => {
+  refreshListeners.add(listener)
+  return () => {
+    refreshListeners.delete(listener)
+  }
 }
 
 /** On logout: the next member on this device must not see the previous one's contacts. */

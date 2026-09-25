@@ -24,16 +24,6 @@
     "text": "Daha yeni bir sürüm mevcut."
   },
   "assistedRegistration": {
-    "assist": {
-      "button": "Hesap aç",
-      "done": "Hesap hazır! Bir onay e-postası yeni posta kutusuna doğru yolda. Şimdi giriş yap ve çeki bozdur:",
-      "emailHint": "Buraya yeni üyenin kendi e-posta adresini gir — seninkini değil. Şifreyi yeni üye kendisi yazar.",
-      "emailTaken": "Bu e-posta adresinin zaten bir Gradido hesabı var. Tekrar girmek için \"Şifremi unuttum\" yolunu kullan.",
-      "intro": "{name} bir Gradido hesabı başlatmak istiyor.",
-      "invalid": "Bu bağlantı geçersiz veya süresi dolmuş.",
-      "loginButton": "Giriş yap ve çeki bozdur",
-      "title": "Birlikte bir Gradido hesabı açmak"
-    },
     "confirm": {
       "button": "Adresi onayla",
       "done": "E-posta adresin onaylandı. Hesabın artık kalıcı olarak sana açık.",
@@ -150,9 +140,36 @@
       "text": "Çevrendeki diğer üyeleri bulmak için şimdi konumunu haritaya gir!"
     }
   },
+  "chatThread": {
+    "alsoByEmail": "Ayrıca e-posta ile",
+    "alsoByEmailTo": "{name} kişisine ayrıca e-posta ile",
+    "arrived": "{name} kişisinden yeni mesaj",
+    "empty": "Henüz mesaj yok. Sohbet burada başlıyor.",
+    "failed": "İletilemedi",
+    "firstGoesByEmail": "İlk mesaj {name} kişisine e-posta ile de gider.",
+    "label": "{name} ile konuşma geçmişi",
+    "loadOlder": "Daha eski mesajları yükle",
+    "mailed": "Ayrıca e-posta ile",
+    "muteOff": "Sessizde — {name} kişisinin sohbet mesajları için e-posta yok",
+    "muteOn": "Sessize al",
+    "mutedHint": "Sessize alındı: {name} kişisinin sohbet mesajları için artık e-posta gelmeyecek. Yeni mesajları burada görürsün. «E-posta gönder» ile gönderilen mektuplar gelmeye devam eder.",
+    "notMailedMuted": "E-posta yok — {name} bu sohbet için e-postaları kapattı.",
+    "notReachable": "Konuşma geçmişi yüklenemedi.",
+    "notSent": "Mesaj gönderilemedi. Metnin burada kalıyor.",
+    "pending": "Henüz iletilmedi",
+    "placeholder": "{name} kişisine mesaj …",
+    "remaining": "{n} karakter kaldı",
+    "send": "Gönder",
+    "sent": "Gönderildi",
+    "sentWithNote": "Gönderildi. {note}",
+    "unmutedHint": "Artık sessizde değil: {name} kişisinin sohbet mesajları için yine e-posta alacaksın.",
+    "unreadBadge": "{n} sohbette yeni mesaj var",
+    "unreadDot": "Sohbette yeni mesajlar var",
+    "you": "Sen"
+  },
   "community": {
     "admins": "Yöneticiler",
-    "choose-another-community": "Başka bir topluluk seçin",
+    "choose-another-community": "Başka bir topluluk seç",
     "community": "Topluluk",
     "communityMember": "Aktif bir üyesin",
     "continue-to-registration": "Kayıt işlemine devam et",
@@ -167,11 +184,9 @@
   "communityInfo": "Topluluk Bilgisi",
   "contact": "İletişim",
   "contacts": {
-    "addFavorite": "Favorilere ekle",
     "all": "Tüm kişiler",
     "allShort": "Tümü",
     "bookings": "{n} işlem | {n} işlem",
-    "chatLater": "Konuşma geçmişi — sohbetle birlikte gelecek",
     "count": "{n} kişi | {n} kişi",
     "empty": "Henüz kişi yok. Seninle Gradido alışverişi yapan — ya da senin sayende gelen — herkes burada görünür.",
     "favorites": "Favoriler",
@@ -179,7 +194,6 @@
       "add": "Favorilere ekle",
       "remove": "Favorilerden çıkar"
     },
-    "isFavorite": "Favori",
     "last": "son {date}",
     "matches": "Sonuçlar",
     "noFavorites": "Henüz favori yok. Bir kişinin yanındaki kalbe dokun.",
@@ -195,9 +209,9 @@
       "title": "{name} favorilerinden çıkarılsın mı?"
     },
     "search": "Kişi ara …",
-    "sendEmail": "E-posta gönder",
     "sendGradido": "Gradido gönder",
-    "since": "{date} tarihinden beri kişi"
+    "since": "{date} tarihinden beri kişi",
+    "unreadChatMessages": "{n} yeni mesaj"
   },
   "contribution": {
     "activity": "Hizmet",
@@ -251,10 +265,10 @@
     "number": "Katkı no. {number}",
     "oldContribution": "Önceki sürüm",
     "selectDate": "Hizmet ne zaman verildi?",
-    "submit": "Başvuru yapıldı",
+    "submit": "Gönder",
     "submitted": "Hizmet gönderildi.",
     "updated": "Hizmet değiştirildi.",
-    "yourActivity": "Lütfen bir aktivite girin!"
+    "yourActivity": "Lütfen bir aktivite gir!"
   },
   "contribution-link": {
     "thanksYouWith": "Sana gönderiyor"
@@ -312,7 +326,7 @@
     "title": "E-posta adresini onayla"
   },
   "error": {
-    "email-already-sent": "Sana 10 dakikadan daha az sürede e-posta gönderdik .",
+    "email-already-sent": "Son 10 dakika içinde sana zaten bir e-posta gönderdik.",
     "empty-transactionlist": "İşlem sayısının iletiminde bir hata oluştu.",
     "no-account": "Ne yazık ki bu verilere ait (etkinleştirilmiş) bir hesap bulamadık.",
     "no-transactionlist": "Maalesef bir hata oluştu. Sunucudan hiçbir işlem gönderilmedi.",
@@ -322,6 +336,84 @@
     "unknown-error": "Bilinmeyen hata: "
   },
   "existingGradidoAccount": "Zaten bir {communityName} hesabın var mı?",
+  "firstCreation": {
+    "again": "+ Daha fazlası vardı",
+    "alsoFound": "Bu mesajı katkılarında ve posta kutunda da bulabilirsin.",
+    "balance": "Hesabında",
+    "catalog": {
+      "accompaniedHardTime": "Zor bir dönemde birinin yanında oldum",
+      "animalShelter": "Bir hayvan barınağında ya da bir hayvan koruma çiftliğinde yardım ettim",
+      "animalsOrNature": "Hayvanlar ya da doğa için bir şey yaptım",
+      "caredForChildren": "Çocuklarımı büyütüp hayata hazırladım",
+      "communityProject": "Bir topluluk projesine destek verdim (şenlik, dayanışmacı tarım, topluluk bahçesi …)",
+      "fireBrigadeRescue": "Gönüllü itfaiyede ya da bir kurtarma ekibinde görev aldım",
+      "helpedAtHome": "Evde yardım ettim",
+      "helpedElderlyPerson": "Bir büyüğüme yardım ettim",
+      "helpedFellowStudents": "Sınıf ya da üniversite arkadaşlarıma yardım ettim",
+      "helpedNeighbourhood": "Mahallede ihtiyaç olan yerde el uzattım",
+      "helpedOldPerson": "Yaşlı birine yardım ettim",
+      "helpedParish": "Yaşadığım yerde ya da inanç topluluğumda yardım ettim",
+      "helpedSickPerson": "Hasta birine yardım ettim",
+      "lookedAfterGrandchildren": "Torunlarıma baktım",
+      "lookedAfterOrTaught": "Birine göz kulak oldum ya da birine bir şey öğrettim",
+      "madeSomeoneHappy": "Birini sevindirdim",
+      "musicChoirCulture": "Toplulukta müziğe, koroya ya da kültüre katkıda bulundum",
+      "natureEnvironment": "Doğa ve çevre için bir şey yaptım",
+      "nursedRelative": "Bir yakınımın bakımını üstlendim",
+      "sharedKnowledge": "Bilgimi başkalarına aktardım (özel ders, kurs, rehberlik)",
+      "supportedClub": "Derneğimi destekledim",
+      "supportedDisabledPerson": "Engelli bir insanı destekledim"
+    },
+    "categories": {
+      "animalsNature": "Hayvanlar, doğa & çevre",
+      "cannotThemselves": "Şu an kendi başına yapamayan insanlar için",
+      "communityVolunteering": "Topluluk & gönüllülük",
+      "familyCare": "Aile & bakım",
+      "forChildren": "Çocuklar için",
+      "knowledgeCulture": "Bilgi & kültür"
+    },
+    "checkHints": {
+      "child": "Senin zamanın da sayılır.",
+      "retiree": "Ömür boyu emeğin sayılır."
+    },
+    "checks": {
+      "child": "Ben bir çocuğum.",
+      "retiree": "Emekliyim."
+    },
+    "confirmedFor": "{community} topluluğu adına onaylandı",
+    "connector": "ve",
+    "entries": "bir giriş | {n} giriş",
+    "failed": "Bu sefer olmadı. Lütfen tekrar dene.",
+    "intro": "Gradido, insanların toplum yararına yaptıklarından doğar — senin yaptıklarından da. Başlangıcını senin için şimdiden hazırladık.",
+    "maxEntries": "Burada en fazla {max} giriş olabilir — daha fazlasını sonra istediğin zaman kendin ekleyebilirsin.",
+    "nothing": "Şu an aklıma bir şey gelmiyor",
+    "placeholder": "Kendi sözlerinle yaz.",
+    "projectAsk": {
+      "later": "Daha sonra",
+      "project": "Bu bir proje hesabı",
+      "text": "Gradido'da her insan yaratım yapabilir: başkaları için yaptıkları için. Bu hesap bir insan değil de bir dernek, bir proje ya da bir işletmeyse, bunu bize burada söyle — proje hesabı yaratım yapmaz, teşekkür alır.",
+      "title": "Sorun değil — soru bir dahaki sefere yine gelecek."
+    },
+    "question": "Son haftalarda ne gibi iyilikler yaptın?",
+    "remove": "Girişi kaldır",
+    "review": "Girişlerine bir insan da bakacak. Sana haber vereceğiz.",
+    "showLess": "Daha az göster",
+    "showMore": "Daha fazla göster ({count})",
+    "subtitle": "Uyan birkaç cümle seç — birkaçı yeter. Onları tamamlayabilir, değiştirebilir ya da tamamen kendi cümlelerini yazabilirsin.",
+    "thankSomeone": "Şimdi birine teşekkür et",
+    "toAccount": "Hesabıma git",
+    "tooShort": "Birkaç kelime daha, sonra kaydedebilirsin.",
+    "unbooked": "İşlemsiz deneme — katkılar yönetici alanında incelenmeyi bekliyor.",
+    "waiting": "Topluluk yazdıklarını okuyor.",
+    "waitingHint": "Bu biraz sürer — yaklaşık yarım dakika. Pencereyi açık bırakabilirsin.",
+    "welcome": "Hoş geldin, {name}!",
+    "welcomeAnonymous": "Hoş geldin!",
+    "whyConfirmed": "Bu ilk teşekkürü yazılım hemen onayladı, böylece vakit kaybetmeden başlayabilirsin. Bundan sonra girdiğin her şeyi bir insan da okur — moderatörler her katkıya dikkatle bakar ve onu bilgi ve vicdanlarıyla onaylar.",
+    "whyHundred": "Bu yüz Gradido başlangıç için, tanışmak için. Bundan sonra her ay gelir — toplum yararına yaptığın iyilikler için 1.000 Gradido'ya kadar.",
+    "whyHundredTitle": "Neden yüz Gradido?",
+    "whyMore": "Daha ayrıntılı bilgiyi {link} bulabilirsin.",
+    "whyMoreLink": "burada"
+  },
   "followUs": "Bizi takip et:",
   "footer": {
     "app_version": "Uygulama versiyonu {version}",
@@ -362,7 +454,7 @@
     "newPassword": "Yeni şifre",
     "newPasswordRepeat": "Yeni şifreyi tekrarla",
     "new_balance": "Onay sonrası hesap bakiyesi",
-    "no_gdd_available": "Göndermek için GDD'niz yok.",
+    "no_gdd_available": "Göndermek için GDD'n yok.",
     "ok": "Tamam",
     "password": "Şifre",
     "passwordRepeat": "Şifreyi tekrarla",
@@ -374,14 +466,14 @@
     "reply": "Yanıtla",
     "reset": "Sıfırla",
     "save": "Kaydet",
-    "scann_code": "<strong>QR Code Scanner</strong> - Ortağınızın QR Kodunu tarayın",
+    "scann_code": "<strong>QR Code Scanner</strong> - Ortağının QR kodunu tara",
     "sendEmail": "E-posta gönder",
     "send_check": "İşlemi onayla. Lütfen tüm verileri tekrar kontrol et!",
     "send_email_error": "Maalesef e-postan gönderilemedi!",
     "send_email_success": "E-postan başarıyla gönderildi",
     "send_now": "Şimdi gönder",
     "send_transaction_error": "Ne yazık ki işlem gerçekleştirilemedi!",
-    "send_transaction_success": "İşleminiz başarıyla tamamlandı",
+    "send_transaction_success": "İşlemin başarıyla tamamlandı",
     "sendemailerror": {
       "failedToSendCommandToFederatedCommunity": "E-postanı gönderirken e-posta alıcının topluluğunda şu hata oluştu: ",
       "federatedCommunityOfReceiverCommunityNotFound": "E-posta alıcının topluluğu için geçerli bir federasyon bulunmuyor",
@@ -418,7 +510,7 @@
         "min": "Faaliyet açıklaması en az {min} karakter olmalı.",
         "required": "Faaliyet açıklaması zorunlu bir alandır."
       },
-      "gddSendAmount": "Bu alan {_field_} {min}  {max} arasında ondalık noktadan sonra en fazla iki basamaklı bir sayı olmalıdır",
+      "gddSendAmount": "{_field_} alanı, {min} ile {max} arasında, en fazla iki ondalık basamaklı bir sayı olmalıdır.",
       "hours": {
         "decimal-places": "Saatler en fazla iki ondalık basamak içermeli.",
         "max": "Saatler en fazla {max} olmalı.",
@@ -457,7 +549,7 @@
     "created": "Link, çek ve QR kodu oluşturuldu.",
     "delete-the-link": "Link silinsin mi?",
     "deleted": "Link silindi!",
-    "disbured": "Bağlantı bakiyesinin ödemesi başarıyla başlatıldı! {n} GDD kısa süre içinde hesabına alacak olarak işlenecek",
+    "disbured": "Bağlantı bakiyesinin aktarımı başarıyla başlatıldı! {n} GDD kısa süre içinde hesabına alacak olarak işlenecek",
     "expiredOn": "Geçerlilik süresi",
     "has-account": "Halihazırda bir Gradido hesabın var mı?",
     "header": "Link, çek ve QR kodu oluştur",
@@ -469,15 +561,15 @@
     "link-overview": "Linke toplu bakış",
     "links_open": "{n} açık",
     "links_sum": "Linkler, çekler, QR kodları",
-    "no-account": "Henüz bir Gradido hesabınız yok mu?",
-    "no-redeem": "Kendi linkini kullanarak GDD'lerini paraya dönüştüremezsin!",
+    "no-account": "Henüz bir Gradido hesabın yok mu?",
+    "no-redeem": "Kendi linkini kullanamazsın!",
     "not-copied": "Maalesef cihazın kopyalamaya izin vermiyor! Lütfen bağlantıyı elle kopyala!",
     "recipientCommunityRedirection": "Hesaba işlemek için şuraya yönlendir:",
     "recipientCommunitySelection": "Gradido topluluğunu seç:",
-    "redeem": "Paraya dönüştürme",
+    "redeem": "Kullan",
     "redeem-community": "Şuraya işle: ",
-    "redeemed": "Başarıyla dönüştürüldü! Hesabına {n} GDD yatırıldı.",
-    "redeemed-at": "Link  {date} tarihinde paraya dönüştürüldü.",
+    "redeemed": "Başarıyla kullanıldı! Hesabına {n} GDD yatırıldı.",
+    "redeemed-at": "Link {date} tarihinde zaten kullanıldı.",
     "redeemlink-error": "Bu kullanım bağlantısı tam değil.",
     "share": "Paylaş",
     "share-line1": "{name}, {amount} Gradido ile sana teşekkür ediyor:",
@@ -588,6 +680,8 @@
     },
     "list": {
       "centeredOn": "{place} çevresinde",
+      "centeredOnFern": "Bölge üstü · {place} çevresinde {km} km",
+      "centeredOnFernNoPlace": "Bölge üstü · {km} km",
       "controlsHeading": "Arama ve sıralama",
       "dir": {
         "e": "doğuda",
@@ -625,8 +719,8 @@
       "back": "Geri",
       "breite": "Birden çok kez uyanlar",
       "breiteHint": "Girişlerinden birkaçına birden yanıt veren insanları öne çıkarır.",
-      "centreHome": "your home",
-      "centrePoint": "the chosen point",
+      "centreHome": "Evinin",
+      "centrePoint": "Seçtiğin noktanın",
       "channels": {
         "andere": "diğer herkes",
         "andereMit": "girişi olan diğerleri",
@@ -646,10 +740,19 @@
         "liste": "Liste",
         "normal": "normal"
       },
-      "noWebgl": "This map needs WebGL 2. Your browser does not have it — the list shows the same matches.",
+      "noWebgl": "Bu harita WebGL 2 gerektiriyor. Tarayıcın bunu desteklemiyor — liste aynı eşleşmeleri gösterir.",
       "radius": "Yarıçap",
+      "radiusHintFern": "Bölge üstü arama için geçerli. Bölgesel yarıçap {km} km olarak kalır.",
+      "radiusHintRegional": "Bölgesel arama için geçerli. Bölge üstü yarıçap {km} km olarak kalır.",
       "radiusLabel": "Hangi yarıçapta aramak istiyorsun? (km)",
       "radiusTitle": "Arama yarıçapı",
+      "radiusTitleFern": "Bölge üstü arama yarıçapı",
+      "reach": {
+        "fern": "Bölge üstü",
+        "fernHint": "Bölge üstü arama yalnızca buna açılmış girişleri gösterir.",
+        "label": "Kapsam",
+        "regional": "Bölgesel"
+      },
       "search": "Bir yer ya da adres ara",
       "searchFailed": "Arama şu anda ulaşılabilir değil.",
       "searchHere": "Burada ara",
@@ -659,7 +762,8 @@
       "cancel": "İptal",
       "completeSentence": "Bu cümleyi tamamla:",
       "detailsHeading": "Ayrıntılar — doğru kişiler seni bulsun:",
-      "remote": "Bölge üstü / çevrimiçi de mevcut"
+      "remote": "Bölge üstü / çevrimiçi de mevcut",
+      "remoteHint": "O zaman bölge üstü aramada da görünürsün."
     },
     "position": {
       "accuracyApprox": "Biraz değiştirilmiş bir konum gösteriliyor",
@@ -739,11 +843,12 @@
     "checkEmail": "E-posta adresin başarıyla doğrulandı. Şimdi giriş yapabilirsin.",
     "email": "Sana bir e-posta gönderdik.",
     "errorTitle": "Dikkat!",
-    "register": "Şİmdi kayıt oldun, lütfen e-postalarını kontrol et ve aktivasyon linkine tıkla.",
+    "register": "Şimdi kayıt oldun, lütfen e-postalarını kontrol et ve aktivasyon linkine tıkla.",
+    "registerPresence": "Hesabın hazır. Bir onay e-postası adresine doğru yolda. Şimdi giriş yap. Giriş olmazsa, bu adresle belki zaten bir hesabın vardı: o zaman «Şifreni mi unuttun?» bağlantısını kullan.",
     "reply": "Teşekkürler, yanıtın gönderildi.",
     "reset": "Şifren değiştirildi.",
     "title": "Teşekkürler!",
-    "unsetPassword": "Şifre henüz olışturulmadı. Lütfen tekrar ayarla."
+    "unsetPassword": "Şifren henüz belirlenmedi. Lütfen bir şifre belirle."
   },
   "missingGradidoAccount": "Henüz bir {communityName} hesabın yok mu?",
   "moderatorChangedMemo": "Metin moderatör tarafından düzenlendi",
@@ -767,9 +872,10 @@
     "back-to-settings": "Ayarlara dön",
     "calculator": "Hesap makinesi",
     "community": "Topluluk",
-    "contacts": "Kişiler",
+    "contacts": "Kişiler & Sohbet",
     "logout": "Çıkış",
     "matching": "Matching",
+    "menu": "Menü",
     "overview": "Toplu Bakış",
     "scanner": "Kod tara",
     "send": "Gönder",
@@ -777,11 +883,11 @@
     "support": "Destek",
     "transactions": "İşlemler"
   },
-  "openHours": "Açık Saatler",
+  "openHours": "Kalan saatler",
   "pageTitle": {
     "calculator": "Hesap makinesi",
     "circles": "Gradido Çemberleri",
-    "contacts": "Kişilerin",
+    "contacts": "Kişiler & Sohbet",
     "contributions": "Gradido yarat",
     "gdt": "GDT işlemlerin",
     "information": "{community}",
@@ -790,7 +896,7 @@
     "my-thank-you-card": "Teşekkür kartımın QR kodu",
     "overview": "Hoş geldin {name}",
     "scanner": "Kod tara",
-    "send": "Gradido ve e-posta gönder",
+    "send": "Gradido ve e‑posta gönder",
     "settings": "Ayarlar",
     "show-friends": "Arkadaşlarına göster",
     "transactions": "İşlemlerin",
@@ -849,7 +955,7 @@
   "send_per_link": "Link, çek, QR",
   "session": {
     "extend": "Oturumunu açık tut",
-    "lightText": "10 dakikadan daha uzun bir süre herhangi bir işlem yapmadıysanız, güvenlik nedeniyle oturum kapatılacaktır.",
+    "lightText": "10 dakikadan daha uzun bir süre herhangi bir işlem yapmadıysan, güvenlik nedeniyle oturumun kapatılacak.",
     "logoutIn": "Oturumu kapat ",
     "warningText": "Hala orada mısın?"
   },
@@ -858,7 +964,7 @@
       "disabled": "Veriler GMS'e aktarılmıyor",
       "enabled": "Veriler GMS'e aktarılıyor",
       "location": {
-        "button": "Buraya tıklayın!",
+        "button": "Haritayı aç",
         "label": "Tam konum",
         "saveLocation": "Konumu Kaydet",
         "updateSuccess": "Konum başarıyla kaydedildi"
@@ -885,6 +991,27 @@
       "visibilityInfo": "Diğer üyeler resmini, örneğin paylaştığın işlemlerin yanında görür. Ayar kapalıyken şimdiye kadar olduğu gibi baş harflerin görünür."
     },
     "community": "Çemberler & Üye arama",
+    "creationAccount": {
+      "confirm": {
+        "declare": "Proje hesabına geç",
+        "declareText": "Proje hesabı artık yaratım yapmaz. «Yarat» bölümü hesabından kalkar ve yaratımı yalnızca destek ekibi yeniden açabilir.",
+        "declareTitle": "Bu hesabı gerçekten proje hesabına çevirmek istiyor musun?",
+        "next": "Devam",
+        "requestText": "Yaratıma geri dönüşü bir insan inceler. Destek ekibine bir mesaj göndeririz; ekip hesabını inceler ve gerekirse yaratımı elle yeniden açar. Sana haber vereceğiz.",
+        "requestTitle": "Yeniden yaratım yapmak ister misin?",
+        "send": "Mesajı destek ekibine gönder",
+        "typeWord": "Yaratım yapamayan bir proje hesabına geçmek için lütfen şunu yaz: {word}",
+        "word": "PROJE"
+      },
+      "declared": "Bu hesap artık bir proje hesabı. «Yarat» bölümü gizlendi.",
+      "mailFailed": "Destek ekibine giden mesaj şu an gönderilemedi. Lütfen daha sonra tekrar dene.",
+      "openContributions": "Açık katkıların olduğu sürece hesap proje hesabına dönüşemez. Onaylanmalarını bekle ya da onları geri çek.",
+      "person": "Bu hesap bir insana ait. Başkaları için yaptıklarım için Gradido yaratırım.",
+      "project": "Bu hesap bir projeye, derneğe ya da işletmeye ait. Yaratım yapmaz — teşekkür alır.",
+      "rateLimited": "Son 24 saat içinde destek ekibine zaten bir mesaj gönderdik — sana haber vereceğiz.",
+      "requested": "Yaratıma geri dönüşü bir insan inceler. Destek ekibine az önce bir mesaj gönderdik — sana haber vereceğiz.",
+      "title": "Yaratım"
+    },
     "email": {
       "cancel": "İptal",
       "cancelled": "Değişiklik iptal edildi.",
@@ -904,6 +1031,19 @@
       "sent": "{email} adresine bir onay e-postası gönderdik."
     },
     "emailInfo": "Yeni bir adres, onay e-postasındaki bağlantı üzerinden onayladığın anda geçerli olur.",
+    "functionTests": {
+      "firstCreation": {
+        "failed": "Olmadı. Lütfen sayfayı yenile ve tekrar dene.",
+        "intro": "İlk yaratım her hesapta yalnızca bir kez görünür — daha önce yaratım yapmış bir hesap için bir daha asla gelmez. Burada onu kendi hesabın için yeniden açabilir ve tüm süreci gerçekten baştan sona yaşayabilirsin.",
+        "noRunsLeft": "Bu ayın kotası doldu — {total} denemeden 0 kaldı.",
+        "runsLeft": "Bu ay {total} denemeden {left} kaldı",
+        "signerHint": "İlk yaratımın imzalayanı olarak sen ayarlandın. Kimse kendi katkısını onaylayamaz, bu yüzden test senin hesabında çalışmaz — başka bir yönetici hesabı kullan.",
+        "title": "İlk yaratım",
+        "unbookedHint": "İşlem olmadan katkılar yönetici alanında açık katkı olarak kalır. Orada onları elle onaylayabilir ya da silebilirsin — orada durdukları sürece aylık kotandan sayılırlar.",
+        "withBooking": "İlk yaratımı yeniden çalıştır – işlemli",
+        "withoutBooking": "İlk yaratımı yeniden çalıştır – işlemsiz"
+      }
+    },
     "hide-amount": "{currency} tutarını gizle",
     "humhub": {
       "delete-disabled": "Kullanıcı hesabı yalnızca işbirliği platformunun profil menüsünden silinebilir.",
@@ -922,6 +1062,7 @@
     "menu": {
       "account": "Hesabım",
       "appearance": "Gösterim",
+      "function-tests": "İşlev testi",
       "gradido-card": "Kartvizit",
       "notifications": "Mesajlar",
       "state": {
@@ -999,11 +1140,23 @@
       "title": "Başka yerdeki birine"
     },
     "here": {
+      "codeHint": "Kod on dakika geçerlidir, her misafir için yeni bir kod. Onu tarayan kişi hesabını hemen kullanabilir.",
+      "confirmFirst": "E-posta adresin onaylanır onaylanmaz burada masada hesap da açabilirsin. O zamana kadar bu kod kartvizitini gösterir.",
+      "expired": "Kodun süresi doldu.",
+      "limitReached": "Tüm yerler dolu: misafirlerinden {n} kişi e-posta adresini henüz onaylamadı. Biri onayladığı anda yeniden kod gösterebilirsin. İlerleyemezsen destek ekibi sana yardım eder.",
       "map": "Haritayı",
+      "newCode": "Yeni kod göster",
+      "noAnswer": "Kod bu sefer ulaşmadı. Tekrar dene.",
+      "noPhone": "Yanında telefon yok mu? Misafirin için hesabı burada, bu cihazda aç.",
+      "noPhoneHint": "Bunun için oturumun kapatılır. Misafirin işini bitirince oturumunu kapatır, sen de yeniden giriş yaparsın.",
       "step1": "{map} göster. Aradığı şeyi yazmasına izin ver.",
       "step2": "Kamerasını bu koda tutar.",
       "step3": "Hesap onu kendiliğinden karşılar. Hiçbir şey açıklamana gerek yok.",
-      "title": "Burada yanımdaki birine"
+      "title": "Burada yanımdaki birine",
+      "unconfirmedGuest": "{firstName} {lastName} · {alias} · {date} tarihinden beri",
+      "unconfirmedGuests": "Misafirlerinden biri e-posta adresini henüz onaylamadı | Misafirlerinden {n} kişi e-posta adresini henüz onaylamadı",
+      "unconfirmedHint": "Onlara e-postalarındaki bağlantıyı hatırlatabilirsin. Bir hesabı destek ekibine sildirmen gerekirse, onlara bu satırı gönder.",
+      "validFor": "Bir dakika daha geçerli | {n} dakika daha geçerli"
     },
     "mirror": {
       "go": "Bir başkasına da göster",
@@ -1033,12 +1186,16 @@
       "heading": "Lütfen şifreni gir ve tekrarla."
     },
     "signup": {
-      "agree": "<a href='https://gradido.net/en/datenschutz/' target='_blank' > gizlilik politikasını</a> kabul ediyorum.",
+      "agree": "<a href='https://gradido.net/tr/datenschutz/' target='_blank' > gizlilik politikasını</a> kabul ediyorum.",
       "dont_match": "Şifreler eşleşmiyor.",
       "lowercase": "Küçük bir harf gerekli.",
       "minimum": "Minimum 8 karakter.",
       "no-whitespace": "Boşluk ve sekme yok",
       "one_number": "Numara gerekli.",
+      "presenceExpired": "Bu kodun süresi doldu. Sana yeni bir kod göstermelerini iste, hesabını hemen kullanabilirsin. Ya da burada normal yoldan kayıt ol ve şifreni e-postadaki bağlantı üzerinden belirle.",
+      "presenceFailed": "Kodun süresi doldu. Sana yeni bir kod göstermelerini iste ve onu yeniden tara.",
+      "presenceHint": "Hesabını hemen kullanabilirsin. E-posta adresini yarın bu saate kadar onayla, e-posta birazdan yola çıkıyor. O zamana kadar {name}, onayının henüz eksik olduğunu görür.",
+      "presenceLimit": "Bu kodla şu an başka bir hesap açılamıyor: {name}, adresini henüz onaylamamış misafirlere zaten kefil oluyor. Onlardan biri onayladığı anda yeniden dene. Ya da burada normal yoldan kayıt ol, bağlantı e-postayla gelir.",
       "shownBy": "{name} sana Gradido'yu gösterdi. İyi ki buradasın.",
       "special-char": "Özel karakter gerekli (_ yada ä vb)",
       "uppercase": "Büyük bir harf gerekli."
@@ -1130,7 +1287,7 @@
     "allBookings": "Tüm işlemleri göster",
     "lastTransactions": "Son İşlemler",
     "noneWithMember": "Bu üyeyle henüz işlem yok.",
-    "nullTransactions": "Henüz hesabınında herhangi bir işlem yok.",
+    "nullTransactions": "Henüz hesabında hiç işlem yok.",
     "onlyWith": "{name} ile {n} işlem | {name} ile {n} işlem",
     "onlyWithSomeone": "Yalnızca bir üyeyle işlemler",
     "receiverDeleted": "Alıcı hesabı silindi",
@@ -1147,5 +1304,5 @@
   },
   "via_card": "kart ile",
   "via_link": "link yoluyla",
-  "welcome": "Topluluğa hoşgeldin"
+  "welcome": "Topluluğa hoş geldin"
 }

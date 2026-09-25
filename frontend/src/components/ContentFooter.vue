@@ -4,14 +4,18 @@
       <BCol>
         <div class="copyright text-center text-lg-center text-muted">
           {{ $t('footer.copyright.year', { year }) }}
+          <!-- ⛔ The name is never broken at its hyphen: at 320px the line broke "Gradido-" over
+               "Akademie", in Turkish already at 360px. Vue drops the white space between these
+               elements, so between the name and the version the line had no place to break but
+               the name's own hyphen; `<wbr>` gives it one after the bar. The bar is an element
+               of its own for that: where the version takes the next line, the bar ends the first
+               one rather than starting the second. -->
           <a :href="`https://gradido.net/${$i18n.locale}`" class="fw-bold ms-1" target="_blank">
-            {{ $t('footer.copyright.link') }}
+            <span class="text-nowrap">{{ $t('footer.copyright.link') }}</span>
           </a>
-          <a
-            :href="'https://github.com/gradido/gradido/commit/' + hash"
-            target="_blank"
-            class="separator-start ms-2 ps-2"
-          >
+          <span class="separator-start ms-2 ps-2" aria-hidden="true" />
+          <wbr />
+          <a :href="'https://github.com/gradido/gradido/commit/' + hash" target="_blank">
             {{ $t('footer.app_version', { version }) }}
           </a>
         </div>
@@ -68,5 +72,11 @@ export default {
 <style scoped>
 :deep(a.nav-link) {
   color: #383838 !important;
+}
+
+/* The bar mixes its colour from `currentcolor`; it used to be the version link's own border
+   and so took the link colour, and it keeps that colour as an element of its own. */
+.copyright .separator-start {
+  color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1));
 }
 </style>

@@ -7,6 +7,14 @@
       <p v-if="referrerAlias" class="alert gradido-border-radius" data-test="register-shown-by">
         {{ $t('site.signup.shownBy', { name: referrerAlias }) }}
       </p>
+      <!-- A table code that had run out when the page opened: the form is the classic one. -->
+      <p
+        v-if="presenceExpiredOnArrival"
+        class="alert gradido-border-radius"
+        data-test="register-presence-expired"
+      >
+        {{ $t('site.signup.presenceExpired') }}
+      </p>
       <BForm role="form" @submit.prevent="onSubmit">
         <BRow>
           <BCol sm="12" md="6">
@@ -16,9 +24,10 @@
                 :model-value="firstname"
                 name="firstname"
                 :placeholder="$t('form.firstname')"
-                :state="firstnameMeta.valid"
+                :state="shownValidState(firstnameMeta)"
                 aria-describedby="registerFirstnameLiveFeedback"
                 @update:model-value="firstname = $event"
+                @blur="firstnameBlur($event, true)"
               />
 
               <BFormInvalidFeedback v-if="firstnameError" id="registerFirstnameLiveFeedback">
@@ -33,9 +42,10 @@
                 :model-value="lastname"
                 name="lastname"
                 :placeholder="$t('form.lastname')"
-                :state="lastnameMeta.valid"
+                :state="shownValidState(lastnameMeta)"
                 aria-describedby="registerLastnameLiveFeedback"
                 @update:model-value="lastname = $event"
+                @blur="lastnameBlur($event, true)"
               />
 
               <BFormInvalidFeedback v-if="lastnameError" id="registerLastnameLiveFeedback">
@@ -49,6 +59,13 @@
             <input-email name="email" :label="$t('form.email')" :placeholder="$t('form.email')" />
           </BCol>
         </BRow>
+        <!-- E-017: with a valid table code the guest chooses the password right here. -->
+        <template v-if="presenceActive">
+          <input-password-confirmation register />
+          <p class="text-muted" data-test="register-presence-hint">
+            {{ $t('site.signup.presenceHint', { name: referrerAlias }) }}
+          </p>
+        </template>
         <BRow>
           <BCol cols="12" class="my-4">
             <BFormCheckbox
@@ -63,6 +80,24 @@
             </BFormCheckbox>
           </BCol>
         </BRow>
+        <!-- Next to the button, where the guest is looking when the answer comes. -->
+        <p
+          v-if="presenceFailed"
+          class="alert gradido-border-radius"
+          role="alert"
+          data-test="register-presence-failed"
+        >
+          {{ $t('site.signup.presenceFailed') }}
+        </p>
+        <!-- E-019: the member already vouches for as many unconfirmed guests as there may be. -->
+        <p
+          v-if="presenceLimited"
+          class="alert gradido-border-radius"
+          role="alert"
+          data-test="register-presence-limit"
+        >
+          {{ $t('site.signup.presenceLimit', { name: referrerAlias }) }}
+        </p>
         <BRow>
           <BCol cols="12" lg="6">
             <BButton
@@ -90,7 +125,14 @@
       </BForm>
     </BContainer>
     <BContainer v-else>
-      <message :headline="$t('message.title')" :subtitle="$t('message.register')" />
+      <message
+        v-if="presenceActive"
+        :headline="$t('message.title')"
+        :subtitle="$t('message.registerPresence')"
+        :button-text="$t('login')"
+        :link-to="{ name: 'Login' }"
+      />
+      <message v-else :headline="$t('message.title')" :subtitle="$t('message.register')" />
     </BContainer>
   </div>
 </template>
@@ -100,6 +142,7 @@ import { ref, computed } from 'vue'
 import { useMutation } from '@vue/apollo-composable'
 import AuthTriads from '@/components/Auth/AuthTriads'
 import InputEmail from '@/components/Inputs/InputEmail'
+import InputPasswordConfirmation from '@/components/Inputs/InputPasswordConfirmation'
 import Message from '@/components/Message/Message'
 import { useAppToast } from '@/composables/useToast'
 import { useField, useForm } from 'vee-validate'
@@ -110,6 +153,7 @@ import { useRoute } from 'vue-router'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import CONFIG from '@/config'
 import { USERNAME_REGEX } from '@/validationSchemas'
+import { shownValidState } from '@/validation-rules'
 
 const { toastError } = useAppToast()
 const { routeWithParamsAndQuery } = useAuthLinks()
@@ -119,13 +163,21 @@ const { mutate } = useMutation(createUser)
 const { values: formValues, meta: formMeta, defineField, handleSubmit } = useForm()
 
 const [firstname] = defineField('firstname')
-const { meta: firstnameMeta, errorMessage: firstnameError } = useField('firstname', {
+const {
+  meta: firstnameMeta,
+  errorMessage: firstnameError,
+  handleBlur: firstnameBlur,
+} = useField('firstname', {
   required: true,
   min: 3,
 })
 
 const [lastname] = defineField('lastname')
-const { meta: lastnameMeta, errorMessage: lastnameError } = useField('lastname', {
+const {
+  meta: lastnameMeta,
+  errorMessage: lastnameError,
+  handleBlur: lastnameBlur,
+} = useField('lastname', {
   required: true,
   min: 2,
 })
@@ -148,11 +200,25 @@ const referrerAlias = USERNAME_REGEX.test(String(query.referrer ?? ''))
   ? String(query.referrer)
   : null
 
+// E-017, the table code: the card the guest scanned carried `?presence=<expiry>.<seal>`, and the
+// public page handed it on. Only its expiry is read here, to decide whether the form offers a
+// password; the server checks the seal when the form is sent. Decided once, when the page
+// opens -- fields do not vanish while somebody is typing. It is the code of the member the
+// guest came from, so without that name there is no code to speak of.
+const presence = String(query.presence ?? '')
+const hasPresence = !!referrerAlias && /^\d+\.[A-Za-z0-9_-]+$/.test(presence)
+const presenceActive = hasPresence && Number(presence.split('.')[0]) * 1000 > Date.now()
+const presenceExpiredOnArrival = hasPresence && !presenceActive
+const presenceFailed = ref(false)
+const presenceLimited = ref(false)
+
 const enterData = computed(() => {
   return !showPageMessage.value
 })
 
 async function onSubmit() {
+  presenceFailed.value = false
+  presenceLimited.value = false
   try {
     await mutate({
       email: formValues.email,
@@ -164,10 +230,22 @@ async function onSubmit() {
       project: store.state.project,
       // Without an address to come from, the field stays out of the request.
       ...(referrerAlias ? { referrerAlias } : {}),
+      // Without a table code, neither of the two: the classic registration sends what it sent.
+      ...(presenceActive ? { presenceCode: presence, password: formValues.newPassword } : {}),
     })
     showPageMessage.value = true
   } catch (error) {
-    toastError(`${t('error.unknown-error')} ${error.message}`)
+    // The code ran out while the form was being filled in. What was typed stays; a new scan
+    // brings a new code, and the browser fills the fields in again.
+    if (presenceActive && error.message.includes('Presence code invalid or expired')) {
+      presenceFailed.value = true
+    } else if (presenceActive && error.message.includes('Vouching limit reached')) {
+      // The member vouches for as many unconfirmed guests as there may be (E-019): once one of
+      // them confirms, the same form goes through. What was typed stays.
+      presenceLimited.value = true
+    } else {
+      toastError(`${t('error.unknown-error')} ${error.message}`)
+    }
   }
 }
 </script>

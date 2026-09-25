@@ -4,7 +4,7 @@
   "125": "125%",
   "(": "(",
   ")": ")",
-  "1000thanks": "1000 Dank, weil du bei uns bist!",
+  "1000thanks": "1000 Dank, weil Du bei uns bist!",
   "Chat": "Chat",
   "GDD": "GDD",
   "GDD-long": "Gradido",
@@ -24,16 +24,6 @@
     "text": "Es gibt eine neuere Fassung."
   },
   "assistedRegistration": {
-    "assist": {
-      "button": "Konto einrichten",
-      "done": "Das Konto ist eingerichtet! Eine Bestätigungs-Mail ist unterwegs an das neue Postfach. Jetzt anmelden und den Scheck einlösen:",
-      "emailHint": "Tragt hier die eigene E-Mail-Adresse des neuen Mitglieds ein — nicht Deine. Das Passwort tippt das neue Mitglied selbst.",
-      "emailTaken": "Diese E-Mail-Adresse hat bereits ein Gradido-Konto. Nutze „Passwort vergessen“, um wieder hineinzukommen.",
-      "intro": "{name} möchte ein Gradido-Konto beginnen.",
-      "invalid": "Dieser Link ist ungültig oder abgelaufen.",
-      "loginButton": "Anmelden und Scheck einlösen",
-      "title": "Gemeinsam ein Gradido-Konto einrichten"
-    },
     "confirm": {
       "button": "Adresse bestätigen",
       "done": "Deine E-Mail-Adresse ist bestätigt. Dein Konto steht Dir jetzt dauerhaft offen.",
@@ -50,7 +40,7 @@
       "gratitude": "Dankbarkeit",
       "learnMore": "Erfahre mehr …",
       "oneDignity": "Wir schenken einander und danken mit Gradido.",
-      "oneDonation": "Du bist ein Geschenk für die Gemeinschaft. 1000 Dank, weil du bei uns bist.",
+      "oneDonation": "Du bist ein Geschenk für die Gemeinschaft. 1000 Dank, weil Du bei uns bist.",
       "oneGratitude": "Für einander, für alle Menschen, für die Natur."
     },
     "triads": {
@@ -147,8 +137,35 @@
     "info": "So gehts",
     "not-allowed": {
       "button": "Standort eintragen...",
-      "text": "Um andere Mitglieder in deinem Umkreis zu finden, trage jetzt deinen Standort auf der Karte ein!"
+      "text": "Um andere Mitglieder in Deinem Umkreis zu finden, trage jetzt Deinen Standort auf der Karte ein!"
     }
+  },
+  "chatThread": {
+    "alsoByEmail": "Auch per E-Mail",
+    "alsoByEmailTo": "Auch per E-Mail an {name}",
+    "arrived": "Neue Nachricht von {name}",
+    "empty": "Noch keine Nachrichten. Hier beginnt Euer Gespräch.",
+    "failed": "Nicht zugestellt",
+    "firstGoesByEmail": "Die erste Nachricht geht auch per E-Mail an {name}.",
+    "label": "Gesprächsverlauf mit {name}",
+    "loadOlder": "Ältere Nachrichten laden",
+    "mailed": "Auch per E-Mail",
+    "muteOff": "Stumm — keine E-Mails zu Chat-Nachrichten von {name}",
+    "muteOn": "Stummschalten",
+    "mutedHint": "Stumm: keine E-Mails mehr zu Chat-Nachrichten von {name}. Neue Nachrichten siehst Du hier. Briefe über „E-Mail senden“ kommen weiter an.",
+    "notMailedMuted": "Keine E-Mail — {name} hat E-Mails zu Eurem Gespräch ausgeschaltet.",
+    "notReachable": "Der Gesprächsverlauf konnte nicht geladen werden.",
+    "notSent": "Die Nachricht konnte nicht gesendet werden. Dein Text bleibt hier stehen.",
+    "pending": "Noch nicht zugestellt",
+    "placeholder": "Nachricht an {name} …",
+    "remaining": "noch {n} Zeichen",
+    "send": "Senden",
+    "sent": "Gesendet",
+    "sentWithNote": "Gesendet. {note}",
+    "unmutedHint": "Nicht mehr stumm: Du bekommst wieder E-Mails zu Chat-Nachrichten von {name}.",
+    "unreadBadge": "{n} Gespräch mit neuen Nachrichten | {n} Gespräche mit neuen Nachrichten",
+    "unreadDot": "Neue Nachrichten im Chat",
+    "you": "Du"
   },
   "community": {
     "admins": "Administratoren",
@@ -167,11 +184,9 @@
   "communityInfo": "Gemeinschaft Information",
   "contact": "Kontakt",
   "contacts": {
-    "addFavorite": "Zu Favoriten",
     "all": "Alle Kontakte",
     "allShort": "Alle",
     "bookings": "{n} Buchung | {n} Buchungen",
-    "chatLater": "Gesprächsverlauf — kommt mit dem Chat",
     "count": "{n} Kontakt | {n} Kontakte",
     "empty": "Noch keine Kontakte. Hier erscheint, wer mit Dir Gradido tauscht — oder durch Dich dazukommt.",
     "favorites": "Favoriten",
@@ -179,7 +194,6 @@
       "add": "Zu Favoriten hinzufügen",
       "remove": "Aus Favoriten entfernen"
     },
-    "isFavorite": "Favorit",
     "last": "zuletzt {date}",
     "matches": "Treffer",
     "noFavorites": "Noch keine Favoriten. Tippe das Herz bei einem Kontakt.",
@@ -195,21 +209,21 @@
       "title": "{name} aus Deinen Favoriten entfernen?"
     },
     "search": "Kontakt suchen …",
-    "sendEmail": "E-Mail senden",
     "sendGradido": "Gradido senden",
-    "since": "Kontakt seit {date}"
+    "since": "Kontakt seit {date}",
+    "unreadChatMessages": "{n} neue Nachricht | {n} neue Nachrichten"
   },
   "contribution": {
     "activity": "Tätigkeit",
     "alert": {
       "answerQuestion": "Zu diesem Beitrag liegt eine neue Nachricht vor.",
       "answerQuestionToast": "Du hast neue Nachrichten.",
-      "communityNoteList": "Hier findest du alle eingereichten und bestätigten Beiträge von allen Mitgliedern aus dieser Gemeinschaft.",
+      "communityNoteList": "Hier findest Du alle eingereichten und bestätigten Beiträge von allen Mitgliedern aus dieser Gemeinschaft.",
       "confirm": "bestätigt",
       "deleted": "gelöscht",
       "denied": "abgelehnt",
       "in_progress": "Es gibt eine Rückfrage der Moderatoren.",
-      "myContributionNoteList": "Eingereichte Beiträge, die noch nicht bestätigt wurden, kannst du jederzeit bearbeiten oder löschen.",
+      "myContributionNoteList": "Eingereichte Beiträge, die noch nicht bestätigt wurden, kannst Du jederzeit bearbeiten oder löschen.",
       "pending": "Eingereicht und wartet auf Bestätigung"
     },
     "communityWindow": "Beiträge der letzten {months} Monate",
@@ -229,10 +243,10 @@
       "search": "Beiträge durchsuchen …"
     },
     "formText": {
-      "bringYourTalentsTo": "Bring dich mit deinen Talenten in die Gemeinschaft ein! Dein freiwilliges Engagement honorieren wir mit 20 GDD pro Stunde bis maximal 1.000 GDD im Monat.",
-      "describeYourCommunity": "Beschreibe deine Gemeinwohl-Tätigkeit und gib die Anzahl der Stunden an! Der Betrag von 20 GDD pro Stunde wird automatisch berechnet. Nach Bestätigung durch einen Moderator wird der Betrag deinem Konto gutgeschrieben.",
+      "bringYourTalentsTo": "Bring Dich mit Deinen Talenten in die Gemeinschaft ein! Dein freiwilliges Engagement honorieren wir mit 20 GDD pro Stunde bis maximal 1.000 GDD im Monat.",
+      "describeYourCommunity": "Beschreibe Deine Gemeinwohl-Tätigkeit und gib die Anzahl der Stunden an! Der Betrag von 20 GDD pro Stunde wird automatisch berechnet. Nach Bestätigung durch einen Moderator wird der Betrag Deinem Konto gutgeschrieben.",
       "maxGDDforMonth": "Du kannst für den ausgewählten Monat nur noch maximal {amount} GDD einreichen.",
-      "openAmountForMonth": "Für <b>{monthAndYear}</b> kannst du noch <b>{creation}</b> GDD einreichen.",
+      "openAmountForMonth": "Für <b>{monthAndYear}</b> kannst Du noch <b>{creation}</b> GDD einreichen.",
       "yourContribution": "Dein Beitrag zum Gemeinwohl"
     },
     "isEdited": "hat den Beitrag bearbeitet",
@@ -244,20 +258,20 @@
       "myContributions": "Du hast noch keine Beiträge eingereicht."
     },
     "noOpenCreation": {
-      "allMonth": "Für alle beiden Monate ist dein Schöpfungslimit erreicht. Den Nächsten Monat kannst du wieder 1000 GDD Schöpfen.",
+      "allMonth": "Für beide Monate ist Dein Schöpfungslimit erreicht. Im nächsten Monat kannst Du wieder 1000 GDD schöpfen.",
       "lastMonth": "Für den ausgewählten Monat ist das Schöpfungslimit erreicht.",
       "thisMonth": "Für den aktuellen Monat ist das Schöpfungslimit erreicht."
     },
     "number": "Beitrag Nr. {number}",
     "oldContribution": "Vorherige Version",
-    "selectDate": "Wann war dein Beitrag?",
+    "selectDate": "Wann war Dein Beitrag?",
     "submit": "Einreichen",
     "submitted": "Der Beitrag wurde eingereicht.",
     "updated": "Der Beitrag wurde geändert.",
     "yourActivity": "Bitte trage eine Tätigkeit ein!"
   },
   "contribution-link": {
-    "thanksYouWith": "dankt dir mit"
+    "thanksYouWith": "dankt Dir mit"
   },
   "copy-to-clipboard": "In Zwischenablage kopieren",
   "creation": "Schöpfen",
@@ -312,13 +326,13 @@
     "title": "Bestätige Deine E-Mail-Adresse"
   },
   "error": {
-    "email-already-sent": "Wir haben dir bereits eine E-Mail vor weniger als 10 Minuten geschickt.",
-    "empty-transactionlist": "Es gab einen Fehler mit der Übermittlung der Anzahl deiner Transaktionen.",
+    "email-already-sent": "Wir haben Dir bereits eine E-Mail vor weniger als 10 Minuten geschickt.",
+    "empty-transactionlist": "Es gab einen Fehler mit der Übermittlung der Anzahl Deiner Transaktionen.",
     "no-account": "Leider konnten wir keinen (aktivierten) Account mit diesen Daten finden.",
     "no-transactionlist": "Es gab leider einen Fehler. Es wurden keine Transaktionen vom Server übermittelt.",
     "no-user": "Kein Benutzer mit diesen Anmeldedaten.",
     "session-expired": "Die Sitzung wurde aus Sicherheitsgründen beendet.",
-    "session-renewal-failed": "Deine Sitzung konnte nicht verlängert werden. Bitte melde dich erneut an.",
+    "session-renewal-failed": "Deine Sitzung konnte nicht verlängert werden. Bitte melde Dich erneut an.",
     "unknown-error": "Unbekannter Fehler: "
   },
   "existingGradidoAccount": "Du hast schon ein {communityName} Konto?",
@@ -452,23 +466,23 @@
     "reply": "Antworten",
     "reset": "Zurücksetzen",
     "save": "Speichern",
-    "scann_code": "<strong>QR Code Scanner</strong> - Scanne den QR Code deines Partners",
+    "scann_code": "<strong>QR Code Scanner</strong> - Scanne den QR Code Deines Partners",
     "sendEmail": "E-Mail senden",
-    "send_check": "Bestätige deine Transaktion. Prüfe bitte nochmal alle Angaben!",
-    "send_email_error": "Leider konnte deine E-Mail nicht gesendet werden!",
+    "send_check": "Bestätige Deine Transaktion. Prüfe bitte nochmal alle Angaben!",
+    "send_email_error": "Leider konnte Deine E-Mail nicht gesendet werden!",
     "send_email_success": "Deine E-Mail wurde erfolgreich gesendet",
     "send_now": "Jetzt senden",
     "send_transaction_error": "Leider konnte die Transaktion nicht ausgeführt werden!",
     "send_transaction_success": "Deine Transaktion wurde erfolgreich ausgeführt",
     "sendemailerror": {
-      "failedToSendCommandToFederatedCommunity": "Beim Senden deiner E-Mail gab es in der Gemeinschaft deines E-Mail-Empfängers den Fehler: ",
-      "federatedCommunityOfReceiverCommunityNotFound": "Für die Gemeinschaft deines E-Mail-Empfängers liegt keine valide Federierung vor",
-      "receiverCommunityNoFederatedCommunities": "Die Federierung der Gemeinschaft deines E-Mail-Empfängers ist nicht aktiv oder abgeschlossen",
-      "receiverCommunityNotFound": "Die Gemeinschaft deines E-Mail-Empfängers wurde nicht gefunden",
-      "receiverDeleted": "Das Nutzerkonto zu deinem E-Mail-Empfänger wurde gelöscht",
-      "receiverNotFound": "Zu deinem angegebenen E-Mail-Empfänger existiert kein Nutzerkonto.",
+      "failedToSendCommandToFederatedCommunity": "Beim Senden Deiner E-Mail gab es in der Gemeinschaft Deines E-Mail-Empfängers den Fehler: ",
+      "federatedCommunityOfReceiverCommunityNotFound": "Für die Gemeinschaft Deines E-Mail-Empfängers liegt keine valide Federierung vor",
+      "receiverCommunityNoFederatedCommunities": "Die Federierung der Gemeinschaft Deines E-Mail-Empfängers ist nicht aktiv oder abgeschlossen",
+      "receiverCommunityNotFound": "Die Gemeinschaft Deines E-Mail-Empfängers wurde nicht gefunden",
+      "receiverDeleted": "Das Nutzerkonto zu Deinem E-Mail-Empfänger wurde gelöscht",
+      "receiverNotFound": "Zu Deinem angegebenen E-Mail-Empfänger existiert kein Nutzerkonto.",
       "unknownError": "Ein unbekannter Fehler ist aufgetreten: ",
-      "youCannotSendEmailToYourself": "Du kannst keine E-Mail an dich selbst senden."
+      "youCannotSendEmailToYourself": "Du kannst keine E-Mail an Dich selbst senden."
     },
     "sender": "Absender",
     "showPassword": "Passwort anzeigen",
@@ -478,7 +492,7 @@
     "to": "bis",
     "to1": "an",
     "username": "Benutzername",
-    "username-placeholder": "Wähle deinen Benutzernamen",
+    "username-placeholder": "Wähle Deinen Benutzernamen",
     "validation": {
       "amount": {
         "decimal-places": "Der Betrag sollte maximal zwei Nachkommastellen enthalten.",
@@ -509,7 +523,7 @@
         "required": "Der Empfänger ist ein Pflichtfeld.",
         "typeError": "Der Empfänger muss eine E-Mail, ein Nutzername oder eine Gradido-Adresse sein."
       },
-      "is-not": "Du kannst dir selbst keine Gradidos überweisen!",
+      "is-not": "Du kannst Dir selbst keine Gradidos überweisen!",
       "memo": {
         "max": "Die Nachricht sollte höchstens {max} Zeichen lang sein.",
         "min": "Die Nachricht sollte mindestens {min} Zeichen lang sein.",
@@ -535,11 +549,11 @@
     "created": "Link, Scheck und QR-Code wurden erstellt.",
     "delete-the-link": "Den Link löschen?",
     "deleted": "Der Link wurde gelöscht!",
-    "disbured": "Auszahlung des Link-Guthabens erfolgreich initiiert! Die Gutschrift von {n} GDD wird zeitnah auf dein Konto gebucht",
+    "disbured": "Auszahlung des Link-Guthabens erfolgreich initiiert! Die Gutschrift von {n} GDD wird zeitnah auf Dein Konto gebucht",
     "expiredOn": "Abgelaufen am",
     "has-account": "Du besitzt bereits ein Gradido Konto?",
     "header": "Link, Scheck und QR-Code erzeugen",
-    "link-and-text-copied": "Der Link und deine Nachricht wurden in die Zwischenablage kopiert. Du kannst ihn jetzt in eine E-Mail oder Nachricht einfügen.",
+    "link-and-text-copied": "Der Link und Deine Nachricht wurden in die Zwischenablage kopiert. Du kannst ihn jetzt in eine E-Mail oder Nachricht einfügen.",
     "link-copied": "Link wurde in die Zwischenablage kopiert. Du kannst ihn jetzt in eine E-Mail oder Nachricht einfügen.",
     "link-deleted": "Der Link wurde am {date} gelöscht.",
     "link-expired": "Der Link ist nicht mehr gültig. Die Gültigkeit ist am {date} abgelaufen.",
@@ -548,7 +562,7 @@
     "links_open": "{n} offen",
     "links_sum": "Links, Schecks, QR-Codes",
     "no-account": "Du besitzt noch kein Gradido Konto?",
-    "no-redeem": "Du darfst deinen eigenen Link nicht einlösen!",
+    "no-redeem": "Du darfst Deinen eigenen Link nicht einlösen!",
     "not-copied": "Dein Gerät lässt das Kopieren leider nicht zu! Bitte kopiere den Link von Hand!",
     "recipientCommunityRedirection": "Zum Gutschreiben weiterleiten zu:",
     "recipientCommunitySelection": "Gradido-Gemeinschaft wählen:",
@@ -562,7 +576,7 @@
     "share-line2": "„{memo}“",
     "share-line3": "Magst Du den Dank annehmen?",
     "share-line4": "Er wartet bis zum {date} auf Dich. Nimmst Du ihn nicht an, passiert nichts.",
-    "to-login": "Log dich ein",
+    "to-login": "Log Dich ein",
     "to-register": "Registriere ein neues Konto.",
     "to-switch": "Jetzt weiterleiten",
     "validUntil": "Gültig bis"
@@ -825,11 +839,12 @@
   "maxReached": "Max. erreicht",
   "member": "Mitglied",
   "message": {
-    "activateEmail": "Dein Konto wurde noch nicht aktiviert. Bitte überprüfe deine E-Mail und klicke den Aktivierungslink oder fordere einen neuen Aktivierungslink über die Password Reset Seite an.",
-    "checkEmail": "Deine E-Mail wurde erfolgreich verifiziert. Du kannst dich jetzt anmelden.",
-    "email": "Wir haben dir eine E-Mail gesendet.",
+    "activateEmail": "Dein Konto wurde noch nicht aktiviert. Bitte überprüfe Deine E-Mail und klicke den Aktivierungslink oder fordere über „Passwort vergessen“ einen neuen Aktivierungslink an.",
+    "checkEmail": "Deine E-Mail wurde erfolgreich verifiziert. Du kannst Dich jetzt anmelden.",
+    "email": "Wir haben Dir eine E-Mail gesendet.",
     "errorTitle": "Achtung!",
-    "register": "Du bist jetzt registriert, bitte überprüfe deine E-Mails und klicke auf den Aktivierungslink.",
+    "register": "Du bist jetzt registriert, bitte überprüfe Deine E-Mails und klicke auf den Aktivierungslink.",
+    "registerPresence": "Dein Konto ist eingerichtet. Eine Bestätigungs-Mail ist an Deine Adresse unterwegs. Melde Dich jetzt an. Klappt die Anmeldung nicht, hattest Du vielleicht schon ein Konto mit dieser Adresse: Dann hilft „Passwort vergessen“.",
     "reply": "Danke, Deine Antwort wurde abgesendet.",
     "reset": "Dein Passwort wurde geändert.",
     "title": "Danke!",
@@ -857,9 +872,10 @@
     "back-to-settings": "Zurück zu den Einstellungen",
     "calculator": "Rechner",
     "community": "Gemeinschaft",
-    "contacts": "Kontakte",
+    "contacts": "Kontakte & Chat",
     "logout": "Abmelden",
     "matching": "Matching",
+    "menu": "Menü",
     "overview": "Übersicht",
     "scanner": "Code scannen",
     "send": "Senden",
@@ -871,7 +887,7 @@
   "pageTitle": {
     "calculator": "Rechner",
     "circles": "Gradido Kreise",
-    "contacts": "Deine Kontakte",
+    "contacts": "Kontakte & Chat",
     "contributions": "Gradido schöpfen",
     "gdt": "Deine GDT Transaktionen",
     "information": "{community}",
@@ -880,7 +896,7 @@
     "my-thank-you-card": "QR-Code meiner Dank-Karte",
     "overview": "Willkommen {name}",
     "scanner": "Code scannen",
-    "send": "Gradido und E-Mail senden",
+    "send": "Gradido und E‑Mail senden",
     "settings": "Einstellungen",
     "show-friends": "Zeig es Deinen Freunden",
     "transactions": "Deine Transaktionen",
@@ -939,9 +955,9 @@
   "send_per_link": "Link, Scheck, QR",
   "session": {
     "extend": "Angemeldet bleiben",
-    "lightText": "Wenn du länger als 10 Minuten keine Aktion getätigt hast, wirst du aus Sicherheitsgründen abgemeldet.",
+    "lightText": "Wenn Du länger als 10 Minuten keine Aktion getätigt hast, wirst Du aus Sicherheitsgründen abgemeldet.",
     "logoutIn": "Abmelden in ",
-    "warningText": "Bist du noch da?"
+    "warningText": "Bist Du noch da?"
   },
   "settings": {
     "GMS": {
@@ -1072,14 +1088,14 @@
       "resend_subtitle": "Dein Aktivierungslink ist abgelaufen. Du kannst hier einen neuen anfordern.",
       "reset": "Passwort zurücksetzen",
       "reset-password": {
-        "text": "Gib nun ein neues Passwort ein, mit dem du dich zukünftig in deinem Gradido-Konto anmelden willst."
+        "text": "Gib nun ein neues Passwort ein, mit dem Du Dich zukünftig in Deinem Gradido-Konto anmelden willst."
       },
       "send_now": "Jetzt senden",
       "set": "Passwort festlegen",
       "set-password": {
-        "text": "Speichere nun dein neues Passwort, mit dem du dich zukünftig in deinem Gradido-Konto anmelden kannst."
+        "text": "Speichere nun Dein neues Passwort, mit dem Du Dich zukünftig in Deinem Gradido-Konto anmelden kannst."
       },
-      "subtitle": "Wenn du dein Passwort vergessen hast, kannst du es hier zurücksetzen."
+      "subtitle": "Wenn Du Dein Passwort vergessen hast, kannst Du es hier zurücksetzen."
     },
     "theme": {
       "dark": "Dunkel",
@@ -1124,11 +1140,23 @@
       "title": "Jemandem woanders"
     },
     "here": {
+      "codeHint": "Der Code gilt zehn Minuten, für jeden Gast ein neuer. Wer ihn scannt, kann sein Konto sofort nutzen.",
+      "confirmFirst": "Sobald Deine E-Mail-Adresse bestätigt ist, kannst Du hier auch Konten am Tisch eröffnen. Bis dahin zeigt dieser Code Deine Karte.",
+      "expired": "Der Code ist abgelaufen.",
+      "limitReached": "Alle Plätze sind belegt: {n} Deiner Gäste haben ihre E-Mail-Adresse noch nicht bestätigt. Sobald einer bestätigt hat, kannst Du wieder einen Code zeigen. Kommst Du nicht weiter, hilft Dir der Support.",
       "map": "die Karte",
+      "newCode": "Neuen Code zeigen",
+      "noAnswer": "Der Code kam gerade nicht an. Versuch es noch einmal.",
+      "noPhone": "Kein Handy dabei? Konto für Deinen Gast hier auf diesem Gerät anlegen.",
+      "noPhoneHint": "Du wirst dafür abgemeldet. Wenn Dein Gast fertig ist, meldet er sich ab, und Du meldest Dich wieder an.",
       "step1": "Zeig {map}. Lass sie eintippen, was sie sucht.",
       "step2": "Sie hält ihre Kamera auf diesen Code.",
       "step3": "Das Konto begrüßt sie selbst. Du musst nichts erklären.",
-      "title": "Jemandem hier bei mir"
+      "title": "Jemandem hier bei mir",
+      "unconfirmedGuest": "{firstName} {lastName} · {alias} · seit {date}",
+      "unconfirmedGuests": "Ein Gast von Dir hat seine E-Mail-Adresse noch nicht bestätigt | {n} Deiner Gäste haben ihre E-Mail-Adresse noch nicht bestätigt",
+      "unconfirmedHint": "Erinnere sie gern an den Link in ihrer Mail. Musst Du ein Konto vom Support löschen lassen, schick ihm diese Zeile.",
+      "validFor": "Gültig noch eine Minute | Gültig noch {n} Minuten"
     },
     "mirror": {
       "go": "Zeig es noch jemandem",
@@ -1152,10 +1180,10 @@
   "signup": "Registrieren",
   "site": {
     "forgotPassword": {
-      "heading": "Bitte gib deine E-Mail an mit der du bei Gradido angemeldet bist."
+      "heading": "Bitte gib Deine E-Mail an mit der Du bei Gradido angemeldet bist."
     },
     "resetPassword": {
-      "heading": "Trage bitte dein Passwort ein und wiederhole es."
+      "heading": "Trage bitte Dein Passwort ein und wiederhole es."
     },
     "signup": {
       "agree": "Ich stimme der <a href='https://gradido.net/de/datenschutz/' target='_blank' >Datenschutzerklärung</a> zu.",
@@ -1164,6 +1192,10 @@
       "minimum": "Mindestens 8 Zeichen.",
       "no-whitespace": "Keine Leerzeichen und Tabulatoren",
       "one_number": "Zahl erforderlich.",
+      "presenceExpired": "Dieser Code ist abgelaufen. Lass Dir einen neuen zeigen, dann kannst Du Dein Konto sofort nutzen. Oder registriere Dich hier wie gewohnt und setze Dein Passwort über den Link in der E-Mail.",
+      "presenceFailed": "Der Code ist abgelaufen. Lass Dir einen neuen zeigen und scanne ihn noch einmal.",
+      "presenceHint": "Du kannst Dein Konto sofort nutzen. Bestätige Deine E-Mail-Adresse bis morgen um diese Zeit, die Mail ist gleich unterwegs. Bis dahin sieht {name}, dass Deine Bestätigung noch fehlt.",
+      "presenceLimit": "Über diesen Code kann gerade kein weiteres Konto eröffnet werden: {name} bürgt schon für Gäste, die ihre Adresse noch nicht bestätigt haben. Sobald einer von ihnen bestätigt hat, versuch es noch einmal. Oder registriere Dich hier wie gewohnt, dann kommt der Link per E-Mail.",
       "shownBy": "{name} hat Dir Gradido gezeigt. Schön, dass Du da bist.",
       "special-char": "Sonderzeichen erforderlich (z.B. _ oder ä)",
       "uppercase": "Großbuchstabe erforderlich."
@@ -1255,7 +1287,7 @@
     "allBookings": "Alle Buchungen zeigen",
     "lastTransactions": "Letzte Transaktionen",
     "noneWithMember": "Mit diesem Mitglied gibt es noch keine Buchungen.",
-    "nullTransactions": "Du hast noch keine Transaktionen auf deinem Konto.",
+    "nullTransactions": "Du hast noch keine Transaktionen auf Deinem Konto.",
     "onlyWith": "{n} Buchung mit {name} | {n} Buchungen mit {name}",
     "onlyWithSomeone": "Nur Buchungen mit einem Mitglied",
     "receiverDeleted": "Das Empfängerkonto wurde gelöscht",
@@ -1263,12 +1295,12 @@
     "show_all": "Alle <strong>{count}</strong> Transaktionen ansehen"
   },
   "transaction-link": {
-    "send_you": "sendet dir"
+    "send_you": "sendet Dir"
   },
   "usersearch": {
     "button": "Starte die Nutzersuche...",
     "headline": "Geografische Nutzersuche",
-    "text": "Ganz gleich zu welcher Community du gehörst, mit dem Geo Matching System findest du Mitglieder aller Communities auf einer Landkarte. Du kannst nach  Angeboten und Bedürfnissen filtern und dir die Nutzer anzeigen lassen, die zu Dir passen.\n\nMit dem Button wird ein neues Browser-Fenster geöffnet, in dem dir die Nutzer in deinem Umfeld auf einer Karte angezeigt werden."
+    "text": "Ganz gleich zu welcher Community Du gehörst, mit dem Geo Matching System findest Du Mitglieder aller Communities auf einer Landkarte. Du kannst nach Angeboten und Bedürfnissen filtern und Dir die Nutzer anzeigen lassen, die zu Dir passen.\n\nMit dem Button wird ein neues Browser-Fenster geöffnet, in dem Dir die Nutzer in Deinem Umfeld auf einer Karte angezeigt werden."
   },
   "via_card": "über eine Karte",
   "via_link": "über einen Link",

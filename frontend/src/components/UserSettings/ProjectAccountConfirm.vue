@@ -88,13 +88,16 @@ const typed = ref('')
 
 /**
  * The word is a locale value, so a member types it in their own language. Compared without
- * case and without surrounding blanks: the point is that the member READ it, not that they
- * hit the shift key.
+ * case, without surrounding blanks and without accents: the point is that the member READ
+ * it, not that they hit the shift key or the accent key.
+ *
+ * ⚠️ The accents are Greek's reason. Greek capitals carry none, so the word is "ΕΡΓΟ" — but
+ * the member types "έργο", a phone turns that into "Έργο", and upper case makes "ΈΡΓΟ" of
+ * it, which is not "ΕΡΓΟ". Decomposed (NFD), the accent is a mark of its own and drops out.
  */
+const comparable = (word) => word.trim().normalize('NFD').replace(/\p{M}/gu, '').toUpperCase()
 const expectedWord = computed(() => t('settings.creationAccount.confirm.word'))
-const wordMatches = computed(
-  () => typed.value.trim().toUpperCase() === expectedWord.value.trim().toUpperCase(),
-)
+const wordMatches = computed(() => comparable(typed.value) === comparable(expectedWord.value))
 
 const confirmIfMatching = () => {
   if (wordMatches.value && !props.busy) {

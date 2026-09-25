@@ -11,9 +11,6 @@
       "contactSupport": "Contactar o suporte",
       "emailExists": "No entanto, já existe uma conta para o teu endereço de e-mail.",
       "emailReused": "o teu endereço de e-mail acabou de ser utilizado novamente para registar uma conta no Gradido.",
-      "helperButton": "Estou a ajudar alguém a criar uma conta",
-      "helperIntro": "Se ao teu lado está uma pessoa que acabou de usar o teu endereço de e-mail para começar uma conta Gradido: continua aqui a configuração. Juntos introduzem o endereço de e-mail dela, e a palavra-passe escolhe-a ela própria.",
-      "helperTitle": "Estás a ajudar alguém num café Gradido neste momento?",
       "ifYouAreNotTheOne": "Se não tentaste registar-te novamente, contacta o nosso suporte:",
       "onForgottenPasswordClickLink": "Se te esqueceste da tua palavra-passe, clica aqui.",
       "subject": "Nova tentativa de registo com o teu e-mail",
@@ -172,6 +169,52 @@
       "haveReceivedAmountGDDFrom": "acabaste de receber {transactionAmount} GDD de {senderAlias}.",
       "subject": "{senderAlias} enviou-te {transactionAmount} Gradido",
       "title": "{senderAlias} enviou-te {transactionAmount} Gradido"
+    }
+  },
+  "firstCreation": {
+    "catalog": {
+      "accompaniedHardTime": "Acompanhei alguém num momento difícil e {text}",
+      "animalShelter": "Ajudei num abrigo ou num santuário de animais e {text}",
+      "animalsOrNature": "Fiz algo pelos animais ou pela natureza e {text}",
+      "caredForChildren": "Criei os meus filhos, acompanhei-os na vida e {text}",
+      "communityProject": "Ajudei a levar adiante um projeto comunitário (festa, agricultura solidária, horta comunitária …) e {text}",
+      "fireBrigadeRescue": "Colaborei com os bombeiros voluntários ou com um serviço de socorro e {text}",
+      "helpedAtHome": "Ajudei em casa e {text}",
+      "helpedElderlyPerson": "Ajudei uma pessoa mais velha e {text}",
+      "helpedFellowStudents": "Ajudei os meus colegas de turma ou de curso e {text}",
+      "helpedNeighbourhood": "Dei uma mão onde era preciso no meu bairro e {text}",
+      "helpedOldPerson": "Ajudei uma pessoa idosa e {text}",
+      "helpedParish": "Ajudei no meu município ou na minha paróquia e {text}",
+      "helpedSickPerson": "Ajudei uma pessoa doente e {text}",
+      "lookedAfterGrandchildren": "Tomei conta dos meus netos e {text}",
+      "lookedAfterOrTaught": "Olhei por alguém ou ensinei alguma coisa a alguém e {text}",
+      "madeSomeoneHappy": "Dei uma alegria a alguém e {text}",
+      "musicChoirCulture": "Contribuí para a música, o coro ou a vida cultural da comunidade e {text}",
+      "natureEnvironment": "Fiz algo pela natureza e pelo ambiente e {text}",
+      "nursedRelative": "Cuidei de um familiar e {text}",
+      "sharedKnowledge": "Transmiti os meus conhecimentos (explicações, curso, orientação) e {text}",
+      "supportedClub": "Apoiei a minha associação e {text}",
+      "supportedDisabledPerson": "Apoiei uma pessoa com deficiência e {text}"
+    },
+    "checks": {
+      "child": "Sou uma criança.",
+      "retiree": "Sou reformada / reformado."
+    },
+    "message": {
+      "checkConflictNote": "Esta primeira criação foi suspensa: estão marcadas caixas que se excluem mutuamente — {checks} Por favor, verifica e confirma, altera ou rejeita manualmente.",
+      "childLine": "por estares aqui e veres o mundo com o teu olhar",
+      "closing": "Que bom que estás aqui.",
+      "greetingAnonymous": "Damos-te as boas-vindas!",
+      "greetingFemale": "Querida {name}, bem-vinda!",
+      "greetingMale": "Querido {name}, bem-vindo!",
+      "greetingNeutral": "Damos-te as boas-vindas, {name}!",
+      "internalNote": "A Crea suspendeu esta primeira criação: {reason}. Por favor, verifica e confirma, altera ou rejeita manualmente.",
+      "retireeLine": "pela obra da tua vida: todos esses anos em que estiveste ao lado dos outros",
+      "review": "Uma pessoa ainda vai ver as tuas entradas. Terás notícias nossas.",
+      "thanks": "A comunidade agradece-te — {lines}.",
+      "thanksOnlyCheck": "A comunidade agradece-te — {checkLine}.",
+      "thanksWithCheck": "A comunidade agradece-te — {lines}. E {checkLine}.",
+      "w1": "Os teus primeiros 100 Gradido são um agradecimento por tudo o que já fizeste."
     }
   },
   "general": {

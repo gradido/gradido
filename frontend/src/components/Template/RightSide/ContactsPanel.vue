@@ -57,7 +57,11 @@
         <contact-tiles :rows="favorites" @open="open" />
       </div>
 
-      <div v-if="listed.length" data-test="contacts-panel-recent">
+      <div
+        v-if="listed.length"
+        :style="{ '--contacts-panel-face': `${LIST_AVATAR_SIZE}px` }"
+        data-test="contacts-panel-recent"
+      >
         <div class="contacts-panel-label">
           {{ searching ? $t('contacts.matches') : $t('contacts.recent') }}
         </div>
@@ -97,6 +101,10 @@
             <span class="contacts-panel-date">
               {{ $d(new Date(row.contact.lastAt), 'short') }}
             </span>
+            <!-- Drawn on the face's upper corner, as on the tiles above -- Bernd's choice
+                 (25.09.2026) over the place after the date, which took 17px from a name the
+                 column already cuts. Standing last in the button, so the row's name says it. -->
+            <chat-unread-dot :count="row.contact.unreadChatMessages" class="contacts-panel-dot" />
           </button>
           <favorite-heart :member="row.contact.user" />
         </div>
@@ -121,6 +129,7 @@ import { useI18n } from 'vue-i18n'
 import { useApolloClient } from '@vue/apollo-composable'
 import { BFormInput, BSpinner } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
+import ChatUnreadDot from '@/components/Chat/ChatUnreadDot.vue'
 import ContactTiles from '@/components/Contacts/ContactTiles.vue'
 import ContactsEmpty from '@/components/Contacts/ContactsEmpty.vue'
 import ContactWindow from '@/components/Contacts/ContactWindow.vue'
@@ -243,6 +252,7 @@ const { windowOpen, selected, open } = useContactWindow()
    row's padding, gap and line, the name's size and the second line's -- and
    `LastTransactions.spec` holds the two files together. Change one, change both. */
 .contacts-panel-row {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -295,6 +305,17 @@ const { windowOpen, selected, open } = useContactWindow()
   font-size: 0.72rem;
   color: var(--bs-secondary-color, #6c757d);
   white-space: nowrap;
+}
+
+/* The face's upper right corner. The face stands at the row's left edge and in its middle
+   (align-items), so its top is half a face above the middle of the row's padding box -- which
+   is what an absolute child measures from. Laid over the face, the dot takes no room from the
+   name; the ring in the page's colour lifts it off a photo, as on the tiles. */
+.contacts-panel-dot {
+  position: absolute;
+  top: calc(50% - var(--contacts-panel-face) / 2 + 1px);
+  left: calc(var(--contacts-panel-face) - 10px);
+  box-shadow: 0 0 0 2px var(--bg, #f5f5f5);
 }
 
 .contacts-panel-alllink {

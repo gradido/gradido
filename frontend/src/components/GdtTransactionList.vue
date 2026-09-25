@@ -30,19 +30,22 @@
     <BPagination
       v-if="transactionGdtCount > pageSize"
       v-model="currentPage"
-      class="mt-3"
+      class="mt-3 flex-wrap"
       pills
       size="lg"
       :per-page="pageSize"
       :total-rows="transactionGdtCount"
       align="center"
       :no-ellipsis="true"
+      :limit="pagerLimit"
+      :no-goto-end-buttons="pagerNoEnds"
     />
   </div>
 </template>
 
 <script>
 import Transaction from '@/components/Transaction'
+import { usePagerFit } from '@/composables/usePagerFit'
 
 export default {
   name: 'GdtTransactionList',
@@ -57,6 +60,9 @@ export default {
     transactionGdtCount: { type: Number, required: true },
     pageSize: { type: Number, required: true },
     modelValue: { type: Number, required: true },
+  },
+  setup() {
+    return usePagerFit()
   },
   data() {
     return {

@@ -185,6 +185,45 @@ describe('apolloProvider', () => {
 
       expect(store.commit).toHaveBeenCalledWith('token', 'new-token')
     })
+
+    /**
+     * Every answer carries a fresh token, and taking it moves the idle logout on. A question the
+     * member did not cause -- the chat's beat, a list asked again because a message arrived --
+     * says `renewSession: false`, and the session clock stays: otherwise a tab left open would
+     * never be signed out. The test above is the Gegenprobe: without the flag it IS taken.
+     */
+    it('leaves the token as it is for a question that renews no session', () => {
+      const getContextMock = vi.fn().mockReturnValue({
+        renewSession: false,
+        response: {
+          headers: {
+            get: vi.fn(() => 'new-token'),
+          },
+        },
+      })
+      const forwardMock = vi.fn().mockReturnValue({
+        map: vi.fn((callback) => callback({})),
+      })
+
+      authLink({ setContext: vi.fn(), getContext: getContextMock }, forwardMock)
+
+      expect(store.commit).not.toHaveBeenCalledWith('token', expect.anything())
+    })
+
+    // Only `false` holds the clock: a context that says nothing about it renews as ever.
+    it('takes the token where the context says nothing about the session', () => {
+      const getContextMock = vi.fn().mockReturnValue({
+        renewSession: undefined,
+        response: { headers: { get: vi.fn(() => 'new-token') } },
+      })
+      const forwardMock = vi.fn().mockReturnValue({
+        map: vi.fn((callback) => callback({})),
+      })
+
+      authLink({ setContext: vi.fn(), getContext: getContextMock }, forwardMock)
+
+      expect(store.commit).toHaveBeenCalledWith('token', 'new-token')
+    })
   })
 
   // Without this the wiring is untested: the checks above only prove that onError was

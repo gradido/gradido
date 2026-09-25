@@ -1,0 +1,134 @@
+# AI-GENERATED — not an architecture reference
+
+# The thread with one person, one page at a time, oldest first within the page (E-018: the
+# order of arrival on this server; nothing is sorted). The person is named by the PAIR the
+# contact window holds (KF-004) -- there is no conversation id to ask by, and none is needed.
+#
+# `before` is the smallest id already on screen: the page it returns lies right before it.
+# Without it, the newest page. `limit` defaults to 50 on the server and stops at 100.
+#
+# ⛔ The fields are the ones the backend's seeds ask for, one for one -- this query's in
+# backend/src/seeds/graphql/queries.ts, the two mutations' below in mutations.ts -- and
+# `documents.test.ts` holds this document against the schema. `deliveryState`, `notify` and
+# `mailState` come back only on one's OWN messages, as the enum NAMES (DELIVERED, PENDING,
+# FAILED; EMAIL, NONE; MAILED, MUTED) -- on the other side's messages they are null, because
+# the server says nothing about how the other side's mail went.
+#
+# `mailState` is what became of the mail about one's own message (E-034): MAILED where one went
+# out, MUTED where one was asked for and the recipient has muted the conversation. Null where
+# none was asked for -- and where nothing is known: a message from before the field, a recipient
+# server from before it, a mail that did not go out, a delivery that failed.
+#
+# `mutedByMe` is one's OWN mark on this conversation (E-024): no mails about the other
+# person's messages while it is set; false where there is no conversation yet. It comes
+# with the thread, so the bell needs no question of its own (E-017: one question on
+# opening).
+query chatMessagesWithMemberQuery($ref: MemberAvatarRefInput!, $before: Int, $limit: Int) {
+  chatMessagesWithMember(ref: $ref, before: $before, limit: $limit) {
+    hasMore
+    mutedByMe
+    messages {
+      id
+      messageUuid
+      conversationId
+      sender {
+        communityUuid
+        gradidoID
+      }
+      mine
+      subject
+      body
+      createdAt
+      deliveryState
+      notify
+      mailState
+    }
+  }
+}
+
+# What is new for me since a message id, in ALL my conversations at once -- the one question the
+# wallet asks in its beat (E-017; useChatUpdates). The browser sorts the messages into the
+# threads that are open; nothing else keeps them.
+#
+# Without `afterId` the answer only says where one stands: no messages, `latestId` the highest id
+# of one's own conversations, and how many conversations hold something unread. With it, the
+# messages above that id, ascending, one's own included (`mine`), deleted ones left out; `limit`
+# defaults to 50 on the server and stops at 100. `latestId` is where the next question goes on
+# from -- under `hasMore` the last message delivered, not the highest. `unreadConversations`
+# counts conversations, not messages, and a muted one still counts (E-024).
+#
+# ⚠️ A known limit, accepted (P4a, #3977): two messages written at the same moment can become
+# visible in the reverse order of their ids, and then the marker passes over the older one. It
+# is still in the thread (`chatMessagesWithMember`) and shows there on the next opening. The
+# threads drop a message whose id they already hold, so an answer that brings one twice does
+# no harm.
+#
+# The fields of `messages` are the ones of a message of the thread, one for one: an arrival is
+# hung into the same list and drawn by the same bubble.
+query newChatMessagesSince($afterId: Int, $limit: Int) {
+  newChatMessagesSince(afterId: $afterId, limit: $limit) {
+    latestId
+    unreadConversations
+    hasMore
+    messages {
+      id
+      messageUuid
+      conversationId
+      sender {
+        communityUuid
+        gradidoID
+      }
+      mine
+      subject
+      body
+      createdAt
+      deliveryState
+      notify
+      mailState
+    }
+  }
+}
+
+# Moves one's OWN read pointer up to the highest id the thread has shown (E-017). The server
+# never moves it back and takes only an id of this conversation.
+mutation markChatConversationRead($ref: MemberAvatarRefInput!, $upToMessageId: Int!) {
+  markChatConversationRead(ref: $ref, upToMessageId: $upToMessageId)
+}
+
+# Writes one message to the person named by the pair, and answers with one's OWN copy -- the
+# same fields a message of the thread has, so the answer is a bubble as it stands.
+#
+# `notify` is the sender's wish, and it is required: EMAIL where the box is ticked, NONE where
+# it is not. The server decides the rest (E-024): the first message of a pair goes out as a
+# mail whatever was asked, and a recipient who muted the conversation gets none -- the copy says
+# which it was in `mailState` (E-034). A delivery that failed across the border is NOT an
+# error -- the copy comes back with `deliveryState` FAILED (E-019). An error is one of
+# CHAT_MESSAGE_NOT_SENT: TO_ONESELF | UNKNOWN_RECIPIENT | NO_WAY_TO_DELIVER | NOT_STORED, and
+# nothing was sent.
+mutation sendChatMessage($ref: MemberAvatarRefInput!, $body: String!, $notify: ChatMessageNotify!) {
+  sendChatMessage(ref: $ref, body: $body, notify: $notify) {
+    id
+    messageUuid
+    conversationId
+    sender {
+      communityUuid
+      gradidoID
+    }
+    mine
+    subject
+    body
+    createdAt
+    deliveryState
+    notify
+    mailState
+  }
+}
+
+# Mutes the conversation with the person named by the pair for oneself, or lifts it (E-024):
+# no mails about their chat messages while it is muted -- a letter from the form "send an
+# e-mail" still goes out (E-034, A3) -- and the thread shows them as before. Only one's own
+# row. The other side is not told when it is switched; it learns of it only where it asks for
+# a mail, from `mailState` MUTED on its own message. False where there is no conversation yet.
+mutation setChatConversationMuted($ref: MemberAvatarRefInput!, $muted: Boolean!) {
+  setChatConversationMuted(ref: $ref, muted: $muted)
+}

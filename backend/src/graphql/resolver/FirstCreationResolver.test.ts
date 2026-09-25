@@ -13,8 +13,11 @@ import {
   User as DbUser,
   UserContact as DbUserContact,
   UserRole as DbUserRole,
+  dbInsertEvent,
   dbSelectFirstCreationByUserId,
   dbUpdateFirstCreationOutcome,
+  EventInsert,
+  EventType,
   FirstCreationReviewReason,
   FirstCreationStatus,
   FirstCreationTestMode,
@@ -28,11 +31,6 @@ import { GradidoUnit } from 'shared'
 import { AnthropicClient } from '@/apis/anthropic/AnthropicClient'
 import { CONFIG } from '@/config'
 import { composeFirstCreationGreeting } from '@/data/FirstCreation.logic'
-import {
-  EVENT_FIRST_CREATION_DONE,
-  EVENT_FIRST_CREATION_REVIEW,
-} from '@/event/EVENT_FIRST_CREATION'
-import { EventType } from '@/event/Events'
 import { createUserContribution } from '@/graphql/resolver/util/createUserContribution'
 import { creationFactory } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
@@ -68,13 +66,9 @@ jest.mock('core', () => {
 jest.mock('@/password/EncryptorUtils')
 
 // The outcome events write a row of their own; one of them is made to fail once below.
-jest.mock('@/event/EVENT_FIRST_CREATION', () => {
-  const actual = jest.requireActual('@/event/EVENT_FIRST_CREATION')
-  return {
-    ...actual,
-    EVENT_FIRST_CREATION_DONE: jest.fn(actual.EVENT_FIRST_CREATION_DONE),
-    EVENT_FIRST_CREATION_REVIEW: jest.fn(actual.EVENT_FIRST_CREATION_REVIEW),
-  }
+jest.mock('database', () => {
+  const actual = jest.requireActual('database')
+  return { __esModule: true, ...actual, dbInsertEvent: jest.fn(actual.dbInsertEvent) }
 })
 // The filing core, so one entry of a bundle can be made to fail.
 jest.mock('@/graphql/resolver/util/createUserContribution', () => {
@@ -94,8 +88,19 @@ const firstCreationLines = (
 ).firstCreationLines
 
 const addedMessageMail = sendAddedContributionMessageEmail as jest.Mock
-const doneEvent = EVENT_FIRST_CREATION_DONE as unknown as jest.Mock
-const reviewEvent = EVENT_FIRST_CREATION_REVIEW as unknown as jest.Mock
+const insertEvent = dbInsertEvent as unknown as jest.Mock
+const realInsertEvent = jest.requireActual('database').dbInsertEvent
+// Every event goes through the same insert, so the failure is keyed to the type.
+const failEventOnce = (type: EventType): void => {
+  let failed = false
+  insertEvent.mockImplementation(async (event: EventInsert) => {
+    if (!failed && event.type === type) {
+      failed = true
+      throw new Error('event store down')
+    }
+    return realInsertEvent(event)
+  })
+}
 const fileOne = createUserContribution as unknown as jest.Mock
 const realFileOne = jest.requireActual(
   '@/graphql/resolver/util/createUserContribution',
@@ -736,7 +741,7 @@ describe('FirstCreationResolver', () => {
     it('keeps a thanked bundle thanked when only the outcome event fails', async () => {
       await reopen(bibi, FirstCreationTestMode.WITH_BOOKING)
       firstCreationLines.mockResolvedValue(answer(['für den Zaun']))
-      doneEvent.mockRejectedValueOnce(new Error('event store down'))
+      failEventOnce(EventType.FIRST_CREATION_DONE)
       await loginAs('bibi@bloxberg.de')
       const reviewsBefore = (await eventsOf(EventType.FIRST_CREATION_REVIEW, bibi)).length
       const { data, errors } = await mutate({
@@ -1172,7 +1177,7 @@ describe('FirstCreationResolver', () => {
     it('a review whose event fails still writes the note exactly once', async () => {
       await reopen(raeuber, FirstCreationTestMode.WITH_BOOKING)
       firstCreationLines.mockResolvedValue(answer(['für etwas'], true, 'Grund'))
-      reviewEvent.mockRejectedValueOnce(new Error('event store down'))
+      failEventOnce(EventType.FIRST_CREATION_REVIEW)
       await loginAs('raeuber@hotzenplotz.de')
       const before = (await contributionsOf(raeuber)).length
       const { data } = await mutate({
@@ -1209,14 +1214,16 @@ describe('FirstCreationResolver', () => {
 
     beforeAll(async () => {
       // Confirmed so that a password exists; the two tests below change what they need.
+      // Polish: none of the ten wallet languages lacks the catalog any more, and this is the
+      // member whose language core does not carry.
       garrick = await userFactory(testEnv, {
         ...garrickOllivander,
         emailChecked: true,
-        language: 'fr',
+        language: 'pl',
       })
     })
 
-    it('a member whose language has no catalog yet sees no window', async () => {
+    it('a member whose language has no catalog sees no window', async () => {
       await loginAs('garrick@ollivander.com')
       const { data } = await query({ query: firstCreationStatus })
       expect(data.firstCreationStatus).toMatchObject({ state: 'NONE', eligible: false })

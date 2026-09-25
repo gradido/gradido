@@ -10,7 +10,6 @@ import { OptInType } from '@enum/OptInType'
 import { Order } from '@enum/Order'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { PublishNameType } from '@enum/PublishNameType'
-import { UserContactType } from '@enum/UserContactType'
 import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
 import { AdminUser, SearchAdminUsersResult } from '@model/AdminUser'
 import { AliasStatus } from '@model/AliasStatus'
@@ -22,7 +21,6 @@ import { UserContact } from '@model/UserContact'
 import { UserLocationResult } from '@model/UserLocationResult'
 import {
   ensureUrlEndsWithSlash,
-  registerAddressTransaction,
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
   sendResetPasswordEmail,
@@ -63,14 +61,14 @@ import {
   dbFindUserContactByCodeOrFail,
   dbFindUserLoginByEmail,
   dbFindUsers,
-  dbInsertAssistedRegistration,
+  dbInsertEvent,
   dbInsertUserAlias,
   dbMarkAliasAdopted,
-  dbPurgeExpiredAssistedRegistrations,
   dbReleaseUnconfirmedEmailChangeFor,
   dbUpsertUserAvatar,
   dbUserUpdateField,
   dbUserUpdatePassword,
+  EventType,
   emailContactByUserIdQuery,
   findUserByIdentifier,
   getCommunityByUuid,
@@ -87,14 +85,10 @@ import {
   ALIAS_QUOTA_WINDOW_MS,
   AVATAR_FULL_MAX_BYTES,
   AVATAR_SMALL_MAX_BYTES,
-  aliasCandidates,
-  aliasSchema,
-  DEFAULT_LANGUAGE,
   JPEG_END_BYTES,
   JPEG_MAGIC_BYTES,
   languageSchema,
-  MemberAvatarPayload,
-  pickFreeAlias,
+  MemberAvatarPayload,  
   Result,
   updateAllDefinedAndChanged,
 } from 'shared'
@@ -124,11 +118,7 @@ import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import {
-  canEmailResend,
-  emailChangeExpiryCutoff,
-  isEmailVerificationCodeValid,
-} from '@/data/EmailVerificationCode.logic'
+import { canEmailResend, isEmailVerificationCodeValid } from '@/data/EmailVerificationCode.logic'
 import {
   MEMBER_AVATARS_FULL_MAX_PER_REQUEST,
   MEMBER_AVATARS_MAX_REFS,
@@ -139,25 +129,7 @@ import {
 import { inMemberLine } from '@/data/MemberLine.logic'
 import { PRESENCE_MAX_UNCONFIRMED, verifyPresenceCode } from '@/data/PresenceCode.logic'
 import { PublishNameLogic } from '@/data/PublishName.logic'
-import {
-  EVENT_ADMIN_USER_DELETE,
-  EVENT_ADMIN_USER_ROLE_SET,
-  EVENT_ADMIN_USER_UNDELETE,
-  EVENT_EMAIL_ACCOUNT_MULTIREGISTRATION,
-  EVENT_EMAIL_ADMIN_CONFIRMATION,
-  EVENT_EMAIL_CONFIRMATION,
-  EVENT_EMAIL_FORGOT_PASSWORD,
-  EVENT_USER_ACTIVATE_ACCOUNT,
-  EVENT_USER_INFO_UPDATE,
-  EVENT_USER_LOGIN,
-  EVENT_USER_LOGOUT,
-  EVENT_USER_REGISTER,
-  EVENT_USER_REGISTER_PRESENCE,
-  Event,
-  EventType,
-} from '@/event/Events'
-import { createUserSchema } from '@/interactions/registerAccount'
-import { registerAccount } from '@/interactions/registerAccount/RegisterAccount.context'
+import { registerUser } from '@/interactions/registerUser/registerUser.context'
 import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, fakeVerifyPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
@@ -178,6 +150,7 @@ import { deleteUserRole, setUserRole } from './util/modifyUserRole'
 import { sendUsersToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
 import { removeUserFromGms } from './util/syncMatchingEntryToGms'
+import { createUserSchema } from '@/interactions/registerUser'
 
 const db = AppDatabase.getInstance()
 const createLogger = (method: string) =>
@@ -403,7 +376,11 @@ export class UserResolver {
       value: await encode(dbUser.gradidoId),
     })
 
-    await EVENT_USER_LOGIN(legacyUser)
+    await dbInsertEvent({
+      type: EventType.USER_LOGIN,
+      affectedUserId: legacyUser.id,
+      actingUserId: legacyUser.id,
+    })
     const projectBrandingSpaceId = await projectBrandingSpaceIdPromise
     logger.debug('project branding: ', projectBrandingSpaceId)
     // load humhub state
@@ -427,7 +404,11 @@ export class UserResolver {
   @Authorized([RIGHTS.LOGOUT])
   @Mutation(() => Boolean)
   async logout(@Ctx() context: Context): Promise<boolean> {
-    await EVENT_USER_LOGOUT(getUser(context))
+    await dbInsertEvent({
+      type: EventType.USER_LOGOUT,
+      affectedUserId: getUser(context).id,
+      actingUserId: getUser(context).id,
+    })
     return true
   }
 
@@ -465,8 +446,7 @@ export class UserResolver {
       // return first error like before in code
       throw new Error(createUserDataParseResult.error.issues[0].message)
     }
-
-    return new User(await registerAccount(createUserDataParseResult.data, logger))
+    return new User(await registerUser(createUserDataParseResult.data))
   }
 
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
@@ -522,7 +502,11 @@ export class UserResolver {
     })
 
     logger.info(`forgotPassword successful...`)
-    await EVENT_EMAIL_FORGOT_PASSWORD(user)
+    await dbInsertEvent({
+      type: EventType.EMAIL_FORGOT_PASSWORD,
+      affectedUserId: user.id,
+      actingUserId: 0,
+    })
 
     return true
   }
@@ -614,7 +598,11 @@ export class UserResolver {
         logger.error('Error subscribing to klicktipp', e)
       }
     }
-    await EVENT_USER_ACTIVATE_ACCOUNT(user)
+    await dbInsertEvent({
+      type: EventType.USER_ACTIVATE_ACCOUNT,
+      affectedUserId: user.id,
+      actingUserId: user.id,
+    })
 
     return true
   }
@@ -855,7 +843,11 @@ export class UserResolver {
     }
     logger.info('updateUserInfos() successfully finished...')
     logger.debug('writing User data successful...', new UserLoggingView(user))
-    await EVENT_USER_INFO_UPDATE(user)
+    await dbInsertEvent({
+      type: EventType.USER_INFO_UPDATE,
+      affectedUserId: user.id,
+      actingUserId: user.id,
+    })
 
     // validate if user settings are changed with relevance to update gms-user
     try {
@@ -1482,7 +1474,11 @@ export class UserResolver {
     } else {
       newRole = await setUserRole(user, role)
     }
-    await EVENT_ADMIN_USER_ROLE_SET(user, moderator)
+    await dbInsertEvent({
+      type: EventType.ADMIN_USER_ROLE_SET,
+      affectedUserId: user.id,
+      actingUserId: moderator.id,
+    })
     return newRole
   }
 
@@ -1504,7 +1500,11 @@ export class UserResolver {
     }
     // soft-delete user
     await user.softRemove()
-    await EVENT_ADMIN_USER_DELETE(user, moderator)
+    await dbInsertEvent({
+      type: EventType.ADMIN_USER_DELETE,
+      affectedUserId: user.id,
+      actingUserId: moderator.id,
+    })
     const newUser = await DbUser.findOne({ where: { id: userId }, withDeleted: true })
     return newUser ? newUser.deletedAt : null
   }
@@ -1523,7 +1523,11 @@ export class UserResolver {
       throw new LogError('User is not deleted')
     }
     await user.recover()
-    await EVENT_ADMIN_USER_UNDELETE(user, getUser(context))
+    await dbInsertEvent({
+      type: EventType.ADMIN_USER_UNDELETE,
+      affectedUserId: user.id,
+      actingUserId: getUser(context).id,
+    })
     return null
   }
 
@@ -1555,7 +1559,11 @@ export class UserResolver {
       timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
-    await EVENT_EMAIL_ADMIN_CONFIRMATION(user, getUser(context))
+    await dbInsertEvent({
+      type: EventType.EMAIL_ADMIN_CONFIRMATION,
+      affectedUserId: user.id,
+      actingUserId: getUser(context).id,
+    })
 
     return true
   }
@@ -1770,9 +1778,9 @@ export async function checkEmailExists(email: string): Promise<boolean> {
   // running either. Whoever registers will have to answer mail at the address; whoever typed
   // it in has answered nothing, and could hold it for as long as they kept asking again.
   //
-  // The three callers are the registration, the assisted registration and the Elopage
-  // webhook - every door through which an address becomes somebody's account. A confirmed
-  // row is untouched, so this never takes an address away from the member it belongs to.
+  // The two callers are the registration and the Elopage webhook - every door through which
+  // an address becomes somebody's account. A confirmed row is untouched, so this never takes
+  // an address away from the member it belongs to.
   await dbReleaseUnconfirmedEmailChangeFor(email)
   return dbEmailTaken(email)
 }

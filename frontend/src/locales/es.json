@@ -4,7 +4,7 @@
   "125": "125%",
   "(": "(",
   ")": ")",
-  "1000thanks": "¡1000 Gracias, por estar con nosotros!",
+  "1000thanks": "¡1000 gracias por estar con nosotros!",
   "Chat": "Chat",
   "GDD": "GDD",
   "GDD-long": "Gradido",
@@ -24,16 +24,6 @@
     "text": "Hay una versión más reciente."
   },
   "assistedRegistration": {
-    "assist": {
-      "button": "Crear cuenta",
-      "done": "¡La cuenta está lista! Un correo de confirmación va de camino al nuevo buzón. Inicia sesión ahora y canjea el cheque:",
-      "emailHint": "Introduce aquí la dirección de correo propia del nuevo miembro — no la tuya. La contraseña la escribe el nuevo miembro.",
-      "emailTaken": "Esta dirección de correo ya tiene una cuenta de Gradido. Usa «He olvidado mi contraseña» para volver a entrar.",
-      "intro": "{name} quiere empezar una cuenta de Gradido.",
-      "invalid": "Este enlace no es válido o ha caducado.",
-      "loginButton": "Iniciar sesión y canjear el cheque",
-      "title": "Crear juntos una cuenta de Gradido"
-    },
     "confirm": {
       "button": "Confirmar dirección",
       "done": "Tu dirección de correo está confirmada. Tu cuenta queda abierta para ti de forma permanente.",
@@ -150,6 +140,33 @@
       "text": "Para encontrar otros miembros cerca de ti, ¡introduce ahora tu ubicación en el mapa!"
     }
   },
+  "chatThread": {
+    "alsoByEmail": "También por correo electrónico",
+    "alsoByEmailTo": "También por correo electrónico a {name}",
+    "arrived": "Mensaje nuevo de {name}",
+    "empty": "Aún no hay mensajes. Aquí empieza vuestra conversación.",
+    "failed": "No entregado",
+    "firstGoesByEmail": "El primer mensaje también se envía por correo electrónico a {name}.",
+    "label": "Historial de conversación con {name}",
+    "loadOlder": "Cargar mensajes anteriores",
+    "mailed": "También por correo electrónico",
+    "muteOff": "Conversación silenciada — sin correos por los mensajes de chat de {name}",
+    "muteOn": "Silenciar",
+    "mutedHint": "Conversación silenciada: ya no recibirás correos por los mensajes de chat de {name}. Los mensajes nuevos los ves aquí. Las cartas enviadas con «Enviar correo electrónico» te siguen llegando.",
+    "notMailedMuted": "Sin correo electrónico — {name} ha desactivado los correos de vuestra conversación.",
+    "notReachable": "No se pudo cargar el historial de conversación.",
+    "notSent": "No se pudo enviar el mensaje. Tu texto sigue aquí.",
+    "pending": "Aún no entregado",
+    "placeholder": "Mensaje para {name} …",
+    "remaining": "Queda {n} carácter | Quedan {n} caracteres",
+    "send": "Enviar",
+    "sent": "Enviado",
+    "sentWithNote": "Enviado. {note}",
+    "unmutedHint": "Conversación sin silenciar: volverás a recibir correos por los mensajes de chat de {name}.",
+    "unreadBadge": "{n} conversación con mensajes nuevos | {n} conversaciones con mensajes nuevos",
+    "unreadDot": "Mensajes nuevos en el chat",
+    "you": "Tú"
+  },
   "community": {
     "admins": "Administradores",
     "choose-another-community": "Escoger otra comunidad",
@@ -167,11 +184,9 @@
   "communityInfo": "Información de la comunidad",
   "contact": "Contacto",
   "contacts": {
-    "addFavorite": "Añadir a favoritos",
     "all": "Todos los contactos",
     "allShort": "Todos",
     "bookings": "{n} movimiento | {n} movimientos",
-    "chatLater": "Historial de conversación — llegará con el chat",
     "count": "{n} contacto | {n} contactos",
     "empty": "Aún no hay contactos. Aquí aparece quien intercambia Gradido contigo — o quien llega gracias a ti.",
     "favorites": "Favoritos",
@@ -179,7 +194,6 @@
       "add": "Añadir a favoritos",
       "remove": "Quitar de favoritos"
     },
-    "isFavorite": "Favorito",
     "last": "último {date}",
     "matches": "Resultados",
     "noFavorites": "Aún sin favoritos. Toca el corazón junto a un contacto.",
@@ -195,20 +209,20 @@
       "title": "¿Quitar a {name} de tus favoritos?"
     },
     "search": "Buscar contacto …",
-    "sendEmail": "Enviar correo electrónico",
     "sendGradido": "Enviar Gradido",
-    "since": "Contacto desde {date}"
+    "since": "Contacto desde {date}",
+    "unreadChatMessages": "{n} mensaje nuevo | {n} mensajes nuevos"
   },
   "contribution": {
     "activity": "Actividad",
     "alert": {
-      "answerQuestion": "Hay una nueva noticia sobre esta contribución.",
+      "answerQuestion": "Hay un nuevo mensaje sobre esta contribución.",
       "answerQuestionToast": "Tienes mensajes nuevos.",
       "communityNoteList": "Aquí encontrarás todas las contribuciones enviadas y confirmadas de todos los miembros de esta comunidad.",
       "confirm": "confirmado",
       "deleted": "eliminado",
       "denied": "rechazado",
-      "in_progress": "Hay una pregunta de los moderatores.",
+      "in_progress": "Hay una pregunta de los moderadores.",
       "myContributionNoteList": "Puedes editar o eliminar las contribuciones enviadas que aún no han sido confirmadas en cualquier momento.",
       "pending": "Enviado y a la espera de confirmación"
     },
@@ -313,7 +327,7 @@
   },
   "error": {
     "email-already-sent": "Ya te hemos enviado un correo electrónico hace menos de 10 minutos.",
-    "empty-transactionlist": "Ha habido un error en la transmisión del número de sus transacciones.",
+    "empty-transactionlist": "Ha habido un error en la transmisión del número de tus transacciones.",
     "no-account": "Lamentablemente no hemos podido encontrar una cuenta (activada) con estos datos.",
     "no-transactionlist": "Lamentablemente, hubo un error. No se ha transmitido ninguna transacción desde el servidor.",
     "no-user": "No hay usuario con estas referencias.",
@@ -322,6 +336,84 @@
     "unknown-error": "Error desconocido: "
   },
   "existingGradidoAccount": "¿Ya tienes una cuenta de {communityName}?",
+  "firstCreation": {
+    "again": "+ Había algo más",
+    "alsoFound": "Este mensaje también lo encontrarás en tus contribuciones y en tu buzón.",
+    "balance": "En tu cuenta",
+    "catalog": {
+      "accompaniedHardTime": "He acompañado a alguien en un momento difícil",
+      "animalShelter": "He ayudado en una protectora o en un santuario de animales",
+      "animalsOrNature": "He hecho algo por los animales o la naturaleza",
+      "caredForChildren": "He criado a mis hijos, los he acompañado en la vida",
+      "communityProject": "He ayudado a sacar adelante un proyecto comunitario (fiesta, agricultura solidaria, huerto comunitario …)",
+      "fireBrigadeRescue": "He colaborado con los bomberos voluntarios o en un servicio de rescate",
+      "helpedAtHome": "He ayudado en casa",
+      "helpedElderlyPerson": "He ayudado a una persona mayor",
+      "helpedFellowStudents": "He ayudado a mis compañeros de clase o de estudios",
+      "helpedNeighbourhood": "He echado una mano donde hacía falta en mi barrio",
+      "helpedOldPerson": "He ayudado a una persona anciana",
+      "helpedParish": "He ayudado en mi municipio o en mi parroquia",
+      "helpedSickPerson": "He ayudado a una persona enferma",
+      "lookedAfterGrandchildren": "Me he ocupado de mis nietos",
+      "lookedAfterOrTaught": "He cuidado de alguien o le he enseñado algo a alguien",
+      "madeSomeoneHappy": "Le he dado una alegría a alguien",
+      "musicChoirCulture": "He contribuido a la música, al coro o a la vida cultural de la comunidad",
+      "natureEnvironment": "He hecho algo por la naturaleza y el medio ambiente",
+      "nursedRelative": "He cuidado a un familiar",
+      "sharedKnowledge": "He transmitido mis conocimientos (clases particulares, curso, orientación)",
+      "supportedClub": "He apoyado a mi asociación",
+      "supportedDisabledPerson": "He apoyado a una persona con discapacidad"
+    },
+    "categories": {
+      "animalsNature": "Animales, naturaleza y medio ambiente",
+      "cannotThemselves": "Para personas que ahora mismo no pueden valerse por sí mismas",
+      "communityVolunteering": "Comunidad y voluntariado",
+      "familyCare": "Familia y cuidados",
+      "forChildren": "Para niños",
+      "knowledgeCulture": "Saber y cultura"
+    },
+    "checkHints": {
+      "child": "Tu tiempo también cuenta.",
+      "retiree": "La obra de tu vida cuenta."
+    },
+    "checks": {
+      "child": "Soy una niña / un niño.",
+      "retiree": "Soy jubilada / jubilado."
+    },
+    "confirmedFor": "Confirmado en nombre de la comunidad {community}",
+    "connector": "y",
+    "entries": "una entrada | {n} entradas",
+    "failed": "Eso no ha funcionado ahora mismo. Inténtalo de nuevo, por favor.",
+    "intro": "Los Gradido nacen de lo que las personas hacen por el bien común — también de lo que haces tú. Tu comienzo ya te lo hemos preparado.",
+    "maxEntries": "Aquí no caben más de {max} entradas — más adelante puedes añadir otras por tu cuenta cuando quieras.",
+    "nothing": "Ahora mismo no se me ocurre nada",
+    "placeholder": "Escríbelo con tus propias palabras.",
+    "projectAsk": {
+      "later": "Más tarde",
+      "project": "Esta es una cuenta de proyecto",
+      "text": "Cada persona puede crear en Gradido: por lo que hace por los demás. Si esta cuenta no es una persona, sino una asociación, un proyecto o un negocio, dínoslo aquí — una cuenta de proyecto no crea, recibe agradecimiento.",
+      "title": "No pasa nada — la pregunta volverá la próxima vez."
+    },
+    "question": "¿Qué cosas buenas has hecho ya en las últimas semanas?",
+    "remove": "Quitar entrada",
+    "review": "Falta que una persona revise tus entradas. Tendrás noticias nuestras.",
+    "showLess": "Mostrar menos",
+    "showMore": "Mostrar más ({count})",
+    "subtitle": "Elige algunas frases que encajen — bastan unas pocas. Puedes completarlas, cambiarlas o escribir otras totalmente tuyas.",
+    "thankSomeone": "Dar las gracias a alguien ahora",
+    "toAccount": "Ir a mi cuenta",
+    "tooShort": "Unas palabras más y podrás guardar.",
+    "unbooked": "Prueba sin abono — las contribuciones esperan revisión en el área de administración.",
+    "waiting": "La comunidad está leyendo lo que has escrito.",
+    "waitingHint": "Esto tarda un momento — alrededor de medio minuto. Puedes dejar la ventana abierta.",
+    "welcome": "¡Te damos la bienvenida, {name}!",
+    "welcomeAnonymous": "¡Te damos la bienvenida!",
+    "whyConfirmed": "Este primer agradecimiento lo ha confirmado el software al momento, para que puedas empezar enseguida. Todo lo que registres a partir de ahora lo lee también una persona — las moderadoras y los moderadores revisan cada contribución con cuidado y la confirman según su leal saber y entender.",
+    "whyHundred": "Los cien son para empezar, para conocernos. A partir de ahora hay más cada mes — hasta 1.000 Gradido por lo bueno que haces por el bien común.",
+    "whyHundredTitle": "¿Por qué cien?",
+    "whyMore": "Encontrarás información más detallada {link}.",
+    "whyMoreLink": "aquí"
+  },
   "followUs": "sigue nos:",
   "footer": {
     "app_version": "App versión {version}",
@@ -347,10 +439,10 @@
     "current_balance": "Saldo de cuenta actual",
     "date": "Fecha",
     "description": "Descripción",
-    "email": "E-Mail",
+    "email": "Correo electrónico",
     "firstname": "Nombre",
     "from": "De",
-    "generate_now": "crear ahora",
+    "generate_now": "Crear ahora",
     "hidePassword": "Ocultar contraseña",
     "hours": "Horas",
     "identifier": "Correo electrónico, nombre de usuario o ID de Gradido",
@@ -358,7 +450,7 @@
     "link_amount": "Importe del enlace",
     "link_decay_description": "El importe del enlace se bloquea junto con la ransience máxima. Una vez que el enlace se ha canjeado, caducado o eliminado, el resto se libera de nuevo.",
     "memo": "Mensaje",
-    "message": "Noticia",
+    "message": "Mensaje",
     "newPassword": "Contraseña nueva",
     "newPasswordRepeat": "Repetir contraseña nueva",
     "new_balance": "Saldo de cuenta nuevo depués de confirmación",
@@ -381,7 +473,7 @@
     "send_email_success": "Tu correo electrónico se ha enviado correctamente",
     "send_now": "Enviar ahora",
     "send_transaction_error": "¡Desafortunadamente, la transacción no se pudo ejecutar!",
-    "send_transaction_success": "Su transacción fue ejecutada con éxito",
+    "send_transaction_success": "Tu transacción fue ejecutada con éxito",
     "sendemailerror": {
       "failedToSendCommandToFederatedCommunity": "Al enviar tu correo electrónico se produjo un error en la comunidad de tu destinatario: ",
       "federatedCommunityOfReceiverCommunityNotFound": "No existe una federación válida para la comunidad de tu destinatario",
@@ -461,7 +553,7 @@
     "expiredOn": "Vencido el:",
     "has-account": "¿Ya tienes una cuenta Gradido?",
     "header": "Crear enlace, cheque y código QR",
-    "link-and-text-copied": "El enlace y su mensaje se han copiado en el portapapeles. Ahora puedes ponerlo en un correo electrónico o mensaje.",
+    "link-and-text-copied": "El enlace y tu mensaje se han copiado en el portapapeles. Ahora puedes ponerlo en un correo electrónico o mensaje.",
     "link-copied": "El enlace se ha copiado en el portapapeles. Ahora puedes pegarlo en un correo electrónico o mensaje.",
     "link-deleted": "El enlace se eliminó el {date}.",
     "link-expired": "El enlace ya no es válido. La validez expiró el {date}.",
@@ -471,7 +563,7 @@
     "links_sum": "Enlaces, cheques, códigos QR",
     "no-account": "¿Aún no tienes una cuenta de Gradido?",
     "no-redeem": "¡No puedes canjear tu propio enlace!",
-    "not-copied": "¡Desafortunadamente, su dispositivo no permite copiar! Copie el enlace manualmente!",
+    "not-copied": "¡Desafortunadamente, tu dispositivo no permite copiar! ¡Copia el enlace manualmente!",
     "recipientCommunityRedirection": "Redirigir para abonar a:",
     "recipientCommunitySelection": "Seleccionar comunidad Gradido:",
     "redeem": "Canjear",
@@ -588,6 +680,8 @@
     },
     "list": {
       "centeredOn": "Alrededor de {place}",
+      "centeredOnFern": "Suprarregional · {km} km alrededor de {place}",
+      "centeredOnFernNoPlace": "Suprarregional · {km} km",
       "controlsHeading": "Búsqueda y orden",
       "dir": {
         "e": "al este",
@@ -625,8 +719,8 @@
       "back": "Volver",
       "breite": "Quién encaja varias veces",
       "breiteHint": "Destaca a las personas que responden a varias de tus entradas.",
-      "centreHome": "your home",
-      "centrePoint": "the chosen point",
+      "centreHome": "tu casa",
+      "centrePoint": "la ubicación elegida",
       "channels": {
         "andere": "todos los demás",
         "andereMit": "otros con entradas",
@@ -646,10 +740,19 @@
         "liste": "Lista",
         "normal": "normal"
       },
-      "noWebgl": "This map needs WebGL 2. Your browser does not have it — the list shows the same matches.",
+      "noWebgl": "Este mapa necesita WebGL 2. Tu navegador no lo admite — la lista muestra los mismos resultados.",
       "radius": "Radio",
+      "radiusHintFern": "Se aplica a la búsqueda suprarregional. El radio regional se mantiene en {km} km.",
+      "radiusHintRegional": "Se aplica a la búsqueda regional. El radio suprarregional se mantiene en {km} km.",
       "radiusLabel": "¿En qué radio quieres buscar? (km)",
       "radiusTitle": "Radio de búsqueda",
+      "radiusTitleFern": "Radio de búsqueda suprarregional",
+      "reach": {
+        "fern": "Suprarregional",
+        "fernHint": "La búsqueda suprarregional solo muestra entradas habilitadas para ello.",
+        "label": "Alcance",
+        "regional": "Regional"
+      },
       "search": "Buscar un lugar o una dirección",
       "searchFailed": "La búsqueda no está disponible en este momento.",
       "searchHere": "Buscar aquí",
@@ -659,7 +762,8 @@
       "cancel": "Cancelar",
       "completeSentence": "Completa esta frase:",
       "detailsHeading": "Detalles — para que las personas adecuadas te encuentren:",
-      "remote": "También disponible de forma suprarregional / en línea"
+      "remote": "También disponible de forma suprarregional / en línea",
+      "remoteHint": "Así también apareces en la búsqueda suprarregional."
     },
     "position": {
       "accuracyApprox": "Se muestra una ubicación ligeramente modificada",
@@ -735,11 +839,12 @@
   "maxReached": "Máx. alcanzado",
   "member": "Miembro",
   "message": {
-    "activateEmail": "Tu cuenta aún no ha sido activada. Por favor revisa tu correo electrónico y haz clic en el enlace de activación o solicita uno nuevo enlace de activación a través de la página  restablecer contraseña.",
-    "checkEmail": "Tu correo electrónico ha sido verificado con éxito. Puedes registrarte ahora.",
+    "activateEmail": "Tu cuenta aún no ha sido activada. Por favor revisa tu correo electrónico y haz clic en el enlace de activación o solicita un nuevo enlace de activación a través de la página «Restablecer contraseña».",
+    "checkEmail": "Tu correo electrónico ha sido verificado con éxito. Ya puedes iniciar sesión.",
     "email": "Te hemos enviado un correo electrónico.",
     "errorTitle": "¡Atención!",
-    "register": "Ya estás registrado, por favor revisa tu correo electrónico y haz clic en el enlace de activación.",
+    "register": "Registro completado: revisa tu correo electrónico y haz clic en el enlace de activación.",
+    "registerPresence": "Tu cuenta está lista. Un correo de confirmación va de camino a tu dirección. Inicia sesión ahora. Si no puedes iniciar sesión, quizá ya tenías una cuenta con esta dirección: entonces usa «¿Has olvidado tu contraseña?».",
     "reply": "Gracias, tu respuesta ha sido enviada.",
     "reset": "Tu contraseña ha sido cambiada.",
     "title": "¡Gracias!",
@@ -767,9 +872,10 @@
     "back-to-settings": "Volver a la configuración",
     "calculator": "Calculadora",
     "community": "Comunidad",
-    "contacts": "Contactos",
+    "contacts": "Contactos y chat",
     "logout": "Salir",
     "matching": "Matching",
+    "menu": "Menú",
     "overview": "Resumen",
     "scanner": "Escanear código",
     "send": "Enviar",
@@ -777,23 +883,23 @@
     "support": "Soporte",
     "transactions": "Transacciones"
   },
-  "openHours": "Open Hours",
+  "openHours": "Horas disponibles",
   "pageTitle": {
     "calculator": "Calculadora",
     "circles": "Círculos Gradido",
-    "contacts": "Tus contactos",
-    "contributions": "Cuchara Gradido",
-    "gdt": "Tu GDT Transacciones",
+    "contacts": "Contactos y chat",
+    "contributions": "Crear Gradido",
+    "gdt": "Tus transacciones GDT",
     "information": "{community}",
     "matching": "Matching",
     "my-gradido-card": "Código QR de mi tarjeta de visita",
     "my-thank-you-card": "Código QR de mi tarjeta de agradecimiento",
-    "overview": "Welcome {name}",
+    "overview": "Te damos la bienvenida, {name}",
     "scanner": "Escanear código",
     "send": "Enviar Gradido y correo electrónico",
     "settings": "Configuración",
     "show-friends": "Muéstraselo a tus amigos",
-    "transactions": "Tu Transacciones",
+    "transactions": "Tus transacciones",
     "usersearch": "Búsqueda geográfica de miembros (beta)"
   },
   "public-profile": {
@@ -851,7 +957,7 @@
     "extend": "Permanecer en sesión iniciada",
     "lightText": "Si no has realizado ninguna acción durante más de 10 minutos, se cerrará tu sesión por razones de seguridad.",
     "logoutIn": "Cerrar sesión en ",
-    "warningText": "¿Aún estás?"
+    "warningText": "¿Sigues ahí?"
   },
   "settings": {
     "GMS": {
@@ -885,6 +991,27 @@
       "visibilityInfo": "Otros miembros ven tu imagen, por ejemplo junto a las transacciones que compartís. Cuando la opción está desactivada, aparecen tus iniciales, como hasta ahora."
     },
     "community": "Círculos y búsqueda de miembros",
+    "creationAccount": {
+      "confirm": {
+        "declare": "Cambiar a cuenta de proyecto",
+        "declareText": "Una cuenta de proyecto ya no crea. El apartado «Creación» desaparece de tu cuenta, y solo el soporte puede volver a activar la creación.",
+        "declareTitle": "¿De verdad quieres convertir esta cuenta en una cuenta de proyecto?",
+        "next": "Continuar",
+        "requestText": "La vuelta a la creación la revisa una persona. Enviamos un mensaje al soporte, que revisará tu cuenta y, si procede, la volverá a activar a mano. Tendrás noticias nuestras.",
+        "requestTitle": "¿Quieres volver a crear?",
+        "send": "Enviar el mensaje al soporte",
+        "typeWord": "Para cambiar a una cuenta de proyecto, que no puede crear, escribe: {word}",
+        "word": "PROYECTO"
+      },
+      "declared": "Esta cuenta es ahora una cuenta de proyecto. El apartado «Creación» está oculto.",
+      "mailFailed": "Ahora mismo no se ha podido enviar el mensaje al soporte. Inténtalo de nuevo más tarde.",
+      "openContributions": "Mientras tengas contribuciones abiertas, la cuenta no puede convertirse en cuenta de proyecto. Espera a que se confirmen o retíralas.",
+      "person": "Esta cuenta pertenece a una persona. Creo Gradido por lo que hago por los demás.",
+      "project": "Esta cuenta pertenece a un proyecto, una asociación o un negocio. No crea — recibe agradecimiento.",
+      "rateLimited": "Ya hemos enviado un mensaje al soporte en las últimas 24 horas — tendrás noticias nuestras.",
+      "requested": "La vuelta a la creación la revisa una persona. Acabamos de enviar un mensaje al soporte — tendrás noticias nuestras.",
+      "title": "Creación"
+    },
     "email": {
       "cancel": "Cancelar",
       "cancelled": "El cambio se ha descartado.",
@@ -904,6 +1031,19 @@
       "sent": "Hemos enviado un correo de confirmación a {email}."
     },
     "emailInfo": "Una nueva dirección es válida en cuanto la confirmes a través del enlace del correo de confirmación.",
+    "functionTests": {
+      "firstCreation": {
+        "failed": "Eso no ha funcionado. Recarga la página e inténtalo de nuevo.",
+        "intro": "La primera creación aparece solo una vez por cuenta — para una cuenta que ya ha creado, no vuelve nunca. Aquí puedes abrirla de nuevo para tu propia cuenta y recorrer todo el proceso de verdad.",
+        "noRunsLeft": "El cupo de este mes está agotado — quedan 0 de {total} pruebas.",
+        "runsLeft": "Pruebas restantes este mes: {left} de {total}",
+        "signerHint": "Tu cuenta está configurada como firmante de la primera creación. Nadie puede confirmar su propia contribución, por eso la prueba no funciona en tu cuenta — usa otra cuenta de administrador.",
+        "title": "Primera creación",
+        "unbookedHint": "Sin abono, las contribuciones quedan como contribuciones abiertas en el área de administración. Allí puedes confirmarlas o eliminarlas a mano — mientras sigan ahí, cuentan para tu cupo mensual.",
+        "withBooking": "Repetir la primera creación – con abono",
+        "withoutBooking": "Repetir la primera creación – sin abono"
+      }
+    },
     "hide-amount": "Ocultar el importe en {currency}",
     "humhub": {
       "delete-disabled": "La cuenta de usuario solo puede eliminarse en el menú de perfil de la plataforma de cooperación.",
@@ -922,6 +1062,7 @@
     "menu": {
       "account": "Mi cuenta",
       "appearance": "Visualización",
+      "function-tests": "Prueba de funcionamiento",
       "gradido-card": "Tarjeta de visita",
       "notifications": "Mensajes",
       "state": {
@@ -944,10 +1085,10 @@
     "password": {
       "change-password": "Cambiar contraseña",
       "forgot_pwd": "¿Has olvidado tu contraseña?",
-      "resend_subtitle": "Su enlace de activación ha caducado. Puedes solicitar uno nuevo aquí.",
+      "resend_subtitle": "Tu enlace de activación ha caducado. Puedes solicitar uno nuevo aquí.",
       "reset": "Restablecer contraseña",
       "reset-password": {
-        "text": "Ahora introduce una nueva contraseña con la que quieras acceder a tu cuenta de Gradido en el futuro.."
+        "text": "Ahora introduce una nueva contraseña con la que quieras acceder a tu cuenta de Gradido en el futuro."
       },
       "send_now": "Enviar",
       "set": "Establecer contraseña",
@@ -999,11 +1140,23 @@
       "title": "A alguien en otro lugar"
     },
     "here": {
+      "codeHint": "El código vale diez minutos, uno nuevo para cada invitado. Quien lo escanee puede usar su cuenta enseguida.",
+      "confirmFirst": "En cuanto tu dirección de correo esté confirmada, también podrás abrir cuentas aquí en la mesa. Hasta entonces, este código muestra tu tarjeta.",
+      "expired": "El código ha caducado.",
+      "limitReached": "Todas las plazas están ocupadas: {n} de tus invitados aún no han confirmado su dirección de correo. En cuanto uno de ellos la confirme, podrás volver a mostrar un código. Si no sabes cómo seguir, el soporte te ayuda.",
       "map": "el mapa",
+      "newCode": "Mostrar un código nuevo",
+      "noAnswer": "El código no ha llegado ahora mismo. Inténtalo de nuevo.",
+      "noPhone": "¿Sin móvil a mano? Abre aquí, en este dispositivo, la cuenta de tu invitado.",
+      "noPhoneHint": "Para ello se cerrará tu sesión. Cuando tu invitado termine, cerrará la suya y tú volverás a iniciar sesión.",
       "step1": "Muestra {map}. Deja que escriba lo que busca.",
       "step2": "Ella apunta con su cámara a este código.",
       "step3": "La cuenta la recibe por sí sola. No tienes que explicar nada.",
-      "title": "A alguien aquí conmigo"
+      "title": "A alguien aquí conmigo",
+      "unconfirmedGuest": "{firstName} {lastName} · {alias} · desde el {date}",
+      "unconfirmedGuests": "Un invitado tuyo aún no ha confirmado su dirección de correo | {n} de tus invitados aún no han confirmado su dirección de correo",
+      "unconfirmedHint": "Puedes recordarles el enlace de su correo. Si tienes que pedir al soporte que elimine una cuenta, envíale esta línea.",
+      "validFor": "Válido un minuto más | Válido {n} minutos más"
     },
     "mirror": {
       "go": "Muéstraselo a alguien más",
@@ -1027,18 +1180,22 @@
   "signup": "Registrarse",
   "site": {
     "forgotPassword": {
-      "heading": "Por favor, introduce la dirección de correo electrónico con la que estas registrado en Gradido."
+      "heading": "Por favor, introduce la dirección de correo electrónico con la que te registraste en Gradido."
     },
     "resetPassword": {
       "heading": "Por favor, introduce tu contraseña y repítela."
     },
     "signup": {
-      "agree": "Acepto la <a href='https://gradido.net/datenschutz/' target='_blank'>Política de privacidad</a>.",
+      "agree": "Acepto la <a href='https://gradido.net/es/datenschutz/' target='_blank'>Política de privacidad</a>.",
       "dont_match": "Las contraseñas no coinciden.",
       "lowercase": "Se requiere una letra minúscula.",
       "minimum": "Al menos 8 caracteres.",
       "no-whitespace": "Sin espacios ni tabulaciones.",
       "one_number": "Se requiere un número.",
+      "presenceExpired": "Este código ha caducado. Pide que te muestren uno nuevo y podrás usar tu cuenta enseguida. O regístrate aquí de la forma habitual y establece tu contraseña con el enlace del correo.",
+      "presenceFailed": "El código ha caducado. Pide que te muestren uno nuevo y escanéalo otra vez.",
+      "presenceHint": "Puedes usar tu cuenta enseguida. Confirma tu dirección de correo antes de mañana a esta hora; el correo sale en un momento. Hasta entonces, {name} verá que aún falta tu confirmación.",
+      "presenceLimit": "Con este código no se puede abrir otra cuenta ahora mismo: {name} ya avala a invitados que aún no han confirmado su dirección. En cuanto uno de ellos la confirme, vuelve a intentarlo. O regístrate aquí de la forma habitual y te llegará el enlace por correo.",
       "shownBy": "{name} te ha mostrado Gradido. Nos alegra que estés aquí.",
       "special-char": "Caracteres especiales requeridos (por ejemplo, _ o &)",
       "uppercase": "Letra mayúscula requerida."
@@ -1058,7 +1215,7 @@
       "next-payment": "Siguiente transacción",
       "pin-title": "Tu PIN, por favor",
       "remember-memo": "Recordar este concepto",
-      "rest-note": "se paga por separado.",
+      "rest-note": "se salda por separado.",
       "sent-from-to": "enviado por {from} a {to}",
       "subtitle": "Se ha escaneado una tarjeta de agradecimiento.",
       "thanks": "¡Muchas gracias!"
@@ -1147,5 +1304,5 @@
   },
   "via_card": "con una tarjeta",
   "via_link": "atraves de un enlace",
-  "welcome": "Bienvenido a la comunidad."
+  "welcome": "Te damos la bienvenida a la comunidad"
 }

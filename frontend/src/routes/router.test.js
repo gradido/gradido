@@ -84,8 +84,8 @@ describe('router', () => {
       expect(defaultRoute.redirect()).toEqual({ path: '/login' })
     })
 
-    it('has 43 routes defined', () => {
-      expect(routes).toHaveLength(43)
+    it('has 42 routes defined', () => {
+      expect(routes).toHaveLength(42)
     })
 
     // The settings are one route per area. That is what lets the same pages serve both
@@ -332,7 +332,7 @@ describe('router', () => {
       // `code` as a redeem code, so a link built from a mail-link route would hand the login
       // page one. Here it is as a check rather than a hope.
       const mailLinkRoutes = routes.filter(
-        (r) => r.path.startsWith('/email-change/') || r.path.startsWith('/register-assist/'),
+        (r) => r.path.startsWith('/email-change/') || r.path.startsWith('/confirm-email/'),
       )
       expect(mailLinkRoutes.length).toBeGreaterThan(0)
       for (const route of mailLinkRoutes) {

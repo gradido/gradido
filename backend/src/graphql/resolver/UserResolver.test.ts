@@ -30,6 +30,7 @@ import {
   FederatedCommunity as DbFederatedCommunity,
   dbInsertMatchingEntry,
   userFactory as dbUserFactory,
+  EventType,
   TransactionLink,
   User,
   UserAlias,
@@ -65,8 +66,7 @@ import {
   MEMBER_AVATARS_FULL_MAX_PER_REQUEST,
   MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST,
 } from '@/data/MemberAvatars.logic'
-import { mintPresenceCode } from '@/data/PresenceCode.logic'
-import { EventType } from '@/event/Events'
+import { mintPresenceCode, PRESENCE_MAX_UNCONFIRMED } from '@/data/PresenceCode.logic'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 import { encryptPassword } from '@/password/PasswordEncryptor'
@@ -373,15 +373,12 @@ describe('UserResolver', () => {
         expect(createUserLogger.addContext).toBeCalledWith('user', user[0].id)
       })
 
-      it('sends an account multi registration email without the helper branch', () => {
-        // No redeem code on this attempt, so no helper link (EM-013): the mail renders
-        // exactly as it always has.
+      it('sends an account multi registration email', () => {
         expect(sendAccountMultiRegistrationEmail).toBeCalledWith({
           firstName: 'Peter',
           lastName: 'Lustig',
           email: 'peter@lustig.de',
           language: 'de',
-          helperLink: null,
         })
       })
 
@@ -976,13 +973,12 @@ describe('UserResolver', () => {
           }
         })
 
-        it('writes the owner the usual mail, without the helper branch', () => {
+        it('writes the owner the usual mail', () => {
           const usual = {
             firstName: 'Bob',
             lastName: 'der Baumeister',
             email: 'bob@baumeister.de',
             language: 'de',
-            helperLink: null,
           }
           expect(sendAccountMultiRegistrationEmail).toHaveBeenCalledTimes(2)
           expect(sendAccountMultiRegistrationEmail).toHaveBeenNthCalledWith(1, usual)
@@ -1043,10 +1039,14 @@ describe('UserResolver', () => {
        * without a mailbox - with a password, unconfirmed, not deleted - with no time window.
        * Bob already vouches for carla@table.de from above; nopassword@table.de is his too, but
        * without a password it can do nothing without the mail and does not count.
+       *
+       * Every count here runs from the constant, so a new limit (E-022) stays one line in
+       * PresenceCode.logic.ts: guest n is Bob's n-th guest with a password, carla the first.
        */
       describe('the vouching limit', () => {
+        const guestEmail = (n: number) => `limit${n}@table.de`
         const tableGuest = (n: number) =>
-          register(`limit${n}@table.de`, {
+          register(guestEmail(n), {
             firstName: `Guest${n}`,
             referrerAlias: 'MeisterBob',
             presenceCode: code(),
@@ -1054,13 +1054,13 @@ describe('UserResolver', () => {
           })
 
         beforeAll(async () => {
-          for (const n of [2, 3, 4]) {
+          for (let n = 2; n < PRESENCE_MAX_UNCONFIRMED; n++) {
             expect((await tableGuest(n)).errors).toBeUndefined()
           }
         })
 
-        // Below the limit the silence answers a taken address, and no account comes of it: at
-        // four, the fifth still goes through.
+        // One below the limit the silence answers a taken address, and no account comes of it:
+        // the last place still goes through.
         it('lets the silent answer to a taken address count for nothing', async () => {
           const taken = await register('bob@baumeister.de', {
             referrerAlias: 'MeisterBob',
@@ -1069,12 +1069,15 @@ describe('UserResolver', () => {
           })
           expect(taken.errors).toBeUndefined()
 
-          expect((await tableGuest(5)).errors).toBeUndefined()
+          expect((await tableGuest(PRESENCE_MAX_UNCONFIRMED)).errors).toBeUndefined()
         })
 
-        it('refuses a sixth account while five are unconfirmed, and opens none', async () => {
-          expect((await tableGuest(6)).errors).toEqual([new GraphQLError('Vouching limit reached')])
-          await noAccount('limit6@table.de')
+        it('refuses one more account while the limit is unconfirmed, and opens none', async () => {
+          const next = PRESENCE_MAX_UNCONFIRMED + 1
+          expect((await tableGuest(next)).errors).toEqual([
+            new GraphQLError('Vouching limit reached'),
+          ])
+          await noAccount(guestEmail(next))
         })
 
         // Counted before the address is looked at: at the limit a taken address gets the same
@@ -1094,39 +1097,44 @@ describe('UserResolver', () => {
         // No time window: a guest who has not confirmed for weeks still holds the place.
         it('keeps counting a guest who has not confirmed for weeks', async () => {
           const weeksAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
-          await User.update((await registered('limit2@table.de')).id, { createdAt: weeksAgo })
+          await User.update((await registered(guestEmail(2))).id, { createdAt: weeksAgo })
 
-          expect((await tableGuest(6)).errors).toEqual([new GraphQLError('Vouching limit reached')])
+          expect((await tableGuest(PRESENCE_MAX_UNCONFIRMED + 1)).errors).toEqual([
+            new GraphQLError('Vouching limit reached'),
+          ])
         })
 
-        // With carla confirmed, four with a password are left - and the classic account of the
-        // same member would make it five again if it counted.
-        it('opens the sixth once one of the five confirms', async () => {
+        // With carla confirmed, one place is free - and the classic account of the same member
+        // would fill it again if it counted.
+        it('opens one more once one of them confirms', async () => {
           const carla = await UserContact.findOneOrFail({ where: { email: 'carla@table.de' } })
           await UserContact.update(carla.id, { emailChecked: true })
 
-          expect((await tableGuest(6)).errors).toBeUndefined()
-          await expect(registered('limit6@table.de')).resolves.toEqual(
+          expect((await tableGuest(PRESENCE_MAX_UNCONFIRMED + 1)).errors).toBeUndefined()
+          await expect(registered(guestEmail(PRESENCE_MAX_UNCONFIRMED + 1))).resolves.toEqual(
             expect.objectContaining({ referrerId: bob.id }),
           )
-          expect((await tableGuest(7)).errors).toEqual([new GraphQLError('Vouching limit reached')])
+          expect((await tableGuest(PRESENCE_MAX_UNCONFIRMED + 2)).errors).toEqual([
+            new GraphQLError('Vouching limit reached'),
+          ])
         })
 
         // The way back through support: a dead guest account deleted in the admin frees a place.
         it('opens the next once a dead guest account is deleted', async () => {
-          await User.update((await registered('limit3@table.de')).id, { deletedAt: new Date() })
+          await User.update((await registered(guestEmail(3))).id, { deletedAt: new Date() })
 
-          expect((await tableGuest(7)).errors).toBeUndefined()
+          expect((await tableGuest(PRESENCE_MAX_UNCONFIRMED + 2)).errors).toBeUndefined()
         })
 
-        // Two guests at the table in the same moment, one place left: both can read "four"
-        // before either account exists, so only the second count - one after another in the
-        // member's line (inMemberLine) - keeps it at five.
+        // Two guests at the table in the same moment, one place left: both can read one below
+        // the limit before either account exists, so only the second count - one after another
+        // in the member's line (inMemberLine) - keeps it at the limit.
         it('lets only one of two guests who register at the same moment take the last place', async () => {
-          const limit4 = await UserContact.findOneOrFail({ where: { email: 'limit4@table.de' } })
+          const limit4 = await UserContact.findOneOrFail({ where: { email: guestEmail(4) } })
           await UserContact.update(limit4.id, { emailChecked: true })
+          const pair = [PRESENCE_MAX_UNCONFIRMED + 3, PRESENCE_MAX_UNCONFIRMED + 4]
 
-          const results = await Promise.all([tableGuest(8), tableGuest(9)])
+          const results = await Promise.all(pair.map((n) => tableGuest(n)))
 
           const errors = results.map((result) => result.errors)
           expect(errors.filter((error) => error === undefined)).toHaveLength(1)
@@ -1134,9 +1142,7 @@ describe('UserResolver', () => {
             [new GraphQLError('Vouching limit reached')],
           ])
           const opened = await Promise.all(
-            ['limit8@table.de', 'limit9@table.de'].map((email) =>
-              UserContact.findOne({ where: { email } }),
-            ),
+            pair.map((n) => UserContact.findOne({ where: { email: guestEmail(n) } })),
           )
           expect(opened.filter(Boolean)).toHaveLength(1)
         })

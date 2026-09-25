@@ -650,15 +650,6 @@ export const thankYouCardPaymentTarget = gql`
   }
 `
 
-export const assistedRegistrationInfo = gql`
-  query ($assistCode: String!) {
-    assistedRegistrationInfo(assistCode: $assistCode) {
-      firstName
-      lastName
-    }
-  }
-`
-
 export const creaSettings = gql`
   query {
     creaSettings {
@@ -766,6 +757,59 @@ export const contactList = gql`
         favorite
         homeCommunity
         origin
+        unreadChatMessages
+        lastChatMessageAt
+      }
+    }
+  }
+`
+
+export const chatMessagesWithMember = gql`
+  query ($ref: MemberAvatarRefInput!, $before: Int, $limit: Int) {
+    chatMessagesWithMember(ref: $ref, before: $before, limit: $limit) {
+      hasMore
+      mutedByMe
+      messages {
+        id
+        messageUuid
+        conversationId
+        sender {
+          communityUuid
+          gradidoID
+        }
+        mine
+        subject
+        body
+        createdAt
+        deliveryState
+        notify
+        mailState
+      }
+    }
+  }
+`
+
+export const newChatMessagesSince = gql`
+  query ($afterId: Int, $limit: Int) {
+    newChatMessagesSince(afterId: $afterId, limit: $limit) {
+      latestId
+      unreadConversations
+      hasMore
+      messages {
+        id
+        messageUuid
+        conversationId
+        sender {
+          communityUuid
+          gradidoID
+        }
+        mine
+        subject
+        body
+        createdAt
+        deliveryState
+        notify
+        mailState
       }
     }
   }

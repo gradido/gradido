@@ -560,10 +560,26 @@ describe('FirstCreation', () => {
       await write(wrapper, 'helpedSickPerson', `${sickStem}ihn zum Arzt gefahren habe`)
 
       const row = wrapper.find('[data-test="first-creation-stem-helpedSickPerson"]').text()
-      expect(row).toBe('Ich habe einem kranken Menschen geholfen,')
+      expect(row).toBe('Ich habe einem kranken Menschen geholfen')
       expect(row).not.toContain('zum Arzt')
       // And the "…" that used to stand in for the missing tail is gone with it.
       expect(row).not.toContain('…')
+    })
+
+    /**
+     * The German stems end in a comma because the connector follows in the box ("…, indem
+     * ich"). On the row nothing follows, and the comma hung there alone (Bernd, 24.09.):
+     * the row drops it, the box keeps it.
+     */
+    it('shows the stem on the row without the comma the box needs', async () => {
+      const wrapper = build()
+      const row = wrapper.find('[data-test="first-creation-stem-helpedSickPerson"]')
+      expect(row.text()).toBe('Ich habe einem kranken Menschen geholfen')
+
+      await row.trigger('click')
+      await nextTick()
+      const field = wrapper.findAll('[data-test^="first-creation-text-"]').at(-1)
+      expect(field.element.value).toBe(sickStem)
     })
 
     /**

@@ -12,6 +12,7 @@ import {
   sendContributionDeletedEmail,
   sendContributionDeniedEmail,
   sendCreationRightRequestSupportEmail,
+  sendCustomEmail,
   sendEmailChangeSupportEmail,
   sendResetPasswordEmail,
   sendTransactionLinkRedeemedEmail,
@@ -263,35 +264,6 @@ describe('sendEmailVariants', () => {
         it('has the correct html as snapshot', () => {
           expect(result.originalMessage.html).toMatchSnapshot()
         })
-
-        // The doorbell branch (EM-013). Substance assertions rather than a snapshot on
-        // purpose: these tests only run in the CI, so a new snapshot could never be
-        // written from a locally verified render.
-        it('renders no helper branch without a helper link', () => {
-          expect(result.originalMessage.html).not.toContain('register-assist')
-        })
-      })
-    })
-
-    describe('with a helper link (the attempt carried a redeem code)', () => {
-      let helperResult: any
-      beforeAll(async () => {
-        helperResult = await sendAccountMultiRegistrationEmail({
-          firstName: 'Peter',
-          lastName: 'Lustig',
-          email: 'peter@lustig.de',
-          language: 'en',
-          helperLink: 'http://localhost/register-assist/1234567890',
-        })
-      })
-
-      it('offers the helper branch with its link', () => {
-        expect(helperResult.originalMessage.html).toContain(
-          'http://localhost/register-assist/1234567890',
-        )
-        expect(helperResult.originalMessage.html).toContain(
-          'I am helping someone set up an account',
-        )
       })
     })
   })
@@ -869,6 +841,76 @@ describe('sendEmailVariants', () => {
       it('has the correct html as snapshot', () => {
         expect(result.originalMessage.html).toMatchSnapshot()
       })
+    })
+  })
+
+  /**
+   * The mail of a message between two members -- from the form "send an e-mail", and from the
+   * chat, which has no subject (E-013).
+   *
+   * ⛔ Measured at the RENDERED mail: whether the subject block is there is a question about the
+   * template, and only the html can answer it. The block is looked for as an attribute: its class
+   * name alone is also in the stylesheet the layout puts in every mail.
+   */
+  describe('sendCustomEmail', () => {
+    const message = {
+      firstName: 'Peter',
+      lastName: 'Lustig',
+      email: 'peter@lustig.de',
+      language: 'en',
+      senderAlias: 'bibi',
+      memo: 'Shall we meet at ten?',
+      senderUuid: '3f9a1e2c-1111-4a2b-9c3d-000000000001',
+      senderCommunityUuid: 'aaaa1111-2222-4333-8444-555566667777',
+    }
+    // P4c: the reply opens the thread with the sender (`/contacts?with=`, since P4b). In the
+    // rendered attribute the `&` is `&amp;`, which the mail client reads as `&`.
+    const answerLink = `${CONFIG.COMMUNITY_URL}/contacts?with=3f9a1e2c-1111-4a2b-9c3d-000000000001&amp;community=aaaa1111-2222-4333-8444-555566667777`
+    let withSubject: any
+    let withoutSubject: any
+
+    beforeAll(async () => {
+      withSubject = await sendCustomEmail({ ...message, subject: 'About Saturday' })
+      withoutSubject = await sendCustomEmail({ ...message, subject: '' })
+    })
+
+    it('renders the template of a message for the recipient', () => {
+      expect(sendEmailTranslatedSpy).toBeCalledWith({
+        receiver: { to: 'Peter Lustig <peter@lustig.de>' },
+        template: 'customEmail',
+        locals: expect.objectContaining({
+          senderAlias: 'bibi',
+          subject: 'About Saturday',
+          memo: 'Shall we meet at ten?',
+        }),
+      })
+      expect(withSubject.originalMessage.subject).toBe('bibi has sent you a message')
+    })
+
+    it('shows the subject in its block where the message has one', () => {
+      const html = withSubject.originalMessage.html
+      expect(html).toContain('class="subject-block"')
+      expect(html).toContain('About Saturday')
+    })
+
+    it('leaves the block out where the message has none, rather than an empty box', () => {
+      expect(withoutSubject.originalMessage.html).not.toContain('class="subject-block"')
+    })
+
+    it('carries the text and the reply button either way', () => {
+      for (const sent of [withSubject, withoutSubject]) {
+        const html = sent.originalMessage.html
+        expect(html).toContain('class="memo-block"')
+        expect(html).toContain('Shall we meet at ten?')
+        expect(html).toContain(answerLink)
+      }
+    })
+
+    // The send form in e-mail mode was the answer before the chat; the thread is now.
+    it('leads the reply into the thread, not into the send form', () => {
+      const html = withSubject.originalMessage.html
+      expect(html).not.toContain('/send/')
+      expect(html).not.toContain('art=email')
     })
   })
 })

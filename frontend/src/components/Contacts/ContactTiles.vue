@@ -1,6 +1,10 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
-  <div class="contact-tiles" data-test="contact-tiles">
+  <div
+    class="contact-tiles"
+    :style="{ '--contact-tile-face': `${LIST_AVATAR_SIZE}px` }"
+    data-test="contact-tiles"
+  >
     <button
       v-for="row in rows"
       :key="row.key"
@@ -14,6 +18,10 @@
            the picture instead of the person, and only for members who have one. -->
       <app-avatar :size="LIST_AVATAR_SIZE" :color="'#fff'" v-bind="row.avatar" />
       <span class="contact-tile-name">{{ row.alias }}</span>
+      <!-- The gold dot while a message from them waits unread: drawn on the face's upper
+           corner, as the mark in the menu sits on its symbol, but standing AFTER the name in
+           the button, so a screen reader says who first and then "2 new messages". -->
+      <chat-unread-dot :count="row.contact.unreadChatMessages" class="contact-tile-dot" />
     </button>
 
     <!-- The way to everybody else. On the phone strip this is the only route to the full
@@ -41,6 +49,7 @@
 
 <script setup>
 import AppAvatar from '@/components/AppAvatar.vue'
+import ChatUnreadDot from '@/components/Chat/ChatUnreadDot.vue'
 import { LIST_AVATAR_SIZE } from '@/constants'
 
 /**
@@ -71,6 +80,7 @@ const emit = defineEmits(['open'])
 }
 
 .contact-tile {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -90,6 +100,17 @@ const emit = defineEmits(['open'])
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* The face's upper right corner. The face is centred in the tile, so its right edge stands
+   half a face right of the middle; the dot sits just inside it, over the empty corner of the
+   circle's box. The ring is the colour of the page the tiles stand on, as around the dot on
+   the phone's menu opener, so the dot stands off a photo too. */
+.contact-tile-dot {
+  position: absolute;
+  top: 1px;
+  left: calc(50% + var(--contact-tile-face) / 2 - 10px);
+  box-shadow: 0 0 0 2px var(--bg, #f5f5f5);
 }
 
 .contact-tile-more {

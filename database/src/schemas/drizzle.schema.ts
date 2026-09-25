@@ -194,6 +194,33 @@ export const dltTransactionsTable = mysqlTable(
 export type DltTransactionSelect = typeof dltTransactionsTable.$inferSelect
 export type DltTransactionInsert = typeof dltTransactionsTable.$inferInsert
 
+export const eventsTable = mysqlTable('events', {
+  id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+  type: varchar({ length: 100 }).notNull(),
+  createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+    .default(sql`current_timestamp(3)`)
+    .notNull(),
+  affectedUserId: int('affected_user_id', { unsigned: true }).notNull(),
+  actingUserId: int('acting_user_id', { unsigned: true }).notNull(),
+  involvedUserId: int('involved_user_id', { unsigned: true }).default(sql`NULL`),
+  involvedTransactionId: int('involved_transaction_id', { unsigned: true }).default(sql`NULL`),
+  involvedContributionId: int('involved_contribution_id', { unsigned: true }).default(sql`NULL`),
+  involvedContributionMessageId: int('involved_contribution_message_id', {
+    unsigned: true,
+  }).default(sql`NULL`),
+  involvedTransactionLinkId: int('involved_transaction_link_id', { unsigned: true }).default(
+    sql`NULL`,
+  ),
+  involvedContributionLinkId: int('involved_contribution_link_id', { unsigned: true }).default(
+    sql`NULL`,
+  ),
+  amountLegacy: customGradidoUnit('amount_legacy').default(sql`NULL`),
+  amountGdd4: customGradidoUnit('amount_gdd4').default(sql`NULL`),
+})
+
+export type EventSelect = typeof eventsTable.$inferSelect
+export type EventInsert = typeof eventsTable.$inferInsert
+
 export const matchingEntriesTable = mysqlTable(
   'matching_entries',
   {
@@ -600,33 +627,6 @@ export const foreignMemberAvatarDatesTable = mysqlTable(
 export type ForeignMemberAvatarDateSelect = typeof foreignMemberAvatarDatesTable.$inferSelect
 export type ForeignMemberAvatarDateInsert = typeof foreignMemberAvatarDatesTable.$inferInsert
 
-// A registration attempt that rang an existing member's doorbell (see migration 0124).
-// Parked only when the attempt carried a redeem code; the member's multi-registration
-// mail then offers "I am helping someone set up a Gradido account". Rows expire after
-// the mail-code window and are purged lazily. The host's address never becomes an
-// account address — it only receives the one mail.
-export const assistedRegistrationsTable = mysqlTable(
-  'assisted_registrations',
-  {
-    id: int().autoincrement().primaryKey().notNull(),
-    firstName: varchar('first_name', { length: 255 }).notNull(),
-    lastName: varchar('last_name', { length: 255 }).notNull(),
-    language: varchar({ length: 4 }).default(sql`'de'`).notNull(),
-    redeemCode: varchar('redeem_code', { length: 64 }).notNull(),
-    publisherId: int('publisher_id').default(sql`NULL`),
-    project: varchar({ length: 255 }).default(sql`NULL`),
-    hostUserId: int('host_user_id').notNull(),
-    assistCode: bigint('assist_code', { mode: 'bigint', unsigned: true }).notNull(),
-    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
-      .default(sql`current_timestamp(3)`)
-      .notNull(),
-  },
-  (table) => [unique('assist_code_key').on(table.assistCode)],
-)
-
-export type AssistedRegistrationSelect = typeof assistedRegistrationsTable.$inferSelect
-export type AssistedRegistrationInsert = typeof assistedRegistrationsTable.$inferInsert
-
 // Paying with a printed card. Three tables, split along who owns what: the PIN and the
 // limits belong to the person, the code and the failure counter belong to the card, and
 // the payment request is a short-lived thing that lives between "amount entered" and
@@ -769,3 +769,120 @@ export const firstCreationsTable = mysqlTable(
 
 export type FirstCreationSelect = typeof firstCreationsTable.$inferSelect
 export type FirstCreationInsert = typeof firstCreationsTable.$inferInsert
+
+// The chat (see migration 0142). A message is filed once per SERVER, not once per member:
+// one row here, whoever it is for, and the read pointer on each member's own row. Members
+// are uuid PAIRS (community + member), never users.id -- a member of another community has
+// no users row here. The states are plain varchar columns; the unions are what the code
+// may write into them.
+//
+// The three states a sender reads about their own message are an object AND a union of the
+// same name. The object is the one list of values: the columns below are typed by it, and
+// the backend registers that very object as a GraphQL enum (graphql/enum/ChatMessageNotify.ts,
+// ChatMessageDeliveryState.ts and ChatMessageMailState.ts), so the schema offers the values the
+// code may write, and a value added here reaches both. The union is what the writers need: they write plain
+// strings (`'delivered'`, in core and in sendEmail), which a TypeScript enum would refuse.
+export type ChatConversationKind = 'direct' | 'group'
+export type ChatConversationMemberRole = 'owner' | 'moderator' | 'member'
+/** What the sender asked for: 'email' means the message goes out as a mail as well. */
+export const ChatMessageNotify = { EMAIL: 'email', NONE: 'none' } as const
+export type ChatMessageNotify = (typeof ChatMessageNotify)[keyof typeof ChatMessageNotify]
+/** Whether the own copy reached the other server; a local one is delivered on arrival. */
+export const ChatMessageDeliveryState = {
+  DELIVERED: 'delivered',
+  PENDING: 'pending',
+  FAILED: 'failed',
+} as const
+export type ChatMessageDeliveryState =
+  (typeof ChatMessageDeliveryState)[keyof typeof ChatMessageDeliveryState]
+/**
+ * What became of the mail about a message (E-034, migration 0144): mailed, or asked for and
+ * muted by the recipient. The column is NULL where no mail was asked for, or where it is not
+ * known (a row from before 0144, an answer from a server from before it).
+ */
+export const ChatMessageMailState = { MAILED: 'mailed', MUTED: 'muted' } as const
+export type ChatMessageMailState = (typeof ChatMessageMailState)[keyof typeof ChatMessageMailState]
+
+export const chatConversationsTable = mysqlTable(
+  'chat_conversations',
+  {
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    conversationUuid: char('conversation_uuid', { length: 36 }).notNull(),
+    kind: varchar({ length: 16 }).$type<ChatConversationKind>().notNull(),
+    // NULL for a direct conversation; for a group the community of its founder.
+    homeCommunityUuid: char('home_community_uuid', { length: 36 }).default(sql`NULL`),
+    // Direct conversations only, built by directChatPairKey (queries/chatConversations.ts).
+    directPairKey: varchar('direct_pair_key', { length: 150 }).default(sql`NULL`),
+    title: varchar({ length: 100 }).default(sql`NULL`),
+    createdByCommunityUuid: char('created_by_community_uuid', { length: 36 }).notNull(),
+    createdByGradidoId: char('created_by_gradido_id', { length: 36 }).notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex('chat_conversations_conversation_uuid_unique').on(table.conversationUuid),
+    uniqueIndex('chat_conversations_direct_pair_key_unique').on(table.directPairKey),
+  ],
+)
+
+export type ChatConversationSelect = typeof chatConversationsTable.$inferSelect
+export type ChatConversationInsert = typeof chatConversationsTable.$inferInsert
+
+export const chatConversationMembersTable = mysqlTable(
+  'chat_conversation_members',
+  {
+    conversationId: int('conversation_id', { unsigned: true }).notNull(),
+    communityUuid: char('community_uuid', { length: 36 }).notNull(),
+    gradidoId: char('gradido_id', { length: 36 }).notNull(),
+    role: varchar({ length: 16 }).$type<ChatConversationMemberRole>().default('member').notNull(),
+    joinedAt: datetime('joined_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    // Unread: the messages of this conversation with a higher id, written by somebody else.
+    lastReadMessageId: int('last_read_message_id', { unsigned: true }).default(sql`NULL`),
+    mutedAt: datetime('muted_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+  },
+  (table) => [
+    primaryKey({ columns: [table.conversationId, table.communityUuid, table.gradidoId] }),
+    index('chat_conversation_members_member_idx').on(table.communityUuid, table.gradidoId),
+  ],
+)
+
+export type ChatConversationMemberSelect = typeof chatConversationMembersTable.$inferSelect
+export type ChatConversationMemberInsert = typeof chatConversationMembersTable.$inferInsert
+
+export const chatMessagesTable = mysqlTable(
+  'chat_messages',
+  {
+    // The order of arrival on this server, and the only order a conversation has.
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    // The same on both servers of a message that crossed the border.
+    messageUuid: char('message_uuid', { length: 36 }).notNull(),
+    conversationId: int('conversation_id', { unsigned: true }).notNull(),
+    senderCommunityUuid: char('sender_community_uuid', { length: 36 }).notNull(),
+    senderGradidoId: char('sender_gradido_id', { length: 36 }).notNull(),
+    subject: text().default(sql`NULL`),
+    body: text().notNull(),
+    notify: varchar({ length: 8 }).$type<ChatMessageNotify>().notNull(),
+    mailState: varchar('mail_state', { length: 8 })
+      .$type<ChatMessageMailState>()
+      .default(sql`NULL`),
+    deliveryState: varchar('delivery_state', { length: 16 })
+      .$type<ChatMessageDeliveryState>()
+      .notNull(),
+    lastAttemptAt: datetime('last_attempt_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    delaySeconds: int('delay_seconds', { unsigned: true }).default(sql`NULL`),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    deletedAt: datetime('deleted_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+  },
+  (table) => [
+    uniqueIndex('chat_messages_message_uuid_unique').on(table.messageUuid),
+    index('chat_messages_conversation_id_idx').on(table.conversationId, table.id),
+  ],
+)
+
+export type ChatMessageSelect = typeof chatMessagesTable.$inferSelect
+export type ChatMessageInsert = typeof chatMessagesTable.$inferInsert

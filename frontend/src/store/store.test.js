@@ -4,6 +4,11 @@ import i18n from '../i18n'
 import jwtDecode from 'jwt-decode'
 import { avatarZoomState, openAvatarZoom } from '@/composables/useAvatarZoom'
 import { contactsPanelState } from '@/composables/useContactsPanel'
+import {
+  chatUnreadConversations,
+  pollChatNow,
+  startChatUpdates,
+} from '@/composables/useChatUpdates'
 import { firstLoginWindow, setFirstLoginWindowWanted } from '@/composables/useFirstLoginWindow'
 
 vi.mock('../i18n', () => ({
@@ -440,6 +445,33 @@ describe('Vuex store', () => {
         expect(contactsPanelState.page.loaded).toBe(false)
         expect(contactsPanelState.matches.rows).toEqual([])
         expect(contactsPanelState.search).toBe('')
+      })
+
+      /**
+       * ⛔ The chat's beat, same rule: it asks with this member's token and holds how many of
+       * their conversations wait. It lives in its own module and stops with the layout too --
+       * but the way into the admin area signs out without leaving the layout first.
+       */
+      it("stops the chat's beat and forgets what it held", async () => {
+        const query = vi.fn(async () => ({
+          data: {
+            newChatMessagesSince: {
+              latestId: 9,
+              unreadConversations: 4,
+              messages: [],
+              hasMore: false,
+            },
+          },
+        }))
+        startChatUpdates({ query })
+        await vi.waitFor(() => expect(chatUnreadConversations.value).toBe(4))
+
+        logout({ commit, state, dispatch })
+
+        expect(chatUnreadConversations.value).toBe(0)
+        // Asked to ask again, it asks nobody: the beat is gone.
+        await pollChatNow()
+        expect(query).toHaveBeenCalledTimes(1)
       })
 
       /**
