@@ -60,8 +60,15 @@ ${mutation || query}variables: ${JSON.stringify(filterVariables(variables), null
           }
           if (requestContext.response.data) {
             logger.info('Response Success!')
-            logger.trace(`Response-Data:
+            // A video room is open to whoever knows its address: the answer of a request that was
+            // handed one (chatVideoRoom) stays out of the log. The request's budget counts the
+            // rooms, over aliases and every operation of a batch.
+            if (requestContext.context.requestBudget?.chatVideoRoomsServed) {
+              logger.trace('Response-Data: left out, it holds a video room')
+            } else {
+              logger.trace(`Response-Data:
 ${JSON.stringify(requestContext.response.data, null, 2)}`)
+            }
           }
           if (requestContext.response.errors) {
             logger.error(`Response-Errors:

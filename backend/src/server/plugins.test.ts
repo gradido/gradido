@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { inspect } from 'node:util'
+import { newRequestBudget } from './context'
 import { logPlugin } from './plugins'
 
 /**
@@ -55,5 +56,35 @@ describe('the request log', () => {
     for (const secret of ['Aa12345_', 'Bb12345_', 'c2lnbmF0dXJl']) {
       expect(text).not.toContain(secret)
     }
+  })
+})
+
+/** What the request log writes at level trace when it sends the answer of a request. */
+const answerTraced = (context: Record<string, unknown>, data: unknown): string => {
+  const logger = { debug: jest.fn(), info: jest.fn(), trace: jest.fn(), error: jest.fn() }
+  const hooks = logPlugin.requestDidStart({
+    logger,
+    request: { query: 'query { x }', variables: {}, operationName: null },
+  })
+  hooks.willSendResponse({ context, response: { data } })
+  return logger.trace.mock.calls.map((args) => args.join(' ')).join('\n')
+}
+
+describe('the answer in the request log', () => {
+  it('is left out where the request was handed a video room', () => {
+    const traced = answerTraced(
+      { requestBudget: { ...newRequestBudget(), chatVideoRoomsServed: 1 } },
+      { room0: { url: ROOM, host: 'meet.example.org', operator: null } },
+    )
+    expect(traced).not.toContain('k7m2x9q4t8wz')
+    expect(traced).toBe('Response-Data: left out, it holds a video room')
+  })
+
+  it('is written at level trace for every other request, as before', () => {
+    const traced = answerTraced(
+      { requestBudget: newRequestBudget() },
+      { contactList: { contactCount: 3 } },
+    )
+    expect(traced).toContain('"contactCount": 3')
   })
 })
