@@ -64,28 +64,43 @@
                page keeps its address; the entry changed its name and did not get a neighbour.
 
                The gold mark: how many CONVERSATIONS hold something unread -- not messages
-               (E-017), from the chat's beat (useChatUpdates) -- on the right of the entry, and
-               only from 1. The number is for the eye; a screen reader hears the sentence beside
-               it, as part of the link, and not the bare figure. -->
+               (E-017), from the chat's beat (useChatUpdates) -- only from 1.
+
+               ⛔ On the corner of the symbol, not to the right of the word. Measured in the
+               probe: at the desk the menu card is 180 px wide and the words take 103-130 px of
+               the 125 px it has for them, so a mark beside the word was cut off at the card's
+               edge in every language, and the column cannot grow (at 1025 px it is 175 px wide).
+               On the symbol it needs no width at all -- the phone's opener carries its dot the
+               same way.
+
+               The figure is for the eye; a screen reader hears the sentence after the word, as
+               part of the link, and not the bare figure. -->
           <BNavItem to="/contacts" class="mb-3" active-class="active-route">
             <div class="sidebar-menu-item-wrapper chat-menu-item">
-              <i-mdi-account-box-outline class="svg-icon" />
+              <span class="chat-menu-icon">
+                <i-mdi-account-box-outline class="svg-icon" />
+                <span
+                  v-if="chatUnreadConversations > 0"
+                  class="chat-unread-badge"
+                  aria-hidden="true"
+                  data-test="chat-unread-badge"
+                >
+                  {{ chatUnreadFigure }}
+                </span>
+              </span>
               <span class="ms-2 chat-menu-label">{{ $t('navigation.contacts') }}</span>
               <span
                 v-if="chatUnreadConversations > 0"
-                class="chat-unread-badge"
-                data-test="chat-unread-badge"
+                class="visually-hidden"
+                data-test="chat-unread-badge-label"
               >
-                <span aria-hidden="true">{{ chatUnreadFigure }}</span>
-                <span class="visually-hidden" data-test="chat-unread-badge-label">
-                  {{
-                    $t(
-                      'chatThread.unreadBadge',
-                      { n: chatUnreadConversations },
-                      chatUnreadConversations,
-                    )
-                  }}
-                </span>
+                {{
+                  $t(
+                    'chatThread.unreadBadge',
+                    { n: chatUnreadConversations },
+                    chatUnreadConversations,
+                  )
+                }}
               </span>
             </div>
           </BNavItem>
@@ -251,9 +266,10 @@ onMounted(syncNavActive)
   padding: 4px 12px;
 }
 
-/* The entry with the chat's mark: icon, word and mark in one row, the mark at the right end.
-   The word keeps its line (measured in ten languages, see the probe notes in the PR); the mark
-   never shrinks. */
+/* Symbol and word in one row, and the word on one line. ⛔ A row and not a line of text: in a
+   line the longest word, "Contacten en chat", dropped whole under its symbol (measured in the
+   probe). In the row it runs into the entry's right padding and ends 7 px inside the 180 px card
+   at the desk; every other word has more room, and the drawer (220 px) has plenty. */
 .chat-menu-item {
   display: flex;
   align-items: center;
@@ -263,20 +279,32 @@ onMounted(syncNavActive)
   white-space: nowrap;
 }
 
-/* Gold B with white figures, the gold of the chat's send buttons (E-032 point 5). A pill that
-   is as round as a circle for one figure and grows for "99+". */
+/* The symbol and its mark: the mark hangs on the symbol's corner and takes no room in the row,
+   so nothing moves when it comes and goes. */
+.chat-menu-icon {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Gold B with white figures, the gold of the chat's send buttons (E-032 point 5); round for one
+   figure, a pill for "99+", which grows to the left over the symbol and not into the word. A
+   ring in the colour of the menu card keeps it off the symbol's lines. */
 .chat-unread-badge {
-  flex: 0 0 auto;
-  min-width: 1.25rem;
-  margin-left: auto;
-  padding: 0 0.35rem;
-  border-radius: 0.625rem;
+  position: absolute;
+  top: -0.5rem;
+  right: -0.4rem;
+  min-width: 1.05rem;
+  height: 1.05rem;
+  padding: 0 0.28rem;
+  border-radius: 0.525rem;
   background: #c08935;
+  box-shadow: 0 0 0 2px var(--surface, #fff);
   color: #fff;
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   font-weight: 700;
-  line-height: 1.25rem;
+  line-height: 1.05rem;
   text-align: center;
+  white-space: nowrap;
 }
 
 .svg-icon {

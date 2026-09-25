@@ -346,6 +346,7 @@ describe('Sidebar and the chat', () => {
   const contactsEntry = (wrapper) =>
     wrapper.findAll('.nav-item').find((item) => item.find('a').attributes('href') === '/contacts')
   const badge = (wrapper) => wrapper.find('[data-test="chat-unread-badge"]')
+  const sentence = (wrapper) => wrapper.find('[data-test="chat-unread-badge-label"]')
 
   afterEach(() => {
     stopChatUpdates()
@@ -354,37 +355,53 @@ describe('Sidebar and the chat', () => {
   it('shows no mark while nothing waits', async () => {
     const wrapper = await mountWithUnread(0)
     expect(badge(wrapper).exists()).toBe(false)
+    expect(sentence(wrapper).exists()).toBe(false)
     expect(contactsEntry(wrapper).text()).toBe('Contacts & Chat')
   })
 
-  it('shows the number of conversations on the entry, and a sentence for the ear', async () => {
+  /**
+   * ⛔ On the corner of the symbol, not beside the word: at the desk the card is 180 px and a
+   * mark beside the word was cut off at its edge in every language (measured in the probe).
+   */
+  it('shows the number of conversations on the symbol of the entry', async () => {
     const wrapper = await mountWithUnread(3)
+    const link = contactsEntry(wrapper).find('a')
 
-    // On the entry itself, inside its link -- the sentence is part of what the link is called.
-    expect(contactsEntry(wrapper).find('a [data-test="chat-unread-badge"]').exists()).toBe(true)
-    // The figure is for the eye only…
-    const figure = badge(wrapper).find('[aria-hidden="true"]')
-    expect(figure.text()).toBe('3')
-    // …and a screen reader hears the sentence, with the number in it.
-    const sentence = badge(wrapper).find('[data-test="chat-unread-badge-label"]')
-    expect(sentence.classes()).toContain('visually-hidden')
-    expect(sentence.text()).toBe('3 conversations with new messages')
+    const holder = link.find('.chat-menu-icon')
+    // The symbol (an auto-imported icon, unresolved in this test: found by its class).
+    expect(holder.find('.svg-icon').exists()).toBe(true)
+    expect(holder.find('[data-test="chat-unread-badge"]').exists()).toBe(true)
+    // The figure is for the eye only.
+    expect(badge(wrapper).text()).toBe('3')
+    expect(badge(wrapper).attributes('aria-hidden')).toBe('true')
+  })
+
+  // The sentence is part of what the link is called, and it comes AFTER the word: a screen
+  // reader says "Contacts & Chat, 3 conversations with new messages".
+  it('says the number as a sentence after the word, for the ear', async () => {
+    const wrapper = await mountWithUnread(3)
+    const link = contactsEntry(wrapper).find('a')
+    const word = link.find('.chat-menu-label')
+
+    expect(link.find('[data-test="chat-unread-badge-label"]').exists()).toBe(true)
+    expect(sentence(wrapper).classes()).toContain('visually-hidden')
+    expect(sentence(wrapper).text()).toBe('3 conversations with new messages')
+    expect(
+      word.element.compareDocumentPosition(sentence(wrapper).element) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
   })
 
   it('says one conversation in the singular', async () => {
     const wrapper = await mountWithUnread(1)
-    expect(badge(wrapper).find('[data-test="chat-unread-badge-label"]').text()).toBe(
-      '1 conversation with new messages',
-    )
+    expect(sentence(wrapper).text()).toBe('1 conversation with new messages')
   })
 
-  // The menu is narrow: past 99 the figure stops, the sentence keeps the number.
+  // The mark is small: past 99 the figure stops, the sentence keeps the number.
   it('stops the figure at 99+', async () => {
     const wrapper = await mountWithUnread(120)
-    expect(badge(wrapper).find('[aria-hidden="true"]').text()).toBe('99+')
-    expect(badge(wrapper).find('[data-test="chat-unread-badge-label"]').text()).toBe(
-      '120 conversations with new messages',
-    )
+    expect(badge(wrapper).text()).toBe('99+')
+    expect(sentence(wrapper).text()).toBe('120 conversations with new messages')
   })
 
   it('goes when the last conversation is read', async () => {
@@ -401,15 +418,32 @@ describe('Sidebar and the chat', () => {
    * Gold B with white figures, the gold of the chat's send buttons (E-032 point 5). jsdom draws
    * nothing, so the stylesheet says it -- read without its comments.
    */
-  it('is gold with white figures, and never shrinks, in the stylesheet', () => {
+  const wrapperClassOfTheEntry = () => {
+    const wrapper = mount(Sidebar, {
+      global: {
+        plugins: [createVuexStore(), i18n],
+        stubs: ['router-link', 'i-bi-cash'],
+        components: { BNav, BBadge, BNavItem, BImg },
+      },
+    })
+    return contactsEntry(wrapper).find('.sidebar-menu-item-wrapper').classes()
+  }
+
+  it('is gold with white figures, on the symbol, in the stylesheet', () => {
     const style = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'Sidebar.vue'), 'utf8')
       .replace(/\/\*[\s\S]*?\*\//g, '')
       .replace(/<!--[\s\S]*?-->/g, '')
-    const rule = style.match(/\n\.chat-unread-badge\s*\{([^}]*)\}/)?.[1] ?? ''
+    const rule = (selector) => style.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
 
-    expect(rule).toMatch(/background:\s*#c08935/)
-    expect(rule).toMatch(/color:\s*#fff/)
-    expect(rule).toMatch(/flex:\s*0 0 auto/)
-    expect(style).toMatch(/\n\.chat-menu-label\s*\{[^}]*white-space:\s*nowrap/)
+    expect(rule('\\.chat-unread-badge')).toMatch(/background:\s*#c08935/)
+    expect(rule('\\.chat-unread-badge')).toMatch(/color:\s*#fff/)
+    // Hung on the symbol's corner: it takes no room in the row.
+    expect(rule('\\.chat-unread-badge')).toMatch(/position:\s*absolute/)
+    expect(rule('\\.chat-menu-icon')).toMatch(/position:\s*relative/)
+    // ⛔ Symbol and word in a row, the word on one line: as a line of text, the longest word
+    // ("Contacten en chat") dropped whole under its symbol (measured in the probe).
+    expect(rule('\\.chat-menu-item')).toMatch(/display:\s*flex/)
+    expect(rule('\\.chat-menu-label')).toMatch(/white-space:\s*nowrap/)
+    expect(wrapperClassOfTheEntry()).toContain('chat-menu-item')
   })
 })

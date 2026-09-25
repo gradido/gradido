@@ -325,7 +325,7 @@ button.navbar-toggler > span.navbar-toggler-icon {
   height: 0.34em;
   border-radius: 50%;
   background: #c08935;
-  box-shadow: 0 0 0 0.08em var(--bs-body-bg, #fff);
+  box-shadow: 0 0 0 0.08em var(--bg, #f5f5f5);
 }
 
 /* Name and wheel on one line, the wheel a shade quieter: it points, the name names. */
