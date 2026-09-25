@@ -92,8 +92,11 @@ export default {
   font-family: WorkSans, sans-serif !important;
 }
 
+/* ⛔ No `min-width`. There was one since 2022 (500px, then 360px, then 330px), from when a
+   floor made a narrower screen scroll sideways to the rest. Under the clip below it could
+   only cut the rest off: at 320px wide (the first iPhone SE) the column stood 330px wide
+   from the 6px edge, and the right 16px of every card lay behind the screen. */
 .app-content {
-  min-width: 330px;
   max-width: 1320px;
   margin-right: auto;
   margin-left: auto;

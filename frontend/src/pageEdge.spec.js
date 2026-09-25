@@ -61,6 +61,12 @@ const rule = (css, selector) => {
   return null
 }
 
+/** The declarations of every rule written for exactly `selector`, at any width. */
+const rules = (css, selector) =>
+  [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .filter(([, written]) => written.trim() === selector)
+    .map(([, , body]) => body.replace(/\s+/g, ' ').trim())
+
 describe('the page edge on a phone', () => {
   const app = styles(source('App.vue'))
   const phone = mediaBodies(app, '1024.98px').join('\n')
@@ -89,6 +95,17 @@ describe('the page edge on a phone', () => {
     // 6px off the screen, and on the desk -- no edge at all -- 12px from 1025px until the
     // content stops widening. Empty, but scrollable.
     expect(rule(everyWidth(app), '#app > #app')).toContain('overflow-x: clip')
+  })
+
+  it('gives the page no floor that a narrow phone would lose behind the clip', () => {
+    // `.app-content` carried `min-width: 330px`: at 320px every signed-in page stood 16px
+    // past the screen, and the clip above cut the right edge of each card off. Neither root
+    // may bring a floor back, and neither may the column that centres the page on the desk.
+    expect(rules(app, '.app-content').join()).toContain('max-width: 1320px')
+    for (const selector of ['#app', '#app > #app', '.app-content']) {
+      expect(rules(app, selector).length).toBeGreaterThan(0)
+      expect(rules(app, selector).filter((body) => /min-width/.test(body))).toEqual([])
+    }
   })
 
   it('puts text that stands on the page where the text inside a box starts', () => {
