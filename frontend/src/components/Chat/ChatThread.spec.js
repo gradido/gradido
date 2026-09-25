@@ -12,6 +12,23 @@ import {
   sendChatMessage,
 } from '@/graphql/chat.graphql'
 
+/**
+ * The chat's beat as the thread sees it: whoever listens, and "ask now". A test hands messages
+ * to the listeners the way the beat does -- all conversations at once, one array per answer.
+ */
+const beat = vi.hoisted(() => ({ listeners: new Set(), pollNow: vi.fn(async () => {}) }))
+vi.mock('@/composables/useChatUpdates', () => ({
+  onChatMessages: (listener) => {
+    beat.listeners.add(listener)
+    return () => beat.listeners.delete(listener)
+  },
+  pollChatNow: (...args) => beat.pollNow(...args),
+}))
+const beatBrings = async (...chatMessages) => {
+  for (const listener of [...beat.listeners]) listener(chatMessages)
+  await flushPromises()
+}
+
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
@@ -31,7 +48,8 @@ vi.mock('vue-i18n', () => ({
  */
 let server
 // Like the original `mutate`, it answers with a promise -- the thread lets a failure go
-// through `.catch`, which needs one to hang on.
+// through `.catch`, which needs one to hang on. The options (the session clock) are handed on
+// only where there are any.
 const markRead = vi.fn(async () => ({ data: { markChatConversationRead: true } }))
 
 /**
@@ -97,7 +115,12 @@ vi.mock('@vue/apollo-composable', async () => {
       const loading = ref(false)
       const error = ref(null)
       if (document !== sendChatMessage) {
-        return { loading, error, mutate: (variables) => markRead(document, variables) }
+        return {
+          loading,
+          error,
+          mutate: (variables, options) =>
+            options ? markRead(document, variables, options) : markRead(document, variables),
+        }
       }
       const mutate = async (variables, options = {}) => {
         loading.value = true
@@ -115,6 +138,9 @@ vi.mock('@vue/apollo-composable', async () => {
       }
       return { loading, error, mutate }
     },
+    // The same cache as `update` gets: an arrival goes into the thread the way one's own copy
+    // does.
+    useApolloClient: () => ({ client: { cache } }),
   }
 })
 
@@ -252,9 +278,17 @@ describe('ChatThread', () => {
     wrapper?.unmount()
     markRead.mockClear()
     serverSends.mockReset()
+    beat.pollNow.mockClear()
     layout.hidden = false
     layout.extra = 0
+    delete document.hidden
   })
+
+  /** The page out of sight (a tab in the background) or back, as the browser says it. */
+  const pageHidden = (value) => {
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => value })
+    document.dispatchEvent(new Event('visibilitychange'))
+  }
 
   const bar = () => wrapper.findComponent(ChatComposeBar)
   const field = () => wrapper.find('[data-test="chat-compose-field"]')
@@ -494,6 +528,331 @@ describe('ChatThread', () => {
 
       expect(markRead).toHaveBeenCalledTimes(1)
       expect(log().exists()).toBe(true)
+      // …and asks the beat nothing: the mark in the menu has nothing new to say.
+      expect(beat.pollNow).not.toHaveBeenCalled()
+    })
+
+    // The mark in the menu is right within a second, not only with the next beat.
+    it('asks the beat at once once the server has the pointer', async () => {
+      mountThread()
+      await arrive(page([4, 5, 9]))
+
+      expect(beat.pollNow).toHaveBeenCalledTimes(1)
+      expect(markRead.mock.invocationCallOrder[0]).toBeLessThan(
+        beat.pollNow.mock.invocationCallOrder[0],
+      )
+    })
+
+    /**
+     * E-017: the pointer is the highest id SHOWN. A thread that opens in a tab in the background
+     * (a link out of a mail, opened behind the mail) shows nothing to anybody yet -- the pointer
+     * waits until the page is in sight, and then it is no doing of the member's: quiet.
+     */
+    it('waits for the page to come into sight before it moves the pointer', async () => {
+      pageHidden(true)
+      mountThread()
+      await arrive(page([4, 5, 9]))
+      expect(markRead).not.toHaveBeenCalled()
+
+      pageHidden(false)
+      await flushPromises()
+
+      expect(markRead).toHaveBeenCalledTimes(1)
+      expect(markRead).toHaveBeenCalledWith(
+        markChatConversationRead,
+        { ref: { gradidoID: 'lena-id', communityUuid: 'home-uuid' }, upToMessageId: 9 },
+        { context: { renewSession: false } },
+      )
+      // Once: coming back into sight a second time finds nothing waiting.
+      pageHidden(true)
+      pageHidden(false)
+      await flushPromises()
+      expect(markRead).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  /**
+   * P4: the other side's messages arrive at the bottom by themselves -- the chat's beat hands
+   * over everything new, for all conversations at once, and the thread takes its own.
+   */
+  describe('messages that arrive by themselves', () => {
+    const status = () => wrapper.find('[data-test="chat-thread-sent"]')
+
+    it('hangs a message of its conversation under the thread and goes down to it', async () => {
+      mountThread()
+      await arrive(page([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
+
+      await beatBrings(message(11))
+
+      expect(bubbleTexts().at(-1)).toBe('message 11')
+      expect(bubbleTexts()).toHaveLength(11)
+      const box = log().element
+      expect(box.scrollTop).toBe(box.scrollHeight - box.clientHeight)
+      // Into the page on screen, without asking the server again.
+      expect(server.result.value.chatMessagesWithMember.messages.at(-1).id).toBe(11)
+      expect(server.fetchMore).not.toHaveBeenCalled()
+      expect(server.refetch).not.toHaveBeenCalled()
+    })
+
+    it('does not pull the reader down who scrolled up', async () => {
+      mountThread()
+      await arrive(page([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
+      const box = log().element
+      box.scrollTop = 40
+      await log().trigger('scroll')
+
+      await beatBrings(message(11))
+
+      expect(bubbleTexts().at(-1)).toBe('message 11')
+      expect(box.scrollTop).toBe(40)
+    })
+
+    it('leaves the messages of other conversations alone', async () => {
+      mountThread()
+      await arrive(page([1, 2, 3]))
+      markRead.mockClear()
+
+      await beatBrings({ ...message(11), conversationId: 4 })
+
+      expect(bubbleTexts()).toEqual(['message 1', 'message 2', 'message 3'])
+      expect(markRead).not.toHaveBeenCalled()
+      expect(status().text()).toBe('')
+    })
+
+    // The beat brings one's own copy once more after sending, and the known limit of the
+    // marker can bring any message twice.
+    it('does not hang in a message it holds already', async () => {
+      serverSends.mockResolvedValue(ownCopy(12, 'Bis gleich'))
+      mountThread()
+      await arrive(page([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]))
+      await write('Bis gleich')
+      expect(bubbleTexts()).toHaveLength(12)
+
+      await beatBrings(message(11), ownCopy(12, 'Bis gleich'))
+
+      expect(bubbleTexts()).toHaveLength(12)
+      expect(server.result.value.chatMessagesWithMember.messages.map((m) => m.id)).toEqual([
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+      ])
+    })
+
+    // E-018: the order in which they came to this server is the order of their ids -- a message
+    // stored while one's own was on its way stands before it, not after.
+    it('puts every message in the order of its id', async () => {
+      serverSends.mockResolvedValue(ownCopy(20, 'Meine'))
+      mountThread()
+      await arrive(page([1, 3, 5]))
+      await write('Meine')
+
+      await beatBrings(message(19))
+
+      expect(bubbleTexts().slice(-2)).toEqual(['message 19', 'Meine'])
+    })
+
+    /**
+     * ⛔ Not below the oldest message on screen while there are older pages: hung in, it would
+     * stand in front of a gap that "load older" could never fill -- it asks for what lies below
+     * the smallest id. It is there when the older pages are loaded.
+     */
+    it('leaves what belongs to an older page to that page', async () => {
+      mountThread()
+      await arrive(page([11, 13], { hasMore: true }))
+
+      await beatBrings(message(5), message(15))
+
+      expect(bubbleTexts()).toEqual(['message 11', 'message 13', 'message 15'])
+    })
+
+    /**
+     * E-017: the pointer is the highest id shown. The window is open (the thread exists only
+     * while it is) and the page in sight: the pointer moves to the newest arrival, quietly --
+     * the member did nothing -- and the beat is asked at once, so the mark in the menu is right.
+     */
+    it('moves the read pointer to the newest arrival, quietly, and asks the beat at once', async () => {
+      mountThread()
+      await arrive(page([1, 3]))
+      markRead.mockClear()
+      beat.pollNow.mockClear()
+
+      await beatBrings(message(5), message(7))
+
+      expect(markRead).toHaveBeenCalledTimes(1)
+      expect(markRead).toHaveBeenCalledWith(
+        markChatConversationRead,
+        { ref: { gradidoID: 'lena-id', communityUuid: 'home-uuid' }, upToMessageId: 7 },
+        { context: { renewSession: false } },
+      )
+      expect(beat.pollNow).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not move the pointer while the page is out of sight, and does once it is back', async () => {
+      mountThread()
+      await arrive(page([1, 3]))
+      markRead.mockClear()
+      pageHidden(true)
+
+      await beatBrings(message(5))
+
+      // Shown in the thread -- but to nobody yet.
+      expect(bubbleTexts().at(-1)).toBe('message 5')
+      expect(markRead).not.toHaveBeenCalled()
+
+      pageHidden(false)
+      await flushPromises()
+      expect(markRead).toHaveBeenCalledTimes(1)
+      expect(markRead.mock.calls[0][1].upToMessageId).toBe(5)
+    })
+
+    it("says nothing and moves nothing for one's own copies that arrive", async () => {
+      mountThread()
+      await arrive(page([1, 3]))
+      markRead.mockClear()
+
+      await beatBrings(message(4, { mine: true }))
+
+      expect(bubbleTexts().at(-1)).toBe('message 4')
+      expect(markRead).not.toHaveBeenCalled()
+      expect(status().text()).toBe('')
+    })
+
+    /**
+     * ⛔ The status line, not a live log: whoever cannot see the bubble hears "new message from
+     * Lena", once, and a press on "load older" still reads nothing aloud (LOG-031).
+     */
+    it('says "new message from" in the status line, and the region stays a quiet one', async () => {
+      mountThread()
+      await arrive(page([1, 3]))
+
+      await beatBrings(message(5))
+
+      expect(status().attributes('role')).toBe('status')
+      expect(status().text()).toBe('chatThread.arrived {"name":"Lena"}')
+      expect(log().attributes('role')).toBe('region')
+      expect(log().attributes('aria-live')).toBeUndefined()
+    })
+
+    it('says it again for the next message from the same person', async () => {
+      mountThread()
+      await arrive(page([1, 3]))
+      await beatBrings(message(5))
+      const seen = []
+      const watcher = new MutationObserver(() => seen.push(status().text()))
+      watcher.observe(status().element, { childList: true, characterData: true, subtree: true })
+
+      await beatBrings(message(7))
+      watcher.disconnect()
+
+      // Emptied first, then said: the same words twice would change nothing in the page.
+      expect(seen).toContain('')
+      expect(status().text()).toBe('chatThread.arrived {"name":"Lena"}')
+    })
+
+    // The first message makes the conversation: the sentence gives way to the box, and the
+    // window hears of it (the bell appears).
+    it("turns an empty thread into a thread with the other side's first message", async () => {
+      mountThread()
+      await arrive(page([]))
+
+      await beatBrings(message(1))
+
+      expect(bubbleTexts()).toEqual(['message 1'])
+      expect(bar().props('first')).toBe(false)
+      expect(wrapper.emitted('chatConversation').at(-1)).toEqual([
+        { exists: true, mutedByMe: false },
+      ])
+    })
+
+    /**
+     * In an empty thread there is no conversation id to go by: the first message is known by
+     * the pair of its writer, written as the window keys the thread -- a member off a booking
+     * row names no community, and the sender does.
+     */
+    it('knows that first message by the pair the window keys the thread with', async () => {
+      const member = { gradidoID: 'lena-id' }
+      mountThread(member, { props: { member, alias: 'Lena', memberKey: 'home-uuid/lena-id' } })
+      await arrive(page([]))
+
+      await beatBrings({
+        ...message(1),
+        sender: { communityUuid: 'HOME-UUID', gradidoID: 'Lena-ID' },
+      })
+
+      expect(bubbleTexts()).toEqual(['message 1'])
+    })
+
+    it('takes no first message from somebody else', async () => {
+      mountThread()
+      await arrive(page([]))
+
+      await beatBrings({
+        ...message(1),
+        sender: { communityUuid: 'home-uuid', gradidoID: 'tom-id' },
+      })
+
+      expect(bubbleTexts()).toEqual([])
+      expect(wrapper.find('[data-test="chat-thread-empty"]').exists()).toBe(true)
+    })
+
+    it('keeps what arrives before the first page, and hangs it in once the page is there', async () => {
+      mountThread()
+      await beatBrings(message(11))
+
+      await arrive(page([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
+
+      expect(bubbleTexts().at(-1)).toBe('message 11')
+      expect(bubbleTexts()).toHaveLength(11)
+    })
+
+    /**
+     * ⛔ Not while an older page is on its way: its landing puts the reader's place back, and a
+     * message hung in between would take that place for its own -- the reader would be thrown
+     * by the height of the older page. It waits, and comes after.
+     */
+    it('waits for an older page on its way, and the reader keeps their place', async () => {
+      mountThread()
+      await arrive(page([6, 7, 8, 9, 10, 11, 12, 13, 14, 15], { hasMore: true }))
+      const box = log().element
+      box.scrollTop = 0
+      server.olderPages.push(page([1, 2, 3, 4, 5], { hasMore: true }))
+      let letGo
+      server.gate = new Promise((resolve) => {
+        letGo = resolve
+      })
+
+      await older().trigger('click')
+      await beatBrings(message(17))
+      expect(bubbleTexts()).toHaveLength(10)
+
+      server.gate = null
+      letGo()
+      await flushPromises()
+
+      // As in 'keeps the reader where they were': 200 px down, where message 6 starts.
+      expect(box.scrollTop).toBe(200)
+      expect(bubbleTexts()).toHaveLength(16)
+      expect(bubbleTexts().at(-1)).toBe('message 17')
+    })
+
+    it('takes nothing where the thread could not be loaded', async () => {
+      mountThread()
+      server.error.value = new Error('Network error')
+      server.loading.value = false
+      await flushPromises()
+
+      await beatBrings(message(11))
+
+      expect(wrapper.find('[data-test="chat-thread-error"]').exists()).toBe(true)
+      expect(markRead).not.toHaveBeenCalled()
+    })
+
+    it('stops listening when it goes', async () => {
+      mountThread()
+      expect(beat.listeners.size).toBe(1)
+
+      wrapper.unmount()
+      wrapper = null
+
+      expect(beat.listeners.size).toBe(0)
     })
   })
 

@@ -1,5 +1,9 @@
-import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
+import { startChatUpdates, stopChatUpdates } from '@/composables/useChatUpdates'
 import { nextTick } from 'vue'
 import { createRouter, createWebHistory, RouterLink } from 'vue-router'
 import { createStore } from 'vuex'
@@ -273,6 +277,84 @@ describe('Navbar', () => {
       expect(html.indexOf('username')).toBeLessThan(html.indexOf('ibicopy'))
     })
   })
+  /**
+   * On the phone the menu is behind this button, so a gold dot on it says that conversations
+   * hold something unread -- a dot, not a figure: the button is a symbol. Measured through the
+   * real chat beat (useChatUpdates) with a server that answers.
+   */
+  describe('the dot on the menu opener', () => {
+    const serverSays = async (unreadConversations) => {
+      startChatUpdates({
+        query: vi.fn(async () => ({
+          data: {
+            newChatMessagesSince: {
+              latestId: 1,
+              unreadConversations,
+              messages: [],
+              hasMore: false,
+            },
+          },
+        })),
+      })
+      await flushPromises()
+    }
+    const opener = () => wrapper.find('.navbar-menu-opener')
+
+    afterEach(() => {
+      stopChatUpdates()
+    })
+
+    it('is not there while nothing waits', async () => {
+      await serverSays(0)
+      wrapper = mountComponent()
+
+      expect(opener().find('[data-test="chat-unread-dot"]').exists()).toBe(false)
+      expect(opener().find('[data-test="chat-unread-dot-label"]').exists()).toBe(false)
+    })
+
+    it('sits on the opener while conversations hold something unread, with a line for the ear', async () => {
+      await serverSays(3)
+      wrapper = mountComponent()
+
+      // On the symbol itself, and no figure in it.
+      const dot = opener().find('.navbar-toggler-icon [data-test="chat-unread-dot"]')
+      expect(dot.exists()).toBe(true)
+      expect(dot.text()).toBe('')
+      expect(dot.attributes('aria-hidden')).toBe('true')
+      const label = opener().find('[data-test="chat-unread-dot-label"]')
+      expect(label.classes()).toContain('visually-hidden')
+      expect(label.text()).toBe('chatThread.unreadDot')
+    })
+
+    it('goes when nothing waits any more', async () => {
+      await serverSays(1)
+      wrapper = mountComponent()
+      expect(opener().find('[data-test="chat-unread-dot"]').exists()).toBe(true)
+
+      stopChatUpdates()
+      await flushPromises()
+
+      expect(opener().find('[data-test="chat-unread-dot"]').exists()).toBe(false)
+    })
+
+    /**
+     * ⛔ Laid over the symbol's corner: the bar must not move when the dot comes and goes. jsdom
+     * lays nothing out, so the stylesheet says it -- read without its comments.
+     */
+    it('lies over the corner and moves nothing, in the stylesheet', () => {
+      const style = readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), 'Navbar.vue'),
+        'utf8',
+      ).replace(/\/\*[\s\S]*?\*\//g, '')
+      const rule = (selector) =>
+        style.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+
+      expect(rule('\\.chat-unread-dot')).toMatch(/position:\s*absolute/)
+      expect(rule('\\.chat-unread-dot')).toMatch(/background:\s*#c08935/)
+      expect(rule('\\.navbar-menu-opener \\.navbar-toggler-icon')).toMatch(/position:\s*relative/)
+    })
+  })
+
   /**
    * The height of this navbar is somebody else's problem, and that is the whole point.
    *

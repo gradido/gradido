@@ -82,6 +82,22 @@ vi.mock('vue-i18n', () => ({
   }),
 }))
 
+/**
+ * The chat's beat (useChatUpdates) -- its own spec measures what it asks and when. Here only
+ * the layout's half: it starts the beat with the layout and stops it when the layout goes.
+ */
+const chatBeat = vi.hoisted(() => ({ start: vi.fn(), stop: vi.fn() }))
+vi.mock('@/composables/useChatUpdates', async () => {
+  const { ref: vueRef } = await import('vue')
+  return {
+    startChatUpdates: (...args) => chatBeat.start(...args),
+    stopChatUpdates: (...args) => chatBeat.stop(...args),
+    chatUnreadConversations: vueRef(0),
+    onChatMessages: () => () => {},
+    pollChatNow: async () => {},
+  }
+})
+
 const router = createRouter({
   history: createWebHistory(),
   routes,
@@ -171,6 +187,25 @@ describe('DashboardLayout', () => {
     wrapper?.unmount()
     vi.clearAllMocks()
     vi.clearAllTimers()
+  })
+
+  /**
+   * The chat's one beat (E-017) runs for as long as the signed-in wallet stands -- this layout --
+   * and not a moment longer: a layout gone is a member gone, or on the way out.
+   */
+  describe('the chat beat', () => {
+    it("starts once with the layout, on the layout's own client", () => {
+      expect(chatBeat.start).toHaveBeenCalledTimes(1)
+      expect(chatBeat.start).toHaveBeenCalledWith({ query: mockApolloQuery })
+      expect(chatBeat.stop).not.toHaveBeenCalled()
+    })
+
+    it('stops when the layout goes', () => {
+      wrapper.unmount()
+      wrapper = null
+
+      expect(chatBeat.stop).toHaveBeenCalledTimes(1)
+    })
   })
 
   /**

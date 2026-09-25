@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { readFileSync, readdirSync } from 'node:fs'
@@ -8,15 +8,37 @@ import { fileURLToPath } from 'node:url'
 import { BPagination } from 'bootstrap-vue-next'
 import Contacts from './Contacts.vue'
 import { forgetFavorites, markFavorite, rememberFavorites } from '@/composables/useFavorites'
+import { refreshContactsPanel } from '@/composables/useContactsPanel'
 
 const handlers = new Map()
 const fire = (document, data) => handlers.get(document)?.result?.({ data })
-// The page asks for the hearts at setup (ensureFavorites) and for faces as rows appear.
-const apolloQuery = vi.fn().mockResolvedValue({ data: { favoriteList: [], memberAvatars: [] } })
+/**
+ * The client's own questions, by the document they ask: a test sets what `contactByMemberQuery`
+ * (the lookup behind `?with=`) and `contactListQuery` (the list asked again) answer. Everything
+ * else -- the hearts at setup, the faces as rows appear -- gets an empty answer.
+ */
+const answers = new Map()
+const apolloQuery = vi.fn(async (options) =>
+  answers.has(options.query)
+    ? answers.get(options.query)(options)
+    : { data: { favoriteList: [], memberAvatars: [] } },
+)
+
+/** The address the page is opened with, and where it sends the cleaned one. */
+const { route, routerReplace, toastError } = vi.hoisted(() => ({
+  route: { query: {} },
+  routerReplace: vi.fn(),
+  toastError: vi.fn(),
+}))
+vi.mock('vue-router', () => ({
+  useRoute: () => route,
+  useRouter: () => ({ replace: routerReplace }),
+}))
 
 vi.mock('@/graphql/contacts.graphql', () => ({
   contactListQuery: 'contactListQuery',
   favoriteListQuery: 'favoriteListQuery',
+  contactByMemberQuery: 'contactByMemberQuery',
 }))
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: (document) => {
@@ -34,7 +56,7 @@ vi.mock('@vue/apollo-composable', () => ({
   useApolloClient: () => ({ client: { query: apolloQuery } }),
 }))
 vi.mock('@/composables/useToast', () => ({
-  useAppToast: () => ({ toastError: vi.fn() }),
+  useAppToast: () => ({ toastError }),
 }))
 vi.mock('@/composables/useMemberAvatars', () => ({
   fetchMemberAvatars: vi.fn(),
@@ -112,6 +134,10 @@ describe('Contacts page', () => {
     handlers.clear()
     forgetFavorites()
     apolloQuery.mockClear()
+    answers.clear()
+    route.query = {}
+    routerReplace.mockClear()
+    toastError.mockClear()
   })
 
   afterEach(() => {
@@ -235,6 +261,202 @@ describe('Contacts page', () => {
     const openWindow = wrapper.find('[data-test="contact-window"]')
     expect(openWindow.attributes('data-open')).toBe('true')
     expect(openWindow.attributes('data-who')).toBe('id-2')
+  })
+
+  /**
+   * `/contacts?with=<gradidoID>[&community=<uuid>]` opens the conversation with that person --
+   * where the mail's reply button will point (P4c).
+   */
+  describe('opened with the address of a conversation', () => {
+    const CARLA = person(7, { gradidoID: 'carla-id', alias: 'Carla-Sonne' })
+    const contactWindow = () => wrapper.find('[data-test="contact-window"]')
+    const lookups = () =>
+      apolloQuery.mock.calls
+        .map(([options]) => options)
+        .filter((o) => o.query === 'contactByMemberQuery')
+
+    it('opens the window on the person the server knows as a contact', async () => {
+      route.query = { with: 'carla-id' }
+      answers.set('contactByMemberQuery', () => ({ data: { contactList: { contacts: [CARLA] } } }))
+      mountPage()
+      await flushPromises()
+
+      expect(contactWindow().attributes('data-open')).toBe('true')
+      expect(contactWindow().attributes('data-who')).toBe('carla-id')
+      // A missing community is this one: the server reads null so.
+      expect(lookups()).toEqual([
+        expect.objectContaining({
+          variables: { ref: { gradidoID: 'carla-id', communityUuid: null } },
+          fetchPolicy: 'no-cache',
+        }),
+      ])
+    })
+
+    it('asks about the person in the community the address names', async () => {
+      route.query = { with: 'sarah-id', community: 'provence-uuid' }
+      answers.set('contactByMemberQuery', () => ({ data: { contactList: { contacts: [] } } }))
+      mountPage()
+      await flushPromises()
+
+      expect(lookups()[0].variables).toEqual({
+        ref: { gradidoID: 'sarah-id', communityUuid: 'provence-uuid' },
+      })
+    })
+
+    // So a reload shows the list and does not open the window again; anything else stays.
+    it('takes the two out of the address at once, and leaves the rest', () => {
+      route.query = { with: 'carla-id', community: 'home', tab: 'x' }
+      answers.set('contactByMemberQuery', () => new Promise(() => {}))
+      mountPage()
+
+      expect(routerReplace).toHaveBeenCalledTimes(1)
+      expect(routerReplace).toHaveBeenCalledWith({ query: { tab: 'x' } })
+    })
+
+    // An unknown id, or somebody one never exchanged anything with: nothing opens, nothing is
+    // said, the list stands as it would.
+    it('opens nothing and says nothing for somebody the server does not know', async () => {
+      route.query = { with: 'nobody-id' }
+      answers.set('contactByMemberQuery', () => ({ data: { contactList: { contacts: [] } } }))
+      mountPage()
+      fire('contactListQuery', { contactList: { count: 2, contacts: [person(1), person(2)] } })
+      await flushPromises()
+
+      expect(contactWindow().attributes('data-open')).toBe('false')
+      expect(toastError).not.toHaveBeenCalled()
+      expect(rowsIn('contacts-page')).toEqual(['Alias1', 'Alias2'])
+      // Gegenprobe: the question WAS asked -- the silence is the answer, not a skipped lookup.
+      expect(lookups()).toHaveLength(1)
+    })
+
+    it('opens nothing and says nothing where the question does not get through', async () => {
+      route.query = { with: 'carla-id' }
+      answers.set('contactByMemberQuery', () => Promise.reject(new Error('offline')))
+      mountPage()
+      await flushPromises()
+
+      expect(contactWindow().attributes('data-open')).toBe('false')
+      expect(toastError).not.toHaveBeenCalled()
+    })
+
+    it('takes no person out of an address that names two', async () => {
+      route.query = { with: ['carla-id', 'sarah-id'] }
+      mountPage()
+      await flushPromises()
+
+      expect(lookups()).toEqual([])
+      expect(routerReplace).toHaveBeenCalledWith({ query: {} })
+    })
+
+    it('leaves an address without them alone', async () => {
+      mountPage()
+      await flushPromises()
+
+      expect(routerReplace).not.toHaveBeenCalled()
+      expect(lookups()).toEqual([])
+    })
+
+    // A tap on a row while the lookup is on its way wins: the member chose somebody.
+    it('does not open over the person the member tapped in the meantime', async () => {
+      let answer
+      route.query = { with: 'carla-id' }
+      answers.set(
+        'contactByMemberQuery',
+        () =>
+          new Promise((resolve) => {
+            answer = resolve
+          }),
+      )
+      mountPage()
+      fire('contactListQuery', { contactList: { count: 2, contacts: [person(1), person(2)] } })
+      await nextTick()
+      await wrapper.findAll('[data-test="contact-row"]')[0].trigger('click')
+
+      answer({ data: { contactList: { contacts: [CARLA] } } })
+      await flushPromises()
+
+      expect(contactWindow().attributes('data-who')).toBe('id-1')
+    })
+  })
+
+  /**
+   * The list asked again whenever the column's is (useContactsPanel.refreshContactsPanel): a
+   * transfer went through, or chat messages arrived. The order is the server's -- whoever wrote
+   * last stands on top.
+   */
+  describe('when the contact list may have changed', () => {
+    it('asks for its list again, quietly, and shows the new order', async () => {
+      mountPage()
+      fire('contactListQuery', { contactList: { count: 2, contacts: [person(1), person(2)] } })
+      await nextTick()
+      expect(rowsIn('contacts-page')).toEqual(['Alias1', 'Alias2'])
+      answers.set('contactListQuery', () => ({
+        data: { contactList: { count: 2, contacts: [person(2), person(1)] } },
+      }))
+
+      refreshContactsPanel({ query: vi.fn() })
+      await flushPromises()
+
+      expect(rowsIn('contacts-page')).toEqual(['Alias2', 'Alias1'])
+      const asked = apolloQuery.mock.calls
+        .map(([o]) => o)
+        .find((o) => o.query === 'contactListQuery')
+      expect(asked).toEqual({
+        query: 'contactListQuery',
+        variables: { currentPage: 1, pageSize: 1000 },
+        fetchPolicy: 'network-only',
+        // ⛔ Nobody did anything on this page: the session clock stays where it was.
+        context: { renewSession: false },
+      })
+    })
+
+    it('keeps the list on screen where the question fails', async () => {
+      mountPage()
+      fire('contactListQuery', { contactList: { count: 2, contacts: [person(1), person(2)] } })
+      await nextTick()
+      answers.set('contactListQuery', () => Promise.reject(new Error('offline')))
+
+      refreshContactsPanel({ query: vi.fn() })
+      await flushPromises()
+
+      expect(rowsIn('contacts-page')).toEqual(['Alias1', 'Alias2'])
+      expect(toastError).not.toHaveBeenCalled()
+    })
+
+    // Two on their way at once: the newer answer counts, whichever lands last.
+    it('keeps the newest answer when two cross', async () => {
+      mountPage()
+      fire('contactListQuery', { contactList: { count: 2, contacts: [person(1), person(2)] } })
+      await nextTick()
+      const pending = []
+      answers.set(
+        'contactListQuery',
+        () =>
+          new Promise((resolve) => {
+            pending.push(resolve)
+          }),
+      )
+      refreshContactsPanel({ query: vi.fn() })
+      refreshContactsPanel({ query: vi.fn() })
+
+      pending[1]({ data: { contactList: { count: 2, contacts: [person(2), person(1)] } } })
+      await flushPromises()
+      pending[0]({ data: { contactList: { count: 2, contacts: [person(1), person(2)] } } })
+      await flushPromises()
+
+      expect(rowsIn('contacts-page')).toEqual(['Alias2', 'Alias1'])
+    })
+
+    it('stops listening when the page goes', async () => {
+      mountPage()
+      wrapper.unmount()
+      wrapper = null
+
+      refreshContactsPanel({ query: vi.fn() })
+      await flushPromises()
+
+      expect(apolloQuery.mock.calls.some(([o]) => o.query === 'contactListQuery')).toBe(false)
+    })
   })
 
   it('asks for the faces of the rows on screen only', async () => {

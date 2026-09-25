@@ -31,6 +31,11 @@ vi.mock('@/composables/useMemberAvatars', () => ({
 vi.mock('@/config', () => ({
   default: { COMMUNITY_URL: 'https://gradido.test' },
 }))
+// The signed-in member's community, which a member without one is read as (LOG-036). In
+// capitals, as a server may write it: the thread's key is in lower case either way.
+vi.mock('vuex', () => ({
+  useStore: () => ({ state: { communityUuid: 'HOME-UUID' } }),
+}))
 
 /** What the server answers to `setChatConversationMuted`; a test decides, or makes it throw. */
 const serverMutes = vi.fn()
@@ -102,13 +107,13 @@ describe('ContactWindow', () => {
           // whom it was made for, and count how often it was made.
           ChatThread: {
             name: 'ChatThread',
-            props: { member: Object, alias: String },
+            props: { member: Object, alias: String, memberKey: String },
             emits: ['chatConversation'],
             mounted() {
               threadsMade.push(this.member.gradidoID)
             },
             template:
-              '<div data-test="chat-thread" :data-who="member.gradidoID" :data-community="String(member.communityUuid)" :data-alias="alias" />',
+              '<div data-test="chat-thread" :data-who="member.gradidoID" :data-community="String(member.communityUuid)" :data-alias="alias" :data-key="memberKey" />',
           },
           AppAvatar: {
             props: ['initials'],
@@ -265,6 +270,46 @@ describe('ContactWindow', () => {
       await wrapper.setProps({ contact: CONTACT })
 
       expect(threadsMade).toEqual(['carla-id'])
+    })
+
+    /**
+     * ⛔ Also where the row named the member WITHOUT a community and the lookup brings it
+     * (LOG-036): null is this community, the server reads it so, and the key writes it so. It
+     * made a new thread before -- asked the server again, and dropped a bell's answer on its way.
+     */
+    it('keeps the thread when the lookup fills in the community', async () => {
+      mountWindow({ user: { ...CONTACT.user, communityUuid: null } })
+      expect(wrapper.find('[data-test="chat-thread"]').attributes('data-key')).toBe(
+        'home-uuid/carla-id',
+      )
+
+      await wrapper.setProps({ contact: CONTACT })
+
+      expect(threadsMade).toEqual(['carla-id'])
+      expect(wrapper.find('[data-test="chat-thread"]').attributes('data-key')).toBe(
+        'home-uuid/carla-id',
+      )
+    })
+
+    // …and an answer about the bell that was on its way still lands: it is the same person.
+    it('still hears the bell answer that was on its way while the community came in', async () => {
+      let answer
+      serverMutes.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            answer = resolve
+          }),
+      )
+      mountWindow({ user: { ...CONTACT.user, communityUuid: null } })
+      await threadSays({ exists: true, mutedByMe: false })
+      await bell().trigger('click')
+
+      await wrapper.setProps({ contact: CONTACT })
+      answer({ data: { setChatConversationMuted: true } })
+      await flushPromises()
+
+      expect(bell().attributes('aria-pressed')).toBe('true')
+      expect(toastSuccess).toHaveBeenCalledWith('chatThread.mutedHint {"name":"Carla-Sonne"}')
     })
   })
 
@@ -790,6 +835,19 @@ describe('ContactWindow', () => {
 
     expect(threadsMade).toEqual(['carla-id', 'sarah-id'])
     expect(wrapper.find('[data-test="chat-thread"]').attributes('data-who')).toBe('sarah-id')
+    expect(wrapper.find('[data-test="chat-thread"]').attributes('data-key')).toBe(
+      'provence-uuid/sarah-id',
+    )
+  })
+
+  // The same id in another community is another person, and a community filled in is not.
+  it('makes a new thread for the same id in another community', async () => {
+    mountWindow({ user: { ...CONTACT.user, communityUuid: null } })
+    await wrapper.setProps({
+      contact: { ...CONTACT, user: { ...CONTACT.user, communityUuid: 'provence-uuid' } },
+    })
+
+    expect(threadsMade).toEqual(['carla-id', 'carla-id'])
   })
 
   /**
