@@ -153,6 +153,7 @@
     "muteOff": "Sessizde — {name} kişisinin mesajları için e-posta yok",
     "muteOn": "Sessize al",
     "mutedHint": "Sessize alındı: {name} kişisinin mesajları için artık e-posta gelmeyecek. Yeni mesajları burada görürsün.",
+    "notMailedMuted": "E-posta yok — {name} bu sohbet için e-postaları kapattı.",
     "notReachable": "Konuşma geçmişi yüklenemedi.",
     "notSent": "Mesaj gönderilemedi. Metnin burada kalıyor.",
     "pending": "Henüz iletilmedi",

@@ -153,6 +153,7 @@
     "muteOff": "Gesprek gedempt — geen e-mails over berichten van {name}",
     "muteOn": "Dempen",
     "mutedHint": "Gesprek gedempt: geen e-mails meer over berichten van {name}. Nieuwe berichten zie je hier.",
+    "notMailedMuted": "Geen e-mail — {name} heeft e-mails over jullie gesprek uitgezet.",
     "notReachable": "De gespreksgeschiedenis kon niet worden geladen.",
     "notSent": "Het bericht kon niet worden verstuurd. Je tekst blijft hier staan.",
     "pending": "Nog niet afgeleverd",

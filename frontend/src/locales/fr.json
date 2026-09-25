@@ -153,6 +153,7 @@
     "muteOff": "Conversation en sourdine — pas d'e-mails pour les messages de {name}",
     "muteOn": "Mettre en sourdine",
     "mutedHint": "Conversation en sourdine : plus d'e-mails pour les messages de {name}. Tu vois les nouveaux messages ici.",
+    "notMailedMuted": "Pas d'e-mail — {name} a désactivé les e-mails pour votre conversation.",
     "notReachable": "L'historique de conversation n'a pas pu être chargé.",
     "notSent": "Le message n'a pas pu être envoyé. Ton texte reste ici.",
     "pending": "Pas encore distribué",

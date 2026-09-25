@@ -153,6 +153,7 @@
     "muteOff": "Stumm — keine E-Mails zu Nachrichten von {name}",
     "muteOn": "Stummschalten",
     "mutedHint": "Stumm: keine E-Mails mehr zu Nachrichten von {name}. Neue Nachrichten siehst Du hier.",
+    "notMailedMuted": "Keine E-Mail — {name} hat E-Mails zu Eurem Gespräch ausgeschaltet.",
     "notReachable": "Der Gesprächsverlauf konnte nicht geladen werden.",
     "notSent": "Die Nachricht konnte nicht gesendet werden. Dein Text bleibt hier stehen.",
     "pending": "Noch nicht zugestellt",

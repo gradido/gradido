@@ -153,6 +153,7 @@
     "muteOff": "Muted — no e-mails about messages from {name}",
     "muteOn": "Mute",
     "mutedHint": "Muted: no more e-mails about messages from {name}. You will see new messages here.",
+    "notMailedMuted": "No e-mail — {name} has turned off e-mails for your conversation.",
     "notReachable": "The conversation history could not be loaded.",
     "notSent": "The message could not be sent. Your text stays here.",
     "pending": "Not delivered yet",

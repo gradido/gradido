@@ -153,6 +153,7 @@
     "muteOff": "Conversación silenciada — sin correos por los mensajes de {name}",
     "muteOn": "Silenciar",
     "mutedHint": "Conversación silenciada: ya no recibirás correos por los mensajes de {name}. Los mensajes nuevos los ves aquí.",
+    "notMailedMuted": "Sin correo electrónico — {name} ha desactivado los correos de vuestra conversación.",
     "notReachable": "No se pudo cargar el historial de conversación.",
     "notSent": "No se pudo enviar el mensaje. Tu texto sigue aquí.",
     "pending": "Aún no entregado",
