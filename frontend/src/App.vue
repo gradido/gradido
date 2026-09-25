@@ -150,6 +150,23 @@ export default {
   }
 }
 
+/* The pill pagers on a narrow phone, the other half of `usePagerFit` (which shows `‹`, three
+   numbers and `›` below the layout boundary).
+
+   ⛔ Below 576px bootstrap-vue-next hides the number beside the first or last one
+   (`bv-d-sm-down-none`, meant for the page next to an ellipsis, and `no-ellipsis` has none):
+   at page 1 the pager read `‹ 1 3 ›`, at the last page `‹ 10 12 ›`. All three stay.
+   The pills give up side padding instead, 24px to 16px, and keep their height. */
+@media screen and (width <= 575.98px) {
+  .b-pagination-pills.pagination-lg {
+    --bs-pagination-padding-x: 1rem;
+  }
+
+  .b-pagination-pills .page-item.bv-d-sm-down-none {
+    display: list-item !important;
+  }
+}
+
 .goldrand {
   background: linear-gradient(
     90deg,

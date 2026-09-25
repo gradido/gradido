@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { describe, it, expect } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
@@ -132,6 +132,48 @@ describe('the page edge on a phone', () => {
     const narrow = mediaBodies(styles(layout), '767.98px').join('\n')
     expect(rule(narrow, '.card-body :deep(.container)')).toContain('padding-left: 0')
     expect(rule(narrow, '.card-body :deep(.container)')).toContain('padding-right: 0')
+  })
+})
+
+describe('the pill pagers on a narrow phone', () => {
+  const app = styles(source('App.vue'))
+  const xs = mediaBodies(app, '575.98px').join('\n')
+
+  it('keeps all three numbers of the phone form', () => {
+    // bootstrap-vue-next hides the number beside the first or last one below 576px; at page 1
+    // the pager read `‹ 1 3 ›`. The library's own rule has one class and `!important`, so the
+    // one that undoes it needs `!important` and more classes, and must not lose a tie on order.
+    expect(rule(xs, '.b-pagination-pills .page-item.bv-d-sm-down-none')).toContain(
+      'display: list-item !important',
+    )
+  })
+
+  it('makes room for them by the side padding, not by the height', () => {
+    expect(rule(xs, '.b-pagination-pills.pagination-lg')).toBe('--bs-pagination-padding-x: 1rem;')
+  })
+
+  it('undoes a rule the library still has, at the width it still has it', () => {
+    // A renamed class or a moved breakpoint in a later bootstrap-vue-next would leave the rule
+    // above undoing nothing, silently. Resolved the way main.js imports it: the package's own
+    // node_modules first, then the workspace root.
+    const css = [
+      join(here, '..', 'node_modules', 'bootstrap-vue-next', 'dist', 'bootstrap-vue-next.css'),
+      join(
+        here,
+        '..',
+        '..',
+        'node_modules',
+        'bootstrap-vue-next',
+        'dist',
+        'bootstrap-vue-next.css',
+      ),
+    ]
+      .filter((path) => existsSync(path))
+      .map((path) => readFileSync(path, 'utf8'))[0]
+    expect(css).toBeTruthy()
+    expect(css).toMatch(
+      /@media \(max-width: ?575\.98px\) ?\{\s*\.bv-d-sm-down-none ?\{ ?display: ?none ?!important/,
+    )
   })
 })
 

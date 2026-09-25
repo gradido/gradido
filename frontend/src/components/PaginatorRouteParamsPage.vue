@@ -2,13 +2,15 @@
   <BPagination
     v-if="isPaginationVisible"
     :model-value="currentPage"
-    class="mt-3"
+    class="mt-3 flex-wrap"
     pills
     size="lg"
     :per-page="pageSize"
     :total-rows="totalCount"
     align="center"
     :no-ellipsis="true"
+    :limit="pagerLimit"
+    :no-goto-end-buttons="pagerNoEnds"
     @update:model-value="updatePage"
   />
 </template>
@@ -16,9 +18,11 @@
 import { computed } from 'vue'
 import CONFIG from '@/config'
 import { useRouter, useRoute } from 'vue-router'
+import { usePagerFit } from '@/composables/usePagerFit'
 
 const router = useRouter()
 const route = useRoute()
+const { pagerLimit, pagerNoEnds } = usePagerFit()
 
 const props = defineProps({
   modelValue: {
