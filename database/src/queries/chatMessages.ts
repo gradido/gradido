@@ -6,6 +6,7 @@ import { DBInsertFailed, DBNotFoundError } from '../errorTypes'
 import {
   ChatMessageDeliveryState,
   ChatMessageInsert,
+  ChatMessageMailState,
   ChatMessageSelect,
   chatConversationMembersTable,
   chatMessagesTable,
@@ -61,8 +62,10 @@ export async function dbInsertChatMessage(
 }
 
 /**
- * Records how a delivery went: the state, and when it was tried. The time is overwritten on
- * every attempt, so once the message is delivered it is the moment of delivery.
+ * Records how a delivery went: the state, when it was tried, and what the other server said
+ * became of the mail (E-034; null where it said nothing, or where the delivery failed) -- one
+ * statement for all three. The time is overwritten on every attempt, so once the message is
+ * delivered it is the moment of delivery.
  *
  * Writing the state the row already has is a success: mysql2 connects with FOUND_ROWS, so
  * `affectedRows` counts the matched row, not a changed one. An id without a row comes back
@@ -72,10 +75,34 @@ export async function dbUpdateChatMessageDelivery(
   id: number,
   deliveryState: ChatMessageDeliveryState,
   lastAttemptAt: Date,
+  mailState: ChatMessageMailState | null,
 ): Promise<VoidResult<DBNotFoundError>> {
   const result = await drizzleDb()
     .update(chatMessagesTable)
-    .set({ deliveryState, lastAttemptAt })
+    .set({ deliveryState, lastAttemptAt, mailState })
+    .where(eq(chatMessagesTable.id, id))
+  const firstRow = result[0]
+  if (firstRow && firstRow.affectedRows === 1) {
+    return { success: true }
+  }
+  return { success: false, error: ChatMessageNotFound(`id = ${id}`) }
+}
+
+/**
+ * Records what became of the mail about a message between two members of this community
+ * (E-034): its one row, which both of them read, is filed before the recipient's quiet is read.
+ * One statement, and nothing else on the row changes -- a local message has no delivery to
+ * record.
+ *
+ * The same value again is a success (FOUND_ROWS); an id without a row is DBNotFoundError.
+ */
+export async function dbUpdateChatMessageMailState(
+  id: number,
+  mailState: ChatMessageMailState,
+): Promise<VoidResult<DBNotFoundError>> {
+  const result = await drizzleDb()
+    .update(chatMessagesTable)
+    .set({ mailState })
     .where(eq(chatMessagesTable.id, id))
   const firstRow = result[0]
   if (firstRow && firstRow.affectedRows === 1) {

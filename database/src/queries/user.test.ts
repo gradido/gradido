@@ -10,6 +10,7 @@ import {
   UserRole as DbUserRole,
 } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
+import { DBDuplicateEntryError, DBInsertFailed, DBNotFoundError } from '../errorTypes'
 import { userAvatarsTable } from '../schemas/drizzle.schema'
 import { createCommunity } from '../seeds/community'
 import { creationFactory, nMonthsBefore } from '../seeds/factory/creation'
@@ -27,11 +28,13 @@ import {
   dbFindReferrerAlias,
   dbFindUserIdByUuids,
   dbFindUserLoginByEmail,
+  dbInsertForeignUser,
   dbMarkUsersGmsRegistered,
   dbSelectForeignMemberGradidoIds,
   dbSelectLatestUserBalances,
   dbSelectReferralContactsByUserId,
   dbSelectUsersByUuids,
+  dbUpdateForeignUserAlias,
   dbUserUpdateField,
   dbUserUpdatePassword,
   findUserNamesByIds,
@@ -521,6 +524,99 @@ describe('user.queries', () => {
       expect(await dbSelectForeignMemberGradidoIds('66666666-6666-4666-8666-666666666666')).toEqual(
         [],
       )
+    })
+  })
+
+  /**
+   * E-034: the first chat message from a member of another community files them here, the way
+   * the receiving side of a transfer files its sender -- foreign, the pair, the alias.
+   */
+  describe('dbInsertForeignUser and dbUpdateForeignUserAlias', () => {
+    const PEER = '77777777-7777-4777-8777-777777777777'
+    const NEWCOMER = '88888888-8888-4888-8888-888888888881'
+    const TWICE = '88888888-8888-4888-8888-888888888882'
+    const RENAMED = '88888888-8888-4888-8888-888888888883'
+    const HOLDER = '88888888-8888-4888-8888-888888888884'
+    let home: string
+    let bibi: DbUser
+
+    const rowOf = (gradidoID: string) => DbUser.findOneOrFail({ where: { gradidoID } })
+
+    beforeAll(async () => {
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await DbCommunity.clear()
+      home = (await createCommunity(false)).communityUuid as string
+      bibi = await userFactory(bibiBloxberg)
+    })
+
+    it('files an unknown member as foreign, with the pair and nothing else', async () => {
+      const filed = await dbInsertForeignUser({ communityUuid: PEER, gradidoId: NEWCOMER })
+
+      const row = await rowOf(NEWCOMER)
+      expect(filed).toEqual({ success: true, value: row.id })
+      expect(row).toMatchObject({
+        foreign: true,
+        communityUuid: PEER,
+        gradidoID: NEWCOMER,
+        alias: null,
+        firstName: null,
+        lastName: null,
+        emailId: null,
+      })
+    })
+
+    // Two first messages at the same moment: the second insert meets the first row.
+    it('files one row for a pair that is on file already, and hands back its id', async () => {
+      const first = await dbInsertForeignUser({ communityUuid: PEER, gradidoId: TWICE })
+      const second = await dbInsertForeignUser({ communityUuid: PEER, gradidoId: TWICE })
+
+      expect(second).toEqual(first)
+      expect(await DbUser.count({ where: { gradidoID: TWICE } })).toBe(1)
+    })
+
+    it('never turns a member of this community into a foreign one', async () => {
+      const filed = await dbInsertForeignUser({ communityUuid: home, gradidoId: bibi.gradidoID })
+
+      expect(filed).toEqual({ success: false, error: expect.any(DBInsertFailed) })
+      expect(await rowOf(bibi.gradidoID)).toMatchObject({ id: bibi.id, foreign: false })
+      expect(await DbUser.count({ where: { gradidoID: bibi.gradidoID } })).toBe(1)
+    })
+
+    it('sets the alias of a foreign row, and takes the same alias again as done', async () => {
+      const filed = await dbInsertForeignUser({ communityUuid: PEER, gradidoId: RENAMED })
+      if (!filed.success) {
+        throw filed.error
+      }
+
+      expect(await dbUpdateForeignUserAlias(filed.value, 'anna')).toEqual({ success: true })
+      expect((await rowOf(RENAMED)).alias).toBe('anna')
+      expect(await dbUpdateForeignUserAlias(filed.value, 'annaFar')).toEqual({ success: true })
+      expect(await dbUpdateForeignUserAlias(filed.value, 'annaFar')).toEqual({ success: true })
+      expect((await rowOf(RENAMED)).alias).toBe('annaFar')
+    })
+
+    // A rename over there that this server has not seen yet: the old row still holds the name.
+    it('keeps the alias a row had when another row of that community holds the new one', async () => {
+      const holder = await dbInsertForeignUser({ communityUuid: PEER, gradidoId: HOLDER })
+      if (!holder.success) {
+        throw holder.error
+      }
+      await dbUpdateForeignUserAlias(holder.value, 'taken')
+      const renamed = await rowOf(RENAMED)
+
+      const updated = await dbUpdateForeignUserAlias(renamed.id, 'taken')
+
+      expect(updated).toEqual({ success: false, error: expect.any(DBDuplicateEntryError) })
+      expect((await rowOf(RENAMED)).alias).toBe('annaFar')
+      expect((await rowOf(HOLDER)).alias).toBe('taken')
+    })
+
+    it('writes no alias onto a member of this community', async () => {
+      const updated = await dbUpdateForeignUserAlias(bibi.id, 'notBibi')
+
+      expect(updated).toEqual({ success: false, error: expect.any(DBNotFoundError) })
+      expect((await rowOf(bibi.gradidoID)).alias).toBe(bibi.alias)
     })
   })
 

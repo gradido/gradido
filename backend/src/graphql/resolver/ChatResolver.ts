@@ -214,8 +214,9 @@ export class ChatResolver {
    *
    * Whether it goes out as a mail as well: the first message between the two always does
    * (E-024, decided here against this server's own table, before anything is filed); after it,
-   * what the sender asked for -- unless the recipient muted the conversation. The sender is
-   * never told that: the copy carries the wish, and nothing else is different.
+   * what the sender asked for -- unless the recipient muted the conversation. The copy carries
+   * the wish and what became of it (E-034, `mailState`): MAILED, or MUTED where the recipient's
+   * quiet held the mail back.
    *
    * ⛔ The row IS the message. What could not be filed was not sent, and no mail goes out for
    * it -- unlike the form "send an e-mail", where the mail is the message and the row an extra.
@@ -258,6 +259,7 @@ export class ChatResolver {
         body,
         notify,
         requireStored: true,
+        letter: false,
       })
       if (!stored) {
         throw new LogError('CHAT_MESSAGE_NOT_SENT: NOT_STORED')
@@ -293,6 +295,7 @@ export class ChatResolver {
       body,
       notify,
       requireStored: true,
+      letter: false,
     })
     if (!stored) {
       throw new LogError('CHAT_MESSAGE_NOT_SENT: NOT_STORED')
@@ -307,8 +310,10 @@ export class ChatResolver {
 
   /**
    * Mutes the conversation with `ref` for the caller, or lifts it (E-024): while it is muted, no
-   * mail about it reaches the caller, whatever the other member asks for. The caller's own mark
-   * and nobody else's; the other member is not told.
+   * mail about a chat message in it reaches the caller, whatever the other member asks for. A
+   * letter from the form "send an e-mail" still does -- the quiet is about chat messages
+   * (E-034). The caller's own mark and nobody else's. The other member learns of it only where
+   * it held back a mail they asked for: their copy says MUTED (E-034).
    *
    * False where there is no conversation yet, and nothing is written: before the first message
    * there is nothing to mute -- and the first message goes out as a mail anyway.

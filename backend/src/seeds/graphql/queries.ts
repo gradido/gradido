@@ -783,6 +783,7 @@ export const chatMessagesWithMember = gql`
         createdAt
         deliveryState
         notify
+        mailState
       }
     }
   }
@@ -808,6 +809,7 @@ export const newChatMessagesSince = gql`
         createdAt
         deliveryState
         notify
+        mailState
       }
     }
   }

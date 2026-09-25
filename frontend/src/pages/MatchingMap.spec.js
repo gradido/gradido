@@ -553,6 +553,37 @@ describe('MatchingMap', () => {
       expect(rule[1]).not.toMatch(/white-space: nowrap;/)
     })
 
+    // ⛔ And the piece of that row that must NOT break: "Radius", the number and "km" are one
+    // quantity. As three items of the row, "km" stood alone under the number on a narrow
+    // phone, and "Радиус" alone in front of it up to 390px.
+    it('holds "Radius", the number and "km" together, and nothing else', async () => {
+      const page = await settle(mountMap())
+      const group = page.find('.radius-group')
+      expect(group.exists(), 'no .radius-group in the row').toBe(true)
+
+      const parts = [...group.element.children]
+      expect(parts).toHaveLength(3)
+      expect(parts[0].textContent.trim()).toBe(de.matching.map.radius)
+      expect(parts[1].classList.contains('radius-field')).toBe(true)
+      expect(parts[2].textContent.trim()).toBe(de.matching.map.km)
+      // The count is the part that may move underneath: it stands beside the group, not in it.
+      expect(group.element.parentElement.classList.contains('radius-row')).toBe(true)
+    })
+
+    it('keeps that piece from breaking inside itself', () => {
+      const here = dirname(fileURLToPath(import.meta.url))
+      // Comments first: the one above the rule names `nowrap`.
+      const source = readFileSync(join(here, 'MatchingMap.vue'), 'utf8').replace(
+        /\/\*[\s\S]*?\*\//g,
+        '',
+      )
+      const rule = source.match(/\n\.radius-group \{([^}]*)\}/)
+
+      expect(rule, 'no .radius-group rule in the page').not.toBeNull()
+      expect(rule[1]).toMatch(/display: inline-flex;/)
+      expect(rule[1]).toMatch(/white-space: nowrap;/)
+    })
+
     // jsdom applies no scoped styles, so the three rules the search field leans on are read
     // in the source. Without the first the lens would stand under the canvas for the quarter
     // second before initMap, and on a page that never builds a map it would stay there for

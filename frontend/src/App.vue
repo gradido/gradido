@@ -92,8 +92,11 @@ export default {
   font-family: WorkSans, sans-serif !important;
 }
 
+/* ⛔ No `min-width`. There was one since 2022 (500px, then 360px, then 330px), from when a
+   floor made a narrower screen scroll sideways to the rest. Under the clip below it could
+   only cut the rest off: at 320px wide (the first iPhone SE) the column stood 330px wide
+   from the 6px edge, and the right 16px of every card lay behind the screen. */
 .app-content {
-  min-width: 330px;
   max-width: 1320px;
   margin-right: auto;
   margin-left: auto;
@@ -144,6 +147,23 @@ export default {
   .page-text {
     padding-left: var(--page-text-inset);
     padding-right: var(--page-text-inset);
+  }
+}
+
+/* The pill pagers on a narrow phone, the other half of `usePagerFit` (which shows `‹`, three
+   numbers and `›` below the layout boundary).
+
+   ⛔ Below 576px bootstrap-vue-next hides the number beside the first or last one
+   (`bv-d-sm-down-none`, meant for the page next to an ellipsis, and `no-ellipsis` has none):
+   at page 1 the pager read `‹ 1 3 ›`, at the last page `‹ 10 12 ›`. All three stay.
+   The pills give up side padding instead, 24px to 16px, and keep their height. */
+@media screen and (width <= 575.98px) {
+  .b-pagination-pills.pagination-lg {
+    --bs-pagination-padding-x: 1rem;
+  }
+
+  .b-pagination-pills .page-item.bv-d-sm-down-none {
+    display: list-item !important;
   }
 }
 

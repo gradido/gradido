@@ -645,6 +645,7 @@ export const sendChatMessage = gql`
       createdAt
       deliveryState
       notify
+      mailState
     }
   }
 `

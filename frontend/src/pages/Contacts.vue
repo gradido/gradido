@@ -74,7 +74,10 @@
              three page numbers rather than five, `« ‹ 2 3 4 › »`, 421 points against this
              page's 450. At `limit="4"` it is 479 and wraps again, so this is not a spare
              margin -- do not raise it without measuring. The arrows keep every page
-             reachable: `«` first, `»` last.
+             reachable: `«` first, `»` last. On a phone the ends go, as on every pager in
+             this wallet (`usePagerFit`): `‹ 2 3 4 ›` is one line where the seven took two.
+             And `flex-wrap`, as on every pager: what is still wider than the page takes a
+             second line instead of hanging out of it.
 
              ⛔⛔ It is `no-ellipsis`, NOT `hide-ellipsis`. `hide-ellipsis` is BootstrapVue's
              Vue-2 name and does not exist in bootstrap-vue-next: the string does not occur
@@ -86,11 +89,12 @@
         <BPagination
           v-if="otherRows.length > PAGE_SIZE"
           v-model="currentPage"
-          class="mt-3 contacts-pager"
+          class="mt-3 flex-wrap"
           pills
           size="lg"
           :no-ellipsis="true"
-          :limit="3"
+          :limit="pagerLimit"
+          :no-goto-end-buttons="pagerNoEnds"
           :per-page="PAGE_SIZE"
           :total-rows="otherRows.length"
           align="center"
@@ -113,6 +117,7 @@ import ContactRow from '@/components/Contacts/ContactRow.vue'
 import ContactsEmpty from '@/components/Contacts/ContactsEmpty.vue'
 import ContactWindow from '@/components/Contacts/ContactWindow.vue'
 import { useContactWindow } from '@/composables/useContactWindow'
+import { usePagerFit } from '@/composables/usePagerFit'
 import { onContactListRefresh } from '@/composables/useContactsPanel'
 import { contactListQuery } from '@/graphql/contacts.graphql'
 import { ensureFavorites, isFavorite } from '@/composables/useFavorites'
@@ -138,6 +143,8 @@ import { memberKey } from '@/utils/gradidoAddress'
 const CONTACTS_FETCH_MAX = 1000
 
 const { toastError } = useAppToast()
+// Three numbers at the desk too: this page is 450px wide on every screen (see its style).
+const { pagerLimit, pagerNoEnds } = usePagerFit(3)
 const { client: apolloClient } = useApolloClient()
 
 // The hearts, in case the layout's request at mount did not land (ensureFavorites is a
@@ -302,14 +309,5 @@ watch(
    and a block that alone floats to the middle looks misplaced rather than deliberate. */
 .contacts {
   max-width: 450px;
-}
-
-/* The guard behind the number above, and it stays even though `limit` now makes the pager
-   fit: `.pagination` is a flex row that Bootstrap leaves at `nowrap`, so anything wider than
-   the page does not wrap -- it spills out of it. On a phone the column is narrower than any
-   pager can be, so there it WILL take a second line, and that is the right way to give way.
-   What it must not do is hang out of the page. */
-.contacts-pager {
-  flex-wrap: wrap;
 }
 </style>
