@@ -199,6 +199,8 @@ export const searchContactsPanel = (apolloClient, search) => {
  * saw them in it.
  */
 export const refreshContactsPanel = (apolloClient) => {
+  // The contacts page keeps a list of its own (pages/Contacts.vue); it asks again as well.
+  for (const listener of [...refreshListeners]) listener()
   // ⛔ The mark comes FIRST, before any reason not to fetch. Standing behind a
   // `!state.page.loaded` gate lost the very case this exists for: a member completes a
   // transfer while the first request is still on the wire -- a first visit to /send with the
@@ -227,6 +229,23 @@ export const refreshContactsPanel = (apolloClient) => {
     jobs.push(load(apolloClient, 'matches', state.search, quiet))
   }
   return Promise.all(jobs)
+}
+
+/**
+ * Lists of contacts that are not this panel -- the contacts page asks for its own whole list --
+ * and want to know when the panel is asked again.
+ */
+const refreshListeners = new Set()
+
+/**
+ * Calls `listener` whenever `refreshContactsPanel` runs: a transfer went through, or chat
+ * messages arrived. Returns the function that ends it.
+ */
+export const onContactListRefresh = (listener) => {
+  refreshListeners.add(listener)
+  return () => {
+    refreshListeners.delete(listener)
+  }
 }
 
 /** On logout: the next member on this device must not see the previous one's contacts. */

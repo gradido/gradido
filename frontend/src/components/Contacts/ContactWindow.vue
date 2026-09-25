@@ -194,12 +194,15 @@
 
            ⛔ Keyed by the pair. The thread takes its person once, when it is made; should the
            window ever be handed another person while it stands open, a new key makes a new
-           thread instead of leaving one person's messages under another's name. -->
+           thread instead of leaving one person's messages under another's name. The key goes
+           in as well: it is how the thread knows this person's first message when it arrives
+           in a thread that holds none yet. -->
       <chat-thread
         v-if="contact.user?.gradidoID"
         :key="threadKey"
         class="contact-window-thread"
         :member="contact.user"
+        :member-key="threadKey"
         :alias="alias"
         @chat-conversation="takeChatConversation"
       />
@@ -211,6 +214,7 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { useStore } from 'vuex'
 import { useMutation } from '@vue/apollo-composable'
 import { BModal } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
@@ -227,6 +231,7 @@ import { useAppToast } from '@/composables/useToast'
 import { gradidoAddress } from '@/utils/gradidoAddress'
 import { SEND_TYPES } from '@/utils/sendTypes'
 import { bookingsWithMemberRoute } from '@/utils/bookingsRoute'
+import { chatMemberKey } from '@/utils/chatMemberKey'
 
 /**
  * One contact, opened from wherever a contact stands: the list, the column, the strip.
@@ -245,6 +250,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const { t, d } = useI18n()
 const router = useRouter()
+const store = useStore()
 const { toastSuccess, toastError } = useAppToast()
 const { mutate: saveMuted } = useMutation(setChatConversationMuted)
 
@@ -263,17 +269,15 @@ const avatar = computed(() => display.value?.avatar ?? {})
 
 /**
  * Which person the thread belongs to -- the pair (KF-004), in lower case, as the server
- * compares it.
+ * compares it, and a missing community written as this community's own (LOG-036).
  *
- * ⚠️ A `communityUuid` that arrives later than the member (null from the row, the uuid from
- * the lookup) makes a new key, so the thread is asked for once more. That is the server's
- * same conversation both times -- null IS this community there -- and moving the read
- * pointer twice to the same place changes nothing.
+ * ⛔ That last part is what keeps the thread standing while `openMember` fills the window in:
+ * the booking row names the member without a community, the lookup for the figures brings the
+ * uuid a moment later, and it is the same person both times -- the server reads null as this
+ * community. A key that wrote the two differently made a new thread under a reading eye, and
+ * dropped an answer about the bell that was on its way.
  */
-const threadKey = computed(() => {
-  const user = props.contact?.user
-  return `${(user?.communityUuid ?? '').toLowerCase()}/${(user?.gradidoID ?? '').toLowerCase()}`
-})
+const threadKey = computed(() => chatMemberKey(props.contact?.user, store.state.communityUuid))
 
 /**
  * The member's address, and only where this wallet is the one that can name the host.
@@ -403,9 +407,8 @@ let mutingInFlight = false
 
 // Another conversation -- the pair the thread is keyed by (`threadKey`), so the same id in
 // another community is another one: nothing of the last one's bell stays up while the new
-// thread is asking. A `communityUuid` that arrives later makes a new key as well; the new
-// thread says the bell's state anew, and as the bell sends the state it wants and not a flip,
-// a second press after a dropped answer does no harm.
+// thread is asking. The community the lookup fills in later is no other key (see `threadKey`),
+// so an answer on its way about this person's bell still lands here.
 // ⚠️ A window that only closed (useContactWindow lets the contact go) is no other person: the
 // answer on its way still says what became of the person just seen.
 watch(
