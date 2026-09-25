@@ -289,6 +289,13 @@ describe('ShowFriends', () => {
     }
     const line = (wrapper) => wrapper.find('[data-test="show-friends-valid-for"]').text()
 
+    // The guests' line and what it unfolds (ZE-014).
+    const [oneGuest, someGuests] = en.showFriends.here.unconfirmedGuests.split(' | ')
+    const guestToggle = (wrapper) => wrapper.find('[data-test="show-friends-unconfirmed-toggle"]')
+    const guestRows = (wrapper) => wrapper.findAll('[data-test="show-friends-unconfirmed-guest"]')
+    const guestHint = (wrapper) => wrapper.find('[data-test="show-friends-unconfirmed-hint"]')
+    const tapGuests = (wrapper) => guestToggle(wrapper).trigger('click')
+
     afterEach(() => {
       vi.useRealTimers()
     })
@@ -526,20 +533,17 @@ describe('ShowFriends', () => {
 
     /**
      * E-020: under the code the member's own guests who have not confirmed yet, by name and
-     * since when -- whom to remind, and the line support needs.
+     * since when -- whom to remind, and the line support needs. On a tap (ZE-014).
      */
     it('lists the guests who have not confirmed yet under the code, oldest first', async () => {
       const guests = guestsOf(2)
       const { wrapper } = await mountWithCode({ unconfirmedGuests: guests })
 
+      await tapGuests(wrapper)
+
       expect(wrapper.findComponent(OwnCodeView).props('link')).toBe(LINK)
-      const list = wrapper.find('[data-test="show-friends-unconfirmed"]')
-      expect(list.find('p').text()).toBe(
-        en.showFriends.here.unconfirmedGuests.split(' | ')[1].replace('{n}', '2'),
-      )
-      expect(
-        list.findAll('[data-test="show-friends-unconfirmed-guest"]').map((row) => row.text()),
-      ).toEqual(
+      expect(guestToggle(wrapper).text()).toBe(someGuests.replace('{n}', '2'))
+      expect(guestRows(wrapper).map((row) => row.text())).toEqual(
         guests.map((guest) =>
           en.showFriends.here.unconfirmedGuest
             .replace('{firstName}', guest.firstName)
@@ -548,9 +552,7 @@ describe('ShowFriends', () => {
             .replace('{date}', shortDate(guest.createdAt)),
         ),
       )
-      expect(wrapper.find('[data-test="show-friends-unconfirmed-hint"]').text()).toBe(
-        en.showFriends.here.unconfirmedHint,
-      )
+      expect(guestHint(wrapper).text()).toBe(en.showFriends.here.unconfirmedHint)
     })
 
     // An old account may have no name and no user name (a new one is given a user name when it
@@ -561,6 +563,8 @@ describe('ShowFriends', () => {
         unconfirmedGuests: [{ firstName: null, lastName: null, alias: null, createdAt }],
       })
 
+      await tapGuests(wrapper)
+
       const guest = wrapper.find('[data-test="show-friends-unconfirmed-guest"]').text()
       expect(guest).toContain(shortDate(createdAt))
       expect(guest).not.toContain('null')
@@ -570,9 +574,83 @@ describe('ShowFriends', () => {
     it('says it of one guest in the singular', async () => {
       const { wrapper } = await mountWithCode({ unconfirmedGuests: guestsOf(1) })
 
-      expect(wrapper.find('[data-test="show-friends-unconfirmed"] p').text()).toBe(
-        en.showFriends.here.unconfirmedGuests.split(' | ')[0],
+      expect(guestToggle(wrapper).text()).toBe(oneGuest)
+    })
+
+    /**
+     * ZE-014: the code is held out to a stranger, so the guests are folded to their number on
+     * arrival -- their names are not in the page at all, not merely hidden.
+     */
+    it('folds the guests to their number on arrival, with no name in the page', async () => {
+      const { wrapper } = await mountWithCode({ unconfirmedGuests: guestsOf(2) })
+
+      expect(guestToggle(wrapper).text()).toBe(someGuests.replace('{n}', '2'))
+      expect(guestToggle(wrapper).attributes('type')).toBe('button')
+      expect(guestToggle(wrapper).attributes('aria-expanded')).toBe('false')
+      expect(guestRows(wrapper)).toHaveLength(0)
+      expect(guestHint(wrapper).exists()).toBe(false)
+      for (const part of ['First1', 'Last1', 'guest2', en.showFriends.here.unconfirmedHint]) {
+        expect(wrapper.html()).not.toContain(part)
+      }
+    })
+
+    it('unfolds the names and the hint on a tap, and folds them away on the next', async () => {
+      const { wrapper } = await mountWithCode({ unconfirmedGuests: guestsOf(2) })
+      // The chevron shows the way the line goes on a tap, as on the doors.
+      const chevron = (way) => guestToggle(wrapper).find(`i-mdi-chevron-${way}-stub`).exists()
+      expect(chevron('down')).toBe(true)
+
+      await tapGuests(wrapper)
+
+      expect(chevron('up')).toBe(true)
+      expect(guestToggle(wrapper).attributes('aria-expanded')).toBe('true')
+      // What the button says it controls is where the names and the hint are.
+      const unfolded = wrapper.find(`#${guestToggle(wrapper).attributes('aria-controls')}`)
+      expect(unfolded.findAll('[data-test="show-friends-unconfirmed-guest"]')).toHaveLength(2)
+      expect(unfolded.find('[data-test="show-friends-unconfirmed-hint"]').text()).toBe(
+        en.showFriends.here.unconfirmedHint,
       )
+
+      await tapGuests(wrapper)
+
+      expect(chevron('down')).toBe(true)
+      expect(guestToggle(wrapper).attributes('aria-expanded')).toBe('false')
+      expect(guestRows(wrapper)).toHaveLength(0)
+      expect(guestHint(wrapper).exists()).toBe(false)
+      expect(wrapper.html()).not.toContain('First1')
+    })
+
+    // At the limit the sentence with the number stays, and the names are folded under it too.
+    it('folds the guests at the limit as well, under the sentence that says why', async () => {
+      fakeClock()
+      const server = serverSays({ code: null, none: false })
+      server.result.value = answerWith({
+        code: null,
+        remainingMs: 0,
+        unconfirmedGuests: guestsOf(5),
+      })
+      const wrapper = mountPage()
+      await flushPromises()
+
+      expect(wrapper.find('[data-test="show-friends-limit-reached"]').text()).toBe(
+        en.showFriends.here.limitReached.replace('{n}', '5'),
+      )
+      expect(guestToggle(wrapper).text()).toBe(someGuests.replace('{n}', '5'))
+      expect(guestToggle(wrapper).attributes('aria-expanded')).toBe('false')
+      expect(guestRows(wrapper)).toHaveLength(0)
+      expect(guestHint(wrapper).exists()).toBe(false)
+      expect(wrapper.html()).not.toContain('First1')
+
+      await tapGuests(wrapper)
+
+      expect(guestToggle(wrapper).attributes('aria-expanded')).toBe('true')
+      expect(guestRows(wrapper)).toHaveLength(5)
+      expect(guestHint(wrapper).exists()).toBe(true)
+
+      await tapGuests(wrapper)
+
+      expect(guestRows(wrapper)).toHaveLength(0)
+      expect(wrapper.find('[data-test="show-friends-limit-reached"]').exists()).toBe(true)
     })
 
     it('lists nothing where every guest has confirmed', async () => {
@@ -583,8 +661,9 @@ describe('ShowFriends', () => {
 
     /**
      * E-019: at the limit the server mints no code. The card without a stamp, the reason with the
-     * number, the guests by name -- and the button, which asks again: once one of them has
-     * confirmed, the next answer carries a code and one name less.
+     * number, the guests by name on a tap -- and the button, which asks again: once one of them
+     * has confirmed, the next answer carries a code and one name less. The list the member
+     * unfolded stays unfolded (ZE-014): a new code does not reload the page.
      */
     it('shows the card, the reason and the guests at the limit, and a code again after a confirmation', async () => {
       fakeClock()
@@ -607,7 +686,8 @@ describe('ShowFriends', () => {
       expect(wrapper.find('[data-test="show-friends-limit-reached"]').text()).toBe(
         en.showFriends.here.limitReached.replace('{n}', '5'),
       )
-      expect(wrapper.findAll('[data-test="show-friends-unconfirmed-guest"]')).toHaveLength(5)
+      await tapGuests(wrapper)
+      expect(guestRows(wrapper)).toHaveLength(5)
 
       await wrapper.find('[data-test="show-friends-new-code"]').trigger('click')
       await flushPromises()
@@ -617,7 +697,8 @@ describe('ShowFriends', () => {
       )
       expect(line(wrapper)).toBe(minutes.replace('{n}', '10'))
       expect(wrapper.find('[data-test="show-friends-limit-reached"]').exists()).toBe(false)
-      expect(wrapper.findAll('[data-test="show-friends-unconfirmed-guest"]')).toHaveLength(4)
+      expect(guestToggle(wrapper).attributes('aria-expanded')).toBe('true')
+      expect(guestRows(wrapper)).toHaveLength(4)
     })
 
     it('offers the new try after a failed first fetch as well', async () => {

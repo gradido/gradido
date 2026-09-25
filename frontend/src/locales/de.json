@@ -1147,7 +1147,7 @@
       "step3": "Das Konto begrüßt sie selbst. Du musst nichts erklären.",
       "title": "Jemandem hier bei mir",
       "unconfirmedGuest": "{firstName} {lastName} · {alias} · seit {date}",
-      "unconfirmedGuests": "Ein Gast von Dir hat seine E-Mail-Adresse noch nicht bestätigt: | {n} Deiner Gäste haben ihre E-Mail-Adresse noch nicht bestätigt:",
+      "unconfirmedGuests": "Ein Gast von Dir hat seine E-Mail-Adresse noch nicht bestätigt | {n} Deiner Gäste haben ihre E-Mail-Adresse noch nicht bestätigt",
       "unconfirmedHint": "Erinnere sie gern an den Link in ihrer Mail. Musst Du ein Konto vom Support löschen lassen, schick ihm diese Zeile.",
       "validFor": "Gültig noch eine Minute | Gültig noch {n} Minuten"
     },

@@ -1147,7 +1147,7 @@
       "step3": "Het account verwelkomt haar vanzelf. Je hoeft niets uit te leggen.",
       "title": "Iemand hier bij mij",
       "unconfirmedGuest": "{firstName} {lastName} · {alias} · sinds {date}",
-      "unconfirmedGuests": "Een gast van je heeft zijn e-mailadres nog niet bevestigd: | {n} van je gasten hebben hun e-mailadres nog niet bevestigd:",
+      "unconfirmedGuests": "Een gast van je heeft zijn e-mailadres nog niet bevestigd | {n} van je gasten hebben hun e-mailadres nog niet bevestigd",
       "unconfirmedHint": "Herinner ze gerust aan de link in hun mail. Moet je een account door de support laten verwijderen, stuur de support dan deze regel.",
       "validFor": "Nog één minuut geldig | Nog {n} minuten geldig"
     },

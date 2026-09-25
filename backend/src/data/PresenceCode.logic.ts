@@ -27,8 +27,12 @@ export const PRESENCE_CODE_VALID_MINUTES = 10
  * support deletes a dead guest account - never on its own. Counted when a code is minted, and
  * again by `createUser`, which takes the code: right before it opens an account, one
  * registration after another per member (`inMemberLine`).
+ *
+ * Set by E-022 to the size of the group one member looks after without first sorting out who
+ * can reach their mailbox - the picture is a cafe full of newcomers. Counted per member, not
+ * per cafe: two members at one table can vouch for twice as many between them.
  */
-export const PRESENCE_MAX_UNCONFIRMED = 5
+export const PRESENCE_MAX_UNCONFIRMED = 10
 
 const PRESENCE_CODE_SHAPE = /^(\d+)\.([A-Za-z0-9_-]+)$/
 

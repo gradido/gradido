@@ -1147,7 +1147,7 @@
       "step3": "Hesap onu kendiliğinden karşılar. Hiçbir şey açıklamana gerek yok.",
       "title": "Burada yanımdaki birine",
       "unconfirmedGuest": "{firstName} {lastName} · {alias} · {date} tarihinden beri",
-      "unconfirmedGuests": "Misafirlerinden biri e-posta adresini henüz onaylamadı: | Misafirlerinden {n} kişi e-posta adresini henüz onaylamadı:",
+      "unconfirmedGuests": "Misafirlerinden biri e-posta adresini henüz onaylamadı | Misafirlerinden {n} kişi e-posta adresini henüz onaylamadı",
       "unconfirmedHint": "Onlara e-postalarındaki bağlantıyı hatırlatabilirsin. Bir hesabı destek ekibine sildirmen gerekirse, onlara bu satırı gönder.",
       "validFor": "Bir dakika daha geçerli | {n} dakika daha geçerli"
     },
