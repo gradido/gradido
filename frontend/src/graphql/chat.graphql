@@ -9,10 +9,15 @@
 #
 # ⛔ The fields are the ones the backend's seeds ask for, one for one -- this query's in
 # backend/src/seeds/graphql/queries.ts, the two mutations' below in mutations.ts -- and
-# `documents.test.ts` holds this document against the schema. `deliveryState` and `notify`
-# come back only on one's OWN messages, as the enum NAMES (DELIVERED, PENDING, FAILED;
-# EMAIL, NONE) -- on the other side's messages they are null, because the server says
-# nothing about how the other side's mail went.
+# `documents.test.ts` holds this document against the schema. `deliveryState`, `notify` and
+# `mailState` come back only on one's OWN messages, as the enum NAMES (DELIVERED, PENDING,
+# FAILED; EMAIL, NONE; MAILED, MUTED) -- on the other side's messages they are null, because
+# the server says nothing about how the other side's mail went.
+#
+# `mailState` is what became of the mail about one's own message (E-034): MAILED where one went
+# out, MUTED where one was asked for and the recipient has muted the conversation. Null where
+# none was asked for -- and where nothing is known: a message from before the field, a recipient
+# server from before it, a mail that did not go out, a delivery that failed.
 #
 # `mutedByMe` is one's OWN mark on this conversation (E-024): no mails about the other
 # person's messages while it is set; false where there is no conversation yet. It comes
@@ -36,6 +41,7 @@ query chatMessagesWithMemberQuery($ref: MemberAvatarRefInput!, $before: Int, $li
       createdAt
       deliveryState
       notify
+      mailState
     }
   }
 }
@@ -78,6 +84,7 @@ query newChatMessagesSince($afterId: Int, $limit: Int) {
       createdAt
       deliveryState
       notify
+      mailState
     }
   }
 }
@@ -93,10 +100,11 @@ mutation markChatConversationRead($ref: MemberAvatarRefInput!, $upToMessageId: I
 #
 # `notify` is the sender's wish, and it is required: EMAIL where the box is ticked, NONE where
 # it is not. The server decides the rest (E-024): the first message of a pair goes out as a
-# mail whatever was asked, and a recipient who muted the conversation gets none. A delivery
-# that failed across the border is NOT an error -- the copy comes back with `deliveryState`
-# FAILED (E-019). An error is one of CHAT_MESSAGE_NOT_SENT: TO_ONESELF | UNKNOWN_RECIPIENT |
-# NO_WAY_TO_DELIVER | NOT_STORED, and nothing was sent.
+# mail whatever was asked, and a recipient who muted the conversation gets none -- the copy says
+# which it was in `mailState` (E-034). A delivery that failed across the border is NOT an
+# error -- the copy comes back with `deliveryState` FAILED (E-019). An error is one of
+# CHAT_MESSAGE_NOT_SENT: TO_ONESELF | UNKNOWN_RECIPIENT | NO_WAY_TO_DELIVER | NOT_STORED, and
+# nothing was sent.
 mutation sendChatMessage($ref: MemberAvatarRefInput!, $body: String!, $notify: ChatMessageNotify!) {
   sendChatMessage(ref: $ref, body: $body, notify: $notify) {
     id
@@ -112,6 +120,7 @@ mutation sendChatMessage($ref: MemberAvatarRefInput!, $body: String!, $notify: C
     createdAt
     deliveryState
     notify
+    mailState
   }
 }
 

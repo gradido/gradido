@@ -30,6 +30,7 @@ const chatMessage = (id, extra = {}) => ({
   createdAt: '2026-09-25T10:00:00.000Z',
   deliveryState: null,
   notify: null,
+  mailState: null,
   ...extra,
 })
 
