@@ -114,6 +114,33 @@ export const contributionsTable = mysqlTable(
 export type ContributionsSelect = typeof contributionsTable.$inferSelect
 export type ContributionsInsert = typeof contributionsTable.$inferInsert
 
+export const contributionLinksTable = mysqlTable('contribution_links', {
+  id: int('id', { unsigned: true }).autoincrement().primaryKey(),
+  name: varchar('name', { length: 100 }).notNull(),
+  memo: varchar('memo', { length: 512 }).notNull(),
+  validFrom: datetime('valid_from', { mode: 'date' }).notNull(),
+  validTo: datetime('valid_to', { mode: 'date' }),
+  amountLegacy: customGradidoUnit('amount_legacy'),
+  amountGdd4: customGradidoUnit('amount_gdd4'),
+  cycle: varchar('cycle', { length: 12 }).notNull().default('ONCE'),
+  maxPerCycle: int('max_per_cycle', { unsigned: true }).notNull().default(1),
+  maxAmountPerMonthLegacy: customGradidoUnit('max_amount_per_month_legacy'),
+  maxAmountPerMonthGdd4: customGradidoUnit('max_amount_per_month_gdd4'),
+  totalMaxCountOfContribution: int('total_max_count_of_contribution', {
+    unsigned: true,
+  }),
+  maxAccountBalanceLegacy: customGradidoUnit('max_account_balance_legacy'),
+  maxAccountBalanceGdd4: customGradidoUnit('max_account_balance_gdd4'),
+  minGapHours: int('min_gap_hours', { unsigned: true }),
+  createdAt: datetime('created_at', { mode: 'date' }).default(sql`current_timestamp()`).notNull(),
+  deletedAt: datetime('deleted_at', { mode: 'date' }),
+  code: varchar('code', { length: 24 }).notNull(),
+  linkEnabled: tinyint('link_enabled', { unsigned: false }).notNull().default(1),
+})
+
+export type ContributionLinksSelect = typeof contributionLinksTable.$inferSelect
+export type ContributionLinksInsert = typeof contributionLinksTable.$inferInsert
+
 // One moderator conversation with Crea in the admin chat window (CreaChat). The
 // Anthropic Messages API is stateless, so the whole exchange lives here as a JSON array
 // in `messages` — that is the shape every access needs: read the complete thread, append

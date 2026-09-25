@@ -36,6 +36,11 @@ export async function getHomeCommunityDrizzle(): Promise<CommunitiesSelect | nul
   return homeCommunityDrizzleCache
 }
 
+export async function dbHomeCommunityGetUuid(): Promise<string> {
+  const homeCom = await getHomeCommunityDrizzle()
+  return uuidv4Schema.parse(homeCom?.communityUuid)
+}
+
 /**
  * Whether the home community pays a language model to key its matching entries.
  *

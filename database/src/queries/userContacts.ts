@@ -1,8 +1,10 @@
 // AI-GENERATED — not an architecture reference
-import { and, asc, eq, isNull, like, sql } from 'drizzle-orm'
-import { OptInType } from 'shared'
-import { drizzleDb } from '../AppDatabase'
-import { userContactsTable } from '../schemas/drizzle.schema'
+import { and, asc, count, eq, isNull, like, sql } from 'drizzle-orm'
+import { MySql2Database } from 'drizzle-orm/mysql2'
+import { OptInType, Result } from 'shared'
+import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
+import { DBInsertFailed } from '../errorTypes'
+import { UserContactInsert, userContactsTable } from '../schemas/drizzle.schema'
 
 // Drizzle only. The `user_contacts` queries still on TypeORM live in
 // `./userContacts.typeorm` - the ones that take or return the entity, and the ones that join
@@ -12,6 +14,40 @@ import { userContactsTable } from '../schemas/drizzle.schema'
 // its own (the entity has a `@DeleteDateColumn`); Drizzle adds nothing, so the reads below
 // spell that condition out. TypeORM's delete query builder never added it, so the deletes
 // below do not either.
+//
+const userContactInsertFailed = (row: UserContactInsert) =>
+  new DBInsertFailed<UserContactInsert>('user_contacts', row)
+
+export async function dbInsertUserContact(
+  userContact: UserContactInsert,
+  tx?: DrizzleTransaction | MySql2Database,
+): Promise<Result<number, DBInsertFailed<UserContactInsert>>> {
+  if (!tx) {
+    tx = drizzleDb()
+  }
+  const rows = await tx.insert(userContactsTable).values(userContact)
+  const firstRow = rows[0]
+  if (firstRow && firstRow.affectedRows === 1) {
+    return { success: true, value: firstRow.insertId }
+  }
+  return { success: false, error: userContactInsertFailed(userContact) }
+}
+
+/*
+
+export async function dbInsertUser(user: UserInsert, tx?: DrizzleTransaction | MySql2Database):
+  Promise<Result<number, DBInsertFailed<UserInsert>>> {
+  if (!tx) {
+    tx = drizzleDb()
+  }
+  const rows = await tx.insert(usersTable).values(user)
+  const firstRow = rows[0]
+  if (firstRow && firstRow.affectedRows === 1) {
+    return { success: true, value: firstRow.insertId }
+  }
+  return { success: false, error: userInsertFailed(user) }
+}
+*/
 
 /**
  * Every address this member has CONFIRMED, oldest first. A pending change is left out on
@@ -31,6 +67,31 @@ export async function dbFindConfirmedUserContactEmails(userId: number): Promise<
     )
     .orderBy(asc(userContactsTable.createdAt))
   return rows.map((row) => row.email)
+}
+
+export async function dbIsUserContactFieldExist<K extends keyof UserContactInsert>(
+  field: K,
+  value: UserContactInsert[K],
+): Promise<number> {
+  if (!value) {
+    throw new Error('empty value given')
+  }
+  const rows = await drizzleDb()
+    .select({ id: userContactsTable.id })
+    .from(userContactsTable)
+    .where(eq(userContactsTable[field], value))
+  return rows[0] ? rows[0].id : 0
+}
+
+// Not a soft delete, really remove the user from db, without side effects, used in RegisterUser if something after creating user failed
+export async function dbRemoveUserContact(userContactId: number): Promise<number> {
+  if (userContactId) {
+    const rows = await drizzleDb()
+      .delete(userContactsTable)
+      .where(eq(userContactsTable.id, userContactId))
+    return rows[0] ? rows[0].affectedRows : 0
+  }
+  return 0
 }
 
 /**

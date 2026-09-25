@@ -135,3 +135,19 @@ export const FRONTEND_LOGIN_ROUTE = 'login'
 // Mirrors the users.salutation column (varchar 255, migration 0105); the admin field
 // carries the same limit, so an over-long value is stopped before it gets here.
 export const SALUTATION_MAX_LENGTH = 255
+
+// available languages
+export const AVAILABLE_LOCALS = [
+  'en',
+  'de',
+  'es',
+  'fr',
+  'nl',
+  'it',
+  'tr',
+  'ru',
+  'pt',
+  'el',
+] as const
+// TODO: decide if we use en as default
+export const DEFAULT_LANGUAGE = 'de'

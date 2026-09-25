@@ -1,5 +1,7 @@
 // AI-GENERATED — not an architecture reference
+
 import { createHmac, timingSafeEqual } from 'node:crypto'
+import { z } from 'zod'
 import { CONFIG } from '@/config'
 
 /**
@@ -95,3 +97,5 @@ export const verifyPresenceCode = (
   // timingSafeEqual throws on buffers of different length.
   return expected.length === actual.length && timingSafeEqual(expected, actual)
 }
+
+export const presenceCodeSchema = z.string().regex(PRESENCE_CODE_SHAPE)

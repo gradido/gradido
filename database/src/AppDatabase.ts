@@ -1,4 +1,11 @@
-import { drizzle, MySql2Database } from 'drizzle-orm/mysql2'
+import { ExtractTablesWithRelations } from 'drizzle-orm'
+import { MySqlTransaction } from 'drizzle-orm/mysql-core'
+import {
+  drizzle,
+  MySql2Database,
+  MySql2PreparedQueryHKT,
+  MySql2QueryResultHKT,
+} from 'drizzle-orm/mysql2'
 import Redis from 'ioredis'
 import { getLogger } from 'log4js'
 import { Connection, createConnection, createPool, Pool } from 'mysql2/promise'
@@ -184,3 +191,9 @@ export class AppDatabase {
 
 export const getDataSource = () => AppDatabase.getInstance().getDataSource()
 export const drizzleDb = () => AppDatabase.getInstance().getDrizzleDataSource()
+export type DrizzleTransaction = MySqlTransaction<
+  MySql2QueryResultHKT,
+  MySql2PreparedQueryHKT,
+  Record<string, never>,
+  ExtractTablesWithRelations<Record<string, never>>
+>

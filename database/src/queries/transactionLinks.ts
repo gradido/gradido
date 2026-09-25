@@ -3,13 +3,23 @@ import { Order } from 'shared'
 import { IsNull, LessThanOrEqual, MoreThan } from 'typeorm'
 import { drizzleDb } from '../AppDatabase'
 import { TransactionLink as DbTransactionLink } from '../entity'
-import { transactionLinksTable } from '../schemas'
+import { TransactionLinksSelect, transactionLinksTable } from '../schemas'
 
 export async function findTransactionLinkByCode(code: string): Promise<DbTransactionLink> {
   return await DbTransactionLink.findOneOrFail({
     where: { code },
     withDeleted: true,
   })
+}
+
+export async function dbFindTransactionLinkByCode(
+  redeemCode: string,
+): Promise<TransactionLinksSelect | null> {
+  const rows = await drizzleDb()
+    .select()
+    .from(transactionLinksTable)
+    .where(eq(transactionLinksTable.code, redeemCode))
+  return rows[0] ? rows[0] : null
 }
 
 /**

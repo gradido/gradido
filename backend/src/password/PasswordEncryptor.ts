@@ -1,9 +1,13 @@
 import { delay } from 'core'
-import { DbUser, User } from 'database'
+import { DbUser, User, UserInsert } from 'database'
 
 import { getUserCryptographicSalt, SecretKeyCryptographyCreateKey } from './EncryptorUtils'
+import { PasswordDataInput } from './passwordData.schema'
 
-export const encryptPassword = async (dbUser: User | DbUser, password: string): Promise<bigint> => {
+export const encryptPassword = async (
+  dbUser: PasswordDataInput,
+  password: string,
+): Promise<bigint> => {
   const salt = getUserCryptographicSalt(dbUser)
   return SecretKeyCryptographyCreateKey(salt, password)
 }

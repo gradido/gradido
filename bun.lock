@@ -1,6 +1,5 @@
 {
   "lockfileVersion": 1,
-  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "gradido",
@@ -19,7 +18,7 @@
     },
     "admin": {
       "name": "admin",
-      "version": "2.10.1",
+      "version": "2.11.4",
       "dependencies": {
         "@iconify/json": "^2.2.228",
         "@popperjs/core": "^2.11.8",
@@ -90,7 +89,7 @@
     },
     "backend": {
       "name": "backend",
-      "version": "2.10.1",
+      "version": "2.11.4",
       "dependencies": {
         "cross-env": "^7.0.3",
         "email-templates": "^10.0.1",
@@ -125,6 +124,7 @@
         "cors": "^2.8.5",
         "database": "*",
         "dotenv": "^10.0.0",
+        "drizzle-orm": "^0.44.7",
         "esbuild": "^0.25.2",
         "express": "^4.17.21",
         "express-slow-down": "^2.0.1",
@@ -166,7 +166,7 @@
     },
     "config-schema": {
       "name": "config-schema",
-      "version": "2.10.1",
+      "version": "2.11.4",
       "dependencies": {
         "esbuild": "^0.25.2",
         "joi": "17.13.3",
@@ -184,7 +184,7 @@
     },
     "core": {
       "name": "core",
-      "version": "2.10.1",
+      "version": "2.11.4",
       "dependencies": {
         "database": "*",
         "email-templates": "^10.0.1",
@@ -221,7 +221,7 @@
     },
     "database": {
       "name": "database",
-      "version": "2.10.1",
+      "version": "2.11.4",
       "dependencies": {
         "@types/uuid": "^8.3.4",
         "cross-env": "^7.0.3",
@@ -258,7 +258,7 @@
     },
     "dht-node": {
       "name": "dht-node",
-      "version": "2.10.1",
+      "version": "2.11.4",
       "dependencies": {
         "cross-env": "^7.0.3",
         "dht-rpc": "6.18.1",
@@ -296,7 +296,7 @@
     },
     "federation": {
       "name": "federation",
-      "version": "2.10.1",
+      "version": "2.11.4",
       "dependencies": {
         "cross-env": "^7.0.3",
         "email-templates": "^10.0.1",
@@ -356,7 +356,7 @@
     },
     "frontend": {
       "name": "frontend",
-      "version": "2.10.1",
+      "version": "2.11.4",
       "dependencies": {
         "@mapbox/vector-tile": "^3.0.0",
         "@morev/vue-transitions": "^3.0.2",
@@ -451,7 +451,7 @@
     },
     "shared": {
       "name": "shared",
-      "version": "2.10.1",
+      "version": "2.11.4",
       "dependencies": {
         "esbuild": "^0.25.2",
         "jose": "^4.14.4",
@@ -471,7 +471,7 @@
     },
     "shared-native": {
       "name": "shared-native",
-      "version": "2.10.1",
+      "version": "2.11.4",
       "devDependencies": {
         "@biomejs/biome": "2.0.0",
         "@types/adm-zip": "^0.5.8",

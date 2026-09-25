@@ -1,12 +1,19 @@
 // AI-GENERATED — not an architecture reference
-import { Order } from 'shared'
+
+import { asc, eq, inArray, like, or, sql } from 'drizzle-orm'
+import { union } from 'drizzle-orm/mysql-core'
+import { MySqlRawQueryResult } from 'drizzle-orm/mysql2'
+import { Order, Result } from 'shared'
 import { EntityManager, FindOptionsWhere, MoreThan, Not } from 'typeorm'
+import { drizzleDb } from '../AppDatabase'
 import {
   ALIAS_ORIGIN_ADOPTED,
   ALIAS_ORIGIN_CHOSEN,
   AliasOrigin,
   UserAlias as DbUserAlias,
 } from '../entity'
+import { DBInsertFailed } from '../errorTypes'
+import { UserAliasInsert, userAliasesTable } from '../schemas'
 
 /**
  * Every name a member owns lives here; `users.alias` marks the current one. Taking a
@@ -20,6 +27,9 @@ import {
  * member holding a name their account never got - counted against their quota and
  * blocked for everyone else.
  */
+
+const userAliasInsertFailed = (row: UserAliasInsert) =>
+  new DBInsertFailed<UserAliasInsert>('user_aliases', row)
 
 /** The name this member already owns, whatever its origin - null if it was never theirs. */
 export async function dbFindOwnAlias(
@@ -91,18 +101,70 @@ export async function dbFindOldestChosenAliasSince(
 
 /** Record that this name now belongs to the member. */
 export async function dbInsertUserAlias(
-  userId: number,
-  alias: string,
-  origin: AliasOrigin,
-  manager?: EntityManager,
-): Promise<DbUserAlias> {
-  const row = DbUserAlias.create({ userId, alias, origin })
-  return manager ? manager.save(row) : DbUserAlias.save(row)
+  userAlias: UserAliasInsert,
+): Promise<Result<number, DBInsertFailed<UserAliasInsert>>> {
+  const rows = await drizzleDb().insert(userAliasesTable).values(userAlias)
+  const firstRow = rows[0]
+  if (firstRow && firstRow.affectedRows === 1) {
+    return { success: true, value: firstRow.insertId }
+  }
+  return { success: false, error: userAliasInsertFailed(userAlias) }
+}
+
+// Not a soft delete, really remove the user and his user contact from db, used in RegisterUser if something after creating user failed
+export async function dbRemoveUserAlias(userAliasId: number): Promise<number> {
+  if (userAliasId) {
+    const rows = await drizzleDb()
+      .delete(userAliasesTable)
+      .where(eq(userAliasesTable.id, userAliasId))
+    return rows[0] ? rows[0].affectedRows : 0
+  }
+  return 0
 }
 
 /** Every name this member owns, current one included. */
 export async function dbFindAliasesByUser(userId: number): Promise<DbUserAlias[]> {
   return DbUserAlias.find({ where: { userId }, order: { createdAt: Order.ASC } })
+}
+
+export async function dbFindUserAliasesWithPrefix(
+  prefix: string,
+  limit: number,
+): Promise<string[]> {
+  const rows = await drizzleDb()
+    .select({ a: userAliasesTable.alias })
+    .from(userAliasesTable)
+    .where(like(userAliasesTable.alias, `${prefix}%`))
+    .orderBy(asc(userAliasesTable.alias))
+    .limit(limit)
+
+  return rows.map((row) => row.a)
+}
+
+export async function dbFindUserAliasesWithRegex(regexes: string[]): Promise<string[]> {
+  const queries = regexes.map((regex) =>
+    drizzleDb()
+      .select({ a: userAliasesTable.alias })
+      .from(userAliasesTable)
+      .where(like(userAliasesTable.alias, regex))
+      .orderBy(asc(userAliasesTable.alias)),
+  )
+
+  const res: MySqlRawQueryResult = await drizzleDb().execute(
+    sql.join(queries, ' UNION ').mapWith(userAliasesTable.alias),
+  )
+  console.log(JSON.stringify(res, null, 2))
+  throw new Error('not finished yet')
+  // return []
+}
+
+export async function dbFindUserAliasesExisting(userAliases: string[]): Promise<string[]> {
+  const rows = await drizzleDb()
+    .select({ a: userAliasesTable.alias })
+    .from(userAliasesTable)
+    .where(inArray(userAliasesTable.alias, userAliases))
+
+  return rows.map((row) => row.a)
 }
 
 /**

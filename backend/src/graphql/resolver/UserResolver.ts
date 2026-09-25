@@ -89,8 +89,10 @@ import {
   AVATAR_SMALL_MAX_BYTES,
   aliasCandidates,
   aliasSchema,
+  DEFAULT_LANGUAGE,
   JPEG_END_BYTES,
   JPEG_MAGIC_BYTES,
+  languageSchema,
   MemberAvatarPayload,
   pickFreeAlias,
   Result,
@@ -154,6 +156,7 @@ import {
   Event,
   EventType,
 } from '@/event/Events'
+import { createUserSchema } from '@/interactions/registerAccount'
 import { registerAccount } from '@/interactions/registerAccount/RegisterAccount.context'
 import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, fakeVerifyPassword, verifyPassword } from '@/password/PasswordEncryptor'
@@ -176,14 +179,9 @@ import { sendUsersToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
 import { removeUserFromGms } from './util/syncMatchingEntryToGms'
 
-const LANGUAGES = ['de', 'en', 'es', 'fr', 'nl', 'it', 'tr', 'ru', 'pt', 'el']
-const DEFAULT_LANGUAGE = 'de'
 const db = AppDatabase.getInstance()
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserResolver.${method}`)
-const isLanguage = (language: string): boolean => {
-  return LANGUAGES.includes(language)
-}
 
 // newEmailContact and newGradidoID moved into the registerAccount interaction — the
 // account-creation flow lives there now (EM-013 shares it with the classic path).
@@ -437,215 +435,38 @@ export class UserResolver {
   @Mutation(() => User)
   async createUser(
     @Args()
-    {
-      alias = null,
-      email,
-      firstName,
-      lastName,
-      language,
-      publisherId = null,
-      redeemCode = null,
-      project = null,
-      referrerAlias = null,
-      presenceCode = null,
-      password = null,
-    }: CreateUserArgs,
+    args: CreateUserArgs,
   ): Promise<User> {
     const logger = createLogger('createUser')
-    const shortEmail = email.substring(0, 3)
+    const shortEmail = args.email.substring(0, 3)
     logger.addContext('email', shortEmail)
 
-    const shortRedeemCode = redeemCode?.substring(0, 6)
+    const shortRedeemCode = args.redeemCode?.substring(0, 6)
     const infos = []
-    infos.push(`language=${language}`)
-    if (publisherId) {
-      infos.push(`publisherId=${publisherId}`)
+    infos.push(`language=${args.language}`)
+    if (args.publisherId) {
+      infos.push(`publisherId=${args.publisherId}`)
     }
-    if (redeemCode) {
+    if (args.redeemCode) {
       infos.push(`redeemCode=${shortRedeemCode}`)
     }
-    if (project) {
-      infos.push(`project=${project}`)
+    if (args.project) {
+      infos.push(`project=${args.project}`)
     }
     // That a table code came along, never the code itself: for ten minutes it vouches for an
     // account in a member's name. The request log masks it too (filterVariables).
-    if (presenceCode) {
+    if (args.presenceCode) {
       infos.push('presenceCode')
     }
     logger.info(`createUser(${infos.join(', ')})`)
 
-    // TODO: wrong default value (should be null), how does graphql work here? Is it an required field?
-    // default int publisher_id = 0;
-
-    // Validate Language (no throw)
-    if (!language || !isLanguage(language)) {
-      language = DEFAULT_LANGUAGE
+    const createUserDataParseResult = createUserSchema.safeParse(args)
+    if (!createUserDataParseResult.success) {
+      // return first error like before in code
+      throw new Error(createUserDataParseResult.error.issues[0].message)
     }
 
-    // E-017, the table code: a guest who scanned a member's live card may choose a password
-    // here. Every check of the code comes before the address is looked at - the member and
-    // their limit below too - so what they answer is about the code, the password and the
-    // member, and never about the address. A password without a code is refused rather than
-    // dropped: a value nobody expected must not vanish silently.
-    if (password && !presenceCode) {
-      throw new LogError('Password requires a presence code')
-    }
-    // A table code vouches through the member whose address it came with. registerAccount
-    // looks that member up only when no redeem code came along, so with one - even a made-up
-    // one - the account would get a password while nobody, or the link's owner, is recorded
-    // as having vouched. The wallet never sends both.
-    if (presenceCode && redeemCode) {
-      throw new LogError('Presence code together with a redeem code')
-    }
-    let presenceValid = false
-    let presenceCommunityUuid = ''
-    if (presenceCode) {
-      // The code must be the one shown by the member whose address the guest came from.
-      const homeCom = await getHomeCommunity()
-      if (!homeCom?.communityUuid) {
-        // Its own answer, not "expired": the seal is bound to this community, so without it
-        // every code fails the check - and the guest would be told to fetch a fresh one, which
-        // fails the same way. `presenceCode` says the same when it cannot mint one.
-        throw new LogError('No home community')
-      }
-      presenceCommunityUuid = homeCom.communityUuid
-      presenceValid = verifyPresenceCode(presenceCode, referrerAlias ?? '', presenceCommunityUuid)
-      if (!presenceValid) {
-        throw new LogError('Presence code invalid or expired')
-      }
-    }
-    if (password && !isValidPassword(password)) {
-      throw new LogError(
-        'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
-      )
-    }
-    // E-019: an account that can act without a mailbox is opened only while the member who
-    // vouches for it holds fewer than PRESENCE_MAX_UNCONFIRMED unconfirmed ones. Counted here,
-    // before the address: at the limit a taken address gets the same refusal as a free one -
-    // the silence below would tell them apart - and a request over the limit never waits in
-    // the member's line. Counted again in that line, where it decides: one after another per
-    // member in this process, and whoever waits holds no connection.
-    const refuseAtLimit = (guests: unknown[]) => {
-      if (guests.length >= PRESENCE_MAX_UNCONFIRMED) {
-        throw new LogError('Vouching limit reached')
-      }
-    }
-    let referrer: DbUser | null = null
-    if (presenceValid && password) {
-      referrer = await findUserByIdentifier(referrerAlias ?? '', presenceCommunityUuid)
-      if (!referrer) {
-        // Deleted after showing the code: without the member, nobody vouches.
-        throw new LogError('Presence code invalid or expired')
-      }
-      refuseAtLimit(await dbFindUnconfirmedVouchedAccounts(referrer.id))
-    }
-
-    // check if user with email still exists?
-    email = email.trim().toLowerCase()
-    if (await checkEmailExists(email)) {
-      const foundUser = await findUserByEmail(email)
-      logger.info('DbUser.findOne', foundUser.id)
-
-      if (foundUser) {
-        logger.addContext('user', foundUser.id)
-        logger.removeContext('email')
-        // ATTENTION: this logger-message will be exactly expected during tests, next line
-        logger.info(`User already exists`)
-        logger.info(
-          `Specified username when trying to register multiple times with this email: firstName=${firstName.substring(0, 4)}, lastName=${lastName.substring(0, 4)}`,
-        )
-
-        const user = new User(communityDbUser)
-        user.id = randombytes_random() % (2048 * 16) // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
-        user.gradidoID = uuidv4()
-        user.firstName = firstName
-        user.lastName = lastName
-        user.language = language
-        user.publisherId = publisherId
-        if (alias && (await validateAlias(alias))) {
-          user.alias = alias
-        }
-        logger.debug('partly faked user', { id: user.id, gradidoID: user.gradidoID })
-
-        // EM-013, the doorbell: only when the attempt carried a redeem code (the café
-        // case) is it parked and the mail offers the helper branch. Without one, the
-        // mail — and everything the form ever sees — stays byte-identical to before.
-        // The answer to the form does not change in either case (silence rule).
-        let helperLink: string | null = null
-        if (redeemCode) {
-          // Same validity window as every other mail code; expired rows go lazily here.
-          await dbPurgeExpiredAssistedRegistrations(emailChangeExpiryCutoff())
-          const assistCode = random(64) as bigint
-          await dbInsertAssistedRegistration({
-            firstName,
-            lastName,
-            language,
-            redeemCode,
-            publisherId,
-            project,
-            hostUserId: foundUser.id,
-            assistCode,
-          })
-          helperLink = CONFIG.EMAIL_LINK_REGISTER_ASSIST + assistCode.toString()
-        }
-
-        await sendAccountMultiRegistrationEmail({
-          firstName: foundUser.firstName, // this is the real name of the email owner, but just "firstName" would be the name of the new registrant which shall not be passed to the outside
-          lastName: foundUser.lastName, // this is the real name of the email owner, but just "lastName" would be the name of the new registrant which shall not be passed to the outside
-          email,
-          language: foundUser.language, // use language of the emails owner for sending
-          helperLink,
-        })
-        await EVENT_EMAIL_ACCOUNT_MULTIREGISTRATION(foundUser)
-
-        /* uncomment this, when you need the activation link on the console */
-        // In case EMails are disabled log the activation link for the user
-        logger.info('createUser() faked and send multi registration mail...')
-
-        return user
-      }
-    }
-    // The whole account-creation flow lives in the registerAccount interaction now —
-    // moved there verbatim so the assisted registration (EM-013) shares it instead of
-    // growing a second copy. passwordPlain: null keeps this the classic registration; a
-    // password reaches it only with a valid table code (E-017), checked above.
-    const registration = {
-      email,
-      firstName,
-      lastName,
-      language,
-      publisherId,
-      redeemCode,
-      project,
-      alias,
-      passwordPlain: presenceValid ? password : null,
-      referrerAlias,
-      // Only the table code resolves the member up here, and only then does the row have to
-      // name the same one that was counted. Everybody else leaves this null and registerAccount
-      // looks the address up as it always did.
-      referrerId: referrer?.id ?? null,
-    }
-    const openAccount = () => registerAccount(registration, logger)
-    let dbUser: DbUser
-    if (referrer) {
-      // Parallel registrations can all have read "four" above: counted again and opened one
-      // after another per member in this process, the count decides. Whoever waits holds no
-      // connection, only a promise; registerAccount commits before it returns, so the next in
-      // line counts the account just opened. A taken address never gets here - the silence
-      // above answered for it and counts nothing.
-      const referrerId = referrer.id
-      dbUser = await inMemberLine(referrerId, async () => {
-        refuseAtLimit(await dbFindUnconfirmedVouchedAccounts(referrerId))
-        return openAccount()
-      })
-    } else {
-      dbUser = await openAccount()
-    }
-    // Only the id goes into the event, like the doorbell's: no lookup of the member.
-    if (presenceValid && dbUser.referrerId) {
-      await EVENT_USER_REGISTER_PRESENCE(dbUser, { id: dbUser.referrerId } as DbUser)
-    }
-    return new User(dbUser)
+    return new User(await registerAccount(createUserDataParseResult.data, logger))
   }
 
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
@@ -967,7 +788,7 @@ export class UserResolver {
       }
 
       if (language) {
-        if (!isLanguage(language)) {
+        if (!languageSchema.safeParse(language).success) {
           logger.warn('try to set unsupported language', language)
           throw new LogError('Given language is not a valid language or not supported')
         }

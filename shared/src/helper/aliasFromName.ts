@@ -1,5 +1,11 @@
 // AI-GENERATED — not an architecture reference
-import { ALIAS_MAX_CHARS, aliasSchema } from '../schema/user.schema'
+import {
+  ALIAS_MAX_CHARS,
+  aliasSchema,
+  emailSchema,
+  firstNameSchema,
+  lastNameSchema,
+} from '../schema'
 import { transliterateToLatin } from './transliterate'
 
 /**
@@ -27,15 +33,14 @@ import { transliterateToLatin } from './transliterate'
  * in `transliterateToLatin` comes back empty.
  */
 export function transliterateForAlias(text: string): string {
-  return transliterateToLatin(text).replace(/[^a-zA-Z0-9]/g, '')
+  return transliterateToLatin(text)
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .slice(0, ALIAS_MAX_CHARS)
 }
 
 /** What a member typed before the `@`, minus any `+tag` they added for themselves. */
-export function aliasStemFromEmail(email?: string | null): string {
-  if (!email) {
-    return ''
-  }
-  const local = email.split('@')[0] ?? ''
+export function aliasStemFromEmail(email: string): string {
+  const local = email.split('@')[0]
   return transliterateForAlias(local.split('+')[0] ?? '')
 }
 
@@ -51,30 +56,62 @@ export function aliasStemFromEmail(email?: string | null): string {
  * one.
  */
 export function aliasCandidates(
-  firstName?: string | null,
-  lastName?: string | null,
-  email?: string | null,
+  firstName: string,
+  lastName: string,
+  email: string,
+  userId: number,
 ): string[] {
   const candidates: string[] = []
+
   const push = (value: string) => {
-    const trimmed = value.slice(0, ALIAS_MAX_CHARS)
-    if (value.length && !candidates.includes(trimmed) && aliasSchema.safeParse(trimmed).success) {
-      candidates.push(trimmed)
+    if (value.length && !candidates.includes(value) && aliasSchema.safeParse(value).success) {
+      candidates.push(value)
     }
   }
 
-  const first = transliterateForAlias(firstName ?? '')
-  const last = transliterateForAlias(lastName ?? '')
-
-  for (let taken = 1; taken <= last.length; taken++) {
-    push(first + last.slice(0, taken))
+  for (let taken = 1; taken <= lastName.length; taken++) {
+    push(transliterateForAlias(firstName + lastName.slice(0, taken)))
   }
   // A member with only one of the two still gets a proposal from it.
-  push(first)
-  push(last)
+  push(transliterateForAlias(firstName))
+  push(transliterateForAlias(lastName))
   push(aliasStemFromEmail(email))
+  push(fallbackAlias(userId))
 
   return candidates
+}
+
+export function findFirstFreeAlias(existing: string[], candidates: string[]): string | null {
+  // prepare set with existing candidates
+  const set = new Set(existing)
+
+  // check with direct candidates
+  for (const candidate of candidates) {
+    if (!set.has(candidate)) {
+      return candidate
+    }
+  }
+  // check with candidates + number 1 - 99
+  for (const candidate of candidates) {
+    for (let suffix = 1; suffix <= 99; suffix++) {
+      const numbered = candidate.slice(0, ALIAS_MAX_CHARS - String(suffix).length) + suffix
+      if (!set.has(numbered)) {
+        return numbered
+      }
+    }
+  }
+  return null
+}
+
+// the default generated alias which will be tested first, should work in most of the cases
+export function primaryAliasCandidate(firstName: string, lastName: string): string | null {
+  const firstNameTransliterated = transliterateForAlias(firstName)
+  const lastNameTransliterated = transliterateForAlias(lastName)
+  const firstAliasCandidate = firstNameTransliterated + lastNameTransliterated.slice(0, 1)
+  if (aliasSchema.safeParse(firstAliasCandidate).success) {
+    return firstAliasCandidate
+  }
+  return null
 }
 
 /**
@@ -88,34 +125,4 @@ export function aliasCandidates(
  */
 export function fallbackAlias(userId: number): string {
   return `member${userId}`
-}
-
-/**
- * Walks the proposals until one is free, widening each with a digit before moving on.
- * `isTaken` belongs to the caller because the two of them ask different things: the
- * migration only knows the users table it is filling, while registration has the whole
- * check including names other members left behind.
- *
- * ⚠️ The result is not trusted on the way out - the caller still parses it. This
- * function decides what to offer; only the schema decides what may be written.
- */
-export async function pickFreeAlias(
-  candidates: string[],
-  userId: number,
-  isTaken: (alias: string) => Promise<boolean>,
-): Promise<string> {
-  for (const candidate of [...candidates, fallbackAlias(userId)]) {
-    if (!(await isTaken(candidate))) {
-      return candidate
-    }
-    for (let suffix = 1; suffix <= 99; suffix++) {
-      const numbered = candidate.slice(0, ALIAS_MAX_CHARS - String(suffix).length) + suffix
-      if (!(await isTaken(numbered))) {
-        return numbered
-      }
-    }
-  }
-  // Only reachable if `member<id>` and its hundred variants are all spoken for, which
-  // takes a member deliberately hoarding them.
-  throw new Error(`no free alias could be built for user ${userId}`)
 }

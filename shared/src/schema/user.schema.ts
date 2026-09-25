@@ -1,4 +1,4 @@
-import { string } from 'zod'
+import { z } from 'zod'
 
 // Kept beside the regex that enforces them, so a change to one is a change to the
 // other in the same glance. Anything generating an alias has to respect both bounds.
@@ -31,7 +31,8 @@ export const RESERVED_ALIAS = [
   'unknown',
 ]
 
-export const aliasSchema = string()
+export const aliasSchema = z
+  .string()
   .min(3, 'Given alias is too short')
   .max(20, 'Given alias is too long')
   .regex(VALID_ALIAS_REGEX, 'Invalid characters in alias')
@@ -41,12 +42,14 @@ export const aliasSchema = string()
 
 // TODO: use this schemas in backend, think about case which currently not fullfil the regex
 // (some user start there name with : )
-export const firstNameSchema = string()
+export const firstNameSchema = z
+  .string()
   .min(3, 'First name is too short')
   .max(255, 'First name is too long')
   .regex(VALID_NAME_REGEX)
 
-export const lastNameSchema = string()
+export const lastNameSchema = z
+  .string()
   .min(2, 'Last name is too short')
   .max(255, 'Last name is too long')
   .regex(VALID_NAME_REGEX)

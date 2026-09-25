@@ -1,14 +1,13 @@
 import { cpus } from 'node:os'
 import path from 'node:path'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
-import { DbUser, User } from 'database'
 import { crypto_shorthash_KEYBYTES } from 'sodium-native'
 import { Pool, pool } from 'workerpool'
 import { CONFIG } from '@/config'
-import { gradidoIdOf } from '@/data/UserLogic'
 import { LogError } from '@/server/LogError'
 
 import { SecretKeyCryptographyCreateKeyFunc } from './EncryptionWorker.js'
+import { PasswordDataInput, passwordDataSchema } from './passwordData.schema.js'
 
 const configLoginAppSecret = Buffer.from(CONFIG.LOGIN_APP_SECRET, 'hex')
 const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')
@@ -68,15 +67,22 @@ export const SecretKeyCryptographyCreateKey = async (
   }
 }
 
-export const getUserCryptographicSalt = (dbUser: User | DbUser): string => {
-  switch (dbUser.passwordEncryptionType) {
+export const getUserCryptographicSalt = (passwordData: PasswordDataInput): string => {
+  const user = passwordDataSchema.parse(passwordData)
+  switch (user.passwordEncryptionType) {
     case PasswordEncryptionType.NO_PASSWORD:
-      throw new LogError('User has no password set', dbUser.id)
+      throw new LogError('User has no password set', user.id)
     case PasswordEncryptionType.EMAIL:
-      return dbUser.emailContact.email
+      if (!user.emailContact) {
+        throw new Error('Missing email contact for PasswordEncryptionType Email')
+      }
+      return user.emailContact.email
     case PasswordEncryptionType.GRADIDO_ID:
-      return gradidoIdOf(dbUser)
+      if (!user.gradidoId) {
+        throw new Error('Missing gradido uuid for PasswordEncryptionType GRADIDO_ID')
+      }
+      return user.gradidoId
     default:
-      throw new LogError('Unknown password encryption type', dbUser.passwordEncryptionType)
+      throw new LogError('Unknown password encryption type', user.passwordEncryptionType)
   }
 }

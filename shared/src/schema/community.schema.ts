@@ -1,7 +1,7 @@
-import { array, date, object, string } from 'zod'
+import { z } from 'zod'
 import { uuidv4Schema } from './base.schema'
 
-export const communityAuthenticatedSchema = object({
+export const communityAuthenticatedSchema = z.object({
   communityUuid: uuidv4Schema,
-  authenticatedAt: date(),
+  authenticatedAt: z.date(),
 })

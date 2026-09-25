@@ -61,6 +61,7 @@
     "cors": "^2.8.5",
     "database": "*",
     "dotenv": "^10.0.0",
+    "drizzle-orm": "^0.44.7",
     "esbuild": "^0.25.2",
     "express": "^4.17.21",
     "express-slow-down": "^2.0.1",
