@@ -19,6 +19,16 @@ import { useI18n } from 'vue-i18n'
 // username regex pattern remain the same
 const USERNAME_REGEX = /^(?=.{3,20}$)[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)*$/
 
+/**
+ * What a field shows of its check: nothing before it has been left once, green as soon as its
+ * value is valid, and red - with its message - only after the first blur. The send and the
+ * contribution forms work this way (ValidatedInput); the sign-in and registration forms showed
+ * every empty field red the moment they opened, before anybody had typed. `meta` is
+ * vee-validate's field meta; the blur has to validate (`handleBlur(event, true)`), or a field
+ * left empty turns red without saying why.
+ */
+export const shownValidState = (meta) => (meta.touched ? meta.valid : meta.valid ? true : null)
+
 export const loadAllRules = (i18nCallback, apollo) => {
   // vee-validate's own rules (email, min, max) take their sentences from its dictionary.
   const ruleMessage = localize({

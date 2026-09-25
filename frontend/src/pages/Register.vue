@@ -24,9 +24,10 @@
                 :model-value="firstname"
                 name="firstname"
                 :placeholder="$t('form.firstname')"
-                :state="firstnameMeta.valid"
+                :state="shownValidState(firstnameMeta)"
                 aria-describedby="registerFirstnameLiveFeedback"
                 @update:model-value="firstname = $event"
+                @blur="firstnameBlur($event, true)"
               />
 
               <BFormInvalidFeedback v-if="firstnameError" id="registerFirstnameLiveFeedback">
@@ -41,9 +42,10 @@
                 :model-value="lastname"
                 name="lastname"
                 :placeholder="$t('form.lastname')"
-                :state="lastnameMeta.valid"
+                :state="shownValidState(lastnameMeta)"
                 aria-describedby="registerLastnameLiveFeedback"
                 @update:model-value="lastname = $event"
+                @blur="lastnameBlur($event, true)"
               />
 
               <BFormInvalidFeedback v-if="lastnameError" id="registerLastnameLiveFeedback">
@@ -151,6 +153,7 @@ import { useRoute } from 'vue-router'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import CONFIG from '@/config'
 import { USERNAME_REGEX } from '@/validationSchemas'
+import { shownValidState } from '@/validation-rules'
 
 const { toastError } = useAppToast()
 const { routeWithParamsAndQuery } = useAuthLinks()
@@ -160,13 +163,21 @@ const { mutate } = useMutation(createUser)
 const { values: formValues, meta: formMeta, defineField, handleSubmit } = useForm()
 
 const [firstname] = defineField('firstname')
-const { meta: firstnameMeta, errorMessage: firstnameError } = useField('firstname', {
+const {
+  meta: firstnameMeta,
+  errorMessage: firstnameError,
+  handleBlur: firstnameBlur,
+} = useField('firstname', {
   required: true,
   min: 3,
 })
 
 const [lastname] = defineField('lastname')
-const { meta: lastnameMeta, errorMessage: lastnameError } = useField('lastname', {
+const {
+  meta: lastnameMeta,
+  errorMessage: lastnameError,
+  handleBlur: lastnameBlur,
+} = useField('lastname', {
   required: true,
   min: 2,
 })
