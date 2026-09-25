@@ -27,12 +27,27 @@ const source = readFileSync(
   'utf8',
 )
 
-/** Everything written on the `<BModal …>` opening tag, as kebab-case names. */
+/** The names written on one opening tag, as kebab-case names; `v-model` is `model-value`. */
+const namesOn = (tagBody) =>
+  [...tagBody.matchAll(/(?:^|\s)(?::|@)?([a-z][a-z0-9-]*)(?==|\s|$)/g)].map((m) =>
+    m[1] === 'v-model' ? 'model-value' : m[1],
+  )
+
+/** Everything written on the window's `<BModal …>` opening tag -- the first in the file. */
 const modalAttributes = () => {
   const tag = source.match(/<BModal\b([\s\S]*?)>/)
   expect(tag, 'ContactWindow no longer opens a BModal -- this guard needs rewriting').not.toBeNull()
-  return [...tag[1].matchAll(/(?:^|\s)(?::|@)?([a-z][a-z0-9-]*)(?==|\s|$)/g)].map((m) => m[1])
+  return namesOn(tag[1])
 }
+
+/**
+ * Every `<BModal …>` opening tag in the file, the window's and the question before a video call
+ * (V2) -- the comments taken out first, so a tag named in prose is not read as one.
+ */
+const allModalTags = () =>
+  [...source.replace(/<!--[\s\S]*?-->/g, '').matchAll(/<BModal\b([\s\S]*?)>/g)].map((m) =>
+    namesOn(m[1]),
+  )
 
 const camel = (name) => name.replace(/-([a-z])/g, (unused, letter) => letter.toUpperCase())
 
@@ -110,5 +125,32 @@ describe('ContactWindow and the modal it opens', () => {
 
     expect(written).toContain('no-header')
     expect(written).toContain('aria-label')
+  })
+
+  /**
+   * The question before a video call (V2) is a second dialog in this file, and the same two
+   * rules hold for it: only names the library declares, and a name of its own where it has no
+   * header to be named by.
+   */
+  it('holds every dialog in the file to the names the library declares', () => {
+    const OURS = ['data-test', 'body-class', 'class', 'aria-label']
+    const declared = Object.keys(BModal.props ?? {})
+    const tags = allModalTags()
+
+    expect(tags, 'the window and the question before a call').toHaveLength(2)
+    for (const written of tags) {
+      const unknown = written
+        .filter((name) => !OURS.includes(name))
+        .filter((name) => !name.startsWith('update:'))
+        .filter((name) => !declared.includes(camel(name)))
+      expect(unknown).toEqual([])
+    }
+  })
+
+  it('names every dialog that has no header', () => {
+    const headless = allModalTags().filter((written) => written.includes('no-header'))
+
+    expect(headless).toHaveLength(2)
+    for (const written of headless) expect(written).toContain('aria-label')
   })
 })

@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import ContactWindow from './ContactWindow.vue'
+import { chatVideoRoom } from '@/graphql/chat.graphql'
 
 const pushSpy = vi.fn()
 
@@ -39,9 +40,21 @@ vi.mock('vuex', () => ({
 
 /** What the server answers to `setChatConversationMuted`; a test decides, or makes it throw. */
 const serverMutes = vi.fn()
+/**
+ * What the server answers to the video room query (`client.query`): a test decides, or makes it
+ * throw. Called with the whole options, so a test can say how it was asked.
+ */
+const serverRooms = vi.fn()
 vi.mock('@vue/apollo-composable', () => ({
   useMutation: () => ({ mutate: (variables) => serverMutes(variables) }),
+  useApolloClient: () => ({ client: { query: (options) => serverRooms(options) } }),
 }))
+
+/**
+ * What the thread's `deliver` answers for the video invitation (ChatThread, exposed): true where
+ * it reached the person. Its own spec is about how; here a test decides.
+ */
+const threadDelivers = vi.fn()
 
 const toastSuccess = vi.fn()
 const toastError = vi.fn()
@@ -89,9 +102,17 @@ describe('ContactWindow', () => {
     wrapper = mount(ContactWindow, {
       props: { modelValue: true, contact },
       global: {
-        mocks: { $t: (key) => key },
+        mocks: {
+          $t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
+        },
         stubs: {
-          BModal: { template: '<div><slot /></div>' },
+          // Shows what it holds while it is open, the footer under it -- the window itself is
+          // always open here; the question before a video call opens and closes.
+          BModal: {
+            props: { modelValue: Boolean },
+            emits: ['update:modelValue'],
+            template: '<div v-if="modelValue"><slot /><slot name="footer" /></div>',
+          },
           // Renders its slot, says where it leads, and does what the real link's own click
           // handler does: it claims the event (preventDefault) exactly when the click would
           // navigate in this tab -- a plain click, not one with a modifier key. The window's
@@ -103,14 +124,21 @@ describe('ContactWindow', () => {
           },
           IMdiBellOutline: true,
           IMdiBellOffOutline: true,
+          IMdiVideoOutline: true,
           // The thread reads the server; its own spec is about that. Here it only has to say
-          // whom it was made for, and count how often it was made.
+          // whom it was made for, count how often it was made, and take a video invitation
+          // (`deliver`, which the real one exposes) for whom it was made.
           ChatThread: {
             name: 'ChatThread',
             props: { member: Object, alias: String, memberKey: String },
             emits: ['chatConversation'],
             mounted() {
               threadsMade.push(this.member.gradidoID)
+            },
+            methods: {
+              deliver(message) {
+                return threadDelivers(message, this.member.gradidoID)
+              },
             },
             template:
               '<div data-test="chat-thread" :data-who="member.gradidoID" :data-community="String(member.communityUuid)" :data-alias="alias" :data-key="memberKey" />',
@@ -133,9 +161,12 @@ describe('ContactWindow', () => {
     wrapper?.unmount()
     pushSpy.mockClear()
     serverMutes.mockReset()
+    serverRooms.mockReset()
+    threadDelivers.mockReset()
     toastSuccess.mockClear()
     toastError.mockClear()
     threadsMade = []
+    vi.restoreAllMocks()
   })
 
   /** What the thread tells the window once its first page is in (ChatThread, `chatConversation`). */
@@ -472,16 +503,21 @@ describe('ContactWindow', () => {
   /**
    * Behind the name, in Bernd's order (E-031): the heart and the bell, two marks of one's own
    * on this person. The coin that stood third went under the figures as a button with its word
-   * (Bernd, 24.09.2026).
+   * (Bernd, 24.09.2026), and its place went to the camera (E-033, V2).
    */
-  it('puts heart and bell behind the name, in this order', async () => {
+  it('puts heart, bell and camera behind the name, in this order', async () => {
     mountWindow()
     await threadSays({ exists: true, mutedByMe: false })
 
     const marks = [...wrapper.find('.contact-window-name-line').element.children].map((e) =>
       e.getAttribute('data-test'),
     )
-    expect(marks).toEqual(['contact-window-name', 'heart', 'contact-window-bell'])
+    expect(marks).toEqual([
+      'contact-window-name',
+      'heart',
+      'contact-window-bell',
+      'contact-window-video',
+    ])
   })
 
   // Before the first message there is nothing to mute (E-024), and nothing is known before the
@@ -737,6 +773,431 @@ describe('ContactWindow', () => {
       await flushPromises()
 
       expect(toastSuccess).toHaveBeenCalledWith('chatThread.mutedHint {"name":"Carla-Sonne"}')
+    })
+  })
+
+  describe('the video call', () => {
+    const camera = () => wrapper.find('[data-test="contact-window-video"]')
+    const dialog = () => wrapper.find('[data-test="contact-window-video-dialog"]')
+    const inDialog = (name) => wrapper.find(`[data-test="contact-window-video-${name}"]`)
+
+    /** A room as the server hands it out (V1): address, host, and who runs the server. */
+    const ROOM = {
+      url: 'https://meet.ffmuc.net/k7m2x9q4t8wz',
+      host: 'meet.ffmuc.net',
+      operator: 'Freifunk München (Freie Netze München e. V.)',
+    }
+
+    /**
+     * The room's window as `window.open` hands it back: it can be sent to an address and
+     * closed, and it says whether it still reaches back to the wallet (`opener`).
+     */
+    let room
+    let opens
+    const browserOpens = (answer) => {
+      room = { opener: window, location: { href: '' }, close: vi.fn() }
+      opens = vi.spyOn(window, 'open').mockImplementation(() => (answer === null ? null : room))
+    }
+
+    /** The question open, for a person with or without a conversation so far. */
+    const asked = async ({ exists = true } = {}) => {
+      mountWindow()
+      await threadSays({ exists, mutedByMe: false })
+      await camera().trigger('click')
+    }
+
+    /** "Start call", pressed and let run to its end. */
+    const start = async () => {
+      await inDialog('start').trigger('click')
+      await flushPromises()
+    }
+
+    /** A promise the test lets go of when it wants: what is on its way stays on its way. */
+    const held = () => {
+      let release
+      const promise = new Promise((resolve) => {
+        release = resolve
+      })
+      return { promise, release }
+    }
+
+    // Unlike the bell: nothing is known before the thread has said so, and a call may be how a
+    // conversation begins -- so the camera stands once the thread has spoken, with or without one.
+    it('stands once the thread has said what it knows, with a conversation or without', async () => {
+      mountWindow()
+      expect(camera().exists()).toBe(false)
+
+      await threadSays({ exists: false, mutedByMe: false })
+      expect(camera().exists()).toBe(true)
+      expect(bell().exists()).toBe(false)
+
+      await threadSays({ exists: true, mutedByMe: false })
+      expect(camera().exists()).toBe(true)
+    })
+
+    it('is gone again for the next person, until their thread has spoken', async () => {
+      mountWindow()
+      await threadSays({ exists: true, mutedByMe: false })
+      expect(camera().exists()).toBe(true)
+
+      await wrapper.setProps({ contact: STRANGER })
+      expect(camera().exists()).toBe(false)
+
+      await threadSays({ exists: false, mutedByMe: false })
+      expect(camera().exists()).toBe(true)
+    })
+
+    // One of the marks: the bell's round button, its size, its focus ring (the stylesheet test
+    // below), and a name that says what a tap starts -- the glyph says nothing to a screen
+    // reader.
+    it('is a button a keyboard reaches, named by what it starts and with whom', async () => {
+      mountWindow()
+      await threadSays({ exists: false, mutedByMe: false })
+
+      expect(camera().element.tagName).toBe('BUTTON')
+      expect(camera().attributes('type')).toBe('button')
+      expect(camera().attributes('tabindex')).toBeUndefined()
+      expect(camera().classes()).toContain('contact-window-mark')
+      expect(camera().attributes('aria-label')).toBe('chatThread.videoCall {"name":"Carla-Sonne"}')
+      expect(camera().attributes('title')).toBe('chatThread.videoCall {"name":"Carla-Sonne"}')
+    })
+
+    it('asks first, and names the dialog by its question', async () => {
+      await asked()
+
+      expect(dialog().exists()).toBe(true)
+      expect(inDialog('title').text()).toBe('chatThread.videoAskTitle {"name":"Carla-Sonne"}')
+      expect(dialog().attributes('aria-label')).toBe(
+        'chatThread.videoAskTitle {"name":"Carla-Sonne"}',
+      )
+      expect(inDialog('cancel').text()).toBe('form.cancel')
+      expect(inDialog('start').text()).toBe('chatThread.videoStart')
+    })
+
+    // E-024: the first message of a pair goes by mail in any case -- nothing to choose, and the
+    // sentence says so. After it, the box, empty.
+    it('says the first message goes by mail as well, and offers no box for it', async () => {
+      await asked({ exists: false })
+
+      expect(inDialog('body').text()).toBe('chatThread.videoAskFirst {"name":"Carla-Sonne"}')
+      expect(inDialog('email').exists()).toBe(false)
+    })
+
+    it('offers the box after the first message, empty', async () => {
+      await asked({ exists: true })
+
+      expect(inDialog('body').text()).toBe('chatThread.videoAskBody {"name":"Carla-Sonne"}')
+      expect(inDialog('email').element.checked).toBe(false)
+    })
+
+    it('empties the box again for the next question', async () => {
+      await asked({ exists: true })
+      await inDialog('email').setValue(true)
+      await inDialog('cancel').trigger('click')
+
+      await camera().trigger('click')
+      expect(inDialog('email').element.checked).toBe(false)
+    })
+
+    it('lets the question go on cancel, and makes no room', async () => {
+      browserOpens()
+      await asked()
+
+      await inDialog('cancel').trigger('click')
+
+      expect(dialog().exists()).toBe(false)
+      expect(opens).not.toHaveBeenCalled()
+      expect(serverRooms).not.toHaveBeenCalled()
+    })
+
+    /**
+     * ⛔ The room's window is opened IN THE CLICK, before anything is awaited: a browser lets a
+     * page open a window only in answer to a tap. The press is dispatched by hand and nothing
+     * is awaited before the window is asked about -- a window opened after the first `await`
+     * would not have been opened yet here.
+     */
+    it('opens the window for the room in the click itself, and cuts it off from the wallet', async () => {
+      browserOpens()
+      serverRooms.mockReturnValue(held().promise)
+      await asked()
+
+      inDialog('start').element.click()
+
+      expect(opens).toHaveBeenCalledTimes(1)
+      expect(opens).toHaveBeenCalledWith('', '_blank')
+      expect(room.opener).toBeNull()
+      expect(room.location.href).toBe('')
+    })
+
+    // Every call is another room; one out of the cache would put two conversations into one.
+    it('asks for the room past the cache', async () => {
+      browserOpens()
+      serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+      threadDelivers.mockResolvedValue(true)
+      await asked()
+
+      await start()
+
+      expect(serverRooms).toHaveBeenCalledTimes(1)
+      expect(serverRooms).toHaveBeenCalledWith({ query: chatVideoRoom, fetchPolicy: 'no-cache' })
+    })
+
+    /**
+     * The invitation: the words in the sender's language, who runs the server, the address
+     * last -- through the thread of THIS person, with the wish the box stands for.
+     */
+    it('sends the invitation through the thread, naming who runs the server', async () => {
+      browserOpens()
+      serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+      threadDelivers.mockResolvedValue(true)
+      await asked({ exists: true })
+
+      await start()
+
+      expect(threadDelivers).toHaveBeenCalledTimes(1)
+      expect(threadDelivers).toHaveBeenCalledWith(
+        {
+          body: `chatThread.videoInvite ${JSON.stringify({ operator: ROOM.operator, url: ROOM.url })}`,
+          notify: 'NONE',
+        },
+        'carla-id',
+      )
+    })
+
+    // Where the list names nobody, the invitation names the server's host.
+    it("names the server's host where nobody is named as running it", async () => {
+      browserOpens()
+      serverRooms.mockResolvedValue({ data: { chatVideoRoom: { ...ROOM, operator: null } } })
+      threadDelivers.mockResolvedValue(true)
+      await asked()
+
+      await start()
+
+      expect(threadDelivers.mock.calls[0][0].body).toBe(
+        `chatThread.videoInvite ${JSON.stringify({ operator: ROOM.host, url: ROOM.url })}`,
+      )
+    })
+
+    // E-024: the first message of a pair asks for a mail, and after it the box decides.
+    it('asks for a mail with the first message, and after it where the box is ticked', async () => {
+      browserOpens()
+      serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+      threadDelivers.mockResolvedValue(true)
+
+      await asked({ exists: false })
+      await start()
+      expect(threadDelivers.mock.calls.at(-1)[0].notify).toBe('EMAIL')
+      wrapper.unmount()
+
+      await asked({ exists: true })
+      await inDialog('email').setValue(true)
+      await start()
+      expect(threadDelivers.mock.calls.at(-1)[0].notify).toBe('EMAIL')
+    })
+
+    /**
+     * ⛔ The room is entered only once the invitation went out: a room nobody else knows is not
+     * entered. Until then the window stays empty.
+     */
+    it('sends the window to the room only once the invitation went out, and closes the question', async () => {
+      browserOpens()
+      serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+      const delivery = held()
+      threadDelivers.mockReturnValue(delivery.promise)
+      await asked()
+
+      await inDialog('start').trigger('click')
+      await flushPromises()
+      expect(threadDelivers).toHaveBeenCalledTimes(1)
+      expect(room.location.href).toBe('')
+      expect(dialog().exists()).toBe(true)
+
+      delivery.release(true)
+      await flushPromises()
+
+      expect(room.location.href).toBe(ROOM.url)
+      expect(room.close).not.toHaveBeenCalled()
+      expect(dialog().exists()).toBe(false)
+    })
+
+    it('closes the window and says so where no video server can be had', async () => {
+      browserOpens()
+      serverRooms.mockRejectedValue(new Error('CHAT_VIDEO_NO_SERVER'))
+      await asked()
+
+      await start()
+
+      expect(room.close).toHaveBeenCalledTimes(1)
+      expect(room.location.href).toBe('')
+      expect(threadDelivers).not.toHaveBeenCalled()
+      expect(inDialog('problem').text()).toBe('chatThread.videoNoServer')
+      expect(inDialog('problem').attributes('role')).toBe('alert')
+      expect(dialog().exists()).toBe(true)
+    })
+
+    it('closes the window and says so where the room could not be had for another reason', async () => {
+      browserOpens()
+      serverRooms.mockRejectedValue(new Error('Network error'))
+      await asked()
+
+      await start()
+
+      expect(room.close).toHaveBeenCalledTimes(1)
+      expect(threadDelivers).not.toHaveBeenCalled()
+      expect(inDialog('problem').text()).toBe('chatThread.videoNotSent')
+    })
+
+    // The thread says false where the server gave no copy back, and where the copy came back
+    // FAILED -- nobody on the other side has the room then.
+    it('closes the window and says so where the invitation did not go out', async () => {
+      browserOpens()
+      serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+      threadDelivers.mockResolvedValue(false)
+      await asked()
+
+      await start()
+
+      expect(room.close).toHaveBeenCalledTimes(1)
+      expect(room.location.href).toBe('')
+      expect(inDialog('problem').text()).toBe('chatThread.videoNotSent')
+      expect(dialog().exists()).toBe(true)
+    })
+
+    it('can be started again after it did not come about', async () => {
+      browserOpens()
+      serverRooms.mockRejectedValueOnce(new Error('CHAT_VIDEO_NO_SERVER'))
+      serverRooms.mockResolvedValueOnce({ data: { chatVideoRoom: ROOM } })
+      threadDelivers.mockResolvedValue(true)
+      await asked()
+      await start()
+
+      await start()
+
+      expect(opens).toHaveBeenCalledTimes(2)
+      expect(threadDelivers).toHaveBeenCalledTimes(1)
+      expect(room.location.href).toBe(ROOM.url)
+    })
+
+    /**
+     * The browser held the window back (a popup blocker): the invitation still went out, and
+     * the member opens the room from the dialog with a tap of their own. Nothing offers to start
+     * the call a second time -- that would be a second room and a second message.
+     */
+    it('offers the room as a link where the browser held the window back', async () => {
+      browserOpens(null)
+      serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+      threadDelivers.mockResolvedValue(true)
+      await asked()
+
+      await start()
+
+      const link = inDialog('open')
+      expect(dialog().exists()).toBe(true)
+      expect(link.text()).toBe('chatThread.videoOpen')
+      expect(link.attributes('href')).toBe(ROOM.url)
+      expect(link.attributes('target')).toBe('_blank')
+      expect(link.attributes('rel')).toBe('noopener noreferrer')
+      expect(inDialog('start').exists()).toBe(false)
+      expect(inDialog('close').text()).toBe('form.close')
+    })
+
+    it('forgets the link once the dialog is closed', async () => {
+      browserOpens(null)
+      serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+      threadDelivers.mockResolvedValue(true)
+      await asked()
+      await start()
+
+      await inDialog('close').trigger('click')
+      await camera().trigger('click')
+
+      expect(inDialog('open').exists()).toBe(false)
+      expect(inDialog('start').exists()).toBe(true)
+    })
+
+    // Nothing of it twice: while a call is being made the button waits, as the compose bar's
+    // send button does -- aria-disabled, so a keyboard keeps its place, and a press turned away.
+    it('waits while a call is being made, and takes no second press', async () => {
+      browserOpens()
+      const offer = held()
+      serverRooms.mockReturnValue(offer.promise)
+      threadDelivers.mockResolvedValue(true)
+      await asked()
+
+      await inDialog('start').trigger('click')
+      expect(inDialog('start').attributes('aria-disabled')).toBe('true')
+      await inDialog('start').trigger('click')
+
+      offer.release({ data: { chatVideoRoom: ROOM } })
+      await flushPromises()
+
+      expect(opens).toHaveBeenCalledTimes(1)
+      expect(serverRooms).toHaveBeenCalledTimes(1)
+      expect(threadDelivers).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not wait before it is pressed, nor after it did not come about', async () => {
+      browserOpens()
+      serverRooms.mockRejectedValue(new Error('CHAT_VIDEO_NO_SERVER'))
+      await asked()
+      expect(inDialog('start').attributes('aria-disabled')).toBe('false')
+
+      await start()
+
+      expect(inDialog('start').attributes('aria-disabled')).toBe('false')
+    })
+
+    // Let go while the room is on its way: the empty window closes, and nothing is sent.
+    it('closes the empty window and sends nothing where the question is let go meanwhile', async () => {
+      browserOpens()
+      const offer = held()
+      serverRooms.mockReturnValue(offer.promise)
+      await asked()
+
+      await inDialog('start').trigger('click')
+      await inDialog('cancel').trigger('click')
+      expect(room.close).toHaveBeenCalledTimes(1)
+
+      offer.release({ data: { chatVideoRoom: ROOM } })
+      await flushPromises()
+
+      expect(threadDelivers).not.toHaveBeenCalled()
+      expect(room.location.href).toBe('')
+      expect(dialog().exists()).toBe(false)
+    })
+
+    // Another person is another conversation: a question about a call with the one before would
+    // now read the new one's name.
+    it('lets the question go when the window comes to another person', async () => {
+      await asked()
+      expect(dialog().exists()).toBe(true)
+
+      await wrapper.setProps({ contact: STRANGER })
+
+      expect(dialog().exists()).toBe(false)
+    })
+
+    /**
+     * ⛔ The address is the call's secret: whoever has it can join. It goes into the message and
+     * into the room's window -- into no log and nothing written to the browser's storage (the
+     * vuex store is written whole into localStorage). The store this window reads is a stand-in
+     * without `commit` or `dispatch`: a write would throw.
+     */
+    it('writes the address into no log and no storage', async () => {
+      const logs = ['log', 'info', 'warn', 'error', 'debug'].map((level) =>
+        vi.spyOn(console, level),
+      )
+      const stores = [vi.spyOn(Storage.prototype, 'setItem')]
+      browserOpens(null)
+      serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+      threadDelivers.mockResolvedValue(true)
+      await asked()
+
+      await start()
+
+      expect(inDialog('open').attributes('href')).toBe(ROOM.url)
+      const written = [...logs, ...stores].flatMap((spy) => spy.mock.calls.flat().map(String))
+      expect(written.filter((line) => line.includes('k7m2x9q4t8wz'))).toEqual([])
     })
   })
 
