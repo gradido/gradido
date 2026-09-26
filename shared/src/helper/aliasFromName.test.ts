@@ -86,6 +86,13 @@ describe('aliasCandidates', () => {
     expect(aliasCandidates('Bernd', 'Hückstädt', 'b@example.com')[0]).toBe('BerndH')
   })
 
+  it('never cuts a replacement in half, whether the umlaut arrives composed or not', () => {
+    for (const lastName of ['Hückstädt'.normalize('NFC'), 'Hückstädt'.normalize('NFD')]) {
+      const candidates = aliasCandidates('Bernd', lastName, 'b@example.com', 1)
+      expect(candidates.slice(0, 3)).toEqual(['BerndH', 'BerndHue', 'BerndHuec'])
+    }
+  })
+
   it('walks further into the last name when one letter is too short', () => {
     // `AlB` is two letters plus one and still under the minimum at `AB`, so a name
     // this short only becomes usable a letter later.

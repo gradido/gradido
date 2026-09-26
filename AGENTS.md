@@ -95,6 +95,20 @@ Turbo and `bun run` automatically invoke the correct test runner defined in the 
 - New tables: a table without a TypeORM entity — which is every new one, since new code uses Drizzle — must be added to `drizzleOnlyTables` in `database/src/schemas/drizzleOnlyTables.ts`. `cleanDB` in the test helpers (`backend`, `federation`, `dht-node`) empties TypeORM's `entities` and that list, nothing else; a table on neither keeps its rows from one test file to the next. The same applies when the migration removes a table's TypeORM entity: the table moves to `drizzleOnlyTables`.
 - Fake timers in Jest tests: use `useFakeTimersForDrizzle()` from `backend/test/helpers.ts` instead of `jest.useFakeTimers()`. Jest 27 also fakes `process.nextTick`, which mysql2 — Drizzle's driver — needs to deliver every result, so any Drizzle query under plain fake timers hangs until the hook or test timeout. TypeORM runs on the `mysql` package and is unaffected, so this only surfaces once a query on that path moves to Drizzle. `federation` and `dht-node` have no such helper yet; they need the same one before a test there fakes timers around a Drizzle query.
 
+# Performance
+
+Always weigh performance and readability together — neither is traded away silently for the other.
+
+- **Database operations are expensive.** Every round trip costs, however cheap the query itself. No queries inside loops: fetch what a loop needs in one query and write its results in batches.
+- **Moving large amounts of data into Node.js is expensive too.** Analysing or aggregating large datasets belongs in the database as far as it can go; only the result travels to Node.js.
+- **Loading a whole table into memory is the exception**, not the pattern — justified only where the logic cannot run in SQL (migration `0116` builds aliases with a transliteration that exists only in TypeScript).
+- **"It only runs once" is no argument.** There are ~150 migrations, each runs on every community server before its services come up, and a fresh setup with data runs all of them. CI runs them against an empty database, so their cost never shows up there — it has to be caught in review.
+
+## Migrations
+
+- Data migrations write in batches of 500 rows wherever possible.
+- Import as little as possible. A migration must keep doing exactly what it did when it was written, so it carries a frozen copy of the rules it applies instead of importing helpers that keep evolving (see `0116`). Import only what cannot reasonably be rebuilt in plain TypeScript or SQL — `0102` needs the decay calculation from `shared-native`, `0116` the transliteration tables.
+
 # Error handling
 
 This is not throw-vs-return as a blanket rule — it depends on what kind of failure it is. There are no throw-free zones in this codebase; the question is always which kind of failure you are looking at.

@@ -63,8 +63,11 @@ export function aliasCandidates(
     }
   }
 
-  for (let taken = 1; taken <= lastName.length; taken++) {
-    push(transliterateForAlias(firstName + lastName.slice(0, taken)))
+  // NFC and whole characters, so a decomposed `ü` (u + U+0308, as macOS sends it) is not
+  // cut in half - that would bring back `BerndHu`.
+  const lastChars = Array.from(lastName.normalize('NFC'))
+  for (let taken = 1; taken <= lastChars.length; taken++) {
+    push(transliterateForAlias(firstName + lastChars.slice(0, taken).join('')))
   }
   // A member with only one of the two still gets a proposal from it.
   push(transliterateForAlias(firstName))

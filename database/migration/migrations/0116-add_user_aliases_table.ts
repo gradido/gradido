@@ -1,6 +1,88 @@
-import { aliasCandidates, aliasSchema, pickFreeAlias } from 'shared'
+import { transliterateToLatin } from 'shared'
 
 /* MIGRATION TO add the user_aliases table and give every local user an alias */
+
+// Frozen copy of the alias rules as they were when this migration was written, so a later
+// change in `shared` cannot change or break it. Only the transliteration is imported: its
+// letter tables are too large to copy for no gain.
+const ALIAS_MAX_CHARS = 20
+const VALID_ALIAS_REGEX = /^(?=.{3,20}$)[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)*$/
+const RESERVED_ALIAS = [
+  'admin',
+  'email',
+  'gast',
+  'gdd',
+  'gradido',
+  'guest',
+  'home',
+  'root',
+  'support',
+  'temp',
+  'tmp',
+  'user',
+  'usr',
+  'var',
+  'reserved',
+  'undefined',
+  'unknown',
+]
+const BATCH_SIZE = 500
+
+const isValidAlias = (alias: string): boolean =>
+  VALID_ALIAS_REGEX.test(alias) && !RESERVED_ALIAS.includes(alias.toLowerCase())
+
+const transliterateForAlias = (text: string): string =>
+  transliterateToLatin(text).replace(/[^a-zA-Z0-9]/g, '')
+
+// Proposals for one person, best first; `member<id>` last, which is always valid and free
+// unless somebody hoards its hundred variants.
+function aliasCandidates(
+  userId: number,
+  firstName: string | null,
+  lastName: string | null,
+  email: string | null,
+): string[] {
+  const candidates: string[] = []
+  const push = (value: string) => {
+    const trimmed = value.slice(0, ALIAS_MAX_CHARS)
+    if (value.length && !candidates.includes(trimmed) && isValidAlias(trimmed)) {
+      candidates.push(trimmed)
+    }
+  }
+  // Cut the last name before transliterating, never after: `Hückstädt` gives `BerndH`, then
+  // `BerndHue` - not `BerndHu`, a replacement cut in half. NFC and whole characters, so a
+  // decomposed `ü` (u + U+0308, as macOS sends it) is not split either.
+  const lastChars = Array.from((lastName ?? '').normalize('NFC'))
+  for (let taken = 1; taken <= lastChars.length; taken++) {
+    push(transliterateForAlias((firstName ?? '') + lastChars.slice(0, taken).join('')))
+  }
+  push(transliterateForAlias(firstName ?? ''))
+  push(transliterateForAlias(lastName ?? ''))
+  const emailLocal = (email ?? '').split('@')[0] ?? ''
+  push(transliterateForAlias(emailLocal.split('+')[0] ?? ''))
+  candidates.push(`member${userId}`)
+  return candidates
+}
+
+// Every candidate as it is first, only then with 1..99 appended - cut short to stay within
+// the limit. `BerndHue` and `BerndHo` are easier to tell apart than `BerndH1` and `BerndH2`.
+function pickFreeAlias(candidates: string[], taken: Set<string>): string | null {
+  const isFree = (alias: string) => !taken.has(alias.toLowerCase())
+  for (const candidate of candidates) {
+    if (isFree(candidate)) {
+      return candidate
+    }
+  }
+  for (const candidate of candidates) {
+    for (let suffix = 1; suffix <= 99; suffix++) {
+      const numbered = candidate.slice(0, ALIAS_MAX_CHARS - String(suffix).length) + suffix
+      if (isFree(numbered)) {
+        return numbered
+      }
+    }
+  }
+  return null
+}
 
 /**
  * The table holds every name a member owns, not only the ones they left behind:
@@ -62,34 +144,46 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   // Only local rows count, exactly as `aliasExists` decides at runtime: a `foreign = 1`
   // row is a cached copy of a member of another community, and aliases are unique per
   // community - so a name held over there must not push somebody here one rung further
-  // down the ladder for no reason.
-  const isTaken = async (alias: string): Promise<boolean> => {
-    const rows = await queryFn(
-      `SELECT u.id FROM users u WHERE u.alias = ? AND u.foreign = 0 LIMIT 1`,
-      [alias],
-    )
-    return rows.length > 0
-  }
+  // down the ladder for no reason. Lowercased, because the column compares
+  // case-insensitively (utf8mb4_unicode_ci).
+  const takenRows = await queryFn(
+    `SELECT u.alias FROM users u WHERE u.foreign = 0 AND u.alias IS NOT NULL`,
+  )
+  const taken = new Set<string>(takenRows.map((row) => String(row.alias).toLowerCase()))
 
+  const assigned: { id: number; alias: string; communityUuid: string | null }[] = []
   for (const user of users) {
-    const alias = await pickFreeAlias(
-      aliasCandidates(user.first_name, user.last_name, user.email),
-      user.id,
-      isTaken,
+    const alias = pickFreeAlias(
+      aliasCandidates(user.id, user.first_name, user.last_name, user.email),
+      taken,
     )
     // The whole point of the ladder. An alias that does not parse would still be
     // written by raw SQL, and `findUserByIdentifier` decides from the schema what KIND
     // of identifier it was handed - so its owner would be unreachable at their own
     // gradido address. Better to stop the migration than to store that.
-    aliasSchema.parse(alias)
-    await queryFn(`UPDATE users SET alias = ? WHERE id = ?`, [alias, user.id])
+    if (!alias || !isValidAlias(alias)) {
+      throw new Error(`no valid alias could be built for user ${user.id}`)
+    }
+    // Taken from here on, or the next member with the same name would get it too.
+    taken.add(alias.toLowerCase())
+    assigned.push({ id: user.id, alias, communityUuid: user.community_uuid })
+  }
+
+  for (let start = 0; start < assigned.length; start += BATCH_SIZE) {
+    const batch = assigned.slice(start, start + BATCH_SIZE)
+    await queryFn(
+      `UPDATE users SET alias = CASE id ${batch.map(() => 'WHEN ? THEN ?').join(' ')} END
+        WHERE id IN (${batch.map(() => '?').join(', ')})`,
+      [...batch.flatMap((user) => [user.id, user.alias]), ...batch.map((user) => user.id)],
+    )
     // Marked as this migration's own, not merely 'assigned'. Both mean "handed out,
     // nobody asked yet" everywhere else - the difference exists solely for the rollback.
-    if (user.community_uuid) {
+    const withCommunity = batch.filter((user) => user.communityUuid)
+    if (withCommunity.length) {
       await queryFn(
         `INSERT INTO user_aliases (user_id, alias, community_uuid, origin)
-         VALUES (?, ?, ?, 'migrated')`,
-        [user.id, alias, user.community_uuid],
+         VALUES ${withCommunity.map(() => `(?, ?, ?, 'migrated')`).join(', ')}`,
+        withCommunity.flatMap((user) => [user.id, user.alias, user.communityUuid]),
       )
     }
   }
