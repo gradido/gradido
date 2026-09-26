@@ -239,8 +239,11 @@
 
       <!-- The question before a video call (V2; Notiz §10), after the heart's own (FavoriteHeart):
            no header, the question as the title in the body -- and therefore a name of its own
-           (`aria-label`), since `aria-labelledby` is bound only where there is a header. No name
-           field and no subject: a conversation of two.
+           (`aria-label`), since `aria-labelledby` is bound only where there is a header.
+
+           A topic, filled in with the default (V4a; Notiz §12): it becomes the meeting's title.
+           Still no name field -- a conversation of two. The objection of §10 against a field in
+           the question fell because this one is filled in: a click on "Start call" stays one click.
 
            Its own footer, not BModal's OK: the start button has to open the room's window in the
            click itself (see `startVideoCall`), and it waits with `aria-disabled` while a call is
@@ -268,6 +271,33 @@
           </a>
         </p>
         <template v-else>
+          <!-- The topic (V4a): it goes into the room's address as Jitsi's own `config.subject` --
+               the meeting's title -- and stands in words in the invitation. Filled in anew with the
+               default for every question (`askVideoCall`), nothing kept; marked on focus, so typing
+               replaces it. ⛔ No autofocus: the usual case is the one click on "Start call", and on a
+               phone the keyboard covered the dialog. The hint under it says who can read the topic,
+               and a screen reader hears it with the field (`aria-describedby`). -->
+          <div class="mb-3">
+            <label class="form-label" :for="videoTopicId">{{ $t('chatThread.videoTopic') }}</label>
+            <input
+              :id="videoTopicId"
+              v-model="videoTopic"
+              type="text"
+              class="form-control"
+              :maxlength="CHAT_VIDEO_TOPIC_MAX"
+              autocomplete="off"
+              :aria-describedby="videoTopicHintId"
+              data-test="contact-window-video-topic"
+              @focus="$event.target.select()"
+            />
+            <div
+              :id="videoTopicHintId"
+              class="small text-muted mt-1"
+              data-test="contact-window-video-topic-hint"
+            >
+              {{ $t('chatThread.videoTopicHint') }}
+            </div>
+          </div>
           <!-- The first message of a pair goes by mail in any case (E-024; the server sets it),
                so there is nothing to choose, and the sentence says so. After it, the box, empty
                by default -- as under the compose bar. -->
@@ -357,6 +387,7 @@ import { SEND_TYPES } from '@/utils/sendTypes'
 import { bookingsWithMemberRoute } from '@/utils/bookingsRoute'
 import { chatMemberKey } from '@/utils/chatMemberKey'
 import { chatNotifyFor } from '@/utils/chatNotify'
+import { CHAT_VIDEO_TOPIC_MAX, withChatVideoTopic } from '@/utils/chatVideoTopic'
 
 /**
  * One contact, opened from wherever a contact stands: the list, the column, the strip.
@@ -622,6 +653,13 @@ const videoAsking = ref(false)
 /** The box "Also by e-mail", empty for every question (E-024) -- where it is shown at all. */
 const videoAlsoByEmail = ref(false)
 const videoEmailId = `${useId()}-video-email`
+/**
+ * The topic of the meeting (V4a): the default for every question, and nothing kept -- no store,
+ * no log. It travels in the room's address, and the address is the call's secret.
+ */
+const videoTopic = ref('')
+const videoTopicId = `${useId()}-video-topic`
+const videoTopicHintId = `${videoTopicId}-hint`
 /** A call is being made: the start button waits (`aria-disabled`) and turns a press away. */
 const videoCalling = ref(false)
 /** Where the call did not come about: the sentence that says so, in the dialog. */
@@ -642,9 +680,13 @@ let videoRoomWindow = null
  * question no longer asked changes nothing here. */
 let videoAttempt = 0
 
-/** The question, with the box empty. What the last one ended with went when it was let go. */
+/**
+ * The question, with the box empty and the topic at its default. What the last one ended with
+ * went when it was let go.
+ */
 const askVideoCall = () => {
   videoAlsoByEmail.value = false
+  videoTopic.value = t('chatThread.videoTopicDefault')
   videoAsking.value = true
 }
 
@@ -692,6 +734,12 @@ const isNoVideoServer = (error) => String(error?.message ?? '').includes('CHAT_V
  * finder takes it whole (chatTextParts). Who runs the server is named in it; where the list names
  * nobody, the server's host. It goes through the thread (`deliver`), which hangs it under the
  * conversation, says "sent" for the ear, and holds the compose bar while it is on its way.
+ *
+ * The topic (V4a) is taken in the click, as the box is: what the field says at the press is the
+ * call's topic, whatever is typed while the call is on its way. An emptied field is the default
+ * -- the address never goes without its addition, which is what will mark it as a video
+ * invitation (V4b). The address with the topic is made once, and the invitation, the room's
+ * window and the link in the dialog all carry that one.
  */
 const startVideoCall = async () => {
   if (videoCalling.value) return
@@ -705,6 +753,8 @@ const startVideoCall = async () => {
     first: !chatConversation.value.exists,
     alsoByEmail: videoAlsoByEmail.value,
   })
+  const topicDefault = t('chatThread.videoTopicDefault')
+  const topic = videoTopic.value.trim() || topicDefault
   videoCalling.value = true
   videoProblem.value = ''
 
@@ -718,13 +768,18 @@ const startVideoCall = async () => {
   }
   if (attempt !== videoAttempt) return
 
+  const roomUrl = offered?.url ? withChatVideoTopic(offered.url, topic) : ''
+  const operator = offered?.operator ?? offered?.host
+  // Two written-out keys, not one chosen by a condition (see `toggleMute`). With the default
+  // the invitation reads as it always did -- "Video call: Video call" would say it twice; with a
+  // topic of one's own, the topic in words on a line of its own, since it may end on "?" or ".".
   const delivered =
-    offered?.url && through
+    roomUrl && through
       ? await through.deliver({
-          body: t('chatThread.videoInvite', {
-            operator: offered.operator ?? offered.host,
-            url: offered.url,
-          }),
+          body:
+            topic === topicDefault
+              ? t('chatThread.videoInvite', { operator, url: roomUrl })
+              : t('chatThread.videoInviteTopic', { topic, operator, url: roomUrl }),
           notify,
         })
       : false
@@ -743,10 +798,10 @@ const startVideoCall = async () => {
   // `location` to send anywhere. Then, as where the browser held it back, the dialog offers
   // the room as a link.
   if (room && !room.closed) {
-    room.location.href = offered.url
+    room.location.href = roomUrl
     videoAsking.value = false
   } else {
-    videoRoomToOpen.value = offered.url
+    videoRoomToOpen.value = roomUrl
   }
 }
 

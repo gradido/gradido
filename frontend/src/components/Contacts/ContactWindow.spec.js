@@ -6,12 +6,19 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import ContactWindow from './ContactWindow.vue'
 import { chatVideoRoom } from '@/graphql/chat.graphql'
+import { withChatVideoTopic } from '@/utils/chatVideoTopic'
 
 const pushSpy = vi.fn()
 
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: pushSpy }),
 }))
+/**
+ * The one word the window fills in by itself, the video call's default topic (V4a), as a word:
+ * it goes into the room's address, and a test reads it there. A test may change it for a
+ * language of its own. Every other text shows its key and its values.
+ */
+const words = vi.hoisted(() => ({ 'chatThread.videoTopicDefault': 'Videoanruf' }))
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key, values) =>
@@ -19,7 +26,7 @@ vi.mock('vue-i18n', () => ({
         ? `${key}:${values}`
         : values
           ? `${key} ${JSON.stringify(values)}`
-          : key,
+          : (words[key] ?? key),
     d: (date, format) => `${format}(${date.toISOString()})`,
   }),
 }))
@@ -805,6 +812,13 @@ describe('ContactWindow', () => {
       host: 'meet.ffmuc.net',
       operator: 'Freifunk München (Freie Netze München e. V.)',
     }
+    /**
+     * The room with the default topic added (V4a) -- the form tried on two servers (Notiz §12).
+     * Every call carries a topic: this is the address the invitation, the room's window and the
+     * link in the dialog get when the field is left as it is.
+     */
+    const ROOM_WITH_DEFAULT = 'https://meet.ffmuc.net/k7m2x9q4t8wz#config.subject=%22Videoanruf%22'
+    const topicField = () => wrapper.find('[data-test="contact-window-video-topic"]')
 
     /**
      * The room's window as `window.open` hands it back: it can be sent to an address and
@@ -917,6 +931,66 @@ describe('ContactWindow', () => {
       expect(inDialog('email').element.checked).toBe(false)
     })
 
+    // V4a: the topic, filled in with the default for every question -- so "Start call" stays the
+    // one click it was -- and nothing of the last question kept.
+    it('fills the topic in with the default, and again for every question', async () => {
+      await asked()
+      expect(topicField().element.value).toBe('Videoanruf')
+
+      await topicField().setValue('Lesekreis')
+      await inDialog('cancel').trigger('click')
+      await camera().trigger('click')
+
+      expect(topicField().element.value).toBe('Videoanruf')
+    })
+
+    // Between the title and the sentence: a named text field, forty characters at most (the
+    // topic stands encoded in the link), and under it the hint about who can read it -- tied to
+    // the field, so a screen reader says it with the field.
+    it('offers a named field for the topic, with the hint tied to it', async () => {
+      await asked()
+
+      const field = topicField()
+      const label = wrapper.find(`label[for="${field.attributes('id')}"]`)
+      const hint = inDialog('topic-hint')
+      expect(field.element.tagName).toBe('INPUT')
+      expect(field.attributes('type')).toBe('text')
+      expect(field.attributes('id')).toBeTruthy()
+      expect(label.text()).toBe('chatThread.videoTopic')
+      expect(hint.text()).toBe('chatThread.videoTopicHint')
+      expect(hint.attributes('id')).toBeTruthy()
+      expect(field.attributes('aria-describedby')).toBe(hint.attributes('id'))
+      expect(field.attributes('autocomplete')).toBe('off')
+
+      const order = [...dialog().element.querySelectorAll('[data-test]')].map((element) =>
+        element.getAttribute('data-test'),
+      )
+      expect(order.indexOf('contact-window-video-title')).toBeLessThan(
+        order.indexOf('contact-window-video-topic'),
+      )
+      expect(order.indexOf('contact-window-video-topic-hint')).toBeLessThan(
+        order.indexOf('contact-window-video-body'),
+      )
+    })
+
+    it('takes forty characters in the field', async () => {
+      await asked()
+
+      expect(topicField().attributes('maxlength')).toBe('40')
+    })
+
+    // Typing replaces the default: the field marks what it holds when it gets the focus.
+    it('marks the topic when the field gets the focus', async () => {
+      await asked()
+      const field = topicField().element
+      field.setSelectionRange(3, 3)
+
+      await topicField().trigger('focus')
+
+      expect(field.selectionStart).toBe(0)
+      expect(field.selectionEnd).toBe('Videoanruf'.length)
+    })
+
     it('lets the question go on cancel, and makes no room', async () => {
       browserOpens()
       await asked()
@@ -975,7 +1049,7 @@ describe('ContactWindow', () => {
       expect(threadDelivers).toHaveBeenCalledTimes(1)
       expect(threadDelivers).toHaveBeenCalledWith(
         {
-          body: `chatThread.videoInvite ${JSON.stringify({ operator: ROOM.operator, url: ROOM.url })}`,
+          body: `chatThread.videoInvite ${JSON.stringify({ operator: ROOM.operator, url: ROOM_WITH_DEFAULT })}`,
           notify: 'NONE',
         },
         'carla-id',
@@ -992,7 +1066,121 @@ describe('ContactWindow', () => {
       await start()
 
       expect(threadDelivers.mock.calls[0][0].body).toBe(
-        `chatThread.videoInvite ${JSON.stringify({ operator: ROOM.host, url: ROOM.url })}`,
+        `chatThread.videoInvite ${JSON.stringify({ operator: ROOM.host, url: ROOM_WITH_DEFAULT })}`,
+      )
+    })
+
+    /**
+     * A topic of one's own (V4a): the invitation names it in words, on a line of its own, and
+     * the address carries it for Jitsi -- the SAME address in the invitation and in the room's
+     * window, made once.
+     */
+    it('names a topic of its own in the invitation, and sends the room to the same address', async () => {
+      const topic = 'Lesekreis „Momo“'
+      const address = withChatVideoTopic(ROOM.url, topic)
+      browserOpens()
+      serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+      threadDelivers.mockResolvedValue(true)
+      await asked()
+      await topicField().setValue(topic)
+
+      await start()
+
+      expect(address).not.toBe(ROOM_WITH_DEFAULT)
+      expect(threadDelivers.mock.calls[0][0].body).toBe(
+        `chatThread.videoInviteTopic ${JSON.stringify({ topic, operator: ROOM.operator, url: address })}`,
+      )
+      expect(room.location.href).toBe(address)
+    })
+
+    it('offers the same address as a link where the browser held the window back', async () => {
+      const topic = 'Gespräch über Bäume'
+      browserOpens(null)
+      serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+      threadDelivers.mockResolvedValue(true)
+      await asked()
+      await topicField().setValue(topic)
+
+      await start()
+
+      const address = withChatVideoTopic(ROOM.url, topic)
+      expect(threadDelivers.mock.calls[0][0].body).toContain(JSON.stringify(address))
+      expect(inDialog('open').attributes('href')).toBe(address)
+    })
+
+    // The address never goes without its addition (V4b will know an invitation by it): an
+    // emptied field, or one of spaces only, is the default.
+    it.each([
+      ['emptied', ''],
+      ['holding only spaces', '   '],
+    ])('takes the default where the field is %s', async (_, typed) => {
+      browserOpens()
+      serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+      threadDelivers.mockResolvedValue(true)
+      await asked()
+      await topicField().setValue(typed)
+
+      await start()
+
+      expect(threadDelivers.mock.calls[0][0].body).toBe(
+        `chatThread.videoInvite ${JSON.stringify({ operator: ROOM.operator, url: ROOM_WITH_DEFAULT })}`,
+      )
+      expect(room.location.href).toBe(ROOM_WITH_DEFAULT)
+    })
+
+    it('trims the topic it sends', async () => {
+      browserOpens()
+      serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+      threadDelivers.mockResolvedValue(true)
+      await asked()
+      await topicField().setValue('  Lesekreis  ')
+
+      await start()
+
+      expect(room.location.href).toBe(withChatVideoTopic(ROOM.url, 'Lesekreis'))
+    })
+
+    // What the field said at the press is the call's topic: typing while the room is on its way
+    // changes nothing about the invitation that goes out.
+    it('takes the topic as the field held it at the press', async () => {
+      browserOpens()
+      const offer = held()
+      serverRooms.mockReturnValue(offer.promise)
+      threadDelivers.mockResolvedValue(true)
+      await asked()
+      await topicField().setValue('Lesekreis')
+
+      await inDialog('start').trigger('click')
+      await topicField().setValue('Etwas anderes')
+      offer.release({ data: { chatVideoRoom: ROOM } })
+      await flushPromises()
+
+      const address = withChatVideoTopic(ROOM.url, 'Lesekreis')
+      expect(threadDelivers.mock.calls[0][0].body).toBe(
+        `chatThread.videoInviteTopic ${JSON.stringify({ topic: 'Lesekreis', operator: ROOM.operator, url: address })}`,
+      )
+      expect(room.location.href).toBe(address)
+    })
+
+    // The default in the words of the moment -- in English "Video call": it fills the field, and
+    // as the default it leaves the invitation reading as it always did.
+    it('fills in the default, and knows it, in the words of the moment', async () => {
+      browserOpens()
+      serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+      threadDelivers.mockResolvedValue(true)
+      words['chatThread.videoTopicDefault'] = 'Video call'
+      try {
+        await asked()
+        expect(topicField().element.value).toBe('Video call')
+        await start()
+      } finally {
+        words['chatThread.videoTopicDefault'] = 'Videoanruf'
+      }
+
+      const address = withChatVideoTopic(ROOM.url, 'Video call')
+      expect(address).toContain('#config.subject=%22Video%20call%22')
+      expect(threadDelivers.mock.calls[0][0].body).toBe(
+        `chatThread.videoInvite ${JSON.stringify({ operator: ROOM.operator, url: address })}`,
       )
     })
 
@@ -1033,7 +1221,7 @@ describe('ContactWindow', () => {
       delivery.release(true)
       await flushPromises()
 
-      expect(room.location.href).toBe(ROOM.url)
+      expect(room.location.href).toBe(ROOM_WITH_DEFAULT)
       expect(room.close).not.toHaveBeenCalled()
       expect(dialog().exists()).toBe(false)
     })
@@ -1093,7 +1281,7 @@ describe('ContactWindow', () => {
 
       expect(opens).toHaveBeenCalledTimes(2)
       expect(threadDelivers).toHaveBeenCalledTimes(1)
-      expect(room.location.href).toBe(ROOM.url)
+      expect(room.location.href).toBe(ROOM_WITH_DEFAULT)
     })
 
     /**
@@ -1112,7 +1300,7 @@ describe('ContactWindow', () => {
       const link = inDialog('open')
       expect(dialog().exists()).toBe(true)
       expect(link.text()).toBe('chatThread.videoOpen')
-      expect(link.attributes('href')).toBe(ROOM.url)
+      expect(link.attributes('href')).toBe(ROOM_WITH_DEFAULT)
       expect(link.attributes('target')).toBe('_blank')
       expect(link.attributes('rel')).toBe('noopener noreferrer')
       expect(inDialog('start').exists()).toBe(false)
@@ -1135,7 +1323,7 @@ describe('ContactWindow', () => {
       await flushPromises()
 
       expect(room.location.href).toBe('')
-      expect(inDialog('open').attributes('href')).toBe(ROOM.url)
+      expect(inDialog('open').attributes('href')).toBe(ROOM_WITH_DEFAULT)
       expect(dialog().exists()).toBe(true)
     })
 
@@ -1222,12 +1410,12 @@ describe('ContactWindow', () => {
 
       expect(opens).toHaveBeenCalledTimes(2)
       expect(threadDelivers).toHaveBeenCalledTimes(1)
-      expect(room.location.href).toBe(ROOM.url)
+      expect(room.location.href).toBe(ROOM_WITH_DEFAULT)
 
       first.release({ data: { chatVideoRoom: { ...ROOM, url: 'https://meet.ffmuc.net/late' } } })
       await flushPromises()
       expect(threadDelivers).toHaveBeenCalledTimes(1)
-      expect(room.location.href).toBe(ROOM.url)
+      expect(room.location.href).toBe(ROOM_WITH_DEFAULT)
     })
 
     // Another person is another conversation: a question about a call with the one before would
@@ -1247,7 +1435,7 @@ describe('ContactWindow', () => {
      * vuex store is written whole into localStorage). The store this window reads is a stand-in
      * without `commit` or `dispatch`: a write would throw.
      */
-    it('writes the address into no log and no storage', async () => {
+    it('writes the address into no log and no storage, nor the topic that goes with it', async () => {
       const logs = ['log', 'info', 'warn', 'error', 'debug'].map((level) =>
         vi.spyOn(console, level),
       )
@@ -1256,12 +1444,15 @@ describe('ContactWindow', () => {
       serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
       threadDelivers.mockResolvedValue(true)
       await asked()
+      await topicField().setValue('Lesekreis Momo')
 
       await start()
 
-      expect(inDialog('open').attributes('href')).toBe(ROOM.url)
+      expect(inDialog('open').attributes('href')).toBe(
+        withChatVideoTopic(ROOM.url, 'Lesekreis Momo'),
+      )
       const written = [...logs, ...stores].flatMap((spy) => spy.mock.calls.flat().map(String))
-      expect(written.filter((line) => line.includes('k7m2x9q4t8wz'))).toEqual([])
+      expect(written.filter((line) => /k7m2x9q4t8wz|Momo/.test(line))).toEqual([])
     })
   })
 

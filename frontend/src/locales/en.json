@@ -170,10 +170,14 @@
     "videoAskTitle": "Start a video call with {name}?",
     "videoCall": "Start a video call with {name}",
     "videoInvite": "📹 Video call. The room is on a Jitsi server run by {operator} — a suggestion, not a Gradido service: {url}",
+    "videoInviteTopic": "📹 Video call: {topic}\nThe room is on a Jitsi server run by {operator} — a suggestion, not a Gradido service: {url}",
     "videoNoServer": "No video server can be reached right now. Try again in a moment.",
     "videoNotSent": "The invitation could not be sent.",
     "videoOpen": "Open room",
     "videoStart": "Start call",
+    "videoTopic": "Topic",
+    "videoTopicDefault": "Video call",
+    "videoTopicHint": "The topic is in the link. Anyone who has it can see it — including whoever runs the server.",
     "you": "You"
   },
   "community": {
