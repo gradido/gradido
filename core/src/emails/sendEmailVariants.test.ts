@@ -979,6 +979,33 @@ describe('sendEmailVariants', () => {
         expect(text).toContain(`[${CONFIG.COMMUNITY_URL}/transactions]`)
       })
     })
+
+    // As in the thread: `**…**` is bold, never across a link, a lone star stays a star.
+    it('shows **…** in the text in bold, as the thread does', async () => {
+      const sent: any = await sendCustomEmail({
+        ...message,
+        subject: '**About** Saturday',
+        memo: '**Now** or never: **https://x.org** *half',
+      })
+      const html = sent.originalMessage.html
+      expect(html).toMatch(
+        /<strong[^>]*>Now<\/strong> or never: \*\*<a href="https:\/\/x\.org"[^>]*>https:\/\/x\.org<\/a>\*\* \*half/,
+      )
+      // The subject is no thread message: its stars stay.
+      expect(html).toContain('**About** Saturday')
+    })
+
+    // A bold run is text too: whatever markup it holds stays text.
+    it('keeps markup in a bold run as text', async () => {
+      const sent: any = await sendCustomEmail({
+        ...message,
+        subject: '',
+        memo: 'Look: **<img src=x onerror=alert(1)>**',
+      })
+      const html = sent.originalMessage.html
+      expect(html).toMatch(/<strong[^>]*>&lt;img src=x onerror=alert\(1\)&gt;<\/strong>/)
+      expect(html).not.toMatch(/<img[^>]*onerror/)
+    })
   })
 
   /**
@@ -1011,6 +1038,22 @@ describe('sendEmailVariants', () => {
       expect(html).toContain('https://gradido.net/faq?a=1&amp;b=2')
       expect(html).toContain('&quot;now&quot;')
       expect(html).not.toMatch(/&amp;(#|amp;|quot;|lt;|gt;)/)
+    })
+
+    it("shows **…** in a moderator's message in bold, as the contribution's thread does, and not in the memo", async () => {
+      const sent: any = await sendAddedContributionMessageEmail({
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        senderAlias: 'bibi',
+        contributionMemo: '**Garden** work',
+        contributionFrontendLink,
+        message: '**Please** add the hours.',
+      })
+      const html = sent.originalMessage.html
+      expect(html).toMatch(/„<strong[^>]*>Please<\/strong> add the hours\.“/)
+      expect(html).toContain('“**Garden** work”')
     })
 
     it('makes an address in it a link, as anywhere else', () => {

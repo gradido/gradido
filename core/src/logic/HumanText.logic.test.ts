@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
-import { EMAIL_PATTERN, humanTextParts, URL_PATTERN } from './HumanText.logic'
+import { BOLD_PATTERN, EMAIL_PATTERN, humanTextParts, URL_PATTERN } from './HumanText.logic'
 
 describe('humanTextParts', () => {
   it('leaves a text without addresses as one piece of text', () => {
@@ -61,6 +61,36 @@ describe('humanTextParts', () => {
   })
 })
 
+describe('humanTextParts with bold', () => {
+  it('makes a run between two pairs of stars bold, and drops the stars', () => {
+    expect(humanTextParts('We meet **at ten**, ok?', { bold: true })).toEqual([
+      { type: 'text', value: 'We meet ' },
+      { type: 'bold', value: 'at ten' },
+      { type: 'text', value: ', ok?' },
+    ])
+  })
+
+  it('takes the shortest run, across line breaks', () => {
+    expect(humanTextParts('**one\ntwo** and **three**', { bold: true })).toEqual([
+      { type: 'bold', value: 'one\ntwo' },
+      { type: 'text', value: ' and ' },
+      { type: 'bold', value: 'three' },
+    ])
+  })
+
+  it('never reaches across a link, and leaves a star without its partner', () => {
+    expect(humanTextParts('**https://x.org** *half', { bold: true })).toEqual([
+      { type: 'text', value: '**' },
+      { type: 'url', value: 'https://x.org' },
+      { type: 'text', value: '** *half' },
+    ])
+  })
+
+  it('leaves the stars where bold is not asked for - a memo keeps them, as in the wallet', () => {
+    expect(humanTextParts('**at ten**')).toEqual([{ type: 'text', value: '**at ten**' }])
+  })
+})
+
 /**
  * The mail finds an address exactly where the wallet does, so a message reads the same in both.
  * Neither package can import the other, so the wallet's source is read here: when its patterns
@@ -72,7 +102,7 @@ describe('the patterns are the wallet’s', () => {
     'utf8',
   )
   const walletPattern = (name: string): string | undefined =>
-    wallet.match(new RegExp(`^const ${name} = (/.+/[a-z]*)$`, 'm'))?.[1]
+    wallet.match(new RegExp(`^const ${name} = (/.+/[a-z]*)\\r?$`, 'm'))?.[1]
 
   it('for web addresses', () => {
     expect(walletPattern('URL_PATTERN')).toBe(URL_PATTERN.toString())
@@ -80,5 +110,15 @@ describe('the patterns are the wallet’s', () => {
 
   it('for e-mail addresses', () => {
     expect(walletPattern('EMAIL_PATTERN')).toBe(EMAIL_PATTERN.toString())
+  })
+
+  it('for bold', () => {
+    const chat = readFileSync(
+      path.join(__dirname, '../../../frontend/src/utils/chatTextParts.js'),
+      'utf8',
+    )
+    expect(chat.match(/^const BOLD_PATTERN = (\/.+\/[a-z]*)\r?$/m)?.[1]).toBe(
+      BOLD_PATTERN.toString(),
+    )
   })
 })

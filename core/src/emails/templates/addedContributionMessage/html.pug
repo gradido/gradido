@@ -12,7 +12,8 @@ block content
     h2= t(answerable ? 'emails.addedContributionMessage.readMessage' : 'emails.addedContributionMessage.readMessageOnly')
     div(class="p_content")
       p
-        +humanText(t('emails.addedContributionMessage.message', { message }))
+        //- Bold as in the contribution's thread (ParseMessage.vue).
+        +humanText(t('emails.addedContributionMessage.message', { message }), { bold: true })
       //- ⛔ Not every one of these messages can be answered. The mail is right at the moment
           it is sent and wrong at the moment it is read: a first creation is commented FIRST
           and confirmed straight after, so by the time the member opens this the thread is
