@@ -384,6 +384,26 @@ describe('ChatSettings', () => {
       expect(wrapper.find('[data-test="edit-base-url"]').exists()).toBe(false)
     })
 
+    // The box, not the edit, switches the tick: a server switched off stays off.
+    it('sends the tick the server has -- also where it is switched off', async () => {
+      const wrapper = mountPage()
+      await wrapper.find('[data-test="edit-2"]').trigger('click')
+      await wrapper.find('[data-test="edit-operator"]').setValue('Freifunk München')
+      await wrapper.find('[data-test="edit-save"]').trigger('click')
+      await flushPromises()
+
+      expect(sent.update).toHaveBeenCalledWith({
+        id: 2,
+        input: {
+          baseUrl: 'https://meet.ffmuc.net/',
+          operator: 'Freifunk München',
+          roomPrefix: null,
+          note: null,
+          active: false,
+        },
+      })
+    })
+
     it('closes the row on cancel, and sends nothing', async () => {
       const wrapper = mountPage()
       await wrapper.find('[data-test="edit-2"]').trigger('click')
