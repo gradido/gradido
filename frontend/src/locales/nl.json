@@ -170,10 +170,14 @@
     "videoAskTitle": "Videogesprek met {name} starten?",
     "videoCall": "Videogesprek met {name} starten",
     "videoInvite": "📹 Videogesprek. De vergaderruimte staat op een Jitsi-server van {operator} — een suggestie, geen dienst van Gradido: {url}",
+    "videoInviteTopic": "📹 Videogesprek: {topic}\nDe vergaderruimte staat op een Jitsi-server van {operator} — een suggestie, geen dienst van Gradido: {url}",
     "videoNoServer": "Er is op dit moment geen videoserver bereikbaar. Probeer het zo nog eens.",
     "videoNotSent": "De uitnodiging kon niet worden verstuurd.",
     "videoOpen": "Vergaderruimte openen",
     "videoStart": "Videogesprek starten",
+    "videoTopic": "Onderwerp",
+    "videoTopicDefault": "Videogesprek",
+    "videoTopicHint": "Het onderwerp staat in de link. Iedereen die de link heeft, kan het zien — ook de beheerder van de server.",
     "you": "Jij"
   },
   "community": {

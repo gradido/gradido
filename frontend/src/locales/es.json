@@ -170,10 +170,14 @@
     "videoAskTitle": "¿Iniciar una videollamada con {name}?",
     "videoCall": "Iniciar una videollamada con {name}",
     "videoInvite": "📹 Videollamada. La sala está en un servidor Jitsi de {operator} — una sugerencia, no un servicio de Gradido: {url}",
+    "videoInviteTopic": "📹 Videollamada: {topic}\nLa sala está en un servidor Jitsi de {operator} — una sugerencia, no un servicio de Gradido: {url}",
     "videoNoServer": "Ahora mismo no hay ningún servidor de vídeo disponible. Vuelve a intentarlo en un momento.",
     "videoNotSent": "No se pudo enviar la invitación.",
     "videoOpen": "Abrir la sala",
     "videoStart": "Iniciar la llamada",
+    "videoTopic": "Tema",
+    "videoTopicDefault": "Videollamada",
+    "videoTopicHint": "El tema va en el enlace. Quien tenga el enlace puede verlo — también quien gestiona el servidor.",
     "you": "Tú"
   },
   "community": {
