@@ -226,9 +226,7 @@ describe('UserResolver', () => {
     })
 
     it('returns success', () => {
-      expect(result).toEqual(
-        expect.objectContaining({ data: { createUser: { id: expect.any(Number) } } }),
-      )
+      expect(result).toEqual(expect.objectContaining({ data: { createUser: true } }))
     })
 
     describe('valid input data', () => {
@@ -382,16 +380,8 @@ describe('UserResolver', () => {
         })
       })
 
-      it('results with partly faked user with random "id"', () => {
-        expect(mutation).toEqual(
-          expect.objectContaining({
-            data: {
-              createUser: {
-                id: expect.any(Number),
-              },
-            },
-          }),
-        )
+      it('answers exactly like a new registration', () => {
+        expect(mutation).toEqual(expect.objectContaining({ data: { createUser: true } }))
       })
 
       it('stores the EMAIL_ACCOUNT_MULTIREGISTRATION event in the database', async () => {
@@ -422,25 +412,6 @@ describe('UserResolver', () => {
             email: 'bibi@bloxberg.de',
             user: expect.objectContaining({ language: 'de' }),
           }),
-        )
-      })
-    })
-
-    describe('no publisher id', () => {
-      it('sets publisher id to 0', async () => {
-        await mutate({
-          mutation: createUser,
-          variables: { ...variables, email: 'raeuber@hotzenplotz.de', publisherId: undefined },
-        })
-        await expect(User.find({ relations: ['emailContact'] })).resolves.toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              emailContact: expect.objectContaining({
-                email: 'raeuber@hotzenplotz.de',
-              }),
-              publisherId: 0,
-            }),
-          ]),
         )
       })
     })
@@ -515,11 +486,14 @@ describe('UserResolver', () => {
         })
 
         it('stores the USER_REGISTER_REDEEM event in the database', async () => {
+          const visitor = await User.findOneOrFail({
+            where: { emailContact: { email: 'ein@besucher.de' } },
+          })
           await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventType.USER_REGISTER_REDEEM,
-              affectedUserId: result.data.createUser.id,
-              actingUserId: result.data.createUser.id,
+              affectedUserId: visitor.id,
+              actingUserId: visitor.id,
               involvedContributionLinkId: link.id,
             }),
           )
@@ -603,11 +577,14 @@ describe('UserResolver', () => {
         })
 
         it('stores the USER_REGISTER_REDEEM event in the database', async () => {
+          const redeemer = await User.findOneOrFail({
+            where: { emailContact: { email: 'which@ever.de' } },
+          })
           await expect(DbEvent.find()).resolves.toContainEqual(
             expect.objectContaining({
               type: EventType.USER_REGISTER_REDEEM,
-              affectedUserId: newUser.data.createUser.id,
-              actingUserId: newUser.data.createUser.id,
+              affectedUserId: redeemer.id,
+              actingUserId: redeemer.id,
               involvedTransactionLinkId: transactionLink.id,
             }),
           )
@@ -753,7 +730,7 @@ describe('UserResolver', () => {
         expect(Object.keys(results)).toHaveLength(6)
         for (const result of Object.values(results)) {
           expect({ data: result.data, errors: result.errors }).toEqual({
-            data: { createUser: { id: expect.any(Number) } },
+            data: { createUser: true },
             errors: undefined,
           })
         }
@@ -814,7 +791,7 @@ describe('UserResolver', () => {
 
         it('answers like every registration', () => {
           expect({ data: result.data, errors: result.errors }).toEqual({
-            data: { createUser: { id: expect.any(Number) } },
+            data: { createUser: true },
             errors: undefined,
           })
         })
@@ -967,7 +944,7 @@ describe('UserResolver', () => {
         it('answers exactly as without the code', () => {
           for (const result of [withCode, withoutCode]) {
             expect({ data: result.data, errors: result.errors }).toEqual({
-              data: { createUser: { id: expect.any(Number) } },
+              data: { createUser: true },
               errors: undefined,
             })
           }

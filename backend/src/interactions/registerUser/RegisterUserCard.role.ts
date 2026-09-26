@@ -89,14 +89,16 @@ export class RegisterUserCardRole extends RegisterUserReferrerRole {
     )
   }
 
-  public async sendAccountActivationEmail(activationLink: string): Promise<boolean> {
+  // The password exists already, so the set-password page behind the activation link would
+  // be the wrong door: this link only confirms that the address belongs to the guest (EM-013).
+  public async sendAccountActivationEmail(_activationLink: string): Promise<boolean> {
     const { firstName, lastName, language, email } = this.user
     const result = await sendAssistedRegistrationConfirmEmail({
       firstName,
       lastName,
       email,
       language,
-      confirmLink: activationLink,
+      confirmLink: `${CONFIG.EMAIL_LINK_CONFIRM_EMAIL}${this.emailVerificationCode}`,
       timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
     if (result instanceof Error) {

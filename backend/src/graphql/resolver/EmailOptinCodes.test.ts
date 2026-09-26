@@ -44,11 +44,9 @@ describe('EmailOptinCodes', () => {
       language: 'de',
     }
     await writeHomeCommunityEntry()
-    const {
-      data: { createUser: user },
-    } = await mutate({ mutation: createUser, variables })
+    await mutate({ mutation: createUser, variables })
     const dbObject = await DbUser.findOneOrFail({
-      where: { id: user.id },
+      where: { emailContact: { email: variables.email } },
       relations: ['emailContact'],
     })
     optinCode = dbObject.emailContact.emailVerificationCode.toString()

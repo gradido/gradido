@@ -1,7 +1,12 @@
 // AI-GENERATED — not an architecture reference
 import { OptInType, UserContactType } from 'shared'
 import { EntityNotFoundError } from 'typeorm'
-import { Community as DbCommunity, User as DbUser, UserContact as DbUserContact } from '..'
+import {
+  Community as DbCommunity,
+  User as DbUser,
+  UserAlias as DbUserAlias,
+  UserContact as DbUserContact,
+} from '..'
 import { AppDatabase } from '../AppDatabase'
 import { DBDuplicateEntryError } from '../errorTypes'
 import { createCommunity } from '../seeds/community'
@@ -56,6 +61,7 @@ describe('userContacts.typeorm.queries', () => {
   let peter: DbUser
 
   beforeAll(async () => {
+    await DbUserAlias.clear()
     await DbUser.clear()
     await DbUserContact.clear()
     await DbCommunity.clear()

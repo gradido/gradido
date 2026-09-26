@@ -7,7 +7,7 @@ import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
 
 import { SecretKeyCryptographyCreateKeyFunc } from './EncryptionWorker.js'
-import { PasswordDataInput, passwordDataSchema } from './passwordData.schema.js'
+import { PasswordDataInput, passwordDataSchema } from './passwordData.schema'
 
 const configLoginAppSecret = Buffer.from(CONFIG.LOGIN_APP_SECRET, 'hex')
 const configLoginServerKey = Buffer.from(CONFIG.LOGIN_SERVER_KEY, 'hex')

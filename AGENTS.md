@@ -187,6 +187,7 @@ Remove the marker once a human has reviewed the file and stands behind it. A mar
 
 # Judgement calls
 
+- **Build on the concepts that are already there.** Before changing or extending code, look at how the surrounding code — the sibling roles, the neighbouring functions — already solves the same thing, and use that same concept. A second mechanism for something the code already answers makes it harder to understand, even where it looks cleaner locally: a small wart such as an unused `_param` costs less than a new concept. Two exceptions: a file with `AI-GENERATED — not an architecture reference` on its first line is no model (see above), and where this document names a pattern as legacy (TypeORM, throwing expected failures), the document wins.
 - Prefer moving code to the new architecture over duplicating it into both.
 - When old and new coexist for the same concern, the new location is the single source of truth; the old path delegates to it rather than reimplementing.
 - Pure refactoring means no behaviour change: same inputs, same outputs, same side effects, same errors.

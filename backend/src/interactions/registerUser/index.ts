@@ -1,2 +1,2 @@
 export * from './createUser.schema'
-export * from './RegisterAccount.context'
+export * from './registerUser.context'

@@ -3,6 +3,7 @@ import {
   aliasStemFromEmail,
   aliasVariantsPattern,
   findFirstFreeAlias,
+  primaryAliasCandidate,
   transliterateForAlias,
 } from './aliasFromName'
 
@@ -75,15 +76,15 @@ describe('aliasStemFromEmail', () => {
     expect(aliasStemFromEmail('bernd.hueckstaedt+gradido@example.com')).toBe('berndhueckstaedt')
   })
 
-  it('has nothing to give without an address', () => {
-    expect(aliasStemFromEmail(undefined)).toBe('')
-    expect(aliasStemFromEmail(null)).toBe('')
+  it('has nothing to give from an empty address', () => {
+    expect(aliasStemFromEmail('')).toBe('')
+    expect(aliasStemFromEmail('@example.com')).toBe('')
   })
 })
 
 describe('aliasCandidates', () => {
   it('offers the first name plus one letter of the last, best first', () => {
-    expect(aliasCandidates('Bernd', 'Hückstädt', 'b@example.com')[0]).toBe('BerndH')
+    expect(aliasCandidates('Bernd', 'Hückstädt', 'b@example.com', 1)[0]).toBe('BerndH')
   })
 
   it('never cuts a replacement in half, whether the umlaut arrives composed or not', () => {
@@ -96,40 +97,39 @@ describe('aliasCandidates', () => {
   it('walks further into the last name when one letter is too short', () => {
     // `AlB` is two letters plus one and still under the minimum at `AB`, so a name
     // this short only becomes usable a letter later.
-    expect(aliasCandidates('Al', 'Bo', 'al@example.com')[0]).toBe('AlB')
+    expect(aliasCandidates('Al', 'Bo', 'al@example.com', 1)[0]).toBe('AlB')
   })
 
   // Initials that short leave nothing to walk into, so the address is asked next - and
-  // when that is two letters as well, the list comes back empty and the caller has to
-  // supply the last rung itself.
+  // when that is two letters as well, only the last rung is left.
   it('drops through to the address, and past it when that is short too', () => {
-    expect(aliasCandidates('A', 'B', 'aberdeen@example.com')[0]).toBe('aberdeen')
-    expect(aliasCandidates('A', 'B', 'ab@example.com')).toEqual([])
+    expect(aliasCandidates('A', 'B', 'aberdeen@example.com', 7)).toEqual(['aberdeen', 'member7'])
+    expect(aliasCandidates('A', 'B', 'ab@example.com', 7)).toEqual(['member7'])
   })
 
   // A name that reads like an office is worse than a long one, so the answer to a
   // reserved word is the same as to a short one: take more of the last name.
   it('walks past a reserved word rather than numbering it', () => {
-    const candidates = aliasCandidates('Roo', 'Twright', 'roo@example.com')
+    const candidates = aliasCandidates('Roo', 'Twright', 'roo@example.com', 1)
     expect(candidates).not.toContain('RooT')
     expect(candidates[0]).toBe('RooTw')
   })
 
   it('falls back to the email when the name yields no letters', () => {
-    expect(aliasCandidates('张', '三', 'zhangsan@example.com')).toEqual(['zhangsan'])
+    expect(aliasCandidates('张', '三', 'zhangsan@example.com', 7)).toEqual(['zhangsan', 'member7'])
   })
 
-  it('returns nothing when neither name nor address can give one', () => {
-    expect(aliasCandidates('张', '三', null)).toEqual([])
+  it('ends in the member fallback when neither name nor address can give one', () => {
+    expect(aliasCandidates('张', '三', '张三@example.com', 7)).toEqual(['member7'])
   })
 
   it('offers longer forms after the shortest, so a clash has somewhere to go', () => {
-    const candidates = aliasCandidates('Bernd', 'Hueckstaedt', 'b@example.com')
+    const candidates = aliasCandidates('Bernd', 'Hueckstaedt', 'b@example.com', 1)
     expect(candidates.slice(0, 3)).toEqual(['BerndH', 'BerndHu', 'BerndHue'])
   })
 
   it('keeps every proposal inside the bounds the schema enforces', () => {
-    for (const candidate of aliasCandidates('Maximilian', 'Schwarzenegger', 'm@example.com')) {
+    for (const candidate of aliasCandidates('Maximilian', 'Schwarzenegger', 'm@example.com', 1)) {
       expect(candidate.length).toBeGreaterThanOrEqual(3)
       expect(candidate.length).toBeLessThanOrEqual(20)
     }
@@ -145,6 +145,17 @@ describe('findFirstFreeAlias', () => {
     expect(findFirstFreeAlias(['berndh'], ['BerndH'])).toBe('BerndH1')
   })
 
+  it('keeps the spelling of the candidate it returns', () => {
+    expect(findFirstFreeAlias(['berndh'], ['BerndH', 'BerndHue'])).toBe('BerndHue')
+    expect(findFirstFreeAlias(['berndh'], ['BerndH'])).toBe('BerndH1')
+  })
+
+  it('tries every name before it numbers one', () => {
+    expect(findFirstFreeAlias(['BerndH', 'BerndHue'], ['BerndH', 'BerndHue', 'BerndHuec'])).toBe(
+      'BerndHuec',
+    )
+  })
+
   it('numbers a candidate once all of them are taken', () => {
     expect(findFirstFreeAlias(['BerndH', 'BerndH1'], ['BerndH'])).toBe('BerndH2')
   })
@@ -152,6 +163,32 @@ describe('findFirstFreeAlias', () => {
   it('returns null when every variant is taken', () => {
     const taken = ['abc', ...Array.from({ length: 99 }, (_, i) => `abc${i + 1}`)]
     expect(findFirstFreeAlias(taken, ['abc'])).toBeNull()
+  })
+})
+
+describe('primaryAliasCandidate', () => {
+  it('is the first rung of aliasCandidates', () => {
+    for (const [first, last] of [
+      ['Bernd', 'Hückstädt'],
+      ['Bernd', 'Übel'],
+      ['Bernd', 'Übel'.normalize('NFD')],
+      ['Иван', 'Щербаков'],
+      ['Αλέξανδρος', 'Ωμέγα'],
+    ]) {
+      expect(primaryAliasCandidate(first, last)).toBe(
+        aliasCandidates(first, last, 'x@example.com', 1)[0],
+      )
+    }
+  })
+
+  it('never cuts a replacement in half', () => {
+    expect(primaryAliasCandidate('Bernd', 'Übel')).toBe('BerndUe')
+  })
+
+  it('has nothing to offer when first name and one letter are no valid alias', () => {
+    expect(primaryAliasCandidate('A', 'B')).toBeNull()
+    expect(primaryAliasCandidate('Roo', 'Twright')).toBeNull()
+    expect(primaryAliasCandidate('张', '三')).toBeNull()
   })
 })
 

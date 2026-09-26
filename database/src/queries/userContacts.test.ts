@@ -1,7 +1,12 @@
 // AI-GENERATED — not an architecture reference
 import { inArray } from 'drizzle-orm'
 import { OptInType, UserContactType } from 'shared'
-import { Community as DbCommunity, User as DbUser, UserContact as DbUserContact } from '..'
+import {
+  Community as DbCommunity,
+  User as DbUser,
+  UserAlias as DbUserAlias,
+  UserContact as DbUserContact,
+} from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { userContactsTable } from '../schemas'
 import { createCommunity } from '../seeds/community'
@@ -71,6 +76,7 @@ describe('userContacts.queries', () => {
   let peter: DbUser
 
   beforeAll(async () => {
+    await DbUserAlias.clear()
     await DbUser.clear()
     await DbUserContact.clear()
     await DbCommunity.clear()

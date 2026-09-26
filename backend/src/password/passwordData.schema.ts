@@ -4,7 +4,7 @@ import { PasswordEncryptionType } from '@/graphql/enum/PasswordEncryptionType'
 
 export const passwordDataSchema = z
   .object({
-    id: z.number().positive().nullish().default(0),
+    id: z.number().positive().nullish(),
     passwordEncryptionType: z.number().nullish().default(PasswordEncryptionType.NO_PASSWORD),
     emailContact: z.object({ email: emailSchema }).nullish(),
     gradidoId: uuidv4Schema.nullish(),
@@ -14,5 +14,6 @@ export const passwordDataSchema = z
     if (obj.gradidoID) {
       obj.gradidoId = obj.gradidoID
     }
+    return obj
   })
 export type PasswordDataInput = z.input<typeof passwordDataSchema>

@@ -376,7 +376,7 @@ describe('Register', () => {
     }
 
     const submit = async (page) => {
-      mockMutate.mockResolvedValue({ data: { createUser: { id: 1 } } })
+      mockMutate.mockResolvedValue({ data: { createUser: true } })
       await page.find('#registerFirstname').setValue('Max')
       await page.find('#registerLastname').setValue('Mustermann')
       await page.find('#email-input-field').setValue('max.mustermann@gradido.net')
@@ -509,7 +509,7 @@ describe('Register', () => {
     }
 
     const sent = async (page) => {
-      mockMutate.mockResolvedValue({ data: { createUser: { id: 1 } } })
+      mockMutate.mockResolvedValue({ data: { createUser: true } })
       await fillIn(page)
       await page.find('form').trigger('submit')
       await flushPromises()

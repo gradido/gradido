@@ -52,6 +52,7 @@ describe('user.typeorm.queries', () => {
     let userBibi: DbUser
 
     beforeAll(async () => {
+      await DbUserAlias.clear()
       await DbUser.clear()
       await DbUserContact.clear()
       await DbCommunity.clear()
@@ -158,7 +159,7 @@ describe('user.typeorm.queries', () => {
       communityUuid = homeCom.communityUuid!
       communityName = homeCom.name!
       bibi = await userFactory({ ...bibiBloxberg, alias: 'newname' })
-      await dbInsertUserAlias(bibi.id, 'oldname', ALIAS_ORIGIN_CHOSEN)
+      await dbInsertUserAlias({ userId: bibi.id, alias: 'oldname', origin: ALIAS_ORIGIN_CHOSEN })
     })
 
     it('finds them by the name they hold now', async () => {
@@ -190,6 +191,7 @@ describe('user.typeorm.queries', () => {
     let bob: DbUser
 
     beforeAll(async () => {
+      await DbUserAlias.clear()
       await DbUser.clear()
       await DbUserContact.clear()
       await DbCommunity.clear()
@@ -220,6 +222,7 @@ describe('user.typeorm.queries', () => {
     let sarah: DbUser
 
     beforeAll(async () => {
+      await DbUserAlias.clear()
       await DbUser.clear()
       await DbUserContact.clear()
       await DbCommunity.clear()
@@ -480,6 +483,7 @@ describe('user.typeorm.queries', () => {
     let before: DbUser
 
     beforeAll(async () => {
+      await DbUserAlias.clear()
       await DbUser.clear()
       await DbUserContact.clear()
       await userFactory(bibiBloxberg)
@@ -506,6 +510,7 @@ describe('user.typeorm.queries', () => {
     let before: DbUser
 
     beforeAll(async () => {
+      await DbUserAlias.clear()
       await DbUser.clear()
       await DbUserContact.clear()
       await userFactory(bibiBloxberg)
@@ -555,6 +560,7 @@ describe('user.typeorm.queries', () => {
     let bibi: DbUser
 
     beforeAll(async () => {
+      await DbUserAlias.clear()
       await DbUser.clear()
       await DbUserContact.clear()
       // `clear()` truncates and restarts the ids, so role rows the earlier describes left
@@ -595,6 +601,7 @@ describe('user.typeorm.queries', () => {
     let ids: number[]
 
     beforeAll(async () => {
+      await DbUserAlias.clear()
       await DbUser.clear()
       await DbUserContact.clear()
       await DbUserRole.clear()

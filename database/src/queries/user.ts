@@ -1,5 +1,5 @@
 import { and, count, desc, eq, inArray, isNull, ne, or, sql } from 'drizzle-orm'
-import { alias as aliasedTable, type BuildAliasTable } from 'drizzle-orm/mysql-core'
+import { alias as aliasedTable, type BuildAliasTable, unionAll } from 'drizzle-orm/mysql-core'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import {
   ContactOrigin,
@@ -9,7 +9,6 @@ import {
   Result,
   VoidResult,
 } from 'shared'
-import { EntityManager } from 'typeorm'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import {
   DBDuplicateEntryError,
@@ -29,7 +28,6 @@ import {
   userRolesTable,
   usersTable,
 } from '../schemas/drizzle.schema'
-import { dbAliasHeldByOther } from './userAliases'
 
 // Drizzle only. The `users` queries still on TypeORM live in `./user.typeorm` until they
 // are translated.
@@ -404,32 +402,45 @@ export async function dbClearGmsRegistration(userId: number): Promise<VoidResult
 }
 
 /**
- * `manager` goes to the half that still asks TypeORM, so that a caller inside a transaction
- * (registerAccount) takes no second connection from the pool; the half on `users` runs on
- * Drizzle's own pool.
+ * Is this name spoken for by somebody other than `userId`? Two places can hold it, asked in
+ * one round trip: the current alias of a local member, and every name a member owns in
+ * `user_aliases` - a name somebody left behind stays theirs, so it stays blocked, except for
+ * its own owner, who may take it back. Both columns compare case-insensitively.
  */
 export async function aliasExists(
   alias: string,
   userId?: number,
-  manager?: EntityManager,
+  tx?: DrizzleTransaction | MySql2Database,
 ): Promise<boolean> {
+  if (!tx) {
+    tx = drizzleDb()
+  }
   // Only local users count. Aliases are unique per community, not globally: migration
   // 0073 dropped the global UNIQUE on users.alias in favour of UNIQUE(alias, community_uuid).
   // Rows with foreign = 1 are cached copies of members of other communities, so an alias
-  // held there must not block a member of this one.
-  const [user] = await drizzleDb()
+  // held there must not block a member of this one. Deleted members do count: the unique
+  // key knows no soft delete, so their alias would be refused on write anyway.
+  const heldAsCurrent = tx
     .select({ id: usersTable.id })
     .from(usersTable)
     .where(
-      and(eq(usersTable.alias, alias), eq(usersTable.foreign, false), isNull(usersTable.deletedAt)),
+      and(
+        eq(usersTable.alias, alias),
+        eq(usersTable.foreign, false),
+        userId === undefined ? undefined : ne(usersTable.id, userId),
+      ),
     )
-    .limit(1)
-  if (user !== undefined && (userId === undefined || user.id !== userId)) {
-    return true
-  }
-  // A name somebody left behind stays theirs, so it stays blocked - except for its own
-  // owner, who may take it back.
-  return dbAliasHeldByOther(alias, userId, manager)
+  const heldAsOwned = tx
+    .select({ id: userAliasesTable.userId })
+    .from(userAliasesTable)
+    .where(
+      and(
+        eq(userAliasesTable.alias, alias),
+        userId === undefined ? undefined : ne(userAliasesTable.userId, userId),
+      ),
+    )
+  const rows = await unionAll(heldAsCurrent, heldAsOwned).limit(1)
+  return rows.length > 0
 }
 
 export async function dbLocalUserGradidoIdExist(

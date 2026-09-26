@@ -32,14 +32,11 @@ export class RegisterUserReferrerRole extends RegisterUserRole {
     if (!userId) {
       throw new Error('Missing user id')
     }
-    if (!referrerId) {
-      throw new Error('Missing referrer id')
-    }
 
     return dbInsertEvent({
       type: EventType.USER_REGISTER,
       affectedUserId: userId,
-      actingUserId: referrerId,
+      actingUserId: referrerId ?? userId,
     })
   }
 }

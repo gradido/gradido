@@ -4,6 +4,7 @@ import {
   bibiBloxberg,
   TransactionLink as DbTransactionLink,
   User as DbUser,
+  UserAlias as DbUserAlias,
   UserContact as DbUserContact,
   TransactionLinkInterface,
   transactionLinkFactoryBulk,
@@ -25,6 +26,7 @@ const startDate = new Date('2022-03-21T03:33:33Z')
 
 describe('transactionLinks', () => {
   beforeAll(async () => {
+    await DbUserAlias.clear()
     await DbUser.clear()
     await DbUserContact.clear()
     await DbTransactionLink.clear()

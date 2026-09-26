@@ -2,9 +2,17 @@ import random from 'random-bigint'
 import { OptInType, PasswordEncryptionType, UserContactType } from 'shared'
 import { v4 } from 'uuid'
 import { AppDatabase } from '../..'
-import { Community, User, UserContact, UserRole } from '../../entity'
+import {
+  ALIAS_ORIGIN_ADOPTED,
+  Community,
+  User,
+  UserAlias,
+  UserContact,
+  UserRole,
+} from '../../entity'
 import { RoleNames } from '../../enum/RoleNames'
 import { getHomeCommunity } from '../../queries/communities'
+import { dbRemoveUserAliasesOfUsers } from '../../queries/userAliases'
 import { dbRemoveUserRoles } from '../../queries/userRoles'
 import { UserInterface } from '../users/UserInterface'
 
@@ -24,8 +32,12 @@ export async function userFactory(
   // silently inherited the old role (a plain user created as id 2 was an ADMIN if id 2 had
   // been one); since `user_roles.user_id` is UNIQUE, granting them a role fails with
   // ER_DUP_ENTRY instead. Whatever sits under a freshly assigned id belongs to nobody, so it
-  // goes here, where the id is handed out.
+  // goes here, where the id is handed out. The same holds for the names in `user_aliases`.
   await dbRemoveUserRoles([dbUser.id])
+  await dbRemoveUserAliasesOfUsers([dbUser.id])
+  if (dbUser.alias) {
+    await createUserAlias(dbUser.id, dbUser.alias)
+  }
 
   const userRole = user.role as RoleNames
   if (userRole && (userRole === RoleNames.ADMIN || userRole === RoleNames.MODERATOR)) {
@@ -43,6 +55,7 @@ export async function userFactoryBulk(
   const dbUsers: User[] = []
   const dbUserContacts: UserContact[] = []
   const dbUserRoles: UserRole[] = []
+  const dbUserAliases: UserAlias[] = []
   const lastUser = await User.findOne({ order: { id: 'DESC' }, select: ['id'], where: {} })
   const lastUserContact = await UserContact.findOne({
     order: { id: 'DESC' },
@@ -69,12 +82,16 @@ export async function userFactoryBulk(
     if (userRole && (userRole === RoleNames.ADMIN || userRole === RoleNames.MODERATOR)) {
       dbUserRoles.push(await createUserRole(dbUser.id, userRole, false))
     }
+    if (dbUser.alias) {
+      dbUserAliases.push(await createUserAlias(dbUser.id, dbUser.alias, false))
+    }
 
     userId++
     emailId++
   }
   // Same reason as in userFactory: nothing under these fresh ids belongs to anybody.
   await dbRemoveUserRoles(dbUsers.map((dbUser) => dbUser.id))
+  await dbRemoveUserAliasesOfUsers(dbUsers.map((dbUser) => dbUser.id))
   const dataSource = AppDatabase.getInstance().getDataSource()
   await dataSource.transaction(async (transaction) => {
     // typeorm change my data what I don't want
@@ -82,10 +99,12 @@ export async function userFactoryBulk(
     const dbUsersCopy = dbUsers.map((user) => ({ ...user }))
     const dbUserContactsCopy = dbUserContacts.map((userContact) => ({ ...userContact }))
     const dbUserRolesCopy = dbUserRoles.map((userRole) => ({ ...userRole }))
+    const dbUserAliasesCopy = dbUserAliases.map((userAlias) => ({ ...userAlias }))
     await Promise.all([
       transaction.getRepository(User).insert(dbUsersCopy),
       transaction.getRepository(UserContact).insert(dbUserContactsCopy),
       transaction.getRepository(UserRole).insert(dbUserRolesCopy),
+      transaction.getRepository(UserAlias).insert(dbUserAliasesCopy),
     ])
   })
   return dbUsers
@@ -162,4 +181,18 @@ export async function createUserRole(
   dbUserRole.userId = userId
   dbUserRole.role = role
   return store ? dbUserRole.save() : dbUserRole
+}
+
+// Every alias a member holds has its row in `user_aliases`, as registration and migration
+// 0116 write it. `adopted`: a name that is already settled, and costs none of the four picks.
+export async function createUserAlias(
+  userId: number,
+  alias: string,
+  store: boolean = true,
+): Promise<UserAlias> {
+  const dbUserAlias = new UserAlias()
+  dbUserAlias.userId = userId
+  dbUserAlias.alias = alias
+  dbUserAlias.origin = ALIAS_ORIGIN_ADOPTED
+  return store ? dbUserAlias.save() : dbUserAlias
 }

@@ -39,6 +39,18 @@ export function aliasStemFromEmail(email: string): string {
 }
 
 /**
+ * The first name plus the first `taken` letters of the last name, as an alias.
+ *
+ * The last name is cut BEFORE it is transliterated, never after: `Hückstädt` gives
+ * `BerndH`, then `BerndHue` - not `BerndHu`, a replacement cut in half. NFC and whole
+ * characters, so a decomposed `ü` (u + U+0308, as macOS sends it) is not split either.
+ */
+function nameWithLastNamePrefix(firstName: string, lastName: string, taken: number): string {
+  const lastPrefix = Array.from(lastName.normalize('NFC')).slice(0, taken).join('')
+  return transliterateForAlias(firstName + lastPrefix)
+}
+
+/**
  * Proposals for one person, best first. The caller takes the first that is still free,
  * appending digits for a clash - and falls back to something of its own if the list
  * runs out, which it does for a name in a script with no table here.
@@ -63,11 +75,9 @@ export function aliasCandidates(
     }
   }
 
-  // NFC and whole characters, so a decomposed `ü` (u + U+0308, as macOS sends it) is not
-  // cut in half - that would bring back `BerndHu`.
-  const lastChars = Array.from(lastName.normalize('NFC'))
-  for (let taken = 1; taken <= lastChars.length; taken++) {
-    push(transliterateForAlias(firstName + lastChars.slice(0, taken).join('')))
+  const lastLength = Array.from(lastName.normalize('NFC')).length
+  for (let taken = 1; taken <= lastLength; taken++) {
+    push(nameWithLastNamePrefix(firstName, lastName, taken))
   }
   // A member with only one of the two still gets a proposal from it.
   push(transliterateForAlias(firstName))
@@ -94,21 +104,22 @@ export function aliasVariantsPattern(candidate: string): string {
 }
 
 export function findFirstFreeAlias(existing: string[], candidates: string[]): string | null {
-  // The unique key on user_aliases.alias is case-insensitive (utf8mb4_unicode_ci), so is this.
+  // The unique key on user_aliases.alias is case-insensitive (utf8mb4_unicode_ci), so the
+  // comparison is too. What is returned keeps its spelling: `BerndH`, not `berndh`.
   const taken = new Set(existing.map((alias) => alias.toLowerCase()))
-  const lowercaseCandidates = candidates.map((alias) => alias.toLocaleLowerCase())
+  const isFree = (alias: string) => !taken.has(alias.toLowerCase())
 
-  // check with direct candidates
-  for (const candidate of lowercaseCandidates) {
-    if (!taken.has(candidate)) {
+  // Every candidate as it is first, only then with 1..99 appended: `BerndHue` and
+  // `BerndHo` are easier to tell apart than `BerndH1` and `BerndH2`.
+  for (const candidate of candidates) {
+    if (isFree(candidate)) {
       return candidate
     }
   }
-  // check with candidates + number 1 - 99
-  for (const candidate of lowercaseCandidates) {
+  for (const candidate of candidates) {
     for (let suffix = 1; suffix <= 99; suffix++) {
       const numbered = numberedAlias(candidate, suffix)
-      if (!taken.has(numbered)) {
+      if (isFree(numbered)) {
         return numbered
       }
     }
@@ -116,15 +127,11 @@ export function findFirstFreeAlias(existing: string[], candidates: string[]): st
   return null
 }
 
-// the default generated alias which will be tested first, should work in most of the cases
+// The default generated alias, tried first because it is free in most cases. The same
+// rule as the first rung of `aliasCandidates`, so both agree on what `BerndH` is.
 export function primaryAliasCandidate(firstName: string, lastName: string): string | null {
-  const firstNameTransliterated = transliterateForAlias(firstName)
-  const lastNameTransliterated = transliterateForAlias(lastName)
-  const firstAliasCandidate = firstNameTransliterated + lastNameTransliterated.slice(0, 1)
-  if (aliasSchema.safeParse(firstAliasCandidate).success) {
-    return firstAliasCandidate
-  }
-  return null
+  const candidate = nameWithLastNamePrefix(firstName, lastName, 1)
+  return aliasSchema.safeParse(candidate).success ? candidate : null
 }
 
 /**

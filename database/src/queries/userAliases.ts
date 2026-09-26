@@ -1,9 +1,10 @@
 // AI-GENERATED — not an architecture reference
 
 import { asc, eq, inArray, like, or, sql } from 'drizzle-orm'
+import { MySql2Database } from 'drizzle-orm/mysql2'
 import { Order, Result } from 'shared'
-import { EntityManager, FindOptionsWhere, MoreThan, Not } from 'typeorm'
-import { drizzleDb } from '../AppDatabase'
+import { EntityManager, FindOptionsWhere, MoreThan } from 'typeorm'
+import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import {
   ALIAS_ORIGIN_ADOPTED,
   ALIAS_ORIGIN_CHOSEN,
@@ -19,11 +20,11 @@ import { UserAliasInsert, userAliasesTable } from '../schemas'
  * name writes nothing - so the number of rows is how many names somebody holds, and
  * the number of `chosen` rows in a window is how often they picked one.
  *
- * Several of these take an optional `EntityManager`. The caller that changes a name
- * already runs inside a REPEATABLE READ transaction that saves `users`, and the row
- * here has to share it: a row written outside would survive a rollback and leave the
- * member holding a name their account never got - counted against their quota and
- * blocked for everyone else.
+ * Taking a name writes here and to `users.alias`, and both writes share one Drizzle
+ * transaction (`tx` on `dbInsertUserAlias`): a row written outside would survive a
+ * rollback and leave the member holding a name their account never got - counted
+ * against their quota and blocked for everyone else. The reads still on TypeORM take
+ * an optional `EntityManager`.
  */
 
 const userAliasInsertFailed = (row: UserAliasInsert) =>
@@ -42,24 +43,6 @@ export async function dbFindOwnAlias(
 /** Whoever owns this name, or null. */
 export async function dbFindAliasOwner(alias: string): Promise<DbUserAlias | null> {
   return DbUserAlias.findOne({ where: { alias } })
-}
-
-/**
- * Is this name spoken for by somebody else? `userId` exempts the member's own names,
- * which is what lets them reclaim one they held before. With a manager, over the caller's
- * transaction: registerAccount picks a name while it holds its connection, and must not take
- * a second one from the pool meanwhile.
- */
-export async function dbAliasHeldByOther(
-  alias: string,
-  userId?: number,
-  manager?: EntityManager,
-): Promise<boolean> {
-  const where = userId === undefined ? { alias } : { alias, userId: Not(userId) }
-  const row = manager
-    ? await manager.findOne(DbUserAlias, { where })
-    : await DbUserAlias.findOne({ where })
-  return row !== null
 }
 
 /**
@@ -100,9 +83,13 @@ export async function dbFindOldestChosenAliasSince(
 /** Record that this name now belongs to the member. */
 export async function dbInsertUserAlias(
   userAlias: UserAliasInsert,
+  tx?: DrizzleTransaction | MySql2Database,
 ): Promise<Result<number, DBInsertFailed<UserAliasInsert> | DBDuplicateEntryError>> {
+  if (!tx) {
+    tx = drizzleDb()
+  }
   try {
-    const rows = await drizzleDb().insert(userAliasesTable).values(userAlias)
+    const rows = await tx.insert(userAliasesTable).values(userAlias)
     const firstRow = rows[0]
     if (firstRow && firstRow.affectedRows === 1) {
       return { success: true, value: firstRow.insertId }
@@ -129,6 +116,14 @@ export async function dbRemoveUserAlias(userAliasId: number): Promise<number> {
     return rows[0] ? rows[0].affectedRows : 0
   }
   return 0
+}
+
+/** Removes every name these members own. For seeding only, see `dbRemoveUserRoles`. */
+export async function dbRemoveUserAliasesOfUsers(userIds: number[]): Promise<void> {
+  if (userIds.length === 0) {
+    return
+  }
+  await drizzleDb().delete(userAliasesTable).where(inArray(userAliasesTable.userId, userIds))
 }
 
 /** Every name this member owns, current one included. */

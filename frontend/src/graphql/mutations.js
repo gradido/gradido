@@ -170,9 +170,7 @@ export const createUser = gql`
       referrerAlias: $referrerAlias
       presenceCode: $presenceCode
       password: $password
-    ) {
-      id
-    }
+    )
   }
 `
 

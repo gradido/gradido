@@ -202,6 +202,8 @@ export class RegisterUserRole extends AbstractRegisterUserRole {
     }
 
     // alias seems to be already in use, so let's try some more
+    // from here on the name is built by the system: a proposal, even if one was chosen
+    origin = ALIAS_ORIGIN_ASSIGNED
     const aliasCandidatesArray = aliasCandidates(firstName, lastName, email, userId)
     const existingAliases = await dbFindUserAliasesWithRegex(
       aliasCandidatesArray.map(aliasVariantsPattern),

@@ -22,7 +22,6 @@ import { UserLocationResult } from '@model/UserLocationResult'
 import {
   ensureUrlEndsWithSlash,
   sendAccountActivationEmail,
-  sendAccountMultiRegistrationEmail,
   sendResetPasswordEmail,
   validateAlias,
   xcomMemberAvatars,
@@ -42,6 +41,7 @@ import {
   User as DbUser,
   UserContact as DbUserContact,
   UserRole as DbUserRole,
+  DrizzleTransaction,
   dbCountChosenAliasesSince,
   dbDeleteUserAvatar,
   dbEmailTaken,
@@ -68,6 +68,7 @@ import {
   dbUpsertUserAvatar,
   dbUserUpdateField,
   dbUserUpdatePassword,
+  drizzleDb,
   EventType,
   emailContactByUserIdQuery,
   findUserByIdentifier,
@@ -92,7 +93,6 @@ import {
   Result,
   updateAllDefinedAndChanged,
 } from 'shared'
-import { randombytes_random } from 'sodium-native'
 import {
   Arg,
   Args,
@@ -108,7 +108,6 @@ import {
 } from 'type-graphql'
 import { IRestResponse } from 'typed-rest-client'
 import { EntityNotFoundError, Point } from 'typeorm'
-import { v4 as uuidv4 } from 'uuid'
 import { HumHubClient } from '@/apis/humhub/HumHubClient'
 import { Account as HumhubAccount } from '@/apis/humhub/model/Account'
 import { GetUser } from '@/apis/humhub/model/GetUser'
@@ -126,8 +125,6 @@ import {
   splitMemberRefsByCommunity,
   XCOM_MEMBER_AVATARS_TIMEOUT_MS,
 } from '@/data/MemberAvatars.logic'
-import { inMemberLine } from '@/data/MemberLine.logic'
-import { PRESENCE_MAX_UNCONFIRMED, verifyPresenceCode } from '@/data/PresenceCode.logic'
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import { createUserSchema } from '@/interactions/registerUser'
 import { registerUser } from '@/interactions/registerUser/registerUser.context'
@@ -135,7 +132,6 @@ import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, fakeVerifyPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
-import { communityDbUser } from '@/util/communityUser'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { durationInMinutesFromDates, getTimeDurationObject, printTimeDuration } from '@/util/time'
 import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlayground'
@@ -413,11 +409,11 @@ export class UserResolver {
   }
 
   @Authorized([RIGHTS.CREATE_USER])
-  @Mutation(() => User)
+  @Mutation(() => Boolean)
   async createUser(
     @Args()
     args: CreateUserArgs,
-  ): Promise<User> {
+  ): Promise<boolean> {
     const logger = createLogger('createUser')
     const shortEmail = args.email.substring(0, 3)
     logger.addContext('email', shortEmail)
@@ -446,7 +442,7 @@ export class UserResolver {
       // return first error like before in code
       throw new Error(createUserDataParseResult.error.issues[0].message)
     }
-    return new User(await registerUser(createUserDataParseResult.data, logger))
+    return (await registerUser(createUserDataParseResult.data, logger)) !== 0
   }
 
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])
@@ -731,115 +727,113 @@ export class UserResolver {
     const oldHumhubUsername = publishNameLogic.getUserIdentifier(
       user.humhubPublishName as PublishNameType,
     )
-    const queryRunner = db.getDataSource().createQueryRunner()
-    await queryRunner.connect()
-    await queryRunner.startTransaction('REPEATABLE READ')
-    // Everything from here on runs inside the transaction that was just opened, and
-    // that is the point: before, only the save was guarded, so a rejected alias, an
-    // exhausted quota, a bad password or an unsupported language left the connection
-    // open with a REPEATABLE READ transaction still running on it.
-    try {
-      let updated = updateAllDefinedAndChanged(user, {
-        firstName,
-        lastName,
-        hideAmountGDD,
-        hideAmountGDT,
-        humhubAllowed,
-        gmsAllowed,
-        avatarVisibleToMembers,
-        gmsPublishName: gmsPublishName?.valueOf(),
-        humhubPublishName: humhubPublishName?.valueOf(),
-        gmsPublishLocation: gmsPublishLocation?.valueOf(),
-        aboutMe,
-      })
-      // Taking a name inserts a row and moves the marker; reclaiming one the member
-      // already owns only moves the marker. Leaving a name writes nothing - its row is
-      // already there. That is why the number of picked rows in a year is exactly how
-      // often somebody chose, and why coming back to an earlier name is free.
-      if (alias && alias !== user.alias) {
-        await validateAlias(alias, user.id)
-        const ownAlready = await dbFindOwnAlias(user.id, alias, queryRunner.manager)
-        if (!ownAlready) {
-          const since = new Date(Date.now() - ALIAS_QUOTA_WINDOW_MS)
-          const picked = await dbCountChosenAliasesSince(user.id, since, queryRunner.manager)
-          if (picked >= ALIAS_QUOTA_PER_WINDOW) {
-            logger.warn('alias quota exhausted', picked)
-            throw new LogError('ALIAS_QUOTA_EXHAUSTED')
+    let updated = updateAllDefinedAndChanged(user, {
+      firstName,
+      lastName,
+      hideAmountGDD,
+      hideAmountGDT,
+      humhubAllowed,
+      gmsAllowed,
+      avatarVisibleToMembers,
+      gmsPublishName: gmsPublishName?.valueOf(),
+      humhubPublishName: humhubPublishName?.valueOf(),
+      gmsPublishLocation: gmsPublishLocation?.valueOf(),
+      aboutMe,
+    })
+
+    if (language) {
+      if (!languageSchema.safeParse(language).success) {
+        logger.warn('try to set unsupported language', language)
+        throw new LogError('Given language is not a valid language or not supported')
+      }
+      user.language = language
+      updated = true
+    }
+
+    if (password && passwordNew) {
+      // Validate Password
+      if (!isValidPassword(passwordNew)) {
+        // TODO: log which rule(s) wasn't met
+        logger.warn('try to set invalid password')
+        throw new Error(
+          'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+        )
+      }
+
+      if (!(await verifyPassword(user, password))) {
+        logger.debug('old password is invalid')
+        throw new LogError(`Old password is invalid`)
+      }
+
+      // Save new password hash and newly encrypted private key
+      user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
+      user.password = await encryptPassword(user, passwordNew)
+      updated = true
+    }
+
+    if (gmsLocation) {
+      user.location = Location2Point(gmsLocation)
+      updated = true
+    }
+
+    // Taking a name inserts a row and moves the marker; reclaiming one the member
+    // already owns only moves the marker. Leaving a name writes nothing - its row is
+    // already there. That is why the number of picked rows in a year is exactly how
+    // often somebody chose, and why coming back to an earlier name is free.
+    // The only change that writes two tables, so the only one in a transaction. It comes
+    // after every other check: once it has committed, nothing may refuse the request.
+    let aliasChanged = false
+    if (alias && alias !== user.alias) {
+      const userId = user.id
+      await drizzleDb().transaction(
+        async (tx: DrizzleTransaction) => {
+          await validateAlias(alias, userId, tx)
+          const ownAlready = await dbFindOwnAlias(userId, alias)
+          if (!ownAlready) {
+            const since = new Date(Date.now() - ALIAS_QUOTA_WINDOW_MS)
+            const picked = await dbCountChosenAliasesSince(userId, since)
+            if (picked >= ALIAS_QUOTA_PER_WINDOW) {
+              logger.warn('alias quota exhausted', picked)
+              throw new LogError('ALIAS_QUOTA_EXHAUSTED')
+            }
+            const inserted = await dbInsertUserAlias(
+              { userId, alias, origin: ALIAS_ORIGIN_CHOSEN },
+              tx,
+            )
+            if (!inserted.success) {
+              // taken by somebody else between the check above and this insert
+              logger.warn('alias taken while it was being set', inserted.error)
+              throw new Error('Given alias is already in use')
+            }
+            logger.debug('member took a new alias')
+          } else {
+            logger.debug('member reclaimed an alias they already owned')
           }
-          await dbInsertUserAlias(user.id, alias, ALIAS_ORIGIN_CHOSEN, queryRunner.manager)
-          logger.debug('member took a new alias')
-        } else {
-          logger.debug('member reclaimed an alias they already owned')
-        }
-        user.alias = alias
-        updated = true
-      }
+          if ((await dbUserUpdateField(userId, 'alias', alias, tx)) !== 1) {
+            logger.error(`update alias for user=${userId} failed`)
+            throw new Error('Error saving user')
+          }
+        },
+        { isolationLevel: 'repeatable read' },
+      )
+      user.alias = alias
+      aliasChanged = true
+    }
 
-      if (language) {
-        if (!languageSchema.safeParse(language).success) {
-          logger.warn('try to set unsupported language', language)
-          throw new LogError('Given language is not a valid language or not supported')
-        }
-        user.language = language
-        updated = true
-      }
+    // early exit if no update was made
+    if (!updated && !aliasChanged) {
+      return true
+    }
 
-      if (password && passwordNew) {
-        // Validate Password
-        if (!isValidPassword(passwordNew)) {
-          // TODO: log which rule(s) wasn't met
-          logger.warn('try to set invalid password')
-          throw new Error(
-            'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
-          )
-        }
-
-        if (!(await verifyPassword(user, password))) {
-          logger.debug('old password is invalid')
-          throw new LogError(`Old password is invalid`)
-        }
-
-        // Save new password hash and newly encrypted private key
-        user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-        user.password = await encryptPassword(user, passwordNew)
-        updated = true
-      }
-
-      if (gmsLocation) {
-        user.location = Location2Point(gmsLocation)
-        updated = true
-      }
-
-      // early exit if no update was made. Nothing was written, but the transaction is
-      // open all the same and has to be closed before returning - and this is the most
-      // travelled way out of the whole resolver, so a bare `return` here leaked a
-      // connection on every call that changed nothing.
-      if (!updated) {
-        await queryRunner.rollbackTransaction()
-        return true
-      }
-
+    // Everything else is one row in one table and needs no transaction.
+    if (updated) {
       try {
-        user = await queryRunner.manager.save(user).catch((error) => {
-          throw new LogError('Error while saving user', error)
-        })
-        await queryRunner.commitTransaction()
-        logger.addContext('user', user.id)
+        user = await DbUser.save(user)
       } catch (err) {
         const errorMessage = 'Error saving user'
         logger.error(errorMessage, err)
         throw new Error(errorMessage)
       }
-    } catch (err) {
-      if (queryRunner.isTransactionActive) {
-        await queryRunner.rollbackTransaction()
-      }
-      // Passed on unchanged. The wallet reads ALIAS_QUOTA_EXHAUSTED off the message to
-      // name a date instead of showing a bare code, so flattening these into one
-      // message here would take that away.
-      throw err
-    } finally {
-      await queryRunner.release()
     }
     logger.info('updateUserInfos() successfully finished...')
     logger.debug('writing User data successful...', new UserLoggingView(user))

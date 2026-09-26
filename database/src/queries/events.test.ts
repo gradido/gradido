@@ -4,6 +4,7 @@ import {
   Community as DbCommunity,
   Event as DbEvent,
   User as DbUser,
+  UserAlias as DbUserAlias,
   UserContact as DbUserContact,
 } from '..'
 import { AppDatabase } from '../AppDatabase'
@@ -62,6 +63,7 @@ describe('events.queries', () => {
 
     beforeAll(async () => {
       await DbEvent.clear()
+      await DbUserAlias.clear()
       await DbUser.clear()
       await DbUserContact.clear()
       await DbCommunity.clear()
@@ -99,6 +101,7 @@ describe('events.queries', () => {
 
     beforeAll(async () => {
       await DbEvent.clear()
+      await DbUserAlias.clear()
       await DbUser.clear()
       await DbUserContact.clear()
       await DbCommunity.clear()

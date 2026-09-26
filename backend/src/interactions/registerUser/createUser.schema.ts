@@ -15,7 +15,7 @@ export const createUserSchema = z.object({
   firstName: firstNameSchema,
   lastName: lastNameSchema,
   language: defaultLanguageSchema,
-  publisherId: z.number().nullish().default(0),
+  publisherId: z.number().nullish(),
   redeemCode: z.string().nullish(),
   project: z.string().nullish(),
   referrerAlias: aliasSchema.nullish(),

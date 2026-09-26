@@ -54,6 +54,7 @@ afterAll(async () => {
 describe('user.queries', () => {
   describe('aliasExists', () => {
     beforeAll(async () => {
+      await DbUserAlias.clear()
       await DbUser.clear()
       await DbUserContact.clear()
       await DbCommunity.clear()
@@ -107,29 +108,50 @@ describe('user.queries', () => {
       expect(await aliasExists('faraway')).toBe(false)
     })
 
+    it('refuses the name of a deleted member, as the unique key does', async () => {
+      const gone = await userFactory({ ...bobBaumeister, alias: 'bob-gone' })
+      await DbUser.softRemove(gone)
+
+      expect(await aliasExists('bob-gone', bibi.id)).toBe(true)
+    })
+
     it('refuses a name another member left behind', async () => {
       const peter = await userFactory({ ...peterLustig, alias: 'peter-now' })
-      await dbInsertUserAlias(peter.id, 'peter-was', ALIAS_ORIGIN_CHOSEN)
+      await dbInsertUserAlias({ userId: peter.id, alias: 'peter-was', origin: ALIAS_ORIGIN_CHOSEN })
 
       expect(await aliasExists('peter-was', bibi.id)).toBe(true)
     })
 
     it('lets a member take back a name of their own', async () => {
-      await dbInsertUserAlias(bibi.id, 'bibi-was', ALIAS_ORIGIN_CHOSEN)
+      await dbInsertUserAlias({ userId: bibi.id, alias: 'bibi-was', origin: ALIAS_ORIGIN_CHOSEN })
 
       expect(await aliasExists('bibi-was', bibi.id)).toBe(false)
       // ...and it stays blocked for everybody else.
       expect(await aliasExists('bibi-was')).toBe(true)
     })
 
-    // registerAccount picks a name while its transaction holds a connection. Given the
-    // transaction's manager, the check asks over it - which shows in a name the transaction
-    // has written and not yet committed: seen through the manager, not beside it.
-    it('asks over the transaction it is given', async () => {
-      await db.getDataSource().transaction(async (manager) => {
-        await dbInsertUserAlias(bibi.id, 'bibi-pending', ALIAS_ORIGIN_CHOSEN, manager)
+    it('blocks a name somebody else holds in another capitalisation', async () => {
+      const peter = await DbUser.findOneByOrFail({ alias: 'peter-now' })
+      await dbInsertUserAlias({
+        userId: peter.id,
+        alias: 'Peter-Case',
+        origin: ALIAS_ORIGIN_CHOSEN,
+      })
 
-        expect(await aliasExists('bibi-pending', undefined, manager)).toBe(true)
+      expect(await aliasExists('peter-case', bibi.id)).toBe(true)
+    })
+
+    // Changing a name checks and writes inside one transaction. Given it, the check asks
+    // over it - which shows in a name the transaction has written and not yet committed:
+    // seen through `tx`, not beside it.
+    it('asks over the transaction it is given', async () => {
+      await drizzleDb().transaction(async (tx) => {
+        await dbInsertUserAlias(
+          { userId: bibi.id, alias: 'bibi-pending', origin: ALIAS_ORIGIN_CHOSEN },
+          tx,
+        )
+
+        expect(await aliasExists('bibi-pending', undefined, tx)).toBe(true)
         expect(await aliasExists('bibi-pending')).toBe(false)
       })
     })
@@ -144,6 +166,7 @@ describe('user.queries', () => {
     beforeAll(async () => {
       await DbUserRole.clear()
       await drizzleDb().delete(userAvatarsTable)
+      await DbUserAlias.clear()
       await DbUser.clear()
       await DbUserContact.clear()
       await DbCommunity.clear()
@@ -275,6 +298,7 @@ describe('user.queries', () => {
     let bibi: DbUser
 
     beforeAll(async () => {
+      await DbUserAlias.clear()
       await DbUser.clear()
       await DbUserContact.clear()
       bibi = await userFactory(bibiBloxberg)
@@ -357,6 +381,7 @@ describe('user.queries', () => {
     let registered: DbUser
 
     beforeAll(async () => {
+      await DbUserAlias.clear()
       await DbUser.clear()
       await DbUserContact.clear()
 
@@ -397,6 +422,7 @@ describe('user.queries', () => {
     let home: string
 
     beforeAll(async () => {
+      await DbUserAlias.clear()
       await DbUser.clear()
       await DbUserContact.clear()
       await DbCommunity.clear()
@@ -425,6 +451,7 @@ describe('user.queries', () => {
     let home: string
 
     beforeAll(async () => {
+      await DbUserAlias.clear()
       await DbUser.clear()
       await DbUserContact.clear()
       await DbCommunity.clear()
@@ -502,6 +529,7 @@ describe('user.queries', () => {
     }
 
     beforeAll(async () => {
+      await DbUserAlias.clear()
       await DbUser.clear()
       await DbUserContact.clear()
       await storedRow(PEER, FIRST)
@@ -543,6 +571,7 @@ describe('user.queries', () => {
     const rowOf = (gradidoID: string) => DbUser.findOneOrFail({ where: { gradidoID } })
 
     beforeAll(async () => {
+      await DbUserAlias.clear()
       await DbUser.clear()
       await DbUserContact.clear()
       await DbCommunity.clear()
@@ -628,6 +657,7 @@ describe('user.queries', () => {
     let peter: DbUser
 
     beforeAll(async () => {
+      await DbUserAlias.clear()
       await DbUser.clear()
       await DbUserContact.clear()
       bibi = await userFactory(bibiBloxberg)
@@ -651,6 +681,7 @@ describe('user.queries', () => {
     let bob: DbUser
 
     beforeAll(async () => {
+      await DbUserAlias.clear()
       await DbUser.clear()
       await DbUserContact.clear()
       bibi = await userFactory(bibiBloxberg)
@@ -800,6 +831,7 @@ describe('user.queries', () => {
     }
 
     beforeAll(async () => {
+      await DbUserAlias.clear()
       await DbUser.clear()
       await DbUserContact.clear()
       await DbCommunity.clear()
