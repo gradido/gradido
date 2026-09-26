@@ -859,3 +859,32 @@ export const chatMessagesTable = mysqlTable(
 
 export type ChatMessageSelect = typeof chatMessagesTable.$inferSelect
 export type ChatMessageInsert = typeof chatMessagesTable.$inferInsert
+
+// The Jitsi servers the chat's video calls take a room from (migration 0145), as an
+// administrator keeps them on the admin page "Chat". The table IS the list: the backend reads
+// it afresh for every check, and CHAT_VIDEO_SERVERS only fills it once, while it is empty.
+//
+// `baseUrl` is stored as the backend's chatVideoServerFrom builds it -- https, ending in '/'
+// -- so the unique key sees the same server however it was typed. `active` is the tick "in
+// the random choice": every row is checked, only active ones are handed out. What the checks
+// find is not stored; it is the view of the running process (chatVideoServerPool).
+export const chatVideoServersTable = mysqlTable(
+  'chat_video_servers',
+  {
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    baseUrl: varchar('base_url', { length: 255 }).notNull(),
+    operator: varchar({ length: 120 }).default(sql`NULL`),
+    // Letters and digits only; NULL for none -- the room name is then the random part alone.
+    roomPrefix: varchar('room_prefix', { length: 40 }).default(sql`NULL`),
+    note: varchar({ length: 255 }).default(sql`NULL`),
+    active: boolean().default(true).notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+  },
+  (table) => [uniqueIndex('chat_video_servers_base_url_unique').on(table.baseUrl)],
+)
+
+export type ChatVideoServerSelect = typeof chatVideoServersTable.$inferSelect
+export type ChatVideoServerInsert = typeof chatVideoServersTable.$inferInsert
