@@ -21,6 +21,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { chatVideoServerPool } from '@/apis/jitsi/chatVideoServerPool'
 import { probeJitsiServer } from '@/apis/jitsi/jitsiProbe'
 import { JitsiProbeError } from '@/apis/jitsi/jitsiProbe.logic'
+import { seedChatVideoServers } from '@/apis/jitsi/seedChatVideoServers'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { CHAT_VIDEO_SERVERS_DEFAULT } from '@/data/ChatVideoServers.default'
 import { userFactory } from '@/seeds/factory/user'
@@ -57,18 +58,23 @@ jest.mock('core', () => {
 })
 
 // The video servers are not asked: the probe answers as each test says. The pool is the one of
-// the process, and nothing starts its timer -- the tests check the servers with refresh().
+// the process, and nothing starts its timer -- the tests check the servers with refreshNow().
 jest.mock('@/apis/jitsi/jitsiProbe', () => ({ probeJitsiServer: jest.fn() }))
 const probe = probeJitsiServer as jest.MockedFunction<typeof probeJitsiServer>
 
-/** The video servers after a check in which every one passed -- or none. */
+/**
+ * The video servers after a check in which every one passed -- or none. The list is the table
+ * (V3), filled the way the backend's start fills an empty one: from the default list, as no
+ * CHAT_VIDEO_SERVERS is set here.
+ */
 const videoServersChecked = async (pass: boolean): Promise<void> => {
   probe.mockImplementation(async (server) =>
     pass
       ? { success: true, value: { latencyMs: 50 } }
       : { success: false, error: new JitsiProbeError(server.host, 'UNREACHABLE', 'test') },
   )
-  await chatVideoServerPool.refresh()
+  await seedChatVideoServers()
+  await chatVideoServerPool.refreshNow()
 }
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)

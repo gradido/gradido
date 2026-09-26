@@ -728,3 +728,78 @@ export const setCreationAllowed = gql`
     setCreationAllowed(userId: $userId, allowed: $allowed)
   }
 `
+
+export const createChatVideoServer = gql`
+  mutation ($input: ChatVideoServerInput!) {
+    createChatVideoServer(input: $input) {
+      id
+      baseUrl
+      host
+      operator
+      roomPrefix
+      note
+      active
+      createdAt
+      updatedAt
+      check {
+        ok
+        reason
+        checkedAt
+        latencyMs
+        picks
+      }
+    }
+  }
+`
+
+export const updateChatVideoServer = gql`
+  mutation ($id: Int!, $input: ChatVideoServerInput!) {
+    updateChatVideoServer(id: $id, input: $input) {
+      id
+      baseUrl
+      host
+      operator
+      roomPrefix
+      note
+      active
+      createdAt
+      updatedAt
+      check {
+        ok
+        reason
+        checkedAt
+        latencyMs
+        picks
+      }
+    }
+  }
+`
+
+export const deleteChatVideoServer = gql`
+  mutation ($id: Int!) {
+    deleteChatVideoServer(id: $id)
+  }
+`
+
+export const checkChatVideoServersNow = gql`
+  mutation {
+    checkChatVideoServersNow {
+      id
+      baseUrl
+      host
+      operator
+      roomPrefix
+      note
+      active
+      createdAt
+      updatedAt
+      check {
+        ok
+        reason
+        checkedAt
+        latencyMs
+        picks
+      }
+    }
+  }
+`

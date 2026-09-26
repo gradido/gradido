@@ -43,6 +43,74 @@
     "titleRemove": "Wiedervorlage entfernen?"
   },
   "change_user_role": "Nutzerrolle ändern",
+  "chatAdmin": {
+    "adminOnly": "Nur für Administratoren.",
+    "created": "Server eingetragen.",
+    "edit": "Bearbeiten",
+    "errors": {
+      "duplicate": "Dieser Server steht schon in der Liste.",
+      "invalid": {
+        "BAD_PREFIX": "Das Präfix darf nur Buchstaben und Ziffern enthalten.",
+        "NOT_A_BASE_ADDRESS": "Die Adresse darf kein „?“, kein „#“ und keinen Benutzernamen enthalten.",
+        "NOT_HTTPS": "Die Adresse muss mit https:// beginnen.",
+        "TOO_LONG": "Ein Feld ist zu lang.",
+        "other": "Der Eintrag passt nicht ({reason})."
+      },
+      "notFound": "Diesen Eintrag gibt es nicht mehr. Die Liste ist neu geladen."
+    },
+    "form": {
+      "active": "In der Zufallsauswahl",
+      "add": "Eintragen",
+      "addTitle": "Server eintragen",
+      "baseUrl": "Adresse",
+      "baseUrlHint": "Die Adresse des Jitsi-Servers mit https://, ohne Raumnamen.",
+      "note": "Bemerkung",
+      "operator": "Betreiber",
+      "operatorHint": "So, wie ihn das Impressum nennt. Die Mitglieder lesen den Namen in der Einladung.",
+      "prefix": "Präfix",
+      "prefixHint": "Nur Buchstaben und Ziffern. Es steht direkt nach dem Schrägstrich, dahinter folgen zwölf Zufallszeichen. Leer: nur die Zufallszeichen."
+    },
+    "reason": {
+      "LOGIN_REQUIRED": "Anmeldung nötig",
+      "NOT_JITSI": "kein Jitsi",
+      "NO_ANONYMOUS": "keine anonymen Räume",
+      "NO_BOSH": "keine XMPP-Antwort",
+      "UNREACHABLE": "nicht erreichbar"
+    },
+    "remove": "Löschen",
+    "removeDialog": {
+      "confirm": "Löschen",
+      "hint": "Schon verschickte Einladungen bleiben gültig. Neue Anrufe gehen nicht mehr über diesen Server.",
+      "question": "{host} aus der Liste löschen?",
+      "title": "Server löschen"
+    },
+    "removed": "Server gelöscht.",
+    "save": "Speichern",
+    "servers": {
+      "active": "Aktiv",
+      "activeOff": "{host} ist nicht mehr in der Zufallsauswahl.",
+      "activeOn": "{host} ist jetzt in der Zufallsauswahl.",
+      "activeTitle": "In der Zufallsauswahl",
+      "checkNow": "Jetzt prüfen",
+      "checked": "{ok} von {count} antworten.",
+      "checking": "wird geprüft …",
+      "empty": "Die Liste ist leer, darum schlägt der Chat gerade keinen Server vor. Ist sie beim nächsten Start des Servers noch leer, füllt er sie neu: mit den Servern aus seiner Einstellung oder, ohne Einstellung, mit den geprüften öffentlichen Servern. Um Videoanrufe abzuschalten, lass die Server in der Liste und nimm ihnen das Häkchen.",
+      "fairness": "Öffentliche Server gehören meist Freiwilligen. Trage nur ein, was der Betreiber erkennbar öffentlich anbietet.",
+      "hint": "Diese Server bekommen die Mitglieder für Videoanrufe vorgeschlagen. Ein Zufall wählt unter den aktiven, die bei der letzten Prüfung geantwortet haben; geprüft wird alle zehn Minuten.",
+      "noOperator": "Betreiber nicht angegeben",
+      "picks": "Einladungen seit dem Serverstart: {count}",
+      "prefix": "Präfix {prefix}",
+      "title": "Videoanrufe: Server"
+    },
+    "state": {
+      "checkedAt": "zuletzt geprüft {when}",
+      "failed": "antwortet nicht: {reason}",
+      "ok": "antwortet, {ms} ms",
+      "unchecked": "noch nicht geprüft"
+    },
+    "title": "Chat",
+    "updated": "Gespeichert."
+  },
   "close": "Schließen",
   "contribution": {
     "changeGroup": "Schöpfungsgruppe ändern",
@@ -388,6 +456,7 @@
   "name": "Name",
   "navbar": {
     "automaticContributions": "Startguthaben",
+    "chat": "Chat",
     "crea": "Crea",
     "creationGroups": "Schöpfungsgruppen",
     "instances": "Instanzen",

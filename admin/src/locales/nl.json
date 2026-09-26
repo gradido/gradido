@@ -43,6 +43,74 @@
     "titleRemove": "Remove reminder?"
   },
   "change_user_role": "Gebruikersrol wijzigen",
+  "chatAdmin": {
+    "adminOnly": "Alleen voor beheerders.",
+    "created": "Server toegevoegd.",
+    "edit": "Bewerken",
+    "errors": {
+      "duplicate": "Deze server staat al in de lijst.",
+      "invalid": {
+        "BAD_PREFIX": "Het voorvoegsel mag alleen letters en cijfers bevatten.",
+        "NOT_A_BASE_ADDRESS": "Het adres mag geen ‘?’, geen ‘#’ en geen gebruikersnaam bevatten.",
+        "NOT_HTTPS": "Het adres moet met https:// beginnen.",
+        "TOO_LONG": "Een veld is te lang.",
+        "other": "De invoer klopt niet ({reason})."
+      },
+      "notFound": "Deze vermelding bestaat niet meer. De lijst is opnieuw geladen."
+    },
+    "form": {
+      "active": "In de willekeurige keuze",
+      "add": "Toevoegen",
+      "addTitle": "Server toevoegen",
+      "baseUrl": "Adres",
+      "baseUrlHint": "Het adres van de Jitsi-server met https://, zonder naam van een ruimte.",
+      "note": "Opmerking",
+      "operator": "Aanbieder",
+      "operatorHint": "Zoals het impressum de aanbieder noemt. Leden lezen de naam in de uitnodiging.",
+      "prefix": "Voorvoegsel",
+      "prefixHint": "Alleen letters en cijfers. Het staat direct na de schuine streep, gevolgd door twaalf willekeurige tekens. Leeg: alleen de willekeurige tekens."
+    },
+    "reason": {
+      "LOGIN_REQUIRED": "aanmelding vereist",
+      "NOT_JITSI": "geen Jitsi",
+      "NO_ANONYMOUS": "geen anonieme ruimtes",
+      "NO_BOSH": "geen XMPP-antwoord",
+      "UNREACHABLE": "niet bereikbaar"
+    },
+    "remove": "Verwijderen",
+    "removeDialog": {
+      "confirm": "Verwijderen",
+      "hint": "Al verstuurde uitnodigingen blijven geldig. Nieuwe gesprekken lopen niet meer via deze server.",
+      "question": "{host} uit de lijst verwijderen?",
+      "title": "Server verwijderen"
+    },
+    "removed": "Server verwijderd.",
+    "save": "Opslaan",
+    "servers": {
+      "active": "Actief",
+      "activeOff": "{host} zit niet meer in de willekeurige keuze.",
+      "activeOn": "{host} zit nu in de willekeurige keuze.",
+      "activeTitle": "In de willekeurige keuze",
+      "checkNow": "Nu controleren",
+      "checked": "{ok} van {count} antwoorden.",
+      "checking": "wordt gecontroleerd …",
+      "empty": "De lijst is leeg, daarom stelt de chat op dit moment geen server voor. Is ze bij de volgende start van de server nog leeg, dan wordt ze opnieuw gevuld: met de servers uit de instellingen van de server of, zonder instelling, met de gecontroleerde openbare servers. Om videogesprekken uit te schakelen, laat je de servers in de lijst staan en haal je hun vinkje weg.",
+      "fairness": "Openbare servers zijn meestal van vrijwilligers. Voeg alleen toe wat de aanbieder zichtbaar openbaar aanbiedt.",
+      "hint": "Deze servers worden de leden voorgesteld voor videogesprekken. Het toeval kiest uit de actieve servers die bij de laatste controle antwoordden; er wordt elke tien minuten gecontroleerd.",
+      "noOperator": "aanbieder niet vermeld",
+      "picks": "Uitnodigingen sinds de start van de server: {count}",
+      "prefix": "voorvoegsel {prefix}",
+      "title": "Videogesprekken: servers"
+    },
+    "state": {
+      "checkedAt": "laatst gecontroleerd {when}",
+      "failed": "antwoordt niet: {reason}",
+      "ok": "antwoordt, {ms} ms",
+      "unchecked": "nog niet gecontroleerd"
+    },
+    "title": "Chat",
+    "updated": "Opgeslagen."
+  },
   "close": "Sluiten",
   "contribution": {
     "changeGroup": "Creatiegroep wijzigen",
@@ -388,6 +456,7 @@
   "name": "Naam",
   "navbar": {
     "automaticContributions": "Startsaldo",
+    "chat": "Chat",
     "crea": "Crea",
     "creationGroups": "Creation groups",
     "instances": "Instanties",

@@ -825,6 +825,29 @@ export const chatVideoRoom = gql`
   }
 `
 
+export const chatVideoServers = gql`
+  query {
+    chatVideoServers {
+      id
+      baseUrl
+      host
+      operator
+      roomPrefix
+      note
+      active
+      createdAt
+      updatedAt
+      check {
+        ok
+        reason
+        checkedAt
+        latencyMs
+        picks
+      }
+    }
+  }
+`
+
 export const favoriteList = gql`
   query {
     favoriteList {
