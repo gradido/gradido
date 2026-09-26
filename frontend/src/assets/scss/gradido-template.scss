@@ -392,3 +392,13 @@ input.rounded-input {
 .pin-masked {
   -webkit-text-security: disc;
 }
+
+// The edge of an empty box, switch or radio (Bootstrap's .form-check-input) in light mode: the
+// muted text colour, as the dark mode has it (gradido-template-dark). Bootstrap's own edge,
+// --bs-border-color, stood at 1.19:1 against white and was barely there (Bernd, 26.09.2026);
+// this one stands at 4.69:1. `:not(:checked)` puts the rule above Bootstrap's `.form-check-input`
+// although this file comes first, and leaves Bootstrap's focus and validation edges in force:
+// they tie with it and come after it.
+.form-check-input:not(:checked) {
+  border-color: var(--text-muted);
+}
