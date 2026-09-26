@@ -4,7 +4,8 @@ block content
   h2= t('emails.contributionDenied.title')
   .text-block
     include ../includes/salutation.pug
-    p.human-text= t('emails.contributionDenied.commonGoodContributionDenied', { contributionMemo, senderAlias })
+    p
+      +humanText(t('emails.contributionDenied.commonGoodContributionDenied', { contributionMemo, senderAlias }))
   .content
     include ../includes/contributionDetailsCTA.pug
     include ../includes/doNotReply.pug

@@ -15,6 +15,7 @@ import {
   sendCustomEmail,
   sendEmailChangeSupportEmail,
   sendResetPasswordEmail,
+  sendThankYouCardPaidEmail,
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
 } from './sendEmailVariants'
@@ -1010,6 +1011,39 @@ describe('sendEmailVariants', () => {
       expect(html).toContain('https://gradido.net/faq?a=1&amp;b=2')
       expect(html).toContain('&quot;now&quot;')
       expect(html).not.toMatch(/&amp;(#|amp;|quot;|lt;|gt;)/)
+    })
+
+    it('makes an address in it a link, as anywhere else', () => {
+      expect(html).toMatch(
+        /„See <a href="https:\/\/gradido\.net\/faq\?a=1&amp;b=2"[^>]*>https:\/\/gradido\.net\/faq\?a=1&amp;b=2<\/a> &quot;now&quot;“/,
+      )
+    })
+
+    it('makes an address in the memo of a redeemed link and of a card payment a link', async () => {
+      const memo = 'Thanks! https://x.org/thanks'
+      const link = /<a href="https:\/\/x\.org\/thanks"[^>]*>https:\/\/x\.org\/thanks<\/a>/
+      const common = {
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        transactionMemo: memo,
+        transactionAmount: GradidoUnit.fromNumber(10),
+      }
+      const redeemed: any = await sendTransactionLinkRedeemedEmail({
+        ...common,
+        senderAlias: 'bibi',
+        senderCommunity: 'Gradido',
+      })
+      const paid: any = await sendThankYouCardPaidEmail({
+        ...common,
+        recipientName: 'Bibi',
+        recipientCommunity: 'Gradido',
+        cardLabel: 'Card 1',
+        cardId: 1,
+      })
+      expect(redeemed.originalMessage.html).toMatch(link)
+      expect(paid.originalMessage.html).toMatch(link)
     })
   })
 })

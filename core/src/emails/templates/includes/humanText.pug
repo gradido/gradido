@@ -2,6 +2,8 @@
 //- Text a person typed - a chat message, a moderator's question, a memo -, with its web and
     e-mail addresses as links. The pieces come from `humanTextParts`
     (`src/logic/HumanText.logic.ts`), handed to every template by `sendEmailTranslated`.
+    Where the text stands inside a sentence, the whole sentence goes in (`+humanText(t(…))`):
+    the phrases carry no addresses of their own, and one they carried would be a link too.
 
     ⛔ Every piece goes out through pug's escaping: `= part.value` as text, `href=part.value`
     as an attribute value. Nothing a person typed reaches the mail as markup. Never `!=` here.
