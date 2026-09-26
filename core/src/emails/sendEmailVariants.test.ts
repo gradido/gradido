@@ -842,6 +842,21 @@ describe('sendEmailVariants', () => {
         expect(result.originalMessage.html).toMatchSnapshot()
       })
     })
+
+    it('makes an address in the memo a link', async () => {
+      const sent: any = await sendTransactionReceivedEmail({
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        memo: 'For the workshop, see https://x.org/workshop',
+        senderAlias: 'bibi',
+        transactionAmount: GradidoUnit.fromNumber(10),
+      })
+      expect(sent.originalMessage.html).toMatch(
+        /For the workshop, see <a href="https:\/\/x\.org\/workshop"[^>]*>https:\/\/x\.org\/workshop<\/a>/,
+      )
+    })
   })
 
   /**
@@ -911,6 +926,57 @@ describe('sendEmailVariants', () => {
       const html = withSubject.originalMessage.html
       expect(html).not.toContain('/send/')
       expect(html).not.toContain('art=email')
+    })
+
+    /**
+     * The invitation to a video call is a chat message with the room's address in it, and the
+     * member should be able to join from the mail. Measured at the RENDERED mail: the links
+     * are pug's work, and only the html shows what pug made of the pieces.
+     */
+    describe('with addresses in the text', () => {
+      const room = 'https://virtual.chaosdorf.space/0mw1hppxkzme'
+      let sent: any
+
+      beforeAll(async () => {
+        sent = await sendCustomEmail({
+          ...message,
+          subject: 'Agenda: https://x.org/agenda',
+          memo: `Video call: ${room}\nor write to a@b.de <img src=x onerror=alert(1)>`,
+        })
+      })
+
+      it('makes each address a link whose text is the address', () => {
+        const html = sent.originalMessage.html
+        expect(html).toMatch(new RegExp(`<a href="${room}"[^>]*>${room}</a>`))
+        expect(html).toMatch(/<a href="mailto:a@b\.de"[^>]*>a@b\.de<\/a>/)
+        expect(html).toMatch(
+          /<a href="https:\/\/x\.org\/agenda"[^>]*>https:\/\/x\.org\/agenda<\/a>/,
+        )
+      })
+
+      it('keeps markup in the text as text', () => {
+        const html = sent.originalMessage.html
+        expect(html).toContain('&lt;img src=x onerror=alert(1)&gt;')
+        expect(html).not.toMatch(/<img[^>]*onerror/)
+      })
+
+      // ⛔ The text keeps its line breaks (`white-space: pre-line`), so a newline pug adds
+      // around the pieces would show as a break the member never typed.
+      it('adds no line break of its own around the pieces', () => {
+        const html = sent.originalMessage.html
+        const text = html.match(/<span class="human-text"[^>]*>([\s\S]*?)<\/span>/g)
+        expect(text).toHaveLength(2)
+        expect(text[1]).toMatch(
+          new RegExp(`>Video call: <a [^>]*>${room}</a>\\nor write to <a [^>]*>a@b\\.de</a> &lt;`),
+        )
+        expect(text[1].split('\n')).toHaveLength(2)
+      })
+
+      it('gives the address once in the text part, and the button its target', () => {
+        const text: string = sent.originalMessage.text
+        expect(text.split(room)).toHaveLength(2)
+        expect(text).toContain(`[${CONFIG.COMMUNITY_URL}/transactions]`)
+      })
     })
   })
 })
