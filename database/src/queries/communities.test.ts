@@ -17,7 +17,7 @@ import {
   getHomeCommunityDrizzle,
   getHomeCommunityWithFederatedCommunityOrFail,
   getReachableCommunities,
-  resetHomeCommunityCache,
+  HOME_COMMUNITY_CHANGED_CHANNEL,
 } from './communities'
 
 const db = AppDatabase.getInstance()
@@ -34,7 +34,7 @@ describe('community.queries', () => {
   beforeEach(async () => {
     await DbCommunity.clear()
     await DbFederatedCommunity.clear()
-    resetHomeCommunityCache()
+    AppDatabase.getInstance().publish(HOME_COMMUNITY_CHANGED_CHANNEL)
   })
   describe('getHomeCommunity', () => {
     it('should return null if no home community exists', async () => {
@@ -153,8 +153,11 @@ describe('community.queries', () => {
     })
     it('invalidates the cached home community in other processes too', async () => {
       // Another process changes the row and publishes the change. Simulated: the row is
-      // written past dbUpdateHomeCommunity, then the message is published by hand.
+      // written past dbUpdateHomeCommunity, then the message is published on Redis by hand.
       const homeCom = await createCommunity(false)
+      expect((await getHomeCommunityDrizzle()).name).toBe('HomeCommunity-name')
+      // the cache keeps the row only once Redis has confirmed the subscription
+      await AppDatabase.getInstance().subscribe(HOME_COMMUNITY_CHANGED_CHANNEL, () => undefined)
       expect((await getHomeCommunityDrizzle()).name).toBe('HomeCommunity-name')
       await drizzleDb()
         .update(communitiesTable)
@@ -162,8 +165,8 @@ describe('community.queries', () => {
         .where(eq(communitiesTable.id, homeCom.id))
       expect((await getHomeCommunityDrizzle()).name).toBe('HomeCommunity-name')
 
-      AppDatabase.getInstance().publish('home_community_changed')
-      // pub/sub runs over Redis, the message arrives asynchronously
+      await AppDatabase.getInstance().getRedisClient().publish(HOME_COMMUNITY_CHANGED_CHANNEL, '')
+      // the message of another process arrives asynchronously
       for (let attempt = 0; attempt < 50; attempt++) {
         if ((await getHomeCommunityDrizzle()).name === 'changed elsewhere') {
           break

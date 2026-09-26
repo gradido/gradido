@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { drizzle, MySql2Database } from 'drizzle-orm/mysql2'
 import Redis from 'ioredis'
 import { getLogger } from 'log4js'
@@ -20,6 +21,12 @@ export class AppDatabase {
   // pub/sub needs its own. One for all channels, the messages are dispatched per channel.
   private redisSubscriber: Redis | undefined
   private readonly channelHandlers = new Map<string, Set<(message: string) => void>>()
+  // Per channel the SUBSCRIBE sent to Redis, resolved once Redis has confirmed it.
+  // Removed again if it fails, so the next subscribe() sends a new one.
+  private readonly channelSubscriptions = new Map<string, Promise<void>>()
+  // Marks the messages this process publishes: they reach its own handlers right away,
+  // so the copy coming back from Redis is dropped.
+  private readonly pubSubSender = randomUUID()
   private defaultBatchSize: number = 100
 
   /**
@@ -117,9 +124,10 @@ export class AppDatabase {
     this.redisClient = new Redis(CONFIG.REDIS_URL)
     logger.info('Redis status=', this.redisClient.status)
     this.redisSubscriber = this.redisClient.duplicate()
-    this.redisSubscriber.on('message', (channel: string, message: string) => {
-      for (const handler of this.channelHandlers.get(channel) ?? []) {
-        handler(message)
+    this.redisSubscriber.on('message', (channel: string, raw: string) => {
+      const { sender, message } = parsePubSubMessage(raw)
+      if (sender !== this.pubSubSender) {
+        this.deliver(channel, message)
       }
     })
 
@@ -170,6 +178,7 @@ export class AppDatabase {
       this.redisSubscriber = undefined
     }
     this.channelHandlers.clear()
+    this.channelSubscriptions.clear()
   }
 
   public getRedisClient(): Redis {
@@ -182,37 +191,66 @@ export class AppDatabase {
   /**
    * Calls handler for every message published on channel, by any process, until destroy().
    * Subscribing the same handler to the same channel again changes nothing.
+   *
+   * The handler is registered at once, messages published by this process reach it from
+   * then on. Messages of other processes only arrive once Redis has confirmed the
+   * subscription, which the returned promise reports. It rejects if subscribing failed;
+   * the failure is logged here already, and the next call tries again.
    */
-  public subscribe(channel: string, handler: (message: string) => void): void {
+  public subscribe(channel: string, handler: (message: string) => void): Promise<void> {
     if (!this.redisSubscriber) {
       throw new Error('Redis subscriber not initialized')
     }
     const handlers = this.channelHandlers.get(channel)
     if (handlers) {
       handlers.add(handler)
-      return
+    } else {
+      this.channelHandlers.set(channel, new Set([handler]))
     }
-    this.channelHandlers.set(channel, new Set([handler]))
-    // not awaited: while Redis is unreachable ioredis queues the command
-    this.redisSubscriber
-      .subscribe(channel)
-      .catch((error) => logger.error(`Redis subscribe to channel ${channel} failed:`, error))
+    const existing = this.channelSubscriptions.get(channel)
+    if (existing) {
+      return existing
+    }
+    // while Redis is unreachable ioredis queues the command, so this may take a while
+    const subscription = this.redisSubscriber.subscribe(channel).then(() => undefined)
+    this.channelSubscriptions.set(channel, subscription)
+    subscription.catch((error) => {
+      logger.error(`Redis subscribe to channel ${channel} failed:`, error)
+      if (this.channelSubscriptions.get(channel) === subscription) {
+        this.channelSubscriptions.delete(channel)
+      }
+    })
+    return subscription
   }
 
   /**
    * Publishes message on channel to every subscribed process, this one included.
-   * Best effort: not awaited and a failure is only logged, pub/sub does not guarantee
-   * delivery anyway. Whoever relies on it needs a fallback, like the timeout of a cache.
+   * The handlers of this process are called right away, without Redis; they still are
+   * when Redis is unreachable or not initialized.
+   * To the other processes best effort: not awaited and a failure is only logged, pub/sub
+   * does not guarantee delivery anyway. Whoever relies on it needs a fallback, like the
+   * timeout of a cache.
    */
   public publish(channel: string, message: string = ''): void {
-    this.getRedisClient()
-      .publish(channel, message)
+    this.deliver(channel, message)
+    if (!this.redisClient) {
+      return
+    }
+    this.redisClient
+      .publish(channel, JSON.stringify({ sender: this.pubSubSender, message }))
       .catch((error) => logger.error(`Redis publish on channel ${channel} failed:`, error))
   }
 
   // ######################################
   // private methods
   // ######################################
+
+  private deliver(channel: string, message: string): void {
+    for (const handler of this.channelHandlers.get(channel) ?? []) {
+      handler(message)
+    }
+  }
+
   private async checkDBVersion(): Promise<void> {
     const [dbVersion] = await Migration.find({ order: { version: 'DESC' }, take: 1 })
     if (!dbVersion) {
@@ -230,3 +268,27 @@ export class AppDatabase {
 
 export const getDataSource = () => AppDatabase.getInstance().getDataSource()
 export const drizzleDb = () => AppDatabase.getInstance().getDrizzleDataSource()
+
+/**
+ * What arrives over Redis: normally `{ sender, message }` as publish() sends it. Anything
+ * else was published by someone other than an AppDatabase, e.g. by hand with redis-cli,
+ * and counts as a message of another process as it is.
+ */
+function parsePubSubMessage(raw: string): { sender?: string; message: string } {
+  try {
+    const parsed: unknown = JSON.parse(raw)
+    if (
+      typeof parsed === 'object' &&
+      parsed !== null &&
+      'sender' in parsed &&
+      'message' in parsed &&
+      typeof parsed.sender === 'string' &&
+      typeof parsed.message === 'string'
+    ) {
+      return { sender: parsed.sender, message: parsed.message }
+    }
+  } catch {
+    // not JSON, see above
+  }
+  return { message: raw }
+}

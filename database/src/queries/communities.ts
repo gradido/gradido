@@ -13,6 +13,9 @@ import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { Community as DbCommunity } from '../entity'
 import { CommunitiesInsert, CommunitiesSelect, communitiesTable } from '../schemas'
 
+/** Announces a change of the home community row, see `AppDatabase.publish()`. */
+export const HOME_COMMUNITY_CHANGED_CHANNEL = 'home_community_changed'
+
 // Shared between processes: the dht-node rewrites the row at startup, backend and federation
 // each hold their own cached copy.
 const homeCommunityCache = new CachedValue(
@@ -24,17 +27,8 @@ const homeCommunityCache = new CachedValue(
     return homeCom
   },
   // a getter, because AppDatabase and the queries import each other
-  { shared: { channel: 'home_community_changed', pubSub: () => AppDatabase.getInstance() } },
+  { shared: { channel: HOME_COMMUNITY_CHANGED_CHANNEL, pubSub: () => AppDatabase.getInstance() } },
 )
-
-/**
- * Forgets the cached home community of this process. For tests, which empty the table
- * between cases and would otherwise read the row of a previous case.
- * TODO: remove after updating all tests and seeds to use drizzle db functions
- */
-export function resetHomeCommunityCache(): void {
-  homeCommunityCache.invalidate()
-}
 
 /**
  * Retrieves the home community, i.e., a community that is not foreign.

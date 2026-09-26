@@ -13,12 +13,16 @@ const deferred = <T>() => {
   return { promise, resolve, reject }
 }
 
-// what AppDatabase does over Redis, in memory: a message reaches every subscriber, the sender included
+// what AppDatabase does over Redis, in memory: a message reaches every subscriber, the sender
+// included. Every subscription is confirmed at once, and like AppDatabase it hands out the
+// same promise for a channel as long as the subscription stands.
+const confirmed = Promise.resolve()
 const inMemoryPubSub = () => {
   const handlers = new Map<string, Set<(message: string) => void>>()
   const pubSub: PubSub = {
     subscribe: mock((channel: string, handler: (message: string) => void) => {
       handlers.set(channel, (handlers.get(channel) ?? new Set()).add(handler))
+      return confirmed
     }),
     publish: mock((channel: string, message = '') => {
       for (const handler of handlers.get(channel) ?? []) {
@@ -132,6 +136,14 @@ describe('CachedValue', () => {
   })
 
   describe('shared between processes', () => {
+    // A shared cache keeps nothing until its subscription is confirmed. The first get()
+    // subscribes, so from the second one on the value is cached.
+    const subscribedCache = async <T>(load: () => Promise<T>, pubSub: PubSub) => {
+      const cache = new CachedValue(load, { shared: { channel: 'changed', pubSub: () => pubSub } })
+      await cache.get()
+      return cache
+    }
+
     it('subscribes on load, with the same handler every time', async () => {
       const { pubSub, handlers } = inMemoryPubSub()
       const cache = new CachedValue(async () => 'value', {
@@ -148,62 +160,117 @@ describe('CachedValue', () => {
       expect(handlers.get('changed')?.size).toBe(1)
     })
 
-    it('invalidates when another process announces a change', async () => {
-      const { pubSub } = inMemoryPubSub()
+    it('does not cache before the subscription is confirmed, and does not wait for it', async () => {
+      // Redis has not answered the SUBSCRIBE yet: an announcement now would be lost
+      const confirmation = deferred<void>()
+      const pubSub: PubSub = {
+        subscribe: mock(() => confirmation.promise),
+        publish: mock(() => undefined),
+      }
       let counter = 0
       const cache = new CachedValue(async () => ++counter, {
         shared: { channel: 'changed', pubSub: () => pubSub },
       })
       expect(await cache.get()).toBe(1)
+      expect(await cache.get()).toBe(2)
+
+      confirmation.resolve()
+      await confirmation.promise
+      expect(await cache.get()).toBe(3)
+      expect(await cache.get()).toBe(3)
+    })
+
+    it('does not cache the load which was running when the subscription got confirmed', async () => {
+      const confirmation = deferred<void>()
+      const pending = deferred<number>()
+      const loads = [() => pending.promise, async () => 2]
+      const pubSub: PubSub = {
+        subscribe: mock(() => confirmation.promise),
+        publish: mock(() => undefined),
+      }
+      const cache = new CachedValue(() => loads.shift()!(), {
+        shared: { channel: 'changed', pubSub: () => pubSub },
+      })
+      const first = cache.get()
+      // confirmed while the load already reads: it may have read before a lost announcement
+      confirmation.resolve()
+      await confirmation.promise
+      pending.resolve(1)
+      expect(await first).toBe(1)
+
+      expect(await cache.get()).toBe(2)
+      expect(await cache.get()).toBe(2)
+    })
+
+    it('subscribes again after a failed subscription, and caches once that one is confirmed', async () => {
+      const subscriptions = [Promise.reject(new Error('Redis unreachable')), confirmed, confirmed]
+      // the rejection is handled by the cache, not by this test
+      subscriptions[0].catch(() => undefined)
+      const pubSub: PubSub = {
+        subscribe: mock(() => subscriptions.shift()!),
+        publish: mock(() => undefined),
+      }
+      let counter = 0
+      const cache = new CachedValue(async () => ++counter, {
+        shared: { channel: 'changed', pubSub: () => pubSub },
+      })
+      expect(await cache.get()).toBe(1)
+      // subscribes again; confirmed only while this load is running, so not cached yet
+      expect(await cache.get()).toBe(2)
+      expect(await cache.get()).toBe(3)
+      expect(await cache.get()).toBe(3)
+      expect(pubSub.subscribe).toHaveBeenCalledTimes(3)
+    })
+
+    it('invalidates when another process announces a change', async () => {
+      const { pubSub } = inMemoryPubSub()
+      let counter = 0
+      const cache = await subscribedCache(async () => ++counter, pubSub)
+      expect(await cache.get()).toBe(2)
+      expect(await cache.get()).toBe(2)
 
       pubSub.publish('changed')
-      expect(await cache.get()).toBe(2)
+      expect(await cache.get()).toBe(3)
     })
 
     it('ignores other channels', async () => {
       const { pubSub } = inMemoryPubSub()
       let counter = 0
-      const cache = new CachedValue(async () => ++counter, {
-        shared: { channel: 'changed', pubSub: () => pubSub },
-      })
-      expect(await cache.get()).toBe(1)
+      const cache = await subscribedCache(async () => ++counter, pubSub)
+      expect(await cache.get()).toBe(2)
 
       pubSub.publish('something else')
-      expect(await cache.get()).toBe(1)
+      expect(await cache.get()).toBe(2)
     })
 
     it('invalidateEverywhere invalidates this process and publishes the change', async () => {
       const { pubSub } = inMemoryPubSub()
       let counter = 0
-      const cache = new CachedValue(async () => ++counter, {
-        shared: { channel: 'changed', pubSub: () => pubSub },
-      })
-      expect(await cache.get()).toBe(1)
+      const cache = await subscribedCache(async () => ++counter, pubSub)
+      expect(await cache.get()).toBe(2)
 
       cache.invalidateEverywhere()
       expect(pubSub.publish).toHaveBeenCalledWith('changed')
-      expect(await cache.get()).toBe(2)
+      expect(await cache.get()).toBe(3)
     })
 
     it('invalidates this process at once, without waiting for its own message', async () => {
       // a pub/sub which delivers nothing, like Redis while unreachable
-      const pubSub: PubSub = { subscribe: mock(() => undefined), publish: mock(() => undefined) }
+      const pubSub: PubSub = {
+        subscribe: mock(() => confirmed),
+        publish: mock(() => undefined),
+      }
       let counter = 0
-      const cache = new CachedValue(async () => ++counter, {
-        shared: { channel: 'changed', pubSub: () => pubSub },
-      })
-      expect(await cache.get()).toBe(1)
+      const cache = await subscribedCache(async () => ++counter, pubSub)
+      expect(await cache.get()).toBe(2)
 
       cache.invalidateEverywhere()
-      expect(await cache.get()).toBe(2)
+      expect(await cache.get()).toBe(3)
     })
 
     it('invalidate only forgets the value here, it announces nothing', async () => {
       const { pubSub } = inMemoryPubSub()
-      const cache = new CachedValue(async () => 'value', {
-        shared: { channel: 'changed', pubSub: () => pubSub },
-      })
-      await cache.get()
+      const cache = await subscribedCache(async () => 'value', pubSub)
       cache.invalidate()
       expect(pubSub.publish).not.toHaveBeenCalled()
     })
@@ -220,7 +287,7 @@ describe('CachedValue', () => {
       })
       await expect(cache.get()).rejects.toThrow('Redis subscriber not initialized')
 
-      pubSub.subscribe = mock(() => undefined)
+      pubSub.subscribe = mock(() => confirmed)
       expect(await cache.get()).toBe('value')
     })
 

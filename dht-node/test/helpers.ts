@@ -1,4 +1,9 @@
-import { AppDatabase, drizzleOnlyTableNames, entities } from 'database'
+import {
+  AppDatabase,
+  drizzleOnlyTableNames,
+  entities,
+  HOME_COMMUNITY_CHANGED_CHANNEL,
+} from 'database'
 
 export const headerPushMock = jest.fn((t) => {
   context.token = t.value
@@ -29,6 +34,9 @@ export const cleanDB = async () => {
   for (const tableName of drizzleOnlyTableNames) {
     await dataSource.query(`DELETE FROM \`${tableName}\``)
   }
+  // The rows are gone past the query functions, so nobody announced it: the cached home
+  // community would outlive them. publish() reaches this process at once, Redis or not.
+  AppDatabase.getInstance().publish(HOME_COMMUNITY_CHANGED_CHANNEL)
 }
 
 // Taken while it is still the real one - see useFakeTimersForDrizzle.
