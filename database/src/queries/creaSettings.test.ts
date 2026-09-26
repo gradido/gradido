@@ -2,15 +2,16 @@
 import { AppDatabase } from '../AppDatabase'
 import { CreaSetting } from '../entity/CreaSetting'
 import { dbGetFirstCreationSignerUserId, dbSetFirstCreationSignerUserId } from './creaSettings'
+import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 
 const appDB = AppDatabase.getInstance()
 
 beforeAll(async () => {
   await appDB.init()
-  await CreaSetting.clear()
+  await dbDeleteAllRowsExceptMigrations()
 })
 afterAll(async () => {
-  await CreaSetting.clear()
+  await dbDeleteAllRowsExceptMigrations()
   await appDB.destroy()
 })
 
@@ -39,7 +40,7 @@ describe('creaSettings query test', () => {
   })
 
   it('lets two admins create the singleton at the same moment without a duplicate', async () => {
-    await CreaSetting.clear()
+    await dbDeleteAllRowsExceptMigrations()
     await Promise.all([dbSetFirstCreationSignerUserId(3), dbSetFirstCreationSignerUserId(4)])
     expect(await CreaSetting.count()).toBe(1)
     expect([3, 4]).toContain(await dbGetFirstCreationSignerUserId())

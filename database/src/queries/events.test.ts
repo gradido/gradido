@@ -1,17 +1,13 @@
 // AI-GENERATED — not an architecture reference
 import { IsNull } from 'typeorm'
-import {
-  Community as DbCommunity,
-  Event as DbEvent,
-  User as DbUser,
-  UserContact as DbUserContact,
-} from '..'
+import { Event as DbEvent, User as DbUser } from '..'
 import { AppDatabase } from '../AppDatabase'
 import { createCommunity } from '../seeds/community'
 import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import { dbFindLatestEventForAffectedUser, dbHasRegisterRedeemEvent } from './events'
+import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 
 const db = AppDatabase.getInstance()
 
@@ -61,10 +57,7 @@ describe('events.queries', () => {
     let latest: DbEvent
 
     beforeAll(async () => {
-      await DbEvent.clear()
-      await DbUser.clear()
-      await DbUserContact.clear()
-      await DbCommunity.clear()
+      await dbDeleteAllRowsExceptMigrations()
 
       await createCommunity(false)
       bibi = await userFactory(bibiBloxberg)
@@ -98,10 +91,7 @@ describe('events.queries', () => {
     const OTHER_LINK = 4712
 
     beforeAll(async () => {
-      await DbEvent.clear()
-      await DbUser.clear()
-      await DbUserContact.clear()
-      await DbCommunity.clear()
+      await dbDeleteAllRowsExceptMigrations()
 
       await createCommunity(false)
       bibi = await userFactory(bibiBloxberg)

@@ -1,12 +1,7 @@
 import Decimal from 'decimal.js-light'
 import { PendingTransactionState } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
-import {
-  Community as DbCommunity,
-  PendingTransaction as DbPendingTransaction,
-  User as DbUser,
-  UserContact as DbUserContact,
-} from '..'
+import { User as DbUser } from '..'
 import { AppDatabase } from '../AppDatabase'
 import { createCommunity } from '../seeds/community'
 import { pendingTransactionFactory } from '../seeds/factory/pendingTransaction'
@@ -15,6 +10,7 @@ import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { garrickOllivander } from '../seeds/users/garrick-ollivander'
 import { peterLustig } from '../seeds/users/peter-lustig'
+import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import { countOpenPendingTransactions } from './pendingTransactions'
 
 const db = AppDatabase.getInstance()
@@ -32,10 +28,7 @@ describe('countOpenPendingTransactions', () => {
   let bob: DbUser
   let garrick: DbUser
   beforeAll(async () => {
-    await DbPendingTransaction.clear()
-    await DbUser.clear()
-    await DbUserContact.clear()
-    await DbCommunity.clear()
+    await dbDeleteAllRowsExceptMigrations()
 
     await createCommunity(false)
 

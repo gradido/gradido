@@ -3431,7 +3431,7 @@ describe('UserResolver', () => {
     })
 
     afterAll(async () => {
-      await DbCommunity.clear()
+      await cleanDB()
     })
 
     beforeEach(() => {

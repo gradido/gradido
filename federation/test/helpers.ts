@@ -1,7 +1,6 @@
 import {
   AppDatabase,
-  drizzleOnlyTableNames,
-  entities,
+  dbDeleteAllRowsExceptMigrations,
   HOME_COMMUNITY_CHANGED_CHANNEL,
 } from 'database'
 import { createTestClient } from 'apollo-server-testing'
@@ -24,21 +23,10 @@ const context = {
 }
 
 export const cleanDB = async () => {
-  // this only works as long we do not have foreign key constraints
-  for (const entity of entities) {
-    if (entity.name !== 'Migration') {
-      await resetEntity(entity)
-    }
-  }
-  // The tables without a TypeORM entity: `entities` does not know them, so their rows used
-  // to outlive the test file that wrote them. The list lives next to the schema.
-  // Over the TypeORM connection, not Drizzle's: dht-node runs cleanDB under Jest's fake
-  // timers, which fake `process.nextTick` - and mysql2, Drizzle's driver, hands every result
-  // over through it. TypeORM runs on the `mysql` package and is not affected.
-  const dataSource = AppDatabase.getInstance().getDataSource()
-  for (const tableName of drizzleOnlyTableNames) {
-    await dataSource.query(`DELETE FROM \`${tableName}\``)
-  }
+  // Every table except `migrations`, in one statement that reads the table list itself - a
+  // table with or without a TypeORM entity, and one added tomorrow, alike.
+  await dbDeleteAllRowsExceptMigrations()
+  
   // The rows are gone past the query functions, so nobody announced it: the cached home
   // community would outlive them. publish() reaches this process at once, Redis or not.
   AppDatabase.getInstance().publish(HOME_COMMUNITY_CHANGED_CHANNEL)
@@ -51,14 +39,6 @@ export const testEnvironment = async (testLogger = getLogger('apollo') /*, testI
   const mutate = testClient.mutate
   const query = testClient.query
   return { mutate, query, con }
-}
-
-export const resetEntity = async (entity: any) => {
-  const items = await entity.find({ withDeleted: true })
-  if (items.length > 0) {
-    const ids = items.map((e: any) => e.id)
-    await entity.delete(ids)
-  }
 }
 
 export const resetToken = () => {
