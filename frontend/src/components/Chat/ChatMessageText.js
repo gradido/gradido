@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { h } from 'vue'
 import { chatTextParts } from '@/utils/chatTextParts'
+import { withoutChatVideoTopic } from '@/utils/chatVideoTopic'
 
 /**
  * The text of one chat message: plain text, bold runs as `<strong>`, and its web and e-mail
@@ -14,6 +15,12 @@ import { chatTextParts } from '@/utils/chatTextParts'
  * formatter breaks lines around inline elements, and Vue turns such a break into a space.
  * Here it would even be SHOWN -- the bubble keeps the message's own line breaks and spaces
  * (`white-space: pre-wrap`), so a break the formatter put in would stand in the text.
+ *
+ * A video room's link SHOWS its server and room only (V4a): the topic's encoded addition after
+ * `#` says nothing to anybody, and the invitation names the topic in words above it. The link
+ * itself keeps the whole address -- the addition is what gives the meeting its title. Only that
+ * one addition is left out of sight (`withoutChatVideoTopic`); every other address is shown as it
+ * is. The thread only: memos and mails show addresses whole.
  */
 export default {
   name: 'ChatMessageText',
@@ -30,7 +37,7 @@ export default {
             return h(
               'a',
               { href: part.value, target: '_blank', rel: 'noopener noreferrer' },
-              part.value,
+              withoutChatVideoTopic(part.value),
             )
           }
           if (part.type === 'email') {

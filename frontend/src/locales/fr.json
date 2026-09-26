@@ -170,10 +170,14 @@
     "videoAskTitle": "Lancer un appel vidéo avec {name} ?",
     "videoCall": "Lancer un appel vidéo avec {name}",
     "videoInvite": "📹 Appel vidéo. La salle se trouve sur un serveur Jitsi géré par {operator} — une suggestion, pas un service de Gradido : {url}",
+    "videoInviteTopic": "📹 Appel vidéo : {topic}\nLa salle se trouve sur un serveur Jitsi géré par {operator} — une suggestion, pas un service de Gradido : {url}",
     "videoNoServer": "Aucun serveur vidéo n'est joignable pour le moment. Réessaie dans un instant.",
     "videoNotSent": "L'invitation n'a pas pu être envoyée.",
     "videoOpen": "Ouvrir la salle",
     "videoStart": "Lancer l'appel",
+    "videoTopic": "Sujet",
+    "videoTopicDefault": "Appel vidéo",
+    "videoTopicHint": "Le sujet figure dans le lien. Tous ceux qui ont le lien peuvent le voir — y compris celui qui gère le serveur.",
     "you": "Toi"
   },
   "community": {

@@ -170,10 +170,14 @@
     "videoAskTitle": "Avviare una videochiamata con {name}?",
     "videoCall": "Avvia una videochiamata con {name}",
     "videoInvite": "📹 Videochiamata. La stanza si trova su un server Jitsi gestito da {operator} — un suggerimento, non un servizio di Gradido: {url}",
+    "videoInviteTopic": "📹 Videochiamata: {topic}\nLa stanza si trova su un server Jitsi gestito da {operator} — un suggerimento, non un servizio di Gradido: {url}",
     "videoNoServer": "Al momento nessun server video è raggiungibile. Riprova tra poco.",
     "videoNotSent": "Non è stato possibile inviare l'invito.",
     "videoOpen": "Apri la stanza",
     "videoStart": "Avvia la chiamata",
+    "videoTopic": "Argomento",
+    "videoTopicDefault": "Videochiamata",
+    "videoTopicHint": "L'argomento compare nel link. Chi ha il link può vederlo — anche chi gestisce il server.",
     "you": "Tu"
   },
   "community": {

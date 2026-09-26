@@ -170,10 +170,14 @@
     "videoAskTitle": "{name} ile görüntülü görüşme başlatılsın mı?",
     "videoCall": "{name} ile görüntülü görüşme başlat",
     "videoInvite": "📹 Görüntülü görüşme. Oda, {operator} tarafından işletilen bir Jitsi sunucusunda — bir öneri, Gradido'nun bir hizmeti değil: {url}",
+    "videoInviteTopic": "📹 Görüntülü görüşme: {topic}\nOda, {operator} tarafından işletilen bir Jitsi sunucusunda — bir öneri, Gradido'nun bir hizmeti değil: {url}",
     "videoNoServer": "Şu anda hiçbir video sunucusuna ulaşılamıyor. Birazdan tekrar dene.",
     "videoNotSent": "Davet gönderilemedi.",
     "videoOpen": "Odayı aç",
     "videoStart": "Görüşmeyi başlat",
+    "videoTopic": "Konu",
+    "videoTopicDefault": "Görüntülü görüşme",
+    "videoTopicHint": "Konu bağlantıda yer alır. Bağlantıya sahip olan herkes konuyu görebilir — sunucuyu işleten de.",
     "you": "Sen"
   },
   "community": {
