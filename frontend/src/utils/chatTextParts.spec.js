@@ -1,8 +1,14 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { chatTextParts } from './chatTextParts'
 import ChatMessageText from '@/components/Chat/ChatMessageText'
+
+// The component words the way into the Jitsi app in the reader's language (V4b); every text shows
+// its key here.
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t: (key) => key }),
+}))
 
 describe('chatTextParts', () => {
   it('leaves a message without stars or addresses as one piece of text', () => {

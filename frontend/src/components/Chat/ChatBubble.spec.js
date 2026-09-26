@@ -135,6 +135,100 @@ describe('ChatBubble', () => {
     expect(link.attributes('href')).toBe(address)
   })
 
+  /**
+   * V4b: on a computer an invitation of our own has a second way beside its link -- the same room
+   * in the Jitsi app. The device is the browser's to say (chatVideoApp): here a stand-in for
+   * `matchMedia` that answers the one question asked, where jsdom has none -- the state every
+   * other test runs in, and the phone's answer.
+   */
+  describe('the way into the Jitsi app', () => {
+    const ROOM = 'https://meet.ffmuc.net/k7m2x9q4t8wz'
+    const ADDRESS = `${ROOM}#config.subject=%22Gespr%C3%A4ch%20%C3%BCber%20B%C3%A4ume%22`
+    const INVITATION = `📹 Videoanruf: Gespräch über Bäume\nDer Raum liegt auf einem Jitsi-Server von Freifunk München — ein Vorschlag, kein Dienst von Gradido: ${ADDRESS}`
+
+    const onA = ({ computer }) => {
+      vi.stubGlobal('matchMedia', (query) => ({
+        matches: query === '(pointer: fine) and (hover: hover)' && computer,
+      }))
+    }
+    const links = () => wrapper.findAll('.chat-message-text a')
+    const appLink = () => wrapper.find('.chat-message-text a.chat-video-app-link')
+
+    afterEach(() => {
+      vi.unstubAllGlobals()
+    })
+
+    it('offers the same room in the app beside the link, on a computer', () => {
+      onA({ computer: true })
+      mountBubble({ ...THEIRS, body: INVITATION })
+
+      expect(links()).toHaveLength(2)
+      expect(links()[0].attributes('href')).toBe(ADDRESS)
+      expect(links()[0].attributes('target')).toBe('_blank')
+      expect(links()[0].text()).toBe(ROOM)
+      expect(links()[1].element).toBe(appLink().element)
+      expect(appLink().attributes('href')).toBe(
+        'jitsi-meet://meet.ffmuc.net/k7m2x9q4t8wz#config.subject=%22Gespr%C3%A4ch%20%C3%BCber%20B%C3%A4ume%22',
+      )
+      expect(appLink().text()).toBe('chatThread.videoInApp')
+      expect(appLink().attributes('title')).toBe('chatThread.videoInAppHint')
+      expect(
+        wrapper.find('.chat-message-text').text().endsWith(`${ROOM} · chatThread.videoInApp`),
+      ).toBe(true)
+    })
+
+    // ⛔ An app's link opens no window: `_blank` would leave an empty tab behind.
+    it('opens no window from the link into the app', () => {
+      onA({ computer: true })
+      mountBubble({ ...THEIRS, body: INVITATION })
+
+      expect(appLink().attributes('target')).toBeUndefined()
+      expect(appLink().attributes('rel')).toBeUndefined()
+    })
+
+    it("offers it in one's own bubble too", () => {
+      onA({ computer: true })
+      mountBubble({ ...OWN, body: INVITATION })
+
+      expect(appLink().exists()).toBe(true)
+    })
+
+    // Phones and tablets: Jitsi's own page offers its app there.
+    it('offers nothing more on a phone or a tablet, where the link stays as it was', () => {
+      onA({ computer: false })
+      mountBubble({ ...THEIRS, body: INVITATION })
+
+      expect(links()).toHaveLength(1)
+      expect(links()[0].attributes('href')).toBe(ADDRESS)
+      expect(wrapper.find('.chat-message-text').text()).not.toContain('chatThread.videoInApp')
+    })
+
+    // Asked at every drawing, nothing kept: the next drawing follows the device.
+    it('follows the device at its next drawing', async () => {
+      onA({ computer: false })
+      mountBubble({ ...THEIRS, body: INVITATION })
+      expect(appLink().exists()).toBe(false)
+
+      // Another text, so the text is drawn anew: the device is no reactive state.
+      onA({ computer: true })
+      await wrapper.setProps({ message: { ...THEIRS, body: `Noch einmal: ${ADDRESS}` } })
+
+      expect(appLink().exists()).toBe(true)
+    })
+
+    it.each([
+      ['a page', 'https://gradido.net/de/faq#konto'],
+      ['a room with a second setting', `${ADDRESS}&config.startWithAudioMuted=true`],
+      ['a room over http', ADDRESS.replace('https:', 'http:')],
+    ])("offers no app for somebody else's address: %s", (_, address) => {
+      onA({ computer: true })
+      mountBubble({ ...THEIRS, body: `Schau mal: ${address}` })
+
+      expect(links()).toHaveLength(1)
+      expect(appLink().exists()).toBe(false)
+    })
+  })
+
   // E-018: the time is when it arrived here, as a machine-readable <time> and a short one to
   // read.
   it('says when it arrived, as a time of day', () => {

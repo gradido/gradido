@@ -47,6 +47,11 @@ const KEYS = {
   videoTopicDefault: [],
   videoTopicHint: [],
   videoInviteTopic: ['{topic}', '{operator}', '{url}'],
+  // V4b: the way into the Jitsi app -- the link and its hint, the button, the browser's link.
+  videoInApp: [],
+  videoInAppHint: [],
+  videoStartInApp: [],
+  videoOpenInBrowser: [],
 }
 
 /** Topics a member may type, each hard in its own way for the link finder or for Jitsi. */
@@ -67,7 +72,7 @@ describe('the video call in every language', () => {
     expect(languages).toHaveLength(10)
   })
 
-  it.each(languages)('has all thirteen texts, each with its placeholders once, in %s', (lang) => {
+  it.each(languages)('has all seventeen texts, each with its placeholders once, in %s', (lang) => {
     const texts = chatThreadIn(lang)
     for (const [key, placeholders] of Object.entries(KEYS)) {
       expect(texts[key], `${lang}: chatThread.${key}`).toBeTruthy()
@@ -110,7 +115,16 @@ describe('the video call in every language', () => {
   // The other half: the language asked for is the language that came back -- a lookup that fell
   // back to English would pass every test above for every language.
   it('renders each language in its own words', () => {
-    for (const key of ['videoInvite', 'videoInviteTopic', 'videoTopicDefault', 'videoTopicHint']) {
+    for (const key of [
+      'videoInvite',
+      'videoInviteTopic',
+      'videoTopicDefault',
+      'videoTopicHint',
+      'videoInApp',
+      'videoInAppHint',
+      'videoStartInApp',
+      'videoOpenInBrowser',
+    ]) {
       const rendered = languages.map((lang) =>
         i18n.global.t(
           `chatThread.${key}`,
@@ -156,5 +170,15 @@ describe('the video call in every language', () => {
   // The hint under the field: the same dash as the invitation, in every language.
   it.each(languages)('writes the dash of the invitation in the hint, in %s', (lang) => {
     expect(chatThreadIn(lang).videoTopicHint).toContain(' — ')
+  })
+
+  // V4b: the app is called by its name in every language -- it is what the member looks for on
+  // the computer -- and its hint takes the invitation's dash too.
+  it.each(languages)('names the Jitsi app by its name, in %s', (lang) => {
+    const texts = chatThreadIn(lang)
+    for (const key of ['videoInApp', 'videoInAppHint', 'videoStartInApp']) {
+      expect(texts[key], `${lang}: chatThread.${key}`).toContain('Jitsi')
+    }
+    expect(texts.videoInAppHint).toContain(' — ')
   })
 })
