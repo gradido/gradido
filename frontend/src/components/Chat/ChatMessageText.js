@@ -1,9 +1,13 @@
 // AI-GENERATED — not an architecture reference
-import { h } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { h, inject } from 'vue'
 import { chatTextParts } from '@/utils/chatTextParts'
-import { chatVideoAppUrl, offersJitsiApp } from '@/utils/chatVideoApp'
+import { CHAT_VIDEO_JOIN, chatVideoAppUrl, offersJitsiApp } from '@/utils/chatVideoApp'
 import { withoutChatVideoTopic } from '@/utils/chatVideoTopic'
+
+/** A click that opens a link where it stands: no key held, the main button. The others -- a new
+ * tab, a new window, a download -- are the browser's, and they go as they always did. */
+const plainClick = (event) =>
+  event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey
 
 /**
  * The text of one chat message: plain text, bold runs as `<strong>`, and its web and e-mail
@@ -24,12 +28,12 @@ import { withoutChatVideoTopic } from '@/utils/chatVideoTopic'
  * one addition is left out of sight (`withoutChatVideoTopic`); every other address is shown as it
  * is. The thread only: memos and mails show addresses whole.
  *
- * On a computer an invitation of our own gets a second way beside it (V4b): " · Open in the Jitsi
- * app", to the same room as `jitsi-meet://` (chatVideoApp) -- in the sender's own bubble too. The
- * first link stays as it is: whoever clicks chooses, and nothing is remembered (E-020). Its words
- * are the reader's, in the reader's language: they work the wallet, they are no part of the
- * message. ⛔ No `target`: an app's link opens no window, and `_blank` would leave an empty tab
- * behind in Chrome and Safari. Asked at every drawing whether this is a computer, nothing kept.
+ * On a computer a click on the link of an invitation of our own asks first (V4b, Bernd,
+ * 26.09.2026): "Join call", with the box "Start in the Jitsi app" under it -- the question the
+ * contact window provides (`CHAT_VIDEO_JOIN`), in the sender's own bubble too. The link itself
+ * stays the room's address, so a click with a key held, the middle button and "copy link" work as
+ * on any link. On a phone, and where no window provides the question, it opens the room straight
+ * away, as it always did. Whether this is a computer is asked at the click, nothing kept.
  */
 export default {
   name: 'ChatMessageText',
@@ -37,34 +41,32 @@ export default {
     text: { type: String, default: '' },
   },
   setup(props) {
-    const { t } = useI18n()
-    return () => {
-      const offered = offersJitsiApp()
-      return h(
+    const join = inject(CHAT_VIDEO_JOIN, null)
+    return () =>
+      h(
         'span',
         { class: 'chat-message-text' },
-        chatTextParts(props.text).flatMap((part) => {
+        chatTextParts(props.text).map((part) => {
           if (part.type === 'url') {
-            const link = h(
+            const asks = join && chatVideoAppUrl(part.value) !== null
+            return h(
               'a',
-              { href: part.value, target: '_blank', rel: 'noopener noreferrer' },
+              {
+                href: part.value,
+                target: '_blank',
+                rel: 'noopener noreferrer',
+                ...(asks
+                  ? {
+                      onClick: (event) => {
+                        if (!plainClick(event) || !offersJitsiApp()) return
+                        event.preventDefault()
+                        join(part.value)
+                      },
+                    }
+                  : {}),
+              },
               withoutChatVideoTopic(part.value),
             )
-            const inApp = offered ? chatVideoAppUrl(part.value) : null
-            if (!inApp) return [link]
-            return [
-              link,
-              ' · ',
-              h(
-                'a',
-                {
-                  href: inApp,
-                  class: 'chat-video-app-link',
-                  title: t('chatThread.videoInAppHint'),
-                },
-                t('chatThread.videoInApp'),
-              ),
-            ]
           }
           if (part.type === 'email') {
             return h('a', { href: `mailto:${part.value}` }, part.value)
@@ -75,6 +77,5 @@ export default {
           return part.value
         }),
       )
-    }
   },
 }

@@ -259,31 +259,9 @@
         @shown="videoAskOpened = true"
       >
         <p class="h5 mb-2" data-test="contact-window-video-title">{{ videoAskTitle }}</p>
-        <!-- The invitation went out by "Start in the Jitsi app" (V4b): the room is opened from
-             here, by a click of one's own -- in the app, or in the browser after all. Neither link
-             opens by itself (see `startVideoCall`), and the app's has no `target`: an app's link
-             opens no window. -->
-        <div v-if="videoRoomInApp" data-test="contact-window-video-app-room">
-          <p class="mb-2">
-            <a
-              :href="videoRoomInApp"
-              :title="$t('chatThread.videoInAppHint')"
-              data-test="contact-window-video-in-app"
-            >
-              {{ $t('chatThread.videoInApp') }}
-            </a>
-          </p>
-          <p class="small mb-0">
-            <a
-              :href="videoRoomToOpen"
-              target="_blank"
-              rel="noopener noreferrer"
-              data-test="contact-window-video-in-browser"
-            >
-              {{ $t('chatThread.videoOpenInBrowser') }}
-            </a>
-          </p>
-        </div>
+        <!-- The room went to the Jitsi app, and no sign came that it opened (V4b): the question
+             says so and offers the room in the browser (ChatVideoAppMissed). -->
+        <ChatVideoAppMissed v-if="videoAppMissed" :room="videoRoomToOpen" />
         <!-- The invitation went out, but the browser held the room's window back (a popup
              blocker): the member opens it from here, by a tap of their own. -->
         <p v-else-if="videoRoomToOpen" class="mb-0">
@@ -338,18 +316,15 @@
                 : $t('chatThread.videoAskFirst', { name: alias })
             }}
           </p>
-          <div v-if="chatConversation.exists" class="form-check mt-3">
-            <input
-              :id="videoEmailId"
-              v-model="videoAlsoByEmail"
-              class="form-check-input"
-              type="checkbox"
-              data-test="contact-window-video-email"
-            />
-            <label class="form-check-label" :for="videoEmailId">
-              {{ $t('chatThread.alsoByEmail') }}
-            </label>
-          </div>
+          <!-- The compose bar's box (ChatCheck), as every box in this window. -->
+          <ChatCheck
+            v-if="chatConversation.exists"
+            v-model="videoAlsoByEmail"
+            class="mt-3"
+            box-test="contact-window-video-email"
+          >
+            {{ $t('chatThread.alsoByEmail') }}
+          </ChatCheck>
           <!-- `role="alert"`: said when it is put in -- whoever cannot see the dialog would
                otherwise hear nothing after the press. -->
           <p
@@ -378,28 +353,69 @@
             >
               {{ $t('form.cancel') }}
             </BButton>
-            <!-- The second way, on a computer only (V4b, chatVideoApp): the same call, and the
-                 room is then opened in the Jitsi app. Between the two, since "Start call" stays
-                 the main button at the right; it waits with it while a call is being made. -->
-            <BButton
-              v-if="offersJitsiApp()"
-              variant="outline-secondary"
-              class="contact-window-video-app"
-              :aria-disabled="videoCalling ? 'true' : 'false'"
-              data-test="contact-window-video-app"
-              @click="startVideoCall({ inApp: true })"
-            >
-              {{ $t('chatThread.videoStartInApp') }}
-            </BButton>
             <BButton
               variant="gradido"
               class="contact-window-video-start"
               :aria-disabled="videoCalling ? 'true' : 'false'"
               data-test="contact-window-video-start"
-              @click="startVideoCall()"
+              @click="startVideoCall"
             >
               {{ $t('chatThread.videoStart') }}
             </BButton>
+            <!-- The second way, on a computer only (V4b, chatVideoApp): ticked, "Start call" makes
+                 the same call and opens the room in the Jitsi app instead of the browser. -->
+            <ChatVideoAppBox v-if="offersJitsiApp()" v-model="videoInApp" />
+          </template>
+        </template>
+      </BModal>
+
+      <!-- The question before joining a call (V4b, Bernd, 26.09.2026): a click on the link of a
+           video invitation in the thread, on a computer, asks it (ChatMessageText) -- the start's
+           question cut short, with no topic and no sentence: the button, and the same box under
+           it. Its own footer for the reason the start's has one. -->
+      <BModal
+        v-model="videoJoining"
+        lazy
+        centered
+        no-header
+        :aria-label="videoJoinTitle"
+        data-test="contact-window-video-join-dialog"
+      >
+        <p
+          class="h5"
+          :class="videoJoinMissed ? 'mb-3' : 'mb-0'"
+          data-test="contact-window-video-join-title"
+        >
+          {{ videoJoinTitle }}
+        </p>
+        <ChatVideoAppMissed v-if="videoJoinMissed" :room="videoJoinRoom" />
+        <template #footer>
+          <BButton
+            v-if="videoJoinMissed"
+            variant="secondary"
+            data-test="contact-window-video-join-close"
+            @click="videoJoining = false"
+          >
+            {{ $t('form.close') }}
+          </BButton>
+          <template v-else>
+            <BButton
+              variant="secondary"
+              data-test="contact-window-video-join-cancel"
+              @click="videoJoining = false"
+            >
+              {{ $t('form.cancel') }}
+            </BButton>
+            <BButton
+              variant="gradido"
+              class="contact-window-video-join"
+              :aria-disabled="videoJoinWaiting ? 'true' : 'false'"
+              data-test="contact-window-video-join"
+              @click="joinVideoCall"
+            >
+              {{ $t('chatThread.videoJoin') }}
+            </BButton>
+            <ChatVideoAppBox v-if="offersJitsiApp()" v-model="videoInApp" />
           </template>
         </template>
       </BModal>
@@ -408,14 +424,17 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, ref, useId, watch } from 'vue'
+import { computed, onBeforeUnmount, provide, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { useApolloClient, useMutation } from '@vue/apollo-composable'
 import { BButton, BModal } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
+import ChatCheck from '@/components/Chat/ChatCheck.vue'
 import ChatThread from '@/components/Chat/ChatThread.vue'
+import ChatVideoAppBox from '@/components/Chat/ChatVideoAppBox.vue'
+import ChatVideoAppMissed from '@/components/Chat/ChatVideoAppMissed.vue'
 import FavoriteHeart from '@/components/FavoriteHeart.vue'
 import {
   CONTACT_META_SEPARATOR,
@@ -431,7 +450,14 @@ import { bookingsWithMemberRoute } from '@/utils/bookingsRoute'
 import { chatMemberKey } from '@/utils/chatMemberKey'
 import { chatNotifyFor } from '@/utils/chatNotify'
 import { CHAT_VIDEO_TOPIC_MAX, withChatVideoTopic } from '@/utils/chatVideoTopic'
-import { chatVideoAppUrl, offersJitsiApp } from '@/utils/chatVideoApp'
+import {
+  CHAT_VIDEO_JOIN,
+  chatVideoAppUrl,
+  offersJitsiApp,
+  openInJitsiApp,
+  readChatVideoInApp,
+  watchJitsiAppOpening,
+} from '@/utils/chatVideoApp'
 
 /**
  * One contact, opened from wherever a contact stands: the list, the column, the strip.
@@ -696,7 +722,6 @@ const videoAskTitle = computed(() => t('chatThread.videoAskTitle', { name: alias
 const videoAsking = ref(false)
 /** The box "Also by e-mail", empty for every question (E-024) -- where it is shown at all. */
 const videoAlsoByEmail = ref(false)
-const videoEmailId = `${useId()}-video-email`
 /**
  * The topic of the meeting (V4a): the default for every question, and nothing kept -- no store,
  * no log. It travels in the room's address, and the address is the call's secret.
@@ -722,17 +747,22 @@ const videoCalling = ref(false)
 const videoProblem = ref('')
 /**
  * The room, where the invitation went out and the browser held its window back: the member
- * opens it from the dialog. So too where it went out by the app's way, under the app's link
- * (`videoRoomInApp`). ⛔ The address is the call's secret -- it lives here only while the
- * dialog shows it, and in no store (the vuex store is written whole into localStorage) and no log.
+ * opens it from the dialog. So too where the box sent the call to the Jitsi app and the address
+ * unexpectedly is none the app takes. ⛔ The address is the call's secret -- it lives here only
+ * while the dialog shows it, and in no store (the vuex store is written whole into localStorage)
+ * and no log.
  */
 const videoRoomToOpen = ref('')
 /**
- * The same room as the Jitsi app's address, where the invitation went out by "Start in the Jitsi
- * app" (V4b): the dialog offers it, and the room in the browser under it (`videoRoomToOpen`). The
- * call's secret as well, kept the same way.
+ * The box "Start in the Jitsi app" (V4b, on a computer only), in both questions -- starting a
+ * call and joining one: read anew whenever one opens, from what the member left it at on this
+ * device, and remembered with every change (ChatVideoAppBox).
  */
-const videoRoomInApp = ref('')
+const videoInApp = ref(false)
+/** The room went to the Jitsi app and no sign came that it opened: the question says so. */
+const videoAppMissed = ref(false)
+/** Stops watching for the app's sign (`watchJitsiAppOpening`) -- while the question waits. */
+let stopVideoAppWatch = null
 
 /**
  * The room's window while a call is being made. Given up to the member once it is navigated;
@@ -750,6 +780,7 @@ let videoAttempt = 0
 const askVideoCall = () => {
   videoAlsoByEmail.value = false
   videoTopic.value = t('chatThread.videoTopicDefault')
+  videoInApp.value = readChatVideoInApp(store.state.gradidoID)
   videoAskOpened.value = false
   videoAsking.value = true
 }
@@ -767,7 +798,9 @@ const forgetVideoCall = () => {
   videoCalling.value = false
   videoProblem.value = ''
   videoRoomToOpen.value = ''
-  videoRoomInApp.value = ''
+  stopVideoAppWatch?.()
+  stopVideoAppWatch = null
+  videoAppMissed.value = false
 }
 
 watch(videoAsking, (open) => {
@@ -806,17 +839,15 @@ const isNoVideoServer = (error) => String(error?.message ?? '').includes('CHAT_V
  * invitation (V4b). The address with the topic is made once, and the invitation, the room's
  * window and the link in the dialog all carry that one.
  *
- * "Start in the Jitsi app" (`inApp`, V4b, on a computer only) is the same call without the window:
- * the room, the invitation through the thread, the same words for what went wrong. Once the
- * invitation went out, the app does NOT open by itself -- the dialog offers the room in the app,
- * and in the browser under it, for a second click. ⛔ A browser hands a link to an app only in
- * answer to a click, and between the click and the finished address lie two requests to the
- * server: by then Firefox and Safari may have let the click's leave lapse. And the room is not
- * entered before the invitation is out -- a room nobody else knows (see above) -- so it cannot be
- * opened in the click either. The second click is the form that holds.
+ * With the box "Start in the Jitsi app" ticked (V4b, on a computer only) it is the same call
+ * without the window: the room, the invitation through the thread, the same words for what went
+ * wrong -- and once the invitation went out, the room is handed to the app (`openInJitsiApp`) and
+ * the question closes. Not in the click, for the same reason the window waits empty: a room that
+ * nobody else knows is not entered.
  */
-const startVideoCall = async ({ inApp = false } = {}) => {
+const startVideoCall = async () => {
   if (videoCalling.value) return
+  const inApp = offersJitsiApp() && videoInApp.value
   const room = inApp ? null : window.open('', '_blank')
   if (room) room.opener = null
   videoRoomWindow = room
@@ -868,12 +899,28 @@ const startVideoCall = async ({ inApp = false } = {}) => {
   }
   // The member's now: letting the question go must not close it.
   videoRoomWindow = null
-  // The app's way: the room to open, for the second click. Should the address unexpectedly not
-  // be one the app takes, the dialog offers the room in the browser, as where a window was held
-  // back.
+  // The app's way. Should the address unexpectedly not be one the app takes, the dialog offers
+  // the room in the browser, as where a window was held back.
   if (inApp) {
-    videoRoomInApp.value = chatVideoAppUrl(roomUrl) ?? ''
-    videoRoomToOpen.value = roomUrl
+    const appUrl = chatVideoAppUrl(roomUrl)
+    if (!appUrl) {
+      videoRoomToOpen.value = roomUrl
+      return
+    }
+    openInJitsiApp(appUrl)
+    // The call waits on until the app takes it, and the question closes then. Where no sign
+    // comes, it says so and offers the room in the browser.
+    videoCalling.value = true
+    stopVideoAppWatch = watchJitsiAppOpening({
+      onOpened: () => {
+        videoAsking.value = false
+      },
+      onMissed: () => {
+        videoCalling.value = false
+        videoRoomToOpen.value = roomUrl
+        videoAppMissed.value = true
+      },
+    })
     return
   }
   // ⚠️ `closed` too: a window the member shut while the invitation was on its way has no
@@ -885,6 +932,65 @@ const startVideoCall = async ({ inApp = false } = {}) => {
   } else {
     videoRoomToOpen.value = roomUrl
   }
+}
+
+/** The question before joining a call is open. */
+const videoJoining = ref(false)
+const videoJoinTitle = computed(() => t('chatThread.videoJoinTitle', { name: alias.value }))
+/**
+ * The room of the invitation whose link was clicked. ⛔ The call's secret, as `videoRoomToOpen`:
+ * here only while the question is open, in no store and no log.
+ */
+const videoJoinRoom = ref('')
+/** "Join call" handed the room to the Jitsi app and waits for its sign; the button waits too. */
+const videoJoinWaiting = ref(false)
+/** No sign came that the app opened: the question says so (ChatVideoAppMissed). */
+const videoJoinMissed = ref(false)
+let stopJoinAppWatch = null
+
+/** Asked by a click on the link of a video invitation in the thread (ChatMessageText). */
+const askJoinVideoCall = (roomUrl) => {
+  videoJoinRoom.value = roomUrl
+  videoInApp.value = readChatVideoInApp(store.state.gradidoID)
+  videoJoining.value = true
+}
+provide(CHAT_VIDEO_JOIN, askJoinVideoCall)
+
+watch(videoJoining, (open) => {
+  if (open) return
+  stopJoinAppWatch?.()
+  stopJoinAppWatch = null
+  videoJoinWaiting.value = false
+  videoJoinMissed.value = false
+  videoJoinRoom.value = ''
+})
+
+/**
+ * "Join call": the room in the Jitsi app where the box is ticked, else in a window of its own --
+ * both in the click itself, where the browser allows either. The window as the thread's link
+ * opens it: no `opener`, no referrer. The app's way waits for the app's sign, as the start does.
+ */
+const joinVideoCall = () => {
+  if (videoJoinWaiting.value) return
+  const roomUrl = videoJoinRoom.value
+  if (!roomUrl) return
+  const appUrl = offersJitsiApp() && videoInApp.value ? chatVideoAppUrl(roomUrl) : null
+  if (!appUrl) {
+    videoJoining.value = false
+    window.open(roomUrl, '_blank', 'noopener,noreferrer')
+    return
+  }
+  openInJitsiApp(appUrl)
+  videoJoinWaiting.value = true
+  stopJoinAppWatch = watchJitsiAppOpening({
+    onOpened: () => {
+      videoJoining.value = false
+    },
+    onMissed: () => {
+      videoJoinWaiting.value = false
+      videoJoinMissed.value = true
+    },
+  })
 }
 
 /**
@@ -944,6 +1050,8 @@ watch(
 onBeforeUnmount(() => {
   sendRowResizes?.disconnect()
   cancelAnimationFrame(sendRowFrame)
+  stopVideoAppWatch?.()
+  stopJoinAppWatch?.()
 })
 </script>
 
@@ -1094,11 +1202,11 @@ onBeforeUnmount(() => {
   height: 1.35em;
 }
 
-/* The question before a call: its start buttons wait while the call is being made, as the
+/* The questions before a call: the start button waits while the call is being made, as the
    compose bar's send button does -- `aria-disabled`, so a keyboard that pressed it keeps its
-   place, and a look that says it waits. Both of them: the app's way (V4b) and the browser's. */
-.contact-window-video-app[aria-disabled='true'],
-.contact-window-video-start[aria-disabled='true'] {
+   place, and a look that says it waits. So does "Join call" while the Jitsi app is awaited. */
+.contact-window-video-start[aria-disabled='true'],
+.contact-window-video-join[aria-disabled='true'] {
   opacity: 0.65;
   cursor: default;
 }

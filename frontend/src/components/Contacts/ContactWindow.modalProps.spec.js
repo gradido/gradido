@@ -140,15 +140,15 @@ describe('ContactWindow and the modal it opens', () => {
   })
 
   /**
-   * The question before a video call (V2) is a second dialog in this file, and the same two
-   * rules hold for it: only names the library declares, and a name of its own where it has no
-   * header to be named by.
+   * The question before a video call (V2) is a second dialog in this file, and the question
+   * before joining one (V4b) a third; the same two rules hold for them: only names the library
+   * declares, and a name of its own where there is no header to be named by.
    */
   it('holds every dialog in the file to the names the library declares', () => {
     const OURS = ['data-test', 'body-class', 'class', 'aria-label']
     const tags = allModalTags()
 
-    expect(tags, 'the window and the question before a call').toHaveLength(2)
+    expect(tags, 'the window and the questions before starting and joining a call').toHaveLength(3)
     for (const written of tags) {
       const unknown = written
         .filter((name) => !OURS.includes(name))
@@ -172,7 +172,7 @@ describe('ContactWindow and the modal it opens', () => {
   it('names every dialog that has no header', () => {
     const headless = allModalTags().filter((written) => written.includes('no-header'))
 
-    expect(headless).toHaveLength(2)
+    expect(headless).toHaveLength(3)
     for (const written of headless) expect(written).toContain('aria-label')
   })
 })
