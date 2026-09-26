@@ -322,16 +322,17 @@ function checkedWhen(check) {
   return format.format(Math.round(seconds / 86400), 'day')
 }
 
-// The input as the server takes it: what the page shows, trimmed; empty is none.
+// The input as the server takes it: what the page shows, trimmed; empty is none. Without a tick
+// where none is given: the server then keeps the tick the row has.
 function inputOf(values, active) {
   const orNone = (value) => (value ?? '').trim() || null
-  return {
+  const input = {
     baseUrl: values.baseUrl.trim(),
     operator: orNone(values.operator),
     roomPrefix: orNone(values.roomPrefix),
     note: orNone(values.note),
-    active,
   }
+  return active === undefined ? input : { ...input, active }
 }
 
 // --- add a server ---
@@ -377,7 +378,9 @@ function cancelEdit() {
 async function saveEdit(server) {
   saving.value = true
   try {
-    await updateMutation({ id: server.id, input: inputOf(edit, server.active) })
+    // ⛔ No tick: the edit form does not show it, and the box beside the row may have switched it
+    // since the form opened, in another tab. The server keeps the row's own.
+    await updateMutation({ id: server.id, input: inputOf(edit) })
     toastSuccess(t('chatAdmin.updated'))
     editingId.value = null
     await refetch()

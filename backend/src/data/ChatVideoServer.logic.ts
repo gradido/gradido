@@ -191,7 +191,8 @@ export interface ChatVideoServerForm {
   operator?: string | null
   roomPrefix?: string | null
   note?: string | null
-  active: boolean
+  /** Left out: active, as a new entry is (an edit leaves it out to keep the row's tick). */
+  active?: boolean | null
 }
 
 /**
@@ -219,8 +220,29 @@ export const chatVideoServerFromForm = (
   }
   return {
     success: true,
-    value: { server: found.value, values: chatVideoServerValues(found.value, note, form.active) },
+    value: {
+      server: found.value,
+      values: chatVideoServerValues(found.value, note, form.active ?? true),
+    },
   }
+}
+
+/**
+ * What an edit writes onto a row: its values, and the tick only where the form names one.
+ *
+ * ⛔ The edit form does not show the tick; the box beside the row switches it -- perhaps in another
+ * tab, by another administrator, while the form was open. An edit that wrote the tick it never
+ * showed would turn that switch back without anybody seeing it.
+ */
+export const chatVideoServerChange = (
+  values: Required<ChatVideoServerValues>,
+  active: boolean | null | undefined,
+): ChatVideoServerValues => {
+  if (active != null) {
+    return values
+  }
+  const { baseUrl, operator, roomPrefix, note } = values
+  return { baseUrl, operator, roomPrefix, note }
 }
 
 /**

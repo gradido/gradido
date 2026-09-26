@@ -5,6 +5,7 @@ import {
   CHAT_VIDEO_ROOM_RANDOM_LENGTH,
   CHAT_VIDEO_SERVER_MAX_LENGTH,
   chatVideoRoomName,
+  chatVideoServerChange,
   chatVideoServerFrom,
   chatVideoServerFromForm,
   chatVideoServers,
@@ -313,6 +314,12 @@ describe('chatVideoServerFromForm', () => {
     })
   })
 
+  it('makes a new entry without a tick an active one', () => {
+    const { active: _left, ...withoutTick } = FORM
+    const result = chatVideoServerFromForm(withoutTick)
+    expect(result.success && result.value.values.active).toBe(true)
+  })
+
   it('stores empty fields as none', () => {
     const result = chatVideoServerFromForm({
       baseUrl: 'https://a.example/',
@@ -349,6 +356,38 @@ describe('chatVideoServerFromForm', () => {
       success: false,
       error: 'TOO_LONG',
     })
+  })
+})
+
+describe('chatVideoServerChange', () => {
+  const VALUES = {
+    baseUrl: 'https://meet.ffmuc.net/',
+    operator: 'Freifunk München',
+    roomPrefix: null,
+    note: 'nachgetragen',
+    active: true,
+  }
+
+  // ⛔ The edit form does not show the tick: an edit without one must not write one.
+  it('leaves the tick out where the edit names none', () => {
+    for (const none of [undefined, null]) {
+      const change = chatVideoServerChange(VALUES, none)
+      expect(change).not.toHaveProperty('active')
+      expect(change).toEqual({
+        baseUrl: 'https://meet.ffmuc.net/',
+        operator: 'Freifunk München',
+        roomPrefix: null,
+        note: 'nachgetragen',
+      })
+    }
+  })
+
+  it('writes the tick where the edit names one, off as well as on', () => {
+    expect(chatVideoServerChange({ ...VALUES, active: false }, false)).toEqual({
+      ...VALUES,
+      active: false,
+    })
+    expect(chatVideoServerChange(VALUES, true)).toEqual(VALUES)
   })
 })
 

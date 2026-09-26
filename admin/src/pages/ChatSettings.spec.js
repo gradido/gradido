@@ -358,7 +358,7 @@ describe('ChatSettings', () => {
   })
 
   describe('editing a server in its row', () => {
-    it('opens the row with its values, and sends the change with the tick it has', async () => {
+    it('opens the row with its values, and sends the change', async () => {
       const wrapper = mountPage()
       await wrapper.find('[data-test="edit-1"]').trigger('click')
       expect(wrapper.find('[data-test="edit-base-url"]').element.value).toBe(
@@ -376,7 +376,6 @@ describe('ChatSettings', () => {
           operator: 'fairmeeting (fairkom)',
           roomPrefix: 'GradidoAkademie',
           note: 'Lizenz bis 2027',
-          active: true,
         },
       })
       expect(toastSuccess).toHaveBeenCalledWith('chatAdmin.updated')
@@ -384,23 +383,24 @@ describe('ChatSettings', () => {
       expect(wrapper.find('[data-test="edit-base-url"]').exists()).toBe(false)
     })
 
-    // The box, not the edit, switches the tick: a server switched off stays off.
-    it('sends the tick the server has -- also where it is switched off', async () => {
+    // ⛔ The box beside the row switches the tick, not the edit: the form does not show it, and
+    // the row's own may have changed in another tab since the form opened. Absent, not undefined
+    // -- toHaveBeenCalledWith would not tell the two apart.
+    it('sends no tick, so the server keeps the one the row has', async () => {
       const wrapper = mountPage()
       await wrapper.find('[data-test="edit-2"]').trigger('click')
       await wrapper.find('[data-test="edit-operator"]').setValue('Freifunk München')
       await wrapper.find('[data-test="edit-save"]').trigger('click')
       await flushPromises()
 
-      expect(sent.update).toHaveBeenCalledWith({
-        id: 2,
-        input: {
-          baseUrl: 'https://meet.ffmuc.net/',
-          operator: 'Freifunk München',
-          roomPrefix: null,
-          note: null,
-          active: false,
-        },
+      const [{ id, input }] = sent.update.mock.calls[0]
+      expect(id).toBe(2)
+      expect(input).not.toHaveProperty('active')
+      expect(input).toEqual({
+        baseUrl: 'https://meet.ffmuc.net/',
+        operator: 'Freifunk München',
+        roomPrefix: null,
+        note: null,
       })
     })
 

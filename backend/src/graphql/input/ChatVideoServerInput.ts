@@ -29,8 +29,12 @@ export class ChatVideoServerInput {
   @IsString()
   note?: string | null
 
-  /** The tick "in the random choice". */
-  @Field(() => Boolean)
+  /**
+   * The tick "in the random choice". Left out, a new entry is active, and an edit keeps the tick
+   * the row has: the edit form does not show it, the box beside the row switches it.
+   */
+  @Field(() => Boolean, { nullable: true })
+  @IsOptional()
   @IsBoolean()
-  active: boolean
+  active?: boolean | null
 }

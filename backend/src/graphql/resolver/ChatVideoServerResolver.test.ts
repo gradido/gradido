@@ -201,6 +201,21 @@ describe('ChatVideoServerResolver', () => {
     expect((await listed())[0]).toMatchObject({ note: 'Lizenz bis 2027', active: false })
   })
 
+  // ⛔ The edit form does not show the tick; the box beside the row switches it -- perhaps in
+  // another tab while the form was open.
+  it('keeps the tick of a server where an edit does not name it, and sets it where it does', async () => {
+    const row = await created({ ...FFMUC, active: false })
+    const { active: _left, ...withoutTick } = FFMUC
+    const edited = await update(row.id, { ...withoutTick, note: 'nachgetragen' })
+
+    expect(edited.errors).toBeUndefined()
+    expect(edited.data.updateChatVideoServer).toMatchObject({ note: 'nachgetragen', active: false })
+    expect((await listed())[0]).toMatchObject({ note: 'nachgetragen', active: false })
+
+    const ticked = await update(row.id, { ...withoutTick, active: true })
+    expect(ticked.data.updateChatVideoServer.active).toBe(true)
+  })
+
   it("refuses to move a server onto another's host, and leaves both as they were", async () => {
     const fairmeeting = await created(FAIRMEETING)
     const ffmuc = await created(FFMUC)

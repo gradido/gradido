@@ -14,7 +14,11 @@ import {
 import { Arg, Authorized, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { ChatVideoServerState, chatVideoServerPool } from '@/apis/jitsi/chatVideoServerPool'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { chatVideoServerFromForm, chatVideoServersFromRows } from '@/data/ChatVideoServer.logic'
+import {
+  chatVideoServerChange,
+  chatVideoServerFromForm,
+  chatVideoServersFromRows,
+} from '@/data/ChatVideoServer.logic'
 import { LogError } from '@/server/LogError'
 
 /**
@@ -47,7 +51,7 @@ const rowsWithChecks = async (): Promise<ChatVideoServerRow[]> => {
 const valuesFor = async (
   input: ChatVideoServerInput,
   id: number | null,
-): Promise<{ values: ChatVideoServerValues; host: string }> => {
+): Promise<{ values: Required<ChatVideoServerValues>; host: string }> => {
   const found = chatVideoServerFromForm(input)
   if (!found.success) {
     throw new LogError(`CHAT_VIDEO_SERVER_INVALID: ${found.error}`)
@@ -105,7 +109,7 @@ export class ChatVideoServerResolver {
     @Arg('input', () => ChatVideoServerInput) input: ChatVideoServerInput,
   ): Promise<ChatVideoServerRow> {
     const { values, host } = await valuesFor(input, id)
-    const result = await dbUpdateChatVideoServer(id, values)
+    const result = await dbUpdateChatVideoServer(id, chatVideoServerChange(values, input.active))
     if (!result.success) {
       throw result.error instanceof DBNotFoundError
         ? new LogError('CHAT_VIDEO_SERVER_NOT_FOUND', id)
