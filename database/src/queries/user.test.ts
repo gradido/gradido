@@ -1,4 +1,5 @@
 import { ContactOrigin, GradidoUnit, Order, PasswordEncryptionType } from 'shared'
+import { v4 } from 'uuid'
 import { clearDatabase } from '../../migration/clear'
 import {
   ALIAS_ORIGIN_CHOSEN,
@@ -23,13 +24,20 @@ import { getLastTransaction } from './transactions'
 import {
   aliasExists,
   dbClearGmsRegistration,
+  dbCountUnconfirmedVouchedAccounts,
   dbFindGmsAllowedLocalUserIds,
   dbFindLatestArrival,
+  dbFindLocalUserByAlias,
   dbFindReferrerAlias,
+  dbFindUserByEmail,
   dbFindUserIdByUuids,
   dbFindUserLoginByEmail,
+  dbFindUserWithContactById,
   dbInsertForeignUser,
+  dbInsertUser,
+  dbLocalUserGradidoIdExist,
   dbMarkUsersGmsRegistered,
+  dbRemoveUser,
   dbSelectForeignMemberGradidoIds,
   dbSelectLatestUserBalances,
   dbSelectReferralContactsByUserId,
@@ -1108,6 +1116,188 @@ describe('user.queries', () => {
         await DbUser.update(host.id, { deletedAt: new Date() })
         await expect(dbSelectReferralContactsByUserId(newer.id)).resolves.toEqual([])
         await DbUser.update(host.id, { deletedAt: null })
+      })
+    })
+  })
+
+  describe('the queries registration uses', () => {
+    let homeCommunityUuid: string
+    let bob: DbUser
+    let peter: DbUser
+
+    beforeAll(async () => {
+      await DbUserAlias.clear()
+      await DbUser.clear()
+      await DbUserContact.clear()
+      await DbCommunity.clear()
+
+      homeCommunityUuid = (await createCommunity(false)).communityUuid!
+      bob = await userFactory(bobBaumeister)
+      peter = await userFactory(peterLustig)
+    })
+
+    describe('dbCountUnconfirmedVouchedAccounts', () => {
+      const guests: DbUser[] = []
+
+      // A guest who opened an account at the table: the member is the referrer, a password
+      // is set, the address is not confirmed.
+      const tableGuest = async (n: number, referrer: DbUser): Promise<DbUser> => {
+        const guest = await userFactory({
+          email: `guest${n}@table.example`,
+          firstName: `First${n}`,
+          lastName: `Last${n}`,
+          alias: `guest${n}`,
+          emailChecked: false,
+        })
+        await DbUser.update(guest.id, {
+          referrerId: referrer.id,
+          passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
+        })
+        return guest
+      }
+
+      it('counts nobody for a member who vouches for nobody', async () => {
+        expect(await dbCountUnconfirmedVouchedAccounts(bob.id)).toBe(0)
+      })
+
+      describe('with five unconfirmed guests at the table', () => {
+        beforeAll(async () => {
+          for (const n of [1, 2, 3, 4, 5]) {
+            guests.push(await tableGuest(n, bob))
+          }
+        })
+
+        it('counts all five', async () => {
+          expect(await dbCountUnconfirmedVouchedAccounts(bob.id)).toBe(5)
+        })
+
+        // No time window: an account from months ago counts until it confirms (E-019).
+        it('keeps counting a guest who has not confirmed for months', async () => {
+          await DbUser.update(guests[0].id, { createdAt: new Date(Date.UTC(2026, 0, 1)) })
+          expect(await dbCountUnconfirmedVouchedAccounts(bob.id)).toBe(5)
+        })
+
+        it('counts neither an account without a password nor the guests of another member', async () => {
+          const classic = await userFactory({
+            email: 'classic@table.example',
+            firstName: 'Classic',
+            lastName: 'Guest',
+            emailChecked: false,
+          })
+          await DbUser.update(classic.id, { referrerId: bob.id })
+          await tableGuest(6, peter)
+
+          expect(await dbCountUnconfirmedVouchedAccounts(bob.id)).toBe(5)
+          expect(await dbCountUnconfirmedVouchedAccounts(peter.id)).toBe(1)
+        })
+
+        it('lets a guest go who confirms, and one who is deleted', async () => {
+          await DbUserContact.update(guests[1].emailId!, { emailChecked: true })
+          expect(await dbCountUnconfirmedVouchedAccounts(bob.id)).toBe(4)
+
+          await DbUser.update(guests[2].id, { deletedAt: new Date() })
+          expect(await dbCountUnconfirmedVouchedAccounts(bob.id)).toBe(3)
+        })
+
+        it('answers the same inside a transaction', async () => {
+          const inside = await drizzleDb().transaction((tx) =>
+            dbCountUnconfirmedVouchedAccounts(bob.id, tx),
+          )
+          expect(inside).toBe(await dbCountUnconfirmedVouchedAccounts(bob.id))
+        })
+      })
+    })
+
+    describe('dbFindLocalUserByAlias', () => {
+      it('finds a member of this community by their alias, whatever the capitalisation', async () => {
+        expect((await dbFindLocalUserByAlias(bobBaumeister.alias!))?.id).toBe(bob.id)
+        expect((await dbFindLocalUserByAlias(bobBaumeister.alias!.toUpperCase()))?.id).toBe(bob.id)
+      })
+
+      it('finds nobody for an alias nobody holds', async () => {
+        expect(await dbFindLocalUserByAlias('nobody-here')).toBeNull()
+      })
+
+      it('finds no deleted member', async () => {
+        const gone = await userFactory({ ...bibiBloxberg, alias: 'bibi-gone' })
+        await DbUser.softRemove(gone)
+        expect(await dbFindLocalUserByAlias('bibi-gone')).toBeNull()
+      })
+
+      it('finds no cached member of another community', async () => {
+        const stranger = DbUser.create()
+        stranger.foreign = true
+        stranger.alias = 'far-away'
+        stranger.gradidoID = '11111111-2222-4333-8444-555555555555'
+        stranger.communityUuid = '99999999-2222-4333-8444-555555555555'
+        stranger.firstName = 'Far'
+        stranger.lastName = 'Away'
+        await DbUser.save(stranger)
+
+        expect(await dbFindLocalUserByAlias('far-away')).toBeNull()
+      })
+    })
+
+    describe('dbFindUserByEmail', () => {
+      it('finds the member by their address', async () => {
+        expect((await dbFindUserByEmail(bobBaumeister.email!))?.id).toBe(bob.id)
+      })
+
+      it('finds nobody for an unknown address', async () => {
+        expect(await dbFindUserByEmail('unknown@example.org')).toBeNull()
+      })
+
+      it('finds no deleted member', async () => {
+        const gone = await userFactory({
+          email: 'gone@example.org',
+          firstName: 'Gone',
+          lastName: 'Member',
+        })
+        await DbUser.softRemove(gone)
+        expect(await dbFindUserByEmail('gone@example.org')).toBeNull()
+      })
+    })
+
+    describe('dbInsertUser, dbFindUserWithContactById and dbRemoveUser', () => {
+      const newUser = () => ({
+        gradidoId: v4(),
+        communityUuid: homeCommunityUuid,
+        firstName: 'New',
+        lastName: 'Member',
+        language: 'de',
+      })
+
+      it('stores the member and returns the new id', async () => {
+        const row = newUser()
+        const result = await dbInsertUser(row)
+        expect(result.success).toBe(true)
+        if (result.success) {
+          expect(await DbUser.findOneByOrFail({ id: result.value })).toEqual(
+            expect.objectContaining({ gradidoID: row.gradidoId, firstName: 'New' }),
+          )
+          expect(await dbLocalUserGradidoIdExist(row.gradidoId)).toBe(true)
+        }
+      })
+
+      // RegisterUserRole draws a new gradido id then - the insert must answer, not throw.
+      it('answers a taken gradido id with DBDuplicateEntryError', async () => {
+        const row = newUser()
+        await dbInsertUser(row)
+        const again = await dbInsertUser({ ...row, firstName: 'Twin' })
+        expect(again).toEqual({ success: false, error: expect.any(DBDuplicateEntryError) })
+      })
+
+      it('finds the member together with their address, and removes them for good', async () => {
+        const created = await userFactory({
+          email: 'with-contact@example.org',
+          firstName: 'With',
+          lastName: 'Contact',
+        })
+        const found = await dbFindUserWithContactById(created.id)
+        expect(found?.emailContact.email).toBe('with-contact@example.org')
+
+        expect(await dbRemoveUser(created.id)).toBe(1)
+        expect(await DbUser.findOne({ where: { id: created.id }, withDeleted: true })).toBeNull()
       })
     })
   })

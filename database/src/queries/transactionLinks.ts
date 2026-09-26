@@ -12,13 +12,14 @@ export async function findTransactionLinkByCode(code: string): Promise<DbTransac
   })
 }
 
+// A deleted link redeems nothing - TypeORM left it out on its own (`@DeleteDateColumn`).
 export async function dbFindTransactionLinkByCode(
   redeemCode: string,
 ): Promise<TransactionLinksSelect | null> {
   const rows = await drizzleDb()
     .select()
     .from(transactionLinksTable)
-    .where(eq(transactionLinksTable.code, redeemCode))
+    .where(and(eq(transactionLinksTable.code, redeemCode), isNull(transactionLinksTable.deletedAt)))
   return rows[0] ? rows[0] : null
 }
 

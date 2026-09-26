@@ -7,10 +7,12 @@ import {
   UserAlias as DbUserAlias,
   UserContact as DbUserContact,
   TransactionLinkInterface,
+  transactionLinkFactory,
   transactionLinkFactoryBulk,
   transactionLinksPendingFromUserOrderByIdASC,
   userFactory,
 } from '..'
+import { dbFindTransactionLinkByCode } from './transactionLinks'
 
 const db = AppDatabase.getInstance()
 
@@ -136,5 +138,36 @@ describe('transactionLinks', () => {
     const result = await transactionLinksPendingFromUserOrderByIdASC(bibiUser.id, 1000, 0, endDate)
     expect(result.length).toBe(1000)
     // no assertion, just to check if it is fast enough
+  })
+})
+
+describe('dbFindTransactionLinkByCode', () => {
+  let link: DbTransactionLink
+
+  beforeAll(async () => {
+    await DbUserAlias.clear()
+    await DbUser.clear()
+    await DbUserContact.clear()
+    await DbTransactionLink.clear()
+    const bibi = await userFactory(bibiBloxberg)
+    link = await transactionLinkFactory(
+      { email: bibi.emailContact.email, amount: 10, memo: 'for a newcomer' },
+      bibi.id,
+    )
+  })
+
+  it('finds the link, and with it who created it', async () => {
+    expect(await dbFindTransactionLinkByCode(link.code)).toEqual(
+      expect.objectContaining({ id: link.id, userId: link.userId }),
+    )
+  })
+
+  it('finds nothing for an unknown code', async () => {
+    expect(await dbFindTransactionLinkByCode('unknown-code')).toBeNull()
+  })
+
+  it('finds no deleted link', async () => {
+    await DbTransactionLink.softRemove(link)
+    expect(await dbFindTransactionLinkByCode(link.code)).toBeNull()
   })
 })

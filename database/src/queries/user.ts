@@ -135,16 +135,27 @@ export async function dbFindUserWithContactById(userId: number): Promise<DbUser 
 export async function dbInsertUser(
   user: UserInsert,
   tx?: DrizzleTransaction | MySql2Database,
-): Promise<Result<number, DBInsertFailed<UserInsert>>> {
+): Promise<Result<number, DBInsertFailed<UserInsert> | DBDuplicateEntryError>> {
   if (!tx) {
     tx = drizzleDb()
   }
-  const rows = await tx.insert(usersTable).values(user)
-  const firstRow = rows[0]
-  if (firstRow && firstRow.affectedRows === 1) {
-    return { success: true, value: firstRow.insertId }
+  try {
+    const rows = await tx.insert(usersTable).values(user)
+    const firstRow = rows[0]
+    if (firstRow && firstRow.affectedRows === 1) {
+      return { success: true, value: firstRow.insertId }
+    }
+    return { success: false, error: userInsertFailed(user) }
+  } catch (error) {
+    // A gradido id that is taken already: the caller draws a new one.
+    if (isDuplicateEntry(error)) {
+      return {
+        success: false,
+        error: new DBDuplicateEntryError('users', 'gradido_id,community_uuid', user.gradidoId),
+      }
+    }
+    throw error
   }
-  return { success: false, error: userInsertFailed(user) }
 }
 
 /**

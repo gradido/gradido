@@ -266,6 +266,19 @@ describe('RegisterUserExistRole', () => {
     ])
     expect(dbInsertUser).not.toHaveBeenCalled()
   })
+
+  // The tests of the resolver waited for exactly this line.
+  it('logs that the address is taken, under the owner and without the address', async () => {
+    const infoSpy = jest.spyOn(logger, 'info')
+    const addContextSpy = jest.spyOn(logger, 'addContext')
+    const removeContextSpy = jest.spyOn(logger, 'removeContext')
+
+    await new RegisterUserExistRole(input(), owner).run(logger)
+
+    expect(infoSpy).toHaveBeenCalledWith('User already exists')
+    expect(addContextSpy).toHaveBeenCalledWith('user', 3)
+    expect(removeContextSpy).toHaveBeenCalledWith('email')
+  })
 })
 
 describe('RegisterUserReferrerRole', () => {

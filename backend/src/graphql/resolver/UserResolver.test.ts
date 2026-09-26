@@ -3,10 +3,8 @@ import { once } from 'node:events'
 import { request as httpRequest } from 'node:http'
 import { AddressInfo } from 'node:net'
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
-import { OptInType } from '@enum/OptInType'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { RoleNames } from '@enum/RoleNames'
-import { UserContactType } from '@enum/UserContactType'
 import { ContributionLink } from '@model/ContributionLink'
 import { Location } from '@model/Location'
 import { cleanDB, headerPushMock, resetToken, testEnvironment } from '@test/helpers'
@@ -31,7 +29,6 @@ import {
   dbInsertMatchingEntry,
   userFactory as dbUserFactory,
   EventType,
-  TransactionLink,
   User,
   UserAlias,
   UserContact,
@@ -51,7 +48,7 @@ import {
   verifyAndDecrypt,
 } from 'shared'
 import { QueryRunner } from 'typeorm'
-import { v4 as uuidv4, validate as validateUUID, version as versionUUID } from 'uuid'
+import { v4 as uuidv4 } from 'uuid'
 import {
   deleteGmsUser,
   putGmsMatchingEntrySnapshots,
@@ -72,12 +69,9 @@ import { SecretKeyCryptographyCreateKey } from '@/password/EncryptorUtils'
 import { encryptPassword } from '@/password/PasswordEncryptor'
 import { writeHomeCommunityEntry } from '@/seeds/community'
 import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
-import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { userFactory } from '@/seeds/factory/user'
 import {
   adoptAlias,
-  confirmContribution,
-  createContribution,
   createUser,
   deleteUser,
   forgotPassword,
@@ -163,7 +157,6 @@ jest.mock('@/apis/KlicktippController', () => {
 // assertion has to reach for the logger of the method that actually writes the message.
 const resolverLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserResolver.${method}`)
-const createUserLogger = resolverLogger('createUser')
 const setPasswordLogger = resolverLogger('setPassword')
 const loginLogger = resolverLogger('login')
 const forgotPasswordLogger = resolverLogger('forgotPassword')
@@ -213,151 +206,23 @@ describe('UserResolver', () => {
     let result: any
     let emailVerificationCode: string
     let user: User[]
-    let homeCom: DbCommunity
 
     beforeAll(async () => {
       jest.clearAllMocks()
-      homeCom = await writeHomeCommunityEntry()
+      await writeHomeCommunityEntry()
       result = await mutate({ mutation: createUser, variables })
+      user = await User.find({ relations: ['emailContact', 'userRole'] })
+      emailVerificationCode = user[0].emailContact.emailVerificationCode.toString()
     })
 
     afterAll(async () => {
       await cleanDB()
     })
 
+    // What the registration stores, mails and records is tested in
+    // interactions/registerUser, what the queries do in database. Here: the API contract.
     it('returns success', () => {
       expect(result).toEqual(expect.objectContaining({ data: { createUser: true } }))
-    })
-
-    describe('valid input data', () => {
-      // let loginEmailOptIn: LoginEmailOptIn[]
-      beforeAll(async () => {
-        user = await User.find({ relations: ['emailContact', 'userRole'] })
-        // loginEmailOptIn = await LoginEmailOptIn.find()
-        emailVerificationCode = user[0].emailContact.emailVerificationCode.toString()
-      })
-
-      describe('filling all tables', () => {
-        it('saves the user in users table', () => {
-          expect(user).toEqual([
-            {
-              id: expect.any(Number),
-              gradidoID: expect.any(String),
-              hideAmountGDD: expect.any(Boolean),
-              hideAmountGDT: expect.any(Boolean),
-              // Built from the name rather than left empty: everybody holds one from
-              // registration on, or their transaction rows would have nothing where a
-              // name belongs.
-              alias: 'PeterL',
-              emailContact: expect.any(UserContact), // 'peter@lustig.de',
-              emailId: expect.any(Number),
-              firstName: 'Peter',
-              lastName: 'Lustig',
-              aboutMe: null,
-              // On from the start: a member who uploads a picture has already shown an
-              // intention, so the switch follows rather than asks a second time.
-              avatarVisibleToMembers: true,
-              // A person who may create: the column default, and the sentence for every
-              // account that exists (ES-021).
-              creationAllowed: true,
-              gender: null,
-              salutation: null,
-              creaSignature: null,
-              password: '0',
-              createdAt: expect.any(Date),
-              // emailChecked: false,
-              language: 'de',
-              userRole: null,
-              deletedAt: null,
-              publisherId: 1234,
-              referrerId: null,
-              contributionLinkId: null,
-              passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
-              communityUuid: homeCom.communityUuid,
-              foreign: false,
-              gmsAllowed: false,
-              humhubAllowed: true,
-              gmsPublishName: 0,
-              humhubPublishName: 0,
-              gmsPublishLocation: 1,
-              location: null,
-              gmsRegistered: false,
-              gmsRegisteredAt: null,
-            },
-          ])
-          const valUUID = validateUUID(user[0].gradidoID)
-          const verUUID = versionUUID(user[0].gradidoID)
-          expect(valUUID).toEqual(true)
-          expect(verUUID).toEqual(4)
-        })
-
-        it('creates an email contact', () => {
-          expect(user[0].emailContact).toEqual({
-            id: expect.any(Number),
-            type: UserContactType.USER_CONTACT_EMAIL,
-            userId: user[0].id,
-            email: 'peter@lustig.de',
-            emailChecked: false,
-            emailVerificationCode: expect.any(String),
-            emailOptInTypeId: OptInType.EMAIL_OPT_IN_REGISTER,
-            emailResendCount: 0,
-            changeVetoCode: null,
-            countryCode: null,
-            phone: null,
-            createdAt: expect.any(Date),
-            deletedAt: null,
-            updatedAt: null,
-            gmsPublishEmail: false,
-            gmsPublishPhone: 0,
-          })
-        })
-      })
-
-      it('stores the USER_REGISTER event in the database', async () => {
-        const userConatct = await UserContact.findOneOrFail({
-          where: {
-            email: 'peter@lustig.de',
-          },
-          relations: ['user'],
-        })
-        await expect(DbEvent.find()).resolves.toContainEqual(
-          expect.objectContaining({
-            type: EventType.USER_REGISTER,
-            affectedUserId: userConatct.user.id,
-            actingUserId: userConatct.user.id,
-          }),
-        )
-      })
-    })
-
-    describe('account activation email', () => {
-      it('sends an account activation email', () => {
-        const activationLink = `${
-          CONFIG.EMAIL_LINK_VERIFICATION
-        }${emailVerificationCode.toString()}`
-
-        expect(sendAccountActivationEmail).toBeCalledWith({
-          firstName: 'Peter',
-          lastName: 'Lustig',
-          email: 'peter@lustig.de',
-          language: 'de',
-          activationLink,
-          timeDurationObject: expect.objectContaining({
-            hours: expect.any(Number),
-            minutes: expect.any(Number),
-          }),
-        })
-      })
-
-      it('stores the EMAIL_CONFIRMATION event in the database', async () => {
-        await expect(DbEvent.find()).resolves.toContainEqual(
-          expect.objectContaining({
-            type: EventType.EMAIL_CONFIRMATION,
-            affectedUserId: user[0].id,
-            actingUserId: user[0].id,
-          }),
-        )
-      })
     })
 
     describe('user already exists', () => {
@@ -366,258 +231,33 @@ describe('UserResolver', () => {
         mutation = await mutate({ mutation: createUser, variables })
       })
 
-      it('logs an info', () => {
-        expect(createUserLogger.info).toBeCalledWith('User already exists')
-        expect(createUserLogger.addContext).toBeCalledWith('user', user[0].id)
-      })
-
-      it('sends an account multi registration email', () => {
-        expect(sendAccountMultiRegistrationEmail).toBeCalledWith({
-          firstName: 'Peter',
-          lastName: 'Lustig',
-          email: 'peter@lustig.de',
-          language: 'de',
-        })
-      })
-
       it('answers exactly like a new registration', () => {
         expect(mutation).toEqual(expect.objectContaining({ data: { createUser: true } }))
       })
+    })
 
-      it('stores the EMAIL_ACCOUNT_MULTIREGISTRATION event in the database', async () => {
-        const userConatct = await UserContact.findOneOrFail({
-          where: { email: 'peter@lustig.de' },
-          relations: ['user'],
+    // Not a registration, and tested only here: setting the password activates the account.
+    describe('activating the account', () => {
+      beforeAll(async () => {
+        await mutate({
+          mutation: setPassword,
+          variables: { code: emailVerificationCode, password: 'Aa12345_' },
         })
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+      })
+
+      it('stores the USER_ACTIVATE_ACCOUNT event in the database', async () => {
         await expect(DbEvent.find()).resolves.toContainEqual(
           expect.objectContaining({
-            type: EventType.EMAIL_ACCOUNT_MULTIREGISTRATION,
-            affectedUserId: userConatct.user.id,
-            actingUserId: 0,
+            type: EventType.USER_ACTIVATE_ACCOUNT,
+            affectedUserId: user[0].id,
+            actingUserId: user[0].id,
           }),
         )
       })
-    })
-
-    describe('unknown language', () => {
-      it('sets "de" as default language', async () => {
-        await mutate({
-          mutation: createUser,
-          variables: { ...variables, email: 'bibi@bloxberg.de', language: 'xx' },
-        })
-        await expect(
-          UserContact.findOne({ where: { email: 'bibi@bloxberg.de' }, relations: ['user'] }),
-        ).resolves.toEqual(
-          expect.objectContaining({
-            email: 'bibi@bloxberg.de',
-            user: expect.objectContaining({ language: 'de' }),
-          }),
-        )
-      })
-    })
-
-    describe('redeem codes', () => {
-      let result: any
-      let link: ContributionLink
-
-      describe('contribution link', () => {
-        beforeAll(async () => {
-          // activate account of admin Peter Lustig
-          await mutate({
-            mutation: setPassword,
-            variables: { code: emailVerificationCode, password: 'Aa12345_' },
-          })
-
-          // make Peter Lustig Admin
-          const peter = await User.findOneOrFail({
-            where: { id: user[0].id },
-            relations: ['userRole'],
-          })
-          peter.userRole = UserRole.create()
-          peter.userRole.createdAt = new Date()
-          peter.userRole.role = RoleNames.ADMIN
-          peter.userRole.userId = peter.id
-          await peter.userRole.save()
-
-          // date statement
-          const actualDate = new Date()
-          const futureDate = new Date() // Create a future day from the executed day
-          futureDate.setDate(futureDate.getDate() + 1)
-
-          // factory logs in as Peter Lustig
-          link = await contributionLinkFactory(testEnv, {
-            name: 'Dokumenta 2022',
-            memo: 'Vielen Dank für deinen Besuch bei der Dokumenta 2022',
-            amount: 200,
-            validFrom: actualDate,
-            validTo: futureDate,
-          })
-          resetToken()
-          result = await mutate({
-            mutation: createUser,
-            variables: { ...variables, email: 'ein@besucher.de', redeemCode: 'CL-' + link.code },
-          })
-        })
-
-        afterAll(async () => {
-          await cleanDB()
-        })
-
-        it('sets the contribution link id', async () => {
-          await expect(
-            UserContact.findOne({ where: { email: 'ein@besucher.de' }, relations: ['user'] }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              user: expect.objectContaining({
-                contributionLinkId: link.id,
-              }),
-            }),
-          )
-        })
-
-        it('stores the USER_ACTIVATE_ACCOUNT event in the database', async () => {
-          await expect(DbEvent.find()).resolves.toContainEqual(
-            expect.objectContaining({
-              type: EventType.USER_ACTIVATE_ACCOUNT,
-              affectedUserId: user[0].id,
-              actingUserId: user[0].id,
-            }),
-          )
-        })
-
-        it('stores the USER_REGISTER_REDEEM event in the database', async () => {
-          const visitor = await User.findOneOrFail({
-            where: { emailContact: { email: 'ein@besucher.de' } },
-          })
-          await expect(DbEvent.find()).resolves.toContainEqual(
-            expect.objectContaining({
-              type: EventType.USER_REGISTER_REDEEM,
-              affectedUserId: visitor.id,
-              actingUserId: visitor.id,
-              involvedContributionLinkId: link.id,
-            }),
-          )
-        })
-      })
-
-      describe('transaction link', () => {
-        let contribution: any
-        let bob: any
-        let transactionLink: TransactionLink
-        let newUser: any
-
-        const bobData = {
-          email: 'bob@baumeister.de',
-          password: 'Aa12345_',
-          publisherId: 1234,
-        }
-
-        const peterData = {
-          email: 'peter@lustig.de',
-          password: 'Aa12345_',
-          publisherId: 1234,
-        }
-
-        beforeAll(async () => {
-          await userFactory(testEnv, peterLustig)
-          await userFactory(testEnv, bobBaumeister)
-          await mutate({ mutation: login, variables: bobData })
-
-          // create contribution as user bob
-          contribution = await mutate({
-            mutation: createContribution,
-            variables: {
-              amount: '1000',
-              memo: 'testing',
-              contributionDate: new Date().toISOString(),
-            },
-          })
-
-          // login as admin
-          await mutate({ mutation: login, variables: peterData })
-
-          // confirm the contribution
-          contribution = await mutate({
-            mutation: confirmContribution,
-            variables: { id: contribution.data.createContribution.id },
-          })
-
-          // login as user bob
-          bob = await mutate({ mutation: login, variables: bobData })
-
-          // create transaction link
-          await transactionLinkFactory(testEnv, {
-            email: 'bob@baumeister.de',
-            amount: 19.99,
-            memo: `testing transaction link`,
-          })
-
-          transactionLink = await TransactionLink.findOneOrFail({ where: { userId: bob.id } })
-          resetToken()
-
-          // create new user using transaction link of bob
-          newUser = await mutate({
-            mutation: createUser,
-            variables: {
-              ...variables,
-              email: 'which@ever.de',
-              redeemCode: transactionLink.code,
-            },
-          })
-        })
-
-        it('sets the referrer id to bob baumeister id', async () => {
-          await expect(
-            UserContact.findOne({ where: { email: 'which@ever.de' }, relations: ['user'] }),
-          ).resolves.toEqual(
-            expect.objectContaining({
-              user: expect.objectContaining({ referrerId: transactionLink.userId }), // bob.data.login.id }),
-            }),
-          )
-        })
-
-        it('stores the USER_REGISTER_REDEEM event in the database', async () => {
-          const redeemer = await User.findOneOrFail({
-            where: { emailContact: { email: 'which@ever.de' } },
-          })
-          await expect(DbEvent.find()).resolves.toContainEqual(
-            expect.objectContaining({
-              type: EventType.USER_REGISTER_REDEEM,
-              affectedUserId: redeemer.id,
-              actingUserId: redeemer.id,
-              involvedTransactionLinkId: transactionLink.id,
-            }),
-          )
-        })
-      })
-
-      /* A transaction link requires GDD on account
-      describe('transaction link', () => {
-        let code: string
-        beforeAll(async () => {
-          // factory logs in as Peter Lustig
-          await transactionLinkFactory(testEnv, {
-            email: 'peter@lustig.de',
-            amount: '19.99',
-            memo: `Kein Trick, keine Zauberrei,
-    bei Gradidio sei dabei!`,
-          })
-          const transactionLink = await TransactionLink.findOneOrFail()
-          resetToken()
-          await mutate({
-            mutation: createUser,
-            variables: { ...variables, email: 'neuer@user.de', redeemCode: transactionLink.code },
-          })          
-        })
-    
-        it('sets the referrer id to Peter Lustigs id', async () => {
-          await expect(User.findOne({ email: 'neuer@user.de' })).resolves.toEqual(expect.objectContaining({
-            referrerId: user[0].id,
-          }))
-        })
-      })
-
-      */
     })
 
     describe('the Gradido address the registration started at (referrerAlias)', () => {
@@ -690,26 +330,8 @@ describe('UserResolver', () => {
         await cleanDB()
       })
 
-      it('makes the owner of the alias the referrer', async () => {
-        await expect(registered('by@alias.de')).resolves.toEqual(
-          expect.objectContaining({ referrerId: bob.id }),
-        )
-      })
-
-      it('leaves no trace for an alias nobody holds', async () => {
-        await expect(registered('by@unknown-alias.de')).resolves.toEqual(
-          expect.objectContaining({ referrerId: null }),
-        )
-      })
-
       it('leaves no trace for a gradido ID, although its owner exists', async () => {
         await expect(registered('by@gradido-id.de')).resolves.toEqual(
-          expect.objectContaining({ referrerId: null }),
-        )
-      })
-
-      it('leaves no trace for the name of a deleted member', async () => {
-        await expect(registered('by@deleted-member.de')).resolves.toEqual(
           expect.objectContaining({ referrerId: null }),
         )
       })
@@ -717,12 +339,6 @@ describe('UserResolver', () => {
       it('leaves no trace for a name that exists only in another community', async () => {
         await expect(registered('by@other-community.de')).resolves.toEqual(
           expect.objectContaining({ referrerId: null }),
-        )
-      })
-
-      it('lets a redeem code win over the address', async () => {
-        await expect(registered('by@link-and-alias.de')).resolves.toEqual(
-          expect.objectContaining({ referrerId: null, contributionLinkId: link.id }),
         )
       })
 
@@ -844,18 +460,6 @@ describe('UserResolver', () => {
         })
       })
 
-      it('refuses an expired code and opens no account', async () => {
-        const elevenMinutesAgo = new Date(Date.now() - 11 * 60 * 1000)
-        const result = await register('late@table.de', {
-          referrerAlias: 'MeisterBob',
-          presenceCode: code('MeisterBob', elevenMinutesAgo),
-          password: PASSWORD,
-        })
-
-        expect(result.errors).toEqual([new GraphQLError('Presence code invalid or expired')])
-        await noAccount('late@table.de')
-      })
-
       // The code is checked against the address the guest came from: it has to be the code
       // of that member, and there has to be one.
       it('refuses the code of another member, and a code without an address to come from', async () => {
@@ -903,79 +507,6 @@ describe('UserResolver', () => {
           ])
           await noAccount(email)
         }
-      })
-
-      it('refuses a weak password, also with a valid code', async () => {
-        const result = await register('weak@table.de', {
-          referrerAlias: 'MeisterBob',
-          presenceCode: code(),
-          password: 'weak',
-        })
-
-        expect(result.errors).toEqual([
-          new GraphQLError(
-            'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
-          ),
-        ])
-        await noAccount('weak@table.de')
-      })
-
-      /**
-       * Silence, as without the code (H §8, trap 2): the answer, the mail to the owner and the
-       * untouched account are those of a registration without it. A member can mint as many
-       * codes as they like, so an open answer here would tell them who has an account.
-       */
-      describe('with a valid code and an address that is taken', () => {
-        let before: User
-        let withCode: any
-        let withoutCode: any
-
-        beforeAll(async () => {
-          before = await User.findOneOrFail({ where: { id: bob.id } })
-          jest.clearAllMocks()
-          withCode = await register('bob@baumeister.de', {
-            referrerAlias: 'MeisterBob',
-            presenceCode: code(),
-            password: PASSWORD,
-          })
-          withoutCode = await register('bob@baumeister.de', {})
-        })
-
-        it('answers exactly as without the code', () => {
-          for (const result of [withCode, withoutCode]) {
-            expect({ data: result.data, errors: result.errors }).toEqual({
-              data: { createUser: true },
-              errors: undefined,
-            })
-          }
-        })
-
-        it('writes the owner the usual mail', () => {
-          const usual = {
-            firstName: 'Bob',
-            lastName: 'der Baumeister',
-            email: 'bob@baumeister.de',
-            language: 'de',
-          }
-          expect(sendAccountMultiRegistrationEmail).toHaveBeenCalledTimes(2)
-          expect(sendAccountMultiRegistrationEmail).toHaveBeenNthCalledWith(1, usual)
-          expect(sendAccountMultiRegistrationEmail).toHaveBeenNthCalledWith(2, usual)
-          expect(sendAssistedRegistrationConfirmEmail).not.toBeCalled()
-        })
-
-        it("leaves the owner's account as it was", async () => {
-          const after = await User.findOneOrFail({ where: { id: bob.id } })
-          expect(after.password).toEqual(before.password)
-          expect(after.passwordEncryptionType).toEqual(before.passwordEncryptionType)
-        })
-
-        it('counts no table registration', async () => {
-          await expect(
-            DbEvent.find({
-              where: { type: EventType.USER_REGISTER_PRESENCE, affectedUserId: bob.id },
-            }),
-          ).resolves.toHaveLength(0)
-        })
       })
 
       // The guest left both password fields empty: a classic account, with its referrer.

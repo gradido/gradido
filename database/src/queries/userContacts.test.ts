@@ -8,6 +8,7 @@ import {
   UserContact as DbUserContact,
 } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
+import { DBDuplicateEntryError } from '../errorTypes'
 import { userContactsTable } from '../schemas'
 import { createCommunity } from '../seeds/community'
 import { userFactory } from '../seeds/factory/user'
@@ -16,8 +17,11 @@ import { peterLustig } from '../seeds/users/peter-lustig'
 import {
   dbFindConfirmedUserContactEmails,
   dbFindUserIdsByEmailLike,
+  dbInsertUserContact,
+  dbIsUserContactFieldExist,
   dbPurgeExpiredEmailChanges,
   dbReleaseUnconfirmedEmailChangeFor,
+  dbRemoveUserContact,
 } from './userContacts'
 
 /**
@@ -233,5 +237,59 @@ describe('userContacts.queries', () => {
         'registering@release.test',
       ])
     })
+  })
+})
+
+describe('the user_contacts queries registration uses', () => {
+  let bibiId: number
+
+  beforeAll(async () => {
+    await DbUserAlias.clear()
+    await DbUser.clear()
+    await DbUserContact.clear()
+    await DbCommunity.clear()
+    await createCommunity(false)
+    bibiId = (await userFactory(bibiBloxberg)).id
+  })
+
+  const newContact = (email: string, emailVerificationCode: bigint) => ({
+    email,
+    userId: bibiId,
+    type: UserContactType.USER_CONTACT_EMAIL,
+    emailChecked: false,
+    emailOptInTypeId: OptInType.EMAIL_OPT_IN_REGISTER,
+    emailVerificationCode,
+  })
+
+  it('stores the contact, and finds it by either unique field', async () => {
+    const result = await dbInsertUserContact(newContact('new@contact.test', 111n))
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(await dbIsUserContactFieldExist('email', 'new@contact.test')).toBe(result.value)
+      expect(await dbIsUserContactFieldExist('emailVerificationCode', 111n)).toBe(result.value)
+    }
+    expect(await dbIsUserContactFieldExist('email', 'nobody@contact.test')).toBe(0)
+  })
+
+  // RegisterUserRole draws a new code on a clash - the insert must answer, not throw.
+  it('answers a taken address or a taken verification code with DBDuplicateEntryError', async () => {
+    await dbInsertUserContact(newContact('taken@contact.test', 222n))
+    expect(await dbInsertUserContact(newContact('taken@contact.test', 333n))).toEqual({
+      success: false,
+      error: expect.any(DBDuplicateEntryError),
+    })
+    expect(await dbInsertUserContact(newContact('other@contact.test', 222n))).toEqual({
+      success: false,
+      error: expect.any(DBDuplicateEntryError),
+    })
+  })
+
+  it('removes a contact for good', async () => {
+    const result = await dbInsertUserContact(newContact('removed@contact.test', 444n))
+    if (!result.success) {
+      throw result.error
+    }
+    expect(await dbRemoveUserContact(result.value)).toBe(1)
+    expect(await dbIsUserContactFieldExist('email', 'removed@contact.test')).toBe(0)
   })
 })

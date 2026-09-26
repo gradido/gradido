@@ -53,12 +53,33 @@ describe('registerUser', () => {
     expect(await roleChosenFor(input({ project: 'garden' }))).toBe('RegisterUserExistRole')
   })
 
+  // The answer to a taken address must not tell a table registration from a classic one.
+  it('answers a taken address the same way when a table code came along', async () => {
+    mocked(dbFindUserByEmail).mockResolvedValue({
+      id: 1,
+      firstName: 'Peter',
+      lastName: 'Lustig',
+    } as UserSelect)
+    const user = input({
+      presenceCode: '1700000000.abc',
+      password: 'Aa1!aaaa',
+      referrerAlias: 'PeterL',
+    })
+    expect(await roleChosenFor(user)).toBe('RegisterUserExistRole')
+  })
+
   it('registers for a project', async () => {
     expect(await roleChosenFor(input({ project: 'garden' }))).toBe('RegisterUserForProjectRole')
   })
 
   it('registers from a redeem code', async () => {
     expect(await roleChosenFor(input({ redeemCode: 'CL-abc' }))).toBe(
+      'RegisterUserFromTransactionLinkRole',
+    )
+  })
+
+  it('lets a redeem code win over the address the registration started at', async () => {
+    expect(await roleChosenFor(input({ redeemCode: 'CL-abc', referrerAlias: 'PeterL' }))).toBe(
       'RegisterUserFromTransactionLinkRole',
     )
   })

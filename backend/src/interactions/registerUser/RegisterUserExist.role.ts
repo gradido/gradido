@@ -1,9 +1,10 @@
 import { sendAccountMultiRegistrationEmail } from 'core'
-import { dbInsertEvent, EventType, UserSelect } from 'database'
+import { dbInsertEvent, EventType, UserSelect
+} from 'database'
 import { Logger } from 'log4js'
 import { randombytes_random } from 'sodium-native'
-import { AbstractRegisterUserRole } from './AbstractRegisterUser.role'
 import { CreateUser } from './createUser.schema'
+import { AbstractRegisterUserRole } from './AbstractRegisterUser.role'
 
 export class RegisterUserExistRole extends AbstractRegisterUserRole {
   private firstName: string
@@ -38,8 +39,8 @@ export class RegisterUserExistRole extends AbstractRegisterUserRole {
       affectedUserId: this.existingUser.id,
       actingUserId: 0,
     })
-    // TODO: for a better faking derive id from email so that it will be always the same id when the same email comes in?
-    // TODO: return only boolean to the frontend
-    return randombytes_random() % (2048 * 16)
+    let fakeUserId = 0
+    while(!fakeUserId) { fakeUserId = randombytes_random() % (2048 * 16) + 1 }
+    return fakeUserId
   }
 }

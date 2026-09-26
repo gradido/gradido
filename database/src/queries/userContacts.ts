@@ -3,7 +3,7 @@ import { and, asc, count, eq, isNull, like, sql } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { OptInType, Result } from 'shared'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
-import { DBInsertFailed } from '../errorTypes'
+import { DBDuplicateEntryError, DBInsertFailed, isDuplicateEntry } from '../errorTypes'
 import { UserContactInsert, userContactsTable } from '../schemas/drizzle.schema'
 
 // Drizzle only. The `user_contacts` queries still on TypeORM live in
@@ -21,16 +21,32 @@ const userContactInsertFailed = (row: UserContactInsert) =>
 export async function dbInsertUserContact(
   userContact: UserContactInsert,
   tx?: DrizzleTransaction | MySql2Database,
-): Promise<Result<number, DBInsertFailed<UserContactInsert>>> {
+): Promise<Result<number, DBInsertFailed<UserContactInsert> | DBDuplicateEntryError>> {
   if (!tx) {
     tx = drizzleDb()
   }
-  const rows = await tx.insert(userContactsTable).values(userContact)
-  const firstRow = rows[0]
-  if (firstRow && firstRow.affectedRows === 1) {
-    return { success: true, value: firstRow.insertId }
+  try {
+    const rows = await tx.insert(userContactsTable).values(userContact)
+    const firstRow = rows[0]
+    if (firstRow && firstRow.affectedRows === 1) {
+      return { success: true, value: firstRow.insertId }
+    }
+    return { success: false, error: userContactInsertFailed(userContact) }
+  } catch (error) {
+    // The address or the verification code is taken already; which of the two, the caller
+    // asks with dbIsUserContactFieldExist.
+    if (isDuplicateEntry(error)) {
+      return {
+        success: false,
+        error: new DBDuplicateEntryError(
+          'user_contacts',
+          'email | email_verification_code',
+          userContact.email,
+        ),
+      }
+    }
+    throw error
   }
-  return { success: false, error: userContactInsertFailed(userContact) }
 }
 
 /*
