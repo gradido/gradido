@@ -1,5 +1,4 @@
-import { dbFindLocalUserByAlias, dbInsertEvent, UserInsert } from 'database'
-import { EventType } from '@/event/EventType'
+import { dbFindLocalUserByAlias, dbInsertEvent, EventType, UserInsert } from 'database'
 import { CreateUser } from './createUser.schema'
 import { RegisterUserRole } from './RegisterUser.role'
 
@@ -31,10 +30,10 @@ export class RegisterUserReferrerRole extends RegisterUserRole {
     const userId = this.userId
     const referrerId = this.referrerId
     if (!userId) {
-      new Error('Missing user id')
+      throw new Error('Missing user id')
     }
     if (!referrerId) {
-      new Error('Missing referrer id')
+      throw new Error('Missing referrer id')
     }
 
     return dbInsertEvent({

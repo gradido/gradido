@@ -7,6 +7,7 @@ import {
   ALIAS_ORIGIN_CHOSEN,
   type AliasOrigin,
   DbUser,
+  DrizzleTransaction,
   dbFindUserAliasesWithRegex,
   dbFindUserWithContactById,
   dbHomeCommunityGetUuid,
@@ -20,16 +21,21 @@ import {
   dbRemoveUserAlias,
   dbRemoveUserContact,
   dbUserUpdateField,
+  EventType,
   getHomeCommunityDrizzle,
   UserContactInsert,
   UserInsert,
 } from 'database'
 import { Logger } from 'log4js'
 import random from 'random-bigint'
-import { aliasCandidates, findFirstFreeAlias, primaryAliasCandidate } from 'shared'
+import {
+  aliasCandidates,
+  aliasVariantsPattern,
+  findFirstFreeAlias,
+  primaryAliasCandidate,
+} from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
-import { EventType } from '@/event/Events'
 import { syncHumhub } from '@/graphql/resolver/util/syncHumhub'
 import { getTimeDurationObject } from '@/util/time'
 import { AbstractRegisterUserRole } from './AbstractRegisterUser.role'
@@ -90,27 +96,32 @@ export class RegisterUserRole extends AbstractRegisterUserRole {
     if (!this.userId) {
       throw new Error('Missing user id')
     }
+    this.emailVerificationCode = random(64)
     return {
       email: this.user.email,
       userId: this.userId,
       type: UserContactType.USER_CONTACT_EMAIL,
       emailChecked: false,
       emailOptInTypeId: OptInType.EMAIL_OPT_IN_REGISTER,
-      emailVerificationCode: random(64),
+      emailVerificationCode: this.emailVerificationCode,
     }
   }
 
   // store user and user contact into db, not a transaction so the next count (dbCountUnconfirmedVouchedAccounts) is already aware of our new user
-  public async storeUserAndUserContact(dbUser: UserInsert, logger: Logger): Promise<number> {
+  public async storeUserAndUserContact(
+    dbUser: UserInsert,
+    logger: Logger,
+    tx?: DrizzleTransaction,
+  ): Promise<number> {
     // write user
-    let insertUserResult = await dbInsertUser(dbUser)
+    let insertUserResult = await dbInsertUser(dbUser, tx)
     // maybe gradido uuid collided? Shouldn't happen nearly never, so let's try one time again
     if (!insertUserResult.success) {
       dbUser.gradidoId = uuidv4()
-      insertUserResult = await dbInsertUser(dbUser)
+      insertUserResult = await dbInsertUser(dbUser, tx)
     }
     if (!insertUserResult.success) {
-      const isGradidoIdExist = await dbLocalUserGradidoIdExist(dbUser.gradidoId)
+      const isGradidoIdExist = await dbLocalUserGradidoIdExist(dbUser.gradidoId, tx)
       if (isGradidoIdExist) {
         logger.error(
           'uuidv4 generator seems broken, generate a already existing uuidv4 two times in a row',
@@ -123,18 +134,22 @@ export class RegisterUserRole extends AbstractRegisterUserRole {
     this.userId = insertUserResult.value
     // write user contact
     let userContact = this.prepareUserContact()
-    let insertUserContactResult = await dbInsertUserContact(userContact)
+    let insertUserContactResult = await dbInsertUserContact(userContact, tx)
     if (!insertUserContactResult.success) {
       if (
-        await dbIsUserContactFieldExist('emailVerificationCode', userContact.emailVerificationCode)
+        await dbIsUserContactFieldExist(
+          'emailVerificationCode',
+          userContact.emailVerificationCode,
+          tx,
+        )
       ) {
         // email verification code collision, we try again one time
         userContact = this.prepareUserContact()
-        insertUserContactResult = await dbInsertUserContact(userContact)
+        insertUserContactResult = await dbInsertUserContact(userContact, tx)
       }
     }
     if (!insertUserContactResult.success) {
-      const existingUserContactId = await dbIsUserContactFieldExist('email', this.user.email)
+      const existingUserContactId = await dbIsUserContactFieldExist('email', this.user.email, tx)
       if (existingUserContactId) {
         logger.error(
           `email already exist but dbFindUserByEmail should be aware of this, userContact.id: ${existingUserContactId}`,
@@ -148,7 +163,7 @@ export class RegisterUserRole extends AbstractRegisterUserRole {
     }
     this.userContactId = insertUserContactResult.value
     // write user.email_id
-    const affectedRows = await dbUserUpdateField(this.userId, 'emailId', this.userContactId)
+    const affectedRows = await dbUserUpdateField(this.userId, 'emailId', this.userContactId, tx)
     if (affectedRows !== 1) {
       logger.error(`update emailId: ${this.userContactId} for user=${this.userId} failed`)
       throw new Error('Error while updating dbUser')
@@ -189,7 +204,7 @@ export class RegisterUserRole extends AbstractRegisterUserRole {
     // alias seems to be already in use, so let's try some more
     const aliasCandidatesArray = aliasCandidates(firstName, lastName, email, userId)
     const existingAliases = await dbFindUserAliasesWithRegex(
-      aliasCandidatesArray.map((candidate) => `^${candidate}[0-9]{0,2}$`),
+      aliasCandidatesArray.map(aliasVariantsPattern),
     )
 
     const aliasCandidate = findFirstFreeAlias(existingAliases, aliasCandidatesArray)
@@ -207,49 +222,55 @@ export class RegisterUserRole extends AbstractRegisterUserRole {
   }
 
   public async run(logger: Logger): Promise<number> {
+    let userId: number | null = null
     try {
-      const userId = await this.storeUserAndUserContact(await this.prepareUser(), logger)
+      userId = await this.storeUserAndUserContact(await this.prepareUser(), logger)
       logger.addContext('user', userId)
       const finalAlias = await this.generateAndStoreAlias(logger)
-
       if ((await dbUserUpdateField(userId, 'alias', finalAlias)) !== 1) {
         logger.error(`update user with id: ${userId} with alias: ${finalAlias} failed`)
         throw new Error('Error while storing the generated alias')
       }
-      if (!this.emailVerificationCode) {
-        throw new Error('Missing email verification code')
-      }
-      await this.sendAccountActivationEmail(
-        `${CONFIG.EMAIL_LINK_VERIFICATION}${this.emailVerificationCode.toString()}`,
-      )
-      await this.storeUserRegisterEvent()
-      const dbUser = await dbFindUserWithContactById(userId)
-      if (!dbUser) {
-        logger.error(`cannot find user with id: ${userId} which were just created`)
-        throw new Error('Cannot find just created user')
-      }
-      if (CONFIG.DLT_ACTIVE) {
-        // register user into blockchain
-        const homeCom = await getHomeCommunityDrizzle()
-        if (!homeCom) {
-          throw new Error('Missing Home Community')
-        }
-        await registerAddressTransaction(dbUser, homeCom)
-      }
-
-      await this.syncHumhub(dbUser, logger)
-      await this.afterRun()
-      logger.info('registerAccount() successful...')
-      return userId
     } catch (e) {
       await this.rollback()
       throw e
     }
-  }
+    if (!this.emailVerificationCode) {
+      throw new Error('Missing email verification code')
+    }
+    if (!userId) {
+      throw new Error('Missing user id')
+    }
+    if (
+      await this.sendAccountActivationEmail(
+        `${CONFIG.EMAIL_LINK_VERIFICATION}${this.emailVerificationCode.toString()}`,
+      )
+    ) {
+      await dbInsertEvent({
+        type: EventType.EMAIL_CONFIRMATION,
+        affectedUserId: userId,
+        actingUserId: userId,
+      })
+    }
 
-  // for overloading from child classes, called before run is returning user id
-  public afterRun(): Promise<void> {
-    return Promise.resolve()
+    await this.storeUserRegisterEvent()
+    const dbUser = await dbFindUserWithContactById(userId)
+    if (!dbUser) {
+      logger.error(`cannot find user with id: ${userId} which were just created`)
+      throw new Error('Cannot find just created user')
+    }
+    if (CONFIG.DLT_ACTIVE) {
+      // register user into blockchain
+      const homeCom = await getHomeCommunityDrizzle()
+      if (!homeCom) {
+        throw new Error('Missing Home Community')
+      }
+      await registerAddressTransaction(dbUser, homeCom)
+    }
+    await this.syncHumhub(dbUser, logger)
+    await this.afterRun(dbUser)
+    logger.info('registerAccount() successful...')
+    return userId
   }
 
   public async sendAccountActivationEmail(activationLink: string): Promise<boolean> {
@@ -271,7 +292,7 @@ export class RegisterUserRole extends AbstractRegisterUserRole {
   public storeUserRegisterEvent(): Promise<void> {
     const userId = this.userId
     if (!userId) {
-      new Error('Missing user id')
+      throw new Error('Missing user id')
     }
     return dbInsertEvent({
       type: EventType.USER_REGISTER,
@@ -290,5 +311,10 @@ export class RegisterUserRole extends AbstractRegisterUserRole {
     } catch (e) {
       logger.error("registerAccount: couldn't reach out to humhub, disable for now", e)
     }
+  }
+
+  // for overloading from child classes, called before run is returning user id
+  public afterRun(_user: DbUser): Promise<void> {
+    return Promise.resolve()
   }
 }

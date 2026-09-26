@@ -1,11 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import {
-  ALIAS_MAX_CHARS,
-  aliasSchema,
-  emailSchema,
-  firstNameSchema,
-  lastNameSchema,
-} from '../schema'
+import { ALIAS_MAX_CHARS, aliasSchema } from '../schema'
 import { transliterateToLatin } from './transliterate'
 
 /**
@@ -81,21 +75,37 @@ export function aliasCandidates(
   return candidates
 }
 
+const numberedAlias = (candidate: string, suffix: number): string =>
+  candidate.slice(0, ALIAS_MAX_CHARS - String(suffix).length) + suffix
+
+/**
+ * A regex matching the candidate and every numbered variant `findFirstFreeAlias` builds
+ * from it - including the ones where the digits cut the candidate short to stay within
+ * ALIAS_MAX_CHARS. Candidates are alphanumeric (`transliterateForAlias`), so nothing
+ * needs escaping.
+ */
+export function aliasVariantsPattern(candidate: string): string {
+  const oneDigit = candidate.slice(0, ALIAS_MAX_CHARS - 1)
+  const twoDigits = candidate.slice(0, ALIAS_MAX_CHARS - 2)
+  return `^(${candidate}|${oneDigit}[0-9]|${twoDigits}[0-9]{2})$`
+}
+
 export function findFirstFreeAlias(existing: string[], candidates: string[]): string | null {
-  // prepare set with existing candidates
-  const set = new Set(existing)
+  // The unique key on user_aliases.alias is case-insensitive (utf8mb4_unicode_ci), so is this.
+  const taken = new Set(existing.map((alias) => alias.toLowerCase()))
+  const lowercaseCandidates = candidates.map((alias) => alias.toLocaleLowerCase())
 
   // check with direct candidates
-  for (const candidate of candidates) {
-    if (!set.has(candidate)) {
+  for (const candidate of lowercaseCandidates) {
+    if (!taken.has(candidate)) {
       return candidate
     }
   }
   // check with candidates + number 1 - 99
-  for (const candidate of candidates) {
+  for (const candidate of lowercaseCandidates) {
     for (let suffix = 1; suffix <= 99; suffix++) {
-      const numbered = candidate.slice(0, ALIAS_MAX_CHARS - String(suffix).length) + suffix
-      if (!set.has(numbered)) {
+      const numbered = numberedAlias(candidate, suffix)
+      if (!taken.has(numbered)) {
         return numbered
       }
     }

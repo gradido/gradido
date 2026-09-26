@@ -88,7 +88,7 @@ import {
   JPEG_END_BYTES,
   JPEG_MAGIC_BYTES,
   languageSchema,
-  MemberAvatarPayload,  
+  MemberAvatarPayload,
   Result,
   updateAllDefinedAndChanged,
 } from 'shared'
@@ -129,6 +129,7 @@ import {
 import { inMemberLine } from '@/data/MemberLine.logic'
 import { PRESENCE_MAX_UNCONFIRMED, verifyPresenceCode } from '@/data/PresenceCode.logic'
 import { PublishNameLogic } from '@/data/PublishName.logic'
+import { createUserSchema } from '@/interactions/registerUser'
 import { registerUser } from '@/interactions/registerUser/registerUser.context'
 import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, fakeVerifyPassword, verifyPassword } from '@/password/PasswordEncryptor'
@@ -150,7 +151,6 @@ import { deleteUserRole, setUserRole } from './util/modifyUserRole'
 import { sendUsersToGms } from './util/sendUserToGms'
 import { syncHumhub } from './util/syncHumhub'
 import { removeUserFromGms } from './util/syncMatchingEntryToGms'
-import { createUserSchema } from '@/interactions/registerUser'
 
 const db = AppDatabase.getInstance()
 const createLogger = (method: string) =>
@@ -446,7 +446,7 @@ export class UserResolver {
       // return first error like before in code
       throw new Error(createUserDataParseResult.error.issues[0].message)
     }
-    return new User(await registerUser(createUserDataParseResult.data))
+    return new User(await registerUser(createUserDataParseResult.data, logger))
   }
 
   @Authorized([RIGHTS.SEND_RESET_PASSWORD_EMAIL])

@@ -10,7 +10,7 @@ export const passwordDataSchema = z
     gradidoId: uuidv4Schema.nullish(),
     gradidoID: uuidv4Schema.nullish(),
   })
-  .superRefine((obj) => {
+  .transform((obj) => {
     if (obj.gradidoID) {
       obj.gradidoId = obj.gradidoID
     }

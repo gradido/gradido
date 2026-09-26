@@ -8,7 +8,7 @@ import {
 } from 'drizzle-orm/mysql2'
 import Redis from 'ioredis'
 import { getLogger } from 'log4js'
-import { Connection, createConnection, createPool, Pool } from 'mysql2/promise'
+import { createPool, Pool } from 'mysql2/promise'
 import { DataSource as DBDataSource, FileLogger } from 'typeorm'
 import { latestDbVersion } from '.'
 import { CONFIG } from './config'

@@ -252,12 +252,12 @@ export async function dbCountUnconfirmedVouchedAccounts(
   const rows = await tx
     .select({ count: count() })
     .from(usersTable)
-    .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.userId))
+    .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))
     .where(
       and(
         eq(usersTable.referrerId, referrerId),
         eq(userContactsTable.emailChecked, false),
-        eq(usersTable.passwordEncryptionType, PasswordEncryptionType.NO_PASSWORD),
+        ne(usersTable.passwordEncryptionType, PasswordEncryptionType.NO_PASSWORD),
         isNull(usersTable.deletedAt),
       ),
     )

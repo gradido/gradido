@@ -20,10 +20,13 @@ export const createUserSchema = z.object({
   project: z.string().nullish(),
   referrerAlias: aliasSchema.nullish(),
   presenceCode: presenceCodeSchema.nullish(),
-  password: z.string().refine((pwd: string) => isValidPassword(pwd), {
-    message:
-      'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
-  }), // TODO: move isValidPassword altogether to shared as schema
+  password: z
+    .string()
+    .refine((pwd: string) => isValidPassword(pwd), {
+      message:
+        'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+    })
+    .nullish(), // TODO: move isValidPassword altogether to shared as schema
 })
 
 export type CreateUserInput = z.input<typeof createUserSchema>

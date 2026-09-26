@@ -72,9 +72,13 @@ export async function dbFindConfirmedUserContactEmails(userId: number): Promise<
 export async function dbIsUserContactFieldExist<K extends keyof UserContactInsert>(
   field: K,
   value: UserContactInsert[K],
+  tx?: DrizzleTransaction | MySql2Database,
 ): Promise<number> {
   if (!value) {
     throw new Error('empty value given')
+  }
+  if (!tx) {
+    tx = drizzleDb()
   }
   const rows = await drizzleDb()
     .select({ id: userContactsTable.id })

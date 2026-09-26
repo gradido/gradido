@@ -4,11 +4,10 @@ import {
   dbFindTransactionLinkByCode,
   dbInsertEvent,
   EventInsert,
+  EventType,
   UserInsert,
 } from 'database'
-import { Logger } from 'log4js'
 import { CONFIG } from '@/config'
-import { EventType } from '@/event/EventType'
 import { getTimeDurationObject } from '@/util/time'
 import { CreateUser } from './createUser.schema'
 import { RegisterUserRole } from './RegisterUser.role'
@@ -63,7 +62,7 @@ export class RegisterUserFromTransactionLinkRole extends RegisterUserRole {
   public storeUserRegisterEvent(): Promise<void> {
     const userId = this.userId
     if (!userId) {
-      new Error('Missing user id')
+      throw new Error('Missing user id')
     }
     const event: EventInsert = {
       type: EventType.USER_REGISTER_REDEEM,
@@ -71,9 +70,9 @@ export class RegisterUserFromTransactionLinkRole extends RegisterUserRole {
       actingUserId: userId,
     }
     if (this.contributionLinkId) {
-      event.involvedContributionLink = this.contributionLinkId
+      event.involvedContributionLinkId = this.contributionLinkId
     } else if (this.transactionLinkId) {
-      event.involvedTransactionLink = this.transactionLinkId
+      event.involvedTransactionLinkId = this.transactionLinkId
     } else {
       return super.storeUserRegisterEvent()
     }

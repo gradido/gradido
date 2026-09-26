@@ -1,24 +1,29 @@
+import { sendAssistedRegistrationConfirmEmail } from 'core'
 import {
+  DbUser,
   DrizzleTransaction,
   dbCountUnconfirmedVouchedAccounts,
   dbInsertEvent,
   dbUserUpdatePassword,
   drizzleDb,
+  EventType,
   UserInsert,
   usersTable,
 } from 'database'
 import { sql } from 'drizzle-orm'
 import { Logger } from 'log4js'
 import { PasswordEncryptionType } from 'shared'
+import { CONFIG } from '@/config'
 import { PRESENCE_MAX_UNCONFIRMED, verifyPresenceCode } from '@/data/PresenceCode.logic'
-import { EventType } from '@/event/EventType'
 import { encryptPassword } from '@/password/PasswordEncryptor'
+import { getTimeDurationObject } from '@/util/time'
 import { CreateUser } from './createUser.schema'
 import { RegisterUserReferrerRole } from './RegisterUserReferrer.role'
 
 export class RegisterUserCardRole extends RegisterUserReferrerRole {
   private presenceCode: string
   private password: string
+  private gradidoIdByPasswordStart: string | null = null
   private passwordEncryptionPromise: Promise<bigint> | null = null
 
   constructor(user: CreateUser) {
@@ -51,6 +56,7 @@ export class RegisterUserCardRole extends RegisterUserReferrerRole {
 
     dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
     // it take some time, let it run in parallel
+    this.gradidoIdByPasswordStart = dbUser.gradidoId
     this.passwordEncryptionPromise = encryptPassword(dbUser, this.password)
     return await drizzleDb().transaction(
       async (tx: DrizzleTransaction) => {
@@ -77,20 +83,36 @@ export class RegisterUserCardRole extends RegisterUserReferrerRole {
           throw new Error('Vouching limit reached')
         }
         // running normal RegisterUser Stuff from RegisterUserRole
-        return await super.storeUserAndUserContact(dbUser, logger)
+        return await super.storeUserAndUserContact(dbUser, logger, tx)
       },
       { isolationLevel: 'repeatable read' },
     )
+  }
+
+  public async sendAccountActivationEmail(activationLink: string): Promise<boolean> {
+    const { firstName, lastName, language, email } = this.user
+    const result = await sendAssistedRegistrationConfirmEmail({
+      firstName,
+      lastName,
+      email,
+      language,
+      confirmLink: activationLink,
+      timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
+    })
+    if (result instanceof Error) {
+      throw result
+    }
+    return result !== null
   }
 
   public storeUserRegisterEvent(): Promise<void> {
     const userId = this.userId
     const referrerId = this.referrerId
     if (!userId) {
-      new Error('Missing user id')
+      throw new Error('Missing user id')
     }
     if (!referrerId) {
-      new Error('Missing referrer id')
+      throw new Error('Missing referrer id')
     }
 
     return dbInsertEvent({
@@ -100,14 +122,19 @@ export class RegisterUserCardRole extends RegisterUserReferrerRole {
     })
   }
 
-  public async afterRun(): Promise<void> {
-    if (!this.userId) {
-      throw new Error('Missing user id')
+  public async afterRun(user: DbUser): Promise<void> {
+    if (!this.userId || !this.gradidoIdByPasswordStart) {
+      throw new Error('Missing id')
     }
     if (!this.passwordEncryptionPromise) {
       throw new Error('Password encryption was never started in the first place')
     }
-    const passwordHash = await this.passwordEncryptionPromise
+    let passwordHash: bigint = 0n
+    if (this.gradidoIdByPasswordStart !== user.gradidoId) {
+      passwordHash = await encryptPassword(user, this.password)
+    } else {
+      passwordHash = await this.passwordEncryptionPromise
+    }
     return dbUserUpdatePassword(this.userId, PasswordEncryptionType.GRADIDO_ID, passwordHash)
   }
 }

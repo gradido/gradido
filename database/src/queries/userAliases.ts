@@ -1,8 +1,6 @@
 // AI-GENERATED — not an architecture reference
 
 import { asc, eq, inArray, like, or, sql } from 'drizzle-orm'
-import { union } from 'drizzle-orm/mysql-core'
-import { MySqlRawQueryResult } from 'drizzle-orm/mysql2'
 import { Order, Result } from 'shared'
 import { EntityManager, FindOptionsWhere, MoreThan, Not } from 'typeorm'
 import { drizzleDb } from '../AppDatabase'
@@ -12,7 +10,7 @@ import {
   AliasOrigin,
   UserAlias as DbUserAlias,
 } from '../entity'
-import { DBInsertFailed } from '../errorTypes'
+import { DBDuplicateEntryError, DBInsertFailed, isDuplicateEntry } from '../errorTypes'
 import { UserAliasInsert, userAliasesTable } from '../schemas'
 
 /**
@@ -102,13 +100,24 @@ export async function dbFindOldestChosenAliasSince(
 /** Record that this name now belongs to the member. */
 export async function dbInsertUserAlias(
   userAlias: UserAliasInsert,
-): Promise<Result<number, DBInsertFailed<UserAliasInsert>>> {
-  const rows = await drizzleDb().insert(userAliasesTable).values(userAlias)
-  const firstRow = rows[0]
-  if (firstRow && firstRow.affectedRows === 1) {
-    return { success: true, value: firstRow.insertId }
+): Promise<Result<number, DBInsertFailed<UserAliasInsert> | DBDuplicateEntryError>> {
+  try {
+    const rows = await drizzleDb().insert(userAliasesTable).values(userAlias)
+    const firstRow = rows[0]
+    if (firstRow && firstRow.affectedRows === 1) {
+      return { success: true, value: firstRow.insertId }
+    }
+    return { success: false, error: userAliasInsertFailed(userAlias) }
+  } catch (error) {
+    // A taken name is an expected outcome: registration then walks on to the next candidate.
+    if (isDuplicateEntry(error)) {
+      return {
+        success: false,
+        error: new DBDuplicateEntryError('user_aliases', 'alias', userAlias.alias),
+      }
+    }
+    throw error
   }
-  return { success: false, error: userAliasInsertFailed(userAlias) }
 }
 
 // Not a soft delete, really remove the user and his user contact from db, used in RegisterUser if something after creating user failed
@@ -141,21 +150,19 @@ export async function dbFindUserAliasesWithPrefix(
   return rows.map((row) => row.a)
 }
 
+// Every alias matching at least one of the patterns, in one round trip. REGEXP follows the
+// column's collation (utf8mb4_unicode_ci), so the match is case-insensitive - as the unique
+// key is. The patterns go in as bound parameters, never spliced into the statement.
+// REGEXP cannot use the index, so this scans user_aliases once, however many patterns.
 export async function dbFindUserAliasesWithRegex(regexes: string[]): Promise<string[]> {
-  const queries = regexes.map((regex) =>
-    drizzleDb()
-      .select({ a: userAliasesTable.alias })
-      .from(userAliasesTable)
-      .where(like(userAliasesTable.alias, regex))
-      .orderBy(asc(userAliasesTable.alias)),
-  )
-
-  const res: MySqlRawQueryResult = await drizzleDb().execute(
-    sql.join(queries, ' UNION ').mapWith(userAliasesTable.alias),
-  )
-  console.log(JSON.stringify(res, null, 2))
-  throw new Error('not finished yet')
-  // return []
+  if (!regexes.length) {
+    return []
+  }
+  const rows = await drizzleDb()
+    .select({ alias: userAliasesTable.alias })
+    .from(userAliasesTable)
+    .where(or(...regexes.map((regex) => sql`${userAliasesTable.alias} REGEXP ${regex}`)))
+  return rows.map((row) => row.alias)
 }
 
 export async function dbFindUserAliasesExisting(userAliases: string[]): Promise<string[]> {

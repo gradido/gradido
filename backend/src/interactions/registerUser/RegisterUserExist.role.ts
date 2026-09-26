@@ -1,8 +1,7 @@
 import { sendAccountMultiRegistrationEmail } from 'core'
-import { dbInsertEvent, UserSelect } from 'database'
+import { dbInsertEvent, EventType, UserSelect } from 'database'
 import { Logger } from 'log4js'
 import { randombytes_random } from 'sodium-native'
-import { EventType } from '@/event/EventType'
 import { AbstractRegisterUserRole } from './AbstractRegisterUser.role'
 import { CreateUser } from './createUser.schema'
 

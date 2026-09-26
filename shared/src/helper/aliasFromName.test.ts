@@ -1,4 +1,10 @@
-import { aliasCandidates, aliasStemFromEmail, transliterateForAlias } from './aliasFromName'
+import {
+  aliasCandidates,
+  aliasStemFromEmail,
+  aliasVariantsPattern,
+  findFirstFreeAlias,
+  transliterateForAlias,
+} from './aliasFromName'
 
 describe('transliterateForAlias', () => {
   it('writes german umlauts out instead of dropping their second letter', () => {
@@ -120,5 +126,52 @@ describe('aliasCandidates', () => {
       expect(candidate.length).toBeGreaterThanOrEqual(3)
       expect(candidate.length).toBeLessThanOrEqual(20)
     }
+  })
+})
+
+describe('findFirstFreeAlias', () => {
+  it('takes the first candidate nobody holds', () => {
+    expect(findFirstFreeAlias(['BerndH'], ['BerndH', 'BerndHu'])).toBe('BerndHu')
+  })
+
+  it('treats names as taken regardless of case, like the unique key', () => {
+    expect(findFirstFreeAlias(['berndh'], ['BerndH'])).toBe('BerndH1')
+  })
+
+  it('numbers a candidate once all of them are taken', () => {
+    expect(findFirstFreeAlias(['BerndH', 'BerndH1'], ['BerndH'])).toBe('BerndH2')
+  })
+
+  it('returns null when every variant is taken', () => {
+    const taken = ['abc', ...Array.from({ length: 99 }, (_, i) => `abc${i + 1}`)]
+    expect(findFirstFreeAlias(taken, ['abc'])).toBeNull()
+  })
+})
+
+describe('aliasVariantsPattern', () => {
+  // Every variant findFirstFreeAlias may hand out must match, or a taken one is missed.
+  const variants = (candidate: string): string[] => {
+    const all = [candidate]
+    for (let suffix = 1; suffix <= 99; suffix++) {
+      all.push(candidate.slice(0, 20 - String(suffix).length) + suffix)
+    }
+    return all
+  }
+
+  it.each(['abc', 'Maximiliana1234567', 'Maximiliana12345678', 'MaximilianSchwarzene'])(
+    'matches every variant of %s',
+    (candidate) => {
+      const regex = new RegExp(aliasVariantsPattern(candidate))
+      for (const variant of variants(candidate)) {
+        expect(variant).toMatch(regex)
+      }
+    },
+  )
+
+  it('matches no longer name that merely starts with the candidate', () => {
+    const regex = new RegExp(aliasVariantsPattern('abc'))
+    expect('abc123').not.toMatch(regex)
+    expect('abcd').not.toMatch(regex)
+    expect('xabc').not.toMatch(regex)
   })
 })
