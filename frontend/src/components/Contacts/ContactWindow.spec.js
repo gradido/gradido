@@ -1494,13 +1494,20 @@ describe('ContactWindow', () => {
 
   // "Schmal" (Bernd, 24.09.2026): the button keeps the width of its word, so something can
   // stand beside it later -- a rule of its own, outside the map's rules held above.
-  it('keeps the button as wide as its word, in the stylesheet', () => {
-    const rule = styleOf('ContactWindow.vue').match(
-      /\n\.contact-window-send \.send-btn\s*\{([^}]*)\}/,
-    )?.[1]
+  // And where even set closer the word is wider than the whole row (below 240px, measured), it
+  // takes a second line instead of the button hanging out of the window (coderabbit, #3987) --
+  // in the window's own rule; the map's rule keeps `nowrap` (held against MatchProfile above).
+  it('keeps the button as wide as its word, and lets the word break only past the row, in the stylesheet', () => {
+    const code = styleOf('ContactWindow.vue')
+    const rule = code.match(/\n\.contact-window-send \.send-btn\s*\{([^}]*)\}/)?.[1]
+    const map = code.match(/\n\.send-btn\s*\{([^}]*)\}/)?.[1]
 
     expect(rule, 'the button lost its own width').toBeDefined()
     expect(rule).toMatch(/flex:\s*0 1 auto/)
+    expect(rule).toMatch(/min-width:\s*0/)
+    expect(rule).toMatch(/white-space:\s*normal/)
+    expect(rule).toMatch(/overflow-wrap:\s*anywhere/)
+    expect(map).toMatch(/white-space:\s*nowrap/)
   })
 
   /**

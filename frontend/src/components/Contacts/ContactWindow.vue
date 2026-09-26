@@ -1014,9 +1014,17 @@ onBeforeUnmount(() => {
 
 /* ⚠️ The second difference from the map, and the reason it stands outside the map's rules:
    the button keeps the width of its word instead of filling the row (Bernd, 24.09.2026,
-   "schmal"), so the marks can stand beside it (Bernd, 26.09.2026). */
+   "schmal"), so the marks can stand beside it (Bernd, 26.09.2026).
+
+   And where even set closer the word is wider than the whole row, it goes onto a second line
+   rather than the button hanging out of the window (coderabbit, #3987). Measured: that is
+   below 240px only -- a phone zoomed in far; from 240px up the word stands on one line in
+   every language, and the map's own rule keeps `nowrap`. */
 .contact-window-send .send-btn {
   flex: 0 1 auto;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 /* The third: where a language's word makes the button too wide for the marks to fit beside
