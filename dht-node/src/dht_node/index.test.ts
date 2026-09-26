@@ -1,5 +1,5 @@
 import DHT from '@hyperswarm/dht'
-import { cleanDB, testEnvironment } from '@test/helpers'
+import { cleanDB, testEnvironment, useFakeTimersForDrizzle } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
 import {
   AppDatabase,
@@ -19,9 +19,10 @@ jest.mock('@hyperswarm/dht')
 
 const TEST_TOPIC = 'gradido_test_topic'
 
+// ed25519 sizes, the home community insert validates them
 const keyPairMock = {
-  publicKey: Buffer.from('publicKey'),
-  secretKey: Buffer.from('secretKey'),
+  publicKey: Buffer.alloc(32, 'publicKey'),
+  secretKey: Buffer.alloc(64, 'secretKey'),
 }
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.dht_node`)
@@ -114,7 +115,7 @@ afterAll(async () => {
 
 describe('federation', () => {
   beforeAll(() => {
-    jest.useFakeTimers()
+    useFakeTimersForDrizzle()
   })
 
   afterEach(() => {
@@ -156,11 +157,14 @@ describe('federation', () => {
           id: expect.any(Number),
           foreign: false,
           url: 'https://test.gradido.net/api/',
-          publicKey: expect.any(Buffer),
+          publicKey: keyPairMock.publicKey,
+          privateKey: keyPairMock.secretKey,
           communityUuid: expect.any(String),
           authenticatedAt: null,
           name: 'Gradido Test Community',
           description: 'Community to test the federation',
+          publicJwtKey: expect.stringContaining('-----BEGIN PUBLIC KEY-----'),
+          privateJwtKey: expect.stringContaining('-----BEGIN PRIVATE KEY-----'),
           creationDate: expect.any(Date),
           createdAt: expect.any(Date),
           updatedAt: null,
@@ -916,13 +920,8 @@ describe('federation', () => {
           await startDHT(TEST_TOPIC)
         })
 
-        it('does not change home community in community table except updated at column ', async () => {
-          await expect(DbCommunity.find()).resolves.toEqual([
-            {
-              ...homeCommunity,
-              updatedAt: expect.any(Date),
-            },
-          ])
+        it('does not change home community in community table', async () => {
+          await expect(DbCommunity.find()).resolves.toEqual([homeCommunity])
         })
 
         it('rewrites the 3 entries in table federated_communities', async () => {
@@ -943,6 +942,26 @@ describe('federation', () => {
               ...federatedCommunities[2],
               id: expect.any(Number),
               createdAt: expect.any(Date),
+            },
+          ])
+        })
+      })
+
+      describe('home community with JWT key pair', () => {
+        beforeEach(async () => {
+          CONFIG.COMMUNITY_NAME = 'Renamed Gradido Test Community'
+          DHT.mockClear()
+          jest.clearAllMocks()
+          homeCommunity = (await DbCommunity.find())[0]
+          await startDHT(TEST_TOPIC)
+        })
+
+        it('keeps the JWT key pair', async () => {
+          await expect(DbCommunity.find()).resolves.toEqual([
+            {
+              ...homeCommunity,
+              name: 'Renamed Gradido Test Community',
+              updatedAt: expect.any(Date),
             },
           ])
         })

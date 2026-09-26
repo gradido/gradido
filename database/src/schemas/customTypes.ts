@@ -1,17 +1,8 @@
 import { sql } from 'drizzle-orm'
-import { customType } from 'drizzle-orm/mysql-core'
+import { customType, MySqlVarbinaryOptions } from 'drizzle-orm/mysql-core'
 import { type Geometry } from 'geojson'
-import { GradidoUnit } from 'shared'
+import { GradidoUnit, locationPointSchema } from 'shared'
 import { Geometry as WkxGeometry } from 'wkx'
-
-// What mysql2 makes of a POINT before drizzle ever sees the column.
-type DriverPoint = { x: number; y: number }
-
-const isDriverPoint = (value: unknown): value is DriverPoint =>
-  typeof value === 'object' &&
-  value !== null &&
-  typeof (value as DriverPoint).x === 'number' &&
-  typeof (value as DriverPoint).y === 'number'
 
 export const customGradidoUnit = customType<{ data: GradidoUnit; driverData: bigint }>({
   dataType() {
@@ -33,6 +24,9 @@ export const customMediumBlob = customType<{ data: Buffer; driverData: Buffer }>
     return 'mediumblob'
   },
 })
+
+// What mysql2 makes of a POINT before drizzle ever sees the column.
+type DriverPoint = { x: number; y: number }
 
 /**
  * `users.location` and `communities.location` hold a MySQL POINT; everything above the
@@ -60,6 +54,12 @@ export const customMediumBlob = customType<{ data: Buffer; driverData: Buffer }>
  * driver hands a line or a polygon over as nested arrays with the geometry type lost, so
  * one is refused rather than guessed at.
  */
+const isDriverPoint = (value: unknown): value is DriverPoint =>
+  typeof value === 'object' &&
+  value !== null &&
+  typeof (value as DriverPoint).x === 'number' &&
+  typeof (value as DriverPoint).y === 'number'
+
 export const customGeometry = customType<{
   data: Geometry | null
   driverData: string | Buffer | DriverPoint | null
@@ -82,6 +82,7 @@ export const customGeometry = customType<{
     if (!value) {
       return null
     }
+
     if (isDriverPoint(value)) {
       return { type: 'Point', coordinates: [value.x, value.y] }
     }
@@ -92,3 +93,50 @@ export const customGeometry = customType<{
     return WkxGeometry.parse(value).toGeoJSON() as Geometry
   },
 })
+
+export const customVarbinary = <T extends Buffer = Buffer>(
+  columnName: string,
+  options: Pick<MySqlVarbinaryOptions, 'length'>,
+) => {
+  return (
+    customType<{
+      data: Buffer
+      driverData: Buffer
+    }>({
+      dataType: () => {
+        return `varbinary(${options.length})`
+      },
+      // # WORKAROUND
+      // By not implementing unnecessary conversion processes in `fromDriver` and `toDriver`, we can save and retrieve values in the DB without corruption.
+      fromDriver: (value) => {
+        return value
+      },
+      toDriver: (value) => {
+        return value
+      },
+    })(columnName)
+      // The following line is a workaround for the issue with varbinary/binary type
+      // [[BUG]: MySQL2 binary/varbinary types are incorrectly typed as strings instead of buffers · Issue #1188 · drizzle-team/drizzle-orm](https://github.com/drizzle-team/drizzle-orm/issues/1188)
+      .$type<T>()
+  )
+}
+
+export const customBinary = <T extends Buffer = Buffer>(
+  columnName: string,
+  options: Pick<MySqlVarbinaryOptions, 'length'>,
+) => {
+  return customType<{
+    data: Buffer
+    driverData: Buffer
+  }>({
+    dataType: () => {
+      return `binary(${options.length})`
+    },
+    fromDriver: (value) => {
+      return value
+    },
+    toDriver: (value) => {
+      return value
+    },
+  })(columnName).$type<T>()
+}

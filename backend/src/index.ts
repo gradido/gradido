@@ -1,5 +1,6 @@
 import 'reflect-metadata'
 import 'source-map-support/register'
+import { getHomeCommunityDrizzle } from 'database'
 import { getLogger } from 'log4js'
 import { matchingKeyingRun } from './apis/anthropic/matching/keyingRun'
 import { chatVideoServerPool } from './apis/jitsi/chatVideoServerPool'
@@ -7,10 +8,7 @@ import { seedChatVideoServers } from './apis/jitsi/seedChatVideoServers'
 import { CONFIG } from './config'
 import { FOREIGN_AVATAR_DATES_REFRESH_MS } from './data/MemberAvatars.logic'
 import { startRefreshForeignMemberAvatarDates } from './federation/refreshForeignMemberAvatarDates'
-import {
-  startValidateCommunities,
-  writeJwtKeyPairInHomeCommunity,
-} from './federation/validateCommunities'
+import { startValidateCommunities } from './federation/validateCommunities'
 import { createServer } from './server/createServer'
 import { initLogging } from './server/logger'
 
@@ -18,7 +16,9 @@ async function main() {
   initLogging()
   const { app } = await createServer(getLogger('apollo'))
 
-  await writeJwtKeyPairInHomeCommunity()
+  // will throw if a home community is missing
+  await getHomeCommunityDrizzle()
+
   app.listen(CONFIG.BACKEND_PORT, () => {
     // biome-ignore lint/suspicious/noConsole: no need for logging the start message
     console.log(`Server is running at http://localhost:${CONFIG.BACKEND_PORT}`)

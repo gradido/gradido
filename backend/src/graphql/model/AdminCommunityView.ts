@@ -1,4 +1,8 @@
-import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
+import {
+  CommunitiesSelect,
+  Community as DbCommunity,
+  FederatedCommunity as DbFederatedCommunity,
+} from 'database'
 import { Field, ObjectType } from 'type-graphql'
 import { Point } from 'typeorm'
 
@@ -9,8 +13,12 @@ import { Location } from './Location'
 
 @ObjectType()
 export class AdminCommunityView {
-  constructor(dbCom: DbCommunity) {
-    if (dbCom.federatedCommunities && dbCom.federatedCommunities.length > 0) {
+  constructor(dbCom: DbCommunity | CommunitiesSelect) {
+    if (
+      dbCom instanceof DbCommunity &&
+      dbCom.federatedCommunities &&
+      dbCom.federatedCommunities.length > 0
+    ) {
       const federatedCommunity = dbCom.federatedCommunities[0]
       this.foreign = federatedCommunity.foreign
       const url = new URL(federatedCommunity.endPoint)
