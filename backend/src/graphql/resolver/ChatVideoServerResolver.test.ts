@@ -284,16 +284,36 @@ describe('ChatVideoServerResolver', () => {
   })
 
   it('asks the pool for a check after every change, and does not wait for it', async () => {
-    // A check that never finishes: a mutation that waited for it would never answer.
+    // A check that never finishes: a mutation that waited for it would never answer. Raced
+    // against two seconds rather than left to the test's timeout, so that such a mutation fails
+    // this test alone and the spy is restored for the ones after it.
     const refreshNow = jest
       .spyOn(chatVideoServerPool, 'refreshNow')
       .mockReturnValue(new Promise<void>(() => undefined))
+    const answered = async <T>(sending: Promise<T>): Promise<T | 'no answer'> => {
+      let timer: NodeJS.Timeout | undefined
+      try {
+        return await Promise.race([
+          sending,
+          new Promise<'no answer'>((resolve) => {
+            timer = setTimeout(() => resolve('no answer'), 2000)
+          }),
+        ])
+      } finally {
+        clearTimeout(timer)
+      }
+    }
     try {
-      const row = await created(FAIRMEETING)
+      const creation = await answered(create(FAIRMEETING))
+      expect(creation).not.toBe('no answer')
+      const row = (creation as any).data.createChatVideoServer
       expect(refreshNow).toHaveBeenCalledTimes(1)
-      expect((await update(row.id, { ...FAIRMEETING, active: false })).errors).toBeUndefined()
+      const change = await answered(update(row.id, { ...FAIRMEETING, active: false }))
+      expect(change).toMatchObject({ data: { updateChatVideoServer: { active: false } } })
       expect(refreshNow).toHaveBeenCalledTimes(2)
-      expect((await remove(row.id)).errors).toBeUndefined()
+      expect(await answered(remove(row.id))).toMatchObject({
+        data: { deleteChatVideoServer: true },
+      })
       expect(refreshNow).toHaveBeenCalledTimes(3)
       // A refusal changes nothing, and asks for nothing.
       await create({ ...FAIRMEETING, baseUrl: 'http://fairmeeting.net/' })
