@@ -54,7 +54,14 @@ export class XComRequestError extends DomainError {
   }
 }
 
+export class MissingHomeCommunityError extends DomainError {
+  constructor() {
+    super('Error! A HomeCommunity-Entry still not exist! Please start the DHT-Modul first.')
+  }
+}
+
 // general Result Type Template
 export type Result<T, E = Error> = { success: true; value: T } | { success: false; error: E }
+export type ResultNoError<T> = { success: true; value: T } | { success: false }
 
 export type VoidResult<E = Error> = { success: true } | { success: false; error: E }

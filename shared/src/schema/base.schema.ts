@@ -19,3 +19,30 @@ export const decaySchema = z.object({
 })
 
 export type Decay = z.infer<typeof decaySchema>
+
+// TODO: actually check for valid ed25519 Keys/Key Pair
+export const ed25519PublicKeySchema = z.instanceof(Buffer).superRefine((value, ctx) => {
+  if (value.length !== 32) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Expected 32 Bytes',
+    })
+  }
+})
+
+export const ed25519PrivateKeySchema = z.instanceof(Buffer).superRefine((value, ctx) => {
+  if (value.length !== 64) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Expected 64 Bytes',
+    })
+  }
+})
+
+export const locationPointSchema = z.object({
+  type: z.literal('Point'),
+  coordinates: z.array(z.number()).length(2),
+})
+
+export type LocationPointInput = z.input<typeof locationPointSchema>
+export type LocationPoint = z.output<typeof locationPointSchema>

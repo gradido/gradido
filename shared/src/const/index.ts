@@ -135,3 +135,7 @@ export const FRONTEND_LOGIN_ROUTE = 'login'
 // Mirrors the users.salutation column (varchar 255, migration 0105); the admin field
 // carries the same limit, so an over-long value is stopped before it gets here.
 export const SALUTATION_MAX_LENGTH = 255
+
+// 10 minutes default cache timeout, it is for auto correcting, when cache invalidation don't work properly in any cases,
+// the cached data set will be updated after 10 minutes
+export const DEFAULT_CACHE_TIMEOUT_MS = 10 * 60 * 1000

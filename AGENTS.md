@@ -92,7 +92,7 @@ Turbo and `bun run` automatically invoke the correct test runner defined in the 
 - Validation: valibot schemas in `*.schema.ts`, kept next to what they validate. Validate at the boundary, then trust the parsed type inward. Export both `v.InferInput` and `v.InferOutput` types where a schema transforms.
 - Enums: `src/data/[Name].enum.ts`.
 - Tests: co-located `*.test.ts`, run with `bun test`.
-- Fake timers in Jest tests: use `useFakeTimersForDrizzle()` from `test/helpers.ts` (`backend`, `dht-node`) instead of `jest.useFakeTimers()`. Jest 27 also fakes `process.nextTick`, which mysql2 — Drizzle's driver — needs to deliver every result, so any Drizzle query under plain fake timers hangs until the hook or test timeout. TypeORM runs on the `mysql` package and is unaffected, so this only surfaces once a query on that path moves to Drizzle. `cleanDB` is such a query. `federation` has no such helper yet; it needs the same one before a test there fakes timers around a Drizzle query.
+- Fake timers in Jest tests: use `useFakeTimersForDrizzle()` from `backend/test/helpers.ts` (or `dht-node/test/helpers.ts`) instead of `jest.useFakeTimers()`. Jest 27 also fakes `process.nextTick`, which mysql2 — Drizzle's driver — needs to deliver every result, so any Drizzle query under plain fake timers hangs until the hook or test timeout. TypeORM runs on the `mysql` package and is unaffected, so this only surfaces once a query on that path moves to Drizzle. `federation` has no such helper yet; it needs the same one before a test there fakes timers around a Drizzle query.
 
 # Error handling
 

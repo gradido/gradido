@@ -1,5 +1,10 @@
 import random from 'random-bigint'
-import { OptInType, PasswordEncryptionType, UserContactType } from 'shared'
+import {
+  MissingHomeCommunityError,
+  OptInType,
+  PasswordEncryptionType,
+  UserContactType,
+} from 'shared'
 import { v4 } from 'uuid'
 import { AppDatabase } from '../..'
 import { Community, User, UserContact, UserRole } from '../../entity'
@@ -107,7 +112,7 @@ export async function createUser(
     homeCommunity = await getHomeCommunity()
   }
   if (!homeCommunity || !homeCommunity.communityUuid) {
-    throw new Error('missing home community, please call createCommunity(false) first')
+    throw new MissingHomeCommunityError()
   }
 
   dbUser.community = homeCommunity

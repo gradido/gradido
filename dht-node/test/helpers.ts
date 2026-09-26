@@ -1,4 +1,4 @@
-import { AppDatabase, dbDeleteAllRowsExceptMigrations } from 'database'
+import { AppDatabase, HOME_COMMUNITY_CHANGED_CHANNEL, dbDeleteAllRowsExceptMigrations } from 'database'
 
 export const headerPushMock = jest.fn((t) => {
   context.token = t.value
@@ -17,6 +17,10 @@ export const cleanDB = async () => {
   // Every table except `migrations`, in one statement that reads the table list itself - a
   // table with or without a TypeORM entity, and one added tomorrow, alike.
   await dbDeleteAllRowsExceptMigrations()
+  
+  // The rows are gone past the query functions, so nobody announced it: the cached home
+  // community would outlive them. publish() reaches this process at once, Redis or not.
+  AppDatabase.getInstance().publish(HOME_COMMUNITY_CHANGED_CHANNEL)
 }
 
 export const testEnvironment = async () => {
