@@ -169,6 +169,8 @@
     "videoAskFirst": "{name} bekommt den Link als Nachricht und per E-Mail.",
     "videoAskTitle": "Videoanruf mit {name} starten?",
     "videoCall": "Videoanruf mit {name} starten",
+    "videoInApp": "In der Jitsi-App öffnen",
+    "videoInAppHint": "Öffnet den Raum in der Jitsi-App für den Computer — wenn sie installiert ist.",
     "videoInvite": "📹 Videoanruf. Der Raum liegt auf einem Jitsi-Server von {operator} — ein Vorschlag, kein Dienst von Gradido: {url}",
     "videoInviteTopic": "📹 Videoanruf: {topic}\nDer Raum liegt auf einem Jitsi-Server von {operator} — ein Vorschlag, kein Dienst von Gradido: {url}",
     "videoNoServer": "Zurzeit ist kein Videoserver erreichbar. Versuch es gleich noch einmal.",
