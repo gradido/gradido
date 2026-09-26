@@ -170,7 +170,7 @@
     "videoAskTitle": "Start a video call with {name}?",
     "videoCall": "Start a video call with {name}",
     "videoInApp": "Open in the Jitsi app",
-    "videoInAppHint": "Opens the room in the Jitsi desktop app — if it is installed.",
+    "videoInAppHint": "Opens the room in the Jitsi app on your computer — if it is installed.",
     "videoInvite": "📹 Video call. The room is on a Jitsi server run by {operator} — a suggestion, not a Gradido service: {url}",
     "videoInviteTopic": "📹 Video call: {topic}\nThe room is on a Jitsi server run by {operator} — a suggestion, not a Gradido service: {url}",
     "videoNoServer": "No video server can be reached right now. Try again in a moment.",
