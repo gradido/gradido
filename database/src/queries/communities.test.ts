@@ -19,6 +19,7 @@ import {
   getReachableCommunities,
   HOME_COMMUNITY_CHANGED_CHANNEL,
 } from './communities'
+import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 
 const db = AppDatabase.getInstance()
 
@@ -32,8 +33,7 @@ afterAll(async () => {
 describe('community.queries', () => {
   // clean db for every test case
   beforeEach(async () => {
-    await DbCommunity.clear()
-    await DbFederatedCommunity.clear()
+    await dbDeleteAllRowsExceptMigrations()
     AppDatabase.getInstance().publish(HOME_COMMUNITY_CHANGED_CHANNEL)
   })
   describe('getHomeCommunity', () => {

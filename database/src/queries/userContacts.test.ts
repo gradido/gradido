@@ -1,12 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { inArray } from 'drizzle-orm'
 import { OptInType, UserContactType } from 'shared'
-import {
-  Community as DbCommunity,
-  User as DbUser,
-  UserAlias as DbUserAlias,
-  UserContact as DbUserContact,
-} from '..'
+import { User as DbUser } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { DBDuplicateEntryError } from '../errorTypes'
 import { userContactsTable } from '../schemas'
@@ -14,6 +9,7 @@ import { createCommunity } from '../seeds/community'
 import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
+import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import {
   dbFindConfirmedUserContactEmails,
   dbFindUserIdsByEmailLike,
@@ -80,10 +76,7 @@ describe('userContacts.queries', () => {
   let peter: DbUser
 
   beforeAll(async () => {
-    await DbUserAlias.clear()
-    await DbUser.clear()
-    await DbUserContact.clear()
-    await DbCommunity.clear()
+    await dbDeleteAllRowsExceptMigrations()
 
     await createCommunity(false)
     bibi = await userFactory(bibiBloxberg)
@@ -244,10 +237,7 @@ describe('the user_contacts queries registration uses', () => {
   let bibiId: number
 
   beforeAll(async () => {
-    await DbUserAlias.clear()
-    await DbUser.clear()
-    await DbUserContact.clear()
-    await DbCommunity.clear()
+    await dbDeleteAllRowsExceptMigrations()
     await createCommunity(false)
     bibiId = (await userFactory(bibiBloxberg)).id
   })

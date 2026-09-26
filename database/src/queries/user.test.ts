@@ -6,13 +6,10 @@ import {
   Community as DbCommunity,
   Transaction as DbTransaction,
   User as DbUser,
-  UserAlias as DbUserAlias,
   UserContact as DbUserContact,
-  UserRole as DbUserRole,
 } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { DBDuplicateEntryError, DBInsertFailed, DBNotFoundError } from '../errorTypes'
-import { userAvatarsTable } from '../schemas/drizzle.schema'
 import { createCommunity } from '../seeds/community'
 import { creationFactory, nMonthsBefore } from '../seeds/factory/creation'
 import { foreignReceive, transferGradidos } from '../seeds/factory/transaction'
@@ -20,6 +17,7 @@ import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { peterLustig } from '../seeds/users/peter-lustig'
+import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import { getLastTransaction } from './transactions'
 import {
   aliasExists,
@@ -62,10 +60,7 @@ afterAll(async () => {
 describe('user.queries', () => {
   describe('aliasExists', () => {
     beforeAll(async () => {
-      await DbUserAlias.clear()
-      await DbUser.clear()
-      await DbUserContact.clear()
-      await DbCommunity.clear()
+      await dbDeleteAllRowsExceptMigrations()
 
       const homeCom = await createCommunity(false)
       const bibi = bibiBloxberg
@@ -90,10 +85,7 @@ describe('user.queries', () => {
     let bibi: DbUser
 
     beforeAll(async () => {
-      await DbUserAlias.clear()
-      await DbUser.clear()
-      await DbUserContact.clear()
-      await DbCommunity.clear()
+      await dbDeleteAllRowsExceptMigrations()
 
       await createCommunity(false)
       bibi = await userFactory({ ...bibiBloxberg, alias: 'bibi-now' })
@@ -172,12 +164,7 @@ describe('user.queries', () => {
     let home: string
 
     beforeAll(async () => {
-      await DbUserRole.clear()
-      await drizzleDb().delete(userAvatarsTable)
-      await DbUserAlias.clear()
-      await DbUser.clear()
-      await DbUserContact.clear()
-      await DbCommunity.clear()
+      await dbDeleteAllRowsExceptMigrations()
       const community = await createCommunity(false)
       home = community.communityUuid as string
       bibi = await userFactory({ ...bibiBloxberg, role: 'ADMIN' })
@@ -306,9 +293,8 @@ describe('user.queries', () => {
     let bibi: DbUser
 
     beforeAll(async () => {
-      await DbUserAlias.clear()
-      await DbUser.clear()
-      await DbUserContact.clear()
+      await dbDeleteAllRowsExceptMigrations()
+      await createCommunity(false)
       bibi = await userFactory(bibiBloxberg)
     })
 
@@ -389,9 +375,8 @@ describe('user.queries', () => {
     let registered: DbUser
 
     beforeAll(async () => {
-      await DbUserAlias.clear()
-      await DbUser.clear()
-      await DbUserContact.clear()
+      await dbDeleteAllRowsExceptMigrations()
+      await createCommunity(false)
 
       registered = await userFactory(bibiBloxberg)
       await DbUser.update(
@@ -430,10 +415,7 @@ describe('user.queries', () => {
     let home: string
 
     beforeAll(async () => {
-      await DbUserAlias.clear()
-      await DbUser.clear()
-      await DbUserContact.clear()
-      await DbCommunity.clear()
+      await dbDeleteAllRowsExceptMigrations()
       const community = await createCommunity(false)
       home = community.communityUuid as string
       bibi = await userFactory(bibiBloxberg)
@@ -459,10 +441,7 @@ describe('user.queries', () => {
     let home: string
 
     beforeAll(async () => {
-      await DbUserAlias.clear()
-      await DbUser.clear()
-      await DbUserContact.clear()
-      await DbCommunity.clear()
+      await dbDeleteAllRowsExceptMigrations()
       const community = await createCommunity(false)
       home = community.communityUuid as string
       bibi = await userFactory(bibiBloxberg)
@@ -537,9 +516,7 @@ describe('user.queries', () => {
     }
 
     beforeAll(async () => {
-      await DbUserAlias.clear()
-      await DbUser.clear()
-      await DbUserContact.clear()
+      await dbDeleteAllRowsExceptMigrations()
       await storedRow(PEER, FIRST)
       await storedRow(OTHER_PEER, ELSEWHERE)
       await storedRow(PEER, SECOND)
@@ -579,10 +556,7 @@ describe('user.queries', () => {
     const rowOf = (gradidoID: string) => DbUser.findOneOrFail({ where: { gradidoID } })
 
     beforeAll(async () => {
-      await DbUserAlias.clear()
-      await DbUser.clear()
-      await DbUserContact.clear()
-      await DbCommunity.clear()
+      await dbDeleteAllRowsExceptMigrations()
       home = (await createCommunity(false)).communityUuid as string
       bibi = await userFactory(bibiBloxberg)
     })
@@ -665,9 +639,8 @@ describe('user.queries', () => {
     let peter: DbUser
 
     beforeAll(async () => {
-      await DbUserAlias.clear()
-      await DbUser.clear()
-      await DbUserContact.clear()
+      await dbDeleteAllRowsExceptMigrations()
+      await createCommunity(false)
       bibi = await userFactory(bibiBloxberg)
       peter = await userFactory(peterLustig)
       await DbUser.update({ id: peter.id }, { deletedAt: new Date() })
@@ -689,9 +662,8 @@ describe('user.queries', () => {
     let bob: DbUser
 
     beforeAll(async () => {
-      await DbUserAlias.clear()
-      await DbUser.clear()
-      await DbUserContact.clear()
+      await dbDeleteAllRowsExceptMigrations()
+      await createCommunity(false)
       bibi = await userFactory(bibiBloxberg)
       peter = await userFactory(peterLustig)
       bob = await userFactory(bobBaumeister)
@@ -839,10 +811,7 @@ describe('user.queries', () => {
     }
 
     beforeAll(async () => {
-      await DbUserAlias.clear()
-      await DbUser.clear()
-      await DbUserContact.clear()
-      await DbCommunity.clear()
+      await dbDeleteAllRowsExceptMigrations()
 
       homeCom = await createCommunity(false)
       host = await userFactory({ ...bibiBloxberg, alias: 'host-bibi' }, homeCom)
@@ -1126,10 +1095,7 @@ describe('user.queries', () => {
     let peter: DbUser
 
     beforeAll(async () => {
-      await DbUserAlias.clear()
-      await DbUser.clear()
-      await DbUserContact.clear()
-      await DbCommunity.clear()
+      await dbDeleteAllRowsExceptMigrations()
 
       homeCommunityUuid = (await createCommunity(false)).communityUuid!
       bob = await userFactory(bobBaumeister)

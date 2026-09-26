@@ -1,11 +1,5 @@
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
-import {
-  cleanDB,
-  resetEntity,
-  resetToken,
-  testEnvironment,
-  useFakeTimersForDrizzle,
-} from '@test/helpers'
+import { cleanDB, resetToken, testEnvironment, useFakeTimersForDrizzle } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
 import { sendTransactionLinkRedeemedEmail } from 'core'
@@ -333,7 +327,7 @@ describe('TransactionLinkResolver', () => {
             ).resolves.toMatchObject({
               errors: [new GraphQLError('Creation from contribution link was not successful')],
             })
-            await resetEntity(DbContributionLink)
+            await DbContributionLink.createQueryBuilder().delete().execute()
           })
 
           it('logs the error "Contribution link is not valid yet"', () => {
@@ -375,7 +369,7 @@ describe('TransactionLinkResolver', () => {
             ).resolves.toMatchObject({
               errors: [new GraphQLError('Creation from contribution link was not successful')],
             })
-            await resetEntity(DbContributionLink)
+            await DbContributionLink.createQueryBuilder().delete().execute()
           })
 
           it('logs the error "Contribution link has unknown cycle"', () => {
@@ -417,7 +411,7 @@ describe('TransactionLinkResolver', () => {
             ).resolves.toMatchObject({
               errors: [new GraphQLError('Creation from contribution link was not successful')],
             })
-            await resetEntity(DbContributionLink)
+            await DbContributionLink.createQueryBuilder().delete().execute()
           })
 
           it('logs the error "Contribution link is no longer valid"', () => {
@@ -458,7 +452,7 @@ describe('TransactionLinkResolver', () => {
           })
 
           afterAll(async () => {
-            await resetEntity(Transaction)
+            await Transaction.createQueryBuilder().delete().execute()
           })
 
           it('has a daily contribution link in the database', async () => {

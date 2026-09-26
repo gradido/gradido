@@ -1,9 +1,9 @@
 // AI-GENERATED — not an architecture reference
-import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from '..'
 import { AppDatabase } from '../AppDatabase'
 import { DBNotFoundError } from '../errorTypes'
 import { createCommunity, createVerifiedFederatedCommunity } from '../seeds/community'
 import { dbFindFederatedCommunityByPublicKeyAndApi } from './federatedCommunities'
+import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 
 const db = AppDatabase.getInstance()
 
@@ -16,8 +16,7 @@ afterAll(async () => {
 
 describe('federatedCommunities.queries', () => {
   beforeEach(async () => {
-    await DbCommunity.clear()
-    await DbFederatedCommunity.clear()
+    await dbDeleteAllRowsExceptMigrations()
   })
 
   describe('dbFindFederatedCommunityByPublicKeyAndApi', () => {

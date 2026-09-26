@@ -555,7 +555,8 @@ describe('UserResolver', () => {
         const guestEmail = (n: number) => `limit${n}@table.de`
         const tableGuest = (n: number) =>
           register(guestEmail(n), {
-            firstName: `Guest${n}`,
+            // Letters only: a name may hold no digit (VALID_NAME_REGEX).
+            firstName: `Guest${String.fromCharCode(64 + n)}`,
             referrerAlias: 'MeisterBob',
             presenceCode: code(),
             password: PASSWORD,
@@ -2939,7 +2940,7 @@ describe('UserResolver', () => {
     })
 
     afterAll(async () => {
-      await DbCommunity.clear()
+      await cleanDB()
     })
 
     beforeEach(() => {

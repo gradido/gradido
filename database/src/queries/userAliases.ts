@@ -118,14 +118,6 @@ export async function dbRemoveUserAlias(userAliasId: number): Promise<number> {
   return 0
 }
 
-/** Removes every name these members own. For seeding only, see `dbRemoveUserRoles`. */
-export async function dbRemoveUserAliasesOfUsers(userIds: number[]): Promise<void> {
-  if (userIds.length === 0) {
-    return
-  }
-  await drizzleDb().delete(userAliasesTable).where(inArray(userAliasesTable.userId, userIds))
-}
-
 /** Every name this member owns, current one included. */
 export async function dbFindAliasesByUser(userId: number): Promise<DbUserAlias[]> {
   return DbUserAlias.find({ where: { userId }, order: { createdAt: Order.ASC } })

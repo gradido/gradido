@@ -1,13 +1,6 @@
-import Decimal from 'decimal.js-light'
-import { PendingTransactionState } from 'shared'
+import { GradidoUnit, PendingTransactionState } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
-import {
-  Community as DbCommunity,
-  PendingTransaction as DbPendingTransaction,
-  User as DbUser,
-  UserAlias as DbUserAlias,
-  UserContact as DbUserContact,
-} from '..'
+import { User as DbUser } from '..'
 import { AppDatabase } from '../AppDatabase'
 import { createCommunity } from '../seeds/community'
 import { pendingTransactionFactory } from '../seeds/factory/pendingTransaction'
@@ -16,6 +9,7 @@ import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { garrickOllivander } from '../seeds/users/garrick-ollivander'
 import { peterLustig } from '../seeds/users/peter-lustig'
+import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import { countOpenPendingTransactions } from './pendingTransactions'
 
 const db = AppDatabase.getInstance()
@@ -33,11 +27,7 @@ describe('countOpenPendingTransactions', () => {
   let bob: DbUser
   let garrick: DbUser
   beforeAll(async () => {
-    await DbPendingTransaction.clear()
-    await DbUserAlias.clear()
-    await DbUser.clear()
-    await DbUserContact.clear()
-    await DbCommunity.clear()
+    await dbDeleteAllRowsExceptMigrations()
 
     await createCommunity(false)
 
@@ -50,14 +40,14 @@ describe('countOpenPendingTransactions', () => {
     await pendingTransactionFactory(
       bibi,
       peter,
-      new Decimal(10),
+      GradidoUnit.fromNumber(10),
       'Bibi -> Peter new',
       PendingTransactionState.NEW,
     )
     await pendingTransactionFactory(
       bibi,
       peter,
-      new Decimal(100.01),
+      GradidoUnit.fromNumber(100.01),
       'Bibi -> Peter settled',
       PendingTransactionState.SETTLED,
     )
@@ -66,7 +56,7 @@ describe('countOpenPendingTransactions', () => {
     await pendingTransactionFactory(
       peter,
       bibi,
-      new Decimal(12),
+      GradidoUnit.fromNumber(12),
       'Peter -> Bibi new',
       PendingTransactionState.NEW,
     )
@@ -75,7 +65,7 @@ describe('countOpenPendingTransactions', () => {
     await pendingTransactionFactory(
       bob,
       peter,
-      new Decimal(17.1),
+      GradidoUnit.fromNumber(17.1),
       'Bob -> Peter new',
       PendingTransactionState.NEW,
     )

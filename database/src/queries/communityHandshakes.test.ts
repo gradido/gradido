@@ -2,13 +2,12 @@ import { randomBytes } from 'node:crypto'
 import { Ed25519PublicKey } from 'shared'
 import {
   CommunityHandshakeStateType,
-  Community as DbCommunity,
   CommunityHandshakeState as DbCommunityHandshakeState,
-  FederatedCommunity as DbFederatedCommunity,
   findPendingCommunityHandshake,
 } from '..'
 import { AppDatabase } from '../AppDatabase'
 import { createCommunity, createVerifiedFederatedCommunity } from '../seeds/community'
+import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 
 const db = AppDatabase.getInstance()
 
@@ -31,9 +30,7 @@ async function createCommunityHandshakeState(publicKey: Buffer) {
 describe('communityHandshakes', () => {
   // clean db for every test case
   beforeEach(async () => {
-    await DbCommunity.clear()
-    await DbFederatedCommunity.clear()
-    await DbCommunityHandshakeState.clear()
+    await dbDeleteAllRowsExceptMigrations()
   })
 
   it('should find pending community handshake by public key', async () => {

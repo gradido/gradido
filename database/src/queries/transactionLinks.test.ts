@@ -4,15 +4,16 @@ import {
   bibiBloxberg,
   TransactionLink as DbTransactionLink,
   User as DbUser,
-  UserAlias as DbUserAlias,
-  UserContact as DbUserContact,
+  dbFindTransactionLinkByCode,
   TransactionLinkInterface,
   transactionLinkFactory,
   transactionLinkFactoryBulk,
   transactionLinksPendingFromUserOrderByIdASC,
   userFactory,
 } from '..'
-import { dbFindTransactionLinkByCode } from './transactionLinks'
+
+import { createCommunity } from '../seeds/community'
+import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 
 const db = AppDatabase.getInstance()
 
@@ -28,10 +29,8 @@ const startDate = new Date('2022-03-21T03:33:33Z')
 
 describe('transactionLinks', () => {
   beforeAll(async () => {
-    await DbUserAlias.clear()
-    await DbUser.clear()
-    await DbUserContact.clear()
-    await DbTransactionLink.clear()
+    await dbDeleteAllRowsExceptMigrations()
+    await createCommunity(false)
 
     const bibi = bibiBloxberg
     bibiUser = await userFactory(bibi)
@@ -145,10 +144,8 @@ describe('dbFindTransactionLinkByCode', () => {
   let link: DbTransactionLink
 
   beforeAll(async () => {
-    await DbUserAlias.clear()
-    await DbUser.clear()
-    await DbUserContact.clear()
-    await DbTransactionLink.clear()
+    await dbDeleteAllRowsExceptMigrations()
+    await createCommunity(false)
     const bibi = await userFactory(bibiBloxberg)
     link = await transactionLinkFactory(
       { email: bibi.emailContact.email, amount: 10, memo: 'for a newcomer' },

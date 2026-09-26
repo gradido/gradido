@@ -17,8 +17,6 @@ import {
 } from '../../entity'
 import { RoleNames } from '../../enum/RoleNames'
 import { getHomeCommunity } from '../../queries/communities'
-import { dbRemoveUserAliasesOfUsers } from '../../queries/userAliases'
-import { dbRemoveUserRoles } from '../../queries/userRoles'
 import { UserInterface } from '../users/UserInterface'
 
 export async function userFactory(
@@ -31,15 +29,7 @@ export async function userFactory(
   dbUser.emailId = dbUserContact.id
   dbUser.emailContact = dbUserContact
   dbUser = await dbUser.save()
-  // ⛔ Roles left over under this id by an earlier member. Tests empty `users` with
-  // TRUNCATE -- which resets the auto-increment -- but mostly leave `user_roles` standing,
-  // so a fresh member gets the id of a deleted one. Before migration 0135 that member
-  // silently inherited the old role (a plain user created as id 2 was an ADMIN if id 2 had
-  // been one); since `user_roles.user_id` is UNIQUE, granting them a role fails with
-  // ER_DUP_ENTRY instead. Whatever sits under a freshly assigned id belongs to nobody, so it
-  // goes here, where the id is handed out. The same holds for the names in `user_aliases`.
-  await dbRemoveUserRoles([dbUser.id])
-  await dbRemoveUserAliasesOfUsers([dbUser.id])
+
   if (dbUser.alias) {
     await createUserAlias(dbUser.id, dbUser.alias)
   }
@@ -94,9 +84,7 @@ export async function userFactoryBulk(
     userId++
     emailId++
   }
-  // Same reason as in userFactory: nothing under these fresh ids belongs to anybody.
-  await dbRemoveUserRoles(dbUsers.map((dbUser) => dbUser.id))
-  await dbRemoveUserAliasesOfUsers(dbUsers.map((dbUser) => dbUser.id))
+
   const dataSource = AppDatabase.getInstance().getDataSource()
   await dataSource.transaction(async (transaction) => {
     // typeorm change my data what I don't want

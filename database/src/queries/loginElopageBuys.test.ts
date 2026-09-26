@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { LoginElopageBuys as DbLoginElopageBuys } from '..'
 import { AppDatabase } from '../AppDatabase'
+import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import { dbCountElopageBuysByEmail, dbCountElopageBuysByEmails } from './loginElopageBuys'
 
 const db = AppDatabase.getInstance()
@@ -14,7 +15,7 @@ afterAll(async () => {
 
 describe('loginElopageBuys.queries', () => {
   beforeAll(async () => {
-    await DbLoginElopageBuys.clear()
+    await dbDeleteAllRowsExceptMigrations()
     await DbLoginElopageBuys.save(
       DbLoginElopageBuys.create({
         payerEmail: 'buyer@example.org',
