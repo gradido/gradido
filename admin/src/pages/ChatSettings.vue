@@ -74,11 +74,7 @@
             <div class="chat-server-what">
               <div class="chat-server-address">{{ server.baseUrl }}</div>
               <div class="chat-server-details text-muted" :data-test="`details-${server.id}`">
-                <span>{{ server.operator || $t('chatAdmin.servers.noOperator') }}</span>
-                <span v-if="server.roomPrefix">
-                  · {{ $t('chatAdmin.servers.prefix', { prefix: server.roomPrefix }) }}
-                </span>
-                <span v-if="server.note">· {{ server.note }}</span>
+                {{ detailsOf(server) }}
               </div>
             </div>
             <div class="chat-server-state" :data-test="`state-${server.id}`">
@@ -92,17 +88,17 @@
                 {{ $t('chatAdmin.servers.picks', { count: server.check.picks }) }}
               </small>
             </div>
-            <BFormCheckbox
-              class="chat-server-active"
-              :model-value="shownActive(server)"
-              :disabled="togglingId === server.id"
-              :title="$t('chatAdmin.servers.activeTitle')"
-              :data-test="`active-${server.id}`"
-              @update:model-value="(active) => setActive(server, active)"
-            >
-              {{ $t('chatAdmin.servers.active') }}
-            </BFormCheckbox>
-            <div class="chat-server-buttons">
+            <div class="chat-server-controls">
+              <BFormCheckbox
+                class="chat-server-active"
+                :model-value="shownActive(server)"
+                :disabled="togglingId === server.id"
+                :title="$t('chatAdmin.servers.activeTitle')"
+                :data-test="`active-${server.id}`"
+                @update:model-value="(active) => setActive(server, active)"
+              >
+                {{ $t('chatAdmin.servers.active') }}
+              </BFormCheckbox>
               <BButton
                 size="sm"
                 variant="outline-secondary"
@@ -277,6 +273,19 @@ function errorText(e) {
 async function failed(e) {
   toastError(errorText(e))
   await refetch()
+}
+
+// Operator, prefix and note in one line, joined here rather than in the template: between
+// elements on lines of their own the template keeps no space, and the separators came out
+// uneven.
+function detailsOf(server) {
+  return [
+    server.operator || t('chatAdmin.servers.noOperator'),
+    server.roomPrefix ? t('chatAdmin.servers.prefix', { prefix: server.roomPrefix }) : null,
+    server.note,
+  ]
+    .filter(Boolean)
+    .join(' · ')
 }
 
 function stateText(server) {
@@ -486,7 +495,7 @@ async function checkNow() {
 }
 
 .chat-server-what {
-  flex: 1 1 16rem;
+  flex: 2 1 16rem;
   min-width: 0;
 }
 
@@ -501,8 +510,16 @@ async function checkNow() {
 }
 
 .chat-server-state {
-  flex: 0 1 14rem;
+  flex: 1 1 13rem;
   min-width: 0;
+}
+
+/* The tick and the two buttons stay together, and wrap as one. */
+.chat-server-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
 }
 
 .chat-server-buttons {

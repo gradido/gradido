@@ -173,10 +173,10 @@ describe('ChatSettings', () => {
     const rows = wrapper.findAll('.chat-server-row')
     expect(rows).toHaveLength(3)
     expect(rows[0].find('.chat-server-address').text()).toBe('https://fairmeeting.net/')
-    const details = wrapper.find('[data-test="details-1"]').text()
-    expect(details).toContain('fairmeeting (fairkom)')
-    expect(details).toContain('chatAdmin.servers.prefix:{"prefix":"GradidoAkademie"}')
-    expect(details).toContain('Akademie-Lizenz')
+    // One separator between every two parts, the same on both sides.
+    expect(wrapper.find('[data-test="details-1"]').text()).toBe(
+      'fairmeeting (fairkom) · chatAdmin.servers.prefix:{"prefix":"GradidoAkademie"} · Akademie-Lizenz',
+    )
     expect(wrapper.find('[data-test="details-2"]').text()).toBe('chatAdmin.servers.noOperator')
   })
 
