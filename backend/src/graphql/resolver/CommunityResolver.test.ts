@@ -5,6 +5,7 @@ import {
   AppDatabase,
   Community as DbCommunity,
   FederatedCommunity as DbFederatedCommunity,
+  dbSelectHomeCommunity,
   getHomeCommunity,
 } from 'database'
 import { createCommunity, createVerifiedFederatedCommunity } from 'database/src/seeds/community'
@@ -12,7 +13,11 @@ import { GraphQLError } from 'graphql/error/GraphQLError'
 import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
 import { userFactory } from '@/seeds/factory/user'
-import { login, updateHomeCommunityQuery } from '@/seeds/graphql/mutations'
+import {
+  login,
+  updateHomeCommunityLocationQuery,
+  updateHomeCommunityQuery,
+} from '@/seeds/graphql/mutations'
 import {
   allCommunities,
   getCommunityByIdentifierQuery,
@@ -623,6 +628,43 @@ describe('CommunityResolver', () => {
             gmsApiKey: 'gmsApiKey',
           },
         },
+      })
+    })
+
+    describe('location', () => {
+      const setLocation = (location: { longitude: number; latitude: number } | null) =>
+        mutate({
+          mutation: updateHomeCommunityLocationQuery,
+          variables: { uuid: homeCom.communityUuid, location },
+        })
+
+      it('stores a new location', async () => {
+        await setLocation({ longitude: 13, latitude: 52 })
+        const stored = await dbSelectHomeCommunity()
+        expect(stored?.location).toEqual({ type: 'Point', coordinates: [13, 52] })
+        expect(stored?.updatedAt).toEqual(expect.any(Date))
+      })
+
+      it('does not write the same location again', async () => {
+        await setLocation({ longitude: 13, latitude: 52 })
+        const before = await dbSelectHomeCommunity()
+        await setLocation({ longitude: 13, latitude: 52 })
+        expect(await dbSelectHomeCommunity()).toEqual(before)
+      })
+
+      it('stores a changed location', async () => {
+        await setLocation({ longitude: 13, latitude: 52 })
+        await setLocation({ longitude: 14, latitude: 53 })
+        expect((await dbSelectHomeCommunity())?.location).toEqual({
+          type: 'Point',
+          coordinates: [14, 53],
+        })
+      })
+
+      it('removes the location with null', async () => {
+        await setLocation({ longitude: 13, latitude: 52 })
+        await setLocation(null)
+        expect((await dbSelectHomeCommunity())?.location).toBeNull()
       })
     })
 

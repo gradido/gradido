@@ -261,8 +261,9 @@ export class MatchingKeyingRun {
       // at the top meant an admin who unticked the box to stop a bill still paid for
       // the rest of it. "Off" has to mean the next group, not the next pass.
       //
-      // The cost is one indexed read against one row per group, set against ten model
-      // calls.
+      // The cost is at most one indexed read against one row per group - usually none,
+      // the home community is cached and the switch's own write clears that cache -
+      // set against ten model calls.
       //
       // ⚠️ Not read again inside a group, and that is worth saying: an admin who
       // unticks while a group is under way still pays for the rest of it, at most nine

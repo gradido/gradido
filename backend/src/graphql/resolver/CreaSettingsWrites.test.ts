@@ -14,7 +14,7 @@ import { CreaResolver } from './CreaResolver'
 jest.mock('database', () => ({
   ...jest.requireActual('database'),
   dbIsMatchingKeyingActive: jest.fn(),
-  dbSetMatchingKeyingActive: jest.fn(),
+  dbUpdateHomeCommunity: jest.fn(),
   dbGetFirstCreationSignerUserId: jest.fn(),
   dbGetUserWithRoleById: jest.fn(),
   dbSetFirstCreationSignerUserId: jest.fn(),
@@ -29,12 +29,13 @@ jest.mock('@/apis/anthropic/crea/settings', () => ({
 import {
   dbGetFirstCreationSignerUserId,
   dbIsMatchingKeyingActive,
-  dbSetMatchingKeyingActive,
+  dbUpdateHomeCommunity,
 } from 'database'
+import { MissingHomeCommunityError } from 'shared'
 import { readCreaSettings, writeCreaSettings } from '@/apis/anthropic/crea/settings'
 
 const isActive = dbIsMatchingKeyingActive as jest.Mock
-const setActive = dbSetMatchingKeyingActive as jest.Mock
+const updateHomeCommunity = dbUpdateHomeCommunity as jest.Mock
 const signerId = dbGetFirstCreationSignerUserId as jest.Mock
 const readSettings = readCreaSettings as jest.Mock
 const writeSettings = writeCreaSettings as jest.Mock
@@ -53,7 +54,7 @@ describe('the two writes behind the Crea settings', () => {
     jest.resetAllMocks()
     readSettings.mockResolvedValue(storedSettings)
     writeSettings.mockResolvedValue(storedSettings)
-    setActive.mockResolvedValue({ success: true })
+    updateHomeCommunity.mockResolvedValue(undefined)
     isActive.mockResolvedValue(true)
     signerId.mockResolvedValue(null)
   })
@@ -66,7 +67,7 @@ describe('the two writes behind the Crea settings', () => {
     // held - so a browser tab open since before somebody else flipped it could revert
     // a paid run, or restart one that had been deliberately stopped.
     expect(writeSettings).toHaveBeenCalled()
-    expect(setActive).not.toHaveBeenCalled()
+    expect(updateHomeCommunity).not.toHaveBeenCalled()
   })
 
   it('reads the signer BEFORE the settings write, like the switch', async () => {
@@ -90,30 +91,20 @@ describe('the two writes behind the Crea settings', () => {
     expect(isActive).toHaveBeenCalled()
   })
 
-  it('answers the switch mutation with what is stored, not with what it was handed', async () => {
-    isActive.mockResolvedValue(false)
+  it('fails the switch mutation when there is no home community', async () => {
+    // An UPDATE that matched no row: reporting the switch as saved would hide a save
+    // that did not happen, on the one setting where that means an unnoticed bill.
+    updateHomeCommunity.mockRejectedValue(new MissingHomeCommunityError())
 
-    // An UPDATE that matched no row is a real state here - a missing home community,
-    // which the read answers `false` for on purpose. Echoing the argument would report
-    // a save that did not happen, on the one setting where that means an unnoticed bill.
-    expect(await resolver.setCreaMatchingKeying(true)).toBe(false)
+    await expect(resolver.setCreaMatchingKeying(true)).rejects.toThrow(MissingHomeCommunityError)
   })
 
-  it('fails the switch mutation when the write reported nothing', async () => {
-    setActive.mockResolvedValue({ success: false, error: new Error('no home community') })
-
-    await expect(resolver.setCreaMatchingKeying(true)).rejects.toThrow()
-  })
-
-  it('reports the switch as ON when that is what is stored', async () => {
-    // ⛔ Measured gap, and my own repair raised its stakes. `return false` from the
-    // mutation left every test here green, because both switch tests stubbed the read
-    // to `false` - and the page now compares the answer with what it sent, so a broken
-    // return would make every attempt to switch keying ON snap the box back and raise
-    // "somebody else changed it". The paid switch would be unturnable-on, silently.
-    isActive.mockResolvedValue(true)
-
+  it('answers the switch mutation with the written state, without reading it back', async () => {
+    // ⛔ The page compares the answer with what it sent, so a broken return would make
+    // every attempt to switch keying ON snap the box back.
     expect(await resolver.setCreaMatchingKeying(true)).toBe(true)
+    expect(await resolver.setCreaMatchingKeying(false)).toBe(false)
+    expect(isActive).not.toHaveBeenCalled()
   })
 
   it('accepts the deprecated switch field in the input and ignores it', async () => {
@@ -124,7 +115,7 @@ describe('the two writes behind the Crea settings', () => {
     await resolver.setCreaSettings(input({ matchingKeyingActive: true }))
 
     expect(writeSettings).toHaveBeenCalled()
-    expect(setActive).not.toHaveBeenCalled()
+    expect(updateHomeCommunity).not.toHaveBeenCalled()
   })
 
   it('switches ON with what it was asked for', async () => {
@@ -134,14 +125,12 @@ describe('the two writes behind the Crea settings', () => {
     // impossible to turn ON would have shipped.
     await resolver.setCreaMatchingKeying(true)
 
-    expect(setActive).toHaveBeenCalledWith(true)
+    expect(updateHomeCommunity).toHaveBeenCalledWith({ matchingKeyingActive: true })
   })
 
   it('switches OFF as readily as ON', async () => {
-    isActive.mockResolvedValue(false)
-
     expect(await resolver.setCreaMatchingKeying(false)).toBe(false)
-    expect(setActive).toHaveBeenCalledWith(false)
+    expect(updateHomeCommunity).toHaveBeenCalledWith({ matchingKeyingActive: false })
   })
 
   it('reads the switch before it writes the settings', async () => {

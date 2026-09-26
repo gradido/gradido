@@ -1,4 +1,5 @@
 export * from './CompleteTransaction'
 export * from './Duration'
 export * from './GradidoUnit'
+export * from './location.logic'
 export * from './TemporalGradidoUnit'

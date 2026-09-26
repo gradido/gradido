@@ -1,10 +1,9 @@
 import { sendAccountMultiRegistrationEmail } from 'core'
-import { dbInsertEvent, EventType, UserSelect
-} from 'database'
+import { dbInsertEvent, EventType, UserSelect } from 'database'
 import { Logger } from 'log4js'
 import { randombytes_random } from 'sodium-native'
-import { CreateUser } from './createUser.schema'
 import { AbstractRegisterUserRole } from './AbstractRegisterUser.role'
+import { CreateUser } from './createUser.schema'
 
 export class RegisterUserExistRole extends AbstractRegisterUserRole {
   private firstName: string
@@ -40,7 +39,9 @@ export class RegisterUserExistRole extends AbstractRegisterUserRole {
       actingUserId: 0,
     })
     let fakeUserId = 0
-    while(!fakeUserId) { fakeUserId = randombytes_random() % (2048 * 16) + 1 }
+    while (!fakeUserId) {
+      fakeUserId = (randombytes_random() % (2048 * 16)) + 1
+    }
     return fakeUserId
   }
 }

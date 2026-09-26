@@ -11,7 +11,7 @@ import {
   dbInsertEvent,
   dbIsMatchingKeyingActive,
   dbSetFirstCreationSignerUserId,
-  dbSetMatchingKeyingActive,
+  dbUpdateHomeCommunity,
   EventType,
 } from 'database'
 import { SALUTATION_MAX_LENGTH } from 'shared'
@@ -268,20 +268,16 @@ export class CreaResolver {
    * be able to move it, which is exactly what a shared form could do from a tab that
    * had been open since before somebody else switched it.
    *
-   * ⛔ Answers with what is STORED, not with what was asked for. The write throwing
-   * already covers the row-not-found case, so the two differ only when a SECOND admin
-   * wrote in between - and then the honest answer is the one in the database, not the
-   * one this caller happened to send. The page follows it, so the box ends up showing
-   * what is true rather than what was clicked.
+   * Answers with the value it wrote, without reading it back. A missing home community
+   * makes the write throw (`MissingHomeCommunityError`), so a save that did not happen
+   * is never reported as done. A second admin writing in between is not detected: the
+   * last write wins, and the answer is this caller's.
    */
   @Authorized([RIGHTS.AI_SETTINGS])
   @Mutation(() => Boolean)
   async setCreaMatchingKeying(@Arg('active') active: boolean): Promise<boolean> {
-    const written = await dbSetMatchingKeyingActive(active)
-    if (!written.success) {
-      throw new LogError('could not store the matching keying switch', written.error)
-    }
-    return await dbIsMatchingKeyingActive()
+    await dbUpdateHomeCommunity({ matchingKeyingActive: active })
+    return active
   }
 
   /**

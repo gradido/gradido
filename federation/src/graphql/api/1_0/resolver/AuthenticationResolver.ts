@@ -179,6 +179,11 @@ export class AuthenticationResolver {
       // methodLogger.debug(`search community per oneTimeCode:`, authArgs.oneTimeCode)
       const authCom = await getCommunityByPublicKeyOrFail(argsPublicKey)
       if (authCom) {
+        if (!authCom.foreign) {
+          throw new Error(
+            `requested auth com is our own home community with public key: ${argsPublicKey.asHex()}`,
+          )
+        }
         methodLogger.debug(`found authCom ${authCom.name}`)
         const authComPublicKey = new Ed25519PublicKey(authCom.publicKey)
         // methodLogger.debug('authCom.publicKey', authComPublicKey.asHex())

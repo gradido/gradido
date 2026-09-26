@@ -1,11 +1,7 @@
 import { ApiVersionType } from 'core'
-import {
-  Community as DbCommunity,
-  FederatedCommunity as DbFederatedCommunity,
-  getHomeCommunity,
-} from 'database'
+import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from 'database'
 import { getLogger } from 'log4js'
-import { createKeyPair, Ed25519PublicKey } from 'shared'
+import { Ed25519PublicKey } from 'shared'
 import { IsNull } from 'typeorm'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { FederationClient as V1_0_FederationClient } from '@/federation/client/1_0/FederationClient'
@@ -99,47 +95,6 @@ export async function validateCommunities(): Promise<void> {
   }
 }
 
-export async function writeJwtKeyPairInHomeCommunity(): Promise<DbCommunity> {
-  logger.debug(`Federation: writeJwtKeyPairInHomeCommunity`)
-  try {
-    // check for existing homeCommunity entry
-    const homeCom = await getHomeCommunity()
-    if (homeCom) {
-      if (!homeCom.publicJwtKey && !homeCom.privateJwtKey) {
-        // Generate key pair using jose library
-        const { publicKey, privateKey } = await createKeyPair()
-        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity publicKey=`, publicKey)
-        logger.debug(
-          `Federation: writeJwtKeyPairInHomeCommunity privateKey=`,
-          privateKey.slice(0, 20),
-        )
-
-        homeCom.publicJwtKey = publicKey
-        logger.debug(
-          `Federation: writeJwtKeyPairInHomeCommunity publicJwtKey.length=`,
-          homeCom.publicJwtKey.length,
-        )
-        homeCom.privateJwtKey = privateKey
-        logger.debug(
-          `Federation: writeJwtKeyPairInHomeCommunity privateJwtKey.length=`,
-          homeCom.privateJwtKey.length,
-        )
-        await DbCommunity.save(homeCom)
-        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity done`)
-      } else {
-        logger.debug(`Federation: writeJwtKeyPairInHomeCommunity: keypair already exists`)
-      }
-    } else {
-      throw new Error(
-        `Error! A HomeCommunity-Entry still not exist! Please start the DHT-Modul first.`,
-      )
-    }
-    return homeCom
-  } catch (err) {
-    throw new Error(`Error writing JwtKeyPair in HomeCommunity-Entry: ${err}`)
-  }
-}
-
 async function writeForeignCommunity(
   dbCom: DbFederatedCommunity,
   pubInfo: PublicCommunityInfo,
@@ -152,7 +107,7 @@ async function writeForeignCommunity(
       )}`,
     )
   } else {
-    let com = await DbCommunity.findOneBy({ publicKey: dbCom.publicKey })
+    let com = await DbCommunity.findOneBy({ publicKey: dbCom.publicKey, foreign: true })
     if (!com) {
       com = DbCommunity.create()
     }
