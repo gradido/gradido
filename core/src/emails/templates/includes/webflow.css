@@ -102,8 +102,9 @@ h2 {
 
    ⛔ On the text itself, never on a block that holds other elements. Pug pretty-prints,
    so a container carries newlines of its OWN between its children, and `pre` rules make
-   those visible too - a stray blank line in every mail. Inside `span.human-text= memo`
-   there is nothing but the text.
+   those visible too - a stray blank line in every mail. Inside `+humanText(memo)`
+   (includes/humanText.pug) there is nothing but the text and the links of its
+   addresses - inline elements, around which pug adds nothing.
 
    `pre-line` rather than `pre-wrap`, matching how the wallet shows the same messages
    (`ParseMessage.vue`): line breaks kept, runs of spaces collapsed, long lines still
