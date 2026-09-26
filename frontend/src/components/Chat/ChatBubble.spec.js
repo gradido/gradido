@@ -104,6 +104,37 @@ describe('ChatBubble', () => {
     expect(wrapper.find('.chat-message-text strong').text()).toBe('wichtig')
   })
 
+  /**
+   * V4a: a video room's link shows its server and room; the topic's encoded addition stays out of
+   * sight -- the invitation names the topic in words above it. The link goes to the whole address,
+   * addition and all: that is what gives the meeting its title.
+   */
+  it("shows a video room's link without the topic's addition, and leads to the whole address", () => {
+    const room = 'https://meet.ffmuc.net/k7m2x9q4t8wz'
+    const address = `${room}#config.subject=%22Gespr%C3%A4ch%20%C3%BCber%20B%C3%A4ume%22`
+    mountBubble({
+      ...THEIRS,
+      body: `📹 Videoanruf: Gespräch über Bäume\nDer Raum liegt auf einem Jitsi-Server von Freifunk München — ein Vorschlag, kein Dienst von Gradido: ${address}`,
+    })
+
+    const link = wrapper.find('.chat-message-text a')
+    expect(link.text()).toBe(room)
+    expect(link.attributes('href')).toBe(address)
+    expect(wrapper.find('.chat-message-text').text()).not.toContain('config.subject')
+  })
+
+  // Only that one addition: an address with anything else after `#` is shown as it is.
+  it.each([
+    'https://gradido.net/de/faq#konto',
+    'https://meet.ffmuc.net/k7m2x9q4t8wz#config.subject=x&config.startWithAudioMuted=true',
+  ])('shows any other address whole: %s', (address) => {
+    mountBubble({ ...THEIRS, body: `Schau mal: ${address}` })
+
+    const link = wrapper.find('.chat-message-text a')
+    expect(link.text()).toBe(address)
+    expect(link.attributes('href')).toBe(address)
+  })
+
   // E-018: the time is when it arrived here, as a machine-readable <time> and a short one to
   // read.
   it('says when it arrived, as a time of day', () => {
