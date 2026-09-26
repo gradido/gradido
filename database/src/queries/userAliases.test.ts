@@ -6,7 +6,7 @@ import {
 } from '..'
 import { AppDatabase } from '../AppDatabase'
 import { createCommunity } from '../seeds/community'
-import { userFactory } from '../seeds/factory/user'
+import { userFactory, userFactoryBulk } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
@@ -45,16 +45,12 @@ describe('userAliases.queries', () => {
   let bibi: DbUser
   let peter: DbUser
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     await dbDeleteAllRowsExceptMigrations()
 
     await createCommunity(false)
     bibi = await userFactory(bibiBloxberg)
     peter = await userFactory(peterLustig)
-  })
-
-  beforeEach(async () => {
-    await dbDeleteAllRowsExceptMigrations()
   })
 
   describe('dbFindOwnAlias', () => {
