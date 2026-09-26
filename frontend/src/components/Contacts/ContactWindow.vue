@@ -256,6 +256,7 @@
         no-header
         :aria-label="videoAskTitle"
         data-test="contact-window-video-dialog"
+        @shown="videoAskOpened = true"
       >
         <p class="h5 mb-2" data-test="contact-window-video-title">{{ videoAskTitle }}</p>
         <!-- The invitation went out, but the browser held the room's window back (a popup
@@ -274,9 +275,12 @@
           <!-- The topic (V4a): it goes into the room's address as Jitsi's own `config.subject` --
                the meeting's title -- and stands in words in the invitation. Filled in anew with the
                default for every question (`askVideoCall`), nothing kept; marked on focus, so typing
-               replaces it. ⛔ No autofocus: the usual case is the one click on "Start call", and on a
-               phone the keyboard covered the dialog. The hint under it says who can read the topic,
-               and a screen reader hears it with the field (`aria-describedby`). -->
+               replaces it. The hint under it says who can read the topic, and a screen reader hears
+               it with the field (`aria-describedby`).
+
+               ⛔ No focus of its own: the usual case is the one click on "Start call", and on a phone
+               the keyboard covered the dialog. Out of the tab order until the question is open
+               (`videoAskOpened`), since the dialog's focus trap takes the first stop Tab reaches. -->
           <div class="mb-3">
             <label class="form-label" :for="videoTopicId">{{ $t('chatThread.videoTopic') }}</label>
             <input
@@ -286,13 +290,14 @@
               class="form-control"
               :maxlength="CHAT_VIDEO_TOPIC_MAX"
               autocomplete="off"
+              :tabindex="videoAskOpened ? undefined : -1"
               :aria-describedby="videoTopicHintId"
               data-test="contact-window-video-topic"
               @focus="$event.target.select()"
             />
             <div
               :id="videoTopicHintId"
-              class="small text-muted mt-1"
+              class="small text-muted mt-2"
               data-test="contact-window-video-topic-hint"
             >
               {{ $t('chatThread.videoTopicHint') }}
@@ -660,6 +665,18 @@ const videoEmailId = `${useId()}-video-email`
 const videoTopic = ref('')
 const videoTopicId = `${useId()}-video-topic`
 const videoTopicHintId = `${videoTopicId}-hint`
+/**
+ * Whether the question has finished opening (BModal's `shown`). Until then the topic field is out
+ * of the tab order.
+ *
+ * ⛔ The dialog's focus trap focuses the first element Tab reaches the moment it switches on, and
+ * the dialog takes the focus itself only a little later (bootstrap-vue-next 0.26.8). Measured in
+ * Chrome, desk and phone: with the field in the tab order it had the focus from 190 ms to 260 ms
+ * after the tap -- long enough for a phone to bring up its keyboard over the dialog. Out of it, the
+ * trap takes what it took before (the box, or "Cancel"). A tap still focuses the field, and once
+ * the question is open Tab reaches it first.
+ */
+const videoAskOpened = ref(false)
 /** A call is being made: the start button waits (`aria-disabled`) and turns a press away. */
 const videoCalling = ref(false)
 /** Where the call did not come about: the sentence that says so, in the dialog. */
@@ -687,6 +704,7 @@ let videoAttempt = 0
 const askVideoCall = () => {
   videoAlsoByEmail.value = false
   videoTopic.value = t('chatThread.videoTopicDefault')
+  videoAskOpened.value = false
   videoAsking.value = true
 }
 

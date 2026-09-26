@@ -116,8 +116,9 @@ describe('ContactWindow', () => {
           // Shows what it holds while it is open, the footer under it -- the window itself is
           // always open here; the question before a video call opens and closes.
           BModal: {
+            name: 'BModal',
             props: { modelValue: Boolean },
-            emits: ['update:modelValue'],
+            emits: ['update:modelValue', 'shown'],
             template: '<div v-if="modelValue"><slot /><slot name="footer" /></div>',
           },
           // Renders its slot, says where it leads, and does what the real link's own click
@@ -971,6 +972,29 @@ describe('ContactWindow', () => {
       expect(order.indexOf('contact-window-video-topic-hint')).toBeLessThan(
         order.indexOf('contact-window-video-body'),
       )
+    })
+
+    /**
+     * ⛔ No focus of its own. The real dialog's focus trap focuses the first element Tab reaches
+     * as it switches on -- measured in Chrome, the field had the focus for 70 ms of every opening,
+     * enough for a phone's keyboard. So the field is out of the tab order until the dialog says it
+     * is open (`shown`); a tap focuses it all the same, and afterwards Tab reaches it.
+     */
+    it('keeps the field out of the tab order until the question is open, for every question', async () => {
+      const question = () =>
+        wrapper
+          .findAllComponents({ name: 'BModal' })
+          .find((modal) => modal.attributes('data-test') === 'contact-window-video-dialog')
+      await asked()
+      expect(topicField().attributes('tabindex')).toBe('-1')
+
+      question().vm.$emit('shown')
+      await flushPromises()
+      expect(topicField().attributes('tabindex')).toBeUndefined()
+
+      await inDialog('cancel').trigger('click')
+      await camera().trigger('click')
+      expect(topicField().attributes('tabindex')).toBe('-1')
     })
 
     it('takes forty characters in the field', async () => {
