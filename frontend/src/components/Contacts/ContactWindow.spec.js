@@ -1478,6 +1478,305 @@ describe('ContactWindow', () => {
       const written = [...logs, ...stores].flatMap((spy) => spy.mock.calls.flat().map(String))
       expect(written.filter((line) => /k7m2x9q4t8wz|Momo/.test(line))).toEqual([])
     })
+
+    /**
+     * V4b: on a computer the question offers a second way -- the same call, and the room is then
+     * opened in the Jitsi app, by a second click. Whether this is a computer is the browser's to
+     * say (chatVideoApp): a stand-in for `matchMedia` that answers the one question asked. jsdom
+     * has none, and that is the state every test above runs in -- the phone's answer.
+     */
+    describe('the way into the Jitsi app', () => {
+      const onAComputer = () => {
+        vi.stubGlobal('matchMedia', (query) => ({
+          matches: query === '(pointer: fine) and (hover: hover)',
+        }))
+      }
+      const buttons = () =>
+        dialog()
+          .findAll('button')
+          .map((b) => b.attributes('data-test'))
+      /** The same room as the app's address (chatVideoApp), with the default topic. */
+      const APP_ROOM = 'jitsi-meet://meet.ffmuc.net/k7m2x9q4t8wz#config.subject=%22Videoanruf%22'
+
+      /** "Start in the Jitsi app", pressed and let run to its end. */
+      const startInApp = async () => {
+        await inDialog('app').trigger('click')
+        await flushPromises()
+      }
+
+      afterEach(() => {
+        vi.unstubAllGlobals()
+      })
+
+      it('offers it between "Cancel" and "Start call" on a computer', async () => {
+        onAComputer()
+        await asked()
+
+        expect(buttons()).toEqual([
+          'contact-window-video-cancel',
+          'contact-window-video-app',
+          'contact-window-video-start',
+        ])
+        expect(inDialog('app').text()).toBe('chatThread.videoStartInApp')
+        expect(inDialog('app').classes()).toContain('btn-outline-secondary')
+        expect(inDialog('app').attributes('aria-disabled')).toBe('false')
+        expect(inDialog('start').classes()).toContain('btn-gradido')
+      })
+
+      // Phones and tablets: Jitsi's own page offers its app there.
+      it('offers the two buttons of before on a phone', async () => {
+        vi.stubGlobal('matchMedia', () => ({ matches: false }))
+        await asked()
+
+        expect(buttons()).toEqual(['contact-window-video-cancel', 'contact-window-video-start'])
+      })
+
+      /**
+       * ⛔ No window: the room is opened in the app, not in a tab. Asked for past the cache, and
+       * sent through the thread with the topic and the wish -- the invitation the browser's way
+       * sends, word for word.
+       */
+      it("opens no window, and sends the invitation the browser's way sends", async () => {
+        const topic = 'Lesekreis „Momo“'
+        browserOpens()
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+        threadDelivers.mockResolvedValue(true)
+        onAComputer()
+        await asked({ exists: true })
+        await topicField().setValue(topic)
+        await inDialog('email').setValue(true)
+
+        await startInApp()
+
+        expect(opens).not.toHaveBeenCalled()
+        expect(serverRooms).toHaveBeenCalledTimes(1)
+        expect(serverRooms).toHaveBeenCalledWith({ query: chatVideoRoom, fetchPolicy: 'no-cache' })
+        expect(threadDelivers).toHaveBeenCalledTimes(1)
+        expect(threadDelivers).toHaveBeenCalledWith(
+          {
+            body: `chatThread.videoInviteTopic ${JSON.stringify({ topic, operator: ROOM.operator, url: withChatVideoTopic(ROOM.url, topic) })}`,
+            notify: 'EMAIL',
+          },
+          'carla-id',
+        )
+        const inApp = threadDelivers.mock.calls[0]
+        wrapper.unmount()
+
+        await asked({ exists: true })
+        await topicField().setValue(topic)
+        await inDialog('email').setValue(true)
+        await start()
+        expect(threadDelivers.mock.calls[1]).toEqual(inApp)
+      })
+
+      // The first message of a pair asks for a mail here too (E-024).
+      it('asks for a mail with the first message', async () => {
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+        threadDelivers.mockResolvedValue(true)
+        onAComputer()
+        await asked({ exists: false })
+
+        await startInApp()
+
+        expect(threadDelivers.mock.calls[0][0].notify).toBe('EMAIL')
+      })
+
+      /**
+       * ⛔ The app does not open by itself: a browser hands a link to an app only in answer to a
+       * click, and the click's leave may have lapsed over the two requests. The dialog offers the
+       * room in the app, and in the browser under it -- neither opened, the dialog open.
+       */
+      it('offers the room in the app and in the browser once the invitation went out, and opens neither', async () => {
+        const logs = vi.spyOn(console, 'error')
+        const clicks = vi.spyOn(HTMLAnchorElement.prototype, 'click')
+        const here = window.location.href
+        browserOpens()
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+        threadDelivers.mockResolvedValue(true)
+        onAComputer()
+        await asked()
+
+        await startInApp()
+
+        expect(dialog().exists()).toBe(true)
+        const app = inDialog('in-app')
+        expect(app.text()).toBe('chatThread.videoInApp')
+        expect(app.attributes('href')).toBe(APP_ROOM)
+        expect(app.attributes('title')).toBe('chatThread.videoInAppHint')
+        expect(app.attributes('target')).toBeUndefined()
+        const browser = inDialog('in-browser')
+        expect(browser.text()).toBe('chatThread.videoOpenInBrowser')
+        expect(browser.attributes('href')).toBe(ROOM_WITH_DEFAULT)
+        expect(browser.attributes('target')).toBe('_blank')
+        expect(browser.attributes('rel')).toBe('noopener noreferrer')
+        expect(browser.element.closest('p').classList).toContain('small')
+        expect(inDialog('open').exists()).toBe(false)
+        expect(buttons()).toEqual(['contact-window-video-close'])
+
+        expect(opens).not.toHaveBeenCalled()
+        expect(clicks).not.toHaveBeenCalled()
+        expect(window.location.href).toBe(here)
+        // jsdom navigates nowhere, and says so where a page tries: nothing tried.
+        expect(
+          logs.mock.calls
+            .flat()
+            .map(String)
+            .filter((line) => /navigat/i.test(line)),
+        ).toEqual([])
+      })
+
+      it('offers the room with a topic of its own in both', async () => {
+        const topic = 'Lesekreis „Momo“'
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+        threadDelivers.mockResolvedValue(true)
+        onAComputer()
+        await asked()
+        await topicField().setValue(topic)
+
+        await startInApp()
+
+        expect(inDialog('in-app').attributes('href')).toBe(
+          'jitsi-meet://meet.ffmuc.net/k7m2x9q4t8wz#config.subject=%22Lesekreis%20%E2%80%9EMomo%5C%22%22',
+        )
+        expect(inDialog('in-browser').attributes('href')).toBe(withChatVideoTopic(ROOM.url, topic))
+      })
+
+      // Should the room unexpectedly be no address the app takes, the room in the browser.
+      it('offers the room in the browser where the room is no address for the app', async () => {
+        serverRooms.mockResolvedValue({
+          data: { chatVideoRoom: { ...ROOM, url: 'https://meet.ffmuc.net/' } },
+        })
+        threadDelivers.mockResolvedValue(true)
+        onAComputer()
+        await asked()
+
+        await startInApp()
+
+        expect(inDialog('in-app').exists()).toBe(false)
+        expect(inDialog('open').attributes('href')).toBe(
+          'https://meet.ffmuc.net/#config.subject=%22Videoanruf%22',
+        )
+        expect(buttons()).toEqual(['contact-window-video-close'])
+      })
+
+      it.each([
+        [
+          'no video server can be had',
+          () => serverRooms.mockRejectedValue(new Error('CHAT_VIDEO_NO_SERVER')),
+          'chatThread.videoNoServer',
+        ],
+        [
+          'the room could not be had',
+          () => serverRooms.mockRejectedValue(new Error('Network error')),
+          'chatThread.videoNotSent',
+        ],
+        [
+          'the invitation did not go out',
+          () => {
+            serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+            threadDelivers.mockResolvedValue(false)
+          },
+          'chatThread.videoNotSent',
+        ],
+      ])('says so where %s, with no window to close', async (_, server, sentence) => {
+        browserOpens()
+        server()
+        onAComputer()
+        await asked()
+
+        await startInApp()
+
+        expect(opens).not.toHaveBeenCalled()
+        expect(inDialog('problem').text()).toBe(sentence)
+        expect(inDialog('problem').attributes('role')).toBe('alert')
+        expect(inDialog('in-app').exists()).toBe(false)
+        expect(buttons()).toEqual([
+          'contact-window-video-cancel',
+          'contact-window-video-app',
+          'contact-window-video-start',
+        ])
+      })
+
+      // Nothing of it twice, whichever button was pressed first.
+      it('lets neither button take a second press while a call is being made', async () => {
+        browserOpens()
+        const offer = held()
+        serverRooms.mockReturnValue(offer.promise)
+        threadDelivers.mockResolvedValue(true)
+        onAComputer()
+        await asked()
+
+        await inDialog('app').trigger('click')
+        expect(inDialog('app').attributes('aria-disabled')).toBe('true')
+        expect(inDialog('start').attributes('aria-disabled')).toBe('true')
+        await inDialog('app').trigger('click')
+        await inDialog('start').trigger('click')
+        offer.release({ data: { chatVideoRoom: ROOM } })
+        await flushPromises()
+
+        expect(opens).not.toHaveBeenCalled()
+        expect(serverRooms).toHaveBeenCalledTimes(1)
+        expect(threadDelivers).toHaveBeenCalledTimes(1)
+      })
+
+      it('lets the app button take no press while the browser way is on its way', async () => {
+        browserOpens()
+        const offer = held()
+        serverRooms.mockReturnValue(offer.promise)
+        threadDelivers.mockResolvedValue(true)
+        onAComputer()
+        await asked()
+
+        await inDialog('start').trigger('click')
+        expect(inDialog('app').attributes('aria-disabled')).toBe('true')
+        await inDialog('app').trigger('click')
+        offer.release({ data: { chatVideoRoom: ROOM } })
+        await flushPromises()
+
+        expect(opens).toHaveBeenCalledTimes(1)
+        expect(serverRooms).toHaveBeenCalledTimes(1)
+        expect(threadDelivers).toHaveBeenCalledTimes(1)
+        expect(room.location.href).toBe(ROOM_WITH_DEFAULT)
+      })
+
+      it('forgets the room once the dialog is closed', async () => {
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+        threadDelivers.mockResolvedValue(true)
+        onAComputer()
+        await asked()
+        await startInApp()
+
+        await inDialog('close').trigger('click')
+        await camera().trigger('click')
+
+        expect(inDialog('in-app').exists()).toBe(false)
+        expect(inDialog('in-browser').exists()).toBe(false)
+        expect(inDialog('open').exists()).toBe(false)
+        expect(buttons()).toEqual([
+          'contact-window-video-cancel',
+          'contact-window-video-app',
+          'contact-window-video-start',
+        ])
+      })
+
+      // The call's secret, the app's address as well.
+      it('writes neither address into a log or storage', async () => {
+        const logs = ['log', 'info', 'warn', 'error', 'debug'].map((level) =>
+          vi.spyOn(console, level),
+        )
+        const stores = [vi.spyOn(Storage.prototype, 'setItem')]
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: ROOM } })
+        threadDelivers.mockResolvedValue(true)
+        onAComputer()
+        await asked()
+
+        await startInApp()
+
+        expect(inDialog('in-app').attributes('href')).toBe(APP_ROOM)
+        const written = [...logs, ...stores].flatMap((spy) => spy.mock.calls.flat().map(String))
+        expect(written.filter((line) => /k7m2x9q4t8wz/.test(line))).toEqual([])
+      })
+    })
   })
 
   // Real buttons that do not send a form, and none taken out of the tab order: a keyboard
@@ -1511,6 +1810,27 @@ describe('ContactWindow', () => {
     expect(mark[0]).toMatch(/outline:\s*2px solid/)
     expect(send, 'the send button lost its focus rule').not.toBeNull()
     expect(send[0]).toMatch(/outline:\s*2px solid/)
+  })
+
+  /**
+   * The call's start buttons wait while a call is being made -- `aria-disabled`, so a keyboard keeps
+   * its place -- and look it: both of them, the app's way (V4b) and the browser's. jsdom draws
+   * nothing, so the stylesheet says it; comments stripped first.
+   */
+  it("gives both of the call's start buttons their waiting look, in the stylesheet", () => {
+    const code = styleOf('ContactWindow.vue')
+    const style = code.slice(code.indexOf('<style'))
+    const rules = [...style.matchAll(/([^{}]+)\{([^}]*)\}/g)].map(([, selectors, body]) => ({
+      selectors: selectors.split(',').map((selector) => selector.trim()),
+      body,
+    }))
+
+    for (const button of ['app', 'start']) {
+      const waiting = rules.find((rule) =>
+        rule.selectors.includes(`.contact-window-video-${button}[aria-disabled='true']`),
+      )
+      expect(waiting?.body, button).toMatch(/opacity:\s*0\.65/)
+    }
   })
 
   /**

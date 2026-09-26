@@ -259,9 +259,34 @@
         @shown="videoAskOpened = true"
       >
         <p class="h5 mb-2" data-test="contact-window-video-title">{{ videoAskTitle }}</p>
+        <!-- The invitation went out by "Start in the Jitsi app" (V4b): the room is opened from
+             here, by a click of one's own -- in the app, or in the browser after all. Neither link
+             opens by itself (see `startVideoCall`), and the app's has no `target`: an app's link
+             opens no window. -->
+        <div v-if="videoRoomInApp" data-test="contact-window-video-app-room">
+          <p class="mb-2">
+            <a
+              :href="videoRoomInApp"
+              :title="$t('chatThread.videoInAppHint')"
+              data-test="contact-window-video-in-app"
+            >
+              {{ $t('chatThread.videoInApp') }}
+            </a>
+          </p>
+          <p class="small mb-0">
+            <a
+              :href="videoRoomToOpen"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-test="contact-window-video-in-browser"
+            >
+              {{ $t('chatThread.videoOpenInBrowser') }}
+            </a>
+          </p>
+        </div>
         <!-- The invitation went out, but the browser held the room's window back (a popup
              blocker): the member opens it from here, by a tap of their own. -->
-        <p v-if="videoRoomToOpen" class="mb-0">
+        <p v-else-if="videoRoomToOpen" class="mb-0">
           <a
             :href="videoRoomToOpen"
             target="_blank"
@@ -353,12 +378,25 @@
             >
               {{ $t('form.cancel') }}
             </BButton>
+            <!-- The second way, on a computer only (V4b, chatVideoApp): the same call, and the
+                 room is then opened in the Jitsi app. Between the two, since "Start call" stays
+                 the main button at the right; it waits with it while a call is being made. -->
+            <BButton
+              v-if="offersJitsiApp()"
+              variant="outline-secondary"
+              class="contact-window-video-app"
+              :aria-disabled="videoCalling ? 'true' : 'false'"
+              data-test="contact-window-video-app"
+              @click="startVideoCall({ inApp: true })"
+            >
+              {{ $t('chatThread.videoStartInApp') }}
+            </BButton>
             <BButton
               variant="gradido"
               class="contact-window-video-start"
               :aria-disabled="videoCalling ? 'true' : 'false'"
               data-test="contact-window-video-start"
-              @click="startVideoCall"
+              @click="startVideoCall()"
             >
               {{ $t('chatThread.videoStart') }}
             </BButton>
@@ -393,6 +431,7 @@ import { bookingsWithMemberRoute } from '@/utils/bookingsRoute'
 import { chatMemberKey } from '@/utils/chatMemberKey'
 import { chatNotifyFor } from '@/utils/chatNotify'
 import { CHAT_VIDEO_TOPIC_MAX, withChatVideoTopic } from '@/utils/chatVideoTopic'
+import { chatVideoAppUrl, offersJitsiApp } from '@/utils/chatVideoApp'
 
 /**
  * One contact, opened from wherever a contact stands: the list, the column, the strip.
@@ -683,10 +722,17 @@ const videoCalling = ref(false)
 const videoProblem = ref('')
 /**
  * The room, where the invitation went out and the browser held its window back: the member
- * opens it from the dialog. ⛔ The address is the call's secret -- it lives here only while the
+ * opens it from the dialog. So too where it went out by the app's way, under the app's link
+ * (`videoRoomInApp`). ⛔ The address is the call's secret -- it lives here only while the
  * dialog shows it, and in no store (the vuex store is written whole into localStorage) and no log.
  */
 const videoRoomToOpen = ref('')
+/**
+ * The same room as the Jitsi app's address, where the invitation went out by "Start in the Jitsi
+ * app" (V4b): the dialog offers it, and the room in the browser under it (`videoRoomToOpen`). The
+ * call's secret as well, kept the same way.
+ */
+const videoRoomInApp = ref('')
 
 /**
  * The room's window while a call is being made. Given up to the member once it is navigated;
@@ -721,6 +767,7 @@ const forgetVideoCall = () => {
   videoCalling.value = false
   videoProblem.value = ''
   videoRoomToOpen.value = ''
+  videoRoomInApp.value = ''
 }
 
 watch(videoAsking, (open) => {
@@ -758,10 +805,19 @@ const isNoVideoServer = (error) => String(error?.message ?? '').includes('CHAT_V
  * -- the address never goes without its addition, which is what will mark it as a video
  * invitation (V4b). The address with the topic is made once, and the invitation, the room's
  * window and the link in the dialog all carry that one.
+ *
+ * "Start in the Jitsi app" (`inApp`, V4b, on a computer only) is the same call without the window:
+ * the room, the invitation through the thread, the same words for what went wrong. Once the
+ * invitation went out, the app does NOT open by itself -- the dialog offers the room in the app,
+ * and in the browser under it, for a second click. ⛔ A browser hands a link to an app only in
+ * answer to a click, and between the click and the finished address lie two requests to the
+ * server: by then Firefox and Safari may have let the click's leave lapse. And the room is not
+ * entered before the invitation is out -- a room nobody else knows (see above) -- so it cannot be
+ * opened in the click either. The second click is the form that holds.
  */
-const startVideoCall = async () => {
+const startVideoCall = async ({ inApp = false } = {}) => {
   if (videoCalling.value) return
-  const room = window.open('', '_blank')
+  const room = inApp ? null : window.open('', '_blank')
   if (room) room.opener = null
   videoRoomWindow = room
   videoAttempt += 1
@@ -812,6 +868,14 @@ const startVideoCall = async () => {
   }
   // The member's now: letting the question go must not close it.
   videoRoomWindow = null
+  // The app's way: the room to open, for the second click. Should the address unexpectedly not
+  // be one the app takes, the dialog offers the room in the browser, as where a window was held
+  // back.
+  if (inApp) {
+    videoRoomInApp.value = chatVideoAppUrl(roomUrl) ?? ''
+    videoRoomToOpen.value = roomUrl
+    return
+  }
   // ⚠️ `closed` too: a window the member shut while the invitation was on its way has no
   // `location` to send anywhere. Then, as where the browser held it back, the dialog offers
   // the room as a link.
@@ -1030,9 +1094,10 @@ onBeforeUnmount(() => {
   height: 1.35em;
 }
 
-/* The question before a call: its start button waits while the call is being made, as the
+/* The question before a call: its start buttons wait while the call is being made, as the
    compose bar's send button does -- `aria-disabled`, so a keyboard that pressed it keeps its
-   place, and a look that says it waits. */
+   place, and a look that says it waits. Both of them: the app's way (V4b) and the browser's. */
+.contact-window-video-app[aria-disabled='true'],
 .contact-window-video-start[aria-disabled='true'] {
   opacity: 0.65;
   cursor: default;
