@@ -152,11 +152,12 @@ export const schema = Joi.object({
 
   // Any string: chatVideoServers() reads it entry by entry and skips an unusable entry with a
   // warning. A rule here would keep the whole backend from starting over one mistyped server.
+  // Only the seed since V3: the table chat_video_servers is the list, kept on the admin page.
   CHAT_VIDEO_SERVERS: Joi.string()
     .allow('')
     .default('')
     .description(
-      'Jitsi servers for chat video rooms, "base address|operator|room prefix" separated by ";" -- empty: the checked public servers built into the backend',
+      'Seed for the list of Jitsi servers for chat video rooms, "base address|operator|room prefix" separated by ";" -- written into the table chat_video_servers at a start while the table is empty, after that the admin page "Chat" keeps the list; empty: the checked public servers built into the backend',
     ),
 
   // Matching. Its own switch rather than part of the GMS or Anthropic blocks: it uses

@@ -1,10 +1,15 @@
 // AI-GENERATED — not an architecture reference
+import { ChatVideoServerSelect, chatVideoServersTable } from 'database'
 import { CONFIG } from '@/config'
 import {
   CHAT_VIDEO_ROOM_RANDOM_LENGTH,
+  CHAT_VIDEO_SERVER_MAX_LENGTH,
   chatVideoRoomName,
   chatVideoServerFrom,
+  chatVideoServerFromForm,
   chatVideoServers,
+  chatVideoServersFromRows,
+  chatVideoServerValues,
   parseChatVideoServers,
 } from './ChatVideoServer.logic'
 import { CHAT_VIDEO_SERVERS_DEFAULT } from './ChatVideoServers.default'
@@ -214,5 +219,204 @@ describe('chatVideoRoomName', () => {
     expect(drawnAgain).toEqual([252, 253, 254, 255])
     expect(count.size).toBe(36)
     expect([...count.values()].every((times) => times === 7)).toBe(true)
+  })
+})
+
+describe('the lengths of an entry', () => {
+  // ⛔ The rules and the table must agree: an entry the rules take and the column refuses would
+  // fail at the insert, as a raw error of the driver on the admin page -- or, at the start, as a
+  // seed that stops halfway.
+  it('are the columns of chat_video_servers', () => {
+    // A varchar column carries its length at run time; its type in the table does not say so.
+    const lengthOf = (column: unknown) => (column as { length?: number }).length
+    expect(CHAT_VIDEO_SERVER_MAX_LENGTH).toEqual({
+      baseUrl: lengthOf(chatVideoServersTable.baseUrl),
+      operator: lengthOf(chatVideoServersTable.operator),
+      prefix: lengthOf(chatVideoServersTable.roomPrefix),
+      note: lengthOf(chatVideoServersTable.note),
+    })
+  })
+
+  it('take an address as long as its column, as it is stored, and refuse one character more', () => {
+    // 18 characters, then a path that ends the address at exactly 255 with its '/'.
+    const longest = `https://a.example/${'x'.repeat(236)}`
+    expect(`${longest}/`).toHaveLength(CHAT_VIDEO_SERVER_MAX_LENGTH.baseUrl)
+    expect(chatVideoServerFrom({ baseUrl: longest, operator: null }).success).toBe(true)
+    expect(chatVideoServerFrom({ baseUrl: `${longest}y`, operator: null })).toEqual({
+      success: false,
+      error: 'TOO_LONG',
+    })
+  })
+
+  it('take an operator and a prefix as long as their columns, and refuse one character more', () => {
+    const at = (operator: string, prefix: string) =>
+      chatVideoServerFrom({ baseUrl: 'https://a.example/', operator, prefix })
+    expect(at(` ${'o'.repeat(120)} `, 'P'.repeat(40)).success).toBe(true)
+    expect(at('o'.repeat(121), '')).toEqual({ success: false, error: 'TOO_LONG' })
+    expect(at('', 'P'.repeat(41))).toEqual({ success: false, error: 'TOO_LONG' })
+  })
+
+  it('keep an over-long entry of CHAT_VIDEO_SERVERS out of the seed, and take the others', () => {
+    const list = chatVideoServers(
+      `https://a.example/|${'o'.repeat(121)};https://b.example/|B e. V.`,
+    )
+    expect(list.servers.map((server) => server.host)).toEqual(['b.example'])
+    expect(list.rejected.map((rejection) => rejection.reason)).toEqual(['TOO_LONG'])
+  })
+})
+
+describe('chatVideoServerValues', () => {
+  it('stores no prefix as NULL, and a server of the seed as active, without a note', () => {
+    const server = {
+      baseUrl: 'https://a.example/',
+      host: 'a.example',
+      operator: 'A e. V.',
+      prefix: '',
+    }
+    expect(chatVideoServerValues(server)).toEqual({
+      baseUrl: 'https://a.example/',
+      operator: 'A e. V.',
+      roomPrefix: null,
+      note: null,
+      active: true,
+    })
+  })
+})
+
+describe('chatVideoServerFromForm', () => {
+  const FORM = {
+    baseUrl: ' https://fairmeeting.net ',
+    operator: ' fairmeeting (fairkom) ',
+    roomPrefix: ' GradidoAkademie ',
+    note: ' Akademie-Lizenz ',
+    active: false,
+  }
+
+  it('makes the row to store of what an administrator typed, and names the server', () => {
+    expect(chatVideoServerFromForm(FORM)).toEqual({
+      success: true,
+      value: {
+        server: {
+          baseUrl: 'https://fairmeeting.net/',
+          host: 'fairmeeting.net',
+          operator: 'fairmeeting (fairkom)',
+          prefix: 'GradidoAkademie',
+        },
+        values: {
+          baseUrl: 'https://fairmeeting.net/',
+          operator: 'fairmeeting (fairkom)',
+          roomPrefix: 'GradidoAkademie',
+          note: 'Akademie-Lizenz',
+          active: false,
+        },
+      },
+    })
+  })
+
+  it('stores empty fields as none', () => {
+    const result = chatVideoServerFromForm({
+      baseUrl: 'https://a.example/',
+      operator: '  ',
+      roomPrefix: '',
+      note: '   ',
+      active: true,
+    })
+    expect(result.success && result.value.values).toEqual({
+      baseUrl: 'https://a.example/',
+      operator: null,
+      roomPrefix: null,
+      note: null,
+      active: true,
+    })
+  })
+
+  it('follows the rules of CHAT_VIDEO_SERVERS', () => {
+    const refused = (change: Partial<typeof FORM>) => {
+      const result = chatVideoServerFromForm({ ...FORM, ...change })
+      return result.success ? 'taken' : result.error
+    }
+    expect(refused({ baseUrl: 'http://fairmeeting.net/' })).toBe('NOT_HTTPS')
+    expect(refused({ baseUrl: 'fairmeeting.net' })).toBe('NOT_HTTPS')
+    expect(refused({ baseUrl: 'https://fairmeeting.net/?room=1' })).toBe('NOT_A_BASE_ADDRESS')
+    expect(refused({ roomPrefix: 'Gradido-Akademie' })).toBe('BAD_PREFIX')
+    expect(refused({ roomPrefix: 'Gradido Akademie' })).toBe('BAD_PREFIX')
+    expect(refused({ operator: 'o'.repeat(121) })).toBe('TOO_LONG')
+  })
+
+  it('takes a note as long as its column, and refuses one character more', () => {
+    expect(chatVideoServerFromForm({ ...FORM, note: 'n'.repeat(255) }).success).toBe(true)
+    expect(chatVideoServerFromForm({ ...FORM, note: 'n'.repeat(256) })).toEqual({
+      success: false,
+      error: 'TOO_LONG',
+    })
+  })
+})
+
+describe('chatVideoServersFromRows', () => {
+  const stored = (
+    id: number,
+    baseUrl: string,
+    change: Partial<ChatVideoServerSelect> = {},
+  ): ChatVideoServerSelect => ({
+    id,
+    baseUrl,
+    operator: null,
+    roomPrefix: null,
+    note: null,
+    active: true,
+    createdAt: new Date(),
+    updatedAt: null,
+    ...change,
+  })
+
+  it('names the server of every row, in the order of the rows, with its id and its tick', () => {
+    const table = chatVideoServersFromRows([
+      stored(4, 'https://fairmeeting.net/', {
+        operator: 'fairmeeting (fairkom)',
+        roomPrefix: 'GradidoAkademie',
+      }),
+      stored(2, 'https://meet.ffmuc.net/', { active: false }),
+    ])
+    expect(table).toEqual({
+      servers: [
+        {
+          id: 4,
+          active: true,
+          server: {
+            baseUrl: 'https://fairmeeting.net/',
+            host: 'fairmeeting.net',
+            operator: 'fairmeeting (fairkom)',
+            prefix: 'GradidoAkademie',
+          },
+        },
+        {
+          id: 2,
+          active: false,
+          server: {
+            baseUrl: 'https://meet.ffmuc.net/',
+            host: 'meet.ffmuc.net',
+            operator: null,
+            prefix: '',
+          },
+        },
+      ],
+      rejected: [],
+    })
+  })
+
+  it('leaves out a row that breaks a rule, and a second row of a host, and takes the others', () => {
+    const table = chatVideoServersFromRows([
+      stored(1, 'https://a.example/'),
+      stored(2, 'http://b.example/'),
+      stored(3, 'https://c.example/', { roomPrefix: 'with space' }),
+      stored(4, 'https://a.example/other/'),
+      stored(5, 'https://d.example/'),
+    ])
+    expect(table.servers.map(({ id }) => id)).toEqual([1, 5])
+    expect(table.rejected).toEqual([
+      { entry: '#2 http://b.example/', reason: 'NOT_HTTPS' },
+      { entry: '#3 https://c.example/', reason: 'BAD_PREFIX' },
+      { entry: '#4 https://a.example/other/', reason: 'DUPLICATE_HOST' },
+    ])
   })
 })

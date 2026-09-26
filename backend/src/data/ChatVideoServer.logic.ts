@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { randomBytes } from 'node:crypto'
+import type { ChatVideoServerSelect, ChatVideoServerValues } from 'database'
 import { Result } from 'shared'
 import { CONFIG } from '@/config'
 import { CHAT_VIDEO_SERVERS_DEFAULT } from './ChatVideoServers.default'
@@ -7,7 +8,8 @@ import { CHAT_VIDEO_SERVERS_DEFAULT } from './ChatVideoServers.default'
 /**
  * A Jitsi server the chat takes video rooms from (V1). Per call the backend picks one among the
  * servers that passed the last check and hands out a fresh room on it; the wallet sends the
- * address as an ordinary chat message (V2).
+ * address as an ordinary chat message (V2). The list is the table chat_video_servers, kept on
+ * the admin page "Chat" (V3).
  */
 export interface ChatVideoServer {
   /** Where the rooms are: https, ending in '/'. A room's address is this plus its name. */
@@ -20,7 +22,10 @@ export interface ChatVideoServer {
   prefix: string
 }
 
-/** One entry as a list writes it: the default list in the code, or CHAT_VIDEO_SERVERS. */
+/**
+ * One entry as a list writes it: the default list in the code, CHAT_VIDEO_SERVERS, or a row of
+ * chat_video_servers.
+ */
 export interface ChatVideoServerEntry {
   baseUrl: string
   operator: string | null
@@ -36,18 +41,56 @@ export type ChatVideoServerRejection =
   // A prefix with more than letters and digits. fairmeeting ignores hyphens in a room name,
   // other servers need not; spaces and other signs do not belong in an address at all.
   | 'BAD_PREFIX'
+  // Longer than its column in chat_video_servers (CHAT_VIDEO_SERVER_MAX_LENGTH).
+  | 'TOO_LONG'
   // More than three fields: an operator's name cannot hold "|".
   | 'TOO_MANY_FIELDS'
   // The host is what names a server; a second entry for it is a mistake in the list.
   | 'DUPLICATE_HOST'
 
+/** An entry not taken, with the reason -- for the log. */
+export interface ChatVideoServerLeftOut {
+  entry: string
+  reason: ChatVideoServerRejection
+}
+
+/** The seed of an empty chat_video_servers: CHAT_VIDEO_SERVERS, or the default list. */
 export interface ChatVideoServerList {
   /** Which list it is: the server's own, or the default list in the code. */
   source: 'CHAT_VIDEO_SERVERS' | 'DEFAULT'
   servers: ChatVideoServer[]
-  /** The entries not taken, with the reason -- for the log, once, when the check starts. */
-  rejected: { entry: string; reason: ChatVideoServerRejection }[]
+  /** The entries not taken, with the reason. */
+  rejected: ChatVideoServerLeftOut[]
 }
+
+/** A server of chat_video_servers, as the check goes through the table. */
+export interface ChatVideoServerListed {
+  /** The row it comes from. */
+  id: number
+  /** The tick "in the random choice": every row is checked, only active ones are handed out. */
+  active: boolean
+  server: ChatVideoServer
+}
+
+/** The table as the check goes through it: the rows it can take, and those it cannot. */
+export interface ChatVideoServerTable {
+  servers: ChatVideoServerListed[]
+  rejected: ChatVideoServerLeftOut[]
+}
+
+/**
+ * How long each field of an entry may be: its column in chat_video_servers (migration 0145), so
+ * that an entry the rules take can always be stored -- typed on the admin page as well as read
+ * from CHAT_VIDEO_SERVERS. The base address counts as it is stored, with its '/' at the end.
+ * Characters, as the columns count them; JavaScript counts an emoji as two, which errs on the
+ * safe side.
+ */
+export const CHAT_VIDEO_SERVER_MAX_LENGTH = {
+  baseUrl: 255,
+  operator: 120,
+  prefix: 40,
+  note: 255,
+} as const
 
 /**
  * How often every server of the list is checked: every ten minutes, as the redirector
@@ -99,7 +142,8 @@ const parseUrl = (text: string): URL | null => {
 
 /**
  * An entry as the server it names: the base address with a '/' at its end, its host, the
- * operator's name trimmed (empty is none), and the prefix as it was given.
+ * operator's name trimmed (empty is none), and the prefix as it was given. The same rules for
+ * every list: the default list, CHAT_VIDEO_SERVERS, and what an administrator types.
  */
 export const chatVideoServerFrom = (
   entry: ChatVideoServerEntry,
@@ -116,15 +160,92 @@ export const chatVideoServerFrom = (
     return { success: false, error: 'BAD_PREFIX' }
   }
   const path = url.pathname.endsWith('/') ? url.pathname : `${url.pathname}/`
+  const baseUrl = `${url.origin}${path}`
+  const operator = entry.operator?.trim() || null
+  if (
+    baseUrl.length > CHAT_VIDEO_SERVER_MAX_LENGTH.baseUrl ||
+    (operator?.length ?? 0) > CHAT_VIDEO_SERVER_MAX_LENGTH.operator ||
+    prefix.length > CHAT_VIDEO_SERVER_MAX_LENGTH.prefix
+  ) {
+    return { success: false, error: 'TOO_LONG' }
+  }
+  return { success: true, value: { baseUrl, host: url.host, operator, prefix } }
+}
+
+/** A server as its row in chat_video_servers stores it: no prefix is NULL there. */
+export const chatVideoServerValues = (
+  server: ChatVideoServer,
+  note: string | null = null,
+  active = true,
+): Required<ChatVideoServerValues> => ({
+  baseUrl: server.baseUrl,
+  operator: server.operator,
+  roomPrefix: server.prefix || null,
+  note,
+  active,
+})
+
+/** What an administrator enters for a server on the admin page (ChatVideoServerInput). */
+export interface ChatVideoServerForm {
+  baseUrl: string
+  operator?: string | null
+  roomPrefix?: string | null
+  note?: string | null
+  active: boolean
+}
+
+/**
+ * What an administrator entered, as the row to store and the server it names -- by the rules of
+ * chatVideoServerFrom, and the note trimmed (empty is none) and no longer than its column.
+ * Whether another entry has the same host, the caller asks the table.
+ */
+export const chatVideoServerFromForm = (
+  form: ChatVideoServerForm,
+): Result<
+  { server: ChatVideoServer; values: Required<ChatVideoServerValues> },
+  ChatVideoServerRejection
+> => {
+  const found = chatVideoServerFrom({
+    baseUrl: form.baseUrl,
+    operator: form.operator ?? null,
+    prefix: form.roomPrefix?.trim() ?? '',
+  })
+  if (!found.success) {
+    return found
+  }
+  const note = form.note?.trim() || null
+  if ((note?.length ?? 0) > CHAT_VIDEO_SERVER_MAX_LENGTH.note) {
+    return { success: false, error: 'TOO_LONG' }
+  }
   return {
     success: true,
-    value: {
-      baseUrl: `${url.origin}${path}`,
-      host: url.host,
-      operator: entry.operator?.trim() || null,
-      prefix,
-    },
+    value: { server: found.value, values: chatVideoServerValues(found.value, note, form.active) },
   }
+}
+
+/**
+ * The rows of chat_video_servers as the servers they name, in their order -- what every check
+ * goes through. A row that breaks a rule (written by hand, past the admin page) is left out with
+ * its reason, as is a second row for a host; the others are taken all the same.
+ */
+export const chatVideoServersFromRows = (rows: ChatVideoServerSelect[]): ChatVideoServerTable => {
+  const table: ChatVideoServerTable = { servers: [], rejected: [] }
+  for (const row of rows) {
+    const entry = `#${row.id} ${row.baseUrl}`
+    const found = chatVideoServerFrom({
+      baseUrl: row.baseUrl,
+      operator: row.operator,
+      prefix: row.roomPrefix ?? '',
+    })
+    if (!found.success) {
+      table.rejected.push({ entry, reason: found.error })
+    } else if (table.servers.some(({ server }) => server.host === found.value.host)) {
+      table.rejected.push({ entry, reason: 'DUPLICATE_HOST' })
+    } else {
+      table.servers.push({ id: row.id, active: row.active, server: found.value })
+    }
+  }
+  return table
 }
 
 type ServersAndRejected = Pick<ChatVideoServerList, 'servers' | 'rejected'>
@@ -165,11 +286,11 @@ export const parseChatVideoServers = (text: string): ServersAndRejected => {
 }
 
 /**
- * The servers the chat takes video rooms from. The one place the list comes from: the check
- * reads it here, and the query knows only what the check found -- where the list is kept can
- * change here alone (V3: a table the admin fills).
+ * The seed of the list: what the backend's start writes into chat_video_servers while the table
+ * is empty (apis/jitsi/seedChatVideoServers.ts). After that the table alone is the list, kept on
+ * the admin page "Chat"; the check reads the table, never this.
  *
- * ⛔ Where the server's configuration sets CHAT_VIDEO_SERVERS, that list is the only one --
+ * ⛔ Where the server's configuration sets CHAT_VIDEO_SERVERS, that list is the only seed --
  * also when none of its entries can be used. A community that set fairmeeting with its prefix
  * gets no public server in its place: its agreement with fairkom covers the prefix, not a
  * server to fall back on. Only an empty value means the default list.
