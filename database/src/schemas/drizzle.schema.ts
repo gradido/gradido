@@ -467,8 +467,7 @@ export type UserContactSelect = typeof userContactsTable.$inferSelect
 export type UserContactInsert = typeof userContactsTable.$inferInsert
 
 // Every name a member owns; `users.alias` marks the current one (see migration 0116).
-// `origin` is one of the AliasOrigin values next to the UserAlias entity. The table has
-// a TypeORM entity as well, so it is not in drizzleOnlyTables.
+// `origin` is one of the AliasOrigin values next to the UserAlias entity.
 export const userAliasesTable = mysqlTable(
   'user_aliases',
   {

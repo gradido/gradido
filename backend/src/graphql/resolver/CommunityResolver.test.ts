@@ -47,9 +47,6 @@ beforeAll(async () => {
   query = testEnv.query
   db = testEnv.db
   await cleanDB()
-  // reset id auto increment
-  await DbCommunity.clear()
-  await DbFederatedCommunity.clear()
 })
 
 afterAll(async () => {
@@ -186,7 +183,7 @@ describe('CommunityResolver', () => {
                 uuid: null,
                 federatedCommunities: [
                   {
-                    id: 3,
+                    id: homeCom3.id,
                     apiVersion: '2_0',
                     endPoint: 'http://localhost/api/',
                     createdAt: homeCom3.createdAt.toISOString(),
@@ -196,7 +193,7 @@ describe('CommunityResolver', () => {
                     verifiedAt: null,
                   },
                   {
-                    id: 2,
+                    id: homeCom2.id,
                     apiVersion: '1_1',
                     endPoint: 'http://localhost/api/',
                     createdAt: homeCom2.createdAt.toISOString(),
@@ -206,7 +203,7 @@ describe('CommunityResolver', () => {
                     verifiedAt: null,
                   },
                   {
-                    id: 1,
+                    id: homeCom1.id,
                     apiVersion: '1_0',
                     endPoint: 'http://localhost/api/',
                     createdAt: homeCom1.createdAt.toISOString(),
@@ -316,7 +313,7 @@ describe('CommunityResolver', () => {
                 uuid: comHomeCom1.communityUuid,
                 federatedCommunities: [
                   {
-                    id: 3,
+                    id: homeCom3.id,
                     apiVersion: '2_0',
                     endPoint: 'http://localhost/api/',
                     createdAt: homeCom3.createdAt.toISOString(),
@@ -326,7 +323,7 @@ describe('CommunityResolver', () => {
                     verifiedAt: null,
                   },
                   {
-                    id: 2,
+                    id: homeCom2.id,
                     apiVersion: '1_1',
                     endPoint: 'http://localhost/api/',
                     createdAt: homeCom2.createdAt.toISOString(),
@@ -336,7 +333,7 @@ describe('CommunityResolver', () => {
                     verifiedAt: null,
                   },
                   {
-                    id: 1,
+                    id: homeCom1.id,
                     apiVersion: '1_0',
                     endPoint: 'http://localhost/api/',
                     createdAt: homeCom1.createdAt.toISOString(),
@@ -361,7 +358,7 @@ describe('CommunityResolver', () => {
                 uuid: null,
                 federatedCommunities: [
                   {
-                    id: 7,
+                    id: foreignCom4.id,
                     apiVersion: '1_0',
                     endPoint: 'http://remotehost/api/',
                     createdAt: foreignCom4.createdAt.toISOString(),
@@ -371,7 +368,7 @@ describe('CommunityResolver', () => {
                     verifiedAt: null,
                   },
                   {
-                    id: 6,
+                    id: foreignCom3.id,
                     apiVersion: '2_0',
                     endPoint: 'http://remotehost/api/',
                     createdAt: foreignCom3.createdAt.toISOString(),
@@ -396,7 +393,7 @@ describe('CommunityResolver', () => {
                 uuid: comForeignCom2.communityUuid,
                 federatedCommunities: [
                   {
-                    id: 5,
+                    id: foreignCom2.id,
                     apiVersion: '1_1',
                     endPoint: 'http://remotehost/api/',
                     createdAt: foreignCom2.createdAt.toISOString(),
@@ -421,7 +418,7 @@ describe('CommunityResolver', () => {
                 uuid: null,
                 federatedCommunities: [
                   {
-                    id: 4,
+                    id: foreignCom1.id,
                     apiVersion: '1_0',
                     endPoint: 'http://remotehost/api/',
                     createdAt: foreignCom1.createdAt.toISOString(),
@@ -445,8 +442,7 @@ describe('CommunityResolver', () => {
     let foreignCom2: DbCommunity
 
     afterAll(async () => {
-      await DbCommunity.clear()
-      await DbFederatedCommunity.clear()
+      await cleanDB()
     })
 
     describe('with empty list', () => {
@@ -523,7 +519,7 @@ describe('CommunityResolver', () => {
     describe('search community by uuid', () => {
       let homeCom: DbCommunity | null
       beforeAll(async () => {
-        await DbCommunity.clear()
+        await cleanDB()
 
         homeCom = await createCommunity(false, false)
         foreignCom1 = await createCommunity(true, false)
@@ -585,7 +581,7 @@ describe('CommunityResolver', () => {
     let foreignCom2: DbCommunity
 
     beforeAll(async () => {
-      await DbCommunity.clear()
+      await cleanDB()
 
       // create admin and login as admin
       await userFactory(testEnv, peterLustig)

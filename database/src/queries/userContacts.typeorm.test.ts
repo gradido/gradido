@@ -1,13 +1,14 @@
 // AI-GENERATED — not an architecture reference
 import { OptInType, UserContactType } from 'shared'
 import { EntityNotFoundError } from 'typeorm'
-import { Community as DbCommunity, User as DbUser, UserContact as DbUserContact } from '..'
+import { User as DbUser, UserContact as DbUserContact } from '..'
 import { AppDatabase } from '../AppDatabase'
 import { DBDuplicateEntryError } from '../errorTypes'
 import { createCommunity } from '../seeds/community'
 import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
+import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import {
   dbFindConfirmedUserContactEmails,
   dbFindUserIdsByEmailLike,
@@ -56,9 +57,7 @@ describe('userContacts.typeorm.queries', () => {
   let peter: DbUser
 
   beforeAll(async () => {
-    await DbUser.clear()
-    await DbUserContact.clear()
-    await DbCommunity.clear()
+    await dbDeleteAllRowsExceptMigrations()
 
     await createCommunity(false)
     bibi = await userFactory(bibiBloxberg)

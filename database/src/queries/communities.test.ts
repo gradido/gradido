@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm'
 import { Ed25519PublicKey } from 'shared'
-import { Community as DbCommunity, FederatedCommunity as DbFederatedCommunity } from '..'
+import { Community as DbCommunity } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { communitiesTable } from '../schemas'
 import { createCommunity, createVerifiedFederatedCommunity } from '../seeds/community'
@@ -13,6 +13,7 @@ import {
   getHomeCommunityWithFederatedCommunityOrFail,
   getReachableCommunities,
 } from './communities'
+import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 
 const db = AppDatabase.getInstance()
 
@@ -26,8 +27,7 @@ afterAll(async () => {
 describe('community.queries', () => {
   // clean db for every test case
   beforeEach(async () => {
-    await DbCommunity.clear()
-    await DbFederatedCommunity.clear()
+    await dbDeleteAllRowsExceptMigrations()
   })
   describe('getHomeCommunity', () => {
     it('should return null if no home community exists', async () => {

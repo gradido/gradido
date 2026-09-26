@@ -3,13 +3,7 @@ import { ContributionStatus } from '@enum/ContributionStatus'
 import { OptInType } from '@enum/OptInType'
 import { Order } from '@enum/Order'
 import { UserContactType } from '@enum/UserContactType'
-import {
-  cleanDB,
-  contributionDateFormatter,
-  resetEntity,
-  resetToken,
-  testEnvironment,
-} from '@test/helpers'
+import { cleanDB, contributionDateFormatter, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
 import {
@@ -2065,7 +2059,7 @@ describe('ContributionResolver', () => {
                   errors: [new GraphQLError('A confirmed contribution can not be deleted')],
                 }),
               )
-              await resetEntity(DbTransaction)
+              await DbTransaction.createQueryBuilder().delete().execute()
             })
           })
         })

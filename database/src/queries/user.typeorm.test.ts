@@ -5,7 +5,6 @@ import {
   ALIAS_ORIGIN_CHOSEN,
   Community as DbCommunity,
   User as DbUser,
-  UserAlias as DbUserAlias,
   UserContact as DbUserContact,
   UserRole as DbUserRole,
 } from '..'
@@ -18,6 +17,7 @@ import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import { raeuberHotzenplotz } from '../seeds/users/raeuber-hotzenplotz'
 import { LOG4JS_QUERIES_CATEGORY_NAME } from '.'
+import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import {
   dbFindAdminUsersPage,
   dbFindForeignUsersByGradidoIds,
@@ -52,9 +52,7 @@ describe('user.typeorm.queries', () => {
     let userBibi: DbUser
 
     beforeAll(async () => {
-      await DbUser.clear()
-      await DbUserContact.clear()
-      await DbCommunity.clear()
+      await dbDeleteAllRowsExceptMigrations()
 
       homeCom = await createCommunity(false)
       communityUuid = homeCom.communityUuid!
@@ -149,10 +147,7 @@ describe('user.typeorm.queries', () => {
     let bibi: DbUser
 
     beforeAll(async () => {
-      await DbUserAlias.clear()
-      await DbUser.clear()
-      await DbUserContact.clear()
-      await DbCommunity.clear()
+      await dbDeleteAllRowsExceptMigrations()
 
       homeCom = await createCommunity(false)
       communityUuid = homeCom.communityUuid!
@@ -190,9 +185,7 @@ describe('user.typeorm.queries', () => {
     let bob: DbUser
 
     beforeAll(async () => {
-      await DbUser.clear()
-      await DbUserContact.clear()
-      await DbCommunity.clear()
+      await dbDeleteAllRowsExceptMigrations()
       await createCommunity(false)
       bibi = await userFactory(bibiBloxberg)
       peter = await userFactory(peterLustig)
@@ -220,9 +213,7 @@ describe('user.typeorm.queries', () => {
     let sarah: DbUser
 
     beforeAll(async () => {
-      await DbUser.clear()
-      await DbUserContact.clear()
-      await DbCommunity.clear()
+      await dbDeleteAllRowsExceptMigrations()
       await createCommunity(false)
       // A local member with the same gradido id as the foreign one: only the foreign row
       // may come back, whichever way the pair is asked for.
@@ -257,10 +248,7 @@ describe('user.typeorm.queries', () => {
     let bibi: DbUser
 
     beforeAll(async () => {
-      await DbUserAlias.clear()
-      await DbUser.clear()
-      await DbUserContact.clear()
-      await DbCommunity.clear()
+      await dbDeleteAllRowsExceptMigrations()
 
       await createCommunity(false)
       bibi = await userFactory(bibiBloxberg)
@@ -292,10 +280,7 @@ describe('user.typeorm.queries', () => {
     let bibi: DbUser
 
     beforeAll(async () => {
-      await DbUserAlias.clear()
-      await DbUser.clear()
-      await DbUserContact.clear()
-      await DbCommunity.clear()
+      await dbDeleteAllRowsExceptMigrations()
 
       await createCommunity(false)
       bibi = await userFactory(bibiBloxberg)
@@ -339,10 +324,7 @@ describe('user.typeorm.queries', () => {
     }
 
     beforeAll(async () => {
-      await DbUserAlias.clear()
-      await DbUser.clear()
-      await DbUserContact.clear()
-      await DbCommunity.clear()
+      await dbDeleteAllRowsExceptMigrations()
 
       await createCommunity(false)
       bob = await userFactory(bobBaumeister)
@@ -433,10 +415,7 @@ describe('user.typeorm.queries', () => {
     let leftBehind: string
 
     beforeAll(async () => {
-      await DbUserAlias.clear()
-      await DbUser.clear()
-      await DbUserContact.clear()
-      await DbCommunity.clear()
+      await dbDeleteAllRowsExceptMigrations()
 
       await createCommunity(false)
       bibi = await userFactory(bibiBloxberg)
@@ -480,8 +459,8 @@ describe('user.typeorm.queries', () => {
     let before: DbUser
 
     beforeAll(async () => {
-      await DbUser.clear()
-      await DbUserContact.clear()
+      await dbDeleteAllRowsExceptMigrations()
+      await createCommunity(false)
       await userFactory(bibiBloxberg)
       before = (await DbUser.find())[0]
     })
@@ -506,8 +485,8 @@ describe('user.typeorm.queries', () => {
     let before: DbUser
 
     beforeAll(async () => {
-      await DbUser.clear()
-      await DbUserContact.clear()
+      await dbDeleteAllRowsExceptMigrations()
+      await createCommunity(false)
       await userFactory(bibiBloxberg)
       before = (await DbUser.find())[0]
     })
@@ -555,11 +534,8 @@ describe('user.typeorm.queries', () => {
     let bibi: DbUser
 
     beforeAll(async () => {
-      await DbUser.clear()
-      await DbUserContact.clear()
-      // `clear()` truncates and restarts the ids, so role rows the earlier describes left
-      // behind would attach themselves to whoever gets those ids next.
-      await DbUserRole.clear()
+      await dbDeleteAllRowsExceptMigrations()
+      await createCommunity(false)
       peter = await userFactory(peterLustig)
       bibi = await userFactory(bibiBloxberg)
     })
@@ -595,9 +571,8 @@ describe('user.typeorm.queries', () => {
     let ids: number[]
 
     beforeAll(async () => {
-      await DbUser.clear()
-      await DbUserContact.clear()
-      await DbUserRole.clear()
+      await dbDeleteAllRowsExceptMigrations()
+      await createCommunity(false)
       const members = [
         await userFactory(bibiBloxberg),
         await userFactory(bobBaumeister),

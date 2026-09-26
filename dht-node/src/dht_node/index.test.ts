@@ -1,5 +1,5 @@
 import DHT from '@hyperswarm/dht'
-import { cleanDB, testEnvironment } from '@test/helpers'
+import { cleanDB, testEnvironment, useFakeTimersForDrizzle } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
 import {
   AppDatabase,
@@ -114,7 +114,7 @@ afterAll(async () => {
 
 describe('federation', () => {
   beforeAll(() => {
-    jest.useFakeTimers()
+    useFakeTimersForDrizzle()
   })
 
   afterEach(() => {
