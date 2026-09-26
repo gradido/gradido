@@ -1,0 +1,49 @@
+# AI-GENERATED — not an architecture reference
+# The admin page "Chat": the Jitsi servers the chat's video calls take a room from (V3).
+
+fragment ChatVideoServerRowFields on ChatVideoServerRow {
+  id
+  baseUrl
+  host
+  operator
+  roomPrefix
+  note
+  active
+  createdAt
+  updatedAt
+  check {
+    ok
+    reason
+    checkedAt
+    latencyMs
+    picks
+  }
+}
+
+query chatVideoServers {
+  chatVideoServers {
+    ...ChatVideoServerRowFields
+  }
+}
+
+mutation createChatVideoServer($input: ChatVideoServerInput!) {
+  createChatVideoServer(input: $input) {
+    ...ChatVideoServerRowFields
+  }
+}
+
+mutation updateChatVideoServer($id: Int!, $input: ChatVideoServerInput!) {
+  updateChatVideoServer(id: $id, input: $input) {
+    ...ChatVideoServerRowFields
+  }
+}
+
+mutation deleteChatVideoServer($id: Int!) {
+  deleteChatVideoServer(id: $id)
+}
+
+mutation checkChatVideoServersNow {
+  checkChatVideoServersNow {
+    ...ChatVideoServerRowFields
+  }
+}

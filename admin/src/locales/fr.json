@@ -43,6 +43,74 @@
     "titleRemove": "Remove reminder?"
   },
   "change_user_role": "Changer le rôle de l'utilisateur",
+  "chatAdmin": {
+    "adminOnly": "Réservé aux administrateurs.",
+    "created": "Serveur ajouté.",
+    "edit": "Modifier",
+    "errors": {
+      "duplicate": "Ce serveur figure déjà dans la liste.",
+      "invalid": {
+        "BAD_PREFIX": "Le préfixe ne peut contenir que des lettres et des chiffres.",
+        "NOT_A_BASE_ADDRESS": "L'adresse ne doit contenir ni « ? », ni « # », ni nom d'utilisateur.",
+        "NOT_HTTPS": "L'adresse doit commencer par https://.",
+        "TOO_LONG": "Un champ est trop long.",
+        "other": "L'entrée ne convient pas ({reason})."
+      },
+      "notFound": "Cette entrée n'existe plus. La liste a été rechargée."
+    },
+    "form": {
+      "active": "Dans le tirage au sort",
+      "add": "Ajouter",
+      "addTitle": "Ajouter un serveur",
+      "baseUrl": "Adresse",
+      "baseUrlHint": "L'adresse du serveur Jitsi avec https://, sans nom de salle.",
+      "note": "Remarque",
+      "operator": "Exploitant",
+      "operatorHint": "Tel que le nomment les mentions légales. Les membres lisent le nom dans l'invitation.",
+      "prefix": "Préfixe",
+      "prefixHint": "Uniquement des lettres et des chiffres. Il suit directement la barre oblique, puis viennent douze caractères aléatoires. Vide : seulement les caractères aléatoires."
+    },
+    "reason": {
+      "LOGIN_REQUIRED": "connexion requise",
+      "NOT_JITSI": "pas un Jitsi",
+      "NO_ANONYMOUS": "pas de salles anonymes",
+      "NO_BOSH": "pas de réponse XMPP",
+      "UNREACHABLE": "injoignable"
+    },
+    "remove": "Supprimer",
+    "removeDialog": {
+      "confirm": "Supprimer",
+      "hint": "Les invitations déjà envoyées restent valables. Les nouveaux appels ne passent plus par ce serveur.",
+      "question": "Supprimer {host} de la liste ?",
+      "title": "Supprimer le serveur"
+    },
+    "removed": "Serveur supprimé.",
+    "save": "Enregistrer",
+    "servers": {
+      "active": "Actif",
+      "activeOff": "{host} ne fait plus partie du tirage au sort.",
+      "activeOn": "{host} fait maintenant partie du tirage au sort.",
+      "activeTitle": "Dans le tirage au sort",
+      "checkNow": "Vérifier maintenant",
+      "checked": "{ok} sur {count} répondent.",
+      "checking": "vérification …",
+      "empty": "La liste est vide, le chat ne propose donc aucun serveur pour le moment. Si elle est encore vide au prochain démarrage du serveur, elle est remplie à nouveau : avec les serveurs de sa configuration ou, sans configuration, avec les serveurs publics vérifiés. Pour désactiver les appels vidéo, garde les serveurs dans la liste et décoche-les.",
+      "fairness": "Les serveurs publics appartiennent le plus souvent à des bénévoles. N'ajoute que ce que l'exploitant propose visiblement au public.",
+      "hint": "Ces serveurs sont proposés aux membres pour les appels vidéo. Un tirage au sort choisit parmi les serveurs actifs qui ont répondu lors de la dernière vérification ; la vérification a lieu toutes les dix minutes.",
+      "noOperator": "exploitant non indiqué",
+      "picks": "Invitations depuis le démarrage du serveur : {count}",
+      "prefix": "préfixe {prefix}",
+      "title": "Appels vidéo : serveurs"
+    },
+    "state": {
+      "checkedAt": "dernière vérification {when}",
+      "failed": "ne répond pas : {reason}",
+      "ok": "répond, {ms} ms",
+      "unchecked": "pas encore vérifié"
+    },
+    "title": "Chat",
+    "updated": "Enregistré."
+  },
   "close": "Fermer",
   "contribution": {
     "changeGroup": "Changer de groupe de création",
@@ -388,6 +456,7 @@
   "name": "Nom",
   "navbar": {
     "automaticContributions": "Solde initial",
+    "chat": "Chat",
     "crea": "Crea",
     "creationGroups": "Creation groups",
     "instances": "Instances",

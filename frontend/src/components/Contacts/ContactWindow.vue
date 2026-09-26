@@ -2,7 +2,7 @@
 <template>
   <!-- A window over the list, not a jump into the send form (KF-010). A tap on a contact
        is somebody saying "this person", and what follows is the conversation with them, with
-       the way to send them Gradido behind their name (E-031). -->
+       the way to send them Gradido under the figures (E-033). -->
   <!-- ⛔ Not `centered`: a window in the middle grows in both directions when the thread lands,
        and what was under a finger moves up. At the top of the screen it grows downwards
        only (E-031).
@@ -66,43 +66,11 @@
       <div class="contact-window-head">
         <app-avatar :size="64" :color="'#fff'" v-bind="avatar" />
         <div class="contact-window-who">
-          <!-- Behind the name, in this order (Bernd, E-031): the heart and the bell, two marks
-               of one's own on this person that say how they stand. Both in the measure of the
-               booking row (`gap-2`), and the name gives way (ellipsis) before either does. The
-               coin that stood here third went under the figures, as a button with its word
-               (Bernd, 24.09.2026, at the device: the coin alone was not taken for a button).
-
-               The heart is the one of every list: the same component, the same look, the same
-               question before it is taken away (E-030). -->
-          <div class="contact-window-name-line">
-            <div class="contact-window-name" data-test="contact-window-name">{{ alias }}</div>
-            <favorite-heart class="contact-window-heart" :member="contact.user" />
-            <!-- The bell: mutes this conversation for oneself -- no mails about their chat
-                 messages; the thread shows them as before (E-024). A letter written with the
-                 form "send an e-mail" still comes as a mail, and the hint says so (E-034, A3).
-                 Only where there is a conversation: before the first message there is nothing
-                 to mute, and the thread says when there is one. No question before switching,
-                 in either direction: nothing is lost either way, and it switches back as easily
-                 (unlike the heart, KF-003). -->
-            <button
-              v-if="chatConversation.exists"
-              type="button"
-              class="contact-window-mark contact-window-bell"
-              :class="{ 'is-muted': muted }"
-              :aria-pressed="muted ? 'true' : 'false'"
-              :aria-label="bellName"
-              :title="bellName"
-              data-test="contact-window-bell"
-              @click="toggleMute"
-            >
-              <i-mdi-bell-off-outline
-                v-if="muted"
-                class="contact-window-bell-icon"
-                aria-hidden="true"
-              />
-              <i-mdi-bell-outline v-else class="contact-window-bell-icon" aria-hidden="true" />
-            </button>
-          </div>
+          <!-- The name has its line to itself (Bernd, 26.09.2026): the marks that stood behind
+               it went down beside the send button, where they no longer take the room a long
+               name needs on a phone. Where even the whole line is too short, the name gives
+               way (ellipsis). -->
+          <div class="contact-window-name" data-test="contact-window-name">{{ alias }}</div>
           <div
             v-if="contact.user.communityName"
             class="contact-window-community"
@@ -174,8 +142,12 @@
            (MatchProfile) with its word and its white coin, in the gold of the compose bar's
            send button instead of the map's teal (Bernd, 24.09.2026). Under the figures and
            above the line where the thread begins. No "Send e-mail" beside it: the short mail is
-           the compose bar's box, the one with a subject the send form's other tab (E-031). -->
-      <div class="contact-window-send">
+           the compose bar's box, the one with a subject the send form's other tab (E-031).
+
+           `is-tight`: where a language's word makes the button so wide that the marks no longer
+           fit beside it, the row is set closer, with a smaller font -- there only (Bernd,
+           26.09.2026). See `fitSendRow`. -->
+      <div ref="sendRow" class="contact-window-send" :class="{ 'is-tight': sendTight }">
         <button
           type="button"
           class="send-btn send-gradido"
@@ -185,6 +157,60 @@
           <img src="/img/svg/gdd_coin_sw.svg" class="send-coin" alt="" aria-hidden="true" />
           {{ $t('contacts.sendGradido') }}
         </button>
+        <!-- The marks, at the right end of the button's row with an empty stretch before them
+             (Bernd, 26.09.2026): the camera, the bell, the heart -- in this order. The heart at
+             the very right, where it stands in every list; the bell next to it, the two of them
+             marks of one's own on this person that say how they stand; the camera next to the
+             button, since it too is a way of getting in touch. Before, they stood behind the
+             name and took a long name's room on a phone.
+
+             They keep their measure from the name line: the booking row's `gap-2` between them,
+             the heart the one of every list -- the same component, the same look, the same
+             question before it is taken away (E-030). -->
+        <div class="contact-window-marks" data-test="contact-window-marks">
+          <!-- The camera: a video call with this person (V2). A room on a checked Jitsi server,
+               whose address goes to them as an ordinary chat message. There once the thread has
+               said what it knows -- and, unlike the bell, also where there is no conversation
+               yet: a call may be how one begins (its message is then the first, and goes by
+               mail, E-024). No word beside it: the question it opens carries the words. -->
+          <button
+            v-if="chatConversationKnown"
+            type="button"
+            class="contact-window-mark contact-window-video"
+            :aria-label="videoCallName"
+            :title="videoCallName"
+            data-test="contact-window-video"
+            @click="askVideoCall"
+          >
+            <i-mdi-video-outline class="contact-window-video-icon" aria-hidden="true" />
+          </button>
+          <!-- The bell: mutes this conversation for oneself -- no mails about their chat
+               messages; the thread shows them as before (E-024). A letter written with the form
+               "send an e-mail" still comes as a mail, and the hint says so (E-034, A3). Only
+               where there is a conversation: before the first message there is nothing to mute,
+               and the thread says when there is one. No question before switching, in either
+               direction: nothing is lost either way, and it switches back as easily (unlike the
+               heart, KF-003). -->
+          <button
+            v-if="chatConversation.exists"
+            type="button"
+            class="contact-window-mark contact-window-bell"
+            :class="{ 'is-muted': muted }"
+            :aria-pressed="muted ? 'true' : 'false'"
+            :aria-label="bellName"
+            :title="bellName"
+            data-test="contact-window-bell"
+            @click="toggleMute"
+          >
+            <i-mdi-bell-off-outline
+              v-if="muted"
+              class="contact-window-bell-icon"
+              aria-hidden="true"
+            />
+            <i-mdi-bell-outline v-else class="contact-window-bell-icon" aria-hidden="true" />
+          </button>
+          <favorite-heart class="contact-window-heart" :member="contact.user" />
+        </div>
       </div>
 
       <!-- The conversation, where "conversation history -- comes with the chat" stood
@@ -198,26 +224,123 @@
            thread instead of leaving one person's messages under another's name. The key goes
            in as well: it is how the thread knows this person's first message when it arrives
            in a thread that holds none yet. -->
+      <!-- `ref`: the video call is sent through the thread (`deliver`), the way the compose
+           bar's messages go -- one place for the cache, the status and the words for the ear. -->
       <chat-thread
         v-if="contact.user?.gradidoID"
         :key="threadKey"
+        ref="thread"
         class="contact-window-thread"
         :member="contact.user"
         :member-key="threadKey"
         :alias="alias"
         @chat-conversation="takeChatConversation"
       />
+
+      <!-- The question before a video call (V2; Notiz §10), after the heart's own (FavoriteHeart):
+           no header, the question as the title in the body -- and therefore a name of its own
+           (`aria-label`), since `aria-labelledby` is bound only where there is a header. No name
+           field and no subject: a conversation of two.
+
+           Its own footer, not BModal's OK: the start button has to open the room's window in the
+           click itself (see `startVideoCall`), and it waits with `aria-disabled` while a call is
+           being made -- as the compose bar's send button does, so a keyboard that pressed it
+           keeps its place. `lazy`, as every dialog here. -->
+      <BModal
+        v-model="videoAsking"
+        lazy
+        centered
+        no-header
+        :aria-label="videoAskTitle"
+        data-test="contact-window-video-dialog"
+      >
+        <p class="h5 mb-2" data-test="contact-window-video-title">{{ videoAskTitle }}</p>
+        <!-- The invitation went out, but the browser held the room's window back (a popup
+             blocker): the member opens it from here, by a tap of their own. -->
+        <p v-if="videoRoomToOpen" class="mb-0">
+          <a
+            :href="videoRoomToOpen"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-test="contact-window-video-open"
+          >
+            {{ $t('chatThread.videoOpen') }}
+          </a>
+        </p>
+        <template v-else>
+          <!-- The first message of a pair goes by mail in any case (E-024; the server sets it),
+               so there is nothing to choose, and the sentence says so. After it, the box, empty
+               by default -- as under the compose bar. -->
+          <p class="mb-0 text-muted" data-test="contact-window-video-body">
+            {{
+              chatConversation.exists
+                ? $t('chatThread.videoAskBody', { name: alias })
+                : $t('chatThread.videoAskFirst', { name: alias })
+            }}
+          </p>
+          <div v-if="chatConversation.exists" class="form-check mt-3">
+            <input
+              :id="videoEmailId"
+              v-model="videoAlsoByEmail"
+              class="form-check-input"
+              type="checkbox"
+              data-test="contact-window-video-email"
+            />
+            <label class="form-check-label" :for="videoEmailId">
+              {{ $t('chatThread.alsoByEmail') }}
+            </label>
+          </div>
+          <!-- `role="alert"`: said when it is put in -- whoever cannot see the dialog would
+               otherwise hear nothing after the press. -->
+          <p
+            v-if="videoProblem"
+            class="mt-3 mb-0"
+            role="alert"
+            data-test="contact-window-video-problem"
+          >
+            {{ videoProblem }}
+          </p>
+        </template>
+        <template #footer>
+          <BButton
+            v-if="videoRoomToOpen"
+            variant="secondary"
+            data-test="contact-window-video-close"
+            @click="videoAsking = false"
+          >
+            {{ $t('form.close') }}
+          </BButton>
+          <template v-else>
+            <BButton
+              variant="secondary"
+              data-test="contact-window-video-cancel"
+              @click="videoAsking = false"
+            >
+              {{ $t('form.cancel') }}
+            </BButton>
+            <BButton
+              variant="gradido"
+              class="contact-window-video-start"
+              :aria-disabled="videoCalling ? 'true' : 'false'"
+              data-test="contact-window-video-start"
+              @click="startVideoCall"
+            >
+              {{ $t('chatThread.videoStart') }}
+            </BButton>
+          </template>
+        </template>
+      </BModal>
     </div>
   </BModal>
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-import { useMutation } from '@vue/apollo-composable'
-import { BModal } from 'bootstrap-vue-next'
+import { useApolloClient, useMutation } from '@vue/apollo-composable'
+import { BButton, BModal } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
 import ChatThread from '@/components/Chat/ChatThread.vue'
 import FavoriteHeart from '@/components/FavoriteHeart.vue'
@@ -227,12 +350,13 @@ import {
   contactDisplay,
   contactOriginLine,
 } from '@/components/Contacts/contactDisplay'
-import { setChatConversationMuted } from '@/graphql/chat.graphql'
+import { chatVideoRoom, setChatConversationMuted } from '@/graphql/chat.graphql'
 import { useAppToast } from '@/composables/useToast'
 import { gradidoAddress } from '@/utils/gradidoAddress'
 import { SEND_TYPES } from '@/utils/sendTypes'
 import { bookingsWithMemberRoute } from '@/utils/bookingsRoute'
 import { chatMemberKey } from '@/utils/chatMemberKey'
+import { chatNotifyFor } from '@/utils/chatNotify'
 
 /**
  * One contact, opened from wherever a contact stands: the list, the column, the strip.
@@ -254,6 +378,7 @@ const router = useRouter()
 const store = useStore()
 const { toastSuccess, toastError } = useAppToast()
 const { mutate: saveMuted } = useMutation(setChatConversationMuted)
+const { client: apolloClient } = useApolloClient()
 
 /**
  * Name and face through the shared helper, not by hand.
@@ -385,16 +510,31 @@ const toSend = () => {
 
 /**
  * What the thread has learned about the conversation (`ChatThread`, event `chatConversation`).
- * Nothing is known before it has: no bell until then.
+ * Nothing is known before it has: no bell and no camera until then.
  */
 const chatConversation = ref({ exists: false, mutedByMe: false })
+
+/**
+ * Whether the thread has said what it knows. The event comes only then (`known` in the thread),
+ * so this is true from the first event on -- also where there is no conversation yet, which is
+ * what the camera needs and the bell does not.
+ */
+const chatConversationKnown = ref(false)
 
 /** The bell's state: one's own mark on this conversation, as the member switched it last. */
 const muted = ref(false)
 
 const takeChatConversation = ({ exists, mutedByMe }) => {
+  chatConversationKnown.value = true
   chatConversation.value = { exists, mutedByMe }
   muted.value = mutedByMe
+}
+
+/** Nothing known about a conversation: the window came to another person. */
+const forgetChatConversation = () => {
+  chatConversationKnown.value = false
+  chatConversation.value = { exists: false, mutedByMe: false }
+  muted.value = false
 }
 
 /**
@@ -408,14 +548,16 @@ let mutingInFlight = false
 
 // Another conversation -- the pair the thread is keyed by (`threadKey`), so the same id in
 // another community is another one: nothing of the last one's bell stays up while the new
-// thread is asking. The community the lookup fills in later is no other key (see `threadKey`),
-// so an answer on its way about this person's bell still lands here.
+// thread is asking, and a question about a call with the last one is let go (it would now read
+// the new one's name). The community the lookup fills in later is no other key (see
+// `threadKey`), so an answer on its way about this person's bell still lands here.
 // ⚠️ A window that only closed (useContactWindow lets the contact go) is no other person: the
 // answer on its way still says what became of the person just seen.
 watch(
   () => threadKey.value,
   () => {
-    takeChatConversation({ exists: false, mutedByMe: false })
+    forgetChatConversation()
+    videoAsking.value = false
     if (!props.contact?.user?.gradidoID) return
     contactGeneration += 1
     mutingInFlight = false
@@ -467,6 +609,205 @@ const toggleMute = async () => {
     if (generation === contactGeneration) mutingInFlight = false
   }
 }
+
+/** The thread in this window: a video invitation goes out through it (`deliver`). */
+const thread = ref(null)
+
+/** The camera's name: what a tap on it starts, and with whom. */
+const videoCallName = computed(() => t('chatThread.videoCall', { name: alias.value }))
+const videoAskTitle = computed(() => t('chatThread.videoAskTitle', { name: alias.value }))
+
+/** The question before a call is open. */
+const videoAsking = ref(false)
+/** The box "Also by e-mail", empty for every question (E-024) -- where it is shown at all. */
+const videoAlsoByEmail = ref(false)
+const videoEmailId = `${useId()}-video-email`
+/** A call is being made: the start button waits (`aria-disabled`) and turns a press away. */
+const videoCalling = ref(false)
+/** Where the call did not come about: the sentence that says so, in the dialog. */
+const videoProblem = ref('')
+/**
+ * The room, where the invitation went out and the browser held its window back: the member
+ * opens it from the dialog. ⛔ The address is the call's secret -- it lives here only while the
+ * dialog shows it, and in no store (the vuex store is written whole into localStorage) and no log.
+ */
+const videoRoomToOpen = ref('')
+
+/**
+ * The room's window while a call is being made. Given up to the member once it is navigated;
+ * closed where the call does not come about, or the question is let go.
+ */
+let videoRoomWindow = null
+/** Counted up with every call made and every question let go: an answer on its way to a
+ * question no longer asked changes nothing here. */
+let videoAttempt = 0
+
+/** The question, with the box empty. What the last one ended with went when it was let go. */
+const askVideoCall = () => {
+  videoAlsoByEmail.value = false
+  videoAsking.value = true
+}
+
+/**
+ * The question let go -- cancelled, closed, or the window came to somebody else. A window opened
+ * for a room that did not come about is closed again, and nothing still on its way is taken up.
+ * ⚠️ An invitation already on its way cannot be called back: it lands in the thread like any
+ * message, only no room opens for it.
+ */
+const forgetVideoCall = () => {
+  videoAttempt += 1
+  videoRoomWindow?.close()
+  videoRoomWindow = null
+  videoCalling.value = false
+  videoProblem.value = ''
+  videoRoomToOpen.value = ''
+}
+
+watch(videoAsking, (open) => {
+  if (!open) forgetVideoCall()
+})
+
+/** Whether the server said that no video server is to be had right now (V1). */
+const isNoVideoServer = (error) => String(error?.message ?? '').includes('CHAT_VIDEO_NO_SERVER')
+
+/**
+ * "Start call": a room from the server, the invitation into the thread, the room in a window of
+ * its own -- in this order (V2).
+ *
+ * ⛔ The window is opened FIRST, in the click itself, before anything is awaited: a browser lets
+ * a page open a window only in answer to a tap, and a window opened after the round trips would
+ * be held back by the popup blocker. It stays empty until the invitation went out -- a room that
+ * nobody else knows is not entered -- and is closed where the call does not come about.
+ * ⚠️ `opener` is cut by hand rather than with `noopener`: with it `window.open` returns null,
+ * and a window one has no hold of cannot be sent to the room afterwards. Cut, the room's page
+ * has no `window.opener` to reach back into the wallet by. What the server of the room does
+ * learn is the wallet's origin, as the referrer of this one navigation (the browser's default
+ * policy); the link in the thread, and the one in the dialog, carry none (`noreferrer`).
+ *
+ * ⛔ The room is asked for with `no-cache`: every answer is another room, and one out of the
+ * cache would put two conversations into the same room (chat.graphql).
+ *
+ * The invitation is written in the sender's language and stays so -- an ordinary chat message,
+ * the address at its very end, with a space before it and nothing after, so the thread's link
+ * finder takes it whole (chatTextParts). Who runs the server is named in it; where the list names
+ * nobody, the server's host. It goes through the thread (`deliver`), which hangs it under the
+ * conversation, says "sent" for the ear, and holds the compose bar while it is on its way.
+ */
+const startVideoCall = async () => {
+  if (videoCalling.value) return
+  const room = window.open('', '_blank')
+  if (room) room.opener = null
+  videoRoomWindow = room
+  videoAttempt += 1
+  const attempt = videoAttempt
+  const through = thread.value
+  const notify = chatNotifyFor({
+    first: !chatConversation.value.exists,
+    alsoByEmail: videoAlsoByEmail.value,
+  })
+  videoCalling.value = true
+  videoProblem.value = ''
+
+  let offered = null
+  let noServer = false
+  try {
+    const { data } = await apolloClient.query({ query: chatVideoRoom, fetchPolicy: 'no-cache' })
+    offered = data?.chatVideoRoom ?? null
+  } catch (error) {
+    noServer = isNoVideoServer(error)
+  }
+  if (attempt !== videoAttempt) return
+
+  const delivered =
+    offered?.url && through
+      ? await through.deliver({
+          body: t('chatThread.videoInvite', {
+            operator: offered.operator ?? offered.host,
+            url: offered.url,
+          }),
+          notify,
+        })
+      : false
+  if (attempt !== videoAttempt) return
+
+  videoCalling.value = false
+  if (!delivered) {
+    room?.close()
+    videoRoomWindow = null
+    videoProblem.value = noServer ? t('chatThread.videoNoServer') : t('chatThread.videoNotSent')
+    return
+  }
+  // The member's now: letting the question go must not close it.
+  videoRoomWindow = null
+  // ⚠️ `closed` too: a window the member shut while the invitation was on its way has no
+  // `location` to send anywhere. Then, as where the browser held it back, the dialog offers
+  // the room as a link.
+  if (room && !room.closed) {
+    room.location.href = offered.url
+    videoAsking.value = false
+  } else {
+    videoRoomToOpen.value = offered.url
+  }
+}
+
+/**
+ * The send row: the button with its word, then the marks. Where a language's word makes the
+ * button so wide that the marks no longer fit beside it, the row is set closer -- a smaller font,
+ * less room inside the button, the marks closer together -- only there (Bernd, 26.09.2026);
+ * everywhere else the button keeps the measure of the map's button (see the stylesheet).
+ *
+ * Measured, not decided by the language: whether it fits depends on the word in the font, on
+ * the window's width and on how many marks there are (the camera and the bell come once the
+ * thread has spoken). The row and its two parts are watched for their size, and the decision is
+ * taken on the row's OWN measure -- the class that sets it closer is lifted for the reading and
+ * put back in the same task, so nothing of that is drawn.
+ *
+ * ⚠️ Taken in the next frame, not in the observer's callback: shrinking the button changes the
+ * row's height, and a size changed from inside the callback, at the depth it observes, is one
+ * the browser reports as a loop ("ResizeObserver loop completed with undelivered
+ * notifications"). A frame later it is an ordinary change. The frame falls in the dialog's
+ * fade on opening; where the marks come in later, it is the frame in which they appear.
+ */
+const sendRow = ref(null)
+const sendTight = ref(false)
+
+const fitSendRow = () => {
+  const row = sendRow.value
+  const button = row?.querySelector('.send-btn')
+  const marks = row?.querySelector('.contact-window-marks')
+  // Not laid out: the dialog is still hidden, or already gone.
+  if (!button || !marks || !row.clientWidth) return
+  const tight = row.classList.contains('is-tight')
+  row.classList.remove('is-tight')
+  const gap = Number.parseFloat(getComputedStyle(row).columnGap) || 0
+  const needed = button.getBoundingClientRect().width + gap + marks.getBoundingClientRect().width
+  row.classList.toggle('is-tight', tight)
+  sendTight.value = needed > row.getBoundingClientRect().width
+}
+
+let sendRowResizes = null
+let sendRowFrame = 0
+
+watch(
+  sendRow,
+  (row) => {
+    sendRowResizes?.disconnect()
+    sendRowResizes = null
+    if (!row || typeof ResizeObserver === 'undefined') return
+    sendRowResizes = new ResizeObserver(() => {
+      cancelAnimationFrame(sendRowFrame)
+      sendRowFrame = requestAnimationFrame(fitSendRow)
+    })
+    sendRowResizes.observe(row)
+    for (const part of row.children) sendRowResizes.observe(part)
+  },
+  { flush: 'post' },
+)
+
+onBeforeUnmount(() => {
+  sendRowResizes?.disconnect()
+  cancelAnimationFrame(sendRowFrame)
+})
 </script>
 
 <style lang="scss" scoped>
@@ -557,14 +898,17 @@ const toggleMute = async () => {
   text-underline-offset: 2px;
 }
 
-/* The name and the marks behind it, in the measure of the booking row (`gap-2` there,
-   the same 0.5rem). The name gives way (ellipsis) before a mark does: it may shrink to
-   nothing, the marks may not shrink at all. */
-.contact-window-name-line {
+/* The marks at the right end of the send row, the empty stretch before them taken by the
+   margin (Bernd, 26.09.2026). Between them the measure of the booking row (`gap-2` there, the
+   same 0.5rem), as when they stood behind the name. They never shrink: where the row is too
+   narrow, it is set closer first (`is-tight`, below), and only past that do the marks go to
+   a line of their own, at the right. */
+.contact-window-marks {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   gap: 0.5rem;
-  min-width: 0;
+  margin-left: auto;
 }
 
 .contact-window-heart {
@@ -607,9 +951,27 @@ const toggleMute = async () => {
   color: var(--bs-body-color);
 }
 
-/* The one way out, under the figures and above the line where the thread begins. */
+/* The camera: in the bell's round and at the heart's glyph size. */
+.contact-window-video-icon {
+  width: 1.35em;
+  height: 1.35em;
+}
+
+/* The question before a call: its start button waits while the call is being made, as the
+   compose bar's send button does -- `aria-disabled`, so a keyboard that pressed it keeps its
+   place, and a look that says it waits. */
+.contact-window-video-start[aria-disabled='true'] {
+  opacity: 0.65;
+  cursor: default;
+}
+
+/* The one way out, under the figures and above the line where the thread begins, with the
+   marks at the right end of its row. Centred on the button's middle; `wrap` is the last
+   resort, for a row too narrow even when set closer (see `.contact-window-marks`). */
 .contact-window-send {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
 }
 
@@ -652,10 +1014,36 @@ const toggleMute = async () => {
 
 /* ⚠️ The second difference from the map, and the reason it stands outside the map's rules:
    the button keeps the width of its word instead of filling the row (Bernd, 24.09.2026,
-   "schmal"), so something can stand beside it later -- a camera for a video call, perhaps.
-   Measured: it fits beside a second one in the longest labels too (ru, el). */
+   "schmal"), so the marks can stand beside it (Bernd, 26.09.2026).
+
+   And where even set closer the word is wider than the whole row, it goes onto a second line
+   rather than the button hanging out of the window (coderabbit, #3987). Measured: that is
+   below 240px only -- a phone zoomed in far; from 240px up the word stands on one line in
+   every language, and the map's own rule keeps `nowrap`. */
 .contact-window-send .send-btn {
   flex: 0 1 auto;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* The third: where a language's word makes the button too wide for the marks to fit beside
+   it, the row is set closer -- there only, `fitSendRow` measures it (Bernd, 26.09.2026): a
+   smaller font, less room inside the button, and the marks closer together. Measured in the
+   wallet with three marks: at 320px French, Dutch, Russian and Greek did not fit with the
+   smaller font alone; set closer, all ten languages stand on one line down to 320px. */
+.contact-window-send.is-tight {
+  gap: 6px;
+}
+
+.contact-window-send.is-tight .send-btn {
+  gap: 5px;
+  padding: 10px 8px;
+  font-size: 13px;
+}
+
+.contact-window-send.is-tight .contact-window-marks {
+  gap: 4px;
 }
 
 /* ⛔ The sheet (below `sm`, where BModal makes the window fullscreen -- the same 575.98px as

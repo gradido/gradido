@@ -50,6 +50,12 @@ const routes = [
     component: () => import('@/pages/CreaSettings.vue'),
   },
   {
+    path: '/chat',
+    name: 'chat',
+    meta: { requiresAdmin: true },
+    component: () => import('@/pages/ChatSettings.vue'),
+  },
+  {
     path: '/creation-groups',
     name: 'creation-groups',
     meta: { requiresAdmin: true },

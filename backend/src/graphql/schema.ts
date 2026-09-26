@@ -7,6 +7,7 @@ import { isAuthorized } from './directive/isAuthorized'
 import { AssistedRegistrationResolver } from './resolver/AssistedRegistrationResolver'
 import { BalanceResolver } from './resolver/BalanceResolver'
 import { ChatResolver } from './resolver/ChatResolver'
+import { ChatVideoServerResolver } from './resolver/ChatVideoServerResolver'
 import { CommunityResolver } from './resolver/CommunityResolver'
 import { ContactResolver } from './resolver/ContactResolver'
 import { ContributionLinkResolver } from './resolver/ContributionLinkResolver'
@@ -40,6 +41,7 @@ export const schema = async (): Promise<GraphQLSchema> => {
       AssistedRegistrationResolver,
       BalanceResolver,
       ChatResolver,
+      ChatVideoServerResolver,
       CommunityResolver,
       ContactResolver,
       ContributionLinkResolver,

@@ -165,6 +165,15 @@
     "unmutedHint": "Artık sessizde değil: {name} kişisinin sohbet mesajları için yine e-posta alacaksın.",
     "unreadBadge": "{n} sohbette yeni mesaj var",
     "unreadDot": "Sohbette yeni mesajlar var",
+    "videoAskBody": "{name} bağlantıyı mesaj olarak alacak.",
+    "videoAskFirst": "{name} bağlantıyı hem mesaj olarak hem de e-posta ile alacak.",
+    "videoAskTitle": "{name} ile görüntülü görüşme başlatılsın mı?",
+    "videoCall": "{name} ile görüntülü görüşme başlat",
+    "videoInvite": "📹 Görüntülü görüşme. Oda, {operator} tarafından işletilen bir Jitsi sunucusunda — bir öneri, Gradido'nun bir hizmeti değil: {url}",
+    "videoNoServer": "Şu anda hiçbir video sunucusuna ulaşılamıyor. Birazdan tekrar dene.",
+    "videoNotSent": "Davet gönderilemedi.",
+    "videoOpen": "Odayı aç",
+    "videoStart": "Görüşmeyi başlat",
     "you": "Sen"
   },
   "community": {

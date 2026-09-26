@@ -4,7 +4,8 @@ import { createTransport } from 'nodemailer'
 import path from 'path'
 import { CONFIG } from '../config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
-import { i18n } from '../locales/localization'
+import { i18n, translateForMail } from '../locales/localization'
+import { humanTextParts } from '../logic/HumanText.logic'
 import chatboxIcon from './templates/includes/chatbox-icon.png'
 import facebookIcon from './templates/includes/facebook-icon.png'
 import gradidoHeader from './templates/includes/gradido-header.png'
@@ -76,6 +77,19 @@ export const sendEmailTranslated = async ({
     send: CONFIG.EMAIL,
     transport,
     preview: false,
+    // The plain-text part, made from the html. Where a link's text IS its address - an
+    // address a person typed, the "or copy the link" lines - the text part gives it once
+    // instead of `https://x.org [https://x.org]`; a button keeps its target in brackets.
+    // ⛔ Both entries, in this order: email-templates merges this into its default with
+    // lodash, and lodash merges arrays by POSITION - an `a` entry alone would land on the
+    // default's `img` entry at index 0, take its `format: 'skip'` and drop every link from
+    // the text part.
+    htmlToText: {
+      selectors: [
+        { selector: 'img', format: 'skip' },
+        { selector: 'a', options: { hideLinkHrefIfSameAsText: true } },
+      ],
+    },
   })
   const resultSend = await email
     .send({
@@ -127,8 +141,16 @@ export const sendEmailTranslated = async ({
           },
         ],
       },
-      locals, // the 'locale' in here seems not to be used by 'email-template', because it doesn't work if the language isn't set before by 'i18n.setLocale'
-      // t: i18n.__.bind(i18n),
+      // the 'locale' in here seems not to be used by 'email-template', because it doesn't work if the language isn't set before by 'i18n.setLocale'
+      // `humanTextParts` is what `+humanText(…)` (includes/humanText.pug) cuts a typed text with.
+      // `t` shadows the global one i18n registers: pug escapes every `= t(…)`, and the global
+      // one had escaped the values already - everything a person typed arrived escaped twice.
+      locals: {
+        ...locals,
+        humanTextParts,
+        t: (key: string, values?: Record<string, unknown>) =>
+          translateForMail(locals.language as string, key, values),
+      },
     })
     .catch((error: unknown) => {
       logger.error('Error sending notification email', error)

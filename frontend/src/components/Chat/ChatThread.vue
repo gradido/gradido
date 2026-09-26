@@ -550,9 +550,15 @@ const takeChatArrivals = (chatMessages) => {
 const stopArrivals = onChatMessages(takeChatArrivals)
 onBeforeUnmount(stopArrivals)
 
-/** While a message is on its way; the bar's button waits for it. */
-const sending = ref(false)
-/** The last message did not go through; the bar keeps its text and says so. */
+/**
+ * How many messages are on their way. The bar's own and a video invitation the window sends
+ * (`deliver`) can be out at the same time: a message across the border takes its seconds, and a
+ * call may be started meanwhile.
+ */
+const messagesUnderway = ref(0)
+/** While a message is on its way -- the bar's or the window's; the bar's button waits for it. */
+const sending = computed(() => messagesUnderway.value > 0)
+/** The bar's last message did not go through; the bar keeps its text and says so. */
 const sendFailed = ref(false)
 /** What the status says to a screen reader: a message has gone, or one has arrived. */
 const sentNotice = ref('')
@@ -586,7 +592,9 @@ const noticeFor = (own) => {
 }
 
 /**
- * Sends what the bar asks for, and hangs the answer -- one's own copy -- under the thread.
+ * Sends one message and hangs the answer -- one's own copy -- under the thread: the one way out
+ * of here, for the bar's messages (`send`) and the window's video invitation (`deliver`). The
+ * status says what became of it. Never throws: the server's copy, or null where it gave none.
  *
  * ⛔ Into the query's own answer in the cache, not a list of its own and not by asking the
  * server again. Measured with Apollo 3.14 and vue-apollo 4.2 before building: a `network-only`
@@ -594,19 +602,10 @@ const noticeFor = (own) => {
  * were put in front. So older pages and one's own messages stand in the one list the days are
  * made of, and the page can never hold a message twice or in two orders.
  *
- * ⚠️ `sending` is this thread's own, not the mutation's `loading`: vue-apollo clears `loading`
- * a tick before `mutate` settles, and the bar would read "no longer sending, not failed" in
- * that tick -- as a success, emptying the text of a message that did not go through. Here both
- * flags change together, in one synchronous step.
- *
- * A delivery that failed across the border is no error: the copy comes back FAILED and the
- * bubble says "not delivered" (E-019). Only an error from the server leaves the text in the
- * bar.
+ * ⚠️ It leaves the count of messages on their way to its callers: the bar's `sendFailed` has to
+ * change in the same synchronous step as `sending` (see `send`).
  */
-const send = async ({ body, notify }) => {
-  if (sending.value) return
-  sending.value = true
-  sendFailed.value = false
+const post = async ({ body, notify }) => {
   sentNotice.value = ''
   // Whoever writes wants to see what they wrote: back to the bottom, even from further up.
   followNewest = true
@@ -624,13 +623,68 @@ const send = async ({ body, notify }) => {
         },
       },
     )
-    sentNotice.value = noticeFor(answer?.data?.sendChatMessage)
+    const own = answer?.data?.sendChatMessage ?? null
+    if (own) sentNotice.value = noticeFor(own)
+    return own
   } catch {
-    sendFailed.value = true
-  } finally {
-    sending.value = false
+    return null
   }
 }
+
+/**
+ * Sends what the bar asks for.
+ *
+ * ⚠️ `sending` is this thread's own, not the mutation's `loading`: vue-apollo clears `loading`
+ * a tick before `mutate` settles, and the bar would read "no longer sending, not failed" in
+ * that tick -- as a success, emptying the text of a message that did not go through. Here both
+ * flags change together, in one synchronous step -- which is why this does not wait for
+ * `deliver` and set `sendFailed` afterwards: the step between the two is exactly such a tick.
+ *
+ * A delivery that failed across the border is no error: the copy comes back FAILED and the
+ * bubble says "not delivered" (E-019). Only an error from the server leaves the text in the
+ * bar.
+ */
+const send = async (message) => {
+  if (sending.value) return
+  messagesUnderway.value += 1
+  sendFailed.value = false
+  let own = null
+  try {
+    own = await post(message)
+  } finally {
+    sendFailed.value = own === null
+    messagesUnderway.value -= 1
+  }
+}
+
+/**
+ * A message the window writes for the member: the invitation to a video call (V2). It goes the
+ * bar's way -- into the thread, with the status -- and the bar waits for it as for its own. It
+ * is not turned away while the bar's message is on its way: the two go out side by side.
+ *
+ * True where the invitation reached the person: the server gave the copy back, and it did not
+ * come back FAILED. A delivery across the border that failed is stored and shown with its word
+ * (E-019), but nobody on the other side has the room -- and the window does not open a room that
+ * nobody else knows. PENDING is not turned into a failure: the server hands it back only where
+ * the outcome of the delivery could not be written down (chatMessageDelivery.ts), so whether it
+ * arrived is not known here, and the bubble says "not delivered yet" beside it.
+ * The enum NAMES, as the bubble compares them.
+ *
+ * @param {{ body: string, notify: 'EMAIL' | 'NONE' }} message
+ * @returns {Promise<boolean>}
+ */
+const deliver = async (message) => {
+  messagesUnderway.value += 1
+  let own = null
+  try {
+    own = await post(message)
+  } finally {
+    messagesUnderway.value -= 1
+  }
+  return own !== null && own.deliveryState !== 'FAILED'
+}
+
+defineExpose({ deliver })
 </script>
 
 <style lang="scss" scoped>

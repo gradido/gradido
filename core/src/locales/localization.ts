@@ -76,9 +76,9 @@ export function hasPhraseInLocale(locale: string, key: string): boolean {
  *
  * Plain replacement and NOT Mustache on purpose: i18n renders `{name}` through Mustache's
  * escaping form, which turns an apostrophe into `&#39;` and an ampersand into `&amp;` -
- * right for the HTML mails this module serves, wrong for a contribution memo, a thread
- * message or a window text, all of which are shown as plain text. The values here are
- * inserted as they are.
+ * wrong for a contribution memo, a thread message or a window text, all of which are shown
+ * as plain text, and wrong for the mails too, which escape once more themselves (see
+ * `translateForMail`). The values here are inserted as they are.
  *
  * Falls back to English when the phrase is not translated in the requested locale, so a
  * member whose language has not received the new keys yet reads a sentence rather than a
@@ -94,4 +94,32 @@ export function translateForLocale(
     (text, [name, value]) => text.split(`{${name}}`).join(value),
     phrase,
   )
+}
+
+/**
+ * `t` for the mail templates (`sendEmailTranslated` hands it to them): the phrase in the
+ * receiver's locale, each `{name}` filled with the value as it is.
+ *
+ * ⛔ Not HTML-escaped, and that is what makes the mails right: every template writes its text
+ * with `= t(…)` or `#{t(…)}`, and pug escapes that once. i18n's `__` had escaped the values
+ * through Mustache before that, so whatever a person typed was escaped TWICE - a moderator's
+ * `https://gradido.net/faq` reached the member as `https:&#x2F;&#x2F;gradido.net&#x2F;faq`,
+ * and a greeting read "Hallo Chloé D&#39;Angelo,". Never `!= t(…)` in a template: nothing
+ * else escapes this text.
+ *
+ * What Mustache did besides stays: one pass, so a value that contains `{name}` is inserted,
+ * not filled again; a name the call does not hand over, or hands over as null or undefined,
+ * becomes empty. The mail phrases use nothing of Mustache but `{name}` - a test holds all ten
+ * catalogs to that. A phrase a locale lacks falls back to English, as in `translateForLocale`.
+ */
+export function translateForMail(
+  locale: string,
+  key: string,
+  values: Record<string, unknown> = {},
+): string {
+  const phrase = phraseInLocale(locale, key) ?? phraseInLocale('en', key) ?? key
+  return phrase.replace(/\{(\w+)\}/g, (_placeholder, name: string) => {
+    const value = values[name]
+    return value === null || value === undefined ? '' : String(value)
+  })
 }

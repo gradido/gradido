@@ -10,10 +10,13 @@ block content
       empty box above the text.
   if subject
     .subject-block
-      div(class="p_content human-text")= subject
+      div(class="p_content")
+        +humanText(subject)
 
+  //- Bold as in the thread, where the message is read too.
   .memo-block
-    div(class="p_content human-text")= memo
+    div(class="p_content")
+      +humanText(memo, { bold: true })
     //- Green sits inside the card because that is where it is seen; the gold button
         below only offers the way into the account. Before, the single gold button led
         to the send form while saying "to account" - the label lied about its target.

@@ -43,6 +43,74 @@
     "titleRemove": "Remove reminder?"
   },
   "change_user_role": "Change user role",
+  "chatAdmin": {
+    "adminOnly": "Administrators only.",
+    "created": "Server added.",
+    "edit": "Edit",
+    "errors": {
+      "duplicate": "This server is already on the list.",
+      "invalid": {
+        "BAD_PREFIX": "The prefix may only contain letters and digits.",
+        "NOT_A_BASE_ADDRESS": "The address must not contain “?”, “#” or a user name.",
+        "NOT_HTTPS": "The address must start with https://.",
+        "TOO_LONG": "A field is too long.",
+        "other": "The entry does not fit ({reason})."
+      },
+      "notFound": "This entry no longer exists. The list has been reloaded."
+    },
+    "form": {
+      "active": "In the random choice",
+      "add": "Add",
+      "addTitle": "Add a server",
+      "baseUrl": "Address",
+      "baseUrlHint": "The Jitsi server's address with https://, without a room name.",
+      "note": "Note",
+      "operator": "Operator",
+      "operatorHint": "As the imprint names them. Members read the name in the invitation.",
+      "prefix": "Prefix",
+      "prefixHint": "Letters and digits only. It comes right after the slash, followed by twelve random characters. Empty: the random characters alone."
+    },
+    "reason": {
+      "LOGIN_REQUIRED": "login required",
+      "NOT_JITSI": "not Jitsi",
+      "NO_ANONYMOUS": "no anonymous rooms",
+      "NO_BOSH": "no XMPP answer",
+      "UNREACHABLE": "unreachable"
+    },
+    "remove": "Delete",
+    "removeDialog": {
+      "confirm": "Delete",
+      "hint": "Invitations already sent stay valid. New calls no longer go through this server.",
+      "question": "Delete {host} from the list?",
+      "title": "Delete server"
+    },
+    "removed": "Server deleted.",
+    "save": "Save",
+    "servers": {
+      "active": "Active",
+      "activeOff": "{host} is no longer in the random choice.",
+      "activeOn": "{host} is now in the random choice.",
+      "activeTitle": "In the random choice",
+      "checkNow": "Check now",
+      "checked": "{ok} of {count} answer.",
+      "checking": "checking …",
+      "empty": "The list is empty, so the chat suggests no server at the moment. If it is still empty at the server's next start, it is filled anew: with the servers from the server's configuration or, without one, with the checked public servers. To switch video calls off, keep the servers on the list and take their ticks away.",
+      "fairness": "Public servers mostly belong to volunteers. Only add what the operator recognisably offers to the public.",
+      "hint": "Members are offered these servers for video calls. A random choice picks among the active ones that answered the last check; they are checked every ten minutes.",
+      "noOperator": "no operator given",
+      "picks": "Invitations since the server started: {count}",
+      "prefix": "prefix {prefix}",
+      "title": "Video calls: servers"
+    },
+    "state": {
+      "checkedAt": "last checked {when}",
+      "failed": "does not answer: {reason}",
+      "ok": "answers, {ms} ms",
+      "unchecked": "not checked yet"
+    },
+    "title": "Chat",
+    "updated": "Saved."
+  },
   "close": "Close",
   "contribution": {
     "changeGroup": "Change creation group",
@@ -388,6 +456,7 @@
   "name": "Name",
   "navbar": {
     "automaticContributions": "Starting balance",
+    "chat": "Chat",
     "crea": "Crea",
     "creationGroups": "Creation groups",
     "instances": "Instances",

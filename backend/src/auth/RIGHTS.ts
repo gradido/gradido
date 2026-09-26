@@ -140,6 +140,10 @@ export enum RIGHTS {
   // ES-021: switching another account's creation right on or off. Writes on somebody
   // else's row, so admin only — and its own right, so it can be withdrawn on its own.
   SET_CREATION_ALLOWED = 'SET_CREATION_ALLOWED',
+  // V3 video calls: the list of the Jitsi servers the chat's video calls take a room from,
+  // with the tick "in the random choice" and the checks' findings. The whole community's calls
+  // are sent to these servers of third parties -- an administrator's decision, like AI_SETTINGS.
+  MANAGE_CHAT_VIDEO_SERVERS = 'MANAGE_CHAT_VIDEO_SERVERS',
   // LEGACY-HASHTAG-ADOPTION -- removable with the feature.
   // Adopting the legacy hashtags writes links onto OTHER members' contributions, in bulk.
   // Managing the group list itself does not, so it gets a right of its own rather than

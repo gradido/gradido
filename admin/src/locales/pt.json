@@ -43,6 +43,74 @@
     "titleRemove": "Remove reminder?"
   },
   "change_user_role": "Alterar a função do utilizador",
+  "chatAdmin": {
+    "adminOnly": "Apenas para administradores.",
+    "created": "Servidor adicionado.",
+    "edit": "Editar",
+    "errors": {
+      "duplicate": "Este servidor já está na lista.",
+      "invalid": {
+        "BAD_PREFIX": "O prefixo só pode conter letras e algarismos.",
+        "NOT_A_BASE_ADDRESS": "O endereço não pode conter «?», «#» nem um nome de utilizador.",
+        "NOT_HTTPS": "O endereço tem de começar por https://.",
+        "TOO_LONG": "Um campo é demasiado longo.",
+        "other": "A entrada não é válida ({reason})."
+      },
+      "notFound": "Esta entrada já não existe. A lista foi recarregada."
+    },
+    "form": {
+      "active": "Na escolha aleatória",
+      "add": "Adicionar",
+      "addTitle": "Adicionar um servidor",
+      "baseUrl": "Endereço",
+      "baseUrlHint": "O endereço do servidor Jitsi com https://, sem nome de sala.",
+      "note": "Observação",
+      "operator": "Operador",
+      "operatorHint": "Tal como consta da informação legal do site. Os membros leem o nome no convite.",
+      "prefix": "Prefixo",
+      "prefixHint": "Só letras e algarismos. Fica logo a seguir à barra, seguido de doze caracteres aleatórios. Vazio: só os caracteres aleatórios."
+    },
+    "reason": {
+      "LOGIN_REQUIRED": "requer início de sessão",
+      "NOT_JITSI": "não é Jitsi",
+      "NO_ANONYMOUS": "sem salas anónimas",
+      "NO_BOSH": "sem resposta XMPP",
+      "UNREACHABLE": "inacessível"
+    },
+    "remove": "Eliminar",
+    "removeDialog": {
+      "confirm": "Eliminar",
+      "hint": "Os convites já enviados continuam válidos. As novas chamadas deixam de passar por este servidor.",
+      "question": "Eliminar {host} da lista?",
+      "title": "Eliminar servidor"
+    },
+    "removed": "Servidor eliminado.",
+    "save": "Guardar",
+    "servers": {
+      "active": "Ativo",
+      "activeOff": "{host} já não está na escolha aleatória.",
+      "activeOn": "{host} está agora na escolha aleatória.",
+      "activeTitle": "Na escolha aleatória",
+      "checkNow": "Verificar agora",
+      "checked": "{ok} de {count} respondem.",
+      "checking": "a verificar …",
+      "empty": "A lista está vazia, por isso o chat não sugere nenhum servidor neste momento. Se continuar vazia no próximo arranque do servidor, é preenchida de novo: com os servidores da sua configuração ou, sem configuração, com os servidores públicos verificados. Para desativar as videochamadas, deixa os servidores na lista e tira-lhes o visto.",
+      "fairness": "Os servidores públicos pertencem, na maioria, a voluntários. Adiciona apenas o que o operador oferece claramente ao público.",
+      "hint": "Estes servidores são sugeridos aos membros para as videochamadas. Uma escolha aleatória seleciona entre os ativos que responderam na última verificação; a verificação é feita a cada dez minutos.",
+      "noOperator": "operador não indicado",
+      "picks": "Convites desde o arranque do servidor: {count}",
+      "prefix": "prefixo {prefix}",
+      "title": "Videochamadas: servidores"
+    },
+    "state": {
+      "checkedAt": "última verificação {when}",
+      "failed": "não responde: {reason}",
+      "ok": "responde, {ms} ms",
+      "unchecked": "ainda não verificado"
+    },
+    "title": "Chat",
+    "updated": "Guardado."
+  },
   "close": "Fechar",
   "contribution": {
     "changeGroup": "Alterar grupo de criação",
@@ -388,6 +456,7 @@
   "name": "Nome",
   "navbar": {
     "automaticContributions": "Saldo inicial",
+    "chat": "Chat",
     "crea": "Crea",
     "creationGroups": "Creation groups",
     "instances": "Instâncias",

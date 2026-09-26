@@ -815,6 +815,39 @@ export const newChatMessagesSince = gql`
   }
 `
 
+export const chatVideoRoom = gql`
+  query {
+    chatVideoRoom {
+      url
+      host
+      operator
+    }
+  }
+`
+
+export const chatVideoServers = gql`
+  query {
+    chatVideoServers {
+      id
+      baseUrl
+      host
+      operator
+      roomPrefix
+      note
+      active
+      createdAt
+      updatedAt
+      check {
+        ok
+        reason
+        checkedAt
+        latencyMs
+        picks
+      }
+    }
+  }
+`
+
 export const favoriteList = gql`
   query {
     favoriteList {
