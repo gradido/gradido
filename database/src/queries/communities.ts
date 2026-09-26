@@ -67,7 +67,7 @@ export async function dbSelectHomeCommunity(): Promise<CommunitiesSelect | null>
 /*
  * is called only at one place in production, besides the tests
  * when it is called on multiple places, it must be secured against two calls at the same time
-*/
+ */
 export async function dbInsertHomeCommunity(
   homeCommunity: HomeCommunityInsertInput,
 ): Promise<void> {
