@@ -47,11 +47,15 @@ const KEYS = {
   videoTopicDefault: [],
   videoTopicHint: [],
   videoInviteTopic: ['{topic}', '{operator}', '{url}'],
-  // V4b: the way into the Jitsi app -- the link and its hint, the button, the browser's link.
-  videoInApp: [],
+  // V4b: the way into the Jitsi app -- the box and its hint, the question before joining, the
+  // sentence where the app did not open, the room in the browser, the app's download.
   videoInAppHint: [],
   videoStartInApp: [],
+  videoJoinTitle: ['{name}'],
+  videoJoin: [],
+  videoAppMissed: [],
   videoOpenInBrowser: [],
+  videoAppDownload: [],
 }
 
 /** Topics a member may type, each hard in its own way for the link finder or for Jitsi. */
@@ -72,7 +76,7 @@ describe('the video call in every language', () => {
     expect(languages).toHaveLength(10)
   })
 
-  it.each(languages)('has all seventeen texts, each with its placeholders once, in %s', (lang) => {
+  it.each(languages)('has all twenty texts, each with its placeholders once, in %s', (lang) => {
     const texts = chatThreadIn(lang)
     for (const [key, placeholders] of Object.entries(KEYS)) {
       expect(texts[key], `${lang}: chatThread.${key}`).toBeTruthy()
@@ -120,10 +124,13 @@ describe('the video call in every language', () => {
       'videoInviteTopic',
       'videoTopicDefault',
       'videoTopicHint',
-      'videoInApp',
       'videoInAppHint',
       'videoStartInApp',
+      'videoJoinTitle',
+      'videoJoin',
+      'videoAppMissed',
       'videoOpenInBrowser',
+      'videoAppDownload',
     ]) {
       const rendered = languages.map((lang) =>
         i18n.global.t(
@@ -176,7 +183,7 @@ describe('the video call in every language', () => {
   // the computer -- and its hint takes the invitation's dash too.
   it.each(languages)('names the Jitsi app by its name, in %s', (lang) => {
     const texts = chatThreadIn(lang)
-    for (const key of ['videoInApp', 'videoInAppHint', 'videoStartInApp']) {
+    for (const key of ['videoInAppHint', 'videoStartInApp', 'videoAppMissed', 'videoAppDownload']) {
       expect(texts[key], `${lang}: chatThread.${key}`).toContain('Jitsi')
     }
     expect(texts.videoInAppHint).toContain(' — ')

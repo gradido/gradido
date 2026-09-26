@@ -1,6 +1,14 @@
 // AI-GENERATED — not an architecture reference
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { chatVideoAppUrl, offersJitsiApp } from './chatVideoApp'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import {
+  JITSI_APP_WAIT_MS,
+  chatVideoAppUrl,
+  offersJitsiApp,
+  openInJitsiApp,
+  readChatVideoInApp,
+  rememberChatVideoInApp,
+  watchJitsiAppOpening,
+} from './chatVideoApp'
 import { withChatVideoTopic, withoutChatVideoTopic } from './chatVideoTopic'
 
 /** Rooms as the server hands them out (V1): a server, its prefix where it has one, twelve of chance. */
@@ -58,22 +66,30 @@ const jitsiPageReads = (address) => {
  *
  * The other settings the app gives the meeting ride along and are left out here; the room and the
  * topic are what is in question.
+ *
+ * ⚠️ That is the app from 17.08.2026 on (d30d2f0bdb). The release 2026.8.0 -- the newest on
+ * 26.09.2026 -- takes one step more where a link starts it: `App.tsx` enters the room into the list
+ * of recent rooms before it opens the meeting, and that list's reducer cut `?…` and `#…` off the
+ * very object it was handed (`_insertConference`, read in the installed app). `asReleased`
+ * below does the same.
  */
-const appOpens = (appAddress) => {
+const appOpens = (appAddress, { asReleased = false } = {}) => {
   expect(appAddress.startsWith('jitsi-meet://')).toBe(true)
   let inputURL = appAddress.replace('jitsi-meet://', '')
   if (inputURL.slice(-1) === '/') inputURL = inputURL.slice(0, -1)
 
   const lastIndexOfSlash = inputURL.lastIndexOf('/')
-  const room = inputURL.substring(lastIndexOfSlash + 1)
+  let room = inputURL.substring(lastIndexOfSlash + 1)
   const serverURL = `https://${inputURL.substring(0, lastIndexOfSlash)}`
+  // 2026.8.0: `_cleanRoomName`, on the object the meeting is then opened with.
+  if (asReleased) room = room.split('?', 2)[0].split('#', 2)[0]
 
   const url = new URL(room, serverURL)
   const roomName = url.pathname.split('/').pop()
   const host = serverURL.replace(/https?:\/\//, '')
 
   const configOverwrite = {}
-  for (const part of url.hash.substring(1).split('&')) {
+  for (const part of url.hash.substring(1).split('&').filter(Boolean)) {
     const param = part.split('=')
     const decoded = decodeURIComponent(param[1]).replace(/\\&/, '&')
     if (param[0].startsWith('config.')) {
@@ -82,6 +98,7 @@ const appOpens = (appAddress) => {
   }
 
   const meeting = `https://${host}/${roomName}`
+  if (!('subject' in configOverwrite)) return { meeting, title: () => undefined }
   const embedded = `${meeting}#config.subject=${encodeURIComponent(JSON.stringify(configOverwrite.subject))}`
   return { meeting, title: () => jitsiPageReads(embedded)['config.subject'] }
 }
@@ -191,6 +208,18 @@ describe("the app's round trip", () => {
 
       expect(appOpens(chatVideoAppUrl(browser)).meeting).toBe(room)
     }
+  })
+})
+
+// The known limit (26.09.2026): the address is right, the released app drops its addition.
+describe('the app as released in 2026.8.0', () => {
+  it('opens the same room on the same server, without the topic', () => {
+    const inApp = appOpens(chatVideoAppUrl(withChatVideoTopic(FFMUC, 'Videoanruf')), {
+      asReleased: true,
+    })
+
+    expect(inApp.meeting).toBe(FFMUC)
+    expect(inApp.title()).toBeUndefined()
   })
 })
 
@@ -308,5 +337,181 @@ describe('offersJitsiApp', () => {
 
     device({ userAgent: MAC_CHROME, fine: false })
     expect(offersJitsiApp()).toBe(false)
+  })
+})
+
+/** The box "Start in the Jitsi app": what a device keeps, for which member. */
+describe('the tick, per member on this device', () => {
+  afterEach(() => {
+    localStorage.clear()
+    vi.restoreAllMocks()
+  })
+
+  it('is not there where nothing was kept', () => {
+    expect(readChatVideoInApp('me-id')).toBe(false)
+  })
+
+  it('is kept for the member who ticked, under a key of their own, and for nobody else', () => {
+    rememberChatVideoInApp('me-id', true)
+
+    expect(localStorage.getItem('chat-video-in-app:me-id')).toBe('1')
+    expect(readChatVideoInApp('me-id')).toBe(true)
+    expect(readChatVideoInApp('somebody-else')).toBe(false)
+  })
+
+  it('goes once the box is emptied', () => {
+    rememberChatVideoInApp('me-id', true)
+    rememberChatVideoInApp('me-id', false)
+
+    expect(localStorage.getItem('chat-video-in-app:me-id')).toBeNull()
+    expect(readChatVideoInApp('me-id')).toBe(false)
+  })
+
+  // Before the login answer and after signing out: no member, no key -- never a shared one.
+  it.each([null, undefined, ''])('is neither read nor written without a member: %s', (member) => {
+    const writes = vi.spyOn(Storage.prototype, 'setItem')
+    const reads = vi.spyOn(Storage.prototype, 'getItem')
+
+    rememberChatVideoInApp(member, true)
+
+    expect(readChatVideoInApp(member)).toBe(false)
+    expect(writes).not.toHaveBeenCalled()
+    expect(reads).not.toHaveBeenCalled()
+  })
+
+  it('starts empty where the storage is switched off, and a tick throws nothing', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('SecurityError')
+    })
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('QuotaExceededError')
+    })
+
+    expect(readChatVideoInApp('me-id')).toBe(false)
+    expect(() => rememberChatVideoInApp('me-id', true)).not.toThrow()
+  })
+})
+
+describe('openInJitsiApp', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('follows a link to the address, as a click on a link goes', () => {
+    const followed = []
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function () {
+      followed.push({ href: this.href, target: this.target })
+    })
+    const address = chatVideoAppUrl(withChatVideoTopic(FFMUC, 'Videoanruf'))
+
+    openInJitsiApp(address)
+
+    expect(followed).toEqual([{ href: address, target: '' }])
+  })
+})
+
+/**
+ * The sign that the app came up: the page loses the focus to it, or is hidden behind it. Measured
+ * in Chrome (26.09.2026, the probe's log): the app took the focus 0.36 s after the address was
+ * handed over; Chrome's own question "Open Jitsi Meet?" took it after 0.11 s.
+ */
+describe('watchJitsiAppOpening', () => {
+  let opened
+  let missed
+  let stop
+  const watch = () => {
+    stop = watchJitsiAppOpening({ onOpened: opened, onMissed: missed })
+  }
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    vi.spyOn(document, 'hasFocus').mockReturnValue(true)
+    opened = vi.fn()
+    missed = vi.fn()
+  })
+
+  afterEach(() => {
+    stop?.()
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
+
+  it('waits three seconds', () => {
+    expect(JITSI_APP_WAIT_MS).toBe(3000)
+  })
+
+  it('takes the app to have opened where the page loses the focus', () => {
+    watch()
+    window.dispatchEvent(new Event('blur'))
+
+    expect(opened).toHaveBeenCalledTimes(1)
+    vi.advanceTimersByTime(JITSI_APP_WAIT_MS)
+    expect(missed).not.toHaveBeenCalled()
+  })
+
+  it('takes it to have opened where the page is hidden', () => {
+    watch()
+    vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
+    document.dispatchEvent(new Event('visibilitychange'))
+
+    expect(opened).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not count a page that comes back into view', () => {
+    watch()
+    vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible')
+    document.dispatchEvent(new Event('visibilitychange'))
+
+    expect(opened).not.toHaveBeenCalled()
+  })
+
+  // Not a moment before the three seconds are up.
+  it('says it was missed where no sign came within three seconds', () => {
+    watch()
+
+    vi.advanceTimersByTime(JITSI_APP_WAIT_MS - 1)
+    expect(missed).not.toHaveBeenCalled()
+    vi.advanceTimersByTime(1)
+    expect(missed).toHaveBeenCalledTimes(1)
+    expect(opened).not.toHaveBeenCalled()
+  })
+
+  it('answers once: after the sign, nothing more is heard', () => {
+    watch()
+    window.dispatchEvent(new Event('blur'))
+    window.dispatchEvent(new Event('blur'))
+    vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
+    document.dispatchEvent(new Event('visibilitychange'))
+
+    expect(opened).toHaveBeenCalledTimes(1)
+  })
+
+  it('answers once: after three seconds without a sign, a late one is not heard', () => {
+    watch()
+    vi.advanceTimersByTime(JITSI_APP_WAIT_MS)
+    window.dispatchEvent(new Event('blur'))
+
+    expect(missed).toHaveBeenCalledTimes(1)
+    expect(opened).not.toHaveBeenCalled()
+  })
+
+  it('calls nothing once it was stopped', () => {
+    watch()
+    stop()
+    window.dispatchEvent(new Event('blur'))
+    vi.advanceTimersByTime(JITSI_APP_WAIT_MS)
+
+    expect(opened).not.toHaveBeenCalled()
+    expect(missed).not.toHaveBeenCalled()
+  })
+
+  // No focus to lose, no sign to come: taken as opened, at once.
+  it('takes the app to have opened at once where the page has no focus', () => {
+    document.hasFocus.mockReturnValue(false)
+    watch()
+
+    expect(opened).toHaveBeenCalledTimes(1)
+    vi.advanceTimersByTime(JITSI_APP_WAIT_MS)
+    expect(missed).not.toHaveBeenCalled()
   })
 })

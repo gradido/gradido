@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import ChatBubble from './ChatBubble.vue'
+import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -136,96 +137,123 @@ describe('ChatBubble', () => {
   })
 
   /**
-   * V4b: on a computer an invitation of our own has a second way beside its link -- the same room
-   * in the Jitsi app. The device is the browser's to say (chatVideoApp): here a stand-in for
-   * `matchMedia` that answers the one question asked, where jsdom has none -- the state every
-   * other test runs in, and the phone's answer.
+   * V4b: on a computer a click on the link of an invitation of our own asks first -- through the
+   * question the contact window provides (`CHAT_VIDEO_JOIN`), here a stand-in that notes what it
+   * was handed. The device is the browser's to say (chatVideoApp): a stand-in for `matchMedia`
+   * that answers the one question asked, where jsdom has none -- the state every other test runs
+   * in, and the phone's answer.
    */
-  describe('the way into the Jitsi app', () => {
+  describe('the question before joining a call', () => {
     const ROOM = 'https://meet.ffmuc.net/k7m2x9q4t8wz'
     const ADDRESS = `${ROOM}#config.subject=%22Gespr%C3%A4ch%20%C3%BCber%20B%C3%A4ume%22`
     const INVITATION = `📹 Videoanruf: Gespräch über Bäume\nDer Raum liegt auf einem Jitsi-Server von Freifunk München — ein Vorschlag, kein Dienst von Gradido: ${ADDRESS}`
 
+    let asked
+    const mountAsking = (message, { provided = true } = {}) => {
+      asked = []
+      wrapper = mount(ChatBubble, {
+        props: { message, alias: 'Lena' },
+        global: {
+          provide: provided ? { [CHAT_VIDEO_JOIN]: (roomUrl) => asked.push(roomUrl) } : {},
+          stubs: { IMdiEmailOutline: true },
+        },
+      })
+    }
     const onA = ({ computer }) => {
       vi.stubGlobal('matchMedia', (query) => ({
         matches: query === '(pointer: fine) and (hover: hover)' && computer,
       }))
     }
     const links = () => wrapper.findAll('.chat-message-text a')
-    const appLink = () => wrapper.find('.chat-message-text a.chat-video-app-link')
+    /** A click as the member makes it; `false` where the page claimed it (preventDefault). */
+    const click = (init = {}) =>
+      links()[0].element.dispatchEvent(
+        new MouseEvent('click', { bubbles: true, cancelable: true, button: 0, ...init }),
+      )
 
     afterEach(() => {
       vi.unstubAllGlobals()
     })
 
-    it('offers the same room in the app beside the link, on a computer', () => {
+    it('asks instead of opening, on a computer, and hands over the whole address', () => {
       onA({ computer: true })
-      mountBubble({ ...THEIRS, body: INVITATION })
+      mountAsking({ ...THEIRS, body: INVITATION })
 
-      expect(links()).toHaveLength(2)
-      expect(links()[0].attributes('href')).toBe(ADDRESS)
-      expect(links()[0].attributes('target')).toBe('_blank')
-      expect(links()[0].text()).toBe(ROOM)
-      expect(links()[1].element).toBe(appLink().element)
-      expect(appLink().attributes('href')).toBe(
-        'jitsi-meet://meet.ffmuc.net/k7m2x9q4t8wz#config.subject=%22Gespr%C3%A4ch%20%C3%BCber%20B%C3%A4ume%22',
-      )
-      expect(appLink().text()).toBe('chatThread.videoInApp')
-      expect(appLink().attributes('title')).toBe('chatThread.videoInAppHint')
-      expect(
-        wrapper.find('.chat-message-text').text().endsWith(`${ROOM} · chatThread.videoInApp`),
-      ).toBe(true)
+      expect(click()).toBe(false)
+      expect(asked).toEqual([ADDRESS])
     })
 
-    // ⛔ An app's link opens no window: `_blank` would leave an empty tab behind.
-    it('opens no window from the link into the app', () => {
+    // The link stays the room's: copy, the middle button and a new tab work as on any link.
+    it('stays one link to the room, with no second way beside it', () => {
       onA({ computer: true })
-      mountBubble({ ...THEIRS, body: INVITATION })
-
-      expect(appLink().attributes('target')).toBeUndefined()
-      expect(appLink().attributes('rel')).toBeUndefined()
-    })
-
-    it("offers it in one's own bubble too", () => {
-      onA({ computer: true })
-      mountBubble({ ...OWN, body: INVITATION })
-
-      expect(appLink().exists()).toBe(true)
-    })
-
-    // Phones and tablets: Jitsi's own page offers its app there.
-    it('offers nothing more on a phone or a tablet, where the link stays as it was', () => {
-      onA({ computer: false })
-      mountBubble({ ...THEIRS, body: INVITATION })
+      mountAsking({ ...THEIRS, body: INVITATION })
 
       expect(links()).toHaveLength(1)
       expect(links()[0].attributes('href')).toBe(ADDRESS)
-      expect(wrapper.find('.chat-message-text').text()).not.toContain('chatThread.videoInApp')
+      expect(links()[0].attributes('target')).toBe('_blank')
+      expect(links()[0].attributes('rel')).toBe('noopener noreferrer')
+      expect(links()[0].text()).toBe(ROOM)
+      expect(wrapper.find('.chat-message-text').text().endsWith(ROOM)).toBe(true)
     })
 
-    // Asked at every drawing, nothing kept: the next drawing follows the device.
-    it('follows the device at its next drawing', async () => {
-      onA({ computer: false })
-      mountBubble({ ...THEIRS, body: INVITATION })
-      expect(appLink().exists()).toBe(false)
-
-      // Another text, so the text is drawn anew: the device is no reactive state.
+    it("asks in one's own bubble too", () => {
       onA({ computer: true })
-      await wrapper.setProps({ message: { ...THEIRS, body: `Noch einmal: ${ADDRESS}` } })
+      mountAsking({ ...OWN, body: INVITATION })
 
-      expect(appLink().exists()).toBe(true)
+      expect(click()).toBe(false)
+      expect(asked).toEqual([ADDRESS])
+    })
+
+    it.each([
+      ['Ctrl', { ctrlKey: true }],
+      ['Cmd', { metaKey: true }],
+      ['Shift', { shiftKey: true }],
+      ['Alt', { altKey: true }],
+      ['another button', { button: 1 }],
+    ])('leaves a click with %s to the browser', (_, init) => {
+      onA({ computer: true })
+      mountAsking({ ...THEIRS, body: INVITATION })
+
+      expect(click(init)).toBe(true)
+      expect(asked).toEqual([])
+    })
+
+    // Phones and tablets: Jitsi's own page offers its app there.
+    it('opens the room straight away on a phone or a tablet', () => {
+      onA({ computer: false })
+      mountAsking({ ...THEIRS, body: INVITATION })
+
+      expect(click()).toBe(true)
+      expect(asked).toEqual([])
+    })
+
+    // Asked at the click, nothing kept: a drawing made on a phone still asks on a computer.
+    it('asks the device at the click, not at the drawing', () => {
+      onA({ computer: false })
+      mountAsking({ ...THEIRS, body: INVITATION })
+
+      onA({ computer: true })
+      expect(click()).toBe(false)
+      expect(asked).toEqual([ADDRESS])
+    })
+
+    it('stays a plain link where no window provides the question', () => {
+      onA({ computer: true })
+      mountAsking({ ...THEIRS, body: INVITATION }, { provided: false })
+
+      expect(click()).toBe(true)
     })
 
     it.each([
       ['a page', 'https://gradido.net/de/faq#konto'],
       ['a room with a second setting', `${ADDRESS}&config.startWithAudioMuted=true`],
       ['a room over http', ADDRESS.replace('https:', 'http:')],
-    ])("offers no app for somebody else's address: %s", (_, address) => {
+    ])("does not ask for somebody else's address: %s", (_, address) => {
       onA({ computer: true })
-      mountBubble({ ...THEIRS, body: `Schau mal: ${address}` })
+      mountAsking({ ...THEIRS, body: `Schau mal: ${address}` })
 
-      expect(links()).toHaveLength(1)
-      expect(appLink().exists()).toBe(false)
+      expect(click()).toBe(true)
+      expect(asked).toEqual([])
     })
   })
 
