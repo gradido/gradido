@@ -979,4 +979,37 @@ describe('sendEmailVariants', () => {
       })
     })
   })
+
+  /**
+   * Where a person's text stands INSIDE a translated sentence - a name in the greeting, a memo,
+   * a moderator's message - it went through i18n's Mustache, which escaped it, and then through
+   * pug, which escaped it again: the member read `https:&#x2F;&#x2F;…` and `D&#39;Angelo`.
+   * Measured at the rendered mail, where a double escape shows as `&amp;` in front of an entity.
+   */
+  describe('text a person typed, inside a sentence', () => {
+    let html: string
+
+    beforeAll(async () => {
+      const sent: any = await sendAddedContributionMessageEmail({
+        firstName: 'Chloé',
+        lastName: "D'Angelo",
+        email: 'chloe@example.org',
+        // Not English: the receiver's locale has to reach the templates' `t`.
+        language: 'de',
+        senderAlias: 'bibi',
+        contributionMemo: "Oma's Garten / Hof",
+        contributionFrontendLink,
+        message: 'See https://gradido.net/faq?a=1&b=2 "now"',
+      })
+      html = sent.originalMessage.html
+    })
+
+    it('is escaped once', () => {
+      expect(html).toContain("Hallo Chloé D'Angelo,")
+      expect(html).toContain("„Oma's Garten / Hof“")
+      expect(html).toContain('https://gradido.net/faq?a=1&amp;b=2')
+      expect(html).toContain('&quot;now&quot;')
+      expect(html).not.toMatch(/&amp;(#|amp;|quot;|lt;|gt;)/)
+    })
+  })
 })

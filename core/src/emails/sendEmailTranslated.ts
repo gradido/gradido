@@ -4,7 +4,7 @@ import { createTransport } from 'nodemailer'
 import path from 'path'
 import { CONFIG } from '../config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
-import { i18n } from '../locales/localization'
+import { i18n, translateForMail } from '../locales/localization'
 import { humanTextParts } from '../logic/HumanText.logic'
 import chatboxIcon from './templates/includes/chatbox-icon.png'
 import facebookIcon from './templates/includes/facebook-icon.png'
@@ -143,8 +143,14 @@ export const sendEmailTranslated = async ({
       },
       // the 'locale' in here seems not to be used by 'email-template', because it doesn't work if the language isn't set before by 'i18n.setLocale'
       // `humanTextParts` is what `+humanText(…)` (includes/humanText.pug) cuts a typed text with.
-      locals: { ...locals, humanTextParts },
-      // t: i18n.__.bind(i18n),
+      // `t` shadows the global one i18n registers: pug escapes every `= t(…)`, and the global
+      // one had escaped the values already - everything a person typed arrived escaped twice.
+      locals: {
+        ...locals,
+        humanTextParts,
+        t: (key: string, values?: Record<string, unknown>) =>
+          translateForMail(locals.language as string, key, values),
+      },
     })
     .catch((error: unknown) => {
       logger.error('Error sending notification email', error)
