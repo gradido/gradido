@@ -2,7 +2,7 @@
 <template>
   <!-- A window over the list, not a jump into the send form (KF-010). A tap on a contact
        is somebody saying "this person", and what follows is the conversation with them, with
-       the way to send them Gradido behind their name (E-031). -->
+       the way to send them Gradido under the figures (E-033). -->
   <!-- ⛔ Not `centered`: a window in the middle grows in both directions when the thread lands,
        and what was under a finger moves up. At the top of the screen it grows downwards
        only (E-031).
@@ -66,61 +66,11 @@
       <div class="contact-window-head">
         <app-avatar :size="64" :color="'#fff'" v-bind="avatar" />
         <div class="contact-window-who">
-          <!-- Behind the name, in this order (Bernd, E-031): the heart and the bell, two marks
-               of one's own on this person that say how they stand. Both in the measure of the
-               booking row (`gap-2`), and the name gives way (ellipsis) before either does. The
-               coin that stood here third went under the figures, as a button with its word
-               (Bernd, 24.09.2026, at the device: the coin alone was not taken for a button).
-
-               The heart is the one of every list: the same component, the same look, the same
-               question before it is taken away (E-030). -->
-          <div class="contact-window-name-line">
-            <div class="contact-window-name" data-test="contact-window-name">{{ alias }}</div>
-            <favorite-heart class="contact-window-heart" :member="contact.user" />
-            <!-- The bell: mutes this conversation for oneself -- no mails about their chat
-                 messages; the thread shows them as before (E-024). A letter written with the
-                 form "send an e-mail" still comes as a mail, and the hint says so (E-034, A3).
-                 Only where there is a conversation: before the first message there is nothing
-                 to mute, and the thread says when there is one. No question before switching,
-                 in either direction: nothing is lost either way, and it switches back as easily
-                 (unlike the heart, KF-003). -->
-            <button
-              v-if="chatConversation.exists"
-              type="button"
-              class="contact-window-mark contact-window-bell"
-              :class="{ 'is-muted': muted }"
-              :aria-pressed="muted ? 'true' : 'false'"
-              :aria-label="bellName"
-              :title="bellName"
-              data-test="contact-window-bell"
-              @click="toggleMute"
-            >
-              <i-mdi-bell-off-outline
-                v-if="muted"
-                class="contact-window-bell-icon"
-                aria-hidden="true"
-              />
-              <i-mdi-bell-outline v-else class="contact-window-bell-icon" aria-hidden="true" />
-            </button>
-            <!-- The camera: a video call with this person (V2), in the place E-033 kept for it.
-                 A room on a checked Jitsi server, whose address goes to them as an ordinary chat
-                 message. There once the thread has said what it knows -- and, unlike the bell,
-                 also where there is no conversation yet: a call may be how one begins (its
-                 message is then the first, and goes by mail, E-024). No word beside it: the
-                 question it opens carries the words. Whether the camera alone is taken for a
-                 button is for Bernd to see at the device (E-033: the coin alone was not). -->
-            <button
-              v-if="chatConversationKnown"
-              type="button"
-              class="contact-window-mark contact-window-video"
-              :aria-label="videoCallName"
-              :title="videoCallName"
-              data-test="contact-window-video"
-              @click="askVideoCall"
-            >
-              <i-mdi-video-outline class="contact-window-video-icon" aria-hidden="true" />
-            </button>
-          </div>
+          <!-- The name has its line to itself (Bernd, 26.09.2026): the marks that stood behind
+               it went down beside the send button, where they no longer take the room a long
+               name needs on a phone. Where even the whole line is too short, the name gives
+               way (ellipsis). -->
+          <div class="contact-window-name" data-test="contact-window-name">{{ alias }}</div>
           <div
             v-if="contact.user.communityName"
             class="contact-window-community"
@@ -192,8 +142,12 @@
            (MatchProfile) with its word and its white coin, in the gold of the compose bar's
            send button instead of the map's teal (Bernd, 24.09.2026). Under the figures and
            above the line where the thread begins. No "Send e-mail" beside it: the short mail is
-           the compose bar's box, the one with a subject the send form's other tab (E-031). -->
-      <div class="contact-window-send">
+           the compose bar's box, the one with a subject the send form's other tab (E-031).
+
+           `is-tight`: where a language's word makes the button so wide that the marks no longer
+           fit beside it, the row is set closer, with a smaller font -- there only (Bernd,
+           26.09.2026). See `fitSendRow`. -->
+      <div ref="sendRow" class="contact-window-send" :class="{ 'is-tight': sendTight }">
         <button
           type="button"
           class="send-btn send-gradido"
@@ -203,6 +157,60 @@
           <img src="/img/svg/gdd_coin_sw.svg" class="send-coin" alt="" aria-hidden="true" />
           {{ $t('contacts.sendGradido') }}
         </button>
+        <!-- The marks, at the right end of the button's row with an empty stretch before them
+             (Bernd, 26.09.2026): the camera, the bell, the heart -- in this order. The heart at
+             the very right, where it stands in every list; the bell next to it, the two of them
+             marks of one's own on this person that say how they stand; the camera next to the
+             button, since it too is a way of getting in touch. Before, they stood behind the
+             name and took a long name's room on a phone.
+
+             They keep their measure from the name line: the booking row's `gap-2` between them,
+             the heart the one of every list -- the same component, the same look, the same
+             question before it is taken away (E-030). -->
+        <div class="contact-window-marks" data-test="contact-window-marks">
+          <!-- The camera: a video call with this person (V2). A room on a checked Jitsi server,
+               whose address goes to them as an ordinary chat message. There once the thread has
+               said what it knows -- and, unlike the bell, also where there is no conversation
+               yet: a call may be how one begins (its message is then the first, and goes by
+               mail, E-024). No word beside it: the question it opens carries the words. -->
+          <button
+            v-if="chatConversationKnown"
+            type="button"
+            class="contact-window-mark contact-window-video"
+            :aria-label="videoCallName"
+            :title="videoCallName"
+            data-test="contact-window-video"
+            @click="askVideoCall"
+          >
+            <i-mdi-video-outline class="contact-window-video-icon" aria-hidden="true" />
+          </button>
+          <!-- The bell: mutes this conversation for oneself -- no mails about their chat
+               messages; the thread shows them as before (E-024). A letter written with the form
+               "send an e-mail" still comes as a mail, and the hint says so (E-034, A3). Only
+               where there is a conversation: before the first message there is nothing to mute,
+               and the thread says when there is one. No question before switching, in either
+               direction: nothing is lost either way, and it switches back as easily (unlike the
+               heart, KF-003). -->
+          <button
+            v-if="chatConversation.exists"
+            type="button"
+            class="contact-window-mark contact-window-bell"
+            :class="{ 'is-muted': muted }"
+            :aria-pressed="muted ? 'true' : 'false'"
+            :aria-label="bellName"
+            :title="bellName"
+            data-test="contact-window-bell"
+            @click="toggleMute"
+          >
+            <i-mdi-bell-off-outline
+              v-if="muted"
+              class="contact-window-bell-icon"
+              aria-hidden="true"
+            />
+            <i-mdi-bell-outline v-else class="contact-window-bell-icon" aria-hidden="true" />
+          </button>
+          <favorite-heart class="contact-window-heart" :member="contact.user" />
+        </div>
       </div>
 
       <!-- The conversation, where "conversation history -- comes with the chat" stood
@@ -327,7 +335,7 @@
 </template>
 
 <script setup>
-import { computed, ref, useId, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
@@ -741,6 +749,65 @@ const startVideoCall = async () => {
     videoRoomToOpen.value = offered.url
   }
 }
+
+/**
+ * The send row: the button with its word, then the marks. Where a language's word makes the
+ * button so wide that the marks no longer fit beside it, the row is set closer -- a smaller font,
+ * less room inside the button, the marks closer together -- only there (Bernd, 26.09.2026);
+ * everywhere else the button keeps the measure of the map's button (see the stylesheet).
+ *
+ * Measured, not decided by the language: whether it fits depends on the word in the font, on
+ * the window's width and on how many marks there are (the camera and the bell come once the
+ * thread has spoken). The row and its two parts are watched for their size, and the decision is
+ * taken on the row's OWN measure -- the class that sets it closer is lifted for the reading and
+ * put back in the same task, so nothing of that is drawn.
+ *
+ * ⚠️ Taken in the next frame, not in the observer's callback: shrinking the button changes the
+ * row's height, and a size changed from inside the callback, at the depth it observes, is one
+ * the browser reports as a loop ("ResizeObserver loop completed with undelivered
+ * notifications"). A frame later it is an ordinary change. The frame falls in the dialog's
+ * fade on opening; where the marks come in later, it is the frame in which they appear.
+ */
+const sendRow = ref(null)
+const sendTight = ref(false)
+
+const fitSendRow = () => {
+  const row = sendRow.value
+  const button = row?.querySelector('.send-btn')
+  const marks = row?.querySelector('.contact-window-marks')
+  // Not laid out: the dialog is still hidden, or already gone.
+  if (!button || !marks || !row.clientWidth) return
+  const tight = row.classList.contains('is-tight')
+  row.classList.remove('is-tight')
+  const gap = Number.parseFloat(getComputedStyle(row).columnGap) || 0
+  const needed = button.getBoundingClientRect().width + gap + marks.getBoundingClientRect().width
+  row.classList.toggle('is-tight', tight)
+  sendTight.value = needed > row.getBoundingClientRect().width
+}
+
+let sendRowResizes = null
+let sendRowFrame = 0
+
+watch(
+  sendRow,
+  (row) => {
+    sendRowResizes?.disconnect()
+    sendRowResizes = null
+    if (!row || typeof ResizeObserver === 'undefined') return
+    sendRowResizes = new ResizeObserver(() => {
+      cancelAnimationFrame(sendRowFrame)
+      sendRowFrame = requestAnimationFrame(fitSendRow)
+    })
+    sendRowResizes.observe(row)
+    for (const part of row.children) sendRowResizes.observe(part)
+  },
+  { flush: 'post' },
+)
+
+onBeforeUnmount(() => {
+  sendRowResizes?.disconnect()
+  cancelAnimationFrame(sendRowFrame)
+})
 </script>
 
 <style lang="scss" scoped>
@@ -831,14 +898,17 @@ const startVideoCall = async () => {
   text-underline-offset: 2px;
 }
 
-/* The name and the marks behind it, in the measure of the booking row (`gap-2` there,
-   the same 0.5rem). The name gives way (ellipsis) before a mark does: it may shrink to
-   nothing, the marks may not shrink at all. */
-.contact-window-name-line {
+/* The marks at the right end of the send row, the empty stretch before them taken by the
+   margin (Bernd, 26.09.2026). Between them the measure of the booking row (`gap-2` there, the
+   same 0.5rem), as when they stood behind the name. They never shrink: where the row is too
+   narrow, it is set closer first (`is-tight`, below), and only past that do the marks go to
+   a line of their own, at the right. */
+.contact-window-marks {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   gap: 0.5rem;
-  min-width: 0;
+  margin-left: auto;
 }
 
 .contact-window-heart {
@@ -881,7 +951,7 @@ const startVideoCall = async () => {
   color: var(--bs-body-color);
 }
 
-/* The camera: the third mark, in the bell's round and at the heart's glyph size. */
+/* The camera: in the bell's round and at the heart's glyph size. */
 .contact-window-video-icon {
   width: 1.35em;
   height: 1.35em;
@@ -895,9 +965,13 @@ const startVideoCall = async () => {
   cursor: default;
 }
 
-/* The one way out, under the figures and above the line where the thread begins. */
+/* The one way out, under the figures and above the line where the thread begins, with the
+   marks at the right end of its row. Centred on the button's middle; `wrap` is the last
+   resort, for a row too narrow even when set closer (see `.contact-window-marks`). */
 .contact-window-send {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
 }
 
@@ -940,10 +1014,36 @@ const startVideoCall = async () => {
 
 /* ⚠️ The second difference from the map, and the reason it stands outside the map's rules:
    the button keeps the width of its word instead of filling the row (Bernd, 24.09.2026,
-   "schmal"), so something can stand beside it later -- a camera for a video call, perhaps.
-   Measured: it fits beside a second one in the longest labels too (ru, el). */
+   "schmal"), so the marks can stand beside it (Bernd, 26.09.2026).
+
+   And where even set closer the word is wider than the whole row, it goes onto a second line
+   rather than the button hanging out of the window (coderabbit, #3987). Measured: that is
+   below 240px only -- a phone zoomed in far; from 240px up the word stands on one line in
+   every language, and the map's own rule keeps `nowrap`. */
 .contact-window-send .send-btn {
   flex: 0 1 auto;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* The third: where a language's word makes the button too wide for the marks to fit beside
+   it, the row is set closer -- there only, `fitSendRow` measures it (Bernd, 26.09.2026): a
+   smaller font, less room inside the button, and the marks closer together. Measured in the
+   wallet with three marks: at 320px French, Dutch, Russian and Greek did not fit with the
+   smaller font alone; set closer, all ten languages stand on one line down to 320px. */
+.contact-window-send.is-tight {
+  gap: 6px;
+}
+
+.contact-window-send.is-tight .send-btn {
+  gap: 5px;
+  padding: 10px 8px;
+  font-size: 13px;
+}
+
+.contact-window-send.is-tight .contact-window-marks {
+  gap: 4px;
 }
 
 /* ⛔ The sheet (below `sm`, where BModal makes the window fullscreen -- the same 575.98px as
