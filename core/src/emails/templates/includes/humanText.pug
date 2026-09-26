@@ -1,0 +1,28 @@
+//- AI-GENERATED — not an architecture reference
+//- Text a person typed - a chat message, a moderator's question, a memo -, with its web and
+    e-mail addresses as links and, with `{ bold: true }`, `**…**` in bold (a chat message and
+    a moderator's message, where the wallet shows bold too). The pieces come from
+    `humanTextParts` (`src/logic/HumanText.logic.ts`), handed to every template by
+    `sendEmailTranslated`.
+    Where the text stands inside a sentence, the whole sentence goes in (`+humanText(t(…))`):
+    the phrases carry no addresses of their own, and one they carried would be a link too.
+
+    ⛔ Every piece goes out through pug's escaping: `= part.value` as text, `href=part.value`
+    as an attribute value. Nothing a person typed reaches the mail as markup. Never `!=` here.
+
+    ⛔ A SPAN, and nothing but inline content in it. The mails are pretty-printed, and pug
+    puts a newline before every block element and after a block element's last child - a
+    `div` here would carry a newline of its own into the `white-space: pre-line` of
+    `.human-text`, a line break the person never typed. `span`, `a` and `strong` are inline
+    tags, which pug leaves where they are.
+mixin humanText(text, options)
+  span.human-text
+    each part in humanTextParts(text, options)
+      if part.type === 'url'
+        a(href=part.value)= part.value
+      else if part.type === 'email'
+        a(href='mailto:' + part.value)= part.value
+      else if part.type === 'bold'
+        strong= part.value
+      else
+        = part.value
