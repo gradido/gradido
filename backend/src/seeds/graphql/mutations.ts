@@ -499,6 +499,14 @@ export const updateHomeCommunityQuery = gql`
   }
 `
 
+export const updateHomeCommunityLocationQuery = gql`
+  mutation ($uuid: String!, $location: Location) {
+    updateHomeCommunity(uuid: $uuid, location: $location) {
+      uuid
+    }
+  }
+`
+
 export const createMatchingEntry = gql`
   mutation ($input: MatchingEntryInput!) {
     createMatchingEntry(input: $input) {

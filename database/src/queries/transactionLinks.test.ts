@@ -2,14 +2,14 @@ import { Duration, GradidoUnit } from 'shared'
 import {
   AppDatabase,
   bibiBloxberg,
-  TransactionLink as DbTransactionLink,
   User as DbUser,
-  UserContact as DbUserContact,
   TransactionLinkInterface,
   transactionLinkFactoryBulk,
   transactionLinksPendingFromUserOrderByIdASC,
   userFactory,
 } from '..'
+import { createCommunity } from '../seeds/community'
+import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 
 const db = AppDatabase.getInstance()
 
@@ -25,9 +25,8 @@ const startDate = new Date('2022-03-21T03:33:33Z')
 
 describe('transactionLinks', () => {
   beforeAll(async () => {
-    await DbUser.clear()
-    await DbUserContact.clear()
-    await DbTransactionLink.clear()
+    await dbDeleteAllRowsExceptMigrations()
+    await createCommunity(false)
 
     const bibi = bibiBloxberg
     bibiUser = await userFactory(bibi)

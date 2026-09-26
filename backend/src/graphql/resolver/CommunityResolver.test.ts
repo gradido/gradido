@@ -5,6 +5,7 @@ import {
   AppDatabase,
   Community as DbCommunity,
   FederatedCommunity as DbFederatedCommunity,
+  dbSelectHomeCommunity,
   getHomeCommunity,
 } from 'database'
 import { createCommunity, createVerifiedFederatedCommunity } from 'database/src/seeds/community'
@@ -12,7 +13,11 @@ import { GraphQLError } from 'graphql/error/GraphQLError'
 import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
 import { userFactory } from '@/seeds/factory/user'
-import { login, updateHomeCommunityQuery } from '@/seeds/graphql/mutations'
+import {
+  login,
+  updateHomeCommunityLocationQuery,
+  updateHomeCommunityQuery,
+} from '@/seeds/graphql/mutations'
 import {
   allCommunities,
   getCommunityByIdentifierQuery,
@@ -47,9 +52,6 @@ beforeAll(async () => {
   query = testEnv.query
   db = testEnv.db
   await cleanDB()
-  // reset id auto increment
-  await DbCommunity.clear()
-  await DbFederatedCommunity.clear()
 })
 
 afterAll(async () => {
@@ -186,7 +188,7 @@ describe('CommunityResolver', () => {
                 uuid: null,
                 federatedCommunities: [
                   {
-                    id: 3,
+                    id: homeCom3.id,
                     apiVersion: '2_0',
                     endPoint: 'http://localhost/api/',
                     createdAt: homeCom3.createdAt.toISOString(),
@@ -196,7 +198,7 @@ describe('CommunityResolver', () => {
                     verifiedAt: null,
                   },
                   {
-                    id: 2,
+                    id: homeCom2.id,
                     apiVersion: '1_1',
                     endPoint: 'http://localhost/api/',
                     createdAt: homeCom2.createdAt.toISOString(),
@@ -206,7 +208,7 @@ describe('CommunityResolver', () => {
                     verifiedAt: null,
                   },
                   {
-                    id: 1,
+                    id: homeCom1.id,
                     apiVersion: '1_0',
                     endPoint: 'http://localhost/api/',
                     createdAt: homeCom1.createdAt.toISOString(),
@@ -316,7 +318,7 @@ describe('CommunityResolver', () => {
                 uuid: comHomeCom1.communityUuid,
                 federatedCommunities: [
                   {
-                    id: 3,
+                    id: homeCom3.id,
                     apiVersion: '2_0',
                     endPoint: 'http://localhost/api/',
                     createdAt: homeCom3.createdAt.toISOString(),
@@ -326,7 +328,7 @@ describe('CommunityResolver', () => {
                     verifiedAt: null,
                   },
                   {
-                    id: 2,
+                    id: homeCom2.id,
                     apiVersion: '1_1',
                     endPoint: 'http://localhost/api/',
                     createdAt: homeCom2.createdAt.toISOString(),
@@ -336,7 +338,7 @@ describe('CommunityResolver', () => {
                     verifiedAt: null,
                   },
                   {
-                    id: 1,
+                    id: homeCom1.id,
                     apiVersion: '1_0',
                     endPoint: 'http://localhost/api/',
                     createdAt: homeCom1.createdAt.toISOString(),
@@ -361,7 +363,7 @@ describe('CommunityResolver', () => {
                 uuid: null,
                 federatedCommunities: [
                   {
-                    id: 7,
+                    id: foreignCom4.id,
                     apiVersion: '1_0',
                     endPoint: 'http://remotehost/api/',
                     createdAt: foreignCom4.createdAt.toISOString(),
@@ -371,7 +373,7 @@ describe('CommunityResolver', () => {
                     verifiedAt: null,
                   },
                   {
-                    id: 6,
+                    id: foreignCom3.id,
                     apiVersion: '2_0',
                     endPoint: 'http://remotehost/api/',
                     createdAt: foreignCom3.createdAt.toISOString(),
@@ -396,7 +398,7 @@ describe('CommunityResolver', () => {
                 uuid: comForeignCom2.communityUuid,
                 federatedCommunities: [
                   {
-                    id: 5,
+                    id: foreignCom2.id,
                     apiVersion: '1_1',
                     endPoint: 'http://remotehost/api/',
                     createdAt: foreignCom2.createdAt.toISOString(),
@@ -421,7 +423,7 @@ describe('CommunityResolver', () => {
                 uuid: null,
                 federatedCommunities: [
                   {
-                    id: 4,
+                    id: foreignCom1.id,
                     apiVersion: '1_0',
                     endPoint: 'http://remotehost/api/',
                     createdAt: foreignCom1.createdAt.toISOString(),
@@ -445,8 +447,7 @@ describe('CommunityResolver', () => {
     let foreignCom2: DbCommunity
 
     afterAll(async () => {
-      await DbCommunity.clear()
-      await DbFederatedCommunity.clear()
+      await cleanDB()
     })
 
     describe('with empty list', () => {
@@ -523,7 +524,7 @@ describe('CommunityResolver', () => {
     describe('search community by uuid', () => {
       let homeCom: DbCommunity | null
       beforeAll(async () => {
-        await DbCommunity.clear()
+        await cleanDB()
 
         homeCom = await createCommunity(false, false)
         foreignCom1 = await createCommunity(true, false)
@@ -585,7 +586,7 @@ describe('CommunityResolver', () => {
     let foreignCom2: DbCommunity
 
     beforeAll(async () => {
-      await DbCommunity.clear()
+      await cleanDB()
 
       // create admin and login as admin
       await userFactory(testEnv, peterLustig)
@@ -623,6 +624,43 @@ describe('CommunityResolver', () => {
             gmsApiKey: 'gmsApiKey',
           },
         },
+      })
+    })
+
+    describe('location', () => {
+      const setLocation = (location: { longitude: number; latitude: number } | null) =>
+        mutate({
+          mutation: updateHomeCommunityLocationQuery,
+          variables: { uuid: homeCom.communityUuid, location },
+        })
+
+      it('stores a new location', async () => {
+        await setLocation({ longitude: 13, latitude: 52 })
+        const stored = await dbSelectHomeCommunity()
+        expect(stored?.location).toEqual({ type: 'Point', coordinates: [13, 52] })
+        expect(stored?.updatedAt).toEqual(expect.any(Date))
+      })
+
+      it('does not write the same location again', async () => {
+        await setLocation({ longitude: 13, latitude: 52 })
+        const before = await dbSelectHomeCommunity()
+        await setLocation({ longitude: 13, latitude: 52 })
+        expect(await dbSelectHomeCommunity()).toEqual(before)
+      })
+
+      it('stores a changed location', async () => {
+        await setLocation({ longitude: 13, latitude: 52 })
+        await setLocation({ longitude: 14, latitude: 53 })
+        expect((await dbSelectHomeCommunity())?.location).toEqual({
+          type: 'Point',
+          coordinates: [14, 53],
+        })
+      })
+
+      it('removes the location with null', async () => {
+        await setLocation({ longitude: 13, latitude: 52 })
+        await setLocation(null)
+        expect((await dbSelectHomeCommunity())?.location).toBeNull()
       })
     })
 

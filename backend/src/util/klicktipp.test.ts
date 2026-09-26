@@ -1,6 +1,6 @@
 import { cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
-import { AppDatabase, Event as DbEvent } from 'database'
+import { AppDatabase } from 'database'
 
 import { addFieldsToSubscriber } from '@/apis/KlicktippController'
 import { creations } from '@/seeds/creation'
@@ -27,7 +27,7 @@ beforeAll(async () => {
   testEnv = await testEnvironment()
   mutate = testEnv.mutate
   db = testEnv.db
-  await DbEvent.clear()
+  await cleanDB()
 })
 
 afterAll(async () => {

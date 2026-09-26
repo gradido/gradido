@@ -2,16 +2,14 @@ import {
   ALIAS_ORIGIN_ADOPTED,
   ALIAS_ORIGIN_ASSIGNED,
   ALIAS_ORIGIN_CHOSEN,
-  Community as DbCommunity,
   User as DbUser,
-  UserAlias as DbUserAlias,
-  UserContact as DbUserContact,
 } from '..'
 import { AppDatabase } from '../AppDatabase'
 import { createCommunity } from '../seeds/community'
-import { userFactory } from '../seeds/factory/user'
+import { userFactory, userFactoryBulk } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
+import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import {
   dbAliasHeldByOther,
   dbCountChosenAliasesSince,
@@ -47,19 +45,12 @@ describe('userAliases.queries', () => {
   let bibi: DbUser
   let peter: DbUser
 
-  beforeAll(async () => {
-    await DbUserAlias.clear()
-    await DbUser.clear()
-    await DbUserContact.clear()
-    await DbCommunity.clear()
+  beforeEach(async () => {
+    await dbDeleteAllRowsExceptMigrations()
 
     await createCommunity(false)
     bibi = await userFactory(bibiBloxberg)
     peter = await userFactory(peterLustig)
-  })
-
-  beforeEach(async () => {
-    await DbUserAlias.clear()
   })
 
   describe('dbFindOwnAlias', () => {

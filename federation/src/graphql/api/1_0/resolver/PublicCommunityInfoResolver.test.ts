@@ -1,3 +1,4 @@
+import { cleanDB } from '@test/helpers'
 import { createTestClient } from 'apollo-server-testing'
 import { AppDatabase, Community as DbCommunity } from 'database'
 import { getLogger } from 'log4js'
@@ -11,7 +12,7 @@ CONFIG.FEDERATION_API = '1_0'
 beforeAll(async () => {
   const server = await createServer(getLogger('apollo'))
   query = createTestClient(server.apollo).query
-  DbCommunity.clear()
+  await cleanDB()
 })
 
 afterAll(async () => {

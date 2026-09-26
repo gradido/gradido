@@ -19,16 +19,16 @@ import {
   varchar,
 } from 'drizzle-orm/mysql-core'
 
-import { customGeometry, customGradidoUnit, customMediumBlob } from './customTypes'
+import { customBinary, customGeometry, customGradidoUnit, customMediumBlob } from './customTypes'
 
 export const communitiesTable = mysqlTable(
   'communities',
   {
     id: int().autoincrement().primaryKey().notNull(),
-    foreign: tinyint().default(1).notNull(),
+    foreign: boolean().default(true).notNull(),
     url: varchar({ length: 255 }).notNull(),
-    publicKey: binary('public_key', { length: 32 }).notNull(),
-    privateKey: binary('private_key', { length: 64 }).default(sql`NULL`),
+    publicKey: customBinary('public_key', { length: 32 }).notNull(),
+    privateKey: customBinary('private_key', { length: 64 }).default(sql`NULL`),
     communityUuid: char('community_uuid', { length: 36 }).default(sql`NULL`),
     authenticatedAt: datetime('authenticated_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     name: varchar({ length: 40 }).default(sql`NULL`),
@@ -42,6 +42,21 @@ export const communitiesTable = mysqlTable(
      * pays for the whole backlog at once. Somebody has to say when that happens, and
      * this column is where they say it.
      *
+     * ⛔ Switching it ON is what starts the spending: the run then works through the
+     * entries that have no words, up to a hundred per pass and a pass a minute, until the
+     * backlog is gone. That is not a preference, it is a decision about a bill.
+     *
+     * Switching it OFF is read again before every group, so a pass in flight stops after
+     * the group it is in - at most GROUP_SIZE more entries, not a whole pass. ⚠️ "At most
+     * one group", not "nothing more": the group already running is paid for, and the very
+     * first group of a pass is not re-checked, because the pass just read the column.
+     *
+     * Read through the cached home community (`dbIsMatchingKeyingActive`). The switch is
+     * written via `dbUpdateHomeCommunity`, which invalidates that cache in every process
+     * (Redis pub/sub), so the next read sees it. Should the message get lost, or the row be
+     * written some other way, it is seen once the cache has timed out
+     * (`DEFAULT_CACHE_TIMEOUT_MS`).
+     *
      * Separate from `MATCHING_ACTIVE` on purpose. That one answers "do members see the
      * matching at all" - the menu entry and the routes - and it is compiled into the
      * frontend bundle at build time. Two different questions were riding on it: a
@@ -54,16 +69,11 @@ export const communitiesTable = mysqlTable(
      * not - and the cost belongs to the community that has the members, which is the
      * same reason the model call sits on the community server and not on the GMS.
      *
-     * ⚠️ Read it fresh. `getHomeCommunityDrizzle` caches the community for the life of
-     * the process and never invalidates, so a value read through it would answer with
-     * whatever was true at the first read - which is exactly what a switch must not
-     * do. `dbIsMatchingKeyingActive` is the read that belongs here.
      */
-    matchingKeyingActive: tinyint('matching_keying_active').default(0).notNull(),
+    matchingKeyingActive: boolean('matching_keying_active').default(false).notNull(),
     publicJwtKey: varchar('public_jwt_key', { length: 512 }).default(sql`NULL`),
     privateJwtKey: varchar('private_jwt_key', { length: 2048 }).default(sql`NULL`),
-    // Warning: Can't parse geometry from database
-    // geometryType: geometry("location"),
+    location: customGeometry().default(null),
     hieroTopicId: varchar('hiero_topic_id', { length: 512 }).default(sql`NULL`),
     creationDate: datetime('creation_date', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
@@ -467,8 +477,7 @@ export type UserContactSelect = typeof userContactsTable.$inferSelect
 export type UserContactInsert = typeof userContactsTable.$inferInsert
 
 // Every name a member owns; `users.alias` marks the current one (see migration 0116).
-// `origin` is one of the AliasOrigin values next to the UserAlias entity. The table has
-// a TypeORM entity as well, so it is not in drizzleOnlyTables.
+// `origin` is one of the AliasOrigin values next to the UserAlias entity.
 export const userAliasesTable = mysqlTable(
   'user_aliases',
   {
