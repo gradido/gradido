@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { flushPromises, mount } from '@vue/test-utils'
-import { describe, it, expect, afterEach, vi } from 'vitest'
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import ContactWindow from './ContactWindow.vue'
 import { chatVideoRoom } from '@/graphql/chat.graphql'
 
@@ -487,36 +487,51 @@ describe('ContactWindow', () => {
   })
 
   /**
-   * The heart behind the name, as it stands in every list of the wallet (Bernd, 24.09.2026):
-   * the same component -- favouring somebody is not one of the ways out.
+   * The name has its line to itself (Bernd, 26.09.2026): the marks that stood behind it took a
+   * long name's room on a phone, and went down beside the send button.
    */
-  it('puts the heart behind the name, as in every list', () => {
+  it('gives the name its line to itself', async () => {
     mountWindow()
-    const line = wrapper.find('.contact-window-name-line')
-    const [name, heart] = line.element.children
+    await threadSays({ exists: true, mutedByMe: false })
+    const who = wrapper.find('.contact-window-who')
 
-    expect(name.getAttribute('data-test')).toBe('contact-window-name')
-    expect(heart.getAttribute('data-test')).toBe('heart')
-    expect(heart.getAttribute('data-id')).toBe('carla-id')
+    expect(who.find('[data-test="contact-window-name"]').text()).toBe('Carla-Sonne')
+    for (const mark of ['heart', 'contact-window-bell', 'contact-window-video']) {
+      expect(who.find(`[data-test="${mark}"]`).exists(), mark).toBe(false)
+    }
   })
 
   /**
-   * Behind the name, in Bernd's order (E-031): the heart and the bell, two marks of one's own
-   * on this person. The coin that stood third went under the figures as a button with its word
-   * (Bernd, 24.09.2026), and its place went to the camera (E-033, V2).
+   * Beside the send button, at the right end of its row, in Bernd's order (26.09.2026): the
+   * camera, the bell, the heart. The heart at the very right, where it stands in every list --
+   * the same component (E-030); the bell next to it, both marks of one's own on this person; the
+   * camera next to the button, as it too is a way of getting in touch. The order of the DOM is
+   * the order a keyboard reaches them in: the button first.
    */
-  it('puts heart, bell and camera behind the name, in this order', async () => {
+  it('puts camera, bell and heart at the right of the send button, in this order', async () => {
     mountWindow()
     await threadSays({ exists: true, mutedByMe: false })
 
-    const marks = [...wrapper.find('.contact-window-name-line').element.children].map((e) =>
-      e.getAttribute('data-test'),
-    )
-    expect(marks).toEqual([
-      'contact-window-name',
-      'heart',
-      'contact-window-bell',
+    const [button, marks] = wrapper.find('.contact-window-send').element.children
+    expect(button.getAttribute('data-test')).toBe('contact-window-send')
+    expect(marks.getAttribute('data-test')).toBe('contact-window-marks')
+    expect([...marks.children].map((e) => e.getAttribute('data-test'))).toEqual([
       'contact-window-video',
+      'contact-window-bell',
+      'heart',
+    ])
+    expect(marks.lastElementChild.getAttribute('data-id')).toBe('carla-id')
+  })
+
+  // Before the first message there is no bell (E-024), and the heart stays at the right end.
+  it('keeps the heart at the right end where there is no bell', async () => {
+    mountWindow()
+    await threadSays({ exists: false, mutedByMe: false })
+
+    const marks = wrapper.find('[data-test="contact-window-marks"]').element
+    expect([...marks.children].map((e) => e.getAttribute('data-test'))).toEqual([
+      'contact-window-video',
+      'heart',
     ])
   })
 
@@ -547,16 +562,19 @@ describe('ContactWindow', () => {
   /**
    * One way out, with its word (Bernd, 24.09.2026, at the device: the coin alone behind the
    * name was not taken for a button), under the figures and above the line where the thread
-   * begins -- and no "Send e-mail" beside it.
+   * begins -- and no "Send e-mail" beside it. The marks share its row (26.09.2026), without a
+   * word of their own.
    */
-  it('offers one way out, with its word, under the figures and above the thread', () => {
+  it('offers one way out, with its word, under the figures and above the thread', async () => {
     mountWindow()
+    await threadSays({ exists: true, mutedByMe: false })
     const row = wrapper.find('.contact-window-send')
     const meta = wrapper.find('[data-test="contact-window-meta"]').element
     const thread = wrapper.find('[data-test="chat-thread"]').element
 
-    expect(row.element.children).toHaveLength(1)
+    expect(row.element.children).toHaveLength(2)
     expect(sendButton().text()).toBe('contacts.sendGradido')
+    expect(row.text()).toBe('contacts.sendGradido')
     expect(meta.compareDocumentPosition(row.element) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     )
@@ -1281,16 +1299,52 @@ describe('ContactWindow', () => {
   })
 
   /**
-   * ⛔ The name gives way before the marks do (E-031): the marks may not shrink, the name may.
-   * jsdom lays nothing out, so only the stylesheet can say it.
+   * ⛔ The marks at the right end of the send row, with the empty stretch before them, and never
+   * squeezed: where the row is too narrow, the word gets smaller first (`is-tight`), and past
+   * that the marks go to a line of their own rather than out of the window. A name too long for
+   * its whole line still gives way. jsdom lays nothing out, so only the stylesheet can say it.
    */
-  it('lets the name give way before the marks, in the stylesheet', () => {
+  it('puts the marks at the right end and never squeezes them, in the stylesheet', () => {
     const code = styleOf('ContactWindow.vue')
     const rule = (selector) => code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
 
-    expect(rule('\\.contact-window-name')).toMatch(/min-width:\s*0/)
+    expect(rule('\\.contact-window-marks')).toMatch(/margin-left:\s*auto/)
+    expect(rule('\\.contact-window-marks')).toMatch(/flex:\s*0 0 auto/)
+    expect(rule('\\.contact-window-marks')).toMatch(/gap:\s*0\.5rem/)
     expect(rule('\\.contact-window-mark')).toMatch(/flex:\s*0 0 auto/)
-    expect(rule('\\.contact-window-heart')).toMatch(/flex:\s*0 0 auto/)
+    expect(rule('\\.contact-window-send')).toMatch(/align-items:\s*center/)
+    expect(rule('\\.contact-window-send')).toMatch(/flex-wrap:\s*wrap/)
+    expect(rule('\\.contact-window-name')).toMatch(/min-width:\s*0/)
+    expect(rule('\\.contact-window-name')).toMatch(/text-overflow:\s*ellipsis/)
+  })
+
+  /**
+   * "Sollte bei sehr langen Sprachen der Button zu breit werden, würde ich in diesem Fall auf
+   * eine kleinere Schrift umschalten" (Bernd, 26.09.2026) -- and, where at 320px that alone did
+   * not do it (French, Dutch, Russian, Greek), set closer (Bernd, the same morning, "B"): a
+   * smaller font, less room inside the button, the marks and the row's gap closer. Each in a rule
+   * of its own; the map's rules stay as they are (held above), and each tight value is held
+   * against the one it replaces.
+   */
+  it('sets the tight row closer than its own measure, in the stylesheet', () => {
+    const code = styleOf('ContactWindow.vue')
+    const body = (selector) => code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+    const px = (selector, property) =>
+      Number(body(selector).match(new RegExp(`(?:^|;|\\s)${property}:\\s*([\\d.]+)(px|rem)?`))?.[1])
+    const paddingX = (selector) =>
+      Number(body(selector).match(/(?:^|;|\s)padding:\s*[\d.]+px\s+([\d.]+)px/)?.[1])
+
+    expect(px('\\.send-btn', 'font-size'), 'the button lost its own size').toBe(15)
+    expect(px('\\.contact-window-send\\.is-tight \\.send-btn', 'font-size')).toBeLessThan(15)
+    expect(paddingX('\\.send-btn')).toBe(14)
+    expect(paddingX('\\.contact-window-send\\.is-tight \\.send-btn')).toBeLessThan(14)
+    expect(px('\\.send-btn', 'gap')).toBe(8)
+    expect(px('\\.contact-window-send\\.is-tight \\.send-btn', 'gap')).toBeLessThan(8)
+    expect(px('\\.contact-window-send', 'gap')).toBe(10)
+    expect(px('\\.contact-window-send\\.is-tight', 'gap')).toBeLessThan(10)
+    // 0.5rem between the marks, 8px at the root size; closer when tight.
+    expect(body('\\.contact-window-marks')).toMatch(/gap:\s*0\.5rem/)
+    expect(px('\\.contact-window-send\\.is-tight \\.contact-window-marks', 'gap')).toBeLessThan(8)
   })
 
   /**
@@ -1447,6 +1501,178 @@ describe('ContactWindow', () => {
 
     expect(rule, 'the button lost its own width').toBeDefined()
     expect(rule).toMatch(/flex:\s*0 1 auto/)
+  })
+
+  /**
+   * The smaller font where the word leaves the marks no room beside it -- and only there (Bernd,
+   * 26.09.2026). Measured, not decided by the language. jsdom lays nothing out and has no
+   * ResizeObserver: the test lays the row out itself, says when sizes changed, and runs the
+   * frames when it says so.
+   */
+  describe('the send row', () => {
+    const observers = new Set()
+    class ResizeObserverStandIn {
+      constructor(callback) {
+        this.callback = callback
+        this.watched = []
+        observers.add(this)
+      }
+
+      observe(element) {
+        this.watched.push(element)
+      }
+
+      disconnect() {
+        observers.delete(this)
+      }
+    }
+    const sizesChanged = () => {
+      for (const observer of observers) observer.callback([])
+    }
+
+    let frames = []
+    let frameIds = 0
+    const nextFrame = async () => {
+      const due = frames
+      frames = []
+      for (const frame of due) frame.run()
+      await flushPromises()
+    }
+
+    beforeEach(() => {
+      vi.stubGlobal('ResizeObserver', ResizeObserverStandIn)
+      vi.stubGlobal('requestAnimationFrame', (run) => {
+        frameIds += 1
+        frames.push({ id: frameIds, run })
+        return frameIds
+      })
+      vi.stubGlobal('cancelAnimationFrame', (id) => {
+        frames = frames.filter((frame) => frame.id !== id)
+      })
+    })
+
+    afterEach(() => {
+      vi.unstubAllGlobals()
+      observers.clear()
+      frames = []
+    })
+
+    /**
+     * The row as a browser lays it out, in the widths measured in the wallet at 320px (de, three
+     * marks): the row 272; the button 175.9 in its own measure and 145.2 set closer; the marks
+     * 93.6 and 85.6; 10 between them in the row's own gap -- jsdom applies no stylesheet, so the
+     * row carries that one inline. `row: 0` is a row not laid out yet (the dialog still hidden).
+     */
+    const layOut = ({
+      row,
+      button = 175.9,
+      tightButton = 145.2,
+      marks = 93.6,
+      tightMarks = 85.6,
+    }) => {
+      const rowElement = wrapper.find('.contact-window-send').element
+      const isTight = () => rowElement.classList.contains('is-tight')
+      rowElement.style.columnGap = '10px'
+      Object.defineProperty(rowElement, 'clientWidth', {
+        configurable: true,
+        get: () => Math.round(row),
+      })
+      rowElement.getBoundingClientRect = () => ({ width: row })
+      rowElement.querySelector('.send-btn').getBoundingClientRect = () => ({
+        width: isTight() ? tightButton : button,
+      })
+      rowElement.querySelector('.contact-window-marks').getBoundingClientRect = () => ({
+        width: isTight() ? tightMarks : marks,
+      })
+    }
+    const tight = () => wrapper.find('.contact-window-send').classes('is-tight')
+
+    const openWithMarks = async () => {
+      mountWindow()
+      await threadSays({ exists: true, mutedByMe: false })
+    }
+
+    it('keeps the row in its own measure where the marks fit beside the button', async () => {
+      await openWithMarks()
+      layOut({ row: 312 })
+      sizesChanged()
+      await nextFrame()
+
+      expect(tight()).toBe(false)
+    })
+
+    it('sets the row closer where the word leaves the marks no room', async () => {
+      await openWithMarks()
+      layOut({ row: 272 })
+      sizesChanged()
+      await nextFrame()
+
+      expect(tight()).toBe(true)
+    })
+
+    // 175.9 + 10 + 93.6 = 279.5 does not fit into 270; set closer (145.2 + 10 + 85.6 = 240.8) it
+    // would. Read in the measure the row has just then, it would go back, not fit, go close
+    // again -- a frame each, as long as the window is open.
+    it('decides on the row in its own measure, so it does not flip back', async () => {
+      await openWithMarks()
+      layOut({ row: 270 })
+      sizesChanged()
+      await nextFrame()
+      expect(tight()).toBe(true)
+
+      sizesChanged()
+      await nextFrame()
+      expect(tight()).toBe(true)
+    })
+
+    it('goes back to its own measure where the window grows', async () => {
+      await openWithMarks()
+      layOut({ row: 272 })
+      sizesChanged()
+      await nextFrame()
+      expect(tight()).toBe(true)
+
+      layOut({ row: 390 })
+      sizesChanged()
+      await nextFrame()
+      expect(tight()).toBe(false)
+    })
+
+    // A row of no width is one not laid out yet: every word would "not fit" into it.
+    it('decides nothing before the window is laid out', async () => {
+      await openWithMarks()
+      layOut({ row: 0 })
+      sizesChanged()
+      await nextFrame()
+
+      expect(tight()).toBe(false)
+    })
+
+    // ⚠️ The row's height changes with the font, and a size changed from inside the observer's
+    // callback is one the browser reports as a loop: the decision waits for the next frame.
+    it('decides in the next frame, not in the callback', async () => {
+      await openWithMarks()
+      layOut({ row: 272 })
+      sizesChanged()
+      await flushPromises()
+      expect(tight()).toBe(false)
+
+      await nextFrame()
+      expect(tight()).toBe(true)
+    })
+
+    it('watches the row and both its parts, and lets go when the window closes', async () => {
+      await openWithMarks()
+      const row = wrapper.find('.contact-window-send').element
+      const [observer] = observers
+
+      expect(observers.size).toBe(1)
+      expect(observer.watched).toEqual([row, ...row.children])
+
+      await wrapper.setProps({ modelValue: false })
+      await flushPromises()
+      expect(observers.size).toBe(0)
+    })
   })
 
   it('closes from a cross that says what it is', async () => {
