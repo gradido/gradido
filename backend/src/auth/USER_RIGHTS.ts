@@ -61,9 +61,18 @@ export const USER_RIGHTS = [
   // Asking for a new address, cancelling that request and seeing whether one is pending -
   // one right, because every call reaches the caller's own contact rows and nothing else.
   RIGHTS.MANAGE_OWN_EMAIL,
-  // The contact list is a view on the caller's own bookings, the hearts are the caller's
-  // own rows; there is nothing here that reaches anybody else's data.
+  // The contact list is a view on the caller's own bookings and conversations, the hearts
+  // are the caller's own rows; there is nothing here that reaches anybody else's data.
   RIGHTS.MANAGE_OWN_CONTACTS,
+  // Reading what was written to the caller, marking it read and muting a conversation. Not on
+  // any RESTRICTED_* list: an unconfirmed account and a project account read what they were
+  // sent like anybody else, and may ask for quiet; the two things written are marks on the
+  // caller's own member row, the read pointer and the mute mark.
+  RIGHTS.READ_OWN_CHAT,
+  // Writing a chat message. On RESTRICTED_WHILE_UNCONFIRMED, like SEND_COINS for the form
+  // "send an e-mail": it acts outward. Not on RESTRICTED_FOR_PROJECT_ACCOUNT -- a project
+  // account does not create (ES-021), and it writes like anybody else.
+  RIGHTS.SEND_CHAT_MESSAGE,
   // The first creation: status, submit and skip all act on the caller's own process. Also
   // on RESTRICTED_WHILE_UNCONFIRMED: inside the 24-hour window (EM-013) it is open, after
   // it the whole window closes with the other value-creating rights.
@@ -72,6 +81,8 @@ export const USER_RIGHTS = [
   // reaches nobody else's data, so there is nothing an unconfirmed or a project account
   // could do with it that anybody else could not.
   RIGHTS.SHOW_FRIENDS,
+  // The table code: minted in the caller's own name only, the query takes no argument.
+  RIGHTS.PRESENCE_CODE,
   // ES-021: both reach the caller's own account and nothing else. Neither is on
   // RESTRICTED_FOR_PROJECT_ACCOUNT — the way back (a request to the support) has to stay
   // open to the very account that is locked out of creating.

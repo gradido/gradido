@@ -105,17 +105,6 @@ export const schema = Joi.object({
     .description('Base of the confirm and veto links of an e-mail address change.')
     .required(),
 
-  EMAIL_LINK_REGISTER_ASSIST: Joi.string()
-    .uri({ scheme: ['http', 'https'] })
-    .custom((value: string, helpers: Joi.CustomHelpers<string>): string | Joi.ErrorReport => {
-      if (!value.startsWith(helpers.state.ancestors[0].COMMUNITY_URL)) {
-        return helpers.error('string.pattern.base', { value, communityUrl: COMMUNITY_URL })
-      }
-      return value
-    })
-    .description('Base of the helper link in the multi-registration mail (EM-013).')
-    .required(),
-
   EMAIL_LINK_CONFIRM_EMAIL: Joi.string()
     .uri({ scheme: ['http', 'https'] })
     .custom((value: string, helpers: Joi.CustomHelpers<string>): string | Joi.ErrorReport => {
@@ -160,6 +149,16 @@ export const schema = Joi.object({
     .default(60000)
     .description('Timer interval in milliseconds for community validation')
     .required(),
+
+  // Any string: chatVideoServers() reads it entry by entry and skips an unusable entry with a
+  // warning. A rule here would keep the whole backend from starting over one mistyped server.
+  // Only the seed since V3: the table chat_video_servers is the list, kept on the admin page.
+  CHAT_VIDEO_SERVERS: Joi.string()
+    .allow('')
+    .default('')
+    .description(
+      'Seed for the list of Jitsi servers for chat video rooms, "base address|operator|room prefix" separated by ";" -- written into the table chat_video_servers at a start while the table is empty, after that the admin page "Chat" keeps the list; empty: the checked public servers built into the backend',
+    ),
 
   // Matching. Its own switch rather than part of the GMS or Anthropic blocks: it uses
   // both, and turning either of those on must not turn this on with them.

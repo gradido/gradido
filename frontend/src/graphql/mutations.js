@@ -156,6 +156,8 @@ export const createUser = gql`
     $redeemCode: String
     $project: String
     $referrerAlias: String
+    $presenceCode: String
+    $password: String
   ) {
     createUser(
       email: $email
@@ -166,6 +168,8 @@ export const createUser = gql`
       redeemCode: $redeemCode
       project: $project
       referrerAlias: $referrerAlias
+      presenceCode: $presenceCode
+      password: $password
     ) {
       id
     }
@@ -360,14 +364,6 @@ export const setUserAvatar = gql`
 export const removeUserAvatar = gql`
   mutation {
     removeUserAvatar
-  }
-`
-
-export const completeAssistedRegistration = gql`
-  mutation ($assistCode: String!, $email: String!, $password: String!) {
-    completeAssistedRegistration(assistCode: $assistCode, email: $email, password: $password) {
-      redeemCode
-    }
   }
 `
 

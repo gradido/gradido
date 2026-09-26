@@ -650,15 +650,6 @@ export const thankYouCardPaymentTarget = gql`
   }
 `
 
-export const assistedRegistrationInfo = gql`
-  query ($assistCode: String!) {
-    assistedRegistrationInfo(assistCode: $assistCode) {
-      firstName
-      lastName
-    }
-  }
-`
-
 export const creaSettings = gql`
   query {
     creaSettings {
@@ -724,6 +715,23 @@ export const showFriends = gql`
   }
 `
 
+export const presenceCode = gql`
+  query {
+    presenceCode {
+      code
+      alias
+      expiresAt
+      remainingMs
+      unconfirmedGuests {
+        firstName
+        lastName
+        alias
+        createdAt
+      }
+    }
+  }
+`
+
 export const contactList = gql`
   query (
     $currentPage: Int = 1
@@ -749,6 +757,92 @@ export const contactList = gql`
         favorite
         homeCommunity
         origin
+        unreadChatMessages
+        lastChatMessageAt
+      }
+    }
+  }
+`
+
+export const chatMessagesWithMember = gql`
+  query ($ref: MemberAvatarRefInput!, $before: Int, $limit: Int) {
+    chatMessagesWithMember(ref: $ref, before: $before, limit: $limit) {
+      hasMore
+      mutedByMe
+      messages {
+        id
+        messageUuid
+        conversationId
+        sender {
+          communityUuid
+          gradidoID
+        }
+        mine
+        subject
+        body
+        createdAt
+        deliveryState
+        notify
+        mailState
+      }
+    }
+  }
+`
+
+export const newChatMessagesSince = gql`
+  query ($afterId: Int, $limit: Int) {
+    newChatMessagesSince(afterId: $afterId, limit: $limit) {
+      latestId
+      unreadConversations
+      hasMore
+      messages {
+        id
+        messageUuid
+        conversationId
+        sender {
+          communityUuid
+          gradidoID
+        }
+        mine
+        subject
+        body
+        createdAt
+        deliveryState
+        notify
+        mailState
+      }
+    }
+  }
+`
+
+export const chatVideoRoom = gql`
+  query {
+    chatVideoRoom {
+      url
+      host
+      operator
+    }
+  }
+`
+
+export const chatVideoServers = gql`
+  query {
+    chatVideoServers {
+      id
+      baseUrl
+      host
+      operator
+      roomPrefix
+      note
+      active
+      createdAt
+      updatedAt
+      check {
+        ok
+        reason
+        checkedAt
+        latencyMs
+        picks
       }
     }
   }

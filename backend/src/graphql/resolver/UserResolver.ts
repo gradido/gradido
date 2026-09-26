@@ -55,6 +55,7 @@ import {
   dbFindOwnAlias,
   dbFindProjectBrandingByAlias,
   dbFindProjectSpaceId,
+  dbFindUnconfirmedVouchedAccounts,
   dbFindUserAvatarFull,
   dbFindUserAvatarSmall,
   dbFindUserByEmailOrFail,
@@ -62,14 +63,14 @@ import {
   dbFindUserContactByCodeOrFail,
   dbFindUserLoginByEmail,
   dbFindUsers,
-  dbInsertAssistedRegistration,
+  dbInsertEvent,
   dbInsertUserAlias,
   dbMarkAliasAdopted,
-  dbPurgeExpiredAssistedRegistrations,
   dbReleaseUnconfirmedEmailChangeFor,
   dbUpsertUserAvatar,
   dbUserUpdateField,
   dbUserUpdatePassword,
+  EventType,
   emailContactByUserIdQuery,
   findUserByIdentifier,
   getCommunityByUuid,
@@ -121,11 +122,7 @@ import { encode } from '@/auth/JWT'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import {
-  canEmailResend,
-  emailChangeExpiryCutoff,
-  isEmailVerificationCodeValid,
-} from '@/data/EmailVerificationCode.logic'
+import { canEmailResend, isEmailVerificationCodeValid } from '@/data/EmailVerificationCode.logic'
 import {
   MEMBER_AVATARS_FULL_MAX_PER_REQUEST,
   MEMBER_AVATARS_MAX_REFS,
@@ -133,23 +130,9 @@ import {
   splitMemberRefsByCommunity,
   XCOM_MEMBER_AVATARS_TIMEOUT_MS,
 } from '@/data/MemberAvatars.logic'
+import { inMemberLine } from '@/data/MemberLine.logic'
+import { PRESENCE_MAX_UNCONFIRMED, verifyPresenceCode } from '@/data/PresenceCode.logic'
 import { PublishNameLogic } from '@/data/PublishName.logic'
-import {
-  EVENT_ADMIN_USER_DELETE,
-  EVENT_ADMIN_USER_ROLE_SET,
-  EVENT_ADMIN_USER_UNDELETE,
-  EVENT_EMAIL_ACCOUNT_MULTIREGISTRATION,
-  EVENT_EMAIL_ADMIN_CONFIRMATION,
-  EVENT_EMAIL_CONFIRMATION,
-  EVENT_EMAIL_FORGOT_PASSWORD,
-  EVENT_USER_ACTIVATE_ACCOUNT,
-  EVENT_USER_INFO_UPDATE,
-  EVENT_USER_LOGIN,
-  EVENT_USER_LOGOUT,
-  EVENT_USER_REGISTER,
-  Event,
-  EventType,
-} from '@/event/Events'
 import { registerAccount } from '@/interactions/registerAccount/RegisterAccount.context'
 import { isValidPassword } from '@/password/EncryptorUtils'
 import { encryptPassword, fakeVerifyPassword, verifyPassword } from '@/password/PasswordEncryptor'
@@ -401,7 +384,11 @@ export class UserResolver {
       value: await encode(dbUser.gradidoId),
     })
 
-    await EVENT_USER_LOGIN(legacyUser)
+    await dbInsertEvent({
+      type: EventType.USER_LOGIN,
+      affectedUserId: legacyUser.id,
+      actingUserId: legacyUser.id,
+    })
     const projectBrandingSpaceId = await projectBrandingSpaceIdPromise
     logger.debug('project branding: ', projectBrandingSpaceId)
     // load humhub state
@@ -425,7 +412,11 @@ export class UserResolver {
   @Authorized([RIGHTS.LOGOUT])
   @Mutation(() => Boolean)
   async logout(@Ctx() context: Context): Promise<boolean> {
-    await EVENT_USER_LOGOUT(getUser(context))
+    await dbInsertEvent({
+      type: EventType.USER_LOGOUT,
+      affectedUserId: getUser(context).id,
+      actingUserId: getUser(context).id,
+    })
     return true
   }
 
@@ -443,6 +434,8 @@ export class UserResolver {
       redeemCode = null,
       project = null,
       referrerAlias = null,
+      presenceCode = null,
+      password = null,
     }: CreateUserArgs,
   ): Promise<User> {
     const logger = createLogger('createUser')
@@ -461,6 +454,11 @@ export class UserResolver {
     if (project) {
       infos.push(`project=${project}`)
     }
+    // That a table code came along, never the code itself: for ten minutes it vouches for an
+    // account in a member's name. The request log masks it too (filterVariables).
+    if (presenceCode) {
+      infos.push('presenceCode')
+    }
     logger.info(`createUser(${infos.join(', ')})`)
 
     // TODO: wrong default value (should be null), how does graphql work here? Is it an required field?
@@ -469,6 +467,64 @@ export class UserResolver {
     // Validate Language (no throw)
     if (!language || !isLanguage(language)) {
       language = DEFAULT_LANGUAGE
+    }
+
+    // E-017, the table code: a guest who scanned a member's live card may choose a password
+    // here. Every check of the code comes before the address is looked at - the member and
+    // their limit below too - so what they answer is about the code, the password and the
+    // member, and never about the address. A password without a code is refused rather than
+    // dropped: a value nobody expected must not vanish silently.
+    if (password && !presenceCode) {
+      throw new LogError('Password requires a presence code')
+    }
+    // A table code vouches through the member whose address it came with. registerAccount
+    // looks that member up only when no redeem code came along, so with one - even a made-up
+    // one - the account would get a password while nobody, or the link's owner, is recorded
+    // as having vouched. The wallet never sends both.
+    if (presenceCode && redeemCode) {
+      throw new LogError('Presence code together with a redeem code')
+    }
+    let presenceValid = false
+    let presenceCommunityUuid = ''
+    if (presenceCode) {
+      // The code must be the one shown by the member whose address the guest came from.
+      const homeCom = await getHomeCommunity()
+      if (!homeCom?.communityUuid) {
+        // Its own answer, not "expired": the seal is bound to this community, so without it
+        // every code fails the check - and the guest would be told to fetch a fresh one, which
+        // fails the same way. `presenceCode` says the same when it cannot mint one.
+        throw new LogError('No home community')
+      }
+      presenceCommunityUuid = homeCom.communityUuid
+      presenceValid = verifyPresenceCode(presenceCode, referrerAlias ?? '', presenceCommunityUuid)
+      if (!presenceValid) {
+        throw new LogError('Presence code invalid or expired')
+      }
+    }
+    if (password && !isValidPassword(password)) {
+      throw new LogError(
+        'Please enter a valid password with at least 8 characters, upper and lower case letters, at least one number and one special character!',
+      )
+    }
+    // E-019: an account that can act without a mailbox is opened only while the member who
+    // vouches for it holds fewer than PRESENCE_MAX_UNCONFIRMED unconfirmed ones. Counted here,
+    // before the address: at the limit a taken address gets the same refusal as a free one -
+    // the silence below would tell them apart - and a request over the limit never waits in
+    // the member's line. Counted again in that line, where it decides: one after another per
+    // member in this process, and whoever waits holds no connection.
+    const refuseAtLimit = (guests: unknown[]) => {
+      if (guests.length >= PRESENCE_MAX_UNCONFIRMED) {
+        throw new LogError('Vouching limit reached')
+      }
+    }
+    let referrer: DbUser | null = null
+    if (presenceValid && password) {
+      referrer = await findUserByIdentifier(referrerAlias ?? '', presenceCommunityUuid)
+      if (!referrer) {
+        // Deleted after showing the code: without the member, nobody vouches.
+        throw new LogError('Presence code invalid or expired')
+      }
+      refuseAtLimit(await dbFindUnconfirmedVouchedAccounts(referrer.id))
     }
 
     // check if user with email still exists?
@@ -498,36 +554,17 @@ export class UserResolver {
         }
         logger.debug('partly faked user', { id: user.id, gradidoID: user.gradidoID })
 
-        // EM-013, the doorbell: only when the attempt carried a redeem code (the café
-        // case) is it parked and the mail offers the helper branch. Without one, the
-        // mail — and everything the form ever sees — stays byte-identical to before.
-        // The answer to the form does not change in either case (silence rule).
-        let helperLink: string | null = null
-        if (redeemCode) {
-          // Same validity window as every other mail code; expired rows go lazily here.
-          await dbPurgeExpiredAssistedRegistrations(emailChangeExpiryCutoff())
-          const assistCode = random(64) as bigint
-          await dbInsertAssistedRegistration({
-            firstName,
-            lastName,
-            language,
-            redeemCode,
-            publisherId,
-            project,
-            hostUserId: foundUser.id,
-            assistCode,
-          })
-          helperLink = CONFIG.EMAIL_LINK_REGISTER_ASSIST + assistCode.toString()
-        }
-
         await sendAccountMultiRegistrationEmail({
           firstName: foundUser.firstName, // this is the real name of the email owner, but just "firstName" would be the name of the new registrant which shall not be passed to the outside
           lastName: foundUser.lastName, // this is the real name of the email owner, but just "lastName" would be the name of the new registrant which shall not be passed to the outside
           email,
           language: foundUser.language, // use language of the emails owner for sending
-          helperLink,
         })
-        await EVENT_EMAIL_ACCOUNT_MULTIREGISTRATION(foundUser)
+        await dbInsertEvent({
+          type: EventType.EMAIL_ACCOUNT_MULTIREGISTRATION,
+          affectedUserId: foundUser.id,
+          actingUserId: 0,
+        })
 
         /* uncomment this, when you need the activation link on the console */
         // In case EMails are disabled log the activation link for the user
@@ -538,22 +575,48 @@ export class UserResolver {
     }
     // The whole account-creation flow lives in the registerAccount interaction now —
     // moved there verbatim so the assisted registration (EM-013) shares it instead of
-    // growing a second copy. passwordPlain: null keeps this the classic registration.
-    const dbUser = await registerAccount(
-      {
-        email,
-        firstName,
-        lastName,
-        language,
-        publisherId,
-        redeemCode,
-        project,
-        alias,
-        passwordPlain: null,
-        referrerAlias,
-      },
-      logger,
-    )
+    // growing a second copy. passwordPlain: null keeps this the classic registration; a
+    // password reaches it only with a valid table code (E-017), checked above.
+    const registration = {
+      email,
+      firstName,
+      lastName,
+      language,
+      publisherId,
+      redeemCode,
+      project,
+      alias,
+      passwordPlain: presenceValid ? password : null,
+      referrerAlias,
+      // Only the table code resolves the member up here, and only then does the row have to
+      // name the same one that was counted. Everybody else leaves this null and registerAccount
+      // looks the address up as it always did.
+      referrerId: referrer?.id ?? null,
+    }
+    const openAccount = () => registerAccount(registration, logger)
+    let dbUser: DbUser
+    if (referrer) {
+      // Parallel registrations can all have read "four" above: counted again and opened one
+      // after another per member in this process, the count decides. Whoever waits holds no
+      // connection, only a promise; registerAccount commits before it returns, so the next in
+      // line counts the account just opened. A taken address never gets here - the silence
+      // above answered for it and counts nothing.
+      const referrerId = referrer.id
+      dbUser = await inMemberLine(referrerId, async () => {
+        refuseAtLimit(await dbFindUnconfirmedVouchedAccounts(referrerId))
+        return openAccount()
+      })
+    } else {
+      dbUser = await openAccount()
+    }
+    // Only the id goes into the event: no lookup of the member.
+    if (presenceValid && dbUser.referrerId) {
+      await dbInsertEvent({
+        type: EventType.USER_REGISTER_PRESENCE,
+        affectedUserId: dbUser.id,
+        actingUserId: dbUser.referrerId,
+      })
+    }
     return new User(dbUser)
   }
 
@@ -610,7 +673,11 @@ export class UserResolver {
     })
 
     logger.info(`forgotPassword successful...`)
-    await EVENT_EMAIL_FORGOT_PASSWORD(user)
+    await dbInsertEvent({
+      type: EventType.EMAIL_FORGOT_PASSWORD,
+      affectedUserId: user.id,
+      actingUserId: 0,
+    })
 
     return true
   }
@@ -702,7 +769,11 @@ export class UserResolver {
         logger.error('Error subscribing to klicktipp', e)
       }
     }
-    await EVENT_USER_ACTIVATE_ACCOUNT(user)
+    await dbInsertEvent({
+      type: EventType.USER_ACTIVATE_ACCOUNT,
+      affectedUserId: user.id,
+      actingUserId: user.id,
+    })
 
     return true
   }
@@ -858,8 +929,7 @@ export class UserResolver {
       // often somebody chose, and why coming back to an earlier name is free.
       if (alias && alias !== user.alias) {
         await validateAlias(alias, user.id)
-        const communityUuid = user.communityUuid
-        const ownAlready = await dbFindOwnAlias(user.id, alias, communityUuid, queryRunner.manager)
+        const ownAlready = await dbFindOwnAlias(user.id, alias, queryRunner.manager)
         if (!ownAlready) {
           const since = new Date(Date.now() - ALIAS_QUOTA_WINDOW_MS)
           const picked = await dbCountChosenAliasesSince(user.id, since, queryRunner.manager)
@@ -867,13 +937,7 @@ export class UserResolver {
             logger.warn('alias quota exhausted', picked)
             throw new LogError('ALIAS_QUOTA_EXHAUSTED')
           }
-          await dbInsertUserAlias(
-            user.id,
-            alias,
-            communityUuid,
-            ALIAS_ORIGIN_CHOSEN,
-            queryRunner.manager,
-          )
+          await dbInsertUserAlias(user.id, alias, ALIAS_ORIGIN_CHOSEN, queryRunner.manager)
           logger.debug('member took a new alias')
         } else {
           logger.debug('member reclaimed an alias they already owned')
@@ -950,7 +1014,11 @@ export class UserResolver {
     }
     logger.info('updateUserInfos() successfully finished...')
     logger.debug('writing User data successful...', new UserLoggingView(user))
-    await EVENT_USER_INFO_UPDATE(user)
+    await dbInsertEvent({
+      type: EventType.USER_INFO_UPDATE,
+      affectedUserId: user.id,
+      actingUserId: user.id,
+    })
 
     // validate if user settings are changed with relevance to update gms-user
     try {
@@ -1313,7 +1381,7 @@ export class UserResolver {
     const logger = createLogger('adoptAlias')
     logger.addContext('user', user.id)
 
-    const row = await dbFindOwnAlias(user.id, user.alias, user.communityUuid)
+    const row = await dbFindOwnAlias(user.id, user.alias)
     if (!row) {
       logger.warn('no row for the alias the member holds')
       throw new LogError('ALIAS_NOT_FOUND')
@@ -1577,7 +1645,11 @@ export class UserResolver {
     } else {
       newRole = await setUserRole(user, role)
     }
-    await EVENT_ADMIN_USER_ROLE_SET(user, moderator)
+    await dbInsertEvent({
+      type: EventType.ADMIN_USER_ROLE_SET,
+      affectedUserId: user.id,
+      actingUserId: moderator.id,
+    })
     return newRole
   }
 
@@ -1599,7 +1671,11 @@ export class UserResolver {
     }
     // soft-delete user
     await user.softRemove()
-    await EVENT_ADMIN_USER_DELETE(user, moderator)
+    await dbInsertEvent({
+      type: EventType.ADMIN_USER_DELETE,
+      affectedUserId: user.id,
+      actingUserId: moderator.id,
+    })
     const newUser = await DbUser.findOne({ where: { id: userId }, withDeleted: true })
     return newUser ? newUser.deletedAt : null
   }
@@ -1618,7 +1694,11 @@ export class UserResolver {
       throw new LogError('User is not deleted')
     }
     await user.recover()
-    await EVENT_ADMIN_USER_UNDELETE(user, getUser(context))
+    await dbInsertEvent({
+      type: EventType.ADMIN_USER_UNDELETE,
+      affectedUserId: user.id,
+      actingUserId: getUser(context).id,
+    })
     return null
   }
 
@@ -1650,7 +1730,11 @@ export class UserResolver {
       timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
-    await EVENT_EMAIL_ADMIN_CONFIRMATION(user, getUser(context))
+    await dbInsertEvent({
+      type: EventType.EMAIL_ADMIN_CONFIRMATION,
+      affectedUserId: user.id,
+      actingUserId: getUser(context).id,
+    })
 
     return true
   }
@@ -1865,9 +1949,9 @@ export async function checkEmailExists(email: string): Promise<boolean> {
   // running either. Whoever registers will have to answer mail at the address; whoever typed
   // it in has answered nothing, and could hold it for as long as they kept asking again.
   //
-  // The three callers are the registration, the assisted registration and the Elopage
-  // webhook - every door through which an address becomes somebody's account. A confirmed
-  // row is untouched, so this never takes an address away from the member it belongs to.
+  // The two callers are the registration and the Elopage webhook - every door through which
+  // an address becomes somebody's account. A confirmed row is untouched, so this never takes
+  // an address away from the member it belongs to.
   await dbReleaseUnconfirmedEmailChangeFor(email)
   return dbEmailTaken(email)
 }

@@ -43,6 +43,74 @@
     "titleRemove": "Remove reminder?"
   },
   "change_user_role": "Kullanıcı rolünü değiştir",
+  "chatAdmin": {
+    "adminOnly": "Yalnızca yöneticiler için.",
+    "created": "Sunucu eklendi.",
+    "edit": "Düzenle",
+    "errors": {
+      "duplicate": "Bu sunucu zaten listede.",
+      "invalid": {
+        "BAD_PREFIX": "Önek yalnızca harf ve rakam içerebilir.",
+        "NOT_A_BASE_ADDRESS": "Adres “?”, “#” veya bir kullanıcı adı içeremez.",
+        "NOT_HTTPS": "Adres https:// ile başlamalıdır.",
+        "TOO_LONG": "Bir alan çok uzun.",
+        "other": "Kayıt uygun değil ({reason})."
+      },
+      "notFound": "Bu kayıt artık yok. Liste yeniden yüklendi."
+    },
+    "form": {
+      "active": "Rastgele seçimde",
+      "add": "Ekle",
+      "addTitle": "Sunucu ekle",
+      "baseUrl": "Adres",
+      "baseUrlHint": "Jitsi sunucusunun https:// ile başlayan adresi, oda adı olmadan.",
+      "note": "Not",
+      "operator": "İşletmeci",
+      "operatorHint": "Künyede adlandırıldığı gibi. Üyeler bu adı davette okur.",
+      "prefix": "Önek",
+      "prefixHint": "Yalnızca harf ve rakam. Eğik çizginin hemen ardından gelir, onu on iki rastgele karakter izler. Boş: yalnızca rastgele karakterler."
+    },
+    "reason": {
+      "LOGIN_REQUIRED": "giriş gerekli",
+      "NOT_JITSI": "Jitsi değil",
+      "NO_ANONYMOUS": "anonim oda yok",
+      "NO_BOSH": "XMPP yanıtı yok",
+      "UNREACHABLE": "erişilemiyor"
+    },
+    "remove": "Sil",
+    "removeDialog": {
+      "confirm": "Sil",
+      "hint": "Gönderilmiş davetler geçerli kalır. Yeni görüşmeler artık bu sunucu üzerinden yapılmaz.",
+      "question": "{host} listeden silinsin mi?",
+      "title": "Sunucuyu sil"
+    },
+    "removed": "Sunucu silindi.",
+    "save": "Kaydet",
+    "servers": {
+      "active": "Etkin",
+      "activeOff": "{host} artık rastgele seçimde değil.",
+      "activeOn": "{host} şimdi rastgele seçimde.",
+      "activeTitle": "Rastgele seçimde",
+      "checkNow": "Şimdi kontrol et",
+      "checked": "{count} sunucudan {ok} tanesi yanıt veriyor.",
+      "checking": "kontrol ediliyor …",
+      "empty": "Liste boş, bu yüzden sohbet şu anda hiçbir sunucu önermiyor. Sunucunun bir sonraki başlangıcında liste hâlâ boşsa yeniden doldurulur: sunucu ayarlarındaki sunucularla ya da ayar yoksa kontrol edilmiş herkese açık sunucularla. Görüntülü görüşmeleri kapatmak için sunucuları listede bırak ve işaretlerini kaldır.",
+      "fairness": "Herkese açık sunucular çoğunlukla gönüllülere aittir. Yalnızca işletmecinin açıkça herkese sunduğu sunucuları ekle.",
+      "hint": "Bu sunucular üyelere görüntülü görüşmeler için önerilir. Son kontrolde yanıt veren etkin sunucular arasından rastgele biri seçilir; kontrol her on dakikada bir yapılır.",
+      "noOperator": "işletmeci belirtilmemiş",
+      "picks": "Sunucu başlangıcından beri davetler: {count}",
+      "prefix": "önek {prefix}",
+      "title": "Görüntülü görüşmeler: sunucular"
+    },
+    "state": {
+      "checkedAt": "son kontrol {when}",
+      "failed": "yanıt vermiyor: {reason}",
+      "ok": "yanıt veriyor, {ms} ms",
+      "unchecked": "henüz kontrol edilmedi"
+    },
+    "title": "Sohbet",
+    "updated": "Kaydedildi."
+  },
   "close": "Kapat",
   "contribution": {
     "changeGroup": "Yaratım grubunu değiştir",
@@ -388,6 +456,7 @@
   "name": "Ad",
   "navbar": {
     "automaticContributions": "Başlangıç bakiyesi",
+    "chat": "Sohbet",
     "crea": "Crea",
     "creationGroups": "Creation groups",
     "instances": "Örnekler",

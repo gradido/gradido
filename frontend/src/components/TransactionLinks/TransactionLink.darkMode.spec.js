@@ -118,3 +118,31 @@ describe('TransactionLink in dark mode', () => {
     expect(dark.colour).toBe('#6b6c6f')
   })
 })
+
+/**
+ * The memo fades with its row, in both modes (Bernd, 23.09.2026). It has a colour of its own for
+ * an open link, and a colour set on an element beats the one its row hands down, however
+ * !important that was: in an expired row the memo stayed at --bs-secondary-color, darker than the
+ * rest of the row in light mode and brighter in dark mode. So in an expired row it has to inherit,
+ * by a rule that outweighs its own colour, and the dark stylesheet has to leave it alone -- the
+ * dark grey reaches it through the row.
+ */
+describe("an expired link's memo", () => {
+  it("inherits the row's grey by a rule that outweighs its own colour", () => {
+    const rules = colourRules(componentCss(), 'transaction-link-memo')
+    const own = rules.find((rule) => !rule.selector.includes('.light-gray-text'))
+    const expired = rules.find((rule) => rule.selector.includes('.light-gray-text '))
+
+    expect(own, "the memo's colour for an open link is gone").toBeDefined()
+    expect(expired, 'nothing gives the memo of an expired row its colour').toBeDefined()
+    expect(expired.colour).toBe('inherit')
+    expect(outweighs(expired, own), `${expired.selector} must outweigh ${own.selector}`).toBe(true)
+  })
+
+  it('gets no colour from the dark stylesheet, so the dark grey reaches it through the row', () => {
+    const dark = darkCss()
+
+    expect(colourRules(dark, 'transaction-link-memo')).toEqual([])
+    expect(colourRules(dark, 'memo-text')).toEqual([])
+  })
+})

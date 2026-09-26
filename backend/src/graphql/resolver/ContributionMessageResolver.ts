@@ -6,12 +6,13 @@ import {
   AppDatabase,
   Contribution as DbContribution,
   ContributionMessage as DbContributionMessage,
+  dbInsertEvent,
   dbSelectContributionUserId,
+  EventType,
 } from 'database'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { EntityManager } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { EVENT_CONTRIBUTION_MESSAGE_CREATE } from '@/event/Events'
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
 import { Context, getClientTimezoneOffset, getRole, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
@@ -69,11 +70,13 @@ export class ContributionMessageResolver {
     }
     const user = getUser(context)
 
-    await EVENT_CONTRIBUTION_MESSAGE_CREATE(
-      user,
-      { id: contributionId } as DbContribution,
-      finalContributionMessage,
-    )
+    await dbInsertEvent({
+      type: EventType.CONTRIBUTION_MESSAGE_CREATE,
+      affectedUserId: user.id,
+      actingUserId: user.id,
+      involvedContributionId: contributionId,
+      involvedContributionMessageId: finalContributionMessage.id,
+    })
     return new ContributionMessage(finalContributionMessage)
   }
 

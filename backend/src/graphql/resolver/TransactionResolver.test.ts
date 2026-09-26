@@ -1,23 +1,35 @@
+import { randomBytes } from 'node:crypto'
 import { cleanDB, testEnvironment } from '@test/helpers'
 import { ApolloServerTestClient } from 'apollo-server-testing'
 import { getLogger } from 'config-schema/test/testSetup'
-import { CONFIG as CORE_CONFIG } from 'core'
+import { CONFIG as CORE_CONFIG, sendCustomEmail } from 'core'
 import {
   AppDatabase,
+  chatConversationMembersTable,
+  chatConversationsTable,
+  chatMessagesTable,
   Community as DbCommunity,
   Event as DbEvent,
+  FederatedCommunity as DbFederatedCommunity,
   dbUpsertForeignMemberAvatarDates,
+  EventType,
   foreignReceive,
   Transaction,
   User,
 } from 'database'
 import { GraphQLError } from 'graphql'
-import { GradidoUnit } from 'shared'
+import { GraphQLClient } from 'graphql-request'
+import {
+  CommandJwtPayloadType,
+  createKeyPair,
+  GradidoUnit,
+  uuidv4Schema,
+  verifyAndDecrypt,
+} from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
 // import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { EventType } from '@/event/Events'
 // import { V1_0_SendCoinsClient } from 'core'
 // import { SendCoinsArgs } from 'core'
 // import { SendCoinsResult } from 'core'
@@ -28,6 +40,8 @@ import {
   login,
   removeUserAvatar,
   sendCoins,
+  sendEmail,
+  setChatConversationMuted,
   setUserAvatar,
   updateUserInfos,
 } from '@/seeds/graphql/mutations'
@@ -39,6 +53,17 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 
 jest.mock('@/password/EncryptorUtils')
+// The mail is watched, to see whether a message goes out as one, and answers as a mail that
+// went out: the chat notes MAILED only for such a mail (E-034), and with mail switched off here
+// the real function would answer null. Nothing is sent either way.
+jest.mock('core', () => {
+  const originalModule = jest.requireActual('core')
+  return {
+    __esModule: true,
+    ...originalModule,
+    sendCustomEmail: jest.fn(async () => ({ accepted: ['watched'] })),
+  }
+})
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 CONFIG.DLT_ACTIVE = false
@@ -941,6 +966,374 @@ describe('transactionList', () => {
           errors: undefined,
         })
       })
+    })
+  })
+})
+
+/**
+ * The chat's first step: every message that goes out through "send e-mail" is filed as well.
+ * Nothing reads the rows yet, so these cases read the tables themselves.
+ */
+describe('sendEmail', () => {
+  const SUBJECT = 'About Saturday'
+  const MEMO = 'Shall we meet at ten?\nAt the market.'
+
+  const drizzle = () => AppDatabase.getInstance().getDrizzleDataSource()
+  const conversations = () => drizzle().select().from(chatConversationsTable)
+  const members = () => drizzle().select().from(chatConversationMembersTable)
+  // In the order of arrival: the id is the only order a conversation has.
+  const messages = async () =>
+    (await drizzle().select().from(chatMessagesTable)).sort((a, b) => a.id - b.id)
+  const pairOf = (member: User) => `${member.communityUuid}/${member.gradidoID}`
+  const loginAs = (email: string) =>
+    mutate({ mutation: login, variables: { email, password: 'Aa12345_' } })
+
+  let bobMember: User
+  let peterMember: User
+
+  beforeAll(async () => {
+    await cleanDB()
+    bobMember = await userFactory(testEnv, bobBaumeister)
+    peterMember = await userFactory(testEnv, peterLustig)
+  })
+
+  afterAll(async () => {
+    await cleanDB()
+  })
+
+  describe('within the community', () => {
+    it('files the message once, in a conversation of the two', async () => {
+      await loginAs('bob@baumeister.de')
+      await expect(
+        mutate({
+          mutation: sendEmail,
+          variables: {
+            recipientCommunityIdentifier: bobMember.communityUuid,
+            recipientIdentifier: peterMember.gradidoID,
+            subject: SUBJECT,
+            memo: MEMO,
+          },
+        }),
+      ).resolves.toMatchObject({ data: { sendEmail: true }, errors: undefined })
+
+      const [conversation, ...otherConversations] = await conversations()
+      expect(otherConversations).toEqual([])
+      expect(conversation).toMatchObject({
+        kind: 'direct',
+        createdByCommunityUuid: bobMember.communityUuid,
+        createdByGradidoId: bobMember.gradidoID,
+      })
+      expect((await members()).map((m) => `${m.communityUuid}/${m.gradidoId}`).sort()).toEqual(
+        [pairOf(bobMember), pairOf(peterMember)].sort(),
+      )
+
+      const [message, ...otherMessages] = await messages()
+      expect(otherMessages).toEqual([])
+      expect(message).toMatchObject({
+        conversationId: conversation.id,
+        senderCommunityUuid: bobMember.communityUuid,
+        senderGradidoId: bobMember.gradidoID,
+        subject: SUBJECT,
+        body: MEMO,
+        notify: 'email',
+        deliveryState: 'delivered',
+        lastAttemptAt: null,
+      })
+      expect(uuidv4Schema.safeParse(message.messageUuid).success).toBe(true)
+    })
+
+    it('files the answer, and the next message, in the same conversation', async () => {
+      await loginAs('peter@lustig.de')
+      // Named by e-mail address this time: the conversation is the pair, not the name used.
+      await expect(
+        mutate({
+          mutation: sendEmail,
+          variables: {
+            recipientCommunityIdentifier: peterMember.communityUuid,
+            recipientIdentifier: 'bob@baumeister.de',
+            subject: '',
+            memo: 'Ten is fine.',
+          },
+        }),
+      ).resolves.toMatchObject({ data: { sendEmail: true }, errors: undefined })
+      await loginAs('bob@baumeister.de')
+      await expect(
+        mutate({
+          mutation: sendEmail,
+          variables: {
+            recipientCommunityIdentifier: bobMember.communityUuid,
+            recipientIdentifier: peterMember.gradidoID,
+            subject: SUBJECT,
+            memo: 'See you.',
+          },
+        }),
+      ).resolves.toMatchObject({ data: { sendEmail: true }, errors: undefined })
+
+      const [conversation, ...otherConversations] = await conversations()
+      expect(otherConversations).toEqual([])
+      expect(await members()).toHaveLength(2)
+      const filed = await messages()
+      expect(filed.map((m) => [m.conversationId, m.senderGradidoId, m.body])).toEqual([
+        [conversation.id, bobMember.gradidoID, MEMO],
+        [conversation.id, peterMember.gradidoID, 'Ten is fine.'],
+        [conversation.id, bobMember.gradidoID, 'See you.'],
+      ])
+      // A message without a subject has none, not an empty one.
+      expect(filed[1].subject).toBeNull()
+    })
+
+    it('files nothing for a message to oneself', async () => {
+      await loginAs('bob@baumeister.de')
+      const before = await messages()
+
+      const result = await mutate({
+        mutation: sendEmail,
+        variables: {
+          recipientCommunityIdentifier: bobMember.communityUuid,
+          recipientIdentifier: bobMember.gradidoID,
+          subject: SUBJECT,
+          memo: MEMO,
+        },
+      })
+
+      expect(result.errors).toEqual([new GraphQLError('You cannot send an email to yourself')])
+      expect(await messages()).toEqual(before)
+    })
+
+    // E-034, A3: the form writes letters, and a letter is mailed whatever the quiet -- mute
+    // beats the tick of a chat message only (E-024). This test held the opposite until P3c.
+    it('files the message and mails it to a recipient who muted the conversation as well', async () => {
+      const mailed = sendCustomEmail as jest.Mock
+      const writeToPeter = (memo: string) =>
+        mutate({
+          mutation: sendEmail,
+          variables: {
+            recipientCommunityIdentifier: bobMember.communityUuid,
+            recipientIdentifier: peterMember.gradidoID,
+            subject: SUBJECT,
+            memo,
+          },
+        })
+
+      await loginAs('bob@baumeister.de')
+      mailed.mockClear()
+      await expect(writeToPeter('Before the quiet.')).resolves.toMatchObject({
+        data: { sendEmail: true },
+        errors: undefined,
+      })
+      expect(mailed.mock.calls.map(([mail]) => mail.email)).toEqual(['peter@lustig.de'])
+
+      await loginAs('peter@lustig.de')
+      await expect(
+        mutate({
+          mutation: setChatConversationMuted,
+          variables: {
+            ref: { communityUuid: bobMember.communityUuid, gradidoID: bobMember.gradidoID },
+            muted: true,
+          },
+        }),
+      ).resolves.toMatchObject({ data: { setChatConversationMuted: true }, errors: undefined })
+
+      await loginAs('bob@baumeister.de')
+      mailed.mockClear()
+      await expect(writeToPeter('During the quiet.')).resolves.toMatchObject({
+        data: { sendEmail: true },
+        errors: undefined,
+      })
+      expect(mailed.mock.calls.map(([mail]) => mail.email)).toEqual(['peter@lustig.de'])
+      // E-034, A2: and the row says it went out.
+      const [letter] = (await messages()).filter((m) => m.body === 'During the quiet.')
+      expect(letter.mailState).toBe('mailed')
+    })
+  })
+
+  /**
+   * ⛔ The stand-in for the other community opens the command with ITS key, as the real one
+   * would: the messageUuid is read out of the sealed payload, not taken from a spy on this
+   * server's side of the seal.
+   */
+  describe('to a member of another community', () => {
+    const peerUuid = uuidv4()
+    const peerMember = uuidv4()
+
+    let homeKeys: { publicKey: string; privateKey: string }
+    let peerKeys: { publicKey: string; privateKey: string }
+    let peer: DbCommunity
+    let peerEntry: DbFederatedCommunity
+    let rawRequest: jest.SpyInstance | undefined
+    let commands: Record<string, unknown>[] = []
+    // What this server had filed for each command while it was on its way.
+    let inFlight: (string | undefined)[] = []
+
+    /** The other community: opens each command with its key and answers as it is told. */
+    const peerAnswers = (answer: { success: boolean; data?: string | null; error?: string }) => {
+      rawRequest = jest
+        .spyOn(GraphQLClient.prototype, 'rawRequest')
+        // CommandClient.sendCommand calls rawRequest(document, variables) -- two arguments,
+        // not the options object the member-avatar client hands over.
+        .mockImplementation((async (
+          _document: unknown,
+          variables: { args: { handshakeID: string; jwt: string } },
+        ) => {
+          const { args } = variables
+          const command = (await verifyAndDecrypt(
+            args.handshakeID,
+            args.jwt,
+            peerKeys.privateKey,
+            homeKeys.publicKey,
+          )) as CommandJwtPayloadType | null
+          if (!command) {
+            throw new Error('the command does not verify with the key of this community')
+          }
+          const sent = JSON.parse(command.commandArgs[0])
+          commands.push(sent)
+          inFlight.push(
+            (await messages()).find((m) => m.messageUuid === sent.messageUuid)?.deliveryState,
+          )
+          return { data: { sendCommand: answer }, status: 200 }
+        }) as any)
+    }
+
+    const sendToPeer = (recipientIdentifier: string, memo: string) =>
+      mutate({
+        mutation: sendEmail,
+        variables: {
+          recipientCommunityIdentifier: peerUuid,
+          recipientIdentifier,
+          subject: SUBJECT,
+          memo,
+        },
+      })
+
+    const filedWithBody = async (body: string) => (await messages()).filter((m) => m.body === body)
+
+    beforeAll(async () => {
+      homeKeys = await createKeyPair()
+      peerKeys = await createKeyPair()
+      await DbCommunity.update(
+        { foreign: false },
+        { publicJwtKey: homeKeys.publicKey, privateJwtKey: homeKeys.privateKey },
+      )
+      peer = await DbCommunity.create({
+        foreign: true,
+        url: 'http://chat-peer.invalid/api/',
+        publicKey: randomBytes(32),
+        communityUuid: peerUuid,
+        authenticatedAt: new Date(),
+        name: 'Chat peer',
+        description: 'the other side of the border',
+        creationDate: new Date(),
+        publicJwtKey: peerKeys.publicKey,
+      }).save()
+      peerEntry = await DbFederatedCommunity.create({
+        foreign: true,
+        publicKey: peer.publicKey,
+        apiVersion: '1_0',
+        endPoint: 'http://chat-peer.invalid/api/',
+      }).save()
+      await loginAs('bob@baumeister.de')
+    })
+
+    beforeEach(() => {
+      commands = []
+      inFlight = []
+    })
+
+    afterEach(() => {
+      rawRequest?.mockRestore()
+      rawRequest = undefined
+    })
+
+    afterAll(async () => {
+      await DbFederatedCommunity.delete({ id: peerEntry.id })
+      await DbCommunity.delete({ id: peer.id })
+    })
+
+    it('files its own copy under the uuid the command carries, and marks it delivered', async () => {
+      peerAnswers({ success: true, data: 'mailed' })
+
+      await expect(sendToPeer(peerMember, 'Across the border')).resolves.toMatchObject({
+        data: { sendEmail: true },
+        errors: undefined,
+      })
+
+      expect(commands).toEqual([
+        {
+          mailType: 'sendCustomEmail',
+          senderComUuid: bobMember.communityUuid,
+          senderGradidoId: bobMember.gradidoID,
+          receiverComUuid: peerUuid,
+          receiverGradidoId: peerMember,
+          subject: SUBJECT,
+          memo: 'Across the border',
+          messageUuid: expect.any(String),
+          // E-034: what the other server files bob with, if it does not know him yet.
+          senderAlias: bobMember.alias,
+          // E-034, A3: the form writes a letter, which the other server mails whatever the quiet.
+          notify: 'letter',
+        },
+      ])
+      const [ownCopy, ...more] = await filedWithBody('Across the border')
+      expect(more).toEqual([])
+      expect(ownCopy).toMatchObject({
+        messageUuid: commands[0].messageUuid,
+        senderCommunityUuid: bobMember.communityUuid,
+        senderGradidoId: bobMember.gradidoID,
+        subject: SUBJECT,
+        notify: 'email',
+        deliveryState: 'delivered',
+        // E-034, A2: what the other server answered became of the letter.
+        mailState: 'mailed',
+      })
+      expect(ownCopy.lastAttemptAt).toBeInstanceOf(Date)
+      // The own copy comes first, as not yet delivered, and only the answer delivers it.
+      expect(inFlight).toEqual(['pending'])
+      const [conversation] = (await conversations()).filter((c) => c.id === ownCopy.conversationId)
+      expect(conversation.directPairKey).toContain(`${peerUuid}/${peerMember}`)
+    })
+
+    it('marks its own copy failed when the other community refuses it, and throws as before', async () => {
+      peerAnswers({ success: false, error: 'Recipient user not found' })
+
+      const result = await sendToPeer(peerMember, 'Refused over there')
+
+      expect(result.errors).toEqual([
+        new GraphQLError('sendCommand failed with response error: Recipient user not found'),
+      ])
+      const [ownCopy] = await filedWithBody('Refused over there')
+      expect(ownCopy.messageUuid).toBe(commands[0].messageUuid)
+      expect(ownCopy.deliveryState).toBe('failed')
+      expect(ownCopy.lastAttemptAt).toBeInstanceOf(Date)
+      expect(inFlight).toEqual(['pending'])
+    })
+
+    // The other server looks a recipient up by gradido id and nothing else.
+    it('files nothing for a recipient named otherwise, and still sends the command', async () => {
+      peerAnswers({ success: false, error: 'Recipient user not found' })
+      const before = await messages()
+
+      const result = await sendToPeer('raeuber', 'Named by user name')
+
+      expect(result.errors).toHaveLength(1)
+      expect(commands).toHaveLength(1)
+      expect(inFlight).toEqual([undefined])
+      expect(await messages()).toEqual(before)
+    })
+
+    it('files nothing when the command cannot be sealed for the other community', async () => {
+      await DbCommunity.update({ id: peer.id }, { publicJwtKey: null })
+      try {
+        peerAnswers({ success: true })
+        const before = await messages()
+
+        const result = await sendToPeer(peerMember, 'Never sealed')
+
+        expect(result.errors).toHaveLength(1)
+        expect(rawRequest).not.toHaveBeenCalled()
+        expect(await messages()).toEqual(before)
+      } finally {
+        await DbCommunity.update({ id: peer.id }, { publicJwtKey: peerKeys.publicKey })
+      }
     })
   })
 })

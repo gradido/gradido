@@ -85,7 +85,6 @@ const email = {
   // seen is left as a literal `$NAME` by start.sh and takes the frontend build down.
   EMAIL_LINK_EMAIL_CHANGE: COMMUNITY_URL + '/email-change/',
   // Same reasoning as above — derived, no environment variable (EM-013).
-  EMAIL_LINK_REGISTER_ASSIST: COMMUNITY_URL + '/register-assist/',
   EMAIL_LINK_CONFIRM_EMAIL: COMMUNITY_URL + '/confirm-email/',
   // time in minutes a optin code is valid
   EMAIL_CODE_VALID_TIME: process.env.EMAIL_CODE_VALID_TIME
@@ -109,6 +108,13 @@ const federation = {
   FEDERATION_VALIDATE_COMMUNITY_TIMER: Number(
     process.env.FEDERATION_VALIDATE_COMMUNITY_TIMER ?? 60000,
   ),
+}
+
+const chat = {
+  // The Jitsi servers the chat's video rooms are taken from, "base address|operator|room
+  // prefix" separated by ";". Empty: the checked public servers built into the backend
+  // (data/ChatVideoServers.default.ts). Read entry by entry in chatVideoServers().
+  CHAT_VIDEO_SERVERS: process.env.CHAT_VIDEO_SERVERS ?? '',
 }
 
 const gms = {
@@ -158,6 +164,7 @@ export const CONFIG = {
   ...loginServer,
   ...webhook,
   ...federation,
+  ...chat,
   ...gms,
   ...humhub,
   ...anthropic,

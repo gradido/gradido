@@ -43,6 +43,9 @@
           <BNavItem v-if="isAdmin" to="/creaSettings" :active="isActive('creaSettings')">
             {{ $t('navbar.crea') }}
           </BNavItem>
+          <BNavItem v-if="isAdmin" to="/chat" :active="isActive('chat')">
+            {{ $t('navbar.chat') }}
+          </BNavItem>
           <BNavItem
             v-if="store.state.moderator?.role === 'ADMIN'"
             to="/creation-groups"

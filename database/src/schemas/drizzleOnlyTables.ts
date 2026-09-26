@@ -1,7 +1,10 @@
 // AI-GENERATED — not an architecture reference
 import { getTableName } from 'drizzle-orm'
 import {
-  assistedRegistrationsTable,
+  chatConversationMembersTable,
+  chatConversationsTable,
+  chatMessagesTable,
+  chatVideoServersTable,
   creachatThreadsTable,
   firstCreationsTable,
   foreignMemberAvatarDatesTable,
@@ -25,7 +28,10 @@ import {
  * here, too. See AGENTS.md.
  */
 export const drizzleOnlyTables = [
-  assistedRegistrationsTable,
+  chatConversationMembersTable,
+  chatConversationsTable,
+  chatMessagesTable,
+  chatVideoServersTable,
   creachatThreadsTable,
   firstCreationsTable,
   foreignMemberAvatarDatesTable,

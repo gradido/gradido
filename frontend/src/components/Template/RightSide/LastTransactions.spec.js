@@ -467,6 +467,7 @@ describe('LastTransactions', () => {
           $filters: { signedAmount: (amount) => String(amount) },
         },
         stubs: {
+          ...contactWindowStub,
           BRow: { template: '<div class="row-stub"><slot /></div>' },
           BCol: { template: '<div class="col-stub"><slot /></div>' },
         },

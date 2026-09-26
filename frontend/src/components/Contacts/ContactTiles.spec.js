@@ -9,8 +9,11 @@ import { LIST_AVATAR_SIZE } from '@/constants'
 
 const LINK_STUB = { props: ['to'], template: '<a :href="to"><slot /></a>' }
 
-const row = (n, extra = {}) => ({
-  contact: { user: { communityUuid: 'home', gradidoID: `id-${n}`, alias: `Alias${n}` } },
+const row = (n, extra = {}, unreadChatMessages = undefined) => ({
+  contact: {
+    user: { communityUuid: 'home', gradidoID: `id-${n}`, alias: `Alias${n}` },
+    unreadChatMessages,
+  },
   key: `home/id-${n}`,
   alias: `Alias${n}`,
   avatar: { initials: `A${n}`, ...extra },
@@ -20,7 +23,7 @@ const mountTiles = (props) =>
   mount(ContactTiles, {
     props: { rows: [row(1), row(2)], ...props },
     global: {
-      mocks: { $t: (key) => key },
+      mocks: { $t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) },
       stubs: {
         RouterLink: LINK_STUB,
         AppAvatar: {
@@ -135,5 +138,57 @@ describe('ContactTiles', () => {
     expect(all.exists()).toBe(true)
     expect(all.attributes('href')).toBe('/contacts')
     wrapper.unmount()
+  })
+
+  /**
+   * The favourites stand only as tiles in the column and on the phone strip -- the column's
+   * list leaves them out -- so without a dot here the people one writes with most would be
+   * the ones never marked.
+   */
+  describe('the dot for unread messages', () => {
+    const tileStyles = () =>
+      readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'ContactTiles.vue'), 'utf8')
+        .split('<style lang="scss" scoped>')[1]
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+
+    it('marks the tile of somebody who wrote, and no other', () => {
+      const wrapper = mountTiles({ rows: [row(1, {}, 2), row(2, {}, 0), row(3)] })
+      const dotIn = (n) =>
+        wrapper.find(`[data-test="contact-tile-id-${n}"] [data-test="chat-unread-contact-dot"]`)
+
+      expect(dotIn(1).exists()).toBe(true)
+      expect(dotIn(1).text()).toBe('contacts.unreadChatMessages {"n":2}')
+      expect(dotIn(2).exists()).toBe(false)
+      expect(dotIn(3).exists()).toBe(false)
+      wrapper.unmount()
+    })
+
+    // Drawn on the face, but read after the name: who first, then what waits.
+    it('stands after the name in the tile button', () => {
+      const wrapper = mountTiles({ rows: [row(1, {}, 1)] })
+      const parts = [...wrapper.find('[data-test="contact-tile-id-1"]').element.children]
+
+      expect(parts.at(-1).dataset.test).toBe('chat-unread-contact-dot')
+      expect(parts.at(-2).classList.contains('contact-tile-name')).toBe(true)
+      wrapper.unmount()
+    })
+
+    // On the face's upper corner -- laid over it, so the tile keeps its size with or without the
+    // dot -- and placed by the face's own size, the constant every list uses.
+    it('lies over the face corner, placed by the size of the face', () => {
+      const wrapper = mountTiles()
+      const rule = (selector) => tileStyles().match(new RegExp(`${selector}\\s*\\{([^}]*)\\}`))[1]
+
+      expect(
+        wrapper
+          .find('[data-test="contact-tiles"]')
+          .element.style.getPropertyValue('--contact-tile-face'),
+      ).toBe(`${LIST_AVATAR_SIZE}px`)
+      expect(rule('\\.contact-tile')).toMatch(/position:\s*relative/)
+      expect(rule('\\.contact-tile-dot')).toMatch(/position:\s*absolute/)
+      expect(rule('\\.contact-tile-dot')).toMatch(/var\(--contact-tile-face\)/)
+      expect(rule('\\.contact-tile-dot')).toMatch(/box-shadow:[^;]*var\(--bg/)
+      wrapper.unmount()
+    })
   })
 })

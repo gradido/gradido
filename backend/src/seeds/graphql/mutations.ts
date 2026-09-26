@@ -40,14 +40,6 @@ export const confirmEmailChange = gql`
   }
 `
 
-export const completeAssistedRegistration = gql`
-  mutation ($assistCode: String!, $email: String!, $password: String!) {
-    completeAssistedRegistration(assistCode: $assistCode, email: $email, password: $password) {
-      redeemCode
-    }
-  }
-`
-
 export const confirmEmail = gql`
   mutation ($code: String!) {
     confirmEmail(code: $code)
@@ -140,6 +132,8 @@ export const createUser = gql`
     $publisherId: Int
     $redeemCode: String
     $referrerAlias: String
+    $presenceCode: String
+    $password: String
   ) {
     createUser(
       alias: $alias
@@ -150,6 +144,8 @@ export const createUser = gql`
       publisherId: $publisherId
       redeemCode: $redeemCode
       referrerAlias: $referrerAlias
+      presenceCode: $presenceCode
+      password: $password
     ) {
       id
     }
@@ -185,6 +181,23 @@ export const sendCoins = gql`
       recipientCommunityIdentifier: $recipientCommunityIdentifier
       recipientIdentifier: $recipientIdentifier
       amount: $amount
+      memo: $memo
+    )
+  }
+`
+
+// The same document the wallet sends (frontend/src/graphql/mutations.js).
+export const sendEmail = gql`
+  mutation (
+    $recipientCommunityIdentifier: String!
+    $recipientIdentifier: String!
+    $subject: String!
+    $memo: String!
+  ) {
+    sendEmail(
+      recipientCommunityIdentifier: $recipientCommunityIdentifier
+      recipientIdentifier: $recipientIdentifier
+      subject: $subject
       memo: $memo
     )
   }
@@ -618,6 +631,39 @@ export const testCreaModel = gql`
   }
 `
 
+export const markChatConversationRead = gql`
+  mutation ($ref: MemberAvatarRefInput!, $upToMessageId: Int!) {
+    markChatConversationRead(ref: $ref, upToMessageId: $upToMessageId)
+  }
+`
+
+export const sendChatMessage = gql`
+  mutation ($ref: MemberAvatarRefInput!, $body: String!, $notify: ChatMessageNotify!) {
+    sendChatMessage(ref: $ref, body: $body, notify: $notify) {
+      id
+      messageUuid
+      conversationId
+      sender {
+        communityUuid
+        gradidoID
+      }
+      mine
+      subject
+      body
+      createdAt
+      deliveryState
+      notify
+      mailState
+    }
+  }
+`
+
+export const setChatConversationMuted = gql`
+  mutation ($ref: MemberAvatarRefInput!, $muted: Boolean!) {
+    setChatConversationMuted(ref: $ref, muted: $muted)
+  }
+`
+
 export const addFavorite = gql`
   mutation ($ref: MemberAvatarRefInput!) {
     addFavorite(ref: $ref)
@@ -688,5 +734,80 @@ export const requestCreationRight = gql`
 export const setCreationAllowed = gql`
   mutation ($userId: Int!, $allowed: Boolean!) {
     setCreationAllowed(userId: $userId, allowed: $allowed)
+  }
+`
+
+export const createChatVideoServer = gql`
+  mutation ($input: ChatVideoServerInput!) {
+    createChatVideoServer(input: $input) {
+      id
+      baseUrl
+      host
+      operator
+      roomPrefix
+      note
+      active
+      createdAt
+      updatedAt
+      check {
+        ok
+        reason
+        checkedAt
+        latencyMs
+        picks
+      }
+    }
+  }
+`
+
+export const updateChatVideoServer = gql`
+  mutation ($id: Int!, $input: ChatVideoServerInput!) {
+    updateChatVideoServer(id: $id, input: $input) {
+      id
+      baseUrl
+      host
+      operator
+      roomPrefix
+      note
+      active
+      createdAt
+      updatedAt
+      check {
+        ok
+        reason
+        checkedAt
+        latencyMs
+        picks
+      }
+    }
+  }
+`
+
+export const deleteChatVideoServer = gql`
+  mutation ($id: Int!) {
+    deleteChatVideoServer(id: $id)
+  }
+`
+
+export const checkChatVideoServersNow = gql`
+  mutation {
+    checkChatVideoServersNow {
+      id
+      baseUrl
+      host
+      operator
+      roomPrefix
+      note
+      active
+      createdAt
+      updatedAt
+      check {
+        ok
+        reason
+        checkedAt
+        latencyMs
+        picks
+      }
+    }
   }
 `

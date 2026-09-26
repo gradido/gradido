@@ -19,7 +19,11 @@ import {
   User as DbUser,
   UserContact as DbUserContact,
   dbFindProjectBrandingByAlias,
+  dbInsertEvent,
+  dbInsertEventInTransaction,
   dbInsertUserAlias,
+  EventInsert,
+  EventType,
   findUserByIdentifier,
   getHomeCommunity,
   ProjectBrandingSelect,
@@ -30,7 +34,6 @@ import random from 'random-bigint'
 import { aliasCandidates, aliasSchema, pickFreeAlias } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
-import { EVENT_EMAIL_CONFIRMATION, EVENT_USER_REGISTER, Event, EventType } from '@/event/Events'
 import { sendUsersToGms } from '@/graphql/resolver/util/sendUserToGms'
 import { syncHumhub } from '@/graphql/resolver/util/syncHumhub'
 import { encryptPassword } from '@/password/PasswordEncryptor'
@@ -41,15 +44,18 @@ const db = AppDatabase.getInstance()
 
 /**
  * Everything a new account is made of. Moved verbatim out of `createUser` so the
- * assisted registration (EM-013) does not grow a second copy of this flow — the two
- * callers differ in exactly two places, both switched by `passwordPlain`:
+ * assisted registration (EM-013) does not grow a second copy of this flow — the
+ * registrations differ in exactly two places, both switched by `passwordPlain`:
  *
  *   - `passwordPlain: null` — the classic registration: the account has no password
  *     yet, the activation mail carries the set-password link. Behaviour is 1:1 what
  *     `createUser` always did; its existing tests are the proof.
- *   - `passwordPlain` set — an assisted registration: the guest typed their password
- *     at the table, so it is set right away and the mail only asks them to CONFIRM
- *     the address (a confirm-only link, not the set-password page).
+ *   - `passwordPlain` set — the guest chose their password at registration, so it is set
+ *     right away and the mail only asks them to CONFIRM the address (a confirm-only link,
+ *     not the set-password page). `createUser` does this with a valid table code (E-017),
+ *     and hands the member over already resolved as `referrerId` - it counted their
+ *     unconfirmed guests in their line (`inMemberLine`), and the row has to name the same
+ *     member.
  *
  * The caller has already normalised the input: email trimmed and lowercased, language
  * validated, and the address checked to be free.
@@ -64,9 +70,17 @@ export interface RegisterAccountInput {
   project: string | null
   alias: string | null
   passwordPlain: string | null
-  // The alias from the Gradido address the registration started at. Optional because
-  // only the classic registration has an address to come from; the assisted one does not.
+  // The alias from the Gradido address the registration started at. Optional because a
+  // classic registration need not start at one; one with a table code (E-017) always does.
   referrerAlias?: string | null
+  // The member already resolved by the caller, which beats the alias below. The table code
+  // (E-019) counts a member's unconfirmed guests in that member's line and then opens the
+  // account: the row that is written has to name the member who was counted, and a second
+  // lookup of the same alias can answer differently - it excludes soft-deleted members, and
+  // support can delete one while a guest waits in the member's line. The account would then
+  // be opened with a password and `referrer_id` null: counted against nobody's limit, on
+  // nobody's list of guests, and without the USER_REGISTER_PRESENCE event.
+  referrerId?: number | null
 }
 
 const newEmailContact = (email: string, userId: number, logger: Logger): DbUserContact => {
@@ -107,11 +121,9 @@ export const registerAccount = async (
   }
   const gradidoID = await newGradidoID(logger)
 
-  const eventRegisterRedeem = Event(
-    EventType.USER_REGISTER_REDEEM,
-    { id: 0 } as DbUser,
-    { id: 0 } as DbUser,
-  )
+  // What the redeem code turned out to be; written as USER_REGISTER_REDEEM once the user exists.
+  let redeemedLink: Pick<EventInsert, 'involvedContributionLinkId' | 'involvedTransactionLinkId'> =
+    {}
   let dbUser = new DbUser()
   const homeCom = await getHomeCommunity()
   if (!homeCom || !homeCom.communityUuid) {
@@ -135,8 +147,8 @@ export const registerAccount = async (
   dbUser.publisherId = publisherId ?? 0
   dbUser.passwordEncryptionType = PasswordEncryptionType.NO_PASSWORD
   if (input.passwordPlain) {
-    // Assisted registration: the guest chose their password at the table. Type first,
-    // then encrypt — the derivation salts by the gradidoID, which is set above.
+    // Table code (E-017): the guest chose their password at the table.
+    // Type first, then encrypt — the derivation salts by the gradidoID, which is set above.
     dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
     dbUser.password = await encryptPassword(dbUser, input.passwordPlain)
   }
@@ -152,16 +164,20 @@ export const registerAccount = async (
       if (contributionLink) {
         logger.info('redeemCode found contributionLink', contributionLink.id)
         dbUser.contributionLinkId = contributionLink.id
-        eventRegisterRedeem.involvedContributionLink = contributionLink
+        redeemedLink = { involvedContributionLinkId: contributionLink.id }
       }
     } else {
       const transactionLink = await DbTransactionLink.findOne({ where: { code: redeemCode } })
       if (transactionLink) {
         logger.info('redeemCode found transactionLink', transactionLink.id)
         dbUser.referrerId = transactionLink.userId
-        eventRegisterRedeem.involvedTransactionLink = transactionLink
+        redeemedLink = { involvedTransactionLinkId: transactionLink.id }
       }
     }
+  } else if (input.referrerId) {
+    // Resolved by the caller and already held to account for it - see `referrerId` above.
+    logger.info('the member the caller resolved becomes the referrer', input.referrerId)
+    dbUser.referrerId = input.referrerId
   } else {
     // The registration started at somebody's Gradido address (/u/<alias>): they become
     // the referrer. A redeem code beats the address - that is why this is the else.
@@ -213,7 +229,8 @@ export const registerAccount = async (
       dbUser.alias = await pickFreeAlias(
         aliasCandidates(dbUser.firstName, dbUser.lastName, email),
         dbUser.id,
-        aliasExists,
+        // Over this transaction's connection, as the event below - see there.
+        (candidate) => aliasExists(candidate, undefined, queryRunner.manager),
       )
       // The ladder decides what to offer, the schema decides what may be written.
       aliasSchema.parse(dbUser.alias)
@@ -221,13 +238,7 @@ export const registerAccount = async (
         throw new LogError('Error while storing the generated alias', error)
       })
     }
-    await dbInsertUserAlias(
-      dbUser.id,
-      dbUser.alias,
-      dbUser.communityUuid,
-      aliasOrigin,
-      queryRunner.manager,
-    )
+    await dbInsertUserAlias(dbUser.id, dbUser.alias, aliasOrigin, queryRunner.manager)
 
     projectBranding = projectBrandingPromise ? await projectBrandingPromise : undefined
     if (input.passwordPlain) {
@@ -262,7 +273,15 @@ export const registerAccount = async (
       logger.info('sendAccountActivationEmail')
     }
 
-    await EVENT_EMAIL_CONFIRMATION(dbUser)
+    // Over this transaction's connection, like every query above: the transaction holds one
+    // of the pool's ten until it commits, and the pool's waiting has no time limit.
+    // Registrations that each held their own while waiting for a second one could use them
+    // all up, with nobody left to give one back.
+    await dbInsertEventInTransaction(queryRunner.manager, {
+      type: EventType.EMAIL_CONFIRMATION,
+      affectedUserId: dbUser.id,
+      actingUserId: dbUser.id,
+    })
 
     await queryRunner.commitTransaction()
     logger.addContext('user', dbUser.id)
@@ -288,11 +307,18 @@ export const registerAccount = async (
   }
 
   if (redeemCode) {
-    eventRegisterRedeem.affectedUser = dbUser
-    eventRegisterRedeem.actingUser = dbUser
-    await eventRegisterRedeem.save()
+    await dbInsertEvent({
+      type: EventType.USER_REGISTER_REDEEM,
+      affectedUserId: dbUser.id,
+      actingUserId: dbUser.id,
+      ...redeemedLink,
+    })
   } else {
-    await EVENT_USER_REGISTER(dbUser)
+    await dbInsertEvent({
+      type: EventType.USER_REGISTER,
+      affectedUserId: dbUser.id,
+      actingUserId: dbUser.id,
+    })
   }
 
   // wait for finishing dlt transaction

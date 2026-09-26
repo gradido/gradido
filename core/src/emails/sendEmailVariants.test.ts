@@ -12,8 +12,10 @@ import {
   sendContributionDeletedEmail,
   sendContributionDeniedEmail,
   sendCreationRightRequestSupportEmail,
+  sendCustomEmail,
   sendEmailChangeSupportEmail,
   sendResetPasswordEmail,
+  sendThankYouCardPaidEmail,
   sendTransactionLinkRedeemedEmail,
   sendTransactionReceivedEmail,
 } from './sendEmailVariants'
@@ -263,35 +265,6 @@ describe('sendEmailVariants', () => {
         it('has the correct html as snapshot', () => {
           expect(result.originalMessage.html).toMatchSnapshot()
         })
-
-        // The doorbell branch (EM-013). Substance assertions rather than a snapshot on
-        // purpose: these tests only run in the CI, so a new snapshot could never be
-        // written from a locally verified render.
-        it('renders no helper branch without a helper link', () => {
-          expect(result.originalMessage.html).not.toContain('register-assist')
-        })
-      })
-    })
-
-    describe('with a helper link (the attempt carried a redeem code)', () => {
-      let helperResult: any
-      beforeAll(async () => {
-        helperResult = await sendAccountMultiRegistrationEmail({
-          firstName: 'Peter',
-          lastName: 'Lustig',
-          email: 'peter@lustig.de',
-          language: 'en',
-          helperLink: 'http://localhost/register-assist/1234567890',
-        })
-      })
-
-      it('offers the helper branch with its link', () => {
-        expect(helperResult.originalMessage.html).toContain(
-          'http://localhost/register-assist/1234567890',
-        )
-        expect(helperResult.originalMessage.html).toContain(
-          'I am helping someone set up an account',
-        )
       })
     })
   })
@@ -869,6 +842,251 @@ describe('sendEmailVariants', () => {
       it('has the correct html as snapshot', () => {
         expect(result.originalMessage.html).toMatchSnapshot()
       })
+    })
+
+    it('makes an address in the memo a link', async () => {
+      const sent: any = await sendTransactionReceivedEmail({
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        memo: 'For the workshop, see https://x.org/workshop',
+        senderAlias: 'bibi',
+        transactionAmount: GradidoUnit.fromNumber(10),
+      })
+      expect(sent.originalMessage.html).toMatch(
+        /For the workshop, see <a href="https:\/\/x\.org\/workshop"[^>]*>https:\/\/x\.org\/workshop<\/a>/,
+      )
+    })
+  })
+
+  /**
+   * The mail of a message between two members -- from the form "send an e-mail", and from the
+   * chat, which has no subject (E-013).
+   *
+   * ⛔ Measured at the RENDERED mail: whether the subject block is there is a question about the
+   * template, and only the html can answer it. The block is looked for as an attribute: its class
+   * name alone is also in the stylesheet the layout puts in every mail.
+   */
+  describe('sendCustomEmail', () => {
+    const message = {
+      firstName: 'Peter',
+      lastName: 'Lustig',
+      email: 'peter@lustig.de',
+      language: 'en',
+      senderAlias: 'bibi',
+      memo: 'Shall we meet at ten?',
+      senderUuid: '3f9a1e2c-1111-4a2b-9c3d-000000000001',
+      senderCommunityUuid: 'aaaa1111-2222-4333-8444-555566667777',
+    }
+    // P4c: the reply opens the thread with the sender (`/contacts?with=`, since P4b). In the
+    // rendered attribute the `&` is `&amp;`, which the mail client reads as `&`.
+    const answerLink = `${CONFIG.COMMUNITY_URL}/contacts?with=3f9a1e2c-1111-4a2b-9c3d-000000000001&amp;community=aaaa1111-2222-4333-8444-555566667777`
+    let withSubject: any
+    let withoutSubject: any
+
+    beforeAll(async () => {
+      withSubject = await sendCustomEmail({ ...message, subject: 'About Saturday' })
+      withoutSubject = await sendCustomEmail({ ...message, subject: '' })
+    })
+
+    it('renders the template of a message for the recipient', () => {
+      expect(sendEmailTranslatedSpy).toBeCalledWith({
+        receiver: { to: 'Peter Lustig <peter@lustig.de>' },
+        template: 'customEmail',
+        locals: expect.objectContaining({
+          senderAlias: 'bibi',
+          subject: 'About Saturday',
+          memo: 'Shall we meet at ten?',
+        }),
+      })
+      expect(withSubject.originalMessage.subject).toBe('bibi has sent you a message')
+    })
+
+    it('shows the subject in its block where the message has one', () => {
+      const html = withSubject.originalMessage.html
+      expect(html).toContain('class="subject-block"')
+      expect(html).toContain('About Saturday')
+    })
+
+    it('leaves the block out where the message has none, rather than an empty box', () => {
+      expect(withoutSubject.originalMessage.html).not.toContain('class="subject-block"')
+    })
+
+    it('carries the text and the reply button either way', () => {
+      for (const sent of [withSubject, withoutSubject]) {
+        const html = sent.originalMessage.html
+        expect(html).toContain('class="memo-block"')
+        expect(html).toContain('Shall we meet at ten?')
+        expect(html).toContain(answerLink)
+      }
+    })
+
+    // The send form in e-mail mode was the answer before the chat; the thread is now.
+    it('leads the reply into the thread, not into the send form', () => {
+      const html = withSubject.originalMessage.html
+      expect(html).not.toContain('/send/')
+      expect(html).not.toContain('art=email')
+    })
+
+    /**
+     * The invitation to a video call is a chat message with the room's address in it, and the
+     * member should be able to join from the mail. Measured at the RENDERED mail: the links
+     * are pug's work, and only the html shows what pug made of the pieces.
+     */
+    describe('with addresses in the text', () => {
+      const room = 'https://virtual.chaosdorf.space/0mw1hppxkzme'
+      let sent: any
+
+      beforeAll(async () => {
+        sent = await sendCustomEmail({
+          ...message,
+          subject: 'Agenda: https://x.org/agenda',
+          memo: `Video call: ${room}\nor write to a@b.de <img src=x onerror=alert(1)>`,
+        })
+      })
+
+      it('makes each address a link whose text is the address', () => {
+        const html = sent.originalMessage.html
+        expect(html).toMatch(new RegExp(`<a href="${room}"[^>]*>${room}</a>`))
+        expect(html).toMatch(/<a href="mailto:a@b\.de"[^>]*>a@b\.de<\/a>/)
+        expect(html).toMatch(
+          /<a href="https:\/\/x\.org\/agenda"[^>]*>https:\/\/x\.org\/agenda<\/a>/,
+        )
+      })
+
+      it('keeps markup in the text as text', () => {
+        const html = sent.originalMessage.html
+        expect(html).toContain('&lt;img src=x onerror=alert(1)&gt;')
+        expect(html).not.toMatch(/<img[^>]*onerror/)
+      })
+
+      // ⛔ The text keeps its line breaks (`white-space: pre-line`), so a newline pug adds
+      // around the pieces would show as a break the member never typed.
+      it('adds no line break of its own around the pieces', () => {
+        const html = sent.originalMessage.html
+        const text = html.match(/<span class="human-text"[^>]*>([\s\S]*?)<\/span>/g)
+        expect(text).toHaveLength(2)
+        expect(text[1]).toMatch(
+          new RegExp(`>Video call: <a [^>]*>${room}</a>\\nor write to <a [^>]*>a@b\\.de</a> &lt;`),
+        )
+        expect(text[1].split('\n')).toHaveLength(2)
+      })
+
+      it('gives the address once in the text part, and the button its target', () => {
+        const text: string = sent.originalMessage.text
+        expect(text.split(room)).toHaveLength(2)
+        expect(text).toContain(`[${CONFIG.COMMUNITY_URL}/transactions]`)
+      })
+    })
+
+    // As in the thread: `**…**` is bold, never across a link, a lone star stays a star.
+    it('shows **…** in the text in bold, as the thread does', async () => {
+      const sent: any = await sendCustomEmail({
+        ...message,
+        subject: '**About** Saturday',
+        memo: '**Now** or never: **https://x.org** *half',
+      })
+      const html = sent.originalMessage.html
+      expect(html).toMatch(
+        /<strong[^>]*>Now<\/strong> or never: \*\*<a href="https:\/\/x\.org"[^>]*>https:\/\/x\.org<\/a>\*\* \*half/,
+      )
+      // The subject is no thread message: its stars stay.
+      expect(html).toContain('**About** Saturday')
+    })
+
+    // A bold run is text too: whatever markup it holds stays text.
+    it('keeps markup in a bold run as text', async () => {
+      const sent: any = await sendCustomEmail({
+        ...message,
+        subject: '',
+        memo: 'Look: **<img src=x onerror=alert(1)>**',
+      })
+      const html = sent.originalMessage.html
+      expect(html).toMatch(/<strong[^>]*>&lt;img src=x onerror=alert\(1\)&gt;<\/strong>/)
+      expect(html).not.toMatch(/<img[^>]*onerror/)
+    })
+  })
+
+  /**
+   * Where a person's text stands INSIDE a translated sentence - a name in the greeting, a memo,
+   * a moderator's message - it went through i18n's Mustache, which escaped it, and then through
+   * pug, which escaped it again: the member read `https:&#x2F;&#x2F;…` and `D&#39;Angelo`.
+   * Measured at the rendered mail, where a double escape shows as `&amp;` in front of an entity.
+   */
+  describe('text a person typed, inside a sentence', () => {
+    let html: string
+
+    beforeAll(async () => {
+      const sent: any = await sendAddedContributionMessageEmail({
+        firstName: 'Chloé',
+        lastName: "D'Angelo",
+        email: 'chloe@example.org',
+        // Not English: the receiver's locale has to reach the templates' `t`.
+        language: 'de',
+        senderAlias: 'bibi',
+        contributionMemo: "Oma's Garten / Hof",
+        contributionFrontendLink,
+        message: 'See https://gradido.net/faq?a=1&b=2 "now"',
+      })
+      html = sent.originalMessage.html
+    })
+
+    it('is escaped once', () => {
+      expect(html).toContain("Hallo Chloé D'Angelo,")
+      expect(html).toContain("„Oma's Garten / Hof“")
+      expect(html).toContain('https://gradido.net/faq?a=1&amp;b=2')
+      expect(html).toContain('&quot;now&quot;')
+      expect(html).not.toMatch(/&amp;(#|amp;|quot;|lt;|gt;)/)
+    })
+
+    it("shows **…** in a moderator's message in bold, as the contribution's thread does, and not in the memo", async () => {
+      const sent: any = await sendAddedContributionMessageEmail({
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        senderAlias: 'bibi',
+        contributionMemo: '**Garden** work',
+        contributionFrontendLink,
+        message: '**Please** add the hours.',
+      })
+      const html = sent.originalMessage.html
+      expect(html).toMatch(/„<strong[^>]*>Please<\/strong> add the hours\.“/)
+      expect(html).toContain('“**Garden** work”')
+    })
+
+    it('makes an address in it a link, as anywhere else', () => {
+      expect(html).toMatch(
+        /„See <a href="https:\/\/gradido\.net\/faq\?a=1&amp;b=2"[^>]*>https:\/\/gradido\.net\/faq\?a=1&amp;b=2<\/a> &quot;now&quot;“/,
+      )
+    })
+
+    it('makes an address in the memo of a redeemed link and of a card payment a link', async () => {
+      const memo = 'Thanks! https://x.org/thanks'
+      const link = /<a href="https:\/\/x\.org\/thanks"[^>]*>https:\/\/x\.org\/thanks<\/a>/
+      const common = {
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        transactionMemo: memo,
+        transactionAmount: GradidoUnit.fromNumber(10),
+      }
+      const redeemed: any = await sendTransactionLinkRedeemedEmail({
+        ...common,
+        senderAlias: 'bibi',
+        senderCommunity: 'Gradido',
+      })
+      const paid: any = await sendThankYouCardPaidEmail({
+        ...common,
+        recipientName: 'Bibi',
+        recipientCommunity: 'Gradido',
+        cardLabel: 'Card 1',
+        cardId: 1,
+      })
+      expect(redeemed.originalMessage.html).toMatch(link)
+      expect(paid.originalMessage.html).toMatch(link)
     })
   })
 })

@@ -74,7 +74,10 @@
              three page numbers rather than five, `« ‹ 2 3 4 › »`, 421 points against this
              page's 450. At `limit="4"` it is 479 and wraps again, so this is not a spare
              margin -- do not raise it without measuring. The arrows keep every page
-             reachable: `«` first, `»` last.
+             reachable: `«` first, `»` last. On a phone the ends go, as on every pager in
+             this wallet (`usePagerFit`): `‹ 2 3 4 ›` is one line where the seven took two.
+             And `flex-wrap`, as on every pager: what is still wider than the page takes a
+             second line instead of hanging out of it.
 
              ⛔⛔ It is `no-ellipsis`, NOT `hide-ellipsis`. `hide-ellipsis` is BootstrapVue's
              Vue-2 name and does not exist in bootstrap-vue-next: the string does not occur
@@ -86,11 +89,12 @@
         <BPagination
           v-if="otherRows.length > PAGE_SIZE"
           v-model="currentPage"
-          class="mt-3 contacts-pager"
+          class="mt-3 flex-wrap"
           pills
           size="lg"
           :no-ellipsis="true"
-          :limit="3"
+          :limit="pagerLimit"
+          :no-goto-end-buttons="pagerNoEnds"
           :per-page="PAGE_SIZE"
           :total-rows="otherRows.length"
           align="center"
@@ -105,13 +109,16 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useApolloClient, useQuery } from '@vue/apollo-composable'
 import { BFormInput, BPagination, BSpinner } from 'bootstrap-vue-next'
 import ContactRow from '@/components/Contacts/ContactRow.vue'
 import ContactsEmpty from '@/components/Contacts/ContactsEmpty.vue'
 import ContactWindow from '@/components/Contacts/ContactWindow.vue'
 import { useContactWindow } from '@/composables/useContactWindow'
+import { usePagerFit } from '@/composables/usePagerFit'
+import { onContactListRefresh } from '@/composables/useContactsPanel'
 import { contactListQuery } from '@/graphql/contacts.graphql'
 import { ensureFavorites, isFavorite } from '@/composables/useFavorites'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
@@ -136,6 +143,8 @@ import { memberKey } from '@/utils/gradidoAddress'
 const CONTACTS_FETCH_MAX = 1000
 
 const { toastError } = useAppToast()
+// Three numbers at the desk too: this page is 450px wide on every screen (see its style).
+const { pagerLimit, pagerNoEnds } = usePagerFit(3)
 const { client: apolloClient } = useApolloClient()
 
 // The hearts, in case the layout's request at mount did not land (ensureFavorites is a
@@ -148,9 +157,11 @@ const failed = ref(false)
 const search = ref('')
 const currentPage = ref(1)
 
+const LIST_VARIABLES = { currentPage: 1, pageSize: CONTACTS_FETCH_MAX }
+
 const { onResult, onError } = useQuery(
   contactListQuery,
-  { currentPage: 1, pageSize: CONTACTS_FETCH_MAX },
+  LIST_VARIABLES,
   // `network-only`, as the booking list: a cached copy would replay last visit's dates
   // for the pictures before the fresh list arrives, and the avatar store takes the newest
   // list it is shown as the truth about who withdrew a picture.
@@ -168,12 +179,71 @@ onError((error) => {
   toastError(error.message)
 })
 
+/**
+ * The list asked again, because the right-hand column's is (useContactsPanel): a transfer went
+ * through, or chat messages arrived (useChatUpdates). The server orders the contacts by the last
+ * exchange, so somebody who just wrote comes to the top -- the wallet keeps no book of its own.
+ *
+ * ⛔ `renewSession: false`: nobody did anything on this page, and a list asked again must not
+ * keep an unattended wallet signed in (plugins/apolloProvider.js). Said nothing on a failure:
+ * the list on screen stays as it was, and the next news asks again.
+ *
+ * Only the newest answer counts: two of these can be on their way at once.
+ */
+let reloads = 0
+const reloadList = async () => {
+  const mine = ++reloads
+  try {
+    const { data } = await apolloClient.query({
+      query: contactListQuery,
+      variables: LIST_VARIABLES,
+      fetchPolicy: 'network-only',
+      context: { renewSession: false },
+    })
+    if (mine !== reloads || !data?.contactList) return
+    contacts.value = data.contactList.contacts
+    // What an answer of the page's own query says too: a list that failed at first, or had not
+    // answered yet, stands once a question again succeeds (coderabbit, PR #3980).
+    loaded.value = true
+    failed.value = false
+  } catch {
+    // The list as it was.
+  }
+}
+onBeforeUnmount(onContactListRefresh(reloadList))
+
 const rowKey = (contact) => memberKey(contact.user)
 
-// A tap on a row opens the contact window; the two ways on from there -- send Gradido,
-// send e-mail -- live inside it (KF-010). The state machine is shared with the column and
-// the phone strip, so the release-on-close rule is written once.
-const { windowOpen, selected, open } = useContactWindow()
+// A tap on a row opens the contact window; the ways on from there live inside it (KF-010). The
+// state machine is shared with the column and the phone strip, so the release-on-close rule is
+// written once.
+const { windowOpen, selected, open, openKnownMember } = useContactWindow(apolloClient)
+
+/**
+ * `/contacts?with=<gradidoID>[&community=<uuid>]` opens the conversation with that person -- the
+ * address the mail's reply button will point to (P4c); nothing in the wallet links here yet. A
+ * missing community is this one. Read once, when the page is built, and taken out of the
+ * address at once, so a reload shows the list and does not open the window again.
+ *
+ * Opened only for somebody the server knows as a contact (useContactWindow.openKnownMember): an
+ * unknown id, or somebody one never exchanged anything with, opens nothing and says nothing.
+ * Only plain values: `?with=a&with=b` is no person.
+ */
+const route = useRoute()
+const router = useRouter()
+const askedFor = route.query.with
+const askedCommunity = route.query.community
+if (askedFor !== undefined || askedCommunity !== undefined) {
+  const { with: _with, community: _community, ...rest } = route.query
+  router.replace({ query: rest })
+}
+if (typeof askedFor === 'string' && askedFor !== '') {
+  openKnownMember({
+    gradidoID: askedFor,
+    communityUuid:
+      typeof askedCommunity === 'string' && askedCommunity !== '' ? askedCommunity : null,
+  })
+}
 
 const needle = computed(() => search.value.trim().toLowerCase())
 const matches = (contact) =>
@@ -239,14 +309,5 @@ watch(
    and a block that alone floats to the middle looks misplaced rather than deliberate. */
 .contacts {
   max-width: 450px;
-}
-
-/* The guard behind the number above, and it stays even though `limit` now makes the pager
-   fit: `.pagination` is a flex row that Bootstrap leaves at `nowrap`, so anything wider than
-   the page does not wrap -- it spills out of it. On a phone the column is narrower than any
-   pager can be, so there it WILL take a second line, and that is the right way to give way.
-   What it must not do is hang out of the page. */
-.contacts-pager {
-  flex-wrap: wrap;
 }
 </style>

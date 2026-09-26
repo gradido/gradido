@@ -6,6 +6,8 @@ import { buildSchema } from 'type-graphql'
 import { isAuthorized } from './directive/isAuthorized'
 import { AssistedRegistrationResolver } from './resolver/AssistedRegistrationResolver'
 import { BalanceResolver } from './resolver/BalanceResolver'
+import { ChatResolver } from './resolver/ChatResolver'
+import { ChatVideoServerResolver } from './resolver/ChatVideoServerResolver'
 import { CommunityResolver } from './resolver/CommunityResolver'
 import { ContactResolver } from './resolver/ContactResolver'
 import { ContributionLinkResolver } from './resolver/ContributionLinkResolver'
@@ -19,6 +21,7 @@ import { FirstCreationResolver } from './resolver/FirstCreationResolver'
 import { GdtResolver } from './resolver/GdtResolver'
 import { KlicktippResolver } from './resolver/KlicktippResolver'
 import { MatchingEntryResolver } from './resolver/MatchingEntryResolver'
+import { PresenceCodeResolver } from './resolver/PresenceCodeResolver'
 import { ProjectAccountResolver } from './resolver/ProjectAccountResolver'
 import { ProjectBrandingResolver } from './resolver/ProjectBrandingResolver'
 import { ShowFriendsResolver } from './resolver/ShowFriendsResolver'
@@ -37,6 +40,8 @@ export const schema = async (): Promise<GraphQLSchema> => {
     resolvers: [
       AssistedRegistrationResolver,
       BalanceResolver,
+      ChatResolver,
+      ChatVideoServerResolver,
       CommunityResolver,
       ContactResolver,
       ContributionLinkResolver,
@@ -50,6 +55,7 @@ export const schema = async (): Promise<GraphQLSchema> => {
       CreationGroupResolver,
       MatchingEntryResolver,
       KlicktippResolver,
+      PresenceCodeResolver,
       ProjectAccountResolver,
       ProjectBrandingResolver,
       ShowFriendsResolver,

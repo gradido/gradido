@@ -30,6 +30,7 @@ describe('crea nameGender heuristic (dataset-backed)', () => {
     expect(guessGender('Anna-Lena')).toBe('female')
     expect(guessGender('Guenther')).toBe('male') // ASCII spelling of Günther
     expect(normalizeName('Günther')).toBe('guenther')
+    expect(normalizeName('Gu\u0308nther')).toBe('guenther') // decomposed, as macOS types it
     expect(normalizeName('José')).toBe('jose') // diacritics stripped to the base letter
   })
 })

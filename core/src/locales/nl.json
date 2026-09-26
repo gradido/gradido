@@ -11,9 +11,6 @@
       "contactSupport": "Contact opnemen met support",
       "emailExists": "Er bestaat echter al een account voor je e-mailadres.",
       "emailReused": "je e-mailadres is zojuist opnieuw gebruikt om een account bij Gradido te registreren.",
-      "helperButton": "Ik help iemand een account aan te maken",
-      "helperIntro": "Als er iemand naast je zit die zojuist jouw e-mailadres heeft gebruikt om een Gradido-account te beginnen: ga hier verder met de installatie. Samen voeren jullie het eigen e-mailadres in, en het wachtwoord kiest hij of zij zelf.",
-      "helperTitle": "Help je op dit moment iemand in een Gradido-café?",
       "ifYouAreNotTheOne": "Als je niet hebt geprobeerd je opnieuw te registreren, neem dan contact op met onze support:",
       "onForgottenPasswordClickLink": "Als je je wachtwoord bent vergeten, klik dan hier.",
       "subject": "Nieuwe registratiepoging met je e-mailadres",
@@ -172,6 +169,52 @@
       "haveReceivedAmountGDDFrom": "je hebt zojuist {transactionAmount} GDD ontvangen van {senderAlias}.",
       "subject": "{senderAlias} heeft je {transactionAmount} Gradido gestuurd",
       "title": "{senderAlias} heeft je {transactionAmount} Gradido gestuurd"
+    }
+  },
+  "firstCreation": {
+    "catalog": {
+      "accompaniedHardTime": "Ik heb iemand in een moeilijke tijd bijgestaan door {text}",
+      "animalShelter": "Ik heb geholpen in een dierenasiel of op een opvangboerderij door {text}",
+      "animalsOrNature": "Ik heb iets gedaan voor dieren of de natuur door {text}",
+      "caredForChildren": "Ik heb voor mijn kinderen gezorgd en ze op weg geholpen in het leven door {text}",
+      "communityProject": "Ik heb me ingezet voor een gemeenschapsproject (feest, CSA-boerderij, gemeenschapstuin …) door {text}",
+      "fireBrigadeRescue": "Ik heb meegewerkt bij de vrijwillige brandweer of een hulpdienst door {text}",
+      "helpedAtHome": "Ik heb thuis geholpen door {text}",
+      "helpedElderlyPerson": "Ik heb een oudere geholpen door {text}",
+      "helpedFellowStudents": "Ik heb mijn klasgenoten of medestudenten geholpen door {text}",
+      "helpedNeighbourhood": "Ik heb waar nodig in de buurt geholpen door {text}",
+      "helpedOldPerson": "Ik heb een oud mens geholpen door {text}",
+      "helpedParish": "Ik heb geholpen in mijn gemeente of parochie door {text}",
+      "helpedSickPerson": "Ik heb een ziek mens geholpen door {text}",
+      "lookedAfterGrandchildren": "Ik heb op mijn kleinkinderen gepast door {text}",
+      "lookedAfterOrTaught": "Ik heb op iemand gepast of iemand iets geleerd door {text}",
+      "madeSomeoneHappy": "Ik heb iemand blij gemaakt door {text}",
+      "musicChoirCulture": "Ik heb bijgedragen aan muziek, koor of cultuur in de gemeenschap door {text}",
+      "natureEnvironment": "Ik heb iets gedaan voor natuur en milieu door {text}",
+      "nursedRelative": "Ik heb een familielid verzorgd door {text}",
+      "sharedKnowledge": "Ik heb mijn kennis doorgegeven (bijles, cursus, begeleiding) door {text}",
+      "supportedClub": "Ik heb mijn vereniging gesteund door {text}",
+      "supportedDisabledPerson": "Ik heb iemand met een beperking ondersteund door {text}"
+    },
+    "checks": {
+      "child": "Ik ben een kind.",
+      "retiree": "Ik ben gepensioneerd."
+    },
+    "message": {
+      "checkConflictNote": "Deze eerste creatie is stilgezet: er zijn vinkjes gezet die elkaar uitsluiten — {checks} Graag controleren en handmatig bevestigen, wijzigen of afwijzen.",
+      "childLine": "ervoor dat je er bent en de wereld door jouw ogen ziet",
+      "closing": "Fijn dat je er bent.",
+      "greetingAnonymous": "Welkom!",
+      "greetingFemale": "Beste {name}, welkom!",
+      "greetingMale": "Beste {name}, welkom!",
+      "greetingNeutral": "Welkom, {name}!",
+      "internalNote": "Crea heeft deze eerste creatie stilgezet: {reason}. Graag controleren en handmatig bevestigen, wijzigen of afwijzen.",
+      "retireeLine": "voor je levenswerk: al die jaren dat je er voor anderen was",
+      "review": "Er kijkt nog een mens naar je vermeldingen. Je hoort van ons.",
+      "thanks": "De gemeenschap bedankt je — {lines}.",
+      "thanksOnlyCheck": "De gemeenschap bedankt je — {checkLine}.",
+      "thanksWithCheck": "De gemeenschap bedankt je — {lines}. En {checkLine}.",
+      "w1": "Je eerste 100 Gradido zijn een bedankje voor wat je allang hebt gedaan."
     }
   },
   "general": {

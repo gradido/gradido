@@ -5,6 +5,7 @@ import {
   ensureContactsPanel,
   forgetContactsPanel,
   holdContactsPanel,
+  onContactListRefresh,
   refreshContactsPanel,
   releaseContactsPanel,
   searchContactsPanel,
@@ -183,6 +184,50 @@ describe('useContactsPanel', () => {
 
     expect(query).toHaveBeenCalledTimes(1)
     releaseContactsPanel()
+  })
+
+  /**
+   * ⛔ A refresh is never the member's own doing -- after a transfer the transfer has moved the
+   * session clock already, after a chat message nobody did anything -- so its questions leave
+   * the clock alone (plugins/apolloProvider.js). What a panel asks when it mounts, or for a
+   * word typed, is the member's doing, and says nothing about it.
+   */
+  it('asks a refresh quietly, and nothing else', async () => {
+    const query = answering([contact(1)])
+    const client = clientOf(query)
+    holdContactsPanel()
+    await ensureContactsPanel(client)
+    await searchContactsPanel(client, 'nap')
+    expect(query.mock.calls.map(([options]) => options.context)).toEqual([undefined, undefined])
+    expect(query.mock.calls.every(([options]) => !('context' in options))).toBe(true)
+    query.mockClear()
+
+    await refreshContactsPanel(client)
+
+    // Both slots, the page and the word still standing.
+    expect(query).toHaveBeenCalledTimes(2)
+    for (const [options] of query.mock.calls) {
+      expect(options.context).toEqual({ renewSession: false })
+    }
+    releaseContactsPanel()
+  })
+
+  /**
+   * The contacts page keeps a list of its own; it hears every refresh -- also while no panel is
+   * on screen, which is when a refresh here only marks the list as due.
+   */
+  it('tells the lists that are not this panel, until they stop listening', async () => {
+    const heard = vi.fn()
+    const stop = onContactListRefresh(heard)
+    const query = answering([contact(1)])
+
+    await refreshContactsPanel(clientOf(query))
+    expect(heard).toHaveBeenCalledTimes(1)
+    expect(query).not.toHaveBeenCalled()
+
+    stop()
+    await refreshContactsPanel(clientOf(query))
+    expect(heard).toHaveBeenCalledTimes(1)
   })
 
   it('says it failed, and lets the next panel try again', async () => {

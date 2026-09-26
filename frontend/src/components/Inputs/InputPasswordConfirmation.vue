@@ -14,7 +14,6 @@
             noWhitespaceCharacters: true,
           }"
           :label="register ? $t('form.password') : $t('form.password_new')"
-          immediate
           name="newPassword"
           :placeholder="register ? $t('form.password') : $t('form.password_new')"
           allow-full-validation
@@ -30,7 +29,6 @@
             samePassword: 'newPassword',
           }"
           :label="register ? $t('form.passwordRepeat') : $t('form.password_new_repeat')"
-          immediate
           name="newPasswordRepeat"
           :placeholder="register ? $t('form.passwordRepeat') : $t('form.password_new_repeat')"
         />

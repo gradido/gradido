@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull, ne, or } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNull, ne, or, sql } from 'drizzle-orm'
 import { alias as aliasedTable, type BuildAliasTable } from 'drizzle-orm/mysql-core'
 import {
   ContactOrigin,
@@ -8,8 +8,14 @@ import {
   Result,
   VoidResult,
 } from 'shared'
+import { EntityManager } from 'typeorm'
 import { drizzleDb } from '../AppDatabase'
-import { DBDuplicateEntryError, DBNotFoundError } from '../errorTypes'
+import {
+  DBDuplicateEntryError,
+  DBInsertFailed,
+  DBNotFoundError,
+  isDuplicateEntry,
+} from '../errorTypes'
 import {
   transactionsTable,
   UserContactSelect,
@@ -136,6 +142,124 @@ export async function dbFindUserIdByUuids(
 }
 
 /**
+ * The `users` rows carrying these pairs -- id, the pair as the row spells it, alias and
+ * deletion mark -- for a list of people known by their pair alone (the chat's conversation
+ * members). Deleted members included, and members of other communities the federation
+ * stored, for the reasons `dbFindUserIdByUuids` gives; a pair without a row is simply not in
+ * the answer. At most one row per pair: `uuid_key` (migration 0073).
+ *
+ * ⛔ The pairs go in as PARAMETERS, and that is the reason this is a query of its own rather
+ * than a join. `users` and the chat tables do not share a collation everywhere (the database
+ * CI has `users` in utf8mb4_general_ci, the chat tables are created utf8mb4_unicode_ci), and
+ * comparing two columns of different collations is an error ("Illegal mix of collations").
+ * A parameter takes the collation of the column it is compared with -- so this compares the
+ * way `users` compares, case-insensitively either way, and `uuid_key` stays usable.
+ */
+export async function dbSelectUsersByUuids(
+  pairs: { communityUuid: string; gradidoId: string }[],
+): Promise<
+  {
+    id: number
+    communityUuid: string
+    gradidoId: string
+    alias: string | null
+    deletedAt: Date | null
+  }[]
+> {
+  if (pairs.length === 0) {
+    return []
+  }
+  return drizzleDb()
+    .select({
+      id: usersTable.id,
+      communityUuid: usersTable.communityUuid,
+      gradidoId: usersTable.gradidoId,
+      alias: usersTable.alias,
+      deletedAt: usersTable.deletedAt,
+    })
+    .from(usersTable)
+    .where(
+      or(
+        ...pairs.map((pair) =>
+          and(
+            eq(usersTable.gradidoId, pair.gradidoId),
+            eq(usersTable.communityUuid, pair.communityUuid),
+          ),
+        ),
+      ),
+    )
+}
+
+/**
+ * Files a member of another community this server holds no row for: `foreign` and the pair,
+ * nothing else. It is the row the receiving side of a transfer files for its sender
+ * (federation's `storeForeignUser`), filed here for a chat message that arrives before any
+ * transfer did (E-034). The alias follows through `dbUpdateForeignUserAlias`, which also brings
+ * an existing row up to date.
+ *
+ * Hands back the id of the foreign row that holds the pair afterwards. A pair that is on file
+ * already stays as it is (`uuid_key` turns the insert into a no-op), so two first messages
+ * arriving at once end up with one row. A pair held by a member of THIS community is not
+ * turned into a foreign one: there is no foreign row for it afterwards, and that comes back as
+ * DBInsertFailed.
+ */
+export async function dbInsertForeignUser(member: {
+  communityUuid: string
+  gradidoId: string
+}): Promise<Result<number, DBInsertFailed<{ communityUuid: string; gradidoId: string }>>> {
+  await drizzleDb()
+    .insert(usersTable)
+    .values({ foreign: true, communityUuid: member.communityUuid, gradidoId: member.gradidoId })
+    .onDuplicateKeyUpdate({ set: { gradidoId: sql`${usersTable.gradidoId}` } })
+  const rows = await drizzleDb()
+    .select({ id: usersTable.id })
+    .from(usersTable)
+    .where(
+      and(
+        eq(usersTable.communityUuid, member.communityUuid),
+        eq(usersTable.gradidoId, member.gradidoId),
+        eq(usersTable.foreign, true),
+      ),
+    )
+    .limit(1)
+  return rows[0]
+    ? { success: true, value: rows[0].id }
+    : { success: false, error: new DBInsertFailed('users', member) }
+}
+
+/**
+ * Brings the alias of a member of another community up to date, as the receiving side of a
+ * transfer does (federation's `storeForeignUser`). Only a foreign row is written: the condition
+ * names `foreign`, and a row of this community comes back as DBNotFoundError, unchanged.
+ *
+ * An alias another row of that community still holds (`alias_key` is alias + community; that
+ * row has not caught up with a rename over there) comes back as DBDuplicateEntryError, and the
+ * row keeps the alias it had. Writing the alias it has already is a success: mysql2 connects with
+ * FOUND_ROWS, so `affectedRows` counts the matched row.
+ */
+export async function dbUpdateForeignUserAlias(
+  id: number,
+  alias: string,
+): Promise<VoidResult<DBNotFoundError | DBDuplicateEntryError>> {
+  try {
+    const result = await drizzleDb()
+      .update(usersTable)
+      .set({ alias })
+      .where(and(eq(usersTable.id, id), eq(usersTable.foreign, true)))
+    const firstRow = result[0]
+    if (firstRow && firstRow.affectedRows === 1) {
+      return { success: true }
+    }
+    return { success: false, error: new DBNotFoundError('users', `id = ${id} and foreign`) }
+  } catch (error) {
+    if (isDuplicateEntry(error)) {
+      return { success: false, error: new DBDuplicateEntryError('users', 'alias_key', alias) }
+    }
+    throw error
+  }
+}
+
+/**
  * Forget that the GMS holds a copy of this member - because it has just been removed.
  *
  * Nothing else ever clears this flag: it is only ever set, by the run that publishes a
@@ -156,7 +280,16 @@ export async function dbClearGmsRegistration(userId: number): Promise<VoidResult
   return { success: false, error: new DBNotFoundError('users', `id = ${userId}`) }
 }
 
-export async function aliasExists(alias: string, userId?: number): Promise<boolean> {
+/**
+ * `manager` goes to the half that still asks TypeORM, so that a caller inside a transaction
+ * (registerAccount) takes no second connection from the pool; the half on `users` runs on
+ * Drizzle's own pool.
+ */
+export async function aliasExists(
+  alias: string,
+  userId?: number,
+  manager?: EntityManager,
+): Promise<boolean> {
   // Only local users count. Aliases are unique per community, not globally: migration
   // 0073 dropped the global UNIQUE on users.alias in favour of UNIQUE(alias, community_uuid).
   // Rows with foreign = 1 are cached copies of members of other communities, so an alias
@@ -173,7 +306,7 @@ export async function aliasExists(alias: string, userId?: number): Promise<boole
   }
   // A name somebody left behind stays theirs, so it stays blocked - except for its own
   // owner, who may take it back.
-  return dbAliasHeldByOther(alias, userId)
+  return dbAliasHeldByOther(alias, userId, manager)
 }
 
 /**

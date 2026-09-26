@@ -25,25 +25,33 @@ import {
 export async function dbFindOwnAlias(
   userId: number,
   alias: string,
-  communityUuid: string,
   manager?: EntityManager,
 ): Promise<DbUserAlias | null> {
-  const where = { userId, alias, communityUuid }
+  const where = { userId, alias }
   return manager ? manager.findOne(DbUserAlias, { where }) : DbUserAlias.findOne({ where })
 }
 
-/** Whoever owns this name in this community, or null. */
+/** Whoever owns this name, or null. */
 export async function dbFindAliasOwner(alias: string): Promise<DbUserAlias | null> {
   return DbUserAlias.findOne({ where: { alias } })
 }
 
 /**
  * Is this name spoken for by somebody else? `userId` exempts the member's own names,
- * which is what lets them reclaim one they held before.
+ * which is what lets them reclaim one they held before. With a manager, over the caller's
+ * transaction: registerAccount picks a name while it holds its connection, and must not take
+ * a second one from the pool meanwhile.
  */
-export async function dbAliasHeldByOther(alias: string, userId?: number): Promise<boolean> {
+export async function dbAliasHeldByOther(
+  alias: string,
+  userId?: number,
+  manager?: EntityManager,
+): Promise<boolean> {
   const where = userId === undefined ? { alias } : { alias, userId: Not(userId) }
-  return (await DbUserAlias.findOne({ where })) !== null
+  const row = manager
+    ? await manager.findOne(DbUserAlias, { where })
+    : await DbUserAlias.findOne({ where })
+  return row !== null
 }
 
 /**
@@ -85,11 +93,10 @@ export async function dbFindOldestChosenAliasSince(
 export async function dbInsertUserAlias(
   userId: number,
   alias: string,
-  communityUuid: string,
   origin: AliasOrigin,
   manager?: EntityManager,
 ): Promise<DbUserAlias> {
-  const row = DbUserAlias.create({ userId, alias, communityUuid, origin })
+  const row = DbUserAlias.create({ userId, alias, origin })
   return manager ? manager.save(row) : DbUserAlias.save(row)
 }
 

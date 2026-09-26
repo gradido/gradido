@@ -1,0 +1,23 @@
+# AI-GENERATED — not an architecture reference
+
+# A fresh table code for the member's own card (E-017), or null where the member has none (no
+# user name). `code` goes onto the link of `alias`'s address as `?presence=` -- the name the code
+# is sealed for, which the store's copy of the name may no longer be. The page counts
+# `remainingMs` down from the moment the answer arrives, never against the device's clock.
+# `unconfirmedGuests` are the member's own table guests who have not confirmed yet (E-020); at
+# the limit there are as many of them as there may be, and `code` is null (E-019).
+# No arguments, so the cache would hold one entry for everybody -- the page asks `network-only`,
+# and the store is cleared on logout.
+query presenceCode {
+  presenceCode {
+    code
+    alias
+    remainingMs
+    unconfirmedGuests {
+      firstName
+      lastName
+      alias
+      createdAt
+    }
+  }
+}

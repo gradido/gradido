@@ -24,16 +24,6 @@
     "text": "A newer version is available."
   },
   "assistedRegistration": {
-    "assist": {
-      "button": "Set up account",
-      "done": "The account is ready! A confirmation mail is on its way to the new mailbox. Sign in now and redeem the cheque:",
-      "emailHint": "Enter the new member's own e-mail address here — not yours. The new member types the password themselves.",
-      "emailTaken": "This e-mail address already has a Gradido account. Use \"Forgot password\" to get back in.",
-      "intro": "{name} would like to start a Gradido account.",
-      "invalid": "This link is invalid or has expired.",
-      "loginButton": "Sign in and redeem the cheque",
-      "title": "Setting up a Gradido account together"
-    },
     "confirm": {
       "button": "Confirm address",
       "done": "Your e-mail address is confirmed. Your account is now open to you for good.",
@@ -150,6 +140,42 @@
       "text": "To find other members in your area, enter your location on the map now!"
     }
   },
+  "chatThread": {
+    "alsoByEmail": "Also by e-mail",
+    "alsoByEmailTo": "Also by e-mail to {name}",
+    "arrived": "New message from {name}",
+    "empty": "No messages yet. This is where your conversation begins.",
+    "failed": "Not delivered",
+    "firstGoesByEmail": "The first message also goes to {name} by e-mail.",
+    "label": "Conversation history with {name}",
+    "loadOlder": "Load older messages",
+    "mailed": "Also by e-mail",
+    "muteOff": "Muted — no e-mails about chat messages from {name}",
+    "muteOn": "Mute",
+    "mutedHint": "Muted: no more e-mails about chat messages from {name}. You will see new messages here. Letters sent with “Send email” still arrive.",
+    "notMailedMuted": "No e-mail — {name} has turned off e-mails for your conversation.",
+    "notReachable": "The conversation history could not be loaded.",
+    "notSent": "The message could not be sent. Your text stays here.",
+    "pending": "Not delivered yet",
+    "placeholder": "Message to {name} …",
+    "remaining": "{n} character left | {n} characters left",
+    "send": "Send",
+    "sent": "Sent",
+    "sentWithNote": "Sent. {note}",
+    "unmutedHint": "No longer muted: you will get e-mails about chat messages from {name} again.",
+    "unreadBadge": "{n} conversation with new messages | {n} conversations with new messages",
+    "unreadDot": "New chat messages",
+    "videoAskBody": "{name} will get the link as a message.",
+    "videoAskFirst": "{name} will get the link as a message and by e-mail.",
+    "videoAskTitle": "Start a video call with {name}?",
+    "videoCall": "Start a video call with {name}",
+    "videoInvite": "📹 Video call. The room is on a Jitsi server run by {operator} — a suggestion, not a Gradido service: {url}",
+    "videoNoServer": "No video server can be reached right now. Try again in a moment.",
+    "videoNotSent": "The invitation could not be sent.",
+    "videoOpen": "Open room",
+    "videoStart": "Start call",
+    "you": "You"
+  },
   "community": {
     "admins": "Administrators",
     "choose-another-community": "Choose another community",
@@ -167,11 +193,9 @@
   "communityInfo": "Community Information",
   "contact": "Contact",
   "contacts": {
-    "addFavorite": "Add to favourites",
     "all": "All contacts",
     "allShort": "All",
     "bookings": "{n} booking | {n} bookings",
-    "chatLater": "Conversation history — comes with the chat",
     "count": "{n} contact | {n} contacts",
     "empty": "No contacts yet. Whoever exchanges Gradido with you — or joins through you — appears here.",
     "favorites": "Favourites",
@@ -179,7 +203,6 @@
       "add": "Add to favourites",
       "remove": "Remove from favourites"
     },
-    "isFavorite": "Favourite",
     "last": "last {date}",
     "matches": "Matches",
     "noFavorites": "No favourites yet. Tap the heart beside a contact.",
@@ -195,9 +218,9 @@
       "title": "Remove {name} from your favourites?"
     },
     "search": "Search contacts …",
-    "sendEmail": "Send e-mail",
     "sendGradido": "Send Gradido",
-    "since": "Contact since {date}"
+    "since": "Contact since {date}",
+    "unreadChatMessages": "{n} new message | {n} new messages"
   },
   "contribution": {
     "activity": "Activity",
@@ -830,6 +853,7 @@
     "email": "We have sent you an email.",
     "errorTitle": "Attention!",
     "register": "You are registered now, please check your emails and click the activation link.",
+    "registerPresence": "Your account is ready. A confirmation mail is on its way to your address. Sign in now. If signing in fails, you may already have an account with this address: then use “Forgot password”.",
     "reply": "Thank you, your reply has been sent.",
     "reset": "Your password has been changed.",
     "title": "Thank you!",
@@ -857,9 +881,10 @@
     "back-to-settings": "Back to settings",
     "calculator": "Calculator",
     "community": "Community",
-    "contacts": "Contacts",
+    "contacts": "Contacts & Chat",
     "logout": "Logout",
     "matching": "Matching",
+    "menu": "Menu",
     "overview": "Overview",
     "scanner": "Scan code",
     "send": "Send",
@@ -871,7 +896,7 @@
   "pageTitle": {
     "calculator": "Calculator",
     "circles": "Gradido Circles",
-    "contacts": "Your contacts",
+    "contacts": "Contacts & Chat",
     "contributions": "Create Gradido",
     "gdt": "Your GDT transactions",
     "information": "{community}",
@@ -1072,7 +1097,7 @@
       "resend_subtitle": "Your activation link has expired, here you can order a new one.",
       "reset": "Reset password",
       "reset-password": {
-        "text": "Enter a new password that you will use to log in to your Gradido account in the future.."
+        "text": "Enter a new password that you will use to log in to your Gradido account in the future."
       },
       "send_now": "Send now",
       "set": "Set password",
@@ -1124,11 +1149,23 @@
       "title": "Someone elsewhere"
     },
     "here": {
+      "codeHint": "The code is good for ten minutes, a new one for each guest. Whoever scans it can use their account right away.",
+      "confirmFirst": "Once your e-mail address is confirmed, you can open accounts at the table here as well. Until then this code shows your card.",
+      "expired": "The code has expired.",
+      "limitReached": "All places are taken: {n} of your guests have not confirmed their e-mail address yet. As soon as one of them has, you can show a code again. If you get stuck, support will help you.",
       "map": "the map",
+      "newCode": "Show a new code",
+      "noAnswer": "The code did not arrive just now. Try again.",
+      "noPhone": "No phone at hand? Open your guest's account here on this device.",
+      "noPhoneHint": "You will be signed out for this. When your guest is done, they sign out and you sign in again.",
       "step1": "Show {map}. Let her type in what she is looking for.",
       "step2": "She holds her camera up to this code.",
       "step3": "The account welcomes her by itself. You don't need to explain anything.",
-      "title": "Someone here with me"
+      "title": "Someone here with me",
+      "unconfirmedGuest": "{firstName} {lastName} · {alias} · since {date}",
+      "unconfirmedGuests": "One of your guests has not confirmed their e-mail address yet | {n} of your guests have not confirmed their e-mail address yet",
+      "unconfirmedHint": "Feel free to remind them of the link in their mail. If support has to delete an account, send them this line.",
+      "validFor": "Valid for one more minute | Valid for {n} more minutes"
     },
     "mirror": {
       "go": "Show it to somebody else",
@@ -1164,6 +1201,10 @@
       "minimum": "8 characters minimum.",
       "no-whitespace": "No white spaces and tabs",
       "one_number": "One number required.",
+      "presenceExpired": "This code has expired. Ask for a new one and you can use your account right away. Or register here as usual and set your password through the link in the e-mail.",
+      "presenceFailed": "The code has expired. Ask for a new one and scan it again.",
+      "presenceHint": "You can use your account right away. Confirm your e-mail address by this time tomorrow, the mail is on its way. Until then {name} can see that your confirmation is still missing.",
+      "presenceLimit": "No further account can be opened with this code right now: {name} is already vouching for guests who have not confirmed their address yet. As soon as one of them has confirmed, try again. Or register here as usual and the link comes by e-mail.",
       "shownBy": "{name} showed you Gradido. Good to have you here.",
       "special-char": "One special character required (e.g. _ or ä)",
       "uppercase": "One uppercase letter required."

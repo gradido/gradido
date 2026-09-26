@@ -18,8 +18,8 @@
  * a second copy of what `core/src/locales` says. That is deliberate and not a mistake to be
  * tidied away: the window shows the stem before anything is sent, and the backend writes
  * the stem that ends up in the ledger. Two readers, two files. The `locales` test checks
- * that every key here has a text in de and en; whether the two files WORD it identically is
- * a question for the localisation work, not for this file.
+ * that every key here has a text in each of the ten languages; whether the two files WORD
+ * it identically is a question for the localisation work, not for this file.
  */
 
 /** The six groups, in the order the window shows them (E §1, mockup V02). */

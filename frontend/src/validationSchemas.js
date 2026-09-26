@@ -34,10 +34,13 @@ export const memo = string()
 // so it may be longer than a memo, and a short reply like "Yes" has to pass as well.
 // Keep in step with MESSAGE_*_CHARS in the shared package. Reuses the memo wording:
 // those texts already say "message" and interpolate the bound.
+// The upper bound is exported for the chat's compose bar, whose field stops there.
+export const MESSAGE_MAX_CHARS = 2000
+
 export const message = string()
   .required('form.validation.memo.required')
   .min(1, ({ min }) => ({ key: 'form.validation.memo.min', values: { min } }))
-  .max(2000, ({ max }) => ({ key: 'form.validation.memo.max', values: { max } }))
+  .max(MESSAGE_MAX_CHARS, ({ max }) => ({ key: 'form.validation.memo.max', values: { max } }))
 
 export const subject = string()
   .required('form.validation.subject.required')

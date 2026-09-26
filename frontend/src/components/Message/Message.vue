@@ -1,10 +1,13 @@
 <template>
   <div>
     <div class="header py-lg-6">
-      <BContainer class="w-50">
+      <!-- The whole width of the card, and the subtitle in regular weight: some subtitles run to
+           four sentences (the confirmation after a table-code registration), and at half the
+           width in bold that one stood on twelve lines on a phone. -->
+      <BContainer>
         <div class="header-body text-center mb-7">
           <p class="h1 test-message-headline">{{ headline }}</p>
-          <p class="h4 test-message-subtitle">{{ subtitle }}</p>
+          <p class="h4 fw-normal test-message-subtitle">{{ subtitle }}</p>
           <hr />
           <BButton v-if="showButton" class="test-message-button" @click="handleNavigation">
             {{ buttonText }}

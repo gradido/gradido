@@ -1,6 +1,9 @@
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 
-export * from './assistedRegistrations'
+export * from './chatConversationMembers'
+export * from './chatConversations'
+export * from './chatMessages'
+export * from './chatVideoServers'
 export * from './communities'
 export * from './communityHandshakes'
 export * from './contributions'
