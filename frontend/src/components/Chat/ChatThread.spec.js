@@ -390,6 +390,32 @@ describe('ChatThread', () => {
       expect(field().element.value).toBe('Hier ist die Datei:')
     })
 
+    /**
+     * ⛔ Taken only when the bar can show them. A first page that fails shows no bar; the words
+     * wait, and the next opening of the window brings them (coderabbit, PR #3999).
+     */
+    it('keeps the held words while the first page fails, for the next opening', async () => {
+      holdChatText({ gradidoID: 'lena-id', text: 'Hier ist die Datei:' })
+      mountThread()
+      server.error.value = new Error('Network error')
+      server.loading.value = false
+      await flushPromises()
+      expect(wrapper.find('[data-test="chat-thread-error"]').exists()).toBe(true)
+      wrapper.unmount()
+
+      mountThread()
+      await arrive(page([1, 2]))
+      expect(field().element.value).toBe('Hier ist die Datei:')
+    })
+
+    // Words for a first message: the conversation holds nothing yet, and the bar is there.
+    it('brings them back into a conversation that holds nothing yet', async () => {
+      holdChatText({ gradidoID: 'lena-id', text: 'Hallo Lena!' })
+      mountThread()
+      await arrive(page([]))
+      expect(field().element.value).toBe('Hallo Lena!')
+    })
+
     it('leaves the field empty where the words were held for somebody else', async () => {
       holdChatText({ gradidoID: 'anna-id', text: 'Hier ist die Datei:' })
       mountThread()

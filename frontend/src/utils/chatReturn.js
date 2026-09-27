@@ -93,12 +93,13 @@ export const takeHeldChatText = (partner) => {
 }
 
 /**
- * Lets the note go, and words held in memory with it.
+ * Lets the note on this device go: the page came back into sight, or the thread closed. Words a
+ * start holds in memory stay: a thread whose first page failed has not taken them yet, and the
+ * next opening of that conversation will (coderabbit, PR #3999).
  *
  * @param {string | null | undefined} me the member signed in
  */
-export const forgetChatReturn = (me) => {
-  held = null
+export const dropChatReturnNote = (me) => {
   const key = keyOf(me)
   if (!key) return
   try {
@@ -106,6 +107,17 @@ export const forgetChatReturn = (me) => {
   } catch {
     // Where nothing could be written, there is nothing to let go of.
   }
+}
+
+/**
+ * Signing out: the note goes, and words held in memory with it -- the next member on this browser
+ * must not find them in a field.
+ *
+ * @param {string | null | undefined} me the member signing out
+ */
+export const forgetChatReturn = (me) => {
+  held = null
+  dropChatReturnNote(me)
 }
 
 /**

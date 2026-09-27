@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   CHAT_RETURN_MAX_AGE_MS,
+  dropChatReturnNote,
   forgetChatReturn,
   holdChatText,
   noteChatReturn,
@@ -171,6 +172,26 @@ describe('chatReturn', () => {
       expect(takeHeldChatText(ANNA)).toBe('')
       holdChatText(null)
       expect(takeHeldChatText(ANNA)).toBe('')
+    })
+  })
+
+  // The page came back into sight, or the thread closed: the note goes. Words a start holds stay
+  // for the thread that has not taken them yet -- one whose first page failed (coderabbit, #3999).
+  describe('dropChatReturnNote', () => {
+    it('lets the note go, and keeps words held in memory', () => {
+      noteChatReturn('me-id', ANNA, 'Hier ist die Datei:')
+      holdChatText({ ...ANNA, text: 'Hier ist die Datei:' })
+      dropChatReturnNote('me-id')
+
+      expect(stored()).toBeNull()
+      expect(takeHeldChatText(ANNA)).toBe('Hier ist die Datei:')
+    })
+
+    it("lets no other member's note go, and nothing without a member", () => {
+      noteChatReturn('other-member', ANNA)
+      dropChatReturnNote('me-id')
+      dropChatReturnNote(null)
+      expect(stored('other-member')).not.toBeNull()
     })
   })
 

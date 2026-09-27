@@ -127,7 +127,7 @@ import {
   sendChatMessage,
 } from '@/graphql/chat.graphql'
 import { chatMemberKey } from '@/utils/chatMemberKey'
-import { forgetChatReturn, noteChatReturn, takeHeldChatText } from '@/utils/chatReturn'
+import { dropChatReturnNote, noteChatReturn, takeHeldChatText } from '@/utils/chatReturn'
 
 /** How many messages a page holds -- the server's own default, written out. */
 const PAGE_SIZE = 50
@@ -272,19 +272,36 @@ onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisibil
  */
 const store = useStore()
 const composeBar = ref(null)
-const heldText = takeHeldChatText(memberRef)
 const noteReturn = () => {
   if (document.hidden) {
     noteChatReturn(store.state.gradidoID, memberRef, composeBar.value?.draft() ?? '')
   } else {
-    forgetChatReturn(store.state.gradidoID)
+    dropChatReturnNote(store.state.gradidoID)
   }
 }
 document.addEventListener('visibilitychange', noteReturn)
 onBeforeUnmount(() => {
   document.removeEventListener('visibilitychange', noteReturn)
-  forgetChatReturn(store.state.gradidoID)
+  dropChatReturnNote(store.state.gradidoID)
 })
+
+/**
+ * The words a start held for this conversation, taken only when the bar can show them -- when
+ * the first page is in. Before that they stay where the start put them: a first page that fails
+ * shows no bar, and the next opening of the window takes them (coderabbit, PR #3999). A watcher
+ * runs before the render it belongs to, so the bar is made with them.
+ */
+const heldText = ref('')
+let heldTaken = false
+watch(
+  state,
+  (now) => {
+    if (heldTaken || (now !== 'thread' && now !== 'empty')) return
+    heldTaken = true
+    heldText.value = takeHeldChatText(memberRef)
+  },
+  { immediate: true },
+)
 
 /**
  * The read pointer on opening, to the highest id the first page brought (E-017: the marker is
