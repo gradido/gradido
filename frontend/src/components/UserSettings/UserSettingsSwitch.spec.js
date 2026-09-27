@@ -104,4 +104,14 @@ describe('UserSettingsSwitch', () => {
       'Am I findable?',
     )
   })
+
+  // The name goes in as the library's own prop, which follows a change - unlike the extra
+  // attributes it copies once. A change of language while the page stays open must reach it.
+  it('carries a new name to the switch when the language changes', async () => {
+    const input = mountSwitch({ label: 'Bin ich auffindbar?' }).find('input')
+
+    await wrapper.setProps({ label: 'Am I findable?' })
+
+    expect(input.attributes('aria-label')).toBe('Am I findable?')
+  })
 })

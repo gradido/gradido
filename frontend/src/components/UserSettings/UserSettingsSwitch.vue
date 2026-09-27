@@ -103,7 +103,7 @@ const onLockedClick = (event) => {
 // For a screen reader, the lock is said on the input itself. Set here and not passed to
 // BFormCheckbox: bootstrap-vue-next 0.26.8 copies extra attributes to its input once, when
 // it is created, and never again - and the lock comes later, when the page has heard where
-// the member lives.
+// the member lives. Its own props follow as usual: the name goes in as ariaLabel.
 const root = ref(null)
 watchPostEffect(() => {
   const input = root.value?.querySelector('input')
