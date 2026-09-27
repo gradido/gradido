@@ -828,6 +828,7 @@
       "findableOff": "You are no longer findable on the map",
       "findableOn": "You are now findable on the map",
       "intro": "Place yourself on the map to take part in matching — you only appear once you do.",
+      "needsHome": "Set your home on the map first.",
       "saveText": "Do you want to save your position settings now?",
       "saveTitle": "Save position",
       "unsaved": "Not saved yet"
