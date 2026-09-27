@@ -41,6 +41,11 @@ vi.mock('../composables/useParkedAmount', () => ({
   forgetParkedAmount: forgetParkedAmountMock,
 }))
 
+const { forgetChatReturnMock } = vi.hoisted(() => ({ forgetChatReturnMock: vi.fn() }))
+vi.mock('../utils/chatReturn', () => ({
+  forgetChatReturn: forgetChatReturnMock,
+}))
+
 vi.mock('jwt-decode', () => ({
   default: vi.fn(() => ({ exp: '1234' })),
 }))
@@ -317,6 +322,7 @@ describe('Vuex store', () => {
         dispatch.mockClear()
         forgetParkedAmountMock.mockClear()
         forgetLegacyMapPrefsMock.mockClear()
+        forgetChatReturnMock.mockClear()
       })
 
       /**
@@ -378,6 +384,23 @@ describe('Vuex store', () => {
         expect(applyingCommit).toHaveBeenCalledWith('gradidoID', null)
         expect(localState.gradidoID).toBeNull()
         expect(forgetParkedAmountMock).toHaveBeenCalledWith('user-one')
+      })
+
+      /**
+       * The way back into a conversation after a restart (utils/chatReturn) goes with the member:
+       * whoever signs out is not taken back into it -- not where the idle timeout signs out a
+       * wallet left in a thread either. Keyed by who is leaving, read before the clear, for the
+       * reason the test above gives.
+       */
+      it('lets the way back into a conversation go, keyed by who is leaving', () => {
+        const localState = { themeMode: 'dark', gradidoID: 'user-one' }
+        const applyingCommit = vi.fn((mutation, value) => {
+          if (mutation === 'gradidoID') localState.gradidoID = value
+        })
+        logout({ commit: applyingCommit, state: localState, dispatch })
+
+        expect(localState.gradidoID).toBeNull()
+        expect(forgetChatReturnMock).toHaveBeenCalledWith('user-one')
       })
 
       it('commits redirectPath', () => {

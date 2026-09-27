@@ -114,6 +114,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useStore } from 'vuex'
 import { useApolloClient, useMutation, useQuery } from '@vue/apollo-composable'
 import ChatBubble from '@/components/Chat/ChatBubble.vue'
 import ChatComposeBar from '@/components/Chat/ChatComposeBar.vue'
@@ -124,6 +125,7 @@ import {
   sendChatMessage,
 } from '@/graphql/chat.graphql'
 import { chatMemberKey } from '@/utils/chatMemberKey'
+import { forgetChatReturn, noteChatReturn } from '@/utils/chatReturn'
 
 /** How many messages a page holds -- the server's own default, written out. */
 const PAGE_SIZE = 50
@@ -259,6 +261,22 @@ const onVisibility = () => {
 }
 document.addEventListener('visibilitychange', onVisibility)
 onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisibility))
+
+/**
+ * The way back into this conversation, should iOS start the wallet over while the member is in
+ * another app (utils/chatReturn): noted as the page goes out of sight, let go as it comes back
+ * into sight or the thread closes. Whom it is with, never the words in the field.
+ */
+const store = useStore()
+const noteReturn = () => {
+  if (document.hidden) noteChatReturn(store.state.gradidoID, memberRef)
+  else forgetChatReturn(store.state.gradidoID)
+}
+document.addEventListener('visibilitychange', noteReturn)
+onBeforeUnmount(() => {
+  document.removeEventListener('visibilitychange', noteReturn)
+  forgetChatReturn(store.state.gradidoID)
+})
 
 /**
  * The read pointer on opening, to the highest id the first page brought (E-017: the marker is

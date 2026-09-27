@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import addNavigationGuards from './guards'
 import { createMemoryHistory, createRouter, createWebHistory } from 'vue-router'
 import { verifyLogin } from '../graphql/queries'
@@ -319,6 +319,7 @@ describe('a start with a running session', () => {
         { path: '/', redirect: () => ({ path: '/login' }) },
         { path: '/login/:code?', name: 'Login', component: Page },
         { path: '/overview', name: 'Overview', component: Page, meta: { requiresAuth: true } },
+        { path: '/contacts', name: 'Contacts', component: Page, meta: { requiresAuth: true } },
         { path: '/redeem/:code', name: 'Redeem', component: Page },
         { path: '/register/:code?', name: 'Register', component: Page },
       ],
@@ -379,5 +380,97 @@ describe('a start with a running session', () => {
   it('leaves every other start as it was', async () => {
     expect(await whereAfter('/register', RUNNING)).toBe('/register')
     expect(await whereAfter('/redeem/abc123', RUNNING)).toBe('/redeem/abc123')
+  })
+
+  /**
+   * ⭐ Back into the conversation (Bernd, 27.09.2026: "not in the dialog thread any more"): where
+   * a thread was open as the wallet went out of sight and did not come back, it left a note
+   * (utils/chatReturn), and the start opens that conversation again.
+   */
+  describe('with a conversation to come back to', () => {
+    const ME = { ...RUNNING, gradidoID: 'me-id' }
+    const note = (value = {}, me = 'me-id') =>
+      window.localStorage.setItem(
+        `chat-return:${me}`,
+        JSON.stringify({
+          gradidoID: 'anna-id',
+          communityUuid: 'other-uuid',
+          at: Date.now(),
+          ...value,
+        }),
+      )
+    const noted = (me = 'me-id') => window.localStorage.getItem(`chat-return:${me}`)
+    const ANNA_THREAD = '/contacts?with=anna-id&community=other-uuid'
+    afterEach(() => window.localStorage.clear())
+
+    it.each(['/login', '/', '/overview'])('opens it again from a start on %s', async (address) => {
+      note()
+      expect(await whereAfter(address, ME)).toBe(ANNA_THREAD)
+    })
+
+    it('names no community for a conversation in this one', async () => {
+      note({ communityUuid: null })
+      expect(await whereAfter('/overview', ME)).toBe('/contacts?with=anna-id')
+    })
+
+    it('comes back to it once: the note goes with the start', async () => {
+      note()
+      await whereAfter('/login', ME)
+      expect(noted()).toBeNull()
+      expect(await whereAfter('/login', ME)).toBe('/overview')
+    })
+
+    it('lets an hour-old note go', async () => {
+      note({ at: Date.now() - 60 * 60 * 1000 - 1000 })
+      expect(await whereAfter('/overview', ME)).toBe('/overview')
+      expect(noted()).toBeNull()
+    })
+
+    // One browser serves several members.
+    it("does not take another member's conversation", async () => {
+      note({}, 'other-member')
+      expect(await whereAfter('/login', ME)).toBe('/overview')
+      expect(noted('other-member')).not.toBeNull()
+    })
+
+    // Without a running session the member signs in anew; a conversation from before is nowhere
+    // to come back to, and the note goes all the same.
+    it('lets the note go where the session has ended, and shows the form', async () => {
+      note()
+      expect(await whereAfter('/login', { ...ME, tokenTime: now() - 60 })).toBe('/login')
+      expect(noted()).toBeNull()
+    })
+
+    it('lets a redeem code go first', async () => {
+      note()
+      expect(await whereAfter('/login/abc123', ME)).toBe('/redeem/abc123')
+      expect(noted()).toBeNull()
+    })
+
+    it('keeps the form for a sign-in for a project, and lets the note go', async () => {
+      note()
+      expect(await whereAfter('/login?project=probe', ME)).toBe('/login?project=probe')
+      expect(noted()).toBeNull()
+    })
+
+    // The note serves the one start after it, whatever that start becomes.
+    it('is let go by a start anywhere else, which it leaves as it was', async () => {
+      note()
+      const started = await startAt('/register', ME)
+      expect(started.currentRoute.value.fullPath).toBe('/register')
+      expect(noted()).toBeNull()
+
+      await started.push('/overview')
+      expect(started.currentRoute.value.fullPath).toBe('/overview')
+    })
+
+    // Only a start: on the way from page to page nothing is taken, and nothing opens.
+    it('is not taken on a way from inside the running wallet', async () => {
+      const started = await startAt('/register', ME)
+      note()
+      await started.push('/overview')
+      expect(started.currentRoute.value.fullPath).toBe('/overview')
+      expect(noted()).not.toBeNull()
+    })
   })
 })
