@@ -40,6 +40,12 @@ const filterVariables = (variables: any) => {
   if (vars?.subject) {
     vars.subject = '***'
   }
+  // A picture in a chat message (sendChatMessage, `$image`): one member's picture for another,
+  // and some 80,000 characters of base64 in every line that would carry it. Its size stays
+  // readable. The wallet's document has to name the variable so (P7c).
+  if (vars?.image?.data) {
+    vars.image.data = '***'
+  }
   return vars
 }
 

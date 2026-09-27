@@ -5,13 +5,21 @@ import { MarkChatConversationReadArgs } from '@arg/MarkChatConversationReadArgs'
 import { NewChatMessagesSinceArgs } from '@arg/NewChatMessagesSinceArgs'
 import { SendChatMessageArgs } from '@arg/SendChatMessageArgs'
 import { SetChatConversationMutedArgs } from '@arg/SetChatConversationMutedArgs'
+import { ChatImageInput } from '@input/ChatImageInput'
 import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
 import { ChatMessage } from '@model/ChatMessage'
 import { ChatMessagePage } from '@model/ChatMessagePage'
 import { ChatUpdate } from '@model/ChatUpdate'
 import { ChatVideoRoom } from '@model/ChatVideoRoom'
 import { ChatVideoServerChoice } from '@model/ChatVideoServerChoice'
-import { ApiVersionType, CommandClientFactory, chatMessageNotify, V1_0_CommandClient } from 'core'
+import {
+  ApiVersionType,
+  acceptChatMessageImage,
+  ChatMessageImageAccepted,
+  CommandClientFactory,
+  chatMessageNotify,
+  V1_0_CommandClient,
+} from 'core'
 import {
   ChatConversationSelect,
   ChatMemberRef,
@@ -83,6 +91,20 @@ const directChatConversationWith = async (
   return dbFindDirectChatConversation(caller, other)
 }
 
+/**
+ * The picture of a message as it came in (acceptChatMessageImage), or the refusal:
+ * CHAT_IMAGE_NOT_ACCEPTED with the reason -- EMPTY, TOO_LARGE, NOT_JPEG or SIZE. The log gets
+ * the numbers, never the picture.
+ */
+const acceptedPicture = (image: ChatImageInput): ChatMessageImageAccepted => {
+  const accepted = acceptChatMessageImage(image)
+  if (!accepted.success) {
+    const { reason, bytes, width, height } = accepted.error
+    throw new LogError(`CHAT_IMAGE_NOT_ACCEPTED: ${reason}`, { bytes, width, height })
+  }
+  return accepted.value
+}
+
 /** A fresh room on `server`; the log gets the host, never the room name. */
 const roomOn = ({ baseUrl, host, operator, prefix }: ChatVideoServer): ChatVideoRoom => {
   createLogger().trace(`chat video room handed out on ${host}`)
@@ -96,9 +118,10 @@ const roomOn = ({ baseUrl, host, operator, prefix }: ChatVideoServer): ChatVideo
  * choose (V5). The form "send an e-mail" still writes through sendEmail, into the same
  * conversation (P1).
  *
- * What this resolver writes to the log carries no subject, no text and no room name: a refused
- * page, update or room budget with its count, a refused message with its reason, a failed
- * delivery with the other side's answer, and the host a room was handed out on.
+ * What this resolver writes to the log carries no subject, no text, no room name and no picture:
+ * a refused page, update or room budget with its count, a refused message with its reason, a
+ * refused picture with its reason and its numbers, a failed delivery with the other side's
+ * answer, and the host a room was handed out on.
  */
 @Resolver()
 export class ChatResolver {
@@ -228,6 +251,11 @@ export class ChatResolver {
    * reads it. For a member of this community the copy is the one row both of them read; for a
    * member of another community it goes out as a command, and the copy says how that went.
    *
+   * A message may carry a picture (P7), checked before anything else happens -- the way the
+   * avatar is checked -- and refused as CHAT_IMAGE_NOT_ACCEPTED with the reason, nothing filed.
+   * Within this community only, until the next step (P7b): to a member of another one, a message
+   * with a picture is refused, IMAGE_ACROSS_BORDER, before anything is filed or sent.
+   *
    * Whether it goes out as a mail as well: the first message between the two always does
    * (E-024, decided here against this server's own table, before anything is filed); after it,
    * what the sender asked for -- unless the recipient muted the conversation. The copy carries
@@ -246,9 +274,10 @@ export class ChatResolver {
   @Authorized([RIGHTS.SEND_CHAT_MESSAGE])
   @Mutation(() => ChatMessage)
   async sendChatMessage(
-    @Args() { ref, body, notify: requested }: SendChatMessageArgs,
+    @Args() { ref, body, notify: requested, image }: SendChatMessageArgs,
     @Ctx() context: Context,
   ): Promise<ChatMessage> {
+    const images = image ? [acceptedPicture(image)] : []
     const senderUser = getUser(context)
     const caller = callerOf(context)
     const other = {
@@ -276,6 +305,7 @@ export class ChatResolver {
         notify,
         requireStored: true,
         letter: false,
+        images,
       })
       if (!stored) {
         throw new LogError('CHAT_MESSAGE_NOT_SENT: NOT_STORED')
@@ -283,6 +313,12 @@ export class ChatResolver {
       return new ChatMessage(stored, caller)
     }
 
+    // ⛔ A picture does not cross the border yet: the command carries none, and how one gets to
+    // the other server is the next step (P7b). Until then refused here, before anything is filed
+    // or sent.
+    if (images.length > 0) {
+      throw new LogError('CHAT_MESSAGE_NOT_SENT: IMAGE_ACROSS_BORDER', other.communityUuid)
+    }
     const senderCom = await getCommunityByUuid(caller.communityUuid)
     const receiverCom = await getCommunityWithFederatedCommunityByIdentifier(other.communityUuid)
     const receiverFCom = receiverCom?.federatedCommunities?.find(

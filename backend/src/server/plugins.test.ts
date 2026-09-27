@@ -47,6 +47,29 @@ describe('the request log', () => {
     expect(text).toContain('"subject": "***"')
   })
 
+  // P7: one member's picture for another -- and some 80,000 characters in every line that carried
+  // it. What is left of it is its size.
+  it('writes no picture of a chat message, only its size', () => {
+    const picture = Buffer.from('a private picture of Anna and Ben').toString('base64')
+    const text = logged({
+      ref: { communityUuid: 'c', gradidoID: 'g' },
+      body: '',
+      notify: 'NONE',
+      image: { data: picture, width: 800, height: 600 },
+    })
+    expect(text).not.toContain(picture)
+    expect(text).toContain('"data": "***"')
+    expect(text).toContain('"width": 800')
+  })
+
+  // ⛔ The log masks a copy. The request goes on to the resolver with the picture in it -- a mask
+  // on the request itself would hand the resolver three stars for a picture.
+  it('leaves the picture in the request itself', () => {
+    const variables = { image: { data: 'AAAA', width: 1, height: 1 } }
+    logged(variables)
+    expect(variables.image.data).toBe('AAAA')
+  })
+
   it('writes no password and no table code, as before', () => {
     const text = logged({
       password: 'Aa12345_',

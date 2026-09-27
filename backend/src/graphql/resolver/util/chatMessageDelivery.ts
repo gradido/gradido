@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import {
   CHAT_MESSAGE_NOTIFY_LETTER,
+  ChatMessageImageAccepted,
   chatMailWentOut,
   chatMessageMailState,
   chatMessageMailStateOfAnswer,
@@ -8,9 +9,11 @@ import {
   readChatMemberMutedAt,
   recordChatMessageDelivery,
   recordChatMessageMailState,
+  removeChatMessageImages,
   SendEmailCommand,
   sendCustomEmail,
   storeChatMessage,
+  storeChatMessageImages,
   V1_0_CommandClient,
 } from 'core'
 import {
@@ -56,6 +59,12 @@ export interface ChatMessageLocalDelivery {
   requireStored: boolean
   /** True for the form: a letter, mailed whatever the recipient's quiet (E-034, A3). */
   letter: boolean
+  /**
+   * The pictures of a chat message (P7), checked already (acceptChatMessageImage) -- one at most
+   * today. Only with `requireStored`: a picture is part of the row that is the message. None for
+   * the form.
+   */
+  images?: ChatMessageImageAccepted[]
 }
 
 /**
@@ -69,6 +78,13 @@ export interface ChatMessageLocalDelivery {
  * mail (E-034, `mail_state`): MAILED where one went out, MUTED where one was asked for and the
  * recipient muted the conversation, nothing where none was asked for -- or where none went out:
  * the recipient has no address, mail is switched off, or the transport failed.
+ *
+ * ⛔ A message with pictures (P7): the pictures first, under the message's uuid, then the
+ * message. Where the pictures could not be filed, nothing is filed and nothing mailed; where the
+ * message could not be filed, its pictures are taken back out. A picture without its message is
+ * seen by nobody -- it is handed out only with its message --, a message without its picture
+ * would be an empty bubble. Both tables are Drizzle's, and nothing in the house runs a Drizzle
+ * transaction yet: this order stands in for one.
  */
 export async function deliverChatMessageLocally({
   senderUser,
@@ -78,14 +94,26 @@ export async function deliverChatMessageLocally({
   notify,
   requireStored,
   letter,
+  images = [],
 }: ChatMessageLocalDelivery): Promise<ChatMessageSelect | null> {
   const recipient = {
     communityUuid: recipientUser.communityUuid,
     gradidoId: recipientUser.gradidoID,
   }
+  // The pictures are filed under it before the message is.
+  const messageUuid = uuidv4()
+  if (
+    images.length > 0 &&
+    !(await storeChatMessageImages(
+      messageUuid,
+      images.map((picture, position) => ({ ...picture, imageUuid: uuidv4(), position })),
+    ))
+  ) {
+    return null
+  }
   const stored = await storeChatMessage(
     {
-      messageUuid: uuidv4(),
+      messageUuid,
       sender: { communityUuid: senderUser.communityUuid, gradidoId: senderUser.gradidoID },
       recipient,
       subject,
@@ -95,6 +123,9 @@ export async function deliverChatMessageLocally({
     },
     'local',
   )
+  if (!stored && images.length > 0) {
+    await removeChatMessageImages(messageUuid)
+  }
   if (!stored && requireStored) {
     return null
   }

@@ -6,6 +6,7 @@ import { getLogger } from 'config-schema/test/testSetup'
 import { CONFIG as CORE_CONFIG, sendCustomEmail } from 'core'
 import {
   AppDatabase,
+  chatMessageImagesTable,
   chatMessagesTable,
   Community as DbCommunity,
   FederatedCommunity as DbFederatedCommunity,
@@ -16,7 +17,13 @@ import {
 import { eq } from 'drizzle-orm'
 import { GraphQLError } from 'graphql'
 import { GraphQLClient } from 'graphql-request'
-import { CommandJwtPayloadType, createKeyPair, verifyAndDecrypt } from 'shared'
+import {
+  CHAT_IMAGE_MAX_BYTES,
+  CommandJwtPayloadType,
+  createKeyPair,
+  MESSAGE_MAX_CHARS,
+  verifyAndDecrypt,
+} from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { chatVideoServerPool } from '@/apis/jitsi/chatVideoServerPool'
 import { probeJitsiServer } from '@/apis/jitsi/jitsiProbe'
@@ -385,13 +392,23 @@ type ChatRef = { communityUuid: string | null; gradidoID: string }
 const mailed = () => (sendCustomEmail as jest.Mock).mock.calls.map(([data]) => data)
 const clearMails = () => (sendCustomEmail as jest.Mock).mockClear()
 
-/** Writes in the chat to `to`, as whoever is logged in. */
-const say = (to: ChatRef, body: string, notify: 'EMAIL' | 'NONE'): Promise<any> =>
-  mutate({ mutation: sendChatMessage, variables: { ref: to, body, notify } })
+type ChatPicture = { data: string; width: number; height: number }
+
+/** Writes in the chat to `to`, as whoever is logged in -- with a picture, where one is given. */
+const say = (
+  to: ChatRef,
+  body: string,
+  notify: 'EMAIL' | 'NONE',
+  image?: ChatPicture,
+): Promise<any> =>
+  mutate({
+    mutation: sendChatMessage,
+    variables: { ref: to, body, notify, ...(image ? { image } : {}) },
+  })
 
 /** The same, where it must go through: the sender's own copy. */
-const said = async (to: ChatRef, body: string, notify: 'EMAIL' | 'NONE') => {
-  const res = await say(to, body, notify)
+const said = async (to: ChatRef, body: string, notify: 'EMAIL' | 'NONE', image?: ChatPicture) => {
+  const res = await say(to, body, notify, image)
   expect(res.errors).toBeUndefined()
   return res.data.sendChatMessage
 }
@@ -415,6 +432,18 @@ const pageWith = async (to: ChatRef) => {
 /** Every message this server has filed. */
 const allMessages = () =>
   AppDatabase.getInstance().getDrizzleDataSource().select().from(chatMessagesTable)
+
+/** Every picture this server has filed. */
+const allPictures = () =>
+  AppDatabase.getInstance().getDrizzleDataSource().select().from(chatMessageImagesTable)
+
+// The smallest thing the server takes as a JPEG: the start marker, a few bytes, the end marker.
+const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0xff, 0xd9])
+const pictureOf = (bytes: Buffer, width = 800, height = 600): ChatPicture => ({
+  data: bytes.toString('base64'),
+  width,
+  height,
+})
 
 describe('sendChatMessage and setChatConversationMuted without a login', () => {
   beforeAll(() => resetToken())
@@ -673,6 +702,73 @@ describe('sendChatMessage refused', () => {
 })
 
 /**
+ * P7a: a picture in a chat message, within this community. Checked before anything is filed
+ * (acceptChatMessageImage), filed before its message, under the message's uuid. The order and
+ * the taking back of a picture whose message could not be filed are held in
+ * util/chatMessageDelivery.test.ts, where a failure can be brought about.
+ */
+describe('sendChatMessage with a picture', () => {
+  beforeAll(() => loginAs('peter@lustig.de'))
+  beforeEach(() => clearMails())
+  afterAll(() => resetToken())
+
+  const picturesOf = async (messageUuid: string) =>
+    (await allPictures()).filter((picture) => picture.messageUuid === messageUuid)
+
+  it('files the message and its picture, the picture under the message', async () => {
+    const copy = await said(ref(raeuber), 'Look at this', 'EMAIL', pictureOf(JPEG, 393, 1220))
+
+    expect(copy).toMatchObject({ mine: true, body: 'Look at this', deliveryState: 'DELIVERED' })
+    const pictures = await picturesOf(copy.messageUuid)
+    expect(pictures).toHaveLength(1)
+    expect(pictures[0]).toMatchObject({
+      position: 0,
+      width: 393,
+      height: 1220,
+      mimeType: 'image/jpeg',
+    })
+    expect(pictures[0].image.equals(JPEG)).toBe(true)
+  })
+
+  // E-044, "Bildunterschrift (freiwillig)": a picture without a caption is a message.
+  it('takes a picture without a caption', async () => {
+    const copy = await said(ref(raeuber), '', 'NONE', pictureOf(JPEG))
+
+    expect(copy.body).toBe('')
+    expect(await picturesOf(copy.messageUuid)).toHaveLength(1)
+  })
+
+  it('refuses a caption of more than 2000 characters all the same', async () => {
+    const res = await say(ref(raeuber), 'x'.repeat(MESSAGE_MAX_CHARS + 1), 'EMAIL', pictureOf(JPEG))
+    expect(res.errors?.[0]?.message).toContain('Argument Validation Error')
+  })
+
+  it('refuses a picture that is empty, too large, no JPEG, or too many pixels -- and files and mails nothing', async () => {
+    const tooLarge = Buffer.concat([JPEG, Buffer.alloc(CHAT_IMAGE_MAX_BYTES, 0x20), JPEG])
+    const messagesBefore = await allMessages()
+    const picturesBefore = await allPictures()
+
+    for (const [picture, reason] of [
+      [pictureOf(Buffer.alloc(0)), 'EMPTY'],
+      [pictureOf(tooLarge), 'TOO_LARGE'],
+      [pictureOf(Buffer.from('not an image')), 'NOT_JPEG'],
+      [pictureOf(JPEG, 1000, 501), 'SIZE'],
+    ] as [ChatPicture, string][]) {
+      const res = await say(ref(raeuber), 'Look at this', 'EMAIL', picture)
+      expect(res.errors).toEqual([new GraphQLError(`CHAT_IMAGE_NOT_ACCEPTED: ${reason}`)])
+    }
+    expect(await allMessages()).toEqual(messagesBefore)
+    expect(await allPictures()).toEqual(picturesBefore)
+    expect(mailed()).toEqual([])
+  })
+
+  it('refuses a side out of bounds where the argument arrives', async () => {
+    const res = await say(ref(raeuber), 'Look at this', 'EMAIL', pictureOf(JPEG, 0, 600))
+    expect(res.errors?.[0]?.message).toContain('Argument Validation Error')
+  })
+})
+
+/**
  * EM-013: an address never confirmed, past its grace period, acts outward no more -- the right
  * is on RESTRICTED_WHILE_UNCONFIRMED, as SEND_COINS is for the form. Asking for quiet stays.
  */
@@ -911,6 +1007,20 @@ describe('sendChatMessage to a member of another community', () => {
     // The row says the same.
     const filed = (await pageWith(peerRef)).messages.find((m: any) => m.id === copy.id)
     expect(filed.deliveryState).toBe('FAILED')
+  })
+
+  // P7a: a picture stays within this community until the next step (P7b).
+  it('refuses a picture to a member of another community, and files and sends nothing', async () => {
+    peerAnswers({ success: true })
+    const messagesBefore = await allMessages()
+    const picturesBefore = await allPictures()
+
+    const res = await say(peerRef, 'Across the border', 'EMAIL', pictureOf(JPEG))
+
+    expect(res.errors).toEqual([new GraphQLError('CHAT_MESSAGE_NOT_SENT: IMAGE_ACROSS_BORDER')])
+    expect(rawRequest).not.toHaveBeenCalled()
+    expect(await allMessages()).toEqual(messagesBefore)
+    expect(await allPictures()).toEqual(picturesBefore)
   })
 
   // No silent true (D V03, section 1): no way to deliver is an error, and nothing is filed.

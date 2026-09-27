@@ -110,6 +110,25 @@ export const AVATAR_SMALL_MAX_BYTES = 10 * 1024
 export const JPEG_MAGIC_BYTES = [0xff, 0xd8]
 export const JPEG_END_BYTES = [0xff, 0xd9]
 
+// chat: a picture in a chat message (P7). It travels as base64 in the same mutation as the text
+// of the message, so the two share the request body limit, express's default 100 KB, as the two
+// avatar renditions do. The same arithmetic as AVATAR_FULL_MAX_BYTES: 60 KB of picture arrive as
+// 81,920 characters of base64, the text is at most MESSAGE_MAX_CHARS characters -- some 8 KB
+// where every one is an emoji, 18,000 bytes at the very worst (chatImageBudget.test.ts says
+// which characters) --, and the query around them some hundred bytes: under the 102,400 bytes of
+// the limit even then. chatImageBudget.test.ts holds the sum.
+//
+// A backstop, as the avatar's limits are: the wallet encodes the picture under 55 KB (an area of
+// 800 x 600). That target belongs to the wallet, as AVATAR_*_TARGET_BYTES do.
+export const CHAT_IMAGE_MAX_BYTES = 60 * 1024
+// Width and height are the sender's word -- without a decoder the server cannot measure them,
+// only bound them. The wallet's pictures have the area of 800 x 600 whatever their format: a
+// long screenshot comes to about 393 x 1220, a panorama to 924 x 520.
+export const CHAT_IMAGE_MAX_SIDE = 4096
+// The area of 800 x 600 (480,000 pixels), rounded up: a picture scaled to that area in the
+// wallet may come out a little over it (924 x 520 = 480,480).
+export const CHAT_IMAGE_MAX_PIXELS = 500_000
+
 // alias: how often a member may pick a name, and over what stretch. Four a year is
 // not a tidiness rule -- it is the brake against somebody cycling through near-misses
 // of a popular name to catch payments meant for its owner. The confirmation dialog
