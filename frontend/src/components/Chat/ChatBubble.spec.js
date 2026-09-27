@@ -60,6 +60,8 @@ describe('ChatBubble', () => {
         stubs: {
           IMdiEmailOutline: { template: '<i data-test="envelope" />' },
           IMdiCalendarPlusOutline: true,
+          IMdiFileDocumentOutline: true,
+          IMdiOpenInNew: true,
         },
       },
     })
@@ -260,6 +262,136 @@ describe('ChatBubble', () => {
 
       expect(click()).toBe(true)
       expect(asked).toEqual([])
+    })
+  })
+
+  /**
+   * Paket D (E-042, E-044): Gradido stores no files. A link to files on SwissTransfer comes as an
+   * ordinary message, and the thread shows it as a file card in place of the address; the words
+   * around it stay.
+   */
+  describe('a link to files on SwissTransfer', () => {
+    const LINK = 'https://www.swisstransfer.com/d/7f3a9c2e-5b1d-4e8a-9c3f-2d6b8a1e4f70'
+    const card = () => wrapper.find('[data-test="chat-file-card"]')
+    const text = () => wrapper.find('.chat-message-text')
+    /** What the text is made of, in order: its text as it stands, and its elements by class. */
+    const pieces = () =>
+      [...text().element.childNodes].map((node) =>
+        node.nodeType === Node.TEXT_NODE ? node.textContent : `<${node.className}>`,
+      )
+
+    it('becomes a card in place of the address, leading there in a tab of its own', () => {
+      mountBubble({ ...THEIRS, body: `Hier ist die Datei:\n${LINK}` })
+
+      expect(card().element.tagName).toBe('A')
+      expect(card().attributes('href')).toBe(LINK)
+      expect(card().attributes('target')).toBe('_blank')
+      expect(card().attributes('rel')).toBe('noopener noreferrer')
+      expect(card().text()).toContain('chatThread.fileCard')
+      expect(wrapper.find('[data-test="chat-file-card-where"]').text()).toBe(
+        'swisstransfer.com/d/7f3a9c2e-5b1d-4e8a-9c3f-2d6b8a1e4f70',
+      )
+      // The card is the one link: the address does not stand in the text beside it.
+      expect(wrapper.findAll('.chat-message-text a')).toHaveLength(1)
+      expect(text().text()).not.toContain('https://')
+    })
+
+    // In one's own bubble the same.
+    it("is a card in one's own bubble too", () => {
+      mountBubble({ ...OWN, body: LINK })
+      expect(card().attributes('href')).toBe(LINK)
+    })
+
+    // ⛔ The bubble keeps a message's own line breaks: a break after the link would stand as an
+    // empty line under the card, a blank line before it as one over it (measured in the probe,
+    // 27.09.2026). The space right next to the card goes, whatever it is.
+    it('keeps the words around it, without the space right next to it', () => {
+      mountBubble({ ...THEIRS, body: `Hier ist die Datei:\n${LINK}\nViel Freude damit!` })
+      expect(pieces()).toEqual(['Hier ist die Datei:', '<chat-file-card>', 'Viel Freude damit!'])
+    })
+
+    // Only the space right next to the card: the message's own lines elsewhere stay as written.
+    it('leaves the line breaks elsewhere in the message as they are', () => {
+      mountBubble({ ...THEIRS, body: `Erste Zeile\n\nZweite Zeile: ${LINK}` })
+      expect(pieces()).toEqual(['Erste Zeile\n\nZweite Zeile:', '<chat-file-card>'])
+    })
+
+    // Gegenprobe: around any other link, and in a message without a card, nothing is taken away.
+    it('leaves the space around any other link as it was written', () => {
+      mountBubble({ ...THEIRS, body: '  Schau mal:\nhttps://gradido.net/de/\nDanke  ' })
+      expect(pieces()).toEqual(['  Schau mal:\n', '<>', '\nDanke  '])
+    })
+
+    it('is the card and nothing else where the message is the link alone', () => {
+      mountBubble({ ...OWN, body: `  ${LINK}\n` })
+      expect(pieces()).toEqual(['<chat-file-card>'])
+    })
+
+    it('gives every link its own card, and nothing is left between them', () => {
+      const other = 'https://www.swisstransfer.com/dl/Ab3dE5fG'
+      mountBubble({ ...OWN, body: `${LINK}\n\n${other}` })
+
+      expect(pieces()).toEqual(['<chat-file-card>', '<chat-file-card>'])
+      expect(
+        wrapper.findAll('[data-test="chat-file-card"]').map((each) => each.attributes('href')),
+      ).toEqual([LINK, other])
+    })
+
+    it.each([
+      ['a link to another service', 'https://wetransfer.com/downloads/7f3a9c2e/abc'],
+      ['a page of SwissTransfer that is no download', 'https://www.swisstransfer.com/de/faq'],
+      ['a SwissTransfer link with a query', `${LINK}?password=123`],
+      ['a host that only looks like it', 'https://swisstransfer.com.example.org/d/7f3a9c2e'],
+    ])('leaves %s an ordinary link, whole, with the words around it', (_, address) => {
+      mountBubble({ ...THEIRS, body: `Schau mal: ${address}` })
+
+      expect(card().exists()).toBe(false)
+      const link = wrapper.find('.chat-message-text a')
+      expect(link.text()).toBe(address)
+      expect(link.attributes('href')).toBe(address)
+      expect(text().text()).toBe(`Schau mal: ${address}`)
+    })
+
+    // A video invitation is somebody else's link here: it stays as V4a built it.
+    it('leaves a video invitation as it was', () => {
+      const room = 'https://meet.ffmuc.net/k7m2x9q4t8wz'
+      const address = `${room}#config.subject=%22Videoanruf%22`
+      mountBubble({ ...OWN, body: `📹 Videoanruf\nDer Raum: ${address}` })
+
+      expect(card().exists()).toBe(false)
+      expect(wrapper.find('.chat-message-text a').text()).toBe(room)
+      expect(wrapper.find('.chat-message-text a').attributes('href')).toBe(address)
+    })
+
+    // ⛔ The words around the card come from the other side of the conversation: they stay text.
+    it('sets nothing as markup, beside the card as elsewhere', () => {
+      mountBubble({ ...THEIRS, body: `<img src=x onerror=alert(1)> ${LINK} <b>fett</b>` })
+
+      expect(text().find('img').exists()).toBe(false)
+      expect(text().find('b').exists()).toBe(false)
+      expect(pieces()).toEqual(['<img src=x onerror=alert(1)>', '<chat-file-card>', '<b>fett</b>'])
+    })
+
+    /**
+     * ⛔ Nothing is asked of SwissTransfer before somebody taps the card: no request, no preview
+     * picture -- a request would tell a third party that the message was opened (Notiz 23.09. §5).
+     */
+    it('asks SwissTransfer nothing: no request, no picture', () => {
+      const fetched = vi.fn()
+      vi.stubGlobal('fetch', fetched)
+      const opened = vi.spyOn(XMLHttpRequest.prototype, 'open')
+      try {
+        mountBubble({ ...THEIRS, body: `Hier ist die Datei:\n${LINK}` })
+
+        expect(card().exists()).toBe(true)
+        expect(fetched).not.toHaveBeenCalled()
+        expect(opened).not.toHaveBeenCalled()
+        expect(card().findAll('img')).toHaveLength(0)
+        expect(card().attributes('style')).toBeUndefined()
+      } finally {
+        vi.unstubAllGlobals()
+        opened.mockRestore()
+      }
     })
   })
 
