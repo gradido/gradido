@@ -302,6 +302,18 @@ describe('ChatBubble', () => {
       expect(card().attributes('href')).toBe(LINK)
     })
 
+    // SwissTransfer's app shares a transfer from its second host: the same card, naming that host.
+    it("is a card for a link of SwissTransfer's app, naming the app's host", () => {
+      const appLink = 'https://swisstransfer.infomaniak.com/dl/018f6c2b-9c8d-7e6f-8a5b-4c3d2e1f0a9b'
+      mountBubble({ ...THEIRS, body: `Hier ist die Datei:\n${appLink}` })
+
+      expect(card().attributes('href')).toBe(appLink)
+      expect(wrapper.find('[data-test="chat-file-card-where"]').text()).toBe(
+        'swisstransfer.infomaniak.com/dl/018f6c2b-9c8d-7e6f-8a5b-4c3d2e1f0a9b',
+      )
+      expect(pieces()).toEqual(['Hier ist die Datei:', '<chat-file-card>'])
+    })
+
     // ⛔ The bubble keeps a message's own line breaks: a break after the link would stand as an
     // empty line under the card, a blank line before it as one over it (measured in the probe,
     // 27.09.2026). The space right next to the card goes, whatever it is.
@@ -342,6 +354,7 @@ describe('ChatBubble', () => {
       ['a page of SwissTransfer that is no download', 'https://www.swisstransfer.com/de/faq'],
       ['a SwissTransfer link with a query', `${LINK}?password=123`],
       ['a host that only looks like it', 'https://swisstransfer.com.example.org/d/7f3a9c2e'],
+      ['another service of Infomaniak', 'https://kdrive.infomaniak.com/dl/7f3a9c2e'],
     ])('leaves %s an ordinary link, whole, with the words around it', (_, address) => {
       mountBubble({ ...THEIRS, body: `Schau mal: ${address}` })
 
