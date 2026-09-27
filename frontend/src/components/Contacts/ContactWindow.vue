@@ -258,24 +258,88 @@
         data-test="contact-window-video-dialog"
         @shown="videoAskOpened = true"
       >
-        <p class="h5 mb-2" data-test="contact-window-video-title">{{ videoAskTitle }}</p>
-        <!-- The room went to the Jitsi app, and no sign came that it opened (V4b): the question
-             says so and offers the room in the browser (ChatVideoAppMissed). -->
-        <ChatVideoAppMissed v-if="videoAppMissed" :room="videoRoomToOpen" />
-        <!-- The invitation went out, but the browser held the room's window back (a popup
-             blocker): the member opens it from here, by a tap of their own. -->
-        <p v-else-if="videoRoomToOpen" class="mb-0">
-          <a
-            :href="videoRoomToOpen"
-            target="_blank"
-            rel="noopener noreferrer"
-            data-test="contact-window-video-open"
+        <!-- The gear's view (V5, Bernd, 27.09.2026): the server, and the room's link for people
+             outside the thread. In the question's own dialog, in place of its content -- "Back"
+             returns to it. The server chosen counts at once and stays, per member on this device
+             (chatVideoServer), as the box "Start in the Jitsi app" does. -->
+        <template v-if="videoSettings">
+          <p class="h5 mb-1" data-test="contact-window-video-settings-title">
+            {{ videoSettingsTitle }}
+          </p>
+          <p class="small text-muted mb-3" data-test="contact-window-video-settings-topic">
+            {{ $t('chatThread.videoTopicLine', { topic: videoTopicShown }) }}
+          </p>
+          <div class="mb-3">
+            <label class="form-label" :for="videoServerFieldId">
+              {{ $t('chatThread.videoServer') }}
+            </label>
+            <!-- At random, as before, or one of the servers a room is handed out on right now
+                 (chatVideoServerChoices). -->
+            <select
+              :id="videoServerFieldId"
+              ref="videoServerField"
+              v-model="videoServerSelected"
+              class="form-select"
+              data-test="contact-window-video-server"
+            >
+              <option :value="null">{{ $t('chatThread.videoServerRandom') }}</option>
+              <option v-for="choice in videoServerChoices" :key="choice.id" :value="choice.id">
+                {{ chatVideoServerLabel(choice) }}
+              </option>
+            </select>
+          </div>
+          <!-- The whole link, topic and all, for people who are not in this thread -- it is the
+               same room the invitation takes, where the call is started from this question. -->
+          <BButton
+            variant="secondary"
+            class="contact-window-video-copy"
+            data-test="contact-window-video-copy"
+            @click="copyVideoLink"
           >
-            {{ $t('chatThread.videoOpen') }}
-          </a>
-        </p>
+            <i-mdi-check v-if="videoLinkCopied" aria-hidden="true" />
+            <i-mdi-link-variant v-else aria-hidden="true" />
+            {{
+              videoLinkCopied ? $t('chatThread.videoLinkCopied') : $t('chatThread.videoCopyLink')
+            }}
+          </BButton>
+          <div class="small text-muted mt-2">{{ $t('chatThread.videoLinkHint') }}</div>
+          <!-- The link that was copied, to be marked and copied by hand where the browser
+               refused the clipboard. ⛔ The call's secret: here only while the question is open. -->
+          <p
+            v-if="videoLinkShown"
+            class="small mt-1 mb-0 contact-window-video-link"
+            data-test="contact-window-video-link"
+          >
+            {{ videoLinkShown }}
+          </p>
+          <p
+            v-if="videoProblem"
+            class="mt-3 mb-0"
+            role="alert"
+            data-test="contact-window-video-settings-problem"
+          >
+            {{ videoProblem }}
+          </p>
+        </template>
         <template v-else>
-          <!-- The topic (V4a): it goes into the room's address as Jitsi's own `config.subject` --
+          <p class="h5 mb-2" data-test="contact-window-video-title">{{ videoAskTitle }}</p>
+          <!-- The room went to the Jitsi app, and no sign came that it opened (V4b): the question
+             says so and offers the room in the browser (ChatVideoAppMissed). -->
+          <ChatVideoAppMissed v-if="videoAppMissed" :room="videoRoomToOpen" />
+          <!-- The invitation went out, but the browser held the room's window back (a popup
+             blocker): the member opens it from here, by a tap of their own. -->
+          <p v-else-if="videoRoomToOpen" class="mb-0">
+            <a
+              :href="videoRoomToOpen"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-test="contact-window-video-open"
+            >
+              {{ $t('chatThread.videoOpen') }}
+            </a>
+          </p>
+          <template v-else>
+            <!-- The topic (V4a): it goes into the room's address as Jitsi's own `config.subject` --
                the meeting's title -- and stands in words in the invitation. Filled in anew with the
                default for every question (`askVideoCall`), nothing kept; marked on focus, so typing
                replaces it. The hint under it says who can read the topic, and a screen reader hears
@@ -284,61 +348,83 @@
                ⛔ No focus of its own: the usual case is the one click on "Start call", and on a phone
                the keyboard covered the dialog. Out of the tab order until the question is open
                (`videoAskOpened`), since the dialog's focus trap takes the first stop Tab reaches. -->
-          <div class="mb-3">
-            <label class="form-label" :for="videoTopicId">{{ $t('chatThread.videoTopic') }}</label>
-            <input
-              :id="videoTopicId"
-              v-model="videoTopic"
-              type="text"
-              class="form-control"
-              :maxlength="CHAT_VIDEO_TOPIC_MAX"
-              autocomplete="off"
-              :tabindex="videoAskOpened ? undefined : -1"
-              :aria-describedby="videoTopicHintId"
-              data-test="contact-window-video-topic"
-              @focus="$event.target.select()"
-            />
-            <div
-              :id="videoTopicHintId"
-              class="small text-muted mt-2"
-              data-test="contact-window-video-topic-hint"
-            >
-              {{ $t('chatThread.videoTopicHint') }}
+            <div class="mb-3">
+              <label class="form-label" :for="videoTopicId">
+                {{ $t('chatThread.videoTopic') }}
+              </label>
+              <input
+                :id="videoTopicId"
+                v-model="videoTopic"
+                type="text"
+                class="form-control"
+                :maxlength="CHAT_VIDEO_TOPIC_MAX"
+                autocomplete="off"
+                :tabindex="videoAskOpened ? undefined : -1"
+                :aria-describedby="videoTopicHintId"
+                data-test="contact-window-video-topic"
+                @focus="$event.target.select()"
+              />
+              <div
+                :id="videoTopicHintId"
+                class="small text-muted mt-2"
+                data-test="contact-window-video-topic-hint"
+              >
+                {{ $t('chatThread.videoTopicHint') }}
+              </div>
             </div>
-          </div>
-          <!-- The first message of a pair goes by mail in any case (E-024; the server sets it),
+            <!-- The first message of a pair goes by mail in any case (E-024; the server sets it),
                so there is nothing to choose, and the sentence says so. After it, the box, empty
                by default -- as under the compose bar. -->
-          <p class="mb-0 text-muted" data-test="contact-window-video-body">
-            {{
-              chatConversation.exists
-                ? $t('chatThread.videoAskBody', { name: alias })
-                : $t('chatThread.videoAskFirst', { name: alias })
-            }}
-          </p>
-          <!-- The compose bar's box (ChatCheck), as every box in this window. -->
-          <ChatCheck
-            v-if="chatConversation.exists"
-            v-model="videoAlsoByEmail"
-            class="mt-3"
-            box-test="contact-window-video-email"
-          >
-            {{ $t('chatThread.alsoByEmail') }}
-          </ChatCheck>
-          <!-- `role="alert"`: said when it is put in -- whoever cannot see the dialog would
+            <p class="mb-0 text-muted" data-test="contact-window-video-body">
+              {{
+                chatConversation.exists
+                  ? $t('chatThread.videoAskBody', { name: alias })
+                  : $t('chatThread.videoAskFirst', { name: alias })
+              }}
+            </p>
+            <!-- The server chosen in the gear's view (V5), where it is one to be had right now. -->
+            <p
+              v-if="videoServer"
+              class="small text-muted mt-2 mb-0 contact-window-video-server"
+              data-test="contact-window-video-server-chosen"
+            >
+              <i-mdi-server-outline aria-hidden="true" />
+              {{ $t('chatThread.videoServerChosen', { host: videoServer.host }) }}
+            </p>
+            <!-- The compose bar's box (ChatCheck), as every box in this window. -->
+            <ChatCheck
+              v-if="chatConversation.exists"
+              v-model="videoAlsoByEmail"
+              class="mt-3"
+              box-test="contact-window-video-email"
+            >
+              {{ $t('chatThread.alsoByEmail') }}
+            </ChatCheck>
+            <!-- `role="alert"`: said when it is put in -- whoever cannot see the dialog would
                otherwise hear nothing after the press. -->
-          <p
-            v-if="videoProblem"
-            class="mt-3 mb-0"
-            role="alert"
-            data-test="contact-window-video-problem"
-          >
-            {{ videoProblem }}
-          </p>
+            <p
+              v-if="videoProblem"
+              class="mt-3 mb-0"
+              role="alert"
+              data-test="contact-window-video-problem"
+            >
+              {{ videoProblem }}
+            </p>
+          </template>
         </template>
         <template #footer>
+          <!-- "Back" (V5, Bernd, 27.09.2026: "Zurück · Planen"): the choice counts already, so
+               there is nothing to take over or to throw away. -->
           <BButton
-            v-if="videoRoomToOpen"
+            v-if="videoSettings"
+            variant="secondary"
+            data-test="contact-window-video-back"
+            @click="closeVideoSettings"
+          >
+            {{ $t('back') }}
+          </BButton>
+          <BButton
+            v-else-if="videoRoomToOpen"
             variant="secondary"
             data-test="contact-window-video-close"
             @click="videoAsking = false"
@@ -346,6 +432,21 @@
             {{ $t('form.close') }}
           </BButton>
           <template v-else>
+            <!-- The gear (V5, Bernd, 27.09.2026), at the left of the two buttons: the server, and
+                 the link for people outside the thread. Drawn as the camera and the bell are;
+                 it waits, as the start button does, while a call is being made. -->
+            <button
+              ref="videoGear"
+              type="button"
+              class="contact-window-video-gear"
+              :aria-label="$t('chatThread.videoSettings')"
+              :title="$t('chatThread.videoSettings')"
+              :aria-disabled="videoCalling ? 'true' : 'false'"
+              data-test="contact-window-video-gear"
+              @click="openVideoSettings"
+            >
+              <i-mdi-cog-outline aria-hidden="true" />
+            </button>
             <BButton
               variant="secondary"
               data-test="contact-window-video-cancel"
@@ -424,7 +525,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, provide, ref, useId, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, provide, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
@@ -442,7 +543,11 @@ import {
   contactDisplay,
   contactOriginLine,
 } from '@/components/Contacts/contactDisplay'
-import { chatVideoRoom, setChatConversationMuted } from '@/graphql/chat.graphql'
+import {
+  chatVideoRoom,
+  chatVideoServerChoices,
+  setChatConversationMuted,
+} from '@/graphql/chat.graphql'
 import { useAppToast } from '@/composables/useToast'
 import { gradidoAddress } from '@/utils/gradidoAddress'
 import { SEND_TYPES } from '@/utils/sendTypes'
@@ -458,6 +563,12 @@ import {
   readChatVideoInApp,
   watchJitsiAppOpening,
 } from '@/utils/chatVideoApp'
+import {
+  chatVideoServerLabel,
+  isChatVideoServerGone,
+  readChatVideoServer,
+  rememberChatVideoServer,
+} from '@/utils/chatVideoServer'
 
 /**
  * One contact, opened from wherever a contact stands: the list, the column, the strip.
@@ -765,6 +876,52 @@ const videoAppMissed = ref(false)
 let stopVideoAppWatch = null
 
 /**
+ * The gear's view (V5, Bernd, 27.09.2026): the server, and the room's link for people outside the
+ * thread -- in the question's own dialog, in place of its content, until "Back".
+ */
+const videoSettings = ref(false)
+const videoSettingsTitle = computed(() => t('chatThread.videoSettingsTitle', { name: alias.value }))
+const videoServerFieldId = `${videoTopicId}-server`
+const videoServerField = ref(null)
+const videoGear = ref(null)
+/** The topic as the call will carry it: what the field says, or the default. */
+const videoTopicShown = computed(() => videoTopic.value.trim() || t('chatThread.videoTopicDefault'))
+/** The servers to choose from, as the server named them when the question opened (V5). */
+const videoServerChoices = ref([])
+/**
+ * The server the member chose, by the id of its row -- read from this device when the question
+ * opens, remembered at every change (chatVideoServer). null: at random.
+ */
+const videoServerWanted = ref(null)
+/**
+ * The chosen server where it is one to be had right now; null where none is chosen, or the one
+ * chosen is not among the choices -- then the call goes to a server at random, as before, and the
+ * choice stays remembered for when it is back.
+ */
+const videoServer = computed(
+  () => videoServerChoices.value.find((choice) => choice.id === videoServerWanted.value) ?? null,
+)
+/** The choice as the field shows and changes it. */
+const videoServerSelected = computed({
+  get: () => videoServer.value?.id ?? null,
+  set: (id) => chooseVideoServer(id),
+})
+/** The list's asking, awaited before a call decides its server; counted against late answers. */
+let videoChoicesLoading = Promise.resolve()
+let videoChoicesAttempt = 0
+/**
+ * The room this question asks for, once for the server chosen: `{ serverId, answer, room }` --
+ * what "Copy link" copies and "Start call" sends (V5), so that the people the link went to and
+ * the person invited meet in the same room. ⛔ The call's secret: here only while the question is
+ * open, in no store and no log.
+ */
+let videoRoomAsked = null
+/** The link went to the clipboard. */
+const videoLinkCopied = ref(false)
+/** The link that was copied, shown under the button. ⛔ The call's secret, as `videoRoomToOpen`. */
+const videoLinkShown = ref('')
+
+/**
  * The room's window while a call is being made. Given up to the member once it is navigated;
  * closed where the call does not come about, or the question is let go.
  */
@@ -781,8 +938,149 @@ const askVideoCall = () => {
   videoAlsoByEmail.value = false
   videoTopic.value = t('chatThread.videoTopicDefault')
   videoInApp.value = readChatVideoInApp(store.state.gradidoID)
+  videoServerWanted.value = readChatVideoServer(store.state.gradidoID)
+  videoServerChoices.value = []
+  videoChoicesLoading = loadVideoServerChoices()
   videoAskOpened.value = false
   videoAsking.value = true
+}
+
+/**
+ * The servers to choose from (V5), asked afresh for every question: a check every ten minutes
+ * may take a server out or bring it back (`network-only`). Where the asking fails there is no
+ * choice but "at random", and the call goes as it always went.
+ */
+const loadVideoServerChoices = async () => {
+  videoChoicesAttempt += 1
+  const attempt = videoChoicesAttempt
+  try {
+    const { data } = await apolloClient.query({
+      query: chatVideoServerChoices,
+      fetchPolicy: 'network-only',
+    })
+    if (attempt === videoChoicesAttempt) {
+      videoServerChoices.value = data?.chatVideoServerChoices ?? []
+    }
+  } catch {
+    // No list: "at random" only.
+  }
+}
+
+/**
+ * A server chosen in the gear's view: it counts at once, and stays remembered for this member on
+ * this device (Bernd, 27.09.2026: "Zurück · Planen", no "Take over"). Another server is another
+ * room -- a link copied for the last one is not this one's, so it goes, and the room for the new
+ * choice is asked for at once (see `copyVideoLink`).
+ */
+const chooseVideoServer = (id) => {
+  videoServerWanted.value = id
+  rememberChatVideoServer(store.state.gradidoID, id)
+  videoRoomAsked = null
+  videoLinkCopied.value = false
+  videoLinkShown.value = ''
+  videoProblem.value = ''
+  askVideoRoom()
+}
+
+/**
+ * The room for this question (V5): asked once for the server chosen, and taken by "Copy link" and
+ * "Start call" alike. Asked anew where the choice changed since, or where the last asking brought
+ * no room. Without a server chosen the query goes without `serverId` -- at random, as before.
+ *
+ * ⛔ Asked with `no-cache`: every answer is another room, and one out of the cache would put two
+ * conversations into the same room (chat.graphql).
+ */
+const askVideoRoom = () => {
+  const serverId = videoServer.value?.id ?? null
+  if (videoRoomAsked?.serverId === serverId) return videoRoomAsked.answer
+  const asked = { serverId, answer: null, room: null }
+  // In a promise of its own, so that whatever goes wrong in the asking comes back as the answer,
+  // as it did where the start awaited the query in a `try`.
+  asked.answer = new Promise((resolve) =>
+    resolve(
+      apolloClient.query({
+        query: chatVideoRoom,
+        ...(serverId ? { variables: { serverId } } : {}),
+        fetchPolicy: 'no-cache',
+      }),
+    ),
+  )
+    .then(({ data }) => ({ room: data?.chatVideoRoom ?? null, error: null }))
+    .catch((error) => ({ room: null, error }))
+    .then((answer) => {
+      if (answer.room) {
+        asked.room = answer.room
+      } else if (videoRoomAsked === asked) {
+        videoRoomAsked = null
+      }
+      return answer
+    })
+  videoRoomAsked = asked
+  return asked.answer
+}
+
+/** What the question says where no room came: the chosen server gone, none at all, or else. */
+const videoRoomProblem = (error, otherwise) => {
+  if (isChatVideoServerGone(error)) return t('chatThread.videoServerGone')
+  if (isNoVideoServer(error)) return t('chatThread.videoNoServer')
+  return otherwise
+}
+
+/**
+ * The gear: its view in place of the question's content. The room is asked for right away (for
+ * the server chosen, once the list is in), so that "Copy link" finds it ready in the click. It
+ * waits, as the start button does, while a call is being made.
+ */
+const openVideoSettings = () => {
+  if (videoCalling.value) return
+  videoProblem.value = ''
+  videoSettings.value = true
+  videoChoicesLoading.then(() => {
+    if (videoSettings.value) askVideoRoom()
+  })
+  nextTick(() => videoServerField.value?.focus())
+}
+
+/** "Back": the question again, the choice as it now stands; the gear gets the focus back. */
+const closeVideoSettings = () => {
+  videoSettings.value = false
+  videoProblem.value = ''
+  nextTick(() => videoGear.value?.focus())
+}
+
+/**
+ * "Copy link" (V5): the room's whole address, topic and all, for people outside the thread --
+ * the room the invitation takes where the call is started from this question. It is shown under
+ * the button as well, to be marked and copied by hand where the browser refuses the clipboard.
+ *
+ * ⛔ The clipboard is written in the click itself where the room is in already, as it is once the
+ * gear's view has asked for it: a browser writes to the clipboard in answer to a tap, and Safari
+ * does not count a write that comes after a round trip as one. Only where the room is not in yet
+ * is it awaited here.
+ */
+const copyVideoLink = async () => {
+  const attempt = videoAttempt
+  videoProblem.value = ''
+  const serverId = videoServer.value?.id ?? null
+  let room = videoRoomAsked?.serverId === serverId ? videoRoomAsked.room : null
+  if (!room) {
+    const answer = await askVideoRoom()
+    if (attempt !== videoAttempt) return
+    if (!answer.room) {
+      videoProblem.value = videoRoomProblem(answer.error, t('chatThread.videoNoServer'))
+      return
+    }
+    room = answer.room
+  }
+  const link = withChatVideoTopic(room.url, videoTopicShown.value)
+  videoLinkShown.value = link
+  videoLinkCopied.value = false
+  try {
+    await navigator.clipboard.writeText(link)
+    if (attempt === videoAttempt) videoLinkCopied.value = true
+  } catch {
+    // Refused, or no clipboard at all: the link stands under the button.
+  }
 }
 
 /**
@@ -801,6 +1099,10 @@ const forgetVideoCall = () => {
   stopVideoAppWatch?.()
   stopVideoAppWatch = null
   videoAppMissed.value = false
+  videoSettings.value = false
+  videoRoomAsked = null
+  videoLinkCopied.value = false
+  videoLinkShown.value = ''
 }
 
 watch(videoAsking, (open) => {
@@ -863,14 +1165,10 @@ const startVideoCall = async () => {
   videoCalling.value = true
   videoProblem.value = ''
 
-  let offered = null
-  let noServer = false
-  try {
-    const { data } = await apolloClient.query({ query: chatVideoRoom, fetchPolicy: 'no-cache' })
-    offered = data?.chatVideoRoom ?? null
-  } catch (error) {
-    noServer = isNoVideoServer(error)
-  }
+  // The server chosen (V5) is known once the list is in: a press before that still goes to it.
+  await videoChoicesLoading
+  if (attempt !== videoAttempt) return
+  const { room: offered, error: roomError } = await askVideoRoom()
   if (attempt !== videoAttempt) return
 
   const roomUrl = offered?.url ? withChatVideoTopic(offered.url, topic) : ''
@@ -894,7 +1192,7 @@ const startVideoCall = async () => {
   if (!delivered) {
     room?.close()
     videoRoomWindow = null
-    videoProblem.value = noServer ? t('chatThread.videoNoServer') : t('chatThread.videoNotSent')
+    videoProblem.value = videoRoomProblem(roomError, t('chatThread.videoNotSent'))
     return
   }
   // The member's now: letting the question go must not close it.
@@ -1206,9 +1504,55 @@ onBeforeUnmount(() => {
    compose bar's send button does -- `aria-disabled`, so a keyboard that pressed it keeps its
    place, and a look that says it waits. So does "Join call" while the Jitsi app is awaited. */
 .contact-window-video-start[aria-disabled='true'],
-.contact-window-video-join[aria-disabled='true'] {
+.contact-window-video-join[aria-disabled='true'],
+.contact-window-video-gear[aria-disabled='true'] {
   opacity: 0.65;
   cursor: default;
+}
+
+/* The gear (V5): drawn as the camera and the bell are -- the icon in the muted colour, nothing
+   filled -- at the left end of the footer, the other buttons pushed to the right. The hit area is
+   as high as the buttons beside it (46px). */
+.contact-window-video-gear {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.875rem;
+  height: 2.875rem;
+  margin-right: auto;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted, #6c757d);
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.contact-window-video-gear:hover {
+  background: var(--surface-muted, #f2f4f6);
+  color: var(--bs-body-color);
+}
+
+.contact-window-video-gear:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+/* "Copy link" with its sign before the word, and the server chosen with the server's sign. */
+.contact-window-video-copy,
+.contact-window-video-server {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+/* The copied link breaks anywhere rather than reach past the dialog: an address has no spaces. */
+.contact-window-video-link {
+  overflow-wrap: anywhere;
+  color: var(--bs-body-color);
 }
 
 /* The one way out, under the figures and above the line where the thread begins, with the

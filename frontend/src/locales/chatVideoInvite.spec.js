@@ -56,6 +56,18 @@ const KEYS = {
   videoAppMissed: [],
   videoOpenInBrowser: [],
   videoAppDownload: [],
+  // V5: the gear -- its name and its view's title, the topic line, the server's choice and the
+  // server chosen, the sentence where it is not to be had, the link for people outside the thread.
+  videoSettings: [],
+  videoSettingsTitle: ['{name}'],
+  videoTopicLine: ['{topic}'],
+  videoServer: [],
+  videoServerRandom: [],
+  videoServerChosen: ['{host}'],
+  videoServerGone: [],
+  videoCopyLink: [],
+  videoLinkCopied: [],
+  videoLinkHint: [],
 }
 
 /** Topics a member may type, each hard in its own way for the link finder or for Jitsi. */
@@ -76,7 +88,7 @@ describe('the video call in every language', () => {
     expect(languages).toHaveLength(10)
   })
 
-  it.each(languages)('has all twenty texts, each with its placeholders once, in %s', (lang) => {
+  it.each(languages)('has all thirty texts, each with its placeholders once, in %s', (lang) => {
     const texts = chatThreadIn(lang)
     for (const [key, placeholders] of Object.entries(KEYS)) {
       expect(texts[key], `${lang}: chatThread.${key}`).toBeTruthy()

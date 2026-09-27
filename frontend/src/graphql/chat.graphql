@@ -139,10 +139,13 @@ mutation setChatConversationMuted($ref: MemberAvatarRefInput!, $muted: Boolean!)
 # person as an ordinary chat message (sendChatMessage above). The fields are the ones the
 # backend's seed asks for (backend/src/seeds/graphql/queries.ts).
 #
-# ⛔ No variable, and EVERY call hands out another room -- so it is always asked with
-# `fetchPolicy: 'no-cache'`. The cache keys an answer by query and variables; with none, a second
-# call would be answered out of the cache with the first room, and two conversations would share
-# one.
+# `serverId` (V5): the server the member chose, an `id` of chatVideoServerChoices below; left out,
+# one of the servers that answer, at random. A chosen server no longer to be had is
+# CHAT_VIDEO_SERVER_UNAVAILABLE -- the server hands out no other in its place.
+#
+# ⛔ EVERY call hands out another room -- so it is always asked with `fetchPolicy: 'no-cache'`.
+# The cache keys an answer by query and variables; a second call with the same (or none) would be
+# answered out of the cache with the first room, and two conversations would share one.
 #
 # ⛔ The address is the call's secret: whoever has it can join. It goes into the message and into
 # the window that opens the room -- into no log and no store (the vuex store is written whole
@@ -150,9 +153,21 @@ mutation setChatConversationMuted($ref: MemberAvatarRefInput!, $muted: Boolean!)
 #
 # CHAT_VIDEO_NO_SERVER where no server passed the last check, or the first check after the
 # server started is not through yet.
-query chatVideoRoom {
-  chatVideoRoom {
+query chatVideoRoom($serverId: Int) {
+  chatVideoRoom(serverId: $serverId) {
     url
+    host
+    operator
+  }
+}
+
+# The servers a member may choose for a call (V5): those chatVideoRoom hands rooms out on right
+# now -- ticked in the admin page's list and passed the last check --, in the list's order. The
+# same list for everybody, but not for long: a check every ten minutes may take a server out, so
+# it is asked with `fetchPolicy: 'network-only'` whenever the choice is shown.
+query chatVideoServerChoices {
+  chatVideoServerChoices {
+    id
     host
     operator
   }
