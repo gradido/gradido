@@ -720,6 +720,14 @@ describe('sendChatMessage with a picture', () => {
     const copy = await said(ref(raeuber), 'Look at this', 'EMAIL', pictureOf(JPEG, 393, 1220))
 
     expect(copy).toMatchObject({ mine: true, body: 'Look at this', deliveryState: 'DELIVERED' })
+    // The mail says there is a picture, and carries none (MAIL-008).
+    expect(mailed()).toEqual([
+      expect.objectContaining({
+        email: 'raeuber@hotzenplotz.de',
+        memo: 'Look at this',
+        hasImage: true,
+      }),
+    ])
     const pictures = await picturesOf(copy.messageUuid)
     expect(pictures).toHaveLength(1)
     expect(pictures[0]).toMatchObject({

@@ -300,6 +300,32 @@ describe('deliverChatMessageLocally with a picture', () => {
     )
   })
 
+  // MAIL-008: the mail says there is a picture, and carries none.
+  it('mails that the message carries a picture, and not the picture', async () => {
+    store.mockResolvedValue(row('delivered'))
+
+    await withPicture()
+
+    expect(mail).toHaveBeenCalledWith(expect.objectContaining({ memo: '', hasImage: true }))
+    expect(JSON.stringify(mail.mock.calls)).not.toContain(JPEG.toString('base64'))
+  })
+
+  it('mails no word of a picture about a message without one', async () => {
+    store.mockResolvedValue(row('delivered'))
+
+    await deliverChatMessageLocally({
+      senderUser: anna,
+      recipientUser: ben,
+      subject: null,
+      body: 'Shall we meet at ten?',
+      notify: 'email',
+      requireStored: true,
+      letter: false,
+    })
+
+    expect(mail).toHaveBeenCalledWith(expect.objectContaining({ hasImage: false }))
+  })
+
   // ⛔ Where the picture could not be filed, nothing is: no message, no mail.
   it('files no message and mails nothing where the picture could not be filed', async () => {
     storePictures.mockResolvedValue(false)

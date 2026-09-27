@@ -392,6 +392,11 @@ export const sendTransactionReceivedEmail = (
   })
 }
 
+/**
+ * `hasImage`: the message carries a picture (P7). The mail says so in a line of its own and
+ * shows none -- the mail is the nudge, the conversation the content (MAIL-008) -- and a picture
+ * without a caption is a message with no text to show.
+ */
 export const sendCustomEmail = (
   data: EmailCommonData & {
     senderAlias: string
@@ -399,6 +404,7 @@ export const sendCustomEmail = (
     memo: string
     senderUuid?: string
     senderCommunityUuid?: string
+    hasImage?: boolean
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
   const logger = createLogger()
@@ -409,6 +415,7 @@ export const sendCustomEmail = (
     locals: {
       ...data,
       subject: data.subject,
+      hasImage: data.hasImage ?? false,
       ...getEmailCommonLocales(),
     },
   })

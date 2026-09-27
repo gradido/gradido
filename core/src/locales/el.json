@@ -72,6 +72,7 @@
     },
     "customEmail": {
       "haveReceivedMessageFrom": "μόλις έλαβες ένα μήνυμα από {senderAlias}",
+      "imageNote": "📷 Το μήνυμα περιέχει μια εικόνα – τη βλέπεις στη συνομιλία.",
       "title": "{senderAlias} σου έστειλε ένα μήνυμα"
     },
     "emailChangeConfirm": {

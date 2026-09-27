@@ -72,6 +72,7 @@
     },
     "customEmail": {
       "haveReceivedMessageFrom": "acabas de recibir un mensaje de {senderAlias}",
+      "imageNote": "📷 El mensaje contiene una imagen – la ves en la conversación.",
       "title": "{senderAlias} te ha enviado un mensaje"
     },
     "emailChangeConfirm": {

@@ -146,6 +146,8 @@ export async function deliverChatMessageLocally({
       memo: body,
       senderUuid: senderUser.gradidoID,
       senderCommunityUuid: senderUser.communityUuid,
+      // The mail says there is a picture, and shows none (MAIL-008).
+      hasImage: images.length > 0,
     })
     // Nor where the transport did not take it (coderabbit on #3982).
     if (!chatMailWentOut(sent)) {
