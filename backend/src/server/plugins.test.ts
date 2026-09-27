@@ -62,6 +62,16 @@ describe('the request log', () => {
     expect(text).toContain('"width": 800')
   })
 
+  it('writes no avatar picture either', () => {
+    const small = Buffer.from('the small face of Anna').toString('base64')
+    const full = Buffer.from('the large face of Anna').toString('base64')
+    const text = logged({ avatarSmall: small, avatarFull: full })
+    expect(text).not.toContain(small)
+    expect(text).not.toContain(full)
+    expect(text).toContain('"avatarSmall": "***"')
+    expect(text).toContain('"avatarFull": "***"')
+  })
+
   // ⛔ The log masks a copy. The request goes on to the resolver with the picture in it -- a mask
   // on the request itself would hand the resolver three stars for a picture.
   it('leaves the picture in the request itself', () => {

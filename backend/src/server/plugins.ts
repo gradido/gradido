@@ -46,6 +46,15 @@ const filterVariables = (variables: any) => {
   if (vars?.image?.data) {
     vars.image.data = '***'
   }
+  // The two renditions of a member's avatar (setUserAvatar, `$avatarSmall` and `$avatarFull` in
+  // the wallet's mutations.js): up to some 95,000 characters of base64, written with every upload
+  // until now.
+  if (vars?.avatarSmall) {
+    vars.avatarSmall = '***'
+  }
+  if (vars?.avatarFull) {
+    vars.avatarFull = '***'
+  }
   return vars
 }
 
