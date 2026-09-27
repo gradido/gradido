@@ -58,6 +58,24 @@ const filterVariables = (variables: any) => {
   return vars
 }
 
+// A value written into the document itself instead of into a variable -- a picture, a text, a
+// password, as a client of its own may send them -- never passes filterVariables (coderabbit on
+// #4001). The log gets the document with every string literal, block strings included, written
+// as "***": the wallet and the admin send their values as variables, and the shape of a request
+// stays readable.
+const withoutStringLiterals = (document: string | undefined): string | undefined =>
+  document?.replace(/"""[\s\S]*?"""|"(?:[^"\\\n]|\\.)*"/g, '"***"')
+
+// An error may quote back what the request carried: a failed check keeps the value it refused
+// (class-validator's `value` -- the whole picture where its width is out of bounds), and a
+// variable of the wrong type is printed into graphql-js's message. A string longer than this is
+// written as its length: a message is shorter, a picture is not.
+const LOGGED_STRING_MAX_LENGTH = 1000
+const withoutLongStrings = (_key: string, value: unknown): unknown =>
+  typeof value === 'string' && value.length > LOGGED_STRING_MAX_LENGTH
+    ? `*** ${value.length} characters`
+    : value
+
 export const logPlugin = {
   requestDidStart(requestContext: any) {
     const { logger } = requestContext
@@ -65,7 +83,7 @@ export const logPlugin = {
     if (operationName !== 'IntrospectionQuery') {
       logger.debug('requestDidStart:', { operationName, variables: filterVariables(variables) })
       logger.info(`Request:
-${mutation || query}variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
+${withoutStringLiterals(mutation || query)}variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
     }
     return {
       willSendResponse(requestContext: any) {
@@ -90,7 +108,7 @@ ${JSON.stringify(requestContext.response.data, null, 2)}`)
           }
           if (requestContext.response.errors) {
             logger.error(`Response-Errors:
-${JSON.stringify(requestContext.response.errors, null, 2)}`)
+${JSON.stringify(requestContext.response.errors, withoutLongStrings, 2)}`)
           }
         }
         return requestContext

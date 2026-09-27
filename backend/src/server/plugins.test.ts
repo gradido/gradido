@@ -7,11 +7,14 @@ import { logPlugin } from './plugins'
  * Everything the request log hands the logger when a request starts, written out as the log
  * would write it: strings as they are, objects through inspect.
  */
-const logged = (variables: Record<string, unknown>): string => {
+const logged = (
+  variables: Record<string, unknown>,
+  query = 'mutation ($x: String!) { x(y: $x) }',
+): string => {
   const logger = { debug: jest.fn(), info: jest.fn() }
   logPlugin.requestDidStart({
     logger,
-    request: { query: 'mutation ($x: String!) { x(y: $x) }', variables, operationName: null },
+    request: { query, variables, operationName: null },
   })
   return [...logger.debug.mock.calls, ...logger.info.mock.calls]
     .map((args) =>
@@ -89,6 +92,96 @@ describe('the request log', () => {
     for (const secret of ['Aa12345_', 'Bb12345_', 'c2lnbmF0dXJl']) {
       expect(text).not.toContain(secret)
     }
+  })
+
+  // coderabbit on #4001: a client of its own may write a value into the document itself instead
+  // of into a variable, where filterVariables never sees it.
+  it('writes no string the document itself carries -- a picture, a text, a password', () => {
+    const picture = Buffer.from('a private picture of Anna and Ben').toString('base64')
+    const text = logged(
+      {},
+      `mutation {
+  sendChatMessage(ref: { communityUuid: "c", gradidoID: "g" }, body: "Meet \\"Ottilie\\" Tomorrow", notify: EMAIL, image: { data: "${picture}", width: 800, height: 600 }) { id }
+  sendEmail(recipientIdentifier: "g", subject: """About
+Saturday""", memo: "m")
+  login(email: "anna@example.org", password: "Aa12345_") { id }
+}`,
+    )
+    for (const secret of [
+      picture,
+      'Meet',
+      'Ottilie',
+      'Tomorrow',
+      'Saturday',
+      'anna@example.org',
+      'Aa12345_',
+    ]) {
+      expect(text).not.toContain(secret)
+    }
+    // What the request asked for stays readable.
+    expect(text).toContain('sendChatMessage(ref: { communityUuid: "***", gradidoID: "***" }')
+    expect(text).toContain('image: { data: "***", width: 800, height: 600 }')
+    expect(text).toContain('subject: "***", memo: "***"')
+  })
+
+  it('writes a document without strings as it is', () => {
+    const text = logged(
+      {},
+      'query ($ref: MemberAvatarRefInput!) { chatMessagesWithMember(ref: $ref) { hasMore } }',
+    )
+    expect(text).toContain(
+      'query ($ref: MemberAvatarRefInput!) { chatMessagesWithMember(ref: $ref) { hasMore } }',
+    )
+  })
+})
+
+/** What the request log writes at level error when it sends an answer with these errors. */
+const errorsLogged = (errors: unknown[]): string => {
+  const logger = { debug: jest.fn(), info: jest.fn(), trace: jest.fn(), error: jest.fn() }
+  const hooks = logPlugin.requestDidStart({
+    logger,
+    request: { query: 'mutation { x }', variables: {}, operationName: null },
+  })
+  hooks.willSendResponse({ context: {}, response: { errors } })
+  return logger.error.mock.calls.map((args) => args.join(' ')).join('\n')
+}
+
+describe('the errors in the request log', () => {
+  // An error quotes back what the request carried: class-validator keeps the value it refused --
+  // the whole picture where its width is out of bounds --, and graphql-js prints a variable of
+  // the wrong type into its message.
+  it('writes a long string an error quotes back as its length only', () => {
+    const picture = 'A'.repeat(5000)
+    const coercion = `Variable "$image" got invalid value { data: "${picture}", width: "x" }`
+    const text = errorsLogged([
+      {
+        message: 'Argument Validation Error',
+        extensions: {
+          code: 'INTERNAL_SERVER_ERROR',
+          exception: {
+            validationErrors: [
+              {
+                property: 'image',
+                value: { data: picture, width: 0, height: 600 },
+                children: [{ property: 'width', value: 0, constraints: { min: 'too small' } }],
+              },
+            ],
+          },
+        },
+      },
+      { message: coercion },
+    ])
+    expect(text).not.toContain(picture)
+    expect(text).toContain('"data": "*** 5000 characters"')
+    expect(text).toContain(`"message": "*** ${coercion.length} characters"`)
+    // The rest of the error is still there to read.
+    expect(text).toContain('"message": "Argument Validation Error"')
+    expect(text).toContain('"width": 0')
+  })
+
+  it('writes an ordinary error as before', () => {
+    const text = errorsLogged([{ message: 'CHAT_IMAGE_NOT_ACCEPTED: TOO_LARGE' }])
+    expect(text).toContain('"message": "CHAT_IMAGE_NOT_ACCEPTED: TOO_LARGE"')
   })
 })
 
