@@ -146,7 +146,7 @@
     "arrived": "New message from {name}",
     "empty": "No messages yet. This is where your conversation begins.",
     "failed": "Not delivered",
-    "fileAbout": "SwissTransfer is a free service by Infomaniak in Switzerland, not a Gradido service: up to 50 GB, available for 1 to 30 days as you choose. The first time, you confirm your e-mail address there with a code. You can send a link from another service just the same.",
+    "fileAbout": "SwissTransfer is a free service by Infomaniak in Switzerland, not a Gradido service: up to 50 GB, available for 1 to 30 days as you choose. The first time, you confirm your e-mail address there with a code. You can send a link from another service the same way.",
     "fileAppTip": "On a phone the SwissTransfer app is quickest: share the file, choose SwissTransfer, copy the link.",
     "fileAttach": "Send a file",
     "fileCard": "File on SwissTransfer",
