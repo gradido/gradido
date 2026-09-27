@@ -6,6 +6,7 @@
  * as an ordinary message -- a suggestion, not a Gradido service, as the video call is. The thread
  * shows such a link as a file card that names where it leads (ChatFileCard, E-044).
  *
+ *
  * ⛔ Nothing here asks SwissTransfer anything: no preview, no file names, no request of any kind
  * before somebody taps the card -- a fetch would tell a third party that the message was read
  * (Notiz 23.09. §5). SwissTransfer has no public interface anyway (Notiz 27.09. §4.5).
@@ -19,42 +20,85 @@
 export const SWISSTRANSFER_URL = 'https://www.swisstransfer.com/'
 
 /**
- * A link to files on SwissTransfer, and nothing else: `https`, one of SwissTransfer's two hosts, a
- * language of two letters where the link has one, then `/d/` or `/dl/` and an id without `/`, `?`,
- * `#` or a space. The hosts are `swisstransfer.com` with its subdomains, from which the website
- * shares a transfer, and `swisstransfer.infomaniak.com`, from which the apps share it: the two
- * production addresses in `ApiEnvironment.kt` (Infomaniak/multiplatform-SwissTransfer).
- *
- * ⛔ Stricter than SwissTransfer's own recognition, on purpose. Its apps match `^https://.+/d/[^?]+`
- * and `^https://.+/dl/[^?]+` (`ApiUrlMatcher.kt` in Infomaniak/multiplatform-SwissTransfer) and ask
- * nothing of the host: they only ever see links that were shared with them. The card here vouches
- * for the destination -- it says "File on SwissTransfer" -- so the host is what counts:
- * `swisstransfer.com.example.org`, `evil-swisstransfer.com` or `swisstransfer.co` get no card and
- * stay ordinary links, which show their whole address. Of `infomaniak.com` only SwissTransfer's own
- * host counts, since Infomaniak runs other services there. A link with a query or a `#` (a password
- * in the address, say) stays an ordinary link too: the card would hide what it carries.
- *
- * Scheme and host are compared in small letters, as a browser reads them; the path as it is
- * written, as SwissTransfer's own recognition reads it.
+ * An address cut into what the checks read: the host in small letters, as a browser reads it; the
+ * path as it is written; the query without its `?`, and the `#` part. `https` only, and a plain
+ * host: a name before an `@`, a port or a space leave no address -- the card could not say where
+ * the browser goes.
  */
-const SWISSTRANSFER_LINK =
-  /^https:\/\/(?:(?:[a-z0-9-]+\.)*swisstransfer\.com|swisstransfer\.infomaniak\.com)(?:\/[a-z]{2})?\/(?:d|dl)\/[^/?#\s]+$/
+const ADDRESS = /^https:\/\/([a-z0-9.-]+)(\/[^?#]*)?(?:\?([^#]*))?(#.*)?$/
 
-/** The address with its scheme and host in small letters, and the rest as it is. */
-const withSmallHost = (url) => url.replace(/^[^:/?#]+:\/\/[^/?#]*/, (head) => head.toLowerCase())
+const cut = (url) => {
+  if (typeof url !== 'string' || /\s/.test(url)) return null
+  const address = ADDRESS.exec(url.replace(/^[^:/?#]+:\/\/[^/?#]*/, (head) => head.toLowerCase()))
+  return address
+    ? { host: address[1], path: address[2] ?? '', query: address[3], hash: address[4] }
+    : null
+}
+
+/**
+ * The services a card stands for, each by the addresses its own code or links name -- never by
+ * a guess: SwissTransfer's app shares from a second host, and the card did not know it (#3997).
+ * A card vouches for its destination ("File on SwissTransfer"), so the HOST is what counts: a
+ * look-alike (`swisstransfer.com.example.org`, `evil-swisstransfer.com`, `swisstransfer.co`) gets
+ * no card and stays an ordinary link, which shows its whole address. The path is compared as it
+ * is written.
+ *
+ * `rest`: whether a query or a `#` may follow. SwissTransfer's own recognition takes no query (a
+ * password in the address, say), and neither does the card: such a link stays an ordinary link.
+ */
+const FILE_SERVICES = [
+  {
+    // The two production addresses in `ApiEnvironment.kt` (Infomaniak/multiplatform-SwissTransfer):
+    // the website shares from `swisstransfer.com` (any of its subdomains is SwissTransfer's), the
+    // apps from `swisstransfer.infomaniak.com` -- that host alone, since Infomaniak runs other
+    // services under `infomaniak.com`. A language of two letters where the link has one, then
+    // `/d/` or `/dl/` and an id. Stricter than SwissTransfer's own `ApiUrlMatcher.kt`, which asks
+    // nothing of the host: it only ever sees links that were shared with it.
+    name: 'SwissTransfer',
+    forms: [
+      {
+        host: /^(?:[a-z0-9-]+\.)*swisstransfer\.com$|^swisstransfer\.infomaniak\.com$/,
+        path: /^(?:\/[a-z]{2})?\/(?:d|dl)\/[^/]+$/,
+      },
+    ],
+    rest: false,
+  },
+]
 
 /**
  * @param {string} url an address as the thread found it (chatTextParts)
- * @returns {boolean} whether the thread shows it as a file card
+ * @returns {string | null} the service a file card names, or null: an ordinary link
  */
-export const isSwissTransferLink = (url) =>
-  typeof url === 'string' && SWISSTRANSFER_LINK.test(withSmallHost(url))
+export const fileLinkService = (url) => {
+  const address = cut(url)
+  if (!address) return null
+  const service = FILE_SERVICES.find(({ forms }) =>
+    forms.some(
+      ({ host, path, query }) =>
+        host.test(address.host) &&
+        path.test(address.path) &&
+        (!query || query.test(address.query ?? '')),
+    ),
+  )
+  if (!service) return null
+  if (!service.rest && (address.query !== undefined || address.hash !== undefined)) return null
+  return service.name
+}
 
 /**
- * What the card shows as its destination: the address without `https://` and without `www.`,
- * the host in small letters -- `swisstransfer.com/dl/…` or `swisstransfer.infomaniak.com/dl/…`.
+ * @param {string} url an address as the thread found it (chatTextParts)
+ * @returns {boolean} whether it is a link to files on SwissTransfer
+ */
+export const isSwissTransferLink = (url) => fileLinkService(url) === 'SwissTransfer'
+
+/**
+ * What the card shows as its destination: host and path, the host in small letters and without
+ * `www.` -- `swisstransfer.com/dl/…` or `swisstransfer.infomaniak.com/dl/…`.
  *
- * @param {string} url a link `isSwissTransferLink` accepts
+ * @param {string} url a link `fileLinkService` names a service for
  * @returns {string}
  */
-export const swissTransferLabel = (url) => withSmallHost(url).replace(/^https:\/\/(?:www\.)?/, '')
+export const fileLinkLabel = (url) => {
+  const address = cut(url)
+  return address ? `${address.host.replace(/^www\./, '')}${address.path}` : ''
+}

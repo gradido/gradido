@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { describe, expect, it } from 'vitest'
-import { SWISSTRANSFER_URL, isSwissTransferLink, swissTransferLabel } from './chatFileLink'
+import { SWISSTRANSFER_URL, fileLinkLabel, isSwissTransferLink } from './chatFileLink'
 import { chatTextParts } from './chatTextParts'
 
 /**
@@ -97,7 +97,7 @@ describe('isSwissTransferLink', () => {
   )
 })
 
-describe('swissTransferLabel', () => {
+describe('fileLinkLabel', () => {
   it.each([
     [LINK, 'swisstransfer.com/d/7f3a9c2e-5b1d-4e8a-9c3f-2d6b8a1e4f70'],
     ['https://swisstransfer.com/d/7f3a9c2e', 'swisstransfer.com/d/7f3a9c2e'],
@@ -109,6 +109,6 @@ describe('swissTransferLabel', () => {
     // The host as a browser shows it; the id keeps its letters.
     ['HTTPS://WWW.SwissTransfer.COM/dl/Ab3dE5fG', 'swisstransfer.com/dl/Ab3dE5fG'],
   ])('shows %s as %s', (url, label) => {
-    expect(swissTransferLabel(url)).toBe(label)
+    expect(fileLinkLabel(url)).toBe(label)
   })
 })

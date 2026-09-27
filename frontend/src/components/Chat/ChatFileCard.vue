@@ -26,7 +26,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { swissTransferLabel } from '@/utils/chatFileLink'
+import { fileLinkLabel } from '@/utils/chatFileLink'
 
 /**
  * A link to files on SwissTransfer, shown in the thread as a card in place of the address (E-042,
@@ -46,7 +46,7 @@ const props = defineProps({
 const { t } = useI18n()
 
 /** The destination the card names: the address without `https://` and `www.`. */
-const where = computed(() => swissTransferLabel(props.href))
+const where = computed(() => fileLinkLabel(props.href))
 </script>
 
 <style lang="scss" scoped>
