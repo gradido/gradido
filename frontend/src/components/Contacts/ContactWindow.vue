@@ -280,6 +280,7 @@
               ref="videoServerField"
               v-model="videoServerSelected"
               class="form-select"
+              :disabled="videoCalling"
               data-test="contact-window-video-server"
             >
               <option :value="null">{{ $t('chatThread.videoServerRandom') }}</option>
@@ -288,20 +289,83 @@
               </option>
             </select>
           </div>
-          <!-- The whole link, topic and all, for people who are not in this thread -- it is the
-               same room the invitation takes, where the call is started from this question. -->
-          <BButton
-            variant="secondary"
-            class="contact-window-video-copy"
-            data-test="contact-window-video-copy"
-            @click="copyVideoLink"
-          >
-            <i-mdi-check v-if="videoLinkCopied" aria-hidden="true" />
-            <i-mdi-link-variant v-else aria-hidden="true" />
-            {{
-              videoLinkCopied ? $t('chatThread.videoLinkCopied') : $t('chatThread.videoCopyLink')
-            }}
-          </BButton>
+          <!-- The time of a planned call (V5b): a day, from, to -- the browser's own calendar and
+               clock, in the member's own time zone, which the line under them names. Empty for
+               every question: a day filled in on its own would be a day nobody chose. -->
+          <div class="mb-3" role="group" :aria-labelledby="videoWhenLabelId">
+            <div :id="videoWhenLabelId" class="form-label">{{ $t('chatThread.videoWhen') }}</div>
+            <div class="contact-window-video-when">
+              <div class="contact-window-video-when-day">
+                <label class="small text-muted" :for="videoDayFieldId">
+                  {{ $t('chatThread.videoDate') }}
+                </label>
+                <input
+                  :id="videoDayFieldId"
+                  v-model="videoDay"
+                  type="date"
+                  class="form-control"
+                  :min="videoToday"
+                  data-test="contact-window-video-day"
+                />
+              </div>
+              <div>
+                <label class="small text-muted" :for="videoFromFieldId">
+                  {{ $t('chatThread.videoFrom') }}
+                </label>
+                <input
+                  :id="videoFromFieldId"
+                  v-model="videoFrom"
+                  type="time"
+                  step="300"
+                  class="form-control"
+                  data-test="contact-window-video-from"
+                  @change="fillVideoEnd"
+                />
+              </div>
+              <div>
+                <label class="small text-muted" :for="videoToFieldId">
+                  {{ $t('chatThread.videoTo') }}
+                </label>
+                <input
+                  :id="videoToFieldId"
+                  v-model="videoTo"
+                  type="time"
+                  step="300"
+                  class="form-control"
+                  data-test="contact-window-video-to"
+                />
+              </div>
+            </div>
+            <div class="small text-muted mt-2" data-test="contact-window-video-when-hint">
+              {{ $t('chatThread.videoWhenHint', { zone: videoZone }) }}
+            </div>
+          </div>
+          <!-- The calendar file of the planned call (V5b), and the whole link, topic and all, for
+               people who are not in this thread -- the same room the invitation takes, where the
+               call is started or planned from this question. -->
+          <div class="contact-window-video-tools">
+            <BButton
+              variant="secondary"
+              class="contact-window-video-tool"
+              data-test="contact-window-video-calendar"
+              @click="saveVideoCalendar"
+            >
+              <i-mdi-calendar-plus-outline aria-hidden="true" />
+              {{ $t('chatThread.videoCalendarFile') }}
+            </BButton>
+            <BButton
+              variant="secondary"
+              class="contact-window-video-tool"
+              data-test="contact-window-video-copy"
+              @click="copyVideoLink"
+            >
+              <i-mdi-check v-if="videoLinkCopied" aria-hidden="true" />
+              <i-mdi-link-variant v-else aria-hidden="true" />
+              {{
+                videoLinkCopied ? $t('chatThread.videoLinkCopied') : $t('chatThread.videoCopyLink')
+              }}
+            </BButton>
+          </div>
           <div class="small text-muted mt-2">{{ $t('chatThread.videoLinkHint') }}</div>
           <!-- The link that was copied, to be marked and copied by hand where the browser
                refused the clipboard. ⛔ The call's secret: here only while the question is open. -->
@@ -320,6 +384,23 @@
           >
             {{ videoProblem }}
           </p>
+          <!-- "Plan" sends the invitation from here (V5b): who gets it, and the box, as in the
+               question -- the same box, and the first message goes by mail in any case (E-024). -->
+          <p class="mb-0 mt-3 text-muted" data-test="contact-window-video-plan-body">
+            {{
+              chatConversation.exists
+                ? $t('chatThread.videoPlanBody', { name: alias })
+                : $t('chatThread.videoPlanFirst', { name: alias })
+            }}
+          </p>
+          <ChatCheck
+            v-if="chatConversation.exists"
+            v-model="videoAlsoByEmail"
+            class="mt-3"
+            box-test="contact-window-video-plan-email"
+          >
+            {{ $t('chatThread.alsoByEmail') }}
+          </ChatCheck>
         </template>
         <template v-else>
           <p class="h5 mb-2" data-test="contact-window-video-title">{{ videoAskTitle }}</p>
@@ -415,14 +496,26 @@
         <template #footer>
           <!-- "Back" (V5, Bernd, 27.09.2026: "Zurück · Planen"): the choice counts already, so
                there is nothing to take over or to throw away. -->
-          <BButton
-            v-if="videoSettings"
-            variant="secondary"
-            data-test="contact-window-video-back"
-            @click="closeVideoSettings"
-          >
-            {{ $t('back') }}
-          </BButton>
+          <template v-if="videoSettings">
+            <BButton
+              variant="secondary"
+              data-test="contact-window-video-back"
+              @click="closeVideoSettings"
+            >
+              {{ $t('back') }}
+            </BButton>
+            <!-- "Plan" (V5b): the invitation with the day and the time into the thread, no room
+                 opened. It waits while the invitation is on its way, as "Start call" does. -->
+            <BButton
+              variant="gradido"
+              class="contact-window-video-plan"
+              :aria-disabled="videoCalling ? 'true' : 'false'"
+              data-test="contact-window-video-plan"
+              @click="planVideoCall"
+            >
+              {{ $t('chatThread.videoPlan') }}
+            </BButton>
+          </template>
           <BButton
             v-else-if="videoRoomToOpen"
             variant="secondary"
@@ -569,6 +662,15 @@ import {
   readChatVideoServer,
   rememberChatVideoServer,
 } from '@/utils/chatVideoServer'
+import {
+  chatVideoCalendarFile,
+  chatVideoCalendarFileName,
+  chatVideoCalendarUid,
+  chatVideoDay,
+  chatVideoWhen,
+  chatVideoZone,
+  saveChatVideoCalendarFile,
+} from '@/utils/chatVideoCalendar'
 
 /**
  * One contact, opened from wherever a contact stands: the list, the column, the strip.
@@ -585,7 +687,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const { t, d } = useI18n()
+const { t, d, locale } = useI18n()
 const router = useRouter()
 const store = useStore()
 const { toastSuccess, toastError } = useAppToast()
@@ -922,6 +1024,50 @@ const videoLinkCopied = ref(false)
 const videoLinkShown = ref('')
 
 /**
+ * The time of a planned call (V5b): a day and two times of day, as the fields give them -- empty
+ * for every question. `videoWhen` is the call's start and end, or null while one is missing or the
+ * end is not after the start.
+ */
+const videoDay = ref('')
+const videoFrom = ref('')
+const videoTo = ref('')
+const videoWhenLabelId = `${videoTopicId}-when`
+const videoDayFieldId = `${videoTopicId}-day`
+const videoFromFieldId = `${videoTopicId}-from`
+const videoToFieldId = `${videoTopicId}-to`
+const videoWhen = computed(() => chatVideoWhen(videoDay.value, videoFrom.value, videoTo.value))
+/** Today on the member's own calendar: the first day the date field offers. */
+const videoToday = computed(() => {
+  const now = new Date()
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+})
+/**
+ * The time zone the fields mean, as the member's language names it short (MESZ, CEST): the one of
+ * the day chosen -- summer and winter time differ --, or of today while no day is.
+ */
+const videoZone = computed(() =>
+  chatVideoZone(
+    videoWhen.value?.start ?? (videoDay.value ? new Date(`${videoDay.value}T12:00`) : new Date()),
+    locale.value,
+  ),
+)
+
+/**
+ * The start chosen, and no end yet or an end not after it: the end an hour later, the length most
+ * calls have. Changed by hand afterwards, it stays as it is.
+ */
+const fillVideoEnd = () => {
+  const from = videoFrom.value
+  if (!from || (videoTo.value && videoTo.value > from)) return
+  const [hours, minutes] = from.split(':').map(Number)
+  videoTo.value =
+    hours >= 23
+      ? '23:59'
+      : `${String(hours + 1).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
+}
+
+/**
  * The room's window while a call is being made. Given up to the member once it is navigated;
  * closed where the call does not come about, or the question is let go.
  */
@@ -940,6 +1086,9 @@ const askVideoCall = () => {
   videoInApp.value = readChatVideoInApp(store.state.gradidoID)
   videoServerWanted.value = readChatVideoServer(store.state.gradidoID)
   videoServerChoices.value = []
+  videoDay.value = ''
+  videoFrom.value = ''
+  videoTo.value = ''
   videoChoicesLoading = loadVideoServerChoices()
   videoAskOpened.value = false
   videoAsking.value = true
@@ -1065,6 +1214,7 @@ const closeVideoSettings = () => {
  * is it awaited here.
  */
 const copyVideoLink = async () => {
+  if (videoCalling.value) return
   const attempt = videoAttempt
   videoProblem.value = ''
   const serverId = videoServer.value?.id ?? null
@@ -1087,6 +1237,105 @@ const copyVideoLink = async () => {
   } catch {
     // Refused, or no clipboard at all: the link stands under the button.
   }
+}
+
+/**
+ * The invitation to a planned call (V5b), as the thread and the mail get it: the room with its
+ * topic and its time (`withChatVideoTopic`), the day and the time in words in the sender's language
+ * and time zone -- the zone named, since the one invited may live in another --, and who runs the
+ * server. Two written-out keys, as for the call now (see `startVideoCall`).
+ */
+const plannedVideoInvitation = (offered, topic, when) => {
+  const url = withChatVideoTopic(offered.url, topic, when)
+  const operator = offered.operator ?? offered.host
+  const date = chatVideoDay(when.start, locale.value)
+  const time = t('chatThread.videoPlannedTime', {
+    from: d(when.start, 'time'),
+    to: d(when.end, 'time'),
+    zone: chatVideoZone(when.start, locale.value),
+  })
+  const body =
+    topic === t('chatThread.videoTopicDefault')
+      ? t('chatThread.videoInvitePlanned', { date, time, operator, url })
+      : t('chatThread.videoInvitePlannedTopic', { topic, date, time, operator, url })
+  return { url, body }
+}
+
+/**
+ * "Calendar file" (V5b): the planned call as an iCalendar file, for the member's own calendar --
+ * the room this question takes, the invitation as its note. Nothing is sent.
+ */
+const saveVideoCalendar = async () => {
+  if (videoCalling.value) return
+  const when = videoWhen.value
+  videoProblem.value = ''
+  if (!when) {
+    videoProblem.value = t('chatThread.videoPlanIncomplete')
+    return
+  }
+  const attempt = videoAttempt
+  const topic = videoTopicShown.value
+  const { room: offered, error } = await askVideoRoom()
+  if (attempt !== videoAttempt) return
+  if (!offered) {
+    videoProblem.value = videoRoomProblem(error, t('chatThread.videoNoServer'))
+    return
+  }
+  const { url, body } = plannedVideoInvitation(offered, topic, when)
+  saveChatVideoCalendarFile(
+    chatVideoCalendarFileName(topic, when.start),
+    chatVideoCalendarFile({
+      start: when.start,
+      end: when.end,
+      title: `${topic} – ${alias.value}`,
+      description: body,
+      url,
+      uid: chatVideoCalendarUid(offered.url, when.start),
+    }),
+  )
+}
+
+/**
+ * "Plan" (V5b, Bernd, 27.09.2026: "Bei Planen werden dann die Sitzungsdaten in die Chat-Bubble
+ * eingetragen"): the invitation with the day and the time into the thread -- on the server chosen,
+ * in the room a copied link already went out for --, and the question closes. No room is opened:
+ * the call is later, and its link in the thread opens it then.
+ *
+ * ⚠️ No new attempt, unlike "Start call": a "Copy link" or a "Calendar file" pressed just before
+ * is the member's own, for the same room -- the server field waits while the plan is on its way --,
+ * and finishes. Only letting the question go lets go of the plan.
+ */
+const planVideoCall = async () => {
+  if (videoCalling.value) return
+  const when = videoWhen.value
+  videoProblem.value = ''
+  if (!when) {
+    videoProblem.value = t('chatThread.videoPlanIncomplete')
+    return
+  }
+  const attempt = videoAttempt
+  const through = thread.value
+  const notify = chatNotifyFor({
+    first: !chatConversation.value.exists,
+    alsoByEmail: videoAlsoByEmail.value,
+  })
+  const topic = videoTopicShown.value
+  videoCalling.value = true
+  await videoChoicesLoading
+  if (attempt !== videoAttempt) return
+  const { room: offered, error } = await askVideoRoom()
+  if (attempt !== videoAttempt) return
+  const delivered =
+    offered && through
+      ? await through.deliver({ body: plannedVideoInvitation(offered, topic, when).body, notify })
+      : false
+  if (attempt !== videoAttempt) return
+  videoCalling.value = false
+  if (!delivered) {
+    videoProblem.value = videoRoomProblem(error, t('chatThread.videoNotSent'))
+    return
+  }
+  videoAsking.value = false
 }
 
 /**
@@ -1511,7 +1760,8 @@ onBeforeUnmount(() => {
    place, and a look that says it waits. So does "Join call" while the Jitsi app is awaited. */
 .contact-window-video-start[aria-disabled='true'],
 .contact-window-video-join[aria-disabled='true'],
-.contact-window-video-gear[aria-disabled='true'] {
+.contact-window-video-gear[aria-disabled='true'],
+.contact-window-video-plan[aria-disabled='true'] {
   opacity: 0.65;
   cursor: default;
 }
@@ -1547,12 +1797,43 @@ onBeforeUnmount(() => {
   outline-offset: 2px;
 }
 
-/* "Copy link" with its sign before the word, and the server chosen with the server's sign. */
-.contact-window-video-copy,
+/* The buttons of the gear's view with their sign before the word, and the server chosen with the
+   server's sign. */
+.contact-window-video-tool,
 .contact-window-video-server {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
+}
+
+/* "Calendar file" and "Copy link" side by side, one under the other where they do not fit. */
+.contact-window-video-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* A planned call's time (V5b): the day wider than the two times of day. Where the dialog is too
+   narrow for three fields (a phone), the day takes its own row and the two times share the next. */
+.contact-window-video-when {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.5rem;
+}
+
+.contact-window-video-when label {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+@media (width <= 420px) {
+  .contact-window-video-when {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .contact-window-video-when-day {
+    grid-column: 1 / -1;
+  }
 }
 
 /* The copied link breaks anywhere rather than reach past the dialog: an address has no spaces. */

@@ -32,14 +32,27 @@ const percentEncoded = (character) =>
   `%${character.charCodeAt(0).toString(16).toUpperCase().padStart(2, '0')}`
 
 /**
- * The room's address with the topic added. The topic comes trimmed and never empty (the field
- * falls back to its default) -- that is the caller's to see to, and not checked again here.
+ * The time of a planned call (V5b), after the topic: two settings of Gradido's own, start and end
+ * in whole seconds since 1970. Jitsi reads them as numbers (JSON) and uses neither, so the meeting
+ * opens as ever. A receiving wallet reads them to offer the call to the member's calendar
+ * (`chatVideoPlannedCall`) -- in the member's own time zone, whatever the sender's was.
+ */
+const SCHEDULE = '&gradido\\.start=(\\d{1,12})&gradido\\.end=(\\d{1,12})'
+
+/** Whole seconds since 1970, as the address carries a time. */
+const seconds = (date) => Math.floor(date.getTime() / 1000)
+
+/**
+ * The room's address with the topic added -- and, for a planned call (V5b), its time. The topic
+ * comes trimmed and never empty (the field falls back to its default) -- that is the caller's to
+ * see to, and not checked again here.
  *
  * @param {string} url the room, as the server hands it out (no `#` in it)
  * @param {string} topic
+ * @param {{ start: Date, end: Date } | null} [when] the time of a planned call
  * @returns {string}
  */
-export const withChatVideoTopic = (url, topic) => {
+export const withChatVideoTopic = (url, topic, when = null) => {
   // a) JSON, because Jitsi reads the value as JSON: a quote or a backslash in the topic comes out
   //    escaped. And a lone surrogate -- half an emoji, cut off by the field's length when pasted --
   //    comes out as an escape too (ES2019), so `encodeURIComponent` below does not throw on it.
@@ -55,15 +68,17 @@ export const withChatVideoTopic = (url, topic) => {
   //    address has to stay one link, in the thread as in the mail. The value always ends on
   //    `%22`, the JSON's closing quote -- a character a link may end with.
   const value = encodeURIComponent(guarded).replace(LEFT_BY_ENCODE_URI_COMPONENT, percentEncoded)
-  return `${url}#config.subject=${value}`
+  const time = when ? `&gradido.start=${seconds(when.start)}&gradido.end=${seconds(when.end)}` : ''
+  return `${url}#config.subject=${value}${time}`
 }
 
 /**
  * ⛔ Exactly one `#`, and what follows it is `config.subject=` and a value without `&` and without
- * `#` -- the addition `withChatVideoTopic` makes and nothing else. A `#` that comes earlier, a
- * second setting, anything after the value: the address is somebody else's, and stays whole.
+ * `#` -- the addition `withChatVideoTopic` makes and nothing else --, with or without the time of a
+ * planned call after it (V5b). A `#` that comes earlier, another setting, anything after the value:
+ * the address is somebody else's, and stays whole.
  */
-const OWN_ADDITION = /^([^#]*)#config\.subject=[^&#]*$/
+const OWN_ADDITION = new RegExp(`^([^#]*)#config\\.subject=([^&#]*)(?:${SCHEDULE})?$`)
 
 /**
  * The address as the thread SHOWS it: without the topic's encoded addition, which reads as
@@ -75,3 +90,27 @@ const OWN_ADDITION = /^([^#]*)#config\.subject=[^&#]*$/
  * @returns {string}
  */
 export const withoutChatVideoTopic = (url) => url.replace(OWN_ADDITION, '$1')
+
+/**
+ * What an address of Gradido's own form carries (V4a, V5b): the room, the topic, and for a planned
+ * call its start and end. null for every other address -- another setting, a value that is no
+ * JSON string, an end not after its start.
+ *
+ * @param {string} url
+ * @returns {{ room: string, topic: string, start: Date | null, end: Date | null } | null}
+ */
+export const readChatVideoAddition = (url) => {
+  const own = OWN_ADDITION.exec(url)
+  if (!own) return null
+  const [, room, value, start, end] = own
+  let topic
+  try {
+    topic = JSON.parse(decodeURIComponent(value))
+  } catch {
+    return null
+  }
+  if (typeof topic !== 'string') return null
+  if (!start) return { room, topic, start: null, end: null }
+  if (Number(end) <= Number(start)) return null
+  return { room, topic, start: new Date(Number(start) * 1000), end: new Date(Number(end) * 1000) }
+}

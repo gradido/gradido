@@ -19,6 +19,20 @@
         {{ message.subject }}
       </div>
       <chat-message-text class="chat-bubble-text" :text="message.body" />
+      <!-- A planned video call (V5b, Bernd, 27.09.2026): offered to the member's calendar, on
+           either side of the conversation -- the time comes out of the invitation's own address
+           (chatVideoPlannedCall), and the calendar shows it in this member's time zone. -->
+      <div v-if="plannedCall" class="chat-bubble-calendar">
+        <button
+          type="button"
+          class="chat-bubble-calendar-add"
+          data-test="chat-bubble-calendar"
+          @click="addToCalendar"
+        >
+          <i-mdi-calendar-plus-outline aria-hidden="true" />
+          {{ t('chatThread.videoAddToCalendar') }}
+        </button>
+      </div>
       <div class="chat-bubble-meta">
         <!-- Shown to the sender only, on their own message: a mail about it went out too
              (E-034). Where it did not because the recipient muted the conversation, the line
@@ -59,6 +73,13 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ChatMessageText from '@/components/Chat/ChatMessageText'
+import {
+  chatVideoCalendarFile,
+  chatVideoCalendarFileName,
+  chatVideoCalendarUid,
+  chatVideoPlannedCall,
+  saveChatVideoCalendarFile,
+} from '@/utils/chatVideoCalendar'
 
 /**
  * ⛔ The enum NAMES, not the column values. The backend registers the database objects
@@ -127,9 +148,59 @@ const notMailed = computed(() =>
     ? t('chatThread.notMailedMuted', { name: props.alias })
     : '',
 )
+
+/** The planned video call this message invites to (V5b); null for every other message. */
+const plannedCall = computed(() => chatVideoPlannedCall(props.message.body))
+
+/**
+ * "Add to calendar": the call as an iCalendar file -- titled with its topic and the other
+ * person's name, the invitation as its note, the room as its place. The same call keeps the same
+ * name (`uid`), so a second download is the same entry.
+ */
+const addToCalendar = () => {
+  const call = plannedCall.value
+  if (!call) return
+  saveChatVideoCalendarFile(
+    chatVideoCalendarFileName(call.topic, call.start),
+    chatVideoCalendarFile({
+      start: call.start,
+      end: call.end,
+      title: `${call.topic} – ${props.alias}`,
+      description: props.message.body,
+      url: call.url,
+      uid: chatVideoCalendarUid(call.room, call.start),
+    }),
+  )
+}
 </script>
 
 <style lang="scss" scoped>
+/* "Add to calendar" under a planned call's invitation (V5b): a small outlined pill in the gold of
+   one's own bubbles, the words in the text colour. */
+.chat-bubble-calendar {
+  margin-top: 0.4rem;
+}
+
+.chat-bubble-calendar-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  color: var(--bs-body-color);
+  background: transparent;
+  border: 1px solid var(--gold, #c58d38);
+  border-radius: 1rem;
+  cursor: pointer;
+}
+
+.chat-bubble-calendar-add:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
 .chat-bubble-row {
   display: flex;
   flex-direction: column;

@@ -6,6 +6,7 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import ChatBubble from './ChatBubble.vue'
 import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
+import { withChatVideoTopic } from '@/utils/chatVideoTopic'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -55,7 +56,12 @@ describe('ChatBubble', () => {
   const mountBubble = (message, alias = 'Lena') => {
     wrapper = mount(ChatBubble, {
       props: { message, alias },
-      global: { stubs: { IMdiEmailOutline: { template: '<i data-test="envelope" />' } } },
+      global: {
+        stubs: {
+          IMdiEmailOutline: { template: '<i data-test="envelope" />' },
+          IMdiCalendarPlusOutline: true,
+        },
+      },
     })
     return wrapper
   }
@@ -479,5 +485,97 @@ describe('ChatBubble', () => {
         rule.selectors.includes('.chat-bubble-not-mailed') && /overflow-wrap/.test(rule.body),
     )
     expect(line?.body).toMatch(/overflow-wrap:\s*anywhere/)
+  })
+
+  /**
+   * V5b (Bernd, 27.09.2026): a planned video call is offered to the member's calendar -- on
+   * either side of the conversation, the time out of the invitation's own address, the calendar
+   * showing it in this member's time zone.
+   */
+  describe('a planned video call', () => {
+    const ROOM = 'https://meet.systemli.org/q2w3e4r5t6y7'
+    const START = new Date('2026-09-30T13:00:00.000Z')
+    const END = new Date('2026-09-30T14:00:00.000Z')
+    const PLANNED = withChatVideoTopic(ROOM, 'Projektbesprechung', { start: START, end: END })
+    const INVITATION = `📹 Videoanruf: Projektbesprechung\n📅 Mittwoch, 30. September 2026\n🕒 15:00–16:00 Uhr (MESZ)\nDer Raum liegt auf einem Jitsi-Server von Systemli — ein Vorschlag, kein Dienst von Gradido: ${PLANNED}`
+    const calendar = () => wrapper.find('[data-test="chat-bubble-calendar"]')
+
+    let blobs
+    let saved
+    afterEach(() => {
+      delete URL.createObjectURL
+      delete URL.revokeObjectURL
+      vi.restoreAllMocks()
+    })
+
+    const lendObjectAddresses = () => {
+      blobs = []
+      saved = []
+      URL.createObjectURL = (blob) => {
+        blobs.push(blob)
+        return 'blob:calendar'
+      }
+      URL.revokeObjectURL = vi.fn()
+      vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function () {
+        saved.push(this.download)
+      })
+    }
+
+    const text = (blob) =>
+      new Promise((resolve) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result)
+        reader.readAsText(blob)
+      })
+
+    it.each([
+      ['one’s own', true],
+      ['the other person’s', false],
+    ])('offers it to the calendar under %s invitation', (_, mine) => {
+      mountBubble({ ...(mine ? OWN : THEIRS), body: INVITATION })
+
+      expect(calendar().exists()).toBe(true)
+      expect(calendar().element.tagName).toBe('BUTTON')
+      expect(calendar().attributes('type')).toBe('button')
+      expect(calendar().text()).toBe('chatThread.videoAddToCalendar')
+    })
+
+    it('offers nothing under a call now, or under any other message', () => {
+      for (const body of [
+        `📹 Videoanruf. Der Raum liegt …: ${withChatVideoTopic(ROOM, 'Videoanruf')}`,
+        'Hättest Du noch Rosmarin übrig?',
+        `Schau mal: ${ROOM}`,
+      ]) {
+        mountBubble({ ...THEIRS, body })
+        expect(calendar().exists(), body).toBe(false)
+        wrapper.unmount()
+      }
+      wrapper = null
+    })
+
+    it('saves the call: its time, the topic and the other person as its title, the message as its note', async () => {
+      lendObjectAddresses()
+      mountBubble({ ...THEIRS, body: INVITATION }, 'Lena')
+
+      await calendar().trigger('click')
+
+      expect(saved).toEqual(['Projektbesprechung-2026-09-30.ics'])
+      const file = (await text(blobs[0])).replace(/\r\n /g, '')
+      expect(file).toContain('DTSTART:20260930T130000Z\r\n')
+      expect(file).toContain('DTEND:20260930T140000Z\r\n')
+      expect(file).toContain('SUMMARY:Projektbesprechung – Lena\r\n')
+      expect(file).toContain(`URL:${PLANNED}\r\n`)
+      expect(file).toContain('UID:q2w3e4r5t6y7-1790773200@gradido\r\n')
+      expect(file).toContain('DESCRIPTION:📹 Videoanruf: Projektbesprechung\\n📅 Mittwoch')
+    })
+
+    it('draws the button with a focus ring of its own, in the stylesheet', () => {
+      const code = readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
+        'utf8',
+      ).replace(/\/\*[\s\S]*?\*\//g, '')
+      expect(code).toMatch(/\.chat-bubble-calendar-add:focus-visible\s*\{[^}]*outline:\s*2px solid/)
+      expect(code).toMatch(/\.chat-bubble-calendar-add\s*\{[^}]*min-height:\s*2rem/)
+    })
   })
 })
