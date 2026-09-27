@@ -784,6 +784,11 @@ export const chatMessagesWithMember = gql`
         deliveryState
         notify
         mailState
+        images {
+          imageUuid
+          width
+          height
+        }
       }
     }
   }
@@ -810,8 +815,19 @@ export const newChatMessagesSince = gql`
         deliveryState
         notify
         mailState
+        images {
+          imageUuid
+          width
+          height
+        }
       }
     }
+  }
+`
+
+export const chatMessageImage = gql`
+  query ($imageUuid: String!) {
+    chatMessageImage(imageUuid: $imageUuid)
   }
 `
 

@@ -638,8 +638,13 @@ export const markChatConversationRead = gql`
 `
 
 export const sendChatMessage = gql`
-  mutation ($ref: MemberAvatarRefInput!, $body: String!, $notify: ChatMessageNotify!) {
-    sendChatMessage(ref: $ref, body: $body, notify: $notify) {
+  mutation (
+    $ref: MemberAvatarRefInput!
+    $body: String!
+    $notify: ChatMessageNotify!
+    $image: ChatImageInput
+  ) {
+    sendChatMessage(ref: $ref, body: $body, notify: $notify, image: $image) {
       id
       messageUuid
       conversationId
@@ -654,6 +659,11 @@ export const sendChatMessage = gql`
       deliveryState
       notify
       mailState
+      images {
+        imageUuid
+        width
+        height
+      }
     }
   }
 `

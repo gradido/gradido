@@ -3,8 +3,10 @@ import {
   readChatMemberMutedAt,
   recordChatMessageDelivery,
   recordChatMessageMailState,
+  removeChatMessageImages,
   sendCustomEmail,
   storeChatMessage,
+  storeChatMessageImages,
   V1_0_CommandClient,
 } from 'core'
 import { ChatMessageSelect, Community as DbCommunity, User as DbUser } from 'database'
@@ -24,6 +26,8 @@ jest.mock('core', () => {
     recordChatMessageDelivery: jest.fn(),
     recordChatMessageMailState: jest.fn(),
     sendCustomEmail: jest.fn(),
+    storeChatMessageImages: jest.fn(),
+    removeChatMessageImages: jest.fn(),
   }
 })
 
@@ -71,6 +75,8 @@ const mutedAt = readChatMemberMutedAt as jest.Mock
 const record = recordChatMessageDelivery as jest.Mock
 const recordMail = recordChatMessageMailState as jest.Mock
 const mail = sendCustomEmail as jest.Mock
+const storePictures = storeChatMessageImages as jest.Mock
+const removePictures = removeChatMessageImages as jest.Mock
 
 /** What the transport reports for a mail that went out -- the mail functions pass it on. */
 const SENT = { accepted: ['ben@example.org'], response: '250 2.0.0 Ok: queued' }
@@ -80,6 +86,8 @@ beforeEach(() => {
   mutedAt.mockResolvedValue(null)
   recordMail.mockResolvedValue(true)
   mail.mockResolvedValue(SENT)
+  storePictures.mockResolvedValue(true)
+  removePictures.mockResolvedValue(undefined)
 })
 
 describe('deliverChatMessageLocally', () => {
@@ -230,6 +238,132 @@ describe('deliverChatMessageLocally, what became of the mail', () => {
     recordMail.mockResolvedValue(false)
 
     expect(await local('email')).toEqual(row('delivered'))
+    expect(mail).toHaveBeenCalledTimes(1)
+  })
+})
+
+/**
+ * P7: a message with a picture. The picture is filed first, under the uuid the message is filed
+ * with after it; a message that could not be filed takes its picture back out. Neither order
+ * nor the taking back can be brought about on purpose against a database -- the database tests
+ * (ChatResolver.test.ts) run the way through once.
+ */
+describe('deliverChatMessageLocally with a picture', () => {
+  const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0xff, 0xd9])
+  const picture = { image: JPEG, width: 800, height: 600 }
+
+  const withPicture = () =>
+    deliverChatMessageLocally({
+      senderUser: anna,
+      recipientUser: ben,
+      subject: null,
+      body: '',
+      notify: 'email',
+      requireStored: true,
+      letter: false,
+      images: [picture],
+    })
+
+  it('files the picture first, under the uuid the message is filed with', async () => {
+    const steps: string[] = []
+    storePictures.mockImplementation(async () => {
+      steps.push('picture')
+      return true
+    })
+    store.mockImplementation(async () => {
+      steps.push('message')
+      return row('delivered')
+    })
+
+    await withPicture()
+
+    expect(steps).toEqual(['picture', 'message'])
+    const [pictureUuid, pictures] = storePictures.mock.calls[0]
+    expect(store.mock.calls[0][0].messageUuid).toBe(pictureUuid)
+    expect(pictures).toEqual([
+      { ...picture, imageUuid: expect.stringMatching(/^[0-9a-f-]{36}$/), position: 0 },
+    ])
+    expect(removePictures).not.toHaveBeenCalled()
+  })
+
+  // A new uuid for every message: two messages never share their pictures.
+  it('names every message anew', async () => {
+    store.mockResolvedValue(row('delivered'))
+
+    await withPicture()
+    await withPicture()
+
+    const [first, second] = storePictures.mock.calls.map(([messageUuid]) => messageUuid)
+    expect(first).not.toBe(second)
+    expect(storePictures.mock.calls[0][1][0].imageUuid).not.toBe(
+      storePictures.mock.calls[1][1][0].imageUuid,
+    )
+  })
+
+  // MAIL-008: the mail says there is a picture, and carries none.
+  it('mails that the message carries a picture, and not the picture', async () => {
+    store.mockResolvedValue(row('delivered'))
+
+    await withPicture()
+
+    expect(mail).toHaveBeenCalledWith(expect.objectContaining({ memo: '', hasImage: true }))
+    expect(JSON.stringify(mail.mock.calls)).not.toContain(JPEG.toString('base64'))
+  })
+
+  it('mails no word of a picture about a message without one', async () => {
+    store.mockResolvedValue(row('delivered'))
+
+    await deliverChatMessageLocally({
+      senderUser: anna,
+      recipientUser: ben,
+      subject: null,
+      body: 'Shall we meet at ten?',
+      notify: 'email',
+      requireStored: true,
+      letter: false,
+    })
+
+    expect(mail).toHaveBeenCalledWith(expect.objectContaining({ hasImage: false }))
+  })
+
+  // ⛔ Where the picture could not be filed, nothing is: no message, no mail.
+  it('files no message and mails nothing where the picture could not be filed', async () => {
+    storePictures.mockResolvedValue(false)
+    store.mockResolvedValue(row('delivered'))
+
+    expect(await withPicture()).toBeNull()
+
+    expect(store).not.toHaveBeenCalled()
+    expect(mail).not.toHaveBeenCalled()
+  })
+
+  // ⛔ A message without its picture would be an empty bubble, a picture without its message is
+  // nobody's: the picture goes back out, under the uuid it was filed with.
+  it('takes the picture back out where the message could not be filed, and mails nothing', async () => {
+    store.mockResolvedValue(null)
+
+    expect(await withPicture()).toBeNull()
+
+    expect(removePictures.mock.calls).toEqual([[storePictures.mock.calls[0][0]]])
+    expect(mail).not.toHaveBeenCalled()
+  })
+
+  it('files no picture, and takes none back, for a message without one', async () => {
+    store.mockResolvedValue(null)
+
+    await deliverChatMessageLocally({
+      senderUser: anna,
+      recipientUser: ben,
+      subject: 'About Sunday',
+      body: 'Coffee?',
+      notify: 'email',
+      requireStored: false,
+      letter: true,
+    })
+
+    expect(storePictures).not.toHaveBeenCalled()
+    expect(removePictures).not.toHaveBeenCalled()
+    // The form's mail goes out whatever became of the row, as before.
     expect(mail).toHaveBeenCalledTimes(1)
   })
 })

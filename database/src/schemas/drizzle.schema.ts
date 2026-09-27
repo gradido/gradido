@@ -12,6 +12,7 @@ import {
   longtext,
   mysqlTable,
   primaryKey,
+  smallint,
   text,
   tinyint,
   unique,
@@ -868,6 +869,47 @@ export const chatMessagesTable = mysqlTable(
 
 export type ChatMessageSelect = typeof chatMessagesTable.$inferSelect
 export type ChatMessageInsert = typeof chatMessagesTable.$inferInsert
+
+// The pictures in chat messages (P7, migration 0146), stored in the form of the avatar's
+// (`user_avatars`): the JPEG's bytes in a mediumblob, its mime type, a time stamp -- so that
+// both kinds of picture can move to another storage in one go (E-041). What a chat picture has
+// beyond that: the message it belongs to, its place in that message, and its size, which the
+// bubble takes its room from before the picture has come.
+//
+// ⛔ Hung on `message_uuid`, not on the message's id: the picture is filed BEFORE its message
+// (deliverChatMessageLocally), and the uuid names the message on both servers (P7b).
+//
+// ⛔ `image` is read by one query only, and only for a member of the message's conversation
+// (dbSelectChatMessageImageForMember). Every list of pictures reads the columns beside it.
+export const chatMessageImagesTable = mysqlTable(
+  'chat_message_images',
+  {
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    // What the wallet fetches the picture by.
+    imageUuid: char('image_uuid', { length: 36 }).notNull(),
+    messageUuid: char('message_uuid', { length: 36 }).notNull(),
+    // Ready for several pictures in one message; 0 while a message carries one.
+    position: tinyint({ unsigned: true }).default(0).notNull(),
+    width: smallint({ unsigned: true }).notNull(),
+    height: smallint({ unsigned: true }).notNull(),
+    image: customMediumBlob('image').notNull(),
+    // Always 'image/jpeg', as in user_avatars.
+    mimeType: varchar('mime_type', { length: 32 }).notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex('chat_message_images_image_uuid_unique').on(table.imageUuid),
+    uniqueIndex('chat_message_images_message_uuid_position_unique').on(
+      table.messageUuid,
+      table.position,
+    ),
+  ],
+)
+
+export type ChatMessageImageSelect = typeof chatMessageImagesTable.$inferSelect
+export type ChatMessageImageInsert = typeof chatMessageImagesTable.$inferInsert
 
 // The Jitsi servers the chat's video calls take a room from (migration 0145), as an
 // administrator keeps them on the admin page "Chat". The table IS the list: the backend reads

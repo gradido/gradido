@@ -995,6 +995,56 @@ describe('sendEmailVariants', () => {
       expect(html).toContain('**About** Saturday')
     })
 
+    /**
+     * P7: a message with a picture. The mail says there is one, in a line before the text, and
+     * shows none (MAIL-008: the mail is the nudge, the conversation the content). A picture
+     * without a caption leaves no empty line for its text. Measured at the RENDERED mail.
+     */
+    describe('with a picture', () => {
+      const NOTE = 'The message contains a picture – you can see it in the conversation.'
+      let withText: any
+      let withoutText: any
+
+      beforeAll(async () => {
+        withText = await sendCustomEmail({ ...message, subject: '', hasImage: true })
+        withoutText = await sendCustomEmail({ ...message, subject: '', memo: '', hasImage: true })
+      })
+
+      it('says so in a line before the text', () => {
+        const html: string = withText.originalMessage.html
+        expect(html).toContain(NOTE)
+        expect(html.indexOf(NOTE)).toBeLessThan(html.indexOf('Shall we meet at ten?'))
+        expect(html).toContain(answerLink)
+      })
+
+      it('leaves no empty line for the text of a picture without a caption', () => {
+        const html: string = withoutText.originalMessage.html
+        expect(html).toContain(NOTE)
+        expect(html).not.toMatch(/<span class="human-text"/)
+        expect(html).not.toMatch(/<div class="p_content">\s*<\/div>/)
+        expect(html).toContain(answerLink)
+      })
+
+      it('says nothing of a picture where the message carries none', () => {
+        for (const sent of [withSubject, withoutSubject]) {
+          expect(sent.originalMessage.html).not.toContain(NOTE)
+          expect(sent.originalMessage.html).not.toContain('📷')
+        }
+      })
+
+      it("says it in the recipient's language", async () => {
+        const sent: any = await sendCustomEmail({
+          ...message,
+          language: 'de',
+          subject: '',
+          hasImage: true,
+        })
+        expect(sent.originalMessage.html).toContain(
+          '📷 Die Nachricht enthält ein Bild – Du siehst es im Gespräch.',
+        )
+      })
+    })
+
     // A bold run is text too: whatever markup it holds stays text.
     it('keeps markup in a bold run as text', async () => {
       const sent: any = await sendCustomEmail({

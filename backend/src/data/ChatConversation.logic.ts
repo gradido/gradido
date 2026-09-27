@@ -51,6 +51,16 @@ export const CHAT_UPDATE_MESSAGES_MAX = 100
 export const CHAT_UPDATES_MAX_PER_REQUEST = 5
 
 /**
+ * How many pictures of chat messages one HTTP request may be served (chatMessageImage), over
+ * every alias and every operation it carries -- counted in RequestBudget (server/context.ts),
+ * before anything is read. One picture a call; at some 55 KB each, five hundred aliases in one
+ * document would be an answer of some thirty megabytes. Ten, as the full-size avatars
+ * (MEMBER_AVATARS_FULL_MAX_PER_REQUEST), for its reason: a thread may show several pictures at
+ * once, and a limit ordinary use can reach gets raised by whoever hits it.
+ */
+export const CHAT_IMAGES_MAX_PER_REQUEST = 10
+
+/**
  * Whether two references name the same member. Without regard to case, the way the
  * chat columns compare the pair (utf8mb4_unicode_ci) -- a uuid written in capitals is the
  * same member, as `directChatPairKey` treats it.

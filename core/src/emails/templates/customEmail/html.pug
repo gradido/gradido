@@ -14,9 +14,16 @@ block content
         +humanText(subject)
 
   //- Bold as in the thread, where the message is read too.
+      A picture in the message (P7) is not in the mail -- the mail is the nudge, the
+      conversation the content (MAIL-008) --; a line before the text says there is one. A
+      picture may come without a caption: no empty line for the text then.
   .memo-block
-    div(class="p_content")
-      +humanText(memo, { bold: true })
+    if hasImage
+      div(class="p_content")
+        = t('emails.customEmail.imageNote')
+    if memo
+      div(class="p_content")
+        +humanText(memo, { bold: true })
     //- Green sits inside the card because that is where it is seen; the gold button
         below only offers the way into the account. Before, the single gold button led
         to the send form while saying "to account" - the label lied about its target.

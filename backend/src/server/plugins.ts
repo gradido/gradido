@@ -1,3 +1,4 @@
+import { Kind, parse, print, visit } from 'graphql'
 import clonedeep from 'lodash.clonedeep'
 
 const setHeadersPlugin = {
@@ -40,7 +41,63 @@ const filterVariables = (variables: any) => {
   if (vars?.subject) {
     vars.subject = '***'
   }
+  // A picture in a chat message (sendChatMessage, `$image`): one member's picture for another,
+  // and some 80,000 characters of base64 in every line that would carry it. Its size stays
+  // readable. The wallet's document has to name the variable so (P7c).
+  if (vars?.image?.data) {
+    vars.image.data = '***'
+  }
+  // The two renditions of a member's avatar (setUserAvatar, `$avatarSmall` and `$avatarFull` in
+  // the wallet's mutations.js): up to some 95,000 characters of base64, written with every upload
+  // until now.
+  if (vars?.avatarSmall) {
+    vars.avatarSmall = '***'
+  }
+  if (vars?.avatarFull) {
+    vars.avatarFull = '***'
+  }
   return vars
+}
+
+// A value written into the document itself instead of into a variable -- a picture, a text, a
+// password, as a client of its own may send them -- never passes filterVariables (coderabbit on
+// #4001). The log gets the document as graphql-js reads it, every string value written as "***"
+// and no comment: graphql-js's own parser, so a block string and its escapes end where GraphQL
+// says they end. A document it cannot read is written as its length only. The wallet and the
+// admin send their values as variables; what a request asks for stays readable.
+const withoutStringValues = (document: string | undefined): string => {
+  if (!document) {
+    return ''
+  }
+  try {
+    return print(
+      visit(parse(document, { noLocation: true }), {
+        StringValue: () => ({ kind: Kind.STRING, value: '***' }),
+      }),
+    )
+  } catch {
+    return `(a document that does not parse, ${document.length} characters)`
+  }
+}
+
+// An error may quote back what the request carried. A failed check keeps the value it refused --
+// class-validator's `value`, the whole picture where its width is out of bounds, however small the
+// picture -- and graphql-js prints a variable of the wrong type into its message. The error log
+// writes neither: every `value` as "***", a message about an invalid variable only up to the
+// value, its reason with it. Any other string longer than this is written as its length.
+const LOGGED_STRING_MAX_LENGTH = 1000
+const INVALID_VARIABLE = / got invalid value [\s\S]*/
+const withoutRequestValues = (key: string, value: unknown): unknown => {
+  if (key === 'value') {
+    return '***'
+  }
+  if (typeof value !== 'string') {
+    return value
+  }
+  if (INVALID_VARIABLE.test(value)) {
+    return value.replace(INVALID_VARIABLE, ' got invalid value ***')
+  }
+  return value.length > LOGGED_STRING_MAX_LENGTH ? `*** ${value.length} characters` : value
 }
 
 export const logPlugin = {
@@ -50,7 +107,8 @@ export const logPlugin = {
     if (operationName !== 'IntrospectionQuery') {
       logger.debug('requestDidStart:', { operationName, variables: filterVariables(variables) })
       logger.info(`Request:
-${mutation || query}variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
+${withoutStringValues(mutation || query)}
+variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
     }
     return {
       willSendResponse(requestContext: any) {
@@ -65,6 +123,9 @@ ${mutation || query}variables: ${JSON.stringify(filterVariables(variables), null
             // rooms, over aliases and every operation of a batch.
             if (requestContext.context.requestBudget?.chatVideoRoomsServed) {
               logger.trace('Response-Data: left out, it holds a video room')
+            } else if (requestContext.context.requestBudget?.chatImagesServed) {
+              // A picture of a chat message (chatMessageImage) is one member's for another.
+              logger.trace('Response-Data: left out, it holds a picture')
             } else {
               logger.trace(`Response-Data:
 ${JSON.stringify(requestContext.response.data, null, 2)}`)
@@ -72,7 +133,7 @@ ${JSON.stringify(requestContext.response.data, null, 2)}`)
           }
           if (requestContext.response.errors) {
             logger.error(`Response-Errors:
-${JSON.stringify(requestContext.response.errors, null, 2)}`)
+${JSON.stringify(requestContext.response.errors, withoutRequestValues, 2)}`)
           }
         }
         return requestContext

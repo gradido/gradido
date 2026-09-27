@@ -72,6 +72,7 @@
     },
     "customEmail": {
       "haveReceivedMessageFrom": "az önce {senderAlias} tarafından bir mesaj aldın",
+      "imageNote": "📷 Mesajda bir görsel var – onu sohbette görebilirsin.",
       "title": "{senderAlias} sana bir mesaj gönderdi"
     },
     "emailChangeConfirm": {

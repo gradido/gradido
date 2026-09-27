@@ -5,18 +5,30 @@ import { MarkChatConversationReadArgs } from '@arg/MarkChatConversationReadArgs'
 import { NewChatMessagesSinceArgs } from '@arg/NewChatMessagesSinceArgs'
 import { SendChatMessageArgs } from '@arg/SendChatMessageArgs'
 import { SetChatConversationMutedArgs } from '@arg/SetChatConversationMutedArgs'
+import { ChatImageInput } from '@input/ChatImageInput'
 import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
 import { ChatMessage } from '@model/ChatMessage'
 import { ChatMessagePage } from '@model/ChatMessagePage'
 import { ChatUpdate } from '@model/ChatUpdate'
 import { ChatVideoRoom } from '@model/ChatVideoRoom'
 import { ChatVideoServerChoice } from '@model/ChatVideoServerChoice'
-import { ApiVersionType, CommandClientFactory, chatMessageNotify, V1_0_CommandClient } from 'core'
+import {
+  ApiVersionType,
+  acceptChatMessageImage,
+  ChatMessageImageAccepted,
+  CommandClientFactory,
+  chatMessageNotify,
+  V1_0_CommandClient,
+} from 'core'
 import {
   ChatConversationSelect,
   ChatMemberRef,
+  ChatMessageImageInfo,
+  ChatMessageSelect,
   dbFindDirectChatConversation,
   dbSelectChatConversationMember,
+  dbSelectChatMessageImageForMember,
+  dbSelectChatMessageImageInfos,
   dbSelectChatMessagesPage,
   dbSelectChatMessagesSince,
   dbSelectChatUnreadSummary,
@@ -28,11 +40,12 @@ import {
 } from 'database'
 import { getLogger } from 'log4js'
 import { uuidv4Schema } from 'shared'
-import { Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
+import { Arg, Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import { chatVideoServerPool } from '@/apis/jitsi/chatVideoServerPool'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
+  CHAT_IMAGES_MAX_PER_REQUEST,
   CHAT_MESSAGE_PAGES_MAX_PER_REQUEST,
   CHAT_MESSAGES_PAGE_DEFAULT,
   CHAT_UPDATE_MESSAGES_DEFAULT,
@@ -83,6 +96,40 @@ const directChatConversationWith = async (
   return dbFindDirectChatConversation(caller, other)
 }
 
+/**
+ * The messages of these rows as `caller` reads them, each with what is known about its pictures
+ * (P7) -- read in ONE query for all of them, never one per message. A picture is matched to its
+ * message by the message's uuid the way the columns compare it, without regard to case.
+ */
+const chatMessagesOf = async (
+  rows: ChatMessageSelect[],
+  caller: ChatMemberRef,
+): Promise<ChatMessage[]> => {
+  const infos = await dbSelectChatMessageImageInfos(rows.map((row) => row.messageUuid))
+  const byMessage = new Map<string, ChatMessageImageInfo[]>()
+  for (const info of infos) {
+    const key = info.messageUuid.toLowerCase()
+    byMessage.set(key, [...(byMessage.get(key) ?? []), info])
+  }
+  return rows.map(
+    (row) => new ChatMessage(row, caller, byMessage.get(row.messageUuid.toLowerCase()) ?? []),
+  )
+}
+
+/**
+ * The picture of a message as it came in (acceptChatMessageImage), or the refusal:
+ * CHAT_IMAGE_NOT_ACCEPTED with the reason -- EMPTY, TOO_LARGE, NOT_JPEG or SIZE. The log gets
+ * the numbers, never the picture.
+ */
+const acceptedPicture = (image: ChatImageInput): ChatMessageImageAccepted => {
+  const accepted = acceptChatMessageImage(image)
+  if (!accepted.success) {
+    const { reason, bytes, width, height } = accepted.error
+    throw new LogError(`CHAT_IMAGE_NOT_ACCEPTED: ${reason}`, { bytes, width, height })
+  }
+  return accepted.value
+}
+
 /** A fresh room on `server`; the log gets the host, never the room name. */
 const roomOn = ({ baseUrl, host, operator, prefix }: ChatVideoServer): ChatVideoRoom => {
   createLogger().trace(`chat video room handed out on ${host}`)
@@ -96,9 +143,10 @@ const roomOn = ({ baseUrl, host, operator, prefix }: ChatVideoServer): ChatVideo
  * choose (V5). The form "send an e-mail" still writes through sendEmail, into the same
  * conversation (P1).
  *
- * What this resolver writes to the log carries no subject, no text and no room name: a refused
- * page, update or room budget with its count, a refused message with its reason, a failed
- * delivery with the other side's answer, and the host a room was handed out on.
+ * What this resolver writes to the log carries no subject, no text, no room name and no picture:
+ * a refused page, update or room budget with its count, a refused message with its reason, a
+ * refused picture with its reason and its numbers, a failed delivery with the other side's
+ * answer, and the host a room was handed out on.
  */
 @Resolver()
 export class ChatResolver {
@@ -134,7 +182,7 @@ export class ChatResolver {
     // conversation is nobody's business but theirs (E-024).
     const me = await dbSelectChatConversationMember(conversation.id, caller)
     return new ChatMessagePage(
-      page.messages.map((row) => new ChatMessage(row, caller)),
+      await chatMessagesOf(page.messages, caller),
       page.hasMore,
       Boolean(me?.mutedAt),
     )
@@ -194,7 +242,7 @@ export class ChatResolver {
       // goes on right after it.
       last ? last.id : summary.latestId,
       summary.unreadConversations,
-      news.messages.map((row) => new ChatMessage(row, caller)),
+      await chatMessagesOf(news.messages, caller),
       news.hasMore,
     )
   }
@@ -228,6 +276,11 @@ export class ChatResolver {
    * reads it. For a member of this community the copy is the one row both of them read; for a
    * member of another community it goes out as a command, and the copy says how that went.
    *
+   * A message may carry a picture (P7), checked before anything else happens -- the way the
+   * avatar is checked -- and refused as CHAT_IMAGE_NOT_ACCEPTED with the reason, nothing filed.
+   * Within this community only, until the next step (P7b): to a member of another one, a message
+   * with a picture is refused, IMAGE_ACROSS_BORDER, before anything is filed or sent.
+   *
    * Whether it goes out as a mail as well: the first message between the two always does
    * (E-024, decided here against this server's own table, before anything is filed); after it,
    * what the sender asked for -- unless the recipient muted the conversation. The copy carries
@@ -246,9 +299,10 @@ export class ChatResolver {
   @Authorized([RIGHTS.SEND_CHAT_MESSAGE])
   @Mutation(() => ChatMessage)
   async sendChatMessage(
-    @Args() { ref, body, notify: requested }: SendChatMessageArgs,
+    @Args() { ref, body, notify: requested, image }: SendChatMessageArgs,
     @Ctx() context: Context,
   ): Promise<ChatMessage> {
+    const images = image ? [acceptedPicture(image)] : []
     const senderUser = getUser(context)
     const caller = callerOf(context)
     const other = {
@@ -276,13 +330,21 @@ export class ChatResolver {
         notify,
         requireStored: true,
         letter: false,
+        images,
       })
       if (!stored) {
         throw new LogError('CHAT_MESSAGE_NOT_SENT: NOT_STORED')
       }
-      return new ChatMessage(stored, caller)
+      const [copy] = await chatMessagesOf([stored], caller)
+      return copy
     }
 
+    // ⛔ A picture does not cross the border yet: the command carries none, and how one gets to
+    // the other server is the next step (P7b). Until then refused here, before anything is filed
+    // or sent.
+    if (images.length > 0) {
+      throw new LogError('CHAT_MESSAGE_NOT_SENT: IMAGE_ACROSS_BORDER', other.communityUuid)
+    }
     const senderCom = await getCommunityByUuid(caller.communityUuid)
     const receiverCom = await getCommunityWithFederatedCommunityByIdentifier(other.communityUuid)
     const receiverFCom = receiverCom?.federatedCommunities?.find(
@@ -321,7 +383,40 @@ export class ChatResolver {
         `chat message not delivered: message_uuid=${stored.messageUuid} (${error})`,
       )
     }
-    return new ChatMessage(stored, caller)
+    const [copy] = await chatMessagesOf([stored], caller)
+    return copy
+  }
+
+  /**
+   * A picture of a chat message (P7), as base64: for a member of the conversation of its
+   * message, while the message is not marked deleted (dbSelectChatMessageImageForMember). Null
+   * for everything else -- no such picture, somebody who is not in the conversation, a deleted
+   * message, something that is no uuid --, with nothing that tells these apart.
+   *
+   * The way the avatar's picture comes (memberAvatarFull; E-041, point 5): GraphQL, base64, one
+   * picture per call. An address of its own with a cache header belongs to Gradido 2.
+   *
+   * Nothing of the picture is written to the log; the request log leaves the answer out
+   * (plugins.ts).
+   */
+  @Authorized([RIGHTS.READ_OWN_CHAT])
+  @Query(() => String, { nullable: true })
+  async chatMessageImage(
+    @Arg('imageUuid', () => String) imageUuid: string,
+    @Ctx() context: Context,
+  ): Promise<string | null> {
+    // ⛔ Counted in the HTTP request's budget before anything is read: a document may repeat this
+    // field under any number of aliases, some 55 KB a picture (RequestBudget).
+    context.requestBudget.chatImagesServed += 1
+    const served = context.requestBudget.chatImagesServed
+    if (served > CHAT_IMAGES_MAX_PER_REQUEST) {
+      throw new LogError('Too many chat pictures requested at once', served)
+    }
+    if (!uuidv4Schema.safeParse(imageUuid).success) {
+      return null
+    }
+    const found = await dbSelectChatMessageImageForMember(imageUuid, callerOf(context))
+    return found.success ? found.value.toString('base64') : null
   }
 
   /**
