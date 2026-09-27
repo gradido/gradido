@@ -119,19 +119,41 @@ Saturday""", memo: "m")
       expect(text).not.toContain(secret)
     }
     // What the request asked for stays readable.
-    expect(text).toContain('sendChatMessage(ref: { communityUuid: "***", gradidoID: "***" }')
-    expect(text).toContain('image: { data: "***", width: 800, height: 600 }')
-    expect(text).toContain('subject: "***", memo: "***"')
+    expect(text).toContain('ref: {communityUuid: "***", gradidoID: "***"}')
+    expect(text).toContain('image: {data: "***", width: 800, height: 600}')
+    expect(text).toContain('subject: "***"')
   })
 
-  it('writes a document without strings as it is', () => {
+  // coderabbit on #4001: an escaped triple quote does not end a block string -- what follows it
+  // is still inside.
+  it('writes nothing of a block string past an escaped triple quote', () => {
+    const text = logged(
+      {},
+      'mutation { sendChatMessage(ref: { gradidoID: "g" }, body: """Meet \\""" Ottilie Tomorrow""", notify: EMAIL) { id } }',
+    )
+    for (const secret of ['Meet', 'Ottilie', 'Tomorrow']) {
+      expect(text).not.toContain(secret)
+    }
+    expect(text).toContain('body: "***"')
+  })
+
+  // A document graphql-js cannot read is refused with an error anyway; the log keeps its length.
+  it('writes a document that does not parse as its length only', () => {
+    const broken = 'mutation { login(email: "anna@example.org", password: "Aa12345_) { id } }'
+    const text = logged({}, broken)
+    expect(text).not.toContain('anna@example.org')
+    expect(text).not.toContain('Aa12345_')
+    expect(text).toContain(`(a document that does not parse, ${broken.length} characters)`)
+  })
+
+  it('writes a document without strings in full', () => {
     const text = logged(
       {},
       'query ($ref: MemberAvatarRefInput!) { chatMessagesWithMember(ref: $ref) { hasMore } }',
     )
-    expect(text).toContain(
-      'query ($ref: MemberAvatarRefInput!) { chatMessagesWithMember(ref: $ref) { hasMore } }',
-    )
+    expect(text).toContain('query ($ref: MemberAvatarRefInput!) {')
+    expect(text).toContain('chatMessagesWithMember(ref: $ref) {')
+    expect(text).toContain('hasMore')
   })
 })
 
@@ -147,12 +169,9 @@ const errorsLogged = (errors: unknown[]): string => {
 }
 
 describe('the errors in the request log', () => {
-  // An error quotes back what the request carried: class-validator keeps the value it refused --
-  // the whole picture where its width is out of bounds --, and graphql-js prints a variable of
-  // the wrong type into its message.
-  it('writes a long string an error quotes back as its length only', () => {
-    const picture = 'A'.repeat(5000)
-    const coercion = `Variable "$image" got invalid value { data: "${picture}", width: "x" }`
+  // A failed check keeps the value it refused -- the whole picture where its width is out of
+  // bounds, however small the picture (coderabbit on #4001).
+  it('writes no value a check refused, however short', () => {
     const text = errorsLogged([
       {
         message: 'Argument Validation Error',
@@ -162,21 +181,48 @@ describe('the errors in the request log', () => {
             validationErrors: [
               {
                 property: 'image',
-                value: { data: picture, width: 0, height: 600 },
-                children: [{ property: 'width', value: 0, constraints: { min: 'too small' } }],
+                value: { data: 'SHORTPICTURE', width: 0, height: 600 },
+                children: [
+                  {
+                    property: 'width',
+                    value: 0,
+                    constraints: { min: 'width must not be less than 1' },
+                  },
+                ],
               },
             ],
           },
         },
       },
-      { message: coercion },
     ])
-    expect(text).not.toContain(picture)
-    expect(text).toContain('"data": "*** 5000 characters"')
-    expect(text).toContain(`"message": "*** ${coercion.length} characters"`)
-    // The rest of the error is still there to read.
+    expect(text).not.toContain('SHORTPICTURE')
+    expect(text).toContain('"value": "***"')
+    // What was refused, and why, is still there to read.
+    expect(text).toContain('"property": "width"')
+    expect(text).toContain('"min": "width must not be less than 1"')
     expect(text).toContain('"message": "Argument Validation Error"')
-    expect(text).toContain('"width": 0')
+  })
+
+  // graphql-js prints a variable of the wrong type into its message, and quotes it in the reason.
+  it('writes no value graphql-js quotes of an invalid variable', () => {
+    const text = errorsLogged([
+      {
+        message:
+          'Variable "$image" got invalid value { data: "SHORTPICTURE", width: "x" } at "image.width"; Int cannot represent non-integer value: "x"',
+      },
+    ])
+    expect(text).not.toContain('SHORTPICTURE')
+    expect(text).toContain('"message": "Variable \\"$image\\" got invalid value ***"')
+  })
+
+  it('writes any other long string as its length only', () => {
+    const long = 'A'.repeat(5000)
+    const text = errorsLogged([
+      { message: 'Something failed', extensions: { exception: { detail: long } } },
+    ])
+    expect(text).not.toContain(long)
+    expect(text).toContain('"detail": "*** 5000 characters"')
+    expect(text).toContain('"message": "Something failed"')
   })
 
   it('writes an ordinary error as before', () => {
