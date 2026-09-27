@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { h, inject } from 'vue'
 import ChatFileCard from '@/components/Chat/ChatFileCard.vue'
-import { isSwissTransferLink } from '@/utils/chatFileLink'
+import { fileLinkService } from '@/utils/chatFileLink'
 import { chatTextParts } from '@/utils/chatTextParts'
 import { CHAT_VIDEO_JOIN, chatVideoAppUrl, offersJitsiApp } from '@/utils/chatVideoApp'
 import { withoutChatVideoTopic } from '@/utils/chatVideoTopic'
@@ -11,8 +11,11 @@ import { withoutChatVideoTopic } from '@/utils/chatVideoTopic'
 const plainClick = (event) =>
   event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey
 
-/** A piece that the thread shows as a file card: a link to files on SwissTransfer (E-044). */
-const isFileCard = (part) => part?.type === 'url' && isSwissTransferLink(part.value)
+/**
+ * A piece that the thread shows as a file card: a link to files on SwissTransfer (E-044), or on
+ * Dropbox, Google Drive, OneDrive or WeTransfer (Bernd, 27.09.2026).
+ */
+const isFileCard = (part) => part?.type === 'url' && fileLinkService(part.value) !== null
 
 /**
  * The space right before and right after a file card, left out of what is shown. The card is a
@@ -57,9 +60,10 @@ const aroundFileCards = (parts) =>
  * on any link. On a phone, and where no window provides the question, it opens the room straight
  * away, as it always did. Whether this is a computer is asked at the click, nothing kept.
  *
- * A link to files on SwissTransfer is shown as a file card in place of the address (Paket D,
- * E-044): Gradido stores no files, the message carries the link, and the card names where it
- * leads. The words around it stay; every other address stays a link, as before.
+ * A link to files on SwissTransfer, Dropbox, Google Drive, OneDrive or WeTransfer is shown as a
+ * file card in place of the address (Paket D, E-044): Gradido stores no files, the message
+ * carries the link, and the card names the service and where it leads. The words around it stay;
+ * every other address stays a link, as before.
  */
 export default {
   name: 'ChatMessageText',
@@ -74,7 +78,9 @@ export default {
         { class: 'chat-message-text' },
         aroundFileCards(chatTextParts(props.text)).map((part) => {
           if (part.type === 'url') {
-            if (isFileCard(part)) return h(ChatFileCard, { href: part.value })
+            if (isFileCard(part)) {
+              return h(ChatFileCard, { href: part.value, service: fileLinkService(part.value) })
+            }
             const asks = join && chatVideoAppUrl(part.value) !== null
             return h(
               'a',

@@ -7,7 +7,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest'
 import ChatFileCard from './ChatFileCard.vue'
 
 vi.mock('vue-i18n', () => ({
-  useI18n: () => ({ t: (key) => key }),
+  useI18n: () => ({ t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) }),
 }))
 
 const LINK = 'https://www.swisstransfer.com/d/7f3a9c2e-5b1d-4e8a-9c3f-2d6b8a1e4f70'
@@ -15,9 +15,9 @@ const LINK = 'https://www.swisstransfer.com/d/7f3a9c2e-5b1d-4e8a-9c3f-2d6b8a1e4f
 describe('ChatFileCard', () => {
   let wrapper
 
-  const mountCard = (href = LINK) => {
+  const mountCard = (href = LINK, service = 'SwissTransfer') => {
     wrapper = mount(ChatFileCard, {
-      props: { href },
+      props: { href, service },
       global: { stubs: { IMdiFileDocumentOutline: true, IMdiOpenInNew: true } },
     })
     return wrapper
@@ -44,7 +44,9 @@ describe('ChatFileCard', () => {
   it('says what it is, and where it leads', () => {
     mountCard()
 
-    expect(wrapper.find('.chat-file-card-title').text()).toBe('chatThread.fileCard')
+    expect(wrapper.find('.chat-file-card-title').text()).toBe(
+      'chatThread.fileCard {"service":"SwissTransfer"}',
+    )
     expect(wrapper.find('[data-test="chat-file-card-where"]').text()).toBe(
       'swisstransfer.com/d/7f3a9c2e-5b1d-4e8a-9c3f-2d6b8a1e4f70',
     )
@@ -58,6 +60,22 @@ describe('ChatFileCard', () => {
     expect(wrapper.find('[data-test="chat-file-card-where"]').text()).toBe(
       'swisstransfer.com/dl/Ab3dE5fG',
     )
+  })
+
+  // The four more (Bernd, 27.09.2026): the title names the service, the address its host and path.
+  // The query carries the link's key: it stays in the target, and out of sight.
+  it('names another service, and shows the address without its key', () => {
+    const dropbox =
+      'https://www.dropbox.com/scl/fi/k7m2x9q4t8wzp3n6r1v5c/Bericht.pdf?rlkey=q2w3e4r5t6y7u8i9o0p1a2s3d&dl=0'
+    mountCard(dropbox, 'Dropbox')
+
+    expect(wrapper.find('.chat-file-card-title').text()).toBe(
+      'chatThread.fileCard {"service":"Dropbox"}',
+    )
+    expect(wrapper.find('[data-test="chat-file-card-where"]').text()).toBe(
+      'dropbox.com/scl/fi/k7m2x9q4t8wzp3n6r1v5c/Bericht.pdf',
+    )
+    expect(wrapper.attributes('href')).toBe(dropbox)
   })
 
   const style = () =>
