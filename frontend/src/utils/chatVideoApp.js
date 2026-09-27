@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { withChatVideoTopic } from '@/utils/chatVideoTopic'
+import { isComputer } from '@/utils/isComputer'
 
 /**
  * A video call's second way on a computer (V4b): the same room in the Jitsi app for the desktop
@@ -79,33 +80,17 @@ export const chatVideoAppUrl = (url) => {
   )
 }
 
-/** A computer's pointer: a mouse or a touchpad, which can hover. */
-const FINE_POINTER_THAT_HOVERS = '(pointer: fine) and (hover: hover)'
-/** What a browser on a phone or a tablet says of itself, whatever its pointer. */
-const PHONE_OR_TABLET = /Android|iPhone|iPad/
-
 /**
- * Whether to offer the second way on this device: a computer, with a mouse or a touchpad. The app
- * is one for the desktop; on a phone and a tablet Jitsi's own page offers its app, and nothing
- * changes there.
+ * Whether to offer the second way on this device: a computer, with a mouse or a touchpad
+ * (`isComputer`, which says how that is told). The app is one for the desktop; on a phone and a
+ * tablet Jitsi's own page offers its app, and nothing changes there.
  *
- * ⛔ No where `matchMedia` is missing -- the safe side: then only the second way is missing. No
- * where the browser names a phone or a tablet, whatever its pointer: an Android phone with a
- * mouse is still no computer the app runs on. And no for a "Macintosh" with points to touch:
- * Safari on an iPad has called itself a Mac since iPadOS 13 (Notiz §12, question 1).
- *
- * Read at every call, with nobody listening and nothing kept: the kind of pointer hardly ever
- * changes within a session, and the next drawing follows it.
+ * Where the browser cannot be asked, the answer is no -- the safe side here: then only the second
+ * way is missing.
  *
  * @returns {boolean}
  */
-export const offersJitsiApp = () => {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
-  const userAgent = window.navigator?.userAgent ?? ''
-  if (PHONE_OR_TABLET.test(userAgent)) return false
-  if (userAgent.includes('Macintosh') && (window.navigator?.maxTouchPoints ?? 0) > 0) return false
-  return window.matchMedia(FINE_POINTER_THAT_HOVERS)?.matches === true
-}
+export const offersJitsiApp = () => isComputer()
 
 /**
  * The box "Start in the Jitsi app" by the call's start button: ticked, a call goes into the app,
