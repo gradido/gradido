@@ -30,6 +30,9 @@ const beatBrings = async (...chatMessages) => {
   await flushPromises()
 }
 
+// The member signed in, whose key the way back after a restart is noted under (utils/chatReturn).
+vi.mock('vuex', () => ({ useStore: () => ({ state: { gradidoID: 'me-id' } }) }))
+
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
@@ -320,6 +323,55 @@ describe('ChatThread', () => {
     await wrapper.find('[data-test="chat-compose-send"]').trigger('click')
     await flushPromises()
   }
+
+  /**
+   * iOS starts the wallet over while the member is in another app -- SwissTransfer's, Jitsi's --
+   * and a start goes to the overview (Bernd, 27.09.2026: "not in the dialog thread any more"). So
+   * the thread notes whom it is with as the page goes out of sight, and lets the note go as the
+   * page comes back or the thread closes (utils/chatReturn); the start opens it again.
+   */
+  describe('the way back into it after a restart', () => {
+    const note = () => window.localStorage.getItem('chat-return:me-id')
+    afterEach(() => window.localStorage.removeItem('chat-return:me-id'))
+
+    it('notes whom it is with as the page goes out of sight, and not before', () => {
+      mountThread()
+      expect(note()).toBeNull()
+
+      pageHidden(true)
+      expect(JSON.parse(note())).toEqual({
+        gradidoID: 'lena-id',
+        communityUuid: 'home-uuid',
+        at: expect.any(Number),
+      })
+    })
+
+    it('lets the note go as the page comes back into sight', () => {
+      mountThread()
+      pageHidden(true)
+      pageHidden(false)
+      expect(note()).toBeNull()
+    })
+
+    it('lets the note go as the thread closes', () => {
+      mountThread()
+      pageHidden(true)
+      wrapper.unmount()
+      wrapper = null
+      expect(note()).toBeNull()
+    })
+
+    // ⛔ Whom, never what: the words in the field stay on the page and are not written down.
+    it('never writes down the words in the field', async () => {
+      mountThread()
+      await arrive(page([1, 2]))
+      await field().setValue('Hier ist die Datei:')
+      pageHidden(true)
+
+      expect(note()).not.toContain('Datei')
+      expect(Object.keys(JSON.parse(note())).sort()).toEqual(['at', 'communityUuid', 'gradidoID'])
+    })
+  })
 
   describe('the question it asks', () => {
     // KF-004: the person is named by the pair; the page is the server's own default of 50.

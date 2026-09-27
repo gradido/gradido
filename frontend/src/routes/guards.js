@@ -2,6 +2,7 @@ import { START_LOCATION } from 'vue-router'
 import { verifyLogin } from '../graphql/queries'
 import { clearApolloCache } from '../plugins/apolloCache'
 import { mayFind } from '../utils/matchingPosition'
+import { takeChatReturn } from '../utils/chatReturn'
 
 /**
  * Whether the stored session still runs: a token, and more than five seconds before it ends --
@@ -10,6 +11,17 @@ import { mayFind } from '../utils/matchingPosition'
  */
 const sessionRuns = (state) =>
   Boolean(state.token) && Boolean(state.tokenTime) && state.tokenTime * 1000 - Date.now() > 5000
+
+/** Whether a route is the overview, however its address was written (the record decides). */
+const isOverview = (to) => to.matched[to.matched.length - 1]?.path === '/overview'
+
+/** The conversation with `partner` in the contact window, the way the mail's reply opens it (P4c). */
+const conversationWith = (partner) => ({
+  path: '/contacts',
+  query: partner.communityUuid
+    ? { with: partner.gradidoID, community: partner.communityUuid }
+    : { with: partner.gradidoID },
+})
 
 const addNavigationGuards = (router, store, apollo) => {
   // handle publisherId
@@ -72,21 +84,23 @@ const addNavigationGuards = (router, store, apollo) => {
   // signed in, its "Sign in" leads to the form, and Login.vue clears the cache for exactly that.
   // And not with `?project=`: that page signs in FOR a project and hands the member over to it,
   // which going on would skip.
+  //
+  // ⭐ And back into the conversation (Bernd, 27.09.2026: "not in the dialog thread any more"):
+  // where a thread was open as the wallet went out of sight and did not come back, the start on
+  // the sign-in page, on `/` or on the overview -- where iOS starts the app from the home screen
+  // -- opens that conversation again (utils/chatReturn). The note serves the one start after it,
+  // whatever that start becomes, so it is taken first: without a running session the member signs
+  // in anew, and a conversation from before is nowhere to come back to.
   router.beforeEach((to, from, next) => {
-    if (
-      from === START_LOCATION &&
-      to.name === 'Login' &&
-      !to.query.project &&
-      sessionRuns(store.state)
-    ) {
-      next(
-        to.params.code
-          ? { name: 'Redeem', params: { code: to.params.code }, query: to.query }
-          : { path: '/overview' },
-      )
-    } else {
-      next()
+    if (from !== START_LOCATION) return next()
+    const back = takeChatReturn(store.state.gradidoID)
+    if (to.query.project || !sessionRuns(store.state)) return next()
+    if (to.name === 'Login' && to.params.code) {
+      return next({ name: 'Redeem', params: { code: to.params.code }, query: to.query })
     }
+    if (to.name !== 'Login' && !isOverview(to)) return next()
+    if (back) return next(conversationWith(back))
+    return to.name === 'Login' ? next({ path: '/overview' }) : next()
   })
 
   // handle authentication
