@@ -1,6 +1,15 @@
+import { START_LOCATION } from 'vue-router'
 import { verifyLogin } from '../graphql/queries'
 import { clearApolloCache } from '../plugins/apolloCache'
 import { mayFind } from '../utils/matchingPosition'
+
+/**
+ * Whether the stored session still runs: a token, and more than five seconds before it ends --
+ * the margin the redeem page allows too (TransactionLink.vue). `tokenTime` is the token's `exp`,
+ * in seconds.
+ */
+const sessionRuns = (state) =>
+  Boolean(state.token) && Boolean(state.tokenTime) && state.tokenTime * 1000 - Date.now() > 5000
 
 const addNavigationGuards = (router, store, apollo) => {
   // handle publisherId
@@ -44,6 +53,37 @@ const addNavigationGuards = (router, store, apollo) => {
           store.dispatch('logout')
           next()
         })
+    } else {
+      next()
+    }
+  })
+
+  // A wallet that starts while its session still runs does not ask for the sign-in again. On an
+  // iPhone's home screen the wallet starts over whenever iOS wants its memory for another app --
+  // SwissTransfer's for an upload, Jitsi's for a call -- and it came back on the sign-in form
+  // with the session still running (Bernd, 26. and 27.09.2026). So a start on the sign-in page,
+  // or on `/`, which leads there, goes on at once: with a redeem code to its link, as the sign-in
+  // itself does (Login.vue), otherwise to the overview. Not to `redirectPath`: it is written for
+  // somebody signed out, so with a session running it can only be left over from before.
+  //
+  // ⛔ Only when the wallet STARTS there (a new start, a reload, an address from outside). A way
+  // into the sign-in page from inside the running wallet keeps the form, so signing in over an
+  // open session stays possible -- after a registration on a phone where somebody is still
+  // signed in, its "Sign in" leads to the form, and Login.vue clears the cache for exactly that.
+  // And not with `?project=`: that page signs in FOR a project and hands the member over to it,
+  // which going on would skip.
+  router.beforeEach((to, from, next) => {
+    if (
+      from === START_LOCATION &&
+      to.name === 'Login' &&
+      !to.query.project &&
+      sessionRuns(store.state)
+    ) {
+      next(
+        to.params.code
+          ? { name: 'Redeem', params: { code: to.params.code }, query: to.query }
+          : { path: '/overview' },
+      )
     } else {
       next()
     }

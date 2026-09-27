@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import addNavigationGuards from './guards'
-import { createRouter, createWebHistory } from 'vue-router'
+import { createMemoryHistory, createRouter, createWebHistory } from 'vue-router'
 import { verifyLogin } from '../graphql/queries'
 
 vi.mock('../graphql/queries', () => ({
@@ -296,5 +296,88 @@ describe('navigation guards', () => {
       expect(nextCalled).toBe(true)
       expect(nextArg).toBeUndefined()
     })
+  })
+})
+
+/**
+ * A wallet that starts on the sign-in page while its session still runs goes on (Bernd, 26. and
+ * 27.09.2026: the wallet on an iPhone's home screen starts over when another app needs the
+ * memory, and came back on the form). Each case builds a router of its own, because what counts
+ * is whether the wallet STARTS there: a router's first navigation comes from START_LOCATION,
+ * every later one from inside the wallet.
+ */
+describe('a start with a running session', () => {
+  const now = () => Math.floor(Date.now() / 1000)
+  const RUNNING = { token: 'running-token', tokenTime: now() + 600 }
+  const Page = { render: () => null }
+
+  /** A router with the real records that matter here, started at `address` with `state`. */
+  const startAt = async (address, state) => {
+    const started = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        { path: '/', redirect: () => ({ path: '/login' }) },
+        { path: '/login/:code?', name: 'Login', component: Page },
+        { path: '/overview', name: 'Overview', component: Page, meta: { requiresAuth: true } },
+        { path: '/redeem/:code', name: 'Redeem', component: Page },
+        { path: '/register/:code?', name: 'Register', component: Page },
+      ],
+    })
+    const own = { commit: vi.fn(), dispatch: vi.fn(), state: { token: null, ...state } }
+    addNavigationGuards(started, own, { query: vi.fn() })
+    await started.push(address)
+    return started
+  }
+  const whereAfter = async (address, state) =>
+    (await startAt(address, state)).currentRoute.value.fullPath
+
+  it('goes on from the sign-in page to the overview', async () => {
+    expect(await whereAfter('/login', RUNNING)).toBe('/overview')
+  })
+
+  it('goes on from /, which leads to the sign-in page', async () => {
+    expect(await whereAfter('/', RUNNING)).toBe('/overview')
+  })
+
+  // As the sign-in itself does (Login.vue): a redeem code goes on to its link, with its query.
+  it('takes a redeem code on to its link, with the query', async () => {
+    expect(await whereAfter('/login/abc123?referrer=Anna-Sonne', RUNNING)).toBe(
+      '/redeem/abc123?referrer=Anna-Sonne',
+    )
+  })
+
+  // `redirectPath` is written for somebody signed out; with a session running it is left over.
+  it('goes to the overview, not to a place left over from an earlier sign-in', async () => {
+    expect(await whereAfter('/login', { ...RUNNING, redirectPath: '/transactions' })).toBe(
+      '/overview',
+    )
+  })
+
+  it.each([
+    ['no token', { token: null, tokenTime: now() + 600 }],
+    ['a token without an end', { token: 'running-token', tokenTime: null }],
+    ['a session that has ended', { token: 'running-token', tokenTime: now() - 60 }],
+    // The margin the redeem page allows too (TransactionLink.vue).
+    ['the last five seconds of a session', { token: 'running-token', tokenTime: now() + 3 }],
+  ])('keeps the form with %s', async (_, state) => {
+    expect(await whereAfter('/login', state)).toBe('/login')
+  })
+
+  // That page signs in FOR a project and hands the member over to it (Login.vue).
+  it('keeps the form for a sign-in for a project', async () => {
+    expect(await whereAfter('/login?project=probe', RUNNING)).toBe('/login?project=probe')
+  })
+
+  // ⛔ Signing in over an open session stays possible from inside the wallet: after a
+  // registration on a phone where somebody is still signed in, "Sign in" leads to the form.
+  it('keeps the form on a way in from inside the running wallet', async () => {
+    const started = await startAt('/register', RUNNING)
+    await started.push('/login')
+    expect(started.currentRoute.value.fullPath).toBe('/login')
+  })
+
+  it('leaves every other start as it was', async () => {
+    expect(await whereAfter('/register', RUNNING)).toBe('/register')
+    expect(await whereAfter('/redeem/abc123', RUNNING)).toBe('/redeem/abc123')
   })
 })
