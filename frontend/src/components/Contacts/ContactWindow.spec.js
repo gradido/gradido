@@ -1879,6 +1879,31 @@ describe('ContactWindow', () => {
         expect(room.location.href).toBe(withChatVideoTopic(FFMUC.url, 'Videoanruf'))
       })
 
+      // A copy still waiting for the last server's room would put that room on the clipboard while
+      // the new server is shown -- and the call would go to another room (coderabbit, #3994).
+      it('lets a copy on its way go when another server is chosen', async () => {
+        localStorage.setItem(KEY, '2')
+        const late = held()
+        serverRooms
+          .mockReturnValueOnce(late.promise)
+          .mockResolvedValueOnce({ data: { chatVideoRoom: FFMUC } })
+        await askedWithChoices()
+        await inSettings()
+        inDialog('copy').element.click()
+
+        await options()[1].setSelected()
+        late.release({ data: { chatVideoRoom: SYSTEMLI } })
+        await flushPromises()
+
+        expect(clipboard).not.toHaveBeenCalled()
+        expect(inDialog('link').exists()).toBe(false)
+        expect(inDialog('copy').text()).toBe('chatThread.videoCopyLink')
+
+        await inDialog('copy').trigger('click')
+        await flushPromises()
+        expect(clipboard).toHaveBeenCalledWith(withChatVideoTopic(FFMUC.url, 'Videoanruf'))
+      })
+
       it('says so where the chosen server is no longer to be had, at the start', async () => {
         localStorage.setItem(KEY, '2')
         browserOpens()

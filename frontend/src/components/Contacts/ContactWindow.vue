@@ -971,8 +971,14 @@ const loadVideoServerChoices = async () => {
  * this device (Bernd, 27.09.2026: "Zurück · Planen", no "Take over"). Another server is another
  * room -- a link copied for the last one is not this one's, so it goes, and the room for the new
  * choice is asked for at once (see `copyVideoLink`).
+ *
+ * ⛔ A "Copy link" still waiting for the last server's room lets go as well (`videoAttempt`):
+ * copied late, it would put the last server's room on the clipboard while the new one is shown,
+ * and the call would then go to another room than the link (coderabbit, #3994). No call can be on
+ * its way here -- the gear's view is not opened while one is.
  */
 const chooseVideoServer = (id) => {
+  videoAttempt += 1
   videoServerWanted.value = id
   rememberChatVideoServer(store.state.gradidoID, id)
   videoRoomAsked = null
