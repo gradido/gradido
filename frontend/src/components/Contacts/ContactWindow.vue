@@ -139,8 +139,8 @@
       </div>
 
       <!-- Sending Gradido, the one way out of this window: the map profile's button
-           (MatchProfile) with its word and its white coin, in the gold of the compose bar's
-           send button instead of the map's teal (Bernd, 24.09.2026). Under the figures and
+           (MatchProfile) with its word and its white coin, in gold instead of the map's teal
+           (Bernd, 24.09.2026) -- the gradient of the house's golden buttons (27.09.2026). Under the figures and
            above the line where the thread begins. No "Send e-mail" beside it: the short mail is
            the compose bar's box, the one with a subject the send form's other tab (E-031).
 
@@ -1583,8 +1583,13 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
+/* The house's golden buttons carry a gradient (Bernd, 27.09.2026: "Bei unseren goldenen
+   Schaltflächen haben wir immer einen Verlauf drin") -- the one of `.btn-gradido`
+   (gradido-template.scss), which "Start call" wears. The border stays for the button's measure
+   and lets the gradient through. */
 .send-gradido {
-  background: #c08935;
+  background: linear-gradient(135deg, rgb(249 205 105 / 100%) 2%, rgb(197 141 56 / 100%) 55%);
+  border-color: transparent;
   color: #fff;
 }
 

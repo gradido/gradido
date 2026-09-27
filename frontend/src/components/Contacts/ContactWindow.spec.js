@@ -2809,11 +2809,10 @@ describe('ContactWindow', () => {
   /**
    * ⛔ "Im Prinzip genauso wie im Matching, nur … in diesem dunkleren Goldton" (Bernd,
    * 24.09.2026). The map's profile window (MatchProfile.vue) and this one each carry the rules,
-   * so the spec holds them against each other with the one difference swapped in -- the gold,
-   * which it takes from the compose bar's send button, so the window's two gold buttons cannot
-   * drift apart either.
+   * so the spec holds them against each other with the one difference swapped in -- the gold of
+   * the border, which it takes from the compose bar's send button.
    */
-  it("sends with the map profile's button, in the gold of the compose bar's send button", () => {
+  it("sends with the map profile's button, its border in the gold of the compose bar's send button", () => {
     const rule = (file, name) =>
       styleOf(file)
         .match(new RegExp(`\\n\\.${name}\\s*\\{([^}]*)\\}`))?.[1]
@@ -2824,11 +2823,33 @@ describe('ContactWindow', () => {
     )?.[1]
 
     expect(gold, 'the send button lost its gold').toBeDefined()
-    for (const name of ['send-btn', 'send-gradido', 'send-coin']) {
+    for (const name of ['send-btn', 'send-coin']) {
       const there = rule('../Matching/MatchProfile.vue', name)
       expect(there, `MatchProfile lost .${name}`).toBeDefined()
       expect(rule('ContactWindow.vue', name), `.${name}`).toBe(there.replaceAll('#178d81', gold))
     }
+  })
+
+  /**
+   * "Bei unseren goldenen Schaltflächen haben wir immer einen Verlauf drin" (Bernd, 27.09.2026):
+   * the button wears the gradient of the house's golden buttons -- read out of `.btn-gradido`
+   * (gradido-template.scss), which "Start call" wears, so the two cannot drift apart. The border
+   * stays for the measure the map's rules give the button, and lets the gradient through.
+   */
+  it("sends with the gradient of the house's golden buttons, in the stylesheet", () => {
+    const template = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), '../../assets/scss/gradido-template.scss'),
+      'utf8',
+    ).replace(/\/\*[\s\S]*?\*\//g, '')
+    const house = template
+      .match(/\n\.btn-gradido\s*\{([^}]*)\}/)?.[1]
+      ?.match(/background:\s*(linear-gradient\([^;]*\));/)?.[1]
+    const button = styleOf('ContactWindow.vue').match(/\n\.send-gradido\s*\{([^}]*)\}/)?.[1] ?? ''
+
+    expect(house, '.btn-gradido lost its gradient').toBeDefined()
+    expect(button).toContain(`background: ${house};`)
+    expect(button).toMatch(/border-color:\s*transparent/)
+    expect(button).toMatch(/color:\s*#fff/)
   })
 
   // "Schmal" (Bernd, 24.09.2026): the button keeps the width of its word, so something can
