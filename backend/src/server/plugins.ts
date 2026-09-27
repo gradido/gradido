@@ -71,6 +71,9 @@ ${mutation || query}variables: ${JSON.stringify(filterVariables(variables), null
             // rooms, over aliases and every operation of a batch.
             if (requestContext.context.requestBudget?.chatVideoRoomsServed) {
               logger.trace('Response-Data: left out, it holds a video room')
+            } else if (requestContext.context.requestBudget?.chatImagesServed) {
+              // A picture of a chat message (chatMessageImage) is one member's for another.
+              logger.trace('Response-Data: left out, it holds a picture')
             } else {
               logger.trace(`Response-Data:
 ${JSON.stringify(requestContext.response.data, null, 2)}`)

@@ -40,6 +40,7 @@ import {
   setChatConversationMuted,
 } from '@/seeds/graphql/mutations'
 import {
+  chatMessageImage,
   chatMessagesWithMember,
   chatVideoRoom,
   chatVideoServerChoices,
@@ -765,6 +766,103 @@ describe('sendChatMessage with a picture', () => {
   it('refuses a side out of bounds where the argument arrives', async () => {
     const res = await say(ref(raeuber), 'Look at this', 'EMAIL', pictureOf(JPEG, 0, 600))
     expect(res.errors?.[0]?.message).toContain('Argument Validation Error')
+  })
+})
+
+/**
+ * P7a: the pictures on the messages -- in all three answers that carry messages -- and the
+ * picture itself (chatMessageImage), for the members of the conversation and nobody else.
+ */
+describe('the pictures of a message', () => {
+  let copy: any
+  let withoutPicture: any
+
+  /** What chatMessageImage answers `email` about `imageUuid`. */
+  const pictureAs = async (email: string, imageUuid: string) => {
+    await loginAs(email)
+    const res: any = await query({ query: chatMessageImage, variables: { imageUuid } })
+    expect(res.errors).toBeUndefined()
+    return res.data.chatMessageImage
+  }
+
+  beforeAll(async () => {
+    await loginAs('bob@baumeister.de')
+    copy = await said(ref(raeuber), 'A picture for you', 'NONE', pictureOf(JPEG, 924, 520))
+    withoutPicture = await said(ref(raeuber), 'And a word without one', 'NONE')
+  })
+  afterAll(() => resetToken())
+
+  it('names the picture in the copy the sender gets back, and none where there is none', () => {
+    expect(copy.images).toEqual([{ imageUuid: expect.any(String), width: 924, height: 520 }])
+    expect(withoutPicture.images).toEqual([])
+  })
+
+  it('names it on the page of each of the two', async () => {
+    await loginAs('bob@baumeister.de')
+    const mine = (await pageWith(ref(raeuber))).messages.find((m: any) => m.id === copy.id)
+    await loginAs('raeuber@hotzenplotz.de')
+    const theirs = (await pageWith(ref(bob))).messages.find((m: any) => m.id === copy.id)
+
+    expect(mine.images).toEqual(copy.images)
+    expect(theirs.images).toEqual(copy.images)
+  })
+
+  it('names it in what is new', async () => {
+    await loginAs('raeuber@hotzenplotz.de')
+    const res: any = await query({
+      query: newChatMessagesSince,
+      variables: { afterId: copy.id - 1 },
+    })
+    expect(res.errors).toBeUndefined()
+
+    const [message, next] = res.data.newChatMessagesSince.messages
+    expect(message.id).toBe(copy.id)
+    expect(message.images).toEqual(copy.images)
+    expect(next.id).toBe(withoutPicture.id)
+    expect(next.images).toEqual([])
+  })
+
+  it('hands the picture to each of the two members of the conversation', async () => {
+    const base64 = JPEG.toString('base64')
+    expect(await pictureAs('bob@baumeister.de', copy.images[0].imageUuid)).toBe(base64)
+    expect(await pictureAs('raeuber@hotzenplotz.de', copy.images[0].imageUuid)).toBe(base64)
+  })
+
+  it('hands nothing to somebody outside the conversation, nor for a uuid no picture has', async () => {
+    expect(await pictureAs('bibi@bloxberg.de', copy.images[0].imageUuid)).toBeNull()
+    expect(await pictureAs('bob@baumeister.de', uuidv4())).toBeNull()
+    expect(await pictureAs('bob@baumeister.de', 'no uuid')).toBeNull()
+  })
+
+  // ⛔ One picture a call, and a document may repeat the field under any number of aliases:
+  // the request's budget counts them (CHAT_IMAGES_MAX_PER_REQUEST).
+  it('answers ten pictures in one request, and refuses the eleventh', async () => {
+    await loginAs('bob@baumeister.de')
+    const pictures = (count: number) =>
+      `query ($imageUuid: String!) { ${Array.from(
+        { length: count },
+        (_, n) => `picture${n}: chatMessageImage(imageUuid: $imageUuid)`,
+      ).join(' ')} }`
+    const variables = { imageUuid: copy.images[0].imageUuid }
+
+    const ten: any = await query({ query: pictures(10), variables })
+    expect(ten.errors).toBeUndefined()
+    expect(Object.keys(ten.data)).toHaveLength(10)
+    const eleven: any = await query({ query: pictures(11), variables })
+    expect(eleven.errors?.map((error: any) => error.message)).toEqual([
+      'Too many chat pictures requested at once',
+    ])
+  })
+
+  it('hands nothing once the message is marked deleted', async () => {
+    await AppDatabase.getInstance()
+      .getDrizzleDataSource()
+      .update(chatMessagesTable)
+      .set({ deletedAt: new Date() })
+      .where(eq(chatMessagesTable.messageUuid, copy.messageUuid))
+
+    expect(await pictureAs('bob@baumeister.de', copy.images[0].imageUuid)).toBeNull()
+    expect(await pictureAs('raeuber@hotzenplotz.de', copy.images[0].imageUuid)).toBeNull()
   })
 })
 

@@ -2,9 +2,10 @@
 import { ChatMessageDeliveryState } from '@enum/ChatMessageDeliveryState'
 import { ChatMessageMailState } from '@enum/ChatMessageMailState'
 import { ChatMessageNotify } from '@enum/ChatMessageNotify'
-import { ChatMemberRef, ChatMessageSelect } from 'database'
+import { ChatMemberRef, ChatMessageImageInfo, ChatMessageSelect } from 'database'
 import { Field, Int, ObjectType } from 'type-graphql'
 import { isSameChatMember } from '@/data/ChatConversation.logic'
+import { ChatMessageImage } from './ChatMessageImage'
 import { MemberRef } from './MemberRef'
 
 /**
@@ -19,7 +20,11 @@ import { MemberRef } from './MemberRef'
  */
 @ObjectType()
 export class ChatMessage {
-  constructor(row: ChatMessageSelect, reader: ChatMemberRef) {
+  /**
+   * `images`: what is known about the message's pictures (dbSelectChatMessageImageInfos), in
+   * their order -- read for a whole page at once by the caller, never one query per message.
+   */
+  constructor(row: ChatMessageSelect, reader: ChatMemberRef, images: ChatMessageImageInfo[] = []) {
     const sender = { communityUuid: row.senderCommunityUuid, gradidoId: row.senderGradidoId }
     this.id = row.id
     this.messageUuid = row.messageUuid
@@ -32,6 +37,7 @@ export class ChatMessage {
     this.deliveryState = this.mine ? row.deliveryState : null
     this.notify = this.mine ? row.notify : null
     this.mailState = this.mine ? (row.mailState ?? null) : null
+    this.images = images.map((info) => new ChatMessageImage(info))
   }
 
   /**
@@ -84,4 +90,11 @@ export class ChatMessage {
    */
   @Field(() => ChatMessageMailState, { nullable: true })
   mailState: ChatMessageMailState | null
+
+  /**
+   * The pictures the message carries (P7) -- for both of them, as the text is --, each named
+   * with what to fetch it by (chatMessageImage) and its size. Empty for a message without one.
+   */
+  @Field(() => [ChatMessageImage])
+  images: ChatMessageImage[]
 }

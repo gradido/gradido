@@ -659,6 +659,11 @@ export const sendChatMessage = gql`
       deliveryState
       notify
       mailState
+      images {
+        imageUuid
+        width
+        height
+      }
     }
   }
 `

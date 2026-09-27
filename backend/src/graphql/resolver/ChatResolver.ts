@@ -23,8 +23,12 @@ import {
 import {
   ChatConversationSelect,
   ChatMemberRef,
+  ChatMessageImageInfo,
+  ChatMessageSelect,
   dbFindDirectChatConversation,
   dbSelectChatConversationMember,
+  dbSelectChatMessageImageForMember,
+  dbSelectChatMessageImageInfos,
   dbSelectChatMessagesPage,
   dbSelectChatMessagesSince,
   dbSelectChatUnreadSummary,
@@ -36,11 +40,12 @@ import {
 } from 'database'
 import { getLogger } from 'log4js'
 import { uuidv4Schema } from 'shared'
-import { Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
+import { Arg, Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import { chatVideoServerPool } from '@/apis/jitsi/chatVideoServerPool'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
+  CHAT_IMAGES_MAX_PER_REQUEST,
   CHAT_MESSAGE_PAGES_MAX_PER_REQUEST,
   CHAT_MESSAGES_PAGE_DEFAULT,
   CHAT_UPDATE_MESSAGES_DEFAULT,
@@ -89,6 +94,26 @@ const directChatConversationWith = async (
     return null
   }
   return dbFindDirectChatConversation(caller, other)
+}
+
+/**
+ * The messages of these rows as `caller` reads them, each with what is known about its pictures
+ * (P7) -- read in ONE query for all of them, never one per message. A picture is matched to its
+ * message by the message's uuid the way the columns compare it, without regard to case.
+ */
+const chatMessagesOf = async (
+  rows: ChatMessageSelect[],
+  caller: ChatMemberRef,
+): Promise<ChatMessage[]> => {
+  const infos = await dbSelectChatMessageImageInfos(rows.map((row) => row.messageUuid))
+  const byMessage = new Map<string, ChatMessageImageInfo[]>()
+  for (const info of infos) {
+    const key = info.messageUuid.toLowerCase()
+    byMessage.set(key, [...(byMessage.get(key) ?? []), info])
+  }
+  return rows.map(
+    (row) => new ChatMessage(row, caller, byMessage.get(row.messageUuid.toLowerCase()) ?? []),
+  )
 }
 
 /**
@@ -157,7 +182,7 @@ export class ChatResolver {
     // conversation is nobody's business but theirs (E-024).
     const me = await dbSelectChatConversationMember(conversation.id, caller)
     return new ChatMessagePage(
-      page.messages.map((row) => new ChatMessage(row, caller)),
+      await chatMessagesOf(page.messages, caller),
       page.hasMore,
       Boolean(me?.mutedAt),
     )
@@ -217,7 +242,7 @@ export class ChatResolver {
       // goes on right after it.
       last ? last.id : summary.latestId,
       summary.unreadConversations,
-      news.messages.map((row) => new ChatMessage(row, caller)),
+      await chatMessagesOf(news.messages, caller),
       news.hasMore,
     )
   }
@@ -310,7 +335,8 @@ export class ChatResolver {
       if (!stored) {
         throw new LogError('CHAT_MESSAGE_NOT_SENT: NOT_STORED')
       }
-      return new ChatMessage(stored, caller)
+      const [copy] = await chatMessagesOf([stored], caller)
+      return copy
     }
 
     // ⛔ A picture does not cross the border yet: the command carries none, and how one gets to
@@ -357,7 +383,40 @@ export class ChatResolver {
         `chat message not delivered: message_uuid=${stored.messageUuid} (${error})`,
       )
     }
-    return new ChatMessage(stored, caller)
+    const [copy] = await chatMessagesOf([stored], caller)
+    return copy
+  }
+
+  /**
+   * A picture of a chat message (P7), as base64: for a member of the conversation of its
+   * message, while the message is not marked deleted (dbSelectChatMessageImageForMember). Null
+   * for everything else -- no such picture, somebody who is not in the conversation, a deleted
+   * message, something that is no uuid --, with nothing that tells these apart.
+   *
+   * The way the avatar's picture comes (memberAvatarFull; E-041, point 5): GraphQL, base64, one
+   * picture per call. An address of its own with a cache header belongs to Gradido 2.
+   *
+   * Nothing of the picture is written to the log; the request log leaves the answer out
+   * (plugins.ts).
+   */
+  @Authorized([RIGHTS.READ_OWN_CHAT])
+  @Query(() => String, { nullable: true })
+  async chatMessageImage(
+    @Arg('imageUuid', () => String) imageUuid: string,
+    @Ctx() context: Context,
+  ): Promise<string | null> {
+    // ⛔ Counted in the HTTP request's budget before anything is read: a document may repeat this
+    // field under any number of aliases, some 55 KB a picture (RequestBudget).
+    context.requestBudget.chatImagesServed += 1
+    const served = context.requestBudget.chatImagesServed
+    if (served > CHAT_IMAGES_MAX_PER_REQUEST) {
+      throw new LogError('Too many chat pictures requested at once', served)
+    }
+    if (!uuidv4Schema.safeParse(imageUuid).success) {
+      return null
+    }
+    const found = await dbSelectChatMessageImageForMember(imageUuid, callerOf(context))
+    return found.success ? found.value.toString('base64') : null
   }
 
   /**

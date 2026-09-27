@@ -103,6 +103,16 @@ describe('the answer in the request log', () => {
     expect(traced).toBe('Response-Data: left out, it holds a video room')
   })
 
+  it('is left out where the request was handed a picture of a chat message', () => {
+    const picture = Buffer.from('a private picture of Anna and Ben').toString('base64')
+    const traced = answerTraced(
+      { requestBudget: { ...newRequestBudget(), chatImagesServed: 1 } },
+      { chatMessageImage: picture },
+    )
+    expect(traced).not.toContain(picture)
+    expect(traced).toBe('Response-Data: left out, it holds a picture')
+  })
+
   it('is written at level trace for every other request, as before', () => {
     const traced = answerTraced(
       { requestBudget: newRequestBudget() },
