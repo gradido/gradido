@@ -2,7 +2,7 @@
 
 import { Location } from '@model/Location'
 
-import { isUsableLocation } from './Location.logic'
+import { findableWithoutPlace, isUsableLocation } from './Location.logic'
 
 /**
  * ⛔ The rule that was missing. `isValidLocation` on the two mutations that take a position
@@ -69,5 +69,40 @@ describe('isUsableLocation', () => {
     ['longitude far past it', 49.28, -999],
   ])('is no for %s', (_name, latitude, longitude) => {
     expect(isUsableLocation(at(latitude, longitude))).toBe(false)
+  })
+})
+
+/**
+ * Findable needs a place (Bernd, 27.09.2026): the Zuhause tab let a new member switch it on
+ * and save without one. The GMS cannot hold such a member, and migration 0140 had switched
+ * every one of them off; a save must not bring the state back.
+ */
+describe('findableWithoutPlace', () => {
+  const at = (latitude: number, longitude: number) => ({ latitude, longitude }) as Location
+  const home = at(49.28, 9.69)
+
+  it('is yes for switching on with no place at all', () => {
+    expect(findableWithoutPlace(true, null, undefined)).toBe(true)
+    expect(findableWithoutPlace(true, null, null)).toBe(true)
+  })
+
+  it('is no with a place stored', () => {
+    expect(findableWithoutPlace(true, home, undefined)).toBe(false)
+  })
+
+  it('is no with a place sent along in the same save', () => {
+    expect(findableWithoutPlace(true, null, home)).toBe(false)
+  })
+
+  // A member who is findable without a place, saved before this rule, can still leave.
+  it('never asks when switching off or leaving the setting alone', () => {
+    expect(findableWithoutPlace(false, null, undefined)).toBe(false)
+    expect(findableWithoutPlace(undefined, null, undefined)).toBe(false)
+    expect(findableWithoutPlace(null, null, undefined)).toBe(false)
+  })
+
+  // Rows written before 10.09.2026 can hold a latitude of 91: finite, and not a place.
+  it('counts a stored point that is not a place as none', () => {
+    expect(findableWithoutPlace(true, at(91, 9.69), undefined)).toBe(true)
   })
 })

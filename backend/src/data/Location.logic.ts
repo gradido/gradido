@@ -35,3 +35,22 @@ export function isUsableLocation(location: Location | null | undefined): boolean
     longitude <= 180
   )
 }
+
+/**
+ * Whether a save would switch a member findable (`gmsAllowed`) without a place.
+ *
+ * Findable hands the member to the GMS, and the GMS cannot hold a member it cannot place:
+ * `GmsUser` refuses to build one without a location ("Missing Location"), and migration
+ * 0140 switched every member without one off for that reason. This is the same rule on the
+ * way in, so a save cannot bring that state back: switching findable on needs a place -
+ * the one stored, or one sent along in the same save.
+ *
+ * Only switching on is asked. Switching off, or leaving the setting alone, needs no place.
+ */
+export function findableWithoutPlace(
+  gmsAllowed: boolean | null | undefined,
+  stored: Location | null,
+  sent: Location | null | undefined,
+): boolean {
+  return gmsAllowed === true && !isUsableLocation(sent) && !isUsableLocation(stored)
+}
