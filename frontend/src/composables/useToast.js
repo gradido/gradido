@@ -13,7 +13,10 @@ export function useAppToast() {
 
   const toastError = (message) => {
     toast(message, {
-      title: t('error'),
+      // Not t('error'): in the wallet's locale files `error` is a group of messages, so it
+      // answered with its own name and every red toast was titled "error", in every language.
+      // This is the headline the wallet's error pages carry.
+      title: t('message.errorTitle'),
       variant: 'danger',
     })
   }

@@ -828,6 +828,7 @@
       "findableOff": "Ya no se te puede encontrar en el mapa",
       "findableOn": "Ahora se te puede encontrar en el mapa",
       "intro": "Ubícate en el mapa para participar en el matching: solo apareces cuando lo haces.",
+      "needsHome": "Marca primero tu casa en el mapa.",
       "saveText": "¿Quieres guardar ahora tus ajustes de posición?",
       "saveTitle": "Guardar posición",
       "unsaved": "Aún sin guardar"

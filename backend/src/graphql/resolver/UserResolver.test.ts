@@ -1995,6 +1995,53 @@ describe('UserResolver', () => {
           })
         })
 
+        // Findable needs a place: the GMS cannot hold a member it cannot place, and migration
+        // 0140 switched every member without one off. The member here has no location yet -
+        // the case below gives them one, and there the same switch goes through.
+        describe('findable without a location', () => {
+          it('is refused with a code, and nothing of the save is written', async () => {
+            const [before] = await User.find()
+            expect(before.location).toBeNull()
+            jest.clearAllMocks()
+
+            await expect(
+              mutate({
+                mutation: updateUserInfos,
+                variables: { gmsAllowed: true, aboutMe: 'Ich baue Moebel aus Altholz.' },
+              }),
+            ).resolves.toEqual(
+              expect.objectContaining({
+                errors: [new GraphQLError('GMS_LOCATION_REQUIRED')],
+              }),
+            )
+
+            const after = await User.findOneOrFail({ where: { id: before.id } })
+            expect(after.gmsAllowed).toBe(before.gmsAllowed)
+            expect(after.aboutMe).toBe(before.aboutMe)
+            expect(updateUserInfosLogger.warn).toBeCalledWith(
+              'refused to switch findable on without a location',
+            )
+          })
+
+          // Only the switch from off to on is asked. A member left findable without a place,
+          // before this rule, still saves the rest - with the setting sent along as it is.
+          it('lets a member already findable without one save the rest', async () => {
+            const [member] = await User.find()
+            await User.update({ id: member.id }, { gmsAllowed: true })
+
+            const result = await mutate({
+              mutation: updateUserInfos,
+              variables: { gmsAllowed: true, aboutMe: 'Ich repariere Fahrraeder.' },
+            })
+
+            expect(result.errors).toBeUndefined()
+            const after = await User.findOneOrFail({ where: { id: member.id } })
+            expect(after.aboutMe).toBe('Ich repariere Fahrraeder.')
+            expect(after.gmsAllowed).toBe(true)
+            expect(after.location).toBeNull()
+          })
+        })
+
         describe('with gms location', () => {
           const loc = new Location()
           loc.longitude = 9.573224

@@ -122,6 +122,7 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { canEmailResend, isEmailVerificationCodeValid } from '@/data/EmailVerificationCode.logic'
+import { findableWithoutPlace } from '@/data/Location.logic'
 import {
   MEMBER_AVATARS_FULL_MAX_PER_REQUEST,
   MEMBER_AVATARS_MAX_REFS,
@@ -888,6 +889,22 @@ export class UserResolver {
       gmsPublishLocation: gmsPublishLocation !== undefined,
       aboutMe: aboutMe !== undefined,
     })
+
+    // Switching findable on needs a place: the GMS cannot hold a member it cannot place
+    // (GmsUser refuses to build one), and migration 0140 switched every member without one
+    // off. Refused before anything is written, and as a code - the wallet says it in the
+    // member's words.
+    if (
+      findableWithoutPlace(
+        gmsAllowed,
+        user.gmsAllowed,
+        Point2Location(user.location as Point),
+        gmsLocation,
+      )
+    ) {
+      logger.warn('refused to switch findable on without a location')
+      throw new LogError('GMS_LOCATION_REQUIRED')
+    }
 
     const updateUserInGMS = compareGmsRelevantUserSettings(user, updateUserInfosArgs)
     // Read before the update overwrites it: gmsAllowed going true -> false is the

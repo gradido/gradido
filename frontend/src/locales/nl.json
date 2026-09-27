@@ -828,6 +828,7 @@
       "findableOff": "Je bent niet meer vindbaar op de kaart",
       "findableOn": "Je bent nu vindbaar op de kaart",
       "intro": "Plaats jezelf op de kaart om aan matching mee te doen: je verschijnt pas als je dat doet.",
+      "needsHome": "Zet eerst je thuis op de kaart.",
       "saveText": "Wil je je positie-instellingen nu opslaan?",
       "saveTitle": "Positie opslaan",
       "unsaved": "Nog niet opgeslagen"

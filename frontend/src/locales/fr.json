@@ -828,6 +828,7 @@
       "findableOff": "Tu n'es plus visible sur la carte",
       "findableOn": "Tu es maintenant visible sur la carte",
       "intro": "Place-toi sur la carte pour participer au matching : tu n'apparais qu'à ce moment-là.",
+      "needsHome": "Indique d'abord sur la carte où tu habites.",
       "saveText": "Veux-tu sauvegarder maintenant tes réglages de position ?",
       "saveTitle": "Sauvegarder la position",
       "unsaved": "Pas encore sauvegardé"
