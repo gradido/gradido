@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { ChatMessagesWithMemberArgs } from '@arg/ChatMessagesWithMemberArgs'
+import { ChatVideoRoomArgs } from '@arg/ChatVideoRoomArgs'
 import { MarkChatConversationReadArgs } from '@arg/MarkChatConversationReadArgs'
 import { NewChatMessagesSinceArgs } from '@arg/NewChatMessagesSinceArgs'
 import { SendChatMessageArgs } from '@arg/SendChatMessageArgs'
@@ -9,6 +10,7 @@ import { ChatMessage } from '@model/ChatMessage'
 import { ChatMessagePage } from '@model/ChatMessagePage'
 import { ChatUpdate } from '@model/ChatUpdate'
 import { ChatVideoRoom } from '@model/ChatVideoRoom'
+import { ChatVideoServerChoice } from '@model/ChatVideoServerChoice'
 import { ApiVersionType, CommandClientFactory, chatMessageNotify, V1_0_CommandClient } from 'core'
 import {
   ChatConversationSelect,
@@ -37,7 +39,11 @@ import {
   CHAT_UPDATES_MAX_PER_REQUEST,
   isSameChatMember,
 } from '@/data/ChatConversation.logic'
-import { CHAT_VIDEO_ROOMS_MAX_PER_REQUEST, chatVideoRoomName } from '@/data/ChatVideoServer.logic'
+import {
+  CHAT_VIDEO_ROOMS_MAX_PER_REQUEST,
+  ChatVideoServer,
+  chatVideoRoomName,
+} from '@/data/ChatVideoServer.logic'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import {
@@ -77,11 +83,18 @@ const directChatConversationWith = async (
   return dbFindDirectChatConversation(caller, other)
 }
 
+/** A fresh room on `server`; the log gets the host, never the room name. */
+const roomOn = ({ baseUrl, host, operator, prefix }: ChatVideoServer): ChatVideoRoom => {
+  createLogger().trace(`chat video room handed out on ${host}`)
+  return new ChatVideoRoom(`${baseUrl}${chatVideoRoomName(prefix)}`, host, operator)
+}
+
 /**
  * The chat: the thread with one contact and the caller's marks in it -- the read pointer and
  * the mute mark (P2a, P3a) --, writing to that contact (P3a), what is new across all the
- * caller's conversations (P4a), and a video room to send (V1). The form "send an e-mail" still
- * writes through sendEmail, into the same conversation (P1).
+ * caller's conversations (P4a), and a video room to send (V1), on a server the member may
+ * choose (V5). The form "send an e-mail" still writes through sendEmail, into the same
+ * conversation (P1).
  *
  * What this resolver writes to the log carries no subject, no text and no room name: a refused
  * page, update or room budget with its count, a refused message with its reason, a failed
@@ -353,10 +366,14 @@ export class ChatResolver {
    * No server passed the last check, or the first check after a start is not through yet:
    * CHAT_VIDEO_NO_SERVER. The log gets the host, never the room name -- whoever knows it can
    * join the call.
+   *
+   * With `serverId` (V5): on the server the member chose -- one of chatVideoServerChoices -- and
+   * on no other. Where that one is no longer to be had (switched off, not answering since the
+   * choice was shown, gone from the list): CHAT_VIDEO_SERVER_UNAVAILABLE, and the wallet says so.
    */
   @Authorized([RIGHTS.SEND_CHAT_MESSAGE])
   @Query(() => ChatVideoRoom)
-  chatVideoRoom(@Ctx() context: Context): ChatVideoRoom {
+  chatVideoRoom(@Args() { serverId }: ChatVideoRoomArgs, @Ctx() context: Context): ChatVideoRoom {
     // ⛔ Counted in the HTTP request's budget, as the pages are: a document may repeat this field
     // under any number of aliases (RequestBudget).
     context.requestBudget.chatVideoRoomsServed += 1
@@ -364,12 +381,34 @@ export class ChatResolver {
     if (served > CHAT_VIDEO_ROOMS_MAX_PER_REQUEST) {
       throw new LogError('Too many chat video rooms requested at once', served)
     }
+    if (serverId != null) {
+      const wanted = chatVideoServerPool.pickServer(serverId)
+      if (!wanted) {
+        throw new LogError('CHAT_VIDEO_SERVER_UNAVAILABLE', serverId)
+      }
+      return roomOn(wanted.server)
+    }
     const chosen = chatVideoServerPool.pick()
     if (!chosen) {
       throw new LogError('CHAT_VIDEO_NO_SERVER')
     }
-    const { baseUrl, host, operator, prefix } = chosen.server
-    createLogger().trace(`chat video room handed out on ${host}`)
-    return new ChatVideoRoom(`${baseUrl}${chatVideoRoomName(prefix)}`, host, operator)
+    return roomOn(chosen.server)
+  }
+
+  /**
+   * The servers a member may choose for a call (V5): those chatVideoRoom hands rooms out on
+   * right now -- ticked in the admin page's list and passed the last check --, in the list's
+   * order. Empty where there is none, as before the first check is through. Asked afresh
+   * whenever the choice is shown: a check every ten minutes may take a server out or bring it
+   * back.
+   *
+   * Behind SEND_CHAT_MESSAGE, as the room is: the choice is for a call to be started.
+   */
+  @Authorized([RIGHTS.SEND_CHAT_MESSAGE])
+  @Query(() => [ChatVideoServerChoice])
+  chatVideoServerChoices(): ChatVideoServerChoice[] {
+    return chatVideoServerPool
+      .choices()
+      .map(({ id, server }) => new ChatVideoServerChoice(id, server.host, server.operator))
   }
 }

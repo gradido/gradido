@@ -175,22 +175,45 @@ export class ChatVideoServerPool {
   }
 
   /**
-   * One of the servers in the random choice that passed the last check, each of them equally
-   * likely, counted in its picks; null where none did -- before the first check is through as
-   * well, and where the last check is older than CHAT_VIDEO_CHECK_MAX_AGE_MS because the checks
-   * after it failed.
+   * The servers a room may be handed out on right now, in the list's order: ticked in the random
+   * choice and passed the last check, where that check is no older than
+   * CHAT_VIDEO_CHECK_MAX_AGE_MS. What pick() chooses among, and what a member may choose from
+   * (V5, chatVideoServerChoices) -- one rule for both, so the list a member is shown offers no
+   * server a room would then be refused on.
    */
-  pick(): ChatVideoServerState | null {
+  choices(): ChatVideoServerState[] {
     const now = Date.now()
-    const answering = this.states.filter(
+    return this.states.filter(
       (state) =>
         state.active && state.ok && now - state.checkedAt.getTime() <= CHAT_VIDEO_CHECK_MAX_AGE_MS,
     )
+  }
+
+  /**
+   * One of choices(), each of them equally likely, counted in its picks; null where there is
+   * none -- before the first check is through as well, and where the last check is older than
+   * CHAT_VIDEO_CHECK_MAX_AGE_MS because the checks after it failed.
+   */
+  pick(): ChatVideoServerState | null {
+    const answering = this.choices()
     if (answering.length === 0) {
       return null
     }
     const chosen = answering[randomInt(answering.length)]
     chosen.picks += 1
+    return chosen
+  }
+
+  /**
+   * The server of the row `id` where it is one of choices() -- the one a member chose (V5) --,
+   * counted in its picks; null where it is not: switched off, not answering, gone from the list.
+   * ⛔ No other server in its place: the member chose this one, and the wallet says so.
+   */
+  pickServer(id: number): ChatVideoServerState | null {
+    const chosen = this.choices().find((state) => state.id === id) ?? null
+    if (chosen) {
+      chosen.picks += 1
+    }
     return chosen
   }
 
