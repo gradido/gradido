@@ -19,23 +19,26 @@
 export const SWISSTRANSFER_URL = 'https://www.swisstransfer.com/'
 
 /**
- * A link to files on SwissTransfer, and nothing else: `https`, the host `swisstransfer.com` or one
- * of its subdomains, a language of two letters where the link has one, then `/d/` or `/dl/` and an
- * id without `/`, `?`, `#` or a space.
+ * A link to files on SwissTransfer, and nothing else: `https`, one of SwissTransfer's two hosts, a
+ * language of two letters where the link has one, then `/d/` or `/dl/` and an id without `/`, `?`,
+ * `#` or a space. The hosts are `swisstransfer.com` with its subdomains, from which the website
+ * shares a transfer, and `swisstransfer.infomaniak.com`, from which the apps share it: the two
+ * production addresses in `ApiEnvironment.kt` (Infomaniak/multiplatform-SwissTransfer).
  *
  * ⛔ Stricter than SwissTransfer's own recognition, on purpose. Its apps match `^https://.+/d/[^?]+`
  * and `^https://.+/dl/[^?]+` (`ApiUrlMatcher.kt` in Infomaniak/multiplatform-SwissTransfer) and ask
  * nothing of the host: they only ever see links that were shared with them. The card here vouches
  * for the destination -- it says "File on SwissTransfer" -- so the host is what counts:
  * `swisstransfer.com.example.org`, `evil-swisstransfer.com` or `swisstransfer.co` get no card and
- * stay ordinary links, which show their whole address. So does a link with a query or a `#` (a
- * password in the address, say): the card would hide what it carries.
+ * stay ordinary links, which show their whole address. Of `infomaniak.com` only SwissTransfer's own
+ * host counts, since Infomaniak runs other services there. A link with a query or a `#` (a password
+ * in the address, say) stays an ordinary link too: the card would hide what it carries.
  *
  * Scheme and host are compared in small letters, as a browser reads them; the path as it is
  * written, as SwissTransfer's own recognition reads it.
  */
 const SWISSTRANSFER_LINK =
-  /^https:\/\/(?:[a-z0-9-]+\.)*swisstransfer\.com(?:\/[a-z]{2})?\/(?:d|dl)\/[^/?#\s]+$/
+  /^https:\/\/(?:(?:[a-z0-9-]+\.)*swisstransfer\.com|swisstransfer\.infomaniak\.com)(?:\/[a-z]{2})?\/(?:d|dl)\/[^/?#\s]+$/
 
 /** The address with its scheme and host in small letters, and the rest as it is. */
 const withSmallHost = (url) => url.replace(/^[^:/?#]+:\/\/[^/?#]*/, (head) => head.toLowerCase())
@@ -49,7 +52,7 @@ export const isSwissTransferLink = (url) =>
 
 /**
  * What the card shows as its destination: the address without `https://` and without `www.`,
- * the host in small letters -- `swisstransfer.com/d/…`.
+ * the host in small letters -- `swisstransfer.com/dl/…` or `swisstransfer.infomaniak.com/dl/…`.
  *
  * @param {string} url a link `isSwissTransferLink` accepts
  * @returns {string}
