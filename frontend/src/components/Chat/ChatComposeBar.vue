@@ -10,6 +10,24 @@
     </p>
 
     <div class="chat-compose-row">
+      <!-- The paperclip (E-042): files go through SwissTransfer, and a click opens the short hint
+           on how -- straight away (E-044, F1), while a file is the only thing to attach. With
+           the pictures (P7) it opens the menu "Bild — Foto oder Bildschirmfoto" / "Datei — über
+           SwissTransfer, bis 50 GB" instead, and its name becomes "Bild oder Datei anhängen".
+           A sign without a word: the paperclip is the learnt exception to E-033. Also with the
+           first message of a conversation -- a link is an ordinary message. -->
+      <button
+        type="button"
+        class="chat-compose-attach"
+        :class="{ 'is-open': fileHintOpen }"
+        :aria-label="t('chatThread.fileAttach')"
+        :title="t('chatThread.fileAttach')"
+        aria-haspopup="dialog"
+        data-test="chat-compose-attach"
+        @click="openFileHint"
+      >
+        <i-mdi-paperclip class="chat-compose-attach-icon" aria-hidden="true" />
+      </button>
       <label :for="fieldId" class="visually-hidden">{{ placeholder }}</label>
       <!-- ⛔ Enter makes a new line, as in every text field; it never sends. Many in the
            community did not grow up with chat programs, and a message that leaves half-written
@@ -84,13 +102,66 @@
     <p v-if="failed" class="chat-compose-note" role="alert" data-test="chat-compose-failed">
       {{ t('chatThread.notSent') }}
     </p>
+
+    <!-- The hint behind the paperclip (E-042, E-044): Gradido stores no files, SwissTransfer
+         carries them -- three steps, what the service is, and the way there. Built as the question
+         before a video call is (ContactWindow): no header, the title in the body and therefore a
+         name of its own (`aria-label`); its own footer; `lazy`. -->
+    <BModal
+      v-model="fileHintOpen"
+      lazy
+      centered
+      no-header
+      :aria-label="t('chatThread.fileTitle')"
+      data-test="chat-compose-file-hint"
+    >
+      <p class="h5 mb-2" data-test="chat-compose-file-title">{{ t('chatThread.fileTitle') }}</p>
+      <p class="mb-0">{{ t('chatThread.fileIntro') }}</p>
+      <ol class="chat-compose-file-steps" data-test="chat-compose-file-steps">
+        <li>{{ t('chatThread.fileStep1') }}</li>
+        <li>{{ t('chatThread.fileStep2') }}</li>
+        <li>{{ t('chatThread.fileStep3') }}</li>
+      </ol>
+      <p class="small text-muted mb-0" data-test="chat-compose-file-about">
+        {{ t('chatThread.fileAbout') }}
+      </p>
+      <!-- On a phone or a tablet the app is the short way: "share" from any app, and in its link
+           mode it asks for no e-mail address (Notiz §4.2). -->
+      <p v-if="showAppTip" class="chat-compose-file-tip small" data-test="chat-compose-file-tip">
+        <i-mdi-cellphone class="chat-compose-file-tip-icon" aria-hidden="true" />
+        <span>{{ t('chatThread.fileAppTip') }}</span>
+      </p>
+      <template #footer>
+        <BButton variant="secondary" data-test="chat-compose-file-close" @click="closeFileHint">
+          {{ t('form.close') }}
+        </BButton>
+        <!-- A link, not a button: SwissTransfer opens in a tab of its own the way a link opens,
+             and a click with a key held or "copy link" work as on any link. The click closes the
+             hint as well and lets the link go on: whoever comes back finds the field for the
+             link. In the gold of the house's buttons -- `btn-md` as BButton gives its own. -->
+        <a
+          class="btn btn-md btn-gradido chat-compose-file-open"
+          :href="SWISSTRANSFER_URL"
+          target="_blank"
+          rel="noopener noreferrer"
+          data-test="chat-compose-file-open"
+          @click="closeFileHint"
+        >
+          {{ t('chatThread.fileOpen') }}
+          <i-mdi-open-in-new class="chat-compose-file-open-icon" aria-hidden="true" />
+        </a>
+      </template>
+    </BModal>
   </div>
 </template>
 
 <script setup>
 import { computed, nextTick, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { BButton, BModal } from 'bootstrap-vue-next'
+import { SWISSTRANSFER_URL } from '@/utils/chatFileLink'
 import { chatNotifyFor } from '@/utils/chatNotify'
+import { isComputer } from '@/utils/isComputer'
 import { MESSAGE_MAX_CHARS, message as messageSchema } from '@/validationSchemas'
 
 /**
@@ -183,6 +254,25 @@ const submit = () => {
   })
 }
 
+/** The hint behind the paperclip: how a file goes through SwissTransfer (E-042). */
+const fileHintOpen = ref(false)
+
+/**
+ * The tip to SwissTransfer's app, for a phone or a tablet: asked when the hint opens, nothing
+ * kept. Where the device cannot be asked (`isComputer` says no), the tip shows -- on a computer
+ * it is one sentence too many, never a wrong way.
+ */
+const showAppTip = ref(false)
+
+const openFileHint = () => {
+  showAppTip.value = !isComputer()
+  fileHintOpen.value = true
+}
+
+const closeFileHint = () => {
+  fileHintOpen.value = false
+}
+
 /** Cmd+Enter or Ctrl+Enter sends; Enter alone is a new line (see the template). */
 const sendOnModifiedEnter = (event) => {
   if (!(event.metaKey || event.ctrlKey) || event.isComposing) return
@@ -261,6 +351,47 @@ watch(
   display: flex;
   align-items: flex-end;
   gap: 0.5rem;
+}
+
+/* The paperclip: round and as large as the send button at the other end of the row, drawn as
+   the contact window's gear and camera are -- the sign in the muted colour, nothing filled. A
+   surface under it where a mouse rests on it and while its hint is open. The surface for the
+   mouse only: on a touch screen a tap would leave it standing after the hint has closed. */
+.chat-compose-attach {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--bs-secondary-color, #6c757d);
+  cursor: pointer;
+}
+
+.chat-compose-attach.is-open {
+  background: var(--surface-muted, #f2f4f6);
+  color: var(--bs-body-color);
+}
+
+@media (hover: hover) {
+  .chat-compose-attach:hover {
+    background: var(--surface-muted, #f2f4f6);
+    color: var(--bs-body-color);
+  }
+}
+
+.chat-compose-attach:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+.chat-compose-attach-icon {
+  width: 1.45rem;
+  height: 1.45rem;
 }
 
 /* ⚠️ `font-size: 1rem` is not a matter of taste: Safari on the iPhone zooms into any field
@@ -380,5 +511,42 @@ watch(
   margin: 0.35rem 0 0;
   color: var(--bs-secondary-color, #6c757d);
   font-size: 0.75rem;
+}
+
+/* The hint's three steps: a numbered list, a little air between its lines. */
+.chat-compose-file-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.75rem 0;
+  padding-left: 1.35rem;
+}
+
+/* The tip to the app on a phone: a quiet box, the phone in gold before its words. */
+.chat-compose-file-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+  padding: 0.6rem 0.7rem;
+  border-radius: 0.6rem;
+  background: var(--surface-muted, #f2f4f6);
+}
+
+.chat-compose-file-tip-icon {
+  flex: 0 0 auto;
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-top: 0.1rem;
+  color: var(--gold, #c58d38);
+}
+
+/* The sign after "Open SwissTransfer": it opens elsewhere. `.btn-gradido` holds the link at
+   `inline-block` with `!important`, so the sign stands in the line of the words. */
+.chat-compose-file-open-icon {
+  width: 1em;
+  height: 1em;
+  margin-left: 0.35rem;
+  vertical-align: -0.125em;
 }
 </style>

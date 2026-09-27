@@ -266,7 +266,16 @@ describe('ChatThread', () => {
     wrapper = mount(ChatThread, {
       props: { member, alias: 'Lena' },
       global: {
-        stubs: { IMdiChatOutline: true, IMdiEmailOutline: true, IMdiSend: true },
+        stubs: {
+          IMdiChatOutline: true,
+          IMdiEmailOutline: true,
+          IMdiSend: true,
+          // The compose bar's paperclip and its hint (Paket D); the hint has its own spec.
+          IMdiPaperclip: true,
+          IMdiCellphone: true,
+          IMdiOpenInNew: true,
+          BModal: true,
+        },
       },
       ...options,
     })
