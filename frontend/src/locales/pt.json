@@ -149,7 +149,7 @@
     "fileAbout": "O SwissTransfer é um serviço gratuito da Infomaniak, na Suíça, não um serviço do Gradido: até 50 GB, disponíveis de 1 a 30 dias, à tua escolha. Da primeira vez, confirmas lá o teu endereço de e-mail com um código. Também podes enviar da mesma forma uma ligação de outro serviço.",
     "fileAppTip": "No telemóvel, o mais rápido é a aplicação SwissTransfer: partilhar o ficheiro, escolher o SwissTransfer, copiar a ligação.",
     "fileAttach": "Enviar um ficheiro",
-    "fileCard": "Ficheiro no SwissTransfer",
+    "fileCard": "Ficheiro no {service}",
     "fileIntro": "Envias os ficheiros através do SwissTransfer. O Gradido não os guarda.",
     "fileOpen": "Abrir o SwissTransfer",
     "fileStep1": "Carrega o ficheiro no SwissTransfer.",

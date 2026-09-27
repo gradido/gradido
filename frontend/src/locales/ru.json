@@ -149,7 +149,7 @@
     "fileAbout": "SwissTransfer — бесплатный сервис компании Infomaniak из Швейцарии, а не сервис Gradido: до 50 ГБ, файлы доступны от 1 до 30 дней — на ваш выбор. В первый раз вы подтверждаете там свой адрес электронной почты кодом. Ссылку из другого сервиса можно отправить точно так же.",
     "fileAppTip": "На телефоне быстрее всего через приложение SwissTransfer: поделиться файлом, выбрать SwissTransfer, скопировать ссылку.",
     "fileAttach": "Отправить файл",
-    "fileCard": "Файл на SwissTransfer",
+    "fileCard": "Файл на {service}",
     "fileIntro": "Файлы вы отправляете через SwissTransfer. Gradido их не хранит.",
     "fileOpen": "Открыть SwissTransfer",
     "fileStep1": "Загрузите файл на SwissTransfer.",

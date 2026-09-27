@@ -6,8 +6,14 @@
  * as an ordinary message -- a suggestion, not a Gradido service, as the video call is. The thread
  * shows such a link as a file card that names where it leads (ChatFileCard, E-044).
  *
+ * The card also stands for a link to files on Dropbox, Google Drive, OneDrive or WeTransfer
+ * (Bernd, 27.09.2026: "the big four"), where members keep or send files anyway. The paperclip's
+ * hint still suggests SwissTransfer; the card only shows what a link is. Every other link stays an
+ * ordinary link -- Nextcloud's too (Bernd): it runs on any address, and only a path `/s/<token>`
+ * gives it away, a token its operator may even choose, so a card for it would turn up under links
+ * that are no files.
  *
- * ⛔ Nothing here asks SwissTransfer anything: no preview, no file names, no request of any kind
+ * ⛔ Nothing here asks any of them anything: no preview, no file names, no request of any kind
  * before somebody taps the card -- a fetch would tell a third party that the message was read
  * (Notiz 23.09. §5). SwissTransfer has no public interface anyway (Notiz 27.09. §4.5).
  */
@@ -38,12 +44,13 @@ const cut = (url) => {
 /**
  * The services a card stands for, each by the addresses its own code or links name -- never by
  * a guess: SwissTransfer's app shares from a second host, and the card did not know it (#3997).
- * A card vouches for its destination ("File on SwissTransfer"), so the HOST is what counts: a
- * look-alike (`swisstransfer.com.example.org`, `evil-swisstransfer.com`, `swisstransfer.co`) gets
- * no card and stays an ordinary link, which shows its whole address. The path is compared as it
- * is written.
+ * A card vouches for its destination ("File on Dropbox"), so the HOST is what counts: a look-alike
+ * (`dropbox.com.example.org`, `evil-dropbox.com`, `dropbox.co`) gets no card and stays an ordinary
+ * link, which shows its whole address. The path is compared as it is written.
  *
- * `rest`: whether a query or a `#` may follow. SwissTransfer's own recognition takes no query (a
+ * `rest`: whether a query or a `#` may follow. The links of the four carry their key there --
+ * Dropbox's `rlkey`, OneDrive's `authkey` or `e`, Google's `usp` -- and the card keeps the whole
+ * link as its target, showing host and path. SwissTransfer's own recognition takes no query (a
  * password in the address, say), and neither does the card: such a link stays an ordinary link.
  */
 const FILE_SERVICES = [
@@ -62,6 +69,67 @@ const FILE_SERVICES = [
       },
     ],
     rest: false,
+  },
+  {
+    // yt-dlp's Dropbox extractor and its test links: `/s/` and `/sh/` (older file and folder
+    // links), `/scl/fi/` and `/scl/fo/` (today's, with `rlkey`), and Dropbox Transfer's `/t/`.
+    name: 'Dropbox',
+    forms: [
+      {
+        host: /^(?:www\.)?dropbox\.com$/,
+        path: /^\/(?:s|sh|scl\/fi|scl\/fo|t)\/[\w-]+(?:\/[^/]*)*$/,
+      },
+    ],
+    rest: true,
+  },
+  {
+    // yt-dlp's Google Drive extractors: a file (`/file/d/<id>`, or `open` / `uc` with `id=`) and
+    // a folder (`/drive/folders/<id>`, also under an account's `/drive/u/<n>/`); and a document,
+    // table or presentation in Google Docs, which Drive keeps.
+    name: 'Google Drive',
+    forms: [
+      { host: /^drive\.google\.com$/, path: /^\/file\/d\/[\w-]{10,}(?:\/[\w-]*)?$/ },
+      { host: /^drive\.google\.com$/, path: /^\/drive\/(?:u\/\d+\/)?folders\/[\w-]{10,}\/?$/ },
+      {
+        host: /^drive\.google\.com$/,
+        path: /^\/(?:open|uc)$/,
+        query: /(?:^|&)id=[\w-]{10,}(?:&|$)/,
+      },
+      {
+        host: /^docs\.google\.com$/,
+        path: /^\/(?:document|spreadsheets|presentation)\/d\/[\w-]{10,}(?:\/[\w-]*)?$/,
+      },
+    ],
+    rest: true,
+  },
+  {
+    // The links OneDrive's share dialog hands out: `1drv.ms/<kind>/c/<account>/<code>` since 2024,
+    // `1drv.ms/<kind>/s!<code>` before; and the long addresses on `onedrive.live.com` with the
+    // item's `id=` or `resid=` (the front page, `about` and the like have none).
+    name: 'OneDrive',
+    forms: [
+      { host: /^1drv\.ms$/, path: /^\/[a-z]\/(?:s![\w-]+|c\/[0-9a-f]+\/[\w-]+)\/?$/i },
+      {
+        host: /^onedrive\.live\.com$/,
+        path: /^\/(?:redir|redir\.aspx|download|embed)?$/,
+        query: /(?:^|&)(?:res)?id=[^&]+/,
+      },
+    ],
+    rest: true,
+  },
+  {
+    // transferwee (the WeTransfer tool) names both: the short `we.tl/<code>` (today `t-<code>`)
+    // and `wetransfer.com/downloads/<transfer>[/<recipient>]/<hash>`, also on a company's own
+    // subdomain of `wetransfer.com`.
+    name: 'WeTransfer',
+    forms: [
+      { host: /^we\.tl$/, path: /^\/(?:t-)?[a-z0-9]+\/?$/i },
+      {
+        host: /^(?:[a-z0-9-]+\.)?wetransfer\.com$/,
+        path: /^\/downloads\/[a-z0-9]+(?:\/[a-z0-9]+){1,2}\/?$/i,
+      },
+    ],
+    rest: true,
   },
 ]
 
@@ -93,7 +161,8 @@ export const isSwissTransferLink = (url) => fileLinkService(url) === 'SwissTrans
 
 /**
  * What the card shows as its destination: host and path, the host in small letters and without
- * `www.` -- `swisstransfer.com/dl/…` or `swisstransfer.infomaniak.com/dl/…`.
+ * `www.` -- `swisstransfer.com/dl/…`, `dropbox.com/scl/fi/…/Bericht.pdf`. Not the query or the `#`
+ * part: they carry the link's key, which the card keeps as its target and need not show.
  *
  * @param {string} url a link `fileLinkService` names a service for
  * @returns {string}

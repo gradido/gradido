@@ -1,6 +1,11 @@
 // AI-GENERATED — not an architecture reference
 import { describe, expect, it } from 'vitest'
-import { SWISSTRANSFER_URL, fileLinkLabel, isSwissTransferLink } from './chatFileLink'
+import {
+  SWISSTRANSFER_URL,
+  fileLinkLabel,
+  fileLinkService,
+  isSwissTransferLink,
+} from './chatFileLink'
 import { chatTextParts } from './chatTextParts'
 
 /**
@@ -108,6 +113,182 @@ describe('fileLinkLabel', () => {
     ['https://files.swisstransfer.com/d/7f3a9c2e', 'files.swisstransfer.com/d/7f3a9c2e'],
     // The host as a browser shows it; the id keeps its letters.
     ['HTTPS://WWW.SwissTransfer.COM/dl/Ab3dE5fG', 'swisstransfer.com/dl/Ab3dE5fG'],
+  ])('shows %s as %s', (url, label) => {
+    expect(fileLinkLabel(url)).toBe(label)
+  })
+})
+
+/**
+ * The big four (Bernd, 27.09.2026), each by the addresses its own code or links name: the shapes
+ * follow the links found in public code and in the tests of yt-dlp and transferwee; the ids are
+ * invented, so no test points at somebody's files.
+ */
+const DROPBOX =
+  'https://www.dropbox.com/scl/fi/k7m2x9q4t8wzp3n6r1v5c/Bericht.pdf?rlkey=q2w3e4r5t6y7u8i9o0p1a2s3d&dl=0'
+const DRIVE =
+  'https://drive.google.com/file/d/1QwErTyUiOpAsDfGhJkLzXcVbNm123456/view?usp=drive_link'
+const ONEDRIVE =
+  'https://1drv.ms/u/c/1a2b3c4d5e6f7a8b/EQwErTyUiOpAsDfGhJkLzXcBQwErTyUiOpAsDfGhJkLzXc?e=AbC123'
+const WETRANSFER = 'https://we.tl/t-Qw3Er5Ty7U'
+
+describe('fileLinkService', () => {
+  it.each([
+    ['SwissTransfer', LINK],
+    ['SwissTransfer', APP_LINK],
+    // Dropbox: today's file and folder links (with `rlkey`), the older ones, Dropbox Transfer.
+    ['Dropbox', DROPBOX],
+    [
+      'Dropbox',
+      'https://www.dropbox.com/scl/fo/k7m2x9q4t8wzp3n6r1v5c/AQwErTyUiOpAsDfGhJkLzXc?rlkey=q2w3e4r5t6y7u8i9o0p1a2s3d&dl=0',
+    ],
+    ['Dropbox', 'https://www.dropbox.com/s/k7m2x9q4t8wzp3n/Bericht%202026.pdf?dl=0'],
+    ['Dropbox', 'https://www.dropbox.com/sh/k7m2x9q4t8wzp3n/AABQwErTyUiOpAsDfGhJkLzX?dl=0'],
+    ['Dropbox', 'https://www.dropbox.com/t/Qw3Er5Ty7Ui9Op1A'],
+    ['Dropbox', 'https://dropbox.com/s/k7m2x9q4t8wzp3n'],
+    // Google Drive: a file, a folder (also under an account), the older `open` and `uc`, Docs.
+    ['Google Drive', DRIVE],
+    ['Google Drive', 'https://drive.google.com/file/d/0BqWeRtYuIoPaSdFgHjKlZxCv/edit?pli=1'],
+    [
+      'Google Drive',
+      'https://drive.google.com/drive/folders/1QwErTyUiOpAsDfGhJkLzXcVbNm123456?usp=sharing',
+    ],
+    [
+      'Google Drive',
+      'https://drive.google.com/drive/u/0/folders/1QwErTyUiOpAsDfGhJkLzXcVbNm123456',
+    ],
+    ['Google Drive', 'https://drive.google.com/open?id=0BqWeRtYuIoPaSdFgHjKlZxCv'],
+    ['Google Drive', 'https://drive.google.com/uc?export=download&id=0BqWeRtYuIoPaSdFgHjKlZxCv'],
+    [
+      'Google Drive',
+      'https://docs.google.com/document/d/1QwErTyUiOpAsDfGhJkLzXcVbNm123456/edit?usp=sharing',
+    ],
+    [
+      'Google Drive',
+      'https://docs.google.com/spreadsheets/d/1QwErTyUiOpAsDfGhJkLzXcVbNm123456/edit#gid=0',
+    ],
+    [
+      'Google Drive',
+      'https://docs.google.com/presentation/d/1QwErTyUiOpAsDfGhJkLzXcVbNm123456/edit',
+    ],
+    // OneDrive: the share dialog's links since 2024 and before, file and folder; the long ones.
+    ['OneDrive', ONEDRIVE],
+    [
+      'OneDrive',
+      'https://1drv.ms/f/c/1a2b3c4d5e6f7a8b/EgQwErTyUiOpAsDfGhJkLzXcBQwErTyUiOpAsDfGhJkLzX?e=AbC123',
+    ],
+    [
+      'OneDrive',
+      'https://1drv.ms/u/c/1A2B3C4D5E6F7A8B/IQBQwErTyUiOpAsDfGhJkLzXcBQwErTyUiOpAsDfGhJkLz',
+    ],
+    ['OneDrive', 'https://1drv.ms/u/s!AqWeRtYuIoPaSdFgHjKlZxCv?e=AbC123'],
+    [
+      'OneDrive',
+      'https://onedrive.live.com/?cid=1a2b3c4d5e6f7a8b&id=1A2B3C4D5E6F7A8B%21109&authkey=!AAQwErTyUiOp',
+    ],
+    [
+      'OneDrive',
+      'https://onedrive.live.com/redir?resid=1A2B3C4D5E6F7A8B%21768235&authkey=!AQwErTyUiOp',
+    ],
+    [
+      'OneDrive',
+      'https://onedrive.live.com/embed?cid=1A2B3C4D5E6F7A8B&resid=1A2B3C4D5E6F7A8B%21768235',
+    ],
+    // WeTransfer: the short link, the long one with and without recipient, a company's subdomain.
+    ['WeTransfer', WETRANSFER],
+    [
+      'WeTransfer',
+      'https://wetransfer.com/downloads/4f1b2c3d4e5f60718293a4b5c6d7e8f920260927120000/6a7b8c',
+    ],
+    [
+      'WeTransfer',
+      'https://wetransfer.com/downloads/4f1b2c3d4e5f60718293a4b5c6d7e8f920260927120000/9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b20260927120000/6a7b8c',
+    ],
+    [
+      'WeTransfer',
+      'https://acme.wetransfer.com/downloads/4f1b2c3d4e5f60718293a4b5c6d7e8f920260927120000/6a7b8c',
+    ],
+    // A browser reads scheme and host in small letters, and so does the card.
+    ['Dropbox', 'HTTPS://WWW.Dropbox.COM/t/Qw3Er5Ty7Ui9Op1A'],
+  ])('names %s for %s', (name, url) => {
+    expect(fileLinkService(url)).toBe(name)
+  })
+
+  /**
+   * ⛔ The card vouches for its destination, so only the service's own hosts count, and only its
+   * share links: everything else stays an ordinary link, which shows its whole address.
+   */
+  it.each([
+    ['plain http', 'http://www.dropbox.com/t/Qw3Er5Ty7Ui9Op1A'],
+    ['a host that only begins with it', 'https://dropbox.com.example.org/s/k7m2x9q4t8wzp3n'],
+    ['a host that only ends with it', 'https://evil-dropbox.com/s/k7m2x9q4t8wzp3n'],
+    ['another top-level domain', 'https://dropbox.co/s/k7m2x9q4t8wzp3n'],
+    ['a name before an @', 'https://www.dropbox.com@example.org/s/k7m2x9q4t8wzp3n'],
+    ['a port', 'https://www.dropbox.com:8443/s/k7m2x9q4t8wzp3n'],
+    ["Dropbox's front page", 'https://www.dropbox.com/'],
+    ['a page of Dropbox that is no share', 'https://www.dropbox.com/home/Bericht.pdf'],
+    ["a picture on Dropbox's picture host", 'https://photos-2.dropbox.com/t/2/AAQwErTyUiOp/12/png'],
+    ["Drive's own list", 'https://drive.google.com/drive/my-drive'],
+    ['a Google form', 'https://docs.google.com/forms/d/1QwErTyUiOpAsDfGhJkLzXcVbNm123456/viewform'],
+    ['`open` without an id', 'https://drive.google.com/open?usp=sharing'],
+    [
+      'a detour through Google',
+      'https://www.google.com/url?q=https://drive.google.com/file/d/0BqWeRtYuIoPaSdFgHjKlZxCv',
+    ],
+    ["OneDrive's front page", 'https://onedrive.live.com/'],
+    ['a page of OneDrive without an item', 'https://onedrive.live.com/about/de-de/'],
+    ['1drv.ms without a code', 'https://1drv.ms/'],
+    // OneDrive for work lives on each company's own subdomain of SharePoint: not among the four.
+    ['SharePoint', 'https://contoso-my.sharepoint.com/:w:/g/personal/anna_contoso_com/EQwErTyUiOp'],
+    ["WeTransfer's front page", 'https://wetransfer.com/'],
+    ['we.tl without a code', 'https://we.tl/'],
+    [
+      'a host that only begins with WeTransfer',
+      'https://wetransfer.com.example.org/downloads/4f1b2c/6a7b8c',
+    ],
+    // Nextcloud runs on any address, and only `/s/<token>` gives it away (Bernd: an ordinary link).
+    ['a Nextcloud share', 'https://cloud.example.org/s/aBcDeFgHiJkLmNo'],
+    [
+      'a Nextcloud share without its short address',
+      'https://cloud.example.org/index.php/s/aBcDeFgHiJkLmNo',
+    ],
+    ['another service', 'https://www.filemail.com/d/qwertyuiopasdfg'],
+    ['no address at all', 'dropbox.com/s/k7m2x9q4t8wzp3n'],
+  ])('names nothing for %s', (_, url) => {
+    expect(fileLinkService(url)).toBeNull()
+  })
+
+  it('names nothing for what is not text', () => {
+    expect(fileLinkService(undefined)).toBeNull()
+    expect(fileLinkService(null)).toBeNull()
+  })
+
+  // The card replaces what the thread found as an address, so the link, key and all, reaches it
+  // whole, and a full stop after it stays out.
+  it.each([
+    DROPBOX,
+    DRIVE,
+    ONEDRIVE,
+    WETRANSFER,
+    'https://1drv.ms/u/s!AqWeRtYuIoPaSdFgHjKlZxCv?e=AbC123',
+  ])('is found whole in a message: %s', (url) => {
+    const parts = chatTextParts(`Hier ist die Datei: ${url}. Danke!`)
+    expect(parts.filter((part) => part.type === 'url')).toEqual([{ type: 'url', value: url }])
+    expect(fileLinkService(parts[1].value)).not.toBeNull()
+  })
+})
+
+describe('fileLinkLabel of the four', () => {
+  // Host and path; the query and the `#` part carry the link's key and stay in the target only.
+  it.each([
+    [DROPBOX, 'dropbox.com/scl/fi/k7m2x9q4t8wzp3n6r1v5c/Bericht.pdf'],
+    [DRIVE, 'drive.google.com/file/d/1QwErTyUiOpAsDfGhJkLzXcVbNm123456/view'],
+    [
+      'https://docs.google.com/spreadsheets/d/1QwErTyUiOpAsDfGhJkLzXcVbNm123456/edit#gid=0',
+      'docs.google.com/spreadsheets/d/1QwErTyUiOpAsDfGhJkLzXcVbNm123456/edit',
+    ],
+    [ONEDRIVE, '1drv.ms/u/c/1a2b3c4d5e6f7a8b/EQwErTyUiOpAsDfGhJkLzXcBQwErTyUiOpAsDfGhJkLzXc'],
+    ['https://onedrive.live.com/?cid=1a2b&id=1A2B%21109', 'onedrive.live.com/'],
+    [WETRANSFER, 'we.tl/t-Qw3Er5Ty7U'],
   ])('shows %s as %s', (url, label) => {
     expect(fileLinkLabel(url)).toBe(label)
   })

@@ -296,6 +296,38 @@ describe('ChatBubble', () => {
       expect(text().text()).not.toContain('https://')
     })
 
+    /**
+     * The four more (Bernd, 27.09.2026): the same card, naming the service, over host and path.
+     * The query carries the link's key -- it goes with the tap and stays out of sight.
+     */
+    it.each([
+      [
+        'Dropbox',
+        'https://www.dropbox.com/scl/fi/k7m2x9q4t8wzp3n6r1v5c/Bericht.pdf?rlkey=q2w3e4r5t6y7u8i9o0p1a2s3d&dl=0',
+        'dropbox.com/scl/fi/k7m2x9q4t8wzp3n6r1v5c/Bericht.pdf',
+      ],
+      [
+        'Google Drive',
+        'https://drive.google.com/file/d/1QwErTyUiOpAsDfGhJkLzXcVbNm123456/view?usp=drive_link',
+        'drive.google.com/file/d/1QwErTyUiOpAsDfGhJkLzXcVbNm123456/view',
+      ],
+      [
+        'OneDrive',
+        'https://1drv.ms/u/c/1a2b3c4d5e6f7a8b/EQwErTyUiOpAsDfGhJkLzXcBQwErTyUiOp?e=AbC123',
+        '1drv.ms/u/c/1a2b3c4d5e6f7a8b/EQwErTyUiOpAsDfGhJkLzXcBQwErTyUiOp',
+      ],
+      ['WeTransfer', 'https://we.tl/t-Qw3Er5Ty7U', 'we.tl/t-Qw3Er5Ty7U'],
+    ])('is a card for a link to %s, naming it', (service, address, where) => {
+      mountBubble({ ...THEIRS, body: `Hier ist die Datei:\n${address}` })
+
+      expect(card().attributes('href')).toBe(address)
+      expect(card().find('.chat-file-card-title').text()).toBe(
+        `chatThread.fileCard ${JSON.stringify({ service })}`,
+      )
+      expect(wrapper.find('[data-test="chat-file-card-where"]').text()).toBe(where)
+      expect(pieces()).toEqual(['Hier ist die Datei:', '<chat-file-card>'])
+    })
+
     // In one's own bubble the same.
     it("is a card in one's own bubble too", () => {
       mountBubble({ ...OWN, body: LINK })
@@ -350,7 +382,9 @@ describe('ChatBubble', () => {
     })
 
     it.each([
-      ['a link to another service', 'https://wetransfer.com/downloads/7f3a9c2e/abc'],
+      ['a link to another service', 'https://www.filemail.com/d/qwertyuiopasdfg'],
+      // Nextcloud runs on any address (Bernd, 27.09.2026: an ordinary link).
+      ['a Nextcloud share', 'https://cloud.example.org/s/aBcDeFgHiJkLmNo'],
       ['a page of SwissTransfer that is no download', 'https://www.swisstransfer.com/de/faq'],
       ['a SwissTransfer link with a query', `${LINK}?password=123`],
       ['a host that only looks like it', 'https://swisstransfer.com.example.org/d/7f3a9c2e'],
