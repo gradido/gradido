@@ -49,7 +49,15 @@ const tableSeededFrom = (configured: string, off: string[] = []): void => {
 /** A request with a budget of its own. The query names nobody, so it needs no user. */
 const aRequest = (): Context => ({ token: null, setHeaders: [], requestBudget: newRequestBudget() })
 
-const ask = (request: Context = aRequest()) => new ChatResolver().chatVideoRoom(request)
+const ask = (request: Context = aRequest(), serverId?: number | null) =>
+  new ChatResolver().chatVideoRoom({ serverId }, request)
+
+/** What a member may choose (V5). */
+const choices = () => new ChatResolver().chatVideoServerChoices()
+
+/** The id of the row the default list puts `host` in (ids 1, 2, 3 … in the list's order). */
+const idOf = (host: string): number =>
+  chatVideoServers('').servers.findIndex((server) => server.host === host) + 1
 
 /** Every server passes, or only those named. */
 const serversPass = (only?: string[]) =>
@@ -153,6 +161,116 @@ describe('chatVideoRoom', () => {
     const name = new URL(room.url).pathname.slice(1)
     expect(resolverLogger.trace).toHaveBeenCalledWith(
       'chat video room handed out on meet.ffmuc.net',
+    )
+    for (const level of ['trace', 'debug', 'info', 'warn', 'error'] as const) {
+      expect(JSON.stringify(resolverLogger[level].mock.calls)).not.toContain(name)
+    }
+  })
+})
+
+// V5: the member chooses the server -- from the servers a room may be handed out on right now.
+describe('chatVideoServerChoices', () => {
+  // The pool is the process's: the first check of this file ran long before. What it lists before
+  // any check is through, the pool's own test holds (chatVideoServerPool.test.ts).
+  it('lists none where no server passed the last check', async () => {
+    serversPass([])
+    await chatVideoServerPool.refreshNow()
+    expect(choices()).toEqual([])
+  })
+
+  it('lists the servers that passed and are ticked, in the order of the list, with id, host and operator', async () => {
+    const hosts = chatVideoServers('').servers.map((server) => server.host)
+    tableSeededFrom('', ['meet.opensuse.org'])
+    serversPass(hosts.filter((host) => host !== 'meet.systemli.org'))
+    await chatVideoServerPool.refreshNow()
+    const listed = choices()
+    expect(listed.map((choice) => choice.host)).toEqual(
+      hosts.filter((host) => host !== 'meet.systemli.org' && host !== 'meet.opensuse.org'),
+    )
+    for (const choice of listed) {
+      const entry = CHAT_VIDEO_SERVERS_DEFAULT.find(
+        (server) => server.baseUrl === `https://${choice.host}/`,
+      )
+      expect(choice).toEqual({
+        id: idOf(choice.host),
+        host: choice.host,
+        operator: entry?.operator,
+      })
+    }
+  })
+
+  it('answers operator null where the row names nobody', async () => {
+    tableSeededFrom('https://meet.example.org')
+    serversPass()
+    await chatVideoServerPool.refreshNow()
+    expect(choices()).toEqual([{ id: 1, host: 'meet.example.org', operator: null }])
+  })
+})
+
+describe('chatVideoRoom on the server the member chose', () => {
+  it('hands out every room on that server', async () => {
+    serversPass()
+    await chatVideoServerPool.refreshNow()
+    for (let call = 0; call < 20; call++) {
+      const room = ask(aRequest(), idOf('meet.meerfarbig.net'))
+      expect(room.host).toBe('meet.meerfarbig.net')
+      expect(room.url).toMatch(/^https:\/\/meet\.meerfarbig\.net\/[a-z0-9]{12}$/)
+      expect(room.operator).toBe('meerfarbig GmbH & Co. KG')
+    }
+  })
+
+  it("puts that server's prefix before the random part", async () => {
+    tableSeededFrom(`https://meet.example.org;${AKADEMIE}`)
+    serversPass()
+    await chatVideoServerPool.refreshNow()
+    expect(ask(aRequest(), 2).url).toMatch(
+      /^https:\/\/fairmeeting\.net\/GradidoAkademie[a-z0-9]{12}$/,
+    )
+  })
+
+  // ⛔ No other server in its place: the member chose this one, and the wallet says so.
+  it('answers CHAT_VIDEO_SERVER_UNAVAILABLE where the server did not pass the last check', async () => {
+    serversPass(['meet.ffmuc.net'])
+    await chatVideoServerPool.refreshNow()
+    expect(() => ask(aRequest(), idOf('meet.systemli.org'))).toThrow(
+      'CHAT_VIDEO_SERVER_UNAVAILABLE',
+    )
+  })
+
+  it('answers CHAT_VIDEO_SERVER_UNAVAILABLE where the server is not ticked any more', async () => {
+    tableSeededFrom('', ['meet.systemli.org'])
+    serversPass()
+    await chatVideoServerPool.refreshNow()
+    expect(() => ask(aRequest(), idOf('meet.systemli.org'))).toThrow(
+      'CHAT_VIDEO_SERVER_UNAVAILABLE',
+    )
+  })
+
+  it('answers CHAT_VIDEO_SERVER_UNAVAILABLE for a row that is not in the list', async () => {
+    serversPass()
+    await chatVideoServerPool.refreshNow()
+    expect(() => ask(aRequest(), 99)).toThrow('CHAT_VIDEO_SERVER_UNAVAILABLE')
+  })
+
+  it("counts a chosen room in the request's budget as well", async () => {
+    serversPass()
+    await chatVideoServerPool.refreshNow()
+    const request = aRequest()
+    for (let room = 0; room < CHAT_VIDEO_ROOMS_MAX_PER_REQUEST; room++) {
+      ask(request, idOf('meet.ffmuc.net'))
+    }
+    expect(() => ask(request, idOf('meet.ffmuc.net'))).toThrow(
+      'Too many chat video rooms requested at once',
+    )
+  })
+
+  it('logs the host of a chosen room as well, and nowhere the room name', async () => {
+    serversPass()
+    await chatVideoServerPool.refreshNow()
+    const room = ask(aRequest(), idOf('meet.weimarnetz.de'))
+    const name = new URL(room.url).pathname.slice(1)
+    expect(resolverLogger.trace).toHaveBeenCalledWith(
+      'chat video room handed out on meet.weimarnetz.de',
     )
     for (const level of ['trace', 'debug', 'info', 'warn', 'error'] as const) {
       expect(JSON.stringify(resolverLogger[level].mock.calls)).not.toContain(name)

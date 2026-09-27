@@ -35,6 +35,7 @@ import {
 import {
   chatMessagesWithMember,
   chatVideoRoom,
+  chatVideoServerChoices,
   contactList,
   newChatMessagesSince,
 } from '@/seeds/graphql/queries'
@@ -710,6 +711,13 @@ describe('an unconfirmed account past its grace period', () => {
       new GraphQLError('401 Unauthorized'),
     ])
   })
+
+  it('may not ask which servers there are to choose from either (V5)', async () => {
+    await videoServersChecked(true)
+    expect((await query({ query: chatVideoServerChoices })).errors).toEqual([
+      new GraphQLError('401 Unauthorized'),
+    ])
+  })
 })
 
 /**
@@ -1236,6 +1244,12 @@ describe('chatVideoRoom', () => {
         expect.objectContaining({ errors: [new GraphQLError('401 Unauthorized')] }),
       )
     })
+
+    it('answers 401 for the servers to choose from as well (V5)', async () => {
+      expect(await query({ query: chatVideoServerChoices })).toEqual(
+        expect.objectContaining({ errors: [new GraphQLError('401 Unauthorized')] }),
+      )
+    })
   })
 
   describe('logged in', () => {
@@ -1266,6 +1280,44 @@ describe('chatVideoRoom', () => {
       await videoServersChecked(false)
       const res: any = await query({ query: chatVideoRoom })
       expect(res.errors?.map((error: any) => error.message)).toEqual(['CHAT_VIDEO_NO_SERVER'])
+    })
+
+    // V5: the servers to choose from, and a room on the one chosen.
+    it('lists the servers of the list that passed, in its order, with the id a room is asked on', async () => {
+      await videoServersChecked(true)
+      const res: any = await query({ query: chatVideoServerChoices })
+      expect(res.errors).toBeUndefined()
+      const listed = res.data.chatVideoServerChoices
+      expect(listed.map((choice: any) => `https://${choice.host}/`)).toEqual(
+        CHAT_VIDEO_SERVERS_DEFAULT.map((server) => server.baseUrl),
+      )
+      expect(listed.map((choice: any) => choice.operator)).toEqual(
+        CHAT_VIDEO_SERVERS_DEFAULT.map((server) => server.operator),
+      )
+      expect(new Set(listed.map((choice: any) => choice.id)).size).toBe(listed.length)
+    })
+
+    it('lists none where no server passed the last check', async () => {
+      await videoServersChecked(false)
+      const res: any = await query({ query: chatVideoServerChoices })
+      expect(res).toEqual(expect.objectContaining({ data: { chatVideoServerChoices: [] } }))
+    })
+
+    it('hands out the room on the server chosen, and answers CHAT_VIDEO_SERVER_UNAVAILABLE for one not to be had', async () => {
+      await videoServersChecked(true)
+      const listed = ((await query({ query: chatVideoServerChoices })) as any).data
+        .chatVideoServerChoices
+      const chosen = listed[2]
+      for (let call = 0; call < 5; call++) {
+        const res: any = await query({ query: chatVideoRoom, variables: { serverId: chosen.id } })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.chatVideoRoom.host).toBe(chosen.host)
+      }
+      const missing = Math.max(...listed.map((choice: any) => choice.id)) + 1000
+      const res: any = await query({ query: chatVideoRoom, variables: { serverId: missing } })
+      expect(res.errors?.map((error: any) => error.message)).toEqual([
+        'CHAT_VIDEO_SERVER_UNAVAILABLE',
+      ])
     })
 
     // ⛔ One call cannot limit how often a document repeats the field under aliases -- the

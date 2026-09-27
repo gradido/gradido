@@ -816,9 +816,19 @@ export const newChatMessagesSince = gql`
 `
 
 export const chatVideoRoom = gql`
-  query {
-    chatVideoRoom {
+  query ($serverId: Int) {
+    chatVideoRoom(serverId: $serverId) {
       url
+      host
+      operator
+    }
+  }
+`
+
+export const chatVideoServerChoices = gql`
+  query {
+    chatVideoServerChoices {
+      id
       host
       operator
     }

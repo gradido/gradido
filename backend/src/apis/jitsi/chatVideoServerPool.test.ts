@@ -476,6 +476,90 @@ describe('ChatVideoServerPool', () => {
     })
   })
 
+  // V5: what a member may choose, and the room on their choice.
+  describe('choices', () => {
+    it('lists the servers ticked for the random choice that answer, in the order of the list', async () => {
+      const pool = new ChatVideoServerPool(
+        tableWith(row(1, A), row(2, B, false), row(3, C), row(4, server('d.example'))),
+        probeAnswering({
+          'a.example': passes(1),
+          'b.example': passes(2),
+          'c.example': passes(3),
+          'd.example': fails('d.example', 'NO_ANONYMOUS'),
+        }),
+      )
+      await pool.refreshNow()
+      expect(pool.choices().map((state) => [state.id, state.server.host])).toEqual([
+        [1, 'a.example'],
+        [3, 'c.example'],
+      ])
+    })
+
+    it('lists none before the first check is through', () => {
+      expect(new ChatVideoServerPool(tableOf(A), probeAnswering({})).choices()).toEqual([])
+    })
+
+    it('lists none once the last check is older than two intervals', async () => {
+      const pool = new ChatVideoServerPool(tableOf(A), probeAnswering({ 'a.example': passes(30) }))
+      await pool.refreshNow()
+      const checkedAt = pool.state()[0].checkedAt.getTime()
+      const now = jest.spyOn(Date, 'now')
+      try {
+        now.mockReturnValue(checkedAt + CHAT_VIDEO_CHECK_MAX_AGE_MS)
+        expect(pool.choices()).toHaveLength(1)
+        now.mockReturnValue(checkedAt + CHAT_VIDEO_CHECK_MAX_AGE_MS + 1)
+        expect(pool.choices()).toEqual([])
+      } finally {
+        now.mockRestore()
+      }
+    })
+
+    it('counts nothing: listing is no pick', async () => {
+      const pool = new ChatVideoServerPool(tableOf(A), probeAnswering({ 'a.example': passes(30) }))
+      await pool.refreshNow()
+      pool.choices()
+      expect(pool.state()[0].picks).toBe(0)
+    })
+  })
+
+  describe('pickServer', () => {
+    const three = () =>
+      new ChatVideoServerPool(
+        tableWith(row(1, A), row(2, B, false), row(3, C)),
+        probeAnswering({
+          'a.example': passes(1),
+          'b.example': passes(2),
+          'c.example': fails('c.example', 'UNREACHABLE'),
+        }),
+      )
+
+    it('hands out the server of the row chosen, every time, and counts it', async () => {
+      const pool = new ChatVideoServerPool(
+        tableOf(A, B, C),
+        probeAnswering({ 'a.example': passes(1), 'b.example': passes(2), 'c.example': passes(3) }),
+      )
+      await pool.refreshNow()
+      for (let draw = 0; draw < 20; draw++) {
+        expect(pool.pickServer(3)?.server).toEqual(C)
+      }
+      expect(pool.state().map((state) => state.picks)).toEqual([0, 0, 20])
+    })
+
+    // ⛔ No other server in its place: the member chose this one.
+    it('finds nothing for a server not ticked, not answering or not in the list -- and hands out no other', async () => {
+      const pool = three()
+      await pool.refreshNow()
+      expect(pool.pickServer(2)).toBeNull()
+      expect(pool.pickServer(3)).toBeNull()
+      expect(pool.pickServer(4)).toBeNull()
+      expect(pool.state().map((state) => state.picks)).toEqual([0, 0, 0])
+    })
+
+    it('finds nothing before the first check is through', () => {
+      expect(three().pickServer(1)).toBeNull()
+    })
+  })
+
   describe('start', () => {
     let scheduled: { run: () => Promise<void>; ms: number }[]
     let unref: jest.Mock
