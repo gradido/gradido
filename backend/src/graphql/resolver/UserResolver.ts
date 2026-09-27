@@ -21,6 +21,7 @@ import { SearchUsersResult, UserAdmin } from '@model/UserAdmin'
 import { UserContact } from '@model/UserContact'
 import { UserLocationResult } from '@model/UserLocationResult'
 import {
+  decodeJpegImage,
   ensureUrlEndsWithSlash,
   registerAddressTransaction,
   sendAccountActivationEmail,
@@ -89,8 +90,6 @@ import {
   AVATAR_SMALL_MAX_BYTES,
   aliasCandidates,
   aliasSchema,
-  JPEG_END_BYTES,
-  JPEG_MAGIC_BYTES,
   MemberAvatarPayload,
   pickFreeAlias,
   Result,
@@ -1113,35 +1112,24 @@ export class UserResolver {
    * Decodes and checks one rendition. Named in the error so a member over budget learns
    * WHICH picture was refused — with two of them in one request, "too large" on its own
    * sends whoever reads it looking in the wrong place.
+   *
+   * The check itself is decodeJpegImage in `core`, the one a picture in a chat message goes
+   * through as well: one picture module for both, the seam at which Gradido 2 is to move
+   * both kinds of picture at once (E-041). The words stay the avatar's own.
    */
   private decodeAvatar(image: string, which: string, maxBytes: number): Buffer {
-    const bytes = Buffer.from(image, 'base64')
-
-    if (bytes.length === 0) {
+    const decoded = decodeJpegImage(image, maxBytes)
+    if (decoded.success) {
+      return decoded.value
+    }
+    const { reason, bytes } = decoded.error
+    if (reason === 'EMPTY') {
       throw new LogError(`Avatar image (${which}) is empty`)
     }
-    if (bytes.length > maxBytes) {
-      throw new LogError(`Avatar image (${which}) too large`, {
-        bytes: bytes.length,
-        max: maxBytes,
-      })
+    if (reason === 'TOO_LARGE') {
+      throw new LogError(`Avatar image (${which}) too large`, { bytes, max: maxBytes })
     }
-    // Buffer.from ignores anything it cannot decode instead of failing, so "it decoded"
-    // says nothing about what arrived. The markers do.
-    //
-    // Both ends, not just the start: on the opening marker alone a three-byte payload of
-    // ff d8 00 passes, so the column would take arbitrary data from anyone willing to
-    // prefix it. This is still not format validation -- only a decoder could say whether
-    // what lies between is a picture -- and a decoder is what this design keeps out of
-    // the backend on purpose.
-    const startsRight = bytes[0] === JPEG_MAGIC_BYTES[0] && bytes[1] === JPEG_MAGIC_BYTES[1]
-    const endsRight =
-      bytes[bytes.length - 2] === JPEG_END_BYTES[0] && bytes[bytes.length - 1] === JPEG_END_BYTES[1]
-    if (!startsRight || !endsRight) {
-      throw new LogError(`Avatar image (${which}) is not a JPEG`)
-    }
-
-    return bytes
+    throw new LogError(`Avatar image (${which}) is not a JPEG`)
   }
 
   /**
