@@ -82,27 +82,33 @@ describe('findableWithoutPlace', () => {
   const home = at(49.28, 9.69)
 
   it('is yes for switching on with no place at all', () => {
-    expect(findableWithoutPlace(true, null, undefined)).toBe(true)
-    expect(findableWithoutPlace(true, null, null)).toBe(true)
+    expect(findableWithoutPlace(true, false, null, undefined)).toBe(true)
+    expect(findableWithoutPlace(true, false, null, null)).toBe(true)
   })
 
   it('is no with a place stored', () => {
-    expect(findableWithoutPlace(true, home, undefined)).toBe(false)
+    expect(findableWithoutPlace(true, false, home, undefined)).toBe(false)
   })
 
   it('is no with a place sent along in the same save', () => {
-    expect(findableWithoutPlace(true, null, home)).toBe(false)
+    expect(findableWithoutPlace(true, false, null, home)).toBe(false)
   })
 
   // A member who is findable without a place, saved before this rule, can still leave.
   it('never asks when switching off or leaving the setting alone', () => {
-    expect(findableWithoutPlace(false, null, undefined)).toBe(false)
-    expect(findableWithoutPlace(undefined, null, undefined)).toBe(false)
-    expect(findableWithoutPlace(null, null, undefined)).toBe(false)
+    expect(findableWithoutPlace(false, true, null, undefined)).toBe(false)
+    expect(findableWithoutPlace(undefined, true, null, undefined)).toBe(false)
+    expect(findableWithoutPlace(null, false, null, undefined)).toBe(false)
+  })
+
+  // ...and save the rest of their settings with a client that sends the setting along as it
+  // is. The save does not make the state any worse; refusing it would only lose the rest.
+  it('never asks when findable is sent on while it already is', () => {
+    expect(findableWithoutPlace(true, true, null, undefined)).toBe(false)
   })
 
   // Rows written before 10.09.2026 can hold a latitude of 91: finite, and not a place.
   it('counts a stored point that is not a place as none', () => {
-    expect(findableWithoutPlace(true, at(91, 9.69), undefined)).toBe(true)
+    expect(findableWithoutPlace(true, false, at(91, 9.69), undefined)).toBe(true)
   })
 })

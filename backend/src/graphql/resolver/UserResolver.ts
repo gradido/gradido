@@ -890,10 +890,18 @@ export class UserResolver {
       aboutMe: aboutMe !== undefined,
     })
 
-    // Findable needs a place: the GMS cannot hold a member it cannot place (GmsUser refuses
-    // to build one), and migration 0140 switched every member without one off. Refused
-    // before anything is written, and as a code - the wallet says it in the member's words.
-    if (findableWithoutPlace(gmsAllowed, Point2Location(user.location as Point), gmsLocation)) {
+    // Switching findable on needs a place: the GMS cannot hold a member it cannot place
+    // (GmsUser refuses to build one), and migration 0140 switched every member without one
+    // off. Refused before anything is written, and as a code - the wallet says it in the
+    // member's words.
+    if (
+      findableWithoutPlace(
+        gmsAllowed,
+        user.gmsAllowed,
+        Point2Location(user.location as Point),
+        gmsLocation,
+      )
+    ) {
       logger.warn('refused to switch findable on without a location')
       throw new LogError('GMS_LOCATION_REQUIRED')
     }

@@ -45,12 +45,16 @@ export function isUsableLocation(location: Location | null | undefined): boolean
  * way in, so a save cannot bring that state back: switching findable on needs a place -
  * the one stored, or one sent along in the same save.
  *
- * Only switching on is asked. Switching off, or leaving the setting alone, needs no place.
+ * Only the switch from off to on is asked. Switching off, not sending the setting, or
+ * sending it on while it already is, needs no place: a member left findable without one,
+ * before this rule, is not made any worse by a save that keeps it, and can still save the
+ * rest.
  */
 export function findableWithoutPlace(
   gmsAllowed: boolean | null | undefined,
+  allowedNow: boolean,
   stored: Location | null,
   sent: Location | null | undefined,
 ): boolean {
-  return gmsAllowed === true && !isUsableLocation(sent) && !isUsableLocation(stored)
+  return gmsAllowed === true && !allowedNow && !isUsableLocation(sent) && !isUsableLocation(stored)
 }

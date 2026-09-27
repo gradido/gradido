@@ -2022,6 +2022,24 @@ describe('UserResolver', () => {
               'refused to switch findable on without a location',
             )
           })
+
+          // Only the switch from off to on is asked. A member left findable without a place,
+          // before this rule, still saves the rest - with the setting sent along as it is.
+          it('lets a member already findable without one save the rest', async () => {
+            const [member] = await User.find()
+            await User.update({ id: member.id }, { gmsAllowed: true })
+
+            const result = await mutate({
+              mutation: updateUserInfos,
+              variables: { gmsAllowed: true, aboutMe: 'Ich repariere Fahrraeder.' },
+            })
+
+            expect(result.errors).toBeUndefined()
+            const after = await User.findOneOrFail({ where: { id: member.id } })
+            expect(after.aboutMe).toBe('Ich repariere Fahrraeder.')
+            expect(after.gmsAllowed).toBe(true)
+            expect(after.location).toBeNull()
+          })
         })
 
         describe('with gms location', () => {
