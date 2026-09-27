@@ -315,6 +315,33 @@ describe('ChatComposeBar', () => {
    * Paket D (E-042, E-044): a file goes through SwissTransfer. The paperclip at the left of the
    * field opens a short hint straight away -- three steps, what the service is, the way there.
    */
+  /**
+   * The words not sent yet, across a restart of the wallet (utils/chatReturn): the thread reads
+   * them from the bar when the page goes out of sight, and hands them back when it is made anew.
+   */
+  describe('the words across a restart', () => {
+    it('begins with the words it is given, and can send them', async () => {
+      mountBar({ initialText: 'Hier ist die Datei:' })
+
+      expect(field().element.value).toBe('Hier ist die Datei:')
+      await button().trigger('click')
+      expect(sent()[0][0].body).toBe('Hier ist die Datei:')
+    })
+
+    it('begins empty without them', () => {
+      mountBar()
+      expect(field().element.value).toBe('')
+    })
+
+    it('tells the words as they stand, typed or given', async () => {
+      mountBar({ initialText: 'Hier ist' })
+      expect(wrapper.vm.draft()).toBe('Hier ist')
+
+      await field().setValue('Hier ist die Datei:\n')
+      expect(wrapper.vm.draft()).toBe('Hier ist die Datei:\n')
+    })
+  })
+
   describe('the paperclip and its hint', () => {
     const clip = () => wrapper.find('[data-test="chat-compose-attach"]')
     const hint = () => wrapper.find('[data-test="chat-compose-file-hint"]')

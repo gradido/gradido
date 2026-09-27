@@ -2,7 +2,7 @@ import { START_LOCATION } from 'vue-router'
 import { verifyLogin } from '../graphql/queries'
 import { clearApolloCache } from '../plugins/apolloCache'
 import { mayFind } from '../utils/matchingPosition'
-import { takeChatReturn } from '../utils/chatReturn'
+import { holdChatText, takeChatReturn } from '../utils/chatReturn'
 
 /**
  * Whether the stored session still runs: a token, and more than five seconds before it ends --
@@ -90,7 +90,9 @@ const addNavigationGuards = (router, store, apollo) => {
   // the sign-in page, on `/` or on the overview -- where iOS starts the app from the home screen
   // -- opens that conversation again (utils/chatReturn). The note serves the one start after it,
   // whatever that start becomes, so it is taken first: without a running session the member signs
-  // in anew, and a conversation from before is nowhere to come back to.
+  // in anew, and a conversation from before is nowhere to come back to. The words not sent yet go
+  // to that conversation's field in memory, and only where the start opens it -- never through
+  // the address, which the browser keeps in its history.
   router.beforeEach((to, from, next) => {
     if (from !== START_LOCATION) return next()
     const back = takeChatReturn(store.state.gradidoID)
@@ -99,7 +101,10 @@ const addNavigationGuards = (router, store, apollo) => {
       return next({ name: 'Redeem', params: { code: to.params.code }, query: to.query })
     }
     if (to.name !== 'Login' && !isOverview(to)) return next()
-    if (back) return next(conversationWith(back))
+    if (back) {
+      holdChatText(back)
+      return next(conversationWith(back))
+    }
     return to.name === 'Login' ? next({ path: '/overview' }) : next()
   })
 
