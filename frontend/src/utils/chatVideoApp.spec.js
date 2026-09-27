@@ -231,7 +231,30 @@ describe("somebody else's address", () => {
     )
   })
 
+  // V5b: a planned call carries its time after the topic. The app gets the topic only -- the
+  // time is the calendar's, not the meeting's.
+  it("is taken with a planned call's time after the topic, and the app gets the topic alone", () => {
+    expect(
+      chatVideoAppUrl(
+        `${FFMUC}#config.subject=%22x%22&gradido.start=1790773200&gradido.end=1790776800`,
+      ),
+    ).toBe('jitsi-meet://meet.ffmuc.net/k7m2x9q4t8wz#config.subject=%22x%22')
+  })
+
   it.each([
+    ['a time without its end', `${FFMUC}#config.subject=%22x%22&gradido.start=1790773200`],
+    [
+      'a time that is no number',
+      `${FFMUC}#config.subject=%22x%22&gradido.start=soon&gradido.end=1790776800`,
+    ],
+    [
+      'a time past any date',
+      `${FFMUC}#config.subject=%22x%22&gradido.start=9999999999999&gradido.end=99999999999999`,
+    ],
+    [
+      'a setting after the time',
+      `${FFMUC}#config.subject=%22x%22&gradido.start=1&gradido.end=2&foo=1`,
+    ],
     ['another addition', `${FFMUC}#foo`],
     ['a second setting', `${FFMUC}#config.subject=%22x%22&config.startWithAudioMuted=true`],
     // Jitsi splits at a raw `&`; our value never has one (V4a writes it as an escape).

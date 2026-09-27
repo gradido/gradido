@@ -29,6 +29,8 @@ vi.mock('vue-i18n', () => ({
           ? `${key} ${JSON.stringify(values)}`
           : (words[key] ?? key),
     d: (date, format) => `${format}(${date.toISOString()})`,
+    // The language the day and the time zone of a planned call are written in (V5b).
+    locale: { value: 'de' },
   }),
 }))
 vi.mock('@/i18n', () => ({
@@ -149,6 +151,7 @@ describe('ContactWindow', () => {
           IMdiLinkVariant: true,
           IMdiCheck: true,
           IMdiServerOutline: true,
+          IMdiCalendarPlusOutline: true,
           // The thread reads the server; its own spec is about that. Here it only has to say
           // whom it was made for, count how often it was made, and take a video invitation
           // (`deliver`, which the real one exposes) for whom it was made. And it takes the
@@ -2012,6 +2015,441 @@ describe('ContactWindow', () => {
 
         expect({ ...localStorage }).toEqual({ [KEY]: '2' })
         expect(JSON.stringify({ ...sessionStorage })).not.toContain('q2w3e4r5t6y7')
+      })
+    })
+
+    /**
+     * V5b (Bernd, 27.09.2026): "aus einem Pickup-Kalender ein Datum und eine Uhrzeit von bis" in
+     * the gear's view, "Bei Planen werden dann die Sitzungsdaten in die Chat-Bubble eingetragen",
+     * and the calendar file of the same call. The tests run in UTC (TZ=UTC): the fields' own time
+     * is UTC here.
+     */
+    describe('planning a call', () => {
+      const KEY = 'chat-video-server:me-id'
+      const CHOICES = [
+        { id: 1, host: 'meet.ffmuc.net', operator: 'Freifunk München (Freie Netze München e. V.)' },
+        { id: 2, host: 'meet.systemli.org', operator: 'Systemli' },
+      ]
+      const SYSTEMLI = {
+        url: 'https://meet.systemli.org/q2w3e4r5t6y7',
+        host: 'meet.systemli.org',
+        operator: 'Systemli',
+      }
+      const START = new Date('2026-09-30T15:00:00.000Z')
+      const END = new Date('2026-09-30T16:00:00.000Z')
+      /** The time of the call as the plan's words carry it: the day, and the key with the times. */
+      const TIME = `chatThread.videoPlannedTime ${JSON.stringify({
+        from: `time(${START.toISOString()})`,
+        to: `time(${END.toISOString()})`,
+        zone: 'UTC',
+      })}`
+      const DAY = 'Mittwoch, 30. September 2026'
+      const field = (name) => inDialog(name)
+      const gear = () => inDialog('gear')
+
+      let clipboard
+      beforeEach(() => {
+        serverChoices.mockResolvedValue({ data: { chatVideoServerChoices: CHOICES } })
+        clipboard = vi.fn().mockResolvedValue(undefined)
+        Object.defineProperty(navigator, 'clipboard', {
+          value: { writeText: clipboard },
+          configurable: true,
+        })
+        localStorage.setItem(KEY, '2')
+      })
+
+      afterEach(() => {
+        delete navigator.clipboard
+        localStorage.clear()
+      })
+
+      /** The gear's view open, the list of servers in. */
+      const inSettings = async ({ exists = true } = {}) => {
+        await asked({ exists })
+        await flushPromises()
+        await gear().trigger('click')
+        await flushPromises()
+      }
+
+      /** The fields filled as a member fills them: the day, the start (the end follows), the end. */
+      const when = async ({ day = '2026-09-30', from = '15:00', to } = {}) => {
+        await field('day').setValue(day)
+        await field('from').setValue(from)
+        await field('from').trigger('change')
+        if (to !== undefined) await field('to').setValue(to)
+      }
+
+      const plan = async () => {
+        await field('plan').trigger('click')
+        await flushPromises()
+      }
+
+      it('offers a day, a start and an end under the server, each named, empty', async () => {
+        await inSettings()
+
+        for (const [name, type, label] of [
+          ['day', 'date', 'chatThread.videoDate'],
+          ['from', 'time', 'chatThread.videoFrom'],
+          ['to', 'time', 'chatThread.videoTo'],
+        ]) {
+          const input = field(name)
+          expect(input.attributes('type'), name).toBe(type)
+          expect(input.element.value, name).toBe('')
+          expect(wrapper.find(`label[for="${input.attributes('id')}"]`).text()).toBe(label)
+        }
+        expect(field('from').attributes('step')).toBe('300')
+        expect(field('day').attributes('min')).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+        const group = field('day').element.closest('[role="group"]')
+        expect(
+          group.querySelector(`#${group.getAttribute('aria-labelledby')}`).textContent.trim(),
+        ).toBe('chatThread.videoWhen')
+      })
+
+      it('names the time zone the fields mean', async () => {
+        await inSettings()
+
+        expect(field('when-hint').text()).toBe('chatThread.videoWhenHint {"zone":"UTC"}')
+      })
+
+      it('empties the day and the times again for the next question', async () => {
+        await inSettings()
+        await when({ to: '17:00' })
+        await field('back').trigger('click')
+        await inDialog('cancel').trigger('click')
+
+        await camera().trigger('click')
+        await flushPromises()
+        await gear().trigger('click')
+
+        expect(field('day').element.value).toBe('')
+        expect(field('from').element.value).toBe('')
+        expect(field('to').element.value).toBe('')
+      })
+
+      it('puts the end an hour after the start, and keeps an end chosen by hand', async () => {
+        await inSettings()
+
+        await when({ from: '15:00' })
+        expect(field('to').element.value).toBe('16:00')
+
+        await field('to').setValue('17:30')
+        await field('from').setValue('16:00')
+        await field('from').trigger('change')
+        expect(field('to').element.value).toBe('17:30')
+
+        await field('from').setValue('18:00')
+        await field('from').trigger('change')
+        expect(field('to').element.value).toBe('19:00')
+
+        await field('from').setValue('23:30')
+        await field('from').trigger('change')
+        expect(field('to').element.value).toBe('23:59')
+      })
+
+      it.each([
+        ['no day', { day: '' }],
+        ['the end before the start', { to: '14:00' }],
+      ])('says what is missing where %s, and sends nothing', async (_, fields) => {
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+        threadDelivers.mockResolvedValue(true)
+        await inSettings()
+        await when(fields)
+        serverRooms.mockClear()
+
+        await plan()
+
+        expect(field('settings-problem').text()).toBe('chatThread.videoPlanIncomplete')
+        expect(serverRooms).not.toHaveBeenCalled()
+        expect(threadDelivers).not.toHaveBeenCalled()
+        expect(dialog().exists()).toBe(true)
+      })
+
+      it('sends the invitation with the day and the time, on the server chosen, opens no room, and closes', async () => {
+        browserOpens()
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+        threadDelivers.mockResolvedValue(true)
+        await inSettings()
+        await when()
+
+        await plan()
+
+        const url = withChatVideoTopic(SYSTEMLI.url, 'Videoanruf', { start: START, end: END })
+        expect(url).toContain('&gradido.start=1790780400&gradido.end=1790784000')
+        expect(threadDelivers).toHaveBeenCalledTimes(1)
+        expect(threadDelivers).toHaveBeenCalledWith(
+          {
+            body: `chatThread.videoInvitePlanned ${JSON.stringify({ date: DAY, time: TIME, operator: 'Systemli', url })}`,
+            notify: 'NONE',
+          },
+          'carla-id',
+        )
+        expect(serverRooms).toHaveBeenCalledWith({
+          query: chatVideoRoom,
+          variables: { serverId: 2 },
+          fetchPolicy: 'no-cache',
+        })
+        expect(opens).not.toHaveBeenCalled()
+        expect(dialog().exists()).toBe(false)
+      })
+
+      it('names a topic of its own on a line of its own', async () => {
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+        threadDelivers.mockResolvedValue(true)
+        await asked()
+        await flushPromises()
+        await topicField().setValue('Lesekreis')
+        await gear().trigger('click')
+        await flushPromises()
+        await when()
+
+        await plan()
+
+        const url = withChatVideoTopic(SYSTEMLI.url, 'Lesekreis', { start: START, end: END })
+        expect(threadDelivers.mock.calls[0][0].body).toBe(
+          `chatThread.videoInvitePlannedTopic ${JSON.stringify({ topic: 'Lesekreis', date: DAY, time: TIME, operator: 'Systemli', url })}`,
+        )
+      })
+
+      // The people the link went to and the person invited meet in one room.
+      it('sends the room a copied link already went out for', async () => {
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+        threadDelivers.mockResolvedValue(true)
+        await inSettings()
+        await field('copy').trigger('click')
+        await flushPromises()
+        await when()
+
+        await plan()
+
+        expect(serverRooms).toHaveBeenCalledTimes(1)
+        expect(threadDelivers.mock.calls[0][0].body).toContain(SYSTEMLI.url)
+      })
+
+      it('offers the question’s box, and sends by mail as well where it is ticked', async () => {
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+        threadDelivers.mockResolvedValue(true)
+        await asked()
+        await flushPromises()
+        await inDialog('email').setValue(true)
+        await gear().trigger('click')
+        await flushPromises()
+
+        expect(field('plan-body').text()).toBe('chatThread.videoPlanBody {"name":"Carla-Sonne"}')
+        expect(field('plan-email').element.checked).toBe(true)
+        await when()
+        await plan()
+
+        expect(threadDelivers.mock.calls[0][0].notify).toBe('EMAIL')
+      })
+
+      // E-024: the first message of a pair goes by mail in any case -- nothing to choose.
+      it('says the first message goes by mail as well, and offers no box for it', async () => {
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+        threadDelivers.mockResolvedValue(true)
+        await inSettings({ exists: false })
+
+        expect(field('plan-body').text()).toBe('chatThread.videoPlanFirst {"name":"Carla-Sonne"}')
+        expect(field('plan-email').exists()).toBe(false)
+        await when()
+        await plan()
+        expect(threadDelivers.mock.calls[0][0].notify).toBe('EMAIL')
+      })
+
+      it('waits while the invitation is on its way: a second press, the server, the link and the file wait too', async () => {
+        const saved = vi.fn()
+        URL.createObjectURL = saved
+        const delivery = held()
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+        threadDelivers.mockReturnValue(delivery.promise)
+        await inSettings()
+        await when()
+
+        await plan()
+        expect(field('plan').attributes('aria-disabled')).toBe('true')
+        expect(field('server').element.disabled).toBe(true)
+        await plan()
+        await field('copy').trigger('click')
+        await field('calendar').trigger('click')
+        await flushPromises()
+
+        expect(threadDelivers).toHaveBeenCalledTimes(1)
+        expect(clipboard).not.toHaveBeenCalled()
+        expect(saved).not.toHaveBeenCalled()
+        delivery.release(true)
+        await flushPromises()
+        expect(dialog().exists()).toBe(false)
+        delete URL.createObjectURL
+      })
+
+      // The member's own presses just before "Plan" are not let go by it: the same room either way.
+      it('lets a copy pressed just before it finish, in the same room', async () => {
+        const room = held()
+        serverRooms.mockReturnValue(room.promise)
+        threadDelivers.mockResolvedValue(true)
+        await inSettings()
+        await when()
+
+        await field('copy').trigger('click')
+        await plan()
+        room.release({ data: { chatVideoRoom: SYSTEMLI } })
+        await flushPromises()
+
+        expect(serverRooms).toHaveBeenCalledTimes(1)
+        expect(clipboard).toHaveBeenCalledWith(withChatVideoTopic(SYSTEMLI.url, 'Videoanruf'))
+        expect(threadDelivers.mock.calls[0][0].body).toContain(SYSTEMLI.url)
+        expect(dialog().exists()).toBe(false)
+      })
+
+      it('names the server’s address where it has no operator', async () => {
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: { ...SYSTEMLI, operator: null } } })
+        threadDelivers.mockResolvedValue(true)
+        await inSettings()
+        await when()
+
+        await plan()
+
+        expect(threadDelivers.mock.calls[0][0].body).toContain('"operator":"meet.systemli.org"')
+      })
+
+      it('says so where the invitation did not go out, and stays', async () => {
+        serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+        threadDelivers.mockResolvedValue(false)
+        await inSettings()
+        await when()
+
+        await plan()
+
+        expect(field('settings-problem').text()).toBe('chatThread.videoNotSent')
+        expect(field('plan').attributes('aria-disabled')).toBe('false')
+        expect(dialog().exists()).toBe(true)
+      })
+
+      it('says so where the chosen server is no longer to be had', async () => {
+        serverRooms.mockRejectedValue(new Error('CHAT_VIDEO_SERVER_UNAVAILABLE'))
+        threadDelivers.mockResolvedValue(true)
+        await inSettings()
+        await when()
+
+        await plan()
+
+        expect(field('settings-problem').text()).toBe('chatThread.videoServerGone')
+        expect(threadDelivers).not.toHaveBeenCalled()
+      })
+
+      describe('the calendar file', () => {
+        let blobs
+        let saved
+        beforeEach(() => {
+          blobs = []
+          URL.createObjectURL = (blob) => {
+            blobs.push(blob)
+            return 'blob:calendar'
+          }
+          URL.revokeObjectURL = vi.fn()
+          saved = []
+          vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function () {
+            saved.push(this.download)
+          })
+        })
+
+        afterEach(() => {
+          delete URL.createObjectURL
+          delete URL.revokeObjectURL
+        })
+
+        const text = (blob) =>
+          new Promise((resolve) => {
+            const reader = new FileReader()
+            reader.onload = () => resolve(reader.result)
+            reader.readAsText(blob)
+          })
+
+        it('saves the planned call: its time, its title, the invitation as its note, the room -- and sends nothing', async () => {
+          serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+          await inSettings()
+          await when()
+
+          await field('calendar').trigger('click')
+          await flushPromises()
+
+          expect(saved).toEqual(['Videoanruf-2026-09-30.ics'])
+          const file = (await text(blobs[0])).replace(/\r\n /g, '')
+          const url = withChatVideoTopic(SYSTEMLI.url, 'Videoanruf', { start: START, end: END })
+          expect(file).toContain('DTSTART:20260930T150000Z\r\n')
+          expect(file).toContain('DTEND:20260930T160000Z\r\n')
+          expect(file).toContain('SUMMARY:Videoanruf – Carla-Sonne\r\n')
+          expect(file).toContain(`URL:${url}\r\n`)
+          expect(file).toContain('UID:q2w3e4r5t6y7-1790780400@gradido\r\n')
+          expect(file).toContain('DESCRIPTION:chatThread.videoInvitePlanned')
+          expect(threadDelivers).not.toHaveBeenCalled()
+          expect(dialog().exists()).toBe(true)
+        })
+
+        it('says what is missing without a day, and saves nothing', async () => {
+          await inSettings()
+
+          await field('calendar').trigger('click')
+          await flushPromises()
+
+          expect(field('settings-problem').text()).toBe('chatThread.videoPlanIncomplete')
+          expect(saved).toEqual([])
+        })
+      })
+
+      // The suite's clock is UTC, which knows neither summer nor winter time: on a clock in Berlin
+      // the fields mean Berlin's time, and the zone named is the one of the day chosen.
+      describe('on a clock in Berlin', () => {
+        beforeEach(() => {
+          process.env.TZ = 'Europe/Berlin'
+        })
+
+        afterEach(() => {
+          process.env.TZ = 'UTC'
+        })
+
+        it('names the zone of the day chosen: summer time in September, winter time in December', async () => {
+          await inSettings()
+
+          await when({ day: '2026-09-30' })
+          expect(field('when-hint').text()).toBe('chatThread.videoWhenHint {"zone":"MESZ"}')
+          await field('day').setValue('2026-12-02')
+          expect(field('when-hint').text()).toBe('chatThread.videoWhenHint {"zone":"MEZ"}')
+        })
+
+        it('sends the time the fields show on that clock, its zone named', async () => {
+          serverRooms.mockResolvedValue({ data: { chatVideoRoom: SYSTEMLI } })
+          threadDelivers.mockResolvedValue(true)
+          await inSettings()
+          await when()
+
+          await plan()
+
+          const start = new Date('2026-09-30T13:00:00.000Z')
+          const end = new Date('2026-09-30T14:00:00.000Z')
+          const url = withChatVideoTopic(SYSTEMLI.url, 'Videoanruf', { start, end })
+          expect(url).toContain('&gradido.start=1790773200&gradido.end=1790776800')
+          const time = `chatThread.videoPlannedTime ${JSON.stringify({
+            from: `time(${start.toISOString()})`,
+            to: `time(${end.toISOString()})`,
+            zone: 'MESZ',
+          })}`
+          expect(threadDelivers.mock.calls[0][0].body).toBe(
+            `chatThread.videoInvitePlanned ${JSON.stringify({ date: DAY, time, operator: 'Systemli', url })}`,
+          )
+        })
+      })
+
+      it('gives the waiting look to "Plan" as well, in the stylesheet', () => {
+        const code = readFileSync(
+          join(dirname(fileURLToPath(import.meta.url)), 'ContactWindow.vue'),
+          'utf8',
+        ).replace(/\/\*[\s\S]*?\*\//g, '')
+        expect(code).toMatch(/\.contact-window-video-plan\[aria-disabled='true'\]/)
+        expect(code).toMatch(/\n\.contact-window-video-when\s*\{[^}]*grid-template-columns/)
+        // On a phone the day takes a row of its own, and the two times share the next.
+        expect(code).toMatch(
+          /@media \(width <= 420px\)\s*\{[^@]*\.contact-window-video-when-day\s*\{[^}]*grid-column:\s*1 \/ -1/,
+        )
       })
     })
 

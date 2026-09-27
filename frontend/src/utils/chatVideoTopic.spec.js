@@ -1,6 +1,11 @@
 // AI-GENERATED — not an architecture reference
 import { describe, expect, it } from 'vitest'
-import { CHAT_VIDEO_TOPIC_MAX, withChatVideoTopic, withoutChatVideoTopic } from './chatVideoTopic'
+import {
+  CHAT_VIDEO_TOPIC_MAX,
+  readChatVideoAddition,
+  withChatVideoTopic,
+  withoutChatVideoTopic,
+} from './chatVideoTopic'
 import { chatTextParts } from './chatTextParts'
 
 /** A room as the server hands it out (V1): a server, the prefix if any, and twelve of chance. */
@@ -146,6 +151,89 @@ describe('withoutChatVideoTopic', () => {
       'https://gradido.net/de/',
     ]) {
       expect(withoutChatVideoTopic(address)).toBe(address)
+    }
+  })
+})
+
+// V5b: a planned call carries its time after the topic -- two settings of Gradido's own, whole
+// seconds since 1970, which Jitsi reads as numbers and uses for nothing.
+describe('the time of a planned call', () => {
+  const WHEN = {
+    start: new Date('2026-09-30T13:00:00.000Z'),
+    end: new Date('2026-09-30T14:00:00.000Z'),
+  }
+  const PLANNED = `${ROOM}#config.subject=%22Lesekreis%22&gradido.start=1790773200&gradido.end=1790776800`
+
+  it('goes after the topic, as whole seconds since 1970', () => {
+    expect(withChatVideoTopic(ROOM, 'Lesekreis', WHEN)).toBe(PLANNED)
+  })
+
+  it('leaves the address as before without a time', () => {
+    expect(withChatVideoTopic(ROOM, 'Lesekreis')).toBe(`${ROOM}#config.subject=%22Lesekreis%22`)
+    expect(withChatVideoTopic(ROOM, 'Lesekreis', null)).toBe(
+      `${ROOM}#config.subject=%22Lesekreis%22`,
+    )
+  })
+
+  // What Jitsi does with the address: the title as before, the time two numbers it passes over --
+  // no value that is no JSON, so nothing it reports as an error.
+  it('is read by Jitsi as two numbers, the topic still its title', () => {
+    for (const [, topic] of [['default', 'Videoanruf'], ...TOPICS]) {
+      const read = jitsiReads(withChatVideoTopic(ROOM, topic, WHEN))
+      expect(read['config.subject'], topic).toBe(topic)
+      expect(read['gradido.start']).toBe(1790773200)
+      expect(read['gradido.end']).toBe(1790776800)
+    }
+  })
+
+  it('stays one link at the end of an invitation', () => {
+    const address = withChatVideoTopic(ROOM, 'Lesekreis „Momo“', WHEN)
+    const links = chatTextParts(invitation('Lesekreis „Momo“', address)).filter(
+      (part) => part.type === 'url',
+    )
+    expect(links.map((part) => part.value)).toEqual([address])
+  })
+
+  it('goes with the topic where the thread shortens the address', () => {
+    expect(withoutChatVideoTopic(PLANNED)).toBe(ROOM)
+  })
+
+  it('is read back: the room, the topic, the start and the end', () => {
+    expect(readChatVideoAddition(PLANNED)).toEqual({
+      room: ROOM,
+      topic: 'Lesekreis',
+      start: WHEN.start,
+      end: WHEN.end,
+    })
+    for (const [, topic] of TOPICS) {
+      expect(readChatVideoAddition(withChatVideoTopic(ROOM, topic, WHEN))?.topic, topic).toBe(topic)
+    }
+  })
+
+  it('is none on an address with the topic alone', () => {
+    expect(readChatVideoAddition(withChatVideoTopic(ROOM, 'Lesekreis'))).toEqual({
+      room: ROOM,
+      topic: 'Lesekreis',
+      start: null,
+      end: null,
+    })
+  })
+
+  // Somebody else's address, or one no wallet of ours writes: nothing is read out of it.
+  it('reads nothing out of an address that is not of our own form', () => {
+    for (const address of [
+      `${ROOM}#config.subject=%22Lesekreis%22&gradido.start=1790776800&gradido.end=1790773200`,
+      `${ROOM}#config.subject=%22Lesekreis%22&gradido.start=1790773200`,
+      `${ROOM}#config.subject=%22Lesekreis%22&gradido.start=1790773200&gradido.end=1790776800&x=1`,
+      `${ROOM}#config.subject=%22Lesekreis%22&gradido.start=17907x3200&gradido.end=1790776800`,
+      // Thirteen digits: seconds past any date a Date can hold (±8.64e15 ms).
+      `${ROOM}#config.subject=%22Lesekreis%22&gradido.start=9999999999999&gradido.end=99999999999999`,
+      `${ROOM}#config.subject=Lesekreis&gradido.start=1790773200&gradido.end=1790776800`,
+      `${ROOM}#config.subject=42`,
+      `${ROOM}#foo`,
+      ROOM,
+    ]) {
+      expect(readChatVideoAddition(address), address).toBeNull()
     }
   })
 })

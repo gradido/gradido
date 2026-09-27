@@ -17,15 +17,18 @@ import { withChatVideoTopic } from '@/utils/chatVideoTopic'
  * ⛔ An invitation of our own and nothing else: the room as the server hands it out (V1: `https`,
  * the server, its path, the room; no `?`), and after its one `#` exactly the addition V4a makes --
  * `config.subject=` and a value without `&` and without `#`, the rule the thread shortens the
- * address by (`withoutChatVideoTopic`). A `#` before it, a second setting, `http`, a query:
- * somebody else's address, and it gets no second way.
+ * address by (`withoutChatVideoTopic`) --, with or without the time of a planned call after it
+ * (V5b: `&gradido.start=…&gradido.end=…`, whole seconds). A `#` before it, another setting, `http`,
+ * a query: somebody else's address, and it gets no second way. The app gets the topic only: the
+ * time is the calendar's, not the meeting's.
  *
  * The path has to end on a room: the app takes what follows its LAST `/` as the room. With only the
  * addition after it the app shows the server's front page instead of a room, and with no `/` at all
  * it takes the whole as a room name on its own default server (meet.jit.si, unless changed in its
  * settings) -- not on the server the link names.
  */
-const OWN_INVITATION = /^https:\/\/([^/?#]+)(\/[^?#]*[^/?#])#config\.subject=([^&#]*)$/
+const OWN_INVITATION =
+  /^https:\/\/([^/?#]+)(\/[^?#]*[^/?#])#config\.subject=([^&#]*)(?:&gradido\.start=\d{1,12}&gradido\.end=\d{1,12})?$/
 
 /**
  * The two curly double quotes, made straight for the app.
