@@ -7,16 +7,16 @@
     rel="noopener noreferrer"
     data-test="chat-file-card"
   >
-    <!-- One link, the whole card: a tap opens SwissTransfer's page for the files in a tab of its
+    <!-- One link, the whole card: a tap opens the service's page for the files in a tab of its
          own, and no address of the thread goes with it. It names where it leads -- "File on
-         SwissTransfer" over the address itself -- so a card never stands for a destination it
-         does not show. (Inside the link, not above it: a comment beside the root would make two
-         roots in development.) -->
+         Dropbox" over the address itself -- so a card never stands for a destination it does not
+         show. (Inside the link, not above it: a comment beside the root would make two roots in
+         development.) -->
     <span class="chat-file-card-icon" aria-hidden="true">
       <i-mdi-file-document-outline />
     </span>
     <span class="chat-file-card-text">
-      <span class="chat-file-card-title">{{ t('chatThread.fileCard') }}</span>
+      <span class="chat-file-card-title">{{ t('chatThread.fileCard', { service }) }}</span>
       <span class="chat-file-card-where" data-test="chat-file-card-where">{{ where }}</span>
     </span>
     <i-mdi-open-in-new class="chat-file-card-go" aria-hidden="true" />
@@ -26,27 +26,29 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { swissTransferLabel } from '@/utils/chatFileLink'
+import { fileLinkLabel } from '@/utils/chatFileLink'
 
 /**
- * A link to files on SwissTransfer, shown in the thread as a card in place of the address (E-042,
- * E-044): Gradido stores no files, the message carries the link, and the card says what it is.
- * ChatMessageText puts it where the link stood; `isSwissTransferLink` decides which links get one.
+ * A link to files on SwissTransfer, Dropbox, Google Drive, OneDrive or WeTransfer, shown in the
+ * thread as a card in place of the address (E-042, E-044): Gradido stores no files, the message
+ * carries the link, and the card says what it is. ChatMessageText puts it where the link stood;
+ * `fileLinkService` decides which links get one, and names the service.
  *
- * ⛔ It shows only what the link itself says. Nothing is fetched from SwissTransfer before
- * somebody taps it -- no preview, no file names, no expiry date: any request would tell a third
- * party that the message was opened (Notiz 23.09. §5), and the page behind the link knows all of
- * that anyway.
+ * ⛔ It shows only what the link itself says. Nothing is fetched from the service before somebody
+ * taps it -- no preview, no file names, no expiry date: any request would tell a third party that
+ * the message was opened (Notiz 23.09. §5), and the page behind the link knows all of that anyway.
  */
 const props = defineProps({
-  /** A link `isSwissTransferLink` accepts, as the message carries it. */
+  /** A link `fileLinkService` names a service for, as the message carries it: key and all. */
   href: { type: String, required: true },
+  /** The service, as `fileLinkService` names it: a brand, the same in every language. */
+  service: { type: String, required: true },
 })
 
 const { t } = useI18n()
 
-/** The destination the card names: the address without `https://` and `www.`. */
-const where = computed(() => swissTransferLabel(props.href))
+/** The destination the card names: host and path, without `https://`, `www.`, query or `#`. */
+const where = computed(() => fileLinkLabel(props.href))
 </script>
 
 <style lang="scss" scoped>
