@@ -1,5 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { h, inject } from 'vue'
+import ChatFileCard from '@/components/Chat/ChatFileCard.vue'
+import { isSwissTransferLink } from '@/utils/chatFileLink'
 import { chatTextParts } from '@/utils/chatTextParts'
 import { CHAT_VIDEO_JOIN, chatVideoAppUrl, offersJitsiApp } from '@/utils/chatVideoApp'
 import { withoutChatVideoTopic } from '@/utils/chatVideoTopic'
@@ -8,6 +10,26 @@ import { withoutChatVideoTopic } from '@/utils/chatVideoTopic'
  * tab, a new window, a download -- are the browser's, and they go as they always did. */
 const plainClick = (event) =>
   event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey
+
+/** A piece that the thread shows as a file card: a link to files on SwissTransfer (E-044). */
+const isFileCard = (part) => part?.type === 'url' && isSwissTransferLink(part.value)
+
+/**
+ * The space right before and right after a file card, left out of what is shown. The card is a
+ * block in the text, and the bubble keeps a message's own line breaks (`pre-wrap`): a break
+ * between the card and the text after it would stand as an empty line under the card, a blank
+ * line before it as one over it. What is stored stays as it was written.
+ */
+const aroundFileCards = (parts) =>
+  parts
+    .map((part, index) => {
+      if (part.type !== 'text') return part
+      let value = part.value
+      if (isFileCard(parts[index - 1])) value = value.replace(/^\s+/, '')
+      if (isFileCard(parts[index + 1])) value = value.replace(/\s+$/, '')
+      return { ...part, value }
+    })
+    .filter((part) => part.type !== 'text' || part.value !== '')
 
 /**
  * The text of one chat message: plain text, bold runs as `<strong>`, and its web and e-mail
@@ -34,6 +56,10 @@ const plainClick = (event) =>
  * stays the room's address, so a click with a key held, the middle button and "copy link" work as
  * on any link. On a phone, and where no window provides the question, it opens the room straight
  * away, as it always did. Whether this is a computer is asked at the click, nothing kept.
+ *
+ * A link to files on SwissTransfer is shown as a file card in place of the address (Paket D,
+ * E-044): Gradido stores no files, the message carries the link, and the card names where it
+ * leads. The words around it stay; every other address stays a link, as before.
  */
 export default {
   name: 'ChatMessageText',
@@ -46,8 +72,9 @@ export default {
       h(
         'span',
         { class: 'chat-message-text' },
-        chatTextParts(props.text).map((part) => {
+        aroundFileCards(chatTextParts(props.text)).map((part) => {
           if (part.type === 'url') {
+            if (isFileCard(part)) return h(ChatFileCard, { href: part.value })
             const asks = join && chatVideoAppUrl(part.value) !== null
             return h(
               'a',
