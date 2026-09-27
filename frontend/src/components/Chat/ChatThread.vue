@@ -97,10 +97,12 @@
          where the thread could not be loaded -- there is nothing to answer yet. -->
     <chat-compose-bar
       v-if="state === 'thread' || state === 'empty'"
+      ref="composeBar"
       :name="alias"
       :first="state === 'empty'"
       :sending="sending"
       :failed="sendFailed"
+      :initial-text="heldText"
       @send="send"
     />
 
@@ -125,7 +127,7 @@ import {
   sendChatMessage,
 } from '@/graphql/chat.graphql'
 import { chatMemberKey } from '@/utils/chatMemberKey'
-import { forgetChatReturn, noteChatReturn } from '@/utils/chatReturn'
+import { forgetChatReturn, noteChatReturn, takeHeldChatText } from '@/utils/chatReturn'
 
 /** How many messages a page holds -- the server's own default, written out. */
 const PAGE_SIZE = 50
@@ -265,12 +267,18 @@ onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisibil
 /**
  * The way back into this conversation, should iOS start the wallet over while the member is in
  * another app (utils/chatReturn): noted as the page goes out of sight, let go as it comes back
- * into sight or the thread closes. Whom it is with, never the words in the field.
+ * into sight or the thread closes -- whom it is with, and the words in the field not sent yet.
+ * After such a start, the words come back into the field (`heldText`, handed over in memory).
  */
 const store = useStore()
+const composeBar = ref(null)
+const heldText = takeHeldChatText(memberRef)
 const noteReturn = () => {
-  if (document.hidden) noteChatReturn(store.state.gradidoID, memberRef)
-  else forgetChatReturn(store.state.gradidoID)
+  if (document.hidden) {
+    noteChatReturn(store.state.gradidoID, memberRef, composeBar.value?.draft() ?? '')
+  } else {
+    forgetChatReturn(store.state.gradidoID)
+  }
 }
 document.addEventListener('visibilitychange', noteReturn)
 onBeforeUnmount(() => {

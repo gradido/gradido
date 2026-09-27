@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import addNavigationGuards from './guards'
 import { createMemoryHistory, createRouter, createWebHistory } from 'vue-router'
 import { verifyLogin } from '../graphql/queries'
+import { takeHeldChatText } from '../utils/chatReturn'
 
 vi.mock('../graphql/queries', () => ({
   verifyLogin: 'mocked-verify-login-query',
@@ -401,11 +402,35 @@ describe('a start with a running session', () => {
       )
     const noted = (me = 'me-id') => window.localStorage.getItem(`chat-return:${me}`)
     const ANNA_THREAD = '/contacts?with=anna-id&community=other-uuid'
-    afterEach(() => window.localStorage.clear())
+    afterEach(() => {
+      window.localStorage.clear()
+      takeHeldChatText({ gradidoID: '' })
+    })
 
     it.each(['/login', '/', '/overview'])('opens it again from a start on %s', async (address) => {
       note()
       expect(await whereAfter(address, ME)).toBe(ANNA_THREAD)
+    })
+
+    // ⭐ The words not sent yet (Bernd, 27.09.2026) go to that conversation's field in memory:
+    // an address would put them in the browser's history.
+    it('hands the words not sent yet to that conversation, never through the address', async () => {
+      note({ text: 'Hier ist die Datei:' })
+      const at = await whereAfter('/login', ME)
+
+      expect(at).toBe(ANNA_THREAD)
+      expect(decodeURIComponent(at)).not.toContain('Datei')
+      expect(takeHeldChatText({ gradidoID: 'anna-id' })).toBe('Hier ist die Datei:')
+    })
+
+    it('holds no words where the start does not open the conversation', async () => {
+      note({ text: 'Hier ist die Datei:' })
+      await whereAfter('/login', { ...ME, tokenTime: now() - 60 })
+      expect(takeHeldChatText({ gradidoID: 'anna-id' })).toBe('')
+
+      note({ text: 'Hier ist die Datei:' })
+      await whereAfter('/register', ME)
+      expect(takeHeldChatText({ gradidoID: 'anna-id' })).toBe('')
     })
 
     it('names no community for a conversation in this one', async () => {

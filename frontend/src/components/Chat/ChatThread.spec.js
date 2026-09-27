@@ -6,6 +6,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest'
 import ChatThread from './ChatThread.vue'
 import ChatComposeBar from './ChatComposeBar.vue'
+import { holdChatText, takeHeldChatText } from '@/utils/chatReturn'
 import {
   chatMessagesWithMemberQuery,
   markChatConversationRead,
@@ -332,7 +333,10 @@ describe('ChatThread', () => {
    */
   describe('the way back into it after a restart', () => {
     const note = () => window.localStorage.getItem('chat-return:me-id')
-    afterEach(() => window.localStorage.removeItem('chat-return:me-id'))
+    afterEach(() => {
+      window.localStorage.removeItem('chat-return:me-id')
+      takeHeldChatText({ gradidoID: '' })
+    })
 
     it('notes whom it is with as the page goes out of sight, and not before', () => {
       mountThread()
@@ -361,15 +365,37 @@ describe('ChatThread', () => {
       expect(note()).toBeNull()
     })
 
-    // ⛔ Whom, never what: the words in the field stay on the page and are not written down.
-    it('never writes down the words in the field', async () => {
+    /**
+     * ⭐ And the words in the field not sent yet (Bernd, 27.09.2026: "I write a text and then want
+     * to attach a file -- the text would be gone"). Only while the page is out of sight: they go
+     * with the note when it comes back.
+     */
+    it('notes the words in the field not sent yet with it', async () => {
       mountThread()
       await arrive(page([1, 2]))
       await field().setValue('Hier ist die Datei:')
       pageHidden(true)
+      expect(JSON.parse(note()).text).toBe('Hier ist die Datei:')
 
-      expect(note()).not.toContain('Datei')
-      expect(Object.keys(JSON.parse(note())).sort()).toEqual(['at', 'communityUuid', 'gradidoID'])
+      pageHidden(false)
+      expect(note()).toBeNull()
+    })
+
+    // After the start that opened this conversation again (routes/guards.js), in memory.
+    it('brings back the words a start held for it, into the field', async () => {
+      holdChatText({ gradidoID: 'lena-id', text: 'Hier ist die Datei:' })
+      mountThread()
+      await arrive(page([1, 2]))
+
+      expect(field().element.value).toBe('Hier ist die Datei:')
+    })
+
+    it('leaves the field empty where the words were held for somebody else', async () => {
+      holdChatText({ gradidoID: 'anna-id', text: 'Hier ist die Datei:' })
+      mountThread()
+      await arrive(page([1, 2]))
+
+      expect(field().element.value).toBe('')
     })
   })
 

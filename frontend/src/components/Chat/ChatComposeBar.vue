@@ -156,7 +156,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, ref, useId, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { BButton, BModal } from 'bootstrap-vue-next'
 import { SWISSTRANSFER_URL } from '@/utils/chatFileLink'
@@ -181,6 +181,11 @@ const props = defineProps({
   sending: { type: Boolean, default: false },
   /** The last message did not go through; its text is still in the field. */
   failed: { type: Boolean, default: false },
+  /**
+   * The words to begin with: what stood in the field, not sent yet, when iOS started the wallet
+   * over (utils/chatReturn). Read once, when the bar is made.
+   */
+  initialText: { type: String, default: '' },
 })
 
 const emit = defineEmits(['send'])
@@ -200,7 +205,7 @@ const remainingId = `${id}-remaining`
 
 const root = ref(null)
 const field = ref(null)
-const text = ref('')
+const text = ref(props.initialText)
 const alsoByEmail = ref(false)
 
 const placeholder = computed(() => t('chatThread.placeholder', { name: props.name }))
@@ -236,6 +241,13 @@ const grow = () => {
   box.style.height = 'auto'
   box.style.height = `${box.scrollHeight + box.offsetHeight - box.clientHeight}px`
 }
+// Words brought back after a restart: the field takes their height at once, as if typed.
+onMounted(() => {
+  if (text.value) grow()
+})
+
+/** The words in the field as they stand, for the thread's note (utils/chatReturn). */
+defineExpose({ draft: () => text.value })
 
 /**
  * What went out with the last press. The field stays writable while a message is on its way,
