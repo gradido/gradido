@@ -147,6 +147,8 @@ describe('the time of a call from the fields', () => {
     ['the end at the start', '2026-09-30', '15:00', '15:00'],
     ['the end before the start', '2026-09-30', '15:00', '14:00'],
     ['a day that is none', '2026-13-45', '15:00', '16:00'],
+    // `Date` would take it as the 2nd of March.
+    ['a day the month does not have', '2026-02-30', '15:00', '16:00'],
   ])('is none with %s', (_, day, from, to) => {
     expect(chatVideoWhen(day, from, to)).toBeNull()
   })
@@ -194,6 +196,21 @@ describe('on a clock in Berlin', () => {
 
     expect(chatVideoCalendarFileName('Lesekreis', late.start)).toBe('Lesekreis-2026-10-01.ics')
     expect(chatVideoDay(late.start, 'de')).toBe('Donnerstag, 1. Oktober 2026')
+  })
+
+  // The night summer time begins, the clock goes from 02:00 to 03:00: a call at 02:30 would go out
+  // at 03:30. The night it ends, 02:00 to 03:00 comes twice: the first is taken.
+  it('takes no time the clock skips, and the first of an hour it shows twice', () => {
+    expect(chatVideoWhen('2027-03-28', '02:30', '04:00')).toBeNull()
+    expect(chatVideoWhen('2027-03-28', '01:30', '02:30')).toBeNull()
+
+    const spring = chatVideoWhen('2027-03-28', '01:30', '03:30')
+    expect(spring.start.toISOString()).toBe('2027-03-28T00:30:00.000Z')
+    expect(spring.end.toISOString()).toBe('2027-03-28T01:30:00.000Z')
+
+    const autumn = chatVideoWhen('2026-10-25', '02:30', '03:30')
+    expect(autumn.start.toISOString()).toBe('2026-10-25T00:30:00.000Z')
+    expect(autumn.end.toISOString()).toBe('2026-10-25T02:30:00.000Z')
   })
 
   it('names summer time and winter time', () => {

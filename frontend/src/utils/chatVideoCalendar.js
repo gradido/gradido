@@ -116,8 +116,31 @@ export const saveChatVideoCalendarFile = (name, text) => {
 }
 
 /**
+ * A day and a time of day as the member's own clock reads them -- or null where that clock never
+ * shows them: the hour skipped when summer time begins (02:30 on the last Sunday in March, in
+ * Berlin), a day the month does not have. `Date` moves such a time on without a word (to 03:30, to
+ * the 2nd of March), and the call would go out at another time than the fields show (coderabbit,
+ * #3995). Where the clock shows an hour twice, as summer time ends, it is the first.
+ */
+const onTheClock = (day, time) => {
+  // ⛔ A date and a time without an offset are the member's own time (ECMAScript's rule for the
+  // date-time form); a date alone would be UTC.
+  const date = new Date(`${day}T${time}`)
+  const [year, month, dayOfMonth] = day.split('-').map(Number)
+  const [hours, minutes] = time.split(':').map(Number)
+  return date.getFullYear() === year &&
+    date.getMonth() + 1 === month &&
+    date.getDate() === dayOfMonth &&
+    date.getHours() === hours &&
+    date.getMinutes() === minutes
+    ? date
+    : null
+}
+
+/**
  * The time of a call from the question's fields: a day and two times of day, as the member's own
- * clock reads them. null where one is missing, or the end is not after the start.
+ * clock reads them. null where one is missing or is on no clock (`onTheClock`), or the end is not
+ * after the start.
  *
  * @param {string} day `2026-09-30`, as a date field gives it
  * @param {string} from `15:00`, as a time field gives it
@@ -126,11 +149,9 @@ export const saveChatVideoCalendarFile = (name, text) => {
  */
 export const chatVideoWhen = (day, from, to) => {
   if (!day || !from || !to) return null
-  // ⛔ A date and a time without an offset are the member's own time (ECMAScript's rule for the
-  // date-time form); a date alone would be UTC.
-  const start = new Date(`${day}T${from}`)
-  const end = new Date(`${day}T${to}`)
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) return null
+  const start = onTheClock(day, from)
+  const end = onTheClock(day, to)
+  if (!start || !end || end <= start) return null
   return { start, end }
 }
 
