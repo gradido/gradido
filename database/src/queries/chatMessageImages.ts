@@ -82,8 +82,8 @@ export async function dbDeleteChatMessageImagesByMessageUuid(messageUuid: string
  * What is known about the pictures of these messages, in one query for a whole page: by message,
  * and within a message by place. A message without a picture has no entry.
  *
- * ⛔ Never the picture itself. A page carries up to a hundred messages, and at some 55 KB a
- * picture it would be several megabytes read, only for the list to throw them away. The picture
+ * ⛔ Never the picture itself. A page carries up to a hundred messages, and at up to 35 KB a
+ * picture it would be megabytes read, only for the list to throw them away. The picture
  * comes one at a time, asked for by the member who is shown the message
  * (dbSelectChatMessageImageForMember).
  *

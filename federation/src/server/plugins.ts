@@ -29,13 +29,23 @@ const filterVariables = (variables: any) => {
   return vars
 }
 
-const logPlugin = {
+// A string longer than this is written as its length, the way the backend's request log writes a
+// long value. The sealed command of a chat message with a picture arrives as a jwt of some
+// 100 KB (P7b): written whole, every such request would put that much into the log on level
+// info. An error may quote a variable back, so the errors are written the same way.
+const LOGGED_STRING_MAX_LENGTH = 1000
+const withLongStringsAsLength = (_key: string, value: unknown): unknown =>
+  typeof value === 'string' && value.length > LOGGED_STRING_MAX_LENGTH
+    ? `*** ${value.length} characters`
+    : value
+
+export const logPlugin = {
   requestDidStart(requestContext: any) {
     const { logger } = requestContext
     const { query, mutation, variables, operationName } = requestContext.request
     if (operationName !== 'IntrospectionQuery') {
       logger.info(`Request:
-${mutation || query}variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
+${mutation || query}variables: ${JSON.stringify(filterVariables(variables), withLongStringsAsLength, 2)}`)
     }
     return {
       willSendResponse(requestContext: any) {
@@ -50,7 +60,7 @@ ${JSON.stringify(requestContext.response.data, null, 2)}`)
           }
           if (requestContext.response.errors) {
             logger.error(`Response-Errors:
-${JSON.stringify(requestContext.response.errors, null, 2)}`)
+${JSON.stringify(requestContext.response.errors, withLongStringsAsLength, 2)}`)
           }
         }
         return requestContext

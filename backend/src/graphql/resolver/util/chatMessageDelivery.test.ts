@@ -568,4 +568,156 @@ describe('deliverChatMessageAcrossBorder', () => {
     expect(record.mock.calls).toEqual([[5, 'failed', null]])
     expect(stored).toMatchObject({ deliveryState: 'failed', mailState: null })
   })
+
+  /**
+   * P7b: the picture travels in the command. The command is sealed and measured first; then the
+   * picture is filed, under the names the command gives it, then the own copy, then the command
+   * goes out. Neither the order nor a copy that could not be filed can be brought about on purpose
+   * against a database -- ChatResolver.test.ts runs the way through there.
+   */
+  describe('with a picture', () => {
+    const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0xff, 0xd9])
+    /** The wallet's target (E-046), a picture of bytes that are not the same all over. */
+    const WALLET_PICTURE = Buffer.concat([
+      Buffer.from([0xff, 0xd8]),
+      Buffer.from(Array.from({ length: 32 * 1024 - 4 }, (_, n) => (n * 7919) % 251)),
+      Buffer.from([0xff, 0xd9]),
+    ])
+    const VARIATION_SELECTOR = String.fromCodePoint(0xfe0f)
+
+    const withPicture = (image: Buffer, body = 'Look at this') =>
+      deliverChatMessageAcrossBorder({
+        senderUser: anna,
+        senderCom,
+        receiverCom,
+        receiverComIdentifier: PEER,
+        cmdClient,
+        recipientGradidoId: BEN,
+        subject: null,
+        body,
+        notify: 'email',
+        requireStored: true,
+        letter: false,
+        images: [{ image, width: 924, height: 520 }],
+      })
+
+    it('files the picture, then the own copy, then sends -- the picture under the names the command gives it', async () => {
+      const steps: string[] = []
+      storePictures.mockImplementation(async () => {
+        steps.push('picture')
+        return true
+      })
+      store.mockImplementation(async () => {
+        steps.push('copy')
+        return row('pending')
+      })
+      sendCommandForAnswer.mockImplementation(async () => {
+        steps.push('command')
+        return { success: true, value: 'mailed' }
+      })
+      record.mockResolvedValue(new Date())
+
+      const { stored, error } = await withPicture(JPEG)
+
+      expect(steps).toEqual(['picture', 'copy', 'command'])
+      expect(error).toBeNull()
+      expect(stored?.deliveryState).toBe('delivered')
+      const [messageUuid, pictures] = storePictures.mock.calls[0]
+      expect(store.mock.calls[0][0].messageUuid).toBe(messageUuid)
+      expect(pictures).toEqual([
+        {
+          image: JPEG,
+          width: 924,
+          height: 520,
+          imageUuid: expect.stringMatching(/^[0-9a-f-]{36}$/),
+          position: 0,
+        },
+      ])
+      const sent = await payload()
+      expect(sent.messageUuid).toBe(messageUuid)
+      expect(sent.images).toEqual([
+        {
+          imageUuid: pictures[0].imageUuid,
+          width: 924,
+          height: 520,
+          data: JPEG.toString('base64'),
+        },
+      ])
+      expect(removePictures).not.toHaveBeenCalled()
+    })
+
+    it("sends the wallet's picture with a text of 2000 characters", async () => {
+      store.mockResolvedValue(row('pending'))
+      sendCommandForAnswer.mockResolvedValue({ success: true, value: null })
+      record.mockResolvedValue(new Date())
+
+      await withPicture(WALLET_PICTURE, '😀'.repeat(2000))
+
+      expect(sendCommandForAnswer).toHaveBeenCalledTimes(1)
+      expect((await payload()).images[0].data).toBe(WALLET_PICTURE.toString('base64'))
+    })
+
+    // ⛔ MaxLength counts 2000 characters, the envelope weighs some 25 KB of them: too large for
+    // the other server. Refused before anything is filed or sent.
+    it('refuses a command too large for the other server, and files and sends nothing', async () => {
+      store.mockResolvedValue(row('pending'))
+      sendCommandForAnswer.mockResolvedValue({ success: true, value: null })
+
+      await expect(
+        withPicture(WALLET_PICTURE, `😀${VARIATION_SELECTOR}`.repeat(2000)),
+      ).rejects.toThrow('CHAT_MESSAGE_NOT_SENT: TOO_LARGE_ACROSS_BORDER')
+
+      expect(storePictures).not.toHaveBeenCalled()
+      expect(store).not.toHaveBeenCalled()
+      expect(sendCommandForAnswer).not.toHaveBeenCalled()
+    })
+
+    // E-019: a failed delivery is the copy's state, not an error -- the copy keeps its picture.
+    it('hands back the copy FAILED where the other side refuses it, and keeps its picture', async () => {
+      store.mockResolvedValue(row('pending'))
+      record.mockResolvedValue(new Date())
+      sendCommandForAnswer.mockResolvedValue({
+        success: false,
+        error: 'sendCommand failed with response error: CHAT_IMAGE_NOT_ACCEPTED: NOT_JPEG',
+      })
+
+      const { stored, error } = await withPicture(JPEG)
+
+      expect(stored?.deliveryState).toBe('failed')
+      expect(error).toContain('NOT_JPEG')
+      expect(storePictures).toHaveBeenCalledTimes(1)
+      expect(removePictures).not.toHaveBeenCalled()
+    })
+
+    it('files no copy and sends nothing where the picture could not be filed', async () => {
+      storePictures.mockResolvedValue(false)
+      store.mockResolvedValue(row('pending'))
+
+      expect(await withPicture(JPEG)).toEqual({ stored: null, error: null })
+
+      expect(store).not.toHaveBeenCalled()
+      expect(sendCommandForAnswer).not.toHaveBeenCalled()
+    })
+
+    it('takes the picture back out and sends nothing where the own copy could not be filed', async () => {
+      store.mockResolvedValue(null)
+
+      expect(await withPicture(JPEG)).toEqual({ stored: null, error: null })
+
+      expect(removePictures.mock.calls).toEqual([[storePictures.mock.calls[0][0]]])
+      expect(sendCommandForAnswer).not.toHaveBeenCalled()
+    })
+
+    it('sends no images field for a message without a picture, and files none', async () => {
+      store.mockResolvedValue(row('pending'))
+      sendCommandForAnswer.mockResolvedValue({ success: true, value: null })
+      record.mockResolvedValue(new Date())
+
+      await across(true)
+
+      expect(await payload()).not.toHaveProperty('images')
+      expect(storePictures).not.toHaveBeenCalled()
+      expect(removePictures).not.toHaveBeenCalled()
+    })
+  })
 })

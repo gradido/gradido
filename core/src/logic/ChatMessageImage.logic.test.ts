@@ -7,10 +7,12 @@ import { getLogger } from '../../../config-schema/test/testSetup.bun'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import {
   acceptChatMessageImage,
+  acceptIncomingChatMessageImages,
   ChatMessageImageToStore,
   chatMessageImageSizeFits,
   removeChatMessageImages,
   storeChatMessageImages,
+  storeIncomingChatMessageImage,
 } from './ChatMessageImage.logic'
 
 // ⛔ spyOn, not mock.module: Bun cannot restore a module mock (see ChatMessage.logic.test.ts).
@@ -266,6 +268,211 @@ describe('removeChatMessageImages', () => {
     expect(logger.error).toHaveBeenCalledWith(
       `chat message pictures not removed: message_uuid=${MESSAGE_UUID} (ER_LOCK_WAIT_TIMEOUT)`,
     )
+    expect(everythingLogged()).not.toContain('Failed query')
+  })
+})
+
+/**
+ * P7b: the pictures a chat message brings from another community, as its command carries them --
+ * checked as the sending server checked them, with the name it gave them.
+ */
+describe('acceptIncomingChatMessageImages', () => {
+  const arrived = (rest: Record<string, unknown> = {}) => ({
+    imageUuid: FIRST,
+    width: 924,
+    height: 520,
+    data: JPEG.toString('base64'),
+    ...rest,
+  })
+
+  /** The reason the pictures were refused, or 'taken'. */
+  const incoming = (images: unknown): string => {
+    const accepted = acceptIncomingChatMessageImages(images)
+    return accepted.success ? 'taken' : accepted.error
+  }
+
+  it('takes a picture as the sending server sent it: its bytes, its size, its name, its place', () => {
+    const accepted = acceptIncomingChatMessageImages([arrived()])
+
+    expect(accepted.success).toBe(true)
+    expect(accepted.success && accepted.value).toEqual([
+      { image: JPEG, width: 924, height: 520, imageUuid: FIRST, position: 0 },
+    ])
+  })
+
+  // A server from before P7b sends no field.
+  it('takes no picture as none', () => {
+    for (const none of [undefined, null, []]) {
+      expect(acceptIncomingChatMessageImages(none)).toEqual({ success: true, value: [] })
+    }
+  })
+
+  it("refuses what the sending server's check refuses, for the same reason", () => {
+    expect(incoming([arrived({ data: '' })])).toBe('EMPTY')
+    expect(incoming([arrived({ data: Buffer.from('not an image').toString('base64') })])).toBe(
+      'NOT_JPEG',
+    )
+    expect(incoming([arrived({ data: jpegOf(CHAT_IMAGE_MAX_BYTES + 1).toString('base64') })])).toBe(
+      'TOO_LARGE',
+    )
+    expect(incoming([arrived({ width: 1000, height: 501 })])).toBe('SIZE')
+    expect(incoming([arrived({ width: 800.5 })])).toBe('SIZE')
+  })
+
+  it('takes a picture of exactly the limit', () => {
+    expect(incoming([arrived({ data: jpegOf(CHAT_IMAGE_MAX_BYTES).toString('base64') })])).toBe(
+      'taken',
+    )
+  })
+
+  it('refuses more than one picture', () => {
+    expect(incoming([arrived(), arrived({ imageUuid: SECOND })])).toBe('TOO_MANY')
+  })
+
+  it('refuses a picture without a uuid to be filed under', () => {
+    for (const imageUuid of [undefined, 'not-a-uuid', 42, `${FIRST}-and-more`]) {
+      expect(incoming([arrived({ imageUuid })])).toBe('NO_UUID')
+    }
+  })
+
+  it('refuses what is no picture as a command carries one', () => {
+    for (const images of [
+      'a picture',
+      { 0: arrived() },
+      [null],
+      ['a picture'],
+      [arrived({ data: 42 })],
+      [arrived({ width: '924' })],
+      [arrived({ height: undefined })],
+    ]) {
+      expect(incoming(images)).toBe('MALFORMED')
+    }
+  })
+})
+
+/**
+ * P7b: the picture of a message from another community, filed before its message. A command may
+ * come twice; the second time finds its picture there.
+ */
+describe('storeIncomingChatMessageImage', () => {
+  const picture: ChatMessageImageToStore = {
+    imageUuid: FIRST,
+    position: 0,
+    width: 924,
+    height: 520,
+    image: JPEG,
+  }
+  const duplicate = () => ({
+    success: false as const,
+    error: new database.DBDuplicateEntryError(
+      'chat_message_images',
+      'image_uuid, or message_uuid with position',
+      `${FIRST}, ${MESSAGE_UUID} 0`,
+    ),
+  })
+  const infoAt = (imageUuid: string, position = 0) => ({
+    imageUuid,
+    messageUuid: MESSAGE_UUID,
+    position,
+    width: 924,
+    height: 520,
+  })
+
+  it('files the picture under the message, in its place, as a JPEG', async () => {
+    const insert = spyOn(database, 'dbInsertChatMessageImage').mockResolvedValue({ success: true })
+    const remove = spyOn(database, 'dbDeleteChatMessageImagesByMessageUuid')
+    spies = [insert, remove]
+
+    expect(await storeIncomingChatMessageImage(MESSAGE_UUID, picture)).toEqual({
+      success: true,
+      value: 'FILED',
+    })
+
+    expect(insert.mock.calls).toEqual([
+      [
+        {
+          imageUuid: FIRST,
+          messageUuid: MESSAGE_UUID,
+          position: 0,
+          width: 924,
+          height: 520,
+          image: JPEG,
+          mimeType: 'image/jpeg',
+        },
+      ],
+    ])
+    expect(remove).not.toHaveBeenCalled()
+    expect(everythingLogged()).not.toContain(SECRET.toString())
+  })
+
+  // ⛔ The same command twice: the picture is there already, under the same name, in the same
+  // place -- no error, and nothing taken out.
+  it('says FILED_BEFORE where the same picture is in its place already, and takes nothing out', async () => {
+    const insert = spyOn(database, 'dbInsertChatMessageImage').mockResolvedValue(duplicate())
+    const infos = spyOn(database, 'dbSelectChatMessageImageInfos')
+    const remove = spyOn(database, 'dbDeleteChatMessageImagesByMessageUuid')
+    spies = [insert, infos, remove]
+    // The column compares without regard to case, and so does this -- in both directions, with a
+    // name that has letters to change.
+    const NAME = 'abcdef12-3456-4789-8abc-def012345678'
+
+    for (const [filedAs, sentAs] of [
+      [NAME.toUpperCase(), NAME],
+      [NAME, NAME.toUpperCase()],
+    ]) {
+      infos.mockResolvedValue([infoAt(filedAs)])
+
+      expect(
+        await storeIncomingChatMessageImage(MESSAGE_UUID, { ...picture, imageUuid: sentAs }),
+      ).toEqual({ success: true, value: 'FILED_BEFORE' })
+    }
+
+    expect(infos.mock.calls).toEqual([[[MESSAGE_UUID]], [[MESSAGE_UUID]]])
+    expect(remove).not.toHaveBeenCalled()
+  })
+
+  // Another picture in its place, or its name under another message: a contradiction. What is
+  // there came with another delivery and stays.
+  it('refuses as CONTRADICTION another picture in its place, or its name taken elsewhere, and takes nothing out', async () => {
+    const insert = spyOn(database, 'dbInsertChatMessageImage').mockResolvedValue(duplicate())
+    const infos = spyOn(database, 'dbSelectChatMessageImageInfos')
+    const remove = spyOn(database, 'dbDeleteChatMessageImagesByMessageUuid')
+    spies = [insert, infos, remove]
+
+    for (const there of [[infoAt(SECOND)], [], [infoAt(FIRST, 1)]]) {
+      infos.mockResolvedValue(there)
+
+      expect(await storeIncomingChatMessageImage(MESSAGE_UUID, picture)).toEqual({
+        success: false,
+        error: 'CONTRADICTION',
+      })
+    }
+    expect(remove).not.toHaveBeenCalled()
+  })
+
+  it('says NOT_STORED where the database refuses otherwise, or throws, and logs no picture', async () => {
+    const insert = spyOn(database, 'dbInsertChatMessageImage').mockResolvedValue({
+      success: false,
+      error: new database.DBInsertFailed('chat_message_images', { imageUuid: FIRST }),
+    })
+    const remove = spyOn(database, 'dbDeleteChatMessageImagesByMessageUuid')
+    spies = [insert, remove]
+
+    expect(await storeIncomingChatMessageImage(MESSAGE_UUID, picture)).toEqual({
+      success: false,
+      error: 'NOT_STORED',
+    })
+
+    insert.mockRejectedValue(failedQuery())
+    expect(await storeIncomingChatMessageImage(MESSAGE_UUID, picture)).toEqual({
+      success: false,
+      error: 'NOT_STORED',
+    })
+    expect(logger.error).toHaveBeenCalledWith(
+      `chat message picture not stored: message_uuid=${MESSAGE_UUID} image_uuid=${FIRST} (ER_LOCK_WAIT_TIMEOUT)`,
+    )
+    expect(remove).not.toHaveBeenCalled()
+    expect(everythingLogged()).not.toContain(SECRET.toString())
     expect(everythingLogged()).not.toContain('Failed query')
   })
 })

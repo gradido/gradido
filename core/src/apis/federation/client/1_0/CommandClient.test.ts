@@ -1,7 +1,10 @@
 // AI-GENERATED — not an architecture reference
 import { afterEach, beforeEach, describe, expect, it, spyOn } from 'bun:test'
+import { inspect } from 'node:util'
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
-import { GraphQLClient } from 'graphql-request'
+import { ClientError, GraphQLClient } from 'graphql-request'
+import { getLogger } from '../../../../../../config-schema/test/testSetup.bun'
+import { LOG4JS_BASE_CATEGORY_NAME } from '../../../../config/const'
 import { EncryptedTransferArgs } from '../../../../graphql/model/EncryptedTransferArgs'
 import { CommandClient } from './CommandClient'
 
@@ -64,6 +67,54 @@ describe('CommandClient.sendCommandForAnswer', () => {
       success: false,
       error: 'connect ECONNREFUSED',
     })
+  })
+})
+
+/**
+ * P7b: graphql-request's ClientError writes the whole request into its message -- with a chat
+ * picture a sealed command of some 100 KB. The other server down (a 502 from its proxy) is enough.
+ * The caller logs the error and hands it on; it gets the status and what the other side named.
+ */
+describe('CommandClient.sendCommandForAnswer, a request that failed with a ClientError', () => {
+  const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.client.1_0.CommandClient`)
+  const JWT = `eyJhbGciOiJSUzI1NiJ9.${'x'.repeat(98_765)}.c2lnbmF0dXJl`
+  const request = { query: 'mutation', variables: { args: { handshakeID: '1', jwt: JWT } } }
+  const clientError = (response: Record<string, unknown>) =>
+    new ClientError({ headers: new Headers(), ...response } as never, request as never)
+  const loggedErrors = () =>
+    logger.error.mock.calls.map((call: unknown[]) => inspect(call, { depth: 5 })).join('\n')
+
+  beforeEach(() => {
+    logger.error.mockClear()
+  })
+
+  it('hands back the status, and logs no request', async () => {
+    answer.mockRejectedValue(clientError({ status: 502, error: '<html>502 Bad Gateway</html>' }))
+
+    expect(await client.sendCommandForAnswer(args)).toEqual({
+      success: false,
+      error: 'GraphQL Error (Code: 502)',
+    })
+    expect(loggedErrors()).toContain('GraphQL Error (Code: 502)')
+    expect(loggedErrors()).not.toContain('x'.repeat(1000))
+  })
+
+  it('hands back what the other side named, and a long name as its length', async () => {
+    answer.mockRejectedValue(
+      clientError({ status: 400, errors: [{ message: 'Cannot query field "sendCommand"' }] }),
+    )
+    expect(await client.sendCommandForAnswer(args)).toEqual({
+      success: false,
+      error: 'GraphQL Error (Code: 400): Cannot query field "sendCommand"',
+    })
+
+    const quoted = `Variable "$args" got invalid value { jwt: "${JWT}" }`
+    answer.mockRejectedValue(clientError({ status: 400, errors: [{ message: quoted }] }))
+    expect(await client.sendCommandForAnswer(args)).toEqual({
+      success: false,
+      error: `GraphQL Error (Code: 400): *** ${quoted.length} characters`,
+    })
+    expect(loggedErrors()).not.toContain('x'.repeat(1000))
   })
 })
 
