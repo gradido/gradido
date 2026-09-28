@@ -10,24 +10,86 @@
     </p>
 
     <div class="chat-compose-row">
-      <!-- The paperclip (E-042): files go through SwissTransfer, and a click opens the short hint
-           on how -- straight away (E-044, F1), while a file is the only thing to attach. With
-           the pictures (P7) it opens the menu "Bild — Foto oder Bildschirmfoto" / "Datei — über
-           SwissTransfer, bis 50 GB" instead, and its name becomes "Bild oder Datei anhängen".
-           A sign without a word: the paperclip is the learnt exception to E-033. Also with the
-           first message of a conversation -- a link is an ordinary message. -->
-      <button
-        type="button"
-        class="chat-compose-attach"
-        :class="{ 'is-open': fileHintOpen }"
-        :aria-label="t('chatThread.fileAttach')"
-        :title="t('chatThread.fileAttach')"
-        aria-haspopup="dialog"
-        data-test="chat-compose-attach"
-        @click="openFileHint"
+      <!-- The paperclip (E-042, E-044 F1): with the pictures (P7) it opens a small menu above it,
+           "Bild — Foto oder Bildschirmfoto" and "Datei — über SwissTransfer, bis 50 GB". A sign
+           without a word: the paperclip is the learnt exception to E-033; the words are in the
+           menu. Also with the first message of a conversation -- a picture or a link is an
+           ordinary message.
+
+           ⚠️ A disclosure, not an ARIA menu, and so no `aria-haspopup`: the picture's entry is a
+           file field, and a file field may not take the role of a menu item -- a "menu" that is
+           not one would send a screen reader into keys that do nothing. The button says whether
+           the entries are shown (`aria-expanded`) and which they are (`aria-controls`); Tab walks
+           them, Esc closes them. -->
+      <div
+        ref="attachArea"
+        class="chat-compose-attach-area"
+        @keydown.esc="closeMenuByKey"
+        @focusout="closeMenuWhenFocusLeaves"
       >
-        <i-mdi-paperclip class="chat-compose-attach-icon" aria-hidden="true" />
-      </button>
+        <button
+          ref="clip"
+          type="button"
+          class="chat-compose-attach"
+          :class="{ 'is-open': menuOpen || fileHintOpen }"
+          :aria-label="t('chatThread.attach')"
+          :title="t('chatThread.attach')"
+          :aria-expanded="menuOpen ? 'true' : 'false'"
+          :aria-controls="menuId"
+          data-test="chat-compose-attach"
+          @click="toggleMenu"
+        >
+          <i-mdi-paperclip class="chat-compose-attach-icon" aria-hidden="true" />
+        </button>
+        <!-- ⛔ Always in the page, hidden by a class while closed -- not `v-if`, not `v-show`. The
+             picture's file field lives in here, and it has to stay rendered while the device's
+             picker is open: the menu closes the moment an entry is chosen, and a field that is
+             taken out of the page or set to `display: none` under an open picker may never hear
+             which file was chosen. `visibility: hidden` takes the entries out of the tab order and
+             out of a screen reader's reach just the same. -->
+        <div
+          :id="menuId"
+          class="chat-compose-menu"
+          :class="{ 'is-open': menuOpen }"
+          role="group"
+          :aria-label="t('chatThread.attach')"
+          data-test="chat-compose-menu"
+        >
+          <!-- ⛔ A label for a file field that is hidden only from the eye (FOTO-04): a field set to
+               `display: none` and opened with `input.click()` did nothing at all in an embedded
+               frame. The label opens the field without a line of script; the field stays in the tab
+               order, and the label beside it shows its focus. No `capture`: on a phone the picker
+               offers the camera and the photos by itself (AS-012). -->
+          <input
+            :id="pickerId"
+            ref="picker"
+            type="file"
+            accept="image/*"
+            class="chat-compose-picker visually-hidden"
+            data-test="chat-compose-picker"
+            @click="closeMenuOnceChosen"
+          />
+          <label :for="pickerId" class="chat-compose-menu-item" data-test="chat-compose-picture">
+            <i-mdi-image class="chat-compose-menu-icon" aria-hidden="true" />
+            <span class="chat-compose-menu-words">
+              <span class="chat-compose-menu-label">{{ t('chatThread.attachImage') }}</span>
+              <span class="chat-compose-menu-hint">{{ t('chatThread.attachImageHint') }}</span>
+            </span>
+          </label>
+          <button
+            type="button"
+            class="chat-compose-menu-item"
+            data-test="chat-compose-file"
+            @click="chooseFile"
+          >
+            <i-mdi-file-document class="chat-compose-menu-icon" aria-hidden="true" />
+            <span class="chat-compose-menu-words">
+              <span class="chat-compose-menu-label">{{ t('chatThread.attachFile') }}</span>
+              <span class="chat-compose-menu-hint">{{ t('chatThread.attachFileHint') }}</span>
+            </span>
+          </button>
+        </div>
+      </div>
       <label :for="fieldId" class="visually-hidden">{{ placeholder }}</label>
       <!-- ⛔ Enter makes a new line, as in every text field; it never sends. Many in the
            community did not grow up with chat programs, and a message that leaves half-written
@@ -156,7 +218,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, ref, useId, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { BButton, BModal } from 'bootstrap-vue-next'
 import { SWISSTRANSFER_URL } from '@/utils/chatFileLink'
@@ -266,6 +328,84 @@ const submit = () => {
   })
 }
 
+/**
+ * The paperclip's menu (E-044, F1): "Bild" and "Datei". It closes when an entry is chosen, on Esc
+ * and on a press anywhere else; the focus goes into it when it opens and back to the paperclip
+ * when it closes by a choice or by Esc. A press elsewhere leaves the focus where the press put it.
+ */
+const menuId = `${id}-attach-menu`
+const pickerId = `${id}-picker`
+const attachArea = ref(null)
+const clip = ref(null)
+const picker = ref(null)
+const menuOpen = ref(false)
+
+const closeMenuOnPressElsewhere = (event) => {
+  if (!attachArea.value?.contains(event.target)) closeMenu()
+}
+
+const openMenu = async () => {
+  menuOpen.value = true
+  document.addEventListener('pointerdown', closeMenuOnPressElsewhere, true)
+  await nextTick()
+  picker.value?.focus({ preventScroll: true })
+}
+
+const closeMenu = ({ focusClip = false } = {}) => {
+  if (!menuOpen.value) return
+  menuOpen.value = false
+  document.removeEventListener('pointerdown', closeMenuOnPressElsewhere, true)
+  if (focusClip) clip.value?.focus({ preventScroll: true })
+}
+onBeforeUnmount(() => document.removeEventListener('pointerdown', closeMenuOnPressElsewhere, true))
+
+const toggleMenu = () => (menuOpen.value ? closeMenu({ focusClip: true }) : openMenu())
+
+/**
+ * ⛔ Esc closes the menu and nothing more: stopped here, it does not reach the contact window,
+ * whose dialog closes on an Esc from anywhere inside it. With the menu shut, Esc goes on as always.
+ */
+const closeMenuByKey = (event) => {
+  if (!menuOpen.value) return
+  event.stopPropagation()
+  event.preventDefault()
+  closeMenu({ focusClip: true })
+}
+
+/**
+ * Tab past the last entry, or anywhere out of the menu: it closes behind the focus.
+ *
+ * ⛔ Only a focus that lands on something else is leaving. A press on a part that takes no focus
+ * -- the label of "Bild", the space between the entries -- hands the focus to the nearest ancestor
+ * that does, the contact window. Measured in Chrome (P7c): closed on that, the menu hid the label
+ * under the pointer before the button came up, and the picker never opened. A press outside closes
+ * the menu by itself (`closeMenuOnPressElsewhere`).
+ */
+const closeMenuWhenFocusLeaves = (event) => {
+  const to = event.relatedTarget
+  if (!menuOpen.value || !to || to.contains(attachArea.value) || attachArea.value?.contains(to)) {
+    return
+  }
+  closeMenu()
+}
+
+/**
+ * "Bild" was chosen -- with the label or a key on the field; either way the field hears the click
+ * that opens the device's picker. The menu closes a moment later, in a task of its own: the picker
+ * opens after the click, and the field stays in a menu that is still shown until then.
+ */
+const closeMenuOnceChosen = () => {
+  setTimeout(() => closeMenu({ focusClip: true }))
+}
+
+/** "Datei": the hint, as the paperclip opened it before the pictures. */
+const chooseFile = () => {
+  // The focus goes to the paperclip first: the hint's dialog hands it back, when it closes, to
+  // whatever had it when it opened -- and the entry that had it is hidden by then.
+  closeMenu({ focusClip: true })
+  openFileHint()
+}
+
 /** The hint behind the paperclip: how a file goes through SwissTransfer (E-042). */
 const fileHintOpen = ref(false)
 
@@ -329,8 +469,10 @@ watch(
 
 <style lang="scss" scoped>
 /* Under the thread, set apart by a line, over the width of the window. On the sheet it keeps
-   its own height and the thread above takes what is left (ContactWindow). */
+   its own height and the thread above takes what is left (ContactWindow). `position: relative`:
+   the paperclip's menu hangs from here, above the bar and over the end of the thread. */
 .chat-compose {
+  position: relative;
   flex: 0 0 auto;
   margin-top: 0.5rem;
   padding-top: 0.6rem;
@@ -404,6 +546,92 @@ watch(
 .chat-compose-attach-icon {
   width: 1.45rem;
   height: 1.45rem;
+}
+
+/* The paperclip and its menu, one thing for the keys and the pointer; in the row it is only the
+   paperclip -- the menu is taken out of the flow and hangs from the bar (`.chat-compose`). */
+.chat-compose-attach-area {
+  display: flex;
+  flex: 0 0 auto;
+}
+
+/* The menu above the paperclip (the mockup, "Büroklammer offen"): a small card of the window's
+   own surface with a shadow, as wide as its words need and never wider than the bar. */
+.chat-compose-menu {
+  position: absolute;
+  bottom: calc(100% + 0.35rem);
+  left: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 16rem;
+  max-width: 100%;
+  padding: 0.35rem;
+  border: 1px solid var(--border, #dee2e6);
+  border-radius: 0.85rem;
+  background: var(--surface, #fff);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 22%);
+}
+
+/* Closed: not seen, not reached by Tab, not read out -- and still rendered (see the template). */
+.chat-compose-menu:not(.is-open) {
+  visibility: hidden;
+}
+
+/* An entry: the sign in gold, the word, a quieter line under it. At least 44 px high, a finger's
+   size -- 3rem is 48. */
+.chat-compose-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3rem;
+  margin: 0;
+  padding: 0.4rem 0.65rem;
+  border: 0;
+  border-radius: 0.6rem;
+  background: transparent;
+  color: var(--bs-body-color);
+  font: inherit;
+  line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .chat-compose-menu-item:hover {
+    background: var(--surface-muted, #f2f4f6);
+  }
+}
+
+/* The picture's entry is a label; its field, hidden from the eye, is what the keyboard reaches.
+   The label shows the field's focus -- without this, Tab lands on something nobody can see. */
+.chat-compose-menu-item:focus-visible,
+.chat-compose-picker:focus-visible + .chat-compose-menu-item {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+.chat-compose-menu-icon {
+  flex: 0 0 auto;
+  width: 1.4rem;
+  height: 1.4rem;
+  color: var(--gold, #c58d38);
+}
+
+.chat-compose-menu-words {
+  min-width: 0;
+}
+
+.chat-compose-menu-label {
+  display: block;
+  font-weight: 600;
+}
+
+.chat-compose-menu-hint {
+  display: block;
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 0.8rem;
 }
 
 /* ⚠️ `font-size: 1rem` is not a matter of taste: Safari on the iPhone zooms into any field

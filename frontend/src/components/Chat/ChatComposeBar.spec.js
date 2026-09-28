@@ -29,6 +29,8 @@ describe('ChatComposeBar', () => {
           IMdiEmailOutline: true,
           IMdiSend: true,
           IMdiPaperclip: true,
+          IMdiImage: true,
+          IMdiFileDocument: true,
           IMdiCellphone: true,
           IMdiOpenInNew: true,
           // Shows what it holds while it is open, the footer under it. The names written on the
@@ -347,9 +349,15 @@ describe('ChatComposeBar', () => {
     const hint = () => wrapper.find('[data-test="chat-compose-file-hint"]')
     const openLink = () => wrapper.find('[data-test="chat-compose-file-open"]')
 
+    /** The paperclip's menu, then "Datei" (E-044, F1: with the pictures it is a menu). */
+    const chooseFileEntry = async () => {
+      await clip().trigger('click')
+      await wrapper.find('[data-test="chat-compose-file"]').trigger('click')
+    }
+
     const openHint = async (props = {}, options = {}) => {
       mountBar(props, options)
-      await clip().trigger('click')
+      await chooseFileEntry()
       return hint()
     }
 
@@ -359,15 +367,14 @@ describe('ChatComposeBar', () => {
       mountBar()
 
       const row = wrapper.find('.chat-compose-row').element
-      expect(row.firstElementChild).toBe(clip().element)
+      expect(row.firstElementChild.firstElementChild).toBe(clip().element)
       expect(
         clip().element.compareDocumentPosition(field().element) & Node.DOCUMENT_POSITION_FOLLOWING,
       ).toBeTruthy()
       expect(clip().element.tagName).toBe('BUTTON')
       expect(clip().attributes('type')).toBe('button')
-      expect(clip().attributes('aria-label')).toBe('chatThread.fileAttach')
-      expect(clip().attributes('title')).toBe('chatThread.fileAttach')
-      expect(clip().attributes('aria-haspopup')).toBe('dialog')
+      expect(clip().attributes('aria-label')).toBe('chatThread.attach')
+      expect(clip().attributes('title')).toBe('chatThread.attach')
     })
 
     // A link is an ordinary message: there is no reason to leave it out of the first one.
@@ -377,12 +384,12 @@ describe('ChatComposeBar', () => {
       expect(wrapper.find('[data-test="chat-compose-first"]').exists()).toBe(true)
     })
 
-    // E-044, F1: straight to the hint -- a menu with one entry would be a click too many.
-    it('opens the hint with one click, named as the title it has instead of a header', async () => {
+    // E-044, F1: with the pictures the paperclip is a menu, and "Datei" opens the hint.
+    it('opens the hint from the menu, named as the title it has instead of a header', async () => {
       mountBar()
       expect(hint().exists()).toBe(false)
 
-      await clip().trigger('click')
+      await chooseFileEntry()
 
       expect(hint().exists()).toBe(true)
       expect(hint().attributes('aria-label')).toBe('chatThread.fileTitle')
@@ -482,7 +489,7 @@ describe('ChatComposeBar', () => {
       await wrapper.find('[data-test="chat-compose-file-close"]').trigger('click')
 
       vi.mocked(isComputer).mockReturnValue(false)
-      await clip().trigger('click')
+      await chooseFileEntry()
 
       expect(isComputer).toHaveBeenCalledTimes(2)
       expect(wrapper.find('[data-test="chat-compose-file-tip"]').exists()).toBe(true)
@@ -494,7 +501,7 @@ describe('ChatComposeBar', () => {
       await field().setValue('Hier ist die Datei:')
       await box().setValue(true)
 
-      await clip().trigger('click')
+      await chooseFileEntry()
       await wrapper.find('[data-test="chat-compose-file-close"]').trigger('click')
 
       expect(sent()).toEqual([])
@@ -502,6 +509,275 @@ describe('ChatComposeBar', () => {
       expect(box().element.checked).toBe(true)
       await button().trigger('click')
       expect(sent()).toEqual([[{ body: 'Hier ist die Datei:', notify: 'EMAIL' }]])
+    })
+  })
+
+  /**
+   * P7 (E-044, F1): the paperclip opens a small menu, "Bild" and "Datei". A disclosure -- the
+   * picture's entry is a file field, which may not be a menu item -- that closes on a choice, on
+   * Esc and on a press elsewhere.
+   */
+  describe('the paperclip’s menu', () => {
+    const clip = () => wrapper.find('[data-test="chat-compose-attach"]')
+    const menu = () => wrapper.find('[data-test="chat-compose-menu"]')
+    const picker = () => wrapper.find('[data-test="chat-compose-picker"]')
+    const pictureEntry = () => wrapper.find('[data-test="chat-compose-picture"]')
+    const fileEntry = () => wrapper.find('[data-test="chat-compose-file"]')
+    const isOpen = () => menu().classes().includes('is-open')
+
+    const openMenu = async (props = {}) => {
+      mountBar(props, { attachTo: document.body })
+      await clip().trigger('click')
+      await flushPromises()
+    }
+
+    it('says whether it is open, and which entries it opens', async () => {
+      mountBar()
+      expect(clip().attributes('aria-expanded')).toBe('false')
+      expect(clip().attributes('aria-controls')).toBe(menu().attributes('id'))
+      // A disclosure, not an ARIA menu: nothing announces keys a menu would have.
+      expect(clip().attributes('aria-haspopup')).toBeUndefined()
+      expect(isOpen()).toBe(false)
+
+      await clip().trigger('click')
+
+      expect(clip().attributes('aria-expanded')).toBe('true')
+      expect(isOpen()).toBe(true)
+      expect(clip().classes()).toContain('is-open')
+      expect(menu().attributes('role')).toBe('group')
+      expect(menu().attributes('aria-label')).toBe('chatThread.attach')
+    })
+
+    it('offers "Bild" and "Datei", each with its word and the line under it', async () => {
+      mountBar()
+      await clip().trigger('click')
+
+      const words = (entry) =>
+        [entry.find('.chat-compose-menu-label'), entry.find('.chat-compose-menu-hint')].map((w) =>
+          w.text(),
+        )
+      expect(words(pictureEntry())).toEqual([
+        'chatThread.attachImage',
+        'chatThread.attachImageHint',
+      ])
+      expect(words(fileEntry())).toEqual(['chatThread.attachFile', 'chatThread.attachFileHint'])
+      // Picture first, then file, as in the mockup.
+      expect(
+        pictureEntry().element.compareDocumentPosition(fileEntry().element) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+      expect(fileEntry().element.tagName).toBe('BUTTON')
+      expect(fileEntry().attributes('type')).toBe('button')
+    })
+
+    /**
+     * ⛔ FOTO-04: a label for a field hidden only from the eye -- never `display: none`, never a
+     * script's click. Pictures only, and no `capture`: on a phone the picker offers the camera by
+     * itself (AS-012).
+     */
+    it('opens the device’s picker through a label, for pictures, without capture', () => {
+      mountBar()
+
+      expect(pictureEntry().element.tagName).toBe('LABEL')
+      expect(pictureEntry().attributes('for')).toBe(picker().attributes('id'))
+      expect(picker().attributes('type')).toBe('file')
+      expect(picker().attributes('accept')).toBe('image/*')
+      expect(picker().attributes('capture')).toBeUndefined()
+      expect(picker().classes()).toContain('visually-hidden')
+      expect(picker().attributes('hidden')).toBeUndefined()
+      expect(picker().attributes('style') ?? '').not.toMatch(/display/)
+      // …and the label right after its field, so the label can show the field's focus.
+      expect(picker().element.nextElementSibling).toBe(pictureEntry().element)
+    })
+
+    // ⛔ Rendered while closed: the field must still be there when the picker answers.
+    it('keeps its entries in the page while it is closed', () => {
+      mountBar()
+      expect(isOpen()).toBe(false)
+      expect(picker().exists()).toBe(true)
+      expect(fileEntry().exists()).toBe(true)
+    })
+
+    it('takes the focus in when it opens', async () => {
+      await openMenu()
+      expect(document.activeElement).toBe(picker().element)
+    })
+
+    it('closes with the paperclip again, the focus on the paperclip', async () => {
+      await openMenu()
+
+      await clip().trigger('click')
+
+      expect(isOpen()).toBe(false)
+      expect(document.activeElement).toBe(clip().element)
+    })
+
+    /**
+     * Esc closes the menu, hands the focus back -- and goes no further: the contact window closes
+     * on an Esc from anywhere inside it.
+     */
+    it('closes on Esc, the focus back on the paperclip, and keeps the Esc to itself', async () => {
+      await openMenu()
+      const heardAbove = vi.fn()
+      document.body.addEventListener('keydown', heardAbove)
+      try {
+        await picker().trigger('keydown', { key: 'Escape' })
+      } finally {
+        document.body.removeEventListener('keydown', heardAbove)
+      }
+
+      expect(isOpen()).toBe(false)
+      expect(document.activeElement).toBe(clip().element)
+      expect(heardAbove).not.toHaveBeenCalled()
+    })
+
+    // Gegenprobe: with the menu shut, Esc goes on to the window as it always did.
+    it('lets an Esc go on while it is closed', async () => {
+      mountBar({}, { attachTo: document.body })
+      const heardAbove = vi.fn()
+      document.body.addEventListener('keydown', heardAbove)
+      try {
+        await clip().trigger('keydown', { key: 'Escape' })
+      } finally {
+        document.body.removeEventListener('keydown', heardAbove)
+      }
+
+      expect(heardAbove).toHaveBeenCalledTimes(1)
+    })
+
+    /**
+     * The press alone, with the focus left where it is: a press on something that takes no focus
+     * -- a line of the thread -- does not move it, and on some devices none does. (Where the focus
+     * does leave the menu, the rule below closes it too; this one must not lean on that.)
+     */
+    it('closes on a press elsewhere, and does not take the focus anywhere', async () => {
+      await openMenu()
+      const elsewhere = document.createElement('p')
+      document.body.appendChild(elsewhere)
+      const focusedBefore = document.activeElement
+
+      elsewhere.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }))
+      await flushPromises()
+
+      expect(isOpen()).toBe(false)
+      expect(document.activeElement).toBe(focusedBefore)
+      expect(document.activeElement).not.toBe(clip().element)
+    })
+
+    // A press on the menu itself is not "elsewhere".
+    it('stays open on a press inside it', async () => {
+      await openMenu()
+
+      fileEntry().element.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }))
+      await flushPromises()
+
+      expect(isOpen()).toBe(true)
+    })
+
+    it('closes behind the focus when Tab leaves it', async () => {
+      await openMenu()
+
+      await fileEntry().trigger('focusout', { relatedTarget: field().element })
+
+      expect(isOpen()).toBe(false)
+      // …and Tab within it keeps it open.
+      await clip().trigger('click')
+      await flushPromises()
+      await picker().trigger('focusout', { relatedTarget: fileEntry().element })
+      expect(isOpen()).toBe(true)
+    })
+
+    /**
+     * ⛔ A mouse press on "Bild", as Chrome makes it (measured, P7c): the label takes no focus, so
+     * the press hands it to the nearest ancestor that does -- the contact window. The menu has to
+     * stay open through that, or the label is hidden before the button comes up and the click that
+     * opens the picker never comes.
+     */
+    it('stays open when a press on "Bild" hands the focus to what holds the menu', async () => {
+      await openMenu()
+      const holder = wrapper.element
+      holder.tabIndex = -1
+      const pressed = vi.fn()
+      picker().element.addEventListener('click', pressed)
+
+      pictureEntry().element.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }))
+      holder.focus()
+      await flushPromises()
+
+      expect(document.activeElement).toBe(holder)
+      expect(isOpen()).toBe(true)
+      await pictureEntry().trigger('click')
+      expect(pressed).toHaveBeenCalledTimes(1)
+    })
+
+    // The same where the focus goes nowhere -- the window loses it, or nothing holds the menu.
+    it('stays open when the focus goes nowhere', async () => {
+      await openMenu()
+
+      await picker().trigger('focusout', { relatedTarget: null })
+
+      expect(isOpen()).toBe(true)
+    })
+
+    /**
+     * "Bild": the label hands the press to the field, which opens the picker -- and the menu
+     * closes a moment after, in a task of its own, so the field is still in a shown menu when the
+     * picker opens. Then the focus is back on the paperclip.
+     */
+    it('closes after "Bild" is chosen, a task later, the focus back on the paperclip', async () => {
+      await openMenu()
+      const pressed = vi.fn()
+      picker().element.addEventListener('click', pressed)
+
+      await pictureEntry().trigger('click')
+
+      expect(pressed).toHaveBeenCalledTimes(1)
+      expect(isOpen()).toBe(true)
+      await new Promise((resolve) => setTimeout(resolve))
+      await flushPromises()
+      expect(isOpen()).toBe(false)
+      expect(document.activeElement).toBe(clip().element)
+    })
+
+    // The same with a key on the field: the field hears its own click.
+    it('closes the same way when "Bild" is chosen with a key', async () => {
+      await openMenu()
+
+      await picker().trigger('click')
+      await new Promise((resolve) => setTimeout(resolve))
+      await flushPromises()
+
+      expect(isOpen()).toBe(false)
+      expect(document.activeElement).toBe(clip().element)
+    })
+
+    /**
+     * "Datei": the menu closes, the focus goes to the paperclip -- the hint hands the focus back,
+     * when it closes, to what had it when it opened -- and the hint opens as before.
+     */
+    it('opens the hint with "Datei", the focus on the paperclip first', async () => {
+      await openMenu()
+      let focusedWhenHintOpened = null
+      fileEntry().element.addEventListener('click', () => {
+        queueMicrotask(() => (focusedWhenHintOpened = document.activeElement))
+      })
+
+      await fileEntry().trigger('click')
+
+      expect(isOpen()).toBe(false)
+      expect(wrapper.find('[data-test="chat-compose-file-hint"]').exists()).toBe(true)
+      expect(focusedWhenHintOpened).toBe(clip().element)
+    })
+
+    it('stops listening for presses elsewhere once it is gone', async () => {
+      await openMenu()
+      const removed = vi.spyOn(document, 'removeEventListener')
+
+      wrapper.unmount()
+
+      expect(removed).toHaveBeenCalledWith('pointerdown', expect.any(Function), true)
+      removed.mockRestore()
+      wrapper = null
     })
   })
 
@@ -597,6 +873,33 @@ describe('ChatComposeBar', () => {
     expect(clip).toMatch(/border-radius:\s*50%/)
     expect(clip).toMatch(/background:\s*transparent/)
     expect(clip).toMatch(/color:\s*var\(--bs-secondary-color/)
+  })
+
+  /**
+   * ⛔ What only the stylesheet holds about the menu (jsdom applies no styles): a closed menu is
+   * hidden with `visibility`, never `display` -- its field has to stay rendered for the picker --
+   * its entries are a finger's size, their signs gold, and the picture's label shows its hidden
+   * field's focus.
+   */
+  it('hides a closed menu without taking it out, and draws its entries as the mockup has them', () => {
+    const code = style()
+    const rule = (selector) => code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+
+    expect(rule('\\.chat-compose-menu:not\\(\\.is-open\\)')).toMatch(/visibility:\s*hidden/)
+    expect(code).not.toMatch(/\.chat-compose-menu[^{]*\{[^}]*display:\s*none/)
+    expect(rule('\\.chat-compose-menu')).toMatch(/position:\s*absolute/)
+    expect(rule('\\.chat-compose-menu')).toMatch(/bottom:\s*calc\(100%/)
+    const item = rule('\\.chat-compose-menu-item')
+    const height = item.match(/min-height:\s*([\d.]+)rem/)?.[1]
+    expect(Number(height) * 16).toBeGreaterThanOrEqual(44)
+    expect(rule('\\.chat-compose-menu-icon')).toMatch(/color:\s*var\(--gold/)
+    expect(
+      rule(
+        '\\.chat-compose-menu-item:focus-visible,\\s*\\.chat-compose-picker:focus-visible \\+ \\.chat-compose-menu-item',
+      ),
+    ).toMatch(/outline:\s*2px solid/)
+    // The bar is what the menu hangs from.
+    expect(rule('\\.chat-compose')).toMatch(/position:\s*relative/)
   })
 
   /**
