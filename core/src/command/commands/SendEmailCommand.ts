@@ -305,8 +305,17 @@ export class SendEmailCommand extends BaseCommand<
         break
       }
       case 'sendTransactionReceivedEmail': {
-        const emailResult = await sendTransactionReceivedEmail(emailParams)
-        methodLogger.debug(`mailed: ${this.getEmailResult(emailResult)}`)
+        // The recipient's own switch (Einstellungen › Nachrichten, "Überweisungen im Chat und
+        // per E-Mail", on by default): switched off, no mail about a transfer received -- read
+        // here, on the recipient's own server, as within a community. The command was received
+        // all the same; the sending server learns nothing about the switch. Only a stored no
+        // holds the mail back: the column's default is on.
+        if (recipientUser.transfersInChat !== false) {
+          const emailResult = await sendTransactionReceivedEmail(emailParams)
+          methodLogger.debug(`mailed: ${this.getEmailResult(emailResult)}`)
+        } else {
+          methodLogger.debug('not mailed: the recipient switched transfer mails off')
+        }
         result = SEND_MAIL_COMMAND_ANSWER.RECEIVED
         break
       }

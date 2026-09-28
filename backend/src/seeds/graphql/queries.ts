@@ -641,6 +641,26 @@ export const userAboutMe = gql`
   }
 `
 
+// The switch for the transfers in the conversations, asked for on its own like aboutMe: the
+// member's own view, and the `user` query that hands out anybody by alias.
+export const verifyLoginTransfersInChat = gql`
+  query {
+    verifyLogin {
+      gradidoID
+      transfersInChat
+    }
+  }
+`
+
+export const userTransfersInChat = gql`
+  query ($identifier: String!, $communityIdentifier: String!) {
+    user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
+      gradidoID
+      transfersInChat
+    }
+  }
+`
+
 export const thankYouCardPaymentTarget = gql`
   query ($code: String!) {
     thankYouCardPaymentTarget(code: $code) {

@@ -861,6 +861,7 @@ export class UserResolver {
       humhubAllowed,
       gmsAllowed,
       avatarVisibleToMembers,
+      transfersInChat,
       gmsPublishName,
       humhubPublishName,
       gmsLocation,
@@ -883,6 +884,7 @@ export class UserResolver {
       humhubAllowed: humhubAllowed !== undefined,
       gmsAllowed: gmsAllowed !== undefined,
       avatarVisibleToMembers: avatarVisibleToMembers !== undefined,
+      transfersInChat: transfersInChat !== undefined,
       gmsPublishName: gmsPublishName !== undefined,
       humhubPublishName: humhubPublishName !== undefined,
       gmsLocation: gmsLocation !== undefined,
@@ -934,6 +936,7 @@ export class UserResolver {
         humhubAllowed,
         gmsAllowed,
         avatarVisibleToMembers,
+        transfersInChat,
         gmsPublishName: gmsPublishName?.valueOf(),
         humhubPublishName: humhubPublishName?.valueOf(),
         gmsPublishLocation: gmsPublishLocation?.valueOf(),
@@ -1902,6 +1905,20 @@ export class UserResolver {
       return null
     }
     return user.avatarVisibleToMembers ?? null
+  }
+
+  /**
+   * Whether the transfers with somebody stand in the conversation, and whether a mail goes out
+   * about a transfer received -- the member's own switch, and guarded like the one above: what a
+   * member decided about their own messages is nobody else's to read. The deliveries read it in
+   * the backend, where they decide whether to mail; no client is told about somebody else's.
+   */
+  @FieldResolver(() => Boolean, { nullable: true })
+  transfersInChat(@Root() user: User, @Ctx() context: Context): boolean | null {
+    if (context.user?.id !== user.id) {
+      return null
+    }
+    return user.transfersInChat ?? null
   }
 
   /**

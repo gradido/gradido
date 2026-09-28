@@ -58,6 +58,10 @@ export class UpdateUserInfosArgs {
   @IsBoolean()
   avatarVisibleToMembers?: boolean
 
+  @Field({ nullable: true })
+  @IsBoolean()
+  transfersInChat?: boolean
+
   @Field(() => PublishNameType, { nullable: true })
   @IsEnum(PublishNameType)
   gmsPublishName?: PublishNameType | null
