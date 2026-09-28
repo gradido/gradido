@@ -102,6 +102,7 @@
       :first="state === 'empty'"
       :sending="sending"
       :failed="sendFailed"
+      :failed-reason="sendRefusal"
       :initial-text="heldText"
       @send="send"
     />
@@ -126,6 +127,7 @@ import {
   markChatConversationRead,
   sendChatMessage,
 } from '@/graphql/chat.graphql'
+import { chatImageRefusal } from '@/utils/chatImage'
 import { chatMemberKey } from '@/utils/chatMemberKey'
 import { dropChatReturnNote, noteChatReturn, takeHeldChatText } from '@/utils/chatReturn'
 
@@ -603,6 +605,11 @@ const messagesUnderway = ref(0)
 const sending = computed(() => messagesUnderway.value > 0)
 /** The bar's last message did not go through; the bar keeps its text and says so. */
 const sendFailed = ref(false)
+/**
+ * Why, where the server refused it for its picture (chatImageRefusal): IMAGE_NOT_ACCEPTED or
+ * TOO_LARGE_ACROSS_BORDER -- the bar has words of its own for these two. Empty otherwise.
+ */
+const sendRefusal = ref('')
 /** What the status says to a screen reader: a message has gone, or one has arrived. */
 const sentNotice = ref('')
 
@@ -637,7 +644,12 @@ const noticeFor = (own) => {
 /**
  * Sends one message and hangs the answer -- one's own copy -- under the thread: the one way out
  * of here, for the bar's messages (`send`) and the window's video invitation (`deliver`). The
- * status says what became of it. Never throws: the server's copy, or null where it gave none.
+ * status says what became of it. Never throws: `{ own, refusal }` -- the server's copy, or null
+ * where it gave none, and then what the refusal was about where it was about a picture.
+ *
+ * A picture (P7) goes as `$image` -- ⛔ the name the backend's request log masks (LOG-071): under
+ * any other name some 44,000 characters of it would be written to the log with every message.
+ * Without one, no `image` at all, rather than a null nobody asked for.
  *
  * ⛔ Into the query's own answer in the cache, not a list of its own and not by asking the
  * server again. Measured with Apollo 3.14 and vue-apollo 4.2 before building: a `network-only`
@@ -648,13 +660,13 @@ const noticeFor = (own) => {
  * ⚠️ It leaves the count of messages on their way to its callers: the bar's `sendFailed` has to
  * change in the same synchronous step as `sending` (see `send`).
  */
-const post = async ({ body, notify }) => {
+const post = async ({ body, notify, image = null }) => {
   sentNotice.value = ''
   // Whoever writes wants to see what they wrote: back to the bottom, even from further up.
   followNewest = true
   try {
     const answer = await sendToServer(
-      { ref: memberRef, body, notify },
+      { ref: memberRef, body, notify, ...(image ? { image } : {}) },
       {
         update: (cache, { data }) => {
           const own = data?.sendChatMessage
@@ -668,9 +680,9 @@ const post = async ({ body, notify }) => {
     )
     const own = answer?.data?.sendChatMessage ?? null
     if (own) sentNotice.value = noticeFor(own)
-    return own
-  } catch {
-    return null
+    return { own, refusal: null }
+  } catch (error) {
+    return { own: null, refusal: chatImageRefusal(error) }
   }
 }
 
@@ -691,11 +703,12 @@ const send = async (message) => {
   if (sending.value) return
   messagesUnderway.value += 1
   sendFailed.value = false
-  let own = null
+  let outcome = { own: null, refusal: null }
   try {
-    own = await post(message)
+    outcome = await post(message)
   } finally {
-    sendFailed.value = own === null
+    sendFailed.value = outcome.own === null
+    sendRefusal.value = outcome.refusal ?? ''
     messagesUnderway.value -= 1
   }
 }
@@ -713,14 +726,16 @@ const send = async (message) => {
  * arrived is not known here, and the bubble says "not delivered yet" beside it.
  * The enum NAMES, as the bubble compares them.
  *
+ * It carries no picture: the invitation is words and a link.
+ *
  * @param {{ body: string, notify: 'EMAIL' | 'NONE' }} message
  * @returns {Promise<boolean>}
  */
-const deliver = async (message) => {
+const deliver = async ({ body, notify }) => {
   messagesUnderway.value += 1
   let own = null
   try {
-    own = await post(message)
+    own = (await post({ body, notify })).own
   } finally {
     messagesUnderway.value -= 1
   }

@@ -9,6 +9,43 @@
       <span>{{ t('chatThread.firstGoesByEmail', { name }) }}</span>
     </p>
 
+    <!-- The picture that goes with the next message (the mockup, "Bild gewählt, vor dem Senden"):
+         while it is made small, a quiet square and "Bild wird vorbereitet …"; then the picture as
+         it will be sent -- the finished JPEG, not the original -- with "Bild" and "Wird mit Deiner
+         Nachricht gesendet.", and a round button to take it off. -->
+    <div
+      v-if="preparing || picture"
+      class="chat-compose-attached"
+      data-test="chat-compose-attached"
+    >
+      <span v-if="preparing" class="chat-compose-attached-wait" aria-hidden="true" />
+      <img
+        v-else
+        :src="picture.src"
+        alt=""
+        class="chat-compose-attached-picture"
+        data-test="chat-compose-attached-picture"
+      />
+      <div class="chat-compose-attached-words" data-test="chat-compose-attached-words">
+        <template v-if="preparing">{{ t('chatThread.imagePreparing') }}</template>
+        <template v-else>
+          {{ t('chatThread.imageReady') }}
+          <small>{{ t('chatThread.imageReadyHint') }}</small>
+        </template>
+      </div>
+      <button
+        v-if="!preparing"
+        type="button"
+        class="chat-compose-attached-remove"
+        :aria-label="t('chatThread.imageRemove')"
+        :title="t('chatThread.imageRemove')"
+        data-test="chat-compose-attached-remove"
+        @click="removePicture"
+      >
+        <i-mdi-close class="chat-compose-attached-remove-icon" aria-hidden="true" />
+      </button>
+    </div>
+
     <div class="chat-compose-row">
       <!-- The paperclip (E-042, E-044 F1): with the pictures (P7) it opens a small menu above it,
            "Bild — Foto oder Bildschirmfoto" and "Datei — über SwissTransfer, bis 50 GB". A sign
@@ -68,6 +105,7 @@
             class="chat-compose-picker visually-hidden"
             data-test="chat-compose-picker"
             @click="closeMenuOnceChosen"
+            @change="takePicture"
           />
           <label :for="pickerId" class="chat-compose-menu-item" data-test="chat-compose-picture">
             <i-mdi-image class="chat-compose-menu-icon" aria-hidden="true" />
@@ -160,9 +198,25 @@
       {{ t('chatThread.remaining', { n: remaining }, remaining) }}
     </p>
     <!-- ⛔ Where it went wrong, and not in a toast: the text is still in the field above, and
-         this line says that it is. `role="alert"` is announced when it is put in. -->
+         this line says that it is. `role="alert"` is announced when it is put in. Two refusals
+         about a picture have words of their own (`failedReason`). -->
     <p v-if="failed" class="chat-compose-note" role="alert" data-test="chat-compose-failed">
-      {{ t('chatThread.notSent') }}
+      {{ failedWords }}
+    </p>
+    <!-- A picture that could not be made ready: why, in the bar's own words. -->
+    <p
+      v-if="pictureProblem"
+      class="chat-compose-note"
+      role="alert"
+      data-test="chat-compose-picture-problem"
+    >
+      {{ pictureProblemWords }}
+    </p>
+    <!-- For the ear: the picture's state as it changes -- the preview above has no words a screen
+         reader would hear on its own. Always in the page, so the words are announced when they
+         change (a live region that appears together with its text is not). -->
+    <p class="visually-hidden" role="status" data-test="chat-compose-picture-status">
+      {{ pictureStatus }}
     </p>
 
     <!-- The hint behind the paperclip (E-042, E-044): Gradido stores no files, SwissTransfer
@@ -218,10 +272,11 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, useId, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { BButton, BModal } from 'bootstrap-vue-next'
 import { SWISSTRANSFER_URL } from '@/utils/chatFileLink'
+import { encodeChatImage } from '@/utils/chatImage'
 import { chatNotifyFor } from '@/utils/chatNotify'
 import { isComputer } from '@/utils/isComputer'
 import { MESSAGE_MAX_CHARS, message as messageSchema } from '@/validationSchemas'
@@ -229,10 +284,11 @@ import { MESSAGE_MAX_CHARS, message as messageSchema } from '@/validationSchemas
 /**
  * The line under the thread that writes to the person in it (P3, mockup E V03).
  *
- * It only asks: it emits `send` with the text and the wish, and the thread does the sending.
- * Whether it went through, the thread says back through two props -- `sending` while the
+ * It only asks: it emits `send` with the text, the wish and the picture, and the thread does the
+ * sending. Whether it went through, the thread says back through its props -- `sending` while the
  * message is on its way, `failed` when it ends without it -- and only a message that went
- * through empties the field. The text in the field is never lost otherwise.
+ * through empties the field and takes the picture off. The text in the field is never lost
+ * otherwise.
  */
 const props = defineProps({
   /** The other person's name, as the window shows it. */
@@ -243,6 +299,11 @@ const props = defineProps({
   sending: { type: Boolean, default: false },
   /** The last message did not go through; its text is still in the field. */
   failed: { type: Boolean, default: false },
+  /**
+   * Why it did not, where the server refused it for its picture (chatImageRefusal):
+   * IMAGE_NOT_ACCEPTED or TOO_LARGE_ACROSS_BORDER. Empty for every other failure -- "not sent".
+   */
+  failedReason: { type: String, default: '' },
   /**
    * The words to begin with: what stood in the field, not sent yet, when iOS started the wallet
    * over (utils/chatReturn). Read once, when the bar is made.
@@ -270,16 +331,45 @@ const field = ref(null)
 const text = ref(props.initialText)
 const alsoByEmail = ref(false)
 
-const placeholder = computed(() => t('chatThread.placeholder', { name: props.name }))
+/**
+ * The picture that goes with the next message (P7): `{ data, width, height, bytes, src }` --
+ * the finished JPEG (utils/chatImage) and, as `src`, the same bytes for the preview: what is seen
+ * is what goes out. Null without one; one picture a message, a second one takes the first one's
+ * place.
+ *
+ * ⛔ In memory only. It does not come back after iOS starts the wallet over, as the words do
+ * (#3999, `draft` below): a chat picture is never put into the device's storage (E-041, point 5),
+ * and it is still on the device -- whoever lost it chooses it again in two taps, where words typed
+ * would be gone for good. A shallow ref: nothing inside it changes, and its base64 is no business
+ * of Vue's reactivity.
+ */
+const picture = shallowRef(null)
+/** A picture is being made small; the button waits for it. */
+const preparing = ref(false)
+/** Why the last picture chosen could not be made ready (ChatImageError), or null. */
+const pictureProblem = ref(null)
+
+/** With a picture, the words are its caption, and optional (E-044). */
+const placeholder = computed(() =>
+  picture.value || preparing.value
+    ? t('chatThread.imageCaption')
+    : t('chatThread.placeholder', { name: props.name }),
+)
 
 /** What is sent: the text without the space around it. */
 const body = computed(() => text.value.trim())
 
 /**
- * The same rule the e-mail form holds a message to (1 to 2000 characters), asked of what
- * would be sent -- a field of spaces sends nothing.
+ * Without a picture, the rule the e-mail form holds a message to (1 to 2000 characters), asked
+ * of what would be sent -- a field of spaces sends nothing. With a picture the text may be empty,
+ * 0 to 2000, as the server takes it (P7a). Nothing while a picture is being made small: it was
+ * chosen to go with this message.
  */
-const canSend = computed(() => !props.sending && messageSchema.isValidSync(body.value))
+const canSend = computed(() => {
+  if (props.sending || preparing.value) return false
+  if (picture.value) return body.value.length <= MESSAGE_MAX_CHARS
+  return messageSchema.isValidSync(body.value)
+})
 
 /** Counted like `maxlength` counts: the field as typed. */
 const remaining = computed(() => MESSAGE_MAX_CHARS - text.value.length)
@@ -308,7 +398,10 @@ onMounted(() => {
   if (text.value) grow()
 })
 
-/** The words in the field as they stand, for the thread's note (utils/chatReturn). */
+/**
+ * The words in the field as they stand, for the thread's note (utils/chatReturn). The words only:
+ * a picture chosen does not come back after a restart (see `picture`).
+ */
 defineExpose({ draft: () => text.value })
 
 /**
@@ -319,13 +412,75 @@ let submitted = null
 
 const submit = () => {
   if (!canSend.value) return
-  submitted = { text: text.value, alsoByEmail: alsoByEmail.value }
+  submitted = { text: text.value, alsoByEmail: alsoByEmail.value, picture: picture.value }
   emit('send', {
     body: body.value,
     // The enum NAMES the server takes, by the rule the contact window's video invitation
     // follows too (utils/chatNotify.js).
     notify: chatNotifyFor({ first: props.first, alsoByEmail: alsoByEmail.value }),
+    image: picture.value
+      ? { data: picture.value.data, width: picture.value.width, height: picture.value.height }
+      : null,
   })
+}
+
+/** The words of the line where a message did not go through (see the template). */
+const failedWords = computed(() => {
+  if (props.failedReason === 'IMAGE_NOT_ACCEPTED') return t('chatThread.imageNotAccepted')
+  if (props.failedReason === 'TOO_LARGE_ACROSS_BORDER') {
+    return t('chatThread.imageTooLargeAcrossBorder')
+  }
+  return t('chatThread.notSent')
+})
+
+/** Why a picture could not be made ready, in the bar's own words. */
+const pictureProblemWords = computed(() => {
+  if (pictureProblem.value === 'SOURCE_TOO_LARGE') return t('chatThread.imageTooLarge')
+  if (pictureProblem.value === 'HEIC') return t('chatThread.imageHeic')
+  if (pictureProblem.value === 'NOT_SMALL_ENOUGH') return t('chatThread.imageTooBig')
+  return t('chatThread.imageFormat')
+})
+
+/** What the status says for the ear about the picture (see the template). */
+const pictureStatus = computed(() => {
+  if (preparing.value) return t('chatThread.imagePreparing')
+  if (picture.value) return `${t('chatThread.imageReady')}. ${t('chatThread.imageReadyHint')}`
+  return ''
+})
+
+/**
+ * Only the last picture chosen counts: a second one chosen while the first is still being made
+ * small takes its place, and the first one's result, whenever it comes, is let go.
+ */
+let pictureRound = 0
+
+/** The picture the device's picker answered with, made ready for the message (utils/chatImage). */
+const takePicture = async (event) => {
+  const input = event.target
+  const file = input.files?.[0]
+  // Emptied, so the same file chosen again is a change again.
+  input.value = ''
+  if (!file) return
+  const round = ++pictureRound
+  pictureProblem.value = null
+  preparing.value = true
+  try {
+    const ready = await encodeChatImage(file)
+    if (round !== pictureRound) return
+    picture.value = { ...ready, src: `data:image/jpeg;base64,${ready.data}` }
+  } catch (error) {
+    if (round !== pictureRound) return
+    // A picture chosen before stays: nothing has taken its place.
+    pictureProblem.value = error?.problem ?? 'FORMAT'
+  } finally {
+    if (round === pictureRound) preparing.value = false
+  }
+}
+
+/** "Bild entfernen": the picture is taken off; the focus goes to the paperclip, for another one. */
+const removePicture = () => {
+  picture.value = null
+  clip.value?.focus({ preventScroll: true })
 }
 
 /**
@@ -345,6 +500,8 @@ const closeMenuOnPressElsewhere = (event) => {
 }
 
 const openMenu = async () => {
+  // Another go: what went wrong with the last picture is said no longer.
+  pictureProblem.value = null
   menuOpen.value = true
   document.addEventListener('pointerdown', closeMenuOnPressElsewhere, true)
   await nextTick()
@@ -443,12 +600,12 @@ const focusStaysHere = () => {
 
 /**
  * A message went through: the field empties, the box is empty again (E-024: the wish is for
- * one message) and the keyboard stays in the field for the next one. A message that did not
- * go through leaves all of it as it was.
+ * one message), the picture is taken off, and the keyboard stays in the field for the next one.
+ * A message that did not go through leaves all of it as it was.
  *
  * ⛔ Only what went out is cleared. Text typed while the message was on its way stays, and so
- * does a box the member changed meanwhile: the text in the field is never lost but by sending
- * it.
+ * does a box the member changed meanwhile -- and a picture chosen meanwhile, which goes with the
+ * next message: the text in the field is never lost but by sending it.
  */
 watch(
   () => props.sending,
@@ -457,6 +614,7 @@ watch(
     const sent = submitted
     submitted = null
     if (props.failed || !sent) return
+    if (sent.picture && picture.value === sent.picture) picture.value = null
     if (alsoByEmail.value === sent.alsoByEmail) alsoByEmail.value = false
     if (text.value !== sent.text) return
     text.value = ''
@@ -499,6 +657,92 @@ watch(
   width: 1.1em;
   height: 1.1em;
   margin-top: 0.1em;
+}
+
+/* The picture chosen, over the field (the mockup): a small square of it, what it is, and the
+   round button that takes it off, on the muted surface. */
+.chat-compose-attached {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0 0 0.5rem;
+  padding: 0.4rem;
+  border: 1px solid var(--border, #dee2e6);
+  border-radius: 0.75rem;
+  background: var(--surface-muted, #f2f4f6);
+}
+
+.chat-compose-attached-picture,
+.chat-compose-attached-wait {
+  flex: 0 0 auto;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 0.5rem;
+}
+
+.chat-compose-attached-picture {
+  object-fit: cover;
+}
+
+/* While it is made small: a quiet square in its place, no spinner. */
+.chat-compose-attached-wait {
+  background: var(--border, #dee2e6);
+}
+
+.chat-compose-attached-words {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* ⚠️ Small text needs 4.5:1 on the muted surface, and one colour does not reach it in both
+   modes: light, Bootstrap's secondary colour (the body colour at 75 %, about 6.4:1); dark, the
+   body colour at 75 % -- the dark muted grey reaches only about 4.3:1 there (ChatBubble measures
+   the same). */
+.chat-compose-attached-words small {
+  display: block;
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+.dark-mode .chat-compose-attached-words small {
+  color: var(--bs-body-color);
+  opacity: 0.75;
+}
+
+.chat-compose-attached-remove {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--bs-secondary-color, #6c757d);
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .chat-compose-attached-remove:hover {
+    background: var(--surface, #fff);
+    color: var(--bs-body-color);
+  }
+}
+
+.chat-compose-attached-remove:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+.chat-compose-attached-remove-icon {
+  width: 1.2rem;
+  height: 1.2rem;
 }
 
 .chat-compose-row {

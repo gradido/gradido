@@ -53,6 +53,23 @@ export class ChatImageError extends Error {
 }
 
 /**
+ * What the server's refusal of a message with a picture was about, for the bar's own words:
+ * - IMAGE_NOT_ACCEPTED -- the picture itself was not taken (CHAT_IMAGE_NOT_ACCEPTED: EMPTY,
+ *   TOO_LARGE, NOT_JPEG or SIZE; a picture made here should never be, so no reason is named);
+ * - TOO_LARGE_ACROSS_BORDER -- the text is too long to go with the picture to another community
+ *   (CHAT_MESSAGE_NOT_SENT: TOO_LARGE_ACROSS_BORDER, P7b: the encrypted command would pass what
+ *   the other server takes).
+ * Null for every other failure, which the bar calls "not sent" as before. Read off the error's
+ * message, as ContactWindow reads CHAT_VIDEO_NO_SERVER.
+ */
+export const chatImageRefusal = (error) => {
+  const message = String(error?.message ?? '')
+  if (message.includes('CHAT_IMAGE_NOT_ACCEPTED')) return 'IMAGE_NOT_ACCEPTED'
+  if (message.includes('TOO_LARGE_ACROSS_BORDER')) return 'TOO_LARGE_ACROSS_BORDER'
+  return null
+}
+
+/**
  * The size a picture is drawn at, in whole pixels: its own proportions, the area given (the
  * first round's, or a smaller one), never larger than it is, and no side past the server's bound.
  *

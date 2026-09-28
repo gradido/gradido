@@ -1,5 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { describe, it, expect, afterEach, vi } from 'vitest'
+import { ApolloError } from '@apollo/client/core'
+import { GraphQLError } from 'graphql'
 import { AVATAR_QUALITY_STEPS, AVATAR_SOURCE_MAX_BYTES, encodeUnderTarget } from './avatarImage'
 import {
   CHAT_IMAGE_AREA,
@@ -7,6 +9,7 @@ import {
   CHAT_IMAGE_ROUNDS,
   CHAT_IMAGE_TARGET_BYTES,
   ChatImageError,
+  chatImageRefusal,
   chatImageSize,
   drawChatImage,
   encodeChatImage,
@@ -365,5 +368,35 @@ describe('drawChatImage', () => {
       ['imageSmoothingQuality=', 'high'],
       ['drawImage', source, 0, 0, 800, 600],
     ])
+  })
+})
+
+describe('chatImageRefusal', () => {
+  /**
+   * Read off the error the way vue-apollo throws it: an ApolloError whose message carries the
+   * server's -- measured with the installed @apollo/client, not assumed.
+   */
+  const refused = (message) =>
+    new ApolloError({ graphQLErrors: [new GraphQLError(message, { path: ['sendChatMessage'] })] })
+
+  it('knows a picture the server did not take, whatever the reason', () => {
+    for (const reason of ['EMPTY', 'TOO_LARGE', 'NOT_JPEG', 'SIZE']) {
+      expect(chatImageRefusal(refused(`CHAT_IMAGE_NOT_ACCEPTED: ${reason}`))).toBe(
+        'IMAGE_NOT_ACCEPTED',
+      )
+    }
+  })
+
+  it('knows a text too long to go with the picture to another community', () => {
+    expect(chatImageRefusal(refused('CHAT_MESSAGE_NOT_SENT: TOO_LARGE_ACROSS_BORDER'))).toBe(
+      'TOO_LARGE_ACROSS_BORDER',
+    )
+  })
+
+  it('leaves every other failure to the bar’s "not sent"', () => {
+    expect(chatImageRefusal(refused('CHAT_MESSAGE_NOT_SENT: NOT_STORED'))).toBeNull()
+    expect(chatImageRefusal(refused('CHAT_MESSAGE_NOT_SENT: NO_WAY_TO_DELIVER'))).toBeNull()
+    expect(chatImageRefusal(new Error('Network error'))).toBeNull()
+    expect(chatImageRefusal(undefined)).toBeNull()
   })
 })

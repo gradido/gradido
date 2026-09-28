@@ -18,6 +18,15 @@ vi.mock('vue-i18n', () => ({
 // A computer unless a test says otherwise; the check itself has its own spec.
 vi.mock('@/utils/isComputer', () => ({ isComputer: vi.fn(() => true) }))
 
+/**
+ * Making a picture small has its own spec (utils/chatImage.spec.js); here it answers as a test
+ * says -- with a picture, a refusal, or not yet.
+ */
+const encoding = vi.hoisted(() => ({ encodeChatImage: vi.fn() }))
+vi.mock('@/utils/chatImage', () => ({
+  encodeChatImage: (...args) => encoding.encodeChatImage(...args),
+}))
+
 describe('ChatComposeBar', () => {
   let wrapper
 
@@ -31,6 +40,7 @@ describe('ChatComposeBar', () => {
           IMdiPaperclip: true,
           IMdiImage: true,
           IMdiFileDocument: true,
+          IMdiClose: true,
           IMdiCellphone: true,
           IMdiOpenInNew: true,
           // Shows what it holds while it is open, the footer under it. The names written on the
@@ -58,6 +68,7 @@ describe('ChatComposeBar', () => {
     document.body.innerHTML = ''
     vi.mocked(isComputer).mockClear()
     vi.mocked(isComputer).mockReturnValue(true)
+    encoding.encodeChatImage.mockReset()
   })
 
   describe('what it shows', () => {
@@ -153,7 +164,7 @@ describe('ChatComposeBar', () => {
 
       await button().trigger('click')
 
-      expect(sent()).toEqual([[{ body: 'Hallo Lena', notify: 'NONE' }]])
+      expect(sent()).toEqual([[{ body: 'Hallo Lena', notify: 'NONE', image: null }]])
     })
 
     it('asks for the mail where the box is ticked', async () => {
@@ -163,7 +174,7 @@ describe('ChatComposeBar', () => {
 
       await button().trigger('click')
 
-      expect(sent()).toEqual([[{ body: 'Hallo Lena', notify: 'EMAIL' }]])
+      expect(sent()).toEqual([[{ body: 'Hallo Lena', notify: 'EMAIL', image: null }]])
     })
 
     // The server mails the first message anyway; the request says what will happen.
@@ -173,7 +184,7 @@ describe('ChatComposeBar', () => {
 
       await button().trigger('click')
 
-      expect(sent()).toEqual([[{ body: 'Hallo Lena', notify: 'EMAIL' }]])
+      expect(sent()).toEqual([[{ body: 'Hallo Lena', notify: 'EMAIL', image: null }]])
     })
 
     /**
@@ -198,8 +209,8 @@ describe('ChatComposeBar', () => {
       await field().trigger('keydown', { key: 'Enter', ctrlKey: true })
 
       expect(sent()).toEqual([
-        [{ body: 'Hallo', notify: 'NONE' }],
-        [{ body: 'Hallo', notify: 'NONE' }],
+        [{ body: 'Hallo', notify: 'NONE', image: null }],
+        [{ body: 'Hallo', notify: 'NONE', image: null }],
       ])
     })
 
@@ -508,7 +519,7 @@ describe('ChatComposeBar', () => {
       expect(field().element.value).toBe('Hier ist die Datei:')
       expect(box().element.checked).toBe(true)
       await button().trigger('click')
-      expect(sent()).toEqual([[{ body: 'Hier ist die Datei:', notify: 'EMAIL' }]])
+      expect(sent()).toEqual([[{ body: 'Hier ist die Datei:', notify: 'EMAIL', image: null }]])
     })
   })
 
@@ -778,6 +789,373 @@ describe('ChatComposeBar', () => {
       expect(removed).toHaveBeenCalledWith('pointerdown', expect.any(Function), true)
       removed.mockRestore()
       wrapper = null
+    })
+  })
+
+  /**
+   * P7: the picture chosen goes with the next message. While it is made small the bar says so;
+   * then it shows the picture as it will be sent, over the field, and the words become its caption.
+   */
+  describe('the picture that goes with a message', () => {
+    const READY = { data: 'SlBFRw==', width: 800, height: 600, bytes: 20000 }
+    const OTHER = { data: 'T1RIRVI=', width: 600, height: 800, bytes: 18000 }
+
+    const attached = () => wrapper.find('[data-test="chat-compose-attached"]')
+    const preview = () => wrapper.find('[data-test="chat-compose-attached-picture"]')
+    const words = () => wrapper.find('[data-test="chat-compose-attached-words"]')
+    const remove = () => wrapper.find('[data-test="chat-compose-attached-remove"]')
+    const problem = () => wrapper.find('[data-test="chat-compose-picture-problem"]')
+    const status = () => wrapper.find('[data-test="chat-compose-picture-status"]')
+    const clip = () => wrapper.find('[data-test="chat-compose-attach"]')
+
+    /** A promise a test settles when it wants: the picture still being made small till then. */
+    const deferred = () => {
+      const settle = {}
+      const promise = new Promise((resolve, reject) => Object.assign(settle, { resolve, reject }))
+      return { promise, ...settle }
+    }
+
+    /** What the device's picker answers with: a file on the field, and its change. */
+    const choose = async (file = new File(['JPEG'], 'photo.jpg', { type: 'image/jpeg' })) => {
+      const picker = wrapper.find('[data-test="chat-compose-picker"]')
+      Object.defineProperty(picker.element, 'files', { value: [file], configurable: true })
+      await picker.trigger('change')
+      await flushPromises()
+      return file
+    }
+
+    const chooseReady = async (ready = READY) => {
+      encoding.encodeChatImage.mockResolvedValueOnce(ready)
+      await choose()
+    }
+
+    it('says the picture is being prepared, then shows it as it will be sent', async () => {
+      mountBar()
+      const pending = deferred()
+      encoding.encodeChatImage.mockReturnValueOnce(pending.promise)
+      const file = await choose()
+
+      expect(encoding.encodeChatImage).toHaveBeenCalledWith(file)
+      expect(attached().exists()).toBe(true)
+      expect(words().text()).toBe('chatThread.imagePreparing')
+      expect(wrapper.find('.chat-compose-attached-wait').exists()).toBe(true)
+      expect(preview().exists()).toBe(false)
+      expect(remove().exists()).toBe(false)
+
+      pending.resolve(READY)
+      await flushPromises()
+
+      // The finished JPEG itself: what is seen is what goes out.
+      expect(preview().attributes('src')).toBe('data:image/jpeg;base64,SlBFRw==')
+      expect(words().text()).toBe('chatThread.imageReady chatThread.imageReadyHint')
+      expect(words().find('small').text()).toBe('chatThread.imageReadyHint')
+      expect(remove().attributes('aria-label')).toBe('chatThread.imageRemove')
+      expect(remove().attributes('title')).toBe('chatThread.imageRemove')
+      expect(remove().attributes('type')).toBe('button')
+    })
+
+    // E-044: with a picture the words are its caption, and optional.
+    it('makes the field the caption, while the picture is prepared and after', async () => {
+      mountBar()
+      expect(field().attributes('placeholder')).toBe('chatThread.placeholder {"name":"Lena"}')
+      const pending = deferred()
+      encoding.encodeChatImage.mockReturnValueOnce(pending.promise)
+      await choose()
+      expect(field().attributes('placeholder')).toBe('chatThread.imageCaption')
+
+      pending.resolve(READY)
+      await flushPromises()
+      expect(field().attributes('placeholder')).toBe('chatThread.imageCaption')
+      // …and its hidden label says the same.
+      expect(wrapper.find(`label[for="${field().attributes('id')}"]`).text()).toBe(
+        'chatThread.imageCaption',
+      )
+    })
+
+    it('sends a picture with an empty text', async () => {
+      mountBar()
+      await chooseReady()
+      expect(button().attributes('aria-disabled')).toBe('false')
+
+      await button().trigger('click')
+
+      // The picture as the server takes it: the JPEG and its size -- not the preview, not the bytes.
+      expect(sent()).toEqual([
+        [{ body: '', notify: 'NONE', image: { data: 'SlBFRw==', width: 800, height: 600 } }],
+      ])
+    })
+
+    it('sends the words as the caption, the space around them left off', async () => {
+      mountBar()
+      await chooseReady()
+      await field().setValue('  Unser Stand  ')
+
+      await button().trigger('click')
+
+      expect(sent()).toEqual([
+        [
+          {
+            body: 'Unser Stand',
+            notify: 'NONE',
+            image: { data: 'SlBFRw==', width: 800, height: 600 },
+          },
+        ],
+      ])
+    })
+
+    // Chosen for this message: nothing goes before it is ready -- not even the words.
+    it('waits while the picture is being made small', async () => {
+      mountBar()
+      encoding.encodeChatImage.mockReturnValueOnce(deferred().promise)
+      await field().setValue('Hallo')
+      await choose()
+
+      expect(button().attributes('aria-disabled')).toBe('true')
+      await button().trigger('click')
+      await field().trigger('keydown', { key: 'Enter', metaKey: true })
+      expect(sent()).toEqual([])
+    })
+
+    // One picture a message: a second one takes the first one's place.
+    it('takes a second picture in place of the first', async () => {
+      mountBar()
+      await chooseReady(READY)
+      await chooseReady(OTHER)
+
+      expect(wrapper.findAll('[data-test="chat-compose-attached-picture"]')).toHaveLength(1)
+      expect(preview().attributes('src')).toBe('data:image/jpeg;base64,T1RIRVI=')
+      await button().trigger('click')
+      expect(sent()[0][0].image).toEqual({ data: 'T1RIRVI=', width: 600, height: 800 })
+    })
+
+    // The last one chosen counts, whichever is ready first.
+    it('lets a picture go that was overtaken by one chosen after it', async () => {
+      mountBar()
+      const first = deferred()
+      const second = deferred()
+      encoding.encodeChatImage.mockReturnValueOnce(first.promise)
+      await choose()
+      encoding.encodeChatImage.mockReturnValueOnce(second.promise)
+      await choose()
+
+      second.resolve(OTHER)
+      await flushPromises()
+      first.resolve(READY)
+      await flushPromises()
+
+      expect(preview().attributes('src')).toBe('data:image/jpeg;base64,T1RIRVI=')
+      expect(words().text()).toBe('chatThread.imageReady chatThread.imageReadyHint')
+      // …nor does the earlier one's refusal speak for the later.
+      const third = deferred()
+      const fourth = deferred()
+      encoding.encodeChatImage.mockReturnValueOnce(third.promise)
+      await choose()
+      encoding.encodeChatImage.mockReturnValueOnce(fourth.promise)
+      await choose()
+      third.reject(Object.assign(new Error('x'), { problem: 'HEIC' }))
+      await flushPromises()
+      expect(problem().exists()).toBe(false)
+      expect(words().text()).toBe('chatThread.imagePreparing')
+      fourth.resolve(READY)
+      await flushPromises()
+      expect(preview().attributes('src')).toBe('data:image/jpeg;base64,SlBFRw==')
+    })
+
+    // Emptied after every choice: the same file chosen again is a change again.
+    it('lets the same file be chosen again', async () => {
+      mountBar()
+      const picker = wrapper.find('[data-test="chat-compose-picker"]').element
+      let emptied = null
+      Object.defineProperty(picker, 'value', {
+        configurable: true,
+        get: () => '',
+        set: (value) => (emptied = value),
+      })
+      await chooseReady()
+
+      expect(emptied).toBe('')
+    })
+
+    it('takes the picture off with its button, and gives the focus to the paperclip', async () => {
+      mountBar({}, { attachTo: document.body })
+      await chooseReady()
+
+      await remove().trigger('click')
+
+      expect(attached().exists()).toBe(false)
+      expect(document.activeElement).toBe(clip().element)
+      expect(field().attributes('placeholder')).toBe('chatThread.placeholder {"name":"Lena"}')
+      // Without the picture, an empty field sends nothing again.
+      expect(button().attributes('aria-disabled')).toBe('true')
+    })
+
+    /** Why a picture could not be made ready, in the bar's own words, as an alert. */
+    it('says why a picture could not be made ready', async () => {
+      const said = {}
+      for (const reason of ['SOURCE_TOO_LARGE', 'HEIC', 'FORMAT', 'NOT_SMALL_ENOUGH', undefined]) {
+        mountBar()
+        encoding.encodeChatImage.mockRejectedValueOnce(
+          Object.assign(new Error('refused'), { problem: reason }),
+        )
+        await choose()
+        said[reason ?? 'unknown'] = problem().text()
+        expect(problem().attributes('role')).toBe('alert')
+        expect(attached().exists()).toBe(false)
+        wrapper.unmount()
+      }
+      wrapper = null
+
+      expect(said).toEqual({
+        SOURCE_TOO_LARGE: 'chatThread.imageTooLarge',
+        HEIC: 'chatThread.imageHeic',
+        FORMAT: 'chatThread.imageFormat',
+        NOT_SMALL_ENOUGH: 'chatThread.imageTooBig',
+        unknown: 'chatThread.imageFormat',
+      })
+    })
+
+    // A picture chosen before stays where the next one fails: nothing took its place.
+    it('keeps the picture it had where the next one cannot be made ready', async () => {
+      mountBar()
+      await chooseReady()
+      encoding.encodeChatImage.mockRejectedValueOnce(
+        Object.assign(new Error('refused'), { problem: 'HEIC' }),
+      )
+      await choose()
+
+      expect(problem().text()).toBe('chatThread.imageHeic')
+      expect(preview().attributes('src')).toBe('data:image/jpeg;base64,SlBFRw==')
+    })
+
+    // Another go: the menu opening again, or a picture that is ready, ends the old words.
+    it('lets the words about a failed picture go with the next try', async () => {
+      mountBar()
+      encoding.encodeChatImage.mockRejectedValueOnce(
+        Object.assign(new Error('refused'), { problem: 'FORMAT' }),
+      )
+      await choose()
+      expect(problem().exists()).toBe(true)
+
+      await clip().trigger('click')
+      expect(problem().exists()).toBe(false)
+
+      await clip().trigger('click')
+      encoding.encodeChatImage.mockRejectedValueOnce(
+        Object.assign(new Error('refused'), { problem: 'FORMAT' }),
+      )
+      await choose()
+      expect(problem().exists()).toBe(true)
+      await chooseReady()
+      expect(problem().exists()).toBe(false)
+    })
+
+    // For the ear: the preview has no words a screen reader would hear on its own.
+    it('tells a screen reader how the picture stands', async () => {
+      mountBar()
+      expect(status().attributes('role')).toBe('status')
+      expect(status().text()).toBe('')
+      const pending = deferred()
+      encoding.encodeChatImage.mockReturnValueOnce(pending.promise)
+      await choose()
+      expect(status().text()).toBe('chatThread.imagePreparing')
+
+      pending.resolve(READY)
+      await flushPromises()
+      expect(status().text()).toBe('chatThread.imageReady. chatThread.imageReadyHint')
+
+      await remove().trigger('click')
+      expect(status().text()).toBe('')
+    })
+
+    describe('after sending', () => {
+      it('takes the picture off with the words once the message went through', async () => {
+        mountBar()
+        await chooseReady()
+        await field().setValue('Unser Stand')
+        await button().trigger('click')
+
+        await wrapper.setProps({ sending: true })
+        await wrapper.setProps({ sending: false })
+        await flushPromises()
+
+        expect(attached().exists()).toBe(false)
+        expect(field().element.value).toBe('')
+        expect(field().attributes('placeholder')).toBe('chatThread.placeholder {"name":"Lena"}')
+      })
+
+      // ⛔ Only what went out: a picture chosen while the message was on its way is the next one's.
+      it('keeps a picture chosen while the message was on its way', async () => {
+        mountBar()
+        await chooseReady(READY)
+        await button().trigger('click')
+        await wrapper.setProps({ sending: true })
+
+        await chooseReady(OTHER)
+        await wrapper.setProps({ sending: false })
+        await flushPromises()
+
+        expect(preview().attributes('src')).toBe('data:image/jpeg;base64,T1RIRVI=')
+      })
+
+      // …and a message without a picture takes none off.
+      it('keeps a picture chosen while a message without one was on its way', async () => {
+        mountBar()
+        await field().setValue('Hallo')
+        await button().trigger('click')
+        await wrapper.setProps({ sending: true })
+
+        await chooseReady()
+        await wrapper.setProps({ sending: false })
+        await flushPromises()
+
+        expect(field().element.value).toBe('')
+        expect(preview().attributes('src')).toBe('data:image/jpeg;base64,SlBFRw==')
+      })
+
+      it('keeps the picture and the words where the message did not go through', async () => {
+        mountBar()
+        await chooseReady()
+        await field().setValue('Unser Stand')
+        await button().trigger('click')
+
+        await wrapper.setProps({ sending: true })
+        await wrapper.setProps({ sending: false, failed: true })
+        await flushPromises()
+
+        expect(preview().attributes('src')).toBe('data:image/jpeg;base64,SlBFRw==')
+        expect(field().element.value).toBe('Unser Stand')
+      })
+
+      /**
+       * Two refusals of the server about a picture have their own words (P7a, P7b); every other
+       * failure is "not sent", as before.
+       */
+      it('says in its own words why a message with a picture was refused', async () => {
+        mountBar({ failed: true })
+        expect(wrapper.find('[data-test="chat-compose-failed"]').text()).toBe('chatThread.notSent')
+
+        await wrapper.setProps({ failedReason: 'IMAGE_NOT_ACCEPTED' })
+        expect(wrapper.find('[data-test="chat-compose-failed"]').text()).toBe(
+          'chatThread.imageNotAccepted',
+        )
+
+        await wrapper.setProps({ failedReason: 'TOO_LARGE_ACROSS_BORDER' })
+        expect(wrapper.find('[data-test="chat-compose-failed"]').text()).toBe(
+          'chatThread.imageTooLargeAcrossBorder',
+        )
+      })
+    })
+
+    /**
+     * ⛔ The picture lives in memory only: the thread's note for a restart takes the words
+     * (`draft`), and a picture chosen is not part of them (#3999; E-041, point 5).
+     */
+    it('hands the words for a restart, and never the picture', async () => {
+      mountBar()
+      await chooseReady()
+      await field().setValue('Unser Stand')
+
+      expect(wrapper.vm.draft()).toBe('Unser Stand')
     })
   })
 

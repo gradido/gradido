@@ -1160,6 +1160,73 @@ describe('ChatThread', () => {
       })
     })
 
+    /**
+     * P7: the picture the bar hands over goes as `$image` -- the name the backend's request log
+     * masks (LOG-071) -- and a message without one carries no `image` at all.
+     */
+    it('sends the picture the bar hands over, and no picture where there is none', async () => {
+      const PICTURE = { data: 'SlBFRw==', width: 800, height: 600 }
+      serverSends.mockResolvedValue(ownCopy(99, ''))
+      mountThread()
+      await arrive(page([1, 2]))
+
+      bar().vm.$emit('send', { body: '', notify: 'NONE', image: PICTURE })
+      await flushPromises()
+
+      expect(serverSends).toHaveBeenCalledWith({
+        ref: { gradidoID: 'lena-id', communityUuid: 'home-uuid' },
+        body: '',
+        notify: 'NONE',
+        image: PICTURE,
+      })
+
+      serverSends.mockClear()
+      serverSends.mockResolvedValue(ownCopy(100, 'Hallo'))
+      bar().vm.$emit('send', { body: 'Hallo', notify: 'NONE', image: null })
+      await flushPromises()
+      expect(serverSends.mock.calls[0][0]).not.toHaveProperty('image')
+    })
+
+    /**
+     * Two refusals of a message with a picture have words of their own in the bar: the picture
+     * was not taken (P7a), or the text is too long to go with it to another community (P7b).
+     * Every other failure is "not sent" as before -- and a message that goes through leaves no
+     * reason behind.
+     */
+    it('tells the bar why a message with a picture was refused', async () => {
+      const PICTURE = { data: 'SlBFRw==', width: 800, height: 600 }
+      mountThread()
+      await arrive(page([1, 2]))
+      const refusedWith = async (failure) => {
+        serverSends.mockRejectedValueOnce(failure)
+        bar().vm.$emit('send', { body: 'Unser Stand', notify: 'NONE', image: PICTURE })
+        await flushPromises()
+        return [bar().props('failed'), bar().props('failedReason')]
+      }
+
+      expect(await refusedWith(new Error('CHAT_IMAGE_NOT_ACCEPTED: TOO_LARGE'))).toEqual([
+        true,
+        'IMAGE_NOT_ACCEPTED',
+      ])
+      expect(wrapper.find('[data-test="chat-compose-failed"]').text()).toBe(
+        'chatThread.imageNotAccepted',
+      )
+      expect(
+        await refusedWith(new Error('CHAT_MESSAGE_NOT_SENT: TOO_LARGE_ACROSS_BORDER')),
+      ).toEqual([true, 'TOO_LARGE_ACROSS_BORDER'])
+      expect(wrapper.find('[data-test="chat-compose-failed"]').text()).toBe(
+        'chatThread.imageTooLargeAcrossBorder',
+      )
+      expect(await refusedWith(new Error('CHAT_MESSAGE_NOT_SENT: NOT_STORED'))).toEqual([true, ''])
+      expect(wrapper.find('[data-test="chat-compose-failed"]').text()).toBe('chatThread.notSent')
+
+      await refusedWith(new Error('CHAT_IMAGE_NOT_ACCEPTED: NOT_JPEG'))
+      serverSends.mockResolvedValueOnce(ownCopy(99, 'Unser Stand'))
+      bar().vm.$emit('send', { body: 'Unser Stand', notify: 'NONE', image: PICTURE })
+      await flushPromises()
+      expect([bar().props('failed'), bar().props('failedReason')]).toEqual([false, ''])
+    })
+
     it('sends a null community where the member carries none', async () => {
       serverSends.mockResolvedValue(ownCopy(99, 'Hallo'))
       mountThread({ gradidoID: 'lena-id' })
@@ -1403,6 +1470,21 @@ describe('ChatThread', () => {
       expect(wrapper.find('[data-test="chat-thread-sent"]').text()).toBe('chatThread.sent')
     })
 
+    // The invitation is words and a link: it carries no picture, whatever it is handed.
+    it('sends no picture with an invitation', async () => {
+      serverSends.mockResolvedValue(ownCopy(99, INVITATION))
+      mountThread()
+      await arrive(page([1, 2]))
+
+      await deliver({
+        body: INVITATION,
+        notify: 'NONE',
+        image: { data: 'SlBFRw==', width: 800, height: 600 },
+      })
+
+      expect(serverSends.mock.calls[0][0]).not.toHaveProperty('image')
+    })
+
     // The first message makes the conversation, whoever sends it: the window hears of it.
     it('turns an empty thread into a conversation, as a message of the bar does', async () => {
       serverSends.mockResolvedValue(ownCopy(99, INVITATION, { notify: 'EMAIL' }))
@@ -1637,6 +1719,32 @@ describe('ChatThread', () => {
             : field.name.value,
         )
         .join(' ')
+
+    /**
+     * ⛔ `$image`, by that name (LOG-071): the backend's request log masks the variable of that
+     * name, and a picture under any other would be written into it whole, some 44,000 characters
+     * a message. Nullable, of the input the server takes.
+     */
+    it('sends the picture as $image, of the input type the server takes', () => {
+      const operation = sendChatMessage.definitions.find(
+        (definition) => definition.kind === 'OperationDefinition',
+      )
+      const variable = operation.variableDefinitions.find(
+        (definition) => definition.variable.name.value === 'image',
+      )
+      expect(variable.type.kind).toBe('NamedType')
+      expect(variable.type.name.value).toBe('ChatImageInput')
+      const argument = top(sendChatMessage).arguments.find((arg) => arg.name.value === 'image')
+      expect(argument.value.kind).toBe('Variable')
+      expect(argument.value.name.value).toBe('image')
+    })
+
+    // P7: every message names its picture -- what to fetch it by and its size, never the bytes.
+    it('asks for the picture of a message by name and size, not for the picture', () => {
+      expect(shape(messagesOf(chatMessagesWithMemberQuery).selectionSet)).toContain(
+        'images{imageUuid width height}',
+      )
+    })
 
     it('asks the page for what the thread and the bell read', () => {
       const fields = top(chatMessagesWithMemberQuery).selectionSet.selections.map(
