@@ -1,6 +1,7 @@
 import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import { Command } from './Command'
+import { commandArgsForLog } from './commandArgsForLog'
 
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.command.BaseCommand.${method}`)
@@ -39,9 +40,12 @@ export abstract class BaseCommand<T = any> implements Command<T> {
 
   validate(): boolean {
     const methodLogger = createLogger(`validate`)
-    methodLogger.debug(
-      `validate() requiredFields=${JSON.stringify(this.requiredFields)} params=${JSON.stringify(this.params)}`,
-    )
+    // A chat message's picture as its length (P7b).
+    if (methodLogger.isDebugEnabled()) {
+      methodLogger.debug(
+        `validate() requiredFields=${JSON.stringify(this.requiredFields)} params=${JSON.stringify(commandArgsForLog(this.params))}`,
+      )
+    }
     /*
     const isValid = this.requiredFields.every(field => 
       this.params[field] !== undefined && 

@@ -23,10 +23,12 @@ import {
 import {
   acceptIncomingChatMessageImages,
   ChatMessageImageToStore,
+  chatMessageImagesForLog,
   removeChatMessageImages,
   storeIncomingChatMessageImage,
 } from '../../logic/ChatMessageImage.logic'
 import { BaseCommand } from '../BaseCommand'
+import { commandArgsForLog } from '../commandArgsForLog'
 
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.command.commands.SendEmailCommand.${method}`)
@@ -133,9 +135,34 @@ export class SendEmailCommand extends BaseCommand<
 
   constructor(params: any[]) {
     const methodLogger = createLogger(`constructor`)
-    methodLogger.debug(`constructor() params=${JSON.stringify(params)}`)
+    // The debug lines write a picture as its length (P7b), the text as before.
+    if (methodLogger.isDebugEnabled()) {
+      methodLogger.debug(`constructor() params=${JSON.stringify(commandArgsForLog(params))}`)
+    }
     super(params)
     this.sendEmailCommandParams = JSON.parse(params[0]) as SendEmailCommandParams
+  }
+
+  /**
+   * The command as the debug log writes it -- the executor and the factory write the command
+   * whole (JSON.stringify): a chat message's picture as its length (P7b), in the arguments as they
+   * came and in the parameters read from them.
+   */
+  toJSON(): Record<string, unknown> {
+    return {
+      params: commandArgsForLog(this.params),
+      requiredFields: this.requiredFields,
+      sendEmailCommandParams: this.paramsForLog(),
+    }
+  }
+
+  private paramsForLog(): SendEmailCommandParams {
+    return {
+      ...this.sendEmailCommandParams,
+      images: chatMessageImagesForLog(
+        this.sendEmailCommandParams.images,
+      ) as SendEmailCommandParams['images'],
+    }
   }
 
   validate(): boolean {
@@ -150,9 +177,9 @@ export class SendEmailCommand extends BaseCommand<
 
   async execute(): Promise<string | boolean | null | Error> {
     const methodLogger = createLogger(`execute`)
-    methodLogger.debug(
-      `execute() sendEmailCommandParams=${JSON.stringify(this.sendEmailCommandParams)}`,
-    )
+    if (methodLogger.isDebugEnabled()) {
+      methodLogger.debug(`execute() sendEmailCommandParams=${JSON.stringify(this.paramsForLog())}`)
+    }
     let result: string
     if (!this.validate()) {
       throw new Error('Invalid command parameters')

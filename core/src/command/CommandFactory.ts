@@ -3,6 +3,7 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import { BaseCommand } from './BaseCommand'
 import { Command } from './Command'
 import { ICommandConstructor } from './CommandTypes'
+import { commandArgsForLog } from './commandArgsForLog'
 // import { ICommandConstructor } from './CommandTypes';
 import { SendEmailCommand } from './commands/SendEmailCommand'
 
@@ -36,7 +37,10 @@ export class CommandFactory {
   createCommand<T>(name: string, params: string[]): Command<T> {
     const methodLogger = createLogger(`createCommand`)
     if (methodLogger.isDebugEnabled()) {
-      methodLogger.debug(`createCommand() name=${name} params=${JSON.stringify(params)}`)
+      // A chat message's picture as its length (P7b).
+      methodLogger.debug(
+        `createCommand() name=${name} params=${JSON.stringify(commandArgsForLog(params))}`,
+      )
     }
     const CommandClass = this.commands.get(name)
     if (methodLogger.isDebugEnabled()) {

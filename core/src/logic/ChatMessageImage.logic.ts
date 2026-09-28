@@ -292,3 +292,17 @@ export async function storeIncomingChatMessageImage(
   }
   return { success: false, error: 'NOT_STORED' }
 }
+
+/**
+ * The pictures of a chat message as a log may write them (P7b): name and size, and of the bytes
+ * only how many characters of base64 they came as -- some 48,000 for a picture, one member's for
+ * another. Anything that is no picture list is handed back as it is.
+ */
+export const chatMessageImagesForLog = (images: unknown): unknown =>
+  Array.isArray(images)
+    ? images.map((picture) =>
+        isRecord(picture) && typeof picture.data === 'string'
+          ? { ...picture, data: `*** ${picture.data.length} characters` }
+          : picture,
+      )
+    : images
