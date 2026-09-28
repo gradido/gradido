@@ -9,16 +9,20 @@
          right, the other person's on the left (E-014); in a conversation of two there is no
          face at the bubble -- whose it is, the side says. (Inside the item, not above it: a
          comment beside the root would make two roots in development.) -->
-    <div class="chat-bubble">
+    <div class="chat-bubble" :class="{ 'has-image': image }">
       <!-- ⛔ The side is the ONLY thing that says who wrote a message, and a screen reader
            does not see sides. So the writer is named in words, for the ear only. -->
       <span class="visually-hidden" data-test="chat-bubble-writer">{{ writer }}</span>
+      <!-- The picture a message carries (P7), on top; its caption is the text under it, in the
+           same bubble (E-044 F3). One a message. -->
+      <chat-bubble-image v-if="image" :image="image" />
       <!-- The subject a message sent from the e-mail form carries, bold over the text; a
            message without one has no line for it at all, not an empty one (E-013). -->
       <div v-if="message.subject" class="chat-bubble-subject" data-test="chat-bubble-subject">
         {{ message.subject }}
       </div>
-      <chat-message-text class="chat-bubble-text" :text="message.body" />
+      <!-- A picture without words has no caption, and no empty line for one. -->
+      <chat-message-text v-if="message.body" class="chat-bubble-text" :text="message.body" />
       <!-- A planned video call (V5b, Bernd, 27.09.2026): offered to the member's calendar, on
            either side of the conversation -- the time comes out of the invitation's own address
            (chatVideoPlannedCall), and the calendar shows it in this member's time zone. -->
@@ -72,6 +76,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import ChatBubbleImage from '@/components/Chat/ChatBubbleImage.vue'
 import ChatMessageText from '@/components/Chat/ChatMessageText'
 import {
   chatVideoCalendarFile,
@@ -108,6 +113,9 @@ const writer = computed(() => `${props.message.mine ? t('chatThread.you') : prop
 
 const arrived = computed(() => new Date(props.message.createdAt))
 const arrivedIso = computed(() => arrived.value.toISOString())
+
+/** The picture the message carries (P7): `{ imageUuid, width, height }`, or null. */
+const image = computed(() => props.message.images?.[0] ?? null)
 
 /** The word under one's own message, where it did not reach the other server (E-019). */
 const stateWord = computed(() => {
@@ -311,5 +319,22 @@ const addToCalendar = () => {
 .dark-mode .chat-bubble-not-mailed {
   color: var(--bs-body-color);
   opacity: 0.75;
+}
+
+/* A message with a picture (E-044; the mockup, "Bilder im Faden"): 16.5rem wide, never more than
+   80 % of the thread, little room around the picture -- the caption and the time under it keep
+   the room text needs. */
+.chat-bubble.has-image {
+  width: 16.5rem;
+  padding: 0.25rem;
+}
+
+.chat-bubble.has-image .chat-bubble-text {
+  display: block;
+  padding: 0.35rem 0.5rem 0;
+}
+
+.chat-bubble.has-image .chat-bubble-meta {
+  padding: 0 0.5rem 0.15rem;
 }
 </style>

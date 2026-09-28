@@ -192,6 +192,18 @@ query chatVideoRoom($serverId: Int) {
   }
 }
 
+# The picture of a chat message (P7), as base64, by the uuid a message names it by (`images`
+# above): only for a member of its conversation, while its message is not deleted -- null for
+# everything else, with nothing that tells those apart. One picture a call; the server serves ten
+# per HTTP request, and every query here is a request of its own.
+#
+# ⛔ Always asked with `fetchPolicy: 'no-cache'` (useChatImages): the cache would keep every picture
+# as some 44,000 characters of base64 for the life of the tab. The pictures are kept as bytes, in
+# memory, and let go at logout.
+query chatMessageImage($imageUuid: String!) {
+  chatMessageImage(imageUuid: $imageUuid)
+}
+
 # The servers a member may choose for a call (V5): those chatVideoRoom hands rooms out on right
 # now -- ticked in the admin page's list and passed the last check --, in the list's order. The
 # same list for everybody, but not for long: a check every ten minutes may take a server out, so

@@ -121,6 +121,7 @@ import { useStore } from 'vuex'
 import { useApolloClient, useMutation, useQuery } from '@vue/apollo-composable'
 import ChatBubble from '@/components/Chat/ChatBubble.vue'
 import ChatComposeBar from '@/components/Chat/ChatComposeBar.vue'
+import { rememberChatImage } from '@/composables/useChatImages'
 import { onChatMessages, pollChatNow } from '@/composables/useChatUpdates'
 import {
   chatMessagesWithMemberQuery,
@@ -671,6 +672,11 @@ const post = async ({ body, notify, image = null }) => {
         update: (cache, { data }) => {
           const own = data?.sendChatMessage
           if (!own) return
+          // One's own picture from the JPEG just sent (useChatImages): its bubble, drawn with the
+          // copy below, shows it without asking the server for what went out from here. Before
+          // the copy is written, so the bubble finds it when it is made.
+          const filed = own.images?.[0]
+          if (filed) rememberChatImage(filed.imageUuid, image?.data)
           cache.updateQuery(
             { query: chatMessagesWithMemberQuery, variables: threadVariables },
             (current) => withOwnCopy(current, own),

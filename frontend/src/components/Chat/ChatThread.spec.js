@@ -7,6 +7,7 @@ import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest
 import ChatThread from './ChatThread.vue'
 import ChatComposeBar from './ChatComposeBar.vue'
 import { holdChatText, takeHeldChatText } from '@/utils/chatReturn'
+import { chatImage, forgetAllChatImages } from '@/composables/useChatImages'
 import {
   chatMessagesWithMemberQuery,
   markChatConversationRead,
@@ -1225,6 +1226,64 @@ describe('ChatThread', () => {
       bar().vm.$emit('send', { body: 'Unser Stand', notify: 'NONE', image: PICTURE })
       await flushPromises()
       expect([bar().props('failed'), bar().props('failedReason')]).toEqual([false, ''])
+    })
+
+    /**
+     * One's own picture, just sent, from the JPEG made here (useChatImages): its bubble shows it
+     * without asking the server for what went out a moment ago. (The client of this spec has no
+     * `query` -- a question for it would fail, and the bubble would stay empty.)
+     */
+    it('shows one’s own picture from the JPEG just sent, without asking for it', async () => {
+      URL.createObjectURL = vi.fn(() => 'blob:own-picture')
+      URL.revokeObjectURL = vi.fn()
+      try {
+        serverSends.mockResolvedValue({
+          ...ownCopy(99, ''),
+          images: [{ imageUuid: 'own-image', width: 800, height: 600 }],
+        })
+        mountThread()
+        await arrive(page([1, 2]))
+
+        bar().vm.$emit('send', {
+          body: '',
+          notify: 'NONE',
+          image: { data: btoa('JPEG'), width: 800, height: 600 },
+        })
+        await flushPromises()
+
+        expect(chatImage('own-image')).toEqual({ state: 'ready', src: 'blob:own-picture' })
+        const last = wrapper.findAll('[data-test="chat-bubble"]').at(-1)
+        expect(last.find('[data-test="chat-bubble-image-picture"]').attributes('src')).toBe(
+          'blob:own-picture',
+        )
+      } finally {
+        forgetAllChatImages()
+        delete URL.createObjectURL
+        delete URL.revokeObjectURL
+      }
+    })
+
+    // Gegenprobe: a copy that came back without a picture keeps nothing -- and a message sent
+    // without one keeps nothing either.
+    it('keeps no picture where the copy names none', async () => {
+      URL.createObjectURL = vi.fn(() => 'blob:own-picture')
+      try {
+        serverSends.mockResolvedValue({ ...ownCopy(99, 'Hallo'), images: [] })
+        mountThread()
+        await arrive(page([1, 2]))
+
+        bar().vm.$emit('send', {
+          body: 'Hallo',
+          notify: 'NONE',
+          image: { data: btoa('JPEG'), width: 800, height: 600 },
+        })
+        await flushPromises()
+
+        expect(URL.createObjectURL).not.toHaveBeenCalled()
+      } finally {
+        forgetAllChatImages()
+        delete URL.createObjectURL
+      }
     })
 
     it('sends a null community where the member carries none', async () => {

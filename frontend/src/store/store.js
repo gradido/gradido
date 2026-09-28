@@ -7,6 +7,7 @@ import i18n from '../i18n'
 import { clearEntryDraft } from '../composables/useEntryDraft'
 import { closeAvatarZoom } from '../composables/useAvatarZoom'
 import { forgetAllMemberAvatars } from '../composables/useMemberAvatars'
+import { forgetAllChatImages } from '../composables/useChatImages'
 import { forgetFavorites } from '../composables/useFavorites'
 import { forgetContactsPanel } from '../composables/useContactsPanel'
 import { stopChatUpdates } from '../composables/useChatUpdates'
@@ -218,6 +219,10 @@ export const actions = {
     // the throw would take every following line of this action with it. Of the two, the
     // faces are the ones that must not survive a logout.
     forgetAllMemberAvatars()
+    // And the pictures of the chat's messages, for the same reason: they are kept in memory for
+    // the session (useChatImages), and the next member to sign in on this browser must not be
+    // handed the pictures of the conversations of the one before.
+    forgetAllChatImages()
     // Same reason, same moment: the hearts are one member's, not the device's.
     forgetFavorites()
     // And the contacts the right-hand column holds, which name the people this member has
