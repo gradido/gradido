@@ -198,6 +198,12 @@ export class User extends BaseEntity {
   @Column({ name: 'creation_allowed', type: 'bool', default: true })
   creationAllowed: boolean
 
+  // Whether the transfers with somebody stand in the conversation with them, and whether a mail
+  // goes out about a transfer received (migration 0147). The account holder's switch, on by
+  // default.
+  @Column({ name: 'transfers_in_chat', type: 'bool', default: true })
+  transfersInChat: boolean
+
   // Crea salutation/signature fields (E-013), moderator-curated; null = not set.
   @Column({
     name: 'gender',

@@ -411,6 +411,9 @@ export const usersTable = mysqlTable(
     // ES-021: a person may create, a project account may not. 1 for every account that
     // exists today - the distinction is made by the holder, never by a migration.
     creationAllowed: boolean('creation_allowed').default(true).notNull(),
+    // The transfers in the conversations and the mail about one received: the holder's switch,
+    // on by default (migration 0147).
+    transfersInChat: boolean('transfers_in_chat').default(true).notNull(),
     salutation: varchar({ length: 255 }).default(sql`NULL`),
     gmsRegistered: boolean('gms_registered').default(false).notNull(),
     gmsRegisteredAt: datetime('gms_registered_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
