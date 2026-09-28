@@ -190,6 +190,8 @@
     "send": "Invia",
     "sent": "Inviato",
     "sentWithNote": "Inviato. {note}",
+    "transferReceived": "{name} ti ha inviato {amount} Gradido",
+    "transferSent": "Hai inviato {amount} Gradido a {name}",
     "unmutedHint": "Conversazione non più silenziata: ricevi di nuovo le e-mail per i messaggi in chat di {name}.",
     "unreadBadge": "{n} conversazione con nuovi messaggi | {n} conversazioni con nuovi messaggi",
     "unreadDot": "Nuovi messaggi nella chat",

@@ -190,6 +190,8 @@
     "send": "Αποστολή",
     "sent": "Στάλθηκε",
     "sentWithNote": "Στάλθηκε. {note}",
+    "transferReceived": "{name} σου έστειλε {amount} Gradido",
+    "transferSent": "Έστειλες {amount} Gradido στο μέλος {name}",
     "unmutedHint": "Χωρίς σίγαση: θα λαμβάνεις ξανά email για μηνύματα στο chat από {name}.",
     "unreadBadge": "{n} συνομιλία με νέα μηνύματα | {n} συνομιλίες με νέα μηνύματα",
     "unreadDot": "Νέα μηνύματα στο chat",

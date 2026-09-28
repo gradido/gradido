@@ -8,7 +8,7 @@
          about it went out or the recipient's mute held it back (E-019, E-034). The wallet adds
          nothing to it. -->
     <p
-      v-if="state === 'error'"
+      v-if="view === 'error'"
       class="chat-thread-box chat-thread-quiet"
       data-test="chat-thread-error"
     >
@@ -16,7 +16,7 @@
     </p>
 
     <div
-      v-else-if="state === 'empty'"
+      v-else-if="view === 'empty'"
       class="chat-thread-box chat-thread-quiet"
       data-test="chat-thread-empty"
     >
@@ -34,7 +34,7 @@
          Focusable, because it scrolls and a keyboard has to be able to scroll it -- and
          what can be focused needs a name, which is what the label is for. -->
     <div
-      v-else-if="state === 'thread'"
+      v-else-if="view === 'thread'"
       ref="scroller"
       class="chat-thread-box chat-thread-scroll"
       role="region"
@@ -44,7 +44,7 @@
       @scroll="noteWhereTheReaderIs"
     >
       <div ref="content" class="chat-thread-content">
-        <div v-if="hasMore" class="chat-thread-older">
+        <div v-if="hasMore || transfersHaveMore" class="chat-thread-older">
           <!-- ⚠️ `aria-disabled`, not `disabled`: a focused button that is disabled loses its
                focus in Chrome, and a keyboard that pressed it would be nowhere once the page
                is in. The click handler turns a second press away instead. -->
@@ -69,8 +69,9 @@
           </p>
         </div>
 
-        <!-- A day, then its messages. The date stands above the first message of every day
-             the thread reaches into, the first one included. -->
+        <!-- A day, then its messages -- and the transfers between the two, where they fall in
+             time (Bernd, 28.09.2026). The date stands above the first message of every day the
+             thread reaches into, the first one included. -->
         <section v-for="day in days" :key="day.key" class="chat-thread-day-group">
           <h3 class="chat-thread-day" data-test="chat-thread-day">
             <time :datetime="day.key">{{ d(day.date, 'short') }}</time>
@@ -78,7 +79,7 @@
           <ol class="chat-thread-list">
             <chat-bubble
               v-for="message in day.messages"
-              :key="message.id"
+              :key="message.key ?? message.id"
               :message="message"
               :alias="alias"
               @open-image="openImage"
@@ -97,7 +98,7 @@
          one into the other, and the keyboard stays in its field. Not while loading and not
          where the thread could not be loaded -- there is nothing to answer yet. -->
     <chat-compose-bar
-      v-if="state === 'thread' || state === 'empty'"
+      v-if="view === 'thread' || view === 'empty'"
       ref="composeBar"
       :name="alias"
       :first="state === 'empty'"
@@ -127,6 +128,7 @@ import ChatBubble from '@/components/Chat/ChatBubble.vue'
 import ChatComposeBar from '@/components/Chat/ChatComposeBar.vue'
 import ChatImageView from '@/components/Chat/ChatImageView.vue'
 import { openChatImageView, rememberChatImage } from '@/composables/useChatImages'
+import { useChatTransfers } from '@/composables/useChatTransfers'
 import { onChatMessages, pollChatNow } from '@/composables/useChatUpdates'
 import {
   chatMessagesWithMemberQuery,
@@ -162,7 +164,7 @@ const props = defineProps({
  */
 const emit = defineEmits(['chatConversation'])
 
-const { t, d } = useI18n()
+const { t, d, n } = useI18n()
 
 /**
  * The pair, taken ONCE. The thread is made when the window opens and gone when it closes
@@ -195,6 +197,19 @@ const messages = computed(() => page.value?.messages ?? [])
 const hasMore = computed(() => Boolean(page.value?.hasMore))
 
 /**
+ * The transfers between the two (useChatTransfers), beside the messages and apart from them:
+ * nothing the chat counts goes by them -- not the read pointer, not the page before the smallest
+ * id, not whether the conversation exists. They only stand in the thread where they fall in
+ * time, as bubbles of their own.
+ */
+const {
+  transfers,
+  settled: transfersSettled,
+  hasMore: transfersHaveMore,
+  loadOlderTransfers,
+} = useChatTransfers(apolloClient, memberRef)
+
+/**
  * ⚠️ Decided on the PAGE, not on `loading`. vue-apollo sets `loading` for a `fetchMore` too,
  * and never clears it where the fetch fails -- a thread built on `loading` would vanish
  * while older messages load, and stay gone after one failed to.
@@ -203,6 +218,79 @@ const state = computed(() => {
   if (page.value) return messages.value.length ? 'thread' : 'empty'
   if (error.value) return 'error'
   return 'loading'
+})
+
+const at = (iso) => new Date(iso).getTime()
+
+/**
+ * A transfer as a bubble (Bernd, 28.09.2026): "formatiert wie eine E-Mail, nur etwas kürzer" --
+ * the mail's own words bold over it ("Frank-Tisch hat Dir 10,00 Gradido gesendet"; for the one
+ * who sent it "Du hast Bernd 10,00 Gradido gesendet"), the booking's memo under them. On the
+ * side of whoever sent it, as a message is.
+ */
+const transferBubble = (booking) => {
+  const mine = booking.typeId === 'SEND'
+  const amount = n(Math.abs(Number(booking.amount)), 'decimal')
+  return {
+    key: `transfer-${booking.id}`,
+    transfer: true,
+    mine,
+    createdAt: booking.balanceDate,
+    subject: mine
+      ? t('chatThread.transferSent', { name: props.alias, amount })
+      : t('chatThread.transferReceived', { name: props.alias, amount }),
+    body: booking.memo,
+  }
+}
+
+/**
+ * How far back the thread can be shown without a gap: while either list has older pages, not
+ * past the oldest thing it holds -- a message from before the oldest transfer asked for would
+ * stand beside transfers that are not there yet. "Load older" moves it back.
+ */
+const horizon = computed(() => {
+  const limits = []
+  if (hasMore.value && messages.value.length) limits.push(at(messages.value[0].createdAt))
+  if (transfersHaveMore.value && transfers.value.length) {
+    limits.push(at(transfers.value[0].balanceDate))
+  }
+  return limits.length ? Math.max(...limits) : -Infinity
+})
+
+/**
+ * The messages in their own order (E-018) with the transfers between them, each before the first
+ * message that came after it -- from the horizon on.
+ */
+const timeline = computed(() => {
+  const due = transfers.value.filter((booking) => at(booking.balanceDate) >= horizon.value)
+  const shown = []
+  let next = 0
+  for (const message of messages.value) {
+    const when = at(message.createdAt)
+    if (when < horizon.value) continue
+    while (next < due.length && at(due[next].balanceDate) < when) {
+      shown.push(transferBubble(due[next]))
+      next += 1
+    }
+    shown.push(message)
+  }
+  while (next < due.length) {
+    shown.push(transferBubble(due[next]))
+    next += 1
+  }
+  return shown
+})
+
+/**
+ * What the box shows. The chat's own state (`state`) goes by the messages -- whether the
+ * conversation exists, whether the next message is the first -- and the box by all it holds: a
+ * pair with transfers and no message yet has a thread to show. "Empty" waits for the transfers,
+ * so the empty box does not stand for a moment over transfers on their way.
+ */
+const view = computed(() => {
+  if (state.value === 'error' || state.value === 'loading') return state.value
+  if (timeline.value.length > 0) return 'thread'
+  return transfersSettled.value ? 'empty' : 'loading'
 })
 
 /** The local calendar day of a message: what the date line above a day names. */
@@ -214,12 +302,13 @@ const dayKey = (date) =>
   ].join('-')
 
 /**
- * The messages, a day at a time. Nothing is sorted: they come in the order they arrived on
- * this server (E-018), and an older page is put in front of the ones already there.
+ * The timeline, a day at a time. The messages are not sorted: they come in the order they
+ * arrived on this server (E-018), an older page in front of the ones already there, and the
+ * transfers stand between them by their time.
  */
 const days = computed(() => {
   const groups = []
-  for (const message of messages.value) {
+  for (const message of timeline.value) {
     const date = new Date(message.createdAt)
     const key = dayKey(date)
     const last = groups[groups.length - 1]
@@ -409,7 +498,7 @@ const noteWhereTheReaderIs = () => {
 
 // The newest message is the one at the bottom, and that is where a thread opens.
 watch(
-  state,
+  view,
   (now, before) => {
     if (now === 'thread' && before !== 'thread') scrollToNewest()
   },
@@ -455,7 +544,7 @@ let focusWasOnOlder = false
  * it at all.
  */
 watch(
-  messages,
+  timeline,
   () => {
     const box = scroller.value
     // One's own message, at the bottom: the thread goes down to it (the sender asked it to
@@ -467,9 +556,11 @@ watch(
     }
     if (box) box.scrollTop = box.scrollHeight - placeFromBottom
     placeFromBottom = null
-    // The button goes once the first message is in. Focus that stood on it would fall out
-    // of the window; it goes to the thread instead, where the keyboard was.
-    if (focusWasOnOlder && !hasMore.value) box?.focus({ preventScroll: true })
+    // The button goes once the first message and the first transfer are in. Focus that stood
+    // on it would fall out of the window; it goes to the thread instead, where the keyboard was.
+    if (focusWasOnOlder && !hasMore.value && !transfersHaveMore.value) {
+      box?.focus({ preventScroll: true })
+    }
     focusWasOnOlder = false
     // What arrived while the older page was on its way, now that the reader's place is kept.
     takeWaitingArrivals()
@@ -491,9 +582,22 @@ const withOlderPage = (previous, { fetchMoreResult }) => {
   }
 }
 
-/** The page before the smallest id on screen; the watcher above keeps the reader's place. */
+/**
+ * The page before the smallest id on screen, and the older transfers -- from whichever list the
+ * horizon stands at, both where it stands at both; the watcher above keeps the reader's place.
+ */
 const loadOlder = async (event) => {
-  if (loadingOlder.value || messages.value.length === 0) return
+  if (loadingOlder.value) return
+  const oldestMessage =
+    hasMore.value && messages.value.length ? at(messages.value[0].createdAt) : -Infinity
+  const oldestTransfer =
+    transfersHaveMore.value && transfers.value.length
+      ? at(transfers.value[0].balanceDate)
+      : -Infinity
+  const olderMessages =
+    hasMore.value && messages.value.length > 0 && oldestMessage >= oldestTransfer
+  const olderTransfers = transfersHaveMore.value && oldestTransfer >= oldestMessage
+  if (!olderMessages && !olderTransfers) return
   const box = scroller.value
   followNewest = false
   placeFromBottom = box ? box.scrollHeight - box.scrollTop : null
@@ -501,10 +605,15 @@ const loadOlder = async (event) => {
   loadingOlder.value = true
   olderFailed.value = false
   try {
-    await fetchMore({
-      variables: { before: Math.min(...messages.value.map((message) => message.id)) },
-      updateQuery: withOlderPage,
-    })
+    await Promise.all([
+      olderMessages
+        ? fetchMore({
+            variables: { before: Math.min(...messages.value.map((message) => message.id)) },
+            updateQuery: withOlderPage,
+          })
+        : null,
+      olderTransfers ? loadOlderTransfers() : null,
+    ])
   } catch {
     olderFailed.value = true
     placeFromBottom = null

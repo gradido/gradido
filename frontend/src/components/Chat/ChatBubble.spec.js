@@ -777,6 +777,79 @@ describe('ChatBubble', () => {
    * in the room its size gives it before it has come; its caption under it in the same bubble; a
    * tap opens it large.
    */
+  /**
+   * A transfer between the two (ChatThread, Bernd, 28.09.2026): "formatiert wie eine E-Mail, nur
+   * etwas kürzer" -- the mail's words bold behind the coin, the booking's memo under them, on the
+   * side of whoever sent it.
+   */
+  describe('a transfer', () => {
+    const TRANSFER = {
+      key: 'transfer-12',
+      transfer: true,
+      mine: false,
+      createdAt: '2026-09-28T07:41:00.000Z',
+      subject: 'Lena hat Dir 10,00 Gradido gesendet',
+      body: 'Danke für den **Rosmarin**: https://x.org/rezept',
+    }
+
+    it('shows the mail’s words bold behind the coin, and the memo under them', () => {
+      mountBubble(TRANSFER)
+      const row = wrapper.find('[data-test="chat-bubble"]')
+      expect(row.classes()).toEqual(
+        expect.arrayContaining(['chat-bubble-transfer', 'chat-bubble-theirs']),
+      )
+      const head = wrapper.find('[data-test="chat-bubble-subject"]')
+      expect(head.classes()).toContain('chat-bubble-transfer-head')
+      expect(head.text()).toBe('Lena hat Dir 10,00 Gradido gesendet')
+      const coin = head.find('svg.chat-transfer-coin')
+      expect(coin.attributes('aria-hidden')).toBe('true')
+      expect(coin.html()).toContain('currentColor')
+      expect(wrapper.find('[data-test="chat-bubble-time"]').text()).toBe(
+        'time(2026-09-28T07:41:00.000Z)',
+      )
+    })
+
+    // The booking's text as the booking list shows it: its address a link, its stars stars.
+    it('shows the memo as the booking list does, not as a chat message', () => {
+      mountBubble(TRANSFER)
+      const memo = wrapper.find('.chat-bubble-text')
+      expect(memo.classes()).toContain('memo-text')
+      expect(memo.text()).toBe('Danke für den **Rosmarin**: https://x.org/rezept')
+      expect(memo.find('a').attributes('href')).toBe('https://x.org/rezept')
+      expect(memo.find('strong').exists()).toBe(false)
+      expect(wrapper.find('.chat-message-text').exists()).toBe(false)
+    })
+
+    it('stands on one’s own side where one sent it, without a word about a mail', () => {
+      mountBubble({ ...TRANSFER, mine: true, subject: 'Du hast Lena 10,00 Gradido gesendet' })
+      expect(wrapper.find('[data-test="chat-bubble"]').classes()).toContain('chat-bubble-mine')
+      expect(wrapper.find('[data-test="chat-bubble-writer"]').text()).toBe('chatThread.you:')
+      expect(wrapper.find('[data-test="envelope"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="chat-bubble-state"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="chat-bubble-not-mailed"]').exists()).toBe(false)
+    })
+
+    it('keeps an ordinary message as it was: no coin, its own text', () => {
+      mountBubble({ ...OWN, subject: 'Samstag' })
+      expect(wrapper.find('[data-test="chat-bubble"]').classes()).not.toContain(
+        'chat-bubble-transfer',
+      )
+      expect(wrapper.find('svg.chat-transfer-coin').exists()).toBe(false)
+      expect(wrapper.find('.chat-message-text').exists()).toBe(true)
+    })
+
+    it('puts the coin on the first line of the words, in the stylesheet', () => {
+      const code = readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
+        'utf8',
+      ).replace(/\/\*[\s\S]*?\*\//g, '')
+      expect(code).toMatch(
+        /\.chat-bubble-transfer-head\s*\{[^}]*display:\s*flex;[^}]*align-items:\s*flex-start/,
+      )
+      expect(code).toMatch(/\.chat-transfer-coin\s*\{[^}]*width:\s*1\.35em;[^}]*height:\s*1\.35em/)
+    })
+  })
+
   describe('a message with a picture', () => {
     const PICTURE = { imageUuid: 'image-7', width: 800, height: 600 }
     const WITH = { ...THEIRS, body: 'So sieht unser Stand aus.', images: [PICTURE] }
